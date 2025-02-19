@@ -2,44 +2,42 @@
 
 #include <zListingO/Lister.h>
 
+namespace FileIO { class TextFile; }
+namespace Listing { class TextLister; class ProcessSummaryFormatter; }
 
-namespace Listing
+
+class Listing::TextLister : public Lister
 {
-    class ProcessSummaryFormatter;
+public:
+    TextLister(std::shared_ptr<ProcessSummary> process_summary, const std::string& file_path, bool append, const PFF& pff);
+    ~TextLister();
 
-    class TextLister : public Lister
-    {
-    public:
-        TextLister(std::shared_ptr<ProcessSummary> process_summary, const std::wstring& filename, bool append, const PFF& pff);
-        ~TextLister();
+    void WriteHeader(const std::vector<HeaderAttribute>& header_attributes) override;
 
-        void WriteHeader(const std::vector<HeaderAttribute>& header_attributes) override;
+protected:
+    void WriteMessages(const Messages& messages) override;
 
-    protected:
-        void WriteMessages(const Messages& messages) override;
+    bool IssueMultipleLevelMessagesTogether() const override { return false; }
 
-        bool IssueMultipleLevelMessagesTogether() const override { return false; }
+    void ProcessCaseSource(const Case* data_case) override;
 
-        void ProcessCaseSource(const Case* data_case) override;
+    void WriteMessageSummaries(const std::vector<MessageSummary>& message_summaries) override;
 
-        void WriteMessageSummaries(const std::vector<MessageSummary>& message_summaries) override;
+    void WriteWarningAboutApplicationErrors(const std::string& application_errors_path) override;
 
-        void WriteWarningAboutApplicationErrors(const std::wstring& application_errors_filename) override;
+    void UpdateProcessSummary() override;
 
-        void UpdateProcessSummary() override;
+    void WriteFooter() override;
 
-        void WriteFooter() override;
+    std::optional<std::tuple<bool, ListingType, void*>> GetFrequencyPrinter() override;
 
-        std::optional<std::tuple<bool, ListingType, void*>> GetFrequencyPrinter() override;
+private:
+    std::unique_ptr<FileIO::TextFile> m_textFile;
+    size_t m_listingWidth;
+    size_t m_wrapMessages;
+    bool m_messagesAreFromCase;
 
-    private:
-        std::unique_ptr<CStdioFileUnicode> m_file;
-        size_t m_listingWidth;
-        size_t m_wrapMessages;
-        bool m_messagesAreFromCase;
-
-        bool m_writeProcessSummaryAndMessages;
-        std::optional<ULONGLONG> m_endTimePosition;
-        std::unique_ptr<ProcessSummaryFormatter> m_processSummaryFormatter;
-    };
-}
+    bool m_writeProcessSummaryAndMessages;
+    std::optional<int64_t> m_endTimePosition;
+    std::unique_ptr<ProcessSummaryFormatter> m_processSummaryFormatter;
+};

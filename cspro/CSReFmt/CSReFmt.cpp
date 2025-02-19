@@ -39,8 +39,8 @@ BOOL CReFmtApp::InitInstance()
 
             if( !pff.LoadPifFile() || pff.GetAppType() != REFORMAT_TYPE )
             {
-                throw CSProException(_T("PFF file '%s' was not read correctly. Check the file for parameters invalid to the Reformat Data tool."),
-                                     cmdInfo.m_strFileName.GetString());
+                throw CSProException("PFF file '%s' was not read correctly. Check the file for parameters invalid to the Reformat Data tool.",
+                                     UTF8_TODO::GetUtf8(cmdInfo.m_strFileName).c_str());
             }
 
             ToolReformatter().Run(pff, true);

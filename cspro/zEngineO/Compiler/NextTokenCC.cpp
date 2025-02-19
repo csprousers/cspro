@@ -50,7 +50,7 @@ void LogicCompiler::ProcessSymbolEngineItem(EngineItem& engine_item)
         symbol_subscript_compilation = process_dot_notation_function ? -1 :
                                                                        CompileItemSubscriptImplicit(engine_item, Logic::FunctionDetails::StaticType::NeverStatic);
     }
- 
+
     // process a function if using dot notation
     if( process_dot_notation_function )
     {
@@ -59,13 +59,13 @@ void LogicCompiler::ProcessSymbolEngineItem(EngineItem& engine_item)
 
         // the function can be belong to the symbol, or to the symbol's wrapped type
         if( next_basic_token != nullptr && next_basic_token->type == Logic::BasicToken::Type::Text &&
-            Logic::FunctionTable::IsFunction(next_basic_token->GetTextSV(), engine_item, &function_details) )
+            Logic::FunctionTable::IsFunction(next_basic_token->GetSV(), engine_item, &function_details) )
         {
             // if necessary, compile an implicit subscript for non-static functions
             if( symbol_subscript_compilation == -1 && function_details->static_type != Logic::FunctionDetails::StaticType::AlwaysStatic )
                 CompileItemSubscriptImplicit(engine_item, function_details->static_type);
 
-            GetCurrentToken().reset(TokenCode::TOKFUNCTION, next_basic_token->GetTextSV());
+            GetCurrentToken().reset(TokenCode::TOKFUNCTION, next_basic_token->GetSV());
 
             GetCurrentToken().function_details = function_details;
 
@@ -78,7 +78,7 @@ void LogicCompiler::ProcessSymbolEngineItem(EngineItem& engine_item)
 
         else
         {
-            IssueError(93003, engine_item.GetName().c_str(), ( next_basic_token != nullptr ) ? next_basic_token->GetText().c_str() : _T(""));
+            IssueError(93003, engine_item.GetName().c_str(), ( next_basic_token != nullptr ) ? next_basic_token->GetText().c_str() : "");
         }
     }
 
@@ -199,7 +199,7 @@ std::optional<SymbolType> LogicCompiler::GetNextTokenSymbolType()
 
         NextToken();
 
-        auto set_if_not_followed_by_left_parenthesis = [&](auto type)
+        auto set_if_not_followed_by_left_parenthesis = [&](const SymbolType type)
         {
             if( !NextKeywordIf(TOKLPAREN) )
                 symbol_type = type;

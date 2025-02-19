@@ -4,7 +4,8 @@
     <string name="activity_case_list_name" translatable="false">Case Listing</string>
     <string name="activity_entry" translatable="false">Entry</string>
     <string name="deeplink_host" translatable="false">www.csprousers.org</string>
-    <string name="deeplink_path_prefix" translatable="false">/apps/</string>
+    <string name="deeplink_apps_path_prefix" translatable="false">/apps/</string>
+    <string name="deeplink_pff_path_prefix" translatable="false">/pff/</string>
     <string name="deeplink_https_scheme" translatable="false">https</string>
     <string name="deeplink_http_scheme" translatable="false">http</string>
     <string name="app_placeholder_1" translatable="false">Place Holder 1</string>

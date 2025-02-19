@@ -12,10 +12,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C894A0DE-ABF6-463E-AE82-85F6A6B1CF71}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>zDataCLR</RootNamespace>
@@ -82,38 +78,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CaseSummary.h" />
-    <ClInclude Include="Case.h" />
-    <ClInclude Include="DataRepository.h" />
-    <ClInclude Include="DataViewerCaseConstructionReporter.h" />
-    <ClInclude Include="DataViewerController.h" />
-    <ClInclude Include="DataViewerHtmlProvider.h" />
     <ClInclude Include="Excel2CSProSpec.h" />
     <ClInclude Include="Excel2CSProWorker.h" />
-    <ClInclude Include="Exporter.h" />
-    <ClInclude Include="NotesExtractor.h" />
-    <ClInclude Include="RepositoryConverter.h" />
     <ClInclude Include="Stdafx.h" />
-    <ClInclude Include="SyncHistoryEntry.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="Case.cpp" />
-    <ClCompile Include="CaseSummary.cpp" />
-    <ClCompile Include="DataRepository.cpp" />
-    <ClCompile Include="DataViewerController.cpp" />
-    <ClCompile Include="DataViewerHtmlProvider.cpp" />
-    <ClCompile Include="DataViewerSettings.cpp" />
     <ClCompile Include="Excel2CSProSpec.cpp" />
     <ClCompile Include="Excel2CSProWorker.cpp" />
-    <ClCompile Include="Exporter.cpp" />
-    <ClCompile Include="NotesExtractor.cpp" />
-    <ClCompile Include="RepositoryConverter.cpp" />
     <ClCompile Include="Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SyncHistoryEntry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
@@ -152,6 +128,10 @@
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
@@ -164,9 +144,6 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="DataViewerSettings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

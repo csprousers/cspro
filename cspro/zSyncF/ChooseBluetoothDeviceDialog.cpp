@@ -1,42 +1,12 @@
-﻿// ChooseBluetoothDeviceDialog.cpp : implementation file
-//
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "ChooseBluetoothDeviceDialog.h"
 #include <zUtilO/CustomFont.h>
 #include <zUtilO/Interapp.h>
-#include <zSyncO/WinBluetoothAdapter.h>
-#include <zSyncO/SyncException.h>
+#include <zNetwork/SyncException.h>
 #include <zSyncO/WinBluetoothScanner.h>
-#include <thread>
-#include <atomic>
-#include <future>
 
-
-// ChooseBluetoothDeviceDialog dialog
 
 IMPLEMENT_DYNAMIC(ChooseBluetoothDeviceDialog, CDialog)
-
-ChooseBluetoothDeviceDialog::ChooseBluetoothDeviceDialog(IBluetoothAdapter* pAdapter,
-    CWnd* pParent /*=NULL*/)
-    : m_pAdapter((WinBluetoothAdapter*) pAdapter),
-      m_pFont(nullptr),
-      CDialog(IDD_CHOOSE_BLUETOOTH_DEVICE, pParent)
-{
-
-}
-
-ChooseBluetoothDeviceDialog::~ChooseBluetoothDeviceDialog()
-{
-}
-
-void ChooseBluetoothDeviceDialog::DoDataExchange(CDataExchange* pDX)
-{
-    CDialog::DoDataExchange(pDX);
-    DDX_Control(pDX, IDC_DEVICES, m_deviceList);
-    DDX_Control(pDX, IDC_STATIC_PROMPT, m_promptStatic);
-}
-
 
 BEGIN_MESSAGE_MAP(ChooseBluetoothDeviceDialog, CDialog)
     ON_MESSAGE(UWM::Sync::BluetoothUpdateDeviceList, OnUpdateDeviceList)
@@ -45,11 +15,32 @@ BEGIN_MESSAGE_MAP(ChooseBluetoothDeviceDialog, CDialog)
 END_MESSAGE_MAP()
 
 
-// ChooseBluetoothDeviceDialog message handlers
+ChooseBluetoothDeviceDialog::ChooseBluetoothDeviceDialog(WinBluetoothAdapter* const pAdapter, CWnd* const pParent/* = nullptr*/)
+    :   CDialog(IDD_CHOOSE_BLUETOOTH_DEVICE, pParent),
+        m_pAdapter(pAdapter),
+        m_pFont(nullptr)    
+{
+    ASSERT(m_pAdapter != nullptr);
+}
+
+
+ChooseBluetoothDeviceDialog::~ChooseBluetoothDeviceDialog()
+{
+}
+
+
+void ChooseBluetoothDeviceDialog::DoDataExchange(CDataExchange* pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Control(pDX, IDC_DEVICES, m_deviceList);
+    DDX_Control(pDX, IDC_STATIC_PROMPT, m_promptStatic);
+}
+
 
 BOOL ChooseBluetoothDeviceDialog::OnInitDialog()
 {
-    BOOL bRet = CDialog::OnInitDialog();
+    BOOL bRet = __super::OnInitDialog();
     if (!bRet)
         return bRet;
 
@@ -57,12 +48,12 @@ BOOL ChooseBluetoothDeviceDialog::OnInitDialog()
 
     LayoutControls();
 
-    WinBluetoothScanner* pScanner = m_pAdapter->scanner();
+    WinBluetoothScanner* pScanner = m_pAdapter->GetScanner();
 
     // Use last cached scan result if available
     m_lastScanResult = pScanner->getLastScanResult();
-    for (BluetoothDeviceInfo device : m_lastScanResult) {
-        m_deviceList.InsertString(m_deviceList.GetCount(), device.csName);
+    for (const BluetoothDeviceInfo& device : m_lastScanResult) {
+        m_deviceList.InsertString(m_deviceList.GetCount(), TC::ToWide(device.name).c_str());
     }
 
     // Run a new scan in background that will continously update list with
@@ -78,29 +69,26 @@ BOOL ChooseBluetoothDeviceDialog::OnInitDialog()
     return bRet;
 }
 
-bool ChooseBluetoothDeviceDialog::Show(BluetoothDeviceInfo& deviceInfo)
+
+std::optional<BluetoothDeviceInfo> ChooseBluetoothDeviceDialog::ChooseBluetoothDevice()
 {
     // Run the modal dialog loop - scan is started in OnInitDialog
     // If a device is selected it will be set in m_selectedDevice
-    auto result = DoModal();
+    const INT_PTR result = DoModal();
 
     // Stop scanning
-    WinBluetoothScanner* pScanner = m_pAdapter->scanner();
+    WinBluetoothScanner* pScanner = m_pAdapter->GetScanner();
     pScanner->stopScan();
     pScanner->setResultCallback(std::function<void(const WinBluetoothScanner::DeviceList&)>());
     pScanner->setErrorCallback(std::function<void(const SyncError&)>());
 
-    if (m_pScanError)
-        throw SyncError(m_pScanError->m_errorCode, WS2CS(m_pScanError->GetErrorMessage()));
+    if( m_pScanError )
+        throw SyncError(m_pScanError->GetErrorMessageNumber(), *m_pScanError);
 
-    if (result == IDOK) {
-        deviceInfo = m_selectedDevice;
-        return true;
-    }
-    else {
-        return false;
-    }
+    return ( result == IDOK ) ? std::make_optional(m_selectedDevice) :
+                                std::nullopt;
 }
+
 
 void ChooseBluetoothDeviceDialog::OnLbnSelchangeDevices()
 {
@@ -112,18 +100,20 @@ void ChooseBluetoothDeviceDialog::OnLbnSelchangeDevices()
     }
 }
 
+
 LRESULT ChooseBluetoothDeviceDialog::OnUpdateDeviceList(WPARAM wParam, LPARAM /*lParam*/)
 {
     WinBluetoothScanner::DeviceList* pDevicesFound = reinterpret_cast<WinBluetoothScanner::DeviceList*>(wParam);
     m_deviceList.ResetContent();
     m_lastScanResult = *pDevicesFound;
-    for (BluetoothDeviceInfo &device : m_lastScanResult) {
-        m_deviceList.InsertString(m_deviceList.GetCount(), device.csName);
+    for (const BluetoothDeviceInfo& device : m_lastScanResult) {
+        m_deviceList.InsertString(m_deviceList.GetCount(), TC::ToWide(device.name).c_str());
     }
 
     delete pDevicesFound;
     return 0;
 }
+
 
 LRESULT ChooseBluetoothDeviceDialog::OnScanError(WPARAM wParam, LPARAM /*lParam*/)
 {
@@ -131,6 +121,7 @@ LRESULT ChooseBluetoothDeviceDialog::OnScanError(WPARAM wParam, LPARAM /*lParam*
     m_pScanError = std::unique_ptr<SyncError>(reinterpret_cast<SyncError*>(wParam));
     return 0;
 }
+
 
 void ChooseBluetoothDeviceDialog::SetUpFont()
 {
@@ -151,6 +142,7 @@ void ChooseBluetoothDeviceDialog::SetUpFont()
         MAKELONG(FALSE, 0),
         FALSE);
 }
+
 
 void ChooseBluetoothDeviceDialog::LayoutControls()
 {

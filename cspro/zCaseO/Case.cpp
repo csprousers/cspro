@@ -4,44 +4,55 @@
 #include "CaseConstructionHelpers.h"
 
 
+// --------------------------------------------------------------------------
+// CaseMetadata
+// --------------------------------------------------------------------------
+
 CaseMetadata::CaseMetadata(const CDataDict& dictionary, const CaseAccess& case_access)
-    :   m_dictionary(dictionary)
+    :   m_dictionary(dictionary),
+        m_totalNumberRecords(0),
+        m_totalNumberCaseItems(0),
+        m_totalNumberBinaryCaseItems(0)
 {
-    // the tuple is: record count (for this level), total record count, total case item count, total binary case item count
-    std::tuple<size_t, size_t, size_t, size_t> attribute_counter(0, 0, 0, 0);
+    // the tuple is: total record count, total case item count, total binary case item count
+    std::tuple<size_t&, size_t&, size_t&> attribute_counter(m_totalNumberRecords, m_totalNumberCaseItems, m_totalNumberBinaryCaseItems);
 
     for( const DictLevel& dict_level : dictionary.GetLevels() )
-        m_caseLevelsMetadata.emplace_back(new CaseLevelMetadata(*this, dict_level, case_access, attribute_counter));
+        m_caseLevelsMetadata.emplace_back(CaseLevelMetadata(*this, dict_level, case_access, attribute_counter));
 
     ASSERT(!m_caseLevelsMetadata.empty());
 
-    m_totalNumberRecords = std::get<1>(attribute_counter);
-    m_totalNumberCaseItems = std::get<2>(attribute_counter);
-    m_totalNumberBinaryCaseItems = std::get<3>(attribute_counter);
-}
-
-
-CaseMetadata::~CaseMetadata()
-{
-    safe_delete_vector_contents(m_caseLevelsMetadata);
-}
-
-
-const CaseLevelMetadata* CaseMetadata::FindCaseLevelMetadata(wstring_view level_name) const
-{
-    const auto case_level_metadata_search = std::find_if(m_caseLevelsMetadata.cbegin(),
-        m_caseLevelsMetadata.cend(), [&](const auto& case_level_metadata)
-        { return SO::Equals(case_level_metadata->GetDictLevel().GetName(), level_name); });
-
-    return ( case_level_metadata_search == m_caseLevelsMetadata.cend() ) ? nullptr : *case_level_metadata_search;
-}
-
-
-const CaseRecordMetadata* CaseMetadata::FindCaseRecordMetadata(wstring_view record_name) const
-{
-    for( const CaseLevelMetadata* case_level_metadata : m_caseLevelsMetadata )
+    // update the pointers
+    for( CaseLevelMetadata& case_level_metadata : m_caseLevelsMetadata )
     {
-        const CaseRecordMetadata* case_record_metadata = case_level_metadata->FindCaseRecordMetadata(record_name);
+        ASSERT(case_level_metadata.m_caseMetadata == this);
+
+        case_level_metadata.ForeachCaseRecordMetadata(
+            [&](CaseRecordMetadata& case_record_metadata)
+            {
+                case_record_metadata.m_caseLevelMetadata = &case_level_metadata;
+            });
+    }
+}
+
+
+const CaseLevelMetadata* CaseMetadata::FindCaseLevelMetadata(const std::string_view level_name_sv) const
+{
+    for( const CaseLevelMetadata& case_level_metadata : m_caseLevelsMetadata )
+    {
+        if( case_level_metadata.GetDictLevel().GetName() == level_name_sv )
+            return &case_level_metadata;
+    }
+
+    return nullptr;
+}
+
+
+const CaseRecordMetadata* CaseMetadata::FindCaseRecordMetadata(const std::string_view record_name_sv) const
+{
+    for( const CaseLevelMetadata& case_level_metadata : m_caseLevelsMetadata )
+    {
+        const CaseRecordMetadata* case_record_metadata = case_level_metadata.FindCaseRecordMetadata(record_name_sv);
 
         if( case_record_metadata != nullptr )
             return case_record_metadata;
@@ -51,102 +62,104 @@ const CaseRecordMetadata* CaseMetadata::FindCaseRecordMetadata(wstring_view reco
 }
 
 
-const CaseItem* CaseMetadata::FindCaseItem(wstring_view item_name) const
+const CaseItem* CaseMetadata::FindCaseItem(const std::string_view item_name_sv) const
 {
-    const CaseItem* found_case_item;
+    const CaseItem* found_case_item = nullptr;
 
-    auto search_for_case_item = [&](const CaseRecordMetadata* case_record_metadata)
+    for( const CaseLevelMetadata& case_level_metadata : m_caseLevelsMetadata )
     {
-        for( const CaseItem* case_item : case_record_metadata->GetCaseItems() )
-        {
-            if( SO::Equals(case_item->GetDictionaryItem().GetName(), item_name) )
+        case_level_metadata.ForeachCaseRecordMetadata(
+            [&](const CaseRecordMetadata& case_record_metadata)
             {
-                found_case_item = case_item;
+                for( const CaseItem* const case_item : case_record_metadata.GetCaseItems() )
+                {
+                    if( case_item->GetDictItem().GetName() == item_name_sv )
+                    {
+                        found_case_item = case_item;
+                        return false;
+                    }
+                }
+
                 return true;
-            }
-        }
-
-        return false;
-    };
-
-    for( const CaseLevelMetadata* case_level_metadata : m_caseLevelsMetadata )
-    {
-        if( search_for_case_item(case_level_metadata->GetIdCaseRecordMetadata()) )
-            return found_case_item;
-
-        for( const CaseRecordMetadata* case_record_metadata : case_level_metadata->GetCaseRecordsMetadata() )
-        {
-            if( search_for_case_item(case_record_metadata) )
-                return found_case_item;
-        }
+            });
     }
 
-    return nullptr;
+    return found_case_item;
 }
 
 
 
+// --------------------------------------------------------------------------
+// CaseKey
+// --------------------------------------------------------------------------
+
+std::string CaseKey::GetSingleLineKey() const
+{
+    // turn \n -> ␤
+    return NewlineSubstitutor::NewlineToUnicodeNL(GetKey());
+}
+
+
+
+// --------------------------------------------------------------------------
+// CaseSummary
+// --------------------------------------------------------------------------
+
+std::string CaseSummary::GetSingleLineCaseLabel() const
+{
+    // turn \n -> ␤
+    return NewlineSubstitutor::NewlineToUnicodeNL(GetCaseLabel());
+}
+
+
+
+// --------------------------------------------------------------------------
+// Case
+// --------------------------------------------------------------------------
+
 Case::Case(const CaseMetadata& case_metadata)
     :   m_caseMetadata(case_metadata),
-        m_rootCaseLevel(new CaseLevel(*this, *case_metadata.m_caseLevelsMetadata.front(), nullptr))
+        m_rootCaseLevel(*this, m_caseMetadata.m_caseLevelsMetadata.front(), nullptr)
 {
     // have the root case level start in a proper state after construction
     Reset();
 }
 
 
-Case::~Case()
+Case::~Case() // CR_TODO can remove once the Pre74_Case-related unique_ptrs are gone
 {
-    delete m_rootCaseLevel;
-}
-
-
-void Case::Reset()
-{
-    if( m_pre74Case != nullptr )
-        m_pre74Case->Reset();
-
-    m_rootCaseLevel->Reset();
-
-    m_positionInRepository = -1;
-    m_uuid.Empty();
-    m_caseLabel.Empty();
-    m_deleted = false;
-    m_verified = false;
-    m_partialSaveMode = PartialSaveMode::None;
-    m_partialSaveCaseItemReference.reset();
-    m_notes.clear();
-    m_vectorClock.clear();
 }
 
 
 Case& Case::operator=(const Case& rhs)
 {
+    ASSERT(&m_caseMetadata == &rhs.m_caseMetadata);
+
     Reset();
 
     // copy the case data using the binary representation of the data
-    std::function<void(CaseRecord&, const CaseRecord&)> copy_case_record =
+    const std::function<void(CaseRecord&, const CaseRecord&)> copy_case_record =
         [](CaseRecord& lhs_case_record, const CaseRecord& rhs_case_record)
-    {
-        lhs_case_record.SetNumberOccurrences(rhs_case_record.GetNumberOccurrences());
+        {
+            lhs_case_record.SetNumberOccurrences(rhs_case_record.GetNumberOccurrences());
 
-        for( size_t record_occurrence = 0; record_occurrence < rhs_case_record.GetNumberOccurrences(); ++record_occurrence )
-            lhs_case_record.CopyValues(rhs_case_record, record_occurrence);
-    };
+            for( size_t record_occurrence = 0; record_occurrence < rhs_case_record.GetNumberOccurrences(); ++record_occurrence )
+                lhs_case_record.CopyValues(rhs_case_record, record_occurrence);
+        };
 
-    std::function<void(CaseLevel&, const CaseLevel&)> copy_case_level =
+    const std::function<void(CaseLevel&, const CaseLevel&)> copy_case_level =
         [&copy_case_record, &copy_case_level](CaseLevel& lhs_case_level, const CaseLevel& rhs_case_level)
-    {
-        copy_case_record(lhs_case_level.GetIdCaseRecord(), rhs_case_level.GetIdCaseRecord());
+        {
+            copy_case_record(lhs_case_level.GetIdCaseRecord(), rhs_case_level.GetIdCaseRecord());
 
-        for( size_t record_number = 0; record_number < rhs_case_level.GetNumberCaseRecords(); ++record_number )
-            copy_case_record(lhs_case_level.GetCaseRecord(record_number), rhs_case_level.GetCaseRecord(record_number));
+            for( size_t record_number = 0; record_number < rhs_case_level.GetNumberCaseRecords(); ++record_number )
+                copy_case_record(lhs_case_level.GetCaseRecord(record_number), rhs_case_level.GetCaseRecord(record_number));
 
-        for( size_t level_index = 0; level_index < rhs_case_level.GetNumberChildCaseLevels(); ++level_index )
-            copy_case_level(lhs_case_level.AddChildCaseLevel(), rhs_case_level.GetChildCaseLevel(level_index));
-    };
+            for( size_t level_index = 0; level_index < rhs_case_level.GetNumberChildCaseLevels(); ++level_index )
+                copy_case_level(lhs_case_level.AddChildCaseLevel(), rhs_case_level.GetChildCaseLevel(level_index));
+        };
 
-    copy_case_level(*m_rootCaseLevel, *rhs.m_rootCaseLevel);
+    copy_case_level(m_rootCaseLevel, rhs.m_rootCaseLevel);
 
     // copy over any other attributes
     m_positionInRepository = rhs.m_positionInRepository;
@@ -163,46 +176,153 @@ Case& Case::operator=(const Case& rhs)
 }
 
 
-void Case::AddRequiredRecords(bool report_additions_using_case_construction_reporter/* = false*/)
+bool Case::Equals(const Case& rhs, const bool compare_vector_clock/* = true*/) const
 {
-    report_additions_using_case_construction_reporter |= ( m_caseConstructionReporter != nullptr );
-
-    std::function<void(CaseLevel&)> add_required_records = [&](CaseLevel& case_level)
+    if( m_uuid != rhs.m_uuid ||
+        m_caseLabel != rhs.m_caseLabel ||
+        m_deleted != rhs.m_deleted ||
+        m_verified != rhs.m_verified ||
+        m_partialSaveMode != rhs.m_partialSaveMode ||
+        !NamedReference::AreEqual(m_partialSaveCaseItemReference.get(), rhs.m_partialSaveCaseItemReference.get()) ||
+        m_notes.size() != rhs.m_notes.size() ||
+        ( compare_vector_clock && m_vectorClock != rhs.m_vectorClock ) ||
+        m_rootCaseLevel != rhs.m_rootCaseLevel )
     {
-        for( size_t record_number = 0; record_number < case_level.GetNumberCaseRecords(); ++record_number )
-        {
-            CaseRecord& case_record = case_level.GetCaseRecord(record_number);
+        return false;
+    }
 
-            if( case_record.GetNumberOccurrences() == 0 && case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetRequired() )
-            {
-                if( report_additions_using_case_construction_reporter )
-                    m_caseConstructionReporter->BlankRecordAdded(GetKey(), case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetName());
+    // notes do not need to be in the same order
+    for( const Note& note : m_notes )
+    {
+        if( std::find(rhs.m_notes.cbegin(), rhs.m_notes.cend(), note) == rhs.m_notes.cend() )
+            return false;
+    }
 
-                case_record.SetNumberOccurrences(1);
-            }
-
-            for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )
-                add_required_records(case_level.GetChildCaseLevel(level_index));
-        }
-    };
-
-    add_required_records(*m_rootCaseLevel);
+    return true;
 }
 
 
-const CString& Case::GetOrCreateUuid()
+void Case::Reset()
 {
-    if( m_uuid.IsEmpty() )
-        m_uuid = WS2CS(CreateUuid());
+    if( m_pre74Case != nullptr )
+        m_pre74Case->Reset();
+
+    m_rootCaseLevel.Reset();
+
+    m_positionInRepository = -1;
+    m_uuid.clear();
+    m_caseLabel.clear();
+    m_deleted = false;
+    m_verified = false;
+    m_partialSaveMode = PartialSaveMode::None;
+    m_partialSaveCaseItemReference.reset();
+    m_notes.clear();
+    m_vectorClock.clear();
+}
+
+
+void Case::SetKey(std::string /*key*/)
+{
+    // the key must be set by modifying case items directly
+    throw ProgrammingErrorException();
+}
+
+
+template<typename T>
+void Case::GetAllCaseLevelsWorker(std::vector<T*>& case_levels, T& case_level) const
+{
+    case_levels.emplace_back(&case_level);
+
+    for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )
+        GetAllCaseLevelsWorker(case_levels, case_level.GetChildCaseLevel(level_index));
+}
+
+
+std::vector<const CaseLevel*> Case::GetAllCaseLevels() const
+{
+    std::vector<const CaseLevel*> case_levels;
+    GetAllCaseLevelsWorker<const CaseLevel>(case_levels, m_rootCaseLevel);
+    return case_levels;
+}
+
+
+std::vector<CaseLevel*> Case::GetAllCaseLevels()
+{
+    std::vector<CaseLevel*> case_levels;
+    GetAllCaseLevelsWorker<CaseLevel>(case_levels, m_rootCaseLevel);
+    return case_levels;
+}
+
+
+void Case::AddRequiredRecords(bool report_additions_using_case_construction_reporter)
+{
+    if( report_additions_using_case_construction_reporter && m_caseConstructionReporter == nullptr )
+        report_additions_using_case_construction_reporter = false;
+
+    const std::function<void(CaseLevel&)> add_required_records =
+        [&](CaseLevel& case_level)
+        {
+            for( size_t record_number = 0; record_number < case_level.GetNumberCaseRecords(); ++record_number )
+            {
+                CaseRecord& case_record = case_level.GetCaseRecord(record_number);
+
+                if( case_record.GetNumberOccurrences() == 0 && case_record.GetCaseRecordMetadata().GetDictRecord().GetRequired() )
+                {
+                    if( report_additions_using_case_construction_reporter )
+                        m_caseConstructionReporter->BlankRecordAdded(GetKey(), case_record.GetCaseRecordMetadata().GetDictRecord().GetName());
+
+                    case_record.SetNumberOccurrences(1);
+                }
+
+                for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )
+                    add_required_records(case_level.GetChildCaseLevel(level_index));
+            }
+        };
+
+    add_required_records(m_rootCaseLevel);
+}
+
+
+const std::string& Case::GetOrCreateUuid()
+{
+    if( m_uuid.empty() )
+        m_uuid = CreateUuid();
 
     return m_uuid;
 }
 
 
-const CString& Case::GetCaseNote() const
+void Case::SetPartialSaveStatus(const PartialSaveMode mode, std::shared_ptr<CaseItemReference> case_item_reference/* = nullptr*/)
 {
-    return m_notes.empty() ? SO::EmptyCString :
-                             CaseConstructionHelpers::LookupCaseNote(m_caseMetadata.GetDictionary().GetName(), m_notes);
+    ASSERT(( mode != PartialSaveMode::None ) == ( case_item_reference != nullptr ));
+
+    SetPartialSaveMode(mode);
+    m_partialSaveCaseItemReference = std::move(case_item_reference);
+}
+
+
+const std::string& Case::GetCaseNote() const
+{
+    const std::string* const case_note = CaseConstructionHelpers::LookupCaseNote(m_caseMetadata.GetDictionary().GetName(), &m_notes);
+
+    if( case_note != nullptr )
+        return *case_note;
+
+    return SO::Empty_string;
+}
+
+
+void Case::SetCaseNote(std::string /*case_note*/)
+{
+    // the case note must be set by modifying the notes directly
+    throw ProgrammingErrorException();
+}
+
+
+void Case::ResetCaseNote()
+{
+    // the case note must be set by modifying the notes directly
+    throw ProgrammingErrorException();
 }
 
 
@@ -223,9 +343,9 @@ void Case::ForeachDefinedBinaryCaseItemWorker(const CF& callback_function) const
 
                 for( size_t record_occurrence = 0; record_occurrence < case_record.GetNumberOccurrences(); ++record_occurrence )
                 {
-                    for( const CaseItem* case_item : case_record.GetCaseItems() )
+                    for( const CaseItem* const case_item : case_record.GetCaseItems() )
                     {
-                        if( !case_item->IsTypeBinary() )
+                        if( !IsBinary(case_item->GetDataType()) )
                             continue;
 
                         const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(*case_item);
@@ -237,11 +357,16 @@ void Case::ForeachDefinedBinaryCaseItemWorker(const CF& callback_function) const
                              index.IncrementItemSubitemOccurrence(*case_item) )
                         {
                             if( !binary_case_item.IsBlank(index) )
-                                callback_function(binary_case_item, index);
+                            {
+                                if( !CallbackFunctionProcessor::KeepProcessing(callback_function, binary_case_item, index) )
+                                    return false;
+                            }
                         }
                     }
                 }
             }
+
+            return true;
         });
 }
 
@@ -258,6 +383,24 @@ void Case::ForeachDefinedBinaryCaseItem(const std::function<void(const BinaryCas
 }
 
 
+bool Case::HasDefinedBinaryData() const
+{
+    if( !m_caseMetadata.UsesBinaryData() )
+        return false;
+
+    bool keep_processing_to_find_binary_data = true;
+
+    ForeachDefinedBinaryCaseItemWorker(
+        [&](const BinaryCaseItem& /*binary_case_item*/, const CaseItemIndex& /*index*/)
+        {
+            keep_processing_to_find_binary_data = false;
+            return keep_processing_to_find_binary_data;
+        });
+
+    return !keep_processing_to_find_binary_data;
+}
+
+
 void Case::LoadAllBinaryData()
 {
     if( !m_caseMetadata.UsesBinaryData() )
@@ -266,18 +409,19 @@ void Case::LoadAllBinaryData()
     ForeachDefinedBinaryCaseItem(
         [](const BinaryCaseItem& binary_case_item, CaseItemIndex& index)
         {
-            BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+            const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
             ASSERT(binary_data_accessor.IsDefined());
 
             try
             {
                 binary_data_accessor.GetBinaryData();
+                ASSERT(binary_data_accessor.GetBinaryContentReader() == nullptr);
             }
 
             catch(...)
             {
                 // if the data could not be loaded, clear the content
-                binary_data_accessor.Clear();
+                binary_case_item.Clear(index);
             }
         });
 }
@@ -299,9 +443,9 @@ Pre74_Case* Case::GetPre74_Case()
         if( m_textToCaseConverter == nullptr )
             m_textToCaseConverter = std::make_unique<TextToCaseConverter>(m_caseMetadata);
 
-        for( size_t i = 0; i < m_rootCaseLevel->GetNumberCaseRecords(); ++i )
+        for( size_t i = 0; i < m_rootCaseLevel.GetNumberCaseRecords(); ++i )
         {
-            if( m_rootCaseLevel->GetCaseRecord(i).HasOccurrences() )
+            if( m_rootCaseLevel.GetCaseRecord(i).HasOccurrences() )
             {
                 CString case_text = m_textToCaseConverter->CaseToTextWide(*this);
 
@@ -324,7 +468,7 @@ Pre74_Case* Case::GetPre74_Case()
         m_pre74Case->Reset(); // reset if no occurrences
 
 done:
-        m_recalculatePre74Case = false;        
+        m_recalculatePre74Case = false;
     }
 
     return m_pre74Case.get();
@@ -339,7 +483,7 @@ void Case::ApplyPre74_Case(const Pre74_Case* pre74_case)
     int buffer_length = 0;
 
     for( const CString& line : lines )
-        buffer_length += line.GetLength() + 1; 
+        buffer_length += line.GetLength() + 1;
 
     auto buffer = std::make_unique_for_overwrite<TCHAR[]>(buffer_length);
     TCHAR* buffer_itr = buffer.get();
@@ -398,7 +542,7 @@ void Case::ApplyBinaryDataFor80(const Pre74_CaseLevel* pre74_case_level, const C
 
             // process defined binary data
             const CaseRecord& case_record = case_level.GetCaseRecord(iRecType);
-            ASSERT(&dict_record == &case_record.GetCaseRecordMetadata().GetDictionaryRecord());
+            ASSERT(&dict_record == &case_record.GetCaseRecordMetadata().GetDictRecord());
 
             for( CaseItemIndex index = case_record.GetCaseItemIndex();
                  index.GetRecordOccurrence() < static_cast<size_t>(pCaseRecord->GetNumRecordOccs());
@@ -406,9 +550,9 @@ void Case::ApplyBinaryDataFor80(const Pre74_CaseLevel* pre74_case_level, const C
             {
                 const std::wstring line(pCaseRecord->GetRecordBuffer(index.GetRecordOccurrence()), pCaseRecord->GetRecordLength());
 
-                for( const CDictItem* binary_dict_item : *binary_dict_items )
+                for( const CDictItem* const binary_dict_item : *binary_dict_items )
                 {
-                    const BinaryCaseItem* binary_case_item = assert_nullable_cast<const BinaryCaseItem*>(m_caseMetadata.FindCaseItem(binary_dict_item->GetName()));
+                    const BinaryCaseItem* const binary_case_item = assert_nullable_cast<const BinaryCaseItem*>(m_caseMetadata.FindCaseItem(binary_dict_item->GetName()));
 
                     if( binary_case_item == nullptr )
                         continue;
@@ -431,30 +575,8 @@ void Case::ApplyBinaryDataFor80(const Pre74_CaseLevel* pre74_case_level, const C
                         ASSERT(binary_storage_index < pre74_case_level->m_binaryStorageFor80->size() &&
                                pre74_case_level->m_binaryStorageFor80->at(binary_storage_index) != nullptr);
 
-                        const BinaryStorageFor80& binary_storage = *pre74_case_level->m_binaryStorageFor80->at(binary_storage_index);
-                        const std::variant<const BinaryData*, std::shared_ptr<BinaryDataReader>> binary_data_or_reader = binary_storage.GetBinaryDataOrReader_noexcept(*this);
-
-                        if( std::holds_alternative<std::shared_ptr<BinaryDataReader>>(binary_data_or_reader) )
-                        {
-                            auto binary_data_reader = std::get<std::shared_ptr<BinaryDataReader>>(binary_data_or_reader);
-                            ASSERT(binary_data_reader != nullptr);
-                            binary_case_item->GetBinaryDataAccessor(index).SetBinaryDataReader(std::move(binary_data_reader));
-                        }
-
-                        else
-                        {
-                            const BinaryData* binary_data = std::get<const BinaryData*>(binary_data_or_reader);
-
-                            if( binary_data != nullptr )
-                            {
-                                binary_case_item->GetBinaryDataAccessor(index).SetBinaryData(*binary_data);
-                            }
-
-                            else
-                            {
-                                ASSERT(!binary_storage.binary_data_accessor.IsDefined());
-                            }
-                        }
+                        BinaryStorageFor80& binary_storage = *pre74_case_level->m_binaryStorageFor80->at(binary_storage_index);
+                        binary_case_item->SetValue(index, binary_storage.binary_data_accessor);
                     }
                 }
             }

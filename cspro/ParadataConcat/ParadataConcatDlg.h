@@ -3,10 +3,10 @@
 #include <zUtilF/SrtLstCt.h>
 
 
-class CParadataConcatDlg : public CDialog
+class ParadataConcatDlg : public CDialog
 {
 public:
-    CParadataConcatDlg(CWnd* pParent = nullptr);
+    ParadataConcatDlg(CWnd* pParent = nullptr);
 
     enum { IDD = IDD_PARADATACONCAT };
 
@@ -16,27 +16,27 @@ protected:
     void DoDataExchange(CDataExchange* pDX) override;
     BOOL OnInitDialog() override;
 
-    afx_msg void OnFileOpen();
-    afx_msg void OnFileSaveAs();
-    afx_msg void OnFileRun();
-    afx_msg void OnAppAbout();
-    afx_msg void OnBrowseOutput();
-    afx_msg void OnAddLogs();
-    afx_msg void OnRemoveLogs();
-    afx_msg void OnClearLogs();
+    void OnFileOpen();
+    void OnFileSaveAs();
+    void OnFileRun();
+    void OnAppAbout();
+    void OnBrowseOutput();
+    void OnAddLogs();
+    void OnRemoveLogs();
+    void OnClearLogs();
 
 private:
     void UpdateNumberLogsText();
-    void AddLogs(const std::vector<std::wstring>& filenames);
-    void OnDropFiles(const std::vector<std::wstring>& filenames);
+    void AddLogs(std::vector<std::string> file_paths);
+    void OnDropFiles(std::vector<std::string> file_paths);
 
     bool ValidateGuiParameters();
-    std::unique_ptr<PFF> CreatePffFromGuiParameters(NullTerminatedString pff_filename);
+    std::unique_ptr<PFF> CreatePffFromGuiParameters(const std::string& pff_file_path);
 
 private:
     HICON m_hIcon;
-    std::wstring m_outputFilename;
-    CSortListCtrl m_ParadataLogList;
+    std::string m_outputFilePath;
+    CSortListCtrl m_paradataLogList;
 
-    std::set<std::wstring> m_paradataLogFilenames;
+    std::set<std::string> m_paradataLogFilePaths;
 };

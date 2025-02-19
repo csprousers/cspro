@@ -23,11 +23,11 @@ int LogicCompiler::CompileDirectoryVariant(bool allow_string_expression, bool al
     // the directory can either be a path type...
     if( allow_path_type )
     {
-        size_t path_type = NextKeyword({ _T("TEMP"),       _T("APPLICATION"),      _T("INPUTFILE"),
-                                         _T("CSPRO"),      _T("DESKTOP"),          _T("WINDOWS"),
-                                         _T("DOCUMENTS"),  _T("PROGRAMFILES32"),   _T("PROGRAMFILES64"),
-                                         _T("CSENTRY"),    _T("CSENTRYEXTERNAL"),  _T("HTML"),
-                                         _T("DOWNLOADS") });
+        const size_t path_type = NextKeyword({ "TEMP",      "APPLICATION",     "INPUTFILE",
+                                               "CSPRO",     "DESKTOP",         "WINDOWS",
+                                               "DOCUMENTS", "PROGRAMFILES32",  "PROGRAMFILES64",
+                                               "CSENTRY",   "CSENTRYEXTERNAL", "HTML",
+                                               "DOWNLOADS" });
 
         if( path_type != 0 )
         {
@@ -42,7 +42,7 @@ int LogicCompiler::CompileDirectoryVariant(bool allow_string_expression, bool al
         NextToken();
         IssueErrorOnTokenMismatch(TOKPERIOD, MGF::dot_required_to_separate_options_7018);
 
-        size_t media_type = NextKeywordOrError(MediaStore::GetMediaTypeStrings());
+        const size_t media_type = NextKeywordOrError(MediaStore::GetMediaTypeStrings());
         NextToken();
 
         return create_node(Nodes::DirectoryVariant::Type::Media, static_cast<int>(media_type) - 1);  // media types are 0-based
@@ -92,9 +92,9 @@ int LogicCompiler::CompilePathFilter()
         NextToken();
         IssueErrorOnTokenMismatch(TOKPERIOD, 7018);
 
-        size_t filter_type = NextKeywordOrError({ Nodes::Path::Text::Audio,
-                                                  Nodes::Path::Text::Geometry,
-                                                  Nodes::Path::Text::Image });
+        const size_t filter_type = NextKeywordOrError({ Nodes::Path::Text::Audio,
+                                                        Nodes::Path::Text::Geometry,
+                                                        Nodes::Path::Text::Image });
         NextToken();
 
         return static_cast<int>(( filter_type == 1 ) ? Nodes::Path::FilterType::Audio :
@@ -182,13 +182,13 @@ int LogicCompiler::CompilePathFunctions()
 
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
-        optional_named_arguments_compiler.AddArgument(_T("title"), path_select_file_node.title_expression, DataType::String);
-        optional_named_arguments_compiler.AddArgument(_T("showDirectories"), path_select_file_node.show_directories_expression, DataType::Numeric);
-        optional_named_arguments_compiler.AddArgument(_T("filter"), path_select_file_node.filter_type_or_expression, [&]() { return CompilePathFilter(); });
+        optional_named_arguments_compiler.AddArgument("title", path_select_file_node.title_expression, DataType::String);
+        optional_named_arguments_compiler.AddArgument("showDirectories", path_select_file_node.show_directories_expression, DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("filter", path_select_file_node.filter_type_or_expression, [&]() { return CompilePathFilter(); });
 
         auto compile_directory = [&]() { return CompileDirectoryVariant(true, true, true, false); };
-        optional_named_arguments_compiler.AddArgument(_T("startDirectory"), path_select_file_node.start_directory_variant_index, compile_directory);
-        optional_named_arguments_compiler.AddArgument(_T("rootDirectory"), path_select_file_node.root_directory_variant_index, compile_directory);
+        optional_named_arguments_compiler.AddArgument("startDirectory", path_select_file_node.start_directory_variant_index, compile_directory);
+        optional_named_arguments_compiler.AddArgument("rootDirectory", path_select_file_node.root_directory_variant_index, compile_directory);
 
         // if no optional arguments were encountered, but there is another argument, it should be the title
         if( optional_named_arguments_compiler.Compile(true) == 0  )
@@ -232,15 +232,15 @@ int LogicCompiler::CompilePathFunctions()
 
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
-        optional_named_arguments_compiler.AddArgument(_T("filter"), dirlist_node.filter_type_or_expression, [&]() { return CompilePathFilter(); });
-        optional_named_arguments_compiler.AddArgument(_T("recursive"), dirlist_node.recursive_expression, DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("filter", dirlist_node.filter_type_or_expression, [&]() { return CompilePathFilter(); });
+        optional_named_arguments_compiler.AddArgument("recursive", dirlist_node.recursive_expression, DataType::Numeric);
 
         // if no optional arguments were encountered but there are additional arguments, read them using the pre-7.7 style
         if( optional_named_arguments_compiler.Compile() == 0 && Tkn != TOKRPAREN )
         {
             IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-            const std::vector<const TCHAR*> recursive_keyword = { _T("RECURSIVE") };
+            constexpr const char* recursive_keyword[] = { "RECURSIVE" };
 
             if( NextKeyword(recursive_keyword) == 1 )
             {

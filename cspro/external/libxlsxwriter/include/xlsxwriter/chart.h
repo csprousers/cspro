@@ -1,7 +1,8 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  * chart - A libxlsxwriter library for creating Excel XLSX chart files.
  *
@@ -699,7 +700,7 @@ typedef struct lxw_chart_pattern {
 typedef struct lxw_chart_font {
 
     /** The chart font name, such as "Arial" or "Calibri". */
-    char *name;
+    const char *name;
 
     /** The chart font size. The default is 11. */
     double size;
@@ -800,7 +801,7 @@ typedef struct lxw_chart_data_label {
 
     /** The string or formula value for the data label. See
      *  @ref chart_custom_labels. */
-    char *value;
+    const char *value;
 
     /** Option to hide/delete the data label from the chart series.
      *  See @ref chart_custom_labels. */

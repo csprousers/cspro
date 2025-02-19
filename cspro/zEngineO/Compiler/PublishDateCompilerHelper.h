@@ -8,31 +8,24 @@ class PublishDateCompilerHelper : public CompilerHelper
 public:
     PublishDateCompilerHelper(LogicCompiler& logic_compiler);
 
-    double GetPublishDate() const { return m_publishDate; }
+    int64_t GetPublishDate() const { return m_publishDate; }
 
 protected:
     bool IsCacheable() const override { return false; }
 
 private:
-    double m_publishDate;
+    const int64_t m_publishDate;
 };
 
 
 
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
 inline PublishDateCompilerHelper::PublishDateCompilerHelper(LogicCompiler& logic_compiler)
-    :   CompilerHelper(logic_compiler)
+    :   CompilerHelper(logic_compiler),
+        m_publishDate(DateTime::TimeToYYYYMMDDHHMMSS(DateTime::Now(), true))
 {
-    struct tm tp;
-    time_t t;
-
-    t = time(&t);
-
-#pragma warning(push)
-#pragma warning(disable:4996)
-    memcpy(reinterpret_cast<void*>(&tp), reinterpret_cast<const void*>(localtime(&t)), sizeof(tp));
-#pragma warning(pop)
-
-    m_publishDate = ( ( tp.tm_year + 1900 ) * 100 + ( tp.tm_mon + 1 ) ) * 100 + tp.tm_mday;
-    m_publishDate *= 1000000;
-    m_publishDate += ( tp.tm_hour * 100 + tp.tm_min ) * 100 + tp.tm_sec;
+    // the publish date is represented using the local timezone
 }

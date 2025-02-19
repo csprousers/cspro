@@ -1,9 +1,7 @@
 ﻿#pragma once
 
-namespace Pre77Report
-{
-    class ReportQueryNode;
-}
+namespace Pre77Report { class ReportQueryNode; }
+
 
 namespace CSPro
 {
@@ -28,7 +26,7 @@ namespace CSPro
         public ref class ReportQuery sealed
         {
         public:
-            ReportQuery(Pre77Report::ReportQueryNode* pReportQueryNode);
+            ReportQuery(Pre77Report::ReportQueryNode* report_query_node);
 
             property System::String^ Name;
             property System::String^ Description;
@@ -45,15 +43,17 @@ namespace CSPro
             property System::Collections::Generic::List<ReportQueryColumn^>^ Columns;
 
         private:
-            bool SupportsReportType(ReportType reportType);
-            int m_iSupportedReportTypes;
+            bool SupportsReportType(ReportType report_type);
+
+        private:
+            int m_supportedReportTypes;
         };
 
 
         public ref class ReportManager sealed
         {
         public:
-            static System::Collections::Generic::List<ReportQuery^>^ LoadParadataQueries(System::String^ workingDirectory);
+            static System::Collections::Generic::List<ReportQuery^>^ LoadParadataQueries(System::String^ working_directory);
         };
     }
 }

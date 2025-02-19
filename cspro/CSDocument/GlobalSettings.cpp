@@ -4,16 +4,16 @@
 
 namespace Settings
 {
-    constexpr wstring_view AutomaticallyAssociateDocumentsWithDocSets = _T("AutomaticallyAssociateDocumentsWithDocumentSets");
-    constexpr wstring_view BuildDocumentsOnOpen                       = _T("BuildDocumentsOnOpen");
-    constexpr wstring_view AutomaticCompilationSeconds                = _T("AutomaticCompilationSeconds");
-    constexpr wstring_view HtmlHelpCompilerExe                        = _T("HtmlHelpCompilerExe");
-    constexpr wstring_view wkhtmltopdfExe                             = _T("wkhtmltopdfExe");
-    constexpr wstring_view CSProCodeDirectory                         = _T("CSProCodeDirectory");
-    constexpr wstring_view CloseGenerateDialogOnCompletion            = _T("CloseGenerateDialogOnCompletion");
-    constexpr wstring_view BuildWindowProportion                      = _T("BuildWindowProportion");
-    constexpr wstring_view HtmlWindowProportion                       = _T("HtmlWindowProportion");
-    constexpr wstring_view DocSetTreeWindowProportion                 = _T("DocSetTreeWindowProportion");
+    constexpr std::string_view AutomaticallyAssociateDocumentsWithDocSets_sv = "AutomaticallyAssociateDocumentsWithDocumentSets";
+    constexpr std::string_view BuildDocumentsOnOpen_sv                       = "BuildDocumentsOnOpen";
+    constexpr std::string_view AutomaticCompilationSeconds_sv                = "AutomaticCompilationSeconds";
+    constexpr std::string_view HtmlHelpCompilerExe_sv                        = "HtmlHelpCompilerExe";
+    constexpr std::string_view wkhtmltopdfExe_sv                             = "wkhtmltopdfExe";
+    constexpr std::string_view CSProCodeDirectory_sv                         = "CSProCodeDirectory";
+    constexpr std::string_view CloseGenerateDialogOnCompletion_sv            = "CloseGenerateDialogOnCompletion";
+    constexpr std::string_view BuildWindowProportion_sv                      = "BuildWindowProportion";
+    constexpr std::string_view HtmlWindowProportion_sv                       = "HtmlWindowProportion";
+    constexpr std::string_view DocSetTreeWindowProportion_sv                 = "DocSetTreeWindowProportion";
 }
 
 
@@ -31,21 +31,21 @@ namespace Default
 
 GlobalSettings::GlobalSettings()
     :   settings_db(CSProExecutables::Program::CSDocument),
-        automatically_associate_documents_with_doc_sets(settings_db.ReadOrDefault(Settings::AutomaticallyAssociateDocumentsWithDocSets, Default::AutomaticallyAssociateDocumentsWithDocSets)),
-        build_documents_on_open(settings_db.ReadOrDefault(Settings::BuildDocumentsOnOpen, Default::BuildDocumentsOnOpen)),
-        automatic_compilation_seconds(settings_db.ReadOrDefault(Settings::AutomaticCompilationSeconds, Default::AutomaticCompilationSeconds)),
-        cspro_code_path(settings_db.ReadOrDefault(Settings::CSProCodeDirectory, SO::EmptyString)),
-        close_generate_dialog_on_completion(settings_db.ReadOrDefault(Settings::CloseGenerateDialogOnCompletion, Default::CloseGenerateDialogOnCompletion)),
-        build_window_proportion(settings_db.ReadOrDefault(Settings::BuildWindowProportion, Default::BuildWindowProportion)),
-        html_window_proportion(settings_db.ReadOrDefault(Settings::HtmlWindowProportion, Default::HtmlWindowProportion)),
-        doc_set_tree_window_proportion(settings_db.ReadOrDefault(Settings::DocSetTreeWindowProportion, Default::DocSetTreeWindowProportion))
+        automatically_associate_documents_with_doc_sets(settings_db.ReadOrDefault(Settings::AutomaticallyAssociateDocumentsWithDocSets_sv, Default::AutomaticallyAssociateDocumentsWithDocSets)),
+        build_documents_on_open(settings_db.ReadOrDefault(Settings::BuildDocumentsOnOpen_sv, Default::BuildDocumentsOnOpen)),
+        automatic_compilation_seconds(settings_db.ReadOrDefault(Settings::AutomaticCompilationSeconds_sv, Default::AutomaticCompilationSeconds)),
+        cspro_code_path(settings_db.ReadOrDefault(Settings::CSProCodeDirectory_sv, SO::Empty_string)),
+        close_generate_dialog_on_completion(settings_db.ReadOrDefault(Settings::CloseGenerateDialogOnCompletion_sv, Default::CloseGenerateDialogOnCompletion)),
+        build_window_proportion(settings_db.ReadOrDefault(Settings::BuildWindowProportion_sv, Default::BuildWindowProportion)),
+        html_window_proportion(settings_db.ReadOrDefault(Settings::HtmlWindowProportion_sv, Default::HtmlWindowProportion)),
+        doc_set_tree_window_proportion(settings_db.ReadOrDefault(Settings::DocSetTreeWindowProportion_sv, Default::DocSetTreeWindowProportion))
 {
     // if this is the first time trying to locate one of the executables, try to set them automatically
     bool save_user_settings = false;
 
-    auto set_executable_from_settings = [&](std::wstring& path, wstring_view key)
+    auto set_executable_from_settings = [&](std::string& path, const std::string_view key_sv)
     {
-        const std::wstring* path_from_settings = settings_db.Read<const std::wstring*>(key);
+        const std::string* const path_from_settings = settings_db.Read<std::string*>(key_sv);
 
         if( path_from_settings != nullptr )
         {
@@ -56,12 +56,12 @@ GlobalSettings::GlobalSettings()
         return false;
     };
 
-    auto set_executable_if_exists = [&](std::wstring& path, WindowsSpecialFolder folder, std::initializer_list<const TCHAR*> components)
+    auto set_executable_if_exists = [&](std::string& path, const WindowsSpecialFolder folder, const std::initializer_list<const char*> components)
     {
-        std::wstring test_path = GetWindowsSpecialFolder(folder);
+        std::string test_path = GetWindowsSpecialFolder(folder);
 
-        for( const TCHAR* component : components )
-            test_path = PortableFunctions::PathAppendToPath(test_path, component);
+        for( const char* const component : components )
+            Path::MakeCombine(test_path, component);
 
         if( PortableFunctions::FileIsRegular(test_path) )
         {
@@ -70,31 +70,31 @@ GlobalSettings::GlobalSettings()
         }
     };
 
-    if( !set_executable_from_settings(html_help_compiler_path, Settings::HtmlHelpCompilerExe) )
-        set_executable_if_exists(html_help_compiler_path, WindowsSpecialFolder::ProgramFiles32, { _T("HTML Help Workshop"), _T("hhc.exe") });
+    if( !set_executable_from_settings(html_help_compiler_path, Settings::HtmlHelpCompilerExe_sv) )
+        set_executable_if_exists(html_help_compiler_path, WindowsSpecialFolder::ProgramFiles32, { "HTML Help Workshop", "hhc.exe" });
 
-    if( !set_executable_from_settings(wkhtmltopdf_path, Settings::wkhtmltopdfExe) )
-        set_executable_if_exists(wkhtmltopdf_path, WindowsSpecialFolder::ProgramFiles64, { _T("wkhtmltopdf"), _T("bin"), _T("wkhtmltopdf.exe") });
+    if( !set_executable_from_settings(wkhtmltopdf_path, Settings::wkhtmltopdfExe_sv) )
+        set_executable_if_exists(wkhtmltopdf_path, WindowsSpecialFolder::ProgramFiles64, { "wkhtmltopdf", "bin", "wkhtmltopdf.exe" });
 
     if( save_user_settings )
         Save(true);
 }
 
 
-void GlobalSettings::Save(bool save_user_settings)
+void GlobalSettings::Save(const bool save_user_settings)
 {
     if( save_user_settings )
     {
-        settings_db.Write(Settings::AutomaticallyAssociateDocumentsWithDocSets, automatically_associate_documents_with_doc_sets);
-        settings_db.Write(Settings::BuildDocumentsOnOpen, build_documents_on_open);
-        settings_db.Write(Settings::AutomaticCompilationSeconds, automatic_compilation_seconds);
-        settings_db.Write(Settings::HtmlHelpCompilerExe, html_help_compiler_path);
-        settings_db.Write(Settings::wkhtmltopdfExe, wkhtmltopdf_path);
-        settings_db.Write(Settings::CSProCodeDirectory, cspro_code_path);
+        settings_db.Write(Settings::AutomaticallyAssociateDocumentsWithDocSets_sv, automatically_associate_documents_with_doc_sets);
+        settings_db.Write(Settings::BuildDocumentsOnOpen_sv, build_documents_on_open);
+        settings_db.Write(Settings::AutomaticCompilationSeconds_sv, automatic_compilation_seconds);
+        settings_db.Write(Settings::HtmlHelpCompilerExe_sv, html_help_compiler_path);
+        settings_db.Write(Settings::wkhtmltopdfExe_sv, wkhtmltopdf_path);
+        settings_db.Write(Settings::CSProCodeDirectory_sv, cspro_code_path);
     }
 
-    settings_db.Write(Settings::CloseGenerateDialogOnCompletion, close_generate_dialog_on_completion);
-    settings_db.Write(Settings::BuildWindowProportion, build_window_proportion);
-    settings_db.Write(Settings::HtmlWindowProportion, html_window_proportion);
-    settings_db.Write(Settings::DocSetTreeWindowProportion, doc_set_tree_window_proportion);
+    settings_db.Write(Settings::CloseGenerateDialogOnCompletion_sv, close_generate_dialog_on_completion);
+    settings_db.Write(Settings::BuildWindowProportion_sv, build_window_proportion);
+    settings_db.Write(Settings::HtmlWindowProportion_sv, html_window_proportion);
+    settings_db.Write(Settings::DocSetTreeWindowProportion_sv, doc_set_tree_window_proportion);
 }

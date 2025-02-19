@@ -9,7 +9,7 @@ public:
     enum { IDD = IDD_PROPERTIES_MAPPING_TILE_PROVIDER };
 
     PropertiesDlgMappingTileProviderPage(const MappingProperties& mapping_properties,
-        MappingTileProviderProperties& mapping_tile_provider_properties, CWnd* pParent = nullptr);
+                                         MappingTileProviderProperties& mapping_tile_provider_properties, CWnd* pParent = nullptr);
 
     void FormToProperties() override;
     void ResetProperties() override;
@@ -31,6 +31,6 @@ private:
     const MappingProperties& m_mappingProperties;
     MappingTileProviderProperties& m_mappingTileProviderProperties;
 
-    std::wstring m_accessToken;
+    std::string m_accessToken;
     CMFCPropertyGridCtrl m_tileLayersPropertiesGridCtrl;
 };

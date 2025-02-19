@@ -27,6 +27,7 @@ add_library(${PROJECT_NAME}
     HashMap.cpp
     Image.cpp
     Imputation.cpp
+    JavaScriptProcessor.cpp
     List.cpp
     LogicByteCode.cpp
     LoopStack.cpp
@@ -48,9 +49,9 @@ add_library(${PROJECT_NAME}
     SystemApp.cpp
     UserFunction.cpp
     UserFunctionArgumentChecker.cpp
+    UserFunctionArgumentEvaluator.cpp
     UserFunctionLocalSymbolsManager.cpp
     ValueSet.cpp
-    Versioning.cpp
     WorkString.cpp
     WorkVariable.cpp
 
@@ -61,6 +62,7 @@ add_library(${PROJECT_NAME}
     Compiler/BarcodeCC.cpp
     Compiler/CaseCC.cpp
     Compiler/CompilerHelper.cpp
+    Compiler/CompilersCC.cpp
     Compiler/ControlFlowCC.cpp
     Compiler/DataAccessCC.cpp
     Compiler/DictionaryCC.cpp
@@ -77,14 +79,15 @@ add_library(${PROJECT_NAME}
     Compiler/ImageCC.cpp
     Compiler/ImputeCC.cpp
     Compiler/ItemCC.cpp
+    Compiler/JavaScriptCC.cpp
     Compiler/JsonCC.cpp
     Compiler/ListCC.cpp
     Compiler/LogicCompiler.cpp
     Compiler/MapCC.cpp
+    Compiler/MathCC.cpp
     Compiler/MessagesCC.cpp
     Compiler/NextTokenCC.cpp
     Compiler/NodeCreationCC.cpp
-    Compiler/NumbersCC.cpp
     Compiler/OptionalNamedArgumentsCompiler.cpp
     Compiler/PathCC.cpp
     Compiler/PffCC.cpp
@@ -102,4 +105,34 @@ add_library(${PROJECT_NAME}
     Compiler/UserInterfaceCC.cpp
     Compiler/ValueSetCC.cpp
     Compiler/VariableCC.cpp
+
+    Interpreter/ActionInvokerRT.cpp
+    Interpreter/ArrayRT.cpp
+    Interpreter/AudioRT.cpp
+    Interpreter/BarcodeRT.cpp
+    Interpreter/BytecodeRT.cpp
+    Interpreter/CompressionRT.cpp
+    Interpreter/DateRT.cpp
+    Interpreter/DocumentRT.cpp
+    Interpreter/ExecutionRT.cpp
+    Interpreter/GeometryRT.cpp
+    Interpreter/HashMapRT.cpp
+    Interpreter/ImageRT.cpp
+    Interpreter/ItemRT.cpp
+    Interpreter/JavaScriptRT.cpp
+    Interpreter/JsonRT.cpp
+    Interpreter/ListRT.cpp
+    Interpreter/LocalhostRT.cpp
+    Interpreter/LogicInterpreter.cpp
+    Interpreter/MapRT.cpp
+    Interpreter/MathRT.cpp
+    Interpreter/NetworkRT.cpp
+    Interpreter/PathRT.cpp
+    Interpreter/ReportRT.cpp
+    Interpreter/StringRT.cpp
+    Interpreter/SwitchRT.cpp
+    Interpreter/SymbolRT.cpp
+    Interpreter/SystemAppRT.cpp
+    Interpreter/SystemRT.cpp
+    Interpreter/UserInterfaceRT.cpp
 )

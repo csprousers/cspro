@@ -73,7 +73,7 @@ int LogicCompiler::CompileWhileLoop()
 {
     ASSERT(Tkn == TOKWHILE);
 
-    LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::While);
+    const LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::While);
 
     auto& while_node = CreateNode<Nodes::While>(FunctionCode::WHILE_CODE);
 
@@ -104,7 +104,7 @@ int LogicCompiler::CompileDoLoop()
 {
     ASSERT(Tkn == TOKDO);
 
-    LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::Do);
+    const LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::Do);
 
     // create the local symbol stack so that a possible counter varible is created in a new scope
     Logic::LocalSymbolStack local_symbol_stack = m_symbolTable.CreateLocalSymbolStack();
@@ -125,8 +125,8 @@ int LogicCompiler::CompileDoLoop()
     // allow for the declaration of a new counter variable in the do loop
     if( Tkn == TOKNUMERIC )
     {
-        WorkVariable* work_variable = CompileWorkVariableDeclaration();
-        do_node.counter_symbol_value_node_index = CompileDestinationVariable(work_variable);
+        WorkVariable* const work_variable = CompileWorkVariableDeclaration();
+        do_node.counter_symbol_value_node_index = CompileDestinationVariable(*work_variable);
     }
 
     // or use an existing variable

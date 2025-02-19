@@ -10,7 +10,7 @@ public:
     CommonStoreCompilerHelper(LogicCompiler& logic_compiler);
 
     template<typename T>
-    std::optional<T> GetConfigValue(const std::wstring& symbol_name, bool issue_warning_if_value_does_not_exist);
+    std::optional<T> GetConfigValue(const std::string& symbol_name, bool issue_warning_if_value_does_not_exist);
 
 protected:
     bool IsCacheable() const override { return true; }
@@ -30,9 +30,9 @@ inline CommonStoreCompilerHelper::CommonStoreCompilerHelper(LogicCompiler& logic
 
 
 template<typename T>
-std::optional<T> CommonStoreCompilerHelper::GetConfigValue(const std::wstring& symbol_name, bool issue_warning_if_value_does_not_exist)
+std::optional<T> CommonStoreCompilerHelper::GetConfigValue(const std::string& symbol_name, const bool issue_warning_if_value_does_not_exist)
 {
-    std::optional<std::wstring> value = m_commonStore.SimpleDbMap::GetString(symbol_name);
+    std::optional<std::string> value = m_commonStore.SimpleDbMap::GetString(symbol_name);
 
     if( !value.has_value() )
     {
@@ -45,7 +45,7 @@ std::optional<T> CommonStoreCompilerHelper::GetConfigValue(const std::wstring& s
     // numeric
     if constexpr(std::is_same_v<T, double>)
     {
-        std::optional<double> numeric_value = StringToNumber<std::optional<double>>(*value);
+        std::optional<double> numeric_value = StringToNumber<std::optional<double>>(UTF8_TODO::GetWide(*value));
 
         if( numeric_value.has_value() )
             return *numeric_value;
@@ -57,7 +57,7 @@ std::optional<T> CommonStoreCompilerHelper::GetConfigValue(const std::wstring& s
     // string
     else
     {
-        static_assert(std::is_same_v<T, std::wstring>);
+        static_assert(std::is_same_v<T, std::string>);
         return value;
     }
 }

@@ -11,8 +11,9 @@
 class CSHtmlDlg : public HtmlDlgBase
 {
 public:
-    CSHtmlDlg(CSHtmlDlgRunner& cshtml_dlg_runner)
-        :   m_cshtmlDlgRunner(cshtml_dlg_runner)
+    CSHtmlDlg(ExceptionHolder* const exception_holder, CSHtmlDlgRunner& cshtml_dlg_runner)
+        :   HtmlDlgBase(exception_holder),
+            m_cshtmlDlgRunner(cshtml_dlg_runner)
     {
         ASSERT(m_resizable == false);
     }
@@ -23,7 +24,7 @@ protected:
         return m_cshtmlDlgRunner.GetNavigationAddress();
     }
 
-    std::wstring GetInputData() override
+    SharableString GetInputData() override
     {
         return m_cshtmlDlgRunner.GetJsonArgumentsText();
     }
@@ -37,23 +38,23 @@ private:
 
 NavigationAddress CSHtmlDlgRunner::GetNavigationAddress()
 {
-    std::wstring html_filename = SO::Concatenate(GetDialogName(), _T(".html"));
+    const std::string html_filename = PortableFunctions::PathAppendFileExtension(GetDialogName(), FileExtensions::HTML);
 
-    // the location of the HTML dialogs may be overriden
-    std::wstring html_dialogs_directory;
+    // the location of the HTML dialogs may be overridden
+    std::string html_dialogs_directory;
     SendEngineUIMessage(EngineUI::Type::HtmlDialogsDirectoryQuery, html_dialogs_directory);
 
     if( !html_dialogs_directory.empty() )
     {
-        std::wstring full_path = PortableFunctions::PathAppendToPath(html_dialogs_directory, html_filename);
+        std::string full_path = Path::Combine(html_dialogs_directory, html_filename);
 
         if( PortableFunctions::FileIsRegular(full_path) )
-            return NavigationAddress::CreateHtmlFilenameReference(std::move(full_path));
+            return NavigationAddress::CreateHtmlFilePathReference(std::move(full_path));
     }
 
-    std::wstring full_path = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Dialogs), html_filename);
+    std::string full_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Dialogs), html_filename);
 
-    return NavigationAddress::CreateHtmlFilenameReference(std::move(full_path));
+    return NavigationAddress::CreateHtmlFilePathReference(std::move(full_path));
 }
 
 
@@ -61,12 +62,12 @@ NavigationAddress CSHtmlDlgRunner::GetNavigationAddress()
 
 std::unique_ptr<HtmlDlgBase> CSHtmlDlgRunner::CreateHtmlDlg()
 {
-    return std::make_unique<CSHtmlDlg>(*this);
+    return std::make_unique<CSHtmlDlg>(&m_exceptionHolder, *this);
 }
 
 #else
 
-std::optional<std::wstring> CSHtmlDlgRunner::RunHtmlDlg()
+SharableString CSHtmlDlgRunner::RunHtmlDlg()
 {
     // set up an Action Invoker listener to serve the input data
     std::unique_ptr<ActionInvoker::ListenerHolder> action_invoker_listener_holder = ActionInvoker::ListenerHolder::Create<ActionInvoker::OnGetInputDataListener>(
@@ -75,18 +76,18 @@ std::optional<std::wstring> CSHtmlDlgRunner::RunHtmlDlg()
             return GetJsonArgumentsText();
         });
 
-    return PlatformInterface::GetInstance()->GetApplicationInterface()->DisplayCSHtmlDlg(GetNavigationAddress(), GetActionInvokerAccessTokenOverride());
+    return PlatformInterface::GetInstance()->GetApplicationInterface()->DisplayCSHtmlDlg(GetNavigationAddress(), GetActionInvokerAccessTokenOverride(), &m_exceptionHolder);
 }
 
 #endif
 
 
-INT_PTR CSHtmlDlgRunner::ProcessResults(const std::optional<std::wstring>& results_text)
+INT_PTR CSHtmlDlgRunner::ProcessResults(const SharableString& results_text)
 {
     // if there are no results, then a HTML UI element canceled the dialog
-    if( results_text.has_value() )
+    if( results_text.IsSet() )
     {
-        auto json_results = Json::Parse(*results_text);
+        const JsonNode json_results = Json::Parse(*results_text);
 
         if( !json_results.IsEmpty() )
         {

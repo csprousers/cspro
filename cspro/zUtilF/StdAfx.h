@@ -7,9 +7,11 @@
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/UWM.h>
 #include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zJson/Json.h>
 
 #ifdef WIN_DESKTOP
 #include <zToolsO/WinClipboard.h>
+#include <zUtilO/WindowsWS.h>
 #endif

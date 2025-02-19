@@ -56,9 +56,9 @@ private:
 class CLASS_DECL_ZTABLEF TableSpecTabTreeNode : public TableElementTreeNode
 {
 public:
-    TableSpecTabTreeNode(CTabulateDoc* document, std::wstring table_spec_filename);
+    TableSpecTabTreeNode(CTabulateDoc* document, std::string table_spec_filename);
 
-    void SetPath(std::wstring table_spec_filename) { m_tableSpecFilename = std::move(table_spec_filename); }
+    void SetPath(std::string table_spec_file_path) { m_tableSpecFilePath = std::move(table_spec_file_path); }
 
     //Add ref and decrement ref
     void AddRef()  { ++m_refCount; }
@@ -73,12 +73,12 @@ public:
     std::wstring GetName() const override  { return GetNameOrLabel(true); }
     std::wstring GetLabel() const override { return GetNameOrLabel(false); }
 
-    const std::wstring& GetPath() const override { return m_tableSpecFilename; }
+    const std::string& GetPath() const override { return m_tableSpecFilePath; }
 
 private:
     std::wstring GetNameOrLabel(bool name) const;
 
 private:
-    std::wstring m_tableSpecFilename;
+    std::string m_tableSpecFilePath;
     int m_refCount;
 };

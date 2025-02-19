@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "AplFileAssociationsDlg.h"
-#include "NewFileCreator.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zDesignerF/NewFileCreator.h>
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ BOOL CAplFileAssociationsDlg::OnInitDialog()
     }
     else {
         CString wsd_filename = ( m_workingStorageType == WorkingStorageType::ReadOnly ) ?
-            m_sWSDName : WS2CS(NewFileCreator::GetDefaultWorkingStorageDictionaryFilename(m_sAppName));
+            m_sWSDName : UTF8_TODO::GetCString(NewFileCreator::GetDefaultWorkingStorageDictionaryFilePath(UTF8_TODO::GetUtf8(m_sAppName)));
         pWSCWnd->SetWindowText(_T("Working Storage Dictionary - ") + wsd_filename);
         if (m_workingStorageType == WorkingStorageType::ReadOnly) {
             pWSCWnd->EnableWindow(FALSE);
@@ -102,7 +102,7 @@ void CAplFileAssociationsDlg::OnOK()
         if( !file_association.IsRequired() )
             continue;
 
-        CIMSAString sTemp;
+        CString sTemp;
         m_aplFileAssociationsGrid.QuickGetText(0, (int)i, &sTemp);
 
         if( SO::IsBlank(sTemp) )
@@ -164,21 +164,21 @@ BOOL CAplFileAssociationsDlg::PreTranslateMessage(MSG* pMsg)
             }
 
             // 20120527, control + space will cycle through possible dictionaries if the Input Dictionary line is blank
-            else if( pMsg->wParam == VK_SPACE ) 
+            else if( pMsg->wParam == VK_SPACE )
             {
-                if( m_suggestedDictionaries.empty() )
+                if( m_suggestedDictionaryFilePaths.empty() )
                 {
                     EstablishSuggestedDictionaries();
-                    ASSERT(m_nextSuggestedDictionaryIndex == 0 && !m_suggestedDictionaries.empty());
+                    ASSERT(m_nextSuggestedDictionaryIndex == 0 && !m_suggestedDictionaryFilePaths.empty());
                 }
 
-                else if( ++m_nextSuggestedDictionaryIndex >= m_suggestedDictionaries.size() )
+                else if( ++m_nextSuggestedDictionaryIndex >= m_suggestedDictionaryFilePaths.size() )
                 {
                     m_nextSuggestedDictionaryIndex = 0;
                 }
 
                 GetDlgItem(IDOK)->SetFocus(); // change the focus (see above on my 20110805 work)
-                m_aplFileAssociationsGrid.QuickSetText(0, 0, m_suggestedDictionaries[m_nextSuggestedDictionaryIndex].c_str());
+                m_aplFileAssociationsGrid.QuickSetText(0, 0, TC::ToWide(m_suggestedDictionaryFilePaths[m_nextSuggestedDictionaryIndex]).c_str());
                 m_aplFileAssociationsGrid.RedrawCell(0, 0);
 
                 return TRUE;
@@ -197,13 +197,13 @@ void CAplFileAssociationsDlg::EstablishSuggestedDictionaries() // 20120527
     //  1) a dictionary named after the application (the default behavior in versions prior to 5.0)
     //  2) any dictionary that is in the folder where the application will be created
 
-    std::wstring original_suggestion = PortableFunctions::PathRemoveFileExtension(m_sAppName) + FileExtensions::WithDot::Dictionary;
-    m_suggestedDictionaries.emplace_back(original_suggestion);
+    const std::string original_suggestion = PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_sAppName), FileExtensions::Dictionary);
+    m_suggestedDictionaryFilePaths.emplace_back(original_suggestion);
 
-    for( const std::wstring& dictionary_filename : DirectoryLister().SetNameFilter(FileExtensions::Wildcard::Dictionary)
-                                                                    .GetPaths(PortableFunctions::PathGetDirectory(m_sAppName)) )
+    for( const std::string& dictionary_file_path : DirectoryLister().SetNameFilter(FileExtensions::CreateWildcard(FileExtensions::Dictionary))
+                                                                    .GetPaths(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_sAppName))) )
     {
-        if( !SO::EqualsNoCase(dictionary_filename, original_suggestion) )
-            m_suggestedDictionaries.emplace_back(dictionary_filename);
+        if( !SO::EqualsNoCase(dictionary_file_path, original_suggestion) )
+            m_suggestedDictionaryFilePaths.emplace_back(dictionary_file_path);
     }
 }

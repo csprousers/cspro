@@ -11,5 +11,5 @@ inline void SetUseHtmlDialogs(bool use) { UHD::flag = use; }
 // temporarily here for an access token for the old CSPro JavaScript interface
 namespace OldCSProJavaScriptInterface
 {
-    ZHTML_API const std::wstring& GetAccessToken();
+    ZHTML_API const std::string& GetAccessToken();
 }

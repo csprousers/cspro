@@ -22,7 +22,7 @@ int LogicCompiler::CompileExpression(DataType data_type)
 }
 
 
-int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const TCHAR* const argument_name/* = _T("unknown")*/)
+int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const char* const argument_name/* = "unknown"*/)
 {
     ASSERT(!variable_types.empty() && argument_name != nullptr);
 
@@ -37,7 +37,7 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
     // between strings and arrays/objects specified as strings
     if( Tkn == TOKATOP )
     {
-        const size_t type_index = NextKeywordOrError({ _T("string"), _T("number"), _T("boolean"), _T("array"), _T("object" )});
+        const size_t type_index = NextKeywordOrError({ "string", "number", "boolean", "array", "object" });
         gf_value_node.parameter_variable_type = ( type_index == 1 ) ? GF::VariableType::String :
                                                 ( type_index == 2 ) ? GF::VariableType::Number :
                                                 ( type_index == 3 ) ? GF::VariableType::Boolean :
@@ -63,9 +63,11 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
         }
 
         // as can numbers
-        else if( ( variable_type_is_allowed(GF::VariableType::Number) || variable_type_is_allowed(GF::VariableType::Boolean) ) && !IsCurrentTokenString() )
+        else if( const bool number_allowed = variable_type_is_allowed(GF::VariableType::Number);
+                 ( number_allowed || variable_type_is_allowed(GF::VariableType::Boolean) ) && !IsCurrentTokenString() )
         {
-            gf_value_node.parameter_variable_type = GF::VariableType::Number;
+            gf_value_node.parameter_variable_type = number_allowed ? GF::VariableType::Number :
+                                                                     GF::VariableType::Boolean;
         }
 
         // as can strings
@@ -76,7 +78,7 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
 
         else
         {
-            IssueError(MGF::argument_type_automatic_casting_not_supported_94707, argument_name, CSPRO_VERSION_NUMBER);
+            IssueError(MGF::argument_type_automatic_casting_not_supported_94707, argument_name, Versioning::Number);
         }
     }
 
@@ -113,7 +115,7 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
         {
             gf_value_node.argument_variable_type = GF::VariableType::String;
             gf_value_node.argument_expression = CompileJsonText(
-                [&](const JsonNode<wchar_t>& json_node)
+                [&](const JsonNode& json_node)
                 {
                     if( !json_node.IsArray() )
                         IssueError(MGF::argument_argument_must_be_of_types_94703, argument_name, ToString(GF::VariableType::Array));
@@ -124,7 +126,7 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
         {
             IssueError(MGF::argument_argument_must_be_of_types_94703, argument_name,
                        SO::CreateSingleStringUsingCallback(std::vector<SymbolType>({ SymbolType::Array, SymbolType::List, SymbolType::WorkString }),
-                                                           [](SymbolType symbol_type) { return ToString(symbol_type); }).c_str());
+                                                           [](const SymbolType symbol_type) { return ToString(symbol_type); }).c_str());
         }
     }
 
@@ -137,7 +139,7 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
 
         gf_value_node.argument_variable_type = GF::VariableType::String;
         gf_value_node.argument_expression = CompileJsonText(
-            [&](const JsonNode<wchar_t>& json_node)
+            [&](const JsonNode& json_node)
             {
                 if( !json_node.IsObject() )
                     IssueError(MGF::argument_argument_must_be_of_types_94703, argument_name, ToString(GF::VariableType::Object));

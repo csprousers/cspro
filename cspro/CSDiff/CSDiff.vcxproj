@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FFAFD290-DE91-4229-A015-A625357D7C49}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -85,7 +81,7 @@
     <ClInclude Include="CSDiff.h" />
     <ClInclude Include="Filebrow.h" />
     <ClInclude Include="MainFrm.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>

@@ -291,7 +291,10 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
                                                         issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
                                                 }
                                         }
-                                        else  issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
+                                        else
+                                        {
+                                            issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
+                                        }
 
                                 }
                         }
@@ -368,11 +371,14 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
                                         VART* pvart = VPT(InCompIdx);
                                         if (pvart->GetOwnerGroup() != iSymGroup )
                                         {
-                                                //  issaerror( MessageType::Warning, MGF::OpenMessage, _T("Test warning") );
+                                                //  issaerror( MessageType::Warning, MGF::OpenMessage, "Test warning" );
                                                 issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
                                         }
                                 }
-                                else  issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
+                                else
+                                {
+                                    issaerror( MessageType::Warning, 8303, pGrpT->GetName().c_str() );
+                                }
                         }
                 }
         }
@@ -921,8 +927,7 @@ void CEngineCompFunc::varsanal_tryInheritance( MVAR_NODE* pMVarNode, CReadyFlags
 
         if( pVarInCompilation->GetNumDim() <= 0 )
         {
-                TRACE( _T("[varsanal_tryInheritance] Could not be applied for single variables (%s is single)\n"),
-                        pVarInCompilation->GetName().c_str() );
+                TRACE("[varsanal_tryInheritance] Could not be applied for single variables (%s is single)\n", pVarInCompilation->GetName().c_str());
                 return;
         }
 
@@ -1138,9 +1143,9 @@ void CEngineCompFunc::varsanal_generateVarNode( VarAnalysis& va, int iVarT, MVAR
                                                 pGrpInCompilation->GetGroupType() != GROUPT::eGroupType::Level )
                                         {
                                                 TRACE( _T("[varsanal] Proc %s [%d-D group] compiling %s\n"),
-                                                        pGrpInCompilation->GetName().c_str(),
+                                                        UTF8_TODO::GetWide(pGrpInCompilation->GetName()).c_str(),
                                                         pGrpInCompilation->GetNumDim(),
-                                                        VPT(pMVarNode->m_iVarIndex)->GetName().c_str() );
+                                                        UTF8_TODO::GetWide(VPT(pMVarNode->m_iVarIndex)->GetName()).c_str() );
                                         }
                                 }
                                 else
@@ -1480,6 +1485,7 @@ int CEngineCompFunc::rutfunc()
         { Logic::FunctionCompilationType::Geometry,                 &LogicCompiler::CompileLogicGeometryFunctions },
         { Logic::FunctionCompilationType::HashMap,                  &LogicCompiler::CompileLogicHashMapFunctions },
         { Logic::FunctionCompilationType::Image,                    &LogicCompiler::CompileLogicImageFunctions },
+        { Logic::FunctionCompilationType::JS,                       &LogicCompiler::CompileJavaScriptFunctions },
         { Logic::FunctionCompilationType::List,                     &LogicCompiler::CompileLogicListFunctions },
         { Logic::FunctionCompilationType::Map,                      &LogicCompiler::CompileLogicMapFunctions },
         { Logic::FunctionCompilationType::Message,                  &LogicCompiler::CompileMessageFunctions },
@@ -1577,7 +1583,7 @@ int CEngineCompFunc::cfun_fnitemlist() // 20091203
             int savedTokstindex = Tokstindex;
 
             itemType = ItemListType::RECORD;
-            
+
             SECT* pSecT = SPT(Tokstindex);
             codePtr = pSecT->GetContainerIndex();
 
@@ -1905,13 +1911,13 @@ int CEngineCompFunc::cfun_fncapturetype() // 20100608
     int pDate;
 
     if( iFunCode == FNGETCAPTURETYPE_CODE )
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95016, _T("CaptureType"));
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95016, "CaptureType");
 
     else if( iFunCode == FNSETCAPTURETYPE_CODE )
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("CaptureType / CaptureDateFormat"));
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "CaptureType / CaptureDateFormat");
 
     else if( iFunCode == FNSETCAPTUREPOS_CODE )
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("CapturePosX / CapturePosY"));
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "CapturePosX / CapturePosY");
 
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, 517);
@@ -2163,8 +2169,8 @@ int CEngineCompFunc::cfun_fnoccs()
 int CEngineCompFunc::cfun_fnnote() // for compiling getnote, putnote, editnote
 {
     FunctionCode function_code = CurrentToken.function_details->code;
-    const Symbol* symbol = nullptr;
-    const EngineDictionary* engine_dictionary = nullptr;
+    Symbol* symbol = nullptr;
+    EngineDictionary* engine_dictionary = nullptr;
     const DICT* pDicT = nullptr;
     std::optional<int> variable_expression;
     std::optional<int> operator_id_expression;
@@ -2303,13 +2309,13 @@ int CEngineCompFunc::cfun_fnstrparm()
         if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
         {
             parameter_details.emplace();
-            parameter_details->text = WS2CS(Tokstr);
+            parameter_details->text = UTF8_TODO::GetCString(Tokstr);
 
             ParameterManager::Parameter parameter = ParameterManager::Parse(function_code, parameter_details->text,
                 &parameter_details->min_arguments, &parameter_details->max_arguments);
 
             if( parameter == ParameterManager::Parameter::Invalid )
-                IssueError(1100, parameter_details->text.GetString());
+                IssueError(1100, UTF8_TODO::GetUtf8(parameter_details->text).c_str());
         }
 
         arguments.emplace_back(CompileStringExpression());
@@ -2325,10 +2331,10 @@ int CEngineCompFunc::cfun_fnstrparm()
         // check if the number of arguments is valid
         if( parameter_details.has_value() )
         {
-            int provided_arguments = (int)arguments.size() - 1;
+            const int provided_arguments = static_cast<int>(arguments.size()) - 1;
 
             if( provided_arguments < parameter_details->min_arguments || provided_arguments > parameter_details->max_arguments )
-                IssueError(1101, parameter_details->text.GetString(), provided_arguments);
+                IssueError(1101, UTF8_TODO::GetUtf8(parameter_details->text).c_str(), provided_arguments);
         }
     }
 
@@ -2374,15 +2380,15 @@ int CEngineCompFunc::cfun_fnproperty()
 
     if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
     {
-        property_name = WS2CS(Tokstr);
+        property_name = UTF8_TODO::GetCString(Tokstr);
 
         ParameterManager::Parameter parameter = ParameterManager::Parse(FNGETPROPERTY_CODE, property_name);
 
         if( parameter == ParameterManager::Parameter::Invalid )
-            IssueError(1100, property_name.GetString());
+            IssueError(1100, UTF8_TODO::GetUtf8(property_name).c_str());
 
         else if( set_function && ParameterManager::Parse(FNSETPROPERTY_CODE, property_name) == ParameterManager::Parameter::Invalid )
-            IssueError(1102, property_name.GetString());
+            IssueError(1102, UTF8_TODO::GetUtf8(property_name).c_str());
 
         property_type = ParameterManager::GetAdditionalArgument(parameter);
     }
@@ -2422,7 +2428,7 @@ int CEngineCompFunc::cfun_fnproperty()
         application_property || property_type == ParameterManager::ParameterArgument::SystemProperty )
     {
         if( argument_counter > min_arguments )
-            IssueError(1106, application_property ? _T("application") : _T("system"), property_name.GetString());
+            IssueError(1106, application_property ? "application" : "system", UTF8_TODO::GetUtf8(property_name).c_str());
     }
 
     else if( bool item_property = ( property_type == ParameterManager::ParameterArgument::ItemProperty );
@@ -2430,13 +2436,13 @@ int CEngineCompFunc::cfun_fnproperty()
     {
         if( argument_counter == min_arguments )
         {
-            IssueError(1105, property_name.GetString());
+            IssueError(1105, UTF8_TODO::GetUtf8(property_name).c_str());
         }
 
         else if( first_argument_was_dictionary_related_symbol && !set_function )
         {
             if( !NPT(arguments[0])->IsA(SymbolType::Variable) )
-                IssueError(item_property ? 1103 : 1104, property_name.GetString());
+                IssueError(item_property ? 1103 : 1104, UTF8_TODO::GetUtf8(property_name).c_str());
         }
     }
 
@@ -3666,6 +3672,11 @@ int CEngineCompFunc::cfun_fn8()
             pDicT->SetHasDynamicFileManagement();
         }
 
+        else if( fn8_node.function_code == FNFILENAME_CODE )
+        {
+            fn8_node.extra_parameter = CurrentToken.symbol_subscript_compilation;
+        }
+
         else if( fn8_node.function_code == FNKEYLIST_CODE )
         {
             VerifyDictionary(pDicT, VerifyDictionaryFlag::NeedsIndex);
@@ -3753,7 +3764,7 @@ int CEngineCompFunc::cfun_fn8()
     {
         ASSERT(symbol != nullptr);
 
-        switch( NextKeywordOrError({ _T("update"), _T("create"), _T("append") }) )
+        switch( NextKeywordOrError({ "update", "create", "append" }) )
         {
             case 1:
             {
@@ -4133,7 +4144,7 @@ int CEngineCompFunc::cfun_fns()
         {
             if( iNumIncludeVars > 0 )
             {
-                issaerror(MessageType::Error,537,_T("INCLUDE")); // repeated include clause
+                issaerror(MessageType::Error, 537, "INCLUDE"); // repeated include clause
                 return 0;
             }
 
@@ -4175,7 +4186,7 @@ int CEngineCompFunc::cfun_fns()
         {
             if( iWhereExpression >= 0 )
             {
-                issaerror(MessageType::Error,537,_T("WHERE")); // repeated where clause
+                issaerror(MessageType::Error, 537, "WHERE"); // repeated where clause
                 return 0;
             }
 
@@ -4194,7 +4205,7 @@ int CEngineCompFunc::cfun_fns()
             // look for automark; multiple() without a parameter list is also okay
             if( Tkn == TOKLPAREN )
             {
-                if( NextKeyword({ _T("AUTOMARK") }) == 1 )
+                if( NextKeyword({ "AUTOMARK" }) == 1 )
                     eMarkType = SelcaseMarkType::MultipleAutomark;
 
                 NextToken();
@@ -4522,7 +4533,7 @@ int CEngineCompFunc::cfun_fng()
 
     if( function_code == FunctionCode::FNGETLABEL_CODE && Tkn == TOKBY )
     {
-        size_t by_type = NextKeywordOrError({ _T("code"), _T("label") });
+        const size_t by_type = NextKeywordOrError({ "code", "label" });
         getlabel_search_type = ( by_type == 1 ) ? GetLabelSearchType::ByCode : GetLabelSearchType::ByLabel;
 
         NextToken();
@@ -5207,7 +5218,7 @@ int CEngineCompFunc::cfun_fnexecsystem()
 
     while( Tkn == TOKCOMMA )
     {
-        switch( NextKeyword({ _T("MAXIMIZED"), _T("NORMAL"), _T("MINIMIZED"), _T("FOCUS"), _T("NOFOCUS"), _T("WAIT"), _T("NOWAIT"), _T("STOP") }) )
+        switch( NextKeyword({ "MAXIMIZED", "NORMAL", "MINIMIZED", "FOCUS", "NOFOCUS", "WAIT", "NOWAIT", "STOP" }) )
         {
             case 1: //MAXIMIZED
                 if( bHasSize )
@@ -5496,7 +5507,7 @@ int CEngineCompFunc::cfun_fnshow()
 
         if( bError )
         {
-            issaerror(MessageType::Error, 956, ToString(DataType::String), _T("1-2"));
+            issaerror(MessageType::Error, 956, ToString(DataType::String), "1-2");
             return 0;
         }
 

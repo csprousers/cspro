@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{a417c381-2afd-4889-ae6b-a15e8436da45}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zAppO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -70,6 +66,8 @@
   <ItemGroup>
     <ClCompile Include="AppFileType.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="AppMessageFile.cpp" />
+    <ClCompile Include="AppResource.cpp" />
     <ClCompile Include="AppSyncParameters.cpp" />
     <ClCompile Include="CodeFile.cpp" />
     <ClCompile Include="DictionaryDescription.cpp" />
@@ -82,10 +80,12 @@
     <ClCompile Include="PFF.cpp" />
     <ClCompile Include="Pre80SpecFile.cpp" />
     <ClCompile Include="Properties\ApplicationProperties.cpp" />
+    <ClCompile Include="Properties\JavaScriptProperties.cpp" />
     <ClCompile Include="Properties\JsonProperties.cpp" />
     <ClCompile Include="Properties\MappingProperties.cpp" />
     <ClCompile Include="Properties\MappingTileProviderProperties.cpp" />
     <ClCompile Include="Properties\ParadataProperties.cpp" />
+    <ClCompile Include="ReportFile.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -95,22 +95,26 @@
   <ItemGroup>
     <ClInclude Include="AppFileType.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="AppMessageFile.h" />
+    <ClInclude Include="AppResource.h" />
     <ClInclude Include="AppSyncParameters.h" />
+    <ClInclude Include="CodeFile.h" />
     <ClInclude Include="DictionaryDescription.h" />
     <ClInclude Include="FieldStatus.h" />
-    <ClInclude Include="Language.h" />
     <ClInclude Include="LabelSet.h" />
+    <ClInclude Include="Language.h" />
     <ClInclude Include="LanguageSerializerHelper.h" />
-    <ClInclude Include="CodeFile.h" />
     <ClInclude Include="LogicSettings.h" />
     <ClInclude Include="MappingDefines.h" />
     <ClInclude Include="OccurrenceLabels.h" />
     <ClInclude Include="PFF.h" />
     <ClInclude Include="Properties\ApplicationProperties.h" />
+    <ClInclude Include="Properties\JavaScriptProperties.h" />
     <ClInclude Include="Properties\JsonProperties.h" />
     <ClInclude Include="Properties\MappingProperties.h" />
     <ClInclude Include="Properties\MappingTileProviderProperties.h" />
     <ClInclude Include="Properties\ParadataProperties.h" />
+    <ClInclude Include="ReportFile.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SyncTypes.h" />
     <ClInclude Include="zAppO.h" />

@@ -3,25 +3,25 @@
 #include <zMultimediaO/zMultimediaO.h>
 
 
-CREATE_CSPRO_EXCEPTION(Mp4WriterError)
+CREATE_CSPRO_EXCEPTION(Mp4WriterError);
 
 
 struct Mp4Metadata
 {
-    std::wstring name;
-    std::wstring artist;
-    std::wstring album;
-    std::wstring artwork_image_path;
+    std::string name;
+    std::string artist;
+    std::string album;
+    std::string artwork_image_path;
 };
 
 
 class ZMULTIMEDIAO_API Mp4Writer
 {
 public:
-    Mp4Writer(const std::wstring& filename, bool create_new);
+    Mp4Writer(cs::string_sz file_path, bool create_new);
     ~Mp4Writer();
 
-    void AppendAudioTracks(const std::wstring& other_file);
+    void AppendAudioTracks(cs::string_sz other_file_path);
 
     void SetTags(const Mp4Metadata& metadata);
 

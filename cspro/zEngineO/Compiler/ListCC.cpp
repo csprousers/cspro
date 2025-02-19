@@ -31,7 +31,7 @@ LogicList* LogicCompiler::CompileLogicListDeclaration(const LogicList* list_to_c
     }
 
 
-    std::wstring list_name = CompileNewSymbolName();
+    std::string list_name = CompileNewSymbolName();
 
     auto logic_list = std::make_shared<LogicList>(std::move(list_name));
     logic_list->SetNumeric(is_numeric_list);

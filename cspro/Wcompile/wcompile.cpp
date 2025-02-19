@@ -58,7 +58,7 @@ bool CCompIFaz::C_CompilerInit( CString* pcsLines, bool& bSomeError )// RHF Jun 
 
     if( !m_pEngineDriver->LoadApplChildren(pcsLines) ) // RHF Jun 12, 2003 Add pcrLines
     {
-        issaerror( MessageType::Error, 10004, ApplName.GetString(), Failmsg.GetString() );
+        issaerror( MessageType::Error, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
 
         // RHF COM Mar 06, 2001 return false;
         bSomeError = true;
@@ -81,25 +81,19 @@ void CCompIFaz::C_CompilerEnd()
 }
 
 
-bool CCompIFaz::C_CompilerCompile(const TCHAR* buffer_text)
-{
-    return C_CompilerCompile(std::make_shared<Logic::SourceBuffer>(buffer_text));
-}
-
-
 bool CCompIFaz::C_CompilerCompile(std::shared_ptr<Logic::SourceBuffer> source_buffer)
 {
     Appl.m_AppTknSource = std::move(source_buffer);
     m_pEngineDriver->m_pEngineCompFunc->SetSourceBuffer(Appl.m_AppTknSource);
 
-    const Logic::ProcDirectory* proc_directory = m_pEngineDriver->m_pEngineCompFunc->CreateProcDirectory();
+    const Logic::ProcDirectory* const proc_directory = m_pEngineDriver->m_pEngineCompFunc->CreateProcDirectory();
 
     if( proc_directory == nullptr )
         return false;
 
-    for( const auto& symbol_entry : proc_directory->GetEntries() )
+    for( const auto& [symbol_index, proc_directory_entry] : proc_directory->GetEntries() )
     {
-        if( !m_pEngineCompFunc->CompileProc(NPT(symbol_entry.first)) )
+        if( !m_pEngineCompFunc->CompileProc(NPT(symbol_index)) )
             return false;
     }
 

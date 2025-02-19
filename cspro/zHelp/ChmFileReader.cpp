@@ -1,14 +1,15 @@
 ﻿#include "stdafx.h"
 #include "ChmFileReader.h"
+#include <zToolsO/Utf8.h>
 #include <external/CHMLib/chm_lib.h>
 
 
-ChmFileReader::ChmFileReader(const std::wstring& filename)
+ChmFileReader::ChmFileReader(const std::string& help_file_path)
 {
-    m_chmHandle = chm_open(filename.c_str());
+    m_chmHandle = chm_open(TC::ToWide(help_file_path).c_str());
 
     if( m_chmHandle == nullptr )
-        throw CSProException(_T("Unable to open CHM file: %s"), filename.c_str());
+        throw CSProException("Unable to open CHM file: " + help_file_path);
 
     m_defaultTopicPath = IdentifyDefaultTopicPath();
     ASSERT(!m_defaultTopicPath.empty());
@@ -62,14 +63,14 @@ std::string ChmFileReader::IdentifyDefaultTopicPath()
 
     // parse the data, ignoring all but the default topic
     const std::byte* data = system_data.data();
-    const std::byte* data_end = data + system_data.size();
+    const std::byte* const data_end = data + system_data.size();
 
     while( data < data_end )
     {
-        auto check_length = [&](size_t length)
+        auto check_length = [&](const size_t length)
         {
             if( ( data + length ) > data_end )
-                throw CSProException(_T("Unable to parse object of length %d"), (int)length);
+                throw CSProException("Unable to parse object of length %d", static_cast<int>(length));
         };
 
         auto get_word_le = [&]() -> WORD

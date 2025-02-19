@@ -2,7 +2,7 @@
 
 #include <zEdit2O/zEdit2O.h>
 #include <zEdit2O/LogicCtrl.h>
-#include <sstream>
+#include <iosfwd>
 
 enum class SymbolType : int;
 namespace Logic { struct FunctionNamespaceDetails; }
@@ -18,44 +18,43 @@ public:
 
     // colorize text that is not part of a Scintilla control
     ScintillaColorizer(int lexer_language, std::string_view text_sv);
-    ScintillaColorizer(int lexer_language, wstring_view text_sv);
 
     // colorize for HTML
     enum class HtmlProcessorType { FullHtml, SpanOnly, ContentOnly };
-    std::wstring GetHtml(std::variant<HtmlProcessorType, HtmlProcessor*> html_processor_or_type);
+    std::string GetHtml(std::variant<HtmlProcessorType, HtmlProcessor*> html_processor_or_type);
 
     // colorize for the CSPro Users Forum
-    std::wstring GetCSProUsersForumCode();
+    std::string GetCSProUsersForumCode();
 
     // colorize for the CSPro Users Blog
-    std::wstring GetCSProUsersBlogCode();
+    std::string GetCSProUsersBlogCode();
 
     // style color lookups
     COLORREF GetStyleColor(char style);
-    const TCHAR* GetHtmlColor(COLORREF color);
+    const char* GetHtmlColor(COLORREF color);
 
 
     struct Entity
     {
-        std::wstring text;
+        std::string text;
         char style;
     };
 
     struct ExtendedEntity
     {
-        std::wstring text;
+        std::string text;
         char style;
         std::variant<std::monostate, SymbolType, const Logic::FunctionNamespaceDetails*> details;
-        std::vector<std::tuple<std::wstring, std::wstring>> entity_spanning_tags;
-        std::vector<std::tuple<std::wstring, std::wstring>> entity_specific_tags;
+        std::vector<std::tuple<std::string, std::string>> entity_spanning_tags;
+        std::vector<std::tuple<std::string, std::string>> entity_specific_tags;
     };
 
     struct HtmlProcessor
     {
         virtual ~HtmlProcessor() { }
 
-        virtual void WriteHtmlHeader(std::wstringstream& output) const = 0;
-        virtual void WriteHtmlFooter(std::wstringstream& output) const = 0;
+        virtual void WriteHtmlHeader(std::stringstream& output) const = 0;
+        virtual void WriteHtmlFooter(std::stringstream& output) const = 0;
 
         virtual std::vector<ExtendedEntity> GetExtendedEntities(const std::vector<Entity>& /*entities*/) const { return {}; }
     };

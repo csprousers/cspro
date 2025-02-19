@@ -13,7 +13,7 @@ public:
     const char* GetCreateKeyTableSql() const override;
     const std::vector<const char*>& GetCreateIndexSqlStatements() const override;
     int64_t GetFileSize() const override;
-    int GetPercentRead() const override;;
+    int GetPercentRead() const override;
     bool ReadCaseAndUpdateIndex(IndexableTextRepositoryIndexDetails& index_details) override;
     void OnSuccessfulCreation() override;
 
@@ -33,7 +33,7 @@ private:
 
     // reads until the JSON end object character is found, properly handling nested objects and strings;
     // the end object character is consumed and the JSON object text and UTF-8 length is returned
-    std::tuple<std::wstring, size_t> ReadObject();
+    std::tuple<std::string, size_t> ReadObject();
 
     // parses the remaining file, throwing an exception if any non-whitespace character is found
     void EnsureAtEndOfFile();

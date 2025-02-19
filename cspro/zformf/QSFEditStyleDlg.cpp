@@ -3,20 +3,6 @@
 #include <regex>
 
 
-namespace {
-
-    CString MakeCssClassName(const CString& s)
-    {
-        CString className = s;
-        if (!is_alpha(className[0]))
-            className.SetAt(0, L'Z');
-        std::wregex invalid(L"[^a-zA-Z0-9_-]");
-        return CString(std::regex_replace(className.GetString(), invalid, L"-").c_str());
-    }
-}
-
-IMPLEMENT_DYNAMIC(QSFEditStyleDlg, CDialog)
-
 BEGIN_MESSAGE_MAP(QSFEditStyleDlg, CDialog)
     ON_LBN_SELCHANGE(IDC_LIST_STYLES, OnLbnSelchangeStyle)
     ON_CBN_SELCHANGE(IDC_COMBO_FONT, UpdateSelectedStyle)
@@ -31,14 +17,15 @@ BEGIN_MESSAGE_MAP(QSFEditStyleDlg, CDialog)
     ON_BN_CLICKED(IDC_ADD_STYLE, OnAddStyle)
     ON_BN_CLICKED(IDC_DELETE_STYLE, OnDeleteStyle)
     ON_EN_KILLFOCUS(IDC_STYLE_NAME, OnStyleNameKillFocus)
-
 END_MESSAGE_MAP()
 
-QSFEditStyleDlg::QSFEditStyleDlg(std::vector<CapiStyle> styles, CWnd* pParent)
-    : CDialog(QSFEditStyleDlg::IDD, pParent)
+
+QSFEditStyleDlg::QSFEditStyleDlg(std::vector<CapiStyle> styles, CWnd* const pParent)
+    :   CDialog(IDD_QSFSTYLEDLG, pParent),
+        m_styles(std::move(styles))
 {
-    m_styles = std::move(styles);
 }
+
 
 void QSFEditStyleDlg::OnLbnSelchangeStyle()
 {
@@ -48,15 +35,17 @@ void QSFEditStyleDlg::OnLbnSelchangeStyle()
     m_delete_button.EnableWindow(m_style_list.GetCurSel() != 0);
 }
 
+
 void QSFEditStyleDlg::UpdateSelectedStyle()
 {
     CapiStyle updated_style = StyleFromControls();
     CapiStyle& current_style = GetSelectedStyle();
-    if (!updated_style.m_name.IsEmpty())
-        current_style.m_name = updated_style.m_name;
-    current_style.m_css = updated_style.m_css;
+    if (!updated_style.name.empty())
+        current_style.name = updated_style.name;
+    current_style.css = updated_style.css;
     UpdateSample(current_style);
 }
+
 
 void QSFEditStyleDlg::OnStyleNameKillFocus()
 {
@@ -74,34 +63,60 @@ void QSFEditStyleDlg::OnStyleNameKillFocus()
     }
 }
 
+
+std::string QSFEditStyleDlg::MakeCssClassName(std::string class_name)
+{
+    ASSERT(!class_name.empty());
+
+    if( !std::isalpha(class_name.front()) )
+        class_name[0] = 'Z';
+
+    std::regex invalid("[^a-zA-Z0-9_-]");
+    return std::regex_replace(class_name, invalid, "-");
+}
+
+
 void QSFEditStyleDlg::OnOK()
 {
     // Make sure that names are unique
-    std::set<CString> names;
-    for (CapiStyle& style : m_styles) {
-        if (names.find(style.m_name) != names.end()) {
-            AfxMessageBox(FormatText(_T("There are multiple styles with name %s. Please rename them so that style names are unique."), style.m_name.GetString()), MB_ICONEXCLAMATION);
+    std::set<std::string> names;
+
+    for( CapiStyle& style : m_styles )
+    {
+        if( names.find(style.name) != names.cend() )
+        {
+            ErrorMessage::Display(FormatText("There are multiple styles with name %s. "
+                                             "Please rename them so that style names are unique.", style.name.c_str()));
             return;
         }
-        names.insert(style.m_name);
+
+        names.insert(style.name);
     }
 
     // Fill in the class names for any new styles
-    std::set<CString> class_names;
-    for (CapiStyle& style : m_styles) {
-        if (style.m_class_name.IsEmpty()) {
-            style.m_class_name = MakeCssClassName(style.m_name);
+    std::set<std::string> class_names;
+
+    for( CapiStyle& style : m_styles )
+    {
+        if( style.class_name.empty() )
+        {
+            style.class_name = MakeCssClassName(style.name);
+
             // Make sure class name is unique
             int n = 2;
-            while (class_names.find(style.m_class_name) != class_names.end()) {
-                style.m_class_name = FormatText(L"%s%d", MakeCssClassName(style.m_name).GetString(), n++);
+
+            while( class_names.find(style.class_name) != class_names.cend() )
+            {
+                style.class_name = FormatText("%s%d", MakeCssClassName(style.name).c_str(), n++);
             }
         }
-        class_names.insert(style.m_class_name);
+
+        class_names.insert(style.class_name);
     }
 
     CDialog::OnOK();
 }
+
 
 void QSFEditStyleDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -119,14 +134,15 @@ void QSFEditStyleDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_DELETE_STYLE, m_delete_button);
 }
 
+
 BOOL QSFEditStyleDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
     for (const CapiStyle& style : m_styles)
-        m_style_list.AddString(style.m_name);
+        m_style_list.AddString(TC::ToWide(style.name).c_str());
 
-    for (const CString& font_name : CapiStyle::DefaultFontNames) {
+    for (const wchar_t* const font_name : CapiStyle::DefaultFontNames) {
         LOGFONT logfont;
         memset(&logfont, 0, sizeof(LOGFONT));
         _tcscpy(logfont.lfFaceName, font_name);
@@ -140,7 +156,7 @@ BOOL QSFEditStyleDlg::OnInitDialog()
     m_font_style_combo.AddString(_T("Bold Italic"));
 
     for (int font_size : CapiStyle::DefaultFontSizes)
-        m_font_size_combo.AddString(IntToString(font_size));
+        m_font_size_combo.AddString(UTF8_TODO::GetCString(IntToString(font_size)));
 
     m_style_list.SetCurSel(0);
     UpdateControlsToMatchToStyle(m_styles[0]);
@@ -164,105 +180,137 @@ BOOL QSFEditStyleDlg::OnInitDialog()
     return 0;
 }
 
+
 CapiStyle& QSFEditStyleDlg::GetSelectedStyle()
 {
     int selected = m_style_list.GetCurSel();
     return m_styles[selected];
 }
 
+
 void QSFEditStyleDlg::UpdateControlsToMatchToStyle(const CapiStyle& style)
 {
-    m_edit_style_name.SetWindowText(style.m_name);
+    WindowsUtf8::SetText(m_edit_style_name, style.name);
 
-    std::optional<std::wstring> font_name = CssStyleParser::FontName(style.m_css);
-    if (font_name) {
-        if (m_font_name_combo.FindStringExact(-1, font_name->c_str()) == CB_ERR) {
-            m_font_name_combo.AddString(font_name->c_str());
+    const std::optional<std::string> font_name = CssStyleParser::FontName(style.css);
+
+    if( font_name.has_value() )
+    {
+        const std::wstring wide_font_name = TC::ToWide(*font_name);
+        if(m_font_name_combo.FindStringExact(-1, wide_font_name.c_str()) == CB_ERR) {
+            m_font_name_combo.AddString(wide_font_name.c_str());
         }
-        m_font_name_combo.SelectString(-1, font_name->c_str());
+        m_font_name_combo.SelectString(-1, wide_font_name.c_str());
     }
 
-    std::optional<int> font_size = CssStyleParser::FontSize(style.m_css);
-    if (font_size) {
-        CString font_size_string = IntToString(*font_size);
+    const std::optional<int> font_size = CssStyleParser::FontSize(style.css);
+
+    if( font_size.has_value() )
+    {
+        CString font_size_string = UTF8_TODO::GetCString(IntToString(*font_size));
         if (m_font_size_combo.FindStringExact(-1, font_size_string) == CB_ERR) {
             m_font_size_combo.AddString(font_size_string);
         }
         m_font_size_combo.SelectString(-1, font_size_string);
     }
 
-    bool bold = CssStyleParser::Bold(style.m_css);
-    bool italic = CssStyleParser::Italic(style.m_css);
-    if (bold && italic) {
+    const bool bold = CssStyleParser::Bold(style.css);
+    const bool italic = CssStyleParser::Italic(style.css);
+
+    if( bold && italic )
+    {
         m_font_style_combo.SelectString(-1, L"Bold Italic");
     }
-    else if (italic) {
+
+    else if( italic )
+    {
         m_font_style_combo.SelectString(-1, L"Italic");
     }
-    else if (bold) {
+
+    else if( bold )
+    {
         m_font_style_combo.SelectString(-1, L"Bold");
     }
-    else {
+
+    else
+    {
         m_font_style_combo.SelectString(-1, L"Regular");
     }
 
-    bool underline = CssStyleParser::Underline(style.m_css);
+    const bool underline = CssStyleParser::Underline(style.css);
     m_underline_button.SetCheck(underline ? BST_CHECKED : BST_UNCHECKED);
 
-    std::optional<COLORREF> color = CssStyleParser::TextColor(style.m_css);
-    if (color) {
-        int color_index = m_color_combo.FindColor(*color);
-        if (color_index != CB_ERR) {
+    const std::optional<COLORREF> color = CssStyleParser::TextColor(style.css);
+
+    if( color.has_value() )
+    {
+        const int color_index = m_color_combo.FindColor(*color);
+
+        if( color_index != CB_ERR )
+        {
             m_color_combo.SetCurSel(color_index);
         }
-        else {
+
+        else
+        {
             m_color_combo.AddColor(L"", *color);
         }
     }
-    else {
+
+    else
+    {
         m_color_combo.SetCurSel(0);
     }
 }
 
+
 CapiStyle QSFEditStyleDlg::StyleFromControls()
 {
-    CapiStyle style;
+    CapiStyle style
+    {
+        WindowsUtf8::GetText(m_edit_style_name)
+    };
 
-    m_edit_style_name.GetWindowText(style.m_name);
+    const std::string font_name = UTF8_TODO::GetUtf8(GetSelectedFontName());
 
-    CString font_name = GetSelectedFontName();
-    if (!font_name.IsEmpty())
-        style.m_css += FormatText(L"font-family: %s;", font_name.GetString());
+    if( !font_name.empty() )
+        style.css.append(FormatText("font-family: %s;", font_name.c_str()));
 
-    if (IsBoldSelected())
-        style.m_css += L"font-weight: bold;";
-    if (IsItalicSelected())
-        style.m_css += L"font-style: italic;";
+    if( IsBoldSelected() )
+        style.css.append("font-weight: bold;");
 
-    std::optional<int> font_size = GetSelectedFontSize();
-    if (font_size)
-        style.m_css += FormatText(L"font-size: %dpx;", font_size);
+    if( IsItalicSelected() )
+        style.css.append("font-style: italic;");
 
-    bool underline = m_underline_button.GetCheck() == BST_CHECKED;
-    if (underline) {
-        style.m_css += L"text-decoration: underline;";
+    const std::optional<int> font_size = GetSelectedFontSize();
+
+    if( font_size.has_value() )
+        style.css.append(FormatText("font-size: %dpx;", *font_size));
+
+    if(m_underline_button.GetCheck() == BST_CHECKED )
+        style.css.append("text-decoration: underline;");
+
+    const std::optional<COLORREF> color = m_color_combo.GetSelColor();
+
+    if( color.has_value() )
+    {
+        style.css.append(FormatText("color: #%02x%02x%02x;", static_cast<unsigned int>(GetRValue(*color)),
+                                                             static_cast<unsigned int>(GetGValue(*color)),
+                                                             static_cast<unsigned int>(GetBValue(*color))));
     }
 
-    std::optional<COLORREF> color = m_color_combo.GetSelColor();
-    if (color) {
-        style.m_css += FormatText(L"color: #%02x%02x%02x;",
-                        GetRValue(*color), GetGValue(*color), GetBValue(*color));
-    }
     return style;
 }
 
+
 void QSFEditStyleDlg::UpdateSample(const CapiStyle& style)
 {
+    LOGFONT lf = CssStyleParser::ToLogfont(style.css);
     CFont font;
-    LOGFONT lf = CssStyleParser::ToLogfont(style.m_css);
     font.CreateFontIndirect(&lf);
     m_sample.SetFont(&font);
 }
+
 
 CString QSFEditStyleDlg::GetSelectedFontName() const
 {
@@ -276,6 +324,7 @@ CString QSFEditStyleDlg::GetSelectedFontName() const
     return font_name;
 }
 
+
 CString QSFEditStyleDlg::GetSelectedFontStyle() const
 {
     CString font_style;
@@ -287,6 +336,7 @@ CString QSFEditStyleDlg::GetSelectedFontStyle() const
     }
     return font_style;
 }
+
 
 std::optional<int> QSFEditStyleDlg::GetSelectedFontSize() const
 {
@@ -300,17 +350,20 @@ std::optional<int> QSFEditStyleDlg::GetSelectedFontSize() const
     return font_size.IsEmpty() ? std::optional<int>() : std::stoi(std::wstring(font_size));
 }
 
+
 bool QSFEditStyleDlg::IsBoldSelected() const
 {
     CString font_style = GetSelectedFontStyle();
     return font_style == L"Bold" || font_style == L"Bold Italic";
 }
 
+
 bool QSFEditStyleDlg::IsItalicSelected() const
 {
     CString font_style = GetSelectedFontStyle();
     return font_style == L"Italic" || font_style == L"Bold Italic";
 }
+
 
 HBRUSH QSFEditStyleDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
@@ -327,20 +380,22 @@ HBRUSH QSFEditStyleDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
     return hbr;
 }
 
+
 void QSFEditStyleDlg::OnAddStyle()
 {
     CapiStyle new_style = GetSelectedStyle();
-    new_style.m_name = L"New Style";
+    new_style.name = "New Style";
     int n = 2;
-    while (std::find_if(m_styles.begin(), m_styles.end(), [&new_style](const CapiStyle& s) { return s.m_name.CompareNoCase(new_style.m_name) == 0; }) != m_styles.end()) {
-        new_style.m_name = FormatText(L"New Style %d", n++);
+    while (std::find_if(m_styles.begin(), m_styles.end(), [&new_style](const CapiStyle& s) { return SO::EqualsNoCase(s.name, new_style.name); }) != m_styles.end()) {
+        new_style.name = FormatText("New Style %d", n++);
     }
-    new_style.m_class_name = CString(); // gets filled in OnOk after user has edited name
+    new_style.class_name.clear(); // gets filled in OnOk after user has edited name
     m_styles.emplace_back(new_style);
-    m_style_list.AddString(new_style.m_name);
+    m_style_list.AddString(TC::ToWide(new_style.name).c_str());
     m_style_list.SetCurSel(m_styles.size() - 1);
     OnLbnSelchangeStyle();
 }
+
 
 void QSFEditStyleDlg::OnDeleteStyle()
 {

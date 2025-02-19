@@ -52,6 +52,7 @@ BEGIN_MESSAGE_MAP(CTxtPropDlg, CDialog)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+
 /////////////////////////////////////////////////////////////////////////////
 // CTxtPropDlg message handlers
 
@@ -63,16 +64,15 @@ BOOL CTxtPropDlg::OnInitDialog()
         GetDlgItem(IDC_LABEL)->EnableWindow(false);
     }
 
-    CString cs;
-    cs.Format(IDS_DEFAULTFONT, PortableFont(m_lfDefault).GetDescription().GetString());
-    GetDlgItem(IDC_RADIOFONT)->SetWindowText(cs);
+    WindowsUtf8::SetText(this, IDC_RADIOFONT, FormatText("&Use default font (%s)",
+                                                         PortableFont(m_lfDefault).GetDescription().c_str()));
 
-    GetDlgItem(IDC_FONT)->EnableWindow(m_iFont==0?false:true);
+    GetDlgItem(IDC_FONT)->EnableWindow(( m_iFont != 0 ));
 
-    if( m_iFont ) // 20120612 if they have a custom font selected, let's display the descriptive name of it
+    if( m_iFont != 0 ) // 20120612 if they have a custom font selected, let's display the descriptive name of it
     {
-        cs.Format(IDS_CUSTOMFONT, PortableFont(m_lfCustom).GetDescription().GetString());
-        GetDlgItem(IDC_RADIOFONT2)->SetWindowText(cs);
+        WindowsUtf8::SetText(this, IDC_RADIOFONT2, FormatText("U&se custom font (%s)",
+                                                              PortableFont(m_lfCustom).GetDescription().c_str()));
     }
 
     CFormDoc* pDoc = m_pView->GetDocument();
@@ -84,10 +84,12 @@ BOOL CTxtPropDlg::OnInitDialog()
     return TRUE;
 }
 
+
 void CTxtPropDlg::OnRadiofont()
 {
     GetDlgItem(IDC_FONT)->EnableWindow(FALSE);
 }
+
 
 void CTxtPropDlg::OnRadiofont2()
 {
@@ -129,11 +131,11 @@ void CTxtPropDlg::OnFont()
             m_lfCustom = *dlg.m_cf.lpLogFont;
         }
 
-        CString cs; // 20120612
-        cs.Format(IDS_CUSTOMFONT, PortableFont(m_lfCustom).GetDescription().GetString());
-        GetDlgItem(IDC_RADIOFONT2)->SetWindowText(cs);
+        WindowsUtf8::SetText(this, IDC_RADIOFONT2, FormatText("U&se custom font (%s)",
+                                                              PortableFont(m_lfCustom).GetDescription().c_str()));
     }
 }
+
 
 void CTxtPropDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
@@ -149,6 +151,7 @@ void CTxtPropDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
     CDialog::OnDrawItem(nIDCtl, lpDrawItemStruct);
 }
 
+
 void CTxtPropDlg::OnColor()
 {
     CColorDialog dlg;
@@ -160,6 +163,7 @@ void CTxtPropDlg::OnColor()
         GetDlgItem(IDC_COLOR)->Invalidate();
     }
 }
+
 
 void CTxtPropDlg::OnApply()
 {

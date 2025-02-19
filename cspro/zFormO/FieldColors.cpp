@@ -82,7 +82,7 @@ void FieldColors::BuildFromArgument(const CString& argument)
     {
         if( status_text.CompareNoCase(SerializedArguments[i]) == 0 )
         {
-            COLORREF color = _ttoi((LPCTSTR)argument + comma_pos + 1);
+            COLORREF color = _ttoi(argument.GetString() + comma_pos + 1);
             SetColor(static_cast<FieldStatus>(i), PortableColor::FromCOLORREF(color));
             return;
         }

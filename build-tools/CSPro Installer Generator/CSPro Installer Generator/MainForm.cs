@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Ionic.Zip;
 using LibGit2Sharp;
@@ -346,45 +347,25 @@ namespace CSPro_Installer_Generator
 
                 AddToLog(LogType.Log, $"Reading the version information from {header_filename}...");
 
+                var constexpr_regex = new Regex(@"^.*constexpr.*\s(\S+)\s=\s+(\S+);\s*$");
+                var quote_chars = new char[] { '\"' };
+
                 foreach( string full_line in File.ReadAllLines(header_filename) )
                 {
-                    const string comment = "//";
-                    const string define = "#define";
-                    char[] whitespace = { ' ', '\t' };
-                    const string text_macro_start = "_T(\"";
-                    const string text_macro_end = "\")";
+                    var match = constexpr_regex.Match(full_line);
 
-                    int comment_pos = full_line.IndexOf(comment);
-                    string line = ( ( comment_pos < 0 ) ? full_line : full_line.Substring(0, comment_pos) ).Trim();
-
-                    int define_pos = line.IndexOf(define);
-
-                    if( define_pos >= 0 )
-                    {
-                        // makes sure that there is at least one whitespace in case the attribute is empty
-                        string value_attribute = line.Substring(define_pos + define.Length).Trim() + " ";
-                        int space_pos = value_attribute.IndexOfAny(whitespace);
-
-                        string value = value_attribute.Substring(0, space_pos);
-                        string attribute = value_attribute.Substring(space_pos).Trim();
-
-                        int expected_text_macro_end = attribute.Length - text_macro_end.Length;
-
-                        if( attribute.IndexOf(text_macro_start) == 0 && attribute.IndexOf(text_macro_end) == expected_text_macro_end )
-                            attribute = attribute.Substring(text_macro_start.Length, expected_text_macro_end - text_macro_start.Length);
-
-                        defines[value] = attribute;
-                    }
+                    if( match.Success )
+                        defines[match.Groups[1].Value] = match.Groups[2].Value.Trim(quote_chars);
                 }
             }
 
-            _beta = defines.ContainsKey("BETA_BUILD");
+            _beta = ( defines["IsBeta"] == "true" );
             labelBeta.Text = _beta ? "Beta" : "Release";
 
-            string version;
+            string version = defines["NumberDetailedTextOverride_sv"];
 
-            if( !defines.TryGetValue("OVERRIDE_CSPRO_VERSION_NUMBER_DETAILED_TEXT", out version) )
-                version = defines["CSPRO_VERSION_NUMBER_DETAILED_TEXT"];
+            if( version == "x.x.x" )
+                version = defines["NumberDetailedText"];
 
             string[] versions = version.Split('.');
             _versionMajor = int.Parse(versions[0]);
@@ -393,7 +374,7 @@ namespace CSPro_Installer_Generator
             labelVersion.Text = $"{_versionMajor}.{_versionMinor}.{_versionBuild}";
 
             // for the release time, use the date that the installer is being created
-            int release_date_yyyymmdd = int.Parse(defines["CSPRO_RELEASE_DATE"]);
+            int release_date_yyyymmdd = int.Parse(defines["CSProReleaseDate"]);
             _releaseDate = new DateTime(release_date_yyyymmdd / 10000,
                                         ( release_date_yyyymmdd / 100 ) % 100,
                                         release_date_yyyymmdd % 100,

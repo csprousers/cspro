@@ -6,7 +6,6 @@
 #include <zLogicO/Preprocessor.h>
 #include <zLogicO/ProcDirectory.h>
 #include <zEngineO/EngineItem.h>
-#include <zEngineO/File.h>
 #include <zEngineO/ValueSet.h>
 #include <zEngineO/WorkVariable.h>
 #include <zEngineO/Compiler/TokenHelper.h>
@@ -67,7 +66,7 @@ CEngineCompFunc::~CEngineCompFunc()
 // Create a new Work Variable
 int CEngineCompFunc::MakeRelationWorkVar()
 {
-    std::wstring work_var_name = FormatTextCS2WS(_T("_IDX_%d"), static_cast<int>(GetSymbolTable().GetTableSize()));
+    std::string work_var_name = FormatText("_IDX_%d", static_cast<int>(GetSymbolTable().GetTableSize()));
     return m_engineData->AddSymbol(std::make_unique<WorkVariable>(std::move(work_var_name)));
 }
 
@@ -92,16 +91,6 @@ bool CEngineCompFunc::CompExpIsValidVar( bool bCheckLevel )
 }
 
 
-void CEngineCompFunc::CheckUnusedFileNames()
-{
-    for( const LogicFile* logic_file : m_engineData->files_global_visibility )
-    {
-        if( !logic_file->IsUsed() )
-            IssueWarning(505, logic_file->GetName().c_str());
-    }
-}
-
-
 const LogicSettings& CEngineCompFunc::GetLogicSettings() const
 {
     return m_pEngineDriver->GetApplication()->GetLogicSettings();
@@ -117,11 +106,11 @@ void CEngineCompFunc::FormatMessageAndProcessParserMessage(Logic::ParserMessage&
 
     // set the fail message text
     if( parser_message.type == Logic::ParserError::Type::Error && Failmsg.IsEmpty() )
-        Failmsg = WS2CS(parser_message.message_text);
+        Failmsg = UTF8_TODO::GetCString(parser_message.message_text);
 }
 
 
-Logic::ParserMessage CEngineCompFunc::CreateParserMessageFromIssaError(MessageType message_type, int message_number, std::wstring message_text) const
+Logic::ParserMessage CEngineCompFunc::CreateParserMessageFromIssaError(const MessageType message_type, const int message_number, const std::string& message_text) const
 {
     // eventually, when all compilation errors use Logic::ParserMessage, this method will no longer be needed,
     // but for now, we have to translate the error to a parser message
@@ -132,9 +121,11 @@ Logic::ParserMessage CEngineCompFunc::CreateParserMessageFromIssaError(MessageTy
     Logic::ParserMessage parser_message(parser_message_type);
 
     parser_message.message_number = message_number;
-    parser_message.message_text = std::move(message_text);
+    parser_message.message_text = message_text;
     parser_message.compilation_unit_name = GetCurrentCompilationUnitName();
-    parser_message.proc_name = WS2CS(GetCurrentProcName());
+    parser_message.proc_name = GetCurrentProcName();
+
+    ASSERT(std::holds_alternative<std::monostate>(parser_message.extended_location));
 
     if( GetCurrentCapiLogicLocation().has_value() )
         parser_message.extended_location = *GetCurrentCapiLogicLocation();
@@ -199,14 +190,14 @@ const Logic::ProcDirectory* CEngineCompFunc::CreateProcDirectory()
     // go through each of the basic tokens
     cs::span<const Logic::BasicToken> basic_tokens = GetBasicTokensSpan();
 
-    std::optional<std::wstring> constructing_proc_name;
+    std::optional<std::string> constructing_proc_name;
 
     for( size_t token_index = 0; token_index < basic_tokens.size(); ++token_index )
     {
         const Logic::BasicToken& basic_token = basic_tokens[token_index];
 
         bool token_is_proc = ( basic_token.type == Logic::BasicToken::Type::Text &&
-                               SO::EqualsNoCase(basic_token.GetTextSV(), _T("PROC")) );
+                               SO::EqualsNoCase(basic_token.GetSV(), "PROC") );
 
         // issue an error if there is any code before the first proc
         if( !token_is_proc && token_index == 0 )
@@ -226,14 +217,15 @@ const Logic::ProcDirectory* CEngineCompFunc::CreateProcDirectory()
         else if( constructing_proc_name.has_value() )
         {
             // allow text and periods in the name
-            TCHAR last_char_added = constructing_proc_name->empty() ? 0 : constructing_proc_name->back();
+            const char last_char_added = constructing_proc_name->empty() ? 0 :
+                                                                           constructing_proc_name->back();
             bool proc_name_is_complete = true;
             bool proc_first_token_is_next_token = false;
 
             if( ( basic_token.type == Logic::BasicToken::Type::Text && ( last_char_added == 0 || last_char_added == '.' ) ) ||
                 ( basic_token.token_code == TOKPERIOD && last_char_added != '.' ) )
             {
-                constructing_proc_name->append(basic_token.GetTextSV());
+                constructing_proc_name->append(basic_token.GetSV());
 
                 if( ( token_index + 1 ) == basic_tokens.size() || basic_tokens[token_index + 1].line_number != basic_token.line_number )
                 {
@@ -253,7 +245,7 @@ const Logic::ProcDirectory* CEngineCompFunc::CreateProcDirectory()
                 bool proc_name_is_ambiguous = false;
                 Symbol* chosen_valid_symbol = nullptr;
 
-                for( Symbol* symbol : m_pEngineArea->SymbolTableSearchAllSymbols(*constructing_proc_name) )
+                for( Symbol* const symbol : m_pEngineArea->SymbolTableSearchAllSymbols(*constructing_proc_name) )
                 {
                     proc_name_is_symbol = true;
 

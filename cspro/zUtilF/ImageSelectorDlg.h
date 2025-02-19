@@ -13,13 +13,13 @@ class CLASS_DECL_ZUTILF ImageSelectorDlg : public CDialog
     DECLARE_DYNAMIC(ImageSelectorDlg)
 
 public:
-    ImageSelectorDlg(const CString& filename, std::function<void(const CString&)> modification_callback,
+    ImageSelectorDlg(const std::string& file_path, std::function<void(const std::string&)> modification_callback,
                      std::optional<CRect> rect_above_desired_window, CWnd* pParent = nullptr);
 
     enum { IDD = IDD_IMAGE_SELECTOR };
 
     // returns a blank string if no file was selected
-    static CString SelectFile(const CString& filename = CString());
+    static std::string SelectFile(const std::string& file_path = SO::Empty_string);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -32,10 +32,10 @@ protected:
     afx_msg void OnBnClickedRemove();
 
 private:
-    CString m_filename;
-    std::function<void(const CString&)> m_modificationCallback;
+    std::string m_filePath;
+    std::function<void(const std::string&)> m_modificationCallback;
     std::optional<CRect> m_rectAboveDesiredWindow;
 
-    std::shared_ptr<CImage> m_image;
+    std::shared_ptr<const CImage> m_image;
     CStatic m_imageStatic;
 };

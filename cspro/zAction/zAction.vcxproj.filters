@@ -14,105 +14,117 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zAction.cpp">
+    <ClCompile Include="ActionFunctionMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ActionInvoker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UserInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionFunctionMapping.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Logic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Path.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="File.cpp">
+    <ClCompile Include="Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Caller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Settings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Clipboard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PortableRunnerWindows.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Localhost.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Message.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Dictionary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Dictionary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Encoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JsonExecutor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Localhost.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Logic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PortableRunnerWindows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Sqlite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="JsonExecutor.cpp">
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sync.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="System.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zAction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zAction.h">
+    <ClInclude Include="AccessToken.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ActionInvoker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Caller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExceptionThrowingJsonReaderInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExternalCaller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExceptionWithActionName.h">
+    <ClInclude Include="JsonExecutor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WebController.h">
+    <ClInclude Include="JsonResponse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Listener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NameProcessors.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Caller.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WebCaller.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WebListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OnGetInputDataListener.h">
@@ -124,19 +136,19 @@
     <ClInclude Include="Result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AccessToken.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Encoding.h">
+    <ClInclude Include="WebCaller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonExecutor.h">
+    <ClInclude Include="WebController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonResponse.h">
+    <ClInclude Include="WebListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExternalCaller.h">
+    <ClInclude Include="zAction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,6 +26,8 @@ protected:
     CMFCPropertyGridProperty* CreateOccurrenceLabelsProperty();
 
 private:
+    static std::set<std::string> SingleStringToAliases(std::string_view aliases_text_sv);
+
     template<typename T>
     CMFCPropertyGridProperty* CreateAliasesProperty();
 

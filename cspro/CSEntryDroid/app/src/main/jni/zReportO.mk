@@ -21,9 +21,9 @@ LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/utf8.c
 LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/util.c
 LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/vector.c
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_STATIC_LIBRARIES  := zUtilO zJson zToolsO zPlatformO SQLite
+LOCAL_STATIC_LIBRARIES  := zUtilO zJson zToolsO zPlatformO zSql
 
 include $(BUILD_STATIC_LIBRARY)

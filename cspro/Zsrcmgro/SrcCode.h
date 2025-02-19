@@ -440,7 +440,7 @@ public:
     // Get List of Procedure Names
     int GetProcNames( CStringArray& aProcNames );
 
-    std::map<std::wstring, int> GetProcLineNumberMap() const;
+    std::map<std::string, int> GetProcLineNumberMap() const;
 
     //SAVY Code for speeding up code availability check
     bool IsProcAvailable(const CString& csSymbolName, CSourceCode_EventType eEventType = CSourceCode_AllEvents);

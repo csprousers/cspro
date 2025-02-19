@@ -6,20 +6,20 @@
 
 void ProcessorMessages::Compile(CodeView& code_view)
 {
-    CLogicCtrl* logic_ctrl = code_view.GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_CSPRO_MESSAGE_V8_0);
 
-    CMainFrame* main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
-    CSCodeBuildWnd* build_wnd = main_frame->GetBuildWnd();
+    CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CSCodeBuildWnd* const build_wnd = main_frame->GetBuildWnd();
 
     if( build_wnd == nullptr )
         return;
 
-    build_wnd->Initialize(code_view, _T("Message compilation"));
+    build_wnd->Initialize(code_view, "Message compilation");
 
     try
     {
-        const TextSourceString text_source(code_view.GetCodeDoc().GetPathNameOrFakeTempName(FileExtensions::Message),
+        const TextSourceString text_source(code_view.GetCodeDoc().GetActualOrTempFilePath(FileExtensions::Message),
                                            logic_ctrl->GetText());
 
         MessageFile message_file;

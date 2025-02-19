@@ -18,7 +18,6 @@
 
 class CEngineArea;
 class CEngineDriver;
-class Serializer;
 
 //
 // TARGET describes the relation origin and each of the TO target objects
@@ -78,7 +77,7 @@ public:
 // --- construction/destruction/initialization
 //
 public:
-    CSymbolRelation(std::wstring name, const Logic::SymbolTable& symbol_table);
+    CSymbolRelation(std::string name, const Logic::SymbolTable& symbol_table);
 
     void AddBaseSymbol(Symbol* base_symbol, int working_variable_index);
     void AddToSymbol(Symbol* base_symbol, int relationType, int relationExpr, int working_variable_index);

@@ -9,7 +9,6 @@ endif
 include $(LOCAL_PATH)/Engine.mk
 include $(LOCAL_PATH)/mp4v2.mk
 include $(LOCAL_PATH)/rtf2html.mk
-include $(LOCAL_PATH)/SQLite.mk
 include $(LOCAL_PATH)/yamlcpp.mk
 include $(LOCAL_PATH)/zAction.mk
 include $(LOCAL_PATH)/zAppO.mk
@@ -43,10 +42,13 @@ include $(LOCAL_PATH)/zPlatformO.mk
 include $(LOCAL_PATH)/zReformatO.mk
 include $(LOCAL_PATH)/zReportO.mk
 include $(LOCAL_PATH)/zSortO.mk
+include $(LOCAL_PATH)/zSql.mk
+include $(LOCAL_PATH)/zSyncF.mk
 include $(LOCAL_PATH)/zSyncO.mk
 include $(LOCAL_PATH)/zToolsO.mk
 include $(LOCAL_PATH)/zUtilF.mk
 include $(LOCAL_PATH)/zUtilO.mk
+include $(LOCAL_PATH)/zXml.mk
 include $(LOCAL_PATH)/zZipO.mk
 
 
@@ -64,6 +66,7 @@ LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidBluetoothObexTransport.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidEngineInterface.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidFtpConnection.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidHttpConnection.cpp
+LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidLocalFileServer.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidMapUI.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/GeometryJni.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_bridge_CNPifFile.cpp
@@ -75,20 +78,19 @@ LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_http_I
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_http_OStreamWrapper_jni.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_SyncListenerWrapper_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/PortableLocalhostAndroid.cpp
-
 
 LOCAL_LDLIBS            := -llog -landroid
+
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DGENERATE_BINARY=1
 LOCAL_CFLAGS            += -DUSE_BINARY=1
-LOCAL_CFLAGS            += -DANDROID=1
+
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/easylogging
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/rxcpp
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
-LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZipO zMapping zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zJavaScript zJson zToolsO zPlatformO SQLite mp4v2 zlib
+LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncF zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZipO zMapping zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zJavaScript zXml zJson zSql zToolsO zPlatformO mp4v2 zlib
 
 include $(BUILD_SHARED_LIBRARY)

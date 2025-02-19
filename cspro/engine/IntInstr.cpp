@@ -25,7 +25,6 @@
 #include "3dException.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineO/Nodes/ControlFlow.h>
 #include <Zissalib/CFlAdmin.h>
 #include <Zissalib/GroupVisitor.h>
@@ -207,7 +206,7 @@ double CIntDriver::excpt(int iExpr)
             }
             else {
                 // if subscript in range, do assignment
-                if (aIndex != NULL && aIndex[0] < pGroupTRec->GetTotalOccurrences()) {
+                if (aIndex[0] < pGroupTRec->GetTotalOccurrences()) {
                     CNDIndexes theIndex( ZERO_BASED, aIndex );
                     bOk = SetVarFloatValue( dRightValue, pVarX, theIndex );
                 }
@@ -257,7 +256,7 @@ double CIntDriver::exif(int iExpr)
 {
     const auto& if_node = GetNode<Nodes::If>(iExpr);
 
-    bool condition_is_true = ConditionalValueIsTrue(evalexpr(if_node.conditional_expression));
+    const bool condition_is_true = EvaluateConditional(if_node.conditional_expression);
 
     // if a request was issued in the conditional check (e.g., from a reenter in a
     // user-defined function), then exit immediately
@@ -414,13 +413,13 @@ double CIntDriver::exbox( int iExpr )
 
                 if( bDepVarIsNumeric )
                 {
-                    dRightValue = evalexpr(pBoxRow->row_expr);
+                    dRightValue = Evaluate(pBoxRow->row_expr);
                     std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), dRightValue);
                 }
 
                 else
                 {
-                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), EvalAlphaExpr(pBoxRow->row_expr));
+                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), EvaluateSharableString(pBoxRow->row_expr));
                 }
             }
 
@@ -433,25 +432,8 @@ double CIntDriver::exbox( int iExpr )
 
             else if( pBoxNode->recodeType == Box::BOX_NODE::RecodeType::WorkingAlpha )
             {
-                if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-                {
-                    VART* pVarT = VPT(iExprMultSymDepVar);
-
-                    if( pVarT->GetLogicStringPtr() )
-                        *(pVarT->GetLogicStringPtr()) = EvalAlphaExpr<CString>(pBoxRow->row_expr);
-
-                    else
-                    {
-                        pAlphaDestination = (TCHAR *)svaraddr(pVarT->GetVarX());
-                        iAlphaDestinationLength = pVarT->GetLength();
-                    }
-                }
-
-                else
-                {
-                    WorkString& work_string = GetSymbolWorkString(iExprMultSymDepVar);
-                    work_string.SetString(EvalAlphaExpr(pBoxRow->row_expr));
-                }
+                WorkString& work_string = GetSymbolWorkString(iExprMultSymDepVar);
+                work_string.SetString(EvaluateSharableString(pBoxRow->row_expr));
             }
 
             else
@@ -461,7 +443,7 @@ double CIntDriver::exbox( int iExpr )
 
             if( pAlphaDestination != NULL )
             {
-                CString csResult = EvalAlphaExpr<CString>(pBoxRow->row_expr);
+                CString csResult = EvalAlphaExprCS(pBoxRow->row_expr);
 
                 int iToCopy = std::min(csResult.GetLength(),iAlphaDestinationLength);
                 int iToSpaceFill = iAlphaDestinationLength - iToCopy;
@@ -635,7 +617,7 @@ double CIntDriver::exnoopIgnore_numeric(int /*iExpr*/)
 
 double CIntDriver::exnoopIgnore_string(int iExpr)
 {
-    return AssignBlankAlphaValue();
+    return AssignStringNull();
 }
 
 
@@ -661,7 +643,7 @@ double CIntDriver::exwhile(int iExpr)
     LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::While);
     ASSERT(loop_stack_entry.IsValid());
 
-    while( ConditionalValueIsTrue(evalexpr(while_node.conditional_expression)) )
+    while( EvaluateConditional(while_node.conditional_expression) )
     {
         try
         {
@@ -684,7 +666,7 @@ double CIntDriver::exwhile(int iExpr)
             throw;
         }
 
-        if( m_iStopExec )
+        if( m_bStopExec )
             break;
     }
 
@@ -692,47 +674,33 @@ double CIntDriver::exwhile(int iExpr)
 }
 
 
-double CIntDriver::exdo(int iExpr)
+double CIntDriver::ex_do(const int program_index)
 {
-    const auto& do_node = GetNode<Nodes::Do>(iExpr);
+    const auto& do_node = GetNode<Nodes::Do>(program_index);
     const Nodes::SymbolValue* counter_symbol_value_node = nullptr;
     double* counter_work_variable_address = nullptr;
 
-    LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::Do);
+    const LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::Do);
     ASSERT(loop_stack_entry.IsValid());
-
-    std::unique_ptr<Nodes::SymbolValue> pre76_symbol_value_node;
 
     if( do_node.counter_symbol_value_node_index != -1 )
     {
-        if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-        {
-            pre76_symbol_value_node = std::make_unique<Nodes::SymbolValue>();
-            pre76_symbol_value_node->symbol_index = do_node.counter_symbol_value_node_index;
-            pre76_symbol_value_node->symbol_compilation = -1;
-            ASSERT(NPT_Ref(pre76_symbol_value_node->symbol_index).IsA(SymbolType::WorkVariable));
-            counter_symbol_value_node = pre76_symbol_value_node.get();
-        }
-
-        else
-        {
-            counter_symbol_value_node = &GetNode<Nodes::SymbolValue>(do_node.counter_symbol_value_node_index);
-        }
+        counter_symbol_value_node = &GetNode<Nodes::SymbolValue>(do_node.counter_symbol_value_node_index);
 
         // work variables, since they will make up the vast majority of loop counters,
         // will be handled in a special way to make the iterations more efficient
         if( NPT_Ref(counter_symbol_value_node->symbol_index).IsA(SymbolType::WorkVariable) )
             counter_work_variable_address = GetSymbolWorkVariable(counter_symbol_value_node->symbol_index).GetValueAddress();
 
-        double initial_value = evalexpr(do_node.counter_initial_value_expression);
+        const double initial_value = evalexpr(do_node.counter_initial_value_expression);
         AssignValueToSymbol(*counter_symbol_value_node, initial_value);
     }
 
-    bool check_conditional_value_is_true = ( do_node.loop_type == TOKWHILE );
-    bool increment_variable_by_one = ( counter_symbol_value_node != nullptr && do_node.counter_increment_by_expression == -1 );
-    bool increment_work_variable_by_one = ( increment_variable_by_one && counter_work_variable_address != nullptr );
+    const bool check_conditional_value_is_true = ( do_node.loop_type == TOKWHILE );
+    const bool increment_variable_by_one = ( counter_symbol_value_node != nullptr && do_node.counter_increment_by_expression == -1 );
+    const bool increment_work_variable_by_one = ( increment_variable_by_one && counter_work_variable_address != nullptr );
 
-    while( ConditionalValueIsTrue(evalexpr(do_node.conditional_expression)) == check_conditional_value_is_true )
+    while( EvaluateConditional(do_node.conditional_expression) == check_conditional_value_is_true )
     {
         try
         {
@@ -742,7 +710,7 @@ double CIntDriver::exdo(int iExpr)
         catch( const NextProgramControlException& )  { }
         catch( const BreakProgramControlException& ) { break; }
 
-        if( m_iStopExec )
+        if( m_bStopExec )
             break;
 
         if( increment_work_variable_by_one )
@@ -941,8 +909,8 @@ double CIntDriver::getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRel
     theIndex.specifyIndexesUsed( aWhich[pGroupT->GetNumDim()-1] );
 #ifdef WIN_DESKTOP
     TRACE( _T("\ngetMaxIndexForVariableUsingStack for var %s using group %s -> %s\n"),
-        pVarT->GetName().c_str(),
-        pGroupT->GetName().c_str(), theIndex.toString(pGroupT->GetNumDim()).c_str() );
+        UTF8_TODO::GetWide(pVarT->GetName()).c_str(),
+        UTF8_TODO::GetWide(pGroupT->GetName()).c_str(), theIndex.toString(pGroupT->GetNumDim()).c_str() );
 #endif
     return dMaxValue;
 }
@@ -1123,7 +1091,7 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
                     *pTargetWVar = dCount1;
                     dValExpr = evalexpr( pTarget->iTargetRelationExpr );
 
-                    if( ConditionalValueIsTrue(dValExpr) ) {
+                    if( IsTrue(dValExpr) ) {
                         bFitValue = true; // RHF Jul 08, 2002
                         break;
                     }
@@ -1175,7 +1143,7 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
 
                     dValExpr = evalexpr( pTarget->iTargetRelationExpr );
 
-                    if( ConditionalValueIsTrue(dValExpr) ) {
+                    if( IsTrue(dValExpr) ) {
                         pRelT->AddTargetMultipleIndex( pTarget, dCount1 );
                         bFitValue = true;
                         dLastFit = dCount1;// RHF Jul 08, 2002
@@ -1210,7 +1178,7 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
             dWhereExprValue = evalexpr(-iWhereExpr);
         }
 
-        if( ConditionalValueIsFalse(dWhereExprValue) )
+        if( !IsTrue(dWhereExprValue) )
             continue;
 
 #ifdef WIN_DESKTOP
@@ -1250,7 +1218,7 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
             catch( const BreakProgramControlException& ) { break; }
         }
 
-        if( m_iStopExec )
+        if( m_bStopExec )
             break;
       }
 
@@ -1335,7 +1303,7 @@ double CIntDriver::exfor_group( int iForGroup )
         {
             *pLoopVar = dCount;
 
-            if( use_where_expression && ConditionalValueIsFalse(evalexpr(pFor->forWhereExpr)) )
+            if( use_where_expression && !EvaluateConditional(pFor->forWhereExpr) )
                 continue;
 
             try
@@ -1346,7 +1314,7 @@ double CIntDriver::exfor_group( int iForGroup )
             catch( const NextProgramControlException& )  { }
             catch( const BreakProgramControlException& ) { break; }
 
-            if( m_iStopExec )
+            if( m_bStopExec )
                 break;
         }
     }

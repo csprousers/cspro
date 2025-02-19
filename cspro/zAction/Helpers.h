@@ -6,9 +6,18 @@
 
 
 template<typename... Args>
-[[noreturn]] void ActionInvoker::Runtime::IssueError(int message_number, Args... args)
+[[noreturn]] void ActionInvoker::Runtime::IssueError(const int message_number, Args const&... args)
 {
-    ExceptionThrowingSystemMessageIssuer().Issue(MessageType::Error, message_number, args...);
+    try
+    {
+        ExceptionThrowingSystemMessageIssuer().Issue(MessageType::Error, message_number, args...);
+    }
+
+    catch( const CSProException& exception )
+    {
+        // rethrow as an ActionInvoker::Exception
+        throw ActionInvoker::Exception(exception.what(), std::string(), std::nullopt);
+    }
 }
 
 
@@ -26,16 +35,16 @@ void ActionInvoker::Runtime::IterateOverListeners(CF callback_function)
 
 
 template<typename... Args>
-const TCHAR* const GetUniqueKeyFromChoices(const JsonNode<wchar_t>& json_node, const TCHAR* key1, Args const&... key2_and_more)
+const char* const GetUniqueKeyFromChoices(const JsonNode& json_node, const char* const key1, Args const&... key2_and_more)
 {
-    const TCHAR* selected_key = nullptr;
+    const char* selected_key = nullptr;
 
-    for( const TCHAR* const key : std::initializer_list<const TCHAR*> { key1, key2_and_more... } )
+    for( const char* const key : std::initializer_list<const char*> { key1, key2_and_more... } )
     {
         if( json_node.Contains(key) )
         {
             if( selected_key != nullptr )
-                throw CSProException(_T("You cannot specify both '%s' and '%s'."), selected_key, key);
+                throw CSProException("You cannot specify both '%s' and '%s'.", selected_key, key);
 
             selected_key = key;
         }
@@ -44,5 +53,5 @@ const TCHAR* const GetUniqueKeyFromChoices(const JsonNode<wchar_t>& json_node, c
     if( selected_key != nullptr )
         return selected_key;
 
-    throw CSProException(_T("You must specify one of: ") + SO::CreateSingleString(cs::span<const TCHAR* const> { key1, key2_and_more... }));
+    throw CSProException("You must specify one of: " + SO::CreateSingleString(cs::span<const char* const> { key1, key2_and_more... }));
 }

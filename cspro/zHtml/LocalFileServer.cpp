@@ -2,7 +2,7 @@
 #include "LocalFileServer.h"
 #include "LocalhostSettings.h"
 #include "LocalhostUrl.h"
-#include <zToolsO/Utf8Convert.h>
+#include "PortableLocalFileServer.h"
 #include <zToolsO/WinSettings.h>
 #include <zUtilO/CSProExecutables.h>
 #include <external/cpp-httplib/httplib.h>
@@ -10,7 +10,7 @@
 
 namespace
 {
-    constexpr const wchar_t* CSProMapping   = _T("/cspro");
+    constexpr const char* CSProMapping      = "/cspro";
     constexpr time_t CSProMappingGetTimeout = 50000;
 }
 
@@ -19,7 +19,7 @@ namespace
 // LocalFileServer
 // --------------------------------------------------------------------------
 
-LocalFileServer::LocalFileServer(NullTerminatedString root_directory)
+LocalFileServer::LocalFileServer(const std::string& root_directory)
     :   m_mappingDirectoryCounter(0)
 {
     ASSERT(PortableFunctions::FileIsDirectory(root_directory));
@@ -37,7 +37,7 @@ LocalFileServer::LocalFileServer(NullTerminatedString root_directory)
         port_open_check.set_connection_timeout(0, CSProMappingGetTimeout);
         port_open_check.set_read_timeout(0, CSProMappingGetTimeout);
 
-        httplib::Result result = port_open_check.Get(UTF8Convert::WideToUTF8(CSProMapping));
+        httplib::Result result = port_open_check.Get(CSProMapping);
 
         if( ( result && result->status == 200 ) || !m_server->bind_to_port(LocalhostUrl::LocalhostHost, *preferred_port) )
             preferred_port.reset();
@@ -48,10 +48,10 @@ LocalFileServer::LocalFileServer(NullTerminatedString root_directory)
                                           m_server->bind_to_any_port(LocalhostUrl::LocalhostHost);
 
     // set up the base mappings
-    m_baseUrl = FormatTextCS2WS(_T("http://%s:%d/"), LocalhostUrl::LocalhostHostWide, m_port);
+    m_baseUrl = FormatText("http://%s:%d/", LocalhostUrl::LocalhostHost, m_port);
 
     // mount the root directory, which will usually be Html::GetDirectory()
-    m_server->set_mount_point("/", UTF8Convert::WideToUTF8(root_directory));
+    m_server->set_mount_point("/", root_directory);
 
     // add the CSPro mapping, which can be used by other instances to see if the port is in use
     AddCSProMapping();
@@ -81,34 +81,35 @@ void LocalFileServer::Stop()
 }
 
 
-void LocalFileServer::AddMountPoint(std::wstring unescaped_url, wstring_view directory)
+void LocalFileServer::AddMountPoint(std::string unescaped_url, const std::string& directory)
 {
     ASSERT(unescaped_url.length() >= 2 && unescaped_url.front() == '/');
     ASSERT(Encoders::ToUri(unescaped_url) == unescaped_url);
 
-    m_server->set_mount_point(UTF8Convert::WideToUTF8(PortableFunctions::PathEnsureTrailingForwardSlash(unescaped_url)),
-                              UTF8Convert::WideToUTF8(directory));
+    m_server->set_mount_point(PortableFunctions::PathEnsureTrailingForwardSlash(std::move(unescaped_url)),
+                              directory);
 }
 
 
-std::shared_ptr<bool> LocalFileServer::AddMapping(NullTerminatedString unescaped_url, std::string content_type, std::function<std::optional<std::string>()> callback)
+std::shared_ptr<bool> LocalFileServer::AddMapping(const cs::string_sz unescaped_url, std::string content_type, std::function<SharableString()> callback)
 {
     ASSERT(unescaped_url.length() >= 2 && unescaped_url.front() == '/');
 
-    std::wstring url_regex = Encoders::ToRegex(unescaped_url);
+    const std::string url_regex = Encoders::ToRegex(unescaped_url);
 
     auto virtual_file_mapping_active = std::make_shared<bool>(true);
 
-    m_server->Get(UTF8Convert::WideToUTF8(url_regex).c_str(),
-        [callback_ = std::move(callback), content_type, virtual_file_mapping_active](const httplib::Request& /*request*/, httplib::Response& response)
+    m_server->Get(url_regex.c_str(),
+        [callback_ = std::move(callback), content_type_ = std::move(content_type), virtual_file_mapping_active]
+        (const httplib::Request& /*request*/, httplib::Response& response)
         {
             if( *virtual_file_mapping_active )
             {
-                std::optional<std::string> content = callback_();
+                const SharableString content = callback_();
 
-                if( content.has_value() )
+                if( content.IsSet() )
                 {
-                    response.set_content(*content, content_type.c_str());
+                    response.set_content(content.GetString(), content_type_.c_str());
                     return;
                 }
             }
@@ -121,27 +122,30 @@ std::shared_ptr<bool> LocalFileServer::AddMapping(NullTerminatedString unescaped
 }
 
 
-void LocalFileServer::AddMapping(VirtualFileMappingHandler& virtual_file_mapping_handler, NullTerminatedString filename)
+void LocalFileServer::AddMapping(VirtualFileMappingHandler& virtual_file_mapping_handler, const cs::string_sz filename)
 {
-    ASSERT(filename.empty() || filename.c_str() == PortableFunctions::PathGetFilename(filename));
+    ASSERT(filename.empty() || filename.c_str() == PortableFunctions::PathGetFilename(filename.c_str()));
 
-    std::wstring unescaped_url = FormatTextCS2WS(filename.empty() ? _T("/%s/%d") : _T("/%s/%d/%s"),
+    const std::string unescaped_url = FormatText(filename.empty() ? "/%s/%d" : "/%s/%d/%s",
                                                  LocalhostUrl::VirtualFileDirectoryName,
                                                  ++m_mappingDirectoryCounter,
                                                  filename.c_str());
 
-    std::wstring url_regex = Encoders::ToRegex(unescaped_url);
+    const std::string url_regex = Encoders::ToRegex(unescaped_url);
 
     auto virtual_file_mapping_active = std::make_shared<bool>(true);
 
-    m_server->Get(UTF8Convert::WideToUTF8(url_regex).c_str(),
-        [&virtual_file_mapping_handler, virtual_file_mapping_active](const httplib::Request& /*request*/, httplib::Response& response)
+    m_server->Get(url_regex.c_str(),
+        [&virtual_file_mapping_handler, virtual_file_mapping_active]
+        (const httplib::Request& /*request*/, httplib::Response& response)
         {
             if( *virtual_file_mapping_active )
             {
                 ASSERT(virtual_file_mapping_active == virtual_file_mapping_handler.m_virtualFileMapping->m_mappingActive);
 
-                if( virtual_file_mapping_handler.ServeContent(&response) )
+                VirtualFileMappingResponse vfm_response(&response);
+
+                if( virtual_file_mapping_handler.ServeContent(vfm_response) )
                     return;
             }
 
@@ -149,7 +153,7 @@ void LocalFileServer::AddMapping(VirtualFileMappingHandler& virtual_file_mapping
             response.status = 404;
         });
 
-    std::wstring full_url = m_baseUrl + Encoders::ToUri(wstring_view(unescaped_url).substr(1), false);
+    std::string full_url = m_baseUrl + Encoders::ToUri(std::string_view(unescaped_url).substr(1), false);
 
     virtual_file_mapping_handler.m_virtualFileMapping.reset(new VirtualFileMapping(std::move(full_url), std::move(virtual_file_mapping_active)));
 }
@@ -157,15 +161,15 @@ void LocalFileServer::AddMapping(VirtualFileMappingHandler& virtual_file_mapping
 
 void LocalFileServer::AddMapping(KeyBasedVirtualFileMappingHandler& key_based_virtual_file_mapping_handler)
 {
-    const std::wstring unescaped_url = FormatTextCS2WS(_T("/%s/%d/"), LocalhostUrl::VirtualFileDirectoryName, ++m_mappingDirectoryCounter);
+    const std::string unescaped_url = FormatText("/%s/%d/", LocalhostUrl::VirtualFileDirectoryName, ++m_mappingDirectoryCounter);
     const size_t key_start_pos = unescaped_url.length();
 
     // match anything in the directory
-    const std::wstring url_regex = unescaped_url + _T(".*");
+    const std::string url_regex = unescaped_url + ".*";
 
     auto virtual_file_mapping_active = std::make_shared<bool>(true);
 
-    m_server->Get(UTF8Convert::WideToUTF8(url_regex).c_str(),
+    m_server->Get(url_regex.c_str(),
         [&key_based_virtual_file_mapping_handler, key_start_pos, virtual_file_mapping_active]
         (const httplib::Request& request, httplib::Response& response)
         {
@@ -173,13 +177,12 @@ void LocalFileServer::AddMapping(KeyBasedVirtualFileMappingHandler& key_based_vi
             {
                 ASSERT(virtual_file_mapping_active == key_based_virtual_file_mapping_handler.m_virtualFileMapping->m_mappingActive);
 
-                std::wstring key = UTF8Convert::UTF8ToWide(request.path);
-
-                if( key.length() > key_start_pos )
+                if( request.path.length() > key_start_pos )
                 {
-                    key = key.substr(key_start_pos);
+                    VirtualFileMappingResponse vfm_response(&response);
+                    const std::string key = request.path.substr(key_start_pos);
 
-                    if( key_based_virtual_file_mapping_handler.ServeContent(&response, key) )
+                    if( key_based_virtual_file_mapping_handler.ServeContent(vfm_response, key) )
                         return;
                 }
             }
@@ -188,7 +191,7 @@ void LocalFileServer::AddMapping(KeyBasedVirtualFileMappingHandler& key_based_vi
             response.status = 404;
         });
 
-    std::wstring full_base_url = m_baseUrl + unescaped_url.substr(1);
+    std::string full_base_url = SO::Concatenate(m_baseUrl, std::string_view(unescaped_url).substr(1));
 
     key_based_virtual_file_mapping_handler.m_virtualFileMapping.reset(new VirtualFileMapping(std::move(full_base_url), std::move(virtual_file_mapping_active)));
 }
@@ -196,34 +199,34 @@ void LocalFileServer::AddMapping(KeyBasedVirtualFileMappingHandler& key_based_vi
 
 void LocalFileServer::AddCSProMapping()
 {
-    AddMapping(CSProMapping, UTF8Convert::WideToUTF8(MimeType::Type::Json),
-        [ module_filename = CSProExecutables::GetModuleFilename(),
+    AddMapping(CSProMapping, MimeType::Type::Json,
+        [ module_file_path = CSProExecutables::GetModuleFilePath(),
           start_time = GetTimestamp() ]()
         {
-            auto json_writer = Json::CreateStringWriter();
+            const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
             json_writer->BeginObject()
-                        .Write(JK::process, module_filename)
+                        .Write(JK::process, module_file_path)
                         .Write(JK::startTime, start_time)
                         .EndObject();
 
-            return UTF8Convert::WideToUTF8(json_writer->GetString());
+            return json_writer->ReleaseString();
         });
 }
 
 
 
 // --------------------------------------------------------------------------
-// LocalFileServerSetResponse
+// VirtualFileMappingHandler::ServeContent
 // --------------------------------------------------------------------------
 
-void LocalFileServerSetResponse(void* response_object, const void* content_data, size_t content_size, const char* content_type)
+void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
 {
-    httplib::Response* response = static_cast<httplib::Response*>(response_object);
+    httplib::Response* const response = static_cast<httplib::Response*>(m_responseObject);
 
-    if( content_type != nullptr && *content_type != 0 )
+    if( !content_type.empty() )
     {
-        response->set_content(static_cast<const char*>(content_data), content_size, content_type);
+        response->set_content(static_cast<const char*>(content_data), content_size, content_type.c_str());
     }
 
     else

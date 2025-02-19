@@ -28,7 +28,7 @@ public:
 
     TableElementTreeNode* GetTreeNode(HTREEITEM hItem) const { return reinterpret_cast<TableElementTreeNode*>(GetItemData(hItem)); }
     TableSpecTabTreeNode* GetTableSpecTabTreeNode(CDocument& document) const;
-    TableSpecTabTreeNode* GetTableSpecTabTreeNode(wstring_view filename) const;
+    TableSpecTabTreeNode* GetTableSpecTabTreeNode(std::string_view file_path) const;
 
     HTREEITEM InsertTableSpec(const CString& sTableFileName, CTabulateDoc* pDoc);
 
@@ -51,7 +51,7 @@ public:
 
     void BuildTVTree(CTabulateDoc* pDoc);
 
-    bool OpenTableFile(const CString& sTableFile ,const std::shared_ptr<const CDataDict> pWorkDict = nullptr, bool bMakeVisible = true);
+    bool OpenTableFile(const std::string& table_spec_file_path, const std::shared_ptr<const CDataDict> pWorkDict = nullptr, bool bMakeVisible = true);
 
     bool GetSndMsgFlg() const     { return m_bSendMsg; }
     void SetSndMsgFlg(bool bFlag) { m_bSendMsg = bFlag; }

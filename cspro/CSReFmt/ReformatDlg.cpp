@@ -1,9 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "ReformatDlg.h"
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
 #include <ZBRIDGEO/DataFileDlg.h>
-#include <zDataO/DataRepositoryHelpers.h>
+#include <zDataO/DictionarySource.h>
 #include <zReformatO/ToolReformatter.h>
 
 
@@ -22,13 +22,13 @@ BEGIN_MESSAGE_MAP(ReformatDlg, CDialog)
     ON_EN_CHANGE(IDC_OUTPUT_DICT, OnTextChange)
     ON_BN_CLICKED(IDC_OUTPUT_DICT_BROWSE, OnOutputDictionaryBrowse)
     ON_EN_CHANGE(IDC_OUTPUT_DATA, OnTextChange)
-    ON_BN_CLICKED(IDC_OUTPUT_DATA_BROWSE, OnOutputDataBrowse)    
+    ON_BN_CLICKED(IDC_OUTPUT_DATA_BROWSE, OnOutputDataBrowse)
     ON_BN_CLICKED(IDC_REFORMAT_DATA, OnReformatData)
     ON_MESSAGE(UWM::CSReFmt::UpdateDialogUI, OnUpdateDialogUI)
 END_MESSAGE_MAP()
 
 
-ReformatDlg::ReformatDlg(CWnd* pParent/* = nullptr*/)
+ReformatDlg::ReformatDlg(CWnd* const pParent/* = nullptr*/)
     :   CDialog(ReformatDlg::IDD, pParent),
         m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME)),
         m_showOnlyDestructiveChanges(false)
@@ -42,13 +42,13 @@ ReformatDlg::~ReformatDlg()
 }
 
 
-void ReformatDlg::DoDataExchange(CDataExchange* pDX)
+void ReformatDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_INPUT_DICT, m_inputDictionaryFilename);
+    DDX_Text(pDX, IDC_INPUT_DICT, m_inputDictionaryFilePath);
     DDX_Text(pDX, IDC_INPUT_DATA, m_inputConnectionString);
-    DDX_Text(pDX, IDC_OUTPUT_DICT, m_outputDictionaryFilename);
+    DDX_Text(pDX, IDC_OUTPUT_DICT, m_outputDictionaryFilePath);
     DDX_Text(pDX, IDC_OUTPUT_DATA, m_outputConnectionString);
     DDX_Control(pDX, IDC_DICT_DIFFERENCES, m_dictionaryChangesHtml);
 }
@@ -56,7 +56,7 @@ void ReformatDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL ReformatDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     // add the menu
     m_menu.LoadMenu(IDR_REFORMAT_MENU);
@@ -74,35 +74,35 @@ BOOL ReformatDlg::OnInitDialog()
 }
 
 
-LRESULT ReformatDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT ReformatDlg::OnUpdateDialogUI(const WPARAM wParam, LPARAM /*lParam*/)
 {
     BasicLogger message;
     bool recalculate_differences = ( wParam == 1 );
 
     // load the input dictionary
-    const bool input_dictionary_changed = ( m_inputDictionaryFilename != m_lastLoadedInputDictionaryFilename );
+    const bool input_dictionary_changed = ( m_inputDictionaryFilePath != m_lastLoadedInputDictionaryFilePath );
 
     if( input_dictionary_changed )
     {
         m_reformatter.reset();
-        m_lastLoadedInputDictionaryFilename.clear();
+        m_lastLoadedInputDictionaryFilePath.clear();
 
-        if( PortableFunctions::FileIsRegular(m_inputDictionaryFilename) )
+        if( PortableFunctions::FileIsRegular(m_inputDictionaryFilePath) )
         {
             try
             {
-                m_inputDictionary = CDataDict::InstantiateAndOpen(m_inputDictionaryFilename, true);
-                m_lastLoadedInputDictionaryFilename = m_inputDictionaryFilename;
+                m_inputDictionary = CDataDict::InstantiateAndOpen(m_inputDictionaryFilePath, true);
+                m_lastLoadedInputDictionaryFilePath = m_inputDictionaryFilePath;
             }
 
             catch( const CSProException& )
             {
-                message.AppendFormatLine(BasicLogger::Color::DarkBlue, _T("There was an error opening the input dictionary: %s"),
-                                                                       PortableFunctions::PathGetFilename(m_inputDictionaryFilename));
+                message.AppendFormatLine(BasicLogger::Color::DarkBlue, "There was an error opening the input dictionary: %s",
+                                                                       PortableFunctions::PathGetFilename(m_inputDictionaryFilePath).c_str());
             }
         }
 
-        if( m_lastLoadedInputDictionaryFilename.empty() )
+        if( m_lastLoadedInputDictionaryFilePath.empty() )
             m_inputDictionary.reset();
     }
 
@@ -110,56 +110,61 @@ LRESULT ReformatDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM /*lParam*/)
     if( input_dictionary_changed || !m_lastLoadedInputConnectionString.Equals(m_inputConnectionString) )
     {
         m_reformatter.reset();
+        m_embeddedDictionaryFromInputRepository.reset();
 
-        if( m_inputDictionaryFilename.empty() )
+        if( m_inputDictionaryFilePath.empty() )
         {
             m_lastLoadedInputConnectionString = m_inputConnectionString;
-            m_embeddedDictionaryFromInputRepository = DataRepositoryHelpers::GetEmbeddedDictionary(m_inputConnectionString);
+
+            try
+            {
+                m_embeddedDictionaryFromInputRepository = DictionarySource::GetEmbeddedDictionary(m_inputConnectionString);
+            }
+            catch(...) { }
         }
 
         else
         {
             m_lastLoadedInputConnectionString.Clear();
-            m_embeddedDictionaryFromInputRepository.reset();
         }
     }
 
 
     // load the output dictionary
-    if( m_outputDictionaryFilename != m_lastLoadedOutputDictionaryFilename )
+    if( m_outputDictionaryFilePath != m_lastLoadedOutputDictionaryFilePath )
     {
         m_reformatter.reset();
-        m_lastLoadedOutputDictionaryFilename.clear();
+        m_lastLoadedOutputDictionaryFilePath.clear();
 
-        if( PortableFunctions::FileIsRegular(m_outputDictionaryFilename) )
+        if( PortableFunctions::FileIsRegular(m_outputDictionaryFilePath) )
         {
             try
             {
-                m_outputDictionary = CDataDict::InstantiateAndOpen(m_outputDictionaryFilename, true);
-                m_lastLoadedOutputDictionaryFilename = m_outputDictionaryFilename;
+                m_outputDictionary = CDataDict::InstantiateAndOpen(m_outputDictionaryFilePath, true);
+                m_lastLoadedOutputDictionaryFilePath = m_outputDictionaryFilePath;
             }
 
             catch( const CSProException& )
             {
-                message.AppendFormatLine(BasicLogger::Color::DarkBlue, _T("There was an error opening the output dictionary: %s"),
-                                                                       PortableFunctions::PathGetFilename(m_outputDictionaryFilename));
+                message.AppendFormatLine(BasicLogger::Color::DarkBlue, "There was an error opening the output dictionary: %s",
+                                                                       PortableFunctions::PathGetFilename(m_outputDictionaryFilePath).c_str());
             }
         }
 
-        if( m_lastLoadedOutputDictionaryFilename.empty() )
+        if( m_lastLoadedOutputDictionaryFilePath.empty() )
             m_outputDictionary.reset();
     }
 
-    // do the dictionary comparison (or warn about what files need to be supplied)
+    // do the dictionary comparison (or warn about what data sources need to be supplied)
     bool enable_reformat = false;
     const bool input_dictionary_defined = ( GetUsableInputDictionary() != nullptr );
 
     if( !input_dictionary_defined )
-        message.AppendLine(BasicLogger::Color::DarkBlue, _T("Select an input dictionary or data file."));
+        message.AppendLine(BasicLogger::Color::DarkBlue, "Select an input dictionary or data source.");
 
     if( m_outputDictionary == nullptr )
     {
-        message.AppendLine(BasicLogger::Color::DarkBlue, _T("Select an output dictionary."));
+        message.AppendLine(BasicLogger::Color::DarkBlue, "Select an output dictionary.");
     }
 
     else if( input_dictionary_defined )
@@ -178,8 +183,8 @@ LRESULT ReformatDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM /*lParam*/)
                 const BasicLogger::Color color = requires_reformat ? BasicLogger::Color::Red :
                                                                      BasicLogger::Color::DarkBlue;
 
-                message.AppendFormatLine(color, _T("The differences %srequire reformatting data stored as '%s'."),
-                                                requires_reformat ? _T("") : _T("do not "),
+                message.AppendFormatLine(color, "The differences %srequire reformatting data stored as '%s'.",
+                                                requires_reformat ? "" : "do not ",
                                                 ToString(m_inputConnectionString.GetType()));
                 message.AppendLine();
             }
@@ -224,24 +229,24 @@ void ReformatDlg::SetDefaultPffSettings()
 
 void ReformatDlg::OnFileOpen()
 {
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::Pff, nullptr, OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Input PFF");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff, this);
+    open_file_dlg.SetTitle(L"Select Input PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
     m_pff.ResetContents();
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(open_file_dlg.GetFilePath()));
 
     if( !m_pff.LoadPifFile() || m_pff.GetAppType() != REFORMAT_TYPE )
     {
-        AfxMessageBox(_T("The PFF could not be read or was not a Reformat Data PFF."));
+        AfxMessageBox(L"The PFF could not be read or was not a Reformat Data PFF.");
         SetDefaultPffSettings();
     }
 
-    m_inputDictionaryFilename = m_pff.GetInputDictFName();
+    m_inputDictionaryFilePath = UTF8_TODO::GetUtf8(m_pff.GetInputDictFName());
     m_inputConnectionString = m_pff.GetSingleInputDataConnectionString();
-    m_outputDictionaryFilename = m_pff.GetOutputDictFName();
+    m_outputDictionaryFilePath = UTF8_TODO::GetUtf8(m_pff.GetOutputDictFName());
     m_outputConnectionString = m_pff.GetSingleOutputDataConnectionString();
 
     UpdateData(FALSE);
@@ -253,28 +258,28 @@ void ReformatDlg::UIToPff()
 {
     UpdateData(TRUE);
 
-    m_pff.SetInputDictFName(WS2CS(m_inputDictionaryFilename));
+    m_pff.SetInputDictFName(UTF8_TODO::GetCString(m_inputDictionaryFilePath));
     m_pff.SetSingleInputDataConnectionString(m_inputConnectionString);
-    m_pff.SetOutputDictFName(WS2CS(m_outputDictionaryFilename));
+    m_pff.SetOutputDictFName(UTF8_TODO::GetCString(m_outputDictionaryFilePath));
     m_pff.SetSingleOutputDataConnectionString(m_outputConnectionString);
 }
 
 
 void ReformatDlg::OnFileSaveAs()
 {
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::Pff, m_pff.GetPifFileName(), OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Output PFF");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Pff, m_pff.GetPifFileName(), FileFilters::Pff, this);
+    save_file_dlg.SetTitle(L"Select Output PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
 
     UIToPff();
 
     // base the listing filename on the PFF filename
     if( m_pff.GetListingFName().IsEmpty() )
-        m_pff.SetListingFName(WS2CS(PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::WithDot::Listing)));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pff.GetPifFileName()), FileExtensions::Listing)));
 
     m_pff.Save();
 }
@@ -301,20 +306,17 @@ void ReformatDlg::OnTextChange()
 }
 
 
-void ReformatDlg::OnDictionaryBrowse(std::wstring& dictionary_filename, const TCHAR* title_text)
+void ReformatDlg::OnDictionaryBrowse(std::string& dictionary_file_path, const wchar_t* const title_text)
 {
     UpdateData(TRUE);
 
-    const std::wstring dialog_title = FormatTextCS2WS(_T("Select %s Dictionary"), title_text);
+    OpenFileDlg open_file_dlg(0, FileExtensions::Dictionary, dictionary_file_path, FileFilters::Dictionary, this);
+    open_file_dlg.SetTitle(title_text);
 
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::Dictionary, dictionary_filename.c_str(), 0,
-                             _T("Data Dictionary Files (*.dcf)|*.dcf|All Files (*.*)|*.*||"));
-    file_dlg.m_ofn.lpstrTitle = dialog_title.c_str();
-
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    dictionary_filename = file_dlg.GetPathName();
+    dictionary_file_path = open_file_dlg.GetFilePath();
 
     UpdateData(FALSE);
     PostMessage(UWM::CSReFmt::UpdateDialogUI);
@@ -322,13 +324,13 @@ void ReformatDlg::OnDictionaryBrowse(std::wstring& dictionary_filename, const TC
 
 
 void ReformatDlg::OnDataBrowse(ConnectionString& connection_string, const bool open_existing,
-                               const std::wstring& dictionary_filename, const ConnectionString& other_connection_string)
+                               const std::string& dictionary_file_path, const ConnectionString& other_connection_string)
 {
     UpdateData(TRUE);
 
     DataFileDlg data_file_dlg(open_existing ? DataFileDlg::Type::OpenExisting : DataFileDlg::Type::CreateNew,
                               open_existing, connection_string);
-    data_file_dlg.SetDictionaryFilename(WS2CS(dictionary_filename))
+    data_file_dlg.SetDictionaryFilePath(dictionary_file_path)
                  .SuggestMatchingDataRepositoryType(other_connection_string);
 
     if( data_file_dlg.DoModal() != IDOK )
@@ -343,25 +345,25 @@ void ReformatDlg::OnDataBrowse(ConnectionString& connection_string, const bool o
 
 void ReformatDlg::OnInputDictionaryBrowse()
 {
-    OnDictionaryBrowse(m_inputDictionaryFilename, _T("Input"));
+    OnDictionaryBrowse(m_inputDictionaryFilePath, L"Select Input Dictionary");
 }
 
 
 void ReformatDlg::OnInputDataBrowse()
 {
-    OnDataBrowse(m_inputConnectionString, true, m_inputDictionaryFilename, m_outputConnectionString);
+    OnDataBrowse(m_inputConnectionString, true, m_inputDictionaryFilePath, m_outputConnectionString);
 }
 
 
 void ReformatDlg::OnOutputDictionaryBrowse()
 {
-    OnDictionaryBrowse(m_outputDictionaryFilename, _T("Output"));
+    OnDictionaryBrowse(m_outputDictionaryFilePath, L"Select Output Dictionary");
 }
 
 
 void ReformatDlg::OnOutputDataBrowse()
 {
-    OnDataBrowse(m_outputConnectionString, false, m_outputDictionaryFilename, m_inputConnectionString);
+    OnDataBrowse(m_outputConnectionString, false, m_outputDictionaryFilePath, m_inputConnectionString);
 }
 
 
@@ -372,12 +374,12 @@ void ReformatDlg::OnReformatData()
     UIToPff();
 
     // if the listing file hasn't been defined, put it in the same folder as the PFF, or in the temporary folder if the PFF hasn't been saved
-    const bool use_temporary_listing_filename = m_pff.GetListingFName().IsEmpty();
+    const bool use_temporary_listing_file = m_pff.GetListingFName().IsEmpty();
 
-    if( use_temporary_listing_filename )
+    if( use_temporary_listing_file )
     {
-        m_pff.SetListingFName(WS2CS(m_pff.GetPifFileName().IsEmpty() ? PortableFunctions::PathAppendToPath(GetTempDirectory(), _T("CSRefmt.lst")) :
-                                                                       PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::Listing)));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(m_pff.GetPifFileName().IsEmpty() ? Path::Combine(GetTempDirectory(), "CSReFmt.lst") :
+                                                                                       PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pff.GetPifFileName()), FileExtensions::Listing)));
     }
 
     try
@@ -390,6 +392,6 @@ void ReformatDlg::OnReformatData()
         ErrorMessage::Display(exception);
     }
 
-    if( use_temporary_listing_filename )
+    if( use_temporary_listing_file )
         m_pff.SetListingFName(CString());
 }

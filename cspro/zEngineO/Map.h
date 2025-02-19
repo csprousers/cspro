@@ -3,7 +3,7 @@
 #include <zEngineO/zEngineO.h>
 #include <zLogicO/Symbol.h>
 
-struct IMapUI;
+class IMapUI;
 class UserFunctionArgumentEvaluator;
 
 
@@ -13,7 +13,7 @@ private:
     LogicMap(const LogicMap& logic_map);
 
 public:
-    LogicMap(std::wstring map_name);
+    LogicMap(std::string map_name);
     ~LogicMap();
 
     IMapUI* GetMapUI();
@@ -22,7 +22,7 @@ public:
     void SetIsShowing(bool showing) { m_showing = showing; }
 
     UserFunctionArgumentEvaluator& GetCallback(size_t index) const { return *m_callbacks[index]; }
-    int AddCallback(std::shared_ptr<UserFunctionArgumentEvaluator> user_function_argument_evaluator);
+    int AddCallback(std::shared_ptr<UserFunctionArgumentEvaluator> argument_evaluator);
 
     int GetOnClickCallbackId() const     { return m_onClickMapCallbackId; }
     void SetOnClickCallbackId(int index) { m_onClickMapCallbackId = index; }
@@ -30,11 +30,7 @@ public:
     double GetLastClickLatitude() const  { return m_lastClickLatitude; }
     double GetLastClickLongitude() const { return m_lastClickLongitude; }
 
-    void SetLastOnClick(double latitude, double longitude)
-    {
-        m_lastClickLatitude = latitude;
-        m_lastClickLongitude = longitude;
-    }
+    void SetLastOnClick(double latitude, double longitude);
 
     // Symbol overrides
     std::unique_ptr<Symbol> CloneInInitialState() const override;

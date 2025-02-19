@@ -2,44 +2,43 @@
 #include "TextRepositoryStatusFile.h"
 #include "CaseIterator.h"
 #include "TextRepository.h"
-#include <zUtilO/Specfile.h>
+#include <zToolsO/IniFile.h>
 #include <zCaseO/CaseConstructionHelpers.h>
 
 
-namespace TextRepositoryStatusFileCommands
+namespace FileCommands
 {
-    constexpr const TCHAR* FileHeader = _T("[KeyInfo]");
+    constexpr const char* FileHeader = "[KeyInfo]";
 
-    constexpr const TCHAR* VerifiedHeader = _T("[Verified]");
-    constexpr const TCHAR* VerifiedKey    = _T("VerifiedKey");
+    constexpr const char* VerifiedHeader = "[Verified]";
+    constexpr const char* VerifiedKey    = "VerifiedKey";
 
-    constexpr const TCHAR* OldStyleVerifiedHeader  = _T("[LastVerified]");
-    constexpr const TCHAR* OldStyleLastVerifiedKey = _T("NodeKey");
+    constexpr const char* OldStyleVerifiedHeader  = "[LastVerified]";
+    constexpr const char* OldStyleLastVerifiedKey = "NodeKey";
 
-    constexpr const TCHAR* PartialSaveHeader         = _T("[PartialNodes]");
-    constexpr const TCHAR* PartialSaveKey            = _T("Pos");
-    constexpr const TCHAR* PartialSaveTokenDelimiter = _T(".");
-    constexpr const TCHAR* PartialSaveModeAdd        = _T("ADD");
-    constexpr const TCHAR* PartialSaveModeModify     = _T("MOD");
-    constexpr const TCHAR* PartialSaveModeVerify     = _T("VER");
+    constexpr const char* PartialSaveHeader         = "[PartialNodes]";
+    constexpr const char* PartialSaveKey            = "Pos";
+    constexpr const char  PartialSaveTokenDelimiter = '.';
+    constexpr const char* PartialSaveModeAdd        = "ADD";
+    constexpr const char* PartialSaveModeModify     = "MOD";
+    constexpr const char* PartialSaveModeVerify     = "VER";
 
-    constexpr const TCHAR* CaseLabelHeader   = _T("[CaseLabel]");
-    constexpr const TCHAR* CaseLabelKeyLabel = _T("KeyLabel");
+    constexpr const char* CaseLabelHeader   = "[CaseLabel]";
+    constexpr const char* CaseLabelKeyLabel = "KeyLabel";
 };
 
-namespace FileCommands = TextRepositoryStatusFileCommands;
 
 
-TextRepositoryStatusFile::TextRepositoryStatusFile(TextRepository& repository, DataRepositoryOpenFlag open_flag)
-    :   m_filename(GetStatusFilename(repository.GetConnectionString())),
-        m_dictionaryName(repository.GetCaseAccess()->GetDataDict().GetName()),
-        m_useTransactionManager(repository.m_useTransactionManager),
+TextRepositoryStatusFile::TextRepositoryStatusFile(TextRepository& repository, const DataRepositoryOpenFlag open_flag)
+    :   m_repository(repository),
+        m_filePath(GetStatusFilePath(m_repository.GetConnectionString())),
+        m_dictionaryName(m_repository.GetCaseAccess().GetDataDict().GetName()),
         m_hasTransactionsToWrite(false)
 {
-    if( PortableFunctions::FileIsRegular(m_filename) )
+    if( PortableFunctions::FileIsRegular(m_filePath) )
     {
         ASSERT(open_flag != DataRepositoryOpenFlag::CreateNew);
-        Load(repository);
+        Load();
     }
 }
 
@@ -50,38 +49,46 @@ TextRepositoryStatusFile::~TextRepositoryStatusFile()
 }
 
 
-std::wstring TextRepositoryStatusFile::GetStatusFilename(const ConnectionString& connection_string)
+std::string TextRepositoryStatusFile::GetStatusFilePath(const ConnectionString& connection_string)
 {
-    return connection_string.GetFilename() + FileExtensions::Data::WithDot::TextStatus;
+    return PortableFunctions::PathAppendFileExtension(connection_string.GetFilePath(), FileExtensions::Data::TextStatus);
 }
 
 
-void TextRepositoryStatusFile::Load(TextRepository& repository)
+void TextRepositoryStatusFile::Load()
 {
-    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(InvalidLineException, "")
+    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(InvalidLineException, "");
 
-    CString command;
-    CString argument;
-
-    const int key_length = repository.m_keyMetadata->key_length;
-    const bool load_statuses = repository.GetCaseAccess()->GetUsesStatuses();
-    const bool load_case_labels = repository.GetCaseAccess()->GetUsesCaseLabels();
+    std::string command;
+    std::string argument;
 
     try
     {
-        CSpecFile sts_file;
+        IniFileReader sts_file;
+        sts_file.SetProperties(m_repository.GetConnectionString());
 
-        if( !sts_file.Open(m_filename.c_str(), CFile::modeRead) )
-            throw DataRepositoryException::IOError(_T("There was an error opening the status file."));
+        try
+        {
+            sts_file.Open(m_filePath);
+        }
 
-        enum class ProcessingSection { None, Verified, OldStyleVerified, PartialSaves, CaseLabels };
+        catch( const CSProException& exception )
+        {
+            throw DataRepositoryException::IOError("There was an error opening the status file: %s", exception.what());
+        }
+
+        const size_t key_wide_length = m_repository.m_keyMetadata->key_length;
+        const bool load_statuses = m_repository.GetCaseAccess().GetUsesStatuses();
+        const bool load_case_labels = m_repository.GetCaseAccess().GetUsesCaseLabels();
+
+        enum class ProcessingSection { None, Header, Verified, OldStyleVerified, PartialSaves, CaseLabels };
         ProcessingSection processing_section = ProcessingSection::None;
 
-        while( sts_file.GetLine(command, argument, false) == SF_OK )
+        while( sts_file.ReadLine(command, argument, false) )
         {
-            command.Trim();
+            SO::MakeTrim(command);
 
-            if( command.IsEmpty() )
+            if( command.empty() )
                 continue;
 
             // turn ␤ -> \n
@@ -90,11 +97,7 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
 
             if( SO::EqualsNoCase(command, FileCommands::FileHeader) )
             {
-                if( !sts_file.IsVersionOK(CSPRO_VERSION) )
-                {
-                    // we will ignore version errors
-                    // throw DataRepositoryException::IOError(_T("The status file is from a newer version of CSPro and cannot be read."));
-                }
+                processing_section = ProcessingSection::Header;
             }
 
             else if( SO::EqualsNoCase(command, FileCommands::VerifiedHeader) )
@@ -118,6 +121,20 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
             }
 
 
+            else if( processing_section == ProcessingSection::Header )
+            {
+                if( SO::EqualsNoCase(command, IniFileBase::VersionKey) )
+                {
+                    // we will read but not process the version
+                }
+
+                else
+                {
+                    throw InvalidLineException();
+                }
+            }
+
+
             else if( processing_section == ProcessingSection::Verified )
             {
                 if( SO::EqualsNoCase(command, FileCommands::VerifiedKey) )
@@ -138,23 +155,24 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
                 if( SO::EqualsNoCase(command, FileCommands::OldStyleLastVerifiedKey) )
                 {
                     // we need to look at the cases in the repository and mark all as verified up to and including this key
-                    if( load_statuses && repository.m_requiresIndex )
+                    if( load_statuses && m_repository.m_requiresIndex )
                     {
                         CaseKey case_key;
-                        std::vector<CString> keys;
+                        std::vector<std::string> keys;
                         bool key_found = false;
 
-                        auto case_key_iterator = repository.CreateCaseKeyIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+                        const std::unique_ptr<CaseIterator> case_key_iterator = m_repository.CreateCaseKeyIterator(CaseIterationMethod::SequentialOrder,
+                                                                                                                   CaseIterationOrder::Ascending);
 
                         while( !key_found && case_key_iterator->NextCaseKey(case_key) )
                         {
                             keys.emplace_back(case_key.GetKey());
-                            key_found = ( case_key.GetKey().Compare(argument) == 0 );
+                            key_found = ( case_key.GetKey() == argument );
                         }
 
                         if( key_found )
                         {
-                            for( const CString& key : keys )
+                            for( const std::string& key : keys )
                                 GetOrCreateStatus(key).verified = true;
                         }
                     }
@@ -173,29 +191,25 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
                 {
                     if( load_statuses )
                     {
-                        CString parameters[4];
+                        std::string parameters[4];
                         size_t occurrences[3] = { 0, 0, 0 };
+                        size_t processing_element = 0;
 
-                        int processing_element = 0;
-                        int current_token_pos = 0;
-
-                        CString token = argument.Tokenize(FileCommands::PartialSaveTokenDelimiter, current_token_pos);
-
-                        while( !token.IsEmpty() && processing_element < 7 )
-                        {
-                            if( processing_element < 4 )
+                        SO::ForeachSection<std::string>(argument, FileCommands::PartialSaveTokenDelimiter,
+                            [&](std::string element)
                             {
-                                parameters[processing_element] = token;
-                            }
+                                if( processing_element < 4 )
+                                {
+                                    parameters[processing_element] = std::move(element);
+                                }
 
-                            else
-                            {
-                                occurrences[processing_element - 4] = std::max(_ttoi(token) - 1, 0);
-                            }
+                                else if( processing_element < 7 )
+                                {
+                                    occurrences[processing_element - 4] = std::max(atoi(element.c_str()) - 1, 0);
+                                }
 
-                            ++processing_element;
-                            token = argument.Tokenize(FileCommands::PartialSaveTokenDelimiter, current_token_pos);
-                        }
+                                ++processing_element;
+                            });
 
                         // check that the processed line is valid, which means that...
 
@@ -204,51 +218,40 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
                             throw InvalidLineException();
 
                         // the partial save mode must be valid
-                        PartialSaveMode partial_save_mode;
-
-                        if( parameters[0].CompareNoCase(FileCommands::PartialSaveModeAdd) == 0 )
-                        {
-                            partial_save_mode = PartialSaveMode::Add;
-                        }
-
-                        else if( parameters[0].CompareNoCase(FileCommands::PartialSaveModeModify) == 0 )
-                        {
-                            partial_save_mode = PartialSaveMode::Modify;
-                        }
-
-                        else if( parameters[0].CompareNoCase(FileCommands::PartialSaveModeVerify) == 0 )
-                        {
-                            partial_save_mode = PartialSaveMode::Verify;
-                        }
-
-                        else
-                        {
-                            throw InvalidLineException();
-                        }
+                        const PartialSaveMode partial_save_mode =
+                            SO::EqualsNoCase(parameters[0], FileCommands::PartialSaveModeAdd)    ? PartialSaveMode::Add :
+                            SO::EqualsNoCase(parameters[0], FileCommands::PartialSaveModeModify) ? PartialSaveMode::Modify :
+                            SO::EqualsNoCase(parameters[0], FileCommands::PartialSaveModeVerify) ? PartialSaveMode::Verify :
+                                                                                                   throw InvalidLineException();
 
                         // the key must be equal to or bigger than the first-level dictionary key
-                        CString key = parameters[1];
-                        CString level_key;
+                        std::string key = parameters[1];
+                        std::string level_key;
 
-                        if( key.GetLength() < key_length )
+                        const size_t this_key_wide_length = SO::WideLength(key);
+
+                        if( this_key_wide_length < key_wide_length )
                             throw InvalidLineException();
 
-                        if( key.GetLength() > key_length )
+                        if( this_key_wide_length > key_wide_length )
                         {
-                            level_key = key.Mid(key_length);
-                            key.Truncate(key_length);
+                            const size_t level_key_offset = SO::WideGetOffset(key, key_wide_length);
+                            level_key = key.substr(level_key_offset);
+                            key.resize(level_key_offset);
                         }
 
                         // the dictionary name must match the repository's dictionary name
-                        if( parameters[2].CompareNoCase(m_dictionaryName) != 0 )
+                        if( !SO::EqualsNoCase(parameters[2], m_dictionaryName) )
                             throw InvalidLineException();
 
                         std::shared_ptr<CaseItemReference> partial_save_case_item_reference;
 
                         if( processing_element > 3 )
                         {
-                            partial_save_case_item_reference = CaseConstructionHelpers::CreateCaseItemReference(*repository.GetCaseAccess(),
-                                level_key, parameters[3], occurrences);
+                            partial_save_case_item_reference = CaseConstructionHelpers::CreateCaseItemReference(m_repository.GetCaseAccess(),
+                                                                                                                std::move(level_key),
+                                                                                                                parameters[3],
+                                                                                                                occurrences);
                         }
 
                         Status& status = GetOrCreateStatus(key);
@@ -270,11 +273,13 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
                 {
                     if( load_case_labels )
                     {
-                        if( argument.GetLength() < key_length )
+                        const size_t case_label_offset = SO::WideGetOffset(argument, key_wide_length);
+
+                        if( case_label_offset == std::string_view::npos )
                             throw InvalidLineException();
 
-                        CString key = argument.Left(key_length);
-                        GetOrCreateStatus(key).case_label = argument.Mid(key_length);
+                        const std::string key = argument.substr(0, case_label_offset);
+                        GetOrCreateStatus(key).case_label = argument.substr(case_label_offset);
                     }
                 }
 
@@ -296,7 +301,8 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
 
     catch( const InvalidLineException& )
     {
-        throw DataRepositoryException::IOError(FormatText(_T("The status file had an invalid line: %s=%s"), command.GetString(), argument.GetString()));
+        throw DataRepositoryException::IOError("The status file had an invalid line: %s=%s",
+                                               command.c_str(), argument.c_str());
     }
 
     catch( const DataRepositoryException::Error& )
@@ -306,23 +312,23 @@ void TextRepositoryStatusFile::Load(TextRepository& repository)
 
     catch(...)
     {
-        throw DataRepositoryException::IOError(_T("There was an error reading the status file."));
+        throw DataRepositoryException::IOError("There was an error reading the status file.");
     }
 }
 
 
 void TextRepositoryStatusFile::CommitTransactions()
 {
-    ASSERT(m_useTransactionManager);
+    ASSERT(m_repository.m_useTransactionManager);
 
     if( m_hasTransactionsToWrite )
         Save(true);
 }
 
 
-void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
+void TextRepositoryStatusFile::Save(const bool force_write_to_disk/* = false*/)
 {
-    if( m_useTransactionManager && !force_write_to_disk )
+    if( m_repository.m_useTransactionManager && !force_write_to_disk )
     {
         m_hasTransactionsToWrite = true;
         return;
@@ -330,13 +336,21 @@ void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
 
     try
     {
-        CSpecFile sts_file;
+        IniFileWriter sts_file;
+        sts_file.SetProperties(m_repository.GetConnectionString());
 
-        if( !sts_file.Open(m_filename.c_str(), CFile::modeWrite) )
-            throw DataRepositoryException::IOError(_T("There was an error creating the status file."));
+        try
+        {
+            sts_file.Open(m_filePath);
+        }
 
-        sts_file.PutLine(FileCommands::FileHeader);
-        sts_file.PutLine(CMD_VERSION, CSPRO_VERSION);
+        catch( const CSProException& exception )
+        {
+            throw DataRepositoryException::IOError("There was an error creating the status file: %s", exception.what());
+        }
+
+        sts_file.WriteLine(FileCommands::FileHeader);
+        sts_file.WriteVersion();
 
         if( m_statuses != nullptr )
         {
@@ -345,12 +359,12 @@ void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
             {
                 bool header_written = false;
 
-                auto write_header = [&](const TCHAR* header)
+                auto write_header = [&](const char* const header)
                 {
                     if( !header_written )
                     {
-                        sts_file.PutLine(_T(""));
-                        sts_file.PutLine(header);
+                        sts_file.WriteLine();
+                        sts_file.WriteLine(header);
                         header_written = true;
                     }
                 };
@@ -362,7 +376,7 @@ void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
                         if( status.verified )
                         {
                             write_header(FileCommands::VerifiedHeader);
-                            sts_file.PutLine(FileCommands::VerifiedKey, NewlineSubstitutor::NewlineToUnicodeNL(key));
+                            sts_file.WriteLine(FileCommands::VerifiedKey, NewlineSubstitutor::NewlineToUnicodeNL(key));
                         }
                     }
 
@@ -372,38 +386,39 @@ void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
                         {
                             write_header(FileCommands::PartialSaveHeader);
 
-                            const TCHAR* const mode = ( status.partial_save_mode == PartialSaveMode::Add )    ? FileCommands::PartialSaveModeAdd :
-                                                      ( status.partial_save_mode == PartialSaveMode::Modify ) ? FileCommands::PartialSaveModeModify :
-                                                                                                                FileCommands::PartialSaveModeVerify;
+                            const char* const mode = ( status.partial_save_mode == PartialSaveMode::Add )    ? FileCommands::PartialSaveModeAdd :
+                                                     ( status.partial_save_mode == PartialSaveMode::Modify ) ? FileCommands::PartialSaveModeModify :
+                                                                                                               FileCommands::PartialSaveModeVerify;
 
-                            CString line = FormatText(_T("%s=%s.%s%s.%s."), FileCommands::PartialSaveKey,
-                                                      mode, NewlineSubstitutor::NewlineToUnicodeNL(key).GetString(),
-                                                      ( status.partial_save_case_item_reference != nullptr ) ? NewlineSubstitutor::NewlineToUnicodeNL(status.partial_save_case_item_reference->GetLevelKey()).GetString() : _T(""),
-                                                      m_dictionaryName.GetString());
+                            std::string value = FormatText("%s.%s%s.%s.",
+                                                           mode, NewlineSubstitutor::NewlineToUnicodeNL(key).c_str(),
+                                                           ( status.partial_save_case_item_reference != nullptr ) ? NewlineSubstitutor::NewlineToUnicodeNL(status.partial_save_case_item_reference->GetLevelKey()).c_str() : "",
+                                                           m_dictionaryName.c_str());
 
                             if( status.partial_save_case_item_reference != nullptr )
                             {
-                                line.AppendFormat(_T("%s."), status.partial_save_case_item_reference->GetName().GetString());
+                                value.append(status.partial_save_case_item_reference->GetName())
+                                     .push_back('.');
 
                                 if( status.partial_save_case_item_reference->HasOccurrences() )
                                 {
                                     const std::vector<size_t>& one_based_occurrences = status.partial_save_case_item_reference->GetOneBasedOccurrences();
-                                    line.AppendFormat(_T("%d.%d.%d"), static_cast<int>(one_based_occurrences[0]),
-                                                                      static_cast<int>(one_based_occurrences[1]),
-                                                                      static_cast<int>(one_based_occurrences[2]));
+                                    value.append(FormatText("%d.%d.%d", static_cast<int>(one_based_occurrences[0]),
+                                                                        static_cast<int>(one_based_occurrences[1]),
+                                                                        static_cast<int>(one_based_occurrences[2])));
                                 }
                             }
 
-                            sts_file.PutLine(line);
+                            sts_file.WriteLine(FileCommands::PartialSaveKey, value);
                         }
                     }
 
                     else if( pass == 2 )
                     {
-                        if( !status.case_label.IsEmpty() )
+                        if( !status.case_label.empty() )
                         {
                             write_header(FileCommands::CaseLabelHeader);
-                            sts_file.PutLine(FileCommands::CaseLabelKeyLabel, NewlineSubstitutor::NewlineToUnicodeNL(key + status.case_label));
+                            sts_file.WriteLine(FileCommands::CaseLabelKeyLabel, NewlineSubstitutor::NewlineToUnicodeNL(key + status.case_label));
                         }
                     }
                 }
@@ -420,21 +435,21 @@ void TextRepositoryStatusFile::Save(bool force_write_to_disk/* = false*/)
 
     catch(...)
     {
-        throw DataRepositoryException::IOError(_T("There was an error writing to the status file."));
+        throw DataRepositoryException::IOError("There was an error writing to the status file.");
     }
 
     m_hasTransactionsToWrite = false;
 }
 
 
-void TextRepositoryStatusFile::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter)
+void TextRepositoryStatusFile::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter)
 {
-    const CString& key = data_case.GetKey();
+    const std::string& key = data_case.GetKey();
     bool modified = false;
 
-    const bool has_default_attributes = !data_case.GetVerified() &&
-                                        !data_case.IsPartial() &&
-                                        data_case.GetCaseLabel().IsEmpty();
+    const bool has_default_attributes = ( !data_case.GetVerified() &&
+                                          !data_case.IsPartial() &&
+                                          data_case.GetCaseLabel().empty() );
 
     if( m_statuses != nullptr )
     {
@@ -458,7 +473,7 @@ void TextRepositoryStatusFile::WriteCase(Case& data_case, WriteCaseParameter* wr
     if( !has_default_attributes )
     {
         if( m_statuses == nullptr )
-            m_statuses = std::make_unique<std::map<CString, Status>>();
+            m_statuses = std::make_unique<std::map<std::string, Status>>();
 
         (*m_statuses)[key] = Status
         {
@@ -476,7 +491,7 @@ void TextRepositoryStatusFile::WriteCase(Case& data_case, WriteCaseParameter* wr
 }
 
 
-bool TextRepositoryStatusFile::RemoveEntry(const CString& key)
+bool TextRepositoryStatusFile::RemoveEntry(const std::string& key)
 {
     ASSERT(m_statuses != nullptr);
 
@@ -493,7 +508,7 @@ bool TextRepositoryStatusFile::RemoveEntry(const CString& key)
 }
 
 
-void TextRepositoryStatusFile::DeleteCase(const CString& key)
+void TextRepositoryStatusFile::DeleteCase(const std::string& key)
 {
     if( m_statuses != nullptr && RemoveEntry(key) )
         Save();

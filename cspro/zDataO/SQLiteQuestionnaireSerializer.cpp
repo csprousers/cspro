@@ -1,21 +1,22 @@
 ﻿#include "stdafx.h"
 #include "SQLiteQuestionnaireSerializer.h"
-#include "SQLiteBinaryDataReader.h"
+#include "SQLiteBinaryContentReader.h"
 #include "SQLiteDictionarySchemaGenerator.h"
 #include "SQLiteErrorWithMessage.h"
-#include "SQLiteSchemaHelpers.h"
-#include <zCaseO/BinaryCaseItem.h>
-#include <zCaseO/NumericCaseItem.h>
-#include <zCaseO/StringCaseItem.h>
-#include <zJson/Json.h>
 #include <sstream>
 
 
-SQLiteQuestionnaireSerializer::SQLiteQuestionnaireSerializer(sqlite3* database)
-    :   m_binary_serializer(std::make_unique<SQLiteBinaryItemSerializer>(database)),
-        m_delete_statement(nullptr),
-        m_db(database)
+SQLiteQuestionnaireSerializer::SQLiteQuestionnaireSerializer(UniqueId repository_id, sqlite3* const db)
+    :   m_repositoryId(std::move(repository_id)),
+        m_db(db),
+        m_delete_statement(nullptr)
 {
+}
+
+
+SQLiteQuestionnaireSerializer::~SQLiteQuestionnaireSerializer()
+{
+    ClearPreparedStatements();
 }
 
 
@@ -28,11 +29,11 @@ void SQLiteQuestionnaireSerializer::ReadQuestionnaire(Case& data_case) const
 
     SQLiteStatement select_statement(m_read_statements->m_id_record);
     select_statement.Bind(1, data_case.GetUuid());
-    auto query_result = select_statement.Step();
+    int query_result = select_statement.Step();
     if (query_result != SQLITE_ROW)
         throw SQLiteErrorWithMessage(m_db);
 
-    auto level_pk = select_statement.GetColumn<int64_t>(0);
+    int64_t level_pk = select_statement.GetColumn<int64_t>(0);
 
     const int start_column = 1;
     CaseItemIndex index = level.GetIdCaseRecord().GetCaseItemIndex();
@@ -42,34 +43,34 @@ void SQLiteQuestionnaireSerializer::ReadQuestionnaire(Case& data_case) const
 
     ReadLevelRecords(level, level_pk, m_read_statements->m_records);
 
-    if (level.GetCaseLevelMetadata().GetChildCaseLevelMetadata())
+    if (level.GetCaseLevelMetadata().GetChildCaseLevelMetadata() != nullptr)
         ReadChildLevel(level, level_pk, *m_read_statements->m_child_level);
 }
 
 
 void SQLiteQuestionnaireSerializer::WriteQuestionnaire(const Case& data_case, int64_t revision) const
 {
-    const std::wstring case_id = CS2WS(data_case.GetUuid());
-    DeleteCase(case_id);
-    WriteLevel(data_case.GetRootCaseLevel(), case_id, {}, *m_write_statements, revision);
+    DeleteCase(data_case.GetUuid());
+    WriteLevel(data_case.GetRootCaseLevel(), UTF8_TODO::GetWide(data_case.GetUuid()), {}, *m_write_statements, revision);
 }
 
 
-void SQLiteQuestionnaireSerializer::SetCaseAccess(std::shared_ptr<const CaseAccess> case_access, bool read_only)
+void SQLiteQuestionnaireSerializer::SetCaseAccess(std::shared_ptr<const CaseAccess> case_access, const bool read_only)
 {
     m_caseAccess = std::move(case_access);
+    ASSERT(m_caseAccess != nullptr);
+
     ClearPreparedStatements();
     CreateReadStatements();
-    if (!read_only) {
+
+    if( !read_only )
+    {
         CreateWriteStatements();
         CreateDeleteStatement();
     }
-}
 
-
-SQLiteQuestionnaireSerializer::~SQLiteQuestionnaireSerializer()
-{
-    ClearPreparedStatements();
+    if( m_caseAccess->GetCaseMetadata().UsesBinaryData() )
+        m_binaryItemSerializer = std::make_unique<SQLiteBinaryItemSerializer>(m_repositoryId, m_db);
 }
 
 
@@ -101,7 +102,7 @@ int64_t SQLiteQuestionnaireSerializer::WriteRecord(const CaseRecord& record, sql
     for (CaseItemIndex index = record.GetCaseItemIndex(); index.GetRecordOccurrence() < record.GetNumberOccurrences(); index.IncrementRecordOccurrence())
     {
         int column_number = 2;
-        if (record.GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs() > 1) {
+        if (record.GetCaseRecordMetadata().GetDictRecord().GetMaxRecs() > 1) {
             insert_statement.Bind(column_number, index.GetRecordOccurrence() + 1);
             ++column_number;
         }
@@ -115,7 +116,7 @@ int64_t SQLiteQuestionnaireSerializer::WriteRecord(const CaseRecord& record, sql
             for (index.SetItemSubitemOccurrence(*item, 0); index.GetItemSubitemOccurrence(*item) < item->GetTotalNumberItemSubitemOccurrences(); index.IncrementItemSubitemOccurrence(*item)) {
                 BindCaseItem(insert_statement, column_number, *item, index, revision);
                 ++column_number;
-                if (item->IsTypeBinary())
+                if (IsBinary(item->GetDataType()))
                     ++column_number;
             }
         }
@@ -132,46 +133,65 @@ int64_t SQLiteQuestionnaireSerializer::WriteRecord(const CaseRecord& record, sql
 }
 
 
-void SQLiteQuestionnaireSerializer::BindCaseItem(SQLiteStatement& statement, int param_number, const CaseItem& item, const CaseItemIndex& index, int64_t revision) const
+void SQLiteQuestionnaireSerializer::BindCaseItem(SQLiteStatement& statement, const int param_number, const CaseItem& case_item, const CaseItemIndex& index, const int64_t revision) const
 {
-    if (item.IsTypeNumeric()) {
-        const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(item);
-        double value = numeric_case_item.GetValueForOutput(index);
-        if (value == NOTAPPL) {
+    if( IsNumeric(case_item.GetDataType()) )
+    {
+        const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(case_item);
+        const double value = numeric_case_item.GetValueForOutput(index);
+
+        if( value == NOTAPPL )
+        {
             statement.BindNull(param_number);
         }
-        else {
+
+        else
+        {
             statement.Bind(param_number, value);
         }
     }
 
-    else if (item.IsTypeString()) {
-        const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(item);
+    else if( IsString(case_item.GetDataType()) )
+    {
+        const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(case_item);
         statement.Bind(param_number, string_case_item.GetValue(index));
     }
 
-    else if (item.IsTypeBinary()) {
-        const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(item);
-        const std::wstring signature = m_binary_serializer->SetBinaryItem(revision, binary_case_item, index);
-        if (!signature.empty()) {
-            statement.Bind(param_number, signature);
-            //  for metadata.
-            const BinaryDataMetadata* binary_data_metadata = binary_case_item.GetBinaryDataMetadata_noexcept(index);
-            if (binary_data_metadata != nullptr) {
-                statement.Bind(param_number + 1, Json::NodeCreator::Value(*binary_data_metadata).GetNodeAsString());
-            }
-            else {
-                ASSERT(false);
-                statement.BindNull(param_number + 1);
-            }
-        } else {
-            statement.BindNull(param_number);
-            statement.BindNull(param_number + 1);
-        }
+    else if( IsBinary(case_item.GetDataType()) )
+    {
+        const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(case_item);
+        BindBinaryCaseItem(statement, param_number, param_number + 1, binary_case_item, index, revision);
     }
 
-    else {
+    else
+    {
         ASSERT(false);
+    }
+}
+
+
+void SQLiteQuestionnaireSerializer::BindBinaryCaseItem(SQLiteStatement& statement, const int signature_param_number, const int metadata_param_number,
+                                                       const BinaryCaseItem& binary_case_item, const CaseItemIndex& index, const int64_t revision) const
+{
+    ASSERT(m_binaryItemSerializer != nullptr);
+
+    const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+
+    // if the binary item is not defined, bind nulls
+    if( !binary_data_accessor.IsDefined() )
+    {
+        statement.BindNull(signature_param_number);
+        statement.BindNull(metadata_param_number);
+    }
+
+    // otherwise insert the content and bind the signature and metadata
+    else
+    {
+        const std::string signature = m_binaryItemSerializer->InsertContent(binary_data_accessor, index.GetCase().GetUuid(), revision);
+        ASSERT(!signature.empty());
+
+        statement.Bind(signature_param_number, signature);
+        statement.Bind(metadata_param_number, Json::ToJson(binary_data_accessor.GetBinaryDataMetadata()));
     }
 }
 
@@ -179,7 +199,7 @@ void SQLiteQuestionnaireSerializer::BindCaseItem(SQLiteStatement& statement, int
 void SQLiteQuestionnaireSerializer::ReadLevelRecords(CaseLevel& level, int64_t level_pk, const std::vector<sqlite3_stmt*>& read_statements) const
 {
     for (size_t record_number = 0; record_number < level.GetNumberCaseRecords(); ++record_number) {
-        auto& record = level.GetCaseRecord(record_number);
+        CaseRecord& record = level.GetCaseRecord(record_number);
         ReadRecord(record, level_pk, read_statements.at(record_number));
     }
 }
@@ -188,14 +208,14 @@ void SQLiteQuestionnaireSerializer::ReadLevelRecords(CaseLevel& level, int64_t l
 void SQLiteQuestionnaireSerializer::ReadChildLevel(CaseLevel& parent_level, int64_t parent_level_pk, const PreparedStatements& prepared_statements) const
 {
     SQLiteStatement select_statement(prepared_statements.m_id_record);
-    auto parent_level_id = std::to_string(parent_level_pk);
+    std::string parent_level_id = std::to_string(parent_level_pk);
     select_statement.Bind(1, parent_level_id);
     int query_result;
     while ((query_result = select_statement.Step()) == SQLITE_ROW) {
 
-        auto level_pk = select_statement.GetColumn<int64_t>(0);
+        int64_t level_pk = select_statement.GetColumn<int64_t>(0);
 
-        auto& level = parent_level.AddChildCaseLevel();
+        CaseLevel& level = parent_level.AddChildCaseLevel();
 
         if (level.GetCase().GetCaseConstructionReporter() != nullptr)
             level.GetCase().GetCaseConstructionReporter()->IncrementCaseLevelCount(level.GetCaseLevelMetadata().GetDictLevel().GetLevelNumber());
@@ -206,7 +226,7 @@ void SQLiteQuestionnaireSerializer::ReadChildLevel(CaseLevel& parent_level, int6
 
         ReadLevelRecords(level, level_pk, prepared_statements.m_records);
 
-        if (level.GetCaseLevelMetadata().GetChildCaseLevelMetadata())
+        if (level.GetCaseLevelMetadata().GetChildCaseLevelMetadata() != nullptr)
             ReadChildLevel(level, level_pk, *prepared_statements.m_child_level);
     }
 
@@ -224,7 +244,7 @@ namespace
 
         size_t num_occs = record.GetNumberOccurrences() + 1;
 
-        if( num_occs <= record.GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs() )
+        if( num_occs <= record.GetCaseRecordMetadata().GetDictRecord().GetMaxRecs() )
         {
             record.SetNumberOccurrences(num_occs);
             return true;
@@ -232,8 +252,9 @@ namespace
 
         else if( error_reporter != nullptr )
         {
-            error_reporter->TooManyRecordOccurrences(data_case, record.GetCaseRecordMetadata().GetDictionaryRecord().GetName(),
-                record.GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs());
+            error_reporter->TooManyRecordOccurrences(data_case,
+                                                     record.GetCaseRecordMetadata().GetDictRecord().GetName(),
+                                                     record.GetCaseRecordMetadata().GetDictRecord().GetMaxRecs());
         }
 
         return false;
@@ -246,8 +267,8 @@ void SQLiteQuestionnaireSerializer::ReadRecord(CaseRecord& record, int64_t level
     SQLiteStatement select_statement(prepared_statement);
     select_statement.Bind(1, level_pk);
 
-    auto& data_case = record.GetCaseLevel().GetCase();
-    auto error_reporter = data_case.GetCaseConstructionReporter();
+    Case& data_case = record.GetCaseLevel().GetCase();
+    CaseConstructionReporter* error_reporter = data_case.GetCaseConstructionReporter();
     ASSERT(record.GetNumberOccurrences() == 0);
 
     if (record.GetNumberCaseItems() == 0) {
@@ -281,79 +302,85 @@ void SQLiteQuestionnaireSerializer::ReadRecord(CaseRecord& record, int64_t level
 }
 
 
-void SQLiteQuestionnaireSerializer::ReadRecordItems(CaseRecord& record, CaseItemIndex& index, SQLiteStatement& select_statement, int start_column) const
+void SQLiteQuestionnaireSerializer::ReadRecordItems(CaseRecord& case_record, CaseItemIndex& index, SQLiteStatement& select_statement, const int start_column) const
 {
     int column_number = start_column;
-    for (const CaseItem* item : record.GetCaseItems()) {
-        const CDictItem& dict_item = item->GetDictionaryItem();
-        for (size_t item_occurrence = 0; item_occurrence < dict_item.GetItemSubitemOccurs(); ++item_occurrence) {
-            index.SetItemSubitemOccurrence(*item, item_occurrence);
-            SetItemValueFromStatement(*item, index, select_statement, column_number);
-            ++column_number;
-            if (IsBinary(dict_item))
-                ++column_number;
+
+    for( const CaseItem* const case_item : case_record.GetCaseItems() )
+    {
+        for( size_t occurrence = 0; occurrence < case_item->GetTotalNumberItemSubitemOccurrences(); ++occurrence )
+        {
+            index.SetItemSubitemOccurrence(*case_item, occurrence);
+            SetCaseItemValueStatement(*case_item, index, select_statement, column_number);
+
+            column_number += IsBinary(case_item->GetDataType()) ? 2 : 1;
         }
     }
 }
 
 
-void SQLiteQuestionnaireSerializer::SetItemValueFromStatement(const CaseItem& item, CaseItemIndex& index, SQLiteStatement& statement, int column_number) const
+void SQLiteQuestionnaireSerializer::SetCaseItemValueStatement(const CaseItem& case_item, CaseItemIndex& index, SQLiteStatement& statement, const int column_number) const
 {
     const int column_type = statement.GetColumnType(column_number);
 
     if( column_type == SQLITE_NULL )
-    {
         return;
+
+    if( IsNumeric(case_item.GetDataType()) )
+    {
+        const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(case_item);
+
+        numeric_case_item.SetValueFromInput(index, ( column_type == SQLITE_FLOAT || column_type == SQLITE_INTEGER ) ? statement.GetColumn<double>(column_number) :
+                                                                                                                      StringToNumber(statement.GetColumn<std::wstring>(column_number)));
     }
 
-    else if( item.IsTypeNumeric() )
+    else if( IsString(case_item.GetDataType()) )
     {
-        const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(item);
-        const double val = ( column_type == SQLITE_FLOAT || column_type == SQLITE_INTEGER ) ? statement.GetColumn<double>(column_number) :
-                                                                                              StringToNumber(statement.GetColumn<CString>(column_number));
-        numeric_case_item.SetValueFromInput(index, val);
+        const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(case_item);
+
+        string_case_item.SetValue(index, statement.GetColumn<std::string>(column_number));
     }
 
-    else if( item.IsTypeString() )
+    else if( IsBinary(case_item.GetDataType()) )
     {
-        const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(item);
-        string_case_item.SetValue(index, statement.GetColumn<CString>(column_number));
-    }
+        const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(case_item);
 
-    else if( item.IsTypeBinary() )
-    {
-        if( column_type == SQLITE_TEXT )
-        {
-            const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(item);
-            BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
-
-            const std::wstring signature = statement.GetColumn<std::wstring>(column_number);
-            const std::wstring metadata_json = statement.GetColumn<std::wstring>(column_number + 1);
-            std::optional<BinaryDataMetadata> binary_data_metadata;
-
-            if( !metadata_json.empty() )
-            {
-                try
-                {
-                    binary_data_metadata = Json::Parse(metadata_json).Get<BinaryDataMetadata>();
-                }
-                catch( const JsonParseException& ) { } // ignore JSON errors
-            }
-
-            if( !binary_data_metadata.has_value() )
-                binary_data_metadata.emplace();
-
-            // store the binary item signature in metadata object
-            binary_data_metadata->SetBinaryDataKey(signature);
-
-            binary_data_accessor.SetBinaryDataReader(std::make_unique<SQLiteBinaryDataReader>(m_binary_serializer.get(), std::move(*binary_data_metadata)));
-        }
+        ASSERT(column_type == SQLITE_TEXT);
+        SetBinaryCaseItemFromStatement(binary_case_item, index, statement, column_number, column_number + 1);
     }
 
     else
     {
         ASSERT(false);
     }
+}
+
+
+void SQLiteQuestionnaireSerializer::SetBinaryCaseItemFromStatement(const BinaryCaseItem& binary_case_item, CaseItemIndex& index, SQLiteStatement& statement,
+                                                                   const int signature_column_number, const int metadata_column_number) const
+{
+    ASSERT(m_binaryItemSerializer != nullptr);
+
+    std::string signature = statement.GetColumn<std::string>(signature_column_number);
+    ASSERT(BinaryDataAccessor::IsValidSignature(signature));
+
+    const std::string metadata_json = statement.GetColumn<std::string>(metadata_column_number);
+    std::optional<BinaryDataMetadata> binary_data_metadata;
+
+    try
+    {
+        binary_data_metadata = Json::Parse(metadata_json).Get<BinaryDataMetadata>();
+    }
+
+    catch( const JsonParseException& )
+    {
+        // ignore JSON errors
+        binary_data_metadata.emplace();
+    }
+
+    // use a binary content reader to lazy load content
+    binary_case_item.SetValue(index, std::move(*binary_data_metadata), std::move(signature),
+                              std::make_unique<SQLiteBinaryContentReader>(m_repositoryId, m_binaryItemSerializer.get()));
 }
 
 
@@ -365,23 +392,23 @@ void SQLiteQuestionnaireSerializer::ClearPreparedStatements()
 
 void SQLiteQuestionnaireSerializer::CreateWriteStatements()
 {
-    const auto& case_metadata = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
+    const std::vector<CaseLevelMetadata>& case_levels_metadata = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
     std::string parent_level_table_name = "case";
-    m_write_statements = CreateWriteStatementsForLevel(*case_metadata.front(), parent_level_table_name);
+    m_write_statements = CreateWriteStatementsForLevel(case_levels_metadata.front(), parent_level_table_name);
 }
 
 
 void SQLiteQuestionnaireSerializer::CreateReadStatements()
 {
-    const auto& case_metadata = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
+    const std::vector<CaseLevelMetadata>& case_levels_metadata = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
     std::string parent_level_table_name = "case";
-    m_read_statements = CreateReadStatementsForLevel(*case_metadata.front(), parent_level_table_name);
+    m_read_statements = CreateReadStatementsForLevel(case_levels_metadata.front(), parent_level_table_name);
 }
 
 
 void SQLiteQuestionnaireSerializer::CreateDeleteStatement()
 {
-    auto sql ="DELETE FROM `level-1` WHERE `case-id` = ?";
+    constexpr const char* sql = "DELETE FROM `level-1` WHERE `case-id` = ?";
     if (sqlite3_prepare_v2(m_db, sql, -1, &m_delete_statement, NULL) != SQLITE_OK)
         throw SQLiteErrorWithMessage(m_db);
 }
@@ -392,15 +419,15 @@ SQLiteQuestionnaireSerializer::CreateWriteStatementsForLevel(const CaseLevelMeta
 {
     auto statements_for_level = std::make_unique<PreparedStatements>();
 
-    auto level_name = "level-" + std::to_string(level_metadata.GetDictLevel().GetLevelNumber() + 1);
-    statements_for_level->m_id_record = CreateWriteStatementsForRecord(*level_metadata.GetIdCaseRecordMetadata(), level_name, parent_level_table_name);
+    std::string level_name = "level-" + std::to_string(level_metadata.GetDictLevel().GetLevelNumber() + 1);
+    statements_for_level->m_id_record = CreateWriteStatementsForRecord(level_metadata.GetIdCaseRecordMetadata(), level_name, parent_level_table_name);
 
-    for (const CaseRecordMetadata* record_metadata :  level_metadata.GetCaseRecordsMetadata()) {
-        const std::string record_table_name = ToLowerUtf8(record_metadata->GetDictionaryRecord().GetName());
-        statements_for_level->m_records.emplace_back(CreateWriteStatementsForRecord(*record_metadata, record_table_name, level_name));
+    for (const CaseRecordMetadata& record_metadata : level_metadata.GetCaseRecordsMetadata()) {
+        const std::string record_table_name = SO::ToLower(record_metadata.GetDictRecord().GetName());
+        statements_for_level->m_records.emplace_back(CreateWriteStatementsForRecord(record_metadata, record_table_name, level_name));
     }
 
-    auto child_level = level_metadata.GetChildCaseLevelMetadata();
+    const CaseLevelMetadata* child_level = level_metadata.GetChildCaseLevelMetadata();
     if (child_level)
         statements_for_level->m_child_level = CreateWriteStatementsForLevel(*child_level, level_name);
 
@@ -414,30 +441,30 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateWriteStatementsForRecord(cons
     size_t num_columns = 1;
     std::ostringstream ss;
     ss << "INSERT INTO `" << record_table_name << "` (`" << parent_level_table_name << "-id`";
-    bool isChildLevelIdRecord = &record_metadata == record_metadata.GetCaseLevelMetadata().GetIdCaseRecordMetadata() &&
+    bool isChildLevelIdRecord = &record_metadata == &record_metadata.GetCaseLevelMetadata().GetIdCaseRecordMetadata() &&
                                 record_metadata.GetCaseLevelMetadata().GetDictLevel().GetLevelNumber() > 0;
-    if (record_metadata.GetDictionaryRecord().GetMaxRecs() > 1 || isChildLevelIdRecord) {
+    if (record_metadata.GetDictRecord().GetMaxRecs() > 1 || isChildLevelIdRecord) {
         ss << ",occ";
         ++num_columns;
     }
 
     for (const CaseItem* item : record_metadata.GetCaseItems()) {
-        const CDictItem& dict_item = item->GetDictionaryItem();
+        const CDictItem& dict_item = item->GetDictItem();
         if (dict_item.GetItemSubitemOccurs() > 1) {
             if (IsBinary(dict_item))
             {
                 //  need to label columns <item-name>-signature and <item-name>-metadata for each occrrence.
                 for (size_t occ = 1; occ <= dict_item.GetItemSubitemOccurs(); ++occ)
                 {
-                    ss << ",`" << ToLowerUtf8(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature << "(" << occ << ")`";
-                    ss << ",`" << ToLowerUtf8(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata << "(" << occ << ")`";
+                    ss << ",`" << SO::ToLower(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature << "(" << occ << ")`";
+                    ss << ",`" << SO::ToLower(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata << "(" << occ << ")`";
                     num_columns += 2;
                 }
             }
             else
             {
                 for (size_t occ = 1; occ <= dict_item.GetItemSubitemOccurs(); ++occ) {
-                    ss << ",`" << ToLowerUtf8(dict_item.GetName()) << "(" << occ << ")`";
+                    ss << ",`" << SO::ToLower(dict_item.GetName()) << "(" << occ << ")`";
                     ++num_columns;
                 }
             }
@@ -447,13 +474,13 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateWriteStatementsForRecord(cons
             //  need to label columns <item-name>-signature and <item-name>-metadata.
             if (IsBinary(dict_item))
             {
-                ss << ",`" << ToLowerUtf8(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature << "`";
-                ss << ",`" << ToLowerUtf8(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata << "`";
+                ss << ",`" << SO::ToLower(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature << "`";
+                ss << ",`" << SO::ToLower(dict_item.GetName()) << SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata << "`";
                 num_columns += 2;
             }
             else
             {
-                ss << ",`" << ToLowerUtf8(dict_item.GetName()) << "`";
+                ss << ",`" << SO::ToLower(dict_item.GetName()) << "`";
                 ++num_columns;
             }
         }
@@ -463,7 +490,7 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateWriteStatementsForRecord(cons
         ss << ",?";
     ss << ")";
 
-    auto sql = ss.str();
+    std::string sql = ss.str();
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, NULL) != SQLITE_OK)
         throw SQLiteErrorWithMessage(m_db);
@@ -476,15 +503,15 @@ SQLiteQuestionnaireSerializer::CreateReadStatementsForLevel(const CaseLevelMetad
 {
     auto statements_for_level = std::make_unique<PreparedStatements>();
 
-    auto level_name = "level-" + std::to_string(level_metadata.GetDictLevel().GetLevelNumber() + 1);
-    statements_for_level->m_id_record = CreateReadStatementsForRecord(*level_metadata.GetIdCaseRecordMetadata(), level_name, parent_level_table_name, true);
+    std::string level_name = "level-" + std::to_string(level_metadata.GetDictLevel().GetLevelNumber() + 1);
+    statements_for_level->m_id_record = CreateReadStatementsForRecord(level_metadata.GetIdCaseRecordMetadata(), level_name, parent_level_table_name, true);
 
-    for (const CaseRecordMetadata* record_metadata : level_metadata.GetCaseRecordsMetadata()) {
-        const std::string record_table_name = ToLowerUtf8(record_metadata->GetDictionaryRecord().GetName());
-        statements_for_level->m_records.emplace_back(CreateReadStatementsForRecord(*record_metadata, record_table_name, level_name, false));
+    for (const CaseRecordMetadata& record_metadata : level_metadata.GetCaseRecordsMetadata()) {
+        const std::string record_table_name = SO::ToLower(record_metadata.GetDictRecord().GetName());
+        statements_for_level->m_records.emplace_back(CreateReadStatementsForRecord(record_metadata, record_table_name, level_name, false));
     }
 
-    auto child_level = level_metadata.GetChildCaseLevelMetadata();
+    const CaseLevelMetadata* child_level = level_metadata.GetChildCaseLevelMetadata();
     if (child_level)
         statements_for_level->m_child_level = CreateReadStatementsForLevel(*child_level, level_name);
 
@@ -509,33 +536,33 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateReadStatementsForRecord(const
         if (include_id)
             column_names.emplace_back(record_table_name + "-id");
         for (const CaseItem* item : record_metadata.GetCaseItems()) {
-            const CDictItem& dict_item = item->GetDictionaryItem();
+            const CDictItem& dict_item = item->GetDictItem();
             if (dict_item.GetItemSubitemOccurs() > 1) {
                 if (IsBinary(dict_item))
                 {
                     //  need to label columns <item-name>-signature and <item-name>-metadata for each occrrence.
                     for (size_t item_occurrence = 1; item_occurrence <= dict_item.GetItemSubitemOccurs(); ++item_occurrence)
                     {
-                        column_names.emplace_back(ToLowerUtf8(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature + '(' + std::to_string(item_occurrence) + ')');
-                        column_names.emplace_back(ToLowerUtf8(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata + '(' + std::to_string(item_occurrence) + ')');
+                        column_names.emplace_back(SO::ToLower(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature + '(' + std::to_string(item_occurrence) + ')');
+                        column_names.emplace_back(SO::ToLower(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata + '(' + std::to_string(item_occurrence) + ')');
                     }
                 }
                 else
                 {
                     for (size_t item_occurrence = 1; item_occurrence <= dict_item.GetItemSubitemOccurs(); ++item_occurrence)
-                        column_names.emplace_back(ToLowerUtf8(dict_item.GetName()) + '(' + std::to_string(item_occurrence) + ')');
+                        column_names.emplace_back(SO::ToLower(dict_item.GetName()) + '(' + std::to_string(item_occurrence) + ')');
                 }
             }
             else {
                 if (IsBinary(dict_item))
                 {
                     //  need to label columns <item-name>-signature and <item-name>-metadata.
-                    column_names.emplace_back(ToLowerUtf8(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature);
-                    column_names.emplace_back(ToLowerUtf8(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata);
+                    column_names.emplace_back(SO::ToLower(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixSignature);
+                    column_names.emplace_back(SO::ToLower(dict_item.GetName()) + SQLiteDictionarySchemaGenerator::BinaryColumnPostfixMetadata);
                 }
                 else
                 {
-                    column_names.emplace_back(ToLowerUtf8(dict_item.GetName()));
+                    column_names.emplace_back(SO::ToLower(dict_item.GetName()));
                 }
             }
         }
@@ -550,10 +577,10 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateReadStatementsForRecord(const
         ss << " FROM `" << record_table_name <<
             "` WHERE `" << parent_level_table_name << "-id` = ?";
 
-        if (record_metadata.GetDictionaryRecord().GetMaxRecs() > 1)
+        if (record_metadata.GetDictRecord().GetMaxRecs() > 1)
             ss << " ORDER BY occ";
     }
-    auto sql = ss.str();
+    std::string sql = ss.str();
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, NULL) != SQLITE_OK)
         throw SQLiteErrorWithMessage(m_db);
@@ -562,7 +589,7 @@ sqlite3_stmt* SQLiteQuestionnaireSerializer::CreateReadStatementsForRecord(const
 }
 
 
-void SQLiteQuestionnaireSerializer::DeleteCase(const std::wstring& case_id) const
+void SQLiteQuestionnaireSerializer::DeleteCase(const std::string& case_id) const
 {
     if (SQLiteStatement(m_delete_statement).Bind(1, case_id).Step() != SQLITE_DONE)
         throw SQLiteErrorWithMessage(m_db);
@@ -572,6 +599,6 @@ void SQLiteQuestionnaireSerializer::DeleteCase(const std::wstring& case_id) cons
 SQLiteQuestionnaireSerializer::PreparedStatements::~PreparedStatements()
 {
     sqlite3_finalize(m_id_record);
-    for (auto& statement : m_records)
+    for (sqlite3_stmt* statement : m_records)
         sqlite3_finalize(statement);
 }

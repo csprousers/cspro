@@ -21,7 +21,7 @@ protected:
     afx_msg void OnBnClickedPasteFromClipboard();
 
 private:
-    CString ConstructHtmlFromText(wstring_view text);
+    CString ConstructHtmlFromText(wstring_view text_sv);
 
     int IterateThroughBlocksAndFields(std::function<void(CDEItemBase*, const CDataDict*)>& callback_function,
         bool include_blocks, bool include_protected_fields, bool only_include_undefined_text_entities);

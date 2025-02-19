@@ -5,10 +5,8 @@
 
 class CLASS_DECL_ZUTILF TextReportDlg : public CDialog
 {
-    DECLARE_DYNAMIC(TextReportDlg)
-
 public:
-    TextReportDlg(const CString& heading, const CString& content, CWnd* pParent = NULL);
+    TextReportDlg(std::string heading, std::string content, CWnd* pParent = nullptr);
 
     void UseFixedWidthFont();
 
@@ -18,10 +16,10 @@ protected:
     void DoDataExchange(CDataExchange* pDX) override;
     BOOL OnInitDialog() override;
 
-    afx_msg void OnBnClickedCopyToClipboard();
+    void OnBnClickedCopyToClipboard();
 
 private:
-    CString m_heading;
-    CString m_content;
+    std::string m_heading;
+    std::string m_content;
     std::unique_ptr<CFont> m_fixedWidthFont;
 };

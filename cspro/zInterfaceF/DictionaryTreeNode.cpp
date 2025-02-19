@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryTreeNode.h"
-#include <zToolsO/Tools.h>
 
 
 namespace
@@ -11,7 +10,7 @@ namespace
         IDI_DICTIONARY_LEVEL,
         IDI_DICTIONARY_ID_RECORD,
         IDI_DICTIONARY_RECORD,
-        IDI_DICTIONARY_ITEM,  
+        IDI_DICTIONARY_ITEM,
         IDI_DICTIONARY_SUBITEM,
         IDI_DICTIONARY_VALUESET
     };
@@ -22,7 +21,7 @@ template<typename T>
 DictionaryTreeNode::DictionaryTreeNode(int icon_resource, const T& dict_base)
     :   m_iconResource(icon_resource),
         m_dictBase(dict_base),
-        m_name(CS2WS(dict_base.GetName()))
+        m_name(UTF8_TODO::GetWide(dict_base.GetName()))
 {
 }
 
@@ -76,7 +75,7 @@ std::wstring DictionaryTreeNode::GetNameOrLabelWithOccurrenceInfo(const NameOrLa
 
     // value sets should use their parent item's name for logic
     if( name_or_label_type == NameOrLabelType::LogicName && GetDictElementType() == DictElementType::ValueSet )
-        text = CS2WS(std::get<0>(*m_itemOccurrenceInfo)->GetName());
+        text = UTF8_TODO::GetWide(std::get<0>(*m_itemOccurrenceInfo)->GetName());
 
     // add the occurrence information
     if( m_itemOccurrenceInfo.has_value() && std::get<1>(*m_itemOccurrenceInfo).has_value() )
@@ -90,12 +89,12 @@ std::wstring DictionaryTreeNode::GetNameOrLabelWithOccurrenceInfo(const NameOrLa
 
             if( dict_item_with_occurrence_labels->GetOccurs() == 1 )
                 dict_item_with_occurrence_labels = dict_item_with_occurrence_labels->GetParentItem();
-        
+
             occurrence_label = CS2WS(dict_item_with_occurrence_labels->GetOccurrenceLabels().GetLabel(occurrence));
         }
 
         if( occurrence_label.empty() )
-            occurrence_label = CS2WS(IntToString(occurrence + 1));
+            occurrence_label = UTF8_TODO::GetWide(IntToString(occurrence + 1));
 
         if( name_or_label_type == NameOrLabelType::Label )
             text.push_back(' ');

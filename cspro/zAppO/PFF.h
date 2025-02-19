@@ -2,7 +2,7 @@
 
 #include <zAppO/zAppO.h>
 #include <zAppO/Application.h>
-#include <zToolsO/StringNoCase.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zUtilO/ConnectionString.h>
 
 
@@ -27,7 +27,7 @@ enum APPTYPE
     ENTRY_TYPE = 0,         BATCH_TYPE,             TAB_TYPE,
     FREQ_TYPE,              SORT_TYPE,              EXPORT_TYPE,
     REFORMAT_TYPE,          COMPARE_TYPE,           CONCAT_TYPE,
-    PACK_TYPE,              INDEX_TYPE,             SYNC_TYPE,
+    PACK_TYPE,              INDEX_TYPE,             Sync,
     PARADATA_CONCAT_TYPE,   EXCEL2CSPRO_TYPE,       DEPLOY_TYPE,
     VIEW_TYPE,
     INVALID_TYPE
@@ -86,15 +86,16 @@ extern const TCHAR* const ConcatenateMethodNames[];
 enum class DuplicateCase { List, View, Prompt, PromptIfDifferent, KeepFirst };
 extern const TCHAR* const DuplicateCaseNames[];
 
-extern const TCHAR* const SyncServerTypeNames[];
 extern const TCHAR* const SyncDirectionNames[];
 
 enum DeployToOverride { None, CSWeb, Dropbox, FTP, LocalFile, LocalFolder };
 extern const TCHAR* const DeployToOverrideNames[];
 
 
-#define PFF_COMMAND_INPUT_DICT  _T("InputDict")
-#define PFF_COMMAND_OUTPUT_DICT _T("OutputDict")
+#define PFF_COMMAND_INPUT_DICT  L"InputDict"
+#define PFF_COMMAND_OUTPUT_DICT L"OutputDict"
+
+DECLARE_ENUM_JSON_SERIALIZER_CLASS(ShowInApplicationListing, ZAPPO_API)
 
 
 
@@ -176,13 +177,12 @@ protected:
     InputOrder        m_eInputOrder;          // used for applications that use the batch input loop
     bool              m_bDisplayNames;        // for CSRefmt
     ConcatenateMethod m_eConcatenateMethod;
-    SyncServerType    m_eSyncServerType;
-    SyncDirection     m_eSyncDirection;
-    CString           m_sSyncUrl;
+    SyncConnectionString m_syncService;
+    SyncDirection     m_syncDirection;
     DeployToOverride  m_eDeployToOverride;
     bool              m_bSilent;              // run CSPack silently
     CString           m_csOnExitFilename;
-    std::map<StringNoCase, std::vector<std::wstring>> m_customParameters; // a map of custom parameters
+    std::map<std::string, std::vector<std::string>, cs::case_insensitive_less> m_customParameters; // a map of custom parameters
 
     std::map<CString, CString> m_mapPersistent; // Map of Persistent Variable names to data
 
@@ -206,17 +206,21 @@ protected:
 
     // for connection strings
     CString GetConnectionStringText(const ConnectionString& connection_string, bool absolute_path) const;
-    void SetConnectionString(ConnectionString& connection_string_object, const TCHAR* connection_string_text);
+    void SetConnectionString(ConnectionString& connection_string_object, std::string_view connection_string_text_sv);
 
     // for multiple connection strings
     std::vector<CString> GeConnectionStringsSerializableText(const MultipleFilenames<ConnectionString>& multiple_connection_strings) const;
     void AddConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, ConnectionString connection_string);
-    void AddFilename(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const TCHAR* connection_string_text);
+    void AddFilename(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, std::string_view connection_string_text_sv);
     void ClearAndAddConnectionStrings(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const std::vector<ConnectionString>& connection_strings);
     const ConnectionString& GetSingleConnectionString(const MultipleFilenames<ConnectionString>& multiple_connection_strings) const;
     const ConnectionString& GetConnectionString(const MultipleFilenames<ConnectionString>& multiple_connection_strings, size_t index) const;
     void SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, ConnectionString connection_string);
-    void SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, wstring_view connection_string_text);
+    void SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, std::string_view connection_string_text_sv);
+
+    // for sync connection strings
+    CString GetSyncConnectionStringText(const SyncConnectionString& sync_connection_string, bool absolute_path) const;
+    void SetSyncConnectionString(SyncConnectionString& sync_connection_string_object, std::string_view sync_connection_string_text_sv);
 
     static CString GetBooleanText(bool boolean_object);
     static void SetBoolean(bool& boolean_object, const TCHAR* text);
@@ -244,12 +248,13 @@ protected:
     const std::vector<CString>& Get##function_name##Serializable() const { return object_name.serializable_filenames; }  \
     void Add##function_name(const TCHAR* filename)                       { AddFilename(object_name, filename); }
 
-#define DefineGetSetConnectionStringMethods(function_name, object_name)                                                                      \
-protected:                                                                                                                                   \
-    CString Get##function_name##Text() const                            { return GetConnectionStringText(object_name, true); }               \
-public:                                                                                                                                      \
-    const ConnectionString& Get##function_name() const                  { return object_name; }                                              \
-    void Set##function_name(const TCHAR* connection_string_text)        { return SetConnectionString(object_name, connection_string_text); } \
+#define DefineGetSetConnectionStringMethods(function_name, object_name)                                                                                   \
+protected:                                                                                                                                                \
+    CString Get##function_name##Text() const                            { return GetConnectionStringText(object_name, true); }                            \
+public:                                                                                                                                                   \
+    const ConnectionString& Get##function_name() const                  { return object_name; }                                                           \
+    void Set##function_name(const TCHAR* connection_string_text)        { SetConnectionString(object_name, UTF8_TODO::GetUtf8(connection_string_text)); } \
+    void Set##function_name(std::string_view connection_string_text_sv) { SetConnectionString(object_name, connection_string_text_sv); }                  \
     void Set##function_name(const ConnectionString& connection_string)  { object_name = connection_string; }
 
 #define DefineGetSetMultipleConnectionStringMethods(singular_function_name, object_name)                                                                                    \
@@ -260,12 +265,22 @@ protected:                                                                      
     std::vector<CString> Get##singular_function_name##sSerializableText() const { return GeConnectionStringsSerializableText(object_name); }                                \
 public:                                                                                                                                                                     \
     void Add##singular_function_name(const ConnectionString& connection_string) { AddConnectionString(object_name, connection_string); }                                    \
-    void Add##singular_function_name(const TCHAR* connection_string_text)       { AddFilename(object_name, connection_string_text); }                                       \
+    void Add##singular_function_name(const TCHAR* connection_string_text) { AddFilename(object_name, UTF8_TODO::GetUtf8(connection_string_text)); }                                   \
+    void Add##singular_function_name(std::string_view connection_string_text_sv) { AddFilename(object_name, connection_string_text_sv); }                                   \
     void ClearAndAdd##singular_function_name##s(const std::vector<ConnectionString>& connection_strings) { ClearAndAddConnectionStrings(object_name, connection_strings); } \
     const ConnectionString& GetSingle##singular_function_name() const { return GetSingleConnectionString(object_name); }                                                    \
     const ConnectionString& Get##singular_function_name(size_t index) const { return GetConnectionString(object_name, index); }                                             \
     void SetSingle##singular_function_name(const ConnectionString& connection_string) { SetSingleConnectionString(object_name, connection_string); }                        \
-    void SetSingle##singular_function_name(const TCHAR* connection_string_text) { SetSingleConnectionString(object_name, connection_string_text); }
+    void SetSingle##singular_function_name(const TCHAR* connection_string_text) { SetSingleConnectionString(object_name, UTF8_TODO::GetUtf8(connection_string_text)); }     \
+    void SetSingle##singular_function_name(std::string_view connection_string_text_sv) { SetSingleConnectionString(object_name, connection_string_text_sv); }
+
+#define DefineGetSetSyncConnectionStringMethods(function_name, object_name)                                                                                         \
+protected:                                                                                                                                                          \
+    CString Get##function_name##Text() const                             { return GetSyncConnectionStringText(object_name, true); }                                 \
+public:                                                                                                                                                             \
+    const SyncConnectionString& Get##function_name() const               { return object_name; }                                                                    \
+    void Set##function_name(const TCHAR* sync_connection_string_text)    { SetSyncConnectionString(object_name, UTF8_TODO::GetUtf8(sync_connection_string_text)); } \
+    void Set##function_name(SyncConnectionString sync_connection_string) { object_name = std::move(sync_connection_string); }
 
 #define DefineGetSetStringMethods(function_name, object_name)                                                      \
     CString Get##function_name() const                  { return object_name; }                                    \
@@ -435,17 +450,15 @@ public:
 
     DefineGetSetBooleanMethods(DisplayNames, m_bDisplayNames);
     DefineGetSetEnumMethods(ConcatenateMethod, m_eConcatenateMethod, ConcatenateMethod, ConcatenateMethodNames, ConcatenateMethod::Text);
-    DefineGetSetEnumMethods(SyncServerType, m_eSyncServerType, SyncServerType, SyncServerTypeNames, SyncServerType::FTP);
-    DefineGetSetEnumMethods(SyncDirection, m_eSyncDirection, SyncDirection, SyncDirectionNames, SyncDirection::Get);
-    DefineGetSetStringMethods(SyncUrl, m_sSyncUrl);
+    DefineGetSetSyncConnectionStringMethods(SyncService, m_syncService);
+    DefineGetSetEnumMethods(SyncDirection, m_syncDirection, SyncDirection, SyncDirectionNames, SyncDirection::Get);
     DefineGetSetEnumMethods(DeployToOverride, m_eDeployToOverride, DeployToOverride, DeployToOverrideNames, DeployToOverride::None);
     DefineGetSetBooleanMethods(Silent, m_bSilent);
     DefineGetSetFilenameMethods(OnExitFilename, m_csOnExitFilename);
 
-    void SetCustomParamString(StringNoCase attribute, std::wstring value);
-    const std::wstring& GetCustomParamString(const StringNoCase& attribute) const;
-    std::vector<std::tuple<std::wstring, std::wstring>> GetCustomParams() const;
-    std::vector<std::wstring> GetCustomParamMappings() const;
+    void SetCustomParamString(std::string attribute, std::string value);
+    const std::string& GetCustomParamString(const std::string& attribute) const;
+    std::vector<std::tuple<std::string, std::string>> GetCustomParams() const;
 
 
     // the data entry IDs section
@@ -469,14 +482,14 @@ public:
     //            Build/Save/Internal functions
     ////////////////////////////////////////////////////////////////////////////////////
 
-    std::optional<std::wstring> GetExecutableProgram() const;
+    std::optional<std::string> GetExecutableProgram() const;
 
 #ifdef WIN_DESKTOP
-    static void ExecutePff(const std::wstring& pff_filename, const std::optional<NullTerminatedString> extra_arguments = std::nullopt);
+    static void ExecutePff(const std::string& pff_file_path, const std::string* extra_arguments = nullptr);
     void ExecuteOnExitPff() const;
 #endif
 
-    static void ViewResults(NullTerminatedString filename);
+    static void ViewResults(const std::string& file_path);
     static void ViewResults(const ConnectionString& connection_string);
 
     static void ViewListing(const TCHAR* listing_filename);
@@ -509,10 +522,10 @@ protected:
     void AdjustAttributesFromOldFiles();
 
 public:
-    // for the Help Generator
-    static std::vector<const TCHAR*> GetAppTypeWords();
-    static std::vector<const TCHAR*> GetHeadingWords();
-    static std::vector<const TCHAR*> GetAttributeWords();
+    // for CSDocument
+    static std::vector<const char*> GetAppTypeWords();
+    static std::vector<const char*> GetHeadingWords();
+    static std::vector<const char*> GetAttributeWords();
 
 
 protected:

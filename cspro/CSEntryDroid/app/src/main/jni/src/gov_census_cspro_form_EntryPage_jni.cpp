@@ -15,7 +15,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_form_EntryPage_GetOccurrenceLabe
   (JNIEnv *pEnv, jobject, jlong reference)
 {
     auto* pPage = reinterpret_cast<CoreEntryPage*>(reference);
-    return WideToJava(pEnv, pPage->GetOccurrenceLabel());
+    return JavaString::ToJava(*pEnv, pPage->GetOccurrenceLabel());
 }
 
 /*
@@ -51,7 +51,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_form_EntryPage_GetBlockQuestionT
   (JNIEnv *pEnv, jobject, jlong reference)
 {
     auto* pPage = reinterpret_cast<CoreEntryPage*>(reference);
-    return OptionalWideToJava(pEnv, pPage->GetBlockQuestionTextUrl());
+    return JavaString::ToJava(*pEnv, pPage->GetBlockQuestionTextUrl());
 }
 
 /*
@@ -63,7 +63,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_form_EntryPage_GetBlockHelpTextU
   (JNIEnv *pEnv, jobject, jlong reference)
 {
     auto* pPage = reinterpret_cast<CoreEntryPage*>(reference);
-    return OptionalWideToJava(pEnv, pPage->GetBlockHelpTextUrl());
+    return JavaString::ToJava(*pEnv, pPage->GetBlockHelpTextUrl());
 }
 
 static jobjectArray GetFieldResponses(JNIEnv *env, const CoreEntryPageField& field)
@@ -76,7 +76,7 @@ static jobjectArray GetFieldResponses(JNIEnv *env, const CoreEntryPageField& fie
 
         JNIReferences::scoped_local_ref<jstring> jcode(env, WideToJava(env, response->GetCode()));
         JNIReferences::scoped_local_ref<jstring> jlabel(env, WideToJava(env, response->GetLabel()));
-        JNIReferences::scoped_local_ref<jstring> jimage(env, WideToJava(env, response->GetImageFilename()));
+        JNIReferences::scoped_local_ref<jstring> jimage(env, JavaString::ToJava(*env, response->GetImageFilePath()));
 
         // create the value pair object
         JNIReferences::scoped_local_ref<jobject> vp(env, env->NewObject(
@@ -111,9 +111,9 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_form_EntryPage_GetPageField
 
         JNIReferences::scoped_local_ref<jstring> jname(pEnv, WideToJava(pEnv, field.GetName()));
         JNIReferences::scoped_local_ref<jstring> jlabel(pEnv, WideToJava(pEnv, field.GetLabel()));
-        JNIReferences::scoped_local_ref<jstring> jquestionTextUrl(pEnv, OptionalWideToJava(pEnv, field.GetQuestionTextUrl()));
-        JNIReferences::scoped_local_ref<jstring> jhelpTextUrl(pEnv, OptionalWideToJava(pEnv, field.GetHelpTextUrl()));
-        JNIReferences::scoped_local_ref<jstring> jnote(pEnv, WideToJava(pEnv, field.GetNote()));
+        JNIReferences::scoped_local_ref<jstring> jquestionTextUrl(pEnv, JavaString::ToJava(*pEnv, field.GetQuestionTextUrl()));
+        JNIReferences::scoped_local_ref<jstring> jhelpTextUrl(pEnv, JavaString::ToJava(*pEnv, field.GetHelpTextUrl()));
+        JNIReferences::scoped_local_ref<jstring> jnote(pEnv, JavaString::ToJava(*pEnv, *field.GetNote()));
         jint jinteger_part_length = 0;
         jint jfractional_part_length = 0;
         jint jalpha_length =  0;
@@ -155,7 +155,7 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_form_EntryPage_GetPageField
         }
 
         switch( evaluated_capture_info.GetCaptureType() )
-		{
+        {
             case CaptureType::Date:
             {
                 CString date_format = evaluated_capture_info.GetExtended<DateCaptureInfo>().GetFormat();
@@ -203,14 +203,14 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_form_EntryPage_GetPageField
             case CaptureType::Audio:
                 break;
 
-			default:
-				ASSERT(false);
-				break;
+            default:
+                ASSERT(false);
+                break;
         }
 
         jobject jField = pEnv->NewObject(JNIReferences::classCDEField, JNIReferences::methodCDEFieldConstructor,
                                          (jlong) &field, jname.get(), jlabel.get(), (int)evaluated_capture_info.GetCaptureType(),
-										 jquestionTextUrl.get(), jhelpTextUrl.get(),
+                                         jquestionTextUrl.get(), jhelpTextUrl.get(),
                                          jnote.get(), field.IsNumeric(), field.IsReadOnly(), jinteger_part_length,
                                          jfractional_part_length, jalpha_length, jdate_format.get(),
                                          juppercase, jmultiline, field.IsMirror(),

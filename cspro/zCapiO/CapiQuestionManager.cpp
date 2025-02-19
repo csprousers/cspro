@@ -4,6 +4,7 @@
 #include "CapiQuestionFilePre76.h"
 #include "CapiQuestionYaml.h"
 #include <zToolsO/FileIO.h>
+#include <zToolsO/TextEncoding.h>
 #include <zAppO/Application.h>
 #include <zFormO/FormFileIterator.h>
 #include <zDesignerF/UWM.h>
@@ -14,14 +15,13 @@
 
 namespace
 {
-
     const std::initializer_list<CapiStyle> DefaultCapiStyles =
     {
-        { "Normal", "normal", "font-family: Arial;font-size: 16px;" },
-        { "Instruction", "instruction", "font-family: Arial;font-size: 14px;color: #0000FF;" },
-        { "Heading 1", "heading1", "font-family: Arial;font-size: 36px;" },
-        { "Heading 2", "heading2", "font-family: Arial;font-size: 24px;" },
-        { "Heading 3", "heading3", "font-family: Arial;font-size: 18px;" },
+        { "Normal",         "normal",       "font-family: Arial;font-size: 16px;" },
+        { "Instruction",    "instruction",  "font-family: Arial;font-size: 14px;color: #0000FF;" },
+        { "Heading 1",      "heading1",     "font-family: Arial;font-size: 36px;" },
+        { "Heading 2",      "heading2",     "font-family: Arial;font-size: 24px;" },
+        { "Heading 3",      "heading3",     "font-family: Arial;font-size: 18px;" },
     };
 }
 
@@ -30,7 +30,6 @@ CapiQuestionManager::CapiQuestionManager()
         m_languageIndex(0),
         m_styles(DefaultCapiStyles),
         m_modified(false),
-        m_use_pre76_conditions_and_fills(false),
         m_is_pre76_file(false)
 {
 }
@@ -48,13 +47,13 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
         for( size_t condition_index = 0; condition_index < conditions.size(); ++condition_index )
         {
             // the compilation routine for conditions and fills
-            auto compile = [&](CapiLogicParameters::Type type, const CString& logic, std::optional<std::wstring> language_label) -> int
+            auto compile = [&](const CapiLogicParameters::Type type, std::string logic, std::optional<std::string> language_label)
             {
                 CapiLogicParameters capi_logic_parameters
                 {
                     type,
-                    item_name_workaround_for_clang_precpp80_issue,
-                    CS2WS(logic),
+                    UTF8_TODO::GetUtf8(item_name_workaround_for_clang_precpp80_issue),
+                    std::move(logic),
                     CapiLogicLocation { condition_index, std::move(language_label) }
                 };
 
@@ -67,7 +66,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
 
             if( !condition.GetLogic().IsEmpty() )
             {
-                condition.SetLogicExpression(compile(CapiLogicParameters::Type::Condition, condition.GetLogic(), std::nullopt));
+                condition.SetLogicExpression(compile(CapiLogicParameters::Type::Condition, UTF8_TODO::GetUtf8(condition.GetLogic()), std::nullopt));
             }
 
 
@@ -79,7 +78,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
                     const std::wstring& language_name_workaround_for_clang_precpp80_issue = language_name;
 
                     const auto& language_lookup = std::find_if(m_languages.cbegin(), m_languages.cend(),
-                        [&](const Language& language) { return language.GetName() == language_name_workaround_for_clang_precpp80_issue; });
+                        [&](const Language& language) { return ( language.GetName() == UTF8_TODO::GetUtf8(language_name_workaround_for_clang_precpp80_issue) ); });
 
                     if( language_lookup == m_languages.end() )
                         continue;
@@ -90,7 +89,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
                         {
                             // compile the logic with delimiters removed
                             fill_expressions[param.GetTextToReplace()] =
-                                compile(CapiLogicParameters::Type::Fill, param.GetTextToEvaluate(), language_lookup->GetLabel());
+                                compile(CapiLogicParameters::Type::Fill, UTF8_TODO::GetUtf8(param.GetTextToEvaluate()), language_lookup->GetLabel());
                         }
                     }
                 }
@@ -105,12 +104,12 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
 }
 
 
-void CapiQuestionManager::SetCurrentLanguage(wstring_view language_name)
+void CapiQuestionManager::SetCurrentLanguage(const std::string_view language_name_sv)
 {
-    const auto& lang = std::find_if(m_languages.begin(), m_languages.end(),
-                                    [&](const Language& l) { return l.GetName() == language_name; });
+    const auto& lang = std::find_if(m_languages.cbegin(), m_languages.cend(),
+                                    [&](const Language& l) { return ( l.GetName() == language_name_sv ); });
     ASSERT(lang != m_languages.end());
-    m_languageIndex = std::distance(m_languages.begin(), lang);
+    m_languageIndex = std::distance(m_languages.cbegin(), lang);
 }
 
 
@@ -121,12 +120,12 @@ void CapiQuestionManager::AddLanguage(Language language)
 }
 
 
-void CapiQuestionManager::DeleteLanguage(wstring_view language_name)
+void CapiQuestionManager::DeleteLanguage(const std::string& language_name)
 {
     const auto& lang = std::find_if(m_languages.begin(), m_languages.end(),
-                                    [&](const Language& l) { return l.GetName() == language_name; });
+                                    [&](const Language& l) { return ( l.GetName() == language_name ); });
 
-    if( m_languageIndex == (size_t)std::distance(m_languages.begin(), lang) )
+    if( m_languageIndex == static_cast<size_t>(std::distance(m_languages.begin(), lang)) )
         m_languageIndex = 0;
 
     for( auto& [item_name, question] : m_questions )
@@ -134,7 +133,7 @@ void CapiQuestionManager::DeleteLanguage(wstring_view language_name)
         std::vector<CapiCondition>& conditions = question.GetConditions();
 
         for( CapiCondition& condition : conditions )
-            condition.DeleteLanguage(language_name);
+            condition.DeleteLanguage(UTF8_TODO::GetWide(language_name));
     }
 
     m_languages.erase(lang);
@@ -142,10 +141,10 @@ void CapiQuestionManager::DeleteLanguage(wstring_view language_name)
 }
 
 
-void CapiQuestionManager::ModifyLanguage(wstring_view old_language_name, Language updated_language)
+void CapiQuestionManager::ModifyLanguage(const std::string& old_language_name, Language updated_language)
 {
     auto lang = std::find_if(m_languages.begin(), m_languages.end(),
-                               [&](const Language& l) { return l.GetName() == old_language_name; });
+                               [&](const Language& l) { return ( l.GetName() == old_language_name ); });
     ASSERT(lang != m_languages.end());
 
     for( auto& [item_name, question] : m_questions )
@@ -153,7 +152,7 @@ void CapiQuestionManager::ModifyLanguage(wstring_view old_language_name, Languag
         std::vector<CapiCondition>& conditions = question.GetConditions();
 
         for( CapiCondition& condition : conditions )
-            condition.ModifyLanguage(old_language_name, updated_language.GetName());
+            condition.ModifyLanguage(UTF8_TODO::GetWide(old_language_name), UTF8_TODO::GetWide(updated_language.GetName()));
     }
 
     *lang = std::move(updated_language);
@@ -161,19 +160,25 @@ void CapiQuestionManager::ModifyLanguage(wstring_view old_language_name, Languag
 }
 
 
-std::wstring CapiQuestionManager::GetStylesCss() const
+std::string CapiQuestionManager::GetStylesCss() const
 {
-    std::wstringstream ss;
-    if (!m_styles.empty())
-        ss << L"body, "; // apply first style (normal) to body so it used even without style tags
-    for (const CapiStyle& style : m_styles) {
-        ss << L'.' << style.m_class_name.GetString() << L'{' << style.m_css.GetString() << L'}' << std::endl;
+    std::string css;
+
+    if( !m_styles.empty() )
+        css.append("body, "); // apply first style (normal) to body so it used even without style tags
+
+    for( const CapiStyle& style : m_styles )
+    {
+        css.append(FormatText("'%s{'", style.class_name.c_str()))
+           .append(style.css)
+           .append("}\n");
     }
-    return ss.str().c_str();
+
+    return css;
 }
 
 
-const std::wstring& CapiQuestionManager::GetRuntimeStylesCss()
+const std::string& CapiQuestionManager::GetRuntimeStylesCss()
 {
     if( m_runtimeStylesCss.empty() )
         m_runtimeStylesCss = GetStylesCss();
@@ -216,12 +221,12 @@ void CapiQuestionManager::RemoveQuestion(const CString& item_name)
 }
 
 
-void CapiQuestionManager::LoadPre76File(const TCHAR* filename)
+void CapiQuestionManager::LoadPre76File(const std::string& file_path)
 {
     CapiPre76::CNewCapiQuestionFile question_file;
-    if (!question_file.Open(filename, false)) {
-        throw CSProException(_T("Error reading question text file: %s"), filename);
-    }
+
+    if( !question_file.Open(UTF8_TODO::GetWide(file_path).c_str(), false) )
+        throw CSProException("Error reading question text file: %s", file_path.c_str());
 
     CreateFromPre76File(question_file);
 
@@ -238,8 +243,8 @@ void CapiQuestionManager::CreateFromPre76File(CapiPre76::CNewCapiQuestionFile& q
     m_questions.clear();
 
     for (int i = 0; i < question_file.GetNumLanguages(); ++i) {
-        const auto& lang = question_file.GetLanguage(i);
-        m_languages.emplace_back(CS2WS(lang->m_csLangName), CS2WS(lang->m_csLangLabel));
+        const CapiPre76::CNewCapiLanguage& lang = question_file.GetLanguage(i);
+        m_languages.emplace_back(UTF8_TODO::GetUtf8(lang.m_csLangName), UTF8_TODO::GetUtf8(lang.m_csLangLabel));
     }
 
     for (int i = 0; i < question_file.GetNumQuestions(); ++i) {
@@ -277,11 +282,11 @@ void CapiQuestionManager::CopyPre76Question(CapiPre76::CNewCapiQuestionHelp* fil
 
 CString CapiQuestionManager::ConvertFromRtf(const CString& rtf_text)
 {
-    std::string rtf = UTF8Convert::WideToUTF8(rtf_text);
+    std::string rtf = UTF8_TODO::GetUtf8(rtf_text);
     std::istringstream strRtf(rtf);
     std::ostringstream strHtml;
     rtf2html(strRtf, strHtml, true);
-    return UTF8Convert::UTF8ToWide<CString>(strHtml.str());
+    return UTF8_TODO::GetCString(strHtml.str());
 }
 
 
@@ -299,7 +304,7 @@ bool CapiQuestionManager::IsPre76File(std::istream& is) const
 void CapiQuestionManager::ConvertPre76ConditionOccs()
 {
     // Before CSpro 7.6 conditions had logic, min occ, max occ
-    // but not we just have logic.
+    // but now we just have logic.
     // Convert the min/max occ to logic when loading an older file.
     for (auto& [item_name, question] : m_questions)
     {
@@ -369,10 +374,10 @@ void CapiQuestionManager::ConvertPre76Fills()
         std::vector<CapiCondition>& conditions = question.GetConditions();
         for (CapiCondition& condition : conditions) {
             for (const Language& language : m_languages) {
-                CapiText question_text = condition.GetQuestionText(language.GetName());
-                condition.SetQuestionText(ConvertPre76Fills(question_text.GetText()), language.GetName());
-                CapiText help_text = condition.GetHelpText(language.GetName());
-                condition.SetHelpText(ConvertPre76Fills(help_text.GetText()), language.GetName());
+                CapiText question_text = condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName()));
+                condition.SetQuestionText(ConvertPre76Fills(question_text.GetText()), UTF8_TODO::GetWide(language.GetName()));
+                CapiText help_text = condition.GetHelpText(UTF8_TODO::GetWide(language.GetName()));
+                condition.SetHelpText(ConvertPre76Fills(help_text.GetText()), UTF8_TODO::GetWide(language.GetName()));
             }
         }
     }
@@ -429,7 +434,7 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
 
         else if( pItemBase->isA(CDEFormBase::eItemType::Field) )
         {
-            names_in_form_order.emplace_back(assert_cast<const CDEField*>(pItemBase)->GetDictItem()->GetQualifiedName());
+            names_in_form_order.emplace_back(UTF8_TODO::GetCString(assert_cast<const CDEField*>(pItemBase)->GetDictItem()->GetQualifiedName()));
         }
     };
 
@@ -475,7 +480,7 @@ std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFil
 }
 
 
-void CapiQuestionManager::Load(const std::wstring& filename)
+void CapiQuestionManager::Load(const std::string& file_path)
 {
     m_languages.clear();
     m_languageIndex = 0;
@@ -493,12 +498,12 @@ void CapiQuestionManager::Load(const std::wstring& filename)
 
     try
     {
-        auto is = FileIO::OpenTextInputFileStream(filename);
+        const std::unique_ptr<std::ifstream> is = FileIO::OpenTextInputFileStream(file_path);
 
         if( IsPre76File(*is) )
         {
             is->close();
-            LoadPre76File(WS2CS(filename));
+            LoadPre76File(file_path);
         }
 
         else
@@ -511,7 +516,7 @@ void CapiQuestionManager::Load(const std::wstring& filename)
 
             catch( const std::exception& exception )
             {
-                throw CSProException(_T("Error reading question text: %s"), UTF8Convert::UTF8ToWide(exception.what()).c_str());
+                throw CSProException("Error reading question text: %s", exception.what());
             }
         }
 
@@ -531,17 +536,18 @@ void CapiQuestionManager::Load(const std::wstring& filename)
 }
 
 
-void CapiQuestionManager::Save(const std::wstring& filename)
+void CapiQuestionManager::Save(const std::string& file_path)
 {
-    if (m_is_pre76_file) {
+    if( m_is_pre76_file )
+    {
         // Save a copy in the old format in case someone wanted to go back to earlier versions
-        PortableFunctions::FileCopy(filename, filename + _T(".backup"), true);
+        PortableFunctions::FileCopy(file_path, file_path + ".backup", true);
         m_is_pre76_file = false;
     }
 
     std::string yaml_str = WriteToYaml(*this);
-    std::ofstream os(filename.c_str());
-    os << Utf8BOM_sv.data();
+    std::ofstream os(TC::ToWide(file_path).c_str());
+    os << TextEncoding::Utf8Bom_sv.data();
     os << yaml_str;
     m_modified = false;
 }
@@ -569,15 +575,17 @@ void CapiQuestionManager::serialize(Serializer& ar)
     }
 
     // loading 7.6 + 7.7
-    else if( ar.MeetsVersionIteration(Serializer::Iteration_7_6_000_1) )
+    else
     {
         std::string yaml_str;
-        ar & yaml_str;
+        const int yaml_str_length = ar.Read<int>();
+        yaml_str.resize(yaml_str_length);
+        ar.Read(yaml_str.data(), yaml_str_length);
 
         // reset the initial values (as done in Load)...
         ASSERT(m_languageIndex == 0 && m_questions.empty());
         m_languages.clear();
-        m_styles.clear();            
+        m_styles.clear();
 
         try
         {
@@ -597,21 +605,13 @@ void CapiQuestionManager::serialize(Serializer& ar)
             m_styles = DefaultCapiStyles;
     }
 
-    else // loading pre-7.6
-    {
-        CapiPre76::CNewCapiQuestionFile question_file;
-        ar & question_file;
-        CreateFromPre76File(question_file);
-        m_use_pre76_conditions_and_fills = true;
-    }
-
-
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
     // allow a way for developers to recover question text from .pen files
-    if( CString(GetCommandLine()).Find(_T("/extract")) >= 0 )
+    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
     {
-        const std::wstring filename = PortableFunctions::PathAppendToPath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop), _T("Extracted Question Text.qsf"));
-        Save(filename);
+        const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
+                                                                        "Extracted Question Text", FileExtensions::QuestionText);
+        Save(file_path);
     }
 #endif
 }

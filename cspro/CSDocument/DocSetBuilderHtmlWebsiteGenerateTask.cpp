@@ -14,40 +14,40 @@ class DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator : public Do
 public:
     TableOfContentsEvaluator(DocSetBuilderHtmlWebsiteGenerateTask& generate_task);
 
-    std::tuple<std::wstring, std::wstring> GetTableOfContentsHtml(const std::wstring& csdoc_filename);
+    std::tuple<std::string, std::string> GetTableOfContentsHtml(const std::string& csdoc_file_path);
 
 protected:
     // DocSetTableOfContents::Writer overrides
-    void WriteProject(const std::wstring& project) override;
-    void StartChapter(const std::wstring& title, bool write_title_to_pdf) override;
+    void WriteProject(const std::string& project) override;
+    void StartChapter(const std::string& title, bool write_title_to_pdf) override;
     void FinishChapter() override;
-    void WriteDocument(const std::wstring& csdoc_filename, const std::wstring* title_override) override;
+    void WriteDocument(const std::string& csdoc_file_path, const std::string* title_override) override;
 
 private:
-    struct TitleAndFilename
+    struct TitleAndFilePath
     {
-        std::wstring title;
-        std::wstring filename;
+        std::string title;
+        std::string file_path;
     };
 
     struct Node
     {
-        TitleAndFilename title_and_filename; // the filename is empty for chapters
-        std::wstring project;
+        TitleAndFilePath title_and_file_path; // the file path is empty for chapters
+        std::string project;
 
-        std::vector<TitleAndFilename> documents;
+        std::vector<TitleAndFilePath> documents;
         std::vector<Node> subchapters;
     };
 
 private:
-    const std::wstring& GetFirstDocumentFilenameInNode(const Node& node) const;
+    const std::string& GetFirstDocumentFilePathInNode(const Node& node) const;
 
-    bool NodeContainsDocument(const Node& node, const std::wstring& csdoc_filename) const;
+    bool NodeContainsDocument(const Node& node, const std::string& csdoc_file_path) const;
 
-    void WriteHtmlForNode(std::wstring& table_of_contents_html, const Node& node, const std::wstring& csdoc_filename);
+    void WriteHtmlForNode(std::string& table_of_contents_html, const Node& node, const std::string& csdoc_file_path);
 
-    void WriteHtmlForLiTagAndLink(std::wstring& table_of_contents_html, const std::wstring& project, const std::wstring& csdoc_filename,
-                                  const std::wstring& title, bool end_li_tag, const TCHAR* li_class_text);
+    void WriteHtmlForLiTagAndLink(std::string& table_of_contents_html, const std::string& project, const std::string& csdoc_file_path,
+                                  const std::string& title, bool end_li_tag, const char* li_class_text);
 
 private:
     DocSetBuilderHtmlWebsiteGenerateTask& m_generateTask;
@@ -67,24 +67,24 @@ void CSDocCompilerSettingsForBuildingHtmlWebsite::RunPreCompilationTasks(DocSetB
 
     // if defined, the Document Set title will be postpended to the title
     if( m_docSetSpec->GetTitle().has_value() )
-        m_titlePostfix = _T(" - ") + *m_docSetSpec->GetTitle();
+        m_titlePostfix = " - " + *m_docSetSpec->GetTitle();
 
     // if using a particular directory for stylesheets, copy the stylesheet images there
     if( m_buildSettings.GetStylesheetAction() == DocBuildSettings::StylesheetAction::Directory )
     {
-        const std::wstring stylesheet_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetStylesheetDirectory(), false);
+        const std::string stylesheet_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetStylesheetDirectory(), false);
         CopyStylesheetImages(stylesheet_directory);
     }
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingHtmlWebsite::GetHtmlHeaderTitle(const std::wstring& csdoc_filename)
+std::string CSDocCompilerSettingsForBuildingHtmlWebsite::GetHtmlHeaderTitle(const std::string& csdoc_file_path)
 {
-    return GetTitle(csdoc_filename) + m_titlePostfix;
+    return GetTitle(csdoc_file_path) + m_titlePostfix;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingHtmlWebsite::GetStylesheetsHtml()
+std::string CSDocCompilerSettingsForBuildingHtmlWebsite::GetStylesheetsHtml()
 {
     // when embedding stylesheets, the stylesheet images must be copied to any directory where a HTML file is created
     if( m_buildSettings.GetStylesheetAction() == DocBuildSettings::StylesheetAction::Embed )
@@ -95,26 +95,26 @@ std::wstring CSDocCompilerSettingsForBuildingHtmlWebsite::GetStylesheetsHtml()
 }
 
 
-void CSDocCompilerSettingsForBuildingHtmlWebsite::CopyStylesheetImages(const std::wstring& directory)
+void CSDocCompilerSettingsForBuildingHtmlWebsite::CopyStylesheetImages(const std::string& directory)
 {
     // keep track of the directories where stylesheet images have been copied to avoid copying them over and over
     if( m_copiedStylesheetImageDirectories.find(directory) != m_copiedStylesheetImageDirectories.cend() )
         return;
 
-    for( const std::wstring& source_path : GetDocSetBuilderCache().GetStylesheetImagePaths() )
+    for( const std::string& source_file_path : GetDocSetBuilderCache().GetStylesheetImageFilePaths() )
     {
-        const std::wstring destination_path = PortableFunctions::PathAppendToPath(directory, PortableFunctions::PathGetFilename(source_path));
-        CopyFileToDirectory(source_path, destination_path);
+        const std::string destination_file_path = Path::Combine(directory, PortableFunctions::PathGetFilename(source_file_path));
+        CopyFileToDirectory(source_file_path, destination_file_path);
     }
-    
+
     m_copiedStylesheetImageDirectories.emplace(directory);
 }
 
 
-std::tuple<std::wstring, std::wstring> CSDocCompilerSettingsForBuildingHtmlWebsite::GetHtmlToWrapDocument()
+std::tuple<std::string, std::string> CSDocCompilerSettingsForBuildingHtmlWebsite::GetHtmlToWrapDocument()
 {
     ASSERT(m_generateTask != nullptr && m_generateTask->m_tableOfContentsEvaluator != nullptr);
-    return m_generateTask->m_tableOfContentsEvaluator->GetTableOfContentsHtml(GetCompilationFilename());
+    return m_generateTask->m_tableOfContentsEvaluator->GetTableOfContentsHtml(GetCompilationFilePath());
 }
 
 
@@ -124,9 +124,10 @@ std::tuple<std::wstring, std::wstring> CSDocCompilerSettingsForBuildingHtmlWebsi
 // --------------------------------------------------------------------------
 
 DocSetBuilderHtmlWebsiteGenerateTask::DocSetBuilderHtmlWebsiteGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                                                           const DocBuildSettings& base_build_settings, std::wstring build_name,
-                                                                           bool throw_exceptions_for_serious_issues_when_validating_build_settings)
-    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings, DocBuildSettings::BuildType::HtmlWebsite, std::move(build_name), throw_exceptions_for_serious_issues_when_validating_build_settings)),
+                                                                           const DocBuildSettings& base_build_settings, std::string build_name,
+                                                                           const bool throw_exceptions_for_serious_issues_when_validating_build_settings)
+    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings, DocBuildSettings::BuildType::HtmlWebsite,
+                                                                                             std::move(build_name), throw_exceptions_for_serious_issues_when_validating_build_settings)),
         m_tableOfContentsEvaluator(std::make_unique<TableOfContentsEvaluator>(*this))
 {
 }
@@ -146,7 +147,7 @@ CSDocCompilerSettingsForBuildingHtmlWebsite& DocSetBuilderHtmlWebsiteGenerateTas
 void DocSetBuilderHtmlWebsiteGenerateTask::ValidateInputsPostDocSetCompilation()
 {
     if( !GetDocSetSpec().GetTableOfContents().has_value() )
-        throw CSProException(_T("You cannot build a website without defining a %s."), ToString(DocSetComponent::Type::TableOfContents));
+        throw CSProException("You cannot build a website without defining a %s.", ToString(DocSetComponent::Type::TableOfContents));
 }
 
 
@@ -154,16 +155,16 @@ void DocSetBuilderHtmlWebsiteGenerateTask::OnRun()
 {
     const int64_t start_timestamp = GetTimestamp<int64_t>();
 
-    GetInterface().SetTitle(_T("Building Document Set to an HTML Website: ") + GetDocSetSpec().GetFilename());
+    GetInterface().SetTitle(FormatText("Building Document Set to an HTML Website: %s", GetDocSetSpec().GetFilePath().c_str()));
 
     RunBuild();
 
-    GetInterface().LogText(FormatTextCS2WS(_T("\nBuild completed in %s."), GetElapsedTimeText(start_timestamp).c_str()));
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
 
-    ASSERT(!m_defaultDocumentBuiltPath.empty());
-    const std::wstring html_website_output_name = PortableFunctions::PathGetFilename(m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputDirectory());
+    ASSERT(!m_defaultDocumentBuiltFilePath.empty());
+    std::string html_website_output_name = PortableFunctions::PathGetFilename(m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputDirectory());
 
-    GetInterface().OnCreatedOutput(html_website_output_name, m_defaultDocumentBuiltPath);
+    GetInterface().OnCreatedOutput(std::move(html_website_output_name), m_defaultDocumentBuiltFilePath);
 }
 
 
@@ -177,56 +178,56 @@ std::tuple<double, double> DocSetBuilderHtmlWebsiteGenerateTask::GetPreAndPostCo
 
 void DocSetBuilderHtmlWebsiteGenerateTask::OnPreCSDocCompilation()
 {
-    GetInterface().LogText(_T("\nPreparing the HTML Website inputs."));
+    GetInterface().LogText("\nPreparing the HTML Website inputs.");
 
     GetSettings().RunPreCompilationTasks(*this);
 
     // evaluate the table of contents
     m_tableOfContentsEvaluator->Write(*GetDocSetSpec().GetTableOfContents());
 
-    // set the default document path, which will be used in a few places
-    const std::wstring& default_document_path = m_csdocCompilerSettingsForBuilding->GetDefaultDocumentPath();
-    m_defaultDocumentBuiltPath = m_csdocCompilerSettingsForBuilding->CreateHtmlOutputFilename(default_document_path);
+    // set the default document file path, which will be used in a few places
+    const std::string& default_document_file_path = m_csdocCompilerSettingsForBuilding->GetDefaultDocumentFilePath();
+    m_defaultDocumentBuiltFilePath = m_csdocCompilerSettingsForBuilding->CreateHtmlOutputFilePath(default_document_file_path);
 
     // write out .htaccess and web.config files listing the default topic
-    const std::wstring default_document_built_directory = PortableFunctions::PathGetDirectory(m_defaultDocumentBuiltPath);
-    const std::wstring default_document_built_filename = PortableFunctions::PathGetFilename(m_defaultDocumentBuiltPath);
+    const std::string default_document_built_directory = PortableFunctions::PathGetDirectory(m_defaultDocumentBuiltFilePath);
+    const std::string default_document_built_filename = PortableFunctions::PathGetFilename(m_defaultDocumentBuiltFilePath);
 
     Create_htaccess(default_document_built_directory, default_document_built_filename);
     Create_web_config(default_document_built_directory, default_document_built_filename);
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::Create_htaccess(const std::wstring& directory, const std::wstring& default_document_built_filename)
+void DocSetBuilderHtmlWebsiteGenerateTask::Create_htaccess(const std::string& directory, const std::string& default_document_built_filename)
 {
-    const std::wstring htaccess_text = _T("DirectoryIndex ") + default_document_built_filename + _T("\n");
+    const std::string htaccess_text = "DirectoryIndex " + default_document_built_filename + "\n";
 
-    const std::wstring htaccess_path = PortableFunctions::PathAppendToPath(directory, _T(".htaccess"));
+    const std::string htaccess_path = Path::Combine(directory, ".htaccess");
 
     GetSettings().WriteTextToFile(htaccess_path, htaccess_text, false);
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::Create_web_config(const std::wstring& directory, const std::wstring& default_document_built_filename)
+void DocSetBuilderHtmlWebsiteGenerateTask::Create_web_config(const std::string& directory, const std::string& default_document_built_filename)
 {
-    constexpr const TCHAR* WebConfigStart = 
-LR"!(<?xml version="1.0" encoding="UTF-8"?>
+    constexpr std::string_view WebConfigStart_sv =
+R"!(<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
     <defaultDocument enabled="true">
       <files>
         <clear/>
           <add value=")!";
-constexpr const TCHAR* WebConfigEnd = LR"!("/>
-      </files>      
+    constexpr std::string_view WebConfigEnd_sv = R"!("/>
+      </files>
     </defaultDocument>
   </system.webServer>
 </configuration>
 )!";
 
-    const std::wstring web_config_text = WebConfigStart + Encoders::ToHtmlTagValue(default_document_built_filename) + WebConfigEnd;
+    const std::string web_config_text = SO::Concatenate(WebConfigStart_sv, Encoders::ToHtmlTagValue(default_document_built_filename), WebConfigEnd_sv);
 
-    const std::wstring web_config_path = PortableFunctions::PathAppendToPath(directory, _T("web.config"));
+    const std::string web_config_path = Path::Combine(directory, "web.config");
 
     GetSettings().WriteTextToFile(web_config_path, web_config_text, false);
 }
@@ -243,7 +244,7 @@ DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::TableOfContentsE
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteProject(const std::wstring& project)
+void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteProject(const std::string& project)
 {
     ASSERT(m_currentChapterNode.empty());
 
@@ -254,18 +255,18 @@ void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteProjec
 
     const CSDocCompilerSettingsForBuilding& project_settings = settings.GetProjectSettings(project);
 
-    std::wstring title = _T("<") + project_settings.GetBuildSettings().GetEvaluatedOutputName(project_settings.GetDocSetSpec()) + _T(">");
+    std::string title = "<" + project_settings.GetBuildSettings().GetEvaluatedOutputName(project_settings.GetDocSetSpec()) + ">";
 
-    m_nodes.emplace_back(Node { TitleAndFilename { std::move(title), project_settings.GetDefaultDocumentPath() }, project });
+    m_nodes.emplace_back(Node { TitleAndFilePath { std::move(title), project_settings.GetDefaultDocumentFilePath() }, project });
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::StartChapter(const std::wstring& title, bool /*write_title_to_pdf*/)
+void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::StartChapter(const std::string& title, bool /*write_title_to_pdf*/)
 {
     std::vector<Node>& root_or_subchapter_nodes = m_currentChapterNode.empty() ? m_nodes :
                                                                                  m_currentChapterNode.top()->subchapters;
 
-    root_or_subchapter_nodes.emplace_back(Node { TitleAndFilename { title, std::wstring() } });
+    root_or_subchapter_nodes.emplace_back(Node { TitleAndFilePath { title, std::string() } });
     m_currentChapterNode.push(&root_or_subchapter_nodes.back());
 }
 
@@ -276,40 +277,40 @@ void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::FinishChapt
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteDocument(const std::wstring& csdoc_filename, const std::wstring* title_override)
+void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteDocument(const std::string& csdoc_file_path, const std::string* const title_override)
 {
     ASSERT(!m_currentChapterNode.empty());
 
-    std::wstring title = ( title_override != nullptr ) ? *title_override :
-                                                         m_generateTask.GetSettings().GetTitle(csdoc_filename);
+    std::string title = ( title_override != nullptr ) ? *title_override :
+                                                        m_generateTask.GetSettings().GetTitle(csdoc_file_path);
 
-    m_currentChapterNode.top()->documents.emplace_back(TitleAndFilename { std::move(title), csdoc_filename });
+    m_currentChapterNode.top()->documents.emplace_back(TitleAndFilePath { std::move(title), csdoc_file_path });
 }
 
 
-const std::wstring& DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::GetFirstDocumentFilenameInNode(const Node& node) const
+const std::string& DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::GetFirstDocumentFilePathInNode(const Node& node) const
 {
     if( !node.documents.empty() )
-        return node.documents.front().filename;
+        return node.documents.front().file_path;
 
     if( !node.subchapters.empty() )
-        return GetFirstDocumentFilenameInNode(node.subchapters.front());
+        return GetFirstDocumentFilePathInNode(node.subchapters.front());
 
-    return ReturnProgrammingError(SO::EmptyString);
+    return ReturnProgrammingError(SO::Empty_string);
 }
 
 
-bool DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::NodeContainsDocument(const Node& node, const std::wstring& csdoc_filename) const
+bool DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::NodeContainsDocument(const Node& node, const std::string& csdoc_file_path) const
 {
-    for( const TitleAndFilename& title_and_filename : node.documents )
+    for( const TitleAndFilePath& title_and_file_path : node.documents )
     {
-        if( SO::EqualsNoCase(csdoc_filename, title_and_filename.filename) )
+        if( SO::EqualsNoCase(csdoc_file_path, title_and_file_path.file_path) )
             return true;
     }
 
     for( const Node& subchapter_node : node.subchapters )
     {
-        if( NodeContainsDocument(subchapter_node, csdoc_filename) )
+        if( NodeContainsDocument(subchapter_node, csdoc_file_path) )
             return true;
     }
 
@@ -317,91 +318,92 @@ bool DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::NodeContain
 }
 
 
-std::tuple<std::wstring, std::wstring> DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::GetTableOfContentsHtml(const std::wstring& csdoc_filename)
+std::tuple<std::string, std::string> DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::GetTableOfContentsHtml(const std::string& csdoc_file_path)
 {
-    constexpr const TCHAR* PreTableOfContentsHtml =
-        _T("<div id=\"container\">\n")
-        _T("<div id=\"left\">\n");
+    constexpr std::string_view PreTableOfContentsHtml_sv =
+        "<div id=\"container\">\n"
+        "<div id=\"left\">\n";
 
-    constexpr const TCHAR* PostTableOfContentsHtml =
-        _T("</div>\n")
-        _T("<div id=\"middle_spacing1\"></div>\n")
-        _T("<div id=\"middle\"></div>\n")
-        _T("<div id=\"middle_spacing2\"></div>\n")
-        _T("<div id=\"right\">\n");
+    constexpr std::string_view PostTableOfContentsHtml_sv =
+        "</div>\n"
+        "<div id=\"middle_spacing1\"></div>\n"
+        "<div id=\"middle\"></div>\n"
+        "<div id=\"middle_spacing2\"></div>\n"
+        "<div id=\"right\">\n";
 
-    std::wstring table_of_contents_html = PreTableOfContentsHtml;
+    std::string table_of_contents_html(PreTableOfContentsHtml_sv);
 
-    table_of_contents_html.append(_T("<ul class=\"toc_ul\">\n"));
+    table_of_contents_html.append("<ul class=\"toc_ul\">\n");
 
     for( const Node& node : m_nodes )
-        WriteHtmlForNode(table_of_contents_html, node, csdoc_filename);
+        WriteHtmlForNode(table_of_contents_html, node, csdoc_file_path);
 
-    table_of_contents_html.append(_T("</ul>\n"));
+    table_of_contents_html.append("</ul>\n");
 
-    table_of_contents_html.append(PostTableOfContentsHtml);
+    table_of_contents_html.append(PostTableOfContentsHtml_sv);
 
     return { std::move(table_of_contents_html),
-             _T("</div>\n</div>\n") };
+             "</div>\n</div>\n" };
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteHtmlForNode(std::wstring& table_of_contents_html, const Node& node, const std::wstring& csdoc_filename)
+void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteHtmlForNode(std::string& table_of_contents_html, const Node& node, const std::string& csdoc_file_path)
 {
     // a project
     if( !node.project.empty() )
     {
-        WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, node.title_and_filename.filename, node.title_and_filename.title,
-                                 true, _T("toc_li_chapter"));
+        WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, node.title_and_file_path.file_path, node.title_and_file_path.title,
+                                 true, "toc_li_chapter");
     }
 
     // a chapter
     else
     {
-        ASSERT(node.title_and_filename.filename.empty());
+        ASSERT(node.title_and_file_path.file_path.empty());
 
-        const bool node_contains_document = NodeContainsDocument(node, csdoc_filename);
+        const bool node_contains_document = NodeContainsDocument(node, csdoc_file_path);
 
-        WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, GetFirstDocumentFilenameInNode(node), node.title_and_filename.title,
-                                 false, node_contains_document ? _T("toc_li_chapter_current") : _T("toc_li_chapter"));
+        WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, GetFirstDocumentFilePathInNode(node), node.title_and_file_path.title,
+                                 false, node_contains_document ? "toc_li_chapter_current" : "toc_li_chapter");
 
         if( node_contains_document )
         {
-            table_of_contents_html.append(_T("\n<ul class=\"toc_ul\">\n"));
+            table_of_contents_html.append("\n<ul class=\"toc_ul\">\n");
 
-            for( const TitleAndFilename& title_and_filename : node.documents )
+            for( const TitleAndFilePath& title_and_file_path : node.documents )
             {
-                WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, title_and_filename.filename, title_and_filename.title,
-                                         true, SO::EqualsNoCase(csdoc_filename, title_and_filename.filename) ? _T("toc_li_topic_current") : _T("toc_li_topic"));
+                WriteHtmlForLiTagAndLink(table_of_contents_html, node.project, title_and_file_path.file_path, title_and_file_path.title,
+                                         true, SO::EqualsNoCase(csdoc_file_path, title_and_file_path.file_path) ? "toc_li_topic_current" : "toc_li_topic");
             }
 
             for( const Node& subchapter_node : node.subchapters )
-                WriteHtmlForNode(table_of_contents_html, subchapter_node, csdoc_filename);
+                WriteHtmlForNode(table_of_contents_html, subchapter_node, csdoc_file_path);
 
-            table_of_contents_html.append(_T("</ul>\n"));
+            table_of_contents_html.append("</ul>\n");
         }
 
-        table_of_contents_html.append(_T("</li>\n"));
+        table_of_contents_html.append("</li>\n");
     }
 }
 
 
-void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteHtmlForLiTagAndLink(std::wstring& table_of_contents_html,
-    const std::wstring& project, const std::wstring& csdoc_filename, const std::wstring& title, bool end_li_tag, const TCHAR* li_class_text)
+void DocSetBuilderHtmlWebsiteGenerateTask::TableOfContentsEvaluator::WriteHtmlForLiTagAndLink(std::string& table_of_contents_html, const std::string& project,
+                                                                                              const std::string& csdoc_file_path, const std::string& title,
+                                                                                              const bool end_li_tag, const char* const li_class_text)
 {
     ASSERT(Encoders::ToHtmlTagValue(li_class_text) == li_class_text);
 
-    table_of_contents_html.append(_T("<li class=\""));
+    table_of_contents_html.append("<li class=\"");
     table_of_contents_html.append(li_class_text);
-    table_of_contents_html.append(_T("\">"));
+    table_of_contents_html.append("\">");
 
-    const std::wstring url = m_generateTask.GetSettings().CreateUrlForTopic(project, csdoc_filename);
+    const std::string url = m_generateTask.GetSettings().CreateUrlForTopic(project, csdoc_file_path);
     table_of_contents_html.append(CSDocCompilerWorker::CreateHyperlinkStart(url));
 
     table_of_contents_html.append(Encoders::ToHtml(title));
 
-    table_of_contents_html.append(_T("</a>"));
+    table_of_contents_html.append("</a>");
 
     if( end_li_tag )
-        table_of_contents_html.append(_T("</li>\n"));
+        table_of_contents_html.append("</li>\n");
 }

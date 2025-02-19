@@ -27,7 +27,7 @@ CExtendedControl::CExtendedControl(CWnd* pParent /*=NULL*/)
     :   CDialog(IDD_EXTENDEDCONTROL)
 {
     m_pParent = pParent;
-    font.CreatePointFont(8 * 10,_T("MS Shell Dlg"));//_T("MS Sans Serif")); GHM 20121119 this wasn't working for cyrillic fonts in drop down and checkbox options
+    m_font.CreatePointFont(8 * 10,_T("MS Shell Dlg"));//_T("MS Sans Serif")); 20121119 this wasn't working for cyrillic fonts in drop down and checkbox options
 }
 
 CExtendedControl::~CExtendedControl()
@@ -116,14 +116,20 @@ int CExtendedControl::DoModeless(VART* pVarT, const CaptureInfo& capture_info, c
         m_minSearchBarSize = GetSearchBarSize();
         CRect rect = m_OrigControlsRect;
 
-        if( !m_pVarT->GetShowExtendedControlTitle() ) // GHM 20100708 use title functionality added
+        if( !m_pVarT->GetShowExtendedControlTitle() ) // 20100708 use title functionality added
+        {
             SetWindowText(_T(""));
+        }
 
         else if( m_captureType == CaptureType::Date || m_captureType == CaptureType::NumberPad )
-            SetWindowText(CaptureInfo::GetCaptureTypeName(m_captureType, true));
+        {
+            SetWindowText(TC::ToWide(CaptureInfo::GetCaptureTypeName(m_captureType, true)).c_str());
+        }
 
         else
+        {
             SetWindowText(pVarT->GetDictItem()->GetLabel());
+        }
 
         DoSizing(rect);
         SetWindowPos(NULL,rect.left,rect.top,rect.Width(),rect.Height(),SWP_NOACTIVATE);
@@ -524,7 +530,6 @@ void CExtendedControl::DoSizing(CRect & rect)
 }
 
 
-
 void CExtendedControl::RefreshPosition()
 {
     CRect rect = m_OrigControlsRect;
@@ -534,20 +539,22 @@ void CExtendedControl::RefreshPosition()
     m_pCapiControl->LayoutControls();
 }
 
-CFont* CExtendedControl::GetControlFont(bool font_for_number_pad/* = false*/)
+
+CFont* CExtendedControl::GetControlFont(const bool font_for_number_pad/* = false*/)
 {
-    // GHM 20100621 to allow for the dynamic setting of fonts for controls
-    UserDefinedFonts::FontType font_type = font_for_number_pad ?
-        UserDefinedFonts::FontType::NumberPad : UserDefinedFonts::FontType::ValueSets;
+    // 20100621 to allow for the dynamic setting of fonts for controls
+    const UserDefinedFonts::FontType font_type = font_for_number_pad ? UserDefinedFonts::FontType::NumberPad :
+                                                                       UserDefinedFonts::FontType::ValueSets;
+    UserDefinedFonts* user_defined_fonts = nullptr;
 
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
+    if( WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts) &&
+        user_defined_fonts != nullptr &&
+        user_defined_fonts->IsFontDefined(font_type) )
+    {
+        return user_defined_fonts->GetFont(font_type);
+    }
 
-    if( pUserFonts != nullptr && pUserFonts->IsFontDefined(font_type) ) // user has defined a particular font
-        return pUserFonts->GetFont(font_type);
-
-    else
-        return &font;
+    return &m_font;
 }
 
 

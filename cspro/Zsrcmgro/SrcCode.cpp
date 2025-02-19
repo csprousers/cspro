@@ -47,7 +47,7 @@ const std::wstring& CProcEventArray::GetEventName(CSourceCode_EventType eEventTy
 {
     const auto& lookup = std::find_if(m_procEvents.cbegin(), m_procEvents.cend(),
                                       [&](const auto& pc) { return ( pc.GetEventType() == eEventType ); });
-    return ( lookup != m_procEvents.cend() ) ? lookup->GetEventName() : SO::EmptyString;
+    return ( lookup != m_procEvents.cend() ) ? lookup->GetEventName() : SO::Empty_wstring;
 }
 
 
@@ -66,7 +66,7 @@ CSourceCode::CSourceCode(Application& application)
     else
     {
         ASSERT(false);
-        m_logicTextSource = std::make_shared<TextSource>();
+        m_logicTextSource = std::make_unique<TextSource>();
     }
 
     //SAVY
@@ -700,7 +700,7 @@ bool CSourceCode::Load(const CStringArray& aProcLines, bool bIgnoreProcProc)
 
 bool CSourceCode::Load()
 {
-    return Load(WS2CS(m_logicTextSource->GetText()), false);
+    return Load(UTF8_TODO::GetCString(m_logicTextSource->GetText()), false);
 }
 
 
@@ -715,7 +715,7 @@ bool CSourceCode::Save()
     if( GetProc(aProcLines) )
         ArrayToString(&aProcLines, csAllLines, true);
 
-    m_logicTextSource->SetText(CS2WS(csAllLines));
+    m_logicTextSource->SetText(UTF8_TODO::GetUtf8(csAllLines));
     m_logicTextSource->Save();
 
     return true;
@@ -890,16 +890,16 @@ void CSourceCode::SetOrder(const std::vector<CString>& proc_names)
 }
 
 
-std::map<std::wstring, int> CSourceCode::GetProcLineNumberMap() const
+std::map<std::string, int> CSourceCode::GetProcLineNumberMap() const
 {
-    std::map<std::wstring, int> proc_line_number_map;
+    std::map<std::string, int> proc_line_number_map;
 
     for( int i = 0; i < m_aEventCode.GetSize(); ++i )
     {
-        const CEventCode* pEventCode = m_aEventCode[i];
+        const CEventCode* const pEventCode = m_aEventCode[i];
 
         if( pEventCode->GetEventType() == CSourceCode_ProcProc )
-            proc_line_number_map.try_emplace(CS2WS(pEventCode->GetSymbolName()), pEventCode->GetEventLine());
+            proc_line_number_map.try_emplace(UTF8_TODO::GetUtf8(pEventCode->GetSymbolName()), pEventCode->GetEventLine());
     }
 
     return proc_line_number_map;

@@ -47,14 +47,14 @@ int LogicCompiler::CompileUserInterfaceFunctions()
         setfont_node.font_name_expression = -1;
         setfont_node.font_size_expression = -1;
 
-        setfont_node.font_attributes = static_cast<int>(NextKeywordOrError({ _T("ERRMSG"), _T("VALUESETS"), _T("USERBAR"),
-                                                                             _T("NOTES"),  _T("ALL"),       _T("NUMBERPAD") }));
+        setfont_node.font_attributes = static_cast<int>(NextKeywordOrError({ "ERRMSG", "VALUESETS", "USERBAR",
+                                                                             "NOTES",  "ALL",       "NUMBERPAD" }));
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
         // allow the font to reset to the default
-        if( NextKeyword({ _T("DEFAULT") }) == 1 )
+        if( NextKeyword({ "DEFAULT" }) == 1 )
         {
             setfont_node.font_attributes |= Nodes::SetFont::DefaultMask;
             NextToken();
@@ -78,7 +78,7 @@ int LogicCompiler::CompileUserInterfaceFunctions()
 
                 IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-                size_t parameter_type = NextKeywordOrError( {_T("BOLD"), _T("ITALICS") });
+                const size_t parameter_type = NextKeywordOrError( { "BOLD", "ITALICS" });
 
                 setfont_node.font_attributes |= ( parameter_type == 1 ) ? Nodes::SetFont::BoldMask :
                                                                           Nodes::SetFont::ItalicsMask;

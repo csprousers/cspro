@@ -10,9 +10,9 @@ class CLASS_DECL_ZSRCMGR SymbolAnalysisCompiler : public CCompiler
 public:
     struct SymbolUse
     {
-        std::wstring compilation_unit_name;
-        std::wstring proc_name;
-        std::wstring logic_line;
+        std::string compilation_unit_name;
+        std::string proc_name;
+        std::string logic_line;
         int line_number_in_proc;
         int adjusted_line_number;
     };

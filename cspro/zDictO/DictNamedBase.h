@@ -13,22 +13,22 @@ public:
 
     virtual std::unique_ptr<DictNamedBase> Clone() const = 0;
 
-    const CString& GetName() const    { return m_name; }
-    void SetName(const CString& name) { m_name = name; }
+    const std::string& GetName() const { return m_name; }
+    void SetName(std::string name)     { m_name = std::move(name); }
 
-    const std::set<CString>& GetAliases() const { return m_aliases; }
-    void SetAliases(std::set<CString> aliases)  { m_aliases = std::move(aliases); }
+    const std::set<std::string>& GetAliases() const { return m_aliases; }
+    void SetAliases(std::set<std::string> aliases)  { m_aliases = std::move(aliases); }
 
 protected:
     DictNamedBase& operator=(const DictNamedBase& rhs);
 
     // serialization
-    void ParseJsonInput(const JsonNode<wchar_t>& json_node, bool also_parse_dict_base = true);
+    void ParseJsonInput(const JsonNode& json_node, bool also_parse_dict_base = true);
     void WriteJson(JsonWriter& json_writer, bool also_write_dict_base = true) const;
 
     void serialize(Serializer& ar);
 
 private:
-    CString m_name;
-    std::set<CString> m_aliases;
+    std::string m_name;
+    std::set<std::string> m_aliases;
 };

@@ -14,10 +14,10 @@
     <ClCompile Include="..\Engine\Common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="compall.cpp">
+    <ClCompile Include="..\Engine\Exappl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Engine\Exappl.cpp">
+    <ClCompile Include="compall.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nulas.cpp">

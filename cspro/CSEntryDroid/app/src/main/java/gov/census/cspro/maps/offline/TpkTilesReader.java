@@ -8,38 +8,19 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
+import gov.census.cspro.engine.EngineInterface;
 import timber.log.Timber;
 
 /**
@@ -116,8 +97,6 @@ import timber.log.Timber;
  */
 public class TpkTilesReader implements IOfflineTileReader
 {
-    private final ZipFile m_zipFile;
-    private final String m_allLayersPath;
     private final int m_packetSize;
     private final int m_tileFormat;
     private final int m_tileWidth;
@@ -131,7 +110,7 @@ public class TpkTilesReader implements IOfflineTileReader
     // This map is built based on the scales in the tpk file to map the google map zoom level
     // to the corresponding level id.
     @SuppressLint("UseSparseArrays")
-    private final Map<Integer, Integer> m_zoomLevelToLod = new HashMap<>();
+    private final Map<Integer, String> m_zoomLevelBundlePathMap = new HashMap();
 
     private interface BundleReader {
         byte[] getTile(String bundlePath, int row, int column);
@@ -139,109 +118,49 @@ public class TpkTilesReader implements IOfflineTileReader
 
     private final BundleReader m_bundleReader;
 
+    private final ZipFile m_zipFile;
+
     public TpkTilesReader(String tilePackageFilePath) throws IOException
     {
+        // get the TPK metadata from the C++ code as that supports both .tpk and .tpkx files
+        String tpkMetadataJson = EngineInterface.GetTpkMetadataAsJson(tilePackageFilePath);
+        DocumentContext jsonContext = JsonPath.parse(tpkMetadataJson);
+
+        m_packetSize = jsonContext.read("$.packetSize", Integer.class);
+
+        List<String> tileMimeTypes = jsonContext.read("$.tileMimeTypes", List.class);
+        if( tileMimeTypes.size() != 1 ) {
+            throw new IOException("Tile packages with tile type 'MIXED' are not supported.");
+        }
+        else if( tileMimeTypes.get(0).equals("image/png") ) {
+            m_tileFormat = PNG;
+        }
+        else if( tileMimeTypes.get(0).equals("image/jpeg") ) {
+            m_tileFormat = JPG;
+        }
+        else {
+            throw new IOException("Invalid tile format " + tileMimeTypes.get(0));
+        }
+
+        m_tileWidth = jsonContext.read("$.tileWidth", Integer.class);
+        m_tileHeight = jsonContext.read("$.tileHeight", Integer.class);
+
+        m_initialExtent = getBoundsFromJson(jsonContext, "$.initialExtent");
+        m_fullExtent = getBoundsFromJson(jsonContext, "$.fullExtent");
+
+        Map<String, String> zoomLevelBundlePathMapWithStrings = jsonContext.read("$.zoomLevelBundlePathMap", Map.class);
+        for( Map.Entry<String, String> entry : zoomLevelBundlePathMapWithStrings.entrySet() ) {
+            m_zoomLevelBundlePathMap.put(Integer.parseInt(entry.getKey()), entry.getValue());
+        }
+
+        if( jsonContext.read("$.v1BundleType", Boolean.class) ) {
+            m_bundleReader = new V1BundleReader();
+        }
+        else {
+            m_bundleReader = new V2BundleReader();
+        }
+
         m_zipFile = new ZipFile(tilePackageFilePath);
-
-        // Find the conf.xml that has the package metadata. Since this
-        // file is inside a folder based on layer name just search for any
-        // file named conf.xml. There should only be one.
-        ZipEntry confEntry = findConfFileInZip();
-        if (confEntry == null)
-        {
-            throw new IOException("Tile package missing conf.xml");
-        }
-
-        // Save off path to _alllayers folder that we will need to retreive tiles
-        // later on. This is always the same directory as the conf.xml.
-        m_allLayersPath = new File(confEntry.getName()).getParent() + "/_alllayers/";
-
-        try
-        {
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(m_zipFile.getInputStream(confEntry));
-
-            XPathFactory xPathFactory = XPathFactory.newInstance();
-            XPath xpath = xPathFactory.newXPath();
-
-            m_tileWidth = (int) (double) xpath.evaluate("/CacheInfo/TileCacheInfo/TileCols/text()", document, XPathConstants.NUMBER);
-            m_tileHeight = (int) (double) xpath.evaluate("/CacheInfo/TileCacheInfo/TileRows/text()", document, XPathConstants.NUMBER);
-            String tileFormat = xpath.evaluate("/CacheInfo/TileImageInfo/CacheTileFormat/text()", document).toLowerCase();
-            if (tileFormat.startsWith("png")) {
-                m_tileFormat = PNG;
-            } else if (tileFormat.compareTo("jpg") == 0 || tileFormat.compareTo("jpeg") == 0) {
-                m_tileFormat = JPG;
-            } else {
-                throw new IOException("Invalid tile format " + tileFormat);
-            }
-
-            m_packetSize = (int) (double) xpath.evaluate("/CacheInfo/CacheStorageInfo/PacketSize/text()", document, XPathConstants.NUMBER);
-            String storageFormat = xpath.evaluate("/CacheInfo/CacheStorageInfo/StorageFormat/text()", document);
-            switch (storageFormat) {
-                case "esriMapCacheStorageModeCompact":
-                    m_bundleReader = new V1BundleReader();
-                    break;
-                case "esriMapCacheStorageModeCompactV2":
-                    m_bundleReader = new V2BundleReader();
-                    break;
-                default:
-                    throw new IOException("Invalid storage format: " + storageFormat);
-            }
-
-            // Extract the level of detail nodes and match the scales to the scales for google maps
-            // zoom levels
-            NodeList levelsOfDetail = (NodeList) xpath.evaluate("/CacheInfo/TileCacheInfo/LODInfos/*", document, XPathConstants.NODESET);
-            Set<Integer> levelsWithBundles = findLevelsWithBundles();
-
-            Map<Double, Integer> scaleToZoomLevel = createScaleToZoomLevelMap();
-            for (int i = 0; i < levelsOfDetail.getLength(); ++i)
-            {
-                Node lodNode = levelsOfDetail.item(i);
-                int id = (int) (double) xpath.evaluate("LevelID/text()", lodNode, XPathConstants.NUMBER);
-                double scale = (double) xpath.evaluate("Scale/text()", lodNode, XPathConstants.NUMBER);
-
-                // Check to make sure that the folder for the level exists and contains at least one tile
-                if (levelsWithBundles.contains(id))
-                {
-                    Integer zoomLevel = scaleToZoomLevel.get(scale);
-                    if (zoomLevel == null)
-                    {
-                        throw new IOException("Invalid scale " + scale + " in tiling scheme for LevelID " + id + ". Only scales from ArcGIS Online/Bing Maps/Google Maps scheme are supported.");
-                    }
-                    m_zoomLevelToLod.put(zoomLevel, id);
-                }
-            }
-
-            if (m_zoomLevelToLod.isEmpty())
-                throw new IOException("Tile package doesn't contain any valid levels of detail");
-
-            // Get bounds from mapserver.json file
-            ZipEntry mapserverEntry = m_zipFile.getEntry("servicedescriptions/mapserver/mapserver.json");
-            LatLngBounds initialExtent = null, fullExtent = null;
-            if (mapserverEntry != null) {
-                try
-                {
-                    DocumentContext jsonContext = JsonPath.parse(m_zipFile.getInputStream(mapserverEntry));
-                    initialExtent = getBoundsFromJson(jsonContext, "$.resourceInfo.geoInitialExtent");
-                    fullExtent = getBoundsFromJson(jsonContext, "$.resourceInfo.geoFullExtent");
-                } catch (IOException e) {
-                    Timber.e(e, "Error reading extents from mapserver.json");
-                }
-            }
-            m_initialExtent = initialExtent;
-            m_fullExtent = fullExtent;
-
-        } catch (ParserConfigurationException e)
-        {
-            throw new IOException("Failed to parse conf.xml", e);
-        } catch (SAXException e)
-        {
-            throw new IOException("Failed to parse conf.xml", e);
-        } catch (XPathExpressionException e)
-        {
-            throw new IOException("Failed to parse conf.xml", e);
-        }
     }
 
     @Override
@@ -265,13 +184,13 @@ public class TpkTilesReader implements IOfflineTileReader
     @Override
     public int getMaxZoom()
     {
-        return Collections.max(m_zoomLevelToLod.keySet());
+        return Collections.max(m_zoomLevelBundlePathMap.keySet());
     }
 
     @Override
     public int getMinZoom()
     {
-        return Collections.min(m_zoomLevelToLod.keySet());
+        return Collections.min(m_zoomLevelBundlePathMap.keySet());
     }
 
     @Nullable
@@ -296,14 +215,14 @@ public class TpkTilesReader implements IOfflineTileReader
 
         int bundleRow = (y/m_packetSize) * m_packetSize;
         int bundleColumn = (x/m_packetSize) * m_packetSize;
-        Integer lod = m_zoomLevelToLod.get(z);
-        if (lod == null)
+        String path = m_zoomLevelBundlePathMap.get(z);
+        if (path == null)
         {
             Timber.d("No tile at (" + x + "," + y + "," + z + "): no tiles at this zoom level");
             return null;
         }
 
-        String bundlePath = m_allLayersPath + String.format(Locale.ENGLISH, "L%02d/R%04xC%04x.bundle", lod, bundleRow, bundleColumn);
+        String bundlePath = path + String.format(Locale.ENGLISH, "/R%04xC%04x.bundle", bundleRow, bundleColumn);
         return m_bundleReader.getTile(bundlePath, x, y);
     }
 
@@ -311,42 +230,6 @@ public class TpkTilesReader implements IOfflineTileReader
     public void close() throws IOException
     {
         m_zipFile.close();
-    }
-
-    private ZipEntry findConfFileInZip()
-    {
-        Enumeration<? extends ZipEntry> entries = m_zipFile.entries();
-        while (entries.hasMoreElements())
-        {
-            ZipEntry entry = entries.nextElement();
-            if (!entry.isDirectory() && entry.getName().endsWith("conf.xml"))
-            {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    private Set<Integer> findLevelsWithBundles()
-    {
-        Set<Integer> levels = new HashSet<>();
-        Pattern pattern = Pattern.compile("^" + m_allLayersPath + "L(\\d{2})/.*\\.bundle$");
-
-        Enumeration<? extends ZipEntry> entries = m_zipFile.entries();
-        while (entries.hasMoreElements())
-        {
-            ZipEntry entry = entries.nextElement();
-            if (!entry.isDirectory())
-            {
-                Matcher m = pattern.matcher(entry.getName());
-                if (m.matches())
-                {
-                    int level = Integer.parseInt(m.group(1));
-                    levels.add(level);
-                }
-            }
-        }
-        return levels;
     }
 
     private class V1BundleReader implements BundleReader
@@ -530,56 +413,6 @@ public class TpkTilesReader implements IOfflineTileReader
             totalSkipped += skipped;
         }
         return totalSkipped;
-    }
-
-    // Create map from ArcGIS scale that is found in LOD nodes in tpk conf.xml
-    // to Google Maps zoom levels.
-    private static Map<Double, Integer> createScaleToZoomLevelMap()
-    {
-        final Map<Double, Integer> map = new TreeMap<>(new Comparator<Double>()
-        {
-            // Since the scale levels are floating point it seems that they get rounded
-            // differently in different tpk files so need to do a fuzzy compare.
-            private final static double EPSILON = 1e-5;
-
-            @Override
-            public int compare(Double a, Double b)
-            {
-                if (Math.abs(a - b) < EPSILON)
-                    return 0; // Equals
-                else
-                    return (a < b) ? -1 : +1;
-            }
-        });
-
-        // These are copied from the ArcGIS_Online_Bing_Maps_Google_Maps.xml
-        // tiling scheme that comes with ArcGIS.
-        map.put(591657527.591555, 0);
-        map.put(295828763.795777, 1);
-        map.put(147914381.897889, 2);
-        map.put(73957190.948944, 3);
-        map.put(36978595.474472, 4);
-        map.put(18489297.737236, 5);
-        map.put(9244648.868618, 6);
-        map.put(4622324.434309, 7);
-        map.put(2311162.217155, 8);
-        map.put(1155581.108577, 9);
-        map.put(577790.554289, 10);
-        map.put(288895.277144, 11);
-        map.put(144447.638572, 12);
-        map.put(72223.819286, 13);
-        map.put(36111.909643, 14);
-        map.put(18055.954822, 15);
-        map.put(9027.977411, 16);
-        map.put(4513.988705, 17);
-        map.put(2256.994353, 18);
-        map.put(1128.497176, 19);
-        map.put(564.248588, 20);
-        map.put(282.124294, 21);
-        map.put(141.062147, 22);
-        map.put(70.531074, 23);
-
-        return map;
     }
 
     private LatLngBounds getBoundsFromJson(DocumentContext jsonContext, String jsonPath) throws IOException

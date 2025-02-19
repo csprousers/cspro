@@ -20,7 +20,7 @@ WindowsTraceHandler::~WindowsTraceHandler()
     if( m_traceWnd != nullptr )
     {
         // destroy the window on the UI thread
-        bool success = RunOnUIThread([&]()
+        const bool success = RunOnUIThread([&]()
         {
             m_traceWnd->DestroyWindow();
         });
@@ -61,12 +61,12 @@ bool WindowsTraceHandler::TurnOnWindowTrace()
 }
 
 
-void WindowsTraceHandler::OutputLine(const std::wstring& text)
+void WindowsTraceHandler::OutputLine(SharableString text)
 {
     TraceHandler::OutputLine(text);
 
     if( m_traceWnd != nullptr )
-        m_traceWnd->AddText(text);
+        m_traceWnd->AddText(std::move(text));
 }
 
 
@@ -90,7 +90,7 @@ TraceLoggingListBox::TraceLoggingListBox()
 void TraceLoggingListBox::AddAdditionalContextMenuItems(CMenu& popup_menu)
 {
     popup_menu.AppendMenu(MF_SEPARATOR);
-    popup_menu.AppendMenu(MF_STRING, ID_ALWAYS_ON_TOP, _T("Always on &Top"));
+    popup_menu.AppendMenu(MF_STRING, ID_ALWAYS_ON_TOP, L"Always on &Top");
 }
 
 
@@ -105,7 +105,7 @@ void TraceLoggingListBox::OnAlwaysOnTop()
 }
 
 
-void TraceLoggingListBox::OnUpdateAlwaysOnTop(CCmdUI* pCmdUI)
+void TraceLoggingListBox::OnUpdateAlwaysOnTop(CCmdUI* const pCmdUI)
 {
     pCmdUI->SetCheck(m_alwaysOnTop);
 }
@@ -154,8 +154,8 @@ bool TraceWnd::CreateTraceControl()
     // position the window to the right of with a margin of 10% of the display width (thus 1/4 of the window width), and vertically in the middle
     CPoint window_location(Screen::GetFullWidth() - ( window_size.cx / 4 ) - window_size.cx,
                            ( Screen::GetFullHeight() - window_size.cy ) / 2);
-                        
-    if( Create(nullptr, _T("CSPro Trace Output"), WS_CAPTION | WS_POPUPWINDOW | WS_VISIBLE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX, CRect()) == -1 )
+
+    if( Create(nullptr, L"CSPro Trace Output", WS_CAPTION | WS_POPUPWINDOW | WS_VISIBLE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX, CRect()) == -1 )
         return false;
 
     // show the window, potentially always on top
@@ -166,11 +166,11 @@ bool TraceWnd::CreateTraceControl()
 }
 
 
-void TraceWnd::OnSize(UINT nType, int cx, int cy)
+void TraceWnd::OnSize(const UINT nType, const int cx, const int cy)
 {
-	__super::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
-	m_traceLoggingListBox.SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+    m_traceLoggingListBox.SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 
@@ -179,10 +179,4 @@ void TraceWnd::OnNcDestroy()
     m_traceHandler.DeleteTraceWindow();
 
     __super::OnNcDestroy();
-}
-
-
-void TraceWnd::AddText(std::wstring text)
-{
-    m_traceLoggingListBox.AddText(std::move(text));
 }

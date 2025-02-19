@@ -1,82 +1,82 @@
 ﻿#include "stdafx.h"
-#include "ObexConstants.h"
-#include "SyncException.h"
 #include "BluetoothObexServer.h"
-#include "SyncObexHandler.h"
-#include "IObexTransport.h"
-#include "ObexServer.h"
 #include "IBluetoothAdapter.h"
-#include "ISyncListener.h"
+#include "IObexTransport.h"
+#include "ObexConstants.h"
+#include "ObexServer.h"
+#include "SyncObexHandler.h"
+#include <zNetwork/SyncListenerRAII.h>
 
-namespace {
 
-    class BluetoothEnabler {
-
+namespace
+{
+    class BluetoothEnabler
+    {
     public:
         BluetoothEnabler(IBluetoothAdapter* pAdapter)
-            : m_bWasEnabled(pAdapter->isEnabled()),
-            m_pAdapter(pAdapter)
+            :   m_bWasEnabled(pAdapter->IsEnabled()),
+                m_pAdapter(pAdapter)
         {
             //if (!m_bWasEnabled)
-                m_pAdapter->enable();
+                m_pAdapter->Enable();
         }
 
         ~BluetoothEnabler()
         {
             if (!m_bWasEnabled)
-                m_pAdapter->disable();
+                m_pAdapter->Disable();
         }
+
     private:
         bool m_bWasEnabled;
         IBluetoothAdapter* m_pAdapter;
     };
+}
 
-}
-BluetoothObexServer::BluetoothObexServer(CString deviceId,
-    IBluetoothAdapter* pAdapter,
-    SyncObexHandler* pObexHandler)
-    : m_pHandler(pObexHandler),
-      m_pAdapter(pAdapter)
+
+BluetoothObexServer::BluetoothObexServer(std::shared_ptr<IBluetoothAdapter> pAdapter, std::unique_ptr<SyncObexHandler> pHandler,
+                                         std::shared_ptr<SyncListener> sync_listener)
+    :   m_pAdapter(std::move(pAdapter)),
+        m_pHandler(std::move(pHandler)),
+        m_syncListener(std::move(sync_listener))
 {
+    ASSERT(m_pAdapter != nullptr && m_pHandler != nullptr);
 }
+
 
 int BluetoothObexServer::run()
 {
     try {
-        SyncListenerCloser listenerCloser(m_pListener);
+        const SyncListenerCloser sync_listener_closer(m_syncListener.get());
 
         // Waiting for connections...
-        if (m_pListener) {
-            m_pListener->onStart(100105);
+        if (m_syncListener != nullptr) {
+            m_syncListener->Start(100105);
         }
 
-        BluetoothEnabler btEnabler(m_pAdapter);
+        BluetoothEnabler btEnabler(m_pAdapter.get());
 
-        std::unique_ptr<IObexTransport> pTransport(m_pAdapter->acceptConnection(
-            OBEX_SYNC_SERVICE_UUID, m_pListener));
+        std::unique_ptr<IObexTransport> pTransport(m_pAdapter->AcceptConnection(OBEX_SYNC_SERVICE_UUID, m_syncListener.get()));
 
         if (!pTransport.get())
             return 0; // Cancelled
 
         // Connected
-        if (m_pListener)
-            m_pListener->onProgress(0, 100106);
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(0, 100106);
+        }
 
-        ObexServer obexServer(m_pHandler);
-        obexServer.setListener(m_pListener);
+        ObexServer obexServer(m_pHandler.get());
+        obexServer.SetSyncListener(m_syncListener);
         obexServer.run(pTransport.get());
         return 1;
-    } catch (const SyncError& e) {
-        if (m_pListener) {
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
+    }
+    catch (const SyncError& e) {
+        if (m_syncListener != nullptr) {
+            m_syncListener->ReportError(e);
         }
     }
     catch (const SyncCancelException&) {
     }
     return 0;
-}
-
-void BluetoothObexServer::setListener(ISyncListener *pListener)
-{
-    m_pListener = pListener;
 }

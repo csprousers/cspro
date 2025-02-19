@@ -2,11 +2,9 @@
 #include "JsonFileFrequencyPrinter.h"
 
 
-JsonFileFrequencyPrinter::JsonFileFrequencyPrinter(const std::wstring& filename)
-    :   m_ownedJsonWriter(Json::CreateFileWriter(filename))
+JsonFileFrequencyPrinter::JsonFileFrequencyPrinter(const std::string& file_path)
+    :   JsonFrequencyPrinter(Json::CreateFileWriter(UTF8_TODO::GetWide(file_path)))
 {
-    m_jsonWriter = m_ownedJsonWriter.get();
-
     m_jsonWriter->BeginObject()
                  .BeginArray(JK::frequencies);
 }

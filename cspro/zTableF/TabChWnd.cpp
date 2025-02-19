@@ -1,7 +1,4 @@
-﻿// TabChWnd.cpp : implementation file
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "TabChWnd.h"
 #include "DfStylDg.h"
 #include "FlashMsg.h"
@@ -9,7 +6,6 @@
 #include "TabView.h"
 #include "Tblgrid.h"
 #include "TTallyFD.h"
-#include <zUtilO/Filedlg.h>
 #include <zDictF/UWM.h>
 
 
@@ -148,7 +144,7 @@ BOOL CTableChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD
         if( !m_logicDlgBar.CreateAndDock(this) )
             return FALSE;
 
-        m_logicDlgBar.ShowWindow(SW_HIDE);    
+        m_logicDlgBar.ShowWindow(SW_HIDE);
 
         // create the reference window
         if( !m_logicReferenceWnd.CreateAndDock(this) )
@@ -1297,7 +1293,7 @@ void CTableChildWnd::OnFilePrintSetup()
             fmtTblPrint.SetPrinterDriver(sDriver);
             fmtTblPrint.SetPrinterOutput(sOutput);
             ::GlobalUnlock(dlgQuery.m_pd.hDevNames);
-            sMsg.Format(_T("No printer selected for this application, using default Windows printer\n%s"), (LPCTSTR)sPrinterDevice);
+            sMsg.Format(_T("No printer selected for this application, using default Windows printer\n%s"), sPrinterDevice.GetString());
             AfxMessageBox(sMsg,MB_ICONINFORMATION);
             bPrintSettingsChanged = true;
         }
@@ -1417,7 +1413,7 @@ void CTableChildWnd::OnFilePrintSetup()
                 ASSERT(FALSE);
                 break;
             }
-            sMsg.Format(_T("Sorry, paper type [%s] is not supported.  Using [%s] instead."), (LPTSTR)pDevMode->dmFormName, (LPCTSTR)sCurrPaperType);
+            sMsg.Format(_T("Sorry, paper type [%s] is not supported.  Using [%s] instead."), (LPTSTR)pDevMode->dmFormName, sCurrPaperType.GetString());
             AfxMessageBox(sMsg,MB_ICONINFORMATION);
             break;
         }
@@ -1444,7 +1440,7 @@ void CTableChildWnd::OnFilePrintSetup()
                 ASSERT(FALSE);
                 break;
             }
-            sMsg.Format(_T("Sorry, that page orientation is not supported.  Using %s instead."), (LPCTSTR)sCurrPageOrientation);
+            sMsg.Format(_T("Sorry, that page orientation is not supported.  Using %s instead."), sCurrPageOrientation.GetString());
             AfxMessageBox(sMsg,MB_ICONINFORMATION);
             break;
         }

@@ -1,11 +1,14 @@
 ﻿#pragma once
 
 #include <zUtilF/zUtilF.h>
+#include <zToolsO/CancelFlag.h>
+
 
 #ifdef WIN_DESKTOP
-// ----- 
-// ----- Windows desktop implementation
-// ----- 
+
+// --------------------------------------------------------------------------
+//  Windows desktop implementation
+// --------------------------------------------------------------------------
 
 #include <zUtilF/BatchMeterDlg.h>
 
@@ -24,9 +27,10 @@ protected:
 
 
 #else
-// ----- 
-// ----- portable implementation
-// ----- 
+
+// --------------------------------------------------------------------------
+// portable implementation
+// --------------------------------------------------------------------------
 
 #include <zUtilF/ProcessSummaryReporter.h>
 #include <thread>
@@ -35,13 +39,11 @@ protected:
 class CLASS_DECL_ZUTILF ProcessSummaryDlg : public ProcessSummaryReporter
 {
 public:
-    ProcessSummaryDlg();
+    void Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary, CancelFlag* cancel_flag) override;
 
-    void Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary, bool* cancel_flag) override;
+    void SetSource(InterfaceString source_text) override;
 
-    void SetSource(const CString& source_text) override;
-
-    void SetKey(const CString& case_key) override;
+    void SetKey(const std::string& case_key) override;
 
     void DoModal();
 
@@ -52,18 +54,18 @@ private:
 #endif
 
 
-// ----- 
-// ----- shared implementation
-// ----- 
+// --------------------------------------------------------------------------
+// shared implementation
+// --------------------------------------------------------------------------
 
 public:
     ~ProcessSummaryDlg();
 
     bool IsCanceled() const { return m_canceled; }
 
-    void SetTask(std::function<void()> task) { m_task = task; }
+    void SetTask(std::function<void()> task) { m_task = std::move(task); }
 
-    void Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary);
+    void Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary);
 
     void RethrowTaskExceptions();
 
@@ -74,7 +76,7 @@ private:
 
 private:
     std::unique_ptr<std::thread> m_workThread;
-    bool m_canceled;
+    CancelFlag m_canceled;
     std::function<void()> m_task;
     std::exception_ptr m_taskException;
 };

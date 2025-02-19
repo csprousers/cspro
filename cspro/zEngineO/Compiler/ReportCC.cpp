@@ -7,7 +7,7 @@
 
 namespace
 {
-    constexpr const TCHAR* ReportWriteTypeNamedArgument = _T("rwt");
+    constexpr const char* ReportWriteTypeNamedArgument = "rwt";
 }
 
 
@@ -73,7 +73,7 @@ int LogicCompiler::CompileReportFunctions()
         CheckReportIsCurrentlyWriteable(report);
 
         auto& report_write_node = initialize_node(CreateNode<Nodes::Report::Write>(function_code));
-        report_write_node.encode_text = 0;
+        report_write_node.escape_text = 0;
 
         // named arguments will be used for the under-the-hood content specification mode
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
@@ -110,7 +110,7 @@ int LogicCompiler::CompileReportFunctions()
                 else if( report_write_node.type == Nodes::Report::Write::Type::TextFill )
                 {
                     NextToken();
-                    report_write_node.encode_text = get_constant_int();
+                    report_write_node.escape_text = get_constant_int();
 
                     NextToken();
                     IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
@@ -157,33 +157,32 @@ void LogicCompiler::CompileReports()
         return;
     }
 
-    for( const NamedTextSource& report_named_text_source : VI_V(m_engineData->application->GetReportNamedTextSources()) )
-        CompileReport(report_named_text_source);
+    for( const ReportFile& report_files : m_engineData->application->GetReportFiles() )
+        CompileReport(report_files);
 }
 
 
-void LogicCompiler::CompileReport(const NamedTextSource& report_named_text_source)
+void LogicCompiler::CompileReport(const ReportFile& report_file)
 {
     Report* report = nullptr;
     std::unique_ptr<Logic::SourceBuffer> source_buffer;
 
     ClearSourceBuffer();
-    SetCompilationUnitName(report_named_text_source.text_source->GetFilename());
+    SetCompilationUnitName(report_file.GetFilePath());
 
     try
     {
         // find the report symbol and tokenize the report
-        report = &assert_cast<Report&>(GetSymbolTable().FindSymbolOfType(report_named_text_source.name, SymbolType::Report));
+        report = &assert_cast<Report&>(GetSymbolTable().FindSymbolOfType(report_file.GetName(), SymbolType::Report));
 
-        const std::wstring& report_text = report_named_text_source.text_source->GetText();
-
+        const std::string& report_text = report_file.GetTextSource().GetText();
         source_buffer = ConvertReportToSourceBuffer(report_text);
     }
 
     catch( const CSProException& exception )
     {
         // report any errors reading the report
-        ReportError(MGF:: FileIO_error_163, ToString(SymbolType::Report), exception.GetErrorMessage().c_str());
+        ReportError(MGF:: FileIO_error_163, ToString(SymbolType::Report), exception.what());
     }
 
     if( source_buffer == nullptr )
@@ -193,7 +192,7 @@ void LogicCompiler::CompileReport(const NamedTextSource& report_named_text_sourc
 
     // set the compilation unit name again because SetSourceBuffer will have cleared what was set
     // at the beginning of the method
-    SetCompilationUnitName(report_named_text_source.text_source->GetFilename());
+    SetCompilationUnitName(report_file.GetFilePath());
 
     try
     {
@@ -204,7 +203,7 @@ void LogicCompiler::CompileReport(const NamedTextSource& report_named_text_sourc
             {
                 NextToken();
 
-                int program_index = instruc_COMPILER_DLL_TODO();
+                const int program_index = instruc_COMPILER_DLL_TODO();
 
                 // if the entire buffer was not processed, issue an error
                 if( Tkn != TOKEOP )
@@ -213,11 +212,7 @@ void LogicCompiler::CompileReport(const NamedTextSource& report_named_text_sourc
                 report->SetProgramIndex(program_index);
             });
     }
-
-    catch(...)
-    {
-        ASSERT(false);
-    }
+    catch(...) { ASSERT(false); }
 }
 
 
@@ -231,7 +226,7 @@ namespace
         {
         }
 
-        void OnErrorUnbalancedEscapes(size_t line_number) override
+        void OnErrorUnbalancedEscapes(const size_t line_number) override
         {
             m_compiler.ReportError(MGF::Report_unbalanced_escapes_48101, static_cast<int>(line_number));
         }
@@ -239,7 +234,7 @@ namespace
         void OnErrorTokenNotEnded(const ReportToken& report_token) override
         {
             m_compiler.ReportError(MGF::Report_end_reached_while_in_logic_or_fill_48102,
-                                   ( report_token.type == ReportToken::Type::Logic ) ? _T("logic") : _T("a fill"),
+                                   ( report_token.type == ReportToken::Type::Logic ) ? "logic" : "a fill",
                                    static_cast<int>(report_token.section_line_number_start));
         }
 
@@ -253,7 +248,7 @@ namespace
     {
         std::map<size_t, size_t> line_map;
 
-        size_t GetLineNumber(size_t line_number) override
+        size_t GetLineNumber(const size_t line_number) override
         {
             for( size_t i = line_number; i > 0; --i )
             {
@@ -270,7 +265,7 @@ namespace
 }
 
 
-std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertReportToSourceBuffer(const wstring_view report_text_sv)
+std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertReportToSourceBuffer(const std::string_view report_text_sv)
 {
     EngineReportTokenizer report_tokenizer(*this);
 
@@ -278,7 +273,7 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertReportToSourceBuffer(
         return nullptr;
 
     // create the logic to run this report
-    std::wstring report_logic;
+    std::string report_logic;
 
     auto report_line_adjuster = std::make_unique<ReportLineAdjuster>();
     size_t source_line = 1;
@@ -286,7 +281,7 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertReportToSourceBuffer(
 
     for( const ReportToken& report_token : report_tokenizer.GetReportTokens() )
     {
-        size_t token_text_newlines = CountNewlines(report_token.text);
+        const size_t token_text_newlines = CountNewlines(report_token.text);
 
         report_line_adjuster->line_map.try_emplace(output_line, source_line);
         source_line += token_text_newlines;
@@ -294,21 +289,22 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertReportToSourceBuffer(
         if( report_token.type == ReportToken::Type::ReportText )
         {
             // the report text will be added to the string literal conserver
-            SO::AppendFormat(report_logic, _T("$.write(%s := %d, %d);"),
+            report_logic.append(FormatText("$.write(%s := %d, %d);",
                                            ReportWriteTypeNamedArgument,
                                            static_cast<int>(Nodes::Report::Write::Type::ReportText),
-                                           ConserveConstant(report_token.text));
+                                           ConserveConstant(report_token.text)));
 
             ++output_line;
         }
 
-        else if( report_token.type == ReportToken::Type::DoubleTilde || report_token.type == ReportToken::Type::TripleTilde )
+        else if( report_token.type == ReportToken::Type::DoubleTilde ||
+                 report_token.type == ReportToken::Type::TripleTilde )
         {
-            SO::AppendFormat(report_logic, _T("$.write(%s := %d, %d, %s);"),
+            report_logic.append(FormatText("$.write(%s := %d, %d, %s);",
                                            ReportWriteTypeNamedArgument,
                                            static_cast<int>(Nodes::Report::Write::Type::TextFill),
                                            ( report_token.type == ReportToken::Type::DoubleTilde ) ? 1 : 0,
-                                           report_token.text.c_str());
+                                           report_token.text.c_str()));
 
             output_line += token_text_newlines + 1;
         }

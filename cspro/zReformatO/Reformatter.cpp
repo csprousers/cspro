@@ -35,6 +35,7 @@ bool Reformatter::RequiresReformat(const DataRepositoryType data_repository_type
         case DataRepositoryType::SQLite:
         case DataRepositoryType::EncryptedSQLite:
         case DataRepositoryType::Json:
+        case DataRepositoryType::CSWeb:
             break;
 
         default:
@@ -86,7 +87,7 @@ std::tuple<std::unique_ptr<CaseAccess>, std::shared_ptr<CaseAccess>> Reformatter
 
 
 void Reformatter::ReformatCaseItem(const CaseItem& initial_case_item, const CaseItemIndex& initial_index,
-                                  const CaseItem& final_case_item, CaseItemIndex& final_index)
+                                   const CaseItem& final_case_item, CaseItemIndex& final_index)
 {
     // no need to reformat blank data
     if( initial_case_item.IsBlank(initial_index) )
@@ -95,47 +96,43 @@ void Reformatter::ReformatCaseItem(const CaseItem& initial_case_item, const Case
     // create the converter
     std::unique_ptr<CaseItemConverter> converter;
 
-    if( initial_case_item.IsTypeNumeric() )
+    switch( initial_case_item.GetDataType() )
     {
-        converter = std::make_unique<NumericCaseItemConverter>(assert_cast<const NumericCaseItem&>(initial_case_item), initial_index);
-    }
+        case DataType::Numeric:
+            converter = std::make_unique<NumericCaseItemConverter>(assert_cast<const NumericCaseItem&>(initial_case_item), initial_index);
+            break;
 
-    else if( initial_case_item.IsTypeString() )
-    {
-        converter = std::make_unique<StringCaseItemConverter>(assert_cast<const StringCaseItem&>(initial_case_item), initial_index);
-    }
+        case DataType::String:
+            converter = std::make_unique<StringCaseItemConverter>(assert_cast<const StringCaseItem&>(initial_case_item), initial_index);
+            break;
 
-    else if( initial_case_item.IsTypeBinary() )
-    {
-        converter = std::make_unique<BinaryCaseItemConverter>(assert_cast<const BinaryCaseItem&>(initial_case_item), initial_index);
-    }
+        case DataType::Binary:
+            converter = std::make_unique<BinaryCaseItemConverter>(assert_cast<const BinaryCaseItem&>(initial_case_item), initial_index);
+            break;
 
-    else
-    {
-        throw ProgrammingErrorException();
+        default:
+            throw ProgrammingErrorException();
     }
 
     // convert the data
     bool success;
 
-    if( final_case_item.IsTypeNumeric() )
+    switch( final_case_item.GetDataType() )
     {
-        success = converter->ToNumber(assert_cast<const NumericCaseItem&>(final_case_item), final_index);
-    }
+        case DataType::Numeric:
+            success = converter->ToNumber(assert_cast<const NumericCaseItem&>(final_case_item), final_index);
+            break;
 
-    else if( final_case_item.IsTypeString() )
-    {
-        success = converter->ToString(assert_cast<const StringCaseItem&>(final_case_item), final_index);
-    }
+        case DataType::String:
+            success = converter->ToString(assert_cast<const StringCaseItem&>(final_case_item), final_index);
+            break;
 
-    else if( final_case_item.IsTypeBinary() )
-    {
-        success = converter->ToBinary(assert_cast<const BinaryCaseItem&>(final_case_item), final_index);
-    }
+        case DataType::Binary:
+            success = converter->ToBinary(assert_cast<const BinaryCaseItem&>(final_case_item), final_index);
+            break;
 
-    else
-    {
-        throw ProgrammingErrorException();
+        default:
+            throw ProgrammingErrorException();
     }
 
     if( !success )
@@ -147,9 +144,9 @@ void Reformatter::ReformatCaseItem(const CaseItem& initial_case_item, const Case
             // pass the initial case so that, when the key is printed, it is clear
             // which case this is coming from
             initial_case.GetCaseConstructionReporter()->ContentTypeConversionError(initial_case,
-                                                                                   initial_case_item.GetDictionaryItem().GetName(),
-                                                                                   initial_case_item.GetDictionaryItem().GetContentType(),
-                                                                                   final_case_item.GetDictionaryItem().GetContentType());
+                                                                                   initial_case_item.GetDictItem().GetName(),
+                                                                                   initial_case_item.GetDictItem().GetContentType(),
+                                                                                   final_case_item.GetDictItem().GetContentType());
         }
     }
 }
@@ -158,98 +155,99 @@ void Reformatter::ReformatCaseItem(const CaseItem& initial_case_item, const Case
 void Reformatter::ReformatCase(const Case& initial_case, Case& final_case)
 {
     final_case.Reset();
-    final_case.SetUuid(CS2WS(initial_case.GetUuid()));
+    final_case.SetUuid(initial_case.GetUuid());
     final_case.SetCaseLabel(initial_case.GetCaseLabel());
     final_case.SetDeleted(initial_case.GetDeleted());
     final_case.SetVerified(initial_case.GetVerified());
     final_case.SetVectorClock(initial_case.GetVectorClock());
 
-    std::vector<std::tuple<std::wstring, std::wstring>> level_key_pairs;
+    std::vector<std::tuple<std::string, std::string>> level_key_pairs;
 
     // reformat each level
-    std::function<void(const CaseLevel&, CaseLevel&, size_t)> reformat_level =
-        [&](const CaseLevel& initial_case_level, CaseLevel& final_case_level, size_t level_number)
-    {
-        // process each item on the level
-        for( const auto& case_item_pair : m_caseItemPairsByLevel[level_number] )
+    const std::function<void(const CaseLevel&, CaseLevel&, size_t)> reformat_level =
+        [&](const CaseLevel& initial_case_level, CaseLevel& final_case_level, const size_t level_number)
         {
-            const CaseRecord& initial_case_record = initial_case_level.GetCaseRecord(case_item_pair->initial_record_number);
-            CaseRecord& final_case_record = final_case_level.GetCaseRecord(case_item_pair->final_record_number);
-
-            const size_t record_occurrences_to_output = std::min(initial_case_record.GetNumberOccurrences(),
-                                                                 static_cast<size_t>(final_case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs()));
-
-            if( record_occurrences_to_output == 0 )
-                continue;
-
-            if( final_case_record.GetNumberOccurrences() < record_occurrences_to_output )
-                final_case_record.SetNumberOccurrences(record_occurrences_to_output);
-
-            const size_t item_subitem_occurrences_to_output = std::min(case_item_pair->initial_case_item.GetDictionaryItem().GetItemSubitemOccurs(),
-                                                                       case_item_pair->final_case_item.GetDictionaryItem().GetItemSubitemOccurs());
-
-            for( size_t record_occurrence = 0; record_occurrence < record_occurrences_to_output; ++record_occurrence )
+            // process each item on the level
+            for( const auto& case_item_pair : m_caseItemPairsByLevel[level_number] )
             {
-                CaseItemIndex initial_index = initial_case_record.GetCaseItemIndex(record_occurrence);
-                CaseItemIndex final_index = final_case_record.GetCaseItemIndex(record_occurrence);
+                const CaseRecord& initial_case_record = initial_case_level.GetCaseRecord(case_item_pair->initial_record_number);
+                CaseRecord& final_case_record = final_case_level.GetCaseRecord(case_item_pair->final_record_number);
 
-                while( initial_index.GetItemSubitemOccurrence(case_item_pair->initial_case_item) < item_subitem_occurrences_to_output )
+                const size_t record_occurrences_to_output = std::min(initial_case_record.GetNumberOccurrences(),
+                                                                     static_cast<size_t>(final_case_record.GetCaseRecordMetadata().GetDictRecord().GetMaxRecs()));
+
+                if( record_occurrences_to_output == 0 )
+                    continue;
+
+                if( final_case_record.GetNumberOccurrences() < record_occurrences_to_output )
+                    final_case_record.SetNumberOccurrences(record_occurrences_to_output);
+
+                const size_t item_subitem_occurrences_to_output = std::min(case_item_pair->initial_case_item.GetDictItem().GetItemSubitemOccurs(),
+                                                                           case_item_pair->final_case_item.GetDictItem().GetItemSubitemOccurs());
+
+                for( size_t record_occurrence = 0; record_occurrence < record_occurrences_to_output; ++record_occurrence )
                 {
-                    ReformatCaseItem(case_item_pair->initial_case_item, initial_index, case_item_pair->final_case_item, final_index);
+                    CaseItemIndex initial_index = initial_case_record.GetCaseItemIndex(record_occurrence);
+                    CaseItemIndex final_index = final_case_record.GetCaseItemIndex(record_occurrence);
 
-                    initial_index.IncrementItemSubitemOccurrence(case_item_pair->initial_case_item);
-                    final_index.IncrementItemSubitemOccurrence(case_item_pair->final_case_item);
+                    while( initial_index.GetItemSubitemOccurrence(case_item_pair->initial_case_item) < item_subitem_occurrences_to_output )
+                    {
+                        ReformatCaseItem(case_item_pair->initial_case_item, initial_index, case_item_pair->final_case_item, final_index);
+
+                        initial_index.IncrementItemSubitemOccurrence(case_item_pair->initial_case_item);
+                        final_index.IncrementItemSubitemOccurrence(case_item_pair->final_case_item);
+                    }
                 }
             }
-        }
 
-        if( level_number > 0 )
-            level_key_pairs.emplace_back(CS2WS(initial_case_level.GetLevelKey()), CS2WS(final_case_level.GetLevelKey()));
+            if( level_number > 0 )
+                level_key_pairs.emplace_back(UTF8_TODO::GetUtf8(initial_case_level.GetLevelKey()), UTF8_TODO::GetUtf8(final_case_level.GetLevelKey()));
 
-        // if multiple levels are matched, process them
-        if( ( level_number + 1 ) < m_caseItemPairsByLevel.size() )
-        {
-            for( size_t level_index = 0; level_index < initial_case_level.GetNumberChildCaseLevels(); ++level_index )
-                reformat_level(initial_case_level.GetChildCaseLevel(level_index), final_case_level.AddChildCaseLevel(), level_number + 1);
-        }
-    };
+            // if multiple levels are matched, process them
+            if( ( level_number + 1 ) < m_caseItemPairsByLevel.size() )
+            {
+                for( size_t level_index = 0; level_index < initial_case_level.GetNumberChildCaseLevels(); ++level_index )
+                    reformat_level(initial_case_level.GetChildCaseLevel(level_index), final_case_level.AddChildCaseLevel(), level_number + 1);
+            }
+        };
 
     reformat_level(initial_case.GetRootCaseLevel(), final_case.GetRootCaseLevel(), 0);
 
     // add any required records not added above
-    final_case.AddRequiredRecords();
+    final_case.AddRequiredRecords(false);
 
 
     // a routine to create a new case item reference
-    auto create_case_item_reference = [&](const CaseItemReference& initial_case_item_reference) -> std::unique_ptr<CaseItemReference>
-    {
-        const CaseItem* final_case_item = m_finalCaseAccess->LookupCaseItem(initial_case_item_reference.GetName());
-
-        // check that case item and occurrence are still valid
-        if( final_case_item == nullptr || !final_case_item->GetItemIndexHelper().IsValid(initial_case_item_reference) )
-            return nullptr;
-
-        const std::wstring* matched_final_level_key = nullptr;
-
-        if( !initial_case_item_reference.GetLevelKey().IsEmpty() )
+    auto create_case_item_reference =
+        [&](const CaseItemReference& initial_case_item_reference) -> std::unique_ptr<CaseItemReference>
         {
-            for( const auto& [initial_level_key, final_level_key] : level_key_pairs )
+            const CaseItem* const final_case_item = m_finalCaseAccess->LookupCaseItem(initial_case_item_reference.GetName());
+
+            // check that case item and occurrence are still valid
+            if( final_case_item == nullptr || !final_case_item->GetItemIndexHelper().IsValid(initial_case_item_reference) )
+                return nullptr;
+
+            const std::string* matched_final_level_key = nullptr;
+
+            if( !initial_case_item_reference.GetLevelKey().empty() )
             {
-                if( SO::Equals(initial_level_key, initial_case_item_reference.GetLevelKey()) )
+                for( const auto& [initial_level_key, final_level_key] : level_key_pairs )
                 {
-                    matched_final_level_key = &final_level_key;
-                    break;
+                    if( initial_level_key == initial_case_item_reference.GetLevelKey() )
+                    {
+                        matched_final_level_key = &final_level_key;
+                        break;
+                    }
                 }
+
+                // can't create a reference if the level hasn't been processed
+                if( matched_final_level_key == nullptr )
+                    return nullptr;
             }
 
-            // can't create a reference if the level hasn't been processed
-            if( matched_final_level_key == nullptr )
-                return nullptr;
-        }
-
-        return std::make_unique<CaseItemReference>(*final_case_item,
-                                                   WS2CS(( matched_final_level_key != nullptr ) ? *matched_final_level_key : std::wstring()),
-                                                   initial_case_item_reference.GetOccurrences());
+            return std::make_unique<CaseItemReference>(*final_case_item,
+                                                       ( matched_final_level_key != nullptr ) ? *matched_final_level_key : std::string(),
+                                                       initial_case_item_reference.GetOccurrences());
     };
 
 
@@ -276,7 +274,7 @@ void Reformatter::ReformatCase(const Case& initial_case, Case& final_case)
         if( initial_case_item_reference == nullptr )
         {
             // the only valid options here are dictionary, level, or record names, which should not have level keys set
-            if( named_reference.GetLevelKey().IsEmpty() )
+            if( named_reference.GetLevelKey().empty() )
             {
                 bool valid_name = ( m_finalDictionary->GetName() == named_reference.GetName() );
 
@@ -290,7 +288,7 @@ void Reformatter::ReformatCase(const Case& initial_case, Case& final_case)
                 }
 
                 if( valid_name )
-                    final_named_reference = std::make_unique<NamedReference>(named_reference.GetName(), CString());
+                    final_named_reference = std::make_unique<NamedReference>(named_reference.GetName(), std::string());
             }
         }
 
@@ -301,7 +299,7 @@ void Reformatter::ReformatCase(const Case& initial_case, Case& final_case)
 
         if( final_named_reference != nullptr )
         {
-            final_case.GetNotes().emplace_back(initial_note.GetContent(), std::move(final_named_reference),
+            final_case.GetNotes().emplace_back(initial_note.GetContentSharableString(), std::move(final_named_reference),
                                                initial_note.GetOperatorId(), initial_note.GetModifiedDateTime());
         }
     }

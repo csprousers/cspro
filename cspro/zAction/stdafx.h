@@ -10,7 +10,8 @@
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/ObjectTransporter.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/UniqueId.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/MimeType.h>
 #include <zJson/Json.h>

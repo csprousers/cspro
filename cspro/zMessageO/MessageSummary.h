@@ -7,7 +7,7 @@ struct MessageSummary
 
     Type type;
     int message_number;
-    std::wstring message_text;
+    SharableString message_text;
     size_t frequency;
     std::optional<double> denominator;
 };

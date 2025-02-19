@@ -1,29 +1,26 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
-#include "DefaultParametersOnlyUserFunctionArgumentEvaluator.h"
 #include "EngineExecutor.h"
-#include <zEngineO/UserFunction.h>
+#include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zAppO/Application.h>
 #include <zLogicO/BaseCompiler.h>
 
 
 // --------------------------------------------------------------------------
-// declarations of:
-// - DynamicLogicFunctionCompiler
-// - DynamicLogicFunctionArgumentEvaluator
+// DynamicLogicFunctionCompiler
 // --------------------------------------------------------------------------
 
 class DynamicLogicFunctionCompiler : public Logic::BaseCompiler
 {
 public:
-    DynamicLogicFunctionCompiler(CIntDriver* pIntDriver, const std::wstring& logic,
-                                 UserFunction*& user_function, std::vector<std::variant<double, std::wstring>>& arguments);
+    DynamicLogicFunctionCompiler(CIntDriver* interpreter, SharableString logic,
+                                 UserFunction*& user_function, std::vector<std::variant<double, SharableString>>& arguments);
 
     void CompileFunctionCall();
 
 private:
     const LogicSettings& GetLogicSettings() const override;
-    const std::wstring& GetCurrentProcName() const override;
+    std::string GetCurrentProcName() const override;
     void FormatMessageAndProcessParserMessage(Logic::ParserMessage& parser_message, va_list parg) override;
 
     [[noreturn]] void ThrowCompilationError() const;
@@ -32,45 +29,26 @@ private:
 
 private:
     CEngineDriver* m_pEngineDriver;
-    CIntDriver* m_pIntDriver;
+    CIntDriver* m_interpreter;
 
-    const std::wstring& m_logic;
+    SharableString m_logic;
     UserFunction*& m_userFunction;
-    std::vector<std::variant<double, std::wstring>>& m_arguments;
+    std::vector<std::variant<double, SharableString>>& m_arguments;
 };
 
 
-class DynamicLogicFunctionArgumentEvaluator : public DefaultParametersOnlyUserFunctionArgumentEvaluator
-{
-public:
-    DynamicLogicFunctionArgumentEvaluator(CIntDriver* pIntDriver, const UserFunction& user_function,
-                                          const std::vector<std::variant<double, std::wstring>>& arguments);
-
-    double GetNumeric(int parameter_number) override;
-    std::wstring GetString(int parameter_number) override;
-
-private:
-    const std::vector<std::variant<double, std::wstring>>& m_arguments;
-};
-
-
-
-// --------------------------------------------------------------------------
-// DynamicLogicFunctionCompiler
-// --------------------------------------------------------------------------
-
-DynamicLogicFunctionCompiler::DynamicLogicFunctionCompiler(CIntDriver* pIntDriver, const std::wstring& logic,
-                                                           UserFunction*& user_function, std::vector<std::variant<double, std::wstring>>& arguments)
-    :   Logic::BaseCompiler(pIntDriver->GetSymbolTable()),
-        m_pEngineDriver(pIntDriver->m_pEngineDriver),
-        m_pIntDriver(pIntDriver),
-        m_logic(logic),
+DynamicLogicFunctionCompiler::DynamicLogicFunctionCompiler(CIntDriver* interpreter, SharableString logic,
+                                                           UserFunction*& user_function, std::vector<std::variant<double, SharableString>>& arguments)
+    :   Logic::BaseCompiler(interpreter->GetSymbolTable()),
+        m_pEngineDriver(interpreter->m_pEngineDriver),
+        m_interpreter(interpreter),
+        m_logic(std::move(logic)),
         m_userFunction(user_function),
         m_arguments(arguments)
 {
     ASSERT(m_userFunction == nullptr && m_arguments.empty());
 
-    SetSourceBuffer(std::make_shared<Logic::SourceBuffer>(m_logic.c_str(), false));
+    SetSourceBuffer(std::make_unique<Logic::SourceBuffer>(m_logic));
 }
 
 
@@ -80,7 +58,7 @@ const LogicSettings& DynamicLogicFunctionCompiler::GetLogicSettings() const
 }
 
 
-const std::wstring& DynamicLogicFunctionCompiler::GetCurrentProcName() const
+std::string DynamicLogicFunctionCompiler::GetCurrentProcName() const
 {
     ThrowCompilationError();
 }
@@ -94,20 +72,19 @@ void DynamicLogicFunctionCompiler::FormatMessageAndProcessParserMessage(Logic::P
 
 void DynamicLogicFunctionCompiler::ThrowCompilationError() const
 {
-    std::wstring message = m_logic + _T("\n\nThere was an error compiling the ");
+    std::string message = *m_logic + "\n\nThere was an error compiling the ";
 
     if( m_userFunction != nullptr )
-        SO::AppendFormat(message, _T("\"%s\" "), m_userFunction->GetName().c_str());
+        message.append(FormatText("'%s' ", m_userFunction->GetName().c_str()));
 
-    message.append(_T("function call. The function call must use valid CSPro syntax and only ")
-                    _T("numeric constant and string literal arguments are allowed."));
-
+    message.append("function call. The function call must use valid CSPro syntax and only "
+                   "numeric constant and string literal arguments are allowed.");
 
     throw CSProException(message);
 }
 
 
-void DynamicLogicFunctionCompiler::NextTokenAndCheck(TokenCode token_code)
+void DynamicLogicFunctionCompiler::NextTokenAndCheck(const TokenCode token_code)
 {
     NextToken();
 
@@ -195,55 +172,28 @@ void DynamicLogicFunctionCompiler::CompileFunctionCall()
 
 
 // --------------------------------------------------------------------------
-// DynamicLogicFunctionArgumentEvaluator
-// --------------------------------------------------------------------------
-
-DynamicLogicFunctionArgumentEvaluator::DynamicLogicFunctionArgumentEvaluator(CIntDriver* pIntDriver, const UserFunction& user_function,
-                                                                             const std::vector<std::variant<double, std::wstring>>& arguments)
-    :   DefaultParametersOnlyUserFunctionArgumentEvaluator(pIntDriver, user_function),
-        m_arguments(arguments)
-{
-}
-
-
-double DynamicLogicFunctionArgumentEvaluator::GetNumeric(int parameter_number)
-{
-    if( static_cast<size_t>(parameter_number) < m_arguments.size() )
-        return std::get<double>(m_arguments[parameter_number]);
-
-    return DefaultParametersOnlyUserFunctionArgumentEvaluator::GetNumeric(parameter_number);
-}
-
-
-std::wstring DynamicLogicFunctionArgumentEvaluator::GetString(int parameter_number)
-{
-    if( static_cast<size_t>(parameter_number) < m_arguments.size() )
-        return std::get<std::wstring>(m_arguments[parameter_number]);
-
-    return DefaultParametersOnlyUserFunctionArgumentEvaluator::GetString(parameter_number);
-}
-
-
-
-// --------------------------------------------------------------------------
 // CIntDriver::EvaluateLogic
 // --------------------------------------------------------------------------
 
-InterpreterExecuteResult CIntDriver::EvaluateLogic(const std::wstring& logic)
+InterpreterExecuteResult CIntDriver::EvaluateLogic(SharableString logic, CancelFlag& cancel_flag)
 {
+    // forward any cancelation requests to the interpreter's cancelation flag
+    const CancelFlag::ListenerHolder cancel_flag_listener_holder = cancel_flag.AddListener([&]() { m_bStopProc = true; });
+
     // the only logic currently supported is the ability to call
     // user-defined functions with numeric constants and string literals
     UserFunction* user_function = nullptr;
-    std::vector<std::variant<double, std::wstring>> arguments;
-    DynamicLogicFunctionCompiler function_compiler(this, logic, user_function, arguments);
+    std::vector<std::variant<double, SharableString>> arguments;
+    DynamicLogicFunctionCompiler function_compiler(this, std::move(logic), user_function, arguments);
 
     function_compiler.CompileFunctionCall();
 
-    // run the function
+    NumericStringValuesOnlyUserFunctionArgumentEvaluator<true> argument_evaluator(std::move(arguments));
+
+    // execute the function
     return Execute(user_function->GetReturnDataType(),
         [&]()
         {
-            DynamicLogicFunctionArgumentEvaluator argument_evaluator(this, *user_function, arguments);
             return CallUserFunction(*user_function, argument_evaluator);
         });
 }

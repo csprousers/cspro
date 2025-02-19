@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D03BD2E0-89FA-43B9-80ED-51A060D73961}</ProjectGuid>
     <RootNamespace>textview</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -72,13 +68,13 @@
     <ClCompile Include="Fsizedlg.cpp" />
     <ClCompile Include="Gotodlg.cpp" />
     <ClCompile Include="MainFrm.cpp" />
-    <ClCompile Include="OpenInDataViewerDlg.cpp" />
+    <ClCompile Include="OpenInDataManagerDlg.cpp" />
     <ClCompile Include="Seldlg.cpp" />
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="textview.cpp" />
+    <ClCompile Include="TextView.cpp" />
     <ClCompile Include="Tvblock.cpp" />
     <ClCompile Include="TVDoc.cpp" />
     <ClCompile Include="Tvmisc.cpp" />
@@ -91,17 +87,17 @@
     <ClInclude Include="Fsizedlg.h" />
     <ClInclude Include="Gotodlg.h" />
     <ClInclude Include="MainFrm.h" />
-    <ClInclude Include="UWM.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="OpenInDataViewerDlg.h" />
+    <ClInclude Include="OpenInDataManagerDlg.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Seldlg.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="textview.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TextView.h" />
     <ClInclude Include="Tvblock.h" />
     <ClInclude Include="TVDoc.h" />
     <ClInclude Include="Tvmisc.h" />
     <ClInclude Include="Tvruler.h" />
     <ClInclude Include="TVView.h" />
+    <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\textview.ico" />

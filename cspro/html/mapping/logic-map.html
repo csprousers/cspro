@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -9,87 +9,7 @@
     <script src="/external/leaflet/leaflet.js"></script>
     <script src="/external/leaflet/leaflet.ajax.min.js"></script>
 
-    <style>
-        body {
-            height: 100%;
-            margin: 0px;
-            position: relative;
-        }
-
-        html {
-            height: 100%;
-        }
-
-        #mapid {
-            height: 100%;
-            z-index: 0;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .shown {
-            display: block;
-        }
-
-        #title {
-            font-size: 32px;
-            background-color: white;
-            color: black;
-            text-align: center;
-            position: absolute;
-            top: 0px;
-            z-index: 1;
-            transform: translateX(-50%);
-            left: 50%;
-            white-space: pre;
-        }
-
-        a {
-            white-space: pre;
-        }
-
-        #buttons {
-            position: absolute;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            z-index: 1;
-            max-width: 10%;
-            white-space: pre;
-        }
-
-        button {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: background-color 0.16s ease-out;
-            color: rgb(60,60,60);
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        button:hover {
-            color: rgb(30,30,30);
-        }
-
-        button:active {
-            color: black;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-
-        .img_button {
-            height: 64px;
-            width: 64px;
-        }
-    </style>
+    <link rel="stylesheet" href="logic-map.css">
 </head>
 
 <body>
@@ -101,234 +21,235 @@
 </html>
 
 <script>
-    var csmap;
-    var markers;
-    var geometries;
-    var currentLoc;
-    var tileLayer;
+    let csmap;
+    let markers;
+    const buttons = document.getElementById('buttons');
+    let geometries;
+    let currentLocation;
+    let tileLayer;
+    let esriLeafletJsLoaded = false;
 
-    function initMap() {
+    let locationMarkerOptions = {
+        radius: 8,
+        fillColor: '#3b6dd9',
+        color: 'white',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 1
+    }
+
+
+    function initializeMap() {
         csmap = L.map('mapid', {
             maxBounds: L.latLngBounds([-85.06, -180], [85.06, 180]),
             maxBoundsViscosity: 1
         });
-        csmap.on('click', handleMapClick);
+        csmap.on('click', onMapClick);
         markers = L.layerGroup().addTo(csmap);
         geometries = L.layerGroup().addTo(csmap);
     }
 
-    window.onload = function () {
-        initMap();
-        window.chrome.webview.postMessage({ "action": "document_loaded" });
+
+    window.onload = function() {
+        initializeMap();
+        window.chrome.webview.postMessage({
+            action: 'documentLoaded'
+        });
     }
+
+
+    window.chrome.webview.addEventListener('message', event => {
+        const message = event.data;
+
+        switch( message.action ) {
+            case 'addMarker':
+                addMarker(message.id, message.latitude, message.longitude, message.draggable, message.callbackIndex,
+                          message.description, message.text, message.backgroundColor, message.textColor, message.imageUrl);
+                break;
+
+            case 'removeMarker':
+                removeMarker(message.leafletId);
+                break;
+
+            case 'clearMarkers':
+                clearMarkers();
+                break;
+
+            case 'setMarkerImage':
+                setMarkerImage(message.leafletId, message.imageUrl);
+                break;
+
+            case 'setMarkerText':
+                setMarkerText(message.leafletId, message.text, message.backgroundColor, message.textColor);
+                break;
+
+            case 'setMarkerOnDrag':
+                setMarkerOnDrag(message.leafletId);
+                break;
+
+            case 'setMarkerDescription':
+                setMarkerDescription(message.id, message.leafletId, message.description, message.callbackIndex);
+                break;
+
+            case 'setMarkerLocation':
+                setMarkerLocation(message.leafletId, message.latitude, message.longitude);
+                break;
+
+            case 'fitMarkers':
+                fitMarkers();
+                break;
+
+            case 'addImageButton':
+                addImageButton(message.id, message.imageUrl);
+                break;
+
+            case 'addTextButton':
+                addTextButton(message.id, message.text);
+                break;
+
+            case 'removeButton':
+                removeButton(message.id);
+                break;
+
+            case 'clearButtons':
+                clearButtons();
+                break;
+
+            case 'showCurrentLocation':
+                showCurrentLocation(message.latitude, message.longitude);
+                break;
+
+            case 'setTitle':
+                setTitle(message.text);
+                break;
+
+            case 'zoomTo':
+                if( message.latitude ) {
+                    zoomTo(message.latitude, message.longitude, message.zoom);
+                }
+                else {
+                    fitBounds(message.minLatitude, message.minLongitude, message.maxLatitude, message.maxLongitude, message.padding);
+                }
+                break;
+
+            case 'setBaseMap':
+                if( message.url ) {
+                    setOfflineBaseMap(message.url, message.options);
+                }
+                else if( message.tileProvider === 'Esri' ) {
+                    setEsriBaseMap(message.tileLayer, message.accessToken);
+                }
+                else if( message.tileProvider === 'Mapbox' ) {
+                    setMapboxBaseMap(message.tileLayer, message.accessToken);
+                }
+                else {
+                    resetBaseMap();
+                }
+                break;
+
+            case 'addGeometry':
+                addGeometry(message.id, message.geojsonUrl);
+                break;
+
+            case 'removeGeometry':
+                removeGeometry(message.leafletId);
+                break;
+
+            case 'clearGeometry':
+                clearGeometry();
+                break;
+
+           default:
+                console.log("Unknown action: ", message.action);
+        }
+
+    });
+
+
+    function onMapClick(e) {
+        const latLng = e.latlng;
+        const camera = csmap.getCenter();
+        window.chrome.webview.postMessage({
+            action: 'mapClick',
+            latitude: latLng.lat,
+            longitude: latLng.lng,
+            camera: {
+                latitude: camera.lat,
+                longitude: camera.lng,
+                zoom: csmap.getZoom()
+            }
+        });
+    }
+
+
+    function addMarker(id, latitude, longitude, draggable, callbackIndex, description, text, backgroundColor, textColor, imageUrl) {
+        var marker = L.marker(L.latLng(latitude, longitude), {
+            draggable: draggable
+        }).addTo(markers);
+
+        marker.on('click', (e) => onMarkerClick(e, id));
+        marker.on('dragend', (e) => onMarkerDrag(e, id));
+        marker.on('mouseover', onMarkerMouseover);
+
+        if( description ) {
+            let elem;
+            if( callbackIndex >= 0 ) {
+                elem = document.createElement('a');
+                elem.setAttribute('href', 'javascript:void(0);');
+                elem.setAttribute('onclick', `onMarkerPopup(${id});`);
+            }
+            else {
+                elem = document.createElement('div');
+                elem.style.whiteSpace = 'pre';
+            }
+            elem.appendChild(document.createTextNode(description));
+            marker.bindPopup(elem);
+        }
+
+        if( text ) {
+            const tooltip = document.createElement('div');
+            tooltip.setAttribute('style', `background-color: ${backgroundColor}; color: ${textColor}; white-space: pre;`);
+            tooltip.appendChild(document.createTextNode(text));
+            marker.bindTooltip(tooltip, {
+                permanent: true,
+                direction: 'bottom',
+                offset: [-15, 0]
+            });
+        }
+
+        if( imageUrl ) {
+            const icon = L.icon({
+                iconUrl: imageUrl,
+                iconSize: [64, 64]
+            });
+            marker.setIcon(icon);
+        }
+
+        window.chrome.webview.postMessage({
+            action: 'markerPlaced',
+            id: id,
+            leafletId: markers.getLayerId(marker)
+        });
+    }
+
+
+    function removeMarker(leafletId) {
+        const marker = markers.getLayer(leafletId);
+        marker.removeFrom(markers);
+    }
+
 
     function clearMarkers() {
         markers.clearLayers();
     }
 
-    function clearButtons() {
-        var buttonsEl = document.getElementById("buttons");
-        while (buttonsEl.lastChild) {
-            if (buttonsEl.lastChild.id == "buttonLocation") {
-                break;
-            }
-            buttonsEl.removeChild(buttonsEl.lastChild);
-        }
-    }
 
-    function handleMarkerClick(e, id) {
-        var camera_latLng = csmap.getCenter();
-        var markerClickJson = {
-            "action" : "marker_click",
-            "id": id,
-            "camera_lat": camera_latLng.lat,
-            "camera_lng": camera_latLng.lng,
-            "camera_zoom": csmap.getZoom()
-        };
-        window.chrome.webview.postMessage(markerClickJson);
-    }
+    function setMarkerImage(leafletId, imageUrl) {
+        const marker = markers.getLayer(leafletId);
 
-    function handleMarkerDrag(e, id) {
-        var latLng = e.target.getLatLng();
-        var camera_latLng = csmap.getCenter();
-        var markerDragJson = {
-            "action": "marker_drag",
-            "id": id,
-            "marker": markers.getLayerId(e.target),
-            "latitude": latLng.lat,
-            "longitude": latLng.lng,
-            "camera_lat": camera_latLng.lat,
-            "camera_lng": camera_latLng.lng,
-            "camera_zoom": csmap.getZoom()
-        };
-        window.chrome.webview.postMessage(markerDragJson);
-    }
-
-    function handlePopupClick(id) {
-        var camera_latLng = csmap.getCenter();
-        var popupClickJson = {
-            "action": "popup_click",
-            "id": id,
-            "camera_lat": camera_latLng.lat,
-            "camera_lng": camera_latLng.lng,
-            "camera_zoom": csmap.getZoom()
-        };
-        window.chrome.webview.postMessage(popupClickJson);
-    }
-
-    function handleMapClick(e) {
-        var latLng = e.latlng
-        var camera_latLng = csmap.getCenter();
-        var mapClickJson = {
-            "action": "map_click",
-            "latitude": latLng.lat,
-            "longitude": latLng.lng,
-            "camera_lat": camera_latLng.lat,
-            "camera_lng": camera_latLng.lng,
-            "camera_zoom": csmap.getZoom()
-        };
-        window.chrome.webview.postMessage(mapClickJson);
-    }
-
-    function handleButtonClick(e, id) {
-        var camera_latLng = csmap.getCenter();
-        var buttonClickJson = {
-            "action": "button_click",
-            "id": id,
-            "camera_lat": camera_latLng.lat,
-            "camera_lng": camera_latLng.lng,
-            "camera_zoom": csmap.getZoom()
-        };
-        window.chrome.webview.postMessage(buttonClickJson);
-    }
-
-    function handleMarkerMouseover(e) {
-        var marker = e.target;
-        marker.openPopup();
-    }
-
-    function removeMarker(leaflet_id) {
-        var marker = markers.getLayer(leaflet_id);
-        marker.removeFrom(markers);
-    }
-
-    function setDraggable(leaflet_id) {
-        var marker = markers.getLayer(leaflet_id);
-        marker.dragging.enable();
-    }
-
-    function setDescription(id, leaflet_id, popup_callback, description) {
-        var marker = markers.getLayer(leaflet_id);
-        marker.unbindPopup();
-        if (description) {
-            let elem;
-            if (popup_callback >= 0) {
-                elem = document.createElement('a');
-                elem.setAttribute('href', 'javascript:void(0);');
-                elem.setAttribute('onclick', `handlePopupClick(${id});`);
-            }
-            else {
-                elem = document.createElement('div');
-                elem.style.whiteSpace = "pre";
-            }
-            elem.appendChild(document.createTextNode(description));
-            marker.bindPopup(elem);
-        }
-    }
-
-    function setText(leaflet_id, text, background_color, text_color) {
-        var marker = markers.getLayer(leaflet_id);
-        marker.unbindTooltip();
-        if (text) {
-            var tooltip = document.createElement('div');
-            tooltip.setAttribute('style', `background-color: ${background_color}; color: ${text_color}; white-space: pre;`);
-            tooltip.appendChild(document.createTextNode(text));
-            marker.bindTooltip(tooltip, {
-                permanent: true,
-                direction: 'bottom',
-                offset: [-15, 0]
-            });
-        }
-    }
-
-    function addTextButton(content, id) {
-        let buttonsEl = document.getElementById("buttons");
-        let button = document.createElement("button");
-        button.setAttribute("id", `button${id}`);
-        button.appendChild(document.createTextNode(content));
-        button.addEventListener('click', (e) => handleButtonClick(e, id));
-        buttonsEl.appendChild(button);
-    }
-
-    function addImageButton(image_link, id) {
-        let buttonsEl = document.getElementById("buttons");
-        let button = document.createElement("button");
-        button.setAttribute("id", `button${id}`);
-        let image = document.createElement("img");
-        image.setAttribute("src", image_link);
-        image.classList.add("img_button");
-        button.appendChild(image);
-        button.addEventListener('click', (e) => handleButtonClick(e, id));
-        buttonsEl.appendChild(button);
-    }
-
-    function removeButton(id) {
-        let buttonEl = document.getElementById(`button${id}`);
-        if (buttonEl) {
-            buttonEl.remove();
-        }
-    }
-
-    function addMarker(latitude, longitude, drag_callback, popup_callback, id, description, text, background_color, text_color, image_url) {
-        var marker = L.marker(L.latLng(latitude, longitude), {
-            draggable: drag_callback >= 0
-        }).addTo(markers);
-        marker.on('click', (e) => handleMarkerClick(e, id));
-        marker.on('dragend', (e) => handleMarkerDrag(e, id));
-        marker.on('mouseover', handleMarkerMouseover);
-        if (description) {
-            let elem;
-            if (popup_callback >= 0) {
-                elem = document.createElement('a');
-                elem.setAttribute('href', 'javascript:void(0);');
-                elem.setAttribute('onclick', `handlePopupClick(${id});`);
-            }
-            else {
-                elem = document.createElement('div');
-                elem.style.whiteSpace = "pre";
-            }
-            elem.appendChild(document.createTextNode(description));
-            marker.bindPopup(elem);
-        }
-        if (text) {
-            var tooltip = document.createElement('div');
-            tooltip.setAttribute('style', `background-color: ${background_color}; color: ${text_color}; white-space: pre;`);
-            tooltip.appendChild(document.createTextNode(text));
-            marker.bindTooltip(tooltip, {
-                permanent: true,
-                direction: 'bottom',
-                offset: [-15, 0]
-            });
-        }
-        if (image_url) {
-            var icon = L.icon({
-                iconUrl: image_url,
-                iconSize: [64, 64]
-            });
-            marker.setIcon(icon);
-        }
-        window.chrome.webview.postMessage({
-            "action": "marker_placed",
-            "id": id,
-            "leaflet_id": markers.getLayerId(marker)
-        });
-    }
-
-    function setMarkerImage(image_url, leaflet_id) {
-        var marker = markers.getLayer(leaflet_id);
-        if (image_url) {
-            var icon = L.icon({
-                iconUrl: image_url,
+        if( imageUrl ) {
+            const icon = L.icon({
+                iconUrl: imageUrl,
                 iconSize: [64, 64]
             });
             marker.setIcon(icon);
@@ -338,53 +259,257 @@
         }
     }
 
-    function moveMarker(latitude, longitude, leaflet_id) {
-        var marker = markers.getLayer(leaflet_id);
+
+    function setMarkerText(leafletId, text, backgroundColor, textColor) {
+        const marker = markers.getLayer(leafletId);
+        marker.unbindTooltip();
+
+        if( text ) {
+            const tooltip = document.createElement('div');
+            tooltip.setAttribute('style', `background-color: ${backgroundColor}; color: ${textColor}; white-space: pre;`);
+            tooltip.appendChild(document.createTextNode(text));
+            marker.bindTooltip(tooltip, {
+                permanent: true,
+                direction: 'bottom',
+                offset: [-15, 0]
+            });
+        }
+    }
+
+
+    function setMarkerOnDrag(leafletId) {
+        const marker = markers.getLayer(leafletId);
+        marker.dragging.enable();
+    }
+
+
+    function setMarkerDescription(id, leafletId, description, callbackIndex) {
+        const marker = markers.getLayer(leafletId);
+        marker.unbindPopup();
+
+        if( description ) {
+            let elem;
+            if( callbackIndex >= 0 ) {
+                elem = document.createElement('a');
+                elem.setAttribute('href', 'javascript:void(0);');
+                elem.setAttribute('onclick', `onMarkerPopup(${id});`);
+            }
+            else {
+                elem = document.createElement('div');
+                elem.style.whiteSpace = 'pre';
+            }
+            elem.appendChild(document.createTextNode(description));
+            marker.bindPopup(elem);
+        }
+    }
+
+
+    function setMarkerLocation(leafletId, latitude, longitude) {
+        const marker = markers.getLayer(leafletId);
         marker.setLatLng([latitude, longitude]);
     }
 
-    function setTitle(title) {
-        var titleEl = document.getElementById("title");
-        if (title) {
-            titleEl.classList.remove("hidden");
-            titleEl.classList.add("shown");
-            titleEl.innerHTML = title;
-        }
-        else {
-            titleEl.classList.remove("shown");
-            titleEl.classList.add("hidden");
-        }
-    }
 
-    function fitPoints() {
-        if (Object.entries(markers._layers).length == 0) {
+    function fitMarkers() {
+        if( Object.entries(markers._layers).length == 0 ) {
             csmap.fitWorld();
             return;
         }
-        var minLat = 90;
-        var maxLat = -90;
-        var minLong = 180;
-        var maxLong = -180;
+
+        let minLat = 90;
+        let maxLat = -90;
+        let minLong = 180;
+        let maxLong = -180;
+
         markers.eachLayer((marker) => {
-            var latLng = marker.getLatLng();
-            if (latLng.lat < minLat) {
+            const latLng = marker.getLatLng();
+            if( latLng.lat < minLat ) {
                 minLat = latLng.lat;
             }
-            if (latLng.lat > maxLat) {
+            if( latLng.lat > maxLat ) {
                 maxLat = latLng.lat;
             }
-            if (latLng.lng < minLong) {
+            if( latLng.lng < minLong ) {
                 minLong = latLng.lng;
             }
-            if (latLng.lng > maxLong) {
+            if( latLng.lng > maxLong ) {
                 maxLong = latLng.lng;
             }
         });
+
         csmap.fitBounds(L.latLngBounds(L.latLng(minLat, minLong), L.latLng(maxLat, maxLong)));
     }
 
-    function setView(latitude, longitude, zoom) {
-        if (zoom > 0) {
+
+    function onMarkerClick(e, id) {
+        const camera = csmap.getCenter();
+        window.chrome.webview.postMessage({
+            action: 'markerClick',
+            id: id,
+            camera: {
+                latitude: camera.lat,
+                longitude: camera.lng,
+                zoom: csmap.getZoom()
+            }
+        });
+    }
+
+
+    function onMarkerPopup(id) {
+        const camera = csmap.getCenter();
+        window.chrome.webview.postMessage({
+            action: 'markerPopup',
+            id: id,
+            camera: {
+                latitude: camera.lat,
+                longitude: camera.lng,
+                zoom: csmap.getZoom()
+            }
+        });
+    }
+
+
+    function onMarkerDrag(e, id) {
+        const latLng = e.target.getLatLng();
+        const camera = csmap.getCenter();
+        window.chrome.webview.postMessage({
+            action: 'markerDrag',
+            id: id,
+            marker: markers.getLayerId(e.target),
+            latitude: latLng.lat,
+            longitude: latLng.lng,
+            camera: {
+                latitude: camera.lat,
+                longitude: camera.lng,
+                zoom: csmap.getZoom()
+            }
+        });
+    }
+
+
+    function onMarkerMouseover(e) {
+        const marker = e.target;
+        marker.openPopup();
+    }
+
+
+    function addImageButton(id, imageUrl) {
+        const button = document.createElement('button');
+        button.setAttribute('id', `button${id}`);
+        const image = document.createElement('img');
+        image.setAttribute('src', imageUrl);
+        image.classList.add('img_button');
+        button.appendChild(image);
+        button.addEventListener('click', (e) => onButtonClick(e, id));
+        buttons.appendChild(button);
+    }
+
+
+    function addTextButton(id, text) {
+        const button = document.createElement('button');
+        button.setAttribute('id', `button${id}`);
+        button.appendChild(document.createTextNode(text));
+        button.addEventListener('click', (e) => onButtonClick(e, id));
+        buttons.appendChild(button);
+    }
+
+
+    function removeButton(id) {
+        const button = document.getElementById(`button${id}`);
+        if( button ) {
+            button.remove();
+        }
+    }
+
+
+    function clearButtons() {
+        while( buttons.lastChild ) {
+            if( buttons.lastChild.id == 'buttonCurrentLocation' ) {
+                break;
+            }
+            buttons.removeChild(buttons.lastChild);
+        }
+    }
+
+
+    function onButtonClick(e, id) {
+        const camera = csmap.getCenter();
+        window.chrome.webview.postMessage({
+            action: 'buttonClick',
+            id: id,
+            camera: {
+                latitude: camera.lat,
+                longitude: camera.lng,
+                zoom: csmap.getZoom()
+            }
+        });
+    }
+
+
+    function showCurrentLocation(latitude, longitude) {
+        if( !latitude ) {
+            hideCurrentLocation();
+            return;
+        }
+
+        // invalid coordinates, only set if we encountered an error before
+        if( latitude < -90 || longitude < -180 ) {
+            alert('Geolocation failed! Check your Internet connection.');
+        }
+
+        else if( !currentLocation ) {
+            currentLocation = L.circleMarker([latitude, longitude], locationMarkerOptions)
+                .bindTooltip('Current Location')
+                .bindPopup('Current location based on IP address geolocation. This may be very inaccurate, especially while using a VPN.')
+                .addTo(csmap);
+
+            const button = document.createElement('button');
+            button.setAttribute('id', 'buttonCurrentLocation');
+
+            const image = document.createElement('img');
+            image.setAttribute('src', 'current-location.png');
+            image.classList.add('img_button');
+            button.appendChild(image);
+
+            button.addEventListener('click', viewCurrentLocation);
+            buttons.prepend(button);
+        }
+    }
+
+
+    function hideCurrentLocation() {
+        if( currentLocation ) {
+            currentLocation.remove();
+            currentLocation = undefined;
+            removeButton('CurrentLocation');
+        }
+    }
+
+
+    function viewCurrentLocation() {
+        if( currentLocation ) {
+            csmap.setView(currentLocation._latlng, 15);
+        }
+    }
+
+
+    function setTitle(text) {
+        const title = document.getElementById('title');
+
+        if( title ) {
+            title.classList.remove('hidden');
+            title.classList.add('shown');
+            title.textContent = text;
+        }
+        else {
+            title.classList.remove('shown');
+            title.classList.add('hidden');
+        }
+    }
+
+
+    function zoomTo(latitude, longitude, zoom) {
+        if( zoom > 0 ) {
             csmap.setView([latitude, longitude], zoom);
         }
         else {
@@ -392,67 +517,32 @@
         }
     }
 
-    function fitBounds(minLat, minLong, maxLat, maxLong, paddingPercent) {
-        var boundsOptions = {};
-        if (paddingPercent > 0) {
-            var paddingPx = Math.round(paddingPercent * window.innerWidth);
-            var maxPadding = Math.round(window.innerWidth / 2) - 8; // this seems to work
-            paddingPx = paddingPx < maxPadding ? paddingPx : maxPadding;
+
+    function fitBounds(minLatitude, minLongitude, maxLatitude, maxLongitude, paddingPercent) {
+        let boundsOptions = {};
+        if( paddingPercent > 0 ) {
+            let paddingPx = Math.round(paddingPercent * window.innerWidth);
+            const maxPadding = Math.round(window.innerWidth / 2) - 8; // this seems to work
+            paddingPx = ( paddingPx < maxPadding ) ? paddingPx : maxPadding;
             boundsOptions = {
                 padding: [paddingPx, 0]
             };
         }
-        csmap.fitBounds(L.latLngBounds([minLat, minLong], [maxLat, maxLong]), boundsOptions);
+        csmap.fitBounds(L.latLngBounds([minLatitude, minLongitude], [maxLatitude, maxLongitude]), boundsOptions);
     }
 
-    function showCurrentLocation(latitude, longitude) {
-        //invalid coords, only set if we encountered an error before
-        if (latitude < -90 || longitude < -180) {
-            alert("Geolocation failed! Check your Internet connection.");
-        }
-        else if (!currentLoc) {
-            currentLoc = L.circleMarker([latitude, longitude], locMarkerOptions)
-                .bindTooltip("Current Location")
-                .bindPopup("Current location based on IP address geolocation. This may be very inaccurate, especially while using a VPN.")
-                .addTo(csmap);
-            let buttonsEl = document.getElementById("buttons");
-            let button = document.createElement("button");
-            let image = document.createElement("img");
-            button.setAttribute("id", "buttonLocation");
-            image.setAttribute("src", "current-location.png");
-            image.classList.add("img_button");
-            button.appendChild(image);
-            button.addEventListener('click', viewCurrentLocation);
-            buttonsEl.prepend(button);
-        }
-    }
-
-    function viewCurrentLocation() {
-        if (currentLoc) {
-            csmap.setView(currentLoc._latlng, 15);
-        }
-    }
-
-    function hideCurrentLocation() {
-        if (currentLoc) {
-            currentLoc.remove();
-            removeButton("Location");
-        }
-        currentLoc = undefined;
-    }
 
     function resetBaseMap() {
-        if (tileLayer) {
+        if( tileLayer ) {
             tileLayer.remove();
             tileLayer = undefined;
         }
     }
 
-    var esriLeafletJsLoaded = false;
 
     async function setEsriBaseMap(layer, token) {
-        if (!esriLeafletJsLoaded) {
-            await import("https://unpkg.com/esri-leaflet/dist/esri-leaflet.js");
+        if( !esriLeafletJsLoaded ) {
+            await import('https://unpkg.com/esri-leaflet/dist/esri-leaflet.js');
             esriLeafletJsLoaded = true;
         }
 
@@ -461,6 +551,7 @@
             token: token
         }).addTo(csmap);
     }
+
 
     function setMapboxBaseMap(layer, token) {
         resetBaseMap();
@@ -475,36 +566,29 @@
         }).addTo(csmap);
     }
 
+
     function setOfflineBaseMap(url, options) {
         resetBaseMap();
-        tileLayer = L.tileLayer(url, JSON.parse(options)).addTo(csmap);
+        tileLayer = L.tileLayer(url, options).addTo(csmap);
     }
 
+
     function addGeometry(id, geojsonUrl) {
-        var geojson = new L.GeoJSON.AJAX(geojsonUrl);
-        var geometry = geojson.addTo(geometries);
+        const geojson = new L.GeoJSON.AJAX(geojsonUrl);
+        const geometry = geojson.addTo(geometries);
         window.chrome.webview.postMessage({
-            "action": "geometry_placed",
-            "id": id,
-            "leaflet_id": geometries.getLayerId(geometry)
+            action: 'geometryPlaced',
+            id: id,
+            leafletId: geometries.getLayerId(geometry)
         });
     }
 
-    function removeGeometry(leaflet_id) {
-        var geometry = geometries.getLayer(leaflet_id);
+    function removeGeometry(leafletId) {
+        const geometry = geometries.getLayer(leafletId);
         geometry.removeFrom(geometries);
     }
 
     function clearGeometry() {
         geometries.clearLayers();
-    }
-
-    var locMarkerOptions = {
-        "radius": 8,
-        "fillColor": "#3b6dd9",
-        "color": "white",
-        "weight": 2,
-        "opacity": 1,
-        "fillOpacity": 1
     }
 </script>

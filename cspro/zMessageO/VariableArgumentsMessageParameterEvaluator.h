@@ -26,29 +26,29 @@ public:
         return va_arg(m_parg, double);
     }
 
-    std::wstring GetString() override
+    SharableString GetString() override
     {
-        return std::wstring(va_arg(m_parg, const TCHAR*));
+        return SharableString(va_arg(m_parg, const char*));
     }
 
-    wchar_t GetChar() override
+    std::variant<int, SharableString> GetChar() override
     {
-        return va_arg(m_parg, wchar_t);
+        return va_arg(m_parg, int);
     }
 
-    std::wstring GetProc() override
+    SharableString GetProc() override
     {
-        return ReturnProgrammingError(std::wstring());
+        return ReturnProgrammingError(SharableString());
     }
 
-    std::wstring GetVariable() override
+    SharableString GetVariable() override
     {
-        return ReturnProgrammingError(std::wstring());
+        return ReturnProgrammingError(SharableString());
     }
 
-    std::wstring GetVariableLabel() override
+    SharableString GetVariableLabel() override
     {
-        return ReturnProgrammingError(std::wstring());
+        return ReturnProgrammingError(SharableString());
     }
 
 private:

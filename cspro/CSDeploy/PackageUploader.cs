@@ -1,12 +1,8 @@
-﻿using CSPro.Sync;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Threading;
-using System.Threading;
+using CSPro.Sync;
 using WinFormsShared;
 
 namespace CSDeploy
@@ -29,9 +25,8 @@ namespace CSDeploy
             CSWeb, Dropbox, FTP
         }
 
-        public Task<bool> UploadPackage(string packagePath, string packageName, string packageSpecJson,
-            ServerType serverType, string serverUrl, IEnumerable<string> dictionariesToUpload,
-            Form parentForm)
+        public Task<bool> UploadPackage(string packagePath, string packageName, string packageSpecJson, string inputsRootPath,
+            ServerType serverType, string serverUrl, Form parentForm)
         {
             return Task.Run(() =>
             {
@@ -40,10 +35,9 @@ namespace CSDeploy
                     parentForm.Invoke(new Action(() => { MessageBox.Show(errorMessage); }));
                 };
 
-                OnShowLoginDialog showLogin = (bool bShowError) =>
+                OnQueryUsernamePassword showLogin = (bool bShowError) =>
                 {
-
-                     return (LoginInfo) parentForm.Invoke(new Func<LoginInfo>(() =>
+                     return (UsernamePassword) parentForm.Invoke(new Func<UsernamePassword>(() =>
                      {
                          var loginDlg = new LoginDialog();
                          loginDlg.ShowError = bShowError;
@@ -51,20 +45,8 @@ namespace CSDeploy
                          if (loginDlg.ShowDialog(parentForm) != DialogResult.OK)
                              return null;
 
-                         return new LoginInfo { username = loginDlg.Username, password = loginDlg.Password };
+                         return new UsernamePassword { username = loginDlg.Username, password = loginDlg.Password };
                      }));
-                };
-
-                OnShowDropboxAuthDialog showDropboxAuth = (string clientId) =>
-                {
-                    return (string) parentForm.Invoke(new Func<String>(() =>
-                    {
-                        var authDlg = new DropboxAuthDialog(clientId);
-                        if (authDlg.ShowDialog(parentForm) != DialogResult.OK)
-                            return null;
-
-                        return authDlg.AccessToken;
-                    }));
                 };
 
                 int result = 0;
@@ -73,30 +55,19 @@ namespace CSDeploy
                     switch (serverType)
                     {
                         case ServerType.CSWeb:
-                            result = syncClient.connectWeb(serverUrl, showLogin, progressPercent, progressMessage, cancellationToken, showSyncError);
+                            result = syncClient.ConnectCSWeb(serverUrl, showLogin, progressPercent, progressMessage, cancellationToken, showSyncError);
                             break;
                         case ServerType.Dropbox:
-                            result = syncClient.connectDropbox(showDropboxAuth, progressPercent, progressMessage, cancellationToken, showSyncError);
+                            result = syncClient.ConnectDropbox(progressPercent, progressMessage, cancellationToken, showSyncError);
                             break;
                         case ServerType.FTP:
-                            result = syncClient.connectFtp(serverUrl, showLogin, progressPercent, progressMessage, cancellationToken, showSyncError);
+                            result = syncClient.ConnectFtp(serverUrl, showLogin, progressPercent, progressMessage, cancellationToken, showSyncError);
                             break;
                     }
                     if (result == 0)
                         return false;
 
-                    result = syncClient.uploadApplicationPackage(packagePath, packageName, packageSpecJson, progressPercent, progressMessage, cancellationToken, showSyncError);
-                    if (result != 0)
-                    {
-                        foreach (var dictionary in dictionariesToUpload)
-                        {
-                            if (syncClient.uploadDictionary(dictionary, progressPercent, progressMessage, cancellationToken, showSyncError) == 0)
-                            {
-                                result = 0;
-                                break;
-                            }
-                        }
-                    }
+                    result = syncClient.uploadApplicationPackage(packagePath, packageName, packageSpecJson, inputsRootPath, progressPercent, progressMessage, cancellationToken, showSyncError);
 
                     syncClient.disconnect();
                 }

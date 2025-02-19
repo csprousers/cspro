@@ -13,7 +13,7 @@ BEGIN_MESSAGE_MAP(PropertiesDlgMappingPage, CDialog)
 END_MESSAGE_MAP()
 
 
-PropertiesDlgMappingPage::PropertiesDlgMappingPage(MappingProperties& mapping_properties, CWnd* pParent/* = nullptr*/)
+PropertiesDlgMappingPage::PropertiesDlgMappingPage(MappingProperties& mapping_properties, CWnd* const pParent/* = nullptr*/)
     :   CDialog(PropertiesDlgMappingPage::IDD, pParent),
         m_mappingProperties(mapping_properties),
         m_currentLocation(CurrentLocation::GetCurrentLocationOrCensusBureau()),
@@ -24,15 +24,15 @@ PropertiesDlgMappingPage::PropertiesDlgMappingPage(MappingProperties& mapping_pr
 }
 
 
-void PropertiesDlgMappingPage::DoDataExchange(CDataExchange* pDX)
+void PropertiesDlgMappingPage::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
     // show an example of how coordinates will look
     if( !pDX->m_bSaveAndValidate )
     {
-        std::wstring coordinate_text = CoordinateConverter::ToString(m_coordinateDisplayRadioEnumHelper.FromForm(m_coordinateDisplay), m_currentLocation);
-        m_coordinateDisplayExample.Format(_T("(%s)"), coordinate_text.c_str());
+        const std::string coordinate_text = CoordinateConverter::ToString(m_coordinateDisplayRadioEnumHelper.FromForm(m_coordinateDisplay), m_currentLocation);
+        m_coordinateDisplayExample = FormatText("(%s)", coordinate_text.c_str());
     }
 
     DDX_Radio(pDX, IDC_DECIMAL, m_coordinateDisplay);
@@ -54,22 +54,22 @@ BOOL PropertiesDlgMappingPage::OnInitDialog()
 }
 
 
-void PropertiesDlgMappingPage::RefreshDefaultBaseMapComboBox(const MappingProperties* mapping_properties)
+void PropertiesDlgMappingPage::RefreshDefaultBaseMapComboBox(const MappingProperties* const mapping_properties)
 {
     m_defaultBaseMap.ResetContent();
     m_customDefaultBaseMapIndex.reset();
-    
+
     std::optional<int> default_base_map_selected_index;
 
-    for( const std::wstring& base_map_string : GetBaseMapStrings() )
+    for( const char* const base_map_string : GetBaseMapStrings() )
     {
-        int index = m_defaultBaseMap.AddString(base_map_string.c_str());
+        const int index = m_defaultBaseMap.AddString(TC::ToWide(base_map_string).c_str());
 
         if( !default_base_map_selected_index.has_value() && mapping_properties != nullptr )
         {
             // the BaseMap enum starts at 1
             if( std::holds_alternative<BaseMap>(mapping_properties->GetDefaultBaseMap()) &&
-                (int)std::get<BaseMap>(mapping_properties->GetDefaultBaseMap()) == ( index + 1 ) )
+                static_cast<int>(std::get<BaseMap>(mapping_properties->GetDefaultBaseMap())) == ( index + 1 ) )
             {
                 default_base_map_selected_index = index;
             }
@@ -77,14 +77,14 @@ void PropertiesDlgMappingPage::RefreshDefaultBaseMapComboBox(const MappingProper
     }
 
     // the Custom default base map option will only appear when a file has been provided
-    if( !m_defaultBaseMapFilename.IsEmpty() )
+    if( !m_defaultBaseMapFilePath.empty() )
     {
         // remove an existing Custom entry if one existed
         if( m_customDefaultBaseMapIndex.has_value() )
             m_defaultBaseMap.DeleteString(*m_customDefaultBaseMapIndex);
 
-        m_customDefaultBaseMapIndex = m_defaultBaseMap.AddString(
-            FormatText(_T("Custom: %s"), PortableFunctions::PathGetFilename(m_defaultBaseMapFilename)));
+        const std::string display_text = "Custom: " + PortableFunctions::PathGetFilename(m_defaultBaseMapFilePath);
+        m_customDefaultBaseMapIndex = m_defaultBaseMap.AddString(TC::ToWide(display_text).c_str());
 
         default_base_map_selected_index = m_customDefaultBaseMapIndex;
     }
@@ -99,9 +99,9 @@ void PropertiesDlgMappingPage::PropertiesToForm(const MappingProperties& mapping
 {
     m_coordinateDisplay = m_coordinateDisplayRadioEnumHelper.ToForm(mapping_properties.GetCoordinateDisplay());
 
-    m_defaultBaseMapFilename = std::holds_alternative<std::wstring>(mapping_properties.GetDefaultBaseMap()) ?
-        WS2CS(std::get<std::wstring>(mapping_properties.GetDefaultBaseMap())) :
-        CString();
+    m_defaultBaseMapFilePath = std::holds_alternative<std::string>(mapping_properties.GetDefaultBaseMap()) ?
+        std::get<std::string>(mapping_properties.GetDefaultBaseMap()) :
+        std::string();
 
     m_windowsMappingTileProvider = m_mappingTileProviderRadioEnumHelper.ToForm(mapping_properties.GetWindowsMappingTileProvider());
 }
@@ -118,14 +118,14 @@ void PropertiesDlgMappingPage::FormToProperties()
 
     if( default_base_map_selected_index == m_customDefaultBaseMapIndex )
     {
-        ASSERT(!m_defaultBaseMapFilename.IsEmpty());
-        m_mappingProperties.SetDefaultBaseMap(CS2WS(m_defaultBaseMapFilename));
+        ASSERT(!m_defaultBaseMapFilePath.empty());
+        m_mappingProperties.SetDefaultBaseMap(m_defaultBaseMapFilePath);
     }
 
     else
     {
         // the BaseMap enum starts at 1
-        m_mappingProperties.SetDefaultBaseMap((BaseMap)( default_base_map_selected_index + 1 ));
+        m_mappingProperties.SetDefaultBaseMap(static_cast<BaseMap>(default_base_map_selected_index + 1));
     }
 
 
@@ -164,19 +164,13 @@ void PropertiesDlgMappingPage::OnCoordinateDisplayChange()
 
 void PropertiesDlgMappingPage::OnSelectOfflineMap()
 {
-    CIMSAFileDialog file_dlg(TRUE,
-                             nullptr,
-                             m_defaultBaseMapFilename.IsEmpty() ? nullptr : (LPCTSTR)m_defaultBaseMapFilename,
-                             OFN_HIDEREADONLY,
-                             _T("Offline Map Files (*.mbtiles, *.tpk)|*.mbtiles;*.tpk||"),
-                             this);
+    OpenFileDlg open_file_dlg(0, nullptr, m_defaultBaseMapFilePath, L"Offline Map Files (*.mbtiles, *.tpk, *.tpkx)|*.mbtiles;*.tpk;*.tpkx||", this);
+    open_file_dlg.SetTitle(L"Select Default Base Map");
 
-    file_dlg.m_ofn.lpstrTitle = _T("Select Default Base Map");
-
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    m_defaultBaseMapFilename = file_dlg.GetPathName();
+    m_defaultBaseMapFilePath = open_file_dlg.GetFilePath();
 
     RefreshDefaultBaseMapComboBox(nullptr);
 }
@@ -185,5 +179,5 @@ void PropertiesDlgMappingPage::OnSelectOfflineMap()
 void PropertiesDlgMappingPage::OnPreviewMap()
 {
     FormToProperties();
-    TestMappingProperties(m_mappingProperties);
+    MappingPropertiesTester::Test(m_mappingProperties);
 }

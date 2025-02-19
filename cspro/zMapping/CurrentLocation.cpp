@@ -16,31 +16,31 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
         class CurrentLocationCredentialStore : public CredentialStore
         {
         public:
-            std::wstring AttributeName;
+            std::string AttributeName;
 
         protected:
-            std::wstring PrefixAttribute(const std::wstring& attribute) override
+            std::string PrefixAttribute(const std::string& attribute) override
             {
                 ASSERT(attribute == AttributeName);
-                return _T("CSPro_location");
+                return "CSPro_location";
             }
         };
 
         CurrentLocationCredentialStore credential_store;
-        std::wstring location_cache = credential_store.Retrieve(credential_store.AttributeName);
+        const std::string location_cache = credential_store.Retrieve(credential_store.AttributeName);
         double cached_timestamp = 0;
 
         // first check the cached location (to avoid using the API too often)
         if( !location_cache.empty() )
         {
-            auto cache_json = Json::Parse(location_cache);
+            const JsonNode cache_json = Json::Parse(location_cache);
 
-            if( cache_json.Contains(_T("timestamp")) )
+            if( cache_json.Contains(JK::timestamp) )
             {
-                cached_timestamp = cache_json.Get<double>(_T("timestamp"));
+                cached_timestamp = cache_json.Get<double>(JK::timestamp);
 
-                current_location.emplace(cache_json.Get<double>(_T("latitude")),
-                                         cache_json.Get<double>(_T("longitude")));
+                current_location.emplace(cache_json.Get<double>(JK::latitude),
+                                         cache_json.Get<double>(JK::longitude));
             }
         }
 
@@ -50,27 +50,27 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
             try
             {
                 CurlHttpConnection connection;
-                HttpRequest request = HttpRequestBuilder(_T("https://ipinfo.io/json")).build();
+                const HttpRequest request = HttpRequestBuilder("https://ipinfo.io/json").build();
                 HttpResponse response = connection.Request(request);
 
-                auto response_json = Json::Parse(response.body.ToString());
-                std::string loc = response_json["loc"].Get<std::string>();
-                int comma = loc.find(',');
+                const JsonNode response_json = Json::Parse(response.body.ToString());
+                const std::string loc = response_json.Get<std::string>("loc");
+                const size_t comma_pos = loc.find(',');
 
-                current_location.emplace(std::stod(loc.substr(0, comma)), std::stod(loc.substr(comma + 1)));
+                current_location.emplace(std::stod(loc.substr(0, comma_pos)), std::stod(loc.substr(comma_pos + 1)));
 
-                std::wstring new_cache = Json::CreateObjectString(
+                const std::string new_cache = Json::CreateObjectString(
                     {
-                        { _T("timestamp"), GetTimestamp() },
-                        { _T("latitude"),  std::get<0>(*current_location) },
-                        { _T("longitude"), std::get<1>(*current_location) }
+                        { JK::timestamp, GetTimestamp() },
+                        { JK::latitude,  std::get<0>(*current_location) },
+                        { JK::longitude, std::get<1>(*current_location) }
                     });
 
                 credential_store.Store(credential_store.AttributeName, new_cache);
             }
 
             // ignore connection errors
-            catch( ... ) { }
+            catch(...) { }
         }
     }
 

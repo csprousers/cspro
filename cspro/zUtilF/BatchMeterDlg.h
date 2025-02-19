@@ -10,11 +10,9 @@ class CLASS_DECL_ZUTILF BatchMeterDlg : public CDialog, public ProcessSummaryRep
 public:
     BatchMeterDlg(CWnd* pParent = nullptr);
 
-    void Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary, bool* cancel_flag) override;
-
-    void SetSource(const CString& source_text) override;
-
-    void SetKey(const CString& case_key) override;
+    void Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary, CancelFlag* cancel_flag) override;
+    void SetSource(InterfaceString source_text) override;
+    void SetKey(const std::string& case_key) override;
 
     std::shared_ptr<ProcessSummary> GetProcessSummary() const { return m_processSummary; }
 
@@ -33,27 +31,28 @@ protected:
 
     void UpdateProcessSummary();
 
-private:
-    void UpdateText(CString& destination_text, const CString& source_text, WPARAM update_type);
-
-protected:
     void SetCompleted() { m_completedFlag = true; }
 
 private:
+    void UpdateText(std::wstring& destination_text, std::wstring source_text, WPARAM update_type);
+
+    void SetCanceled();
+
+private:
     bool m_initialized;
-    bool m_cancellationPending;
+    bool m_cancelationPending;
 
     std::shared_ptr<ProcessSummary> m_processSummary;
-    bool* m_cancelFlag;
+    CancelFlag* m_cancelFlag;
     bool m_completedFlag;
 
     bool m_showingDetails;
     std::optional<std::tuple<int, int, int>> m_dialogWidthAndHeightDetailsNoDetails;
 
     std::mutex m_memberAccessMutex;
-    CString m_dialogTitle;
-    CString m_sourceText;
-    CString m_caseKey;
+    std::wstring m_dialogTitle;
+    std::wstring m_sourceText;
+    std::wstring m_caseKey;
 
     CTime m_startTime;
 
@@ -66,7 +65,7 @@ private:
     CWnd* m_dlgItemPercentRead;
 
     CWnd* m_dlgItemRecordsRead;
-    
+
     CWnd* m_dlgItemElapsedTime;
     CWnd* m_dlgItemRemainingTime;
 

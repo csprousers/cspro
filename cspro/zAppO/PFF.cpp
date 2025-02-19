@@ -3,6 +3,7 @@
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/ArrUtil.h> // remove once CString is gone
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/PathHelpers.h>
@@ -85,9 +86,8 @@ namespace
     constexpr const TCHAR* INPUT_ORDER              = _T("InputOrder");
     constexpr const TCHAR* DISPLAYNAMES             = _T("DisplayNames");
     constexpr const TCHAR* CONCAT_METHOD            = _T("ConcatMethod");
-    constexpr const TCHAR* SYNC_SERVER_TYPE         = _T("SyncType");
+    constexpr const TCHAR* SYNC_SERVICE             = _T("SyncService");
     constexpr const TCHAR* SYNC_DIRECTION           = _T("SyncDirection");
-    constexpr const TCHAR* SYNC_URL                 = _T("SyncUrl");
     constexpr const TCHAR* DEPLOY_TO_OVERRIDE       = _T("DeployToOverride");
     constexpr const TCHAR* SILENT                   = _T("Silent");
     constexpr const TCHAR* ONEXIT                   = _T("OnExit");
@@ -150,8 +150,6 @@ const TCHAR* const ConcatenateMethodNames[] = { _T("Case"), _T("Text"), nullptr 
 
 const TCHAR* const DuplicateCaseNames[] = { _T("List"), _T("View"), _T("Prompt"), _T("PromptIfDifferent"), _T("KeepFirst"), nullptr };
 
-const TCHAR* const SyncServerTypeNames[] = { _T("CSWeb"), _T("Dropbox"), _T("FTP"), _T("LocalDropbox"), _T("LocalFiles"), nullptr };
-
 const TCHAR* const SyncDirectionNames[] = { _T("=unused"), _T("Put"), _T("Get"), _T("Both"), nullptr };
 
 const TCHAR* const DeployToOverrideNames[] = { _T("None"), _T("CSWeb"), _T("Dropbox"), _T("FTP"), _T("LocalFile"), _T("LocalFolder"), nullptr };
@@ -191,7 +189,7 @@ PFF::PFF(CString sFileName/* = CString()*/)
 
 void PFF::ResetContents()
 {
-    m_sVersion = CSPRO_VERSION;
+    m_sVersion = Versioning::CSProVersionText;
     m_eAppType = APPTYPE::ENTRY_TYPE;
     m_eTabProcess = ALL_STUFF;
     m_sAppDescription.Empty();
@@ -262,9 +260,8 @@ void PFF::ResetContents()
     m_eInputOrder = InputOrder::Sequential;
     m_bDisplayNames = false;
     m_eConcatenateMethod = ConcatenateMethod::Text;
-    m_eSyncServerType = SyncServerType::FTP;
-    m_eSyncDirection = SyncDirection::Get;
-    m_sSyncUrl.Empty();
+    m_syncService.Clear();
+    m_syncDirection = SyncDirection::Get;
     m_eDeployToOverride = DeployToOverride::None;
     m_bSilent = false;
     m_csOnExitFilename.Empty();
@@ -306,18 +303,18 @@ void PFF::AddFilename(MultipleFilenames<CString>& multiple_filenames_object, con
         multiple_filenames_object.serializable_filenames.emplace_back(serializable_filename);
 
         // evaluate the filename in case it uses wildcards
-        for( const std::wstring& this_filename : DirectoryLister::GetFilenamesWithPossibleWildcard(serializable_filename, true) )
-            multiple_filenames_object.evaluated_filenames.emplace_back(WS2CS(this_filename));
+        for( std::string& this_file_path : DirectoryLister::GetFilePathsWithPossibleWildcard(UTF8_TODO::GetUtf8(serializable_filename), true) )
+            multiple_filenames_object.evaluated_filenames.emplace_back(UTF8_TODO::GetCString(std::move(this_file_path)));
     }
 }
 
 
-CString PFF::GetConnectionStringText(const ConnectionString& connection_string, bool absolute_path) const
+CString PFF::GetConnectionStringText(const ConnectionString& connection_string, const bool absolute_path) const
 {
     if( connection_string.IsDefined() )
     {
-        return WS2CS(absolute_path ? connection_string.ToString() :
-                                     connection_string.ToRelativeString(GetWorkingFolder(m_sPifFileName)));
+        return absolute_path ? UTF8_TODO::GetCString(connection_string.ToString()) :
+                               UTF8_TODO::GetCString(connection_string.ToRelativeString(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName))));
     }
 
     else
@@ -326,20 +323,19 @@ CString PFF::GetConnectionStringText(const ConnectionString& connection_string, 
     }
 }
 
-void PFF::SetConnectionString(ConnectionString& connection_string_object, const TCHAR* connection_string_text)
-{
-    CString text = connection_string_text;
 
+void PFF::SetConnectionString(ConnectionString& connection_string_object, const std::string_view connection_string_text_sv)
+{
     // if blank, set the connection string to undefined
-    if( SO::IsBlank(text) )
+    if( SO::IsBlank(connection_string_text_sv) )
     {
         connection_string_object = UndefinedConnectionString;
     }
 
     else
     {
-        connection_string_object = ConnectionString(text);
-        connection_string_object.AdjustRelativePath(GetWorkingFolder(m_sPifFileName));
+        connection_string_object = ConnectionString(connection_string_text_sv);
+        connection_string_object.AdjustRelativePath(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName)));
     }
 }
 
@@ -349,10 +345,11 @@ std::vector<CString> PFF::GeConnectionStringsSerializableText(const MultipleFile
     std::vector<CString> connection_string_texts;
 
     for( const ConnectionString& connection_string : multiple_connection_strings.serializable_filenames )
-        connection_string_texts.emplace_back(WS2CS(connection_string.ToString()));
+        connection_string_texts.emplace_back(UTF8_TODO::GetCString(connection_string.ToString()));
 
     return connection_string_texts;
 }
+
 
 void PFF::AddConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, ConnectionString connection_string)
 {
@@ -360,7 +357,7 @@ void PFF::AddConnectionString(MultipleFilenames<ConnectionString>& multiple_conn
     {
         ConnectionString& added_connection_string = multiple_connection_strings_object.serializable_filenames.emplace_back(std::move(connection_string));
 
-        added_connection_string.AdjustRelativePath(GetWorkingFolder(m_sPifFileName));
+        added_connection_string.AdjustRelativePath(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName)));
 
         // expand wildcards only for for non-output data
         if( &multiple_connection_strings_object == &m_outputDataConnectionStrings )
@@ -376,11 +373,13 @@ void PFF::AddConnectionString(MultipleFilenames<ConnectionString>& multiple_conn
     }
 }
 
-void PFF::AddFilename(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const TCHAR* connection_string_text)
+
+void PFF::AddFilename(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const std::string_view connection_string_text_sv)
 {
-    CString text = connection_string_text;
-    AddConnectionString(multiple_connection_strings_object, SO::IsBlank(text) ? UndefinedConnectionString : ConnectionString(text));
+    AddConnectionString(multiple_connection_strings_object, SO::IsBlank(connection_string_text_sv) ? UndefinedConnectionString :
+                                                                                                     ConnectionString(connection_string_text_sv));
 }
+
 
 void PFF::ClearAndAddConnectionStrings(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const std::vector<ConnectionString>& connection_strings)
 {
@@ -390,16 +389,20 @@ void PFF::ClearAndAddConnectionStrings(MultipleFilenames<ConnectionString>& mult
         AddConnectionString(multiple_connection_strings_object, connection_string);
 }
 
+
 const ConnectionString& PFF::GetSingleConnectionString(const MultipleFilenames<ConnectionString>& multiple_connection_strings) const
 {
     return multiple_connection_strings.evaluated_filenames.empty() ? UndefinedConnectionString :
                                                                      multiple_connection_strings.evaluated_filenames.front();
 }
 
-const ConnectionString& PFF::GetConnectionString(const MultipleFilenames<ConnectionString>& multiple_connection_strings, size_t index) const
+
+const ConnectionString& PFF::GetConnectionString(const MultipleFilenames<ConnectionString>& multiple_connection_strings, const size_t index) const
 {
     if( index < multiple_connection_strings.evaluated_filenames.size() )
+    {
         return multiple_connection_strings.evaluated_filenames[index];
+    }
 
     else
     {
@@ -408,15 +411,31 @@ const ConnectionString& PFF::GetConnectionString(const MultipleFilenames<Connect
     }
 }
 
+
 void PFF::SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, ConnectionString connection_string)
 {
     multiple_connection_strings_object.clear();
     AddConnectionString(multiple_connection_strings_object, std::move(connection_string));
 }
 
-void PFF::SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, wstring_view connection_string_text)
+
+void PFF::SetSingleConnectionString(MultipleFilenames<ConnectionString>& multiple_connection_strings_object, const std::string_view connection_string_text_sv)
 {
-    SetSingleConnectionString(multiple_connection_strings_object, ConnectionString(connection_string_text));
+    SetSingleConnectionString(multiple_connection_strings_object, ConnectionString(connection_string_text_sv));
+}
+
+
+CString PFF::GetSyncConnectionStringText(const SyncConnectionString& sync_connection_string, const bool absolute_path) const
+{
+    return absolute_path ? UTF8_TODO::GetCString(sync_connection_string.ToString()) :
+                           UTF8_TODO::GetCString(sync_connection_string.ToRelativeString(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName))));
+}
+
+
+void PFF::SetSyncConnectionString(SyncConnectionString& sync_connection_string_object, const std::string_view sync_connection_string_text_sv)
+{
+    sync_connection_string_object = SyncConnectionString(sync_connection_string_text_sv);
+    sync_connection_string_object.AdjustRelativePath(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName)));
 }
 
 
@@ -481,11 +500,9 @@ void PFF::SetFlags(int& flag_object, const FlagNameValue flag_name_values[], con
                 if( SO::EqualsNoCase(flag_sv, flag_name_values[i].name) )
                 {
                     flag_object |= flag_name_values[i].value;
-                    break;
+                    return;
                 }
             }
-
-            return true;
         });
 }
 
@@ -501,7 +518,7 @@ CString PFF::GetEvaluatedAppDescription(bool bAddApplicationPrefix/* = false*/) 
     {
         // Use pff filename if it is not empty, otherwise use app filename
         CString csApplicationName = !m_sPifFileName.IsEmpty() ? m_sPifFileName : m_sAppFName;
-        csApplicationName = PortableFunctions::PathRemoveFileExtension<CString>(PortableFunctions::PathGetFilename(csApplicationName));
+        csApplicationName = PortableFunctions::PathRemoveFileExtensionCS(PortableFunctions::PathGetFilename(csApplicationName));
 
         if( bAddApplicationPrefix )
             csApplicationName.Format(_T("Application: %s"), csApplicationName.GetString());
@@ -595,12 +612,12 @@ void PFF::SetAppFName(const TCHAR* filename)
     // adjust the app type based on the filename (if it is not an input to CSPack or CSView)
     if( GetAppType() != APPTYPE::PACK_TYPE && GetAppType() != APPTYPE::VIEW_TYPE )
     {
-        auto matches = [extension = PortableFunctions::PathGetFileExtension(m_sAppFName)](const TCHAR* test_extension)
+        auto matches = [extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_sAppFName))](const char* const test_extension)
         {
             return SO::EqualsNoCase(extension, test_extension);
         };
 
-        APPTYPE new_app_type =
+        const APPTYPE new_app_type =
             matches(FileExtensions::EntryApplication)      ? APPTYPE::ENTRY_TYPE :
             matches(FileExtensions::BinaryEntryPen)        ? APPTYPE::ENTRY_TYPE :
             matches(FileExtensions::BatchApplication)      ? APPTYPE::BATCH_TYPE :
@@ -625,13 +642,13 @@ CString PFF::GetApplicationErrorsFilename() const
 
 CString PFF::GetBaseMapSelectionText() const
 {
-    return m_baseMapSelection.has_value() ? WS2CS(ToString(*m_baseMapSelection)) :
+    return m_baseMapSelection.has_value() ? UTF8_TODO::GetCString(ToString(*m_baseMapSelection)) :
                                             CString();
 }
 
 void PFF::SetBaseMapSelection(const TCHAR* text)
 {
-    m_baseMapSelection = FromString(text, m_sPifFileName);
+    m_baseMapSelection = FromString(UTF8_TODO::GetUtf8(text), UTF8_TODO::GetUtf8(m_sPifFileName));
 }
 
 
@@ -640,18 +657,24 @@ void PFF::SetExternalDataConnectionString(CString dictionary_name, const Connect
     dictionary_name.MakeUpper();
 
     if( connection_string.IsDefined() )
+    {
         m_mapExternalDataConnectionStrings[dictionary_name] = connection_string;
+    }
 
     else
+    {
         m_mapExternalDataConnectionStrings.erase(dictionary_name);
+    }
 }
+
 
 void PFF::SetExternalDataConnectionString(CString dictionary_name, const TCHAR* connection_string_text)
 {
     ConnectionString connection_string;
-    SetConnectionString(connection_string, connection_string_text);
+    SetConnectionString(connection_string, UTF8_TODO::GetUtf8(connection_string_text));
     SetExternalDataConnectionString(dictionary_name, connection_string);
 }
+
 
 const ConnectionString& PFF::GetExternalDataConnectionString(CString dictionary_name) const
 {
@@ -670,11 +693,13 @@ void PFF::SetUsrDatAssoc(CString file_handler_name, CString filename)
     m_mapUserFiles[file_handler_name] = std::make_tuple(original_case_file_handler_name, filename);
 }
 
+
 CString PFF::LookUpUsrDatFile(CString file_handler_name, bool absolute_path/* = true*/) const
 {
     const auto& itr = m_mapUserFiles.find(file_handler_name.MakeUpper());
     return ( itr != m_mapUserFiles.end() ) ? GetFilename(std::get<1>(itr->second), absolute_path) : CString();
 }
+
 
 std::vector<CString> PFF::GetUserFiles() const
 {
@@ -689,8 +714,9 @@ std::vector<CString> PFF::GetUserFiles() const
 
 CString PFF::GetListingWidthText() const
 {
-    return IntToString(m_iListingWidth);
+    return UTF8_TODO::GetCString(IntToString(m_iListingWidth));
 }
+
 
 void PFF::SetListingWidthText(const TCHAR* text)
 {
@@ -700,52 +726,33 @@ void PFF::SetListingWidthText(const TCHAR* text)
 }
 
 
-void PFF::SetCustomParamString(StringNoCase attribute, std::wstring value)
+void PFF::SetCustomParamString(std::string attribute, std::string value)
 {
     auto lookup = m_customParameters.find(attribute);
 
-    if( lookup != m_customParameters.end() )
-    {
-        lookup->second.emplace_back(std::move(value));
-    }
+    if( lookup == m_customParameters.end() )
+        lookup = m_customParameters.try_emplace(std::move(attribute)).first;
 
-    else
-    {
-        m_customParameters.try_emplace(std::move(attribute), std::vector<std::wstring> { std::move(value) });
-    }
+    lookup->second.emplace_back(std::move(value));
 }
 
 
-const std::wstring& PFF::GetCustomParamString(const StringNoCase& attribute) const
+const std::string& PFF::GetCustomParamString(const std::string& attribute) const
 {
     const auto& lookup = m_customParameters.find(attribute);
 
     // if the attribute was associated with multiple pieces of data, then only the last is returned
     return ( lookup != m_customParameters.end() ) ? lookup->second.back() :
-                                                    SO::EmptyString;
+                                                    SO::Empty_string;
 }
 
 
-std::vector<std::tuple<std::wstring, std::wstring>> PFF::GetCustomParams() const
+std::vector<std::tuple<std::string, std::string>> PFF::GetCustomParams() const
 {
-    std::vector<std::tuple<std::wstring, std::wstring>> custom_params;
+    std::vector<std::tuple<std::string, std::string>> custom_params;
 
     for( const auto& [attribute, values] : m_customParameters )
         custom_params.emplace_back(attribute, values.back());
-
-    return custom_params;
-}
-
-
-std::vector<std::wstring> PFF::GetCustomParamMappings() const
-{
-    std::vector<std::wstring> custom_params;
-
-    for( const auto& [attribute, values] : m_customParameters )
-    {
-        for( const std::wstring value : values )
-            custom_params.emplace_back(SO::Concatenate(attribute, _T("="), value));
-    }
 
     return custom_params;
 }
@@ -755,6 +762,7 @@ void PFF::SetPersistentData(CString field_name, CString value)
 {
     m_mapPersistent[field_name.MakeUpper()] = value;
 }
+
 
 CString PFF::GetPersistentData(CString field_name) const
 {
@@ -790,11 +798,11 @@ struct PFF::PffFunctions
     const ClearFunction clear_function;
 
     PffFunctions(const TCHAR* const _command,
-        const GetterFunction _getter_function,
-        const SetterFunction _setter_function,
-        const MultipleGetterFunction _multiple_getter_function = nullptr,
-        const MultipleGetterTransformedFunction _multiple_getter_transformed_function = nullptr,
-        const ClearFunction _clear_function = nullptr)
+                 const GetterFunction _getter_function,
+                 const SetterFunction _setter_function,
+                 const MultipleGetterFunction _multiple_getter_function = nullptr,
+                 const MultipleGetterTransformedFunction _multiple_getter_transformed_function = nullptr,
+                 const ClearFunction _clear_function = nullptr)
         :   command(_command),
             getter_function(_getter_function),
             setter_function(_setter_function),
@@ -912,9 +920,8 @@ const std::vector<PFF::PffFunctions>& PFF::GetPffFunctionsArray()
         { INPUT_ORDER,              &PFF::GetInputOrderText,                     &PFF::SetInputOrderText },
         { DISPLAYNAMES,             &PFF::GetDisplayNamesText,                   &PFF::SetDisplayNamesText },
         { CONCAT_METHOD,            &PFF::GetConcatenateMethodText,              &PFF::SetConcatenateMethodText },
-        { SYNC_SERVER_TYPE,         &PFF::GetSyncServerTypeText,                 &PFF::SetSyncServerTypeText },
+        { SYNC_SERVICE,             &PFF::GetSyncServiceText,                    &PFF::SetSyncService },
         { SYNC_DIRECTION,           &PFF::GetSyncDirectionText,                  &PFF::SetSyncDirectionText },
-        { SYNC_URL,                 &PFF::GetSyncUrl,                            &PFF::SetSyncUrl },
         { DEPLOY_TO_OVERRIDE,       &PFF::GetDeployToOverrideText,               &PFF::SetDeployToOverrideText },
         { SILENT,                   &PFF::GetSilentText,                         &PFF::SetSilentText },
         { ONEXIT,                   &PFF::GetOnExitFilename,                     &PFF::SetOnExitFilename },
@@ -972,9 +979,9 @@ bool PFF::LoadPifFile(bool silently_load_the_spec_file/* = false*/)
                 if( last_section_header == nullptr )
                 {
 #ifdef WIN_DESKTOP
-                    CString message;
-                    message.Format(_T("Invalid section heading at line %d: %s"), nPifFile.GetLineNumber(), command.GetString());
-                    AfxMessageBox(message);
+                    ErrorMessage::Display(FormatText("Invalid section heading at line %d: %s",
+                                                     nPifFile.GetLineNumber(),
+                                                     UTF8_TODO::GetUtf8(command).c_str()));
 #endif
                     nPifFile.SkipSection();
                 }
@@ -1050,7 +1057,7 @@ void PFF::SetCommandArgumentPair(const TCHAR* last_section_header, CString comma
     // parameters
     if( last_section_header == PARAMETERS )
     {
-        SetCustomParamString(CS2WS(command), CS2WS(argument));
+        SetCustomParamString(UTF8_TODO::GetUtf8(command), UTF8_TODO::GetUtf8(argument));
         return;
     }
 
@@ -1151,9 +1158,14 @@ bool PFF::Save(bool silently_save_the_spec_file/* = false*/) const
             write_defined_connection_string(section_header, command, connection_string);
     };
 
+    auto write_defined_sync_connection_string = [&](const TCHAR* section_header, NullTerminatedString command, const SyncConnectionString& sync_connection_string)
+    {
+        if( sync_connection_string.IsDefined() )
+            write_argument_to_file(section_header, command, CS2WS(GetSyncConnectionStringText(sync_connection_string, false)));
+    };
 
     // the header
-    write_argument_to_file(RUNINFO, CMD_VERSION, CSPRO_VERSION);
+    write_argument_to_file(RUNINFO, CMD_VERSION, UTF8_TODO::GetWide(Versioning::CSProVersionText));
     write_argument(RUNINFO, APPTYPESTRING);
 
     if( m_eAppType == APPTYPE::TAB_TYPE )
@@ -1235,7 +1247,7 @@ bool PFF::Save(bool silently_save_the_spec_file/* = false*/) const
     write_non_blank_filename_argument(FILESSTRING, HTMLDIALOGS);
 
     if( m_baseMapSelection.has_value() )
-        write_argument_to_file(FILESSTRING, BASEMAP, ToString(*m_baseMapSelection, m_sPifFileName));
+        write_argument_to_file(FILESSTRING, BASEMAP, UTF8_TODO::GetWide(ToString(*m_baseMapSelection, UTF8_TODO::GetUtf8(m_sPifFileName))));
 
 
     // external (data) files
@@ -1287,16 +1299,13 @@ bool PFF::Save(bool silently_save_the_spec_file/* = false*/) const
     if( m_eAppType == APPTYPE::CONCAT_TYPE )
         write_argument(PARAMETERS, CONCAT_METHOD);
 
-    if( m_eAppType == APPTYPE::SYNC_TYPE )
-    {
-        write_argument(PARAMETERS, SYNC_SERVER_TYPE);
+    if( m_eAppType == APPTYPE::Sync || m_eAppType == APPTYPE::DEPLOY_TYPE )
+        write_defined_sync_connection_string(PARAMETERS, SYNC_SERVICE, m_syncService);
+
+    if( m_eAppType == APPTYPE::Sync )
         write_argument(PARAMETERS, SYNC_DIRECTION);
-    }
 
-    if( m_eAppType == APPTYPE::SYNC_TYPE || m_eAppType == APPTYPE::DEPLOY_TYPE )
-        write_non_blank_string_argument(PARAMETERS, SYNC_URL);
-
-    if( m_eAppType == APPTYPE::SYNC_TYPE || ( m_bSilent && m_eAppType == APPTYPE::PACK_TYPE ) )
+    if( m_eAppType == APPTYPE::Sync || ( m_bSilent && m_eAppType == APPTYPE::PACK_TYPE ) )
         write_argument(PARAMETERS, SILENT);
 
     if( m_eAppType == APPTYPE::DEPLOY_TYPE && m_eDeployToOverride != DeployToOverride::None )
@@ -1305,7 +1314,7 @@ bool PFF::Save(bool silently_save_the_spec_file/* = false*/) const
     write_non_blank_filename_argument(PARAMETERS, ONEXIT);
 
     for( const auto& [argument, values] : m_customParameters )
-        write_arguments_to_file(PARAMETERS, argument, values);
+        write_arguments_to_file(PARAMETERS, UTF8_TODO::GetWide(argument), UTF8_TODO::GetWide(values));
 
 
     // the data entry IDs section
@@ -1403,14 +1412,14 @@ std::vector<std::wstring> PFF::GetProperties(CString command) const
 
     if( GetExternalDataConnectionString(command).IsDefined() )
     {
-        argument = GetExternalDataConnectionString(command).ToString();
+        argument = UTF8_TODO::GetWide(GetExternalDataConnectionString(command).ToString());
     }
 
     else if( ( argument = CS2WS(LookUpUsrDatFile(command)) ).empty() )
     {
         if( ( argument = CS2WS(GetPersistentData(command)) ).empty() )
         {
-            argument = GetCustomParamString(CS2WS(command));
+            argument = UTF8_TODO::GetWide(GetCustomParamString(UTF8_TODO::GetUtf8(command)));
         }
     }
 
@@ -1421,7 +1430,7 @@ std::vector<std::wstring> PFF::GetProperties(CString command) const
 void PFF::AdjustAttributesFromOldFiles()
 {
     // if PFF attributes change, old PFFs can be upgraded to the new attributes here
-    double version = GetCSProVersionNumeric(m_sVersion);
+    const double version = GetCSProVersionNumeric(UTF8_TODO::GetUtf8(m_sVersion));
 
     if( version < 7.3 )
     {
@@ -1430,7 +1439,7 @@ void PFF::AdjustAttributesFromOldFiles()
             // InputData -> Excel
             if( !GetInputDataConnectionStrings().empty() )
             {
-                SetExcelFilename(GetSingleInputDataConnectionString().GetFilename().c_str());
+                SetExcelFilename(UTF8_TODO::GetCString(GetSingleInputDataConnectionString().GetFilePath()));
                 ClearInputDataConnectionStrings();
             }
         }
@@ -1439,14 +1448,14 @@ void PFF::AdjustAttributesFromOldFiles()
         {
             // InputData -> InputParadata
             for( const ConnectionString& connection_string : GetInputDataConnectionStringsSerializable() )
-                AddInputParadataFilenames(WS2CS(connection_string.GetFilename()));
+                AddInputParadataFilenames(UTF8_TODO::GetCString(connection_string.GetFilePath()));
 
             ClearInputDataConnectionStrings();
 
             // OutputData -> OutputParadata
             if( GetSingleOutputDataConnectionString().IsDefined() )
             {
-                SetOutputParadataFilename(WS2CS(GetSingleOutputDataConnectionString().GetFilename()));
+                SetOutputParadataFilename(UTF8_TODO::GetCString(GetSingleOutputDataConnectionString().GetFilePath()));
                 ClearOutputDataConnectionStrings();
             }
         }
@@ -1457,7 +1466,7 @@ void PFF::AdjustAttributesFromOldFiles()
         if( m_eAppType == APPTYPE::INDEX_TYPE )
         {
             // DeletePrompt -> DuplicateCase
-            std::wstring delete_prompt_value = GetCustomParamString(_T("DeletePrompt"));
+            const std::string delete_prompt_value = GetCustomParamString("DeletePrompt");
 
             if( !delete_prompt_value.empty() )
             {
@@ -1473,10 +1482,33 @@ void PFF::AdjustAttributesFromOldFiles()
             }
         }
     }
+
+    if( version < 8.1 )
+    {
+        if( !m_syncService.IsDefined() )
+        {
+            const std::string sync_type = GetCustomParamString("SyncType");
+
+            if( sync_type == "Dropbox" )
+            {
+                SetSyncService(SyncConnectionString::CreateDropboxSyncConnectionString());
+            }
+
+            else if( sync_type == "LocalDropbox" )
+            {
+                SetSyncService(SyncConnectionString::CreateLocalDropboxSyncConnectionString());
+            }
+
+            else
+            {
+                SetSyncService(GetCustomParamString("SyncUrl"));
+            }
+        }
+    }
 }
 
 
-std::optional<std::wstring> PFF::GetExecutableProgram() const // 20111012 for execpff and runpff
+std::optional<std::string> PFF::GetExecutableProgram() const // 20111012 for execpff and runpff
 {
 #ifdef WIN_DESKTOP
     CSProExecutables::Program program;
@@ -1516,8 +1548,8 @@ std::optional<std::wstring> PFF::GetExecutableProgram() const // 20111012 for ex
         case APPTYPE::INDEX_TYPE:
             program = CSProExecutables::Program::CSIndex;
             break;
-        case APPTYPE::SYNC_TYPE:
-            program = CSProExecutables::Program::DataViewer;
+        case APPTYPE::Sync:
+            program = CSProExecutables::Program::DataManager;
             break;
         case APPTYPE::PARADATA_CONCAT_TYPE:
             program = CSProExecutables::Program::ParadataConcat;
@@ -1551,14 +1583,14 @@ bool PFF::EntryConnectionStringsContainWildcards() const
     // process the input data
     for( const ConnectionString& connection_string : m_inputDataConnectionStrings.serializable_filenames )
     {
-        if( connection_string.IsFilenamePresent() && PathHasWildcardCharacters(connection_string.GetFilename()) )
+        if( connection_string.HasFilePath() && Path::HasWildcardCharacters(connection_string.GetFilePath()) )
             return true;
     }
 
     // process the external (data) files map
     for( auto itr = m_mapExternalDataConnectionStrings.cbegin(); itr != m_mapExternalDataConnectionStrings.cend(); ++itr )
     {
-        if( itr->second.IsFilenamePresent() && PathHasWildcardCharacters(itr->second.GetFilename()) )
+        if( itr->second.HasFilePath() && Path::HasWildcardCharacters(itr->second.GetFilePath()) )
             return true;
     }
 
@@ -1580,39 +1612,38 @@ bool PFF::UsingOutputData() const
 
 #ifdef WIN_DESKTOP
 
-void PFF::ExecutePff(const std::wstring& pff_filename, const std::optional<NullTerminatedString> extra_arguments/* = std::nullopt*/)
+void PFF::ExecutePff(const std::string& pff_file_path, const std::string* const extra_arguments/* = nullptr*/)
 {
-    PFF pff(WS2CS(pff_filename));
+    PFF pff(UTF8_TODO::GetCString(pff_file_path));
 
     if( !pff.LoadPifFile() )
         return;
 
-    std::optional<std::wstring> exe_name = pff.GetExecutableProgram();
+    const std::optional<std::string> exe_name = pff.GetExecutableProgram();
 
     if( !exe_name.has_value() )
     {
-        AfxMessageBox(_T("The PFF file is invalid or there is no program that can run it."));
+        AfxMessageBox(L"The PFF file is invalid or there is no program that can run it.");
         return;
     }
 
     // 20120614 calling this using relative paths didn't work, so we'll convert them to absolute paths
-    std::wstring path(MAX_PATH, '\0');
-    GetCurrentDirectory(_MAX_PATH, path.data());
-    path.resize(_tcslen(path.data()));
+    std::string argument = EscapeCommandLineArgument(MakeFullPath(GetWorkingDirectory(), pff_file_path));
 
-    std::wstring argument = DOUBLEQUOTE + MakeFullPath(path, pff_filename) + DOUBLEQUOTE;
+    if( extra_arguments != nullptr )
+    {
+        argument.push_back(' ');
+        argument.append(*extra_arguments);
+    }
 
-    if( extra_arguments.has_value() )
-        SO::Append(argument, _T(" "), *extra_arguments);
-
-    ShellExecute(NULL, NULL, exe_name->c_str(), argument.c_str(), NULL, SW_SHOW);
+    ShellExecute(nullptr, nullptr, TC::ToWide(*exe_name).c_str(), TC::ToWide(argument).c_str(), nullptr, SW_SHOW);
 }
 
 
 void PFF::ExecuteOnExitPff() const
 {
     if( !m_csOnExitFilename.IsEmpty() )
-        ExecutePff(CS2WS(GetOnExitFilename()));
+        ExecutePff(UTF8_TODO::GetUtf8(GetOnExitFilename()));
 }
 
 #endif
@@ -1620,20 +1651,20 @@ void PFF::ExecuteOnExitPff() const
 
 namespace
 {
-    void ViewResultsRunner(CSProExecutables::Program program, NullTerminatedString filename)
+    void ViewResultsRunner(const CSProExecutables::Program program, const std::string& file_path)
     {
-        if( !PortableFunctions::FileIsRegular(filename) )
+        if( !PortableFunctions::FileIsRegular(file_path) )
             return;
 
 #ifdef WIN_DESKTOP
         if( program == CSProExecutables::Program::TextView )
         {
-            ViewFileInTextViewer(filename);
+            ViewFileInTextViewer(file_path);
         }
 
         else
         {
-            CSProExecutables::RunProgramOpeningFile(program, filename);
+            CSProExecutables::RunProgramOpeningFile(program, file_path);
         }
 
 #else
@@ -1643,15 +1674,15 @@ namespace
             {
                 // read the file and display it as preformatted text, ignoring file read errors
                 constexpr int64_t MaxBytesToRead = 64 * 1024;
-                CString file_contents = FileIO::ReadText(filename, MaxBytesToRead, _T("\r\n\r\n... file too large to fully display ..."));
+                const std::string file_contents = FileIO::ReadText(file_path, MaxBytesToRead, "\r\n\r\n... file too large to fully display ...");
 
-                std::wstring title = PortableFunctions::PathGetFilename(filename);
-                std::wstring html = Encoders::ToPreformattedTextHtml(title, file_contents);
+                std::string title = PortableFunctions::PathGetFilename(file_path);
+                std::string html = Encoders::ToPreformattedTextHtml(title, file_contents);
 
                 Viewer viewer;
                 viewer.UseEmbeddedViewer()
-                      .SetTitle(title)
-                      .ViewHtmlContent(html, PortableFunctions::PathGetDirectory(filename));
+                      .SetTitle(std::move(title))
+                      .ViewHtmlContent(std::move(html), PortableFunctions::PathGetDirectory(file_path));
             }
             catch(...) { }
         }
@@ -1660,49 +1691,49 @@ namespace
 }
 
 
-void PFF::ViewResults(NullTerminatedString filename)
+void PFF::ViewResults(const std::string& file_path)
 {
-    std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
     if( SO::EqualsOneOfNoCase(extension, FileExtensions::CSV,
                                          FileExtensions::Excel,
                                          FileExtensions::HTML,
                                          FileExtensions::HTM) )
     {
-        Viewer().ViewFile(filename);
+        Viewer().ViewFile(file_path);
     }
 
     else if( SO::EqualsNoCase(extension, FileExtensions::Table) )
     {
-        ViewResultsRunner(CSProExecutables::Program::TblView, filename);
+        ViewResultsRunner(CSProExecutables::Program::TblView, file_path);
     }
 
     else
     {
-        ViewResultsRunner(CSProExecutables::Program::TextView, filename);
+        ViewResultsRunner(CSProExecutables::Program::TextView, file_path);
     }
 }
+
 
 void PFF::ViewResults(const ConnectionString& connection_string)
 {
-    if( connection_string.IsDefined() )
+    if( DataRepositoryHelpers::IsTypeFileBasedWithAnEmbeddedDictionary(connection_string.GetType()) )
     {
-        if( DataRepositoryHelpers::IsTypeSQLiteOrDerived(connection_string.GetType()) )
-        {
-            ViewResultsRunner(CSProExecutables::Program::DataViewer, connection_string.GetFilename());
-        }
+        ViewResultsRunner(CSProExecutables::Program::DataManager, connection_string.GetFilePath());
+    }
 
-        else if( connection_string.IsFilenamePresent() )
-        {
-            ViewResults(connection_string.GetFilename());
-        }
+    else if( connection_string.HasFilePath() )
+    {
+        ViewResults(connection_string.GetFilePath());
     }
 }
 
+
 void PFF::ViewListing(const TCHAR* listing_filename)
 {
-    ViewResults(listing_filename);
+    ViewResults(UTF8_TODO::GetUtf8(listing_filename));
 }
+
 
 void PFF::ViewListing() const
 {
@@ -1710,32 +1741,34 @@ void PFF::ViewListing() const
 }
 
 
-std::vector<const TCHAR*> PFF::GetAppTypeWords()
+std::vector<const char*> PFF::GetAppTypeWords()
 {
-    std::vector<const TCHAR*> words;
+    std::vector<const char*> words;
 
     for( size_t i = 0; AppTypeNames[i] != nullptr; i++ )
-        words.emplace_back(AppTypeNames[i]);
+        words.emplace_back(UTF8_TODO::Create_Reference(AppTypeNames[i]).c_str());
 
     return words;
 }
 
-std::vector<const TCHAR*> PFF::GetHeadingWords()
+
+std::vector<const char*> PFF::GetHeadingWords()
 {
-    std::vector<const TCHAR*> words = { RUNINFO };
+    std::vector<const char*> words = { UTF8_TODO::Create_Reference(RUNINFO).c_str() };
 
     for( size_t i = 0; i < _countof(FileSections); i++ )
-        words.emplace_back(FileSections[i]);
+        words.emplace_back(UTF8_TODO::Create_Reference(FileSections[i]).c_str());
 
     return words;
 }
 
-std::vector<const TCHAR*> PFF::GetAttributeWords()
+
+std::vector<const char*> PFF::GetAttributeWords()
 {
-    std::vector<const TCHAR*> words;
+    std::vector<const char*> words;
 
     for( const PffFunctions& pff_function : GetPffFunctionsArray() )
-        words.emplace_back(pff_function.command);
+        words.emplace_back(UTF8_TODO::Create_Reference(pff_function.command).c_str());
 
     return words;
 }

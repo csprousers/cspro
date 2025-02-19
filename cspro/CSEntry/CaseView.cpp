@@ -6,6 +6,7 @@
 #include "Rundoc.h"
 #include "RunView.h"
 #include <zCaseO/Case.h>
+#include <zDataO/resource.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -198,14 +199,14 @@ void CCaseView::OnInitialUpdate()
         m_cImageList.Create(16, 16, ILC_COLORDDB, 0, 4); // x,y of icon, flags, initial sz, sz2grow by
         m_cImageList.SetBkColor(RGB (255,255,255));
 
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_EMPTY));           // 0
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_COMPLETE));        // 1
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_NODE));            // 2
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_PARTIAL_ADD));     // 3
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_PARTIAL_MOD));     // 4
-        m_cImageList.Add (AfxGetApp()->LoadIcon (IDI_PARTIAL_VER));     // 5
-        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_COMPLETE_VER));      // 6
-        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_DELETED));           // 7
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_EMPTY));                  // 0
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_COMPLETE));          // 1
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_NODE));                   // 2
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_PARTIAL_ADD));       // 3
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_PARTIAL_MODIFY));    // 4
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_PARTIAL_VERIFY));    // 5
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_COMPLETE_VERIFIED)); // 6
+        m_cImageList.Add(AfxGetApp()->LoadIcon(IDI_CASE_DELETED));           // 7
 
         GetTreeCtrl().SetImageList (&m_cImageList, TVSIL_NORMAL);
     }
@@ -483,9 +484,9 @@ void CCaseView::OnDeleteCase()
 
         if( deleted )
         {
-            CString csDeletePrompt = FormatText(MGF::GetMessageText(MGF::DeleteCase).c_str(), pNodeInfo->case_summary.GetKey().GetString());
+            const std::string delete_prompt = FormatText(MGF::GetMessageText(MGF::DeleteCase)->c_str(), pNodeInfo->case_summary.GetKey().c_str());
 
-            if( AfxMessageBox(csDeletePrompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
+            if( AfxMessageBox(delete_prompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
                 return;
         }
 
@@ -582,7 +583,7 @@ void CCaseView::BuildNodeTree(HTREEITEM hNodeItem)
 
     // read the case to get the level nodes
     DataRepository* pInputRepo = pRunApl->GetInputRepository();
-    auto data_case = pInputRepo->GetCaseAccess()->CreateCase();
+    const std::unique_ptr<Case> data_case = pInputRepo->GetCaseAccess().CreateCase();
 
     try
     {
@@ -595,7 +596,7 @@ void CCaseView::BuildNodeTree(HTREEITEM hNodeItem)
         return;
     }
 
-    const auto& case_levels = data_case->GetAllCaseLevels();
+    const std::vector<CaseLevel*> case_levels = data_case->GetAllCaseLevels();
 
     // only items from level 2 and up have parents
     HTREEITEM hParent[MaxNumberLevels] = { nullptr };
@@ -889,7 +890,7 @@ void CCaseView::AddCaseToTree(const CaseSummary& case_summary, bool bShowCaseLab
                             case_summary.GetVerified() ? 6 :
                                                          1;
 
-    CString csKey = bShowCaseLabels ? case_summary.GetCaseLabelOrKey() : case_summary.GetKey();
+    CString csKey = UTF8_TODO::GetCString(bShowCaseLabels ? case_summary.GetCaseLabelOrKey() : case_summary.GetKey());
     NewlineSubstitutor::MakeNewlineToUnicodeNL(csKey);
 
     CTreeCtrl& caseTree = GetTreeCtrl();
@@ -954,7 +955,7 @@ void CCaseView::DeleteNode()
     if( !GetSelectedNode(&hItem,&pNodeInfo) )
         return;
 
-    if( AfxMessageBox(MGF::GetMessageText(MGF::DeleteNode).c_str(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
+    if( AfxMessageBox(MGF::GetMessageText(MGF::DeleteNode).GetString(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
         return;
 
     CEntryrunDoc* pDoc = (CEntryrunDoc*)GetDocument();
@@ -1006,7 +1007,7 @@ bool CCaseView::AllowSelChange(HTREEITEM hSelItem)
     // ensure that this isn't a case partially saved in a mode other than modify
     if( pNodeInfo->case_summary.IsPartial() && pNodeInfo->case_summary.GetPartialSaveMode() != PartialSaveMode::Modify )
     {
-        AfxMessageBox(MGF::GetMessageText(MGF::PartialSaveCannotModify).c_str());
+        AfxMessageBox(MGF::GetMessageText(MGF::PartialSaveCannotModify).GetString());
         bRet = false;
     }
 
@@ -1064,7 +1065,7 @@ void CCaseView::RestoreSelectPos(const TCHAR* restore_using_key/* = nullptr*/)
         {
             NODEINFO* pNodeInfo = (NODEINFO*)caseTree.GetItemData(hItem);
 
-            if( pNodeInfo->case_summary.GetKey().Compare(restore_using_key) == 0 )
+            if( UTF8_TODO::GetCString(pNodeInfo->case_summary.GetKey()).Compare(restore_using_key) == 0 )
                 break;
         }
 

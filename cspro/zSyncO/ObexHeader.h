@@ -1,15 +1,16 @@
 ﻿#pragma once
+
 #include <zSyncO/zSyncO.h>
 #include <zSyncO/ObexConstants.h>
 #include <ostream>
 #include <istream>
 
-/**
-* Headers sent with Obex requests.
-**/
-class SYNC_API ObexHeader {
-public:
 
+// Headers sent with Obex requests.
+
+class SYNC_API ObexHeader
+{
+public:
     ObexHeader();
 
     ObexHeader(ObexHeaderCode code, CString data);
@@ -89,10 +90,10 @@ private:
     std::string m_byteSequenceData;
 };
 
-class ObexHeaderList {
 
+class ObexHeaderList
+{
 public:
-
     void add(const ObexHeader& h);
     void add(const ObexHeaderList& h);
     const std::vector<ObexHeader>& getHeaders() const;

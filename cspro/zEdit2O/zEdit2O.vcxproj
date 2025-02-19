@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ADEF6FC1-00EE-4F3A-84DD-43EE2F108BB0}</ProjectGuid>
     <RootNamespace>zEdit2O</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -69,8 +65,9 @@
   <ItemGroup>
     <ClCompile Include="CSProScintillaCtrl.cpp" />
     <ClCompile Include="CSProScintillaFindReplaceDlg.cpp" />
-    <ClCompile Include="LexerProperties.cpp" />
     <ClCompile Include="EditCtrl.cpp" />
+    <ClCompile Include="GoToDlg.cpp" />
+    <ClCompile Include="LexerProperties.cpp" />
     <ClCompile Include="Lexers.cpp" />
     <ClCompile Include="LogicCtrl.cpp" />
     <ClCompile Include="LogicView.cpp" />
@@ -79,7 +76,6 @@
     <ClCompile Include="ScintillaColorizer.cpp" />
     <ClCompile Include="ScintillaCtrl.cpp" />
     <ClCompile Include="ScintillaDocView.cpp" />
-    <ClCompile Include="GoToDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -89,8 +85,9 @@
   <ItemGroup>
     <ClInclude Include="CSProScintillaCtrl.h" />
     <ClInclude Include="CSProScintillaFindReplaceDlg.h" />
-    <ClInclude Include="LexerProperties.h" />
     <ClInclude Include="EditCtrl.h" />
+    <ClInclude Include="GoToDlg.h" />
+    <ClInclude Include="LexerProperties.h" />
     <ClInclude Include="Lexers.h" />
     <ClInclude Include="LogicCtrl.h" />
     <ClInclude Include="LogicView.h" />
@@ -101,7 +98,6 @@
     <ClInclude Include="ScintillaColorizer.h" />
     <ClInclude Include="ScintillaCtrl.h" />
     <ClInclude Include="ScintillaDocView.h" />
-    <ClInclude Include="GoToDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zEdit2O.h" />

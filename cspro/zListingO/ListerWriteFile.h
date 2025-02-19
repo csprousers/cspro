@@ -1,26 +1,23 @@
 ﻿#pragma once
 
+#include <zListingO/Lister.h>
 #include <zListingO/WriteFile.h>
+#include <zToolsO/PointerClasses.h>
 
 
-namespace Listing
+class Listing::ListerWriteFile : public WriteFile
 {
-    template<typename T>
-    class ListerWriteFile : public WriteFile
+public:
+    ListerWriteFile(cs::non_null_shared_or_raw_ptr<Lister> lister)
+        :   m_lister(std::move(lister))
     {
-    public:
-        ListerWriteFile(T lister)
-            :   m_lister(std::move(lister))
-        {
-            ASSERT(m_lister != nullptr);
-        }
+    }
 
-        void WriteLine(std::wstring text) override
-        {
-            m_lister->WriteLineForWriteFile(std::move(text));
-        }
+    void WriteLine(SharableString text) override
+    {
+        m_lister->WriteLineForWriteFile(std::move(text));
+    }
 
-    private:
-        T m_lister;
-    };
-}
+private:
+    cs::non_null_shared_or_raw_ptr<Lister> m_lister;
+};

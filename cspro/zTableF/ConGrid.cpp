@@ -672,7 +672,7 @@ bool CConSpecGrid::ParseConSpec(CIMSAString sValues, CONITEM& cItem)
     CIMSAString sName;
     cell.GetText(&sName);
 
-    const CDictItem* pItem = m_pCurrDict->LookupName<CDictItem>(sName);
+    const CDictItem* pItem = m_pCurrDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(sName));
     int len = pItem->GetLen();
 
     // Get Lower
@@ -680,12 +680,12 @@ bool CConSpecGrid::ParseConSpec(CIMSAString sValues, CONITEM& cItem)
     CIMSAString sError;
     CIMSAString sValue = sValues.GetToken(_T(":="), &cFound);
     if (sValue.GetLength() > len) {
-        sError.Format(_T("Lower value \"%s\" is longer than the item length, %d."), (LPCTSTR)sValue, len);
+        sError.Format(_T("Lower value \"%s\" is longer than the item length, %d."), sValue.GetString(), len);
         AfxMessageBox(sError);
         return true;
     }
     if (!sValue.IsNumeric()) {
-        sError.Format(_T("Lower value \"%s\" is not numeric"), (LPCTSTR)sValue);
+        sError.Format(_T("Lower value \"%s\" is not numeric"), sValue.GetString());
         AfxMessageBox(sError);
         return true;
     }
@@ -694,12 +694,12 @@ bool CConSpecGrid::ParseConSpec(CIMSAString sValues, CONITEM& cItem)
         // Get Upper
         sValue = sValues.GetToken(_T("="));
         if (sValue.GetLength() > len) {
-            sError.Format(_T("Upper value \"%s\" is longer than the item length, %d."), (LPCTSTR)sValue, len);
+            sError.Format(_T("Upper value \"%s\" is longer than the item length, %d."), sValue.GetString(), len);
             AfxMessageBox(sError);
             return true;
         }
         if (!sValue.IsNumeric()) {
-            sError.Format(_T("Upper value \"%s\" is not numeric"), (LPCTSTR)sValue);
+            sError.Format(_T("Upper value \"%s\" is not numeric"), sValue.GetString());
             AfxMessageBox(sError);
             return true;
         }
@@ -720,12 +720,12 @@ bool CConSpecGrid::ParseConSpec(CIMSAString sValues, CONITEM& cItem)
     // Get Replace
     if (!sValues.IsEmpty()) {
         if (sValues.GetLength() > len) {
-            sError.Format(_T("Replacement value \"%s\" is longer than the item length, %d."), (LPCTSTR)sValues, len);
+            sError.Format(_T("Replacement value \"%s\" is longer than the item length, %d."), sValues.GetString(), len);
             AfxMessageBox(sError);
             return true;
         }
         if (!sValues.IsNumeric()) {
-            sError.Format(_T("Replacement value \"%s\" is not numeric"), (LPCTSTR)sValues);
+            sError.Format(_T("Replacement value \"%s\" is not numeric"), sValues.GetString());
             AfxMessageBox(sError);
             return true;
         }

@@ -12,7 +12,7 @@ private:
     LogicFile(const LogicFile& logic_file);
 
 public:
-    LogicFile(std::wstring file_name);
+    LogicFile(std::string file_name);
     ~LogicFile();
 
     bool IsUsed() const { return m_isUsed; }
@@ -24,8 +24,8 @@ public:
     bool IsWrittenTo() const { return m_isWrittenTo; }
     void SetIsWrittenTo()    { m_isWrittenTo = true; }
 
-    const std::wstring& GetFilename() const { return m_filename; }
-    void SetFilename(std::wstring filename) { m_filename = std::move(filename); }
+    const std::string& GetFilePath() const  { return m_filePath; }
+    void SetFilePath(std::string file_path) { m_filePath = std::move(file_path); }
 
     bool Open(bool create_new, bool append, bool truncate);
     bool IsOpen() const;
@@ -37,6 +37,8 @@ public:
     Encoding GetEncoding() const { return m_encoding; }
 
     // Symbol overrides
+    void CopyCompileTimeAttributes(const Symbol& symbol) override;
+
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
     void Reset() override;
@@ -49,7 +51,7 @@ private:
     bool m_isUsed;
     bool m_hasGlobalVisibility;
     bool m_isWrittenTo;
-    std::wstring m_filename;
+    std::string m_filePath;
     CFile m_file;
     Encoding m_encoding;
 };

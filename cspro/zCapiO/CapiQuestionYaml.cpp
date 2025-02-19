@@ -9,13 +9,13 @@ namespace YAML {
     template <>
     struct convert<CString> {
         static Node encode(const CString& rhs) {
-            return Node(UTF8Convert::WideToUTF8(rhs));
+            return Node(UTF8_TODO::GetUtf8(rhs));
         }
 
         static bool decode(const Node& node, CString& rhs) {
             if (!node.IsScalar())
                 return false;
-            rhs = UTF8Convert::UTF8ToWide<CString>(node.Scalar());
+            rhs = UTF8_TODO::GetCString(node.Scalar());
             return true;
         }
     };
@@ -23,13 +23,13 @@ namespace YAML {
     template <>
     struct convert<std::wstring> {
         static Node encode(const std::wstring& rhs) {
-            return Node(UTF8Convert::WideToUTF8(rhs));
+            return Node(UTF8_TODO::GetUtf8(rhs));
         }
 
         static bool decode(const Node& node, std::wstring& rhs) {
             if (!node.IsScalar())
                 return false;
-            rhs = UTF8Convert::UTF8ToWide(node.Scalar());
+            rhs = TC::ToWide(node.Scalar());
             return true;
         }
     };
@@ -38,9 +38,9 @@ namespace YAML {
     struct convert<CapiStyle> {
         static Node encode(const CapiStyle& rhs) {
             Node node(NodeType::Map);
-            node.force_insert("name", rhs.m_name);
-            node.force_insert("className", rhs.m_class_name);
-            node.force_insert("css", rhs.m_css);
+            node.force_insert("name", rhs.name);
+            node.force_insert("className", rhs.class_name);
+            node.force_insert("css", rhs.css);
             return node;
         }
 
@@ -48,9 +48,9 @@ namespace YAML {
             if (!node.IsMap()) {
                 return false;
             }
-            rhs.m_name = node["name"].as<CString>();
-            rhs.m_class_name = node["className"].as<CString>();
-            rhs.m_css = node["css"].as<CString>();
+            rhs.name = node["name"].as<std::string>();
+            rhs.class_name = node["className"].as<std::string>();
+            rhs.css = node["css"].as<std::string>();
             return true;
         }
     };
@@ -68,8 +68,8 @@ namespace YAML {
             if (!node.IsMap()) {
                 return false;
             }
-            rhs.SetName(node["name"].as<std::wstring>());
-            rhs.SetLabel(node["label"].as<std::wstring>());
+            rhs.SetName(node["name"].as<std::string>());
+            rhs.SetLabel(node["label"].as<std::string>());
             return true;
         }
     };
@@ -151,7 +151,7 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
     out << YAML::Key << "fileType";
     out << YAML::Value << "Question Text";
     out << YAML::Key << "version";
-    out << CString(CSPRO_VERSION);
+    out << Versioning::CSProVersionText;
     out << YAML::Key << "languages";
     out << YAML::Value << question_manager.GetLanguages();
 
@@ -161,11 +161,11 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
     for (const CapiStyle& style : question_manager.GetStyles()) {
         out << YAML::BeginMap;
         out << YAML::Key << "name";
-        out << YAML::Value << style.m_name;
+        out << YAML::Value << style.name;
         out << YAML::Key << "className";
-        out << YAML::Value << style.m_class_name;
+        out << YAML::Value << style.class_name;
         out << YAML::Key << "css";
-        out << YAML::Value << YAML::Literal << style.m_css;
+        out << YAML::Value << YAML::Literal << style.css;
         out << YAML::EndMap;
     }
     out << YAML::EndSeq;
@@ -235,7 +235,7 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
     if (yaml["styles"]) {
         auto styles = yaml["styles"].as<std::vector<CapiStyle>>();
         for (CapiStyle& style : styles) {
-            style.m_css.TrimRight(_T('\n'));
+            SO::MakeTrimRight(style.css, '\n');
         }
         question_manager.SetStyles(std::move(styles));
     }

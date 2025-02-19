@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "QuickJSAccess.h"
+#include "ValueInternal.h"
 #include <zUtilO/UWM.h>
 #include <regex>
 
@@ -9,25 +10,25 @@ std::vector<std::tuple<JSContext*, JavaScript::Executor*>> JavaScript::QuickJSAc
 std::set<JSRuntime*> JavaScript::QuickJSAccess::runtime_interrupt_requests;
 
 
-void JavaScript::QuickJSAccess::ThrowException()
+JavaScript::Exception JavaScript::QuickJSAccess::CreateException()
 {
-    JSValue js_exception = JS_GetException(ctx);
+    const Value js_exception(this, JS_GetException(ctx));
 
-    std::string exception_message = GetString(js_exception, true);
+    std::string exception_message = GetString(*js_exception, true);
 
     if( exception_message.empty() )
         exception_message = "[Unknown JavaScript Error]";
 
-    size_t original_exception_message_length = exception_message.length();
-    std::optional<std::tuple<std::wstring, int>> filename_and_line_number;
+    const size_t original_exception_message_length = exception_message.length();
+    std::optional<std::tuple<std::string, int>> file_path_and_line_number;
 
-    if( JS_IsError(ctx, js_exception) )
+    if( JS_IsError(ctx, *js_exception) )
     {
-        JSValue js_stack = JS_GetPropertyStr(ctx, js_exception, "stack");
+        const Value js_stack(this, JS_GetPropertyStr(ctx, *js_exception, "stack"));
 
-        if( !JS_IsUndefined(js_stack) )
+        if( !JS_IsUndefined(*js_stack) )
         {
-            std::string stack_text = GetString(js_stack, true);
+            const std::string stack_text = GetString(*js_stack, true);
 
             if( !stack_text.empty() )
             {
@@ -37,111 +38,119 @@ void JavaScript::QuickJSAccess::ThrowException()
                 // the stack text should look something like: at <eval> (test.js:2)
                 //                                            at test.js:2
 
-                for( const char* regex_text : { R"(^\s*at.*\((.+):(\d+)\)$)",
-                                                R"(^\s*at\s+(.+):(\d+)$)" } )
+                for( const char* const regex_text : { R"(^\s*at.*\((.+):(\d+)\)$)",
+                                                      R"(^\s*at\s+(.+):(\d+)$)" } )
                 {
-                    std::regex regex(regex_text);
+                    const std::regex regex(regex_text);
                     std::cmatch matches;
 
                     if( std::regex_match(stack_text.c_str(), matches, regex) )
                     {
-                        std::string filename = matches.str(1);
+                        std::string file_path = matches.str(1);
 
-                        if( filename == UnnamedScriptFilename )
-                            filename.clear();
+                        if( file_path == UnnamedScriptFilename_sv )
+                            file_path.clear();
 
-                        filename_and_line_number.emplace(MakeFullPath(executor->m_rootDirectory, UTF8Convert::UTF8ToWide(filename)),
-                                                         std::stoi(matches.str(2)));
+                        file_path_and_line_number.emplace(MakeFullPath(executor->m_rootDirectory, std::move(file_path)),
+                                                          std::stoi(matches.str(2)));
 
                         break;
                     }
                 }
             }
-
-            JS_FreeValue(ctx, js_stack);
         }
     }
 
-    JS_FreeValue(ctx, js_exception);
-
-    if( filename_and_line_number.has_value() )
+    if( file_path_and_line_number.has_value() )
     {
-        throw Exception(exception_message.c_str(),
-                        exception_message.substr(0, original_exception_message_length),
-                        std::move(std::get<0>(*filename_and_line_number)),
-                        std::get<1>(*filename_and_line_number));
+        return Exception(exception_message.c_str(),
+                         exception_message.substr(0, original_exception_message_length),
+                         std::move(std::get<0>(*file_path_and_line_number)),
+                         std::get<1>(*file_path_and_line_number));
     }
 
     else
     {
-        throw Exception(exception_message.c_str());
-    }    
+        return Exception(exception_message);
+    }
 }
 
 
-template<typename T/* = std::string*/>
-T JavaScript::QuickJSAccess::GetString(JSValue js_value, bool trim_string/* = false*/)
+JSValue JavaScript::QuickJSAccess::NewError(const std::exception& exception, const cs::cref_optional<std::string> name, const cs::cref_optional<std::string> cause)
 {
-    const char* text = JS_ToCString(ctx, js_value);
+    JSValue js_error = JS_NewError(ctx);
+
+    auto set_property = [&](const char* const property, const std::string_view value_sv)
+    {
+        JS_DefinePropertyValueStr(ctx, js_error, property, NewString(value_sv), JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+    };
+
+    if( name.has_value() && !name->empty() )
+    {
+        ASSERT(!name->empty());
+        set_property("name", *name);
+    }
+
+    set_property("message", exception.what());
+
+    if( cause.has_value() && !cause->empty() )
+        set_property("cause", *cause);
+
+    return js_error;
+}
+
+
+std::string JavaScript::QuickJSAccess::GetString(const JSValue js_value, const bool trim_string/* = false*/)
+{
+    const char* const text = JS_ToCString(ctx, js_value);
 
     if( text == nullptr )
-        return T();
+        return std::string();
 
     std::string str = text;
 
     JS_FreeCString(ctx, text);
 
-    if( trim_string && !str.empty() && ( std::isspace(str.front()) || std::isspace(str.back()) ) )
-    {
-        auto first_non_whitespace = std::find_if(str.cbegin(), str.cend(),
-                                                 [](char ch) { return !std::isspace(ch); });
+    if( trim_string )
+        SO::MakeTrim(str);
 
-        if( first_non_whitespace == str.cend() )
-        {
-            str.clear();
-        }
-
-        else
-        {
-            auto last_non_whitespace = std::find_if(str.crbegin(), str.crend(),
-                                                    [](char ch) { return !std::isspace(ch); });
-            str = std::string(&*first_non_whitespace, &*last_non_whitespace - &*first_non_whitespace + 1);
-        }
-    }
-
-    if constexpr(std::is_same_v<T, std::string>)
-    {
-        return str;
-    }
-
-    else
-    {
-        return UTF8Convert::UTF8ToWide(str);
-    }
+    return str;
 }
 
-template std::string JavaScript::QuickJSAccess::GetString(JSValue js_value, bool trim_string/* = false*/);
-template std::wstring JavaScript::QuickJSAccess::GetString(JSValue js_value, bool trim_string/* = false*/);
 
-
-JavaScript::ByteCode JavaScript::QuickJSAccess::ObjectToByteCode(JSValue js_object)
+std::string JavaScript::QuickJSAccess::GetString(const JSAtom js_atom)
 {
-    size_t js_byte_code_size;
-    uint8_t* js_byte_code = JS_WriteObject(ctx, &js_byte_code_size, js_object, JS_WRITE_OBJ_BYTECODE);
+    const char* const text = JS_AtomToCString(ctx, js_atom);
 
-    ByteCode byte_code;
-    byte_code.insert(byte_code.end(), js_byte_code, js_byte_code + js_byte_code_size);
+    if( text == nullptr )
+        return ReturnProgrammingError(std::string());
 
-    js_free(ctx, js_byte_code);
+    std::string str = text;
 
-    return byte_code;
+    JS_FreeCString(ctx, text);
+
+    return str;
 }
 
 
-JSValue JavaScript::QuickJSAccess::ByteCodeToObject(const ByteCode& byte_code)
+JavaScript::Bytecode JavaScript::QuickJSAccess::ObjectToBytecode(const JSValue js_object)
+{
+    size_t js_bytecode_size;
+    uint8_t* js_bytecode = JS_WriteObject(ctx, &js_bytecode_size, js_object, JS_WRITE_OBJ_BYTECODE);
+
+    Bytecode bytecode;
+    bytecode.insert(bytecode.end(), js_bytecode, js_bytecode + js_bytecode_size);
+
+    js_free(ctx, js_bytecode);
+
+    return bytecode;
+}
+
+
+JSValue JavaScript::QuickJSAccess::BytecodeToObject(const Bytecode& bytecode)
 {
     // js_object only has to be freed if the module cannot be resolved
-    JSValue js_object = JS_ReadObject(ctx, byte_code.data(), byte_code.size(), JS_READ_OBJ_BYTECODE);
+    JSValue js_object = JS_ReadObject(ctx, bytecode.data(), bytecode.size(), JS_READ_OBJ_BYTECODE);
 
     if( JS_IsException(js_object) )
         ThrowException();
@@ -159,9 +168,9 @@ JSValue JavaScript::QuickJSAccess::ByteCodeToObject(const ByteCode& byte_code)
 }
 
 
-JavaScript::Executor& JavaScript::QuickJSAccess::GetExecutorFromContext(JSContext* ctx)
+JavaScript::Executor& JavaScript::QuickJSAccess::GetExecutorFromContext(JSContext* const ctx)
 {
-    std::lock_guard<std::mutex> lock(context_map_mutex);
+    const std::lock_guard<std::mutex> lock(context_map_mutex);
 
     if( context_map.size() == 1 )
     {
@@ -177,11 +186,11 @@ JavaScript::Executor& JavaScript::QuickJSAccess::GetExecutorFromContext(JSContex
 }
 
 
-int JavaScript::QuickJSAccess::InterruptHandler(JSRuntime* rt, void* /*opaque*/)
-{    
+int JavaScript::QuickJSAccess::InterruptHandler(JSRuntime* const rt, void* /*opaque*/)
+{
     if( !runtime_interrupt_requests.empty() )
     {
-        std::lock_guard<std::mutex> lock(context_map_mutex);
+        const std::lock_guard<std::mutex> lock(context_map_mutex);
 
         // 0 means to continue, so 1 will only be returned when the runtime was in the set
         return runtime_interrupt_requests.erase(rt);
@@ -191,148 +200,125 @@ int JavaScript::QuickJSAccess::InterruptHandler(JSRuntime* rt, void* /*opaque*/)
 }
 
 
-char* JavaScript::QuickJSAccess::ModuleLoaderNameNormalizer(JSContext* ctx, const char* module_base_name, const char* module_name, void* /*opaque*/)
+char* JavaScript::QuickJSAccess::ModuleLoaderNameNormalizer(JSContext* const ctx, const char* const module_base_name, const char* const module_name, void* /*opaque*/)
 {
     Executor& executor = GetExecutorFromContext(ctx);
 
-    std::wstring filename = PortableFunctions::PathToNativeSlash(UTF8Convert::UTF8ToWide(module_name));
+    std::string file_path = PortableFunctions::PathToNativeSlash(module_name);
 
-    // case 1: the filename exists
-    if( !PortableFunctions::FileIsRegular(filename) )
+    // case 1: the file path exists
+    if( !PortableFunctions::FileIsRegular(file_path) )
     {
-        // case 2: evaluate the filename based on the module's base name
-        std::wstring wide_module_base_name = PortableFunctions::PathToNativeSlash(UTF8Convert::UTF8ToWide(module_base_name));
+        // case 2: evaluate the file path based on the module's base name
+        std::string wide_module_base_name = PortableFunctions::PathToNativeSlash(module_base_name);
 
         if( !executor.m_rootDirectory.empty() )
             wide_module_base_name = MakeFullPath(executor.m_rootDirectory, wide_module_base_name);
 
-        std::wstring new_filename_to_use = MakeFullPath(PortableFunctions::PathGetDirectory(wide_module_base_name), filename);
+        std::string new_file_path_to_use = MakeFullPath(PortableFunctions::PathGetDirectory(wide_module_base_name), file_path);
 
-        if( !PortableFunctions::FileIsRegular(new_filename_to_use) )
+        if( !PortableFunctions::FileIsRegular(new_file_path_to_use) )
         {
-            // case 3: evaluate the filename based on the root directory (when set)
+            // case 3: evaluate the file path based on the root directory (when set)
             if( !executor.m_rootDirectory.empty() )
             {
-                std::wstring test_filename = MakeFullPath(executor.m_rootDirectory, filename);
+                std::string test_file_path = MakeFullPath(executor.m_rootDirectory, file_path);
 
-                if( PortableFunctions::FileIsRegular(test_filename) )
-                    new_filename_to_use = test_filename;
+                if( PortableFunctions::FileIsRegular(test_file_path) )
+                    new_file_path_to_use = std::move(test_file_path);
             }
 
             // (else) case 4: return the case 2 option
         }
 
-        filename = new_filename_to_use;
+        file_path = std::move(new_file_path_to_use);
     }
 
-    const std::string utf_filename = UTF8Convert::WideToUTF8(executor.GetRelativeFilename(filename));
-    const size_t chars_with_null_terminator = utf_filename.length() + 1;
+    const std::string relative_file_path = executor.GetRelativeFilePath(std::move(file_path));
+    const size_t chars_with_null_terminator = relative_file_path.length() + 1;
 
-    char* filename_to_return = static_cast<char*>(js_malloc(executor.m_qjs->ctx, chars_with_null_terminator));
+    char* const file_path_to_return = static_cast<char*>(js_malloc(executor.m_qjs->ctx, chars_with_null_terminator));
 
-    memcpy(filename_to_return, utf_filename.c_str(), chars_with_null_terminator);
+    memcpy(file_path_to_return, relative_file_path.c_str(), chars_with_null_terminator);
 
-    return filename_to_return;
+    return file_path_to_return;
 }
 
 
-JSModuleDef* JavaScript::QuickJSAccess::ModuleLoader(JSContext* ctx, const char* module_name, void* /*opaque*/)
+JSModuleDef* JavaScript::QuickJSAccess::ModuleLoader(JSContext* const ctx, const char* const module_name, void* /*opaque*/)
 {
+    TRACE("QuickJSAccess: loading module: %s\n", module_name);
+
+    Executor& executor = GetExecutorFromContext(ctx);
+
     try
     {
-        Executor& executor = GetExecutorFromContext(ctx);
-        std::wstring relative_filename = UTF8Convert::UTF8ToWide(module_name);
-        std::optional<JSValue> js_result;
-        bool save_byte_code = false;
+        // the module name will be based off the root directory, so adjust it here
+        const std::string absolute_file_path = !executor.m_rootDirectory.empty() ? MakeFullPath(executor.m_rootDirectory, module_name) :
+                                                                                   module_name;
 
-        // load from byte code...
+        std::optional<Value> js_result;
+
+        // load from bytecode...
         if( executor.m_moduleLoaderHelper != nullptr )
         {
-            const ByteCode* byte_code = executor.m_moduleLoaderHelper->GetByteCode(relative_filename);
+            const Bytecode* const bytecode = executor.m_moduleLoaderHelper->GetBytecode(absolute_file_path);
 
-            if( byte_code != nullptr )
-            {
-                js_result = executor.m_qjs->ByteCodeToObject(*byte_code);
-            }
-
-            else
-            {
-                save_byte_code = executor.m_moduleLoaderHelper->NeedByteCode();
-            }
+            if( bytecode != nullptr )
+                js_result.emplace(executor.m_qjs, executor.m_qjs->BytecodeToObject(*bytecode));
         }
 
         // ...or from the disk
         if( !js_result.has_value() )
         {
-            // the module name will be based off the root directory, so adjust it here
-            std::wstring absolute_filename = relative_filename;
-
-            if( !executor.m_rootDirectory.empty() )
-                absolute_filename = MakeFullPath(executor.m_rootDirectory, relative_filename);
-
             std::string script;
-            std::wstring wide_script;
 
-            // in case the file is open in an editor, try to get the potentially modified-but-unsaved text
-            if( WindowsDesktopMessage::Send(UWM::UtilO::GetCodeText, absolute_filename.c_str(), &wide_script) == 1 )
-            {
-                script = UTF8Convert::WideToUTF8(wide_script);
-            }
-
+            // in case the file is open in an editor, try to get the potentially modified-but-unsaved text;
             // otherwise load it from the disk
-            else
-            {
-                script = FileIO::ReadText<std::string>(absolute_filename);
-            }
+            if( WindowsDesktopMessage::Send(UWM::UtilO::GetCodeText, &absolute_file_path, &script) != 1 )
+                script = FileIO::ReadText(absolute_file_path);
 
-            js_result = executor.EvaluateScript<JSValue>(script, relative_filename.c_str(), 1, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+            js_result = executor.EvaluateScript<Value>(script, module_name, 1, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
 
-        JSModuleDef* js_module_def = static_cast<JSModuleDef*>(JS_VALUE_GET_PTR(*js_result));
+        JSModuleDef* const js_module_def = static_cast<JSModuleDef*>(JS_VALUE_GET_PTR(js_result->GetValue()));
 
         // set the import metadata
-        JSValue js_meta_object = JS_GetImportMeta(ctx, js_module_def);
+        const Value js_meta_object(executor.m_qjs, JS_GetImportMeta(ctx, js_module_def));
 
-        if( !JS_IsException(js_meta_object) )
+        if( !JS_IsException(*js_meta_object) )
         {
-            std::string file_url = UTF8Convert::WideToUTF8(Encoders::ToFileUrl(relative_filename));
-            JS_DefinePropertyValueStr(ctx, js_meta_object, "url", JS_NewStringLen(ctx, file_url.data(), file_url.length()), JS_PROP_C_W_E);
-
-            JS_FreeValue(ctx, js_meta_object);
+            const std::string file_url = Encoders::ToFileUrl(module_name);
+            JS_DefinePropertyValueStr(ctx, *js_meta_object, "url", NewString(ctx, file_url), JS_PROP_C_W_E);
         }
-
-        // save the byte code (as needed)
-        if( save_byte_code )
-            executor.m_moduleLoaderHelper->SetByteCode(relative_filename, executor.m_qjs->ObjectToByteCode(*js_result));
-
-        JS_FreeValue(ctx, *js_result);
 
         return js_module_def;
     }
 
     catch( const CSProException& exception )
     {
+        if( executor.m_moduleLoadingErrors != nullptr )
+            executor.m_moduleLoadingErrors->emplace_back(module_name, exception.what());
+
         JS_ThrowReferenceError(ctx, "Could not load module: %s", exception.what());
+
         return nullptr;
     }
 }
 
 
-JSValue JavaScript::QuickJSAccess::PrintEvaluator(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+JSValue JavaScript::QuickJSAccess::PrintEvaluator(JSContext* const ctx, const JSValueConst this_val, const int argc, JSValueConst* const argv)
 {
     std::string full_text;
 
     for( int i = 0; i < argc; ++i )
     {
-        if( i != 0 )
-            full_text.append(" ");
-
-        const char* text = JS_ToCString(ctx, argv[i]);
+        const char* const text = JS_ToCString(ctx, argv[i]);
 
         if( text == nullptr )
             return JS_EXCEPTION;
 
-        full_text.append(text);
+        SO::AppendWithSeparator(full_text, text, " ");
 
         JS_FreeCString(ctx, text);
     }
@@ -341,12 +327,12 @@ JSValue JavaScript::QuickJSAccess::PrintEvaluator(JSContext* ctx, JSValueConst t
 
     if( JS_VALUE_GET_PTR(this_val) == JS_VALUE_GET_PTR(executor.m_qjs->js_console_object) )
     {
-        executor.m_printer->OnConsoleLog(full_text);
+        executor.m_printer->OnConsoleLog(std::move(full_text));
     }
 
     else
     {
-        executor.m_printer->OnPrint(full_text);
+        executor.m_printer->OnPrint(std::move(full_text));
     }
 
     return JS_UNDEFINED;

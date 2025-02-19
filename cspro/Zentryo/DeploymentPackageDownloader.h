@@ -1,45 +1,30 @@
 ﻿#pragma once
+
 #include <Zentryo/zEntryO.h>
-#include <zSyncO/ApplicationPackage.h>
+#include <zSyncO/ApplicationPackageManager.h>
 #include <zSyncO/SyncClient.h>
 
-struct IBluetoothAdapter;
-struct ISyncListener;
-struct ISyncServerConnectionFactory;
-struct ICredentialStore;
-struct ILoginDialog;
-struct IDropboxAuthDialog;
-struct IChooseBluetoothDeviceDialog;
-class SyncClient;
 
-///<summary>Manage process of choosing and downloading an application deployment package.</summary>
-class CLASS_DECL_ZENTRYO DeploymentPackageDownloader {
+// Manage process of choosing and downloading an application deployment package.
+
+class CLASS_DECL_ZENTRYO DeploymentPackageDownloader
+{
 public:
+    DeploymentPackageDownloader(ApplicationPackageManager application_package_manager);
 
-    DeploymentPackageDownloader();
-
-    ~DeploymentPackageDownloader();
-
-    SyncClient::SyncResult ConnectToServer(const CString& server);
-    SyncClient::SyncResult ConnectToServer(const CString &server, const CString &username, const CString &password);
+    SyncClient::SyncResult ConnectToServer(const SyncConnectionString& sync_connection_string);
     void Disconnect();
 
     SyncClient::SyncResult List(std::vector<ApplicationPackage>& packages);
 
-    SyncClient::SyncResult Install(const CString& packageName, bool forceFullUpdate);
+    SyncClient::SyncResult Install(const std::string& package_name, bool force_full_update);
 
     SyncClient::SyncResult ListUpdatable(std::vector<ApplicationPackage>& packages);
 
-    SyncClient::SyncResult  Update(const CString& package_name, const CString& server_url);
+    SyncClient::SyncResult Update(const std::string& package_name, const std::string& server_url);
 
 private:
-    IBluetoothAdapter* m_pBluetoothAdapter;
-    ISyncListener* m_pSyncListener;
-    ISyncServerConnectionFactory* m_pSyncServerConnectionFactory;
-    ICredentialStore* m_pSyncCredentialStore;
-    ILoginDialog* m_pLoginDlg;
-    IDropboxAuthDialog* m_pDropboxAuthDlg;
-    IChooseBluetoothDeviceDialog* m_pChooseBluetoothDlg;
-    ISyncListener* m_pListener;
-    SyncClient* m_pSyncClient;
+    ApplicationPackageManager m_applicationPackageManager;
+    std::shared_ptr<IBluetoothAdapter> m_bluetoothAdapter;
+    std::unique_ptr<SyncClient> m_syncClient;
 };

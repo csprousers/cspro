@@ -13,11 +13,14 @@
 //
 //---------------------------------------------------------------------------
 
-class SimpleDbMap;
 #include <ZTBDO/zTbdO.h>
 
-class CLASS_DECL_ZTBDO CTbiFile {
-    SimpleDbMap* m_pTableIndex;
+class SimpleDbMap;
+
+
+class CLASS_DECL_ZTBDO CTbiFile
+{
+    std::unique_ptr<SimpleDbMap> m_pTableIndex;
     CString     m_csFileName;
     int         m_iRegLen;
 
@@ -41,7 +44,7 @@ public:
     CString GetFileName() { return m_csFileName; }
 
     bool Open( bool bCreate );  // Open Tbi
-    bool Close();               // Close Tbi
+    void Close();               // Close Tbi
 
     long  GetCurrentOffset() const     { return m_lValue; }
     const TCHAR* GetCurrentReg() const { return m_csKey.c_str(); }

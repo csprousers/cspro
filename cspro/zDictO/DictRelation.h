@@ -3,40 +3,38 @@
 #include <zDictO/zDictO.h>
 #include <zDictO/DictNamedBase.h>
 
-class Serializer;
-
 
 // --------------------------------------------------------------------------
 // DictRelationPart
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZDICTO DictRelationPart 
+class CLASS_DECL_ZDICTO DictRelationPart
 {
 public:
-    const std::wstring& GetPrimaryLink() const     { return m_primaryLink; }
-    bool IsPrimaryLinkedByOccurrence() const       { return m_primaryLink.empty(); }
-    void SetPrimaryLink(std::wstring primary_link) { m_primaryLink = std::move(primary_link); }
+    const std::string& GetPrimaryLink() const     { return m_primaryLink; }
+    bool IsPrimaryLinkedByOccurrence() const      { return m_primaryLink.empty(); }
+    void SetPrimaryLink(std::string primary_link) { m_primaryLink = std::move(primary_link); }
 
-    const std::wstring& GetSecondaryName() const       { return m_secondaryName; }
-    void SetSecondaryName(std::wstring secondary_name) { m_secondaryName = std::move(secondary_name); }
+    const std::string& GetSecondaryName() const       { return m_secondaryName; }
+    void SetSecondaryName(std::string secondary_name) { m_secondaryName = std::move(secondary_name); }
 
-    const std::wstring& GetSecondaryLink() const       { return m_secondaryLink; }
-    bool IsSecondaryLinkedByOccurrence() const         { return m_secondaryLink.empty(); }
-    void SetSecondaryLink(std::wstring secondary_link) { m_secondaryLink = std::move(secondary_link); }
+    const std::string& GetSecondaryLink() const       { return m_secondaryLink; }
+    bool IsSecondaryLinkedByOccurrence() const        { return m_secondaryLink.empty(); }
+    void SetSecondaryLink(std::string secondary_link) { m_secondaryLink = std::move(secondary_link); }
 
 
     // serialization
     // ------------------------------
-    static DictRelationPart CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictRelationPart CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
 
 
 private:
-    std::wstring m_primaryLink;   // primary linking item name (empty if by occurrence)
-    std::wstring m_secondaryName; // secondary record or item name
-    std::wstring m_secondaryLink; // secondary linking item name (empty if by occurrence)
+    std::string m_primaryLink;   // primary linking item name (empty if by occurrence)
+    std::string m_secondaryName; // secondary record or item name
+    std::string m_secondaryLink; // secondary linking item name (empty if by occurrence)
 };
 
 
@@ -52,8 +50,8 @@ public:
 
     DictElementType GetElementType() const override { return DictElementType::Relation; }
 
-    const std::wstring& GetPrimaryName() const     { return m_primaryName; }
-    void SetPrimaryName(std::wstring primary_name) { m_primaryName = std::move(primary_name); }
+    const std::string& GetPrimaryName() const     { return m_primaryName; }
+    void SetPrimaryName(std::string primary_name) { m_primaryName = std::move(primary_name); }
 
     const std::vector<DictRelationPart>& GetRelationParts() const { return m_dictRelationParts; }
 
@@ -65,17 +63,17 @@ public:
     void RemoveRelationPart(size_t index);
 
     // returns the logic to declare this relation in logic
-    std::wstring GenerateCode(const std::wstring& dictionary_name) const;
+    std::string GenerateCode(const std::string& dictionary_name) const;
 
 
     // serialization
-    static DictRelation CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictRelation CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
 
 
 private:
-    std::wstring m_primaryName; // primary record or item name
+    std::string m_primaryName; // primary record or item name
     std::vector<DictRelationPart> m_dictRelationParts;
 };

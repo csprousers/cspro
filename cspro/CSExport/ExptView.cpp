@@ -118,7 +118,7 @@ bool CExportView::AddItemInTree(int iRel, const CDictItem* pItem, HTREEITEM htre
     int occurence = -1;
     tvistrItem.hParent = htreeLabel;
     tvistrItem.hInsertAfter = 0;
-    tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(),occurence);
+    tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(), occurence);
 
 
 
@@ -190,7 +190,7 @@ bool CExportView::AddRecordIntree(int iRel, const CDictRecord* pRecord, HTREEITE
 
         tvistrItem.hParent = htreeRecord;
         tvistrItem.hInsertAfter = 0;
-        tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(),occurence);
+        tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(), occurence);
         hParentItem = m_dicttree.InsertItem(&tvistrItem);
 
         //FABN INIT
@@ -231,7 +231,7 @@ bool CExportView::AddRecordIntree(int iRel, const CDictRecord* pRecord, HTREEITE
                 tvistrItem.item.cchTextMax = csLabel.GetLength();
                 tvistrItem.hParent = hParentItem;
                 tvistrItem.hInsertAfter = 0;
-                tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(),occurence1);
+                tvistrItem.item.lParam = GetDocument()->GetPositionInList(iRel, pItem->GetName(), occurence1);
 
                 hItem = m_dicttree.InsertItem(&tvistrItem);
                 //m_dicttree.SetCheck(hItem,GetDocument()->IsChecked(pItem->GetName(),occ+1));
@@ -252,7 +252,7 @@ bool CExportView::AddRecordIntree(int iRel, const CDictRecord* pRecord, HTREEITE
 LONG CExportView::OnInitializeView(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CWaitCursor wait;
-    const CDataDict* pDataDict = GetDocument()->m_pDataDict.get();
+    const CDataDict* pDataDict = GetDocument()->GetDataDict();
     if (pDataDict == NULL)
         return 0L;
 
@@ -302,7 +302,7 @@ LONG CExportView::OnInitializeView(WPARAM /*wParam*/, LPARAM /*lParam*/)
     for( const auto& dict_relation : pDataDict->GetRelations() ) {
         ++iRel;
         // Create relation tree item
-        CString csName = dict_relation.GetName();
+        CString csName = UTF8_TODO::GetCString(dict_relation.GetName());
         tvistrLabel.item.pszText = csName.GetBuffer(0);
         csName.ReleaseBuffer();
         tvistrLabel.item.cchTextMax = csName.GetLength();
@@ -896,21 +896,21 @@ void CExportView::RefreshView()
         HTREEITEM htempRoot = m_dicttree.GetRootItem();
         int level = 0, record = 0, item = 0, iocc = 0, rel = 0, part = 0;
         if (htempRoot == NULL)  return;
-        m_dicttree.SetItemText(htempRoot, GetDocument()->m_pDataDict->GetName());
+        m_dicttree.SetItemText(htempRoot, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetName()));
         for (HTREEITEM htemplevel = m_dicttree.GetChildItem(htempRoot); htemplevel != NULL;
             htemplevel = m_dicttree.GetNextItem(htemplevel, TVGN_NEXT)) {
             m_dicttree.GetItemImage(htemplevel, iImage, iSelImage);
             if (iImage == 1) {
-                m_dicttree.SetItemText(htemplevel, GetDocument()->m_pDataDict->GetLevel(level).GetName());
+                m_dicttree.SetItemText(htemplevel, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetName()));
                 record = -1;
                 for (HTREEITEM htempRecord = m_dicttree.GetChildItem(htemplevel); htempRecord != NULL;
                     htempRecord = m_dicttree.GetNextItem(htempRecord, TVGN_NEXT))
                 {
                     item = 0;
                     if (record == -1)
-                        m_dicttree.SetItemText(htempRecord, GetDocument()->m_pDataDict->GetLevel(level).GetIdItemsRec()->GetName());
+                        m_dicttree.SetItemText(htempRecord, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetName()));
                     else
-                        m_dicttree.SetItemText(htempRecord, GetDocument()->m_pDataDict->GetLevel(level).GetRecord(record)->GetName());
+                        m_dicttree.SetItemText(htempRecord, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetName()));
                     for (HTREEITEM htempItem = m_dicttree.GetChildItem(htempRecord); htempItem != NULL;
                         htempItem = m_dicttree.GetNextItem(htempItem, TVGN_NEXT)) {
                         iocc = 0;
@@ -945,46 +945,45 @@ void CExportView::RefreshView()
                     m_dicttree.GetItemImage(htempPart, iImage, iSelImage);
                     CString sPart;
                     if (bFirst) {
-                        sPart = WS2CS(GetDocument()->m_pDataDict->GetRelation(rel).GetPrimaryName());
+                        sPart = UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetRelation(rel).GetPrimaryName());
                         part = 0;
                         bFirst = false;
                     }
                     else {
-                        sPart = WS2CS(GetDocument()->m_pDataDict->GetRelation(rel).GetRelationPart(part).GetSecondaryName());
+                        sPart = UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetRelation(rel).GetRelationPart(part).GetSecondaryName());
                         part++;
                     }
                     if (iImage == 2) {
-                        GetDocument()->m_pDataDict->LookupName(sPart, &iLevel, &iRecord, &iItem, &iVSet);
-                        m_dicttree.SetItemText(htempPart, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetName());
+                        GetDocument()->GetDataDict()->LookupName(UTF8_TODO::GetUtf8(sPart), &iLevel, &iRecord, &iItem, &iVSet);
+                        m_dicttree.SetItemText(htempPart, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetName()));
                         item = 0;
                         for (HTREEITEM htempItem = m_dicttree.GetChildItem(htempPart); htempItem != NULL;
                             htempItem = m_dicttree.GetNextItem(htempItem, TVGN_NEXT)) {
                             iocc = 0;
-                            m_dicttree.SetItemText(htempItem, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetName());
+                            m_dicttree.SetItemText(htempItem, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetName()));
                             for (HTREEITEM htempOcc = m_dicttree.GetChildItem(htempItem); htempOcc != NULL;
                                 htempOcc = m_dicttree.GetNextItem(htempOcc, TVGN_NEXT))
                             {
                                 CString csoccLabel;
                                 csoccLabel.Format(_T("(%d)"), iocc + 1);
-                                m_dicttree.SetItemText(htempOcc, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetName() + csoccLabel);
+                                m_dicttree.SetItemText(htempOcc, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetName()) + csoccLabel);
                                 iocc++;
                             }
                             item++;
                         }
                     }
                     else {
-                        GetDocument()->m_pDataDict->LookupName(sPart, &iLevel, &iRecord, &iItem, &iVSet);
-                        const CDictItem* pItem = GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
-                        m_dicttree.SetItemText(htempPart, pItem->GetName());
+                        GetDocument()->GetDataDict()->LookupName(UTF8_TODO::GetUtf8(sPart), &iLevel, &iRecord, &iItem, &iVSet);
+                        const CDictItem* pItem = GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
+                        m_dicttree.SetItemText(htempPart, UTF8_TODO::GetCString(pItem->GetName()));
                         if (pItem->GetItemType() == ItemType::Item) {
-                            for (int i = iItem + 1; i < GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems(); i++) {
-                                pItem = GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
+                            for (int i = iItem + 1; i < GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems(); i++) {
+                                pItem = GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
                                 if (pItem->GetItemType() == ItemType::Item) {
                                     break;
                                 }
                                 htempPart = m_dicttree.GetNextItem(htempPart, TVGN_NEXT);
-                                CIMSAString sBMD = pItem->GetName();
-                                m_dicttree.SetItemText(htempPart, pItem->GetName());
+                                m_dicttree.SetItemText(htempPart, UTF8_TODO::GetCString(pItem->GetName()));
                             }
                         }
                     }
@@ -998,44 +997,48 @@ void CExportView::RefreshView()
         HTREEITEM htempRoot = m_dicttree.GetRootItem();
         int level = 0, record = 0, item = 0, iocc = 0, rel = 0, part = 0;
         if (htempRoot == NULL)  return;
-        m_dicttree.SetItemText(htempRoot, GetDocument()->m_pDataDict->GetLabel());
+        m_dicttree.SetItemText(htempRoot, GetDocument()->GetDataDict()->GetLabel());
         for (HTREEITEM htemplevel = m_dicttree.GetChildItem(htempRoot); htemplevel != NULL;
             htemplevel = m_dicttree.GetNextItem(htemplevel, TVGN_NEXT))
         {
             m_dicttree.GetItemImage(htemplevel, iImage, iSelImage);
             if (iImage == 1) {
-                m_dicttree.SetItemText(htemplevel, GetDocument()->m_pDataDict->GetLevel(level).GetLabel());
+                m_dicttree.SetItemText(htemplevel, GetDocument()->GetDataDict()->GetLevel(level).GetLabel());
                 record = -1;
                 for (HTREEITEM htempRecord = m_dicttree.GetChildItem(htemplevel); htempRecord != NULL;
                     htempRecord = m_dicttree.GetNextItem(htempRecord, TVGN_NEXT))
                 {
                     item = 0;
                     if (record == -1)
-                        m_dicttree.SetItemText(htempRecord, GetDocument()->m_pDataDict->GetLevel(level).GetIdItemsRec()->GetLabel());
+                        m_dicttree.SetItemText(htempRecord, GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetLabel());
                     else
-                        m_dicttree.SetItemText(htempRecord, GetDocument()->m_pDataDict->GetLevel(level).GetRecord(record)->GetLabel());
+                        m_dicttree.SetItemText(htempRecord, GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetLabel());
                     for (HTREEITEM htempItem = m_dicttree.GetChildItem(htempRecord); htempItem != NULL;
                         htempItem = m_dicttree.GetNextItem(htempItem, TVGN_NEXT))
                     {
                         iocc = 0;
                         if (record == -1)
-                            m_dicttree.SetItemText(htempItem, GetDocument()->m_pDataDict->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetLabel());
+                            m_dicttree.SetItemText(htempItem, GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetLabel());
                         else
-                            m_dicttree.SetItemText(htempItem, GetDocument()->m_pDataDict->GetLevel(level).GetRecord(record)->GetItem(item)->GetLabel());
+                            m_dicttree.SetItemText(htempItem, GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetLabel());
 
 
                         for (HTREEITEM htempOcc = m_dicttree.GetChildItem(htempItem); htempOcc != NULL;
                             htempOcc = m_dicttree.GetNextItem(htempOcc, TVGN_NEXT))
                         {
-                            // GHM 20140226 rewritten slightly to properly support occurrence labels
+                            // 20140226 rewritten slightly to properly support occurrence labels
                             const CDictItem* pItem = GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record == -1 ? COMMON : record)->GetItem(item);
                             CString csItemLabel;
 
                             if (pItem->GetOccurs() == 1 || pItem->GetOccurrenceLabels().GetLabel(iocc).IsEmpty())
-                                csItemLabel.Format(_T("%s(%d)"), (LPCTSTR)pItem->GetLabel(), iocc + 1);
+                            {
+                                csItemLabel.Format(_T("%s(%d)"), pItem->GetLabel().GetString(), iocc + 1);
+                            }
 
                             else
+                            {
                                 csItemLabel = pItem->GetOccurrenceLabels().GetLabel(iocc);
+                            }
 
                             m_dicttree.SetItemText(htempOcc, csItemLabel);
 
@@ -1055,45 +1058,44 @@ void CExportView::RefreshView()
                     m_dicttree.GetItemImage(htempPart, iImage, iSelImage);
                     CString sPart;
                     if (bFirst) {
-                        sPart = WS2CS(GetDocument()->m_pDataDict->GetRelation(rel).GetPrimaryName());
+                        sPart = UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetRelation(rel).GetPrimaryName());
                         part = 0;
                         bFirst = false;
                     }
                     else {
-                        sPart = WS2CS(GetDocument()->m_pDataDict->GetRelation(rel).GetRelationPart(part).GetSecondaryName());
+                        sPart = UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetRelation(rel).GetRelationPart(part).GetSecondaryName());
                         part++;
                     }
                     if (iImage == 2) {
-                        GetDocument()->m_pDataDict->LookupName(sPart, &iLevel, &iRecord, &iItem, &iVSet);
-                        m_dicttree.SetItemText(htempPart, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetLabel());
+                        GetDocument()->GetDataDict()->LookupName(UTF8_TODO::GetUtf8(sPart), &iLevel, &iRecord, &iItem, &iVSet);
+                        m_dicttree.SetItemText(htempPart, GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetLabel());
                         item = 0;
                         for (HTREEITEM htempItem = m_dicttree.GetChildItem(htempPart); htempItem != NULL;
                             htempItem = m_dicttree.GetNextItem(htempItem, TVGN_NEXT)) {
                             iocc = 0;
-                            m_dicttree.SetItemText(htempItem, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetLabel());
+                            m_dicttree.SetItemText(htempItem, GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetLabel());
                             for (HTREEITEM htempOcc = m_dicttree.GetChildItem(htempItem); htempOcc != NULL;
                                 htempOcc = m_dicttree.GetNextItem(htempOcc, TVGN_NEXT))
                             {
                                 CString csoccLabel;
                                 csoccLabel.Format(_T("(%d)"), iocc + 1);
-                                m_dicttree.SetItemText(htempOcc, GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetLabel() + csoccLabel);
+                                m_dicttree.SetItemText(htempOcc, GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(item)->GetLabel() + csoccLabel);
                                 iocc++;
                             }
                             item++;
                         }
                     }
                     else {
-                        GetDocument()->m_pDataDict->LookupName(sPart, &iLevel, &iRecord, &iItem, &iVSet);
-                        const CDictItem* pItem = GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
+                        GetDocument()->GetDataDict()->LookupName(UTF8_TODO::GetUtf8(sPart), &iLevel, &iRecord, &iItem, &iVSet);
+                        const CDictItem* pItem = GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
                         m_dicttree.SetItemText(htempPart, pItem->GetLabel());
                         if (pItem->GetItemType() == ItemType::Item) {
-                            for (int i = iItem + 1; i < GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems(); i++) {
-                                pItem = GetDocument()->m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
+                            for (int i = iItem + 1; i < GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems(); i++) {
+                                pItem = GetDocument()->GetDataDict()->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
                                 if (pItem->GetItemType() == ItemType::Item) {
                                     break;
                                 }
                                 htempPart = m_dicttree.GetNextItem(htempPart, TVGN_NEXT);
-                                CIMSAString sBMD = pItem->GetName();
                                 m_dicttree.SetItemText(htempPart, pItem->GetLabel());
                             }
                         }
@@ -1225,7 +1227,7 @@ bool CExportView::IsSelectedAnyRelation(){
     if(!pDoc)
         return false;
 
-    const CDataDict* pDataDict = pDoc->m_pDataDict.get();
+    const CDataDict* pDataDict = pDoc->GetDataDict();
     if(!pDataDict)
         return false;
 

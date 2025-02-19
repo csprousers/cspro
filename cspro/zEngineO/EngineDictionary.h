@@ -10,10 +10,14 @@ struct EngineData;
 class SystemMessageIssuer;
 
 
-// this class is for:
+// --------------------------------------------------------------------------
+// EngineDictionary
+//
+// This class is for:
 //      - dictionaries (that have a data repository and a case)
 //      - cases (that only have a case)
 //      - data repositories (that only have a data repository)
+// --------------------------------------------------------------------------
 
 class ZENGINEO_API EngineDictionary : public Symbol
 {
@@ -25,9 +29,9 @@ public:
 private:
     EngineDictionary(const EngineDictionary& engine_dictionary);
 
-    EngineDictionary(std::wstring dictionary_name, EngineData& engine_data);
+    EngineDictionary(std::string dictionary_name, EngineData& engine_data);
 
-    EngineDictionary(Contents contents, std::wstring dictionary_name,
+    EngineDictionary(Contents contents, std::string dictionary_name,
                      std::shared_ptr<const CDataDict> dictionary, std::shared_ptr<CaseAccess> case_access,
                      EngineData& engine_data);
 
@@ -45,8 +49,10 @@ public:
     const CDataDict& GetDictionary() const                       { return *m_dictionary; }
     std::shared_ptr<const CDataDict> GetSharedDictionary() const { return m_dictionary; }
 
-    CaseAccess* GetCaseAccess() const                       { return m_caseAccess.get(); }
-    std::shared_ptr<CaseAccess> GetSharedCaseAccess() const { return m_caseAccess; }
+    const CaseAccess* GetCaseAccess() const                       { return m_caseAccess.get(); }
+    CaseAccess* GetCaseAccess()                                   { return m_caseAccess.get(); }
+    std::shared_ptr<const CaseAccess> GetSharedCaseAccess() const { return m_caseAccess; }
+    std::shared_ptr<CaseAccess> GetSharedCaseAccess()             { return m_caseAccess; }
 
     const EngineCase& GetEngineCase() const { ASSERT(HasEngineCase()); return *m_engineCase; }
     EngineCase& GetEngineCase()             { ASSERT(HasEngineCase()); return *m_engineCase; }
@@ -58,7 +64,9 @@ public:
 
 
     // symbol overrides
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
+
+    void CompareDeclarationAttributes(const Symbol& symbol) const override;
 
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
@@ -71,14 +79,14 @@ protected:
 
 public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    // ENGINECR_TODO allow updating of the case with UpdateValueFromJson?
+    // ENGINECR_TODO allow updating of the case with SetValueFromJson?
 
 
     // runtime methods
 public:
     void InitializeRuntime(std::shared_ptr<SystemMessageIssuer> system_message_issuer,
                            std::shared_ptr<CaseConstructionReporter> case_construction_reporter_override,
-                           std::shared_ptr<std::function<void(EngineDataRepository&)>> reset_override);
+                           std::function<void(EngineDataRepository&)> reset_override);
 
 
 private:
@@ -91,5 +99,5 @@ private:
     std::unique_ptr<EngineCase> m_engineCase;
     std::unique_ptr<EngineDataRepository> m_engineDataRepository;
 
-    std::shared_ptr<std::function<void(EngineDataRepository&)>> m_resetOverride;
+    std::function<void(EngineDataRepository&)> m_resetOverride;
 };

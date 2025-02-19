@@ -43,9 +43,9 @@ private:
     int m_recordIteratorLoadCases;
     int m_recordInitialPropertyValues;
 
-    CString m_deviceStateIntervalMinutes;
-    CString m_gpsLocationIntervalMinutes;
+    std::string m_deviceStateIntervalMinutes;
+    std::string m_gpsLocationIntervalMinutes;
 
     CCheckListBox m_eventsCheckListBox;
-    std::vector<std::tuple<std::wstring, const Paradata::TableDefinition*>> m_eventMappings;
+    std::vector<std::tuple<std::string, const Paradata::TableDefinition*>> m_eventMappings;
 };

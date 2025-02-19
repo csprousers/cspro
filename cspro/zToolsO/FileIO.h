@@ -2,21 +2,29 @@
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/CSProException.h>
+#include <zToolsO/TextEncoding.h>
 
 
 namespace FileIO
 {
-    struct CLASS_DECL_ZTOOLSO Exception : public CSProException
+    class File;
+
+    class CLASS_DECL_ZTOOLSO Exception : public CSProException
     {
+    public:
         using CSProException::CSProException;
 
-        static Exception DirectoryNotFound(NullTerminatedString path);
+        static Exception DirectoryNotFound(InterfaceString directory_path);
 
-        static Exception FileNotFound(NullTerminatedString filename);
-        static Exception FileOpenError(NullTerminatedString filename);
-        static Exception FileNotFullyWritten(NullTerminatedString filename, bool delete_file_from_disk);
-        static Exception FileCopyFail(NullTerminatedString source_path, NullTerminatedString destination_path);
-        static Exception FileCopyFailDestinationExists(NullTerminatedString source_path, NullTerminatedString destination_path);
+        static Exception FileNotFound(InterfaceString file_path);
+        static Exception FileOpenError(InterfaceString file_path);
+        static Exception FileCreateError(InterfaceString file_path);
+        static Exception FileReadError(InterfaceString file_path);
+        static Exception FileNotFullyWritten(InterfaceString file_path, bool delete_file_from_disk);
+        static Exception FileCopyFail(InterfaceString source_path, InterfaceString destination_path);
+        static Exception FileCopyFailDestinationExists(InterfaceString source_path, InterfaceString destination_path);
+        static Exception FileMoveFail(InterfaceString source_path, InterfaceString destination_path);
+        static Exception FileDeleteFail(InterfaceString file_path);
     };
 
     struct FileAndSize
@@ -26,93 +34,71 @@ namespace FileIO
     };
 
 
-    /// <summary>
-    /// Opens a file, returning the FILE pointer and file size.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO FileAndSize OpenFile(NullTerminatedString filename);
+    // Opens a file, returning the FILE pointer and file size.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO FileAndSize OpenFile(InterfaceString file_path);
 
-    /// <summary>
-    /// Reads an entire file.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::vector<std::byte>> Read(NullTerminatedString filename);
+    // Reads an entire file.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::unique_ptr<std::vector<std::byte>> Read(InterfaceString file_path);
+    CLASS_DECL_ZTOOLSO BinaryBlock ReadBinary(InterfaceString file_path);
 
-    /// <summary>
-    /// Reads an entire file, assuming a UTF-8 encoding (BOM or not) and returns the file as a string.
-    /// The function can return either a std::wstring or a std::string.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    template<typename StringType = std::wstring>
-    CLASS_DECL_ZTOOLSO StringType ReadText(NullTerminatedString filename);
+    // Reads an entire file, using the encoding specified in text_encoding if no BOM exists,
+    // and returns the file as a UTF-8 string.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::string ReadText(InterfaceString file_path, TextEncoding text_encoding = TextEncoding::Type::Utf8);
 
-    /// <summary>
-    /// Reads a file, assuming a UTF-8 encoding (BOM or not) and returns the file as a string.
-    /// The second argument controls the maximum number of bytes to read. An optional message
-    /// is appended to the string when the maximum number of bytes is read.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO CString ReadText(NullTerminatedString filename, int64_t max_bytes_to_read,
-	                                    const TCHAR* message = nullptr);
+    // Reads a file, assuming a UTF-8 encoding (BOM or not) and returns the file as a string.
+    // The second argument controls the maximum number of bytes to read. An optional message
+    // is appended to the string when the maximum number of bytes is read.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::string ReadText(InterfaceString file_path, int64_t max_bytes_to_read,
+	                                        const char* message = nullptr);
 
-    /// <summary>
-    /// Opens an input stream for wide character text input based on the contents of a UTF-8 file.
-    /// The BOM will be skipped if it exists.
-    /// This function and stream operations throw FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::wistream> OpenWideTextInputFileStream(NullTerminatedString filename);
+    // Opens an input stream for wide character text input based on the contents of a UTF-8 file.
+    // The BOM will be skipped if it exists.
+    // This function and stream operations throw FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::unique_ptr<std::wistream> OpenWideTextInputFileStream(InterfaceString file_path);
 
-    /// <summary>
-    /// Opens an input stream for non-wide character text input based on the contents of a UTF-8 file.
-    /// The BOM will be skipped if it exists.
-    /// This function and stream operations throw FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::ifstream> OpenTextInputFileStream(NullTerminatedString filename);
+    // Opens an input stream for non-wide character text input based on the contents of a UTF-8 file.
+    // The BOM will be skipped if it exists.
+    // If file_size is not null, it will be set to the size of the file.
+    // This function and stream operations throw FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::unique_ptr<std::ifstream> OpenTextInputFileStream(InterfaceString file_path, std::streampos* file_size = nullptr);
 
 
-    /// <summary>
-    /// Creates any directories that do not exist.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO void CreateDirectories(const std::wstring& directory);
-    CLASS_DECL_ZTOOLSO void CreateDirectoriesForFile(NullTerminatedString filename);
+    // Creates any directories that do not exist.
+    // These function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO void CreateDirectories(InterfaceString directory_path);
+    CLASS_DECL_ZTOOLSO void CreateDirectoriesForFile(InterfaceString file_path);
 
-    /// <summary>
-    /// Opens a file stream for output.
-    /// Any directories that do not exist will be created.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::ofstream> OpenOutputFileStream(NullTerminatedString filename);
+    // Opens a file stream for output.
+    // Any directories that do not exist will be created.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO std::unique_ptr<std::ofstream> OpenOutputFileStream(InterfaceString file_path);
 
-    /// <summary>
-    /// Opens a file for output.
-    /// Any directories that do not exist will be created.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO FILE* OpenFileForOutput(NullTerminatedString filename);
+    // Opens a file for output.
+    // Any directories that do not exist will be created.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO FILE* OpenFileForOutput(InterfaceString file_path);
 
-    /// <summary>
-    /// Any directories that do not exist will be created.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO void Write(NullTerminatedString filename, const std::byte* content, size_t content_size);
+    // Writes the data to a file.
+    // Any directories that do not exist will be created.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO void Write(InterfaceString file_path, const std::byte* content, size_t content_size);
 
-    /// <summary>
-    /// Any directories that do not exist will be created.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
+    // Writes the data to a file.
+    // Any directories that do not exist will be created.
+    // This function throws FileIO::Exception exceptions.
     template<typename T>
-    void Write(NullTerminatedString filename, const T& content)
+    void Write(InterfaceString file_path, const T& content)
     {
         static_assert(sizeof(*content.data()) == sizeof(std::byte));
-        Write(filename, reinterpret_cast<const std::byte*>(content.data()), content.size());
+        Write(std::move(file_path), reinterpret_cast<const std::byte*>(content.data()), content.size());
     }
 
-    /// <summary>
-    /// Writes the text in UTF-8, with or without a BOM.
-    /// Any directories that do not exist will be created.
-    /// This function throws FileIO::Exception exceptions.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO void WriteText(NullTerminatedString filename, std::string_view text_content, bool write_utf8_bom);
-    CLASS_DECL_ZTOOLSO void WriteText(NullTerminatedString filename, wstring_view text_content, bool write_utf8_bom);
+    // Writes the text in UTF-8, with or without a BOM.
+    // Any directories that do not exist will be created.
+    // This function throws FileIO::Exception exceptions.
+    CLASS_DECL_ZTOOLSO void WriteText(InterfaceString file_path, std::string_view text_content_sv, bool write_utf8_bom);
 }

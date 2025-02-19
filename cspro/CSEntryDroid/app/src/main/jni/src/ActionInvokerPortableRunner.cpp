@@ -3,19 +3,19 @@
 #include <zAction/PortableRunner.h>
 
 
-std::optional<std::wstring> ActionInvoker::PortableRunner::ClipboardGetText()
+SharableString ActionInvoker::PortableRunner::Clipboard_GetText()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jstring> jText(pEnv, (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
                                                                                                JNIReferences::methodApplicationInterfaceClipboardGetText));
-    return JavaToOptionalWSZ(pEnv, jText.get());
+    return JavaString::ToSharableString(*pEnv, jText.get());
 }
 
 
-void ActionInvoker::PortableRunner::ClipboardPutText(const std::wstring& text)
+void ActionInvoker::PortableRunner::Clipboard_PutText(const std::string_view text_sv)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    auto jText = JNIReferences::make_local_ref(pEnv, WideToJava(pEnv, text));
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    auto jText = JNIReferences::make_local_ref(pEnv, JavaString::ToJava(*pEnv, std::string(text_sv)));
 
     pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
                                JNIReferences::methodApplicationInterfaceClipboardPutText,
@@ -25,17 +25,38 @@ void ActionInvoker::PortableRunner::ClipboardPutText(const std::wstring& text)
 }
 
 
-std::vector<std::tuple<std::wstring, std::wstring>> ActionInvoker::PortableRunner::SystemShowSelectDocumentDialog(const std::vector<std::wstring>& mime_types, const bool multiple)
+void ActionInvoker::PortableRunner::System_CreateShortcut(const std::string& shortcut_id, const std::string& target_file_path,
+                                                          const std::optional<std::string>& icon_file_path,
+                                                          const std::string& label, const std::optional<std::string>& long_label)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    JNIReferences::scoped_local_ref<jstring> jShortcutId(pEnv, JavaString::ToJava(*pEnv, shortcut_id));
+    JNIReferences::scoped_local_ref<jstring> jTargetFilePath(pEnv, JavaString::ToJava(*pEnv, target_file_path));
+    JNIReferences::scoped_local_ref<jstring> jIconFilePath(pEnv, JavaString::ToJava(*pEnv, icon_file_path));
+    JNIReferences::scoped_local_ref<jstring> jLabel(pEnv, JavaString::ToJava(*pEnv, label));
+    JNIReferences::scoped_local_ref<jstring> jLongLabel(pEnv, JavaString::ToJava(*pEnv, long_label));
+
+    pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
+                               JNIReferences::methodApplicationInterfaceCreatePinShortcut,
+                               jShortcutId.get(), jTargetFilePath.get(), jIconFilePath.get(), jLabel.get(), jLongLabel.get());
+
+    ThrowJavaExceptionAsCSProException(pEnv);
+}
+
+
+std::vector<std::tuple<std::string, std::string>> ActionInvoker::PortableRunner::System_ShowSelectDocumentDialog(const std::vector<std::string>& mime_types,
+                                                                                                                 const bool multiple)
 {
     ASSERT(!mime_types.empty());
 
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     JNIReferences::scoped_local_ref<jobjectArray> jMimeTypes(pEnv, pEnv->NewObjectArray(mime_types.size(), JNIReferences::classString, pEnv->NewStringUTF("")));
 
     for( int i = 0; i < mime_types.size(); ++i )
     {
-        JNIReferences::scoped_local_ref<jstring> jMimeType(pEnv, WideToJava(pEnv, mime_types[i]));
+        JNIReferences::scoped_local_ref<jstring> jMimeType(pEnv, JavaString::ToJava(*pEnv, mime_types[i]));
         pEnv->SetObjectArrayElement(jMimeTypes.get(), i, jMimeType.get());
     }
 
@@ -45,7 +66,7 @@ std::vector<std::tuple<std::wstring, std::wstring>> ActionInvoker::PortableRunne
                                                                              multiple);
     ThrowJavaExceptionAsCSProException(pEnv);
 
-    std::vector<std::tuple<std::wstring, std::wstring>> paths_and_names;
+    std::vector<std::tuple<std::string, std::string>> paths_and_names;
 
     if( jPathsAndNames != nullptr )
     {
@@ -57,7 +78,8 @@ std::vector<std::tuple<std::wstring, std::wstring>> ActionInvoker::PortableRunne
             JNIReferences::scoped_local_ref<jstring> jPath(pEnv, (jstring)pEnv->GetObjectArrayElement(jPathsAndNames, i));
             JNIReferences::scoped_local_ref<jstring> jName(pEnv, (jstring)pEnv->GetObjectArrayElement(jPathsAndNames, i + 1));
 
-            paths_and_names.emplace_back(JavaToWSZ(pEnv, jPath.get()), JavaToWSZ(pEnv, jName.get()));
+            paths_and_names.emplace_back(JavaString::ToUtf8(*pEnv, jPath.get()),
+                                         JavaString::ToUtf8(*pEnv, jName.get()));
         }
     }
 

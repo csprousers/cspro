@@ -28,7 +28,7 @@ protected:
     void OnSize(UINT nType, int cx, int cy);
     
 private:
-    void OnSourceChanged(const std::wstring& uri) const;
+    void OnSourceChanged(const std::string& uri) const;
 
 private:
     std::unique_ptr<ReturnProcessingEdit> m_htmlSourceEdit;

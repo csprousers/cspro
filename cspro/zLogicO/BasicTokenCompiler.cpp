@@ -29,13 +29,12 @@ void BasicTokenCompiler::ClearSourceBuffer()
 
 void BasicTokenCompiler::SetSourceBuffer(const TextSource& source_text_source)
 {
-    SetSourceBuffer(std::make_shared<SourceBuffer>(source_text_source.GetText()));
-    m_compilationUnitName = source_text_source.GetFilename();
-    m_capiLogicLocation.reset();
+    SetSourceBuffer(std::make_unique<SourceBuffer>(source_text_source.GetTextAsSharableString()));
+    SetCompilationUnitName(source_text_source.GetFilePath());
 }
 
 
-void BasicTokenCompiler::SetSourceBuffer(std::shared_ptr<SourceBuffer> source_buffer, const ProcDirectoryEntry* proc_directory_entry/* = nullptr*/)
+void BasicTokenCompiler::SetSourceBuffer(std::shared_ptr<SourceBuffer> source_buffer, const ProcDirectoryEntry* const proc_directory_entry/* = nullptr*/)
 {
     ClearSourceBuffer();
 
@@ -55,7 +54,7 @@ void BasicTokenCompiler::SetSourceBuffer(std::shared_ptr<SourceBuffer> source_bu
 }
 
 
-void BasicTokenCompiler::SetCompilationUnitName(std::wstring name)
+void BasicTokenCompiler::SetCompilationUnitName(std::string name)
 {
     m_compilationUnitName = std::move(name);
     m_capiLogicLocation.reset();
@@ -64,7 +63,7 @@ void BasicTokenCompiler::SetCompilationUnitName(std::wstring name)
 
 void BasicTokenCompiler::SetCapiLogicLocation(CapiLogicLocation capi_logic_location)
 {
-    m_compilationUnitName = _T("<CAPI Text>");
+    m_compilationUnitName = "<CAPI Text>";
     m_capiLogicLocation = std::move(capi_logic_location);
 }
 
@@ -90,7 +89,7 @@ void BasicTokenCompiler::ClearMarkedInputBuffer()
 }
 
 
-void BasicTokenCompiler::MoveNextBasicTokenIndex(int offset_from_next_token_index)
+void BasicTokenCompiler::MoveNextBasicTokenIndex(const int offset_from_next_token_index)
 {
     const size_t offset = m_nextBasicTokenIndex + offset_from_next_token_index;
 
@@ -106,7 +105,7 @@ void BasicTokenCompiler::MoveNextBasicTokenIndex(int offset_from_next_token_inde
 }
 
 
-const BasicToken* BasicTokenCompiler::GetBasicTokenFromOffset(int offset_from_next_token_index) const
+const BasicToken* BasicTokenCompiler::GetBasicTokenFromOffset(const int offset_from_next_token_index) const
 {
     const size_t offset = m_nextBasicTokenIndex + offset_from_next_token_index;
     return ( offset < m_basicTokens.size() ) ? &m_basicTokens[offset] : nullptr;
@@ -115,7 +114,7 @@ const BasicToken* BasicTokenCompiler::GetBasicTokenFromOffset(int offset_from_ne
 
 size_t BasicTokenCompiler::GetCurrentBasicTokenLineNumber() const
 {
-    const BasicToken* basic_token = GetCurrentBasicToken();
+    const BasicToken* const basic_token = GetCurrentBasicToken();
     return ( basic_token != nullptr ) ? basic_token->line_number : 1;
 }
 
@@ -123,7 +122,7 @@ size_t BasicTokenCompiler::GetCurrentBasicTokenLineNumber() const
 // the most straightforward next token reader
 const BasicToken* BasicTokenCompiler::NextBasicToken()
 {
-    BasicToken* basic_token = nullptr;
+    const BasicToken* basic_token = nullptr;
 
     if( m_nextBasicTokenIndex < m_basicTokens.size() )
     {
@@ -133,8 +132,8 @@ const BasicToken* BasicTokenCompiler::NextBasicToken()
         // check for unbalanced comments
         if( basic_token->type == BasicToken::Type::UnbalancedComment )
         {
-            const bool is_start_comment = ( basic_token->GetTextSV() == GetLogicSettings().GetMultilineCommentStart() );
-            IssueError(MGF::unbalanced_multiline_comment_92180, is_start_comment ? _T("start") : _T("end"), basic_token->GetText().c_str());
+            const bool is_start_comment = ( basic_token->GetSV() == GetLogicSettings().GetMultilineCommentStart() );
+            IssueError(MGF::unbalanced_multiline_comment_92180, is_start_comment ? "start" : "end", basic_token->GetText().c_str());
         }
     }
 
@@ -142,38 +141,7 @@ const BasicToken* BasicTokenCompiler::NextBasicToken()
 }
 
 
-template<typename T/* = const TCHAR**/>
-size_t BasicTokenCompiler::NextKeyword(const std::vector<T>& keywords)
-{
-    const BasicToken* basic_token = NextBasicToken();
-
-    if( basic_token != nullptr )
-    {
-        wstring_view token_text_sv = basic_token->GetTextSV();
-
-        // check if the value is in the list of strings
-        size_t index = 1;
-
-        for( const auto& keyword : keywords )
-        {
-            if( SO::EqualsNoCase(token_text_sv, keyword) )
-                return index;
-
-            ++index;
-        }
-
-        // no match, so reset the token index back to where it had been
-        --m_nextBasicTokenIndex;
-    }
-
-    return 0;
-}
-
-template ZLOGICO_API size_t BasicTokenCompiler::NextKeyword(const std::vector<const TCHAR*>& keywords);
-template ZLOGICO_API size_t BasicTokenCompiler::NextKeyword(const std::vector<std::wstring>& keywords);
-
-
-bool BasicTokenCompiler::SkipBasicTokensUntil(TokenCode token_code)
+bool BasicTokenCompiler::SkipBasicTokensUntil(const TokenCode token_code)
 {
     for( ; m_nextBasicTokenIndex < m_basicTokens.size(); ++m_nextBasicTokenIndex )
     {
@@ -185,11 +153,11 @@ bool BasicTokenCompiler::SkipBasicTokensUntil(TokenCode token_code)
 }
 
 
-bool BasicTokenCompiler::SkipBasicTokensUntil(wstring_view token_text)
+bool BasicTokenCompiler::SkipBasicTokensUntil(const std::string_view token_text_sv)
 {
     for( ; m_nextBasicTokenIndex < m_basicTokens.size(); ++m_nextBasicTokenIndex )
     {
-        if( SO::EqualsNoCase(token_text, m_basicTokens[m_nextBasicTokenIndex].GetTextSV()) )
+        if( SO::EqualsNoCase(token_text_sv, m_basicTokens[m_nextBasicTokenIndex].GetSV()) )
             return true;
     }
 
@@ -201,19 +169,20 @@ cs::span<const BasicToken> BasicTokenCompiler::GetBasicTokensSpanFromCurrentToke
 {
     ASSERT(m_nextBasicTokenIndex >= 1);
 
-    size_t start_token_index = m_nextBasicTokenIndex - 1;
+    const size_t start_token_index = m_nextBasicTokenIndex - 1;
 
-    return cs::span<const BasicToken>(m_basicTokens.data() + start_token_index, m_basicTokens.size() - start_token_index);
+    return cs::span<const BasicToken>(m_basicTokens.data() + start_token_index,
+                                      m_basicTokens.size() - start_token_index);
 }
 
 
-std::wstring BasicTokenCompiler::GetBasicTokenLine(const BasicToken& basic_token) const
+std::string BasicTokenCompiler::GetBasicTokenLine(const BasicToken& basic_token) const
 {
     // the basic token contains a pointer to the buffer, so we can read backwards
     // and forwards to get the entire line
-    const TCHAR* buffer_start_position = m_sourceBuffer->GetBuffer();
-    const TCHAR* line_start = basic_token.token_text - 1;
-    const TCHAR* line_end = basic_token.token_text + basic_token.token_length;
+    const char* const buffer_start_position = m_sourceBuffer->GetBuffer();
+    const char* line_start = basic_token.token_text - 1;
+    const char* line_end = basic_token.token_text + basic_token.token_length;
 
     while( line_start >= buffer_start_position && !is_crlf(*line_start) )
         --line_start;
@@ -223,22 +192,44 @@ std::wstring BasicTokenCompiler::GetBasicTokenLine(const BasicToken& basic_token
     while( *line_end != 0 && !is_crlf(*line_end) )
         ++line_end;
 
-    return std::wstring(line_start, line_end - line_start);
+    return std::string(line_start, line_end - line_start);
 }
 
 
-void BasicTokenCompiler::IssueMessage(ParserMessage& parser_message, int message_number, va_list parg)
+void BasicTokenCompiler::IssueMessageWorker(ParserMessage& parser_message, const int message_number, ...)
 {
-    ASSERT(std::holds_alternative<std::monostate>(parser_message.extended_location));
+    va_list parg;
+    va_start(parg, message_number);
+    IssueMessageWorkerVA(parser_message, message_number, parg);
+    va_end(parg);
+}
 
+
+void BasicTokenCompiler::IssueMessageWorkerVA(ParserMessage& parser_message, const int message_number, va_list parg)
+{
     parser_message.message_number = message_number;
     parser_message.compilation_unit_name = m_compilationUnitName;
     parser_message.proc_name = GetCurrentProcName();
 
     if( m_capiLogicLocation.has_value() )
+    {
+        ASSERT(std::holds_alternative<std::monostate>(parser_message.extended_location));
         parser_message.extended_location = *m_capiLogicLocation;
+    }
 
-    const BasicToken* basic_token = GetCurrentBasicToken();
+    else if( std::holds_alternative<ParserMessage::LineNumberOverride>(parser_message.extended_location) )
+    {
+        parser_message.line_number = std::get<ParserMessage::LineNumberOverride>(parser_message.extended_location).line_number;
+        parser_message.extended_location.emplace<std::monostate>();
+    }
+
+    else
+    {
+        ASSERT(std::holds_alternative<std::monostate>(parser_message.extended_location) ||
+               std::holds_alternative<ParserMessage::MessageFile>(parser_message.extended_location));
+    }
+
+    const BasicToken* const basic_token = GetCurrentBasicToken();
 
     if( basic_token != nullptr )
     {
@@ -250,20 +241,9 @@ void BasicTokenCompiler::IssueMessage(ParserMessage& parser_message, int message
 }
 
 
-void BasicTokenCompiler::IssueMessage(ParserMessage& parser_message, int message_number, ...)
-{
-    va_list parg;
-    va_start(parg, message_number);
-
-    IssueMessage(parser_message, message_number, parg);
-
-    va_end(parg);
-}
-
-
 void BasicTokenCompiler::FormatMessageAndProcessParserMessage(ParserMessage& parser_message, va_list/* parg*/)
 {
     // a derived class will use the message file
     ASSERT(false);
-    parser_message.message_text = FormatTextCS2WS(_T("Message %d"), parser_message.message_number);
+    parser_message.message_text = FormatText("Message %d", parser_message.message_number);
 }

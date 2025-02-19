@@ -15,7 +15,7 @@
 class StringEncoderDlg::EncoderWorker
 {
 public:
-    EncoderWorker(CLogicCtrl& logic_ctrl, int error_control_id)
+    EncoderWorker(CLogicCtrl& logic_ctrl, const int error_control_id)
         :   m_logicCtrl(logic_ctrl),
             m_errorCtrlId(error_control_id),
             m_errorHWnd(nullptr)
@@ -31,8 +31,8 @@ public:
     HWND GetErrorHWnd() const    { return m_errorHWnd; }
     void SetErrorHWnd(HWND hWnd) { m_errorHWnd = hWnd; }
 
-    virtual std::wstring GetPlainText(std::wstring text) = 0;
-    virtual std::wstring GetEncodedText(const std::wstring& plain_text) = 0;
+    virtual std::string GetPlainText(std::string text) = 0;
+    virtual std::string GetEncodedText(const std::string& plain_text) = 0;
 
 private:
     CLogicCtrl& m_logicCtrl;
@@ -45,9 +45,9 @@ class TextEncoderWorker : public StringEncoderDlg::EncoderWorker
 {
 public:
     TextEncoderWorker(CLogicCtrl& logic_ctrl);
-    
-    std::wstring GetPlainText(std::wstring text) override;
-    std::wstring GetEncodedText(const std::wstring& plain_text) override;    
+
+    std::string GetPlainText(std::string text) override;
+    std::string GetEncodedText(const std::string& plain_text) override;
 };
 
 
@@ -57,8 +57,8 @@ public:
     LogicEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg, const LogicSettings& logic_settings);
     ~LogicEncoderWorker();
 
-    std::wstring GetPlainText(std::wstring text) override;
-    std::wstring GetEncodedText(const std::wstring& plain_text) override;
+    std::string GetPlainText(std::string text) override;
+    std::string GetEncodedText(const std::string& plain_text) override;
 
 private:
     StringEncoderDlg& m_stringEncoderDlg;
@@ -74,8 +74,8 @@ class JsonEncoderWorker : public StringEncoderDlg::EncoderWorker
 public:
     JsonEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg);
 
-    std::wstring GetPlainText(std::wstring text) override;
-    std::wstring GetEncodedText(const std::wstring& plain_text) override;
+    std::string GetPlainText(std::string text) override;
+    std::string GetEncodedText(const std::string& plain_text) override;
 
 private:
     StringEncoderDlg& m_stringEncoderDlg;
@@ -87,8 +87,8 @@ class PercentEncodingEncoderWorker : public StringEncoderDlg::EncoderWorker
 public:
     PercentEncodingEncoderWorker(CLogicCtrl& logic_ctrl);
 
-    std::wstring GetPlainText(std::wstring text) override;
-    std::wstring GetEncodedText(const std::wstring& plain_text) override;
+    std::string GetPlainText(std::string text) override;
+    std::string GetEncodedText(const std::string& plain_text) override;
 };
 
 
@@ -112,7 +112,7 @@ namespace
 }
 
 
-StringEncoderDlg::StringEncoderDlg(const LogicSettings& logic_settings, std::wstring initial_text, CWnd* pParent/* = nullptr*/)
+StringEncoderDlg::StringEncoderDlg(const LogicSettings& logic_settings, std::string initial_text, CWnd* const pParent/* = nullptr*/)
     :   CDialog(StringEncoderDlg::IDD, pParent),
         m_lexerLanguage(Lexers::GetLexer_Logic(logic_settings)),
         m_initialText(std::move(initial_text)),
@@ -145,7 +145,7 @@ StringEncoderDlg::~StringEncoderDlg()
 }
 
 
-void StringEncoderDlg::DoDataExchange(CDataExchange* pDX)
+void StringEncoderDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -173,7 +173,7 @@ BOOL StringEncoderDlg::OnInitDialog()
     // get handles to the error text controls
     for( EncoderWorker& encoder_worker : VI_V(m_encoderWorkers) )
     {
-        int control_id = encoder_worker.GetErrorControlId();
+        const int control_id = encoder_worker.GetErrorControlId();
 
         if( control_id != 0 )
             encoder_worker.SetErrorHWnd(GetDlgItem(control_id)->GetSafeHwnd());
@@ -199,9 +199,9 @@ BOOL StringEncoderDlg::OnInitDialog()
 }
 
 
-LRESULT StringEncoderDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT StringEncoderDlg::WindowProc(const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
-    LRESULT result = CDialog::WindowProc(message, wParam, lParam);
+    const LRESULT result = CDialog::WindowProc(message, wParam, lParam);
 
     // display the error messages in red
     if( message == WM_CTLCOLORSTATIC && std::any_of(m_encoderWorkers.cbegin(), m_encoderWorkers.cend(),
@@ -210,7 +210,7 @@ LRESULT StringEncoderDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
                                                         return ( encoding_worker->GetErrorHWnd() == hWnd );
                                                     }) )
     {
-        HDC hDC = reinterpret_cast<HDC>(wParam);
+        const HDC hDC = reinterpret_cast<HDC>(wParam);
         SetTextColor(hDC, ErrorColor);
     }
 
@@ -218,7 +218,7 @@ LRESULT StringEncoderDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-void StringEncoderDlg::OnTextChange(UINT nID)
+void StringEncoderDlg::OnTextChange(const UINT nID)
 {
     if( m_updatingText )
         return;
@@ -229,7 +229,7 @@ void StringEncoderDlg::OnTextChange(UINT nID)
 }
 
 
-void StringEncoderDlg::OnCopy(UINT nID)
+void StringEncoderDlg::OnCopy(const UINT nID)
 {
     EncoderWorker& encoding_worker = *m_encoderWorkers[nID - IDC_COPY_TEXT];
 
@@ -274,7 +274,7 @@ void StringEncoderDlg::UpdateText()
     RAII::SetValueAndRestoreOnDestruction<bool> update_text_modifier(m_updatingText, true);
 
     // a routine to keep track of the displayed error message
-    auto update_error_hwnd = [&](HWND hWnd)
+    auto update_error_hwnd = [&](const HWND hWnd)
     {
         if( m_currentErrorHWnd == hWnd )
             return;
@@ -291,7 +291,7 @@ void StringEncoderDlg::UpdateText()
     try
     {
         // get the plain text
-        std::wstring plain_text = m_lastUpdatedEncoderWorker->GetPlainText(m_lastUpdatedEncoderWorker->GetLogicCtrl().GetText());
+        const std::string plain_text = m_lastUpdatedEncoderWorker->GetPlainText(m_lastUpdatedEncoderWorker->GetLogicCtrl().GetText());
 
         // on success, clear any error message
         update_error_hwnd(nullptr);
@@ -301,7 +301,7 @@ void StringEncoderDlg::UpdateText()
         {
             if( &encoder_worker != m_lastUpdatedEncoderWorker )
                 encoder_worker.GetLogicCtrl().SetText(encoder_worker.GetEncodedText(plain_text));
-        }        
+        }
     }
 
     catch( const CSProException& exception )
@@ -311,7 +311,7 @@ void StringEncoderDlg::UpdateText()
 
         update_error_hwnd(m_lastUpdatedEncoderWorker->GetErrorHWnd());
 
-        WindowsWS::SetWindowText(m_currentErrorHWnd, exception.GetErrorMessage());
+        WindowsUtf8::SetText(m_currentErrorHWnd, exception.what());
 
         // ...and clear the text in the other locations
         for( EncoderWorker& encoder_worker : VI_V(m_encoderWorkers) )
@@ -334,10 +334,10 @@ TextEncoderWorker::TextEncoderWorker(CLogicCtrl& logic_ctrl)
 }
 
 
-std::wstring TextEncoderWorker::GetPlainText(std::wstring text)
+std::string TextEncoderWorker::GetPlainText(std::string text)
 {
     // only work with \n, not \r\n
-    ASSERT(text.find('\r') == std::wstring::npos || text[text.find('\r') + 1] == '\n');
+    ASSERT(text.find('\r') == std::string::npos || text[text.find('\r') + 1] == '\n');
 
     SO::Remove(text, '\r');
     SO::MakeTrimRight(text, '\n');
@@ -346,7 +346,7 @@ std::wstring TextEncoderWorker::GetPlainText(std::wstring text)
 }
 
 
-std::wstring TextEncoderWorker::GetEncodedText(const std::wstring& plain_text)
+std::string TextEncoderWorker::GetEncodedText(const std::string& plain_text)
 {
     return plain_text;
 }
@@ -369,8 +369,8 @@ public:
     }
 
 protected:
-    const LogicSettings& GetLogicSettings() const override          { return m_logicSettings; }
-    virtual const std::wstring& GetCurrentProcName() const override { return SO::EmptyString; }
+    const LogicSettings& GetLogicSettings() const override  { return m_logicSettings; }
+    virtual std::string GetCurrentProcName() const override { return std::string(); }
 
     void FormatMessageAndProcessParserMessage(Logic::ParserMessage& parser_message, va_list parg) override
     {
@@ -378,7 +378,7 @@ protected:
     }
 
 public:
-    std::wstring GetPlainText(std::wstring text)
+    std::string GetPlainText(std::string text)
     {
         SO::MakeTrim(text);
 
@@ -390,7 +390,7 @@ public:
 
         SetSourceBuffer(std::move(source_buffer));
 
-        std::wstring plain_text;
+        std::string plain_text;
 
         while( true )
         {
@@ -400,7 +400,7 @@ public:
                 return plain_text;
 
             if( Tkn != TOKSCTE )
-                throw CSProException(_T("Valid CSPro logic but not a string literal: '%s'"), Tokstr.c_str());
+                throw CSProException("Valid CSPro logic but not a string literal: '%s'", Tokstr.c_str());
 
             plain_text.append(Tokstr);
         }
@@ -427,13 +427,13 @@ LogicEncoderWorker::~LogicEncoderWorker()
 }
 
 
-std::wstring LogicEncoderWorker::GetPlainText(std::wstring text)
+std::string LogicEncoderWorker::GetPlainText(std::string text)
 {
     return m_stringCompiler->GetPlainText(std::move(text));
 }
 
 
-std::wstring LogicEncoderWorker::GetEncodedText(const std::wstring& plain_text)
+std::string LogicEncoderWorker::GetEncodedText(const std::string& plain_text)
 {
     return m_stringEncoderDlg.SplitNewlines() ? m_logicStringEscaper.EscapeStringWithSplitNewlines(plain_text, m_stringEncoderDlg.UseVerbatimStringLiterals()) :
                                                 m_logicStringEscaper.EscapeString(plain_text, m_stringEncoderDlg.UseVerbatimStringLiterals());
@@ -452,18 +452,18 @@ JsonEncoderWorker::JsonEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& s
 }
 
 
-std::wstring JsonEncoderWorker::GetPlainText(std::wstring text)
+std::string JsonEncoderWorker::GetPlainText(const std::string text)
 {
-    auto json_node = Json::Parse(text);
+    const JsonNode json_node = Json::Parse(text);
 
     if( !json_node.IsString() )
-        throw CSProException(_T("Valid JSON but not a string"));
+        throw CSProException("Valid JSON but not a string");
 
-    return json_node.Get<std::wstring>();
+    return json_node.Get<std::string>();
 }
 
 
-std::wstring JsonEncoderWorker::GetEncodedText(const std::wstring& plain_text)
+std::string JsonEncoderWorker::GetEncodedText(const std::string& plain_text)
 {
     return Encoders::ToJsonString(plain_text, m_stringEncoderDlg.EscapeJsonForwardSlashes());
 }
@@ -480,26 +480,26 @@ PercentEncodingEncoderWorker::PercentEncodingEncoderWorker(CLogicCtrl& logic_ctr
 }
 
 
-std::wstring PercentEncodingEncoderWorker::GetPlainText(std::wstring text)
+std::string PercentEncodingEncoderWorker::GetPlainText(std::string text)
 {
     for( size_t i = 0; i < text.size(); ++i )
     {
-        TCHAR ch = text[i];
+        const char ch = text[i];
 
         // make sure all the escape sequences are correct
         if( ch == '%' )
         {
             if( ( i + 3 ) > text.length() )
             {
-                throw CSProException(_T("Two hexadecimal characters must appear following the %% at position %d"),
-                                     (int)i + 1);
+                throw CSProException("Two hexadecimal characters must appear following the %% at position %d",
+                                     static_cast<int>(i) + 1);
             }
 
-            if( _tcschr(Encoders::HexChars, std::towlower(text[i + 1])) == nullptr ||
-                _tcschr(Encoders::HexChars, std::towlower(text[i + 2])) == nullptr )
+            if( strchr(Encoders::HexChars, std::tolower(text[i + 1])) == nullptr ||
+                strchr(Encoders::HexChars, std::tolower(text[i + 2])) == nullptr )
             {
-                throw CSProException(_T("The hexadecimal escape sequence '%s' is invalid at position %d"),
-                                        text.substr(i, 3).c_str(), (int)i + 1);
+                throw CSProException("The hexadecimal escape sequence '%s' is invalid at position %d",
+                                     text.substr(i, 3).c_str(), static_cast<int>(i) + 1);
             }
 
             i += 2;
@@ -508,8 +508,8 @@ std::wstring PercentEncodingEncoderWorker::GetPlainText(std::wstring text)
         // make sure that everything that must be escaped is escaped
         else if( !Encoders::IsPercentEncodingUnreservedCharacter(ch) )
         {
-            throw CSProException(_T("The character '%c' is not an unreserved character and must be escaped to '%s' at position %d"),
-                                    ch, Encoders::ToPercentEncoding(text.substr(i, 1)).c_str(), (int)i + 1);
+            throw CSProException("The character '%c' is not an unreserved character and must be escaped to '%s' at position %d",
+                                 ch, Encoders::ToPercentEncoding(text.substr(i, 1)).c_str(), static_cast<int>(i) + 1);
         }
     }
 
@@ -517,7 +517,7 @@ std::wstring PercentEncodingEncoderWorker::GetPlainText(std::wstring text)
 }
 
 
-std::wstring PercentEncodingEncoderWorker::GetEncodedText(const std::wstring& plain_text)
+std::string PercentEncodingEncoderWorker::GetEncodedText(const std::string& plain_text)
 {
     return Encoders::ToPercentEncoding(plain_text);
 }

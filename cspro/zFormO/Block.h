@@ -17,7 +17,7 @@ struct BlockProperties
 
 template<> struct CLASS_DECL_ZFORMO JsonSerializer<BlockProperties>
 {
-    static BlockProperties CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static BlockProperties CreateFromJson(const JsonNode& json_node);
     static void WriteJson(JsonWriter& json_writer, const BlockProperties& value);
 };
 

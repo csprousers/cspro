@@ -4,121 +4,129 @@
 class CommandLineParser : public CCommandLineInfo
 {
 public:
-    CommandLineParser()
-        :   m_createNotepadPlusPlusColorizer(false)
-    {
-    }
+    bool DoCommandLineBuild() const { return !m_inputFilePaths.empty(); }
 
-    bool DoCommandLineBuild() const { return !m_inputFilenames.empty(); }
-
-    const std::vector<std::wstring>& GetInputFilenames() const { return m_inputFilenames; }
-    const std::wstring& GetOutputPath() const                  { return m_outputPath; }
-    const std::wstring& GetDocSetFilename() const              { return m_docSetFilename; }
-    const std::wstring& GetBuildSettingsFilename() const       { return m_buildSettingsFilename; }
-    const std::wstring& GetBuildNameOrType() const             { return m_buildNameOrType; }
+    const std::vector<std::string>& GetInputFilePaths() const { return m_inputFilePaths; }
+    const std::string& GetOutputPath() const                  { return m_outputPath; }
+    const std::string& GetDocSetFilePath() const              { return m_docSetFilePath; }
+    const std::string& GetBuildSettingsFilePath() const       { return m_buildSettingsFilePath; }
+    const std::string& GetBuildNameOrType() const             { return m_buildNameOrType; }
 
     bool CreateNotepadPlusPlusColorizer() const { return m_createNotepadPlusPlusColorizer; }
 
-    const std::vector<std::wstring>& GetFilenames() const { return m_filenames; }
+    const std::vector<std::string>& GetFilePaths() const { return m_filePaths; }
 
 protected:
-    void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override
+    void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
+
+private:
+    static std::string EvaluatePath(std::string path);
+
+private:
+    std::vector<std::string> m_filePaths;
+
+    std::variant<std::monostate, std::string*, std::vector<std::string>*> m_nextBuildValue;
+    std::vector<std::string> m_inputFilePaths;
+    std::string m_outputPath;
+    std::string m_docSetFilePath;
+    std::string m_buildSettingsFilePath;
+    std::string m_buildNameOrType;
+
+    bool m_createNotepadPlusPlusColorizer = false;
+};
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline std::string CommandLineParser::EvaluatePath(std::string path)
+{
+    return MakeFullPath(GetWorkingDirectory(), std::move(path));
+}
+
+
+inline void CommandLineParser::ParseParam(const TCHAR* const pszParam, const BOOL bFlag, const BOOL bLast)
+{
+    std::string param = TC::ToUtf8(pszParam);
+
+    if( bFlag )
     {
-        if( bFlag )
+        auto get_next_build_value_type = [&]()
         {
-            auto get_next_build_value_type = [&]()
+            if( std::holds_alternative<std::string*>(m_nextBuildValue) )
             {
-                if( std::holds_alternative<std::wstring*>(m_nextBuildValue) )
-                {
-                    if( std::get<std::wstring*>(m_nextBuildValue) == &m_outputPath )
-                        return _T("directory or filename");
+                if( std::get<std::string*>(m_nextBuildValue) == &m_outputPath )
+                    return "directory or filename";
 
-                    if( std::get<std::wstring*>(m_nextBuildValue) == &m_buildNameOrType )
-                        return _T("build name or type");
-                }
-
-                return _T("filename");
-            };
-
-            if( std::holds_alternative<std::wstring*>(m_nextBuildValue) ||
-                ( std::holds_alternative<std::vector<std::wstring>*>(m_nextBuildValue) && std::get<std::vector<std::wstring>*>(m_nextBuildValue)->empty() ) )
-            {
-                throw CSProException(_T("A %s, not a flag, was expected: %s"), get_next_build_value_type(), pszParam);
+                if( std::get<std::string*>(m_nextBuildValue) == &m_buildNameOrType )
+                    return "build name or type";
             }
 
-            else if( m_inputFilenames.empty() && SO::EqualsNoCase(_T("input"), pszParam) )
-            {
-                m_nextBuildValue = &m_inputFilenames;
-            }
+            return "filename";
+        };
 
-            else if( m_outputPath.empty() && SO::EqualsNoCase(_T("output"), pszParam) )
-            {
-                m_nextBuildValue = &m_outputPath;
-            }
-
-            else if( m_docSetFilename.empty() && SO::EqualsNoCase(_T("documentSet"), pszParam) )
-            {
-                m_nextBuildValue = &m_docSetFilename;
-            }
-
-            else if( m_buildSettingsFilename.empty() && SO::EqualsNoCase(_T("buildSettings"), pszParam) )
-            {
-                m_nextBuildValue = &m_buildSettingsFilename;
-            }
-
-            else if( m_buildNameOrType.empty() && SO::EqualsNoCase(_T("build"), pszParam) )
-            {
-                m_nextBuildValue = &m_buildNameOrType;
-            }
-
-            else if( !m_createNotepadPlusPlusColorizer && SO::EqualsNoCase(_T("Notepad++"), pszParam) )
-            {
-                m_createNotepadPlusPlusColorizer = true;
-            }
-
-            else
-            {
-                throw CSProException(_T("Unknown or duplicate command line flag: %s"), pszParam);
-            }
-
-            if( !std::holds_alternative<std::monostate>(m_nextBuildValue) && bLast )
-                throw CSProException(_T("The flag must be followed by a %s: %s"), get_next_build_value_type(), pszParam);
+        if( std::holds_alternative<std::string*>(m_nextBuildValue) ||
+            ( std::holds_alternative<std::vector<std::string>*>(m_nextBuildValue) && std::get<std::vector<std::string>*>(m_nextBuildValue)->empty() ) )
+        {
+            throw CSProException("A %s, not a flag, was expected: %s", get_next_build_value_type(), param.c_str());
         }
 
-        else if( std::holds_alternative<std::wstring*>(m_nextBuildValue) )
+        else if( m_inputFilePaths.empty() && SO::EqualsNoCase("input", param) )
         {
-            std::wstring* value = std::get<std::wstring*>(m_nextBuildValue);
-            *value = ( value == &m_buildNameOrType ) ? pszParam :
-                                                       EvaluatePath(pszParam);
-            m_nextBuildValue.emplace<std::monostate>();
+            m_nextBuildValue = &m_inputFilePaths;
         }
 
-        else if( std::holds_alternative<std::vector<std::wstring>*>(m_nextBuildValue) )
+        else if( m_outputPath.empty() && SO::EqualsNoCase("output", param) )
         {
-            std::get<std::vector<std::wstring>*>(m_nextBuildValue)->emplace_back(EvaluatePath(pszParam));
+            m_nextBuildValue = &m_outputPath;
+        }
+
+        else if( m_docSetFilePath.empty() && SO::EqualsNoCase("documentSet", param) )
+        {
+            m_nextBuildValue = &m_docSetFilePath;
+        }
+
+        else if( m_buildSettingsFilePath.empty() && SO::EqualsNoCase("buildSettings", param) )
+        {
+            m_nextBuildValue = &m_buildSettingsFilePath;
+        }
+
+        else if( m_buildNameOrType.empty() && SO::EqualsNoCase("build", param) )
+        {
+            m_nextBuildValue = &m_buildNameOrType;
+        }
+
+        else if( !m_createNotepadPlusPlusColorizer && SO::EqualsNoCase("Notepad++", param) )
+        {
+            m_createNotepadPlusPlusColorizer = true;
         }
 
         else
         {
-            m_filenames.emplace_back(EvaluatePath(pszParam));
+            throw CSProException("Unknown or duplicate command line flag: %s", param.c_str());
         }
+
+        if( !std::holds_alternative<std::monostate>(m_nextBuildValue) && bLast )
+            throw CSProException("The flag must be followed by a %s: %s", get_next_build_value_type(), param.c_str());
     }
 
-private:
-    static std::wstring EvaluatePath(const TCHAR* pszParam)
+    else if( std::holds_alternative<std::string*>(m_nextBuildValue) )
     {
-        return MakeFullPath(GetWorkingFolder(), pszParam);
+        std::string* const value = std::get<std::string*>(m_nextBuildValue);
+        *value = ( value == &m_buildNameOrType ) ? std::move(param) :
+                                                   EvaluatePath(std::move(param));
+        m_nextBuildValue.emplace<std::monostate>();
     }
 
-private:
-    std::vector<std::wstring> m_filenames;
+    else if( std::holds_alternative<std::vector<std::string>*>(m_nextBuildValue) )
+    {
+        std::get<std::vector<std::string>*>(m_nextBuildValue)->emplace_back(EvaluatePath(std::move(param)));
+    }
 
-    std::variant<std::monostate, std::wstring*, std::vector<std::wstring>*> m_nextBuildValue;
-    std::vector<std::wstring> m_inputFilenames;
-    std::wstring m_outputPath;
-    std::wstring m_docSetFilename;
-    std::wstring m_buildSettingsFilename;
-    std::wstring m_buildNameOrType;
-
-    bool m_createNotepadPlusPlusColorizer;
-};
+    else
+    {
+        m_filePaths.emplace_back(EvaluatePath(std::move(param)));
+    }
+}

@@ -7,78 +7,12 @@
 #include <zEngineO/EngineItem.h>
 #include <zEngineO/Geometry.h>
 #include <zEngineO/Image.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineO/Messages/EngineMessages.h>
 
 
 // --------------------------------------------------------------------------
 // Item node handling and occurrence calculators
 // --------------------------------------------------------------------------
-
-const Nodes::SymbolVariableArgumentsWithSubscript& CIntDriver::GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(int program_index)
-{
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-        return GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-
-    // check the cache of already converted nodes
-    const auto& lookup = m_convertedPre80Nodes.find(program_index);
-
-    if( lookup != m_convertedPre80Nodes.cend() )
-        return *reinterpret_cast<const Nodes::SymbolVariableArgumentsWithSubscript*>(lookup->second.get());
-
-    // convert a SymbolVariableArguments node to a SymbolVariableArgumentsWithSubscript node
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
-
-    // we don't know how many arguments were specified, so assume up to 1000
-    const size_t arguments = std::min<size_t>(1000, m_engineData->logic_byte_code.GetSize() - program_index);
-
-    auto byte_code = std::make_unique_for_overwrite<int[]>(( sizeof(Nodes::SymbolVariableArgumentsWithSubscript) / sizeof(int) ) + arguments);
-    auto& symbol_va_with_subscript_node = *reinterpret_cast<Nodes::SymbolVariableArgumentsWithSubscript*>(byte_code.get());
-
-    symbol_va_with_subscript_node.function_code = symbol_va_node.function_code;
-
-    symbol_va_with_subscript_node.symbol_index = symbol_va_node.symbol_index;
-    ASSERT(NPT_Ref(symbol_va_with_subscript_node.symbol_index).IsOneOf(SymbolType::Audio, SymbolType::Document, SymbolType::Image));
-
-    symbol_va_with_subscript_node.subscript_compilation = -1;
-
-    memcpy(symbol_va_with_subscript_node.arguments, symbol_va_node.arguments, sizeof(int) * arguments);
-
-    m_convertedPre80Nodes.try_emplace(program_index, std::move(byte_code));
-
-    return symbol_va_with_subscript_node;
-}
-
-
-const Nodes::SymbolComputeWithSubscript& CIntDriver::GetOrConvertPre80SymbolComputeWithSubscriptNode(int program_index)
-{
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-        return GetNode<Nodes::SymbolComputeWithSubscript>(program_index);
-
-    // check the cache of already converted nodes
-    const auto& lookup = m_convertedPre80Nodes.find(program_index);
-
-    if( lookup != m_convertedPre80Nodes.cend() )
-        return *reinterpret_cast<const Nodes::SymbolComputeWithSubscript*>(lookup->second.get());
-
-    // convert a SymbolCompute node to a SymbolComputeWithSubscript node
-    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
-
-    auto byte_code = std::make_unique_for_overwrite<int[]>(sizeof(Nodes::SymbolComputeWithSubscript) / sizeof(int));
-    auto& symbol_compute_with_subscript_node = *reinterpret_cast<Nodes::SymbolComputeWithSubscript*>(byte_code.get());
-
-    symbol_compute_with_subscript_node.function_code = symbol_compute_node.function_code;
-    symbol_compute_with_subscript_node.next_st = symbol_compute_node.next_st;
-    symbol_compute_with_subscript_node.lhs_symbol_index = symbol_compute_node.lhs_symbol_index;
-    symbol_compute_with_subscript_node.lhs_subscript_compilation = -1;
-    symbol_compute_with_subscript_node.rhs_symbol_index = symbol_compute_node.rhs_symbol_index;
-    symbol_compute_with_subscript_node.rhs_subscript_compilation = -1;
-
-    m_convertedPre80Nodes.try_emplace(program_index, std::move(byte_code));
-
-    return symbol_compute_with_subscript_node;
-}
-
 
 const Symbol* CIntDriver::GetCurrentProcSymbol() const
 {
@@ -220,58 +154,6 @@ EvaluatedEngineItemSubscript CIntDriver::EvaluateEngineItemSubscript(const Engin
 }
 
 
-namespace
-{
-    template<typename T>
-    inline T EvaluateSymbolReference_GetSymbol(const Logic::SymbolTable& symbol_table, int symbol_index)
-    {
-        if constexpr(std::is_same_v<T, Symbol*>)
-        {
-            return &symbol_table.GetAt(symbol_index);
-        }
-
-        else
-        {
-            return symbol_table.GetSharedAt(symbol_index);
-        }
-    }
-}
-
-
-template<typename T/* = Symbol* */>
-SymbolReference<T> CIntDriver::EvaluateSymbolReference(int symbol_index, int subscript_compilation)
-{
-    ASSERT(symbol_index != -1);
-
-    SymbolReference<T> symbol_reference
-    {
-        EvaluateSymbolReference_GetSymbol<T>(GetSymbolTable(), symbol_index),
-        subscript_compilation,
-        std::monostate()
-    };
-
-    // if an item, evaluate the subscript
-    if( symbol_reference.symbol->IsA(SymbolType::Item) )
-    {
-        ASSERT(subscript_compilation != -1);
-        const auto& item_subscript_node = GetNode<Nodes::ItemSubscript>(subscript_compilation);
-
-        symbol_reference.evaluated_subscript = EvaluateEngineItemSubscript(assert_cast<const EngineItem&>(*symbol_reference.symbol), item_subscript_node);
-    }
-
-    // if not an item, there is nothing to evaluate
-    else
-    {
-        ASSERT(subscript_compilation == -1);
-    }
-
-    return symbol_reference;
-}
-
-template SymbolReference<Symbol*> CIntDriver::EvaluateSymbolReference(int symbol_index, int subscript_compilation);
-template SymbolReference<std::shared_ptr<Symbol>> CIntDriver::EvaluateSymbolReference(int symbol_index, int subscript_compilation);
-
-
 template<typename SymbolT>
 SymbolT CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<SymbolT>& symbol_reference, bool use_exceptions)
 {
@@ -390,8 +272,18 @@ SymbolT CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<Symbol
 template Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions);
 template std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions);
 
+Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, const bool use_exceptions)
+{
+    return GetFromSymbolOrEngineItemWorker(symbol_reference, use_exceptions);
+}
 
-Symbol& CIntDriver::GetWrappedEngineItemSymbol(EngineItem& engine_item, const TCHAR* subscript_text)
+std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, const bool use_exceptions)
+{
+    return GetFromSymbolOrEngineItemWorker(symbol_reference, use_exceptions);
+}
+
+
+Symbol& CIntDriver::GetWrappedEngineItemSymbol(EngineItem& engine_item, const char* const subscript_text)
 {
     auto create_symbol_reference_and_get_symbol = [&](const Nodes::ItemSubscript& item_subscript_node) -> Symbol&
     {
@@ -406,7 +298,7 @@ Symbol& CIntDriver::GetWrappedEngineItemSymbol(EngineItem& engine_item, const TC
     };
 
     // create item subscript nodes based on an implicit subscript
-    if( subscript_text == nullptr || SO::IsWhitespace(subscript_text) )
+    if( subscript_text == nullptr || SO::IsWhitespace(std::string_view(subscript_text)) )
     {
         Nodes::ItemSubscript item_subscript_node;
         item_subscript_node.subscript_type = Nodes::ItemSubscript::SubscriptType::ImplicitMustEvaluate;
@@ -422,7 +314,7 @@ Symbol& CIntDriver::GetWrappedEngineItemSymbol(EngineItem& engine_item, const TC
 
         if( occurrences_defined == 0 )
         {
-            throw CSProException(_T("The subscript provided for the symbol '%s' is not valid: %s"),
+            throw CSProException("The subscript provided for the symbol '%s' is not valid: %s",
                                  engine_item.GetName().c_str(), subscript_text);
         }
 
@@ -472,8 +364,7 @@ Symbol& CIntDriver::GetWrappedEngineItemSymbol(EngineItem& engine_item, const TC
 
 std::tuple<EngineItemAccessor*, bool> CIntDriver::GetEngineItemAccessorAndVisualValueFlag(const Nodes::SymbolVariableArgumentsWithSubscript& symbol_va_with_subscript_node, int visual_value_argument_index)
 {
-    std::optional<bool> visual_value = ( symbol_va_with_subscript_node.arguments[visual_value_argument_index] != -1 ) ? std::make_optional(ConditionalValueIsTrue(symbol_va_with_subscript_node.arguments[visual_value_argument_index])) :
-                                                                                                                        std::nullopt;
+    const std::optional<bool> visual_value = EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[visual_value_argument_index]);
 
     const Symbol* symbol = GetFromSymbolOrEngineItem(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
@@ -492,19 +383,19 @@ std::tuple<EngineItemAccessor*, bool> CIntDriver::GetEngineItemAccessorAndVisual
 double CIntDriver::exItem_getValueLabel(int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-    const std::optional<std::wstring> language = EvaluateOptionalStringExpression(symbol_va_with_subscript_node.arguments[1]);
+    const std::optional<std::string> language = EvaluateOptional<std::string>(symbol_va_with_subscript_node.arguments[1]);
     EngineItemAccessor* engine_item_accessor;
     bool visual_value;
     std::tie(engine_item_accessor, visual_value) = GetEngineItemAccessorAndVisualValueFlag(symbol_va_with_subscript_node, 0);
 
     if( engine_item_accessor == nullptr )
-        return AssignBlankAlphaValue();
+        return AssignStringNull();
 
-    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return AssignBlankAlphaValue
+    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return AssignStringNull
     {
     }
 
-    return AssignAlphaValue(engine_item_accessor->GetValueLabel(language));
+    return AssignString(engine_item_accessor->GetValueLabel(language));
 }
 
 

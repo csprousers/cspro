@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zNetwork</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -58,7 +54,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZNETWORK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/curl/include;$(SolutionDir)external/easylogging;(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -75,7 +71,7 @@ xcopy "$(SolutionDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZNETWORK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/curl/include;$(SolutionDir)external/easylogging;(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -94,32 +90,102 @@ xcopy "$(SolutionDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CSWebConnection.cpp" />
     <ClCompile Include="CurlFtpConnection.cpp" />
     <ClCompile Include="CurlHttpConnection.cpp" />
-    <ClCompile Include="FileInfo.cpp" />
+    <ClCompile Include="CurlWrapper.cpp" />
+    <ClCompile Include="DropboxConnection.cpp" />
+    <ClCompile Include="FileBasedConnection.cpp" />
+    <ClCompile Include="FtpConnection.cpp" />
     <ClCompile Include="HeaderList.cpp" />
+    <ClCompile Include="HttpConnection.cpp" />
+    <ClCompile Include="LocalFileConnection.cpp" />
+    <ClCompile Include="LoginAccessor.cpp" />
+    <ClCompile Include="LoginCredentials.cpp" />
+    <ClCompile Include="LoginDlg.cpp" />
+    <ClCompile Include="OAuth2Authorizer.cpp" />
+    <ClCompile Include="ObjectSerialization.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SyncCredentialStore.cpp" />
+    <ClCompile Include="SyncException.cpp" />
+    <ClCompile Include="SyncListener.cpp" />
+    <ClCompile Include="SyncLog.cpp" />
+    <ClCompile Include="SyncLogSyncListener.cpp" />
+    <ClCompile Include="WindowsOAuth2Authorizer.cpp" />
+    <ClCompile Include="WindowsOAuth2AuthorizerWaitDlg.cpp" />
     <ClCompile Include="zNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\easylogging\easylogging++.h" />
+    <ClInclude Include="ConnectResponse.h" />
+    <ClInclude Include="CSWebConnection.h" />
+    <ClInclude Include="CSWebUser.h" />
+    <ClInclude Include="CurlFtpConnection.h" />
     <ClInclude Include="CurlHttpConnection.h" />
+    <ClInclude Include="CurlWrapper.h" />
+    <ClInclude Include="DropboxConnection.h" />
+    <ClInclude Include="FileBasedConnection.h" />
     <ClInclude Include="FileInfo.h" />
+    <ClInclude Include="FtpConnection.h" />
     <ClInclude Include="HeaderList.h" />
-    <ClInclude Include="IFtpConnection.h" />
-    <ClInclude Include="IHttpConnection.h" />
+    <ClInclude Include="HttpConnection.h" />
+    <ClInclude Include="LocalFileConnection.h" />
+    <ClInclude Include="LoginAccessor.h" />
+    <ClInclude Include="LoginCredentials.h" />
+    <ClInclude Include="LoginDlg.h" />
+    <ClInclude Include="OAuth2AuthenticationParameters.h" />
+    <ClInclude Include="OAuth2Authorizer.h" />
+    <ClInclude Include="OAuth2Token.h" />
     <ClInclude Include="ObservableResponseBody.h" />
+    <ClInclude Include="ParsedUri.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StreamCopier.h" />
+    <ClInclude Include="SyncConnectionStringProperties.h" />
+    <ClInclude Include="SyncCredentialStore.h" />
+    <ClInclude Include="SyncCustomHeaders.h" />
+    <ClInclude Include="SyncException.h" />
+    <ClInclude Include="SyncListener.h" />
+    <ClInclude Include="SyncListenerRAII.h" />
+    <ClInclude Include="SyncListenerWrapper.h" />
+    <ClInclude Include="SyncLog.h" />
+    <ClInclude Include="SyncLogSyncListener.h" />
+    <ClInclude Include="UsernamePassword.h" />
+    <ClInclude Include="WindowsOAuth2Authorizer.h" />
+    <ClInclude Include="WindowsOAuth2AuthorizerWaitDlg.h" />
     <ClInclude Include="zNetwork.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+      <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zNetwork.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

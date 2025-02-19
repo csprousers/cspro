@@ -15,10 +15,14 @@
 #include <zDictF/resource.h>
 #include <zDictF/UWM.h>
 #include <zToolsO/Special.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/BCMenu.h>
+#include <zUtilO/DataExchange.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/Interapp.h>
+#include <zUtilO/WindowsUtf8.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/DictionaryIterator.h>
 #include <zDictO/Rules.h>

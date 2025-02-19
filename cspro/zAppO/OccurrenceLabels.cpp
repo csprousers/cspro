@@ -2,7 +2,7 @@
 #include "OccurrenceLabels.h"
 
 
-LabelSet& OccurrenceLabels::GetOrCreateLabelSet(size_t occurrence)
+LabelSet& OccurrenceLabels::GetOrCreateLabelSet(const size_t occurrence)
 {
     if( m_labels.size() <= occurrence )
         m_labels.resize(occurrence + 1);
@@ -11,28 +11,28 @@ LabelSet& OccurrenceLabels::GetOrCreateLabelSet(size_t occurrence)
 }
 
 
-const LabelSet& OccurrenceLabels::GetLabelSet(size_t occurrence) const
+const LabelSet& OccurrenceLabels::GetLabelSet(const size_t occurrence) const
 {
     return ( occurrence < m_labels.size() ) ? m_labels[occurrence] :
                                               LabelSet::DefaultValue;
 }
 
 
-OccurrenceLabels OccurrenceLabels::CreateFromJson(const JsonNode<wchar_t>& json_node, size_t max_occurrences/* = SIZE_MAX*/)
+OccurrenceLabels OccurrenceLabels::CreateFromJson(const JsonNode& json_node, const size_t max_occurrences/* = SIZE_MAX*/)
 {
     ASSERT(max_occurrences != SIZE_MAX);
 
-    OccurrenceLabels occurrence_labels;    
+    OccurrenceLabels occurrence_labels;
 
-    for( const auto& array_node : json_node.GetArray() )
+    for( const JsonNode& array_node : json_node.GetArray() )
     {
         LabelSet label_set = array_node.Get<LabelSet>(JK::labels);
-        size_t occurrence = array_node.Get<size_t>(JK::occurrence) - 1; // one-based occurrences
+        const size_t occurrence = array_node.Get<size_t>(JK::occurrence) - 1; // one-based occurrences
 
         if( occurrence > max_occurrences )
         {
-            json_node.LogWarning(_T("The label for occurrence '%d' is greater than the maximum number of occurrences '%d' and is ignored: '%s'"),
-                                 (int)occurrence, (int)max_occurrences, label_set.GetLabel().GetString());
+            json_node.LogWarning("The label for occurrence '%d' is greater than the maximum number of occurrences '%d' and is ignored: '%s'",
+                                 static_cast<int>(occurrence), static_cast<int>(max_occurrences), UTF8_TODO::GetUtf8(label_set.GetLabel()).c_str());
         }
 
         else
@@ -62,7 +62,7 @@ void OccurrenceLabels::WriteJson(JsonWriter& json_writer, size_t max_occurrences
 
     for( size_t i = 0; i < max_occurrences; ++i )
     {
-        bool label_exists = ( i < m_labels.size() );
+         const bool label_exists = ( i < m_labels.size() );
 
         // unless in verbose mode, only save occurrences that have defined labels
         if( label_exists && !json_writer.Verbose() )
@@ -90,7 +90,7 @@ void OccurrenceLabels::serialize(Serializer& ar)
 
     else
     {
-        for( const std::wstring& occ_label : ar.Read<std::vector<std::wstring>>() )
+        for( const std::string& occ_label : ar.Read<std::vector<std::string>>() )
             m_labels.emplace_back(LabelSet(LabelSet::Pre80SerializableLabelToLabels(occ_label)));
     }
 }

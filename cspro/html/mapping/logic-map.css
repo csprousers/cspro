@@ -1,0 +1,79 @@
+body {
+    height: 100%;
+    margin: 0px;
+    position: relative;
+}
+
+html {
+    height: 100%;
+}
+
+#mapid {
+    height: 100%;
+    z-index: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.shown {
+    display: block;
+}
+
+#title {
+    font-size: 32px;
+    background-color: white;
+    color: black;
+    text-align: center;
+    position: absolute;
+    top: 0px;
+    z-index: 1;
+    transform: translateX(-50%);
+    left: 50%;
+    white-space: pre;
+}
+
+a {
+    white-space: pre;
+}
+
+#buttons {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    z-index: 1;
+    max-width: 10%;
+    white-space: pre;
+}
+
+button {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: background-color 0.16s ease-out;
+    color: rgb(60,60,60);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button:hover {
+    color: rgb(30,30,30);
+}
+
+button:active {
+    color: black;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.img_button {
+    height: 64px;
+    width: 64px;
+}

@@ -54,7 +54,7 @@ long EngineUIProcessor::ProcessMessage(WPARAM wParam, LPARAM lParam)
 
         case EngineUI::Type::HtmlDialogsDirectoryQuery:
         {
-            std::wstring* html_dialogs_directory = reinterpret_cast<std::wstring*>(lParam);
+            std::string* html_dialogs_directory = reinterpret_cast<std::string*>(lParam);
             return HtmlDialogsDirectoryQuery(*html_dialogs_directory);
         }
 
@@ -87,11 +87,11 @@ long EngineUIProcessor::ProcessMessage(WPARAM wParam, LPARAM lParam)
 long EngineUIProcessor::CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node)
 {
     // if a directory is not specified, use the application directory (or the CSEntry directory on Android)
-    const std::wstring& directory = !node.local_file_server_root_directory.empty() ? node.local_file_server_root_directory :
+    const std::string& directory = !node.local_file_server_root_directory.empty() ? node.local_file_server_root_directory :
 #ifdef WIN_DESKTOP
-                                                                                     CSProExecutables::GetApplicationDirectory();
+                                                                                    CSProExecutables::GetApplicationDirectory();
 #else
-                                                                                     PlatformInterface::GetInstance()->GetCSEntryDirectory();
+                                                                                    PlatformInterface::GetInstance()->GetCSEntryDirectory();
 #endif
 
     ASSERT80(PortableFunctions::PathGetDirectory(PortableFunctions::PathEnsureTrailingSlash(directory)) == PortableFunctions::PathEnsureTrailingSlash(directory));

@@ -11,13 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Paths.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Versioning.h">
+    <ClInclude Include="clr_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectionString.h">
@@ -26,27 +20,24 @@
     <ClInclude Include="JsonSaver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PFF.h">
+    <ClInclude Include="Paths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ToWS.h">
+    <ClInclude Include="PFF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QRCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Versioning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Paths.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Versioning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConnectionString.cpp">
@@ -55,10 +46,19 @@
     <ClCompile Include="JsonSaver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Paths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="PFF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QRCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Versioning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,166 +1,166 @@
 ﻿#pragma once
 
 #include <zSyncO/zSyncO.h>
-#include <zSyncO/BluetoothDeviceInfo.h>
-#include <zSyncO/ISyncServerConnection.h>
-#include <zCaseO/Case.h>
-#include <zDataO/CaseIterator.h>
-#include <zDataO/ISyncableDataRepository.h>
-#include <zDataO/SyncHistoryEntry.h>
+#include <zSyncO/ISyncService.h>
+#include <zSyncO/SyncRunner.h>
+#include <zUtilO/SyncConnectionString.h>
+#include <zNetwork/LoginCredentials.h>
 
-struct ISyncServerConnectionFactory;
-struct ISyncListener;
-struct ILoginDialog;
-struct ICredentialStore;
-struct IDropboxAuthDialog;
-struct IChooseBluetoothDeviceDialog;
+class ApplicationPackageManager;
+class ISyncableDataRepository;
+class ISyncServiceFactory;
+class SyncHistoryEntry;
+
 
 // Main client side interface to smart sync.
-// Handles all communication with server as well as "smarts" about which
-// cases to sync.
+// Handles all communication with sync services as well as "smarts" about which cases to sync.
+
 class SYNC_API SyncClient
 {
 public:
-
     ///<summary>Create a new sync client instance</summary>
-    ///<param name="myDeviceId">device id of client</param>
-    ///<param name="pServerFactory">factory for creating server connections</param>
-    SyncClient(DeviceId myDeviceId,
-        ISyncServerConnectionFactory *pServerFactory);
+    ///<param name="device_id">device id of client</param>
+    ///<param name="sync_service_factory">factory for creating sync services</param>
+    SyncClient(DeviceId device_id, std::unique_ptr<ISyncServiceFactory> sync_service_factory);
+
+    // Create a SyncClient from an already-connected sync service.
+    SyncClient(std::tuple<std::shared_ptr<ISyncService>, std::shared_ptr<ConnectResponse>> sync_runner_connection);
+
+    SyncClient(const SyncClient&) = delete;
+    SyncClient(SyncClient&&);
 
     ~SyncClient();
 
-    enum class SyncResult {
+    enum class SyncResult
+    {
         SYNC_OK = 1,
         SYNC_ERROR = 0,
         SYNC_CANCELED = -1
     };
 
-    // Connect to sync server using url, will be prompted for credentials
-    SyncResult connect(const CString& hostUrl, ILoginDialog* pLoginDlg, IDropboxAuthDialog* pAuthDlg,
-        ICredentialStore* pCredentialStore, IChooseBluetoothDeviceDialog* pChooseDlg,
-        std::optional<CString> username = {}, std::optional<CString> = {});
+    // Connect to sync service using sync connection string.
+    SyncResult Connect(const SyncConnectionString& sync_connection_string);
 
-    // Connect to sync server using url and credentials
-    SyncResult connectWeb(CString hostUrl, CString username, CString password);
+    // Connect to CSWeb using URL and either username/password or a saved OAuth token.
+    SyncResult ConnectCSWeb(const SyncConnectionString& sync_connection_string, std::unique_ptr<LoginCredentials> login_credentials = nullptr);
 
-    // Connect to sync server using url and saved oauth token
-    SyncResult connectWeb(CString hostUrl, ILoginDialog* pLoginDlg, ICredentialStore* pCredentialStore);
+    // Connect to peer device for P2P sync
+    // If the device address is known specify it, otherwise it will obtained from name. Specifying the address will be faster.
+    SyncResult ConnectBluetooth(const SyncConnectionString& sync_connection_string);
 
-    // Connect to peer device for p2p sync
-    // If the device address is known specify it, otherwise it will
-    // obtained from name. Specifying the address will be faster.
-    SyncResult connectBluetooth(const BluetoothDeviceInfo& deviceInfo);
-    SyncResult connectBluetooth(IChooseBluetoothDeviceDialog* pChooseDlg);
+    // Connect to Dropbox.
+    // Based on the parameters in the sync connection string, this connection may be a local machine connection.
+    SyncResult ConnectDropbox(cs::cref_optional<SyncConnectionString> sync_connection_string = std::nullopt);
 
-    // Connect to Dropbox server
-    SyncResult connectDropbox(CString accessToken);
-    SyncResult connectDropbox(IDropboxAuthDialog* pAuthDlg, ICredentialStore* pCredentialStore);
+    // Connect to FTP server using URL and either username/password or saved details in the credential store.
+    SyncResult ConnectFtp(const SyncConnectionString& sync_connection_string, std::unique_ptr<LoginCredentials> login_credentials = nullptr);
 
-    // Connect to Dropbox on local machine
-    SyncResult connectDropboxLocal();
+    // Connect to local files.
+    SyncResult ConnectLocalFiles(const SyncConnectionString& sync_connection_string);
 
-    // Connect to sync server using url and credentials
-    SyncResult connectFtp(CString hostUrl, CString username, CString password);
+    SyncResult Disconnect();
 
-    // Connect to sync server using url and saved oauth token
-    SyncResult connectFtp(CString hostUrl, ILoginDialog* pLoginDlg, ICredentialStore* pCredentialStore);
+    bool IsConnected() const { return ( m_syncService != nullptr ); }
 
-    // Connect to local file system for sync
-    SyncResult connectLocalFileSystem(CString root_directory);
+    ISyncService* GetSyncService() { return m_syncService.get(); }
 
-    SyncResult disconnect();
+    // Get device id of connected sync service.
+    const DeviceId& GetServerDeviceId() const;
 
-    bool isConnected() const;
+    // Sync data file using smart sync.
+    SyncResult SyncData(SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe);
 
-    // Get device id of connected server
-    const DeviceId& getServerDeviceId() const;
-
-    // Sync data file using smart sync
-    SyncResult syncData(SyncDirection direction, ISyncableDataRepository& repository, CString universe);
-
-    ///<summary>Sync non-data file</summary>
+    ///<summary>Sync non-data file. If to_path ends in a slash, it is assumed to be a directory and the filename will be appended to it.</summary>
     ///<param name="direction">direction of sync (PUT or GET)</param>
-    ///<param name="pathFrom">path of source file (on server for get or on client for put)</param>
-    ///<param name="pathTo">path of dest file (on client for get or on server for put)</param>
-    ///<param name="clientFileRoot">base directory for files on client specified with relative paths</param>
-    SyncResult syncFile(SyncDirection direction, CString pathFrom, CString pathTo, CString clientFileRoot);
+    ///<param name="from_path">path of source file (on sync service for get or on client for put)</param>
+    ///<param name="to_path">path of destination file (on client for get or on sync service for put)</param>
+    SyncResult SyncFile(SyncDirection direction, std::string from_path, std::string to_path);
 
-    ///<summary>Download a list of dictionaries on the server that can be used with syncData</summary>
+    ///<summary>Download a list of dictionaries on the sync service that can be used with syncData</summary>
     ///<param name="dictionaries">List of dictionaries returned. Each dictionary is a pair of name and label.</param>
-    SyncResult getDictionaries(std::vector<DictionaryInfo>& dictionaries);
+    SyncResult GetDictionaries(std::vector<SyncDictionaryInfo>& dictionaries);
 
-    ///<summary>Download a dictionary from the server. Retrieves full text of the the dcf file for the dictionary.</summary>
-    ///<param name="dictionaryName">Name of dictionary.</param>
-    ///<param name="dictionaryText">Dictionary contents as text (dcf format) returned.</param>
-    SyncResult downloadDictionary(CString dictionaryName, CString& dictionaryText);
+    ///<summary>Download a dictionary from the sync service. Retrieves full text of the the dcf file for the dictionary.</summary>
+    ///<param name="dictionary_name">Name of dictionary.</param>
+    ///<param name="dictionary_text">Dictionary contents as text (dcf format) returned.</param>
+    SyncResult DownloadDictionary(const std::string& dictionary_name, std::string& dictionary_text);
 
-    ///<summary>Upload a dictionary to server to be used with syncData</summary>
-    ///<param name="dictPath">path of dictionary file to upload</param>
-    SyncResult uploadDictionary(CString dictPath);
+    ///<summary>Upload a dictionary to sync service to be used with syncData</summary>
+    ///<param name="dictionary_file_path">Path of dictionary file to upload</param>
+    SyncResult UploadDictionary(const std::string& dictionary_file_path);
 
-    ///<summary>Delete a dictionary on the server</summary>
-    ///<param name="dictName">Name of dictionary to delete</param>
-    SyncResult deleteDictionary(CString dictName);
+    ///<summary>Delete a dictionary on the sync service</summary>
+    ///<param name="dictionary_name">Name of dictionary to delete</param>
+    SyncResult DeleteDictionary(const std::string& dictionary_name);
 
-    /// <summary>List all application deployment packages available on the server</summary>
+    /// <summary>List all application deployment packages available on the sync service</summary>
     /// <param name="packages">List of packages returned</param>
     /// <returns>1 on success, 0 on failure</returns>
-    SyncResult listApplicationPackages(std::vector<ApplicationPackage>& packages);
+    SyncResult ListApplicationPackages(std::vector<ApplicationPackage>& packages);
 
-    /// <summary>Download an application deployment package from the server and install it</summary>
-    /// <param name="packageName">Name of package to download and install</param>
-    /// <param name="forceFullInstall">Skip smart update and download entire package even if the installed package is up to date</param>
+    /// <summary>Download an application deployment package from the sync service and install it</summary>
+    /// <param name="application_package_manager">Instance of an application package manager</param>
+    /// <param name="package_name">Name of package to download and install</param>
+    /// <param name="force_full_install">Skip smart update and download entire package even if the installed package is up to date</param>
     /// <returns>1 on success, 0 on failure</returns>
-    SyncResult downloadApplicationPackage(const CString& packageName, bool forceFullInstall);
+    SyncResult DownloadApplicationPackage(const ApplicationPackageManager& application_package_manager, const std::string& package_name, bool force_full_install);
 
-    /// <summary>Upload an application deployment package to the server</summary>
-    /// <param name="localPath">Source path to package file on local device</param>
-    /// <param name="packageName">Name of package to upload</param>
-    /// <param name="packageSpecJson">Package spec file in JSON</param>
+    /// <summary>Upload an application deployment package to the sync service</summary>
+    /// <param name="local_package_zip_file_path">Source path to package file on local device</param>
+    /// <param name="package_name">Name of package to upload</param>
+    /// <param name="package_spec_json">Package spec file in JSON</param>
+    /// <param name="directory_for_dictionary_upload_evaluation">The directory for evaluating dictionary paths; if empty, dictionaries are not uploaded</param>
     /// <returns>1 on success, 0 on failure</returns>
-    SyncResult uploadApplicationPackage(CString localPath, CString packageName, CString packageSpecJson);
+    SyncResult UploadApplicationPackage(const std::string& local_package_zip_file_path, const std::string& package_name,
+                                        const std::string& package_spec_json, const std::string& directory_for_dictionary_upload_evaluation);
 
     /// <summary>Download an deployment package for currently running application and update it</summary>
     /// <returns>1 on success, 0 on failure</returns>
-    SyncResult updateApplication(const CString& applicationPath);
+    SyncResult UpdateApplication(const ApplicationPackageManager& application_package_manager, const std::string& application_file_path);
 
-    /// <summary>List all application deployment packages currently installed on the client</summary>
-    /// <param name="packages">List of packages returned</param>
-    /// <returns>1 on success, 0 on failure</returns>
-    std::vector<ApplicationPackage> listInstalledApplicationPackages();
+    ///<summary>Delete an application on the sync service</summary>
+    ///<param name="package_name">Name of package to delete</param>
+    SyncResult DeleteApplication(const std::string& package_name);
 
-    CString syncMessage(const CString& message_key, const CString& message_value);
+    std::optional<JsonNode> SendSyncMessage(const SyncMessage& sync_message);
 
-    SyncResult syncParadata(SyncDirection sync_directory);
+    SyncResult SyncParadata(SyncDirection sync_direction);
 
     // Set callbacks for reporting errors and progress
-    void setListener(ISyncListener *pListener);
-    ISyncListener* getListener() const
-    {
-        return m_pListener;
-    }
+    SyncListener* GetSyncListener()                                   { return m_syncListener.get(); }
+    void SetSyncListener(std::shared_ptr<SyncListener> sync_listener) { m_syncListener = std::move(sync_listener); }
 
 private:
+    SyncResult ConnectWorker(const SyncConnectionString& sync_connection_string);
+    SyncResult ConnectWithParadataSupport(const SyncConnectionString& sync_connection_string);
 
-    SyncResult connectToServer(ISyncServerConnection* pServer, CString serverName);
-    SyncResult disconnectFromServer();
-    SyncHistoryEntry getRevisionFromLastSync(SyncDirection direction, ISyncableDataRepository& repository, CString universe);
-    void syncDataGet(ISyncableDataRepository& repository, CString universe);
-    void syncDataPut(ISyncableDataRepository& repository, CString universe);
-    SyncResult getFilesWithWildcard(CString pathFrom, CString pathTo);
-    SyncResult getFile(CString pathFrom, CString pathTo);
-    void downloadOneFile(CString pathFrom, CString pathTo, CString md5);
-    SyncResult putFilesWithWildcard(CString pathFrom, CString pathTo, CString clientFileRoot);
-    SyncResult putFile(CString pathFrom, CString pathTo, CString clientFileRoot);
-    void uploadOneFile(CString pathFrom, CString pathTo);
-    void downloadAndInstallPackage(const CString& packageName, const std::optional<ApplicationPackage>& currentPackage, const CString& currentPackageSignature);
+    SyncResult ConnectToSyncService(std::unique_ptr<ISyncService> sync_service, const std::string& sync_service_name);
 
+    SyncResult DisconnectFromSyncService();
+
+    void SyncDataGet(ISyncableDataRepository& repository, const std::string& universe);
+    void SyncDataPut(ISyncableDataRepository& repository, const std::string& universe);
+
+    void UploadDictionaryWorker(const std::string& dictionary_file_path);
+
+    std::optional<SyncHistoryEntry> GetRevisionFromLastSync(SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe) const;
+    static std::vector<std::string> GetPutRevisionsSince(const DeviceId& device_id, ISyncableDataRepository& repository, const int start_serial_number);
+
+    SyncResult GetFilesWithWildcard(const std::string& from_path, const std::string& to_path);
+    SyncResult GetFile(const std::string& from_path, cs::cref_optional<std::string> to_path);
+    void DownloadOneFile(const std::string& from_path, const std::string& to_path, const std::string& existing_file_md5);
+    SyncResult PutFilesWithWildcard(const std::string& from_path, cs::cref_optional<std::string> to_path);
+    SyncResult PutFile(const std::string& from_path, const std::string& to_path);
+    void UploadOneFile(const std::string& from_path, cs::cref_optional<std::string> to_path);
+
+    void DownloadAndInstallPackage(const ApplicationPackageManager& application_package_manager, const std::string& package_name,
+                                   const ApplicationPackage* current_package, const std::string* current_package_signature);
+
+private:
     DeviceId m_deviceId;
-    DeviceId m_serverDeviceId;
-    CString m_serverDeviceName;
-    CString m_userName;
-    ISyncServerConnectionFactory *m_pServerFactory;
-    ISyncServerConnection* m_pServer;
-    ISyncListener* m_pListener;
+    std::unique_ptr<ISyncServiceFactory> m_syncServiceFactory;
+    std::shared_ptr<SyncListener> m_syncListener;
+    std::shared_ptr<ISyncService> m_syncService;
+    std::shared_ptr<ConnectResponse> m_connectResponse;
+    std::unique_ptr<SyncRunner::ParadataLogger> m_paradataLogger;
 };

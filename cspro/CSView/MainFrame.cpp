@@ -5,6 +5,7 @@
 #include <zToolsO/UWM.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/UWM.h>
+#include <zSyncO/SyncRunnerActionInvoker.h>
 #include <zEngineF/EngineUI.h>
 
 
@@ -12,6 +13,8 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_WM_CREATE()
+    ON_MESSAGE(UWM::CSView::CloseDocument, OnCloseDocument)
+    ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::ToolsO::GetObjectTransporter, OnGetObjectTransporter)
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
@@ -37,15 +40,15 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
 
     // add the menu
-	if( !m_wndMenuBar.Create(this) )
-		return -1;
+    if( !m_wndMenuBar.Create(this) )
+        return -1;
 
-	m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
+    m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
 
-	// prevent the menu bar from taking the focus on activation
-	CMFCPopupMenu::SetForceMenuFocus(FALSE);
+    // prevent the menu bar from taking the focus on activation
+    CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
-	return 0;
+    return 0;
 }
 
 
@@ -57,28 +60,46 @@ void CMainFrame::ActivateFrame(int nCmdShow)
             nCmdShow = SW_SHOWMAXIMIZED;
 
         m_onInitialActivateFrame = false;
-    }       
+    }
 
     __super::ActivateFrame(nCmdShow);
 }
 
 
-void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
+void CMainFrame::OnUpdateFrameTitle(const BOOL bAddToTitle)
 {
-    std::wstring title;
+    std::string title;
 
     if( bAddToTitle )
     {
-        ViewDoc* view_doc = assert_cast<ViewDoc*>(GetActiveDocument());
-        const std::wstring* description = view_doc->GetDescription();
+        ViewDoc* const view_doc = assert_cast<ViewDoc*>(GetActiveDocument());
+        const std::string* const description = view_doc->GetDescription();
 
         if( description != nullptr )
-            title = *description + _T(" - ");
+            title = *description + " - ";
     }
 
-    title.append(_T("CSView"));
+    title.append("CSView");
 
-    SetWindowText(title.c_str());
+    WindowsUtf8::SetText(this, title);
+}
+
+
+LRESULT CMainFrame::OnCloseDocument(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    // before closing the document, make sure any posted error messages are displayed
+    SendMessage(UWM::ToolsO::DisplayErrorMessage);
+
+    PostMessage(WM_CLOSE);
+
+    return 0;
+}
+
+
+LRESULT CMainFrame::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    ErrorMessage::DisplayPostedMessages();
+    return 0;
 }
 
 
@@ -88,7 +109,15 @@ LRESULT CMainFrame::OnGetObjectTransporter(WPARAM /*wParam*/, LPARAM /*lParam*/)
     {
         class CSViewObjectTransporter : public CommonObjectTransporter
         {
-            bool DisableAccessTokenCheckForExternalCallers() const override { return true; }
+            bool DisableAccessTokenCheckForExternalCallers() const override
+            {
+                return true;
+            }
+
+            std::unique_ptr<ActionInvokerSyncRunner> OnCreateActionInvokerSyncRunner() const override
+            {
+                return ActionInvokerSyncRunner::Instantiate();
+            }
         };
 
         m_objectTransporter = std::make_unique<CSViewObjectTransporter>();

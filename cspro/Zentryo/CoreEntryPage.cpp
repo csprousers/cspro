@@ -24,8 +24,8 @@ CoreEntryPage::CoreEntryPage(CoreEntryEngineInterface* core_entry_engine_interfa
 
     // construct a combined occurrence label (the function will return record and item occurrence labels)
     std::vector<std::wstring> occurrence_labels = m_pEngineDriver->GetOccurrenceLabels(field_vart);
-    occurrence_labels.erase(std::remove(occurrence_labels.begin(), occurrence_labels.end(), SO::EmptyString), occurrence_labels.end());
-    m_occurrenceLabel = SO::CreateSingleString(occurrence_labels, _T(" - "));
+    occurrence_labels.erase(std::remove(occurrence_labels.begin(), occurrence_labels.end(), SO::Empty_wstring), occurrence_labels.end());
+    m_occurrenceLabel = SO::CreateSingleString(UTF8_TODO::GetUtf8(occurrence_labels), " - ");
 
     // get the block information (if applicable)
     const EngineBlock* engine_block = field_vart->GetEngineBlock();

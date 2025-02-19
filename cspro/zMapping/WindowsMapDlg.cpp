@@ -4,8 +4,10 @@
 #include "GeoJson.h"
 #include "OfflineTileProvider.h"
 #include <zToolsO/Encoders.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/MimeType.h>
 #include <zHtml/PortableLocalhost.h>
+#include <sstream>
 
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
@@ -14,24 +16,41 @@
 #pragma warning(pop)
 
 
+CREATE_JSON_KEY(backgroundColor)
+CREATE_JSON_KEY(callbackIndex)
+CREATE_JSON_KEY(camera)
+CREATE_JSON_KEY(draggable)
+CREATE_JSON_KEY(geojsonUrl)
+CREATE_JSON_KEY(imageUrl)
+CREATE_JSON_KEY(leafletId)
+CREATE_JSON_KEY(maxLatitude)
+CREATE_JSON_KEY(maxLongitude)
+CREATE_JSON_KEY(minLatitude)
+CREATE_JSON_KEY(minLongitude)
+CREATE_JSON_KEY(options)
+CREATE_JSON_KEY(padding)
+CREATE_JSON_KEY(tileProvider)
+CREATE_JSON_KEY(zoom)
+
+
 BEGIN_MESSAGE_MAP(WindowsMapDlg, HtmlViewDlg)
-    ON_MESSAGE(UWM::Mapping::ExecuteJavaScript, OnExecuteJavaScript)
+    ON_MESSAGE(UWM::Mapping::PostActionMessage, OnPostActionMessage)
     ON_MESSAGE(UWM::Mapping::SaveSnapshot, OnSaveSnapshot)
 END_MESSAGE_MAP()
 
 
-WindowsMapDlg::WindowsMapDlg(WindowsMapUI& map_ui, CWnd* pParent/*= nullptr*/)
+WindowsMapDlg::WindowsMapDlg(WindowsMapUI& map_ui, CWnd* const pParent/*= nullptr*/)
     :   HtmlViewDlg(pParent),
         m_mapUI(map_ui),
         m_loaded(false)
 {
-    m_htmlViewCtrl.AddWebEventObserver([&](const std::wstring& message) { OnWebMessageReceived(message); });
+    m_htmlViewCtrl.AddWebEventObserver([&](const std::wstring_view message_sv) { OnWebMessageReceived(TC::ToUtf8(message_sv)); });
 
     SetInitialUrl(m_mapUI.GetUrlOfMapHtml());
 
     // set the default dialog title (if not overridden already)
-    if( !m_viewerOptions.title.has_value() )
-        m_viewerOptions.title = _T("CSPro Map");
+    if( !m_viewerOptions.title.IsSet() )
+        m_viewerOptions.title = "CSPro Map";
 }
 
 
@@ -41,140 +60,239 @@ WindowsMapDlg::~WindowsMapDlg()
 }
 
 
-void WindowsMapDlg::RemoveMarker(int leaflet_id)
+LRESULT WindowsMapDlg::OnPostActionMessage(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    ExecuteJavaScript(FormatText(_T("removeMarker(%d);"), leaflet_id));
+    const SharableString message = WindowsDesktopMessage::GetPostedObject<SharableString>(wParam);
+    ASSERT(message.IsSet());
+
+    m_htmlViewCtrl.PostWebMessageAsJson(*message);
+
+    return 1;
 }
 
 
-void WindowsMapDlg::AddMarker(const WindowsMapUI::Marker& marker, int id)
+void WindowsMapDlg::PostActionMessage(const std::string_view action_sv)
 {
-    ExecuteJavaScript(FormatText(_T("addMarker(%g, %g, %d, %d, %d, \"%s\", \"%s\", \"%s\", \"%s\", \"%s\");"),
-        marker.latitude,
-        marker.longitude,
-        marker.on_drag_callback,
-        marker.on_info_window_click_callback,
-        id,
-        Encoders::ToEscapedString(marker.description).c_str(),
-        Encoders::ToEscapedString(marker.text).c_str(),
-        marker.background_color.ToStringRGB().c_str(),
-        marker.text_color.ToStringRGB().c_str(),
-        marker.image_url.c_str()));
+    WindowsDesktopMessage::PostObject(this, UWM::Mapping::PostActionMessage,
+                                      "{\"action\":" + Encoders::ToJsonString(action_sv) + "}");
+}
+
+
+template<typename CF>
+void WindowsMapDlg::PostActionMessage(const cs::string_sz action, const CF& callback_function)
+{
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject()
+                .Write(JK::action, action);
+
+    callback_function(*json_writer);
+
+    json_writer->EndObject();
+
+    WindowsDesktopMessage::PostObject(this, UWM::Mapping::PostActionMessage,
+                                      json_writer->ReleaseSharableString());
+}
+
+
+void WindowsMapDlg::AddMarker(const WindowsMapUI::Marker& marker, const int id)
+{
+    PostActionMessage("addMarker",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id)
+                       .Write(JK::latitude, marker.latitude)
+                       .Write(JK::longitude, marker.longitude)
+                       .Write(JK::draggable, ( marker.on_drag_callback >= 0 ))
+                       .Write(JK::callbackIndex, marker.on_info_window_click_callback)
+                       .Write(JK::description, marker.description)
+                       .Write(JK::text, marker.text)
+                       .Write(JK::backgroundColor, marker.background_color)
+                       .Write(JK::textColor, marker.text_color)
+                       .Write(JK::imageUrl, marker.image_url);
+        });
+}
+
+
+void WindowsMapDlg::RemoveMarker(const int leaflet_id)
+{
+    PostActionMessage("removeMarker",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, leaflet_id);
+        });
 }
 
 
 void WindowsMapDlg::ClearMarkers()
 {
-    ExecuteJavaScript(_T("clearMarkers();"));
-}
-
-
-void WindowsMapDlg::MoveMarker(const WindowsMapUI::Marker& marker)
-{
-    ExecuteJavaScript(FormatText(_T("moveMarker(%g, %g, %d);"), marker.latitude, marker.longitude, marker.leaflet_id));
-}
-
-
-void WindowsMapDlg::FitPoints()
-{
-    ExecuteJavaScript(_T("fitPoints();"));
-}
-
-
-void WindowsMapDlg::SetDraggable(int leaflet_id)
-{
-    ExecuteJavaScript(FormatText(_T("setDraggable(%d);"), leaflet_id));
-}
-
-
-void WindowsMapDlg::SetDescription(const WindowsMapUI::Marker& marker, int id)
-{
-    ExecuteJavaScript(FormatText(_T("setDescription(%d, %d, %d, \"%s\");"), id, marker.leaflet_id,
-                                 marker.on_info_window_click_callback,
-                                 Encoders::ToEscapedString(marker.description).c_str()));
-}
-
-
-void WindowsMapDlg::SetText(const WindowsMapUI::Marker& marker)
-{
-    ExecuteJavaScript(FormatText(_T("setText(%d, \"%s\", \"%s\", \"%s\");"), marker.leaflet_id,
-                                 Encoders::ToEscapedString(marker.text).c_str(),
-                                 marker.background_color.ToStringRGB().c_str(),
-                                 marker.text_color.ToStringRGB().c_str()));
-}
-
-
-void WindowsMapDlg::SetTitle(std::wstring title)
-{
-    ASSERT(m_viewerOptions.title.has_value());
-    SetWindowText(title.empty() ? m_viewerOptions.title->c_str() : title.c_str());
-
-    ExecuteJavaScript(FormatText(_T("setTitle(\"%s\");"), Encoders::ToEscapedString(std::move(title)).c_str()));
-}
-
-
-void WindowsMapDlg::AddTextButton(const WindowsMapUI::Button& button, int id)
-{
-    ExecuteJavaScript(FormatText(_T("addTextButton(\"%s\", %d);"), Encoders::ToEscapedString(button.content).c_str(), id));
-}
-
-
-void WindowsMapDlg::AddImageButton(const WindowsMapUI::Button& button, int id)
-{
-    ExecuteJavaScript(FormatText(_T("addImageButton(\"%s\", %d);"), button.content.c_str(), id));
-}
-
-
-void WindowsMapDlg::RemoveButton(int id)
-{
-    ExecuteJavaScript(FormatText(_T("removeButton(%d);"), id));
-}
-
-
-void WindowsMapDlg::ClearButtons()
-{
-    ExecuteJavaScript(_T("clearButtons();"));
-}
-
-
-void WindowsMapDlg::SetupCurrentLocation()
-{
-    if( m_mapUI.m_showCurrentLocation )
-    {
-        const std::optional<std::tuple<double, double>>& current_location = CurrentLocation::GetCurrentLocation();
-
-        // only show the current location when it can be retrieved
-        if( current_location.has_value() )
-        {
-            ExecuteJavaScript(FormatText(_T("showCurrentLocation(%g, %g);"), std::get<0>(*current_location),
-                                                                             std::get<1>(*current_location)));
-            return;
-        }
-    }
-
-    ExecuteJavaScript(_T("hideCurrentLocation();"));
-}
-
-
-void WindowsMapDlg::SetZoom(double latitude, double longitude, double zoom)
-{
-    ExecuteJavaScript(FormatText(_T("setView(%g, %g, %g);"), latitude, longitude, zoom));
-}
-
-
-void WindowsMapDlg::SetZoom(double minLat, double maxLat, double minLong, double maxLong, double paddingPercent)
-{
-    ExecuteJavaScript(FormatText(_T("fitBounds(%g, %g, %g, %g, %g);"), minLat, minLong, maxLat, maxLong, paddingPercent));
+    PostActionMessage("clearMarkers");
 }
 
 
 void WindowsMapDlg::SetMarkerImage(const WindowsMapUI::Marker& marker)
 {
-    ExecuteJavaScript(FormatText(_T("setMarkerImage(\"%s\", %d);"), marker.image_url.c_str(), marker.leaflet_id));
+    PostActionMessage("setMarkerImage",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker.leaflet_id)
+                       .Write(JK::imageUrl, marker.image_url);
+        });
 }
 
 
-void WindowsMapDlg::SetupBaseMap()
+void WindowsMapDlg::SetMarkerText(const WindowsMapUI::Marker& marker)
+{
+    PostActionMessage("setMarkerText",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker.leaflet_id)
+                       .Write(JK::text, marker.text)
+                       .Write(JK::backgroundColor, marker.background_color)
+                       .Write(JK::textColor, marker.text_color);
+        });
+}
+
+
+void WindowsMapDlg::SetMarkerOnDrag(const int leaflet_id)
+{
+    PostActionMessage("setMarkerOnDrag",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, leaflet_id);
+        });
+}
+
+
+void WindowsMapDlg::SetMarkerDescription(const WindowsMapUI::Marker& marker, const int id)
+{
+    PostActionMessage("setMarkerDescription",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id)
+                       .Write(JK::leafletId, marker.leaflet_id)
+                       .Write(JK::description, marker.description)
+                       .Write(JK::callbackIndex, marker.on_info_window_click_callback);
+        });
+}
+
+
+void WindowsMapDlg::SetMarkerLocation(const WindowsMapUI::Marker& marker)
+{
+    PostActionMessage("setMarkerLocation",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker.leaflet_id)
+                       .Write(JK::latitude, marker.latitude)
+                       .Write(JK::longitude, marker.longitude);
+        });
+}
+
+
+void WindowsMapDlg::FitMarkers()
+{
+    PostActionMessage("fitMarkers");
+}
+
+
+void WindowsMapDlg::AddImageButton(const WindowsMapUI::Button& button, const int id)
+{
+    PostActionMessage("addImageButton",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id)
+                       .Write(JK::imageUrl, button.content);
+        });
+}
+
+
+void WindowsMapDlg::AddTextButton(const WindowsMapUI::Button& button, const int id)
+{
+    PostActionMessage("addTextButton",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id)
+                       .Write(JK::text, button.content);
+        });
+}
+
+
+void WindowsMapDlg::RemoveButton(const int id)
+{
+    PostActionMessage("removeButton",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id);
+        });
+}
+
+
+void WindowsMapDlg::ClearButtons()
+{
+    PostActionMessage("clearButtons");
+}
+
+
+void WindowsMapDlg::SetShowCurrentLocation()
+{
+    // only show the current location when it can be retrieved
+    const std::optional<std::tuple<double, double>> current_location = m_mapUI.m_showCurrentLocation ? CurrentLocation::GetCurrentLocation() :
+                                                                                                       std::nullopt;
+
+    PostActionMessage("showCurrentLocation",
+        [&](JsonWriter& json_writer)
+        {
+            if( current_location.has_value() )
+            {
+                json_writer.Write(JK::latitude, std::get<0>(*current_location))
+                           .Write(JK::longitude, std::get<1>(*current_location));
+            }
+        });
+}
+
+
+void WindowsMapDlg::SetTitle(const std::string& title)
+{
+    ASSERT(m_viewerOptions.title.IsSet());
+    SetWindowText(TC::ToWide(title.empty() ? *m_viewerOptions.title : title).c_str());
+
+    PostActionMessage("setTitle",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::text, title);
+        });
+}
+
+
+void WindowsMapDlg::ZoomTo(const double latitude, const double longitude, const double zoom)
+{
+    PostActionMessage("zoomTo",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::latitude, latitude)
+                       .Write(JK::longitude, longitude)
+                       .Write(JK::zoom, zoom);
+        });
+}
+
+
+void WindowsMapDlg::ZoomTo(const double min_latitude, const double min_longitude,
+                            const double max_latitude, const double max_longitude,
+                            const double padding_percent)
+{
+    PostActionMessage("zoomTo",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::minLatitude, min_latitude)
+                       .Write(JK::minLongitude, min_longitude)
+                       .Write(JK::maxLatitude, max_latitude)
+                       .Write(JK::maxLongitude, max_longitude)
+                       .Write(JK::padding, padding_percent);
+        });
+}
+
+
+void WindowsMapDlg::SetUpBaseMap()
 {
     // if the base map has not been manually set, use Normal
     if( !m_mapUI.m_baseMapSelection.has_value() )
@@ -182,36 +300,36 @@ void WindowsMapDlg::SetupBaseMap()
 
     ASSERT(std::holds_alternative<BaseMap>(*m_mapUI.m_baseMapSelection) == ( m_mapUI.m_tileProvider == nullptr ));
 
-    if( std::holds_alternative<BaseMap>(*m_mapUI.m_baseMapSelection) )
-    {
-        BaseMap base_map = std::get<BaseMap>(*m_mapUI.m_baseMapSelection);
-
-        if( base_map == BaseMap::None )
+    PostActionMessage("setBaseMap",
+        [&](JsonWriter& json_writer)
         {
-            ExecuteJavaScript(_T("resetBaseMap();"));
-        }
+            if( std::holds_alternative<BaseMap>(*m_mapUI.m_baseMapSelection) )
+            {
+                const BaseMap base_map = std::get<BaseMap>(*m_mapUI.m_baseMapSelection);
+                json_writer.Write(JK::type, base_map);
 
-        else
-        {
-            const MappingTileProviderProperties& mapping_tile_provider_properties = m_mapUI.m_mappingProperties.GetWindowsMappingTileProviderProperties();
+                if( base_map != BaseMap::None )
+                {
+                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mapUI.m_mappingProperties.GetWindowsMappingTileProviderProperties();
 
-            ExecuteJavaScript(FormatText(_T("set%sBaseMap(\"%s\", \"%s\");"),
-                                         ToString(mapping_tile_provider_properties.GetMappingTileProvider()),
-                                         Encoders::ToEscapedString(mapping_tile_provider_properties.GetTileLayer(base_map)).c_str(),
-                                         Encoders::ToEscapedString(mapping_tile_provider_properties.GetAccessToken()).c_str()));
-        }
-    }
+                    json_writer.Write(JK::tileProvider, mapping_tile_provider_properties.GetMappingTileProvider())
+                               .Write(JK::tileLayer, mapping_tile_provider_properties.GetTileLayer(base_map))
+                               .Write(JK::accessToken, mapping_tile_provider_properties.GetAccessToken());
+                }
+            }
 
-    else
-    {
-        ExecuteJavaScript(FormatText(_T("setOfflineBaseMap(\"%s\", `%s`);"),
-                                     m_mapUI.m_tileProvider->GetTileLayerUrl().c_str(),
-                                     Encoders::ToEscapedString(m_mapUI.m_tileProvider->GetLeafletTileLayerOptions()).c_str()));
-    }
+            else
+            {
+                json_writer.Write(JK::url, m_mapUI.m_tileProvider->GetTileLayerUrl());
+
+                json_writer.Key(JK::options);
+                m_mapUI.m_tileProvider->WriteJsonLeafletTileLayerOptions(json_writer);
+            }
+        });
 }
 
 
-void WindowsMapDlg::AddGeometry(const WindowsMapUI::MapGeometry& geometry, int id)
+void WindowsMapDlg::AddGeometry(const WindowsMapUI::MapGeometry& geometry, const int id)
 {
     std::ostringstream stream;
     GeoJson::toGeoJson(stream, *geometry.geometry);
@@ -221,119 +339,146 @@ void WindowsMapDlg::AddGeometry(const WindowsMapUI::MapGeometry& geometry, int i
 
     PortableLocalhost::CreateVirtualFile(*virtual_file_mapping);
 
-    ExecuteJavaScript(FormatText(_T("addGeometry(%d, '%s');"), id, Encoders::ToEscapedString(virtual_file_mapping->GetUrl()).c_str()));
+    PostActionMessage("addGeometry",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, id)
+                       .Write(JK::geojsonUrl, virtual_file_mapping->GetUrl());
+        });
 }
 
 
-void WindowsMapDlg::RemoveGeometry(int leaflet_id)
+void WindowsMapDlg::RemoveGeometry(const int leaflet_id)
 {
-    ExecuteJavaScript(FormatText(_T("removeGeometry(%d);"), leaflet_id));
+    PostActionMessage("removeGeometry",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, leaflet_id);
+        });
 }
 
 
 void WindowsMapDlg::ClearGeometry()
 {
-    ExecuteJavaScript(_T("clearGeometry();"));
+    PostActionMessage("clearGeometry");
 }
 
 
-void WindowsMapDlg::OnWebMessageReceived(wstring_view message)
+void WindowsMapDlg::OnWebMessageReceived(const std::string_view message_sv)
 {
-    auto json = Json::Parse(message);
-    wstring_view action = json.Get<wstring_view>(_T("action"));
-    IMapUI::MapCamera camera = IMapUI::MapCamera{ 0, 0, 0, 0 };
-
-    if (json.Contains(_T("camera_lat")))
+    try
     {
-        camera = IMapUI::MapCamera
-        {
-            json.Get<double>(_T("camera_lat")),
-            json.Get<double>(_T("camera_lng")),
-            json.Get<float>(_T("camera_zoom")),
-            0
-        };
+        OnWebMessageReceived(Json::Parse(message_sv));
     }
+    catch(...) { ASSERT(false); }
+}
 
 
-    if (action == _T("document_loaded"))
+void WindowsMapDlg::OnWebMessageReceived(const JsonNode json_node)
+{
+    const std::string_view action_sv = json_node.Get<std::string_view>(JK::action);
+
+    const JsonNode camera_json_node = json_node.GetOrEmpty(JK::camera);
+    const IMapUI::MapCamera camera = camera_json_node.IsEmpty() ? IMapUI::MapCamera { 0, 0, 0, 0 } :
+                                                                  IMapUI::MapCamera { camera_json_node.Get<double>(JK::latitude),
+                                                                                      camera_json_node.Get<double>(JK::longitude),
+                                                                                      camera_json_node.Get<float>(JK::zoom),
+                                                                                      0 };
+
+    if( action_sv == "documentLoaded" )
     {
         m_loaded = true;
-        SetupInitialMap();
+        SetUpInitialMap();
     }
 
-    else if (action == _T("marker_click"))
-    {
-        int marker_id = json.Get<int>(_T("id"));
-        WindowsMapUI::Marker* marker = m_mapUI.GetMarker(marker_id);
-
-        if (marker != nullptr)
-        {
-            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerClicked,
-                marker_id, marker->on_click_callback, marker->latitude, marker->longitude, camera);
-        }
-    }
-
-    else if (action == _T("marker_placed"))
-    {
-        int marker_id = json.Get<int>(_T("id"));
-        int leaflet_id = json.Get<int>(_T("leaflet_id"));
-        WindowsMapUI::Marker* marker = m_mapUI.GetMarker(marker_id);
-        marker->leaflet_id = leaflet_id;
-    }
-
-    else if (action == _T("marker_drag"))
-    {
-        int marker_id = json.Get<int>(_T("id"));
-        WindowsMapUI::Marker* marker = m_mapUI.GetMarker(marker_id);
-        if (marker != nullptr)
-        {
-            marker->latitude = json.Get<double>(_T("latitude"));
-            marker->longitude = json.Get<double>(_T("longitude"));
-            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerDragged,
-                marker_id, marker->on_drag_callback, marker->latitude, marker->longitude, camera);
-        }
-    }
-
-    else if (action == _T("map_click"))
+    else if( action_sv == "mapClick" )
     {
         m_mapUI.NotifyEvent(IMapUI::EventCode::MapClicked, -1, -1,
-            json.Get<double>(_T("latitude")), json.Get<double>(_T("longitude")), camera);
+                            json_node.Get<double>(JK::latitude), json_node.Get<double>(JK::longitude), camera);
     }
 
-    else if (action == _T("popup_click"))
+    else if( action_sv == "markerPlaced" )
     {
-        int marker_id = json.Get<int>(_T("id"));
-        WindowsMapUI::Marker* marker = m_mapUI.GetMarker(marker_id);
-        m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerInfoWindowClicked,
-            marker_id, marker->on_info_window_click_callback, marker->latitude, marker->longitude, camera);
+        const int marker_id = json_node.Get<int>(JK::id);
+        const int leaflet_id = json_node.Get<int>(JK::leafletId);
+        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
+
+        if( marker != nullptr )
+            marker->leaflet_id = leaflet_id;
     }
 
-    else if (action == _T("button_click"))
+    else if( action_sv == "markerClick" )
     {
-        int button_id = json.Get<int>(_T("id"));
-        WindowsMapUI::Button* button = m_mapUI.GetButton(button_id);
-        m_mapUI.NotifyEvent(IMapUI::EventCode::ButtonClicked, button_id, button->on_click_callback, 0, 0, camera);
+        const int marker_id = json_node.Get<int>(JK::id);
+        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
+
+        if( marker != nullptr )
+        {
+            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerClicked, marker_id,
+                                marker->on_click_callback, marker->latitude, marker->longitude, camera);
+        }
     }
 
-    else if (action == _T("geometry_placed"))
+    else if( action_sv == "markerPopup" )
     {
-        int geometry_id = json.Get<int>(_T("id"));
-        int leaflet_id = json.Get<int>(_T("leaflet_id"));
-        WindowsMapUI::MapGeometry* geometry = m_mapUI.GetGeometry(geometry_id);
-        geometry->leaflet_id = leaflet_id;
+        const int marker_id = json_node.Get<int>(JK::id);
+        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
+
+        if( marker != nullptr )
+        {
+            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerInfoWindowClicked, marker_id,
+                                marker->on_info_window_click_callback, marker->latitude, marker->longitude, camera);
+        }
+    }
+
+    else if( action_sv == "markerDrag" )
+    {
+        const int marker_id = json_node.Get<int>(JK::id);
+        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
+
+        if( marker != nullptr )
+        {
+            marker->latitude = json_node.Get<double>(JK::latitude);
+            marker->longitude = json_node.Get<double>(JK::longitude);
+
+            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerDragged, marker_id,
+                                marker->on_drag_callback, marker->latitude, marker->longitude, camera);
+        }
+    }
+
+    else if( action_sv == "buttonClick" )
+    {
+        const int button_id = json_node.Get<int>(JK::id);
+        WindowsMapUI::Button* const button = m_mapUI.GetButton(button_id);
+
+        if( button != nullptr )
+        {
+            m_mapUI.NotifyEvent(IMapUI::EventCode::ButtonClicked, button_id,
+                                button->on_click_callback, 0, 0, camera);
+        }
+    }
+
+    else if( action_sv == "geometryPlaced" )
+    {
+        const int geometry_id = json_node.Get<int>(JK::id);
+        const int leaflet_id = json_node.Get<int>(JK::leafletId);
+        WindowsMapUI::MapGeometry* const geometry = m_mapUI.GetGeometry(geometry_id);
+
+        if( geometry != nullptr )
+            geometry->leaflet_id = leaflet_id;
     }
 }
 
 
-void WindowsMapDlg::SetupInitialMap()
+void WindowsMapDlg::SetUpInitialMap()
 {
     ASSERT(m_loaded);
 
     // set the title
-    SetTitle(m_mapUI.m_title);
+    SetTitle(*m_mapUI.m_title);
 
-    // setup the base map
-    SetupBaseMap();
+    // set up the base map
+    SetUpBaseMap();
 
     // add markers
     for( const auto& [id, marker] : m_mapUI.m_markers )
@@ -342,13 +487,13 @@ void WindowsMapDlg::SetupInitialMap()
     }
 
     // add buttons
-    for (const auto& [id, button] : m_mapUI.m_buttons)
+    for( const auto& [id, button] : m_mapUI.m_buttons )
     {
-        if (button.type == WindowsMapUI::ButtonType::Text)
+        if( button.type == WindowsMapUI::Button::Type::Text )
         {
             AddTextButton(button, id);
         }
-        
+
         else
         {
             AddImageButton(button, id);
@@ -356,28 +501,28 @@ void WindowsMapDlg::SetupInitialMap()
     }
 
     // show or hide the current location
-    SetupCurrentLocation();
+    SetShowCurrentLocation();
 
     // set the zoom
-    if (m_mapUI.m_zoom.has_value())
+    if( m_mapUI.m_zoom != nullptr )
     {
         const WindowsMapUI::Zoom& zoom = *m_mapUI.m_zoom;
 
-        if (zoom.latitude2 > -91)
+        if( zoom.latitude2 > -91 )
         {
-            SetZoom(zoom.latitude, zoom.latitude2, zoom.longitude, zoom.longitude2, zoom.level);
+            ZoomTo(zoom.latitude, zoom.longitude, zoom.latitude2, zoom.longitude2, zoom.level);
         }
 
         else
         {
-            //need to set initial zoom, 7 seems like a nice number
-            SetZoom(zoom.latitude, zoom.longitude, zoom.level > 0 ? zoom.level : 7);
+            // need to set initial zoom, 7 seems like a nice number
+            ZoomTo(zoom.latitude, zoom.longitude, ( zoom.level > 0 ) ? zoom.level : 7);
         }
     }
 
     else
     {
-        FitPoints();
+        FitMarkers();
     }
 
     // add geometries
@@ -388,51 +533,37 @@ void WindowsMapDlg::SetupInitialMap()
 }
 
 
-void WindowsMapDlg::ExecuteJavaScript(const TCHAR* javascript)
+struct WindowsMapDlg::SnapshotData
 {
-    // send a message to execute the JavaScript so that code executed
-    // from the engine thread runs on the UI thread
-    SendMessage(UWM::Mapping::ExecuteJavaScript, reinterpret_cast<WPARAM>(javascript));
+    const std::string& file_path;
+    std::optional<std::string> exception_message;
+};
+
+
+void WindowsMapDlg::SaveSnapshot(const std::string& file_path)
+{
+    // send a message to save the snapshot on the UI thread
+    SnapshotData snapshot_data { file_path };
+    SendMessage(UWM::Mapping::SaveSnapshot, reinterpret_cast<WPARAM>(&snapshot_data));
+
+    if( snapshot_data.exception_message.has_value() )
+        throw CSProException(*snapshot_data.exception_message);
 }
 
 
-LRESULT WindowsMapDlg::OnExecuteJavaScript(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT WindowsMapDlg::OnSaveSnapshot(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    if( m_loaded )
-    {
-        const TCHAR* javascript = reinterpret_cast<const TCHAR*>(wParam);
-        m_htmlViewCtrl.ExecuteScript(javascript);
-    }
-
-    return 0;
-}
-
-
-void WindowsMapDlg::SaveSnapshot(const std::wstring& filename)
-{
-    // send a message to save the snapsnot on the UI thread
-    std::optional<std::wstring> exception_message;
-
-    SendMessage(UWM::Mapping::SaveSnapshot, reinterpret_cast<WPARAM>(&filename), reinterpret_cast<LPARAM>(&exception_message));
-
-    if( exception_message.has_value() )
-        throw CSProException(*exception_message);
-}
-
-
-LRESULT WindowsMapDlg::OnSaveSnapshot(WPARAM wParam, LPARAM lParam)
-{
-    const std::wstring& filename = *reinterpret_cast<const std::wstring*>(wParam);
-    std::optional<std::wstring>& exception_message = *reinterpret_cast<std::optional<std::wstring>*>(lParam);
+    SnapshotData& snapshot_data = *reinterpret_cast<SnapshotData*>(wParam);
+    ASSERT(!snapshot_data.exception_message.has_value());
 
     try
     {
-        m_htmlViewCtrl.SaveScreenshot(filename);
+        m_htmlViewCtrl.SaveScreenshot(snapshot_data.file_path);
     }
 
     catch( const CSProException& exception )
     {
-        exception_message = exception.GetErrorMessage();
+        snapshot_data.exception_message.emplace(exception.what());
     }
 
     return 0;

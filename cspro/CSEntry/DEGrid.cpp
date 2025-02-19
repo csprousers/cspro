@@ -136,7 +136,7 @@ void CDEGrid::OnCellField_LClicked(CDEField* pFld, int iOcc)
     CDERoster* pRoster = GetRoster();
     if( pDoc->IsAutoEndGroup() ) { // RHF Nov 07, 2000
         if((pDoc->GetAppMode() == MODIFY_MODE || pDoc->GetAppMode() == VERIFY_MODE) && iOcc > pRoster->GetDataOccs()) {
-            AfxMessageBox(MGF::GetMessageText(MGF::OccurrenceDoesNotExist).c_str());
+            AfxMessageBox(MGF::GetMessageText(MGF::OccurrenceDoesNotExist).GetString());
             return;
         }
     }

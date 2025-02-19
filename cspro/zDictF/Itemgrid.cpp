@@ -90,13 +90,13 @@ void CItemGrid::OnSetup()
 
     m_iButton = AddCellType(&m_button);
 
-	auto set_header = [&](int column, const TCHAR* text, int alignment = 0)
-	{
-		QuickSetText(column, HEADER_ROW, text);
+    auto set_header = [&](int column, const TCHAR* text, int alignment = 0)
+    {
+        QuickSetText(column, HEADER_ROW, text);
 
-		if( alignment != 0 )
-			QuickSetAlignment(column, HEADER_ROW, alignment);
-	};
+        if( alignment != 0 )
+            QuickSetAlignment(column, HEADER_ROW, alignment);
+    };
 
     set_header(ITEM_NOTE_COL,     _T("N"));
     set_header(ITEM_SETLABEL_COL, _T("Value Set Label"), UG_ALIGNLEFT);
@@ -123,7 +123,7 @@ void CItemGrid::Size(CRect rect)
 {
     CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("ItemGridWidths"), _T("-1"));
     std::vector<std::wstring> aWidths = SO::SplitString(csWidths, ',');
-        
+
     if (aWidths.size() < ITEM_NUM_COLS) {
         CUGCell cell;
         CUGCellType* pCellType;
@@ -367,7 +367,7 @@ void CItemGrid::Update()
                 QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
             }
             QuickSetText      (ITEM_SETLABEL_COL, ir, dict_value_set.GetLabel());
-            QuickSetText      (ITEM_SETNAME_COL,  ir, dict_value_set.GetName());
+            QuickSetText      (ITEM_SETNAME_COL,  ir, UTF8_TODO::GetCString(dict_value_set.GetName()));
 
             size_t value_set_links = m_pDict->CountValueSetLinks(dict_value_set);
             bool is_real_linked_value_set = ( value_set_links >= 2 );
@@ -409,7 +409,7 @@ void CItemGrid::Update()
                 QuickSetText      (ITEM_LABEL_COL,    ir, dict_value.GetLabel());
                 QuickSetTextColor (ITEM_LABEL_COL,    ir, dict_value.GetTextColor().ToCOLORREF());
 
-                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : _T(""));
+                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : _T(""));
 
                 int p = 0;
                 for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() ) {
@@ -874,7 +874,7 @@ void CItemGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
         GetCell(ITEM_LABEL_COL, GetCurrentRow(), &cell);
         cell.GetText(&text);
         if (*vcKey >= 32) {
-            if (text.GetLength() == 1 && SO::IsBlank(text)) {
+            if (text.GetLength() == 1 && SO::IsBlank(wstring_view(text))) {
                 EditBegin(ITEM_FROM_COL, GetCurrentRow(), *vcKey);
             }
             else {
@@ -882,7 +882,7 @@ void CItemGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
             }
         }
         else if (*vcKey == VK_RETURN) {
-            if (text.GetLength() == 1 && SO::IsBlank(text)) {
+            if (text.GetLength() == 1 && SO::IsBlank(wstring_view(text))) {
                 EditBegin(ITEM_FROM_COL, GetCurrentRow(), 0);
             }
             else {
@@ -937,7 +937,7 @@ void CItemGrid::EditBegin(int col, long row, UINT vcKey)
         CDictItem* pItem = ((CDictItem*) m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(GetItem()));
         DictValueSet& dict_value_set = pItem->GetValueSet(m_aValue[row].vset);
         m_pDict->SetChangedObject(&dict_value_set);
-        m_pDict->SetOldName(dict_value_set.GetName());
+        m_pDict->SetOldName(UTF8_TODO::GetCString(dict_value_set.GetName()));
         pTreeCtrl->SetUpdateAllViews(false);
     }
     CUGCell cell;
@@ -1025,10 +1025,10 @@ void CItemGrid::EditBegin(int col, long row, UINT vcKey)
         m_pSpecialEdit->SetItemHeight (-1, m_plf->lfHeight);   // sets height for static control and button
         m_pSpecialEdit->SetItemHeight ( 0, m_plf->lfHeight);   // sets height for list box entries
         m_pSpecialEdit->AddString(_T(""));
-        m_pSpecialEdit->AddString(SpecialValues::ValueToString(MISSING, false));
-        m_pSpecialEdit->AddString(SpecialValues::ValueToString(REFUSED, false));
-        m_pSpecialEdit->AddString(SpecialValues::ValueToString(NOTAPPL, false));
-        m_pSpecialEdit->AddString(SpecialValues::ValueToString(DEFAULT, false));
+        m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(MISSING, false)).c_str());
+        m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(REFUSED, false)).c_str());
+        m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(NOTAPPL, false)).c_str());
+        m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(DEFAULT, false)).c_str());
         GetCell(ITEM_SPECIAL_COL, row, &cell);
         cell.GetText(&cs);
         if (cs == _T("")) {
@@ -1090,15 +1090,15 @@ bool CItemGrid::EditEnd(bool bSilent)
             else
                 dict_value_set.SetLabel(csNewSetLabel);
         }
-        CIMSAString csNewSetName, csOldSetName;
+        CString csNewSetName;
         m_aEditControl[ITEM_SETNAME_COL]->GetWindowText(csNewSetName);
-        csOldSetName = dict_value_set.GetName();
+        CString csOldSetName = UTF8_TODO::GetCString(dict_value_set.GetName());
         if (csNewSetName.Compare(csOldSetName) != 0) {
             bChanged = true;
-            dict_value_set.SetName(csNewSetName);
+            dict_value_set.SetName(UTF8_TODO::GetUtf8(csNewSetName));
         }
         if (m_bAdding || m_bInserting) {
-            if (dict_value_set.GetLabel().IsEmpty() && dict_value_set.GetName().IsEmpty()) {
+            if (dict_value_set.GetLabel().IsEmpty() && dict_value_set.GetName().empty   ()) {
                 bUndo = true;
                 m_bAdding = false;
                 m_bInserting = false;
@@ -1117,7 +1117,7 @@ bool CItemGrid::EditEnd(bool bSilent)
             }
             else {
                 dict_value_set.SetLabel(csOldSetLabel);
-                dict_value_set.SetName(csOldSetName);
+                dict_value_set.SetName(UTF8_TODO::GetUtf8(csOldSetName));
             }
         }
     }
@@ -1140,7 +1140,7 @@ bool CItemGrid::EditEnd(bool bSilent)
             }
 
             m_aEditControl[ITEM_SPECIAL_COL]->GetWindowText(csNewSpecType);
-            std::optional<double> new_special_value = SpecialValues::StringIsSpecial<std::optional<double>>(csNewSpecType);
+            std::optional<double> new_special_value = SpecialValues::StringIsSpecial<std::optional<double>>(UTF8_TODO::GetUtf8(csNewSpecType));
 
             if (new_special_value != old_special_value) {
                 bChanged = true;
@@ -1172,7 +1172,7 @@ bool CItemGrid::EditEnd(bool bSilent)
 
         csNewFrom = dict_value_pair.GetFrom();
         csNewTo = dict_value_pair.GetTo();
-        
+
         if (csNewFrom.Compare(csOldFrom) != 0) {
             bChanged = true;
             m_aEditControl[ITEM_FROM_COL]->SetWindowText(dict_value_pair.GetFrom());
@@ -1268,7 +1268,7 @@ bool CItemGrid::EditEnd(bool bSilent)
                         new_dict_value.GetLabelSet().SetCurrentLanguage(m_pDict->GetCurrentLanguageIndex());
                         new_dict_value.SetLabel(csLabel);
 
-                        std::optional<double> new_special_value = SpecialValues::StringIsSpecial<std::optional<double>>(csValueType);
+                        std::optional<double> new_special_value = SpecialValues::StringIsSpecial<std::optional<double>>(UTF8_TODO::GetUtf8(csValueType));
                         new_dict_value.SetSpecialValue(new_special_value);
 
                         size_t p = m_aValue[row].vpair;
@@ -1572,7 +1572,7 @@ void CItemGrid::OnEditAdd()
     if (bValueSet) {
         DictValueSet dict_value_set;
         dict_value_set.GetLabelSet().SetCurrentLanguage(m_pDict->GetCurrentLanguageIndex());
-        CIMSAString csName = pItem->GetName();
+        CIMSAString csName = UTF8_TODO::GetCString(pItem->GetName());
         if (!pItem->HasValueSets()) {
             dict_value_set.GetLabelSet().SetLabels(pItem->GetLabelSet());
             csName += _T("_VS1");
@@ -1582,8 +1582,8 @@ void CItemGrid::OnEditAdd()
             csNum.Str((int)pItem->GetNumValueSets() + 1);
             csName += _T("_VS") + csNum;
         }
-        csName = pDoc->GetDict()->GetUniqueName(csName);
-        dict_value_set.SetName(csName);
+        csName = UTF8_TODO::GetCString(pDoc->GetDict()->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
+        dict_value_set.SetName(UTF8_TODO::GetUtf8(csName));
         pItem->AddValueSet(std::move(dict_value_set));
         m_iMinCol = ITEM_SETLABEL_COL;
         m_iMaxCol = ITEM_SETNAME_COL;
@@ -1673,7 +1673,7 @@ void CItemGrid::OnEditInsert()
         int iVSet = m_aValue[row].vset;
         DictValueSet dict_value_set;
         dict_value_set.GetLabelSet().SetCurrentLanguage(m_pDict->GetCurrentLanguageIndex());
-        CIMSAString csName = pItem->GetName();
+        CIMSAString csName = UTF8_TODO::GetCString(pItem->GetName());
         if (!pItem->HasValueSets()) {
             dict_value_set.SetLabel(pItem->GetLabel());
             csName += _T("_VS1");
@@ -1683,7 +1683,7 @@ void CItemGrid::OnEditInsert()
             csNum.Str((int)pItem->GetNumValueSets() + 1);
             csName += _T("_VS") + csNum;
         }
-        dict_value_set.SetName(csName);
+        dict_value_set.SetName(UTF8_TODO::GetUtf8(csName));
         pItem->InsertValueSet(iVSet, std::move(dict_value_set));
         m_iMinCol = ITEM_SETLABEL_COL;
         m_iMaxCol = ITEM_SETNAME_COL;
@@ -1783,7 +1783,7 @@ namespace
     // returns an empty vector if the line is not valid
     std::vector<std::wstring> GetTabDelimitedComponents(wstring_view line)
     {
-        // look for lines of the form: "<label>\t<from>\t<to>\t<image_filename>\n"
+        // look for lines of the form: "<label>\t<from>\t<to>\t<image_file_path>\n"
         // where all but the from value can be blank
         std::vector<std::wstring> values = SO::SplitString(line, '\t');
 
@@ -1804,7 +1804,7 @@ namespace
                 std::vector<CString> values = WS2CS_Vector(GetTabDelimitedComponents(line));
 
                 if( values.empty() )
-                    return true;
+                    return;
 
                 // 20140904 left-trim any zeros so they don't show up in the values
                 if( IsNumeric(content_type) )
@@ -1826,14 +1826,14 @@ namespace
                 DictValue dict_value;
                 dict_value.SetLabel(values[0]);
 
-                // get the full path of an image filename
+                // get the full path of an image
                 if( values.size() > 3 )
-                    dict_value.SetImageFilename(WS2CS(MakeFullPath(PortableFunctions::PathGetDirectory(dictionary_filename), CS2WS(values[3]))));
+                    dict_value.SetImageFilePath(UTF8_TODO::GetUtf8(MakeFullPath(PortableFunctions::PathGetDirectory(dictionary_filename), CS2WS(values[3]))));
 
                 size_t value_index = dict_value_set.GetNumValues();
 
-                // if the label and image filename are blank, associate this with the last value when possible
-                if( value_index > 0 && dict_value.GetLabel().IsEmpty() && dict_value.GetImageFilename().IsEmpty() )
+                // if the label and image file path are blank, associate this with the last value when possible
+                if( value_index > 0 && dict_value.GetLabel().IsEmpty() && dict_value.GetImageFilePath().empty() )
                 {
                     --value_index;
                 }
@@ -1846,8 +1846,6 @@ namespace
 
                 // add the value pair
                 dict_value_set.GetValue(value_index).AddValuePair(DictValuePair(values[1], ( values.size() > 2 ) ? values[2] : CString()));
-
-                return true;
             });
 
         ASSERT(dict_value_set.GetNumValues() != 0);
@@ -1858,8 +1856,8 @@ namespace
 
     void OutputDictValue(std::wostringstream& stream, const DictValuePair& dict_value_pair)
     {
-        stream << _T("\t") << (LPCTSTR)dict_value_pair.GetFrom()
-               << _T("\t") << (LPCTSTR)dict_value_pair.GetTo();
+        stream << _T("\t") << dict_value_pair.GetFrom().GetString()
+               << _T("\t") << dict_value_pair.GetTo().GetString();
     }
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValuePair& dict_value_pair)
@@ -1871,7 +1869,7 @@ namespace
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValue& dict_value)
     {
-        stream << (LPCTSTR)dict_value.GetLabel();
+        stream << dict_value.GetLabel().GetString();
 
         bool first_pair = true;
 
@@ -1879,8 +1877,8 @@ namespace
         {
             OutputDictValue(stream, dict_value_pair);
 
-            if( first_pair && !dict_value.GetImageFilename().IsEmpty() )
-                stream << _T("\t") << (LPCTSTR)dict_value.GetImageFilename();
+            if( first_pair && !dict_value.GetImageFilePath().empty() )
+                stream << _T("\t") << UTF8_TODO::GetCString(dict_value.GetImageFilePath()).GetString();
 
             stream << std::endl;
 
@@ -1892,7 +1890,7 @@ namespace
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValueSet& dict_value_set)
     {
-        stream << (LPCTSTR)dict_value_set.GetLabel() << std::endl;
+        stream << dict_value_set.GetLabel().GetString() << std::endl;
 
         for( const DictValue& dict_value : dict_value_set.GetValues() )
             stream << dict_value;
@@ -1916,9 +1914,9 @@ bool CItemGrid::IsClipboardValidForValueSetPaste(const CDDDoc& dictionary_doc)
         bool valid_line_found = false;
 
         SO::ForeachLine(WinClipboard::GetText(), false,
-            [&](wstring_view line)
+            [&](wstring_view line_sv)
             {
-                valid_line_found = !GetTabDelimitedComponents(line).empty();
+                valid_line_found = !GetTabDelimitedComponents(line_sv).empty();
                 return !valid_line_found;
             });
 
@@ -2126,7 +2124,7 @@ void CItemGrid::OnEditPaste()
     CDictItem* dict_item = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
 
     std::vector<DictValueSet> pasted_value_sets;
-    CString parent_item_name_of_pasted_value_sets;
+    std::string parent_item_name_of_pasted_value_sets;
     std::vector<DictValue> pasted_values;
     std::vector<DictValuePair> pasted_value_pairs;
 
@@ -2328,7 +2326,7 @@ void CItemGrid::OnEditPaste()
         ASSERT(value_set_index <= dict_item->GetNumValueSets());
 
         const CDataDict& dictionary = pDoc->GetDictionary();
-        std::set<CString> additional_names_in_use;
+        std::set<std::string> additional_names_in_use;
 
         for( DictValueSet& dict_value_set : pasted_value_sets )
         {
@@ -2336,7 +2334,7 @@ void CItemGrid::OnEditPaste()
             dict_value_set.UnlinkValueSet();
 
             // ensure that the value set name is unique
-            auto set_unique_name_and_add_to_set = [&](const CString& name_candidate)
+            auto set_unique_name_and_add_to_set = [&](const std::string& name_candidate)
             {
                 dict_value_set.SetName(dictionary.GetUniqueName(name_candidate, NONE, NONE, NONE, NONE, &additional_names_in_use));
                 additional_names_in_use.insert(dict_value_set.GetName());
@@ -2344,7 +2342,7 @@ void CItemGrid::OnEditPaste()
 
             // if a value set was cut from this item and then pasted on the same item,
             // most likely to reorder the value sets, use the name and label from the original value set
-            if( !dict_value_set.GetName().IsEmpty() && dict_item->GetName() == parent_item_name_of_pasted_value_sets )
+            if( !dict_value_set.GetName().empty() && dict_item->GetName() == parent_item_name_of_pasted_value_sets )
             {
                 set_unique_name_and_add_to_set(dict_value_set.GetName());
             }
@@ -2352,7 +2350,7 @@ void CItemGrid::OnEditPaste()
             // otherwise default to a name based on the number of value sets and use the item label as the label
             else
             {
-                set_unique_name_and_add_to_set(FormatText(_T("%s_VS%d"), (LPCTSTR)dict_item->GetName(), (int)dict_item->GetNumValueSets() + 1));
+                set_unique_name_and_add_to_set(FormatText("%s_VS%d", dict_item->GetName().c_str(), static_cast<int>(dict_item->GetNumValueSets()) + 1));
                 dict_value_set.SetLabel(dict_item->GetLabel());
             }
 
@@ -2461,7 +2459,7 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
     new_dict_value_set.SetLabel(dest_dict_item->GetLabel());
 
     // use the default name and label and then make it unique
-    CString new_name = FormatText(_T("%s_VS%d"), (LPCTSTR)dest_dict_item->GetName(), (int)dest_dict_item->GetNumValueSets() + 1);
+    std::string new_name = FormatText("%s_VS%d", dest_dict_item->GetName().c_str(), static_cast<int>(dest_dict_item->GetNumValueSets()) + 1);
     new_name = pDoc->GetDict()->GetUniqueName(new_name);
     new_dict_value_set.SetName(new_name);
 
@@ -2470,7 +2468,7 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
     dest_dict_item->AddValueSet(std::move(new_dict_value_set));
 
     // sync any linked value sets
-    std::vector<CString> value_set_names_added = { new_name };
+    const std::vector<std::string> value_set_names_added = { std::move(new_name) };
     m_pDict->SyncLinkedValueSets(CDataDict::SyncLinkedValueSetsAction::OnPaste, &value_set_names_added);
 
     // Check is dictionary still OK
@@ -2512,7 +2510,7 @@ void CItemGrid::OnRemoveValueSetLink(UINT nID) // 20110120
     {
         ASSERT(nID == ID_REMOVE_VS_ALL_LINKS);
 
-        std::wstring linked_value_set_code = dict_value_set.GetLinkedValueSetCode();
+        std::string linked_value_set_code = dict_value_set.GetLinkedValueSetCode();
         ASSERT(!linked_value_set_code.empty());
 
         DictionaryIterator::Foreach<DictValueSet>(*m_pDict,
@@ -2748,183 +2746,29 @@ int CItemGrid::GetRow(int iVSet, int iValue)
 
 void CItemGrid::OnEditGenValueSet()
 {
-    GenerateVSDlg dlg;
-    CDDGView* pView = (CDDGView*) GetParent();
-    dlg.m_pDoc =  (CDDDoc*) pView->GetDocument();
-    dlg.m_pItem = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
-    if (dlg.DoModal() != IDOK) {
-        InvalidateRect(NULL);
+    CView* const pView = assert_cast<CView*>(GetParent());
+    CDDDoc* const pDoc = assert_cast<CDDDoc*>(pView->GetDocument());
+    ASSERT(m_pDict == pDoc->GetDict());
+
+    CDictItem* const dict_item = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
+    ASSERT(dict_item != nullptr);
+
+    GenerateVSDlg dlg(pDoc->GetDictionary(), *dict_item);
+
+    if( dlg.DoModal() != IDOK )
         return;
-    }
-    bool bZeroDec = false;
-    if (GetPrivateProfileInt(_T("intl"), _T("iLZero"), 0, _T("WIN.INI")) == 1) {
-        bZeroDec = true;
-    }
 
-    DictValueSet dict_value_set;
-    dict_value_set.SetName(dlg.m_sName);
-    dict_value_set.GetLabelSet().SetCurrentLanguage(m_pDict->GetCurrentLanguageIndex());
-    dict_value_set.SetLabel(dlg.m_sLabel);
+    pDoc->PushUndo(*m_pDict, m_iLevel, m_iRec, m_iItem, 0, NONE);
+    pDoc->SetModified();
 
-    TCHAR pszTemp[30];
-    GetPrivateProfileString(_T("intl"), _T("sDecimal"), _T("."), pszTemp, 30, _T("WIN.INI"));
-    TCHAR cDec = pszTemp[0];
-    GetPrivateProfileString(_T("intl"), _T("sGrouping"), _T(""), pszTemp, 30, _T("WIN.INI"));
-    CIMSAString sGrouping = pszTemp;
-    int iGroup = 0;
-    if (sGrouping == _T("3;0")) {
-        iGroup = 3;
-    }
-    else if (sGrouping == _T("3;2;0")) {
-        iGroup = 2;
-    }
-    GetPrivateProfileString(_T("intl"), _T("sThousand"), _T(""), pszTemp, 30, _T("WIN.INI"));
-    CIMSAString sThousand = dlg.m_bUseThousandsSeparator ? pszTemp : CString();
-    for (double lower = dlg.m_dFrom ; lower <= dlg.m_dTo ; lower += dlg.m_dInterval) {
-        DictValue dict_value;
-        dict_value.GetLabelSet().SetCurrentLanguage(m_pDict->GetCurrentLanguageIndex());
-        double upper = lower + dlg.m_dInterval - dlg.m_dMinInterval;
-        if (upper > dlg.m_dTo) {
-            upper = dlg.m_dTo;
-        }
-        CIMSAString sLabel;
-        UINT uDec = dlg.m_pItem->GetDecimal();
-        UINT uLen = dlg.m_pItem->GetLen();
-        if (uDec > 0 && !dlg.m_pItem->GetDecChar()) {
-            uLen++;
-        }
-        CIMSAString sLower = dtoa(lower, pszTemp, dlg.m_pItem->GetDecimal(), cDec, bZeroDec);
-        CIMSAString sUpper = dtoa(upper, pszTemp, dlg.m_pItem->GetDecimal(), cDec, bZeroDec);
+    dict_item->AddValueSet(dlg.CreateValueSet());
 
-        // Grouping for lower
-        CIMSAString sTemp;
-        int iLowLen = sLower.GetLength();
-        int iLoc = sLower.Find(cDec);
-        if (iLoc >= 0) {
-            iLowLen = iLoc;
-        }
-        if (sLower[0] == '-') {
-            sLower = sLower.Mid(1);
-            iLowLen--;
-            sTemp = _T("-");
-        }
-        else {
-            sTemp = _T("");
-        }
-        if (iGroup > 0 && iLowLen > 3) {
-            if (iGroup == 3) {
-                int m = iLowLen % 3;
-                if (m > 0) {
-                    sTemp += sLower.Left(m) + sThousand;
-                    iLowLen -=m;
-                    sLower = sLower.Mid(m);
-                }
-                while (iLowLen > 3) {
-                    sTemp += sLower.Left(3) + sThousand;
-                    iLowLen -= 3;
-                    sLower = sLower.Mid(3);
-                }
-                sTemp += sLower;
-                sLower = sTemp;
-            }
-            else {
-                int m = (iLowLen - 3) % 2;
-                if (m > 0) {
-                    sTemp += sLower.Left(m) + sThousand;
-                    iLowLen -=m;
-                    sLower = sLower.Mid(m);
-                }
-                while (iLowLen > 3) {
-                    sTemp += sLower.Left(2) + sThousand;
-                    iLowLen -= 2;
-                    sLower = sLower.Mid(2);
-                }
-                sTemp += sLower;
-                sLower = sTemp;
-            }
-        }
-        else {
-            sLower = sTemp + sLower;
-        }
-        // Grouping for upper
-        int iUpLen = sUpper.GetLength();
-        iLoc = sUpper.Find(cDec);
-        if (iLoc >= 0) {
-            iUpLen = iLoc;
-        }
-        if (sUpper[0] == '-') {
-            sUpper = sUpper.Mid(1);
-            iUpLen--;
-            sTemp = _T("-");
-        }
-        else {
-            sTemp = _T("");
-        }
-        if (iGroup > 0 && iUpLen > 3) {
-            if (iGroup == 3) {
-                int m = iUpLen % 3;
-                if (m > 0) {
-                    sTemp += sUpper.Left(m) + sThousand;
-                    iUpLen -=m;
-                    sUpper = sUpper.Mid(m);
-                }
-                while (iUpLen > 3) {
-                    sTemp += sUpper.Left(3) + sThousand;
-                    iUpLen -= 3;
-                    sUpper = sUpper.Mid(3);
-                }
-                sTemp += sUpper;
-                sUpper = sTemp;
-            }
-            else {
-                int m = (iUpLen - 3) % 2;
-                if (m > 0) {
-                    sTemp += sUpper.Left(m) + sThousand;
-                    iUpLen -=m;
-                    sUpper = sUpper.Mid(m);
-                }
-                while (iUpLen > 3) {
-                    sTemp += sUpper.Left(2) + sThousand;
-                    iUpLen -= 2;
-                    sUpper = sUpper.Mid(2);
-                }
-                sTemp += sUpper;
-                sUpper = sTemp;
-            }
-        }
-        else {
-            sUpper = sTemp + sUpper;
-        }
-
-        if (dlg.m_dInterval == dlg.m_dMinInterval) {
-            sLabel.Format(dlg.m_sTemplate, (LPCTSTR)sLower);
-        }
-        else {
-            sLabel.Format(dlg.m_sTemplate, (LPCTSTR)sLower, (LPCTSTR)sUpper);
-        }
-        dict_value.SetLabel(sLabel);
-
-        CString from = dtoa(lower, pszTemp, dlg.m_pItem->GetDecimal(), cDec, bZeroDec);
-        CString to;
-
-        if( dlg.m_dInterval > dlg.m_dMinInterval )
-            to = dtoa(upper, pszTemp, dlg.m_pItem->GetDecimal(), cDec, bZeroDec);
-
-        dict_value.AddValuePair(DictValuePair(from, to));
-
-        dict_value_set.AddValue(std::move(dict_value));
-    }
-
-    dlg.m_pDoc->PushUndo(*m_pDict, m_iLevel, m_iRec, m_iItem, 0, NONE);
-    dlg.m_pDoc->SetModified();
-
-    dlg.m_pItem->AddValueSet(std::move(dict_value_set));
     m_pDict->BuildNameList();
 
     // Update tree
-    CDDTreeCtrl* pTreeCtrl = dlg.m_pDoc->GetDictTreeCtrl();
+    CDDTreeCtrl* const pTreeCtrl = pDoc->GetDictTreeCtrl();
     pTreeCtrl->SetUpdateAllViews(false);
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pTreeCtrl->GetDictionaryTreeNode(*dlg.m_pDoc);
+    DictionaryDictTreeNode* dictionary_dict_tree_node = pTreeCtrl->GetDictionaryTreeNode(*pDoc);
     pTreeCtrl->ReBuildTree(*dictionary_dict_tree_node, m_iLevel, m_iRec, m_iItem);
 
     // Update grid

@@ -21,58 +21,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CSDocument.h">
+    <ClInclude Include="BuildWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="CacheableCalculator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MainFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSDocDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSDocFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextEditView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GlobalSettingsDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GlobalSettings.h">
+    <ClInclude Include="CommandLineBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CommandLineParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocSetSpecDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextEditDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetSpecFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetTreeView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetSpec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BuildWnd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HtmlOutputWnd.h">
+    <ClInclude Include="ConsoleWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSDocCompiler.h">
@@ -84,67 +45,22 @@
     <ClInclude Include="CSDocCompilerWorker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSDocDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSDocExportDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenerateDlg.h">
+    <ClInclude Include="CSDocFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenerateTask.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandLineBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConsoleWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetComponentDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetComponentFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetComponentDocTemplate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetCompiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetBaseFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextEditFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TitleManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetTableOfContents.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SearchFilenamesByName.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetIndex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DocSetIndexTableOfContentsBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CacheableCalculator.h">
+    <ClInclude Include="CSDocument.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DocBuildSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocSetBuildHandlerFrame.h">
+    <ClInclude Include="DocSetBaseFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DocSetBuilder.h">
@@ -153,84 +69,102 @@
     <ClInclude Include="DocSetBuilderCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PdfCreator.h">
+    <ClInclude Include="DocSetBuildHandlerFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetComponentDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetComponentDocTemplate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetComponentFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetIndex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetIndexTableOfContentsBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetSpec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetSpecDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetSpecFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetTableOfContents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocSetTreeView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GenerateTaskProcessRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalSettingsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HtmlOutputWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PdfCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchFilePathsByFilename.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextEditDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextEditFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextEditView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CSDocument.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextEditView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GlobalSettingsDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GlobalSettings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NotepadPlusPlusColorizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextEditDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DocSetSpecDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DocSetSpecFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DocSetTreeView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DocSetSpec.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BuildWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HtmlOutputWnd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainFrameHtml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompilerSettings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompilerColorizers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompilerPffColorizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocExportDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompilerWorker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GenerateDlg.cpp">
+    <ClCompile Include="CacheableCalculator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CommandLineBuilder.cpp">
@@ -239,43 +173,52 @@
     <ClCompile Include="ConsoleWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetComponentDoc.cpp">
+    <ClCompile Include="CSDocCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetComponentFrame.cpp">
+    <ClCompile Include="CSDocCompilerColorizers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetCompiler.cpp">
+    <ClCompile Include="CSDocCompilerPffColorizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetBaseFrame.cpp">
+    <ClCompile Include="CSDocCompilerSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextEditFrame.cpp">
+    <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TitleManager.cpp">
+    <ClCompile Include="CSDocCompilerSettingsForCSDocumentPreview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetTableOfContents.cpp">
+    <ClCompile Include="CSDocCompilerWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetIndex.cpp">
+    <ClCompile Include="CSDocDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetSettings.cpp">
+    <ClCompile Include="CSDocExportDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CacheableCalculator.cpp">
+    <ClCompile Include="CSDocFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSDocument.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocBuildSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetBuildHandlerFrame.cpp">
+    <ClCompile Include="DocSetBaseFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocSetBuilderBaseGenerateTask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetBuilderCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetBuilderChmGenerateTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocSetBuilderCompileAllGenerateTask.cpp">
@@ -284,28 +227,85 @@
     <ClCompile Include="DocSetBuilderHtmlPagesGenerateTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSDocCompilerSettingsForCSDocumentPreview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp">
+    <ClCompile Include="DocSetBuilderHtmlWebsiteGenerateTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocSetBuilderPdfGenerateTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetBuilderChmGenerateTask.cpp">
+    <ClCompile Include="DocSetBuildHandlerFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetBuilderCache.cpp">
+    <ClCompile Include="DocSetCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocSetBuilderHtmlWebsiteGenerateTask.cpp">
+    <ClCompile Include="DocSetComponentDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetComponentFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetIndex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetSpec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetSpecDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetSpecFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetTableOfContents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocSetTreeView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateTaskProcessRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalSettingsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HtmlOutputWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrameHtml.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NotepadPlusPlusColorizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PdfCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GenerateTaskProcessRunner.cpp">
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextEditDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextEditFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextEditView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

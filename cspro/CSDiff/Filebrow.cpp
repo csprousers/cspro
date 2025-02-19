@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "Filebrow.h"
 #include "Csdfdoc.h"
-#include <zUtilO/Filedlg.h>
 #include <ZBRIDGEO/DataFileDlg.h>
 
 
@@ -15,36 +14,34 @@ BEGIN_MESSAGE_MAP(CFilesBrow, CDialog)
 END_MESSAGE_MAP()
 
 
-CFilesBrow::CFilesBrow(CCSDiffDoc* pDoc, PFF& pff, CWnd* pParent/* = nullptr*/)
+CFilesBrow::CFilesBrow(CCSDiffDoc* const pDoc, PFF& pff, CWnd* const pParent/* = nullptr*/)
     :   CDialog(CFilesBrow::IDD, pParent),
         m_pDoc(pDoc),
         m_diffSpec(m_pDoc->GetDiffSpec()),
-        m_pff(pff)
+        m_pff(pff),
+        m_inputConnectionString(m_pff.GetSingleInputDataConnectionString()),
+        m_referenceConnectionString(m_pff.GetReferenceDataConnectionString()),
+        m_listingFilePath(UTF8_TODO::GetUtf8(m_pff.GetListingFName())),
+        m_diffMethod(m_diffSpec.GetDiffMethod()),
+        m_diffMethodRadioEnumHelper({ DiffSpec::DiffMethod::OneWay,
+                                      DiffSpec::DiffMethod::BothWays }),
+        m_diffOrder(m_diffSpec.GetDiffOrder()),
+        m_diffOrderRadioEnumHelper({ DiffSpec::DiffOrder::Indexed,
+                                     DiffSpec::DiffOrder::Sequential })
 {
     ASSERT(m_diffSpec.IsDictionaryDefined());
-
-    if( m_pff.GetSingleInputDataConnectionString().IsDefined() )
-        m_inputFilename = WS2CS(m_pff.GetSingleInputDataConnectionString().ToString());
-
-    if( m_pff.GetReferenceDataConnectionString().IsDefined() )
-        m_referenceFilename = WS2CS(m_pff.GetReferenceDataConnectionString().ToString());
-
-    m_listingFilename = CS2WS(m_pff.GetListingFName());
-
-    m_roneway = ( m_diffSpec.GetDiffMethod() == DiffSpec::DiffMethod::BothWays );
-    m_indexseq = ( m_diffSpec.GetDiffOrder() == DiffSpec::DiffOrder::Sequential );
 }
 
 
-void CFilesBrow::DoDataExchange(CDataExchange* pDX)
+void CFilesBrow::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_INPUTFILE, m_inputFilename);
-    DDX_Text(pDX, IDC_REFERENCEFILE, m_referenceFilename);
-    DDX_Text(pDX, IDC_LISTFILE, m_listingFilename);
-    DDX_Radio(pDX, IDC_ONEWAY, m_roneway);
-    DDX_Radio(pDX, IDC_INDEXED, m_indexseq);
+    DDX_Text(pDX, IDC_INPUTFILE, m_inputConnectionString);
+    DDX_Text(pDX, IDC_REFERENCEFILE, m_referenceConnectionString);
+    DDX_Text(pDX, IDC_LISTFILE, m_listingFilePath);
+    DDX_Radio(pDX, IDC_ONEWAY, m_diffMethodRadioEnumHelper, m_diffMethod);
+    DDX_Radio(pDX, IDC_INDEXED, m_diffOrderRadioEnumHelper, m_diffOrder);
 }
 
 
@@ -52,14 +49,31 @@ void CFilesBrow::OnListbrow()
 {
     UpdateData(TRUE);
 
-    CIMSAFileDialog dlg(FALSE, NULL, m_listingFilename.c_str(), OFN_HIDEREADONLY,
-                        FileFilters::Listing, AfxGetApp()->GetMainWnd(), CFD_NO_DIR);
-    dlg.m_ofn.lpstrTitle = _T("Select Listing File for Compare");
+    OpenFileDlg open_file_dlg(0, nullptr, m_listingFilePath, FileFilters::Listing, this);
+    open_file_dlg.SetTitle(L"Select Listing File for Compare");
 
-    if( dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    m_listingFilename = CS2WS(dlg.GetPathName());
+    m_listingFilePath = open_file_dlg.GetFilePath();
+
+    UpdateData(FALSE);
+    EnableDisable();
+}
+
+
+void CFilesBrow::OnDataBrowse(ConnectionString& connection_string, const ConnectionString& other_connection_string)
+{
+    UpdateData(TRUE);
+
+    DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, connection_string);
+    data_file_dlg.SetDictionaryFilePath(m_diffSpec.GetDictionary().GetFilePath())
+                 .SuggestMatchingDataRepositoryType(other_connection_string);
+
+    if( data_file_dlg.DoModal() != IDOK )
+        return;
+
+    connection_string = data_file_dlg.GetConnectionString();
 
     UpdateData(FALSE);
     EnableDisable();
@@ -68,43 +82,19 @@ void CFilesBrow::OnListbrow()
 
 void CFilesBrow::OnInpbrow()
 {
-    UpdateData(TRUE);
-
-    DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, ConnectionString(m_inputFilename));
-    data_file_dlg.SetDictionaryFilename(m_diffSpec.GetDictionary().GetFullFileName())
-                 .SuggestMatchingDataRepositoryType(ConnectionString(m_referenceFilename));
-
-    if( data_file_dlg.DoModal() != IDOK )
-        return;
-
-    m_inputFilename = data_file_dlg.GetConnectionString().ToString();
-
-    UpdateData(FALSE);
-    EnableDisable();
+    OnDataBrowse(m_inputConnectionString, m_referenceConnectionString);
 }
 
 
 void CFilesBrow::OnRefbrow()
 {
-    UpdateData(TRUE);
-
-    DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, ConnectionString(m_referenceFilename));
-    data_file_dlg.SetDictionaryFilename(m_diffSpec.GetDictionary().GetFullFileName())
-                 .SuggestMatchingDataRepositoryType(ConnectionString(m_inputFilename));
-
-    if( data_file_dlg.DoModal() != IDOK )
-        return;
-
-    m_referenceFilename = data_file_dlg.GetConnectionString().ToString();
-
-    UpdateData(FALSE);
-    EnableDisable();
+    OnDataBrowse(m_referenceConnectionString, m_inputConnectionString);
 }
 
 
 BOOL CFilesBrow::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     UpdateData(FALSE);
     GetDlgItem(IDOK)->EnableWindow(FALSE);
@@ -116,23 +106,20 @@ BOOL CFilesBrow::OnInitDialog()
 
 void CFilesBrow::OnOK()
 {
-    UpdateData();
+    UpdateData(TRUE);
 
-    m_pff.SetSingleInputDataConnectionString(WS2CS(m_inputFilename));
-    m_pff.SetReferenceDataConnectionString(WS2CS(m_referenceFilename));
-    m_pff.SetListingFName(WS2CS(m_listingFilename));
+    m_pff.SetSingleInputDataConnectionString(m_inputConnectionString);
+    m_pff.SetReferenceDataConnectionString(m_referenceConnectionString);
+    m_pff.SetListingFName(UTF8_TODO::GetCString(m_listingFilePath));
 
-    const DiffSpec::DiffMethod diff_method = m_roneway ? DiffSpec::DiffMethod::BothWays : DiffSpec::DiffMethod::OneWay;
-    const DiffSpec::DiffOrder diff_order = m_indexseq ? DiffSpec::DiffOrder::Sequential : DiffSpec::DiffOrder::Indexed;
-
-    if( m_diffSpec.GetDiffMethod() != diff_method || m_diffSpec.GetDiffOrder() != diff_order )
+    if( m_diffSpec.GetDiffMethod() != m_diffMethod || m_diffSpec.GetDiffOrder() != m_diffOrder )
     {
-        m_diffSpec.SetDiffMethod(diff_method);
-        m_diffSpec.SetDiffOrder(diff_order);
+        m_diffSpec.SetDiffMethod(m_diffMethod);
+        m_diffSpec.SetDiffOrder(m_diffOrder);
         m_pDoc->SetModifiedFlag();
     }
 
-    CDialog::OnOK();
+    __super::OnOK();
 }
 
 
@@ -157,7 +144,7 @@ void CFilesBrow::OnChangeReferencefile()
 void CFilesBrow::EnableDisable()
 {
     UpdateData(TRUE);
-    GetDlgItem(IDOK)->EnableWindow(( !SO::IsBlank(m_inputFilename) &&
-                                     !SO::IsBlank(m_referenceFilename) &&
-                                     !SO::IsBlank(m_listingFilename) ));
+    GetDlgItem(IDOK)->EnableWindow(( m_inputConnectionString.IsDefined() &&
+                                     m_referenceConnectionString.IsDefined() &&
+                                     !SO::IsWhitespace(m_listingFilePath) ));
 }

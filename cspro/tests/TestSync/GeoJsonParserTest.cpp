@@ -1,12 +1,10 @@
 ﻿#include "stdafx.h"
-#include "CppUnitTest.h"
 #include <zMapping/GeoJson.h>
 #include <mapbox/geometry.hpp>
 #include <mapbox/variant.hpp>
 #include <mapbox/variant_cast.hpp>
 #include <mapbox/feature.hpp>
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace SyncUnitTest
 {

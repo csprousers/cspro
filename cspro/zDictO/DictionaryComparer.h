@@ -47,8 +47,8 @@ struct CLASS_DECL_ZDICTO DictionaryDifference
     bool IsRecordDifference() const;
     bool IsItemDifference() const;
 
-    static std::wstring GetDisplayName(const DictNamedBase* dict_element, bool show_names = true, size_t display_name_length = SIZE_MAX);
-    std::wstring GetDisplayName(bool show_names = true, size_t display_name_length = SIZE_MAX) const;
+    static std::string GetDisplayName(const DictNamedBase* dict_element, bool show_names = true, size_t display_name_length = SIZE_MAX);
+    std::string GetDisplayName(bool show_names = true, size_t display_name_length = SIZE_MAX) const;
 };
 
 

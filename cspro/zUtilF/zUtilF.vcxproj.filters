@@ -14,73 +14,31 @@
     <ClCompile Include="BatchMeterDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ChoiceDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ColorPickerComboBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zUtilF.cpp">
+    <ClCompile Include="DropFilesListCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StyledComboBox.cpp">
+    <ClCompile Include="DynamicMenuBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
+    <ClCompile Include="EditControls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrtLstCt.cpp">
+    <ClCompile Include="HtmlDialogFunctionRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrtHdrCt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SettingsDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RectExt.cpp">
+    <ClCompile Include="ImageCaptureDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageFileDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MsgDial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessSummaryDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextReportDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SystemIcon.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProgressDlg2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProgressDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProgressDlgFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ThreadedProgressDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextInputDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NoteEditDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChoiceDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SelectDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SelectFileDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageManager.cpp">
@@ -89,48 +47,159 @@
     <ClCompile Include="ImageSelectorDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DropFilesListCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageViewDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsDocsDlg.cpp">
+    <ClCompile Include="LinkCtrls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LoggingListBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HtmlDialogFunctionRunner.cpp">
+    <ClCompile Include="MDIFrameWndHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgDial.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NoteEditDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessSummaryDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressDlg2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressDlgFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RectExt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectFileDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SrtHdrCt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SrtLstCt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StyledComboBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemIcon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextInputDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextReportDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadedProgressDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsDocsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WindowsMenuManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditControls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MDIFrameWndHelpers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageCaptureDlg.cpp">
+    <ClCompile Include="zUtilF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ApplicationShutdownRunner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="BatchMeterDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChoiceDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ColorPickerComboBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CommonControls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogValidators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DocViewIterators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DropFilesListCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicLayoutControlResizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicMenuBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditControls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HtmlDialogFunctionRunner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IconToPngConverter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageCaptureDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageFileDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PopupInfoLinkCtrl.h">
+    <ClInclude Include="ImageManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageSelectorDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageViewDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkCtrls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LoggingListBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MDIFrameWndHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MFCMenuBarWithoutSerializableState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MsgDial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MsgOpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteEditDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProcessSummaryDlg.h">
@@ -139,10 +208,40 @@
     <ClInclude Include="ProcessSummaryReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ProgressDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressDlg2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressDlgFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Rectext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectFileDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="SettingsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitterWndTwoColumnProportionalResize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitterWndWithDifferingViews.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SrtHdrCt.h">
@@ -157,118 +256,31 @@
     <ClInclude Include="StyledComboBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zUtilF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MsgDial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MsgOpt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UIThreadRunner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextReportDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SystemIcon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgressDlg2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgressDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgressDlgFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadedProgressDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ApplicationShutdownRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextInputDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NoteEditDlg.h">
+    <ClInclude Include="TextReportDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChoiceDlg.h">
+    <ClInclude Include="ThreadedProgressDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SelectDlg.h">
+    <ClInclude Include="UIThreadRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SelectFileDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageSelectorDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DropFilesListCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageViewDlg.h">
+    <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowsDocsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LoggingListBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFCMenuBarWithoutSerializableState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SplitterWndWithDifferingViews.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HtmlDialogFunctionRunner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SplitterWndTwoColumnProportionalResize.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource_shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WindowsMenuManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocViewIterators.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DynamicLayoutControlResizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DynamicMenuBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EditControls.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogValidators.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MDIFrameWndHelpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageCaptureDlg.h">
+    <ClInclude Include="zUtilF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

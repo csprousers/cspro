@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "ViewView.h"
+#include <zToolsO/ExceptionHolder.h>
 
 
 IMPLEMENT_DYNCREATE(ViewView, HtmlViewerView)
@@ -19,9 +20,9 @@ void ViewView::OnInitialUpdate()
 
     // navigate to the current document
     SharedHtmlLocalFileServer& file_server = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetSharedHtmlLocalFileServer();
-    const std::wstring document_url = view_doc.GetDocumentUrl(file_server);
+    const std::string document_url = view_doc.GetDocumentUrl(file_server);
 
-    GetHtmlViewCtrl().NavigateTo(document_url);
+    m_htmlViewCtrl.NavigateTo(document_url);
 }
 
 
@@ -34,7 +35,7 @@ class ViewViewActionInvokerListener : public ActionInvoker::Listener
 {
 public:
     // Listener overrides
-    std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnClose(CloseResult& close_result, ActionInvoker::Caller& caller) override;
     bool OnEngineProgramControlExecuted() override;
 
 private:
@@ -42,9 +43,18 @@ private:
 };
 
 
-std::optional<bool> ViewViewActionInvokerListener::OnCloseDialog(const JsonNode<wchar_t>& /*result_node*/, ActionInvoker::Caller& /*caller*/)
+std::optional<bool> ViewViewActionInvokerListener::OnClose(CloseResult& close_result, ActionInvoker::Caller& /*caller*/)
 {
+    // display any pending exceptions
+    if( std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) )
+    {
+        ASSERT(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr);
+        auto action_invoker_exception = std::move(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result));
+        ErrorMessage::PostMessageForDisplay(ExceptionHolder::GetMessageToDisplay(*action_invoker_exception), false);
+    }
+
     CloseDocument();
+
     return true;
 }
 
@@ -58,7 +68,7 @@ bool ViewViewActionInvokerListener::OnEngineProgramControlExecuted()
 
 void ViewViewActionInvokerListener::CloseDocument()
 {
-    AfxGetMainWnd()->PostMessage(WM_CLOSE);
+    AfxGetMainWnd()->PostMessage(UWM::CSView::CloseDocument);
 }
 
 
@@ -67,7 +77,7 @@ void ViewView::SetUpActionInvoker()
     if( m_actionInvokerListenerHolder != nullptr )
         return;
 
-    GetHtmlViewCtrl().RegisterCSProHostObject();
+    m_htmlViewCtrl.RegisterCSProHostObject();
 
     m_actionInvokerListenerHolder = ActionInvoker::ListenerHolder::Create<ViewViewActionInvokerListener>();
 }

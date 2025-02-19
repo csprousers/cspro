@@ -1,7 +1,7 @@
 New.png
 Open.png
 Help.png
-Program - DataViewer.png
+Program - DataManager.png
 Program - TextView.png
 Program - TblView.png
 Program - CSFreq.png

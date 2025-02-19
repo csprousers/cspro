@@ -43,7 +43,7 @@
         <div id="mContainer" class="container-fluid my-dialog errmsg-dialog">
             <div id="mTitle" class="row my-dialog-header">
                 <div class="col withNewline" id="mmTitle" style="padding-right:32px;">{{title}}</div>
-                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div id="mBody" class="row my-dialog-body" style="overflow-y:auto;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;">
@@ -62,7 +62,7 @@
                     </button>
                 </div>
                 <div class="col my-dialog-button-col">
-                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" onclick="CS.UI.closeDialog();" tabindex="-1">
+                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" onclick="CS.UI.close();" tabindex="-1">
                         <span class="bi bi-x-lg" style="color:#500;"></span>
                     </button>
                 </div>
@@ -111,7 +111,7 @@
         }
 
         function dialogReturn(idx) {
-            CS.UI.closeDialog({ result: { index: idx } });
+            CS.UI.close({ result: { index: idx } });
         }
 
         function replaceNewline() {
@@ -235,7 +235,7 @@
             }
 
             if (e.keyCode === 27) { //ESC
-                CS.UI.closeDialog();
+                CS.UI.close();
             }
             else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
                 focusedIndex++;

@@ -20,9 +20,9 @@ namespace CodeMenu
 
     CLASS_DECL_ZDESIGNERF void OnPasteStringLiteral(CLogicCtrl& logic_ctrl);
 
-    CLASS_DECL_ZDESIGNERF void OnStringEncoder(const LogicSettings& logic_settings, std::wstring initial_text);
+    CLASS_DECL_ZDESIGNERF void OnStringEncoder(const LogicSettings& logic_settings, std::string initial_text);
 
-    CLASS_DECL_ZDESIGNERF void OnPathAdjuster(int lexer_language, std::wstring initial_path);
+    CLASS_DECL_ZDESIGNERF void OnPathAdjuster(int lexer_language, std::string initial_path);
 
 
 

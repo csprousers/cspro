@@ -91,7 +91,7 @@
         <div id="mContainer" class="container-fluid my-dialog errmsg-dialog" style="max-width:100%">
             <div class="row my-dialog-header" id="mTitle">
                 <div class="col withNewline">{{title}}</div>
-                <div type="button" class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div type="button" class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div id="mBody" class="notes-container">
@@ -206,7 +206,7 @@
             //Uncomment this if you want deleted notes removed from the notes file even when clicking on "go to" button
             /*
             if (idx >= 0 && deletedNotesIdxs.length > 0) {
-                CS.UI.closeDialog({ result: { gotoNote: idx, deleted: deletedNotesIdxs } });
+                CS.UI.close({ result: { gotoNote: idx, deleted: deletedNotesIdxs } });
             }
             */
             let result;
@@ -217,7 +217,7 @@
             } else {
                 result = { };
             }
-            CS.UI.closeDialog({ result: result });
+            CS.UI.close({ result: result });
         }
 
         $(document).ready(function () {
@@ -239,7 +239,7 @@
 
         $(document).keydown(function (e) {
             if (e.keyCode === 27) { //ESC
-                CS.UI.closeDialog();
+                CS.UI.close();
             } else if (e.keyCode === 13) { //enter
                 dialogReturn(-1);
             } else if (e.keyCode === 9) {

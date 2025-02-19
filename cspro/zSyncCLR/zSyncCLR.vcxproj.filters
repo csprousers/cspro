@@ -11,22 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BarcodeCredentialEncoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SyncClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DelegateLoginDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DelegateDropboxAuthDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarcodeCredentialEncoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ApiKeys.h">
+    <ClInclude Include="SyncCLRLoginAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -40,7 +34,7 @@
     <ClCompile Include="SyncClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ApiKeys.cpp">
+    <ClCompile Include="SyncCLRLoginAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

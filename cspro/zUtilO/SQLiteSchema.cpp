@@ -1,7 +1,8 @@
 ﻿#include "StdAfx.h"
 #include "SQLiteSchema.h"
-#include <SQLite/SQLiteStatement.h>
+#include <zSql/SQLiteStatement.h>
 #include <zDataO/SQLiteErrorWithMessage.h>
+#include <sstream>
 
 
 namespace SQLiteSchema {

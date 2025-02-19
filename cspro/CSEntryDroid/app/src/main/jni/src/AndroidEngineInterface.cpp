@@ -11,7 +11,7 @@
 
 
 #ifdef SQLITE_LOGGING
-#include <SQLite/SQLite.h>
+#include <zSql/SQLite.h>
 static void sqliteLogCallback(void* data, int iErrCode, const char* zMsg) {
     __android_log_print(ANDROID_LOG_VERBOSE, "SQLITE", "(%d) %s\n", iErrCode, zMsg);
 }
@@ -73,29 +73,34 @@ bool AndroidEngineInterface::GetCaseListingLockFlag()
     return GetPifFile()->GetCaseListingLockFlag();
 }
 
-void AndroidEngineInterface::SetAndroidEnvironmentVariables(const CString& email,
-    const CString& tempFolder, const CString& applicationFolder, const CString& versionNumber,
-    const CString& assetsDirectory, const CString& csentryFolder, const CString& externalMemoryCardFolder,
-    const CString& internalStorageDirectory, const CString& downloadsDirectory)
+void AndroidEngineInterface::SetAndroidEnvironmentVariables(std::string email,
+                                                            std::string tempFolder,
+                                                            std::string applicationFolder,
+                                                            std::string versionNumber,
+                                                            std::string assetsDirectory,
+                                                            std::string csentryFolder,
+                                                            std::string externalMemoryCardFolder,
+                                                            std::string internalStorageDirectory,
+                                                            std::string downloadsDirectory)
 {
-    m_pApplicationInterface->SetUsername(email);
+    m_pApplicationInterface->SetUsername(std::move(email));
 
-    if( !tempFolder.IsEmpty() )
-        PlatformInterface::GetInstance()->SetTempDirectory(PortableFunctions::PathEnsureTrailingSlash(CS2WS(tempFolder)));
+    if( !tempFolder.empty() )
+        PlatformInterface::GetInstance()->SetTempDirectory(PortableFunctions::PathEnsureTrailingSlash(std::move(tempFolder)));
 
-    PlatformInterface::GetInstance()->SetApplicationDirectory(CS2WS(applicationFolder));
+    PlatformInterface::GetInstance()->SetApplicationDirectory(std::move(applicationFolder));
 
-    PlatformInterface::GetInstance()->SetCSEntryDirectory(CS2WS(csentryFolder));
+    PlatformInterface::GetInstance()->SetCSEntryDirectory(std::move(csentryFolder));
 
-    PlatformInterface::GetInstance()->SetExternalMemoryCardDirectory(externalMemoryCardFolder);
+    PlatformInterface::GetInstance()->SetExternalMemoryCardDirectory(std::move(externalMemoryCardFolder));
 
-    PlatformInterface::GetInstance()->SetInternalStorageDirectory(CS2WS(internalStorageDirectory));
+    PlatformInterface::GetInstance()->SetInternalStorageDirectory(std::move(internalStorageDirectory));
 
-    PlatformInterface::GetInstance()->SetAssetsDirectory(CS2WS(assetsDirectory));
+    PlatformInterface::GetInstance()->SetAssetsDirectory(std::move(assetsDirectory));
 
-    PlatformInterface::GetInstance()->SetDownloadsDirectory(CS2WS(downloadsDirectory));
+    PlatformInterface::GetInstance()->SetDownloadsDirectory(std::move(downloadsDirectory));
 
-    PlatformInterface::GetInstance()->SetVersionNumber(CS2WS(versionNumber));
+    PlatformInterface::GetInstance()->SetVersionNumber(std::move(versionNumber));
 }
 
 CString AndroidEngineInterface::GetStartKeyString()

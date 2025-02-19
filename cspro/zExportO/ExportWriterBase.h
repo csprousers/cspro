@@ -19,13 +19,13 @@ protected:
 
     virtual void CreateExportRecordMappings();
 
-    std::wstring CreateUniqueName(wstring_view name_sv);
+    std::string CreateUniqueName(std::string_view name_sv);
 
     void WriteCaseRecord(const ExportRecordMapping& export_record_mapping, const CaseRecord& case_record);
 
     // methods that must be implemented by derived classes
-    virtual bool SupportsBinaryData() = 0;
-    virtual bool IsReservedName(const std::wstring& name, bool record_name) = 0;
+    virtual bool SupportsBinaryData() const = 0;
+    virtual bool IsReservedName(const std::string& name, bool record_name) = 0;
 
     virtual void StartRecord(const ExportRecordMapping& export_record_mapping) = 0;
     virtual void StartRow() = 0;
@@ -35,14 +35,14 @@ protected:
 
     // helper methods for formatting values
     void ModifyValueForOutput(const NumericCaseItem& numeric_case_item, double& value);
-    void ModifyValueForOutput(std::wstring& value);
+    void ModifyValueForOutput(std::string& value);
 
 private:
     ExportRecordMapping CreateExportRecordMapping(const std::vector<const CaseRecordMetadata*>& id_case_records,
-                                                  const CaseRecordMetadata* case_record_metadata);
+                                                  const CaseRecordMetadata& case_record_metadata);
 
-    std::wstring CreateFormattedName(std::set<std::wstring>& used_names, wstring_view name_sv,
-                                     bool record_name, bool ensure_unique = false);
+    std::string CreateFormattedName(std::set<std::string>& used_names, std::string_view name_sv,
+                                    bool record_name, bool ensure_unique = false);
 
 protected:
     const DataRepositoryType m_type;
@@ -56,8 +56,8 @@ protected:
 
 private:
     std::set<CaseItem::Type> m_supportedCaseItemTypes;
-    std::set<std::wstring> m_formattedRecordNames;
-    std::set<std::wstring> m_allUsedNames;
+    std::set<std::string> m_formattedRecordNames;
+    std::set<std::string> m_allUsedNames;
 };
 
 
@@ -76,7 +76,7 @@ inline void ExportWriterBase::ModifyValueForOutput(const NumericCaseItem& numeri
 }
 
 
-inline void ExportWriterBase::ModifyValueForOutput(std::wstring& value)
+inline void ExportWriterBase::ModifyValueForOutput(std::string& value)
 {
     SO::MakeTrimRightSpace(value);
 }

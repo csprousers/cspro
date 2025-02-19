@@ -5,84 +5,66 @@
 #include <jni.h>
 
 
-/**
-* Map user interface widget implementation for Android
-* that calls through to Java MapUI class via JNI.
-*/
+// --------------------------------------------------------------------------
+// Android implementation of mapping that calls through to Java MapUI class
+// via JNI.
+// --------------------------------------------------------------------------
+
 class AndroidMapUI : public IMapUI
 {
 public:
     AndroidMapUI();
     ~AndroidMapUI();
 
-    int Show() override;
+    bool Show() override;
+    bool Hide() override;
 
-    int Hide() override;
-
-    int SaveSnapshot(const std::wstring& filename) override;
+    bool SaveSnapshot(const std::string& image_file_path) override;
 
     int AddMarker(double latitude, double longitude) override;
-
-    int RemoveMarker(int marker_id) override;
-
+    bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
 
-    int SetMarkerImage(int marker_id, std::wstring image_file_path) override;
+    bool SetMarkerImage(int marker_id, const std::string& image_file_path) override;
+    bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) override;
+    bool SetMarkerOnClick(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
+    bool SetMarkerDescription(int marker_id, SharableString description) override;
+    bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
+    std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 
-    int SetMarkerText(int marker_id, std::wstring text, int background_color, int text_color) override;
-
-    int SetMarkerOnClick(int marker_id, int on_click_callback) override;
-
-    int SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
-
-    int SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
-
-    int SetMarkerDescription(int marker_id, std::wstring description) override;
-
-    int SetMarkerLocation(int marker_id, double latitude, double longitude) override;
-
-    int GetMarkerLocation(int marker_id, double& latitude, double& longitude) override;
-
-    int AddImageButton(std::wstring image_path, int on_click_callback) override;
-
-    int AddTextButton(std::wstring label, int on_click_callback) override;
-
-    int RemoveButton(int button_id) override;
-
+    int AddImageButton(const std::string& image_file_path, int on_click_callback) override;
+    int AddTextButton(SharableString label, int on_click_callback) override;
+    bool RemoveButton(int button_id) override;
     void ClearButtons() override;
 
     void Clear() override;
 
     bool IsBaseMapDefined() const override;
 
-    int SetBaseMap(const BaseMapSelection& base_map_selection) override;
+    bool SetBaseMap(BaseMapSelection base_map_selection) override;
 
-    int SetShowCurrentLocation(bool show) override;
+    bool SetShowCurrentLocation(bool show) override;
 
-    int SetTitle(std::wstring title) override;
+    bool SetTitle(SharableString title) override;
 
-    int ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
-    int ZoomTo(double minLat, double minLong, double maxLat, double maxLong, double paddingPercent = 0) override;
-
-    int SetCamera(const MapCamera& camera) override;
+    bool SetCamera(const MapCamera& camera) override;
 
     int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
-
-    int RemoveGeometry(int geometry_id) override;
-
+    bool RemoveGeometry(int geometry_id) override;
     void ClearGeometry() override;
 
     MapEvent WaitForEvent() override;
 
-    jobject GetAndroidMapUI()
-    {
-        return java_impl_;
-    }
+    jobject GetAndroidMapUI() { return m_javaImpl; }
 
     static jobject CreateJavaBaseMapSelection(JNIEnv* pEnv, const BaseMapSelection& base_map_selection);
 
 private:
-    jobject java_impl_;
+    jobject m_javaImpl;
     bool m_baseMapDefined;
 };

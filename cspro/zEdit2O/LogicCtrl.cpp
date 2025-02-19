@@ -72,7 +72,7 @@ void CLogicCtrl::BaseInitControl(int lexer_language)
 }
 
 
-bool CLogicCtrl::ToggleLexer(int lexer_language, bool force_toggle_even_if_lexer_is_same)
+bool CLogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_even_if_lexer_is_same)
 {
     if( !force_toggle_even_if_lexer_is_same && lexer_language == GetLexer() )
         return false;
@@ -91,7 +91,8 @@ bool CLogicCtrl::ToggleLexer(int lexer_language, bool force_toggle_even_if_lexer
     m_logicTooltips = properties.logic_tooltips.get();
 
     // set the colors
-    ASSERT(StyleGetFore(STYLE_DEFAULT) == RGB(0, 0, 0));
+    static_assert(SCE_CSPRO_DEFAULT == 0);
+    ASSERT(StyleGetFore(SCE_CSPRO_DEFAULT) == RGB(0, 0, 0));
 
     for( const auto& [style, color] : properties.colors )
         StyleSetFore(style, color);
@@ -167,11 +168,11 @@ void CLogicCtrl::SetModified(bool modified/* = true*/)
 }
 
 
-std::wstring CLogicCtrl::ReturnWordAtCursorPos(Sci_Position pos)
+std::string CLogicCtrl::ReturnWordAtCursorPos(const Sci_Position pos)
 {
     Sci_Position sciCurrentPos = pos;
-    int wordStartPos = WordStartPosition(sciCurrentPos, true);
-    int wordEndPos = WordEndPosition(sciCurrentPos, true);
+    const int wordStartPos = WordStartPosition(sciCurrentPos, true);
+    const int wordEndPos = WordEndPosition(sciCurrentPos, true);
     SetTargetRange(wordStartPos, wordEndPos);
     return GetTargetText();
 }
@@ -184,7 +185,7 @@ namespace
     class ReturnWordsAtCursorWithDotNotationWorker
     {
     public:
-        ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::wstring>& words);
+        ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::string>& words);
 
         void GetNextWord(Sci_Position current_pos);
 
@@ -196,14 +197,14 @@ namespace
 
     private:
         CLogicCtrl& m_logicCtrl;
-        std::vector<std::wstring>& m_words;
+        std::vector<std::string>& m_words;
 
         enum class ExpectedType { Word, Dot, WordOrRightParenthesis };
         ExpectedType m_nextExpectedType;
     };
 
 
-    ReturnWordsAtCursorWithDotNotationWorker::ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::wstring>& words)
+    ReturnWordsAtCursorWithDotNotationWorker::ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::string>& words)
         :   m_logicCtrl(logic_ctrl),
             m_words(words),
             m_nextExpectedType(ExpectedType::Word)
@@ -261,7 +262,7 @@ namespace
     }
 
 
-    bool ReturnWordsAtCursorWithDotNotationWorker::SkipOverStringLiteral(Sci_Position& current_pos, int quotemark_ch)
+    bool ReturnWordsAtCursorWithDotNotationWorker::SkipOverStringLiteral(Sci_Position& current_pos, const int quotemark_ch)
     {
         ASSERT(quotemark_ch == m_logicCtrl.GetCharAt(current_pos) && is_quotemark(quotemark_ch));
 
@@ -359,9 +360,9 @@ namespace
 }
 
 
-std::vector<std::wstring> CLogicCtrl::ReturnWordsAtCursorWithDotNotation(std::optional<Sci_Position> pos/* = std::nullopt*/)
+std::vector<std::string> CLogicCtrl::ReturnWordsAtCursorWithDotNotation(const std::optional<Sci_Position> pos/* = std::nullopt*/)
 {
-    std::vector<std::wstring> words;
+    std::vector<std::string> words;
     ReturnWordsAtCursorWithDotNotationWorker worker(*this, words);
 
     worker.GetNextWord(pos.has_value() ? * pos : GetCurrentPos());
@@ -486,26 +487,26 @@ void CLogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
-void CLogicCtrl::ShowTooltip(Sci_Position word_pos, bool show_offset_by_function_name)
+void CLogicCtrl::ShowTooltip(Sci_Position word_pos, const bool show_offset_by_function_name)
 {
     if( m_logicTooltips == nullptr )
         return;
 
     // get the word before the "("
-    std::wstring function_text = ReturnWordAtCursorPos(word_pos);
+    std::string function_text = ReturnWordAtCursorPos(word_pos);
     SO::MakeTrim(function_text);
 
     if( function_text.empty() )
         return;
 
-    int wordStartPos = WordStartPosition(word_pos, true);
-    int charBeforeWord  = GetCharAt(wordStartPos - 1);
+    const int wordStartPos = WordStartPosition(word_pos, true);
+    const int charBeforeWord  = GetCharAt(wordStartPos - 1);
 
     // show tooltip text only if no dot notation
     if( charBeforeWord != '.' )
     {
         // get the tooltip text
-        const auto& tooltip_search = m_logicTooltips->find(StringNoCase(function_text));
+        const auto& tooltip_search = m_logicTooltips->find(function_text);
 
         if( tooltip_search != m_logicTooltips->cend() )
         {
@@ -550,7 +551,7 @@ void CLogicCtrl::CopyAllText()
 }
 
 
-void CLogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, const wstring_view text_sv)
+void CLogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, const std::string_view text_sv)
 {
     // put the text
     WinClipboard::PutText(this, text_sv, true);
@@ -561,21 +562,21 @@ void CLogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, 
 }
 
 
-void CLogicCtrl::CopyForCSProUsers(bool for_forum)
+void CLogicCtrl::CopyForCSProUsers(const bool for_forum)
 {
-    Sci_Position start_pos = GetSelectionStart();
-    Sci_Position end_pos = GetSelectionEnd();
+    const Sci_Position start_pos = GetSelectionStart();
+    const Sci_Position end_pos = GetSelectionEnd();
 
-    if( start_pos != end_pos )
-    {
-        ScintillaColorizer colorizer(*this, start_pos, end_pos);
+    if( start_pos == end_pos )
+        return;
 
-        std::wstring result = for_forum ? colorizer.GetCSProUsersForumCode() :
-                                          colorizer.GetCSProUsersBlogCode();
+    ScintillaColorizer colorizer(*this, start_pos, end_pos);
 
-        // put the CSPro Users code as text
-        WinClipboard::PutText(this, result);
-    }
+    const std::string result = for_forum ? colorizer.GetCSProUsersForumCode() :
+                                           colorizer.GetCSProUsersBlogCode();
+
+    // put the CSPro Users code as text
+    WinClipboard::PutText(this, result);
 }
 
 
@@ -1128,7 +1129,7 @@ LRESULT CLogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
         str.Format(_T("Ln %d, Col %d"), line, column);
     }
 
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)(LPCTSTR)str);
+    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)str.GetString());
 
     return 0;
 }
@@ -1306,8 +1307,8 @@ void CLogicCtrl::CommentCode() // 20101215
 
 
 void CLogicCtrl::FormatLogic() // 20101208
-{    
-    const std::wstring logic = GetText();
+{
+    const std::wstring logic = UTF8_TODO::GetWide(GetText());
     CString formattedLogic;
 
     // format the logic, using these rules
@@ -1321,9 +1322,9 @@ void CLogicCtrl::FormatLogic() // 20101208
     const TCHAR* const removeTabWords[] = { _T("end"), _T("enddo"), _T("endfor"), _T("endif") };
     const int numZeroTabWords = 7, numAddTabWords = 6, numRemoveTabWords = 4;
 
-    bool use_old_multiline_comments = ( GetLexer() == SCLEX_CSPRO_LOGIC_V0 );
-    wstring_view multiline_comment_start = use_old_multiline_comments ? CommentStrings::MultilineOldStart : CommentStrings::MultilineNewStart;
-    wstring_view multiline_comment_end = use_old_multiline_comments ? CommentStrings::MultilineOldEnd : CommentStrings::MultilineNewEnd;
+    const bool use_old_multiline_comments = ( GetLexer() == SCLEX_CSPRO_LOGIC_V0 );
+    const std::string_view multiline_comment_start_sv = use_old_multiline_comments ? CommentStrings::MultilineOldStart_sv : CommentStrings::MultilineNewStart_sv;
+    const std::string_view multiline_comment_end_sv = use_old_multiline_comments ? CommentStrings::MultilineOldEnd_sv : CommentStrings::MultilineNewEnd_sv;
 
     int curTabPos = 0;
     int prevSpaceCnt = 0;
@@ -1383,10 +1384,10 @@ void CLogicCtrl::FormatLogic() // 20101208
                     break;
             }
 
-            auto match_multiline_comment = [&](wstring_view multiline_comment, wstring_view line, int line_pos)
+            auto match_multiline_comment = [&](const std::string_view multiline_comment_sv, const wstring_view line_sv, const int line_pos)
             {
-                return ( ( line_pos + multiline_comment.length() ) <= line.length() &&
-                         SO::StartsWith(line.substr(line_pos), multiline_comment) );
+                return ( ( line_pos + multiline_comment_sv.length() ) <= line_sv.length() &&
+                         SO::StartsWith(line_sv.substr(line_pos), UTF8_TODO::GetWide(multiline_comment_sv)) );
             };
 
 
@@ -1397,17 +1398,17 @@ void CLogicCtrl::FormatLogic() // 20101208
 
                 while (linePos < tempLine.GetLength())
                 {
-                    if (match_multiline_comment(multiline_comment_start, tempLine, linePos))
+                    if (match_multiline_comment(multiline_comment_start_sv, tempLine, linePos))
                     {
                         inComment = true;
                         numMultilineComments++;
-                        linePos += multiline_comment_start.length();
+                        linePos += multiline_comment_start_sv.length();
                     }
 
-                    else if (numMultilineComments > 0 && match_multiline_comment(multiline_comment_end, tempLine, linePos))
+                    else if (numMultilineComments > 0 && match_multiline_comment(multiline_comment_end_sv, tempLine, linePos))
                     {
                         numMultilineComments--;
-                        linePos += multiline_comment_end.length();
+                        linePos += multiline_comment_end_sv.length();
 
                         if (numMultilineComments == 0) // comment has now ended
                         {
@@ -1440,7 +1441,7 @@ void CLogicCtrl::FormatLogic() // 20101208
                     break;
                 }
 
-                else if (!inSingleQuote && !inDoubleQuote && match_multiline_comment(multiline_comment_start, tempLine, i))
+                else if (!inSingleQuote && !inDoubleQuote && match_multiline_comment(multiline_comment_start_sv, tempLine, i))
                 {
                     inComment = true;
                     numMultilineComments++;
@@ -1448,14 +1449,14 @@ void CLogicCtrl::FormatLogic() // 20101208
                     if (numMultilineComments == 1)
                         startCommentPos = i;
 
-                    i += ( multiline_comment_start.length() - 1 );
+                    i += ( multiline_comment_start_sv.length() - 1 );
                 }
 
-                else if (!inSingleQuote && !inDoubleQuote && numMultilineComments > 0 && match_multiline_comment(multiline_comment_end, tempLine, i))
+                else if (!inSingleQuote && !inDoubleQuote && numMultilineComments > 0 && match_multiline_comment(multiline_comment_end_sv, tempLine, i))
                 {
                     numMultilineComments--;
 
-                    i += ( multiline_comment_end.length() - 1 );
+                    i += ( multiline_comment_end_sv.length() - 1 );
 
                     if (numMultilineComments == 0) // comment has now ended
                     {
@@ -1705,7 +1706,7 @@ void CLogicCtrl::FormatLogic() // 20101208
     }
 
     formattedLogic.Replace(_T("\n"), _T("\r\n")); //For scintilla
-    SetText(formattedLogic);
+    SetText(UTF8_TODO::GetUtf8(formattedLogic));
     SetModified(); // 20120125 logic file wasn't getting set as modified
 }
 

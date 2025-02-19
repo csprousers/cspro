@@ -8,7 +8,7 @@ CSCodeBuildWnd::CSCodeBuildWnd()
 }
 
 
-void CSCodeBuildWnd::Initialize(CodeView& code_view, std::wstring action)
+void CSCodeBuildWnd::Initialize(CodeView& code_view, std::string action)
 {
     m_currentCodeView = &code_view;
 
@@ -21,13 +21,13 @@ void CSCodeBuildWnd::Initialize(CodeView& code_view, std::wstring action)
 }
 
 
-CLogicCtrl* CSCodeBuildWnd::ActivateDocumentAndGetLogicCtrl(std::variant<const CLogicCtrl*, const std::wstring*> source_logic_ctrl_or_filename)
+CLogicCtrl* CSCodeBuildWnd::ActivateDocumentAndGetLogicCtrl(const std::variant<const CLogicCtrl*, const std::string*> source_logic_ctrl_or_file_path)
 {
-    ASSERT(std::holds_alternative<const CLogicCtrl*>(source_logic_ctrl_or_filename));
+    ASSERT(std::holds_alternative<const CLogicCtrl*>(source_logic_ctrl_or_file_path));
 
     if( assert_cast<CMainFrame*>(AfxGetMainWnd())->ActivateDocument(m_currentCodeView) )
     {
-        ASSERT(std::get<const CLogicCtrl*>(source_logic_ctrl_or_filename) == m_currentCodeView->GetLogicCtrl());
+        ASSERT(std::get<const CLogicCtrl*>(source_logic_ctrl_or_file_path) == m_currentCodeView->GetLogicCtrl());
         return m_currentCodeView->GetLogicCtrl();
     }
 

@@ -1,7 +1,8 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  * xmlwriter - A libxlsxwriter library for creating Excel XLSX
  *             XML files.
@@ -55,7 +56,7 @@ STAILQ_HEAD(xml_attribute_list, xml_attribute);
 /* Create a new attribute struct to add to a xml_attribute_list. */
 struct xml_attribute *lxw_new_attribute_str(const char *key,
                                             const char *value);
-struct xml_attribute *lxw_new_attribute_int(const char *key, uint32_t value);
+struct xml_attribute *lxw_new_attribute_int(const char *key, int32_t value);
 struct xml_attribute *lxw_new_attribute_dbl(const char *key, double value);
 
 /* Macro to initialize the xml_attribute_list pointers. */

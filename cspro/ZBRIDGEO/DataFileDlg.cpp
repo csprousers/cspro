@@ -5,58 +5,24 @@
 
 namespace
 {
-    constexpr const TCHAR* LastDataRegistryValueName = _T("<Last Data>");
+    constexpr std::string_view LastDataRegistryValueName_sv = "<Last Data>";
 
-
-    bool IsValidDataFilename(const TCHAR* filename, bool allow_wildcards)
-    {
-        // mostly based on https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
-        const TCHAR* filename_itr = filename + _tcslen(filename) - 1;
-        ASSERT(filename_itr >= filename);
-
-        // filenames cannot end in a space or dot
-        if( *filename_itr == _T(' ') || *filename_itr == _T('.') )
-            return false;
-
-        // filenames cannot have invalid characters
-        for( ; filename_itr >= filename; filename_itr-- )
-        {
-            if( *filename_itr < 32 )
-                return false;
-        }
-
-        static TCHAR InvalidCharacters[] = { _T('<'), _T('>'), _T(':'), _T('"'), _T('/'), _T('\\'), _T('|'), 0 };
-
-
-        if( ( _tcspbrk(filename, InvalidCharacters) != nullptr ) ||
-            ( !allow_wildcards && PathHasWildcardCharacters(filename) ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    constexpr const TCHAR* OpenExistingSingleFileString    = _T("Select an Existing Data File");
-    constexpr const TCHAR* OpenExistingMultipleFilesString = _T("Select Existing Data File(s)");
-
-
-    const DataFileFilterManager& GetDataFileFilterManager(bool add_only_readable_types)
-    {
-        return DataFileFilterManager::Get(DataFileFilterManager::UseType::FileChooserDlg, add_only_readable_types);
-    }
+    constexpr const wchar_t* OpenExistingSingleFileString    = L"Select an Existing Data Source";
+    constexpr const wchar_t* OpenExistingMultipleFilesString = L"Select Existing Data Source(s)";
 }
 
 
 DataFileDlg* DataFileDlg::m_currentDataFileDlg = nullptr;
 
 
-DataFileDlg::DataFileDlg(const Type type, const bool add_only_readable_types, ConnectionString connection_string/* = ConnectionString()*/)
+DataFileDlg::DataFileDlg(const Type type, const bool add_only_readable_types, ConnectionString connection_string/* = ConnectionString()*/,
+                         CWnd* const pParentWnd/* = nullptr*/)
     :   CFileDialog(( type == Type::OpenExisting ),
                     nullptr,
-                    connection_string.IsDefined() ? connection_string.ToStringWithoutDirectory().c_str() : nullptr,
+                    connection_string.IsDefined() ? TC::ToWide(connection_string.ToStringWithoutDirectory()).c_str() : nullptr,
                     OFN_PATHMUSTEXIST | OFN_HIDEREADONLY,
-                    GetDataFileFilterManager(add_only_readable_types).GetFilterText().c_str()),
+                    GetDataFileFilterManager(add_only_readable_types).GetFilterText().c_str(),
+                    pParentWnd),
         m_type(type),
         m_dataFileFilterManager(GetDataFileFilterManager(add_only_readable_types)),
         m_initialConnectionString(std::move(connection_string)),
@@ -67,11 +33,10 @@ DataFileDlg::DataFileDlg(const Type type, const bool add_only_readable_types, Co
 {
     ASSERT(add_only_readable_types || type == Type::CreateNew || type == Type::OpenOrCreate);
 
-    // setup the main properties
+    // set up the main properties
     SetTitle(( m_type == Type::OpenExisting ) ? OpenExistingSingleFileString :
-             ( m_type == Type::OpenOrCreate ) ? _T("Select an Existing or Create a New Data File") :
-                                                _T("Create a New Data File"));
-    m_ofn.lpstrTitle = m_title;
+             ( m_type == Type::OpenOrCreate ) ? L"Select an Existing or Create a New Data Source" :
+                                                L"Create a New Data Source");
 
     ASSERT(m_currentDataFileDlg == nullptr);
     m_currentDataFileDlg = this;
@@ -82,14 +47,15 @@ DataFileDlg::DataFileDlg(const Type type, const bool add_only_readable_types, Co
 }
 
 
-DataFileDlg::DataFileDlg(Type type, bool add_only_readable_types, const std::vector<ConnectionString>& connection_strings)
-    :   DataFileDlg(type, add_only_readable_types, connection_strings.empty() ? ConnectionString() : connection_strings.front())
+DataFileDlg::DataFileDlg(const Type type, const bool add_only_readable_types, const std::vector<ConnectionString>& connection_strings,
+                         CWnd* const pParentWnd/* = nullptr*/)
+    :   DataFileDlg(type, add_only_readable_types, connection_strings.empty() ? ConnectionString() : connection_strings.front(), pParentWnd)
 {
-    // if a repository that does not use filenames is the only connection string, don't set the multiple selection filename
-    if( connection_strings.size() == 1 && DataRepositoryHelpers::TypeDoesNotUseFilename(connection_strings.front().GetType()) )
+    // if a repository that does not use files is the only connection string, don't set the multiple selection filename
+    if( connection_strings.size() == 1 && !DataRepositoryHelpers::TypeUsesFileResource(connection_strings.front().GetType()) )
         return;
 
-    m_initialMultipleSelectionFilename = PathHelpers::CreateSingleStringFromConnectionStrings(connection_strings, true);
+    m_initialMultipleSelectionFilename = UTF8_TODO::GetCString(PathHelpers::CreateSingleStringFromConnectionStrings(connection_strings, true));
 }
 
 
@@ -99,26 +65,40 @@ DataFileDlg::~DataFileDlg()
 }
 
 
-IFileDialog* DataFileDlg::GetIFileDialog()
+const DataFileFilterManager& DataFileDlg::GetDataFileFilterManager(const bool add_only_readable_types)
 {
-    return ( m_type == Type::OpenExisting ) ? (IFileDialog*)GetIFileOpenDialog() :
-                                              (IFileDialog*)GetIFileSaveDialog();
+    return DataFileFilterManager::Get(DataFileFilterManager::UseType::FileChooserDlg, add_only_readable_types);
 }
 
 
-DataFileDlg& DataFileDlg::SetTitle(const CString& title)
+IFileDialog* DataFileDlg::GetIFileDialog()
 {
-    m_title = title;
-    m_ofn.lpstrTitle = m_title;
+    return ( m_type == Type::OpenExisting ) ? static_cast<IFileDialog*>(GetIFileOpenDialog()) :
+                                              static_cast<IFileDialog*>(GetIFileSaveDialog());
+}
+
+
+DataFileDlg& DataFileDlg::SetTitle(std::wstring title)
+{
+    m_title = std::move(title);
+    m_ofn.lpstrTitle = m_title.c_str();
     return *this;
 }
 
-DataFileDlg& DataFileDlg::SetDictionaryFilename(const CString& dictionary_filename)
+
+DataFileDlg& DataFileDlg::SetTitle(const std::string_view title_sv)
 {
-    m_dictionaryFilename = dictionary_filename;
+    return SetTitle(TC::ToWide(title_sv));
+}
+
+
+DataFileDlg& DataFileDlg::SetDictionaryFilePath(std::string dictionary_file_path)
+{
+    m_dictionaryFilePath = std::move(dictionary_file_path);
     UpdateInitialDirectory();
     return *this;
 }
+
 
 DataFileDlg& DataFileDlg::SuggestMatchingDataRepositoryType(const ConnectionString& connection_string)
 {
@@ -127,6 +107,7 @@ DataFileDlg& DataFileDlg::SuggestMatchingDataRepositoryType(const ConnectionStri
     UpdateFilters();
     return *this;
 }
+
 
 DataFileDlg& DataFileDlg::SuggestMatchingDataRepositoryType(const std::vector<ConnectionString>& connection_strings)
 {
@@ -139,6 +120,7 @@ DataFileDlg& DataFileDlg::SuggestMatchingDataRepositoryType(const std::vector<Co
     return suggest_match ? SuggestMatchingDataRepositoryType(connection_strings.front()) : *this;
 }
 
+
 DataFileDlg& DataFileDlg::WarnIfDifferentDataRepositoryType()
 {
     ASSERT(m_type != Type::OpenExisting);
@@ -146,13 +128,15 @@ DataFileDlg& DataFileDlg::WarnIfDifferentDataRepositoryType()
     return *this;
 }
 
+
 DataFileDlg& DataFileDlg::SetCreateNewDefaultDataRepositoryType(DataRepositoryType type)
 {
-    ASSERT(!DataRepositoryHelpers::TypeDoesNotUseFilename(type));
+    ASSERT(DataRepositoryHelpers::TypeUsesFileResource(type));
     m_createNewDefaultDataRepositoryType = type;
     UpdateFilters();
     return *this;
 }
+
 
 DataFileDlg& DataFileDlg::AllowMultipleSelections()
 {
@@ -161,14 +145,15 @@ DataFileDlg& DataFileDlg::AllowMultipleSelections()
     if( !AllowingMultipleSelection() )
     {
         constexpr size_t MultipleSelectionBufferSize = 500 * ( _MAX_PATH + 1 ) + 1;
-        m_multipleSelectionBuffer = std::make_unique<TCHAR[]>(MultipleSelectionBufferSize);
+        m_multipleSelectionBuffer = std::make_unique_for_overwrite<wchar_t[]>(MultipleSelectionBufferSize);
+        m_multipleSelectionBuffer[0] = '\0';
 
         m_ofn.Flags |= OFN_ALLOWMULTISELECT;
         m_ofn.lpstrFile = m_multipleSelectionBuffer.get();
         m_ofn.nMaxFile = MultipleSelectionBufferSize;
 
         // update the default title
-        if( m_title.Compare(OpenExistingSingleFileString) == 0 )
+        if( m_title == OpenExistingSingleFileString )
             SetTitle(OpenExistingMultipleFilesString);
     }
 
@@ -185,17 +170,17 @@ void DataFileDlg::UpdateInitialDirectory()
     //          a) if a data file was already selected for that data dictionary, use its directory
     //          b) if not, use the dictionary's directory
     //      4) if none of the above, use the directory of th last dta file selected
-    m_initialDirectory.Empty();
+    std::string initial_directory;
 
-    auto get_directory_from_connection_string = [this](const ConnectionString& connection_string) -> bool
+    auto get_directory_from_connection_string = [&](const ConnectionString& connection_string)
     {
-        if( connection_string.IsFilenamePresent() )
+        if( connection_string.HasFilePath() )
         {
-            CString directory = PortableFunctions::PathGetDirectory<CString>(connection_string.GetFilename());
+            std::string directory = PortableFunctions::PathGetDirectory(connection_string.GetFilePath());
 
             if( PortableFunctions::FileIsDirectory(directory) )
             {
-                m_initialDirectory = directory;
+                initial_directory = std::move(directory);
                 return true;
             }
         }
@@ -203,31 +188,32 @@ void DataFileDlg::UpdateInitialDirectory()
         return false;
     };
 
-    auto read_directory_from_registry = [this](const TCHAR* value_name)
+    auto read_directory_from_registry = [&](const std::string_view value_name_sv)
     {
-        if( GetWinRegistry()->ReadString(value_name, &m_initialDirectory) )
+        if( GetWinRegistry()->ReadString(value_name_sv, initial_directory) )
         {
             // make sure that the last used directory still exists
-            if( !PortableFunctions::FileIsDirectory(m_initialDirectory) )
-                m_initialDirectory.Empty();
+            if( !PortableFunctions::FileIsDirectory(initial_directory) )
+                initial_directory.clear();
         }
     };
 
 
     if( !get_directory_from_connection_string(m_initialConnectionString) &&
         !get_directory_from_connection_string(m_suggestedMatchingDataRepositoryTypeConnectionString) &&
-        !m_dictionaryFilename.IsEmpty() )
+        !m_dictionaryFilePath.empty() )
     {
         read_directory_from_registry(GetDictionaryRegistryKeyName());
 
-        if( m_initialDirectory.IsEmpty() && PortableFunctions::FileExists(m_dictionaryFilename) )
-            m_initialDirectory = PortableFunctions::PathGetDirectory<CString>(m_dictionaryFilename);
+        if( initial_directory.empty() && PortableFunctions::FileIsRegular(m_dictionaryFilePath) )
+            initial_directory = PortableFunctions::PathGetDirectory(m_dictionaryFilePath);
     }
 
-    if( m_initialDirectory.IsEmpty() )
-        read_directory_from_registry(LastDataRegistryValueName);
+    if( initial_directory.empty() )
+        read_directory_from_registry(LastDataRegistryValueName_sv);
 
-    m_ofn.lpstrInitialDir = !m_initialDirectory.IsEmpty() ? (LPCTSTR)m_initialDirectory : nullptr;
+    m_initialDirectory = TC::ToWide(initial_directory);
+    m_ofn.lpstrInitialDir = !m_initialDirectory.empty() ? m_initialDirectory.c_str() : nullptr;
 }
 
 
@@ -236,12 +222,12 @@ void DataFileDlg::UpdateFilters()
     // figure out what filter to show
     std::optional<size_t> filter_index;
 
-    if( m_initialConnectionString.IsFilenamePresent() )
+    if( m_initialConnectionString.HasFilePath() )
     {
         filter_index = m_dataFileFilterManager.GetFilterIndex(m_initialConnectionString);
     }
 
-    else if( m_suggestedMatchingDataRepositoryTypeConnectionString.IsFilenamePresent() )
+    else if( m_suggestedMatchingDataRepositoryTypeConnectionString.HasFilePath() )
     {
         filter_index = m_dataFileFilterManager.GetFilterIndex(m_suggestedMatchingDataRepositoryTypeConnectionString);
     }
@@ -262,7 +248,7 @@ void DataFileDlg::UpdateFilters()
         }
 
         ASSERT(filter_index.has_value());
-    }    
+    }
 
     m_ofn.nFilterIndex = *filter_index + 1; // nFilterIndex is one-based
 }
@@ -297,10 +283,10 @@ IFACEMETHODIMP DataFileDlg::OnFolderChange(IFileDialog* pfd)
             {
                 for( hSearchWnd = ::GetWindow(hSearchWnd, GW_CHILD); hSearchWnd != nullptr; hSearchWnd = ::GetWindow(hSearchWnd, GW_HWNDNEXT) )
                 {
-                    TCHAR this_class_name[200];
+                    wchar_t this_class_name[200];
                     GetClassName(hSearchWnd, this_class_name, _countof(this_class_name));
 
-                    if( _tcscmp(this_class_name, _T("ComboBox")) == 0 )
+                    if( wcscmp(this_class_name, L"ComboBox") == 0 )
                     {
                         // there are two combo boxes (one for the file name) but the filter one has no children
                         if( ::GetWindow(hSearchWnd, GW_CHILD) == nullptr )
@@ -327,86 +313,106 @@ IFACEMETHODIMP DataFileDlg::OnFolderChange(IFileDialog* pfd)
 }
 
 
+bool DataFileDlg::IsValidDataFilename(const std::string& filename, const bool allow_wildcards)
+{
+    // mostly based on https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
+    if( filename.empty() )
+        return false;
+
+    auto filename_itr = filename.crbegin();
+
+    // filenames cannot end in a space or dot
+    if( *filename_itr == ' ' || *filename_itr == '.' )
+        return false;
+
+    // filenames cannot have invalid characters
+    for( ; filename_itr != filename.crend(); ++filename_itr )
+    {
+        if( *filename_itr < 32 )
+            return false;
+    }
+
+    if( ( filename.find_first_of(Path::InvalidCharacters) != std::string::npos ) ||
+        ( !allow_wildcards && Path::HasWildcardCharacters(filename) ) )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
 LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uidSubclass, DWORD_PTR /*dwData*/)
 {
     ASSERT(m_currentDataFileDlg != nullptr);
 
-    auto get_current_filename = []() -> CString
+    auto get_current_filename = []()
     {
-        LPWSTR filename_buffer = nullptr;
-        m_currentDataFileDlg->GetIFileDialog()->GetFileName(&filename_buffer);
-        CString connection_string_text = filename_buffer;
-        CoTaskMemFree(filename_buffer);
-        return connection_string_text;
+        wchar_t* buffer = nullptr;
+        m_currentDataFileDlg->GetIFileDialog()->GetFileName(&buffer);
+        std::string current_filename = TC::ToUtf8(buffer);
+        CoTaskMemFree(buffer);
+        return current_filename;
     };
 
     // override the OK button click to allow invalid characters in the path;
     // while in the file name edit control, this works with the Enter key on open dialogs but not on save dialogs
     if( msg == WM_COMMAND && HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK )
     {
-        ASSERT(m_currentDataFileDlg->m_selectedConnectionStrings.empty());
-
-        CString current_filename = get_current_filename();
-        std::vector<ConnectionString> connection_strings;
-
-        // do special processing on a single selection if there is a | character
-        auto does_filename_need_special_processing = ( current_filename.Find(_T('|')) >= 0 );
-
-        // when allowing multiple selection, the text may be separated into several entries with quotes
-        if( m_currentDataFileDlg->AllowingMultipleSelection() )
+        try
         {
-            connection_strings = PathHelpers::SplitSingleStringIntoConnectionStrings(current_filename);
+            ASSERT(m_currentDataFileDlg->m_selectedConnectionStrings.empty());
 
-            // if there was only one connection string and it doesn't require special processing, don't process it as such
-            if( connection_strings.size() == 1 && !does_filename_need_special_processing )
-                connection_strings.clear();
-        }
+            const std::string current_filename = get_current_filename();
 
-        else if( does_filename_need_special_processing )
-        {
-            connection_strings.emplace_back(current_filename);
-        }
+            std::vector<ConnectionString> connection_strings;
 
-        // do the special processing
-        if( !connection_strings.empty() )
-        {
+            // when allowing multiple selection, the text may be separated into several entries with quotes
+            if( m_currentDataFileDlg->AllowingMultipleSelection() )
+            {
+                connection_strings = PathHelpers::SplitSingleStringIntoConnectionStrings(current_filename);
+            }
+
+            else if( !SO::IsWhitespace(current_filename) )
+            {
+                connection_strings.emplace_back(current_filename);
+            }
+
+            // at least one connection string must be specified
+            if( connection_strings.empty() )
+                return TRUE;
+
+            // process each connection string
             for( ConnectionString& connection_string : connection_strings )
             {
-                connection_string.AdjustRelativePath(CS2WS(m_currentDataFileDlg->GetFolderPath()));
-
-                // if a filename is present, make sure that it's valid
-                if( connection_string.IsFilenamePresent() )
+                // if a file path is present, make sure that it is valid
+                if( connection_string.HasFilePath() )
                 {
-                    CString message;
+                    connection_string.AdjustRelativePath(TC::ToUtf8(m_currentDataFileDlg->GetFolderPath()));
 
                     // issue an error if the directory does not exist
-                    if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(connection_string.GetFilename())) )
-                    {
-                        message.Format(_T("%s\nPath does not exist.\nCheck the path and try again."), connection_string.GetFilename().c_str());
-                    }
+                    if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
+                        throw CSProException("%s\nPath does not exist.\nCheck the path and try again.", connection_string.GetFilePath().c_str());
 
-                    else if( !IsValidDataFilename(PortableFunctions::PathGetFilename(connection_string.GetFilename()), m_currentDataFileDlg->AllowingMultipleSelection()) )
-                    {
-                        message.Format(_T("%s\nThe file name is not valid."), connection_string.GetFilename().c_str());
-                    }
-
-                    if( !message.IsEmpty() )
-                    {
-                        AfxMessageBox(message);
-                        return TRUE;
-                    }
+                    if( !IsValidDataFilename(PortableFunctions::PathGetFilename(connection_string.GetFilePath()), m_currentDataFileDlg->AllowingMultipleSelection()) )
+                        throw CSProException("%s\nThe file name is not valid.", connection_string.GetFilePath().c_str());
                 }
 
                 if( !m_currentDataFileDlg->ValidateConnectionStringText(connection_string) )
                     return TRUE;
             }
 
-            // if everything is valid, so close the dialog
-            m_currentDataFileDlg->m_selectedConnectionStrings = connection_strings;
+            // if everything is valid, close the dialog
+            m_currentDataFileDlg->m_selectedConnectionStrings = std::move(connection_strings);
             ::SendMessage(hWnd, WM_CLOSE, 0, 0);
-
-            return TRUE;
         }
+
+        catch( const CSProException& exception)
+        {
+            ErrorMessage::Display(exception);
+        }
+
+        return TRUE;
     }
 
     // if the filter changes, potentially change the extension of the filename
@@ -415,14 +421,18 @@ LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wP
         if( m_currentDataFileDlg->m_type != Type::OpenExisting )
         {
             ConnectionString connection_string(get_current_filename());
-            connection_string.AdjustRelativePath(CS2WS(m_currentDataFileDlg->GetFolderPath()));
 
-            if( !PortableFunctions::FileIsRegular(connection_string.GetFilename()) )
+            if( connection_string.HasFilePath() )
             {
-                int combo_box_filter_selected_index = ::SendMessage(hWnd, CB_GETCURSEL, 0, 0);
+                connection_string.AdjustRelativePath(TC::ToUtf8(m_currentDataFileDlg->GetFolderPath()));
 
-                if( m_currentDataFileDlg->m_dataFileFilterManager.AdjustConnectionStringFromFilterIndex(connection_string, combo_box_filter_selected_index) )
-                    m_currentDataFileDlg->GetIFileDialog()->SetFileName(connection_string.ToStringWithoutDirectory().c_str());
+                if( !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
+                {
+                    const int combo_box_filter_selected_index = ::SendMessage(hWnd, CB_GETCURSEL, 0, 0);
+
+                    if( m_currentDataFileDlg->m_dataFileFilterManager.AdjustConnectionStringFromFilterIndex(connection_string, combo_box_filter_selected_index) )
+                        m_currentDataFileDlg->GetIFileDialog()->SetFileName(TC::ToWide(connection_string.ToStringWithoutDirectory()).c_str());
+                }
             }
         }
     }
@@ -440,52 +450,46 @@ BOOL DataFileDlg::OnFileNameOK()
 {
     ASSERT(m_selectedConnectionStrings.empty());
 
-    std::vector<CString> selected_filenames;
+    auto add_file = [&](const CString& file_path)
+    {
+        ConnectionString& connection_string = m_selectedConnectionStrings.emplace_back(TC::ToUtf8(file_path));
+
+        if( !ValidateConnectionStringText(connection_string) )
+            m_selectedConnectionStrings.clear();
+
+        return !m_selectedConnectionStrings.empty();
+    };
 
     if( !AllowingMultipleSelection() )
     {
-        selected_filenames.emplace_back(GetPathName());
+        add_file(GetPathName());
     }
 
     else
     {
-        for( POSITION pos = GetStartPosition(); pos != nullptr; )
-            selected_filenames.emplace_back(GetNextPathName(pos));
-    }
-
-    for( const CString& filename : selected_filenames )
-    {
-        ConnectionString connection_string(filename);
-
-        if( !ValidateConnectionStringText(connection_string) )
+        for( POSITION pos = GetStartPosition(); pos != nullptr && add_file(GetNextPathName(pos)); )
         {
-            m_selectedConnectionStrings.clear();
-            return TRUE;
         }
-
-        m_selectedConnectionStrings.emplace_back(std::move(connection_string));
     }
 
-    return FALSE; // FALSE means that the filename is okay
+    return !m_selectedConnectionStrings.empty() ? FALSE : TRUE; // FALSE means that the filename is okay
 }
 
 
 bool DataFileDlg::ValidateConnectionStringText(ConnectionString& connection_string)
 {
-    if( connection_string.IsFilenamePresent() )
+    if( connection_string.HasFilePath() )
     {
-        CString extension = PortableFunctions::PathGetFileExtension<CString>(connection_string.GetFilename());
+        const std::string extension = PortableFunctions::PathGetFileExtension(connection_string.GetFilePath());
 
-        if( !PortableFunctions::FileExists(connection_string.GetFilename()) )
+        if( !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
         {
             // when opening existing files, issue an error if the file doesn't exist (when not using wildcards)
             if( m_type == Type::OpenExisting )
             {
-                if( !AllowingMultipleSelection() || !PathHasWildcardCharacters(connection_string.GetFilename()) )
+                if( !AllowingMultipleSelection() || !Path::HasWildcardCharacters(connection_string.GetFilePath()) )
                 {
-                    CString message;
-                    message.Format(_T("%s\nFile not found.\nCheck the file name and try again."), connection_string.GetFilename().c_str());
-                    AfxMessageBox(message);
+                    AfxMessageBox(FormatText("%s\nFile not found.\nCheck the file name and try again.", connection_string.GetFilePath().c_str()));
                     return false;
                 }
             }
@@ -493,7 +497,7 @@ bool DataFileDlg::ValidateConnectionStringText(ConnectionString& connection_stri
             // for new files, if no extension was provided, potentially add an extension based on the selected filter
             else
             {
-                if( extension.IsEmpty() )
+                if( extension.empty() )
                 {
                     // nFilterIndex is one-based
                     m_dataFileFilterManager.AdjustConnectionStringFromFilterIndex(connection_string, m_ofn.nFilterIndex - 1);
@@ -502,17 +506,17 @@ bool DataFileDlg::ValidateConnectionStringText(ConnectionString& connection_stri
                 // otherwise make sure that the data file doesn't use a reserved extension
                 else if( FileExtensions::IsExtensionForbiddenForDataFiles(extension) )
                 {
-                    AfxMessageBox(FormatText(_T("The file extension .%s is reserved by CSPro and cannot be used for data files."), (LPCTSTR)extension));
+                    AfxMessageBox(FormatText("The file extension '.%s' is reserved by CSPro and cannot be used for data files.", extension.c_str()));
                     return false;
                 }
             }
         }
 
         // issue an overwrite warning for new files
-        if( m_type == Type::CreateNew && PortableFunctions::FileExists(connection_string.GetFilename()) )
+        if( m_type == Type::CreateNew && PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
         {
-            CString message;
-            message.Format(_T("%s already exists\nDo you want to replace it?"), PortableFunctions::PathGetFilename(connection_string.GetFilename()));
+            const std::string message = FormatText("%s already exists\nDo you want to replace it?",
+                                                   PortableFunctions::PathGetFilename(connection_string.GetFilePath()).c_str());
 
             if( AfxMessageBox(message, MB_YESNO) == IDNO )
                 return false;
@@ -520,27 +524,27 @@ bool DataFileDlg::ValidateConnectionStringText(ConnectionString& connection_stri
     }
 
     // issue a warning if the repository type is different than the one to be matched against
-    if( m_warnIfDifferentDataRepositoryType && m_suggestedMatchingDataRepositoryTypeConnectionString.IsFilenamePresent() &&
+    if( m_warnIfDifferentDataRepositoryType &&
         m_suggestedMatchingDataRepositoryTypeConnectionString.GetType() != connection_string.GetType() &&
-        !PortableFunctions::FileExists(connection_string.GetFilename()) )
+        m_suggestedMatchingDataRepositoryTypeConnectionString.HasFilePath() && connection_string.HasFilePath() &&
+        !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
     {
-        CString message;
-        message.Format(_T("You have already selected data files with the format %s. Are you sure you want to use the format %s?"),
-            ToString(m_suggestedMatchingDataRepositoryTypeConnectionString.GetType()),
-            ToString(connection_string.GetType()));
+        const std::string message = FormatText("You have already selected data files with the format %s. Are you sure you want to use the format %s?",
+                                               ToString(m_suggestedMatchingDataRepositoryTypeConnectionString.GetType()),
+                                               ToString(connection_string.GetType()));
 
         if( AfxMessageBox(message, MB_YESNO) == IDNO )
             return false;
     }
 
     // save the directory of the selected data file in the registry
-    if( connection_string.IsFilenamePresent() )
+    if( connection_string.HasFilePath() )
     {
-        CString directory_name = PortableFunctions::PathGetDirectory<CString>(connection_string.GetFilename());
-        GetWinRegistry()->WriteString(LastDataRegistryValueName, directory_name);
+        const std::string directory = PortableFunctions::PathGetDirectory(connection_string.GetFilePath());
+        GetWinRegistry()->WriteString(LastDataRegistryValueName_sv, directory);
 
-        if( !m_dictionaryFilename.IsEmpty() )
-            GetWinRegistry()->WriteString(GetDictionaryRegistryKeyName(), directory_name);
+        if( !m_dictionaryFilePath.empty() )
+            GetWinRegistry()->WriteString(GetDictionaryRegistryKeyName(), directory);
     }
 
     return true;
@@ -552,15 +556,29 @@ WinRegistry* DataFileDlg::GetWinRegistry()
     if( m_winRegistry == nullptr )
     {
         m_winRegistry = std::make_unique<WinRegistry>();
-        m_winRegistry->Open(HKEY_CURRENT_USER, _T("Software\\U.S. Census Bureau\\Data Paths"), true);
+        m_winRegistry->Open(HKEY_CURRENT_USER, L"Software\\U.S. Census Bureau\\Data Paths", true);
     }
 
     return m_winRegistry.get();
 }
 
 
-CString DataFileDlg::GetDictionaryRegistryKeyName() const
+std::string DataFileDlg::GetDictionaryRegistryKeyName() const
 {
-    ASSERT(!m_dictionaryFilename.IsEmpty());
-    return PortableFunctions::PathGetFilenameWithoutExtension<CString>(m_dictionaryFilename).MakeUpper();
+    ASSERT(!m_dictionaryFilePath.empty());
+    return SO::ToUpper(Path::GetFilenameWithoutExtension(m_dictionaryFilePath));
+}
+
+
+std::optional<ConnectionString> DataFileDlg::ShowDialogFromWinForms(CWnd* const pParentWnd, const Type type, const bool add_only_readable_types,
+                                                                    ConnectionString connection_string)
+{
+    AfxSetResourceHandle(zBridgeODLL.hModule);
+
+    DataFileDlg data_file_dlg(type, add_only_readable_types, std::move(connection_string), pParentWnd);
+
+    const INT_PTR result = data_file_dlg.DoModal();
+
+    return ( result == IDOK ) ? std::make_optional(data_file_dlg.GetConnectionString()) :
+                                std::nullopt;
 }

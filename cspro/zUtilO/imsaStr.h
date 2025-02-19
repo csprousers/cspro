@@ -488,10 +488,8 @@
 
 #include <zUtilO/zUtilO.h>
 
-class Serializer;
-
 constexpr TCHAR SPACE       = ' ';
-constexpr TCHAR DOT         = '.';
+constexpr char DOT          = '.';
 constexpr TCHAR COMMA       = ',';
 constexpr TCHAR HYPHEN      = '-';
 constexpr TCHAR PLUS        = '+';
@@ -499,9 +497,7 @@ constexpr TCHAR ZERO        = '0';
 constexpr TCHAR COLON       = ':';
 constexpr TCHAR TAB         = '\t';
 constexpr TCHAR EOS         = '\0';
-constexpr TCHAR UNDERSCORE  = '_';
-constexpr TCHAR SINGLEQUOTE = '\'';
-constexpr TCHAR DOUBLEQUOTE = '\"';
+constexpr char  UNDERSCORE  = '_';
 
 #define TAB_STR             _T("\t")
 #define SPACE_COMMA_STR     _T(" ,")
@@ -534,22 +530,21 @@ public:
 
 // Comparison/analysis
     static bool IsNumeric(wstring_view text_sv, bool use_decimal_character_locale = true);
-    static bool IsNumericOrSpecial(wstring_view text_sv, bool use_decimal_character_locale = true);
-    static bool IsNumeric(const CString& text, bool use_decimal_character_locale = true) { return IsNumeric(wstring_view(text), use_decimal_character_locale); }
-    bool IsNumeric(bool use_decimal_character_locale = true) const { return IsNumeric(*this, use_decimal_character_locale); }
+    static bool IsNumeric(std::string_view text_sv, bool use_decimal_character_locale = true) { return IsNumeric(UTF8_TODO::GetWide(text_sv), use_decimal_character_locale); }
+    static bool IsNumericOrSpecial(std::string_view text_sv, bool use_decimal_character_locale = true);
+    bool IsNumeric() const { return IsNumeric(*this); }
 
     BOOL IsNumericU() const;
 
-    static bool IsInteger(wstring_view text_sv);
-    bool IsInteger() const { return IsInteger(*this); }
+    static bool IsInteger(std::string_view text_sv);
 
-    static bool IsName(wstring_view name_sv);
+    static bool IsName(std::string_view name_sv);
+    static bool IsName(wstring_view name_sv) { return IsName(UTF8_TODO::GetUtf8(name_sv)); }
     bool IsName() const { return IsName(*this); }
 
-    static bool IsReservedWord(wstring_view word_sv);
+    static bool IsReservedWord(std::string_view word_sv);
+    static bool IsReservedWord(wstring_view word_sv) { return IsReservedWord(UTF8_TODO::GetUtf8(word_sv)); }
     bool IsReservedWord() const { return IsReservedWord(*this); }
-
-    static void ValidateName(NullTerminatedString name);
 
 #ifdef WIN_DESKTOP
     static CSize GetLongestWordSize(CDC* pDC, const CString& text);
@@ -564,18 +559,19 @@ public:
 
 // Conversion
     static CString MakeName(wstring_view base_name_sv, size_t max_name_length = SIZE_MAX);
+    static std::string MakeName(std::string_view base_name_sv, size_t max_name_length = SIZE_MAX) { return UTF8_TODO::GetUtf8(MakeName(UTF8_TODO::GetWide(base_name_sv), max_name_length)); }
     static CString MakeNameRestrictLength(wstring_view base_name_sv) { return MakeName(base_name_sv, 48); }
     void MakeName()                                                  { *this = MakeName(*this); }
     void MakeNameRestrictLength()                                    { *this = MakeNameRestrictLength(*this); }
 
     // returns a valid name that is also not reserved
     template<typename ECC = void*>
-    static std::wstring CreateUnreservedName(wstring_view text_sv, ECC extra_check_callback = nullptr);
+    static std::string CreateUnreservedName(std::string_view text_sv, ECC extra_check_callback = nullptr);
 
     static CString MakeNumeric(wstring_view text_sv);
     void MakeNumeric() { *this = MakeNumeric(*this); }
 
-    static TCHAR GetDecChar();
+    static char GetDecChar();
 
     // Adjustment/formatting
     CIMSAString AdjustLenLeft(int iLen,csprochar cPad = SPACE) const;
@@ -592,9 +588,11 @@ public:
 
 // Numerical conversion
     static int64_t Val(wstring_view text_sv);
+    static int64_t Val(std::string_view text_sv) { return Val(UTF8_TODO::GetWide(text_sv)); }
     int64_t Val() const { return Val(*this); }
 
     static double fVal(wstring_view text_sv);
+    static double fVal(std::string_view text_sv) { return fVal(UTF8_TODO::GetWide(text_sv)); }
     double fVal() const { return fVal(*this); }
 
     void Str(int64_t iVal, int iLen=NONE, csprochar cPad=SPACE);
@@ -634,9 +632,9 @@ public:
 
 
 template<typename ECC/* = void* */>
-std::wstring CIMSAString::CreateUnreservedName(const wstring_view text_sv, ECC extra_check_callback/* = nullptr*/)
+std::string CIMSAString::CreateUnreservedName(const std::string_view text_sv, ECC extra_check_callback/* = nullptr*/)
 {
-    std::wstring name_candidate = SO::ToUpper(text_sv);
+    std::string name_candidate = SO::ToUpper(text_sv);
 
     for( int i = 0; ; ++i )
     {
@@ -651,10 +649,10 @@ std::wstring CIMSAString::CreateUnreservedName(const wstring_view text_sv, ECC e
         if( valid )
             return name_candidate;
 
-        name_candidate = CS2WS(MakeName(text_sv));
+        name_candidate = MakeName(text_sv);
 
         if( i > 0 )
-            name_candidate.append(FormatTextCS2WS(_T("_%d"), i));
+            name_candidate.append(FormatText("_%d", i));
     }
 }
 
@@ -670,14 +668,16 @@ CLASS_DECL_ZUTILO BOOL    i64toc(int64_t iValue, csprochar pszValue[], UINT uLen
 CLASS_DECL_ZUTILO int64_t atoi64(wstring_view text_sv);
 CLASS_DECL_ZUTILO TCHAR*  i64toa(int64_t iValue, TCHAR pszValue[]);
 
-CLASS_DECL_ZUTILO double atod(wstring_view text_sv, unsigned int implied_decimals = 0);
+CLASS_DECL_ZUTILO double atod(std::string_view text_sv, unsigned int implied_decimals = 0);
+inline double atod(wstring_view text_sv, unsigned int implied_decimals = 0) { return atod(UTF8_TODO::GetUtf8(text_sv), implied_decimals); }
 CLASS_DECL_ZUTILO TCHAR* dtoa(double dValue, TCHAR* pszValue, UINT uDec = 0, TCHAR cDec = DOT, bool bZeroDec = true);
 
 CLASS_DECL_ZUTILO csprochar* strtoken(csprochar* pszLine, const csprochar* pszSeparators, csprochar* pcFound);
 
-CLASS_DECL_ZUTILO CString NumberToString(double value);
-
 template<typename T = double>
 CLASS_DECL_ZUTILO T StringToNumber(wstring_view text_sv);
 
-CLASS_DECL_ZUTILO unsigned CountNewlines(NullTerminatedString text);
+template<typename T = double>
+CLASS_DECL_ZUTILO T StringToNumber(std::string_view text_sv);
+
+CLASS_DECL_ZUTILO size_t CountNewlines(cs::string_sz text);

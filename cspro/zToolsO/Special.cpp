@@ -21,12 +21,12 @@ namespace
 {
     static SpecialValues SpecialValuesInstance;
 
-    const TCHAR* const MissingString[] = { _T("MISSING"), _T("Missing") };
-    const TCHAR* const DefaultString[] = { _T("DEFAULT"), _T("Default") };
-    const TCHAR* const NotApplString[] = { _T("NOTAPPL"), _T("NotAppl") };
-    const TCHAR* const RefusedString[] = { _T("REFUSED"), _T("Refused") };
+    constexpr const char* MissingString[] = { "MISSING", "Missing" };
+    constexpr const char* DefaultString[] = { "DEFAULT", "Default" };
+    constexpr const char* NotApplString[] = { "NOTAPPL", "NotAppl" };
+    constexpr const char* RefusedString[] = { "REFUSED", "Refused" };
 
-    const std::tuple<wstring_view, double> NameValueMapping[] =
+    const std::tuple<std::string_view, double> NameValueMapping[] =
     {
         { MissingString[0], MISSING },
         { DefaultString[0], DEFAULT },
@@ -57,9 +57,9 @@ SpecialValues::SpecialValues()
 
 
 template<typename T>
-T SpecialValues::StringIsSpecial(const wstring_view text_sv)
+T SpecialValues::StringIsSpecial(const std::string_view text_sv)
 {
-    if( !text_sv.empty() && std::iswalpha(text_sv.front()) )
+    if( !text_sv.empty() && std::isalpha(text_sv.front()) )
     {
         for( size_t i = 0; i < _countof(NameValueMapping); ++i )
         {
@@ -99,12 +99,12 @@ T SpecialValues::StringIsSpecial(const wstring_view text_sv)
     }
 }
 
-template CLASS_DECL_ZTOOLSO bool SpecialValues::StringIsSpecial(wstring_view text_sv);
-template CLASS_DECL_ZTOOLSO const double* SpecialValues::StringIsSpecial(wstring_view text_sv);
-template CLASS_DECL_ZTOOLSO std::optional<double> SpecialValues::StringIsSpecial(wstring_view text_sv);
+template CLASS_DECL_ZTOOLSO bool SpecialValues::StringIsSpecial(std::string_view text_sv);
+template CLASS_DECL_ZTOOLSO const double* SpecialValues::StringIsSpecial(std::string_view text_sv);
+template CLASS_DECL_ZTOOLSO std::optional<double> SpecialValues::StringIsSpecial(std::string_view text_sv);
 
 
-double SpecialValues::StringToValue(const wstring_view text_sv)
+double SpecialValues::StringToValue(const std::string_view text_sv)
 {
     for( size_t i = 0; i < _countof(NameValueMapping); ++i )
     {
@@ -116,22 +116,23 @@ double SpecialValues::StringToValue(const wstring_view text_sv)
 }
 
 
-const TCHAR* const SpecialValues::ValueToString(double value, bool all_caps_version/* = true*/)
+const char* const SpecialValues::ValueToString(const double value, const bool all_caps_version/* = true*/)
 {
-    size_t index = all_caps_version ? 0 : 1;
+    const size_t index = all_caps_version ? 0 : 1;
 
     return ( value == MISSING ) ? MissingString[index] :
            ( value == NOTAPPL ) ? NotApplString[index] :
            ( value == DEFAULT ) ? DefaultString[index] :
            ( value == REFUSED ) ? RefusedString[index] :
-                                  ReturnProgrammingError(_T("???????"));
+           ( value == MASKBLK ) ? NotApplString[index] :
+                                  ReturnProgrammingError("???????");
 }
 
 
 bool SpecialValues::CompareForDisplayOrder(double value1, double value2)
 {
     // sort things as: non-special, refused, missing, default, notappl
-    const static double SpecialOrder[] = { REFUSED, MISSING, DEFAULT, NOTAPPL };
+    static const double SpecialOrder[] = { REFUSED, MISSING, DEFAULT, NOTAPPL };
 
     if( IsSpecial(value1) && IsSpecial(value2) )
     {

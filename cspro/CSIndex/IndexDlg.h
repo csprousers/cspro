@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include <zUtilF/PopupInfoLinkCtrl.h>
+#include <zUtilF/LinkCtrls.h>
 #include <zUtilF/SrtLstCt.h>
 
 
 class IndexDlg : public CDialog
 {
 public:
-    IndexDlg(std::wstring initial_dictionary_filename, CWnd* pParent = nullptr);
+    IndexDlg(std::string initial_dictionary_file_path, CWnd* pParent = nullptr);
 
     enum { IDD = IDD_CSINDEX_DIALOG };
 
@@ -35,7 +35,7 @@ private:
     void SetDefaultPffSettings();
     void UIToPff();
     void AddConnectionStrings(const std::vector<ConnectionString>& connection_strings);
-    void OnDropFiles(const std::vector<std::wstring>& filenames);
+    void OnDropFiles(const std::vector<std::string>& paths);
 
 private:
     const HICON m_hIcon;
@@ -43,8 +43,9 @@ private:
 
     PFF m_pff;
 
-    std::wstring m_dictionaryFilename;
+    std::string m_dictionaryFilePath;
     CSortListCtrl m_fileList;
+    std::vector<ConnectionString> m_fileListConnectionStrings;
     int m_action;
     int m_autoDeleteIdentical;
     ConnectionString m_outputConnectionString;

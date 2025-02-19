@@ -57,7 +57,6 @@ struct SECX;                                           // victor Jul 04, 00
 //      IsCommon                    True if the Sect is a common-Sect
 //      SetCommon                   Set the common-Sect attribue to a given true/false
 //      IsSpecialSection            True if the Sect is marked as "special section"
-//      SetSpecialSection           Set the "special section" attribute to a given true/false
 //      SetLastLocTo                Set the location (1-based) of the last character occupied in this Sect
 //      GetLastLoc                  Return the location (1-based) of the last character occupied in this Sect
 //      UpdateLastLoc               Recalculate the last-location
@@ -95,7 +94,6 @@ private:
 private:
     bool    m_bOccGenerator;    // RHF Nov 15, 2002
     bool    m_bIsCommon;                                // RHF Jul 04, 2000
-    bool    m_bSpecialSection;          // is special section for table vars  // formerly 'special'
     int     m_iLastLoc;                 // Last character occupied in section // formerly 'last'
 
     // --- records management
@@ -119,7 +117,7 @@ public:
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction/initialization
 public:
-    CSymbolSection(std::wstring name, CEngineDriver* pEngineDriver);
+    CSymbolSection(std::string name, CEngineDriver* pEngineDriver);
 
     // --- related objects
     SECX* GetSecX( void )            { return m_pSecX; }         // victor Jul 04, 00
@@ -152,8 +150,6 @@ public:
 public:
     bool    IsCommon() const            { return m_bIsCommon; }     // RHF Jul 04, 2000
     void    SetCommon( bool bIsCommon ) { m_bIsCommon = bIsCommon; }// RHF Jul 04, 2000
-    bool    IsSpecialSection( void )    { return m_bSpecialSection; } // victor Jul 10, 00
-    void    SetSpecialSection( bool bX ){ m_bSpecialSection = bX; } // victor Jul 10, 00
     void    SetLastLocTo( int iLoc = 0 ){ m_iLastLoc = iLoc; }      // victor Oct 27, 99
     int     GetLastLoc( void )          { return m_iLastLoc; }      // victor Oct 27, 99
 private:
@@ -199,7 +195,7 @@ public:
     static const int MAX_WORKSECLEN = 1000;
 
     // Symbol overrides
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
 
 protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
@@ -211,6 +207,6 @@ private:
     int m_containerIndex = 0; // the container table index
 
 public:
-    int GetContainerIndex() const  			    { return m_containerIndex; }
+    int GetContainerIndex() const               { return m_containerIndex; }
     void SetContainerIndex(int container_index) { m_containerIndex = container_index; }
 };

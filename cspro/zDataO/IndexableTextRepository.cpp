@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IndexableTextRepository.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/Commands.h>
 #include <zUtilF/ThreadedProgressDlg.h>
 
 
@@ -11,20 +11,15 @@ namespace Constants
 }
 
 
-namespace SqlStatements
+namespace Sqlite::Commands
 {
-    constexpr const char* SetJournalModeToOff = "PRAGMA journal_mode = OFF;";
-    constexpr const char* SetJournalModeToDelete = "PRAGMA journal_mode = DELETE;";
-    constexpr const char* SetSynchronousOff = "PRAGMA synchronous = OFF;";
-    constexpr const char* SetSynchronousFull = "PRAGMA synchronous = FULL;";
-
     constexpr const char* CreateIdStructureTable = "CREATE TABLE `id-structure` (`name` TEXT PRIMARY KEY UNIQUE NOT NULL, `structure` INTEGER NOT NULL);";
-    constexpr const char* QueryIdStructure = "SELECT `structure` FROM `id-structure` WHERE `name` = ? LIMIT 1;";
-    constexpr const char* InsertIdStructure = "INSERT INTO `id-structure` (`name`, `structure`) VALUES ( ?, ? );";
+    constexpr const char* QueryIdStructure       = "SELECT `structure` FROM `id-structure` WHERE `name` = ? LIMIT 1;";
+    constexpr const char* InsertIdStructure      = "INSERT INTO `id-structure` (`name`, `structure`) VALUES ( ?, ? );";
 }
 
 
-IndexableTextRepository::IndexableTextRepository(DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type)
+IndexableTextRepository::IndexableTextRepository(const DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type)
     :   DataRepository(type, std::move(case_access), access_type),
         m_requiresIndex(( m_accessType == DataRepositoryAccess::ReadOnly ) ||
                         ( m_accessType == DataRepositoryAccess::ReadWrite ) ||
@@ -71,20 +66,20 @@ void IndexableTextRepository::CloseIndex()
     // if the data file was updated via only WriteMethod::Replace, then the data file will have been updated
     // later than the index, which would cause the index to be regenerated on the next load; this will force the
     // modify date of the index to be greater than the data file
-    if( PortableFunctions::FileModifiedTime(m_connectionString.GetFilename()) > PortableFunctions::FileModifiedTime(m_indexFilename) )
-        PortableFunctions::FileTouch(m_indexFilename);
+    if( PortableFunctions::FileModifiedTime(m_connectionString.GetFilePath()) > PortableFunctions::FileModifiedTime(m_indexFilePath) )
+        PortableFunctions::FileTouch(m_indexFilePath);
 }
 
 
-void IndexableTextRepository::SetIndexFilename()
+void IndexableTextRepository::SetIndexFilePath()
 {
-    m_indexFilename = WS2CS(m_connectionString.GetFilename() + FileExtensions::Data::WithDot::IndexableTextIndex);
+    m_indexFilePath = PortableFunctions::PathAppendFileExtension(m_connectionString.GetFilePath(), FileExtensions::Data::IndexableTextIndex);
 }
 
 
-void IndexableTextRepository::CreateOrOpenIndex(bool create_new_data_file)
+void IndexableTextRepository::CreateOrOpenIndex(const bool create_new_data_file)
 {
-    SetIndexFilename();
+    SetIndexFilePath();
 
     if( !create_new_data_file && IsIndexValid() )
     {
@@ -96,7 +91,7 @@ void IndexableTextRepository::CreateOrOpenIndex(bool create_new_data_file)
         auto create_index_failure_tasks = [&]
         {
             CloseIndex();
-            PortableFunctions::FileDelete(m_indexFilename);
+            PortableFunctions::FileDelete(m_indexFilePath);
         };
 
         try
@@ -115,7 +110,7 @@ void IndexableTextRepository::CreateOrOpenIndex(bool create_new_data_file)
 
             else
             {
-                throw DataRepositoryException::IOError(MGF::GetMessageText(MGF::IndexCannotCreate));
+                throw DataRepositoryException::IOError(MGF::GetMessageText(MGF::IndexCannotCreate).GetString());
             }
         }
 
@@ -130,7 +125,7 @@ void IndexableTextRepository::CreateOrOpenIndex(bool create_new_data_file)
 
 bool IndexableTextRepository::IsIndexValid()
 {
-    ASSERT(!m_indexFilename.IsEmpty());
+    ASSERT(!m_indexFilePath.empty());
 
     // if called from CSIndex, always say the index is false so that it will be recreated
     if( m_indexerCallback != nullptr )
@@ -140,8 +135,8 @@ bool IndexableTextRepository::IsIndexValid()
     // - the index exists;
     // - the data file is older than the index; and
     // - the structure of the IDs has not changed
-    if( !PortableFunctions::FileIsRegular(m_indexFilename) ||
-        PortableFunctions::FileModifiedTime(m_connectionString.GetFilename()) > PortableFunctions::FileModifiedTime(m_indexFilename) )
+    if( !PortableFunctions::FileIsRegular(m_indexFilePath) ||
+        PortableFunctions::FileModifiedTime(m_connectionString.GetFilePath()) > PortableFunctions::FileModifiedTime(m_indexFilePath) )
     {
         return false;
     }
@@ -149,18 +144,18 @@ bool IndexableTextRepository::IsIndexValid()
     bool index_is_valid = false;
 
     // open the existing index and make sure that the current dictionary matches the one used to generate the index
-    if( sqlite3_open(ToUtf8(m_indexFilename), &m_db) == SQLITE_OK )
+    if( sqlite3_open(m_indexFilePath.c_str(), &m_db) == SQLITE_OK )
     {
         try
         {
-            SQLiteStatement stmt_query_id_structure(m_db, SqlStatements::QueryIdStructure, true);
+            SQLiteStatement stmt_query_id_structure(m_db, Sqlite::Commands::QueryIdStructure, true);
 
             stmt_query_id_structure.Bind(1, m_caseAccess->GetDataDict().GetName());
 
             stmt_query_id_structure.StepCheckResult(SQLITE_ROW);
 
             // keep the index open if it was valid
-            if( stmt_query_id_structure.GetColumn<size_t>(0) == GetIdStructureHashForKeyIndex() )
+            if( stmt_query_id_structure.GetColumn<uint32_t>(0) == GetIdStructureHashForKeyIndex() )
                 return true;
         }
 
@@ -179,7 +174,7 @@ bool IndexableTextRepository::IsIndexValid()
 
 void IndexableTextRepository::CreateIndex()
 {
-    ASSERT(!m_indexFilename.IsEmpty());
+    ASSERT(!m_indexFilePath.empty());
 
     auto do_sqlite3_exec = [&](const char* sql)
     {
@@ -188,29 +183,29 @@ void IndexableTextRepository::CreateIndex()
     };
 
     // delete the existing index if necessary
-    if( PortableFunctions::FileIsRegular(m_indexFilename) && !PortableFunctions::FileDelete(m_indexFilename) )
-        throw DataRepositoryException::IOError(_T("The index file, which needs to be regenerated, could not be deleted."));
+    if( PortableFunctions::FileIsRegular(m_indexFilePath) && !PortableFunctions::FileDelete(m_indexFilePath) )
+        throw DataRepositoryException::IOError("The index file, which needs to be regenerated, could not be deleted.");
 
     // open the database
-    if( sqlite3_open(ToUtf8(m_indexFilename), &m_db) != SQLITE_OK )
+    if( sqlite3_open(m_indexFilePath.c_str(), &m_db) != SQLITE_OK )
         throw DataRepositoryException::SQLiteError();
 
     // speed up the creation of the index because any errors on creation can be overcome
     // by deleting the file and recreating it
-    do_sqlite3_exec(SqlStatements::SetJournalModeToOff);
-    do_sqlite3_exec(SqlStatements::SetSynchronousOff);
+    do_sqlite3_exec(Sqlite::Commands::SetJournalModeToOff);
+    do_sqlite3_exec(Sqlite::Commands::SetSynchronousOff);
 
     // create the tables and fill in the key descriptions
-    do_sqlite3_exec(SqlStatements::BeginTransaction);
+    do_sqlite3_exec(Sqlite::Commands::BeginTransaction);
 
 
     // create the ID structure table
-    do_sqlite3_exec(SqlStatements::CreateIdStructureTable);
+    do_sqlite3_exec(Sqlite::Commands::CreateIdStructureTable);
 
     // insert information about the ID structure
     try
     {
-        SQLiteStatement stmt_insert_id_structure(m_db, SqlStatements::InsertIdStructure);
+        SQLiteStatement stmt_insert_id_structure(m_db, Sqlite::Commands::InsertIdStructure);
         stmt_insert_id_structure.Bind(1, m_caseAccess->GetDataDict().GetName());
         stmt_insert_id_structure.Bind(2, GetIdStructureHashForKeyIndex());
         stmt_insert_id_structure.StepCheckResult(SQLITE_DONE);
@@ -226,14 +221,14 @@ void IndexableTextRepository::CreateIndex()
     std::shared_ptr<IndexCreator> index_creator = GetIndexCreator();
     ASSERT(index_creator != nullptr);
 
-    bool using_indexer_callback = ( m_indexerCallback != nullptr );
+    const bool using_indexer_callback = ( m_indexerCallback != nullptr );
     index_creator->Initialize(!using_indexer_callback);
 
 
     // create the keys table
     do_sqlite3_exec(index_creator->GetCreateKeyTableSql());
 
-    do_sqlite3_exec(SqlStatements::EndTransaction);
+    do_sqlite3_exec(Sqlite::Commands::EndTransaction);
 
     CreatePreparedStatements();
 
@@ -245,8 +240,8 @@ void IndexableTextRepository::CreateIndex()
     if( using_indexer_callback || index_creator->GetFileSize() >= Constants::MinFileSizeForIndexProgressDialog )
     {
         progress_dlg = std::make_unique<ThreadedProgressDlg>();
-        progress_dlg->SetTitle(_T("Creating Index ..."));
-        progress_dlg->SetStatus(FormatText(_T("Creating an index for %s"), PortableFunctions::PathGetFilename(m_connectionString.GetFilename())));
+        progress_dlg->SetTitle("Creating Index ...");
+        progress_dlg->SetStatus("Creating an index for " + PortableFunctions::PathGetFilename(m_connectionString.GetFilePath()));
         progress_dlg->Show();
     }
 
@@ -257,11 +252,11 @@ void IndexableTextRepository::CreateIndex()
     auto begin_transaction = [&]()
     {
         cases_until_transaction_commit = MaxNumberSqlInsertsInOneTransaction;
-        do_sqlite3_exec(SqlStatements::BeginTransaction);
+        do_sqlite3_exec(Sqlite::Commands::BeginTransaction);
     };
 
     begin_transaction();
-        
+
 
     // read each case
     IndexableTextRepositoryIndexDetails index_details;
@@ -284,7 +279,7 @@ void IndexableTextRepository::CreateIndex()
             // end the transaction if the number of inserts reaches the max for a transaction
             if( --cases_until_transaction_commit == 0 )
             {
-                do_sqlite3_exec(SqlStatements::EndTransaction);
+                do_sqlite3_exec(Sqlite::Commands::EndTransaction);
 
                 // start a new transaction
                 begin_transaction();
@@ -311,20 +306,20 @@ void IndexableTextRepository::CreateIndex()
     if( index_cannot_be_created )
     {
         ASSERT(using_indexer_callback);
-        throw DataRepositoryException::DuplicateCaseWhileCreatingIndex(CString());
+        throw DataRepositoryException::DuplicateCaseWhileCreatingIndex("");
     }
 
 
     // create any indices
-    for( const char* create_index_sql : index_creator->GetCreateIndexSqlStatements() )
+    for( const char* const create_index_sql : index_creator->GetCreateIndexSqlStatements() )
         do_sqlite3_exec(create_index_sql);
-    
+
 
     // end the last transaction and restore the default journal_mode and synchronous settings
-    do_sqlite3_exec(SqlStatements::EndTransaction);
+    do_sqlite3_exec(Sqlite::Commands::EndTransaction);
 
-    do_sqlite3_exec(SqlStatements::SetSynchronousFull);
-    do_sqlite3_exec(SqlStatements::SetJournalModeToDelete);
+    do_sqlite3_exec(Sqlite::Commands::SetSynchronousFull);
+    do_sqlite3_exec(Sqlite::Commands::SetJournalModeToDelete);
 
 
     // notify the actual repository that the index was created successfully
@@ -332,17 +327,16 @@ void IndexableTextRepository::CreateIndex()
 }
 
 
-void IndexableTextRepository::OpenInitiallyNonRequiredIndex() const
+void IndexableTextRepository::OpenInitiallyNonRequiredIndex()
 {
     ASSERT(m_db == nullptr && m_accessType == DataRepositoryAccess::BatchInput);
 
     if( !m_triedCreatingNonRequiredIndex )
     {
-        IndexableTextRepository& non_const_repository = const_cast<IndexableTextRepository&>(*this);
-        non_const_repository.m_triedCreatingNonRequiredIndex = true;
-        non_const_repository.SetIndexFilename();
+        m_triedCreatingNonRequiredIndex = true;
+        SetIndexFilePath();
 
-        bool index_is_valid = non_const_repository.IsIndexValid();
+        bool index_is_valid = IsIndexValid();
 
         if( !index_is_valid )
         {
@@ -353,13 +347,13 @@ void IndexableTextRepository::OpenInitiallyNonRequiredIndex() const
                                                                                                  DataRepositoryOpenFlag::OpenMustExist);
             read_only_repository->Close();
 
-            index_is_valid = non_const_repository.IsIndexValid();
+            index_is_valid = IsIndexValid();
         }
 
         if( index_is_valid )
         {
-            non_const_repository.CreatePreparedStatements();
-            non_const_repository.OpenBatchInputDataFileAsIndexed();
+            CreatePreparedStatements();
+            OpenBatchInputDataFileAsIndexed();
         }
     }
 
@@ -382,7 +376,7 @@ void IndexableTextRepository::CreatePreparedStatements()
 }
 
 
-void IndexableTextRepository::PrepareSqlStatementForQuery(SqlQueryType type, std::shared_ptr<SQLiteStatement>& stmt)
+void IndexableTextRepository::PrepareSqlStatementForQuery(const SqlQueryType type, std::shared_ptr<SQLiteStatement>& stmt)
 {
     ASSERT(stmt == nullptr);
 
@@ -390,7 +384,7 @@ void IndexableTextRepository::PrepareSqlStatementForQuery(SqlQueryType type, std
 
     if( std::holds_alternative<const char*>(sql_or_stmt) )
     {
-        const char* sql = std::get<const char*>(sql_or_stmt);
+        const char* const sql = std::get<const char*>(sql_or_stmt);
         PrepareSqlStatementForQuery(sql, stmt);
     }
 
@@ -405,13 +399,13 @@ void IndexableTextRepository::PrepareSqlStatementForQuery(SqlQueryType type, std
         m_preparedStatements.emplace_back(&stmt);
     }
 
-    ASSERT(std::find(m_preparedStatements.cbegin(), m_preparedStatements.cend(), &stmt) != m_preparedStatements.cend());    
+    ASSERT(std::find(m_preparedStatements.cbegin(), m_preparedStatements.cend(), &stmt) != m_preparedStatements.cend());
 
     ASSERT(stmt != nullptr);
 }
 
 
-void IndexableTextRepository::PrepareSqlStatementForQuery(const char* sql, std::shared_ptr<SQLiteStatement>& stmt)
+void IndexableTextRepository::PrepareSqlStatementForQuery(const char* const sql, std::shared_ptr<SQLiteStatement>& stmt)
 {
     ASSERT(stmt == nullptr);
 
@@ -426,11 +420,11 @@ void IndexableTextRepository::PrepareSqlStatementForQuery(const char* sql, std::
     catch( const SQLiteStatementException& )
     {
         throw DataRepositoryException::SQLiteError();
-    }    
+    }
 }
 
 
-SQLiteStatement IndexableTextRepository::PrepareSqlStatementForQuery(wstring_view sql) const
+SQLiteStatement IndexableTextRepository::PrepareSqlStatementForQuery(const std::string& sql)
 {
     EnsureIndexIsOpen();
 
@@ -442,14 +436,14 @@ SQLiteStatement IndexableTextRepository::PrepareSqlStatementForQuery(wstring_vie
     catch( const SQLiteStatementException& )
     {
         throw DataRepositoryException::SQLiteError();
-    }    
+    }
 }
 
 
-std::tuple<int64_t, size_t> IndexableTextRepository::GetPositionBytesFromKey(const CString& key, bool throw_exception/* = true*/) const
+std::tuple<int64_t, size_t> IndexableTextRepository::GetPositionBytesFromKey(const std::string& key, const bool throw_exception/* = true*/)
 {
     EnsureSqlStatementIsPrepared(SqlQueryType::GetPositionBytesFromNotDeletedKey, m_stmtQueryPositionBytesByNotDeletedKey);
-    SQLiteResetOnDestruction rod(*m_stmtQueryPositionBytesByNotDeletedKey);
+    const SQLiteResetOnDestruction rod(*m_stmtQueryPositionBytesByNotDeletedKey);
 
     m_stmtQueryPositionBytesByNotDeletedKey->Bind(1, key);
 
@@ -471,10 +465,10 @@ std::tuple<int64_t, size_t> IndexableTextRepository::GetPositionBytesFromKey(con
 }
 
 
-size_t IndexableTextRepository::GetBytesFromPosition(int64_t file_position) const
+size_t IndexableTextRepository::GetBytesFromPosition(const int64_t file_position)
 {
     EnsureSqlStatementIsPrepared(SqlQueryType::GetBytesFromPosition, m_stmtQueryBytesByPosition);
-    SQLiteResetOnDestruction rod(*m_stmtQueryBytesByPosition);
+    const SQLiteResetOnDestruction rod(*m_stmtQueryBytesByPosition);
 
     m_stmtQueryBytesByPosition->Bind(1, file_position);
 
@@ -485,10 +479,10 @@ size_t IndexableTextRepository::GetBytesFromPosition(int64_t file_position) cons
 }
 
 
-bool IndexableTextRepository::ContainsCase(const CString& key) const
+bool IndexableTextRepository::ContainsCase(const std::string& key)
 {
     EnsureSqlStatementIsPrepared(SqlQueryType::ContainsNotDeletedKey, m_stmtNotDeletedKeyExists);
-    SQLiteResetOnDestruction rod(*m_stmtNotDeletedKeyExists);
+    const SQLiteResetOnDestruction rod(*m_stmtNotDeletedKeyExists);
 
     m_stmtNotDeletedKeyExists->Bind(1, key);
 
@@ -496,20 +490,22 @@ bool IndexableTextRepository::ContainsCase(const CString& key) const
 }
 
 
-void IndexableTextRepository::ReadCase(Case& data_case, const CString& key)
+void IndexableTextRepository::ReadCase(Case& data_case, const std::string& key)
 {
-    auto [file_position, bytes_for_case] = GetPositionBytesFromKey(key);
+    const auto [file_position, bytes_for_case] = GetPositionBytesFromKey(key);
 
     ReadCase(data_case, file_position, bytes_for_case);
 
-    ASSERT(data_case.GetKey() == key && !data_case.GetDeleted() && data_case.GetPositionInRepository() >= 0);
+    ASSERT(data_case.GetKey() == key &&
+           !data_case.GetDeleted() &&
+           data_case.GetPositionInRepository() >= 0);
 }
 
 
-void IndexableTextRepository::ReadCase(Case& data_case, double position_in_repository)
+void IndexableTextRepository::ReadCase(Case& data_case, const double position_in_repository)
 {
-    int64_t file_position = static_cast<int64_t>(position_in_repository);
-    size_t bytes_for_case = GetBytesFromPosition(file_position);
+    const int64_t file_position = static_cast<int64_t>(position_in_repository);
+    const size_t bytes_for_case = GetBytesFromPosition(file_position);
 
     ReadCase(data_case, file_position, bytes_for_case);
 
@@ -517,16 +513,16 @@ void IndexableTextRepository::ReadCase(Case& data_case, double position_in_repos
 }
 
 
-void IndexableTextRepository::DeleteCase(double position_in_repository, bool deleted/* = true*/)
+void IndexableTextRepository::DeleteCase(const double position_in_repository, const bool deleted/* = true*/)
 {
-    int64_t file_position = static_cast<int64_t>(position_in_repository);
-    size_t bytes_for_case = GetBytesFromPosition(file_position);
+    const int64_t file_position = static_cast<int64_t>(position_in_repository);
+    const size_t bytes_for_case = GetBytesFromPosition(file_position);
 
     DeleteCase(file_position, bytes_for_case, deleted, nullptr);
 }
 
 
-void IndexableTextRepository::DeleteCase(const CString& key)
+void IndexableTextRepository::DeleteCase(const std::string& key)
 {
     auto [file_position, bytes_for_case] = GetPositionBytesFromKey(key);
 
@@ -534,10 +530,10 @@ void IndexableTextRepository::DeleteCase(const CString& key)
 }
 
 
-size_t IndexableTextRepository::GetNumberCases() const
+size_t IndexableTextRepository::GetNumberCases()
 {
     EnsureSqlStatementIsPrepared(SqlQueryType::CountNotDeletedKeys, m_stmtCountNotDeletedKeys);
-    SQLiteResetOnDestruction rod(*m_stmtCountNotDeletedKeys);
+    const SQLiteResetOnDestruction rod(*m_stmtCountNotDeletedKeys);
 
     if( m_stmtCountNotDeletedKeys->Step() == SQLITE_ROW )
         return m_stmtCountNotDeletedKeys->GetColumn<size_t>(0);

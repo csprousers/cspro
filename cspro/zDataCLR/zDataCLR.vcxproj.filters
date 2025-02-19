@@ -11,43 +11,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataRepository.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RepositoryConverter.h">
+    <ClInclude Include="Excel2CSProSpec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Excel2CSProWorker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CaseSummary.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataViewerController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Case.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SyncHistoryEntry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NotesExtractor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataViewerCaseConstructionReporter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Exporter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataViewerHtmlProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Excel2CSProSpec.h">
+    <ClInclude Include="Stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,49 +25,14 @@
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DataRepository.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RepositoryConverter.cpp">
+    <ClCompile Include="Excel2CSProSpec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Excel2CSProWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataViewerSettings.cpp">
+    <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataViewerController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Case.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SyncHistoryEntry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NotesExtractor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Exporter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DataViewerHtmlProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Excel2CSProSpec.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CaseSummary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="DataViewerSettings.h">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

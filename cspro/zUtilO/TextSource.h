@@ -2,68 +2,49 @@
 
 #include <zUtilO/zUtilO.h>
 
-class Serializer;
 
-
-// this class is used to wrap code, message, and report files;
-// proper, non-filename-only implementations are in TextSourceEditable, TextSourceExternal
+// --------------------------------------------------------------------------
+// TextSource
+//
+// This class is used to wrap code, message, and report files.
+// Implementations that do more than wrap the file path are in:
+//     - TextSourceEditable
+//     - TextSourceExternal
+//     - TextSourceString
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO TextSource
 {
 public:
-    TextSource(std::wstring filename = std::wstring())
-        :   m_filename(std::move(filename))
-    {
-    }
+    TextSource(std::string file_path = std::string());
 
-    virtual ~TextSource()
-    {
-    }
+    virtual ~TextSource() { }
 
-    const std::wstring& GetFilename() const
-    {
-        ASSERT(!m_filename.empty());
-        return m_filename;
-    }
+    const std::string& GetFilePath() const { ASSERT(!m_filePath.empty()); return m_filePath; }
 
-    virtual const std::wstring& GetText() const
-    {
-        ASSERT(false);
-        return SO::EmptyString;
-    }
+    virtual const std::string& GetText() const;
+    virtual SharableString GetTextAsSharableString() const;
 
-    virtual int64_t GetModifiedIteration() const
-    {
-        ASSERT(false);
-        return 0;
-    }
+    virtual int64_t GetModifiedIteration() const;
 
-    virtual void SetText(std::wstring /*text*/)
-    {
-        ASSERT(false);
-    }
+    virtual void SetText(SharableString text);
 
-    virtual bool RequiresSave() const
-    {
-        return false;
-    }
-
-    virtual void Save()
-    {
-        ASSERT(false);
-    }
+    virtual bool RequiresSave() const;
+    virtual void Save();
 
     void serialize(Serializer& ar);
 
 protected:
-    std::wstring m_filename;
+    std::string m_filePath;
 };
 
 
-struct CLASS_DECL_ZUTILO NamedTextSource
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline TextSource::TextSource(std::string file_path/* = std::string()*/)
+    :   m_filePath(std::move(file_path))
 {
-    std::wstring name;
-    std::shared_ptr<TextSource> text_source;
-
-    void serialize(Serializer& ar);
-};
+}

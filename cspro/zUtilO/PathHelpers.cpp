@@ -3,75 +3,73 @@
 #include <zToolsO/DirectoryLister.h>
 
 
-CString PathHelpers::GetDirectoryName(const std::vector<StandardizedFilename>& standardized_filenames)
+std::string PathHelpers::GetDirectoryName(const std::vector<StandardizedFilePath>& standardized_file_paths)
 {
-    for( const StandardizedFilename& standardized_filename : standardized_filenames )
+    for( const StandardizedFilePath& standardized_file_path : standardized_file_paths )
     {
-        if( !standardized_filename.filename.IsEmpty() )
-            return PortableFunctions::PathGetDirectory<CString>(standardized_filename.filename);
+        if( !standardized_file_path.file_path.empty() )
+            return PortableFunctions::PathGetDirectory(standardized_file_path.file_path);
     }
 
-    return ReturnProgrammingError(CString());
+    return std::string();
 }
 
 
-CString PathHelpers::GetFilenameInDirectory(const TCHAR* filename, const std::vector<StandardizedFilename>& standardized_filenames)
+std::string PathHelpers::GetFilePathInDirectory(const std::string_view filename_sv, const std::vector<StandardizedFilePath>& standardized_filenames)
 {
-    return GetDirectoryName(standardized_filenames) + filename;
+    return Path::Combine(GetDirectoryName(standardized_filenames), filename_sv);
 }
 
 
-CString PathHelpers::GetFilenameInDirectory(const TCHAR* filename, CString directory_name)
+std::string PathHelpers::GetFilePathInDirectory(const std::string_view filename_sv, std::string directory_name)
 {
-    return GetFilenameInDirectory(filename, { StandardizedFilename(std::move(directory_name)) });
+    return GetFilePathInDirectory(filename_sv, { StandardizedFilePath(std::move(directory_name)) });
 }
 
 
-ConnectionString PathHelpers::AppendToConnectionStringFilename(const ConnectionString& connection_string, const TCHAR* append_text)
+ConnectionString PathHelpers::AppendToConnectionStringFilename(const ConnectionString& connection_string, const char* const append_text)
 {
-    if( connection_string.IsFilenamePresent() && !PathHasWildcardCharacters(connection_string.GetFilename()) )
-    {
-        CString extension = PortableFunctions::PathGetFileExtension<CString>(connection_string.GetFilename());
+    if( !connection_string.HasFilePath() || Path::HasWildcardCharacters(connection_string.GetFilePath()) )
+        return ConnectionString();
 
-        CString output_filename = PortableFunctions::PathRemoveFileExtension<CString>(connection_string.GetFilename());
-        output_filename.Append(append_text);
+    const std::string extension = PortableFunctions::PathGetFileExtension(connection_string.GetFilePath());
 
-        if( !extension.IsEmpty() )
-            output_filename.AppendFormat(_T(".%s"), extension.GetString());
+    std::string output_file_path = PortableFunctions::PathRemoveFileExtension(connection_string.GetFilePath());
+    output_file_path.append(append_text);
 
-        return ConnectionString(connection_string.ToString(CS2WS(output_filename)));
-    }
+    output_file_path = PortableFunctions::PathAppendFileExtension(output_file_path, extension);
 
-    return ConnectionString();
+    return ConnectionString(connection_string.ToString(output_file_path));
+
 }
 
 
-std::vector<ConnectionString> PathHelpers::SplitSingleStringIntoConnectionStrings(const TCHAR* connection_string_single_string)
+std::vector<ConnectionString> PathHelpers::SplitSingleStringIntoConnectionStrings(const cs::string_sz connection_string_single_string)
 {
     std::vector<ConnectionString> connection_strings;
 
-    const TCHAR* start_pos = connection_string_single_string;
+    const char* start_pos = connection_string_single_string.c_str();
     bool in_quotes = false;
 
-    auto process_connection_string = [&connection_strings, &start_pos](const TCHAR* this_start_pos, const TCHAR* this_end_pos)
+    auto process_connection_string = [&](const char* const this_start_pos, const char* const this_end_pos)
     {
         if( this_end_pos >= this_start_pos )
         {
-            CString filename(this_start_pos, this_end_pos - this_start_pos + 1);
-            filename.Trim();
+            std::string_view text_sv(this_start_pos, this_end_pos - this_start_pos + 1);
+            text_sv = SO::Trim(text_sv);
 
-            if( !filename.IsEmpty() )
-                connection_strings.emplace_back(filename);
+            if( !text_sv.empty() )
+                connection_strings.emplace_back(text_sv);
         }
     };
 
-    const TCHAR* itr = connection_string_single_string;
+    const char* itr = start_pos;
 
-    for( ; *itr != 0; itr++ )
+    for( ; *itr != '\0'; itr++ )
     {
         if( *itr == '"' )
         {
-            // add a normal filename
+            // add a normal path
             if( !in_quotes )
             {
                 process_connection_string(start_pos, itr - 1);
@@ -79,7 +77,7 @@ std::vector<ConnectionString> PathHelpers::SplitSingleStringIntoConnectionString
                 in_quotes = true;
             }
 
-            // add a quoted filename
+            // add a quoted path
             else
             {
                 process_connection_string(start_pos + 1, itr - 1);
@@ -89,48 +87,50 @@ std::vector<ConnectionString> PathHelpers::SplitSingleStringIntoConnectionString
         }
     }
 
-    // add any last filename (even if it began but didn't end with a quote)
+    // add any last path (even if it started but didn't end with a quote)
     process_connection_string(start_pos, itr - 1);
 
     return connection_strings;
 }
 
 
-CString PathHelpers::CreateSingleStringFromConnectionStrings(const std::vector<ConnectionString>& connection_strings,
-                                                             bool create_string_for_data_file_dlg,
-                                                             const CString& filename_for_relative_path_evaluation/* = CString()*/)
+std::string PathHelpers::CreateSingleStringFromConnectionStrings(const std::vector<ConnectionString>& connection_strings,
+                                                                 const bool create_string_for_data_file_dlg,
+                                                                 const std::string& filename_for_relative_path_evaluation/* = std::string()*/)
 {
-    CString connection_string_single_string;
+    std::string connection_string_single_string;
 
     if( !connection_strings.empty() )
     {
-        bool has_multiple_files = ( connection_strings.size() > 1 );
-        CString starting_directory;
+        const bool has_multiple_files = ( connection_strings.size() > 1 );
+        std::string starting_directory;
 
-        if( create_string_for_data_file_dlg && connection_strings.front().IsFilenamePresent() )
-            starting_directory = PortableFunctions::PathGetDirectory<CString>(connection_strings.front().GetFilename());
+        if( create_string_for_data_file_dlg && connection_strings.front().HasFilePath() )
+            starting_directory = PortableFunctions::PathGetDirectory(connection_strings.front().GetFilePath());
 
         for( const ConnectionString& connection_string : connection_strings )
         {
-            bool use_full_path = starting_directory.IsEmpty() ||
-                ( connection_string.IsFilenamePresent() && ( starting_directory.CompareNoCase(PortableFunctions::PathGetDirectory<CString>(connection_string.GetFilename())) != 0 ) );
+            const bool use_full_path = ( ( starting_directory.empty() ) ||
+                                         ( connection_string.HasFilePath() && !SO::EqualsNoCase(starting_directory, PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) ) );
 
-            std::wstring filename =
-                !filename_for_relative_path_evaluation.IsEmpty() ? connection_string.ToRelativeString(PortableFunctions::PathGetDirectory(filename_for_relative_path_evaluation)) :
-                use_full_path                                    ? connection_string.ToString() :
-                                                                   connection_string.ToStringWithoutDirectory();
+            std::string filename =
+                !filename_for_relative_path_evaluation.empty() ? connection_string.ToRelativeString(PortableFunctions::PathGetDirectory(filename_for_relative_path_evaluation)) :
+                use_full_path                                  ? connection_string.ToString() :
+                                                                 connection_string.ToStringWithoutDirectory();
 
             // when wildcards are used, force a | character to the filename so that special processing on the
             // dialog is triggered (unless multiple filenames are being used, in which case it isn't necessary)
-            if( create_string_for_data_file_dlg && !has_multiple_files &&
-                PathHasWildcardCharacters(filename) && ( filename.find('|') == std::wstring::npos ) )
+            if( create_string_for_data_file_dlg &&
+                !has_multiple_files &&
+                Path::HasWildcardCharacters(filename) &&
+                filename.find(PropertyString::PropertySeparatorInitial) == std::string::npos )
             {
-                filename.push_back('|');
+                filename.push_back(PropertyString::PropertySeparatorInitial);
             }
 
-            connection_string_single_string.AppendFormat(has_multiple_files ? _T("%s\"%s\"") : _T("%s%s"),
-                                                         connection_string_single_string.IsEmpty() ? _T("") : _T(" "),
-                                                         filename.c_str());
+            connection_string_single_string.append(FormatText(has_multiple_files ? "%s\"%s\"" : "%s%s",
+                                                              connection_string_single_string.empty() ? "" : " ",
+                                                              filename.c_str()));
         }
     }
 
@@ -142,17 +142,29 @@ void PathHelpers::ExpandConnectionStringWildcards(std::vector<ConnectionString>&
                                                   const ConnectionString& connection_string)
 {
     // evaluate the filename to see if it has any wildcards
-    if( PathHasWildcardCharacters(connection_string.GetFilename()) )
+    if( connection_string.HasFilePath() )
     {
-        for( const std::wstring& evaluated_filename : DirectoryLister().SetNameFilter(PortableFunctions::PathGetFilename(connection_string.GetFilename()))
-                                                                       .GetPaths(PortableFunctions::PathGetDirectory(connection_string.GetFilename())) )
+        const std::string filename = PortableFunctions::PathGetFilename(connection_string.GetFilePath());
+
+        if( Path::HasWildcardCharacters(filename) )
         {
-            expanded_connection_strings.emplace_back(connection_string.ToString(evaluated_filename));
+            for( std::string& evaluated_file_path : DirectoryLister().SetNameFilter(filename)
+                                                                     .GetPaths(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
+            {
+                expanded_connection_strings.emplace_back(connection_string.ToString(std::move(evaluated_file_path)));
+            }
+
+            return;
         }
     }
 
-    else
-    {
-        expanded_connection_strings.emplace_back(connection_string);
-    }
+    expanded_connection_strings.emplace_back(connection_string);
+}
+
+
+std::vector<ConnectionString> PathHelpers::ExpandConnectionStringWildcards(const ConnectionString& connection_string)
+{
+    std::vector<ConnectionString> expanded_connection_strings;
+    ExpandConnectionStringWildcards(expanded_connection_strings, connection_string);
+    return expanded_connection_strings;
 }

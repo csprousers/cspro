@@ -5,9 +5,8 @@
 
 namespace MGF
 {
-    ZMESSAGEO_API const std::wstring& GetMessageText(int message_number);
-
-    ZMESSAGEO_API std::wstring GetMessageText(int message_number, const TCHAR* default_text);
+    ZMESSAGEO_API SharableString GetMessageText(int message_number);
+    ZMESSAGEO_API SharableString GetMessageText(int message_number, const char* default_text);
 
     constexpr int OutOfRangeConfirm                 =  88888;
     constexpr int OutOfRange                        =  88889;

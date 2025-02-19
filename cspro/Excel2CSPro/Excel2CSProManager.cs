@@ -48,7 +48,7 @@ namespace Excel2CSPro
         {
             if( _mappingManager != null )
                 _spec.Mappings = _mappingManager.GetSerializableMappings();
-            
+
             _spec.Save(filename);
         }
 
@@ -110,8 +110,8 @@ namespace Excel2CSPro
             if( _spec.DictionaryFilename == null )
                 throw new Exception(Messages.PrerunCheckNoDictionary);
 
-            if( _spec.OutputConnectionString == null || _spec.OutputConnectionString.Type == CSPro.Util.DataRepositoryType.Null )
-                throw new Exception(Messages.PrerunCheckNoDataFile);
+            if( _spec.OutputConnectionString == null || !_spec.OutputConnectionString.HasResource )
+                throw new Exception(Messages.PrerunCheckNoDataSource);
 
             if( _spec.StartingRow < 1 )
                 throw new Exception(Messages.PrerunCheckInvalidStartingRow);
@@ -121,12 +121,13 @@ namespace Excel2CSPro
             Excel2CSProConverter converter = new Excel2CSProConverter(this);
             bool runConversion = true;
 
-            if( _spec.RunOnlyIfNewer )
+            // TODO could support this "run only if newer" check for URL-based connection strings
+            if( _spec.RunOnlyIfNewer && _spec.OutputConnectionString.HasFilePath )
             {
                 try
                 {
                     FileInfo excelFileInfo = new FileInfo(_spec.ExcelFilename);
-                    FileInfo dataFileInfo = new FileInfo(_spec.OutputConnectionString.Filename);
+                    FileInfo dataFileInfo = new FileInfo(_spec.OutputConnectionString.FilePath);
 
                     if( dataFileInfo.LastWriteTimeUtc > excelFileInfo.LastWriteTimeUtc )
                         runConversion = false;

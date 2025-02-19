@@ -13,7 +13,7 @@ public:
     bool ToBinary(const BinaryCaseItem& output_binary_case_item, CaseItemIndex& output_index) override;
 
 private:
-    const std::wstring m_value;
+    const SharableString m_value;
 };
 
 
@@ -23,28 +23,28 @@ private:
 // --------------------------------------------------------------------------
 
 inline StringCaseItemConverter::StringCaseItemConverter(const StringCaseItem& input_string_case_item, const CaseItemIndex& input_index)
-    :   m_value(CS2WS(input_string_case_item.GetValue(input_index))) // when GetValue returns a std::wstring, can change m_value to const std::wstring&
-{    
+    :   m_value(input_string_case_item.GetSharableString(input_index))
+{
 }
 
 
 inline bool StringCaseItemConverter::ToNumber(const NumericCaseItem& output_numeric_case_item, CaseItemIndex& output_index)
 {
-    ASSERT(output_numeric_case_item.IsTypeFixed());
+    ASSERT(output_numeric_case_item.IsFixedWidth());
 
     const FixedWidthNumericCaseItem& output_fixed_width_numeric_case_item = assert_cast<const FixedWidthNumericCaseItem&>(output_numeric_case_item);
-    const size_t item_length = output_fixed_width_numeric_case_item.GetDictionaryItem().GetLen();
+    const size_t item_length = output_fixed_width_numeric_case_item.GetDictItem().GetLen();
 
-    if( item_length == m_value.length() )
+    if( item_length == m_value.WideLength() )
     {
-        output_fixed_width_numeric_case_item.SetValueFromTextInput(output_index, WS2CS(m_value));
+        output_fixed_width_numeric_case_item.SetValueFromTextInput(output_index, UTF8_TODO::GetWide(*m_value).c_str());
     }
 
     else
     {
-        std::wstring resized_value = m_value;
+        std::wstring resized_value = UTF8_TODO::GetWide(*m_value);
         SO::MakeExactLength(resized_value, item_length);
-        output_fixed_width_numeric_case_item.SetValueFromTextInput(output_index, WS2CS(resized_value));
+        output_fixed_width_numeric_case_item.SetValueFromTextInput(output_index, resized_value.c_str());
     }
 
     return true;
@@ -53,7 +53,7 @@ inline bool StringCaseItemConverter::ToNumber(const NumericCaseItem& output_nume
 
 inline bool StringCaseItemConverter::ToString(const StringCaseItem& output_string_case_item, CaseItemIndex& output_index)
 {
-    output_string_case_item.SetValue(output_index, WS2CS(m_value));
+    output_string_case_item.SetValue(output_index, m_value);
     return true;
 }
 

@@ -14,7 +14,7 @@ enum class EngineAppType : int;
 class LoopStack;
 class MessageEvaluator;
 class MessageManager;
-struct NamedTextSource;
+class ReportFile;
 enum class SetAction : int;
 namespace CompilationExtendedInformation { struct InCrosstabInformation; }
 namespace GF { enum class VariableType: int; }
@@ -30,12 +30,41 @@ class ZENGINEO_API LogicCompiler : public Logic::BaseCompiler
     friend class OptionalNamedArgumentsCompiler;
 
 public:
-    LogicCompiler(std::shared_ptr<EngineData> engine_data);
+    LogicCompiler(cs::non_null_shared_or_raw_ptr<EngineData> engine_data);
     ~LogicCompiler();
 
 
     // --------------------------------------------------------------------------
+    // current compilation information and compilers
+    // (CompilersCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    void SetCompilationSymbol(const Symbol& symbol);
+
+    const Symbol& GetCompilationSymbol() const   { return *m_compilationSymbol; }
+    SymbolType GetCompilationSymbolType() const  { return m_compilationSymbol->GetType(); }
+    int GetCompilationLevelNumber_base1() const;
+
+    bool IsCompiling(const Symbol& symbol) const   { return ( &symbol == m_compilationSymbol ); }
+    bool IsCompiling(SymbolType symbol_type) const { return ( symbol_type == GetCompilationSymbolType() ); }
+    bool IsGlobalCompilation() const               { return IsCompiling(SymbolType::Application); }
+    bool IsNoLevelCompilation() const;
+
+    EngineAppType GetEngineAppType() const;
+
+    void CompileExternalCode();
+    virtual void CompileExternalCode(const CodeFile& code_file);
+
+    void RunPostCompilationChecks();
+
+private:
+    virtual void CompileExternalCodeLogic(const CodeFile& code_file) = 0; // COMPILER_DLL_TODO remove virtual
+    virtual void CompileExternalCodeJavaScript(const CodeFile& code_file) = 0; // COMPILER_DLL_TODO remove virtual
+
+
+    // --------------------------------------------------------------------------
     // methods to create compilation nodes
+    // (NodeCreationCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int* CreateCompilationSpace(int ints_needed);
@@ -83,25 +112,8 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // current compilation information
-    // --------------------------------------------------------------------------
-public:
-    void SetCompilationSymbol(const Symbol& symbol);
-
-    const Symbol& GetCompilationSymbol() const   { return *m_compilationSymbol; }
-    SymbolType GetCompilationSymbolType() const  { return m_compilationSymbol->GetType(); }
-    int GetCompilationLevelNumber_base1() const;
-
-    bool IsCompiling(const Symbol& symbol) const   { return ( &symbol == m_compilationSymbol ); }
-    bool IsCompiling(SymbolType symbol_type) const { return ( symbol_type == GetCompilationSymbolType() ); }
-    bool IsGlobalCompilation() const               { return IsCompiling(SymbolType::Application); }
-    bool IsNoLevelCompilation() const;
-
-    EngineAppType GetEngineAppType() const;
-
-
-    // --------------------------------------------------------------------------
     // compiler helpers
+    // (CompilerHelper.cpp)
     // --------------------------------------------------------------------------
 public:
     template<typename T>
@@ -111,7 +123,8 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // numbers
+    // math
+    // (MathCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int ConserveConstant(double numeric_constant);
@@ -126,14 +139,15 @@ public:
 
     // --------------------------------------------------------------------------
     // strings
+    // (StringsCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    int ConserveConstant(const std::wstring& string_literal);
-    int ConserveConstant(std::wstring&& string_literal);
-    int CreateStringLiteralNode(std::wstring string_literal);
+    int ConserveConstant(const std::string& string_literal);
+    int ConserveConstant(std::string&& string_literal);
+    int CreateStringLiteralNode(std::string string_literal);
 
     int CompileStringExpression();
-    int CompileStringExpressionWithStringLiteralCheck(const std::function<void(const std::wstring&)>& string_literal_check_callback);
+    int CompileStringExpressionWithStringLiteralCheck(const std::function<void(std::string)>& string_literal_check_callback);
 
     int CompilePortableColorText();
     int CompileSymbolNameText(SymbolType required_symbol_type = SymbolType::None, bool throw_exception_is_symbol_is_not_found = true);
@@ -147,15 +161,18 @@ public:
 
     // --------------------------------------------------------------------------
     // symbols
+    // (SymbolsCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    std::wstring CompileNewSymbolName();
+    std::string CompileNewSymbolName(std::optional<TokenCode> additional_token_allowed = std::nullopt);
     int CompileSymbolWithModifiers();
     int CompileSymbolRouter();
 
     int& AddSymbolResetNode(Nodes::SymbolReset*& symbol_reset_node, const Symbol& symbol);
     unsigned CompileAlphaLength();
     int CompileSymbolInitialAssignment(const Symbol& symbol);
+
+    bool IsFunctionParameterSymbol(const Symbol& symbol) const;
 
     void CompileAlias();
     void CompileEnsure();
@@ -165,6 +182,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Array object
+    // (ArrayCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicArray* CompileLogicArrayDeclarationOnly(bool use_function_parameter_syntax);
@@ -175,6 +193,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Audio object
+    // (AudioCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicAudio* CompileLogicAudioDeclaration();
@@ -185,6 +204,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Barcode namespace
+    // (BarcodeCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileBarcodeFunctions();
@@ -192,16 +212,18 @@ public:
 
     // --------------------------------------------------------------------------
     // "Control Flow" statements
+    // (ControlFlowCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileIfStatement();
     int CompileWhileLoop();
-	int CompileDoLoop();
-	int CompileNextOrBreakInLoop();
+    int CompileDoLoop();
+    int CompileNextOrBreakInLoop();
 
 
     // --------------------------------------------------------------------------
     // CS namespace
+    // (ActionInvokerCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileActionInvokerFunctions();
@@ -209,6 +231,7 @@ public:
 
     // --------------------------------------------------------------------------
     // "Data Access" functionality
+    // (DataAccessCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int WrapNodeAroundValidDataAccessCheck(int program_index, const Symbol& symbol, std::variant<FunctionCode, DataType> function_code_or_data_type);
@@ -216,13 +239,14 @@ public:
 
     // --------------------------------------------------------------------------
     // Dictionary-related objects (Case and DataSource)
+    // (CaseCC.cpp + EngineDictionaryCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    EngineDictionary* CompileEngineCaseDeclaration(const EngineDictionary* engine_dictionary_to_copy_attributes = nullptr);
+    EngineDictionary* CompileEngineCaseDeclaration(EngineDictionary* engine_dictionary_to_copy_attributes = nullptr);
     int CompileEngineCases();
-    int CompileEngineCaseComputeInstruction(const EngineDictionary* engine_dictionary_from_declaration = nullptr);
+    int CompileEngineCaseComputeInstruction(EngineDictionary* engine_dictionary_from_declaration = nullptr);
 
-    EngineDictionary* CompileEngineDataRepositoryDeclaration(const EngineDictionary* engine_dictionary_to_copy_attributes = nullptr);
+    EngineDictionary* CompileEngineDataRepositoryDeclaration(EngineDictionary* engine_dictionary_to_copy_attributes = nullptr);
     int CompileEngineDataRepositories();
 
     int CompileCaseFunctions();
@@ -230,6 +254,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Dictionary-related functions, statements, and checks
+    // (DictionaryCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileDictionaryFunctionsVarious();
@@ -252,6 +277,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Document object
+    // (DocumentCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicDocument* CompileLogicDocumentDeclaration();
@@ -262,6 +288,7 @@ public:
 
     // --------------------------------------------------------------------------
     // File object and other file-related functions
+    // (FileCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicFile* CompileLogicFileDeclaration(bool compiling_function_parameter = false);
@@ -273,6 +300,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Freq statement and object
+    // (FreqCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileFrequencyDeclaration();
@@ -283,6 +311,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Geometry object
+    // (GeometryCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicGeometry* CompileLogicGeometryDeclaration();
@@ -293,6 +322,7 @@ public:
 
     // --------------------------------------------------------------------------
     // HashMap object
+    // (HashMapCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicHashMap* CompileLogicHashMapDeclaration(const LogicHashMap* hashmap_to_copy_attributes = nullptr);
@@ -304,6 +334,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Image object
+    // (ImageCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicImage* CompileLogicImageDeclaration();
@@ -314,6 +345,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Item-related functions and checks
+    // (ItemCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileItemSubscriptExplicit(const EngineItem& engine_item);
@@ -328,6 +360,7 @@ private:
 
     // --------------------------------------------------------------------------
     // impute function
+    // (ImputeCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileImputeFunction();
@@ -335,14 +368,27 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // JSON-related functions
+    // JS (JavaScript) namespace
+    // (JavaScriptCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    int CompileJsonText(const std::function<void(const JsonNode<wchar_t>& json_node)>& json_node_callback = { });
+    int CompileJavaScriptFunctions();
+
+private:
+    std::tuple<int, int> CompileJavaScriptConvertableValue();
+
+
+    // --------------------------------------------------------------------------
+    // JSON-related functions
+    // (JsonCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileJsonText(const std::function<void(const JsonNode& json_node)>& json_node_callback = { });
 
 
     // --------------------------------------------------------------------------
     // List object
+    // (ListCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicList* CompileLogicListDeclaration(const LogicList* list_to_copy_attributes = nullptr);
@@ -354,6 +400,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Map object
+    // (MapCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicMap* CompileLogicMapDeclaration();
@@ -363,6 +410,7 @@ public:
 
     // --------------------------------------------------------------------------
     // "Message" functions
+    // (MessagesCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileMessageFunctions();
@@ -371,6 +419,7 @@ public:
 
     // --------------------------------------------------------------------------
     // Path namespace and other path-related functions
+    // (PathCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompilePathFunctions();
@@ -382,6 +431,7 @@ private:
 
     // --------------------------------------------------------------------------
     // Pff object
+    // (PffCC.cpp)
     // --------------------------------------------------------------------------
 public:
     LogicPff* CompileLogicPffDeclaration();
@@ -392,20 +442,22 @@ public:
 
     // --------------------------------------------------------------------------
     // Report object
+    // (ReportCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileReportFunctions();
     void CheckReportIsCurrentlyWriteable(const Report& report);
 
     void CompileReports();
-    virtual void CompileReport(const NamedTextSource& report_named_text_source);
+    virtual void CompileReport(const ReportFile& report_file);
 
 private:
-    std::unique_ptr<Logic::SourceBuffer> ConvertReportToSourceBuffer(wstring_view report_text_sv);
+    std::unique_ptr<Logic::SourceBuffer> ConvertReportToSourceBuffer(std::string_view report_text_sv);
 
 
     // --------------------------------------------------------------------------
     // "Switch" functionality
+    // (SwitchCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileSwitch(bool compiling_when, const std::function<std::vector<int>()>& result_destinations_compiler, const std::function<int(size_t)>& action_compiler);
@@ -418,6 +470,7 @@ public:
 
     // --------------------------------------------------------------------------
     // SystemApp object
+    // (SystemAppCC.cpp)
     // --------------------------------------------------------------------------
 public:
     SystemApp* CompileSystemAppDeclaration();
@@ -427,18 +480,23 @@ public:
 
     // --------------------------------------------------------------------------
     // UserFunction object and invoke function
+    // (UserFunctionCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    UserFunction* CompileUserFunction(bool compiling_function_pointer = false);
+    int CompileUserFunctionDeclarations();
     int CompileUserFunctionCall(bool allow_function_name_without_parentheses = false);
 
-    bool IsFunctionParameterSymbol(const Symbol& symbol);
-
     int CompileInvokeFunction();
+
+private:
+    enum class UserFunctionParametersType;
+    UserFunction* CompileUserFunction(bool compiling_function_pointer);
+    void CompileUserFunctionParameters(UserFunction& user_function, bool function_was_previously_declared, UserFunctionParametersType parameters_type);
 
 
     // --------------------------------------------------------------------------
     // "User Interface" functions
+    // (UserInterfaceCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileUserInterfaceFunctions();
@@ -448,16 +506,18 @@ public:
 
     // --------------------------------------------------------------------------
     // trace function
+    // (TraceCC.cpp)
     // --------------------------------------------------------------------------
 public:
     bool IsTracingLogic() const { return m_tracingLogic; }
     void CompileSetTrace();
-	int CompileTraceFunction();
+    int CompileTraceFunction();
     int CreateTraceStatement();
 
 
     // --------------------------------------------------------------------------
     // ValueSet object and setvalueset function
+    // (ValueSetCC.cpp)
     // --------------------------------------------------------------------------
 public:
     DynamicValueSet* CompileDynamicValueSetDeclaration(const DynamicValueSet* value_set_to_copy_attributes = nullptr);
@@ -470,17 +530,19 @@ public:
 
     // --------------------------------------------------------------------------
     // "Variable" compilers
+    // (VariableCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    int CompileDestinationVariable(std::variant<DataType, const Symbol*> data_type_or_symbol);
+    int CompileDestinationVariable(std::variant<DataType, std::reference_wrapper<const Symbol>> data_type_or_symbol);
 
 
     // --------------------------------------------------------------------------
     // generic function compilers
+    // (FunctionsGenericCC.cpp + FunctionsVariousCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileExpression(DataType data_type);
-    int CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const TCHAR* argument_name = _T("unknown"));
+    int CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const char* argument_name = "unknown");
 
     int CompileFunctionCall(int program_index = -1);
 
@@ -494,6 +556,7 @@ public:
 
     // --------------------------------------------------------------------------
     // specialized function and statement compilers
+    // (GpsCC.cpp + QueryCC.cpp + SyncCC.cpp + UserbarCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int CompileGpsFunction();
@@ -505,6 +568,7 @@ public:
 
     // --------------------------------------------------------------------------
     // basic expressions
+    // (ExpressionsCC.cpp)
     // --------------------------------------------------------------------------
 public:
     int exprlog();
@@ -519,6 +583,7 @@ public:
 
     // --------------------------------------------------------------------------
     // token and next token helpers
+    // (NextTokenCC.cpp + TokenCC.cpp)
     // --------------------------------------------------------------------------
 public:
     // gets the current token's data type (between Numeric and String); if unknown, DataType::Numeric is returned
@@ -536,7 +601,7 @@ public:
     // BasicTokenCompiler overrides
     // --------------------------------------------------------------------------
 public:
-    const std::wstring& GetCurrentProcName() const override;
+    std::string GetCurrentProcName() const override;
 
 
     // --------------------------------------------------------------------------
@@ -595,7 +660,7 @@ public:
     // data (anything that may be null will be noted)
     // --------------------------------------------------------------------------
 protected:
-    std::shared_ptr<EngineData> m_engineData;
+    cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
 private:
     const Symbol* m_compilationSymbol; // non-null during compilation
@@ -605,8 +670,9 @@ private:
     SymbolCompilerModifier m_symbolCompilerModifier;
 
     std::unique_ptr<ConstantConserver<double>> m_numericConstantConserver;
-    std::unique_ptr<ConstantConserver<std::wstring>> m_stringLiteralConserver;
+    std::unique_ptr<ConstantConserver<SharableString>> m_stringLiteralConserver;
 
+    std::set<int> m_declaredSymbolIndices;
     std::vector<const Symbol*> m_functionParameterSymbols;
 
     bool m_tracingLogic;
@@ -619,9 +685,3 @@ private:
 // --------------------------------------------------------------------------
 
 #include <zEngineO/Compiler/NodeCreationCC.h>
-
-
-inline bool LogicCompiler::IsFunctionParameterSymbol(const Symbol& symbol)
-{
-    return ( std::find(m_functionParameterSymbols.cbegin(), m_functionParameterSymbols.cend(), &symbol) != m_functionParameterSymbols.cend() );
-}

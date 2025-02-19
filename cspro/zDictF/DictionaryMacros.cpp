@@ -1,9 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryMacros.h"
 #include "Itemgrid.h"
-#include <zToolsO/Utf8Convert.h>
 #include <zUtilO/NameShortener.h>
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilF/SystemIcon.h>
@@ -16,14 +14,11 @@
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <zDataO/DataRepositoryHelpers.h>
+#include <zDataO/TextRepositoryNotesFile.h>
 #include <random>
 
 
-// CDictionaryMacros dialog
-
-IMPLEMENT_DYNAMIC(CDictionaryMacros, CDialog)
-
-BEGIN_MESSAGE_MAP(CDictionaryMacros, CDialog)
+BEGIN_MESSAGE_MAP(DictionaryMacrosDlg, CDialog)
     ON_BN_CLICKED(IDC_DELETE_VALUE_SETS, OnBnClickedDeleteValueSets)
     ON_BN_CLICKED(IDC_REQUIRE_RECORDS_YES, OnBnClickedRequireRecordsYes)
     ON_BN_CLICKED(IDC_REQUIRE_RECORDS_NO, OnBnClickedRequireRecordsNo)
@@ -40,25 +35,26 @@ BEGIN_MESSAGE_MAP(CDictionaryMacros, CDialog)
 END_MESSAGE_MAP()
 
 
-CDictionaryMacros::CDictionaryMacros(CDDDoc* pDDDoc,CWnd* pParent /*=NULL*/)
-    :   CDialog(CDictionaryMacros::IDD, pParent),
+DictionaryMacrosDlg::DictionaryMacrosDlg(CDDDoc* const pDDDoc, CWnd* const pParent/* nullptr */)
+    :   CDialog(IDD_DICTIONARY_MACROS, pParent),
         m_pDictDoc(pDDDoc),
         m_pDict(m_pDictDoc->GetDict())
 {
 }
 
-void CDictionaryMacros::DoDataExchange(CDataExchange* pDX)
+
+void DictionaryMacrosDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
     if( m_pDict->GetNumLevels() > 1 )
     {
-        for( int id : { IDC_GENERATE_DATA_FILE, IDC_NUMBER_CASES, IDC_NOTAPPL_PERCENT, IDC_INVALID_PERCENT } )
+        for( const int id : { IDC_GENERATE_DATA_FILE, IDC_NUMBER_CASES, IDC_NOTAPPL_PERCENT, IDC_INVALID_PERCENT } )
             GetDlgItem(id)->EnableWindow(FALSE);
     }
 
     CheckDlgButton(IDC_RANDOM_FILE,BST_CHECKED);
-    GetDlgItem(IDC_START_POS)->SetWindowText(_T("1"));
+    GetDlgItem(IDC_START_POS)->SetWindowText(L"1");
 
     if( m_pDict->GetLanguages().size() > 1 )
     {
@@ -77,30 +73,29 @@ void CDictionaryMacros::DoDataExchange(CDataExchange* pDX)
     if( !m_pDict->IsPosRelative() )
         GetDlgItem(IDC_ITEM_LENGTHS)->EnableWindow(FALSE);
 
-    CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_RECORD_LISTING);
+    CComboBox* const pComboBox = static_cast<CComboBox*>(GetDlgItem(IDC_RECORD_LISTING));
+
     for( const DictLevel& dict_level : m_pDict->GetLevels() )
     {
-        for( int record = 0; record < dict_level.GetNumRecords(); record++ )
+        for( int record = 0; record < dict_level.GetNumRecords(); ++record )
         {
-            const CDictRecord* pRecord = dict_level.GetRecord(record);
-            int pos = pComboBox->AddString(pRecord->GetName());
-            pComboBox->SetItemDataPtr(pos, (void*)pRecord);
+            const CDictRecord* const dict_record = dict_level.GetRecord(record);
+            const int pos = pComboBox->AddString(TC::ToWide(dict_record->GetName()).c_str());
+            pComboBox->SetItemDataPtr(pos, const_cast<CDictRecord*>(dict_record));
         }
     }
 
     CString csDialogTitleText;
     GetWindowText(csDialogTitleText);
-    csDialogTitleText.AppendFormat(_T(" - %s"), (LPCTSTR)m_pDict->GetName());
+    csDialogTitleText.AppendFormat(L" - %s", UTF8_TODO::GetWide(m_pDict->GetName()).c_str());
     SetWindowText(csDialogTitleText);
 }
 
 
-// CDictionaryMacros message handlers
-
-void CDictionaryMacros::OnBnClickedDeleteValueSets() // 20101108
+void DictionaryMacrosDlg::OnBnClickedDeleteValueSets() // 20101108
 {
     // 20120608 a Jordanian in the workshop asked for this confirmation
-    if( AfxMessageBox(_T("Are you sure you want to delete all the value sets?"), MB_YESNO | MB_ICONSTOP) != IDYES ) 
+    if( AfxMessageBox(L"Are you sure you want to delete all the value sets?", MB_YESNO | MB_ICONSTOP) != IDYES )
         return;
 
     size_t num_value_sets = 0;
@@ -114,11 +109,11 @@ void CDictionaryMacros::OnBnClickedDeleteValueSets() // 20101108
 
     m_pDictDoc->SetModified(true);
 
-    AfxMessageBox(FormatText(_T("%d value set%s have been deleted"), (int)num_value_sets, PluralizeWord(num_value_sets)));
+    AfxMessageBox(FormatText("%d value set%s have been deleted", static_cast<int>(num_value_sets), PluralizeWord(num_value_sets)));
 }
 
 
-void CDictionaryMacros::SetRequireRecords(bool required) // 20101108
+void DictionaryMacrosDlg::SetRequireRecords(bool required) // 20101108
 {
     DictionaryIterator::Foreach<CDictRecord>(*m_pDict,
         [&](CDictRecord& dict_record)
@@ -130,21 +125,21 @@ void CDictionaryMacros::SetRequireRecords(bool required) // 20101108
 }
 
 
-void CDictionaryMacros::OnBnClickedRequireRecordsYes() // 20101108
+void DictionaryMacrosDlg::OnBnClickedRequireRecordsYes() // 20101108
 {
     SetRequireRecords(true);
-    AfxMessageBox(_T("All records are now required"));
+    AfxMessageBox(L"All records are now required");
 }
 
 
-void CDictionaryMacros::OnBnClickedRequireRecordsNo() // 20101108
+void DictionaryMacrosDlg::OnBnClickedRequireRecordsNo() // 20101108
 {
     SetRequireRecords(false);
-    AfxMessageBox(_T("All records are not required"));
+    AfxMessageBox(L"All records are not required");
 }
 
 
-CString CDictionaryMacros::GetLabelWithLanguages(const LabelSet& label, bool copy_all_languages) const
+CString DictionaryMacrosDlg::GetLabelWithLanguages(const LabelSet& label, bool copy_all_languages) const
 {
     if( !copy_all_languages )
         return label.GetLabel();
@@ -152,13 +147,13 @@ CString CDictionaryMacros::GetLabelWithLanguages(const LabelSet& label, bool cop
     CString labels;
 
     for( size_t i = 0; i < m_pDict->GetLanguages().size(); ++i )
-        labels.AppendFormat(_T("%s%s"), ( i == 0 ) ? _T("") : _T("\t"), (LPCTSTR)label.GetLabel(i));
+        labels.AppendFormat(L"%s%s", ( i == 0 ) ? L"" : L"\t", label.GetLabel(i).GetString());
 
     return labels;
 }
 
 
-void CDictionaryMacros::SetLabelWithLanguages(LabelSet& label, const CStringArray& csaLabels, bool paste_all_languages)
+void DictionaryMacrosDlg::SetLabelWithLanguages(LabelSet& label, const CStringArray& csaLabels, bool paste_all_languages)
 {
     if( !paste_all_languages )
     {
@@ -180,7 +175,7 @@ void CDictionaryMacros::SetLabelWithLanguages(LabelSet& label, const CStringArra
 }
 
 
-void CDictionaryMacros::OnBnClickedCopyDictionaryNames() // 20101108
+void DictionaryMacrosDlg::OnBnClickedCopyDictionaryNames() // 20101108
 {
     struct NameDictionaryIterator : public DictionaryIterator::Iterator
     {
@@ -188,34 +183,34 @@ void CDictionaryMacros::OnBnClickedCopyDictionaryNames() // 20101108
         bool copy_all_languages;
         bool copy_item_lengths;
         CString indentation;
-        const CDictionaryMacros* dlg;
+        const DictionaryMacrosDlg* dlg;
 
         void ProcessLevel(DictLevel& dict_level) override
         {
-            text.AppendFormat(_T("%s\t%s\r\n"),
-                              (LPCTSTR)dict_level.GetName(),
-                              (LPCTSTR)dlg->GetLabelWithLanguages(dict_level.GetLabelSet(), copy_all_languages));
+            text.AppendFormat(L"%s\t%s\r\n",
+                              UTF8_TODO::GetWide(dict_level.GetName()).c_str(),
+                              dlg->GetLabelWithLanguages(dict_level.GetLabelSet(), copy_all_languages).GetString());
         }
 
         void ProcessRecord(CDictRecord& dict_record) override
         {
-            text.AppendFormat(_T("\t%s%s\t%s\r\n"),
-                              (LPCTSTR)indentation,
-                              (LPCTSTR)dict_record.GetName(),
-                              (LPCTSTR)dlg->GetLabelWithLanguages(dict_record.GetLabelSet(), copy_all_languages));
+            text.AppendFormat(L"\t%s%s\t%s\r\n",
+                              indentation.GetString(),
+                              UTF8_TODO::GetWide(dict_record.GetName()).c_str(),
+                              dlg->GetLabelWithLanguages(dict_record.GetLabelSet(), copy_all_languages).GetString());
         }
 
         void ProcessItem(CDictItem& dict_item) override
         {
-            text.AppendFormat(_T("\t%s\t%s%s\t%s"),
-                              (LPCTSTR)indentation, (LPCTSTR)indentation,
-                              (LPCTSTR)dict_item.GetName(),
-                              (LPCTSTR)dlg->GetLabelWithLanguages(dict_item.GetLabelSet(), copy_all_languages));
+            text.AppendFormat(L"\t%s\t%s%s\t%s",
+                              indentation.GetString(), indentation.GetString(),
+                              UTF8_TODO::GetWide(dict_item.GetName()).c_str(),
+                              dlg->GetLabelWithLanguages(dict_item.GetLabelSet(), copy_all_languages).GetString());
 
             if( copy_item_lengths )
-                text.AppendFormat(_T("\t%d"), dict_item.GetLen());
+                text.AppendFormat(L"\t%d", dict_item.GetLen());
 
-            text.Append(_T("\r\n"));
+            text.Append(L"\r\n");
         }
     };
 
@@ -228,17 +223,17 @@ void CDictionaryMacros::OnBnClickedCopyDictionaryNames() // 20101108
     iterator.Iterate(*m_pDict);
 
     WinClipboard::PutText(this, iterator.text);
-    AfxMessageBox(_T("Names and labels copied to the clipboard"));
+    AfxMessageBox(L"Names and labels copied to the clipboard");
 }
 
 
-int CDictionaryMacros::readEntry(CString text,int startPos,CString& readWord)
+int DictionaryMacrosDlg::readEntry(CString text,int startPos,CString& readWord)
 {
     int endPos;
 
     for( endPos = startPos; endPos < text.GetLength(); endPos++ )
     {
-        if( text[endPos] == _T('\t') || text[endPos] == _T('\n') || text[endPos] == '\r' )
+        if( text[endPos] == '\t' || text[endPos] == '\n' || text[endPos] == '\r' )
             break;
     }
 
@@ -247,7 +242,7 @@ int CDictionaryMacros::readEntry(CString text,int startPos,CString& readWord)
     return endPos;
 }
 
-int CDictionaryMacros::readLabelsEntry(CString text,int startPos,CStringArray& csaLabels,bool paste_all_languages, bool& bSuccessfulRead)
+int DictionaryMacrosDlg::readLabelsEntry(CString text,int startPos,CStringArray& csaLabels,bool paste_all_languages, bool& bSuccessfulRead)
 {
     CString csLabel;
     int endPos;
@@ -262,7 +257,7 @@ int CDictionaryMacros::readLabelsEntry(CString text,int startPos,CStringArray& c
         {
             endPos = readEntry(text,endPos,csLabel);
 
-            if( i < ( m_pDict->GetLanguages().size() - 1 ) && ( text[endPos++] != _T('\t') ) )
+            if( i < ( m_pDict->GetLanguages().size() - 1 ) && ( text[endPos++] != '\t' ) )
                 bSuccessfulRead = false;
 
             else if( csLabel.IsEmpty() )
@@ -288,10 +283,10 @@ int CDictionaryMacros::readLabelsEntry(CString text,int startPos,CStringArray& c
 }
 
 
-void CDictionaryMacros::makeNewNameWork(DictNamedBase& dict_element, const CString& oldName) // 20101109
+void DictionaryMacrosDlg::makeNewNameWork(DictNamedBase& dict_element, const CString& oldName) // 20101109
 {
     int level = -1,record = -1,item = -1,vset = -1;
-    m_pDict->LookupName(oldName,&level,&record,&item,&vset);
+    m_pDict->LookupName(UTF8_TODO::GetUtf8(oldName), &level, &record, &item, &vset);
     m_pDict->UpdateNameList(dict_element,level,record,item,vset);
     m_pDict->SetOldName(oldName);
     AfxGetMainWnd()->SendMessage(UWM::Dictionary::NameChange, (WPARAM)m_pDictDoc);
@@ -319,10 +314,10 @@ void AdjustItemStartPositions(CDictRecord* pRecord,CDictItem* pResizedItem,int s
 }
 
 
-void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
+void DictionaryMacrosDlg::OnBnClickedPasteDictionaryNames() // 20101108
 {
     CString text = WS2CS(WinClipboard::GetText(this));
-    text.Append(_T("\n               ")); // this should ensure that none of my text[textPtr++] codes will cause an out of bounds error
+    text.Append(L"\n               "); // this should ensure that none of my text[textPtr++] codes will cause an out of bounds error
 
     // we need to check two things:
     // 1) that the text on the clipboard matches what is already in the dictionary (i.e., same number of records, items, etc.)
@@ -334,7 +329,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
     bool paste_all_languages = ((CButton*)GetDlgItem(IDC_ITEM_ALL_LANGUAGES))->GetCheck();
     bool bPasteItemLengths = ((CButton*)GetDlgItem(IDC_ITEM_LENGTHS))->GetCheck();
-    CString csErrorMessage = _T("Error: Clipboard contents do not match dictionary");
+    CString csErrorMessage = L"Error: Clipboard contents do not match dictionary";
 
     int iExpectedLabelIndentationTabs = paste_all_languages ? m_pDict->GetLanguages().size() : 1;
 
@@ -347,13 +342,13 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
         for( DictLevel& dict_level : m_pDict->GetLevels() )
         {
-            // read the newline separating multiple levels 
+            // read the newline separating multiple levels
             if( successfulRead && dict_level.GetLevelNumber() > 0 )
             {
                 if( text[textPtr] == '\r' )
                     textPtr++;
 
-                successfulRead = text[textPtr++] == _T('\n');
+                successfulRead = text[textPtr++] == '\n';
             }
 
             if( !successfulRead )
@@ -361,7 +356,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
             textPtr = readEntry(text,textPtr,name);
             name.MakeUpper();
-            successfulRead = text[textPtr++] == _T('\t');
+            successfulRead = text[textPtr++] == '\t';
 
             if( successfulRead )
                 textPtr = readLabelsEntry(text, textPtr, csaLabels, paste_all_languages, successfulRead);
@@ -375,11 +370,11 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
             {
                 SetLabelWithLanguages(dict_level.GetLabelSet(), csaLabels, paste_all_languages);
 
-                oldName = dict_level.GetName();
+                oldName = UTF8_TODO::GetCString(dict_level.GetName());
 
                 if( name != oldName )
                 {
-                    dict_level.SetName(name);
+                    dict_level.SetName(UTF8_TODO::GetUtf8(name));
                     m_pDict->SetChangedObject(&dict_level);
                     makeNewNameWork(dict_level, oldName);
                 }
@@ -395,16 +390,16 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                 if( text[textPtr] == '\r' )
                     textPtr++;
 
-                successfulRead = text[textPtr++] == _T('\n');
+                successfulRead = text[textPtr++] == '\n';
 
                 for( int iTab = 0; successfulRead && iTab < ( 1 + iExpectedLabelIndentationTabs ); iTab++ )
-                    successfulRead = text[textPtr++] == _T('\t');
+                    successfulRead = text[textPtr++] == '\t';
 
                 if( successfulRead )
                 {
                     textPtr = readEntry(text,textPtr,name);
                     name.MakeUpper();
-                    successfulRead = text[textPtr++] == _T('\t');
+                    successfulRead = text[textPtr++] == '\t';
 
                     if( successfulRead )
                     {
@@ -419,11 +414,11 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                         {
                             SetLabelWithLanguages(pRecord->GetLabelSet(), csaLabels, paste_all_languages);
 
-                            oldName = pRecord->GetName();
+                            oldName = UTF8_TODO::GetCString(pRecord->GetName());
 
                             if( name != oldName )
                             {
-                                pRecord->SetName(name);
+                                pRecord->SetName(UTF8_TODO::GetUtf8(name));
                                 m_pDict->SetChangedObject(pRecord);
                                 makeNewNameWork(*pRecord,oldName);
                             }
@@ -443,16 +438,16 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                             if( text[textPtr] == '\r' )
                                 textPtr++;
 
-                            successfulRead = text[textPtr++] == _T('\n');
+                            successfulRead = text[textPtr++] == '\n';
 
                             for( int iTab = 0; successfulRead && iTab < ( 2 * ( 1 + iExpectedLabelIndentationTabs ) ) ; iTab++ )
-                                successfulRead = text[textPtr++] == _T('\t');
+                                successfulRead = text[textPtr++] == '\t';
 
                             if( successfulRead )
                             {
                                 textPtr = readEntry(text,textPtr,name);
                                 name.MakeUpper();
-                                successfulRead = text[textPtr++] == _T('\t');
+                                successfulRead = text[textPtr++] == '\t';
 
                                 if( successfulRead )
                                 {
@@ -491,11 +486,11 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
                                         SetLabelWithLanguages(pItem->GetLabelSet(), csaLabels, paste_all_languages);
 
-                                        oldName = pItem->GetName();
+                                        oldName = UTF8_TODO::GetCString(pItem->GetName());
 
                                         if( name != oldName )
                                         {
-                                            pItem->SetName(name);
+                                            pItem->SetName(UTF8_TODO::GetUtf8(name));
                                             m_pDict->SetChangedObject(pItem);
                                             makeNewNameWork(*pItem,oldName);
                                         }
@@ -503,7 +498,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
                                     if( bPasteItemLengths ) // 20140309
                                     {
-                                        successfulRead = text[textPtr++] == _T('\t');
+                                        successfulRead = text[textPtr++] == '\t';
 
                                         if( successfulRead )
                                         {
@@ -516,7 +511,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                 if( iItemLength < 1 )
                                                 {
                                                     successfulRead = false;
-                                                    csErrorMessage.Format(_T("The length of item %s must be at least 1"),(LPCTSTR)name);
+                                                    csErrorMessage.Format(L"The length of item %s must be at least 1", name.GetString());
                                                 }
 
                                                 else if( pItem->GetContentType() == ContentType::Numeric )
@@ -524,13 +519,13 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                     if( iItemLength > 15 )
                                                     {
                                                         successfulRead = false;
-                                                        csErrorMessage.Format(_T("The length of numeric item %s cannot be greater than 15"),(LPCTSTR)name);
+                                                        csErrorMessage.Format(L"The length of numeric item %s cannot be greater than 15", name.GetString());
                                                     }
 
                                                     else if( iItemLength < ( pItem->GetDecimal() + pItem->GetDecChar() ) )
                                                     {
                                                         successfulRead = false;
-                                                        csErrorMessage.Format(_T("The length of numeric item %s with %d decimal characters cannot be %d"),(LPCTSTR)name,pItem->GetDecimal(),iItemLength);
+                                                        csErrorMessage.Format(L"The length of numeric item %s with %d decimal characters cannot be %d", name.GetString(), pItem->GetDecimal(), iItemLength);
                                                     }
                                                 }
 
@@ -538,7 +533,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                 {
                                                     // binary type must be length 1
                                                     successfulRead = false;
-                                                    csErrorMessage.Format(_T("The length of %s item %s must be 1"), ToString(pItem->GetContentType()), (LPCTSTR)name);
+                                                    csErrorMessage.Format(L"The length of %s item %s must be 1", UTF8_TODO::GetWide(ToString(pItem->GetContentType())).c_str(), name.GetString());
                                                 }
 
                                                 if( pItem->GetItemType() == ItemType::Item )
@@ -568,7 +563,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                     if( bHasOverlappingSubitems && iItemLength < pItem->GetLen() )
                                                     {
                                                         successfulRead = false;
-                                                        csErrorMessage.Format(_T("The length of an item (%s) with overlapping subitems cannot be reduced in size"),(LPCTSTR)name);
+                                                        csErrorMessage.Format(L"The length of an item (%s) with overlapping subitems cannot be reduced in size", name.GetString());
                                                     }
                                                 }
 
@@ -579,7 +574,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                         if( iItemLength != pItem->GetLen() )
                                                         {
                                                             successfulRead = false;
-                                                            csErrorMessage.Format(_T("The lengths of overlapping subitems (including %s) cannot be modified"),(LPCTSTR)name);
+                                                            csErrorMessage.Format(L"The lengths of overlapping subitems (including %s) cannot be modified", name.GetString());
                                                         }
                                                     }
 
@@ -590,7 +585,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                                                         if( iCumulativeSubitemLength > iLastItemLength )
                                                         {
                                                             successfulRead = false;
-                                                            csErrorMessage.Format(_T("The length of subitem %s exceeds the length of its parent item"),(LPCTSTR)name);
+                                                            csErrorMessage.Format(L"The length of subitem %s exceeds the length of its parent item", name.GetString());
                                                         }
                                                     }
                                                 }
@@ -658,7 +653,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
             {
                 if( newNames[i2].IsEmpty() )
                 {
-                    AfxMessageBox(_T("Error: Clipboard contents contain a name that is empty"));
+                    AfxMessageBox(L"Error: Clipboard contents contain a name that is empty");
                     return;
                 }
 
@@ -667,7 +662,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 
                 TCHAR firstChar = newNames[i2].GetAt(0);
 
-                if( ( firstChar < _T('A') || firstChar > 'Z' ) && newNames[i2].Find(_T("_IDS")) < 0 ) // IDs has the _ at the beginning exception
+                if( ( firstChar < 'A' || firstChar > 'Z' ) && newNames[i2].Find(L"_IDS") < 0 ) // IDs has the _ at the beginning exception
                 {
                     invalidName = true;
                 }
@@ -678,14 +673,14 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                     {
                         TCHAR thisChar = newNames[i2].GetAt(j);
 
-                        if( !( thisChar >= _T('A') && thisChar <= 'Z' ) && !( thisChar >= _T('0') && thisChar <= '9' ) && thisChar != '_' )
+                        if( !( thisChar >= 'A' && thisChar <= 'Z' ) && !( thisChar >= '0' && thisChar <= '9' ) && thisChar != '_' )
                             invalidName = true;
                     }
                 }
 
                 if( invalidName )
                 {
-                    text.Format(_T("Error: Clipboard contents contain an invalid name: %s"), (LPCTSTR)newNames[i2]);
+                    text.Format(L"Error: Clipboard contents contain an invalid name: %s", newNames[i2].GetString());
                     AfxMessageBox(text);
                     return;
                 }
@@ -696,7 +691,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
                 {
                     if( newNames[i2] == newNames[j] )
                     {
-                        text.Format(_T("Error: Clipboard contents contain multiple entries with the same name: %s"), (LPCTSTR)newNames[i2]);
+                        text.Format(L"Error: Clipboard contents contain multiple entries with the same name: %s", newNames[i2].GetString());
                         AfxMessageBox(text);
                         return;
                     }
@@ -708,7 +703,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
     if( successfulRead )
     {
         m_pDictDoc->SetModified(true);
-        AfxMessageBox(_T("Names and labels pasted from the clipboard"));
+        AfxMessageBox(L"Names and labels pasted from the clipboard");
     }
 
     else
@@ -718,7 +713,7 @@ void CDictionaryMacros::OnBnClickedPasteDictionaryNames() // 20101108
 }
 
 
-void CDictionaryMacros::OnBnClickedCopyValueSets()
+void DictionaryMacrosDlg::OnBnClickedCopyValueSets()
 {
     CString text;
     int num_value_sets = 0;
@@ -733,11 +728,11 @@ void CDictionaryMacros::OnBnClickedCopyValueSets()
             ++num_value_sets;
 
             if( num_value_sets > 1 )
-                text.Append(_T("\r\n\r\n"));
+                text.Append(L"\r\n\r\n");
 
-            text.AppendFormat(_T("%s\t%s"),
-                                (LPCTSTR)dict_value_set.GetName(),
-                                (LPCTSTR)GetLabelWithLanguages(dict_value_set.GetLabelSet(), copy_all_languages));
+            text.AppendFormat(L"%s\t%s",
+                              UTF8_TODO::GetWide(dict_value_set.GetName()).c_str(),
+                              GetLabelWithLanguages(dict_value_set.GetLabelSet(), copy_all_languages).GetString());
 
             for( const DictValue& dict_value : dict_value_set.GetValues() )
             {
@@ -745,15 +740,15 @@ void CDictionaryMacros::OnBnClickedCopyValueSets()
 
                 for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
                 {
-                    text.AppendFormat(_T("\r\n\t%s%s\t%s\t%s\t%s"),
-                                        (LPCTSTR)label_indentation,
-                                        first_pair ? (LPCTSTR)GetLabelWithLanguages(dict_value.GetLabelSet(), copy_all_languages) : (LPCTSTR)label_indentation.Left(label_indentation.GetLength() - 1),
-                                        (LPCTSTR)dict_value_pair.GetFrom(),
-                                        (LPCTSTR)dict_value_pair.GetTo(),
-                                        dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : _T(""));
+                    text.AppendFormat(L"\r\n\t%s%s\t%s\t%s\t%s",
+                                      label_indentation.GetString(),
+                                      first_pair ? GetLabelWithLanguages(dict_value.GetLabelSet(), copy_all_languages).GetString() : label_indentation.Left(label_indentation.GetLength() - 1).GetString(),
+                                      dict_value_pair.GetFrom().GetString(),
+                                      dict_value_pair.GetTo().GetString(),
+                                      dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
 
                     if( copy_value_set_images && first_pair )
-                        text.AppendFormat(_T("\t%s"), (LPCTSTR)dict_value.GetImageFilename());
+                        text.AppendFormat(L"\t%s", UTF8_TODO::GetCString(dict_value.GetImageFilePath()).GetString());
 
                     first_pair = false;
                 }
@@ -761,11 +756,11 @@ void CDictionaryMacros::OnBnClickedCopyValueSets()
         });
 
     WinClipboard::PutText(this, text);
-    AfxMessageBox(FormatText(_T("%d value sets copied to the clipboard"), num_value_sets));
+    AfxMessageBox(FormatText(L"%d value sets copied to the clipboard", num_value_sets));
 }
 
 
-CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & numValsModified) // 20101113
+CString DictionaryMacrosDlg::makeValueValid(CString value,CDictItem* pItem,int & numValsModified) // 20101113
 {
     if( pItem->GetContentType() == ContentType::Alpha )
     {
@@ -777,7 +772,7 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
 
         else if( value.GetLength() < pItem->GetLen() )
         {
-            return value + CString(_T(' '),pItem->GetLen() - value.GetLength());
+            return value + CString(' ', pItem->GetLen() - value.GetLength());
         }
 
         else
@@ -796,7 +791,7 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
 
         for( int i = 0; i < value.GetLength(); i++ )
         {
-            if( value[i] == _T('.') && !oneDecimal )
+            if( value[i] == '.' && !oneDecimal )
                 oneDecimal = true;
 
             else if( value[i] == '0' )
@@ -809,7 +804,7 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
         if( notZero )
             numValsModified++;
 
-        return _T("0");
+        return L"0";
     }
 
     else
@@ -822,12 +817,12 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
             else if( value.Trim().GetLength() > pItem->GetLen() )
                 numValsModified++;
 
-            double maxSize = pow((double)10,(int)pItem->GetLen()) - 1;
+            double maxSize = pow(10.0, static_cast<int>(pItem->GetLen())) - 1;
 
             while( dVal > maxSize )
                 dVal /= 10;
 
-            value.Format(_T("%.0Lf"),dVal);
+            value.Format(L"%.0Lf", dVal);
 
             return value;
         }
@@ -838,7 +833,7 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
             int intLen = pItem->GetLen() - decLen - pItem->GetDecChar();
 
             CString decimalFormatted,formatStyle;
-            formatStyle.Format(_T("%%.%dLf"),decLen);
+            formatStyle.Format(L"%%.%dLf", decLen);
 
             decimalFormatted.Format(formatStyle,dVal);
 
@@ -860,10 +855,10 @@ CString CDictionaryMacros::makeValueValid(CString value,CDictItem* pItem,int & n
 }
 
 
-void CDictionaryMacros::OnBnClickedPasteValueSets()
+void DictionaryMacrosDlg::OnBnClickedPasteValueSets()
 {
     CString text = WS2CS(WinClipboard::GetText(this));
-    text.Append(_T("\r\n\r\n\r\n\r\n\r\n")); // this should ensure that none of my text[textPtr++] codes will cause an out of bounds error
+    text.Append(L"\r\n\r\n\r\n\r\n\r\n"); // this should ensure that none of my text[textPtr++] codes will cause an out of bounds error
 
     // we first need to check that the text on the clipboard constitutes one or more valid value sets
 
@@ -899,7 +894,7 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
 
             else
             {
-                successfulRead = text[textPtr++] == _T('\t');
+                successfulRead = text[textPtr++] == '\t';
 
                 if( successfulRead )
                     textPtr = readLabelsEntry(text, textPtr, csaLabels, paste_all_languages, successfulRead);
@@ -914,14 +909,14 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
 
                     bool blankLine = false;
 
-                    successfulRead = text[textPtr++] == _T('\n');
+                    successfulRead = text[textPtr++] == '\n';
 
                     CDictItem* dict_item = nullptr;
                     DictValueSet* dict_value_set = nullptr;
 
                     if( secondPass ) // see if this value set exists in the current dictionary
                     {
-                        if( m_pDict->LookupName<DictValueSet>(name, nullptr, nullptr, &dict_item, &dict_value_set) )
+                        if( m_pDict->LookupName<DictValueSet>(UTF8_TODO::GetUtf8(name), nullptr, nullptr, &dict_item, &dict_value_set) )
                         {
                             if( dict_value_set->IsLinkedValueSet() )
                                 linked_value_sets_modified.emplace_back(dict_value_set);
@@ -938,14 +933,14 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                     while( successfulRead && ( text[textPtr] == '\t' ) && !blankLine ) // keep reading in new values
                     {
                         for( int iTab = 0; successfulRead && iTab < ( 1 + iExpectedLabelIndentationTabs ); iTab++ )
-                            successfulRead = text[textPtr++] == _T('\t');
+                            successfulRead = text[textPtr++] == '\t';
 
                         if( successfulRead )
                         {
                             bool bNoLabels = true;
 
                             for( int iTab = 0; bNoLabels && iTab < iExpectedLabelIndentationTabs; iTab++ )
-                                bNoLabels = text[textPtr + iTab] == _T('\t');
+                                bNoLabels = text[textPtr + iTab] == '\t';
 
                             if( bNoLabels )
                             {
@@ -959,34 +954,34 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                             }
 
                             if( successfulRead )
-                                successfulRead = text[textPtr++] == _T('\t');
+                                successfulRead = text[textPtr++] == '\t';
 
                             if( successfulRead )
                             {
                                 bool restOfLineIsBlank = false;
-                                to = _T("");
-                                special = _T("");
-                                image = _T("");
+                                to.Empty();
+                                special.Empty();
+                                image.Empty();
 
                                 // reading the from value
                                 textPtr = readEntry(text,textPtr,from);
 
-                                if( text[textPtr] == _T('\r') || text[textPtr] == '\n' )
+                                if( text[textPtr] == '\r' || text[textPtr] == '\n' )
                                     restOfLineIsBlank = true;
 
                                 else
-                                    successfulRead = text[textPtr++] == _T('\t');
+                                    successfulRead = text[textPtr++] == '\t';
 
                                 // reading the to value
                                 if( successfulRead && !restOfLineIsBlank )
                                 {
                                     textPtr = readEntry(text,textPtr,to);
 
-                                    if( text[textPtr] == _T('\r') || text[textPtr] == '\n' )
+                                    if( text[textPtr] == '\r' || text[textPtr] == '\n' )
                                         restOfLineIsBlank = true;
 
                                     else
-                                        successfulRead = text[textPtr++] == _T('\t');
+                                        successfulRead = text[textPtr++] == '\t';
                                 }
 
                                 // reading the special value
@@ -994,11 +989,11 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                 {
                                     textPtr = readEntry(text,textPtr,special);
 
-                                    if( text[textPtr] == _T('\r') || text[textPtr] == '\n' )
+                                    if( text[textPtr] == '\r' || text[textPtr] == '\n' )
                                         restOfLineIsBlank = true;
 
                                     else
-                                        successfulRead = text[textPtr++] == _T('\t');
+                                        successfulRead = text[textPtr++] == '\t';
                                 }
 
                                 // reading the value set image
@@ -1006,11 +1001,11 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                 {
                                     textPtr = readEntry(text,textPtr,image);
 
-                                    if( text[textPtr] == _T('\r') || text[textPtr] == '\n' )
+                                    if( text[textPtr] == '\r' || text[textPtr] == '\n' )
                                         restOfLineIsBlank = true;
 
                                     else
-                                        successfulRead = text[textPtr++] == _T('\t');
+                                        successfulRead = text[textPtr++] == '\t';
                                 }
 
                                 if( successfulRead )
@@ -1021,7 +1016,7 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                     if( text[textPtr] == '\r' )
                                         textPtr++;
 
-                                    successfulRead = text[textPtr++] == _T('\n');
+                                    successfulRead = text[textPtr++] == '\n';
 
                                     blankLine = bNoLabels && from.IsEmpty() && to.IsEmpty() && special.IsEmpty();
 
@@ -1029,19 +1024,19 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                     {
                                         if( dict_item != nullptr && dict_item->GetContentType() == ContentType::Alpha )
                                         {
-                                            to = _T("");
-                                            special = _T("");
+                                            to.Empty();
+                                            special.Empty();
                                         }
 
                                         std::optional<double> special_value;
 
                                         if( !special.IsEmpty() )
                                         {
-                                            special_value = SpecialValues::StringIsSpecial<std::optional<double>>(special);
+                                            special_value = SpecialValues::StringIsSpecial<std::optional<double>>(UTF8_TODO::GetUtf8(special));
 
                                             if( !special_value.has_value() )
                                             {
-                                                if( special.CompareNoCase(_T("Not Applicable")) == 0 ) // pre-8.0
+                                                if( special.CompareNoCase(L"Not Applicable") == 0 ) // pre-8.0
                                                 {
                                                     special_value = NOTAPPL;
                                                 }
@@ -1049,7 +1044,7 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                                 else
                                                 {
                                                     successfulRead = false;
-                                                    name.Format(_T("Special value '%s' in an invalid entry"),(LPCTSTR)special);
+                                                    name.Format(L"Special value '%s' in an invalid entry", special.GetString());
                                                     AfxMessageBox(name);
                                                     return;
                                                 }
@@ -1068,7 +1063,7 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                                                 else
                                                     SetLabelWithLanguages(newValue.GetLabelSet(), csaLabels, paste_all_languages);
 
-                                                newValue.SetImageFilename(image);
+                                                newValue.SetImageFilePath(UTF8_TODO::GetUtf8(image));
                                                 newValue.SetSpecialValue(special_value);
 
                                                 dict_value_set->AddValue(std::move(newValue));
@@ -1093,7 +1088,7 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
                     }
                 }
 
-                while( text[textPtr] == _T('\r') || text[textPtr] == '\n' ) // read until the next value set (or the end of the pasted text)
+                while( text[textPtr] == '\r' || text[textPtr] == '\n' ) // read until the next value set (or the end of the pasted text)
                     textPtr++;
 
                 if( textPtr == text.GetLength() )
@@ -1111,22 +1106,22 @@ void CDictionaryMacros::OnBnClickedPasteValueSets()
         for( DictValueSet* linked_value_set : linked_value_sets_modified )
             m_pDict->SyncLinkedValueSets(linked_value_set);
 
-        CString message = FormatText(_T("%d value set%s pasted from the clipboard"), numValueSetsCopied, PluralizeWord(numValueSetsCopied));
+        std::string message = FormatText("%d value set%s pasted from the clipboard", numValueSetsCopied, PluralizeWord(numValueSetsCopied));
 
         if( numValuesModified )
-            message.AppendFormat(_T(" though %d invalid value%s modified"), numValuesModified, numValuesModified == 1 ? _T(" was") : _T("s were"));
+            message.append(FormatText(" though %d invalid value%s modified", numValuesModified, numValuesModified == 1 ? " was" : "s were"));
 
         AfxMessageBox(message);
     }
 
     else
     {
-        AfxMessageBox(_T("Error: Clipboard contents do not match value sets format"));
+        AfxMessageBox(L"Error: Clipboard contents do not match value sets format");
     }
 }
 
 
-void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now currently only works for one-level applications
+void DictionaryMacrosDlg::OnBnClickedGenerateDataFile() // 20101114 this now currently only works for one-level applications
 {
     // check the parameters
     CString strNumCases;
@@ -1134,7 +1129,7 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
 
     if( strNumCases.IsEmpty() )
     {
-        AfxMessageBox(_T("Specify the number of cases desired"));
+        AfxMessageBox(L"Specify the number of cases desired");
         return;
     }
 
@@ -1142,7 +1137,7 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
 
     if( numCases <= 0 )
     {
-        AfxMessageBox(_T("You must select a positive number of cases"));
+        AfxMessageBox(L"You must select a positive number of cases");
         return;
     }
 
@@ -1154,15 +1149,15 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
     GetDlgItem(IDC_INVALID_PERCENT)->GetWindowText(strInvalidPercent);
     invalidPercent = _ttoi(strInvalidPercent);
 
-    if( ( notapplPercent < 0 || notapplPercent > 100 ) || ( notapplPercent == 0 && !strNotapplPercent.IsEmpty() && strNotapplPercent != _T("0") )  )
+    if( ( notapplPercent < 0 || notapplPercent > 100 ) || ( notapplPercent == 0 && !strNotapplPercent.IsEmpty() && strNotapplPercent != L"0" )  )
     {
-        AfxMessageBox(_T("Enter a valid number for the percent of not applicable values"));
+        AfxMessageBox(L"Enter a valid number for the percent of not applicable values");
         return;
     }
 
-    if( invalidPercent < 0 || invalidPercent > 100 || ( invalidPercent == 0 && !strInvalidPercent.IsEmpty() && strInvalidPercent != _T("0") )  )
+    if( invalidPercent < 0 || invalidPercent > 100 || ( invalidPercent == 0 && !strInvalidPercent.IsEmpty() && strInvalidPercent != L"0" )  )
     {
-        AfxMessageBox(_T("Enter a valid number for the percent of invalid values"));
+        AfxMessageBox(L"Enter a valid number for the percent of invalid values");
         return;
     }
 
@@ -1170,21 +1165,21 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
 
     if( regularPercent <= 0 )
     {
-        AfxMessageBox(_T("The percentages of not applicable and invalid values exceed or equal 100%"));
+        AfxMessageBox(L"The percentages of not applicable and invalid values exceed or equal 100%");
         return;
     }
 
     DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false);
-    data_file_dlg.SetDictionaryFilename(m_pDict->GetFullFileName());
+    data_file_dlg.SetDictionaryFilePath(m_pDict->GetFilePath());
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
 
-    CString post_operation_message;
+    std::string post_operation_message;
 
     try
     {
-        const TCHAR* ProgressDlgMessage = _T("Generating Data");
+        constexpr const wchar_t* ProgressDlgMessage = L"Generating Data";
         ThreadedProgressDlg progress_dlg;
         progress_dlg.SetTitle(ProgressDlgMessage);
         progress_dlg.SetStatus(ProgressDlgMessage);
@@ -1194,11 +1189,13 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
         const std::unique_ptr<Case> data_case = case_access->CreateCase();
 
         // open the repository
-        std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(case_access,
-            data_file_dlg.GetConnectionString(), DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
+        const std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(case_access,
+                                                                                                data_file_dlg.GetConnectionString(),
+                                                                                                DataRepositoryAccess::BatchOutput,
+                                                                                                DataRepositoryOpenFlag::CreateNew);
 
         // seed the random number generator
-        srand((unsigned int)time(NULL));
+        srand(static_cast<unsigned int>(time(nullptr)));
 
         alphaValueSetValueCounts.clear();
 
@@ -1220,12 +1217,12 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
 
             for( ; !successful_id && attempts < MaxNumIDAttempts; ++attempts )
             {
-                for( const CaseItem* case_item : id_record.GetCaseItems() )
+                for( const CaseItem* const case_item : id_record.GetCaseItems() )
                     AddRandomValue(*case_item, id_index);
 
-                if( previous_keys.find(data_case->GetKey()) == previous_keys.end() )
+                if( previous_keys.find(UTF8_TODO::GetCString(data_case->GetKey())) == previous_keys.end() )
                 {
-                    previous_keys.insert(data_case->GetKey());
+                    previous_keys.insert(UTF8_TODO::GetCString(data_case->GetKey()));
                     successful_id = true;
                 }
             }
@@ -1240,14 +1237,14 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
                 for( size_t record_number = 0; record_number < root_case_level.GetNumberCaseRecords(); ++record_number )
                 {
                     CaseRecord& case_record = root_case_level.GetCaseRecord(record_number);
-                    const CDictRecord& dictionary_record = case_record.GetCaseRecordMetadata().GetDictionaryRecord();
+                    const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictRecord();
 
-                    size_t number_records_to_write = dictionary_record.GetMaxRecs();
+                    size_t number_records_to_write = dict_record.GetMaxRecs();
 
                     // for singly occurring records that are not required, write them out only 75% of the time (an arbitrary value)
                     if( number_records_to_write == 1 )
                     {
-                        if( !dictionary_record.GetRequired() && ( rand() % 4 ) == 0 )
+                        if( !dict_record.GetRequired() && ( rand() % 4 ) == 0 )
                             number_records_to_write = 0;
                     }
 
@@ -1262,7 +1259,7 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
                         number_records_to_write = rand() % ( number_records_to_write + 1 );
                     }
 
-                    if( dictionary_record.GetRequired() && number_records_to_write == 0 )
+                    if( dict_record.GetRequired() && number_records_to_write == 0 )
                         number_records_to_write = 1;
 
                     case_record.SetNumberOccurrences(number_records_to_write);
@@ -1271,7 +1268,7 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
                     {
                         CaseItemIndex index = case_record.GetCaseItemIndex(k);
 
-                        for( const CaseItem* case_item : case_record.GetCaseItems() )
+                        for( const CaseItem* const case_item : case_record.GetCaseItems() )
                         {
                             for( index.SetItemSubitemOccurrence(*case_item, 0); index.GetItemSubitemOccurrence(*case_item) < case_item->GetTotalNumberItemSubitemOccurrences(); index.IncrementItemSubitemOccurrence(*case_item) )
                                 AddRandomValue(*case_item, index);
@@ -1288,7 +1285,7 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
 
             // update the progress bar every 10 cases
             if( numWritten % 10 == 0 )
-                progress_dlg.SetPos((int)( 100.0 * numWritten / numCases ));
+                progress_dlg.SetPos(static_cast<int>(100.0 * numWritten / numCases));
 
             if( progress_dlg.IsCanceled() )
                 throw std::exception();
@@ -1297,27 +1294,31 @@ void CDictionaryMacros::OnBnClickedGenerateDataFile() // 20101114 this now curre
         output_repository->Close();
 
         if( numWritten != numCases )
-            post_operation_message.Format(_T("Could only write out %d case%s due to ID size limitations"), numWritten, PluralizeWord(numCases));
+        {
+            post_operation_message = FormatText("Could only write out %d case%s due to ID size limitations", numWritten, PluralizeWord(numCases));
+        }
 
         else
-            post_operation_message.Format(_T("Successfully wrote out %d case%s"), numCases, PluralizeWord(numCases));
+        {
+            post_operation_message = FormatText("Successfully wrote out %d case%s", numCases, PluralizeWord(numCases));
+        }
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
-        post_operation_message = WS2CS(exception.GetErrorMessage());
+        post_operation_message = exception.what();
     }
 
     catch(...)
     {
-        post_operation_message = _T("Operation canceled");
+        post_operation_message = "Operation canceled";
     }
 
     AfxMessageBox(post_operation_message);
 }
 
 
-void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex& index)
+void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemIndex& index)
 {
     // subitems will overwrite their parent item
     int randomNum = rand() % 100;
@@ -1335,7 +1336,7 @@ void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex&
 
 
     // binary case items will be handled separately
-    if( case_item.IsTypeBinary() )
+    if( IsBinary(case_item.GetDataType()) )
     {
         AddRandomBinaryValue(case_item, index);
         return;
@@ -1343,7 +1344,7 @@ void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex&
 
 
     // for numeric and string case items...
-    const CDictItem& dict_item = case_item.GetDictionaryItem();
+    const CDictItem& dict_item = case_item.GetDictItem();
 
     double numeric_value = 0;
     CString string_value;
@@ -1363,7 +1364,7 @@ void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex&
     }
 
     // we have to create a value in the value set, or an invalid value not in the value set
-    else 
+    else
     {
         const DictValueSet& dict_value_set = dict_item.GetValueSet(0);
 
@@ -1559,7 +1560,7 @@ void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex&
 
     else if( dict_item.GetContentType() == ContentType::Alpha )
     {
-        assert_cast<const StringCaseItem&>(case_item).SetValue(index, string_value);
+        assert_cast<const StringCaseItem&>(case_item).SetValue(index, UTF8_TODO::GetUtf8(string_value));
     }
 
     else
@@ -1569,7 +1570,7 @@ void CDictionaryMacros::AddRandomValue(const CaseItem& case_item, CaseItemIndex&
 }
 
 
-double CDictionaryMacros::GenerateRandomNumeric(const CDictItem& dict_item)
+double DictionaryMacrosDlg::GenerateRandomNumeric(const CDictItem& dict_item)
 {
     double value = 0;
 
@@ -1599,7 +1600,7 @@ double CDictionaryMacros::GenerateRandomNumeric(const CDictItem& dict_item)
 }
 
 
-CString CDictionaryMacros::GenerateRandomAlpha(const CDictItem& dict_item)
+CString DictionaryMacrosDlg::GenerateRandomAlpha(const CDictItem& dict_item)
 {
     CString value;
 
@@ -1612,16 +1613,16 @@ CString CDictionaryMacros::GenerateRandomAlpha(const CDictItem& dict_item)
     for( int i = 0; i < string_length; ++i )
     {
         TCHAR randChar = rand() % 70;
-        TCHAR output_ch = _T(' ');
+        TCHAR output_ch = ' ';
 
         if( randChar < 26 )
-            output_ch = _T('a') + randChar;
+            output_ch = 'a' + randChar;
 
         else if( randChar < 52 )
-            output_ch = _T('A') + randChar - 26;
+            output_ch = 'A' + randChar - 26;
 
         else if( randChar < 62 )
-            output_ch = _T('0') + randChar - 52;
+            output_ch = '0' + randChar - 52;
 
         else if( randChar == 63 )
             output_ch = '.';
@@ -1635,7 +1636,7 @@ CString CDictionaryMacros::GenerateRandomAlpha(const CDictItem& dict_item)
 }
 
 
-int CDictionaryMacros::CountAlphaValues(const DictValueSet& dict_value_set) // 20101114
+int DictionaryMacrosDlg::CountAlphaValues(const DictValueSet& dict_value_set) // 20101114
 {
     const auto& lookup = alphaValueSetValueCounts.find(&dict_value_set);
 
@@ -1648,17 +1649,17 @@ int CDictionaryMacros::CountAlphaValues(const DictValueSet& dict_value_set) // 2
         values += dict_value.GetNumValuePairs();
 
     // saves the values so that we're not constantly recounting the number of values
-    alphaValueSetValueCounts.try_emplace(&dict_value_set, (int)values);
+    alphaValueSetValueCounts.try_emplace(&dict_value_set, static_cast<int>(values));
 
     return values;
 }
 
 
-void CDictionaryMacros::AddRandomBinaryValue(const CaseItem& case_item, CaseItemIndex& index)
+void DictionaryMacrosDlg::AddRandomBinaryValue(const CaseItem& case_item, CaseItemIndex& index)
 {
-    ASSERT(case_item.IsTypeBinary());
+    ASSERT(IsBinary(case_item.GetDataType()));
     const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(case_item);
-    const CDictItem& dict_item = case_item.GetDictionaryItem();
+    const CDictItem& dict_item = case_item.GetDictItem();
 
     if( dict_item.GetContentType() == ContentType::Audio )
     {
@@ -1666,30 +1667,26 @@ void CDictionaryMacros::AddRandomBinaryValue(const CaseItem& case_item, CaseItem
         return;
     }
 
-    // for the Document type, create a UTF-8 text file (with BOM) with a simple message
+    // for the Document type, create a text file with a simple message
     else if( dict_item.GetContentType() == ContentType::Document )
     {
-        const std::wstring message = FormatTextCS2WS(_T("Document for %s created using Dictionary Macros.\n"), dict_item.GetName().GetString());
-        std::vector<std::byte> utf8_message = UTF8Convert::WideToUTF8Buffer(message);
+        const std::string message = FormatText("Document for %s created using Dictionary Macros.", dict_item.GetName().c_str());
 
-        utf8_message.insert(utf8_message.begin(), reinterpret_cast<const std::byte*>(Utf8BOM_sv.data()),
-                                                  reinterpret_cast<const std::byte*>(Utf8BOM_sv.data()) + Utf8BOM_sv.length());        
+        BinaryDataMetadata binary_data_metadata;
+        binary_data_metadata.SetFilename("Dictionary Macros Document.txt");
 
-        BinaryDataMetadata metadata;
-        metadata.SetFilename(_T("Dictionary Macros Document.txt"));
-        binary_case_item.GetBinaryDataAccessor(index).SetBinaryData(std::move(utf8_message), std::move(metadata));
+        binary_case_item.SetValue(index, BinaryData(SO::CreateByteVector(message), std::move(binary_data_metadata)));
     }
 
     // for the Geometry type, use a GeoJSON file with the Census Bureau's coordinates
     else if( dict_item.GetContentType() == ContentType::Geometry )
     {
         constexpr std::string_view CensusBureauGeoJson_sv = R"!({"type":"Feature","geometry":{"type":"Point","coordinates":[-76.931098,38.84839]},"properties":{"name":"United States Census Bureau"}})!";
-        std::vector<std::byte> content(reinterpret_cast<const std::byte*>(CensusBureauGeoJson_sv.data()),
-                                       reinterpret_cast<const std::byte*>(CensusBureauGeoJson_sv.data()) + CensusBureauGeoJson_sv.length());
 
-        BinaryDataMetadata metadata;
-        metadata.SetFilename(_T("U.S. Census Bureau.geojson"));
-        binary_case_item.GetBinaryDataAccessor(index).SetBinaryData(std::move(content), std::move(metadata));
+        BinaryDataMetadata binary_data_metadata;
+        binary_data_metadata.SetFilename("U.S. Census Bureau.geojson");
+
+        binary_case_item.SetValue(index, BinaryData(SO::CreateByteVector(CensusBureauGeoJson_sv), std::move(binary_data_metadata)));
     }
 
     // for the Image type, create a PNG of the CSPro logo
@@ -1700,9 +1697,9 @@ void CDictionaryMacros::AddRandomBinaryValue(const CaseItem& case_item, CaseItem
         if( content == nullptr )
             return;
 
-        BinaryDataMetadata metadata;
-        metadata.SetFilename(_T("CSPro Logo.png"));
-        binary_case_item.GetBinaryDataAccessor(index).SetBinaryData(std::move(content), std::move(metadata));
+        BinaryDataMetadata binary_data_metadata;
+        binary_data_metadata.SetFilename("CSPro Logo.png");
+        binary_case_item.SetValue(index, BinaryData(std::move(content), std::move(binary_data_metadata)));
     }
 
     else
@@ -1719,20 +1716,20 @@ int GetRecordEndPos(CDictRecord* pRecord) // 20140308
     for( int i = 0; i < pRecord->GetNumItems(); i++ )
     {
         CDictItem* pItem = pRecord->GetItem(i);
-        pos = std::max(pos,(int) (pItem->GetStart() + pItem->GetLen()));
+        pos = std::max(pos, static_cast<int>(pItem->GetStart() + pItem->GetLen()));
     }
 
     return pos;
 }
 
-void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
+void DictionaryMacrosDlg::OnBnClickedAddItemsToRecord() // 20140308
 {
     CString csNumItems;
     GetDlgItem(IDC_NUM_ITEMS)->GetWindowText(csNumItems);
 
     if( csNumItems.IsEmpty() )
     {
-        AfxMessageBox(_T("Specify the number of items to add"));
+        AfxMessageBox(L"Specify the number of items to add");
         return;
     }
 
@@ -1740,7 +1737,7 @@ void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
 
     if( iNumItems < 1 || iNumItems > 500 )
     {
-        AfxMessageBox(_T("Enter a valid number of items (1 - 500) to add"));
+        AfxMessageBox(L"Enter a valid number of items (1 - 500) to add");
         return;
     }
 
@@ -1749,7 +1746,7 @@ void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
 
     if( iSelection < 0 )
     {
-        AfxMessageBox(_T("Select the record to which you want to add the items"));
+        AfxMessageBox(L"Select the record to which you want to add the items");
         return;
     }
 
@@ -1782,7 +1779,7 @@ void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
     bool bZeroFill = m_pDict->IsZeroFill();
 
     int iStartingPos = std::max(GetRecordEndPos(pIDRecord),GetRecordEndPos(pRecord));
-    iStartingPos = std::max(iStartingPos,(int) (m_pDict->GetRecTypeStart() + m_pDict->GetRecTypeLen()));
+    iStartingPos = std::max(iStartingPos, static_cast<int>(m_pDict->GetRecTypeStart() + m_pDict->GetRecTypeLen()));
 
     for( int i = 0; i < iNumItems; i++ )
     {
@@ -1793,12 +1790,12 @@ void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
         pItem->SetStart(iStartingPos++);
 
         CString csTemp;
-        csTemp.Format(_T("%s (Item %d)"),(LPCTSTR)pRecord->GetLabel(),pRecord->GetNumItems() + 1);
+        csTemp.Format(L"%s (Item %d)", pRecord->GetLabel().GetString(), pRecord->GetNumItems() + 1);
         pItem->SetLabel(csTemp);
 
-        csTemp.Format(_T("%s_ITEM%03d"),(LPCTSTR)pRecord->GetName(),pRecord->GetNumItems() + 1);
-        csTemp = m_pDictDoc->GetDict()->GetUniqueName(csTemp);
-        pItem->SetName(csTemp);
+        csTemp.Format(L"%s_ITEM%03d", UTF8_TODO::GetWide(pRecord->GetName()).c_str(), pRecord->GetNumItems() + 1);
+        csTemp = UTF8_TODO::GetCString(m_pDictDoc->GetDict()->GetUniqueName(UTF8_TODO::GetUtf8(csTemp)));
+        pItem->SetName(UTF8_TODO::GetUtf8(csTemp));
 
         m_pDict->AddToNameList(*pItem,iRecord, level_number, pRecord->GetNumItems() - 1,-1);
         pRecord->AddItem(pItem);
@@ -1806,38 +1803,34 @@ void CDictionaryMacros::OnBnClickedAddItemsToRecord() // 20140308
 
     m_pDictDoc->SetModified(true);
 
-    CString csMessage;
-    csMessage.Format(_T("%d items have been added to %s"),iNumItems,(LPCTSTR)pRecord->GetName());
-    AfxMessageBox(csMessage);
+    AfxMessageBox(FormatText("%d items have been added to %s", iNumItems, pRecord->GetName().c_str()));
 }
 
 
-namespace
+CString DictionaryMacrosDlg::GetTempDataFileName(CString csFilename)
 {
-    CString GetTempDataFileName(CString csFilename)
+    const std::wstring extension = PortableFunctions::PathGetFileExtension(csFilename);
+    CString csBaseFilename = PortableFunctions::PathRemoveFileExtensionCS(csFilename);
+    CString csTempFileName;
+
+    do
     {
-        CString csExtension = PortableFunctions::PathGetFileExtension<CString>(csFilename);
-        CString csBaseFilename = PortableFunctions::PathRemoveFileExtension<CString>(csFilename);
-        CString csTempFileName;
+        csBaseFilename.AppendFormat(L".tmp");
+        csTempFileName.Format(L"%s%s%s", csBaseFilename.GetString(), extension.empty() ? L"" : L".", extension.c_str());
 
-        do
-        {
-            csBaseFilename.AppendFormat(_T(".tmp"));
-            csTempFileName.Format(_T("%s%s%s"), (LPCTSTR)csBaseFilename, csExtension.IsEmpty() ? _T("") : _T("."), (LPCTSTR)csExtension);
+    } while( PortableFunctions::FileExists(csTempFileName) );
 
-        } while( PortableFunctions::FileExists(csTempFileName) );
-
-        return csTempFileName;
-    }
-
-    ConnectionString GetTempDataFileConnectionString(const ConnectionString& connection_string)
-    {
-        return ConnectionString(connection_string.ToString(CS2WS(GetTempDataFileName(WS2CS(connection_string.GetFilename())))));
-    }
+    return csTempFileName;
 }
 
 
-std::unique_ptr<CaseAccess> CDictionaryMacros::CreateCaseAccess()
+ConnectionString DictionaryMacrosDlg::GetTempDataFileConnectionString(const ConnectionString& connection_string)
+{
+    return ConnectionString(connection_string.ToString(UTF8_TODO::GetUtf8(GetTempDataFileName(UTF8_TODO::GetCString(connection_string.GetFilePath())))));
+}
+
+
+std::unique_ptr<CaseAccess> DictionaryMacrosDlg::CreateCaseAccess()
 {
     m_pDict->UpdatePointers();
 
@@ -1855,17 +1848,20 @@ struct CaseIteratorRoutine
 };
 
 
-void CDictionaryMacros::RunCaseIteratorRoutine(const CaseIteratorRoutine& case_iterator_routine, const TCHAR* action_verb_base)
+void DictionaryMacrosDlg::RunCaseIteratorRoutine(const CaseIteratorRoutine& case_iterator_routine, const char* const action_verb_base)
 {
     const size_t ProgressUpdateFrequency = 100;
 
-    CString post_operation_message;
+    std::unique_ptr<DataRepository> output_repository;
+    std::string post_operation_message;
     bool success = false;
 
     try
     {
-        CString progress_title_and_status;
-        progress_title_and_status.Format(_T("%sing..."), action_verb_base);
+        if( case_iterator_routine.output_connection_string.SharesResource(case_iterator_routine.input_connection_strings) )
+            throw CSProException("You cannot output to the same data source as the input: " + case_iterator_routine.output_connection_string.ToDisplayString());
+
+        const std::string progress_title_and_status = FormatText("%sing...", action_verb_base);
 
         ThreadedProgressDlg progress_dlg;
         progress_dlg.SetTitle(progress_title_and_status);
@@ -1879,18 +1875,22 @@ void CDictionaryMacros::RunCaseIteratorRoutine(const CaseIteratorRoutine& case_i
         size_t cases_until_progress_update = ProgressUpdateFrequency;
 
         // open the repositories
-        std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(case_access,
-            case_iterator_routine.output_connection_string, DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
+        output_repository = DataRepository::CreateAndOpen(case_access,
+                                                          case_iterator_routine.output_connection_string,
+                                                          DataRepositoryAccess::BatchOutput,
+                                                          DataRepositoryOpenFlag::CreateNew);
 
         for( const ConnectionString& input_connection_string : case_iterator_routine.input_connection_strings )
         {
-            std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(case_access,
-                input_connection_string, case_iterator_routine.input_access_type, DataRepositoryOpenFlag::OpenMustExist);
+            const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(case_access,
+                                                                                                   input_connection_string,
+                                                                                                   case_iterator_routine.input_access_type,
+                                                                                                   DataRepositoryOpenFlag::OpenMustExist);
 
             // start the iterator
-            std::unique_ptr<CaseIterator> case_iterator = input_repository->CreateCaseIterator(
-                ( case_iterator_routine.input_access_type == DataRepositoryAccess::BatchInput ) ?
-                CaseIterationMethod::SequentialOrder : CaseIterationMethod::KeyOrder, CaseIterationOrder::Ascending);
+            const CaseIterationMethod case_iteration_method = ( case_iterator_routine.input_access_type == DataRepositoryAccess::BatchInput ) ?
+                                                              CaseIterationMethod::SequentialOrder : CaseIterationMethod::KeyOrder;
+            std::unique_ptr<CaseIterator> case_iterator = input_repository->CreateCaseIterator(case_iteration_method, CaseIterationOrder::Ascending);
 
             // read and write the case
             while( case_iterator->NextCase(*data_case) )
@@ -1926,57 +1926,66 @@ void CDictionaryMacros::RunCaseIteratorRoutine(const CaseIteratorRoutine& case_i
             DataRepositoryHelpers::RenameRepository(case_iterator_routine.output_connection_string, case_iterator_routine.input_connection_strings.front());
         }
 
-        post_operation_message.Format(_T("%d case%s in %s%s %c%sed"), (int)cases_written, PluralizeWord(cases_written),
-            (LPCTSTR)PortableFunctions::PathGetFilename(case_iterator_routine.input_connection_strings.front().GetFilename()),
-            ( case_iterator_routine.input_connection_strings.size() == 1 ) ? _T("") : _T(" and other files"),
-            tolower(action_verb_base[0]), action_verb_base + 1);
+        post_operation_message = FormatText("%d case%s in %s%s %c%sed",
+                                            static_cast<int>(cases_written), PluralizeWord(cases_written),
+                                            case_iterator_routine.input_connection_strings.front().ToDisplayString(true).c_str(),
+                                            ( case_iterator_routine.input_connection_strings.size() == 1 ) ? "" : " and other data sources",
+                                            tolower(action_verb_base[0]), action_verb_base + 1);
 
         success = true;
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
-        post_operation_message = WS2CS(exception.GetErrorMessage());
+        post_operation_message = exception.what();
     }
 
     catch(...)
     {
-        post_operation_message = _T("Operation canceled");
+        post_operation_message = "Operation canceled";
     }
 
     // on error, delete the output repository
-    if( !success )
-        PortableFunctions::FileDelete(case_iterator_routine.output_connection_string.GetFilename());
+    if( !success && output_repository != nullptr )
+    {
+        try
+        {
+            output_repository->DeleteRepository();
+        }
+        catch(...) { ASSERT(false); }
+    }
 
     AfxMessageBox(post_operation_message);
 }
 
 
-void CDictionaryMacros::OnBnClickedCompactDataFile()
+void DictionaryMacrosDlg::OnBnClickedCompactDataFile()
 {
     RunCompactSortDataFile(true);
 }
 
-void CDictionaryMacros::OnBnClickedSortDataFile()
+
+void DictionaryMacrosDlg::OnBnClickedSortDataFile()
 {
     RunCompactSortDataFile(false);
 }
 
-void CDictionaryMacros::RunCompactSortDataFile(bool compact_data)
+
+void DictionaryMacrosDlg::RunCompactSortDataFile(const bool compact_data)
 {
     DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true);
-    data_file_dlg.SetDictionaryFilename(m_pDict->GetFullFileName());
+    data_file_dlg.SetDictionaryFilePath(m_pDict->GetFilePath());
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
 
-    if( !data_file_dlg.GetConnectionString().IsFilenamePresent() )
+    if( !data_file_dlg.GetConnectionString().HasFilePath() )
     {
-        AfxMessageBox(_T("You must select an actual data file"));
+        AfxMessageBox(L"You must select a file-based data source.");
         return;
     }
 
-    CaseIteratorRoutine case_iterator_routine
+    const CaseIteratorRoutine case_iterator_routine
     {
         data_file_dlg.GetConnectionStrings(),
         compact_data ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
@@ -1985,11 +1994,11 @@ void CDictionaryMacros::RunCompactSortDataFile(bool compact_data)
         nullptr
     };
 
-    RunCaseIteratorRoutine(case_iterator_routine, compact_data ? _T("Compact") : _T("Sort"));
+    RunCaseIteratorRoutine(case_iterator_routine, compact_data ? "Compact" : "Sort");
 }
 
 
-void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
+void DictionaryMacrosDlg::OnBnClickedCreateSample() // 20110222
 {
     // check the parameters
     bool randomFile = IsDlgButtonChecked(IDC_RANDOM_FILE) == BST_CHECKED;
@@ -1999,7 +2008,7 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
 
     if( strPercent.IsEmpty() )
     {
-        AfxMessageBox(_T("Specify the percentage of cases to output"));
+        AfxMessageBox(L"Specify the percentage of cases to output");
         return;
     }
 
@@ -2007,13 +2016,13 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
 
     if( percent < 1 || percent > 99 )
     {
-        AfxMessageBox(_T("Enter a valid number for the percentage of cases to output"));
+        AfxMessageBox(L"Enter a valid number for the percentage of cases to output");
         return;
     }
 
     if( !randomFile && ( 100 % percent ) != 0 )
     {
-        AfxMessageBox(_T("When specifying sequential the percentage must divide evenly by 100"));
+        AfxMessageBox(L"When specifying sequential the percentage must divide evenly by 100");
         return;
     }
 
@@ -2022,7 +2031,7 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
 
     if( strStartPos.IsEmpty() )
     {
-        AfxMessageBox(_T("Specify the position to start outputting cases"));
+        AfxMessageBox(L"Specify the position to start outputting cases");
         return;
     }
 
@@ -2030,14 +2039,14 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
 
     if( startPos <= 0 )
     {
-        AfxMessageBox(_T("Enter a valid number for the position to start outputting cases"));
+        AfxMessageBox(L"Enter a valid number for the position to start outputting cases");
         return;
     }
 
 
     DataFileDlg source_data_file_dlg(DataFileDlg::Type::OpenExisting, true);
-    source_data_file_dlg.SetTitle(_T("Select Original Data File(s)"))
-                        .SetDictionaryFilename(m_pDict->GetFullFileName())
+    source_data_file_dlg.SetTitle(L"Select Original Data Source(s)")
+                        .SetDictionaryFilePath(m_pDict->GetFilePath())
                         .AllowMultipleSelections();
 
     if( source_data_file_dlg.DoModal() != IDOK )
@@ -2047,11 +2056,11 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
     ConnectionString suggested_sample_connection_string;
 
     if( source_data_file_dlg.GetConnectionStrings().size() == 1 )
-        suggested_sample_connection_string = PathHelpers::AppendToConnectionStringFilename(source_data_file_dlg.GetConnectionString(), _T("_sample"));
+        suggested_sample_connection_string = PathHelpers::AppendToConnectionStringFilename(source_data_file_dlg.GetConnectionString(), "_sample");
 
     DataFileDlg sample_data_file_dlg(DataFileDlg::Type::CreateNew, false, suggested_sample_connection_string);
-    sample_data_file_dlg.SetTitle(_T("Select Sample Data File"))
-                        .SetDictionaryFilename(m_pDict->GetFullFileName())
+    sample_data_file_dlg.SetTitle(L"Select Sample Data File")
+                        .SetDictionaryFilePath(m_pDict->GetFilePath())
                         .SuggestMatchingDataRepositoryType(source_data_file_dlg.GetConnectionStrings());
 
     if( sample_data_file_dlg.DoModal() != IDOK )
@@ -2067,7 +2076,9 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
     std::function<bool()> should_write_case_callback = [&]() -> bool
     {
         if( randomFile )
+        {
             return ( random_number_generator(random_engine) <= percent );
+        }
 
         else
         {
@@ -2078,12 +2089,14 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
             }
 
             else
+            {
                 return false;
+            }
         }
     };
 
     // simply read cases from one repository and write them to another (for text repositories this will remove erased records)
-    CaseIteratorRoutine case_iterator_routine
+    const CaseIteratorRoutine case_iterator_routine
     {
         source_data_file_dlg.GetConnectionStrings(),
         DataRepositoryAccess::BatchInput,
@@ -2092,22 +2105,22 @@ void CDictionaryMacros::OnBnClickedCreateSample() // 20110222
         &should_write_case_callback
     };
 
-    RunCaseIteratorRoutine(case_iterator_routine, _T("Sampl"));
+    RunCaseIteratorRoutine(case_iterator_routine, "Sampl");
 }
 
 
-void CDictionaryMacros::OnBnClickedCreateNotesDictionary()
+void DictionaryMacrosDlg::OnBnClickedCreateNotesDictionary()
 {
-    const TCHAR* const NamePrefix = _T("NOTES_");
+    constexpr std::string_view NamePrefix_sv = "NOTES_";
 
-    CIMSAFileDialog dcfNameDlg(FALSE,FileExtensions::Dictionary,NULL,OFN_OVERWRITEPROMPT,_T("Notes Dictionary File (*.dcf)|*.dcf||"));
+    SaveFileDlg save_file_dlg(0, FileExtensions::Dictionary, nullptr, L"Notes Dictionary File (*.dcf)|*.dcf||", this);
 
-    if( dcfNameDlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
     CDataDict notes_dictionary;
-    notes_dictionary.SetName(NamePrefix + m_pDict->GetName());
-    notes_dictionary.SetLabel(m_pDict->GetLabel() + _T(" (Notes Dictionary)"));
+    notes_dictionary.SetName(SO::Concatenate(NamePrefix_sv, m_pDict->GetName()));
+    notes_dictionary.SetLabel(m_pDict->GetLabel() + L" (Notes Dictionary)");
     notes_dictionary.SetPosRelative(true);
     notes_dictionary.SetRecTypeLen(0);
     notes_dictionary.SetRecTypeStart(0);
@@ -2115,46 +2128,46 @@ void CDictionaryMacros::OnBnClickedCreateNotesDictionary()
     const DictLevel& source_dict_level = m_pDict->GetLevel(0);
 
     DictLevel notes_dict_level;
-    notes_dict_level.SetName(NamePrefix + source_dict_level.GetName());
-    notes_dict_level.SetLabel(source_dict_level.GetLabel() + _T(" (Notes Level)"));
+    notes_dict_level.SetName(SO::Concatenate(NamePrefix_sv, source_dict_level.GetName()));
+    notes_dict_level.SetLabel(source_dict_level.GetLabel() + L" (Notes Level)");
 
     CDictRecord notes_dict_record;
-    notes_dict_record.SetName(_T("NOTES_REC"));
-    notes_dict_record.SetLabel(m_pDict->GetLabel() + _T(" (Notes Record)"));
+    notes_dict_record.SetName("NOTES_REC");
+    notes_dict_record.SetLabel(m_pDict->GetLabel() + L" (Notes Record)");
 
     int iItemPos = 1;
 
     // add the ID items
     std::vector<const CDictItem*> id_items = m_pDict->GetIdItems();
 
-    CDictRecord* pNotesIdItemsRec = notes_dict_level.GetIdItemsRec();
+    CDictRecord& id_dict_record = *notes_dict_level.GetIdItemsRec();
 
     for( size_t i = 0; i < id_items.size(); ++i )
     {
-        pNotesIdItemsRec->AddItem(id_items[i]);
-        pNotesIdItemsRec->GetItem(i)->SetStart(iItemPos);
+        id_dict_record.AddItem(id_items[i]);
+        id_dict_record.GetItem(i)->SetStart(iItemPos);
         iItemPos += id_items[i]->GetLen();
     }
 
     // create a value set with the names of all of the fields
-    const int FieldNameLength = 32;
     DictValueSet field_name_value_set;
 
     for( const DictLevel& dict_level : m_pDict->GetLevels() )
     {
-        for( int record_index = -1; record_index < dict_level.GetNumRecords(); record_index++ )
+        for( int r = -1; r < dict_level.GetNumRecords(); ++r )
         {
-            const CDictRecord* pRecord = ( record_index == -1 ) ? dict_level.GetIdItemsRec() : dict_level.GetRecord(record_index);
+            const CDictRecord& dict_record = ( r == -1 ) ? *dict_level.GetIdItemsRec() :
+                                                           *dict_level.GetRecord(r);
 
-            for( int item_index = 0; item_index < pRecord->GetNumItems(); item_index++ )
+            for( int i = 0; i < dict_record.GetNumItems(); ++i )
             {
-                const CDictItem* pItem = pRecord->GetItem(item_index);
-                CIMSAString field_name = CSProNameShortener::CSProToUnicode(pItem->GetName(), FieldNameLength);
-                field_name.MakeExactLength(FieldNameLength);
+                const CDictItem& dict_item = *dict_record.GetItem(i);
+                std::string field_name = NameShortener::Shorten(dict_item.GetName(), TextRepositoryNotesFile::FieldLength);
+                SO::WideMakeExactLength(field_name, TextRepositoryNotesFile::FieldLength);
 
                 DictValue dict_value;
-                dict_value.SetLabel(pItem->GetName());
-                dict_value.AddValuePair(DictValuePair(field_name));
+                dict_value.SetLabel(UTF8_TODO::GetCString(dict_item.GetName()));
+                dict_value.AddValuePair(DictValuePair(std::move(field_name)));
 
                 field_name_value_set.AddValue(std::move(dict_value));
             }
@@ -2164,74 +2177,74 @@ void CDictionaryMacros::OnBnClickedCreateNotesDictionary()
     // add the note items, all but the note itself as ID items
     CDictItem notes_dict_item;
 
-    notes_dict_item.SetName(_T("NOTES_FIELD"));
-    notes_dict_item.SetLabel(_T("Note Field Name"));
+    notes_dict_item.SetName("NOTES_FIELD");
+    notes_dict_item.SetLabel(L"Note Field Name");
     notes_dict_item.SetContentType(ContentType::Alpha);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(FieldNameLength);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::FieldLength);
 
-    field_name_value_set.SetName(notes_dict_item.GetName() + _T("_VS"));
+    field_name_value_set.SetName(notes_dict_item.GetName() + "_VS");
     field_name_value_set.SetLabel(notes_dict_item.GetLabel());
     notes_dict_item.AddValueSet(std::move(field_name_value_set));
 
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
     notes_dict_item.RemoveAllValueSets();
 
-    notes_dict_item.SetName(_T("NOTES_OPERATOR_ID"));
-    notes_dict_item.SetLabel(_T("Note Operator ID"));
+    notes_dict_item.SetName("NOTES_OPERATOR_ID");
+    notes_dict_item.SetLabel(L"Note Operator ID");
     notes_dict_item.SetContentType(ContentType::Alpha);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(32);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::OperatorIdLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_MODIFIED_DATE"));
-    notes_dict_item.SetLabel(_T("Note Modified Date"));
+    notes_dict_item.SetName("NOTES_MODIFIED_DATE");
+    notes_dict_item.SetLabel(L"Note Modified Date");
     notes_dict_item.SetContentType(ContentType::Numeric);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(8);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::ModifiedDateLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_MODIFIED_TIME"));
-    notes_dict_item.SetLabel(_T("Note Modified Time"));
+    notes_dict_item.SetName("NOTES_MODIFIED_TIME");
+    notes_dict_item.SetLabel(L"Note Modified Time");
     notes_dict_item.SetContentType(ContentType::Numeric);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(6);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::ModifiedTimeLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_RECORD_OCC"));
-    notes_dict_item.SetLabel(_T("Note Record Occurrence"));
+    notes_dict_item.SetName("NOTES_RECORD_OCC");
+    notes_dict_item.SetLabel(L"Note Record Occurrence");
     notes_dict_item.SetContentType(ContentType::Numeric);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(5);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::OccurrenceLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_ITEM_OCC"));
-    notes_dict_item.SetLabel(_T("Note Item Occurrence"));
+    notes_dict_item.SetName("NOTES_ITEM_OCC");
+    notes_dict_item.SetLabel(L"Note Item Occurrence");
     notes_dict_item.SetContentType(ContentType::Numeric);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(5);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::OccurrenceLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_SUBITEM_OCC"));
-    notes_dict_item.SetLabel(_T("Note Subitem Occurrence"));
+    notes_dict_item.SetName("NOTES_SUBITEM_OCC");
+    notes_dict_item.SetLabel(L"Note Subitem Occurrence");
     notes_dict_item.SetContentType(ContentType::Numeric);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(5);
-    pNotesIdItemsRec->AddItem(&notes_dict_item);
+    notes_dict_item.SetLen(TextRepositoryNotesFile::OccurrenceLength);
+    id_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
-    notes_dict_item.SetName(_T("NOTES_NOTE"));
-    notes_dict_item.SetLabel(_T("Note"));
+    notes_dict_item.SetName("NOTES_NOTE");
+    notes_dict_item.SetLabel(L"Note");
     notes_dict_item.SetContentType(ContentType::Alpha);
     notes_dict_item.SetStart(iItemPos);
-    notes_dict_item.SetLen(999);
+    notes_dict_item.SetLen(MAX_ALPHA_ITEM_LEN);
     notes_dict_record.AddItem(&notes_dict_item);
     iItemPos += notes_dict_item.GetLen();
 
@@ -2242,11 +2255,11 @@ void CDictionaryMacros::OnBnClickedCreateNotesDictionary()
 
     try
     {
-        notes_dictionary.Save(dcfNameDlg.GetPathName());
+        notes_dictionary.Save(save_file_dlg.GetFilePath());
     }
 
     catch( const CSProException& exception )
     {
-		ErrorMessage::Display(exception);
+        ErrorMessage::Display(exception);
     }
 }

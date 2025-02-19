@@ -8,6 +8,8 @@ namespace ActionInvoker { class ListenerHolder; }
 
 class ViewHtmlDlg : public HtmlViewDlg
 {
+    friend class ViewHtmlDlgActionInvokerListener;
+
 public:
     ViewHtmlDlg(const Viewer& viewer, CWnd* pParent = nullptr);
     ~ViewHtmlDlg();

@@ -24,7 +24,7 @@ public:
     COrderTreeCtrl();
 
     void RestoreItemSelection();
-    HTREEITEM InsertOrderFile(const CString& sLabel, const CString& sOrderFileName, COrderDoc* pDoc);
+    HTREEITEM InsertOrderFile(const CString& sOrderFileName, COrderDoc* pDoc);
 
     void SetDocTemplate(CDocTemplate* pTemplate) { m_pDocTemplate = pTemplate; }
 
@@ -52,9 +52,9 @@ public:
 
     AppTreeNode* GetTreeNode(HTREEITEM hItem) const { return reinterpret_cast<AppTreeNode*>(GetItemData(hItem)); }
     FormOrderAppTreeNode* GetFormOrderAppTreeNode(CDocument& document) const;
-    FormOrderAppTreeNode* GetFormOrderAppTreeNode(wstring_view filename) const;
+    FormOrderAppTreeNode* GetFormOrderAppTreeNode(std::string_view file_path) const;
 
-    BOOL OpenOrderFile(const CString &sOrderFile);
+    BOOL OpenOrderFile(const std::string& order_file_path);
 
     void ReleaseOrderNode(FormOrderAppTreeNode& form_order_app_tree_node);
     void ReleaseDoc(FormOrderAppTreeNode& form_order_app_tree_node);

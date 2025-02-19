@@ -14,7 +14,7 @@ namespace CSPro
             ~MappingSharedHtmlLocalFileServer() { this->!MappingSharedHtmlLocalFileServer(); }
             !MappingSharedHtmlLocalFileServer();
 
-            System::String^ GetProjectUrl(System::String^ url_from_project_root);
+            System::String^ CreateProjectUrl(System::String^ url_from_project_root);
 
         private:
             SharedHtmlLocalFileServer* m_fileServer;

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <zToolsO/StandardTemplatesCpp20.h>
 #include <memory>
 
 
@@ -49,4 +50,16 @@ constexpr auto GetPointer(T& pointer_or_value)
     {
         return &pointer_or_value;
     }
+}
+
+
+template<typename T>
+auto CreateCopyOfPointerValue(const T& pointer)
+{
+    static_assert(IsPointer<T>());
+
+    using ValueType = std::remove_cvref_t<decltype(*pointer)>;
+
+    return ( pointer != nullptr ) ? std::make_unique<ValueType>(*pointer) :
+                                    nullptr;
 }

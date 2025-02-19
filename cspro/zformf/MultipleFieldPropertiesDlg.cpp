@@ -150,14 +150,14 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
     pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<default for field>")), (void*)CAPTURETYPE_DEFAULT);
     pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<linked to dictionary item when possible>")), (void*)CAPTURETYPE_LINK_TO_DICT_IF_DEFINED);
 
-    for( int int_capture_type : valid_capture_types )
+    for( const int int_capture_type : valid_capture_types )
     {
-        const TCHAR* text = ( int_capture_type == CAPTURETYPE_TEXTBOX_NO_TICKMARKS ) ? CAPTURETYPE_TEXTBOX_NO_TICKMARKS_DESCRIPTION :
-                            ( int_capture_type == CAPTURETYPE_TEXTBOX_MULTILINE )    ? CAPTURETYPE_TEXTBOX_MULTILINE_DESCRIPTION :
-                            ( int_capture_type == (int)CaptureType::Unspecified )    ? CAPTURETYPE_UNASSIGNED_DESCRIPTION :
-                                                                                       CaptureInfo::GetCaptureTypeName((CaptureType)int_capture_type, true);
+        const char* const text = ( int_capture_type == CAPTURETYPE_TEXTBOX_NO_TICKMARKS )           ? CAPTURETYPE_TEXTBOX_NO_TICKMARKS_DESCRIPTION :
+                                 ( int_capture_type == CAPTURETYPE_TEXTBOX_MULTILINE )              ? CAPTURETYPE_TEXTBOX_MULTILINE_DESCRIPTION :
+                                 ( int_capture_type == static_cast<int>(CaptureType::Unspecified) ) ? CAPTURETYPE_UNASSIGNED_DESCRIPTION :
+                                                                                                      CaptureInfo::GetCaptureTypeName(static_cast<CaptureType>(int_capture_type), true);
 
-        int index = pComboBox->AddString(text);
+        const int index = pComboBox->AddString(TC::ToWide(text).c_str());
         pComboBox->SetItemDataPtr(index, (void*)int_capture_type);
     }
 

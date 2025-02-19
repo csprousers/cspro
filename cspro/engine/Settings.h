@@ -138,8 +138,6 @@ private:
 
     bool    m_bExitWhenFinish;
 
-    bool    m_treatSpecialValuesAsZero;  //GHM 20090827
-
     // --- Export options                             // victor Dec 18, 00
     bool    m_bExportData;              // ... export DAT file
     bool    m_bExportSPSS;              // ... export description for SPSS
@@ -296,9 +294,6 @@ public:
     void    SetExitWhenFinish( bool bExitWhenFinish )   { m_bExitWhenFinish = bExitWhenFinish; }
     bool    GetExitWhenFinish() const                   { return m_bExitWhenFinish; }
 
-    void    SetTreatSpecialValuesAsZero( bool bTreat )  { m_treatSpecialValuesAsZero = bTreat; } // GHM 200900827
-    bool    GetTreatSpecialValuesAsZero() const         { return m_treatSpecialValuesAsZero; }   // GHM 200900827
-
     // --- Export options                             // victor Dec 18, 00
 public:
     void    SetExportData( bool bSet )          { m_bExportData  = bSet; }
@@ -348,7 +343,6 @@ public:
     // --- Miscellaneous
 public:
     CString m_ApplName;                 // name of current application
-    DICT*   m_Workdict;                 // internal workDict
 
 public:
     CString m_Failmsg;
@@ -390,7 +384,6 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 
 #define ApplName            m_pEngineSettings->m_ApplName
-#define Workdict            m_pEngineSettings->m_Workdict
 #define Failmsg             m_pEngineSettings->m_Failmsg
 
 #define QidVars             m_pEngineSettings->m_QidVars

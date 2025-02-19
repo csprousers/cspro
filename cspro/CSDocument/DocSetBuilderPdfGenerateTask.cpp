@@ -21,7 +21,7 @@ bool CSDocCompilerSettingsForBuildingPdf::AddHtmlHeader() const
         return CSDocCompilerSettingsForBuilding::AddHtmlHeader();
 
     // add the header for the cover page or the first document
-    return ( m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex <= m_generateTaskForDocSetBuild->m_csdocFirstNonCoverPageCompilationIndex ); 
+    return ( m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex <= m_generateTaskForDocSetBuild->m_csdocFirstNonCoverPageCompilationIndex );
 }
 
 
@@ -32,24 +32,24 @@ bool CSDocCompilerSettingsForBuildingPdf::AddHtmlFooter() const
 
     // add the header for the cover page or the last document
     return ( ( m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex < m_generateTaskForDocSetBuild->m_csdocFirstNonCoverPageCompilationIndex ) ||
-             ( ( m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex + 1 ) == m_generateTaskForDocSetBuild->m_csdocFilenamesInCompilationOrder.size() ) );
+             ( ( m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex + 1 ) == m_generateTaskForDocSetBuild->m_csdocFilePathsInCompilationOrder.size() ) );
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingPdf::GetHtmlHeaderTitle(const std::wstring& csdoc_filename)
+std::string CSDocCompilerSettingsForBuildingPdf::GetHtmlHeaderTitle(const std::string& csdoc_file_path)
 {
     if( m_generateTaskForDocSetBuild == nullptr )
-        return CSDocCompilerSettingsForBuilding::GetHtmlHeaderTitle(csdoc_filename);
+        return CSDocCompilerSettingsForBuilding::GetHtmlHeaderTitle(csdoc_file_path);
 
     ASSERT(m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex <= m_generateTaskForDocSetBuild->m_csdocFirstNonCoverPageCompilationIndex);
     return GetDocSetSpec().GetTitleOrFilenameWithoutExtension();
 }
 
 
-std::tuple<std::wstring, std::wstring> CSDocCompilerSettingsForBuildingPdf::GetHtmlToWrapDocument()
+std::tuple<std::string, std::string> CSDocCompilerSettingsForBuildingPdf::GetHtmlToWrapDocument()
 {
     // construct HTML for any chapter titles that preceed the current document
-    std::wstring titles_html;
+    std::string titles_html;
 
     if( m_generateTaskForDocSetBuild != nullptr )
     {
@@ -59,16 +59,16 @@ std::tuple<std::wstring, std::wstring> CSDocCompilerSettingsForBuildingPdf::GetH
             {
                 if( titles_html.empty() )
                 {
-                    titles_html = _T("<h1>");
+                    titles_html = "<h1>";
                 }
 
                 else
                 {
-                    titles_html.append(_T("<h1 style=\"page-break-before: avoid;\">"));
+                    titles_html.append("<h1 style=\"page-break-before: avoid;\">");
                 }
 
                 titles_html.append(Encoders::ToHtml(title));
-                titles_html.append(_T("</h1>"));
+                titles_html.append("</h1>");
             }
 
             else if( csdoc_compilation_index > m_generateTaskForDocSetBuild->m_csdocCurrentCompilationIndex )
@@ -78,16 +78,16 @@ std::tuple<std::wstring, std::wstring> CSDocCompilerSettingsForBuildingPdf::GetH
         }
     }
 
-    const std::wstring anchor_id = CreateHtmlAnchorId(GetCompilationFilename(), *m_docSetSpec);
-        
-    return std::make_tuple(titles_html + _T("<div id=\"") + Encoders::ToHtmlTagValue(anchor_id) + _T("\">"),
-                                         _T("</div>"));
+    const std::string anchor_id = CreateHtmlAnchorId(GetCompilationFilePath(), *m_docSetSpec);
+
+    return std::make_tuple(SO::Concatenate(std::move(titles_html), "<div id=\"", Encoders::ToHtmlTagValue(anchor_id), "\">"),
+                           "</div>");
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingPdf::EvaluateBuildExtra(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuildingPdf::EvaluateBuildExtra(const std::string& path)
 {
-    std::wstring evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
+    std::string evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
 
     if( m_generateTaskForDocSetBuild != nullptr )
         CreatePathAndCopyFileToDirectory(evaluated_path, m_generateTaskForDocSetBuild->GetTempOutputDirectory());
@@ -96,35 +96,35 @@ std::wstring CSDocCompilerSettingsForBuildingPdf::EvaluateBuildExtra(const std::
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingPdf::CreateHtmlAnchorId(const std::wstring& csdoc_filename, const DocSetSpec& doc_set_spec)
+std::string CSDocCompilerSettingsForBuildingPdf::CreateHtmlAnchorId(const std::string& csdoc_file_path, const DocSetSpec& doc_set_spec)
 {
     constexpr size_t hash_length = 4;
-    constexpr wstring_view salt_sv = _T("CSDocument");
+    constexpr std::string_view salt_sv = "CSDocument";
 
     // the anchor ID will be a hash of the relative path of the CSPro Document to the Document Set
-    const std::wstring relative_path = GetRelativeFNameForDisplay(doc_set_spec.GetFilename(), csdoc_filename);
+    const std::string relative_path = GetRelativePathForDisplay(doc_set_spec.GetFilePath(), csdoc_file_path);
 
     return Hash::Hash(relative_path, hash_length, salt_sv);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingPdf::CreateUrlForDocSetTopic(const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuildingPdf::CreateUrlForDocSetTopic(const std::string& path) const
 {
     ASSERT(m_buildSettings.GetDocSetLinkageAction() == DocBuildSettings::DocSetLinkageAction::Link);
 
     // the link will be an anchor ID
-    return _T("#") + CreateHtmlAnchorId(path, *m_docSetSpec);
+    return "#" + CreateHtmlAnchorId(path, *m_docSetSpec);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingPdf::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuildingPdf::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const
 {
     ASSERT(m_buildSettings.GetProjectLinkageAction() == DocBuildSettings::ProjectLinkageAction::Link);
 
     // the link will be the built filename of the project along with the anchor ID
-    const std::wstring project_output_filename = project_settings.GetDocSetBuildOutputFilename();
+    const std::string project_output_file_path = project_settings.GetDocSetBuildOutputFilePath();
 
-    return CreateRelativeUrlForPath(project_output_filename) + _T("#") + CreateHtmlAnchorId(path, project_settings.GetDocSetSpec());
+    return SO::Concatenate(CreateRelativeUrlForPath(project_output_file_path), "#", CreateHtmlAnchorId(path, project_settings.GetDocSetSpec()));
 }
 
 
@@ -134,9 +134,10 @@ std::wstring CSDocCompilerSettingsForBuildingPdf::CreateUrlForProjectTopic(const
 // --------------------------------------------------------------------------
 
 DocSetBuilderPdfGenerateTask::DocSetBuilderPdfGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                                           const DocBuildSettings& base_build_settings, std::wstring build_name,
-                                                           bool throw_exceptions_for_serious_issues_when_validating_build_settings)
-    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings, DocBuildSettings::BuildType::Pdf, std::move(build_name), throw_exceptions_for_serious_issues_when_validating_build_settings)),
+                                                           const DocBuildSettings& base_build_settings, std::string build_name,
+                                                           const bool throw_exceptions_for_serious_issues_when_validating_build_settings)
+    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings, DocBuildSettings::BuildType::Pdf,
+                                                                                             std::move(build_name), throw_exceptions_for_serious_issues_when_validating_build_settings)),
         m_csdocFirstNonCoverPageCompilationIndex(0),
         m_csdocCurrentCompilationIndex(0),
         m_csdocsHtmlFile(nullptr)
@@ -146,7 +147,7 @@ DocSetBuilderPdfGenerateTask::DocSetBuilderPdfGenerateTask(cs::non_null_shared_o
 
 DocSetBuilderPdfGenerateTask::~DocSetBuilderPdfGenerateTask()
 {
-    ASSERT(m_csdocsHtmlFile == nullptr); 
+    ASSERT(m_csdocsHtmlFile == nullptr);
 }
 
 
@@ -167,7 +168,10 @@ void DocSetBuilderPdfGenerateTask::ValidateInputs()
 void DocSetBuilderPdfGenerateTask::ValidateInputsPostDocSetCompilation()
 {
     if( !GetDocSetSpec().GetTableOfContents().has_value() )
-        throw CSProException(_T("You cannot build a PDF without defining a %s."), ToString(DocSetComponent::Type::TableOfContents));
+    {
+        throw CSProException("You cannot build a PDF without defining a %s.",
+                             ToString(DocSetComponent::Type::TableOfContents));
+    }
 }
 
 
@@ -175,7 +179,7 @@ void DocSetBuilderPdfGenerateTask::OnRun()
 {
     const int64_t start_timestamp = GetTimestamp<int64_t>();
 
-    GetInterface().SetTitle(_T("Building Document Set to a PDF: ") + GetDocSetSpec().GetFilename());
+    GetInterface().SetTitle(FormatText("Building Document Set to a PDF: %s", GetDocSetSpec().GetFilePath().c_str()));
 
     // all compiled files will be saved to a temporary directory
     CreateTempOutputDirectory();
@@ -196,9 +200,9 @@ void DocSetBuilderPdfGenerateTask::OnRun()
         throw;
     }
 
-    GetInterface().LogText(FormatTextCS2WS(_T("\nBuild completed in %s."), GetElapsedTimeText(start_timestamp).c_str()));
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
 
-    GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_pdfOutputFilename), m_pdfOutputFilename);
+    GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_pdfOutputFilePath), m_pdfOutputFilePath);
 }
 
 
@@ -218,54 +222,53 @@ void DocSetBuilderPdfGenerateTask::OnPreCSDocCompilation()
     // evaluate the compilation order (using the Table of Contents)
     EvaluateCompilationOrder();
 
-    m_pdfOutputFilename = m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputFilename();
-    FileIO::CreateDirectoriesForFile(m_pdfOutputFilename);
+    m_pdfOutputFilePath = m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputFilePath();
+    FileIO::CreateDirectoriesForFile(m_pdfOutputFilePath);
 }
 
 
-const std::vector<std::wstring>& DocSetBuilderPdfGenerateTask::GetCSDocFilenamesInCompilationOrder()
+const std::vector<std::string>& DocSetBuilderPdfGenerateTask::GetCSDocFilePathsInCompilationOrder()
 {
-    return m_csdocFilenamesInCompilationOrder;
+    return m_csdocFilePathsInCompilationOrder;
 }
 
 
-std::wstring DocSetBuilderPdfGenerateTask::GetCSDocOutputFilename(const std::wstring& csdoc_filename)
+std::string DocSetBuilderPdfGenerateTask::GetCSDocOutputFilePath(const std::string& csdoc_file_path)
 {
     // return a fake filename (with the the right name in the ultimate output directory)
-    return PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory(m_pdfOutputFilename),
-                                               m_csdocCompilerSettingsForBuilding->GetBuiltHtmlFilename(csdoc_filename));
+    return PortableFunctions::PathReplaceFilename(m_pdfOutputFilePath,
+                                                  m_csdocCompilerSettingsForBuilding->GetBuiltHtmlFilename(csdoc_file_path));
 }
 
 
-void DocSetBuilderPdfGenerateTask::OnCSDocCompilationResult(const std::wstring& /*csdoc_filename*/, const std::wstring& /*output_filename*/, const std::wstring& html)
+void DocSetBuilderPdfGenerateTask::OnCSDocCompilationResult(const std::string& /*csdoc_file_path*/, const std::string& /*output_file_path*/, const std::string& html)
 {
     const bool result_is_cover_page = ( m_csdocCurrentCompilationIndex < m_csdocFirstNonCoverPageCompilationIndex );
     FILE* file = result_is_cover_page ? nullptr : m_csdocsHtmlFile;
-    std::wstring& html_filename = result_is_cover_page ? m_coverPageHtmlFilename : m_csdocsHtmlFilename;
+    std::string& html_file_path = result_is_cover_page ? m_coverPageHtmlFilePath : m_csdocsHtmlFilePath;
 
     // open the file if not yet open
     if( file == nullptr )
     {
-        ASSERT(html_filename.empty());
+        ASSERT(html_file_path.empty());
 
-        html_filename = m_pdfCreator->CreateTemporaryHtmlFilename(GetTempOutputDirectory(),
-                                                                  result_is_cover_page ? 1 : m_csdocFilenamesInCompilationOrder.size());
+        html_file_path = m_pdfCreator->CreateTemporaryHtmlFilePath(GetTempOutputDirectory(),
+                                                                   result_is_cover_page ? 1 : m_csdocFilePathsInCompilationOrder.size());
 
-        file = FileIO::OpenFileForOutput(html_filename);
+        file = FileIO::OpenFileForOutput(html_file_path);
 
         if( !result_is_cover_page )
             m_csdocsHtmlFile = file;
     }
 
     // write the HTML
-    const std::string utf8_html = UTF8Convert::WideToUTF8(html);
-    const size_t bytes_written = fwrite(utf8_html.data(), 1, utf8_html.length(), file);
+    const size_t bytes_written = fwrite(html.data(), 1, html.length(), file);
 
     if( result_is_cover_page )
         fclose(file);
 
-    if( bytes_written != utf8_html.length() )
-        throw CSProException(_T("There was an error writing to: ") + html_filename);
+    if( bytes_written != html.length() )
+        throw CSProException("There was an error writing to: %s", html_file_path.c_str());
 
     ++m_csdocCurrentCompilationIndex;
 }
@@ -276,7 +279,7 @@ void DocSetBuilderPdfGenerateTask::OnPostCSDocCompilation()
     fclose(m_csdocsHtmlFile);
     m_csdocsHtmlFile = nullptr;
 
-    m_pdfCreator->CreatePdf(GetSettings().GetBuildSettings(), m_pdfOutputFilename, m_csdocsHtmlFilename, m_coverPageHtmlFilename);
+    m_pdfCreator->CreatePdf(GetSettings().GetBuildSettings(), m_pdfOutputFilePath, m_csdocsHtmlFilePath, m_coverPageHtmlFilePath);
 }
 
 
@@ -294,15 +297,15 @@ public:
     }
 
 protected:
-    void StartChapter(const std::wstring& title, bool write_title_to_pdf) override
+    void StartChapter(const std::string& title, const bool write_title_to_pdf) override
     {
         if( write_title_to_pdf )
-            m_generateTask.m_csdocCompilationIndexWithPreceedingTitles.emplace_back(m_generateTask.m_csdocFilenamesInCompilationOrder.size(), title);
+            m_generateTask.m_csdocCompilationIndexWithPreceedingTitles.emplace_back(m_generateTask.m_csdocFilePathsInCompilationOrder.size(), title);
     }
 
-    void WriteDocument(const std::wstring& csdoc_filename, const std::wstring* /*title_override*/) override
+    void WriteDocument(const std::string& csdoc_file_path, const std::string* /*title_override*/) override
     {
-        m_generateTask.m_csdocFilenamesInCompilationOrder.emplace_back(csdoc_filename);
+        m_generateTask.m_csdocFilePathsInCompilationOrder.emplace_back(csdoc_file_path);
     }
 
 private:
@@ -317,9 +320,9 @@ void DocSetBuilderPdfGenerateTask::EvaluateCompilationOrder()
     // add the cover page
     if( doc_set_spec.GetCoverPageDocument() != nullptr )
     {
-        m_csdocFilenamesInCompilationOrder.emplace_back(doc_set_spec.GetCoverPageDocument()->filename);
+        m_csdocFilePathsInCompilationOrder.emplace_back(doc_set_spec.GetCoverPageDocument()->file_path);
         m_csdocFirstNonCoverPageCompilationIndex = 1;
-        ASSERT(m_csdocFirstNonCoverPageCompilationIndex == m_csdocFilenamesInCompilationOrder.size());
+        ASSERT(m_csdocFirstNonCoverPageCompilationIndex == m_csdocFilePathsInCompilationOrder.size());
     }
 
     // add the documents from the table of contents

@@ -78,12 +78,11 @@ void CGoToDlg::DoDataExchange(CDataExchange* pDX)
 
 void CGoToDlg::OnOK()
 {
-
     if(!UpdateData(TRUE)) {
         return;
     }
 
-    CIMSAString sText;
+    CString sText;
     m_numEdit.GetWindowText(sText);
 
     if(SO::IsBlank(sText) || sText.IsEmpty() ){
@@ -94,7 +93,7 @@ void CGoToDlg::OnOK()
     }
 
     if(m_iOcc < -1 ){
-        AfxMessageBox(MGF::GetMessageText(MGF::GotoInvalidOccurrence).c_str());
+        AfxMessageBox(MGF::GetMessageText(MGF::GotoInvalidOccurrence).GetString());
         return;
     }
     m_sName.MakeUpper();
@@ -107,12 +106,12 @@ void CGoToDlg::OnOK()
 
     }
     else {
-        AfxMessageBox(MGF::GetMessageText(MGF::GotoItemNotFound).c_str());
+        AfxMessageBox(MGF::GetMessageText(MGF::GotoItemNotFound).GetString());
         return;
     }
     CDEField* pField = DYNAMIC_DOWNCAST(CDEField,m_pBase);
     if(pField == NULL){
-        AfxMessageBox(MGF::GetMessageText(MGF::GotoItemNotFound).c_str());
+        AfxMessageBox(MGF::GetMessageText(MGF::GotoItemNotFound).GetString());
         return;
     }
 

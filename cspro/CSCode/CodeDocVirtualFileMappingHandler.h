@@ -14,9 +14,9 @@ public:
     }
 
 protected:
-    bool ServeDocumentContent(void* response_object) override;
+    bool ServeDocumentContent(VirtualFileMappingResponse& response) override;
 
-    std::optional<std::wstring> GetDocumentDefaultMimeType() const override
+    std::optional<std::string> GetDocumentDefaultMimeType() const override
     {
         return MimeType::Type::Text;
     }
@@ -27,7 +27,7 @@ private:
 
 
 
-inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(void* response_object)
+inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(VirtualFileMappingResponse& response)
 {
     // find the document, first searching by the filename (in case a document is closed and the new one happens to have the exact same pointer)
     CodeDoc* code_doc = !m_filePath.empty() ? m_mainFrame.FindDocument(m_filePath) :
@@ -46,7 +46,7 @@ inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(void* respons
         if( m_mainFrame.SendMessage(UWM::CSCode::GetCodeTextForDoc, reinterpret_cast<WPARAM>(code_doc), reinterpret_cast<LPARAM>(&text)) == 1 )
         {
             // determine a MIME type for this content based on either the filename or the lexer type
-            std::optional<std::wstring> mime_type;
+            std::optional<std::string> mime_type;
 
             if( !m_filePath.empty() )
                 mime_type = MimeType::GetServerTypeFromFileExtension(PortableFunctions::PathGetFileExtension(m_filePath));
@@ -54,7 +54,7 @@ inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(void* respons
             if( !mime_type.has_value() )
                 mime_type = Lexers::GetLexerDefaultServerMimeType(code_doc->GetLanguageSettings().GetLexerLanguage());
 
-            LocalFileServerSetResponse(response_object, text.c_str(), text.length(), *mime_type);
+            response.SetContent(text, *mime_type);
 
             return true;
         }

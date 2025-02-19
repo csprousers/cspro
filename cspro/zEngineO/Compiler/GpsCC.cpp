@@ -8,10 +8,10 @@ int LogicCompiler::CompileGpsFunction()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    size_t command_value = NextKeyword({ _T("open"),            _T("close"),        _T("status"),       _T("read"),         _T("readlast"),
-                                         _T("latitude"),        _T("longitude"),    _T("altitude"),     _T("satellites"),
-                                         _T("accuracy"),        _T("readtime"),     _T("distance"),
-                                         _T("readinteractive"), _T("select") });
+    const size_t command_value = NextKeyword({ "open",            "close",        "status",       "read",         "readlast",
+                                               "latitude",        "longitude",    "altitude",     "satellites",
+                                               "accuracy",        "readtime",     "distance",
+                                               "readinteractive", "select" });
 
     if( command_value == 0 )
         IssueError(MGF::GPS_invalid_command_8251);
@@ -132,7 +132,7 @@ int LogicCompiler::CompileGpsFunction()
             // ...but other arguments are specified using named arguments
             OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
-            optional_named_arguments_compiler.AddArgument(_T("baseMap"), base_map_type,
+            optional_named_arguments_compiler.AddArgument("baseMap", base_map_type,
                 [&]()
                 {
                     base_map_type = static_cast<int>(NextKeyword(GetBaseMapStrings()));
@@ -146,10 +146,10 @@ int LogicCompiler::CompileGpsFunction()
                 });
 
             if( message_expression == -1 )
-                optional_named_arguments_compiler.AddArgument(_T("message"), message_expression, DataType::String);
+                optional_named_arguments_compiler.AddArgument("message", message_expression, DataType::String);
 
             if( read_duration_expression != nullptr )
-                optional_named_arguments_compiler.AddArgument(_T("readDuration"), *read_duration_expression, DataType::Numeric);
+                optional_named_arguments_compiler.AddArgument("readDuration", *read_duration_expression, DataType::Numeric);
 
             optional_named_arguments_compiler.Compile();
 

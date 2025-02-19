@@ -1,7 +1,4 @@
-﻿// entryrun.cpp : Defines the class behaviors for the application.
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "CSEntry.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
@@ -11,28 +8,24 @@
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/CSProExecutables.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/WinFocSw.h>
+#include <zUtilF/CommonControls.h>
 #include <ZBRIDGEO/PifDlg.h>
 #include <zEngineF/PifInfoPopulator.h>
 #include <zCapiO/QSFView.h>
 #include <afxadv.h> // for mru stuff
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#endif
+// The one and only CEntryrunApp object
+CEntryrunApp theApp;
+
 
 TCHAR DECIMAL_CHAR = '.';
 
-/////////////////////////////////////////////////////////////////////////////
-// CEntryrunApp
 
 BEGIN_MESSAGE_MAP(CEntryrunApp, CWinApp)
-        //{{AFX_MSG_MAP(CEntryrunApp)
         ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
         ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
         ON_COMMAND_EX_RANGE(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, OnOpenRecentFile)
@@ -41,7 +34,6 @@ BEGIN_MESSAGE_MAP(CEntryrunApp, CWinApp)
         ON_UPDATE_COMMAND_UI(ID_OPENDAT_FILE, OnUpdateOpenDatFile)
         ON_COMMAND(ID_FILE_OPEN_DATORAPL, OnOpenDatFile)
         ON_UPDATE_COMMAND_UI(ID_FILE_OPEN_DATORAPL, OnUpdateOpenDatFile)
-        //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 // Helper classes to be used with the window focus manager (see constructor below)
@@ -55,6 +47,7 @@ struct CRunViewFocusSwitcher : public CViewFocusSwitcher
         return pWnd->IsKindOf(RUNTIME_CLASS(CEntryrunView)) != FALSE;
     }
 };
+
 
 // focus switcher for main form view
 struct CQTxtViewFocusSwitcher : public CViewFocusSwitcher
@@ -72,6 +65,7 @@ struct CQTxtViewFocusSwitcher : public CViewFocusSwitcher
         return pWnd->IsKindOf(RUNTIME_CLASS(QSFView)) != FALSE;
     }
 };
+
 
 // focus switcher for tree controls in prop pages (case view and case trees)
 struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
@@ -123,10 +117,10 @@ struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
 
 };
 
-/////////////////////////////////////////////////////////////////////////////
-// CEntryrunApp construction
 
 CEntryrunApp::CEntryrunApp()
+    :   m_pWindowFocusMgr(new CWindowFocusMgr),
+        m_pffLaunchedFromCommandLine(false)
 {
     InitializeCSProEnvironment();
 
@@ -135,12 +129,10 @@ CEntryrunApp::CEntryrunApp()
     // Place all significant initialization in InitInstance
     m_pRunAplEntry = NULL;
     m_pPifFile = NULL;
-    m_bPffLaunchedFromCommandLine = false;
 
     // Setup the window focus manager - handles changing focus between
     // main app windows on a hotkey (for accessibility)
     // Called in PreTranslateMessage
-    m_pWindowFocusMgr = new CWindowFocusMgr;
     m_pWindowFocusMgr->AddSwitcher(new CQTxtViewFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(new CRunViewFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(new CTreePropPageFocusSwitcher);
@@ -150,16 +142,20 @@ CEntryrunApp::CEntryrunApp()
 CEntryrunApp::~CEntryrunApp()
 {
     ApplicationShutdown();
+
     delete m_pWindowFocusMgr;
 }
+
 
 int CEntryrunApp::ExitInstance()
 {
     ApplicationShutdown(true);
-    return CWinApp::ExitInstance();
+
+    return __super::ExitInstance();
 }
 
-void CEntryrunApp::ApplicationShutdown(bool bCSEntryClosing/* = false*/)
+
+void CEntryrunApp::ApplicationShutdown(const bool csentry_closing/* = false*/)
 {
     if( m_pRunAplEntry != NULL )
     {
@@ -171,25 +167,18 @@ void CEntryrunApp::ApplicationShutdown(bool bCSEntryClosing/* = false*/)
 
         SAFE_DELETE(m_pRunAplEntry);
 
-        if( bCSEntryClosing && m_bPffLaunchedFromCommandLine )
+        if( csentry_closing && m_pffLaunchedFromCommandLine )
             m_pPifFile->ExecuteOnExitPff();
     }
 
     SAFE_DELETE(m_pPifFile);
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// The one and only CEntryrunApp object
 
-CEntryrunApp theApp;
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CEntryrunApp::InitInstance
-//
-/////////////////////////////////////////////////////////////////////////////
 BOOL CEntryrunApp::InitInstance()
 {
+    InitializeCommonControls();
+
     AfxOleInit();
     AfxEnableControlContainer();
 
@@ -201,7 +190,7 @@ BOOL CEntryrunApp::InitInstance()
     // Change the registry key under which our settings are stored.
     // TODO: You should modify this string to be something appropriate
     // such as the name of your company or organization.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
@@ -217,12 +206,15 @@ BOOL CEntryrunApp::InitInstance()
     ParseCommandLine(m_cmdInfo);
     m_cmdInfo.UpdateBinaryGen();
 
+    std::string file_path = TC::ToUtf8(m_cmdInfo.m_strFileName);
 
-    CString csFileName = m_cmdInfo.m_strFileName;
+    // evaluate the full path
+    if( !file_path.empty() )
+        file_path = MakeFullPath(GetWorkingDirectory(), file_path);
 
-    if( m_cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && !csFileName.IsEmpty() )
+    if( m_cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && !m_cmdInfo.m_strFileName.IsEmpty() )
     {
-        m_cmdInfo.m_strFileName = _T("");
+        m_cmdInfo.m_strFileName.Empty();
         m_cmdInfo.m_nShellCommand = CCommandLineInfo::FileNew;
     }
 
@@ -231,21 +223,10 @@ BOOL CEntryrunApp::InitInstance()
         return FALSE;
 
 
-    // make sure that the filename, if specified, has the full path information
-    if( !csFileName.IsEmpty() )
-    {
-        CString current_directory;
-        GetCurrentDirectory(_MAX_PATH, current_directory.GetBuffer(_MAX_PATH));
-        current_directory.ReleaseBuffer();
-
-        csFileName = WS2CS(MakeFullPath(current_directory, CS2WS(csFileName)));
-    }
-
-
     // create the .pen file and exit if generating a binary archive
     if( BinaryGen::isGeneratingBinary() )
     {
-        CreatePenFile(csFileName);
+        CreatePenFile(file_path);
         m_pMainWnd->DestroyWindow();
         delete m_pMainWnd;
         return FALSE;
@@ -263,104 +244,103 @@ BOOL CEntryrunApp::InitInstance()
     // to allow for custom menus in CSEntry, see if there is an override file in the application folder or the executables folder
     for( int i = 0; i < 2; ++i )
     {
-        std::wstring directory = ( i == 0 ) ? PortableFunctions::PathGetDirectory(csFileName) :
-                                              CSProExecutables::GetApplicationDirectory();
+        std::string override_file_path = ( i == 0 ) ? PortableFunctions::PathGetDirectory(file_path) :
+                                                      CSProExecutables::GetApplicationDirectory();
+        Path::MakeCombine(override_file_path, CSEntryLanguageOverrideFilename);
 
-        std::wstring override_filename = PortableFunctions::PathAppendToPath(directory, CSEntryLanguageOverrideFile);
-
-        if( PortableFunctions::FileIsRegular(override_filename) )
+        if( PortableFunctions::FileIsRegular(override_file_path) )
         {
-            ActivateDynamicMenus(WS2CS(override_filename), pMainframe->m_menu);
+            ActivateDynamicMenus(override_file_path, pMainframe->m_menu);
             break;
         }
     }
 
     // The one and only window has been initialized, so show and update it.
     m_pMainWnd->ShowWindow(SW_MAXIMIZE);
-    m_pMainWnd->SetWindowText(_T("CSEntry"));
+    m_pMainWnd->SetWindowText(L"CSEntry");
 
-    m_bPffLaunchedFromCommandLine = SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(csFileName), FileExtensions::Pff);
+    m_pffLaunchedFromCommandLine = SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(file_path), FileExtensions::Pff);
 
-    OpenApplicationHelper(csFileName);
+    OpenApplicationHelper(file_path);
 
     return TRUE;
 }
 
 
-// App command to run the dialog
 void CEntryrunApp::OnAppAbout()
 {
-    CIMSAAboutDlg dlg;
-    HICON m_hIcon = LoadIcon(IDR_MAINFRAME);
-    dlg.m_hIcon = m_hIcon;
-    dlg.m_csModuleName = _T("CSEntry");
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(L"CSEntry", LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }
 
-BOOL CEntryrunApp::PreTranslateMessage(MSG* pMsg)
+
+BOOL CEntryrunApp::PreTranslateMessage(MSG* const pMsg)
 {
     // test for switch window focus via keystroke
     if( m_pWindowFocusMgr->PreTranslateMessage(m_pMainWnd,pMsg) )
         return TRUE;
 
-    return CWinApp::PreTranslateMessage(pMsg);
+    return __super::PreTranslateMessage(pMsg);
 }
 
 
 void CEntryrunApp::OnFileOpen()
 {
-    OpenApplicationHelper(_T(""));
+    OpenApplicationHelper(SO::Empty_string);
 }
+
 
 void CEntryrunApp::OnOpenDatFile()
 {
-    OpenApplicationHelper(m_csCurrentDocumentName,true);
+    OpenApplicationHelper(m_currentApplicationFilePath, true);
 }
 
-void CEntryrunApp::OnUpdateOpenDatFile(CCmdUI* pCmdUI)
+
+void CEntryrunApp::OnUpdateOpenDatFile(CCmdUI* const pCmdUI)
 {
-    BOOL bEnable = FALSE;
-
-    if( !m_csCurrentDocumentName.IsEmpty() )
-        bEnable = !m_pPifFile->GetFileOpenFlag();
-
-    pCmdUI->Enable(bEnable);
+    pCmdUI->Enable(( !m_currentApplicationFilePath.empty() &&
+                     !m_pPifFile->GetFileOpenFlag() ));
 }
 
-BOOL CEntryrunApp::OnOpenRecentFile(UINT nID)
+
+BOOL CEntryrunApp::OnOpenRecentFile(const UINT nID)
 {
-    int nIndex = nID - ID_FILE_MRU_FILE1;
+    const int nIndex = nID - ID_FILE_MRU_FILE1;
 
-    CString csFilename = (*m_pRecentFileList)[nIndex];
+    const std::string file_path = TC::ToUtf8((*m_pRecentFileList)[nIndex]);
 
-    if( PortableFunctions::FileExists(csFilename) )
-        OpenApplicationHelper(csFilename);
+    if( PortableFunctions::FileIsRegular(file_path) )
+    {
+        OpenApplicationHelper(file_path);
+    }
 
     else
     {
-        CString csMessage;
-        csMessage.Format(_T("The application %s no longer exists."),PortableFunctions::PathGetFilename(csFilename));
-        AfxMessageBox(csMessage);
-
+        AfxMessageBox(FormatText("The application '%s' no longer exists.", PortableFunctions::PathGetFilename(file_path).c_str()));
         m_pRecentFileList->Remove(nIndex);
     }
 
     return TRUE;
 }
 
-void CEntryrunApp::OnUpdateRecentFileMenu(CCmdUI* pCmdUI)
+
+void CEntryrunApp::OnUpdateRecentFileMenu(CCmdUI* const pCmdUI)
 {
     ASSERT_VALID(this);
 
-    if( m_pRecentFileList == NULL ) // no MRU files
+    if( m_pRecentFileList == nullptr ) // no MRU files
+    {
         pCmdUI->Enable(FALSE);
+    }
 
     else
+    {
         m_pRecentFileList->UpdateMenu(pCmdUI);
+    }
 }
 
 
-bool CEntryrunApp::ShowPifDlg(bool bSavePif)
+bool CEntryrunApp::ShowPifDlg(const bool save_pff)
 {
     PifInfoPopulator pif_info_populator(m_pRunAplEntry->GetEntryDriver()->GetEngineData(), *m_pPifFile);
 
@@ -371,7 +351,7 @@ bool CEntryrunApp::ShowPifDlg(bool bSavePif)
         return false;
 
     // potentially save the associations
-    if( bSavePif )
+    if( save_pff )
         m_pPifFile->Save();
 
     return true;
@@ -385,18 +365,18 @@ bool CEntryrunApp::InitNCompileApp()
     if( !m_pPifFile->BuildAllObjects() )
         return false;
 
-    Application* pApp = m_pPifFile->GetApplication();
+    Application* const pApp = m_pPifFile->GetApplication();
 
     m_pRunAplEntry = new CRunAplEntry(m_pPifFile);
 
     pApp->SetCompiled(false);
 
-    bool bCompileSuccess = m_pRunAplEntry->LoadCompile();
+    const bool compile_success = m_pRunAplEntry->LoadCompile();
 
     if( pApp->GetAppLoader()->GetBinaryFileLoad() )
         APP_LOAD_TODO_GetArchive().CloseArchive();
 
-    if( !bCompileSuccess )
+    if( !compile_success )
     {
         SAFE_DELETE(m_pRunAplEntry);
         return false;
@@ -408,23 +388,24 @@ bool CEntryrunApp::InitNCompileApp()
 }
 
 
-void CEntryrunApp::CreatePenFile(const TCHAR* filename) // generate a .pen file
+void CEntryrunApp::CreatePenFile(const std::string& application_file_path)
 {
     // hide the CSEntry window
     m_pMainWnd->ShowWindow(SW_HIDE);
 
     // make sure that there is an .ent file specified
-    std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    const std::string extension = PortableFunctions::PathGetFileExtension(application_file_path);
 
-    if( !SO::EqualsNoCase(extension, FileExtensions::EntryApplication) || !PortableFunctions::FileIsRegular(filename) )
+    if( !SO::EqualsNoCase(extension, FileExtensions::EntryApplication) ||
+        !PortableFunctions::FileIsRegular(application_file_path) )
     {
-        AfxMessageBox(_T("You can only publish an entry application by specifying the application .ent file."));
+        AfxMessageBox(L"You can only publish an entry application by specifying the application .ent file.");
         return;
     }
 
     // create a dummy pff object with the application name
     CNPifFile pff;
-    pff.SetAppFName(filename);
+    pff.SetAppFName(UTF8_TODO::GetCString(application_file_path));
 
     auto serializer = std::make_shared<Serializer>();
     APP_LOAD_TODO_SetArchive(serializer);
@@ -432,12 +413,12 @@ void CEntryrunApp::CreatePenFile(const TCHAR* filename) // generate a .pen file
 
     try
     {
-        serializer->CreateOutputArchive(BinaryGen::GetBinaryName());
+        serializer->CreateOutputArchive(UTF8_TODO::GetUtf8(BinaryGen::GetBinaryName()));
 
         Application application;
         application.GetAppLoader()->SetBinaryFileLoad(false);
 
-        application.Open(filename, true);
+        application.Open(application_file_path, true);
         *serializer & application;
 
         if( pff.BuildAllObjects() )
@@ -455,7 +436,7 @@ void CEntryrunApp::CreatePenFile(const TCHAR* filename) // generate a .pen file
 
     catch( const CSProException& exception )
     {
-        AfxMessageBox(FormatText(_T("There was an error creating the .pen file: %s"), exception.GetErrorMessage().c_str()));
+        AfxMessageBox(FormatText("There was an error creating the .pen file: %s", exception.what()));
     }
 
     APP_LOAD_TODO_SetArchive(nullptr);
@@ -465,18 +446,17 @@ void CEntryrunApp::CreatePenFile(const TCHAR* filename) // generate a .pen file
 }
 
 
-void CEntryrunApp::OpenApplicationHelper(CString csFilename,bool bForceShowPifDlg/* = false*/)
+void CEntryrunApp::OpenApplicationHelper(std::string application_file_path, const bool force_show_file_associations/* = false*/)
 {
-    // if no filename is passed in, query the user for one
-    if( csFilename.IsEmpty() )
+    // if no file path is passed in, query the user for one
+    if( application_file_path.empty() )
     {
-        CIMSAFileDialog fileDlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-            _T("Application Files (*.ent;*.pen)|*.ent;*.pen|PFF Files (*.pff)|*.pff||"));
+        OpenFileDlg open_file_dlg(0, nullptr, nullptr, "Application Files (*.ent;*.pen)|*.ent;*.pen|PFF Files (*.pff)|*.pff||");
 
-        if( fileDlg.DoModal() != IDOK)
+        if( open_file_dlg.DoModal() != IDOK)
             return;
 
-        csFilename = fileDlg.GetPathName();
+        application_file_path = open_file_dlg.GetFilePath();
     }
 
 
@@ -498,7 +478,7 @@ void CEntryrunApp::OpenApplicationHelper(CString csFilename,bool bForceShowPifDl
 
             if( bModified )
             {
-                if( AfxMessageBox(MGF::GetMessageText(MGF::DiscardQuestionnaire).c_str(), MB_YESNO) == IDNO )
+                if( AfxMessageBox(MGF::GetMessageText(MGF::DiscardQuestionnaire).GetString(), MB_YESNO) == IDNO )
                     return;
             }
         }
@@ -523,7 +503,7 @@ void CEntryrunApp::OpenApplicationHelper(CString csFilename,bool bForceShowPifDl
     SAFE_DELETE(m_pPifFile);
 
     // load the application or close CSEntry upon failure
-    if( !LoadApplication(csFilename,bForceShowPifDlg) )
+    if( !LoadApplication(application_file_path, force_show_file_associations) )
     {
         pRunDoc->DeleteContents();
         ApplicationShutdown();
@@ -537,52 +517,56 @@ void CEntryrunApp::OpenApplicationHelper(CString csFilename,bool bForceShowPifDl
 }
 
 
-bool CEntryrunApp::LoadApplication(CString csFilename,bool bForceShowPifDlg/* = false*/)
+bool CEntryrunApp::LoadApplication(const std::string& file_path, const bool force_show_file_associations/* = false*/)
 {
-    if( !PortableFunctions::FileExists(csFilename) )
+    if( !PortableFunctions::FileExists(file_path) )
         return false;
 
-    CString csPffFilename;
-    CString csExt = PathFindExtension(csFilename);
+    std::string pff_file_path;
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
-    bool bBinaryLoad = ( csExt.CompareNoCase(FileExtensions::WithDot::BinaryEntryPen) == 0 );
-    bool bDisplayPifDialog = true;
+    const bool binary_load = SO::EqualsNoCase(extension, FileExtensions::BinaryEntryPen);
+    bool show_file_associations = true;
 
-    if( csExt.CompareNoCase(FileExtensions::WithDot::Pff) == 0 )
+    if( !binary_load && SO::EqualsNoCase(extension, FileExtensions::Pff) )
     {
-        m_pPifFile = new CNPifFile(csFilename);
-        m_pPifFile->SetAppType(ENTRY_TYPE);
+        m_pPifFile = new CNPifFile(UTF8_TODO::GetCString(file_path));
+        m_pPifFile->SetAppType(APPTYPE::ENTRY_TYPE);
 
         if( !m_pPifFile->LoadPifFile() )
-            return false;
-
-        else if( m_pPifFile->GetAppType() != ENTRY_TYPE )
         {
-            AfxMessageBox(_T("You can only run data entry applications."));
             return false;
         }
 
-        csPffFilename = csFilename;
+        else if( m_pPifFile->GetAppType() != APPTYPE::ENTRY_TYPE )
+        {
+            AfxMessageBox(L"You can only run data entry applications.");
+            return false;
+        }
 
-        if( !bForceShowPifDlg )
-            bDisplayPifDialog = false;
+        pff_file_path = file_path;
+
+        if( !force_show_file_associations )
+            show_file_associations = false;
     }
 
-    else if( csExt.CompareNoCase(FileExtensions::WithDot::EntryApplication) == 0 || bBinaryLoad )
+    else if( binary_load || SO::EqualsNoCase(extension, FileExtensions::EntryApplication) )
     {
-        csPffFilename = PortableFunctions::PathRemoveFileExtension<CString>(csFilename) + FileExtensions::WithDot::Pff;
+        pff_file_path = PortableFunctions::PathReplaceFileExtension(file_path, FileExtensions::Pff);
 
         // if there is a PFF file and it points to this .ent file, load it
-        if( PortableFunctions::FileExists(csPffFilename) )
+        if( PortableFunctions::FileIsRegular(pff_file_path) )
         {
-            m_pPifFile = new CNPifFile(csPffFilename);
+            m_pPifFile = new CNPifFile(UTF8_TODO::GetCString(pff_file_path));
 
-            CString csEntFilename = csFilename;
+            std::string ent_file_path = file_path;
 
-            if( bBinaryLoad )
-                csEntFilename = PortableFunctions::PathRemoveFileExtension<CString>(csFilename) + FileExtensions::WithDot::EntryApplication;
+            if( binary_load )
+                ent_file_path = PortableFunctions::PathReplaceFileExtension(ent_file_path, FileExtensions::EntryApplication);
 
-            if( !m_pPifFile->LoadPifFile() || ( m_pPifFile->GetAppType() != ENTRY_TYPE ) || ( m_pPifFile->GetAppFName().CompareNoCase(csEntFilename) != 0 ) )
+            if( !m_pPifFile->LoadPifFile() ||
+                m_pPifFile->GetAppType() != APPTYPE::ENTRY_TYPE ||
+                !SO::EqualsNoCase(ent_file_path, m_pPifFile->GetAppFName()) )
             {
                 SAFE_DELETE(m_pPifFile);
             }
@@ -590,16 +574,16 @@ bool CEntryrunApp::LoadApplication(CString csFilename,bool bForceShowPifDlg/* = 
 
         if( m_pPifFile == NULL ) // create a PFF for this program
         {
-            m_pPifFile = new CNPifFile(csPffFilename);
-            m_pPifFile->SetAppType(ENTRY_TYPE);
+            m_pPifFile = new CNPifFile(UTF8_TODO::GetCString(pff_file_path));
+            m_pPifFile->SetAppType(APPTYPE::ENTRY_TYPE);
         }
 
-        m_pPifFile->SetAppFName(csFilename); // necessary in case the .pen file is being loaded
+        m_pPifFile->SetAppFName(UTF8_TODO::GetCString(file_path)); // necessary in case the .pen file is being loaded
     }
 
-    else if( csExt.CompareNoCase(FileExtensions::Old::WithDot::BinaryEntryPen) == 0 )
+    else if( SO::EqualsNoCase(extension, FileExtensions::Old::BinaryEntryPen) )
     {
-        AfxMessageBox(_T("Starting with version 6.0, .enc files are no longer supported. Please regenerate your data entry application as a .pen file."));
+        AfxMessageBox(L"Starting with version 6.0, .enc files are no longer supported. Please regenerate your data entry application as a .pen file.");
         return false;
     }
 
@@ -618,13 +602,13 @@ bool CEntryrunApp::LoadApplication(CString csFilename,bool bForceShowPifDlg/* = 
     // then the PFF must be shown (but potentially not saved)
 
     // show the PFF dialog if necessary
-    if( ( bDisplayPifDialog || m_pPifFile->EntryConnectionStringsContainWildcards() ) && !ShowPifDlg(bDisplayPifDialog) )
+    if( ( show_file_associations || m_pPifFile->EntryConnectionStringsContainWildcards() ) && !ShowPifDlg(show_file_associations) )
         return false;
 
-    // store the name of the current application
-    m_csCurrentDocumentName = csFilename;
+    // store the file path of the current application
+    m_currentApplicationFilePath = std::move(file_path);
 
-    return ( OpenDocumentFile(csFilename) != NULL );
+    return ( OpenDocumentFile(TC::ToWide(m_currentApplicationFilePath).c_str()) != nullptr );
 }
 
 
@@ -638,9 +622,9 @@ void CEntryrunApp::PostLoadApplicationOperations()
     DECIMAL_CHAR = pApp->GetDecimalMarkIsComma() ? ',' : '.';
 
     // set the window title and layout
-    CString csTitle = pDoc->MakeTitle(true);
-    pDoc->SetTitle(csTitle);
-    pFrame->SetWindowText(csTitle);
+    const std::wstring title = TC::ToWide(pDoc->MakeTitle(true));
+    pDoc->SetTitle(title.c_str());
+    pFrame->SetWindowText(title.c_str());
 
     pFrame->DoInitialApplicationLayout(m_pPifFile);
 }
@@ -694,7 +678,7 @@ void CEntryrunApp::ProcessStartMode()
             while( hItem != NULL )
             {
                 NODEINFO* pNodeInfo = (NODEINFO*)caseTree.GetItemData(hItem);
-                CString csThisKey = pNodeInfo->case_summary.GetKey();
+                CString csThisKey = UTF8_TODO::GetCString(pNodeInfo->case_summary.GetKey());
 
                 // the StartMode key in the PFF file gets trimmed so we should do the same before our comparison
                 if( key_to_open_mode != KeyToOpenMode::Key )
@@ -713,7 +697,7 @@ void CEntryrunApp::ProcessStartMode()
             if( key_to_open_mode == KeyToOpenMode::StartModeModify )
             {
                 CString csMsg;
-                csMsg.Format(_T("Case specified in 'StartMode' parameter of .PFF file not found in data file\n\nKey is '%s'"), (LPCTSTR)key_to_open);
+                csMsg.Format(L"Case specified in 'StartMode' parameter of .PFF file not found in data file\n\nKey is '%s'"), key_to_open.GetString();
                 AfxMessageBox(csMsg);
             }
         }
@@ -729,7 +713,7 @@ void CEntryrunApp::ProcessStartMode()
     // if the case listing is locked, then there should have been a start mode so we are here in error
     if( m_pPifFile->GetCaseListingLockFlag() )
     {
-        AfxMessageBox(_T("With the case listing locked, you must specify what case to work with in the PFF file's StartMode or Key attribute."));
+        AfxMessageBox(L"With the case listing locked, you must specify what case to work with in the PFF file's StartMode or Key attribute.");
         AfxGetMainWnd()->SendMessage(WM_CLOSE);
         return;
     }
@@ -738,7 +722,9 @@ void CEntryrunApp::ProcessStartMode()
     HTREEITEM hItem = caseTree.GetRootItem();
 
     if( hItem == NULL )
+    {
         pFrame->OnAddCase();
+    }
 
     else
     {

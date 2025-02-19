@@ -37,7 +37,7 @@ protected:
     DictBase& operator=(DictBase&& rhs) noexcept;
 
     // serialization
-    void ParseJsonInput(const JsonNode<wchar_t>& json_node);
+    void ParseJsonInput(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

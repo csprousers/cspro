@@ -12,7 +12,7 @@ const PortableColor FormDefaults::FormBackgoundColor = PortableColor::FromRGB(24
 // ToString functions
 // --------------------------------------------------
 
-const TCHAR* ToString(RosterOrientation roster_orientation)
+const wchar_t* ToString(RosterOrientation roster_orientation)
 {
     return ( roster_orientation == RosterOrientation::Horizontal ) ? ROSTER_ORIENT_HORZ :
                                                                      ROSTER_ORIENT_VERT;

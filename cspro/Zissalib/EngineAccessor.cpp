@@ -4,7 +4,7 @@
 #include <zEngineO/EngineAccessor.h>
 
 
-std::shared_ptr<EngineAccessor> CEngineArea::CreateEngineAccessor(CEngineArea* pEngineArea)
+std::shared_ptr<EngineAccessor> CEngineArea::CreateEngineAccessor(CEngineArea* const pEngineArea)
 {
     class ThisEngineAccessor : public EngineAccessor
     {
@@ -31,15 +31,15 @@ std::shared_ptr<EngineAccessor> CEngineArea::CreateEngineAccessor(CEngineArea* p
             return m_pEngineArea->m_pEngineDriver->GetSystemMessageIssuer();
         }
 
-        std::shared_ptr<CommonStore> ea_CommonStore() override
-        {
-            ASSERT(m_pEngineArea->m_pEngineDriver != nullptr);
-            return m_pEngineArea->m_pEngineDriver->GetCommonStore();
-        }
-
         std::set<int>& ea_GetPersistentSymbolsNeedingResetSet() override
         {
             return m_pEngineArea->m_persistentSymbolsNeedingResetSet;
+        }
+
+        Listing::Lister* ea_GetLister() override
+        {
+            ASSERT(m_pEngineArea->m_pEngineDriver != nullptr);
+            return m_pEngineArea->m_pEngineDriver->GetLister();
         }
 
     private:

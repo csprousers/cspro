@@ -2,13 +2,16 @@
 #include "Tools.h"
 #include "Special.h"
 #include "TextConverter.h"
-#include <zPlatformO/PlatformInterface.h>
 
 #ifdef WIN32
 #include "WinRegistry.h"
 #include <io.h>
 #include <lmcons.h>
 #include <VersionHelpers.h>
+#endif
+
+#ifndef WIN_DESKTOP
+#include <zPlatformO/PlatformInterface.h>
 #endif
 
 
@@ -94,16 +97,19 @@ Encoding GetEncodingFromBOM(int iFileHandle)
     return retEncoding;
 }
 
-Encoding GetEncodingFromBOM(FILE* file)
+Encoding GetEncodingFromBOM(FILE* const file)
 {
     return GetEncodingFromBOM(_fileno(file));
 }
 
 
 // 20111213 this function opens a file, gets the BOM, and closes the file; returns false if the file can't be opened
-bool GetFileBOM(NullTerminatedString filename, Encoding& encoding)
+bool GetFileBOM(const InterfaceString file_path, Encoding& encoding)
 {
-    FILE* tempFile = PortableFunctions::FileOpen(filename, _T("rb"), _SH_DENYNO);
+#ifndef WIN32
+#define _SH_DENYNO -1
+#endif
+    FILE* tempFile = PortableFunctions::FileOpen(file_path, "rb", _SH_DENYNO);
 
     if( tempFile == nullptr )
         return false;
@@ -116,9 +122,9 @@ bool GetFileBOM(NullTerminatedString filename, Encoding& encoding)
 }
 
 
-const TCHAR* ToString(Encoding encoding)
+const char* ToString(const Encoding encoding)
 {
-    const TCHAR* const EncodingStrings[] = { _T("Invalid"), _T("ANSI"), _T("UTF-16LE"), _T("UTF-16BE"), _T("UTF-8") };
+    constexpr const char* EncodingStrings[] = { "Invalid", "ANSI", "UTF-16LE", "UTF-16BE", "UTF-8" };
     return EncodingStrings[static_cast<size_t>(encoding)];
 }
 
@@ -168,7 +174,7 @@ bool ReadLine(CFile& cFile, CString* pStr, Encoding encoding)
 #ifdef WIN32
                 wBytes = MultiByteToWideChar(CP_UTF8,0,lpBuffer,nBytes,wBuffer,BUF256);
 #else
-                wBuffer = UTF8Convert::UTF8ToWide(lpBuffer,nBytes);
+                wBuffer = TC::ToWide(lpBuffer, nBytes);
                 wBytes = wBuffer.length();
 #endif
             }
@@ -493,37 +499,34 @@ void PathRelativePathTo(LPTSTR pszPath, LPCTSTR pszFrom, DWORD dwAttrFrom, LPCTS
         result.Append((LPCTSTR)pszTo + number_characters_matching);
     }
 
-    int result_length = std::min(result.GetLength(), MAX_PATH - 1);
-    _tcsncpy(pszPath, result, result_length);
-    pszPath[result_length] = 0;
+    SO::CopyToFixedBuffer(pszPath, CS2WS(result), MAX_PATH);
 }
 
 #endif
 
 
-bool RecycleFile(NullTerminatedString filename)
+bool RecycleFile(const InterfaceString file_path)
 {
-#ifdef _MFC_VER
-    LPCTSTR specs = filename.c_str();
+#ifdef WIN32
+    SHFILEOPSTRUCT info = { nullptr };
+    auto complete_file_path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
 
-    SHFILEOPSTRUCT info = {NULL};
-    TCHAR complete_specs[MAX_PATH+2] = {_T('\0')};
-    TCHAR *dummy;
-    if (GetFullPathName(specs, _countof(complete_specs), complete_specs, &dummy) != 0)
+    if( GetFullPathName(file_path.c_str(), MAX_PATH, complete_file_path.get(), nullptr) != 0 )
     {
         info.wFunc = FO_DELETE;
-        info.pFrom = complete_specs;
+        info.pFrom = complete_file_path.get();
         info.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION| FOF_FILESONLY;
-        return SHFileOperation(&info) == 0;
+        return ( SHFileOperation(&info) == 0 );
     }
 #endif
+
     return false;
 }
 
 
-std::wstring GetWorkingFolder(wstring_view base_filename)
+std::wstring GetWorkingFolder(const wstring_view base_filename_sv)
 {
-    std::wstring working_folder = PortableFunctions::PathGetDirectory(base_filename);
+    std::wstring working_folder = PortableFunctions::PathGetDirectory(base_filename_sv);
 
     if( !working_folder.empty() )
     {
@@ -540,15 +543,36 @@ std::wstring GetWorkingFolder()
 {
 #ifdef WIN_DESKTOP
     std::wstring working_folder(MAX_PATH, '\0');
-    int length = GetCurrentDirectory(_MAX_PATH, working_folder.data());
+    int length = GetCurrentDirectory(MAX_PATH, working_folder.data());
     working_folder.resize(length);
 #else
-    std::wstring working_folder = PlatformInterface::GetInstance()->GetWorkingDirectory();
+    std::wstring working_folder = UTF8_TODO::GetWide(PlatformInterface::GetInstance()->GetWorkingDirectory());
 #endif
 
     ASSERT(working_folder.length() == ( PortableFunctions::PathEnsureTrailingSlash(working_folder).length() - 1 ));
 
     return working_folder;
+}
+
+
+std::string GetWorkingDirectory(const std::string_view base_filename_sv)
+{
+    std::string working_folder = PortableFunctions::PathGetDirectory(base_filename_sv);
+
+    if( !working_folder.empty() )
+    {
+        ASSERT(working_folder == PortableFunctions::PathEnsureTrailingSlash(working_folder));
+        working_folder.pop_back();
+        return working_folder;
+    }
+
+    return GetWorkingDirectory();
+}
+
+
+std::string GetWorkingDirectory()
+{
+    return UTF8_TODO::GetUtf8(GetWorkingFolder());
 }
 
 
@@ -585,47 +609,45 @@ void PathRemoveExtension(LPTSTR lpszPath) // 20131121
 #endif
 
 
-template<typename T>
-void NormalizePathSlash(T& path)
-{
-    constexpr TCHAR incorrect_path_slash = OnAndroidOrWasm() ? '\\' : '/';
-
-    if constexpr(std::is_same_v<T, std::wstring>)
-    {
-        SO::Replace(path, incorrect_path_slash, PATH_CHAR);
-    }
-
-    else
-    {
-        path.Replace(incorrect_path_slash, PATH_CHAR);
-    }
-}
-
-template CLASS_DECL_ZTOOLSO void NormalizePathSlash(std::wstring& path);
-template CLASS_DECL_ZTOOLSO void NormalizePathSlash(CString& path);
-
-
 // Function name    : MakeFullPath
 // Description      : //Makes the full path by Canonicalizing the PathRelativeTo+ Relativepath
 //      ex: "d:\code\cspro20\test" + "..\..\test.fmf" = d:\code\test.fmf
 // Return type      : CString
 // Argument         : CString sRelativeToFName
 // Argument         : CString sFileName
-std::wstring MakeFullPath(wstring_view relative_to_directory, std::wstring filename)
+std::wstring MakeFullPath(const wstring_view relative_to_directory_sv, std::wstring filename)
 {
     if( filename.empty() )
         return filename;
 
-    NormalizePathSlash(filename);
+    filename = PortableFunctions::PathToNativeSlash(filename);
 
     if( PathIsRelative(filename.c_str()) )
-        filename.insert(0, std::wstring(SO::TrimRight(relative_to_directory, PATH_CHAR)) + PATH_STRING);
+        filename.insert(0, std::wstring(SO::TrimRight(relative_to_directory_sv, PATH_CHAR)) + PATH_STRING);
 
     std::wstring full_path(MAX_PATH, '\0');
     PathCanonicalize(full_path.data(), filename.c_str());
     full_path.resize(_tcslen(full_path.data()));
 
     return full_path;
+}
+
+
+std::string MakeFullPath(const std::string_view relative_to_directory_sv, std::string filename)
+{
+    if( filename.empty() )
+        return filename;
+
+    PortableFunctions::MakePathToNativeSlash(filename);
+
+    if( Path::IsRelative(filename) )
+        filename.insert(0, std::string(SO::TrimRight(relative_to_directory_sv, Path::NativeSlashChar)) + Path::NativeSlashString);
+
+    std::wstring full_path(MAX_PATH, '\0');
+    PathCanonicalize(full_path.data(), UTF8_TODO::GetWide(filename).c_str());
+    full_path.resize(wcslen(full_path.data()));
+
+    return UTF8_TODO::GetUtf8(full_path);
 }
 
 
@@ -694,42 +716,39 @@ template CLASS_DECL_ZTOOLSO std::wstring GetRelativeFName(NullTerminatedString s
 template CLASS_DECL_ZTOOLSO CString GetRelativeFName(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
 
 
-
-template<typename T/* = std::wstring*/>
-T GetRelativeFNameForDisplay(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName)
+std::string GetRelativePathForDisplay(const cs::string_view_sz relative_to_file_path, const cs::string_sz filename)
 {
-    constexpr wstring_view StartingInSameDirectoryPrefix(_T(".") PATH_STRING);
-    constexpr wstring_view RelativeToPreviousDirectoryPrefix(_T("..") PATH_STRING);
+    const static std::string StartingInSameDirectoryPrefix = "." + std::string(Path::NativeSlashString);
+    const static std::string RelativeToPreviousDirectoryPrefix = ".." + std::string(Path::NativeSlashString);
 
-    T relative_filename = GetRelativeFName<T>(sRelativeToFName, sFileName);
+    std::string relative_path = UTF8_TODO::GetUtf8(GetRelativeFName<std::wstring>(UTF8_TODO::GetWide(relative_to_file_path), UTF8_TODO::GetWide(filename)));
 
     // remove the initial relative path information (if starting in the same directory as the relative filename)
-    if( SO::StartsWith(relative_filename, StartingInSameDirectoryPrefix) )
-    {
-        if constexpr(std::is_same_v<T, std::wstring>)
-        {
-            return relative_filename.substr(StartingInSameDirectoryPrefix.length());
-        }
+    if( SO::StartsWith(relative_path, StartingInSameDirectoryPrefix) )
+        return relative_path.substr(StartingInSameDirectoryPrefix.length());
 
-        else
-        {
-            return relative_filename.Mid(StartingInSameDirectoryPrefix.length());
-        }
-    }
-
-    // if sFileName is the directory where sRelativeToFName resides, the relative filename
+    // if filename is the directory where relative_to_file_path resides, the relative filename
     // will be something like: ../dir_name, so in that case return ./ instead
-    if( SO::StartsWith(relative_filename, RelativeToPreviousDirectoryPrefix) &&
-        SO::EqualsNoCase(PortableFunctions::PathGetDirectory<T>(sRelativeToFName), PortableFunctions::PathEnsureTrailingSlash<T>(sFileName)) )
+    if( SO::StartsWith(relative_path, RelativeToPreviousDirectoryPrefix) &&
+        SO::EqualsNoCase(PortableFunctions::PathGetDirectory(relative_to_file_path), PortableFunctions::PathEnsureTrailingSlash(relative_path)) )
     {
         return StartingInSameDirectoryPrefix;
     }
 
-    return relative_filename;
+    return relative_path;
 }
 
-template CLASS_DECL_ZTOOLSO std::wstring GetRelativeFNameForDisplay(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
-template CLASS_DECL_ZTOOLSO CString GetRelativeFNameForDisplay(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
+
+std::string EscapeCommandLineArgument(std::string argument)
+{
+    if( argument.find(' ') != std::string::npos )
+    {
+        if( argument.size() < 2 || argument.front() != '"' || argument.back() != '"' )
+            return "\"" + argument + "\"";
+    }
+
+    return argument;
+}
 
 
 std::wstring EscapeCommandLineArgument(std::wstring argument)
@@ -744,7 +763,7 @@ std::wstring EscapeCommandLineArgument(std::wstring argument)
 }
 
 
-std::wstring UnescapeCommandLineArgument(std::wstring argument)
+std::string UnescapeCommandLineArgument(std::string argument)
 {
     if( argument.length() >= 2 && argument.front() == '"' && argument.back() == '"' )
         return argument.substr(1, argument.length() - 2);
@@ -755,7 +774,7 @@ std::wstring UnescapeCommandLineArgument(std::wstring argument)
 
 #ifdef WIN_DESKTOP
 
-std::wstring GetWindowsSpecialFolder(WindowsSpecialFolder folder)
+std::string GetWindowsSpecialFolder(const WindowsSpecialFolder folder)
 {
     int folder_value;
 
@@ -784,9 +803,9 @@ std::wstring GetWindowsSpecialFolder(WindowsSpecialFolder folder)
         // 20111102 the 64-bit request didn't actually work, so using the values from the registry instead
         WinRegistry registry;
 
-        if( registry.Open(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows\\CurrentVersion")) )
+        if( registry.Open(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\Windows\\CurrentVersion") )
         {
-            std::optional<std::wstring> path = registry.ReadOptionalString(_T("ProgramW6432Dir"));
+            std::optional<std::string> path = registry.ReadOptionalString("ProgramW6432Dir");
 
             if( path.has_value() )
                 return PortableFunctions::PathEnsureTrailingSlash(std::move(*path));
@@ -796,31 +815,30 @@ std::wstring GetWindowsSpecialFolder(WindowsSpecialFolder folder)
         folder_value = CSIDL_PROGRAM_FILES;
     }
 
-    std::wstring path(MAX_PATH, '\0');
-    SHGetSpecialFolderPath(nullptr, path.data(), folder_value, FALSE);
-    path.resize(_tcslen(path.data()));
-
-    return PortableFunctions::PathEnsureTrailingSlash(std::move(path));
+    auto path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
+    SHGetSpecialFolderPath(nullptr, path.get(), folder_value, FALSE);
+    return PortableFunctions::PathEnsureTrailingSlash(TC::ToUtf8(path.get()));
 }
 
 
-std::vector<std::wstring> GetLogicalDrivesVector()
+std::vector<std::string> GetLogicalDrivesVector()
 {
-    DWORD drives_text_length = GetLogicalDriveStrings(0, nullptr);
-    auto drives_text = std::make_unique<TCHAR[]>(drives_text_length);
+    const DWORD drives_text_length = GetLogicalDriveStrings(0, nullptr);
+    auto drives_text = std::make_unique_for_overwrite<wchar_t[]>(drives_text_length);
 
     // GetLogicalDriveStrings will return something like C:\[null]G:\[null][null]
     GetLogicalDriveStrings(drives_text_length, drives_text.get());
 
-    std::vector<std::wstring> drives;
+    std::vector<std::string> drives;
 
-    const TCHAR* drives_text_itr = drives_text.get();
-    const TCHAR* drives_text_end = drives_text_itr + drives_text_length;
+    const wchar_t* drives_text_itr = drives_text.get();
+    const wchar_t* const drives_text_end = drives_text_itr + drives_text_length;
 
     while( drives_text_itr < drives_text_end && *drives_text_itr != '\0' )
     {
-        const std::wstring& drive = drives.emplace_back(drives_text_itr);
-        drives_text_itr += drive.size() + 1;
+        const size_t drive_length = wcslen(drives_text_itr);
+        drives.emplace_back(TC::ToUtf8(drives_text_itr, drive_length));
+        drives_text_itr += drive_length + 1;
     }
 
     return drives;
@@ -829,30 +847,31 @@ std::vector<std::wstring> GetLogicalDrivesVector()
 #endif // WIN_DESKTOP
 
 
-const std::wstring& GetDownloadsFolder()
+const std::string& GetDownloadsDirectory()
 {
-    static std::wstring downloads_folder;
-
-    if( downloads_folder.empty() )
-    {
-#ifdef WIN_DESKTOP
-        PWSTR path;
-
-        if( SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &path)) )
+    static const std::string downloads_directory =
+        [&]()
         {
-            downloads_folder = path;
-            CoTaskMemFree(path);
-        }
+            std::string directory;
+
+#ifdef WIN_DESKTOP
+            PWSTR path;
+
+            if( SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &path)) )
+            {
+                directory = TC::ToUtf8(path);
+                CoTaskMemFree(path);
+            }
 
 #else
-        downloads_folder = PlatformInterface::GetInstance()->GetDownloadsDirectory();
+            directory = PlatformInterface::GetInstance()->GetDownloadsDirectory();
 
 #endif
 
-        downloads_folder = PortableFunctions::PathEnsureTrailingSlash(downloads_folder);
-    }
+            return PortableFunctions::PathEnsureTrailingSlash(std::move(directory));
+        }();
 
-    return downloads_folder;
+    return downloads_directory;
 }
 
 
@@ -939,80 +958,135 @@ CString UndelimitCRLF(CString csText, const TCHAR* crlf_override/* = nullptr*/)
 }
 
 
-#ifdef WIN_DESKTOP
+#ifdef WIN32
+#include "winsock2.h"
 #undef PIF_INDEX
 #include "Iphlpapi.h"
-#pragma comment(lib,"iphlpapi.lib")
+#pragma comment(lib, "iphlpapi.lib")
 #endif
 
-CString GetDeviceId()
+const std::string& GetDeviceId()
 {
     // Cache this on first call since this will never change
-    static CString csAddress;
-    if (!csAddress.IsEmpty())
-        return csAddress;
+    static const std::string device_id =
+        []()
+        {
+#ifdef WIN32
+            DWORD size;
 
-#ifdef WIN_DESKTOP
-    DWORD size;
+            if( GetAdaptersAddresses(AF_INET, 0, nullptr, nullptr, &size ) == ERROR_BUFFER_OVERFLOW )
+            {
+                auto adapter_addresses_memory = std::make_unique_for_overwrite<std::byte[]>(size);
+                PIP_ADAPTER_ADDRESSES adapter_addresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(adapter_addresses_memory.get());
 
-    if (GetAdaptersAddresses(AF_INET, 0, NULL, NULL, &size) == ERROR_BUFFER_OVERFLOW) {
-        PIP_ADAPTER_ADDRESSES adapter_addresses = (PIP_ADAPTER_ADDRESSES) malloc(size);
+                if( GetAdaptersAddresses(AF_INET, 0, nullptr, adapter_addresses, &size) == ERROR_SUCCESS )
+                {
+                    PIP_ADAPTER_ADDRESSES adapter_itr = adapter_addresses;
 
-        if (GetAdaptersAddresses(AF_INET, 0, NULL, adapter_addresses, &size) == ERROR_SUCCESS) {
-            PIP_ADAPTER_ADDRESSES pAdapterItr = adapter_addresses;
+                    while( adapter_itr != nullptr )
+                    {
+                        if( adapter_itr->PhysicalAddressLength != 0 )
+                        {
+                            // if we eventually return more than one, remove return and keep processing the addresses
+                            return FormatText("%02x%02x%02x%02x%02x%02x", static_cast<unsigned int>(adapter_itr->PhysicalAddress[0]),
+                                                                          static_cast<unsigned int>(adapter_itr->PhysicalAddress[1]),
+                                                                          static_cast<unsigned int>(adapter_itr->PhysicalAddress[2]),
+                                                                          static_cast<unsigned int>(adapter_itr->PhysicalAddress[3]),
+                                                                          static_cast<unsigned int>(adapter_itr->PhysicalAddress[4]),
+                                                                          static_cast<unsigned int>(adapter_itr->PhysicalAddress[5]));
+                        }
 
-            while (pAdapterItr) {
-                if (pAdapterItr->PhysicalAddressLength != 0) {
-                    csAddress.Format(_T("%02x%02x%02x%02x%02x%02x"),
-                        pAdapterItr->PhysicalAddress[0], pAdapterItr->PhysicalAddress[1],
-                        pAdapterItr->PhysicalAddress[2], pAdapterItr->PhysicalAddress[3],
-                        pAdapterItr->PhysicalAddress[4], pAdapterItr->PhysicalAddress[5]);
-                    break; // if we eventually return more than one, remove this and keep processing the addresses
+                        adapter_itr = adapter_itr->Next;
+                    }
                 }
-
-                pAdapterItr = pAdapterItr->Next;
             }
-        }
 
-        free(adapter_addresses);
-    }
+            return ReturnProgrammingError(std::string());
 
 #else
-    csAddress = PlatformInterface::GetInstance()->GetApplicationInterface()->GetDeviceId();
+            return PlatformInterface::GetInstance()->GetApplicationInterface()->GetDeviceId();
 #endif
+        }();
 
-    return csAddress;
+    return device_id;
 }
 
 
-CString GetDeviceUserName()
+std::string GetDeviceUserName()
 {
-#if defined(WIN_DESKTOP) || defined(_CONSOLE)
-    TCHAR username[UNLEN + 1];
-    DWORD bufferSize = UNLEN + 1;
-    GetUserName(username,&bufferSize);
-    return CString(username);
+#if WIN32
+    constexpr DWORD MaxBufferSize = UNLEN + 1;
+    wchar_t username[MaxBufferSize];
+    DWORD buffer_size = MaxBufferSize;
 
-#else // 20131209 we'll return the account user name on android devices
+    if( GetUserName(username, &buffer_size) == 0 )
+        return ReturnProgrammingError(std::string());
+
+    return TC::ToUtf8(username, buffer_size - 1);
+
+#else // 20131209 we'll return the account user name on Android devices
     return PlatformInterface::GetInstance()->GetApplicationInterface()->GetUsername();
 #endif
 }
 
 
-CString GetLocaleLanguage()
+std::string GetLocaleLanguage(const bool separate_subtags_by_underscores/* = true*/)
 {
+    // Windows returns the locale with hyphens; Android with underscores
+
 #ifdef WIN32
-    CString language_name;
-    GetUserDefaultLocaleName(language_name.GetBuffer(LOCALE_NAME_MAX_LENGTH), LOCALE_NAME_MAX_LENGTH);
-    language_name.ReleaseBuffer();
+    auto wide_language_name = std::make_unique_for_overwrite<wchar_t[]>(LOCALE_NAME_MAX_LENGTH);
+    const int length_with_null_character = GetUserDefaultLocaleName(wide_language_name.get(), LOCALE_NAME_MAX_LENGTH);
 
-    // make the string match what Java returns below
-    language_name.Replace('-', '_');
+    std::string language_name = ( length_with_null_character != 0 ) ? TC::ToUtf8(wide_language_name.get(), length_with_null_character - 1) :
+                                                                      ReturnProgrammingError(std::string());
 
-    return language_name;
+    if( separate_subtags_by_underscores )
+        SO::Replace(language_name, '-', '_');
 
 #else
-    return PlatformInterface::GetInstance()->GetApplicationInterface()->GetLocaleLanguage();
+    std::string language_name = PlatformInterface::GetInstance()->GetApplicationInterface()->GetLocaleLanguage();
+
+    if( !separate_subtags_by_underscores )
+        SO::Replace(language_name, '_', '-');
+
+#endif
+
+    return language_name;
+}
+
+
+#ifdef WIN32
+
+const std::string& GetLocaleInformation(const LCTYPE LCType)
+{
+    static std::map<LCTYPE, std::string> locale_info;
+    const auto& lookup = locale_info.find(LCType);
+
+    if( lookup != locale_info.cend() )
+        return lookup->second;
+
+    const int wide_length_with_null = GetLocaleInfo(LOCALE_USER_DEFAULT, LCType, nullptr, 0);
+    auto wide_buffer = std::make_unique_for_overwrite<wchar_t[]>(wide_length_with_null);
+
+    GetLocaleInfo(LOCALE_USER_DEFAULT, LCType, wide_buffer.get(), wide_length_with_null);
+
+    return locale_info.emplace(LCType, TC::ToUtf8(wide_buffer.get(), wide_length_with_null - 1)).first->second;
+}
+
+#endif
+
+
+const char* GetOperatingSystemName()
+{
+#ifdef WIN32
+    return "Windows";
+#elif defined(ANDROID)
+    return "Android";
+#elif defined(WASM)
+    return "WASM";
+#else
+    static_assert(false);
 #endif
 }
 
@@ -1023,30 +1097,31 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
 
     if( details.operating_system.empty() )
     {
-        details.operating_system = OnWindows() ? _T("Windows") : _T("Android");
+        details.operating_system = GetOperatingSystemName();
 
-#if defined(WIN_DESKTOP) || defined(_CONSOLE)
+#ifdef WIN32
         WinRegistry registry;
 
-        if( registry.Open(HKEY_LOCAL_MACHINE,_T("Software\\Microsoft\\Windows NT\\CurrentVersion")) )
+        if( registry.Open(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion") )
         {
             DWORD dwMajorVersion;
             DWORD dwMinorVersion;
 
             // this should work on Windows 10 and above
-            if( registry.ReadDWord(_T("CurrentMajorVersionNumber"), &dwMajorVersion) &&
-                registry.ReadDWord(_T("CurrentMinorVersionNumber"), &dwMinorVersion) )
+            if( registry.ReadDWord("CurrentMajorVersionNumber", &dwMajorVersion) &&
+                registry.ReadDWord("CurrentMinorVersionNumber", &dwMinorVersion) )
             {
-                details.version_number = FormatTextCS2WS(_T("%lu.%lu"), dwMajorVersion, dwMinorVersion);
+                details.version_number = FormatText("%lu.%lu", static_cast<unsigned long>(dwMajorVersion),
+                                                               static_cast<unsigned long>(dwMinorVersion));
             }
 
             else
             {
-                registry.ReadString(_T("CurrentVersion"), details.version_number);
+                registry.ReadString("CurrentVersion", details.version_number);
             }
 
             // read the build number (which will help differentiate Windows 11 from 10)
-            details.build_number = registry.ReadOptionalString(_T("CurrentBuildNumber"));
+            details.build_number = registry.ReadOptionalString("CurrentBuildNumber");
         }
 
         if( details.version_number.empty() )
@@ -1060,11 +1135,15 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
             while( IsWindowsVersionOrGreater(wMajorVersion, wMinorVersion + 1, 0) )
                 ++wMinorVersion;
 
-            details.version_number = FormatTextCS2WS(_T("%d.%d"), wMajorVersion, wMinorVersion);
+            details.version_number = FormatText("%d.%d", static_cast<int>(wMajorVersion),
+                                                         static_cast<int>(wMinorVersion));
         }
 
 #elif defined(ANDROID)
         details.version_number = PlatformInterface::GetInstance()->GetVersionNumber();
+
+#else
+        static_assert_false();
 #endif
     }
 
@@ -1073,30 +1152,35 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
 
 
 #ifdef WIN32
-std::wstring PathGetVolume(NullTerminatedString path)
+std::string PathGetVolume(const std::string_view path_sv)
 {
-    std::wstring volume_name(MAX_PATH, '\0');
-    GetVolumePathName(path.c_str(), volume_name.data(), MAX_PATH);
-    volume_name.resize(_tcslen(volume_name.data()));
-    return volume_name;
+    wchar_t volume_name[MAX_PATH];
+    GetVolumePathName(TC::ToWide(path_sv).c_str(), volume_name, MAX_PATH);
+    return TC::ToUtf8(volume_name);
 }
 #endif
 
-CString ReplaceInvalidFileChars(CString filename, TCHAR replaceWith)
+
+std::string ReplaceInvalidFileChars(std::string filename, const char replace_with_ch)
 {
-    const CString illegalChars = _T("\\/:?\"<>|*");
-    for (int i = 0; i < filename.GetLength(); ++i)
+    constexpr const char* InvalidChars = "\\/:?\"<>|*";
+
+    ASSERT(strchr(InvalidChars, replace_with_ch) == nullptr);
+
+    for( char& ch : filename )
     {
-        if (illegalChars.Find(filename[i]) != -1)
-            filename.SetAt(i, replaceWith);
+        if( strchr(InvalidChars, ch) != nullptr )
+            ch = replace_with_ch;
     }
+
     return filename;
 }
 
-TCHAR GetUnusedCharacter(LPCTSTR lpszText, TCHAR chStartingCharacter/* = '0'*/)
-{
-    while( _tcschr(lpszText,chStartingCharacter) != nullptr )
-        chStartingCharacter++;
 
-    return chStartingCharacter;
+char GetUnusedCharacter(const std::string_view text_sv, char starting_ch)
+{
+    while( text_sv.find(starting_ch) != std::string_view::npos )
+        ++starting_ch;
+
+    return starting_ch;
 }

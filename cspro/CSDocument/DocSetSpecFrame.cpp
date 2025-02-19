@@ -23,12 +23,12 @@ DocSetSpecFrame::DocSetSpecFrame()
 }
 
 
-BOOL DocSetSpecFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContext)
+BOOL DocSetSpecFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* const pContext)
 {
     ASSERT(pContext->m_pNewViewClass == RUNTIME_CLASS(TextEditView));
 
     const GlobalSettings& global_settings = GetMainFrame().GetGlobalSettings();
-    m_splitterWnd.SetWidthProportion(global_settings.doc_set_tree_window_proportion); 
+    m_splitterWnd.SetWidthProportion(global_settings.doc_set_tree_window_proportion);
 
     if( !m_splitterWnd.CreateStatic(this, 1, 2) ||
         !m_splitterWnd.CreateView(0, 0, RUNTIME_CLASS(DocSetTreeView), CSize(1, 1), pContext) ||
@@ -40,11 +40,11 @@ BOOL DocSetSpecFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pC
     m_docSetTreeView = assert_cast<DocSetTreeView*>(m_splitterWnd.GetPane(0, 0));
     m_textEditView = assert_cast<TextEditView*>(m_splitterWnd.GetPane(0, 1));
 
-    return TRUE;        
+    return TRUE;
 }
 
 
-void DocSetSpecFrame::OnSize(UINT nType, int cx, int cy)
+void DocSetSpecFrame::OnSize(const UINT nType, const int cx, const int cy)
 {
     __super::OnSize(nType, cx, cy);
 
@@ -63,31 +63,31 @@ void DocSetSpecFrame::OnDestroy()
 }
 
 
-void DocSetSpecFrame::OnCompileSpec(bool compile_components)
+void DocSetSpecFrame::OnCompileSpec(const bool compile_components)
 {
-    std::wstring action = _T("CSPro Document Set compilation");
+    std::string action = "CSPro Document Set compilation";
 
     if( !compile_components )
-        action.append(_T(" (specification only)"));
+        action.append(" (specification only)");
 
     DocSetSpec& doc_set_spec = GetDocSetSpec();
 
     CompileWrapper(
         std::move(action),
         true,
-        [&](DocSetCompiler& doc_set_compiler, std::variant<JsonNode<wchar_t>, std::wstring> input)
+        [&](DocSetCompiler& doc_set_compiler, const std::variant<JsonNode, std::string> input)
         {
-            ASSERT(std::holds_alternative<JsonNode<wchar_t>>(input));
+            ASSERT(std::holds_alternative<JsonNode>(input));
 
-            doc_set_compiler.CompileSpec(doc_set_spec, std::get<JsonNode<wchar_t>>(input), compile_components ? DocSetCompiler::SpecCompilationType::SpecAndComponents :
-                                                                                                                DocSetCompiler::SpecCompilationType::SpecOnly);
+            doc_set_compiler.CompileSpec(doc_set_spec, std::get<JsonNode>(input), compile_components ? DocSetCompiler::SpecCompilationType::SpecAndComponents :
+                                                                                                       DocSetCompiler::SpecCompilationType::SpecOnly);
         });
 
     m_docSetTreeView->RebuildTreeIfNecessary();
 }
 
 
-void DocSetSpecFrame::WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node, bool detailed_format)
+void DocSetSpecFrame::WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode& json_node, const bool detailed_format)
 {
     // compile the spec to update the values prior to the format
     DocSetSpec& doc_set_spec = GetDocSetSpec();

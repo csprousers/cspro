@@ -6,11 +6,11 @@
 class GenerateTaskProcessRunner
 {
 public:
-    GenerateTaskProcessRunner(GenerateTask& generate_task, std::wstring process_name, const std::wstring& log_prefix, std::wstring (ProcessRunner::*output_read_function)());
+    GenerateTaskProcessRunner(GenerateTask& generate_task, std::string process_name, const std::string& log_prefix, std::string (ProcessRunner::*output_read_function)());
 
-    void SetOutputPreprocessor(std::function<void(std::wstring&)> output_preprocessor) { m_outputPreprocessor = std::move(output_preprocessor); }
+    void SetOutputPreprocessor(std::function<void(std::string&)> output_preprocessor) { m_outputPreprocessor = std::move(output_preprocessor); }
 
-    void Run(std::wstring command_line);
+    void Run(const std::string& command_line);
 
 private:
     void AddOutputToLog();
@@ -18,9 +18,9 @@ private:
 private:
     ProcessRunner m_processRunner;
     GenerateTask& m_generateTask;
-    const std::wstring m_processName;
-    const std::wstring m_logPrefix;
-    std::wstring (ProcessRunner::*const m_outputReadFunction)();
+    std::string m_processName;
+    std::string m_logPrefix;
+    std::string (ProcessRunner::*const m_outputReadFunction)();
     bool m_addSpacingBeforeNextLoggedLine;
-    std::function<void(std::wstring&)> m_outputPreprocessor;
+    std::function<void(std::string&)> m_outputPreprocessor;
 };

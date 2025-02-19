@@ -89,7 +89,7 @@ void RuntimeEventsProcessor::serialize(Serializer& ar)
                         break;
 
                     default:
-                        throw SerializationException(_T("Invalid RuntimeEvent::Type"));
+                        throw SerializationException("Invalid RuntimeEvent::Type");
                 }
             }
 

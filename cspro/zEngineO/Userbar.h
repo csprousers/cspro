@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zUtilO/DataTypes.h>
-#include <zEngineO/UserFunction.h>
+#include <zEngineO/UserFunctionArgumentEvaluator.h>
 
 
 // 20100412, for adding a user bar to the top of a data entry screen
@@ -56,7 +56,7 @@ public:
     struct FeatureNotImplemented : public std::exception { };
 
 protected:
-    // this value can be anything other than 0 but is 60000 to 
+    // this value can be anything other than 0 but is 60000 to
     // match what it was when the userbar was first programmed
     constexpr static int StartingId = 60000;
 

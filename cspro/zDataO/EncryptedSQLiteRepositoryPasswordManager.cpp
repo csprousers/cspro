@@ -1,19 +1,19 @@
 ﻿#include "stdafx.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
 #include "EncryptedSQLiteRepository.h"
-#include "zDataO.h"
+#include "resource.h"
 #include <zToolsO/Hash.h>
 #include <zUtilO/CredentialStore.h>
 
 
-std::map<std::wstring, std::wstring> EncryptedSQLiteRepositoryPasswordManager::m_previouslyUsedPasswordHashes;
+std::map<std::string, std::string> EncryptedSQLiteRepositoryPasswordManager::m_previouslyUsedPasswordHashes;
 
 
-EncryptedSQLiteRepositoryPasswordManager::EncryptedSQLiteRepositoryPasswordManager(const CDataDict* dictionary, std::wstring filename,
+EncryptedSQLiteRepositoryPasswordManager::EncryptedSQLiteRepositoryPasswordManager(const CDataDict* dictionary, std::string file_path,
                                                                                    const OpenByPasswordCallback& file_open_by_password_callback,
                                                                                    const OpenByPasswordHashCallback& file_open_by_password_hash_callback)
     :   m_dictionary(dictionary),
-        m_filename(std::move(filename)),
+        m_filePath(std::move(file_path)),
         m_fileOpenByPasswordCallback(file_open_by_password_callback),
         m_fileOpenByPasswordHashCallback(file_open_by_password_hash_callback)
 {
@@ -24,8 +24,8 @@ void EncryptedSQLiteRepositoryPasswordManager::GetPassword()
 {
     if( !GetPasswordHashFromCredentialManagerOrPreviousUseInCurrentSession() && !QueryForPassword() )
     {
-        const std::wstring& formatter = MGF::GetMessageText(94303, _T("No valid password specified for the file %s"));
-        throw DataRepositoryException::EncryptionError(FormatText(formatter.c_str(), PortableFunctions::PathGetFilename(m_filename)));
+        const SharableString formatter = MGF::GetMessageText(94303, "No valid password specified for the file %s");
+        throw DataRepositoryException::EncryptionError(formatter->c_str(), PortableFunctions::PathGetFilename(m_filePath).c_str());
     }
 }
 
@@ -65,7 +65,7 @@ namespace
             return _bytes.data() + sizeof(Header);
         }
 
-        EncryptedSQLiteRepositoryCredential(const std::byte* password_hash)
+        EncryptedSQLiteRepositoryCredential(const std::byte* const password_hash)
             :   EncryptedSQLiteRepositoryCredential()
         {
             reinterpret_cast<Header*>(_bytes.data())->_version = CurrentVersion;
@@ -73,12 +73,12 @@ namespace
             memcpy(_bytes.data() + sizeof(Header), password_hash, EncryptedSQLiteRepository::PasswordHashSize);
         }
 
-        std::wstring ToString() const
+        std::string ToString() const
         {
             return Hash::BytesToHexString(_bytes.data(), _bytes.size());
         }
 
-        static std::unique_ptr<EncryptedSQLiteRepositoryCredential> FromString(const wstring_view credential_string_sv)
+        static std::unique_ptr<EncryptedSQLiteRepositoryCredential> FromString(const std::string_view credential_string_sv)
         {
             std::unique_ptr<EncryptedSQLiteRepositoryCredential> credential(new EncryptedSQLiteRepositoryCredential);
 
@@ -99,10 +99,10 @@ namespace
     class EncryptedSQLiteRepositoryCredentialStore : public CredentialStore
     {
     protected:
-        std::wstring PrefixAttribute(const std::wstring& attribute) override
+        std::string PrefixAttribute(const std::string& attribute) override
         {
             // instead of storing the full filename in the credentials, store a hash of it
-            return _T("CSPro_data_") + Hash::Hash(attribute, 16);
+            return "CSPro_data_" + Hash::Hash(attribute, 16);
         }
     };
 }
@@ -110,11 +110,11 @@ namespace
 
 bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialManagerOrPreviousUseInCurrentSession() const
 {
-    if( !PortableFunctions::FileIsRegular(m_filename) )
+    if( !PortableFunctions::FileIsRegular(m_filePath) )
         return false;
 
     // on the first pass, see if the password hash was previously used to open the file (in the current session)
-    const auto& previously_used_password_hash_lookup = m_previouslyUsedPasswordHashes.find(m_filename);
+    const auto& previously_used_password_hash_lookup = m_previouslyUsedPasswordHashes.find(m_filePath);
 
     if( previously_used_password_hash_lookup != m_previouslyUsedPasswordHashes.cend() )
     {
@@ -128,7 +128,7 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
     if( m_dictionary != nullptr && m_dictionary->GetCachedPasswordMinutes() <= 0 )
         return false;
 
-    const std::wstring credential_string = EncryptedSQLiteRepositoryCredentialStore().Retrieve(m_filename);
+    const std::string credential_string = EncryptedSQLiteRepositoryCredentialStore().Retrieve(m_filePath);
 
     if( !credential_string.empty() )
     {
@@ -148,42 +148,42 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
 }
 
 
-void EncryptedSQLiteRepositoryPasswordManager::UpdatePasswordHashInCredentialManager(const CDataDict* dictionary, const std::byte* password_hash)
+void EncryptedSQLiteRepositoryPasswordManager::UpdatePasswordHashInCredentialManager(const CDataDict* const dictionary, const std::byte* const password_hash)
 {
     EncryptedSQLiteRepositoryCredential credential(password_hash);
-    const std::wstring credential_string = credential.ToString();
+    const std::string credential_string = credential.ToString();
 
-    m_previouslyUsedPasswordHashes[m_filename] = credential_string;
+    m_previouslyUsedPasswordHashes[m_filePath] = credential_string;
 
     if( dictionary == nullptr || dictionary->GetCachedPasswordMinutes() <= 0 )
         return;
 
-    EncryptedSQLiteRepositoryCredentialStore().Store(m_filename, credential_string);
+    EncryptedSQLiteRepositoryCredentialStore().Store(m_filePath, credential_string);
 }
 
 
-std::wstring EncryptedSQLiteRepositoryPasswordManager::GetPasswordQueryTitle() const
+std::string EncryptedSQLiteRepositoryPasswordManager::GetPasswordQueryTitle() const
 {
     ASSERT(m_dictionary != nullptr);
-    const std::wstring& formatter = MGF::GetMessageText(94304, _T("Password for: %s"));
-    return FormatTextCS2WS(formatter.c_str(), m_dictionary->GetLabel().GetString());
+    const SharableString formatter = MGF::GetMessageText(94304, "Password for: %s");
+    return FormatText(formatter->c_str(), UTF8_TODO::GetUtf8(m_dictionary->GetLabel()).c_str());
 }
 
 
-std::wstring EncryptedSQLiteRepositoryPasswordManager::GetPasswordQueryDescription() const
+std::string EncryptedSQLiteRepositoryPasswordManager::GetPasswordQueryDescription() const
 {
-    const std::wstring& formatter = PortableFunctions::FileIsRegular(m_filename) ?
-        MGF::GetMessageText(94305, _T("Enter the password previously used to encrypt the file %s:")) :
-        MGF::GetMessageText(94306, _T("Enter a new password for the file %s. The password must be at %d characters and it should be something that you will remember as there is no way to decrypt this file without the password:"));
+    const SharableString formatter = PortableFunctions::FileIsRegular(m_filePath) ?
+        MGF::GetMessageText(94305, "Enter the password previously used to encrypt the file %s:") :
+        MGF::GetMessageText(94306, "Enter a new password for the file %s. The password must be at %d characters and it should be something that you will remember as there is no way to decrypt this file without the password:");
 
-    return FormatTextCS2WS(formatter.c_str(), PortableFunctions::PathGetFilename(m_filename), static_cast<int>(EncryptedSQLiteRepository::PasswordMinimumLength));
+    return FormatText(formatter->c_str(), PortableFunctions::PathGetFilename(m_filePath).c_str(), static_cast<int>(EncryptedSQLiteRepository::PasswordMinimumLength));
 }
 
 
-void EncryptedSQLiteRepositoryPasswordManager::TryOpeningWithPassword(const std::wstring& password)
+void EncryptedSQLiteRepositoryPasswordManager::TryOpeningWithPassword(const std::string& password)
 {
     const SuccessfulOpenCallback successful_open_callback =
-        [&](const std::byte* password_hash, const std::function<std::unique_ptr<CDataDict>()>& get_embedded_dictionary_callback)
+        [&](const std::byte* const password_hash, const std::function<std::unique_ptr<CDataDict>()>& get_embedded_dictionary_callback)
         {
             std::unique_ptr<CDataDict> embedded_dictionary;
             const CDataDict* dictionary = m_dictionary;
@@ -199,14 +199,14 @@ void EncryptedSQLiteRepositoryPasswordManager::TryOpeningWithPassword(const std:
         };
 
     if( !m_fileOpenByPasswordCallback(password, &successful_open_callback) )
-        throw DataRepositoryException::EncryptionError(MGF::GetMessageText(94307, _T("The password is invalid")));
+        throw DataRepositoryException::EncryptionError(MGF::GetMessageText(94307, "The password is invalid").GetString());
 }
 
 
 #ifdef WIN_DESKTOP
 
 #include <zUtilO/WindowHelpers.h>
-#include <zUtilO/WindowsWS.h>
+#include <zUtilO/WindowsUtf8.h>
 
 
 INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
@@ -243,12 +243,12 @@ INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HW
 
         // set the title
         if( m_instance->m_dictionary != nullptr )
-            WindowsWS::SetWindowText(dialog, m_instance->GetPasswordQueryTitle());
+            WindowsUtf8::SetText(dialog, m_instance->GetPasswordQueryTitle());
 
         // fill the description
-        const std::wstring password_description = m_instance->GetPasswordQueryDescription();
-        CWnd* password_description_text = dialog->GetDlgItem(IDC_TEXT_PASSWORD_DESCRIPTION);
-        WindowsWS::SetWindowText(password_description_text, password_description);
+        const std::string password_description = m_instance->GetPasswordQueryDescription();
+        CWnd* const password_description_text = dialog->GetDlgItem(IDC_TEXT_PASSWORD_DESCRIPTION);
+        WindowsUtf8::SetText(password_description_text, password_description);
 
         // get the height needed to show the description
         CRect rect;
@@ -256,7 +256,7 @@ INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HW
         int original_description_height = rect.Height();
 
         CClientDC dc(password_description_text);
-        CFont* font = password_description_text->GetFont();
+        CFont* const font = password_description_text->GetFont();
         dc.SelectObject(font);
         dc.DrawText(password_description.c_str(), &rect, DT_CALCRECT | DT_WORDBREAK);
 
@@ -265,11 +265,11 @@ INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HW
         password_description_text->SetWindowPos(nullptr, 0, 0, rect.Width(), rect.Height(), SWP_NOMOVE);
 
         // if the file exists, hide the reenter password controls
-        if( PortableFunctions::FileIsRegular(m_instance->m_filename) )
+        if( PortableFunctions::FileIsRegular(m_instance->m_filePath) )
         {
             dialog->GetDlgItem(IDC_TEXT_PASSWORD_REENTER)->ShowWindow(SW_HIDE);
 
-            CWnd* reentered_password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD_REENTER);
+            CWnd* const reentered_password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD_REENTER);
             reentered_password_edit->ShowWindow(SW_HIDE);
 
             CRect control_rect;
@@ -293,23 +293,21 @@ INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HW
             // enable the OK button only when the passwords match
             case EN_CHANGE:
             {
-                const CWnd* password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD);
-                const std::wstring password = WindowsWS::GetWindowText(password_edit);
-
+                const std::string password = WindowsUtf8::GetText(dialog, IDC_EDIT_PASSWORD);
                 bool enable_ok = !password.empty();
 
                 if( enable_ok )
                 {
-                    const CWnd* reentered_password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD_REENTER);
+                    const CWnd* const reentered_password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD_REENTER);
 
                     if( reentered_password_edit->IsWindowVisible() )
                     {
-                        const std::wstring reentered_password = WindowsWS::GetWindowText(reentered_password_edit);
+                        const std::string reentered_password = WindowsUtf8::GetText(reentered_password_edit);
                         enable_ok = ( password == reentered_password );
                     }
                 }
 
-                CWnd* ok_button = dialog->GetDlgItem(IDOK);
+                CWnd* const ok_button = dialog->GetDlgItem(IDOK);
                 ok_button->EnableWindow(enable_ok);
 
                 return TRUE;
@@ -321,7 +319,7 @@ INT_PTR CALLBACK EncryptedSQLiteRepositoryPasswordManager::PasswordDialogProc(HW
                 if( LOWORD(wParam) == IDOK )
                 {
                     CWnd* password_edit = dialog->GetDlgItem(IDC_EDIT_PASSWORD);
-                    const std::wstring password = WindowsWS::GetWindowText(password_edit);
+                    const std::string password = WindowsUtf8::GetText(password_edit);
 
                     try
                     {
@@ -387,13 +385,13 @@ bool EncryptedSQLiteRepositoryPasswordManager::QueryForPassword()
 
 bool EncryptedSQLiteRepositoryPasswordManager::QueryForPassword()
 {
-    const std::wstring title = GetPasswordQueryTitle();
-    const std::wstring description = GetPasswordQueryDescription();
-    const bool exists = PortableFunctions::FileIsRegular(m_filename);
+    const std::string title = GetPasswordQueryTitle();
+    const std::string description = GetPasswordQueryDescription();
+    const bool exists = PortableFunctions::FileIsRegular(m_filePath);
 
     while( true )
     {
-        const std::optional<std::wstring> password = PlatformInterface::GetInstance()->GetApplicationInterface()->GetPassword(title, description, exists);
+        const std::optional<std::string> password = PlatformInterface::GetInstance()->GetApplicationInterface()->GetPassword(title, description, exists);
 
         if( !password.has_value() )
             return false;
@@ -406,7 +404,7 @@ bool EncryptedSQLiteRepositoryPasswordManager::QueryForPassword()
 
         catch( const DataRepositoryException::EncryptionError& exception )
         {
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T(""), exception.GetErrorMessage(), MB_OK);
+            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("", exception.what(), MB_OK);
         }
     }
 }

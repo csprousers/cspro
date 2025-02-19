@@ -25,7 +25,7 @@ public:
     void SetLanguages(std::vector<Language> languages);
 
     void SetLanguage(size_t language_index);
-    void SetLanguage(wstring_view language_label);
+    void SetLanguage(std::string_view language_label_sv);
 
     size_t GetNumLanguages() const { return m_languages.size(); }
 

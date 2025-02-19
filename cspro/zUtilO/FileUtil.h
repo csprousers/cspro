@@ -29,16 +29,16 @@ CLASS_DECL_ZUTILO CString GenUniqueFileName(NullTerminatedString sFullPath);
 
 
 // a wrapper around the SHBrowseForFolder method
-CLASS_DECL_ZUTILO std::optional<std::wstring> RunSHBrowseForFolder(HWND hWnd, UINT flags, const TCHAR* title = nullptr, const TCHAR* initial_path = nullptr);
+CLASS_DECL_ZUTILO std::optional<std::string> RunSHBrowseForFolder(HWND hWnd, UINT flags, std::string_view title_sv, const std::string& initial_path);
 
 // display a "select folder" dialog
-inline std::optional<std::wstring> SelectFolderDialog(HWND hWnd, const TCHAR* title = nullptr, const TCHAR* initial_path = nullptr)
+inline std::optional<std::string> SelectFolderDialog(HWND hWnd, std::string_view title_sv, const std::string& initial_path = std::string())
 {
-    return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE, title, initial_path);
+    return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE, title_sv, initial_path);
 }
 
 // display a "select file or folder" dialog
-inline std::optional<std::wstring> SelectFileOrFolderDialog(HWND hWnd, const TCHAR* title = nullptr, const TCHAR* initial_path = nullptr)
+inline std::optional<std::string> SelectFileOrFolderDialog(HWND hWnd, std::string_view title_sv, const std::string& initial_path = std::string())
 {
-    return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE | BIF_NONEWFOLDERBUTTON | BIF_BROWSEINCLUDEFILES, title, initial_path);
+    return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE | BIF_NONEWFOLDERBUTTON | BIF_BROWSEINCLUDEFILES, title_sv, initial_path);
 }

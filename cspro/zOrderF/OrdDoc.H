@@ -18,7 +18,7 @@ protected:
 public:
     ~COrderDoc();
 
-    static constexpr const TCHAR* GetExtensionWithDot() { return FileExtensions::WithDot::Order; }
+    static constexpr const char* GetExtension() { return FileExtensions::Order; }
 
     bool IsOrderLoaded() const { return m_bOrderLoaded; }
 
@@ -38,13 +38,13 @@ public:
     void SetCurItemIndex(int i)  { m_iCurItemIndex = i; }
 
     void ReleaseDicts();
-         
+
     COrderTreeCtrl* GetOrderTreeCtrl() const         { return m_pOrderTreeCtrl; }
     void SetOrderTreeCtrl(COrderTreeCtrl* pTreeCtrl) { m_pOrderTreeCtrl = pTreeCtrl; }
 
     HTREEITEM BuildAllTrees(HTREEITEM hParent = TVI_ROOT, HTREEITEM hInsertAfter = TVI_LAST);
 
-    bool LoadOrderSpecFile(const CString& csFileName);
+    bool LoadOrderSpecFile(const InterfaceString& order_file_path);
     bool LoadDictSpecFile();
 
     bool InitTreeCtrl();

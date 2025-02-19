@@ -5,15 +5,17 @@
 
 double CSPro::Util::Versioning::Number::get()
 {
-    return CSPRO_VERSION_NUMBER;
+    return ::Versioning::Number;
 }
+
 
 System::String^ CSPro::Util::Versioning::DetailedString::get()
 {
-    return gcnew System::String(::Versioning::GetVersionDetailedString());
+    return clr_helpers::to_SystemString(::Versioning::GetVersionDetailedString());
 }
+
 
 System::String^ CSPro::Util::Versioning::ReleaseDateString::get()
 {
-    return gcnew System::String(::Versioning::GetReleaseDateString());
+    return clr_helpers::to_SystemString(::Versioning::GetReleaseDateString());
 }

@@ -16,7 +16,7 @@ public:
 
     const JsonProperties& GetJsonProperties() const { return m_jsonProperties; }
 
-    virtual std::wstring LocalhostCreateMappingForBinarySymbol(const BinarySymbol& /*binary_symbol*/) { return ReturnProgrammingError(std::wstring()); }
+    virtual std::string LocalhostCreateMappingForBinarySymbol(const BinarySymbol& /*binary_symbol*/) { return ReturnProgrammingError(std::string()); }
 
 private:
     const JsonProperties& m_jsonProperties;

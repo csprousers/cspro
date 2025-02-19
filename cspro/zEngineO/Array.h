@@ -4,9 +4,6 @@
 #include <zUtilO/DataTypes.h>
 #include <zLogicO/Symbol.h>
 
-template<typename T>
-class LogicArrayImpl;
-
 class SaveArray;
 
 
@@ -16,11 +13,16 @@ class SaveArray;
 
 class ZENGINEO_API LogicArray : public Symbol
 {
+    template<typename T> class Impl;
+    class IndicesProcessor;
+    template<typename T> class SaveArrayImpl;
+    class SetterPreprocessor;
+
 private:
     LogicArray(const LogicArray& logic_array);
 
 public:
-    LogicArray(std::wstring array_name);
+    LogicArray(std::string array_name);
     ~LogicArray();
 
     void SetNumeric(bool numeric) { m_numeric = numeric; }
@@ -44,11 +46,13 @@ public:
     SaveArray* GetSaveArray();
     const SaveArray* GetSaveArray() const { return const_cast<LogicArray*>(this)->GetSaveArray(); }
 
-    void SetDefaultValue(double value);
-    void SetDefaultValue(std::wstring value);
+    bool IsInResetState() const;
 
-    void SetInitialValues(std::vector<double> initial_values, bool repeat_values);
-    void SetInitialValues(std::vector<std::wstring> initial_values, bool repeat_values);
+    template<typename T>
+    void SetDefaultValue(T value);
+
+    template<typename T>
+    void SetInitialValues(std::vector<T> initial_values, bool repeat_values);
 
     bool IsValidIndex(const std::vector<size_t>& indices) const;
 
@@ -59,13 +63,16 @@ public:
     void SetValue(const std::vector<size_t>& indices, T value);
 
     static size_t CalculateProcessingStartingRow(const std::vector<const LogicArray*>& logic_arrays);
-    std::vector<double> GetNumericFilledCells(size_t starting_row = SIZE_MAX, size_t ending_row = SIZE_MAX) const;
-    std::vector<std::wstring> GetStringFilledCells(size_t starting_row = SIZE_MAX, size_t ending_row = SIZE_MAX) const;
+
+    template<typename T>
+    std::vector<T> GetFilledCells(size_t starting_row = SIZE_MAX, size_t ending_row = SIZE_MAX) const;
 
     void IterateCells(size_t starting_index, const std::function<void(const std::vector<size_t>&)>& iteration_function,
                       const std::function<void(bool)>& start_end_array_callback_function = std::function<void(bool)>()) const;
 
     // Symbol overrides
+    void CompareDeclarationAttributes(const Symbol& symbol) const override;
+
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
     void Reset() override;
@@ -74,8 +81,8 @@ public:
 
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
 
-	void WriteValueToJson(JsonWriter& json_writer) const override;
-	void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void WriteValueToJson(JsonWriter& json_writer) const override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     template<typename T> struct SparseArrayWriter;
     struct SparseArrayReader;
@@ -83,20 +90,26 @@ public:
     template<typename T>
     void WriteSparseArrayValueToJson(JsonWriter& json_writer, SparseArrayWriter<T>* sparse_array_writer) const;
 
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node, SparseArrayReader* sparse_array_reader);
+    void SetValueFromJson(const JsonNode& json_node, SparseArrayReader* sparse_array_reader);
+
+    JavaScript::Value GetJavaScriptValue(JavaScript::Executor& executor) const override;
+    void SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value) override;
 
 private:
-    LogicArrayImpl<double>* GetNumericImpl() const;
-    LogicArrayImpl<std::wstring>* GetStringImpl() const;
-
     template<typename T>
-    LogicArrayImpl<T>* GetImpl() const;
+    Impl<T>& GetImpl() const;
 
     template<typename T>
     void WriteValueToJsonWorker(JsonWriter& json_writer) const;
 
     template<typename T>
-    void UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, SparseArrayReader* sparse_array_reader);
+    void SetValueFromJsonWorker(const JsonNode& json_node, SparseArrayReader* sparse_array_reader);
+
+    template<typename T>
+    JavaScript::Value GetJavaScriptValueWorker(JavaScript::Executor& executor) const;
+
+    template<typename T>
+    void SetValueFromJavaScriptWorker(JavaScript::Executor& executor, const JavaScript::Value& js_value);
 
 private:
     mutable void* m_impl;
@@ -110,7 +123,7 @@ private:
 
 
 // --------------------------------------------------------------------------
-// LogicArray::SparseArrayWriter + 
+// LogicArray::SparseArrayWriter +
 // LogicArray::SparseArrayReader
 // --------------------------------------------------------------------------
 
@@ -126,7 +139,7 @@ struct LogicArray::SparseArrayWriter
 struct LogicArray::SparseArrayReader
 {
     virtual ~SparseArrayReader() { }
-    virtual JsonNode<wchar_t> ProcessNodeAndGetValueNode(const std::vector<size_t>& indices, const JsonNode<wchar_t>& json_node) = 0;
+    virtual JsonNode ProcessNodeAndGetValueNode(const std::vector<size_t>& indices, const JsonNode& json_node) = 0;
 };
 
 

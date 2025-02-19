@@ -8,12 +8,12 @@
 // Case
 // --------------------------------------------------------------------------
 
-EngineDictionary* LogicCompiler::CompileEngineCaseDeclaration(const EngineDictionary* engine_dictionary_to_copy_attributes/* = nullptr*/)
+EngineDictionary* LogicCompiler::CompileEngineCaseDeclaration(EngineDictionary* const engine_dictionary_to_copy_attributes/* = nullptr*/)
 {
     // Case (DICT_NAME) case_name;
     constexpr int default_message_number = MGF::Case_dictionary_placement_47251;
 
-    const EngineDictionary* base_engine_dictionary;
+    EngineDictionary* base_engine_dictionary;
 
     if( engine_dictionary_to_copy_attributes != nullptr )
     {
@@ -39,7 +39,7 @@ EngineDictionary* LogicCompiler::CompileEngineCaseDeclaration(const EngineDictio
     }
 
     // get the Case name
-    std::wstring case_name = CompileNewSymbolName();
+    std::string case_name = CompileNewSymbolName();
 
     std::shared_ptr<EngineDictionary> engine_dictionary = EngineDictionaryFactory::CreateCase(std::move(case_name),
                                                                                               *base_engine_dictionary,
@@ -80,13 +80,16 @@ int LogicCompiler::CompileEngineCases()
 }
 
 
-int LogicCompiler::CompileEngineCaseComputeInstruction(const EngineDictionary* engine_dictionary_from_declaration/* = nullptr*/)
+int LogicCompiler::CompileEngineCaseComputeInstruction(EngineDictionary* const engine_dictionary_from_declaration/* = nullptr*/)
 {
     // compiling: case_name = rhs_case_name / rhs_DICT_NAME;
 
     // this is not valid if declaring globally
     if( IsGlobalCompilation() )
-        IssueError(MGF::symbol_assignment_not_allowed_in_proc_global_687, Logic::KeywordTable::GetKeywordName(TOKKWCASE));
+    {
+        IssueError(MGF::symbol_assignment_not_allowed_in_proc_global_687,
+                   Logic::KeywordTable::GetKeywordName(TOKKWCASE));
+    }
 
     const EngineDictionary* lhs_engine_dictionary = engine_dictionary_from_declaration;
 
@@ -126,8 +129,8 @@ int LogicCompiler::CompileEngineCaseComputeInstruction(const EngineDictionary* e
     if( !lhs_engine_dictionary->DictionaryMatches(rhs_engine_dictionary) )
     {
         IssueError(MGF::Case_assignment_dictionary_mismatch_47253, lhs_engine_dictionary->GetName().c_str(),
-                                                                   lhs_engine_dictionary->GetDictionary().GetName().GetString(),
-                                                                   rhs_engine_dictionary.GetDictionary().GetName().GetString());
+                                                                   lhs_engine_dictionary->GetDictionary().GetName().c_str(),
+                                                                   rhs_engine_dictionary.GetDictionary().GetName().c_str());
     }
 
     auto& symbol_compute_node = CreateNode<Nodes::SymbolCompute>(FunctionCode::DICTFN_COMPUTE_CODE);
@@ -149,12 +152,12 @@ int LogicCompiler::CompileEngineCaseComputeInstruction(const EngineDictionary* e
 // DataSource
 // --------------------------------------------------------------------------
 
-EngineDictionary* LogicCompiler::CompileEngineDataRepositoryDeclaration(const EngineDictionary* engine_dictionary_to_copy_attributes/* = nullptr*/)
+EngineDictionary* LogicCompiler::CompileEngineDataRepositoryDeclaration(EngineDictionary* const engine_dictionary_to_copy_attributes/* = nullptr*/)
 {
     // DataSource (DICT_NAME) datasource_name;
     constexpr int default_message_number = MGF::DataSource_dictionary_placement_47261;
 
-    const EngineDictionary* base_engine_dictionary;
+    EngineDictionary* base_engine_dictionary;
 
     if( engine_dictionary_to_copy_attributes != nullptr )
     {
@@ -180,7 +183,7 @@ EngineDictionary* LogicCompiler::CompileEngineDataRepositoryDeclaration(const En
     }
 
     // get the DataSource name
-    std::wstring datasource_name = CompileNewSymbolName();
+    std::string datasource_name = CompileNewSymbolName();
 
     std::shared_ptr<EngineDictionary> engine_dictionary = EngineDictionaryFactory::CreateDataRepository(std::move(datasource_name),
                                                                                                         *base_engine_dictionary,

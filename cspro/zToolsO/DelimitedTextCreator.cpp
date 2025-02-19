@@ -8,44 +8,51 @@ namespace
 }
 
 
-DelimitedTextCreator::DelimitedTextCreator(Type type, NewlineType newline_type)
+DelimitedTextCreator::DelimitedTextCreator(const Type type, const NewlineType newline_type)
     :   m_delimiter(( type == Type::CSV )       ? ',' :
                     ( type == Type::Semicolon ) ? ';' :
                   /*( type == Type::Tab )*/       '\t'),
-        m_newlineType(newline_type)
+        m_newlineType(newline_type),
+        m_buffer(InitialBufferSize, '\0')
 {
     // semicolon output doesn't support newlines
     ASSERT(type != Type::Semicolon || m_newlineType == NewlineType::Remove);
 
-    m_buffer.resize(InitialBufferSize);
-    ResetBufferPositions(0);
+    ResetBufferPositionFull(0);
 }
 
 
-void DelimitedTextCreator::ResetBufferPositions(size_t current_position)
+void DelimitedTextCreator::ResetBufferPosition(const size_t current_position)
 {
-    m_bufferStart = m_buffer.data();
     m_bufferCurrent = m_bufferStart + current_position;
-    m_bufferEnd = m_buffer.data() + m_buffer.size();
 
     ASSERT(m_bufferCurrent < m_bufferEnd);
 }
 
 
-void DelimitedTextCreator::AddText(wstring_view text_sv)
+void DelimitedTextCreator::ResetBufferPositionFull(const size_t current_position)
 {
-    std::unique_ptr<std::wstring> delimited_text;
+    m_bufferStart = m_buffer.data();
+    m_bufferEnd = m_buffer.data() + m_buffer.size();
 
-    auto set_delimited_text = [&](wstring_view text_sv)
+    ResetBufferPosition(current_position);
+}
+
+
+void DelimitedTextCreator::AddText(const std::string_view text_sv)
+{
+    std::unique_ptr<std::string> delimited_text;
+
+    auto set_delimited_text = [&](const std::string_view text_to_delimit_sv)
     {
-        delimited_text = ( m_delimiter == '\t' ) ? Encoders::ToTsvWorker(text_sv) :
-                                                   Encoders::ToCsvWorker(text_sv, m_delimiter);
+        delimited_text = ( m_delimiter == '\t' ) ? Encoders::ToTsvWorker(text_to_delimit_sv) :
+                                                   Encoders::ToCsvWorker(text_to_delimit_sv, m_delimiter);
         return ( delimited_text != nullptr );
     };
 
     if( m_newlineType == NewlineType::Remove && SO::ContainsNewlineCharacter(text_sv) )
     {
-        auto text_without_newlines = std::make_unique<std::wstring>(text_sv);
+        auto text_without_newlines = std::make_unique<std::string>(text_sv);
 
         text_without_newlines->erase(std::remove_if(text_without_newlines->begin(), text_without_newlines->end(), is_crlf));
 
@@ -60,13 +67,34 @@ void DelimitedTextCreator::AddText(wstring_view text_sv)
             SO::MakeNewlineCRLF(*delimited_text);
     }    
 
-    if( delimited_text != nullptr )
-        text_sv = *delimited_text;
+    if( delimited_text == nullptr )
+    {
+        AddAlreadyDelimitedText(text_sv);
+    }
 
+    else
+    {
+        AddAlreadyDelimitedText(*delimited_text);
+    }
+}
+
+
+void DelimitedTextCreator::AddTextNoNeedToDelimit(const std::string_view text_sv)
+{
+    ASSERT(!SO::ContainsNewlineCharacter(text_sv));
+    ASSERT(( m_delimiter == '\t' ) ? ( Encoders::ToTsvWorker(text_sv) == nullptr ) :
+                                     ( Encoders::ToCsvWorker(text_sv, m_delimiter) == nullptr ));
+
+    AddAlreadyDelimitedText(text_sv);
+}
+
+
+void DelimitedTextCreator::AddAlreadyDelimitedText(const std::string_view text_sv)
+{
     // makes sure the buffer is large enough for the delimiter and the text
     const bool need_to_write_delimiter = ( m_bufferCurrent > m_bufferStart );
 
-    TCHAR* buffer_pos_after_adding_text;
+    char* buffer_pos_after_adding_text;
 
     auto calculate_buffer_pos_after_adding_text = [&]()
     {
@@ -81,7 +109,7 @@ void DelimitedTextCreator::AddText(wstring_view text_sv)
         const size_t current_length_used = GetTextLength();
 
         m_buffer.resize(m_buffer.size() * 2 + text_sv.length());
-        ResetBufferPositions(current_length_used);
+        ResetBufferPositionFull(current_length_used);
 
         calculate_buffer_pos_after_adding_text();
     }
@@ -91,7 +119,7 @@ void DelimitedTextCreator::AddText(wstring_view text_sv)
         *(m_bufferCurrent++) = m_delimiter;
 
     // copy the text
-    _tmemcpy(m_bufferCurrent, text_sv.data(), text_sv.length());
+    memcpy(m_bufferCurrent, text_sv.data(), text_sv.length());
 
     m_bufferCurrent = buffer_pos_after_adding_text;
 }

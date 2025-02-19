@@ -3,9 +3,6 @@
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiFill.h>
 
-class JsonWriter;
-class Serializer;
-
 
 enum class CapiTextType { QuestionText, HelpText };
 

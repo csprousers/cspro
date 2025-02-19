@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0FBE4310-4DC2-4783-B4D0-9A2F02D36993}</ProjectGuid>
     <RootNamespace>zOrderF</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,9 +76,9 @@
   <ItemGroup>
     <ClInclude Include="OrdChWnd.H" />
     <ClInclude Include="OrdDoc.H" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="OrdTrCtl.H" />
     <ClInclude Include="OSView.H" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zOrderF.h" />

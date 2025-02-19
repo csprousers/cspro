@@ -3,7 +3,8 @@
  *
  * Used in conjunction with the libxlsxwriter library.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -425,7 +426,7 @@ lxw_new_attribute_str(const char *key, const char *value)
 
 /* Create a new integer XML attribute. */
 struct xml_attribute *
-lxw_new_attribute_int(const char *key, uint32_t value)
+lxw_new_attribute_int(const char *key, int32_t value)
 {
     struct xml_attribute *attribute = malloc(sizeof(struct xml_attribute));
 

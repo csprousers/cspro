@@ -292,7 +292,7 @@ int CEngineCompFunc::ctblsum()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, 517);
 
-    int iCoord = (int)NextKeyword({ _T("ROW"), _T("COLUMN"), _T("LAYER") });
+    const int iCoord = static_cast<int>(NextKeyword({ "ROW", "COLUMN", "LAYER" }));
     if( iCoord == 0 )
         IssueError(79);
 
@@ -342,13 +342,13 @@ int CEngineCompFunc::ctblmed()
     if( Tkn != TOKLPAREN )
         return( SetSyntErr(517), 0 );
 
-    size_t type = NextKeyword({ _T("ROW"), _T("COLUMN"), _T("LAYER"), _T("CONTINUOUS"), _T("DISCRETE") });
+    size_t type = NextKeyword({ "ROW", "COLUMN", "LAYER", "CONTINUOUS", "DISCRETE" });
     if( type == 0 )
         return( SetSyntErr(79), 0 );
     iMedianType = 0; // Default old behavior
     if( type == 4 || type == 5 ) {
         iMedianType = ( type == 4 ) ? 1 : 2;
-        type = NextKeyword({ _T("ROW"), _T("COLUMN"), _T("LAYER") });
+        type = NextKeyword({ "ROW", "COLUMN", "LAYER" });
         if( type == 0 )
             return( SetSyntErr(79), 0 );
     }

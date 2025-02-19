@@ -13,8 +13,8 @@ public:
 
     DictElementType GetElementType() const override { return DictElementType::Value; }
 
-    const CString& GetImageFilename() const             { return m_imageFilename; }
-    void SetImageFilename(const CString&image_filename) { m_imageFilename = image_filename; }
+    const std::string& GetImageFilePath() const        { return m_imageFilePath; }
+    void SetImageFilePath(std::string image_file_path) { m_imageFilePath = std::move(image_file_path); }
 
     const PortableColor& GetTextColor() const          { return m_textColor; }
     void SetTextColor(const PortableColor& text_color) { m_textColor = text_color; }
@@ -50,19 +50,23 @@ public:
 
 
     // serialization
-    static DictValue CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictValue CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
 
 private:
-    CString m_imageFilename;
+    std::string m_imageFilePath;
     PortableColor m_textColor;
     std::optional<double> m_specialValue;
     std::vector<DictValuePair> m_dictValuePairs;
 };
 
 
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 template<typename T>
 T DictValue::GetSpecialValue() const

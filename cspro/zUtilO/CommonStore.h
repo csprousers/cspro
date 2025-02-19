@@ -2,7 +2,6 @@
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/SimpleDbMap.h>
-#include <zToolsO/StringNoCase.h>
 
 
 // the CommonStore is used for:
@@ -21,34 +20,34 @@ public:
     CommonStore();
     ~CommonStore();
 
-    bool Open(std::vector<TableType> table_types, std::wstring common_store_filename = std::wstring());
+    bool Open(std::vector<TableType> table_types, std::string common_store_file_path = std::string());
 
     void SwitchTable(TableType table_type);
-    void SwitchTable(const StringNoCase& table_name, bool make_table_name_valid); // throws on table creation error
+    void SwitchTable(std::string_view table_name_sv, bool make_table_name_valid); // throws on table creation error
 
     void Close() override;
 
     bool Clear() override;
-    bool Delete(wstring_view key) override;
+    bool Delete(const std::string& key) override;
 
-    bool PutString(wstring_view key, wstring_view value) override;
-    std::optional<std::wstring> GetString(wstring_view key) override;
+    bool PutString(const std::string& key, const std::string& value) override;
+    std::optional<std::string> GetString(const std::string& key) override;
 
-    static std::wstring GetSystemSetting(wstring_view key);
+    static std::string GetSystemSetting(const std::string& key);
 
 private:
     bool UseGlobalCommonStoreAndCaching() const;
 
     // instead of accessing the database, system settings will be cached
-    void CacheSystemSettings(std::map<size_t, std::wstring>& cached_system_settings);
+    void CacheSystemSettings(std::map<std::string, std::string>& cached_system_settings);
 
-    std::map<size_t, std::wstring>* GetCurrentCachedSystemSettings(wstring_view key_for_system_setting_check = wstring_view()) const;
+    std::map<std::string, std::string>* GetCurrentCachedSystemSettings(std::string_view key_for_system_setting_check_sv = std::string_view()) const;
 
 private:
     std::vector<TableType> m_tableTypes;
-    std::variant<std::monostate, TableType, std::wstring> m_currentTableTypeOrName;
-    std::unique_ptr<std::map<StringNoCase, StringNoCase>> m_createdValidTableNames;
+    std::variant<std::monostate, TableType, std::string> m_currentTableTypeOrName;
+    std::unique_ptr<std::vector<std::tuple<std::string, std::string>>> m_createdValidTableNames; // table name -> valid table name
 
-    std::unique_ptr<std::map<size_t, std::wstring>> m_cachedSystemSettings;
+    std::unique_ptr<std::map<std::string, std::string>> m_cachedSystemSettings;
     std::unique_ptr<CommonStore> m_globalCommonStore;
 };

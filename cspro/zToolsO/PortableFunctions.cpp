@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "PortableFunctions.h"
 #include "DirectoryLister.h"
+#include "File.h"
 #include "FileIO.h"
 #include <cstdio>
 #include <errno.h>
@@ -17,69 +18,54 @@ extern "C"
 #ifdef WIN32
 #include <corecrt_io.h>
 #include <sys/utime.h>
+// From sys/stat.h
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+
 #else
 #include <utime.h>
 #endif
 
 
-FILE* PortableFunctions::FileOpen(NullTerminatedString filename, NullTerminatedString mode)
+FILE* PortableFunctions::FileOpen(const InterfaceString file_path, const InterfaceString mode, const int share_flag/* = INT_MIN*/)
 {
-    FILE* pFile = NULL;
-
 #ifdef WIN32
-    bool bSuccess = (_tfopen_s(&pFile, filename.c_str(), mode.c_str()) == 0 && pFile != NULL);
-
-    if (!bSuccess)
+    if( share_flag == INT_MIN )
     {
-        ASSERT(pFile == NULL);
-        pFile = NULL;
+        FILE* file;
+
+        return ( _tfopen_s(&file, file_path.c_str(), mode.c_str()) == 0 ) ? file :
+                                                                            nullptr;
     }
-#else
-    pFile = fopen(UTF8Convert::WideToUTF8(filename).c_str(), UTF8Convert::WideToUTF8(mode).c_str());
-#endif
 
-    return pFile;
-}
-
-
-FILE* PortableFunctions::FileOpen(NullTerminatedString filename, NullTerminatedString mode, int iShareFlag)
-{
-#ifdef WIN32
-    return _tfsopen(filename.c_str(), mode.c_str(), iShareFlag);
-#else
-    return FileOpen(filename, mode);
-#endif
-}
-
-
-FILE * PortableFunctions::FileReopen(NullTerminatedString filename, NullTerminatedString mode, FILE * pExistingStream)
-{
-#ifdef WIN32
-    FILE* pFile = NULL;
-    if (_wfreopen_s(&pFile, filename.c_str(), mode.c_str(), pExistingStream)) {
-        return NULL;
+    else
+    {
+        return _tfsopen(file_path.c_str(), mode.c_str(), share_flag);
     }
-    return pFile;
+
+
 #else
-    return freopen(UTF8Convert::WideToUTF8(filename).c_str(), UTF8Convert::WideToUTF8(mode).c_str(), pExistingStream);
+    return fopen(file_path.c_str(), mode.c_str());
+
 #endif
 }
 
 
-bool PortableFunctions::FileRename(NullTerminatedString old_filename, NullTerminatedString new_filename)
+bool PortableFunctions::FileRename(const InterfaceString old_file_path, const InterfaceString new_file_path)
 {
 #ifdef WIN_DESKTOP
-    return ::MoveFileEx(old_filename.c_str(), new_filename.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0;
+    return ( MoveFileEx(old_file_path.c_str(), new_file_path.c_str(),
+                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0 );
 
 #elif defined(WIN32)
-    return _trename(old_filename.c_str(), new_filename.c_str()) == 0;
+    return ( _trename(old_file_path.c_str(), new_file_path.c_str()) == 0 );
 
 #else
-    bool success = ( std::rename(UTF8Convert::WideToUTF8(old_filename).c_str(), UTF8Convert::WideToUTF8(new_filename).c_str()) == 0 );
+    bool success = ( std::rename(old_file_path.c_str(), new_file_path.c_str()) == 0 );
 
     // on Android std::rename failed when moving files out of the cache directory, so try to copy instead
-    if( !success && FileCopy(old_filename, new_filename, false) )
-        success = PortableFunctions::FileDelete(old_filename);
+    if( !success && FileCopy(old_file_path, new_file_path, false) )
+        success = PortableFunctions::FileDelete(old_file_path);
 
     return success;
 
@@ -87,7 +73,14 @@ bool PortableFunctions::FileRename(NullTerminatedString old_filename, NullTermin
 }
 
 
-bool PortableFunctions::DirectoryRename(NullTerminatedString old_directory, NullTerminatedString new_directory)
+void PortableFunctions::FileRenameWithExceptions(const InterfaceString old_file_path, const InterfaceString new_file_path)
+{
+    if( !FileRename(old_file_path, new_file_path) )
+        throw FileIO::Exception::FileMoveFail(old_file_path, new_file_path);
+}
+
+
+bool PortableFunctions::DirectoryRename(const InterfaceString old_directory, const InterfaceString new_directory)
 {
 #ifdef WIN_DESKTOP
     try
@@ -109,82 +102,105 @@ bool PortableFunctions::DirectoryRename(NullTerminatedString old_directory, Null
 }
 
 
-bool PortableFunctions::FileCopy(NullTerminatedString old_filename, NullTerminatedString new_filename, bool fail_if_exists)
+bool PortableFunctions::FileCopy(const InterfaceString old_file_path, const InterfaceString new_file_path, const bool fail_if_exists)
 {
 #ifdef WIN_DESKTOP
-    return ( CopyFile(old_filename.c_str(), new_filename.c_str(), fail_if_exists) != 0 );
+    return ( CopyFile(old_file_path.c_str(), new_file_path.c_str(), fail_if_exists) != 0 );
 
 #else
-    if (fail_if_exists && PortableFunctions::FileExists(new_filename))
+    const int64_t in_file_size = FileSize(old_file_path);
+
+    if( in_file_size < 0 )
         return false;
 
-    FILE* in = PortableFunctions::FileOpen(old_filename, _T("rb"));
-
-    if (!in)
+    if( fail_if_exists && PortableFunctions::FileExists(new_file_path) )
         return false;
 
-    FILE* out = PortableFunctions::FileOpen(new_filename, _T("wb"));
+    // copy the file
+    try
+    {
+        constexpr size_t MaxBufferSize = 1024 * 1024;
+        const size_t buffer_size = std::min(MaxBufferSize, static_cast<size_t>(in_file_size));
 
-    if (!out) {
-        fclose(in);
-        return false;
+        FileIO::File out_file;
+        out_file.SetDeleteFileOnError(true)
+                .OpenForWritingCreate(new_file_path);
+
+        if( in_file_size > 0 )
+        {
+            FileIO::File in_file;
+            in_file.OpenForReading(old_file_path);
+
+            auto buffer = std::make_unique_for_overwrite<char[]>(buffer_size);
+
+            for( size_t bytes_read; ( bytes_read = in_file.Read(buffer.get(), buffer_size) ) != 0; )
+                out_file.Write(buffer.get(), bytes_read);
+        }
+
+        out_file.Close();
+
+        return true;
     }
 
-    constexpr size_t MaxBufferSize = 1024 * 1024;
-    size_t buffer_size = std::min(MaxBufferSize, static_cast<size_t>(FileSize(old_filename)));
-
-    auto buffer = std::make_unique<char[]>(buffer_size);
-
-    for( size_t bytes_read; ( bytes_read = fread(buffer.get(), 1, buffer_size, in) ) > 0; )
-        fwrite(buffer.get(), 1, bytes_read, out);
-
-    fclose(in);
-    fclose(out);
-
-    return true;
+    catch(...)
+    {
+        return false;
+    }
 #endif
 }
 
 
-void PortableFunctions::FileCopyWithExceptions(NullTerminatedString old_filename, NullTerminatedString new_filename, FileCopyType file_copy_type,
-                                               std::tuple<int64_t, time_t>* out_file_size_and_modified_time/* = nullptr*/)
+bool PortableFunctions::FileCopyWithExceptions(const InterfaceString old_file_path, const InterfaceString new_file_path,
+                                               const FileOverwriteFlag file_overwrite_flag,
+                                               std::tuple<int64_t, int64_t>* const out_file_size_and_modified_time/* = nullptr*/)
 {
-    const bool fail_if_exists = ( file_copy_type == FileCopyType::FailIfExists );
-
-    if( PortableFunctions::FileExists(new_filename) )
+    if( file_overwrite_flag != FileOverwriteFlag::Always &&
+        PortableFunctions::FileIsRegular(new_file_path) )
     {
-        if( fail_if_exists )
-            throw FileIO::Exception::FileCopyFailDestinationExists(old_filename, new_filename);
-
-        if( file_copy_type == FileCopyType::CopyIfDifferent )
+        if( file_overwrite_flag == FileOverwriteFlag::Never )
         {
-            std::tuple<int64_t, time_t> old_size_and_modified_time = FileSizeAndModifiedTime(old_filename);
+            return false;
+        }
 
-            if( std::get<0>(old_size_and_modified_time) != -1 && old_size_and_modified_time == FileSizeAndModifiedTime(new_filename) )
+        else if( file_overwrite_flag == FileOverwriteFlag::Fail )
+        {
+            throw FileIO::Exception::FileCopyFailDestinationExists(old_file_path, new_file_path);
+        }
+
+        else
+        {
+            ASSERT(file_overwrite_flag == FileOverwriteFlag::Different);
+
+            std::tuple<int64_t, int64_t> old_size_and_modified_time = FileSizeAndModifiedTime(old_file_path);
+
+            if( std::get<0>(old_size_and_modified_time) != -1 &&
+                old_size_and_modified_time == FileSizeAndModifiedTime(new_file_path) )
             {
                 if( out_file_size_and_modified_time != nullptr )
                     *out_file_size_and_modified_time = old_size_and_modified_time;
 
-                return;
+                return false;
             }
         }
     }
 
-    if( !FileCopy(old_filename, new_filename, fail_if_exists) )
-        throw FileIO::Exception::FileCopyFail(old_filename, new_filename);
+    if( !FileCopy(old_file_path, new_file_path, false) )
+        throw FileIO::Exception::FileCopyFail(old_file_path, new_file_path);
 
     if( out_file_size_and_modified_time != nullptr )
-        *out_file_size_and_modified_time = FileSizeAndModifiedTime(new_filename);
+        *out_file_size_and_modified_time = FileSizeAndModifiedTime(new_file_path);
+
+    return true;
 }
 
 
-bool PortableFunctions::FileDelete(NullTerminatedString filename)
+bool PortableFunctions::FileDelete(const InterfaceString file_path)
 {
 #ifdef WIN32
-    return ( DeleteFile(filename.c_str()) != 0 );
+    return ( DeleteFile(file_path.c_str()) != 0 );
 
 #else
-    if( FileIsDirectory(filename) )
+    if( FileIsDirectory(file_path) )
     {
         // ALW 20180525 Android implementation of std::remove deletes files and directories. Ignore directories.
         return false;
@@ -192,20 +208,30 @@ bool PortableFunctions::FileDelete(NullTerminatedString filename)
 
     else
     {
-        return ( std::remove(UTF8Convert::WideToUTF8(filename).c_str()) == 0 );
+        return ( std::remove(file_path.c_str()) == 0 );
     }
 
 #endif
 }
 
-bool PortableFunctions::DirectoryDelete(NullTerminatedString directory, bool delete_all_paths_within_directory/* = false*/)
+
+void PortableFunctions::FileDeleteWithExceptions(const InterfaceString file_path)
+{
+    if( FileExists(file_path) && !FileDelete(file_path) )
+        throw FileIO::Exception::FileDeleteFail(file_path);
+}
+
+
+bool PortableFunctions::DirectoryDelete(const InterfaceString directory, const bool delete_all_paths_within_directory/* = false*/)
 {
     unsigned errors = 0;
 
     // delete any files and subdirectories with the directory
     if( delete_all_paths_within_directory )
     {
-        for( const auto& path : DirectoryLister(false, true, true).GetPaths(directory) )
+        DirectoryLister directory_lister(false, true, true);
+
+        for( const std::wstring& path : directory_lister.GetPaths(UTF8_TODO::EnsureWide(directory)) )
         {
             if( PortableFunctions::FileIsDirectory(path) )
             {
@@ -225,7 +251,7 @@ bool PortableFunctions::DirectoryDelete(NullTerminatedString directory, bool del
     if( ::RemoveDirectory(directory.c_str()) == 0 )
         ++errors;
 #else
-    if( rmdir(UTF8Convert::WideToUTF8(directory).c_str()) != 0 )
+    if( rmdir(directory.c_str()) != 0 )
         ++errors;
 #endif
 
@@ -252,14 +278,14 @@ bool PortableFunctions::FileTruncate(FILE* pFile,int64_t lFileSize)
 }
 
 template<typename T/* = int64_t*/>
-T PortableFunctions::FileSize(const NullTerminatedString file_path)
+T PortableFunctions::FileSize(const InterfaceString file_path)
 {
 #ifdef WIN32
     struct _stat64 attrib;
     const int ret = _wstat64(file_path.c_str(), &attrib);
 #else
     struct stat attrib;
-    const int ret = stat(UTF8Convert::WideToUTF8(file_path).c_str(), &attrib);
+    const int ret = stat(file_path.c_str(), &attrib);
 #endif
 
     if( ret == 0 && S_ISREG(attrib.st_mode) )
@@ -276,64 +302,81 @@ T PortableFunctions::FileSize(const NullTerminatedString file_path)
     }
 }
 
-template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileSize(NullTerminatedString file_path);
-template CLASS_DECL_ZTOOLSO std::optional<uint64_t> PortableFunctions::FileSize(NullTerminatedString file_path);
+template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileSize(InterfaceString file_path);
+template CLASS_DECL_ZTOOLSO std::optional<uint64_t> PortableFunctions::FileSize(InterfaceString file_path);
 
 
-std::wstring PortableFunctions::FileSizeString(const int64_t file_size)
+std::string PortableFunctions::FileSizeString(const int64_t file_size)
 {
     if( file_size >= 0 )
     {
 #ifdef WIN32
         constexpr int SizeLength = 64;
-        std::wstring file_size_string;
-        file_size_string.resize(SizeLength);
 
-        if( StrFormatByteSize(file_size, file_size_string.data(), SizeLength) != nullptr )
+        // the older StrFormatByteSizeA can only format DWORD arguments
+        if( file_size <= std::numeric_limits<DWORD>::max() )
         {
-            file_size_string.resize(_tcslen(file_size_string.data()));
-            return file_size_string;
+            std::string file_size_string;
+            file_size_string.resize(SizeLength);
+
+            if( StrFormatByteSizeA(static_cast<DWORD>(file_size), file_size_string.data(), SizeLength) != nullptr )
+            {
+                file_size_string.resize(strlen(file_size_string.data()));
+                return file_size_string;
+            }
+        }
+
+        else
+        {
+            std::wstring file_size_string;
+            file_size_string.resize(SizeLength);
+
+            if( StrFormatByteSizeW(file_size, file_size_string.data(), SizeLength) != nullptr )
+            {
+                file_size_string.resize(wcslen(file_size_string.data()));
+                return UTF8_TODO::GetUtf8(file_size_string);
+            }
         }
 
 #else
         // unimplemented
-        return ReturnProgrammingError(CS2WS(IntToString(file_size)));
+        return ReturnProgrammingError(IntToString(file_size));
 #endif
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-bool PortableFunctions::FileExists(NullTerminatedString filename)
+bool PortableFunctions::FileExists(const InterfaceString path)
 {
-    if( filename.empty() )
+    if( path.empty() )
         return false;
 
 #ifdef WIN32
     struct _stat64 fstatus;
-    return _wstat64(filename.c_str(), &fstatus) == 0;
+    return ( _wstat64(path.c_str(), &fstatus) == 0 );
 
 #else
     filestat fstatus;
-    return stat(UTF8Convert::WideToUTF8(filename).c_str(), &fstatus) == 0;
+    return ( stat(path.c_str(), &fstatus) == 0 );
 
 #endif
 }
 
 
-bool PortableFunctions::FileIsRegular(NullTerminatedString filename)
+bool PortableFunctions::FileIsRegular(const InterfaceString path)
 {
-    if( filename.empty() )
+    if( path.empty() )
         return false;
 
 #ifdef WIN32
     struct _stat64 fstatus;
-    auto stat_ret = _wstat64(filename.c_str(), &fstatus);
+    const int stat_ret = _wstat64(path.c_str(), &fstatus);
 
 #else
     filestat fstatus;
-    auto stat_ret = stat(UTF8Convert::WideToUTF8(filename).c_str(), &fstatus);
+    const int stat_ret = stat(path.c_str(), &fstatus);
 
 #endif
 
@@ -341,63 +384,78 @@ bool PortableFunctions::FileIsRegular(NullTerminatedString filename)
 }
 
 
-bool PortableFunctions::FileIsDirectory(NullTerminatedString filename)
+bool PortableFunctions::FileIsDirectory(InterfaceString path)
 {
-    if( filename.empty() )
+    if( path.empty() )
         return false;
 
 #ifdef WIN32
     // _wstat64 fails on drive letters without trailing / so add
     // trailing / e.g. "C:" => "C:/"
-    if( filename.back() == ':' )
-        return FileIsDirectory(std::wstring(filename) + _T("/"));
+    if( path.back() == ':' )
+        return FileIsDirectory(path.Release().append(L"/"));
 
     struct _stat64 st;
-    return ( _wstat64(filename.c_str(), &st) == 0 && S_ISDIR(st.st_mode) );
+    return ( _wstat64(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode) );
 
 #else
     struct stat st;
-    return ( stat(UTF8Convert::WideToUTF8(filename).c_str(), &st) == 0 && S_ISDIR(st.st_mode) );
+    return ( stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode) );
 
 #endif
 }
 
 
-time_t PortableFunctions::FileModifiedTime(NullTerminatedString filename)
+template<bool ThrowExceptionOnError/* = false*/>
+int64_t PortableFunctions::FileModifiedTime(const InterfaceString file_path)
 {
 #ifdef WIN32
     struct _stat64 attrib;
-    _wstat64(filename.c_str(), &attrib);
+    const int ret = _wstat64(file_path.c_str(), &attrib);
 #else
     struct stat attrib;
-    stat(UTF8Convert::WideToUTF8(filename).c_str(), &attrib);
+    const int ret = stat(file_path.c_str(), &attrib);
 #endif
 
-    return attrib.st_mtime;
+    if( ret == 0 && S_ISREG(attrib.st_mode) )
+        return attrib.st_mtime;
+
+    if constexpr(ThrowExceptionOnError)
+    {
+        throw FileIO::Exception::FileNotFound(file_path);
+    }
+
+    else
+    {
+        return 0;
+    }
 }
 
+template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileModifiedTime<true>(InterfaceString file_path);
+template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileModifiedTime<false>(InterfaceString file_path);
 
-std::tuple<int64_t, time_t> PortableFunctions::FileSizeAndModifiedTime(NullTerminatedString filename)
+
+std::tuple<int64_t, int64_t> PortableFunctions::FileSizeAndModifiedTime(const InterfaceString file_path)
 {
 #ifdef WIN32
     struct _stat64 attrib;
-    int ret = _wstat64(filename.c_str(), &attrib);
+    int ret = _wstat64(file_path.c_str(), &attrib);
 #else
     struct stat attrib;
-    int ret = stat(UTF8Convert::WideToUTF8(filename).c_str(), &attrib);
+    int ret = stat(file_path.c_str(), &attrib);
 #endif
 
-    return ( ret == 0 && S_ISREG(attrib.st_mode) ) ? std::tuple<int64_t, time_t>(attrib.st_size, attrib.st_mtime) :
-                                                     std::tuple<int64_t, time_t>(-1, 0);
+    return ( ret == 0 && S_ISREG(attrib.st_mode) ) ? std::tuple<int64_t, int64_t>(attrib.st_size, attrib.st_mtime) :
+                                                     std::tuple<int64_t, int64_t>(-1, 0);
 }
 
 
-bool PortableFunctions::FileTouch(NullTerminatedString filename)
+bool PortableFunctions::FileTouch(const InterfaceString file_path)
 {
 #ifdef WIN32
-    return ( _wutime(filename.c_str(), NULL) == 0 );
+    return ( _wutime(file_path.c_str(), nullptr) == 0 );
 #else
-    return ( utime(UTF8Convert::WideToUTF8(filename).c_str(),NULL) == 0 );
+    return ( utime(file_path.c_str(), nullptr) == 0 );
 #endif
 }
 
@@ -504,46 +562,47 @@ static int android_mkstemp(char *path)
 #endif
 
 
-CString PortableFunctions::FileTempName(NullTerminatedString directory)
+std::string PortableFunctions::FileTempPath(const std::string& directory_path)
 {
-    CString tempFilePath;
 #ifdef WIN32
-    ::GetTempFileName(directory.c_str(), _T("CSPTMP"), 0, tempFilePath.GetBuffer(MAX_PATH));
-    tempFilePath.ReleaseBuffer();
+    wchar_t temp_file_name[MAX_PATH];
+    ::GetTempFileName(TC::ToWide(directory_path).c_str(), L"CSPTMP", 0, temp_file_name);
+    return TC::ToUtf8(temp_file_name);
+
 #else
-    CString pathTemplate = CString(directory) + _T("CSPTMPXXXXXX");
-    char *tmpPath = strdup(UTF8Convert::WideToUTF8(pathTemplate).c_str());
+    std::string path_template = Path::Combine(directory_path, "CSPTMPXXXXXX");
+
 #ifdef ANDROID
-    android_mkstemp(tmpPath);
+    android_mkstemp(path_template.data());
 #else
-    mkstemp(tmpPath);
+    mkstemp(path_template.data());
 #endif
-    tempFilePath = UTF8Convert::UTF8ToWide(tmpPath);
-    free(tmpPath);
-#endif // WIN32
-    return tempFilePath;
+
+    return path_template;
+#endif
 }
 
 
-std::wstring PortableFunctions::GetUniqueFilenameInDirectory(wstring_view directory_sv, wstring_view extension_sv, const TCHAR* filename_prefix/* = nullptr*/,
-                                                             std::function<bool(const std::wstring&)> extra_check_callback/* = { }*/)
+std::string PortableFunctions::GetUniqueFilePathInDirectory(const std::string_view directory_sv, const std::string_view extension_sv,
+                                                            const char* filename_prefix/* = nullptr*/,
+                                                            const std::function<bool(const std::string&)> extra_check_callback/* = { }*/)
 {
     static int i = -1;
 
     if( filename_prefix == nullptr )
-        filename_prefix = _T(".CS");
+        filename_prefix = ".CS";
 
     while( true )
     {
         ++i;
 
-        std::wstring filename = PathAppendToPath<std::wstring>(directory_sv,
-                                                               PathAppendFileExtension(SO::Concatenate(filename_prefix, IntToString(i)), extension_sv));
+        std::string file_path = Path::Combine(std::string(directory_sv),
+                                              PathAppendFileExtension(SO::Concatenate(filename_prefix, IntToString(i)), extension_sv));
 
-        if( !PortableFunctions::FileExists(filename) )
+        if( !PortableFunctions::FileExists(file_path) )
         {
-            if( !extra_check_callback || extra_check_callback(filename) )
-                return filename;
+            if( !extra_check_callback || extra_check_callback(file_path) )
+                return file_path;
         }
     }
 }
@@ -551,7 +610,8 @@ std::wstring PortableFunctions::GetUniqueFilenameInDirectory(wstring_view direct
 
 namespace
 {
-    std::wstring GenerateMd5(const std::function<bool(MD5_CTX&)>& md5_update_callback)
+    template<typename CF>
+    std::string GenerateMd5(const CF& md5_update_callback)
     {
         MD5_CTX ctx;
         MD5_Init(&ctx);
@@ -563,34 +623,36 @@ namespace
         unsigned char result[HexSequences];
         MD5_Final(result, &ctx);
 
-        std::wstring md5_string(HexSequences * 2, '\0');
-        TCHAR* md5_string_buffer = md5_string.data();
+        std::string md5_string(HexSequences * 2, '\0');
+        char* md5_string_buffer = md5_string.data();
 
         for( size_t i = 0; i < HexSequences; ++i, md5_string_buffer += 2 )
-            _sntprintf(md5_string_buffer, 3, _T("%02x"), static_cast<unsigned int>(result[i]));
+            std::snprintf(md5_string_buffer, 3, "%02x", static_cast<unsigned int>(result[i]));
 
         return md5_string;
     }
 }
 
-std::wstring PortableFunctions::FileMd5(NullTerminatedString filename)
+
+std::string PortableFunctions::FileMd5(InterfaceString file_path)
 {
-    FILE* file = PortableFunctions::FileOpen(filename, _T("rb"));
+    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(std::move(file_path), "rb") :
+                                            nullptr;
 
     if( file == nullptr )
-        return std::wstring();
+        return std::string();
 
     constexpr size_t BufferSize = 64 * 1024;
     auto buffer = std::make_unique<char[]>(BufferSize);
 
-    std::wstring md5_string;
+    std::string md5_string;
     class Md5Error { };
 
     try
     {
         md5_string = GenerateMd5([&](MD5_CTX& ctx) -> bool
         {
-            size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
+            const size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
             MD5_Update(&ctx, buffer.get(), bytes_read);
 
             if( ferror(file) )
@@ -599,7 +661,6 @@ std::wstring PortableFunctions::FileMd5(NullTerminatedString filename)
             return !feof(file);
         });
     }
-
     catch( const Md5Error& ) { }
 
     fclose(file);
@@ -607,7 +668,8 @@ std::wstring PortableFunctions::FileMd5(NullTerminatedString filename)
     return md5_string;
 }
 
-std::wstring PortableFunctions::BinaryMd5(const std::byte* contents, size_t size)
+
+std::string PortableFunctions::BinaryMd5(const std::byte* const contents, const size_t size)
 {
     return GenerateMd5([&](MD5_CTX& ctx) -> bool
     {
@@ -616,14 +678,10 @@ std::wstring PortableFunctions::BinaryMd5(const std::byte* contents, size_t size
     });
 }
 
-std::wstring PortableFunctions::BinaryMd5(const std::vector<std::byte>& contents)
-{
-    return BinaryMd5(contents.data(), contents.size());
-}
 
-std::wstring PortableFunctions::StringMd5(const std::string& s)
+std::string PortableFunctions::StringMd5(const std::string_view text_sv)
 {
-    return BinaryMd5(reinterpret_cast<const std::byte*>(s.data()), s.length());
+    return BinaryMd5(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length());
 }
 
 
@@ -636,7 +694,8 @@ int64_t PortableFunctions::ftelli64(FILE* stream)
 #endif
 }
 
-int64_t PortableFunctions::fseeki64(FILE* stream, int64_t offset, int origin)
+
+int PortableFunctions::fseeki64(FILE* const stream, const int64_t offset, const int origin)
 {
 #ifdef WIN32
     return _fseeki64(stream, offset, origin);
@@ -646,40 +705,41 @@ int64_t PortableFunctions::fseeki64(FILE* stream, int64_t offset, int origin)
 }
 
 
-bool PortableFunctions::PathMakeDirectory(NullTerminatedString path)
+bool PortableFunctions::PathMakeDirectory(const InterfaceString directory_path)
 {
 #ifdef WIN32
-    return ( CreateDirectory(path.c_str(), NULL) != 0 );
+    return ( CreateDirectory(directory_path.c_str(), nullptr) != 0 );
 #else
-    return ( mkdir(UTF8Convert::WideToUTF8(path).c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0 );
+    return ( mkdir(directory_path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0 );
 #endif
 }
 
 
-bool PortableFunctions::PathMakeDirectories(NullTerminatedString path)
+bool PortableFunctions::PathMakeDirectories(InterfaceString directory_path)
 {
-    if( PortableFunctions::FileIsDirectory(path) )
+    if( PortableFunctions::FileIsDirectory(directory_path) )
         return true;
 
-    wstring_view path_sv = SO::TrimRight(path, PATH_CHAR);
+    std::string_view directory_path_sv = directory_path.GetString<std::string>();
+    directory_path_sv = SO::TrimRight(directory_path_sv, Path::NativeSlashChar);
 
-    size_t pos = path_sv.find(PATH_CHAR, 1);
+    size_t pos = directory_path_sv.find(Path::NativeSlashChar, 1);
 
-    while( pos != wstring_view::npos )
+    while( pos != std::string_view::npos )
     {
-        std::wstring directory = path_sv.substr(0, pos + 1);
+        const std::string this_directory_path(directory_path_sv.substr(0, pos + 1));
 
-        if( !PortableFunctions::FileIsDirectory(directory) )
+        if( !PortableFunctions::FileIsDirectory(this_directory_path) )
         {
             // ignore result here since in some scenarios
             // we don't have permission to access earlier directories in path
-            PortableFunctions::PathMakeDirectory(directory);
+            PortableFunctions::PathMakeDirectory(this_directory_path);
         }
 
-        pos = path_sv.find(PATH_CHAR, pos + 1);
+        pos = directory_path_sv.find(Path::NativeSlashChar, pos + 1);
     }
 
-    return PortableFunctions::PathMakeDirectory(path);
+    return PortableFunctions::PathMakeDirectory(std::move(directory_path));
 }
 
 
@@ -691,7 +751,7 @@ const TCHAR* PortableFunctions::PathGetFilename(NullTerminatedString path)
 
     for( ; path_itr >= path_start; --path_itr )
     {
-        if( IsPathCharacter(*path_itr) )
+        if( Path::IsSlashChar(*path_itr) )
         {
             // ignore the trailing /
             if( path_itr != last_path_character )
@@ -699,18 +759,33 @@ const TCHAR* PortableFunctions::PathGetFilename(NullTerminatedString path)
         }
     }
 
+    ASSERT(PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(path)) == UTF8_TODO::GetUtf8(path_itr + 1));
+
     return path_itr + 1;
 }
 
 
-template<typename T/* = std::wstring*/>
-T PortableFunctions::PathGetFilenameWithoutExtension(NullTerminatedString path)
+std::string PortableFunctions::PathGetDirectory(const std::string_view path_sv)
 {
-    return PortableFunctions::PathRemoveFileExtension<T>(PortableFunctions::PathGetFilename(path));
-}
+    size_t path_length = path_sv.length();
 
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathGetFilenameWithoutExtension(NullTerminatedString path);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathGetFilenameWithoutExtension(NullTerminatedString path);
+    if( path_length != 0 )
+    {
+        const char* path_itr = &path_sv.back();
+
+        do
+        {
+            if( Path::IsSlashChar(*path_itr) )
+                return std::string(path_sv.data(), path_length);
+
+             --path_length;
+             --path_itr;
+
+        } while( path_length > 0 );
+    }
+
+    return std::string();
+}
 
 
 template<typename T/* = std::wstring*/>
@@ -724,7 +799,7 @@ T PortableFunctions::PathGetDirectory(const wstring_view path_sv)
 
         do
         {
-            if( IsPathCharacter(*path_itr) )
+            if( Path::IsSlashChar(*path_itr) )
                 return T(path_sv.data(), path_length);
 
              --path_length;
@@ -743,18 +818,20 @@ template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathGetDirectory(wstring_
 namespace
 {
     // returns the position of the '.' starting a file extension
-    inline const TCHAR* FindFileExtensionStart(const wstring_view path_sv)
+    template<typename CT>
+    const CT* FindFileExtensionStart(const std::basic_string_view<CT> path_sv)
     {
         if( !path_sv.empty() )
         {
-            const TCHAR* path_itr = path_sv.data() + path_sv.length() - 1;
+            const CT* const path_begin = path_sv.data();
+            const CT* path_itr = path_begin + path_sv.length() - 1;
 
             while( true )
             {
                 if( *path_itr == '.' )
                     return path_itr;
 
-                if( PortableFunctions::IsPathCharacter(*path_itr) || path_itr == path_sv.data() )
+                if( Path::IsSlashChar(*path_itr) || path_itr == path_begin )
                     break;
 
                 --path_itr;
@@ -766,43 +843,10 @@ namespace
 }
 
 
-template<typename T/* = std::wstring*/>
-T PortableFunctions::PathRemoveFileExtension(const wstring_view path_sv)
+std::string PortableFunctions::PathReplaceFilename(const std::string_view path_sv, const std::string_view filename_sv)
 {
-    const TCHAR* extension_pos = FindFileExtensionStart(path_sv);
-
-    if( extension_pos == nullptr )
-        return path_sv;
-
-    return T(path_sv.data(), extension_pos - path_sv.data());
+    return Path::Combine(PathGetDirectory(path_sv), filename_sv);
 }
-
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathRemoveFileExtension(wstring_view path_sv);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathRemoveFileExtension(wstring_view path_sv);
-
-
-std::wstring PortableFunctions::PathReplaceFileExtension(const wstring_view path_sv, const wstring_view extension_sv)
-{
-    return PathAppendFileExtension(PathRemoveFileExtension(path_sv), extension_sv);
-}
-
-
-template<typename T/* = std::wstring*/>
-T PortableFunctions::PathGetFileExtension(wstring_view path_sv, const bool include_dot/* = false*/)
-{
-    const TCHAR* extension_pos = FindFileExtensionStart(path_sv);
-
-    if( extension_pos == nullptr )
-        return T();
-
-    if( !include_dot )
-        ++extension_pos;
-
-    return T(extension_pos, path_sv.data() + path_sv.length() - extension_pos);
-}
-
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathGetFileExtension(wstring_view path_sv, bool include_dot/* = false*/);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathGetFileExtension(wstring_view path_sv, bool include_dot/* = false*/);
 
 
 template<typename T>
@@ -834,74 +878,38 @@ template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathAppendFileExtens
 template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathAppendFileExtension(CString filename, wstring_view extension_sv);
 
 
-std::wstring PortableFunctions::PathEnsureFileExtension(std::wstring filename, const wstring_view extension_sv)
+std::string PortableFunctions::PathEnsureFileExtension(std::string file_path, const std::string_view extension_sv)
 {
     const bool include_dot = !extension_sv.empty() && extension_sv.front() == '.';
-    const std::wstring this_extension = PathGetFileExtension(filename, include_dot);
+    const std::string this_extension = PathGetFileExtension(file_path, include_dot);
 
-    return SO::EqualsNoCase(extension_sv, this_extension) ? filename :
-                                                            PathAppendFileExtension(std::move(filename), extension_sv);
+    return SO::EqualsNoCase(extension_sv, this_extension) ? file_path :
+                                                            PathAppendFileExtension(std::move(file_path), extension_sv);
 }
 
 
-template<typename T>
-T PortableFunctions::PathToNativeSlash(T path)
+std::string PortableFunctions::CreateFilePath(std::string directory_path, const std::string_view filename_sv, const std::string_view extension_sv/* = std::string_view()*/)
+{
+    return PortableFunctions::PathAppendFileExtension(Path::Combine(std::move(directory_path), filename_sv),
+                                                      extension_sv);
+}
+
+
+std::wstring PortableFunctions::PathToNativeSlash(std::wstring path)
 {
     constexpr TCHAR NativeSlash = PATH_CHAR;
     constexpr TCHAR NonNativeSlash = ( NativeSlash == '/' ) ? '\\' : '/';
-
-    if constexpr(std::is_same_v<T, std::wstring>)
-    {
-        return SO::Replace(path, NonNativeSlash, NativeSlash);
-    }
-
-    else
-    {
-        path.Replace(NonNativeSlash, NativeSlash);
-        return path;
-    }
+    return SO::Replace(path, NonNativeSlash, NativeSlash);
 }
 
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathToNativeSlash(std::wstring path);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathToNativeSlash(CString path);
 
-
-template<typename T>
-T PortableFunctions::PathToForwardSlash(T path)
+CString PortableFunctions::PathToNativeSlash(CString path)
 {
-    if constexpr(std::is_same_v<T, std::wstring>)
-    {
-        return SO::Replace(path, '\\', '/');
-    }
-
-    else
-    {
-        path.Replace('\\', '/');
-        return path;
-    }
+    constexpr TCHAR NativeSlash = PATH_CHAR;
+    constexpr TCHAR NonNativeSlash = ( NativeSlash == '/' ) ? '\\' : '/';
+    path.Replace(NonNativeSlash, NativeSlash);
+    return path;
 }
-
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathToForwardSlash(std::wstring path);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathToForwardSlash(CString path);
-
-
-template<typename T>
-T PortableFunctions::PathToBackwardSlash(T path)
-{
-    if constexpr(std::is_same_v<T, std::wstring>)
-    {
-        return SO::Replace(path, '/', '\\');
-    }
-
-    else
-    {
-        path.Replace('/', '\\');
-        return path;
-    }
-}
-
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathToBackwardSlash(std::wstring path);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathToBackwardSlash(CString path);
 
 
 template<typename T>
@@ -912,8 +920,8 @@ T PortableFunctions::PathAppendToPath(T path, wstring_view append_text_sv, const
         if( path.empty() )
             return append_text_sv;
 
-        const int separators_used = ( IsPathCharacter(path.back()) ? 1 : 0 ) +
-                                    ( ( !append_text_sv.empty() && IsPathCharacter(append_text_sv.front()) ) ? 1 : 0 );
+        const int separators_used = ( Path::IsSlashChar(path.back()) ? 1 : 0 ) +
+                                    ( ( !append_text_sv.empty() && Path::IsSlashChar(append_text_sv.front()) ) ? 1 : 0 );
 
         // eliminate an extra separator
         if( separators_used == 2 )
@@ -937,8 +945,8 @@ T PortableFunctions::PathAppendToPath(T path, wstring_view append_text_sv, const
         if( path.IsEmpty() )
             return append_text_sv;
 
-        const int separators_used = ( IsPathCharacter(path[path.GetLength() - 1]) ? 1 : 0 ) +
-                                    ( ( !append_text_sv.empty() && IsPathCharacter(append_text_sv.front()) ) ? 1 : 0 );
+        const int separators_used = ( Path::IsSlashChar(path[path.GetLength() - 1]) ? 1 : 0 ) +
+                                    ( ( !append_text_sv.empty() && Path::IsSlashChar(append_text_sv.front()) ) ? 1 : 0 );
 
         // eliminate an extra separator
         if( separators_used == 2 )
@@ -962,10 +970,16 @@ template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathAppendToPath(std
 template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathAppendToPath(CString path, wstring_view append_text_sv, TCHAR separator);
 
 
+std::string PortableFunctions::PathRemoveTrailingSlash(std::string path)
+{
+    return SO::MakeTrimRight(path, Path::SlashChars_sv);
+}
+
+
 template<typename T/* = std::wstring*/>
 T PortableFunctions::PathRemoveTrailingSlash(const wstring_view path_sv)
 {
-    return SO::TrimRight(path_sv, PathSlashChars);
+    return SO::TrimRight(path_sv, L"/\\");
 }
 
 template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathRemoveTrailingSlash(wstring_view path_sv);
@@ -973,9 +987,9 @@ template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathRemoveTrailingSlash(w
 
 
 template<typename T>
-T PortableFunctions::PathEnsureTrailingSlash(T path, const TCHAR separator/* = PATH_CHAR*/)
+T PortableFunctions::PathEnsureTrailingSlash(T path, const char separator/* = Path::NativeSlashChar*/)
 {
-    if constexpr(std::is_same_v<T, std::wstring>)
+    if constexpr(!std::is_same_v<T, CString>)
     {
         if( !path.empty() && path.back() != separator )
             path.push_back(separator);
@@ -990,58 +1004,12 @@ T PortableFunctions::PathEnsureTrailingSlash(T path, const TCHAR separator/* = P
     return path;
 }
 
-template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathEnsureTrailingSlash(std::wstring path, TCHAR separator);
-template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathEnsureTrailingSlash(CString path, TCHAR separator);
+template CLASS_DECL_ZTOOLSO std::string PortableFunctions::PathEnsureTrailingSlash(std::string path, char separator);
+template CLASS_DECL_ZTOOLSO std::wstring PortableFunctions::PathEnsureTrailingSlash(std::wstring path, char separator);
+template CLASS_DECL_ZTOOLSO CString PortableFunctions::PathEnsureTrailingSlash(CString path, char separator);
 
 
-std::wstring PortableFunctions::PathGetCommonRoot(const wstring_view path1_sv, const wstring_view path2_sv, const TCHAR separator/* = PATH_CHAR*/)
-{
-    static_assert(( std::wstring_view::npos + 1 ) == 0);
-
-    size_t last_separator;
-    size_t next_separator = std::wstring_view::npos;
-
-    while( true )
-    {
-        last_separator = next_separator;
-        next_separator = path1_sv.find(separator, last_separator + 1);
-
-        if( next_separator >= path2_sv.length() || path2_sv[next_separator] != separator )
-            break;
-
-        const size_t this_component_start_pos = last_separator + 1;
-        const size_t this_component_length = next_separator - this_component_start_pos;
-
-        if( path1_sv.substr(this_component_start_pos, this_component_length) != path2_sv.substr(this_component_start_pos, this_component_length) )
-            break;
-    }
-
-    if( last_separator != std::wstring_view::npos )
-        return path1_sv.substr(0, last_separator + 1);
-
-    return std::wstring();
-}
-
-
-std::string PortableFunctions::TimeToString(const time_t t)
-{
-    char buff[20];
-    strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&t));
-    return std::string(buff);
-}
-
-
-CString PortableFunctions::TimeToRFC3339String(const time_t t)
-{
-    const std::tm* ptm = gmtime(&t);
-
-    return FormatText(_T("%04d-%02d-%02dT%02d:%02d:%02dZ"),
-                      ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
-                      ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
-}
-
-
-time_t PortableFunctions::ParseRFC3339DateTime(std::wstring date_time)
+int64_t PortableFunctions::ParseRFC3339DateTime(std::string date_time) // UTF8_TODO move to the DateTime class
 {
     if( date_time.length() < MinLengthRFC3339DateTimeString )
         return 0;
@@ -1053,8 +1021,8 @@ time_t PortableFunctions::ParseRFC3339DateTime(std::wstring date_time)
     // offset.
     int hoursOffset = 0;
     int minsOffset = 0;
-    wchar_t* buffer = date_time.data();
-    wchar_t* pZoneStart = buffer + 19;
+    char* buffer = date_time.data();
+    char* pZoneStart = buffer + 19;
     while (*pZoneStart != '\0' &&
            *pZoneStart != '+' &&
            *pZoneStart != '-' &&
@@ -1067,8 +1035,8 @@ time_t PortableFunctions::ParseRFC3339DateTime(std::wstring date_time)
     if (*pZoneStart != '\0' && (*pZoneStart == '+' || *pZoneStart == '-')) {
         if (buffer - pZoneStart >= 4) {
             pZoneStart[3] = '\0';
-            hoursOffset = _wtoi(pZoneStart + 1);
-            minsOffset = _wtoi(pZoneStart + 4);
+            hoursOffset = atoi(pZoneStart + 1);
+            minsOffset = atoi(pZoneStart + 4);
             if (*pZoneStart == '-') {
                 hoursOffset *= -1;
                 minsOffset *= -1;
@@ -1087,17 +1055,17 @@ time_t PortableFunctions::ParseRFC3339DateTime(std::wstring date_time)
 
     tm timeStruct;
 
-    timeStruct.tm_year = _wtoi(buffer) - 1900;
-    timeStruct.tm_mon = _wtoi(buffer + 5) - 1;
-    timeStruct.tm_mday = _wtoi(buffer + 8);
-    timeStruct.tm_hour = _wtoi(buffer + 11);
-    timeStruct.tm_min = _wtoi(buffer + 14);
-    timeStruct.tm_sec = _wtoi(buffer + 17);
+    timeStruct.tm_year = atoi(buffer) - 1900;
+    timeStruct.tm_mon = atoi(buffer + 5) - 1;
+    timeStruct.tm_mday = atoi(buffer + 8);
+    timeStruct.tm_hour = atoi(buffer + 11);
+    timeStruct.tm_min = atoi(buffer + 14);
+    timeStruct.tm_sec = atoi(buffer + 17);
     timeStruct.tm_isdst = 0;
     timeStruct.tm_wday = 0;
     timeStruct.tm_yday = 0;
 
-    time_t unixTime = _mkgmtime(&timeStruct);
+    int64_t unixTime = _mkgmtime(&timeStruct);
 
     unixTime += minsOffset * 60 + hoursOffset * 60 * 60;
 
@@ -1105,26 +1073,26 @@ time_t PortableFunctions::ParseRFC3339DateTime(std::wstring date_time)
 }
 
 
-time_t PortableFunctions::ParseYYYYMMDDhhmmssDateTime(std::wstring date_time)
+int64_t PortableFunctions::ParseYYYYMMDDhhmmssDateTime(std::string date_time)
 {
     if( date_time.size() < 14 )
         return 0;
 
     // Make a copy so we can modify string
-    wchar_t* buffer = date_time.data();
+    char* buffer = date_time.data();
     tm timeStruct;
 
-    timeStruct.tm_sec = _wtoi(buffer + 12);
+    timeStruct.tm_sec = atoi(buffer + 12);
     buffer[12] = 0;
-    timeStruct.tm_min = _wtoi(buffer + 10);
+    timeStruct.tm_min = atoi(buffer + 10);
     buffer[10] = 0;
-    timeStruct.tm_hour = _wtoi(buffer + 8);
+    timeStruct.tm_hour = atoi(buffer + 8);
     buffer[8] = 0;
-    timeStruct.tm_mday = _wtoi(buffer + 6);
+    timeStruct.tm_mday = atoi(buffer + 6);
     buffer[6] = 0;
-    timeStruct.tm_mon = _wtoi(buffer + 4) - 1;
+    timeStruct.tm_mon = atoi(buffer + 4) - 1;
     buffer[4] = 0;
-    timeStruct.tm_year = _wtoi(buffer) - 1900;
+    timeStruct.tm_year = atoi(buffer) - 1900;
     timeStruct.tm_isdst = 0;
     timeStruct.tm_wday = 0;
     timeStruct.tm_yday = 0;

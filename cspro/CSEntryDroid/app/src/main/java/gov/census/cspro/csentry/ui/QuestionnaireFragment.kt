@@ -2,7 +2,7 @@
 
  CSEntry for Android
 
- Module:		QuestionnaireFragment.java
+ Module:        QuestionnaireFragment.java
 
  Description: UI/Layout presentation and handler for CSEntry for Android.
  This class loads the questionnare layout from resources

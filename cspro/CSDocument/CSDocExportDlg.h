@@ -6,7 +6,7 @@ class DynamicLayoutControlResizer;
 class CSDocExportDlg : public CDialog
 {
 public:
-    CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::wstring csdoc_filename, CLogicCtrl& logic_ctrl, CWnd* pParent = nullptr);
+    CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::string csdoc_file_path, CLogicCtrl& logic_ctrl, CWnd* pParent = nullptr);
     ~CSDocExportDlg();
 
     std::unique_ptr<GenerateTask> ReleaseGenerateTask() { return std::move(m_generateTask); }
@@ -21,7 +21,7 @@ protected:
 
     void OnOK() override;
 
-    void OnOutputFilenameBrowse();
+    void OnOutputFilePathBrowse();
 
     void OnSettingsChange();
     void OnBuildChange();
@@ -34,7 +34,7 @@ private:
 
     std::optional<DocBuildSettings> GetDocBuildSettingsFromSettingsText(bool use_logic_ctrl_text, bool throw_exceptions);
 
-    bool SyncOutputFilenameWithSettings(bool use_logic_ctrl_text);
+    bool SyncOutputFilePathWithSettings(bool use_logic_ctrl_text);
 
     void UpdateNamedBuildSettings(const DocSetSettings& doc_set_settings);
 
@@ -42,7 +42,7 @@ private:
     SettingsDb m_settingsDb;
 
     cs::non_null_shared_or_raw_ptr<DocSetSpec> m_docSetSpec;
-    const std::wstring m_csdocFilename;
+    std::string m_csdocFilePath;
     CLogicCtrl& m_logicCtrl;
 
     DocSetCompiler m_docSetCompiler;
@@ -50,17 +50,17 @@ private:
 
     std::unique_ptr<GenerateTask> m_generateTask;
 
-    std::wstring m_outputFilename;
-    std::optional<std::wstring> m_lastSuggestedOutputFilename;
+    std::string m_outputFilePath;
+    std::optional<std::string> m_lastSuggestedOutputFilePath;
 
     int m_settingsButton;
 
     CComboBox m_docSetBuildsComboBox;
-    std::vector<std::tuple<std::wstring, std::variant<DocBuildSettings, std::wstring>>> m_evaluatedBuildSettings;
-    std::wstring m_selectedBuildSettingName;
-    std::wstring m_buildSettingsSourceFilename;
+    std::vector<std::tuple<std::string, std::variant<DocBuildSettings, std::string>>> m_evaluatedBuildSettings;
+    std::string m_selectedBuildSettingName;
+    std::string m_buildSettingsSourceFilePath;
 
-    std::wstring m_settingsText;
+    std::string m_settingsText;
     CLogicCtrl m_settingsLogicCtrl;
 
     bool m_settingsTextIsBeingPrefilled;

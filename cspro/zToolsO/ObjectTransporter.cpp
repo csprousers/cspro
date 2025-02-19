@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "ObjectTransporter.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zSyncO/SyncRunnerActionInvoker.h>
 
 
 ObjectTransporter* ObjectTransporter::GetInstance()
@@ -11,7 +12,7 @@ ObjectTransporter* ObjectTransporter::GetInstance()
 #else
     BaseApplicationInterface* app_interface = PlatformInterface::GetInstance()->GetApplicationInterface();
 
-    return ( app_interface != nullptr ) ? app_interface->GetObjectTransporter() : 
+    return ( app_interface != nullptr ) ? app_interface->GetObjectTransporter() :
                                           nullptr;
 #endif
 }
@@ -82,6 +83,18 @@ std::shared_ptr<ActionInvoker::Runtime> ObjectTransporter::GetActionInvokerRunti
 }
 
 
+std::unique_ptr<ActionInvokerSyncRunner> ObjectTransporter::CreateActionInvokerSyncRunner()
+{
+    std::unique_ptr<ActionInvokerSyncRunner> action_invoker_sync_runner = GetInstanceOrDefault().OnCreateActionInvokerSyncRunner();
+
+    if( action_invoker_sync_runner == nullptr )
+        throw CSProException("CSPro synchronization routines are not available in this environment.");
+
+    return action_invoker_sync_runner;
+}
+
+
+
 // --------------------------------------------------------------------------
 // dummy implementations
 // --------------------------------------------------------------------------
@@ -91,17 +104,26 @@ std::shared_ptr<CommonStore> ObjectTransporter::OnGetCommonStore()
     return nullptr;
 }
 
+
 std::vector<std::shared_ptr<CompilerHelper>>* ObjectTransporter::OnGetCompilerHelperCache()
 {
     return nullptr;
 }
+
 
 std::shared_ptr<InterpreterAccessor> ObjectTransporter::OnGetInterpreterAccessor()
 {
     return nullptr;
 }
 
+
 std::shared_ptr<ActionInvoker::Runtime> ObjectTransporter::OnGetActionInvokerRuntime()
+{
+    return nullptr;
+}
+
+
+std::unique_ptr<ActionInvokerSyncRunner> ObjectTransporter::OnCreateActionInvokerSyncRunner() const
 {
     return nullptr;
 }

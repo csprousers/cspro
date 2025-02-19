@@ -538,13 +538,13 @@ void CsDriver::RefreshGroupOccs( int iSymGroup, CNDIndexes& theIndex, int iKindU
                 //SAVY /GSF 03/26/2004 commented this code for the capi app . It is increasing
                 //the occurrences to maxocc when you revisit a roster .
 //        if( bCanRefresh /*|| m_pEntryDriver->GetPartialMode() == ADD_MODE*/) {
-//		GSF 08/24/2005 uncommented this code to restore original behavior, and fix bug2611
-		//Savy 10/29/2019 -fix for increasing occs in partial save add mode and when path is on. When reentering a roster in partial save add the occs
-		//are getting incorrectly set to max occs due to occurrences getting update below.
+//      GSF 08/24/2005 uncommented this code to restore original behavior, and fix bug2611
+        //Savy 10/29/2019 -fix for increasing occs in partial save add mode and when path is on. When reentering a roster in partial save add the occs
+        //are getting incorrectly set to max occs due to occurrences getting update below.
         if( bCanRefresh) {
-        	csMsg.Format( INDENT INDENT
+            csMsg.Format( INDENT INDENT
                 _T("%s.SetCurrentOccurrences( %d )") NL,
-                pGroupT->GetName().c_str(), iThisOcc );
+                UTF8_TODO::GetWide(pGroupT->GetName()).c_str(), iThisOcc );
             RTRACE( csMsg );
             // remake the occurrences of the Group
             pGroupT->SetCurrentOccurrences( iThisOcc );
@@ -739,10 +739,10 @@ int CsDriver::GroupTrimOcc( bool bRestore ) {           // victor Dec 10, 01
 
 void CsDriver::ResetRefreshGroupOccsLimit( void ) {
     // ResetRefreshGroupOccsLimit: set the refresh-group-occs-limit to "1-up to DataOccs" if PathOff & Modify, to "0-no limit" otherwise
-	//Savy 10/29/2019 -fix for increasing occs in partial save add mode when reentering a roster in path off mode does not refresh occs
-	//as the check did not take into account partial mode add causing an issue when using "skip to next" not updating the occs and failing
-	//in partial save add mode. Now setting the occ limit upto data occs only in truly modify mode.
-	bool				bIsModification = m_pEntryDriver->IsModification() && m_pEntryDriver->GetPartialMode() != ADD_MODE;
+    //Savy 10/29/2019 -fix for increasing occs in partial save add mode when reentering a roster in path off mode does not refresh occs
+    //as the check did not take into account partial mode add causing an issue when using "skip to next" not updating the occs and failing
+    //in partial save add mode. Now setting the occ limit upto data occs only in truly modify mode.
+    bool                bIsModification = m_pEntryDriver->IsModification() && m_pEntryDriver->GetPartialMode() != ADD_MODE;
     CSettings*          pSettings       = &m_pEngineDriver->m_EngineSettings;
     bool                bPathOff        = pSettings->IsPathOff();
 
@@ -1512,7 +1512,7 @@ int CsDriver::FurnishPrecedence( C3DObject* p3DTarget, C3DObject* p3DSource ) {
 /////////////////////////////////////////////////////////////////////////////
 
 
-std::shared_ptr<Paradata::FieldMovementTypeInfo> CsDriver::CreateFieldMovementType(RequestNature request_nature)
+std::unique_ptr<Paradata::FieldMovementTypeInfo> CsDriver::CreateFieldMovementType(const RequestNature request_nature)
 {
     Paradata::FieldMovementTypeInfo::RequestType request_type = Paradata::FieldMovementTypeInfo::RequestType::Advance;
 
@@ -1557,7 +1557,7 @@ std::shared_ptr<Paradata::FieldMovementTypeInfo> CsDriver::CreateFieldMovementTy
             ASSERT(false);
     }
 
-    return std::make_shared<Paradata::FieldMovementTypeInfo>(Paradata::FieldMovementTypeInfo { request_type, IsForwardWay() });
+    return std::make_unique<Paradata::FieldMovementTypeInfo>(Paradata::FieldMovementTypeInfo { request_type, IsForwardWay() });
 }
 
 C3DObject* CsDriver::DriverBrain()
@@ -1742,15 +1742,15 @@ C3DObject* CsDriver::DriverBrain()
             pDeFld = GetCurDeFld();
 
             if( pDeFld != nullptr )
-                to_field_entry_instance = std::make_shared<Paradata::FieldEntryInstance>(m_pIntDriver->m_pParadataDriver->CreateFieldInfo(pDeFld));
+                to_field_entry_instance = std::make_shared<Paradata::FieldEntryInstance>(m_pIntDriver->m_paradataDriver->CreateFieldInfo(pDeFld));
         }
 
-        std::shared_ptr<Paradata::FieldMovementInstance> field_movement_instance = std::make_shared<Paradata::FieldMovementInstance>(
-            from_field_entry_instance, initial_field_movement_type, field_final_movement_type, to_field_entry_instance);
+        auto field_movement_instance = std::make_shared<Paradata::FieldMovementInstance>(from_field_entry_instance, initial_field_movement_type,
+                                                                                         field_final_movement_type, to_field_entry_instance);
 
         m_currentFieldMovementInstance = field_movement_instance;
 
-        Paradata::Logger::LogEvent(std::make_shared<Paradata::FieldMovementEvent>(field_movement_instance));
+        Paradata::Logger::LogEvent(std::make_unique<Paradata::FieldMovementEvent>(field_movement_instance));
 
         // set up the entry event (to be logged the next time this method is called)
         if( pDeFld != nullptr )
@@ -1759,20 +1759,14 @@ C3DObject* CsDriver::DriverBrain()
             CaptureType requested_capture_type = pVarT->GetCaptureInfo().GetCaptureType();
             CaptureType actual_capture_type = pVarT->GetEvaluatedCaptureInfo().GetCaptureType();
 
-            m_currentFieldEntryEvent = std::make_shared<Paradata::FieldEntryEvent>(
-                field_movement_instance,
-                m_pIntDriver->m_pParadataDriver->CreateFieldValidationInfo(pVarT),
-                (int)requested_capture_type, (int)actual_capture_type
-            );
+            m_currentFieldEntryEvent = std::make_shared<Paradata::FieldEntryEvent>(field_movement_instance, m_pIntDriver->m_paradataDriver->CreateFieldValidationInfo(pVarT),
+                                                                                   static_cast<int>(requested_capture_type), static_cast<int>(actual_capture_type));
         }
     }
 
 
-    if( bLoopBrokeByStop )
-        return nullptr;
-
-    else
-        return GetCurObject();              // TODO what if not a 3D-object???
+    return bLoopBrokeByStop ? nullptr :
+                              GetCurObject(); // TODO what if not a 3D-object???
 }
 
 
@@ -1800,7 +1794,7 @@ int CsDriver::getGroupMaxOccsUsingMaxDEField( GROUPT* pGroupT )
 
         if(!sVal.IsEmpty() && sVal.IsNumeric())
         {
-            int iVal = sVal.Val();
+            int iVal = static_cast<int>(sVal.Val());
             if( iVal >= 0  && iVal <= iMaxOccs)
             {
                 iMaxOccs = iVal;
@@ -2597,7 +2591,7 @@ void CsDriver::InvalidTargetMessage( int iMessage, C3DObject* p3DTarget ) {
     if( iSymTarget <= 0 )
         csTarget = _T("<noname>");
     else {
-        csTarget = WS2CS(NPT(iSymTarget)->GetName());
+        csTarget = UTF8_TODO::GetCString(NPT(iSymTarget)->GetName());
 
         int     iNumDim = ( pGroupT != NULL ) ? pGroupT->GetNumDim() :
                           ( pVarT   != NULL ) ? pVarT->GetNumDim() : 0;
@@ -2607,7 +2601,7 @@ void CsDriver::InvalidTargetMessage( int iMessage, C3DObject* p3DTarget ) {
     }
 
     // issue the requested message
-    issaerror( MessageType::Error, iMessage, csTarget.GetString() );
+    issaerror( MessageType::Error, iMessage, UTF8_TODO::GetUtf8(csTarget).c_str() );
 }
 
 
@@ -3460,7 +3454,7 @@ bool CsDriver::SolvePrevField( bool bStopAtReenterTarget, bool bIgnoreProtected 
                     if( pGroup->GetItemType() != CDEFormBase::Roster )
                         bHasColor = true; // these are cases when the group is just a form
 
-                    else if( pGroup->GetItemIndex(WS2CS(pVarT->GetName())) == 0 ) // this is a roster so only move to the first column
+                    else if( pGroup->GetItemIndex(UTF8_TODO::GetCString(pVarT->GetName())) == 0 ) // this is a roster so only move to the first column
                         bHasColor = true;
                 }
 
@@ -4854,8 +4848,8 @@ bool CsDriver::LevelEpilogue( int iLevel, bool bRequestPosted ) {
 
             else // auto add
             {
-                m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
-                m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
+                m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
+                m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
             }
         }
 
@@ -5625,7 +5619,7 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
     CNDIndexes theIndex;
     VARX* pVarX = GetFieldFromAtom( pAtom, theIndex );
     VART* pVarT = NULL;                           // victor Mar 15, 02
-    std::shared_ptr<Paradata::FieldValidationEvent> field_validation_event;
+    std::unique_ptr<Paradata::FieldValidationEvent> field_validation_event;
 
     // process true items only
     if( pVarX != NULL )
@@ -5634,10 +5628,10 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
 
         if( Paradata::Logger::IsOpen() )
         {
-            std::shared_ptr<Paradata::FieldValueInfo> field_value_info;
+            std::unique_ptr<Paradata::FieldValueInfo> field_value_info;
 
             if( m_pEngineDriver->GetPifFile()->GetApplication()->GetApplicationProperties().GetParadataProperties().GetRecordValues() )
-                field_value_info = m_pIntDriver->m_pParadataDriver->CreateFieldValueInfo(pVarT, theIndex);
+                field_value_info = m_pIntDriver->m_paradataDriver->CreateFieldValueInfo(pVarT, theIndex);
 
             std::shared_ptr<Paradata::FieldEntryInstance> field_entry_instance;
 
@@ -5653,12 +5647,10 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
             CFlowItem* pFlowItem = (CFlowItem*)pAtom;
             const CNDIndexes& theOneBasedIndex = pFlowItem->GetIndex();
 
-            field_validation_event = std::make_shared<Paradata::FieldValidationEvent>(
-                m_pIntDriver->m_pParadataDriver->CreateFieldInfo(pVarT, theOneBasedIndex),
-                m_pIntDriver->m_pParadataDriver->CreateFieldValidationInfo(pVarT),
-                field_value_info,
-                field_entry_instance
-            );
+            field_validation_event = std::make_unique<Paradata::FieldValidationEvent>(m_pIntDriver->m_paradataDriver->CreateFieldInfo(pVarT, theOneBasedIndex),
+                                                                                      m_pIntDriver->m_paradataDriver->CreateFieldValidationInfo(pVarT),
+                                                                                      std::move(field_value_info),
+                                                                                      std::move(field_entry_instance));
         }
 
 
@@ -5804,7 +5796,7 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
 
 
     if( field_validation_event != nullptr )
-        Paradata::Logger::LogEvent(field_validation_event);
+        Paradata::Logger::LogEvent(std::move(field_validation_event));
 
 
     return bRequestIssued;
@@ -5840,18 +5832,22 @@ bool CsDriver::SomeIdCollision( void ) {
     if( bIsNewKey || !bSameKey ) {
         // RHF INIC Jul 28, 2003
         if( m_pEntryDriver->IsPartial() ) {
-            if( !bSameKey )
-                bCollisionDetected = pDicX->GetDataRepository().ContainsCase(pszCurrentKey);
+            if( !bSameKey ) {
+                bCollisionDetected = pDicX->GetDataRepository().ContainsCase(UTF8_TODO::GetUtf8(pszCurrentKey));
+            }
         }
-        else
-            bCollisionDetected = pDicX->GetDataRepository().ContainsCase(pszCurrentKey);
+        else {
+            bCollisionDetected = pDicX->GetDataRepository().ContainsCase(UTF8_TODO::GetUtf8(pszCurrentKey));
+        }
         // RHF END Jul 28, 2003
 
         if( bCollisionDetected ) {
-            if( bIsNewKey )
-                issaerror( MessageType::Warning, 92101, pszCurrentKey );
-            else
-                issaerror( MessageType::Warning, 92102, pszCurrentKey, pszInitialKey );
+            if( bIsNewKey ) {
+                issaerror( MessageType::Warning, 92101, UTF8_TODO::GetUtf8(pszCurrentKey).c_str() );
+            }
+            else {
+                issaerror( MessageType::Warning, 92102, UTF8_TODO::GetUtf8(pszCurrentKey).c_str(), UTF8_TODO::GetUtf8(pszInitialKey).c_str() );
+            }
         }
     }
 
@@ -5859,7 +5855,7 @@ bool CsDriver::SomeIdCollision( void ) {
         // for existing case, changed key...
         if( !( bIsNewKey || bSameKey ) ) {
             // issuing warning of changed key
-            issaerror( MessageType::Warning, 92103, pszCurrentKey, pszInitialKey );
+            issaerror( MessageType::Warning, 92103, UTF8_TODO::GetUtf8(pszCurrentKey).c_str(), UTF8_TODO::GetUtf8(pszInitialKey).c_str() );
         }
     }
 
@@ -6913,7 +6909,6 @@ void CsDriver::BuildPresetDynamicBitmaps( bool bPathOn ) {
     int                 iRequestNature;
     RequestNature       xRequestNature;
     int                 iAtomType;
-    CFlowAtom::AtomType xAtomType;
     byte*               pBitmap;
 
     for( iRequestNature = AdvanceTo; iRequestNature < m_iNumRequestNature; iRequestNature++ ) {
@@ -7626,10 +7621,10 @@ void CsDriver::ClearEnterFlowLogicStack()
 
 bool CsDriver::RunEnterFlowLogicStack()
 {
-    // m_iSkipStmt & m_iStopExec were changed in 'exenter' to break execution,
+    // m_bSkipStmt & m_bStopExec were changed in 'exenter' to break execution,
     // and this reinitialization is needed here
-    m_pIntDriver->m_iSkipStmt = FALSE;
-    m_pIntDriver->m_iStopExec = FALSE;
+    m_pIntDriver->m_bSkipStmt = false;
+    m_pIntDriver->m_bStopExec = false;
 
     // process pending statements stored in the enter stack
     bool bRequestIssued = false;
@@ -7656,7 +7651,7 @@ bool CsDriver::RunEnterFlowLogicStack()
                     SetRequestOrigin();
                 }
 
-                if( m_pIntDriver->m_iStopExec )
+                if( m_pIntDriver->m_bStopExec )
                     break;
             }
         }
@@ -7880,7 +7875,7 @@ void CsDriver::ProcessSequentialFld(VART* pVarT)
                         iIndex = iVal+1;
                 }
 
-                sData = IntToString(iIndex);
+                sData = UTF8_TODO::GetCString(IntToString(iIndex));
 
                 pField->SetData( sData ); //probably can use this to set the data than doing a putval
 

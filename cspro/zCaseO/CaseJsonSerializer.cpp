@@ -4,18 +4,19 @@
 #include "CaseItemJsonWriter.h"
 #include "CaseItemReference.h"
 #include <zToolsO/Encoders.h>
+#include <zUtilO/BinaryContentReader.h>
 
 
-CREATE_ENUM_JSON_SERIALIZER(PartialSaveMode,
-    { PartialSaveMode::None,   _T("none") },
-    { PartialSaveMode::Add,    _T("add") },
-    { PartialSaveMode::Modify, _T("modify") },
-    { PartialSaveMode::Verify, _T("verify") })
+DEFINE_ENUM_JSON_SERIALIZER_CLASS(PartialSaveMode,
+    { PartialSaveMode::None,   "none" },
+    { PartialSaveMode::Add,    "add" },
+    { PartialSaveMode::Modify, "modify" },
+    { PartialSaveMode::Verify, "verify" })
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // Case -> JSON framework
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 namespace
 {
@@ -46,6 +47,8 @@ namespace
         const CaseItemPrinter* m_caseItemPrinterForLabels;
         const CaseJsonWriterSerializerHelper::BinaryDataWriter* m_binaryDataWriter;
         const FieldStatusRetriever* m_fieldStatusRetriever;
+        bool m_writeCaseNote;
+        bool m_writeVectorClock;
     };
 }
 
@@ -69,16 +72,18 @@ void CaseRecord::WriteJson(JsonWriter& json_writer) const
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // CaseJsonWriter
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 CaseJsonWriter::CaseJsonWriter()
     :   m_verbose(false),
         m_writeBlankValues(false),
         m_caseItemPrinterForLabels(nullptr),
         m_binaryDataWriter(nullptr),
-        m_fieldStatusRetriever(nullptr)
+        m_fieldStatusRetriever(nullptr),
+        m_writeCaseNote(false),
+        m_writeVectorClock(false)
 {
 }
 
@@ -105,6 +110,8 @@ CaseJsonWriter::CaseJsonWriter(JsonWriter& json_writer)
 
         m_binaryDataWriter = case_json_writer_serializer_helper->GetBinaryDataWriter();
         m_fieldStatusRetriever = case_json_writer_serializer_helper->GetFieldStatusRetriever();
+        m_writeCaseNote = case_json_writer_serializer_helper->GetWriteCaseNote();
+        m_writeVectorClock = case_json_writer_serializer_helper->GetWriteVectorClock();
     }
 
     if( m_verbose )
@@ -119,7 +126,7 @@ void CaseJsonWriter::WriteNamedReference(JsonWriter& json_writer, const NamedRef
 
     json_writer.Write(JK::name, named_reference.GetName());
 
-    if( m_verbose || !named_reference.GetLevelKey().IsEmpty() )
+    if( m_verbose || !named_reference.GetLevelKey().empty() )
         json_writer.Write(JK::levelKey, named_reference.GetLevelKey());
 
     if( named_reference.HasOccurrences() || ( m_verbose && dynamic_cast<const CaseItemReference*>(&named_reference) != nullptr ) )
@@ -145,7 +152,7 @@ void CaseJsonWriter::WriteNote(JsonWriter& json_writer, const Note& note) const
     if( note.GetModifiedDateTime() != 0 )
         json_writer.WriteDate(JK::modifiedTime, note.GetModifiedDateTime());
 
-    if( m_verbose || !note.GetOperatorId().IsEmpty() )
+    if( m_verbose || !note.GetOperatorId().empty() )
         json_writer.Write(JK::operatorId, note.GetOperatorId());
 
     WriteNamedReference(json_writer, note.GetNamedReference(), false);
@@ -158,7 +165,7 @@ void CaseJsonWriter::WriteCaseItem(JsonWriter& json_writer, const CaseItem& case
 {
     json_writer.BeginObject();
 
-    if( case_item.IsTypeBinary() )
+    if( IsBinary(case_item.GetDataType()) )
     {
         WriteBinaryCaseItem(json_writer, assert_cast<const BinaryCaseItem&>(case_item), index);
     }
@@ -170,26 +177,26 @@ void CaseJsonWriter::WriteCaseItem(JsonWriter& json_writer, const CaseItem& case
         {
             json_writer.Key(JK::code);
 
-            if( case_item.IsTypeNumeric() )
+            switch( case_item.GetDataType() )
             {
-                CaseItemJsonWriter::WriteCaseItemCode(json_writer, assert_cast<const NumericCaseItem&>(case_item), index);
-            }
+                case DataType::Numeric:
+                    CaseItemJsonWriter::WriteCaseItemCode(json_writer, assert_cast<const NumericCaseItem&>(case_item), index);
+                    break;
 
-            else if( case_item.IsTypeString() )
-            {
-                CaseItemJsonWriter::WriteCaseItemCode(json_writer, assert_cast<const StringCaseItem&>(case_item), index);
-            }
+                case DataType::String:
+                    CaseItemJsonWriter::WriteCaseItemCode(json_writer, assert_cast<const StringCaseItem&>(case_item), index);
+                    break;
 
-            else
-            {
-                ASSERT(false);
-                json_writer.WriteNull();
+                default:
+                    ASSERT(false);
+                    json_writer.WriteNull();
+                    break;
             }
 
             // potentially write the label
             if( m_caseItemPrinterForLabels != nullptr )
                 json_writer.Write(JK::label, m_caseItemPrinterForLabels->GetText(case_item, index));
-        }        
+        }
     }
 
     // potentially write the field status
@@ -238,16 +245,16 @@ void CaseJsonWriter::WriteBinaryCaseItem(JsonWriter& json_writer, const BinaryCa
         const Case& data_case = index.GetCase();
 
         if( data_case.GetCaseConstructionReporter() != nullptr )
-            data_case.GetCaseConstructionReporter()->BinaryDataIOError(data_case, exception_is_from_read_error, exception.GetErrorMessage());
+            data_case.GetCaseConstructionReporter()->BinaryDataIOError(data_case, exception_is_from_read_error, exception.what());
     }
 }
 
 
 void CaseJsonWriter::WriteCaseItemsOnCaseRecord(JsonWriter& json_writer, const CaseRecord& case_record, CaseItemIndex& index) const
 {
-    for( const CaseItem* case_item : case_record.GetCaseItems() )
+    for( const CaseItem* const case_item : case_record.GetCaseItems() )
     {
-        const CDictItem& dict_item = case_item->GetDictionaryItem();
+        const CDictItem& dict_item = case_item->GetDictItem();
 
         // write multiply-occurring items as arrays
         const bool write_as_array = ( case_item->GetTotalNumberItemSubitemOccurrences() > 1 );
@@ -334,7 +341,7 @@ void CaseJsonWriter::WriteCaseLevel(JsonWriter& json_writer, const CaseLevel& ca
         if( !m_writeBlankValues && case_record.GetNumberOccurrences() == 0 )
             continue;
 
-        json_writer.BeginArray(case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetName());
+        json_writer.BeginArray(case_record.GetCaseRecordMetadata().GetDictRecord().GetName());
         WriteCaseRecordOccurrences(json_writer, case_record);
         json_writer.EndArray();
     }
@@ -343,7 +350,7 @@ void CaseJsonWriter::WriteCaseLevel(JsonWriter& json_writer, const CaseLevel& ca
     // write any child levels (not writing nonexistent levels by default)
     if( case_level.GetNumberChildCaseLevels() > 0 || m_writeBlankValues )
     {
-        const CaseLevelMetadata* child_case_level_metadata = case_level.GetCaseLevelMetadata().GetChildCaseLevelMetadata();
+        const CaseLevelMetadata* const child_case_level_metadata = case_level.GetCaseLevelMetadata().GetChildCaseLevelMetadata();
         ASSERT(child_case_level_metadata != nullptr || case_level.GetNumberChildCaseLevels() == 0);
 
         if( child_case_level_metadata != nullptr )
@@ -368,7 +375,7 @@ void CaseJsonWriter::WriteCase(JsonWriter& json_writer, const Case& data_case) c
     json_writer.Write(JK::key, data_case.GetKey())
                .Write(JK::uuid, data_case.GetUuid());
 
-    if( m_verbose || !data_case.GetCaseLabel().IsEmpty() )
+    if( m_verbose || !data_case.GetCaseLabel().empty() )
         json_writer.Write(JK::label, data_case.GetCaseLabel());
 
     if( m_verbose || data_case.GetDeleted() )
@@ -401,6 +408,10 @@ void CaseJsonWriter::WriteCase(JsonWriter& json_writer, const Case& data_case) c
         json_writer.WriteNull(JK::partialSave);
     }
 
+    // case note (written only when syncing)
+    if( m_writeCaseNote )
+        json_writer.WriteIfNotBlank(JK::caseNote, data_case.GetCaseNote());
+
     // notes
     if( m_verbose || !data_case.GetNotes().empty() )
     {
@@ -416,14 +427,18 @@ void CaseJsonWriter::WriteCase(JsonWriter& json_writer, const Case& data_case) c
     json_writer.Key(data_case.GetRootCaseLevel().GetCaseLevelMetadata().GetDictLevel().GetName());
     WriteCaseLevel(json_writer, data_case.GetRootCaseLevel());
 
+    // vector clock
+    if( m_verbose || m_writeVectorClock )
+        json_writer.Write(JK::clock, data_case.GetVectorClock());
+
     json_writer.EndObject();
 }
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // JSON -> Case
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 namespace
 {
@@ -432,24 +447,21 @@ namespace
     public:
         CaseJsonParser(CaseJsonParserHelper& case_json_parser_helper, Case& data_case);
 
-        void ParseCase(const JsonNode<wchar_t>& json_node) const;
+        void ParseCase(const JsonNode& json_node) const;
 
     private:
         template<typename T = NamedReference>
-        std::shared_ptr<T> ParseNamedReference(const JsonNode<wchar_t>& named_reference_node) const;
+        std::unique_ptr<T> ParseNamedReference(const JsonNode& named_reference_node) const;
 
-        Note ParseNote(const JsonNode<wchar_t>& note_node) const;
+        Note ParseNote(const JsonNode& note_node) const;
 
-        void ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const CaseItem& case_item, CaseItemIndex& index) const;
-        inline void ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const NumericCaseItem& numeric_case_item, CaseItemIndex& index) const;
-        inline void ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const StringCaseItem& string_case_item, CaseItemIndex& index) const;
-        inline void ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const BinaryCaseItem& binary_case_item, CaseItemIndex& index) const;
+        void ParseCaseItem(const JsonNode& case_item_node, const CaseItem& case_item, CaseItemIndex& index) const;
 
-        void ParseCaseItemsOnCaseRecord(const JsonNode<wchar_t>& case_record_node, CaseRecord& case_record, CaseItemIndex& index) const;
+        void ParseCaseItemsOnCaseRecord(const JsonNode& case_record_node, CaseRecord& case_record, CaseItemIndex& index) const;
 
-        void ParseCaseRecords(const JsonNode<wchar_t>& case_records_node, CaseRecord& case_record) const;
+        void ParseCaseRecords(const JsonNode& case_records_node, CaseRecord& case_record) const;
 
-        void ParseCaseLevel(const JsonNode<wchar_t>& case_level_node, CaseLevel& case_level) const;
+        void ParseCaseLevel(const JsonNode& case_level_node, CaseLevel& case_level) const;
 
     private:
         CaseJsonParserHelper& m_caseJsonParserHelper;
@@ -459,14 +471,20 @@ namespace
 }
 
 
-void Case::ParseJson(const JsonNode<wchar_t>& json_node)
+void Case::ParseJson(const JsonNode& json_node)
 {
     CaseJsonParserHelper case_json_parser_helper(nullptr);
     case_json_parser_helper.ParseJson(*this, json_node);
 }
 
 
-void CaseJsonParserHelper::ParseJson(Case& data_case, const JsonNode<wchar_t>& json_node)
+std::unique_ptr<BinaryContentReader> CaseJsonParserHelper::CreateBinaryContentReader(std::optional<uint64_t> /*size*/)
+{
+    return nullptr;
+}
+
+
+void CaseJsonParserHelper::ParseJson(Case& data_case, const JsonNode& json_node)
 {
     try
     {
@@ -492,18 +510,18 @@ CaseJsonParser::CaseJsonParser(CaseJsonParserHelper& case_json_parser_helper, Ca
 
 
 template<typename T/* = NamedReference*/>
-std::shared_ptr<T> CaseJsonParser::ParseNamedReference(const JsonNode<wchar_t>& named_reference_node) const
+std::unique_ptr<T> CaseJsonParser::ParseNamedReference(const JsonNode& named_reference_node) const
 {
-    CString name = named_reference_node.GetOrDefault(JK::name, SO::EmptyCString);
+    const std::string name = named_reference_node.GetOrConstruct<std::string>(JK::name);
 
     if( SO::IsWhitespace(name) )
         return nullptr;
 
-    CString level_key = named_reference_node.GetOrDefault(JK::levelKey, SO::EmptyCString);
+    std::string level_key = named_reference_node.GetOrConstruct<std::string>(JK::levelKey);
 
     // see if this is an item
-    const CaseItem* case_item = ( m_caseJsonParserHelper.GetCaseAccess() != nullptr ) ? m_caseJsonParserHelper.GetCaseAccess()->LookupCaseItem(name) :
-                                                                                        m_case.GetCaseMetadata().FindCaseItem(name);
+    const CaseItem* const case_item = ( m_caseJsonParserHelper.GetCaseAccess() != nullptr ) ? m_caseJsonParserHelper.GetCaseAccess()->LookupCaseItem(name) :
+                                                                                              m_case.GetCaseMetadata().FindCaseItem(name);
 
     if( case_item != nullptr )
     {
@@ -513,12 +531,12 @@ std::shared_ptr<T> CaseJsonParser::ParseNamedReference(const JsonNode<wchar_t>& 
 
         if( named_reference_node.Contains(JK::occurrences) )
         {
-            const JsonNode<wchar_t> occurrence_node = named_reference_node.Get(JK::occurrences);
+            const JsonNode occurrence_node = named_reference_node.Get(JK::occurrences);
 
             // occurrences are written as one-based, though 0 will be written for item/subitem occurrences that do not apply
-            auto get_occurrence = [&](const wstring_view key_sv) -> size_t
+            auto get_occurrence = [&](const char* const key) -> size_t
             {
-                const std::optional<size_t> occurrence = occurrence_node.GetOptional<size_t>(key_sv);
+                const std::optional<size_t> occurrence = occurrence_node.GetOptional<size_t>(key);
                 return ( occurrence.has_value() && *occurrence >= 1 ) ? ( *occurrence - 1 ) : 0;
             };
 
@@ -527,7 +545,7 @@ std::shared_ptr<T> CaseJsonParser::ParseNamedReference(const JsonNode<wchar_t>& 
             subitem_occurrence = get_occurrence(JK::subitem);
         }
 
-        return std::make_shared<CaseItemReference>(*case_item, level_key, record_occurrence, item_occurrence, subitem_occurrence);
+        return std::make_unique<CaseItemReference>(*case_item, std::move(level_key), record_occurrence, item_occurrence, subitem_occurrence);
     }
 
     if constexpr(std::is_same_v<T, CaseItemReference>)
@@ -537,38 +555,38 @@ std::shared_ptr<T> CaseJsonParser::ParseNamedReference(const JsonNode<wchar_t>& 
 
     else
     {
-        return std::make_shared<NamedReference>(name, level_key);
+        return std::make_unique<NamedReference>(std::move(name), std::move(level_key));
     }
 }
 
 
-Note CaseJsonParser::ParseNote(const JsonNode<wchar_t>& note_node) const
+Note CaseJsonParser::ParseNote(const JsonNode& note_node) const
 {
-    return Note(note_node.GetOrDefault(JK::text, SO::EmptyCString),
+    return Note(note_node.GetOrConstruct<std::string>(JK::text),
                 ParseNamedReference(note_node),
-                note_node.GetOrDefault(JK::operatorId, SO::EmptyCString),
+                note_node.GetOrConstruct<std::string>(JK::operatorId),
                 note_node.Contains(JK::modifiedTime) ? note_node.GetDate(JK::modifiedTime) : 0);
 }
 
 
-void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const CaseItem& case_item, CaseItemIndex& index) const
+void CaseJsonParser::ParseCaseItem(const JsonNode& case_item_node, const CaseItem& case_item, CaseItemIndex& index) const
 {
     // the case item should be blank (unless it is a subitem that already has a value from the parent being set)
-    ASSERT(case_item.IsBlank(index) || case_item.GetDictionaryItem().GetParentItem() != nullptr);
+    ASSERT(case_item.IsBlank(index) || case_item.GetDictItem().GetParentItem() != nullptr);
 
-    if( case_item.IsTypeNumeric() )
+    if( IsNumeric(case_item.GetDataType()) )
     {
-        ParseCaseItem(case_item_node, assert_cast<const NumericCaseItem&>(case_item), index);
+        CaseJsonParserHelper::ParseNumericCaseItem(assert_cast<const NumericCaseItem&>(case_item), index, case_item_node);
     }
 
-    else if( case_item.IsTypeString() )
+    else if( IsString(case_item.GetDataType()) )
     {
-        ParseCaseItem(case_item_node, assert_cast<const StringCaseItem&>(case_item), index);
+        CaseJsonParserHelper::ParseStringCaseItem(assert_cast<const StringCaseItem&>(case_item), index, case_item_node);
     }
 
-    else if( case_item.IsTypeBinary() )
+    else if( IsBinary(case_item.GetDataType()) )
     {
-        ParseCaseItem(case_item_node, assert_cast<const BinaryCaseItem&>(case_item), index);
+        m_caseJsonParserHelper.ParseBinaryCaseItem(assert_cast<const BinaryCaseItem&>(case_item), index, case_item_node);
     }
 
     else
@@ -578,9 +596,9 @@ void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, cons
 }
 
 
-void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const NumericCaseItem& numeric_case_item, CaseItemIndex& index) const
+void CaseJsonParserHelper::ParseNumericCaseItem(const NumericCaseItem& numeric_case_item, CaseItemIndex& index, const JsonNode& case_item_node)
 {
-    const JsonNode<wchar_t>& code_node = case_item_node.GetOrEmpty(JK::code);
+    const JsonNode& code_node = case_item_node.GetOrEmpty(JK::code);
 
     std::optional<double> numeric_value = code_node.GetOptional<double>();
 
@@ -591,34 +609,34 @@ void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, cons
 
     else if( !code_node.IsEmpty() && !code_node.IsNull() )
     {
-        numeric_value = SpecialValues::StringIsSpecial<std::optional<double>>(case_item_node.GetOrDefault(JK::code, SO::EmptyCString));
+        numeric_value = SpecialValues::StringIsSpecial<std::optional<double>>(case_item_node.GetOrConstruct<std::string>(JK::code));
         numeric_case_item.SetValue(index, numeric_value.value_or(DEFAULT));
     }
 }
 
 
-void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const StringCaseItem& string_case_item, CaseItemIndex& index) const
+void CaseJsonParserHelper::ParseStringCaseItem(const StringCaseItem& string_case_item, CaseItemIndex& index, const JsonNode& case_item_node)
 {
-    string_case_item.SetValue(index, case_item_node.GetOrDefault(JK::code, SO::EmptyCString));
+    string_case_item.SetValue(index, case_item_node.GetOrConstruct<std::string>(JK::code));
 }
 
 
-void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, const BinaryCaseItem& binary_case_item, CaseItemIndex& index) const
+void CaseJsonParserHelper::ParseBinaryCaseItem(const BinaryCaseItem& binary_case_item, CaseItemIndex& index, const JsonNode& case_item_node)
 {
     BinaryDataMetadata binary_data_metadata = case_item_node.GetOrEmpty(JK::metadata).Get<BinaryDataMetadata>();
 
     // read the binary content as a data URL...
     if( case_item_node.Contains(JK::content) )
     {
-        const JsonNode<wchar_t> content_node = case_item_node.Get(JK::content);
+        const JsonNode content_node = case_item_node.Get(JK::content);
 
         if( content_node.Contains(JK::url) )
         {
-            auto [content, mediatype] = Encoders::FromDataUrl(content_node.Get<wstring_view>(JK::url));
+            auto [content, mediatype] = Encoders::FromDataUrl(content_node.Get<std::string_view>(JK::url));
 
             if( content != nullptr )
             {
-                binary_case_item.GetBinaryDataAccessor(index).SetBinaryData(std::move(content), std::move(binary_data_metadata));
+                binary_case_item.SetValue(index, BinaryData(std::move(content), std::move(binary_data_metadata)));
             }
 
             else
@@ -627,34 +645,54 @@ void CaseJsonParser::ParseCaseItem(const JsonNode<wchar_t>& case_item_node, cons
 
                 if( data_case.GetCaseConstructionReporter() != nullptr )
                 {
-                    const std::wstring error = FormatTextCS2WS(_T("The binary content for '%s' is not a valid data URL."),
-                                                               binary_case_item.GetDictionaryItem().GetName().GetString());
+                    const std::string error = FormatText("The binary content for '%s' is not a valid data URL.",
+                                                         binary_case_item.GetDictItem().GetName().c_str());
                     data_case.GetCaseConstructionReporter()->BinaryDataIOError(data_case, true, error);
                 }
             }
         }
     }
 
-    // ... or using a repository's binary data reader
+    // ... or using a repository's binary content reader
     else
     {
-        std::unique_ptr<BinaryDataReader> binary_data_reader = m_caseJsonParserHelper.CreateBinaryDataReader(std::move(binary_data_metadata), case_item_node);
+        std::string signature = case_item_node.GetOrConstruct<std::string>(JK::signature);
+        std::unique_ptr<BinaryContentReader> binary_content_reader;
 
-        if( binary_data_reader != nullptr )
-            binary_case_item.GetBinaryDataAccessor(index).SetBinaryDataReader(std::move(binary_data_reader));
+        if( BinaryDataAccessor::IsValidSignature(signature) )
+        {
+            std::optional<uint64_t> size = case_item_node.GetOptional<uint64_t>(JK::size);
+
+            // the size was serialized as "length" in V2 JSON
+            if( !size.has_value() )
+                size = case_item_node.GetOptional<uint64_t>(JK::length);
+
+            binary_content_reader = CreateBinaryContentReader(std::move(size));
+        }
+
+        if( binary_content_reader != nullptr )
+        {
+            binary_case_item.SetValue(index, std::move(binary_data_metadata), std::move(signature), std::move(binary_content_reader));
+        }
+
+        else
+        {
+            ASSERT(false);
+            binary_case_item.Clear(index);
+        }
     }
 }
 
 
-void CaseJsonParser::ParseCaseItemsOnCaseRecord(const JsonNode<wchar_t>& case_record_node, CaseRecord& case_record, CaseItemIndex& index) const
+void CaseJsonParser::ParseCaseItemsOnCaseRecord(const JsonNode& case_record_node, CaseRecord& case_record, CaseItemIndex& index) const
 {
     ASSERT(( index.GetRecordOccurrence() + 1 ) == case_record.GetNumberOccurrences());
 
-    for( const CaseItem* case_item : case_record.GetCaseItems() )
+    for( const CaseItem* const case_item : case_record.GetCaseItems() )
     {
-        const CDictItem& dict_item = case_item->GetDictionaryItem();
+        const CDictItem& dict_item = case_item->GetDictItem();
 
-        const JsonNode<wchar_t> case_item_node = case_record_node.GetOrEmpty(dict_item.GetName());
+        const JsonNode case_item_node = case_record_node.GetOrEmpty(dict_item.GetName());
 
         if( case_item_node.IsEmpty() )
             continue;
@@ -665,7 +703,7 @@ void CaseJsonParser::ParseCaseItemsOnCaseRecord(const JsonNode<wchar_t>& case_re
             size_t occurrences_processed = 0;
             size_t max_occurrences = dict_item.GetItemSubitemOccurs();
 
-            for( const JsonNode<wchar_t>& case_item_node_array_element : case_item_node.GetArray() )
+            for( const JsonNode& case_item_node_array_element : case_item_node.GetArray() )
             {
                 index.SetItemSubitemOccurrence(*case_item, occurrences_processed);
                 ParseCaseItem(case_item_node_array_element, *case_item, index);
@@ -684,18 +722,18 @@ void CaseJsonParser::ParseCaseItemsOnCaseRecord(const JsonNode<wchar_t>& case_re
 }
 
 
-void CaseJsonParser::ParseCaseRecords(const JsonNode<wchar_t>& case_records_node, CaseRecord& case_record) const
+void CaseJsonParser::ParseCaseRecords(const JsonNode& case_records_node, CaseRecord& case_record) const
 {
     ASSERT(case_record.GetNumberOccurrences() == 0);
 
     if( case_records_node.IsEmpty() )
         return;
 
-    const size_t max_records = case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs();
+    const size_t max_records = case_record.GetCaseRecordMetadata().GetDictRecord().GetMaxRecs();
     CaseItemIndex index = case_record.GetCaseItemIndex();
     size_t records_added = 0;
 
-    for( const JsonNode<wchar_t>& case_record_node_array_element : case_records_node.GetArrayOrEmpty() )
+    for( const JsonNode& case_record_node_array_element : case_records_node.GetArrayOrEmpty() )
     {
         // issue a warning (and break out) when there are too many records
         if( records_added == max_records )
@@ -703,7 +741,8 @@ void CaseJsonParser::ParseCaseRecords(const JsonNode<wchar_t>& case_records_node
             if( m_usingCaseConstructionReporter )
             {
                 m_case.GetCaseConstructionReporter()->TooManyRecordOccurrences(m_case,
-                    case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetName(), max_records);
+                                                                               case_record.GetCaseRecordMetadata().GetDictRecord().GetName(),
+                                                                               max_records);
             }
 
             break;
@@ -724,7 +763,7 @@ void CaseJsonParser::ParseCaseRecords(const JsonNode<wchar_t>& case_records_node
 }
 
 
-void CaseJsonParser::ParseCaseLevel(const JsonNode<wchar_t>& case_level_node, CaseLevel& case_level) const
+void CaseJsonParser::ParseCaseLevel(const JsonNode& case_level_node, CaseLevel& case_level) const
 {
     ASSERT(case_level.GetNumberChildCaseLevels() == 0);
 
@@ -744,16 +783,16 @@ void CaseJsonParser::ParseCaseLevel(const JsonNode<wchar_t>& case_level_node, Ca
     {
         CaseRecord& case_record = case_level.GetCaseRecord(record_number);
 
-        const JsonNode<wchar_t> case_records_node = case_level_node.GetOrEmpty(case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetName());
+        const JsonNode case_records_node = case_level_node.GetOrEmpty(case_record.GetCaseRecordMetadata().GetDictRecord().GetName());
         ParseCaseRecords(case_records_node, case_record);
     }
 
     // parse any child levels
-    const CaseLevelMetadata* child_case_level_metadata = case_level.GetCaseLevelMetadata().GetChildCaseLevelMetadata();
+    const CaseLevelMetadata* const child_case_level_metadata = case_level.GetCaseLevelMetadata().GetChildCaseLevelMetadata();
 
     if( child_case_level_metadata != nullptr )
     {
-        for( const JsonNode<wchar_t>& child_case_level_node_array_element : case_level_node.GetArrayOrEmpty(child_case_level_metadata->GetDictLevel().GetName()) )
+        for( const JsonNode& child_case_level_node_array_element : case_level_node.GetArrayOrEmpty(child_case_level_metadata->GetDictLevel().GetName()) )
         {
             CaseLevel& child_case_level = case_level.AddChildCaseLevel();
             ParseCaseLevel(child_case_level_node_array_element, child_case_level);
@@ -762,17 +801,16 @@ void CaseJsonParser::ParseCaseLevel(const JsonNode<wchar_t>& case_level_node, Ca
 }
 
 
-void CaseJsonParser::ParseCase(const JsonNode<wchar_t>& json_node) const
+void CaseJsonParser::ParseCase(const JsonNode& json_node) const
 {
     // reset objects that will not be directly overwritten
     m_case.SetPositionInRepository(-1);
-    m_case.GetVectorClock().clear();
 
     // set case values
-    std::optional<std::wstring> uuid = json_node.GetOptional<std::wstring>(JK::uuid);
-    m_case.SetUuid(uuid.has_value() ? std::move(*uuid) : CreateUuid());
+    m_case.SetUuid(json_node.Contains(JK::uuid) ? json_node.Get<std::string>(JK::uuid) :
+                                                  CreateUuid());
 
-    m_case.SetCaseLabel(json_node.GetOrDefault(JK::label, SO::EmptyCString));
+    m_case.SetCaseLabel(json_node.GetOrConstruct<std::string>(JK::label));
     m_case.SetDeleted(json_node.GetOrDefault(JK::deleted, false));
     m_case.SetVerified(json_node.GetOrDefault(JK::verified, false));
 
@@ -783,7 +821,7 @@ void CaseJsonParser::ParseCase(const JsonNode<wchar_t>& json_node) const
 
         if( json_node.Contains(JK::partialSave) )
         {
-            const JsonNode<wchar_t> partial_save_node = json_node.Get(JK::partialSave);
+            const JsonNode partial_save_node = json_node.Get(JK::partialSave);
             partial_save_mode = partial_save_node.GetOrDefault(JK::mode, partial_save_mode);
 
             if( partial_save_mode != PartialSaveMode::None )
@@ -800,17 +838,30 @@ void CaseJsonParser::ParseCase(const JsonNode<wchar_t>& json_node) const
 
         if( json_node.Contains(JK::notes) )
         {
-            for( const JsonNode<wchar_t>& note_node : json_node.GetArrayOrEmpty(JK::notes) )
+            for( const JsonNode& note_node : json_node.GetArrayOrEmpty(JK::notes) )
                 notes.emplace_back(ParseNote(note_node));
         }
-    }    
+    }
 
     // levels
     {
         CaseLevel& root_case_level = m_case.GetRootCaseLevel();
         root_case_level.Reset();
 
-        const JsonNode<wchar_t> case_level_node = json_node.GetOrEmpty(root_case_level.GetCaseLevelMetadata().GetDictLevel().GetName());
+        const JsonNode case_level_node = json_node.GetOrEmpty(root_case_level.GetCaseLevelMetadata().GetDictLevel().GetName());
         ParseCaseLevel(case_level_node, root_case_level);
+    }
+
+    // vector clock
+    {
+        if( json_node.Contains(JK::clock) )
+        {
+            m_case.SetVectorClock(json_node.Get<VectorClock>(JK::clock));
+        }
+
+        else
+        {
+            m_case.GetVectorClock().clear();
+        }
     }
 }

@@ -17,18 +17,18 @@ class ZHTML_API DocumentVirtualFileMappingHandler : public FileSystemVirtualFile
 public:
     DocumentVirtualFileMappingHandler(const CDocument& document);
 
-    std::wstring CreateUrlForDocument() const { return CreateUrlForPath(m_filePath); }
+    std::string CreateUrlForDocument() const { return CreateUrlForPath(m_filePath); }
 
 protected:
     // subclasses override these methods
-    virtual bool ServeDocumentContent(void* response_object) = 0;
+    virtual bool ServeDocumentContent(VirtualFileMappingResponse& response) = 0;
 
-    virtual std::optional<std::wstring> GetDocumentDefaultMimeType() const { return std::nullopt; }
+    virtual std::optional<std::string> GetDocumentDefaultMimeType() const { return std::nullopt; }
 
 private:
-    static std::wstring GetFilePathForDocument(const CDocument& document);
+    static std::string GetFilePathForDocument(const CDocument& document);
 
 protected:
     const CDocument& m_document;
-    const std::wstring m_filePath;
+    const std::string m_filePath;
 };

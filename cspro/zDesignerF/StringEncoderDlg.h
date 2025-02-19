@@ -10,7 +10,7 @@ public:
 
     enum { IDD = IDD_STRING_ENCODER };
 
-    StringEncoderDlg(const LogicSettings& logic_settings, std::wstring initial_text, CWnd* pParent = nullptr);
+    StringEncoderDlg(const LogicSettings& logic_settings, std::string initial_text, CWnd* pParent = nullptr);
     ~StringEncoderDlg();
 
     bool SplitNewlines() const             { return m_splitNewlines.value_or(false); }
@@ -35,7 +35,7 @@ private:
 
 private:
     int m_lexerLanguage;
-    std::wstring m_initialText;
+    std::string m_initialText;
 
     std::optional<bool> m_splitNewlines;
     std::optional<bool> m_useVerbatimStringLiterals;

@@ -4,35 +4,35 @@
 #include <zToolsO/ObjectTransporter.h>
 
 
-namespace
+const std::vector<const char*>& MediaStore::GetMediaTypeStrings()
 {
-    const std::vector<const TCHAR*> MediaTypeStrings =
+    static const std::vector<const char*> MediaTypeStrings =
     {
-        _T("Audio"),
-        _T("Images"),
-        _T("Video"),
+        "Audio",
+        "Images",
+        "Video",
     };
-}
 
-const std::vector<const TCHAR*>& MediaStore::GetMediaTypeStrings()
-{
     return MediaTypeStrings;
 }
 
 
-const TCHAR* ToString(MediaStore::MediaType media_type)
+const char* ToString(const MediaStore::MediaType media_type)
 {
-    size_t index = static_cast<size_t>(media_type);
-    ASSERT(index < MediaTypeStrings.size());
-    return MediaTypeStrings[index];
+    const std::vector<const char*>& media_type_strings = MediaStore::GetMediaTypeStrings();
+    const size_t index = static_cast<size_t>(media_type);
+    ASSERT(index < media_type_strings.size());
+    return media_type_strings[index];
 }
 
 
-template<> std::optional<MediaStore::MediaType> FromString<MediaStore::MediaType>(wstring_view text)
+template<> std::optional<MediaStore::MediaType> FromString<MediaStore::MediaType>(const std::string_view text_sv)
 {
-    for( size_t i = 0; i < MediaTypeStrings.size(); ++i )
+    const std::vector<const char*>& media_type_strings = MediaStore::GetMediaTypeStrings();
+
+    for( size_t i = 0; i < media_type_strings.size(); ++i )
     {
-        if( SO::Equals(text, MediaTypeStrings[i]) )
+        if( SO::Equals(text_sv, media_type_strings[i]) )
             return static_cast<MediaStore::MediaType>(i);
     }
 
@@ -40,28 +40,26 @@ template<> std::optional<MediaStore::MediaType> FromString<MediaStore::MediaType
 }
 
 
-std::shared_ptr<const std::vector<std::wstring>> MediaStore::GetMediaFilenames(MediaType media_type)
+const std::vector<std::string>& MediaStore::GetMediaFilePaths(const MediaType media_type)
 {
     // because querying the media filenames is a non-trivial task, the results will be cached
     struct MediaFilenamesCacheableObject : public CacheableObject
     {
-        std::map<MediaType, std::shared_ptr<const std::vector<std::wstring>>> media_filenames_map;
+        std::map<MediaType, std::unique_ptr<const std::vector<std::string>>> media_file_paths_map;
     };
 
     MediaFilenamesCacheableObject& cache = ObjectTransporter::GetObjectCacher().GetOrCreate<MediaFilenamesCacheableObject>();
 
-    const auto& cache_lookup = cache.media_filenames_map.find(media_type);
+    const auto& cache_lookup = cache.media_file_paths_map.find(media_type);
 
-    if( cache_lookup != cache.media_filenames_map.cend() )
-        return cache_lookup->second;
+    if( cache_lookup != cache.media_file_paths_map.cend() )
+        return *cache_lookup->second;
 
-    std::unique_ptr<std::vector<std::wstring>> media_filenames;
-    
-#ifdef WIN_DESKTOP
-    media_filenames = std::make_unique<std::vector<std::wstring>>();
-#else
-    media_filenames = std::make_unique<std::vector<std::wstring>>(PlatformInterface::GetInstance()->GetApplicationInterface()->GetMediaFilenames(media_type));
+    auto media_file_paths = std::make_unique<const std::vector<std::string>>(
+#ifndef WIN_DESKTOP
+        PlatformInterface::GetInstance()->GetApplicationInterface()->GetMediaFilePaths(media_type)
 #endif
+    );
 
-    return cache.media_filenames_map.try_emplace(media_type, std::move(media_filenames)).first->second;
+    return *cache.media_file_paths_map.try_emplace(media_type, std::move(media_file_paths)).first->second;
 }

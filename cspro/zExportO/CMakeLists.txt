@@ -9,7 +9,6 @@ set(READSTAT_DIRECTORY ${EXTERNAL_DIRECTORY}/ReadStat)
 add_library(${PROJECT_NAME}
     CSProExportWriter.cpp
     DelimitedTextExportWriter.cpp
-    EncodedTextWriter.cpp
     ExcelExportWriter.cpp
     ExportDefinitions.cpp
     ExportWriterBase.cpp

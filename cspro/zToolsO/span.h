@@ -646,7 +646,7 @@ namespace cs
         }
 
         // add the missing cbegin/cend iterators
-        constexpr auto cbegin() const noexcept { return tcb::span<ElementType>::begin(); }
-        constexpr auto cend() const noexcept   { return tcb::span<ElementType>::end(); }
+        [[nodiscard]] constexpr auto cbegin() const noexcept { return tcb::span<ElementType>::begin(); }
+        [[nodiscard]] constexpr auto cend() const noexcept   { return tcb::span<ElementType>::end(); }
     };
 }

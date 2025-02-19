@@ -142,8 +142,8 @@ public:
     int     C_GetMaxNumLevel();
 
     bool    HasSpecialFunction(SpecialFunction special_function);
-    double  ExecSpecialFunction(int iVar, SpecialFunction special_function, double argument);
-    void    RunGlobalOnFocus(int iVar);
+    double  ExecSpecialFunction(int symbol_index, SpecialFunction special_function, double argument);
+    void    RunGlobalOnFocus(int symbol_index);
 
     C3DObject* CallCsDriverBrain();               // victor Dec 10, 01
 private:
@@ -151,7 +151,7 @@ private:
 
 public:
     // RHF INIC Nov 08, 2002
-    bool SetCurrentLanguage(wstring_view language_name);
+    bool SetCurrentLanguage(std::string_view language_name_sv);
     std::vector<Language> GetLanguages(bool include_only_capi_languages = true) const;
     // RHF END Nov 08, 2002
 

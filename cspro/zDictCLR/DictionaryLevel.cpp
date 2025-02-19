@@ -17,12 +17,12 @@ DictLevel* DictionaryLevel::GetNativePointer()
 
 String^ DictionaryLevel::Name::get()
 {
-    return gcnew String(m_pNativeLevel->GetName());
+    return clr_helpers::to_SystemString(m_pNativeLevel->GetName());
 }
 
 void DictionaryLevel::Name::set(System::String^ name)
 {
-    m_pNativeLevel->SetName((CString)name);
+    m_pNativeLevel->SetName(clr_helpers::to_string(name));
 }
 
 String^ DictionaryLevel::Label::get()

@@ -10,7 +10,6 @@ set(ZISSALIB_DIRECTORY ${CSPRO_DIRECTORY}/zIssaLib)
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
     ${EXTERNAL_DIRECTORY}/geometry.hpp/include
-    ${EXTERNAL_DIRECTORY}/jsoncons
     ${EXTERNAL_DIRECTORY}/variant/include
     ${EXTERNAL_DIRECTORY}/yaml-cpp/include
 )
@@ -21,26 +20,18 @@ add_library(${PROJECT_NAME}
     Common.cpp
     Decorr.cpp
     engdrv.cpp
-    EngineExecutor.cpp
     Exappl.cpp
     Exapplva.cpp
     Exopfile.cpp
     Form.cpp
     gpsfuncs.cpp
     Int_set.cpp
-    IntActionInvoker.cpp
-    IntArray.cpp
-    IntAudio.cpp
-    IntBarcode.cpp
     intcapi.cpp
     IntCase.cpp
     Intchars.cpp
-    IntCompression.cpp
     IntDataAccess.cpp
-    IntDate.cpp
     Intdentr.cpp
     IntDiagnostics.cpp
-    IntDocument.cpp
     Intdrive.cpp
     IntDynamicLogicEvaluation.cpp
     intenter.cpp
@@ -49,19 +40,10 @@ add_library(${PROJECT_NAME}
     Intextdi.cpp
     IntFreq.cpp
     Intfuncs.cpp
-    IntGeometry.cpp
-    IntHashMap.cpp
-    IntHtmlDialog.cpp
-    IntImage.cpp
     IntImpute.cpp
     Intinstr.cpp
-	IntItem.cpp
-    IntJson.cpp
+    IntItem.cpp
     IntLanguage.cpp
-    IntList.cpp
-    IntLocalhost.cpp
-    IntMap.cpp
-    IntMath.cpp
     IntMessages.cpp
     IntOccurrences.cpp
     IntPath.cpp
@@ -70,12 +52,7 @@ add_library(${PROJECT_NAME}
     IntProgramControl.cpp
     IntProperties.cpp
     IntQuery.cpp
-    IntReport.cpp
-    IntString.cpp
-    IntSwitch.cpp
-    IntSymbol.cpp
     IntSync.cpp
-    IntSystemApp.cpp
     IntUserbar.cpp
     IntUserFunction.cpp
     IntUserInterface.cpp
@@ -93,7 +70,6 @@ add_library(${PROJECT_NAME}
     relt.cpp
     Settings.cpp
     subtable.cpp
-    SyncListener.cpp
     Tables.cpp
     Tablesen.cpp
     VariableInOut.cpp

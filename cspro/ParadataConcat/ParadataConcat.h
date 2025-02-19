@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 
-class CParadataConcatApp : public CWinApp
+class ParadataConcatApp : public CWinApp
 {
 public:
-    CParadataConcatApp();
+    ParadataConcatApp();
 
 protected:
     BOOL InitInstance() override;
@@ -16,6 +16,3 @@ private:
 private:
     HACCEL m_hAccelerators;
 };
-
-
-extern CParadataConcatApp theApp;

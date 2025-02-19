@@ -7,6 +7,8 @@ class CSProHostObject;
 struct ICoreWebView2;
 struct ICoreWebView2Controller;
 struct ICoreWebView2NavigationCompletedEventArgs;
+struct ICoreWebView2NavigationStartingEventArgs;
+struct ICoreWebView2WebMessageReceivedEventArgs;
 class UriResolver;
 namespace ActionInvoker { class WebController; }
 
@@ -22,22 +24,28 @@ public:
     ~HtmlViewCtrl();
 
     void SetContextMenuEnabled(bool enabled);
+    void SetZoomControlEnabled(bool enabled);
     void SetOpenNonLocalhostLinksInBrowser(bool open_in_browser);
 
     void NavigateTo(std::shared_ptr<UriResolver> uri_resolver);
-    void NavigateTo(const std::wstring& uri);
+    void NavigateTo(std::string_view uri_sv);
     void SetHtml(std::wstring html);
+    void SetHtml(std::string_view html_sv);
     void Reload();
 
     void PostWebMessageAsJson(const std::wstring& message_json);
+    void PostWebMessageAsJson(std::string_view message_json_sv);
     void PostWebMessageAsString(const std::wstring& message_string);
+    void PostWebMessageAsString(std::string_view message_string_sv);
     void ExecuteScript(NullTerminatedString javascript);
     void ExecuteScript(NullTerminatedString javascript, std::function<void(const std::wstring&)> result_handler);
+    void ExecuteScript(std::string_view javascript_sv);
 
-    void AddWebViewCreatedObserver(std::function<void()> observer);
-    void AddSourceChangedObserver(std::function<void(const std::wstring& event_json)> observer);
-    void AddNavigationCompletedObserver(std::function<void(bool)> observer);
-    void AddWebEventObserver(std::function<void(const std::wstring& event_json)> observer);
+    void AddWebViewCreatedObserver(std::function<void()> observer)                              { m_webViewCreatedObservers.emplace_back(std::move(observer)); }
+    void AddNavigationStartingObserver(std::function<void(bool&, const std::string&)> observer) { m_navigationStartedObservers.emplace_back(std::move(observer)); }
+    void AddSourceChangedObserver(std::function<void(const std::string&)> observer)             { m_sourceChangedObservers.emplace_back(std::move(observer)); }
+    void AddNavigationCompletedObserver(std::function<void(bool)> observer)                     { m_navigationCompletedObservers.emplace_back(std::move(observer)); }
+    void AddWebEventObserver(std::function<void(std::wstring_view)> observer)                   { m_webEventObservers.emplace_back(std::move(observer)); }
 
     void SetAcceleratorKeyHandler(std::function<bool(UINT message, UINT key, INT lParam)> handler);
     void UseWebView2AcceleratorKeyHandler();
@@ -45,11 +53,14 @@ public:
     void MoveFocus();
     void Resize(UINT nType, int cx, int cy) { OnSize(nType, cx, cy); }
 
-    std::wstring GetSource();
+    std::string GetSource();
 
     ActionInvoker::WebController& RegisterCSProHostObject();
+    ActionInvoker::WebController* GetActionInvokerWebController();
 
-    void SaveScreenshot(NullTerminatedString filename); // throws CSProException on error
+    void ShowPrintUI();
+
+    void SaveScreenshot(const std::string& file_path); // throws CSProException on error
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -67,15 +78,21 @@ protected:
 
 private:
     void InitializeWebView();
-    static std::wstring GetUserDataDirectory();
+    static const std::wstring& GetUserDataDirectory();
     void OnWebViewCreated(ICoreWebView2Controller* controller);
-    void OnSourceChanged(const std::wstring& uri);
+    void AddCSProHostObject();
+    void ProcessPendingEvents();
+    void OnNavigationStarted(ICoreWebView2NavigationStartingEventArgs* args);
+    void OnSourceChanged();
     void OnNavigationCompleted(ICoreWebView2NavigationCompletedEventArgs* args);
+    void OnWebMessageReceived(ICoreWebView2WebMessageReceivedEventArgs* args);
     void ConfigureSettings();
-    void SetupWebMessageReceiver();
     void FitWebViewToWindow();
     void SetupAcceleratorHandler();
     bool DefaultAcceleratorKeyHandler(UINT message, UINT key, INT lParam);
+
+    template<typename T>
+    static std::string GetSource(T* view_or_args, bool clear_about_blank);
 
 private:
     struct Impl;
@@ -83,13 +100,16 @@ private:
 
     bool m_initializeWebviewInPreSubclassWindow;
 
-    std::vector<std::function<void()>> m_webview_created_observers;
-    std::vector<std::function<void(const std::wstring&)>> m_source_changed_observers;
-    std::vector<std::function<void(bool)>> m_navigation_completed_observers;
-    std::vector<std::function<void(const std::wstring&)>> m_web_event_observers;
-    std::function<bool(UINT message, UINT key, INT lParam)> m_accelerator_key_handler;
+    std::vector<std::function<void()>> m_webViewCreatedObservers;
+    std::vector<std::function<void(bool&, const std::string&)>> m_navigationStartedObservers;
+    std::vector<std::function<void(const std::string&)>> m_sourceChangedObservers;
+    std::vector<std::function<void(bool)>> m_navigationCompletedObservers;
+    std::vector<std::function<void(std::wstring_view)>> m_webEventObservers;
+
+    std::function<bool(UINT message, UINT key, INT lParam)> m_acceleratorKeyHandler;
 
     bool m_contextMenuEnabled;
+    bool m_zoomControlEnabled;
     bool m_openNonLocalhostLinksInBrowser;
     bool m_initialized;
 
@@ -97,9 +117,15 @@ private:
     std::queue<int> m_csproHostObjectAsyncMessageIds;
 
     // pending events to execute once the view is created
-    struct PendingEvent_NavigateToUri { std::wstring uri; };
-    struct PendingEvent_SetHtml       { std::wstring html; };
-    struct PendingEvent_ExecuteScript { std::wstring javascript; std::function<void(const std::wstring&)> result_handler; };
-    using PendingEvent = std::variant<std::shared_ptr<UriResolver>, PendingEvent_NavigateToUri, PendingEvent_SetHtml, PendingEvent_ExecuteScript>;
+    struct PendingEvent_NavigateToUri  { std::string uri; };
+    struct PendingEvent_SetHtml        { std::wstring html; };
+    struct PendingEvent_ExecuteScript  { std::wstring javascript; std::function<void(const std::wstring&)> result_handler; };
+    struct PendingEvent_PostWebMessage { std::wstring message; bool as_json; };
+
+    using PendingEvent = std::variant<std::shared_ptr<UriResolver>,
+                                      PendingEvent_NavigateToUri,
+                                      PendingEvent_SetHtml,
+                                      PendingEvent_ExecuteScript,
+                                      PendingEvent_PostWebMessage>;
     std::vector<PendingEvent> m_pendingEvents;
 };

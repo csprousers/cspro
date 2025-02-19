@@ -3,8 +3,6 @@
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiCondition.h>
 
-class JsonWriter;
-class Serializer;
 namespace YAML { template <typename T> struct convert; }
 
 

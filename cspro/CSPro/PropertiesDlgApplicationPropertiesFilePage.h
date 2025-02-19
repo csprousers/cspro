@@ -10,10 +10,7 @@ public:
 
     PropertiesDlgApplicationPropertiesFilePage(const Application& application, CWnd* pParent = nullptr);
 
-    const std::wstring& GetApplicationPropertiesFilename() const
-    {
-        return ( m_useApplicationPropertiesFile == 0 ) ? SO::EmptyString : m_applicationPropertiesFilename;
-    }
+    const std::string& GetApplicationPropertiesFilePath() const;
 
     void FormToProperties() override;
     void ResetProperties() override;
@@ -35,7 +32,7 @@ private:
 private:
     const Application& m_application;
 
-    std::wstring m_applicationPropertiesFilename;
-    std::wstring m_applicationFilename;
+    std::string m_applicationPropertiesFilePath;
+    std::string m_applicationFilePath;
     int m_useApplicationPropertiesFile;
 };

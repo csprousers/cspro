@@ -5,12 +5,12 @@
 
 namespace LocalhostUrl
 {
-    constexpr const char* LocalhostHost                 = "localhost";
-    constexpr const TCHAR* LocalhostHostWide            = _T("localhost");
-    constexpr const TCHAR* LocalFileSystemDirectoryName = _T("lfs");
-    constexpr const TCHAR* VirtualFileDirectoryName     = _T("vf");
-    constexpr const TCHAR* AndroidBaseUrl               = _T("https://appassets.androidplatform.net/lfs/");
+    constexpr const char* LocalhostHost                = "localhost";
+    constexpr const char* LocalFileSystemDirectoryName = "lfs";
+    constexpr const char* VirtualFileDirectoryName     = "vf";
+    constexpr const char* AndroidBaseUrl               = "https://appassets.androidplatform.net/lfs/";
+    constexpr std::string_view WasmBaseUrlSuffix_sv    = "wlfs/";
 
-    // attempts to determine the directory from a Localhost URL based on a filename
-    ZHTML_API std::wstring GetDirectoryFromUrl(const std::wstring& url);
+    // attempts to determine the directory from a Localhost URL based on a file path
+    ZHTML_API std::string GetDirectoryFromUrl(const std::string& url);
 }

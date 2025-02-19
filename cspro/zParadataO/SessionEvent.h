@@ -1,25 +1,28 @@
 ﻿#pragma once
-#include "Event.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+
+namespace Paradata { class SessionEvent; }
+
+
+class ZPARADATAO_API Paradata::SessionEvent : public Event
 {
-    class ZPARADATAO_API SessionEvent : public Event
-    {
-        DECLARE_PARADATA_EVENT(SessionEvent)
+    DECLARE_PARADATA_EVENT(SessionEvent)
 
-    private:
-        bool PreSave(Log& log) const override;
+private:
+    SessionEvent(bool start);
 
-        bool m_start;
+public:
+    static std::unique_ptr<SessionEvent> CreateStartEvent();
+    static std::unique_ptr<SessionEvent> CreateStartEvent(int mode, std::string operator_id);
+    static std::unique_ptr<SessionEvent> CreateStopEvent();
 
-        std::optional<int> m_mode;
-        std::optional<CString> m_operatorId;
+private:
+    bool PreSave(Log& log) const override;
 
-        SessionEvent(bool start);
+private:
+    bool m_start;
 
-    public:
-        static std::shared_ptr<SessionEvent> CreateStartEvent();
-        static std::shared_ptr<SessionEvent> CreateStartEvent(int mode, const CString& operator_id);
-        static std::shared_ptr<SessionEvent> CreateStopEvent();
-    };
-}
+    std::optional<int> m_mode;
+    std::optional<std::string> m_operatorId;
+};

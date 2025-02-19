@@ -16,9 +16,10 @@ LogicArray* LogicCompiler::CompileLogicArrayDeclarationOnly(bool use_function_pa
 
     // check if an old, unsupported type is specified
     {
-        static const std::vector<const TCHAR*> DeprecatedTypes = { _T("SINT"), _T("LINT"), _T("FLOAT") };
+        constexpr const char* DeprecatedTypes[] = { "SINT", "LINT", "FLOAT" };
+        const size_t deprecated_type_index = NextKeyword(DeprecatedTypes);
 
-        if( size_t deprecated_type_index = NextKeyword(DeprecatedTypes); deprecated_type_index != 0 )
+        if( deprecated_type_index != 0 )
             IssueError(MGF::deprecation_removed_Array_with_old_type_95019, DeprecatedTypes[deprecated_type_index - 1]);
     }
 
@@ -37,7 +38,7 @@ LogicArray* LogicCompiler::CompileLogicArrayDeclarationOnly(bool use_function_pa
     }
 
     // get the array name
-    std::wstring array_name = CompileNewSymbolName();
+    std::string array_name = CompileNewSymbolName();
 
     // read in the dimensions and attributes
     std::vector<size_t> dimension_sizes;

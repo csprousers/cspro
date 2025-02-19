@@ -19,26 +19,27 @@ CCSDiffView::CCSDiffView()
 }
 
 
-void CCSDiffView::DoDataExchange(CDataExchange* pDX)
+void CCSDiffView::DoDataExchange(CDataExchange* const pDX)
 {
-    CFormView::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_DATADICT_TREE, m_dictionaryTreeCtrl);
 }
 
 
-std::wstring CCSDiffView::CreateWindowTitle(const std::wstring& spec_filename, const CDataDict* dictionary)
+std::string CCSDiffView::CreateWindowTitle(const std::string& spec_file_path, const CDataDict* const dictionary)
 {
-    return FormatTextCS2WS(_T("CSPro Compare Data - [Spec File = %s / Dictionary = %s]"),
-                           !spec_filename.empty() ? PortableFunctions::PathGetFilename(spec_filename) : _T("Untitled"),
-                           ( dictionary != nullptr ) ? PortableFunctions::PathGetFilename(dictionary->GetFullFileName()) : _T(""));
+    return FormatText("CSPro Compare Data - [Spec File = %s / Dictionary = %s]",
+                      !spec_file_path.empty() ? PortableFunctions::PathGetFilename(spec_file_path).c_str() : "Untitled",
+                      ( dictionary != nullptr ) ? PortableFunctions::PathGetFilename(dictionary->GetFilePath()).c_str() : "");
 }
 
 
 void CCSDiffView::OnInitialUpdate()
 {
-    CFormView::OnInitialUpdate();
+    __super::OnInitialUpdate();
 
-    CCSDiffDoc* pDoc = static_cast<CCSDiffDoc*>(GetDocument());
+    CCSDiffDoc* const pDoc = static_cast<CCSDiffDoc*>(GetDocument());
     ASSERT(pDoc != nullptr);
 
     m_dictionaryTreeCtrl.SetParent(this);
@@ -50,13 +51,13 @@ void CCSDiffView::OnInitialUpdate()
     const std::shared_ptr<const CDataDict> dictionary = pDoc->GetDiffSpec().GetSharedDictionary();
     m_dictionaryTreeCtrl.Initialize(dictionary, false, false, false, this);
 
-    AfxGetMainWnd()->SetWindowText(CreateWindowTitle(CS2WS(pDoc->GetPff().GetAppFName()), dictionary.get()).c_str());
+    AfxGetMainWnd()->SetWindowText(TC::ToWide(CreateWindowTitle(UTF8_TODO::GetUtf8(pDoc->GetPff().GetAppFName()), dictionary.get())).c_str());
 }
 
 
 void CCSDiffView::OnSize(const UINT nType, const int cx, const int cy)
 {
-    CFormView::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     if( m_dictionaryTreeCtrl.m_hWnd != nullptr )
     {
@@ -78,7 +79,7 @@ void CCSDiffView::OnToggle()
 }
 
 
-void CCSDiffView::OnUpdateToggle(CCmdUI* pCmdUI)
+void CCSDiffView::OnUpdateToggle(CCmdUI* const pCmdUI)
 {
     const DiffSpec& diff_spec = GetDocument()->GetDiffSpec();
     pCmdUI->SetCheck(!diff_spec.GetShowLabels());

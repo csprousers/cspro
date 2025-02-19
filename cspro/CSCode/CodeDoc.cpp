@@ -53,23 +53,28 @@ CodeFrame& CodeDoc::GetCodeFrame()
 }
 
 
-void CodeDoc::UpdateTitle(const TCHAR* filename_or_title/* = nullptr*/)
+void CodeDoc::UpdateTitle(cs::cref_optional<std::string> file_path_or_title/* = std::nullopt*/)
 {
-    if( filename_or_title != nullptr || !m_baseModifiedTitle.has_value() )
+    if( file_path_or_title.has_value() || !m_baseModifiedTitle.has_value() )
     {
-        if( filename_or_title == nullptr )
-            filename_or_title = GetPathName();
+        if( !file_path_or_title.has_value() )
+            file_path_or_title = GetFilePath();
 
-        m_baseModifiedTitle = SO::Concatenate(_T("*"), PortableFunctions::PathGetFilename(filename_or_title));
+        m_baseModifiedTitle = SO::Concatenate("*", PortableFunctions::PathGetFilename(*file_path_or_title));
     }
 
     ASSERT(m_baseModifiedTitle.has_value() && !m_baseModifiedTitle->empty() && m_baseModifiedTitle->front() == '*');
 
-    SetTitle(m_baseModifiedTitle->c_str() + ( IsModified() ? 0 : 1 ));
+    std::string_view title_sv = *m_baseModifiedTitle;
+
+    if( !IsModified() )
+        title_sv.remove_prefix(1);
+
+    SetTitle(TC::ToWide(title_sv).c_str());
 }
 
 
-void CodeDoc::SetModifiedFlag(BOOL modified/* = TRUE*/)
+void CodeDoc::SetModifiedFlag(const BOOL modified/* = TRUE*/)
 {
     if( IsModified() == modified )
         return;
@@ -80,7 +85,7 @@ void CodeDoc::SetModifiedFlag(BOOL modified/* = TRUE*/)
 }
 
 
-void CodeDoc::SetModifiedFlag(BOOL modified, CWnd* scintilla_editor_parent)
+void CodeDoc::SetModifiedFlag(const BOOL modified, CWnd* const scintilla_editor_parent)
 {
     // only text modifications to the primary code view will mark the document as modified
     if( IsModified() != modified && scintilla_editor_parent == &GetPrimaryCodeView() )
@@ -88,17 +93,17 @@ void CodeDoc::SetModifiedFlag(BOOL modified, CWnd* scintilla_editor_parent)
 }
 
 
-const std::wstring& CodeDoc::GetInitialText() const
+const std::string& CodeDoc::GetInitialText() const
 {
     return ( m_textSource != nullptr ) ? m_textSource->GetText() :
-                                         SO::EmptyString;
+                                         SO::Empty_string;
 }
 
 
 BOOL CodeDoc::OnNewDocument()
 {
     static int new_counter = 0;
-    CString title = FormatText(_T("new %d"), ++new_counter);
+    const std::string title = FormatText("new %d", ++new_counter);
 
     UpdateTitle(title);
 
@@ -110,8 +115,8 @@ BOOL CodeDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
     try
     {
-        m_textSource = std::make_unique<TextSourceEditable>(lpszPathName);
-        m_languageSettings = LanguageSettings(lpszPathName);
+        m_textSource = std::make_unique<TextSourceEditable>(TC::ToUtf8(lpszPathName));
+        m_languageSettings = LanguageSettings(m_textSource->GetFilePath());
     }
 
     catch( const CSProException& exception )
@@ -120,7 +125,7 @@ BOOL CodeDoc::OnOpenDocument(LPCTSTR lpszPathName)
         return FALSE;
     }
 
-    UpdateTitle(lpszPathName);
+    UpdateTitle(m_textSource->GetFilePath());
 
     return TRUE;
 }
@@ -132,14 +137,14 @@ BOOL CodeDoc::OnSaveDocument(LPCTSTR lpszPathName)
     {
         // get the text
         POSITION pos = GetFirstViewPosition();
-        CodeView* code_view = assert_cast<CodeView*>(GetNextView(pos));
-        CLogicCtrl* logic_ctrl = code_view->GetLogicCtrl();
-        std::wstring text = logic_ctrl->GetText();
+        CodeView* const code_view = assert_cast<CodeView*>(GetNextView(pos));
+        CLogicCtrl* const logic_ctrl = code_view->GetLogicCtrl();
+        std::string text = logic_ctrl->GetText();
 
         // if saving to the same file, use the existing text source
         if( GetPathName() == lpszPathName )
         {
-            ASSERT(SO::EqualsNoCase(m_textSource->GetFilename(), lpszPathName));
+            ASSERT(SO::EqualsNoCase(m_textSource->GetFilePath(), lpszPathName));
 
             m_textSource->SetText(std::move(text));
             m_textSource->Save();
@@ -148,8 +153,8 @@ BOOL CodeDoc::OnSaveDocument(LPCTSTR lpszPathName)
         // otherwise create a new one
         else
         {
-            m_textSource = std::make_unique<TextSourceEditable>(lpszPathName, std::move(text), true);
-            UpdateTitle(lpszPathName);
+            m_textSource = std::make_unique<TextSourceEditable>(TC::ToUtf8(lpszPathName), std::move(text), true);
+            UpdateTitle(m_textSource->GetFilePath());
         }
 
         SetModifiedFlag(FALSE);
@@ -171,8 +176,8 @@ void CodeDoc::OnCloseDocument()
 {
     if( IsRunOperationInProgress() )
     {
-        AfxMessageBox(FormatText(_T("There is a running operation associated with '%s' and the ")
-                                 _T("document cannot be closed until it is canceled or completes."), GetTitle().GetString()));
+        AfxMessageBox(FormatText(L"There is a running operation associated with '%s' and the "
+                                 L"document cannot be closed until it is canceled or completes.", GetTitle().GetString()));
         return;
     }
 
@@ -180,15 +185,15 @@ void CodeDoc::OnCloseDocument()
 }
 
 
-BOOL CodeDoc::DoSave(LPCTSTR lpszPathName, BOOL bReplace/* = TRUE*/)
+BOOL CodeDoc::DoSave(LPCTSTR lpszPathName, const BOOL bReplace/* = TRUE*/)
 {
     // the default implementation of DoSave uses the title as a suggestion for the filename,
     // but because our title can start with the modified marker *, that got treated as a wildcard,
     // so we will query for the filename ourselves (using code from CDocument::DoSave)
     if( bReplace && lpszPathName == nullptr )
     {
-		CDocTemplate* pTemplate = GetDocTemplate();
-		ASSERT(pTemplate != NULL);
+        CDocTemplate* const pTemplate = GetDocTemplate();
+        ASSERT(pTemplate != NULL);
 
         CString newName = GetPathName();
 
@@ -196,7 +201,7 @@ BOOL CodeDoc::DoSave(LPCTSTR lpszPathName, BOOL bReplace/* = TRUE*/)
             return FALSE;
 
         return __super::DoSave(newName, bReplace);
-	}
+    }
 
     else
     {
@@ -205,18 +210,30 @@ BOOL CodeDoc::DoSave(LPCTSTR lpszPathName, BOOL bReplace/* = TRUE*/)
 }
 
 
-std::wstring CodeDoc::GetPathNameOrFakeTempName(const TCHAR* extension) const
+const std::string& CodeDoc::GetFilePath() const
 {
-    std::wstring path = CS2WS(GetPathName());
-
-    if( path.empty() )
+    if( m_textSource != nullptr )
     {
-        path = CS2WS(GetTitle());
-        path = SO::Trim(SO::Remove(path, '*'));
-        path = GetUniqueTempFilename(PortableFunctions::PathAppendFileExtension(path, extension));
+        ASSERT81(m_textSource->GetFilePath() == TC::ToUtf8(GetPathName()));
+        return m_textSource->GetFilePath();
     }
 
-    return path;
+    ASSERT(GetPathName().IsEmpty());
+    return SO::Empty_string;
+}
+
+
+std::string CodeDoc::GetActualOrTempFilePath(const char* const extension) const
+{
+    std::string path = GetFilePath();
+
+    if( !path.empty() )
+        return path;
+
+    path = TC::ToUtf8(GetTitle());
+    path = SO::MakeTrim(SO::Remove(path, '*'));
+
+    return GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(std::move(path), extension));
 }
 
 
@@ -224,8 +241,8 @@ std::tuple<bool, int64_t> CodeDoc::GetFileModificationTimeParameters() const
 {
     if( m_textSource != nullptr )
     {
-        int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(m_textSource->GetFilename());
-        bool file_on_disk_is_newer = ( m_textSource->GetModifiedIteration() < PortableFunctions::FileModifiedTime(m_textSource->GetFilename()) );
+        const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(m_textSource->GetFilePath());
+        const bool file_on_disk_is_newer = ( m_textSource->GetModifiedIteration() < PortableFunctions::FileModifiedTime(m_textSource->GetFilePath()) );
 
         return { file_on_disk_is_newer, file_on_disk_modified_time };
     }
@@ -256,21 +273,21 @@ void CodeDoc::ReloadFromDisk()
 
 void CodeDoc::OnFileReloadFromDisk()
 {
-    int response = AfxMessageBox(FormatText(_T("Are you sure that you want to reload '%s' and lose any changes made in CSCode?"),
-                                            PortableFunctions::PathGetFilename(GetPathName())), MB_YESNOCANCEL);
+    const int response = AfxMessageBox(FormatText("Are you sure that you want to reload '%s' and lose any changes made in CSCode?",
+                                                  PortableFunctions::PathGetFilename(GetFilePath()).c_str()), MB_YESNOCANCEL);
 
     if( response == IDYES )
         ReloadFromDisk();
 }
 
 
-void CodeDoc::OnUpdateFileReloadFromDisk(CCmdUI* pCmdUI)
+void CodeDoc::OnUpdateFileReloadFromDisk(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(m_textSource != nullptr && IsModified());
 }
 
 
-void CodeDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
+void CodeDoc::OnUpdateFileSave(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsModified());
 }
@@ -287,8 +304,9 @@ ProcessorHtml& CodeDoc::GetHtmlProcessor()
 
 ProcessorJavaScript& CodeDoc::GetJavaScriptProcessor()
 {
-    // the JavaScript processors are set up based on the filename, so use a different one for every filename this document has
-    auto lookup = m_processorJavaScript.find(GetPathName());
+    // the JavaScript processors are set up based on the file path, so use a different one for every file path this document has
+    std::string file_path = GetFilePath();
+    auto lookup = m_processorJavaScript.find(file_path);
 
     if( lookup != m_processorJavaScript.cend() )
     {
@@ -301,7 +319,7 @@ ProcessorJavaScript& CodeDoc::GetJavaScriptProcessor()
         if( !IsRunOperationInProgress() )
             m_processorJavaScript.clear();
 
-        return *m_processorJavaScript.try_emplace(GetPathName(), std::make_unique<ProcessorJavaScript>(*this)).first->second;
+        return *m_processorJavaScript.try_emplace(std::move(file_path), std::make_unique<ProcessorJavaScript>(*this)).first->second;
     }
 }
 
@@ -311,11 +329,11 @@ void CodeDoc::RegisterRunOperation(std::shared_ptr<RunOperation> run_operation)
     ASSERT(run_operation != nullptr);
     ASSERT(m_runOperation == nullptr || !m_runOperation->IsRunning());
 
-    m_runOperation = run_operation;
+    m_runOperation = std::move(run_operation);
 
     try
     {
-        assert_cast<CMainFrame*>(AfxGetMainWnd())->RegisterRunOperationAndRun(std::move(run_operation));
+        assert_cast<CMainFrame*>(AfxGetMainWnd())->RegisterRunOperationAndRun(m_runOperation);
     }
 
     catch( const CSProException& exception )

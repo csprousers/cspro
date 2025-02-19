@@ -7,7 +7,7 @@ BinarySymbolData& BinarySymbolData::operator=(const BinarySymbolData& binary_sym
 {
     if( binary_symbol_data.IsDefined() )
     {
-        m_binaryDataAccessor->SetBinaryData(binary_symbol_data.m_binaryDataAccessor->GetBinaryData());
+        *m_binaryDataAccessor = *binary_symbol_data.m_binaryDataAccessor;
         m_path = binary_symbol_data.m_path;
     }
 
@@ -20,8 +20,8 @@ BinarySymbolData& BinarySymbolData::operator=(const BinarySymbolData& binary_sym
 }
 
 
-template<typename T> 
-void BinarySymbolData::SetBinaryData(T&& content_or_callback, std::wstring path_or_filename)
+template<typename T>
+void BinarySymbolData::SetBinaryData(T&& content_or_callback, std::string path_or_filename)
 {
     BinaryDataMetadata binary_data_metadata;
 
@@ -39,60 +39,57 @@ void BinarySymbolData::SetBinaryData(T&& content_or_callback, std::wstring path_
     SetBinaryData(std::forward<T>(content_or_callback), std::move(binary_data_metadata));
 }
 
-template void BinarySymbolData::SetBinaryData(BinaryData::ContentCallbackType&& content_or_callback, std::wstring path_or_filename);
-template void BinarySymbolData::SetBinaryData(std::unique_ptr<std::vector<std::byte>>&& content_or_callback, std::wstring path_or_filename);
-template void BinarySymbolData::SetBinaryData(std::shared_ptr<const std::vector<std::byte>>&& content_or_callback, std::wstring path_or_filename);
+template void BinarySymbolData::SetBinaryData(BinaryData::ContentCallbackType&& content_or_callback, std::string path_or_filename);
+template void BinarySymbolData::SetBinaryData(std::unique_ptr<std::vector<std::byte>>&& content_or_callback, std::string path_or_filename);
+template void BinarySymbolData::SetBinaryData(std::shared_ptr<const std::vector<std::byte>>&& content_or_callback, std::string path_or_filename);
 
 
-template<typename T> 
-void BinarySymbolData::SetBinaryData(T&& content_or_callback, std::wstring path_or_filename, std::wstring mime_type)
+template<typename T>
+void BinarySymbolData::SetBinaryData(T&& content_or_callback, std::string path_or_filename, std::string mime_type)
 {
     SetBinaryData(std::forward<T>(content_or_callback), std::move(path_or_filename));
 
     if( !mime_type.empty() )
-        m_binaryDataAccessor->GetBinaryDataMetadataForModification().SetMimeType(std::move(mime_type));
+        m_binaryDataAccessor->GetBinaryDataMetadata().SetMimeType(std::move(mime_type));
 }
 
-template void BinarySymbolData::SetBinaryData(BinaryData::ContentCallbackType&& content_or_callback, std::wstring path_or_filename, std::wstring mime_type);
-template void BinarySymbolData::SetBinaryData(std::unique_ptr<std::vector<std::byte>>&& content_or_callback, std::wstring path_or_filename, std::wstring mime_type);
-template void BinarySymbolData::SetBinaryData(std::vector<std::byte>&& content_or_callback, std::wstring path_or_filename, std::wstring mime_type);
+template void BinarySymbolData::SetBinaryData(BinaryData::ContentCallbackType&& content_or_callback, std::string path_or_filename, std::string mime_type);
+template void BinarySymbolData::SetBinaryData(std::unique_ptr<std::vector<std::byte>>&& content_or_callback, std::string path_or_filename, std::string mime_type);
+template void BinarySymbolData::SetBinaryData(std::vector<std::byte>&& content_or_callback, std::string path_or_filename, std::string mime_type);
 
 
-void BinarySymbolData::SetPath(std::wstring path)
+void BinarySymbolData::SetPath(std::string path)
 {
     ASSERT(!path.empty());
 
-    GetMetadataForModification().SetFilename(path);
+    GetMetadata().SetFilename(path);
     m_path = std::move(path);
 }
 
 
-std::wstring BinarySymbolData::GetFilenameOnly() const
+std::string BinarySymbolData::GetFilenameOnly() const
 {
-    std::optional<std::wstring> filename = GetMetadata().GetFilename();
-    ASSERT(!filename.has_value() || m_path.empty() || PortableFunctions::PathGetFilename(m_path) == *filename);
+    std::optional<std::string> filename = GetMetadata().GetFilename();
+    ASSERT(!filename.has_value() || m_path.empty() || Path::GetFilename(m_path) == *filename);
 
     return ValueOrDefault(std::move(filename));
 }
 
 
-std::wstring BinarySymbolData::CreateFilenameBasedOnMimeType(const Symbol* symbol) const
+std::string BinarySymbolData::CreateFilenameBasedOnMimeType(const Symbol* const symbol) const
 {
-    std::wstring filename = GetFilenameOnly();
+    std::string filename = GetFilenameOnly();
 
     if( filename.empty() )
     {
-        const std::optional<std::wstring> mime_type = GetMetadata().GetMimeType();
+        const std::optional<std::string> mime_type = GetMetadata().GetMimeType();
 
         if( mime_type.has_value() )
         {
-            const TCHAR* const extension = MimeType::GetFileExtensionFromType(*mime_type);
+            const char* const extension = MimeType::GetFileExtensionFromType(*mime_type);
 
             if( extension != nullptr )
-            {
-                const TCHAR* fake_filename = ( symbol != nullptr ) ? symbol->GetName().c_str() : _T("g");
-                return PortableFunctions::PathAppendFileExtension<std::wstring>(fake_filename, extension);
-            }
+                return Path::AppendExtension(( symbol != nullptr ) ? symbol->GetName() : "g", extension);
         }
     }
 
@@ -101,7 +98,7 @@ std::wstring BinarySymbolData::CreateFilenameBasedOnMimeType(const Symbol* symbo
 
 
 void BinarySymbolData::WriteSymbolValueToJson(const BinarySymbol& binary_symbol, JsonWriter& json_writer,
-                                              const std::function<void()>* content_writer_override/* = nullptr*/) const
+                                              const std::function<void()>* const content_writer_override/* = nullptr*/) const
 {
     if( !IsDefined() )
     {
@@ -129,7 +126,7 @@ void BinarySymbolData::WriteSymbolValueToJson(const BinarySymbol& binary_symbol,
     {
         json_writer.BeginObject(JK::content);
 
-        SymbolSerializerHelper* symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
+        SymbolSerializerHelper* const symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
         const JsonProperties::BinaryDataFormat binary_data_format =
             ( symbol_serializer_helper != nullptr ) ? symbol_serializer_helper->GetJsonProperties().GetBinaryDataFormat() :
                                                       JsonProperties::DefaultBinaryDataFormat;
@@ -162,8 +159,8 @@ void BinarySymbolData::WriteSymbolValueToJson(const BinarySymbol& binary_symbol,
 }
 
 
-void BinarySymbolData::UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, const JsonNode<wchar_t>& json_node, BinarySymbolDataContentValidator* const content_validator/* = nullptr*/,
-                                                 const std::function<BinaryData::ContentCallbackType(const JsonNode<wchar_t>&)>* const non_url_content_reader/* = nullptr*/)
+void BinarySymbolData::SetSymbolValueFromJson(BinarySymbol& binary_symbol, const JsonNode& json_node, BinarySymbolDataContentValidator* const content_validator/* = nullptr*/,
+                                              const std::function<BinaryData::ContentCallbackType(const JsonNode&)>* const non_url_content_reader/* = nullptr*/)
 {
     if( json_node.IsNull() || !json_node.Contains(JK::content) )
     {
@@ -176,16 +173,16 @@ void BinarySymbolData::UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, co
                                                                                  BinaryDataMetadata();
 
     // parse the content...
-    const auto& content_node = json_node.Get(JK::content);
+    const JsonNode content_node = json_node.Get(JK::content);
 
     // ...as a data URL
     if( content_node.Contains(JK::url) )
     {
-        UpdateSymbolValueFromDataUrl(binary_symbol, content_node.Get<wstring_view>(JK::url), std::move(binary_data_metadata), content_validator);
+        SetSymbolValueFromDataUrl(binary_symbol, content_node.Get<std::string_view>(JK::url), std::move(binary_data_metadata), content_validator);
         return;
     }
 
-    std::optional<std::wstring> path;
+    std::optional<std::string> path;
 
     // ...as a path
     if( content_node.Contains(JK::path) )
@@ -194,7 +191,7 @@ void BinarySymbolData::UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, co
         std::shared_ptr<std::vector<std::byte>> content = FileIO::Read(*path);
 
         if( content_validator != nullptr && !content_validator->ValidateContent(content) )
-            throw CSProException(_T("The binary content for '%s' is not valid."), binary_symbol.GetName().c_str());
+            throw CSProException("The binary content for '%s' is not valid.", binary_symbol.GetName().c_str());
 
         SetBinaryData(std::move(content), std::move(binary_data_metadata));
     }
@@ -207,7 +204,7 @@ void BinarySymbolData::UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, co
 
     else
     {
-        throw CSProException(_T("The binary content for '%s' is not defined."), binary_symbol.GetName().c_str());
+        throw CSProException("The binary content for '%s' is not defined.", binary_symbol.GetName().c_str());
     }
 
     // the path is only maintained when it was used to retrieve the content
@@ -223,17 +220,17 @@ void BinarySymbolData::UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, co
 }
 
 
-void BinarySymbolData::UpdateSymbolValueFromDataUrl(BinarySymbol& binary_symbol, const wstring_view data_url_sv, BinaryDataMetadata binary_data_metadata/* = BinaryDataMetadata()*/,
-                                                    BinarySymbolDataContentValidator* const content_validator/* = nullptr*/)
+void BinarySymbolData::SetSymbolValueFromDataUrl(BinarySymbol& binary_symbol, const std::string_view data_url_sv, BinaryDataMetadata binary_data_metadata/* = BinaryDataMetadata()*/,
+                                                 BinarySymbolDataContentValidator* const content_validator/* = nullptr*/)
 {
     std::shared_ptr<const std::vector<std::byte>> content;
-    std::wstring mediatype;
+    std::string mediatype;
     std::tie(content, mediatype) = Encoders::FromDataUrl(data_url_sv);
 
     if( ( content == nullptr ) ||
         ( content_validator != nullptr && !content_validator->ValidateContent(content) ) )
     {
-        throw CSProException(_T("The binary content for '%s' is not a valid data URL."), binary_symbol.GetName().c_str());
+        throw CSProException("The binary content for '%s' is not a valid data URL.", binary_symbol.GetName().c_str());
     }
 
     // use the MIME type from the data URL when possible

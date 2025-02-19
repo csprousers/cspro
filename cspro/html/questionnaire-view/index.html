@@ -30,7 +30,7 @@
         const CS = new CSProActionInvoker("ba595f180197aec52c4a39ffb9d12233");
         var caseViewPrinter = new CaseViewFactory();
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             let input = CS.UI.getInputData();
 
             setOptions(input);
@@ -41,15 +41,31 @@
                 updateContentByName(input.name, input.key, input.uuid);
             }
 
+            // read the content when it is served using a virtual file,
+            else if (input.hasOwnProperty("contentUrl")) {
+                updateContentUsingUrl(input.contentUrl);
+            }
+
             // otherwise assume the content is in the input
             else {
                 updateContent(input);
             }
         });
 
+        function updateContentUsingUrl(url) {
+            try {
+                $.getJSON(url, function(data) {
+                    updateContent(data);
+                });
+            }
+            catch(e) {
+                console.log(e);
+            }
+        }
+
         function updateContentByName(name, key, uuid) {
             try {
-                const contentUrl = CS.Localhost.mapActionResult({
+                updateContentUsingUrl(CS.Localhost.mapActionResult({
                     action: "Application.getQuestionnaireContent",
                     arguments: {
                         name: name,
@@ -59,11 +75,7 @@
                             binaryDataFormat: "localhostUrl"
                         }
                     }
-                });
-
-                $.getJSON(contentUrl, function (data) {
-                    updateContent(data);
-                });
+                }));
             }
             catch(e) {
                 console.log(e);

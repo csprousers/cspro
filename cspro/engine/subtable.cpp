@@ -125,7 +125,7 @@ void CSubTable::GenName( CEngineArea* m_pEngineArea, int* pNodeBase[TBD_MAXDIM],
                 CTNODE*     pNode=(CTNODE *) (pNodeBase[iDim] + this->m_iCtTree[iDim][iDepth] );
 
                 ASSERT( pNode->isVarNode() ); // rcl, May 2005
-                csName[i].Format( _T("%s(%d.%d)"), NPT(pNode->m_iSymbol)->GetName().c_str(), pNode->m_iSymbol, pNode->m_iNumCells );
+                csName[i].Format( _T("%s(%d.%d)"), UTF8_TODO::GetWide(NPT(pNode->m_iSymbol)->GetName()).c_str(), pNode->m_iSymbol, pNode->m_iNumCells );
                 if( pNode->m_iStatType != CTSTAT_NONE ) {
                     csName[i] += _T("(") + CtStatBase::GetStatName((CStatType)pNode->m_iStatType) + _T(")");
                 }

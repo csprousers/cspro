@@ -10,11 +10,11 @@ class Application;
 class Lexers
 {
 public:
-    CLASS_DECL_ZEDIT2O static int GetLexerFromFilename(const std::wstring& filename);
+    CLASS_DECL_ZEDIT2O static int GetLexerFromFilename(const std::string& filename);
 
-    CLASS_DECL_ZEDIT2O static const TCHAR* GetLexerName(int lexer_language);
+    CLASS_DECL_ZEDIT2O static const char* GetLexerName(int lexer_language);
 
-    CLASS_DECL_ZEDIT2O static const TCHAR* GetLexerDefaultServerMimeType(int lexer_language);
+    CLASS_DECL_ZEDIT2O static const char* GetLexerDefaultServerMimeType(int lexer_language);
 
 
     static constexpr bool IsCSProLogic(int lexer_language)

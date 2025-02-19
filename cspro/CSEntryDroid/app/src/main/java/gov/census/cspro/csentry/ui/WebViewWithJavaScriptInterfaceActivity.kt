@@ -72,11 +72,11 @@ class WebViewWithJavaScriptInterfaceActivity : AppCompatActivity() {
 
                 // Set the activity title to the overridden title specified by the user
                 // or the HTML document's title
-                val overridenTitle = intent.getStringExtra(TITLE)
-                if (overridenTitle == null) {
+                val overriddenTitle = intent.getStringExtra(TITLE)
+                if (overriddenTitle == null) {
                     this@WebViewWithJavaScriptInterfaceActivity.supportActionBar?.hide()
                 } else if (!Util.stringIsNullOrEmpty(title)) {
-                    this@WebViewWithJavaScriptInterfaceActivity.title = overridenTitle
+                    this@WebViewWithJavaScriptInterfaceActivity.title = overriddenTitle
                 }
             }
 
@@ -111,7 +111,7 @@ class WebViewWithJavaScriptInterfaceActivity : AppCompatActivity() {
         if (!Util.stringIsNullOrEmpty(url)) {
             // Reading local file
             if (URLUtil.isFileUrl(url)) {
-				if (!fileUrlExists(url!!)) {
+                if (!fileUrlExists(url!!)) {
                     // WebView doesn't always show an error if file url can't be loaded so
                     // handle that case here.
                     val message = String.format(getString(R.string.error_file_not_found), Html.fromHtml(url))
@@ -153,7 +153,7 @@ class WebViewWithJavaScriptInterfaceActivity : AppCompatActivity() {
             }
         }
 
-        override fun onCloseDialog(resultsText: String?, webControllerKey: Int): Boolean? {
+        override fun onClose(resultsText: String?, webControllerKey: Int): Boolean? {
             return if( webControllerKey == actionInvoker?.getWebControllerKey() ) {
                 close()
                 true

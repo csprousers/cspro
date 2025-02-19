@@ -3,28 +3,90 @@
 #include <zToolsO/zToolsO.h>
 
 
-///<summary>Gets a timestamp to the millisecond level.</summary>
+class CLASS_DECL_ZTOOLSO DateTime
+{
+public:
+    // Returns the current time.
+    static int64_t Now() { return time(nullptr); }
+
+    // Returns the current year in the local timezone.
+    static int LocalYear() { return TmToYear(LocalTm(Now())); }
+
+    // Returns the specified date in the local timezone in the specified strftime format.
+    static std::string LocalDateTimeString(int64_t time, cs::string_sz formatter = "%Y-%m-%d %H:%M:%S");
+
+    // Returns the specified, or current date, in the local timezone in the strftime formats:
+    // - "%b %d, %Y" (e.g., Mar 13, 2024), or
+    // - "%B %d, %Y" (e.g., March 13, 2024), or
+    static std::string LocalDateString(int64_t time, bool use_abbreviated_month = true);
+    static std::string LocalDateString(bool use_abbreviated_month = true) { return LocalDateString(Now(), use_abbreviated_month); }
+
+    // Returns the current time in the local timezone in the format HH:MM:SS.
+    static std::string LocalTimeString();
+
+    // Returns the time value broken up into its components.
+    // If adjusting for the local timezone, the time will be converted to the local timezone (as opposed to UTC).
+    struct Components { int year; int month; int day; int hour; int minute; int second; };
+
+    static Components TimeToComponents(const tm& tm);
+    static Components TimeToComponents(int64_t time, bool adjust_to_local_time = false);
+
+    // Returns the time value in the format YYYYMMDD / YYMMDD / HHMMSS / YYYYMMDDHHMMSS.
+    static int TimeToYYYYMMDD(const Components& components);
+    static int TimeToYYMMDD(const Components& components);
+    static int TimeToHHMMSS(const Components& components);
+    static int64_t TimeToYYYYMMDDHHMMSS(const Components& components);
+
+    static int TimeToYYYYMMDD(int64_t time, bool adjust_to_local_time = false)           { return TimeToYYYYMMDD(TimeToComponents(time, adjust_to_local_time)); }
+    static int TimeToYYMMDD(int64_t time, bool adjust_to_local_time = false)             { return TimeToYYMMDD(TimeToComponents(time, adjust_to_local_time)); }
+    static int TimeToHHMMSS(int64_t time, bool adjust_to_local_time = false)             { return TimeToHHMMSS(TimeToComponents(time, adjust_to_local_time)); }
+    static int64_t TimeToYYYYMMDDHHMMSS(int64_t time, bool adjust_to_local_time = false) { return TimeToYYYYMMDDHHMMSS(TimeToComponents(time, adjust_to_local_time)); }
+
+    // Returns the time value in RFC 3339 format (YYYY-MM-DDTHH:MM:SSZ).
+    static std::string TimeToRFC3339(int64_t time);
+
+    // Creates a time object from a tm struct, Components object, or integers.
+    static int64_t CreateTime(tm tm, bool adjust_to_local_time = false);
+    static int64_t CreateTime(const Components& components, bool adjust_to_local_time = false) { return CreateTime(ToTm(components), adjust_to_local_time); }
+    static int64_t CreateTime(int yyyymmdd, int hhmmss, bool adjust_to_local_time = false)     { return CreateTime(ToTm(yyyymmdd, hhmmss), adjust_to_local_time); }
+
+private:
+    static constexpr int TmToYear(const tm& tm)  { return tm.tm_year + 1900; }
+    static constexpr int YearToTm(int year)      { return year - 1900; }
+    static constexpr int TmToMonth(const tm& tm) { return tm.tm_mon + 1; }
+    static constexpr int MonthToTm(int month)    { return month - 1; }
+
+    static const tm& UtcTm(int64_t time);
+    static const tm& LocalTm(int64_t time);
+
+    static tm ToTm(const Components& components);
+    static tm ToTm(int yyyymmdd, int hhmmss);
+};
+
+
+// Gets a timestamp to the millisecond level. Defined to return either double or int64_t.
 template<typename T = double>
 CLASS_DECL_ZTOOLSO T GetTimestamp();
 
-///<summary>Formats a timestamp to a string using strftime formatting.</summary>
-template<typename T = std::string>
-CLASS_DECL_ZTOOLSO T FormatTimestamp(double timestamp, const std::string& formatter);
+// Formats a timestamp to a string using std::strftime formatting.
+CLASS_DECL_ZTOOLSO std::string FormatTimestamp(double timestamp, const std::string& formatter = "%c");
 
-///<summary>Gets the number of minutes off UTC of the system clock.</summary>
+// Returns a string describing the elapsed time in the format HH:MM:SS or similar to "5 seconds".
+CLASS_DECL_ZTOOLSO std::string GetElapsedTimeTextHHMMSS(int elapsed_seconds);
+inline std::string GetElapsedTimeTextHHMMSS(int64_t elapsed_seconds)                        { return GetElapsedTimeTextHHMMSS(static_cast<int>(elapsed_seconds)); }
+inline std::string GetElapsedTimeTextHHMMSS(int64_t start_timestamp, int64_t end_timestamp) { return GetElapsedTimeTextHHMMSS(end_timestamp - start_timestamp); }
+CLASS_DECL_ZTOOLSO std::string GetElapsedTimeText(int64_t start_timestamp, int64_t end_timestamp);
+
+// Returns a string indicating how long ago the timestamp is from the current time.
+CLASS_DECL_ZTOOLSO std::string GetTimeAgo(double timestamp);
+
+// Gets the number of minutes off UTC of the system clock.
 CLASS_DECL_ZTOOLSO long GetUtcOffset();
 
-///<summary>Gets the local time.</summary>
-CLASS_DECL_ZTOOLSO struct tm GetLocalTime();
-
-///<summary>Get a time value from date/time integers in the format YYYYMMDD HHMMSS.</summary>
-CLASS_DECL_ZTOOLSO void ReadableTimeToTm(std::tm* ptm,int iYYYYMMDD,int iHHMMSS);
-
-///<summary>Converts a time value to date/time integers.</summary>
-CLASS_DECL_ZTOOLSO void TmToReadableTime(const std::tm* ptm,int* pYear,int* pMonth,int* pDay,int* pHour,int* pMinute,int* pSecond);
-
-///<summary>Converts a date to a double using a formatting string.</summary>
-CLASS_DECL_ZTOOLSO double FormatDateToDouble(CString csFormat,int iYear,int iMonth,int iDay);
+// Converts a date using a formatting string, returning std::nullopt on error.
+// If many formatters are provided, the value may exceed the capacity of uint64_t.
+CLASS_DECL_ZTOOLSO std::optional<uint64_t> FormatDate(std::string_view format_sv, int year, int month, int day);
+CLASS_DECL_ZTOOLSO std::optional<uint64_t> FormatDate(std::string_view format_sv, const DateTime::Components& date_time_components);
 
 
 namespace DateHelper

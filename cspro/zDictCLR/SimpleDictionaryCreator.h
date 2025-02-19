@@ -15,7 +15,7 @@ namespace CSPro
             void AddItem(bool is_id, System::String^ name, bool numeric, int length, int decimal,
                          System::Collections::Generic::SortedSet<double>^ values);
 
-            void Save(System::String^ filename);
+            void Save(System::String^ file_path);
 
         private:
             CDataDict* m_dictionary;

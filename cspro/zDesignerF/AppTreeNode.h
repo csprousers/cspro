@@ -87,9 +87,9 @@ private:
 class CLASS_DECL_ZDESIGNERF FormOrderAppTreeNode : public FormElementAppTreeNode
 {
 public:
-    FormOrderAppTreeNode(FormFileBasedDoc* document, AppFileType app_file_type, std::wstring form_order_filename, std::wstring label);
+    FormOrderAppTreeNode(FormFileBasedDoc* document, AppFileType app_file_type, std::string form_order_file_path);
 
-    void SetPath(std::wstring form_order_filename) { m_formOrderFilename = std::move(form_order_filename); }
+    void SetPath(std::string form_order_file_path) { m_formOrderFilePath = std::move(form_order_file_path); }
 
     //Add ref and decrement ref
     void AddRef()  { ++m_refCount; }
@@ -104,12 +104,11 @@ public:
     std::wstring GetName() const override;
     std::wstring GetLabel() const override;
 
-    const std::wstring& GetPath() const override { return m_formOrderFilename; }
+    const std::string& GetPath() const override { return m_formOrderFilePath; }
 
 private:
     AppFileType m_appFileType;
-    std::wstring m_formOrderFilename;
-    std::wstring m_label;
+    std::string m_formOrderFilePath;
     int m_refCount;
 };
 
@@ -117,14 +116,14 @@ private:
 
 // --------------------------------------------------------------------------
 // HeadingAppTreeNode
-// 
+//
 // a node that displays the same text for both the name and label
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZDESIGNERF HeadingAppTreeNode : public AppTreeNode
 {
 public:
-    HeadingAppTreeNode(CDocument* document, AppFileType app_file_type);
+    HeadingAppTreeNode(CDocument* document, AppFileType app_file_type, const wchar_t* name_override = nullptr);
 
     // TreeNode overrides
     std::wstring GetName() const override { return m_name; }
@@ -154,6 +153,7 @@ public:
     std::optional<AppFileType> GetAppFileType() const override { return AppFileType::Code; }
 
     std::wstring GetName() const override;
+    const std::string& GetPath() const override;
 
     // AppTreeNode overrides
     TextSource* GetTextSource() override { return &m_codeFile.GetTextSource(); }
@@ -171,19 +171,20 @@ private:
 class CLASS_DECL_ZDESIGNERF ReportAppTreeNode : public AppTreeNode
 {
 public:
-    ReportAppTreeNode(CDocument* document, std::shared_ptr<NamedTextSource> named_text_source);
+    ReportAppTreeNode(CDocument* document, ReportFile report_file);
 
-    NamedTextSource& GetNamedTextSource() { return *m_namedTextSource; }
+    const ReportFile& GetReportFile() const { return m_reportFile; }
 
     // TreeNode overrides
     std::optional<AppFileType> GetAppFileType() const override { return AppFileType::Report; }
 
     std::wstring GetName() const override;
     std::wstring GetLabel() const override;
+    const std::string& GetPath() const override;
 
     // AppTreeNode overrides
-    TextSource* GetTextSource() override { return m_namedTextSource->text_source.get(); }
+    TextSource* GetTextSource() override { return &m_reportFile.GetTextSource(); }
 
 private:
-    std::shared_ptr<NamedTextSource> m_namedTextSource;
+    ReportFile m_reportFile;
 };

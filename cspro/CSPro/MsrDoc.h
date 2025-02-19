@@ -11,5 +11,5 @@ class CCSProDoc : public CDocument
 public:
     BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
 
-    bool IsFileOpen(const std::wstring& filename) const;
+    bool IsFileOpen(std::string_view file_path_sv) const;
 };

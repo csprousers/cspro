@@ -31,7 +31,7 @@ private:
     CCapiControl* m_pCapiControl;
     CRect m_OrigControlsRect;
     CSize m_minSearchBarSize;
-    CFont font;
+    CFont m_font;
     bool m_bCommaDecimal;
     CToolTipCtrl m_toolTips;
 

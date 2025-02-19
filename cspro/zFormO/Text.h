@@ -17,7 +17,7 @@ class CLASS_DECL_ZFORMO CDEText : public CDEItemBase
     DECLARE_DYNAMIC(CDEText)
 
 public:
-    CDEText(const CString& initial_text = SO::EmptyCString);
+    CDEText(const CString& initial_text = SO::Empty_CString);
 
     std::unique_ptr<CDEItemBase> Clone() const override { return std::make_unique<CDEText>(*this); }
 

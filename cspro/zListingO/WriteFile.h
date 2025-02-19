@@ -1,15 +1,15 @@
 ﻿#pragma once
 
-namespace Listing
+namespace Listing { class WriteFile; }
+
+
+class Listing::WriteFile
 {
-    class WriteFile
-    {
-    protected:
-        WriteFile() { }
+protected:
+    WriteFile() { }
 
-    public:
-        virtual ~WriteFile() { }
+public:
+    virtual ~WriteFile() { }
 
-        virtual void WriteLine(std::wstring text) = 0;
-    };
-}
+    virtual void WriteLine(SharableString text) = 0;
+};

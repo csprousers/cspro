@@ -76,10 +76,13 @@ void PreinitializedVariable::OnStart()
     else if( m_symbol->IsOneOf(SymbolType::WorkString, SymbolType::Variable) )
     {
         ASSERT(m_data.size() == 1);
-        std::wstring value = GetStringLiteral(m_data.front());
+        SharableString value = m_engineData->string_literals[m_data.front()];
 
         if( m_specialProcessing == SpecialProcessing::EncryptedString )
-            value = Encryptor(PreinitializedVariable::GetEncryptionType()).Decrypt(value);
+        {
+            Encryptor encryptor(PreinitializedVariable::GetEncryptionType());
+            value = encryptor.Decrypt(*value);
+        }
 
         if( m_symbol->IsA(SymbolType::WorkString) )
         {
@@ -88,7 +91,7 @@ void PreinitializedVariable::OnStart()
 
         else
         {
-            m_engineData->engine_accessor->ea_SetVarTValue(m_symbol, std::move(value));
+            m_engineData->engine_accessor->ea_SetVarTValue(m_symbol, UTF8_TODO::GetWide(*value));
         }
     }
 
@@ -96,15 +99,21 @@ void PreinitializedVariable::OnStart()
     // arrays
     else if( m_symbol->IsA(SymbolType::Array) )
     {
-        LogicArray* logic_array = assert_cast<LogicArray*>(m_symbol);
-        bool repeat_values = ( m_specialProcessing == SpecialProcessing::RepeatingArray );
+        LogicArray* const logic_array = assert_cast<LogicArray*>(m_symbol);
+        const bool repeat_values = ( m_specialProcessing == SpecialProcessing::RepeatingArray );
         ASSERT(!m_data.empty());
 
-        if( logic_array->IsNumeric() )
+        // if the array is a save array, don't use the initial values if values were read from the save array file
+        if( logic_array->GetUsingSaveArray() && !logic_array->IsInResetState() )
+        {
+            // nothing to do
+        }
+
+        else if( logic_array->IsNumeric() )
         {
             std::vector<double> initial_values;
 
-            for( int array_value : m_data )
+            for( const int array_value : m_data )
                 initial_values.emplace_back(GetNumericConstant(array_value));
 
             logic_array->SetInitialValues(std::move(initial_values), repeat_values);
@@ -112,10 +121,10 @@ void PreinitializedVariable::OnStart()
 
         else
         {
-            std::vector<std::wstring> initial_values;
+            std::vector<SharableString> initial_values;
 
-            for( int array_value : m_data )
-                initial_values.emplace_back(GetStringLiteral(array_value));
+            for( const int array_value : m_data )
+                initial_values.emplace_back(m_engineData->string_literals[array_value]);
 
             logic_array->SetInitialValues(std::move(initial_values), repeat_values);
         }
@@ -125,10 +134,10 @@ void PreinitializedVariable::OnStart()
     // lists
     else if( m_symbol->IsA(SymbolType::List) )
     {
-        LogicList* logic_list = assert_cast<LogicList*>(m_symbol);
+        LogicList* const logic_list = assert_cast<LogicList*>(m_symbol);
         ASSERT(!m_data.empty());
 
-        for( int array_value : m_data )
+        for( const int array_value : m_data )
         {
             if( logic_list->IsNumeric() )
             {
@@ -137,7 +146,7 @@ void PreinitializedVariable::OnStart()
 
             else
             {
-                logic_list->AddString(GetStringLiteral(array_value));
+                logic_list->AddValue(m_engineData->string_literals[array_value]);
             }
         }
     }

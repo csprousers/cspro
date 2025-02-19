@@ -2,32 +2,27 @@
 #include "TextWriteFile.h"
 
 
-Listing::TextWriteFile::TextWriteFile(std::wstring filename)
-    :   m_filename(std::move(filename)),
+Listing::TextWriteFile::TextWriteFile(std::string file_path)
+    :   m_filePath(std::move(file_path)),
         m_wroteMessage(false)
 {
-    SetupEnvironmentToCreateFile(m_filename);
-
-    m_file = OpenListingFile(m_filename, false, _T("write"));
+    SetupEnvironmentToCreateFile(m_filePath);
+    m_textFile = OpenListingFile(m_filePath, false, "write");
 }
 
 
 Listing::TextWriteFile::~TextWriteFile()
 {
-    if( m_file != nullptr )
-    {
-        m_file->Close();
-        m_file.reset();
+    m_textFile.reset();
 
-        // delete the file if no messages were written
-        if( !m_wroteMessage )
-            PortableFunctions::FileDelete(m_filename);
-    }
+    // delete the file if no messages were written
+    if( !m_wroteMessage )
+        PortableFunctions::FileDelete(m_filePath);
 }
 
 
-void Listing::TextWriteFile::WriteLine(std::wstring text)
+void Listing::TextWriteFile::WriteLine(const SharableString text)
 {
-    m_file->WriteLine(text);
+    m_textFile->WriteLine(*text);
     m_wroteMessage = true;
 }

@@ -2,49 +2,81 @@
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/AllSymbolDeclarations.h>
+#include <zEngineO/EngineSettings.h>
 #include <zEngineO/LogicByteCode.h>
 #include <zEngineO/RuntimeEvent.h>
+#include <zEngineO/SymbolReference.h>
+#include <zToolsO/PointerClasses.h>
 #include <zLogicO/SymbolTable.h>
 
 class Application;
+class CommonStore;
+class EngineJavaScriptProcessor;
+class PFF;
 
 
 struct ZENGINEO_API EngineData
 {
     // --------------------------------------------------------------------------
-    // data 
+    // data
     // --------------------------------------------------------------------------
 
-    std::shared_ptr<EngineAccessor>                 engine_accessor;            // a way to access engine methods and objects not currently in zEngineO
+    // a way to access engine methods and objects not currently in zEngineO
+    std::shared_ptr<EngineAccessor> engine_accessor;
 
-    Application*                                    application;                // the application controlling this engine data (if applicable)
+    // engine settings
+    EngineSettings engine_settings;
 
-    RuntimeEventsProcessor                          runtime_events_processor;   // runtime events processor
+    // the CommonStore
+    std::shared_ptr<CommonStore> common_store;
 
-    LogicByteCode                                   logic_byte_code;            // logic byte code
+    // the application controlling this engine data (if applicable)
+    Application* application;
 
-    std::vector<double>                             numeric_constants;          // numeric constants
-    std::vector<std::wstring>                       string_literals;            // string literals
+    // the PFF controlling this application (if applicable)
+    cs::shared_or_raw_ptr<PFF> pff;
 
-    std::vector<std::shared_ptr<Frequency>>         frequencies;                // frequencies
-    std::vector<std::shared_ptr<Imputation>>        imputations;                // imputations
+    // runtime events processor
+    RuntimeEventsProcessor runtime_events_processor;
 
-    Logic::SymbolTable                              symbol_table;               // the symbol table (which stores all symbols as shared pointers)
+    // logic bytecode
+    LogicByteCode logic_byte_code;
 
-                                                                                // tables with copies of some symbols:
-    std::vector<LogicArray*>                        arrays;                     // arrays
-    std::vector<EngineDictionary*>                  engine_dictionaries;        // dictionaries
-    std::vector<LogicFile*>                         files_global_visibility;    // files (with global visibility)
-    std::vector<Flow*>                              flows;                      // flows
-    std::vector<FLOW*>                              flows_pre80;                // flows
-    std::vector<ValueSet*>                          value_sets_not_dynamic;     // value sets (dictionary-based)
+    // JavaScript processor
+    std::unique_ptr<EngineJavaScriptProcessor> javascript_processor;
 
-                                                                                // container tables with copies of some symbols:
-    std::vector<CTAB*>                              crosstabs;                  // crosstabs
-    std::vector<DICT*>                              dictionaries_pre80;         // dictionaries
-    std::vector<GROUPT*>                            groups;                     // groups
-    std::vector<SECT*>                              sections;                   // sections
-    std::vector<VART*>                              variables;                  // variables
+    // the version of logic that created the .pen file
+    int compiled_logic_version;
+
+    // numeric constants + string literals
+    std::vector<double> numeric_constants;
+    std::vector<SharableString> string_literals;
+
+    // frequencies + imputations
+    std::vector<std::shared_ptr<Frequency>> frequencies;
+    std::vector<std::shared_ptr<Imputation>> imputations;
+
+    // evaluated symbol references (that will be destructed prior to the symbol table
+    // so that any symbols holding references to themselves will be properly destructed)
+    std::vector<std::shared_ptr<std::unique_ptr<SymbolReference<std::shared_ptr<Symbol>>>>> evaluated_symbol_references;
+
+    // the symbol table (which stores all symbols as shared pointers)
+    Logic::SymbolTable symbol_table;
+
+    // tables with copies of some symbols:
+    std::vector<LogicArray*> arrays;                    // arrays
+    std::vector<EngineDictionary*> engine_dictionaries; // dictionaries
+    std::vector<LogicFile*> files_global_visibility;    // files (with global visibility)
+    std::vector<Flow*> flows;                           // flows
+    std::vector<FLOW*> flows_pre80;                     // flows
+    std::vector<ValueSet*> value_sets_not_dynamic;      // value sets (dictionary-based)
+
+    // container tables with copies of some symbols:
+    std::vector<CTAB*> crosstabs;           // crosstabs
+    std::vector<DICT*> dictionaries_pre80;  // dictionaries
+    std::vector<GROUPT*> groups;            // groups
+    std::vector<SECT*> sections;            // sections
+    std::vector<VART*> variables;           // variables
 
 
     // --------------------------------------------------------------------------
@@ -54,11 +86,21 @@ struct ZENGINEO_API EngineData
     explicit EngineData(std::shared_ptr<EngineAccessor> engine_accessor_);
     ~EngineData();
 
-    // adds the symbol to the symbol table and potentially to tables with copies
+    // Adds the symbol to the symbol table and potentially to tables with copies.
     int AddSymbol(std::shared_ptr<Symbol> symbol, Logic::SymbolTable::NameMapAddition name_map_addition = Logic::SymbolTable::NameMapAddition::ToCurrentScope);
 
-    // clears all numeric constants, string literals, frequencies, imputations, and symbols
+    // Clears all numeric constants, string literals, frequencies, imputations, evaluated symbol references, and symbols.
     void Clear();
+
+    // Returns the CommonStore, opening it if necessary. Null is returned on error.
+    const std::shared_ptr<CommonStore>& GetCommonStore();
+
+    // Returns the engine's JavaScript processor, instantiating it if necessary.
+    EngineJavaScriptProcessor& GetJavaScriptProcessor();
+
+    // Helpers for evaluating bytecode based on the version in .pen file version.
+    bool MeetsCompiledLogicVersion(int version) const    { return ( compiled_logic_version >= version ); }
+    bool PredatesCompiledLogicVersion(int version) const { return ( compiled_logic_version < version ); }
 };
 
 
@@ -68,7 +110,6 @@ struct ZENGINEO_API EngineData
 // --------------------------------------------------------------------------
 
 #define GetNumericConstant(i)           ( m_engineData->numeric_constants[i] )
-#define GetStringLiteral(i)             ( m_engineData->string_literals[i] )
 
 #define NPT_Ref(i)                      ( GetSymbolTable().GetAt(i) )
 

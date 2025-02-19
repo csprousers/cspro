@@ -13,7 +13,7 @@ private:
     LogicGeometry(const LogicGeometry& logic_geometry);
 
 public:
-    LogicGeometry(std::wstring geometry_name);
+    LogicGeometry(std::string geometry_name);
     LogicGeometry(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
 
     LogicGeometry& operator=(const LogicGeometry& logic_geometry);
@@ -32,14 +32,14 @@ public:
     double Area() const;
     double Perimeter() const;
 
-    void Load(std::wstring filename);
-    void Save(std::wstring filename);
+    void Load(std::string file_path);
+    void Save(std::string file_path);
 
     void SetGeometry(std::shared_ptr<Geometry::FeatureCollection> geometry);
     void SetGeometry(Geometry::Polygon polygon);
 
-    std::wstring GetProperty(wstring_view key_sv) const;
-    void SetProperty(wstring_view key_sv, const std::variant<double, std::wstring>& value);
+    std::string GetProperty(const std::string& key) const;
+    void SetProperty(const std::string& key, const std::variant<double, SharableString>& value);
 
     // Symbol overrides
     std::unique_ptr<Symbol> CloneInInitialState() const override;
@@ -47,7 +47,7 @@ public:
     void Reset() override;
 
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // BinarySymbol overrides
     bool HasValidContent() const override;

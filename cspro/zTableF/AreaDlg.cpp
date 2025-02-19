@@ -73,7 +73,7 @@ BOOL CAreaDlg::OnInitDialog()
     ASSERT_VALID(pAreaBox);
     pAreaBox->ResetContent();
     for (int i = 0 ; i < m_pConsolidate->GetNumAreas() ; i++) {
-        const CDictItem* pDictItem = m_pCurrDict->LookupName<CDictItem>(m_pConsolidate->GetArea(i));
+        const CDictItem* pDictItem = m_pCurrDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(m_pConsolidate->GetArea(i)));
         int iLastPos = pAreaBox->AddString(pDictItem->GetLabel());
         pAreaBox->SetItemDataPtr(iLastPos, (void*)pDictItem);
    }
@@ -382,7 +382,7 @@ void CAreaDlg::OnBnClickedOk()
 
     for (int i = 0 ; i < pAreaBox->GetCount() ; i++) {
         const CDictItem* pIDItem = (const CDictItem*)pAreaBox->GetItemDataPtr(i);
-        m_pConsolidate->SetArea(i, pIDItem->GetName());
+        m_pConsolidate->SetArea(i, UTF8_TODO::GetCString(pIDItem->GetName()));
     }
     m_pConsolidate->SetStandard(m_bStandard);
     m_pConsolidate->SetStandardLevel(m_iLowestLevel);
@@ -643,7 +643,7 @@ void CAreaDlg::OnBnClickedEditCustom()
     m_aLevels.RemoveAll();
     for (int i = 0 ; i < pAreaBox->GetCount() ; i++) {
         const CDictItem* pIDItem = (const CDictItem*)pAreaBox->GetItemDataPtr(i);
-        m_aLevels.Add(pIDItem->GetName());
+        m_aLevels.Add(UTF8_TODO::GetCString(pIDItem->GetName()));
     }
     CConSpecDlg dlg;
     dlg.m_pCurrDict = m_pCurrDict;
@@ -678,7 +678,7 @@ void CAreaDlg::GenerateStandard(void)
     for (int i = 0 ; i < iLowestLevel ; i++ ) {
         pConSpec = new CConSpec(pAreaBox->GetCount());
         const CDictItem* pIDItem = (const CDictItem*)pAreaBox->GetItemDataPtr(i);
-        pConSpec->SetAreaLevel(pIDItem->GetName());
+        pConSpec->SetAreaLevel(UTF8_TODO::GetCString(pIDItem->GetName()));
         for (int j = 0 ; j <= i ; j++) {
             CONITEM item = pConSpec->GetAction(j);
             item.level = j;

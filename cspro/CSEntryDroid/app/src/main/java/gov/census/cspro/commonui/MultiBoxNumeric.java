@@ -2,11 +2,11 @@
 
   CSEntry for Android
 
-  Module:		MultiBox.java
+  Module:       MultiBox.java
 
   Description: A custom control designed to mimic the behavior of a desktop
-  				ComboBox and DropDownBox.  This control is composite containing
-  				the FieldEditText and ListViewExt controls.
+                ComboBox and DropDownBox.  This control is composite containing
+                the FieldEditText and ListViewExt controls.
  */
 
 package gov.census.cspro.commonui;
@@ -41,55 +41,55 @@ import static gov.census.cspro.csentry.ui.QuestionWidget.getFileSignature;
 
 public class MultiBoxNumeric extends RelativeLayout implements NumericFieldEditText.ValueChangedListener
 {
-	private ValueChangedListener m_valueChangedListener  = null;
-	private ValuePair[]	m_answerValues = null;
-	private int m_selectedResponse = -1;
-	private NumericFieldEditText m_editText = null;
-	private ListPopupWindow m_answerListView = null;
-	private boolean m_isReadOnly = false;
-	private RequestManager m_imageLoader = null;
+    private ValueChangedListener m_valueChangedListener  = null;
+    private ValuePair[] m_answerValues = null;
+    private int m_selectedResponse = -1;
+    private NumericFieldEditText m_editText = null;
+    private ListPopupWindow m_answerListView = null;
+    private boolean m_isReadOnly = false;
+    private RequestManager m_imageLoader = null;
 
     public MultiBoxNumeric(Context context)
-	{
-		super(context);
-		init();
-	}
+    {
+        super(context);
+        init();
+    }
 
-	public MultiBoxNumeric(Context context, AttributeSet attrs)
-	{
-		super(context, attrs);
-		init();
-	}
+    public MultiBoxNumeric(Context context, AttributeSet attrs)
+    {
+        super(context, attrs);
+        init();
+    }
 
-	public MultiBoxNumeric(Context context, AttributeSet attrs, int defStyle)
-	{
-		super(context, attrs, defStyle);
-		init();
-	}
+    public MultiBoxNumeric(Context context, AttributeSet attrs, int defStyle)
+    {
+        super(context, attrs, defStyle);
+        init();
+    }
 
-	public void setReadOnly(boolean readOnly) {
-		m_editText.setReadOnly(readOnly);
+    public void setReadOnly(boolean readOnly) {
+        m_editText.setReadOnly(readOnly);
         m_isReadOnly = readOnly;
-	}
+    }
 
-	public void setImageLoader(RequestManager imageLoader)
+    public void setImageLoader(RequestManager imageLoader)
     {
         m_imageLoader = imageLoader;
     }
 
     public interface ValueChangedListener {
 
-		void onEditTextBlank();
+        void onEditTextBlank();
 
-		void onEditTextChanged(double value);
+        void onEditTextChanged(double value);
 
-		void onListItemSelected(int itemIndex);
-	}
+        void onListItemSelected(int itemIndex);
+    }
 
-	public void setValueChangedListener(ValueChangedListener listener)
-	{
-		m_valueChangedListener = listener;
-	}
+    public void setValueChangedListener(ValueChangedListener listener)
+    {
+        m_valueChangedListener = listener;
+    }
 
     @Override
     public void onValueChanged(double value) {
@@ -108,42 +108,42 @@ public class MultiBoxNumeric extends RelativeLayout implements NumericFieldEditT
     }
 
     public void setResponses(ValuePair[] responses, boolean showCodes)
-	{
-		m_answerValues = responses;
-		m_answerListView.setAdapter(new ListViewAdapter(getContext(), responses, showCodes));
-	}
-
-	public void setBlank()
-	{
-		m_editText.setText("");
-	}
-
-	public void setNumericValue(double value)
-	{
-		m_editText.setNumericValue(value);
+    {
+        m_answerValues = responses;
+        m_answerListView.setAdapter(new ListViewAdapter(getContext(), responses, showCodes));
     }
 
-	public NumericFieldEditText getEditText()
-	{
-		return m_editText;
-	}
+    public void setBlank()
+    {
+        m_editText.setText("");
+    }
 
-	public void init() 
-	{
-		LayoutInflater inflater = LayoutInflater.from(getContext());
-		inflater.inflate(R.layout.multibox_layout_numeric, this);
+    public void setNumericValue(double value)
+    {
+        m_editText.setNumericValue(value);
+    }
 
-		// wire up the value change listening
-		m_editText = findViewById(R.id.editText);
+    public NumericFieldEditText getEditText()
+    {
+        return m_editText;
+    }
 
-     	m_editText.setValueChangedListener(this);
+    public void init()
+    {
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        inflater.inflate(R.layout.multibox_layout_numeric, this);
 
-		m_answerListView = new ListPopupWindow(getContext());
-		m_answerListView.setAnchorView(this);
-		m_answerListView.setModal(true);
-		m_answerListView.setBackgroundDrawable(getResources().getDrawable(R.drawable.multibox_listview_border));
+        // wire up the value change listening
+        m_editText = findViewById(R.id.editText);
+
+        m_editText.setValueChangedListener(this);
+
+        m_answerListView = new ListPopupWindow(getContext());
+        m_answerListView.setAnchorView(this);
+        m_answerListView.setModal(true);
+        m_answerListView.setBackgroundDrawable(getResources().getDrawable(R.drawable.multibox_listview_border));
         m_answerListView.setVerticalOffset(0);
-		m_answerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        m_answerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 m_editText.setText(m_answerValues[position].getCode());
@@ -156,13 +156,13 @@ public class MultiBoxNumeric extends RelativeLayout implements NumericFieldEditT
         });
 
 
-		// wire up button event handler
-		final ImageButton displayButton	= findViewById(R.id.multibox_more_button);
+        // wire up button event handler
+        final ImageButton displayButton = findViewById(R.id.multibox_more_button);
         displayButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View view) {
+            @Override
+            public void onClick(View view) {
 
-			    if (!m_isReadOnly) {
+                if (!m_isReadOnly) {
                     if (m_answerListView.isShowing())
                         m_answerListView.dismiss();
                     else {
@@ -170,10 +170,10 @@ public class MultiBoxNumeric extends RelativeLayout implements NumericFieldEditT
                     }
                 }
             }
-		});
-	}
+        });
+    }
 
-	private void updateListViewSelectionToMatchEditText()
+    private void updateListViewSelectionToMatchEditText()
     {
         String editText = m_editText.getText().toString();
         if (Util.stringIsNullOrEmptyTrim(editText)) {
@@ -206,7 +206,7 @@ public class MultiBoxNumeric extends RelativeLayout implements NumericFieldEditT
 
     private class ListViewAdapter extends ArrayAdapter<ValuePair> {
 
-	    private final boolean m_showCodes;
+        private final boolean m_showCodes;
 
         ListViewAdapter(@NonNull Context context, @NonNull ValuePair[] m_responses, boolean showCodes) {
             super(context, R.layout.radio_button_answer_list_item, m_responses);

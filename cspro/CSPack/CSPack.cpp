@@ -52,11 +52,11 @@ BOOL CCSPackApp::InitInstance()
     ParseCommandLine(command_line_info);
 
     std::unique_ptr<PackSpec> pack_spec;
-    std::wstring filename;
+    std::string file_path;
 
     if( !SO::IsWhitespace(command_line_info.m_strFileName) )
     {
-        std::tie(pack_spec, filename) = ProcessCommandLine(CS2WS(command_line_info.m_strFileName), command_line_info.pack);
+        std::tie(pack_spec, file_path) = ProcessCommandLine(UTF8_TODO::GetUtf8(command_line_info.m_strFileName), command_line_info.pack);
 
         // if nothing is returned, that means that the command line was successfully processed
         // and we should quit the program
@@ -68,7 +68,7 @@ BOOL CCSPackApp::InitInstance()
     m_hAccelerators = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_PACK));
 
     // run in interactive mode
-    PackDlg dlg(std::move(pack_spec), std::move(filename));
+    PackDlg dlg(std::move(pack_spec), std::move(file_path));
     m_pMainWnd = &dlg;
     dlg.DoModal();
 
@@ -76,7 +76,7 @@ BOOL CCSPackApp::InitInstance()
 }
 
 
-BOOL CCSPackApp::ProcessMessageFilter(int iCode, LPMSG lpMsg)
+BOOL CCSPackApp::ProcessMessageFilter(const int iCode, const LPMSG lpMsg)
 {
     if( iCode >= 0 && m_pMainWnd != nullptr && m_hAccelerators != nullptr )
     {
@@ -88,17 +88,17 @@ BOOL CCSPackApp::ProcessMessageFilter(int iCode, LPMSG lpMsg)
 }
 
 
-std::tuple<std::unique_ptr<PackSpec>, std::wstring> CCSPackApp::ProcessCommandLine(const std::wstring& filename, const bool pack_flag)
+std::tuple<std::unique_ptr<PackSpec>, std::string> CCSPackApp::ProcessCommandLine(const std::string& file_path, const bool pack_flag)
 {
     // options can come in on the command line as:
     //
-    // (1) filename with .cspack
+    // (1) file path with .cspack
     //     - if pack flag is set, run the pack
     //     - otherwise open the file in interactive mode
-    // (2) filename with .pff
+    // (2) file path with .pff
     //     - run it if 8.0+, or if the Silent flag is set
     //     - otherwise open the file in interactive mode
-    // (3) another filename
+    // (3) another file path
     //     - if pack flag is set, create a PackSpec for the file and run the pack
     //     - otherwise open the PackSpec in interactive mode
 
@@ -107,41 +107,41 @@ std::tuple<std::unique_ptr<PackSpec>, std::wstring> CCSPackApp::ProcessCommandLi
         std::unique_ptr<PackSpec> pack_spec;
         std::unique_ptr<PFF> pff;
 
-        std::wstring filename_to_return;
+        std::string file_path_to_return;
         bool run_pack = false;
 
-        const std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+        const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
-        // (1) filename with .cspack
+        // (1) file path with .cspack
         if( SO::EqualsNoCase(extension, FileExtensions::PackSpec) )
         {
             pack_spec = std::make_unique<PackSpec>();
-            pack_spec->Load(filename, pack_flag, pack_flag);
+            pack_spec->Load(file_path, pack_flag, pack_flag);
 
-            filename_to_return = filename;
+            file_path_to_return = file_path;
             run_pack = pack_flag;
         }
 
-        // (2) filename with .pff
+        // (2) file path with .pff
         else if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
         {
-            pff = std::make_unique<PFF>(WS2CS(filename));
+            pff = std::make_unique<PFF>(UTF8_TODO::GetCString(file_path));
 
             if( !pff->LoadPifFile() )
-                throw ApplicationFileLoadException(filename);
+                throw ApplicationFileLoadException(file_path);
 
-            run_pack = ( GetCSProVersionNumeric(pff->GetVersion()) < PackSpec::VersionNewPackIntroduced ) ? pff->GetSilent() :
-                                                                                                            true;
+            run_pack = ( GetCSProVersionNumeric(UTF8_TODO::GetUtf8(pff->GetVersion())) < PackSpec::VersionNewPackIntroduced ) ? pff->GetSilent() :
+                                                                                                                                true;
 
             pack_spec = std::make_unique<PackSpec>(PackSpec::CreateFromPff(*pff, run_pack, run_pack));
         }
 
-        // (3) another filename
+        // (3) another file path
         else
         {
             pack_spec = std::make_unique<PackSpec>();
-            pack_spec->AddEntry(PackEntry::Create(filename));
-            pack_spec->SetZipFilename(PortableFunctions::PathRemoveFileExtension(filename) + _T(".zip"));
+            pack_spec->AddEntry(PackEntry::Create(file_path));
+            pack_spec->SetZipFilePath(PortableFunctions::PathReplaceFileExtension(file_path, FileExtensions::Zip));
 
             run_pack = pack_flag;
         }
@@ -151,7 +151,7 @@ std::tuple<std::unique_ptr<PackSpec>, std::wstring> CCSPackApp::ProcessCommandLi
 
         if( !run_pack )
         {
-            return std::make_tuple(std::move(pack_spec), std::move(filename_to_return));
+            return std::make_tuple(std::move(pack_spec), std::move(file_path_to_return));
         }
 
         // ...or run the pack
@@ -169,5 +169,5 @@ std::tuple<std::unique_ptr<PackSpec>, std::wstring> CCSPackApp::ProcessCommandLi
         ErrorMessage::Display(exception);
     }
 
-    return { nullptr, std::wstring() };
+    return { nullptr, std::string() };
 }

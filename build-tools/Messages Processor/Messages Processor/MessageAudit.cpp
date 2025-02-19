@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Main.h"
-#include <zUtilO/StdioFileUnicode.h>
+#include <zToolsO/File.h>
 
 
 MessageFileAuditor::MessageFileAuditor()
@@ -21,22 +21,20 @@ void MessageFileAuditor::DoAudit()
     MessageLoader::LoadMessageFiles(*this, false, &loading_english_messages);       
 
     // make sure that English is the current language
-    ChangeLanguage(L"EN");
+    ChangeLanguage("EN");
 
-    constexpr UINT open_flags = ( CFile::modeWrite | CFile::modeCreate );
+    FileIO::TextFile all_messages_file;
+    all_messages_file.OpenForTextWritingCreate("CSProRuntime Messages Audit - All Messages.csv");
 
-    CStdioFileUnicode all_messages_file;
-    all_messages_file.Open(L"CSProRuntime Messages Audit - All Messages.csv", open_flags);
+    FileIO::TextFile missing_messages_file;
+    missing_messages_file.OpenForTextWritingCreate("CSProRuntime Messages Audit - Missing Messages.csv");
 
-    CStdioFileUnicode missing_messages_file;
-    missing_messages_file.Open(L"CSProRuntime Messages Audit - Missing Messages.csv", open_flags);
-
-    CStdioFileUnicode invalid_format_specifiers_file;
-    invalid_format_specifiers_file.Open(L"CSProRuntime Messages Audit - Invalid Format Specifiers.txt", open_flags);
+    FileIO::TextFile invalid_format_specifiers_file;
+    invalid_format_specifiers_file.OpenForTextWritingCreate("CSProRuntime Messages Audit - Invalid Format Specifiers.txt");
 
     // write out the headers
-    std::wstring all_messages_header = Encoders::ToCsv(L"Message Number");
-    std::wstring missing_messages_header = Encoders::ToCsv(L"Message Text");
+    std::string all_messages_header = Encoders::ToCsv("Message Number");
+    std::string missing_messages_header = Encoders::ToCsv("Message Text");
 
     for( const LanguageSet& language_set : m_languageSets )
     {
@@ -53,20 +51,20 @@ void MessageFileAuditor::DoAudit()
     // process each message in the English message file
     for( const int message_number : ordered_english_message_numbers )
     {
-        const std::wstring message_number_text = CS2WS(IntToString(message_number));
+        const std::string message_number_text = IntToString(message_number);
 
-        const std::wstring& english_message_text = GetMessageText(message_number);
-        ASSERT(!english_message_text.empty());
+        const SharableString english_message_text = GetMessageText(message_number);
+        ASSERT(english_message_text.IsSet());
 
-        std::wstring all_messages_row = Encoders::ToCsv(message_number_text);
-        std::wstring missing_messages_row = Encoders::ToCsv(english_message_text);
+        std::string all_messages_row = Encoders::ToCsv(message_number_text);
+        std::string missing_messages_row = Encoders::ToCsv(*english_message_text);
 
         bool message_was_missing = false;
 
         for( const LanguageSet& language_set : m_languageSets )
         {
-            std::wstring message_text;
-            auto lookup = language_set.numbered_messages.find(message_number);
+            std::string message_text;
+            const auto& lookup = language_set.numbered_messages.find(message_number);
 
             if( lookup == language_set.numbered_messages.end() )
             {
@@ -77,13 +75,13 @@ void MessageFileAuditor::DoAudit()
 
             else
             {
-                message_text = lookup->second;
+                message_text = *lookup->second;
                 missing_messages_row.push_back(',');
 
-                if( !CheckFormatSpecifiers(english_message_text, message_text) )
+                if( !CheckFormatSpecifiers(*english_message_text, message_text) )
                 {
                     invalid_format_specifiers_file.WriteLine(language_set.language_name);
-                    invalid_format_specifiers_file.WriteLine(english_message_text);
+                    invalid_format_specifiers_file.WriteLine(*english_message_text);
                     invalid_format_specifiers_file.WriteLine(message_text);
                     invalid_format_specifiers_file.WriteLine();
                 }
@@ -105,29 +103,34 @@ void MessageFileAuditor::DoAudit()
 }
 
 
-bool MessageFileAuditor::CheckFormatSpecifiers(const std::wstring& english_message_text, const std::wstring& message_text)
+bool MessageFileAuditor::CheckFormatSpecifiers(const std::string& english_message_text, const std::string& message_text)
 {
     // make sure that the format specifiers are in the same order as the English version
-    const std::vector<std::wstring> english_formatters = ExtractFormatSpecifiers(english_message_text);
-    const std::vector<std::wstring> other_language_formatters = ExtractFormatSpecifiers(message_text);
-    bool formatters_are_equal = ( english_formatters.size() == other_language_formatters.size() );
+    const std::vector<std::string> english_formatters = ExtractFormatSpecifiers(english_message_text);
+    const std::vector<std::string> other_language_formatters = ExtractFormatSpecifiers(message_text);
+    
+    if( english_formatters.size() != other_language_formatters.size() )
+        return false;
 
-    for( size_t i = 0; formatters_are_equal && i < english_formatters.size(); i++ )
-        formatters_are_equal = ( english_formatters[i] == other_language_formatters[i] );
+    for( size_t i = 0; i < english_formatters.size(); i++ )
+    {
+        if( english_formatters[i] != other_language_formatters[i] )
+            return false;
+    }
 
-    return formatters_are_equal;
+    return true;
 }
 
 
-std::vector<std::wstring> MessageFileAuditor::ExtractFormatSpecifiers(const std::wstring& message_text)
+std::vector<std::string> MessageFileAuditor::ExtractFormatSpecifiers(const std::string& message_text)
 {
-    std::vector<std::wstring> formatters;
+    std::vector<std::string> formatters;
 
     bool in_formatter = false;
 
     for( size_t i = 0; i < message_text.size(); i++ )
     {
-        TCHAR ch = message_text[i];
+        const char ch = message_text[i];
 
         if( ch == '%' )
         {
@@ -142,7 +145,7 @@ std::vector<std::wstring> MessageFileAuditor::ExtractFormatSpecifiers(const std:
         {
             formatters.back().push_back(ch);
 
-            if( iswalpha(ch) )
+            if( isalpha(ch) )
                 in_formatter = false;
         }
     }

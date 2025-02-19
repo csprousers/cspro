@@ -8,38 +8,15 @@
 #include <zAction/AccessToken.h>
 
 
-CREATE_JSON_KEY(showLanguageBar)
-
-
 namespace
 {
-    constexpr const TCHAR* QuestionnaireViewHtmlFilename = _T("index.html");
+    constexpr const char* QuestionnaireViewHtmlFilename = "index.html";
 }
 
 
 QuestionnaireViewer::QuestionnaireViewer()
+    :   m_html(GetQuestionnaireViewHtml())
 {
-    // set up the virtual file that maps the questionnaire view HTML
-    const std::wstring questionnaire_view_filename = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::QuestionnaireView),
-                                                                                         QuestionnaireViewHtmlFilename);
-    try
-    {
-        m_html = FileIO::ReadText<std::string>(questionnaire_view_filename);
-    }
-
-    catch( const CSProException& exception )
-    {
-        // if there was a problem reading the file, create a page showing the exception
-        HtmlStringWriter html_writer;
-
-        html_writer.WriteDefaultHeader(_T("Questionnaire View"), Html::CSS::Common);
-
-        html_writer << _T("<body><p>There was an error creating the questionnaire view: <b>")
-                    << exception.GetErrorMessage()
-                    << _T("</b></p></body></html>");
-
-        m_html = UTF8Convert::WideToUTF8(html_writer.str());
-    }
 }
 
 
@@ -48,11 +25,36 @@ QuestionnaireViewer::~QuestionnaireViewer()
 }
 
 
-const std::wstring& QuestionnaireViewer::GetUrl()
+std::string QuestionnaireViewer::GetQuestionnaireViewHtml()
+{
+    const std::string questionnaire_view_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::QuestionnaireView),
+                                                                   QuestionnaireViewHtmlFilename);
+    try
+    {
+        return FileIO::ReadText(questionnaire_view_file_path);
+    }
+
+    catch( const CSProException& exception )
+    {
+        // if there was a problem reading the file, create a page showing the exception
+        HtmlStringWriter html_writer;
+
+        html_writer.WriteDefaultHeader("Questionnaire View", Html::CSS::Common);
+
+        html_writer << "<body><p>There was an error creating the questionnaire view: <b>";
+        html_writer.WriteEncoded(exception.what());
+        html_writer << "</b></p></body></html>";
+
+        return html_writer.str();
+    }
+}
+
+
+const std::string& QuestionnaireViewer::GetUrl()
 {
     // set the directory for the URL as the application directory, which will allow relative
     // filenames such as images embedded in question text to display properly
-    const std::wstring directory_for_url = GetDirectoryForUrl();
+    std::string directory_for_url = GetDirectoryForUrl();
     ASSERT(directory_for_url.empty() || PortableFunctions::PathGetDirectory(directory_for_url) == directory_for_url);
 
     HtmlContentServer* html_content_server;
@@ -69,15 +71,15 @@ const std::wstring& QuestionnaireViewer::GetUrl()
     else if( !directory_for_url.empty() )
     {
         VirtualFileMapping virtual_file_mapping = PortableLocalhost::CreateVirtualHtmlFile(directory_for_url, [&]() { return m_html; });
-        html_content_server = &m_htmlContentServers.try_emplace(directory_for_url, std::move(virtual_file_mapping)).first->second;
+        html_content_server = &m_htmlContentServers.try_emplace(std::move(directory_for_url), std::move(virtual_file_mapping)).first->second;
     }
 
     // otherwise serve the content as a generic virtual file
     else
     {
-        auto virtual_file_mapping_handler = std::make_unique<DataVirtualFileMappingHandler<const std::string*>>(&m_html, MimeType::Type::Html);
+        auto virtual_file_mapping_handler = std::make_unique<DataVirtualFileMappingHandler<const std::string*>>(&m_html.GetString(), MimeType::Type::Html);
         PortableLocalhost::CreateVirtualFile(*virtual_file_mapping_handler, QuestionnaireViewHtmlFilename);
-        html_content_server = &m_htmlContentServers.try_emplace(directory_for_url, std::move(virtual_file_mapping_handler)).first->second;
+        html_content_server = &m_htmlContentServers.try_emplace(std::move(directory_for_url), std::move(virtual_file_mapping_handler)).first->second;
     }
 
     return std::holds_alternative<VirtualFileMapping>(*html_content_server) ?
@@ -86,9 +88,9 @@ const std::wstring& QuestionnaireViewer::GetUrl()
 }
 
 
-std::wstring QuestionnaireViewer::GetInputData()
+std::string QuestionnaireViewer::GetInputData()
 {
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
                 .Write(JK::name, GetDictionaryName())
@@ -98,23 +100,23 @@ std::wstring QuestionnaireViewer::GetInputData()
                 .Write(JK::showLanguageBar, ShowLanguageBar())
                 .EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }
 
 
-void QuestionnaireViewer::View(const ViewerOptions* base_viewer_options/* = nullptr*/)
+void QuestionnaireViewer::View(const ViewerOptions* const base_viewer_options/* = nullptr*/)
 {
     ViewerOptions viewer_options = ( base_viewer_options != nullptr ) ? *base_viewer_options :
                                                                         ViewerOptions();
 
-    if( !viewer_options.title.has_value() )
-        viewer_options.title = _T("Questionnaire Viewer");
+    if( !viewer_options.title.IsSet() )
+        viewer_options.title = "Questionnaire Viewer";
 
-    viewer_options.action_invoker_ui_get_input_data = std::make_shared<std::wstring>(GetInputData());
+    viewer_options.action_invoker_ui_get_input_data = GetInputData();
 
     Viewer viewer;
     viewer.UseEmbeddedViewer()
           .SetOptions(std::move(viewer_options))
-          .SetAccessInvokerAccessTokenOverride(std::wstring(ActionInvoker::AccessToken::QuestionnaireView_Index_sv))
+          .SetAccessInvokerAccessTokenOverride(std::string(ActionInvoker::AccessToken::QuestionnaireView_Index_sv))
           .ViewHtmlUrl(GetUrl());
 }

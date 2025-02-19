@@ -3,6 +3,9 @@
 /*------------------------------------------------------------------------*/
 /*  INTERPRE.h      ISSA interpreter header                               */
 /*------------------------------------------------------------------------*/
+
+#include <engine/IntDrive.h>
+
 #include <engine/Exappl.h>
 
 #ifndef GENCODE
@@ -10,4 +13,4 @@
 #endif
 
 #include <engine/COMPILAD.H>
-#include <engine/IntDrive.h>
+#include <zEngineO/Interpreter/IncludesRT.h>

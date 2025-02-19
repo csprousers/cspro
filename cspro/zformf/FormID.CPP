@@ -62,7 +62,7 @@ FormExternalCodeID::FormExternalCodeID(CFormDoc* pDoc, std::optional<CodeFile> c
 std::optional<CString> FormExternalCodeID::GetName() const
 {
     // the heading for the external code nodes will simply be "Logic" because clicking on it will show the main application logic
-    return m_codeFile.has_value() ? PortableFunctions::PathGetFilenameWithoutExtension<CString>(m_codeFile->GetFilename()) :
+    return m_codeFile.has_value() ? UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(m_codeFile->GetFilePath())) :
                                     _T("Logic");
 }
 
@@ -85,8 +85,8 @@ TextSource* FormExternalCodeID::GetTextSource()
 
 IMPLEMENT_DYNAMIC(FormReportID, CFormID)
 
-FormReportID::FormReportID(CFormDoc* pDoc, std::shared_ptr<NamedTextSource> named_text_source)
-    :   m_namedTextSource(named_text_source)
+FormReportID::FormReportID(CFormDoc* pDoc, std::optional<ReportFile> report_file)
+    :   m_reportFile(std::move(report_file))
 {
     SetNodeType(eFFT_REPORT);
     SetFormDoc(pDoc);
@@ -95,41 +95,20 @@ FormReportID::FormReportID(CFormDoc* pDoc, std::shared_ptr<NamedTextSource> name
 
 std::optional<CString> FormReportID::GetName() const
 {
-    if( m_namedTextSource == nullptr )
-    {
-        return _T("Reports"); // the heading
-    }
-
-    else
-    {
-        return WS2CS(m_namedTextSource->name);
-    }
+    return m_reportFile.has_value() ? UTF8_TODO::GetCString(m_reportFile->GetName()) :
+                                      L"Reports"; // the heading
 }
 
 
 std::optional<CString> FormReportID::GetLabel() const
 {
-    if( m_namedTextSource == nullptr )
-    {
-        return _T("Reports"); // the heading
-    }
-
-    else
-    {
-        return PortableFunctions::PathGetFilenameWithoutExtension<CString>(m_namedTextSource->text_source->GetFilename());
-    }
+    return m_reportFile.has_value() ? UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(m_reportFile->GetFilePath())) :
+                                      L"Reports"; // the heading
 }
 
 
 TextSource* FormReportID::GetTextSource()
 {
-    if( m_namedTextSource == nullptr )
-    {
-        return nullptr;
-    }
-
-    else
-    {
-        return m_namedTextSource->text_source.get();
-    }
+    return m_reportFile.has_value() ? &m_reportFile->GetTextSource() :
+                                      nullptr; // the heading
 }

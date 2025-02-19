@@ -18,7 +18,7 @@ public:
     ActionInvoker::WebController& GetActionInvokerWebController() { return m_actionInvokerWebController; }
 
     // the CSPro JavaScript class that wraps the host object's methods
-    static std::wstring GetJavaScriptClassText();
+    static std::string GetJavaScriptClassText();
 
 protected:
     DECLARE_DISPATCH_MAP()

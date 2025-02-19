@@ -3,7 +3,6 @@
 #include <zEngineO/zEngineO.h>
 
 struct EngineData;
-class Serializer;
 
 
 // --------------------------------------------------------------------------

@@ -17,20 +17,21 @@ public:
 
     // if the file does not exist or can not be read, the default text will be used;
     // if no default text is provided, exceptions will be thrown
-    TextSourceEditable(std::wstring filename, std::optional<std::wstring> default_text = std::nullopt,
+    TextSourceEditable(std::string file_path, std::optional<std::string> default_text = std::nullopt,
                        bool use_default_text_even_if_file_exists = false);
 
     // sends a message to the Designer to locate an already-open instance of this file;
     // if none are open, the file is opened
-    static std::shared_ptr<TextSourceEditable> FindOpenOrCreate(std::wstring filename, std::optional<std::wstring> default_text = std::nullopt);
+    static std::shared_ptr<TextSourceEditable> FindOpenOrCreate(std::string file_path);
 
-    const std::wstring& ReloadFromDisk();
+    const std::string& ReloadFromDisk();
 
-    const std::wstring& GetText() const override;
+    const std::string& GetText() const override;
+    SharableString GetTextAsSharableString() const override;
 
     int64_t GetModifiedIteration() const override { return m_modifiedIteration; }
 
-    void SetText(std::wstring text) override;
+    void SetText(SharableString text) override;
 
     bool RequiresSave() const override { return m_modified; }
 
@@ -38,12 +39,15 @@ public:
 
     void Save() override;
 
-    void SetNewFilename(std::wstring new_filename);
+    void SetNewFilePath(std::string new_file_path);
 
     void SetSourceModifier(SourceModifier* source_modifier);
 
 private:
-    std::wstring m_text;
+    void SyncText() const;
+
+private:
+    SharableString m_text;
     bool m_modified;
     int64_t m_modifiedIteration;
     SourceModifier* m_sourceModifier;

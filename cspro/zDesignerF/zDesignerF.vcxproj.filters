@@ -21,34 +21,76 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zDesignerF.cpp">
+    <ClCompile Include="ApplicationDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
+    <ClCompile Include="ApplicationPropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabViewContainer.cpp">
+    <ClCompile Include="AppMessageFilePropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LogicReferenceWnd.cpp">
+    <ClCompile Include="AppTreeNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnfloatableDialogBar.cpp">
+    <ClCompile Include="BuildWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LogicDialogBar.cpp">
+    <ClCompile Include="CodeFilePropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CodeMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CompilerOutputTabViewPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictionaryBasedDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictionaryPropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FormFileBasedDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FormFilePropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicDialogBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicReferenceWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ManageFilesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MessageEditTabViewPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NewFileCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PathAdjusterDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PropertyGrid\BoolProperty.cpp">
       <Filter>Source Files\PropertyGrid</Filter>
     </ClCompile>
+    <ClCompile Include="PropertyGrid\CStringProperty.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
     <ClCompile Include="PropertyGrid\CustomProperties.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertyGrid\FilenameProperty.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertyGrid\ImageFilePathProperty.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertyGrid\PortableColorProperty.cpp">
       <Filter>Source Files\PropertyGrid</Filter>
     </ClCompile>
     <ClCompile Include="PropertyGrid\PropertyManager.cpp">
@@ -57,138 +99,57 @@
     <ClCompile Include="PropertyGrid\StringProperty.cpp">
       <Filter>Source Files\PropertyGrid</Filter>
     </ClCompile>
-    <ClCompile Include="PropertyGrid\PortableColorProperty.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertyGrid\FilenameProperty.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertyGrid\ImageFilenameProperty.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
     <ClCompile Include="QuestionnaireView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AppTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FormFileBasedDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ApplicationDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictionaryBasedDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CodeMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StringEncoderDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PathAdjusterDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ReportPreviewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BuildWnd.cpp">
+    <ClCompile Include="ReportPropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourcePropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringEncoderDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TableSpecPropertiesPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabViewContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDisplayPageDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UnfloatableDialogBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zDesignerF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zDesignerF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource_shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FrameType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TabViewContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LogicReferenceWnd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UnfloatableDialogBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LogicDialogBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CompilerOutputTabViewPage.h">
+    <ClInclude Include="AppFileTypeImageList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationChildWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MessageEditTabViewPage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\PropertyManager.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\PropertyBuilder.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\CustomProperties.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\Property.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\PropertyValidationException.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\ListPropertyBuilder.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertyGrid\FilenamePropertyBase.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="QuestionnaireView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AppTreeNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FormFileBasedDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ApplicationDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictionaryBasedDoc.h">
+    <ClInclude Include="ApplicationPropertiesPageDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CodeMenu.h">
+    <ClInclude Include="AppMessageFilePropertiesPageDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StringEncoderDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PathAdjusterDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ReportPreviewer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DesignerObjectTransporter.h">
+    <ClInclude Include="AppTreeNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BuildWnd.h">
@@ -197,7 +158,118 @@
     <ClInclude Include="BuildWndJsonReaderInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CodeFilePropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CodeMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompilerOutputTabViewPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DesignerObjectTransporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryBasedDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryPropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FormFileBasedDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FormFilePropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicDialogBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicReferenceWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ManageFilesDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageEditTabViewPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NewFileCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="OnUpdateHints.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathAdjusterDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\CustomProperties.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\FilenamePropertyBase.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\ListPropertyBuilder.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\Property.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\PropertyBuilder.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\PropertyManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGrid\PropertyValidationException.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestionnaireView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReportPreviewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReportPropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourcePropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringEncoderDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TableSpecPropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TabViewContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextDisplayPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UnfloatableDialogBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDesignerF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -156,11 +156,11 @@ void CStatGrid::OnSetup()
             QuickSetText(7,rowIndex,sString);
             QuickSetAlignment(7,rowIndex,UG_ALIGNRIGHT);
 
-            sString=IntToString(pStatObj->GetKeyStrokesPHr());
+            sString=UTF8_TODO::GetCString(IntToString(pStatObj->GetKeyStrokesPHr()));
             QuickSetText(8,rowIndex,sString);
             QuickSetAlignment(8,rowIndex,UG_ALIGNRIGHT);
 
-            sString=IntToString(pStatObj->GetErrPKKeyStrokes());
+            sString=UTF8_TODO::GetCString(IntToString(pStatObj->GetErrPKKeyStrokes()));
             QuickSetText(9,rowIndex,sString);
             QuickSetAlignment(9,rowIndex,UG_ALIGNRIGHT);
 
@@ -308,7 +308,7 @@ CIMSAString GetTimeStringFromSec(CIMSAString sString)
     sMin=sMin.AdjustLenLeft(2,'0');
 
     CIMSAString sRet;
-    sRet.Format(_T("%s:%s"), (LPCTSTR)sHours, (LPCTSTR)sMin);
+    sRet.Format(_T("%s:%s"), sHours.GetString(), sMin.GetString());
     return sRet;
 }
 

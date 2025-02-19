@@ -6,10 +6,10 @@
 
 namespace
 {
-    const WPARAM UpdateAll = 0;
-    const WPARAM UpdateTitle = 1;
-    const WPARAM UpdateStatus = 2;
-    const WPARAM UpdatePos = 3;
+    constexpr WPARAM UpdateAll = 0;
+    constexpr WPARAM UpdateTitle = 1;
+    constexpr WPARAM UpdateStatus = 2;
+    constexpr WPARAM UpdatePos = 3;
 
     std::map<HWND, ThreadedProgressDlg*> Instances;
     ThreadedProgressDlg* CurrentInstance = nullptr;
@@ -19,12 +19,14 @@ namespace
 
 ThreadedProgressDlg::ThreadedProgressDlg()
     :   m_hwndDlg(nullptr),
-        m_title(_T("CSPro")),
-        m_status(_T("CSPro is working...")),
+        m_title(L"CSPro"),
+        m_status(L"CSPro is working..."),
+        m_usingMarquee(false),
         m_position(0),
         m_canceled(false)
 {
 }
+
 
 ThreadedProgressDlg::~ThreadedProgressDlg()
 {
@@ -32,7 +34,7 @@ ThreadedProgressDlg::~ThreadedProgressDlg()
 }
 
 
-INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
+INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(const HWND hwndDlg, const UINT uMsg, const WPARAM wParam, LPARAM /*lParam*/)
 {
     auto get_instance = [hwndDlg]() -> ThreadedProgressDlg*
     {
@@ -43,7 +45,7 @@ INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM
 
     if( uMsg == WM_INITDIALOG )
     {
-        Instances.insert(std::make_pair(hwndDlg, CurrentInstance));
+        Instances.try_emplace(hwndDlg, CurrentInstance);
         CurrentInstance->m_hwndDlg = hwndDlg;
 
         WindowHelpers::DisableClose(hwndDlg);
@@ -56,7 +58,7 @@ INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM
 
     else if( uMsg == WM_COMMAND && HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDCANCEL )
     {
-        ThreadedProgressDlg* instance = get_instance();
+        ThreadedProgressDlg* const instance = get_instance();
         if( instance != nullptr )
             instance->m_canceled = true;
         return TRUE;
@@ -64,30 +66,45 @@ INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM
 
     else if( uMsg == WM_CLOSE )
     {
-        ThreadedProgressDlg* instance = get_instance();
+        ThreadedProgressDlg* const instance = get_instance();
         EndDialog(hwndDlg, ( instance == nullptr || instance->m_canceled ) ? IDCANCEL : IDOK);
         return TRUE;
     }
 
     else if( uMsg == UWM::UtilF::UpdateThreadedProgressDlg )
     {
-        ThreadedProgressDlg* instance = get_instance();
+        ThreadedProgressDlg* const instance = get_instance();
 
         if( instance != nullptr )
         {
             if( wParam == UpdateAll || wParam == UpdateTitle )
-                SetWindowText(hwndDlg, instance->m_title);
+                WindowsWS::SetWindowText(hwndDlg, instance->m_title);
 
             if( wParam == UpdateAll || wParam == UpdateStatus )
-                SetWindowText(GetDlgItem(hwndDlg, IDC_PROGDLG_STATUS), instance->m_status);
+                WindowsWS::SetDlgItemText(hwndDlg, IDC_PROGDLG_STATUS, instance->m_status);
 
             if( wParam == UpdateAll || wParam == UpdatePos )
             {
-                CString percent_text;
-                percent_text.Format(_T("%d%%"), instance->m_position);
-                SetWindowText(GetDlgItem(hwndDlg, IDC_PROGDLG_PERCENT), percent_text);
+                // handle indefinite progress
+                if( instance->m_position < 0 )
+                {
+                    if( !instance->m_usingMarquee )
+                        instance->ToggleProgressBarMarquee();
+                }
 
-                PostMessage(GetDlgItem(hwndDlg, IDC_PROGDLG_PROGRESS), PBM_SETPOS, instance->m_position, 0);
+                // handle definite progress
+                else
+                {
+                    ASSERT(instance->m_position <= 100);
+
+                    if( instance->m_usingMarquee )
+                        instance->ToggleProgressBarMarquee();
+
+                    const std::wstring percent_text = FormatTextCS2WS(L"%d%%", instance->m_position);
+                    WindowsWS::SetDlgItemText(hwndDlg, IDC_PROGDLG_PERCENT, percent_text);
+
+                    PostMessage(GetDlgItem(hwndDlg, IDC_PROGDLG_PROGRESS), PBM_SETPOS, instance->m_position, 0);
+                }
             }
 
             return TRUE;
@@ -116,6 +133,7 @@ void ThreadedProgressDlg::Show()
     }
 }
 
+
 void ThreadedProgressDlg::Close()
 {
     if( m_dialogThread != nullptr )
@@ -135,26 +153,47 @@ void ThreadedProgressDlg::Close()
 }
 
 
-void ThreadedProgressDlg::SetTitle(const CString& title)
+void ThreadedProgressDlg::ToggleProgressBarMarquee()
 {
-    m_title = title;
+    m_usingMarquee = !m_usingMarquee;
 
-    if( m_hwndDlg != nullptr )
-        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdateTitle, 0); 
+    // show or hide the % text indicator
+    ShowWindow(GetDlgItem(m_hwndDlg, IDC_PROGDLG_PERCENT), m_usingMarquee ? SW_HIDE : SW_SHOW);
+
+    const HWND hwnd_progress = GetDlgItem(m_hwndDlg, IDC_PROGDLG_PROGRESS);
+    const LONG_PTR progress_style = GetWindowLongPtr(hwnd_progress, GWL_STYLE);
+
+    // add or remove the marquee style
+    SetWindowLongPtr(hwnd_progress, GWL_STYLE, m_usingMarquee ? ( progress_style | PBS_MARQUEE ) :
+                                                                ( progress_style & ~PBS_MARQUEE ));
+
+    // turn on or off the marquee animation
+    PostMessage(hwnd_progress, PBM_SETMARQUEE, m_usingMarquee ? TRUE : FALSE, 0);
 }
 
-void ThreadedProgressDlg::SetStatus(const CString& status)
+
+void ThreadedProgressDlg::SetTitle(InterfaceString title)
 {
-    m_status = status;
+    m_title = title.Release();
 
     if( m_hwndDlg != nullptr )
-        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdateStatus, 0); 
+        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdateTitle, 0);
 }
 
-void ThreadedProgressDlg::SetPos(int position)
+
+void ThreadedProgressDlg::SetStatus(InterfaceString status)
+{
+    m_status = status.Release();
+
+    if( m_hwndDlg != nullptr )
+        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdateStatus, 0);
+}
+
+
+void ThreadedProgressDlg::SetPos(const int position)
 {
     m_position = position;
 
     if( m_hwndDlg != nullptr )
-        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdatePos, 0); 
+        PostMessage(m_hwndDlg, UWM::UtilF::UpdateThreadedProgressDlg, UpdatePos, 0);
 }

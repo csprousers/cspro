@@ -5,15 +5,15 @@
 #include <zUtilO/Viewers.h>
 
 
-ImageViewDlg::ImageViewDlg(const std::vector<std::byte>& image_content, wstring_view image_content_type_sv,
-                           const std::optional<std::tuple<int, int>>& image_width_and_height, const std::wstring& image_filename)
-    :   m_virtualFileMappingHandlerToImage(image_content, image_content_type_sv)
+ImageViewDlg::ImageViewDlg(const std::vector<std::byte>& image_content, std::string image_content_type,
+                           const std::optional<std::tuple<int, int>>& image_width_and_height, const std::string& image_file_path)
+    :   m_virtualFileMappingHandlerToImage(image_content, std::move(image_content_type))
 {
-    const std::wstring image_filename_only = PortableFunctions::PathGetFilename(image_filename);
+    const std::string image_filename_only = PortableFunctions::PathGetFilename(image_file_path);
     PortableLocalhost::CreateVirtualFile(m_virtualFileMappingHandlerToImage, image_filename_only);
 
     // create the JSON arguments text
-    auto json_writer = Json::CreateStringWriter(m_jsonArgumentsText);
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(m_jsonArgumentsText.MakeModifiable());
 
     json_writer->BeginObject();
 
@@ -30,19 +30,19 @@ ImageViewDlg::ImageViewDlg(const std::vector<std::byte>& image_content, wstring_
 }
 
 
-const TCHAR* ImageViewDlg::GetDialogName()
+std::string ImageViewDlg::GetDialogName()
 {
-    return _T("Image-view");
+    return "Image-view";
 }
 
 
-std::wstring ImageViewDlg::GetJsonArgumentsText()
+SharableString ImageViewDlg::GetJsonArgumentsText()
 {
     return m_jsonArgumentsText;
 }
 
 
-void ImageViewDlg::ProcessJsonResults(const JsonNode<wchar_t>& /*json_results*/)
+void ImageViewDlg::ProcessJsonResults(const JsonNode& /*json_results*/)
 {
 }
 
@@ -50,14 +50,14 @@ void ImageViewDlg::ProcessJsonResults(const JsonNode<wchar_t>& /*json_results*/)
 void ImageViewDlg::ShowDialogUsingViewer(ViewerOptions viewer_options)
 {
     const NavigationAddress navigation_address = GetNavigationAddress();
-    ASSERT(navigation_address.IsHtmlFilename());
+    ASSERT(navigation_address.IsHtmlFilePath());
 
-    viewer_options.action_invoker_ui_get_input_data = &m_jsonArgumentsText;
+    viewer_options.action_invoker_ui_get_input_data = m_jsonArgumentsText;
 
     Viewer viewer;
     viewer.UseEmbeddedViewer()
           .UseSharedHtmlLocalFileServer()
           .SetOptions(std::move(viewer_options))
-          .SetAccessInvokerAccessTokenOverride(RegisterActionInvokerAccessTokenOverride(navigation_address.GetHtmlFilename()))
-          .ViewFileInEmbeddedBrowser(navigation_address.GetHtmlFilename());
+          .SetAccessInvokerAccessTokenOverride(RegisterActionInvokerAccessTokenOverride(navigation_address.GetHtmlFilePath()))
+          .ViewFileInEmbeddedBrowser(navigation_address.GetHtmlFilePath());
 }

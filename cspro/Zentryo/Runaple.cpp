@@ -17,43 +17,9 @@
 #include <zEngineO/PenWriterApplicationLoader.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
-#include <zSyncO/AppSyncParamRunner.h>
-#include <zSyncO/IDropboxAuthDialog.h>
-#include <zSyncO/ILoginDialog.h>
-#include <zSyncO/SyncCredentialStore.h>
-
-#ifdef WIN_DESKTOP
-#include <zSyncF/LoginDialog.h>
-#include <zSyncF/DropboxAuthDialog.h>
-#else
-class CLoginDialog : public ILoginDialog
-{
-    std::optional<std::tuple<CString, CString>> Show(const CString& server, bool show_invalid_error) override
-    {
-        CString username, password;
-        std::tuple<CString, CString*, CString*> message_parameters = std::make_tuple(
-            server,
-            &username,
-            &password);
-        auto credentials = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowLoginDialog(server, show_invalid_error);
-        if (credentials)
-            return std::make_optional(std::make_tuple(credentials->username, credentials->password));
-        else
-            return {};
-    }
-};
-class DropboxAuthDialog : public IDropboxAuthDialog
-{
-
-    CString Show(CString csClientId) override
-    {
-        return PlatformInterface::GetInstance()->GetApplicationInterface()->AuthorizeDropbox(csClientId);
-    }
-
-};
-#endif
-
+#include <zNetwork/LoginCredentials.h>
 #include <Cexentry/Entifaz.h>
+#include <zEngineO/Userbar.h>
 #include <engine/DEFLD.H>
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>
@@ -61,8 +27,6 @@ class DropboxAuthDialog : public IDropboxAuthDialog
 #ifdef WIN_DESKTOP
 #include <zUtilO/TraceMsg.h>
 #endif
-
-#include <zEngineO/Userbar.h>
 
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
@@ -83,9 +47,6 @@ CRunAplEntry::CRunAplEntry(CNPifFile* pPifFile)
     Init();
 }
 
-CNPifFile*  CRunAplEntry::GetPifFile(){
-    return m_pPifFile;
-}
 
 CRunAplEntry::~CRunAplEntry()
 {
@@ -97,6 +58,7 @@ CRunAplEntry::~CRunAplEntry()
     Stop();
     End( false );
 }
+
 
 void CRunAplEntry::Init()
 {
@@ -110,19 +72,20 @@ void CRunAplEntry::Init()
     m_bForward = true;
 }
 
+
 // Compile. true if OK
 bool CRunAplEntry::LoadCompile()
 {
     Application* pApplication = m_pPifFile->GetApplication();
 
     if( pApplication->GetAppLoader()->GetBinaryFileLoad() )
-        pApplication->SetApplicationLoader(std::make_unique<PenReaderApplicationLoader>(pApplication, std::wstring()));
+        pApplication->SetApplicationLoader(std::make_unique<PenReaderApplicationLoader>(pApplication, std::string()));
 
     else
     {
 #ifdef WIN_DESKTOP
         if( BinaryGen::isGeneratingBinary() )
-            pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::wstring()));
+            pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
 
         else
             pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
@@ -151,6 +114,7 @@ bool CRunAplEntry::LoadCompile()
     return( bRet );
 }
 
+
 // Inform to engine that application was finished.
 bool CRunAplEntry::End( const bool bCanExit )
 {
@@ -161,6 +125,7 @@ bool CRunAplEntry::End( const bool bCanExit )
 
     return( bRet );
 }
+
 
 // Let's get ready to run.
 bool CRunAplEntry::Start( const int iMode )
@@ -197,12 +162,13 @@ bool CRunAplEntry::Start( const int iMode )
 
     if( iMode == CRUNAPL_ADD )
     {
-        GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
-        GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
+        GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
+        GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
     }
 
     return true;
 }
+
 
 // Closes LST.
 bool CRunAplEntry::Stop()
@@ -216,8 +182,8 @@ bool CRunAplEntry::Stop()
         m_pEntryIFaz->C_ExentryStop();
         pEntryDriver = GetEntryDriver();
 
-        GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
-        GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
+        GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
+        GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
     }
 
     SetAppMode( CRUNAPL_NONE );
@@ -254,6 +220,7 @@ Userbar* CRunAplEntry::GetUserbar()
     return GetEntryDriver()->HasUserbar() ? &GetEntryDriver()->GetUserbar() : nullptr;
 }
 
+
 void CRunAplEntry::PauseUserbar(bool pause)
 {
     ASSERT(GetEntryDriver()->HasUserbar());
@@ -261,14 +228,15 @@ void CRunAplEntry::PauseUserbar(bool pause)
 }
 
 
-void CRunAplEntry::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& user_function_argument_evaluator)
+void CRunAplEntry::ExecuteCallbackUserFunction(const int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator)
 {
-    GetEntryDriver()->m_pIntDriver->ExecuteCallbackUserFunction(field_symbol_index, user_function_argument_evaluator);
+    GetEntryDriver()->m_pIntDriver->ExecuteCallbackUserFunction(field_symbol_index, argument_evaluator);
 }
 
 
 // Start modification mode
-bool CRunAplEntry::ModifyStart() {
+bool CRunAplEntry::ModifyStart()
+{
     bool    bRet;
 
     if( !m_bFlagStart )
@@ -283,8 +251,10 @@ bool CRunAplEntry::ModifyStart() {
     return( bRet );
 }
 
+
 // Finish a modification session.
-bool CRunAplEntry::ModifyStop() {
+bool CRunAplEntry::ModifyStop()
+{
     if( !m_bFlagModifyStart )
         return( false );
 
@@ -293,6 +263,7 @@ bool CRunAplEntry::ModifyStop() {
 
     return( TRUE );
 }
+
 
 CDEItemBase* CRunAplEntry::EndGroup( bool bPostProc )
 {
@@ -305,6 +276,7 @@ CDEItemBase* CRunAplEntry::EndGroup( bool bPostProc )
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::EndGroupOcc( bool bPostProc )
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_EndGroupOcc( bPostProc );
@@ -313,6 +285,7 @@ CDEItemBase* CRunAplEntry::EndGroupOcc( bool bPostProc )
 
     return pItemReached;
 }
+
 
 CDEItemBase* CRunAplEntry::NextField(BOOL bSaveCur, bool advance_past_block/* = false*/)
 {
@@ -362,7 +335,8 @@ CDEItemBase* CRunAplEntry::PreviousField( BOOL bSaveCur/* = TRUE*/)
 
 
 // RHF INIC Nov 21, 2002
-CDEField*  CRunAplEntry::GetDeField( DEFLD* pFld ) {
+CDEField*  CRunAplEntry::GetDeField( DEFLD* pFld )
+{
     ASSERT( pFld->getIndexes().isValid() );
 
     DEFLD_INFO FldInfo = m_pEntryIFaz->C_FldInfo(pFld);
@@ -434,6 +408,7 @@ CDEItemBase* CRunAplEntry::MoveToFieldOrBlock(const CDEItemBase* pEntryEntity, b
     }
 }
 
+
 CDEItemBase* CRunAplEntry::MoveToField( const CDEField* pEntryField, bool bPostProc )
 {
     CDEField* pField = (CDEField*) pEntryField;
@@ -459,6 +434,7 @@ CDEItemBase* CRunAplEntry::MoveToField( const CDEField* pEntryField, bool bPostP
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::MoveToBlock(const CDEBlock* pEntryBlock, bool bPostProc/* = true*/)
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_MoveToBlock(pEntryBlock->GetSymbol(), bPostProc);
@@ -468,6 +444,7 @@ CDEItemBase* CRunAplEntry::MoveToBlock(const CDEBlock* pEntryBlock, bool bPostPr
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::MoveToField( const DEFLD* pDeField, bool bPostProc/* = true*/)
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_MoveToField( (DEFLD*)pDeField, bPostProc );
@@ -476,6 +453,7 @@ CDEItemBase* CRunAplEntry::MoveToField( const DEFLD* pDeField, bool bPostProc/* 
 
     return pItemReached;
 }
+
 
 CDEItemBase* CRunAplEntry::MoveToField(const CaseItemReference& case_item_reference, bool bPostProc/* = true*/)
 {
@@ -497,6 +475,7 @@ void CRunAplEntry::EvaluateFieldAndIndices(const CDEField* pField, DEFLD& DeFld)
     else
         DeFld.useOnlyOneDimension(iOcc);
 }
+
 
 CString CRunAplEntry::GetVal(const CDEField* pField)
 {
@@ -530,6 +509,7 @@ int CRunAplEntry::GetStatus(int iVar, int iOcc)
     return m_pEntryIFaz->C_GetStatus(&DeFld);
 }
 
+
 int CRunAplEntry::GetStatus(const CDEField* pField)
 {
     DEFLD DeFld;
@@ -537,29 +517,36 @@ int CRunAplEntry::GetStatus(const CDEField* pField)
     return m_pEntryIFaz->C_GetStatus(&DeFld);
 }
 
+
 int CRunAplEntry::GetStatus(const DEFLD* pDeField)
 {
     return m_pEntryIFaz->C_GetStatus(pDeField);
 }
+
 
 int CRunAplEntry::GetStatus3(const DEFLD3* pDeField)
 {
     return m_pEntryIFaz->C_GetStatus3(pDeField);
 }
 
+
 bool CRunAplEntry::IsPathOn()
 {
     return m_pEntryIFaz->C_IsPathOn();
 }
+
 
 bool CRunAplEntry::SetStopNode(int iNode)
 {
     return m_pEntryIFaz->C_SetStopNode(iNode);
 }
 
-bool CRunAplEntry::IsNewCase() {
+
+bool CRunAplEntry::IsNewCase()
+{
     return( m_pEntryIFaz->C_IsNewCase() );
 }
+
 
 CString CRunAplEntry::GetVal(int iVar, int iOcc)
 {
@@ -576,16 +563,18 @@ CString CRunAplEntry::GetVal(int iVar, int iOcc)
     return GetVal(&DeFld);
 }
 
+
 CString CRunAplEntry::GetVal(const DEFLD* pDeField)
 {
     CString csValue;
     DEFLD3 DeField3;
 
-    if( m_pEntryIFaz->GetEntryDriver()->MakeField3(&DeField3, pDeField) )
+    if( GetEntryDriver()->MakeField3(&DeField3, pDeField) )
         csValue = m_pEntryIFaz->C_FldGetVal(&DeField3);
 
     return csValue;
 }
+
 
 // RHF INIC Jan 13, 2000
 CCapi* CRunAplEntry::GetCapi() const
@@ -593,7 +582,9 @@ CCapi* CRunAplEntry::GetCapi() const
     return( m_pEntryIFaz->C_GetCapi() );
 }
 
-bool CRunAplEntry::GetDeFld( const CDEField* pEntryField, DEFLD* pDeFld ) const {
+
+bool CRunAplEntry::GetDeFld( const CDEField* pEntryField, DEFLD* pDeFld ) const
+{
     CDEField* pField = (CDEField*) pEntryField;
     const CDictItem* pItem = pField->GetDictItem();
     bool bRet=false;
@@ -619,6 +610,7 @@ bool CRunAplEntry::GetDeFld( const CDEField* pEntryField, DEFLD* pDeFld ) const 
 }
 // RHF END Jan 13, 2000
 
+
 // RHF INIC Feb 15, 2000
 CDEItemBase* CRunAplEntry::EndLevel( bool bPostProcCurField, bool bPostProcAllOthers,
                                      int iNextLevelToCapture, bool bWriteNode)
@@ -630,8 +622,10 @@ CDEItemBase* CRunAplEntry::EndLevel( bool bPostProcCurField, bool bPostProcAllOt
     return pItemReached;
 }
 
+
 // iNodeNumRelative and iNodeNumAbsolute are 1 based if are filled correctly.
-int CRunAplEntry::GetCurrentLevel( int* iNodeNumRelative, int* iNodeNumAbsolute ) const {
+int CRunAplEntry::GetCurrentLevel( int* iNodeNumRelative, int* iNodeNumAbsolute ) const
+{
     int             iCurrentLevel;
 
     iCurrentLevel = m_pEntryIFaz->C_GetCurrentLevel();
@@ -660,7 +654,9 @@ int CRunAplEntry::GetCurrentLevel( int* iNodeNumRelative, int* iNodeNumAbsolute 
     return (iCurrentLevel <= 0) ? -1 : iCurrentLevel;
 }
 
-bool CRunAplEntry::IsNewNode() const {
+
+bool CRunAplEntry::IsNewNode() const
+{
      return( m_pEntryIFaz->C_IsNewNode() );
 }
 
@@ -793,6 +789,7 @@ CDEItemBase* CRunAplEntry::ResetCurrentObjects( DEFLD* pReachedFld )
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::InsertOcc( bool& bRet )
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_InsertOcc( bRet );
@@ -801,6 +798,7 @@ CDEItemBase* CRunAplEntry::InsertOcc( bool& bRet )
 
     return pItemReached;
 }
+
 
 CDEItemBase* CRunAplEntry::DeleteOcc( bool& bRet )
 {
@@ -811,6 +809,7 @@ CDEItemBase* CRunAplEntry::DeleteOcc( bool& bRet )
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::SortOcc( const bool bAscending, bool& bRet )
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_SortOcc( bAscending, bRet );
@@ -819,6 +818,7 @@ CDEItemBase* CRunAplEntry::SortOcc( const bool bAscending, bool& bRet )
 
     return pItemReached;
 }
+
 
 CDEItemBase* CRunAplEntry::InsertOccAfter( bool& bRet )
 {
@@ -829,6 +829,7 @@ CDEItemBase* CRunAplEntry::InsertOccAfter( bool& bRet )
     return pItemReached;
 }
 
+
 CDEItemBase* CRunAplEntry::PreviousPersistentField()
 {
     DEFLD* pReachedFld = m_pEntryIFaz->C_PreviousPersistentField();
@@ -838,12 +839,14 @@ CDEItemBase* CRunAplEntry::PreviousPersistentField()
     return pItemReached;
 }
 
+
 // RHF INIC Nov 07, 2000
 bool CRunAplEntry::IsAutoEndGroup()
 {
     return( m_pEntryIFaz->C_IsAutoEndGroup() );
 }
 // RHF END Nov 07, 2000
+
 
 // RHF INIC Jan 25, 2001
 CDEItemBase* CRunAplEntry::AdvanceToEnd( bool bStopOnNextNode, BOOL bSaveCur, int iStopNode/*=-1*/ )
@@ -870,8 +873,8 @@ bool CRunAplEntry::DeleteNode(const CaseKey& case_key, int iNode)
 
     try
     {
-        DataRepository* pInputRepo = GetInputRepository();
-        auto data_case = pInputRepo->GetCaseAccess()->CreateCase();
+        DataRepository* const pInputRepo = GetInputRepository();
+        const std::unique_ptr<Case> data_case = pInputRepo->GetCaseAccess().CreateCase();
 
         pInputRepo->ReadCase(*data_case, case_key.GetPositionInRepository());
 
@@ -901,7 +904,7 @@ bool CRunAplEntry::DeleteNode(const CaseKey& case_key, int iNode)
 #ifdef WIN_DESKTOP
         ErrorMessage::Display(exception);
 #else
-        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T(""), exception.GetErrorMessage(), MB_OK);
+        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("", exception.what(), MB_OK);
 #endif
     }
 
@@ -911,27 +914,28 @@ bool CRunAplEntry::DeleteNode(const CaseKey& case_key, int iNode)
 
 bool CRunAplEntry::PartialSaveCase(APP_MODE defaultMode, bool bClearSkipped)
 {
-    if (m_pEntryIFaz->GetEntryDriver()->GetPartialMode() == NO_MODE) {
-        m_pEntryIFaz->GetEntryDriver()->SetPartialMode(defaultMode);
+    if (GetEntryDriver()->GetPartialMode() == NO_MODE) {
+        GetEntryDriver()->SetPartialMode(defaultMode);
     }
 
-    return m_pEntryIFaz->GetEntryDriver()->PartialSaveCase(bClearSkipped);
+    return GetEntryDriver()->PartialSaveCase(bClearSkipped);
 }
 
 
-bool CRunAplEntry::HasSpecialFunction(SpecialFunction special_function)
+bool CRunAplEntry::HasSpecialFunction(const SpecialFunction special_function)
 {
     return m_pEntryIFaz->HasSpecialFunction(special_function);
 }
 
-double CRunAplEntry::ExecSpecialFunction(SpecialFunction special_function, double argument/* = 0*/)
-{
-    int iSymVar = m_pCurEngineField ? m_pCurEngineField->GetSymbol() : -1;
 
-    if( iSymVar <= 0 || m_pEntryIFaz == NULL )
+double CRunAplEntry::ExecSpecialFunction(const SpecialFunction special_function, double const argument/* = 0*/)
+{
+    const int symbol_index = m_pCurEngineField ? m_pCurEngineField->GetSymbol() : -1;
+
+    if( symbol_index <= 0 || m_pEntryIFaz == nullptr )
         return DEFAULT;
 
-    return m_pEntryIFaz->ExecSpecialFunction(iSymVar, special_function, argument);
+    return m_pEntryIFaz->ExecSpecialFunction(symbol_index, special_function, argument);
 }
 
 
@@ -941,8 +945,8 @@ void CRunAplEntry::SetProgressForPreEntrySkip() // 20130415 so that skips launch
 }
 
 
-
-void CRunAplEntry::ResetDoorCondition( void ) {
+void CRunAplEntry::ResetDoorCondition( void )
+{
     // formally closing the CsDriver session
     m_pEntryIFaz->C_ResetDoorCondition();
 }
@@ -953,43 +957,46 @@ bool CRunAplEntry::EditNote(bool case_note)
     return GetEntryDriver()->EditNote(case_note);
 }
 
+
 std::shared_ptr<const CaseItemReference> CRunAplEntry::ReviewNotes()
 {
     return GetEntryDriver()->ReviewNotes();
 }
 
 
-bool CRunAplEntry::SetCurrentLanguage(wstring_view language_name)
+bool CRunAplEntry::SetCurrentLanguage(const std::string_view language_name_sv)
 {
-    return m_pEntryIFaz->SetCurrentLanguage(language_name);
+    return m_pEntryIFaz->SetCurrentLanguage(language_name_sv);
 }
+
 
 std::vector<Language> CRunAplEntry::GetLanguages(bool include_only_capi_languages/* = true*/) const
 {
     return m_pEntryIFaz->GetLanguages(include_only_capi_languages);
 }
 
+
 bool CRunAplEntry::ChangeLanguage()
 {
     // get the list of languages
-    std::vector<Language> languages = m_pEntryIFaz->GetLanguages(false);
+    const std::vector<Language> languages = m_pEntryIFaz->GetLanguages(false);
 
     // there is no need to display a language selection dialog if there are not multiple languages
     if( languages.size() < 2 )
     {
-        ErrorMessage::Display(MGF::GetMessageText(MGF::SelectLanguageOnlyOneDefined));
+        ErrorMessage::Display(MGF::GetMessageText(MGF::SelectLanguageOnlyOneDefined).GetString());
         return false;
     }
 
     ChoiceDlg choice_dlg(0);
     choice_dlg.SetTitle(MGF::GetMessageText(MGF::SelectLanguageTitle));
 
-    const auto& current_language_name = GetEntryDriver()->GetCurrentLanguageName();
+    const std::string& current_language_name = GetEntryDriver()->GetCurrentLanguageName();
     std::optional<int> default_choice_index;
 
     for( const Language& language : languages )
     {
-        int choice_index = choice_dlg.AddChoice(language.GetLabel());
+        const int choice_index = choice_dlg.AddChoice(language.GetLabel());
 
         if( !default_choice_index.has_value() && current_language_name == language.GetName() )
             default_choice_index = choice_index;
@@ -1010,45 +1017,62 @@ bool CRunAplEntry::ChangeLanguage()
 }
 
 
-CDEFormFile* CRunAplEntry::GetFormFileInProcess() {
+CDEFormFile* CRunAplEntry::GetFormFileInProcess()
+{
        return m_pEntryIFaz->GetFormFileInProcess();
 }
 
-CDEFormFile* CRunAplEntry::GetPrimaryFormFile() {
+
+CDEFormFile* CRunAplEntry::GetPrimaryFormFile()
+{
     return m_pEntryIFaz->GetPrimaryFormFile();
 }
 
-bool CRunAplEntry::InEnterMode() {
+
+bool CRunAplEntry::InEnterMode()
+{
     return m_pEntryIFaz->InEnterMode();
 }
 
-int CRunAplEntry::GetNumLevels( bool bPrimaryFlow ) {
+
+int CRunAplEntry::GetNumLevels( bool bPrimaryFlow )
+{
     return m_pEntryIFaz->GetNumLevels(bPrimaryFlow);
 }
 
-int CRunAplEntry::GetCurrentLevel() {
+
+int CRunAplEntry::GetCurrentLevel()
+{
     return m_pEntryIFaz->GetCurrentLevel();
 }
 
-CString CRunAplEntry::GetCurrentKey( int iLevel ) {
+
+CString CRunAplEntry::GetCurrentKey( int iLevel )
+{
     ASSERT( iLevel == -1 || iLevel >= 1 && iLevel <= (int)MaxNumberLevels );
     return m_pEntryIFaz->GetCurrentKey(iLevel);
 }
+
 
 CDEItemBase* CRunAplEntry::GetCurItemBase()
 {
     return m_pCurField;
 }
 
-void CRunAplEntry::RunGlobalOnFocus( int iVar ) {
-    m_pEntryIFaz->RunGlobalOnFocus(iVar);
+
+void CRunAplEntry::RunGlobalOnFocus(const int symbol_index)
+{
+    m_pEntryIFaz->RunGlobalOnFocus(symbol_index);
 }
 
-bool CRunAplEntry::QidReady( int iLevel ) {
+
+bool CRunAplEntry::QidReady( int iLevel )
+{
     return m_pEntryIFaz->QidReady( iLevel );
 }
 
 // RHF END Nov 08, 2002
+
 
 bool CRunAplEntry::RestorePartial()
 {
@@ -1056,21 +1080,21 @@ bool CRunAplEntry::RestorePartial()
     Case& data_case = pEntryDriver->GetInputCase();
 
     ASSERT(data_case.GetPartialSaveCaseItemReference() != nullptr);
-    const auto& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
+    const CaseItemReference& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
 
     // for multiple level applications, need to find the correct node
-    CString csLevelKey = partial_save_case_item_reference.GetLevelKey();
+    const std::string& level_key = partial_save_case_item_reference.GetLevelKey();
     int iNodeNum = 0;
 
-    if( !csLevelKey.IsEmpty() )
+    if( !level_key.empty() )
     {
-        const auto& case_levels = data_case.GetAllCaseLevels();
+        const std::vector<CaseLevel*>& case_levels = data_case.GetAllCaseLevels();
 
         for( size_t i = 0; i < case_levels.size(); ++i )
         {
-            if( case_levels[i]->GetLevelKey().Compare(csLevelKey) == 0 )
+            if( UTF8_TODO::GetUtf8(case_levels[i]->GetLevelKey()) == level_key )
             {
-                iNodeNum = (int)i;
+                iNodeNum = static_cast<int>(i);
                 break;
             }
         }
@@ -1091,17 +1115,17 @@ bool CRunAplEntry::RestorePartial()
 
     else
     {
-        CString csMsg = _T("Cannot move to ");
+        std::string message = "Cannot move to ";
 
-        if( !partial_save_case_item_reference.GetLevelKey().IsEmpty() )
-            csMsg.AppendFormat(_T("node '%s', "), csLevelKey.GetString());
+        if( !partial_save_case_item_reference.GetLevelKey().empty() )
+            message.append(FormatText("node '%s', ", level_key.c_str()));
 
-        csMsg.AppendFormat(_T("field '%s'"), partial_save_case_item_reference.GetName().GetString());
+        message.append(FormatText("field '%s'", partial_save_case_item_reference.GetName().c_str()));
 
 #ifdef WIN_DESKTOP
-        AfxMessageBox(csMsg);
+        AfxMessageBox(message);
 #else
-        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T(""),csMsg,MB_OK);
+        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("", message, MB_OK);
 #endif
         return false;
     }
@@ -1134,23 +1158,25 @@ void CRunAplEntry::SetupOperatorId()
     if( application->GetAskOperatorId() && SO::IsBlank(operator_id) )
     {
         TextInputDlg text_input_dlg;
-        text_input_dlg.SetTitle(MGF::GetMessageText(89265, _T("Operator ID")));
+        text_input_dlg.SetTitle(MGF::GetMessageText(89265, "Operator ID"));
         text_input_dlg.SetRequireInput(true);
 
         if( text_input_dlg.DoModalOnUIThread() != IDOK )
-            throw CSProException(MGF::GetMessageText(89266));
+            throw CSProException(MGF::GetMessageText(89266).GetString());
 
-        operator_id = WS2CS(text_input_dlg.GetTextInput());
+        operator_id = UTF8_TODO::GetCString(*text_input_dlg.GetTextInput());
     }
 
     SetOperatorId(operator_id);
 }
+
 
 void CRunAplEntry::SetOperatorId(const CString& operator_id)
 {
     if( m_pEntryIFaz != NULL )
         m_pEntryIFaz->C_SetOperatorId(operator_id);
 }
+
 
 CString CRunAplEntry::GetOperatorId() const
 {
@@ -1164,6 +1190,7 @@ bool CRunAplEntry::HasSomeRequest()
     return ( m_pEntryIFaz != NULL ) ? m_pEntryIFaz->C_HasSomeRequest() : false;
 }
 
+
 CDEItemBase* CRunAplEntry::RunCsDriver( bool bCheckRange )
 {
     ASSERT( HasSomeRequest() );
@@ -1176,6 +1203,7 @@ CDEItemBase* CRunAplEntry::RunCsDriver( bool bCheckRange )
 }
 // RHF END Nov 06, 2003
 
+
 // BUCEN_2003 Changes End
 
 //FABN Jan 2006
@@ -1186,6 +1214,7 @@ CDEForm* CRunAplEntry::GetForm( CDEItemBase* pItemBase, bool bPrimaryFlow )
     CDEForm*        pForm       = pFormFile ? pFormFile->GetForm(iFormNum) : NULL;
     return          pForm;
 }
+
 
 CDEFormBase* CRunAplEntry::GetEntryObject( CDEItemBase* pItem, bool bPrimaryFlow )
 {
@@ -1212,6 +1241,7 @@ CDEFormBase* CRunAplEntry::GetEntryObject( CDEItemBase* pItem, bool bPrimaryFlow
     return pEntryObject;
 }
 
+
 CDEFormBase* CRunAplEntry::GetCurEntryObject(bool bPrimaryFlow)
 {
     return GetEntryObject( GetCurItemBase(), bPrimaryFlow );
@@ -1219,7 +1249,7 @@ CDEFormBase* CRunAplEntry::GetCurEntryObject(bool bPrimaryFlow)
 
 
 bool CRunAplEntry::ProcessModify(double dPositionInRepository, bool* pbMoved, PartialSaveMode* partial_save_mode,
-    CDEItemBase** ppItem, int iNode, ProcessModifyAction eModifyAction)
+                                 CDEItemBase** ppItem, int iNode, ProcessModifyAction eModifyAction)
 {
     *pbMoved = false;
     *partial_save_mode = PartialSaveMode::None;
@@ -1238,13 +1268,13 @@ bool CRunAplEntry::ProcessModify(double dPositionInRepository, bool* pbMoved, Pa
 #ifdef WIN_DESKTOP
         ErrorMessage::Display(exception);
 #else
-        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T(""), exception.GetErrorMessage(), MB_OK);
+        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("", exception.what(), MB_OK);
 #endif
         return false;
     }
 
-    GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
-    GetEntryDriver()->m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
+    GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
+    GetEntryDriver()->m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
 
     pEntryDriver->SetWriteCaseParameter(WriteCaseParameter::CreateModifyParameter(data_case));
 
@@ -1297,13 +1327,13 @@ bool CRunAplEntry::ProcessModify(double dPositionInRepository, bool* pbMoved, Pa
         // query the user if they want to move to the last position, though having an OnStop function disables this functionality
         if( data_case.GetPartialSaveCaseItemReference() != nullptr && !HasSpecialFunction(SpecialFunction::OnStop) )
         {
-            const std::wstring& partial_save_last_position_query = MGF::GetMessageText(MGF::PartialSaveGotoLastPosition);
+            const SharableString partial_save_last_position_query = MGF::GetMessageText(MGF::PartialSaveGotoLastPosition);
 
 #ifdef WIN_DESKTOP
-            if( AfxMessageBox(partial_save_last_position_query.c_str(), MB_YESNO) == IDYES )
+            if( AfxMessageBox(*partial_save_last_position_query, MB_YESNO) == IDYES )
 #else
             if( PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(
-                MGF::GetMessageText(MGF::PartialSaveTitle), partial_save_last_position_query, MB_YESNO) == IDYES )
+                MGF::GetMessageText(MGF::PartialSaveTitle).GetString(), *partial_save_last_position_query, MB_YESNO) == IDYES )
 #endif
             {
                 *pbMoved = RestorePartial();
@@ -1325,6 +1355,7 @@ bool CRunAplEntry::ProcessModify(double dPositionInRepository, bool* pbMoved, Pa
     return true;
 }
 
+
 bool CRunAplEntry::ProcessModify(double dPositionInRepository,bool* pbMoved,PartialSaveMode* partial_save_mode,CDEItemBase** ppItem)
 {
     // REPO_TEMP: should the above function just have default arguments
@@ -1339,6 +1370,7 @@ void CRunAplEntry::ProcessAdd()
     pEntryDriver->LoadPersistentFields();
     pEntryDriver->SetPartialMode(NO_MODE);
 }
+
 
 void CRunAplEntry::ProcessInsert(double insert_before_position_in_repository)
 {
@@ -1441,6 +1473,12 @@ bool CRunAplEntry::FinalizeInitializationTasks()
     try
     {
         SetupOperatorId();
+
+        CEntryDriver* pEntryDriver = GetEntryDriver();
+
+        pEntryDriver->m_pIntDriver->StartApplication();
+
+        return pEntryDriver->OpenRepositories(true);
     }
 
     catch( const CSProException& exception )
@@ -1448,31 +1486,24 @@ bool CRunAplEntry::FinalizeInitializationTasks()
         ErrorMessage::Display(exception);
         return false;
     }
-
-    CEntryDriver* pEntryDriver = GetEntryDriver();
-
-    pEntryDriver->m_pIntDriver->StartApplication();
-
-    return pEntryDriver->OpenRepositories(true);
 }
+
 
 DataRepository* CRunAplEntry::GetInputRepository()
 {
-    return m_pEntryIFaz->GetEntryDriver()->GetInputRepository();
+    return GetEntryDriver()->GetInputRepository();
 }
+
 
 int CRunAplEntry::GetInputDictionaryKeyLength() const
 {
-    return m_pEntryIFaz->GetEntryDriver()->GetInputDictionaryKeyLength();
+    return GetEntryDriver()->GetInputDictionaryKeyLength();
 }
 
-bool CRunAplEntry::RunSync(const AppSyncParameters& params)
+
+int CRunAplEntry::RunSync(const AppSyncParameters& sync_params)
 {
-    AppSyncParamRunner runner(GetEntryDriver()->m_pIntDriver->GetSyncClient());
-    CLoginDialog loginDialog;
-    SyncCredentialStore syncCredentialStore;
-    DropboxAuthDialog dropboxAuthDialog;
-    return runner.Run(params, *GetInputRepository(), &loginDialog, &dropboxAuthDialog, &syncCredentialStore);
+    return GetEntryDriver()->RunSync(sync_params);
 }
 
 
@@ -1518,7 +1549,7 @@ void CRunAplEntry::RunPeriodicEvents()
         if( should_execute_next_periodic_action(m_nextParadataDeviceStateTimestamp,
             application->GetApplicationProperties().GetParadataProperties().GetDeviceStateIntervalMinutes()) )
         {
-            Paradata::Logger::LogEvent(std::make_shared<Paradata::DeviceStateEvent>());
+            Paradata::Logger::LogEvent(std::make_unique<Paradata::DeviceStateEvent>());
         }
     }
 }
@@ -1528,13 +1559,15 @@ void CRunAplEntry::RunPeriodicEvents()
 // mode, so these functions give the true mode
 bool CRunAplEntry::InAddMode() const
 {
-    return ( GetAppMode() == CRUNAPL_ADD ) || ( m_pEntryIFaz->GetEntryDriver()->GetPartialMode() == ADD_MODE );
+    return ( GetAppMode() == CRUNAPL_ADD ) || ( GetEntryDriver()->GetPartialMode() == ADD_MODE );
 }
+
 
 bool CRunAplEntry::InModifyMode() const
 {
-    return ( GetAppMode() == CRUNAPL_MODIFY ) && ( m_pEntryIFaz->GetEntryDriver()->GetPartialMode() != ADD_MODE );
+    return ( GetAppMode() == CRUNAPL_MODIFY ) && ( GetEntryDriver()->GetPartialMode() != ADD_MODE );
 }
+
 
 bool CRunAplEntry::InVerifyMode() const
 {

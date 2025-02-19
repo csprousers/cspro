@@ -34,17 +34,17 @@ DictBase& DictBase::operator=(DictBase&& rhs) noexcept // DD_STD_REFACTOR_TODO i
 }
 
 
-void DictBase::ParseJsonInput(const JsonNode<wchar_t>& json_node)
+void DictBase::ParseJsonInput(const JsonNode& json_node)
 {
     m_label = json_node.GetOrDefault(JK::labels, LabelSet::DefaultValue);
-    m_note = json_node.GetOrDefault(JK::note, SO::EmptyCString);
+    m_note = json_node.GetOrConstruct<CString>(JK::note);
 }
 
 
 void DictBase::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.Write(JK::labels, m_label)
-               .WriteIfNotBlank(JK::note, m_note);
+               .WriteIfNotBlank(JK::note, UTF8_TODO::GetUtf8(m_note));
 }
 
 

@@ -6,7 +6,7 @@
 struct DataFileFilter
 {
     DataRepositoryType type;
-    const TCHAR* extension;
+    const wchar_t* extension;
     bool force_extension;
 };
 
@@ -30,7 +30,7 @@ public:
         return m_filterText;
     }
 
-    const std::vector<const TCHAR*>& GetTypeNames() const
+    const std::vector<const wchar_t*>& GetTypeNames() const
     {
         ASSERT(m_useType == UseType::FileAssociationsDlg);
         return m_typeNames;
@@ -52,5 +52,5 @@ private:
     std::wstring m_filterText;
 
     std::map<std::wstring, std::shared_ptr<const DataFileFilter>> m_filterNameMap;
-    std::vector<const TCHAR*> m_typeNames;
+    std::vector<const wchar_t*> m_typeNames;
 };

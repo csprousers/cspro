@@ -1,21 +1,14 @@
 ﻿#include "stdafx.h"
-#include <cassert>
-#include "ObexConstants.h"
 #include "ObexServer.h"
+#include "ObexConstants.h"
+#include "ObexHeader.h"
+#include "ObexPacket.h"
 #include "ObexPacketSerializer.h"
-#include "SyncException.h"
 #include "SyncObexHandler.h"
-#include "ISyncListener.h"
-#include <sstream>
-#include <stdint.h>
-#include <easyloggingwrapper.h>
-#include <zZipo/ZipUtility.h>
-#ifndef UINT32_MAX
-#define UINT32_MAX 0xffffffff
-#endif
 
-namespace {
 
+namespace
+{
     std::vector<char> getBody(const ObexPacket& packet)
     {
         std::vector<char> body;
@@ -33,9 +26,9 @@ namespace {
 
     ObexHeader createLengthHeader(int64_t totalSizeBytes)
     {
-        if (totalSizeBytes <= UINT32_MAX) {
+        if (totalSizeBytes <= std::numeric_limits<uint32_t>::max()) {
             // For small length use obex header that accepts uint32
-            return ObexHeader(OBEX_HEADER_LENGTH, (uint32_t)totalSizeBytes);
+            return ObexHeader(OBEX_HEADER_LENGTH, static_cast<uint32_t>(totalSizeBytes));
         }
         else {
             // For bigger files per obex standard use http content-length header
@@ -47,12 +40,13 @@ namespace {
     }
 }
 
+
 ObexServer::ObexServer(SyncObexHandler* pHandler)
-    : m_pHandler(pHandler),
-      m_maxPacketSize(OBEX_MIN_PACKET_SIZE),
-      m_pListener(NULL)
+    :   m_pHandler(pHandler),
+        m_maxPacketSize(OBEX_MIN_PACKET_SIZE)
 {
 }
+
 
 void ObexServer::run(IObexTransport* pTransport)
 {
@@ -63,13 +57,15 @@ void ObexServer::run(IObexTransport* pTransport)
     ObexPacket connectPacket = packetSerializer.receivePacket();
     handleConnect(packetSerializer, connectPacket);
 
-    m_pListener->setProgressTotal(-1);
-    m_pListener->onProgress(0);
+    if (m_syncListener != nullptr) {
+        m_syncListener->SetProgressTotal(-1);
+        m_syncListener->Progress(0);
+    }
 
     bool connected = true;
     while (connected) {
         try {
-            CLOG(INFO, "sync") << "Waiting for request ";
+            SYNCLOG_INFO << "Waiting for request ";
             ObexPacket requestPacket = packetSerializer.receivePacket();
 
             switch (requestPacket.getCode()) {
@@ -91,7 +87,7 @@ void ObexServer::run(IObexTransport* pTransport)
                 break;
             }
 
-            if (m_pListener && m_pListener->isCancelled()) {
+            if (m_syncListener != nullptr && m_syncListener->IsCanceled()) {
                 connected = false;
             }
         }
@@ -102,11 +98,12 @@ void ObexServer::run(IObexTransport* pTransport)
     }
 }
 
+
 void ObexServer::handleConnect(ObexPacketSerializer& packetSerializer, const ObexPacket& connectPacket)
 {
     if (connectPacket.getCode() != OBEX_CONNECT) {
         packetSerializer.sendPacket(ObexPacket(OBEX_BAD_REQUEST));
-        throw SyncError(100101, L"Invalid packet received from client - expecting connect");
+        throw SyncConnectionError("Invalid packet received from client - expecting connect");
     }
 
     // Valid connect packet
@@ -136,28 +133,30 @@ void ObexServer::handleConnect(ObexPacketSerializer& packetSerializer, const Obe
     const bool isConnect = true;
     packetSerializer.sendPacket(ObexPacket(result, OBEX_VERSION, 0, m_maxPacketSize, headers), isConnect);
 
-    CLOG(INFO, "sync") << "Bluetooth protocol version: " << BLUETOOTH_PROTOCOL_VERSION;
+    SYNCLOG_INFO << "Bluetooth protocol version: " << BLUETOOTH_PROTOCOL_VERSION;
     if (clientBluetoothProtocolVersion != BLUETOOTH_PROTOCOL_VERSION) {
-        CLOG(ERROR, "sync") << "Bluetooth protocol version mismatch: server ("
+        SYNCLOG_ERROR << "Bluetooth protocol version mismatch: server ("
             << BLUETOOTH_PROTOCOL_VERSION << ") != client (" << clientBluetoothProtocolVersion << ")";
 
         throw SyncError(100145);
     }
     else if (result != OBEX_OK) {
-        throw SyncError(100101, ObexResponseCodeToString(result));
+        throw SyncConnectionError(ObexResponseCodeToString(result));
     }
 }
 
+
 void ObexServer::handleDisconnect(ObexPacketSerializer& serializer, const ObexPacket& )
 {
-    CLOG(INFO, "sync") << "Client disconnected";
+    SYNCLOG_INFO << "Client disconnected";
     serializer.sendPacket(ObexPacket(OBEX_OK));
 }
+
 
 void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPacket& firstRequestPacket)
 {
     CString name;
-    CString type;
+    std::string type;
     HeaderList requestHeaders;
     ObexPacket currentRequestPacket = firstRequestPacket;
     while (true) {
@@ -173,17 +172,17 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
             case OBEX_HEADER_TYPE:
                 // For some strange reason OBEX wants the type to be ASCII text
                 // in binary format instead of in unicode string format.
-                type = UTF8Convert::UTF8ToWide<CString>(ih->getByteSequenceData(), (int) ih->getByteSequenceDataSize());
+                type = std::string(ih->getByteSequenceData(), ih->getByteSequenceDataSize());
                 break;
             case OBEX_HEADER_HTTP:
-                requestHeaders.push_back(UTF8Convert::UTF8ToWide<CString>(ih->getByteSequenceData(), (int) ih->getByteSequenceDataSize()));
+                requestHeaders.Add(std::string(ih->getByteSequenceData(), ih->getByteSequenceDataSize()));
                 break;
             }
         }
 
-        if (m_pListener) {
-            m_pListener->onProgress(0, 100107, (LPCTSTR) name);
-            if (m_pListener->isCancelled()) {
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(0, 100107, UTF8_TODO::GetUtf8(name).c_str());
+            if (m_syncListener->IsCanceled()) {
                 packetSerializer.sendPacket(OBEX_CANCELED_BY_USER);
                 destroyResource();
                 return;
@@ -205,11 +204,11 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
             throw SyncError(100122);
         }
         else {
-            throw SyncError(100101, L"Unexpected packet received from client during get");
+            throw SyncConnectionError("Unexpected packet received from client during get");
         }
     }
 
-    ObexResponseCode result = m_pHandler->onGet(type, name, requestHeaders, m_resource);
+    ObexResponseCode result = m_pHandler->onGet(UTF8_TODO::GetCString(type), name, requestHeaders, m_resource);
     if (result == OBEX_NOT_MODIFIED) {
         packetSerializer.sendPacket(ObexPacket(result));
         destroyResource();
@@ -221,7 +220,7 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
         destroyResource();
         if (result == OBEX_NOT_IMPLEMENTED) // let the client handle not implemented as an error if it wants to
             return;
-        throw SyncError(100101, L"Error getting " + name + L". " + ObexResponseCodeToString(result));
+        throw SyncConnectionError("Error getting " + UTF8_TODO::GetUtf8(name) + ". " + ObexResponseCodeToString(result));
     }
 
     result = m_resource->openForReading();
@@ -250,12 +249,11 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
                 responsePacket.addHeader(lengthHeader);
             }
 
-            HeaderList headers = m_resource->getHeaders();
-            for (HeaderList::const_iterator ih = headers.begin(); ih != headers.end(); ++ih) {
-                std::string hutf8 = UTF8Convert::WideToUTF8(*ih);
-                ObexHeader header(OBEX_HEADER_HTTP, hutf8.c_str(), hutf8.size());
-                maxBodySize -= header.getTotalSizeBytes();
-                responsePacket.addHeader(header);
+            for( const std::string& header : m_resource->getHeaders().GetHeaders() )
+            {
+                ObexHeader obex_header(OBEX_HEADER_HTTP, header.c_str(), header.size());
+                maxBodySize -= obex_header.getTotalSizeBytes();
+                responsePacket.addHeader(std::move(obex_header));
             }
         }
 
@@ -263,7 +261,7 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
         m_resource->getIStream()->read(&bodyData[0], maxBodySize);
         if (m_resource->getIStream()->bad()) {
             packetSerializer.sendPacket(ObexPacket(OBEX_INTERNAL_SERVER_ERROR));
-            throw SyncError(100101, L"Error reading file " + name);
+            throw SyncConnectionError("Error reading file " + UTF8_TODO::GetUtf8(name));
         }
         int bytesRead = (int)m_resource->getIStream()->gcount();
 
@@ -282,12 +280,12 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
                 throw SyncError(100122);
             }
             else {
-                throw SyncError(100101, L"Unexpected packet received from client during get");
+                throw SyncConnectionError("Unexpected packet received from client during get");
             }
         }
-        if (m_pListener) {
-            m_pListener->onProgress(bytesSent);
-            if (m_pListener->isCancelled()) {
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(bytesSent);
+            if (m_syncListener->IsCanceled()) {
                 packetSerializer.sendPacket(OBEX_CANCELED_BY_USER);
                 destroyResource();
                 return;
@@ -295,7 +293,7 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
         }
     }
 
-    const bool isFile = ( type == OBEX_BINARY_FILE_MEDIA_TYPE || type == OBEX_SYNC_PARADATA_TYPE );
+    const bool isFile = ( type == UTF8_TODO::GetUtf8(OBEX_BINARY_FILE_MEDIA_TYPE) || type == UTF8_TODO::GetUtf8(OBEX_SYNC_PARADATA_TYPE) );
     const bool isLastFileChunk = ( result == OBEX_IS_LAST_FILE_CHUNK );
     if (!isFile || (isFile && isLastFileChunk)) {
         destroyResource();
@@ -308,10 +306,11 @@ void ObexServer::handleGet(ObexPacketSerializer& packetSerializer, const ObexPac
     packetSerializer.sendPacket(finalPacket);
 }
 
+
 void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPacket& firstRequestPacket)
 {
     CString name;
-    CString type;
+    std::string type;
     HeaderList requestHeaders;
     int lastFileChunk = 0;
     uint64_t bodyLength = 0;
@@ -325,8 +324,9 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
 
         if (!haveBodyLength) {
             haveBodyLength = currentRequestPacket.getHeaders().getBodyLength(bodyLength);
-            if (haveBodyLength && m_pListener)
-                m_pListener->setProgressTotal(bodyLength);
+            if (haveBodyLength && m_syncListener != nullptr) {
+                m_syncListener->SetProgressTotal(bodyLength);
+            }
         }
 
         for (std::vector<ObexHeader>::const_iterator ih = currentRequestPacket.getHeaders().getHeaders().begin();
@@ -340,10 +340,10 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
             case OBEX_HEADER_TYPE:
                 // For some strange reason OBEX wants the type to be ASCII text
                 // in binary format instead of in unicode string format.
-                type = UTF8Convert::UTF8ToWide<CString>(ih->getByteSequenceData(), (int) ih->getByteSequenceDataSize());
+                type = std::string(ih->getByteSequenceData(), ih->getByteSequenceDataSize());
                 break;
             case OBEX_HEADER_HTTP:
-                requestHeaders.push_back(UTF8Convert::UTF8ToWide<CString>(ih->getByteSequenceData(), (int) ih->getByteSequenceDataSize()));
+                requestHeaders.Add(std::string(ih->getByteSequenceData(), ih->getByteSequenceDataSize()));
                 break;
             case OBEX_HEADER_IS_LAST_FILE_CHUNK:
                 lastFileChunk = ih->getIntData();
@@ -351,10 +351,10 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
             }
         }
 
-        if (m_pListener) {
-            m_pListener->onProgress(0, 100108, (LPCTSTR)name);
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(0, 100108, UTF8_TODO::GetUtf8(name).c_str());
 
-            if (m_pListener->isCancelled()) {
+            if (m_syncListener->IsCanceled()) {
                 packetSerializer.sendPacket(OBEX_CANCELED_BY_USER);
                 destroyResource();
                 return;
@@ -380,7 +380,7 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
     // Since we have a body packet, the name, type and length should be filled in
     // from the headers if they ever will be. We can now use name and type to get
     // the resource from the handler.
-    ObexResponseCode result = m_pHandler->onPut(type, name, requestHeaders, m_resource);
+    ObexResponseCode result = m_pHandler->onPut(UTF8_TODO::GetCString(type), name, requestHeaders, m_resource);
     if (result != OBEX_OK) {
         packetSerializer.sendPacket(ObexPacket(result));
         destroyResource();
@@ -408,10 +408,10 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
             totalBodyBytesRead += packetBodyBytes.size();
         }
 
-        if (m_pListener) {
-            m_pListener->onProgress(totalBodyBytesRead);
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(totalBodyBytesRead);
 
-            if (m_pListener->isCancelled()) {
+            if (m_syncListener->IsCanceled()) {
                 packetSerializer.sendPacket(OBEX_CANCELED_BY_USER);
                 destroyResource();
                 return;
@@ -432,32 +432,33 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
             throw SyncError(100122);
         }
         else {
-            throw SyncError(100101, L"Unexpected packet received from client during put");
+            throw SyncConnectionError("Unexpected packet received from client during put");
         }
     }
 
     std::istringstream inStrm(allPackets);
-    if (ZipUtility::decompression(inStrm, *(m_resource->getOStream()))) {
-        CLOG(ERROR, "sync") << "Decompression failed";
+    if (!ZLib::Inflate(inStrm, *(m_resource->getOStream()))) {
+        SYNCLOG_ERROR << "Decompression failed";
         throw SyncError(100139);
     }
 
     // Were all packets written to resource successfully?
     if (m_resource->getOStream()->fail()) {
         packetSerializer.sendPacket(ObexPacket(OBEX_INTERNAL_SERVER_ERROR));
-        throw SyncError(100101, L"Error writing file " + name);
+        throw SyncConnectionError("Error writing file " + UTF8_TODO::GetUtf8(name));
     }
 
     // Send the response - read from resource and write to packets
     result = m_resource->openForReading();
     if (result != OBEX_OK) {
         packetSerializer.sendPacket(ObexPacket(result));
-        throw SyncError(100101, L"Error writing " + name + L". " + ObexResponseCodeToString(result));
+        throw SyncConnectionError("Error writing " + UTF8_TODO::GetUtf8(name) + ". " + ObexResponseCodeToString(result));
     }
 
     const int64_t totalResponseSizeBytes = m_resource->getTotalSize();
-    if (m_pListener)
-        m_pListener->setProgressTotal(totalResponseSizeBytes);
+    if (m_syncListener != nullptr) {
+        m_syncListener->SetProgressTotal(totalResponseSizeBytes);
+    }
 
     int64_t bytesSent = 0;
     bool firstPacket = true;
@@ -475,11 +476,11 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
                 responsePacket.addHeader(lengthHeader);
             }
 
-            for (HeaderList::const_iterator ih = m_resource->getHeaders().begin(); ih != m_resource->getHeaders().end(); ++ih) {
-                std::string hutf8 = UTF8Convert::WideToUTF8(*ih);
-                ObexHeader header(OBEX_HEADER_HTTP, hutf8.c_str(), hutf8.size());
-                maxBodySize -= header.getTotalSizeBytes();
-                responsePacket.addHeader(header);
+            for( const std::string& header : m_resource->getHeaders().GetHeaders() )
+            {
+                ObexHeader obex_header(OBEX_HEADER_HTTP, header.c_str(), header.size());
+                maxBodySize -= obex_header.getTotalSizeBytes();
+                responsePacket.addHeader(std::move(obex_header));
             }
         }
 
@@ -488,7 +489,7 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
             m_resource->getIStream()->read(&bodyData[0], maxBodySize);
             if (m_resource->getIStream()->bad()) {
                 packetSerializer.sendPacket(ObexPacket(OBEX_INTERNAL_SERVER_ERROR));
-                throw SyncError(100101, L"Error reading file " + name);
+                throw SyncConnectionError("Error reading file " + UTF8_TODO::GetUtf8(name));
             }
             int bytesRead = (int)m_resource->getIStream()->gcount();
             bytesSent += bytesRead;
@@ -506,13 +507,12 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
                 throw SyncError(100122);
             }
             else {
-                throw SyncError(100101, L"Unexpected packet received from client during get");
+                throw SyncConnectionError("Unexpected packet received from client during get");
             }
         }
 
-        if (m_pListener) {
-
-            if (m_pListener->isCancelled()) {
+        if (m_syncListener != nullptr) {
+            if (m_syncListener->IsCanceled()) {
                 packetSerializer.sendPacket(OBEX_CANCELED_BY_USER);
                 destroyResource();
                 return;
@@ -520,13 +520,13 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
         }
     }
 
-    const bool isFile = ( type == OBEX_BINARY_FILE_MEDIA_TYPE || type == OBEX_SYNC_PARADATA_TYPE );
+    const bool isFile = ( type == UTF8_TODO::GetUtf8(OBEX_BINARY_FILE_MEDIA_TYPE) || type == UTF8_TODO::GetUtf8(OBEX_SYNC_PARADATA_TYPE) );
     const bool isLastFileChunk = static_cast<bool>(lastFileChunk);
     if (!isFile || (isFile && isLastFileChunk)) {
         ObexResponseCode closeResult = m_resource->close();
         if (closeResult != OBEX_OK) {
             packetSerializer.sendPacket(ObexPacket(closeResult));
-            throw SyncError(100101, L"Error writing " + name + L". " + ObexResponseCodeToString(closeResult));
+            throw SyncConnectionError("Error writing " + UTF8_TODO::GetUtf8(name) + ". " + ObexResponseCodeToString(closeResult));
         }
 
         destroyResource();
@@ -539,10 +539,6 @@ void ObexServer::handlePut(ObexPacketSerializer& packetSerializer, const ObexPac
     packetSerializer.sendPacket(finalPacket);
 }
 
-void ObexServer::setListener(ISyncListener* pListener)
-{
-    m_pListener = pListener;
-}
 
 void ObexServer::destroyResource()
 {

@@ -336,7 +336,7 @@ BOOL ProgressDlg::OnInitDialog()
     m_progress.SetStep(m_iStep);
     m_progress.SetPos(m_iLower);
 
-    SetWindowText(CSPRO_VERSION);
+    SetWindowText(TC::ToWide(static_cast<const char*>(Versioning::CSProVersionText)).c_str());
 
     return TRUE;
 }

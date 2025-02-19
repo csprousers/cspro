@@ -3,14 +3,13 @@
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseItemPrinter.h>
 #include <zToolsO/SerializerHelper.h>
-#include <zUtilO/BinaryDataReader.h>
 #include <zAppO/FieldStatus.h>
 
 class BinaryCaseItem;
+class BinaryContentReader;
+class BinaryDataMetadata;
 class Case;
 class CaseAccess;
-template<typename CharType> class JsonNode;
-class JsonWriter;
 
 
 // --------------------------------------------------------------------------
@@ -37,9 +36,14 @@ public:
 
     const BinaryDataWriter* GetBinaryDataWriter() const { return m_binaryDataWriter.get(); }
     void SetBinaryDataWriter(BinaryDataWriter function) { m_binaryDataWriter = std::make_unique<BinaryDataWriter>(std::move(function)); }
+    void ClearBinaryDataWriter()                        { m_binaryDataWriter.reset(); }
 
     const FieldStatusRetriever* GetFieldStatusRetriever() const                  { return m_fieldStatusRetriever.get(); }
     void SetFieldStatusRetriever(std::shared_ptr<FieldStatusRetriever> function) { m_fieldStatusRetriever = std::move(function); }
+
+    // methods that can be overridden
+    virtual bool GetWriteCaseNote() const    { return false; }
+    virtual bool GetWriteVectorClock() const { return false; }
 
 private:
     bool m_verbose;
@@ -75,19 +79,24 @@ inline void CaseJsonWriterSerializerHelper::SetWriteLabels(bool flag/* = true*/)
 class ZCASEO_API CaseJsonParserHelper
 {
 public:
-    CaseJsonParserHelper(const CaseAccess* case_access)
-        :   m_caseAccess(case_access)
+    CaseJsonParserHelper(std::shared_ptr<const CaseAccess> case_access)
+        :   m_caseAccess(std::move(case_access))
     {
     }
 
     virtual ~CaseJsonParserHelper() { }
 
-    const CaseAccess* GetCaseAccess() const { return m_caseAccess; }
+    const CaseAccess* GetCaseAccess() const { return m_caseAccess.get(); }
 
-    virtual std::unique_ptr<BinaryDataReader> CreateBinaryDataReader(BinaryDataMetadata /*binary_data_metadata*/, const JsonNode<wchar_t>& /*json_node*/) { return nullptr; }
+    // the base implemention returns null
+    virtual std::unique_ptr<BinaryContentReader> CreateBinaryContentReader(std::optional<uint64_t> size);
 
-    void ParseJson(Case& data_case, const JsonNode<wchar_t>& json_node);
+    void ParseJson(Case& data_case, const JsonNode& json_node);
 
-private:
-    const CaseAccess* m_caseAccess;
+    static void ParseNumericCaseItem(const NumericCaseItem& numeric_case_item, CaseItemIndex& index, const JsonNode& case_item_node);
+    static void ParseStringCaseItem(const StringCaseItem& string_case_item, CaseItemIndex& index, const JsonNode& case_item_node);
+    void ParseBinaryCaseItem(const BinaryCaseItem& binary_case_item, CaseItemIndex& index, const JsonNode& case_item_node);
+
+protected:
+    std::shared_ptr<const CaseAccess> m_caseAccess;
 };

@@ -1,43 +1,44 @@
 ﻿#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-#include <zNetwork/IFtpConnection.h>
+#include <zNetwork/FtpConnection.h>
 #include <jni.h>
 
-/**
-* Ftp connection implementation for Android
-* that calls through to ftp4j library
-*/
-class AndroidFtpConnection : public IFtpConnection {
 
+// Ftp connection implementation for Android that calls through to ftp4j library
+
+class AndroidFtpConnection : public FtpConnection
+{
 public:
-
     AndroidFtpConnection();
-
     ~AndroidFtpConnection();
 
-    virtual void connect(CString serverUrl, CString username, CString password);
+    // FtpConnection + FileBasedConnection overrides
 
-    virtual void disconnect();
+    void SetSyncListener(std::shared_ptr<SyncListener> sync_listener) override;
 
-    void download(CString remoteFilePath, CString localFilePath);
+protected:
+    std::string DoConnect(const std::string& username, const std::string& password) override;
+    void DoDisconnect() override;
 
-    void download(CString remoteFilePath, std::ostream& localFileStream);
+public:
+    void Download(const std::string& remote_file_path, const std::string& local_file_path) override;
+    void Download(const std::string& remote_file_path, std::ostream& output_stream) override;
 
-    void upload(CString localFilePath, CString remoteFilePath);
+    void Upload(const std::string& local_file_path, const std::string& remote_file_path) override;
+    void Upload(std::istream& input_stream, int64_t input_size_bytes, const std::string& remote_file_path) override;
 
-    void upload(std::istream& localFileData, int64_t fileSizeBytes, CString remoteFilePath);
+    bool FileExists(const std::string& remote_path) override;
+    bool FileIsRegular(const std::string& remote_path) override;
+    bool FileIsDirectory(const std::string& remote_path) override;
+    int64_t FileModifiedTime(const std::string& remote_path) override;
+    std::vector<FileInfo> GetDirectoryListing(const std::string& remote_directory_path, bool request_file_md5s) override;
 
-    std::vector<FileInfo>* getDirectoryListing(CString remotePath);
-
-    time_t getLastModifiedTime(CString remotePath);
-
-    virtual void setListener(ISyncListener* pListener);
+    void FileRename(const std::string& old_remote_file_path, const std::string& new_remote_file_path) override;
+    void FileDelete(const std::string& remote_file_path) override;
+    void DirectoryDelete(const std::string& remote_directory_path) override;
 
 private:
-
-    void handleJavaException(jthrowable exception);
-
-    JNIEnv* m_pEnv;
+    JNIEnv* m_env;
     jobject m_javaImpl;
 };

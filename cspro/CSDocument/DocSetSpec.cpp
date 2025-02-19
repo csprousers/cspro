@@ -8,17 +8,17 @@ DocSetSpec::DocSetSpec()
 }
 
 
-DocSetSpec::DocSetSpec(std::wstring filename)
-    :   m_filename(std::move(filename))
+DocSetSpec::DocSetSpec(std::string file_path)
+    :   m_filePath(std::move(file_path))
 {
-    AddComponent(std::make_shared<DocSetComponent>(DocSetComponent::Type::Spec, m_filename));
+    AddComponent(std::make_unique<DocSetComponent>(DocSetComponent::Type::Spec, m_filePath));
 }
 
 
 void DocSetSpec::Reset()
 {
     m_components.clear();
-    AddComponent(std::make_shared<DocSetComponent>(DocSetComponent::Type::Spec, m_filename));
+    AddComponent(std::make_unique<DocSetComponent>(DocSetComponent::Type::Spec, m_filePath));
 
     m_filenameDocumentMap.clear();
 
@@ -37,27 +37,27 @@ void DocSetSpec::Reset()
 
 void DocSetSpec::AddComponent(std::shared_ptr<DocSetComponent> doc_set_component)
 {
-    ASSERT(doc_set_component != nullptr && FindComponent(doc_set_component->filename, false) == nullptr);
+    ASSERT(doc_set_component != nullptr && FindComponent(doc_set_component->file_path, false) == nullptr);
 
     // add documents to the filename map
     if( doc_set_component->type == DocSetComponent::Type::Document )
-        m_filenameDocumentMap[PortableFunctions::PathGetFilename(doc_set_component->filename)].emplace_back(doc_set_component);
+        m_filenameDocumentMap[PortableFunctions::PathGetFilename(doc_set_component->file_path)].emplace_back(doc_set_component);
 
     m_components.emplace_back(std::move(doc_set_component));
 }
 
 
-std::shared_ptr<DocSetComponent> DocSetSpec::FindComponent(const std::wstring& filename, bool search_special_documents) const
+std::shared_ptr<DocSetComponent> DocSetSpec::FindComponent(const std::string& file_path, const bool search_special_documents) const
 {
     const auto& lookup = std::find_if(m_components.cbegin(), m_components.cend(),
-                                      [&](const std::shared_ptr<DocSetComponent>& doc_set_component) { return SO::EqualsNoCase(filename, doc_set_component->filename); });
+                                      [&](const std::shared_ptr<DocSetComponent>& doc_set_component) { return SO::EqualsNoCase(file_path, doc_set_component->file_path); });
 
     if( lookup != m_components.cend() )
         return *lookup;
 
     if( search_special_documents )
     {
-        if( m_coverPageDocument != nullptr && SO::EqualsNoCase(filename, m_coverPageDocument->filename) )
+        if( m_coverPageDocument != nullptr && SO::EqualsNoCase(file_path, m_coverPageDocument->file_path) )
             return m_coverPageDocument;
     }
 
@@ -65,7 +65,7 @@ std::shared_ptr<DocSetComponent> DocSetSpec::FindComponent(const std::wstring& f
 }
 
 
-const std::vector<std::shared_ptr<DocSetComponent>>* DocSetSpec::FindDocument(const std::wstring& filename) const
+const std::vector<std::shared_ptr<DocSetComponent>>* DocSetSpec::FindDocument(const std::string& filename) const
 {
     const auto& lookup = m_filenameDocumentMap.find(PortableFunctions::PathGetFilename(filename));
 
@@ -80,15 +80,15 @@ const std::vector<std::shared_ptr<DocSetComponent>>* DocSetSpec::FindDocument(co
 }
 
 
-std::wstring DocSetSpec::GetTitleOrFilenameWithoutExtension() const
+std::string DocSetSpec::GetTitleOrFilenameWithoutExtension() const
 {
     return m_title.has_value() ? *m_title :
-                                 PortableFunctions::PathGetFilenameWithoutExtension(m_filename);
+                                 Path::GetFilenameWithoutExtension(m_filePath);
 }
 
 
-void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar_t>* json_node_to_copy_documents_node,
-                                   const GlobalSettings* global_settings, bool detailed_format)
+void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode* const json_node_to_copy_documents_node,
+                                   const GlobalSettings* const global_settings, const bool detailed_format)
 {
     json_writer.BeginObject();
 
@@ -98,7 +98,7 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
     for( const std::shared_ptr<DocSetComponent>& doc_set_component : m_components )
         doc_set_components_by_type[doc_set_component->type].emplace_back(doc_set_component.get());
 
-    auto get_components_of_type = [&](DocSetComponent::Type doc_set_component_type)
+    auto get_components_of_type = [&](const DocSetComponent::Type doc_set_component_type)
     {
         const auto& lookup = doc_set_components_by_type.find(doc_set_component_type);
         return ( lookup != doc_set_components_by_type.cend() ) ? &lookup->second :
@@ -106,21 +106,20 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
     };
 
     // title
-    if( m_title.has_value() )
-        json_writer.Write(JK::title, *m_title);
+    json_writer.WriteIfHasValue(JK::title, m_title);
 
     // cover page document
     if( m_coverPageDocument != nullptr )
     {
         json_writer.Key(JK::coverPageDocument);
-        WriteDocumentPathWithFilenameOnlyWhenPossible(json_writer, m_coverPageDocument->filename, false);
+        WriteDocumentPathWithFilenameOnlyWhenPossible(json_writer, m_coverPageDocument->file_path, false);
     }
 
     // default document
     if( m_defaultDocument != nullptr )
     {
         json_writer.Key(JK::defaultDocument);
-        WriteDocumentPathWithFilenameOnlyWhenPossible(json_writer, m_defaultDocument->filename, false);
+        WriteDocumentPathWithFilenameOnlyWhenPossible(json_writer, m_defaultDocument->file_path, false);
     }
 
     // imported components
@@ -128,7 +127,7 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
         std::optional<RAII::RunOnDestruction> import_object_run_on_destruction;
         const std::vector<const DocSetComponent*>* doc_set_components;
 
-        auto get_components_of_type_and_start_import_node = [&](DocSetComponent::Type doc_set_component_type)
+        auto get_components_of_type_and_start_import_node = [&](const DocSetComponent::Type doc_set_component_type)
         {
             doc_set_components = get_components_of_type(doc_set_component_type);
 
@@ -144,16 +143,16 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
             return true;
         };
 
-        auto write_single_component = [&](const TCHAR* key, DocSetComponent::Type doc_set_component_type)
+        auto write_single_component = [&](const char* const key, const DocSetComponent::Type doc_set_component_type)
         {
             if( !get_components_of_type_and_start_import_node(doc_set_component_type) )
                 return;
 
             ASSERT(doc_set_components->size() == 1);
-            json_writer.WriteRelativePath(key, doc_set_components->front()->filename);
+            json_writer.WriteRelativePath(key, doc_set_components->front()->file_path);
         };
 
-        auto write_multiple_components = [&](const TCHAR* key, DocSetComponent::Type doc_set_component_type)
+        auto write_multiple_components = [&](const char* const key, const DocSetComponent::Type doc_set_component_type)
         {
             if( !get_components_of_type_and_start_import_node(doc_set_component_type) )
                 return;
@@ -161,9 +160,9 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
             ASSERT(!doc_set_components->empty());
 
             json_writer.WriteArray(key, *doc_set_components,
-                [&](const DocSetComponent* doc_set_component)
+                [&](const DocSetComponent* const doc_set_component)
                 {
-                    json_writer.WriteRelativePath(doc_set_component->filename);
+                    json_writer.WriteRelativePath(doc_set_component->file_path);
                 });
         };
 
@@ -175,26 +174,26 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
         // context IDs may be part of the CSPro code directory so we cannot use the write_multiple_components routine
         if( get_components_of_type_and_start_import_node(DocSetComponent::Type::ContextIds) )
         {
-            std::wstring cspro_code_path;
+            std::string cspro_code_directory;
 
             if( global_settings != nullptr && !global_settings->cspro_code_path.empty() )
-                cspro_code_path = PortableFunctions::PathEnsureTrailingSlash(PortableFunctions::PathToNativeSlash(global_settings->cspro_code_path));
+                cspro_code_directory = PortableFunctions::PathEnsureTrailingSlash(PortableFunctions::PathToNativeSlash(global_settings->cspro_code_path));
 
             json_writer.WriteArray(JK::contextIds, *doc_set_components,
-                [&](const DocSetComponent* doc_set_component)
+                [&](const DocSetComponent* const doc_set_component)
                 {
-                    if( !cspro_code_path.empty() )
+                    if( !cspro_code_directory.empty() )
                     {
-                        const std::wstring component_path = PortableFunctions::PathToNativeSlash(doc_set_component->filename);
+                        const std::string component_file_path = PortableFunctions::PathToNativeSlash(doc_set_component->file_path);
 
-                        if( SO::StartsWithNoCase(component_path, cspro_code_path) )
+                        if( SO::StartsWithNoCase(component_file_path, cspro_code_directory) )
                         {
-                            json_writer.WritePath(component_path.substr(cspro_code_path.length()));
+                            json_writer.WritePath(component_file_path.substr(cspro_code_directory.length()));
                             return;
                         }
                     }
 
-                    json_writer.WriteRelativePath(doc_set_component->filename);
+                    json_writer.WriteRelativePath(doc_set_component->file_path);
                 });
         }
     }
@@ -214,11 +213,11 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
     }
 
     // documents
-    const std::vector<const DocSetComponent*>* document_doc_set_components = get_components_of_type(DocSetComponent::Type::Document);
+    const std::vector<const DocSetComponent*>* const document_doc_set_components = get_components_of_type(DocSetComponent::Type::Document);
 
     if( document_doc_set_components != nullptr &&
         std::find_if(document_doc_set_components->cbegin(), document_doc_set_components->cend(),
-                    [&](const DocSetComponent* doc_set_component) { return doc_set_component->component_comes_from_documents_node; }) != document_doc_set_components->cend() )
+                    [&](const DocSetComponent* const doc_set_component) { return doc_set_component->component_comes_from_documents_node; }) != document_doc_set_components->cend() )
     {
         json_writer.Key(JK::documents);
 
@@ -231,10 +230,10 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
         {
             json_writer.BeginArray();
 
-            for( const DocSetComponent* doc_set_component : *document_doc_set_components )
+            for( const DocSetComponent* const doc_set_component : *document_doc_set_components )
             {
                 if( doc_set_component->component_comes_from_documents_node )
-                    json_writer.WriteRelativePath(doc_set_component->filename);
+                    json_writer.WriteRelativePath(doc_set_component->file_path);
             }
 
             json_writer.EndArray();
@@ -265,7 +264,7 @@ void DocSetSpec::WriteJsonSpecOnly(JsonWriter& json_writer, const JsonNode<wchar
 }
 
 
-void DocSetSpec::WriteJsonDefinitions(JsonWriter& json_writer, const std::vector<std::tuple<std::wstring, std::wstring>>& definitions, bool write_as_object)
+void DocSetSpec::WriteJsonDefinitions(JsonWriter& json_writer, const std::vector<std::tuple<std::string, std::string>>& definitions, const bool write_as_object)
 {
     if( write_as_object )
     {
@@ -294,7 +293,7 @@ void DocSetSpec::WriteJsonDefinitions(JsonWriter& json_writer, const std::vector
 }
 
 
-void DocSetSpec::WriteJsonContextIds(JsonWriter& json_writer, const std::map<std::wstring, unsigned>& context_ids)
+void DocSetSpec::WriteJsonContextIds(JsonWriter& json_writer, const std::map<std::string, unsigned>& context_ids)
 {
     json_writer.BeginArray();
 
@@ -310,9 +309,9 @@ void DocSetSpec::WriteJsonContextIds(JsonWriter& json_writer, const std::map<std
 }
 
 
-void DocSetSpec::WriteDocumentPathWithFilenameOnlyWhenPossible(JsonWriter& json_writer, const std::wstring& path, bool documents_with_filename_must_come_from_documents_node)
+void DocSetSpec::WriteDocumentPathWithFilenameOnlyWhenPossible(JsonWriter& json_writer, const std::string& path, const bool documents_with_filename_must_come_from_documents_node)
 {
-    const std::vector<std::shared_ptr<DocSetComponent>>* doc_set_components_with_name = FindDocument(path);
+    const std::vector<std::shared_ptr<DocSetComponent>>* const doc_set_components_with_name = FindDocument(path);
 
     if( doc_set_components_with_name != nullptr &&
         doc_set_components_with_name->size() == 1 &&
@@ -329,14 +328,14 @@ void DocSetSpec::WriteDocumentPathWithFilenameOnlyWhenPossible(JsonWriter& json_
 }
 
 
-void DocSetSpec::WriteNewDocumentSetShell(const std::wstring& filename)
+void DocSetSpec::WriteNewDocumentSetShell(const std::string& file_path)
 {
     // create the default text for a new Document Set and write it
-    auto json_writer = Json::CreateFileWriter(filename);
+    const std::unique_ptr<JsonFileWriter> json_writer = Json::CreateFileWriter(file_path);
 
     json_writer->BeginObject();
 
-    json_writer->Write(JK::title, PortableFunctions::PathGetFilenameWithoutExtension(filename));
+    json_writer->Write(JK::title, Path::GetFilenameWithoutExtension(file_path));
 
     json_writer->BeginObject(JK::import)
                 .WriteNull(JK::tableOfContents)

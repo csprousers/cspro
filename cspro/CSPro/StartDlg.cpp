@@ -64,40 +64,28 @@ BOOL CStartDlg::OnInitDialog()
     pFileList->InsertItem(0, _T("... other files           "), -1);
     pFileList->SetItemState(0, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 
-    CString sTemp, sFile, sExt;
-    int iIcon;
+    CString sTemp, sFile;
+
     for (int i = 1 ; i <= 16 ; i++) {
         sTemp.Format(_T("File%d"),i);
         sFile = AfxGetApp()->GetProfileString(_T("Recent File List"), sTemp, _T("?"));
         if (sFile == _T("?")) {
             break;
         }
-        else {
-            sExt = PathFindExtension(sFile.GetBuffer(_MAX_PATH));
-            sFile.ReleaseBuffer();
-            if (sExt.CompareNoCase(FileExtensions::WithDot::Dictionary) == 0) {
-                iIcon = 0;
-            }
-            else if (sExt.CompareNoCase(FileExtensions::WithDot::EntryApplication) == 0) {
-                iIcon = 1;
-            }
-            else if (sExt.CompareNoCase(FileExtensions::WithDot::BatchApplication) == 0) {
-                iIcon = 2;
-            }
-            else if (sExt.CompareNoCase(FileExtensions::WithDot::TabulationApplication) == 0) {
-                iIcon = 3;
-            }
-            else if (sExt.CompareNoCase(_T(".frm")) == 0) {
-                iIcon = 4;
-            }
-            else {
-                iIcon = -1;
-            }
-            pFileList->InsertItem(i, sFile, iIcon);
-            pFileList->SetItemState(0, 0, LVIS_FOCUSED | LVIS_SELECTED);
-            pFileList->SetItemState(1, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
-        }
+
+        const std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(sFile));
+
+        const int icon_index = SO::EqualsNoCase(extension, FileExtensions::Dictionary)            ?  0 :
+                               SO::EqualsNoCase(extension, FileExtensions::EntryApplication)      ?  1 :
+                               SO::EqualsNoCase(extension, FileExtensions::BatchApplication)      ?  2 :
+                               SO::EqualsNoCase(extension, FileExtensions::TabulationApplication) ?  3 :
+                               SO::EqualsNoCase(extension, "frm")                                 ?  4 :
+                                                                                                    -1;
+        pFileList->InsertItem(i, sFile, icon_index);
+        pFileList->SetItemState(0, 0, LVIS_FOCUSED | LVIS_SELECTED);
+        pFileList->SetItemState(1, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
     }
+
     pFileList->SetColumnWidth(0,LVSCW_AUTOSIZE);
     return TRUE;
 }

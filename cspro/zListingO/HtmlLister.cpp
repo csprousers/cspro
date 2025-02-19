@@ -1,416 +1,422 @@
 ﻿#include "stdafx.h"
 #include "HtmlLister.h"
 #include <zToolsO/Special.h>
+#include <zUtilO/CustomUri.h>
 #include <zHtml/HtmlWriter.h>
 
 
-namespace Listing
+// --------------------------------------------------------------------------
+// ProcessSummaryHTMLFormatter
+// --------------------------------------------------------------------------
+
+class Listing::ProcessSummaryHTMLFormatter
 {
-    class ProcessSummaryHTMLFormatter
+public:
+    ProcessSummaryHTMLFormatter(const ProcessSummary& process_summary, FileIO::TextFile& text_file, HtmlWriter& html_writer);
+
+    void WriteShell();
+    void WriteValues();
+
+private:
+    struct LevelSummaryPosition
     {
-    private:
-        struct LevelSummaryPosition
-        {
-            std::optional<ULONGLONG> levelNumberPosition;
-            std::optional<ULONGLONG> inputCasesPosition;
-            std::optional<ULONGLONG> badStructuresPosition;
-            std::optional<ULONGLONG> levelPostsPosition;
-        };
-
-    public:
-        ProcessSummaryHTMLFormatter(std::shared_ptr<ProcessSummary> process_summary, CStdioFileUnicode& file)
-            :   m_processSummary(std::move(process_summary)),
-                m_file(file)
-        {
-        }
-
-        void WriteShell()
-        {
-            m_processSummaryPosition = m_file.FlushAndGetPosition();
-
-            HtmlStringWriter html_writer;
-            html_writer << L"<table>\n";
-            html_writer << L"<thead>\n<tr><th colspan='4' class='center'>CSPro Process Summary</th></tr>\n</thead>\n";
-
-            // write out HTML for the number of records (or slices) read
-            html_writer << L"<tr class='highlight'><td class='width-25'>";
-            m_file.WriteString(html_writer.str());
-            html_writer.clear();
-            // trailing space in "slices read " is intentional, so strings are equal length
-            std::wstring attrType = m_processSummary->GetAttributesType() == ProcessSummary::AttributesType::Records ? _T("Records Read") : _T("Slices Read ");
-            m_file.WriteFormattedString(_T("%*s %s"), 20, L"", attrType.c_str());
-            html_writer << L"</td><td class='width-25'>Total Ignored</td><td class='width-25'>Unknown</td><td class='width-25'>Erased</td></tr>\n";
-
-            html_writer << L"<tr><td>";
-            m_file.WriteString(html_writer.str());
-            html_writer.clear();
-            m_attributesReadPosition = m_file.FlushAndGetPosition();
-            m_file.WriteFormattedString(_T("%*s"), 43, L"");
-
-            html_writer << L"</td><td>";
-            m_file.WriteString(html_writer.str());
-            html_writer.clear();
-            m_attributesIgnoredPosition = m_file.FlushAndGetPosition();
-            m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-            html_writer << L"</td><td>";
-            m_file.WriteString(html_writer.str());
-            html_writer.clear();
-            m_attributesUnknownPosition = m_file.FlushAndGetPosition();
-            m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-            html_writer << L"</td><td>";
-            m_file.WriteString(html_writer.str());
-            html_writer.clear();
-            m_attributesErasedPosition = m_file.FlushAndGetPosition();
-            m_file.WriteFormattedString(_T("%*s"), 20, L"");
-            html_writer << L"</td></tr>\n";
-
-            if (m_processSummary->GetAttributesType() == ProcessSummary::AttributesType::Records)
-            {
-                // write out HTML for level summaries
-                html_writer << L"<tfooter>\n<tr class='highlight'><td>Level</td><td>Input Case</td>"
-                    L"<td>Bad Struct</td><td>Level Post</td></tr>\n";
-
-                for (size_t level_number = 0; level_number < m_processSummary->GetNumberLevels(); ++level_number)
-                {
-                    LevelSummaryPosition levelSummaryPosition;
-
-                    html_writer << L"<tr><td>";
-                    m_file.WriteString(html_writer.str());
-                    html_writer.clear();
-                    levelSummaryPosition.levelNumberPosition = m_file.FlushAndGetPosition();
-                    m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                    html_writer << L"</td><td>";
-                    m_file.WriteString(html_writer.str());
-                    html_writer.clear();
-
-                    levelSummaryPosition.inputCasesPosition = m_file.FlushAndGetPosition();
-                    m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                    html_writer << L"</td><td>";
-                    m_file.WriteString(html_writer.str());
-                    html_writer.clear();
-                    levelSummaryPosition.badStructuresPosition = m_file.FlushAndGetPosition();
-                    m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                    html_writer << L"</td><td>";
-                    m_file.WriteString(html_writer.str());
-                    html_writer.clear();
-                    levelSummaryPosition.levelPostsPosition = m_file.FlushAndGetPosition();
-                    m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                    html_writer << L"</td></tr>\n";
-                    m_levelSummaryPositions.push_back(levelSummaryPosition);
-                }
-
-                // write out HTML for messages
-                html_writer << L"<tr class='highlight'></td><td>Total Messages</td></td><td class='error'>Error</td><td class='warning'>Warning</td><td class='user-defined'>User Defined</td></tr>\n";
-
-                html_writer << L"<tr></td><td>";
-                m_file.WriteString(html_writer.str());
-                html_writer.clear();
-                m_totalMessagePosition = m_file.FlushAndGetPosition();
-                m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                html_writer << L"</td><td>";
-                m_file.WriteString(html_writer.str());
-                html_writer.clear();
-                m_errorMessagesPosition = m_file.FlushAndGetPosition();
-                m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                html_writer << L"</td><td>";
-                m_file.WriteString(html_writer.str());
-                html_writer.clear();
-                m_warningMessagesPosition = m_file.FlushAndGetPosition();
-                m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                html_writer << L"</td><td>";
-                m_file.WriteString(html_writer.str());
-                html_writer.clear();
-                m_userMessagesPosition = m_file.FlushAndGetPosition();
-                m_file.WriteFormattedString(_T("%*s"), 20, L"");
-
-                html_writer << L"</td></tr>\n</tbody>\n";
-            }
-
-            html_writer << L"</tfooter>\n</table>\n<br>\n";
-            m_file.WriteString(html_writer.str());
-        }
-
-        void WriteValues()
-        {
-            // write out values for the number of records (or slices) read
-            ASSERT(m_attributesReadPosition.has_value());
-            m_file.Seek(*m_attributesReadPosition, SEEK_SET);
-            std::wstring recordsRead = FormatTextCS2WS(_T("%d (%d%%)"), m_processSummary->GetAttributesRead(), m_processSummary->GetPercentSourceRead());
-            m_file.WriteFormattedString(_T("%*s"), 43, recordsRead.c_str());
-
-            // write out values for bad records (or slices)
-            ASSERT(m_attributesIgnoredPosition.has_value());
-            m_file.Seek(*m_attributesIgnoredPosition, SEEK_SET);
-            m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetAttributesIgnored());
-
-            ASSERT(m_attributesUnknownPosition.has_value());
-            m_file.Seek(*m_attributesUnknownPosition, SEEK_SET);
-            m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetAttributesUnknown());
-
-            ASSERT(m_attributesErasedPosition.has_value());
-            m_file.Seek(*m_attributesErasedPosition, SEEK_SET);
-            m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetAttributesErased());
-
-            if (m_processSummary->GetAttributesType() == ProcessSummary::AttributesType::Records)
-            {
-                // write out values for messages
-                ASSERT(m_totalMessagePosition.has_value());
-                m_file.Seek(*m_totalMessagePosition, SEEK_SET);
-                m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetTotalMessages());
-
-                ASSERT(m_errorMessagesPosition.has_value());
-                m_file.Seek(*m_errorMessagesPosition, SEEK_SET);
-                m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetErrorMessages());
-
-                ASSERT(m_warningMessagesPosition.has_value());
-                m_file.Seek(*m_warningMessagesPosition, SEEK_SET);
-                m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetWarningMessages());
-
-                ASSERT(m_userMessagesPosition.has_value());
-                m_file.Seek(*m_userMessagesPosition, SEEK_SET);
-                m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetUserMessages());
-
-                ASSERT(m_levelSummaryPositions.size() == m_processSummary->GetNumberLevels());
-                
-                for (size_t level_number = 0; level_number < m_processSummary->GetNumberLevels(); ++level_number)
-                {
-                    // write out the level summaries
-                    const LevelSummaryPosition& levelSummaryPosition = m_levelSummaryPositions[level_number];
-
-                    ASSERT(levelSummaryPosition.levelNumberPosition.has_value());
-                    m_file.Seek(*levelSummaryPosition.levelNumberPosition, SEEK_SET);
-                    m_file.WriteFormattedString(_T("%*zu"), 20, level_number + 1);
-
-                    ASSERT(levelSummaryPosition.inputCasesPosition.has_value());
-                    m_file.Seek(*levelSummaryPosition.inputCasesPosition, SEEK_SET);
-                    m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetCaseLevelsRead(level_number));
-
-                    ASSERT(levelSummaryPosition.badStructuresPosition.has_value());
-                    m_file.Seek(*levelSummaryPosition.badStructuresPosition, SEEK_SET);
-                    m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetBadCaseLevelStructures(level_number));
-
-                    ASSERT(levelSummaryPosition.levelPostsPosition.has_value());
-                    m_file.Seek(*levelSummaryPosition.levelPostsPosition, SEEK_SET);
-                    m_file.WriteFormattedString(_T("%*zu"), 20, m_processSummary->GetLevelPostProcsExecuted(level_number));
-                }
-            }
-
-            m_file.SeekToEnd();
-        }
-
-    private:
-        std::shared_ptr<ProcessSummary> m_processSummary;
-        CStdioFileUnicode& m_file;
-        std::optional<ULONGLONG> m_processSummaryPosition;
-
-        std::optional<ULONGLONG> m_attributesReadPosition;
-        std::optional<ULONGLONG> m_attributesTypePosition;
-
-        std::optional<ULONGLONG> m_attributesIgnoredPosition;
-        std::optional<ULONGLONG> m_attributesUnknownPosition;
-        std::optional<ULONGLONG> m_attributesErasedPosition;
-
-        std::optional<ULONGLONG> m_totalMessagePosition;
-        std::optional<ULONGLONG> m_errorMessagesPosition;
-        std::optional<ULONGLONG> m_warningMessagesPosition;
-        std::optional<ULONGLONG> m_userMessagesPosition;
-
-        std::vector<LevelSummaryPosition> m_levelSummaryPositions;
+        std::optional<int64_t> levelNumberPosition;
+        std::optional<int64_t> inputCasesPosition;
+        std::optional<int64_t> badStructuresPosition;
+        std::optional<int64_t> levelPostsPosition;
     };
+
+    const ProcessSummary& m_processSummary;
+    FileIO::TextFile& m_textFile;
+    HtmlWriter& m_htmlWriter;
+
+    std::optional<int64_t> m_processSummaryPosition;
+
+    std::optional<int64_t> m_attributesReadPosition;
+    std::optional<int64_t> m_attributesTypePosition;
+
+    std::optional<int64_t> m_attributesIgnoredPosition;
+    std::optional<int64_t> m_attributesUnknownPosition;
+    std::optional<int64_t> m_attributesErasedPosition;
+
+    std::optional<int64_t> m_totalMessagePosition;
+    std::optional<int64_t> m_errorMessagesPosition;
+    std::optional<int64_t> m_warningMessagesPosition;
+    std::optional<int64_t> m_userMessagesPosition;
+
+    std::vector<LevelSummaryPosition> m_levelSummaryPositions;
+};
+
+
+
+Listing::ProcessSummaryHTMLFormatter::ProcessSummaryHTMLFormatter(const ProcessSummary& process_summary, FileIO::TextFile& text_file, HtmlWriter& html_writer)
+    :   m_processSummary(process_summary),
+        m_textFile(text_file),
+        m_htmlWriter(html_writer)
+{
+}
+
+
+void Listing::ProcessSummaryHTMLFormatter::WriteShell()
+{
+    m_processSummaryPosition = m_textFile.FlushAndGetPosition();
+
+    m_htmlWriter << "<table>\n";
+    m_htmlWriter << "<thead>\n<tr><th colspan='4' class='center'>CSPro Process Summary</th></tr>\n</thead>\n";
+
+    // write out HTML for the number of records (or slices) read
+    m_htmlWriter << "<tr class='highlight'><td class='width-25'>";
+
+    m_htmlWriter << ( ( m_processSummary.GetAttributesType() == ProcessSummary::AttributesType::Records ) ? "Records Read" : "Slices Read" );
+    m_htmlWriter << "</td><td class='width-25'>Total Ignored</td><td class='width-25'>Unknown</td><td class='width-25'>Erased</td></tr>\n";
+
+    m_htmlWriter << "<tr><td>";
+
+    m_attributesReadPosition = m_textFile.FlushAndGetPosition();
+    m_htmlWriter << SO::GetRepeatingCharacterString(' ', 43);
+
+    m_htmlWriter << "</td><td>";
+
+    m_attributesIgnoredPosition = m_textFile.FlushAndGetPosition();
+    m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+    m_htmlWriter << "</td><td>";
+
+    m_attributesUnknownPosition = m_textFile.FlushAndGetPosition();
+    m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+    m_htmlWriter << "</td><td>";
+
+    m_attributesErasedPosition = m_textFile.FlushAndGetPosition();
+    m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+    m_htmlWriter<< "</td></tr>\n";
+
+    if( m_processSummary.GetAttributesType() == ProcessSummary::AttributesType::Records )
+    {
+        // write out HTML for level summaries
+        m_htmlWriter << "<tbody>\n<tr class='highlight'><td>Level</td><td>Input Case</td>"
+                        "<td>Bad Struct</td><td>Level Post</td></tr>\n";
+
+        for( size_t level_number = 0; level_number < m_processSummary.GetNumberLevels(); ++level_number )
+        {
+            LevelSummaryPosition levelSummaryPosition;
+
+            m_htmlWriter << "<tr><td>";
+
+            levelSummaryPosition.levelNumberPosition = m_textFile.FlushAndGetPosition();
+            m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+            m_htmlWriter << "</td><td>";
+
+            levelSummaryPosition.inputCasesPosition = m_textFile.FlushAndGetPosition();
+            m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+            m_htmlWriter << "</td><td>";
+
+            levelSummaryPosition.badStructuresPosition = m_textFile.FlushAndGetPosition();
+            m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+            m_htmlWriter << "</td><td>";
+
+            levelSummaryPosition.levelPostsPosition = m_textFile.FlushAndGetPosition();
+            m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+            m_htmlWriter << "</td></tr>\n";
+
+            m_levelSummaryPositions.emplace_back(std::move(levelSummaryPosition));
+        }
+
+        // write out HTML for messages
+        m_htmlWriter << "<tr class='highlight'><td>Total Messages</td>"
+                        "<td class='error'>Error</td><td class='warning'>Warning</td>"
+                        "<td class='user-defined'>User Defined</td></tr>\n";
+
+        m_htmlWriter << "<tr><td>";
+
+        m_totalMessagePosition = m_textFile.FlushAndGetPosition();
+        m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+        m_htmlWriter << "</td><td>";
+
+        m_errorMessagesPosition = m_textFile.FlushAndGetPosition();
+        m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+        m_htmlWriter << "</td><td>";
+
+        m_warningMessagesPosition = m_textFile.FlushAndGetPosition();
+        m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+        m_htmlWriter << "</td><td>";
+
+        m_userMessagesPosition = m_textFile.FlushAndGetPosition();
+        m_htmlWriter << SO::GetRepeatingCharacterString(' ', 20);
+
+        m_htmlWriter << "</td></tr>\n</tbody>\n";
+    }
+
+    m_htmlWriter << "</table>\n<br>\n";
+}
+
+
+void Listing::ProcessSummaryHTMLFormatter::WriteValues()
+{
+    // write out values for the number of records (or slices) read
+    ASSERT(m_attributesReadPosition.has_value());
+
+    m_textFile.Seek(*m_attributesReadPosition, SEEK_SET);
+
+    std::string recordsRead = FormatText("%d (%d%%)", static_cast<int>(m_processSummary.GetAttributesRead()),
+                                                      static_cast<int>(m_processSummary.GetPercentSourceRead()));
+    m_htmlWriter.WriteRaw(SO::MakeExactLength(recordsRead, 43));
+
+    // write out values for bad records (or slices)
+    ASSERT(m_attributesIgnoredPosition.has_value());
+    m_textFile.Seek(*m_attributesIgnoredPosition, SEEK_SET);
+    m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetAttributesIgnored())));
+
+    ASSERT(m_attributesUnknownPosition.has_value());
+    m_textFile.Seek(*m_attributesUnknownPosition, SEEK_SET);
+    m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetAttributesUnknown())));
+
+    ASSERT(m_attributesErasedPosition.has_value());
+    m_textFile.Seek(*m_attributesErasedPosition, SEEK_SET);
+    m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetAttributesErased())));
+
+    if( m_processSummary.GetAttributesType() == ProcessSummary::AttributesType::Records )
+    {
+        // write out values for messages
+        ASSERT(m_totalMessagePosition.has_value());
+        m_textFile.Seek(*m_totalMessagePosition, SEEK_SET);
+        m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetTotalMessages())));
+
+        ASSERT(m_errorMessagesPosition.has_value());
+        m_textFile.Seek(*m_errorMessagesPosition, SEEK_SET);
+        m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetErrorMessages())));
+
+        ASSERT(m_warningMessagesPosition.has_value());
+        m_textFile.Seek(*m_warningMessagesPosition, SEEK_SET);
+        m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetWarningMessages())));
+
+        ASSERT(m_userMessagesPosition.has_value());
+        m_textFile.Seek(*m_userMessagesPosition, SEEK_SET);
+        m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetUserMessages())));
+
+        ASSERT(m_levelSummaryPositions.size() == m_processSummary.GetNumberLevels());
+
+        for( size_t level_number = 0; level_number < m_processSummary.GetNumberLevels(); ++level_number )
+        {
+            // write out the level summaries
+            const LevelSummaryPosition& levelSummaryPosition = m_levelSummaryPositions[level_number];
+
+            ASSERT(levelSummaryPosition.levelNumberPosition.has_value());
+            m_textFile.Seek(*levelSummaryPosition.levelNumberPosition, SEEK_SET);
+            m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(level_number + 1)));
+
+            ASSERT(levelSummaryPosition.inputCasesPosition.has_value());
+            m_textFile.Seek(*levelSummaryPosition.inputCasesPosition, SEEK_SET);
+            m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetCaseLevelsRead(level_number))));
+
+            ASSERT(levelSummaryPosition.badStructuresPosition.has_value());
+            m_textFile.Seek(*levelSummaryPosition.badStructuresPosition, SEEK_SET);
+            m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetBadCaseLevelStructures(level_number))));
+
+            ASSERT(levelSummaryPosition.levelPostsPosition.has_value());
+            m_textFile.Seek(*levelSummaryPosition.levelPostsPosition, SEEK_SET);
+            m_htmlWriter.WriteRaw(FormatText("%*zu", 20, static_cast<unsigned>(m_processSummary.GetLevelPostProcsExecuted(level_number))));
+        }
+    }
+
+    m_textFile.SeekToEnd();
 }
 
 
 
-Listing::HtmlLister::HtmlLister(std::shared_ptr<ProcessSummary> process_summary, const std::wstring& filename, bool append, const PFF& pff)
+// --------------------------------------------------------------------------
+// HtmlLister
+// --------------------------------------------------------------------------
+
+Listing::HtmlLister::HtmlLister(std::shared_ptr<ProcessSummary> process_summary, const std::string& file_path, const bool append, const PFF& pff)
     :   Lister(std::move(process_summary)),
         m_writeProcessSummaryAndMessages(pff.GetAppType() != APPTYPE::ENTRY_TYPE),
         m_isProcessMessageComplete(false),
         m_isMultiLevel(false)
 {
-    m_hasData = ( PortableFunctions::FileSize(filename) > Utf8BOM_sv.length() );
+    m_hasData = ( append && PortableFunctions::FileSize(UTF8_TODO::GetWide(file_path)) > TextEncoding::Utf8Bom_sv.length() ); // TEXT_ENCODING_TODO review
 
-    m_file = OpenListingFile(filename, append);
+    m_textFile = OpenListingFile(file_path, append);
+    m_htmlWriter = std::make_unique<HtmlWriter>(m_textFile->GetOutputStream());
 }
 
 
 Listing::HtmlLister::~HtmlLister()
 {
-    if (m_file != nullptr)
-        m_file->Close();
 }
 
 
 void Listing::HtmlLister::WriteHeader(const std::vector<HeaderAttribute>& header_attributes)
 {
-    HtmlStringWriter html_writer;
-
-    if (m_hasData)
+    if( m_hasData )
     {
         MoveToHtmlEndTag();
     }
+
     else
     {
-        html_writer.WriteDefaultHeader(L"HTML Listing", Html::CSS::Common);
-        html_writer << L"\n<body class='container-page'>\n";
+        m_htmlWriter->WriteDefaultHeader("HTML Listing", Html::CSS::Common);
+        *m_htmlWriter << "\n<body class='container-page'>\n";
     }
 
-    html_writer << L"<table>\n";
-    html_writer << L"<thead>\n<tr><th colspan='2' class='center'>Listing Details</th></tr>\n</thead>\n";
+    *m_htmlWriter << "<table>\n";
+    *m_htmlWriter << "<thead>\n<tr><th colspan='2' class='center'>Listing Details</th></tr>\n</thead>\n";
 
     // write out the header attributes
-    for (const HeaderAttribute& header_attribute : header_attributes)
+    for( const HeaderAttribute& header_attribute : header_attributes )
     {
-        html_writer << L"<tr>";
+        *m_htmlWriter << "<tr>";
 
-        html_writer << L"<td class='left width-10'>" << header_attribute.description << L"</td>";
+        *m_htmlWriter << "<td class='left width-10'>" << header_attribute.description << "</td>";
 
-        std::wstring secondary_description;
-        if (header_attribute.secondary_description.has_value())
+        std::string secondary_description;
+
+        if( header_attribute.secondary_description.has_value() )
         {
-            secondary_description = *header_attribute.secondary_description + L"=";
+            secondary_description = *header_attribute.secondary_description + "=";
         }
 
-        if (std::holds_alternative<std::wstring>(header_attribute.value))
+        if( std::holds_alternative<std::string>(header_attribute.value) )
         {
-            html_writer << L"<td class='left'>" << secondary_description << std::get<std::wstring>(header_attribute.value) << L"</td>";
+            *m_htmlWriter << "<td class='left'>" << secondary_description << std::get<std::string>(header_attribute.value) << "</td>";
         }
+
         else
         {
             const ConnectionString& connection_string = std::get<ConnectionString>(header_attribute.value);
-            std::optional<std::wstring> data_uri = CreateDataUri(connection_string, *header_attribute.dictionary);
+            const std::optional<std::string> data_uri = CreateDataUri(connection_string, *header_attribute.dictionary);
 
-            html_writer << L"<td class='left'>" << secondary_description;
-
-            if( data_uri.has_value() )
-                html_writer << L"<a href=\"" << data_uri->c_str() << L"\">";
-
-            html_writer << connection_string.GetName(DataRepositoryNameType::ForListing);
+            *m_htmlWriter << "<td class='left'>" << secondary_description;
 
             if( data_uri.has_value() )
-                html_writer << L"</a>";
+            {
+                *m_htmlWriter << "<a href=\"";
+                m_htmlWriter->WriteTagValue(*data_uri);
+                *m_htmlWriter  << "\">";
+            }
 
-            html_writer << L"</td>";
+            *m_htmlWriter << connection_string.GetName(DataRepositoryNameType::ForListing);
+
+            if( data_uri.has_value() )
+                *m_htmlWriter << "</a>";
+
+            *m_htmlWriter << "</td>";
         }
 
-        html_writer << L"</tr>\n";
+        *m_htmlWriter << "</tr>\n";
     }
 
     // write out the date
-    html_writer << L"<tr><td class='left'>Date</td><td class='left'>" << GetSystemDate() << L"</td></tr>\n";
+    *m_htmlWriter << "<tr><td class='left'>Date</td><td class='left'>" << DateTime::LocalDateString() << "</td></tr>\n";
 
-    std::wstring time = GetSystemTime();
-    html_writer << L"<tr><td class='left'>Start Time</td><td class='left'>" << time << L"</td></tr>\n";
-    html_writer << L"<tr><td class='left'>End Time</td><td class='left'>" << time;
-    m_file->WriteString(html_writer.str());
-    html_writer.clear();
-    m_endTimePosition = m_file->FlushAndGetPosition() - time.length();
+    const std::string time = DateTime::LocalTimeString();
+    *m_htmlWriter << "<tr><td class='left'>Start Time</td><td class='left'>" << time << "</td></tr>\n";
+    *m_htmlWriter << "<tr><td class='left'>End Time</td><td class='left'>" << time;
 
-    html_writer << L"</td></tr>\n</table>\n<br>\n";
-    m_file->WriteString(html_writer.str());
+    m_endTimePosition = m_textFile->FlushAndGetPosition() - time.length();
 
-    if (!m_writeProcessSummaryAndMessages)
+    *m_htmlWriter << "</td></tr>\n</table>\n<br>\n";
+
+    if( !m_writeProcessSummaryAndMessages )
         return;
 
-    m_file->WriteString(html_writer.str());
-    html_writer.clear();
-
-    m_processSummaryFormatter = std::make_unique<ProcessSummaryHTMLFormatter>(m_processSummary, *m_file);
+    m_processSummaryFormatter = std::make_unique<ProcessSummaryHTMLFormatter>(*m_processSummary, *m_textFile, *m_htmlWriter);
     m_processSummaryFormatter->WriteShell();
 
-    m_startProcessMessagePosition = m_file->FlushAndGetPosition();
-    m_file->WriteFormattedString(_T("%*s\n"), 110, L"");
+    m_startProcessMessagePosition = m_textFile->FlushAndGetPosition();
+    m_textFile->WriteFormattedLine(SO::GetRepeatingCharacterString(' ', 110));
 }
 
 
 void Listing::HtmlLister::WriteMessages(const Messages& messages)
 {
-    static constexpr const TCHAR* TypeCodes[] =
+    constexpr const char* TypeCodes[] =
     {
-        _T("A"),
-        _T("E"),
-        _T("W"),
-        _T("U")
+        "A",
+        "E",
+        "W",
+        "U"
     };
 
-    HtmlStringWriter html_writer;
-    // WriteProcessMessageTableTags() will write table tags
-
     // write the message source
-    html_writer << L"<tr class='highlight'>";
+    *m_htmlWriter << "<tr class='highlight'>";
 
-    const TCHAR* colspan_size = m_isMultiLevel ? L"3" : L"2";
+    const char* const colspan_size = m_isMultiLevel ? "3" : "2";
 
-    if (m_caseKeyUuid.has_value())
+    if( m_caseKeyUuid.has_value() )
     {
-        // construct the full link to open the case in Data Viewer 
-        std::optional<std::wstring> case_uri = CreateCaseUri(m_inputDataUri, m_caseKeyUuid);
+        // construct the full link to open the case in Data Manager
+        const std::optional<std::string> case_uri = CreateCaseUri(m_inputDataUri, m_caseKeyUuid);
 
-        html_writer << L"<td colspan='" << colspan_size << L"' class='left'>Case [";
-
-        if( case_uri.has_value() )
-            html_writer << L"<a href=\"" << case_uri->c_str() << L"\">";
-
-        html_writer << messages.source;
+        *m_htmlWriter << "<td colspan='" << colspan_size << "' class='left'>Case [";
 
         if( case_uri.has_value() )
-            html_writer << L"</a>";
+        {
+            *m_htmlWriter << "<a href=\"";
+            m_htmlWriter->WriteTagValue(*case_uri);
+            *m_htmlWriter << "\">";
+        }
 
-        html_writer << L"]</td>";
+        *m_htmlWriter << messages.source;
+
+        if( case_uri.has_value() )
+            *m_htmlWriter << "</a>";
+
+        *m_htmlWriter << "]</td>";
     }
+
     else
     {
-        html_writer << L"<td colspan='" << colspan_size << L"' class='left'>" << messages.source << L"</td>";
+        *m_htmlWriter << "<td colspan='" << colspan_size << "' class='left'>" << messages.source << "</td>";
     }
 
-    html_writer << L"</tr>\n";
+    *m_htmlWriter << "</tr>\n";
 
     // write the messages
-    for (const Message& message : messages.messages)
+    for( const Message& message : messages.messages )
     {
         // write a message
-        if (message.details.has_value())
+        if( message.details.has_value() )
         {
-            ASSERT((size_t)message.details->type < _countof(TypeCodes));
-            const TCHAR* type_code = TypeCodes[(size_t)message.details->type];
+            ASSERT(static_cast<size_t>(message.details->type) < _countof(TypeCodes));
+            const char* const type_code = TypeCodes[static_cast<size_t>(message.details->type)];
 
-            const TCHAR* message_style = L"";
-            if (message.details->type == MessageType::Error)
-                message_style = L"error";
-            else if (message.details->type == MessageType::Warning)
-                message_style = L"warning";
-            else if (message.details->type == MessageType::User)
-                message_style = L"user-defined";
+            const char* const message_style = ( message.details->type == MessageType::Error )   ? "error" :
+                                              ( message.details->type == MessageType::Warning ) ? "warning" :
+                                              ( message.details->type == MessageType::User )    ? "user-defined" :
+                                                                                                  "";
 
-            html_writer << L"<tr>";
+            *m_htmlWriter << "<tr>";
 
-            if (m_isMultiLevel)
+            if( m_isMultiLevel )
             {
-                std::wstring level_key;
-                if (!message.level_key.empty())
-                    level_key = L"[" + message.level_key + L"]";
+                *m_htmlWriter << "<td class='left width-10'>";
 
-                html_writer << L"<td class='left width-10'>" << level_key << L"</td>";
+                if( !message.level_key.empty() )
+                    *m_htmlWriter << "[" << message.level_key << "]";
+
+                 *m_htmlWriter << "</td>";
             }
 
-            html_writer << L"<td class='" << message_style << L" left width-10'>" << type_code << L"" << IntToString(message.details->number) << L"</td><td class='left'>" << message.text << L"</td></tr>\n";
+            *m_htmlWriter << "<td class='" << message_style << " left width-10'>" << type_code << ""
+                          << IntToString(message.details->number)
+                          << "</td><td class='left'>" << *message.text << "</td></tr>\n";
         }
+
         else
         {
             // there is no special formatting for text coming from the write function
-            html_writer << L"<tr><td class='left'>" << message.text << L"</td></tr>\n";
+            *m_htmlWriter << "<tr><td class='left'>" << *message.text << "</td></tr>\n";
         }
     }
-
-    m_file->WriteString(html_writer.str());
 }
 
 
@@ -421,186 +427,191 @@ void Listing::HtmlLister::ProcessCaseSourceDetails(const ConnectionString& conne
 }
 
 
-void Listing::HtmlLister::ProcessCaseSource(const Case* data_case)
+void Listing::HtmlLister::ProcessCaseSource(const Case* const data_case)
 {
     if( data_case == nullptr )
+    {
         m_caseKeyUuid.reset();
+    }
 
     else
-        m_caseKeyUuid.emplace(CS2WS(data_case->GetKey()), CS2WS(data_case->GetUuid()));
+    {
+        m_caseKeyUuid.emplace(data_case->GetKey(), data_case->GetUuid());
+    }
 }
 
 
 void Listing::HtmlLister::WriteMessageSummaries(const std::vector<MessageSummary>& message_summaries)
 {
-    if (m_writeProcessSummaryAndMessages)
+    if( m_writeProcessSummaryAndMessages )
         WriteUpdatesToProcessMessageTable();
 
     ASSERT(!message_summaries.empty());
 
-    MessageSummary::Type message_summaries_type = message_summaries.front().type;
-    const TCHAR* type_text = (message_summaries_type == MessageSummary::Type::System) ? _T("System") :
-        (message_summaries_type == MessageSummary::Type::UserNumbered) ? _T("User Numbered") :
-        _T("User Unnumbered");
-
-    HtmlStringWriter html_writer;
+    const MessageSummary::Type message_summaries_type = message_summaries.front().type;
+    const char* const type_text = ( message_summaries_type == MessageSummary::Type::System )       ? "System" :
+                                  ( message_summaries_type == MessageSummary::Type::UserNumbered ) ? "User Numbered" :
+                                                                                                     "User Unnumbered";
 
     // write the header
-    html_writer << L"<br><br>\n<table>\n";
+    *m_htmlWriter << "<br><br>\n<table>\n";
 
-    int column_count = 5;
-    if (message_summaries_type == MessageSummary::Type::System)
-        column_count = 3;
+    const char* const colspan_size = ( message_summaries_type == MessageSummary::Type::System ) ? "3" : "5";
 
-    html_writer << L"<thead>\n<tr><th colspan='" << IntToString(column_count) << L"' class='center'>" << type_text << L" Messages</th></tr>\n</thead>\n";
+    *m_htmlWriter << "<thead>\n<tr><th colspan='" << colspan_size << "' class='center'>"
+                  << type_text << " Messages</th></tr>\n</thead>\n";
 
-    bool use_denoms = (message_summaries_type != MessageSummary::Type::System);
-    const std::wstring number_heading = (message_summaries_type == MessageSummary::Type::UserUnnumbered) ? _T("Line") : _T("Number");
-    const std::wstring frequency_heading = _T("Freq");
-    const std::wstring percent_heading = _T("%");
-    const std::wstring message_heading = _T("Message Text");
-    const std::wstring denom_heading = _T("Denom");
+    const bool use_denoms = ( message_summaries_type != MessageSummary::Type::System );
+    const char* const number_heading = ( message_summaries_type == MessageSummary::Type::UserUnnumbered ) ? "Line" : "Number";
+    constexpr const char* frequency_heading = "Freq";
+    constexpr const char* percent_heading = "%";
+    constexpr size_t percent_heading_length = std::string_view(percent_heading).length();
+    constexpr const char* message_heading = "Message Text";
+    constexpr const char* denom_heading = "Denom";
+    constexpr size_t denom_heading_length = std::string_view(denom_heading).length();
 
-    html_writer << L"<tr class='highlight'><td class='width-10'>" << number_heading << L"</td><td class='width-10'>" << frequency_heading << L"</td>";
+    *m_htmlWriter << "<tr class='highlight'><td class='width-10'>" << number_heading << "</td><td class='width-10'>" << frequency_heading << "</td>";
 
-    if (use_denoms)
-    {
-        html_writer << L"<td class='width-10'>" << percent_heading << L"</td>";
-    }
+    if( use_denoms )
+        *m_htmlWriter << "<td class='width-10'>" << percent_heading << "</td>";
 
-    html_writer << L"<td class='left'>" << message_heading << L"</td>";
+    *m_htmlWriter << "<td class='left'>" << message_heading << "</td>";
 
-    if (use_denoms)
-    {
-        html_writer << L"<td class='width-10'>" << denom_heading << L"</td>";
-    }
+    if( use_denoms )
+        *m_htmlWriter << "<td class='width-10'>" << denom_heading << "</td>";
 
-    html_writer << L"</tr>\n";
+    *m_htmlWriter << "</tr>\n";
 
     // write the messages
-    const std::wstring blank_percent_denom_text = _T("-");
-    std::wstring percent_text;
-    std::wstring denom_text;
+    constexpr const char* blank_percent_denom_text = "-";
+    std::string percent_text;
+    std::string denom_text;
 
-    for (const MessageSummary& message_summary : message_summaries)
+    for( const MessageSummary& message_summary : message_summaries )
     {
-        bool has_a_denom = (use_denoms && message_summary.denominator.has_value());
-        bool has_a_blank_denom = (use_denoms && !message_summary.denominator.has_value());
+        const bool has_a_denom = ( use_denoms && message_summary.denominator.has_value() );
+        const bool has_a_blank_denom = ( use_denoms && !message_summary.denominator.has_value() );
 
-        if (has_a_denom)
+        if( has_a_denom )
         {
             bool calculate_percent = false;
 
-            if (*message_summary.denominator < 0 || IsSpecial(*message_summary.denominator))
+            if( *message_summary.denominator < 0 || IsSpecial(*message_summary.denominator) )
             {
-                denom_text = SO::GetRepeatingCharacterString('*', denom_heading.length());
+                denom_text = SO::GetRepeatingCharacterString('*', denom_heading_length);
             }
+
             else
             {
-                denom_text = IntToString((uint64_t)*message_summary.denominator);
+                denom_text = IntToString(static_cast<uint64_t>(*message_summary.denominator));
 
-                if (*message_summary.denominator != 0 && message_summary.frequency <= *message_summary.denominator)
+                if( *message_summary.denominator != 0 && message_summary.frequency <= *message_summary.denominator )
                     calculate_percent = true;
             }
 
-            if (calculate_percent)
+            if( calculate_percent )
             {
-                percent_text = FormatTextCS2WS(_T("%5.1f"), CreatePercent<double>(message_summary.frequency, *message_summary.denominator));
+                percent_text = FormatText("%5.1f", CreatePercent<double>(message_summary.frequency, *message_summary.denominator));
             }
+
             else
             {
-                percent_text = SO::GetRepeatingCharacterString('*', percent_heading.length());
+                percent_text = SO::GetRepeatingCharacterString('*', percent_heading_length);
             }
         }
 
         // show unnumbered messages' line numbers as positive (rather than negative as they appear elsewhere)
-        int message_number_for_display = std::abs(message_summary.message_number);
+        const int message_number_for_display = std::abs(message_summary.message_number);
 
-        html_writer << L"<tr><td>" << IntToString(message_number_for_display) << L"</td><td>" << IntToString(message_summary.frequency) << L"</td>";
+        *m_htmlWriter << "<tr><td>" << IntToString(message_number_for_display)
+                      << "</td><td>" << IntToString(message_summary.frequency) << "</td>";
 
-        if (has_a_denom)
+        if( has_a_denom )
         {
-            html_writer << L"<td>" << percent_text << L"</td>";
-        }
-        else if (has_a_blank_denom)
-        {
-            html_writer << L"<td>" << blank_percent_denom_text << L"</td>";
+            *m_htmlWriter << "<td>" << percent_text << "</td>";
         }
 
-        html_writer << L"<td class='left'>" << message_summary.message_text << L"</td>";
+        else if( has_a_blank_denom )
+        {
+            *m_htmlWriter << "<td>" << blank_percent_denom_text << "</td>";
+        }
 
-        if (has_a_denom)
+        *m_htmlWriter << "<td class='left'>" << *message_summary.message_text << "</td>";
+
+        if( has_a_denom )
         {
-            html_writer << L"<td>" << denom_text << L"</td>";
+            *m_htmlWriter << "<td>" << denom_text << "</td>";
         }
-        else if (has_a_blank_denom)
+
+        else if( has_a_blank_denom )
         {
-            html_writer << L"<td>" << blank_percent_denom_text << L"</td>";
+            *m_htmlWriter << "<td>" << blank_percent_denom_text << "</td>";
         }
-        html_writer << L"</tr>\n";
+
+        *m_htmlWriter << "</tr>\n";
     }
 
-    html_writer << L"</table>\n";
-    m_file->WriteString(html_writer.str());
+    *m_htmlWriter << "</table>\n";
 }
 
 
-void Listing::HtmlLister::WriteWarningAboutApplicationErrors(const std::wstring& application_errors_filename)
+void Listing::HtmlLister::WriteWarningAboutApplicationErrors(const std::string& application_errors_path)
 {
-    HtmlStringWriter html_writer;
-    html_writer << L"<br>\n<div class='center'><em>A compilation error file "
-                << L"<a href=\"" << CreateTextViewerUri(application_errors_filename).c_str() << L"\">"
-                << L"(" << application_errors_filename << L")</a> has been created for your application."
-                << L"</em></div>\n";
-    m_file->WriteString(html_writer.str());
+    *m_htmlWriter << "<br>\n<div class='center'><em>"
+                     "A compilation error file "
+                     "<a href=\"";
+    m_htmlWriter->WriteTagValue(CustomUri::CreateTextUri(application_errors_path));
+    *m_htmlWriter << "\">"
+                     "(" << application_errors_path << ")</a> has been created for your application."
+                  << "</em></div>\n";
 }
 
 
 void Listing::HtmlLister::UpdateProcessSummary()
 {
-    if (m_processSummaryFormatter != nullptr)
+    if( m_processSummaryFormatter != nullptr )
         m_processSummaryFormatter->WriteValues();
 }
 
 
 void Listing::HtmlLister::WriteFooter()
 {
-    HtmlStringWriter html_writer;
-    html_writer << L"<br>\n<div class='center'>CSPro Executor Normal End</div>\n<br>\n";
-    html_writer << L"<hr>\n";
-    html_writer << L"</body>\n</html>\n";
-    m_file->WriteString(html_writer.str());
+    *m_htmlWriter << "<br>\n<div class='center'>CSPro Executor Normal End</div>\n<br>\n";
+    *m_htmlWriter << "<hr>\n";
+    *m_htmlWriter << "</body>\n</html>\n";
 
     // update the end time
-    if (m_endTimePosition.has_value())
+    if( m_endTimePosition.has_value() )
     {
-        m_file->Seek(*m_endTimePosition, SEEK_SET);
-        m_file->WriteString(GetSystemTime().c_str());
-        m_file->SeekToEnd();
+        m_textFile->Seek(*m_endTimePosition, SEEK_SET);
+        m_textFile->WriteString(DateTime::LocalTimeString());
+        m_textFile->SeekToEnd();
     }
 }
 
 
 void Listing::HtmlLister::WriteUpdatesToProcessMessageTable()
 {
-    if (!m_isProcessMessageComplete)
-    {
-        m_isProcessMessageComplete = true;
+    if( m_isProcessMessageComplete )
+        return;
 
-        const TCHAR* colspan_size = m_isMultiLevel ? L"3" : L"2";
+    m_isProcessMessageComplete = true;
 
-        m_file->Seek(*m_startProcessMessagePosition, SEEK_SET);
-        m_file->WriteFormattedString(_T("<br><table><thead><tr><th colspan='%s' class='center'>Process Messages</td></tr></thead>"), colspan_size);
+    const char* const colspan_size = m_isMultiLevel ? "3" : "2";
 
-        m_file->SeekToEnd();
-        m_file->WriteString(L"</table>\n");
-    }
+    m_textFile->Seek(*m_startProcessMessagePosition, SEEK_SET);
+    m_textFile->WriteFormattedString("<br><table><thead><tr><th colspan='%s' class='center'>Process Messages</th></tr></thead>", colspan_size);
+
+    m_textFile->SeekToEnd();
+    m_textFile->WriteString("</table>\n");
 }
 
 
 void Listing::HtmlLister::MoveToHtmlEndTag() const
 {
-    // use length of L"</body>\n</html>\n" to calculate offset
-    const LONGLONG offset = -18;
-    m_file->Seek(offset, SEEK_END);
+    // use length of trailing body and html tags to calculate offset
+    static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF == true);
+    constexpr int64_t offset = -1 * static_cast<int64_t>(std::string_view("</body>\r\n</html>\r\n").length());
+
+    m_textFile->Seek(offset, SEEK_END);
 }

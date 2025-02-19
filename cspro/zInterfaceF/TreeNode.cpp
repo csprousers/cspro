@@ -17,7 +17,7 @@ std::wstring TreeNode::GetName() const
 {
     const std::optional<AppFileType> app_file_type = GetAppFileType();
 
-    return app_file_type.has_value() ? ToString(*app_file_type) :
+    return app_file_type.has_value() ? UTF8_TODO::GetWide(ToString(*app_file_type)) :
                                        std::wstring();
 }
 
@@ -28,7 +28,7 @@ std::wstring TreeNode::GetLabel() const
 }
 
 
-const std::wstring& TreeNode::GetPath() const
+const std::string& TreeNode::GetPath() const
 {
-    return SO::EmptyString;
+    return SO::Empty_string;
 }

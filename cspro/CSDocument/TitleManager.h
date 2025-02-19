@@ -11,17 +11,17 @@ class TitleManager
 public:
     TitleManager(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);
 
-    std::wstring GetTitle(const std::wstring& csdoc_filename);
+    std::string GetTitle(const std::string& csdoc_file_path);
 
-    void SetTitle(const std::wstring& csdoc_filename, const std::wstring& title) { SetTitle(csdoc_filename, &title); }
-    void ClearTitle(const std::wstring& csdoc_filename)                          { SetTitle(csdoc_filename, nullptr); }
+    void SetTitle(const std::string& csdoc_file_path, const std::string& title) { SetTitle(csdoc_file_path, &title); }
+    void ClearTitle(const std::string& csdoc_file_path)                         { SetTitle(csdoc_file_path, nullptr); }
 
 private:
-    bool GetTitleFromCache(std::wstring& title, const std::wstring& csdoc_filename);
+    bool GetTitleFromCache(std::string& title, const std::string& csdoc_file_path);
 
-    void SetTitle(const std::wstring& csdoc_filename, const std::wstring* title);
+    void SetTitle(const std::string& csdoc_file_path, const std::string* title);
 
 private:
     SettingsDb m_settingsDb;
     cs::non_null_shared_or_raw_ptr<DocSetSpec> m_docSetSpec;
-};    
+};

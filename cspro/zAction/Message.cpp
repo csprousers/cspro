@@ -4,7 +4,7 @@
 #include <zMessageO/SystemMessages.h>
 
 
-std::wstring ActionInvoker::Runtime::GetMessageText(const JsonNode<wchar_t>& json_node, const Action action)
+SharableString ActionInvoker::Runtime::GetMessageText(const JsonNode& json_node, const Action action)
 {
     ASSERT(action == Action::Message_formatText || action == Action::Message_getText);
 
@@ -18,7 +18,7 @@ std::wstring ActionInvoker::Runtime::GetMessageText(const JsonNode<wchar_t>& jso
 
         // the message can come from system messages...
         if( json_node.Contains(JK::type) &&
-            json_node.GetFromStringOptions(JK::type, std::initializer_list<const TCHAR*>({ _T("user"), _T("system") })) == 1 )
+            json_node.GetFromStringOptions(JK::type, { "user", "system" }) == 1 )
         {
             message_file = &SystemMessages::GetMessageFile();
         }
@@ -37,23 +37,23 @@ std::wstring ActionInvoker::Runtime::GetMessageText(const JsonNode<wchar_t>& jso
             }
         }
 
-        const std::wstring* message_text = message_file->GetMessageTextWithNoDefaultMessage(*message_number);
+        SharableString message_text = message_file->GetMessageTextWithNoDefaultMessage(*message_number);
 
-        if( message_text != nullptr )
-            return *message_text;
+        if( message_text.IsSet() )
+            return message_text;
     }
 
     if( json_node.Contains(JK::text) )
-        return json_node.Get<std::wstring>(JK::text);
+        return json_node.Get<SharableString>(JK::text);
 
     if( message_number.has_value() )
-        throw CSProException(_T("No message number '%d' exists."), *message_number);
+        throw CSProException("No message number '%d' exists.", *message_number);
 
     throw CSProException("No message text specified.");
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Message_getText(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Message_getText(const JsonNode& json_node, Caller& /*caller*/)
 {
     return Result::String(GetMessageText(json_node, Action::Message_getText));
 }
@@ -64,30 +64,30 @@ namespace
     class ActionInvokerMessageParameterEvaluator : public MessageParameterEvaluator
     {
     public:
-        ActionInvokerMessageParameterEvaluator(std::optional<JsonNodeArray<wchar_t>> arguments_array);
+        ActionInvokerMessageParameterEvaluator(std::optional<JsonNodeArray> arguments_array);
 
     protected:
         MessageFormat::Type GetMessageFormatType(const MessageFormat& message_format) const override;
         int GetInteger() override;
         double GetDouble() override;
-        std::wstring GetString() override;
-        wchar_t GetChar() override;
-        std::wstring GetProc() override;
-        std::wstring GetVariable() override;
-        std::wstring GetVariableLabel() override;
+        SharableString GetString() override;
+        std::variant<int, SharableString> GetChar() override;
+        SharableString GetProc() override;
+        SharableString GetVariable() override;
+        SharableString GetVariableLabel() override;
 
     private:
         template<typename CF>
         auto EvaluateArgument(CF callback_function);
 
     private:
-        std::optional<JsonNodeArray<wchar_t>> m_argumentsArray;
+        std::optional<JsonNodeArray> m_argumentsArray;
         const size_t m_numberArguments;
         size_t m_nextArgumentIndex;
     };
 
 
-    ActionInvokerMessageParameterEvaluator::ActionInvokerMessageParameterEvaluator(std::optional<JsonNodeArray<wchar_t>> arguments_array)
+    ActionInvokerMessageParameterEvaluator::ActionInvokerMessageParameterEvaluator(std::optional<JsonNodeArray> arguments_array)
         :   m_argumentsArray(std::move(arguments_array)),
             m_numberArguments(m_argumentsArray.has_value() ? m_argumentsArray->size() : 0),
             m_nextArgumentIndex(0)
@@ -102,7 +102,7 @@ namespace
 
         if( current_argument_index >= m_numberArguments )
         {
-            throw EvaluationException(_T("<no argument provided for replacement #%d>"),
+            throw EvaluationException("<no argument provided for replacement #%d>",
                                       static_cast<int>(current_argument_index) + 1);
         }
 
@@ -113,9 +113,9 @@ namespace
 
         catch( const CSProException& exception )
         {
-            throw EvaluationException(_T("<invalid argument for replacement #%d: %s>"),
+            throw EvaluationException("<invalid argument for replacement #%d: %s>",
                                       static_cast<int>(current_argument_index) + 1,
-                                      exception.GetErrorMessage().c_str());
+                                      exception.what());
         }
     }
 
@@ -137,55 +137,54 @@ namespace
     double ActionInvokerMessageParameterEvaluator::GetDouble()
     {
         return EvaluateArgument(
-            [](const JsonNode<wchar_t>& json_node)
+            [](const JsonNode& json_node)
             {
                 return json_node.GetEngineValue<double>();
             });
     }
 
 
-    std::wstring ActionInvokerMessageParameterEvaluator::GetString()
+    SharableString ActionInvokerMessageParameterEvaluator::GetString()
     {
         return EvaluateArgument(
-            [](const JsonNode<wchar_t>& json_node)
+            [](const JsonNode& json_node)
             {
-                return json_node.GetEngineValue<std::wstring>();
+                return json_node.GetEngineValue<SharableString>();
             });
     }
 
 
-    wchar_t ActionInvokerMessageParameterEvaluator::GetChar()
+    std::variant<int, SharableString> ActionInvokerMessageParameterEvaluator::GetChar()
     {
-        const std::wstring text = GetString();
-        return !text.empty() ? text.front() : ' ';
+        return ActionInvokerMessageParameterEvaluator::GetString();
     }
 
 
-    std::wstring ActionInvokerMessageParameterEvaluator::GetProc()
+    SharableString ActionInvokerMessageParameterEvaluator::GetProc()
     {
-        return std::wstring();
+        return SharableString();
     }
 
 
-    std::wstring ActionInvokerMessageParameterEvaluator::GetVariable()
+    SharableString ActionInvokerMessageParameterEvaluator::GetVariable()
     {
-        return GetString();
+        return ActionInvokerMessageParameterEvaluator::GetString();
     }
 
 
-    std::wstring ActionInvokerMessageParameterEvaluator::GetVariableLabel()
+    SharableString ActionInvokerMessageParameterEvaluator::GetVariableLabel()
     {
-        return GetString();
+        return ActionInvokerMessageParameterEvaluator::GetString();
     }
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Message_formatText(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Message_formatText(const JsonNode& json_node, Caller& /*caller*/)
 {
-    std::wstring unformatted_message_text = GetMessageText(json_node, Action::Message_formatText);
+    SharableString unformatted_message_text = GetMessageText(json_node, Action::Message_formatText);
 
     // we can return the string directly if there are no formats in the message
-    if( unformatted_message_text.find('%') == std::wstring::npos )
+    if( unformatted_message_text->find('%') == std::string::npos )
         return Result::String(std::move(unformatted_message_text));
 
     // use a dummy message file since we are not using message numbers at this point
@@ -195,5 +194,5 @@ ActionInvoker::Result ActionInvoker::Runtime::Message_formatText(const JsonNode<
     ActionInvokerMessageParameterEvaluator message_parameter_evaluator(json_node.Contains(JK::arguments) ? std::make_optional(json_node.GetArray(JK::arguments)) :
                                                                                                            std::nullopt);
 
-    return Result::String(m_messageEvaluator->GetFormattedMessage(message_parameter_evaluator, unformatted_message_text));
+    return Result::String(m_messageEvaluator->GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text));
 }

@@ -5,7 +5,7 @@
 
 LogicDocument* LogicCompiler::CompileLogicDocumentDeclaration()
 {
-    std::wstring document_name = CompileNewSymbolName();
+    std::string document_name = CompileNewSymbolName();
 
     auto logic_document = std::make_shared<LogicDocument>(std::move(document_name));
 

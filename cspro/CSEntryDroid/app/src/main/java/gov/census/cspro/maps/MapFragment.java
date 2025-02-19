@@ -575,7 +575,7 @@ public class MapFragment extends Fragment
         layoutParams.setMargins(0, 12, 24, 12);
         button.setLayoutParams(layoutParams);
         button.setBackgroundResource(R.drawable.mapbutton_background);
-		button.setElevation(Util.dpToPx(6, getResources()));
+        button.setElevation(Util.dpToPx(6, getResources()));
         if (m_buttonContainer != null)
         {
             m_buttonContainer.addView(button, index);
@@ -603,10 +603,11 @@ public class MapFragment extends Fragment
 
                 if (baseMapSelection.getFilename().toLowerCase().endsWith("mbtiles")) {
                     reader = new MBTilesReader(baseMapSelection.getFilename());
-                } else if (baseMapSelection.getFilename().toLowerCase().endsWith("tpk")) {
+                } else if (baseMapSelection.getFilename().toLowerCase().endsWith("tpk") ||
+                    baseMapSelection.getFilename().toLowerCase().endsWith("tpkx")) {
                     reader = new TpkTilesReader(baseMapSelection.getFilename());
                 } else {
-                    throw new IOException("Invalid tile file format. Only mbtiles and tpk are supported.");
+                    throw new IOException("Invalid tile file format. Only MBTiles and ArcGIS tile packages (tpk/tpkx) are supported.");
                 }
 
                 // No max zoom since reader can scale up bitmaps

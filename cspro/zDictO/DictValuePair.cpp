@@ -9,7 +9,13 @@ DictValuePair::DictValuePair(const CString& from/* = CString()*/, const CString&
 }
 
 
-DictValuePair DictValuePair::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictValuePair::DictValuePair(std::string from, std::string to/* = std::string()*/)
+    :   DictValuePair(UTF8_TODO::GetCString(from), UTF8_TODO::GetCString(to))
+{
+}
+
+
+DictValuePair DictValuePair::CreateFromJson(const JsonNode& json_node)
 {
     if( json_node.Contains(JK::value) )
     {
@@ -18,10 +24,10 @@ DictValuePair DictValuePair::CreateFromJson(const JsonNode<wchar_t>& json_node)
 
     else
     {
-        const JsonNodeArray<wchar_t> range_node = json_node.GetArray(JK::range);
+        const JsonNodeArray range_node = json_node.GetArray(JK::range);
 
         if( range_node.size() != 2 )
-            throw JsonParseException(_T("Value ranges must contain exactly 2 entries, not %d"), static_cast<int>(range_node.size()));
+            throw JsonParseException("Value ranges must contain exactly 2 entries, not %d", static_cast<int>(range_node.size()));
 
         return DictValuePair(range_node[0].Get<CString>(), range_node[1].Get<CString>());
     }
@@ -34,14 +40,14 @@ void DictValuePair::WriteJson(JsonWriter& json_writer) const
 
     if( m_to.IsEmpty() )
     {
-        json_writer.Write(JK::value, SO::TrimRight(m_from));
+        json_writer.Write(JK::value, SO::TrimRight(UTF8_TODO::GetUtf8(m_from)));
     }
 
     else
     {
         json_writer.BeginArray(JK::range)
-                   .Write(SO::TrimRight(m_from))
-                   .Write(SO::TrimRight(m_to))
+                   .Write(SO::TrimRight(UTF8_TODO::GetUtf8(m_from)))
+                   .Write(SO::TrimRight(UTF8_TODO::GetUtf8(m_to)))
                    .EndArray();
     }
 

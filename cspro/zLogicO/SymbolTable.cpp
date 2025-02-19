@@ -28,7 +28,7 @@ void SymbolTable::Clear()
 }
 
 
-void SymbolTable::AddSymbol(std::shared_ptr<Symbol> symbol, NameMapAddition name_map_addition/* = NameMapAddition::ToCurrentScope*/)
+void SymbolTable::AddSymbol(std::shared_ptr<Symbol> symbol, const NameMapAddition name_map_addition/* = NameMapAddition::ToCurrentScope*/)
 {
     ASSERT(symbol != nullptr);
 
@@ -39,34 +39,36 @@ void SymbolTable::AddSymbol(std::shared_ptr<Symbol> symbol, NameMapAddition name
     m_symbols.emplace_back(symbol);
 
     // potentially add the symbol to the name map
-    if( name_map_addition != NameMapAddition::DoNotAdd )
-    {
-        // symbols that create symbols should not add the dot-version to the symbol table
-        ASSERT(symbol->GetName().find('.') == std::wstring::npos);
-
-        AddSymbolToNameMap(symbol->GetName(), symbol->GetSymbolIndex());
-
-        // add the symbol to the local symbol stack (if applicable)
-        if( name_map_addition == NameMapAddition::ToCurrentScope && !m_localSymbolStacks.empty() )
-        {
-            m_localSymbolStacks.back()->m_localSymbolIndices.emplace_back(symbol->GetSymbolIndex());
-
-            // notify any listeners about symbols added
-            for( const LocalSymbolStack* local_symbol_stack : m_localSymbolStacks )
-            {
-                if( local_symbol_stack->m_addSymbolListener != nullptr )
-                    (*local_symbol_stack->m_addSymbolListener)(symbol->GetSymbolIndex());
-            }
-        }
-    }
+    AddSymbolToNameMap(symbol->GetName(), symbol->GetSymbolIndex(), name_map_addition);
 }
 
 
-void SymbolTable::AddSymbolToNameMap(StringNoCase symbol_name, size_t symbol_index)
+void SymbolTable::AddSymbolToNameMap(std::string symbol_name, const size_t symbol_index, const NameMapAddition name_map_addition)
 {
-    ASSERT(symbol_index < m_symbols.size());
+    ASSERT(!symbol_name.empty() && symbol_index < m_symbols.size());
 
+    if( name_map_addition == NameMapAddition::DoNotAdd )
+        return;
+
+    // symbols that create symbols should not add the dot-version to the symbol table
+    ASSERT(symbol_name.find('.') == std::string::npos);
+
+    // add the symbol to the global scope
     m_nameMap[std::move(symbol_name)].emplace_back(symbol_index);
+
+    // if applicable, add the symbol to the local symbol stack;
+    // although the symbol was also added to the global scope, it will be removed in LocalSymbolStack's destructor
+    if( !m_localSymbolStacks.empty() && name_map_addition == NameMapAddition::ToCurrentScope )
+    {
+        m_localSymbolStacks.back()->m_localSymbolIndices.emplace_back(symbol_index);
+
+        // notify any listeners about symbols added
+        for( const LocalSymbolStack* const local_symbol_stack : m_localSymbolStacks )
+        {
+            if( local_symbol_stack->m_addSymbolListener != nullptr )
+                (*local_symbol_stack->m_addSymbolListener)(symbol_index);
+        }
+    }
 }
 
 
@@ -95,60 +97,60 @@ void SymbolTable::RemoveSymbolFromNameMap(const Symbol& symbol)
 }
 
 
-Symbol& SymbolTable::FindSymbol(const StringNoCase& symbol_name, const Symbol* parent_symbol/* = nullptr*/) const
+Symbol& SymbolTable::FindSymbol(const std::string_view symbol_name_sv, const Symbol* const parent_symbol/* = nullptr*/) const
 {
     Symbol* symbol = nullptr;
 
     // if the parent symbol is specified, search only within that symbol
     if( parent_symbol != nullptr )
     {
-        symbol = parent_symbol->FindChildSymbol(symbol_name);
+        symbol = parent_symbol->FindChildSymbol(symbol_name_sv);
     }
 
     else
     {
         // otherwise, search all symbols
-        auto name_search = m_nameMap.find(symbol_name);
+        auto name_search = m_nameMap.find(symbol_name_sv);
 
         if( name_search != m_nameMap.end() )
         {
             const std::vector<size_t>& symbols_with_name = name_search->second;
 
             if( symbols_with_name.size() != 1 )
-                throw MultipleSymbolsException(symbol_name);
+                throw MultipleSymbolsException(std::string(symbol_name_sv));
 
             symbol = m_symbols[name_search->second.front()].get();
         }
     }
 
     if( symbol == nullptr )
-        throw NoSymbolsException(symbol_name);
+        throw NoSymbolsException(std::string(symbol_name_sv));
 
     return *symbol;
 }
 
 
-Symbol& SymbolTable::FindSymbol(const StringNoCase& symbol_name, SymbolType preferred_symbol_type, const std::vector<SymbolType>* allowable_symbol_types) const
+Symbol& SymbolTable::FindSymbol(const std::string_view symbol_name_sv, const SymbolType preferred_symbol_type, const std::vector<SymbolType>* const allowable_symbol_types) const
 {
-    auto name_search = m_nameMap.find(symbol_name);
+    auto name_search = m_nameMap.find(symbol_name_sv);
 
     if( name_search == m_nameMap.end() )
-        throw NoSymbolsException(symbol_name);
+        throw NoSymbolsException(std::string(symbol_name_sv));
 
     Symbol* preferred_symbol = nullptr;
     bool found_preferred_symbol = false;
     size_t matched_symbols_found = 0;
 
-    for( size_t symbol_index : name_search->second )
+    for( const size_t symbol_index : name_search->second )
     {
-        Symbol* potential_symbol = m_symbols[symbol_index].get();
+        Symbol* const potential_symbol = m_symbols[symbol_index].get();
 
         if( allowable_symbol_types == nullptr || potential_symbol->IsOneOf(*allowable_symbol_types) )
         {
             if( preferred_symbol_type == SymbolType::None || potential_symbol->IsA(preferred_symbol_type) )
             {
                 if( found_preferred_symbol )
-                    throw MultipleSymbolsException(symbol_name);
+                    throw MultipleSymbolsException(std::string(symbol_name_sv));
 
                 preferred_symbol = potential_symbol;
                 found_preferred_symbol = true;
@@ -165,35 +167,35 @@ Symbol& SymbolTable::FindSymbol(const StringNoCase& symbol_name, SymbolType pref
 
     if( matched_symbols_found == 0 )
     {
-        throw NoSymbolsOfAllowableTypesException(symbol_name);
+        throw NoSymbolsOfAllowableTypesException(std::string(symbol_name_sv));
     }
 
     else if( !found_preferred_symbol && matched_symbols_found > 1 )
     {
-        throw MultipleSymbolsException(symbol_name);
+        throw MultipleSymbolsException(std::string(symbol_name_sv));
     }
 
     return *preferred_symbol;
 }
 
 
-Symbol& SymbolTable::FindSymbolOfType(const StringNoCase& symbol_name, SymbolType symbol_type) const
+Symbol& SymbolTable::FindSymbolOfType(const std::string_view symbol_name_sv, const SymbolType symbol_type) const
 {
     const std::vector<SymbolType> allowable_symbol_types { symbol_type };
 
-    return FindSymbol(symbol_name, SymbolType::None, &allowable_symbol_types);
+    return FindSymbol(symbol_name_sv, SymbolType::None, &allowable_symbol_types);
 }
 
 
-std::vector<Symbol*> SymbolTable::FindSymbols(const StringNoCase& symbol_name) const
+std::vector<Symbol*> SymbolTable::FindSymbols(const std::string_view symbol_name_sv) const
 {
     std::vector<Symbol*> symbols;
 
-    const auto& name_search = m_nameMap.find(symbol_name);
+    const auto& name_search = m_nameMap.find(symbol_name_sv);
 
     if( name_search != m_nameMap.cend() )
     {
-        for( size_t symbol_index : name_search->second )
+        for( const size_t symbol_index : name_search->second )
             symbols.emplace_back(m_symbols[symbol_index].get());
     }
 
@@ -201,38 +203,38 @@ std::vector<Symbol*> SymbolTable::FindSymbols(const StringNoCase& symbol_name) c
 }
 
 
-Symbol& SymbolTable::FindSymbolWithDotNotation(const StringNoCase& full_symbol_name, SymbolType preferred_symbol_type/* = SymbolType::None*/,
-                                               const std::vector<SymbolType>* allowable_symbol_types/* = nullptr*/) const
+Symbol& SymbolTable::FindSymbolWithDotNotation(const std::string_view full_symbol_name_sv, const SymbolType preferred_symbol_type/* = SymbolType::None*/,
+                                               const std::vector<SymbolType>* const allowable_symbol_types/* = nullptr*/) const
 {
     // search for a symbol, allowing for dot notation
     Symbol* symbol = nullptr;
     size_t next_name_part_index = 0;
 
-    while( next_name_part_index < full_symbol_name.length() )
+    while( next_name_part_index < full_symbol_name_sv.length() )
     {
-        size_t dot_index = full_symbol_name.find('.', next_name_part_index);
-        wstring_view symbol_name_sv;
+        const size_t dot_index = full_symbol_name_sv.find('.', next_name_part_index);
+        std::string_view symbol_name_sv;
 
-        if( dot_index == StringNoCase::npos )
+        if( dot_index == std::string_view::npos )
         {
             // if no dots are specified, search using the whole name
             if( symbol == nullptr )
             {
-                symbol = &FindSymbol(full_symbol_name, preferred_symbol_type, allowable_symbol_types);
+                symbol = &FindSymbol(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
                 break;
             }
 
             // otherwise search each section separately
             else
             {
-                symbol_name_sv = wstring_view(full_symbol_name).substr(next_name_part_index);
-                next_name_part_index = full_symbol_name.length();
+                symbol_name_sv = full_symbol_name_sv.substr(next_name_part_index);
+                next_name_part_index = full_symbol_name_sv.length();
             }
         }
 
         else
         {
-            symbol_name_sv = wstring_view(full_symbol_name).substr(next_name_part_index, dot_index - next_name_part_index);
+            symbol_name_sv = full_symbol_name_sv.substr(next_name_part_index, dot_index - next_name_part_index);
             next_name_part_index = dot_index + 1;
         }
 
@@ -244,35 +246,35 @@ Symbol& SymbolTable::FindSymbolWithDotNotation(const StringNoCase& full_symbol_n
         catch( const NoSymbolsException& )
         {
             // throw an exception with the full symbol name
-            throw NoSymbolsException(full_symbol_name);
+            throw NoSymbolsException(std::string(full_symbol_name_sv));
         }
     }
 
-    ASSERT(symbol != nullptr || full_symbol_name.empty());
+    ASSERT(symbol != nullptr || full_symbol_name_sv.empty());
 
     if( symbol == nullptr )
-        throw NoSymbolsException(full_symbol_name);
+        throw NoSymbolsException(std::string(full_symbol_name_sv));
 
     return *symbol;
 }
 
 
-void SymbolTable::AddAlias(StringNoCase symbol_name, const Symbol& symbol)
+void SymbolTable::AddAlias(std::string symbol_name, const Symbol& symbol)
 {
-    AddSymbolToNameMap(std::move(symbol_name), symbol.GetSymbolIndex());
+    AddSymbolToNameMap(std::move(symbol_name), symbol.GetSymbolIndex(), NameMapAddition::ToGlobalScope);
 }
 
 
-std::vector<std::wstring> SymbolTable::GetAliases(const Symbol& symbol) const
+std::vector<std::string> SymbolTable::GetAliases(const Symbol& symbol) const
 {
-    std::vector<std::wstring> aliases;
+    std::vector<std::string> aliases;
 
     for( const auto& [symbol_name, symbols_with_name] : m_nameMap )
     {
         if( SO::EqualsNoCase(symbol_name, symbol.GetName()) )
             continue;
 
-        for( size_t symbol_index : symbols_with_name )
+        for( const size_t symbol_index : symbols_with_name )
         {
             if( &symbol == m_symbols[symbol_index].get() )
             {
@@ -292,7 +294,7 @@ LocalSymbolStack SymbolTable::CreateLocalSymbolStack()
 }
 
 
-std::wstring SymbolTable::GetRecommendedWordUsingFuzzyMatching(const std::wstring& word) const
+std::string SymbolTable::GetRecommendedWordUsingFuzzyMatching(const std::string& word) const
 {
     RecommendedWordCalculator recommended_word_calculator(word);
 
@@ -309,10 +311,11 @@ std::wstring SymbolTable::GetRecommendedWordUsingFuzzyMatching(const std::wstrin
 // SymbolTable Exceptions
 // --------------------------------------------------------------------------
 
-Logic::SymbolTable::NoSymbolsException::NoSymbolsException(const std::wstring& symbol_name)
-    :   Exception(FormatTextCS2WS(_T("The symbol '%s' does not exist"), symbol_name.c_str()))
+Logic::SymbolTable::NoSymbolsException::NoSymbolsException(const cs::string_sz symbol_name)
+    :   Exception("The symbol '%s' does not exist", symbol_name.c_str())
 {
 }
+
 
 int Logic::SymbolTable::NoSymbolsException::GetCompilerErrorMessageNumber() const
 {
@@ -320,8 +323,8 @@ int Logic::SymbolTable::NoSymbolsException::GetCompilerErrorMessageNumber() cons
 }
 
 
-Logic::SymbolTable::MultipleSymbolsException::MultipleSymbolsException(const std::wstring& symbol_name)
-    :   Exception(FormatTextCS2WS(_T("The symbol '%s' exists more than once in your application so you must provide qualifiers (such as the dictionary name) to avoid ambiguity"), symbol_name.c_str()))
+Logic::SymbolTable::MultipleSymbolsException::MultipleSymbolsException(const cs::string_sz symbol_name)
+    :   Exception("The symbol '%s' exists more than once in your application so you must provide qualifiers (such as the dictionary name) to avoid ambiguity", symbol_name.c_str())
 {
 }
 
@@ -331,10 +334,11 @@ int Logic::SymbolTable::MultipleSymbolsException::GetCompilerErrorMessageNumber(
 }
 
 
-Logic::SymbolTable::NoSymbolsOfAllowableTypesException::NoSymbolsOfAllowableTypesException(const std::wstring& symbol_name)
-    :   Exception(FormatTextCS2WS(_T("The symbol '%s' is valid but is not of the type expected"), symbol_name.c_str()))
+Logic::SymbolTable::NoSymbolsOfAllowableTypesException::NoSymbolsOfAllowableTypesException(const cs::string_sz symbol_name)
+    :   Exception("The symbol '%s' is valid but is not of the type expected", symbol_name.c_str())
 {
 }
+
 
 int Logic::SymbolTable::NoSymbolsOfAllowableTypesException::GetCompilerErrorMessageNumber() const
 {

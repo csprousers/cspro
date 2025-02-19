@@ -346,18 +346,18 @@ DEFLD_INFO CEntryIFaz::C_FldInfo(const DEFLD* pDeFld)
     DeFldInfo.vp = pVarT;
 
     if( pDicT != NULL )
-        DeFldInfo.dname = WS2CS(pDicT->GetName());
+        DeFldInfo.dname = UTF8_TODO::GetCString(pDicT->GetName());
 
     if( pSecT != NULL ) {
-        DeFldInfo.sname = WS2CS(pSecT->GetName());
+        DeFldInfo.sname = UTF8_TODO::GetCString(pSecT->GetName());
         DeFldInfo.level = pSecT->GetLevel();
     }
 
     if( iSymFrm > 0 )
-        DeFldInfo.fname = WS2CS(NPT(iSymFrm)->GetName());
+        DeFldInfo.fname = UTF8_TODO::GetCString(NPT(iSymFrm)->GetName());
 
     if( pVarT != NULL )
-        DeFldInfo.vname = WS2CS(pVarT->GetName());
+        DeFldInfo.vname = UTF8_TODO::GetCString(pVarT->GetName());
 
     return DeFldInfo;
 }
@@ -599,21 +599,25 @@ DEFLD* CEntryIFaz::C_GoToField( int iAction ) {
     return pReachedFld;
 }
 
-bool CEntryIFaz::HasSpecialFunction(SpecialFunction special_function)
+
+bool CEntryIFaz::HasSpecialFunction(const SpecialFunction special_function)
 {
     return m_pIntDriver->HasSpecialFunction(special_function);
 }
 
-double CEntryIFaz::ExecSpecialFunction(int iVar, SpecialFunction special_function, double argument)
+
+double CEntryIFaz::ExecSpecialFunction(const int symbol_index, const SpecialFunction special_function, const double argument)
 {
-    return m_pIntDriver->ExecSpecialFunction(iVar, special_function, { argument });
+    return m_pIntDriver->ExecSpecialFunction(symbol_index, special_function, { argument });
 }
 
-// RHF INIC Aug 22, 2002
-void CEntryIFaz::RunGlobalOnFocus( int iVar ) {
-    m_pIntDriver->RunGlobalOnFocus( iVar );
+
+void CEntryIFaz::RunGlobalOnFocus(const int symbol_index)
+{
+    // RHF Aug 22, 2002
+    m_pIntDriver->RunGlobalOnFocus(symbol_index);
 }
-// RHF END Aug 22, 2002
+
 
 bool CEntryIFaz::C_ModifyStart( int bDoInitFile ) {
     ASSERT( m_bExentryStarted );
@@ -1057,35 +1061,36 @@ DEFLD* CEntryIFaz::C_EndLevel( bool bPostProcCurField, bool bExecProcAllOthers, 
             iSymSonLevel  = ( iCurLevel + 1 <= iMaxLevel ) ? pGroupTRoot->GetLevelSymbol( iCurLevel + 1 ) : 0;
 
             // setup names of current and requested next levels
-            _stprintf( pszCurLevel,  _T("%d (%ls/%ls)"), iCurLevel, NPT(iSymCurLevel)->GetName().c_str(), GPT(iSymCurLevel)->GetLabel().GetString() );
-            _stprintf( pszNextLevel, _T("%d (%ls/%ls)"), iNextLevel, NPT(iSymNextLevel)->GetName().c_str(), GPT(iSymNextLevel)->GetLabel().GetString() );
+            _stprintf( pszCurLevel,  _T("%d (%ls/%ls)"), iCurLevel, UTF8_TODO::GetWide(NPT(iSymCurLevel)->GetName()).c_str(), GPT(iSymCurLevel)->GetLabel().GetString() );
+            _stprintf( pszNextLevel, _T("%d (%ls/%ls)"), iNextLevel, UTF8_TODO::GetWide(NPT(iSymNextLevel)->GetName()).c_str(), GPT(iSymNextLevel)->GetLabel().GetString() );
             if( iSymSonLevel )
-                _stprintf( pszSonLevel, _T("%d (%ls/%ls)"), iCurLevel + 1, NPT(iSymSonLevel)->GetName().c_str(), GPT(iSymSonLevel)->GetLabel().GetString() );
+                _stprintf( pszSonLevel, _T("%d (%ls/%ls)"), iCurLevel + 1, UTF8_TODO::GetWide(NPT(iSymSonLevel)->GetName()).c_str(), GPT(iSymSonLevel)->GetLabel().GetString() );
             else
                 *pszSonLevel = 0;
 
             if( iNodeCondition == 0 ) {
                 // error - has written children
-                issaerror( MessageType::Error, 91607, pszCurLevel );
+                issaerror( MessageType::Error, 91607, UTF8_TODO::GetUtf8(pszCurLevel).c_str() );
                 //bProblemFound = false;
             }
             else if( iNodeCondition > 10 ) {
                 // error - has a son in process
-                int     iSonStatus = iNodeCondition % 10;
-                const csprochar*   pszSonStatus = ( iSonStatus == 1 ) ? _T("an empty")     :
-                                       ( iSonStatus == 2 ) ? _T("a virgin")     :
-                                       ( iSonStatus == 3 ) ? _T("a non-virgin") : _T("a probably empty");
+                const int iSonStatus = iNodeCondition % 10;
+                const char* const son_status_text = ( iSonStatus == 1 ) ? "an empty"     :
+                                                    ( iSonStatus == 2 ) ? "a virgin"     :
+                                                    ( iSonStatus == 3 ) ? "a non-virgin" :
+                                                                          "a probably empty";
 
-                issaerror( MessageType::Error, 91608, pszCurLevel, pszSonStatus, pszSonLevel );
+                issaerror( MessageType::Error, 91608, UTF8_TODO::GetUtf8(pszCurLevel).c_str(), son_status_text, UTF8_TODO::GetUtf8(pszSonLevel).c_str() );
             }
             else if( !bWriteNode ) {
                 if( m_pEntryDriver->LevCtGetSource( iCurLevel ) == CEntryDriver::FromFile ) {
                     // error - requesting no-write, but the node comes from file
-                    issaerror( MessageType::Error, 91605, pszCurLevel );
+                    issaerror( MessageType::Error, 91605, UTF8_TODO::GetUtf8(pszCurLevel).c_str() );
                 }
                 else if( iNextLevel > iCurLevel ) {
                     // error - no-write AND a son requested
-                    issaerror( MessageType::Error, 91606, pszCurLevel, pszSonLevel );
+                    issaerror( MessageType::Error, 91606, UTF8_TODO::GetUtf8(pszCurLevel).c_str(), UTF8_TODO::GetUtf8(pszSonLevel).c_str() );
                 }
                 else {
                     // no-write AND next-level brother/parent/ascendant: is OK
@@ -1645,14 +1650,15 @@ DEFLD3* CEntryIFaz::GetFieldForInterface() {       // victor Dec 10, 01
 }
 
 
-bool CEntryIFaz::SetCurrentLanguage(wstring_view language_name)
+bool CEntryIFaz::SetCurrentLanguage(const std::string_view language_name_sv)
 {
     ASSERT(m_pEngineDriver != nullptr && m_pEngineDriver->m_pIntDriver != nullptr);
 
-    return m_pEngineDriver->m_pIntDriver->SetLanguage(language_name, CIntDriver::SetLanguageSource::Interface);
+    return m_pEngineDriver->m_pIntDriver->SetLanguage(language_name_sv, CIntDriver::SetLanguageSource::Interface);
 }
 
-std::vector<Language> CEntryIFaz::GetLanguages(bool include_only_capi_languages/* = true*/) const
+
+std::vector<Language> CEntryIFaz::GetLanguages(const bool include_only_capi_languages/* = true*/) const
 {
     ASSERT(m_pEngineDriver != nullptr && m_pEngineDriver->m_pIntDriver != nullptr);
 
@@ -1748,7 +1754,7 @@ bool CEntryIFaz::QidReady( int iLevel ) {
 
 int CEntryIFaz::GetVariableSymbolIndex(CString csFullName)
 {
-    return m_pEngineArea->SymbolTableSearch(csFullName, { SymbolType::Variable });
+    return m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csFullName), { SymbolType::Variable });
 }
 
 void CEntryIFaz::ToggleCapi( int iSymVar )

@@ -2,24 +2,24 @@
 #include "ProcType.h"
 
 
-const TCHAR* ToString(ProcType proc_type)
+const char* ToString(const ProcType proc_type)
 {
     switch( proc_type )
     {
-        case ProcType::PreProc:         return _T("PreProc");
-        case ProcType::OnFocus:         return _T("OnFocus");
-        case ProcType::KillFocus:       return _T("KillFocus");
-        case ProcType::PostProc:        return _T("PostProc");
-        case ProcType::OnOccChange:     return _T("OnOccChange");
-        case ProcType::None:            return _T("None");
-        case ProcType::Tally:           return _T("Tally");
-        case ProcType::ExplicitCalc:    return _T("PostCalc");
-        default:                        return _T("Unknown");
+        case ProcType::PreProc:         return "PreProc";
+        case ProcType::OnFocus:         return "OnFocus";
+        case ProcType::KillFocus:       return "KillFocus";
+        case ProcType::PostProc:        return "PostProc";
+        case ProcType::OnOccChange:     return "OnOccChange";
+        case ProcType::None:            return "None";
+        case ProcType::Tally:           return "Tally";
+        case ProcType::ExplicitCalc:    return "PostCalc";
+        default:                        return "Unknown";
     }
 }
 
 
-bool IsProcTypeOrderCorrect(ProcType first_proc_type, ProcType second_proc_type)
+bool IsProcTypeOrderCorrect(const ProcType first_proc_type, const ProcType second_proc_type)
 {
     switch( second_proc_type )
     {

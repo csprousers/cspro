@@ -23,15 +23,15 @@ void SettingsDlg::OnClearCredentials()
     {
         if( number_credentials == 0 )
         {
-            AfxMessageBox(MGF::GetMessageText(94331, _T("There are no saved credentials")).c_str());
+            AfxMessageBox(MGF::GetMessageText(94331, "There are no saved credentials").GetString());
             return true;
         }
 
         else
         {
-            const std::wstring& formatter = MGF::GetMessageText(94332, _T("Are you sure that you want to delete %d credential(s)?"));
-            const std::wstring message = FormatTextCS2WS(formatter.c_str(), static_cast<int>(number_credentials));
-            return ( AfxMessageBox(message.c_str(), MB_OKCANCEL) == IDOK );
+            const SharableString formatter = MGF::GetMessageText(94332, "Are you sure that you want to delete %d credential(s)?");
+            const std::string message = FormatText(formatter->c_str(), static_cast<int>(number_credentials));
+            return ( AfxMessageBox(message, MB_OKCANCEL) == IDOK );
         }
     };
 

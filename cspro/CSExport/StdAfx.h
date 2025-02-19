@@ -6,7 +6,12 @@
 #include <CSExport/resource.h>
 #include <CSExport/UWM.h>
 #include <zToolsO/SharedSettings.h>
+#include <zToolsO/Utf8.h>
+#include <zUtilO/FileDlg.h>
+#include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/WindowsUtf8.h>
+#include <zUtilO/WindowsWS.h>
 #include <zEdit2O/UWM.h>
 #include <zDictO/DDClass.h>
 #include <zGridO/Ugmedit.h>

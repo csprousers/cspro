@@ -11,22 +11,22 @@
 
 namespace
 {
-    CString GetDictionaryFilename(const EngineDictionary& engine_dictionary)
+    std::string GetDictionaryFilePath(const EngineDictionary& engine_dictionary)
     {
-        CString dictionary_filename = engine_dictionary.GetDictionary().GetFullFileName();
-        
+        const std::string& dictionary_file_path = engine_dictionary.GetDictionary().GetFilePath();
+
         // when run from a .pen file, the dictionary filename will be blank, in which case the dictionary name can be used
-        return ( dictionary_filename.IsEmpty() ) ? WS2CS(engine_dictionary.GetName()) :
-                                                   dictionary_filename;
+        return ( dictionary_file_path.empty() ) ? engine_dictionary.GetName() :
+                                                  dictionary_file_path;
     }
 
-    CString GetDictionaryFilename(const DICT* pDicT)
+    std::string GetDictionaryFilePath(const DICT* const pDicT)
     {
-        CString dictionary_filename = pDicT->GetDataDict()->GetFullFileName();
-        
+        const std::string& dictionary_file_path = pDicT->GetDataDict()->GetFilePath();
+
         // when run from a .pen file, the dictionary filename will be blank, in which case the dictionary name can be used
-        return ( dictionary_filename.IsEmpty() ) ? WS2CS(pDicT->GetName()) :
-                                                   dictionary_filename;
+        return ( dictionary_file_path.empty() ) ? pDicT->GetName() :
+                                                  dictionary_file_path;
     }
 }
 
@@ -56,14 +56,14 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
             {
                 AddDictionary(engine_dictionary);
 
-                // output data (for batch applications)    
+                // output data (for batch applications)
                 if( m_application.GetEngineAppType() == EngineAppType::Batch )
                 {
                     // with multiple output data possible, it would be nice to add PIF_MULTIPLE_FILES as a flag, but the MFC dialog
                     // only supports that option for selecting files that exist, so users wanting to specify multiple output files
                     // will have to manually enter the filenames
                     auto output_info = AddInfo(FILE_NONE, OUTPFILE, PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS | PIF_ALLOW_BLANK);
-                    output_info->dictionary_filename = GetDictionaryFilename(engine_dictionary);
+                    output_info->dictionary_file_path = GetDictionaryFilePath(engine_dictionary);
                     output_info->SetConnectionStrings(m_pff.GetOutputDataConnectionStringsSerializable());
                 }
             }
@@ -71,7 +71,7 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
             else
             {
                 ASSERT(flow->GetSubType() == SymbolSubType::Secondary);
-                AddDictionary(engine_dictionary, WS2CS(flow->GetName()));
+                AddDictionary(engine_dictionary, UTF8_TODO::GetCString(flow->GetName()));
             }
 
             ++dictionary_index;
@@ -96,14 +96,14 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
 
         AddDictionary(m_engineData->dictionaries_pre80[dictionary_index]);
 
-        // output data (for batch applications)    
+        // output data (for batch applications)
         if( m_application.GetEngineAppType() == EngineAppType::Batch )
         {
             // with multiple output data possible, it would be nice to add PIF_MULTIPLE_FILES as a flag, but the MFC dialog
             // only supports that option for selecting files that exist, so users wanting to specify multiple output files
             // will have to manually enter the filenames
             auto output_info = AddInfo(FILE_NONE, OUTPFILE, PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS | PIF_ALLOW_BLANK);
-            output_info->dictionary_filename = GetDictionaryFilename(m_engineData->dictionaries_pre80[dictionary_index]);
+            output_info->dictionary_file_path = GetDictionaryFilePath(m_engineData->dictionaries_pre80[dictionary_index]);
             output_info->SetConnectionStrings(m_pff.GetOutputDataConnectionStringsSerializable());
         }
 
@@ -164,7 +164,7 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
     if( m_application.GetEngineAppType() != EngineAppType::Entry || !m_pff.GetListingFName().IsEmpty() )
     {
         AddInfo(FILE_NONE, LISTFILE, 0)->sFileName = GetFilenameOrDefaultFilename(m_pff.GetListingFName(),
-            [] { return CString(_T('.')) + WinSettings::Read<CString>(WinSettings::Type::ListingFilenameExtension, FileExtensions::Listing); });
+            [] { return UTF8_TODO::GetUtf8(WinSettings::Read<CString>(WinSettings::Type::ListingFilenameExtension, UTF8_TODO::GetCString(FileExtensions::Listing))); });
     }
 
 
@@ -183,10 +183,10 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
     // impute frequencies
     if( m_application.GetHasImputeStatements() )
     {
-        AddInfo(FILE_NONE, IMPUTEFILE, PIF_ALLOW_BLANK)->sFileName = GetFilenameOrDefaultFilename(m_pff.GetImputeFrequenciesFilename(), [&]
+        AddInfo(FILE_NONE, IMPUTEFILE, PIF_ALLOW_BLANK)->sFileName = GetFilenameOrDefaultFilename(m_pff.GetImputeFrequenciesFilename(), [&]()
             {
-                CString default_frequency_extension = WinSettings::Read<CString>(WinSettings::Type::FrequencyFilenameExtension, FileExtensions::Listing);
-                return ( CString(_T(".impute_freq.")) + default_frequency_extension );
+                const std::string default_frequency_extension = UTF8_TODO::GetUtf8(WinSettings::Read<CString>(WinSettings::Type::FrequencyFilenameExtension, FileExtensions::Listing));
+                return PortableFunctions::PathAppendFileExtension(".impute_freq", default_frequency_extension);
             });
     }
 
@@ -203,16 +203,16 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
 
         // the stat dictionary does not exist yet, but to allow the dialog to treat this as a
         // connection string, we will make up a fake dictionary filename
-        stat_data_info->dictionary_filename = GetDictionaryFilename(m_engineData->dictionaries_pre80.front()) + IMPUTESTATFILE;
+        stat_data_info->dictionary_file_path = GetDictionaryFilePath(m_engineData->dictionaries_pre80.front()) + UTF8_TODO::GetUtf8(IMPUTESTATFILE);
 
         stat_data_info->SetConnectionString(m_pff.GetImputeStatConnectionString().IsDefined() ?
-            m_pff.GetImputeStatConnectionString() : 
-            ConnectionString(GetFilenameOrDefaultFilename(CString(), [] { return CString(_T(".impute_stat.")) + FileExtensions::Data::CSProDB; })));
+            m_pff.GetImputeStatConnectionString() :
+            ConnectionString(UTF8_TODO::GetUtf8(GetFilenameOrDefaultFilename(CString(), []() { return std::string(".impute_stat.").append(FileExtensions::Data::CSProDB); }))));
     }
 
     else
     {
-        m_pff.SetImputeStatConnectionString(_T(""));
+        m_pff.SetImputeStatConnectionString(ConnectionString());
     }
 
 
@@ -220,7 +220,7 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
     if( m_application.GetHasSaveArrays() )
     {
         AddInfo(FILE_NONE, SAVEARRAYFILE, PIF_ALLOW_BLANK)->sFileName =
-            GetFilenameOrDefaultFilename(m_pff.GetSaveArrayFilename(), [] { return FileExtensions::WithDot::SaveArray; });
+            GetFilenameOrDefaultFilename(m_pff.GetSaveArrayFilename(), []() { return FileExtensions::SaveArray; });
     }
 
     else
@@ -235,19 +235,19 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
         // suggest a default paradata filename only if the PFF doesn't exist
         AddInfo(FILE_NONE, PARADATAFILE, PIF_ALLOW_BLANK)->sFileName =
             PortableFunctions::FileExists(m_pff.GetPifFileName()) ? m_pff.GetParadataFilename() :
-                GetFilenameOrDefaultFilename(m_pff.GetParadataFilename(), [] { return FileExtensions::WithDot::Paradata; });
+                GetFilenameOrDefaultFilename(m_pff.GetParadataFilename(), []() { return FileExtensions::Paradata; });
     }
 
     else
     {
         m_pff.SetParadataFilename(_T(""));
     }
-        
+
 
     // external files (in sorted order)
-    std::vector<std::wstring> file_handler_names;
+    std::vector<std::string> file_handler_names;
 
-    for( const LogicFile* logic_file : m_engineData->files_global_visibility )
+    for( const LogicFile* const logic_file : m_engineData->files_global_visibility )
     {
         if( logic_file->IsUsed() )
             file_handler_names.emplace_back(logic_file->GetName());
@@ -255,8 +255,8 @@ std::vector<std::shared_ptr<PIFINFO>> PifInfoPopulator::GetPifInfo()
 
     std::sort(file_handler_names.begin(), file_handler_names.end());
 
-    for( const std::wstring& file_symbol_name : file_handler_names )
-        AddInfo(PIFUSRFILE, WS2CS(file_symbol_name), PIF_ALLOW_BLANK)->sFileName = m_pff.LookUpUsrDatFile(WS2CS(file_symbol_name));
+    for( const std::string& file_symbol_name : file_handler_names )
+        AddInfo(PIFUSRFILE, UTF8_TODO::GetCString(file_symbol_name), PIF_ALLOW_BLANK)->sFileName = m_pff.LookUpUsrDatFile(UTF8_TODO::GetCString(file_symbol_name));
 
     return m_pifInfo;
 };
@@ -275,9 +275,9 @@ std::shared_ptr<PIFINFO> PifInfoPopulator::AddInfo(const FILETYPE& type, const C
 
 void PifInfoPopulator::AddDictionary(const EngineDictionary& engine_dictionary, const TCHAR* external_form_name/* = nullptr*/)
 {
-    auto dictionary_info = AddInfo(PIFDICT, WS2CS(engine_dictionary.GetName()), PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS);
-    dictionary_info->dictionary_filename = GetDictionaryFilename(engine_dictionary);
-        
+    auto dictionary_info = AddInfo(PIFDICT, UTF8_TODO::GetCString(engine_dictionary.GetName()), PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS);
+    dictionary_info->dictionary_file_path = GetDictionaryFilePath(engine_dictionary);
+
     if( engine_dictionary.GetSubType() == SymbolSubType::Input )
     {
         dictionary_info->sDisplay = _T("Input Data");
@@ -299,18 +299,18 @@ void PifInfoPopulator::AddDictionary(const EngineDictionary& engine_dictionary, 
 
         else
         {
-            dictionary_info->sDisplay.Format(_T("External Data (%s)"), engine_dictionary.GetName().c_str());
+            dictionary_info->sDisplay.Format(_T("External Data (%s)"), UTF8_TODO::GetWide(engine_dictionary.GetName()).c_str());
         }
 
-        dictionary_info->SetConnectionString(m_pff.GetExternalDataConnectionString(WS2CS(engine_dictionary.GetName())));
+        dictionary_info->SetConnectionString(m_pff.GetExternalDataConnectionString(UTF8_TODO::GetCString(engine_dictionary.GetName())));
     }
 }
 
 void PifInfoPopulator::AddDictionary(const CSymbolDict* pDicT, const TCHAR* external_form_name/* = nullptr*/)
 {
-    auto dictionary_info = AddInfo(PIFDICT, WS2CS(pDicT->GetName()), PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS);
-    dictionary_info->dictionary_filename = GetDictionaryFilename(pDicT);
-        
+    auto dictionary_info = AddInfo(PIFDICT, UTF8_TODO::GetCString(pDicT->GetName()), PIF_USE_REPOSITORY_TYPE | PIF_DISALLOW_CSPRO_EXTENSIONS);
+    dictionary_info->dictionary_file_path = GetDictionaryFilePath(pDicT);
+
     if( pDicT->GetSubType() == SymbolSubType::Input )
     {
         dictionary_info->sDisplay = _T("Input Data");
@@ -332,23 +332,22 @@ void PifInfoPopulator::AddDictionary(const CSymbolDict* pDicT, const TCHAR* exte
 
         else
         {
-            dictionary_info->sDisplay.Format(_T("External Data (%s)"), pDicT->GetName().c_str());
+            dictionary_info->sDisplay.Format(_T("External Data (%s)"), UTF8_TODO::GetWide(pDicT->GetName()).c_str());
         }
 
-        dictionary_info->SetConnectionString(m_pff.GetExternalDataConnectionString(WS2CS(pDicT->GetName())));
+        dictionary_info->SetConnectionString(m_pff.GetExternalDataConnectionString(UTF8_TODO::GetCString(pDicT->GetName())));
     }
 }
 
 
 template<typename ExtensionCallback>
-CString PifInfoPopulator::GetFilenameOrDefaultFilename(const CString& filename, ExtensionCallback extension_callback) const
+CString PifInfoPopulator::GetFilenameOrDefaultFilename(const CString& filename, const ExtensionCallback extension_callback) const
 {
     if( !filename.IsEmpty() )
         return filename;
 
-    const CString& application_filename = m_application.GetApplicationFilename();
+    const std::string& application_file_path = m_application.GetApplicationFilePath();
 
-    return PathHelpers::GetFilenameInDirectory(
-        PortableFunctions::PathGetFilenameWithoutExtension<CString>(application_filename) + extension_callback(),
-        application_filename);
+    return UTF8_TODO::GetCString(PathHelpers::GetFilePathInDirectory(PortableFunctions::PathAppendFileExtension(Path::GetFilenameWithoutExtension(application_file_path), extension_callback()),
+                                                                     application_file_path));
 }

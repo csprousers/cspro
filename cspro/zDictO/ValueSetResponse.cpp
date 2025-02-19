@@ -18,7 +18,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
         if( CIMSAString::IsNumeric(dict_value_pair.GetFrom()) )
         {
             m_minValue = atod(dict_value_pair.GetFrom());
-            m_code = WS2CS(FormatValueForDisplay(dict_item, m_minValue));
+            m_code = UTF8_TODO::GetCString(FormatValueForDisplay(dict_item, m_minValue));
         }
 
         // if a special value, use the special value instead
@@ -34,12 +34,12 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
         // see if the value is a range
         else if( CIMSAString::IsNumeric(dict_value_pair.GetTo()) )
         {
-            double max_value = atod(dict_value_pair.GetTo());
+            const double max_value = atod(dict_value_pair.GetTo());
 
             if( max_value != m_minValue )
             {
                 m_maxValue = max_value;
-                m_code.Append(_T(" - ") + WS2CS(FormatValueForDisplay(dict_item, max_value)));
+                m_code.Append(_T(" - ") + UTF8_TODO::GetCString(FormatValueForDisplay(dict_item, max_value)));
             }
         }
     }
@@ -51,34 +51,35 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
 }
 
 
-ValueSetResponse::ValueSetResponse(const CString& label, double value)
+ValueSetResponse::ValueSetResponse(const CString& label, const double value)
     :   m_dictValue(nullptr),
         m_code(label),
         m_minValue(value)
 {
     // this constructor is used to add Not Applicable (from CanEnterNotAppl) to a value set
-    m_nonDictValues = std::make_unique<std::tuple<CString, CString, PortableColor>>(label, CString(), DictionaryDefaults::ValueLabelTextColor);
+    m_nonDictValues = std::make_unique<std::tuple<CString, std::string, PortableColor>>(label, std::string(), DictionaryDefaults::ValueLabelTextColor);
 }
 
 
 double ValueSetResponse::GetMaximumValue() const
 {
-    return IsDiscrete() ? DEFAULT : *m_maxValue;
+    return IsDiscrete() ? DEFAULT :
+                          *m_maxValue;
 }
 
 
-std::wstring ValueSetResponse::FormatValueForDisplay(const CDictItem& dict_item, double value)
+std::string ValueSetResponse::FormatValueForDisplay(const CDictItem& dict_item, const double value)
 {
     if( IsSpecial(value) )
     {
-        return ( value == NOTAPPL ) ? std::wstring() : 
+        return ( value == NOTAPPL ) ? std::string() :
                                       SpecialValues::ValueToString(value);
     }
 
     else
     {
         // format the value (without zero fill but with a decimal character)
-        std::wstring string_value = dvaltochar(value, dict_item.GetCompleteLen(), dict_item.GetDecimal(), false, true);
+        std::string string_value = dvaltochar<std::string>(value, dict_item.GetCompleteLen(), dict_item.GetDecimal(), false, true);
         SO::MakeTrim(string_value);
 
         if( dict_item.GetDecimal() > 0 )
@@ -103,5 +104,5 @@ std::wstring ValueSetResponse::FormatValueForDisplay(const CDictItem& dict_item,
         }
 
         return string_value;
-    }    
+    }
 }

@@ -11,10 +11,10 @@ private:
     LogicHashMap(const LogicHashMap& hashmap);
 
 public:
-    using Data = std::variant<double, std::wstring>;
+    using Data = std::variant<double, SharableString>;
     struct DimensionValue;
 
-    LogicHashMap(std::wstring hashmap_name);
+    LogicHashMap(std::string hashmap_name);
     ~LogicHashMap();
 
     void SetValueType(DataType data_type) { m_valueType = data_type; }
@@ -48,7 +48,13 @@ public:
 
     std::vector<const Data*> GetKeys(const std::vector<Data>& dimension_values) const;
 
+    void IterateInObjectStyle(const std::function<void(const SharableString* key_name)>& start_object_callback,
+                              const std::function<void(const SharableString& key_name, const Data& data)>& set_value_callback,
+                              const std::function<void()>& end_object_callback) const;
+
     // Symbol overrides
+    void CompareDeclarationAttributes(const Symbol& symbol) const override;
+
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
     void Reset() override;
@@ -59,8 +65,11 @@ protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
 
 public:
-	void WriteValueToJson(JsonWriter& json_writer) const override;
-	void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void WriteValueToJson(JsonWriter& json_writer) const override;
+    void SetValueFromJson(const JsonNode& json_node) override;
+
+    JavaScript::Value GetJavaScriptValue(JavaScript::Executor& executor) const override;
+    void SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value) override;
 
 private:
     static void SetValue(std::map<Data, std::unique_ptr<DimensionValue>>& data, const std::vector<Data>& dimension_values, Data value);

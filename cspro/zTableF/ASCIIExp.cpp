@@ -49,7 +49,7 @@ void CTableGridExporterASCII::EndTable(_tostream& os)
 void CTableGridExporterASCII::WriteTitle(_tostream& os, const CFmt& fmt, const CString& sTitle)
 {
     if (!sTitle.IsEmpty()) {
-        os << (LPCTSTR)sTitle << _T("\r\n");
+        os << sTitle.GetString() << _T("\r\n");
         /*CString sText = sTitle + _T("\r\n");
         os.write(sText,sText.GetLength());*/
     }
@@ -58,7 +58,7 @@ void CTableGridExporterASCII::WriteTitle(_tostream& os, const CFmt& fmt, const C
 void CTableGridExporterASCII::WriteSubTitle(_tostream& os, const CFmt& fmt, const CString& sSubTitle)
 {
     if (!sSubTitle.IsEmpty()) {
-        os << (LPCTSTR)sSubTitle << _T("\r\n");
+        os << sSubTitle.GetString() << _T("\r\n");
         /*CString sText = sSubTitle + _T("\r\n");
         os.write(sText,sText.GetLength());*/
     }
@@ -109,7 +109,7 @@ void CTableGridExporterASCII::WriteCell(_tostream& os,
         }
 
         // write cell data
-        os << (LPCTSTR)sVal;
+        os << sVal.GetString();
     }
 
 }

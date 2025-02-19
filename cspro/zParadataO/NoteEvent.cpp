@@ -1,36 +1,35 @@
 ﻿#include "stdafx.h"
 #include "NoteEvent.h"
 
-
 using namespace Paradata;
 
 
 void NoteEvent::SetupTables(Log& log)
 {
     log.CreateTable(ParadataTable::NoteEvent)
-            .AddColumn(_T("source"), Table::ColumnType::Integer)
-                    .AddCode((int)Source::Interface, _T("interface"))
-                    .AddCode((int)Source::EditNote, _T("editnote"))
-                    .AddCode((int)Source::PutNote, _T("putnote"))
-            .AddColumn(_T("symbol_name"), Table::ColumnType::Long)
-            .AddColumn(_T("field_info"), Table::ColumnType::Long, true)
-            .AddColumn(_T("operatorid_info"), Table::ColumnType::Long)
-            .AddColumn(_T("note_text"), Table::ColumnType::Long, true)
-            .AddColumn(_T("edit_duration"), Table::ColumnType::Double, true)
+            .AddColumn("source", Table::ColumnType::Integer)
+                    .AddCode(Source::Interface, "interface")
+                    .AddCode(Source::EditNote, "editnote")
+                    .AddCode(Source::PutNote, "putnote")
+            .AddColumn("symbol_name", Table::ColumnType::Long)
+            .AddColumn("field_info", Table::ColumnType::Long, true)
+            .AddColumn("operatorid_info", Table::ColumnType::Long)
+            .AddColumn("note_text", Table::ColumnType::Long, true)
+            .AddColumn("edit_duration", Table::ColumnType::Double, true)
         ;
 }
 
 
-NoteEvent::NoteEvent(Source source, std::shared_ptr<NamedObject> symbol, std::shared_ptr<FieldInfo> field_info, const CString& operator_id)
+NoteEvent::NoteEvent(const Source source, std::shared_ptr<NamedObject> symbol, std::shared_ptr<FieldInfo> field_info, std::string operator_id)
     :   m_source(source),
         m_symbol(std::move(symbol)),
         m_fieldInfo(std::move(field_info)),
-        m_operatorId(operator_id)
+        m_operatorId(std::move(operator_id))
 {
 }
 
 
-void NoteEvent::SetPostEditValues(std::optional<std::wstring> modified_note_text)
+void NoteEvent::SetPostEditValues(SharableString modified_note_text)
 {
     m_modifiedNoteText = std::move(modified_note_text);
 
@@ -47,7 +46,7 @@ void NoteEvent::Save(Log& log, long base_event_id) const
     Table& note_event_table = log.GetTable(ParadataTable::NoteEvent);
     note_event_table.Insert(&base_event_id,
         static_cast<int>(m_source),
-        log.AddNamedObject(m_symbol),
+        log.AddNamedObject(m_symbol.get()),
         GetOptionalValueOrNull(field_info_id),
         log.AddOperatorIdInfo(m_operatorId),
         GetOptionalValueOrNull(log.AddNullableText(m_modifiedNoteText)),

@@ -693,7 +693,7 @@ bool CTabValue::Build(CSpecFile& specFile, const CFmtReg& reg, const CString& sV
                 }
                 SetFmt(pFmt);
                 if (NULL==pFmt) {
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\nUsing default format instead.");
                     AfxMessageBox(m_sError);
@@ -764,14 +764,14 @@ bool CTabValue::Build(CSpecFile& specFile, const CFmtReg& reg, const CString& sV
 
                 else {
                     m_eTabValType = INVALID_TABVAL;
-                    m_sError.Format(_T("Unrecognized Tab Value type %s at line %d: ."), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized Tab Value type %s at line %d: ."), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     AfxMessageBox(m_sError);
                 }
             }
             else if (sCmd.CompareNoCase(XTS_CMD_TABVAL_STAT_INDEX) == 0) {
                 if(!sArg.IsNumeric()){
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\n ignoring tab val stat index");
                     AfxMessageBox(m_sError);
@@ -966,7 +966,7 @@ bool CSpecialCell::Build(CSpecFile& specFile, const CFmtReg& reg, bool bSilent)
         if (sCmd[0] != '[')  {
             if (sCmd.CompareNoCase(XTS_CMD_PANEL) == 0)  {
                 if(!sArg.IsNumeric()){
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\n ignoring special cell format");
                     AfxMessageBox(m_sError);
@@ -978,7 +978,7 @@ bool CSpecialCell::Build(CSpecFile& specFile, const CFmtReg& reg, bool bSilent)
             }
             else if (sCmd.CompareNoCase(XTS_CMD_OFFSETCOL) == 0)  {
                 if(!sArg.IsNumeric()){
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\n ignoring special cell format");
                     AfxMessageBox(m_sError);
@@ -998,7 +998,7 @@ bool CSpecialCell::Build(CSpecFile& specFile, const CFmtReg& reg, bool bSilent)
                 SetFmt(pFmt);
 
                 if (NULL==pFmt) {
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArgTemp;
                     m_sError += _T("\n ignoring special cell format");
                     AfxMessageBox(m_sError);
@@ -1052,7 +1052,7 @@ CTabVar::CTabVar(const DictValueSet* pVSet ,const CTallyFmt& tblTallyFmt)
 //  m_bDisplayVar = true;
     m_pTallyFmt = NULL;
     //End Init vars
-    m_sVarName = pVSet->GetName();
+    m_sVarName = UTF8_TODO::GetCString(pVSet->GetName());
     SetText(pVSet->GetLabel());
     m_VarType = VT_DICT;
 
@@ -1076,7 +1076,7 @@ CTabVar::CTabVar(const CDictItem* pDictItem,CStringArray& arrVals,const CTallyFm
     // From what I can tell, this only gets called for system total
     // although once upon a time it may have been used in other cases
     // with new scheme for stats we should restrict it to system total only
-    ASSERT(pDictItem->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) == 0);
+    ASSERT(SO::EqualsNoCase(pDictItem->GetName(), WORKVAR_TOTAL_NAME));
     ASSERT(arrVals.IsEmpty());
 
     //Basic Init vars
@@ -1088,7 +1088,7 @@ CTabVar::CTabVar(const CDictItem* pDictItem,CStringArray& arrVals,const CTallyFm
     m_pTallyFmt = NULL;
     //End Init vars
     CTabValue* val;
-    m_sVarName = pDictItem->GetName();
+    m_sVarName = UTF8_TODO::GetCString(pDictItem->GetName());
     SetText(pDictItem->GetLabel());
     m_VarType = VT_DICT;
 
@@ -1109,7 +1109,7 @@ void CTabVar::Init(const CDictItem* pDictItem,CStringArray& arrVals,const CTally
     // From what I can tell, this only gets called for system total
     // although once upon a time it may have been used in other cases
     // with new scheme for stats we should restrict it to system total only
-    ASSERT(pDictItem->GetName().CompareNoCase(WORKVAR_STAT_NAME) == 0);
+    ASSERT(SO::EqualsNoCase(pDictItem->GetName(), WORKVAR_STAT_NAME));
     ASSERT(arrVals.IsEmpty());
 
     //Basic Init vars
@@ -1121,7 +1121,7 @@ void CTabVar::Init(const CDictItem* pDictItem,CStringArray& arrVals,const CTally
     m_pTallyFmt = NULL;
     //End Init vars
     CTabValue* val;
-    m_sVarName = pDictItem->GetName();
+    m_sVarName = UTF8_TODO::GetCString(pDictItem->GetName());
     SetText(pDictItem->GetLabel());
     m_VarType = VT_DICT;
 
@@ -1452,7 +1452,7 @@ bool CTabVar::Build(CSpecFile& specFile, const CFmtReg& reg, const CString& sVer
                     pFmt=DYNAMIC_DOWNCAST(CFmtBase,reg.GetFmt(sIDString,sIndexString));
                 }
                 if (NULL==pFmt) {
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\nUsing default format instead.");
                     AfxMessageBox(m_sError);
@@ -1794,7 +1794,7 @@ bool CTabData::Build(CSpecFile& specFile, bool bSilent /*= false*/)
                     if (!sCell.IsNumericU())  {    // BMD 21 Jun 2006
                         if (!bSilent) {
                             CString sError;
-                            sError.Format(_T("Data cell is not numeric:  %s"), (LPCTSTR)sCell);
+                            sError.Format(_T("Data cell is not numeric:  %s"), sCell.GetString());
                             AfxMessageBox(sError);
                         }
                         bResult = false;
@@ -2029,7 +2029,7 @@ void CTable::GenerateTitle()
         CTabSetFmt* pTabSetFmt = DYNAMIC_DOWNCAST(CTabSetFmt,m_pFmtReg->GetFmt(FMT_ID_TABSET));
         if(pTabSetFmt){
             //CString sTitle = _T("Table ") + m_sNum + _T(" ");
-            sTitle.Format(pTabSetFmt->GetTitleTemplate(), (LPCTSTR)m_sNum);
+            sTitle.Format(pTabSetFmt->GetTitleTemplate(), m_sNum.GetString());
             sTitle += _T(" ");
             const FOREIGN_KEYS& altForeign = pTabSetFmt->GetAltForeignKeys();
             sTable = CString(altForeign.GetKey(_T("Table"))) + _T(" ");
@@ -2135,7 +2135,7 @@ bool CTable::Build(CSpecFile& specFile, const CFmtReg& reg, const CString& sVers
                     SetTblPrintFmt(pTblPrintFmt);
                 }
                 if (!pTblFmt && !pTblPrintFmt) {
-                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                    m_sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                     m_sError += _T("\n") + sCmd + _T("=") + sArg;
                     m_sError += _T("\nUsing default format instead.");
                     AfxMessageBox(m_sError);
@@ -2426,7 +2426,7 @@ bool CTblOb::Build(CSpecFile& specFile, const CFmtReg& reg, const CString& sVers
                     sIndexString = sArg.GetToken();
                     CFmt* pFmt=DYNAMIC_DOWNCAST(CFmt,reg.GetFmt(sIDString,sIndexString));
                     if (NULL==pFmt) {
-                        sError.Format(_T("Unrecognized format label %s at line %d:"), (LPCTSTR)sArg, specFile.GetLineNumber());
+                        sError.Format(_T("Unrecognized format label %s at line %d:"), sArg.GetString(), specFile.GetLineNumber());
                         sError += _T("\n") + sCmd + _T("=") + sArg;
                         sError += _T("\nUsing default format instead.");
                         AfxMessageBox(sError);
@@ -2468,7 +2468,7 @@ void CTable::Save(CSpecFile& specFile)
 {
     SaveBegin(specFile);
 
-    if (specFile.GetFileName().Right(3).CompareNoCase(FileExtensions::TableSpec) != 0) {
+    if (specFile.GetFileName().Right(3).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::TableSpec)) != 0) {
         for (int t = 0 ; t < m_aTabData.GetSize() ; t++) {
             SaveTabData(specFile, t);
         }
@@ -2620,7 +2620,7 @@ void CTable::SaveBegin(CSpecFile& specFile)
         }
     }
 
-    if (specFile.GetFileName().Right(3).CompareNoCase(FileExtensions::TableSpec) != 0) {
+    if (specFile.GetFileName().Right(3).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::TableSpec)) != 0) {
         specFile.PutLine(_T(" "));
         specFile.PutLine(XTS_SECT_DATA);
 
@@ -2635,7 +2635,7 @@ void CTable::SaveBegin(CSpecFile& specFile)
 /////////////////////////////////////////////////////////////////////////////
 void CTable::SaveEnd(CSpecFile& specFile)
 {
-    if (specFile.GetFileName().Right(3).CompareNoCase(FileExtensions::TableSpec) != 0) {
+    if (specFile.GetFileName().Right(3).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::TableSpec)) != 0) {
         if(m_bSaveFreqStats) {
             this->SaveFrqStats(specFile);
         }
@@ -2721,6 +2721,7 @@ void CTabLevel::Save(CSpecFile& specFile)
 /////////////////////////////////////////////////////////////////////////////
 
 CTabSet::CTabSet()
+    :   m_inputDataFilename(XTS_DEFAULT_INPUTDATAFILENAME)
 {
     // initialize ptrs to null
     m_pWorkDict = NULL;
@@ -2733,14 +2734,13 @@ CTabSet::CTabSet()
     m_pTabSetFmt = NULL;
     m_bSelectedPrinterChanged = false;
     m_pAreaNameFile = NULL;
-    m_sInputDataFilename = XTS_DEFAULT_INPUTDATAFILENAME; // 20090915 GHM
     //Savy (R) sampling app 20081202
     m_bIsSamplingErrApp = false;
 }
 
 
-
 CTabSet::CTabSet(std::shared_ptr<const CDataDict> pDataDict)
+    :   m_inputDataFilename(XTS_DEFAULT_INPUTDATAFILENAME)
 {
     // Get dictionary and initialize
     m_pDataDict = pDataDict;
@@ -2748,7 +2748,6 @@ CTabSet::CTabSet(std::shared_ptr<const CDataDict> pDataDict)
     m_bGenLogic = true;
     m_bSelectedPrinterChanged = false;
     m_pAreaNameFile = NULL;
-    m_sInputDataFilename = XTS_DEFAULT_INPUTDATAFILENAME; // 20090915 GHM
     //Savy (R) sampling app 20081202
     m_bIsSamplingErrApp = false;
     SetNumLevels(pDataDict->GetNumLevels());
@@ -3254,9 +3253,9 @@ bool CTabSet::Open(const CString& sSpecFilePath, bool bSilent /*=false*/)
             AfxMessageBox (_T("Not a CSPro XTS file"));
         }
         else {
-            CString sVersion = CSPRO_VERSION;
-            if (!specFile.IsVersionOK(sVersion)) {
-                if (!IsValidCSProVersion(sVersion, 3.0)) {
+            CString sVersion = Versioning::CSProVersionText;
+            if (!specFile.IsVersionOK_CS(sVersion)) {
+                if (!IsValidCSProVersion(UTF8_TODO::GetUtf8(sVersion), 3.0)) {
                     AfxMessageBox (_T("Incorrect XTS file version"));
                 }
                 else {
@@ -3575,8 +3574,8 @@ bool CTabSet::Build(CSpecFile& specFile, std::shared_ptr<ProgressDlg> pDlgProgre
                     m_bGenLogic = true;
                 }
             }
-            else if (sCmd.CompareNoCase(XTS_CMD_INPUTDATAFILENAME) == 0)  { // 20090915 GHM
-                SetInputDataFilename(sArg);
+            else if (sCmd.CompareNoCase(XTS_CMD_INPUTDATAFILENAME) == 0)  { // 20090915
+                SetInputDataFilename(UTF8_TODO::GetUtf8(sArg));
             }
             else {
                 // Unrecognized command at line %d:
@@ -3907,7 +3906,7 @@ void CTabSet::SetDefaultFmts(CTabVar* pVar, CFmt* pFmtDefaultVar, CFmt* pFmtDefa
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool CTabSet::Save(const CString& sSpecFilePath, const CString& sDictFilePath, const CString& sInputDataFilename)
+bool CTabSet::Save(const CString& sSpecFilePath, const CString& sDictFilePath, std::string input_data_filename/* = std::string()*/)
 {
     CSpecFile specFile;
     if (!specFile.Open(sSpecFilePath, CFile::modeWrite))  {
@@ -3918,7 +3917,7 @@ bool CTabSet::Save(const CString& sSpecFilePath, const CString& sDictFilePath, c
 
     // Save header
     specFile.PutLine(XTS_SECT_TABSPEC);
-    specFile.PutLine(CMD_VERSION, CSPRO_VERSION);
+    specFile.PutLine(CMD_VERSION, UTF8_TODO::GetWide(Versioning::CSProVersionText));
     if (m_sLabel.IsEmpty()) {
         m_sLabel = GetFileName(sSpecFilePath);
         int pos = m_sLabel.ReverseFind(DOT);
@@ -3948,9 +3947,8 @@ bool CTabSet::Save(const CString& sSpecFilePath, const CString& sDictFilePath, c
         specFile.PutLine(XTS_CMD_PRINTERCHANGED, XTS_ARG_YES);  // csc 12/3/04
     }
 
-    if( sInputDataFilename.Compare(_T("")) != 0 ) { // GHM 20090915
-
-        // GHM 20090917 we'll check to make sure that a &I is actually in a header or footer
+    if( !input_data_filename.empty() ) { // 20090915
+        // 20090917 we'll check to make sure that a &I is actually in a header or footer
         // before outputting the InputDataFilename code; this will allow 4.0.003+ tables
         // that don't use this feature to still be read by earlier versions of 4.0
 
@@ -3972,8 +3970,8 @@ bool CTabSet::Save(const CString& sSpecFilePath, const CString& sDictFilePath, c
                 {
                     featureEnabled = true;*/
 
-                    specFile.PutLine(XTS_CMD_INPUTDATAFILENAME,sInputDataFilename); // keep for 4.1
-                    m_sInputDataFilename = sInputDataFilename; // keep for 4.1
+                    specFile.PutLine(XTS_CMD_INPUTDATAFILENAME, UTF8_TODO::GetCString(input_data_filename)); // keep for 4.1
+                    m_inputDataFilename = std::move(input_data_filename); // keep for 4.1
 
                     /*break; // end the second for loop (featureEnabled will end the first for loop)
                 }
@@ -4212,19 +4210,19 @@ bool CTabSet::ReconcileName(const CDataDict& dictionary)
     bool name_changed = false;
 
     if( dict_element != nullptr && dict_element->GetElementType() == DictElementType::Record ||
-                                   dict_element->GetElementType() == DictElementType::Item || 
+                                   dict_element->GetElementType() == DictElementType::Item ||
                                    dict_element->GetElementType() == DictElementType::ValueSet )
     {
         for( int i = 0; i < GetNumTables(); ++i )
         {
             CTable* pTable = GetTable(i);
 
-            name_changed |= pTable->GetRowRoot()->ReconcileName(dictionary.GetOldName(), dict_element->GetName());
-            name_changed |= pTable->GetColRoot()->ReconcileName(dictionary.GetOldName(), dict_element->GetName());
+            name_changed |= pTable->GetRowRoot()->ReconcileName(dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
+            name_changed |= pTable->GetColRoot()->ReconcileName(dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
 
             //reconcile name change in weight, universe, value
-            ReconcileName(pTable, dictionary.GetOldName(), dict_element->GetName());
-        }        
+            ReconcileName(pTable, dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
+        }
     }
 
     return name_changed;
@@ -4648,19 +4646,19 @@ bool CTabSet::OpenAreaNameFile(const CString& sAreaFileName)
     bool bSilent = false;
     CString sMsg;
 
-    // GHM 20100818 added so that an area names file isn't required
+    // 20100818 added so that an area names file isn't required
     if ( SO::IsBlank(sAreaFileName) )
         return bRet;
 
     if (!PortableFunctions::FileExists(sAreaFileName)) {
-        sMsg.Format(_T("Area Name file: %s not found!"), (LPCTSTR)sAreaFileName);
+        sMsg.Format(_T("Area Name file: %s not found!"), sAreaFileName.GetString());
         if (!bSilent) {
             AfxMessageBox(sMsg, MB_ICONEXCLAMATION);
         }
         return bRet;
     }
     if(m_pAreaNameFile){
-        CloseAreaNameFile(); // GHM 20110727
+        CloseAreaNameFile(); // 20110727
         /*m_pAreaNameFile->Close();
         delete m_pAreaNameFile;
         m_pAreaNameFile = NULL;*/
@@ -4671,35 +4669,35 @@ bool CTabSet::OpenAreaNameFile(const CString& sAreaFileName)
             AfxMessageBox(_T("Failed to open Area Name File."), MB_ICONEXCLAMATION);
         }
         //delete m_pAreaNameFile;
-        CloseAreaNameFile(); // GHM 20110727
+        CloseAreaNameFile(); // 20110727
         return bRet;
     }
     if (!m_pAreaNameFile->IsHeaderOK(_T("[Area Names]"))) {
         if (!bSilent) {
-            sMsg.Format(_T("File:  %s  does not begin with\n\n    [Area Names]"), (LPCTSTR)sAreaFileName);
+            sMsg.Format(_T("File:  %s  does not begin with\n\n    [Area Names]"), sAreaFileName.GetString());
             AfxMessageBox(sMsg, MB_ICONEXCLAMATION);
         }
         //m_pAreaNameFile->Close();
         //delete m_pAreaNameFile;
-        CloseAreaNameFile(); // GHM 20110727
+        CloseAreaNameFile(); // 20110727
         return bRet;
     }
     // BMD 21 Jun 2004
-    CString csVersion = CSPRO_VERSION;
-    if (!m_pAreaNameFile->IsVersionOK(csVersion)) {
-        if (!IsValidCSProVersion(csVersion)) {
+    CString csVersion = Versioning::CSProVersionText;
+    if (!m_pAreaNameFile->IsVersionOK_CS(csVersion)) {
+        if (!IsValidCSProVersion(UTF8_TODO::GetUtf8(csVersion))) {
                 if (!bSilent) {
-                    sMsg.Format(_T("File:  %s does not have a valid version number.\nIt may be from a newer version of CSPro or you may have chosen an invalid file."), (LPCTSTR)sAreaFileName);
+                    sMsg.Format(_T("File:  %s does not have a valid version number.\nIt may be from a newer version of CSPro or you may have chosen an invalid file."), sAreaFileName.GetString());
                     AfxMessageBox(sMsg, MB_ICONEXCLAMATION);
                 }
                 //m_pAreaNameFile->Close();
                 //delete m_pAreaNameFile;
-                CloseAreaNameFile(); // GHM 20110727
+                CloseAreaNameFile(); // 20110727
                 return false;
             }
     }
     m_bOldAreaNameFile = false;
-    if (GetCSProVersionNumeric(csVersion) < 3.0) {
+    if (GetCSProVersionNumeric(UTF8_TODO::GetUtf8(csVersion)) < 3.0) {
         m_bOldAreaNameFile = true;
     }
     CString csAttribute, csValue;
@@ -4858,7 +4856,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                     if (!sVal.IsNumeric())  {
                         if (!bSilent) {
                             CString sError;
-                            sError.Format(_T("Mean value is not numeric:  %s"), (LPCTSTR)sVal);
+                            sError.Format(_T("Mean value is not numeric:  %s"), sVal.GetString());
                             AfxMessageBox(sError);
                         }
                         bResult = false;
@@ -4870,7 +4868,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Min value is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Min value is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4882,7 +4880,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Max code is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Max code is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4894,7 +4892,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Standard deviation is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Standard deviation is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4906,7 +4904,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Variance is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Variance is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4918,7 +4916,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Mode code is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Mode code is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4930,7 +4928,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Median code is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Median code is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4942,7 +4940,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Median is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Median is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -4954,7 +4952,7 @@ bool CTable::BuildFrqStats(CSpecFile& specFile, bool bSilent /*= false*/)
                 if (!sVal.IsNumeric())  {
                     if (!bSilent) {
                         CString sError;
-                        sError.Format(_T("Total categories is not numeric:  %s"), (LPCTSTR)sVal);
+                        sError.Format(_T("Total categories is not numeric:  %s"), sVal.GetString());
                         AfxMessageBox(sError);
                     }
                     bResult = false;
@@ -5154,7 +5152,7 @@ void CTable::SaveNTiles(CSpecFile& specFile)
     for( int iIndex = 0; iIndex < iSize; iIndex += EntriesPerNTile )
     {
         specFile.PutLine(XTS_CMD_NTILE, FormatText(_T("%s %s %s"),
-            (LPCTSTR)m_arrFrqNTiles[iIndex], (LPCTSTR)m_arrFrqNTiles[iIndex + 1], (LPCTSTR)m_arrFrqNTiles[iIndex + 2]));
+            m_arrFrqNTiles[iIndex].GetString(), m_arrFrqNTiles[iIndex + 1].GetString(), m_arrFrqNTiles[iIndex + 2].GetString()));
     }
 
     specFile.PutLine(XTS_SECT_ENDFRQNTILES);
@@ -5231,7 +5229,7 @@ void CTblOb::Save(CSpecFile& specFile, const CString& sSection) const
     //Save always else state info is not being saved
     specFile.PutLine(sSection);
 
-    CIMSAString sEncodedLabel = WS2CS(TableLabelSerializer::Create(sLabel));
+    CIMSAString sEncodedLabel = TableLabelSerializer::Create(sLabel);
     sEncodedLabel.QuoteDelimit();
     specFile.PutLine(XTS_CMD_LABEL, sEncodedLabel);
 
@@ -5638,21 +5636,21 @@ void CTable::ReconcileTabVar(const CDataDict* pDict, const CDataDict* pWorkDict,
     }
     else {
         //Check if the var exists in the dictionary
-        bFound = pDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+        bFound = pDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
         if(!bFound && pWorkDict){
-            bFound = pWorkDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+            bFound = pWorkDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
         }
         if(!pDictVSet && !pDictItem  ) { //VSet not found so delete this item and the rest of the stuff
             CString sMsg;
             if(pTabVar->GetNumChildren()== 0) {
                 m_bDirty = true;
                 //sMsg.Format(_T("%s not found in the dictionary. Deleting variable from the table %s \r\n"),pTabVar->GetName(),GetName());
-               sMsg.Format(_T("%s deleted from table; not in dictionary.\r\n"), (LPCTSTR)pTabVar->GetName());
+               sMsg.Format(_T("%s deleted from table; not in dictionary.\r\n"), pTabVar->GetName().GetString());
             }
             else {
                 m_bDirty = true;
                 //sMsg.Format(_T("%s not found in the dictionary. Deleting variable and its children from the table %s \r\n"),pTabVar->GetName(),GetName());
-                sMsg.Format(_T("%s deleted from table; not in dictionary.\r\n"), (LPCTSTR)pTabVar->GetName());
+                sMsg.Format(_T("%s deleted from table; not in dictionary.\r\n"), pTabVar->GetName().GetString());
             }
             sError += sMsg;
         }
@@ -5878,7 +5876,7 @@ void CTabSet::MakeCrossTabStatement(CTable* pRefTable , CString& sCrossTabStatem
     for (int iLevel =0; iLevel < iNumLevels ;iLevel++) {
         CTabLevel* pTabLevel = GetLevel(iLevel);
         int iNumTables = pTabLevel->GetNumTables();
-        CString sLevel = pDict->GetLevel(iLevel).GetName();
+        CString sLevel = UTF8_TODO::GetCString(pDict->GetLevel(iLevel).GetName());
         CString sRowVarList,sRowStatTotalList;
         CString sTabStatement;
         CString sColVarList,sColStatTotalList;
@@ -5982,7 +5980,7 @@ void CTabSet::MakeSMeanStatement(CTable* pRefTable , CString& sCrossSTabStatemen
     for (int iLevel =0; iLevel < iNumLevels ;iLevel++) {
         CTabLevel* pTabLevel = GetLevel(iLevel);
         int iNumTables = pTabLevel->GetNumTables();
-        CString sLevel = pDict->GetLevel(iLevel).GetName();
+        CString sLevel = UTF8_TODO::GetCString(pDict->GetLevel(iLevel).GetName());
         CString sRowVarList,sRowStatTotalList;
         CString sTabStatement;
         CString sColVarList,sColStatTotalList;
@@ -6096,7 +6094,7 @@ void CTabSet::MakeNameMap(CTabVar* pTabVar, CMapStringToString& arrNames)
         int iVal = -1;
         if(arrNames.Lookup(sName,sKeyVal)){
             iVal = (int)sKeyVal.Val();
-            CString sVal = IntToString(iVal+1);
+            CString sVal = UTF8_TODO::GetCString(IntToString(iVal+1));
             CString sNewName;
             sNewName = sName+_T("(")+sVal+_T(")");
             m_varNameMap[pTabVar]=sNewName;
@@ -6387,8 +6385,7 @@ CString CTabSet::GetIncludeExcludeString(CTable* pTable)
 /////////////////////////////////////////////////////////////////////////////////
 CString CTabSet::MakeVarList4DummyVSet(const CDictItem* pDictItem)
 {
-    CString sVarList;
-    sVarList = pDictItem->GetName() ;
+    CString sVarList = UTF8_TODO::GetCString(pDictItem->GetName());
     // It's an item with no value sets
     int len = pDictItem->GetLen();
     int iVals = (len > 1 ? 11 : 10);
@@ -6894,7 +6891,7 @@ int CTabSet::UpdateSubtableList(CTable* pRefTable,
                 }
                 else {//if it same as vset name then replace . If it is p03_sex_vs1(1) ??
                     if(pDictVSet) {
-                        sAltParentString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltParentString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         sAltArrRow.Add(sAltParentString);
                     }
                     else {
@@ -6929,7 +6926,7 @@ int CTabSet::UpdateSubtableList(CTable* pRefTable,
                 sAltChildString = sChildString;
                 if(LookupName(pTabVar->GetName(),&pDictLevel,&pDictRecord,&pDictItem,&pDictVSet)){
                     if(pDictVSet) {
-                        sAltChildString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltChildString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                     }
                 }
                 asRowVars.SetSize(sArrRow.GetSize()+1);
@@ -6981,7 +6978,7 @@ int CTabSet::UpdateSubtableList(CTable* pRefTable,
                 }
                 else {//if it same as vset name then replace . If it is p03_sex_vs1(1) ??
                     if(pDictVSet) {
-                        sAltParentString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltParentString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         sAltArrCol.Add(sAltParentString);
                     }
                     else {
@@ -7016,7 +7013,7 @@ int CTabSet::UpdateSubtableList(CTable* pRefTable,
                     sAltChildString = sChildString;
                     if(LookupName(pTabVar->GetName(),&pDictLevel,&pDictRecord,&pDictItem,&pDictVSet)){
                         if(pDictVSet) {
-                            sAltChildString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                            sAltChildString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         }
                     }
                     asColVars.SetSize(sArrCol.GetSize()+1);
@@ -7323,7 +7320,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
             if (pDictItem->GetOccurs() > 1) {
                 if(bIsOcc){//Particular Occ. Use Record as the default
                     pFirstMultipleItem4ParticularOcc = pDictItem;
-                    sTRName4ParticularOcc = pDictRecord->GetName();
+                    sTRName4ParticularOcc = UTF8_TODO::GetCString(pDictRecord->GetName());
                 }
                 else {
                 pFirstMultipleItem = pDictItem;
@@ -7341,7 +7338,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
                 ASSERT(pDictItem->GetParentItem()->GetOccurs() == 1);
                 if(bIsOcc){//Particular Occ. Use Record as the default
                     pFirstMultipleItem4ParticularOcc = pDictItem;
-                    sTRName4ParticularOcc = pDictRecord->GetName();
+                    sTRName4ParticularOcc = UTF8_TODO::GetCString(pDictRecord->GetName());
                 }
                 else {
                 pFirstMultipleItem = pDictItem;
@@ -7354,7 +7351,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
                     // subitem parent multiply occurs
                     if(bIsOcc){//Particular Occ. Use Record as the default
                         pFirstMultipleItem4ParticularOcc = pDictItem->GetParentItem();
-                        sTRName4ParticularOcc = pDictRecord->GetName();
+                        sTRName4ParticularOcc = UTF8_TODO::GetCString(pDictRecord->GetName());
                     }
                     else {
                     pFirstMultipleItem = pDictItem->GetParentItem();
@@ -7388,7 +7385,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
         }
         // only one item - it must be the unit
         if(pFirstMultipleItem){
-        asUnitNames.Add(pFirstMultipleItem->GetName());
+        asUnitNames.Add(UTF8_TODO::GetCString(pFirstMultipleItem->GetName()));
         }
         else {
             asUnitNames.Add(sTRName4ParticularOcc);
@@ -7448,19 +7445,19 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
 
             // can only have relations as units - first one will be default
             for (i = 0; i < aAllRelations.GetSize(); ++i) {
-                asUnitNames.Add(aAllRelations[i]->GetName());
+                asUnitNames.Add(UTF8_TODO::GetCString(aAllRelations[i]->GetName()));
             }
         }
         else {
             // default unit is the multiple record
-            asUnitNames.Add(pFirstMultipleRecord->GetName());
+            asUnitNames.Add(UTF8_TODO::GetCString(pFirstMultipleRecord->GetName()));
 
             // add any multiple items within that record
             for (int iItem = 0; iItem < pFirstMultipleRecord->GetNumItems(); ++iItem) {
                 const CDictItem* pItem = pFirstMultipleRecord->GetItem(iItem);
                 ASSERT(pItem);
                 if (pItem->GetOccurs() > 1) {
-                    asUnitNames.Add(pItem->GetName());
+                    asUnitNames.Add(UTF8_TODO::GetCString(pItem->GetName()));
                 }
             }
 
@@ -7468,7 +7465,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
             CArray<const DictRelation*> aRelations;
             GetAllRecordRelations(*pFirstMultipleRecord, aRelations);
             for (i = 0; i < aRelations.GetSize(); ++i) {
-                asUnitNames.Add(aRelations[i]->GetName());
+                asUnitNames.Add(UTF8_TODO::GetCString(aRelations[i]->GetName()));
             }
         }
 
@@ -7519,14 +7516,14 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
 
             const CDictRecord* pRecord = aNotReqRecrdsAtLowestLvl.GetAt(iRcrd);
 
-            asUnitNames.Add(pRecord->GetName());
+            asUnitNames.Add(UTF8_TODO::GetCString(pRecord->GetName()));
 
             // add any multiple items within that record
             for (int iItem = 0; iItem < pRecord->GetNumItems(); ++iItem) {
                 const CDictItem* pItem = pRecord->GetItem(iItem);
                 ASSERT(pItem);
                 if (pItem->GetOccurs() > 1) {
-                    asUnitNames.Add(pItem->GetName());
+                    asUnitNames.Add(UTF8_TODO::GetCString(pItem->GetName()));
                 }
             }
         }
@@ -7548,7 +7545,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
 
                 // add non-requried single records and multiple records
                 if (pRecord->GetMaxRecs() > 1 || !pRecord->GetRequired()) {
-                    asUnitNames.Add(pRecord->GetName());
+                    asUnitNames.Add(UTF8_TODO::GetCString(pRecord->GetName()));
                 }
 
                 // add any multiple items from records
@@ -7556,7 +7553,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
                     const CDictItem *pItem = pRecord->GetItem(iItem);
 
                     if (pItem->GetOccurs() > 1) {
-                        asUnitNames.Add(pItem->GetName());
+                        asUnitNames.Add(UTF8_TODO::GetCString(pItem->GetName()));
                     }
                 } // for iItem
             } // for iRcrd
@@ -7572,7 +7569,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
         const DictLevel& dict_level = pDict->GetLevel(iLvl);
 
         // add lowest level to list
-        asUnitNames.Add(dict_level.GetName());
+        asUnitNames.Add(UTF8_TODO::GetCString(dict_level.GetName()));
 
         // iterate over all records in the level
         for (int iRcrd = 0; iRcrd < dict_level.GetNumRecords(); ++iRcrd) {
@@ -7581,7 +7578,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
 
             // add non-requried single records and multiple records
             if (pRecord->GetMaxRecs() > 1 || !pRecord->GetRequired()) {
-                asUnitNames.Add(pRecord->GetName());
+                asUnitNames.Add(UTF8_TODO::GetCString(pRecord->GetName()));
             }
 
             // add any multiple items from records
@@ -7589,7 +7586,7 @@ void CTabSet::ComputeSubtableUnitNames(CStringArray& asUnitNames, const CStringA
                 const CDictItem *pItem = pRecord->GetItem(iItem);
 
                 if (pItem->GetOccurs() > 1) {
-                    asUnitNames.Add(pItem->GetName());
+                    asUnitNames.Add(UTF8_TODO::GetCString(pItem->GetName()));
                 }
             } // for iItem
         } // for iRcrd
@@ -7690,7 +7687,7 @@ bool CTabSet::ConsistencyCheckSubTblNTblLevel(CString& sMsg,bool bSilent /*=fals
                     int iRecord = -1;
                     int iItem = -1;
                     int iVSet =-1;
-                    BOOL bFound = m_pDataDict->LookupName(sUnitName,&iLevel,&iRecord,&iItem,&iVSet);
+                    BOOL bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(sUnitName),&iLevel,&iRecord,&iItem,&iVSet);
                     int iSubTblLevelFromVars = GetSubTblLevelFromVars(pTbl,arrUnitSpec[0]);
                     if(iSubTblLevelFromVars > iLevel){
                         iLevel = iSubTblLevelFromVars;
@@ -7720,7 +7717,7 @@ bool CTabSet::ConsistencyCheckSubTblNTblLevel(CString& sMsg,bool bSilent /*=fals
                         int iRecord = -1;
                         int iItem = -1;
                         int iVSet =-1;
-                        BOOL bFound = m_pDataDict->LookupName(sUnitName,&iLevel,&iRecord,&iItem,&iVSet);
+                        BOOL bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(sUnitName),&iLevel,&iRecord,&iItem,&iVSet);
                         int iSubTblLevelFromVars = GetSubTblLevelFromVars(pTbl,arrUnitSpec[iIndex]);
                         if(iSubTblLevelFromVars > iLevel){
                             iLevel = iSubTblLevelFromVars;
@@ -7774,7 +7771,7 @@ int CTabSet::GetTableLevelFromUnits(CTable* pTable)
             int iRecord = -1;
             int iItem = -1;
             int iVSet =-1;
-            BOOL bFound = m_pDataDict->LookupName(sUnitName,&iLevel,&iRecord,&iItem,&iVSet);
+            BOOL bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(sUnitName),&iLevel,&iRecord,&iItem,&iVSet);
             if(bFound && iCurLevel < iLevel){
                 iCurLevel = iLevel;
             }
@@ -7799,7 +7796,7 @@ int CTabSet::GetTableLevelFromUnits(CTable* pTable)
                 int iRecord = -1;
                 int iItem = -1;
                 int iVSet =-1;
-                BOOL bFound = m_pDataDict->LookupName(sUnitName,&iLevel,&iRecord,&iItem,&iVSet);
+                BOOL bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(sUnitName),&iLevel,&iRecord,&iItem,&iVSet);
                 if(bFound && iCurLevel < iLevel){
                     iCurLevel = iLevel;
                 }
@@ -7870,7 +7867,7 @@ bool CTabSet::SaveTBWBegin(CSpecFile& specFile, const CString& sDictFilePath)
 {
     // Save header
     specFile.PutLine(XTS_SECT_TABSPEC);
-    specFile.PutLine(CMD_VERSION, CSPRO_VERSION);
+    specFile.PutLine(CMD_VERSION, UTF8_TODO::GetWide(Versioning::CSProVersionText));
     CString sSpecFilePath = specFile.GetFileName();
     if (m_sLabel.IsEmpty()) {
         m_sLabel = GetFileName(sSpecFilePath);
@@ -8001,9 +7998,9 @@ void CTable::OnTallyAttributesChange(CTabVar* pTabVar,
         const CDictItem* pDictItem;
         const DictValueSet* pDictVSet;
         BOOL bFound = TRUE;
-        bFound = pDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+        bFound = pDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
         if(!bFound && pWorkDict){
-            bFound = pWorkDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+            bFound = pWorkDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
         }
         CArray<CTabValue*,CTabValue*>& aTabVals = pTabVar->GetArrTabVals();
 
@@ -8156,9 +8153,9 @@ void CTable::ReconcileTabVals(CTabVar* pTabVar, const CDataDict* pDict, const CD
             const CDictItem* pDictItem;
             const DictValueSet* pDictVSet;
             BOOL bFound = TRUE;
-            bFound = pDict->LookupName(pChildVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+            bFound = pDict->LookupName(UTF8_TODO::GetUtf8(pChildVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
             if(!bFound && pWorkDict){
-                bFound = pWorkDict->LookupName(pChildVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+                bFound = pWorkDict->LookupName(UTF8_TODO::GetUtf8(pChildVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
             }
             CArray<CTabValue*,CTabValue*>& aTabVals = pChildVar->GetArrTabVals();
 
@@ -8410,7 +8407,7 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
 
     // If negative output hyphen
     //memset(pszTemp,_T('\0'),128);
-    memset(pszTemp,_T('\0'),128 * sizeof(csprochar)); // GHM 20111213 for unicode
+    memset(pszTemp,_T('\0'),128 * sizeof(csprochar)); // 20111213 for unicode
     csprochar* pszStart = sRet.GetBuffer(128);
     if (dData < 0) {
         *pszStart = HYPHEN;
@@ -8424,7 +8421,7 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
         int l = _tcslen(pszTemp);
         if (pTabSetFmt->GetDigitGrouping() == DIGIT_GROUPING_NONE || l <= 3) {
             //memmove(pszStart, pszTemp, l);
-            memmove(pszStart, pszTemp, l * sizeof(csprochar)); // GHM 20111213 for unicode
+            memmove(pszStart, pszTemp, l * sizeof(csprochar)); // 20111213 for unicode
             pszStart += l;
         }
         else {
@@ -8434,19 +8431,19 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
                 int m = l % 3;
                 if (m > 0) {
                     //memmove(pszStart, pszGroup, m);
-                    memmove(pszStart, pszGroup, m * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memmove(pszStart, pszGroup, m * sizeof(csprochar)); // 20111213 for unicode
                     pszStart += m;
                     pszGroup += m;
                     l -= m;
                     /**pszStart = cThSep;
                     pszStart++;*/
                     //memcpy(pszStart,sThSep,sThSep.GetLength());
-                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // 20111213 for unicode
                     pszStart +=sThSep.GetLength();
                 }
                 while (l > 0) {
                     //memmove(pszStart, pszGroup, 3);
-                    memmove(pszStart, pszGroup, 3 * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memmove(pszStart, pszGroup, 3 * sizeof(csprochar)); // 20111213 for unicode
                     pszStart += 3;
                     pszGroup += 3;
                     l -= 3;
@@ -8454,7 +8451,7 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
                         /**pszStart = cThSep;
                         pszStart++;*/
                         //memcpy(pszStart,sThSep,sThSep.GetLength());
-                        memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // GHM 20111213 for unicode
+                        memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // 20111213 for unicode
                         pszStart +=sThSep.GetLength();
                     }
                 }
@@ -8463,30 +8460,30 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
                 int m = (l - 3) % 2;
                 if (m > 0) {
                     //memmove(pszStart, pszGroup, m);
-                    memmove(pszStart, pszGroup, m * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memmove(pszStart, pszGroup, m * sizeof(csprochar)); // 20111213 for unicode
                     pszStart += m;
                     pszGroup += m;
                     l -= m;
                     /**pszStart = cThSep;
                     pszStart++;*/
                     //memcpy(pszStart,sThSep,sThSep.GetLength());
-                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // 20111213 for unicode
                     pszStart +=sThSep.GetLength();
                 }
                 while (l > 3) {
                     //memmove(pszStart, pszGroup, 2);
-                    memmove(pszStart, pszGroup, 2 * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memmove(pszStart, pszGroup, 2 * sizeof(csprochar)); // 20111213 for unicode
                     pszStart += 2;
                     pszGroup += 2;
                     l -= 2;
                     /**pszStart = cThSep;
                     pszStart++;*/
                     //memcpy(pszStart,sThSep,sThSep.GetLength());
-                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // GHM 20111213 for unicode
+                    memcpy(pszStart,sThSep,sThSep.GetLength() * sizeof(csprochar)); // 20111213 for unicode
                     pszStart +=sThSep.GetLength();
                 }
                 //memmove(pszStart, pszGroup, 3);
-                memmove(pszStart, pszGroup, 3 * sizeof(csprochar)); // GHM 20111213 for unicode
+                memmove(pszStart, pszGroup, 3 * sizeof(csprochar)); // 20111213 for unicode
                 pszStart += 3;
             }
         }
@@ -8499,11 +8496,11 @@ CString CTable::FormatDataCell(const double& dData, CTabSetFmt* pTabSetFmt,CData
         /**pszStart = pTabSetFmt->GetDecimalSep();*/
         CString sDecSep = pTabSetFmt->GetDecimalSep();
         //memcpy(pszStart,sDecSep,sDecSep.GetLength());
-        memcpy(pszStart,sDecSep,sDecSep.GetLength() * sizeof(csprochar)); // GHM 20111213 for unicode
+        memcpy(pszStart,sDecSep,sDecSep.GetLength() * sizeof(csprochar)); // 20111213 for unicode
         /*pszStart++;*/
         pszStart += sDecSep.GetLength();
         //memmove(pszStart, pszTemp, iNumDecimals);
-        memmove(pszStart, pszTemp, iNumDecimals * sizeof(csprochar)); // GHM 20111213 for unicode
+        memmove(pszStart, pszTemp, iNumDecimals * sizeof(csprochar)); // 20111213 for unicode
         pszStart += iNumDecimals;
     }
 
@@ -8543,12 +8540,12 @@ CTabValue* CTable::GetStatTabVal(CArray<CTabValue*,CTabValue*>&arrTabVals , TABV
 /////////////////////////////////////////////////////////////////////////////////
 const CDataDict* CTabSet::LookupName(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const
 {
-    if( m_pDataDict != nullptr && m_pDataDict->LookupName(name, dict_level, dict_record, dict_item, dict_value_set) )
+    if( m_pDataDict != nullptr && m_pDataDict->LookupName(UTF8_TODO::GetUtf8(name), dict_level, dict_record, dict_item, dict_value_set) )
     {
         return m_pDataDict.get();
     }
 
-    else if( m_pWorkDict != nullptr && m_pWorkDict->LookupName(name, dict_level, dict_record, dict_item, dict_value_set) )
+    else if( m_pWorkDict != nullptr && m_pWorkDict->LookupName(UTF8_TODO::GetUtf8(name), dict_level, dict_record, dict_item, dict_value_set) )
     {
         return m_pWorkDict.get();
     }
@@ -8566,10 +8563,10 @@ bool CTabSet::LookupName(const CString& csName,int* iLevel,int* iRecord,int* iIt
     bool bFound =false;
 
     if(m_pDataDict){
-        bFound = m_pDataDict->LookupName(csName,iLevel,iRecord,iItem,iVSet);
+        bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(csName),iLevel,iRecord,iItem,iVSet);
     }
     if(m_pWorkDict && !bFound){
-        bFound = m_pWorkDict->LookupName(csName,iLevel,iRecord,iItem,iVSet);
+        bFound = m_pWorkDict->LookupName(UTF8_TODO::GetUtf8(csName),iLevel,iRecord,iItem,iVSet);
     }
 
     return bFound;
@@ -8607,7 +8604,7 @@ void CTabSet::AddSystemTotalVar(CTable* pTable)
     if(!pDict){//what if cant find work var???
         //ASSERT(FALSE);
         CString sMsg;
-        sMsg.Format(_T("Cannot find variable %s"), (LPCTSTR)WORKVAR_TOTAL_NAME);
+        sMsg.Format(_T("Cannot find variable %s"), WORKVAR_TOTAL_NAME.GetString());
        // AfxMessageBox(sMsg);
         return;
     }
@@ -8676,7 +8673,7 @@ void CTabSet::AddStatVar(CTable* pTable)
     if(!pDict){//what if cant find work var???
         //ASSERT(FALSE);
         CString sMsg;
-        sMsg.Format(_T("Cannot find variable %s"), (LPCTSTR)WORKVAR_STAT_NAME);
+        sMsg.Format(_T("Cannot find variable %s"), WORKVAR_STAT_NAME.GetString());
        // AfxMessageBox(sMsg);
         return;
     }
@@ -8933,7 +8930,7 @@ void CTabSet::UpdateSubtableListNMarkNewSubTables(CTable* pRefTable,CTabVar* pRo
                 }
                 else {//if it same as vset name then replace . If it is p03_sex_vs1(1) ??
                     if(pDictVSet) {
-                        sAltParentString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltParentString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         sAltArrRow.Add(sAltParentString);
                     }
                     else {
@@ -8963,7 +8960,7 @@ void CTabSet::UpdateSubtableListNMarkNewSubTables(CTable* pRefTable,CTabVar* pRo
                 sAltChildString = sChildString;
                 if(LookupName(pTabVar->GetName(),&pDictLevel,&pDictRecord,&pDictItem,&pDictVSet)){
                     if(pDictVSet) {
-                        sAltChildString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltChildString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                     }
                 }
                 asRowVars.SetSize(sArrRow.GetSize()+1);
@@ -9015,7 +9012,7 @@ void CTabSet::UpdateSubtableListNMarkNewSubTables(CTable* pRefTable,CTabVar* pRo
                 }
                 else {//if it same as vset name then replace . If it is p03_sex_vs1(1) ??
                     if(pDictVSet) {
-                        sAltParentString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                        sAltParentString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         sAltArrCol.Add(sAltParentString);
                     }
                     else {
@@ -9045,7 +9042,7 @@ void CTabSet::UpdateSubtableListNMarkNewSubTables(CTable* pRefTable,CTabVar* pRo
                     sAltChildString = sChildString;
                     if(LookupName(pTabVar->GetName(),&pDictLevel,&pDictRecord,&pDictItem,&pDictVSet)){
                         if(pDictVSet) {
-                            sAltChildString.Replace(pDictVSet->GetName(),pDictItem->GetName());
+                            sAltChildString.Replace(UTF8_TODO::GetCString(pDictVSet->GetName()), UTF8_TODO::GetCString(pDictItem->GetName()));
                         }
                     }
                     asColVars.SetSize(sArrCol.GetSize()+1);
@@ -9276,7 +9273,7 @@ bool CTabSet::IsSubTableFromWrkStg(CTable* pTable,const CUnitSpec& unitSpec)
         int iRecord = -1;
         int iItem = -1;
         int iVSet =-1;
-        BOOL bFound = pWorkDict->LookupName(arrVarNames[iIndex],&iLevel,&iRecord,&iItem,&iVSet);
+        BOOL bFound = pWorkDict->LookupName(UTF8_TODO::GetUtf8(arrVarNames[iIndex]),&iLevel,&iRecord,&iItem,&iVSet);
         if(!bFound){
             return false;
         }
@@ -9337,7 +9334,7 @@ int CTabSet::GetSubTblLevelFromVars(CTable* pTable,const CUnitSpec& unitSpec)
         int iRecord = -1;
         int iItem = -1;
         int iVSet =-1;
-        BOOL bFound = m_pDataDict->LookupName(arrVarNames[iIndex],&iLevel,&iRecord,&iItem,&iVSet);
+        BOOL bFound = m_pDataDict->LookupName(UTF8_TODO::GetUtf8(arrVarNames[iIndex]),&iLevel,&iRecord,&iItem,&iVSet);
         if(!bFound){
             continue;
         }

@@ -52,7 +52,7 @@ DataType CDictItem::GetDataType() const
 }
 
 
-CString CDictItem::GetQualifiedName() const
+std::string CDictItem::GetQualifiedName() const
 {
     return GetRecord()->GetDataDict()->MakeQualifiedName(GetName());
 }
@@ -160,7 +160,7 @@ UINT CDictItem::GetItemSubitemOccurs() const
 }
 
 
-CDictItem CDictItem::CreateFromJson(const JsonNode<wchar_t>& json_node)
+CDictItem CDictItem::CreateFromJson(const JsonNode& json_node)
 {
     CDictItem dict_item;
 
@@ -219,7 +219,7 @@ CDictItem CDictItem::CreateFromJson(const JsonNode<wchar_t>& json_node)
             dict_item.m_uStart = dict_serializer_helper->GetItemStart();
         }
     }
-            
+
     if( dict_serializer_helper != nullptr && !dict_item.IsSubitem() )
         dict_serializer_helper->IncrementItemStart(dict_item);
 
@@ -251,7 +251,7 @@ CDictItem CDictItem::CreateFromJson(const JsonNode<wchar_t>& json_node)
     dict_item.m_dictValueSets = json_node.GetArrayOrEmpty(JK::valueSets).GetVector<DictValueSet>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A value set was not added to '%s' due to errors: %s"), (LPCTSTR)dict_item.GetName(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A value set was not added to '%s' due to errors: %s", dict_item.GetName().c_str(), exception.what());
         });
 
 
@@ -313,7 +313,7 @@ void CDictItem::WriteJson(JsonWriter& json_writer) const
         ASSERT(m_pParentItem != nullptr || dict_serializer_helper == nullptr);
 
         if( m_pParentItem != nullptr )
-            json_writer.Write(JK::subitemOffset, m_uStart - m_pParentItem->m_uStart);            
+            json_writer.Write(JK::subitemOffset, m_uStart - m_pParentItem->m_uStart);
     }
 
     json_writer.Write(JK::length, m_uLen);
@@ -348,20 +348,19 @@ void CDictItem::serialize(Serializer& ar)
 
     ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
 
-    ar & m_uStart;
-    ar & m_uLen;
+    ar & m_uStart
+       & m_uLen;
+
     ar.SerializeEnum(m_contentType);
     ar.SerializeEnum(m_itemType);
-    ar & m_uOccurs;
-    ar & m_uDecimal;
-    ar & m_bDecChar;
-    ar & m_bZeroFill;
 
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-        ar & m_captureInfo;
-
-    ar & m_iSymbol;
-    ar & m_iSonNumber;
+    ar & m_uOccurs
+       & m_uDecimal
+       & m_bDecChar
+       & m_bZeroFill
+       & m_captureInfo
+       & m_iSymbol
+       & m_iSonNumber;
 
     ar.IgnoreUnusedVariable<bool>(Serializer::Iteration_8_0_000_1); // m_bUsed
     ar.IgnoreUnusedVariable<int>(Serializer::Iteration_8_0_000_1); // m_iNumVSets

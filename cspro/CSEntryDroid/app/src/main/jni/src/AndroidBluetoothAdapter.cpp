@@ -1,14 +1,15 @@
-﻿#include "AndroidBluetoothAdapter.h"
+﻿#include <engine/StandardSystemIncludes.h>
+#include "AndroidBluetoothAdapter.h"
 #include "AndroidBluetoothObexTransport.h"
+#include <zNetwork/SyncException.h>
+#include <zNetwork/SyncListener.h>
 #include "JNIHelpers.h"
-#include <zSyncO/ISyncListener.h>
-#include <zSyncO/SyncException.h>
 
 
 #define JNI_VERSION JNI_VERSION_1_6
 
-namespace {
-
+namespace
+{
     jobject guidToJava(JNIEnv* pEnv, const GUID& guid)
     {
         jlong mostSig = ((jlong) guid.Data1) << 32 | ((jlong) guid.Data2) << 16 | (jlong) guid.Data3;
@@ -24,20 +25,24 @@ namespace {
     }
 }
 
+
 AndroidBluetoothAdapter::AndroidBluetoothAdapter(jobject impl)
- : m_javaImpl(impl)
+    :   m_javaImpl(impl)
 {
 }
 
-AndroidBluetoothAdapter* AndroidBluetoothAdapter::create()
+
+std::unique_ptr<AndroidBluetoothAdapter> AndroidBluetoothAdapter::Create()
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
     jobject impl = pEnv->CallStaticObjectMethod(JNIReferences::classAndroidBluetoothAdapter, JNIReferences::methodAndroidBluetoothAdapterCreate);
+
     if (impl)
-        return new AndroidBluetoothAdapter(pEnv->NewGlobalRef(impl));
-    else
-        return nullptr; // Bluetooth not supported
+        return std::unique_ptr<AndroidBluetoothAdapter>(new AndroidBluetoothAdapter(pEnv->NewGlobalRef(impl)));
+
+    return nullptr; // Bluetooth not supported
 }
+
 
 AndroidBluetoothAdapter::~AndroidBluetoothAdapter()
 {
@@ -47,16 +52,15 @@ AndroidBluetoothAdapter::~AndroidBluetoothAdapter()
     pEnv->DeleteGlobalRef(m_javaImpl);
 }
 
-IObexTransport* AndroidBluetoothAdapter::connectToRemoteDevice(
-        CString remoteDeviceName,
-        CString remoteDeviceAddress,
-        GUID serviceUuid, ISyncListener* pListener)
+
+std::unique_ptr<IObexTransport> AndroidBluetoothAdapter::ConnectToRemoteDevice(const std::string& remoteDeviceName, const std::string& remoteDeviceAddress,
+                                                                               GUID serviceUuid, SyncListener* const sync_listener/* = nullptr*/)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
     // Convert args to java
-    jstring jRemoteDeviceName = WideToJava(pEnv, remoteDeviceName);
-    jstring jRemoteDeviceAddress = WideToJava(pEnv, remoteDeviceAddress);
+    jstring jRemoteDeviceName = JavaString::ToJava(*pEnv, remoteDeviceName);
+    jstring jRemoteDeviceAddress = JavaString::ToJava(*pEnv, remoteDeviceAddress);
     jobject jServiceUuid = guidToJava(pEnv, serviceUuid);
 
     jobject socket = (jobject) pEnv->CallObjectMethod(m_javaImpl,
@@ -69,21 +73,20 @@ IObexTransport* AndroidBluetoothAdapter::connectToRemoteDevice(
     // The java side just returns null to signal error (dealing with exceptions
     // across JNI is a pain) and it also returns null on cancel so look
     // at listener to distinguish and match behavior of Windows version.
-    if (socket == NULL && pListener) {
-        pListener->onProgress(); // to make sure isCancelled is up to date
-        if (pListener->isCancelled())
+    if (socket == nullptr && sync_listener != nullptr) {
+        sync_listener->Progress(); // to make sure IsCanceled is up to date
+        if (sync_listener->IsCanceled())
             throw SyncCancelException();
     }
 
-    AndroidBluetoothObexTransport* transport = (socket == NULL) ?
-            NULL :
-            new AndroidBluetoothObexTransport(pEnv, socket);
-    return transport;
+    if( socket != nullptr )
+        return std::make_unique<AndroidBluetoothObexTransport>(pEnv, socket);
+
+    return nullptr;
 }
 
-IObexTransport* AndroidBluetoothAdapter::acceptConnection(
-    GUID serviceUuid,
-    ISyncListener* pListener /*= NULL*/)
+
+std::unique_ptr<IObexTransport> AndroidBluetoothAdapter::AcceptConnection(GUID serviceUuid, SyncListener* const sync_listener/* = nullptr*/)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
@@ -98,56 +101,59 @@ IObexTransport* AndroidBluetoothAdapter::acceptConnection(
     // The java side just returns null to signal error (dealing with exceptions
     // across JNI is a pain) and it also returns null on cancel so look
     // at listener to distinguish and match behavior of Windows version.
-    if (socket == NULL && pListener) {
-        pListener->onProgress(); // to make sure isCancelled is up to date
-        if (pListener->isCancelled())
+    if (socket == nullptr && sync_listener != nullptr) {
+        sync_listener->Progress(); // to make sure IsCanceled is up to date
+        if (sync_listener->IsCanceled())
             throw SyncCancelException();
     }
 
-    return socket == NULL ? NULL : new AndroidBluetoothObexTransport(pEnv, pEnv->NewGlobalRef(socket));
+    if( socket != nullptr )
+        return std::make_unique<AndroidBluetoothObexTransport>(pEnv, pEnv->NewGlobalRef(socket));
+
+    return nullptr;
 }
 
-void AndroidBluetoothAdapter::enable()
+
+void AndroidBluetoothAdapter::Enable()
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    pEnv->CallVoidMethod(m_javaImpl,
-            JNIReferences::methodAndroidBluetoothAdapterEnable);
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidBluetoothAdapterEnable);
 }
 
-void AndroidBluetoothAdapter::disable()
+
+void AndroidBluetoothAdapter::Disable()
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    pEnv->CallVoidMethod(m_javaImpl,
-            JNIReferences::methodAndroidBluetoothAdapterDisable);
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidBluetoothAdapterDisable);
 }
 
-bool AndroidBluetoothAdapter::isEnabled() const
+
+bool AndroidBluetoothAdapter::IsEnabled() const
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    return pEnv->CallBooleanMethod(m_javaImpl,
-            JNIReferences::methodAndroidBluetoothAdapterIsEnabled);
-
+    return pEnv->CallBooleanMethod(m_javaImpl, JNIReferences::methodAndroidBluetoothAdapterIsEnabled);
 }
 
-std::wstring AndroidBluetoothAdapter::getName() const
+
+std::string AndroidBluetoothAdapter::GetName() const
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring jName = (jstring) pEnv->CallObjectMethod(m_javaImpl,
-                JNIReferences::methodAndroidBluetoothAdapterGetName);
-    std::wstring name = JavaToWSZ(pEnv, jName);
+    jstring jName = (jstring)pEnv->CallObjectMethod(m_javaImpl, JNIReferences::methodAndroidBluetoothAdapterGetName);
+    std::string name = JavaString::ToUtf8(*pEnv, jName);
     pEnv->DeleteLocalRef(jName);
     return name;
 }
 
-void AndroidBluetoothAdapter::setName(const CString& bluetooth_name)
+
+void AndroidBluetoothAdapter::SetName(const std::string& bluetooth_name)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jBluetoothName(pEnv, WideToJava(pEnv, bluetooth_name));
+    JNIReferences::scoped_local_ref<jstring> jBluetoothName(pEnv, JavaString::ToJava(*pEnv, bluetooth_name));
 
     jstring jExceptionMessage = (jstring)pEnv->CallObjectMethod(m_javaImpl,
         JNIReferences::methodAndroidBluetoothAdapterSetName, jBluetoothName.get());
 
     if( jExceptionMessage != nullptr )
-        throw CSProException(JavaToWSZ(pEnv, jExceptionMessage));
+        throw CSProException(JavaString::ToUtf8(*pEnv, jExceptionMessage));
 }

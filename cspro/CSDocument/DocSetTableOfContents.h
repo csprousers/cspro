@@ -21,8 +21,8 @@ public:
     const DocSetComponent* GetDocumentByPosition(size_t position) const; // returns null if invalid
 
     // compilation and serialization
-    static std::optional<DocSetTableOfContents> Compile(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, const JsonNode<wchar_t>& json_node, bool validate_titles);
-    
+    static std::optional<DocSetTableOfContents> Compile(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, const JsonNode& json_node, bool validate_titles);
+
     class Writer;
     void WriteJson(JsonWriter& json_writer, DocSetSpec* doc_set_spec = nullptr,
                    bool write_documents_with_filename_only_when_possible = false,
@@ -31,7 +31,7 @@ public:
 private:
     struct Chapter
     {
-        std::wstring title;
+        std::string title;
         bool write_title_to_pdf;
         std::vector<std::shared_ptr<DocSetComponent>> documents;
         std::vector<Chapter> chapters;
@@ -39,7 +39,7 @@ private:
 
     struct ProjectLink
     {
-        std::wstring project;
+        std::string project;
     };
 
 private:
@@ -47,7 +47,7 @@ private:
 
 private:
     std::vector<std::variant<Chapter, ProjectLink>> m_nodes;
-    std::map<std::wstring, std::wstring> m_documentTitleOverrides;
+    std::map<std::string, std::string> m_documentTitleOverrides;
     std::vector<std::shared_ptr<DocSetComponent>> m_documentsInOrder;
 };
 
@@ -65,16 +65,16 @@ public:
     void Write(const DocSetTableOfContents& table_of_contents);
 
 protected:
-    virtual void StartWriting(size_t num_root_nodes) { num_root_nodes; } 
-    virtual void FinishWriting() { } 
+    virtual void StartWriting(size_t num_root_nodes) { num_root_nodes; }
+    virtual void FinishWriting() { }
 
-    virtual void WriteProject(const std::wstring& project) { project; }
+    virtual void WriteProject(const std::string& project) { project; }
 
-    virtual void StartChapter(const std::wstring& title, bool write_title_to_pdf) { title; write_title_to_pdf; }
+    virtual void StartChapter(const std::string& title, bool write_title_to_pdf) { title; write_title_to_pdf; }
     virtual void FinishChapter() { }
 
     virtual void StartDocuments() { }
-    virtual void WriteDocument(const std::wstring& csdoc_filename, const std::wstring* title_override) { csdoc_filename; title_override; }
+    virtual void WriteDocument(const std::string& csdoc_file_path, const std::string* title_override) { csdoc_file_path; title_override; }
     virtual void FinishDocuments() { }
 
     virtual void StartSubchapters() { }
@@ -84,5 +84,5 @@ private:
     void WriteChapter(const Chapter& chapter);
 
 private:
-    const std::map<std::wstring, std::wstring>* m_documentTitleOverrides = nullptr;
+    const std::map<std::string, std::string>* m_documentTitleOverrides = nullptr;
 };

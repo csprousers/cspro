@@ -87,7 +87,7 @@ CString FilteredExtensionProcessor::GetFilenameFromType(wstring_view type_text, 
         if( type_text == type )
         {
             return FormatText(_T("%s%s.%s"), PortableFunctions::PathGetDirectory(filename).c_str(),
-                                             PortableFunctions::PathGetFilenameWithoutExtension(filename).c_str(),
+                                             UTF8_TODO::GetWide(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(filename))).c_str(),
                                              extensions.front().GetString());
         }
     }
@@ -105,5 +105,5 @@ void FilteredExtensionProcessor::SetWinSettingsType(WinSettings::Type type)
 void FilteredExtensionProcessor::UpdateWinSettings(wstring_view filename) const
 {
     if( m_winSettingsType.has_value() )
-        WinSettings::Write(*m_winSettingsType, PortableFunctions::PathGetFileExtension<CString>(filename));
+        WinSettings::Write(*m_winSettingsType, PortableFunctions::PathGetFileExtension(filename));
 }

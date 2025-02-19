@@ -23,7 +23,7 @@ protected:
 private:
     void BuildTree();
 
-    const TextSource* GetTextSource(const std::wstring& compilation_unit_name);
+    const TextSource* GetTextSource(const std::string& compilation_unit_name);
 
 private:
     Application& m_application;
@@ -35,8 +35,8 @@ private:
     std::unique_ptr<CLogicCtrl> m_usesLogicCtrl;
     CLogicCtrl m_contextLogicCtrl;
 
-    std::map<std::wstring, const TextSource*> m_textSources;
+    std::map<std::string, const TextSource*> m_textSources;
 
     std::optional<const Symbol*> m_lastShownSymbol;
-    std::optional<std::wstring> m_lastShownCompilationUnit;
+    std::optional<std::string> m_lastShownCompilationUnit;
 };

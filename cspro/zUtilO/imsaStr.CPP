@@ -80,21 +80,20 @@ namespace
 //                           CIMSAString::IsNumeric
 //
 /////////////////////////////////////////////////////////////////////////////
-TCHAR CIMSAString::GetDecChar()
+char CIMSAString::GetDecChar()
 {
 #ifdef WIN32
-    static TCHAR decimal_ch = _T(' ');
-
-    if( decimal_ch == _T(' ') )
-    {
-        TCHAR temp[10];
-        GetPrivateProfileString(_T("intl"), _T("sDecimal"), _T("."), temp, _countof(temp), INI);
-        decimal_ch = *temp;
-    }
+    static char decimal_ch =
+        []()
+        {
+            const std::string& decimal_char = GetLocaleInformation(LOCALE_SDECIMAL);
+            return !decimal_char.empty() ? decimal_char.front() :
+                                           '.';
+        }();
 
     return decimal_ch;
 #else
-    return _T('.');
+    return '.';
 #endif
 }
 
@@ -106,7 +105,7 @@ bool CIMSAString::IsNumeric(const wstring_view text_sv, bool use_decimal_charact
 
     auto text_sv_itr = text_sv.cbegin();
     auto text_sv_end = text_sv.cend();
-    std::optional<TCHAR> decimal_ch;
+    std::optional<char> decimal_ch;
 
     // skip past the sign
     if( *text_sv_itr == '-' || *text_sv_itr == '+' )
@@ -127,7 +126,7 @@ bool CIMSAString::IsNumeric(const wstring_view text_sv, bool use_decimal_charact
 
             decimal_ch = use_decimal_character_locale ? GetDecChar() : DOT;
 
-            if( *text_sv_itr != decimal_ch )
+            if( *text_sv_itr != *decimal_ch )
                 return false;
         }
     }
@@ -136,7 +135,7 @@ bool CIMSAString::IsNumeric(const wstring_view text_sv, bool use_decimal_charact
 }
 
 
-bool CIMSAString::IsNumericOrSpecial(const wstring_view text_sv, bool use_decimal_character_locale/* = true*/)
+bool CIMSAString::IsNumericOrSpecial(const std::string_view text_sv, const bool use_decimal_character_locale/* = true*/)
 {
     return ( IsNumeric(text_sv, use_decimal_character_locale) ||
              SpecialValues::StringIsSpecial(text_sv) );
@@ -180,17 +179,17 @@ BOOL CIMSAString::IsNumericU() const {
 }
 
 
-bool CIMSAString::IsInteger(wstring_view text_sv)
+bool CIMSAString::IsInteger(std::string_view text_sv)
 {
     // skip past the sign
     if( !text_sv.empty() && ( text_sv.front() == '-' || text_sv.front() == '+' ) )
-        text_sv = text_sv.substr(1);
+        text_sv.remove_prefix(1);
 
     // at least one digit must exist
     if( text_sv.empty() )
         return false;
 
-    for( const TCHAR ch : text_sv )
+    for( const char ch : text_sv )
     {
         if( !is_digit(ch) )
             return false;
@@ -206,16 +205,17 @@ bool CIMSAString::IsInteger(wstring_view text_sv)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool CIMSAString::IsName(const wstring_view name_sv)
+bool CIMSAString::IsName(const std::string_view name_sv)
 {
     auto name_sv_itr = name_sv.cbegin();
+    const auto& name_sv_end = name_sv.cend();
 
     // first char must be alpha
-    if( name_sv_itr == name_sv.cend() || !is_alpha(*name_sv_itr) )
+    if( name_sv_itr == name_sv_end || !is_alpha(*name_sv_itr) )
         return false;
 
     // additional characters must be alpha, numeric, or an underscore
-    while( ++name_sv_itr != name_sv.cend() )
+    while( ++name_sv_itr != name_sv_end )
     {
         if( !is_tokch(*name_sv_itr) )
             return false;
@@ -1098,16 +1098,16 @@ csprochar* i64toa (int64_t iValue, TCHAR pszValue[]) {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-double atod(const wstring_view text_sv, unsigned int implied_decimals/* = 0*/)
+double atod(const std::string_view text_sv, const unsigned int implied_decimals/* = 0*/)
 {
-    const TCHAR* itr = text_sv.data();
-    const TCHAR* text_sv_end = text_sv.data() + text_sv.length();
+    const char* itr = text_sv.data();
+    const char* const text_sv_end = text_sv.data() + text_sv.length();
 
     // skip past spaces
     while( itr < text_sv_end && *itr == SPACE )
         ++itr;
 
-    bool negative = ( itr < text_sv_end && *itr == HYPHEN );
+    const bool negative = ( itr < text_sv_end && *itr == HYPHEN );
 
     if( negative )
         ++itr;
@@ -1127,7 +1127,7 @@ double atod(const wstring_view text_sv, unsigned int implied_decimals/* = 0*/)
 
         else
         {
-            char16_t digit_value = *itr - _T('0');
+            const unsigned char digit_value = *itr - '0';
 
             if( digit_value > 9 )
                 return IMSA_BAD_DOUBLE;
@@ -1157,7 +1157,8 @@ double atod(const wstring_view text_sv, unsigned int implied_decimals/* = 0*/)
     }
 
     // apply the negative
-    return negative ? ( -1 * value ) : value;
+    return negative ? ( -1 * value ) :
+                      value;
 }
 
 
@@ -1256,7 +1257,7 @@ csprochar* strtoken(csprochar* pszValue, const csprochar* pszSeparators, csproch
     }
 //  If QUOTE
 
-    if (*pszChar == DOUBLEQUOTE || *pszChar == SINGLEQUOTE) {
+    if (*pszChar == '\"' || *pszChar == '\'') {
         csprochar szQuote = *pszChar;
         pszChar++;
         pszSaveChar = pszChar;
@@ -1310,22 +1311,9 @@ csprochar* strtoken(csprochar* pszValue, const csprochar* pszSeparators, csproch
 //                           CIMSAString::IsReservedWord
 //
 /////////////////////////////////////////////////////////////////////////////
-bool CIMSAString::IsReservedWord(const wstring_view word_sv)
+bool CIMSAString::IsReservedWord(const std::string_view word_sv)
 {
     return ( WindowsDesktopMessage::Send(UWM::UtilO::IsReservedWord, &word_sv) == 1 );
-}
-
-
-void CIMSAString::ValidateName(NullTerminatedString name)
-{
-    if( SO::IsBlank(name) )
-        throw CSProException("Name cannot be empty.");
-
-    if( !IsName(name) )
-        throw CSProException(_T("\"%s\" is not a valid name."), name.c_str());
-
-    if( IsReservedWord(name) )
-        throw CSProException(_T("\"%s\" is not a valid name because it is a reserved word."), name.c_str());
 }
 
 
@@ -1335,40 +1323,13 @@ void CIMSAString::serialize(Serializer& ar)
 }
 
 
-CString NumberToString(double value)
-{
-    CString string_value;
-
-    if( IsSpecial(value) )
-    {
-        string_value = SpecialValues::ValueToString(value);
-    }
-
-    else
-    {
-        TCHAR pszTemp[30];
-        string_value = dtoa(value, pszTemp, 9, DOT, false);
-        string_value.TrimRight(_T('0'));
-        string_value.TrimRight(_T('.'));
-
-        if( string_value.IsEmpty() )
-            string_value = _T("0");
-    }
-
-    // TODO: remove this or DoubleToString
-    ASSERT(SO::Equals(string_value, DoubleToString(value)));
-
-    return string_value;
-}
-
-
 template<typename T/* = double*/>
 T StringToNumber(const wstring_view text_sv)
 {
     if( CIMSAString::IsNumeric(text_sv) )
         return atod(text_sv);
 
-    const double* special_value = SpecialValues::StringIsSpecial<const double*>(text_sv);
+    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(UTF8_TODO::GetUtf8(text_sv));
 
     if( special_value != nullptr )
         return *special_value;
@@ -1388,15 +1349,41 @@ template CLASS_DECL_ZUTILO double StringToNumber(wstring_view text_sv);
 template CLASS_DECL_ZUTILO std::optional<double> StringToNumber(wstring_view text_sv);
 
 
-unsigned CountNewlines(NullTerminatedString text)
+template<typename T/* = double*/>
+T StringToNumber(const std::string_view text_sv)
 {
-    unsigned newlines = 0;
+    if( CIMSAString::IsNumeric(text_sv) )
+        return atod(text_sv);
 
-    for( const TCHAR* text_itr = text.c_str(); ; ++text_itr )
+    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(text_sv);
+
+    if( special_value != nullptr )
+        return *special_value;
+
+    if constexpr(std::is_same_v<T, double>)
     {
-        TCHAR ch = *text_itr;
+        return DEFAULT;
+    }
 
-        if( ch == 0 )
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template CLASS_DECL_ZUTILO double StringToNumber(std::string_view text_sv);
+template CLASS_DECL_ZUTILO std::optional<double> StringToNumber(std::string_view text_sv);
+
+
+size_t CountNewlines(const cs::string_sz text)
+{
+    size_t newlines = 0;
+
+    for( const char* text_itr = text.c_str(); ; ++text_itr )
+    {
+        char ch = *text_itr;
+
+        if( ch == '\0' )
         {
             return newlines;
         }

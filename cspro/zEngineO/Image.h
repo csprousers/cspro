@@ -17,7 +17,7 @@ private:
     LogicImage(const LogicImage& logic_image);
 
 public:
-    LogicImage(std::wstring image_name);
+    LogicImage(std::string image_name);
     LogicImage(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
 
     LogicImage& operator=(const LogicImage& logic_image);
@@ -31,16 +31,16 @@ public:
 
     void Resample(int width, int height);
 
-    void Load(std::wstring filename, bool filename_is_temporary = false);
-    void Load(std::unique_ptr<const Multimedia::Image> image, std::wstring filename);
+    void Load(std::string file_path, bool file_path_is_temporary = false);
+    void Load(std::unique_ptr<const Multimedia::Image> image, std::string path_or_filename);
 
     // loads the image from a data URL, using binary_data_metadata as the base metadata
-    void LoadFromDataUrl(wstring_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata());
+    void LoadFromDataUrl(std::string_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata());
 
-    void Save(std::wstring filename, std::optional<int> jpeg_quality = std::nullopt);
+    void Save(std::string file_path, std::optional<int> jpeg_quality = std::nullopt);
 
     void View(const ViewerOptions* viewer_options) const;
-    static void View(const std::vector<std::byte>& image_content, std::optional<Multimedia::ImageDetails> image_details, const std::wstring& image_filename,
+    static void View(const std::vector<std::byte>& image_content, std::optional<Multimedia::ImageDetails> image_details, const std::string& image_file_path,
                      const ViewerOptions* viewer_options);
 
     // Symbol overrides
@@ -48,7 +48,7 @@ public:
 
     void Reset() override;
 
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // BinarySymbol overrides
     bool HasValidContent() const override;

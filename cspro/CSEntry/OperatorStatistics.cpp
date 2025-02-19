@@ -59,8 +59,8 @@ void COperatorStatistics::Stop()
 
     COleDateTimeSpan timeSpan = m_EDateTime - m_SDateTime;
 
-    m_sTotalTime = CIMSAString::AdjustLenLeft(IntToString((int)timeSpan.GetTotalSeconds()), NCHAR);
-    m_sPauseTime = CIMSAString::AdjustLenLeft(IntToString((int)m_PauseTimeSpan.GetTotalSeconds()), NCHAR);
+    m_sTotalTime = CIMSAString::AdjustLenLeft(UTF8_TODO::GetCString(IntToString((int)timeSpan.GetTotalSeconds())), NCHAR);
+    m_sPauseTime = CIMSAString::AdjustLenLeft(UTF8_TODO::GetCString(IntToString((int)m_PauseTimeSpan.GetTotalSeconds())), NCHAR);
 }
 
 

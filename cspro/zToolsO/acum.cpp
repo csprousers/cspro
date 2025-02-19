@@ -353,7 +353,7 @@ void CAcum::Dump( CStringArray& aLines, CString csTitle, int iNumDec, bool bUseR
         int    iMaxColLen=0;
         for( k=0; k < GetNumLayers(); k++ ) {
                 for( i=0; i < GetNumRows(); i++ ) {
-                        csLine = IntToString( i + 1 );
+                        csLine = UTF8_TODO::GetCString(IntToString( i + 1 ));
                         iMaxColLen = std::max( iMaxColLen, csLine.GetLength() );
                         for( j=0; j < GetNumCols(); j++ ) {
                                 double dValue=GetDoubleValue( i, j, k );
@@ -371,7 +371,7 @@ void CAcum::Dump( CStringArray& aLines, CString csTitle, int iNumDec, bool bUseR
                                         csLine = _T("-");
                                 iMaxColLen = std::max( iMaxColLen, csLine.GetLength() );
 
-                                csLine = IntToString( j + 1 );
+                                csLine = UTF8_TODO::GetCString(IntToString( j + 1 ));
                                 iMaxColLen = std::max( iMaxColLen, csLine.GetLength() );
                         }
                 }
@@ -379,7 +379,7 @@ void CAcum::Dump( CStringArray& aLines, CString csTitle, int iNumDec, bool bUseR
 
 
         for( k=0; k < GetNumLayers(); k++ ) {
-                csLine.Format( _T("%sLayer %d of %d\n"), (LPCTSTR)csTitle, k+1, GetNumLayers() );
+                csLine.Format( _T("%sLayer %d of %d\n"), csTitle.GetString(), k+1, GetNumLayers() );
                 aLines.Add( csLine ); // cFile.Write( csLine, csLine.GetLength() );
 
                 if( bUseRowColNumbers ) {

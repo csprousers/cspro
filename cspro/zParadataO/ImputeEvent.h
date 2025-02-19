@@ -1,19 +1,20 @@
 ﻿#pragma once
-#include "Event.h"
-#include "FieldInfo.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+#include <zParadataO/FieldInfo.h>
+
+namespace Paradata { class ImputeEvent; }
+
+
+class ZPARADATAO_API Paradata::ImputeEvent : public Event
 {
-    class ZPARADATAO_API ImputeEvent : public Event
-    {
-        DECLARE_PARADATA_EVENT(ImputeEvent)
+    DECLARE_PARADATA_EVENT(ImputeEvent)
 
-    private:
-        std::shared_ptr<FieldInfo> m_fieldInfo;
-        double m_initialValue;
-        double m_imputedValue;
+public:
+    ImputeEvent(std::shared_ptr<FieldInfo> field_info, double initial_value, double imputed_value);
 
-    public:
-        ImputeEvent(std::shared_ptr<FieldInfo> field_info, double initial_value, double imputed_value);
-    };
-}
+private:
+    std::shared_ptr<FieldInfo> m_fieldInfo;
+    double m_initialValue;
+    double m_imputedValue;
+};

@@ -3,7 +3,7 @@
 #include <zEdit2O/zEdit2O.h>
 #include <zEdit2O/CSProScintillaCtrl.h>
 #include <zEdit2O/Lexers.h>
-#include <zToolsO/StringNoCase.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 
 class CSProScintillaFindReplaceDlg;
 
@@ -30,8 +30,8 @@ public:
     bool IsModified() { return ( m_modified || GetModify() ); }
     virtual void SetModified(bool modified = true);
 
-    std::wstring ReturnWordAtCursorPos(Sci_Position pos);
-    std::vector<std::wstring> ReturnWordsAtCursorWithDotNotation(std::optional<Sci_Position> pos = std::nullopt);
+    std::string ReturnWordAtCursorPos(Sci_Position pos);
+    std::vector<std::string> ReturnWordsAtCursorWithDotNotation(std::optional<Sci_Position> pos = std::nullopt);
 
     void DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_symbol, COLORREF fore, COLORREF back);
 
@@ -103,7 +103,7 @@ private:
 
     void OnGoToLine();
 
-    void Copy(Sci_Position start_pos, Sci_Position end_pos, wstring_view text_sv);
+    void Copy(Sci_Position start_pos, Sci_Position end_pos, std::string_view text_sv);
     void CopyForCSProUsers(bool for_forum);
 
 private:
@@ -117,7 +117,7 @@ private:
 
     std::optional<bool> m_foldingEnabled;
 
-    const std::map<StringNoCase, const TCHAR*>* m_logicTooltips;
+    const std::map<std::string, const char*, cs::case_insensitive_less>* m_logicTooltips;
 
 public:
     static constexpr int  CSPRO_LOGIC_MARKER_ERROR   = 0;

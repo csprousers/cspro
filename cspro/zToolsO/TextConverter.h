@@ -26,6 +26,14 @@ public:
     static std::string WideToWindowsAnsi(const wchar_t* non_null_wide_string, size_t wide_length);
 
 
+    // --------------------------------------------------------------------------
+    // ANSI (Windows code page 1252) <---> UTF-8
+    // --------------------------------------------------------------------------
+
+    CLASS_DECL_ZTOOLSO static std::string AnsiToUtf8(std::string_view ansi_text_sv);
+    CLASS_DECL_ZTOOLSO static std::string Utf8ToAnsi(std::string_view utf8_text_sv);
+
+
 private:
     CLASS_DECL_ZTOOLSO static std::wstring WindowsAnsiToWideWorker(const char* non_null_ansi_string, size_t ansi_length);
     CLASS_DECL_ZTOOLSO static int WindowsAnsiToWideBufferWorker(const char* non_null_ansi_string, wchar_t* non_null_wide_buffer, size_t length);
@@ -74,7 +82,7 @@ std::wstring TextConverter::MultiByteToWide(const char* const non_null_multi_byt
 
 template<unsigned code_page>
 static int TextConverter::MultiByteToWideBuffer(const char* const non_null_multi_byte_string, const size_t multi_byte_length,
-                                                 wchar_t* const non_null_wide_buffer, const size_t wide_buffer_length)
+                                                wchar_t* const non_null_wide_buffer, const size_t wide_buffer_length)
 {
     ASSERT(non_null_multi_byte_string != nullptr && non_null_wide_buffer != nullptr);
     ASSERT(multi_byte_length != SIZE_MAX && wide_buffer_length != SIZE_MAX);

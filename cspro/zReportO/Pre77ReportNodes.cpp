@@ -359,7 +359,7 @@ namespace Pre77Report
 
             if( m_pReportManager != nullptr )
             {
-                CString csSrcFilename = UTF8Convert::UTF8ToWide<CString>(sSrc);
+                CString csSrcFilename = UTF8_TODO::GetCString(sSrc);
 
                 // if the (JavaScript) file exists in the folder where the report will be created, use it
                 CString csSrc = PortableFunctions::PathAppendToPath(m_pReportManager->GetOutputDirectory(),csSrcFilename);
@@ -372,7 +372,7 @@ namespace Pre77Report
 
                         if( PortableFunctions::FileIsRegular(csSrc) )
                         {
-                            sSrc = UTF8Convert::WideToUTF8(Encoders::ToFileUrl(CS2WS(csSrc)));
+                            sSrc = Encoders::ToFileUrl(UTF8_TODO::GetUtf8(csSrc));
                             return true;
                         }
 
@@ -383,7 +383,7 @@ namespace Pre77Report
                     if( !look_for_file(PortableFunctions::PathGetDirectory(m_csScriptFilename)) )
                     {
                         // ... or in the mustache script folder
-                        look_for_file(Html::GetDirectory(Html::Subdirectory::Mustache));
+                        look_for_file(UTF8_TODO::GetWide(Html::GetDirectory(Html::Subdirectory::Mustache)));
                     }
 
                     // otherwise, we'll just display the original source (as it could be a http link, for example)

@@ -1,12 +1,13 @@
 ﻿#include "stdafx.h"
 #include "WorkString.h"
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
 // WorkString
 // --------------------------------------------------------------------------
 
-WorkString::WorkString(std::wstring string_name)
+WorkString::WorkString(std::string string_name)
     :   Symbol(std::move(string_name), SymbolType::WorkString)
 {
 }
@@ -18,6 +19,31 @@ WorkString::WorkString(const WorkString& work_string)
 }
 
 
+void WorkString::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const WorkString& work_string = assert_cast<const WorkString&>(symbol);
+    const bool this_is_alpha = ( GetSubType() == SymbolSubType::WorkAlpha );
+
+    if( GetSubType() != symbol.GetSubType() )
+    {
+        throw CompareDeclarationAttributesException("symbol type: %s vs. %s", this_is_alpha ? "alpha" : "string",
+                                                                              this_is_alpha ? "string" : "alpha");
+    }
+
+    if( this_is_alpha )
+    {
+        const WorkAlpha& work_alpha1 = assert_cast<const WorkAlpha&>(*this);
+        const WorkAlpha& work_alpha2 = assert_cast<const WorkAlpha&>(work_string);
+
+        if( work_alpha1.GetWideLength() != work_alpha2.GetWideLength() )
+        {
+            throw CompareDeclarationAttributesException("alpha length: %d vs. %d", static_cast<int>(work_alpha1.GetWideLength()),
+                                                                                   static_cast<int>(work_alpha2.GetWideLength()));
+        }
+    }
+}
+
+
 std::unique_ptr<Symbol> WorkString::CloneInInitialState() const
 {
     return std::unique_ptr<WorkString>(new WorkString(*this));
@@ -26,7 +52,7 @@ std::unique_ptr<Symbol> WorkString::CloneInInitialState() const
 
 void WorkString::Reset()
 {
-    m_string.clear();
+    m_string.Reset();
 }
 
 
@@ -36,9 +62,21 @@ void WorkString::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void WorkString::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void WorkString::SetValueFromJson(const JsonNode& json_node)
 {
-    SetString(json_node.GetEngineValue<std::wstring>());
+    SetString(json_node.GetEngineValue<SharableString>());
+}
+
+
+JavaScript::Value WorkString::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    return executor.CreateEngineValue(m_string);
+}
+
+
+void WorkString::SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    SetString(executor.ConvertEngineValue<SharableString>(js_value));
 }
 
 
@@ -47,10 +85,9 @@ void WorkString::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 // WorkAlpha
 // --------------------------------------------------------------------------
 
-WorkAlpha::WorkAlpha(std::wstring alpha_name)
+WorkAlpha::WorkAlpha(std::string alpha_name)
     :   WorkString(std::move(alpha_name)),
-        m_length(0),
-        m_numberRightSpaces(0)
+        m_stringInResetState(SO::Empty_shared_string)
 {
     SetSubType(SymbolSubType::WorkAlpha);
 }
@@ -59,7 +96,7 @@ WorkAlpha::WorkAlpha(std::wstring alpha_name)
 WorkAlpha::WorkAlpha(const WorkAlpha& work_alpha)
     :   WorkString(work_alpha)
 {
-    SetLength(work_alpha.m_length);
+    SetWideLength(work_alpha.GetWideLength());
 }
 
 
@@ -69,56 +106,22 @@ std::unique_ptr<Symbol> WorkAlpha::CloneInInitialState() const
 }
 
 
-void WorkAlpha::SetLength(const unsigned length)
+void WorkAlpha::SetWideLength(const size_t length)
 {
-    m_length = length;
-    m_numberRightSpaces = m_length;
-    SO::MakeExactLength(m_string, m_length);
-}
-
-
-void WorkAlpha::SetString(std::wstring value)
-{
-    ASSERT80(m_string.length() == m_length);
-
-    const int spaces_needed = m_length - static_cast<int>(value.length());
-
-    if( spaces_needed > 0 )
-    {
-        _tmemcpy(m_string.data(), value.data(), value.length());
-
-        // only pad the string as needed
-        const int actual_spaces_needed = spaces_needed - m_numberRightSpaces;
-
-        if( actual_spaces_needed > 0 )
-            _tmemset(m_string.data() + value.length(), ' ', actual_spaces_needed);
-
-        m_numberRightSpaces = spaces_needed;
-    }
-
-    else
-    {
-        m_string = std::move(value);
-
-        if( spaces_needed != 0 )
-            m_string.resize(m_length);
-
-        m_numberRightSpaces = 0;
-    }
-
-    ASSERT80(m_string.length() == m_length);
+    m_stringInResetState = std::make_shared<const std::string>(length, ' ');
 }
 
 
 void WorkAlpha::Reset()
 {
-    ASSERT80(m_string.length() == m_length);
+    m_string = m_stringInResetState;
+}
 
-    if( m_length != m_numberRightSpaces )
-    {
-        _tmemset(m_string.data(), ' ', m_length - m_numberRightSpaces);
-        m_numberRightSpaces = m_length;
-    }
+
+void WorkAlpha::SetString(SharableString&& sharable_string)
+{
+    sharable_string.WideMakeExactLength(GetWideLength());
+    m_string = std::move(sharable_string);
 }
 
 
@@ -126,12 +129,12 @@ void WorkAlpha::serialize_subclass(Serializer& ar)
 {
     if( ar.IsSaving() )
     {
-        ar << m_length;
+        ar.Write(static_cast<unsigned>(GetWideLength()));
     }
 
     else
     {
-        SetLength(ar.Read<unsigned>());
+        SetWideLength(ar.Read<unsigned>());
     }
 }
 
@@ -139,5 +142,5 @@ void WorkAlpha::serialize_subclass(Serializer& ar)
 void WorkAlpha::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 {
     json_writer.Write(JK::subtype, GetSubType());
-    json_writer.Write(JK::length, m_length);
+    json_writer.Write(JK::length, GetWideLength());
 }

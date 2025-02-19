@@ -1,91 +1,85 @@
 ﻿#include "Stdafx.h"
 #include "Database.h"
 #include "DatabaseQuery.h"
-#include <SQLite/SQLiteHelpers.h>
 
-namespace CSPro
+
+CSPro::ParadataViewer::DatabaseQuery::DatabaseQuery(sqlite3_stmt* const stmt)
+    :   m_stmt(stmt),
+        m_numberColumns(sqlite3_column_count(m_stmt)),
+        m_getResultsExecutedAtLeastOnce(false),
+        m_nextRowAlreadyStepped(false)
 {
-    namespace ParadataViewer
+}
+
+
+int CSPro::ParadataViewer::DatabaseQuery::ColumnCount::get()
+{
+    return m_numberColumns;
+}
+
+
+array<System::String^>^ CSPro::ParadataViewer::DatabaseQuery::ColumnNames::get()
+{
+    auto names = gcnew array<System::String^>(m_numberColumns);
+
+    for( int column = 0; column < m_numberColumns; ++column )
+        names[column] = clr_helpers::to_SystemString(std::string_view(sqlite3_column_name(m_stmt, column)));
+
+    return names;
+}
+
+
+System::Collections::Generic::List<array<System::Object^>^>^ CSPro::ParadataViewer::DatabaseQuery::GetResults(const int max_number_results)
+{
+    m_getResultsExecutedAtLeastOnce = true;
+
+    auto rows = gcnew System::Collections::Generic::List<array<System::Object^>^>();
+    int rows_count = 0;
+    int sql_result = SQLITE_ROW;
+
+    while( ( rows_count < max_number_results ) &&
+        ( m_nextRowAlreadyStepped || ( ( sql_result = sqlite3_step(m_stmt) ) == SQLITE_ROW ) ) )
     {
-        DatabaseQuery::DatabaseQuery(sqlite3_stmt* stmt)
-            :   m_stmt(stmt)
-        {
-            m_iNumberColumns = sqlite3_column_count(m_stmt);
-            m_bGetResultsExecutedAtLeastOnce = false;
-            m_bNextRowAlreadyStepped = false;
-        }
+        m_nextRowAlreadyStepped = false;
 
-        int DatabaseQuery::ColumnCount::get()
-        {
-            return m_iNumberColumns;
-        }
+        auto row = gcnew array<System::Object^>(m_numberColumns);
+        rows->Add(row);
+        ++rows_count;
 
-        array<System::String^>^ DatabaseQuery::ColumnNames::get()
+        for( int column = 0; column < m_numberColumns; ++column )
         {
-            auto names = gcnew array<System::String^>(m_iNumberColumns);
-
-            for( int iColumn = 0; iColumn < m_iNumberColumns; iColumn++ )
+            if( sqlite3_column_type(m_stmt, column) == SQLITE_NULL )
             {
-                CString csColumnName = FromUtf8(sqlite3_column_name(m_stmt,iColumn));
-                names[iColumn] = gcnew System::String(csColumnName);
+                // nothing to do
             }
 
-            return names;
-        }
-
-        System::Collections::Generic::List<array<System::Object^>^>^ DatabaseQuery::GetResults(int iMaxNumberResults)
-        {
-            m_bGetResultsExecutedAtLeastOnce = true;
-
-            auto rows = gcnew System::Collections::Generic::List<array<System::Object^>^>();
-            int iRows = 0;
-            int iSqlResult = SQLITE_ROW;
-
-            while( ( iRows < iMaxNumberResults ) &&
-                ( m_bNextRowAlreadyStepped || ( ( iSqlResult = sqlite3_step(m_stmt) ) == SQLITE_ROW ) ) )
+            else if( sqlite3_column_type(m_stmt, column) == SQLITE_TEXT )
             {
-                m_bNextRowAlreadyStepped = false;
-
-                auto row = gcnew array<System::Object^>(m_iNumberColumns);
-                rows->Add(row);
-                iRows++;
-
-                for( int iColumn = 0; iColumn < m_iNumberColumns; iColumn++ )
-                {
-                    if( sqlite3_column_type(m_stmt,iColumn) == SQLITE_NULL )
-                        continue;
-
-                    else if( sqlite3_column_type(m_stmt,iColumn) == SQLITE_TEXT )
-                    {
-                        CString csValue = FromUtf8(sqlite3_column_text(m_stmt,iColumn));
-                        row[iColumn] = gcnew System::String(csValue);
-                    }
-
-                    else
-                    {
-                        double dValue = sqlite3_column_double(m_stmt,iColumn);
-                        row[iColumn] = gcnew System::Double(dValue);
-                    }
-                }
+                row[column] = clr_helpers::to_SystemString(std::string_view(reinterpret_cast<const char*>(sqlite3_column_text(m_stmt, column))));
             }
 
-            // if SQLITE_DONE wasn't the last return value, then iMaxNumberResults was hit, but read
-            // the next row to see if all rows have been read
-            if( iSqlResult != SQLITE_DONE )
-                m_bNextRowAlreadyStepped = ( sqlite3_step(m_stmt) == SQLITE_ROW );
-
-            // reset the statement if all results have been returned
-            if( !m_bNextRowAlreadyStepped )
-                sqlite3_reset(m_stmt);
-
-            return rows;
-        }
-
-        System::Nullable<bool> DatabaseQuery::AdditionalResultsAvailable::get()
-        {
-            return m_bGetResultsExecutedAtLeastOnce ?
-                System::Nullable<bool>(m_bNextRowAlreadyStepped) :
-                System::Nullable<bool>();
+            else
+            {
+                row[column] = gcnew System::Double(sqlite3_column_double(m_stmt, column));
+            }
         }
     }
+
+    // if SQLITE_DONE wasn't the last return value, then max_number_results was hit, but read
+    // the next row to see if all rows have been read
+    if( sql_result != SQLITE_DONE )
+        m_nextRowAlreadyStepped = ( sqlite3_step(m_stmt) == SQLITE_ROW );
+
+    // reset the statement if all results have been returned
+    if( !m_nextRowAlreadyStepped )
+        sqlite3_reset(m_stmt);
+
+    return rows;
+}
+
+
+System::Nullable<bool> CSPro::ParadataViewer::DatabaseQuery::AdditionalResultsAvailable::get()
+{
+    return m_getResultsExecutedAtLeastOnce ? System::Nullable<bool>(m_nextRowAlreadyStepped) :
+                                             System::Nullable<bool>();
 }

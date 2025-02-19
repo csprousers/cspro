@@ -1,188 +1,198 @@
 ﻿#include "stdafx.h"
 #include "GuiConcatenator.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zToolsO/File.h>
 #include <zUtilO/ProcessSummary.h>
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProcessSummaryDlg.h>
+#include <zAppO/PFF.h>
+
+using namespace Paradata;
 
 
-namespace Paradata
+int64_t GuiConcatenator::GetNumberEvents(const std::string& file_path)
 {
-    int64_t GuiConcatenator::GetNumberEvents(NullTerminatedString filename)
+    // read the number of events, aborting on any error
+    int64_t events = -1;
+
+    sqlite3* db = nullptr;
+
+    if( PortableFunctions::FileIsRegular(file_path) &&
+        sqlite3_open_v2(file_path.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) == SQLITE_OK )
     {
-        // read the number of events, aborting on any error
-        int64_t iEvents = -1;
-
-        sqlite3* db = nullptr;
-
-        if( PortableFunctions::FileIsRegular(filename) &&
-            sqlite3_open_v2(ToUtf8(filename), &db, SQLITE_OPEN_READONLY, nullptr) == SQLITE_OK )
-        {
-            try
-            {
-                iEvents = Concatenator::GetNumberEvents(db);
-            }
-
-            catch(...)
-            {
-            }
-
-            sqlite3_close(db);
-        }
-
-        return iEvents;
-    }
-
-
-    GuiConcatenator::GuiConcatenator(const PffWrapper& pff)
-        :   m_pff(pff),
-            m_processSummaryDlg(nullptr)
-    {
-    }
-
-    bool GuiConcatenator::Run(const PffWrapper& pff)
-    {
-        return GuiConcatenator(pff).Run();
-    }
-
-
-    bool GuiConcatenator::Run()
-    {
-        // open the log file
-        if( m_pff.GetListingFName().IsEmpty() )
-            throw CSProException("You must specify a listing filename.");
-
-        CStdioFileUnicode log;
-
-        if( !log.Open(m_pff.GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-            throw CSProException(_T("There was an error creating the listing file:\n\n%s"), m_pff.GetListingFName().GetString());
-
-        log.WriteFormattedLine(_T("Number of paradata logs requested to concatenate: %d"), (int)m_pff.GetInputParadataFilenames().size());
-
-        bool run_success = false;
-        bool run_canceled = false;
-
         try
         {
-            // display a progress bar while doing the concatenation
-            m_processSummary = std::make_shared<ProcessSummary>();
-
-            ProcessSummaryDlg process_summary_dlg;
-            m_processSummaryDlg = &process_summary_dlg;
-
-            process_summary_dlg.SetTask([&]
-            {
-                process_summary_dlg.Initialize(_T("Concatenating..."), m_processSummary);
-
-                // run the concatenation
-                std::set<std::wstring> paradata_log_filenames;
-
-                for( const std::wstring& filename : m_pff.GetInputParadataFilenames() )
-                    paradata_log_filenames.insert(filename);
-
-                Concatenator::Run(CS2WS(m_pff.GetOutputParadataFilename()), paradata_log_filenames);
-
-                run_success = true;
-            });
-
-            process_summary_dlg.DoModal();
-
-            process_summary_dlg.RethrowTaskExceptions();
+            events = Concatenator::GetNumberEvents(db);
         }
+        catch(...) { }
 
-        catch( const CSProException& exception )
+        sqlite3_close(db);
+    }
+
+    return events;
+}
+
+
+GuiConcatenator::GuiConcatenator(const PFF& pff)
+    :   m_pff(pff),
+        m_processSummaryDlg(nullptr)
+{
+}
+
+
+bool GuiConcatenator::Run(const PFF& pff)
+{
+    return GuiConcatenator(pff).Run();
+}
+
+
+bool GuiConcatenator::Run()
+{
+    // open the log file
+    if( m_pff.GetListingFName().IsEmpty() )
+        throw CSProException("You must specify a listing file.");
+
+    FileIO::TextFile log;
+
+    try
+    {
+        log.OpenForTextWritingCreate(m_pff.GetListingFName());
+    }
+
+    catch( const CSProException& exception )
+    {
+        throw CSProException("There was an error creating the listing file:\n\n%s", exception.what());
+    }
+
+    log.WriteFormattedLine("Number of paradata logs requested to concatenate: %d", static_cast<int>(m_pff.GetInputParadataFilenames().size()));
+
+    bool run_success = false;
+    bool run_canceled = false;
+
+    try
+    {
+        // display a progress bar while doing the concatenation
+        m_processSummary = std::make_unique<ProcessSummary>();
+
+        ProcessSummaryDlg process_summary_dlg;
+        m_processSummaryDlg = &process_summary_dlg;
+
+        process_summary_dlg.SetTask([&]
         {
-            if( dynamic_cast<const UserCanceledException*>(&exception) != nullptr )
-                run_canceled = true;
+            process_summary_dlg.Initialize("Concatenating...", m_processSummary);
 
-            else
-            {
-                log.WriteLine();
-                log.WriteLine(exception.GetErrorMessage());
-            }
-        }
+            // run the concatenation
+            std::set<std::string> paradata_log_file_paths;
 
-        // terminate the listing file
-        if( run_canceled )
+            for( const CString& file_path : m_pff.GetInputParadataFilenames() )
+                paradata_log_file_paths.insert(UTF8_TODO::GetUtf8(file_path));
+
+            Concatenator::Run(UTF8_TODO::GetUtf8(m_pff.GetOutputParadataFilename()), paradata_log_file_paths);
+
+            run_success = true;
+        });
+
+        process_summary_dlg.DoModal();
+
+        process_summary_dlg.RethrowTaskExceptions();
+    }
+
+    catch( const CSProException& exception )
+    {
+        if( dynamic_cast<const UserCanceledException*>(&exception) != nullptr )
         {
-            log.WriteLine();
-            log.WriteLine(_T("Concatenation canceled"));
-        }
-
-        else if( !run_success )
-        {
-            log.WriteLine();
-            log.WriteLine(_T("Concatenation failed"));
+            run_canceled = true;
         }
 
         else
         {
-            if( !m_aProcessedSuccess.empty() )
-            {
-                log.WriteLine();
-                log.WriteFormattedLine(_T("Number of paradata logs successfully concatenated: %d"), (int)m_aProcessedSuccess.size());
-
-                for( const auto& processed_success : m_aProcessedSuccess )
-                {
-                    log.WriteFormattedLine(_T("  %s (") Formatter_int64_t _T(" event%s)"), processed_success.csFilename.GetString(),
-                                           processed_success.iNumberEvents, PluralizeWord(processed_success.iNumberEvents));
-
-                }
-            }
-
-            if( !m_aProcessedError.empty() )
-            {
-                log.WriteLine();
-                log.WriteFormattedLine(_T("Number of paradata logs with errors: %d"), (int)m_aProcessedError.size());
-
-                for( const auto& processed_error : m_aProcessedError )
-                    log.WriteFormattedLine(_T("  %s (%s)"), processed_error.csFilename.GetString(), processed_error.csErrorMessage.GetString());
-            }
-
             log.WriteLine();
-            log.WriteFormattedLine(_T("Output paradata log:\n  %s"), m_pff.GetOutputParadataFilename().GetString());
+            log.WriteLine(exception.what());
+        }
+    }
 
+    // terminate the listing file
+    if( run_canceled )
+    {
+        log.WriteLine();
+        log.WriteLine("Concatenation canceled");
+    }
+
+    else if( !run_success )
+    {
+        log.WriteLine();
+        log.WriteLine("Concatenation failed");
+    }
+
+    else
+    {
+        if( !m_processedSuccesses.empty() )
+        {
             log.WriteLine();
-            log.WriteLine(m_aProcessedError.empty() ? _T("Concatenation successful") :
-                                                      _T("Concatenation successful with some errors"));
+            log.WriteFormattedLine("Number of paradata logs successfully concatenated: %d", static_cast<int>(m_processedSuccesses.size()));
+
+            for( const ProcessedSuccess& processed_success : m_processedSuccesses )
+            {
+                log.WriteFormattedLine("  %s (" Formatter_int64_t " event%s)", processed_success.file_path.c_str(),
+                                                                               processed_success.number_events, PluralizeWord(processed_success.number_events));
+
+            }
         }
 
-        // close the log and potentially view the listing
-        log.Close();
+        if( !m_processedErrors.empty() )
+        {
+            log.WriteLine();
+            log.WriteFormattedLine("Number of paradata logs with errors: %d", static_cast<int>(m_processedErrors.size()));
 
-        bool errors_occurred = ( !run_success || !m_aProcessedError.empty() );
+            for( const ProcessedError& processed_error : m_processedErrors )
+                log.WriteFormattedLine("  %s (%s)", processed_error.file_path.c_str(), processed_error.error_message.c_str());
+        }
 
-        m_pff.ViewListing(errors_occurred);
+        log.WriteLine();
+        log.WriteFormattedLine("Output paradata log:\n  %s", UTF8_TODO::GetUtf8(m_pff.GetOutputParadataFilename()).c_str());
 
-        return !errors_occurred;
+        log.WriteLine();
+        log.WriteLine(m_processedErrors.empty() ? "Concatenation successful" :
+                                                  "Concatenation successful with some errors");
     }
 
+    // close the log and potentially view the listing
+    log.Close();
 
-    void GuiConcatenator::OnInputProcessedSuccess(const std::variant<std::wstring, sqlite3*>& filename_or_database, int64_t iEventsProcessed)
+    const bool errors_occurred = ( !run_success || !m_processedErrors.empty() );
+
+    if( ( m_pff.GetViewListing() == VIEWLISTING::ALWAYS ) ||
+        ( m_pff.GetViewListing() == VIEWLISTING::ONERROR && errors_occurred ) )
     {
-        ASSERT(std::holds_alternative<std::wstring>(filename_or_database));
-        m_aProcessedSuccess.emplace_back(ProcessedSuccess { WS2CS(std::get<std::wstring>(filename_or_database)), iEventsProcessed });
-
-        m_processSummary->IncrementAttributesRead((size_t)iEventsProcessed);
+        m_pff.ViewListing();
     }
 
-
-    void GuiConcatenator::OnInputProcessedError(NullTerminatedString input_filename, const std::wstring& error_message)
-    {
-        m_aProcessedError.emplace_back(ProcessedError { input_filename, WS2CS(error_message) });
-    }
+    return !errors_occurred;
+}
 
 
-    void GuiConcatenator::OnProgressUpdate(const CString& csOperationMessage, int iOperationPercent, const CString& csTotalMessage, int iTotalPercent)
-    {
-        m_processSummaryDlg->SetSource(FormatText(_T("%s (%d%%)..."), csTotalMessage.GetString(), iOperationPercent));
-        m_processSummaryDlg->SetKey(csOperationMessage);
-        m_processSummary->SetPercentSourceRead(iTotalPercent);
-    }
+void GuiConcatenator::OnInputProcessedSuccess(const std::variant<std::string, sqlite3*>& file_path_or_database, const int64_t events_processed)
+{
+    ASSERT(std::holds_alternative<std::string>(file_path_or_database));
+    m_processedSuccesses.emplace_back(ProcessedSuccess { std::get<std::string>(file_path_or_database), events_processed });
+
+    m_processSummary->IncrementAttributesRead(static_cast<size_t>(events_processed));
+}
 
 
-    bool GuiConcatenator::UserRequestsCancellation()
-    {
-        return m_processSummaryDlg->IsCanceled();
-    }
+void GuiConcatenator::OnInputProcessedError(const std::string& input_file_path, const char* const error_message)
+{
+    m_processedErrors.emplace_back(ProcessedError { input_file_path, error_message });
+}
+
+
+void GuiConcatenator::OnProgressUpdate(const std::string& operation_message, const int operation_percent, const char* const total_message, const int total_percent)
+{
+    m_processSummaryDlg->SetSource(FormatText("%s (%d%%)...", total_message, operation_percent));
+    m_processSummaryDlg->SetKey(operation_message);
+    m_processSummary->SetPercentSourceRead(total_percent);
+}
+
+
+bool GuiConcatenator::UserRequestsCancellation()
+{
+    return m_processSummaryDlg->IsCanceled();
 }

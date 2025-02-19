@@ -85,7 +85,7 @@ BOOL CDictOleDropTarget::OnDrop( CWnd* /*pWnd*/, COleDataObject* pDataObject, DR
     CMDIChildWnd* pActiveWnd = ((CMDIFrameWnd*)AfxGetMainWnd())->MDIGetActive();
     CWnd* pView = pActiveWnd->GetActiveView();
 
-    pView->SendMessage(UWM::Dictionary::DraggedOffTable, 0, (LPARAM)(LPCTSTR)m_sString);
+    pView->SendMessage(UWM::Dictionary::DraggedOffTable, 0, (LPARAM)m_sString.GetString());
 
     return TRUE;
 

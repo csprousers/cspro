@@ -2,7 +2,7 @@
 #include "Language.h"
 
 
-Language::Language(std::wstring name/* = DefaultName*/, std::wstring label/* = DefaultLabel*/)
+Language::Language(std::string name/* = DefaultName*/, std::string label/* = DefaultLabel*/)
     :   m_name(std::move(name)),
         m_label(std::move(label))
 {
@@ -17,19 +17,18 @@ bool Language::operator==(const Language& rhs) const
 }
 
 
-Language Language::CreateFromJson(const JsonNode<wchar_t>& json_node)
+Language Language::CreateFromJson(const JsonNode& json_node)
 {
-    return Language(json_node.Get<std::wstring>(JK::name),
-                    json_node.Get<std::wstring>(JK::label));
+    return Language(json_node.Get<std::string>(JK::name),
+                    json_node.Get<std::string>(JK::label));
 }
 
 void Language::WriteJson(JsonWriter& json_writer) const
 {
-    json_writer
-        .BeginObject()
-        .Write(JK::name, m_name)
-        .Write(JK::label, m_label)
-        .EndObject();
+    json_writer.BeginObject()
+               .Write(JK::name, m_name)
+               .Write(JK::label, m_label)
+               .EndObject();
 }
 
 

@@ -5,11 +5,8 @@
 
 class FieldFontDlg : public CDialog
 {
-// Construction
 public:
-    FieldFontDlg(PortableFont field_font, CWnd* pParent = NULL);
-
-    enum { IDD = IDD_FIELD_FONT_DLG };
+    FieldFontDlg(PortableFont field_font, CWnd* pParent = nullptr);
 
     const PortableFont& GetFieldFont() const { return m_fieldFont; }
 
@@ -23,8 +20,8 @@ protected:
 
 private:
     PortableFont m_fieldFont;
-    CString m_fieldFontDescription;
+    std::string m_fieldFontDescription;
 
     PortableFont m_systemFieldFont;
-    CString m_systemFieldFontDescription;
+    std::string m_systemFieldFontDescription;
 };

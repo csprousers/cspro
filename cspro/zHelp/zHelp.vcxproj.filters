@@ -17,42 +17,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\CHMLib\chm_lib.c">
+      <Filter>Source Files\CHMLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\CHMLib\lzx.c">
+      <Filter>Source Files\CHMLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ChmFileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChmFileVirtualFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zHelp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChmFileReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\CHMLib\lzx.c">
-      <Filter>Source Files\CHMLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\CHMLib\chm_lib.c">
-      <Filter>Source Files\CHMLib</Filter>
-    </ClCompile>
-    <ClCompile Include="ChmFileVirtualFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zHelp.h">
+    <ClInclude Include="..\external\CHMLib\chm_lib.h">
+      <Filter>Header Files\CHMLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\CHMLib\lzx.h">
+      <Filter>Header Files\CHMLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ChmFileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChmFileVirtualFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChmFileReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\CHMLib\lzx.h">
-      <Filter>Header Files\CHMLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\CHMLib\chm_lib.h">
-      <Filter>Header Files\CHMLib</Filter>
-    </ClInclude>
-    <ClInclude Include="ChmFileVirtualFile.h">
+    <ClInclude Include="zHelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,65 +1,51 @@
 ﻿#pragma once
 
 #include <zJavaScript/Definitions.h>
-#include <zToolsO/Utf8Convert.h>
+
+namespace JavaScript { struct Printer; struct DefaultPrinter; struct NullPrinter; struct ModuleLoaderHelper; }
 
 
-namespace JavaScript
+// --------------------------------------------------------------------------
+// Printer
+// --------------------------------------------------------------------------
+
+struct JavaScript::Printer
 {
-    // --------------------------------------------------------------------------
-    // Printer
-    // --------------------------------------------------------------------------
-    struct Printer
+    virtual ~Printer() { }
+
+    virtual void OnPrint(SharableString text) = 0;
+
+    virtual void OnConsoleLog(SharableString text)
     {
-        virtual ~Printer() { }
+        OnPrint(std::move(text));
+    }
+};
 
-        virtual void OnPrint(const std::string& text) = 0;
 
-        virtual void OnConsoleLog(const std::string& text)
-        {
-            OnPrint(text);
-        }
-    };
-
-    struct DefaultPrinter : public Printer
+struct JavaScript::DefaultPrinter : public Printer
+{
+    void OnPrint(const SharableString text) override
     {
-        void OnPrint(const std::string& text) override
-        {
-            ErrorMessage::Display(UTF8Convert::UTF8ToWide(text));
-        }
-    };
-
-    struct NullPrinter : public Printer
-    {
-        void OnPrint(const std::string& /*text*/) override { }
-    };
+        ErrorMessage::Display(*text);
+    }
+};
 
 
+struct JavaScript::NullPrinter : public Printer
+{
+    void OnPrint(SharableString /*text*/) override { }
+};
 
-    // --------------------------------------------------------------------------
-    // ModuleLoaderHelper
-    // --------------------------------------------------------------------------
-    struct ModuleLoaderHelper
-    {
-        virtual ~ModuleLoaderHelper() { }
 
-        // return the byte code for the module (if already loaded)
-        virtual const ByteCode* GetByteCode(wstring_view filename_relative_to_root)
-        {
-            UNREFERENCED_PARAMETER(filename_relative_to_root);
-            return nullptr;
-        }
 
-        // return true if the byte code should be set after importing the module
-        virtual bool NeedByteCode()
-        {
-            return false;
-        }
+// --------------------------------------------------------------------------
+// ModuleLoaderHelper
+// --------------------------------------------------------------------------
 
-        virtual void SetByteCode(std::wstring filename_relative_to_root, ByteCode byte_code)
-        {
-            UNREFERENCED_PARAMETER(filename_relative_to_root);
-            UNREFERENCED_PARAMETER(byte_code);
-        }
-    };
-}
+struct JavaScript::ModuleLoaderHelper
+{
+    virtual ~ModuleLoaderHelper() { }
+
+    // Returns the bytecode for the module (if available).
+    virtual const Bytecode* GetBytecode(const std::string& file_path) = 0;
+};

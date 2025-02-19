@@ -13,7 +13,7 @@ WindowsMapUISingleThread::~WindowsMapUISingleThread()
 }
 
 
-int WindowsMapUISingleThread::WindowsShow()
+bool WindowsMapUISingleThread::WindowsShow()
 {
     ASSERT(m_mapDlg == nullptr);
 
@@ -22,10 +22,11 @@ int WindowsMapUISingleThread::WindowsShow()
 
     m_mapDlg.reset();
 
-    return 1;
+    return true;
 }
 
-int WindowsMapUISingleThread::Hide()
+
+bool WindowsMapUISingleThread::Hide()
 {
     ASSERT(m_mapDlg == nullptr);
 
@@ -34,7 +35,7 @@ int WindowsMapUISingleThread::Hide()
 
     NotifyEvent(EventCode::MapClosed);
 
-    return 1;
+    return true;
 }
 
 
@@ -51,7 +52,7 @@ IMapUI::MapEvent WindowsMapUISingleThread::WaitForEvent()
     // return an event if one has already been logged
     if( m_singleMapEvent != nullptr )
     {
-        auto received_map_event = std::move(m_singleMapEvent);
+        const std::unique_ptr<MapEvent> received_map_event = std::move(m_singleMapEvent);
         return *received_map_event;
     }
 
@@ -64,19 +65,19 @@ IMapUI::MapEvent WindowsMapUISingleThread::WaitForEvent()
 }
 
 
-void WindowsMapUISingleThread::NotifyEvent(EventCode code, int marker_id/* = -1*/, int callback_id/* = -1*/,
-        double latitude/* = 0*/, double longitude/* = 0*/, const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
+void WindowsMapUISingleThread::NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
+                                           const double latitude/* = 0*/, const double longitude/* = 0*/,
+                                           const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
 {
     // ignore the map closing event trigged by the WM_CLOSE message below
     if( m_singleMapEvent != nullptr )
     {
-        ASSERT(m_singleMapEvent->code_ != EventCode::MapClosed);
+        ASSERT(m_singleMapEvent->code != EventCode::MapClosed);
         return;
     }
 
-
     // only one event is allowed at a time, so store the event...
-    m_singleMapEvent = std::make_unique<MapEvent>(MapEvent
+    m_singleMapEvent.reset(new MapEvent
     {
         code,
         marker_id,

@@ -1,47 +1,40 @@
 ﻿#include "Stdafx.h"
 #include "Helper.h"
 #include <zToolsO/Tools.h>
-#include <zToolsO/Utf8Convert.h>
 #include <zAppO/PFF.h>
 
 
-namespace CSPro
+void CSPro::ParadataViewer::Helper::CreateParadataConcatPff(System::String^ pff_file_path,
+                                                            System::String^ listing_file_path,
+                                                            System::Collections::Generic::List<System::String^>^ input_log_file_paths,
+                                                            System::String^ output_log_File_path)
 {
-    namespace ParadataViewer
-    {
-        void Helper::CreateParadataConcatPff(System::String^ pffFilename,System::String^ lstFilename,
-            System::Collections::Generic::List<System::String^>^ inputLogFilenames,System::String^ outputLogFilename)
-        {
-            PFF pff;
-            pff.SetPifFileName(CString(pffFilename));
+    PFF pff;
+    pff.SetPifFileName(UTF8_TODO::GetCString(clr_helpers::to_string(pff_file_path)));
 
-            pff.SetAppType(PARADATA_CONCAT_TYPE);
+    pff.SetAppType(APPTYPE::PARADATA_CONCAT_TYPE);
 
-            pff.SetListingFName(CString(lstFilename));
+    pff.SetListingFName(UTF8_TODO::GetCString(clr_helpers::to_string(listing_file_path)));
 
-            for( int i = 0; i < inputLogFilenames->Count; i++ )
-                pff.AddInputParadataFilenames(CString(inputLogFilenames[i]));
+    for( int i = 0; i < input_log_file_paths->Count; ++i )
+        pff.AddInputParadataFilenames(UTF8_TODO::GetCString(clr_helpers::to_string(input_log_file_paths[i])));
 
-            pff.SetOutputParadataFilename(CString(outputLogFilename));
+    pff.SetOutputParadataFilename(UTF8_TODO::GetCString(clr_helpers::to_string(output_log_File_path)));
 
-            pff.SetViewListing(ONERROR);
+    pff.SetViewListing(VIEWLISTING::ONERROR);
 
-            pff.Save();
-        }
+    pff.Save();
+}
 
 
-        System::String^ Helper::FormatTimestamp(System::String^ formatter,double dTimestamp)
-        {
-            CString csFormattingString = formatter;
+System::String^ CSPro::ParadataViewer::Helper::FormatTimestamp(System::String^ formatter, const double timestamp)
+{
+    const std::string formatted_timestamp = ::FormatTimestamp(timestamp, clr_helpers::to_string(formatter));
+    return clr_helpers::to_SystemString(formatted_timestamp);
+}
 
-            std::string sTimeString = ::FormatTimestamp(dTimestamp,UTF8Convert::WideToUTF8(csFormattingString).c_str());
 
-            return gcnew System::String(UTF8Convert::UTF8ToWide(sTimeString).c_str());
-        }
-
-        System::String^ Helper::FormatTimestamp(System::String^ formatter)
-        {
-            return FormatTimestamp(formatter,GetTimestamp());
-        }
-    }
+System::String^ CSPro::ParadataViewer::Helper::FormatTimestamp(System::String^ formatter)
+{
+    return FormatTimestamp(formatter, GetTimestamp());
 }

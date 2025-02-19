@@ -169,8 +169,6 @@ void CSProScintillaFindReplaceDlg::RestoreComboStringsAndHideEditControl(const U
             // only add unique strings
             if( combo_box->FindStringExact(-1, find_or_replace_text.c_str()) == CB_ERR )
                 combo_box->AddString(find_or_replace_text.c_str());
-
-            return true;
         });
 
     // update the initial state of the combo box to show the find/replace word (stored in the edit control)

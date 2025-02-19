@@ -5,13 +5,10 @@
 namespace ActionInvoker { class Runtime; }
 
 
-enum class TextEncoding { Ansi, Utf8, Utf8Bom };
+enum class BinaryEncodingInput         { Autodetect = 0, Base64 = 1, Cache = 2, DataUrl = 3, Hex = 4,                   Text = 6 };
+enum class BinaryEncodingResolvedInput {                 Base64 = 1, Cache = 2, DataUrl = 3, Hex = 4,                   Text = 6 };
+enum class BinaryEncodingOutput        {                 Base64 = 1, Cache = 2, DataUrl = 3, Hex = 4, LocalhostUrl = 5           };
 
-enum class BinaryEncodingInput         { Autodetect = 0, Base64 = 1, DataUrl = 2, Hex = 3, Text = 4                   };
-enum class BinaryEncodingResolvedInput {                 Base64 = 1, DataUrl = 2, Hex = 3, Text = 4                   };
-enum class BinaryEncodingOutput        {                 Base64 = 1, DataUrl = 2, Hex = 3,           LocalhostUrl = 5 };
-
-DECLARE_ENUM_JSON_SERIALIZER_CLASS(TextEncoding,)
 DECLARE_ENUM_JSON_SERIALIZER_CLASS(BinaryEncodingInput,)
 DECLARE_ENUM_JSON_SERIALIZER_CLASS(BinaryEncodingOutput,)
 
@@ -20,10 +17,16 @@ class StringToBytesConverter
 {
 public:
     // looks at the specified input format (autodetect if not specified) and resolves it (BinaryEncodingInput -> BinaryEncodingResolvedInput)
-    static BinaryEncodingResolvedInput ResolveBinaryEncodingInput(wstring_view bytes_sv, const JsonNode<wchar_t>& json_node, wstring_view bytes_format_key_sv);
+    static BinaryEncodingResolvedInput ResolveBinaryEncodingInput(std::string_view bytes_sv, const JsonNode& json_node, std::string_view bytes_format_key_sv);
 
-    // looks at the specified input format (autodetect if not specified) and returns the converted bytes, potentially throwing an exception on a conversion error
-    static std::vector<std::byte> Convert(wstring_view bytes_sv, const JsonNode<wchar_t>& json_node, wstring_view bytes_format_key_sv);
+    // looks at the specified input format (autodetect if not specified) and returns a non-null pointer to the converted bytes,
+    // potentially throwing an exception on a conversion error
+    static std::shared_ptr<const std::vector<std::byte>> Convert(ActionInvoker::Runtime& runtime, std::string_view bytes_sv,
+                                                                 const JsonNode& json_node, std::string_view bytes_format_key_sv,
+                                                                 std::tuple<BinaryEncodingResolvedInput, std::string>* out_binary_encoding_resolved_input_and_data_url_mediatype = nullptr);
+
+private:
+    static std::shared_ptr<const std::vector<std::byte>> ConvertCache(ActionInvoker::Runtime& runtime, std::string_view bytes_sv);
 };
 
 
@@ -31,21 +34,22 @@ class BytesToStringConverter
 {
 public:
     // looks at the specific output format (data URL if not specified) and creates an object to convert bytes to that format
-    BytesToStringConverter(ActionInvoker::Runtime* runtime, const JsonNode<wchar_t>& json_node, wstring_view bytes_format_key_sv);
+    BytesToStringConverter(ActionInvoker::Runtime* runtime, std::optional<BinaryEncodingOutput> binary_encoding_format);
+    BytesToStringConverter(ActionInvoker::Runtime* runtime, const JsonNode& json_node, std::string_view bytes_format_key_sv);
+
+    BinaryEncodingOutput GetBinaryEncodingOutput() const { return m_binaryEncodingOutput; }
 
     // converts the bytes to a string in the format specified in the constructor
-    template<typename T>
-    std::wstring Convert(T&& bytes, wstring_view mime_type_sv);
-
-    template<typename T>
-    std::wstring Convert(T&& bytes, const std::optional<std::wstring>& mime_type)
-    {
-        return Convert<T>(std::forward<T>(bytes), mime_type.has_value() ? wstring_view(*mime_type) : wstring_view());
-    }
+    template<typename BT, typename MT>
+    std::string Convert(BT&& bytes, MT&& mime_type);
 
 private:
-    std::wstring ConvertImmediately(const std::vector<std::byte>& bytes, wstring_view mime_type_sv);
-    std::wstring ConvertLocalhost(std::shared_ptr<const std::vector<std::byte>> bytes, wstring_view mime_type_sv);
+    template<typename BT>
+    static std::shared_ptr<const std::vector<std::byte>> GetSharedPointerFromBytes(BT&& bytes);
+
+    std::string ConvertImmediately(const std::vector<std::byte>& bytes, const std::string& mime_type);
+    std::string ConvertCache(std::shared_ptr<const std::vector<std::byte>> bytes);
+    std::string ConvertLocalhost(std::shared_ptr<const std::vector<std::byte>> bytes, std::string mime_type);
 
 private:
     ActionInvoker::Runtime* const m_runtime;
@@ -53,26 +57,35 @@ private:
 };
 
 
-template<typename T>
-std::wstring BytesToStringConverter::Convert(T&& bytes, const wstring_view mime_type_sv)
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename BT>
+std::shared_ptr<const std::vector<std::byte>> BytesToStringConverter::GetSharedPointerFromBytes(BT&& bytes)
 {
-    ASSERT(GetPointer(bytes) != nullptr);
-
-    if( m_binaryEncodingOutput == BinaryEncodingOutput::LocalhostUrl )
+    if constexpr(IsPointer<BT>())
     {
-        if constexpr(IsPointer<T>())
-        {
-            return ConvertLocalhost(std::move(bytes), mime_type_sv);
-        }
-
-        else
-        {
-            return ConvertLocalhost(std::make_shared<const std::vector<std::byte>>(std::forward<T>(bytes)), mime_type_sv);
-        }        
+        return std::forward<BT>(bytes);
     }
 
     else
     {
-        return ConvertImmediately(*GetPointer(bytes), mime_type_sv);
-    }            
+        return std::make_shared<const std::vector<std::byte>>(std::forward<BT>(bytes));
+    }
+}
+
+
+template<typename BT, typename MT>
+std::string BytesToStringConverter::Convert(BT&& bytes, MT&& mime_type)
+{
+    ASSERT(GetPointer(bytes) != nullptr);
+
+    switch( m_binaryEncodingOutput )
+    {
+        case BinaryEncodingOutput::Cache:        return ConvertCache(GetSharedPointerFromBytes(std::forward<BT>(bytes)));
+        case BinaryEncodingOutput::LocalhostUrl: return ConvertLocalhost(GetSharedPointerFromBytes(std::forward<BT>(bytes)), std::forward<MT>(mime_type));
+        default:                                 return ConvertImmediately(*GetPointer(bytes), std::forward<MT>(mime_type));
+    }
 }

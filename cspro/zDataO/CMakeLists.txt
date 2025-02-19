@@ -4,13 +4,17 @@ include(../WASM/Definitions.cmake)
 
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
-    ${EXTERNAL_DIRECTORY}/jsoncons
 )
 
 add_library(${PROJECT_NAME}
     CacheableCaseWrapperRepository.cpp
+    CaseIteratorSettings.cpp
+    CSWebBinaryContentReader.cpp
+    CSWebRepository.cpp
     DataRepository.cpp
+    DataRepositoryDefines.cpp
     DataRepositoryHelpers.cpp
+    DictionarySource.cpp
     EncryptedSQLiteRepository.cpp
     EncryptedSQLiteRepositoryPasswordManager.cpp
     ExportWriterRepository.cpp
@@ -27,7 +31,11 @@ add_library(${PROJECT_NAME}
     SQLiteRepository.cpp
     SQLiteRepositoryCaseLoader.cpp
     SQLiteRepositoryIterators.cpp
+    SyncBinaryDataUploadManager.cpp
+    SyncCaseJsonSerializer.cpp
+    SyncCaseSerializer.cpp
     TextRepository.cpp
     TextRepositoryNotesFile.cpp
     TextRepositoryStatusFile.cpp
+    WrapperRepository.cpp
 )

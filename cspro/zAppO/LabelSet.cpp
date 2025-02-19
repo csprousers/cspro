@@ -6,7 +6,7 @@
 LabelSet LabelSet::DefaultValue;
 
 
-const CString& LabelSet::GetLabel(size_t language_index, bool use_primary_label_if_undefined/* = true*/) const
+const CString& LabelSet::GetLabel(size_t language_index, const bool use_primary_label_if_undefined/* = true*/) const
 {
     ASSERT(!m_labels.empty());
 
@@ -14,7 +14,7 @@ const CString& LabelSet::GetLabel(size_t language_index, bool use_primary_label_
     if( language_index >= m_labels.size() || m_labels[language_index].IsEmpty() )
     {
         if( !use_primary_label_if_undefined )
-            return SO::EmptyCString;
+            return SO::Empty_CString;
 
         language_index = 0;
     }
@@ -61,17 +61,17 @@ void LabelSet::DeleteLabel(size_t language_index)
 }
 
 
-LabelSet LabelSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
+LabelSet LabelSet::CreateFromJson(const JsonNode& json_node)
 {
-    auto language_serializer_helper = json_node.GetSerializerHelper().Get<LanguageSerializerHelper>();
+    const LanguageSerializerHelper* const language_serializer_helper = json_node.GetSerializerHelper().Get<LanguageSerializerHelper>();
 
     std::vector<CString> labels;
     std::optional<size_t> first_defined_language_index;
 
-    for( const auto& label_object : json_node.GetArray() )
+    for( const JsonNode& label_object : json_node.GetArray() )
     {
-        std::wstring language_name = label_object.GetOrDefault(JK::language, SO::EmptyString);
-        std::optional<size_t> language_index = ( language_serializer_helper != nullptr ) ? language_serializer_helper->GetLanguageIndex(language_name) :
+        const std::string_view language_name_sv = label_object.GetOrConstruct<std::string_view>(JK::language);
+        std::optional<size_t> language_index = ( language_serializer_helper != nullptr ) ? language_serializer_helper->GetLanguageIndex(language_name_sv) :
                                                                                            std::nullopt;
 
         if( !language_index.has_value() )
@@ -79,15 +79,15 @@ LabelSet LabelSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
             if( labels.empty() )
             {
                 // only log a warning if a language was specified
-                if( !language_name.empty() )
-                    json_node.LogWarning(_T("The language '%s' is not valid but the label will be used as the primary label"), language_name.c_str());
+                if( !language_name_sv.empty() )
+                    json_node.LogWarning("The language '%s' is not valid but the label will be used as the primary label", std::string(language_name_sv).c_str());
 
                 language_index = 0;
             }
 
             else
             {
-                json_node.LogWarning(_T("The language '%s' is not valid and the label will be discarded"), language_name.c_str());
+                json_node.LogWarning("The language '%s' is not valid and the label will be discarded", std::string(language_name_sv).c_str());
                 continue;
             }
         }
@@ -99,10 +99,10 @@ LabelSet LabelSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
 
         else if( !labels[*language_index].IsEmpty() )
         {
-            json_node.LogWarning(_T("The language '%s' has duplicate labels and all but the first label will be discarded"), language_name.c_str());
+            json_node.LogWarning("The language '%s' has duplicate labels and all but the first label will be discarded", std::string(language_name_sv).c_str());
         }
 
-        labels[*language_index] = label_object.GetOrDefault(JK::text, SO::EmptyCString);
+        labels[*language_index] = label_object.GetOrConstruct<CString>(JK::text);
 
         if( !first_defined_language_index.has_value() )
             first_defined_language_index = *language_index;
@@ -111,7 +111,7 @@ LabelSet LabelSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
     // make sure there is at least one label
     if( labels.empty() )
     {
-        json_node.LogWarning(_T("No label was defined"));
+        json_node.LogWarning("No label was defined");
         labels.emplace_back();
     }
 
@@ -128,7 +128,7 @@ LabelSet LabelSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
 
 void LabelSet::WriteJson(JsonWriter& json_writer) const
 {
-    auto language_serializer_helper = json_writer.GetSerializerHelper().Get<LanguageSerializerHelper>();
+    const LanguageSerializerHelper* const language_serializer_helper = json_writer.GetSerializerHelper().Get<LanguageSerializerHelper>();
 
     size_t labels_to_serialize = m_labels.size();
     bool serialize_languages;
@@ -185,20 +185,20 @@ void LabelSet::serialize(Serializer& ar)
 
     else
     {
-        m_labels = Pre80SerializableLabelToLabels(ar.Read<std::wstring>());
+        m_labels = Pre80SerializableLabelToLabels(ar.Read<std::string>());
     }
 }
 
 
-std::vector<CString> LabelSet::Pre80SerializableLabelToLabels(wstring_view serializable_label)
+std::vector<CString> LabelSet::Pre80SerializableLabelToLabels(const std::string_view serializable_label_sv)
 {
-    constexpr TCHAR LabelSeparator = '|';
+    constexpr char LabelSeparator = '|';
 
     LabelSet label_set;
     size_t language_index = 0;
 
-    for( std::wstring label : SO::SplitString(serializable_label, LabelSeparator) )
-        label_set.SetLabel(WS2CS(label), language_index++);
+    for( std::string label : SO::SplitString(serializable_label_sv, LabelSeparator) )
+        label_set.SetLabel(UTF8_TODO::GetCString(std::move(label)), language_index++);
 
     return label_set.m_labels;
 }

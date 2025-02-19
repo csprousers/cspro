@@ -1,10 +1,12 @@
 ﻿#include "StdAfx.h"
 #include "PackDlg.h"
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/imsaDlg.H>
 #include <zUtilO/TemporaryFile.h>
+#include <zUtilO/WindowsUtf8.h>
+#include <zUtilO/WindowsWS.h>
 
 
 BEGIN_MESSAGE_MAP(PackDlg, CDialog)
@@ -34,14 +36,14 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    constexpr const TCHAR* PackSpecFilter = _T("Pack Specification Files (*.cspack)|*.cspack|")
-                                            _T("All Files (*.*)|*.*||");
+    constexpr const wchar_t* PackSpecFilter = L"Pack Specification Files (*.cspack)|*.cspack|"
+                                              L"All Files (*.*)|*.*||";
 
-    constexpr const TCHAR* AddFileFilter  = _T("Application Files (*.ent;*.bch;*.xtb)|*.ent;*.bch;*.xtb|")
-                                            _T("Data Entry Application Files (*.ent)|*.ent|")
-                                            _T("Batch Edit Application Files (*.bch)|*.bch|")
-                                            _T("Tabulation Application Files (*.xtb)|*.xtb|")
-                                            _T("All Files (*.*)|*.*||");
+    constexpr const wchar_t* AddFileFilter  = L"Application Files (*.ent;*.bch;*.xtb)|*.ent;*.bch;*.xtb|"
+                                              L"Data Entry Application Files (*.ent)|*.ent|"
+                                              L"Batch Edit Application Files (*.bch)|*.bch|"
+                                              L"Tabulation Application Files (*.xtb)|*.xtb|"
+                                              L"All Files (*.*)|*.*||";
 
     namespace UpdateDialogAction
     {
@@ -53,16 +55,16 @@ namespace
 }
 
 
-PackDlg::PackDlg(std::unique_ptr<PackSpec> pack_spec, std::wstring filename, CWnd* pParent/* = nullptr*/)
+PackDlg::PackDlg(std::unique_ptr<PackSpec> pack_spec, std::string file_path, CWnd* const pParent/* = nullptr*/)
     :   CDialog(PackDlg::IDD, pParent),
         m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME)),
         m_packSpec(std::move(pack_spec)),
         m_modified(false)
 {
-    if( !filename.empty() )
+    if( !file_path.empty() )
     {
-        ASSERT(m_packSpec != nullptr && SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(filename), FileExtensions::PackSpec));
-        m_packSpecFilename = std::move(filename);
+        ASSERT(m_packSpec != nullptr && SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(file_path), FileExtensions::PackSpec));
+        m_packSpecFilePath = std::move(file_path);
     }
 
     if( m_packSpec == nullptr )
@@ -70,10 +72,10 @@ PackDlg::PackDlg(std::unique_ptr<PackSpec> pack_spec, std::wstring filename, CWn
 }
 
 
-void PackDlg::DoDataExchange(CDataExchange* pDX)
+void PackDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
-    
+
     DDX_Control(pDX, IDC_INPUTS, m_inputsListCtrl);
 }
 
@@ -83,7 +85,7 @@ BOOL PackDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // store the base module name
-    m_moduleName = WindowsWS::GetWindowText(this);
+    m_moduleName = WindowsUtf8::GetText(this);
 
     // add the menu
     m_menu.LoadMenu(IDR_PACK);
@@ -94,7 +96,7 @@ BOOL PackDlg::OnInitDialog()
     SetIcon(m_hIcon, FALSE);
 
     // set up the list contrl and the icon image list
-    m_inputsListCtrl.InsertColumn(0, _T(""));
+    m_inputsListCtrl.InsertColumn(0, L"");
     m_inputsListCtrl.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
 
     m_systemIconImageList.Create(16, 16, ILC_COLOR32);
@@ -102,7 +104,7 @@ BOOL PackDlg::OnInitDialog()
 
     // set up the callback to allow the dragging of files onto the inputs list
     m_inputsListCtrl.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::AddToPaths,
-        [&](const std::vector<std::wstring>& paths)
+        [&](const std::vector<std::string>& paths)
         {
             AddInputs(paths);
         });
@@ -127,11 +129,11 @@ void PackDlg::OnOK()
 
 bool PackDlg::CanRunPack() const
 {
-    return ( m_packSpec->GetNumEntries() > 0 && !SO::IsWhitespace(m_packSpec->GetZipFilename()) );
+    return ( m_packSpec->GetNumEntries() > 0 && !SO::IsWhitespace(m_packSpec->GetZipFilePath()) );
 }
 
 
-LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
+LRESULT PackDlg::OnUpdateDialogUI(const WPARAM wParam, const LPARAM lParam)
 {
     // add the inputs
     if( wParam == UpdateDialogAction::UpdateAll || wParam == UpdateDialogAction::UpdateInputs )
@@ -143,9 +145,9 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
         {
             const PackEntry& pack_entry = m_packSpec->GetEntry(i);
             const int icon_index = m_systemIconImageList.GetIconIndexFromPath(pack_entry.GetPath().c_str());
-            m_inputsListCtrl.InsertItem(i, pack_entry.GetPath().c_str(), icon_index);
+            m_inputsListCtrl.InsertItem(i, TC::ToWide(pack_entry.GetPath()).c_str(), icon_index);
         }
-                
+
         // select an entry (which will call this method with the UpdateOptions action)
         const int entry_to_select = std::min(static_cast<int>(lParam), m_inputsListCtrl.GetItemCount() - 1);
 
@@ -156,8 +158,8 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
 
     // set the zip filename
     if( wParam == UpdateDialogAction::UpdateAll )
-    {        
-        SetDlgItemText(IDC_ZIP, WS2CS(m_packSpec->GetZipFilename()));
+    {
+        WindowsUtf8::SetText(this, IDC_ZIP, m_packSpec->GetZipFilePath());
     }
 
 
@@ -166,15 +168,15 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
     {
         ASSERT(!m_selectedInputIndex.has_value() || *m_selectedInputIndex < m_packSpec->GetNumEntries());
 
-        auto update = [&](const TCHAR* group_box_text,
-                          const DirectoryPackEntryExtras* directory_extras,
-                          const DictionaryPackEntryExtras* dictionary_extras,
-                          const PffPackEntryExtras* pff_extras, 
-                          const ApplicationPackEntryExtras* application_extras)
+        auto update = [&](const cs::string_sz group_box_text,
+                          const DirectoryPackEntryExtras* const directory_extras,
+                          const DictionaryPackEntryExtras* const dictionary_extras,
+                          const PffPackEntryExtras* const pff_extras,
+                          const ApplicationPackEntryExtras* const application_extras)
         {
-            SetDlgItemText(IDC_OPTIONS_GROUP, group_box_text);
+            WindowsUtf8::SetText(this, IDC_OPTIONS_GROUP, group_box_text.c_str());
 
-            auto update_check = [&](const int control_id, const auto* extras, auto extra_field)
+            auto update_check = [&](const int control_id, const auto* const extras, auto extra_field)
             {
                 const bool enabled = ( extras != nullptr );
                 const bool checked = ( enabled && extras->*extra_field );
@@ -187,7 +189,7 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
             update_check(IDC_INCLUDE_VALUE_SET_IMAGES, dictionary_extras, &DictionaryPackEntryExtras::value_set_images);
 
             update_check(IDC_INCLUDE_PFF, application_extras, &ApplicationPackEntryExtras::pff);
-            update_check(IDC_INCLUDE_RESOURCE_FOLDERS, application_extras, &ApplicationPackEntryExtras::resource_folders);
+            update_check(IDC_INCLUDE_RESOURCES, application_extras, &ApplicationPackEntryExtras::resources);
 
             update_check(IDC_INCLUDE_INPUT_DATA_FILE, pff_extras, &PffPackEntryExtras::input_data);
             update_check(IDC_INCLUDE_EXTERNAL_DATA_FILES, pff_extras, &PffPackEntryExtras::external_dictionary_data);
@@ -200,34 +202,34 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
         {
             const PackEntry& pack_entry = m_packSpec->GetEntry(*m_selectedInputIndex);
 
-            update(FormatText(_T("Extra Inclusions: %s"), PortableFunctions::PathGetFilename(pack_entry.GetPath().c_str())),
+            update("Extra Inclusions: " + PortableFunctions::PathGetFilename(pack_entry.GetPath()),
                    pack_entry.GetDirectoryExtras(), pack_entry.GetDictionaryExtras(), pack_entry.GetPffExtras(), pack_entry.GetApplicationExtras());
         }
 
         else
         {
-            update(_T("Extra Inclusions"), nullptr, nullptr, nullptr, nullptr);
-        }        
+            update("Extra Inclusions", nullptr, nullptr, nullptr, nullptr);
+        }
     }
 
 
     // update the window title if it has changed
     if( !m_lastWindowTitleInputs.has_value() ||
-        std::get<0>(*m_lastWindowTitleInputs) != m_packSpecFilename ||
+        std::get<0>(*m_lastWindowTitleInputs) != m_packSpecFilePath ||
         std::get<1>(*m_lastWindowTitleInputs) != m_modified )
     {
-        std::wstring title = m_moduleName;
+        std::string title = m_moduleName;
 
-        if( m_modified || m_packSpecFilename.has_value() )
+        if( m_modified || m_packSpecFilePath.has_value() )
         {
-            SO::AppendFormat(title, _T(" [%s%s]"),
-                                    m_packSpecFilename.has_value() ? PortableFunctions::PathGetFilename(*m_packSpecFilename) : _T("Untitled"),
-                                    m_modified ? _T(" *") : _T(""));
+            title.append(FormatText(" [%s%s]",
+                                    m_packSpecFilePath.has_value() ? PortableFunctions::PathGetFilename(*m_packSpecFilePath).c_str() : "Untitled",
+                                    m_modified ? " *" : ""));
         }
 
-        WindowsWS::SetWindowText(this, title);
+        WindowsUtf8::SetText(this, title);
 
-        m_lastWindowTitleInputs.emplace(m_packSpecFilename, m_modified);
+        m_lastWindowTitleInputs.emplace(m_packSpecFilePath, m_modified);
     }
 
 
@@ -245,9 +247,7 @@ LRESULT PackDlg::OnUpdateDialogUI(WPARAM wParam, LPARAM lParam)
 
 void PackDlg::OnAppAbout()
 {
-    CIMSAAboutDlg about_dlg;
-    about_dlg.m_hIcon = m_hIcon;
-    about_dlg.m_csModuleName = WS2CS(m_moduleName);
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), m_hIcon);
     about_dlg.DoModal();
 }
 
@@ -258,7 +258,7 @@ void PackDlg::OnFileNew()
         return;
 
     m_packSpec = std::make_unique<PackSpec>();
-    m_packSpecFilename.reset();
+    m_packSpecFilePath.reset();
     m_modified = false;
 
     PostMessage(UWM::Pack::UpdateDialogUI, UpdateDialogAction::UpdateAll);
@@ -270,19 +270,19 @@ void PackDlg::OnFileOpen()
     if( !ContinueWithClosePackSpecOperation() )
         return;
 
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::PackSpec, nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, PackSpecFilter, this, CFD_NO_DIR, FALSE);
-    file_dlg.m_ofn.lpstrTitle = _T("Open Pack Specification File");
+    OpenFileDlg open_file_dlg(0, FileExtensions::PackSpec, nullptr, PackSpecFilter, this);
+    open_file_dlg.SetTitle(L"Open Pack Specification File");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
     try
     {
         auto pack_spec = std::make_unique<PackSpec>();
-        pack_spec->Load(CS2WS(file_dlg.GetPathName()), false, false);
+        pack_spec->Load(open_file_dlg.GetFilePath(), false, false);
 
         m_packSpec = std::move(pack_spec);
-        m_packSpecFilename = file_dlg.GetPathName();
+        m_packSpecFilePath = open_file_dlg.GetFilePath();
         m_modified = false;
 
         PostMessage(UWM::Pack::UpdateDialogUI, UpdateDialogAction::UpdateAll);
@@ -297,10 +297,10 @@ void PackDlg::OnFileOpen()
 
 void PackDlg::OnFileSave()
 {
-    if( m_packSpecFilename.has_value() )
+    if( m_packSpecFilePath.has_value() )
     {
         if( m_modified )
-            SavePackSpec(*m_packSpecFilename, false);
+            SavePackSpec(*m_packSpecFilePath, false);
     }
 
     else
@@ -308,45 +308,45 @@ void PackDlg::OnFileSave()
         OnFileSaveAs();
     }
 }
- 
+
 
 void PackDlg::OnFileSaveAs()
 {
-    const std::wstring starting_directory = ( m_packSpecFilename.has_value() )  ? PortableFunctions::PathGetDirectory(*m_packSpecFilename) :
-                                            ( m_packSpec->GetNumEntries() > 0 ) ? PortableFunctions::PathGetDirectory(m_packSpec->GetEntry(0).GetPath()) :
-                                                                                  std::wstring();
+    const std::string starting_directory = ( m_packSpecFilePath.has_value() )  ? PortableFunctions::PathGetDirectory(*m_packSpecFilePath) :
+                                           ( m_packSpec->GetNumEntries() > 0 ) ? PortableFunctions::PathGetDirectory(m_packSpec->GetEntry(0).GetPath()) :
+                                                                                 std::string();
 
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::PackSpec, starting_directory.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, PackSpecFilter);
-    file_dlg.m_ofn.lpstrTitle = _T("Save Pack Specification File");
+    SaveFileDlg save_file_dlg(0, FileExtensions::PackSpec, starting_directory, PackSpecFilter, this);
+    save_file_dlg.SetTitle(L"Save Pack Specification File");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    SavePackSpec(CS2WS(file_dlg.GetPathName()), true);
+    SavePackSpec(save_file_dlg.GetFilePath(), true);
 }
 
 
-void PackDlg::SavePackSpec(std::wstring filename, bool create_pff)
+void PackDlg::SavePackSpec(std::string file_path, const bool create_pff)
 {
     try
     {
-        m_packSpec->Save(filename);
-        m_packSpecFilename = std::move(filename);
+        m_packSpec->Save(file_path);
+        m_packSpecFilePath = std::move(file_path);
         m_modified = false;
         PostMessage(UWM::Pack::UpdateDialogUI, UpdateDialogAction::UpdateTitleAndMenus);
 
         // when saving a spec file for the first time, also create a PFF
         if( create_pff )
         {
-            const std::wstring pff_filename = PortableFunctions::PathRemoveFileExtension(*m_packSpecFilename) + FileExtensions::WithDot::Pff;
+            const std::string pff_file_path = PortableFunctions::PathReplaceFileExtension(*m_packSpecFilePath, FileExtensions::Pff);
 
-            if( !PortableFunctions::FileIsRegular(pff_filename) )
+            if( !PortableFunctions::FileIsRegular(pff_file_path) )
             {
-                PFF pff(WS2CS(pff_filename));
+                PFF pff(UTF8_TODO::GetCString(pff_file_path));
 
                 pff.SetAppType(APPTYPE::PACK_TYPE);
-                pff.SetAppFName(WS2CS(*m_packSpecFilename));
-                pff.SetListingFName(WS2CS(PortableFunctions::PathRemoveFileExtension(pff_filename) + FileExtensions::WithDot::Listing));
+                pff.SetAppFName(UTF8_TODO::GetCString(*m_packSpecFilePath));
+                pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(pff_file_path, FileExtensions::Listing)));
                 pff.SetViewListing(VIEWLISTING::ALWAYS);
 
                 pff.Save();
@@ -370,9 +370,9 @@ void PackDlg::OnFileExit()
 
 bool PackDlg::ContinueWithClosePackSpecOperation()
 {
-    if( m_modified && m_packSpecFilename.has_value() )
+    if( m_modified && m_packSpecFilePath.has_value() )
     {
-        const int result = AfxMessageBox(FormatText(_T("Save changes to '%s'?"), PortableFunctions::PathGetFilename(*m_packSpecFilename)), MB_YESNOCANCEL);
+        const int result = AfxMessageBox(FormatText("Save changes to '%s'?", PortableFunctions::PathGetFilename(*m_packSpecFilePath).c_str()), MB_YESNOCANCEL);
 
         if( result == IDCANCEL )
         {
@@ -389,14 +389,14 @@ bool PackDlg::ContinueWithClosePackSpecOperation()
 }
 
 
-void PackDlg::AddInputs(const std::vector<std::wstring>& paths)
+void PackDlg::AddInputs(const std::vector<std::string>& paths)
 {
     bool input_added = false;
 
-    for( const std::wstring& path : paths )
+    for( const std::string& path : paths )
     {
         // do not add entries that already exist
-        const auto& pack_entries = m_packSpec->GetEntries();
+        const SharedPointerVectorWrapper<PackEntry>& pack_entries = m_packSpec->GetEntries();
         const auto& entry_lookup = std::find_if(pack_entries.cbegin(), pack_entries.cend(),
                                                 [&](const PackEntry& pack_entry) { return SO::EqualsNoCase(pack_entry.GetPath(), path); });
 
@@ -425,10 +425,10 @@ void PackDlg::AddInputs(const std::vector<std::wstring>& paths)
         ASSERT(!paths.empty());
 
         if( m_packSpec->GetNumEntries() == 1 &&
-            m_packSpec->GetZipFilename().empty() &&
-            PortableFunctions::FileIsRegular(paths.front().c_str()) )
+            m_packSpec->GetZipFilePath().empty() &&
+            PortableFunctions::FileIsRegular(paths.front()) )
         {
-            m_packSpec->SetZipFilename(PortableFunctions::PathRemoveFileExtension(paths.front()) + _T(".zip"));
+            m_packSpec->SetZipFilePath(PortableFunctions::PathReplaceFileExtension(paths.front(), FileExtensions::Zip));
             update_action = UpdateDialogAction::UpdateAll;
         }
 
@@ -439,28 +439,23 @@ void PackDlg::AddInputs(const std::vector<std::wstring>& paths)
 
 void PackDlg::OnInputsAddFile()
 {
-    CIMSAFileDialog file_dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, AddFileFilter);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Application(s) or File(s)");
-    file_dlg.SetMultiSelectBuffer();
+    OpenFileDlg open_file_dlg(0, nullptr, nullptr, AddFileFilter, this);
+    open_file_dlg.SetTitle(L"Select Application(s) or File(s)")
+                 .SetMultiSelectBuffer();
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    std::vector<std::wstring> paths;
-
-    for( int i = 0; i < file_dlg.m_aFileName.GetSize(); ++i )
-        paths.emplace_back(file_dlg.m_aFileName[i]);
-
-    AddInputs(paths);
+    AddInputs(open_file_dlg.GetFilePaths());
 }
 
 
 void PackDlg::OnInputsAddFolder()
 {
-    std::optional<std::wstring> folder = SelectFolderDialog(m_hWnd, _T("Select Folder"));
+    std::optional<std::string> folder = SelectFolderDialog(m_hWnd, "Select Folder");
 
     if( folder.has_value() )
-        AddInputs({ *folder });
+        AddInputs({ std::move(*folder) });
 }
 
 
@@ -480,20 +475,20 @@ void PackDlg::OnInputsClear()
     if( m_packSpec->GetNumEntries() == 0 )
         return;
 
-    const std::wstring prompt = FormatTextCS2WS(_T("Are you sure that you want to clear %d input%s?"),
-                                                static_cast<int>(m_packSpec->GetNumEntries()), PluralizeWord(m_packSpec->GetNumEntries()));
+    const std::string prompt = FormatText("Are you sure that you want to clear %d input%s?",
+                                          static_cast<int>(m_packSpec->GetNumEntries()), PluralizeWord(m_packSpec->GetNumEntries()));
 
     if( AfxMessageBox(prompt, MB_YESNOCANCEL) != IDYES )
         return;
 
     m_packSpec->RemoveAllEntries();
-    m_packSpec->SetZipFilename(std::wstring());
+    m_packSpec->SetZipFilePath(std::string());
     m_modified = true;
     PostMessage(UWM::Pack::UpdateDialogUI, UpdateDialogAction::UpdateAll);
 }
 
 
-void PackDlg::OnInputsItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
+void PackDlg::OnInputsItemChanged(NMHDR* const pNMHDR, LRESULT* const pResult)
 {
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
@@ -524,10 +519,10 @@ void PackDlg::OnOptionChange(const UINT nID)
 
     PackEntry& pack_entry = m_packSpec->GetEntry(*m_selectedInputIndex);
 
-    CButton* button = static_cast<CButton*>(GetDlgItem(nID));
+    CButton* const button = static_cast<CButton*>(GetDlgItem(nID));
     const bool checked = ( button->GetCheck() == BST_CHECKED );
 
-    auto update_option = [checked](auto* extras, auto extra_field)
+    auto update_option = [checked](auto* const extras, auto extra_field)
     {
         ASSERT(extras != nullptr);
         extras->*extra_field = checked;
@@ -535,7 +530,7 @@ void PackDlg::OnOptionChange(const UINT nID)
 
     if     ( nID == IDC_INCLUDE_VALUE_SET_IMAGES )      update_option(pack_entry.GetDictionaryExtras(),  &DictionaryPackEntryExtras::value_set_images);
     else if( nID == IDC_INCLUDE_PFF )                   update_option(pack_entry.GetApplicationExtras(), &ApplicationPackEntryExtras::pff);
-    else if( nID == IDC_INCLUDE_RESOURCE_FOLDERS )      update_option(pack_entry.GetApplicationExtras(), &ApplicationPackEntryExtras::resource_folders);
+    else if( nID == IDC_INCLUDE_RESOURCES )             update_option(pack_entry.GetApplicationExtras(), &ApplicationPackEntryExtras::resources);
     else if( nID == IDC_INCLUDE_INPUT_DATA_FILE )       update_option(pack_entry.GetPffExtras(),         &PffPackEntryExtras::input_data);
     else if( nID == IDC_INCLUDE_EXTERNAL_DATA_FILES )   update_option(pack_entry.GetPffExtras(),         &PffPackEntryExtras::external_dictionary_data);
     else if( nID == IDC_INCLUDE_USER_FILES )            update_option(pack_entry.GetPffExtras(),         &PffPackEntryExtras::user_files);
@@ -543,7 +538,7 @@ void PackDlg::OnOptionChange(const UINT nID)
     else                                                ASSERT(false);
 
     // toggling the PFF option will enable/disable the PFF extras, so redraw the options in that case
-    const WPARAM update_action = ( nID == IDC_INCLUDE_PFF ) ? UpdateDialogAction::UpdateOptions : 
+    const WPARAM update_action = ( nID == IDC_INCLUDE_PFF ) ? UpdateDialogAction::UpdateOptions :
                                                               UpdateDialogAction::UpdateTitleAndMenus;
 
     m_modified = true;
@@ -553,25 +548,26 @@ void PackDlg::OnOptionChange(const UINT nID)
 
 void PackDlg::OnZipBrowse()
 {
-    const std::wstring zip_filename = WindowsWS::GetDlgItemText(this, IDC_ZIP);
+    const std::string zip_file_path = WindowsUtf8::GetText(this, IDC_ZIP);
 
-    CIMSAFileDialog file_dlg(FALSE, _T("zip"), zip_filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                             _T("ZIP Files (*.zip)|*.zip||"), nullptr, CFD_NO_DIR);
-    file_dlg.m_ofn.lpstrTitle = _T("Select ZIP File");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Zip, zip_file_path, "ZIP Files (*.zip)|*.zip||", this);
+    save_file_dlg.SetTitle(L"Select ZIP File");
 
-    if( file_dlg.DoModal() == IDOK )
-        SetDlgItemText(IDC_ZIP, file_dlg.GetPathName());
+    if( save_file_dlg.DoModal() != IDOK )
+        return;
+
+    WindowsUtf8::SetText(this, IDC_ZIP, save_file_dlg.GetFilePath());
 }
 
 
 void PackDlg::OnZipEditChange()
 {
-    static std::wstring working_folder = GetWorkingFolder();
-    std::wstring zip_filename = MakeFullPath(working_folder, WindowsWS::GetDlgItemText(this, IDC_ZIP));
+    static std::string working_directory = GetWorkingDirectory();
+    std::string zip_file_path = MakeFullPath(working_directory, WindowsUtf8::GetText(this, IDC_ZIP));
 
-    if( !SO::Equals(zip_filename, m_packSpec->GetZipFilename()) )
+    if( zip_file_path != m_packSpec->GetZipFilePath() )
     {
-        m_packSpec->SetZipFilename(std::move(zip_filename));
+        m_packSpec->SetZipFilePath(std::move(zip_file_path));
         m_modified = true;
         PostMessage(UWM::Pack::UpdateDialogUI, UpdateDialogAction::UpdateTitleAndMenus);
     }
@@ -597,16 +593,16 @@ void PackDlg::OnPack()
     try
     {
         // write the results to a temporary listing file
-        const std::wstring listing_filename = GetUniqueTempFilename(_T("CSPack.lst"), true);
-        TemporaryFile::RegisterFileForDeletion(listing_filename);
+        const std::string listing_file_path = GetUniqueTempFilePath("CSPack.lst", true);
+        TemporaryFile::RegisterFileForDeletion(listing_file_path);
 
         PFF pff;
         pff.SetAppType(APPTYPE::PACK_TYPE);
-        pff.SetListingFName(WS2CS(listing_filename));
+        pff.SetListingFName(UTF8_TODO::GetCString(listing_file_path));
         pff.SetViewListing(VIEWLISTING::ALWAYS);
 
-        if( m_packSpecFilename.has_value() )
-            pff.SetAppFName(WS2CS(*m_packSpecFilename));
+        if( m_packSpecFilePath.has_value() )
+            pff.SetAppFName(UTF8_TODO::GetCString(*m_packSpecFilePath));
 
         Packer().Run(&pff, *m_packSpec);
     }

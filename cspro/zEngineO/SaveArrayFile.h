@@ -12,7 +12,6 @@
 #include <zEngineO/zEngineO.h>
 #include <zUtilO/Specfile.h>
 
-class JsonWriter;
 class LogicArray;
 class PFF;
 class SaveArray;
@@ -43,7 +42,7 @@ private:
     static std::wstring MakeArrayFileName(const std::variant<std::wstring, const PFF*>& filename_or_pff);
 
     std::set<const LogicArray*> ReadArrays(const std::wstring& sva_filename, std::vector<LogicArray*>& logic_arrays, bool loading_for_save_array_viewer);
-    const LogicArray* ReadArray(const JsonNode<wchar_t>& json_node, std::vector<LogicArray*>& logic_arrays, bool loading_for_save_array_viewer);
+    const LogicArray* ReadArray(const JsonNode& json_node, std::vector<LogicArray*>& logic_arrays, bool loading_for_save_array_viewer);
 
     // for reading pre-JSON save array files
     std::set<const LogicArray*> ReadArraysPre80SpecFile(const std::wstring& sva_filename, std::vector<LogicArray*>& logic_arrays, bool loading_for_save_array_viewer);
@@ -71,15 +70,15 @@ private:
 
 namespace SaveArrayViewerHelpers
 {
-    ZENGINEO_API LogicArray* CreateLogicArray(std::wstring array_name, std::vector<size_t> dimensions);
+    ZENGINEO_API LogicArray* CreateLogicArray(std::string array_name, std::vector<size_t> dimensions);
 
     class ValueCopier
     {
     public:
         virtual ~ValueCopier() { }
 
-        virtual std::tuple<std::wstring, size_t, size_t> GetValues(size_t index) const = 0;
-        virtual void SetValues(size_t index, const std::wstring& value, size_t gets, size_t puts) = 0;
+        virtual std::tuple<std::string, size_t, size_t> GetValues(size_t index) const = 0;
+        virtual void SetValues(size_t index, const std::string& value, size_t gets, size_t puts) = 0;
     };
 
     ZENGINEO_API void CopyValues(LogicArray& logic_array, ValueCopier& value_copier, bool clr_receiving_values);

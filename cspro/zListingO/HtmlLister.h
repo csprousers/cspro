@@ -2,52 +2,52 @@
 
 #include <zListingO/Lister.h>
 
+class HtmlWriter;
+namespace FileIO { class TextFile; }
+namespace Listing { class HtmlLister; class ProcessSummaryHTMLFormatter; }
+    
 
-namespace Listing
+class Listing::HtmlLister : public Lister
 {
-    class ProcessSummaryHTMLFormatter;
+public:
+    HtmlLister(std::shared_ptr<ProcessSummary> process_summary, const std::string& file_path, bool append, const PFF& pff);
+    ~HtmlLister();
 
-    class HtmlLister : public Lister
-    {
-    public:
-        HtmlLister(std::shared_ptr<ProcessSummary> process_summary, const std::wstring& filename, bool append, const PFF& pff);
-        ~HtmlLister();
+    void WriteHeader(const std::vector<HeaderAttribute>& header_attributes) override;
 
-        void WriteHeader(const std::vector<HeaderAttribute>& header_attributes) override;
+protected:
+    void WriteMessages(const Messages& messages) override;
 
-    protected:
-        void WriteMessages(const Messages& messages) override;
+    void ProcessCaseSourceDetails(const ConnectionString& connection_string, const CDataDict& dictionary) override;
 
-        void ProcessCaseSourceDetails(const ConnectionString& connection_string, const CDataDict& dictionary) override;
+    void ProcessCaseSource(const Case* data_case) override;
 
-        void ProcessCaseSource(const Case* data_case) override;
+    void WriteMessageSummaries(const std::vector<MessageSummary>& message_summaries) override;
 
-        void WriteMessageSummaries(const std::vector<MessageSummary>& message_summaries) override;
+    void WriteWarningAboutApplicationErrors(const std::string& application_errors_path) override;
 
-        void WriteWarningAboutApplicationErrors(const std::wstring& application_errors_filename) override;
+    void UpdateProcessSummary() override;
 
-        void UpdateProcessSummary() override;
+    void WriteFooter() override;
 
-        void WriteFooter() override;
+private:
+    void WriteUpdatesToProcessMessageTable();
 
-    private:
-        void WriteUpdatesToProcessMessageTable();
+    void MoveToHtmlEndTag() const;
 
-        void MoveToHtmlEndTag() const;
+private:
+    std::unique_ptr<FileIO::TextFile> m_textFile;
+    std::unique_ptr<HtmlWriter> m_htmlWriter;
+    bool m_hasData;
 
-    private:
-        std::unique_ptr<CStdioFileUnicode> m_file;
-        bool m_hasData;
+    std::optional<std::string> m_inputDataUri;
+    std::optional<std::tuple<std::string, std::string>> m_caseKeyUuid;
 
-        std::optional<std::wstring> m_inputDataUri;
-        std::optional<std::tuple<std::wstring, std::wstring>> m_caseKeyUuid;
+    bool m_writeProcessSummaryAndMessages;
+    std::optional<int64_t> m_endTimePosition;
+    std::optional<int64_t> m_startProcessMessagePosition;
+    bool m_isProcessMessageComplete;
+    std::unique_ptr<ProcessSummaryHTMLFormatter> m_processSummaryFormatter;
 
-        bool m_writeProcessSummaryAndMessages;
-        std::optional<ULONGLONG> m_endTimePosition;
-        std::optional<ULONGLONG> m_startProcessMessagePosition;
-        bool m_isProcessMessageComplete;
-        std::unique_ptr<ProcessSummaryHTMLFormatter> m_processSummaryFormatter;
-
-        bool m_isMultiLevel;
-    };
-}
+    bool m_isMultiLevel;
+};

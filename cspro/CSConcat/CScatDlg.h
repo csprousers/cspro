@@ -37,7 +37,7 @@ protected:
     afx_msg void OnBnClickedConcatMethodCase();
     afx_msg void OnBnClickedConcatMethodFile();
 
-    LRESULT OnUpdateDialogUI(WPARAM wParam, LPARAM lParam);    
+    LRESULT OnUpdateDialogUI(WPARAM wParam, LPARAM lParam);
 
 private:
     void DropItemOnList(CListCtrl* pDragList, CListCtrl* pDropList);
@@ -47,13 +47,14 @@ private:
 
     void AddConnectionStrings(const std::vector<ConnectionString>& connection_strings);
 
-    void OnDropFiles(const std::vector<std::wstring>& filenames);
+    void OnDropFiles(const std::vector<std::string>& paths);
 
 private:
     CMenu m_menu;
     const HICON m_hIcon;
 
     CSortListCtrl m_fileList;
+    std::vector<ConnectionString> m_fileListConnectionStrings;
 
     CImageList* m_pDragImage; // For creating and managing the drag-image
     BOOL m_bDragging;         // T during a drag operation
@@ -63,5 +64,5 @@ private:
 
     PFF m_pff;
     ConnectionString m_outputConnectionString;
-    std::wstring m_dictionaryFilename;
+    std::string m_dictionaryFilePath;
 };

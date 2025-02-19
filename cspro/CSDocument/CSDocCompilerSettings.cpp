@@ -1,37 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CSDocCompilerSettings.h"
-#include "SearchFilenamesByName.h"
-
-
-namespace
-{
-    std::wstring CheckPathCase(std::wstring path, const std::wstring& specified_case_to_check = std::wstring())
-    {
-#ifdef CHECK_PATH_CASE
-        TCHAR short_path[MAX_PATH];
-
-        if( GetShortPathName(path.c_str(), short_path, _countof(short_path)) > 0 )
-        {
-            TCHAR long_path[MAX_PATH];
-
-            if( GetLongPathName(short_path, long_path, _countof(long_path)) > 0 )
-            {
-                if( !SO::Equals(path, long_path) )
-                    throw CSProException(_T("The path '%s' must be used as exists on disk: '%s'"), path.c_str(), long_path);
-
-                if( !specified_case_to_check.empty() && path.find(specified_case_to_check) == std::wstring::npos )
-                    throw CSProException(_T("The path '%s' must be used as exists on disk: '%s'"), specified_case_to_check.c_str(), long_path);
-            }
-        }
-
-#else
-        specified_case_to_check;
-
-#endif
-
-        return path;
-    }
-}
+#include "SearchFilePathsByFilename.h"
 
 
 CSDocCompilerSettings::CSDocCompilerSettings(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec)
@@ -41,125 +10,127 @@ CSDocCompilerSettings::CSDocCompilerSettings(cs::non_null_shared_or_raw_ptr<DocS
 }
 
 
-const std::wstring& CSDocCompilerSettings::GetCompilationFilename() const
+const std::string& CSDocCompilerSettings::GetCompilationFilePath() const
 {
-    return !m_compilationFilenames.empty() ? m_compilationFilenames.back() :
-                                             ReturnProgrammingError(SO::EmptyString);
+    return !m_compilationFilePaths.empty() ? m_compilationFilePaths.back() :
+                                             ReturnProgrammingError(SO::Empty_string);
 }
 
 
-RAII::PushOnVectorAndPopOnDestruction<std::wstring> CSDocCompilerSettings::SetCompilationFilename(std::wstring csdoc_filename)
+RAII::PushOnVectorAndPopOnDestruction<std::string> CSDocCompilerSettings::SetCompilationFilePath(std::string csdoc_file_path)
 {
-    ASSERT(csdoc_filename.empty() || PortableFunctions::FileIsRegular(csdoc_filename));
+    ASSERT(csdoc_file_path.empty() || PortableFunctions::FileIsRegular(csdoc_file_path));
 
-    return RAII::PushOnVectorAndPopOnDestruction<std::wstring>(m_compilationFilenames, std::move(csdoc_filename));
+    return RAII::PushOnVectorAndPopOnDestruction<std::string>(m_compilationFilePaths, std::move(csdoc_file_path));
 }
 
 
-const std::wstring& CSDocCompilerSettings::GetDefinition(const std::wstring& key) const
+const std::string& CSDocCompilerSettings::GetDefinition(const std::string& key) const
 {
-    const std::vector<std::tuple<std::wstring, std::wstring>>& definitions = m_docSetSpec->GetDefinitions();
+    const std::vector<std::tuple<std::string, std::string>>& definitions = m_docSetSpec->GetDefinitions();
 
     const auto& key_lookup = std::find_if(definitions.begin(), definitions.end(),
-        [&](const std::tuple<std::wstring, std::wstring>& key_and_value) { return ( std::get<0>(key_and_value) == key ); });
+                                          [&](const std::tuple<std::string, std::string>& key_and_value) { return ( std::get<0>(key_and_value) == key ); });
 
     if( key_lookup == definitions.cend() )
-        throw CSProException(_T("The definition '%s' does not exist."), key.c_str());
+        throw CSProException("The definition '%s' does not exist.", key.c_str());
 
-    return std::get<1>(*key_lookup);    
+    return std::get<1>(*key_lookup);
 }
 
 
-std::wstring CSDocCompilerSettings::GetSpecialDefinition(const std::wstring& domain, const std::wstring& key) const
+std::string CSDocCompilerSettings::GetSpecialDefinition(const std::string& domain, const std::string& key) const
 {
-    if( domain == _T("DocumentSet") )
+    if( domain == "DocumentSet" )
     {
-        if( key == _T("title") )
+        if( key == "title" )
         {
             if( !m_docSetSpec->GetTitle().has_value() )
                 throw CSProException("The Document Set does not have a defined title.");
 
-            return *m_docSetSpec->GetTitle();            
-        }            
+            return *m_docSetSpec->GetTitle();
+        }
     }
 
-    else if( domain == _T("CSPro") )
+    else if( domain == "CSPro" )
     {
-        if( key == _T("version") )
-            return CSPRO_VERSION_NUMBER_TEXT;
+        if( key == "version" )
+            return Versioning::NumberText;
     }
 
-    else if( domain == _T("System") )
+    else if( domain == "System" )
     {
-        if( key == _T("year") )
-        {
-            struct tm tp = GetLocalTime();
-            return CS2WS(IntToString(tp.tm_year + 1900));
-        }            
+        if( key == "year" )
+            return IntToString(DateTime::LocalYear());
     }
 
     else
     {
-        throw CSProException(_T("The special definition domain '%s' is not known."), domain.c_str());
+        throw CSProException("The special definition domain '%s' is not known.", domain.c_str());
     }
 
-    throw CSProException(_T("The special definition '%s' does not exist in the domain '%s'."), key.c_str(), domain.c_str());
+    throw CSProException("The special definition '%s' does not exist in the domain '%s'.", key.c_str(), domain.c_str());
 }
 
 
-void CSDocCompilerSettings::AddCompilerMessage(CompilerMessageType /*compiler_message_type*/, const std::wstring& /*text*/)
+void CSDocCompilerSettings::AddCompilerMessage(CompilerMessageType /*compiler_message_type*/, const std::string& /*text*/)
 {
 }
 
 
-std::wstring CSDocCompilerSettings::GetStylesheetCssPath(const TCHAR* css_filename)
+std::string CSDocCompilerSettings::GetStylesheetCssFilePath(const char* const css_filename)
 {
-    return CheckPathCase(PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Document), css_filename));
+    return Path::Combine(Html::GetDirectory(Html::Subdirectory::Document), css_filename);
 }
 
 
-std::wstring CSDocCompilerSettings::GetStylesheetLinkHtml(const std::wstring& css_url)
+std::string CSDocCompilerSettings::GetStylesheetLinkHtml(const std::string& css_url)
 {
-    return _T("<link href=\"") + Encoders::ToHtmlTagValue(css_url) + _T("\" rel=\"stylesheet\" type=\"text/css\" />\n");
+    return SO::Concatenate("<link href=\"",
+                           Encoders::ToHtmlTagValue(css_url),
+                           "\" rel=\"stylesheet\" type=\"text/css\" />\n");
 }
 
 
-std::wstring CSDocCompilerSettings::GetStylesheetEmbeddedHtml(std::wstring css)
+std::string CSDocCompilerSettings::GetStylesheetEmbeddedHtml(std::string css)
 {
     // remove \r from the CSS
     SO::MakeNewlineLF(css);
-    return _T("<style>\n") + css + _T("</style>\n");
+
+    return SO::Concatenate("<style>\n",
+                           css,
+                           "</style>\n");
 }
 
 
-std::wstring CSDocCompilerSettings::GetStylesheetsHtml()
+std::string CSDocCompilerSettings::GetStylesheetsHtml()
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetStylesheetAction() == DocBuildSettings::StylesheetAction::Embed);
 
-    static std::wstring embedded_stylesheets_html = GetStylesheetEmbeddedHtml(FileIO::ReadText(GetStylesheetCssPath(CSDocStylesheetFilename)));
+    static const std::string embedded_stylesheets_html = GetStylesheetEmbeddedHtml(FileIO::ReadText(GetStylesheetCssFilePath(CSDocStylesheetFilename)));
     return embedded_stylesheets_html;
 }
 
 
-std::wstring CSDocCompilerSettings::EvaluatePath(std::wstring path) const
+std::string CSDocCompilerSettings::EvaluatePath(std::string path) const
 {
     // evaluate the path based on the document's directory
-    if( !m_compilationFilenames.empty() )
-        return CheckPathCase(MakeFullPath(PortableFunctions::PathGetDirectory(m_compilationFilenames.back()), std::move(path)));
+    if( !m_compilationFilePaths.empty() )
+        return CheckPathCase(MakeFullPath(PortableFunctions::PathGetDirectory(m_compilationFilePaths.back()), std::move(path)));
 
-    return CheckPathCase(path);
+    return CheckPathCase(std::move(path));
 }
 
 
-std::wstring CSDocCompilerSettings::EvaluateTopicPath(const std::wstring& path)
+std::string CSDocCompilerSettings::EvaluateTopicPath(const std::string& path)
 {
-    std::wstring evaluated_path = EvaluatePath(path);
+    std::string evaluated_path = EvaluatePath(path);
 
     if( PortableFunctions::FileIsRegular(evaluated_path) )
         return evaluated_path;
 
     // if the file does not exist, see if there are any documents with the name
-    const std::vector<std::shared_ptr<DocSetComponent>>* doc_set_components_with_name = m_docSetSpec->FindDocument(path);
+    const std::vector<std::shared_ptr<DocSetComponent>>* const doc_set_components_with_name = m_docSetSpec->FindDocument(path);
 
     if( doc_set_components_with_name != nullptr )
     {
@@ -167,93 +138,93 @@ std::wstring CSDocCompilerSettings::EvaluateTopicPath(const std::wstring& path)
 
         if( doc_set_components_with_name->size() > 1 )
         {
-            throw SearchFilenamesByName::AmbiguousException(path, doc_set_components_with_name->front()->filename,
-                                                                  doc_set_components_with_name->at(1)->filename);
+            throw SearchFilePathsByFilename::AmbiguousException(path, doc_set_components_with_name->front()->file_path,
+                                                                      doc_set_components_with_name->at(1)->file_path);
         }
 
-        return CheckPathCase(doc_set_components_with_name->front()->filename, path);
+        return CheckPathCase(doc_set_components_with_name->front()->file_path, path);
     }
 
     return evaluated_path;
 }
 
 
-std::wstring CSDocCompilerSettings::EvaluateTopicPath(const std::wstring& project, const std::wstring& path)
+std::string CSDocCompilerSettings::EvaluateTopicPath(const std::string& project, const std::string& path)
 {
     try
     {
-        const std::wstring project_doc_set_spec_filename = m_docSetSpec->GetSettings().FindProjectDocSetSpecFilename(project);
+        const std::string project_doc_set_spec_file_path = m_docSetSpec->GetSettings().FindProjectDocSetSpecFilePath(project);
 
         // this may be an internal link
-        if( SO::EqualsNoCase(project_doc_set_spec_filename, m_docSetSpec->GetFilename()) )
+        if( SO::EqualsNoCase(project_doc_set_spec_file_path, m_docSetSpec->GetFilePath()) )
             return EvaluateTopicPath(path);
 
-        return CheckPathCase(SearchFilenamesByName::Search(CacheableCalculator::GetDocumentFilenamesForProject(project_doc_set_spec_filename), path), path);
+        return CheckPathCase(SearchFilePathsByFilename::Search(CacheableCalculator::GetDocumentFilePathsForProject(project_doc_set_spec_file_path), path), path);
     }
 
-    catch( const SearchFilenamesByName::AmbiguousException& ambiguous_exception )
+    catch( const SearchFilePathsByFilename::AmbiguousException& ambiguous_exception )
     {
-        throw CSProException(_T("The path '%s::%s' is ambiguous. It could refer to '%s' or '%s'."),
+        throw CSProException("The path '%s::%s' is ambiguous. It could refer to '%s' or '%s'.",
                              project.c_str(), path.c_str(), ambiguous_exception.path1.c_str(), ambiguous_exception.path2.c_str());
     }
 
-    catch( const SearchFilenamesByName::NotFoundException& )
+    catch( const SearchFilePathsByFilename::NotFoundException& )
     {
-        throw CSProException(_T("The path '%s' does not exist in the project: %s"), path.c_str(), project.c_str());
+        throw CSProException("The path '%s' does not exist in the project: %s", path.c_str(), project.c_str());
     }
 
     catch( const CSProException& exception )
     {
-        throw CSProException(_T("There was an error processing the project: %s: %s"), project.c_str(), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error processing the project: %s: %s", project.c_str(), exception.what());
     }
 }
 
 
-std::wstring CSDocCompilerSettings::EvaluateImagePath(const std::wstring& path)
+std::string CSDocCompilerSettings::EvaluateImagePath(const std::string& path)
 {
-    std::wstring evaluated_path = EvaluatePath(path);
+    std::string evaluated_path = EvaluatePath(path);
 
     if( PortableFunctions::FileIsRegular(evaluated_path) )
         return evaluated_path;
 
     // if the file does not exist, look in any specified image directories
-    const std::wstring* image_with_name_path = m_docSetSpec->GetSettings().FindInImageDirectories(path);
+    const std::string* const image_with_name_path = m_docSetSpec->GetSettings().FindInImageDirectories(path);
 
     return ( image_with_name_path != nullptr ) ? CheckPathCase(*image_with_name_path, path) :
                                                  evaluated_path;
 }
 
 
-std::wstring CSDocCompilerSettings::EvaluateBuildExtra(const std::wstring& path)
+std::string CSDocCompilerSettings::EvaluateBuildExtra(const std::string& path)
 {
-    std::wstring evaluated_path = EvaluatePath(path);
+    std::string evaluated_path = EvaluatePath(path);
 
     if( !PortableFunctions::FileIsRegular(evaluated_path) )
-        throw CSProException(_T("The build extra could not be located: ") + evaluated_path);
+        throw CSProException("The build extra could not be located: %s", evaluated_path.c_str());
 
     return evaluated_path;
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForTitle(const std::wstring& /*path*/)
+std::string CSDocCompilerSettings::CreateUrlForTitle(const std::string& /*path*/)
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetTitleLinkageAction() == DocBuildSettings::TitleLinkageAction::Suppress);
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForTopic(const std::wstring& /*project*/, const std::wstring& /*path*/)
+std::string CSDocCompilerSettings::CreateUrlForTopic(const std::string& /*project*/, const std::string& /*path*/)
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || ( GetBuildSettingsDebug()->GetDocSetLinkageAction() == DocBuildSettings::DocSetLinkageAction::Suppress &&
                                                    GetBuildSettingsDebug()->GetProjectLinkageAction() == DocBuildSettings::ProjectLinkageAction::Suppress &&
                                                    GetBuildSettingsDebug()->GetExternalLinkageAction() == DocBuildSettings::ExternalLinkageAction::Suppress) );
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForLogicTopic(const TCHAR* help_topic_filename)
+std::string CSDocCompilerSettings::CreateUrlForLogicTopic(const char* const help_topic_filename)
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetLogicLinkageAction() == DocBuildSettings::LogicLinkageAction::CSProUsers);
 
@@ -261,25 +232,25 @@ std::wstring CSDocCompilerSettings::CreateUrlForLogicTopic(const TCHAR* help_top
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersForum(const TCHAR* help_topic_filename)
+std::string CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersForum(const char* const help_topic_filename)
 {
     ASSERT(PortableFunctions::PathGetFileExtension(help_topic_filename) == FileExtensions::HTML);
 
-    return _T("https://www.csprousers.org/help/CSPro/") + Encoders::ToUri(help_topic_filename);
+    return "https://www.csprousers.org/help/CSPro/" + Encoders::ToUri(help_topic_filename);
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForLogicHelpTopicInCSProProject(const TCHAR* help_topic_filename)
+std::string CSDocCompilerSettings::CreateUrlForLogicHelpTopicInCSProProject(const char* const help_topic_filename)
 {
-    const std::wstring csdoc_filename = PortableFunctions::PathRemoveFileExtension(help_topic_filename) + FileExtensions::WithDot::CSDocument;
-    const std::wstring project = _T("CSPro");
-    const std::wstring path = EvaluateTopicPath(project, csdoc_filename);
+    const std::string csdoc_file_path = PortableFunctions::PathReplaceFileExtension(help_topic_filename, FileExtensions::CSDocument);
+    const std::string project = "CSPro";
+    const std::string path = EvaluateTopicPath(project, csdoc_file_path);
 
     return CreateUrlForTopic(project, path);
 }
 
 
-std::wstring CSDocCompilerSettings::CreateUrlForImageFile(const std::wstring& path)
+std::string CSDocCompilerSettings::CreateUrlForImageFile(const std::string& path)
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetImageAction() == DocBuildSettings::ImageAction::DataUrl);
 
@@ -288,13 +259,41 @@ std::wstring CSDocCompilerSettings::CreateUrlForImageFile(const std::wstring& pa
 }
 
 
-std::optional<unsigned> CSDocCompilerSettings::GetContextId(const std::wstring& context, bool /*use_if_exists*/)
+std::optional<unsigned> CSDocCompilerSettings::GetContextId(const std::string& context, bool /*use_if_exists*/)
 {
-    const std::map<std::wstring, unsigned>& context_ids = m_docSetSpec->GetContextIds();
+    const std::map<std::string, unsigned>& context_ids = m_docSetSpec->GetContextIds();
     const auto& lookup = context_ids.find(context);
 
     if( lookup != context_ids.cend() )
         return lookup->second;
 
     return std::nullopt;
+}
+
+
+std::string CSDocCompilerSettings::CheckPathCase(std::string path, const std::string& specified_case_to_check/* = SO::Empty_string*/)
+{
+#ifdef CHECK_PATH_CASE
+    wchar_t short_path[MAX_PATH];
+
+    if( GetShortPathName(TC::ToWide(path).c_str(), short_path, _countof(short_path)) > 0 )
+    {
+        wchar_t long_path[MAX_PATH];
+
+        if( GetLongPathName(short_path, long_path, _countof(long_path)) > 0 )
+        {
+            if( !SO::Equals(path, long_path) )
+                throw CSProException("The path '%s' must be used as exists on disk: '%s'", path.c_str(), TC::ToUtf8(long_path).c_str());
+
+            if( !specified_case_to_check.empty() && path.find(specified_case_to_check) == std::string::npos )
+                throw CSProException("The path '%s' must be used as exists on disk: '%s'", specified_case_to_check.c_str(), TC::ToUtf8(long_path).c_str());
+        }
+    }
+
+#else
+    specified_case_to_check;
+
+#endif
+
+    return path;
 }

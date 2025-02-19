@@ -31,7 +31,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
     bool bDictLoadedOK = true;
     const CDataDict* pDataDict = pDicT->GetDataDict();
 
-    io_Dic = WS2CS(pDicT->GetName());
+    io_Dic = UTF8_TODO::GetCString(pDicT->GetName());
     io_Var.Empty();
     io_Err = 0;
 
@@ -74,7 +74,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
     if( pDicT->slen > MAX_RECTYPECODE ) {
         CString csMsg;
         csMsg.Format(_T("Record Type Length too large (%d). Max is %d"), pDicT->slen, MAX_RECTYPECODE );
-        issaerror( MessageType::Abort, MGF::OpenMessage, csMsg.GetString() );
+        issaerror( MessageType::Abort, MGF::OpenMessage, UTF8_TODO::GetUtf8(csMsg).c_str() );
     }
 
     pDicT->SYMTfsec = -1;
@@ -101,7 +101,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
 
     // though secondary indexes were removed in CSPro 7.0, .pen files may still have references to them
     // so we insert an unused symbol here to account for the previously existing index
-    m_engineData->AddSymbol(std::make_unique<DeprecatedSymbol>(_T("_MAIN_IDX"), SymbolType::Index_Unused));
+    m_engineData->AddSymbol(std::make_unique<DeprecatedSymbol>("_MAIN_IDX", SymbolType::Index_Unused));
 
     bDictLoadedOK = m_pEngineDriver->LoadApplMessage(); // evaluate & prepare message
 
@@ -120,10 +120,10 @@ void CEngineArea::dictloadsection(DICT* pDicT, const CDictRecord* pRecord, int i
     io_Var.Empty();
 
     // inserting section symbol
-    auto pSecT = std::make_shared<SECT>(CS2WS(pRecord->GetName()), m_pEngineDriver);
+    auto pSecT = std::make_shared<SECT>(pRecord->GetName(), m_pEngineDriver);
     int iSymSec = m_engineData->AddSymbol(pSecT);
 
-    for( const CString& alias : pRecord->GetAliases() )
+    for( const std::string& alias : pRecord->GetAliases() )
         GetSymbolTable().AddAlias(alias, *pSecT);
 
     const_cast<CDictRecord*>(pRecord)->SetSymbol(iSymSec);
@@ -162,16 +162,12 @@ void CEngineArea::dictloadsection(DICT* pDicT, const CDictRecord* pRecord, int i
         }
     }
 
-    // COMPLETE pSecT->SetSpecialSection( ( srp->special == 1 ) );
-    pSecT->SetSpecialSection( false ); // Flag for compctab add work Variables
-
     pSecT->SetMinOccs( pRecord->GetRequired() ? 1 : 0 );
 
-    int maxrecs = pRecord->GetMaxRecs();
+    const int maxrecs = pRecord->GetMaxRecs();
     if( maxrecs > MAX_MAX_RECS ) {
-        CString csMsg;
-        csMsg.Format(_T("Too many occurrences (%d) for section '%s'. Max is %d."), maxrecs, pRecord->GetName().GetString(), MAX_MAX_RECS );
-        issaerror( MessageType::Abort, MGF::OpenMessage, csMsg.GetString() );
+        const std::string message = FormatText("Too many occurrences (%d) for section '%s'. Max is %d.", maxrecs, pRecord->GetName().c_str(), MAX_MAX_RECS);
+        issaerror(MessageType::Abort, MGF::OpenMessage, message.c_str());
     }
     pSecT->SetMaxOccs( maxrecs );
 
@@ -201,9 +197,9 @@ int CEngineArea::dictloadvariable(SECT* pSecT, const CDictItem* pItem, int iSymM
     int iSymSec = pSecT->GetSymbolIndex();
 
     // inserting Var' symbol
-    io_Var = pItem->GetName();
+    io_Var = UTF8_TODO::GetCString(pItem->GetName());
 
-    auto pVarT = std::make_shared<VART>(CS2WS(pItem->GetName()), m_pEngineDriver);
+    auto pVarT = std::make_shared<VART>(pItem->GetName(), m_pEngineDriver);
 
     // link variable to Section and Item
     pVarT->SetDictItem(pItem);
@@ -231,7 +227,7 @@ int CEngineArea::dictloadvariable(SECT* pSecT, const CDictItem* pItem, int iSymM
         symbol_for_aliases = pVarT.get();
     }
 
-    for( const CString& alias : pItem->GetAliases() )
+    for( const std::string& alias : pItem->GetAliases() )
         GetSymbolTable().AddAlias(alias, *symbol_for_aliases);
 
     const_cast<CDictItem*>(pItem)->SetSymbol(iSymVar);
@@ -297,7 +293,7 @@ int CEngineArea::dictloadvariable(SECT* pSecT, const CDictItem* pItem, int iSymM
         auto value_set = std::make_shared<ValueSet>(dict_value_set, pVarT.get(), *m_engineData);
         m_engineData->AddSymbol(value_set);
 
-        for( const CString& alias : dict_value_set.GetAliases() )
+        for( const std::string& alias : dict_value_set.GetAliases() )
             GetSymbolTable().AddAlias(alias, *value_set);
 
         const_cast<DictValueSet&>(dict_value_set).SetSymbolIndex(value_set->GetSymbolIndex());

@@ -3,13 +3,17 @@
 #include <zUtilF/zUtilF.h>
 
 class ProgressDlg;
+class ProgressDlgSharing;
 
 
-// ---------------------------
-// --- ProgressDlgFactory
-// ---------------------------
+// --------------------------------------------------------------------------
+// ProgressDlgFactory
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZUTILF ProgressDlgFactory
 {
+    friend ProgressDlgSharing;
+
 private:
     ProgressDlgFactory() { }
 
@@ -18,6 +22,7 @@ public:
 
     std::shared_ptr<ProgressDlg> Create(UINT caption_id = 0);
 
+private:
     void StartSharing();
     void StopSharing();
 
@@ -28,12 +33,17 @@ private:
 };
 
 
-// ---------------------------
-// --- ProgressDlgSharing
-// ---------------------------
-class CLASS_DECL_ZUTILF ProgressDlgSharing
+
+// --------------------------------------------------------------------------
+// ProgressDlgSharing
+//
+// This RAII class results in a single progress bar dialog showing even if
+// routines try to create multiple progress bar dialogs.
+// --------------------------------------------------------------------------
+
+class ProgressDlgSharing
 {
 public:
-    ProgressDlgSharing();
-    ~ProgressDlgSharing();
+    ProgressDlgSharing()  { ProgressDlgFactory::Instance().StartSharing(); }
+    ~ProgressDlgSharing() { ProgressDlgFactory::Instance().StopSharing(); }
 };

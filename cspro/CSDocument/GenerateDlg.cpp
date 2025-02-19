@@ -17,7 +17,7 @@ BEGIN_MESSAGE_MAP(GenerateDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-GenerateDlg::GenerateDlg(GenerateTask& generate_task, CWnd* pParent/* = nullptr*/)
+GenerateDlg::GenerateDlg(GenerateTask& generate_task, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_GENERATE, pParent),
         m_globalSettings(assert_cast<CMainFrame*>(AfxGetMainWnd())->GetGlobalSettings()),
         m_generateTask(generate_task),
@@ -26,10 +26,10 @@ GenerateDlg::GenerateDlg(GenerateTask& generate_task, CWnd* pParent/* = nullptr*
 }
 
 
-void GenerateDlg::DoDataExchange(CDataExchange* pDX)
+void GenerateDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
-    
+
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
     DDX_Control(pDX, IDC_PROGRESS, m_progressCtrl);
     DDX_Check(pDX, IDC_CLOSE_DIALOG_ON_COMPLETION, m_closeDialogOnCompletion);
@@ -57,7 +57,7 @@ void GenerateDlg::OnCancel()
         OnClose();
     }
 
-    else if( MessageBox(_T("Are you sure you want to cancel the process?"), _T("Cancel Process?"), MB_YESNO | MB_DEFBUTTON2) == IDYES )
+    else if( MessageBox(L"Are you sure you want to cancel the process?", L"Cancel Process?", MB_YESNO | MB_DEFBUTTON2) == IDYES )
     {
         m_generateTask.Cancel();
     }
@@ -74,14 +74,14 @@ void GenerateDlg::OnClose()
 }
 
 
-void GenerateDlg::OnOutputsClick(NMHDR* pNMHDR, LRESULT* pResult)
+void GenerateDlg::OnOutputsClick(NMHDR* const pNMHDR, LRESULT* const pResult)
 {
     const bool control_pressed = ( GetKeyState(VK_CONTROL) < 0 );
 
-    const NMLINK* pNMLink = reinterpret_cast<NMLINK*>(pNMHDR);
+    const NMLINK* const pNMLink = reinterpret_cast<const NMLINK*>(pNMHDR);
     ASSERT(static_cast<size_t>(pNMLink->item.iLink) < m_finalOutputs.size());
 
-    const std::wstring& path = std::get<1>(m_finalOutputs[pNMLink->item.iLink]);
+    const std::string& path = std::get<1>(m_finalOutputs[pNMLink->item.iLink]);
 
     if( control_pressed )
     {
@@ -90,14 +90,14 @@ void GenerateDlg::OnOutputsClick(NMHDR* pNMHDR, LRESULT* pResult)
 
     else
     {
-        ShellExecute(nullptr, _T("open"), EscapeCommandLineArgument(path).c_str(), nullptr, nullptr, SW_SHOW);
+        ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(path)).c_str(), nullptr, nullptr, SW_SHOW);
     }
 
     *pResult = 0;
 }
 
 
-void GenerateDlg::PostTextForUpdate(CWnd* pWnd, std::wstring text)
+void GenerateDlg::PostTextForUpdate(CWnd* const pWnd, const std::string_view text_sv)
 {
     ASSERT(pWnd->GetSafeHwnd() != nullptr);
 
@@ -106,17 +106,17 @@ void GenerateDlg::PostTextForUpdate(CWnd* pWnd, std::wstring text)
     // lock
     {
         std::lock_guard<std::mutex> lock(m_postedTextUpdatesMutex);
-        text_ptr = m_postedTextUpdates.emplace_back(std::make_unique<std::wstring>(std::move(text))).get();
+        text_ptr = m_postedTextUpdates.emplace_back(std::make_unique<std::wstring>(TC::ToWide(text_sv))).get();
     }
-    
+
     PostMessage(UWM::CSDocument::GenerateDlgUpdateText, reinterpret_cast<WPARAM>(pWnd->m_hWnd), reinterpret_cast<LPARAM>(text_ptr));
 }
 
 
-LRESULT GenerateDlg::OnUpdateText(WPARAM wParam, LPARAM lParam)
+LRESULT GenerateDlg::OnUpdateText(const WPARAM wParam, const LPARAM lParam)
 {
     HWND hWnd = reinterpret_cast<HWND>(wParam);
-    const std::wstring* text_ptr = reinterpret_cast<const std::wstring*>(lParam);
+    const std::wstring* const text_ptr = reinterpret_cast<const std::wstring*>(lParam);
 
     // update the text
     WindowsWS::SetWindowText(hWnd, *text_ptr);
@@ -139,7 +139,7 @@ LRESULT GenerateDlg::OnUpdateText(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT GenerateDlg::OnGenerateTaskComplete(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT GenerateDlg::OnGenerateTaskComplete(const WPARAM wParam, LPARAM /*lParam*/)
 {
     const GenerateTask::Status status = static_cast<GenerateTask::Status>(wParam);
 
@@ -153,7 +153,7 @@ LRESULT GenerateDlg::OnGenerateTaskComplete(WPARAM wParam, LPARAM /*lParam*/)
         // hide the Cancel button and show the Close button
         GetDlgItem(IDCANCEL)->ShowWindow(SW_HIDE);
 
-        CWnd* close_button = GetDlgItem(IDC_CLOSE);
+        CWnd* const close_button = GetDlgItem(IDC_CLOSE);
         close_button->EnableWindow();
         close_button->SetFocus();
 
@@ -170,19 +170,19 @@ LRESULT GenerateDlg::OnGenerateTaskComplete(WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-void GenerateDlg::SetTitle(const std::wstring& title)
+void GenerateDlg::SetTitle(const std::string& title)
 {
     PostTextForUpdate(this, title);
 }
 
 
-void GenerateDlg::LogText(std::wstring text)
+void GenerateDlg::LogText(SharableString text)
 {
     m_loggingListBox.AddText(std::move(text));
 }
 
 
-void GenerateDlg::UpdateProgress(double percent)
+void GenerateDlg::UpdateProgress(const double percent)
 {
     if( percent == HideProgressBarCode )
     {
@@ -196,38 +196,42 @@ void GenerateDlg::UpdateProgress(double percent)
 }
 
 
-void GenerateDlg::SetOutputText(const std::wstring& text)
+void GenerateDlg::SetOutputText(const std::string& text)
 {
     PostTextForUpdate(GetDlgItem(IDC_OUTPUTS_SYSLINK), Encoders::ToHtml(text));
 }
 
 
-void GenerateDlg::OnCreatedOutput(std::wstring output_title, std::wstring path)
+void GenerateDlg::OnCreatedOutput(std::string output_title, std::string path)
 {
     m_finalOutputs.emplace_back(std::move(output_title), std::move(path));
 
     // update the Outputs string
-    std::wstring outputs_html = _T("Outputs:");
+    std::string outputs_html = "Outputs:";
 
     for( const auto& [this_output_title, this_path] : m_finalOutputs )
-        outputs_html.append(_T("  <a>") + Encoders::ToHtml(this_output_title) + _T("</a>"));
+    {
+        outputs_html.append("  <a>")
+                    .append(Encoders::ToHtml(this_output_title))
+                    .append("</a>");
+    }
 
-    PostTextForUpdate(GetDlgItem(IDC_OUTPUTS_SYSLINK), std::move(outputs_html));
+    PostTextForUpdate(GetDlgItem(IDC_OUTPUTS_SYSLINK), outputs_html);
 }
 
 
 void GenerateDlg::OnException(const CSProException& exception)
 {
-    LogText(_T("\n⚠ ") + exception.GetErrorMessage());
+    Interface::LogText(u8"\n⚠ %s", exception.what());
 
-    SetOutputText(_T("Error!"));
+    SetOutputText("Error!");
     UpdateProgress(HideProgressBarCode);
-    
+
     MessageBeep(MB_ICONERROR);
 }
-    
 
-void GenerateDlg::OnCompletion(GenerateTask::Status status)
+
+void GenerateDlg::OnCompletion(const GenerateTask::Status status)
 {
     PostMessage(UWM::CSDocument::GenerateDlgTaskComplete, static_cast<WPARAM>(status));
 }

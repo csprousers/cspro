@@ -3,16 +3,9 @@
 #include "ExptDoc.h"
 #include "ExptView.h"
 #include "MainFrm.h"
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/CommandLineParsers.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Interapp.h>
-
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#include <zUtilF/CommonControls.h>
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -26,8 +19,6 @@ BEGIN_MESSAGE_MAP(CExportApp, CWinApp)
     // Standard file based document commands
     ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
-    // Standard print setup command
-    ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
 END_MESSAGE_MAP()
 
 
@@ -35,8 +26,7 @@ END_MESSAGE_MAP()
 // CExportApp construction
 
 CExportApp::CExportApp()
-    :   m_hIcon(nullptr),
-        m_pExportDoc(nullptr)
+    :   m_pExportDoc(nullptr)
 {
     InitializeCSProEnvironment();
 
@@ -54,21 +44,18 @@ CExportApp theApp;
 
 BOOL CExportApp::InitInstance()
 {
-    // GHM 20130222 start of code added to prevent crashes (upon loading a file at start time) on non-XP machines
+    // 20130222 start of code added to prevent crashes (upon loading a file at start time) on non-XP machines
     // see here: http://stackoverflow.com/questions/6633515/mfc-app-assert-fail-at-crecentfilelistadd-on-command-line-fileopen
 
-    INITCOMMONCONTROLSEX InitCtrls;
-    InitCtrls.dwSize = sizeof(InitCtrls);
-    InitCtrls.dwICC = ICC_WIN95_CLASSES;
-    InitCommonControlsEx(&InitCtrls);
+    InitializeCommonControls();
 
-    CWinApp::InitInstance();
+    __super::InitInstance();
 
     // Initialize OLE libraries
     if (!AfxOleInit())
         return FALSE;
 
-    // GHM 20130222 end of code
+    // 20130222 end of code
 
 
     AfxEnableControlContainer();
@@ -85,11 +72,6 @@ BOOL CExportApp::InitInstance()
 
     LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
 
-    m_csModuleName = _T("CSPro Export Data");
-
-    m_hIcon = LoadIcon(IDR_MAINFRAME);
-
-
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
 
@@ -102,34 +84,34 @@ BOOL CExportApp::InitInstance()
     AddDocTemplate(pDocTemplate);
 
     // Parse command line for standard shell commands, DDE, file open
-    CCommandLineInfo cmdInfo;
-    ParseCommandLine(cmdInfo);
+    ConnectionStringCommandLineParser command_line_parser(&m_connectionStringFileSimulator);
+    ParseCommandLine(command_line_parser);
 
     // Dispatch commands specified on the command line
-    if (!ProcessShellCommand(cmdInfo)){
+    if (!ProcessShellCommand(command_line_parser)){
         return FALSE;
     }
 
-    m_pMainWnd->MoveWindow(0, 0, 720, 660); // GHM 20090901 moved from OnFileOpen method
+    m_pMainWnd->MoveWindow(0, 0, 720, 660); // 20090901 moved from OnFileOpen method
     m_pMainWnd->CenterWindow(); // to prohibit multiple resizes during program execution
 
     // Dispatch commands specified on the command line
-    switch(cmdInfo.m_nShellCommand)
+    switch( command_line_parser.m_nShellCommand )
     {
-    case CCommandLineInfo::FileNew:
-        OnFileOpen();
-        break;
-    case CCommandLineInfo::FileOpen:
-        OpenDocumentFile(cmdInfo.m_strFileName);
-        ManageLanguageDlgBar();
-        break;
-    default:
-        if (!ProcessShellCommand(cmdInfo)) {
-            return FALSE;
-        }
+        case CCommandLineInfo::FileNew:
+            OnFileOpen();
+            break;
+        case CCommandLineInfo::FileOpen:
+            OpenDocumentFile(command_line_parser.m_strFileName);
+            ManageLanguageDlgBar();
+            break;
+        default:
+            if (!ProcessShellCommand(command_line_parser)) {
+                return FALSE;
+            }
     }
 
-    CMainFrame * pmainframe = (CMainFrame*)m_pMainWnd;
+    CMainFrame* pmainframe = (CMainFrame*)m_pMainWnd;
     pmainframe->m_menu.LoadMenu(IDR_MAINFRAME);
     pmainframe->m_menu.LoadToolbar(IDR_MAINFRAME);
     pmainframe->m_hMenuDefault = pmainframe->m_menu.Detach();
@@ -148,12 +130,12 @@ BOOL CExportApp::InitInstance()
     m_pExportDoc           = pExportDoc;
     ManageLanguageDlgBar();
 
-    if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen) {
+    if (command_line_parser.m_nShellCommand == CCommandLineInfo::FileOpen) {
         pmainframe->SetActiveView(pExportDoc->m_pTreeView);
         pmainframe->InitialUpdateFrame(pExportDoc, TRUE);
     }
 
-   
+
     if(pExportDoc && pExportDoc->m_batchmode){//Document and batch mode
         m_pMainWnd->ShowWindow(SW_HIDE);
         pExportDoc->GetTreeView()->SendMessage(UWM::CSExport::RefreshView);
@@ -171,10 +153,8 @@ BOOL CExportApp::InitInstance()
 // App command to run the dialog
 void CExportApp::OnAppAbout()
 {
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = m_hIcon;
-    dlg.m_csModuleName = m_csModuleName;
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -183,21 +163,19 @@ void CExportApp::OnAppAbout()
 
 void CExportApp::OnFileOpen()
 {
-    CIMSAString csLastDict = AfxGetApp()->GetProfileString(_T("Settings"),_T("Last Open"),_T(""));
-    CIMSAString csFilter;
-    csFilter = _T("Export Specification, Data Dictionary, or CSPro DB Files|*.exf;*.dcf;*.csdb;*.csdbe|All Files (*.*)|*.*||");
-    CIMSAFileDialog dlgFile(TRUE, _T("dcf, exf, csdb, csdbe"), csLastDict, OFN_HIDEREADONLY, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Open Export, Dictionary, or Data File");
-    if (dlgFile.DoModal() == IDOK) {
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-        OpenDocumentFile(dlgFile.GetPathName());
+    OpenFileDlg open_file_dlg(0, L"dcf, exf, csdb, csdbe", AfxGetApp()->GetProfileString(L"Settings", L"Last Open", L""),
+                              L"Export Specification, Data Dictionary, or CSPro DB Files|*.dcf;*.exf;*.csdb;*.csdbe|All Files (*.*)|*.*||");
+    open_file_dlg.SetTitle(L"Open Export, Dictionary, or Data File");
 
-        //  This method is invoked here for file open calls after
-        //  InitInstance is complete.
-        //  Upon application launch, CExportDoc* will be nullptr, until
-        //  intialized in InitInstance.
-        ManageLanguageDlgBar();
-    }
+    if( open_file_dlg.DoModal() != IDOK )
+        return;
+
+    const std::wstring wide_file_path = TC::ToWide(open_file_dlg.GetFilePath());
+
+    AfxGetApp()->AddToRecentFileList(wide_file_path.c_str());
+
+    OpenDocumentFile(wide_file_path.c_str());
+    ManageLanguageDlgBar();
 }
 
 

@@ -43,7 +43,7 @@ public:
     // parses the dimension text, which can be specified as one of: "500", "500px", or "80%";
     // if the text cannot be parsed, or is less than 1 or greater than max_display_size,
     // the value for max_display_size is returned
-    static LONG ParseDimensionText(const std::wstring& dimension_text, LONG max_display_size, std::function<void()> on_error_callback = { });
+    static LONG ParseDimensionText(const std::string& dimension_text, LONG max_display_size, std::function<void()> on_error_callback = { });
 
 private:
 #ifdef WIN_DESKTOP

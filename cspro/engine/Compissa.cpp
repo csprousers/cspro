@@ -12,13 +12,15 @@
 #include "Engine.h"
 #include "Ctab.h"
 #include "Preprocessor.h"
+#include <zEngineO/JavaScriptProcessor.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/LocalSymbolStack.h>
 #include <zCapiO/CapiLogicParameters.h>
+#include <zDesignerF/UWM.h>
 
 
-int CEngineCompFunc::rutasync(int symbol_index, const std::function<void()>* compilation_function/* = nullptr*/)
+int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()>* const compilation_function/* = nullptr*/)
 {
     clearSyntaxErrorStatus();
     Flagvars = 0;
@@ -38,7 +40,7 @@ int CEngineCompFunc::rutasync(int symbol_index, const std::function<void()>* com
     m_preprocessor->ProcessBuffer();
 
     // compile the source buffer
-    if( !m_engineData->logic_byte_code.IncreaseBufferForOneProc() )
+    if( !m_engineData->logic_byte_code.EnlargeBufferForOneProc() )
         ReportError(4);
 
     try
@@ -66,7 +68,7 @@ int CEngineCompFunc::rutasync(int symbol_index, const std::function<void()>* com
 
     catch( const CSProException& exception )
     {
-        ReportError(MGF::OpenMessage, exception.GetErrorMessage().c_str());
+        ReportError(MGF::OpenMessage, exception.what());
     }
 
     catch(...)
@@ -93,17 +95,7 @@ void CEngineCompFunc::CompileApplication()
 }
 
 
-void CEngineCompFunc::CompileExternalCode()
-{
-    for( const CodeFile& code_file : m_pEngineDriver->GetApplication()->GetCodeFiles() )
-    {
-        if( code_file.GetCodeType() != CodeType::LogicMain )
-            CompileExternalCode(code_file);
-    }
-}
-
-
-void CEngineCompFunc::CompileExternalCode(const CodeFile& code_file)
+void CEngineCompFunc::CompileExternalCodeLogic(const CodeFile& code_file)
 {
     ASSERT(code_file.GetCodeType() == CodeType::LogicExternal);
 
@@ -115,16 +107,63 @@ void CEngineCompFunc::CompileExternalCode(const CodeFile& code_file)
     catch( const CSProException& exception )
     {
         // report any errors reading the external code file
-        ReportError(163, _T("Logic"), exception.GetErrorMessage().c_str());
+        ReportError(163, "Logic", exception.what());
         return;
     }
 
     try
     {
         if( rutasync(Appl.GetSymbolIndex()) )
-            ReportError(GetSyntErr(), PortableFunctions::PathGetFilename(code_file.GetFilename()));
+            ReportError(GetSyntErr(), Path::GetFilename(code_file.GetFilePath()).c_str());
     }
     catch(...) { ASSERT(false); }
+}
+
+
+void CEngineCompFunc::CompileExternalCodeJavaScript(const CodeFile& code_file)
+{
+    ASSERT(code_file.IsJavaScript());
+
+    // skip compiling files that haven't changed
+    if( WindowsDesktopMessage::Send(UWM::Designer::CanCodeFileCompilationBeSkipped, &code_file) == 1 )
+        return;
+
+    // compile the JavaScript
+    ClearSourceBuffer();
+    SetCompilationUnitName(code_file.GetFilePath());
+
+    auto report_error = [&](const cs::string_sz error_message, Logic::ParserMessage::ExtendedLocation extended_location)
+    {
+        ReportError(std::move(extended_location), MGF::OpenMessage, error_message.c_str());
+    };
+
+    try
+    {
+        EngineJavaScriptProcessor& javascript_processor = m_engineData->GetJavaScriptProcessor();
+        javascript_processor.CompileCodeFile(code_file);
+
+        // mark the JavaScript as successfully compiled
+        WindowsDesktopMessage::Send(UWM::Designer::SetCodeFileSuccessfullyCompiled, &code_file);
+    }
+
+    catch( const JavaScript::Exception& exception )
+    {
+        // add the location details when the error occurs in this file
+        if( exception.HasLocationDetails() && SO::EqualsNoCase(code_file.GetFilePath(), exception.GetFilePath()) )
+        {
+            report_error(exception.GetBaseMessage(), Logic::ParserMessage::LineNumberOverride { static_cast<size_t>(exception.GetLineNumber()) });
+        }
+
+        else
+        {
+            report_error(exception.what(), std::monostate());
+        }
+    }
+
+    catch( const CSProException& exception )
+    {
+        report_error(exception.what(), std::monostate());
+    }
 }
 
 
@@ -266,7 +305,6 @@ void CEngineCompFunc::CompileSymbolProcs()
 }
 
 
-
 int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_parameters)
 {
     // lookup the symbol
@@ -282,7 +320,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
     {
         try
         {
-            symbol = &m_symbolTable.FindSymbolWithDotNotation(std::get<CString>(capi_logic_parameters.symbol_index_or_name));
+            symbol = &m_symbolTable.FindSymbolWithDotNotation(std::get<std::string>(capi_logic_parameters.symbol_index_or_name));
         }
         catch(...) { }
     }
@@ -298,41 +336,20 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
     const bool condition_type = ( capi_logic_parameters.type == CapiLogicParameters::Type::Condition );
     const bool fill_type = !condition_type;
 
-    // to support pre-7.6 files where a fill could be just the function name,
-    // check here if the logic is nothing but the function name and then change that
-    // to a proper function call
-    std::wstring logic = capi_logic_parameters.logic;
-    std::optional<std::wstring> issue_pre76_function_warning_original_logic;
-
-    if( fill_type )
-    {
-        try
-        {
-            if( m_symbolTable.FindSymbol(logic).IsA(SymbolType::UserFunction) )
-            {
-                issue_pre76_function_warning_original_logic = logic;
-                logic.append(_T("()"));
-            }
-        }
-        catch(...) { }
-    }
-
-    SetSourceBuffer(std::make_unique<Logic::SourceBuffer>(logic));
+    SetSourceBuffer(std::make_unique<Logic::SourceBuffer>(capi_logic_parameters.logic));
     SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
 
     int question_text_node_index = -1;
 
-    std::function<void()> compilation_function = [&]()
+    const std::function<void()> compilation_function = [&]()
     {
         ProcInComp = static_cast<int>(ProcType::OnFocus);
-
-        if( issue_pre76_function_warning_original_logic.has_value() )
-            IssueWarning(48010, issue_pre76_function_warning_original_logic->c_str(), logic.c_str());
 
         NextToken();
 
         // fills can evaluate to strings but conditions will always be numeric expressions
-        question_text_node_index = fill_type ? CompileFillText() : exprlog();
+        question_text_node_index = fill_type ? CompileFillText() :
+                                               exprlog();
 
         if( Tkn != TOKEOP || GetSyntErr() != 0 )
             IssueError(condition_type ? 48011 : 48012);

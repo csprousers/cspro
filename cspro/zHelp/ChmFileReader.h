@@ -14,7 +14,7 @@ struct chmFile;
 class ZHELP_API ChmFileReader
 {
 public:
-    ChmFileReader(const std::wstring& filename);
+    ChmFileReader(const std::string& help_file_path);
     ChmFileReader(const ChmFileReader& rhs) = delete;
     ChmFileReader(ChmFileReader&& rhs) noexcept;
 

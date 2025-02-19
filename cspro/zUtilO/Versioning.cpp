@@ -1,76 +1,61 @@
 ﻿#include "StdAfx.h"
 #include "Versioning.h"
+#include "CSProExecutables.h"
 
 
-#define CSPRO_RELEASE_DATE 20240319
+namespace
+{
+    constexpr int CSProReleaseDate = 20240319;
+    constexpr std::string_view BetaDesignation_sv = "beta";
 
-#define BETA_DESIGNATION   _T("beta")
+    // to override the version that appears in the UI (but not serialized files), replace 'x' with the version override
+    constexpr std::string_view NumberDetailedTextOverride_sv = "x.x.x";
+}
 
-// to override the version that appears in the UI (but not serialized files), uncomment the next line
-// #define OVERRIDE_CSPRO_VERSION_NUMBER_DETAILED_TEXT _T("x.x.x")
 
 
 int Versioning::GetReleaseDate()
 {
-    return CSPRO_RELEASE_DATE;
+    return CSProReleaseDate;
 }
 
 
-static CString GetVersionString(CString version, bool include_cspro)
+std::string Versioning::GetReleaseDateString()
 {
-#ifdef OVERRIDE_VERSION_DETAILED_NUMBER
-    version = CString(OVERRIDE_VERSION_DETAILED_NUMBER).Left(version.GetLength());
+#ifdef WIN_DESKTOP
+    // if the shift key is pressed, display the build date/time
+    if( ( GetKeyState(VK_SHIFT) & 0x8000 ) != 0 )
+        return FormatText("%s %s", __DATE__, __TIME__);
 #endif
+
+    // in debug mode on the desktop, show the executable date/time
+#if defined(_DEBUG) && defined(WIN_DESKTOP)
+    return DateTime::LocalDateString(CSProExecutables::GetModuleModifiedTime(), false) + " (debug build)";
+
+#else
+    // otherwise show the release date
+    const DateTime::Components date_time_components
+    {
+        DateHelper::GetYYYY(CSProReleaseDate), DateHelper::GetMM(CSProReleaseDate), DateHelper::GetDD(CSProReleaseDate),
+        0, 0, 0
+    };
+
+    const int64_t release_date = DateTime::CreateTime(date_time_components, true);
+    return DateTime::LocalDateString(release_date, false);
+#endif
+}
+
+
+std::string Versioning::GetVersionString(std::string version, const bool include_cspro)
+{
+    if constexpr(NumberDetailedTextOverride_sv != "x.x.x")
+        version = std::string_view(NumberDetailedTextOverride_sv).substr(0, version.length());
 
     if( include_cspro )
-        version.Insert(0, _T("CSPro "));
+        version.insert(0, "CSPro ");
 
-    if constexpr(IsBetaBuild())
-        version.AppendFormat(_T(" (%s)"), BETA_DESIGNATION);
+    if constexpr(IsBeta)
+        version.append(" (beta)");
 
     return version;
-}
-
-CString Versioning::GetVersionString(bool include_cspro/* = false*/)
-{
-    return ::GetVersionString(CSPRO_VERSION_NUMBER_TEXT, include_cspro);
-}
-
-CString Versioning::GetVersionDetailedString(bool include_cspro/* = false*/)
-{
-    return ::GetVersionString(CSPRO_VERSION_NUMBER_DETAILED_TEXT, include_cspro);
-}
-
-
-CString Versioning::GetReleaseDateString()
-{
-    CString csVersion;
-
-#ifdef WIN_DESKTOP
-    #define DATE_FORMATTER _T("%d %B %Y")
-#else
-    #define DATE_FORMATTER _T("%d %b %Y")
-#endif
-
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
-    CFileStatus status;
-    _TCHAR acExe[_MAX_PATH];
-    GetModuleFileName(NULL,acExe,_MAX_PATH);
-    CFile::GetStatus(acExe,status);
-    csVersion = status.m_mtime.Format(DATE_FORMATTER _T(" (debug build)"));
-#else
-    const int StringBufferSize = 25;
-    std::tm tm;
-    ReadableTimeToTm(&tm,GetReleaseDate(),0);
-    wcsftime(csVersion.GetBufferSetLength(StringBufferSize),StringBufferSize,DATE_FORMATTER,&tm);
-    csVersion.ReleaseBuffer();
-#endif
-
-#ifdef WIN_DESKTOP
-    // if the shift key is pressed, display the build date/time instead
-    if( ( GetKeyState(VK_SHIFT) & 0x8000 ) != 0 )
-        csVersion.Format(_T("%s %s"), (LPCTSTR)CString(__DATE__), (LPCTSTR)CString(__TIME__));
-#endif
-
-    return csVersion;
 }

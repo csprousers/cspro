@@ -147,21 +147,21 @@ int LogicCompiler::CompileStringExpression()
 }
 
 
-int LogicCompiler::CompileStringExpressionWithStringLiteralCheck(const std::function<void(const std::wstring&)>& string_literal_check_callback)
+int LogicCompiler::CompileStringExpressionWithStringLiteralCheck(const std::function<void(std::string)>& string_literal_check_callback)
 {
     if( Tkn != TOKSCTE )
         return CompileStringExpression();
 
-    std::wstring saved_token_text = Tokstr;
+    std::string saved_token_text = Tokstr;
     const Logic::BasicToken* next_basic_token = PeekNextBasicToken();
 
-    int expression = CompileStringExpression();
+    const int expression = CompileStringExpression();
 
     // from CheckNextTokenHelper: prevent things like: "A" + "B"
     if( ( next_basic_token != nullptr ) &&
         ( next_basic_token->token_code == TOKCOMMA || next_basic_token->token_code == TOKRPAREN || next_basic_token->token_code == TOKSEMICOLON ) )
     {
-        string_literal_check_callback(saved_token_text);
+        string_literal_check_callback(std::move(saved_token_text));
     }
 
     return expression;
@@ -172,7 +172,7 @@ int LogicCompiler::CompilePortableColorText()
 {
     // compiles a string and, if a string literal, checks that it is a valid PortableColor
     return CompileStringExpressionWithStringLiteralCheck(
-        [&](const std::wstring& text)
+        [&](const std::string text)
         {
             if( !PortableColor::FromString(text).has_value() )
                 IssueError(MGF::color_invalid_2036, text.c_str());
@@ -180,11 +180,12 @@ int LogicCompiler::CompilePortableColorText()
 }
 
 
-int LogicCompiler::CompileSymbolNameText(const SymbolType required_symbol_type/* = SymbolType::None*/, const bool throw_exception_is_symbol_is_not_found/* = true*/)
+int LogicCompiler::CompileSymbolNameText(const SymbolType required_symbol_type/* = SymbolType::None*/,
+                                         const bool throw_exception_is_symbol_is_not_found/* = true*/)
 {
     // compiles a string and, if a string literal, checks that it is a valid symbol name
     return CompileStringExpressionWithStringLiteralCheck(
-        [&](const std::wstring& text)
+        [&](const std::string text)
         {
             try
             {
@@ -264,7 +265,7 @@ int LogicCompiler::CompileStringComputeInstruction()
         auto& string_compute_node = CreateNode<Nodes::StringCompute>(FunctionCode::STRING_COMPUTE_CODE);
 
         string_compute_node.next_st = -1;
-        string_compute_node.symbol_value_node_index = CompileDestinationVariable(&symbol);
+        string_compute_node.symbol_value_node_index = CompileDestinationVariable(symbol);
         string_compute_node.substring_index_expression = -1;
         string_compute_node.substring_length_expression = -1;
 

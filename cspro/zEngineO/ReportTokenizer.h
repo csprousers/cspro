@@ -11,7 +11,7 @@ struct ReportToken
 
     Type type;
     size_t section_line_number_start;
-    std::wstring text;
+    std::string text;
 };
 
 
@@ -20,7 +20,7 @@ class ZENGINEO_API ReportTokenizer
 public:
     virtual ~ReportTokenizer() { }
 
-    bool Tokenize(wstring_view report_text_sv, const LogicSettings& logic_settings);
+    bool Tokenize(std::string_view report_text_sv, const LogicSettings& logic_settings);
 
     const std::vector<ReportToken>& GetReportTokens() const { return m_reportTokens; }
 

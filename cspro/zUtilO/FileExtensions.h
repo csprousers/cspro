@@ -5,124 +5,137 @@
 
 namespace FileExtensions
 {
-#define C_EXT(VALUE_NAME, TEXT) /* C_EXT = Create Extension */                \
-    constexpr const TCHAR* VALUE_NAME = TEXT;                                 \
-    namespace WithDot  { constexpr const TCHAR* VALUE_NAME = _T(".") TEXT; }  \
-    namespace Wildcard { constexpr const TCHAR* VALUE_NAME = _T("*.") TEXT; }
+    // C_EXT = Create Extension
+    #define C_EXT(VALUE_NAME, TEXT) constexpr const char* VALUE_NAME = TEXT;
 
     // dictionary and application specs
-    C_EXT(Dictionary, _T("dcf"))
-    C_EXT(Form,       _T("fmf"))
-    C_EXT(Order,      _T("ord"))
-    C_EXT(TableSpec,  _T("xts"))
+    C_EXT(Dictionary, "dcf")
+    C_EXT(Form,       "fmf")
+    C_EXT(Order,      "ord")
+    C_EXT(TableSpec,  "xts")
 
     // applications and their components
-    C_EXT(EntryApplication,      _T("ent"))
-    C_EXT(BatchApplication,      _T("bch"))
-    C_EXT(TabulationApplication, _T("xtb"))
-    C_EXT(Logic,                 _T("apc"))
-    C_EXT(Message,               _T("mgf"))
-    C_EXT(QuestionText,          _T("qsf"))
-    C_EXT(ApplicationProperties, _T("csprops"))
+    C_EXT(EntryApplication,      "ent")
+    C_EXT(BatchApplication,      "bch")
+    C_EXT(TabulationApplication, "xtb")
+    C_EXT(Logic,                 "apc")
+    C_EXT(Message,               "mgf")
+    C_EXT(QuestionText,          "qsf")
+    C_EXT(ApplicationProperties, "csprops")
 
     // runtime
-    C_EXT(Listing,            _T("lst"))
-    C_EXT(OperatorStatistics, _T("log"))
-    C_EXT(Paradata,           _T("cslog"))
-    C_EXT(Pff,                _T("pff"))
+    C_EXT(Listing,            "lst")
+    C_EXT(OperatorStatistics, "log")
+    C_EXT(Paradata,           "cslog")
+    C_EXT(Pff,                "pff")
 
     // other
-    C_EXT(AreaName,         _T("anm"))
-    C_EXT(BinaryEntryPen,   _T("pen"))
-    C_EXT(CHM,              _T("chm"))
-    C_EXT(CSHTML,           _T("cshtml"))
-    C_EXT(HTM,              _T("htm"))
-    C_EXT(HTML,             _T("html"))
-    C_EXT(JavaScript,       _T("js"))
-    C_EXT(JavaScriptModule, _T("mjs"))
-    C_EXT(Json,             _T("json"))
-    C_EXT(PDF,              _T("pdf"))
-    C_EXT(Pre77Report,      _T("csrs"))
-    C_EXT(SaveArray,        _T("sva"))
-    C_EXT(Table,            _T("tbw"))
+    C_EXT(AreaName,         "anm")
+    C_EXT(BinaryEntryPen,   "pen")
+    C_EXT(CHM,              "chm")
+    C_EXT(CSHTML,           "cshtml")
+    C_EXT(HTM,              "htm")
+    C_EXT(HTML,             "html")
+    C_EXT(JavaScript,       "js")
+    C_EXT(JavaScriptModule, "mjs")
+    C_EXT(Json,             "json")
+    C_EXT(PDF,              "pdf")
+    C_EXT(Pre77Report,      "csrs")
+    C_EXT(SaveArray,        "sva")
+    C_EXT(Table,            "tbw")
+    C_EXT(Text,             "txt")
+    C_EXT(Zip,              "zip")
 
     // tools
-    C_EXT(CompareSpec,          _T("cmp"))
-    C_EXT(DeploySpec,           _T("csds"))
-    C_EXT(ExcelToCSProSpec,     _T("xl2cs"))
-    C_EXT(ExportSpec,           _T("exf"))
-    C_EXT(FrequencySpec,        _T("fqf"))
-    C_EXT(PackSpec,             _T("cspack"))
-    C_EXT(ProductionRunnerSpec, _T("pffRunner"))
-    C_EXT(SortSpec,             _T("ssf"))
+    C_EXT(CompareSpec,          "cmp")
+    C_EXT(DeploySpec,           "csds")
+    C_EXT(ExcelToCSProSpec,     "xl2cs")
+    C_EXT(ExportSpec,           "exf")
+    C_EXT(FrequencySpec,        "fqf")
+    C_EXT(PackSpec,             "cspack")
+    C_EXT(ProductionRunnerSpec, "pffRunner")
+    C_EXT(SortSpec,             "ssf")
 
     // documentation
-    C_EXT(CSDocument,    _T("csdoc"))
-    C_EXT(CSDocumentSet, _T("csdocset"))
+    C_EXT(CSDocument,    "csdoc")
+    C_EXT(CSDocumentSet, "csdocset")
 
     // CSPro data
     namespace Data
     {
-        C_EXT(CSProDB,            _T("csdb"))
-        C_EXT(EncryptedCSProDB,   _T("csdbe"))
-        C_EXT(IndexableTextIndex, _T("csidx"))
-        C_EXT(Json,               _T("json"))
-        C_EXT(TextDataDefault,    _T("dat"))
-        C_EXT(TextNotes,          _T("csnot"))
-        C_EXT(TextStatus,         _T("sts"))
+        C_EXT(CSProDB,            "csdb")
+        C_EXT(EncryptedCSProDB,   "csdbe")
+        C_EXT(IndexableTextIndex, "csidx")
+        C_EXT(Json,               "json")
+        C_EXT(TextDataDefault,    "dat")
+        C_EXT(TextNotes,          "csnot")
+        C_EXT(TextStatus,         "sts")
     }
 
     // exported data
-    C_EXT(CSV,                _T("csv"))
-    C_EXT(Excel,              _T("xlsx"))
-    C_EXT(RData,              _T("RData"))
-    C_EXT(RSyntax,            _T("R"))
-    C_EXT(SasData,            _T("xpt"))
-    C_EXT(SasSyntax,          _T("sas"))
-    C_EXT(SemicolonDelimited, _T("skv"))
-    C_EXT(SpssData,           _T("sav"))
-    C_EXT(SpssSyntax,         _T("sps"))
-    C_EXT(StataData,          _T("dta"))
-    C_EXT(StataDictionary,    _T("dct"))
-    C_EXT(StataDo,            _T("do"))
-    C_EXT(TabDelimited,       _T("tsv"))
+    C_EXT(CSV,                "csv")
+    C_EXT(Excel,              "xlsx")
+    C_EXT(RData,              "RData")
+    C_EXT(RSyntax,            "R")
+    C_EXT(SasData,            "xpt")
+    C_EXT(SasSyntax,          "sas")
+    C_EXT(SemicolonDelimited, "skv")
+    C_EXT(SpssData,           "sav")
+    C_EXT(SpssSyntax,         "sps")
+    C_EXT(StataData,          "dta")
+    C_EXT(StataDictionary,    "dct")
+    C_EXT(StataDo,            "do")
+    C_EXT(TabDelimited,       "tsv")
 
     // binary tables
     namespace BinaryTable
     {
-        C_EXT(Tab,      _T("tab"))
-        C_EXT(TabIndex, _T("tabidx"))
-        C_EXT(Tbd,      _T("tbd"))
-        C_EXT(TbdIndex, _T("tbdidx"))
+        C_EXT(Tab,      "tab")
+        C_EXT(TabIndex, "tabidx")
+        C_EXT(Tbd,      "tbd")
+        C_EXT(TbdIndex, "tbdidx")
     }
 
     // previously used extensions
     namespace Old
     {
-        C_EXT(BinaryEntryPen, _T("enc"))
-        C_EXT(Logic,          _T("app"))
+        C_EXT(BinaryEntryPen, "enc")
+        C_EXT(Logic,          "app")
 
         namespace Data
         {
-            C_EXT(TextIndex, _T("idx"))
-            C_EXT(TextNotes, _T("not"))
+            C_EXT(TextIndex, "idx")
+            C_EXT(TextNotes, "not")
         }
     }
 
 #undef C_EXT
 
 
-    // returns true if the filename has a HTML-related extension
-    bool CLASS_DECL_ZUTILO IsFilenameHtml(wstring_view filename_sv);
+    // returns true if the extension matches a list of HTML-related extensions
+    bool CLASS_DECL_ZUTILO IsExtensionHtml(std::string_view extension_sv);
+
+    // returns true if the extension, calculated from the filename, has a HTML-related extension
+    bool CLASS_DECL_ZUTILO IsFileHtml(std::string_view filename_sv);
+
+    // returns true if the extension, calculated from the filename, is generally associated with compressed data
+    bool CLASS_DECL_ZUTILO IsFileCompressedData(std::string_view filename_sv);
 
     // returns true if the extension is disallowed for CSPro data files; the extension should not contain the dot
-    bool CLASS_DECL_ZUTILO IsExtensionForbiddenForDataFiles(wstring_view extension_sv);
+    bool CLASS_DECL_ZUTILO IsExtensionForbiddenForDataFiles(std::string_view extension_sv);
+
+    // creates a string with a dot followed by an extension; the extension should not contain the dot
+    inline std::string WithDot(cs::string_sz extension) { ASSERT(*extension.c_str() != '.'); return std::string(".").append(extension.c_str()); }
+
+    // creates a wildcard from an extension; the extension should not contain the dot
+    inline std::string CreateWildcard(cs::string_sz extension) { ASSERT(*extension.c_str() != '.'); return std::string("*.").append(extension.c_str()); }
 }
 
 
 namespace FileFilters
 {
-    constexpr const TCHAR* Listing = _T("Listing Files (*.lst)|*.lst|HTML Files (*.html)|*.html|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||");
-
-    constexpr const TCHAR* Pff     = _T("PFF Files (*.pff)|*.pff|All Files (*.*)|*.*||");
+    constexpr const char* Dictionary = "Data Dictionary Files (*.dcf)|*.dcf|All Files (*.*)|*.*||";
+    constexpr const char* Listing    = "Listing Files (*.lst)|*.lst|HTML Files (*.html)|*.html|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||";
+    constexpr const char* Pff        = "PFF Files (*.pff)|*.pff|All Files (*.*)|*.*||";
+    constexpr const char* Text       = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
 }

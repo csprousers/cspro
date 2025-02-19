@@ -44,7 +44,7 @@ Language=VI
 
 /* --- Entry Errors */
 89271  Không thể thêm phiếu mới khi đang sửa phiếu
-89273  Lỗi khi đang đọc file %s
+89273  Lỗi khi đang đọc file '%s': %s
 89274  Lỗi ứng dụng. Kết thúc nhập số liệu.
 
 /* --- Index */

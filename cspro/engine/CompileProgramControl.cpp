@@ -11,7 +11,7 @@ int CEngineCompFunc::CompileProgramControl()
 
     auto get_statement_name = [&]
     {
-        return ( program_control_token == TOKKWCASE ) ? _T("SKIP CASE") :
+        return ( program_control_token == TOKKWCASE ) ? "SKIP CASE" :
                                                         Logic::KeywordTable::GetKeywordName(program_control_token);
     };
 

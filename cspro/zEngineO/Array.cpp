@@ -1,266 +1,143 @@
 ﻿#include "stdafx.h"
 #include "Array.h"
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
-// LogicArray
+// LogicArray::SetterPreprocessor
+//
+// The SetterPreprocessor will only be created for alpha arrays.
 // --------------------------------------------------------------------------
 
-namespace
-{
-    // the SetterPreprocessor will only be created for alpha arrays;
-    // while it is created by LogicArray, it will be deleted by LogicArrayImpl
-    class SetterPreprocessor
-    {
-    public:
-        SetterPreprocessor(int string_length)
-            :   m_paddingStringLength(string_length)
-        {
-        }
-
-        void Process(double& /*value*/) const
-        {
-            // this will never be called (but is defined for LogicArrayImpl's double implementation)
-            ASSERT(false);
-        }
-
-        void Process(size_t& /*value*/) const
-        {
-            // this will never be called (but is defined for SaveArrayImpl's size_t implementation)
-            ASSERT(false);
-        }
-
-        void Process(std::wstring& value) const
-        {
-            ASSERT(m_paddingStringLength != 0);
-            SO::MakeExactLength(value, m_paddingStringLength);
-        }
-
-    private:
-        int m_paddingStringLength;
-    };
-
-
-    // the IndicesProcessor will convert multiple indices to a single index value
-    class IndicesProcessor
-    {
-    public:
-        IndicesProcessor(const std::vector<size_t>& dimensions)
-            :   m_dimensions(dimensions)
-        {
-            m_lastValidIndex = 1;
-
-            for( size_t dimension_size : m_dimensions )
-                m_lastValidIndex *= dimension_size ;
-
-            m_lastValidIndex -= 1;
-        }
-
-        size_t GetLastValidIndex() const { return m_lastValidIndex; }
-
-        size_t ToIndex(const std::vector<size_t>& indices, const bool bounds_checking = false) const
-        {
-            if( bounds_checking && indices.size() != m_dimensions.size() )
-                return SIZE_MAX;
-
-            ASSERT(indices.size() == m_dimensions.size());
-            size_t index = 0;
-
-            for( size_t i = 0; i < indices.size(); ++i )
-            {
-                ASSERT(bounds_checking || indices[i] < m_dimensions[i]);
-
-                if( bounds_checking && indices[i] >= m_dimensions[i] )
-                    return SIZE_MAX;
-
-                if( i > 0 )
-                    index *= m_dimensions[i];
-
-                index += indices[i];
-            }
-
-            return index;
-        }
-
-    private:
-        const std::vector<size_t> m_dimensions;
-        size_t m_lastValidIndex;
-    };
-}
-
-
-// the implementation of the array
-template<typename T>
-class LogicArrayImpl
+class LogicArray::SetterPreprocessor
 {
 public:
-    LogicArrayImpl(const std::vector<size_t>& dimensions, T default_value, const SetterPreprocessor* const setter_preprocessor = nullptr)
-        :   m_dimensions(dimensions),
-            m_setterPreprocessor(setter_preprocessor),
-            m_indicesProcessor(IndicesProcessor(dimensions)),
-            m_arrayFullySized(false)
+    SetterPreprocessor(const int string_length)
+        :   m_paddingStringLength(string_length)
     {
-        SetDefaultValue(std::move(default_value));
-        m_lastValidIndex = m_indicesProcessor.GetLastValidIndex();
     }
 
-    virtual ~LogicArrayImpl()
+    void Process(double& /*value*/) const
     {
-        delete m_setterPreprocessor;
+        // this will never be called (but is defined for LogicArray::Impl's double implementation)
+        ASSERT(false);
     }
 
-    const IndicesProcessor& GetIndicesProcessor() const
+    void Process(size_t& /*value*/) const
     {
-        return m_indicesProcessor;
+        // this will never be called (but is defined for LogicArray::SaveArrayImpl's size_t implementation)
+        ASSERT(false);
     }
 
-    bool IsValidIndex(const std::vector<size_t>& indices) const
+    void Process(SharableString& value) const
     {
-        return ( m_indicesProcessor.ToIndex(indices, true) != SIZE_MAX );
-    }
-
-    virtual const T& GetValue(const std::vector<size_t>& indices) const
-    {
-        const size_t index = m_indicesProcessor.ToIndex(indices);
-        return ( m_arrayFullySized || index < m_array.size() ) ? m_array[index] :
-                                                                 m_defaultValue;
-    }
-
-    virtual void SetValue(const std::vector<size_t>& indices, T value)
-    {
-        const size_t index = m_indicesProcessor.ToIndex(indices);
-        SetValue(index, std::move(value));
-    }
-
-    void SetValue(const size_t index, T value)
-    {
-        if( !m_arrayFullySized && index >= m_array.size() )
-            EnsureArraySize(index);
-
-        if( m_setterPreprocessor != nullptr )
-            m_setterPreprocessor->Process(value);
-
-        m_array[index] = std::move(value);
-    }
-
-    void ResetValues(T value)
-    {
-        m_array.clear();
-        m_arrayFullySized = false;
-        SetDefaultValue(std::move(value));
-    }
-
-    const T& GetDefaultValue() const
-    {
-        return m_defaultValue;
-    }
-
-    void SetDefaultValue(T value)
-    {
-        if( m_setterPreprocessor != nullptr )
-            m_setterPreprocessor->Process(value);
-
-        m_defaultValue = std::move(value);
-    }
-
-    void SetInitialValues(const std::vector<T>& initial_values, const bool repeat_values)
-    {
-        ASSERT(!m_arrayFullySized && !initial_values.empty());
-
-        // if only one value that repeats, then that can simply be set as the default value
-        if( repeat_values && initial_values.size() == 1 )
-        {
-            ASSERT(m_array.empty());
-            SetDefaultValue(initial_values.front());
-        }
-
-        else
-        {
-            // initial values are supplied based on a one-based index
-            std::vector<size_t> indices(m_dimensions.size(), 1);
-            size_t initial_value_index = 0;
-
-            if( repeat_values )
-                EnsureArraySize(m_lastValidIndex);
-
-            while( true )
-            {
-                ASSERT(initial_value_index < initial_values.size());
-
-                SetValue(indices, initial_values[initial_value_index]);
-
-                // see if there are any more values to initialize
-                ++initial_value_index;
-
-                if( initial_value_index == initial_values.size() )
-                {
-                    if( !repeat_values )
-                        break;
-
-                    initial_value_index = 0;
-                }
-
-                // increment the indices and check if there are any more valid cells
-                bool found_additional_cell = false;
-
-                for( size_t dimension_updating = m_dimensions.size() - 1; dimension_updating < m_dimensions.size(); --dimension_updating )
-                {
-                    // if there are still cells in the current dimension, move to the next one
-                    ++indices[dimension_updating];
-
-                    if( indices[dimension_updating] < m_dimensions[dimension_updating] )
-                    {
-                        found_additional_cell = true;
-                        break;
-                    }
-
-                    // otherwise set that dimension's index back to 1
-                    else
-                    {
-                        indices[dimension_updating] = 1;
-                    }
-                }
-
-                if( !found_additional_cell )
-                    break;
-            }
-        }
+        ASSERT(m_paddingStringLength != 0);
+        value.WideMakeExactLength(m_paddingStringLength);
     }
 
 private:
-    void EnsureArraySize(const size_t index_to_support)
+    int m_paddingStringLength;
+};
+
+
+
+// --------------------------------------------------------------------------
+// LogicArray::IndicesProcessor
+//
+// The IndicesProcessor will convert multiple indices to a single index
+// value.
+// --------------------------------------------------------------------------
+
+class LogicArray::IndicesProcessor
+{
+public:
+    IndicesProcessor(const std::vector<size_t>& dimensions);
+
+    size_t GetLastValidIndex() const { return m_lastValidIndex; }
+
+    size_t ToIndex(const std::vector<size_t>& indices, bool bounds_checking = false) const;
+
+private:
+    const std::vector<size_t>& m_dimensions;
+    size_t m_lastValidIndex;
+};
+
+
+LogicArray::IndicesProcessor::IndicesProcessor(const std::vector<size_t>& dimensions)
+    :   m_dimensions(dimensions),
+        m_lastValidIndex(1)
+{
+    for( const size_t dimension_size : m_dimensions )
+        m_lastValidIndex *= dimension_size;
+
+    m_lastValidIndex -= 1;
+}
+
+
+size_t LogicArray::IndicesProcessor::ToIndex(const std::vector<size_t>& indices, const bool bounds_checking/* = false*/) const
+{
+    if( bounds_checking && indices.size() != m_dimensions.size() )
+        return SIZE_MAX;
+
+    ASSERT(indices.size() == m_dimensions.size());
+    size_t index = 0;
+
+    for( size_t i = 0; i < indices.size(); ++i )
     {
-        ASSERT(m_array.size() <= index_to_support);
+        ASSERT(bounds_checking || indices[i] < m_dimensions[i]);
 
-        size_t new_last_defined_index = 0;
+        if( bounds_checking && indices[i] >= m_dimensions[i] )
+            return SIZE_MAX;
 
-        // if the array is pretty small, just allocate all the memory for the array
-        const size_t SmallArrayMaximumIndex = 128 * 1024;
+        if( i > 0 )
+            index *= m_dimensions[i];
 
-        if( m_lastValidIndex <= SmallArrayMaximumIndex )
-        {
-            new_last_defined_index = m_lastValidIndex;
-        }
-
-        // otherwise allocate about half the remaining size of the array from where index_to_support is
-        else
-        {
-            new_last_defined_index = index_to_support + ( m_lastValidIndex - index_to_support ) / 2;
-
-            // if nearly the entire array is allocated, just allocate the whole thing
-            if( ( new_last_defined_index + SmallArrayMaximumIndex ) >= m_lastValidIndex )
-                new_last_defined_index = m_lastValidIndex;
-        }
-
-        ASSERT(new_last_defined_index <= m_lastValidIndex);
-
-        m_array.resize(new_last_defined_index + 1, m_defaultValue);
-        m_arrayFullySized = ( new_last_defined_index == m_lastValidIndex );
+        index += indices[i];
     }
 
-    const std::vector<size_t> m_dimensions;
-    const SetterPreprocessor* m_setterPreprocessor;
-    const IndicesProcessor m_indicesProcessor;
+    return index;
+}
+
+
+
+// --------------------------------------------------------------------------
+// LogicArray::Impl
+//
+// The implementation of the array.
+// --------------------------------------------------------------------------
+
+template<typename T>
+class LogicArray::Impl
+{
+public:
+    Impl(const std::vector<size_t>& dimensions, T default_value, std::unique_ptr<const SetterPreprocessor> setter_preprocessor);
+    virtual ~Impl() { }
+
+    const IndicesProcessor& GetIndicesProcessor() const { return m_indicesProcessor; }
+
+    bool IsValidIndex(const std::vector<size_t>& indices) const;
+
+    virtual const T& GetValue(const std::vector<size_t>& indices) const;
+    virtual void SetValue(const std::vector<size_t>& indices, T value);
+
+    void SetValue(size_t index, T value);
+
+    bool IsInResetState() const { return m_array.empty(); }
+
+    void ResetValues(T value);
+
+    const T& GetDefaultValue() const { return m_defaultValue; }
+    void SetDefaultValue(T value);
+
+    void SetInitialValues(const std::vector<T>& initial_values, bool repeat_values);
+
+private:
+    void EnsureArraySize(size_t index_to_support);
+
+private:
+    const std::vector<size_t>& m_dimensions;
+    std::unique_ptr<const SetterPreprocessor> m_setterPreprocessor;
+    IndicesProcessor m_indicesProcessor;
     std::vector<T> m_array;
     T m_defaultValue;
     size_t m_lastValidIndex;
@@ -268,32 +145,204 @@ private:
 };
 
 
-
-// for keeping track of statistics in save arrays, a few methods will be overriden
 template<typename T>
-class SaveArrayImpl : public LogicArrayImpl<T>, public SaveArray
+LogicArray::Impl<T>::Impl(const std::vector<size_t>& dimensions, T default_value, std::unique_ptr<const SetterPreprocessor> setter_preprocessor)
+    :   m_dimensions(dimensions),
+        m_setterPreprocessor(std::move(setter_preprocessor)),
+        m_indicesProcessor(IndicesProcessor(dimensions)),
+        m_arrayFullySized(false)
+{
+    SetDefaultValue(std::move(default_value));
+    m_lastValidIndex = m_indicesProcessor.GetLastValidIndex();
+}
+
+
+template<typename T>
+bool LogicArray::Impl<T>::IsValidIndex(const std::vector<size_t>& indices) const
+{
+    return ( m_indicesProcessor.ToIndex(indices, true) != SIZE_MAX );
+}
+
+
+template<typename T>
+const T& LogicArray::Impl<T>::GetValue(const std::vector<size_t>& indices) const
+{
+    const size_t index = m_indicesProcessor.ToIndex(indices);
+    return ( m_arrayFullySized || index < m_array.size() ) ? m_array[index] :
+                                                             m_defaultValue;
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::SetValue(const std::vector<size_t>& indices, T value)
+{
+    const size_t index = m_indicesProcessor.ToIndex(indices);
+    SetValue(index, std::move(value));
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::SetValue(const size_t index, T value)
+{
+    if( !m_arrayFullySized && index >= m_array.size() )
+        EnsureArraySize(index);
+
+    if( m_setterPreprocessor != nullptr )
+        m_setterPreprocessor->Process(value);
+
+    m_array[index] = std::move(value);
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::ResetValues(T value)
+{
+    m_array.clear();
+    m_arrayFullySized = false;
+    SetDefaultValue(std::move(value));
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::SetDefaultValue(T value)
+{
+    if( m_setterPreprocessor != nullptr )
+        m_setterPreprocessor->Process(value);
+
+    m_defaultValue = std::move(value);
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::SetInitialValues(const std::vector<T>& initial_values, const bool repeat_values)
+{
+    ASSERT(!m_arrayFullySized && !initial_values.empty());
+
+    // if only one value that repeats, then that can simply be set as the default value
+    if( repeat_values && initial_values.size() == 1 )
+    {
+        ASSERT(m_array.empty());
+        SetDefaultValue(initial_values.front());
+    }
+
+    else
+    {
+        // initial values are supplied based on a one-based index
+        std::vector<size_t> indices(m_dimensions.size(), 1);
+        size_t initial_value_index = 0;
+
+        if( repeat_values )
+            EnsureArraySize(m_lastValidIndex);
+
+        while( true )
+        {
+            ASSERT(initial_value_index < initial_values.size());
+
+            SetValue(indices, initial_values[initial_value_index]);
+
+            // see if there are any more values to initialize
+            ++initial_value_index;
+
+            if( initial_value_index == initial_values.size() )
+            {
+                if( !repeat_values )
+                    break;
+
+                initial_value_index = 0;
+            }
+
+            // increment the indices and check if there are any more valid cells
+            bool found_additional_cell = false;
+
+            for( size_t dimension_updating = m_dimensions.size() - 1; dimension_updating < m_dimensions.size(); --dimension_updating )
+            {
+                // if there are still cells in the current dimension, move to the next one
+                ++indices[dimension_updating];
+
+                if( indices[dimension_updating] < m_dimensions[dimension_updating] )
+                {
+                    found_additional_cell = true;
+                    break;
+                }
+
+                // otherwise set that dimension's index back to 1
+                else
+                {
+                    indices[dimension_updating] = 1;
+                }
+            }
+
+            if( !found_additional_cell )
+                break;
+        }
+    }
+}
+
+
+template<typename T>
+void LogicArray::Impl<T>::EnsureArraySize(const size_t index_to_support)
+{
+    ASSERT(m_array.size() <= index_to_support);
+
+    size_t new_last_defined_index = 0;
+
+    // if the array is pretty small, just allocate all the memory for the array
+    constexpr size_t SmallArrayMaximumIndex = 128 * 1024;
+
+    if( m_lastValidIndex <= SmallArrayMaximumIndex )
+    {
+        new_last_defined_index = m_lastValidIndex;
+    }
+
+    // otherwise allocate about half the remaining size of the array from where index_to_support is
+    else
+    {
+        new_last_defined_index = index_to_support + ( m_lastValidIndex - index_to_support ) / 2;
+
+        // if nearly the entire array is allocated, just allocate the whole thing
+        if( ( new_last_defined_index + SmallArrayMaximumIndex ) >= m_lastValidIndex )
+            new_last_defined_index = m_lastValidIndex;
+    }
+
+    ASSERT(new_last_defined_index <= m_lastValidIndex);
+
+    m_array.resize(new_last_defined_index + 1, m_defaultValue);
+    m_arrayFullySized = ( new_last_defined_index == m_lastValidIndex );
+}
+
+
+
+// --------------------------------------------------------------------------
+// LogicArray::SaveArrayImpl
+//
+// For keeping track of statistics in save arrays, a few methods will be
+// overridden.
+// --------------------------------------------------------------------------
+
+template<typename T>
+class LogicArray::SaveArrayImpl : public Impl<T>, public SaveArray
 {
 public:
-    SaveArrayImpl(const std::vector<size_t>& dimensions, T default_value, const SetterPreprocessor* const setter_preprocessor = nullptr)
-        :   LogicArrayImpl<T>(dimensions, default_value, setter_preprocessor),
+    SaveArrayImpl(const std::vector<size_t>& dimensions, T default_value, std::unique_ptr<const SetterPreprocessor> setter_preprocessor)
+        :   Impl<T>(dimensions, default_value, std::move(setter_preprocessor)),
             m_runs(0),
             m_cases(0),
             m_trackingAccess(false),
-            m_getsArray(dimensions, 0),
-            m_putsArray(dimensions, 0)
+            m_getsArray(dimensions, 0, nullptr),
+            m_putsArray(dimensions, 0, nullptr)
     {
     }
 
     const T& GetValue(const std::vector<size_t>& indices) const override
     {
         IncrementAccess(m_getsArray, indices);
-        return LogicArrayImpl<T>::GetValue(indices);
+        return Impl<T>::GetValue(indices);
     }
 
     void SetValue(const std::vector<size_t>& indices, T value) override
     {
         IncrementAccess(m_putsArray, indices);
-        return LogicArrayImpl<T>::SetValue(indices, std::move(value));
+        return Impl<T>::SetValue(indices, std::move(value));
     }
 
     void SetNumberRuns(const size_t number_runs) override
@@ -342,7 +391,7 @@ public:
     }
 
 private:
-    void IncrementAccess(LogicArrayImpl<size_t>& applicable_array, const std::vector<size_t>& indices) const
+    void IncrementAccess(Impl<size_t>& applicable_array, const std::vector<size_t>& indices) const
     {
         if( m_trackingAccess )
         {
@@ -355,13 +404,19 @@ private:
     size_t m_runs;
     size_t m_cases;
     bool m_trackingAccess;
-    mutable LogicArrayImpl<size_t> m_getsArray;
-    mutable LogicArrayImpl<size_t> m_putsArray;
+    mutable Impl<size_t> m_getsArray;
+    mutable Impl<size_t> m_putsArray;
 };
 
 
-// the implementation of the LogicArray class that the engine interacts with
-LogicArray::LogicArray(std::wstring array_name)
+
+// --------------------------------------------------------------------------
+// LogicArray
+//
+// The implementation of the LogicArray class that the engine interacts with.
+// --------------------------------------------------------------------------
+
+LogicArray::LogicArray(std::string array_name)
     :   Symbol(std::move(array_name), SymbolType::Array),
         m_numeric(true),
         m_paddingStringLength(0),
@@ -389,13 +444,45 @@ LogicArray::~LogicArray()
     {
         if( IsNumeric() )
         {
-            delete GetNumericImpl();
+            delete reinterpret_cast<LogicArray::Impl<double>*>(m_impl);
         }
 
         else
         {
-            delete GetStringImpl();
+            delete reinterpret_cast<LogicArray::Impl<SharableString>*>(m_impl);
         }
+    }
+}
+
+
+void LogicArray::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const LogicArray& logic_array = assert_cast<const LogicArray&>(symbol);
+
+    if( m_numeric != logic_array.m_numeric )
+    {
+        throw CompareDeclarationAttributesException("data type: %s vs. %s", ToString(GetDataType()),
+                                                                            ToString(logic_array.GetDataType()));
+    }
+
+    if( m_paddingStringLength != logic_array.m_paddingStringLength )
+    {
+        const bool this_is_alpha = ( m_paddingStringLength == 0 );
+
+        if( this_is_alpha || logic_array.m_paddingStringLength == 0 )
+        {
+            throw CompareDeclarationAttributesException("Array symbol type: %s vs. %s", this_is_alpha ? "alpha" : "string",
+                                                                                        this_is_alpha ? "string" : "alpha");
+        }
+
+        throw CompareDeclarationAttributesException("Array alpha length: %d vs. %d", static_cast<int>(m_paddingStringLength),
+                                                                                     static_cast<int>(logic_array.m_paddingStringLength));
+    }
+
+    if( GetNumberDimensions() != logic_array.GetNumberDimensions() )
+    {
+        throw CompareDeclarationAttributesException("Array dimensions: %d vs. %d", static_cast<int>(GetNumberDimensions()),
+                                                                                   static_cast<int>(logic_array.GetNumberDimensions()));
     }
 }
 
@@ -406,48 +493,33 @@ std::unique_ptr<Symbol> LogicArray::CloneInInitialState() const
 }
 
 
-LogicArrayImpl<double>* LogicArray::GetNumericImpl() const
-{
-    ASSERT(IsNumeric());
-
-    if( m_impl == nullptr )
-    {
-        m_impl = m_saveArray ? new SaveArrayImpl<double>(m_dimensions, DEFAULT) :
-                               new LogicArrayImpl<double>(m_dimensions, 0);
-    }
-
-    return reinterpret_cast<LogicArrayImpl<double>*>(m_impl);
-}
-
-
-LogicArrayImpl<std::wstring>* LogicArray::GetStringImpl() const
-{
-    ASSERT(IsString());
-
-    if( m_impl == nullptr )
-    {
-        SetterPreprocessor* setter_preprocessor = ( m_paddingStringLength != 0 ) ? new SetterPreprocessor(m_paddingStringLength) :
-                                                                                   nullptr;
-        m_impl = m_saveArray ? new SaveArrayImpl<std::wstring>(m_dimensions, std::wstring(), setter_preprocessor) :
-                               new LogicArrayImpl<std::wstring>(m_dimensions, std::wstring(), setter_preprocessor);
-    }
-
-    return reinterpret_cast<LogicArrayImpl<std::wstring>*>(m_impl);
-}
-
-
 template<typename T>
-LogicArrayImpl<T>* LogicArray::GetImpl() const
+LogicArray::Impl<T>& LogicArray::GetImpl() const
 {
-    if constexpr(std::is_same_v<T, double>)
+#ifndef __clang__
+    ASSERT(IsNumeric() == constexpr(std::is_same_v<T, double>));
+#endif
+
+    if( m_impl == nullptr )
     {
-        return GetNumericImpl();
+        if constexpr(std::is_same_v<T, double>)
+        {
+            m_impl = m_saveArray ? new SaveArrayImpl<double>(m_dimensions, DEFAULT, nullptr) :
+                                   new Impl<double>(m_dimensions, 0, nullptr);
+
+        }
+
+        else
+        {
+            std::unique_ptr<SetterPreprocessor> setter_preprocessor = ( m_paddingStringLength != 0 ) ? std::make_unique<SetterPreprocessor>(m_paddingStringLength) :
+                                                                                                       nullptr;
+
+            m_impl =  m_saveArray ? new SaveArrayImpl<SharableString>(m_dimensions, SharableString(), std::move(setter_preprocessor)) :
+                                    new Impl<SharableString>(m_dimensions, SharableString(), std::move(setter_preprocessor));
+        }
     }
 
-    else
-    {
-        return GetStringImpl();
-    }
+    return *reinterpret_cast<LogicArray::Impl<T>*>(m_impl);
 }
 
 
@@ -469,8 +541,8 @@ void LogicArray::SetDimensions(std::vector<size_t> sizes, std::vector<int> decka
 SaveArray* LogicArray::GetSaveArray()
 {
     return !m_saveArray ? nullptr :
-           IsNumeric()  ? dynamic_cast<SaveArray*>(GetNumericImpl()) :
-                          dynamic_cast<SaveArray*>(GetStringImpl());
+           IsNumeric()  ? dynamic_cast<SaveArray*>(&GetImpl<double>()) :
+                          dynamic_cast<SaveArray*>(&GetImpl<SharableString>());
 }
 
 
@@ -478,47 +550,41 @@ void LogicArray::Reset()
 {
     if( m_impl != nullptr )
     {
-        if( IsNumeric() )
-        {
-            GetNumericImpl()->ResetValues(m_saveArray ? DEFAULT : 0);
-        }
-
-        else
-        {
-            GetStringImpl()->ResetValues(std::wstring());
-        }
+        IsNumeric() ? GetImpl<double>().ResetValues(m_saveArray ? DEFAULT : 0) :
+                      GetImpl<SharableString>().ResetValues(SharableString());
     }
 }
 
 
-void LogicArray::SetDefaultValue(const double value)
+bool LogicArray::IsInResetState() const
 {
-    GetNumericImpl()->SetDefaultValue(value);
+    return ( m_impl == nullptr ) ? true :
+           ( IsNumeric() )       ? GetImpl<double>().IsInResetState() :
+                                   GetImpl<SharableString>().IsInResetState();
 }
 
 
-void LogicArray::SetDefaultValue(std::wstring value)
+template<typename T>
+void LogicArray::SetDefaultValue(T value)
 {
-    GetStringImpl()->SetDefaultValue(std::move(value));
+    GetImpl<T>().SetDefaultValue(std::move(value));
 }
 
 
-void LogicArray::SetInitialValues(std::vector<double> initial_values, const bool repeat_values)
+template<typename T>
+void LogicArray::SetInitialValues(std::vector<T> initial_values, const bool repeat_values)
 {
-    GetNumericImpl()->SetInitialValues(initial_values, repeat_values);
+    GetImpl<T>().SetInitialValues(std::move(initial_values), repeat_values);
 }
 
-
-void LogicArray::SetInitialValues(std::vector<std::wstring> initial_values, const bool repeat_values)
-{
-    GetStringImpl()->SetInitialValues(std::move(initial_values), repeat_values);
-}
+template ZENGINEO_API void LogicArray::SetInitialValues<double>(std::vector<double> initial_values, bool repeat_values);
+template ZENGINEO_API void LogicArray::SetInitialValues<SharableString>(std::vector<SharableString> initial_values, bool repeat_values);
 
 
 bool LogicArray::IsValidIndex(const std::vector<size_t>& indices) const
 {
-    return IsNumeric() ? GetNumericImpl()->IsValidIndex(indices) :
-                         GetStringImpl()->IsValidIndex(indices);
+    return IsNumeric() ? GetImpl<double>().IsValidIndex(indices) :
+                         GetImpl<SharableString>().IsValidIndex(indices);
 }
 
 
@@ -527,11 +593,11 @@ const T& LogicArray::GetValue(const std::vector<size_t>& indices) const
 {
     ASSERT(IsValidIndex(indices));
 
-    return GetImpl<T>()->GetValue(indices);
+    return GetImpl<T>().GetValue(indices);
 }
 
 template ZENGINEO_API const double& LogicArray::GetValue<double>(const std::vector<size_t>& indices) const;
-template ZENGINEO_API const std::wstring& LogicArray::GetValue<std::wstring>(const std::vector<size_t>& indices) const;
+template ZENGINEO_API const SharableString& LogicArray::GetValue<SharableString>(const std::vector<size_t>& indices) const;
 
 
 template<typename T>
@@ -539,12 +605,11 @@ void LogicArray::SetValue(const std::vector<size_t>& indices, T value)
 {
     ASSERT(IsValidIndex(indices));
 
-    GetImpl<T>()->SetValue(indices, std::move(value));
+    GetImpl<T>().SetValue(indices, std::move(value));
 }
 
 template ZENGINEO_API void LogicArray::SetValue<double>(const std::vector<size_t>& indices, double value);
-template ZENGINEO_API void LogicArray::SetValue<std::wstring>(const std::vector<size_t>& indices, std::wstring value);
-
+template ZENGINEO_API void LogicArray::SetValue<SharableString>(const std::vector<size_t>& indices, SharableString value);
 
 
 size_t LogicArray::CalculateProcessingStartingRow(const std::vector<const LogicArray*>& logic_arrays)
@@ -555,7 +620,7 @@ size_t LogicArray::CalculateProcessingStartingRow(const std::vector<const LogicA
     std::vector<size_t> one_index({ 1 });
     size_t number_arrays_that_could_start_at_one_index = 0;
 
-    for( const LogicArray* logic_array : logic_arrays )
+    for( const LogicArray* const logic_array : logic_arrays )
     {
         ASSERT(logic_array != nullptr && logic_array->GetNumberDimensions() == 1);
 
@@ -564,27 +629,27 @@ size_t LogicArray::CalculateProcessingStartingRow(const std::vector<const LogicA
         {
             if( logic_array->IsString() )
             {
-                const std::wstring& zero_value = logic_array->GetValue<std::wstring>(zero_index);
+                const SharableString& zero_value = logic_array->GetValue<SharableString>(zero_index);
 
-                if( !SO::IsWhitespace(zero_value) )
+                if( !SO::IsWhitespace(*zero_value) )
                     return 0;
 
                 // if the zeroth element is blank but the first isn't, then potentially start processing at row 1
-                const std::wstring& one_value = logic_array->GetValue<std::wstring>(one_index);
+                const SharableString& one_value = logic_array->GetValue<SharableString>(one_index);
 
-                if( !SO::IsWhitespace(one_value) )
+                if( !SO::IsWhitespace(*one_value) )
                     ++number_arrays_that_could_start_at_one_index;
             }
 
             else
             {
-                double zero_value = logic_array->GetValue<double>(zero_index);
+                const double zero_value = logic_array->GetValue<double>(zero_index);
 
                 if( zero_value != 0 && zero_value != DEFAULT )
                     return 0;
 
                 // if the zeroth element is 0 or DEFAULT but the first isn't, then potentially start processing at row 1
-                double one_value = logic_array->GetValue<double>(one_index);
+                const double one_value = logic_array->GetValue<double>(one_index);
 
                 if( one_value != 0 && one_value != DEFAULT )
                     ++number_arrays_that_could_start_at_one_index;
@@ -598,54 +663,49 @@ size_t LogicArray::CalculateProcessingStartingRow(const std::vector<const LogicA
 }
 
 
-std::vector<double> LogicArray::GetNumericFilledCells(size_t starting_row/* = SIZE_MAX*/, size_t ending_row/* = SIZE_MAX*/) const
+template<typename T>
+std::vector<T> LogicArray::GetFilledCells(size_t starting_row/* = SIZE_MAX*/, size_t ending_row/* = SIZE_MAX*/) const
 {
     ASSERT(m_dimensions.size() == 1);
-    std::vector<double> values;
+    std::vector<T> values;
 
     if( starting_row == SIZE_MAX )
         starting_row = CalculateProcessingStartingRow(std::vector<const LogicArray*> { this });
 
-    const bool stop_on_notappl = ( ending_row == SIZE_MAX );
+    const bool stop_on_notappl_or_blank = ( ending_row == SIZE_MAX );
     ending_row = std::min(ending_row, m_dimensions[0] - 1);
 
     for( std::vector<size_t> indices( { starting_row } ); indices[0] <= ending_row; ++indices[0] )
     {
-        double value = GetValue<double>(indices);
+        const T& value = values.emplace_back(GetValue<T>(indices));
 
-        if( stop_on_notappl && value == NOTAPPL )
-            break;
+        if( stop_on_notappl_or_blank )
+        {
+            bool is_notappl_or_blank;
 
-        values.emplace_back(value);
+            if constexpr(std::is_same_v<T, double>)
+            {
+                is_notappl_or_blank = ( value == NOTAPPL );
+            }
+
+            else
+            {
+                is_notappl_or_blank = SO::IsBlank(*value);
+            }
+
+            if( is_notappl_or_blank )
+            {
+                values.pop_back();
+                break;
+            }
+        }
     }
 
     return values;
 }
 
-
-std::vector<std::wstring> LogicArray::GetStringFilledCells(size_t starting_row/* = SIZE_MAX*/, size_t ending_row/* = SIZE_MAX*/) const
-{
-    ASSERT(m_dimensions.size() == 1);
-    std::vector<std::wstring> values;
-
-    if( starting_row == SIZE_MAX )
-        starting_row = CalculateProcessingStartingRow(std::vector<const LogicArray*> { this });
-
-    const bool stop_on_blank = ( ending_row == SIZE_MAX );
-    ending_row = std::min(ending_row, m_dimensions[0] - 1);
-
-    for( std::vector<size_t> indices( { starting_row } ); indices[0] <= ending_row; ++indices[0] )
-    {
-        const std::wstring& value = GetValue<std::wstring>(indices);
-
-        if( stop_on_blank && SO::IsBlank(value) )
-            break;
-
-        values.emplace_back(value);
-    }
-
-    return values;
-}
+template ZENGINEO_API std::vector<double> LogicArray::GetFilledCells<double>(size_t starting_row, size_t ending_row) const;
+template ZENGINEO_API std::vector<SharableString> LogicArray::GetFilledCells<SharableString>(size_t starting_row, size_t ending_row) const;
 
 
 void LogicArray::IterateCells(const size_t starting_index,
@@ -655,7 +715,7 @@ void LogicArray::IterateCells(const size_t starting_index,
     std::vector<size_t> indices(m_dimensions.size(), starting_index);
     const size_t final_dimension = m_dimensions.size() - 1;
 
-    std::function<void(size_t)> array_iterator =
+    const std::function<void(size_t)> array_iterator =
         [&](const size_t dimension_iterating)
         {
             if( start_end_array_callback_function )
@@ -697,10 +757,8 @@ void LogicArray::serialize_subclass(Serializer& ar)
     ar & m_numeric
        & m_paddingStringLength
        & m_dimensions
-       & m_deckarraySymbols;
-
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_6_000_1) )
-        ar & m_saveArray;
+       & m_deckarraySymbols
+       & m_saveArray;
 }
 
 
@@ -724,14 +782,14 @@ void LogicArray::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 void LogicArray::WriteValueToJson(JsonWriter& json_writer) const
 {
     m_numeric ? WriteValueToJsonWorker<double>(json_writer) :
-                WriteValueToJsonWorker<std::wstring>(json_writer);
+                WriteValueToJsonWorker<SharableString>(json_writer);
 }
 
 
 template<typename T>
 void LogicArray::WriteValueToJsonWorker(JsonWriter& json_writer) const
 {
-    const SymbolSerializerHelper* symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
+    const SymbolSerializerHelper* const symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
     const JsonProperties::ArrayFormat array_format =
         ( symbol_serializer_helper != nullptr ) ? symbol_serializer_helper->GetJsonProperties().GetArrayFormat() :
                                                   JsonProperties::DefaultArrayFormat;
@@ -739,14 +797,14 @@ void LogicArray::WriteValueToJsonWorker(JsonWriter& json_writer) const
     // write as a full array
     if( array_format == JsonProperties::ArrayFormat::Full )
     {
-        const size_t StartingIndex = 1;
+        constexpr size_t StartingIndex = 1;
 
-        LogicArrayImpl<T>* impl = GetImpl<T>();
+        Impl<T>& impl = GetImpl<T>();
 
         IterateCells(StartingIndex,
             [&](const std::vector<size_t>& indices)
             {
-                json_writer.WriteEngineValue(impl->LogicArrayImpl<T>::GetValue(indices));
+                json_writer.WriteEngineValue(impl.Impl<T>::GetValue(indices));
             },
             [&](const bool starting_array)
             {
@@ -766,12 +824,12 @@ void LogicArray::WriteValueToJsonWorker(JsonWriter& json_writer) const
 
 
 template<typename T>
-void LogicArray::WriteSparseArrayValueToJson(JsonWriter& json_writer, SparseArrayWriter<T>* sparse_array_writer) const
+void LogicArray::WriteSparseArrayValueToJson(JsonWriter& json_writer, SparseArrayWriter<T>* const sparse_array_writer) const
 {
-    const size_t StartingIndex = 0;
+    constexpr size_t StartingIndex = 0;
 
-    LogicArrayImpl<T>* impl = GetImpl<T>();
-    const T& default_value = impl->GetDefaultValue();
+    Impl<T>& impl = GetImpl<T>();
+    const T& default_value = impl.GetDefaultValue();
 
     const size_t object_keys_before_value = m_dimensions.size() - 1;
     std::vector<size_t> written_object_keys;
@@ -781,7 +839,7 @@ void LogicArray::WriteSparseArrayValueToJson(JsonWriter& json_writer, SparseArra
     IterateCells(StartingIndex,
         [&](const std::vector<size_t>& indices)
         {
-            const T& value = impl->LogicArrayImpl<T>::GetValue(indices);
+            const T& value = impl.Impl<T>::GetValue(indices);
 
             // generally default values are not written
             if( value == default_value )
@@ -837,38 +895,41 @@ void LogicArray::WriteSparseArrayValueToJson(JsonWriter& json_writer, SparseArra
     json_writer.EndObject();
 }
 
+template void LogicArray::WriteSparseArrayValueToJson<double>(JsonWriter& json_writer, SparseArrayWriter<double>* sparse_array_writer) const;
+template void LogicArray::WriteSparseArrayValueToJson<SharableString>(JsonWriter& json_writer, SparseArrayWriter<SharableString>* sparse_array_writer) const;
 
-void LogicArray::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+
+void LogicArray::SetValueFromJson(const JsonNode& json_node)
 {
-    UpdateValueFromJson(json_node, nullptr);
+    SetValueFromJson(json_node, nullptr);
 }
 
 
-void LogicArray::UpdateValueFromJson(const JsonNode<wchar_t>& json_node, SparseArrayReader* const sparse_array_reader)
+void LogicArray::SetValueFromJson(const JsonNode& json_node, SparseArrayReader* const sparse_array_reader)
 {
-    m_numeric ? UpdateValueFromJsonWorker<double>(json_node, sparse_array_reader) :
-                UpdateValueFromJsonWorker<std::wstring>(json_node, sparse_array_reader);
+    m_numeric ? SetValueFromJsonWorker<double>(json_node, sparse_array_reader) :
+                SetValueFromJsonWorker<SharableString>(json_node, sparse_array_reader);
 }
 
 
 template<typename T>
-void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, SparseArrayReader* const sparse_array_reader)
+void LogicArray::SetValueFromJsonWorker(const JsonNode& json_node, SparseArrayReader* const sparse_array_reader)
 {
-    LogicArrayImpl<T>* impl = GetImpl<T>();
-    const IndicesProcessor& indices_processor = impl->GetIndicesProcessor();
+    Impl<T>& impl = GetImpl<T>();
+    const IndicesProcessor& indices_processor = impl.GetIndicesProcessor();
 
     // initially read the array into a separate structure so the initial array is not touched unless the JSON input is fully valid
     std::vector<std::tuple<size_t, T>> indices_and_values;
     std::vector<size_t> indices;
 
     // shared routines
-    auto add_value = [&](const size_t converted_index, const JsonNode<wchar_t>& value_node)
+    auto add_value = [&](const size_t converted_index, const JsonNode& value_node)
     {
         ASSERT(converted_index != SIZE_MAX);
 
         if( !value_node.IsEngineValue<T>() )
         {
-            throw CSProException(_T("The value '%s' is not valid for the Array at dimension '%d'."),
+            throw CSProException("The value '%s' is not valid for the Array at dimension '%d'.",
                                  value_node.GetNodeAsString().c_str(),
                                  static_cast<int>(indices.size()));
         }
@@ -880,8 +941,8 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
     // read as a full array
     if( json_node.IsArray() )
     {
-        const std::function<void(const JsonNodeArray<wchar_t>& array_node)> full_array_parser =
-            [&](const JsonNodeArray<wchar_t>& json_node_array)
+        const std::function<void(const JsonNodeArray&)> full_array_parser =
+            [&](const JsonNodeArray& json_node_array)
             {
                 ASSERT(indices.size() < m_dimensions.size());
 
@@ -889,7 +950,7 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
                 const size_t this_dimension_size = m_dimensions[indices.size()];
                 indices.emplace_back(1);
 
-                for( const JsonNode<wchar_t>& array_node : json_node_array )
+                for( const JsonNode& array_node : json_node_array )
                 {
                     // ignore values that won't fit in this dimension
                     if( indices.back() >= this_dimension_size )
@@ -907,7 +968,7 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
                     {
                         if( !array_node.IsArray() )
                         {
-                            throw CSProException(_T("You must specify %d dimensions."),
+                            throw CSProException("You must specify %d dimensions.",
                                                  static_cast<int>(m_dimensions.size()));
                         }
 
@@ -928,15 +989,15 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
     // read as a sparse array
     else if( json_node.IsObject() )
     {
-        const std::function<void(const std::wstring_view, const JsonNode<wchar_t>&)> sparse_array_parser =
-            [&](const std::wstring_view key_sv, const JsonNode<wchar_t>& attribute_value_node)
+        const std::function<void(std::string_view, const JsonNode&)> sparse_array_parser =
+            [&](const std::string_view key_sv, const JsonNode& attribute_value_node)
             {
                 ASSERT(indices.size() < m_dimensions.size());
 
                 auto throw_invalid_index_exception = [&]()
                 {
-                    throw CSProException(_T("The index '%s' at dimension '%d' is not valid."),
-                                         std::wstring(key_sv).c_str(),
+                    throw CSProException("The index '%s' at dimension '%d' is not valid.",
+                                         std::string(key_sv).c_str(),
                                          static_cast<int>(indices.size() + 1));
                 };
 
@@ -964,7 +1025,7 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
 
                     if( sparse_array_reader != nullptr )
                     {
-                        add_value(converted_index, sparse_array_reader->ProcessNodeAndGetValueNode(indices, attribute_value_node));                        
+                        add_value(converted_index, sparse_array_reader->ProcessNodeAndGetValueNode(indices, attribute_value_node));
                     }
 
                     else
@@ -995,5 +1056,130 @@ void LogicArray::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node, S
     Reset();
 
     for( auto& [index, value] : indices_and_values )
-        impl->LogicArrayImpl<T>::SetValue(index, std::move(value));
+        impl.Impl<T>::SetValue(index, std::move(value));
+}
+
+
+JavaScript::Value LogicArray::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    return IsNumeric() ? GetJavaScriptValueWorker<double>(executor) :
+                         GetJavaScriptValueWorker<SharableString>(executor);
+}
+
+
+template<typename T>
+JavaScript::Value LogicArray::GetJavaScriptValueWorker(JavaScript::Executor& executor) const
+{
+    constexpr size_t StartingIndex = 1;
+
+    std::vector<std::vector<JavaScript::Value>> js_array_stack(1);
+
+    IterateCells(StartingIndex,
+        [&](const std::vector<size_t>& indices)
+        {
+            js_array_stack.back().emplace_back(executor.CreateEngineValue(GetValue<T>(indices)));
+        },
+        [&](const bool starting_array)
+        {
+            ASSERT(!js_array_stack.empty());
+
+            if( starting_array )
+            {
+                js_array_stack.emplace_back();
+            }
+
+            else
+            {
+                ASSERT(js_array_stack.size() >= 2);
+
+                std::vector<JavaScript::Value>& js_this_dimension_values = js_array_stack.back();
+                std::vector<JavaScript::Value>& js_parent_dimension_values = *( &js_this_dimension_values - 1 );
+
+                // create a JavaScript array from the values at this dimension and assign it to the parent's array values
+                js_parent_dimension_values.emplace_back(executor.CreateArray(js_this_dimension_values.size(), js_this_dimension_values.data()));
+
+                js_array_stack.pop_back();
+            }
+        });
+
+    ASSERT(js_array_stack.size() == 1 && js_array_stack.front().size() == 1);
+
+    return std::move(js_array_stack.front().front());
+}
+
+
+void LogicArray::SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    m_numeric ? SetValueFromJavaScriptWorker<double>(executor, js_value) :
+                SetValueFromJavaScriptWorker<SharableString>(executor, js_value);
+}
+
+
+template<typename T>
+void LogicArray::SetValueFromJavaScriptWorker(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    // this routine is modeled after the JSON parser
+    if( !js_value.IsArray() )
+        throw CSProException("An Array must be specified as an array.");
+
+    Impl<T>& impl = GetImpl<T>();
+    const IndicesProcessor& indices_processor = impl.GetIndicesProcessor();
+
+    // initially read the array into a separate structure so the initial array is not touched unless the JavaScript input is fully valid
+    std::vector<std::tuple<size_t, T>> indices_and_values;
+    std::vector<size_t> indices;
+
+    // read as a full array
+    const std::function<void(const JavaScript::Value&)> full_array_parser =
+        [&](const JavaScript::Value& js_array)
+        {
+            ASSERT(indices.size() < m_dimensions.size());
+
+            // when parsing a full array, indices start at 1
+            const size_t this_dimension_size = m_dimensions[indices.size()];
+            indices.emplace_back(1);
+
+            const uint32_t array_size = executor.GetArrayLength(js_array);
+
+            for( uint32_t i = 0; i < array_size; ++i )
+            {
+                // ignore values that won't fit in this dimension
+                if( indices.back() >= this_dimension_size )
+                    break;
+
+                const JavaScript::Value js_element = executor.GetArrayElement(js_array, i);
+
+                // if we have read the correct number of indices, process this element as a value
+                if( indices.size() == m_dimensions.size() )
+                {
+                    const size_t converted_index = indices_processor.ToIndex(indices, true);
+                    indices_and_values.emplace_back(converted_index, executor.ConvertEngineValue<T>(js_element));
+                }
+
+                // otherwise recursively process more indices
+                else
+                {
+                    if( !js_element.IsArray() )
+                    {
+                        throw CSProException("You must specify %d dimensions.",
+                                             static_cast<int>(m_dimensions.size()));
+                    }
+
+                    full_array_parser(js_element);
+                }
+
+                ++indices.back();
+            }
+
+            // remove this index entry
+            indices.resize(indices.size() - 1);
+        };
+
+    full_array_parser(js_value);
+
+    // reset all values and then set the defined values
+    Reset();
+
+    for( auto& [index, value] : indices_and_values )
+        impl.Impl<T>::SetValue(index, std::move(value));
 }

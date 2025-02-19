@@ -1,91 +1,119 @@
 ﻿#pragma once
-#include "zParadataO.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+
+namespace Paradata { class FieldEntryInstance;
+                     class FieldInfo;
+                     class FieldOccurrenceInfo;
+                     class FieldValidationInfo;
+                     class FieldValueInfo;
+                     class Log;
+                     class NamedObject; }
+
+
+// --------------------------------------------------------------------------
+// FieldOccurrenceInfo
+// --------------------------------------------------------------------------
+
+class Paradata::FieldOccurrenceInfo
 {
-    class NamedObject;
-    class Log;
+public:
+    FieldOccurrenceInfo(std::vector<size_t> one_based_occurrences);
 
-    class FieldOccurrenceInfo
+    static void SetupTables(Log& log);
+    long Save(Log& log) const;
+
+private:
+    std::vector<size_t> m_oneBasedOccurrences;
+};
+
+
+
+// --------------------------------------------------------------------------
+// FieldInfo
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::FieldInfo
+{
+public:
+    FieldInfo(std::shared_ptr<NamedObject> field, std::vector<size_t> one_based_occurrences);
+
+    static void SetupTables(Log& log);
+    long Save(Log& log) const;
+
+private:
+    std::shared_ptr<NamedObject> m_field;
+    FieldOccurrenceInfo m_fieldOccurrenceInfo;
+};
+
+
+
+// --------------------------------------------------------------------------
+// FieldValueInfo
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::FieldValueInfo
+{
+public:
+    enum class SpecialType
     {
-    private:
-        std::vector<size_t> m_oneBasedOccurrences;
-
-    public:
-        FieldOccurrenceInfo(const std::vector<size_t>& one_based_occurrences);
-
-        static void SetupTables(Log& log);
-        long Save(Log& log) const;
+        NotSpecial,
+        Notappl,
+        Missing,
+        Default,
+        Refused
     };
 
+public:
+    FieldValueInfo(std::shared_ptr<NamedObject> field, SpecialType special_type, std::string value);
 
-    class ZPARADATAO_API FieldInfo
-    {
-    private:
-        std::shared_ptr<NamedObject> m_field;
-        FieldOccurrenceInfo m_fieldOccurrenceInfo;
+    static void SetupTables(Log& log);
+    long Save(Log& log) const;
 
-    public:
-        FieldInfo(std::shared_ptr<NamedObject> field, const std::vector<size_t>& one_based_occurrences);
-
-        static void SetupTables(Log& log);
-        long Save(Log& log) const;
-    };
+private:
+    std::shared_ptr<NamedObject> m_field;
+    SpecialType m_specialType;
+    std::string m_value;
+};
 
 
-    class ZPARADATAO_API FieldValueInfo
-    {
-    public:
-        enum class SpecialType
-        {
-            NotSpecial,
-            Notappl,
-            Missing,
-            Default,
-            Refused
-        };
 
-    private:
-        std::shared_ptr<NamedObject> m_field;
-        SpecialType m_specialType;
-        CString m_value;
+// --------------------------------------------------------------------------
+// FieldValidationInfo
+// --------------------------------------------------------------------------
 
-    public:
-        FieldValueInfo(std::shared_ptr<NamedObject> field, SpecialType special_type, const CString& value);
+class ZPARADATAO_API Paradata::FieldValidationInfo
+{
+public:
+    FieldValidationInfo(std::shared_ptr<NamedObject> field, std::shared_ptr<NamedObject> value_set, bool notappl_allowed,
+                        bool notappl_confirmation, bool out_of_range_allowed, bool out_of_range_confirmation);
 
-        static void SetupTables(Log& log);
-        long Save(Log& log) const;
-    };
-    
+    static void SetupTables(Log& log);
+    long Save(Log& log) const;
 
-    class ZPARADATAO_API FieldValidationInfo
-    {
-    private:
-        std::shared_ptr<NamedObject> m_field;
-        std::shared_ptr<NamedObject> m_valueSet;
-        bool m_notapplAllowed;
-        bool m_notapplConfirmation;
-        bool m_outOfRangeAllowed;
-        bool m_outOfRangeConfirmation;
-
-    public:
-        FieldValidationInfo(std::shared_ptr<NamedObject> field, std::shared_ptr<NamedObject> value_set, bool notappl_allowed,
-            bool notappl_confirmation, bool out_of_range_allowed, bool out_of_range_confirmation);
-
-        static void SetupTables(Log& log);
-        long Save(Log& log) const;
-    };
+private:
+    std::shared_ptr<NamedObject> m_field;
+    std::shared_ptr<NamedObject> m_valueSet;
+    bool m_notapplAllowed;
+    bool m_notapplConfirmation;
+    bool m_outOfRangeAllowed;
+    bool m_outOfRangeConfirmation;
+};
 
 
-    class ZPARADATAO_API FieldEntryInstance
-    {
-        DECLARE_PARADATA_SHARED_PTR_INSTANCE()
 
-    private:
-        std::shared_ptr<FieldInfo> m_fieldInfo;
-        std::optional<long> m_id;
+// --------------------------------------------------------------------------
+// FieldEntryInstance
+// --------------------------------------------------------------------------
 
-    public:
-        FieldEntryInstance(std::shared_ptr<FieldInfo> field_info);
-    };
-}
+class ZPARADATAO_API Paradata::FieldEntryInstance
+{
+    DECLARE_PARADATA_SHARED_PTR_INSTANCE()
+
+public:
+    FieldEntryInstance(std::shared_ptr<FieldInfo> field_info);
+
+private:
+    std::shared_ptr<FieldInfo> m_fieldInfo;
+    std::optional<long> m_id;
+};

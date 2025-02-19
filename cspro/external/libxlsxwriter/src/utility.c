@@ -3,7 +3,8 @@
  *
  * Used in conjunction with the libxlsxwriter library.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -39,6 +40,7 @@ char *error_strings[LXW_MAX_ERRNO + 1] = {
     "Feature is not currently supported in this configuration.",
     "NULL function parameter ignored.",
     "Function parameter validation error.",
+    "Function string parameter is empty.",
     "Worksheet name exceeds Excel's limit of 31 characters.",
     "Worksheet name cannot contain invalid characters: '[ ] : * ? / \\'",
     "Worksheet name cannot start or end with an apostrophe.",
@@ -514,6 +516,16 @@ lxw_str_tolower(char *str)
         str[i] = tolower(str[i]);
 }
 
+/* Simple check for empty strings. */
+uint8_t
+lxw_str_is_empty(const char *str)
+{
+    if (str[0] == '\0')
+        return 1;
+    else
+        return 0;
+}
+
 /* Create a quoted version of the worksheet name, or return an unmodified
  * copy if it doesn't required quoting. */
 char *
@@ -572,7 +584,7 @@ lxw_quote_sheetname(const char *str)
  * version if required for safety or portability.
  */
 FILE *
-lxw_tmpfile(char *tmpdir)
+lxw_tmpfile(const char *tmpdir)
 {
 #ifndef USE_STANDARD_TMPFILE
     return tmpfileplus(tmpdir, NULL, NULL, 0);
@@ -586,7 +598,7 @@ lxw_tmpfile(char *tmpdir)
  * Return a memory-backed file if supported, otherwise a temporary one
  */
 FILE *
-lxw_get_filehandle(char **buf, size_t *size, char *tmpdir)
+lxw_get_filehandle(char **buf, size_t *size, const char *tmpdir)
 {
     static size_t s;
     if (!size)
@@ -633,32 +645,27 @@ lxw_version_id(void)
 }
 
 /*
- * Hash a worksheet password. Based on the algorithm provided by Daniel Rentz
- * of OpenOffice.
+ * Hash a worksheet password. Based on the algorithm in ECMA-376-4:2016,
+ * Office Open XML File Formats - Transitional Migration Features,
+ * Additional attributes for workbookProtection element (Part 1, §18.2.29).
  */
 uint16_t
 lxw_hash_password(const char *password)
 {
-    size_t count;
-    size_t i;
-    uint16_t hash = 0x0000;
+    uint16_t byte_count = (uint16_t) strlen(password);
+    uint16_t hash = 0;
+    const char *p = &password[byte_count];
 
-    count = strlen(password);
+    if (!byte_count)
+        return hash;
 
-    for (i = 0; i < (uint8_t) count; i++) {
-        uint32_t low_15;
-        uint32_t high_15;
-        uint32_t letter = password[i] << (i + 1);
-
-        low_15 = letter & 0x7fff;
-        high_15 = letter & (0x7fff << 15);
-        high_15 = high_15 >> 15;
-        letter = low_15 | high_15;
-
-        hash ^= letter;
+    while (p-- != password) {
+        hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+        hash ^= *p & 0xFF;
     }
 
-    hash ^= count;
+    hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+    hash ^= byte_count;
     hash ^= 0xCE4B;
 
     return hash;

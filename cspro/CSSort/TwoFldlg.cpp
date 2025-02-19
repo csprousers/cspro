@@ -15,169 +15,117 @@
 #include <zUtilO/PathHelpers.h>
 #include <ZBRIDGEO/DataFileDlg.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-namespace
-{
-    CString GetSuggestedOutputFilename(const ConnectionString& connection_string)
-    {
-        ConnectionString suggested_connection_string = PathHelpers::AppendToConnectionStringFilename(connection_string, _T("_sorted"));
-        return suggested_connection_string.IsDefined() ? WS2CS(suggested_connection_string.GetFilename()) : CString();
-    }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-// CTwoFileDialog dialog
-
-
-CTwoFileDialog::CTwoFileDialog(PFF& pff, CString dictionary_filename, CWnd* pParent /*=NULL*/)
-    :   CDialog(CTwoFileDialog::IDD, pParent),
-        m_pff(pff),
-        m_dictionaryFilename(dictionary_filename)
-{
-    if( m_pff.GetSingleInputDataConnectionString().IsDefined() )
-        m_csInFileName = WS2CS(m_pff.GetSingleInputDataConnectionString().ToString());
-
-    if( m_pff.GetSingleOutputDataConnectionString().IsDefined() )
-        m_csOutFileName = WS2CS(m_pff.GetSingleOutputDataConnectionString().ToString());
-}
-
-
-void CTwoFileDialog::DoDataExchange(CDataExchange* pDX)
-{
-    CDialog::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CTwoFileDialog)
-    DDX_Text(pDX, IDC_IN_FILE_NAME, m_csInFileName);
-    DDX_Text(pDX, IDC_OUT_FILE_NAME, m_csOutFileName);
-    //}}AFX_DATA_MAP
-    GetDlgItem(IDOK)->EnableWindow(!SO::IsBlank(m_csInFileName) && !SO::IsBlank(m_csOutFileName));
-}
-
 
 BEGIN_MESSAGE_MAP(CTwoFileDialog, CDialog)
-    //{{AFX_MSG_MAP(CTwoFileDialog)
-    ON_EN_CHANGE(IDC_IN_FILE_NAME, OnChangeFileName)
-    ON_EN_KILLFOCUS(IDC_IN_FILE_NAME, OnKillfocusInFileName)
-    ON_BN_CLICKED(IDC_IN_FILE_BROWSE, OnInFileBrowse)
-    ON_BN_CLICKED(IDC_OUT_FILE_BROWSE, OnOutFileBrowse)
-    ON_EN_CHANGE(IDC_OUT_FILE_NAME, OnChangeFileName)
-    //}}AFX_MSG_MAP
+    ON_EN_CHANGE(IDC_IN_FILE_NAME, OnChangeConnectionString)
+    ON_EN_KILLFOCUS(IDC_IN_FILE_NAME, OnKillFocusInputConnectionString)
+    ON_BN_CLICKED(IDC_IN_FILE_BROWSE, OnInputBrowse)
+    ON_EN_CHANGE(IDC_OUT_FILE_NAME, OnChangeConnectionString)
+    ON_BN_CLICKED(IDC_OUT_FILE_BROWSE, OnOutputBrowse)
 END_MESSAGE_MAP()
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                    CTwoFileDialog::OnChangeFileName
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CTwoFileDialog::OnChangeFileName() {
-
-    UpdateData();
+CTwoFileDialog::CTwoFileDialog(PFF& pff, std::string dictionary_file_path, CWnd* const pParent/* = nullptr*/)
+    :   CDialog(IDD_TWOFILE, pParent),
+        m_pff(pff),
+        m_dictionaryFilePath(std::move(dictionary_file_path)),
+        m_inputConnectionString(m_pff.GetSingleInputDataConnectionString()),
+        m_outputConnectionString(m_pff.GetSingleOutputDataConnectionString())
+{
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                   CTwoFileDialog::OnKillfocusInFileName
-//
-/////////////////////////////////////////////////////////////////////////////
+void CTwoFileDialog::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
 
-void CTwoFileDialog::OnKillfocusInFileName() {
+    DDX_Text(pDX, IDC_IN_FILE_NAME, m_inputConnectionString);
+    DDX_Text(pDX, IDC_OUT_FILE_NAME, m_outputConnectionString);
 
-    UpdateData();
+    GetDlgItem(IDOK)->EnableWindow(( m_inputConnectionString.IsDefined() &&
+                                     m_outputConnectionString.IsDefined() ));
+}
 
-    if( !SO::IsBlank(m_csInFileName) && SO::IsBlank(m_csOutFileName) )
+
+bool CTwoFileDialog::SuggestOutputConnectionString()
+{
+    if( m_inputConnectionString.HasFilePath() && !m_outputConnectionString.IsDefined() )
     {
-        ConnectionString input_connection_string(m_csInFileName);
+        m_outputConnectionString = PathHelpers::AppendToConnectionStringFilename(m_inputConnectionString, "_sorted");
+        return true;
+    }
 
-        if( input_connection_string.IsFilenamePresent() )
-        {
-            m_csOutFileName = GetSuggestedOutputFilename(input_connection_string);
-            UpdateData(FALSE);
-            GotoDlgCtrl((CEdit*) GetDlgItem(IDC_IN_FILE_NAME));
-        }
+    return false;
+}
+
+
+void CTwoFileDialog::OnChangeConnectionString()
+{
+    UpdateData(TRUE);
+}
+
+
+void CTwoFileDialog::OnKillFocusInputConnectionString()
+{
+    UpdateData(TRUE);
+
+    if( SuggestOutputConnectionString() )
+    {
+        UpdateData(FALSE);
+        GotoDlgCtrl(static_cast<CEdit*>(GetDlgItem(IDC_IN_FILE_NAME)));
     }
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                      CTwoFileDialog::OnInFileBrowse
-//
-/////////////////////////////////////////////////////////////////////////////
+void CTwoFileDialog::OnInputBrowse()
+{
+    UpdateData(TRUE);
 
-void CTwoFileDialog::OnInFileBrowse() {
-
-    UpdateData();
-
-    DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, ConnectionString(m_csInFileName));
-    data_file_dlg.SetDictionaryFilename(m_dictionaryFilename);
+    DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, m_inputConnectionString);
+    data_file_dlg.SetDictionaryFilePath(m_dictionaryFilePath);
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
 
-    m_csInFileName = WS2CS(data_file_dlg.GetConnectionString().ToString());
-
-    if( SO::IsBlank(m_csOutFileName) )
-        m_csOutFileName = GetSuggestedOutputFilename(data_file_dlg.GetConnectionString());
+    m_inputConnectionString = data_file_dlg.GetConnectionString();
+    SuggestOutputConnectionString();
 
     UpdateData(FALSE);
-    GotoDlgCtrl((CEdit*) GetDlgItem(IDC_OUT_FILE_NAME));
+    GotoDlgCtrl(static_cast<CEdit*>(GetDlgItem(IDC_OUT_FILE_NAME)));
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                    CTwoFileDialog::OnOutFileBrowse
-//
-/////////////////////////////////////////////////////////////////////////////
+void CTwoFileDialog::OnOutputBrowse()
+{
+    UpdateData(TRUE);
 
-void CTwoFileDialog::OnOutFileBrowse() {
-
-    UpdateData();
-
-    DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false, ConnectionString(m_csOutFileName));
-    data_file_dlg.SetDictionaryFilename(m_dictionaryFilename)
-                 .SuggestMatchingDataRepositoryType(ConnectionString(m_csInFileName))
+    DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false, m_outputConnectionString);
+    data_file_dlg.SetDictionaryFilePath(m_dictionaryFilePath)
+                 .SuggestMatchingDataRepositoryType(m_inputConnectionString)
                  .WarnIfDifferentDataRepositoryType();
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
 
-    m_csOutFileName = WS2CS(data_file_dlg.GetConnectionString().ToString());
+    m_outputConnectionString = data_file_dlg.GetConnectionString();
 
     UpdateData(FALSE);
-    GotoDlgCtrl((CEdit*) GetDlgItem(IDC_OUT_FILE_NAME));
+    GotoDlgCtrl(static_cast<CEdit*>(GetDlgItem(IDC_OUT_FILE_NAME)));
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CTwoFileDialog::OnOK
-//
-/////////////////////////////////////////////////////////////////////////////
+void CTwoFileDialog::OnOK()
+{
+    UpdateData(TRUE);
 
-void CTwoFileDialog::OnOK() {
-
-    UpdateData();
-
-    ConnectionString input_connection_string(m_csInFileName);
-    ConnectionString output_connection_string(m_csOutFileName);
-
-    if( input_connection_string.IsFilenamePresent() && input_connection_string.Equals(output_connection_string) )
+    if( m_inputConnectionString.SharesResource(m_outputConnectionString) )
     {
-        AfxMessageBox(_T("The output file name cannot be the same as the input file name."), MB_OK | MB_ICONEXCLAMATION);
+        AfxMessageBox(L"The output data source cannot be the same as the input file data source.", MB_OK | MB_ICONEXCLAMATION);
         return;
     }
 
-    m_pff.SetSingleInputDataConnectionString(input_connection_string);
-    m_pff.SetSingleOutputDataConnectionString(output_connection_string);
+    m_pff.SetSingleInputDataConnectionString(std::move(m_inputConnectionString));
+    m_pff.SetSingleOutputDataConnectionString(std::move(m_outputConnectionString));
 
-    CDialog::OnOK();
+    __super::OnOK();
 }

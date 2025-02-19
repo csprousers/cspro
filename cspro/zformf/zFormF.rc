@@ -110,8 +110,7 @@ BEGIN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_CSPRO_SAVE
         MENUITEM "Save &As...",                 ID_FILE_CSPRO_SAVE_AS
         MENUITEM SEPARATOR
-        MENUITEM "Add &Files...",               ID_FILE_ADD_FILE
-        MENUITEM "&Drop Files...",              ID_FILE_DROP_FILE
+        MENUITEM "Manage Application &Files...", ID_FILE_MANAGE_FILES
         MENUITEM SEPARATOR
         MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
         MENUITEM SEPARATOR
@@ -166,7 +165,7 @@ BEGIN
     END
     POPUP "&Options"
     BEGIN
-        MENUITEM "Application Properties",      ID_OPTIONS_PROPERTIES
+        MENUITEM "Application Properties",      ID_OPTIONS_APPLICATION_PROPERTIES
         MENUITEM SEPARATOR
         MENUITEM "Data &Entry",                 ID_EDIT_OPTIONS
         MENUITEM "&Drag",                       ID_EDIT_DRAGOPTS
@@ -247,7 +246,7 @@ BEGIN
     END
     POPUP "&Tools"
     BEGIN
-        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Data Manager",               ID_TOOLS_DATAMANAGER
         MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
         MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
         MENUITEM SEPARATOR
@@ -996,25 +995,21 @@ BEGIN
     LTEXT           "Current",IDC_STATIC,17,31,26,8
 END
 
-IDD_SYNC_PARAMS_DIALOG DIALOGEX 0, 0, 311, 150
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SYNC_PARAMS DIALOGEX 0, 0, 513, 222
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
 CAPTION "Synchronization Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Server",IDC_STATIC,7,22,297,65
-    CONTROL         "CSWeb",IDC_CSWEB,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,36,39,10
-    CONTROL         "Dropbox",IDC_DROPBOX,"Button",BS_AUTORADIOBUTTON,139,36,43,10
-    CONTROL         "FTP",IDC_FTP,"Button",BS_AUTORADIOBUTTON,267,36,28,10
-    LTEXT           "URL:",IDC_STATIC_URL,15,53,35,8
-    EDITTEXT        IDC_EDIT_URL,61,50,235,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Test connection...",IDC_TEST_CONNECTION,15,67,78,14
-    GROUPBOX        "Sync",IDC_STATIC,7,89,297,34
-    LTEXT           "Synchronize main data file:",IDC_STATIC,15,104,90,8
-    COMBOBOX        IDC_COMBO_DIRECTION,111,102,129,70,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,136,129,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,195,129,50,14
-    PUSHBUTTON      "&Help",ID_HELP,254,129,50,14
-    CONTROL         "Enable synchronization",IDC_CHECKBOX_ENABLE_SYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,295,10
+    DEFPUSHBUTTON   "OK",IDOK,160,201,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,231,201,50,14
+    PUSHBUTTON      "&Help",ID_HELP,302,201,50,14
+    CONTROL         "Enable simple synchronization",IDC_CHECKBOX_ENABLE_SYNC,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,111,10
+    GROUPBOX        "Synchronization Service",IDC_STATIC,7,22,499,129
+    LTEXT           "SyncServiceSelectorDlg",IDC_SYNC_SERVICE,15,36,483,92,WS_BORDER
+    PUSHBUTTON      "Test Connection...",IDC_TEST_CONNECTION,420,132,78,14
+    GROUPBOX        "Synchronization Direction",IDC_STATIC,7,157,499,34
+    COMBOBOX        IDC_COMBO_DIRECTION,15,170,151,70,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_DATA_SOURCE_OPTIONS_DLG DIALOGEX 0, 0, 241, 157
@@ -1240,12 +1235,12 @@ BEGIN
         BOTTOMMARGIN, 74
     END
 
-    IDD_SYNC_PARAMS_DIALOG, DIALOG
+    IDD_SYNC_PARAMS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 304
+        RIGHTMARGIN, 506
         TOPMARGIN, 7
-        BOTTOMMARGIN, 143
+        BOTTOMMARGIN, 215
     END
 
     IDD_DATA_SOURCE_OPTIONS_DLG, DIALOG
@@ -1317,17 +1312,18 @@ BEGIN
     0
 END
 
-IDD_SYNC_PARAMS_DIALOG DLGINIT
+IDD_SYNC_PARAMS DLGINIT
 BEGIN
-    IDC_COMBO_DIRECTION, 0x403, 25, 0
+    IDC_COMBO_DIRECTION, 0x403, 31, 0
 0x7055, 0x6f6c, 0x6461, 0x6320, 0x6168, 0x676e, 0x7365, 0x7420, 0x206f, 
-0x6573, 0x7672, 0x7265, "\000" 
-    IDC_COMBO_DIRECTION, 0x403, 29, 0
+0x6573, 0x7672, 0x7265, 0x2820, 0x5550, 0x2954, "\000" 
+    IDC_COMBO_DIRECTION, 0x403, 35, 0
 0x6f44, 0x6e77, 0x6f6c, 0x6461, 0x6320, 0x6168, 0x676e, 0x7365, 0x6620, 
-0x6f72, 0x206d, 0x6573, 0x7672, 0x7265, "\000" 
-    IDC_COMBO_DIRECTION, 0x403, 30, 0
+0x6f72, 0x206d, 0x6573, 0x7672, 0x7265, 0x2820, 0x4547, 0x2954, "\000" 
+    IDC_COMBO_DIRECTION, 0x403, 37, 0
 0x7953, 0x636e, 0x6c20, 0x636f, 0x6c61, 0x6120, 0x646e, 0x7220, 0x6d65, 
-0x746f, 0x2065, 0x6863, 0x6e61, 0x6567, 0x0073, 
+0x746f, 0x2065, 0x6863, 0x6e61, 0x6567, 0x2073, 0x4228, 0x544f, 0x2948, 
+"\000" 
     0
 END
 
@@ -1415,22 +1411,17 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_SYNC_PARAMS_DIALOG AFX_DIALOG_LAYOUT
+IDD_SYNC_PARAMS AFX_DIALOG_LAYOUT
 BEGIN
     0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 0, 0,
     0, 0, 100, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
     0, 0, 100, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 0,
     0, 0, 0, 0
 END
 
@@ -1507,6 +1498,14 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FORMAT_OUTLINE_NUM   "Use numbering for this paragraph\nNumbered"
+    ID_FORMAT_OUTLINE_NUMBER "Use numbering for this paragraph\nNumbering"
+    ID_FORMAT_UNDERLINE     "Make the selection underline (toggle)\nUnderline"
+    ID_FRM_EDIT_FIND        "Find the specified text\nFind"
+    ID_GENERATE_FRM         "Generate a set of forms based on the dictionary\nGenerate"
+    ID_GLOBALFONT           "Change default text font"
+    ID_GO                   "Run the data entry application\nRun"
+    ID_INSERT_LINK          "Insert a hyperlink\nLink"
     ID_INSERT_TABLE         "Insert a table\nTable"
     ID_LAYOUT_ALIGN_LEFT    "Line up selected items to the left-most item"
     ID_LAYOUT_ALIGN_RIGHT   "Line up selected items to the right-most item"
@@ -1516,24 +1515,32 @@ BEGIN
                             "Line up selected items to the horizontal center of selection"
     ID_LAYOUT_HORIZONTALLY_SPACE_EVENLY 
                             "Space evenly horizontally selected items within selection"
-    ID_LAYOUT_VERTICALLY_CENTER 
-                            "Line up selected items to the vertical center of selection"
+END
+
+STRINGTABLE
+BEGIN
     ID_LAYOUT_VERTICALLY_SPACE_EVENLY 
                             "Space evenly vertically selected items within selection"
+    ID_LAYOUT_VERTICALLY_CENTER 
+                            "Line up selected items to the vertical center of selection"
     ID_OPTIONS_DATA_SOURCES "Change data source options"
     ID_OPTIONS_FIELD_PROPERTIES "Change options for all fields on the form"
     ID_OPTIONS_MAPPING      "Set mapping options"
     ID_OPTIONS_SYNCHRONIZATION "Set synchronization options"
     ID_QSF_EDITOR           "View currently-selected CAPI Questions\nCAPI Questions"
     ID_QSF_EDITOR_VIEW_CODE "Edit HTML code\nCode"
+    ID_REPLACE              "Replace"
+    ID_RUNAS_BCH            "Run data entry application as a batch edit"
+    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
 END
 
 STRINGTABLE
 BEGIN
-    ID_REPLACE              "Replace"
-    ID_RUNAS_BCH            "Run data entry application as a batch edit"
-    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
     ID_SELITEMS_FROMTB      "Return to tracker mode\nSelect items"
+    ID_DRAW_ETCHED          "Draw a box with an etched border\nEtched border"
+    ID_DRAW_RAISED          "Draw a box with a raised border\nRaised border"
+    ID_DRAW_THINBOX         "Draw a box with a thin border\nThin border"
+    ID_DRAW_THICKBOX        "Draw a box with a wide border\nThick border"
     ID_TEXT_DIR_LTR         "Change text direction to left-to-right\nText direction: LTR"
     ID_TEXT_DIR_RTL         "Change text direction to right-to-left\nText direction: RTL"
     ID_TOGGLE_QN            "Toggle between question and help text\n(this tooltip text is determined dynamically)"
@@ -1544,41 +1551,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_LEVELPROP       "Level Properties \n Level Properties"
-    ID_EDIT_OPTIONS         "Change options for the data entry application"
-    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
-    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
-    ID_FIELDFONT            "Change field font"
-    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
-    ID_FILE_PUBLISHANDDEPLOY 
-                            "Deploy application to server\nPublish and Deploy"
-    ID_FIND_NEXT            "Find Next\n Find Next"
-    ID_FORMAT_ALIGNCENTER   "Center this paragraph\nCenter"
-END
-
-STRINGTABLE
-BEGIN
-    ID_FORMAT_ALIGNLEFT     "Left justify this paragraph\nLeft"
-    ID_FORMAT_ALIGNRIGHT    "Right justify this paragraph\nRight"
-    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
-    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
-    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
-    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
-    ID_FORMAT_OUTLINE_NUM   "Use numbering for this paragraph\nNumbered"
-    ID_FORMAT_OUTLINE_NUMBER "Use numbering for this paragraph\nNumbering"
-    ID_FORMAT_UNDERLINE     "Make the selection underline (toggle)\nUnderline"
-    ID_FRM_EDIT_FIND        "Find the specified text\nFind"
-    ID_GENERATE_FRM         "Generate a set of forms based on the dictionary\nGenerate"
-    ID_GLOBALFONT           "Change default text font"
-    ID_GO                   "Run the data entry application\nRun"
-    ID_INSERT_LINK          "Insert a hyperlink\nLink"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_BLOCKPROP       "Edit the properties for the selected block\nBlock Properties"
-    ID_EDIT_CAPI_STYLES     "Edit question text styles\nEdit CAPI Styles"
-    ID_EDIT_COLUMNPROP      "Edit the current column's properties\nColumn Properties"
     ID_EDIT_DEL             "Deletes currently selected item(s)"
     ID_EDIT_DRAGOPTS        "Change options for dragging things from dictionary"
     ID_EDIT_FFPROP          "Edit the current form file properties\nForm File Properties"
@@ -1587,6 +1559,26 @@ BEGIN
     ID_EDIT_GRIDPROP        "Edit the properties for the selected roster\nRoster Properties"
     ID_EDIT_INS             "Insert "
     ID_EDIT_INSERT_IMAGE    "Insert an image from a file\nImage"
+    ID_EDIT_LEVELPROP       "Level Properties \n Level Properties"
+    ID_EDIT_OPTIONS         "Change options for the data entry application"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
+    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
+    ID_FIELDFONT            "Change field font"
+    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
+    ID_FILE_PUBLISHANDDEPLOY 
+                            "Deploy application to synchronization service\nPublish and Deploy"
+    ID_FIND_NEXT            "Find Next\n Find Next"
+    ID_FORMAT_ALIGNCENTER   "Center this paragraph\nCenter"
+    ID_FORMAT_ALIGNLEFT     "Left justify this paragraph\nLeft"
+    ID_FORMAT_ALIGNRIGHT    "Right justify this paragraph\nRight"
+    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
+    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
+    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
+    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
 END
 
 STRINGTABLE
@@ -1599,10 +1591,9 @@ BEGIN
     ID_COMPILE              "Compile code\nCompile"
     ID_DELETE_FORM          "Delete the currently displayed form\nDelete Form"
     ID_DELETE_ITEM          "Delete the currently selected item(s)\nDelete"
-    ID_DRAW_ETCHED          "Draw a box with an etched border\nEtched border"
-    ID_DRAW_RAISED          "Draw a box with a raised border\nRaised border"
-    ID_DRAW_THICKBOX        "Draw a box with a wide border\nThick border"
-    ID_DRAW_THINBOX         "Draw a box with a thin border\nThin border"
+    ID_EDIT_BLOCKPROP       "Edit the properties for the selected block\nBlock Properties"
+    ID_EDIT_CAPI_STYLES     "Edit question text styles\nEdit CAPI Styles"
+    ID_EDIT_COLUMNPROP      "Edit the current column's properties\nColumn Properties"
 END
 
 STRINGTABLE
@@ -1623,12 +1614,9 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_CUSTOMFONT          "U&se custom font (%s)"
-    IDS_DEFAULTFONT         "&Use default font (%s)"
     IDS_GRIDTEXTMSG1        "Do you want to put this %s in every %s of the grid, or just in the current cell?"
     IDS_GRIDTEXTMSG2        "&Put %s in every %s cell of the grid"
     IDS_GRIDTEXTMSG3        "P&ut %s just in this cell"
-    IDS_SYSTEMFONT          "&Reset to system default font (%s)"
 END
 
 STRINGTABLE

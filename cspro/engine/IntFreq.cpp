@@ -4,12 +4,12 @@
 #include "FrequencyDriver.h"
 #include <zEngineO/NamedFrequency.h>
 #include <zEngineO/Report.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineO/WorkString.h>
 #include <zEngineO/WorkVariable.h>
 #include <zEngineO/Nodes/Frequency.h>
 #include <zEngineF/EngineUI.h>
 #include <zJson/Json.h>
+#include <zHtml/HtmlWriter.h>
 #include <ZBRIDGEO/npff.h>
 #include <zFreqO/ExcelFrequencyPrinter.h>
 #include <zFreqO/Frequency.h>
@@ -29,35 +29,35 @@
 
 namespace
 {
-    std::vector<std::wstring> EvaluateDynamicHeadings(CIntDriver* int_driver, int heading_expressions_list_node_index)
+    std::vector<std::string> EvaluateDynamicHeadings(CIntDriver& interpreter, const int heading_expressions_list_node_index)
     {
-        const auto& heading_expressions_list_node = int_driver->GetListNode(heading_expressions_list_node_index);
+        const auto& heading_expressions_list_node = interpreter.GetListNode(heading_expressions_list_node_index);
         ASSERT(heading_expressions_list_node.number_elements > 0);
 
-        std::vector<std::wstring> headings;
+        std::vector<std::string> headings;
 
         for( int i = 0; i < heading_expressions_list_node.number_elements; ++i )
-            headings.emplace_back(int_driver->EvalAlphaExpr(heading_expressions_list_node.elements[i]));
+            headings.emplace_back(interpreter.EvaluateString(heading_expressions_list_node.elements[i]));
 
         return headings;
     }
 
-    FrequencyPrinterOptions EvaluateDynamicFrequencyPrinterOptions(CIntDriver* int_driver, const Frequency& frequency, int frequency_parameters_node_index)
+    FrequencyPrinterOptions EvaluateDynamicFrequencyPrinterOptions(CIntDriver& interpreter, const Frequency& frequency, const int frequency_parameters_node_index)
     {
         FrequencyPrinterOptions frequency_printer_options = frequency.GetFrequencyPrinterOptions();
         frequency_printer_options.SetPrioritizeCurrentValueSet();
 
         if( frequency_parameters_node_index != -1 )
         {
-            const auto& frequency_parameters_node = int_driver->GetNode<Nodes::FrequencyParameters>(frequency_parameters_node_index);
+            const auto& frequency_parameters_node = interpreter.GetNode<Nodes::FrequencyParameters>(frequency_parameters_node_index);
 
             frequency_printer_options.ApplyFrequencyParametersNode(frequency_parameters_node);
 
             if( frequency_parameters_node.heading_expressions_list_node != -1 )
-                frequency_printer_options.SetHeadings(EvaluateDynamicHeadings(int_driver, frequency_parameters_node.heading_expressions_list_node));
+                frequency_printer_options.SetHeadings(EvaluateDynamicHeadings(interpreter, frequency_parameters_node.heading_expressions_list_node));
 
             if( frequency_parameters_node.value_sets_list_node != -1 )
-                frequency_printer_options.SetValueSetSymbolIndices(int_driver->GetListNodeContents(frequency_parameters_node.value_sets_list_node));
+                frequency_printer_options.SetValueSetSymbolIndices(interpreter.GetListNodeContents(frequency_parameters_node.value_sets_list_node));
         }
 
         return frequency_printer_options;
@@ -144,7 +144,7 @@ private:
 class MultiplyOccurringItemFrequencyApplicabilityEvaluator : public EngineFrequencyApplicabilityEvaluator
 {
 public:
-    MultiplyOccurringItemFrequencyApplicabilityEvaluator(CIntDriver* pIntDriver, const VART* pVarT)
+    MultiplyOccurringItemFrequencyApplicabilityEvaluator(CIntDriver* pIntDriver, const VART* const pVarT)
         :   m_pVarT(pVarT),
             m_pIntDriver(pIntDriver),
             m_iteratorMakeCalled(false),
@@ -170,7 +170,7 @@ public:
         }
     }
 
-    bool SharesParentGroups(const VART* pVarT) const
+    bool SharesParentGroups(const VART* const pVarT) const
     {
         if( m_pVarT->GetNumDim() != pVarT->GetNumDim() )
             return false;
@@ -210,7 +210,7 @@ public:
     std::tuple<size_t, size_t> GetRecordOccurrences() const
     {
         ASSERT(m_iteratorMakeCalled && m_iteratorWasApplicable);
-        return std::make_tuple((size_t)m_iterator.GetLow(0), (size_t)m_iterator.GetHigh(0));
+        return std::make_tuple(static_cast<size_t>(m_iterator.GetLow(0)), static_cast<size_t>(m_iterator.GetHigh(0)));
     }
 
     std::tuple<size_t, size_t> GetItemSubitemOccurrences(int dimension) const
@@ -218,13 +218,13 @@ public:
         ASSERT(m_iteratorMakeCalled && m_iteratorWasApplicable);
         ASSERT(m_iterator.GetLow(3 - dimension) == 0 && m_iterator.GetHigh(3 - dimension) == 0);
 
-        return std::make_tuple((size_t)m_iterator.GetLow(dimension), (size_t)m_iterator.GetHigh(dimension));
+        return std::make_tuple(static_cast<size_t>(m_iterator.GetLow(dimension)), static_cast<size_t>(m_iterator.GetHigh(dimension)));
     }
 
 
 private:
-    const VART* m_pVarT;
-    CIntDriver* m_pIntDriver;
+    const VART* const m_pVarT;
+    CIntDriver* const m_pIntDriver;
     MVAR_NODE m_cMVarNode;
     CIterator m_iterator;
     bool m_iteratorMakeCalled;
@@ -246,11 +246,11 @@ public:
 
     virtual void ClearTallies() = 0;
 
-    virtual FrequencyCounter<double, double>& GetNumericSingleFrequencyCounter() { throw ProgrammingErrorException(); }
-    virtual FrequencyCounter<std::wstring, double>& GetStringSingleFrequencyCounter() { throw ProgrammingErrorException(); }
+    virtual FrequencyCounter<double, double>& GetNumericSingleFrequencyCounter()     { throw ProgrammingErrorException(); }
+    virtual FrequencyCounter<std::string, double>& GetStringSingleFrequencyCounter() { throw ProgrammingErrorException(); }
 
-    virtual std::vector<std::shared_ptr<FrequencyPrinterEntry<double, double>>> GetNumericFrequencyPrinterEntries() const { return { }; }
-    virtual std::vector<std::shared_ptr<FrequencyPrinterEntry<std::wstring, double>>> GetStringFrequencyPrinterEntries() const { return { }; }
+    virtual std::vector<std::shared_ptr<FrequencyPrinterEntry<double, double>>> GetNumericFrequencyPrinterEntries() const     { return { }; }
+    virtual std::vector<std::shared_ptr<FrequencyPrinterEntry<std::string, double>>> GetStringFrequencyPrinterEntries() const { return { }; }
 };
 
 
@@ -261,8 +261,8 @@ public:
 
 namespace
 {
-    inline size_t TallyStringVariable(const std::wstring& value, const double& weight, const std::optional<int>& breakdown,
-                                      FrequencyCounter<std::wstring, double>& frequency_counter)
+    inline size_t TallyStringVariable(const std::string& value, const double& weight, const std::optional<int>& breakdown,
+                                      FrequencyCounter<std::string, double>& frequency_counter)
     {
         if( !breakdown.has_value() )
         {
@@ -272,17 +272,17 @@ namespace
 
         else
         {
-            wstring_view value_sv = value;
+            std::string_view value_sv = value;
             size_t values_tallied = 0;
 
             while( !value_sv.empty() )
             {
-                size_t this_value_length = std::min(value_sv.length(), static_cast<size_t>(*breakdown));
+                const size_t this_value_length = std::min(SO::WideLength(value_sv), static_cast<size_t>(*breakdown));
 
-                frequency_counter.Add(value_sv.substr(0, this_value_length), weight);
+                frequency_counter.Add(std::string(SO::WideSubstring(value_sv, 0, this_value_length)), weight);
                 ++values_tallied;
 
-                value_sv = value_sv.substr(this_value_length);
+                value_sv = SO::WideSubstring(value_sv, this_value_length);
             }
 
             return values_tallied;
@@ -299,7 +299,7 @@ namespace
 class WorkVariableFrequencyEntry : public EngineFrequencyEntry
 {
 public:
-    WorkVariableFrequencyEntry(const Logic::SymbolTable& symbol_table, int symbol_index)
+    WorkVariableFrequencyEntry(const Logic::SymbolTable& symbol_table, const int symbol_index)
         :   m_symbolTable(symbol_table),
             m_symbolIndex(symbol_index),
             m_frequencyCounter(FrequencyCounter<double, double>::Create())
@@ -330,7 +330,7 @@ public:
     {
         const WorkVariable& work_variable = GetSymbolWorkVariable(m_symbolIndex);
 
-        return { std::make_shared<FrequencyPrinterEntry<double, double>>(m_frequencyCounter, work_variable.GetName()) };
+        return { std::make_unique<FrequencyPrinterEntry<double, double>>(m_frequencyCounter, work_variable.GetName()) };
     }
 
 private:
@@ -351,11 +351,11 @@ private:
 class WorkStringFrequencyEntry : public EngineFrequencyEntry
 {
 public:
-    WorkStringFrequencyEntry(const Logic::SymbolTable& symbol_table, int symbol_index, const FrequencyEntry& frequency_entry)
+    WorkStringFrequencyEntry(const Logic::SymbolTable& symbol_table, const int symbol_index, const FrequencyEntry& frequency_entry)
         :   m_symbolTable(symbol_table),
             m_symbolIndex(symbol_index),
             m_breakdown(frequency_entry.breakdown),
-            m_frequencyCounter(FrequencyCounter<std::wstring, double>::Create())
+            m_frequencyCounter(FrequencyCounter<std::string, double>::Create())
     {
         ASSERT(NPT_Ref(m_symbolIndex).IsA(SymbolType::WorkString));
     };
@@ -372,16 +372,16 @@ public:
         m_frequencyCounter->ClearCounts();
     }
 
-    FrequencyCounter<std::wstring, double>& GetStringSingleFrequencyCounter() override
+    FrequencyCounter<std::string, double>& GetStringSingleFrequencyCounter() override
     {
         return *m_frequencyCounter;
     }
 
-    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::wstring, double>>> GetStringFrequencyPrinterEntries() const override
+    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::string, double>>> GetStringFrequencyPrinterEntries() const override
     {
         const WorkString& work_string = GetSymbolWorkString(m_symbolIndex);
 
-        return { std::make_shared<FrequencyPrinterEntry<std::wstring, double>>(m_frequencyCounter, work_string.GetName()) };
+        return { std::make_unique<FrequencyPrinterEntry<std::string, double>>(m_frequencyCounter, work_string.GetName()) };
     }
 
 private:
@@ -389,9 +389,9 @@ private:
 
 private:
     const Logic::SymbolTable& m_symbolTable;
-    int m_symbolIndex;
-    std::optional<int> m_breakdown;
-    std::shared_ptr<FrequencyCounter<std::wstring, double>> m_frequencyCounter;
+    const int m_symbolIndex;
+    const std::optional<int> m_breakdown;
+    const std::shared_ptr<FrequencyCounter<std::string, double>> m_frequencyCounter;
 };
 
 
@@ -450,14 +450,14 @@ public:
     SinglyOccurringStringVariableFrequencyEntry(CIntDriver* pIntDriver, const VART* pVarT, const FrequencyEntry& frequency_entry)
         :   m_pVarT(pVarT),
             m_breakdown(frequency_entry.breakdown),
-            m_frequencyCounter(FrequencyCounter<std::wstring, double>::Create(pVarT->GetDictItem()))
+            m_frequencyCounter(FrequencyCounter<std::string, double>::Create(pVarT->GetDictItem()))
     {
         m_variableBuffer = pIntDriver->GetSingVarAsciiAddr(const_cast<VART*>(m_pVarT));
     };
 
     size_t Tally(const double& weight) override
     {
-        return TallyStringVariable(std::wstring(m_variableBuffer, m_pVarT->GetLength()), weight, m_breakdown, *m_frequencyCounter);
+        return TallyStringVariable(UTF8_TODO::GetUtf8(std::wstring_view(m_variableBuffer, m_pVarT->GetLength())), weight, m_breakdown, *m_frequencyCounter);
     }
 
     void ClearTallies() override
@@ -465,22 +465,22 @@ public:
         m_frequencyCounter->ClearCounts();
     }
 
-    FrequencyCounter<std::wstring, double>& GetStringSingleFrequencyCounter() override
+    FrequencyCounter<std::string, double>& GetStringSingleFrequencyCounter() override
     {
         return *m_frequencyCounter;
     }
 
-    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::wstring, double>>> GetStringFrequencyPrinterEntries() const override
+    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::string, double>>> GetStringFrequencyPrinterEntries() const override
     {
-        return { std::make_shared<FrequencyPrinterEntry<std::wstring, double>>(m_frequencyCounter, *m_pVarT->GetDictItem(),
-                                                                               m_pVarT->GetCurrentDictValueSet(), std::nullopt, std::nullopt) };
+        return { std::make_unique<FrequencyPrinterEntry<std::string, double>>(m_frequencyCounter, *m_pVarT->GetDictItem(),
+                                                                              m_pVarT->GetCurrentDictValueSet(), std::nullopt, std::nullopt) };
     }
 
 private:
     const VART* m_pVarT;
     const TCHAR* m_variableBuffer;
-    std::optional<int> m_breakdown;
-    std::shared_ptr<FrequencyCounter<std::wstring, double>> m_frequencyCounter;
+    const std::optional<int> m_breakdown;
+    const std::shared_ptr<FrequencyCounter<std::string, double>> m_frequencyCounter;
 };
 
 
@@ -493,7 +493,7 @@ template<typename T>
 class MultiplyOccurringVariableFrequencyEntry : public EngineFrequencyEntry
 {
 public:
-    MultiplyOccurringVariableFrequencyEntry(CIntDriver* pIntDriver, const VART* pVarT, const FrequencyEntry& frequency_entry,
+    MultiplyOccurringVariableFrequencyEntry(CIntDriver* pIntDriver, const VART* const pVarT, const FrequencyEntry& frequency_entry,
         MultiplyOccurringItemFrequencyApplicabilityEvaluator& multiply_occurring_item_evaluator)
         :   m_pIntDriver(pIntDriver),
             m_pVarT(pVarT),
@@ -533,7 +533,7 @@ public:
 
         for( size_t occurrence_details_index = 0; occurrence_details_index < m_frequencyEntry.occurrence_details.size(); ++occurrence_details_index )
         {
-            const auto& occurrence_details = m_frequencyEntry.occurrence_details[occurrence_details_index];
+            const FrequencyEntry::OccurrenceDetails& occurrence_details = m_frequencyEntry.occurrence_details[occurrence_details_index];
 
             // if an implicit record occurrence is used, we need to evaluate the valid
             // occurrences and potentially skip this entry
@@ -542,9 +542,9 @@ public:
                if( !m_multiplyOccurringItemEvaluator.IsIteratorApplicable() )
                     continue;
 
-                const auto& record_occurrences = m_multiplyOccurringItemEvaluator.GetRecordOccurrences();
+                const auto [min_record_occurrence, max_record_occurrence] = m_multiplyOccurringItemEvaluator.GetRecordOccurrences();
 
-                for( size_t record_occurrence = std::get<0>(record_occurrences); record_occurrence <= std::get<1>(record_occurrences); ++record_occurrence )
+                for( size_t record_occurrence = min_record_occurrence; record_occurrence <= max_record_occurrence; ++record_occurrence )
                     TallyRecordOccurrence(weight, occurrence_details_index, record_occurrence, values_tallied);
             }
 
@@ -554,7 +554,7 @@ public:
                 static_assert(FrequencySetting::IncludeAllRecordOccurrencesWhenDisjoint);
                 ASSERT(!occurrence_details.record_occurrences_to_explicitly_display.empty());
 
-                for( size_t record_occurrence : occurrence_details.record_occurrences_to_explicitly_display )
+                for( const size_t record_occurrence : occurrence_details.record_occurrences_to_explicitly_display )
                     TallyRecordOccurrence(weight, occurrence_details_index, record_occurrence, values_tallied);
             }
         }
@@ -563,30 +563,30 @@ public:
     }
 
     private:
-        void TallyRecordOccurrence(const double& weight, size_t occurrence_details_index, size_t record_occurrence, size_t& values_tallied)
+        void TallyRecordOccurrence(const double& weight, const size_t occurrence_details_index, const size_t record_occurrence, size_t& values_tallied)
         {
-            const auto& occurrence_details = m_frequencyEntry.occurrence_details[occurrence_details_index];
+            const FrequencyEntry::OccurrenceDetails& occurrence_details = m_frequencyEntry.occurrence_details[occurrence_details_index];
             auto& frequency_counters = m_perOccurrenceFrequencyCounters[occurrence_details_index];
-            size_t frequency_counter_index = occurrence_details.combine_record_occurrences ? 0 : record_occurrence;
+            const size_t frequency_counter_index = occurrence_details.combine_record_occurrences ? 0 : record_occurrence;
 
             ASSERT(frequency_counter_index < frequency_counters.size());
             auto& frequency_counter = frequency_counters[frequency_counter_index];
             ASSERT(frequency_counter != nullptr);
 
-            m_theIndex.setIndexValue(0, (int)record_occurrence);
+            m_theIndex.setIndexValue(0, static_cast<int>(record_occurrence));
 
             auto execute_tally = [&]
             {
                 if constexpr(std::is_same_v<T, double>)
                 {
-                    T value = m_pIntDriver->GetMultVarFloatValue(const_cast<VART*>(m_pVarT), m_theIndex);
+                    const double value = m_pIntDriver->GetMultVarFloatValue(const_cast<VART*>(m_pVarT), m_theIndex);
                     frequency_counter->Add(value, weight);
                     ++values_tallied;
                 }
 
                 else
                 {
-                    T value(m_pIntDriver->GetMultVarAsciiAddr(const_cast<VART*>(m_pVarT), m_theIndex), m_pVarT->GetLength());
+                    const std::string value(UTF8_TODO::GetUtf8(std::wstring_view(m_pIntDriver->GetMultVarAsciiAddr(const_cast<VART*>(m_pVarT), m_theIndex), m_pVarT->GetLength())));
                     values_tallied += TallyStringVariable(value, weight, m_frequencyEntry.breakdown, *frequency_counter);
                 }
             };
@@ -603,18 +603,18 @@ public:
                 // if a specific item/subitem occurrence was specified, it will always be evaluated
                 if( occurrence_details.min_item_subitem_occurrence == occurrence_details.max_item_subitem_occurrence )
                 {
-                    m_theIndex.setIndexValue(*m_itemSubitemOccurrencesIndex, (int)occurrence_details.min_item_subitem_occurrence);
+                    m_theIndex.setIndexValue(*m_itemSubitemOccurrencesIndex, static_cast<int>(occurrence_details.min_item_subitem_occurrence));
                     execute_tally();
                 }
 
                 // otherwise evaluate the valid item/subitem occurrences
                 else if( m_multiplyOccurringItemEvaluator.IsIteratorApplicable() )
                 {
-                    std::tuple<size_t, size_t> item_subitem_occurrences = m_multiplyOccurringItemEvaluator.GetItemSubitemOccurrences(*m_itemSubitemOccurrencesIndex);
+                    const auto [min_item_subitem_occurrences, max_item_subitem_occurrences] = m_multiplyOccurringItemEvaluator.GetItemSubitemOccurrences(*m_itemSubitemOccurrencesIndex);
 
-                    for( size_t item_subitem_occurrence = std::get<0>(item_subitem_occurrences); item_subitem_occurrence <= std::get<1>(item_subitem_occurrences); ++item_subitem_occurrence )
+                    for( size_t item_subitem_occurrence = min_item_subitem_occurrences; item_subitem_occurrence <= max_item_subitem_occurrences; ++item_subitem_occurrence )
                     {
-                        m_theIndex.setIndexValue(*m_itemSubitemOccurrencesIndex, (int)item_subitem_occurrence);
+                        m_theIndex.setIndexValue(*m_itemSubitemOccurrencesIndex, static_cast<int>(item_subitem_occurrence));
                         execute_tally();
                     }
                 }
@@ -640,9 +640,9 @@ public:
         }
     }
 
-    FrequencyCounter<std::wstring, double>& GetStringSingleFrequencyCounter() override
+    FrequencyCounter<std::string, double>& GetStringSingleFrequencyCounter() override
     {
-        if constexpr(std::is_same_v<T, std::wstring>)
+        if constexpr(std::is_same_v<T, std::string>)
         {
             return GetSingleFrequencyCounter();
         }
@@ -666,9 +666,9 @@ public:
         }
     }
 
-    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::wstring, double>>> GetStringFrequencyPrinterEntries() const override
+    std::vector<std::shared_ptr<FrequencyPrinterEntry<std::string, double>>> GetStringFrequencyPrinterEntries() const override
     {
-        if constexpr(std::is_same_v<T, std::wstring>)
+        if constexpr(std::is_same_v<T, std::string>)
         {
             return GetFrequencyPrinterEntries();
         }
@@ -684,12 +684,12 @@ private:
     {
         m_perOccurrenceFrequencyCounters.clear();
 
-        for( const auto& occurrence_details : m_frequencyEntry.occurrence_details )
+        for( const FrequencyEntry::OccurrenceDetails& occurrence_details : m_frequencyEntry.occurrence_details )
         {
             auto& frequency_counters = m_perOccurrenceFrequencyCounters.emplace_back();
 
             // add frequency counters for any specific record occurrences requested
-            for( const auto& record_occurrence : occurrence_details.record_occurrences_to_explicitly_display )
+            for( const size_t record_occurrence : occurrence_details.record_occurrences_to_explicitly_display )
             {
                 ASSERT(!occurrence_details.combine_record_occurrences);
                 EnsureFrequencyCounterExists(frequency_counters, record_occurrence);
@@ -705,7 +705,7 @@ private:
         }
     }
 
-    void EnsureFrequencyCounterExists(std::vector<std::shared_ptr<FrequencyCounter<T, double>>>& frequency_counters, size_t index)
+    void EnsureFrequencyCounterExists(std::vector<std::shared_ptr<FrequencyCounter<T, double>>>& frequency_counters, const size_t index)
     {
         if( index >= frequency_counters.size() )
             frequency_counters.resize(index + 1);
@@ -729,7 +729,7 @@ private:
         // add all used frequency counters
         auto frequency_counters_itr = m_perOccurrenceFrequencyCounters.begin();
 
-        for( const auto& occurrence_details : m_frequencyEntry.occurrence_details )
+        for( const FrequencyEntry::OccurrenceDetails& occurrence_details : m_frequencyEntry.occurrence_details )
         {
             for( size_t record_occurrence = 0; record_occurrence < frequency_counters_itr->size(); ++record_occurrence )
             {
@@ -760,14 +760,14 @@ private:
 
         // sort the frequencies so that item/subitem occurrences fall within their record occurrence
         std::sort(frequency_printer_entries.begin(), frequency_printer_entries.end(),
-            [](const auto& fpe1, const auto& fpe2) { return fpe1->Compare(*fpe2); });
+                  [](const auto& fpe1, const auto& fpe2) { return fpe1->Compare(*fpe2); });
 
         return frequency_printer_entries;
     }
 
 private:
-    CIntDriver* m_pIntDriver;
-    const VART* m_pVarT;
+    CIntDriver* const m_pIntDriver;
+    const VART* const m_pVarT;
     const FrequencyEntry& m_frequencyEntry;
     MultiplyOccurringItemFrequencyApplicabilityEvaluator& m_multiplyOccurringItemEvaluator;
     CNDIndexes m_theIndex;
@@ -781,12 +781,12 @@ private:
 // the frequency driver implementation
 // --------------------------------------------------------------------------
 
-FrequencyDriver::FrequencyDriver(CIntDriver& int_driver)
-    :   m_pEngineArea(int_driver.m_pEngineArea),
-        m_pEngineDriver(int_driver.m_pEngineDriver),
-        m_pIntDriver(&int_driver),
+FrequencyDriver::FrequencyDriver(CIntDriver& interpreter)
+    :   m_pEngineArea(interpreter.m_pEngineArea),
+        m_pEngineDriver(interpreter.m_pEngineDriver),
+        m_pIntDriver(&interpreter),
         m_engineData(&m_pEngineArea->GetEngineData()),
-        m_symbolTable(int_driver.GetSymbolTable())
+        m_symbolTable(interpreter.GetSymbolTable())
 {
     // setup the frequencies
     for( const Frequency& frequency : VI_V(m_engineData->frequencies) )
@@ -796,12 +796,12 @@ FrequencyDriver::FrequencyDriver(CIntDriver& int_driver)
     try
     {
         if( !m_pEngineDriver->GetPifFile()->GetFrequenciesFilename().IsEmpty() )
-            m_frequencyPrinter = CreateFrequencyPrinter(CS2WS(m_pEngineDriver->GetPifFile()->GetFrequenciesFilename()));
+            m_frequencyPrinter = CreateFrequencyPrinter(UTF8_TODO::GetUtf8(m_pEngineDriver->GetPifFile()->GetFrequenciesFilename()));
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 94531, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 94531, exception.what());
     }
 }
 
@@ -822,27 +822,27 @@ FrequencyDriver::~FrequencyDriver()
                 if( frequency_printer == nullptr )
                     frequency_printer = GetDefaultFrequencyPrinter();
 
-                PrintFrequencies(frequency_index, *frequency_printer, std::wstring(), frequency.GetFrequencyPrinterOptions());
+                PrintFrequencies(frequency_index, *frequency_printer, std::string(), frequency.GetFrequencyPrinterOptions());
             }
         }
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 94531, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 94531, exception.what());
     }
 }
 
 
-std::unique_ptr<FrequencyPrinter> FrequencyDriver::CreateFrequencyPrinter(std::wstring filename, const PFF& pff)
+std::unique_ptr<FrequencyPrinter> FrequencyDriver::CreateFrequencyPrinter(const std::string& file_path, const PFF& pff)
 {
-    ASSERT(!filename.empty());
-    std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    ASSERT(!file_path.empty());
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
     if( SO::EqualsNoCase(extension, FileExtensions::Table) )
     {
 #ifdef WIN_DESKTOP
-        return std::make_unique<TableFrequencyPrinter>(std::move(filename));
+        return std::make_unique<TableFrequencyPrinter>(file_path);
 #else
         throw CSProException("You must use CSPro on a Windows desktop to write frequencies to a table (.tbw) file.");
 #endif
@@ -850,29 +850,29 @@ std::unique_ptr<FrequencyPrinter> FrequencyDriver::CreateFrequencyPrinter(std::w
 
     else if( SO::EqualsOneOfNoCase(extension, FileExtensions::HTML, FileExtensions::HTM) )
     {
-        return std::make_unique<HtmlFrequencyPrinter>(filename);
+        return std::make_unique<HtmlFrequencyPrinter>(file_path);
     }
 
     else if( SO::EqualsNoCase(extension, FileExtensions::Excel) )
     {
-        return std::make_unique<ExcelFrequencyPrinter>(filename);
+        return std::make_unique<ExcelFrequencyPrinter>(file_path);
     }
 
     else if( SO::EqualsNoCase(extension, FileExtensions::Json) )
     {
-        return std::make_unique<JsonFileFrequencyPrinter>(filename);
+        return std::make_unique<JsonFileFrequencyPrinter>(file_path);
     }
 
     else
     {
-        return std::make_unique<TextFileFrequencyPrinter>(filename, pff.GetListingWidth());
+        return std::make_unique<TextFileFrequencyPrinter>(file_path, pff.GetListingWidth());
     }
 }
 
 
-std::unique_ptr<FrequencyPrinter> FrequencyDriver::CreateFrequencyPrinter(std::wstring filename)
+std::unique_ptr<FrequencyPrinter> FrequencyDriver::CreateFrequencyPrinter(const std::string& file_path)
 {
-    return CreateFrequencyPrinter(std::move(filename), *m_pEngineDriver->GetPifFile());
+    return CreateFrequencyPrinter(file_path, *m_pEngineDriver->GetPifFile());
 }
 
 
@@ -890,20 +890,14 @@ std::shared_ptr<FrequencyPrinter> FrequencyDriver::GetDefaultFrequencyPrinter()
 
         if( std::get<0>(*features) == Listing::ListingType::Text )
         {
-            CStdioFileUnicode* file = static_cast<CStdioFileUnicode*>(std::get<1>(*features));
-            return std::make_shared<TextFileFrequencyPrinter>(*file, m_pEngineDriver->GetPifFile()->GetListingWidth());
-        }
-
-        else if( std::get<0>(*features) == Listing::ListingType::Html )
-        {
-            CStdioFileUnicode* file = static_cast<CStdioFileUnicode*>(std::get<1>(*features));
-            return std::make_shared<HtmlFrequencyPrinter>(*file);
+            FileIO::TextFile* text_file = static_cast<FileIO::TextFile*>(std::get<1>(*features));
+            return std::make_unique<TextFileFrequencyPrinter>(*text_file, m_pEngineDriver->GetPifFile()->GetListingWidth());
         }
 
         else if( std::get<0>(*features) == Listing::ListingType::Json )
         {
             std::string* json_frequency_text = static_cast<std::string*>(std::get<1>(*features));
-            return std::make_shared<JsonStringFrequencyPrinter>(*json_frequency_text);
+            return std::make_unique<JsonStringFrequencyPrinter>(*json_frequency_text);
         }
 
         else
@@ -945,7 +939,7 @@ void FrequencyDriver::CreateEngineFrequencyEntries(const Frequency& frequency)
     };
 
 
-    auto get_singly_occurring_item_evaluator = [&](const VART* pVarT)
+    auto get_singly_occurring_item_evaluator = [&](const VART* const pVarT)
     {
         // see if one exists that can be reused
         for( auto& singly_occurring_item_evaluator : singly_occurring_item_evaluators )
@@ -1010,7 +1004,7 @@ void FrequencyDriver::CreateEngineFrequencyEntries(const Frequency& frequency)
         else
         {
             ASSERT(symbol.IsA(SymbolType::Variable));
-            const VART* pVarT = assert_cast<const VART*>(&symbol);
+            const VART* const pVarT = assert_cast<const VART*>(&symbol);
 
             // singly occurring items on singly occurring records
             if( !pVarT->IsArray() )
@@ -1046,7 +1040,7 @@ void FrequencyDriver::CreateEngineFrequencyEntries(const Frequency& frequency)
 
                 else
                 {
-                    engine_frequency_entry = std::make_shared<MultiplyOccurringVariableFrequencyEntry<std::wstring>>(
+                    engine_frequency_entry = std::make_shared<MultiplyOccurringVariableFrequencyEntry<std::string>>(
                         m_pIntDriver, pVarT, frequency_entry, *multiply_occurring_item_evaluator);
                 }
             }
@@ -1060,19 +1054,18 @@ void FrequencyDriver::CreateEngineFrequencyEntries(const Frequency& frequency)
 }
 
 
-void FrequencyDriver::CloneFrequencyInInitialState(NamedFrequency& cloned_named_frequency, size_t source_frequency_index)
+void FrequencyDriver::CloneFrequencyInInitialState(NamedFrequency& cloned_named_frequency, const size_t source_frequency_index)
 {
     // create a copy of the frequency, linking it to the cloned named frequency
     cloned_named_frequency.SetFrequencyIndex(m_engineData->frequencies.size());
 
-    Frequency& cloned_frequency = *m_engineData->frequencies.emplace_back(
-        std::make_shared<Frequency>(*m_engineData->frequencies[source_frequency_index]));
+    Frequency& cloned_frequency = *m_engineData->frequencies.emplace_back(std::make_shared<Frequency>(*m_engineData->frequencies[source_frequency_index]));
 
     CreateEngineFrequencyEntries(cloned_frequency);
 }
 
 
-void FrequencyDriver::ResetFrequency(size_t frequency_index, int heading_expressions_list_node_index)
+void FrequencyDriver::ResetFrequency(const size_t frequency_index, const int heading_expressions_list_node_index)
 {
     // clear the tallies
     ClearFrequencyTallies(frequency_index);
@@ -1081,19 +1074,19 @@ void FrequencyDriver::ResetFrequency(size_t frequency_index, int heading_express
     if( heading_expressions_list_node_index != -1 )
     {
         Frequency& frequency = *m_engineData->frequencies[frequency_index];
-        frequency.GetFrequencyPrinterOptions().SetHeadings(EvaluateDynamicHeadings(m_pIntDriver, heading_expressions_list_node_index));
+        frequency.GetFrequencyPrinterOptions().SetHeadings(EvaluateDynamicHeadings(*m_pIntDriver, heading_expressions_list_node_index));
     }
 }
 
 
-void FrequencyDriver::ClearFrequencyTallies(size_t frequency_index)
+void FrequencyDriver::ClearFrequencyTallies(const size_t frequency_index)
 {
     for( EngineFrequencyEntry& engine_frequency_entry : VI_V(m_engineFrequencyEntries[frequency_index]) )
         engine_frequency_entry.ClearTallies();
 }
 
 
-double FrequencyDriver::TallyFrequency(size_t frequency_index, int weight_expression)
+double FrequencyDriver::TallyFrequency(const size_t frequency_index, const int weight_expression)
 {
     double weight;
 
@@ -1112,7 +1105,7 @@ double FrequencyDriver::TallyFrequency(size_t frequency_index, int weight_expres
             const Frequency& frequency = *m_engineData->frequencies[frequency_index];
 
             issaerror(MessageType::Error, 94532, frequency.GetNamedFrequencySymbolIndex().has_value() ?
-                      NPT_Ref(*frequency.GetNamedFrequencySymbolIndex()).GetName().c_str() : _T("<unnamed>"));
+                                                 NPT_Ref(*frequency.GetNamedFrequencySymbolIndex()).GetName().c_str() : "<unnamed>");
 
             return DEFAULT;
         }
@@ -1133,8 +1126,8 @@ double FrequencyDriver::TallyFrequency(size_t frequency_index, int weight_expres
 }
 
 
-void FrequencyDriver::PrintFrequencies(size_t frequency_index, FrequencyPrinter& frequency_printer,
-                                       std::wstring frequency_name, const FrequencyPrinterOptions& frequency_printer_options)
+void FrequencyDriver::PrintFrequencies(const size_t frequency_index, FrequencyPrinter& frequency_printer,
+                                       const std::string& frequency_name, const FrequencyPrinterOptions& frequency_printer_options)
 {
     frequency_printer.StartFrequencyGroup();
 
@@ -1153,7 +1146,7 @@ void FrequencyDriver::PrintFrequencies(size_t frequency_index, FrequencyPrinter&
 
 
 template<typename GetCallback, typename SetCallback>
-void FrequencyDriver::UseSingleFrequencyCounterForGettingAndSetting(int var_node_index, GetCallback get_callback, SetCallback set_callback)
+void FrequencyDriver::UseSingleFrequencyCounterForGettingAndSetting(const int var_node_index, const GetCallback get_callback, const SetCallback set_callback)
 {
     const auto& element_reference_node = m_pIntDriver->GetNode<Nodes::ElementReference>(var_node_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(element_reference_node.symbol_index);
@@ -1185,19 +1178,19 @@ void FrequencyDriver::UseSingleFrequencyCounterForGettingAndSetting(int var_node
     {
         ASSERT(IsString(symbol));
 
-        std::wstring value = m_pIntDriver->EvalAlphaExpr(element_reference_node.element_expressions[0]);
+        std::string value = m_pIntDriver->EvaluateString(element_reference_node.element_expressions[0]);
 
         // add spacing to fill out the string (if necessary)
         if( symbol.IsA(SymbolType::Variable) )
         {
-            const VART* pVarT = assert_cast<const VART*>(&symbol);
-            SO::MakeExactLength(value, pVarT->GetLength());
+            const VART* const pVarT = assert_cast<const VART*>(&symbol);
+            SO::WideMakeExactLength(value, pVarT->GetLength());
         }
 
         else if( symbol.GetSubType() == SymbolSubType::WorkAlpha )
         {
             const WorkAlpha& work_alpha = assert_cast<const WorkAlpha&>(symbol);
-            SO::MakeExactLength(value, work_alpha.GetLength());
+            SO::WideMakeExactLength(value, work_alpha.GetWideLength());
         }
 
         do_get_set(engine_frequency_entry.front()->GetStringSingleFrequencyCounter(), value);
@@ -1205,21 +1198,21 @@ void FrequencyDriver::UseSingleFrequencyCounterForGettingAndSetting(int var_node
 }
 
 
-double FrequencyDriver::GetSingleFrequencyCounterCount(int var_node_index)
+double FrequencyDriver::GetSingleFrequencyCounterCount(const int var_node_index)
 {
     double count;
     UseSingleFrequencyCounterForGettingAndSetting(var_node_index,
-        [&](double c) { count = c; },
-        false);
+                                                  [&](const double c) { count = c; },
+                                                  false);
     return count;
 }
 
 
-void FrequencyDriver::SetSingleFrequencyCounterCount(int var_node_index, double count)
+void FrequencyDriver::SetSingleFrequencyCounterCount(const int var_node_index, const double count)
 {
     UseSingleFrequencyCounterForGettingAndSetting(var_node_index,
-        false,
-        [&] { return count; });
+                                                  false,
+                                                  [&] { return count; });
 }
 
 
@@ -1227,8 +1220,8 @@ void FrequencyDriver::ModifySingleFrequencyCounterCount(int var_node_index, cons
 {
     double count;
     UseSingleFrequencyCounterForGettingAndSetting(var_node_index,
-        [&](double c) { count = c; modify_count_function(count); },
-        [&] { return count; });
+                                                  [&](const double c) { count = c; modify_count_function(count); },
+                                                  [&] { return count; });
 }
 
 
@@ -1262,7 +1255,7 @@ void FrequencyDriver::WriteJsonMetadata_subclass(const NamedFrequency& named_fre
                        .Write(JK::distinct, frequency_printer_options.GetDistinct());
 
             json_writer.WriteArray(JK::valueSets, frequency_printer_options.GetValueSetSymbolIndices(),
-                [&](int symbol_index)
+                [&](const int symbol_index)
                 {
                     json_writer.Write(NPT_Ref(symbol_index).GetName());
                 });
@@ -1295,7 +1288,7 @@ void FrequencyDriver::WriteValueToJson(const NamedFrequency& named_frequency, Js
     ASSERT(!named_frequency.IsFunctionParameter());
     const Frequency& frequency = *m_engineData->frequencies[named_frequency.GetFrequencyIndex()];
 
-    JsonFrequencyPrinter json_frequency_printer(json_writer);
+    JsonFrequencyPrinter json_frequency_printer(&json_writer);
 
     json_writer.BeginArray();
     PrintFrequencies(named_frequency.GetFrequencyIndex(), json_frequency_printer, named_frequency.GetName(), frequency.GetFrequencyPrinterOptions());
@@ -1308,28 +1301,28 @@ void FrequencyDriver::WriteValueToJson(const NamedFrequency& named_frequency, Js
 // the frequency functions
 // --------------------------------------------------------------------------
 
-double CIntDriver::exfrequnnamed(int iExpr)
+double CIntDriver::ex_Freq_unnamed(const int program_index)
 {
-    const auto& unnamed_frequency_node = GetNode<Nodes::UnnamedFrequency>(iExpr);
+    const auto& unnamed_frequency_node = GetNode<Nodes::UnnamedFrequency>(program_index);
 
     // evaluate any dynamic headings
     if( unnamed_frequency_node.heading_expressions_list_node != -1 )
     {
         Frequency& frequency = *m_engineData->frequencies[unnamed_frequency_node.frequency_index];
-        frequency.GetFrequencyPrinterOptions().SetHeadings(EvaluateDynamicHeadings(this, unnamed_frequency_node.heading_expressions_list_node));
+        frequency.GetFrequencyPrinterOptions().SetHeadings(EvaluateDynamicHeadings(*this, unnamed_frequency_node.heading_expressions_list_node));
     }
 
     // quit out if the universe condition is not met
-    if( unnamed_frequency_node.universe_expression != -1 && ConditionalValueIsFalse(evalexpr(unnamed_frequency_node.universe_expression)) )
+    if( unnamed_frequency_node.universe_expression != -1 && !EvaluateConditional(unnamed_frequency_node.universe_expression) )
         return 0;
 
     return m_frequencyDriver->TallyFrequency(unnamed_frequency_node.frequency_index, unnamed_frequency_node.weight_expression);
 }
 
 
-double CIntDriver::exfreqclear(int iExpr)
+double CIntDriver::ex_Freq_clear(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(symbol_va_node.symbol_index);
 
     m_frequencyDriver->ClearFrequencyTallies(named_frequency.GetFrequencyIndex());
@@ -1338,27 +1331,27 @@ double CIntDriver::exfreqclear(int iExpr)
 }
 
 
-double CIntDriver::exfreqtally(int iExpr)
+double CIntDriver::ex_Freq_tally(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(symbol_va_node.symbol_index);
 
     return m_frequencyDriver->TallyFrequency(named_frequency.GetFrequencyIndex(), symbol_va_node.arguments[0]);
 }
 
 
-double CIntDriver::exfreqsave(int iExpr)
+double CIntDriver::ex_Freq_save(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(symbol_va_node.symbol_index);
     const Frequency& frequency = *m_engineData->frequencies[named_frequency.GetFrequencyIndex()];
 
     const int* arguments = symbol_va_node.arguments;
     std::unique_ptr<int[]> pre80_arguments;
 
-    if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
-        pre80_arguments = std::make_unique<int[]>(3);
+        pre80_arguments = std::make_unique_for_overwrite<int[]>(3);
         pre80_arguments[0] = -1;
         pre80_arguments[1] = arguments[0];
         pre80_arguments[2] = arguments[1];
@@ -1369,33 +1362,33 @@ double CIntDriver::exfreqsave(int iExpr)
     {
         // the frequency can be saved to ...
         std::shared_ptr<FrequencyPrinter> frequency_printer;
-        std::unique_ptr<std::tuple<HtmlStringWriter, std::wstring*>> html_writer_and_report_text_builder;
+        std::unique_ptr<std::tuple<HtmlStringWriter, std::string*>> html_writer_and_report_text_builder;
 
         // ...a file
         if( arguments[0] == -1 && arguments[1] != -1 )
         {
-            std::wstring filename = EvalFullPathFileName(arguments[1]);
-            frequency_printer = m_frequencyDriver->CreateFrequencyPrinter(std::move(filename));
+            const std::string file_path = EvaluatePath(arguments[1]);
+            frequency_printer = m_frequencyDriver->CreateFrequencyPrinter(file_path);
         }
 
         // ... a report
-        else if( arguments[0] == (int)SymbolType::Report )
+        else if( arguments[0] == static_cast<int>(SymbolType::Report) )
         {
             Report& report = GetSymbolReport(arguments[1]);
 
-            if( !report.IsHtmlType() )
+            if( report.GetEscapeType() != ReportFile::EscapeType::Html )
             {
                 issaerror(MessageType::Error, 94533, named_frequency.GetName().c_str(), report.GetName().c_str());
                 return 0;
             }
 
-            html_writer_and_report_text_builder = std::make_unique<std::tuple<HtmlStringWriter, std::wstring*>>(
+            html_writer_and_report_text_builder = std::make_unique<std::tuple<HtmlStringWriter, std::string*>>(
                 HtmlStringWriter(), GetReportTextBuilderWithValidityCheck(report));
 
             if( std::get<1>(*html_writer_and_report_text_builder) == nullptr )
                 return 0;
 
-            frequency_printer = std::make_shared<HtmlFrequencyPrinter>(std::get<0>(*html_writer_and_report_text_builder), false);
+            frequency_printer = std::make_unique<HtmlFrequencyPrinter>(std::get<0>(*html_writer_and_report_text_builder), false);
         }
 
         // ... or to the default frequency printer
@@ -1407,7 +1400,8 @@ double CIntDriver::exfreqsave(int iExpr)
 
         // evaluate the optional printing options and save the frequencies
         m_frequencyDriver->PrintFrequencies(named_frequency.GetFrequencyIndex(), *frequency_printer,
-                                            named_frequency.GetName(), EvaluateDynamicFrequencyPrinterOptions(this, frequency, arguments[2]));
+                                            named_frequency.GetName(),
+                                            EvaluateDynamicFrequencyPrinterOptions(*this, frequency, arguments[2]));
 
 
         // write the frequencies to the report
@@ -1417,7 +1411,7 @@ double CIntDriver::exfreqsave(int iExpr)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 94531, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 94531, exception.what());
         return 0;
     }
 
@@ -1425,7 +1419,7 @@ double CIntDriver::exfreqsave(int iExpr)
 }
 
 
-double CIntDriver::exFreq_view(const int program_index)
+double CIntDriver::ex_Freq_view(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(symbol_va_node.symbol_index);
@@ -1433,7 +1427,7 @@ double CIntDriver::exFreq_view(const int program_index)
     std::unique_ptr<const ViewerOptions> viewer_options;
     int frequency_parameters_node_index;
 
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) )
     {
         viewer_options = EvaluateViewerOptions(symbol_va_node.arguments[0]);
         frequency_parameters_node_index = symbol_va_node.arguments[1];
@@ -1444,11 +1438,11 @@ double CIntDriver::exFreq_view(const int program_index)
         frequency_parameters_node_index = symbol_va_node.arguments[0];
     }
 
-    return exFreq_view(named_frequency, viewer_options.get(), frequency_parameters_node_index);
+    return ex_Freq_view(named_frequency, viewer_options.get(), frequency_parameters_node_index);
 }
 
 
-double CIntDriver::exFreq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, const int frequency_parameters_node_index)
+double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* const viewer_options, const int frequency_parameters_node_index)
 {
     const Frequency& frequency = *m_engineData->frequencies[named_frequency.GetFrequencyIndex()];
     bool success = false;
@@ -1461,7 +1455,7 @@ double CIntDriver::exFreq_view(const NamedFrequency& named_frequency, const View
         // evaluate the optional printing options and write the frequencies to a string stream
         m_frequencyDriver->PrintFrequencies(named_frequency.GetFrequencyIndex(), frequency_printer,
                                             named_frequency.GetName(),
-                                            EvaluateDynamicFrequencyPrinterOptions(this, frequency, frequency_parameters_node_index));
+                                            EvaluateDynamicFrequencyPrinterOptions(*this, frequency, frequency_parameters_node_index));
 
         Viewer viewer;
         success = viewer.UseEmbeddedViewer()
@@ -1471,22 +1465,22 @@ double CIntDriver::exFreq_view(const NamedFrequency& named_frequency, const View
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 94531, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 94531, exception.what());
     }
 
     return success ? 1 : 0;
 }
 
 
-double CIntDriver::exfreqvar(int iExpr)
+double CIntDriver::ex_Freq_var(const int program_index)
 {
-    return m_frequencyDriver->GetSingleFrequencyCounterCount(iExpr);
+    return m_frequencyDriver->GetSingleFrequencyCounterCount(program_index);
 }
 
 
-double CIntDriver::exfreqcompute(int iExpr)
+double CIntDriver::ex_Freq_compute(const int program_index)
 {
-    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(iExpr);
+    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
     ASSERT(symbol_compute_node.rhs_symbol_type == SymbolType::None);
     m_frequencyDriver->SetSingleFrequencyCounterCount(symbol_compute_node.lhs_symbol_index, evalexpr(symbol_compute_node.rhs_symbol_index));
     return 0;

@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CSBatch.h"
 #include "SelectApplicationDlg.h"
+#include <zUtilF/CommonControls.h>
 #include <ZBRIDGEO/PifDlg.h>
 #include <zEngineF/PifInfoPopulator.h>
 #include <zBatchF/BatchExecutor.h>
@@ -25,12 +26,13 @@ CSBatchApp::CSBatchApp()
 
 BOOL CSBatchApp::InitInstance()
 {
-    AfxOleInit();
+    InitializeCommonControls();
 
+    AfxOleInit();
     AfxEnableControlContainer();
 
     // Standard initialization
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     // open a named event only if one doesn't already exist
     HANDLE event_handle = OpenEvent(EVENT_ALL_ACCESS, FALSE, CSPRO_WNDCLASS_BATCHWND);
@@ -42,29 +44,25 @@ BOOL CSBatchApp::InitInstance()
     }
 
     else
+    {
         event_handle = CreateEvent(NULL, TRUE, TRUE, CSPRO_WNDCLASS_BATCHWND);
+    }
 
     // parse the command line
     CIMSACommandLineInfo cmd_info;
     ParseCommandLine(cmd_info);
 
-    CString filename = cmd_info.m_strFileName;
+    std::string file_path = TC::ToUtf8(cmd_info.m_strFileName);
 
-    if( !filename.IsEmpty() )
-    {
-        // evaluate the full path
-        CString current_directory;
-        GetCurrentDirectory(_MAX_PATH, current_directory.GetBuffer(_MAX_PATH));
-        current_directory.ReleaseBuffer();
-
-        filename = WS2CS(MakeFullPath(current_directory, CS2WS(filename)));
-    }
+    // evaluate the full path
+    if( !file_path.empty() )
+        file_path = MakeFullPath(GetWorkingDirectory(), file_path);
 
     // run the program
     try
     {
         BatchExecutor batch_executor(this);
-        batch_executor.Run(filename);
+        batch_executor.Run(file_path);
     }
 
     catch( const CSProException& exception )
@@ -83,14 +81,14 @@ BOOL CSBatchApp::InitInstance()
 }
 
 
-bool CSBatchApp::QueryForFilename(CString& pff_or_batch_filename)
+bool CSBatchApp::QueryForFilePath(std::string& pff_or_batch_file_path)
 {
     SelectApplicationDlg dlg;
 
     if( dlg.DoModal() != IDOK )
         return false;
 
-    pff_or_batch_filename = dlg.GetApplicationFilename();
+    pff_or_batch_file_path = dlg.GetApplicationFilePath();
 
     return true;
 }

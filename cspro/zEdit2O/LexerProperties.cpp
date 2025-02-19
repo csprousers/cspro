@@ -25,7 +25,7 @@ namespace LexerColor
 std::map<int, LexerProperties::Properties> LexerProperties::m_propertiesMap;
 
 
-const LexerProperties::Properties& LexerProperties::GetProperties(int lexer_language)
+const LexerProperties::Properties& LexerProperties::GetProperties(const int lexer_language)
 {
     const auto& lookup = m_propertiesMap.find(lexer_language);
 
@@ -43,7 +43,7 @@ const LexerProperties::Properties& LexerProperties::GetProperties(int lexer_lang
 }
 
 
-std::vector<std::tuple<int, COLORREF>> LexerProperties::GetColorsWorker(int lexer_language)
+std::vector<std::tuple<int, COLORREF>> LexerProperties::GetColorsWorker(const int lexer_language)
 {
     if( Lexers::IsExternalLanguage(lexer_language) )
     {
@@ -90,7 +90,7 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetColorsWorker(int lexe
 }
 
 
-std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColorsWorker(int lexer_language)
+std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColorsWorker(const int lexer_language)
 {
     if( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )
     {
@@ -202,17 +202,17 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 }
 
 
-void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, int lexer_language)
+void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, const int lexer_language)
 {
     if( Lexers::IncorporatesCSProLogic(lexer_language) )
     {
-        std::wstring keyword_lists[4];
-        auto logic_tooltips = std::make_unique<std::map<StringNoCase, const TCHAR*>>();
+        std::string keyword_lists[4];
+        auto logic_tooltips = std::make_unique<std::map<std::string, const char*, cs::case_insensitive_less>>();
 
         Logic::ReservedWords::ForeachReservedWord(
-            [&](Logic::ReservedWords::ReservedWordType reserved_word_type, const std::wstring& reserved_word, const void* extra_information)
+            [&](const Logic::ReservedWords::ReservedWordType reserved_word_type, const std::string& reserved_word, const void* const extra_information)
             {
-                std::wstring* applicable_keyword_list;
+                std::string* applicable_keyword_list;
 
                 if( reserved_word_type == Logic::ReservedWords::ReservedWordType::Keyword ||
                     reserved_word_type == Logic::ReservedWords::ReservedWordType::AdditionalReservedWord )
@@ -224,12 +224,12 @@ void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, 
                 {
                     applicable_keyword_list = &keyword_lists[0];
 
-                    const Logic::FunctionDetails* function_details = static_cast<const Logic::FunctionDetails*>(extra_information);
+                    const Logic::FunctionDetails* const function_details = static_cast<const Logic::FunctionDetails*>(extra_information);
                     ASSERT(function_details != nullptr);
 
                     // add the tooltip
                     ASSERT(SO::StartsWithNoCase(function_details->tooltip, reserved_word));
-                    logic_tooltips->try_emplace(StringNoCase(reserved_word), function_details->tooltip);
+                    logic_tooltips->try_emplace(reserved_word, function_details->tooltip);
                 }
 
                 else if( reserved_word_type == Logic::ReservedWords::ReservedWordType::FunctionNamespace )
@@ -253,8 +253,8 @@ void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, 
                 applicable_keyword_list->push_back(' ');
             });
 
-        for( const std::wstring& list : keyword_lists )
-            properties.keywords.emplace_back(UTF8Convert::WideToUTF8(list));
+        for( const std::string& list : keyword_lists )
+            properties.keywords.emplace_back(list);
 
         properties.logic_tooltips = std::move(logic_tooltips);
     }

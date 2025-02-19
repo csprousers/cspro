@@ -12,17 +12,14 @@ class CLASS_DECL_ZDESIGNERF ReportPreviewer
 {
 public:
     // CSProException exceptions thrown if the report text does not compile
-    ReportPreviewer(wstring_view report_text, const LogicSettings& logic_settings);
-
+    ReportPreviewer(std::string_view report_text_sv, const LogicSettings& logic_settings);
     ~ReportPreviewer();
 
-    const std::wstring& GetReportHtml() const { return m_reportHtml; }
-
-    std::wstring GetReportUrl(const std::wstring& report_filename);
-    std::unique_ptr<UriResolver> GetReportUriResolver(std::wstring report_filename);
+    std::string GetReportUrl(const std::string& report_file_path);
+    std::unique_ptr<UriResolver> GetReportUriResolver(std::string report_file_path);
 
 private:
-    std::wstring m_reportHtml;
+    SharableString m_reportHtml;
 
     struct ReportVirtualFileMappingDetails;
     std::unique_ptr<ReportVirtualFileMappingDetails> m_reportVirtualFileMappingDetails;

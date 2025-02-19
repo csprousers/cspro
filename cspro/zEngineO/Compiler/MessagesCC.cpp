@@ -21,7 +21,7 @@ int LogicCompiler::CompileMessageFunctions()
 
     if( function_code == FunctionCode::FNDISPLAY_CODE )
     {
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF_TODO::m_95001, _T("DISPLAY"), _T("ERRMSG"));
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF_TODO::m_95001, "DISPLAY", "ERRMSG");
     }
 
     else if( function_code == FunctionCode::FNWRITE_CODE )
@@ -66,7 +66,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
     // - evaluated string                        -- cannot do argument type checking
     std::optional<int> message_number;
     std::optional<int> message_expression;
-    std::optional<std::wstring> unformatted_message_text;
+    std::optional<SharableString> unformatted_message_text;
 
     NextTokenHelperResult next_token_helper_result = CheckNextTokenHelper();
     NextToken();
@@ -85,11 +85,11 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
         message_number = static_cast<int>(Tokvalue);
 
         // lookup the message in the message file and warn about invalid message numbers
-        const std::wstring* unformatted_message_text_lookup = user_message_manager.GetMessageFile().GetMessageTextWithNoDefaultMessage(*message_number);
+        SharableString unformatted_message_text_lookup = user_message_manager.GetMessageFile().GetMessageTextWithNoDefaultMessage(*message_number);
 
-        if( unformatted_message_text_lookup != nullptr )
+        if( unformatted_message_text_lookup.IsSet() )
         {
-            unformatted_message_text = *unformatted_message_text_lookup;
+            unformatted_message_text = std::move(*unformatted_message_text_lookup);
         }
 
         else
@@ -110,7 +110,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
     else if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
     {
         unformatted_message_text = Tokstr;
-        message_number = user_message_manager.CreateMessageNumberForUnnumberedMessage(GetCurrentBasicTokenLineNumber(), unformatted_message_text);
+        message_number = user_message_manager.CreateMessageNumberForUnnumberedMessage(GetCurrentBasicTokenLineNumber(), *unformatted_message_text);
 
         // ignore the results of the string compilation because we will use the text from the message file
         CompileStringExpression();
@@ -131,10 +131,10 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
     {
         NextToken();
 
-        int variable_index = ( IsCurrentTokenVART(*this) && VPT(Tokstindex)->GetDictItem() != nullptr ) ? Tokstindex :
-                                                                                                          -1;
+        const int variable_index = ( IsCurrentTokenVART(*this) && VPT(Tokstindex)->GetDictItem() != nullptr ) ? Tokstindex :
+                                                                                                                -1;
 
-        DataType argument_data_type = GetCurrentTokenDataType();
+        const DataType argument_data_type = GetCurrentTokenDataType();
         arguments_data_types.emplace_back(argument_data_type);
 
         int argument_expression = CompileExpression(argument_data_type);
@@ -158,7 +158,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
     // check if the formats are valid
     if( unformatted_message_text.has_value() )
     {
-        std::vector<MessageFormat> message_formats = GetUserMessageEvaluator().GetMessageFormats(*unformatted_message_text, false);
+        const std::vector<MessageFormat> message_formats = GetUserMessageEvaluator().GetMessageFormats(unformatted_message_text->GetString(), false);
 
         if( arguments_data_types.size() != message_formats.size() )
         {
@@ -184,7 +184,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
                 if( required_data_type.has_value() && *required_data_type != arguments_data_types[i] )
                 {
-                    std::wstring formatter = unformatted_message_text->substr(message_formats[i].formatter_start_position,
+                    const std::string formatter = unformatted_message_text->GetString().substr(
+                        message_formats[i].formatter_start_position,
                         message_formats[i].formatter_end_position - message_formats[i].formatter_start_position);
 
                     IssueWarning(MGF_TODO::m_90004, static_cast<int>(i + 1), ToString(arguments_data_types[i]), formatter.c_str());
@@ -229,9 +230,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
     while( true )
     {
-        static const std::vector<const TCHAR*> additional_clauses = { _T("DENOM"), _T("CASE"), _T("SUMMARY"), _T("SELECT") };
-
-        size_t additional_clauses_selection = NextKeyword(additional_clauses);
+        const size_t additional_clauses_selection = NextKeyword({ "DENOM", "CASE", "SUMMARY", "SELECT" });
 
         if( additional_clauses_selection == 0 )
         {
@@ -340,7 +339,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 // for some reason the original compilation allowed blank button text
                 else if( Tkn == TOKCOMMA )
                 {
-                    select_button_texts.emplace_back(CreateStringLiteralNode(std::wstring()));
+                    select_button_texts.emplace_back(CreateStringLiteralNode(std::string()));
                 }
 
                 else
@@ -385,7 +384,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
             IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
             // compile the optional button index
-            if( NextKeyword({ _T("DEFAULT") }) == 1 )
+            if( NextKeyword({ "DEFAULT" }) == 1 )
             {
                 has_path_for_warning_function = true;
 
@@ -400,8 +399,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 {
                     if( !IsNumericConstantInteger() || Tokvalue < 1 || Tokvalue > select_movements.size() )
                     {
-                        IssueError(MGF_TODO::m_790, ( select_movements.size() == 1 ) ? _T("1") :
-                                                                                       FormatText(_T("1-%d"), static_cast<int>(select_movements.size())).GetString());
+                        IssueError(MGF_TODO::m_790, ( select_movements.size() == 1 ) ? "1" :
+                                                                                       FormatText("1-%d", static_cast<int>(select_movements.size())).c_str());
                     }
                 }
 

@@ -1,15 +1,16 @@
 ﻿#include "stdafx.h"
 #include "ToolReformatter.h"
 #include "Reformatter.h"
+#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/NumberToString.h>
 #include <zToolsO/PointerClasses.h>
 #include <zUtilO/BasicLogger.h>
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 #include <zCaseO/StdioCaseConstructionReporter.h>
 #include <zDataO/CaseIterator.h>
-#include <zDataO/DataRepositoryHelpers.h>
+#include <zDataO/DictionarySource.h>
 
 
 namespace
@@ -19,8 +20,8 @@ namespace
 
 
 void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, const Reformatter& reformatter,
-                                               const bool show_names, bool const show_only_destructive_changes,
-                                               size_t* out_display_name_length/* = nullptr*/)
+                                               const bool show_names, const bool show_only_destructive_changes,
+                                               size_t* const out_display_name_length/* = nullptr*/)
 {
     const std::vector<DictionaryDifference> differences = GetSortedDifferences(reformatter);
     const DictionaryDifference* previous_difference = nullptr;
@@ -31,14 +32,14 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
     size_t display_name_length = MinDisplayNameLength;
 
     for( const DictionaryDifference& difference : differences )
-        display_name_length = std::max(display_name_length, difference.GetDisplayName(show_names).length());
+        display_name_length = std::max(display_name_length, SO::WideLength(difference.GetDisplayName(show_names)));
 
     display_name_length = std::min(display_name_length, MaxDisplayNameLength);
 
     if( out_display_name_length != nullptr )
         *out_display_name_length = display_name_length;
 
-    const std::wstring difference_formatter = FormatTextCS2WS(_T("    %%-%ds  |  %%s"), display_name_length);
+    const std::string difference_formatter = FormatText("    %%-%ds  |  %%s", static_cast<int>(display_name_length));
 
     // process the differences
     for( const DictionaryDifference& difference : differences )
@@ -46,7 +47,7 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
         if( show_only_destructive_changes && !difference.IsDestructive() )
             continue;
 
-        auto add_header = [&](std::wstring header)
+        auto add_header = [&](std::string header)
         {
             if( previous_difference != nullptr )
                 differences_log.AppendLine();
@@ -54,17 +55,17 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
             differences_log.AppendLine(std::move(header));
         };
 
-        std::wstring difference_text;
+        std::string difference_text;
 
         // level differences
         if( difference.IsLevelDifference() )
         {
             if( previous_difference == nullptr || !previous_difference->IsLevelDifference() )
-                add_header(_T("Changes in levels:"));
+                add_header("Changes in levels:");
 
-            difference_text = ( difference.type == DictionaryDifference::Type::LevelRemoved ) ? _T("Removed") :
-                              ( difference.type == DictionaryDifference::Type::LevelAdded )   ? _T("Added") :
-                                                                                                ReturnProgrammingError(std::wstring());
+            difference_text = ( difference.type == DictionaryDifference::Type::LevelRemoved ) ? "Removed" :
+                              ( difference.type == DictionaryDifference::Type::LevelAdded )   ? "Added" :
+                                                                                                ReturnProgrammingError(std::string());
         }
 
 
@@ -72,44 +73,44 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
         else if( difference.IsRecordDifference() )
         {
             if( previous_difference == nullptr || !previous_difference->IsRecordDifference() )
-                add_header(_T("Changes in records:"));
+                add_header("Changes in records:");
 
             const CDictRecord* initial_dict_record = assert_nullable_cast<const CDictRecord*>(difference.initial_dict_element);
             const CDictRecord* final_dict_record = assert_nullable_cast<const CDictRecord*>(difference.final_dict_element);
 
             if( difference.type == DictionaryDifference::Type::RecordRemoved )
             {
-                difference_text = _T("Removed");
+                difference_text = "Removed";
             }
 
             else if( difference.type == DictionaryDifference::Type::RequiredRecordAdded )
             {
-                difference_text = _T("Added (required)");
+                difference_text = "Added (required)";
             }
 
             else if( difference.type == DictionaryDifference::Type::NonRequiredRecordAdded )
             {
-                difference_text = _T("Added (not required)");
+                difference_text = "Added (not required)";
             }
 
             else if( difference.type == DictionaryDifference::Type::RecordTypeChanged )
             {
-                difference_text = FormatTextCS2WS(_T("Record type changed (\"%s\" -> \"%s\")"),
-                                                  initial_dict_record->GetRecTypeVal().GetString(),
-                                                  final_dict_record->GetRecTypeVal().GetString());
+                difference_text = FormatText("Record type changed ('%s' -> '%s')",
+                                             UTF8_TODO::GetUtf8(initial_dict_record->GetRecTypeVal()).c_str(),
+                                             UTF8_TODO::GetUtf8(final_dict_record->GetRecTypeVal()).c_str());
             }
 
             else if( difference.type == DictionaryDifference::Type::RecordOccurrencesDecreased ||
                      difference.type == DictionaryDifference::Type::RecordOccurrencesIncreased )
             {
-                difference_text = FormatTextCS2WS(_T("Occurrences changed (%d -> %d)"),
-                                                  static_cast<int>(initial_dict_record->GetMaxRecs()),
-                                                  static_cast<int>(final_dict_record->GetMaxRecs()));
+                difference_text = FormatText("Occurrences changed (%d -> %d)",
+                                             static_cast<int>(initial_dict_record->GetMaxRecs()),
+                                             static_cast<int>(final_dict_record->GetMaxRecs()));
             }
 
             else if( difference.type == DictionaryDifference::Type::RequiredRecordOccurrenceAdded )
             {
-                difference_text = _T("Occurrence now required");
+                difference_text = "Occurrence now required";
             }
 
             else
@@ -128,8 +129,8 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
                 !SO::EqualsNoCase(assert_cast<const CDictItem*>(previous_difference->GetDefinedDictElement())->GetRecord()->GetName(),
                                   assert_cast<const CDictItem*>(difference.GetDefinedDictElement())->GetRecord()->GetName()) )
             {
-                add_header(FormatTextCS2WS(_T("Changes in items on record %s:"),
-                                           DictionaryDifference::GetDisplayName(assert_cast<const CDictItem*>(difference.GetDefinedDictElement())->GetRecord(), show_names).c_str()));
+                add_header(FormatText("Changes in items on record %s:",
+                                       DictionaryDifference::GetDisplayName(assert_cast<const CDictItem*>(difference.GetDefinedDictElement())->GetRecord(), show_names).c_str()));
             }
 
 
@@ -138,35 +139,35 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
 
             if( difference.type == DictionaryDifference::Type::ItemRemoved )
             {
-                difference_text = _T("Removed");
+                difference_text = "Removed";
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemAdded )
             {
-                difference_text = _T("Added");
+                difference_text = "Added";
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemLengthChanged )
             {
-                difference_text = FormatTextCS2WS(_T("Length changed (%d -> %d)"),
-                                                  static_cast<int>(initial_item->GetLen()),
-                                                  static_cast<int>(final_item->GetLen()));
+                difference_text = FormatText("Length changed (%d -> %d)",
+                                             static_cast<int>(initial_item->GetLen()),
+                                             static_cast<int>(final_item->GetLen()));
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemValueTruncated )
             {
                 if( initial_item->GetContentType() == ContentType::Numeric && final_item->GetContentType() == ContentType::Numeric )
                 {
-                    difference_text = FormatTextCS2WS(_T("Value truncated (%d.%d -> %d.%d)"),
-                                                      static_cast<int>(initial_item->GetIntegerLen()), static_cast<int>(initial_item->GetDecimal()),
-                                                      static_cast<int>(final_item->GetIntegerLen()), static_cast<int>(final_item->GetDecimal()));
+                    difference_text = FormatText("Value truncated (%d.%d -> %d.%d)",
+                                                 static_cast<int>(initial_item->GetIntegerLen()), static_cast<int>(initial_item->GetDecimal()),
+                                                 static_cast<int>(final_item->GetIntegerLen()), static_cast<int>(final_item->GetDecimal()));
                 }
 
                 else
                 {
-                    difference_text = FormatTextCS2WS(_T("Value truncated (%d -> %d)"),
-                                                      static_cast<int>(initial_item->GetLen()),
-                                                      static_cast<int>(final_item->GetLen()));
+                    difference_text = FormatText("Value truncated (%d -> %d)",
+                                                 static_cast<int>(initial_item->GetLen()),
+                                                 static_cast<int>(final_item->GetLen()));
                 }
             }
 
@@ -175,42 +176,42 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
                      difference.type == DictionaryDifference::Type::ItemContentTypeChangedInvalidSometimes ||
                      difference.type == DictionaryDifference::Type::ItemContentTypeChangedInvalidAlways )
             {
-                difference_text = FormatTextCS2WS(_T("Data type changed (%s -> %s)"),
-                                                  ToString(initial_item->GetContentType()),
-                                                  ToString(final_item->GetContentType()));
+                difference_text = FormatText("Data type changed (%s -> %s)",
+                                             ToString(initial_item->GetContentType()),
+                                             ToString(final_item->GetContentType()));
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemFormattingChanged )
             {
-                difference_text = _T("Formatting changed");
+                difference_text = "Formatting changed";
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemMovedOnRecord )
             {
-                difference_text = FormatTextCS2WS(_T("Start position changed (%d -> %d)"),
-                                                  static_cast<int>(initial_item->GetStart()),
-                                                  static_cast<int>(final_item->GetStart()));
+                difference_text = FormatText("Start position changed (%d -> %d)",
+                                             static_cast<int>(initial_item->GetStart()),
+                                             static_cast<int>(final_item->GetStart()));
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemMovedToDifferentRecord )
             {
-                difference_text = FormatTextCS2WS(_T("Moved to record %s"),
-                                                  DictionaryDifference::GetDisplayName(final_item->GetRecord(), show_names).c_str());
+                difference_text = FormatText("Moved to record '%s'",
+                                             DictionaryDifference::GetDisplayName(final_item->GetRecord(), show_names).c_str());
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemMovedToDifferentRecordOccurrencesDecreased )
             {
-                difference_text = FormatTextCS2WS(_T("Record occurrences decreased as a result of movement to a different record (%d -> %d)"),
-                                                  static_cast<int>(initial_item->GetRecord()->GetMaxRecs()),
-                                                  static_cast<int>(final_item->GetRecord()->GetMaxRecs()));
+                difference_text = FormatText("Record occurrences decreased as a result of movement to a different record (%d -> %d)",
+                                             static_cast<int>(initial_item->GetRecord()->GetMaxRecs()),
+                                             static_cast<int>(final_item->GetRecord()->GetMaxRecs()));
             }
 
             else if( difference.type == DictionaryDifference::Type::ItemItemSubitemOccurrencesDeceased ||
                      difference.type == DictionaryDifference::Type::ItemItemSubitemOccurrencesIncreased )
             {
-                difference_text = FormatTextCS2WS(_T("Item/subitem occurrences changed (%d -> %d)"),
-                                                  static_cast<int>(initial_item->GetItemSubitemOccurs()),
-                                                  static_cast<int>(final_item->GetItemSubitemOccurs()));
+                difference_text = FormatText("Item/subitem occurrences changed (%d -> %d)",
+                                             static_cast<int>(initial_item->GetItemSubitemOccurs()),
+                                             static_cast<int>(final_item->GetItemSubitemOccurs()));
             }
 
             else
@@ -221,7 +222,7 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
 
 
         // display the name/label only if is different from the previous one
-        std::wstring display_name;
+        std::string display_name;
 
         if( previous_difference == nullptr || !SO::EqualsNoCase(previous_difference->GetDisplayName(true), difference.GetDisplayName(true)) )
             display_name = difference.GetDisplayName(show_names, display_name_length);
@@ -235,12 +236,12 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
 
     if( differences.empty() )
     {
-        differences_log.Append(_T("The dictionaries are identical."));
+        differences_log.Append("The dictionaries are identical.");
     }
 
     else if( previous_difference == nullptr )
     {
-        differences_log.Append(_T("Reformatting the data will not result in any destructive changes."));
+        differences_log.Append("Reformatting the data will not result in any destructive changes.");
     }
 }
 
@@ -260,9 +261,9 @@ std::vector<DictionaryDifference> ToolReformatter::GetSortedDifferences(const Re
     // - the name
     auto get_sort_text = [](const DictionaryDifference& difference)
     {
-        std::wstring sort_text = difference.IsLevelDifference()  ? _T("1") :
-                                 difference.IsRecordDifference() ? _T("2") :
-                                                                   _T("3");
+        std::string sort_text = difference.IsLevelDifference()  ? "1" :
+                                difference.IsRecordDifference() ? "2" :
+                                                                  "3";
 
         if( difference.IsRecordDifference() )
             sort_text.append(IntToString(assert_cast<const CDictRecord*>(difference.GetDefinedDictElement())->GetLevel()->GetLevelNumber()));
@@ -325,12 +326,12 @@ bool ToolReformatter::Run(const PFF& pff, const bool silent, std::shared_ptr<con
         if( output_dictionary == nullptr )
             output_dictionary = CDataDict::InstantiateAndOpen(pff.GetOutputDictFName(), silent);
 
-        // if the input dictionary hasn't been set, get it from the input data file
+        // if the input dictionary hasn't been set, get it from the input data source
         if( input_dictionary == nullptr && pff.GetSingleInputDataConnectionString().IsDefined() )
-            input_dictionary = DataRepositoryHelpers::GetEmbeddedDictionary(pff.GetSingleInputDataConnectionString());
+            input_dictionary = DictionarySource::GetEmbeddedDictionary(pff.GetSingleInputDataConnectionString());
 
         if( input_dictionary == nullptr )
-            throw CSProException("You must specify an input dictionary or an input filename with an embedded dictionary.");
+            throw CSProException("You must specify an input dictionary or an input data source with an embedded dictionary.");
 
         return std::make_unique<Reformatter>(std::move(input_dictionary), std::move(output_dictionary));
     });
@@ -342,12 +343,10 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
 {
     //  open the log file
     if( pff.GetListingFName().IsEmpty() )
-        throw CSProException("You must specify a listing filename.");
+        throw CSProException("You must specify a listing file.");
 
-    CStdioFileUnicode log;
-
-    if( !log.Open(pff.GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-        throw CSProException(_T("There was an error creating the listing file:\n\n%s"), pff.GetListingFName().GetString());
+    FileIO::TextFile log;
+    log.OpenForTextWritingCreate(pff.GetListingFName());
 
     // start the reformat
     bool reformat_errors = false;
@@ -359,43 +358,42 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
         // write the listing file header and the dictionary differences
         size_t display_name_length = 0;
 
-        auto write_listing = [&](const DataRepository* input_repository, const DataRepository* output_repository)
+        auto write_listing = [&](const DataRepository* const input_repository, const DataRepository* const output_repository)
         {
             if( !pff.GetInputDictFName().IsEmpty() )
             {
-                log.WriteFormattedLine(_T("Input Dictionary File:   %s"),
-                                       pff.GetInputDictFName().GetString());
+                log.WriteFormattedLine("Input Dictionary File:   %s",
+                                       UTF8_TODO::GetUtf8(pff.GetInputDictFName()).c_str());
             }
 
             else
             {
-                log.WriteFormattedLine(_T("Input Dictionary File:   %s (Embedded)"),
-                                       pff.GetSingleInputDataConnectionString().GetFilename().c_str());
+                log.WriteFormattedLine("Input Dictionary File:   %s (Embedded)",
+                                       pff.GetSingleInputDataConnectionString().GetFilePath().c_str());
             }
 
             if( input_repository != nullptr )
             {
-                log.WriteFormattedLine(_T("Input Data:              %s"),
-                                       input_repository->GetName(DataRepositoryNameType::ForListing).GetString());
+                log.WriteFormattedLine("Input Data:              %s",
+                                       input_repository->GetName(DataRepositoryNameType::ForListing).c_str());
             }
 
             log.WriteLine();
 
-            log.WriteFormattedLine(_T("Output Dictionary File:  %s"),
-                                   pff.GetOutputDictFName().GetString());
+            log.WriteFormattedLine("Output Dictionary File:  %s",
+                                   UTF8_TODO::GetUtf8(pff.GetOutputDictFName()).c_str());
 
             if( output_repository != nullptr )
             {
-                log.WriteFormattedLine(_T("Output Data:             %s"),
-                                       output_repository->GetName(DataRepositoryNameType::ForListing).GetString());
+                log.WriteFormattedLine("Output Data:             %s",
+                                       output_repository->GetName(DataRepositoryNameType::ForListing).c_str());
             }
 
             log.WriteLine();
 
             BasicLogger differences_log;
             GetDictionaryDifferences(differences_log, *reformatter, pff.GetDisplayNames(), false, &display_name_length);
-            log.WriteString(differences_log.ToString());
-            log.WriteLine();
+            log.WriteLine(differences_log.ToString());
         };
 
         // if no output data is specified, just compare the dictionaries
@@ -408,52 +406,52 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
         else
         {
             if( !pff.GetSingleInputDataConnectionString().IsDefined() )
-                throw CSProException("You must specify an input filename.");
+                throw CSProException("You must specify an input data source.");
 
-            if( pff.GetSingleOutputDataConnectionString().Equals(pff.GetSingleInputDataConnectionString()) )
-                throw CSProException("The output filename must be different than the input filename.");
+            if( pff.GetSingleInputDataConnectionString().SharesResource(pff.GetSingleOutputDataConnectionString()) )
+                throw CSProException("The output data source must be different than the input data source.");
 
             std::shared_ptr<CaseAccess> input_case_access;
             std::shared_ptr<CaseAccess> output_case_access;
             std::tie(input_case_access, output_case_access) = reformatter->Initialize();
 
-            std::shared_ptr<ProcessSummary> process_summary = input_case_access->GetDataDict().CreateProcessSummary();
-            auto case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(log, process_summary);
+            const std::shared_ptr<ProcessSummary> process_summary = input_case_access->GetDataDict().CreateProcessSummary();
+            const auto case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(log, process_summary);
 
             input_case_access->SetCaseConstructionReporter(case_construction_reporter);
             output_case_access->SetCaseConstructionReporter(case_construction_reporter);
 
-            std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(input_case_access,
-                                                                                             pff.GetSingleInputDataConnectionString(),
-                                                                                             DataRepositoryAccess::BatchInput,
-                                                                                             DataRepositoryOpenFlag::OpenMustExist);
+            const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(input_case_access,
+                                                                                                   pff.GetSingleInputDataConnectionString(),
+                                                                                                   DataRepositoryAccess::BatchInput,
+                                                                                                   DataRepositoryOpenFlag::OpenMustExist);
 
-            std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(output_case_access,
-                                                                                              pff.GetSingleOutputDataConnectionString(),
-                                                                                              DataRepositoryAccess::BatchOutput,
-                                                                                              DataRepositoryOpenFlag::CreateNew);
+            const std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(output_case_access,
+                                                                                                    pff.GetSingleOutputDataConnectionString(),
+                                                                                                    DataRepositoryAccess::BatchOutput,
+                                                                                                    DataRepositoryOpenFlag::CreateNew);
 
             const std::unique_ptr<Case> input_case = input_case_access->CreateCase(true);
             const std::unique_ptr<Case> output_case = output_case_access->CreateCase(true);
 
             write_listing(input_repository.get(), output_repository.get());
 
-            std::map<std::wstring, std::tuple<const CDictRecord*, size_t, size_t>> records_read_written;
+            std::map<std::string, std::tuple<const CDictRecord*, size_t, size_t>> records_read_written;
 
             // show a progress bar while reformatting the data
             ProcessSummaryDlg process_summary_dlg;
 
             process_summary_dlg.SetTask([&]
             {
-                process_summary_dlg.Initialize(_T("Reformatting data..."), process_summary);
-                process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), input_repository->GetName(DataRepositoryNameType::Full).GetString()));
+                process_summary_dlg.Initialize("Reformatting data...", process_summary);
+                process_summary_dlg.SetSource("Input Data: " + input_repository->GetName(DataRepositoryNameType::Full));
 
                 size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
 
                 // keep track of records read and written
                 auto update_records_read_written = [&records_read_written](const Case& data_case, const bool read)
                 {
-                    for( const CaseLevel* case_level : data_case.GetAllCaseLevels() )
+                    for( const CaseLevel* const case_level : data_case.GetAllCaseLevels() )
                     {
                         for( size_t record_number = 0; record_number < case_level->GetNumberCaseRecords(); ++record_number )
                         {
@@ -461,11 +459,11 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
 
                             if( case_record.GetNumberOccurrences() > 0 )
                             {
-                                const CString& record_name = case_record.GetCaseRecordMetadata().GetDictionaryRecord().GetName();
-                                auto map_search = records_read_written.find(CS2WS(record_name));
+                                const std::string& record_name = case_record.GetCaseRecordMetadata().GetDictRecord().GetName();
+                                auto map_search = records_read_written.find(record_name);
 
                                 std::tuple<const CDictRecord*, size_t, size_t>& record_counts =
-                                    ( map_search == records_read_written.end() ) ? records_read_written.try_emplace(CS2WS(record_name), &case_record.GetCaseRecordMetadata().GetDictionaryRecord(), 0, 0).first->second :
+                                    ( map_search == records_read_written.end() ) ? records_read_written.try_emplace(record_name, &case_record.GetCaseRecordMetadata().GetDictRecord(), 0, 0).first->second :
                                                                                    map_search->second;
 
                                 size_t& record_counter = read ? std::get<1>(record_counts) :
@@ -492,9 +490,9 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
                     // warn when the key changes
                     if( input_case->GetKey() != output_case->GetKey() )
                     {
-                        log.WriteFormattedString(_T("*** [%s]\n*** Key changed during reformat: '%s'\n\n"),
-                                                 NewlineSubstitutor::NewlineToUnicodeNL(input_case->GetKey()).GetString(),
-                                                 NewlineSubstitutor::NewlineToUnicodeNL(output_case->GetKey()).GetString());
+                        log.WriteFormattedLine("*** [%s]\n*** Key changed during reformat: '%s'\n",
+                                               NewlineSubstitutor::NewlineToUnicodeNL(input_case->GetKey()).c_str(),
+                                               NewlineSubstitutor::NewlineToUnicodeNL(output_case->GetKey()).c_str());
                     }
 
                     output_repository->WriteCase(*output_case);
@@ -521,17 +519,17 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
             reformat_errors |= ( case_construction_reporter->GetBadRecordCount() > 0 );
 
             // write out the record summary
-            log.WriteLine(_T("Records processed:"));
+            log.WriteLine("Records processed:");
 
-            log.WriteFormattedLine(_T("    %*s%10s%10s"),
-                                   display_name_length, _T(""),
-                                   _T("Input"), _T("Output"));
+            log.WriteFormattedLine("    %*s%10s%10s",
+                                   static_cast<int>(display_name_length), "",
+                                   "Input", "Output");
 
             for( const auto& [record_name, record_counts] : records_read_written )
             {
-                const std::wstring display_name = DictionaryDifference::GetDisplayName(std::get<0>(record_counts), pff.GetDisplayNames(), display_name_length);
-                log.WriteFormattedLine(_T("    %-*s%10d%10d"),
-                                       display_name_length, display_name.c_str(),
+                const std::string display_name = DictionaryDifference::GetDisplayName(std::get<0>(record_counts), pff.GetDisplayNames(), display_name_length);
+                log.WriteFormattedLine("    %-*s%10d%10d",
+                                       static_cast<int>(display_name_length), display_name.c_str(),
                                        static_cast<int>(std::get<1>(record_counts)), static_cast<int>(std::get<2>(record_counts)));
             }
         }
@@ -541,7 +539,7 @@ bool ToolReformatter::Run(const PFF& pff, const bool /*silent*/, const GetReform
     {
         reformat_errors = true;
         log.WriteLine();
-        log.WriteLine(exception.GetErrorMessage());
+        log.WriteLine(exception.what());
     }
 
     // close the log and potentially view the listing and results

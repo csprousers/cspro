@@ -3,7 +3,8 @@
  *
  * Used in conjunction with the libxlsxwriter library.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -66,8 +67,8 @@ lxw_chartsheet_free(lxw_chartsheet *chartsheet)
         return;
 
     lxw_worksheet_free(chartsheet->worksheet);
-    free(chartsheet->name);
-    free(chartsheet->quoted_name);
+    free((void *) chartsheet->name);
+    free((void *) chartsheet->quoted_name);
     free(chartsheet);
 }
 

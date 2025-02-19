@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EB390517-CA9F-4840-985E-03BA0BC07F9D}</ProjectGuid>
     <RootNamespace>CSReFmt</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -79,8 +75,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CSReFmt.h" />
-    <ClInclude Include="Resource.h" />
     <ClInclude Include="ReformatDlg.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>

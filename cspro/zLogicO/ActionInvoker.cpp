@@ -17,9 +17,9 @@ namespace
         // CS functions
         // --------------------------------------------------------------------------
         {
-            _T("execute"),
-            _T("CS.execute(action := string[, arguments := object])"),
-            _T("CS_execute.html"),
+            "execute",
+            "CS.execute(action := string[, arguments := object])",
+            "CS_execute.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS,
             DataType::String,
@@ -27,14 +27,24 @@ namespace
             static_cast<int>(ActionInvoker::Action::execute),
         },
         {
-            _T("registerAccessToken"),
-            _T("CS.registerAccessToken(accessToken := string)"),
-            _T("CS_registerAccessToken.html"),
+            "registerAccessToken",
+            "CS.registerAccessToken(accessToken := string)",
+            "CS_registerAccessToken.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS,
             DataType::String,
             FunctionCompilationType::CS,
             static_cast<int>(ActionInvoker::Action::registerAccessToken),
+        },
+        {
+            "throwException",
+            "CS.throwException(message := string[, name := string, cause := string | number | boolean | array | object])",
+            "CS_throwException.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::throwException),
         },
 
 
@@ -42,9 +52,9 @@ namespace
         // CS.Application functions
         // --------------------------------------------------------------------------
         {
-            _T("getFormFile"),
-            _T("CS.Application.getFormFile([name := string, path := string])"),
-            _T("CS_Application_getFormFile.html"),
+            "getFormFile",
+            "CS.Application.getFormFile([name := string, path := string])",
+            "CS_Application_getFormFile.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Application,
             DataType::String,
@@ -52,9 +62,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Application_getFormFile),
         },
         {
-            _T("getQuestionnaireContent"),
-            _T("CS.Application.getQuestionnaireContent([name := string, key := string, uuid := string, serializationOptions := object])"),
-            _T("CS_Application_getQuestionnaireContent.html"),
+            "getQuestionnaireContent",
+            "CS.Application.getQuestionnaireContent([name := string, key := string, uuid := string, serializationOptions := object])",
+            "CS_Application_getQuestionnaireContent.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Application,
             DataType::String,
@@ -62,9 +72,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Application_getQuestionnaireContent),
         },
         {
-            _T("getQuestionText"),
-            _T("CS.Application.getQuestionText([name := string, path := string])"),
-            _T("CS_Application_getQuestionText.html"),
+            "getQuestionText",
+            "CS.Application.getQuestionText([name := string, path := string])",
+            "CS_Application_getQuestionText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Application,
             DataType::String,
@@ -77,9 +87,9 @@ namespace
         // CS.Clipboard functions
         // --------------------------------------------------------------------------
         {
-            _T("getText"),
-            _T("CS.Clipboard.getText()"),
-            _T("CS_Clipboard_getText.html"),
+            "getText",
+            "CS.Clipboard.getText()",
+            "CS_Clipboard_getText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Clipboard,
             DataType::String,
@@ -87,9 +97,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Clipboard_getText),
         },
         {
-            _T("putText"),
-            _T("CS.Clipboard.putText(text := string | number)"),
-            _T("CS_Clipboard_putText.html"),
+            "putText",
+            "CS.Clipboard.putText(text := string | number)",
+            "CS_Clipboard_putText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Clipboard,
             DataType::String,
@@ -102,9 +112,9 @@ namespace
         // CS.Data functions
         // --------------------------------------------------------------------------
         {
-            _T("getCase"),
-            _T("CS.Data.getCase([name := string, key := string, uuid := string, serializationOptions := object])"),
-            _T("CS_Data_getCase.html"),
+            "getCase",
+            "CS.Data.getCase([name := string, key := string, uuid := string, serializationOptions := object])",
+            "CS_Data_getCase.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Data,
             DataType::String,
@@ -117,9 +127,9 @@ namespace
         // CS.Dictionary functions
         // --------------------------------------------------------------------------
         {
-            _T("getDictionary"),
-            _T("CS.Dictionary.getDictionary([name := string, path := string])"),
-            _T("CS_Dictionary_getDictionary.html"),
+            "getDictionary",
+            "CS.Dictionary.getDictionary([name := string, path := string])",
+            "CS_Dictionary_getDictionary.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Dictionary,
             DataType::String,
@@ -132,9 +142,9 @@ namespace
         // CS.File functions
         // --------------------------------------------------------------------------
         {
-            _T("copy"),
-            _T("CS.File.copy(source := string | array, destination := string[, overwrite := boolean])"),
-            _T("CS_File_copy.html"),
+            "copy",
+            "CS.File.copy(source := string | array, destination := string[, overwrite := string | boolean])",
+            "CS_File_copy.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -142,9 +152,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_copy),
         },
         {
-            _T("readBytes"),
-            _T("CS.File.readBytes(path := string[, bytesFormat := string])"),
-            _T("CS_File_readBytes.html"),
+            "readBytes",
+            "CS.File.readBytes(path := string[, bytesFormat := string])",
+            "CS_File_readBytes.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -152,9 +162,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_readBytes),
         },
         {
-            _T("readLines"),
-            _T("CS.File.readLines(path := string[, encoding := string])"),
-            _T("CS_File_readLines.html"),
+            "readLines",
+            "CS.File.readLines(path := string[, encoding := string])",
+            "CS_File_readLines.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -162,9 +172,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_readLines),
         },
         {
-            _T("readText"),
-            _T("CS.File.readText(path := string[, encoding := string])"),
-            _T("CS_File_readText.html"),
+            "readText",
+            "CS.File.readText(path := string[, encoding := string])",
+            "CS_File_readText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -172,9 +182,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_readText),
         },
         {
-            _T("writeBytes"),
-            _T("CS.File.writeBytes(path := string, bytes := string[, bytesFormat := string])"),
-            _T("CS_File_writeBytes.html"),
+            "writeBytes",
+            "CS.File.writeBytes(path := string, bytes := string[, bytesFormat := string])",
+            "CS_File_writeBytes.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -182,9 +192,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_writeBytes),
         },
         {
-            _T("writeLines"),
-            _T("CS.File.writeLines(path := string, lines := array[, encoding := string])"),
-            _T("CS_File_writeLines.html"),
+            "writeLines",
+            "CS.File.writeLines(path := string, lines := array[, encoding := string])",
+            "CS_File_writeLines.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -192,9 +202,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::File_writeLines),
         },
         {
-            _T("writeText"),
-            _T("CS.File.writeText(path := string, text := string[, encoding := string])"),
-            _T("CS_File_writeText.html"),
+            "writeText",
+            "CS.File.writeText(path := string, text := string[, encoding := string])",
+            "CS_File_writeText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_File,
             DataType::String,
@@ -207,9 +217,9 @@ namespace
         // CS.Hash functions
         // --------------------------------------------------------------------------
         {
-            _T("createHash"),
-            _T("CS.Hash.createHash([path := string, text := string, bytes := string, bytesFormat := string, type := string, length := number, iterations := number, salt := string, saltFormat := string])"),
-            _T("CS_Hash_createHash.html"),
+            "createHash",
+            "CS.Hash.createHash([path := string, text := string, bytes := string, bytesFormat := string, type := string, length := number, iterations := number, salt := string, saltFormat := string])",
+            "CS_Hash_createHash.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Hash,
             DataType::String,
@@ -217,9 +227,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Hash_createHash),
         },
         {
-            _T("createMd5"),
-            _T("CS.Hash.createMd5([path := string, text := string, bytes := string, bytesFormat := string])"),
-            _T("CS_Hash_createMd5.html"),
+            "createMd5",
+            "CS.Hash.createMd5([path := string, text := string, bytes := string, bytesFormat := string])",
+            "CS_Hash_createMd5.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Hash,
             DataType::String,
@@ -232,9 +242,9 @@ namespace
         // CS.Localhost functions
         // --------------------------------------------------------------------------
         {
-            _T("mapActionResult"),
-            _T("CS.Localhost.mapActionResult(action := string[, arguments := object])"),
-            _T("CS_Localhost_mapActionResult.html"),
+            "mapActionResult",
+            "CS.Localhost.mapActionResult(action := string[, arguments := object])",
+            "CS_Localhost_mapActionResult.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Localhost,
             DataType::String,
@@ -242,9 +252,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Localhost_mapActionResult),
         },
         {
-            _T("mapFile"),
-            _T("CS.Localhost.mapFile(path := string[, contentType := string, evaluateImmediately := boolean, pathOverride := string])"),
-            _T("CS_Localhost_mapFile.html"),
+            "mapFile",
+            "CS.Localhost.mapFile(path := string[, contentType := string, evaluateImmediately := boolean, pathOverride := string])",
+            "CS_Localhost_mapFile.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Localhost,
             DataType::String,
@@ -252,9 +262,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Localhost_mapFile),
         },
         {
-            _T("mapSymbol"),
-            _T("CS.Localhost.mapSymbol(name := string[, contentType := string, evaluateImmediately := boolean])"),
-            _T("CS_Localhost_mapSymbol.html"),
+            "mapSymbol",
+            "CS.Localhost.mapSymbol(name := string[, contentType := string, evaluateImmediately := boolean])",
+            "CS_Localhost_mapSymbol.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Localhost,
             DataType::String,
@@ -262,9 +272,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Localhost_mapSymbol),
         },
         {
-            _T("mapText"),
-            _T("CS.Localhost.mapText(text := string[, contentType := string])"),
-            _T("CS_Localhost_mapText.html"),
+            "mapText",
+            "CS.Localhost.mapText(text := string[, contentType := string])",
+            "CS_Localhost_mapText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Localhost,
             DataType::String,
@@ -277,9 +287,9 @@ namespace
         // CS.Logic functions
         // --------------------------------------------------------------------------
         {
-            _T("eval"),
-            _T("CS.Logic.eval(logic := string)"),
-            _T("CS_Logic_eval.html"),
+            "eval",
+            "CS.Logic.eval(logic := string)",
+            "CS_Logic_eval.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -287,9 +297,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Logic_eval),
         },
         {
-            _T("getSymbol"),
-            _T("CS.Logic.getSymbol(name := string[, serializationOptions := object])"),
-            _T("CS_Logic_getSymbol.html"),
+            "getSymbol",
+            "CS.Logic.getSymbol(name := string[, serializationOptions := object])",
+            "CS_Logic_getSymbol.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -297,9 +307,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Logic_getSymbol),
         },
         {
-            _T("getSymbolMetadata"),
-            _T("CS.Logic.getSymbolMetadata(name := string[, serializationOptions := object])"),
-            _T("CS_Logic_getSymbolMetadata.html"),
+            "getSymbolMetadata",
+            "CS.Logic.getSymbolMetadata(name := string[, serializationOptions := object])",
+            "CS_Logic_getSymbolMetadata.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -307,9 +317,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Logic_getSymbolMetadata),
         },
         {
-            _T("getSymbolValue"),
-            _T("CS.Logic.getSymbolValue(name := string[, serializationOptions := object])"),
-            _T("CS_Logic_getSymbolValue.html"),
+            "getSymbolValue",
+            "CS.Logic.getSymbolValue(name := string[, serializationOptions := object])",
+            "CS_Logic_getSymbolValue.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -317,9 +327,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Logic_getSymbolValue),
         },
         {
-            _T("invoke"),
-            _T("CS.Logic.invoke(function := string[, arguments := object])"),
-            _T("CS_Logic_invoke.html"),
+            "invoke",
+            "CS.Logic.invoke(function := string[, arguments := object])",
+            "CS_Logic_invoke.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -327,9 +337,19 @@ namespace
             static_cast<int>(ActionInvoker::Action::Logic_invoke),
         },
         {
-            _T("updateSymbolValue"),
-            _T("CS.Logic.updateSymbolValue(name := string, value := string | number | array | object)"),
-            _T("CS_Logic_updateSymbolValue.html"),
+            "setSymbolValue",
+            "CS.Logic.setSymbolValue(name := string, value := string | number | array | object)",
+            "CS_Logic_setSymbolValue.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Logic,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Logic_setSymbolValue),
+        },
+        {
+            "updateSymbolValue",
+            "CS.Logic.updateSymbolValue(name := string, value := string | number | array | object)",
+            "CS_Logic_updateSymbolValue.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,
@@ -342,9 +362,9 @@ namespace
         // CS.Message functions
         // --------------------------------------------------------------------------
         {
-            _T("formatText"),
-            _T("CS.Message.formatText([number := number, text := string, type := string, arguments := array])"),
-            _T("CS_Message_formatText.html"),
+            "formatText",
+            "CS.Message.formatText([number := number, text := string, type := string, arguments := array])",
+            "CS_Message_formatText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Message,
             DataType::String,
@@ -352,9 +372,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Message_formatText),
         },
         {
-            _T("getText"),
-            _T("CS.Message.getText(number := number[, type := string, text := string])"),
-            _T("CS_Message_getText.html"),
+            "getText",
+            "CS.Message.getText(number := number[, type := string, text := string])",
+            "CS_Message_getText.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Message,
             DataType::String,
@@ -364,12 +384,67 @@ namespace
 
 
         // --------------------------------------------------------------------------
+        // CS.Network functions
+        // --------------------------------------------------------------------------
+        {
+            "fetch",
+            "CS.Network.fetch(url := string[, method := string, headers := array | object, body := object | string, bodyFormat := string, responseHeadersFormat := string])",
+            "CS_Network_fetch.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Network,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Network_fetch),
+        },
+        {
+            "fetchBody",
+            "CS.Network.fetchBody([fetchId := number, bodyFormat := boolean, cancel := boolean])",
+            "CS_Network_fetchBody.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Network,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Network_fetchBody),
+        },
+        {
+            "fetchBytes",
+            "CS.Network.fetchBytes(url := string[, method := string, headers := array | object, body := object | string, bodyFormat := string, detailed := boolean, responseBodyFormat := string, responseHeadersFormat := string])",
+            "CS_Network_fetchBytes.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Network,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Network_fetchBytes),
+        },
+        {
+            "fetchJson",
+            "CS.Network.fetchJson(url := string[, method := string, headers := array | object, body := object | string, bodyFormat := string, detailed := boolean, responseHeadersFormat := string])",
+            "CS_Network_fetchJson.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Network,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Network_fetchJson),
+        },
+        {
+            "fetchText",
+            "CS.Network.fetchText(url := string[, method := string, headers := array | object, body := object | string, bodyFormat := string, detailed := boolean, responseHeadersFormat := string])",
+            "CS_Network_fetchText.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Network,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Network_fetchText),
+        },
+
+
+        // --------------------------------------------------------------------------
         // CS.Path functions
         // --------------------------------------------------------------------------
         {
-            _T("createDirectory"),
-            _T("CS.Path.createDirectory(path := string)"),
-            _T("CS_Path_createDirectory.html"),
+            "createDirectory",
+            "CS.Path.createDirectory(path := string)",
+            "CS_Path_createDirectory.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -377,9 +452,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Path_createDirectory),
         },
         {
-            _T("getDirectoryListing"),
-            _T("CS.Path.getDirectoryListing(path := string[, recursive := boolean, filter := string, filterDirectories := boolean, type := string, detailed := boolean])"),
-            _T("CS_Path_getDirectoryListing.html"),
+            "getDirectoryListing",
+            "CS.Path.getDirectoryListing(path := string[, recursive := boolean, filter := string, filterDirectories := boolean, type := string, detailed := boolean])",
+            "CS_Path_getDirectoryListing.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -387,9 +462,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Path_getDirectoryListing),
         },
         {
-            _T("getPathInfo"),
-            _T("CS.Path.getPathInfo(path := string)"),
-            _T("CS_Path_getPathInfo.html"),
+            "getPathInfo",
+            "CS.Path.getPathInfo(path := string)",
+            "CS_Path_getPathInfo.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -397,9 +472,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Path_getPathInfo),
         },
         {
-            _T("getSpecialPaths"),
-            _T("CS.Path.getSpecialPaths()"),
-            _T("CS_Path_getSpecialPaths.html"),
+            "getSpecialPaths",
+            "CS.Path.getSpecialPaths()",
+            "CS_Path_getSpecialPaths.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -407,9 +482,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Path_getSpecialPaths),
         },
         {
-            _T("selectFile"),
-            _T("CS.Path.selectFile([title := string, filter := string, startDirectory := string, rootDirectory := string, showDirectories := boolean])"),
-            _T("CS_Path_selectFile.html"),
+            "selectFile",
+            "CS.Path.selectFile([title := string, filter := string, startDirectory := string, rootDirectory := string, showDirectories := boolean])",
+            "CS_Path_selectFile.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -417,9 +492,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Path_selectFile),
         },
         {
-            _T("showFileDialog"),
-            _T("CS.Path.showFileDialog([type := string, title := string, filter := string, startDirectory := string, rootDirectory := string, name := string, confirmOverwrite := boolean, useNativeDialog := boolean, showDirectories := boolean])"),
-            _T("CS_Path_showFileDialog.html"),
+            "showFileDialog",
+            "CS.Path.showFileDialog([type := string, title := string, filter := string, startDirectory := string, rootDirectory := string, name := string, confirmOverwrite := boolean, useNativeDialog := boolean, showDirectories := boolean])",
+            "CS_Path_showFileDialog.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Path,
             DataType::String,
@@ -432,9 +507,9 @@ namespace
         // CS.Settings functions
         // --------------------------------------------------------------------------
         {
-            _T("getValue"),
-            _T("CS.Settings.getValue(key := string[, value := string | number | boolean | array | object, source := string])"),
-            _T("CS_Settings_getValue.html"),
+            "getValue",
+            "CS.Settings.getValue(key := string[, value := string | number | boolean | array | object, source := string])",
+            "CS_Settings_getValue.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Settings,
             DataType::String,
@@ -442,9 +517,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Settings_getValue),
         },
         {
-            _T("putValue"),
-            _T("CS.Settings.putValue(key := string, value := string | number | boolean | array | object[, source := string])"),
-            _T("CS_Settings_putValue.html"),
+            "putValue",
+            "CS.Settings.putValue(key := string, value := string | number | boolean | array | object[, source := string])",
+            "CS_Settings_putValue.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Settings,
             DataType::String,
@@ -457,9 +532,9 @@ namespace
         // CS.Sqlite functions
         // --------------------------------------------------------------------------
         {
-            _T("close"),
-            _T("CS.Sqlite.close(db := number)"),
-            _T("CS_Sqlite_close.html"),
+            "close",
+            "CS.Sqlite.close([dbId := number])",
+            "CS_Sqlite_close.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Sqlite,
             DataType::String,
@@ -467,9 +542,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Sqlite_close),
         },
         {
-            _T("exec"),
-            _T("CS.Sqlite.exec(db := number, sql := string | array[, bindings := array | object, rowFormat := string, bytesFormat := string])"),
-            _T("CS_Sqlite_exec.html"),
+            "exec",
+            "CS.Sqlite.exec(sql := string | array[, dbId := number, bindings := array | object, rowFormat := string, bytesFormat := string])",
+            "CS_Sqlite_exec.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Sqlite,
             DataType::String,
@@ -477,9 +552,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Sqlite_exec),
         },
         {
-            _T("open"),
-            _T("CS.Sqlite.open([path := string, name := string, openFlags := string, encryptionKey := string, encryptionKeyFormat := string])"),
-            _T("CS_Sqlite_open.html"),
+            "open",
+            "CS.Sqlite.open([path := string, name := string, openFlags := string, encryptionKey := string, encryptionKeyFormat := string])",
+            "CS_Sqlite_open.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Sqlite,
             DataType::String,
@@ -487,9 +562,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::Sqlite_open),
         },
         {
-            _T("rekey"),
-            _T("CS.Sqlite.rekey(db := number, encryptionKey := string[, encryptionKeyFormat := string])"),
-            _T("CS_Sqlite_rekey.html"),
+            "rekey",
+            "CS.Sqlite.rekey(encryptionKey := string[, dbId := number, encryptionKeyFormat := string])",
+            "CS_Sqlite_rekey.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Sqlite,
             DataType::String,
@@ -499,12 +574,67 @@ namespace
 
 
         // --------------------------------------------------------------------------
+        // CS.Sync functions
+        // --------------------------------------------------------------------------
+        {
+            "connect",
+            "CS.Sync.connect(connection := string)",
+            "CS_Sync_connect.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Sync,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Sync_connect),
+        },
+        {
+            "disconnect",
+            "CS.Sync.disconnect([syncId := number])",
+            "CS_Sync_disconnect.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Sync,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Sync_disconnect),
+        },
+        {
+            "sendMessage",
+            "CS.Sync.sendMessage(name := string[, value := string | number | boolean | array | object])",
+            "CS_Sync_sendMessage.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Sync,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Sync_sendMessage),
+        },
+        {
+            "syncParadata",
+            "CS.Sync.syncParadata([direction := string, path := string | array])",
+            "CS_Sync_syncParadata.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Sync,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Sync_syncParadata),
+        },
+
+
+        // --------------------------------------------------------------------------
         // CS.System functions
         // --------------------------------------------------------------------------
         {
-            _T("getSharableUri"),
-            _T("CS.System.getSharableUri(path := string | array[, permissions := string])"),
-            _T("CS_System_getSharableUri.html"),
+            "createShortcut",
+            "CS.System.createShortcut(target := string[, label := string, longLabel := string, icon := string])",
+            "CS_System_createShortcut.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_System,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::System_createShortcut),
+        },
+        {
+            "getSharableUri",
+            "CS.System.getSharableUri(path := string | array[, permissions := string])",
+            "CS_System_getSharableUri.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_System,
             DataType::String,
@@ -512,9 +642,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::System_getSharableUri),
         },
         {
-            _T("selectDocument"),
-            _T("CS.System.selectDocument([contentType := string | array, multiple := boolean])"),
-            _T("CS_System_selectDocument.html"),
+            "selectDocument",
+            "CS.System.selectDocument([contentType := string | array, multiple := boolean])",
+            "CS_System_selectDocument.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_System,
             DataType::String,
@@ -527,9 +657,9 @@ namespace
         // CS.UI functions
         // --------------------------------------------------------------------------
         {
-            _T("alert"),
-            _T("CS.UI.alert(text := string[, title := string])"),
-            _T("CS_UI_alert.html"),
+            "alert",
+            "CS.UI.alert(text := string[, title := string])",
+            "CS_UI_alert.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -537,9 +667,19 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_alert),
         },
         {
-            _T("closeDialog"),
-            _T("CS.UI.closeDialog([result := string | number | boolean | array | object])"),
-            _T("CS_UI_closeDialog.html"),
+            "close",
+            "CS.UI.close([result := string | number | boolean | array | object, exception := string | object])",
+            "CS_UI_close.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_UI,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::UI_close),
+        },
+        {
+            "closeDialog",
+            "CS.UI.closeDialog([result := string | number | boolean | array | object, exception := string | object])",
+            "CS_UI_close.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -547,9 +687,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_closeDialog),
         },
         {
-            _T("enumerateWebViews"),
-            _T("CS.UI.enumerateWebViews()"),
-            _T("CS_UI_enumerateWebViews.html"),
+            "enumerateWebViews",
+            "CS.UI.enumerateWebViews()",
+            "CS_UI_enumerateWebViews.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -557,9 +697,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_enumerateWebViews),
         },
         {
-            _T("getDisplayOptions"),
-            _T("CS.UI.getDisplayOptions()"),
-            _T("CS_UI_getDisplayOptions.html"),
+            "getDisplayOptions",
+            "CS.UI.getDisplayOptions()",
+            "CS_UI_getDisplayOptions.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -567,9 +707,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_getDisplayOptions),
         },
         {
-            _T("getInputData"),
-            _T("CS.UI.getInputData()"),
-            _T("CS_UI_getInputData.html"),
+            "getInputData",
+            "CS.UI.getInputData()",
+            "CS_UI_getInputData.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -577,9 +717,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_getInputData),
         },
         {
-            _T("getMaxDisplayDimensions"),
-            _T("CS.UI.getMaxDisplayDimensions()"),
-            _T("CS_UI_getMaxDisplayDimensions.html"),
+            "getMaxDisplayDimensions",
+            "CS.UI.getMaxDisplayDimensions()",
+            "CS_UI_getMaxDisplayDimensions.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -587,9 +727,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_getMaxDisplayDimensions),
         },
         {
-            _T("postWebMessage"),
-            _T("CS.UI.postWebMessage(message := string[, webViewId := number, targetOrigin := string])"),
-            _T("CS_UI_postWebMessage.html"),
+            "postWebMessage",
+            "CS.UI.postWebMessage(message := string[, webViewId := number, targetOrigin := string])",
+            "CS_UI_postWebMessage.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -597,9 +737,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_postWebMessage),
         },
         {
-            _T("setDisplayOptions"),
-            _T("CS.UI.setDisplayOptions([width := number | string, height := number | string, resizable := boolean, borderColor := string, titleBarColor := string, titleBarHeight := number, keyboard := boolean])"),
-            _T("CS_UI_setDisplayOptions.html"),
+            "setDisplayOptions",
+            "CS.UI.setDisplayOptions([width := number | string, height := number | string, resizable := boolean, borderColor := string, titleBarColor := string, titleBarHeight := number, keyboard := boolean])",
+            "CS_UI_setDisplayOptions.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -607,9 +747,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_setDisplayOptions),
         },
         {
-            _T("showDialog"),
-            _T("CS.UI.showDialog(path := string[, inputData := string | number | boolean | array | object, displayOptions := object])"),
-            _T("CS_UI_showDialog.html"),
+            "showDialog",
+            "CS.UI.showDialog(path := string[, inputData := string | number | boolean | array | object, displayOptions := object])",
+            "CS_UI_showDialog.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -617,9 +757,9 @@ namespace
             static_cast<int>(ActionInvoker::Action::UI_showDialog),
         },
         {
-            _T("view"),
-            _T("CS.UI.view([path := string, url := string, inputData := string | number | boolean | array | object, displayOptions := object])"),
-            _T("CS_UI_view.html"),
+            "view",
+            "CS.UI.view([path := string, url := string, inputData := string | number | boolean | array | object, displayOptions := object])",
+            "CS_UI_view.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_UI,
             DataType::String,
@@ -631,64 +771,77 @@ namespace
     };
 
 
-    const std::tuple<ActionInvoker::Action, const TCHAR*> JsonFunctionDefinitions[] =
+    const std::tuple<ActionInvoker::Action, const char*> JsonFunctionDefinitions[] =
     {
         // --- CS_AUTOGENERATED_START_2 ---------------------------------------------
 
-        { ActionInvoker::Action::execute,                             _T("{\"name\":\"execute\",\"description\":\"Executes an action with the action name specified as an argument.\",\"parameters\":[{\"name\":\"action\",\"description\":\"The name of the action to execute.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"Arguments for the action.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The action's result.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}") },
-        { ActionInvoker::Action::registerAccessToken,                 _T("{\"name\":\"registerAccessToken\",\"description\":\"Registers an access token to provide access to the Action Invoker from web views.\",\"parameters\":[{\"name\":\"accessToken\",\"description\":\"The access token.\",\"types\":[\"string\"],\"required\":true}]}") },
-        { ActionInvoker::Action::Application_getFormFile,             _T("{\"namespace\":\"Application\",\"name\":\"getFormFile\",\"description\":\"Returns a form file associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the form file to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The form file.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Application_getQuestionnaireContent, _T("{\"namespace\":\"Application\",\"name\":\"getQuestionnaireContent\",\"description\":\"Returns the questionnaire content associated with an application, form file, dictionary, or case.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"key\",\"description\":\"The key (case IDs) of a specific case to attach to the questionnaire content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"uuid\",\"description\":\"The UUID of a specific case to attach to the questionnaire content. If both \\\"uuid\\\" and \\\"key\\\" are provided, the \\\"uuid\\\" value is prioritized.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"serializationOptions\",\"description\":\"Options for how the case should be serialized (if applicable).\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The questionnaire content.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Application_getQuestionText,         _T("{\"namespace\":\"Application\",\"name\":\"getQuestionText\",\"description\":\"Returns the question text associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the question text to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The question text.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Clipboard_getText,                   _T("{\"namespace\":\"Clipboard\",\"name\":\"getText\",\"description\":\"Gets the text on the clipboard (if available).\",\"returns\":[{\"name\":\"\",\"description\":\"The text on the clipboard.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Clipboard_putText,                   _T("{\"namespace\":\"Clipboard\",\"name\":\"putText\",\"description\":\"Puts text onto the clipboard.\",\"parameters\":[{\"name\":\"text\",\"description\":\"The text to put onto the clipboard.\",\"types\":[\"string\",\"number\"],\"required\":true}]}") },
-        { ActionInvoker::Action::Data_getCase,                        _T("{\"namespace\":\"Data\",\"name\":\"getCase\",\"description\":\"Returns a specific case, or the current case, associated with a dictionary.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"key\",\"description\":\"The key (case IDs) of a specific case to lookup.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"uuid\",\"description\":\"The UUID of a specific case to lookup. If both \\\"uuid\\\" and \\\"key\\\" are provided, the \\\"uuid\\\" value is prioritized.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"serializationOptions\",\"description\":\"Options for how the case should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The current case.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Dictionary_getDictionary,            _T("{\"namespace\":\"Dictionary\",\"name\":\"getDictionary\",\"description\":\"Returns a dictionary associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the dictionary to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The dictionary.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::File_copy,                           _T("{\"namespace\":\"File\",\"name\":\"copy\",\"description\":\"Copies one of more files.\",\"parameters\":[{\"name\":\"source\",\"description\":\"The path or sharable URI of a file, or files, to copy. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"destination\",\"description\":\"The destination path, or destination directory, of the file(s) to be copied.)\",\"types\":[\"string\"],\"required\":true},{\"name\":\"overwrite\",\"description\":\"If false, an exception will occur if the the destination file already exists. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The fully evaluated destination path (or array of paths) of the copied file (or files).\",\"types\":[\"string\",\"array\"]}]}") },
-        { ActionInvoker::Action::File_readBytes,                      _T("{\"namespace\":\"File\",\"name\":\"readBytes\",\"description\":\"Reads a file as binary, returning the entire file's content as bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytesFormat\",\"description\":\"The format in which the bytes are returned. (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's bytes or a localhost URL to access the bytes.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::File_readLines,                      _T("{\"namespace\":\"File\",\"name\":\"readLines\",\"description\":\"Reads a file as text, returning the entire file's content as an array of strings.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use to decode the file's text.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's text, with each line as an entry in the array of strings.\",\"types\":[\"array\"]}]}") },
-        { ActionInvoker::Action::File_readText,                       _T("{\"namespace\":\"File\",\"name\":\"readText\",\"description\":\"Reads a file as text, returning the entire file's content as a string.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use to decode the file's text.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's text.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::File_writeBytes,                     _T("{\"namespace\":\"File\",\"name\":\"writeBytes\",\"description\":\"Writes bytes as a binary file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytes\",\"description\":\"The bytes to be written.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::File_writeLines,                     _T("{\"namespace\":\"File\",\"name\":\"writeLines\",\"description\":\"Writes an array of strings as lines to a text file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"lines\",\"description\":\"The lines to write.\",\"types\":[\"array\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use while writing the text. (Default value is \\\"UTF-8\\\".)\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::File_writeText,                      _T("{\"namespace\":\"File\",\"name\":\"writeText\",\"description\":\"Writes a string as a text file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"text\",\"description\":\"The text to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use while writing the text. (Default value is \\\"UTF-8\\\".)\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::Hash_createHash,                     _T("{\"namespace\":\"Hash\",\"name\":\"createHash\",\"description\":\"Returns the hash value of a file, text, or bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"A text string to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytes\",\"description\":\"Bytes to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"type\",\"description\":\"The desired hash algorithm (Default value is \\\"PBKDF2_SHA256\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"length\",\"description\":\"The length of the hash value in bytes (if applicable). (Default value is 32.)\",\"types\":[\"number\"],\"required\":false},{\"name\":\"iterations\",\"description\":\"The number of times the value is hashed (if applicable). (Default value is 1024.)\",\"types\":[\"number\"],\"required\":false},{\"name\":\"salt\",\"description\":\"A salt to add to the hash (if applicable).\",\"types\":[\"string\"],\"required\":false},{\"name\":\"saltFormat\",\"description\":\"The format of the salt (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The hash value.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Hash_createMd5,                      _T("{\"namespace\":\"Hash\",\"name\":\"createMd5\",\"description\":\"Returns the MD5 hash value of a file, text, or bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"A text string to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytes\",\"description\":\"Bytes to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The MD5 hash value.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Localhost_mapActionResult,           _T("{\"namespace\":\"Localhost\",\"name\":\"mapActionResult\",\"description\":\"Creates a mapping that provides access to the result of an action.\",\"parameters\":[{\"name\":\"action\",\"description\":\"The name of the action to execute.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"Arguments for the action.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the action's result (for the duration of the running application).\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Localhost_mapFile,                   _T("{\"namespace\":\"Localhost\",\"name\":\"mapFile\",\"description\":\"Creates a mapping that provides access to a file using a local server.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"evaluateImmediately\",\"description\":\"If true, the file will be immediately loaded and cached. If false or undefined, the file is loaded on request.\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"pathOverride\",\"description\":\"If specified, the file mapping will be constructed as if it exists at the overriden path.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the file (for the duration of the running application).\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Localhost_mapSymbol,                 _T("{\"namespace\":\"Localhost\",\"name\":\"mapSymbol\",\"description\":\"Creates a mapping that provides access to a CSPro logic binary symbol's data using a local server.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a CSPro logic binary symbol to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"evaluateImmediately\",\"description\":\"If true, the content will be immediately evaluated and cached. If false or undefined, the content is evaluated on request.\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the binary symbol's data (for the duration of the running application).\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Localhost_mapText,                   _T("{\"namespace\":\"Localhost\",\"name\":\"mapText\",\"description\":\"Creates a mapping that provides access to the supplied text using a local server.\",\"parameters\":[{\"name\":\"text\",\"description\":\"Text to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the text (for the duration of the running application).\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Logic_eval,                          _T("{\"namespace\":\"Logic\",\"name\":\"eval\",\"description\":\"Evaluates and runs CSPro logic.\",\"parameters\":[{\"name\":\"logic\",\"description\":\"The CSPro logic to compile and run.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the last statement.\",\"types\":[\"string\",\"number\"]}]}") },
-        { ActionInvoker::Action::Logic_getSymbol,                     _T("{\"namespace\":\"Logic\",\"name\":\"getSymbol\",\"description\":\"Gets a symbol's metadata and current value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's metadata value.\",\"types\":[\"object\"]},{\"name\":\"value\",\"description\":\"The symbol's current value.\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}") },
-        { ActionInvoker::Action::Logic_getSymbolMetadata,             _T("{\"namespace\":\"Logic\",\"name\":\"getSymbolMetadata\",\"description\":\"Gets a symbol's metadata.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's metadata.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Logic_getSymbolValue,                _T("{\"namespace\":\"Logic\",\"name\":\"getSymbolValue\",\"description\":\"Gets a symbol's current value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's current value.\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}") },
-        { ActionInvoker::Action::Logic_invoke,                        _T("{\"namespace\":\"Logic\",\"name\":\"invoke\",\"description\":\"Executes a user-defined function present in CSPro logic.\",\"parameters\":[{\"name\":\"function\",\"description\":\"The name of the user-defined function.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"The arguments to the user-defined function.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the user-defined function.\",\"types\":[\"string\",\"number\"]}]}") },
-        { ActionInvoker::Action::Logic_updateSymbolValue,             _T("{\"namespace\":\"Logic\",\"name\":\"updateSymbolValue\",\"description\":\"Updates a symbol's value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"The new value for the symbol.\",\"types\":[\"string\",\"number\",\"array\",\"object\"],\"required\":true}]}") },
-        { ActionInvoker::Action::Message_formatText,                  _T("{\"namespace\":\"Message\",\"name\":\"formatText\",\"description\":\"Creates a formatted string with inserted values using base text specified by a message number or text.\",\"parameters\":[{\"name\":\"number\",\"description\":\"The message number. Either \\\"number\\\" or \\\"text\\\" must be specified.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"text\",\"description\":\"The base (unformatted) text for the message. If \\\"number\\\" is specified, this value is only used if the number is not found in the message set. Either \\\"number\\\" or \\\"text\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"type\",\"description\":\"The message set to query if using a message number (either \\\"user\\\" or \\\"system\\\"). (Default value is \\\"user\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"arguments\",\"description\":\"The inserted values for each % formatting placeholder.\",\"types\":[\"array\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The formatted text.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Message_getText,                     _T("{\"namespace\":\"Message\",\"name\":\"getText\",\"description\":\"Returns the base (unformatted) text for a message.\",\"parameters\":[{\"name\":\"number\",\"description\":\"The message number.\",\"types\":[\"number\"],\"required\":true},{\"name\":\"type\",\"description\":\"The message set to query (either \\\"user\\\" or \\\"system\\\"). (Default value is \\\"user\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"Default text for this message (if not found in a message set).\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The message text, or the default text if no message with the number exists.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Path_createDirectory,                _T("{\"namespace\":\"Path\",\"name\":\"createDirectory\",\"description\":\"Creates a directory if it does not already exist.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the directory to create.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"\",\"description\":\"The fully evaluated path of the directory.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Path_getDirectoryListing,            _T("{\"namespace\":\"Path\",\"name\":\"getDirectoryListing\",\"description\":\"Returns information about the paths in a directory.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a directory.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"recursive\",\"description\":\"If true, the listing will include paths in subdirectories. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files, or both the files and directories if \\\"filterDirectories\\\" is true.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filterDirectories\",\"description\":\"If true, the filter will also apply to directories. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"type\",\"description\":\"The paths included can be filtered using the value \\\"file\\\" or \\\"directory\\\". (Default value is undefined.)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"detailed\",\"description\":\"If true, the returned paths will include details in the format of Path.getPathInfo. If false, only the paths will be returned. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"path\",\"description\":\"The path of the directory.\",\"types\":[\"string\"]},{\"name\":\"parent\",\"description\":\"The path of the parent directory (if applicable).\",\"types\":[\"string\"]},{\"name\":\"paths\",\"description\":\"The paths in the directory, presented in a format determined by the \\\"detailed\\\" input argument.\",\"types\":[\"array\"]}]}") },
-        { ActionInvoker::Action::Path_getPathInfo,                    _T("{\"namespace\":\"Path\",\"name\":\"getPathInfo\",\"description\":\"Returns information about a path.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a directory or file.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"path\",\"description\":\"The path of the directory or file.\",\"types\":[\"string\"]},{\"name\":\"name\",\"description\":\"The name of the directory or file (with the directory information removed).\",\"types\":[\"string\"]},{\"name\":\"extension\",\"description\":\"The file extension (without a preceeding dot) for files.\",\"types\":[\"string\"]},{\"name\":\"contentType\",\"description\":\"The MIME type based on the file extension for files.\",\"types\":[\"string\"]},{\"name\":\"exists\",\"description\":\"Whether or not the path exists.\",\"types\":[\"boolean\"]},{\"name\":\"type\",\"description\":\"If the path exists, whether or not it is a \\\"file\\\" or \\\"directory\\\".\",\"types\":[\"string\"]},{\"name\":\"modifiedTime\",\"description\":\"The last modified time of the path in RFC 3339 format.\",\"types\":[\"string\"]},{\"name\":\"size\",\"description\":\"The size of the file.\",\"types\":[\"number\"]}]}") },
-        { ActionInvoker::Action::Path_getSpecialPaths,                _T("{\"namespace\":\"Path\",\"name\":\"getSpecialPaths\",\"description\":\"Returns an object containing special paths, including the download and temp directories.\",\"returns\":[{\"name\":\"\",\"description\":\"Special paths.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::Path_selectFile,                     _T("{\"namespace\":\"Path\",\"name\":\"selectFile\",\"description\":\"Displays a dialog with a visual listing of the file system, returning the path of a file selected by an operator.\",\"parameters\":[{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"startDirectory\",\"description\":\"The path of the directory to be initially shown to the operator.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"rootDirectory\",\"description\":\"The path of the directory above which the operator cannot navigate.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"showDirectories\",\"description\":\"If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The path of the selected file.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Path_showFileDialog,                 _T("{\"namespace\":\"Path\",\"name\":\"showFileDialog\",\"description\":\"Displays a dialog with a visual listing of the file system, allowing the user to select a file to open or to create a file to save.\",\"parameters\":[{\"name\":\"type\",\"description\":\"Whether or not the dialog if for opening files (\\\"open\\\") or saving files (\\\"save\\\"). (Default value is \\\"open\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"startDirectory\",\"description\":\"The path of the directory to be initially shown to the operator.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"rootDirectory\",\"description\":\"The path of the directory above which the operator cannot navigate.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"name\",\"description\":\"A suggested name for the file.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"confirmOverwrite\",\"description\":\"When displaying a save dialog, a confirmation message will appear when trying to overwrite an existing file. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"useNativeDialog\",\"description\":\"If true, on Windows, instead of displaying an HTML dialog, the native Windows open/save file dialogs will display. The \\\"rootDirectory\\\" and \\\"showDirectories\\\" options will not be used in this case. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"showDirectories\",\"description\":\"If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The path of the selected file.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::Settings_getValue,                   _T("{\"namespace\":\"Settings\",\"name\":\"getValue\",\"description\":\"Returns a value from a settings database.\",\"parameters\":[{\"name\":\"key\",\"description\":\"The key that uniquely identifies the setting.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"A value to return if the setting is not defined.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"source\",\"description\":\"The settings database. If undefined, it defaults to \\\"UserSettings\\\".\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The setting's value, if defined.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}") },
-        { ActionInvoker::Action::Settings_putValue,                   _T("{\"namespace\":\"Settings\",\"name\":\"putValue\",\"description\":\"Sets a value in a settings database.\",\"parameters\":[{\"name\":\"key\",\"description\":\"The key that uniquely identifies the setting.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"The setting's value. When using the default \\\"UserSettings\\\" source, only strings and numbers are allowed.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":true},{\"name\":\"source\",\"description\":\"The settings database. If undefined, it defaults to \\\"UserSettings\\\".\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::Sqlite_close,                        _T("{\"namespace\":\"Sqlite\",\"name\":\"close\",\"description\":\"Closes a previously opened SQLite database.\",\"parameters\":[{\"name\":\"db\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":true}]}") },
-        { ActionInvoker::Action::Sqlite_exec,                         _T("{\"namespace\":\"Sqlite\",\"name\":\"exec\",\"description\":\"Executes a SQL statement, returning results as appropriate.\",\"parameters\":[{\"name\":\"db\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":true},{\"name\":\"sql\",\"description\":\"One or more SQL statements. If specifying more than one statement, only one can have bindings.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"bindings\",\"description\":\"The bindings for a SQL statement specified in \\\"sql\\\". If \\\"bindings\\\" is an array, the values are bound by position; if an object, the values are bound by name. To bind binary data, bind an object with the key \\\"bytes\\\" and optionally \\\"bytesFormat\\\".\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"rowFormat\",\"description\":\"Indicates how row results are returned from a query. Options include \\\"object\\\", \\\"array\\\", or \\\"scalarArray\\\". If the result is scalar, it will be returned directly unless \\\"rowFormat\\\" is explicitly specified. (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format in which bytes are returned (if querying a blob). (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The action's result (if applicable).\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}") },
-        { ActionInvoker::Action::Sqlite_open,                         _T("{\"namespace\":\"Sqlite\",\"name\":\"open\",\"description\":\"Opens a SQLite database and returns an ID that can be used for future operations.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to open. Either \\\"path\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"name\",\"description\":\"The name of a dictionary or \\\"paradata\\\". Either \\\"path\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"openFlags\",\"description\":\"Flags to control how the database is opened (when using a \\\"path\\\"). (Default value is \\\"read\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"encryptionKey\",\"description\":\"An encryption key to use when opening or creating a database.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"encryptionKeyFormat\",\"description\":\"The format of the encryption key. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"An ID that identifies this database.\",\"types\":[\"number\"]}]}") },
-        { ActionInvoker::Action::Sqlite_rekey,                        _T("{\"namespace\":\"Sqlite\",\"name\":\"rekey\",\"description\":\"Changes, removes, or adds an encryption key to a SQLite database.\",\"parameters\":[{\"name\":\"db\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":true},{\"name\":\"encryptionKey\",\"description\":\"The new encryption key, or a blank string to remove the encryption.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encryptionKeyFormat\",\"description\":\"The format of the encryption key. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::System_getSharableUri,               _T("{\"namespace\":\"System\",\"name\":\"getSharableUri\",\"description\":\"Creates a URI that can be used by external applications to reference a file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file, or files, from which to create sharable URIs. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"permissions\",\"description\":\"Permissions to apply to the sharable URI(s). (Default value is \\\"read\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The sharable URI (or array of sharable URIs).\",\"types\":[\"string\",\"array\"]}]}") },
-        { ActionInvoker::Action::System_selectDocument,               _T("{\"namespace\":\"System\",\"name\":\"selectDocument\",\"description\":\"Displays a dialog that allows the selection of one or more documents shared by the system.\",\"parameters\":[{\"name\":\"contentType\",\"description\":\"The MIME type, or types, of allowed content. (Default value is \\\"*/*\\\".)\",\"types\":[\"string\",\"array\"],\"required\":false},{\"name\":\"multiple\",\"description\":\"If true, the operator can select multiple documents. When selecting multiple documents, an array of objects returned. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"path\",\"description\":\"The path, or sharable URI, of the document.\",\"types\":[\"string\"]},{\"name\":\"name\",\"description\":\"The filename of the document.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::UI_alert,                            _T("{\"namespace\":\"UI\",\"name\":\"alert\",\"description\":\"Displays an alert dialog.\",\"parameters\":[{\"name\":\"text\",\"description\":\"The message to display.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::UI_closeDialog,                      _T("{\"namespace\":\"UI\",\"name\":\"closeDialog\",\"description\":\"Closes the current dialog, optionally returning a result to an action like UI.showDialog.\",\"parameters\":[{\"name\":\"result\",\"description\":\"The result to return.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"Whether or not a dialog was closed.\",\"types\":[\"boolean\"]}]}") },
-        { ActionInvoker::Action::UI_enumerateWebViews,                _T("{\"namespace\":\"UI\",\"name\":\"enumerateWebViews\",\"description\":\"Returns information about all of the web views currently showing.\",\"returns\":[{\"name\":\"webViewId\",\"description\":\"The web view ID of the JavaScript code executing this action (if applicable).\",\"types\":[\"number\"]},{\"name\":\"webViews\",\"description\":\"The details about each web view currently showing. The topmost showing web view is the first entry in the array.\",\"types\":[\"array\"]}]}") },
-        { ActionInvoker::Action::UI_getDisplayOptions,                _T("{\"namespace\":\"UI\",\"name\":\"getDisplayOptions\",\"description\":\"Returns the display options associated with the current web view.\",\"returns\":[{\"name\":\"\",\"description\":\"The defined display options.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::UI_getInputData,                     _T("{\"namespace\":\"UI\",\"name\":\"getInputData\",\"description\":\"Returns the input data associated with the current web view.\",\"returns\":[{\"name\":\"\",\"description\":\"The input data.\",\"types\":[\"object\"]}]}") },
-        { ActionInvoker::Action::UI_getMaxDisplayDimensions,          _T("{\"namespace\":\"UI\",\"name\":\"getMaxDisplayDimensions\",\"description\":\"Returns the maximum dimensions, in display units, of dialogs that CSPro can show.\",\"returns\":[{\"name\":\"width\",\"description\":\"The maximum width, in display units, of the dialogs that CSPro can show.\",\"types\":[\"number\"]},{\"name\":\"height\",\"description\":\"The maximum height, in display units, of the dialogs that CSPro can show.\",\"types\":[\"number\"]}]}") },
-        { ActionInvoker::Action::UI_postWebMessage,                   _T("{\"namespace\":\"UI\",\"name\":\"postWebMessage\",\"description\":\"Posts a message to a web view.\",\"parameters\":[{\"name\":\"message\",\"description\":\"The message to post.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"webViewId\",\"description\":\"If specified, the message is posted to the web view with this ID. If not specified, the message is posted to the topmost web view.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"targetOrigin\",\"description\":\"The parameter used by the JavaScript Window.postMessage method. This is only used on Android.\",\"types\":[\"string\"],\"required\":false}]}") },
-        { ActionInvoker::Action::UI_setDisplayOptions,                _T("{\"namespace\":\"UI\",\"name\":\"setDisplayOptions\",\"description\":\"Sets the display options for the current web view.\",\"parameters\":[{\"name\":\"width\",\"description\":\"The desired width, in display units or a percent, of the dialog.\",\"types\":[\"number\",\"string\"],\"required\":false},{\"name\":\"height\",\"description\":\"The desired height, in display units or a percent, of the dialog or the question text window (on Windows only).\",\"types\":[\"number\",\"string\"],\"required\":false},{\"name\":\"resizable\",\"description\":\"If true, the dialog can be resized. This setting only applies on Windows.\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"borderColor\",\"description\":\"The color of the dialog border. This setting only applies on Windows.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"titleBarColor\",\"description\":\"The color of the dialog's title bar. This setting only applies on Windows.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"titleBarHeight\",\"description\":\"The height, in display units, of the dialog's title bar. This setting only applies on Windows.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"keyboard\",\"description\":\"If true, the soft keyboard is brought to the forefront when the dialog is shown. This setting only applies on Android.\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"Whether or not any display options were set.\",\"types\":[\"boolean\"]}]}") },
-        { ActionInvoker::Action::UI_showDialog,                       _T("{\"namespace\":\"UI\",\"name\":\"showDialog\",\"description\":\"Shows a HTML dialog.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the HTML dialog to show.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"inputData\",\"description\":\"The input data for the dialog, which can be retrieved using the UI.getInputData action.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"displayOptions\",\"description\":\"The display options to use when initially showing the dialog.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the HTML dialog, set using the UI.closeDialog action.\",\"types\":[\"string\"]}]}") },
-        { ActionInvoker::Action::UI_view,                             _T("{\"namespace\":\"UI\",\"name\":\"view\",\"description\":\"Views a file or web page in a new web view.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to view. Either \\\"path\\\" or \\\"url\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"url\",\"description\":\"The URL to view. Either \\\"path\\\" or \\\"url\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"inputData\",\"description\":\"The input data for a viewed web page, which can be retrieved using the UI.getInputData action.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"displayOptions\",\"description\":\"The display options to use when showing the web view.\",\"types\":[\"object\"],\"required\":false}]}") },
+        { ActionInvoker::Action::execute,                             "{\"name\":\"execute\",\"description\":\"Executes an action with the action name specified as an argument.\",\"parameters\":[{\"name\":\"action\",\"description\":\"The name of the action to execute.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"Arguments for the action.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The action's result.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::registerAccessToken,                 "{\"name\":\"registerAccessToken\",\"description\":\"Registers an access token to provide access to the Action Invoker from web views.\",\"parameters\":[{\"name\":\"accessToken\",\"description\":\"The access token.\",\"types\":[\"string\"],\"required\":true}]}" },
+        { ActionInvoker::Action::throwException,                      "{\"name\":\"throwException\",\"description\":\"Throws an exception in the current execution environment.\",\"parameters\":[{\"name\":\"message\",\"description\":\"The error message.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"name\",\"description\":\"The name of the error. (Default value is \\\"ActionInvokerError\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"cause\",\"description\":\"The cause of the error.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false}]}" },
+        { ActionInvoker::Action::Application_getFormFile,             "{\"namespace\":\"Application\",\"name\":\"getFormFile\",\"description\":\"Returns a form file associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the form file to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The form file.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Application_getQuestionnaireContent, "{\"namespace\":\"Application\",\"name\":\"getQuestionnaireContent\",\"description\":\"Returns the questionnaire content associated with an application, form file, dictionary, or case.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"key\",\"description\":\"The key (case IDs) of a specific case to attach to the questionnaire content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"uuid\",\"description\":\"The UUID of a specific case to attach to the questionnaire content. If both \\\"uuid\\\" and \\\"key\\\" are provided, the \\\"uuid\\\" value is prioritized.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"serializationOptions\",\"description\":\"Options for how the case should be serialized (if applicable).\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The questionnaire content.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Application_getQuestionText,         "{\"namespace\":\"Application\",\"name\":\"getQuestionText\",\"description\":\"Returns the question text associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the question text to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The question text.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Clipboard_getText,                   "{\"namespace\":\"Clipboard\",\"name\":\"getText\",\"description\":\"Gets the text on the clipboard (if available).\",\"returns\":[{\"name\":\"\",\"description\":\"The text on the clipboard.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Clipboard_putText,                   "{\"namespace\":\"Clipboard\",\"name\":\"putText\",\"description\":\"Puts text onto the clipboard.\",\"parameters\":[{\"name\":\"text\",\"description\":\"The text to put onto the clipboard.\",\"types\":[\"string\",\"number\"],\"required\":true}]}" },
+        { ActionInvoker::Action::Data_getCase,                        "{\"namespace\":\"Data\",\"name\":\"getCase\",\"description\":\"Returns a specific case, or the current case, associated with a dictionary.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"key\",\"description\":\"The key (case IDs) of a specific case to lookup.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"uuid\",\"description\":\"The UUID of a specific case to lookup. If both \\\"uuid\\\" and \\\"key\\\" are provided, the \\\"uuid\\\" value is prioritized.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"serializationOptions\",\"description\":\"Options for how the case should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The current case.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Dictionary_getDictionary,            "{\"namespace\":\"Dictionary\",\"name\":\"getDictionary\",\"description\":\"Returns a dictionary associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the dictionary to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The dictionary.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::File_copy,                           "{\"namespace\":\"File\",\"name\":\"copy\",\"description\":\"Copies one or more files.\",\"parameters\":[{\"name\":\"source\",\"description\":\"The path or sharable URI of a file, or files, to copy. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"destination\",\"description\":\"The destination path, or destination directory, of the file(s) to be copied.)\",\"types\":[\"string\"],\"required\":true},{\"name\":\"overwrite\",\"description\":\"The overwrite action to occur if the destination file already exists. Options include \\\"always\\\", \\\"never\\\", \\\"fail\\\", or \\\"different\\\". (Default value is \\\"different\\\".)\",\"types\":[\"string\",\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The fully evaluated destination path (or array of paths) of the copied file (or files).\",\"types\":[\"string\",\"array\"]}]}" },
+        { ActionInvoker::Action::File_readBytes,                      "{\"namespace\":\"File\",\"name\":\"readBytes\",\"description\":\"Reads a file as binary, returning the entire file's content as bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytesFormat\",\"description\":\"The format in which the bytes are returned. (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's bytes or a localhost URL to access the bytes.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::File_readLines,                      "{\"namespace\":\"File\",\"name\":\"readLines\",\"description\":\"Reads a file as text, returning the entire file's content as an array of strings.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use to decode the file's text.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's text, with each line as an entry in the array of strings.\",\"types\":[\"array\"]}]}" },
+        { ActionInvoker::Action::File_readText,                       "{\"namespace\":\"File\",\"name\":\"readText\",\"description\":\"Reads a file as text, returning the entire file's content as a string.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use to decode the file's text.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's text.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::File_writeBytes,                     "{\"namespace\":\"File\",\"name\":\"writeBytes\",\"description\":\"Writes bytes as a binary file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytes\",\"description\":\"The bytes to be written.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::File_writeLines,                     "{\"namespace\":\"File\",\"name\":\"writeLines\",\"description\":\"Writes an array of strings as lines to a text file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"lines\",\"description\":\"The lines to write.\",\"types\":[\"array\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use while writing the text. (Default value is \\\"UTF-8\\\".)\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::File_writeText,                      "{\"namespace\":\"File\",\"name\":\"writeText\",\"description\":\"Writes a string as a text file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"text\",\"description\":\"The text to write.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encoding\",\"description\":\"The encoding to use while writing the text. (Default value is \\\"UTF-8\\\".)\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::Hash_createHash,                     "{\"namespace\":\"Hash\",\"name\":\"createHash\",\"description\":\"Returns the hash value of a file, text, or bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"A text string to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytes\",\"description\":\"Bytes to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"type\",\"description\":\"The desired hash algorithm (Default value is \\\"PBKDF2_SHA256\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"length\",\"description\":\"The length of the hash value in bytes (if applicable). (Default value is 32.)\",\"types\":[\"number\"],\"required\":false},{\"name\":\"iterations\",\"description\":\"The number of times the value is hashed (if applicable). (Default value is 1024.)\",\"types\":[\"number\"],\"required\":false},{\"name\":\"salt\",\"description\":\"A salt to add to the hash (if applicable).\",\"types\":[\"string\"],\"required\":false},{\"name\":\"saltFormat\",\"description\":\"The format of the salt (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The hash value.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Hash_createMd5,                      "{\"namespace\":\"Hash\",\"name\":\"createMd5\",\"description\":\"Returns the MD5 hash value of a file, text, or bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"A text string to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytes\",\"description\":\"Bytes to hash.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format of the bytes (if applicable). (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The MD5 hash value.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Localhost_mapActionResult,           "{\"namespace\":\"Localhost\",\"name\":\"mapActionResult\",\"description\":\"Creates a mapping that provides access to the result of an action.\",\"parameters\":[{\"name\":\"action\",\"description\":\"The name of the action to execute.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"Arguments for the action.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the action's result (for the duration of the running application).\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Localhost_mapFile,                   "{\"namespace\":\"Localhost\",\"name\":\"mapFile\",\"description\":\"Creates a mapping that provides access to a file using a local server.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"evaluateImmediately\",\"description\":\"If true, the file will be immediately loaded and cached. If false or undefined, the file is loaded on request.\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"pathOverride\",\"description\":\"If specified, the file mapping will be constructed as if it exists at the overridden path.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the file (for the duration of the running application).\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Localhost_mapSymbol,                 "{\"namespace\":\"Localhost\",\"name\":\"mapSymbol\",\"description\":\"Creates a mapping that provides access to a CSPro logic binary symbol's data using a local server.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a CSPro logic binary symbol to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"evaluateImmediately\",\"description\":\"If true, the content will be immediately evaluated and cached. If false or undefined, the content is evaluated on request.\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the binary symbol's data (for the duration of the running application).\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Localhost_mapText,                   "{\"namespace\":\"Localhost\",\"name\":\"mapText\",\"description\":\"Creates a mapping that provides access to the supplied text using a local server.\",\"parameters\":[{\"name\":\"text\",\"description\":\"Text to map.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"contentType\",\"description\":\"The MIME type of the mapped content.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The URL that can be used to access the text (for the duration of the running application).\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Logic_eval,                          "{\"namespace\":\"Logic\",\"name\":\"eval\",\"description\":\"Evaluates and runs CSPro logic.\",\"parameters\":[{\"name\":\"logic\",\"description\":\"The CSPro logic to compile and run.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the last statement.\",\"types\":[\"string\",\"number\"]}]}" },
+        { ActionInvoker::Action::Logic_getSymbol,                     "{\"namespace\":\"Logic\",\"name\":\"getSymbol\",\"description\":\"Gets a symbol's metadata and current value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's metadata value.\",\"types\":[\"object\"]},{\"name\":\"value\",\"description\":\"The symbol's current value.\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Logic_getSymbolMetadata,             "{\"namespace\":\"Logic\",\"name\":\"getSymbolMetadata\",\"description\":\"Gets a symbol's metadata.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's metadata.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Logic_getSymbolValue,                "{\"namespace\":\"Logic\",\"name\":\"getSymbolValue\",\"description\":\"Gets a symbol's current value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"serializationOptions\",\"description\":\"Options for how the symbol should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The symbol's current value.\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Logic_invoke,                        "{\"namespace\":\"Logic\",\"name\":\"invoke\",\"description\":\"Executes a user-defined function present in CSPro logic.\",\"parameters\":[{\"name\":\"function\",\"description\":\"The name of the user-defined function.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"arguments\",\"description\":\"The arguments to the user-defined function.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the user-defined function.\",\"types\":[\"string\",\"number\"]}]}" },
+        { ActionInvoker::Action::Logic_setSymbolValue,                "{\"namespace\":\"Logic\",\"name\":\"setSymbolValue\",\"description\":\"Sets a symbol's value.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"The new value for the symbol.\",\"types\":[\"string\",\"number\",\"array\",\"object\"],\"required\":true}]}" },
+        { ActionInvoker::Action::Logic_updateSymbolValue,             "{\"namespace\":\"Logic\",\"name\":\"updateSymbolValue\",\"description\":\"This action is deprecated. Use Logic.setSymbolValue instead.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of the symbol.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"The new value for the symbol.\",\"types\":[\"string\",\"number\",\"array\",\"object\"],\"required\":true}]}" },
+        { ActionInvoker::Action::Message_formatText,                  "{\"namespace\":\"Message\",\"name\":\"formatText\",\"description\":\"Creates a formatted string with inserted values using base text specified by a message number or text.\",\"parameters\":[{\"name\":\"number\",\"description\":\"The message number. Either \\\"number\\\" or \\\"text\\\" must be specified.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"text\",\"description\":\"The base (unformatted) text for the message. If \\\"number\\\" is specified, this value is only used if the number is not found in the message set. Either \\\"number\\\" or \\\"text\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"type\",\"description\":\"The message set to query if using a message number (either \\\"user\\\" or \\\"system\\\"). (Default value is \\\"user\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"arguments\",\"description\":\"The inserted values for each % formatting placeholder.\",\"types\":[\"array\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The formatted text.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Message_getText,                     "{\"namespace\":\"Message\",\"name\":\"getText\",\"description\":\"Returns the base (unformatted) text for a message.\",\"parameters\":[{\"name\":\"number\",\"description\":\"The message number.\",\"types\":[\"number\"],\"required\":true},{\"name\":\"type\",\"description\":\"The message set to query (either \\\"user\\\" or \\\"system\\\"). (Default value is \\\"user\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"text\",\"description\":\"Default text for this message (if not found in a message set).\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The message text, or the default text if no message with the number exists.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Network_fetch,                       "{\"namespace\":\"Network\",\"name\":\"fetch\",\"description\":\"Submits a HTTP request to a server and returns the initial response.\",\"parameters\":[{\"name\":\"url\",\"description\":\"The URL to fetch.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"method\",\"description\":\"The HTTP request method. (Default value is is \\\"GET\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"headers\",\"description\":\"Request headers to send to the server.\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"body\",\"description\":\"The body to include with the request.\",\"types\":[\"object\",\"string\"],\"required\":false},{\"name\":\"bodyFormat\",\"description\":\"The format of the body. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"responseHeadersFormat\",\"description\":\"Indicates how response headers are returned. Options include \\\"object\\\" or \\\"array\\\". (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"fetchId\",\"description\":\"An ID that identifies this response when the response was received successfully.\",\"types\":[\"number\"]},{\"name\":\"status\",\"description\":\"The response status code.\",\"types\":[\"number\"]},{\"name\":\"ok\",\"description\":\"Whether or not a response was received successfully with a status code in the range 200–299.\",\"types\":[\"boolean\"]},{\"name\":\"headers\",\"description\":\"The response headers written in the format specified by \\\"responseHeadersFormat\\\".\",\"types\":[\"object\",\"array\"]},{\"name\":\"error\",\"description\":\"Text from the server describing the error when the response was received unsuccessfully.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Network_fetchBody,                   "{\"namespace\":\"Network\",\"name\":\"fetchBody\",\"description\":\"Processes the body of a HTTP response.\",\"parameters\":[{\"name\":\"fetchId\",\"description\":\"The ID that identifies this response.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"bodyFormat\",\"description\":\"The format in which the body is returned. (Default value is \\\"dataUrl\\\".)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"cancel\",\"description\":\"A flag indicating that the body can be discarded.\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The body as JSON, text, bytes, or a localhost URL.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Network_fetchBytes,                  "{\"namespace\":\"Network\",\"name\":\"fetchBytes\",\"description\":\"Submits a HTTP request to a server and returns the response, with or without details, as bytes.\",\"parameters\":[{\"name\":\"url\",\"description\":\"The URL to fetch.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"method\",\"description\":\"The HTTP request method. (Default value is is \\\"GET\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"headers\",\"description\":\"Request headers to send to the server.\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"body\",\"description\":\"The body to include with the request.\",\"types\":[\"object\",\"string\"],\"required\":false},{\"name\":\"bodyFormat\",\"description\":\"The format of the body. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"detailed\",\"description\":\"If true, the response status and headers are returned along with the body. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"responseBodyFormat\",\"description\":\"The format in which the response body is returned. (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"responseHeadersFormat\",\"description\":\"Indicates how response headers are returned. Options include \\\"object\\\" or \\\"array\\\". (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The body as bytes or a localhost URL, or the response details along with the body.\",\"types\":[\"string\",\"object\"]}]}" },
+        { ActionInvoker::Action::Network_fetchJson,                   "{\"namespace\":\"Network\",\"name\":\"fetchJson\",\"description\":\"Submits a HTTP request to a server and returns the response, with or without details, in JSON format.\",\"parameters\":[{\"name\":\"url\",\"description\":\"The URL to fetch.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"method\",\"description\":\"The HTTP request method. (Default value is is \\\"GET\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"headers\",\"description\":\"Request headers to send to the server.\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"body\",\"description\":\"The body to include with the request.\",\"types\":[\"object\",\"string\"],\"required\":false},{\"name\":\"bodyFormat\",\"description\":\"The format of the body. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"detailed\",\"description\":\"If true, the response status and headers are returned along with the body. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"responseHeadersFormat\",\"description\":\"Indicates how response headers are returned. Options include \\\"object\\\" or \\\"array\\\". (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The body as JSON, or the response details along with the body.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Network_fetchText,                   "{\"namespace\":\"Network\",\"name\":\"fetchText\",\"description\":\"Submits a HTTP request to a server and returns the response, with or without details, in text format.\",\"parameters\":[{\"name\":\"url\",\"description\":\"The URL to fetch.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"method\",\"description\":\"The HTTP request method. (Default value is is \\\"GET\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"headers\",\"description\":\"Request headers to send to the server.\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"body\",\"description\":\"The body to include with the request.\",\"types\":[\"object\",\"string\"],\"required\":false},{\"name\":\"bodyFormat\",\"description\":\"The format of the body. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"detailed\",\"description\":\"If true, the response status and headers are returned along with the body. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"responseHeadersFormat\",\"description\":\"Indicates how response headers are returned. Options include \\\"object\\\" or \\\"array\\\". (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The body as text, or the response details along with the body.\",\"types\":[\"string\",\"object\"]}]}" },
+        { ActionInvoker::Action::Path_createDirectory,                "{\"namespace\":\"Path\",\"name\":\"createDirectory\",\"description\":\"Creates a directory if it does not already exist.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the directory to create.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"\",\"description\":\"The fully evaluated path of the directory.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Path_getDirectoryListing,            "{\"namespace\":\"Path\",\"name\":\"getDirectoryListing\",\"description\":\"Returns information about the paths in a directory.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a directory.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"recursive\",\"description\":\"If true, the listing will include paths in subdirectories. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files, or both the files and directories if \\\"filterDirectories\\\" is true.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filterDirectories\",\"description\":\"If true, the filter will also apply to directories. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"type\",\"description\":\"The paths included can be filtered using the value \\\"file\\\" or \\\"directory\\\". (Default value is undefined.)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"detailed\",\"description\":\"If true, the returned paths will include details in the format of Path.getPathInfo. If false, only the paths will be returned. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"path\",\"description\":\"The path of the directory.\",\"types\":[\"string\"]},{\"name\":\"parent\",\"description\":\"The path of the parent directory (if applicable).\",\"types\":[\"string\"]},{\"name\":\"paths\",\"description\":\"The paths in the directory, presented in a format determined by the \\\"detailed\\\" input argument.\",\"types\":[\"array\"]}]}" },
+        { ActionInvoker::Action::Path_getPathInfo,                    "{\"namespace\":\"Path\",\"name\":\"getPathInfo\",\"description\":\"Returns information about a path.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a directory or file.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"path\",\"description\":\"The path of the directory or file.\",\"types\":[\"string\"]},{\"name\":\"name\",\"description\":\"The name of the directory or file (with the directory information removed).\",\"types\":[\"string\"]},{\"name\":\"extension\",\"description\":\"The file extension (without a preceeding dot) for files.\",\"types\":[\"string\"]},{\"name\":\"contentType\",\"description\":\"The MIME type based on the file extension for files.\",\"types\":[\"string\"]},{\"name\":\"exists\",\"description\":\"Whether or not the path exists.\",\"types\":[\"boolean\"]},{\"name\":\"type\",\"description\":\"If the path exists, whether or not it is a \\\"file\\\" or \\\"directory\\\".\",\"types\":[\"string\"]},{\"name\":\"modifiedTime\",\"description\":\"The last modified time of the path in RFC 3339 format.\",\"types\":[\"string\"]},{\"name\":\"size\",\"description\":\"The size of the file.\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::Path_getSpecialPaths,                "{\"namespace\":\"Path\",\"name\":\"getSpecialPaths\",\"description\":\"Returns an object containing special paths, including the download and temp directories.\",\"returns\":[{\"name\":\"\",\"description\":\"Special paths.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Path_selectFile,                     "{\"namespace\":\"Path\",\"name\":\"selectFile\",\"description\":\"Displays a dialog with a visual listing of the file system, returning the path of a file selected by an operator.\",\"parameters\":[{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"startDirectory\",\"description\":\"The path of the directory to be initially shown to the operator.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"rootDirectory\",\"description\":\"The path of the directory above which the operator cannot navigate.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"showDirectories\",\"description\":\"If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The path of the selected file.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Path_showFileDialog,                 "{\"namespace\":\"Path\",\"name\":\"showFileDialog\",\"description\":\"Displays a dialog with a visual listing of the file system, allowing the user to select a file to open or to create a file to save.\",\"parameters\":[{\"name\":\"type\",\"description\":\"Whether or not the dialog if for opening files (\\\"open\\\") or saving files (\\\"save\\\"). (Default value is \\\"open\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"filter\",\"description\":\"A wildcard used to filter the files.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"startDirectory\",\"description\":\"The path of the directory to be initially shown to the operator.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"rootDirectory\",\"description\":\"The path of the directory above which the operator cannot navigate.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"name\",\"description\":\"A suggested name for the file.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"confirmOverwrite\",\"description\":\"When displaying a save dialog, a confirmation message will appear when trying to overwrite an existing file. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"useNativeDialog\",\"description\":\"If true, on Windows, instead of displaying an HTML dialog, the native Windows open/save file dialogs will display. The \\\"rootDirectory\\\" and \\\"showDirectories\\\" options will not be used in this case. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"showDirectories\",\"description\":\"If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The path of the selected file.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::Settings_getValue,                   "{\"namespace\":\"Settings\",\"name\":\"getValue\",\"description\":\"Returns a value from a settings database.\",\"parameters\":[{\"name\":\"key\",\"description\":\"The key that uniquely identifies the setting.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"A value to return if the setting is not defined.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"source\",\"description\":\"The settings database. If undefined, it defaults to \\\"UserSettings\\\".\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The setting's value, if defined.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Settings_putValue,                   "{\"namespace\":\"Settings\",\"name\":\"putValue\",\"description\":\"Sets a value in a settings database.\",\"parameters\":[{\"name\":\"key\",\"description\":\"The key that uniquely identifies the setting.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"The setting's value. When using the default \\\"UserSettings\\\" source, only strings and numbers are allowed.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":true},{\"name\":\"source\",\"description\":\"The settings database. If undefined, it defaults to \\\"UserSettings\\\".\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::Sqlite_close,                        "{\"namespace\":\"Sqlite\",\"name\":\"close\",\"description\":\"Closes a previously opened SQLite database.\",\"parameters\":[{\"name\":\"dbId\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":false}],\"deprecatedParameters\":[{\"name\":\"db\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::Sqlite_exec,                         "{\"namespace\":\"Sqlite\",\"name\":\"exec\",\"description\":\"Executes a SQL statement, returning results as appropriate.\",\"parameters\":[{\"name\":\"dbId\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"sql\",\"description\":\"One or more SQL statements. If specifying more than one statement, only one can have bindings.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"bindings\",\"description\":\"The bindings for a SQL statement specified in \\\"sql\\\". If \\\"bindings\\\" is an array, the values are bound by position; if an object, the values are bound by name. To bind binary data, bind an object with the key \\\"bytes\\\" and optionally \\\"bytesFormat\\\".\",\"types\":[\"array\",\"object\"],\"required\":false},{\"name\":\"rowFormat\",\"description\":\"Indicates how row results are returned from a query. Options include \\\"object\\\", \\\"array\\\", or \\\"scalarArray\\\". If the result is scalar, it will be returned directly unless \\\"rowFormat\\\" is explicitly specified. (Default value is \\\"object\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"bytesFormat\",\"description\":\"The format in which bytes are returned (if querying a blob). (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false}],\"deprecatedParameters\":[{\"name\":\"db\",\"types\":[\"number\"]}],\"returns\":[{\"name\":\"\",\"description\":\"The action's result (if applicable).\",\"types\":[\"string\",\"number\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Sqlite_open,                         "{\"namespace\":\"Sqlite\",\"name\":\"open\",\"description\":\"Opens a SQLite database and returns an ID that can be used for future operations.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file to open. Either \\\"path\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"name\",\"description\":\"The name of a dictionary or \\\"paradata\\\". Either \\\"path\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"openFlags\",\"description\":\"Flags to control how the database is opened (when using a \\\"path\\\"). (Default value is \\\"read\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"encryptionKey\",\"description\":\"An encryption key to use when opening or creating a database.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"encryptionKeyFormat\",\"description\":\"The format of the encryption key. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"An ID that identifies this database.\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::Sqlite_rekey,                        "{\"namespace\":\"Sqlite\",\"name\":\"rekey\",\"description\":\"Changes, removes, or adds an encryption key to a SQLite database.\",\"parameters\":[{\"name\":\"dbId\",\"description\":\"The database ID.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"encryptionKey\",\"description\":\"The new encryption key, or a blank string to remove the encryption.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"encryptionKeyFormat\",\"description\":\"The format of the encryption key. (Default value is \\\"autodetect\\\".)\",\"types\":[\"string\"],\"required\":false}],\"deprecatedParameters\":[{\"name\":\"db\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::Sync_connect,                        "{\"namespace\":\"Sync\",\"name\":\"connect\",\"description\":\"Connects to a synchronization service and returns an ID that can be used for future operations.\",\"parameters\":[{\"name\":\"connection\",\"description\":\"The connection string specifying the synchronization service.\",\"types\":[\"string\"],\"required\":true}],\"returns\":[{\"name\":\"\",\"description\":\"An ID that identifies this synchronization service.\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::Sync_disconnect,                     "{\"namespace\":\"Sync\",\"name\":\"disconnect\",\"description\":\"Closes a previously opened connection to a synchronization service.\",\"parameters\":[{\"name\":\"syncId\",\"description\":\"The synchronization service ID.\",\"types\":[\"number\"],\"required\":false}]}" },
+        { ActionInvoker::Action::Sync_sendMessage,                    "{\"namespace\":\"Sync\",\"name\":\"sendMessage\",\"description\":\"Sends a message to a synchronization service, returning the service's response.\",\"parameters\":[{\"name\":\"name\",\"description\":\"A name to identify the message.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"value\",\"description\":\"A value associated with the message.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The synchronization service's response to the message (if applicable).\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"]}]}" },
+        { ActionInvoker::Action::Sync_syncParadata,                   "{\"namespace\":\"Sync\",\"name\":\"syncParadata\",\"description\":\"Synchronizes the events in a paradata log with a synchronization service.\",\"parameters\":[{\"name\":\"direction\",\"description\":\"The synchronization direction. (Default value is \\\"both\\\".).\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of a paradata log, or logs, to synchronize. If not defined, the currently-open paradata log is synchronized.\",\"types\":[\"string\",\"array\"],\"required\":false}]}" },
+        { ActionInvoker::Action::System_createShortcut,               "{\"namespace\":\"System\",\"name\":\"createShortcut\",\"description\":\"Creates a shortcut to an application or file, placing the shortcut on the Desktop (Windows) or pinning it to the launcher (Android).\",\"parameters\":[{\"name\":\"target\",\"description\":\"The path of the application or file that is the target of the shortcut.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"label\",\"description\":\"The shortcut's label. If not defined, the target's filename (without an extension) is used.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"longLabel\",\"description\":\"A more descriptive label, which is used on Android when space permits.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"icon\",\"description\":\"The path of an icon to use for the shortcut.\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::System_getSharableUri,               "{\"namespace\":\"System\",\"name\":\"getSharableUri\",\"description\":\"Creates a URI that can be used by external applications to reference a file.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of a file, or files, from which to create sharable URIs. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"permissions\",\"description\":\"Permissions to apply to the sharable URI(s). (Default value is \\\"read\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The sharable URI (or array of sharable URIs).\",\"types\":[\"string\",\"array\"]}]}" },
+        { ActionInvoker::Action::System_selectDocument,               "{\"namespace\":\"System\",\"name\":\"selectDocument\",\"description\":\"Displays a dialog that allows the selection of one or more documents shared by the system.\",\"parameters\":[{\"name\":\"contentType\",\"description\":\"The MIME type, or types, of allowed content. (Default value is \\\"*/*\\\".)\",\"types\":[\"string\",\"array\"],\"required\":false},{\"name\":\"multiple\",\"description\":\"If true, the operator can select multiple documents. When selecting multiple documents, an array of objects returned. (Default value is false.)\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"path\",\"description\":\"The path, or sharable URI, of the document.\",\"types\":[\"string\"]},{\"name\":\"name\",\"description\":\"The filename of the document.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::UI_alert,                            "{\"namespace\":\"UI\",\"name\":\"alert\",\"description\":\"Displays an alert dialog.\",\"parameters\":[{\"name\":\"text\",\"description\":\"The message to display.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"title\",\"description\":\"The dialog's title.\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::UI_close,                            "{\"namespace\":\"UI\",\"name\":\"close\",\"description\":\"Closes the current dialog or web view, optionally returning a result to an action like UI.showDialog.\",\"parameters\":[{\"name\":\"result\",\"description\":\"The result to return.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"exception\",\"description\":\"An exception to throw in the execution environment that launched the dialog or web view.\",\"types\":[\"string\",\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"Whether or not a window successfully closed.\",\"types\":[\"boolean\"]}]}" },
+        { ActionInvoker::Action::UI_closeDialog,                      "{\"namespace\":\"UI\",\"name\":\"closeDialog\",\"description\":\"This action is deprecated. Use UI.close instead.\",\"parameters\":[{\"name\":\"result\",\"description\":\"The result to return.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"exception\",\"description\":\"An exception to throw in the execution environment that launched the dialog or web view.\",\"types\":[\"string\",\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"Whether or not a window successfully closed.\",\"types\":[\"boolean\"]}]}" },
+        { ActionInvoker::Action::UI_enumerateWebViews,                "{\"namespace\":\"UI\",\"name\":\"enumerateWebViews\",\"description\":\"Returns information about all of the web views currently showing.\",\"returns\":[{\"name\":\"webViewId\",\"description\":\"The web view ID of the JavaScript code executing this action (if applicable).\",\"types\":[\"number\"]},{\"name\":\"webViews\",\"description\":\"The details about each web view currently showing. The topmost showing web view is the first entry in the array.\",\"types\":[\"array\"]}]}" },
+        { ActionInvoker::Action::UI_getDisplayOptions,                "{\"namespace\":\"UI\",\"name\":\"getDisplayOptions\",\"description\":\"Returns the display options associated with the current web view.\",\"returns\":[{\"name\":\"\",\"description\":\"The defined display options.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::UI_getInputData,                     "{\"namespace\":\"UI\",\"name\":\"getInputData\",\"description\":\"Returns the input data associated with the current web view.\",\"returns\":[{\"name\":\"\",\"description\":\"The input data.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::UI_getMaxDisplayDimensions,          "{\"namespace\":\"UI\",\"name\":\"getMaxDisplayDimensions\",\"description\":\"Returns the maximum dimensions, in display units, of dialogs that CSPro can show.\",\"returns\":[{\"name\":\"width\",\"description\":\"The maximum width, in display units, of the dialogs that CSPro can show.\",\"types\":[\"number\"]},{\"name\":\"height\",\"description\":\"The maximum height, in display units, of the dialogs that CSPro can show.\",\"types\":[\"number\"]}]}" },
+        { ActionInvoker::Action::UI_postWebMessage,                   "{\"namespace\":\"UI\",\"name\":\"postWebMessage\",\"description\":\"Posts a message to a web view.\",\"parameters\":[{\"name\":\"message\",\"description\":\"The message to post.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"webViewId\",\"description\":\"If specified, the message is posted to the web view with this ID. If not specified, the message is posted to the topmost web view.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"targetOrigin\",\"description\":\"The parameter used by the JavaScript Window.postMessage method. This is only used on Android.\",\"types\":[\"string\"],\"required\":false}]}" },
+        { ActionInvoker::Action::UI_setDisplayOptions,                "{\"namespace\":\"UI\",\"name\":\"setDisplayOptions\",\"description\":\"Sets the display options for the current web view.\",\"parameters\":[{\"name\":\"width\",\"description\":\"The desired width, in display units or a percent, of the dialog.\",\"types\":[\"number\",\"string\"],\"required\":false},{\"name\":\"height\",\"description\":\"The desired height, in display units or a percent, of the dialog or the question text window (on Windows only).\",\"types\":[\"number\",\"string\"],\"required\":false},{\"name\":\"resizable\",\"description\":\"If true, the dialog can be resized. This setting only applies on Windows.\",\"types\":[\"boolean\"],\"required\":false},{\"name\":\"borderColor\",\"description\":\"The color of the dialog border. This setting only applies on Windows.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"titleBarColor\",\"description\":\"The color of the dialog's title bar. This setting only applies on Windows.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"titleBarHeight\",\"description\":\"The height, in display units, of the dialog's title bar. This setting only applies on Windows.\",\"types\":[\"number\"],\"required\":false},{\"name\":\"keyboard\",\"description\":\"If true, the soft keyboard is brought to the forefront when the dialog is shown. This setting only applies on Android.\",\"types\":[\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"Whether or not any display options were set.\",\"types\":[\"boolean\"]}]}" },
+        { ActionInvoker::Action::UI_showDialog,                       "{\"namespace\":\"UI\",\"name\":\"showDialog\",\"description\":\"Shows a HTML dialog.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the HTML dialog to show.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"inputData\",\"description\":\"The input data for the dialog, which can be retrieved using the UI.getInputData action.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"displayOptions\",\"description\":\"The display options to use when initially showing the dialog.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The result of the HTML dialog, set using the UI.close action.\",\"types\":[\"string\"]}]}" },
+        { ActionInvoker::Action::UI_view,                             "{\"namespace\":\"UI\",\"name\":\"view\",\"description\":\"Views a file or web page in a new web view.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to view. Either \\\"path\\\" or \\\"url\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"url\",\"description\":\"The URL to view. Either \\\"path\\\" or \\\"url\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"inputData\",\"description\":\"The input data for a viewed web page, which can be retrieved using the UI.getInputData action.\",\"types\":[\"string\",\"number\",\"boolean\",\"array\",\"object\"],\"required\":false},{\"name\":\"displayOptions\",\"description\":\"The display options to use when showing the web view.\",\"types\":[\"object\"],\"required\":false}]}" },
 
         // --- CS_AUTOGENERATED_END_2 -----------------------------------------------
     };
@@ -697,7 +850,7 @@ namespace
 
 const std::vector<const FunctionDetails*>& ActionInvoker::GetFunctions()
 {
-    static const std::vector<const FunctionDetails*> cs_functions = 
+    static const std::vector<const FunctionDetails*> cs_functions =
         []()
         {
             std::vector<const FunctionDetails*> functions(_countof(Functions));
@@ -716,15 +869,15 @@ const std::vector<const FunctionDetails*>& ActionInvoker::GetFunctions()
 }
 
 
-std::map<Logic::FunctionNamespace, const TCHAR*> ActionInvoker::GetNamespaceNames()
+std::map<Logic::FunctionNamespace, const char*> ActionInvoker::GetNamespaceNames()
 {
-    std::map<FunctionNamespace, const TCHAR*> namespace_names;
+    std::map<FunctionNamespace, const char*> namespace_names;
 
     for( const auto& [text, entry_details] : FunctionTable::GetFunctionNamespaces().GetTable() )
     {
         for( const FunctionNamespaceDetails& function_namespace_details : VI_V(entry_details) )
         {
-            if( function_namespace_details.function_namespace == FunctionNamespace::CS || 
+            if( function_namespace_details.function_namespace == FunctionNamespace::CS ||
                 function_namespace_details.parent_function_namespace == FunctionNamespace::CS )
             {
                 namespace_names.try_emplace(function_namespace_details.function_namespace, function_namespace_details.name);
@@ -736,7 +889,7 @@ std::map<Logic::FunctionNamespace, const TCHAR*> ActionInvoker::GetNamespaceName
 }
 
 
-const GF::Function* ActionInvoker::GetFunctionDefinition(Action action)
+const GF::Function* ActionInvoker::GetFunctionDefinition(const Action action)
 {
     static std::map<Action, std::unique_ptr<GF::Function>> function_definitions;
 
@@ -754,11 +907,7 @@ const GF::Function* ActionInvoker::GetFunctionDefinition(Action action)
             {
                 function_definition = std::make_unique<GF::Function>(Json::Parse(json).Get<GF::Function>());
             }
-
-            catch( const JsonParseException& )
-            {
-                ASSERT(false);
-            }
+            catch( const JsonParseException& ) { ASSERT(false); }
 
             break;
         }

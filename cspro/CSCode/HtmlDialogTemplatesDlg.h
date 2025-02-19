@@ -48,7 +48,7 @@ private:
     const SamplePair* m_initialSamplePairToSelect;
 
     const SamplePair* m_selectedSamplePair;
-    std::optional<std::wstring> m_selectedDialogTemplatePath;
+    std::optional<std::string> m_selectedDialogTemplateFilePath;
     bool m_activeDocIsHtmlDialog;
 
     CTreeCtrl m_samplesTreeCtrl;

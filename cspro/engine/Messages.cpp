@@ -21,28 +21,28 @@ namespace
     class EngineVariableArgumentsMessageParameterEvaluator : public VariableArgumentsMessageParameterEvaluator
     {
     public:
-        EngineVariableArgumentsMessageParameterEvaluator(CIntDriver* pIntDriver)
-            :   m_pIntDriver(pIntDriver)
+        EngineVariableArgumentsMessageParameterEvaluator(CIntDriver* const interpreter)
+            :   m_interpreter(interpreter)
         {
         }
 
-        std::wstring GetProc() override
+        SharableString GetProc() override
         {
-            return ( m_pIntDriver != nullptr ) ? CS2WS(m_pIntDriver->ProcName()) : _T("Unknown");
+            return ( m_interpreter != nullptr ) ? m_interpreter->ProcName() :
+                                                  "Unknown";
         }
 
     private:
-        CIntDriver* m_pIntDriver;
+        CIntDriver* m_interpreter;
     };
 
 
     class EngineSystemMessageIssuer : public SystemMessageIssuer
     {
     public:
-        EngineSystemMessageIssuer(CEngineDriver* pEngineDriver, std::shared_ptr<Listing::ErrorLister>& compiler_error_lister)
-            :   SystemMessageIssuer(std::make_shared<EngineVariableArgumentsMessageParameterEvaluator>(pEngineDriver->m_pIntDriver.get())),
+        EngineSystemMessageIssuer(CEngineDriver* const pEngineDriver, Listing::ErrorLister* const compiler_error_lister)
+            :   SystemMessageIssuer(std::make_unique<EngineVariableArgumentsMessageParameterEvaluator>(pEngineDriver->m_pIntDriver.get())),
                 m_pEngineDriver(pEngineDriver),
-                m_compilerErrorLister(compiler_error_lister),
                 m_callOnSystemMessage(false)
         {
         }
@@ -53,16 +53,16 @@ namespace
         }
 
     protected:
-        void OnIssue(MessageType message_type, int message_number, const std::wstring& message_text) override
+        void OnIssue(const MessageType message_type, const int message_number, const std::string& message_text) override
         {
             ASSERT(message_type != MessageType::User);
 
             // special processing for abort messages
             if( message_type == MessageType::Abort )
             {
-                if( m_compilerErrorLister != nullptr )
+                if( m_pEngineDriver->GetCompilerErrorLister() != nullptr )
                 {
-                    m_compilerErrorLister->Write(message_text);
+                    m_pEngineDriver->GetCompilerErrorLister()->Write(message_text);
                 }
 
                 else if( m_pEngineDriver->GetLister() != nullptr )
@@ -71,7 +71,7 @@ namespace
                 }
             }
 
-            else if( m_compilerErrorLister == nullptr )
+            else if( m_pEngineDriver->GetCompilerErrorLister() == nullptr )
             {
                 // quit if the user supressed the system message
                 if( m_callOnSystemMessage && !m_pEngineDriver->m_pIntDriver->ExecuteOnSystemMessage(message_type, message_number, message_text) )
@@ -79,7 +79,7 @@ namespace
 
                 // create the paradata event if necessary
                 std::unique_ptr<Paradata::MessageEvent> message_event;
-                auto& paradata_driver = m_pEngineDriver->m_pIntDriver->m_pParadataDriver;
+                std::unique_ptr<EngineParadataDriver>& paradata_driver = m_pEngineDriver->m_pIntDriver->m_paradataDriver;
 
                 if( Paradata::Logger::IsOpen() )
                     message_event = paradata_driver->CreateMessageEvent(message_type, message_number, message_text);
@@ -87,7 +87,7 @@ namespace
                 // display the message
                 m_pEngineDriver->GetSystemMessageManager().IncrementMessageCount(message_number);
 
-                int selected_button_number = m_pEngineDriver->DisplayMessage(message_type, message_number, message_text);
+                const int selected_button_number = m_pEngineDriver->DisplayMessage(message_type, message_number, message_text, nullptr);
 
                 // log the paradata message event
                 if( message_event != nullptr )
@@ -105,7 +105,7 @@ namespace
             {
                 // eventually, when all compilation errors use Logic::ParserMessage, all compilation errors
                 // should be routed to the method below, but for now, we have to translate the error to a parser message
-                auto parser_message = m_pEngineDriver->m_pEngineCompFunc->CreateParserMessageFromIssaError(message_type, message_number, message_text);
+                const Logic::ParserMessage parser_message = m_pEngineDriver->m_pEngineCompFunc->CreateParserMessageFromIssaError(message_type, message_number, message_text);
                 OnIssue(parser_message);
             }
 #endif
@@ -117,9 +117,9 @@ namespace
             if( parser_message.IsDeprecationWarning() )
                 return;
 
-            if( m_compilerErrorLister != nullptr )
+            if( m_pEngineDriver->GetCompilerErrorLister() != nullptr )
             {
-                m_compilerErrorLister->Write(parser_message);
+                m_pEngineDriver->GetCompilerErrorLister()->Write(parser_message);
             }
 
             else
@@ -128,13 +128,14 @@ namespace
             }
         }
 
-        void OnAbort(const std::wstring& message_text) override
+        void OnAbort(const std::string& message_text) override
         {
             m_pEngineDriver->CloseListerAndWriteFiles();
 
-            ErrorMessage::Display(message_text); // JH 11/29/06 - if we got here we are about to show "implement clean up"
-                                                 // or some other such less than informative message so at least show the
-                                                 // real error first.
+            // JH 11/29/06 - if we got here we are about to show "implement clean up"
+            // or some other such less than informative message so at least show the
+            // real error first.
+            ErrorMessage::Display(message_text);
 
             WindowsDesktopMessage::Send(WM_IMSA_ENGINEABORT);
 
@@ -147,13 +148,12 @@ namespace
 
     private:
         CEngineDriver* m_pEngineDriver;
-        std::shared_ptr<Listing::ErrorLister>& m_compilerErrorLister;
         bool m_callOnSystemMessage;
     };
 }
 
 
-void CEngineDriver::UpdateMessageIssuers(bool set_on_system_message_defined/* = false*/)
+void CEngineDriver::UpdateMessageIssuers(const bool set_on_system_message_defined/* = false*/)
 {
     // if an OnSystemMessage function is defined, we only need to update that property
     if( set_on_system_message_defined )
@@ -174,7 +174,7 @@ void CEngineDriver::UpdateMessageIssuers(bool set_on_system_message_defined/* = 
         m_systemMessageIssuer = m_pApplication->GetApplicationLoader()->GetSystemMessageIssuer();
 
     if( m_systemMessageIssuer == nullptr )
-        m_systemMessageIssuer = std::make_shared<EngineSystemMessageIssuer>(this, m_compilerErrorLister);
+        m_systemMessageIssuer = std::make_unique<EngineSystemMessageIssuer>(this, m_compilerErrorLister.get());
 
     // setup the user message evaluator
     if( m_userMessageManager != nullptr )
@@ -182,10 +182,11 @@ void CEngineDriver::UpdateMessageIssuers(bool set_on_system_message_defined/* = 
 }
 
 
-int CEngineDriver::DisplayMessage(MessageType message_type, int message_number, const std::wstring& message_text, const void* /*extra_information = nullptr*/)
+int CEngineDriver::DisplayMessage(const MessageType message_type, const int message_number,
+                                  SharableString message_text, const MessageSelectDetails* /*select_details*/)
 {
     if( m_lister != nullptr )
-        m_lister->Write(message_type, message_number, message_text);
+        m_lister->Write(message_type, message_number, std::move(message_text));
 
     return 1;
 }

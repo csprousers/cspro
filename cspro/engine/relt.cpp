@@ -4,7 +4,7 @@
 #include <zToolsO/Serializer.h>
 
 
-CSymbolRelation::CSymbolRelation(std::wstring name, const Logic::SymbolTable& symbol_table)
+CSymbolRelation::CSymbolRelation(std::string name, const Logic::SymbolTable& symbol_table)
     :   Symbol(std::move(name), SymbolType::Relation),
         m_baseSymbolIndex(0),
         m_iNumDim(0),

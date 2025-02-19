@@ -11,6 +11,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\ENGINE\Export.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ENGINE\export2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ENGINE\relt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Attr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,6 +47,12 @@
     <ClCompile Include="Dictload.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EngineAccessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Exallocd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,10 +62,7 @@
     <ClCompile Include="Exapplin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ENGINE\Export.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ENGINE\export2.cpp">
+    <ClCompile Include="ExNotes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FlowCore.cpp">
@@ -71,10 +83,19 @@
     <ClCompile Include="GroupVisitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeyboardLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Labsalo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ENGINE\relt.cpp">
+    <ClCompile Include="OccurrenceInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OccurrenceInfoSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OccurrenceVisitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SecT.cpp">
@@ -84,27 +105,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vart.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyboardLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OccurrenceInfoSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OccurrenceVisitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OccurrenceInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ExNotes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -133,10 +133,7 @@
     <ClInclude Include="groupt2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SecT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
+    <ClInclude Include="OccurrenceInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OccurrenceInfoSet.h">
@@ -145,7 +142,10 @@
     <ClInclude Include="OccurrenceVisitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OccurrenceInfo.h">
+    <ClInclude Include="SecT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,12 +3,10 @@
 #include <zUtilF/SrtLstCt.h>
 
 
-class CTextConverterDlg : public CDialog
+class TextConverterDlg : public CDialog
 {
 public:
-    CTextConverterDlg(CWnd* pParent = nullptr);
-
-    enum { IDD = IDD_TEXTCONVERTER };
+    TextConverterDlg(CWnd* pParent = nullptr);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -16,23 +14,23 @@ protected:
     void DoDataExchange(CDataExchange* pDX) override;
     BOOL OnInitDialog() override;
 
-    afx_msg void OnPaint();
-    afx_msg HCURSOR OnQueryDragIcon();
-    
-    afx_msg void OnBnClickedAdd();
-    afx_msg void OnBnClickedRemove();
-    afx_msg void OnBnClickedClear();
-    afx_msg void OnBnClickedOk();
-    afx_msg void OnBnClickedUtf8();
+    void OnPaint();
+    HCURSOR OnQueryDragIcon();
+
+    void OnBnClickedAdd();
+    void OnBnClickedRemove();
+    void OnBnClickedClear();
+    void OnBnClickedOk();
+    void OnBnClickedUtf8();
 
 private:
     void UpdateRunButton();
 
     void RefreshEncodings();
 
-    void OnDropFiles(const std::vector<std::wstring>& filenames);
+    void OnDropFiles(const std::vector<std::string>& paths);
 
-    void AddFile(NullTerminatedString filename);
+    void AddFile(const std::string& file_path);
 
 private:
     HICON m_hIcon;

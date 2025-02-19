@@ -15,7 +15,7 @@ public:
     //{{AFX_DATA(COPDlg)
     enum { IDD = IDD_OPID };
 
-    CIMSAString m_sOpID;
+    CString m_sOpID;
     //}}AFX_DATA
 
 

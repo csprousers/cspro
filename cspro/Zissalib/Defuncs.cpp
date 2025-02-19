@@ -164,7 +164,7 @@ void CEntryDriver::deset_low( DEFLD* fld ) {
 //                                                                      ///
 ///////////////////////////////////////////////////////////////////////////
 
-bool CEntryDriver::ConfirmValue(bool value_is_notappl, VART* pVarT, CNDIndexes& theIndex)
+bool CEntryDriver::ConfirmValue(const bool value_is_notappl, VART* const pVarT, CNDIndexes& theIndex)
 {
     const bool can_accept_invalid_value = value_is_notappl ? ( ( pVarT->m_iBehavior & CANENTER_NOTAPPL ) != 0 ) :
                                                              ( ( pVarT->m_iBehavior & CANENTER_OUTOFRANGE) != 0 );
@@ -172,10 +172,10 @@ bool CEntryDriver::ConfirmValue(bool value_is_notappl, VART* pVarT, CNDIndexes& 
     constexpr MessageType message_type = MessageType::Error;
     const int message_number = can_accept_invalid_value ? MGF::OutOfRangeConfirm :
                                                           MGF::OutOfRange;
-    std::wstring occurrence_text;
+    std::string occurrence_text;
 
     if( pVarT->IsArray() )
-        occurrence_text = theIndex.toStringBare(); // TRANSITION.
+        occurrence_text = UTF8_TODO::GetUtf8(theIndex.toStringBare()); // TRANSITION.
 
     // if they can't accept the value, display the error and return
     if( !can_accept_invalid_value )
@@ -188,23 +188,26 @@ bool CEntryDriver::ConfirmValue(bool value_is_notappl, VART* pVarT, CNDIndexes& 
 
     // otherwise, show a message with yes/no buttons
 
-    const std::wstring message_text = FormatTextCS2WS(MGF::GetMessageText(message_number).c_str(), pVarT->GetName().c_str(), occurrence_text.c_str());
+    SharableString message_text = FormatText(MGF::GetMessageText(message_number)->c_str(), pVarT->GetName().c_str(), occurrence_text.c_str());
     m_pEngineDriver->GetSystemMessageManager().IncrementMessageCount(message_number);
 
     std::unique_ptr<Paradata::MessageEvent> message_event;
 
     if( Paradata::Logger::IsOpen() )
-        message_event = m_pIntDriver->m_pParadataDriver->CreateMessageEvent(MessageType::Error, message_number, message_text);
+        message_event = m_pIntDriver->m_paradataDriver->CreateMessageEvent(MessageType::Error, message_number, message_text);
 
-    const std::tuple<std::vector<std::wstring>, int> button_text_and_default_button_number({ MGF::GetMessageText(MGF::Yes), MGF::GetMessageText(MGF::No) },
-                                                                                           1); // default to selecting No
+    const MessageSelectDetails select_details
+    {
+        { MGF::GetMessageText(MGF::Yes), MGF::GetMessageText(MGF::No) },
+        1  // default to selecting No
+    };                                                                                           
 
-    const int selected_button_number = DisplayMessage(message_type, message_number, message_text, &button_text_and_default_button_number);
+    const int selected_button_number = DisplayMessage(message_type, message_number, std::move(message_text), &select_details);
 
     if( message_event != nullptr )
     {
         message_event->SetPostDisplayReturnValue(selected_button_number);
-        m_pIntDriver->m_pParadataDriver->RegisterAndLogEvent(std::move(message_event));
+        m_pIntDriver->m_paradataDriver->RegisterAndLogEvent(std::move(message_event));
     }
 
     return ( selected_button_number == 1 );

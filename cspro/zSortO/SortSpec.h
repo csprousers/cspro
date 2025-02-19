@@ -24,10 +24,10 @@ public:
     ~SortSpec();
 
     // Load and Save throw exceptions
-    void Load(const std::wstring& filename, bool silent, std::shared_ptr<const CDataDict> embedded_dictionary = nullptr);
-    void Load(const JsonNode<wchar_t>& json_node, bool silent, std::shared_ptr<const CDataDict> embedded_dictionary = nullptr,
+    void Load(InterfaceString file_path, bool silent, std::shared_ptr<const CDataDict> embedded_dictionary = nullptr);
+    void Load(const JsonNode& json_node, bool silent, std::shared_ptr<const CDataDict> embedded_dictionary = nullptr,
               std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger = nullptr);
-    void Save(const std::wstring& filename) const;
+    void Save(InterfaceString file_path) const;
 
     SortType GetSortType() const { return m_sortType; }
     bool IsCaseSort() const      { return ( m_sortType == SortType::Case || m_sortType == SortType::CasePlus ); }
@@ -57,7 +57,7 @@ private:
     void ClearSortItems();
     void RefreshPossibleSortItems();
 
-    static std::wstring ConvertPre80SpecFile(const std::wstring& filename);
+    static std::string ConvertPre80SpecFile(InterfaceString file_path);
 
 private:
     std::shared_ptr<const CDataDict> m_dictionary;

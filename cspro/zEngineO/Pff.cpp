@@ -7,7 +7,7 @@
 // LogicPff
 // --------------------------------------------------------------------------
 
-LogicPff::LogicPff(std::wstring pff_name)
+LogicPff::LogicPff(std::string pff_name)
     :   Symbol(std::move(pff_name), SymbolType::Pff),
         m_modified(false)
 {
@@ -68,7 +68,7 @@ void LogicPff::EnsurePffExists()
 {
     if( m_pff == nullptr )
     {
-        m_pff = std::make_shared<PFF>(WS2CS(GetUniqueTempFilename(GetName() + FileExtensions::WithDot::Pff)));
+        m_pff = std::make_unique<PFF>(UTF8_TODO::GetCString(GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff))));
         m_modified = true;
     }
 }
@@ -124,8 +124,8 @@ std::wstring LogicPff::GetRunnableFilename()
         if( clear_app_description )
             m_pff->SetAppDescription(m_pff->GetEvaluatedAppDescription());
 
-        std::wstring temp_filename = GetUniqueTempFilename(GetName() + FileExtensions::WithDot::Pff, true);
-        Save(std::move(temp_filename));
+        std::string temp_filename = GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff), true);
+        Save(UTF8_TODO::GetWide(std::move(temp_filename)));
 
         if( clear_app_description )
             m_pff->SetAppDescription(CString());

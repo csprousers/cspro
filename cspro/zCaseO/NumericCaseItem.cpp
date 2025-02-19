@@ -2,8 +2,8 @@
 #include "NumericCaseItem.h"
 
 
-NumericCaseItem::NumericCaseItem(const CDictItem& dict_item, Type type/* = Type::Numeric*/)
-    :   CaseItem(dict_item, type)
+NumericCaseItem::NumericCaseItem(const CDictItem& dict_item, Type type/* = Type::Numeric*/, const bool fixed_width/* = false*/)
+    :   CaseItem(dict_item, type, DataType::Numeric, fixed_width)
 {
     if( !dict_item.HasValueSets() )
         return;
@@ -16,15 +16,16 @@ NumericCaseItem::NumericCaseItem(const CDictItem& dict_item, Type type/* = Type:
             const auto& dict_value_pair = dict_value.GetValuePair(0);
             std::wstring trimmed_from_value = SO::Trim(dict_value_pair.GetFrom());
 
-            if( CIMSAString::IsNumeric(wstring_view(trimmed_from_value), false) )
+            if( CIMSAString::IsNumeric(trimmed_from_value, false) )
             {
-                double value = atod(trimmed_from_value);
-                double special_value = dict_value.GetSpecialValue();
+                const double value = atod(trimmed_from_value);
+                const double special_value = dict_value.GetSpecialValue();
 
-                if( !m_specialToSerializedValues.has_value() )
+                if( m_specialToSerializedValues == nullptr )
                 {
-                    m_specialToSerializedValues = VectorMap<double, double>();
-                    m_serializedToSpecialValues = VectorMap<double, double>();
+                    ASSERT(m_serializedToSpecialValues == nullptr);
+                    m_specialToSerializedValues = std::make_unique<VectorMap<double, double>>();
+                    m_serializedToSpecialValues = std::make_unique<VectorMap<double, double>>();
                 }
 
                 m_specialToSerializedValues->Insert(special_value, value);
@@ -51,35 +52,71 @@ void NumericCaseItem::DeallocateMemory(void* /*data_buffer*/) const
 }
 
 
-size_t NumericCaseItem::StoreBinaryValue(const void* data_buffer, std::byte* binary_buffer) const
+void NumericCaseItem::ResetValue(void* const data_buffer) const
 {
-    if( binary_buffer != nullptr )
-        memcpy(binary_buffer, data_buffer, sizeof(double));
-
-    return sizeof(double);
+    double& value = GetModifiableValue(data_buffer);
+    value = NOTAPPL;
 }
 
 
-size_t NumericCaseItem::RetrieveBinaryValue(void* data_buffer, const std::byte* binary_buffer) const
+void NumericCaseItem::CopyValue(void* const data_buffer, const void* const copy_data_buffer) const
 {
-    memcpy(data_buffer, binary_buffer, sizeof(double));
-    return sizeof(double);
+    double& value = GetModifiableValue(data_buffer);
+    value = GetValue(copy_data_buffer);
+}
+
+
+size_t NumericCaseItem::StoreBinaryValue(const void* const data_buffer, std::byte* const binary_buffer) const
+{
+    return BinarySerializer::Write(binary_buffer, GetValue(data_buffer));
+}
+
+
+void NumericCaseItem::RetrieveBinaryValue(void* const data_buffer, const std::byte*& binary_buffer) const
+{
+    double& value = GetModifiableValue(data_buffer);
+    BinarySerializer::Read(binary_buffer, value);
+}
+
+
+bool NumericCaseItem::IsBlank(const CaseItemIndex& index) const
+{
+    return ( GetValue(index) == NOTAPPL );
+}
+
+
+int NumericCaseItem::CompareValues(const CaseItemIndex& index1, const CaseItemIndex& index2) const
+{
+    const double value1 = GetValueForComparison(index1);
+    const double value2 = GetValueForComparison(index2);
+
+    return ( value1 == value2 ) ?  0 :
+           ( value1 < value2 )  ? -1 :
+                                   1;
 }
 
 
 double NumericCaseItem::GetValueForComparison(const CaseItemIndex& index) const
 {
     double value = GetValueForOutput(index);
-    return ( value == NOTAPPL ) ? std::numeric_limits<double>::lowest() : value;
+
+    if( value == NOTAPPL )
+        return std::numeric_limits<double>::lowest();
+
+    return value;
 }
 
 
-int NumericCaseItem::CompareValues(const CaseItemIndex& index1, const CaseItemIndex& index2) const
+void NumericCaseItem::SetNotappl(CaseItemIndex& index) const
 {
-    double value1 = GetValueForComparison(index1);
-    double value2 = GetValueForComparison(index2);
+    SetValue(index, NOTAPPL);
+}
 
-    return ( value1 == value2 ) ?  0 :
-           ( value1 < value2 )  ? -1 :
-                                   1;
+
+void NumericCaseItem::AdjustValueForSpecialCoding(const VectorMap<double, double>& values_map, double& value)
+{
+    const double* const new_value = values_map.Find(value);
+
+    if( new_value != nullptr )
+        value = *new_value;
 }

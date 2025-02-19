@@ -168,7 +168,7 @@ CString CPrtViewGotoAreaDlg::GetAreaLabel(int iTbl, int iArea, bool bIndent) con
         CIMSAString sBreakKey = pTabData->GetBreakKey();
         do {
             CIMSAString sToken = sBreakKey.GetToken(_T(";"));
-            if (!SO::IsBlank(sToken)) {
+            if (!SO::IsBlank(wstring_view(sToken))) {
                 sIndent += _T(" ");
             }
         } while (!sBreakKey.IsEmpty());

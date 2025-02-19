@@ -1,50 +1,28 @@
 ﻿#include "StdAfx.h"
 #include "MainFrm.h"
-#include "ReportPropertiesDlg.h"
 #include <zDesignerF/ReportPreviewer.h>
 
 
-LRESULT CMainFrame::OnEditReportProperties(WPARAM wParam, LPARAM lParam)
-{
-    auto report_named_text_source = reinterpret_cast<NamedTextSource*>(wParam);
-    auto pDoc = reinterpret_cast<CDocument*>(lParam);
-
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
-
-    if( pAplDoc != nullptr )
-    {
-        ReportPropertiesDlg report_properties_dlg(*pAplDoc, *pDoc, *report_named_text_source);
-
-        if( report_properties_dlg.DoModal() == IDOK )
-        {
-            pAplDoc->SetModifiedFlag();
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-
-const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::wstring* report_name_for_report_preview)
+const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::string* const report_name_for_report_preview)
 {
     const TextSource* report_text_source = nullptr;
 
-    CMDIChildWnd* pActiveWnd = MDIGetActive();
-    CView* pActiveView = ( pActiveWnd != nullptr ) ? pActiveWnd->GetActiveView() : nullptr;
+    CMDIChildWnd* const pActiveWnd = MDIGetActive();
+    CView* const pActiveView = ( pActiveWnd != nullptr ) ? pActiveWnd->GetActiveView() :
+                                                           nullptr;
 
     if( pActiveWnd != nullptr )
     {
         // returns true if the text source should be updated
         auto set_report_text_source = [&](const auto* id, auto get_name)
         {
-            if( FileExtensions::IsFilenameHtml(id->GetTextSource()->GetFilename()) )
+            if( FileExtensions::IsFileHtml(id->GetTextSource()->GetFilePath()) )
             {
                 report_text_source = id->GetTextSource();
 
                 if( report_name_for_report_preview != nullptr )
                 {
-                    *report_name_for_report_preview = get_name();
+                    *report_name_for_report_preview = UTF8_TODO::GetUtf8(get_name());
                     return true;
                 }
             }
@@ -73,9 +51,9 @@ const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::wstri
 }
 
 
-void CMainFrame::OnUpdateViewReportPreview(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateViewReportPreview(CCmdUI* const pCmdUI)
 {
-    const TextSource* report_text_source = GetHtmlReportTextSourceCurrentlyEditing(nullptr);
+    const TextSource* const report_text_source = GetHtmlReportTextSourceCurrentlyEditing(nullptr);
     pCmdUI->Enable(( report_text_source != nullptr ));
 }
 
@@ -83,8 +61,8 @@ void CMainFrame::OnUpdateViewReportPreview(CCmdUI* pCmdUI)
 void CMainFrame::OnViewReportPreview()
 {
     Application* application;
-    std::wstring report_name;
-    const TextSource* report_text_source = GetHtmlReportTextSourceCurrentlyEditing(&report_name);
+    std::string report_name;
+    const TextSource* const report_text_source = GetHtmlReportTextSourceCurrentlyEditing(&report_name);
 
     if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application) != 1 )
         return;
@@ -95,11 +73,12 @@ void CMainFrame::OnViewReportPreview()
     {
         ReportPreviewer report_previewer(report_text_source->GetText(), application->GetLogicSettings());
 
-        // view the report
+        // view the report, using an ExceptionHolder to display uncaught exceptions from the Action Invoker
         Viewer viewer;
         viewer.UseEmbeddedViewer()
-              .SetTitle(_T("Report Preview: ") + report_name)
-              .ViewHtmlUrl(report_previewer.GetReportUrl(report_text_source->GetFilename()));
+              .UseExceptionHolder(nullptr)
+              .SetTitle("Report Preview: " + report_name)
+              .ViewHtmlUrl(report_previewer.GetReportUrl(report_text_source->GetFilePath()));
     }
 
     catch( const CSProException& exception )

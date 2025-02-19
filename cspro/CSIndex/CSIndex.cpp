@@ -37,7 +37,7 @@ BOOL CCSIndexApp::InitInstance()
 
     AfxEnableControlContainer();
 
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     // Parse command line for standard shell commands, DDE, file open
     CCommandLineInfo cmdInfo;
@@ -45,12 +45,13 @@ BOOL CCSIndexApp::InitInstance()
 
     try
     {
-        std::wstring dictionary_filename;
+        std::string dictionary_file_path;
         bool show_dialog = true;
 
         if( !cmdInfo.m_strFileName.IsEmpty() )
         {
-            const std::wstring extension = PortableFunctions::PathGetFileExtension(cmdInfo.m_strFileName);
+            std::string file_path = TC::ToUtf8(cmdInfo.m_strFileName);
+            const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
             // execute a PFF
             if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
@@ -58,12 +59,12 @@ BOOL CCSIndexApp::InitInstance()
                 show_dialog = false;
 
                 PFF pff;
-                pff.SetPifFileName(cmdInfo.m_strFileName);
+                pff.SetPifFileName(UTF8_TODO::GetCString(file_path));
 
                 if( !pff.LoadPifFile() || pff.GetAppType() != INDEX_TYPE )
                 {
-                    throw CSProException(_T("PFF file '%s' was not read correctly. Check the file for parameters invalid to CSIndex."),
-                                         cmdInfo.m_strFileName.GetString());
+                    throw CSProException("PFF file '%s' was not read correctly. Check the file for parameters invalid to CSIndex.",
+                                         file_path.c_str());
                 }
 
                 ToolIndexer().Run(pff, true);
@@ -74,13 +75,13 @@ BOOL CCSIndexApp::InitInstance()
             // prefill the dictionary name
             else if( SO::EqualsNoCase(extension, FileExtensions::Dictionary) )
             {
-                dictionary_filename = cmdInfo.m_strFileName;
+                dictionary_file_path = std::move(file_path);
             }
 
             else
             {
-                throw CSProException(_T("The parameter '%s' is invalid. It must be a file with the extension PFF."),
-                                     cmdInfo.m_strFileName.GetString());
+                throw CSProException("The parameter '%s' is invalid. It must be a file with the extension PFF.",
+                                     file_path.c_str());
             }
         }
 
@@ -89,7 +90,7 @@ BOOL CCSIndexApp::InitInstance()
             // add the accelerators to the dialog
             m_hAccelerators = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_CSINDEX_ACCEL));
 
-            IndexDlg dlg(std::move(dictionary_filename));
+            IndexDlg dlg(std::move(dictionary_file_path));
             m_pMainWnd = &dlg;
             dlg.DoModal();
         }

@@ -14,7 +14,7 @@
 #include "Ddgview.h"
 #include "OccDlg.h"
 #include "PrintDlg.h"
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/Specfile.h>
 
 
 IMPLEMENT_DYNCREATE(CDDGView, CView)
@@ -568,7 +568,7 @@ void CDDGView::OnUpdateEditPaste(CCmdUI* pCmdUI)
                 long current_row = m_gridDict.GetCurrentRow();
                 enable = ( current_row >= CDictGrid::GetFirstLevelRow() ||
                             m_gridDict.GetNumberRows() <= CDictGrid::GetFirstLevelRow() );
-            }                    
+            }
         }
 
         else if( m_iGrid == DictionaryGrid::Level )
@@ -1380,15 +1380,19 @@ void CDDGView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 
 namespace
 {
-    CString PrepareNameForPrinting(CString name)
+    CString PrepareNameForPrinting(const std::string& name)
     {
         // only display up to 32 characters
-        int excess_characters = name.GetLength() - 32;
+        constexpr int MaxLength = 32;
+        CString cs_name = TC::ToWide<CString>(name);
 
-        if( excess_characters > 0 )
-            name = name.Left(excess_characters + 3) + _T("...");
+        if( cs_name.GetLength() > MaxLength )
+        {
+            cs_name.Truncate(cs_name.GetLength() - MaxLength);
+            cs_name.Append(L"...");
+        }
 
-        return name;
+        return cs_name;
     }
 }
 
@@ -1475,8 +1479,9 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
     }
     m_iYPos -= m_iHeight;
     if (pInfo->m_nCurPage == m_uPage) {
-        size = pDC->GetTextExtent(PrepareNameForPrinting(pDict->GetName()));
-        pDC->TextOut((m_iPageWidth - size.cx)/2, m_iYPos, PrepareNameForPrinting(pDict->GetName()));
+        const CString printable_name = PrepareNameForPrinting(pDict->GetName());
+        size = pDC->GetTextExtent(printable_name);
+        pDC->TextOut((m_iPageWidth - size.cx)/2, m_iYPos, printable_name);
     }
     m_iYPos -= m_iHeight;
     m_iYPos -= m_iHeight;
@@ -2225,23 +2230,24 @@ void CDDGView::OnEndPrintPreview(CDC* pDC, CPrintInfo* pInfo, POINT point, CPrev
 void CDDGView::PrintToFile()
 {
     // Get Dictionary Listing File Name
-    CDDDoc* pDoc = assert_cast<CDDDoc*>(GetDocument());
-    CString csDictListFile = pDoc->GetPathName();
-    csDictListFile = csDictListFile.Left(csDictListFile.ReverseFind('.')) + FileExtensions::WithDot::Listing;
-    CString csFilter = _T("All Files (*.*)|*.*||");
-    CIMSAFileDialog dlg (FALSE, NULL, csDictListFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, csFilter );
-    if (dlg.DoModal() == IDCANCEL) {
+    CDDDoc* const pDoc = assert_cast<CDDDoc*>(GetDocument());
+
+    const std::string suggested_file_path = PortableFunctions::PathReplaceFileExtension(TC::ToUtf8(pDoc->GetPathName()), FileExtensions::Listing);
+
+    SaveFileDlg save_file_dlg(0, nullptr, suggested_file_path, L"All Files (*.*)|*.*||", this);
+
+    if( save_file_dlg.DoModal() != IDOK )
         return;
-    }
-    csDictListFile = dlg.GetPathName();
+
     CStdioFileUnicode/*CStdioFile*/ ListFile; // 20121231 for unicode
-    if(!ListFile.Open(csDictListFile, CFile::modeCreate | CFile::modeWrite | CFile::typeText)) {
-        CString csError;
-        csError.Format(_T("Cannot open:  %s\n\nFile in use by another program.\n"), (LPCTSTR)csDictListFile);
-        AfxMessageBox(csError, MB_ICONEXCLAMATION);
+
+    if( !ListFile.Open(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
+    {
+        ErrorMessage::Display(FormatText("Cannot open:  %s\n\nFile in use by another program.\n", save_file_dlg.GetFilePath().c_str()));
         ListFile.Close();
         return;
     }
+
     int iLineLen = 110;
     const CDataDict* pDict = pDoc->GetDict();
     CString csLine;
@@ -2752,7 +2758,7 @@ void CDDGView::PrintToFile()
     ListFile.Close();
 
     // Show listing file in Text Viewer               07 Jun 2004 BMD
-    ViewFileInTextViewer(csDictListFile);
+    ViewFileInTextViewer(save_file_dlg.GetFilePath());
 }
 
 
@@ -2798,7 +2804,7 @@ void CDDGView::OnEditOccurrenceLabels()
     int iLevel = pDoc->GetLevel();
     int iRec = pDoc->GetRec();
 
-    auto add_occurrence_labels = 
+    auto add_occurrence_labels =
         [&](const OccurrenceLabels& occurrence_labels, unsigned occurrences)
         {
             for( unsigned i = 0; i < occurrences; ++i )

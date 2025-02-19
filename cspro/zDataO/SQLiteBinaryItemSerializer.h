@@ -1,35 +1,39 @@
 ﻿#pragma once
 
+#include <zToolsO/UniqueId.h>
+#include <zSql/SQLiteStatement.h>
+#include <mutex>
+
 class BinaryCaseItem;
-class BinaryData;
-class BinaryDataAccessor;
-class BinaryDataMetadata;
-struct sqlite3;
-struct sqlite3_stmt;
 
 
 class SQLiteBinaryItemSerializer
 {
 public:
-    SQLiteBinaryItemSerializer(sqlite3* db);
-    ~SQLiteBinaryItemSerializer();
+    SQLiteBinaryItemSerializer(UniqueId repository_id, sqlite3* db);
 
-    BinaryData GetBinaryItemData(const BinaryDataMetadata& binary_data_metadata) const;
-    uint64_t GetBinaryItemSize(const BinaryDataMetadata& binary_data_metadata) const;
-    std::wstring SetBinaryItem(int64_t revision, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index);
+    // returns the size of the content associated with the signature
+    uint64_t GetContentSize(const std::string& signature);
+
+    // returns the content associated with the signature
+    std::vector<std::byte> GetContent(const std::string& signature);
+
+    // inserts the binary content (if necessary), adding a reference that the case uses this content;
+    // the content's signature, calculated as necessary, is returned
+    std::string InsertContent(const BinaryDataAccessor& binary_data_accessor, const std::string& case_uuid, const int64_t revision);
 
 private:
-    std::wstring InsertBinaryItem(const std::wstring& case_id, int64_t revision, const BinaryDataAccessor& binary_data_accessor,
-                                  std::optional<std::wstring> signature, bool binary_data_already_written);
-
-    void DeleteBinaryItem(const std::wstring& signature);
+    // retrieves the binary content and adds it to the database
+    void GetContentAndInsert(const BinaryDataAccessor& binary_data_accessor, const std::string& signature, const int64_t revision);
 
 private:
+    UniqueId m_repositoryId;
     sqlite3* m_db;
-    mutable sqlite3_stmt* m_get_binary_item_size_statement;
-    mutable sqlite3_stmt* m_get_binary_item_data_statement;
-    sqlite3_stmt* m_insert_binary_item_statement;
-    sqlite3_stmt* m_insert_case_binary_item_statement;  
-    sqlite3_stmt* m_get_binary_items_for_case;
-    sqlite3_stmt* m_delete_binary_item_by_signature;
+    SQLiteStatement m_stmtGetContent;
+    SQLiteStatement m_stmtGetContentSize;
+    SQLiteStatement m_stmtHasContentAssociatedWithCaseUuid;
+    SQLiteStatement m_stmtHasContentAssociatedWithAnyCase;
+    SQLiteStatement m_stmtAssociateContentWithCase;
+    SQLiteStatement m_stmtInsertContent;
+    std::mutex m_binaryReaderMutex;
 };

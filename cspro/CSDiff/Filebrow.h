@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zUtilF/DialogValidators.h>
+
 class CCSDiffDoc;
 
 
@@ -14,17 +16,19 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void DoDataExchange(CDataExchange* pDX) override;
-    BOOL OnInitDialog();
+    BOOL OnInitDialog() override;
 
-    afx_msg void OnOK();
-    afx_msg void OnListbrow();
-    afx_msg void OnInpbrow();
-    afx_msg void OnRefbrow();
-    afx_msg void OnChangeInputfile();
-    afx_msg void OnChangeListfile();
-    afx_msg void OnChangeReferencefile();
+    void OnOK();
+    void OnListbrow();
+    void OnInpbrow();
+    void OnRefbrow();
+    void OnChangeInputfile();
+    void OnChangeListfile();
+    void OnChangeReferencefile();
 
 private:
+    void OnDataBrowse(ConnectionString& connection_string, const ConnectionString& other_connection_string);
+
     void EnableDisable();
 
 private:
@@ -32,9 +36,11 @@ private:
     DiffSpec& m_diffSpec;
     PFF& m_pff;
 
-    std::wstring m_inputFilename;
-    std::wstring m_referenceFilename;
-    std::wstring m_listingFilename;
-    int m_roneway;
-    int m_indexseq;
+    ConnectionString m_inputConnectionString;
+    ConnectionString m_referenceConnectionString;
+    std::string m_listingFilePath;
+    DiffSpec::DiffMethod m_diffMethod;
+    RadioEnumHelper<DiffSpec::DiffMethod> m_diffMethodRadioEnumHelper;
+    DiffSpec::DiffOrder m_diffOrder;
+    RadioEnumHelper<DiffSpec::DiffOrder> m_diffOrderRadioEnumHelper;
 };

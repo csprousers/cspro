@@ -1,17 +1,19 @@
 ﻿#pragma once
+
 // RunTab.h: interface for the CRunTab class.
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <zExTab/zExTab.h>
 #include <ZBRIDGEO/npff.h>
 #include <zListingO/Lister.h>
 
-class CTbdTable;
-class CTbdSlice;
-class CTbdFile;
-class CTbiFile;
-class CConSpec;
 class CConsolidate;
+class CConSpec;
+class CTbdFile;
+class CTbdSlice;
+class CTbdTable;
+class CTbiFile;
 class ProcessSummary;
 
 

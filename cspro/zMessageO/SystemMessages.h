@@ -9,12 +9,9 @@ class TextSource;
 class ZMESSAGEO_API SystemMessages
 {
 public:
-    // Returns whether or not a message filename is considered a system message file.
-    static bool IsMessageFilenameSystemMessages(const std::wstring& message_filename);
-
-    // Loads the system message files with arguments that specify additional message files to load.
-    static void LoadMessages(const std::wstring& application_filename, const std::vector<std::shared_ptr<TextSource>>& application_message_text_sources,
-                             bool load_designer_messages);
+    // Loads the system message files along with any additional message files that should be considered system messages.
+    static void LoadMessages(const std::string& application_file_path,
+                             const std::vector<std::shared_ptr<const TextSource>>& additional_message_text_sources);
 
     // Gets the system messages file. If it has not been loaded, it will automatically be loaded.
     static MessageFile& GetMessageFile();

@@ -9,7 +9,8 @@ END_MESSAGE_MAP()
 
 
 PropertiesDlgMappingTileProviderPage::PropertiesDlgMappingTileProviderPage(const MappingProperties& mapping_properties,
-    MappingTileProviderProperties& mapping_tile_provider_properties, CWnd* pParent/* = nullptr*/)
+                                                                           MappingTileProviderProperties& mapping_tile_provider_properties,
+                                                                           CWnd* const pParent/* = nullptr*/)
     :   CDialog(PropertiesDlgMappingTileProviderPage::IDD, pParent),
         m_mappingProperties(mapping_properties),
         m_mappingTileProviderProperties(mapping_tile_provider_properties),
@@ -18,7 +19,7 @@ PropertiesDlgMappingTileProviderPage::PropertiesDlgMappingTileProviderPage(const
 }
 
 
-void PropertiesDlgMappingTileProviderPage::DoDataExchange(CDataExchange* pDX)
+void PropertiesDlgMappingTileProviderPage::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -33,7 +34,7 @@ BOOL PropertiesDlgMappingTileProviderPage::OnInitDialog()
 
     // the access token is called an API Key for Esri
     if( m_mappingTileProviderProperties.GetMappingTileProvider() == MappingTileProvider::Esri )
-        GetDlgItem(IDC_ACCESS_TOKEN_TEXT)->SetWindowText(_T("API Key"));
+        GetDlgItem(IDC_ACCESS_TOKEN_TEXT)->SetWindowText(L"API Key");
 
     SetupTileLayersPropertiesGridCtrl();
 
@@ -49,12 +50,14 @@ void PropertiesDlgMappingTileProviderPage::SetupTileLayersPropertiesGridCtrl()
     m_tileLayersPropertiesGridCtrl.RemoveAll();
 
     m_tileLayersPropertiesGridCtrl.SetVSDotNetLook(TRUE);
-    m_tileLayersPropertiesGridCtrl.EnableHeaderCtrl(TRUE, _T("Name"), _T("Tile Layer"));
+    m_tileLayersPropertiesGridCtrl.EnableHeaderCtrl(TRUE, L"Name", L"Tile Layer");
 
     for( const auto& [base_map, tile_layer] : m_mappingTileProviderProperties.GetTileLayers() )
     {
-        m_tileLayersPropertiesGridCtrl.AddProperty(new CMFCPropertyGridProperty(
-            ToString(base_map), COleVariant(tile_layer.c_str()), nullptr, (DWORD)base_map));
+        m_tileLayersPropertiesGridCtrl.AddProperty(new CMFCPropertyGridProperty(TC::ToWide(ToString(base_map)).c_str(),
+                                                                                COleVariant(TC::ToWide(tile_layer).c_str()), // move CSProHostObject::Utf8ToBSTR to TC and use this for COleVariabe
+                                                                                nullptr,
+                                                                                static_cast<DWORD>(base_map)));
     }
 
     // set the column widths (from https://stackoverflow.com/questions/3453244/how-to-set-a-cmfcpropertylistctrls-column-width)
@@ -78,8 +81,8 @@ void PropertiesDlgMappingTileProviderPage::FormToProperties()
     for( int i = 0; i < m_tileLayersPropertiesGridCtrl.GetPropertyCount(); ++i )
     {
         CMFCPropertyGridProperty* property = m_tileLayersPropertiesGridCtrl.GetProperty(i);
-        BaseMap base_map = (BaseMap)property->GetData();
-        m_mappingTileProviderProperties.SetTileLayer(base_map, CS2WS(CString(property->GetValue())));
+        const BaseMap base_map = static_cast<BaseMap>(property->GetData());
+        m_mappingTileProviderProperties.SetTileLayer(base_map, UTF8_TODO::GetUtf8(CString(property->GetValue()))); // move CSProHostObject::BSTRToUtf8 to TC and use this for COleVariabe
     }
 }
 
@@ -107,5 +110,5 @@ void PropertiesDlgMappingTileProviderPage::OnOK()
 void PropertiesDlgMappingTileProviderPage::OnPreviewMap()
 {
     FormToProperties();
-    TestMappingProperties(m_mappingProperties, m_mappingTileProviderProperties.GetMappingTileProvider());
+    MappingPropertiesTester::Test(m_mappingProperties, m_mappingTileProviderProperties.GetMappingTileProvider());
 }

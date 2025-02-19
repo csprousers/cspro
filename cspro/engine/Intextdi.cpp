@@ -8,10 +8,10 @@
 #include "INTERPRE.H"
 #include "ProgramControl.h"
 #include "SelcaseManager.h"
-#include "SelectDlgHelper.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
-#include <zEngineO/Versioning.h>
+#include <zEngineO/Interpreter/SelectDlgHelper.h>
+#include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/Dictionaries.h>
 #include <zEngineO/Nodes/File.h>
 #include <zToolsO/VarFuncs.h>
@@ -81,7 +81,7 @@ bool CIntDriver::EvaluateCaseFunctionParameters(const CDataDict& dictionary, con
             current_length += key_component.length();
         }
 
-        // dictionary variable (or a working variable in pre-7.4 .pen files)
+        // dictionary variable
         else
         {
             SVAR_NODE* psvar = (SVAR_NODE*)PPT(arguments[i]);
@@ -93,7 +93,7 @@ bool CIntDriver::EvaluateCaseFunctionParameters(const CDataDict& dictionary, con
             VART* pVarT = VPT(iThisVar);
             VARX* pVarX = pVarT->GetVarX();
 
-            int iThisParmLength = pVarT->GetLogicStringPtr() ? pVarT->GetLogicStringPtr()->GetLength() : pVarT->GetLength();
+            const int iThisParmLength = pVarT->GetLength();
 
             if( ( current_length + iThisParmLength ) > key_length )
                 return false;
@@ -139,7 +139,7 @@ bool CIntDriver::EvaluateCaseFunctionParameters(const CDataDict& dictionary, con
 
                 if( bIsSvar )
                 {
-                    pszValue = pVarT->GetLogicStringPtr() ? pVarT->GetLogicStringPtr()->GetBuffer() : (TCHAR*)svaraddr(pVarX);
+                    pszValue = (TCHAR*)svaraddr(pVarX);
                 }
 
                 else
@@ -209,7 +209,7 @@ double CIntDriver::exloadcase(int program_index)
             // calling loadcase with a key resets any iterator that may exist
             engine_data_repository.StopCaseIterator();
 
-            engine_data_repository.ReadCase(engine_case, WS2CS(loadcase_key));
+            engine_data_repository.ReadCase(engine_case, UTF8_TODO::GetUtf8(loadcase_key));
         }
 
         // ENGINECR_TODO(loadcase) is there anything in ParseCaseLevel that needs to be copied?  m_pEngineDriver->ParseCaseLevel(&pDicX->GetCase(), pDicX->GetCase().GetPre74_Case()->GetRootLevel(), pDicT);
@@ -223,7 +223,7 @@ double CIntDriver::exloadcase(int program_index)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10103, exception.what());
     }
 
     return 0;
@@ -260,7 +260,7 @@ double CIntDriver::exloadcase_pre80(int program_index)
             // calling loadcase with a key resets any iterator that may exist
             pDicX->StopCaseIterator();
 
-            pDicX->GetDataRepository().ReadCasetainer(pDicX->GetCase(), WS2CS(loadcase_key));
+            pDicX->GetDataRepository().ReadCasetainer(pDicX->GetCase(), UTF8_TODO::GetUtf8(loadcase_key));
         }
 
         m_pEngineDriver->ParseCaseLevel(&pDicX->GetCase(), pDicX->GetCase().GetPre74_Case()->GetRootLevel(),
@@ -275,7 +275,7 @@ double CIntDriver::exloadcase_pre80(int program_index)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10103, exception.what());
     }
 
     return 0;
@@ -344,7 +344,7 @@ double CIntDriver::exwritecase(int program_index)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     return 0;
@@ -387,17 +387,17 @@ double CIntDriver::exwritecase_pre80(int program_index)
         // mark the case as not deleted
         pDicX->GetCase().SetDeleted(false);
 
-        pDicX->GetDataRepository().WriteCasetainer(&pDicX->GetCase());
+        pDicX->GetDataRepository().WriteCasetainer(pDicX->GetCase());
 
         // update the current key
-        _tcscpy(pDicX->current_key, pDicX->GetCase().GetKey());
+        _tcscpy(pDicX->current_key, UTF8_TODO::GetCString(pDicX->GetCase().GetKey()));
 
         return 1;
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning,10104,exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     return 0;
@@ -440,7 +440,7 @@ double CIntDriver::exdelcase(int program_index)
         EngineCase& engine_case = using_case_override ? GetSymbolEngineDictionary(case_io_node.case_dictionary_symbol_index).GetEngineCase() :
                                                         engine_dictionary.GetEngineCase();
 
-        delcase_key = engine_case.GetCase().GetKey();
+        delcase_key = UTF8_TODO::GetWide(engine_case.GetCase().GetKey());
 
         // if deleting the currently loaded case, use the position in the repository
         // instead of the key, which will allow for deleting specific cases when there
@@ -468,7 +468,7 @@ double CIntDriver::exdelcase(int program_index)
 
         else
         {
-            data_repository.DeleteCase(WS2CS(delcase_key));
+            data_repository.DeleteCase(UTF8_TODO::GetUtf8(delcase_key));
         }
 
         return 1;
@@ -480,7 +480,7 @@ double CIntDriver::exdelcase(int program_index)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     return 0;
@@ -527,7 +527,7 @@ double CIntDriver::exdelcase_pre80(int program_index)
 
         else
         {
-            pDicX->GetDataRepository().DeleteCase(WS2CS(delcase_key));
+            pDicX->GetDataRepository().DeleteCase(UTF8_TODO::GetUtf8(delcase_key));
         }
 
         return 1;
@@ -539,7 +539,7 @@ double CIntDriver::exdelcase_pre80(int program_index)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     return 0;
@@ -551,10 +551,10 @@ double CIntDriver::exdelcase_pre80(int program_index)
 //  exfind_locate          ejecuta 'FIND' / 'LOCATE'
 //
 //----------------------------------------------------------------------
-double CIntDriver::exfind_locate(int program_index)
+double CIntDriver::exfind_locate(const int program_index)
 {
     const auto& case_search_node = GetNode<Nodes::CaseSearch>(program_index);
-    bool locate_function = ( case_search_node.function_code == FunctionCode::FNLOCATE_CODE );
+    const bool locate_function = ( case_search_node.function_code == FunctionCode::FNLOCATE_CODE );
     Symbol& symbol = NPT_Ref(case_search_node.dictionary_symbol_index);
 
     if( symbol.IsA(SymbolType::Dictionary) )
@@ -583,25 +583,25 @@ double CIntDriver::exfind_locate(int program_index)
             EngineDataRepository& engine_data_repository = engine_dictionary.GetEngineDataRepository();
             DataRepository& data_repository = engine_data_repository.GetDataRepository();
 
-            CString search_key = EvalAlphaExpr<CString>(case_search_node.key_expression);
+            const SharableString search_key = EvaluateSharableString(case_search_node.key_expression);
 
             // find with equals can be solved easily
             if( !locate_function && case_search_node.operator_code == TOKEQOP )
-                return data_repository.ContainsCase(search_key) ? 1 : 0;
+                return data_repository.ContainsCase(*search_key) ? 1 : 0;
 
-            bool search_by_uuid = ( case_search_node.operator_code == Nodes::CaseSearch::SearchByUuidCode );
+            const bool search_by_uuid = ( case_search_node.operator_code == Nodes::CaseSearch::SearchByUuidCode );
 
             // search by UUID or key
             if( search_by_uuid || case_search_node.operator_code == TOKEQOP )
             {
-                CString key = search_by_uuid ? CString() : search_key;
-                CString uuid = search_by_uuid ? search_key : CString();
+                std::string key = search_by_uuid ? std::string() : *search_key;
+                std::string uuid = search_by_uuid ? *search_key : std::string();
                 double position_in_repository;
 
                 try
                 {
                     data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
-                    optional_case_key.emplace(key, position_in_repository);
+                    optional_case_key.emplace(std::move(key), position_in_repository);
                 }
 
                 catch( const DataRepositoryException::CaseNotFound& ) { }
@@ -610,32 +610,37 @@ double CIntDriver::exfind_locate(int program_index)
             // search by key prefix
             else if( case_search_node.operator_code == Nodes::CaseSearch::SearchByKeyPrefixCode )
             {
+                const CaseIteratorParameters case_iterator_parameters { CaseIterationStartType::GreaterThanEquals, std::string(), *search_key };
+
                 optional_case_key = data_repository.FindCaseKey(CaseIterationMethod::KeyOrder,
-                    engine_data_repository.GetDictionaryAccessParameters().case_iteration_order,
-                    CaseIteratorParameters { CaseIterationStartType::GreaterThanEquals, CString(), search_key });
+                                                                engine_data_repository.GetDictionaryAccessParameters().case_iteration_order,
+                                                                &case_iterator_parameters);
             }
 
             // search by operator
             else
             {
-                bool search_is_gte_or_gt = ( case_search_node.operator_code == TOKGEOP || case_search_node.operator_code == TOKGTOP );
+                const bool search_is_gte_or_gt = ( case_search_node.operator_code == TOKGEOP || case_search_node.operator_code == TOKGTOP );
 
                 // speed up the common operation of searching for the first case
-                if( search_key.IsEmpty() && search_is_gte_or_gt )
+                if( search_key->empty() && search_is_gte_or_gt )
+                {
                     optional_case_key = data_repository.FindCaseKey(CaseIterationMethod::KeyOrder, CaseIterationOrder::Ascending);
+                }
 
                 else
                 {
-                    CaseIterationStartType iteration_start_type =
+                    const CaseIterationStartType iteration_start_type =
                         ( case_search_node.operator_code == TOKLTOP ) ?   CaseIterationStartType::LessThan :
                         ( case_search_node.operator_code == TOKLEOP ) ?   CaseIterationStartType::LessThanEquals :
                         ( case_search_node.operator_code == TOKGEOP ) ?   CaseIterationStartType::GreaterThanEquals :
                       /*( case_search_node.operator_code == TOKGTOP ) ? */CaseIterationStartType::GreaterThan;
 
-                    CaseIterationOrder iteration_order = search_is_gte_or_gt ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending;
+                    const CaseIteratorParameters case_iterator_parameters { iteration_start_type, *search_key, std::nullopt };
 
                     optional_case_key = data_repository.FindCaseKey(CaseIterationMethod::KeyOrder,
-                        iteration_order, CaseIteratorParameters { iteration_start_type, search_key, std::nullopt });
+                                                                    search_is_gte_or_gt ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending,
+                                                                    &case_iterator_parameters);
                 }
             }
 
@@ -657,7 +662,7 @@ double CIntDriver::exfind_locate(int program_index)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return optional_case_key.has_value() ? 1 : 0;
@@ -687,25 +692,25 @@ double CIntDriver::exfind_locate(int program_index)
 
         try
         {
-            CString search_key = EvalAlphaExpr<CString>(case_search_node.key_expression);
+            const SharableString search_key = EvaluateSharableString(case_search_node.key_expression);
 
             // find with equals can be solved easily
             if( !locate_function && case_search_node.operator_code == TOKEQOP )
-                return pDicX->GetDataRepository().ContainsCase(search_key) ? 1 : 0;
+                return pDicX->GetDataRepository().ContainsCase(*search_key) ? 1 : 0;
 
             bool search_by_uuid = ( case_search_node.operator_code == Nodes::CaseSearch::SearchByUuidCode );
 
             // search by UUID or key
             if( search_by_uuid || case_search_node.operator_code == TOKEQOP )
             {
-                CString key = search_by_uuid ? CString() : search_key;
-                CString uuid = search_by_uuid ? search_key : CString();
+                std::string key = search_by_uuid ? std::string() : *search_key;
+                std::string uuid = search_by_uuid ? *search_key : std::string();
                 double position_in_repository;
 
                 try
                 {
                     pDicX->GetDataRepository().PopulateCaseIdentifiers(key, uuid, position_in_repository);
-                    optional_case_key.emplace(key, position_in_repository);
+                    optional_case_key.emplace(std::move(key), position_in_repository);
                 }
 
                 catch( const DataRepositoryException::CaseNotFound& ) { }
@@ -714,31 +719,37 @@ double CIntDriver::exfind_locate(int program_index)
             // search by key prefix
             else if( case_search_node.operator_code == Nodes::CaseSearch::SearchByKeyPrefixCode )
             {
+                const CaseIteratorParameters case_iterator_parameters { CaseIterationStartType::GreaterThanEquals, std::string(), *search_key };
+
                 optional_case_key = pDicX->GetDataRepository().FindCaseKey(CaseIterationMethod::KeyOrder,
-                    pDicX->GetCaseIterationOrder(), CaseIteratorParameters { CaseIterationStartType::GreaterThanEquals, CString(), search_key });
+                                                                           pDicX->GetCaseIterationOrder(),
+                                                                           &case_iterator_parameters);
             }
 
             // search by operator
             else
             {
-                bool search_is_gte_or_gt = ( case_search_node.operator_code == TOKGEOP || case_search_node.operator_code == TOKGTOP );
+                const bool search_is_gte_or_gt = ( case_search_node.operator_code == TOKGEOP || case_search_node.operator_code == TOKGTOP );
 
                 // speed up the common operation of searching for the first case
-                if( search_key.IsEmpty() && search_is_gte_or_gt )
+                if( search_key->empty() && search_is_gte_or_gt )
+                {
                     optional_case_key = pDicX->GetDataRepository().FindCaseKey(CaseIterationMethod::KeyOrder, CaseIterationOrder::Ascending);
+                }
 
                 else
                 {
-                    CaseIterationStartType iteration_start_type =
+                    const CaseIterationStartType iteration_start_type =
                         ( case_search_node.operator_code == TOKLTOP ) ?   CaseIterationStartType::LessThan :
                         ( case_search_node.operator_code == TOKLEOP ) ?   CaseIterationStartType::LessThanEquals :
                         ( case_search_node.operator_code == TOKGEOP ) ?   CaseIterationStartType::GreaterThanEquals :
                       /*( case_search_node.operator_code == TOKGTOP ) ? */CaseIterationStartType::GreaterThan;
 
-                    CaseIterationOrder iteration_order = search_is_gte_or_gt ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending;
+                    const CaseIteratorParameters case_iterator_parameters { iteration_start_type, *search_key, std::nullopt };
 
                     optional_case_key = pDicX->GetDataRepository().FindCaseKey(CaseIterationMethod::KeyOrder,
-                        iteration_order, CaseIteratorParameters { iteration_start_type, search_key, std::nullopt });
+                                                                               search_is_gte_or_gt ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending,
+                                                                               &case_iterator_parameters);
                 }
             }
 
@@ -756,7 +767,7 @@ double CIntDriver::exfind_locate(int program_index)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return optional_case_key.has_value() ? 1 : 0;
@@ -804,7 +815,7 @@ double CIntDriver::exretrieve(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return 0;
@@ -836,7 +847,7 @@ double CIntDriver::exretrieve(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return 0;
@@ -900,7 +911,7 @@ double CIntDriver::exdictaccess(const Nodes::SetAccessFirstLast& set_access_firs
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return false;
@@ -952,7 +963,7 @@ double CIntDriver::exdictaccess(const Nodes::SetAccessFirstLast& set_access_firs
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return false;
@@ -978,14 +989,14 @@ double CIntDriver::exkey(int iExpr)
         if( fn8_node.function_code == FunctionCode::FNKEY_CODE )
         {
             const std::optional<CaseKey>& initial_case_key = engine_case.GetInitialCaseKey();
-            return initial_case_key.has_value() ? AssignAlphaValue(initial_case_key->GetKey()) :
-                                                  AssignBlankAlphaValue();
+            return initial_case_key.has_value() ? AssignString(initial_case_key->GetKey()) :
+                                                  AssignStringNull();
         }
 
         else
         {
             ASSERT(fn8_node.function_code == FunctionCode::FNCURRENTKEY_CODE); // ENGINECR_TODO(currentkey) test once the IDs are modifiable
-            return AssignAlphaValue(engine_case.GetCase().GetKey());
+            return AssignString(engine_case.GetCase().GetKey());
         }
     }
 
@@ -1021,7 +1032,7 @@ double CIntDriver::exkeylist(int iExpr)
         std::unique_ptr<CaseIteratorParameters> start_parameters;
 
         if( fn8_node.starts_with_expression != -1 )
-            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, CString(), EvalAlphaExpr<CString>(fn8_node.starts_with_expression));
+            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), EvaluateString(fn8_node.starts_with_expression));
 
         try
         {
@@ -1034,26 +1045,26 @@ double CIntDriver::exkeylist(int iExpr)
 
             if( logic_list.IsReadOnly() )
             {
-                issaerror(MessageType::Error, 965, logic_list.GetName().c_str());
+                issaerror(MessageType::Error, MGF::List_read_only_cannot_be_modified_965, logic_list.GetName().c_str());
                 return DEFAULT;
             }
 
             logic_list.Reset();
 
             CaseKey case_key;
-            auto case_key_iterator = data_repository.CreateIterator(CaseIterationContent::CaseKey,
+            std::unique_ptr<CaseIterator> case_key_iterator = data_repository.CreateIterator(CaseIterationContent::CaseKey,
                 dictionary_access_parameters.case_iteration_status, dictionary_access_parameters.case_iteration_method,
                 dictionary_access_parameters.case_iteration_order, start_parameters.get());
 
             while( case_key_iterator->NextCaseKey(case_key) )
-                logic_list.AddString(CS2WS(case_key.GetKey()));
+                logic_list.AddValue<SharableString>(case_key.GetKey());
 
             return logic_list.GetCount();
         }
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return DEFAULT;
@@ -1067,7 +1078,7 @@ double CIntDriver::exkeylist(int iExpr)
         std::unique_ptr<CaseIteratorParameters> start_parameters;
 
         if( fn8_node.starts_with_expression != -1 )
-            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, CString(), EvalAlphaExpr<CString>(fn8_node.starts_with_expression));
+            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), EvaluateString(fn8_node.starts_with_expression));
 
         try
         {
@@ -1080,26 +1091,26 @@ double CIntDriver::exkeylist(int iExpr)
 
             if( logic_list.IsReadOnly() )
             {
-                issaerror(MessageType::Error, 965, logic_list.GetName().c_str());
+                issaerror(MessageType::Error, MGF::List_read_only_cannot_be_modified_965, logic_list.GetName().c_str());
                 return DEFAULT;
             }
 
             logic_list.Reset();
 
             CaseKey case_key;
-            auto case_key_iterator = pDicX->GetDataRepository().CreateIterator(CaseIterationContent::CaseKey,
+            std::unique_ptr<CaseIterator> case_key_iterator = pDicX->GetDataRepository().CreateIterator(CaseIterationContent::CaseKey,
                 std::get<2>(dictionary_access_parameters), std::get<0>(dictionary_access_parameters),
                 std::get<1>(dictionary_access_parameters), start_parameters.get());
 
             while( case_key_iterator->NextCaseKey(case_key) )
-                logic_list.AddString(CS2WS(case_key.GetKey()));
+                logic_list.AddValue<SharableString>(case_key.GetKey());
 
             return logic_list.GetCount();
         }
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return DEFAULT;
@@ -1140,16 +1151,16 @@ double CIntDriver::exselcase(int iExpr)
 
         select_dlg = std::make_unique<SelectDlg>(single_selection, number_columns);
 
-        select_dlg->SetTitle(( selcase_node.heading >= 0 ) ? EvalAlphaExpr(selcase_node.heading) :
-                                                             _T("Select Case"));
+        select_dlg->SetTitle(( selcase_node.heading >= 0 ) ? EvaluateSharableString(selcase_node.heading) :
+                                                             "Select Case");
     }
 
     try
     {
         constexpr DICX::CaseIteratorStyle case_iterator_style = DICX::CaseIteratorStyle::FromBoundary;
-        std::optional<CString> starting_key = EvalAlphaExpr<CString>(selcase_node.key_expr);
+        std::optional<std::string> starting_key = EvaluateString(selcase_node.key_expr);
 
-        if( starting_key->IsEmpty() )
+        if( starting_key->empty() )
             starting_key.reset();
 
         SelcaseDictionaryManager* dictionary_manager = nullptr;
@@ -1176,7 +1187,7 @@ double CIntDriver::exselcase(int iExpr)
 
         while( step_iterator() )
         {
-            CString formatted_key = case_or_case_key.GetKey();
+            CString formatted_key = UTF8_TODO::GetCString(case_or_case_key.GetKey());
 
             if( key_display_offset > 0 )
             {
@@ -1191,7 +1202,7 @@ double CIntDriver::exselcase(int iExpr)
                 }
             }
 
-            std::optional<std::vector<std::wstring>> row_data;
+            std::optional<std::vector<SharableString>> row_data;
 
             if( need_to_load_case )
             {
@@ -1199,12 +1210,12 @@ double CIntDriver::exselcase(int iExpr)
                                                 &pDicX->GetCase().GetRootCaseLevel(), pDicT);
 
                 // evaluate the where expression (if necessary)
-                if( selcase_node.fn_where_exp >= 0 && ConditionalValueIsFalse(evalexpr(selcase_node.fn_where_exp)) )
+                if( selcase_node.fn_where_exp >= 0 && !EvaluateConditional(selcase_node.fn_where_exp) )
                     continue;
 
                 if( select_dlg != nullptr )
                 {
-                    row_data.emplace({ CS2WS(formatted_key) });
+                    row_data.emplace().emplace_back(UTF8_TODO::GetUtf8(formatted_key));
                 }
 
                 // load any include variables
@@ -1222,7 +1233,7 @@ double CIntDriver::exselcase(int iExpr)
                         const double* pdValue = GetVarFloatAddr(pVarT->GetVarX());
 
                         // format the value so that it isn't zero-filled and shows a decimal point (if applicable)
-                        std::wstring& text_value = row_data->emplace_back(pDictItem->GetCompleteLen(), '\0');
+                        std::wstring text_value(pDictItem->GetCompleteLen(), '\0');
 
                         dvaltochar(*pdValue,
                             text_value.data(),
@@ -1230,12 +1241,14 @@ double CIntDriver::exselcase(int iExpr)
                             pDictItem->GetDecimal(),
                             false,
                             pDictItem->GetDecimal() > 0);
+
+                        row_data->emplace_back(UTF8_TODO::GetUtf8(text_value));
                     }
 
                     else
                     {
                         const TCHAR* pszVariableBuffer = GetVarAsciiAddr(pVarT->GetVarX()); // these variables are always singly occurring
-                        row_data->emplace_back(pszVariableBuffer, pVarT->GetLength());
+                        row_data->emplace_back(UTF8_TODO::GetUtf8(std::wstring(pszVariableBuffer, pVarT->GetLength())));
                     }
                 }
             }
@@ -1250,7 +1263,7 @@ double CIntDriver::exselcase(int iExpr)
                 else
                 {
                     // this will occur if the there was no where/include clause
-                    select_dlg->AddRow(CS2WS(formatted_key));
+                    select_dlg->AddRow(UTF8_TODO::GetUtf8(formatted_key));
                 }
             }
 
@@ -1279,7 +1292,7 @@ double CIntDriver::exselcase(int iExpr)
         // otherwise, show the selection dialog
 
         // set up the column names
-        std::vector<std::wstring> column_headings { _T("Key") };
+        std::vector<SharableString> column_headings { "Key" };
 
         for( int i = 0; i < FNSEL_VARS && selcase_node.include_vars[i] >= 0; ++i )
         {
@@ -1292,7 +1305,7 @@ double CIntDriver::exselcase(int iExpr)
         select_dlg->SetHeader(std::move(column_headings));
 
 
-        SelectDlgHelper select_dlg_helper(*this, *select_dlg, Paradata::OperatorSelectionEvent::Source::SelCase);
+        SelectDlgHelper select_dlg_helper(*m_paradataDriver, *select_dlg, Paradata::OperatorSelectionEvent::Source::SelCase);
 
         if( mark_type == SelcaseMarkType::None )
         {
@@ -1328,7 +1341,7 @@ double CIntDriver::exselcase(int iExpr)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10103, exception.what());
         return 0;
     }
 }
@@ -1353,14 +1366,14 @@ double CIntDriver::exselcase_pre77(int iExpr)
     }
 
     if( function_node->heading >= 0 )
-        csHeading = EvalAlphaExpr<CString>(function_node->heading);
+        csHeading = EvalAlphaExprCS(function_node->heading);
 
     try
     {
         DICX::CaseIteratorStyle case_iterator_style = DICX::CaseIteratorStyle::FromBoundary;
-        std::optional<CString> starting_key = EvalAlphaExpr<CString>(function_node->key_expr);
+        std::optional<std::string> starting_key = EvaluateString(function_node->key_expr);
 
-        if( starting_key->IsEmpty() )
+        if( starting_key->empty() )
             starting_key.reset();
 
         SelcaseDictionaryManager* dictionary_manager = nullptr;
@@ -1392,7 +1405,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
 
         while( step_iterator() )
         {
-            CString formatted_key = case_or_case_key.GetKey();
+            CString formatted_key = UTF8_TODO::GetCString(case_or_case_key.GetKey());
 
             if( iKeyDisplayOffset > 0 )
             {
@@ -1411,7 +1424,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
                                                 &pDicX->GetCase().GetRootCaseLevel(), pDicT);
 
                 // evaluate the where expression (if necessary)
-                if( function_node->fn_where_exp >= 0 && ConditionalValueIsFalse(evalexpr(function_node->fn_where_exp)) )
+                if( function_node->fn_where_exp >= 0 && !EvaluateConditional(function_node->fn_where_exp) )
                     continue;
 
                 if( paData != NULL )
@@ -1505,7 +1518,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
             for( int i = 0; i < FNSEL_VARS && function_node->include_vars[i] >= 0; i++ )
             {
                 VART* pVarT = VPT(function_node->include_vars[i]);
-                aColumnTitles.push_back(WS2CS(pVarT->GetName()));
+                aColumnTitles.push_back(UTF8_TODO::GetCString(pVarT->GetName()));
             }
 
             ASSERT(aColumnTitles.size() == paData->at(0)->size());
@@ -1543,7 +1556,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10103, exception.what());
     }
 
     return 0;
@@ -1614,7 +1627,7 @@ double CIntDriver::exfor_dict(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
             return 0;
         }
 
@@ -1629,7 +1642,7 @@ double CIntDriver::exfor_dict(int iExpr)
             if( request_issued )
             {
                 // break out of the current proc
-                m_iSkipStmt = TRUE;
+                m_bSkipStmt = true;
                 break;
             }
         }
@@ -1637,7 +1650,7 @@ double CIntDriver::exfor_dict(int iExpr)
         catch( const NextProgramControlException& )  { }
         catch( const BreakProgramControlException& ) { break; }
 
-        if( m_iStopExec )
+        if( m_bStopExec )
             break;
     }
 
@@ -1668,11 +1681,11 @@ double CIntDriver::exforcase(int iExpr)
 
         try
         {
-            std::optional<CString> key_prefix;
+            std::optional<std::string> key_prefix;
             bool use_where_expression = ( for_dictionary_node.query_type_or_where_expression != -1 );
 
             if( for_dictionary_node.starts_with_expression != -1 )
-                key_prefix = EvalAlphaExpr<CString>(for_dictionary_node.starts_with_expression);
+                key_prefix = EvaluateString(for_dictionary_node.starts_with_expression);
 
             engine_data_repository.CreateCaseIterator(EngineDataRepository::CaseIteratorStyle::FromBoundary,
                 std::nullopt, for_dictionary_node.dictionary_access, key_prefix);
@@ -1684,7 +1697,7 @@ double CIntDriver::exforcase(int iExpr)
 
                 // ENGINECR_TODO(forcase) is there anything in ParseCaseLevel that needs to be copied? m_pEngineDriver->ParseCaseLevel(&pDicX->GetCase(), pDicX->GetCase().GetPre74_Case()->GetRootLevel(), pDicT);
 
-                if( use_where_expression && ConditionalValueIsFalse(evalexpr(for_dictionary_node.query_type_or_where_expression)) )
+                if( use_where_expression && !EvaluateConditional(for_dictionary_node.query_type_or_where_expression) )
                     continue;
 
                 try
@@ -1695,7 +1708,7 @@ double CIntDriver::exforcase(int iExpr)
                     if( request_issued )
                     {
                         // break out of the current proc
-                        m_iSkipStmt = TRUE;
+                        m_bSkipStmt = true;
                         break;
                     }
                 }
@@ -1703,7 +1716,7 @@ double CIntDriver::exforcase(int iExpr)
                 catch( const NextProgramControlException& )  { }
                 catch( const BreakProgramControlException& ) { break; }
 
-                if( m_iStopExec )
+                if( m_bStopExec )
                     break;
 
                 // a delcase or writecase call may stop the iterator, in which case we will start it
@@ -1722,7 +1735,7 @@ double CIntDriver::exforcase(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return 0;
@@ -1739,11 +1752,11 @@ double CIntDriver::exforcase(int iExpr)
 
         try
         {
-            std::optional<CString> key_prefix;
+            std::optional<std::string> key_prefix;
             bool use_where_expression = ( for_dictionary_node.query_type_or_where_expression != -1 );
 
             if( for_dictionary_node.starts_with_expression != -1 )
-                key_prefix = EvalAlphaExpr<CString>(for_dictionary_node.starts_with_expression);
+                key_prefix = EvaluateString(for_dictionary_node.starts_with_expression);
 
             pDicX->CreateCaseIterator(DICX::CaseIteratorStyle::FromBoundary, std::nullopt,
                 for_dictionary_node.dictionary_access, key_prefix);
@@ -1755,7 +1768,7 @@ double CIntDriver::exforcase(int iExpr)
                 m_pEngineDriver->ParseCaseLevel(&pDicX->GetCase(), pDicX->GetCase().GetPre74_Case()->GetRootLevel(),
                                                 &pDicX->GetCase().GetRootCaseLevel(), pDicT);
 
-                if( use_where_expression && ConditionalValueIsFalse(evalexpr(for_dictionary_node.query_type_or_where_expression)) )
+                if( use_where_expression && !EvaluateConditional(for_dictionary_node.query_type_or_where_expression) )
                     continue;
 
                 try
@@ -1766,7 +1779,7 @@ double CIntDriver::exforcase(int iExpr)
                     if( request_issued )
                     {
                         // break out of the current proc
-                        m_iSkipStmt = TRUE;
+                        m_bSkipStmt = true;
                         break;
                     }
                 }
@@ -1774,7 +1787,7 @@ double CIntDriver::exforcase(int iExpr)
                 catch( const NextProgramControlException& )  { }
                 catch( const BreakProgramControlException& ) { break; }
 
-                if( m_iStopExec )
+                if( m_bStopExec )
                     break;
 
                 // a delcase or writecase call may stop the iterator, in which case we will start it
@@ -1793,7 +1806,7 @@ double CIntDriver::exforcase(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
         }
 
         return 0;
@@ -1813,10 +1826,10 @@ double CIntDriver::excountcases(int iExpr)
 
     if( symbol.IsA(SymbolType::Dictionary) )
     {
-        std::optional<CString> key_prefix;
+        std::optional<std::string> key_prefix;
 
         if( countcases_node.starts_with_expression != -1 )
-            key_prefix = EvalAlphaExpr<CString>(countcases_node.starts_with_expression);
+            key_prefix = EvaluateString(countcases_node.starts_with_expression);
 
         EngineDictionary& data_repository_engine_dictionary = assert_cast<EngineDictionary&>(symbol);
         EngineDataRepository& engine_data_repository = data_repository_engine_dictionary.GetEngineDataRepository();
@@ -1832,7 +1845,7 @@ double CIntDriver::excountcases(int iExpr)
                 std::unique_ptr<CaseIteratorParameters> start_parameters;
 
                 if( key_prefix.has_value() )
-                    start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, CString(), *key_prefix);
+                    start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), *key_prefix);
 
                 number_cases = engine_data_repository.GetDataRepository().GetNumberCases(
                     dictionary_access_parameters.case_iteration_status, start_parameters.get());
@@ -1857,7 +1870,7 @@ double CIntDriver::excountcases(int iExpr)
                         ++number_cases;
 
                     // quit out if the logic in the where condition stopped the iterator (or stopped the application)
-                    if( !engine_data_repository.IsCaseIteratorActive() || m_iStopExec )
+                    if( !engine_data_repository.IsCaseIteratorActive() || m_bStopExec )
                         break;
                 }
             }
@@ -1869,7 +1882,7 @@ double CIntDriver::excountcases(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
             number_cases = DEFAULT;
         }
 
@@ -1878,10 +1891,7 @@ double CIntDriver::excountcases(int iExpr)
 
     else
     {
-        std::optional<CString> key_prefix;
-
-        if( countcases_node.starts_with_expression != -1 )
-            key_prefix = EvalAlphaExpr<CString>(countcases_node.starts_with_expression);
+        std::optional<std::string> key_prefix = EvaluateOptional<std::string>(countcases_node.starts_with_expression);
 
         DICT* pDicT = DPT(countcases_node.data_repository_dictionary_symbol_index);
         DICX* pDicX = pDicT->GetDicX();
@@ -1897,7 +1907,7 @@ double CIntDriver::excountcases(int iExpr)
                 std::unique_ptr<CaseIteratorParameters> start_parameters;
 
                 if( key_prefix.has_value() )
-                    start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, CString(), *key_prefix);
+                    start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), *key_prefix);
 
                 number_cases = pDicX->GetDataRepository().GetNumberCases(std::get<2>(dictionary_access_parameters), start_parameters.get());
             }
@@ -1920,7 +1930,7 @@ double CIntDriver::excountcases(int iExpr)
                         ++number_cases;
 
                     // quit out if the logic in the where condition stopped the iterator (or stopped the application)
-                    if( !pDicX->IsCaseIteratorActive() || m_iStopExec )
+                    if( !pDicX->IsCaseIteratorActive() || m_bStopExec )
                         break;
                 }
             }
@@ -1932,7 +1942,7 @@ double CIntDriver::excountcases(int iExpr)
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Warning, 10103, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Warning, 10103, exception.what());
             number_cases = DEFAULT;
         }
 
@@ -1941,57 +1951,49 @@ double CIntDriver::excountcases(int iExpr)
 }
 
 
-//--------------------------------------------------------
-//
-//  exsetoutput
-//
-//--------------------------------------------------------
-double CIntDriver::exsetoutput(int iExpr)
+double CIntDriver::ex_setoutput(const int program_index)
 {
     if( Appl.ApplicationType != ModuleType::Batch )
         return DEFAULT;
 
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
     // evaluate the connection strings
     std::vector<ConnectionString> output_connection_strings;
 
-    auto add_connection_string = [&](std::wstring text)
-    {
-        auto& output_connection_string = output_connection_strings.emplace_back(std::move(text));
-        MakeFullPathFileName(output_connection_string);
-    };
-
     // string value
     if( va_node.arguments[0] >= 0 )
     {
-        add_connection_string(EvalAlphaExpr(va_node.arguments[0]));
+        output_connection_strings.emplace_back(EvaluateConnectionString(va_node.arguments[0]));
     }
 
     // string list
     else
     {
         const LogicList& setoutput_list = GetSymbolLogicList(-1 * va_node.arguments[0]);
-        size_t list_count = setoutput_list.GetCount();
+        const size_t list_count = setoutput_list.GetCount();
 
         for( size_t i = 1; i <= list_count; ++i )
-            add_connection_string(setoutput_list.GetString(i));
+        {
+            ConnectionString& connection_string = output_connection_strings.emplace_back(setoutput_list.GetValue<SharableString>(i).GetString());
+            MakeAbsolutePath(connection_string);
+        }
     }
 
 
     // if the requested connection strings are identical to the ones currently being used, don't reopen them
     if( output_connection_strings.size() == m_pEngineDriver->m_batchOutputRepositories.size() )
     {
-        size_t matches = std::count_if(output_connection_strings.cbegin(), output_connection_strings.cend(),
-            [&](const auto& output_connection_string)
+        const size_t matches = std::count_if(output_connection_strings.cbegin(), output_connection_strings.cend(),
+            [&](const ConnectionString& output_connection_string)
             {
-                const auto& search = std::find_if(m_pEngineDriver->m_batchOutputRepositories.cbegin(), m_pEngineDriver->m_batchOutputRepositories.cend(),
+                const auto& lookup = std::find_if(m_pEngineDriver->m_batchOutputRepositories.cbegin(), m_pEngineDriver->m_batchOutputRepositories.cend(),
                     [&](const std::shared_ptr<DataRepository>& data_repository)
-                {
-                    return data_repository->GetConnectionString().Equals(output_connection_string);
-                });
+                    {
+                        return data_repository->GetConnectionString().Equals(output_connection_string);
+                    });
 
-                return ( search != m_pEngineDriver->m_batchOutputRepositories.cend() );
+                return ( lookup != m_pEngineDriver->m_batchOutputRepositories.cend() );
             });
 
         if( matches == output_connection_strings.size() )
@@ -2013,35 +2015,38 @@ double CIntDriver::exfilename(int iExpr)
 
     // the paradata log
     if( fn8_node.symbol_index == -2 )
-        return AssignAlphaValue(Paradata::Logger::GetFilename());
+        return AssignString(Paradata::Logger::GetFilePath());
 
     // symbols
-    Symbol* symbol = GetFromSymbolOrEngineItem(fn8_node.symbol_index,
-                                               Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1);
+    Symbol* const symbol = GetFromSymbolOrEngineItem(fn8_node.symbol_index,
+                                                     m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1);
 
     if( symbol == nullptr )
-        return AssignBlankAlphaValue();
+        return AssignStringNull();
 
     // dictionary
     if( symbol->IsA(SymbolType::Dictionary) )
     {
         const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(*symbol);
-        const DataRepository& data_repository = engine_dictionary.GetEngineDataRepository().GetDataRepository();
-        return AssignAlphaValue(data_repository.GetName(DataRepositoryNameType::Full));
+        const ConnectionString& connection_string = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetConnectionString();
+        return connection_string.HasFilePath() ? AssignString(connection_string.GetFilePath()) :
+                                                 AssignStringNull();
     }
 
     else if( symbol->IsA(SymbolType::Pre80Dictionary) )
     {
-        const DICT* pDicT = assert_cast<const DICT*>(symbol);
-        const DICX* pDicX = pDicT->GetDicX();
-        return AssignAlphaValue(pDicX->GetDataRepository().GetName(DataRepositoryNameType::Full));
+        const DICT* const pDicT = assert_cast<const DICT*>(symbol);
+        const DICX* const pDicX = pDicT->GetDicX();
+        const ConnectionString& connection_string = pDicX->GetDataRepository().GetConnectionString();
+        return connection_string.HasFilePath() ? AssignString(connection_string.GetFilePath()) :
+                                                 AssignStringNull();
     }
 
     // File
     else if( symbol->IsA(SymbolType::File) )
     {
         const LogicFile& logic_file = assert_cast<const LogicFile&>(*symbol);
-        return AssignAlphaValue(logic_file.GetFilename());
+        return AssignString(logic_file.GetFilePath());
     }
 
     // Pff
@@ -2055,136 +2060,143 @@ double CIntDriver::exfilename(int iExpr)
     else if( symbol->IsA(SymbolType::Report) )
     {
         const Report& report = assert_cast<const Report&>(*symbol);
-        return AssignAlphaValue(report.GetFilename());
+        return AssignString(report.GetFilePath());
     }
 
     // Audio, Document, Geometry, Image
     else if( BinarySymbol::IsBinarySymbol(*symbol) )
     {
-        return AssignAlphaValue(assert_cast<const BinarySymbol&>(*symbol).GetPath());
+        return AssignString(assert_cast<const BinarySymbol&>(*symbol).GetPath());
     }
 
-    return AssignBlankAlphaValue();
+    return AssignStringNull();
 }
 
 
 //----------------------------------------------------------------------
 //
-// exopen
+// ex_open
 //
 //----------------------------------------------------------------------
-double CIntDriver::exopen(int iExpr)
+double CIntDriver::ex_open(const int program_index)
 {
-    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
-    Symbol* symbol = NPT(fn8_node.symbol_index);
-    double return_value = 1;
+    const auto& fn8_node = GetNode<FN8_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
+    bool success = true;
 
-    bool create = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Create) );
-    bool append = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Append) );
+    const bool create = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Create) );
+    const bool append = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Append) );
 
-    if( symbol->IsA(SymbolType::Dictionary) )
+    if( symbol.IsA(SymbolType::Dictionary) )
     {
-        EngineDictionary* engine_dictionary = assert_cast<EngineDictionary*>(symbol);
-        EngineDataRepository& engine_data_repository = engine_dictionary->GetEngineDataRepository();
+        EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
+        EngineDataRepository& engine_data_repository = engine_dictionary.GetEngineDataRepository();
 
-        ConnectionString connection_string = engine_data_repository.GetLastClosedConnectionString().IsDefined() ?
+        const ConnectionString& connection_string = engine_data_repository.GetLastClosedConnectionString().IsDefined() ?
             engine_data_repository.GetLastClosedConnectionString() :
             engine_data_repository.GetDataRepository().GetConnectionString();
 
-        return_value = exsetfile_dictionary(*engine_dictionary, connection_string, create, append);
+        success = ex_setfile_dictionary(engine_dictionary, connection_string, create, append);
     }
 
-    else if( symbol->IsA(SymbolType::Pre80Dictionary) )
+    else if( symbol.IsA(SymbolType::Pre80Dictionary) )
     {
-        DICT* pDicT = assert_cast<DICT*>(symbol);
-        DICX* pDicX = pDicT->GetDicX();
+        DICT& pDicT = assert_cast<DICT&>(symbol);
+        DICX* const pDicX = pDicT.GetDicX();
 
-        ConnectionString connection_string = pDicX->GetLastClosedConnectionString().IsDefined() ?
-            pDicX->GetLastClosedConnectionString() : pDicX->GetDataRepository().GetConnectionString();
+        const ConnectionString& connection_string = pDicX->GetLastClosedConnectionString().IsDefined() ?
+            pDicX->GetLastClosedConnectionString() :
+            pDicX->GetDataRepository().GetConnectionString();
 
-        return_value = exsetfile_dictionary(pDicT, connection_string, create, append);
+        success = ex_setfile_dictionary(&pDicT, connection_string, create, append);
     }
 
-    else if( symbol->IsA(SymbolType::File) )
+    else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(*symbol);
+        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
 
         if( !logic_file.Open(create, append, true) )
-            return_value = 0;
+            success = false;
     }
 
-    return return_value;
+    return success ? 1 : 0;
 }
 
 
 //----------------------------------------------------------------------
 //
-// exclose
+// ex_close
 //
 //----------------------------------------------------------------------
-double CIntDriver::exclose(int iExpr)
+double CIntDriver::ex_close(const int program_index)
 {
-    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
-    Symbol* symbol = NPT(fn8_node.symbol_index);
-    double return_value = 1;
+    const auto& fn8_node = GetNode<FN8_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
+    bool success = true;
 
-    if( symbol->IsA(SymbolType::Dictionary) )
+    if( symbol.IsA(SymbolType::Dictionary) )
     {
-        EngineDictionary* engine_dictionary = assert_cast<EngineDictionary*>(symbol);
-        EngineDataRepository& engine_data_repository = engine_dictionary->GetEngineDataRepository();
+        EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
+        EngineDataRepository& engine_data_repository = engine_dictionary.GetEngineDataRepository();
 
         // set to a null repository (OpenRepository will close the current repository)
         m_pEngineDriver->OpenRepository(engine_data_repository, ConnectionString::CreateNullRepositoryConnectionString(),
                                         DataRepositoryOpenFlag::CreateNew, true);
 
-        if( Issamod == ModuleType::Entry && engine_dictionary->GetSubType() == SymbolSubType::Input )
+        if( Issamod == ModuleType::Entry && engine_dictionary.GetSubType() == SymbolSubType::Input )
             EntryInputRepositoryChangingActions();
     }
 
-    else if( symbol->IsA(SymbolType::Pre80Dictionary) )
+    else if( symbol.IsA(SymbolType::Pre80Dictionary) )
     {
-        DICT* pDicT = assert_cast<DICT*>(symbol);
-        DICX* pDicX = pDicT->GetDicX();
+        DICT& pDicT = assert_cast<DICT&>(symbol);
+        DICX* pDicX = pDicT.GetDicX();
 
         // set to a null repository (OpenRepository will close the current repository)
         m_pEngineDriver->OpenRepository(pDicX, ConnectionString::CreateNullRepositoryConnectionString(),
                                         DataRepositoryOpenFlag::CreateNew, true);
 
-        if( Issamod == ModuleType::Entry && pDicT->GetSubType() == SymbolSubType::Input )
+        if( Issamod == ModuleType::Entry && pDicT.GetSubType() == SymbolSubType::Input )
             EntryInputRepositoryChangingActions();
     }
 
-    else if( symbol->IsA(SymbolType::File) )
+    else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(*symbol);
+        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
 
         if( !logic_file.Close() )
-            return_value = 0;
+            success = false;
     }
 
-    return return_value;
+    else
+    {
+        success = ReturnProgrammingError(false);
+    }
+
+    return success ? 1 : 0;
 }
 
 
-double CIntDriver::exsetfile_dictionary(EngineDictionary& engine_dictionary, const ConnectionString& connection_string,
-                                        bool create_new, bool open_or_create)
+bool CIntDriver::ex_setfile_dictionary(EngineDictionary& engine_dictionary, const ConnectionString& connection_string,
+                                       const bool create_new, const bool open_or_create)
 {
     EngineDataRepository& engine_data_repository = engine_dictionary.GetEngineDataRepository();
-    double return_value = 1;
 
     // if setting the file to the currently open repository (and it is not the batch input), do nothing
     if( !create_new && engine_dictionary.GetSubType() != SymbolSubType::Input &&
         connection_string.Equals(engine_data_repository.GetDataRepository().GetConnectionString()) )
     {
-        return return_value;
+        return true;
     }
 
     // try to open the new repository
+    bool success = true;
+
     try
     {
-        DataRepositoryOpenFlag open_flag = create_new     ? DataRepositoryOpenFlag::CreateNew :
-                                           open_or_create ? DataRepositoryOpenFlag::OpenOrCreate :
-                                                            DataRepositoryOpenFlag::OpenMustExist;
+        const DataRepositoryOpenFlag open_flag = create_new     ? DataRepositoryOpenFlag::CreateNew :
+                                                 open_or_create ? DataRepositoryOpenFlag::OpenOrCreate :
+                                                                  DataRepositoryOpenFlag::OpenMustExist;
 
         // OpenRepository will close the current repository
         m_pEngineDriver->OpenRepository(engine_data_repository, connection_string, open_flag, true);
@@ -2193,39 +2205,40 @@ double CIntDriver::exsetfile_dictionary(EngineDictionary& engine_dictionary, con
     catch( const DataRepositoryException::Error& exception )
     {
         // on error, set the repository to a null repository
-        issaerror(MessageType::Error, 10102, engine_dictionary.GetName().c_str(), exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10102, engine_dictionary.GetName().c_str(), exception.what());
         issaerror(MessageType::Warning, 10106, engine_dictionary.GetName().c_str());
 
         m_pEngineDriver->OpenRepository(engine_data_repository, ConnectionString::CreateNullRepositoryConnectionString(),
                                         DataRepositoryOpenFlag::CreateNew, false);
-        return_value = 0;
+        success = false;
     }
 
     if( Issamod == ModuleType::Entry && engine_dictionary.GetSubType() == SymbolSubType::Input )
         EntryInputRepositoryChangingActions();
 
-    return return_value;
+    return success;
 }
 
 
-double CIntDriver::exsetfile_dictionary(DICT* pDicT, const ConnectionString& connection_string, bool createNew, bool bOpenOrCreate)
+bool CIntDriver::ex_setfile_dictionary(DICT* const pDicT, const ConnectionString& connection_string, const bool create_new, const bool open_or_create)
 {
-    DICX* pDicX = pDicT->GetDicX();
-    double return_value = 1;
+    DICX* const pDicX = pDicT->GetDicX();
 
     // if setting the file to the currently open repository (and it is not the batch input), do nothing
-    if( !createNew && pDicT->GetSubType() != SymbolSubType::Input &&
+    if( !create_new && pDicT->GetSubType() != SymbolSubType::Input &&
         connection_string.Equals(pDicX->GetDataRepository().GetConnectionString()) )
     {
-        return return_value;
+        return true;
     }
 
     // try to open the new repository
+    bool success = true;
+
     try
     {
-        DataRepositoryOpenFlag open_flag = createNew     ? DataRepositoryOpenFlag::CreateNew :
-                                           bOpenOrCreate ? DataRepositoryOpenFlag::OpenOrCreate :
-                                                           DataRepositoryOpenFlag::OpenMustExist;
+        const DataRepositoryOpenFlag open_flag = create_new     ? DataRepositoryOpenFlag::CreateNew :
+                                                 open_or_create ? DataRepositoryOpenFlag::OpenOrCreate :
+                                                                  DataRepositoryOpenFlag::OpenMustExist;
 
         // OpenRepository will close the current repository
         m_pEngineDriver->OpenRepository(pDicX, connection_string, open_flag, true);
@@ -2234,18 +2247,18 @@ double CIntDriver::exsetfile_dictionary(DICT* pDicT, const ConnectionString& con
     catch( const DataRepositoryException::Error& exception )
     {
         // on error, set the repository to a null repository
-        issaerror(MessageType::Error, 10102, pDicT->GetName().c_str(), exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10102, pDicT->GetName().c_str(), exception.what());
         issaerror(MessageType::Warning, 10106, pDicT->GetName().c_str());
 
         m_pEngineDriver->OpenRepository(pDicX, ConnectionString::CreateNullRepositoryConnectionString(),
                                         DataRepositoryOpenFlag::CreateNew, false);
-        return_value = 0;
+        success = false;
     }
 
     if( Issamod == ModuleType::Entry && pDicT->GetSubType() == SymbolSubType::Input )
         EntryInputRepositoryChangingActions();
 
-    return return_value;
+    return success;
 }
 
 

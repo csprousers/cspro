@@ -10,7 +10,7 @@ CSPro::Dictionary::ValueSet::ValueSet(const DictValueSet& dict_value_set)
 
 System::String^ CSPro::Dictionary::ValueSet::Name::get()
 {
-    return gcnew System::String(m_dictValueSet.GetName());
+    return clr_helpers::to_SystemString(m_dictValueSet.GetName());
 }
 
 System::String^ CSPro::Dictionary::ValueSet::Label::get()

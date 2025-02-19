@@ -15,23 +15,23 @@ public:
     static bool IsBinarySymbol(const Symbol& symbol);
 
 protected:
-    BinarySymbol(std::wstring name, SymbolType symbol_type);
+    BinarySymbol(std::string name, SymbolType symbol_type);
     BinarySymbol(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
     BinarySymbol(const BinarySymbol& binary_symbol);
 
 public:
     const BinarySymbolData& GetBinarySymbolData() const { return m_binarySymbolData; }
 
-    BinaryDataMetadata& GetMetadataForModification() { return m_binarySymbolData.GetMetadataForModification(); }
+    BinaryDataMetadata& GetMetadata() { return m_binarySymbolData.GetMetadata(); }
 
     // returns whether the symbol has content
     bool HasContent() const { return m_binarySymbolData.IsDefined(); }
 
     // returns the symbol's file path if it has content and a path on the disk exists, or an empty string otherwise
-    const std::wstring& GetPath() const;
+    const std::string& GetPath() const;
 
     // returns the symbol's filename (file name only) if it has content and a filename exists, or an empty string otherwise
-    std::wstring GetFilenameOnly() const;
+    std::string GetFilenameOnly() const;
 
     // Symbol overrides
     EngineItemAccessor* GetEngineItemAccessor() const override { return m_engineItemAccessor.get(); }
@@ -43,7 +43,7 @@ protected:
 
 public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // overridable methods
     // --------------------------------------------------------------------------
@@ -76,15 +76,15 @@ inline bool BinarySymbol::IsBinarySymbol(const Symbol& symbol)
 }
 
 
-inline const std::wstring& BinarySymbol::GetPath() const
+inline const std::string& BinarySymbol::GetPath() const
 {
     return m_binarySymbolData.IsDefined() ? m_binarySymbolData.GetPath() :
-                                            SO::EmptyString;
+                                            SO::Empty_string;
 }
 
 
-inline std::wstring BinarySymbol::GetFilenameOnly() const
+inline std::string BinarySymbol::GetFilenameOnly() const
 {
     return m_binarySymbolData.IsDefined() ? m_binarySymbolData.GetFilenameOnly() :
-                                            std::wstring();
+                                            std::string();
 }

@@ -13,14 +13,12 @@
 #include "IntEDlg.h"
 #include "leftprop.h"
 #include "LeftView.h"   //FABN Nov 5, 2002
-#include "ProgressDialog.h"
 #include "OperatorStatistics.h"
 #include "OperatorStatisticsLog.h"
 #include "QuestionnaireSearchDlg.h"
 #include "RunView.h"
 #include "Rundoc.h"
 #include "StatDlg.h"
-#include <zToolsO/Utf8Convert.h>
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/imsaDlg.H>
@@ -69,8 +67,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_STATS, OnUpdateStats)
     ON_COMMAND(ID_SAVE, OnPartialSaveCase)
     ON_UPDATE_COMMAND_UI(ID_SAVE, OnUpdatePartialSaveCase)
-    ON_COMMAND(ID_FILE_SYNCHRONIZE, OnSynchronize)
-    ON_UPDATE_COMMAND_UI(ID_FILE_SYNCHRONIZE, OnUpdateSynchronize)
+    ON_COMMAND(ID_FILE_SYNCHRONIZE, OnSimpleSynchronization)
+    ON_UPDATE_COMMAND_UI(ID_FILE_SYNCHRONIZE, OnUpdateSimpleSynchronization)
     ON_COMMAND(ID_FILE_SETTINGS, OnCSProSettings)
     ON_WM_CLOSE()
     ON_COMMAND(ID_ADD, OnAddCase)
@@ -229,10 +227,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 
     ON_MESSAGE(WM_IMSA_PARTIAL_SAVE, OnPartialSaveFromApp)
 
-    ON_MESSAGE(WM_IMSA_PROGRESS_DIALOG_SHOW, OnShowProgressDialog)
-    ON_MESSAGE(WM_IMSA_PROGRESS_DIALOG_HIDE, OnHideProgressDialog)
-    ON_MESSAGE(WM_IMSA_PROGRESS_DIALOG_UPDATE, OnUpdateProgressDialog)
-
     ON_MESSAGE(WM_IMSA_CHANGE_INPUT_REPOSITORY, OnChangeInputRepository)
     ON_MESSAGE(WM_IMSA_WINDOW_TITLE_QUERY, OnWindowTitleQuery)
 
@@ -319,8 +313,6 @@ CMainFrame::CMainFrame()
     m_bCaseTreeSortedOrder = false;
 
     m_bPage1StatusChangeStopFocusChangeHack = false;
-
-    m_pProgressDlg = NULL;
 }
 
 CMainFrame::~CMainFrame()
@@ -567,8 +559,8 @@ void CMainFrame::OnStats()
     statDlg.m_StatGrid.m_pOperatorStatisticsLog = pOperatorStatisticsLog;
 
     // update the number of cases and the number of verified cases
-    statDlg.m_sNumCases = IntToString(m_iNumCases);
-    statDlg.m_sVerifiedCases = IntToString(m_iVerified);
+    statDlg.m_sNumCases = UTF8_TODO::GetCString(IntToString(m_iNumCases));
+    statDlg.m_sVerifiedCases = UTF8_TODO::GetCString(IntToString(m_iVerified));
 
     if( m_iNumCases > 0 )
         statDlg.m_sVerifiedCases.AppendFormat(_T(" (%0.0f%%)"),(float)m_iVerified / m_iNumCases * 100);
@@ -650,12 +642,6 @@ void CMainFrame::OnClose()
 
     SendMessage(UWM::CaseTree::DeleteCaseTree, 0, 0);
 
-    if( m_pProgressDlg != nullptr)
-    {
-        m_pProgressDlg->DestroyWindow();
-        SAFE_DELETE(m_pProgressDlg);
-    }
-
     CFrameWnd::OnClose();
 }
 
@@ -720,7 +706,7 @@ bool CMainFrame::PreCaseLoadingStartActions(APP_MODE appMode)
     if( !pRunApl->Start(iRunAplMode) )
     {
         CString csMsg;
-        csMsg.Format(_T("Cannot start %s."),(LPCTSTR)pDoc->GetPifFile()->GetEvaluatedAppDescription());
+        csMsg.Format(_T("Cannot start %s."), pDoc->GetPifFile()->GetEvaluatedAppDescription().GetString());
         AfxMessageBox( csMsg );
 
         pDoc->SetAppMode(NO_MODE);
@@ -1241,7 +1227,7 @@ void CMainFrame::OnStop(bool* close_csentry_after_stopping)
     OnSetCapiText(NULL,0);
 
     // redraw the title
-    SetWindowText(pDoc->MakeTitle());
+    SetWindowText(TC::ToWide(pDoc->MakeTitle()).c_str());
 
     m_bOnStop = bRet;
 }
@@ -2002,7 +1988,7 @@ LONG CMainFrame::OnKeyChanged(WPARAM wParam, LPARAM /*lParam*/)
     CTreeCtrl& caseTree = pCaseView->GetTreeCtrl();
     HTREEITEM hSelItem = caseTree.GetSelectedItem();
 
-    CString csNewKey = GetShowCaseLabels() ? data_case.GetCaseLabelOrKey() : data_case.GetKey();
+    CString csNewKey = UTF8_TODO::GetCString(GetShowCaseLabels() ? data_case.GetCaseLabelOrKey() : data_case.GetKey());
     NewlineSubstitutor::MakeNewlineToUnicodeNL(csNewKey);
     caseTree.SetItemText(hSelItem, csNewKey);
 
@@ -2101,7 +2087,7 @@ LONG CMainFrame::OnEngineMessage(WPARAM wParam, LPARAM/* lParam*/)
         return 0;
     }
 
-    // there are two error messages styles but they can be overriden
+    // there are two error messages styles but they can be overridden
     const MessageOverrides& message_overrides = pDoc->GetMessageOverrides();
 
     bool use_operator_controlled_style = message_overrides.ForceOperatorControlled() ||
@@ -2403,7 +2389,7 @@ void CMainFrame::OnFindcase()
 
     NODEINFO* pNodeInfo = (NODEINFO*)caseTree.GetItemData(hItem);
 
-    CQuestionnaireSearchDlg questionnaireSearchDlg(pNodeInfo->case_summary.GetKey());
+    CQuestionnaireSearchDlg questionnaireSearchDlg(UTF8_TODO::GetCString(pNodeInfo->case_summary.GetKey()));
 
     if( questionnaireSearchDlg.DoModal() == IDOK )
     {
@@ -2697,7 +2683,7 @@ void CMainFrame::OnUpdateFieldInd(CCmdUI *pCmdUI)
         CString sOcc;
 
 
-        sOcc.Format( _T("Field = %s"), (LPCTSTR)pField->GetName());
+        sOcc.Format( _T("Field = %s"), pField->GetName().GetString());
 
         // 20120305 to show the number of characters entered for the new unicode/multiline controls
         CDEField * pActualField = (CDEField *)pField;
@@ -2926,7 +2912,7 @@ void CMainFrame::OnSortorder()
         if( hItem != NULL )
         {
             NODEINFO* pNodeInfo = (NODEINFO*)pCaseView->GetTreeCtrl().GetItemData(hItem);
-            csKey = pNodeInfo->case_summary.GetKey();
+            csKey = UTF8_TODO::GetCString(pNodeInfo->case_summary.GetKey());
         }
 
         BuildKeyArray();
@@ -3083,7 +3069,7 @@ bool CMainFrame::SelectNextCaseForVerification()
 
     if( hItemToVerify == NULL )
     {
-        AfxMessageBox(MGF::GetMessageText(MGF::VerifyDone).c_str());
+        AfxMessageBox(MGF::GetMessageText(MGF::VerifyDone).GetString());
         return false;
     }
 
@@ -3924,8 +3910,8 @@ void CMainFrame::OnLanguage()
 
         for( const Language& language : languages )
         {
-            aData.emplace_back(new std::vector<CString>{ WS2CS(language.GetLabel().empty() ? language.GetName() :
-                                                                                             language.GetLabel()) });
+            aData.emplace_back(new std::vector<CString>{ UTF8_TODO::GetCString(language.GetLabel().empty() ? language.GetName() :
+                                                                                                             language.GetLabel()) });
         }
 
         baSelections.resize(aData.size());
@@ -3935,7 +3921,7 @@ void CMainFrame::OnLanguage()
         cOptions.m_pbaSelections = &baSelections;
 
         cOptions.m_bUseTitle = true;
-        cOptions.m_csTitle = WS2CS(MGF::GetMessageText(MGF::SelectLanguageTitle));
+        cOptions.m_csTitle = UTF8_TODO::GetCString(MGF::GetMessageText(MGF::SelectLanguageTitle).GetString());
         cOptions.m_iMinMark = 0;
         cOptions.m_iMaxMark = 1;
         cOptions.m_bUseColTitle = false;
@@ -4059,7 +4045,7 @@ void CMainFrame::OnPartialSaveCase()
         {
             // display a message regarding the success
             int iMessageNumber = bSaved ? MGF::PartialSaveSuccess : MGF::PartialSaveFailure;
-            AfxMessageBox(MGF::GetMessageText(iMessageNumber).c_str());
+            AfxMessageBox(MGF::GetMessageText(iMessageNumber).GetString());
         }
 
         m_bPartialSaveFromApp = bSaved;
@@ -4100,36 +4086,41 @@ void CMainFrame::OnUpdatePartialSaveCase(CCmdUI* pCmdUI)
     pCmdUI->Enable( bEnable );
 }
 
-void CMainFrame::OnSynchronize()
+
+void CMainFrame::OnSimpleSynchronization()
 {
-    CEntryrunDoc* pDoc = (CEntryrunDoc*) GetActiveDocument();
+    CEntryrunDoc* const pDoc = assert_cast<CEntryrunDoc*>(GetActiveDocument());
 
-    if (pDoc && pDoc->GetAppMode() == NO_MODE) {
-        const AppSyncParameters& syncParams = pDoc->GetPifFile()->GetApplication()->GetSyncParameters();
-        CRunAplEntry* pRunApl = pDoc->GetRunApl();
-        if (pRunApl->RunSync(syncParams)) {
+    if( pDoc == nullptr || pDoc->GetAppMode() != NO_MODE )
+        return;
 
-            // update the case listing
-            BuildKeyArray();
-            GetCaseView()->BuildTree();
+    const AppSyncParameters& sync_params = pDoc->GetPifFile()->GetApplication()->GetSyncParameters();
+    CRunAplEntry* const pRunApl = pDoc->GetRunApl();
 
-            AfxMessageBox(_T("Synchronization complete"), MB_OK | MB_ICONINFORMATION);
-        }
-    }
+    const int dictionaries_synced = pRunApl->RunSync(sync_params);
+
+    if( dictionaries_synced == 0 )
+        return;
+
+    // update the case listing
+    BuildKeyArray();
+    GetCaseView()->BuildTree();
+
+    const std::string message = FormatText("Synchronization of %d data source%s complete.",
+                                           dictionaries_synced, PluralizeWord(dictionaries_synced));
+    AfxMessageBox(message, MB_OK | MB_ICONINFORMATION);
 }
 
-void CMainFrame::OnUpdateSynchronize(CCmdUI * pCmdUI)
-{
-    CEntryrunDoc* pDoc = (CEntryrunDoc*) GetActiveDocument();
-    BOOL bEnable = FALSE;
 
-    if (pDoc && pDoc->GetPifFile() && pDoc->GetPifFile()->GetApplication() && pDoc->GetAppMode() == NO_MODE) {
-        const AppSyncParameters& syncParams = pDoc->GetPifFile()->GetApplication()->GetSyncParameters();
-        if (!syncParams.server.empty()) {
-            bEnable = TRUE;
-        }
-    }
-    pCmdUI->Enable(bEnable);
+void CMainFrame::OnUpdateSimpleSynchronization(CCmdUI* const pCmdUI)
+{
+    const CEntryrunDoc* const pDoc = assert_cast<const CEntryrunDoc*>(GetActiveDocument());
+
+    pCmdUI->Enable(( pDoc != nullptr &&
+                     pDoc->GetAppMode() == NO_MODE &&
+                     pDoc->GetPifFile() != nullptr &&
+                     pDoc->GetPifFile()->GetApplication() != nullptr &&
+                     pDoc->GetPifFile()->GetApplication()->GetSyncParameters().sync_connection_string.IsDefined() ));
 }
 
 
@@ -4338,10 +4329,10 @@ LONG CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam)
 }
 
 
-LONG CMainFrame::OnGetUserFonts(WPARAM wParam, LPARAM /*lParam*/) // 20100621
+LRESULT CMainFrame::OnGetUserFonts(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    UserDefinedFonts** user_defined_fonts = reinterpret_cast<UserDefinedFonts**>(wParam);
-    *user_defined_fonts = &m_userFonts;
+    UserDefinedFonts*& user_defined_fonts = *reinterpret_cast<UserDefinedFonts**>(wParam);
+    user_defined_fonts = &m_userFonts;
     return 1;
 }
 
@@ -4611,7 +4602,7 @@ LONG CMainFrame::OnSetCapiText(WPARAM wParam, LPARAM lParam)
     auto capi_text = (const CString*)wParam;
     auto color = (const COLORREF*)lParam;
 
-    qsf_view->SetText(( capi_text != nullptr ) ? *capi_text : CString(),
+    qsf_view->SetText(( capi_text != nullptr ) ? UTF8_TODO::GetUtf8(*capi_text) : std::string(),
                       ( color != nullptr ) ? std::make_optional(PortableColor::FromCOLORREF(*color)) : std::nullopt);
 
     return 0;
@@ -4691,10 +4682,10 @@ void CMainFrame::BuildKeyArray()
             const CString csFilterRegex = pDoc->GetPifFile()->GetCaseListingFilter();
             if (!csFilterRegex.IsEmpty()) {
                 try {
-                    caseFilterRegex = std::make_unique<std::regex>(UTF8Convert::WideToUTF8(csFilterRegex));
+                    caseFilterRegex = std::make_unique<std::regex>(UTF8_TODO::GetUtf8(csFilterRegex));
                 }
                 catch (const std::regex_error&) {
-                    AfxMessageBox(FormatText(_T("CaseListingFilter is an invalid ECMAScript regular expression: %s"), (LPCTSTR)csFilterRegex));
+                    AfxMessageBox(FormatText(_T("CaseListingFilter is an invalid ECMAScript regular expression: %s"), csFilterRegex.GetString()));
                 }
             }
         }
@@ -4708,7 +4699,7 @@ void CMainFrame::BuildKeyArray()
 
             while( case_summary_iterator->NextCaseSummary(case_summary) )
             {
-                if( caseFilterRegex == nullptr || std::regex_search(UTF8Convert::WideToUTF8(case_summary.GetKey()), *caseFilterRegex) )
+                if( caseFilterRegex == nullptr || std::regex_search(case_summary.GetKey(), *caseFilterRegex) )
                     case_summaries.push_back(case_summary);
             }
         };
@@ -4844,38 +4835,6 @@ LRESULT CMainFrame::OnShowGPSDialog(WPARAM wParam, LPARAM lParam) // 20110524
 }
 
 
-LRESULT CMainFrame::OnShowProgressDialog(WPARAM wParam, LPARAM lParam)
-{
-    ASSERT(m_pProgressDlg == NULL);
-
-    // Show the window if it isn't already visible
-    if (!m_pProgressDlg) {
-        m_pProgressDlg = new ProgressDialog();
-        m_pProgressDlg->ShowModeless(*((CString*)lParam), this);
-    }
-    return 0;
-}
-
-LRESULT CMainFrame::OnHideProgressDialog(WPARAM wParam, LPARAM lParam)
-{
-    if (m_pProgressDlg) {
-        m_pProgressDlg->DestroyWindow();
-        delete m_pProgressDlg;
-        m_pProgressDlg = NULL;
-    }
-    return 0;
-}
-
-LRESULT CMainFrame::OnUpdateProgressDialog(WPARAM wParam, LPARAM lParam)
-{
-    ASSERT(m_pProgressDlg != NULL);
-    if (m_pProgressDlg) {
-        return m_pProgressDlg->Update(wParam, lParam);
-    }
-    return 0;
-}
-
-
 void CMainFrame::DoInitialApplicationLayout(CNPifFile* pPifFile)
 {
     Application* pApp = pPifFile->GetApplication();
@@ -4908,9 +4867,9 @@ LRESULT CMainFrame::OnChangeInputRepository(WPARAM wParam,LPARAM lParam)
 
     // and the title bar
     CEntryrunDoc* pRunDoc = (CEntryrunDoc*)GetDocument();
-    CString csTitle = pRunDoc->MakeTitle();
-    pRunDoc->SetTitle(csTitle);
-    SetWindowText(csTitle);
+    const std::wstring title = TC::ToWide(pRunDoc->MakeTitle());
+    pRunDoc->SetTitle(title.c_str());
+    SetWindowText(title.c_str());
 
     // close the old operator statistics log and open a new one
     pRunDoc->OpenOperatorStatisticsLog();
@@ -4919,42 +4878,47 @@ LRESULT CMainFrame::OnChangeInputRepository(WPARAM wParam,LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnWindowTitleQuery(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnWindowTitleQuery(const WPARAM wParam, const LPARAM lParam)
 {
-    bool get_title = (bool)wParam;
+    const bool get_title = static_cast<bool>(wParam);
     CString& window_title = *((CString*)lParam);
 
     CEntryrunDoc* pRunDoc = (CEntryrunDoc*)GetDocument();
 
     if( get_title )
-        window_title = pRunDoc->GetWindowTitle();
+    {
+        window_title = UTF8_TODO::GetCString(pRunDoc->GetWindowTitle());
+    }
 
     else
     {
-        pRunDoc->SetWindowTitle(window_title);
-        SetWindowText(pRunDoc->MakeTitle());
+        pRunDoc->SetWindowTitle(UTF8_TODO::GetUtf8(window_title));
+        SetWindowText(TC::ToWide(pRunDoc->MakeTitle()).c_str());
     }
 
     return 0;
 }
 
 
-LRESULT CMainFrame::OnControlParadataKeyingInstance(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnControlParadataKeyingInstance(const WPARAM wParam, const LPARAM lParam)
 {
     // starting a new case
     if( wParam == 0 )
-        m_keyingInstance = std::make_shared<Paradata::KeyingInstance>();
+    {
+        m_keyingInstance = std::make_unique<Paradata::KeyingInstance>();
+    }
 
     // returning the object
     else
     {
-        std::shared_ptr<Paradata::KeyingInstance>* ptr_keying_instance = (std::shared_ptr<Paradata::KeyingInstance>*)lParam;
-        *ptr_keying_instance = m_keyingInstance;
-        m_keyingInstance.reset();
+        std::unique_ptr<Paradata::KeyingInstance>& keying_instance = *reinterpret_cast<std::unique_ptr<Paradata::KeyingInstance>*>(lParam);
+        ASSERT(keying_instance == nullptr);
+        std::swap(keying_instance, m_keyingInstance);
     }
 
     return 0;
 }
+
 
 Paradata::KeyingInstance* CMainFrame::GetParadataKeyingInstance()
 {

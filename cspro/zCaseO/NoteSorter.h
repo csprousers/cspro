@@ -3,29 +3,32 @@
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zCaseO/Note.h>
-#include <zToolsO/Tools.h>
 
 
-std::vector<const Note*> GetSortedNotes(const Case& data_case)
+inline std::vector<const Note*> GetSortedNotes(const Case& data_case)
 {
-    using nwsi = std::tuple<const Note*, CString>;
+    using nwsi = std::tuple<const Note*, std::string>;
     std::vector<nwsi> notes_with_sort_index;
 
-    for( const auto& note : data_case.GetNotes() )
+    for( const Note& note : data_case.GetNotes() )
     {
-        CString sort_index;
+        std::string sort_index;
 
-        const auto& named_reference = note.GetNamedReference();
-        const auto case_item_reference = dynamic_cast<const CaseItemReference*>(&named_reference);
+        const NamedReference& named_reference = note.GetNamedReference();
+        const CaseItemReference* const case_item_reference = dynamic_cast<const CaseItemReference*>(&named_reference);
 
         // sort the case note first, then any non-field notes (alphabetically), and then any field notes in dictionary order
         if( case_item_reference == nullptr )
         {
-            if( named_reference.GetName().Compare(data_case.GetCaseMetadata().GetDictionary().GetName()) == 0 )
-                sort_index = _T("!");
+            if( named_reference.GetName() == data_case.GetCaseMetadata().GetDictionary().GetName() )
+            {
+                sort_index = "!";
+            }
 
             else
-                sort_index.Format(_T("#%s"), (LPCTSTR)named_reference.GetName());
+            {
+                sort_index = "#" + named_reference.GetName();
+            }
         }
 
         else
@@ -33,35 +36,36 @@ std::vector<const Note*> GetSortedNotes(const Case& data_case)
             size_t level_index = 0;
 
             // get the index of this level
-            if( !named_reference.GetLevelKey().IsEmpty() )
+            if( !named_reference.GetLevelKey().empty() )
             {
-                const auto& case_levels = data_case.GetAllCaseLevels();
+                const std::vector<const CaseLevel*> case_levels = data_case.GetAllCaseLevels();
 
                 for( level_index = 1; level_index < case_levels.size(); ++level_index )
                 {
-                    if( case_levels[level_index]->GetLevelKey().Compare(named_reference.GetLevelKey()) == 0 )
+                    if( UTF8_TODO::GetUtf8(case_levels[level_index]->GetLevelKey()) == named_reference.GetLevelKey() )
                         break;
                 }
             }
 
-            const CDictItem& dictionary_item = case_item_reference->GetCaseItem().GetDictionaryItem();
-            sort_index.Format(_T("%d%d%d"), (int)level_index, dictionary_item.GetRecord()->GetSonNumber(), dictionary_item.GetSonNumber());
+            const CDictItem& dict_item = case_item_reference->GetCaseItem().GetDictItem();
+            sort_index = FormatText("%d%d%d", static_cast<int>(level_index), dict_item.GetRecord()->GetSonNumber(), dict_item.GetSonNumber());
         }
 
         // add the time to the sort index
-        sort_index.Append(IntToString((int)note.GetModifiedDateTime()));
+        sort_index.append(IntToString(static_cast<int64_t>(note.GetModifiedDateTime())));
 
-        notes_with_sort_index.emplace_back(&note, sort_index);
+        notes_with_sort_index.emplace_back(&note, std::move(sort_index));
     }
 
-    std::sort(notes_with_sort_index.begin(), notes_with_sort_index.end(), [](const nwsi& nwsi1, const nwsi& nwsi2)
-    {
-        return ( std::get<1>(nwsi1).Compare(std::get<1>(nwsi2)) < 0 );
-    });
+    std::sort(notes_with_sort_index.begin(), notes_with_sort_index.end(),
+        [](const nwsi& nwsi1, const nwsi& nwsi2)
+        {
+            return ( std::get<1>(nwsi1) < std::get<1>(nwsi2) );
+        });
 
     std::vector<const Note*> sorted_notes;
 
-    for( const auto& note_with_sort_index : notes_with_sort_index )
+    for( const nwsi& note_with_sort_index : notes_with_sort_index )
         sorted_notes.emplace_back(std::get<0>(note_with_sort_index));
 
     return sorted_notes;

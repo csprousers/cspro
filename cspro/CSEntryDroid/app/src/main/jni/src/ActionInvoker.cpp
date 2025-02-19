@@ -3,17 +3,12 @@
 #include "AndroidApplicationInterface.h"
 #include "JNIHelpers.h"
 #include <zToolsO/Encryption.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/ExceptionHolder.h>
+#include <zToolsO/UniqueId.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zAction/JsonExecutor.h>
 #include <zAction/Listener.h>
 #include <zAction/WebController.h>
-
-
-namespace
-{
-    constexpr int InvalidWebControllerKey = -1;
-}
 
 
 // --------------------------------------------------------------------------
@@ -28,15 +23,12 @@ public:
     std::tuple<JNIEnv*, jobject> GetJNIEnvAndListener() { return { m_pEnv, m_jListener }; }
 
     // Listener overrides
-    std::optional<std::wstring> OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
-    std::optional<bool> OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller) override;
+    SharableString OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller) override;
 
-    std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnClose(CloseResult& close_result, ActionInvoker::Caller& caller) override;
 
     bool OnEngineProgramControlExecuted() override;
-
-private:
-    static int GetWebControllerKey(const ActionInvoker::Caller& caller);
 
 private:
     JNIEnv* m_pEnv;
@@ -52,38 +44,24 @@ AndroidActionInvokerListener::AndroidActionInvokerListener(JNIEnv* pEnv, jobject
 }
 
 
-int AndroidActionInvokerListener::GetWebControllerKey(const ActionInvoker::Caller& caller)
+SharableString AndroidActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
 {
-    std::optional<ActionInvoker::Caller::WebViewTag> web_view_tag = caller.GetWebViewTag();
-    return web_view_tag.value_or(InvalidWebControllerKey);
-}
-
-
-std::optional<std::wstring> AndroidActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
-{
-    jint jWebControllerKey = GetWebControllerKey(caller);
-
     jstring jDisplayOptionsJson = (jstring)m_pEnv->CallObjectMethod(m_jListener, JNIReferences::methodActionInvokerListener_onGetDisplayOptions,
-                                                                    jWebControllerKey);
+                                                                    caller.GetCallerId());
 
     ThrowJavaExceptionAsCSProException(m_pEnv);
 
-    if( jDisplayOptionsJson == nullptr )
-        return std::nullopt;
-
-    return JavaToWSZ(m_pEnv, jDisplayOptionsJson);
+    return JavaString::ToSharableString(*m_pEnv, jDisplayOptionsJson);
 }
 
 
-std::optional<bool> AndroidActionInvokerListener::OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller)
+std::optional<bool> AndroidActionInvokerListener::OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller)
 {
-    std::wstring display_options_json = json_node.GetNodeAsString();
-    JNIReferences::scoped_local_ref<jstring> jDisplayOptionsJson(m_pEnv, WideToJava(m_pEnv, display_options_json));
-
-    jint jWebControllerKey = GetWebControllerKey(caller);
+    const std::string display_options_json = json_node.GetNodeAsString();
+    JNIReferences::scoped_local_ref<jstring> jDisplayOptionsJson(m_pEnv, JavaString::ToJava(*m_pEnv, display_options_json));
 
     auto jSuccessBoolean = (jobject)m_pEnv->CallObjectMethod(m_jListener, JNIReferences::methodActionInvokerListener_onSetDisplayOptions,
-                                                             jDisplayOptionsJson.get(), jWebControllerKey);
+                                                             jDisplayOptionsJson.get(), caller.GetCallerId());
 
     ThrowJavaExceptionAsCSProException(m_pEnv);
 
@@ -94,24 +72,36 @@ std::optional<bool> AndroidActionInvokerListener::OnSetDisplayOptions(const Json
 }
 
 
-std::optional<bool> AndroidActionInvokerListener::OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller)
+std::optional<bool> AndroidActionInvokerListener::OnClose(CloseResult& close_result, ActionInvoker::Caller& caller)
 {
     JNIReferences::scoped_local_ref<jstring> jResultsText(m_pEnv, nullptr);
 
-    if( !result_node.IsEmpty() )
-        jResultsText = WideToJava(m_pEnv, result_node.GetNodeAsString());
+    if( std::holds_alternative<const JsonNode>(close_result) )
+        jResultsText = JavaString::ToJava(*m_pEnv, std::get<const JsonNode>(close_result).GetNodeAsString());
 
-    jint jWebControllerKey = GetWebControllerKey(caller);
-
-    auto jDialogClosedBoolean = (jobject)m_pEnv->CallObjectMethod(m_jListener, JNIReferences::methodActionInvokerListener_onCloseDialog,
-                                                                  jResultsText.get(), jWebControllerKey);
+    auto jDialogClosedBoolean = (jobject)m_pEnv->CallObjectMethod(m_jListener, JNIReferences::methodActionInvokerListener_onClose,
+                                                                  jResultsText.get(), caller.GetCallerId());
 
     ThrowJavaExceptionAsCSProException(m_pEnv);
 
     if( jDialogClosedBoolean == nullptr )
         return std::nullopt;
 
-    return m_pEnv->CallBooleanMethod(jDialogClosedBoolean, JNIReferences::methodBoolean_booleanValue);
+    const bool window_closed = m_pEnv->CallBooleanMethod(jDialogClosedBoolean, JNIReferences::methodBoolean_booleanValue);
+
+    // if the window was closed via an exception, pass this to the topmost ExceptionHolder
+    if( window_closed && std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) )
+    {
+        ASSERT(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr);
+
+        auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
+        ExceptionHolder* const exception_holder = aai->GetTopmostExceptionHolder();
+
+        if( exception_holder != nullptr )
+            exception_holder->AddActionInvokerException(std::move(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result)));
+    }
+
+    return window_closed;
 }
 
 
@@ -143,12 +133,10 @@ struct ActionInvokerData
 // ActionInvoker::WebListener
 // --------------------------------------------------------------------------
 
-void ActionInvoker::WebListener::OnPostWebMessage(const std::wstring& message, const std::optional<std::wstring>& target_origin)
+void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin)
 {
-    jint jWebControllerKey = m_webViewTag;
-
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
-    std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(jWebControllerKey, false);
+    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(m_callerId, false);
 
     if( action_invoker_data == nullptr || action_invoker_data->current_listener == nullptr )
     {
@@ -160,8 +148,8 @@ void ActionInvoker::WebListener::OnPostWebMessage(const std::wstring& message, c
     jobject jListener;
     std::tie(pEnv, jListener) = action_invoker_data->current_listener->GetJNIEnvAndListener();
 
-    JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, WideToJava(pEnv, message));
-    JNIReferences::scoped_local_ref<jstring> jTargetOrigin(pEnv, OptionalWideToJava(pEnv, target_origin));
+    JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message));
+    JNIReferences::scoped_local_ref<jstring> jTargetOrigin(pEnv, JavaString::ToJava(*pEnv, target_origin));
 
     pEnv->CallVoidMethod(jListener, JNIReferences::methodActionInvokerListener_onPostWebMessage,
                          jMessage.get(), jTargetOrigin.get());
@@ -175,44 +163,40 @@ void ActionInvoker::WebListener::OnPostWebMessage(const std::wstring& message, c
 // AndroidApplicationInterface
 // --------------------------------------------------------------------------
 
-int AndroidApplicationInterface::ActionInvokerCreateWebController(const std::wstring* const access_token_override)
+int AndroidApplicationInterface::ActionInvokerCreateWebController(SharableString access_token_override)
 {
     try
     {
-        int web_controller_key = static_cast<int>(m_actionInvokerWebControllers.size());
-
         std::lock_guard<std::mutex> action_invoker_web_controllers_lock(m_actionInvokerWebControllersMutex);
 
-        while( m_actionInvokerWebControllers.find(web_controller_key) != m_actionInvokerWebControllers.cend() )
-            ++web_controller_key;
+        const int caller_id = UniqueId::CreateInt();
+        auto web_controller = std::make_unique<ActionInvoker::WebController>(caller_id, nullptr);
 
-        auto web_controller = std::make_unique<ActionInvoker::WebController>(web_controller_key);
+        if( access_token_override.IsSet() )
+            web_controller->GetCaller().AddAccessTokenOverride(std::move(access_token_override));
 
-        if( access_token_override != nullptr )
-            web_controller->GetCaller().AddAccessTokenOverride(*access_token_override);
-
-        m_actionInvokerWebControllers.try_emplace(web_controller_key, std::make_shared<ActionInvokerData>(
+        m_actionInvokerWebControllers.try_emplace(caller_id, std::make_unique<ActionInvokerData>(
             ActionInvokerData
             {
                 ObjectTransporter::GetActionInvokerRuntime(),
                 std::move(web_controller)
             }));
 
-        return web_controller_key;
+        return caller_id;
     }
 
     catch( const CSProException& )
     {
-        return ReturnProgrammingError(InvalidWebControllerKey);
+        return ReturnProgrammingError(-1);
     }
 }
 
 
-std::shared_ptr<ActionInvokerData> AndroidApplicationInterface::ActionInvokerGetWebController(int web_controller_key, bool release_web_controller)
+std::shared_ptr<ActionInvokerData> AndroidApplicationInterface::ActionInvokerGetWebController(const int caller_id, const bool release_web_controller)
 {
     std::lock_guard<std::mutex> action_invoker_web_controller(m_actionInvokerWebControllersMutex);
 
-    const auto& lookup = m_actionInvokerWebControllers.find(web_controller_key);
+    const auto& lookup = m_actionInvokerWebControllers.find(caller_id);
 
     if( lookup == m_actionInvokerWebControllers.cend() )
         return ReturnProgrammingError(nullptr);
@@ -226,6 +210,13 @@ std::shared_ptr<ActionInvokerData> AndroidApplicationInterface::ActionInvokerGet
 }
 
 
+ExceptionHolder* AndroidApplicationInterface::GetTopmostExceptionHolder()
+{
+    return !m_exceptionHolders.empty() ? m_exceptionHolders.back() :
+                                         nullptr;
+}
+
+
 
 // --------------------------------------------------------------------------
 // Java_gov_census_cspro_engine_EngineInterface
@@ -236,12 +227,7 @@ JNIEXPORT jint JNICALL Java_gov_census_cspro_engine_EngineInterface_ActionInvoke
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
 
-    std::unique_ptr<std::wstring> access_token_override;
-
-    if( jActionInvokerAccessTokenOverride != nullptr )
-        access_token_override = std::make_unique<std::wstring>(JavaToWSZ(pEnv, jActionInvokerAccessTokenOverride));
-
-    return aai->ActionInvokerCreateWebController(access_token_override.get());
+    return aai->ActionInvokerCreateWebController(JavaString::ToSharableString(*pEnv, jActionInvokerAccessTokenOverride));
 }
 
 
@@ -249,7 +235,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_ActionInvoke
                        (JNIEnv* /*pEnv*/, jobject, jlong /*jNativeReference*/, jint jWebControllerKey)
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
-    std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(jWebControllerKey, true);
+    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(jWebControllerKey, true);
 
     if( action_invoker_data == nullptr )
     {
@@ -266,76 +252,75 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_ActionInv
                            jstring jMessage, jboolean jAsync, jboolean jCalledByOldCSProObject)
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
-    std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(jWebControllerKey, false);
+    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(jWebControllerKey, false);
 
     if( action_invoker_data == nullptr )
         return ReturnProgrammingError(nullptr);
 
-    int message_id = action_invoker_data->web_controller->PushMessage(JavaToWSZ(pEnv, jMessage), jCalledByOldCSProObject);
+    const int message_id = action_invoker_data->web_controller->PushMessage(JavaString::ToUtf8(*pEnv, jMessage), jCalledByOldCSProObject);
 
     auto listener = std::make_shared<AndroidActionInvokerListener>(pEnv, jListener);
     ActionInvoker::ListenerHolder listener_holder = action_invoker_data->runtime->RegisterListener(listener);
     RAII::SetValueAndRestoreOnDestruction android_invoker_data_current_listener_holder(action_invoker_data->current_listener, listener);
 
-    const std::shared_ptr<const std::wstring> response = action_invoker_data->web_controller->ProcessMessage(message_id, jAsync);
+    const SharableString response = action_invoker_data->web_controller->ProcessMessage(message_id, jAsync);
 
-    return ( response != nullptr ) ? WideToJava(pEnv, *response) :
-                                     nullptr;
+    return JavaString::ToJava(*pEnv, response);
 }
 
 
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_oldCSProJavaScriptInterfaceGetAccessToken
                           (JNIEnv* pEnv, jobject, jlong /*jNativeReference*/)
 {
-    return WideToJava(pEnv, OldCSProJavaScriptInterface::GetAccessToken());
+    return JavaString::ToJava(*pEnv, OldCSProJavaScriptInterface::GetAccessToken());
 }
 
 
 
 // --------------------------------------------------------------------------
-// ActionInvokerActivityCaller +
+// ActionInvokerActivityCaller
 // --------------------------------------------------------------------------
 
 class ActionInvokerActivityCaller : public ActionInvoker::ExternalCaller
 {
 public:
-    ActionInvokerActivityCaller(std::wstring calling_package)
-        :   m_callingPackage(std::move(calling_package)),
-            m_cancelFlag(false)
+    ActionInvokerActivityCaller(std::string calling_package)
+        :   ExternalCaller(UniqueId::CreateInt()),
+            m_callingPackage(std::move(calling_package))
     {
     }
 
     // refresh token management
-    void SetRefreshToken(const std::wstring& refresh_token);
-    std::optional<std::wstring> CreateRefreshToken() const;
+    void SetRefreshToken(const std::string& refresh_token);
+    std::optional<std::string> CreateRefreshToken() const;
 
     // Caller overrides
-    bool& GetCancelFlag() override
+    CancelFlag& GetCancelFlag() override
     {
         return m_cancelFlag;
     }
 
-    std::wstring GetRootDirectory() override
+    std::string GetRootDirectory() override
     {
         return PlatformInterface::GetInstance()->GetCSEntryDirectory();
     }
 
 private:
-    const std::wstring m_callingPackage;
-    bool m_cancelFlag;
+    std::string m_callingPackage;
+    CancelFlag m_cancelFlag;
 
     static constexpr int64_t RefreshTokenExpirationSeconds = DateHelper::SecondsInHour();
-    static std::unique_ptr<std::tuple<std::wstring, std::vector<std::byte>>> m_refreshTokenDetails;
+    static std::unique_ptr<std::tuple<std::string, std::vector<std::byte>>> m_refreshTokenDetails;
 };
 
 
 // the refresh token will be a GUID, with that as the key for an Encryptor that contains:
 // - UTF-8 string of the package name
 // - int64_t: the issued timestamp
-std::unique_ptr<std::tuple<std::wstring, std::vector<std::byte>>> ActionInvokerActivityCaller::m_refreshTokenDetails;
+std::unique_ptr<std::tuple<std::string, std::vector<std::byte>>> ActionInvokerActivityCaller::m_refreshTokenDetails;
 
 
-void ActionInvokerActivityCaller::SetRefreshToken(const std::wstring& refresh_token)
+void ActionInvokerActivityCaller::SetRefreshToken(const std::string& refresh_token)
 {
     // for now there is only one refresh token per instance, which is valid only once,
     // but in the future we could store multiple versions of the tokens
@@ -355,7 +340,7 @@ void ActionInvokerActivityCaller::SetRefreshToken(const std::wstring& refresh_to
 
         if( ( *timestamp_ptr + RefreshTokenExpirationSeconds ) >= GetTimestamp<int64_t>() )
         {
-            const std::wstring calling_package = UTF8Convert::UTF8ToWide(reinterpret_cast<const char*>(calling_package_and_timestamp.data()), calling_package_length);
+            const std::string calling_package(reinterpret_cast<const char*>(calling_package_and_timestamp.data()), calling_package_length);
 
             // at this point, the timestamp is valid, and the package name matches, so override the need to use access tokens
             if( calling_package == m_callingPackage )
@@ -365,21 +350,21 @@ void ActionInvokerActivityCaller::SetRefreshToken(const std::wstring& refresh_to
 }
 
 
-std::optional<std::wstring> ActionInvokerActivityCaller::CreateRefreshToken() const
+std::optional<std::string> ActionInvokerActivityCaller::CreateRefreshToken() const
 {
     // only issue refresh tokens when the user override the need to use access tokens
     if( !GetUserOverrodeAccessTokenRequirement() )
         return std::nullopt;
 
-    std::wstring refresh_token = CreateUuid();
+    std::string refresh_token = CreateUuid();
     Encryptor encryptor(Encryptor::Type::RijndaelBase64, refresh_token);
 
-    std::vector<std::byte> calling_package_and_timestamp = UTF8Convert::WideToUTF8Buffer(m_callingPackage);
+    std::vector<std::byte> calling_package_and_timestamp = SO::CreateByteVector(m_callingPackage);
     const int64_t timestamp = GetTimestamp<int64_t>();
     const std::byte* const timestamp_ptr = reinterpret_cast<const std::byte*>(&timestamp);
     calling_package_and_timestamp.insert(calling_package_and_timestamp.end(), timestamp_ptr, timestamp_ptr + sizeof(timestamp));
 
-    m_refreshTokenDetails = std::make_unique<std::tuple<std::wstring, std::vector<std::byte>>>(refresh_token, encryptor.Encrypt(calling_package_and_timestamp));
+    m_refreshTokenDetails = std::make_unique<std::tuple<std::string, std::vector<std::byte>>>(refresh_token, encryptor.Encrypt(calling_package_and_timestamp));
 
     return refresh_token;
 }
@@ -393,21 +378,21 @@ std::optional<std::wstring> ActionInvokerActivityCaller::CreateRefreshToken() co
 JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_RunActionInvoker
                           (JNIEnv* pEnv, jobject, jlong, jstring jCallingPackage, jstring jAction, jstring jAccessToken, jstring jRefreshToken, jboolean jAbortOnException)
 {
-    ActionInvokerActivityCaller caller(JavaToWSZ(pEnv, jCallingPackage));
+    ActionInvokerActivityCaller caller(JavaString::ToUtf8(*pEnv, jCallingPackage));
 
     if( jAccessToken != nullptr )
-        caller.AddAccessTokenOverride(JavaToWSZ(pEnv, jAccessToken));
+        caller.AddAccessTokenOverride(JavaString::ToUtf8(*pEnv, jAccessToken));
 
     if( jRefreshToken != nullptr )
-        caller.SetRefreshToken(JavaToWSZ(pEnv, jRefreshToken));
+        caller.SetRefreshToken(JavaString::ToUtf8(*pEnv, jRefreshToken));
 
-    std::shared_ptr<const std::wstring> result;
+    SharableString result;
 
-	try
-	{
+    try
+    {
         ActionInvoker::JsonExecutor json_executor(false);
 
-        json_executor.ParseActions(JavaToWSZ(pEnv, jAction));
+        json_executor.ParseActions(JavaString::ToUtf8(*pEnv, jAction));
 
         json_executor.SetAbortOnException(jAbortOnException);
 
@@ -418,18 +403,18 @@ JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_RunAction
             json_executor.RunActions(caller);
         }
 
-        result = json_executor.GetResultsJson();
-	}
+        result = json_executor.ReleaseResultsJson();
+    }
 
-	catch( const CSProException& exception )
-	{
-        result = ActionInvoker::JsonResponse(exception).GetSharedResponseText();
-	}
+    catch( const CSProException& exception )
+    {
+        result = ActionInvoker::JsonResponse(exception).GetResponseText();
+    }
 
-    ASSERT(result != nullptr);
+    ASSERT(result.IsSet());
 
     return pEnv->NewObject(JNIReferences::classActionInvokerActivityResult,
                            JNIReferences::methodActionInvokerActivityResultConstructor,
-                           WideToJava(pEnv, *result),
-                           OptionalWideToJava(pEnv, caller.CreateRefreshToken()));
+                           JavaString::ToJava(*pEnv, *result),
+                           JavaString::ToJava(*pEnv, caller.CreateRefreshToken()));
 }

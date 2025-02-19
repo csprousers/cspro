@@ -54,7 +54,7 @@ private:
     long    m_iBreakValue[MAXBREAKVARS];
 
     // Tbi files
-    SimpleDbMap* m_pTableIndex;
+    std::unique_ptr<SimpleDbMap> m_pTableIndex;
 
     // TbdFile
     int         m_iTbdFile;
@@ -70,7 +70,7 @@ private:
     CString      m_csTbiExtension;
     CString      m_csTbdExtension;
 
-    long breakfpos( csprochar *btreeid );
+    long breakfpos( const csprochar *btreeid );
     void breakmakeid( csprochar *p );
     void breakload( csprochar *breakid, CTAB *ct );
 

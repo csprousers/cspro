@@ -6,7 +6,6 @@
 #include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
 #include "Engine.h"
-#include <zEngineO/Versioning.h>
 #include <zEngineO/Nodes/Dictionaries.h>
 #include <CSEntry/MessageOverrides.h>
 
@@ -52,9 +51,9 @@ double CIntDriver::exset(int iExpr)
         bool    bPreLevelZero = ( m_iProgType == PROCTYPE_PRE && m_iExLevel == 0 );
         bool    bPathOff = m_pEngineSettings->IsPathOff();
 #ifdef  _DEBUG
-        csprochar* fAction = _T("...... SessionSettings->SetBehavior() %s ......\n");
+        const char* const action_formatter = "...... SessionSettings->SetBehavior() %s ......\n";
 #endif
-        csprochar const * pAction = _T("");
+        const char* action = "";
 
         LIST_NODE*  pListNode=NULL;
 
@@ -128,11 +127,12 @@ double CIntDriver::exset(int iExpr)
 
         switch( iBehaviorItem ) {
             case BEHAVIOR_PATH:
-                pAction = ( bSetOn ) ? _T("Path ON") : _T("Path OFF");
+                action = bSetOn ? "Path ON" :
+                                  "Path OFF";
 
                 // allowed only in Level-0 PreProc      // victor Feb 16, 00
                 if( !bPreLevelZero )
-                    issaerror( MessageType::Warning, 91111, pAction );
+                    issaerror( MessageType::Warning, 91111, action );
                 else {
                     if( bSetOn )
                         m_pEngineSettings->SetPathOn();
@@ -141,19 +141,21 @@ double CIntDriver::exset(int iExpr)
 
                     ResetAllVarsBehavior();
 #ifdef  _DEBUG
-                    TRACE( fAction, pAction );
+                    TRACE(action_formatter, action);
 #endif
                 }
                 break;
 
             case BEHAVIOR_CANENTER_NOTAPPL:
 #ifdef  _DEBUG
-                pAction = ( !bSetOn )  ? _T("CanEnterNotAppl OFF") :
-                          ( bConfirm ) ? _T("CanEnterNotAppl ON(CONFIRM)") : _T("CanEnterNotAppl ON(noCONFIRM)");
+                action = !bSetOn  ? "CanEnterNotAppl OFF" :
+                         bConfirm ? "CanEnterNotAppl ON(CONFIRM)" :
+                                    "CanEnterNotAppl ON(noCONFIRM)";
 #endif
 
-                if( pListNode != NULL && pListNode->iNumElems > 0 )
+                if( pListNode != NULL && pListNode->iNumElems > 0 ) {
                     ExSetBehaviorList( iBehaviorItem, pListNode, bSetOn, bConfirm );
+                }
                 else {
                     if( bSetOn ) {
                         m_pEngineSettings->SetCanEnterNotappl();
@@ -177,19 +179,21 @@ double CIntDriver::exset(int iExpr)
                 }
 
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 frm_capimode( 0, 1 );
                 break;
 
             case BEHAVIOR_CANENTER_OUTOFRANGE:
 #ifdef  _DEBUG
-                pAction = ( !bSetOn )  ? _T("CanEnterOutOfRange OFF") :
-                          ( bConfirm ) ? _T("CanEnterOutOfRange ON(CONFIRM)") : _T("CanEnterOutOfRange ON(noCONFIRM)");
+                action = !bSetOn  ? "CanEnterOutOfRange OFF" :
+                         bConfirm ? "CanEnterOutOfRange ON(CONFIRM)" :
+                                    "CanEnterOutOfRange ON(noCONFIRM)";
 #endif
 
-                if( pListNode != NULL && pListNode->iNumElems > 0 )
+                if( pListNode != NULL && pListNode->iNumElems > 0 ) {
                     ExSetBehaviorList( iBehaviorItem, pListNode, bSetOn, bConfirm );
+                }
                 else {
                     if( bSetOn ) {
                         m_pEngineSettings->SetCanEnterOutOfRange();
@@ -213,27 +217,31 @@ double CIntDriver::exset(int iExpr)
                 }
 
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_MESSAGES_DISPLAY:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Messages(DISPLAY) ON") : _T("Messages(DISPLAY) OFF");
+                action = bSetOn ? "Messages(DISPLAY) ON" :
+                                  "Messages(DISPLAY) OFF";
 #endif
 
-                if( bSetOn )
+                if( bSetOn ) {
                     m_pEngineSettings->SetDisplayMessageOn();
-                else
+                }
+                else {
                     m_pEngineSettings->SetDisplayMessageOff();
+                }
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_MESSAGES_ERRMSG:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Messages(ERRMSG) ON") : _T("Messages(ERRMSG) OFF");
+                action = bSetOn ? "Messages(ERRMSG) ON" :
+                                  "Messages(ERRMSG) OFF";
 #endif
 
                 if( bSetOn )
@@ -241,60 +249,64 @@ double CIntDriver::exset(int iExpr)
                 else
                     m_pEngineSettings->SetErrmsgMessageOff();
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_MOUSE:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Mouse ON") : _T("Mouse OFF");
+                action = bSetOn ? "Mouse ON" :
+                                  "Mouse OFF";
 #endif
                 /* removed if( bSetOn )
                     m_pEngineSettings->SetMouseEnabled();
                 else
                     m_pEngineSettings->SetMouseDisabled(); */
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_ENDGROUP:                     // victor Feb 16, 00
-                pAction = ( bSetOn ) ? _T("EndGroup ON") : _T("EndGroup OFF");
+                action = bSetOn ? "EndGroup ON" :
+                                  "EndGroup OFF";
 
                 // allowed only in Path OFF environments
                 if( !bPathOff )
-                    issaerror( MessageType::Warning, 91112, pAction );
+                    issaerror( MessageType::Warning, 91112, action );
                 else {
                     /* removed if( bSetOn )
                         m_pEngineSettings->SetCanUseEndGroup();
                     else
                         m_pEngineSettings->SetCannotUseEndGroup(); */
 #ifdef  _DEBUG
-                    TRACE( fAction, pAction );
+                    TRACE(action_formatter, action);
 #endif
                 }
                 break;
 
             case BEHAVIOR_ENDLEVEL:                     // victor Feb 16, 00
-                pAction = ( bSetOn ) ? _T("EndLevel ON") : _T("EndLevel OFF");
+                action = bSetOn ? "EndLevel ON" :
+                                  "EndLevel OFF";
 
                 // allowed only in Path OFF environments
                 if( bPathOff )
-                    issaerror( MessageType::Warning, 91112, pAction );
+                    issaerror( MessageType::Warning, 91112, action );
                 else {
                     if( bSetOn )
                         m_pEngineSettings->SetCanUseEndLevel();
                     else
                         m_pEngineSettings->SetCannotUseEndLevel();
 #ifdef  _DEBUG
-                    TRACE( fAction, pAction );
+                    TRACE(action_formatter, action);
 #endif
                 }
                 break;
 
             case BEHAVIOR_MSGNUMBER_DISPLAY:            // victor Jun 08, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("MsgNumber(DISPLAY) ON") : _T("MsgNumber(DISPLAY) OFF");
+                action = bSetOn ? "MsgNumber(DISPLAY) ON" :
+                                  "MsgNumber(DISPLAY) OFF";
 #endif
 
                 /* removed if( bSetOn )
@@ -302,13 +314,14 @@ double CIntDriver::exset(int iExpr)
                 else
                     m_pEngineSettings->SetDisplayMsgNumberOff(); */
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_MSGNUMBER_ERRMSG:             // victor Jun 08, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("MsgNumber(ERRMSG) ON") : _T("MsgNumber(ERRMSG) OFF");
+                action = bSetOn ? "MsgNumber(ERRMSG) ON" :
+                                  "MsgNumber(ERRMSG) OFF";
 #endif
 
                 /* removed if( bSetOn )
@@ -316,54 +329,58 @@ double CIntDriver::exset(int iExpr)
                 else
                     m_pEngineSettings->SetErrmsgMsgNumberOff(); */
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_DATA:                  // victor Dec 18, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export Data ON") : _T("ExporT Data OFF");
+                action = bSetOn ? "Export Data ON" :
+                                  "Export Data OFF";
 #endif
 
                 m_pEngineSettings->SetExportData( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_SPSS:                  // victor Dec 18, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export SPSS ON") : _T("ExporT SPSS OFF");
+                action = bSetOn ? "Export SPSS ON" :
+                                  "Export SPSS OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportSPSS( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_SAS:                   // victor Dec 18, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export SAS ON") : _T("ExporT SAS OFF");
+                action = bSetOn ? "Export SAS ON" :
+                                  "Export SAS OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportSAS( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_STATA:                 // victor Dec 18, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export STATA ON") : _T("ExporT STATA OFF");
+                action = bSetOn ? "Export STATA ON" :
+                                  "Export STATA OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportSTATA( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
@@ -375,7 +392,8 @@ double CIntDriver::exset(int iExpr)
 
             case BEHAVIOR_EXPORT_ALL:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export ALL ON") : _T("ExporT ALL OFF");
+                action = bSetOn ? "Export ALL ON" :
+                                  "Export ALL OFF";
 #endif
 
                 m_pEngineSettings->SetExportSPSS( bSetOn );
@@ -383,13 +401,14 @@ double CIntDriver::exset(int iExpr)
                 m_pEngineSettings->SetExportSTATA( bSetOn );
                 m_pEngineSettings->SetExportR( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_ALL4:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export ALL4 ON") : _T("ExporT ALL4 OFF");
+                action = bSetOn ? "Export ALL4 ON" :
+                                  "Export ALL4 OFF";
 #endif
                 CleanExportTo(); // RHF Aug 04, 2006
 
@@ -398,13 +417,14 @@ double CIntDriver::exset(int iExpr)
                 m_pEngineSettings->SetExportSTATA( bSetOn );
                 m_pEngineSettings->SetExportCSPRO( bSetOn );// RHF Aug 03, 2006
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXPORT_ALL5:
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export ALL5 ON") : _T("ExporT ALL5 OFF");
+                action = bSetOn ? "Export ALL5 ON" :
+                                  "Export ALL5 OFF";
 #endif
                 CleanExportTo(); // RHF Aug 04, 2006
 
@@ -414,78 +434,87 @@ double CIntDriver::exset(int iExpr)
                 m_pEngineSettings->SetExportR( bSetOn );
                 m_pEngineSettings->SetExportCSPRO( bSetOn );// RHF Aug 03, 2006
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
 
             case BEHAVIOR_EXPORT_CSPRO:                // RHF Oct 08, 2004
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export CSPRO ON") : _T("ExporT CSPRO OFF");
+                action = bSetOn ? "Export CSPRO ON" :
+                                  "Export CSPRO OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportCSPRO( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
                 case BEHAVIOR_EXPORT_TABDELIM:               // RHF Oct 13, 2004
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export TABDELIM ON") : _T("ExporT TABDELIM OFF");
+                action = bSetOn ? "Export TABDELIM ON" :
+                                  "Export TABDELIM OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportTabDelim( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
                 case BEHAVIOR_EXPORT_COMMADELIM:               // RHF Oct 13, 2004
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export COMMA ON") : _T("ExporT COMMA OFF");
+                action = bSetOn ? "Export COMMA ON" :
+                                  "Export COMMA OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportCommaDelim( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
                 case BEHAVIOR_EXPORT_SEMICOLONDELIM:               // RHF Oct 13, 2004
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("Export SEMICOLON ON") : _T("ExporT SEMICOLON OFF");
+                action = bSetOn ? "Export SEMICOLON ON" :
+                                  "Export SEMICOLON OFF";
 #endif
 
                 CleanExportTo();
                 m_pEngineSettings->SetExportSemiColonDelim( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
 
             case BEHAVIOR_CHECKRANGES:                  // victor Dec 07, 00
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("CheckRanges ON") : _T("CheckRanges OFF");
+                action = bSetOn ? "CheckRanges ON" :
+                                  "CheckRanges OFF";
 #endif
 
                 m_pEngineSettings->SetAutoCheckRanges( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_SKIPSTRUC:                    // victor Mar 14, 01
             case BEHAVIOR_SKIPSTRUCIMPUTE:              // RHF Nov 09, 2001
 #ifdef  _DEBUG
-                if( iBehaviorItem == BEHAVIOR_SKIPSTRUC )
-                    pAction = ( bSetOn ) ? _T("SkipStruc ON") : _T("SkipStruc OFF");
-                else
-                    pAction = ( bSetOn ) ? _T("SkipStruc ON IMPUTE") : _T("SkipStruc OFF");
+                if( iBehaviorItem == BEHAVIOR_SKIPSTRUC ) {
+                    action = bSetOn ? "SkipStruc ON" :
+                                      "SkipStruc OFF";
+                }
+                else {
+                    action = bSetOn ? "SkipStruc ON IMPUTE" :
+                                      "SkipStruc OFF";
+                }
 #endif
 
                 m_pEngineSettings->SetAutoSkipStruc( bSetOn );
@@ -494,29 +523,31 @@ double CIntDriver::exset(int iExpr)
 
 
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_EXIT: // RHF Aug 05, 2006
 #ifdef _DEBUG
-                pAction = ( bSetOn ) ? _T("Exit ON") : _T("Exit OFF");
+                action = bSetOn ? "Exit ON" :
+                                  "Exit OFF";
 #endif
 
                 m_pEngineSettings->SetExitWhenFinish( bSetOn );
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
             case BEHAVIOR_SPECIALVALUES: // 20090827
 #ifdef  _DEBUG
-                pAction = ( bSetOn ) ? _T("SpecialValues(Zero) ON") : _T("SpecialValues(Zero) OFF");
+                action = bSetOn ? "SpecialValues(Zero) ON" :
+                                  "SpecialValues(Zero) OFF";
 #endif
 
-                m_pEngineSettings->SetTreatSpecialValuesAsZero(bSetOn);
+                m_engineData->engine_settings.SetTreatSpecialValuesAsZero(bSetOn);
 #ifdef  _DEBUG
-                TRACE( fAction, pAction );
+                TRACE(action_formatter, action);
 #endif
                 break;
 
@@ -549,7 +580,7 @@ double CIntDriver::exset(int iExpr)
 
     else // other SET (ACCESS, FIRST, LAST)
     {
-        Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1);
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
         // the pre-8.0 node was a bit messed up
         Nodes::SetAccessFirstLast set_access_first_last_node;

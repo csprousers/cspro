@@ -10,5 +10,16 @@ class MessageIssuer
 public:
     virtual ~MessageIssuer() { }
 
-    virtual void IssueError(int message_number, ...) = 0;
+    template<typename... Args>
+    void IssueError(int message_number, Args const&... args)
+    {
+#ifdef _DEBUG
+        ValidateFormatTextArgumentTypes(args...);
+#endif
+
+        IssueErrorWorker(message_number, args...);
+    }
+
+protected:
+    virtual void IssueErrorWorker(int message_number, ...) = 0;
 };

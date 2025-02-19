@@ -1,17 +1,16 @@
 ﻿#include "Stdafx.h"
 #include "QRCode.h"
 #include <zMultimediaO/QRCode.h>
-#include <zToolsO/Utf8Convert.h>
 
 
-CSPro::Util::QRCode::QRCode(System::String^ text, System::String^ ecc_text, int scale, int quiet_zone)
+CSPro::Util::QRCode::QRCode(System::String^ text, System::String^ ecc_text, const int scale, const int quiet_zone)
     :   m_bmpFile(nullptr)
 {
     try
     {
         Multimedia::QRCode qr_code;
 
-        std::optional<int> error_correction_level = Multimedia::QRCode::GetErrorCorrectionLevelFromText(ToWS(ecc_text));
+        const std::optional<int> error_correction_level = Multimedia::QRCode::GetErrorCorrectionLevelFromText(clr_helpers::to_string(ecc_text));
 
         if( !error_correction_level.has_value() )
             throw CSProException("Invalid error correction level");
@@ -20,14 +19,14 @@ CSPro::Util::QRCode::QRCode(System::String^ text, System::String^ ecc_text, int 
         qr_code.SetScale(scale);
         qr_code.SetScale(quiet_zone);
 
-        qr_code.Create(UTF8Convert::WideToUTF8(ToWS(text)));
+        qr_code.Create(clr_helpers::to_string(text));
 
         m_bmpFile = new Multimedia::BmpFile(qr_code.GetBmpFile());        
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 

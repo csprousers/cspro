@@ -2,8 +2,8 @@
 #include "Sorter.h"
 #include "SortableKeyDatabase.h"
 #include "SortSpec.h"
+#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 #include <zCaseO/Case.h>
@@ -42,12 +42,10 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff, const bool silent, std::shared_pt
 {
     //  open the log file
     if( pff.GetListingFName().IsEmpty() )
-        throw CSProException("You must specify a listing filename.");
+        throw CSProException("You must specify a listing file.");
 
-    m_log = std::make_unique<CStdioFileUnicode>();
-
-    if( !m_log->Open(pff.GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-        throw CSProException(_T("There was an error creating the listing file:\n\n%s"), pff.GetListingFName().GetString());
+    m_log = std::make_unique<FileIO::TextFile>();
+    m_log->OpenForTextWritingCreate(pff.GetListingFName());
 
     RunSuccess run_success = RunSuccess::Errors;
 
@@ -56,7 +54,7 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff, const bool silent, std::shared_pt
         // load the sort spec if necessary
         if( m_sortSpec == nullptr )
         {
-            m_sortSpec = std::make_shared<SortSpec>();
+            m_sortSpec = std::make_unique<SortSpec>();
             m_sortSpec->Load(CS2WS(pff.GetAppFName()), silent, embedded_dictionary);
         }
 
@@ -72,7 +70,7 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff, const bool silent, std::shared_pt
         if( dynamic_cast<const UserCanceledException*>(&exception) != nullptr )
             run_success = RunSuccess::UserCanceled;
 
-        m_log->WriteFormattedString(_T("*** %s\n\n"), exception.GetErrorMessage().c_str());
+        m_log->WriteFormattedLine("*** %s\n", exception.what());
 
         // on error, try to delete the sorted data
         try
@@ -80,12 +78,12 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff, const bool silent, std::shared_pt
             if( m_sortedRepository != nullptr )
                 m_sortedRepository->DeleteRepository();
 
-            m_log->WriteString(_T("*** Fatal errors during sort: sorted data deleted!\n\n"));
+            m_log->WriteLine("*** Fatal errors during sort: sorted data deleted!\n");
         }
 
         catch( const DataRepositoryException::Error& )
         {
-            m_log->WriteString(_T("*** Fatal errors during sort: sorted data could not be deleted but is invalid!\n\n"));
+            m_log->WriteLine("*** Fatal errors during sort: sorted data could not be deleted but is invalid!\n");
         }
     }
 
@@ -110,11 +108,13 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff)
 {
     // check the data files
     if( !pff.GetSingleInputDataConnectionString().IsDefined() )
-        throw CSProException("You must specify an input filename.");
+        throw CSProException("You must specify an input data source.");
 
     if( !pff.GetSingleOutputDataConnectionString().IsDefined() )
-        throw CSProException("You must specify an output filename.");
+        throw CSProException("You must specify an output data source.");
 
+    if( pff.GetSingleInputDataConnectionString().SharesResource(pff.GetSingleOutputDataConnectionString()) )
+        throw CSProException("You must specify input and output data sources that are different from each other.");
 
     const CDataDict* dictionary_to_use_for_sorting = &m_sortSpec->GetDictionary();
 
@@ -123,7 +123,7 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff)
         const DataRepositoryType data_repository_type = pff.GetSingleInputDataConnectionString().GetType();
 
         if( !DataRepositoryHelpers::TypeSupportsRecordSort(data_repository_type) )
-            throw CSProException(_T("The input data source type '%s' does not support record sorts."), ToString(data_repository_type));
+            throw CSProException("The input data source type '%s' does not support record sorts.", ToString(data_repository_type));
 
         CreateFlattenedRecordSortDictionary();
         dictionary_to_use_for_sorting = m_flattenedRecordSortDictionary.get();
@@ -133,20 +133,19 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff)
     // open the repositories
     InitializeCaseAccess(*dictionary_to_use_for_sorting);
 
-    m_inputRepository = DataRepository::CreateAndOpen(
-        m_sortSpec->IsRecordSort() ? m_caseAccess : m_firstPassCaseAccess,
-        pff.GetSingleInputDataConnectionString(),
-        m_sortSpec->IsRecordSort() ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
-        DataRepositoryOpenFlag::OpenMustExist);
+    m_inputRepository = DataRepository::CreateAndOpen(m_sortSpec->IsRecordSort() ? m_caseAccess : m_firstPassCaseAccess,
+                                                      pff.GetSingleInputDataConnectionString(),
+                                                      m_sortSpec->IsRecordSort() ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
+                                                      DataRepositoryOpenFlag::OpenMustExist);
 
-    m_sortedRepository = DataRepository::CreateAndOpen(
-        m_caseAccess,
-        pff.GetSingleOutputDataConnectionString(),
-        DataRepositoryAccess::BatchOutput,
-        DataRepositoryOpenFlag::CreateNew);
+    m_sortedRepository = DataRepository::CreateAndOpen(m_caseAccess,
+                                                       pff.GetSingleOutputDataConnectionString(),
+                                                       DataRepositoryAccess::BatchOutput,
+                                                       DataRepositoryOpenFlag::CreateNew);
 
-    m_log->WriteFormattedString(_T("Input Data:   %s\n"), m_inputRepository->GetName(DataRepositoryNameType::ForListing).GetString());
-    m_log->WriteFormattedString(_T("Sorted Data:  %s\n\n"), m_sortedRepository->GetName(DataRepositoryNameType::ForListing).GetString());
+    m_log->WriteLine("Input Data:   " + m_inputRepository->GetName(DataRepositoryNameType::ForListing));
+    m_log->WriteLine("Sorted Data:  " + m_sortedRepository->GetName(DataRepositoryNameType::ForListing));
+    m_log->WriteLine();
 
 
     // set up the sortable key database
@@ -197,7 +196,7 @@ void Sorter::InitializeCaseAccess(const CDataDict& dictionary)
         if( !m_sortSpec->IsRecordTypeItem(sort_item) )
         {
             sort_case_item.case_item = case_access_to_use_for_access.LookupCaseItem(sort_item.dict_item->GetName());
-            sort_case_item.record_number = sort_case_item.case_item->GetDictionaryItem().GetRecord()->GetRecordNumber();
+            sort_case_item.record_number = sort_case_item.case_item->GetDictItem().GetRecord()->GetRecordNumber();
         }
     }
 }
@@ -243,14 +242,14 @@ Sorter::RunSuccess Sorter::RunCaseSort()
 
         // read the cases
         process_summary = m_firstPassCaseAccess->GetDataDict().CreateProcessSummary();
-        process_summary_dlg.Initialize(_T("Sorting..."), process_summary);
-        process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), m_inputRepository->GetName(DataRepositoryNameType::Full).GetString()));
+        process_summary_dlg.Initialize("Sorting...", process_summary);
+        process_summary_dlg.SetSource("Input Data: " + m_inputRepository->GetName(DataRepositoryNameType::Full));
 
-        std::unique_ptr<Case> first_pass_case = m_firstPassCaseAccess->CreateCase();
-        auto first_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
+        const std::unique_ptr<Case> first_pass_case = m_firstPassCaseAccess->CreateCase();
+        const auto first_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
         first_pass_case->SetCaseConstructionReporter(first_pass_case_construction_reporter);
 
-        std::unique_ptr<CaseIterator> case_iterator = m_inputRepository->CreateCaseIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+        const std::unique_ptr<CaseIterator> case_iterator = m_inputRepository->CreateCaseIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
 
         while( case_iterator->NextCase(*first_pass_case) )
         {
@@ -283,14 +282,14 @@ Sorter::RunSuccess Sorter::RunCaseSort()
         process_summary = m_caseAccess->GetDataDict().CreateProcessSummary();
         process_summary->SetPercentSourceRead(progress_bar_value);
 
-        process_summary_dlg.Initialize(_T("Writing..."), process_summary);
-        process_summary_dlg.SetSource(FormatText(_T("Sorted Data: %s"), m_sortedRepository->GetName(DataRepositoryNameType::Concise).GetString()));
+        process_summary_dlg.Initialize("Writing...", process_summary);
+        process_summary_dlg.SetSource("Sorted Data: " + m_sortedRepository->GetName(DataRepositoryNameType::Concise));
 
 
-        std::unique_ptr<Case> data_case = m_caseAccess->CreateCase();
+        const std::unique_ptr<Case> data_case = m_caseAccess->CreateCase();
 
         // don't log case construction errors on the second pass
-        auto second_pass_case_construction_reporter = std::make_shared<CaseConstructionReporter>(process_summary);
+        const auto second_pass_case_construction_reporter = std::make_shared<CaseConstructionReporter>(process_summary);
         data_case->SetCaseConstructionReporter(second_pass_case_construction_reporter);
 
 
@@ -307,10 +306,10 @@ Sorter::RunSuccess Sorter::RunCaseSort()
 
 
         // write the summary information
-        m_log->WriteString(_T("Summary\n"));
-        m_log->WriteFormattedString(_T("    Questionnaires: %d\n    Records: %d\n"),
-                                    static_cast<int>(second_pass_case_construction_reporter->GetCaseLevelCount(0)),
-                                    static_cast<int>(second_pass_case_construction_reporter->GetRecordCount() - second_pass_case_construction_reporter->GetErasedRecordCount()));
+        m_log->WriteLine("Summary");
+        m_log->WriteFormattedLine("    Questionnaires: %d\n    Records: %d",
+                                  static_cast<int>(second_pass_case_construction_reporter->GetCaseLevelCount(0)),
+                                  static_cast<int>(second_pass_case_construction_reporter->GetRecordCount() - second_pass_case_construction_reporter->GetErasedRecordCount()));
 
         if( first_pass_case_construction_reporter->HadErrors() || second_pass_case_construction_reporter->GetBadRecordCount() != 0 )
             run_success = RunSuccess::Errors;
@@ -328,7 +327,7 @@ void Sorter::CreateFlattenedRecordSortDictionary()
 {
     // flatten all levels and make all records not required to
     // create a suitable dictionary for record sorting
-    std::shared_ptr<const CDataDict> base_dictionary = m_sortSpec->GetSharedDictionary();
+    const std::shared_ptr<const CDataDict> base_dictionary = m_sortSpec->GetSharedDictionary();
 
     m_flattenedRecordSortDictionary = std::make_unique<CDataDict>(*base_dictionary);
     m_requiredFlattenedDictRecords.clear();
@@ -394,16 +393,16 @@ Sorter::RunSuccess Sorter::RunRecordSort()
 
         // read the cases
         process_summary = m_caseAccess->GetDataDict().CreateProcessSummary();
-        process_summary_dlg.Initialize(_T("Sorting..."), process_summary);
-        process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), m_inputRepository->GetName(DataRepositoryNameType::Concise).GetString()));
+        process_summary_dlg.Initialize("Sorting...", process_summary);
+        process_summary_dlg.SetSource("Input Data: " + m_inputRepository->GetName(DataRepositoryNameType::Concise));
 
         size_t records_processed = 0;
 
-        std::unique_ptr<Case> data_case = m_caseAccess->CreateCase();
-        auto first_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
+        const std::unique_ptr<Case> data_case = m_caseAccess->CreateCase();
+        const auto first_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
         data_case->SetCaseConstructionReporter(first_pass_case_construction_reporter);
 
-        std::unique_ptr<CaseIterator> case_iterator = m_inputRepository->CreateCaseIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+        const std::unique_ptr<CaseIterator> case_iterator = m_inputRepository->CreateCaseIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
 
         while( case_iterator->NextCase(*data_case) )
         {
@@ -429,7 +428,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
             }
 
             // get the binary representation of the ID record
-            std::vector<std::byte> id_binary_buffer = root_case_level.GetIdCaseRecord().GetBinaryValues(0);
+            const std::vector<std::byte> id_binary_buffer = root_case_level.GetIdCaseRecord().GetBinaryValues(0);
 
             for( size_t record_number = 0; record_number < root_case_level.GetNumberCaseRecords(); ++record_number )
             {
@@ -458,7 +457,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
                         {
                             ASSERT(sort_case_item.sort_item.dict_item->GetContentType() == ContentType::Alpha);
 
-                            m_sortableKeyDatabase->AddCaseKeyValue(case_record_for_record_sort.GetCaseRecordMetadata().GetDictionaryRecord().GetRecTypeVal());
+                            m_sortableKeyDatabase->AddCaseKeyValue(UTF8_TODO::GetUtf8(case_record_for_record_sort.GetCaseRecordMetadata().GetDictRecord().GetRecTypeVal()));
                         }
 
                         else
@@ -491,11 +490,11 @@ Sorter::RunSuccess Sorter::RunRecordSort()
         process_summary = m_caseAccess->GetDataDict().CreateProcessSummary();
         process_summary->SetPercentSourceRead(progress_bar_value);
 
-        process_summary_dlg.Initialize(_T("Writing..."), process_summary);
-        process_summary_dlg.SetSource(FormatText(_T("Sorted Data: %s"), m_sortedRepository->GetName(DataRepositoryNameType::Concise).GetString()));
+        process_summary_dlg.Initialize("Writing...", process_summary);
+        process_summary_dlg.SetSource("Sorted Data: " + m_sortedRepository->GetName(DataRepositoryNameType::Concise));
 
 
-        auto second_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
+        const auto second_pass_case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
         data_case->SetCaseConstructionReporter(second_pass_case_construction_reporter);
 
 
@@ -521,13 +520,13 @@ Sorter::RunSuccess Sorter::RunRecordSort()
                 for( size_t record_number = 0; record_number < root_case_level.GetNumberCaseRecords(); ++record_number )
                 {
                     const CaseRecord& case_record = root_case_level.GetCaseRecord(record_number);
-                    const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictionaryRecord();
+                    const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictRecord();
 
                     if( !case_record.HasOccurrences() && m_requiredFlattenedDictRecords.find(&dict_record) != m_requiredFlattenedDictRecords.end() )
                     {
-                        m_log->WriteFormattedString(_T("*** [%s]\n"), NewlineSubstitutor::NewlineToUnicodeNL(data_case->GetKey()).GetString());
-                        m_log->WriteString(_T("*** This record type is required in every questionnaire. It was not found in this questionnaire.\n"));
-                        m_log->WriteFormattedString(_T("        Record type: %s\n\n"), dict_record.GetLabel().GetString());
+                        m_log->WriteFormattedLine("*** [%s]", NewlineSubstitutor::NewlineToUnicodeNL(data_case->GetKey()).c_str());
+                        m_log->WriteLine("*** This record type is required in every questionnaire. It was not found in this questionnaire.");
+                        m_log->WriteFormattedLine("        Record type: %s\n", UTF8_TODO::GetUtf8(dict_record.GetLabel()).c_str());
                         run_success = RunSuccess::SuccessWithStructuralErrors;
                     }
                 }
@@ -535,8 +534,8 @@ Sorter::RunSuccess Sorter::RunRecordSort()
                 // warn when the sorted file will have duplicates
                 if( duplicate_key_database.CaseExists(data_case->GetKey()) )
                 {
-                    m_log->WriteFormattedString(_T("*** [%s]\n"), NewlineSubstitutor::NewlineToUnicodeNL(data_case->GetKey()).GetString());
-                    m_log->WriteString(_T("*** A case with this ID has already been output. You will have to remove duplicates before safely using this file.\n\n"));
+                    m_log->WriteFormattedLine("*** [%s]", NewlineSubstitutor::NewlineToUnicodeNL(data_case->GetKey()).c_str());
+                    m_log->WriteLine("*** A case with this ID has already been output. You will have to remove duplicates before safely using this file.\n");
                 }
 
                 else
@@ -572,7 +571,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
 
             // add the record
             CaseRecord& case_record = root_case_level.GetCaseRecord(record_index);
-            const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictionaryRecord();
+            const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictRecord();
 
             // warn if too many records
             const size_t record_occurrence = case_record.GetNumberOccurrences();
@@ -600,10 +599,10 @@ Sorter::RunSuccess Sorter::RunRecordSort()
 
 
         // write the summary information
-        m_log->WriteString(_T("Summary\n"));
-        m_log->WriteFormattedString(_T("    Questionnaires: %d\n    Records: %d\n"),
-                                    static_cast<int>(second_pass_case_construction_reporter->GetCaseLevelCount(0)),
-                                    static_cast<int>(first_pass_case_construction_reporter->GetRecordCount() - first_pass_case_construction_reporter->GetErasedRecordCount()));
+        m_log->WriteLine("Summary");
+        m_log->WriteFormattedLine("    Questionnaires: %d\n    Records: %d",
+                                  static_cast<int>(second_pass_case_construction_reporter->GetCaseLevelCount(0)),
+                                  static_cast<int>(first_pass_case_construction_reporter->GetRecordCount() - first_pass_case_construction_reporter->GetErasedRecordCount()));
 
         if( first_pass_case_construction_reporter->HadErrors() )
             run_success = RunSuccess::Errors;

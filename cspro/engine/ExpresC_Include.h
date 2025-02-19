@@ -10,7 +10,7 @@
 #include <engine/Ctab.h>
 #include <engine/COMPUTIL.H>
 #include <engine/ParameterManager.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/CaseAccess.h>
 
@@ -19,4 +19,3 @@
 #else
   #define GENERATE_CODE(x)
 #endif
-

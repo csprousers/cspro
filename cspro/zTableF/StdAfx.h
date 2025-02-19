@@ -2,6 +2,8 @@
 
 #include <engine/StandardSystemIncludes.h>
 
+#include <zToolsO/Utf8.h>
+#include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/StdioFileUnicode.h>

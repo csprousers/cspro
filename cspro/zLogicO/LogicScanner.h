@@ -3,29 +3,34 @@
 #include <zAppO/LogicSettings.h>
 #include <zToolsO/EscapesAndLogicOperators.h>
 
+namespace Logic { class LogicScanner; }
 
-namespace Logic
+
+// this class processes text, character by character, keeping track of comments and string literals
+
+class Logic::LogicScanner
 {
-    // this class processes text, character by character, keeping track of comments and string literals
-    class LogicScanner
-    {
-    public:
-        LogicScanner(const LogicSettings& logic_settings);
+public:
+    LogicScanner(const LogicSettings& logic_settings);
 
-        bool InSpecialSection() const { return ( m_region != Region::None ); }
+    bool InSpecialSection() const { return ( m_region != Region::None ); }
 
-        void ProcessCharacter(TCHAR ch, TCHAR next_ch);
+    void ProcessCharacter(char ch, char next_ch);
 
-    private:
-        enum class Region { None, StringLiteral, VerbatimStringLiteral, Comment };
+private:
+    enum class Region { None, StringLiteral, VerbatimStringLiteral, Comment };
 
-        const LogicSettings& m_logicSettings;
-        Region m_region;
-        TCHAR m_quotemarkOrCommentLevel;
-        bool m_ignoreNextCh;
-    };
-}
+    const LogicSettings& m_logicSettings;
+    Region m_region;
+    char m_quotemarkOrCommentLevel;
+    bool m_ignoreNextCh;
+};
 
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 inline Logic::LogicScanner::LogicScanner(const LogicSettings& logic_settings)
     :   m_logicSettings(logic_settings),
@@ -36,11 +41,11 @@ inline Logic::LogicScanner::LogicScanner(const LogicSettings& logic_settings)
 }
 
 
-inline void Logic::LogicScanner::ProcessCharacter(TCHAR ch, TCHAR next_ch)
+inline void Logic::LogicScanner::ProcessCharacter(const char ch, const char next_ch)
 {
     if( m_ignoreNextCh )
     {
-        ASSERT(_tcschr(_T("/'\""), ch) != nullptr);
+        ASSERT(strchr("/'\"", ch) != nullptr);
         m_ignoreNextCh = false;
     }
 

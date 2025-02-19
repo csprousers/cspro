@@ -16,7 +16,7 @@ int LogicCompiler::CompileParadataFunction()
 
     std::vector<int> arguments;
 
-    size_t action =  NextKeywordOrError({ _T("open"), _T("close"), _T("flush"), _T("concat"), _T("query") });
+    const size_t action =  NextKeywordOrError({ "open", "close", "flush", "concat", "query" });
 
     NextToken();
 

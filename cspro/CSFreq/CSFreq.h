@@ -1,24 +1,28 @@
 ﻿#pragma once
 
+#include <zUtilO/ConnectionStringFileSimulator.h>
+
 
 class CSFreqApp : public CWinApp
 {
 public:
     CSFreqApp();
 
-    void ManageLanguageDlgBar();
+    ConnectionStringFileSimulator& GetConnectionStringFileSimulator() { return m_connectionStringFileSimulator; }
 
-    BOOL InitInstance() override;
+    void ManageLanguageDlgBar();
 
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnAppAbout();
-    afx_msg void OnFileOpen();
+    BOOL InitInstance() override;
+
+    void OnAppAbout();
+    void OnFileOpen();
 
 public:
-    CIMSAString m_csModuleName;
-    HICON m_hIcon;
-    CIMSAString m_csWndClassName;
     int m_iReturnCode;
+
+private:
+    ConnectionStringFileSimulator m_connectionStringFileSimulator;
 };

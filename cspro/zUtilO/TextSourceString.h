@@ -6,13 +6,18 @@
 class TextSourceString : public TextSource
 {
 public:
-    TextSourceString(std::wstring filename, std::wstring text)
-        :   TextSource(std::move(filename)),
+    TextSourceString(std::string file_path, SharableString text)
+        :   TextSource(std::move(file_path)),
             m_text(std::move(text))
     {
     }
 
-    const std::wstring& GetText() const override
+    const std::string& GetText() const override
+    {
+        return *m_text;
+    }
+
+    SharableString GetTextAsSharableString() const
     {
         return m_text;
     }
@@ -23,5 +28,5 @@ public:
     }
 
 private:
-    const std::wstring m_text;
+    SharableString m_text;
 };

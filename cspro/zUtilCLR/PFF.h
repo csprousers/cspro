@@ -22,7 +22,7 @@ namespace CSPro
             CONCAT_TYPE,
             PACK_TYPE,
             INDEX_TYPE,
-            SYNC_TYPE,
+            Sync,
             PARADATA_CONCAT_TYPE,
             EXCEL2CSPRO_TYPE,
             DEPLOY_TYPE,
@@ -33,8 +33,6 @@ namespace CSPro
         public enum class DeployToOverride { None, CSWeb, Dropbox, FTP, LocalFile, LocalFolder };
 
         public enum class SyncDirection { PUT = 1, GET = 2, BOTH = 3 };
-
-        public enum class SyncServerType { CSWeb = 0, Dropbox = 1, FTP = 2, LocalDropbox = 3, LocalFiles = 4 };
 
 
         ///<summary>
@@ -99,7 +97,7 @@ namespace CSPro
 
             CSPro::Util::ConnectionString^ GetExternalDataConnectionString(System::String^ dictionary_name);
 
-            property System::String^ SyncUrl
+            property System::String^ SyncService
             {
                 System::String^ get();
                 void set(System::String^ value);
@@ -111,21 +109,10 @@ namespace CSPro
                 void set(CSPro::Util::SyncDirection value);
             }
 
-            property CSPro::Util::SyncServerType SyncServerType
-            {
-                CSPro::Util::SyncServerType get();
-                void set(CSPro::Util::SyncServerType value);
-            }
-
             property bool Silent
             {
                 bool get();
             }
-
-            property System::Collections::Generic::List<System::String^>^ CustomParameterMappings
-            {
-                System::Collections::Generic::List<System::String^>^ get();
-            };
 
             property CSPro::Util::DeployToOverride DeployToOverride
             {

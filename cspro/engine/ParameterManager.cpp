@@ -71,7 +71,7 @@ namespace
         AddApplicationProperty(_T("ShowRefusals")),
         AddApplicationProperty(_T("SpecialValuesZero")),
         AddApplicationProperty(_T("UpdateSaveArrayFile")),
-        AddApplicationProperty(JK::useHtmlComponentsInsteadOfNativeVersions),
+        AddApplicationProperty(UTF8_TODO::Create_wide_c_str(JK::useHtmlComponentsInsteadOfNativeVersions)),
         AddApplicationProperty(_T("WindowTitle")),
 
         AddFieldProperty(_T("AlwaysVisualValue")),

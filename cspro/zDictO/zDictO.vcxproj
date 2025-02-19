@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B33D6166-52A8-453E-837E-E23B233149E9}</ProjectGuid>
     <RootNamespace>zDictO</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -68,20 +64,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CaptureInfo.cpp" />
+    <ClCompile Include="DDClass.cpp" />
     <ClCompile Include="Definitions.cpp" />
+    <ClCompile Include="DictBase.cpp" />
+    <ClCompile Include="DictionaryComparer.cpp" />
+    <ClCompile Include="DictionaryValidator.cpp" />
     <ClCompile Include="DictItem.cpp" />
     <ClCompile Include="DictLevel.cpp" />
+    <ClCompile Include="DictNamedBase.cpp" />
     <ClCompile Include="DictRecord.cpp" />
     <ClCompile Include="DictRelation.cpp" />
     <ClCompile Include="DictValue.cpp" />
-    <ClCompile Include="DDClass.cpp" />
-    <ClCompile Include="DictionaryValidator.cpp" />
-    <ClCompile Include="DictionaryComparer.cpp" />
-    <ClCompile Include="DictNamedBase.cpp" />
     <ClCompile Include="DictValuePair.cpp" />
     <ClCompile Include="DictValueSet.cpp" />
     <ClCompile Include="ItemIndexHelper.cpp" />
-    <ClCompile Include="DictBase.cpp" />
     <ClCompile Include="Pre80SpecFile.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -95,14 +91,13 @@
   <ItemGroup>
     <ClInclude Include="CaptureInfo.h" />
     <ClInclude Include="DDClass.h" />
-    <ClInclude Include="DictBase.h" />
-    <ClInclude Include="DictionaryValidator.h" />
     <ClInclude Include="Definitions.h" />
+    <ClInclude Include="DictBase.h" />
     <ClInclude Include="DictionaryComparer.h" />
     <ClInclude Include="DictionaryCreator.h" />
     <ClInclude Include="DictionaryIterator.h" />
     <ClInclude Include="DictionarySerializerHelper.h" />
-    <ClInclude Include="Rules.h" />
+    <ClInclude Include="DictionaryValidator.h" />
     <ClInclude Include="DictItem.h" />
     <ClInclude Include="DictLevel.h" />
     <ClInclude Include="DictNamedBase.h" />
@@ -113,6 +108,7 @@
     <ClInclude Include="DictValueSet.h" />
     <ClInclude Include="ItemIndex.h" />
     <ClInclude Include="ItemIndexHelper.h" />
+    <ClInclude Include="Rules.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="ValueProcessor.h" />
     <ClInclude Include="ValueSetFixer.h" />

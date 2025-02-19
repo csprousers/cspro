@@ -90,7 +90,7 @@ public:
     void DisplayMultiLangMode();
     void DisplaySingleLangMode();
 
-    void ShowCapiLanguage(wstring_view language_name);
+    void ShowCapiLanguage(const std::string& language_name);
 
     eViewMode GetViewMode() { return m_eViewMode;}
     void SaveHeightSettings();
@@ -100,8 +100,6 @@ public:
     QuestionnaireView* GetQuestionnaireView() { return m_pQuestionnaireView; }
 
     void RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* selected_fields, CDEGroup* pCurGroup, CString form_name);
-    void SaveServerUrlToRegistry(const CString& server_url) const;
-    CString GetServerUrlFromRegistry() const;
 
 // Overrides
 public:

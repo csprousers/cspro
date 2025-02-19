@@ -50,7 +50,7 @@ void CQuestionnaireSearchDlg::OnOK()
     {
         NODEINFO* pNodeInfo = (NODEINFO*)pCaseView->GetTreeCtrl().GetItemData(hItem);
 
-        if( pNodeInfo->case_summary.GetKey().CompareNoCase(m_csKey) == 0 )
+        if( UTF8_TODO::GetCString(pNodeInfo->case_summary.GetKey()).CompareNoCase(m_csKey) == 0 )
         {
             pCaseView->GetTreeCtrl().Select(hItem,TVGN_CARET);
             bFound = true;

@@ -2,63 +2,54 @@
 
 #include <zParadataO/Event.h>
 
+namespace Paradata { class ApplicationEvent; }
 
-namespace Paradata
+
+class ZPARADATAO_API Paradata::ApplicationEvent : public Event
 {
-    class ZPARADATAO_API ApplicationEvent : public Event
+    DECLARE_PARADATA_EVENT(ApplicationEvent)
+
+public:
+    struct DeviceInfo
     {
-        DECLARE_PARADATA_EVENT(ApplicationEvent)
+        std::string user_name;
+        std::string device_id;
+        std::string operating_system;
+        std::string operating_system_detailed;
 
-    public:
-        struct DeviceInfo
-        {
-            CString user_name;
-            CString device_id;
-            std::wstring operating_system;
-            std::wstring operating_system_detailed;
+        static constexpr size_t ValuesToFill = 12;
 
-            static const int ValuesToFill = 12;
-
-            CString screen_width;
-            CString screen_height;
-            CString screen_inches;
-            CString memory_ram;
-            CString battery_capacity;
-            CString device_brand;
-            CString device_device;
-            CString device_hardware;
-            CString device_manufacturer;
-            CString device_model;
-            CString device_processor;
-            CString device_product;
-        };
-
-    private:
-        ApplicationEvent(bool start);
-
-    public:
-        static std::shared_ptr<ApplicationEvent> CreateStartEvent(const CString& filename, const CString& app_type,
-                                                                  const CString& name, double version,
-                                                                  const CString& pff_filename, int serializer);
-
-        static std::shared_ptr<ApplicationEvent> CreateStopEvent();
-
-    private:
-        void GetDeviceInfo();
-
-        bool PreSave(Log& log) const override;
-
-    private:
-        bool m_start;
-
-        CString m_filename;
-        CString m_appType;
-        CString m_name;
-        double m_version;
-        CString m_pffFilename;
-        int m_serializer;
-
-        DeviceInfo m_deviceInfo;
-        double m_deviceBootTime;
+        std::string screen_width;
+        std::string screen_height;
+        std::string screen_inches;
+        std::string memory_ram;
+        std::string battery_capacity;
+        std::string device_brand;
+        std::string device_device;
+        std::string device_hardware;
+        std::string device_manufacturer;
+        std::string device_model;
+        std::string device_processor;
+        std::string device_product;
     };
-}
+
+private:
+    struct StartEventData;
+    ApplicationEvent(std::unique_ptr<StartEventData> start_event_data);
+
+public:
+    static std::unique_ptr<ApplicationEvent> CreateStartEvent(std::string file_path, std::string app_type,
+                                                              std::string name, double version,
+                                                              std::string pff_file_path, int serializer);
+
+    static std::unique_ptr<ApplicationEvent> CreateStopEvent();
+
+private:
+    bool PreSave(Log& log) const override;
+
+    static DeviceInfo GetDeviceInfo();
+    static double GetDeviceBootTime();
+
+private:
+    std::shared_ptr<StartEventData> m_startEventData;
+};

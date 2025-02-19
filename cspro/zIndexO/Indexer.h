@@ -3,12 +3,12 @@
 #include <zIndexO/zIndexO.h>
 #include <zDataO/IndexableTextRepository.h>
 
-class CStdioFileUnicode;
 class PFF;
 struct sqlite3_stmt;
+namespace FileIO { class TextFile; }
 
 
-#define IndexerFilenameWildcard _T("<filename>")
+#define IndexerFilenameWildcard "<filename>"
 
 
 struct IndexResult
@@ -16,7 +16,7 @@ struct IndexResult
     const size_t file_index;
     const ConnectionString input_connection_string;
     ConnectionString output_connection_string;
-    std::wstring repository_name;
+    std::string repository_name;
     size_t number_cases;
     size_t number_internal_duplicates;
     size_t number_global_duplicates;
@@ -24,12 +24,12 @@ struct IndexResult
     size_t number_duplicates_kept;
     size_t number_duplicates_skipped;
     bool indexable_text_repository_index_created;
-    std::wstring exception_message;
+    std::string exception_message;
 
     IndexResult(size_t file_index_, ConnectionString connection_string)
         :   file_index(file_index_),
             input_connection_string(std::move(connection_string)),
-            repository_name(WS2CS(input_connection_string.ToString())),
+            repository_name(input_connection_string.ToString()),
             number_cases(0),
             number_internal_duplicates(0),
             number_global_duplicates(0),
@@ -63,7 +63,7 @@ public:
     // some functionality will be different when run by CSIndex as opposed to the PFFExecutor or in the portable environments
 protected:
     virtual bool SupportsInteractiveMode() const = 0;
-    virtual void DisplayInteractiveModeMessage(NullTerminatedString message) const = 0;
+    virtual void DisplayInteractiveModeMessage(const std::string& message) const = 0;
     virtual void ChooseDuplicate(std::vector<DuplicateInfo>& case_duplicates, size_t duplicate_index, size_t number_duplicates) const = 0;
     virtual bool RethrowTerminatingException() const = 0;
 
@@ -71,7 +71,7 @@ protected:
     void IndexCallback(const IndexableTextRepositoryIndexDetails& index_details) override;
 
 private:
-    void IndexCallback(const std::wstring& key, double position_in_repository, size_t bytes_for_case, int64_t line_number);
+    void IndexCallback(const std::string& key, double position_in_repository, size_t bytes_for_case, int64_t line_number);
 
     void RunIndexer(bool silent);
 
@@ -91,12 +91,12 @@ private:
     static bool CaseEquals(const Case& case1, const Case& case2);
 
     void WriteCases();
-    void WriteCases(const std::unique_ptr<DataRepository>& output_repository, IndexResult& index_result);
+    void WriteCases(DataRepository& output_repository, IndexResult& index_result);
 
 private:
     const PFF* m_pff;
 
-    std::unique_ptr<CStdioFileUnicode> m_log;
+    std::unique_ptr<FileIO::TextFile> m_log;
     std::optional<ULONGLONG> m_endTimePosition;
 
     std::shared_ptr<const CDataDict> m_dictionary;
@@ -118,6 +118,6 @@ private:
 
     size_t m_maxRepositoryNameLength;
     size_t m_numberDuplicates;
-    std::map<std::wstring, std::vector<DuplicateInfo>> m_duplicates;
+    std::map<std::string, std::vector<DuplicateInfo>> m_duplicates;
     bool m_writeToCombinedFile;
 };

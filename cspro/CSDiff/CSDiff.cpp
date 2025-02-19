@@ -3,7 +3,6 @@
 #include "Csdfdoc.h"
 #include "Csdfview.h"
 #include "MainFrm.h"
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/imsaDlg.H>
 
 
@@ -44,7 +43,7 @@ BOOL CCSDiffApp::InitInstance()
     // Change the registry key under which our settings are stored.
     // TODO: You should modify this string to be something appropriate
     // such as the name of your company or organization.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
 
@@ -106,19 +105,19 @@ void CCSDiffApp::OnAppAbout()
 
 void CCSDiffApp::OnFileOpen()
 {
-    CIMSAFileDialog file_dlg(TRUE, _T("dcf, cmp"),
-                             AfxGetApp()->GetProfileString(_T("Settings"),_T("Last Open"),_T("")),
-                             OFN_HIDEREADONLY,
-                             _T("Compare Specification (*.cmp) or Data Dictionary (*.dcf) Files|*.dcf;*.cmp|")
-                             _T("Compare Specification Files (*.cmp)|*.cmp|")
-                             _T("Data Dictionary Files (*.dcf)|*.dcf|")
-                             _T("All Files (*.*)|*.*||"));
+    OpenFileDlg open_file_dlg(0, L"dcf, cmp", AfxGetApp()->GetProfileString(L"Settings", L"Last Open", L""),
+                              L"Compare Specification (*.cmp) or Data Dictionary (*.dcf) Files|*.dcf;*.cmp|"
+                              L"Compare Specification Files (*.cmp)|*.cmp|"
+                              L"Data Dictionary Files (*.dcf)|*.dcf|"
+                              L"All Files (*.*)|*.*||");
+    open_file_dlg.SetTitle(L"Open Compare Specification or Dictionary File");
 
-    file_dlg.m_ofn.lpstrTitle = _T("Open Compare Specification or Dictionary File");
+    if( open_file_dlg.DoModal() != IDOK )
+        return;
 
-    if( file_dlg.DoModal() == IDOK )
-    {
-        AfxGetApp()->AddToRecentFileList(file_dlg.GetPathName());
-        OpenDocumentFile(file_dlg.GetPathName());
-    }
+    const std::wstring wide_file_path = TC::ToWide(open_file_dlg.GetFilePath());
+
+    AfxGetApp()->AddToRecentFileList(wide_file_path.c_str());
+
+    OpenDocumentFile(wide_file_path.c_str());
 }

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zDictF/zDictF.h>
+#include <zUtilO/FileExtensions.h>
 #include <zUtilO/UndoStack.h>
 #include <zDictO/DictionaryValidator.h>
 #include <zDesignerF/DictionaryBasedDoc.h>
@@ -56,6 +57,8 @@ protected:
 
 public:
     ~CDDDoc();
+
+    static constexpr const char* GetExtension() { return FileExtensions::Dictionary; }
 
     const CDataDict* GetDict() const                 { return m_dictionary.get(); }
     CDataDict* GetDict()                             { return m_dictionary.get(); }

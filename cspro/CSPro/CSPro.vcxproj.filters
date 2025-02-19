@@ -15,22 +15,46 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AboutMenuDialogs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="AplDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SelectAppDlg.cpp">
+    <ClCompile Include="AplFileAssociationsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AplFileAssociationsGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CapiMacrosDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ChildFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CodeMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonStoreDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CSPro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DTYPEDLG.CPP">
+    <ClCompile Include="FileTreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPrefDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HidDTmpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InteractiveNewFileCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicReference.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrm.cpp">
@@ -48,7 +72,49 @@
     <ClCompile Include="MTabCtl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NewFileDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ObjTCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OnKeyCharacterMapDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgAdvancedFeaturesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgApplicationPropertiesFilePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgJavaScriptPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgJsonPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgLogicSettingsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgMappingPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgMappingTileProviderPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlgParadataPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Report.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectAppDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SelectDocsDlg.cpp">
@@ -60,82 +126,10 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AboutMenuDialogs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FontPrefDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FakeDropDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VersionShifterDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgParadataPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CapiMacrosDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CommonStoreDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LogicReference.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AplFileAssociationsDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AplFileAssociationsGrid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SymbolAnalysisDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ReportPropertiesDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgMappingPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgMappingTileProviderPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgAdvancedFeaturesPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Report.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OnKeyCharacterMapDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NewFileCreator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NewFileDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgApplicationPropertiesFilePage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgLogicSettingsPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesDlgJsonPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CodeMenu.cpp">
+    <ClCompile Include="VersionShifterDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -205,22 +199,46 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AboutMenuDialogs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="AplDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SelectAppDlg.h">
+    <ClInclude Include="AplFileAssociationsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AplFileAssociationsGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CapiMacrosDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ChildFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CommonStoreDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSPro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DTYPEDLG.H">
+    <ClInclude Include="DesignerApplicationLoaderWithFileSupport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileAssociation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileTreeNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FontPrefDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HidDTmpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InteractiveNewFileCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
@@ -238,64 +256,31 @@
     <ClInclude Include="MTabCtl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NewFileDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ObjTCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SelectDocsDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StartDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AboutMenuDialogs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FontPrefDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FakeDropDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VersionShifterDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PropertiesDlgParadataPage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CapiMacrosDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonStoreDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AplFileAssociationsDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AplFileAssociationsGrid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SymbolAnalysisDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileAssociation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileTreeNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ReportPropertiesDlg.h">
+    <ClInclude Include="OnKeyCharacterMapDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PropertiesDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlgAdvancedFeaturesPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlgApplicationPropertiesFilePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlgJavaScriptPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlgJsonPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlgLogicSettingsPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PropertiesDlgMappingPage.h">
@@ -307,25 +292,31 @@
     <ClInclude Include="PropertiesDlgPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesDlgAdvancedFeaturesPage.h">
+    <ClInclude Include="PropertiesDlgParadataPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OnKeyCharacterMapDlg.h">
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NewFileCreator.h">
+    <ClInclude Include="SelectAppDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NewFileDlg.h">
+    <ClInclude Include="SelectDocsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesDlgApplicationPropertiesFilePage.h">
+    <ClInclude Include="StartDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesDlgLogicSettingsPage.h">
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesDlgJsonPage.h">
+    <ClInclude Include="SymbolAnalysisDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VersionShifterDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

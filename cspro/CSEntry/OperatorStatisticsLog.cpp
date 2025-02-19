@@ -1,42 +1,33 @@
-﻿// OperatorStatisticsLog.cpp: implementation of the COperatorStatisticsLog class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "OperatorStatistics.h"
 #include "OperatorStatisticsLog.h"
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
-#endif
 
-#define SEPARATOR _T(",")
+#define SEPARATOR L","
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+
 COperatorStatisticsLog::COperatorStatisticsLog()
+    :   m_pCurrentObj(nullptr)
 {
-    m_pCurrentObj = NULL;
 }
+
 
 COperatorStatisticsLog::~COperatorStatisticsLog()
 {
-    for( int iIndex = 0; iIndex < m_arrOpStats.GetSize(); iIndex++ )
+    for( int iIndex = 0; iIndex < m_arrOpStats.GetSize(); ++iIndex )
         delete m_arrOpStats[iIndex];
 }
 
-void COperatorStatisticsLog::Open(CString csLogFilename)
-{
-    m_csLogFilename = csLogFilename;
 
-    if( PortableFunctions::FileExists(m_csLogFilename) )
+void COperatorStatisticsLog::Open(std::string log_file_path)
+{
+    m_logFilePath = std::move(log_file_path);
+
+    if( PortableFunctions::FileIsRegular(m_logFilePath) )
     {
         CSpecFile statFile;
 
-        if( statFile.Open(m_csLogFilename,CFile::modeRead) )
+        if( statFile.Open(UTF8_TODO::GetCString(m_logFilePath), CFile::modeRead) )
         {
             CString csLine;
 
@@ -50,9 +41,12 @@ void COperatorStatisticsLog::Open(CString csLogFilename)
         }
 
         else
-            AfxMessageBox(_T("There was an error opening the operator statistics log."),MB_ICONSTOP | MB_OK);
+        {
+            AfxMessageBox(L"There was an error opening the operator statistics log.", MB_ICONSTOP | MB_OK);
+        }
     }
 }
+
 
 void COperatorStatisticsLog::Save()
 {
@@ -61,7 +55,7 @@ void COperatorStatisticsLog::Save()
 
     CSpecFile statFile;
 
-    if( statFile.Open(m_csLogFilename,CFile::modeWrite) )
+    if( statFile.Open(UTF8_TODO::GetCString(m_logFilePath), CFile::modeWrite) )
     {
         for( int iIndex = 0; iIndex < m_arrOpStats.GetSize(); iIndex++ )
         {
@@ -74,7 +68,9 @@ void COperatorStatisticsLog::Save()
     }
 
     else
-        AfxMessageBox(_T("There was an error saving the operator statistics log."),MB_ICONSTOP | MB_OK);
+    {
+        AfxMessageBox(L"There was an error saving the operator statistics log." ,MB_ICONSTOP | MB_OK);
+    }
 }
 
 
@@ -188,18 +184,20 @@ void COperatorStatisticsLog::BuildStatObj(CIMSAString sLine)
     pOpStats->SetNFVerified(_ttol(sValue));    //Num of fields verified
 }
 
+
 void COperatorStatisticsLog::NewStatsObj(CString csMode,CString csOpID)
 {
     COperatorStatistics* pOpStats = new COperatorStatistics();
 
     if( csOpID.IsEmpty() )
-        csOpID = _T("<No ID Entered>");
+        csOpID = L"<No ID Entered>";
 
     pOpStats->Init(csMode,csOpID); // Initializes the start time
 
     m_arrOpStats.Add(pOpStats);
     m_pCurrentObj = pOpStats;
 }
+
 
 void COperatorStatisticsLog::StopStatsObj()
 {

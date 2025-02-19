@@ -11,18 +11,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\cspro\debug\bin\SQLite.dll" />
     <CustomBuild Include="..\..\..\cspro\debug\bin\zToolsO.dll" />
+    <CustomBuild Include="..\..\..\cspro\debug\bin\zSql.dll" />
     <CustomBuild Include="..\..\..\cspro\debug\bin\zUtilO.dll" />
     <CustomBuild Include="..\..\..\cspro\debug\bin\zJson.dll" />
     <CustomBuild Include="..\..\..\cspro\debug\bin\zAppO.dll" />
     <CustomBuild Include="..\..\..\cspro\debug\bin\zMessageO.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="Main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Main.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,13 +36,13 @@
     <ClCompile Include="MessageAudit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MessageFormatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MessageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageFormatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

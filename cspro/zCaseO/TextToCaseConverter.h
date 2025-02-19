@@ -8,9 +8,9 @@
 class ZCASEO_API TextToCaseConverter
 {
 public:
-    static constexpr TCHAR DataFileErasedRecordCharacter = '~';
-    static constexpr size_t BufferLinesInitialCapacity   = 1024;
-    static constexpr size_t MinBufferLinesResizeCount    = 8 * 1024;
+    static constexpr char DataFileErasedRecordCharacter = '~';
+    static constexpr size_t BufferLinesInitialCapacity  = 1024;
+    static constexpr size_t MinBufferLinesResizeCount   = 8 * 1024;
 
     TextToCaseConverter(const CaseMetadata& case_metadata);
     ~TextToCaseConverter();

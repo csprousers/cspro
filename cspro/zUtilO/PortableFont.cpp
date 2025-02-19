@@ -36,7 +36,7 @@ PortableFont::PortableFont(const LOGFONT& logfont)
 {
     ASSERT(logfont.lfHeight != 0);
 
-    std::lock_guard<std::mutex> lock(FontsMutex);
+    const std::lock_guard<std::mutex> lock(FontsMutex);
 
     // find an existing font...
     for( ; m_index < Fonts.size(); ++m_index )
@@ -52,7 +52,7 @@ PortableFont::PortableFont(const LOGFONT& logfont)
 
 const LOGFONT& PortableFont::GetLOGFONT() const
 {
-    std::lock_guard<std::mutex> lock(FontsMutex);
+    const std::lock_guard<std::mutex> lock(FontsMutex);
     const FontDetails& font_details = *Fonts[m_index];
 
     return font_details.logfont;
@@ -61,7 +61,7 @@ const LOGFONT& PortableFont::GetLOGFONT() const
 
 CFont& PortableFont::GetCFont() const
 {
-    std::lock_guard<std::mutex> lock(FontsMutex);
+    const std::lock_guard<std::mutex> lock(FontsMutex);
     FontDetails& font_details = *Fonts[m_index];
 
     if( font_details.cfont == nullptr )
@@ -74,7 +74,7 @@ CFont& PortableFont::GetCFont() const
 }
 
 
-CString PortableFont::GetDescription() const
+std::string PortableFont::GetDescription() const
 {
     // Given a LOGFONT structure, this function returns a string describing its face name,
     // point size, and whether or not the font is bold, italic, underline, or strikeout.
@@ -84,47 +84,47 @@ CString PortableFont::GetDescription() const
     if( logfont.lfHeight == 0 )
     {
         ASSERT(false);
-        return _T("<no font information available>");
+        return "<no font information available>";
     }
 
 #ifdef WIN32
-    CString description = logfont.lfFaceName;
+    std::string description = TC::ToUtf8(logfont.lfFaceName);
 #else
-    CString description = TwoByteCharToWide(logfont.lfFaceName, _countof(logfont.lfFaceName));
+    std::string description = TC::ToUtf8(TwoByteCharToWide(logfont.lfFaceName, _countof(logfont.lfFaceName)));
 #endif
 
 #ifdef WIN_DESKTOP
     CClientDC dc(AfxGetMainWnd());
     dc.SetMapMode(MM_TEXT);
-    int iLogPixels = dc.GetDeviceCaps(LOGPIXELSY);
+    const int iLogPixels = dc.GetDeviceCaps(LOGPIXELSY);
 
     int iPointSize = MulDiv(72, logfont.lfHeight, iLogPixels);
     iPointSize *= ( iPointSize < 0 ) ? -1 : 1;
 
-    description.AppendFormat(_T(", %d point"), iPointSize);
+    description.append(FormatText(", %d point", iPointSize));
 #endif
 
     if( logfont.lfWeight > FW_NORMAL )
-        description.Append(_T(", bold"));
+        description.append(", bold");
 
     if( logfont.lfItalic )
-        description.Append(_T(", italic"));
+        description.append(", italic");
 
     if( logfont.lfUnderline )
-        description.Append(_T(", underline"));
+        description.append(", underline");
 
     if( logfont.lfStrikeOut )
-        description.Append(_T(", strikeout"));
+        description.append(", strikeout");
 
     // JH 7/05 - display script if arabic or russian
     if( IsArabic() )
     {
-        description.Append(_T(", Arabic"));
+        description.append(", Arabic");
     }
 
     else if( logfont.lfCharSet == RUSSIAN_CHARSET )
     {
-        description.Append(_T(", Cyrillic"));
+        description.append(", Cyrillic");
     }
 
     return description;
@@ -138,19 +138,21 @@ bool PortableFont::IsArabic() const
 }
 
 
-void PortableFont::BuildFromPre80String(wstring_view text)
+void PortableFont::BuildFromPre80String(const std::string& text)
 {
     // use the text default if the string is not long enough
-    if( text.length() < 65 )
+    if( SO::WideLength(text) < 65 )
     {
         *this = TextDefault;
         return;
     }
 
+    const char* text_itr = text.c_str();
+
     auto get_int = [&]()
     {
-        int value = _ttoi(text.data());
-        text = text.substr(5);
+        const int value = atoi(text_itr);
+        text_itr += 5;
         return value;
     };
 
@@ -161,40 +163,51 @@ void PortableFont::BuildFromPre80String(wstring_view text)
         get_int(),
         get_int(),
         get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int(),
-        (BYTE)get_int()
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int()),
+        static_cast<BYTE>(get_int())
     };
 
-    size_t face_name_length = std::min(text.length(), _countof(LOGFONT::lfFaceName) - 1);
+    const std::wstring wide_face_name = TC::ToWide(text_itr);
 
 #ifdef WIN32
-    _tcsncpy(logfont.lfFaceName, text.data(), face_name_length);
+    SO::CopyToFixedBuffer(logfont.lfFaceName, wide_face_name);
+
 #else
+    const size_t face_name_length = std::min(wide_face_name.length(), _countof(LOGFONT::lfFaceName) - 1);
+
     for( size_t i = 0; i < face_name_length; ++i )
-        logfont.lfFaceName[i] = text[i];
-#endif
+        logfont.lfFaceName[i] = wide_face_name[i];
 
     logfont.lfFaceName[face_name_length] = 0;
+#endif
 
     *this = PortableFont(logfont);
 }
 
 
-CString PortableFont::GetPre80String() const
+std::string PortableFont::GetPre80String() const
 {
     const LOGFONT& logfont = GetLOGFONT();
 
-    return FormatText(_T("%04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %s"),
-                      logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation,
-                      logfont.lfWeight, logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut,
-                      logfont.lfCharSet, logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality,
-                      logfont.lfPitchAndFamily, logfont.lfFaceName);
+    return FormatText("%04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %04d %s",
+                      static_cast<int>(logfont.lfHeight), static_cast<int>(logfont.lfWidth),
+                      static_cast<int>(logfont.lfEscapement), static_cast<int>(logfont.lfOrientation),
+                      static_cast<int>(logfont.lfWeight), static_cast<int>(logfont.lfItalic),
+                      static_cast<int>(logfont.lfUnderline), static_cast<int>(logfont.lfStrikeOut),
+                      static_cast<int>(logfont.lfCharSet), static_cast<int>(logfont.lfOutPrecision),
+                      static_cast<int>(logfont.lfClipPrecision), static_cast<int>(logfont.lfQuality),
+                      static_cast<int>(logfont.lfPitchAndFamily),
+#ifdef WIN32
+                      TC::ToUtf8(logfont.lfFaceName).c_str());
+#else
+                      ReturnProgrammingError("<Font Name>"));
+#endif
 }
 
 
@@ -202,13 +215,11 @@ void PortableFont::serialize(Serializer& ar)
 {
     if( ar.IsSaving() )
     {
-        ar << GetLOGFONT();
+        ar.Write(GetLOGFONT());
     }
 
     else
     {
-        LOGFONT logfont;
-        ar >> logfont;
-        *this = logfont;
+        *this = ar.Read<LOGFONT>();
     }
 }

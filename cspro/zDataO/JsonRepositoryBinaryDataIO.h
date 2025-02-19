@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zCaseO/CaseJsonSerializer.h>
-#include <zUtilO/BinaryDataReader.h>
+#include <zUtilO/BinaryContentReader.h>
 
 
 class JsonRepositoryCaseJsonParserHelper : public CaseJsonParserHelper
@@ -9,35 +9,31 @@ class JsonRepositoryCaseJsonParserHelper : public CaseJsonParserHelper
 public:
     JsonRepositoryCaseJsonParserHelper(JsonRepository& json_repository);
 
-    std::unique_ptr<BinaryDataReader> CreateBinaryDataReader(BinaryDataMetadata binary_data_metadata, const JsonNode<wchar_t>& json_node) override;
+    std::unique_ptr<BinaryContentReader> CreateBinaryContentReader(std::optional<uint64_t> size) override;
 
 private:
     JsonRepository& m_jsonRepository;
 };
 
 
-class JsonRepositoryBinaryDataIO : public BinaryDataReader
+class JsonRepositoryBinaryDataIO : public BinaryContentReader
 {
 public:
-    JsonRepositoryBinaryDataIO(JsonRepository& json_repository, BinaryDataMetadata binary_data_metadata);
+    JsonRepositoryBinaryDataIO(JsonRepository& json_repository);
 
-    BinaryData GetBinaryData() override;
+    const UniqueId* GetUniqueId() const override;
 
-    const BinaryDataMetadata& GetMetadata() override { return m_binaryDataMetadata; }
-
-    uint64_t GetSize() override;
-
-    void OnBinaryDataChange() override { m_binaryDataChanged = true; }
+    uint64_t GetSize(const std::string& signature) override;
 
     static void WriteBinaryData(JsonRepository& json_repository, JsonWriter& json_writer, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index);
 
+protected:
+    BinaryContentCacher::CacheableContent GetContentWorker(const std::string& signature) override;
+
 private:
-    const std::wstring& EvaluateFilename();
+    const std::string& EvaluateFilePath(const std::string& signature);
 
 private:
     JsonRepository& m_jsonRepository;
-    BinaryDataMetadata m_binaryDataMetadata;
-    std::wstring m_evaluatedFilename;
-    std::optional<BinaryData> m_binaryData;
-    bool m_binaryDataChanged;
+    std::string m_evaluatedFilePath;
 };

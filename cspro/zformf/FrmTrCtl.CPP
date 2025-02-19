@@ -17,7 +17,6 @@
 #include <zToolsO/SharedSettings.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/BCMenu.h>
-#include <zJson/JsonStream.h>
 #include <zAppO/Application.h>
 #include <zInterfaceF/resource_shared.h>
 
@@ -106,9 +105,8 @@ CFormTreeCtrl::CFormTreeCtrl() : m_bDragging(false), m_dwDragStart(0),
 {
     m_mask  = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
 
-
-//  registers the view w/OLE DLLs as a valid drop target; need this so i can drag items
-//  within the form control (e.g., traversal reorder)
+    // registers the view w/OLE DLLs as a valid drop target; need this so i can drag items
+    // within the form control (e.g., traversal reorder)
 
     m_dropTarget.Register(this);
 
@@ -116,6 +114,7 @@ CFormTreeCtrl::CFormTreeCtrl() : m_bDragging(false), m_dwDragStart(0),
 
     m_dragStartBounds.SetRectEmpty();
 }
+
 
 CFormTreeCtrl::~CFormTreeCtrl()
 {
@@ -310,51 +309,84 @@ void CFormTreeCtrl::OnDTreeDblclk(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 
 // ***************************************************************************
 
-HTREEITEM CFormTreeCtrl::InsertFormFile (const CString &sLabel,
-                                         const CString &sFormFileName,
-                                         CFormDoc* pDoc)
+
+HTREEITEM CFormTreeCtrl::AddFormFile(const std::string& form_file_path, CFormDoc* const form_doc, const bool add_dependencies)
 {
+    CFormNodeID* pID = GetFormNode(form_file_path);
+
+    // if already open, add a reference
+    if( pID != nullptr )
+    {
+        pID->AddRef();
+        return pID->GetHItem();
+    }
+
     // Insert the form in the form tree control
     // Use the form file name to insert it into the
     // structure later on to get the form file name
 
     // pID->form index set in the constructor to 0, which is what i want for the FF Node
 
-    CFormNodeID* pID = new CFormNodeID();
+    pID = new CFormNodeID();
 
-    pID->SetFormDoc     (pDoc);
-    pID->SetFFName      (sFormFileName);
-    pID->SetFFLabel     (sLabel);
-    pID->AddRef         ();
-    pID->SetNodeType    (eFTT_FORMFILE);
-
-    if (pDoc == NULL)
-        pID->SetItemPtr (NULL);
-    else
-        pID->SetItemPtr (&pDoc->GetFormFile());
-
+    pID->SetFormDoc(form_doc);
+    pID->SetFFName(UTF8_TODO::GetCString(form_file_path));
+    pID->AddRef();
+    pID->SetNodeType(eFTT_FORMFILE);
+    pID->SetItemPtr(( form_doc == nullptr ) ? nullptr : &form_doc->GetFormFile());
 
     TVINSERTSTRUCT tvi;
-
-    tvi.hParent      = TVI_ROOT;
+    tvi.hParent = TVI_ROOT;
     tvi.hInsertAfter = TVI_LAST;
-
-    tvi.item.mask       = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-    tvi.item.state      = 0;
-    tvi.item.stateMask  = 0;
-    tvi.item.pszText    = (LPTSTR) LPSTR_TEXTCALLBACK;
-    tvi.item.lParam     = (DWORD) pID;
-//  tvi.item.iImage     = FORMFILE;         // must i say IDI_FORMFILE ?
-//  tvi.item.iSelectedImage = FORMFILE; // ditto
+    tvi.item.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN;
+    tvi.item.state = 0;
+    tvi.item.stateMask = 0;
+    tvi.item.pszText = (LPTSTR)LPSTR_TEXTCALLBACK;
+    tvi.item.lParam = (DWORD) pID;
     tvi.item.iImage = I_IMAGECALLBACK;
     tvi.item.iSelectedImage = I_IMAGECALLBACK;
+    tvi.item.cChildren = 1;
 
-    HTREEITEM hItem = InsertItem ( &tvi );
+    HTREEITEM hItem = InsertItem(&tvi);
 
-    pID->SetHItem (hItem);
+    pID->SetHItem(hItem);
+
+    if( add_dependencies )
+        InsertFormDependencies(pID);
 
     return hItem;
 }
+
+
+void CFormTreeCtrl::RemoveFormFile(const std::string& form_file_path)
+{
+    CFormNodeID* pID = GetFormNode(form_file_path);
+
+    if( pID == nullptr )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    // if closing the form file releases all references, see if it should be saved
+    CFormDoc* const form_doc = pID->GetFormDoc();
+
+    if( pID->GetRefCount() == 1 &&
+        form_doc != nullptr &&
+        form_doc->IsModified() )
+    {
+        const std::string message = FormatText("Before closing '%s', do you want to save the form file?",
+                                               PortableFunctions::PathGetFilename(form_file_path).c_str());
+
+        if( AfxMessageBox(message, MB_YESNO) == IDYES )
+            form_doc->SaveModified();
+    }
+
+    // release the form file and its dependencies
+    ReleaseFormDependencies(pID);
+    ReleaseFormNodeID(pID);
+}
+
 
 // ***************************************************************************
 // Get the item corresponding to this Item ;if this has its pDoc as Null
@@ -411,41 +443,39 @@ void  CFormTreeCtrl::InitImageList(void)
 }
 
 
-CString CFormTreeCtrl::GetNameOrLabel(CFormID* pID, CDEField** pSelField, bool name /*=true*/)
+CString CFormTreeCtrl::GetNameOrLabel(CFormID* const pID, CDEField** pSelField, const bool name /*=true*/)
 {
     const eNodeType eNT = pID->GetItemType();
     std::optional<CString> value_from_subclass = name ? pID->GetName() :
                                                         pID->GetLabel();
 
-    if (value_from_subclass.has_value())
-    {
+    if( value_from_subclass.has_value() )
         return *value_from_subclass;
-    }
 
-    else if (eNT == eFTT_FORMFILE)
+    const CDEFormBase* form_base;
+
+    if( eNT == eFTT_FORMFILE )
     {
-        return name ? pID->GetFormDoc()->GetFormFile().GetName() :
-                      ((CFormNodeID*)pID)->GetFFLabel();
+        form_base = &pID->GetFormDoc()->GetFormFile();
     }
 
-    else if (eNT == eFTT_GRIDFIELD)
+    else if( eNT == eFTT_GRIDFIELD )
     {
         CDERoster* pRoster = (CDERoster*)(pID->GetItemPtr());
         CDECol* pCol = pRoster->GetCol(pID->GetColumnIndex());
         CDEField* pField = pCol->GetField(pID->GetRosterField());
         *pSelField = (CDEField*)pField;
-
-        return name ? pField->GetName() :
-                      pField->GetLabel();
+        form_base = pField;
     }
 
     else
     {
         *pSelField = DYNAMIC_DOWNCAST(CDEField, pID->GetItemPtr());
-
-        return name ? pID->GetItemPtr()->GetName() :
-                      pID->GetItemPtr()->GetLabel();
+        form_base = pID->GetItemPtr();
     }
+
+    return name ? form_base->GetName() :
+                  form_base->GetLabel();
 }
 
 
@@ -476,10 +506,10 @@ void CFormTreeCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
         return;
     CFormDoc* pFormDoc = pID->GetFormDoc();
 
-    if (! pFormDoc && (pTVDispInfo->item.mask & TVIF_TEXT))
+    if( pFormDoc == nullptr && ( pTVDispInfo->item.mask & TVIF_TEXT ) != 0 )
     {
-        if (pID->IsKindOf (RUNTIME_CLASS(CFormNodeID)))
-            lstrcpyn (pTVDispInfo->item.pszText, ((CFormNodeID*) pID)->GetFFLabel(), pTVDispInfo->item.cchTextMax);
+        if( pID->IsKindOf(RUNTIME_CLASS(CFormNodeID)) )
+            lstrcpyn(pTVDispInfo->item.pszText, L"<Form File>", pTVDispInfo->item.cchTextMax);
 
         return;
     }
@@ -752,6 +782,7 @@ void CFormTreeCtrl::FindFTCRecursively (HTREEITEM&  hGroupOrItem,
     }
 }
 
+
 void CFormTreeCtrl::SelectNodes(std::vector<CDEFormBase*> nodes)
 {
     for (auto node : nodes)
@@ -934,10 +965,10 @@ void CFormTreeCtrl::InsertExternalCodeAndReportNodes(const CFormNodeID* pFormNod
     }
 
     // get the current application
-    Application* pApplication = nullptr;
-    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pFormNodeId->GetFormDoc());
+    Application* application = nullptr;
+    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&application, (LPARAM)pFormNodeId->GetFormDoc());
 
-    if( pApplication == nullptr )
+    if( application == nullptr )
         return;
 
     HTREEITEM hLastAddedHeaderItem = nullptr;
@@ -992,7 +1023,7 @@ void CFormTreeCtrl::InsertExternalCodeAndReportNodes(const CFormNodeID* pFormNod
     {
         std::vector<FormExternalCodeID*> pFormIds;
 
-        for( const CodeFile& code_file : pApplication->GetCodeFiles() )
+        for( const CodeFile& code_file : application->GetCodeFiles() )
         {
             if( code_file.IsLogicMain() )
                 continue;
@@ -1009,14 +1040,14 @@ void CFormTreeCtrl::InsertExternalCodeAndReportNodes(const CFormNodeID* pFormNod
 
 
     // add reports
-    const auto& report_named_text_sources = pApplication->GetReportNamedTextSources();
+    const std::vector<ReportFile>& report_files = application->GetReportFiles();
 
-    if( !report_named_text_sources.empty() )
+    if( !report_files.empty() )
     {
-        std::vector<FormReportID*> pFormIds = { new FormReportID(pFormNodeId->GetFormDoc(), nullptr) };
+        std::vector<FormReportID*> pFormIds = { new FormReportID(pFormNodeId->GetFormDoc(), std::nullopt) };
 
-        for( const auto& report_named_text_source : report_named_text_sources )
-            pFormIds.emplace_back(new FormReportID(pFormNodeId->GetFormDoc(), report_named_text_source));
+        for( const ReportFile& report_file : application->GetReportFiles() )
+            pFormIds.emplace_back(new FormReportID(pFormNodeId->GetFormDoc(), report_file));
 
         add_nodes(pFormIds);
     }
@@ -1188,7 +1219,7 @@ void CFormTreeCtrl::DefaultExpand(HTREEITEM hItem)
 
 // ***************************************************************************
 
-CFormNodeID* CFormTreeCtrl::GetFormNode(CFormDoc*  pDoc) const
+CFormNodeID* CFormTreeCtrl::GetFormNode(CFormDoc* pDoc) const
 {
     CFormNodeID* pResult = NULL;
     CFormNodeID* pNodeID = NULL;
@@ -1212,7 +1243,7 @@ CFormNodeID* CFormTreeCtrl::GetFormNode(CFormDoc*  pDoc) const
 
 // ***************************************************************************
 
-CFormNodeID* CFormTreeCtrl::GetFormNode(wstring_view filename) const
+CFormNodeID* CFormTreeCtrl::GetFormNode(const std::string_view file_path_sv) const
 {
     HTREEITEM hItem = GetRootItem();
 
@@ -1220,7 +1251,7 @@ CFormNodeID* CFormTreeCtrl::GetFormNode(wstring_view filename) const
     {
         CFormNodeID* pNodeID = (CFormNodeID*)GetItemData(hItem);
 
-        if( pNodeID != nullptr && SO::EqualsNoCase(filename, pNodeID->GetFFName()) )
+        if( pNodeID != nullptr && SO::EqualsNoCase(file_path_sv, pNodeID->GetFFName()) )
             return pNodeID;
 
         hItem = GetNextSiblingItem(hItem);
@@ -1859,7 +1890,7 @@ void CFormTreeCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 // ***************************************************************************
 //  this func either adds a node to the dict tree, or adds a reference
 
-bool CFormTreeCtrl::InsertFormDependencies(CFormNodeID* pID)
+bool CFormTreeCtrl::InsertFormDependencies(CFormNodeID* const pID)
 {
     CSpecFile specFile(true);
 
@@ -1869,45 +1900,19 @@ bool CFormTreeCtrl::InsertFormDependencies(CFormNodeID* pID)
         return false;
     }
 
-    std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+    const std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
     specFile.Close();
 
-    if( dictionary_filenames.empty() )
+    if( dictionary_file_paths.empty() )
     {
-        AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), pID->GetFFName().GetString()));
+        AfxMessageBox(FormatText(L"No Dictionaries in Spec file %s", pID->GetFFName().GetString()));
         return false;
     }
 
-    CDDTreeCtrl* pDictTree = GetDDTreeCtrl();    //  Get the handle to tree controls
+    CDDTreeCtrl* const pDictTree = GetDDTreeCtrl(); // Get the handle to tree controls
 
-    for( const std::wstring& dictionary_filename : dictionary_filenames )
-    {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_filename);
-
-        if( dictionary_dict_tree_node != nullptr )
-        {
-            dictionary_dict_tree_node->AddRef();
-        }
-
-        else
-        {
-            try
-            {
-                LabelSet dictionary_label_set = JsonStream::GetValueFromSpecFile<LabelSet, CDataDict>(JK::labels, dictionary_filename);
-
-                TVITEM pItem;
-                pItem.hItem = pDictTree->InsertDictionary(dictionary_label_set.GetLabel(), WS2CS(dictionary_filename), nullptr);
-                pItem.mask = TVIF_CHILDREN;
-                pItem.cChildren = 1;
-                pDictTree->SetItem(&pItem);
-            }
-
-            catch( const CSProException& exception )
-            {
-		        ErrorMessage::Display(exception);
-            }
-        }
-    }
+    for( const std::string& dictionary_file_path : dictionary_file_paths )
+        pDictTree->AddDictionary(dictionary_file_path, nullptr);
 
     return true;
 }
@@ -1917,7 +1922,7 @@ bool CFormTreeCtrl::InsertFormDependencies(CFormNodeID* pID)
 bool CFormTreeCtrl::ReleaseFormDependencies(CFormNodeID* pID)
 {
     CSpecFile specFile(true);
-    std::vector<std::wstring> dictionary_filenames;
+    std::vector<std::string> dictionary_file_paths;
 
     // whether or not form doc has been opened (which at the application or project level
     // it may not necessarily be), we need to try and close the form's associated array
@@ -1930,15 +1935,15 @@ bool CFormTreeCtrl::ReleaseFormDependencies(CFormNodeID* pID)
     if (pID->GetFormDoc() != NULL)  // [1]
     {
         CDEFormFile* pFF = &pID->GetFormDoc()->GetFormFile();
-        dictionary_filenames.emplace_back(CS2WS(pFF->GetDictionaryFilename()));
+        dictionary_file_paths.emplace_back(UTF8_TODO::GetUtf8(pFF->GetDictionaryFilename()));
     }
 
     else if (specFile.Open(pID->GetFFName(), CFile::modeRead))  // [2]
     {
-        dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+        dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
         specFile.Close();
 
-        if( dictionary_filenames.empty() )
+        if( dictionary_file_paths.empty() )
         {
             AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), pID->GetFFName().GetString()));
             return false;
@@ -1956,9 +1961,9 @@ bool CFormTreeCtrl::ReleaseFormDependencies(CFormNodeID* pID)
     if (pDictTree == NULL)
         return false;
 
-    for( const std::wstring& dictionary_filename : dictionary_filenames )
+    for( const std::string& dictionary_file_path : dictionary_file_paths )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_filename);
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_file_path);
 
         if( dictionary_dict_tree_node != nullptr )
             pDictTree->ReleaseDictionaryNode(*dictionary_dict_tree_node);
@@ -1967,9 +1972,10 @@ bool CFormTreeCtrl::ReleaseFormDependencies(CFormNodeID* pID)
     return true;
 }
 
-BOOL CFormTreeCtrl::OpenFormFile (const CString &sFormFile ,BOOL bMakeVisible /* =TRUE*/)
+
+BOOL CFormTreeCtrl::OpenFormFile(const std::string& form_file_path, BOOL bMakeVisible /* =TRUE*/)
 {
-    CFormNodeID * pID = GetFormNode(sFormFile);
+    CFormNodeID* const pID = GetFormNode(form_file_path);
     if(!pID)
         return FALSE;
 
@@ -1977,7 +1983,7 @@ BOOL CFormTreeCtrl::OpenFormFile (const CString &sFormFile ,BOOL bMakeVisible /*
         return true;
 
 
-    CFormDoc* pDoc = (CFormDoc*) m_pDocTemplate->OpenDocumentFile(sFormFile,bMakeVisible);
+    CFormDoc* pDoc = (CFormDoc*) m_pDocTemplate->OpenDocumentFile(TC::ToWide(form_file_path).c_str(), bMakeVisible);
 
     CFormScrollView* pView = NULL;
     if(pDoc && !bMakeVisible) {
@@ -1991,7 +1997,7 @@ BOOL CFormTreeCtrl::OpenFormFile (const CString &sFormFile ,BOOL bMakeVisible /*
     SetFormDoc (pDoc);  // set the tree ctrl's ptr to the doc
     pDoc->SetFormTreeCtrl (this); //set the tree  ctrl before doing the Loadformspecfile
 
-    if (!pDoc->LoadFormSpecFile(sFormFile) )
+    if (!pDoc->LoadFormSpecFile(form_file_path) )
     {
         pDoc->OnCloseDocument();
         return  false;
@@ -2241,17 +2247,13 @@ void CFormTreeCtrl::OnEditGridProp()
 
 void CFormTreeCtrl::OnEditReportProperties()
 {
-    const CFormID* pID = GetSelectedFormId();
+    const CFormID* const pID = GetSelectedFormId();
 
     if( pID == nullptr || pID->GetItemType() != eFFT_REPORT )
         return;
 
-    if( AfxGetMainWnd()->SendMessage(UWM::Designer::EditReportProperties,
-        (WPARAM)((FormReportID*)pID)->GetNamedTextSource(), (LPARAM)pID->GetFormDoc()) == 1 )
-    {
-        // on success, redraw the tree
-        Invalidate();
-    }
+    WindowsDesktopMessage::PostObject(UWM::Designer::ShowFileProperties, assert_cast<const FormReportID*>(pID)->GetReportFile().GetFilePath(),
+                                                                         pID->GetFormDoc());
 }
 
 
@@ -3281,7 +3283,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         bool add_report_options = ( pID->GetItemType() == eFFT_REPORT && pID->GetTextSource() != nullptr );
 
         // GHM 20101104, rosie request ... allow the user to copy the name of the node (for logic editing)
-        if( pFrame->IsLogicViewActive() && ( add_report_options || ( eNT != eFFT_EXTERNALCODE && eNT != eFFT_REPORT ) ) ) 
+        if( pFrame->IsLogicViewActive() && ( add_report_options || ( eNT != eFFT_EXTERNALCODE && eNT != eFFT_REPORT ) ) )
         {
             popMenu.AppendMenu(MF_STRING, ID_COPY_NAME, _T("&Copy Name"));
             popMenu.AppendMenu(MF_SEPARATOR);
@@ -3397,7 +3399,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
             popMenu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));
             popMenu.AppendMenu(MF_SEPARATOR);
             popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_CAPI_MACROS, _T("Question Text &Macros"));
-            
+
         }
         else {
             popMenu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));

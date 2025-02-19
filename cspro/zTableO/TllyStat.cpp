@@ -1373,7 +1373,7 @@ CTallyVarStatFmtNTiles::CTallyVarStatFmtNTiles(const CTallyVarStatFmtNTiles& rhs
 // display string to show in dialog box (e.g. "Percent (Column)")
 CIMSAString CTallyVarStatFmtNTiles::GetDisplayString() const
 {
-    CIMSAString sNumTiles = IntToString(m_numTiles);
+    CIMSAString sNumTiles = UTF8_TODO::GetCString(IntToString(m_numTiles));
     return CIMSAString(GetType()) + _T("(") + sNumTiles + _T(" tiles;") + m_rangeProps.GetDisplayString() + _T(")");
 }
 

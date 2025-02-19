@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "SQLiteDictionarySchemaGenerator.h"
-#include "SQLiteSchemaHelpers.h"
 #include <zUtilO/SQLiteSchema.h>
 
 
@@ -72,7 +71,7 @@ SQLiteSchema::Schema SQLiteDictionarySchemaGenerator::GenerateBinaryTable()
 
 SQLiteSchema::Schema SQLiteDictionarySchemaGenerator::GenerateCaseBinaryTable()
 {
-    //case-binary-data table to associate binary data items belonging to a case for easier access 
+    //case-binary-data table to associate binary data items belonging to a case for easier access
     Table table{ "case-binary-data" };
     table.columns.emplace_back(Column{ "id", ColumnType::INTEGER, ColumnFlags(ColumnFlags::NOT_NULL | ColumnFlags::PRIMARY) });
     table.columns.emplace_back(Column{ "case-id", ColumnType::TEXT });
@@ -161,7 +160,7 @@ SQLiteSchema::Schema SQLiteDictionarySchemaGenerator::GenerateLevelIdsTable(cons
         table.foreign_keys.emplace_back(ForeignKey{ parent_id,parent_level_name, parent_id, ForeignKeyFlags::DELETE_CASCADE });
 
     // Only first level parent id is unique since that is case.id, at higher levels can have multiple child nodes
-    const bool unique = parent_level == nullptr; 
+    const bool unique = parent_level == nullptr;
     Index parent_id_index = Index(table.name, {parent_id}, unique);
 
     return Schema{ {table}, {parent_id_index} };
@@ -173,8 +172,8 @@ Schema SQLiteDictionarySchemaGenerator::GenerateRecordTable(const CDictRecord& r
     const std::string parent_level_name = "level-" + std::to_string(record.GetLevel()->GetLevelNumber() + 1);
     const std::string parent_id = parent_level_name + "-id";
 
-    Table table{ ToLowerUtf8(record.GetName()) };
-    table.columns.emplace_back(Column{ ToLowerUtf8(record.GetName()) + "-id", ColumnType::INTEGER, ColumnFlags(ColumnFlags::NOT_NULL | ColumnFlags::PRIMARY) });
+    Table table { SO::ToLower(record.GetName()) };
+    table.columns.emplace_back(Column{ SO::ToLower(record.GetName()) + "-id", ColumnType::INTEGER, ColumnFlags(ColumnFlags::NOT_NULL | ColumnFlags::PRIMARY) });
     table.columns.emplace_back(Column{ parent_id, ColumnType::INTEGER, ColumnFlags::NOT_NULL });
 
     if (record.GetMaxRecs() > 1) {
@@ -204,7 +203,7 @@ std::vector<Column> SQLiteDictionarySchemaGenerator::GenerateRecordItems(const C
 
 void SQLiteDictionarySchemaGenerator::GenerateItem(const CDictItem& item, std::vector<Column>& columns)
 {
-    const std::string item_name = ToLowerUtf8(item.GetName());
+    const std::string item_name = SO::ToLower(item.GetName());
     const ColumnType item_type = GenerateColumnType(item);
     const int item_occurrences = item.GetItemSubitemOccurs();
 

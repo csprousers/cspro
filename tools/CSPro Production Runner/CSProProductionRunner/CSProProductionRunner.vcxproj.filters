@@ -30,10 +30,10 @@
     <ClCompile Include="RunForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="SettingsForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingsForm.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WildcardForm.cpp">
@@ -59,10 +59,10 @@
     <ClInclude Include="RunForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="SettingsForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SettingsForm.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WildcardForm.h">

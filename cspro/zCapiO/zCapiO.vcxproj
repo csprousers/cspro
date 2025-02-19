@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zCapiO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -100,14 +96,14 @@
     <ResourceCompile Include="zCapiO.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CapiLogicParameters.h" />
     <ClInclude Include="CapiCondition.h" />
     <ClInclude Include="CapiControl.h" />
     <ClInclude Include="CapiFill.h" />
+    <ClInclude Include="CapiLogicParameters.h" />
     <ClInclude Include="CapiQuestion.h" />
-    <ClInclude Include="CapiQuestionYaml.h" />
     <ClInclude Include="CapiQuestionFilePre76.h" />
     <ClInclude Include="CapiQuestionManager.h" />
+    <ClInclude Include="CapiQuestionYaml.h" />
     <ClInclude Include="CapiStyle.h" />
     <ClInclude Include="CapiText.h" />
     <ClInclude Include="ExtendedControl.h" />

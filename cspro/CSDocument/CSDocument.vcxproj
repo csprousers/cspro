@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -65,58 +65,71 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CacheableCalculator.h" />
-    <ClInclude Include="DocBuildSettings.h" />
-    <ClInclude Include="DocSetBuilder.h" />
-    <ClInclude Include="DocSetBuilderCache.h" />
-    <ClInclude Include="DocSetBuildHandlerFrame.h" />
-    <ClInclude Include="DocSetIndex.h" />
-    <ClInclude Include="DocSetIndexTableOfContentsBase.h" />
-    <ClInclude Include="DocSetSettings.h" />
-    <ClInclude Include="DocSetTableOfContents.h" />
-    <ClInclude Include="PdfCreator.h" />
-    <ClInclude Include="GenerateTaskProcessRunner.h" />
-    <ClInclude Include="SearchFilenamesByName.h" />
-    <ClInclude Include="TextEditFrame.h" />
     <ClInclude Include="BuildWnd.h" />
+    <ClInclude Include="CacheableCalculator.h" />
     <ClInclude Include="CommandLineBuilder.h" />
     <ClInclude Include="CommandLineParser.h" />
     <ClInclude Include="ConsoleWrapper.h" />
     <ClInclude Include="CSDocCompiler.h" />
     <ClInclude Include="CSDocCompilerSettings.h" />
     <ClInclude Include="CSDocCompilerWorker.h" />
-    <ClInclude Include="CSDocument.h" />
     <ClInclude Include="CSDocDoc.h" />
+    <ClInclude Include="CSDocExportDlg.h" />
     <ClInclude Include="CSDocFrame.h" />
+    <ClInclude Include="CSDocument.h" />
+    <ClInclude Include="DocBuildSettings.h" />
     <ClInclude Include="DocSetBaseFrame.h" />
+    <ClInclude Include="DocSetBuilder.h" />
+    <ClInclude Include="DocSetBuilderCache.h" />
+    <ClInclude Include="DocSetBuildHandlerFrame.h" />
     <ClInclude Include="DocSetCompiler.h" />
     <ClInclude Include="DocSetComponent.h" />
     <ClInclude Include="DocSetComponentDoc.h" />
     <ClInclude Include="DocSetComponentDocTemplate.h" />
     <ClInclude Include="DocSetComponentFrame.h" />
-    <ClInclude Include="DocSetSpecFrame.h" />
+    <ClInclude Include="DocSetIndex.h" />
+    <ClInclude Include="DocSetIndexTableOfContentsBase.h" />
+    <ClInclude Include="DocSetSettings.h" />
     <ClInclude Include="DocSetSpec.h" />
+    <ClInclude Include="DocSetSpecDoc.h" />
+    <ClInclude Include="DocSetSpecFrame.h" />
+    <ClInclude Include="DocSetTableOfContents.h" />
     <ClInclude Include="DocSetTreeView.h" />
-    <ClInclude Include="CSDocExportDlg.h" />
     <ClInclude Include="GenerateDlg.h" />
     <ClInclude Include="GenerateTask.h" />
-    <ClInclude Include="HtmlOutputWnd.h" />
-    <ClInclude Include="TextEditView.h" />
-    <ClInclude Include="DocSetSpecDoc.h" />
+    <ClInclude Include="GenerateTaskProcessRunner.h" />
     <ClInclude Include="GlobalSettings.h" />
-    <ClInclude Include="MainFrame.h" />
     <ClInclude Include="GlobalSettingsDlg.h" />
-    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="HtmlOutputWnd.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="PdfCreator.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SearchFilePathsByFilename.h" />
+    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TextEditDoc.h" />
+    <ClInclude Include="TextEditFrame.h" />
+    <ClInclude Include="TextEditView.h" />
     <ClInclude Include="TitleManager.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BuildWnd.cpp" />
     <ClCompile Include="CacheableCalculator.cpp" />
+    <ClCompile Include="CommandLineBuilder.cpp" />
+    <ClCompile Include="ConsoleWrapper.cpp" />
+    <ClCompile Include="CSDocCompiler.cpp" />
+    <ClCompile Include="CSDocCompilerColorizers.cpp" />
+    <ClCompile Include="CSDocCompilerPffColorizer.cpp" />
+    <ClCompile Include="CSDocCompilerSettings.cpp" />
     <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp" />
     <ClCompile Include="CSDocCompilerSettingsForCSDocumentPreview.cpp" />
+    <ClCompile Include="CSDocCompilerWorker.cpp" />
+    <ClCompile Include="CSDocDoc.cpp" />
+    <ClCompile Include="CSDocExportDlg.cpp" />
+    <ClCompile Include="CSDocFrame.cpp" />
+    <ClCompile Include="CSDocument.cpp" />
     <ClCompile Include="DocBuildSettings.cpp" />
+    <ClCompile Include="DocSetBaseFrame.cpp" />
     <ClCompile Include="DocSetBuilderBaseGenerateTask.cpp" />
     <ClCompile Include="DocSetBuilderCache.cpp" />
     <ClCompile Include="DocSetBuilderChmGenerateTask.cpp" />
@@ -125,45 +138,32 @@
     <ClCompile Include="DocSetBuilderHtmlWebsiteGenerateTask.cpp" />
     <ClCompile Include="DocSetBuilderPdfGenerateTask.cpp" />
     <ClCompile Include="DocSetBuildHandlerFrame.cpp" />
-    <ClCompile Include="DocSetIndex.cpp" />
-    <ClCompile Include="DocSetSettings.cpp" />
-    <ClCompile Include="DocSetTableOfContents.cpp" />
-    <ClCompile Include="GenerateTaskProcessRunner.cpp" />
-    <ClCompile Include="PdfCreator.cpp" />
-    <ClCompile Include="TextEditFrame.cpp" />
-    <ClCompile Include="BuildWnd.cpp" />
-    <ClCompile Include="CommandLineBuilder.cpp" />
-    <ClCompile Include="ConsoleWrapper.cpp" />
-    <ClCompile Include="CSDocCompilerColorizers.cpp" />
-    <ClCompile Include="CSDocCompilerPffColorizer.cpp" />
-    <ClCompile Include="CSDocCompilerSettings.cpp" />
-    <ClCompile Include="CSDocCompilerWorker.cpp" />
-    <ClCompile Include="CSDocExportDlg.cpp" />
-    <ClCompile Include="DocSetBaseFrame.cpp" />
     <ClCompile Include="DocSetCompiler.cpp" />
     <ClCompile Include="DocSetComponentDoc.cpp" />
     <ClCompile Include="DocSetComponentFrame.cpp" />
-    <ClCompile Include="GenerateDlg.cpp" />
-    <ClCompile Include="MainFrameHtml.cpp" />
-    <ClCompile Include="CSDocCompiler.cpp" />
-    <ClCompile Include="CSDocument.cpp" />
-    <ClCompile Include="CSDocDoc.cpp" />
-    <ClCompile Include="CSDocFrame.cpp" />
-    <ClCompile Include="DocSetSpecDoc.cpp" />
+    <ClCompile Include="DocSetIndex.cpp" />
+    <ClCompile Include="DocSetSettings.cpp" />
     <ClCompile Include="DocSetSpec.cpp" />
+    <ClCompile Include="DocSetSpecDoc.cpp" />
     <ClCompile Include="DocSetSpecFrame.cpp" />
+    <ClCompile Include="DocSetTableOfContents.cpp" />
     <ClCompile Include="DocSetTreeView.cpp" />
-    <ClCompile Include="HtmlOutputWnd.cpp" />
-    <ClCompile Include="TextEditView.cpp" />
+    <ClCompile Include="GenerateDlg.cpp" />
+    <ClCompile Include="GenerateTaskProcessRunner.cpp" />
     <ClCompile Include="GlobalSettings.cpp" />
     <ClCompile Include="GlobalSettingsDlg.cpp" />
+    <ClCompile Include="HtmlOutputWnd.cpp" />
     <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="MainFrameHtml.cpp" />
     <ClCompile Include="NotepadPlusPlusColorizer.cpp" />
+    <ClCompile Include="PdfCreator.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextEditDoc.cpp" />
+    <ClCompile Include="TextEditFrame.cpp" />
+    <ClCompile Include="TextEditView.cpp" />
     <ClCompile Include="TitleManager.cpp" />
   </ItemGroup>
   <ItemGroup>

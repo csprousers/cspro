@@ -27,6 +27,9 @@ protected:
 
     void OnUpdateFrameTitle(BOOL bAddToTitle) override;
 
+    LRESULT OnCloseDocument(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetObjectTransporter(WPARAM wParam, LPARAM lParam);
     LRESULT OnEngineUI(WPARAM wParam, LPARAM lParam);
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);

@@ -13,12 +13,12 @@ DictionaryRecord::DictionaryRecord(CDictRecord* pNativeRecord) :
 
 String^ DictionaryRecord::Name::get()
 {
-    return gcnew String(m_pNativeRecord->GetName());
+    return clr_helpers::to_SystemString(m_pNativeRecord->GetName());
 }
 
 void DictionaryRecord::Name::set(String^ name)
 {
-    m_pNativeRecord->SetName((CString)name);
+    m_pNativeRecord->SetName(clr_helpers::to_string(name));
 }
 
 String^ DictionaryRecord::Label::get()

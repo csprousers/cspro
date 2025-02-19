@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E525331A-400F-4D7C-9F69-451E14844A3B}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zBridgeO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -70,7 +66,6 @@
     <ClCompile Include="DataFileDlg.cpp" />
     <ClCompile Include="DataFileFilterManager.cpp" />
     <ClCompile Include="DatFDlg.cpp" />
-    <ClCompile Include="DictReconcileDlg.cpp" />
     <ClCompile Include="FilteredExtensionProcessor.cpp" />
     <ClCompile Include="NPFF.cpp" />
     <ClCompile Include="PifDlg.cpp" />
@@ -86,12 +81,11 @@
     <ClInclude Include="DataFileDlg.h" />
     <ClInclude Include="DataFileFilterManager.h" />
     <ClInclude Include="DatFDlg.h" />
-    <ClInclude Include="DictReconcileDlg.h" />
     <ClInclude Include="FilteredExtensionProcessor.h" />
+    <ClInclude Include="npff.h" />
     <ClInclude Include="PifDlg.h" />
     <ClInclude Include="Pifgrid.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="npff.h" />
     <ClInclude Include="runapl.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="zBridgeO.h" />
@@ -102,10 +96,6 @@
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
-      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zDictO\zDictO.vcxproj">
@@ -120,8 +110,8 @@
       <Project>{7179e255-3de3-45fd-939b-cbd0a7f41761}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
-      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+    <ProjectReference Include="..\zInterfaceF\zInterfaceF.vcxproj">
+      <Project>{a777b4a3-a0b4-4f0e-86c4-7077630e0b54}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">

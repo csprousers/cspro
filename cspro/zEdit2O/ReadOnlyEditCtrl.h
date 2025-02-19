@@ -8,7 +8,7 @@ class CLASS_DECL_ZEDIT2O ReadOnlyEditCtrl : public EditCtrl
 {
 public:
     void ClearReadOnlyText();
-    void AppendReadOnlyText(wstring_view text_sv);
+    void AppendReadOnlyText(std::string_view text_sv);
 
 protected:
     void InitializeControl() override;

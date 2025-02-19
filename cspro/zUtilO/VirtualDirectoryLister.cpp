@@ -2,27 +2,27 @@
 #include "VirtualDirectoryLister.h"
 
 
-VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::wstring>& filenames)
+VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::string>& file_paths)
 {
     struct VolumeAndCommonRoot
     {
-        std::wstring volume;
-        std::wstring common_root;
+        std::string volume;
+        std::string common_root;
     };
 
     struct DirectoryInformation
     {
-        std::wstring directory;
-        std::vector<std::wstring> filenames;
+        std::string directory;
+        std::vector<std::string> file_paths;
         const VolumeAndCommonRoot* volume_and_column_root;
     };
 
     // calculate all of the unique directories along with their associated files
     std::vector<DirectoryInformation> directory_infos;
 
-    for( const std::wstring& filename : filenames )
+    for( const std::string& file_path : file_paths )
     {
-        std::wstring directory = PortableFunctions::PathGetDirectory(filename);
+        std::string directory = PortableFunctions::PathGetDirectory(file_path);
 
         ASSERT(directory == PortableFunctions::PathEnsureTrailingSlash(directory) &&
                directory == PortableFunctions::PathToNativeSlash(directory));
@@ -32,12 +32,12 @@ VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::wstring>& 
 
         if( directory_info_lookup != directory_infos.cend() )
         {
-            directory_info_lookup->filenames.emplace_back(filename);
+            directory_info_lookup->file_paths.emplace_back(file_path);
         }
 
         else
         {
-            directory_infos.emplace_back(DirectoryInformation { std::move(directory), { filename }, nullptr });
+            directory_infos.emplace_back(DirectoryInformation { std::move(directory), { file_path }, nullptr });
         }
     }
 
@@ -46,8 +46,8 @@ VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::wstring>& 
 
     for( DirectoryInformation& directory_info : directory_infos )
     {
-        size_t slash_pos = directory_info.directory.find_first_of(PortableFunctions::PathSlashChars);
-        std::wstring volume = directory_info.directory.substr(0, slash_pos + 1);
+        const size_t slash_pos = directory_info.directory.find_first_of(Path::SlashChars_sv);
+        std::string volume = directory_info.directory.substr(0, slash_pos + 1);
 
         // make the volume look like a directory; C:\ -> C
         volume = SO::TrimRight(PortableFunctions::PathRemoveTrailingSlash(volume), ':');
@@ -65,7 +65,7 @@ VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::wstring>& 
         else
         {
             directory_info.volume_and_column_root = volume_lookup->get();
-            (*volume_lookup)->common_root = PortableFunctions::PathGetCommonRoot((*volume_lookup)->common_root, directory_info.directory);
+            (*volume_lookup)->common_root = Path::GetCommonRoot((*volume_lookup)->common_root, directory_info.directory);
             ASSERT(!(*volume_lookup)->common_root.empty());
         }
     }
@@ -77,23 +77,24 @@ VirtualDirectoryLister::VirtualDirectoryLister(const std::vector<std::wstring>& 
     {
         ASSERT(directory_info.volume_and_column_root != nullptr);
 
-        wstring_view directory_without_common_root_sv = wstring_view(directory_info.directory).substr(directory_info.volume_and_column_root->common_root.length());
+        const std::string_view directory_without_common_root_sv = std::string_view(directory_info.directory).substr(directory_info.volume_and_column_root->common_root.length());
 
-        std::wstring constructed_path = add_volume_to_directory ? PortableFunctions::PathAppendToPath(directory_info.volume_and_column_root->volume, directory_without_common_root_sv) :
-                                                                  std::wstring(directory_without_common_root_sv);
+        std::string constructed_path = add_volume_to_directory ? Path::Combine(directory_info.volume_and_column_root->volume, directory_without_common_root_sv) :
+                                                                 std::string(directory_without_common_root_sv);
+
         ASSERT(constructed_path == PortableFunctions::PathEnsureTrailingSlash(constructed_path));
         ASSERT(!constructed_path.empty() || directory_infos.size() == 1);
 
         m_virtualDirectories.emplace_back(VirtualDirectory
             {
                 std::move(constructed_path),
-                std::move(directory_info.filenames)
+                std::move(directory_info.file_paths)
             });
     }
 }
 
 
-bool VirtualDirectoryLister::DirectoryExists(const std::wstring& directory) const
+bool VirtualDirectoryLister::DirectoryExists(const std::string& directory) const
 {
     if( directory.empty() ) // the root directory
         return true;
@@ -109,7 +110,7 @@ bool VirtualDirectoryLister::DirectoryExists(const std::wstring& directory) cons
             if( SO::StartsWithNoCase(vd.constructed_directory, directory) )
             {
                 ASSERT(vd.constructed_directory.length() > directory.length());
-                return ( vd.constructed_directory[directory.length()] == PATH_CHAR );
+                return ( vd.constructed_directory[directory.length()] == Path::NativeSlashChar );
             }
 
             return false;
@@ -119,7 +120,7 @@ bool VirtualDirectoryLister::DirectoryExists(const std::wstring& directory) cons
 }
 
 
-const std::vector<VirtualDirectoryLister::VirtualPath>& VirtualDirectoryLister::GetVirtualPaths(const std::wstring& directory) const
+const std::vector<VirtualDirectoryLister::VirtualPath>& VirtualDirectoryLister::GetVirtualPaths(const std::string& directory) const
 {
     ASSERT(DirectoryExists(directory));
 
@@ -154,7 +155,7 @@ const std::vector<VirtualDirectoryLister::VirtualPath>& VirtualDirectoryLister::
             {
                 ASSERT(this_vd.constructed_directory.length() > directory.length());
 
-                if( this_vd.constructed_directory[directory.length()] == PATH_CHAR &&
+                if( this_vd.constructed_directory[directory.length()] == Path::NativeSlashChar &&
                     this_vd.constructed_directory.length() == ( directory.length() + 1 ) )
                 {
                     virtual_directory = &this_vd;
@@ -171,30 +172,30 @@ const std::vector<VirtualDirectoryLister::VirtualPath>& VirtualDirectoryLister::
 }
 
 
-void VirtualDirectoryLister::AddSubdirectoriesForDirectory(std::vector<VirtualPath>& virtual_paths, const std::wstring& directory) const
+void VirtualDirectoryLister::AddSubdirectoriesForDirectory(std::vector<VirtualPath>& virtual_paths, const std::string& directory) const
 {
     ASSERT(DirectoryExists(directory));
 
-    size_t initial_virtual_paths_size = virtual_paths.size();
+    const size_t initial_virtual_paths_size = virtual_paths.size();
 
     for( const VirtualDirectory& virtual_directory : m_virtualDirectories )
     {
         if( !SO::StartsWithNoCase(virtual_directory.constructed_directory, directory) )
             continue;
 
-        size_t expected_subdirectory_pos = directory.empty() ? 0 : ( directory.length() + 1 );
-        ASSERT(expected_subdirectory_pos == 0 || virtual_directory.constructed_directory[expected_subdirectory_pos - 1] == PATH_CHAR);
-        size_t post_subdirectory_slash_pos = virtual_directory.constructed_directory.find(PATH_CHAR, expected_subdirectory_pos);
+        const size_t expected_subdirectory_pos = directory.empty() ? 0 : ( directory.length() + 1 );
+        ASSERT(expected_subdirectory_pos == 0 || virtual_directory.constructed_directory[expected_subdirectory_pos - 1] == Path::NativeSlashChar);
+        const size_t post_subdirectory_slash_pos = virtual_directory.constructed_directory.find(Path::NativeSlashChar, expected_subdirectory_pos);
 
-        if( post_subdirectory_slash_pos != std::wstring::npos && post_subdirectory_slash_pos < virtual_directory.constructed_directory.length() )
+        if( post_subdirectory_slash_pos != std::string::npos && post_subdirectory_slash_pos < virtual_directory.constructed_directory.length() )
         {
-            wstring_view subdirectory_sv = wstring_view(virtual_directory.constructed_directory).substr(expected_subdirectory_pos,
-                                                                                                        post_subdirectory_slash_pos - expected_subdirectory_pos);
+            const std::string_view subdirectory_sv = std::string_view(virtual_directory.constructed_directory).substr(expected_subdirectory_pos,
+                                                                                                                      post_subdirectory_slash_pos - expected_subdirectory_pos);
 
             if( std::find_if(virtual_paths.cbegin(), virtual_paths.cend(),
                              [&](const VirtualPath& virtual_path) { return SO::EqualsNoCase(virtual_path.path, subdirectory_sv); }) == virtual_paths.cend() )
             {
-                virtual_paths.emplace_back(VirtualPath { subdirectory_sv, true });
+                virtual_paths.emplace_back(VirtualPath { std::string(subdirectory_sv), true });
                 ASSERT(virtual_paths.back().path == PortableFunctions::PathRemoveTrailingSlash(virtual_paths.back().path));
             }
         }
@@ -216,7 +217,7 @@ void VirtualDirectoryLister::AddSubdirectoriesForDirectory(std::vector<VirtualPa
             std::for_each(virtual_paths.begin() + initial_virtual_paths_size, virtual_paths.end(),
                 [&](VirtualPath& virtual_path)
                 {
-                    virtual_path.path = PortableFunctions::PathAppendToPath(directory, virtual_path.path);
+                    virtual_path.path = Path::Combine(directory, virtual_path.path);
                 });
         }
     }
@@ -225,10 +226,10 @@ void VirtualDirectoryLister::AddSubdirectoriesForDirectory(std::vector<VirtualPa
 
 void VirtualDirectoryLister::AddFilesForVirtualDirectory(std::vector<VirtualPath>& virtual_paths, const VirtualDirectory& virtual_directory) const
 {
-    size_t initial_virtual_paths_size = virtual_paths.size();
+    const size_t initial_virtual_paths_size = virtual_paths.size();
 
-    for( const std::wstring& filename : virtual_directory.filenames )
-        virtual_paths.emplace_back(VirtualPath { filename, false });
+    for( const std::string& file_path : virtual_directory.file_paths )
+        virtual_paths.emplace_back(VirtualPath { file_path, false });
 
     // sort the directories
     if( initial_virtual_paths_size != virtual_paths.size() )

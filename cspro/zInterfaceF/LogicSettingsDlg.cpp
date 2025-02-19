@@ -42,7 +42,7 @@ void LogicSettingsDlg::PropertiesToForm(const LogicSettings& logic_settings)
 
     m_actionInvokerConvertResults = logic_settings.GetActionInvokerConvertResults() ? BST_CHECKED : BST_UNCHECKED;
     m_actionInvokerAccessFromExternalCaller = m_actionInvokerAccessFromExternalCallerRadioEnumHelper.ToForm(logic_settings.GetActionInvokerAccessFromExternalCaller());
-    m_actionInvokerAccessTokens = SO::CreateSingleString(logic_settings.GetActionInvokerAccessTokens(), _T("\r\n"));
+    m_actionInvokerAccessTokens = UTF8_TODO::GetWide(SO::CreateSingleString(logic_settings.GetActionInvokerAccessTokens(), SO::Newline_crlf_sv));
 }
 
 
@@ -66,14 +66,12 @@ void LogicSettingsDlg::FormToProperties()
             ASSERT(!access_token.empty());
 
             if( std::find(access_tokens.cbegin(), access_tokens.cend(), access_token) != access_tokens.cend() )
-                throw CSProException(_T("The access token '%s' has already been specified."), access_token.c_str());
+                throw CSProException("The access token '%s' has already been specified.", UTF8_TODO::GetUtf8(access_token).c_str());
 
             access_tokens.emplace_back(std::move(access_token));
-
-            return true;
         });
 
-    m_logicSettings.SetActionInvokerAccessTokens(std::move(access_tokens));
+    m_logicSettings.SetActionInvokerAccessTokens(UTF8_TODO::GetUtf8(std::move(access_tokens)));
 }
 
 
@@ -98,7 +96,7 @@ void LogicSettingsDlg::OnSetAsDefault()
     FormToProperties();
 
     // same the settings to the registry in JSON format
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->Write(m_logicSettings);
 
     WinSettings::Write(WinSettings::Type::LogicSettings, json_writer->GetString());

@@ -6,10 +6,10 @@
 // DictTreeNode
 // --------------------------------------------------------------------------
 
-DictTreeNode::DictTreeNode(DictElementType dict_element_type)
+DictTreeNode::DictTreeNode(const DictElementType dict_element_type)
     :   m_dictElementType(dict_element_type),
         m_relationIndex(NONE),
-        m_levelIndex(NONE), 
+        m_levelIndex(NONE),
         m_recordIndex(NONE),
         m_itemIndex(NONE),
         m_valueSetIndex(NONE),
@@ -27,23 +27,22 @@ std::optional<AppFileType> DictTreeNode::GetAppFileType() const
 }
 
 
-std::wstring DictTreeNode::GetNameOrLabel(bool name) const
+std::wstring DictTreeNode::GetNameOrLabel(const bool name) const
 {
     ASSERT(GetDDDoc() != nullptr);
     const CDataDict& dictionary = GetDDDoc()->GetDictionary();
 
-    auto get =
-        [&](const DictNamedBase& dict_element)
-        {
-            return CS2WS(name ? dict_element.GetName() :
-                                dict_element.GetLabel());
-        };
+    auto get = [&](const DictNamedBase& dict_element)
+    {
+        return name ? UTF8_TODO::GetWide(dict_element.GetName()) :
+                      CS2WS(dict_element.GetLabel());
+    };
 
     if( m_dictElementType == DictElementType::Dictionary )
         return get(dictionary);
 
     if( m_dictElementType == DictElementType::Relation )
-        return CS2WS(dictionary.GetRelation(m_relationIndex).GetName());
+        return UTF8_TODO::GetWide(dictionary.GetRelation(m_relationIndex).GetName());
 
     const DictLevel& dict_level = dictionary.GetLevel(m_levelIndex);
     if( m_dictElementType == DictElementType::Level )
@@ -79,10 +78,24 @@ bool DictTreeNode::IsSubitem() const
 // DictionaryDictTreeNode
 // --------------------------------------------------------------------------
 
-DictionaryDictTreeNode::DictionaryDictTreeNode(std::wstring dictionary_filename, std::wstring label)
+DictionaryDictTreeNode::DictionaryDictTreeNode(std::string dictionary_file_path)
     :   DictTreeNode(DictElementType::Dictionary),
-        m_dictionaryFilename(std::move(dictionary_filename)),
-        m_label(std::move(label)),
+        m_dictionaryFilePath(std::move(dictionary_file_path)),
         m_refCount(0)
 {
+}
+
+
+std::wstring DictionaryDictTreeNode::GetName() const
+{
+    return ( GetDocument() != nullptr ) ? DictTreeNode::GetName() :
+                                          L"<Name>";
+}
+
+
+std::wstring DictionaryDictTreeNode::GetLabel() const
+{
+    return ( GetDocument() != nullptr ) ? DictTreeNode::GetLabel() :
+                                          L"<Label>";
+
 }

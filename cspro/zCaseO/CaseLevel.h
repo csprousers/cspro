@@ -2,45 +2,63 @@
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseRecord.h>
-#include <zCaseO/CaseAccess.h>
-#include <zDictO/DDClass.h>
 
-class CaseMetadata;
 class Case;
+class DictLevel;
 
+
+// --------------------------------------------------------------------------
+// CaseLevelMetadata
+// --------------------------------------------------------------------------
 
 class ZCASEO_API CaseLevelMetadata
 {
     friend class CaseLevel;
+    friend class CaseMetadata;
+
+private:
+    CaseLevelMetadata(const CaseMetadata& case_metadata, const DictLevel& dict_level, const CaseAccess& case_access,
+                      std::tuple<size_t&, size_t&, size_t&>& attribute_counter);
 
 public:
-    CaseLevelMetadata(const CaseMetadata& case_metadata, const DictLevel& dict_level,
-        const CaseAccess& case_access, std::tuple<size_t, size_t, size_t, size_t>& attribute_counter);
     CaseLevelMetadata(const CaseLevelMetadata&) = delete;
+    CaseLevelMetadata(CaseLevelMetadata&&) = default;
     ~CaseLevelMetadata();
 
-    const CaseMetadata& GetCaseMetadata() const { return m_caseMetadata; }
+    const CaseMetadata& GetCaseMetadata() const { return *m_caseMetadata; }
 
     const DictLevel& GetDictLevel() const { return m_dictLevel; }
 
     size_t GetLevelKeyLength() const { return m_levelKeyLength; }
 
-    const CaseRecordMetadata* GetIdCaseRecordMetadata() const { return m_idCaseRecordMetadata; }
+    const CaseRecordMetadata& GetIdCaseRecordMetadata() const { return m_idCaseRecordMetadata; }
 
-    const std::vector<const CaseRecordMetadata*>& GetCaseRecordsMetadata() const { return m_caseRecordsMetadata; }
+    const std::vector<CaseRecordMetadata>& GetCaseRecordsMetadata() const { return m_caseRecordsMetadata; }
 
-    const CaseRecordMetadata* FindCaseRecordMetadata(const CString& record_name) const;
+    const CaseRecordMetadata* FindCaseRecordMetadata(std::string_view record_name_sv) const;
 
     const CaseLevelMetadata* GetChildCaseLevelMetadata() const;
 
+    // iterates over CaseRecordMetadata for the ID record and then each record
+    template<typename CF>
+    void ForeachCaseRecordMetadata(const CF& callback_function) const;
+
 private:
-    const CaseMetadata& m_caseMetadata;
+    template<typename CF>
+    void ForeachCaseRecordMetadata(const CF& callback_function);
+
+private:
+    const CaseMetadata* m_caseMetadata; // non-null
     const DictLevel& m_dictLevel;
     size_t m_levelKeyLength;
-    const CaseRecordMetadata* m_idCaseRecordMetadata;
-    std::vector<const CaseRecordMetadata*> m_caseRecordsMetadata;
+    CaseRecordMetadata m_idCaseRecordMetadata;
+    std::vector<CaseRecordMetadata> m_caseRecordsMetadata;
 };
 
+
+// --------------------------------------------------------------------------
+// CaseLevel
+// --------------------------------------------------------------------------
 
 class ZCASEO_API CaseLevel
 {
@@ -49,7 +67,8 @@ public:
     CaseLevel(const CaseLevel&) = delete;
     ~CaseLevel();
 
-    bool operator==(const CaseLevel& rhs_case_level) const;
+    bool operator==(const CaseLevel& rhs) const;
+    bool operator!=(const CaseLevel& rhs) const { return !operator==(rhs); }
 
     const Case& GetCase() const { return m_case; }
     Case& GetCase()             { return m_case; }
@@ -69,12 +88,12 @@ public:
 
     void RemoveChildCaseLevel(CaseLevel& child_case_level);
 
-    const CaseRecord& GetIdCaseRecord() const { return *m_idCaseRecord; }
-    CaseRecord& GetIdCaseRecord()             { return *m_idCaseRecord; }
+    const CaseRecord& GetIdCaseRecord() const { return m_idCaseRecord; }
+    CaseRecord& GetIdCaseRecord()             { return m_idCaseRecord; }
 
     const size_t GetNumberCaseRecords() const                   { return m_caseRecords.size(); }
-    const CaseRecord& GetCaseRecord(size_t record_number) const { return ( record_number == SIZE_MAX ) ? GetIdCaseRecord() : *(m_caseRecords[record_number]); }
-    CaseRecord& GetCaseRecord(size_t record_number)             { return ( record_number == SIZE_MAX ) ? GetIdCaseRecord() : *(m_caseRecords[record_number]); }
+    const CaseRecord& GetCaseRecord(size_t record_number) const { return ( record_number == SIZE_MAX ) ? GetIdCaseRecord() : m_caseRecords[record_number]; }
+    CaseRecord& GetCaseRecord(size_t record_number)             { return ( record_number == SIZE_MAX ) ? GetIdCaseRecord() : m_caseRecords[record_number]; }
     CaseRecord& GetCaseRecord(const CaseRecordMetadata& case_record_metadata);
 
     const CString& GetLevelKey() const;
@@ -87,11 +106,44 @@ private:
 
     CaseLevel* m_parentCaseLevel;
 
-    std::vector<CaseLevel*> m_childCaseLevels;
+    std::vector<std::unique_ptr<CaseLevel>> m_childCaseLevels;
     size_t m_numberChildCaseLevels;
 
-    CaseRecord* m_idCaseRecord;
-    std::vector<CaseRecord*> m_caseRecords;
+    CaseRecord m_idCaseRecord;
+    std::vector<CaseRecord> m_caseRecords;
 
     mutable CString m_levelIdentifier;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename CF>
+void CaseLevelMetadata::ForeachCaseRecordMetadata(const CF& callback_function) const
+{
+    if( !CallbackFunctionProcessor::KeepProcessing(callback_function, m_idCaseRecordMetadata) )
+        return;
+
+    for( const CaseRecordMetadata& case_record_metadata : m_caseRecordsMetadata )
+    {
+        if( !CallbackFunctionProcessor::KeepProcessing(callback_function, case_record_metadata) )
+            return;
+    }
+}
+
+
+template<typename CF>
+void CaseLevelMetadata::ForeachCaseRecordMetadata(const CF& callback_function)
+{
+    if( !CallbackFunctionProcessor::KeepProcessing(callback_function, m_idCaseRecordMetadata) )
+        return;
+
+    for( CaseRecordMetadata& case_record_metadata : m_caseRecordsMetadata )
+    {
+        if( !CallbackFunctionProcessor::KeepProcessing(callback_function, case_record_metadata) )
+            return;
+    }
+}

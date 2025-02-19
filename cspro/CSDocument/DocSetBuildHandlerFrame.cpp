@@ -22,22 +22,22 @@ void DocSetBuildHandlerFrame::PopulateBuildMenu(CMenu& popup_menu)
 
     AddFrameSpecificItemsToBuildMenu(dynamic_menu_builder);
 
-    const DocSetSpec* doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
+    const DocSetSpec* const doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
 
     if( doc_set_spec == nullptr )
         return;
 
     dynamic_menu_builder.AddSeparator();
-    dynamic_menu_builder.AddOption(ID_COMPILE_DOCSET_COMPLETE, _T("Compile Entire Document Set\tCtrl+Shift+K"));
+    dynamic_menu_builder.AddOption(ID_COMPILE_DOCSET_COMPLETE, L"Compile Entire Document Set\tCtrl+Shift+K");
 
 #ifdef HELP_TODO_RESTORE_FOR_CSPRO81
     dynamic_menu_builder.AddSeparator();
-    dynamic_menu_builder.AddOption(ID_EXPORT_DOCSET, _T("E&xport Document Set..."));
+    dynamic_menu_builder.AddOption(ID_EXPORT_DOCSET, L"E&xport Document Set...");
 #endif
 }
 
 
-void DocSetBuildHandlerFrame::ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& html_view_ctrl, std::wstring url)
+void DocSetBuildHandlerFrame::ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& html_view_ctrl, std::string url)
 {
     ASSERT(!url.empty());
 
@@ -49,7 +49,7 @@ void DocSetBuildHandlerFrame::ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& htm
     // if refreshing the current source, get the current scrollbar position before navigating to the new page
     if( refreshing_current_source )
     {
-        html_view_ctrl.ExecuteScript(_T("window.pageYOffset"),
+        html_view_ctrl.ExecuteScript(L"window.pageYOffset",
             [&](const std::wstring& result)
             {
                 try
@@ -69,7 +69,7 @@ void DocSetBuildHandlerFrame::ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& htm
 }
 
 
-LRESULT DocSetBuildHandlerFrame::OnShowHtmlAndRestoreScrollbarState(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT DocSetBuildHandlerFrame::OnShowHtmlAndRestoreScrollbarState(const WPARAM wParam, LPARAM /*lParam*/)
 {
     ASSERT(!std::get<0>(m_currentUrlAndScrollbarStateToRestore).empty());
 
@@ -79,22 +79,22 @@ LRESULT DocSetBuildHandlerFrame::OnShowHtmlAndRestoreScrollbarState(WPARAM wPara
 
     // if specified, restore the scrollbar position
     if( std::get<1>(m_currentUrlAndScrollbarStateToRestore) != 0 )
-        html_view_ctrl.ExecuteScript(FormatText(_T("window.scrollTo(0, %d);"), static_cast<int>(std::get<1>(m_currentUrlAndScrollbarStateToRestore))));
+        html_view_ctrl.ExecuteScript(FormatText("window.scrollTo(0, %d);", static_cast<int>(std::get<1>(m_currentUrlAndScrollbarStateToRestore))));
 
     return 1;
 }
 
 
-void DocSetBuildHandlerFrame::OnUpdateDocumentSetMustExist(CCmdUI* pCmdUI)
+void DocSetBuildHandlerFrame::OnUpdateDocumentSetMustExist(CCmdUI* const pCmdUI)
 {
-    const DocSetSpec* doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
+    const DocSetSpec* const doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
     pCmdUI->Enable(doc_set_spec != nullptr);
 }
 
 
 void DocSetBuildHandlerFrame::OnCompileDocumentSet()
 {
-    DocSetSpec* doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
+    DocSetSpec* const doc_set_spec = GetTextEditDoc().GetAssociatedDocSetSpec();
     ASSERT(doc_set_spec != nullptr);
 
     DocSetBuilderCompileAllGenerateTask generate_task(doc_set_spec);
@@ -106,15 +106,15 @@ void DocSetBuildHandlerFrame::OnCompileDocumentSet()
     if( generate_task.GetDocumentsWithCompilationErrors().empty() )
         return;
 
-    CSDocumentBuildWnd* build_wnd = GetMainFrame().GetBuildWnd();
+    CSDocumentBuildWnd* const build_wnd = GetMainFrame().GetBuildWnd();
 
     if( build_wnd == nullptr )
         return;
 
-    build_wnd->Initialize(nullptr, doc_set_spec->GetFilename(), _T("Compilation Error Display"));
+    build_wnd->Initialize(nullptr, doc_set_spec->GetFilePath(), "Compilation Error Display");
 
-    for( const auto& [filename, error] : generate_task.GetDocumentsWithCompilationErrors() )
-        build_wnd->AddError(filename, error);
+    for( const auto& [file_path, error] : generate_task.GetDocumentsWithCompilationErrors() )
+        build_wnd->AddError(file_path, error);
 
     build_wnd->Finalize();
 }

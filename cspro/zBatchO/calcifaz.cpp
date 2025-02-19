@@ -37,7 +37,7 @@ bool CCalcIFaz::C_OpenInputTbd( CString csInputTbdName ) {
     bRet = ((CCalcDriver*)m_pBatchDriverBase)->OpenInputTbd( csInputTbdName );
 
     if( !bRet ) {
-        issaerror( MessageType::Error, 589, (LPCTSTR)csInputTbdName ); // Cannot open TBD file %s
+        issaerror( MessageType::Error, 589, UTF8_TODO::GetUtf8(csInputTbdName).c_str() ); // Cannot open TBD file %s
     }
 
     return bRet;
@@ -67,7 +67,7 @@ int CCalcIFaz::C_GetTbdCtabs( CArray<CTAB*,CTAB*>& aUsedCtabs,
 
         CString csTableName=pTable->GetTableName();
 
-        int iCtab = m_pEngineArea->SymbolTableSearch(csTableName, { SymbolType::Crosstab });
+        int iCtab = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csTableName), { SymbolType::Crosstab });
 
         if( iCtab > 0 ) {
             CTAB* pCtab = XPT(iCtab);
@@ -124,7 +124,7 @@ int CCalcIFaz::C_GetTbdBreakKeys( CStringArray& aBreakKey, CUIntArray& aBreakNum
 
         // RHF INIC Apr 17, 2003
         if( iTableNum <= 0 || iTableNum > pTbdFile->GetNumTables() ) {
-            issaerror( MessageType::Error, 692, (LPCTSTR)pTbiFile->GetFileName(), iTableNum ); // Cannot open TBD file %s
+            issaerror( MessageType::Error, 692, UTF8_TODO::GetUtf8(pTbiFile->GetFileName()).c_str(), iTableNum ); // Cannot open TBD file %s
             continue;
         }
         // RHF END Apr 17, 2003
@@ -181,4 +181,3 @@ void CCalcIFaz::C_SetRunTimeBreakKeys( CStringArray* aBreakKeys, CUIntArray* aBr
     ASSERT( m_pBatchDriverBase->GetBatchMode() == CRUNAPL_CSCALC );
     ((CCalcDriver*)m_pBatchDriverBase)->SetRunTimeBreakKeys( aBreakKeys, aBreakNumKeys, aUsedCtabs );
 }
-

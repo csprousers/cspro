@@ -9,13 +9,13 @@
 IMPLEMENT_DYNAMIC(CDEText, CDEItemBase)
 
 
-CDEText::CDEText(const CString& initial_text/* = SO::EmptyCString*/)
+CDEText::CDEText(const CString& initial_text/* = SO::Empty_CString*/)
     :   m_font(PortableFont::TextDefault),
         m_useDefaultFont(true)
 {
     SetItemType(Text);
 
-    if( &initial_text != &SO::EmptyCString )
+    if( &initial_text != &SO::Empty_CString )
         SetText(initial_text);
 }
 
@@ -90,7 +90,7 @@ bool CDEText::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
 
         else if( csCmd.CompareNoCase(FRM_CMD_LOGFONT) == 0 ) {
             if(!csArg.IsEmpty()) {
-                m_font.BuildFromPre80String(csArg);
+                m_font.BuildFromPre80String(UTF8_TODO::GetUtf8(csArg));
                 m_useDefaultFont = false;
             }
         }
@@ -105,7 +105,7 @@ bool CDEText::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
 
         else {                      // Incorrect attribute
             if (!bSilent) {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Text] attribute\n\n%s"), (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Incorrect [Text] attribute\n\n%s"), csCmd.GetString()));
             }
             ASSERT(false);
         }
@@ -115,7 +115,7 @@ bool CDEText::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
 }
 
 
-void CDEText::Save(CSpecFile& frmFile, bool bWriteHdr) const 
+void CDEText::Save(CSpecFile& frmFile, bool bWriteHdr) const
 {
     CString csOutput, csTemp;
 
@@ -159,7 +159,7 @@ void CDEText::Save(CSpecFile& frmFile, bool bWriteHdr) const
             TCHAR* pszDest = cDest;
             int iLen = pszFind - pszSource;
             memmove (pszDest, pszSource, iLen * sizeof(TCHAR));
-            *(pszDest + iLen) = NULL;
+            *(pszDest + iLen) = '\0';
             frmFile.PutLine(FRM_CMD_TEXT, pszDest);
 
             // skip over cr/lf pair
@@ -175,7 +175,7 @@ void CDEText::Save(CSpecFile& frmFile, bool bWriteHdr) const
     }
 
     if (!m_useDefaultFont) {
-        frmFile.PutLine(FRM_CMD_LOGFONT, m_font.GetPre80String());
+        frmFile.PutLine(FRM_CMD_LOGFONT, UTF8_TODO::GetWide(m_font.GetPre80String()));
     }
 
     if (m_horizontalAlignment.has_value()) {
@@ -276,8 +276,6 @@ namespace
 
                 width = std::max(width, size.cx);
                 y += size.cy;
-
-                return true;
             });
 
         drawn_rect.right = drawn_rect.left + width;
@@ -297,7 +295,7 @@ void CDEText::DrawMultiline(CDC* pDC) const
 void CDEText::DrawMultiline(CDC* pDC)
 {
     CRect drawn_rect = DrawWorker<true>(pDC, *this);
-    SetDims(drawn_rect);    
+    SetDims(drawn_rect);
 }
 
 CSize CDEText::CalculateDimensions(CDC* pDC) const

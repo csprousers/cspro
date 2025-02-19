@@ -8,17 +8,17 @@
 
 namespace
 {
-    std::tuple<const TCHAR*, const TCHAR*> DataTypeStrings[] =
+    constexpr std::tuple<const char*, const char*> DataTypeStrings[] =
     {
         // ToString      // JSON
-        { _T("Numeric"), _T("numeric") },
-        { _T("String"),  _T("string")  },
-        { _T("Binary"),  _T("binary")  },
+        { "Numeric",    "numeric" },
+        { "String",     "string"  },
+        { "Binary",     "binary"  },
     };
 }
 
 
-const TCHAR* ToString(DataType data_type)
+const char* ToString(const DataType data_type)
 {
     const size_t index = static_cast<size_t>(data_type);
     ASSERT(index < _countof(DataTypeStrings));
@@ -26,9 +26,9 @@ const TCHAR* ToString(DataType data_type)
 }
 
 
-DataType JsonSerializer<DataType>::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DataType JsonSerializer<DataType>::CreateFromJson(const JsonNode& json_node)
 {
-    wstring_view text_sv = json_node.Get<wstring_view>();
+    const std::string_view text_sv = json_node.Get<std::string_view>();
 
     for( size_t i = 0; i < _countof(DataTypeStrings); ++i )
     {
@@ -36,11 +36,11 @@ DataType JsonSerializer<DataType>::CreateFromJson(const JsonNode<wchar_t>& json_
             return static_cast<DataType>(i);
     }
 
-    throw JsonParseException(_T("'%s' is not a valid data type"), std::wstring(text_sv).c_str());
+    throw JsonParseException("'%s' is not a valid data type", std::string(text_sv).c_str());
 }
 
 
-void JsonSerializer<DataType>::WriteJson(JsonWriter& json_writer, DataType value)
+void JsonSerializer<DataType>::WriteJson(JsonWriter& json_writer, const DataType value)
 {
     const size_t index = static_cast<size_t>(value);
     ASSERT(index < _countof(DataTypeStrings));
@@ -55,14 +55,14 @@ void JsonSerializer<DataType>::WriteJson(JsonWriter& json_writer, DataType value
 
 namespace
 {
-    const TCHAR* ContentTypeStrings[] =
+    constexpr const char* ContentTypeStrings[] =
     {
-        _T("Numeric"),
-        _T("Alpha"),
-        _T("Document"),
-        _T("Audio"),
-        _T("Image"),
-        _T("Geometry"),
+        "Numeric",
+        "Alpha",
+        "Document",
+        "Audio",
+        "Image",
+        "Geometry",
     };
 }
 
@@ -83,7 +83,7 @@ const std::vector<ContentType>& GetContentTypesSupportedByDictionary()
 }
 
 
-const TCHAR* ToString(ContentType content_type)
+const char* ToString(const ContentType content_type)
 {
     const size_t index = static_cast<size_t>(content_type);
     ASSERT(index < _countof(ContentTypeStrings));
@@ -91,7 +91,16 @@ const TCHAR* ToString(ContentType content_type)
 }
 
 
-template<> std::optional<ContentType> FromString<ContentType>(wstring_view text_sv)
+std::string ToString(const ContentType content_type, const bool json_format)
+{
+    if( json_format && ( content_type == ContentType::Numeric || content_type == ContentType::Alpha ) )
+        return SO::TitleToCamelCase(ToString(content_type));
+
+    return ToString(content_type);
+}
+
+
+template<> std::optional<ContentType> FromString<ContentType>(const std::string_view text_sv)
 {
     for( size_t i = 0; i < _countof(ContentTypeStrings); ++i )
     {
@@ -103,29 +112,21 @@ template<> std::optional<ContentType> FromString<ContentType>(wstring_view text_
 }
 
 
-ContentType JsonSerializer<ContentType>::CreateFromJson(const JsonNode<wchar_t>& json_node)
+ContentType JsonSerializer<ContentType>::CreateFromJson(const JsonNode& json_node)
 {
-    const wstring_view text_sv = json_node.Get<wstring_view>();
-    std::optional<ContentType> content_type = FromString<ContentType>(text_sv);
+    const std::string_view text_sv = json_node.Get<std::string_view>();
+    const std::optional<ContentType> content_type = FromString<ContentType>(text_sv);
 
     if( content_type.has_value() )
         return *content_type;
 
-    throw JsonParseException(_T("'%s' is not a valid content type"), std::wstring(text_sv).c_str());    
+    throw JsonParseException("'%s' is not a valid content type", std::string(text_sv).c_str());    
 }
 
 
-void JsonSerializer<ContentType>::WriteJson(JsonWriter& json_writer, ContentType value)
+void JsonSerializer<ContentType>::WriteJson(JsonWriter& json_writer, const ContentType value)
 {
-    if( value == ContentType::Numeric || value == ContentType::Alpha )
-    {
-        json_writer.Write(SO::TitleToCamelCase(ToString(value)));
-    }
-
-    else
-    {
-        json_writer.Write(ToString(value));
-    }
+    json_writer.Write(ToString(value, true));
 }
 
 

@@ -3,24 +3,52 @@
 #include <engine/EXENTRY.H>
 #include <engine/FrequencyDriver.h>
 #include <engine/ImputationDriver.h>
+#include <engine/InterpreterAccessor.h>
+#include <engine/ParadataDriver.h>
 #include <engine/SelcaseManager.h>
 #include <zEngineO/LoopStack.h>
+#include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineF/TraceHandler.h>
+#include <zEngineF/WindowsApplicationInterface.h>
 #include <Zissalib/CFlAdmin.h>
 #include <zJson/JsonNode.h>
-#include <zHtml/VirtualFileMapping.h>
-#include <zAction/Caller.h>
 #include <zReportO/Pre77ReportManager.h>
 
 
 CIntDriver::CIntDriver(CEngineDriver& engine_driver)
-    :   m_logicByteCode(engine_driver.m_pEngineArea->GetLogicByteCode()),
-        m_symbolTable(engine_driver.m_pEngineArea->GetSymbolTable())
+    :   LogicInterpreter(engine_driver.m_pEngineArea->GetSharedEngineData(),
+                         std::make_shared<WindowsApplicationInterface>())
 {
     ASSERT(0);
 }
 
-CIntDriver::~CIntDriver() { ASSERT(0); }
+CIntDriver::~CIntDriver() { ASSERT(false); }
+
+double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(const int program_index) { return ReturnProgrammingError(0); }
+void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object) { ASSERT(false); }
+void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
+std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { return ReturnProgrammingError(""); }
+bool CIntDriver::IsExecutionInterrupted() const { return ReturnProgrammingError(false); }
+bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { return ReturnProgrammingError(false); }
+SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
+SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
+void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) { ASSERT(false); }
+bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) { return ReturnProgrammingError(false); }
+bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) { return ReturnProgrammingError(false); }
+double CIntDriver::RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0.0); }
+bool CIntDriver::HasSpecialFunction(SpecialFunction special_function) { return ReturnProgrammingError(false); }
+double CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
+Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) { return ReturnProgrammingError(nullptr); }
+std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions)  { return ReturnProgrammingError(nullptr); }
+EvaluatedEngineItemSubscript CIntDriver::EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) { return ReturnProgrammingError(EvaluatedEngineItemSubscript()); }
+int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+                                      const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
+                                      const std::vector<PortableColor>* row_text_colors) { return ReturnProgrammingError(0); }
+EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
+bool CIntDriver::ExecuteProgramStatements(int program_index) { return ReturnProgrammingError(false); }
+void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) { ASSERT(false); }
+std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
+
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }
 csprochar*   CIntDriver::GetSingVarAsciiAddr( VARX* pVarX ) const {
@@ -62,7 +90,7 @@ int     CIntDriver::GetFlagColor( TCHAR* pFlag ) const { ASSERT(0); return 0; }
 void    CEngineArea::SecxEnd() { ASSERT(0); }
 void    CEngineArea::DicxEnd() { ASSERT(0); }
 
-CString CIntDriver::ProcName() { return CString(); }
+std::string CIntDriver::ProcName() { return std::string(); }
 
 void    GROUPT::OccTreeFree() {}
 
@@ -72,7 +100,7 @@ double CIntDriver::mvarvalue(struct VARX *,double) const { return 0; }          
 double CIntDriver::GetSingVarFloatValue(struct VARX *) const { return 0; }       // RHF Apr 17, 2001
 double CIntDriver::GetMultVarFloatValue(struct VARX *,const CNDIndexes&) const { return 0; } // RHF Apr 17, 2001
 
-bool CIntDriver::ExecuteOnSystemMessage(MessageType, int, const std::wstring&) { return true; }
+bool CIntDriver::ExecuteOnSystemMessage(MessageType, int, const std::string&) { return true; }
 
 CIterator::CIterator(void){}
 CIterator::~CIterator(void){}
@@ -88,7 +116,7 @@ double CIntDriver::val_high( void ) { return (double) 0; }    // BMD 13 Oct 2005
 
 bool CIntDriver::IsDataAccessible(const Symbol& /*symbol*/, bool /*issue_error_if_inaccessible*/) { return ReturnProgrammingError(false); }
 
-std::shared_ptr<InterpreterAccessor> CEngineDriver::CreateInterpreterAccessor() { return ReturnProgrammingError(nullptr); }
+std::unique_ptr<InterpreterAccessor> CEngineDriver::CreateInterpreterAccessor() { return ReturnProgrammingError(nullptr); }
 bool CEngineDriver::IsBlankField( int , int  ) { ASSERT(0); return false;}
 bool CEngineDriver::IsBlankField( VART*, int ) { ASSERT(0); return false;}
 bool CEngineDriver::IsBlankField( VART*, CNDIndexes& ) { ASSERT(0); return false;}

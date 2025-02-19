@@ -424,12 +424,12 @@ void CBatchDriverBase::DumpBatchProg() {
                     break;
             }
 
-            const TCHAR* proc_type_name = GetProcTypeName(pPrSlot->GetProcType());
+            const char* const proc_type_name = GetProcTypeName(pPrSlot->GetProcType());
             CString csSymbol;
             CString csRecipr;
 
             if( pPrSlot->GetSlotSymbol() > 0 ) {
-                csSymbol.Format( _T("%s (%d)"), NPT(pPrSlot->GetSlotSymbol())->GetName().c_str(), pPrSlot->GetSlotSymbol() );
+                csSymbol.Format( _T("%s (%d)"), UTF8_TODO::GetWide(NPT(pPrSlot->GetSlotSymbol())->GetName()).c_str(), pPrSlot->GetSlotSymbol() );
             }
             else {
                 csSymbol.Format( _T("none (%d)"), pPrSlot->GetSlotSymbol() );
@@ -438,7 +438,7 @@ void CBatchDriverBase::DumpBatchProg() {
                 csRecipr.Format( _T("Reciprocal %d"), pPrSlot->GetSlotIndex() );
             }
 
-            TRACE( _T("   [%3d] %s: %s, %s {%s}\n"), iIndex, csSlotType.GetString(), proc_type_name, csSymbol.GetString(), csRecipr.GetString() );
+            TRACE( _T("   [%3d] %s: %s, %s {%s}\n"), iIndex, csSlotType.GetString(), UTF8_TODO::GetWide(proc_type_name).c_str(), csSymbol.GetString(), csRecipr.GetString() );
         }
     }
     TRACE( _T("* Program-strip completed...\n") );
@@ -461,7 +461,7 @@ int CBatchDriverBase::MakeCtabExecOrder() {
         for( int iTabNum=0; iTabNum < pTabSet->GetNumTables(); iTabNum++ ) {
             CString csTableName=pTabSet->GetTable(iTabNum)->GetName();
 
-            iCtab = m_pEngineArea->SymbolTableSearch(csTableName, { SymbolType::Crosstab });
+            iCtab = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csTableName), { SymbolType::Crosstab });
 
             if( iCtab > 0 ) {
                 aMapCtab.SetAt( iCtab, iDummy );

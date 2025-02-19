@@ -7,10 +7,15 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Icon
 import android.media.MediaScannerConnection
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.webkit.MimeTypeMap
@@ -27,6 +32,7 @@ import com.karumi.dexter.listener.multi.DialogOnAnyDeniedMultiplePermissionsList
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import gov.census.cspro.camera.PictureCaptureActivity
 import gov.census.cspro.csentry.CSEntry
+import gov.census.cspro.csentry.CaseListActivity
 import gov.census.cspro.csentry.R
 import gov.census.cspro.csentry.ui.DialogWebViewFragment
 import gov.census.cspro.csentry.ui.FieldNoteUpdateListener
@@ -104,15 +110,15 @@ fun exeditnote(note: String?, title: String?, caseNote: Boolean): String? {
 
 fun gpsRead(waitTime: Int, desiredAccuracy: Int, dialogText: String?): String? {
     return Messenger.getInstance().runStringEngineFunction(GPSFunction(GPSFunction.GPS_READ,
-		waitTime, desiredAccuracy, dialogText, null))
+        waitTime, desiredAccuracy, dialogText, null))
 }
 
 fun gpsReadLast(): String? {
     return Messenger.getInstance().runStringEngineFunction(GPSFunction(GPSFunction.GPS_READLAST,
-		0, 0, null, null))
+        0, 0, null, null))
 }
 
-fun gpsReadInteractive(readInteractiveMode: Boolean, baseMapSelection: BaseMapSelection, message: String, readDuration: Double): String? {
+fun gpsReadInteractive(readInteractiveMode: Boolean, baseMapSelection: BaseMapSelection, message: String?, readDuration: Double): String? {
     return Messenger.getInstance().runStringEngineFunction(
         GPSFunction(
             if (readInteractiveMode) GPSFunction.GPS_READINTERACTIVE else GPSFunction.GPS_SELECT,
@@ -157,15 +163,15 @@ fun exgetdeviceid(): String {
 }
 
 private fun isConnected(connMgr: ConnectivityManager, type: Int): Boolean {
-	val networks = connMgr.allNetworks
-	var networkInfo: NetworkInfo?
-	for (mNetwork in networks) {
-		networkInfo = connMgr.getNetworkInfo(mNetwork)
-		if (networkInfo != null && networkInfo.type == type && networkInfo.isConnected) {
-			return true
-		}
-	}
-	return false
+    val networks = connMgr.allNetworks
+    var networkInfo: NetworkInfo?
+    for (mNetwork in networks) {
+        networkInfo = connMgr.getNetworkInfo(mNetwork)
+        if (networkInfo != null && networkInfo.type == type && networkInfo.isConnected) {
+            return true
+        }
+    }
+    return false
 }
 
 fun getMaxDisplaySize(width: Boolean): Int {
@@ -180,22 +186,21 @@ fun getMaxDisplaySize(width: Boolean): Int {
     }
 }
 
-fun getMediaFilenames(mediaType: Int): Any {
-	return Media.getMediaFilenames(mediaType, Messenger.getInstance().currentMessage.activity)
+fun getMediaFilePaths(mediaType: Int): Any {
+    return Media.getMediaFilePaths(mediaType, Messenger.getInstance().currentMessage.activity)
 }
 
-fun isNetworkConnected(connectionType: Int): Boolean {
-    // the following constants come from engine/defines.h
-    val CONNECTION_ANY = -0x1
-    val CONNECTION_MOBILE = 0x00000001
-    val CONNECTION_WIFI = 0x00000002
+fun isNetworkConnected(wifi: Boolean, mobile: Boolean): Boolean {
     val activity = Messenger.getInstance().currentMessage.activity
     val connectivityManager = activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    if ((connectionType == CONNECTION_ANY || connectionType == CONNECTION_MOBILE) &&
-        isConnected(connectivityManager, ConnectivityManager.TYPE_MOBILE)) return true
-    if ((connectionType == CONNECTION_ANY || connectionType == CONNECTION_WIFI) &&
-        isConnected(connectivityManager, ConnectivityManager.TYPE_WIFI)) return true
-    return false
+
+    return if( ( wifi && isConnected(connectivityManager, ConnectivityManager.TYPE_WIFI) ) ||
+               ( mobile && isConnected(connectivityManager, ConnectivityManager.TYPE_MOBILE) ) ) {
+         true
+    }
+    else {
+        false
+    }
 }
 
 fun exprompt(title: String?, initialValue: String?, numeric: Boolean, password: Boolean, upperCase: Boolean, multiline: Boolean): String? {
@@ -237,6 +242,13 @@ fun chooseBluetoothDevice(): String? {
 
 fun authorizeDropbox(): String? {
     return Messenger.getInstance().runStringEngineFunction(AuthorizeDropboxFunction())
+}
+
+fun authorizeGoogleDrive(oauth2Endpoint: String, tokenEndpoint: String,
+                         clientId: String, scope: String?,
+                         additionalParameters: Map<String, String>): String? {
+    val function = AuthorizeGoogleDriveFunction(oauth2Endpoint, tokenEndpoint, clientId, scope, additionalParameters)
+    return Messenger.getInstance().runStringEngineFunction(function)
 }
 
 fun loginDialog(server: String, showInvalidLoginError: Boolean): String? {
@@ -289,10 +301,10 @@ val localeLanguage: String
 fun viewFile(path: String) {
     startActivityFromEngine { activity ->
         val intent = Intent(Intent.ACTION_VIEW)
-		val extension = path.substring(path.lastIndexOf('.') + 1)
-		val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-		intent.setDataAndType(Util.getShareableUriForFile(File(path), activity), mimeType)
-		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val extension = path.substring(path.lastIndexOf('.') + 1)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        intent.setDataAndType(Util.getShareableUriForFile(File(path), activity), mimeType)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent
     }
 }
@@ -501,6 +513,42 @@ fun clipboardPutText(text: String) {
     val activity = Messenger.getInstance().currentMessage.activity
     val clipboardManager = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
     clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("", text))
+}
+
+fun createPinShortcut(shortcutId: String, targetFilePath: String, iconFilePath: String?, label: String, longLabel: String?) {
+    if( Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        throw Exception("Creating pinned shorcuts is not supported on this version of Android.")
+    }
+    else {
+        val activity = Messenger.getInstance().currentMessage.activity
+        val shortcutManager = activity.getSystemService(ShortcutManager::class.java)
+
+        // the shortcut will open the CaseListActivity
+        val intent = Intent(activity, CaseListActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.fromFile(File(targetFilePath))
+        }
+
+        // create the shortcut
+        val shortcutBuilder = ShortcutInfo.Builder(activity, shortcutId)
+            .setIntent(intent)
+            .setShortLabel(label)
+
+        if( longLabel != null ) {
+            shortcutBuilder.setLongLabel(longLabel)
+        }
+
+        // use either a defined icon or default to the PFF icon
+        shortcutBuilder.setIcon(
+            if( iconFilePath != null ) {
+                Icon.createWithAdaptiveBitmap(BitmapFactory.decodeFile(iconFilePath))
+            } else {
+                Icon.createWithResource(activity, R.drawable.ic_pff)
+            })
+
+        val shortcut = shortcutBuilder.build()
+        shortcutManager.requestPinShortcut(shortcut,null)
+    }
 }
 
 fun showSelectDocumentDialog(mimeTypes: Array<String>, multiple: Boolean): Array<String>? {

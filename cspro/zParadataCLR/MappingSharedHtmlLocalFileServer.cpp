@@ -2,23 +2,20 @@
 #include "MappingSharedHtmlLocalFileServer.h"
 #include <zHtml/SharedHtmlLocalFileServer.h>
 
-namespace CSPro
+
+CSPro::ParadataViewer::MappingSharedHtmlLocalFileServer::MappingSharedHtmlLocalFileServer()
+    :   m_fileServer(new SharedHtmlLocalFileServer("mapping"))
 {
-    namespace ParadataViewer
-    {
-        MappingSharedHtmlLocalFileServer::MappingSharedHtmlLocalFileServer()
-            :   m_fileServer(new SharedHtmlLocalFileServer(_T("mapping")))
-        {
-        }
+}
 
-        MappingSharedHtmlLocalFileServer::!MappingSharedHtmlLocalFileServer()
-        {
-            delete m_fileServer;
-        }
 
-        System::String^ MappingSharedHtmlLocalFileServer::GetProjectUrl(System::String^ url_from_project_root)
-        {
-            return gcnew System::String(m_fileServer->GetProjectUrl(CS2WS(url_from_project_root)).c_str());
-        }
-    }
+CSPro::ParadataViewer::MappingSharedHtmlLocalFileServer::!MappingSharedHtmlLocalFileServer()
+{
+    delete m_fileServer;
+}
+
+
+System::String^ CSPro::ParadataViewer::MappingSharedHtmlLocalFileServer::CreateProjectUrl(System::String^ url_from_project_root)
+{
+    return clr_helpers::to_SystemString(m_fileServer->CreateProjectUrl(clr_helpers::to_string(url_from_project_root)));
 }

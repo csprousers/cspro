@@ -105,7 +105,7 @@ int CEngineCompFunc::comp_export()
     pHeadNode->m_iLenCaseIdUnicode = 0;
 
     //TO Clause now is mandatory
-    if( NextKeyword({ _T("TO") }) != 1 )
+    if( NextKeyword({ "TO" }) != 1 )
         IssueError(31062);
 
     NextToken();
@@ -170,7 +170,7 @@ int CEngineCompFunc::excase_id() {
         int     isec = pVarT->GetOwnerSec();
         SECT*   pSecT = SPT(isec);
 
-        CString csItemName = WS2CS(pVarT->GetName());
+        CString csItemName = UTF8_TODO::GetCString(pVarT->GetName());
 
         // RHF INIC Feb 17, 2005 NEW_EXPORT
 
@@ -487,7 +487,7 @@ int CEngineCompFunc::exEnsembledModel( void ) {         // victor Dec 12, 00
             pCurExport->m_aOccExprString.Add(csOccExpr);
 
             // RHF INIC Nov 05, 2004
-            CString csItemName = WS2CS(pVarT->GetName());
+            CString csItemName = UTF8_TODO::GetCString(pVarT->GetName());
             if( !csOccExpr.IsEmpty() )
                 csItemName += csOccExpr;
 
@@ -703,7 +703,7 @@ bool CEngineCompFunc::AddExportSection( int iSymSec, bool bUseAll, int iSecOccEx
         if( bUseAll || !pVarT->IsMarked() ) {
             pVarT->SetUsed( true );
             pCurExport->m_aSymbols.Add(iSymVar);
-            CString csItemName = WS2CS(pVarT->GetName());
+            CString csItemName = UTF8_TODO::GetCString(pVarT->GetName());
 
             if( pCurExport->m_aItemNames.Lookup( csItemName, iDummy ) ) {
                 SetSyntErr(31110);

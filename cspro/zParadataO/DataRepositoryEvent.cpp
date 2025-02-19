@@ -1,115 +1,160 @@
 ﻿#include "stdafx.h"
 #include "DataRepositoryEvent.h"
-#include <zDataO/DataRepository.h>
+#include <zUtilO/ConnectionString.h>
 
-namespace Paradata
+using namespace Paradata;
+
+
+// --------------------------------------------------------------------------
+// DataRepositoryEvent
+// --------------------------------------------------------------------------
+
+void DataRepositoryEvent::SetupTables(Log& log)
 {
-    void DataRepositoryEvent::SetupTables(Log& log)
+    Table& table = log.CreateTable(ParadataTable::DataRepositoryInfo)
+            .AddColumn("dictionary_name", Table::ColumnType::Long)
+            .AddColumn("filename", Table::ColumnType::Text)
+            .AddColumn("type", Table::ColumnType::Integer)
+        ;
+
+    for( DataRepositoryType data_repository_type = DataRepositoryType::Null;
+         data_repository_type <= DataRepositoryType::Stata;
+         data_repository_type = static_cast<DataRepositoryType>(static_cast<int>(data_repository_type) + 1) )
     {
-        Table& table = log.CreateTable(ParadataTable::DataRepositoryInfo)
-                .AddColumn(_T("dictionary_name"), Table::ColumnType::Long)
-                .AddColumn(_T("filename"), Table::ColumnType::Text)
-                .AddColumn(_T("type"), Table::ColumnType::Integer)
-            ;
-
-        for( int type = (int)DataRepositoryType::Null; type <= (int)DataRepositoryType::Stata; ++type )
-            table.AddCode(type, ToString((DataRepositoryType)type));
-
-        log.CreateTable(ParadataTable::DataRepositoryInstance)
-                .AddColumn(_T("data_source_info"), Table::ColumnType::Long)
-                .AddColumn(_T("access_type"), Table::ColumnType::Integer)
-                        .AddCode((int)DataRepositoryAccess::BatchInput, _T("batch_input"))
-                        .AddCode((int)DataRepositoryAccess::BatchOutput, _T("batch_output"))
-                        .AddCode((int)DataRepositoryAccess::BatchOutputAppend, _T("batch_output_append"))
-                        .AddCode((int)DataRepositoryAccess::ReadOnly, _T("read_only"))
-                        .AddCode((int)DataRepositoryAccess::ReadWrite, _T("read_write"))
-                        .AddCode((int)DataRepositoryAccess::EntryInput, _T("entry_input"))
-                .AddColumn(_T("open_type"), Table::ColumnType::Integer)
-                        .AddCode((int)DataRepositoryOpenFlag::CreateNew, _T("create_new"))
-                        .AddCode((int)DataRepositoryOpenFlag::OpenOrCreate, _T("open_or_create"))
-                        .AddCode((int)DataRepositoryOpenFlag::OpenMustExist, _T("open_must_exist"))
-            ;
-
-        log.CreateTable(ParadataTable::DataRepositoryEvent)
-                .AddColumn(_T("data_source_instance"), Table::ColumnType::Long, true)
-                .AddColumn(_T("action"), Table::ColumnType::Integer)
-                        .AddCode((int)Action::Close, _T("close"))
-                        .AddCode((int)Action::Open, _T("open"))
-                        .AddCode((int)Action::ReadCase, _T("load_case"))
-                        .AddCode((int)Action::WriteCase, _T("write_case"))
-                        .AddCode((int)Action::DeleteCase, _T("delete_case"))
-                        .AddCode((int)Action::CaseNotFound, _T("case_not_found"))
-                        .AddCode((int)Action::UndeleteCase, _T("undelete_case"))
-                .AddColumn(_T("case_info"), Table::ColumnType::Long, true)
-                .AddColumn(_T("case_key_info"), Table::ColumnType::Long, true)
-                .AddColumn(_T("partial_save"), Table::ColumnType::Boolean, true)
-                        .AddCode(0, _T("not_partial"))
-                        .AddCode(1, _T("partial"))
-            ;
+        table.AddCode(DataRepositoryTypeToParadataInt(data_repository_type), ToString(data_repository_type));
     }
 
-    DataRepositoryEvent::DataRepositoryEvent(Action action, std::shared_ptr<NamedObject> dictionary,
-        const CString& case_uuid/* = CString()*/, const CString& case_key/* = CString()*/, bool partial_save/* = false*/)
-        :   m_action(action),
-            m_dictionary(dictionary),
-            m_caseUuid(case_uuid),
-            m_caseKey(case_key),
-            m_partialSave(partial_save)
+    log.CreateTable(ParadataTable::DataRepositoryInstance)
+            .AddColumn("data_source_info", Table::ColumnType::Long)
+            .AddColumn("access_type", Table::ColumnType::Integer)
+                    .AddCode(DataRepositoryAccess::BatchInput, "batch_input")
+                    .AddCode(DataRepositoryAccess::BatchOutput, "batch_output")
+                    .AddCode(DataRepositoryAccess::BatchOutputAppend, "batch_output_append")
+                    .AddCode(DataRepositoryAccess::ReadOnly, "read_only")
+                    .AddCode(DataRepositoryAccess::ReadWrite, "read_write")
+                    .AddCode(DataRepositoryAccess::EntryInput, "entry_input")
+            .AddColumn("open_type", Table::ColumnType::Integer)
+                    .AddCode(DataRepositoryOpenFlag::CreateNew, "create_new")
+                    .AddCode(DataRepositoryOpenFlag::OpenOrCreate, "open_or_create")
+                    .AddCode(DataRepositoryOpenFlag::OpenMustExist, "open_must_exist")
+        ;
+
+    log.CreateTable(ParadataTable::DataRepositoryEvent)
+            .AddColumn("data_source_instance", Table::ColumnType::Long, true)
+            .AddColumn("action", Table::ColumnType::Integer)
+                    .AddCode(Action::Close, "close")
+                    .AddCode(Action::Open, "open")
+                    .AddCode(Action::ReadCase, "load_case")
+                    .AddCode(Action::WriteCase, "write_case")
+                    .AddCode(Action::DeleteCase, "delete_case")
+                    .AddCode(Action::CaseNotFound, "case_not_found")
+                    .AddCode(Action::UndeleteCase, "undelete_case")
+            .AddColumn("case_info", Table::ColumnType::Long, true)
+            .AddColumn("case_key_info", Table::ColumnType::Long, true)
+            .AddColumn("partial_save", Table::ColumnType::Boolean, true)
+                    .AddCode(0, "not_partial")
+                    .AddCode(1, "partial")
+        ;
+}
+
+
+DataRepositoryEvent::DataRepositoryEvent(const Action action, std::shared_ptr<NamedObject> dictionary,
+                                         std::string case_uuid/* = std::string()*/, std::string case_key/* = std::string()*/,
+                                         const bool partial_save/* = false*/)
+    :   m_action(action),
+        m_dictionary(std::move(dictionary)),
+        m_caseUuid(std::move(case_uuid)),
+        m_caseKey(std::move(case_key)),
+        m_partialSave(partial_save)
+{
+}
+
+
+constexpr int DataRepositoryEvent::DataRepositoryTypeToParadataInt(const DataRepositoryType data_repository_type)
+{
+    static_assert(static_cast<int>(DataRepositoryType::Null) == 0 &&
+                  static_cast<int>(DataRepositoryType::Stata) == 15);
+
+    switch( data_repository_type )
     {
+        case DataRepositoryType::Null:               return 0;
+        case DataRepositoryType::Text:               return 1;
+        case DataRepositoryType::SQLite:             return 2;
+        case DataRepositoryType::EncryptedSQLite:    return 3;
+        case DataRepositoryType::Memory:             return 4;
+        case DataRepositoryType::Json:               return 5;
+        case DataRepositoryType::CSWeb:              return 15;
+        case DataRepositoryType::CommaDelimited:     return 6;
+        case DataRepositoryType::SemicolonDelimited: return 7;
+        case DataRepositoryType::TabDelimited:       return 8;
+        case DataRepositoryType::Excel:              return 9;
+        case DataRepositoryType::CSProExport:        return 10;
+        case DataRepositoryType::R:                  return 11;
+        case DataRepositoryType::SAS:                return 12;
+        case DataRepositoryType::SPSS:               return 13;
+        case DataRepositoryType::Stata:              return 14;
+        default:                                     return ReturnProgrammingError(-1);
     }
-
-    void DataRepositoryEvent::Save(Log& log, long base_event_id) const
-    {
-        std::optional<long> case_info_id = !m_caseUuid.IsEmpty() ?
-            (std::optional<long>)log.AddCaseInfo(m_dictionary, m_caseUuid) : std::nullopt;
-
-        std::optional<long> case_key_info_id = !m_caseKey.IsEmpty() ?
-            (std::optional<long>)log.AddCaseKeyInfo(m_dictionary, m_caseKey, case_info_id) : std::nullopt;
-
-        Table& data_repository_event_table = log.GetTable(ParadataTable::DataRepositoryEvent);
-        data_repository_event_table.Insert(&base_event_id,
-            GetOptionalValueOrNull(log.GetInstance(*this)),
-            (int)m_action,
-            GetOptionalValueOrNull(case_info_id),
-            GetOptionalValueOrNull(case_key_info_id),
-            ( m_action == Action::WriteCase ) ? &m_partialSave : nullptr
-        );
-
-        if( m_action == Action::Close )
-            log.StopInstance(*this);
-    }
+}
 
 
-    DataRepositoryOpenEvent::DataRepositoryOpenEvent(std::shared_ptr<NamedObject> dictionary, const CString& filename,
-        int data_repository_type, int data_repository_access, int data_repository_open_flag)
-        :   DataRepositoryEvent(Action::Open, dictionary),
-            m_filename(filename),
-            m_dataRepositoryType(data_repository_type),
-            m_dataRepositoryAccess(data_repository_access),
-            m_dataRepositoryOpenFlag(data_repository_open_flag)
-    {
-    }
+void DataRepositoryEvent::Save(Log& log, long base_event_id) const
+{
+    const std::optional<long> case_info_id = !m_caseUuid.empty() ? std::make_optional(log.AddCaseInfo(m_dictionary.get(), m_caseUuid)) :
+                                                                   std::nullopt;
 
-    void DataRepositoryOpenEvent::Save(Log& log, long base_event_id) const
-    {
-        Table& data_repository_info_table = log.GetTable(ParadataTable::DataRepositoryInfo);
-        long data_repository_info_id = 0;
-        data_repository_info_table.Insert(&data_repository_info_id,
-            log.AddNamedObject(m_dictionary),
-            (LPCTSTR)m_filename,
-            m_dataRepositoryType
-        );
+    const std::optional<long> case_key_info_id = !m_caseKey.empty() ? std::make_optional(log.AddCaseKeyInfo(m_dictionary.get(), m_caseKey, case_info_id)) :
+                                                                      std::nullopt;
 
-        Table& data_repository_instance_table = log.GetTable(ParadataTable::DataRepositoryInstance);
-        long data_repository_instance_id = 0;
-        data_repository_instance_table.Insert(&data_repository_instance_id,
-            data_repository_info_id,
-            m_dataRepositoryAccess,
-            m_dataRepositoryOpenFlag
-        );
+    Table& data_repository_event_table = log.GetTable(ParadataTable::DataRepositoryEvent);
+    data_repository_event_table.Insert(&base_event_id,
+        GetOptionalValueOrNull(log.GetInstance(*this)),
+        static_cast<int>(m_action),
+        GetOptionalValueOrNull(case_info_id),
+        GetOptionalValueOrNull(case_key_info_id),
+        ( m_action == Action::WriteCase ) ? &m_partialSave : nullptr
+    );
 
-        log.StartInstance(*this, data_repository_instance_id);
+    if( m_action == Action::Close )
+        log.StopInstance(*this);
+}
 
-        DataRepositoryEvent::Save(log, base_event_id);
-    }
+
+
+// --------------------------------------------------------------------------
+// DataRepositoryOpenEvent
+// --------------------------------------------------------------------------
+
+DataRepositoryOpenEvent::DataRepositoryOpenEvent(std::shared_ptr<NamedObject> dictionary, std::string repository_name,
+                                                 const DataRepositoryType type, const DataRepositoryAccess access_type, const DataRepositoryOpenFlag open_flag)
+    :   DataRepositoryEvent(Action::Open, std::move(dictionary)),
+        m_repositoryName(std::move(repository_name)),
+        m_dataRepositoryType(type),
+        m_dataRepositoryAccess(access_type),
+        m_dataRepositoryOpenFlag(open_flag)
+{
+}
+
+
+void DataRepositoryOpenEvent::Save(Log& log, long base_event_id) const
+{
+    Table& data_repository_info_table = log.GetTable(ParadataTable::DataRepositoryInfo);
+    long data_repository_info_id = 0;
+    data_repository_info_table.Insert(&data_repository_info_id,
+        log.AddNamedObject(m_dictionary.get()),
+        m_repositoryName.c_str(),
+        static_cast<int>(m_dataRepositoryType)
+    );
+
+    Table& data_repository_instance_table = log.GetTable(ParadataTable::DataRepositoryInstance);
+    long data_repository_instance_id = 0;
+    data_repository_instance_table.Insert(&data_repository_instance_id,
+        data_repository_info_id,
+        static_cast<int>(m_dataRepositoryAccess),
+        static_cast<int>(m_dataRepositoryOpenFlag)
+    );
+
+    log.StartInstance(*this, data_repository_instance_id);
+
+    DataRepositoryEvent::Save(log, base_event_id);
 }

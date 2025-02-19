@@ -148,7 +148,7 @@ CString CSubExpresion::GetLabel( Logic::SymbolTable* pSymbolTable ) {
 
             pSymbol = (iSymCoord > 0) ? &pSymbolTable->GetAt(iSymCoord) : NULL;
 
-            csName = (pSymbol==NULL) ? _T("none") : WS2CS(pSymbol->GetName());
+            csName = (pSymbol==NULL) ? _T("none") : UTF8_TODO::GetCString(pSymbol->GetName());
 
             if( iDepth == 0 )
                 csLabel = csLabel + csName;
@@ -178,7 +178,7 @@ void CSubExpresion::Dump( CArray<CString, CString>& aDump, Logic::SymbolTable* p
             iSymCoord = this->GetSymCoord( iDim, iDepth );
 
             pSymbol = (iSymCoord > 0) ? &pSymbolTable->GetAt(iSymCoord) : NULL;
-            csMsg.Format( _T("%sName=%s"), csPrefix.GetString(), (pSymbol==NULL) ? _T("none") : pSymbol->GetName().c_str() );
+            csMsg.Format( _T("%sName=%s"), csPrefix.GetString(), (pSymbol==NULL) ? _T("none") : UTF8_TODO::GetWide(pSymbol->GetName()).c_str() );
             aDump.Add( csMsg );
 
 

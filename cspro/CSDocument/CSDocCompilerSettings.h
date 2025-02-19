@@ -20,31 +20,31 @@ public:
     CSDocCompilerSettings(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);
     virtual ~CSDocCompilerSettings() { }
 
-    // gets or sets the filename of the CSPro Document to be compiled
-    const std::wstring& GetCompilationFilename() const;
-    [[nodiscard]] RAII::PushOnVectorAndPopOnDestruction<std::wstring> SetCompilationFilename(std::wstring csdoc_filename);
+    // gets or sets the file path of the CSPro Document to be compiled
+    const std::string& GetCompilationFilePath() const;
+    [[nodiscard]] RAII::PushOnVectorAndPopOnDestruction<std::string> SetCompilationFilePath(std::string csdoc_file_path);
 
     // evaluates the path, making it an absolute path
-    std::wstring EvaluatePath(std::wstring path) const;
+    std::string EvaluatePath(std::string path) const;
 
     // returns the definition for the key, throwing an exception if not found
-    const std::wstring& GetDefinition(const std::wstring& key) const;
+    const std::string& GetDefinition(const std::string& key) const;
 
     // returns the definition for the key (in the special definition set), throwing an exception if not found
-    std::wstring GetSpecialDefinition(const std::wstring& domain, const std::wstring& key) const;
+    std::string GetSpecialDefinition(const std::string& domain, const std::string& key) const;
 
     // overridable TitleManager wrappers
     // --------------------------------------------------------------------------
 
-    virtual std::wstring GetTitle(const std::wstring& csdoc_filename)      { return m_titleManager.GetTitle(csdoc_filename); }
-    virtual void SetTitleForCompilationFilename(const std::wstring& title) { m_titleManager.SetTitle(GetCompilationFilename(), title); }
-    virtual void ClearTitleForCompilationFilename()                        { m_titleManager.ClearTitle(GetCompilationFilename()); }
+    virtual std::string GetTitle(const std::string& csdoc_file_path)      { return m_titleManager.GetTitle(csdoc_file_path); }
+    virtual void SetTitleForCompilationFilePath(const std::string& title) { m_titleManager.SetTitle(GetCompilationFilePath(), title); }
+    virtual void ClearTitleForCompilationFilePath()                       { m_titleManager.ClearTitle(GetCompilationFilePath()); }
 
     // overridable methods
     // --------------------------------------------------------------------------
 
     // adds a compiler message to the build window
-    virtual void AddCompilerMessage(CompilerMessageType compiler_message_type, const std::wstring& text);
+    virtual void AddCompilerMessage(CompilerMessageType compiler_message_type, const std::string& text);
 
     // when true, preprocessor exceptions will be suppressed
     virtual bool SuppressPreprocessorExceptions() const { return false; }
@@ -54,14 +54,14 @@ public:
     virtual bool AddHtmlFooter() const { return true; }
 
     // returns the title to insert into the HTML header
-    virtual std::wstring GetHtmlHeaderTitle(const std::wstring& csdoc_filename) { return GetTitle(csdoc_filename); }
+    virtual std::string GetHtmlHeaderTitle(const std::string& csdoc_file_path) { return GetTitle(csdoc_file_path); }
 
     // returns the HTML to insert in the head section that includes any stylesheet(s), as links or embedded;
     // the base implementation embeds the CSPro Document stylesheet
-    virtual std::wstring GetStylesheetsHtml();
+    virtual std::string GetStylesheetsHtml();
 
     // returns any extra HTML to include at the start and end of the document
-    virtual std::tuple<std::wstring, std::wstring> GetHtmlToWrapDocument() { return std::tuple<std::wstring, std::wstring>(); }
+    virtual std::tuple<std::string, std::string> GetHtmlToWrapDocument() { return std::tuple<std::string, std::string>(); }
 
     // if true, documents without titles will be considered incomplete
     virtual bool TitleIsRequired() const { return false; }
@@ -70,56 +70,59 @@ public:
     virtual bool CompilingForCompiledHtmlHelp() const { return false; }
 
     // evaluates the path, making it an absolute path
-    virtual std::wstring EvaluateTopicPath(const std::wstring& path);
-    virtual std::wstring EvaluateTopicPath(const std::wstring& project, const std::wstring& path);
-    virtual std::wstring EvaluateImagePath(const std::wstring& path);
+    virtual std::string EvaluateTopicPath(const std::string& path);
+    virtual std::string EvaluateTopicPath(const std::string& project, const std::string& path);
+    virtual std::string EvaluateImagePath(const std::string& path);
 
     // evaluates and processes the path for a build extra;
     // the base implementation returns the evaluated path, throwing an exception if not found
-    virtual std::wstring EvaluateBuildExtra(const std::wstring& path);
+    virtual std::string EvaluateBuildExtra(const std::string& path);
 
     // if non-blank, the title will be wrapped in a link to the URL;
     // the base implementation returns blank
-    virtual std::wstring CreateUrlForTitle(const std::wstring& path);
+    virtual std::string CreateUrlForTitle(const std::string& path);
 
     // returns a URL for the topic;
     // the base implementation returns blank, which means that the URL will not have a target;
     // if the URL begins with a !, everything beyond the ! will be set as the onclick
-    virtual std::wstring CreateUrlForTopic(const std::wstring& project, const std::wstring& path);
+    virtual std::string CreateUrlForTopic(const std::string& project, const std::string& path);
 
     // if non-blank, the URL will be inserted into colorized logic;
     // the base implementation links to the CSPro Users online help
-    virtual std::wstring CreateUrlForLogicTopic(const TCHAR* help_topic_filename);
+    virtual std::string CreateUrlForLogicTopic(const char* help_topic_filename);
 
     // returns a URL for the image;
     // the base implementation returns a data URL
-    virtual std::wstring CreateUrlForImageFile(const std::wstring& path);
+    virtual std::string CreateUrlForImageFile(const std::string& path);
 
     // if true, external links will open in a new window
     virtual bool OpenExternalLinksInSeparateWindow() const { return true; }
 
     // processes context-sensitive help entries, potentially issuing errors or warnings if the entry is not found;
     // the base implementation ignores entries not found
-    virtual std::optional<unsigned> GetContextId(const std::wstring& context, bool use_if_exists);
+    virtual std::optional<unsigned> GetContextId(const std::string& context, bool use_if_exists);
 
 protected:
-    static constexpr const TCHAR* CSDocStylesheetFilename     = _T("csdoc.css");
-    static constexpr const TCHAR* DocSetWebStylesheetFilename = _T("docset.css");
+    static constexpr const char* CSDocStylesheetFilename     = "csdoc.css";
+    static constexpr const char* DocSetWebStylesheetFilename = "docset.css";
 
-    static std::wstring GetStylesheetCssPath(const TCHAR* css_filename);
-    static std::wstring GetStylesheetLinkHtml(const std::wstring& css_url);
-    static std::wstring GetStylesheetEmbeddedHtml(std::wstring css);
+    static std::string GetStylesheetCssFilePath(const char* css_filename);
+    static std::string GetStylesheetLinkHtml(const std::string& css_url);
+    static std::string GetStylesheetEmbeddedHtml(std::string css);
 
-    static std::wstring CreateUrlForLogicTopicOnCSProUsersForum(const TCHAR* help_topic_filename);
-    std::wstring CreateUrlForLogicHelpTopicInCSProProject(const TCHAR* help_topic_filename);
+    static std::string CreateUrlForLogicTopicOnCSProUsersForum(const char* help_topic_filename);
+    std::string CreateUrlForLogicHelpTopicInCSProProject(const char* help_topic_filename);
 
 #ifdef _DEBUG
     virtual const DocBuildSettings* GetBuildSettingsDebug() { return nullptr; }
 #endif
 
+private:
+    static std::string CheckPathCase(std::string path, const std::string& specified_case_to_check = SO::Empty_string);
+
 protected:
     cs::non_null_shared_or_raw_ptr<DocSetSpec> m_docSetSpec;
-    std::vector<std::wstring> m_compilationFilenames;
+    std::vector<std::string> m_compilationFilePaths;
     TitleManager m_titleManager;
 };
 
@@ -148,16 +151,16 @@ class CSDocCompilerSettingsForCSDocumentPreview : public CSDocCompilerSettings
 public:
     CSDocCompilerSettingsForCSDocumentPreview(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, BuildWnd* build_wnd);
 
-    void AddCompilerMessage(CompilerMessageType compiler_message_type, const std::wstring& text) override;
+    void AddCompilerMessage(CompilerMessageType compiler_message_type, const std::string& text) override;
 
-    std::wstring GetStylesheetsHtml() override;
+    std::string GetStylesheetsHtml() override;
 
-    std::wstring CreateUrlForTitle(const std::wstring& path) override;
-    std::wstring CreateUrlForTopic(const std::wstring& project, const std::wstring& path) override;
-    std::wstring CreateUrlForLogicTopic(const TCHAR* help_topic_filename) override;
-    std::wstring CreateUrlForImageFile(const std::wstring& path) override;
+    std::string CreateUrlForTitle(const std::string& path) override;
+    std::string CreateUrlForTopic(const std::string& project, const std::string& path) override;
+    std::string CreateUrlForLogicTopic(const char* help_topic_filename) override;
+    std::string CreateUrlForImageFile(const std::string& path) override;
 
-    std::optional<unsigned> GetContextId(const std::wstring& context, bool use_if_exists) override;
+    std::optional<unsigned> GetContextId(const std::string& context, bool use_if_exists) override;
 
 private:
     SharedHtmlLocalFileServer& m_fileServer;
@@ -174,96 +177,96 @@ private:
 class CSDocCompilerSettingsForBuilding : public CSDocCompilerSettings
 {
 public:
-    CSDocCompilerSettingsForBuilding(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings build_settings, std::wstring build_name);
+    CSDocCompilerSettingsForBuilding(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings build_settings, std::string build_name);
 
     static std::unique_ptr<CSDocCompilerSettingsForBuilding> CreateForDocSetBuild(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
                                                                                   const DocBuildSettings& base_build_settings,
-                                                                                  DocBuildSettings::BuildType build_type, std::wstring build_name,
+                                                                                  DocBuildSettings::BuildType build_type, std::string build_name,
                                                                                   bool throw_exceptions_for_serious_issues_when_validating_build_settings);
 
     const DocSetSpec& GetDocSetSpec() const { return *m_docSetSpec; }
     DocSetSpec& GetDocSetSpec()             { return *m_docSetSpec; }
 
     const DocBuildSettings& GetBuildSettings() const { return m_buildSettings; }
-    const std::wstring& GetBuildName() const         { return m_buildName; }
-    
+    const std::string& GetBuildName() const          { return m_buildName; }
+
     void SetDocSetBuilderCache(std::shared_ptr<DocSetBuilderCache> doc_set_builder_cache);
 
-    std::wstring GetDocSetBuildOutputDirectory() const { return GetDocSetBuildOutputDirectoryOrFilename(true); }
-    std::wstring GetDocSetBuildOutputFilename() const  { return GetDocSetBuildOutputDirectoryOrFilename(false); }
+    std::string GetDocSetBuildOutputDirectory() const { return GetDocSetBuildOutputDirectoryOrFilePath(true); }
+    std::string GetDocSetBuildOutputFilePath() const  { return GetDocSetBuildOutputDirectoryOrFilePath(false); }
 
-    const std::wstring& GetOutputDirectoryForRelativeEvaluation(bool use_evaluated_output_directory) const;
+    const std::string& GetOutputDirectoryForRelativeEvaluation(bool use_evaluated_output_directory) const;
 
-    const std::wstring& GetDefaultDocumentPath() const;
+    const std::string& GetDefaultDocumentFilePath() const;
 
-    std::wstring CreateHtmlOutputFilename(const std::wstring& csdoc_filename) const;
+    std::string CreateHtmlOutputFilePath(const std::string& csdoc_file_path) const;
 
-    static std::wstring GetBuiltHtmlFilename(const std::wstring& path);
-    static std::wstring GetBuiltHtmlPathInSourceDirectory(const std::wstring& path);
+    static std::string GetBuiltHtmlFilename(const std::string& path);
+    static std::string GetBuiltHtmlFilePathInSourceDirectory(const std::string& path);
 
-    void SetOutputFilename(std::wstring output_filename);
+    void SetOutputFilePath(std::string output_file_path);
 
-    const CSDocCompilerSettingsForBuilding& GetProjectSettings(const std::wstring& project) const;
+    const CSDocCompilerSettingsForBuilding& GetProjectSettings(const std::string& project) const;
 
     // WriteTextToFile and CopyFileToDirectory ensure that every file written/copied is unique
-    void WriteTextToFile(const std::wstring& destination_path, wstring_view text_content_sv, bool write_utf8_bom) const;
-    void CopyFileToDirectory(const std::wstring& source_path, const std::wstring& destination_path) const;
+    void WriteTextToFile(const std::string& file_path, std::string_view text_content_sv, bool write_utf8_bom) const;
+    void CopyFileToDirectory(const std::string& source_file_path, const std::string& destination_file_path) const;
 
-    std::wstring GetTitle(const std::wstring& csdoc_filename) override;
-    void SetTitleForCompilationFilename(const std::wstring& title) override;
-    void ClearTitleForCompilationFilename() override;
+    std::string GetTitle(const std::string& csdoc_file_path) override;
+    void SetTitleForCompilationFilePath(const std::string& title) override;
+    void ClearTitleForCompilationFilePath() override;
 
-    std::wstring GetStylesheetsHtml() override;
+    std::string GetStylesheetsHtml() override;
 
     // this implementation copies the file to m_csdocOutputDirectory, if defined
-    std::wstring EvaluateBuildExtra(const std::wstring& path) override;
+    std::string EvaluateBuildExtra(const std::string& path) override;
 
-    std::wstring CreateUrlForTitle(const std::wstring& path) override;
-    std::wstring CreateUrlForTopic(const std::wstring& project, const std::wstring& path) override;
-    std::wstring CreateUrlForLogicTopic(const TCHAR* help_topic_filename) override;
-    std::wstring CreateUrlForImageFile(const std::wstring& path) override;
-
-protected:
-    DocSetBuilderCache& GetDocSetBuilderCache() const   { return *m_docSetBuilderCache; }
-    const std::wstring& GetCSDocOutputDirectory() const { return m_csdocOutputDirectory; }
-
-    virtual std::wstring CreateUrlForDocSetTopic(const std::wstring& path) const;
-    virtual std::wstring CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const;
-    virtual std::wstring CreateUrlForExternalTopic(const std::wstring& path) const;
+    std::string CreateUrlForTitle(const std::string& path) override;
+    std::string CreateUrlForTopic(const std::string& project, const std::string& path) override;
+    std::string CreateUrlForLogicTopic(const char* help_topic_filename) override;
+    std::string CreateUrlForImageFile(const std::string& path) override;
 
 protected:
-    static void EnsurePathIsRelative(const std::wstring& path);
+    DocSetBuilderCache& GetDocSetBuilderCache() const  { return *m_docSetBuilderCache; }
+    const std::string& GetCSDocOutputDirectory() const { return m_csdocOutputDirectory; }
 
-    std::wstring GetPathWithPathAdjustments(const std::wstring& path) const;
+    virtual std::string CreateUrlForDocSetTopic(const std::string& path) const;
+    virtual std::string CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const;
+    virtual std::string CreateUrlForExternalTopic(const std::string& path) const;
 
-    std::wstring EvaluateDirectoryRelativeToOutputDirectory(const std::wstring& directory, bool use_evaluated_output_directory) const;
+protected:
+    static void EnsurePathIsRelative(const std::string& path);
 
-    static std::wstring CreatePathIfCopiedToDirectory(const std::wstring& source_path, const std::wstring& destination_directory);
-    std::wstring CreatePathIfCopiedRelativeToFile(const std::wstring& source_path, const std::wstring& relative_to_file, const std::wstring& output_directory) const;
-    std::wstring CreatePathIfCopiedRelativeToOutput(const std::wstring& source_path) const;
+    std::string GetPathWithPathAdjustments(const std::string& path) const;
 
-    std::wstring CreatePathAndCopyFileToDirectory(const std::wstring& source_path, const std::wstring& destination_directory) const;
-    std::wstring CreatePathAndCopyFileIfCopiedRelativeToOutput(const std::wstring& source_path) const;
+    std::string EvaluateDirectoryRelativeToOutputDirectory(const std::string& directory, bool use_evaluated_output_directory) const;
 
-    static std::wstring CreateAbsoluteUrlForPath(const std::wstring& path);
-    std::wstring CreateRelativeUrlForPath(const std::wstring& path) const;
+    static std::string CreatePathIfCopiedToDirectory(const std::string& source_file_path, const std::string& destination_directory);
+    std::string CreatePathIfCopiedRelativeToFile(const std::string& source_file_path, const std::string& relative_to_file, const std::string& output_directory) const;
+    std::string CreatePathIfCopiedRelativeToOutput(const std::string& source_file_path) const;
 
-    std::wstring GetStylesheetsHtmlWorker(const TCHAR* css_filename) const;
+    std::string CreatePathAndCopyFileToDirectory(const std::string& source_file_path, const std::string& destination_directory) const;
+    std::string CreatePathAndCopyFileIfCopiedRelativeToOutput(const std::string& source_file_path) const;
+
+    static std::string CreateAbsoluteUrlForPath(std::string path);
+    std::string CreateRelativeUrlForPath(const std::string& path) const;
+
+    std::string GetStylesheetsHtmlWorker(const char* css_filename) const;
 
 private:
-    std::wstring GetDocSetBuildOutputDirectoryOrFilename(bool directory) const;
+    std::string GetDocSetBuildOutputDirectoryOrFilePath(bool directory) const;
 
 protected:
-    const DocBuildSettings m_buildSettings;
+    DocBuildSettings m_buildSettings;
 
 private:
-    const std::wstring m_buildName;
+    std::string m_buildName;
     std::shared_ptr<DocSetBuilderCache> m_docSetBuilderCache;
 
-    std::wstring m_docSetBuildOutputDirectory;
+    std::string m_docSetBuildOutputDirectory;
 
-    std::wstring m_csdocOutputFilename;
-    std::wstring m_csdocOutputDirectory;
+    std::string m_csdocOutputFilePath;
+    std::string m_csdocOutputDirectory;
 };
 
 
@@ -293,23 +296,23 @@ public:
 
     void RunPreCompilationTasks(DocSetBuilderHtmlWebsiteGenerateTask& generate_task);
 
-    std::wstring GetHtmlHeaderTitle(const std::wstring& csdoc_filename) override;
+    std::string GetHtmlHeaderTitle(const std::string& csdoc_file_path) override;
 
-    std::wstring GetStylesheetsHtml() override;
+    std::string GetStylesheetsHtml() override;
 
-    std::tuple<std::wstring, std::wstring> GetHtmlToWrapDocument() override;
+    std::tuple<std::string, std::string> GetHtmlToWrapDocument() override;
 
     bool TitleIsRequired() const override { return true; }
 
     bool OpenExternalLinksInSeparateWindow() const override { return false; }
 
 private:
-    void CopyStylesheetImages(const std::wstring& directory);
+    void CopyStylesheetImages(const std::string& directory);
 
 private:
     DocSetBuilderHtmlWebsiteGenerateTask* m_generateTask = nullptr;
-    std::wstring m_titlePostfix;
-    std::set<StringNoCase> m_copiedStylesheetImageDirectories;
+    std::string m_titlePostfix;
+    std::set<std::string, cs::case_insensitive_less> m_copiedStylesheetImageDirectories;
 };
 
 
@@ -323,24 +326,24 @@ class CSDocCompilerSettingsForBuildingChm : public CSDocCompilerSettingsForBuild
 public:
     using CSDocCompilerSettingsForBuilding::CSDocCompilerSettingsForBuilding;
 
-    std::wstring GetDefaultDocumentPath() const;
+    std::string GetDefaultDocumentFilePath() const;
 
     void RunPreCompilationTasks(DocSetBuilderChmGenerateTask& generate_task);
 
-    std::wstring GetStylesheetsHtml() override;
+    std::string GetStylesheetsHtml() override;
 
     bool TitleIsRequired() const override { return true; }
 
     bool CompilingForCompiledHtmlHelp() const { return true; }
 
-    std::wstring EvaluateBuildExtra(const std::wstring& path) override;
+    std::string EvaluateBuildExtra(const std::string& path) override;
 
-    std::wstring CreateUrlForImageFile(const std::wstring& path) override;
+    std::string CreateUrlForImageFile(const std::string& path) override;
 
-    std::optional<unsigned> GetContextId(const std::wstring& context, bool use_if_exists) override;
+    std::optional<unsigned> GetContextId(const std::string& context, bool use_if_exists) override;
 
 protected:
-    std::wstring CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const override;
+    std::string CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const override;
 
 private:
     DocSetBuilderChmGenerateTask* m_generateTask = nullptr;
@@ -362,20 +365,20 @@ public:
     bool AddHtmlHeader() const override;
     bool AddHtmlFooter() const override;
 
-    std::wstring GetHtmlHeaderTitle(const std::wstring& csdoc_filename) override;
+    std::string GetHtmlHeaderTitle(const std::string& csdoc_file_path) override;
 
-    std::tuple<std::wstring, std::wstring> GetHtmlToWrapDocument() override;
+    std::tuple<std::string, std::string> GetHtmlToWrapDocument() override;
 
     bool TitleIsRequired() const override { return true; }
 
-    std::wstring EvaluateBuildExtra(const std::wstring& path) override;
+    std::string EvaluateBuildExtra(const std::string& path) override;
 
 protected:
-    std::wstring CreateUrlForDocSetTopic(const std::wstring& path) const override;
-    std::wstring CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const override;
+    std::string CreateUrlForDocSetTopic(const std::string& path) const override;
+    std::string CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const override;
 
 private:
-    static std::wstring CreateHtmlAnchorId(const std::wstring& csdoc_filename, const DocSetSpec& doc_set_spec);
+    static std::string CreateHtmlAnchorId(const std::string& csdoc_file_path, const DocSetSpec& doc_set_spec);
 
 private:
     DocSetBuilderPdfGenerateTask* m_generateTaskForDocSetBuild = nullptr;

@@ -13,7 +13,7 @@ public:
     void DisplayHtml(CodeDoc& code_doc);
 
 private:
-    std::unique_ptr<VirtualFileMapping> CreateHtmlVirtualFileMapping(CodeDoc& code_doc, const std::wstring& filename) const;
+    std::unique_ptr<VirtualFileMapping> CreateHtmlVirtualFileMapping(CodeDoc& code_doc, const std::string& file_path) const;
 
 private:
     std::unique_ptr<VirtualFileMapping> m_htmlVirtualFileMapping;

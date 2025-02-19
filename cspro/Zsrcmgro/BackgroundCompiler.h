@@ -7,12 +7,7 @@ class CCompIFaz;
 class CEngineArea;
 class CompilerCreator;
 class DesignerCompilerMessageProcessor;
-
-namespace Logic
-{
-    class SourceBuffer;
-    class SymbolTable;
-}
+namespace Logic { class SourceBuffer; class SymbolTable; }
 
 
 class CLASS_DECL_ZSRCMGR BackgroundCompiler
@@ -22,7 +17,6 @@ public:
                        CompilerCreator* compiler_creator = nullptr);
     virtual ~BackgroundCompiler();
 
-    void Compile(const TCHAR* buffer_text);
     void Compile(std::shared_ptr<Logic::SourceBuffer> source_buffer);
 
     const Logic::SymbolTable& GetCompiledSymbolTable() const;

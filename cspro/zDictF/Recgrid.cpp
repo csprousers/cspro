@@ -158,13 +158,13 @@ void CRecordGrid::OnSetup()
 
     m_iButton = AddCellType(&m_button);
 
-	auto set_header = [&](int column, const TCHAR* text, int alignment = 0)
-	{
-		QuickSetText(column, HEADER_ROW, text);
+    auto set_header = [&](int column, const TCHAR* text, int alignment = 0)
+    {
+        QuickSetText(column, HEADER_ROW, text);
 
-		if( alignment != 0 )
-			QuickSetAlignment(column, HEADER_ROW, alignment);
-	};
+        if( alignment != 0 )
+            QuickSetAlignment(column, HEADER_ROW, alignment);
+    };
 
     set_header(REC_NOTE_COL,     _T("N"));
     set_header(REC_LABEL_COL,    _T("Item Label                "), UG_ALIGNLEFT);
@@ -172,7 +172,7 @@ void CRecordGrid::OnSetup()
     set_header(REC_START_COL,    _T("  Start"),                    UG_ALIGNRIGHT);
     set_header(REC_LEN_COL,      _T("  Len"),                      UG_ALIGNRIGHT);
     set_header(REC_DATATYPE_COL, _T("Data Type    "),              UG_ALIGNLEFT);
-    set_header(REC_ITEMTYPE_COL, _T("Item Type  "),                UG_ALIGNLEFT);                                        
+    set_header(REC_ITEMTYPE_COL, _T("Item Type  "),                UG_ALIGNLEFT);
     set_header(REC_OCC_COL,      _T("Occ"),                        UG_ALIGNRIGHT);
     set_header(REC_DEC_COL,      _T("Dec"),                        UG_ALIGNRIGHT);
     set_header(REC_DECCHAR_COL,  _T("Dec Char"),                   UG_ALIGNLEFT);
@@ -377,7 +377,7 @@ void CRecordGrid::Update()
     m_aItem.Add(item);
     // Add id items for each level
     for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
-	    DictLevel& dict_level = m_pDict->GetLevel(level_number);
+        DictLevel& dict_level = m_pDict->GetLevel(level_number);
         item.level = level_number;
         item.rec = COMMON;
         pRec = dict_level.GetIdItemsRec();
@@ -565,31 +565,31 @@ void CRecordGrid::UpdateRecItem(const CDictItem& dict_item, int row, COLORREF rg
 
     auto set_cell = [&](int column, const TCHAR* text, int alignment = 0)
     {
-		QuickSetText(column, row, text);
+        QuickSetText(column, row, text);
         QuickSetTextColor(column, row, rgb);
 
-		if( alignment != 0 )
-			QuickSetAlignment(column, row, alignment);
+        if( alignment != 0 )
+            QuickSetAlignment(column, row, alignment);
     };
 
     set_cell(REC_LABEL_COL, dict_item.GetLabel());
 
-    set_cell(REC_NAME_COL, dict_item.GetName());
+    set_cell(REC_NAME_COL, UTF8_TODO::GetCString(dict_item.GetName()));
 
-    set_cell(REC_START_COL, IntToString(dict_item.GetStart()), UG_ALIGNRIGHT);
+    set_cell(REC_START_COL, UTF8_TODO::GetCString(IntToString(dict_item.GetStart())), UG_ALIGNRIGHT);
 
-    set_cell(REC_LEN_COL, IntToString(dict_item.GetLen()), UG_ALIGNRIGHT);
+    set_cell(REC_LEN_COL, UTF8_TODO::GetCString(IntToString(dict_item.GetLen())), UG_ALIGNRIGHT);
 
-    set_cell(REC_DATATYPE_COL, ToString(dict_item.GetContentType()));
+    set_cell(REC_DATATYPE_COL, UTF8_TODO::GetCString(ToString(dict_item.GetContentType())));
 
     set_cell(REC_ITEMTYPE_COL, ( dict_item.GetItemType() == ItemType::Item ) ? _T("Item") : _T("Subitem"));
 
-    set_cell(REC_OCC_COL, IntToString(dict_item.GetOccurs()), UG_ALIGNRIGHT);
+    set_cell(REC_OCC_COL, UTF8_TODO::GetCString(IntToString(dict_item.GetOccurs())), UG_ALIGNRIGHT);
 
-    set_cell(REC_DEC_COL, IsNumeric(dict_item) ? IntToString(dict_item.GetDecimal()) : CString(), UG_ALIGNRIGHT);
-    set_cell(REC_DECCHAR_COL, ( dict_item.GetDecimal() > 0 ) ? BOOL_TO_TEXT(dict_item.GetDecChar()) : CString());
+    set_cell(REC_DEC_COL, IsNumeric(dict_item) ? UTF8_TODO::GetCString(IntToString(dict_item.GetDecimal())) : CString(), UG_ALIGNRIGHT);
+    set_cell(REC_DECCHAR_COL, ( dict_item.GetDecimal() == 0 ) ? L"" : dict_item.GetDecChar() ? CSPRO_ARG_YES : CSPRO_ARG_NO);
 
-    set_cell(REC_ZEROFILL_COL, DictionaryRules::CanHaveZeroFill(dict_item.GetContentType()) ? BOOL_TO_TEXT(dict_item.GetZeroFill()) : CString());
+    set_cell(REC_ZEROFILL_COL, !DictionaryRules::CanHaveZeroFill(dict_item.GetContentType()) ? L"" : dict_item.GetZeroFill() ? CSPRO_ARG_YES : CSPRO_ARG_NO);
 }
 
 
@@ -620,8 +620,8 @@ void CRecordGrid::CreateDataTypesCombo(long row, const CString& currentDataType)
     m_pDataTypeEdit->SetItemHeight(-1, m_plf->lfHeight);   // sets height for static control and button
     m_pDataTypeEdit->SetItemHeight(0, m_plf->lfHeight);   // sets height for list box entries
 
-    for( ContentType content_type : valid_content_types )
-        m_pDataTypeEdit->AddString(ToString(content_type));
+    for( const ContentType content_type : valid_content_types )
+        m_pDataTypeEdit->AddString(TC::ToWide(ToString(content_type)).c_str());
 
     m_pDataTypeEdit->SetCurSel(m_pDataTypeEdit->FindStringExact(0, currentDataType));
     m_aEditControl.SetAt(REC_DATATYPE_COL, (CWnd*)m_pDataTypeEdit);
@@ -798,14 +798,14 @@ void CRecordGrid::UpdateEnabledEditControls()
 
     CString content_type_text;
     m_pDataTypeEdit->GetWindowText(content_type_text);
-    ContentType content_type = *FromString<ContentType>(content_type_text);
+    ContentType content_type = *FromString<ContentType>(UTF8_TODO::GetUtf8(content_type_text));
 
     if (DictionaryRules::CanModifyLength(content_type)) {
         m_pLenEdit->EnableWindow(TRUE);
     }
     else {
         m_pLenEdit->EnableWindow(FALSE);
-        m_pLenEdit->SetWindowText(IntToString(DictionaryDefaults::ItemLen));
+        m_pLenEdit->SetWindowText(UTF8_TODO::GetCString(IntToString(DictionaryDefaults::ItemLen)));
     }
 
     if (DictionaryRules::CanBeSubitem(*dict_record, content_type)) {
@@ -827,7 +827,7 @@ void CRecordGrid::UpdateEnabledEditControls()
     if (DictionaryRules::CanHaveDecimals(*dict_record, content_type)) {
         m_pDecEdit->EnableWindow(TRUE);
         m_pDecCharEdit->EnableWindow(TRUE);
-        m_pDecEdit->SetWindowText(IntToString(dict_item->GetDecimal()));
+        m_pDecEdit->SetWindowText(UTF8_TODO::GetCString(IntToString(dict_item->GetDecimal())));
         m_pDecCharEdit->SetCurSel(dict_item->GetDecChar() ? 0 : 1);
     }
     else {
@@ -1442,7 +1442,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
     bool bUpdateTree = false;
     bool bUndo = false;
     bool changes_will_break_linked_value_sets = false; // 20110121
-    std::map<CString, int> broken_linked_value_sets;
+    std::map<std::string, int> broken_linked_value_sets;
     int iLevel = m_aItem[m_iEditRow].level;
     int iRec = m_aItem[m_iEditRow].rec;
     int iItem = m_aItem[m_iEditRow].item;
@@ -1477,7 +1477,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
                 QuickSetText(REC_LEN_COL, m_iEditRow, csNewRTLen);
                 pDoc->SetModified();
                 for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
-	                DictLevel& dict_level = m_pDict->GetLevel(level_number);
+                    DictLevel& dict_level = m_pDict->GetLevel(level_number);
                     for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
                         CDictRecord* pRec = dict_level.GetRecord(r);
                         CIMSAString csRecTypeVal = pRec->GetRecTypeVal();
@@ -1503,11 +1503,11 @@ bool CRecordGrid::EditEnd(bool bSilent)
         }
 
         m_aEditControl[REC_NAME_COL]->GetWindowText(csNewName);
-        csOldName = pItem->GetName();
+        csOldName = UTF8_TODO::GetCString(pItem->GetName());
         if (csNewName.Compare(csOldName) != 0) {
             bChanged = true;
             bChangedName = true;
-            pItem->SetName(csNewName);
+            pItem->SetName(UTF8_TODO::GetUtf8(csNewName));
         }
 
         if (csNewLabel.IsEmpty() && csNewName.IsEmpty()) {
@@ -1535,7 +1535,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
 
         CString csNewDataType;
         m_aEditControl[REC_DATATYPE_COL]->GetWindowText(csNewDataType);
-        ContentType contentTypeNew = *FromString<ContentType>(csNewDataType);
+        ContentType contentTypeNew = *FromString<ContentType>(UTF8_TODO::GetUtf8(csNewDataType));
 
         ContentType contentTypeOld = pItem->GetContentType();
         if (contentTypeNew != contentTypeOld) {
@@ -1617,7 +1617,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
         }
 
         if (m_bAdding || m_bInserting) {
-            if (pItem->GetLabel().IsEmpty() && pItem->GetName().IsEmpty()) {
+            if (pItem->GetLabel().IsEmpty() && pItem->GetName().empty()) {
                 bUndo = true;
                 m_bAdding = false;
                 m_bInserting = false;
@@ -1644,9 +1644,8 @@ bool CRecordGrid::EditEnd(bool bSilent)
                     }
                     if ((pSubItem->GetStart() + pSubItem->GetLen() * pSubItem->GetOccurs()) > (m_iOldStart + uNewLen)) {  // Chirag 10 Mar 2003
 
-                        CString csMsg;
-                        csMsg.Format(_T("Subitem: %s extends beyond end of the item.\nChange subitem length, then change item length."), (LPCTSTR)pSubItem->GetName());
-                        AfxMessageBox(csMsg);
+                        AfxMessageBox(FormatText("Subitem: %s extends beyond end of the item.\n"
+                                                 "Change subitem length, then change item length.", pSubItem->GetName().c_str()));
                         bValid = false;
                         dictionary_validator->SetInvalidEdit(REC_LEN_COL);  // Chirag 10 Mar 2003
                     }
@@ -1654,7 +1653,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
             }
             // Check for value set validity
             if( bValid && !DictionaryRules::CanHaveValueSet(*pItem) && pItem->HasValueSets() ) {
-                AfxMessageBox(FormatText(_T("Items of type %s cannot have value sets. Delete them before changing the data type."), ToString(pItem->GetContentType())));
+                AfxMessageBox(FormatText("Items of type '%s' cannot have value sets. Delete them before changing the data type.", ToString(pItem->GetContentType())));
                 bValid = false;
                 dictionary_validator->SetInvalidEdit(REC_DATATYPE_COL);
             }
@@ -1753,8 +1752,8 @@ bool CRecordGrid::EditEnd(bool bSilent)
                 if (csNewName.Compare(csOldName) != 0) {
                     int v = 0;
                     for( DictValueSet& dict_value_set : pItem->GetValueSets() ) {
-                        CString csName = FormatText(_T("%s_VS%d"), (LPCTSTR)pItem->GetName(), v + 1);
-                        dict_value_set.SetName(m_pDict->GetUniqueName(csName));
+                        const std::string base_name = FormatText("%s_VS%d", pItem->GetName().c_str(), v + 1);
+                        dict_value_set.SetName(m_pDict->GetUniqueName(base_name));
                         m_pDict->UpdateNameList(dict_value_set, iLevel, iRec, iItem, v);
                         ++v;
                     }
@@ -1780,7 +1779,7 @@ bool CRecordGrid::EditEnd(bool bSilent)
             }
             else {
                 pItem->SetLabel(csOldLabel);
-                pItem->SetName(csOldName);
+                pItem->SetName(UTF8_TODO::GetUtf8(csOldName));
                 pItem->SetStart(uOldStart);
                 pItem->SetLen(uOldLen);
                 pItem->SetContentType(contentTypeOld);
@@ -1851,15 +1850,15 @@ bool CRecordGrid::EditEnd(bool bSilent)
         pDoc->UndoChange(FALSE);
     }
     if (bChangedName && bValid && !m_bAdding && !m_bInserting) {
-        const CDictItem* dict_item = m_pDict->LookupName<CDictItem>(csNewName);
+        const CDictItem* dict_item = m_pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(csNewName));
         m_pDict->SetChangedObject(dict_item);
         AfxGetMainWnd()->PostMessage(UWM::Dictionary::NameChange, (WPARAM)pDoc);
     }
 
     for( const auto& [value_set_name, remaining_links] : broken_linked_value_sets )
     {
-        AfxMessageBox(FormatText(_T("The link of value set '%s' to %d other value sets was removed due to item changes"),
-                                    (LPCTSTR)value_set_name, remaining_links));
+        AfxMessageBox(FormatText("The link of value set '%s' to %d other value sets was removed due to item changes",
+                                 value_set_name.c_str(), remaining_links));
     }
 
     return bValid;
@@ -2106,7 +2105,7 @@ void CRecordGrid::OnEditPaste()
 
     // If absolute, calculate trial starting position from current row
     else
-    {        
+    {
         if( dict_record->GetNumItems() > 0 )
         {
             bool offset_by_one = ( item_number != 0 &&
@@ -2711,16 +2710,19 @@ void CRecordGrid::OnEditFlattenOccurrences() // 20130224
     pDoc->SetModified();
 
 
-    auto create_unique_name = [&](CString base_name, int zero_based_occurrence)
+    auto create_unique_name = [&](std::string base_name, const int zero_based_occurrence)
     {
-        base_name.AppendFormat(_T("_%d"), zero_based_occurrence + 1);
+        base_name.push_back('_');
+        base_name.append(IntToString(zero_based_occurrence + 1));
         return pDoc->GetDict()->GetUniqueName(base_name);
     };
 
-    CString base_item_name = dict_item->GetName();
+    const std::string base_item_name = dict_item->GetName();
 
     // case 1: a repeating item with subitems
-    if( dict_item->GetItemType() == ItemType::Item && ( ( iItem + 1 ) < dict_record->GetNumItems() ) && dict_record->GetItem(iItem + 1)->GetItemType() == ItemType::Subitem )
+    if( ( dict_item->GetItemType() == ItemType::Item ) &&
+        ( ( iItem + 1 ) < dict_record->GetNumItems() ) &&
+        ( dict_record->GetItem(iItem + 1)->GetItemType() == ItemType::Subitem ) )
     {
         int iEndSubitem = iItem + 1;
 
@@ -2734,7 +2736,7 @@ void CRecordGrid::OnEditFlattenOccurrences() // 20130224
         dict_item->SetName(create_unique_name(base_item_name, 0));
         dict_item->SetOccurs(1);
 
-        std::vector<CString> base_subitem_names;
+        std::vector<std::string> base_subitem_names;
 
         for( int k = 0; k < iNumSubitems; k++ )
         {
@@ -2768,8 +2770,8 @@ void CRecordGrid::OnEditFlattenOccurrences() // 20130224
         }
 
         // rename and link the value sets
-        std::vector<std::tuple<CString, DictValueSet*>> base_value_sets_and_names;
-        
+        std::vector<std::tuple<std::string, DictValueSet*>> base_value_sets_and_names;
+
         for( int occurrence = 0; occurrence < occurrences; ++occurrence )
         {
             size_t value_set_counter = 0;
@@ -2821,7 +2823,7 @@ void CRecordGrid::OnEditFlattenOccurrences() // 20130224
         }
 
         // rename and link the value sets
-        std::vector<std::tuple<CString, DictValueSet*>> base_value_sets_and_names;
+        std::vector<std::tuple<std::string, DictValueSet*>> base_value_sets_and_names;
 
         for( int occurrence = 0; occurrence < occurrences; ++occurrence )
         {
@@ -2842,7 +2844,7 @@ void CRecordGrid::OnEditFlattenOccurrences() // 20130224
                 }
 
                 this_dict_value_set.SetName(create_unique_name(std::get<0>(base_value_sets_and_names[v]), occurrence));
-            }                
+            }
         }
     }
 

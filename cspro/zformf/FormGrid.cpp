@@ -2226,7 +2226,7 @@ void CFormGrid::OnEditJoin()
 
     // the left-most column will be added to
     int iJoinIndex = *selected_indices.begin();
-    CDECol* pJoinCol = m_pRoster->GetCol(iJoinIndex);    
+    CDECol* pJoinCol = m_pRoster->GetCol(iJoinIndex);
 
     CDEText& text = pJoinCol->GetHeaderText();
     text.SetDims(0,0,0,0);  // will force the text position to be recalculated
@@ -2488,7 +2488,7 @@ void CFormGrid::OnLayoutAlign(UINT nID)
         }
     }
 
-    else 
+    else
     {
         ASSERT(nID == ID_LAYOUT_ALIGN_BOTTOM);
         ASSERT(CanAlign(VerticalAlignment::Bottom));
@@ -2509,7 +2509,7 @@ void CFormGrid::OnLayoutAlign(UINT nID)
         CSize szMove = ( nID == ID_LAYOUT_ALIGN_LEFT )    ? CSize(modification - t.m_rect.left, 0) :
                        ( nID == ID_LAYOUT_ALIGN_RIGHT )   ? CSize(modification - t.m_rect.right, 0) :
                        ( nID == ID_LAYOUT_ALIGN_TOP )     ? CSize(0, modification - t.m_rect.top) :
-                     /*( nID == ID_LAYOUT_ALIGN_BOTTOM )*/  CSize(0, modification - t.m_rect.bottom);            
+                     /*( nID == ID_LAYOUT_ALIGN_BOTTOM )*/  CSize(0, modification - t.m_rect.bottom);
 
         switch( t.GetTrackObject() )
         {
@@ -2522,7 +2522,7 @@ void CFormGrid::OnLayoutAlign(UINT nID)
                 t.m_rect += szMove;
                 OnFieldMoved(iRow, iCol, h.GetField());
                 break;
-            }  
+            }
 
             case CGridRectTracker::trackText:
             {
@@ -2532,7 +2532,7 @@ void CFormGrid::OnLayoutAlign(UINT nID)
                 t.m_rect += szMove;
                 OnTextMoved(iRow, iCol, h.GetText());
                 break;
-            }  
+            }
 
             case CGridRectTracker::trackBox:
             {
@@ -2650,7 +2650,7 @@ void CFormGrid::OnEditPaste()
                 pCol->Build(clipFile,pGroup);
                 CDEField* pField = pCol->GetField(0);
                 const CDataDict* pDict = pDoc->GetSharedDictionary().get();
-                const CDictItem* pItem = pDict->LookupName<CDictItem>(pField->GetItemName());
+                const CDictItem* pItem = pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
                 pField->SetDictItem(pItem);
                 //GetCurForm()->FindItem(csFName);
                 pField->SetParent(pView->GetCurGroup());

@@ -20,6 +20,10 @@ LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/has
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/metadata.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/packager.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/relationships.c
+LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/rich_value.c
+LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/rich_value_rel.c
+LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/rich_value_structure.c
+LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/rich_value_types.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/shared_strings.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/styles.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/src/table.c
@@ -34,7 +38,7 @@ LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/third_p
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/third_party/minizip/zip.c
 LOCAL_SRC_FILES         += $(ZEXCELO_SRC_PATH)/../external/libxlsxwriter/third_party/tmpfileplus/tmpfileplus.c
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DNOUNCRYPT=1

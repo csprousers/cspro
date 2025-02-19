@@ -4,8 +4,9 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zExportO/ExportDefinitions.h>
+#include <zToolsO/File.h>
 #include <zToolsO/PortableFunctions.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/Interapp.h>
 #include <zDictO/DDClass.h>

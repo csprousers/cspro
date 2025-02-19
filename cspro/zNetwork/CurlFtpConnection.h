@@ -1,47 +1,75 @@
 ﻿#pragma once
 
 #include <zNetwork/zNetwork.h>
-#include <zNetwork/IFtpConnection.h>
+#include <zNetwork/FtpConnection.h>
+#include <zToolsO/DateTime.h>
+
+class CurlWrapper;
 
 
-/// <summary>
-/// FTP client implementation using libcurl
-/// </summary>
-class ZNETWORK_API CurlFtpConnection : public IFtpConnection
+// FTP client implementation using libcurl
+
+class ZNETWORK_API CurlFtpConnection : public FtpConnection
 {
 public:
     CurlFtpConnection();
-
     ~CurlFtpConnection();
 
-    void connect(CString serverUrl, CString username, CString password) override;
+    // FtpConnection + FileBasedConnection overrides
 
-    void disconnect();
+    void SetSyncListener(std::shared_ptr<SyncListener> sync_listener) override;
 
-    void download(CString remoteFilePath, CString localFilePath) override;
+protected:
+    std::string DoConnect(const std::string& username, const std::string& password) override;
+    void DoDisconnect() override;
 
-    void download(CString remoteFilePath, std::ostream& localFileStream) override;
+public:
+    using FileBasedConnection::Download;
+    void Download(const std::string& remote_file_path, std::ostream& output_stream) override;
 
-    void upload(CString localFilePath, CString remoteFilePath) override;
+    using FileBasedConnection::Upload;
+    void Upload(std::istream& input_stream, int64_t input_size_bytes, const std::string& remote_file_path) override;
 
-    void upload(std::istream& localFileData, int64_t fileSizeBytes, CString remoteFilePath) override;
+    bool FileExists(const std::string& remote_path) override;
+    bool FileIsRegular(const std::string& remote_path) override;
+    bool FileIsDirectory(const std::string& remote_path) override;
+    int64_t FileModifiedTime(const std::string& remote_path) override;
+    std::vector<FileInfo> GetDirectoryListing(const std::string& remote_directory_path, bool request_file_md5s) override;
 
-    std::vector<FileInfo>* getDirectoryListing(CString remotePath) override;
-
-    time_t getLastModifiedTime(CString remotePath) override;
-
-    void setListener(ISyncListener* pListener) override;
+    void FileRename(const std::string& old_remote_file_path, const std::string& new_remote_file_path) override;
+    void FileDelete(const std::string& remote_file_path) override;
+    void DirectoryDelete(const std::string& remote_directory_path) override;
 
 private:
+    std::string CreateRemoteUrl(const std::string& path) const;
 
-    void renameFile(CString directory, CString originalName, CString newName);
-    void deleteFile (CString filePath);
-    bool fileExists(CString filePath);
-    std::vector<FileInfo>* getDirectoryListingMLSD(CString remotePath);
-    std::vector<FileInfo>* getDirectoryListingLIST(CString remotePath);
+    void QueryFeatures();
 
-    bool m_bSupportsMLSD;
-    void* m_pCurl;
-    std::string m_serverUrl;
-    ISyncListener* m_pListener;
+    // queries a path for existence (bool) or modified time (int64_t);
+    // exceptions are only thrown when checking for modified time
+    template<typename T>
+    T QueryPath(const std::string& remote_path);
+
+    static bool IncludeInDirectoryListing(std::string_view filename_sv);
+
+    struct DirectoryListingInfo;
+    void GetDirectoryListingMLSD(DirectoryListingInfo& directory_listing_info);
+    void GetDirectoryListingLIST(DirectoryListingInfo& directory_listing_info);
+
+    static long DirectoryListingWildcardMatchCallback(const void* transfer_info, DirectoryListingInfo* directory_listing_info, int remains);
+
+    // returns -1 if there is not a valid numeric token; text_sv is adjusted when there is
+    static int GetNextNumericToken(std::string_view& text_sv);
+
+    // validates the date/time
+    static std::optional<int64_t> ValidateFileTime(const DateTime::Components& date_time_components);
+    static std::optional<int64_t> ParseUnixFileTime(std::string_view time_text_sv);
+    static std::optional<int64_t> ParseDosFileTime(std::string_view time_text_sv);
+
+    void DeleteWorker(const char* command, const std::string& remote_path);
+
+private:
+    bool m_supportsMLSD;
+    void* m_curl;
+    std::unique_ptr<CurlWrapper> m_curlWrapper;
 };

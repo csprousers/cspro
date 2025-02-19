@@ -1,36 +1,36 @@
 ﻿#include "StdAfx.h"
 #include "SimpleDbMap.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/Commands.h>
 
 
 namespace Constants
 {
-    constexpr unsigned MaxNumberSqlInsertsInOneTransaction = 25000;
+    constexpr size_t MaxNumberSqlInsertsInOneTransaction = 25000;
 }
 
-namespace SqlStatements
+namespace Sqlite::Commands
 {
-    constexpr const TCHAR* CreateTableFormatter       = _T("CREATE TABLE IF NOT EXISTS `%s` (`Key` TEXT PRIMARY KEY UNIQUE NOT NULL, `Value` %s NOT NULL) WITHOUT ROWID;");
-    constexpr const TCHAR* PutFormatter               = _T("INSERT OR REPLACE INTO `%s` (`Key`, `Value`) VALUES ( ?, ? );");
-    constexpr const TCHAR* ClearFormatter             = _T("DELETE FROM `%s`;");
-    constexpr const TCHAR* DeleteFormatter            = _T("DELETE FROM `%s` WHERE `Key` = ?;");
+    constexpr const char* CreateTableFormatter       = "CREATE TABLE IF NOT EXISTS `%s` (`Key` TEXT PRIMARY KEY UNIQUE NOT NULL, `Value` %s NOT NULL) WITHOUT ROWID;";
+    constexpr const char* PutFormatter               = "INSERT OR REPLACE INTO `%s` (`Key`, `Value`) VALUES ( ?, ? );";
+    constexpr const char* ClearFormatter             = "DELETE FROM `%s`;";
+    constexpr const char* DeleteFormatter            = "DELETE FROM `%s` WHERE `Key` = ?;";
 
-    constexpr const TCHAR* ExistsFormatter            = _T("SELECT 1 FROM `%s` WHERE `Key` = ? LIMIT 1;");
-    constexpr const TCHAR* GetFormatter               = _T("SELECT `Value` FROM `%s` WHERE `Key` = ?;");
-    constexpr const TCHAR* GetUsingKeyPrefixFormatter = _T("SELECT `Value` FROM `%s` WHERE `Key` LIKE ? ESCAPE '%c';");
-    constexpr const TCHAR* IteratorFormatter          = _T("SELECT `Key`, `Value` FROM `%s`;");
+    constexpr const char* ExistsFormatter            = "SELECT 1 FROM `%s` WHERE `Key` = ? LIMIT 1;";
+    constexpr const char* GetFormatter               = "SELECT `Value` FROM `%s` WHERE `Key` = ?;";
+    constexpr const char* GetUsingKeyPrefixFormatter = "SELECT `Value` FROM `%s` WHERE `Key` LIKE ? ESCAPE '%c';";
+    constexpr const char* IteratorFormatter          = "SELECT `Key`, `Value` FROM `%s`;";
 };
 
 
-SimpleDbMap::TableDetails::TableDetails(sqlite3* db, std::wstring table_name_, ValueType value_type_)
+SimpleDbMap::TableDetails::TableDetails(sqlite3* db, std::string table_name_, const ValueType value_type_)
     :   table_name(std::move(table_name_)),
         value_type(value_type_),
-        stmt_put(db, FormatText(SqlStatements::PutFormatter, table_name.c_str()), true),
-        stmt_clear(db, FormatText(SqlStatements::ClearFormatter, table_name.c_str()), true),
-        stmt_delete(db, FormatText(SqlStatements::DeleteFormatter, table_name.c_str()), true),
-        stmt_exists(db, FormatText(SqlStatements::ExistsFormatter, table_name.c_str()), true),
-        stmt_get(db, FormatText(SqlStatements::GetFormatter, table_name.c_str()), true),
-        stmt_iterator(db, FormatText(SqlStatements::IteratorFormatter, table_name.c_str()), true)
+        stmt_put(db, FormatText(Sqlite::Commands::PutFormatter, table_name.c_str()), true),
+        stmt_clear(db, FormatText(Sqlite::Commands::ClearFormatter, table_name.c_str()), true),
+        stmt_delete(db, FormatText(Sqlite::Commands::DeleteFormatter, table_name.c_str()), true),
+        stmt_exists(db, FormatText(Sqlite::Commands::ExistsFormatter, table_name.c_str()), true),
+        stmt_get(db, FormatText(Sqlite::Commands::GetFormatter, table_name.c_str()), true),
+        stmt_iterator(db, FormatText(Sqlite::Commands::IteratorFormatter, table_name.c_str()), true)
 {
 }
 
@@ -49,17 +49,17 @@ SimpleDbMap::~SimpleDbMap()
 }
 
 
-bool SimpleDbMap::Open(std::wstring filename,
-                       const std::vector<std::tuple<std::wstring, ValueType>>& table_names_and_value_types,
-                       bool throw_exceptions/* = false*/)
+bool SimpleDbMap::Open(std::string file_path,
+                       const std::vector<std::tuple<std::string, ValueType>>& table_names_and_value_types,
+                       const bool throw_exceptions/* = false*/)
 {
     ASSERT(!table_names_and_value_types.empty());
 
     try
     {
         // open the database
-        if( sqlite3_open(ToUtf8(filename), &m_db) != SQLITE_OK )
-            throw SQLiteStatementException(_T("SQLite: Could not open: %s"), filename.c_str());
+        if( sqlite3_open(file_path.c_str(), &m_db) != SQLITE_OK )
+            throw SQLiteStatementException("SQLite: Could not open: %s" + file_path);
 
         // create each table (as necessary) and prepare the SQL statements
         for( const auto& [table_name, value_type] : table_names_and_value_types )
@@ -67,7 +67,7 @@ bool SimpleDbMap::Open(std::wstring filename,
 
         ASSERT(!m_tableDetails.empty());
 
-        m_dbFilename = std::move(filename);
+        m_dbFilePath = std::move(file_path);
         m_currentTable = m_tableDetails.front().get();
 
         TransactionManager::Register(*this);
@@ -87,13 +87,13 @@ bool SimpleDbMap::Open(std::wstring filename,
 }
 
 
-SimpleDbMap::TableDetails* SimpleDbMap::CreateTableIfNotExists(std::wstring table_name, ValueType value_type)
+SimpleDbMap::TableDetails* SimpleDbMap::CreateTableIfNotExists(std::string table_name, const ValueType value_type)
 {
-    CString create_table_sql = FormatText(SqlStatements::CreateTableFormatter, table_name.c_str(),
-                                          ( value_type == ValueType::String ) ? _T("TEXT") : _T("INTEGER"));
+    const std::string create_table_sql = FormatText(Sqlite::Commands::CreateTableFormatter, table_name.c_str(),
+                                                    ( value_type == ValueType::String ) ? "TEXT" : "INTEGER");
 
-    if( sqlite3_exec(m_db, ToUtf8(create_table_sql), nullptr, nullptr, nullptr) != SQLITE_OK )
-        throw SQLiteStatementException(_T("SQLite: Could not create table: %s"), table_name.c_str());
+    if( sqlite3_exec(m_db, create_table_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
+        throw SQLiteStatementException("SQLite: Could not create table: " + table_name);
 
     return m_tableDetails.emplace_back(std::make_unique<TableDetails>(m_db, std::move(table_name), value_type)).get();
 }
@@ -123,7 +123,7 @@ bool SimpleDbMap::WrapInTransaction()
             return false;
     }
 
-    if( m_transactions > 0 || sqlite3_exec(m_db, SqlStatements::BeginTransaction, nullptr, nullptr, nullptr) == SQLITE_OK )
+    if( m_transactions > 0 || sqlite3_exec(m_db, Sqlite::Commands::BeginTransaction, nullptr, nullptr, nullptr) == SQLITE_OK )
     {
         ++m_transactions;
         return true;
@@ -138,19 +138,19 @@ bool SimpleDbMap::CommitTransactions()
     if( m_transactions == 0 )
         return true;
 
-    bool success = ( sqlite3_exec(m_db, SqlStatements::EndTransaction, nullptr, nullptr, nullptr) == SQLITE_OK );
+    const bool success = ( sqlite3_exec(m_db, Sqlite::Commands::EndTransaction, nullptr, nullptr, nullptr) == SQLITE_OK );
     m_transactions = 0;
 
     return success;
 }
 
 
-bool SimpleDbMap::Exists(wstring_view key)
+bool SimpleDbMap::Exists(const std::string& key)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr);
 
     SQLiteStatement& stmt = m_currentTable->stmt_exists;
-    SQLiteResetOnDestruction rod(stmt);
+    const SQLiteResetOnDestruction rod(stmt);
 
     stmt.Bind(1, key);
 
@@ -165,7 +165,7 @@ bool SimpleDbMap::Clear()
     if( WrapInTransaction() )
     {
         SQLiteStatement& stmt = m_currentTable->stmt_clear;
-        SQLiteResetOnDestruction rod(stmt);
+        const SQLiteResetOnDestruction rod(stmt);
 
         return ( stmt.Step() == SQLITE_DONE );
     }
@@ -174,14 +174,14 @@ bool SimpleDbMap::Clear()
 }
 
 
-bool SimpleDbMap::Delete(wstring_view key)
+bool SimpleDbMap::Delete(const std::string& key)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr);
 
     if( WrapInTransaction() )
     {
         SQLiteStatement& stmt = m_currentTable->stmt_delete;
-        SQLiteResetOnDestruction rod(stmt);
+        const SQLiteResetOnDestruction rod(stmt);
 
         stmt.Bind(1, key);
 
@@ -193,12 +193,12 @@ bool SimpleDbMap::Delete(wstring_view key)
 
 
 template<typename T>
-bool SimpleDbMap::Put(wstring_view key, T value)
+bool SimpleDbMap::Put(const std::string& key, const T& value)
 {
     if( WrapInTransaction() )
     {
         SQLiteStatement& stmt = m_currentTable->stmt_put;
-        SQLiteResetOnDestruction rod(stmt);
+        const SQLiteResetOnDestruction rod(stmt);
 
         stmt.Bind(1, key);
         stmt.Bind(2, value);
@@ -210,24 +210,25 @@ bool SimpleDbMap::Put(wstring_view key, T value)
 }
 
 
-bool SimpleDbMap::PutString(wstring_view key, wstring_view value)
+bool SimpleDbMap::PutString(const std::string& key, const std::string& value)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::String);
     return Put(key, value);
 }
 
 
-bool SimpleDbMap::PutLong(wstring_view key, long value)
+bool SimpleDbMap::PutLong(const std::string& key, const long value)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::Long);
     return Put(key, value);
 }
 
 
-template<typename T> std::optional<T> SimpleDbMap::Get(wstring_view key)
+template<typename T>
+std::optional<T> SimpleDbMap::Get(const std::string& key)
 {
     SQLiteStatement& stmt = m_currentTable->stmt_get;
-    SQLiteResetOnDestruction rod(stmt);
+    const SQLiteResetOnDestruction rod(stmt);
 
     stmt.Bind(1, key);
 
@@ -238,26 +239,26 @@ template<typename T> std::optional<T> SimpleDbMap::Get(wstring_view key)
 }
 
 
-std::optional<std::wstring> SimpleDbMap::GetString(wstring_view key)
+std::optional<std::string> SimpleDbMap::GetString(const std::string& key)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::String);
-    return Get<std::wstring>(key);
+    return Get<std::string>(key);
 }
 
 
-std::optional<long> SimpleDbMap::GetLong(wstring_view key)
+std::optional<long> SimpleDbMap::GetLong(const std::string& key)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::Long);
     return Get<long>(key);
 }
 
 
-std::optional<long> SimpleDbMap::GetLongUsingKeyPrefix(CString key_prefix) 
+std::optional<long> SimpleDbMap::GetLongUsingKeyPrefix(std::string key_prefix)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::Long);
 
     // make sure that all values can be escaped properly (starting above LIKE's % and _ escapes)
-    TCHAR escape_ch = GetUnusedCharacter(key_prefix, _T('a'));
+    const char escape_ch = GetUnusedCharacter(key_prefix, 'a');
 
     // create the prepared statement if this is the first call to this method, or if
     // the escape character is different from the previously executed statement
@@ -266,9 +267,10 @@ std::optional<long> SimpleDbMap::GetLongUsingKeyPrefix(CString key_prefix)
     {
         try
         {
-            CString sql = FormatText(SqlStatements::GetUsingKeyPrefixFormatter, m_currentTable->table_name.c_str(), escape_ch);
-            m_currentTable->escape_char_and_stmt_get_using_key_prefix = std::make_unique<std::tuple<TCHAR, SQLiteStatement>>(
-                escape_ch, SQLiteStatement(m_db, sql, true));
+            const std::string sql = FormatText(Sqlite::Commands::GetUsingKeyPrefixFormatter, m_currentTable->table_name.c_str(), escape_ch);
+
+            m_currentTable->escape_char_and_stmt_get_using_key_prefix =
+                std::make_unique<std::tuple<char, SQLiteStatement>>(escape_ch, SQLiteStatement(m_db, sql, true));
         }
 
         catch( const SQLiteStatementException& )
@@ -279,24 +281,24 @@ std::optional<long> SimpleDbMap::GetLongUsingKeyPrefix(CString key_prefix)
     }
 
     // escape any % and _ characters
-    const TCHAR EscapeCharacters[] = { _T('%'), _T('_') };
+    constexpr char EscapeCharacters[] = { '%', '_' };
 
     for( int i = 0; i < _countof(EscapeCharacters); ++i )
     {
-        int escape_pos = 0;
+        size_t escape_pos = 0;
 
-        while( ( escape_pos = key_prefix.Find(EscapeCharacters[i], escape_pos) ) >= 0 )
+        while( ( escape_pos = key_prefix.find(EscapeCharacters[i], escape_pos) ) != std::string_view::npos )
         {
-            key_prefix.Insert(escape_pos, escape_ch);
+            key_prefix.insert(key_prefix.begin() + escape_pos, escape_ch);
             escape_pos += 2;
         }
     }
 
     // add the % for the LIKE operation
-    key_prefix.Append(_T("%"));
+    key_prefix.append("%");
 
     SQLiteStatement& stmt = std::get<1>(*m_currentTable->escape_char_and_stmt_get_using_key_prefix);
-    SQLiteResetOnDestruction rod(stmt);
+    const SQLiteResetOnDestruction rod(stmt);
 
     stmt.Bind(1, key_prefix);
 
@@ -315,13 +317,13 @@ void SimpleDbMap::ResetIterator()
 
 
 template<typename T>
-bool SimpleDbMap::Next(std::wstring* key, T* value)
+bool SimpleDbMap::Next(std::string* key, T* value)
 {
     SQLiteStatement& stmt = m_currentTable->stmt_iterator;
 
     if( stmt.Step() == SQLITE_ROW )
     {
-        *key = stmt.GetColumn<std::wstring>(0);
+        *key = stmt.GetColumn<std::string>(0);
         *value = stmt.GetColumn<T>(1);
         return true;
     }
@@ -330,14 +332,14 @@ bool SimpleDbMap::Next(std::wstring* key, T* value)
 }
 
 
-bool SimpleDbMap::NextString(std::wstring* key, std::wstring* value)
+bool SimpleDbMap::NextString(std::string* key, std::string* value)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::String);
     return Next(key, value);
 }
 
 
-bool SimpleDbMap::NextLong(std::wstring* key, long* value)
+bool SimpleDbMap::NextLong(std::string* key, long* value)
 {
     ASSERT(m_db != nullptr && m_currentTable != nullptr && m_currentTable->value_type == ValueType::Long);
     return Next(key, value);

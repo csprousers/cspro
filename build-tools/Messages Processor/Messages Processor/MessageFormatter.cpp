@@ -12,27 +12,27 @@ namespace
 
 void MessageFormatter::FormatMessageFiles()
 {
-    for( const std::wstring& message_filename : MessageLoader::GetMessageFilenames(true) )
+    for( const std::string& message_file_path : MessageLoader::GetMessageFilePaths(true) )
     {
         // read the contents of the file, keeping track of blank/comment/language change lines
-        std::map<int, std::vector<std::wstring>> lines_before_message_map;
-        std::vector<std::wstring> current_lines_before_message;
+        std::map<int, std::vector<std::string>> lines_before_message_map;
+        std::vector<std::string> current_lines_before_message;
         std::vector<int> message_numbers;
 
-        SO::ForeachLine(FileIO::ReadText(message_filename), true, 
-            [&](wstring_view line_sv)
+        SO::ForeachLine(FileIO::ReadText(message_file_path), true, 
+            [&](const std::string_view line_sv)
             {
                 if( line_sv.empty() || 
                     line_sv.front() == '{' || line_sv.front() == '/' ||
-                    SO::StartsWith(line_sv, L"Language=") )
+                    SO::StartsWith(line_sv, "Language=") )
                 {
                     current_lines_before_message.emplace_back(line_sv);
                 }
 
                 else
                 {
-                    ASSERT(std::iswdigit(line_sv.front()));
-                    const int message_number = message_numbers.emplace_back(static_cast<int>(StringToNumber(line_sv.substr(0, SO::FindFirstWhitespace(line_sv)))));
+                    ASSERT(std::isdigit(line_sv.front()));
+                    const int message_number = message_numbers.emplace_back(static_cast<int>(StringToNumber(UTF8_TODO::GetWide(line_sv.substr(0, SO::FindFirstWhitespace(line_sv))))));
                     ASSERT(message_number > 0 && message_number < std::numeric_limits<int>::max());
 
                     if( !current_lines_before_message.empty() )
@@ -41,21 +41,19 @@ void MessageFormatter::FormatMessageFiles()
                         current_lines_before_message.clear();
                     }
                 }
-
-                return true;
             });
 
-        ASSERT(current_lines_before_message.empty());
+        ASSERT(current_lines_before_message.size() == 1 && current_lines_before_message.front().empty());
 
 
         // parse the messages
-        TextSourceExternal system_message_text_source(message_filename);
+        TextSourceExternal system_message_text_source(message_file_path);
         MessageFile message_file;
         message_file.Load(system_message_text_source, LogicSettings::Version::V8_0);
 
 
         // format the messages
-        std::vector<std::wstring> formatted_message_lines;
+        std::vector<std::string> formatted_message_lines;
 
         for( const int message_number : message_numbers )
         {
@@ -64,14 +62,14 @@ void MessageFormatter::FormatMessageFiles()
 
             if( lines_before_message_lookup != lines_before_message_map.cend() )
             {
-                for( std::wstring line : lines_before_message_lookup->second )
+                for( std::string line : lines_before_message_lookup->second )
                 {
                     // format comments to properly line up with message numbers
                     SO::MakeTrim(line);
 
-                    const size_t comment_length = ( line.find('{') == 0 )   ? 1 :
-                                                  ( line.find(L"/*") == 0 ) ? 2 :
-                                                                              0;
+                    const size_t comment_length = ( line.find('{') == 0 )  ? 1 :
+                                                  ( line.find("/*") == 0 ) ? 2 :
+                                                                             0;
 
                     if( comment_length != 0 )
                     {
@@ -88,7 +86,7 @@ void MessageFormatter::FormatMessageFiles()
                                 break;
                         }
 
-                        line = L"/* --- " + line + L" */";
+                        line = "/* --- " + line + " */";
                     }
 
                     formatted_message_lines.emplace_back(std::move(line));
@@ -96,18 +94,18 @@ void MessageFormatter::FormatMessageFiles()
             }
 
             // write the message text, escaping it only as necessary
-            std::wstring message_text = message_file.GetMessageText(message_number);
+            std::string message_text = message_file.GetMessageText(message_number).Release();
             ASSERT(!message_text.empty());
             
             if( message_text.front() == '\'' || message_text.front() == '"' || SO::ContainsNewlineCharacter(message_text) )
-                message_text = L"\"" + Encoders::ToEscapedString(message_text, false) + L"\"";
+                message_text = Encoders::ToLogicString(message_text);
 
-            formatted_message_lines.emplace_back(FormatTextCS2WS(L"%-*d %s", MaxMessageNumberDigits, message_number, message_text.c_str()));
+            formatted_message_lines.emplace_back(FormatText("%-*d %s", MaxMessageNumberDigits, message_number, message_text.c_str()));
         }
 
         
         // write the formatted message text
-        const std::wstring formatted_message_text = SO::CreateSingleString(formatted_message_lines, L"\r\n") + L"\r\n";
-        FileIO::WriteText(message_filename, formatted_message_text, true);
+        const std::string formatted_message_text = SO::CreateSingleString(formatted_message_lines, "\r\n") + "\r\n";
+        FileIO::WriteText(message_file_path, formatted_message_text, true);
     }
 }

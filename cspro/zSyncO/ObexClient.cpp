@@ -1,26 +1,16 @@
 ﻿#include "stdafx.h"
-#include <sstream>
-#include <assert.h>
-#include <ctime>
 #include "ObexClient.h"
 #include "IObexTransport.h"
 #include "ObexPacket.h"
-#include "SyncException.h"
-#include "ISyncListener.h"
-#include <easyloggingwrapper.h>
-#include "IDataChunk.h"
 
-namespace {
-    const int receivePacketTimeoutSecs = 10;
-}
 
 ObexClient::ObexClient(IObexTransport* pTransport)
-    : m_pTransport(pTransport),
-    m_packetSerializer(pTransport),
-    m_maxPacketSize(OBEX_MIN_PACKET_SIZE),
-    m_pListener(NULL)
+    :   m_pTransport(pTransport),
+        m_packetSerializer(pTransport),
+        m_maxPacketSize(OBEX_MIN_PACKET_SIZE)
 {
 }
+
 
 ObexResponseCode ObexClient::connect(const ObexHeaderList& headers)
 {
@@ -32,7 +22,7 @@ ObexResponseCode ObexClient::connect(const ObexHeaderList& headers)
     ObexPacket connectResponse = m_packetSerializer.receivePacket(isConnect);
     if (connectResponse.getMaxPacketSize() > OBEX_MAX_PACKET_SIZE ||
         connectResponse.getMaxPacketSize() < OBEX_MIN_PACKET_SIZE)
-        throw SyncError(100101, L"Invalid packet size");
+        throw SyncConnectionError("Invalid packet size");
 
     // Receive server Bluetooth protocol version from server, so compatibility can be detected
     unsigned int serverBluetoothProtocolVersion = 0; // If version header is not found, default to 0
@@ -43,9 +33,9 @@ ObexResponseCode ObexClient::connect(const ObexHeaderList& headers)
 
     m_maxPacketSize = connectResponse.getMaxPacketSize();
 
-    CLOG(INFO, "sync") << "Bluetooth protocol version: " << BLUETOOTH_PROTOCOL_VERSION;
+    SYNCLOG_INFO << "Bluetooth protocol version: " << BLUETOOTH_PROTOCOL_VERSION;
     if (serverBluetoothProtocolVersion != BLUETOOTH_PROTOCOL_VERSION) {
-        CLOG(ERROR, "sync") << "Bluetooth protocol version mismatch: client ("
+        SYNCLOG_ERROR << "Bluetooth protocol version mismatch: client ("
             << BLUETOOTH_PROTOCOL_VERSION << ") != server (" << serverBluetoothProtocolVersion << ")";
 
         throw SyncError(100145);
@@ -53,6 +43,7 @@ ObexResponseCode ObexClient::connect(const ObexHeaderList& headers)
 
     return OBEX_OK;
 }
+
 
 ObexResponseCode ObexClient::disconnect(const ObexHeaderList& headers)
 {
@@ -63,8 +54,8 @@ ObexResponseCode ObexClient::disconnect(const ObexHeaderList& headers)
     return (ObexResponseCode) response.getCode();
 }
 
-ObexResponseCode ObexClient::get(const ObexHeaderList& headers,
-    std::ostream& content, ObexHeaderList& responseHeaders)
+
+ObexResponseCode ObexClient::get(const ObexHeaderList& headers, std::ostream& content, ObexHeaderList& responseHeaders)
 {
     ObexPacket getPacket(OBEX_GET | OBEX_FINAL, headers);
     ObexPacket responsePacket;
@@ -73,16 +64,17 @@ ObexResponseCode ObexClient::get(const ObexHeaderList& headers,
     uint64_t responseBodyBytesReceived = 0;
     bool firstPacket = true;
 
-    if (m_pListener) {
+    if (m_syncListener != nullptr) {
         CString name;
         const ObexHeader* nameHeader = headers.find(OBEX_HEADER_NAME);
         if (nameHeader) {
             name = nameHeader->getStringData();
         }
-        m_pListener->onProgress(0, 100107, (LPCTSTR) name);
+        m_syncListener->Progress(0, 100107, UTF8_TODO::GetUtf8(name).c_str());
 
-        if (m_pListener->isCancelled())
+        if (m_syncListener->IsCanceled()) {
             throw SyncCancelException();
+        }
     }
 
     while (true) {
@@ -97,11 +89,12 @@ ObexResponseCode ObexClient::get(const ObexHeaderList& headers,
 
         if (responsePacket.getHeaders().getBodyLength(responseBodyLengthFromHeader)) {
             haveBodyLengthFromHeader = true;
-            if (m_pListener)
-                m_pListener->setProgressTotal(responseBodyLengthFromHeader);
+            if (m_syncListener != nullptr) {
+                m_syncListener->SetProgressTotal(responseBodyLengthFromHeader);
+            }
 
             if (firstPacket) {
-                m_dataChunk.optimize(responseBodyLengthFromHeader, m_maxPacketSize);
+                m_dataChunk.Optimize(responseBodyLengthFromHeader, m_maxPacketSize);
                 firstPacket = false;
             }
         }
@@ -125,11 +118,11 @@ ObexResponseCode ObexClient::get(const ObexHeaderList& headers,
             break;
         }
 
-        if (m_pListener) {
+        if (m_syncListener != nullptr) {
             if (haveBodyLengthFromHeader) {
-                m_pListener->onProgress(responseBodyBytesReceived);
+                m_syncListener->Progress(responseBodyBytesReceived);
             }
-            if (m_pListener->isCancelled()) {
+            if (m_syncListener->IsCanceled()) {
                 m_packetSerializer.sendPacket(OBEX_ABORT);
                 m_packetSerializer.receivePacket();
                 throw SyncCancelException();
@@ -139,30 +132,31 @@ ObexResponseCode ObexClient::get(const ObexHeaderList& headers,
 
     if (haveBodyLengthFromHeader && responseBodyLengthFromHeader != responseBodyBytesReceived) {
         // Bytes received did not match number specified in length header
-        throw SyncError(100101, L"Missing data in get");
+        throw SyncConnectionError("Missing data in get");
     }
 
     return (ObexResponseCode) responsePacket.getCode();
 }
 
-ObexResponseCode ObexClient::put(const ObexHeaderList& headers,
-    std::istream& content, std::ostream& response, ObexHeaderList& responseHeaders)
+
+ObexResponseCode ObexClient::put(const ObexHeaderList& headers, std::istream& content, std::ostream& response, ObexHeaderList& responseHeaders)
 {
     size_t headerLength = headers.getTotalSizeBytes();
     bool firstPacket = true;
     uint64_t bodyLength = 0;
     bool haveBodyLength = headers.getBodyLength(bodyLength);
     uint64_t bodyBytesReceivedSoFar = 0;
-    if (m_pListener) {
+    if (m_syncListener != nullptr) {
         CString name;
         const ObexHeader* nameHeader = headers.find(OBEX_HEADER_NAME);
         if (nameHeader) {
             name = nameHeader->getStringData();
         }
-        if (m_pListener->getProgressTotal() <= 0)
-            m_pListener->setProgressTotal(bodyLength);
-        m_pListener->onProgress(0, 100108, (LPCTSTR) name);
-        if (m_pListener->isCancelled())
+        if (m_syncListener->GetProgressTotal() <= 0) {
+            m_syncListener->SetProgressTotal(bodyLength);
+        }
+        m_syncListener->Progress(0, 100108, UTF8_TODO::GetUtf8(name).c_str());
+        if (m_syncListener->IsCanceled())
             throw SyncCancelException();
     }
 
@@ -174,7 +168,7 @@ ObexResponseCode ObexClient::put(const ObexHeaderList& headers,
         if (firstPacket) {
             maxBodySize -= headerLength;
             if (haveBodyLength) {
-                m_dataChunk.optimize(bodyLength, m_maxPacketSize);
+                m_dataChunk.Optimize(bodyLength, m_maxPacketSize);
             }
         }
 
@@ -206,9 +200,9 @@ ObexResponseCode ObexClient::put(const ObexHeaderList& headers,
 
         firstPacket = false;
 
-        if (m_pListener) {
-            m_pListener->onProgress(bodyBytesReceivedSoFar);
-            if (m_pListener->isCancelled()) {
+        if (m_syncListener != nullptr) {
+            m_syncListener->Progress(bodyBytesReceivedSoFar);
+            if (m_syncListener->IsCanceled()) {
                 m_packetSerializer.sendPacket(OBEX_ABORT);
                 throw SyncCancelException();
             }
@@ -259,9 +253,8 @@ ObexResponseCode ObexClient::put(const ObexHeaderList& headers,
             break;
         }
 
-        if (m_pListener) {
-
-            if (m_pListener->isCancelled()) {
+        if (m_syncListener != nullptr) {
+            if (m_syncListener->IsCanceled()) {
                 m_packetSerializer.sendPacket(OBEX_ABORT);
                 throw SyncCancelException();
             }
@@ -272,19 +265,8 @@ ObexResponseCode ObexClient::put(const ObexHeaderList& headers,
 
     if (haveBodyLengthFromHeader && responseBodyLengthFromHeader != responseBodyBytesReceived) {
         // Bytes received did not match number specified in length header
-        throw SyncError(100101, L"Missing data in put response");
+        throw SyncConnectionError("Missing data in put response");
     }
 
     return OBEX_OK;
 }
-
-IDataChunk& ObexClient::getChunk()
-{
-    return m_dataChunk;
-}
-
-void ObexClient::setListener(ISyncListener* pListener)
-{
-    m_pListener = pListener;
-}
-

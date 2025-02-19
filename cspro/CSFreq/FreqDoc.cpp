@@ -1,7 +1,4 @@
-﻿// FreqDoc.cpp : implementation of the CSFreqDoc class
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "FreqDoc.h"
 #include "CSFreq.h"
 #include "MainFrm.h"
@@ -13,7 +10,6 @@
 #include <Zsrcmgro/SrcCode.h>
 #include <ZBRIDGEO/DataFileDlg.h>
 #include <zFormO/FormFile.h>
-#include <zDataO/DataRepositoryHelpers.h>
 #include <zInterfaceF/BatchLogicViewerDlg.h>
 #include <zInterfaceF/LogicSettingsDlg.h>
 #include <zBatchF/BatchExecutor.h>
@@ -21,19 +17,17 @@
 
 
 constexpr const FrequencyPrinterOptions::SortType DefaultSortType = FrequencyPrinterOptions::SortType::ByCode;
-const std::vector<const TCHAR*> SortTypeNames = { _T("ValueSet"), _T("Code"), _T("Label"), _T("Freq") };
+const char* SortTypeNames[] = { "ValueSet", "Code", "Label", "Freq" };
 
 constexpr const OutputFormat DefaultOutputFormat = OutputFormat::Table;
-const std::vector<const TCHAR*> OutputFormatNames = { _T("Table"), _T("HTML"), _T("JSON"), _T("Text"), _T("Excel") };
+const char* OutputFormatNames[] = { "Table", "HTML", "JSON", "Text", "Excel" };
 
 template<typename T>
-T ValueFromText(const std::vector<const TCHAR*>& names, T default_value, wstring_view text)
+T ValueFromText(const char* names[], const size_t names_count, T default_value, const std::string_view text_sv)
 {
-    size_t i = 0;
-
-    for( const TCHAR* name : names )
+    for( size_t i = 0; i < names_count; ++i )
     {
-        if( SO::EqualsNoCase(text, name) )
+        if( SO::EqualsNoCase(text_sv, names[i]) )
             return static_cast<T>(i);
 
         ++i;
@@ -42,9 +36,9 @@ T ValueFromText(const std::vector<const TCHAR*>& names, T default_value, wstring
     return default_value;
 }
 
-FrequencyPrinterOptions::SortType SortTypeFromText(wstring_view text) { return ValueFromText(SortTypeNames, DefaultSortType, text); }
+FrequencyPrinterOptions::SortType SortTypeFromText(std::string_view text_sv) { return ValueFromText(SortTypeNames, _countof(SortTypeNames), DefaultSortType, text_sv); }
 
-OutputFormat OutputFormatFromText(wstring_view text) { return ValueFromText(OutputFormatNames, DefaultOutputFormat, text); }
+OutputFormat OutputFormatFromText(std::string_view text_sv) { return ValueFromText(OutputFormatNames, _countof(OutputFormatNames), DefaultOutputFormat, text_sv); }
 
 
 
@@ -73,6 +67,7 @@ END_MESSAGE_MAP()
 // CSFreqDoc construction/destruction
 
 CSFreqDoc::CSFreqDoc()
+    :   m_baseFilePath(Path::Combine(GetTempDirectory(), "CSFrqRun" + IntToString(static_cast<uint64_t>(GetCurrentProcessId()))))
 {
     ClearAllTemps();
 
@@ -80,14 +75,12 @@ CSFreqDoc::CSFreqDoc()
     m_batchmode = false;
 
     ResetValuesToDefault();
-
-    m_sBaseFilename.Format(_T("%sCSFrqRun%d"), GetTempDirectory().c_str(), GetCurrentProcessId()); // 20140312
 }
+
 
 CSFreqDoc::~CSFreqDoc()
 {
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -97,119 +90,79 @@ CSFreqDoc::~CSFreqDoc()
 /////////////////////////////////////////////////////////////////////////////////
 BOOL CSFreqDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
-    CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
-    CFrqOptionsView* pOptionsView = NULL;
-    pFrame ? pOptionsView = pFrame->GetFrqOptionsView() : pOptionsView = NULL;
-
-    m_temporaryDataDictFile.reset();
+    CSFreqApp* const csfreq_app = assert_cast<CSFreqApp*>(AfxGetApp());
+    CMainFrame* const pFrame = assert_nullable_cast<CMainFrame*>(AfxGetMainWnd());
+    CFrqOptionsView* pOptionsView = pFrame ? pOptionsView = pFrame->GetFrqOptionsView() : NULL;
 
     DeleteContents();
     SetModifiedFlag(FALSE);
     ResetFrequencyPff();
 
-    m_pDataDict = std::make_shared<CDataDict>();
+    m_dictionarySource.Reset();
+    m_dictionary = std::make_unique<CDataDict>();
     m_freqnames.clear();
 
-    CString extension = PortableFunctions::PathGetFileExtension<CString>(lpszPathName);
-
-    if (extension.CompareNoCase(FileExtensions::Pff) == 0) {
-        m_batchmode = true;
-        m_FreqPiff.SetPifFileName(lpszPathName);
-        if (m_FreqPiff.LoadPifFile()) {
-            if (OpenSpecFile(m_FreqPiff.GetAppFName(), true)) {
-                ((CSFreqApp*) AfxGetApp())->m_iReturnCode = 1;
-            }
-            else {
-                ((CSFreqApp*) AfxGetApp())->m_iReturnCode = 8;
-            }
-        }
-        return TRUE;
-    }
-    else if (extension.CompareNoCase(FileExtensions::FrequencySpec) == 0) {
-        if (OpenSpecFile(lpszPathName, false)) {
-            AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last Open"), lpszPathName);
-            m_FreqPiff.SetAppFName(lpszPathName);
-            m_FreqPiff.SetPifFileName(CString(lpszPathName) + FileExtensions::WithDot::Pff);
-            if (m_FreqPiff.LoadPifFile(true)) {
-                if (m_FreqPiff.GetAppFName().CompareNoCase(lpszPathName) != 0) {
-                    AfxMessageBox(FormatText(_T("Spec files in %s\ndoes not match %s"), m_FreqPiff.GetPifFileName().GetString(), lpszPathName));
-                    return FALSE;
-                }
-            }
-        }
-        else {
-            return FALSE;
-        }
-    }
-
-    else if( extension.CompareNoCase(FileExtensions::Dictionary) == 0 ||
-             extension.CompareNoCase(FileExtensions::Data::CSProDB) == 0 ||
-             extension.CompareNoCase(FileExtensions::Data::EncryptedCSProDB) == 0 )
-    {
-        if( !ProcessDictionarySource(lpszPathName) )
-            return FALSE;
-
-        if (!OpenDictFile(false)) {
-            return FALSE;
-        }
-
-        ResetValuesToDefault();
-
-        AddAllItems();
-        AfxGetApp()->WriteProfileString(_T("Settings"),_T("Last Open"), lpszPathName);
-    }
-    else {
-        AfxMessageBox(_T("Invalid file type"));
-        return FALSE;
-    }
-
-    if(pOptionsView){
-        pOptionsView->FromDoc();
-    }
-
-    return TRUE;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  bool CSFreqDoc::OpenDictFile(bool silent)
-//
-/////////////////////////////////////////////////////////////////////////////////
-bool CSFreqDoc::OpenDictFile(bool silent)
-{
-    ClearAllTemps();
-
-    //  Open data dictionary
-    CFileStatus fStatus;
-    CFile::GetStatus(m_csDictFileName, fStatus);
-    m_tDCFTime = fStatus.m_mtime;
+    const ConnectionString connection_string = csfreq_app->GetConnectionStringFileSimulator().GetConnectionString(lpszPathName);
+    const std::string extension = connection_string.HasFilePath() ? PortableFunctions::PathGetFileExtension(connection_string.GetFilePath()) :
+                                                                    std::string();
 
     try
     {
-        m_pDataDict = CDataDict::InstantiateAndOpen(m_csDictFileName, silent);
-        return true;
+        if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
+        {
+            m_batchmode = true;
+            m_FreqPiff.SetPifFileName(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+            if (m_FreqPiff.LoadPifFile()) {
+                if (OpenSpecFile(UTF8_TODO::GetUtf8(m_FreqPiff.GetAppFName()), true)) {
+                    csfreq_app->m_iReturnCode = 1;
+                }
+                else {
+                    csfreq_app->m_iReturnCode = 8;
+                }
+            }
+            return TRUE;
+        }
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::FrequencySpec) )
+        {
+            if (OpenSpecFile(connection_string.GetFilePath(), false)) {
+                AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+                m_FreqPiff.SetAppFName(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+                m_FreqPiff.SetPifFileName(UTF8_TODO::GetCString(Path::AppendExtension(connection_string.GetFilePath(), FileExtensions::Pff)));
+                if (m_FreqPiff.LoadPifFile(true)) {
+                    if (!SO::EqualsNoCase(connection_string.GetFilePath(), m_FreqPiff.GetAppFName())) {
+                        throw CSProException("Spec files in %s\ndoes not match %s", UTF8_TODO::GetUtf8(m_FreqPiff.GetPifFileName()).c_str(), connection_string.GetFilePath().c_str());
+                    }
+                }
+            }
+            else {
+                return FALSE;
+            }
+        }
+
+        else
+        {
+            ProcessDictionarySource(DictionarySource(connection_string));
+
+            ResetValuesToDefault();
+
+            AddAllItems();
+
+            if( connection_string.HasFilePath() )
+                AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+        }
     }
 
-    catch( const CSProException& )
+    catch( const CSProException& exception )
     {
-        m_pDataDict = std::make_shared<CDataDict>();
-        m_csDictFileName.Empty();
-        return false;
+        ErrorMessage::Display(exception);
+        return FALSE;
     }
-}
 
+    if( pOptionsView != nullptr )
+        pOptionsView->FromDoc();
 
-void CSFreqDoc::CloseUponFileNonExistance()
-{
-    // if a dictionary is deleted or moved while CSFreq is open, this sets objects in a
-    // state such that the tool no longer thinks that something is open
-    ClearAllTemps();
-    SetTitle(_T("Untitled"));
-    SetModifiedFlag(FALSE);
-    m_freqnames.clear();
-    m_csDictFileName.Empty();
-    ResetFrequencyPff();
+    return TRUE;
 }
 
 
@@ -236,7 +189,7 @@ void CSFreqDoc::AddAllItems()
 {
     CWaitCursor wait;
 
-    for( const DictLevel& dict_level : m_pDataDict->GetLevels() )
+    for( const DictLevel& dict_level : m_dictionary->GetLevels() )
     {
         const CDictRecord* pIdRecord = dict_level.GetIdItemsRec(); // Common Record for the level
         for (int k = 0; k < pIdRecord->GetNumItems(); k++)
@@ -248,7 +201,7 @@ void CSFreqDoc::AddAllItems()
             if (pItem->HasValueSets())
             {
                 FREQUENCIES frq;
-                frq.freqnames   = pItem->GetValueSet(0).GetName();
+                frq.freqnames   = UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName());
                 frq.occ         = -1;
                 frq.selected = GetSaveExcludedItems();
                 frq.bStats = m_bHasFreqStats;
@@ -259,7 +212,7 @@ void CSFreqDoc::AddAllItems()
             else
             {
                 FREQUENCIES frq;
-                frq.freqnames   = pItem->GetName();
+                frq.freqnames   = UTF8_TODO::GetCString(pItem->GetName());
                 frq.occ         = -1;
                 frq.selected = GetSaveExcludedItems();
                 frq.bStats = m_bHasFreqStats;
@@ -272,7 +225,7 @@ void CSFreqDoc::AddAllItems()
                 for( size_t vset = 1; vset < pItem->GetNumValueSets(); ++vset )
                 {
                     FREQUENCIES frq;
-                    frq.freqnames = pItem->GetValueSet(vset).GetName();
+                    frq.freqnames = UTF8_TODO::GetCString(pItem->GetValueSet(vset).GetName());
                     frq.occ = -1;
                     frq.selected = GetSaveExcludedItems();
                     frq.bStats = m_bHasFreqStats;
@@ -302,7 +255,7 @@ void CSFreqDoc::AddAllItems()
                     if (pItem->HasValueSets())
                     {
                         FREQUENCIES frq;
-                        frq.freqnames   = pItem->GetValueSet(0).GetName();
+                        frq.freqnames   = UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName());
                         frq.occ         = 0;
                         frq.selected = GetSaveExcludedItems();
                         frq.bStats = m_bHasFreqStats;
@@ -313,7 +266,7 @@ void CSFreqDoc::AddAllItems()
                     else
                     {
                         FREQUENCIES frq;
-                        frq.freqnames   = pItem->GetName();
+                        frq.freqnames   = UTF8_TODO::GetCString(pItem->GetName());
                         frq.occ         = 0;
                         frq.selected = GetSaveExcludedItems();
                         frq.bStats = m_bHasFreqStats;
@@ -326,7 +279,7 @@ void CSFreqDoc::AddAllItems()
                         for( size_t vset = 1; vset < pItem->GetNumValueSets(); ++vset )
                         {
                             FREQUENCIES frq;
-                            frq.freqnames = pItem->GetValueSet(vset).GetName();
+                            frq.freqnames = UTF8_TODO::GetCString(pItem->GetValueSet(vset).GetName());
                             frq.occ = 0;
                             frq.selected = GetSaveExcludedItems();
                             frq.bStats = m_bHasFreqStats;
@@ -340,7 +293,7 @@ void CSFreqDoc::AddAllItems()
                         if (pItem->HasValueSets())
                         {
                             FREQUENCIES frq;
-                            frq.freqnames   = pItem->GetValueSet(0).GetName();
+                            frq.freqnames   = UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName());
                             frq.occ         = occ+1;
                             frq.selected = GetSaveExcludedItems();
                             frq.bStats = m_bHasFreqStats;
@@ -351,7 +304,7 @@ void CSFreqDoc::AddAllItems()
                         else
                         {
                             FREQUENCIES frq;
-                            frq.freqnames   = pItem->GetName();
+                            frq.freqnames   = UTF8_TODO::GetCString(pItem->GetName());
                             frq.occ         = occ+1;
                             frq.selected = GetSaveExcludedItems();
                             frq.bStats = m_bHasFreqStats;
@@ -365,7 +318,7 @@ void CSFreqDoc::AddAllItems()
                             for( size_t vset = 1; vset < pItem->GetNumValueSets(); ++vset )
                             {
                                 FREQUENCIES frq;
-                                frq.freqnames = pItem->GetValueSet(vset).GetName();
+                                frq.freqnames = UTF8_TODO::GetCString(pItem->GetValueSet(vset).GetName());
                                 frq.occ = occ+1;
                                 frq.selected = GetSaveExcludedItems();
                                 frq.bStats = m_bHasFreqStats;
@@ -388,7 +341,7 @@ void CSFreqDoc::AddAllItems()
                     if (pItem->HasValueSets())
                     {
                         FREQUENCIES frq;
-                        frq.freqnames   = pItem->GetValueSet(0).GetName();
+                        frq.freqnames   = UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName());
                         frq.occ         = -1;
                         frq.selected = GetSaveExcludedItems();
                         frq.bStats = m_bHasFreqStats;
@@ -399,7 +352,7 @@ void CSFreqDoc::AddAllItems()
                     else
                     {
                         FREQUENCIES frq;
-                        frq.freqnames   = pItem->GetName();
+                        frq.freqnames   = UTF8_TODO::GetCString(pItem->GetName());
                         frq.occ         = -1;
                         frq.selected = GetSaveExcludedItems();
                         frq.bStats = m_bHasFreqStats;
@@ -412,7 +365,7 @@ void CSFreqDoc::AddAllItems()
                         for( size_t vset = 1; vset < pItem->GetNumValueSets(); ++vset )
                         {
                             FREQUENCIES frq;
-                            frq.freqnames = pItem->GetValueSet(vset).GetName();
+                            frq.freqnames = UTF8_TODO::GetCString(pItem->GetValueSet(vset).GetName());
                             frq.occ = -1;
                             frq.selected = GetSaveExcludedItems();
                             frq.bStats = m_bHasFreqStats;
@@ -434,7 +387,8 @@ void CSFreqDoc::AddAllItems()
 /////////////////////////////////////////////////////////////////////////////////
 void CSFreqDoc::ClearAllTemps()
 {
-    m_pDataDict = std::make_shared<CDataDict>();
+    m_dictionarySource.Reset();
+    m_dictionary = std::make_unique<CDataDict>();
 
     m_logicSettings = LogicSettings::GetUserDefaultSettings();
 }
@@ -442,17 +396,21 @@ void CSFreqDoc::ClearAllTemps()
 
 bool CSFreqDoc::RemoveInvalidFrequencyEntries()
 {
-    size_t initial_size = m_freqnames.size();
+    const size_t initial_size = m_freqnames.size();
 
     for( auto freqname_itr = m_freqnames.begin(); freqname_itr != m_freqnames.end(); )
     {
         const CDictItem* dict_item;
 
-        if( !m_pDataDict->LookupName(freqname_itr->freqnames, nullptr, nullptr, &dict_item, nullptr) || dict_item == nullptr )
+        if( !m_dictionary->LookupName(UTF8_TODO::GetUtf8(freqname_itr->freqnames), nullptr, nullptr, &dict_item, nullptr) || dict_item == nullptr )
+        {
             freqname_itr = m_freqnames.erase(freqname_itr);
+        }
 
         else
+        {
             ++freqname_itr;
+        }
     }
 
     // return true if invalid entries have been removed
@@ -471,10 +429,10 @@ void CSFreqDoc::OnFileRun()
     }
 
     if(pOptionsView){
-        if(!pOptionsView->CheckUniverseSyntax(m_sUniverse)){
+        if(!pOptionsView->CheckUniverseSyntax(m_universe)){
             return;
         }
-        if(!pOptionsView->CheckWeightSyntax(m_sWeight)){
+        if(!pOptionsView->CheckWeightSyntax(m_weight)){
             return;
         }
     }
@@ -517,24 +475,24 @@ void CSFreqDoc::ResetValuesToDefault()
     m_sortOrderAscending = true;
     m_sortType = DefaultSortType;
     m_outputFormat = DefaultOutputFormat;
-    m_sUniverse.Empty();
-    m_sWeight.Empty();
+    m_universe.clear();
+    m_weight.clear();
 
     // set some values from the registry
     auto set_dichotomous = [](auto& value, const TCHAR* key_name, const TCHAR* true_text, auto true_value, auto false_value)
     {
-        CString setting = AfxGetApp()->GetProfileString(_T("Settings"), key_name, nullptr);
+        CString setting = AfxGetApp()->GetProfileString(L"Settings", key_name, nullptr);
 
         if( !setting.IsEmpty() )
             value = ( setting.CompareNoCase(true_text) == 0 ) ? true_value : false_value;
     };
 
-    set_dichotomous(m_itemSerialization, _T("SaveIncluded"), _T("Yes"), ItemSerialization::Included, ItemSerialization::Excluded);
-    set_dichotomous(m_bUseVset, _T("TypeValueSet"), _T("Yes"), true, false);
-    set_dichotomous(m_bHasFreqStats, _T("GenerateStats"), _T("Yes"), true, false);
-    set_dichotomous(m_sortOrderAscending, _T("SortOrder"), _T("Ascending"), true, false);
-    m_sortType = SortTypeFromText(AfxGetApp()->GetProfileString(_T("Settings"), _T("SortType"), nullptr));
-    m_outputFormat = OutputFormatFromText(AfxGetApp()->GetProfileString(_T("Settings"), _T("OutputFormat"), nullptr));
+    set_dichotomous(m_itemSerialization, L"SaveIncluded", L"Yes", ItemSerialization::Included, ItemSerialization::Excluded);
+    set_dichotomous(m_bUseVset, L"TypeValueSet", L"Yes", true, false);
+    set_dichotomous(m_bHasFreqStats, L"GenerateStats", L"Yes", true, false);
+    set_dichotomous(m_sortOrderAscending, L"SortOrder", L"Ascending", true, false);
+    m_sortType = SortTypeFromText(TC::ToUtf8(AfxGetApp()->GetProfileString(L"Settings", L"SortType", nullptr)));
+    m_outputFormat = OutputFormatFromText(TC::ToUtf8(AfxGetApp()->GetProfileString(L"Settings", L"OutputFormat", nullptr)));
 }
 
 
@@ -544,11 +502,11 @@ void CSFreqDoc::ResetValuesToDefault()
 //  int CSFreqDoc::GetPositionInList(CIMSAString name, int occurrence)
 //
 /////////////////////////////////////////////////////////////////////////////////
-int CSFreqDoc::GetPositionInList(wstring_view name, int occurrence, bool reverse_search/* = false*/)
+int CSFreqDoc::GetPositionInList(const wstring_view name_sv, const int occurrence, const bool reverse_search/* = false*/)
 {
     auto check = [&](size_t i)
     {
-        return ( SO::EqualsNoCase(name, m_freqnames[i].freqnames) && occurrence == m_freqnames[i].occ );
+        return ( SO::EqualsNoCase(name_sv, m_freqnames[i].freqnames) && occurrence == m_freqnames[i].occ );
     };
 
     if( !reverse_search )
@@ -571,6 +529,8 @@ int CSFreqDoc::GetPositionInList(wstring_view name, int occurrence, bool reverse
 
     return -1;
 }
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //  bool CSFreqDoc::CheckValueSetChanges()
@@ -584,7 +544,7 @@ bool CSFreqDoc::CheckValueSetChanges()
     {
         const CDictItem* dict_item;
         const DictValueSet* dict_value_set;
-        m_pDataDict->LookupName(m_freqnames[i].freqnames, nullptr, nullptr, &dict_item, &dict_value_set);
+        m_dictionary->LookupName(UTF8_TODO::GetUtf8(m_freqnames[i].freqnames), nullptr, nullptr, &dict_item, &dict_value_set);
         ASSERT(dict_item != nullptr);
 
         if( m_freqnames[i].occ < 0 && ( ( dict_item->GetOccurs() > 1 ) ||
@@ -596,7 +556,7 @@ bool CSFreqDoc::CheckValueSetChanges()
 
         if( dict_value_set == nullptr && dict_item->HasValueSets() )
         {
-            m_freqnames[i].freqnames = dict_item->GetValueSet(0).GetName();
+            m_freqnames[i].freqnames = UTF8_TODO::GetCString(dict_item->GetValueSet(0).GetName());
             i--;
             continue;
         }
@@ -611,7 +571,7 @@ bool CSFreqDoc::CheckValueSetChanges()
 //  CString CSFreqDoc::GetNameat(int level, int record, int item, int vset,int occ)
 //
 /////////////////////////////////////////////////////////////////////////////////
-CString CSFreqDoc::GetNameat(int level, int record, int item, int vset,int occ)
+CString CSFreqDoc::GetNameat(const int level, const int record, const int item, const int vset, const int occ)
 {
     ASSERT (level >= 0);
 //  ASSERT (record >= 0);
@@ -619,12 +579,10 @@ CString CSFreqDoc::GetNameat(int level, int record, int item, int vset,int occ)
     ASSERT (item >= 0);
     ASSERT (vset >= 0);
 
-    const CDictItem* pItem = m_pDataDict->GetLevel(level).GetRecord(( record == -1 ) ? COMMON : record)->GetItem(item);
+    const CDictItem* const dict_item = m_dictionary->GetLevel(level).GetRecord(( record == -1 ) ? COMMON : record)->GetItem(item);
 
-    if (pItem->HasValueSets())
-        return pItem->GetValueSet(vset).GetName();
-    else
-        return pItem->GetName();
+    return UTF8_TODO::GetCString(dict_item->HasValueSets() ? dict_item->GetValueSet(vset).GetName() :
+                                                             dict_item->GetName());
 }
 
 
@@ -633,7 +591,7 @@ CString CSFreqDoc::GetNameat(int level, int record, int item, int vset,int occ)
 //  bool CSFreqDoc::IsChecked(int position)
 //
 /////////////////////////////////////////////////////////////////////////////////
-bool CSFreqDoc::IsChecked(int position) const
+bool CSFreqDoc::IsChecked(const int position) const
 {
     return ( position >= 0 && m_freqnames[position].selected );
 }
@@ -658,25 +616,35 @@ bool CSFreqDoc::GenerateBchForFrq()
     sPathName.ReleaseBuffer();
 
     //make the order spec name and delete existing file
-    CString sOrderFile = m_sBaseFilename + FileExtensions::WithDot::Order;
+    CString sOrderFile = UTF8_TODO::GetCString(Path::AppendExtension(m_baseFilePath, FileExtensions::Order));
     DeleteFile(sOrderFile);
 
-    batchApp.AddFormFilename(sOrderFile);
-    batchApp.AddDictionaryDescription(DictionaryDescription(CS2WS(m_csDictFileName), CS2WS(sOrderFile), DictionaryType::Input));
+    batchApp.AddForm(UTF8_TODO::GetUtf8(sOrderFile));
+
+    ASSERT(m_dictionarySource.IsDefined());
+    std::optional<std::string> file_based_dictionary_file_path;
+
+    try
+    {
+        file_based_dictionary_file_path = m_dictionarySource.GetFileBasedDictionaryFilePath();
+    }
+    catch(...) { return false; }
+
+    batchApp.AddDictionaryDescription(DictionaryDescription(*file_based_dictionary_file_path, UTF8_TODO::GetUtf8(sOrderFile), DictionaryType::Input));
+
 
     //Create the .ord file and save it
     //Create the form if the formfile does not exist
     if(!PortableFunctions::FileIsRegular(sOrderFile)) {
-        ASSERT(!m_csDictFileName.IsEmpty());
-        CDEFormFile Order(sOrderFile, m_csDictFileName);
-        Order.CreateOrderFile(*m_pDataDict, true);
+        CDEFormFile Order(sOrderFile, UTF8_TODO::GetCString(*file_based_dictionary_file_path));
+        Order.CreateOrderFile(*m_dictionary, true);
         Order.Save(sOrderFile);
     }
 
-    CString sFullFileName = m_sBaseFilename + FileExtensions::WithDot::BatchApplication;
-    batchApp.SetLabel(PortableFunctions::PathGetFilenameWithoutExtension<CString>(sFullFileName));
+    CString sFullFileName = UTF8_TODO::GetCString(Path::AppendExtension(m_baseFilePath, FileExtensions::BatchApplication));
+    batchApp.SetLabel(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(sFullFileName)));
 
-    CString sAppFile = m_sBaseFilename + FileExtensions::WithDot::Logic;
+    CString sAppFile = UTF8_TODO::GetCString(Path::AppendExtension(m_baseFilePath, FileExtensions::Logic));
     DeleteFile(sAppFile);
 
     CSpecFile appFile(TRUE);
@@ -704,10 +672,10 @@ bool CSFreqDoc::GenerateBchForFrq()
 //  bool  CSFreqDoc::CompileApp()
 //
 /////////////////////////////////////////////////////////////////////////////////
-bool  CSFreqDoc::CompileApp(XTABSTMENT_TYPE eType/* = XTABSTMENT_ALL*/)
+bool  CSFreqDoc::CompileApp(const XTABSTMENT_TYPE eType/* = XTABSTMENT_ALL*/)
 {
     if(!IsAtLeastOneItemSelected()){
-        AfxMessageBox(_T("You must select at least one item to tabulate\nbefore you set and compile a universe"));
+        AfxMessageBox(L"You must select at least one item to tabulate\nbefore you set and compile a universe");
         return false;
     }
 
@@ -717,37 +685,42 @@ bool  CSFreqDoc::CompileApp(XTABSTMENT_TYPE eType/* = XTABSTMENT_ALL*/)
 
     RemoveInvalidFrequencyEntries();
 
-    CString sOldUniverse,sOldWeight;
-    switch(eType){
+    std::string old_universe;
+    std::string old_weight;
+
+    switch(eType)
+    {
         case XTABSTMENT_WGHT_ONLY:
-            sOldUniverse = m_sUniverse;
-            m_sUniverse=_T("");
+            old_universe = m_universe;
+            m_universe.clear();
             break;
+
         case XTABSTMENT_UNIV_ONLY:
-            sOldWeight = m_sWeight;
-            m_sWeight=_T("");
+            old_weight = m_weight;
+            m_weight.clear();
             break;
+
         case XTABSTMENT_ALL:
         default:
             break;
     }
 
     if(!GenerateBchForFrq()){
-        AfxMessageBox(_T("Failed to generate freq app"));
-        if(!sOldUniverse.IsEmpty()){
-            m_sUniverse = sOldUniverse;
+        AfxMessageBox(L"Failed to generate freq app");
+        if(!old_universe.empty()){
+            m_universe = old_universe;
         }
-        if(!sOldWeight.IsEmpty()){
-            m_sWeight = sOldWeight;
+        if(!old_weight.empty()){
+            m_weight = old_weight;
         }
         return false;
     }
     else {
-        if(!sOldUniverse.IsEmpty()){
-            m_sUniverse = sOldUniverse;
+        if(!old_universe.empty()){
+            m_universe = old_universe;
         }
-        if(!sOldWeight.IsEmpty()){
-            m_sWeight = sOldWeight;
+        if(!old_weight.empty()){
+            m_weight = old_weight;
         }
     }
 
@@ -795,13 +768,13 @@ bool  CSFreqDoc::CompileApp(XTABSTMENT_TYPE eType/* = XTABSTMENT_ALL*/)
 //  void CSFreqDoc::WriteDefaultFiles(Application* pApplication,const CString& sAppFName)
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CSFreqDoc::WriteDefaultFiles(Application* pApplication,const CString& sAppFName)
+void CSFreqDoc::WriteDefaultFiles(Application* pApplication, const CString& sAppFName)
 {
     //AppFile
     CString sAppSCodeFName(sAppFName);
     PathRemoveExtension(sAppSCodeFName.GetBuffer(_MAX_PATH));
     sAppSCodeFName.ReleaseBuffer();
-    sAppSCodeFName += FileExtensions::WithDot::Logic;
+    sAppSCodeFName += L"." + UTF8_TODO::GetCString(FileExtensions::Logic);
 
     CFileStatus fStatus;
     BOOL bRet = CFile::GetStatus(sAppSCodeFName,fStatus);
@@ -809,11 +782,11 @@ void CSFreqDoc::WriteDefaultFiles(Application* pApplication,const CString& sAppF
         //Create the .app file
         CSpecFile appFile(TRUE);
         appFile.Open(sAppSCodeFName,CFile::modeWrite);
-        appFile.WriteString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code));
+        appFile.WriteString(UTF8_TODO::GetCString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code)));
         appFile.Close();
     }
 
-    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_shared<TextSource>(CS2WS(sAppSCodeFName))));
+    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(UTF8_TODO::GetUtf8(sAppSCodeFName))));
 }
 
 
@@ -835,9 +808,12 @@ namespace
 
         LONG ProcessMessage(WPARAM wParam, LPARAM /*lParam*/) override
         {
-            std::tuple<std::wstring, std::wstring>& universe_and_weight = *reinterpret_cast<std::tuple<std::wstring, std::wstring>*>(wParam);
-            std::get<0>(universe_and_weight) = m_document->m_sUniverse;
-            std::get<1>(universe_and_weight) = m_document->m_sWeight;
+            std::unique_ptr<std::tuple<std::string, std::string>>& universe_and_weight = *reinterpret_cast<std::unique_ptr<std::tuple<std::string, std::string>>*>(wParam);
+            ASSERT(universe_and_weight == nullptr);
+
+            universe_and_weight = std::make_unique<std::tuple<std::string, std::string>>(m_document->m_universe,
+                                                                                         m_document->m_weight);
+
             return 1;
         }
 
@@ -855,8 +831,8 @@ void CSFreqDoc::LaunchBatch()
         m_batchPff->Save();
 
         BatchExecutor batch_executor;
-        batch_executor.AddUWMCallback(UWM::Freq::GetUniverseAndWeight, std::make_shared<GetUniverseAndWeightCallback>(this));
-        batch_executor.Run(m_batchPff->GetPifFileName());
+        batch_executor.AddUWMCallback(UWM::Freq::GetUniverseAndWeight, std::make_unique<GetUniverseAndWeightCallback>(this));
+        batch_executor.Run(UTF8_TODO::GetUtf8(m_batchPff->GetPifFileName()));
     }
 
     catch( const CSProException& exception )
@@ -1111,85 +1087,85 @@ namespace
 }
 
 
-CString CSFreqDoc::GenerateFrqCmd()
+std::string CSFreqDoc::GenerateFrqCmd()
 {
     CWaitCursor wait;
-    CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
-    ASSERT(pFrame);
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
-    CFrqOptionsView* pOptionsView = pFrame->GetFrqOptionsView();
+    CFrqOptionsView* const pOptionsView = pFrame->GetFrqOptionsView();
     pOptionsView->ToDoc();
 
-    CSFreqView* pFrqTreeView = pFrame->GetFreqTreeView();
-    CFreqDDTreeCtrl* pDictTree = pFrqTreeView->GetDictTree();
-
+    CSFreqView* const pFrqTreeView = pFrame->GetFreqTreeView();
+    CFreqDDTreeCtrl* const pDictTree = pFrqTreeView->GetDictTree();
 
     // generate the optional commands
-    std::vector<CString> extra_commands;
+    std::vector<std::string> extra_commands;
 
-    m_sUniverse.Trim();
+    SO::MakeTrim(m_universe);
 
-    if( !m_sUniverse.IsEmpty() )
-        extra_commands.emplace_back(FormatText(_T("universe(%s)"), m_sUniverse.GetString()));
+    if( !m_universe.empty() )
+        extra_commands.emplace_back(FormatText("universe(%s)", m_universe.c_str()));
 
-    m_sWeight.Trim();
+    SO::MakeTrim(m_weight);
 
-    if( !m_sWeight.IsEmpty() )
+    if( !m_weight.empty() )
     {
-        extra_commands.emplace_back(FormatText(_T("weight(%s)"), m_sWeight.GetString()));
+        extra_commands.emplace_back(FormatText("weight(%s)", m_weight.c_str()));
 
         // if the weight is a constant number with decimals, apply the decimal setting
-        if( StringToNumber(m_sWeight) != DEFAULT )
+        if( StringToNumber(m_weight) != DEFAULT )
         {
-            int decimal_pos = m_sWeight.Find(_T('.'));
+            const size_t decimal_pos = m_weight.find('.');
 
-            if( decimal_pos >= 0 )
+            if( decimal_pos != std::string::npos )
             {
-                int number_decimals = m_sWeight.GetLength() - decimal_pos - 1;
-                extra_commands.emplace_back(FormatText(_T("decimals(%d)"), std::min(number_decimals, 5)));
+                const int number_decimals = m_weight.length() - decimal_pos - 1;
+                extra_commands.emplace_back(FormatText("decimals(%d)", std::min(number_decimals, 5)));
             }
         }
     }
 
     if( m_bHasFreqStats )
     {
-        extra_commands.emplace_back(_T("stat"));
+        extra_commands.emplace_back("stat");
 
         if( m_percentiles.has_value() )
-            extra_commands.emplace_back(FormatText(_T("percentiles(%d)"), *m_percentiles));
+            extra_commands.emplace_back(FormatText("percentiles(%d)", *m_percentiles));
     }
 
     if( !m_sortOrderAscending || m_sortType != DefaultSortType )
     {
-        auto& sort_command = extra_commands.emplace_back(_T("sort("));
+        std::string& sort_command = extra_commands.emplace_back("sort(");
 
         if( !m_sortOrderAscending )
-            sort_command.Append(_T("descending "));
+            sort_command.append("descending ");
 
-        sort_command.AppendFormat(_T("by %s)"), SO::ToLower(SortTypeNames[(size_t)m_sortType]).c_str());
+        sort_command.append("by ")
+                    .append(SO::ToLower(SortTypeNames[static_cast<size_t>(m_sortType)]))
+                    .push_back(')');
     }
 
-     extra_commands.emplace_back(_T("nonetpercents"));
+     extra_commands.emplace_back("nonetpercents");
 
      if( !m_bUseVset )
-         extra_commands.emplace_back(_T("distinct"));
+         extra_commands.emplace_back("distinct");
 
 
     // see what frequencies must be generated
     std::vector<std::vector<SelectedFrequencies>> grouped_selected_frequencies =
-        SelectedFrequenciesWorker(*m_pDataDict, pDictTree).GenerateByFrequencyGroup();
+        SelectedFrequenciesWorker(*m_dictionary, pDictTree).GenerateByFrequencyGroup();
     ASSERT(!grouped_selected_frequencies.empty());
 
-    CString freq_command = _T("PROC GLOBAL\n");
+    std::string freq_command = "PROC GLOBAL\n";
     const DictLevel* last_level_added = nullptr;
     const CDictRecord* last_record_added = nullptr;
-    const TCHAR* Tabs[] = { _T("\t"), _T("\t\t"), _T("\t\t\t"), _T("\t\t\t\t") };
-    const TCHAR** current_tabs_index = &Tabs[0];
+    const char* Tabs[] = { "\t", "\t\t", "\t\t\t", "\t\t\t\t" };
+    const char** current_tabs_index = &Tabs[0];
 
     auto end_record_for_loop = [&]
     {
         if( last_record_added != nullptr && last_record_added->GetMaxRecs() > 1 )
-            freq_command.Append(_T("\n\tendfor;\n"));
+            freq_command.append("\n\tendfor;\n");
 
         last_record_added = nullptr;
     };
@@ -1204,7 +1180,7 @@ CString CSFreqDoc::GenerateFrqCmd()
         {
             end_record_for_loop();
 
-            freq_command.AppendFormat(_T("\n\nPROC %s\n"), first_selected_frequency_in_group.level->GetName().GetString());
+            freq_command.append(FormatText("\n\nPROC %s\n", first_selected_frequency_in_group.level->GetName().c_str()));
             last_level_added = first_selected_frequency_in_group.level;
         }
 
@@ -1216,8 +1192,8 @@ CString CSFreqDoc::GenerateFrqCmd()
 
             if( first_selected_frequency_in_group.record->GetMaxRecs() > 1 )
             {
-                freq_command.AppendFormat(_T("\n\tfor numeric csfreq_record_occurrence in %s_EDT do\n"),
-                                          first_selected_frequency_in_group.record->GetName().GetString());
+                freq_command.append(FormatText("\n\tfor numeric csfreq_record_occurrence in %s_EDT do\n",
+                                               first_selected_frequency_in_group.record->GetName().c_str()));
                 current_tabs_index = &Tabs[1];
             }
 
@@ -1232,7 +1208,7 @@ CString CSFreqDoc::GenerateFrqCmd()
         auto add_items = [&](std::vector<SelectedFrequencies>::const_iterator freq_itr,
                              std::vector<SelectedFrequencies>::const_iterator freq_itr_end)
         {
-            freq_command.AppendFormat(_T("\n%sFreq\n%sinclude("), *current_tabs_index, *current_tabs_index);
+            freq_command.append(FormatText("\n%sFreq\n%sinclude(", *current_tabs_index, *current_tabs_index));
 
             std::vector<const DictValueSet*> specified_value_sets;
             const CDictItem* last_item_added = nullptr;
@@ -1247,28 +1223,29 @@ CString CSFreqDoc::GenerateFrqCmd()
                 // add the item name if not already added
                 if( last_item_added != selected_frequency.item )
                 {
-                    freq_command.AppendFormat(_T("%s%s"),
-                        ( last_item_added != nullptr ) ? _T(", ") : _T(""),
-                        selected_frequency.item->GetName().GetString());
+                    if( last_item_added != nullptr )
+                        freq_command.append(", ");
+
+                    freq_command.append(selected_frequency.item->GetName());
 
                     if( selected_frequency.occurrence.has_value() )
                     {
-                        freq_command.AppendFormat(_T("(%s%u)"),
-                            ( selected_frequency.record->GetMaxRecs() > 1 ) ? _T("*, ") : _T(""),
-                            *selected_frequency.occurrence + 1);
+                        freq_command.append(FormatText("(%s%u)", ( selected_frequency.record->GetMaxRecs() > 1 ) ? "*, " : "",
+                                                                 *selected_frequency.occurrence + 1));
                     }
 
                     last_item_added = selected_frequency.item;
                 }
             }
 
-            freq_command.Append(_T(")\n"));
+            freq_command.append(")\n");
 
 
             // add any value sets
             if( !specified_value_sets.empty() )
             {
-                freq_command.AppendFormat(_T("%svalueset("), *current_tabs_index);
+                freq_command.append(*current_tabs_index)
+                            .append("valueset(");
 
                 const DictValueSet* last_value_set_added = nullptr;
 
@@ -1276,23 +1253,28 @@ CString CSFreqDoc::GenerateFrqCmd()
                 {
                     ASSERT(last_value_set_added != value_set);
 
-                    freq_command.AppendFormat(_T("%s%s"),
-                        ( last_value_set_added != nullptr ) ? _T(", ") : _T(""),
-                        value_set->GetName().GetString());
+                    if( last_value_set_added != nullptr )
+                        freq_command.append(", ");
+
+                    freq_command.append(value_set->GetName());
 
                     last_value_set_added = value_set;
                 }
 
-                freq_command.Append(_T(")\n"));
+                freq_command.append(")\n");
             }
 
 
             // add the the extra commands and end the freq command
-            for( const CString& extra_command : extra_commands )
-                freq_command.AppendFormat(_T("%s%s\n"), *current_tabs_index, extra_command.GetString());
+            for( const std::string& extra_command : extra_commands )
+            {
+                freq_command.append(*current_tabs_index)
+                            .append(extra_command)
+                            .append("\n");
+            }
 
-            freq_command.AppendFormat(_T("%s;\n"), *current_tabs_index);
-
+            freq_command.append(*current_tabs_index)
+                        .append(";\n");
         };
 
 
@@ -1301,13 +1283,15 @@ CString CSFreqDoc::GenerateFrqCmd()
         auto freq_itr_end = grouped_selected_frequency.cend();
 
         if( !first_selected_frequency_in_group.occurrence.has_value() )
+        {
             add_items(freq_itr, freq_itr_end);
+        }
 
         // add an item for loop if necessary
         else
         {
-            freq_command.AppendFormat(_T("\n%sfor numeric csfreq_item_occurrence in %s000 do\n"), *current_tabs_index,
-                                      GetParentItemIfRepeating(first_selected_frequency_in_group.item)->GetName().GetString());
+            freq_command.append(FormatText("\n%sfor numeric csfreq_item_occurrence in %s000 do\n", *current_tabs_index,
+                                           GetParentItemIfRepeating(first_selected_frequency_in_group.item)->GetName().c_str()));
             ++current_tabs_index;
 
             while( freq_itr != freq_itr_end )
@@ -1320,18 +1304,18 @@ CString CSFreqDoc::GenerateFrqCmd()
 
                 } while( freq_itr != freq_itr_end && freq_itr->occurrence == freq_itr_start->occurrence );
 
-                freq_command.AppendFormat(_T("\n%sif csfreq_item_occurrence = %u then\n"), *current_tabs_index,
-                    *freq_itr_start->occurrence + 1);
+                freq_command.append(FormatText("\n%sif csfreq_item_occurrence = %u then\n", *current_tabs_index,
+                                                                                            *freq_itr_start->occurrence + 1));
                 ++current_tabs_index;
 
                 add_items(freq_itr_start, freq_itr);
 
                 --current_tabs_index;
-                freq_command.AppendFormat(_T("\n%sendif;\n"), *current_tabs_index);
+                freq_command.append(FormatText("\n%sendif;\n", *current_tabs_index));
             }
 
             --current_tabs_index;
-            freq_command.AppendFormat(_T("\n%sendfor;\n"), *current_tabs_index);
+            freq_command.append(FormatText("\n%sendfor;\n", *current_tabs_index));
         }
     }
 
@@ -1349,7 +1333,7 @@ CString CSFreqDoc::GenerateFrqCmd()
 /////////////////////////////////////////////////////////////////////////////////
 void CSFreqDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(GetTitle() != _T("Untitled"));
+    pCmdUI->Enable(GetTitle() != L"Untitled");
 }
 
 
@@ -1358,51 +1342,30 @@ void CSFreqDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
 //  bool CSFreqDoc::OnFileSaveAs()
 //
 /////////////////////////////////////////////////////////////////////////////////
+
 void CSFreqDoc::OnFileSaveAs()
 {
-    CString csPath = m_FreqPiff.GetAppFName();         // BMD 14 Mar 2002
-    if (SO::IsBlank(csPath)) {
-        CString csDictionarySourceFilename = GetDictionarySourceFilename();
-        csPath = csDictionarySourceFilename.Left(csDictionarySourceFilename.ReverseFind('\\')) + _T("\\*.fqf");
-    }
+    std::string file_path = UTF8_TODO::GetUtf8(m_FreqPiff.GetAppFName());         // BMD 14 Mar 2002
 
-    CString csFilter = _T("Frequency Specification Files (*.fqf)|*.fqf|All Files (*.*)|*.*||");
+    // if no spec file path exists, base it on the dictionary's source path
+    if( file_path.empty() )
+        file_path = Path::ReplaceExtension(m_dictionarySource.GetSourceFilePath(), FileExtensions::FrequencySpec);
 
-    CIMSAFileDialog dlgFile(FALSE, FileExtensions::FrequencySpec, csPath, OFN_HIDEREADONLY, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Save Frequency Specification File");
-    bool bOK = false;
-    while (!bOK) {
-        if (dlgFile.DoModal() == IDCANCEL) {
-            return;
-        }
+    SaveFileDlg save_file_dlg(0, FileExtensions::FrequencySpec, file_path, L"Frequency Specification Files (*.fqf)|*.fqf|All Files (*.*)|*.*||");
+    save_file_dlg.SetTitle(L"Save Frequency Specification File");
 
-        CFileStatus status;
-        if (CFile::GetStatus(dlgFile.GetPathName(), status)) {
-            CString csMessage = dlgFile.GetPathName() + _T(" already exists.\nDo you want to replace it?");
-            if (AfxMessageBox(csMessage,MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION) != IDYES) {
-                continue;
-            }
-            else {
-                bOK = true;
-            }
-        }
-        else {
-            bOK = true;
-        }
-    }
-    if (bOK) {
-        m_FreqPiff.SetAppFName(dlgFile.GetPathName());
-        SaveSpecFile();
-        SetModifiedFlag(FALSE);
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-        SetPathName(m_FreqPiff.GetAppFName(), TRUE);
-        m_FreqPiff.SetPifFileName(dlgFile.GetPathName() + FileExtensions::WithDot::Pff);
-        m_FreqPiff.Save();     // BMD 14 Mar 2002
-        m_bSaved= true;
+    if( save_file_dlg.DoModal() != IDOK )
         return;
-    }
-    m_bSaved = false;
-    return;
+
+    m_FreqPiff.SetAppFName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
+    SaveSpecFile();
+    SetModifiedFlag(FALSE);
+    AfxGetApp()->AddToRecentFileList(TC::ToWide(save_file_dlg.GetFilePath()).c_str());
+    SetPathName(m_FreqPiff.GetAppFName(), TRUE);
+    m_FreqPiff.SetPifFileName(UTF8_TODO::GetCString(Path::AppendExtension(save_file_dlg.GetFilePath(), FileExtensions::Pff)));
+    m_FreqPiff.Save();     // BMD 14 Mar 2002
+
+    m_bSaved = true;
 }
 
 
@@ -1414,11 +1377,7 @@ void CSFreqDoc::OnFileSaveAs()
 /////////////////////////////////////////////////////////////////////////////////
 void CSFreqDoc::OnUpdateFileSaveAs(CCmdUI* pCmdUI)
 {
-    CString str = GetTitle();
-    if (str == _T("Untitled"))
-        pCmdUI->Enable(FALSE);
-    else
-        pCmdUI->Enable(TRUE);
+    pCmdUI->Enable(GetTitle() != L"Untitled");
 }
 
 
@@ -1467,13 +1426,15 @@ BOOL CSFreqDoc::SaveModified()
 /////////////////////////////////////////////////////////////////////////////////
 void CSFreqDoc::OnFileSave()
 {
+    m_bSaved = false;
+
     if (m_FreqPiff.GetAppFName().IsEmpty()) {
         OnFileSaveAs();
     }
     else {
         SaveSpecFile();
         SetModifiedFlag(FALSE);
-        m_bSaved =  true;
+        m_bSaved = true;
     }
 }
 
@@ -1484,11 +1445,11 @@ void CSFreqDoc::DoPostRunCleanUp()
     //delete the .pff and other files
     if( !m_batchPff->GetPifFileName().IsEmpty() )
     {
-        DeleteFile(m_batchPff->GetPifFileName());
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::BatchApplication);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::Order);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::Logic);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::TableSpec);
+        PortableFunctions::FileDelete(m_batchPff->GetPifFileName());
+        PortableFunctions::FileDelete(Path::AppendExtension(m_baseFilePath, FileExtensions::BatchApplication));
+        PortableFunctions::FileDelete(Path::AppendExtension(m_baseFilePath, FileExtensions::Order));
+        PortableFunctions::FileDelete(Path::AppendExtension(m_baseFilePath, FileExtensions::Logic));
+        PortableFunctions::FileDelete(Path::AppendExtension(m_baseFilePath, FileExtensions::TableSpec));
     }
 #endif
 }
@@ -1498,54 +1459,58 @@ bool CSFreqDoc::ExecuteFileInfo()
 {
     bool bRet = true;
 
-    CString base_name_for_files = m_FreqPiff.GetAppFName().IsEmpty() ? _T("CSFrqRun") :
-        PortableFunctions::PathGetFilenameWithoutExtension<CString>(m_FreqPiff.GetAppFName());
+    const std::string base_name_for_files = m_FreqPiff.GetAppFName().IsEmpty() ? "CSFrqRun" :
+                                                                                 Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(m_FreqPiff.GetAppFName()));
 
-    CString directory_for_files = PathHelpers::GetDirectoryName({ m_FreqPiff.GetAppFName(), GetDictionarySourceFilename() });
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_FreqPiff.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
 
     if( m_FreqPiff.GetListingFName().IsEmpty() )
-        m_FreqPiff.SetListingFName(PathHelpers::GetFilenameInDirectory(base_name_for_files + FileExtensions::WithDot::Listing, directory_for_files));
+        m_FreqPiff.SetListingFName(UTF8_TODO::GetCString(PathHelpers::GetFilePathInDirectory(Path::AppendExtension(base_name_for_files, FileExtensions::Listing), directory_for_files)));
 
     if( m_FreqPiff.GetFrequenciesFilename().IsEmpty() )
-        m_FreqPiff.SetFrequenciesFilename(PathHelpers::GetFilenameInDirectory(base_name_for_files + FileExtensions::WithDot::Table, directory_for_files));
+        m_FreqPiff.SetFrequenciesFilename(UTF8_TODO::GetCString(PathHelpers::GetFilePathInDirectory(Path::AppendExtension(base_name_for_files, FileExtensions::Table), directory_for_files)));
 
 
     // make sure the output format extension matches the selection
-    CString output_format_extension = ( m_outputFormat == OutputFormat::Table ) ?   FileExtensions::Table :
-                                      ( m_outputFormat == OutputFormat::HTML )  ?   FileExtensions::HTML :
-                                      ( m_outputFormat == OutputFormat::Json )  ?   FileExtensions::Json :
-                                      ( m_outputFormat == OutputFormat::Text )  ?   FileExtensions::Listing :
-                                    /*( m_outputFormat == OutputFormat::Excel ) ? */FileExtensions::Excel;
+    const char* const output_format_extension =
+        ( m_outputFormat == OutputFormat::Table ) ?   FileExtensions::Table :
+        ( m_outputFormat == OutputFormat::HTML )  ?   FileExtensions::HTML :
+        ( m_outputFormat == OutputFormat::Json )  ?   FileExtensions::Json :
+        ( m_outputFormat == OutputFormat::Text )  ?   FileExtensions::Listing :
+      /*( m_outputFormat == OutputFormat::Excel ) ? */FileExtensions::Excel;
 
-    CString current_extension = PortableFunctions::PathGetFileExtension<CString>(m_FreqPiff.GetFrequenciesFilename());
+    const std::string current_extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_FreqPiff.GetFrequenciesFilename()));
 
-    if( current_extension.CompareNoCase(output_format_extension) != 0 )
+    if( !SO::EqualsNoCase(current_extension, output_format_extension) )
     {
-        m_FreqPiff.SetFrequenciesFilename(PortableFunctions::PathRemoveFileExtension<CString>(m_FreqPiff.GetFrequenciesFilename())
-            + _T(".") + output_format_extension);
+        m_FreqPiff.SetFrequenciesFilename(PortableFunctions::PathRemoveFileExtensionCS(m_FreqPiff.GetFrequenciesFilename())
+            + L"." + UTF8_TODO::GetCString(output_format_extension));
     }
 
     // make sure the frequencies filename isn't the same as the listing filename
     if( m_FreqPiff.GetFrequenciesFilename().CompareNoCase(m_FreqPiff.GetListingFName()) == 0 )
     {
-        m_FreqPiff.SetFrequenciesFilename(PortableFunctions::PathRemoveFileExtension<CString>(m_FreqPiff.GetFrequenciesFilename())
-            + _T(".freq.") + output_format_extension);
+        m_FreqPiff.SetFrequenciesFilename(PortableFunctions::PathRemoveFileExtensionCS(m_FreqPiff.GetFrequenciesFilename())
+            + L".freq." + UTF8_TODO::GetCString(output_format_extension));
     }
 
 
     if( !m_batchmode )
     {
-        // don't ask for a data file if a CSPro DB file has been opened
-        if( m_temporaryDataDictFile != nullptr )
+        // don't ask for a data file if a data source with an embedded dictionary was opened
+        if( m_dictionarySource.UsingEmbeddedDictionary() )
         {
-            m_FreqPiff.SetSingleInputDataConnectionString(m_csDictionarySourceDataFilename);
+            m_FreqPiff.SetSingleInputDataConnectionString(m_dictionarySource.GetConnectionString());
         }
 
         else
         {
             DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, m_FreqPiff.GetInputDataConnectionStringsSerializable());
-            data_file_dlg.SetTitle(_T("Select Data File(s) to Tabulate"))
-                         .SetDictionaryFilename(m_csDictFileName)
+            data_file_dlg.SetTitle(L"Select Data File(s) to Tabulate")
+                         .SetDictionaryFilePath(m_dictionarySource.GetDictionaryFilePath())
                          .AllowMultipleSelections();
 
             if( data_file_dlg.DoModal() != IDOK )
@@ -1582,7 +1547,7 @@ void CSFreqDoc::OnOptionsExcluded()
 {
     m_itemSerialization = ( m_itemSerialization == ItemSerialization::Excluded ) ? ItemSerialization::Included :
                                                                                    ItemSerialization::Excluded;
-    AfxGetApp()->WriteProfileString(_T("Settings"), _T("SaveIncluded"), GetSaveExcludedItems() ? _T("No") : _T("Yes"));
+    AfxGetApp()->WriteProfileString(L"Settings", L"SaveIncluded", GetSaveExcludedItems() ? L"No" : L"Yes");
     SetModifiedFlag();
 }
 
@@ -1611,65 +1576,40 @@ void CSFreqDoc::OnOptionsLogicSettings()
 
 void CSFreqDoc::OnViewBatchLogic()
 {
-    BatchLogicViewerDlg dlg(*m_pDataDict, m_logicSettings, CS2WS(GenerateFrqCmd()));
+    BatchLogicViewerDlg dlg(*m_dictionary, m_logicSettings, GenerateFrqCmd());
     dlg.DoModal();
 }
 
 
-bool CSFreqDoc::ProcessDictionarySource(const CString& filename)
+void CSFreqDoc::ProcessDictionarySource(DictionarySource dictionary_source)
 {
-    std::unique_ptr<CDataDict> embedded_dictionary = DataRepositoryHelpers::GetEmbeddedDictionary(ConnectionString(filename));
+    m_dictionarySource = std::move(dictionary_source);
 
-    if( embedded_dictionary != nullptr )
+    try
     {
-        // for now, save the embedded dictionary; ideally this would not need to be saved to the disk
-        try
-        {
-            m_temporaryDataDictFile = std::make_unique<TemporaryFile>();
-            embedded_dictionary->Save(m_temporaryDataDictFile->GetPath());
-        }
-
-        catch( const CSProException& exception )
-        {
-            ErrorMessage::Display(exception);
-            return false;
-        }
-
-        m_csDictFileName = WS2CS(m_temporaryDataDictFile->GetPath());
-        m_csDictionarySourceDataFilename = filename;
+        m_dictionary = m_dictionarySource.GetDictionary();
     }
 
-    else
+    catch(...)
     {
-        m_temporaryDataDictFile.reset();
-        m_csDictFileName = filename;
+        m_dictionarySource.Reset();
+        m_dictionary = std::make_unique<CDataDict>();
+        throw;
     }
-
-    return true;
 }
 
 
-const CString& CSFreqDoc::GetDictionarySourceFilename() const
+std::string CSFreqDoc::GetDocumentWindowTitle() const
 {
-    return ( m_temporaryDataDictFile == nullptr ) ? m_csDictFileName :
-                                                    m_csDictionarySourceDataFilename;
-}
+    std::string document_title = !m_FreqPiff.GetAppFName().IsEmpty() ? Path::GetFilename(UTF8_TODO::GetUtf8(m_FreqPiff.GetAppFName())) :
+                                 m_dictionarySource.IsDefined()      ? m_dictionarySource.GetConnectionString().ToDisplayString(true) :
+                                                                       std::string();
 
+    // add the dictionary name when possible
+    if( !document_title.empty() && m_dictionary != nullptr )
+        return SO::CreateParentheticalExpression(std::move(document_title), m_dictionary->GetName());
 
-CString CSFreqDoc::GetDocumentWindowTitle() const
-{
-    CString csMainFilename = m_FreqPiff.GetAppFName();
-
-    if( csMainFilename.IsEmpty() )
-        csMainFilename = GetDictionarySourceFilename();
-
-    CString csDocumentTitle = GetFileName(csMainFilename);
-
-    // add the dictionary name
-    if( !csDocumentTitle.IsEmpty() && m_pDataDict != nullptr )
-        csDocumentTitle.AppendFormat(_T(" (%s)"), m_pDataDict->GetName().GetString());
-
-    return csDocumentTitle;
+    return document_title;
 }
 
 
@@ -1686,18 +1626,18 @@ void CSFreqDoc::GenerateBatchPffFromFrequencyPff()
 {
     // create the batch PFF, basing it on the contents of the frequency PFF
     m_batchPff = std::make_unique<CNPifFile>(m_FreqPiff);
-    m_batchPff->SetPifFileName(m_sBaseFilename + FileExtensions::WithDot::Pff);
+    m_batchPff->SetPifFileName(UTF8_TODO::GetCString(Path::AppendExtension(m_baseFilePath, FileExtensions::Pff)));
     m_batchPff->SetAppType(BATCH_TYPE);
-    m_batchPff->SetAppFName(m_sBaseFilename + FileExtensions::WithDot::BatchApplication);
+    m_batchPff->SetAppFName(UTF8_TODO::GetCString(Path::AppendExtension(m_baseFilePath, FileExtensions::BatchApplication)));
 
     if (m_batchmode && !m_FreqPiff.GetStartLanguageString().IsEmpty())
         m_batchPff->SetStartLanguageString(m_FreqPiff.GetStartLanguageString());
     else
-        m_batchPff->SetStartLanguageString(WS2CS(m_pDataDict->GetCurrentLanguage().GetName()));
+        m_batchPff->SetStartLanguageString(UTF8_TODO::GetCString(m_dictionary->GetCurrentLanguage().GetName()));
 
     // OnExit should only be executed if CSFreq was run with a PFF as a command line argument
     if( !m_batchmode )
-        m_batchPff->SetOnExitFilename(_T(""));
+        m_batchPff->SetOnExitFilename(CString());
 }
 
 
@@ -1711,22 +1651,22 @@ void CSFreqDoc::GenerateBatchPffFromFrequencyPff()
 CREATE_JSON_VALUE(frequencies)
 
 CREATE_ENUM_JSON_SERIALIZER(ItemSerialization,
-    { ItemSerialization::Included, _T("included") },
-    { ItemSerialization::Excluded, _T("excluded") })
+    { ItemSerialization::Included, "included" },
+    { ItemSerialization::Excluded, "excluded" })
 
 CREATE_ENUM_JSON_SERIALIZER(OutputFormat,
-    { OutputFormat::Table, _T("TBW") },
-    { OutputFormat::HTML,  _T("HTML") },
-    { OutputFormat::Json,  _T("JSON") },
-    { OutputFormat::Text,  _T("text") },
-    { OutputFormat::Excel, _T("Excel") })
+    { OutputFormat::Table, "TBW" },
+    { OutputFormat::HTML,  "HTML" },
+    { OutputFormat::Json,  "JSON" },
+    { OutputFormat::Text,  "text" },
+    { OutputFormat::Excel, "Excel" })
 
 
-bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
+bool CSFreqDoc::OpenSpecFile(const std::string& spec_file_path, const bool silent)
 {
     try
     {
-        auto json_reader = JsonSpecFile::CreateReader(filename, nullptr, [&]() { return ConvertPre80SpecFile(filename); });
+        const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(spec_file_path, nullptr, [&]() { return ConvertPre80SpecFile(spec_file_path); });
 
         try
         {
@@ -1734,27 +1674,24 @@ bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
             json_reader->CheckFileType(JV::frequencies);
 
             // open the dictionary
-            std::wstring dictionary_filename = json_reader->GetAbsolutePath(JK::dictionary);
-
-            if( !ProcessDictionarySource(WS2CS(dictionary_filename)) || !OpenDictFile(silent) )
-                throw CSProException(_T("The dictionary could not be read: %s"), dictionary_filename.c_str());
+            ProcessDictionarySource(json_reader->Get<DictionarySource>(JK::dictionary));
 
             // reestablish the dictionary language
-            std::optional<wstring_view> language_name = json_reader->GetOptional<wstring_view>(JK::language);
+            const std::optional<std::string_view> language_name_sv = json_reader->GetOptional<std::string_view>(JK::language);
 
-            if( language_name.has_value() )
+            if( language_name_sv.has_value() )
             {
-                std::optional<size_t> language_index = m_pDataDict->IsLanguageDefined(*language_name);
+                const std::optional<size_t> language_index = m_dictionary->IsLanguageDefined(*language_name_sv);
 
                 if( language_index.has_value() )
                 {
-                    m_pDataDict->SetCurrentLanguage(*language_index);
+                    m_dictionary->SetCurrentLanguage(*language_index);
                 }
 
                 else
                 {
-                    json_reader->LogWarning(_T("The dictionary language '%s' is not in the dictionary '%s'"),
-                                            std::wstring(*language_name).c_str(), m_pDataDict->GetName().GetString());
+                    json_reader->LogWarning("The dictionary language '%s' is not in the dictionary '%s'",
+                                            std::string(*language_name_sv).c_str(), m_dictionary->GetName().c_str());
                 }
             }
 
@@ -1770,7 +1707,7 @@ bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
                 // validate the percentiles value
                 if( m_percentiles.has_value() && ( *m_percentiles < 2 || *m_percentiles > 20 ) )
                 {
-                    json_reader->LogWarning(_T("The percentiles value '%d' is not valid and been reset"), *m_percentiles);
+                    json_reader->LogWarning("The percentiles value '%d' is not valid and been reset", *m_percentiles);
                     m_percentiles.reset();
                 }
             }
@@ -1781,8 +1718,8 @@ bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
             m_logicSettings = json_reader->GetOrDefault(JK::logicSettings, m_logicSettings);
 
-            m_sUniverse = json_reader->GetOrDefault(JK::universe, SO::EmptyCString);
-            m_sWeight = json_reader->GetOrDefault(JK::weight, SO::EmptyCString);
+            m_universe = json_reader->GetOrConstruct<std::string>(JK::universe);
+            m_weight = json_reader->GetOrConstruct<std::string>(JK::weight);
 
             m_itemSerialization = json_reader->GetOrDefault(JK::itemSerialization, ItemSerialization::Included);
 
@@ -1792,17 +1729,17 @@ bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
             // read the items
             for( const auto& item_node : json_reader->GetArrayOrEmpty(JK::items) )
             {
-                auto item_name = item_node.GetOptional<wstring_view>(JK::name);
+                const std::optional<std::string_view> item_name_sv = item_node.GetOptional<std::string_view>(JK::name);
 
-                if( item_name.has_value() )
+                if( item_name_sv.has_value() )
                 {
-                    int occurrence = item_node.GetOrDefault(JK::occurrence, -1);
-                    int pos = GetPositionInList(*item_name, occurrence);
+                    const int occurrence = item_node.GetOrDefault(JK::occurrence, -1);
+                    const int pos = GetPositionInList(UTF8_TODO::GetWide(*item_name_sv), occurrence);
 
                     if( pos == -1 )
                     {
-                        json_reader->LogWarning(_T("'%s' is not a valid item or value set in the dictionary '%s'"),
-                                                std::wstring(*item_name).c_str(), m_pDataDict->GetName().GetString());
+                        json_reader->LogWarning("'%s' is not a valid item or value set in the dictionary '%s'",
+                                                std::string(*item_name_sv).c_str(), m_dictionary->GetName().c_str());
                     }
 
                     else
@@ -1820,7 +1757,7 @@ bool CSFreqDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
         catch( const CSProException& exception )
         {
-            json_reader->GetMessageLogger().RethrowException(filename, exception);
+            json_reader->GetMessageLogger().RethrowException(spec_file_path, exception);
         }
 
         // update the options
@@ -1853,11 +1790,10 @@ void CSFreqDoc::SaveSpecFile() const
 
     try
     {
-        auto json_writer = JsonSpecFile::CreateWriter(m_FreqPiff.GetAppFName(), JV::frequencies);
+        const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(m_FreqPiff.GetAppFName(), JV::frequencies);
 
-        json_writer->WriteRelativePath(JK::dictionary, CS2WS(GetDictionarySourceFilename()));
-
-        json_writer->Write(JK::language, m_pDataDict->GetCurrentLanguage().GetName())
+        json_writer->Write(JK::dictionary, m_dictionarySource)
+                    .Write(JK::language, m_dictionary->GetCurrentLanguage().GetName())
                     .Write(JK::output, m_outputFormat)
                     .Write(JK::useValueSets, m_bUseVset)
                     .Write(JK::statistics, m_bHasFreqStats);
@@ -1874,8 +1810,8 @@ void CSFreqDoc::SaveSpecFile() const
 
         json_writer->Write(JK::logicSettings, m_logicSettings);
 
-        json_writer->WriteIfNotBlank(JK::universe, m_sUniverse)
-                    .WriteIfNotBlank(JK::weight, m_sWeight);
+        json_writer->WriteIfNotBlank(JK::universe, m_universe)
+                    .WriteIfNotBlank(JK::weight, m_weight);
 
         json_writer->Write(JK::itemSerialization, m_itemSerialization);
 
@@ -1909,14 +1845,14 @@ void CSFreqDoc::SaveSpecFile() const
 }
 
 
-std::wstring CSFreqDoc::ConvertPre80SpecFile(NullTerminatedString filename)
+std::string CSFreqDoc::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
 
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the Tabulate Frequencies specification file: %s"), filename.c_str());
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the Tabulate Frequencies specification file: %s", file_path.c_str_utf8());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -1928,11 +1864,11 @@ std::wstring CSFreqDoc::ConvertPre80SpecFile(NullTerminatedString filename)
     try
     {
         // Is correct spec file?
-        if( !specfile.IsHeaderOK(_T("[CSFreq]")) )
-            throw CSProException(_T("Spec File does not begin with\n\n    [CSFreq]"));
+        if( !specfile.IsHeaderOK(L"[CSFreq]") )
+            throw CSProException("Spec File does not begin with\n\n    [CSFreq]");
 
         // Ignore version errors
-        specfile.IsVersionOK(CSPRO_VERSION);
+        specfile.IsVersionOK(Versioning::CSProVersionText);
 
         CString command;
         CString argument;
@@ -1944,85 +1880,85 @@ std::wstring CSFreqDoc::ConvertPre80SpecFile(NullTerminatedString filename)
 
         while( specfile.GetLine(command, argument) == SF_OK )
         {
-            if( command.CompareNoCase(_T("File")) == 0 )
+            if( command.CompareNoCase(L"File") == 0 )
             {
                 json_writer->Write(JK::dictionary, specfile.EvaluateRelativeFilename(argument));
             }
 
-            else if( command.CompareNoCase(_T("ItemsAre")) == 0 )
+            else if( command.CompareNoCase(L"ItemsAre") == 0 )
             {
-                json_writer->Write(JK::itemSerialization, SO::ToLower(argument));
+                json_writer->Write(JK::itemSerialization, SO::ToLower(wstring_view(argument)));
             }
 
-            else if( command.CompareNoCase(_T("UseVSet")) == 0 )
+            else if( command.CompareNoCase(L"UseVSet") == 0 )
             {
-                json_writer->Write(JK::useValueSets, ( argument.CompareNoCase(_T("Yes")) == 0 ));
+                json_writer->Write(JK::useValueSets, ( argument.CompareNoCase(L"Yes") == 0 ));
             }
 
-            else if( command.CompareNoCase(_T("GenerateStats")) == 0 )
+            else if( command.CompareNoCase(L"GenerateStats") == 0 )
             {
-                json_writer->Write(JK::statistics, ( argument.CompareNoCase(_T("Yes")) == 0 ));
+                json_writer->Write(JK::statistics, ( argument.CompareNoCase(L"Yes") == 0 ));
             }
 
-            else if( command.CompareNoCase(_T("Percentiles")) == 0 )
+            else if( command.CompareNoCase(L"Percentiles") == 0 )
             {
                 json_writer->Write(JK::percentiles, _ttoi(argument));
             }
 
-            else if( command.CompareNoCase(_T("SortOrder")) == 0 )
+            else if( command.CompareNoCase(L"SortOrder") == 0 )
             {
-                sort_ascending = ( argument.CompareNoCase(_T("Descending")) != 0 );
+                sort_ascending = ( argument.CompareNoCase(L"Descending") != 0 );
             }
 
-            else if( command.CompareNoCase(_T("SortType")) == 0 )
+            else if( command.CompareNoCase(L"SortType") == 0 )
             {
-                sort_type = SortTypeFromText(argument);
+                sort_type = SortTypeFromText(UTF8_TODO::GetUtf8(argument));
             }
 
-            else if( command.CompareNoCase(_T("OutputFormat")) == 0 )
+            else if( command.CompareNoCase(L"OutputFormat") == 0 )
             {
-                json_writer->Write(JK::output, OutputFormatFromText(argument));
+                json_writer->Write(JK::output, OutputFormatFromText(UTF8_TODO::GetUtf8(argument)));
             }
 
-            else if( command.CompareNoCase(_T("Universe")) == 0 )
+            else if( command.CompareNoCase(L"Universe") == 0 )
             {
                 json_writer->Write(JK::universe, argument);
             }
 
-            else if( command.CompareNoCase(_T("Weight")) == 0 )
+            else if( command.CompareNoCase(L"Weight") == 0 )
             {
                 json_writer->Write(JK::weight, argument);
             }
 
-            else if( command.CompareNoCase(_T("Language")) == 0 )
+            else if( command.CompareNoCase(L"Language") == 0 )
             {
                 json_writer->Write(JK::language, argument);
             }
 
-            else if( command.CompareNoCase(_T("[Item]")) == 0 )
+            else if( command.CompareNoCase(L"[Item]") == 0 )
             {
                 names_and_occurrences.emplace_back(CString(), -1);
             }
 
-            else if( command.CompareNoCase(_T("Name")) == 0 && !names_and_occurrences.empty() )
+            else if( command.CompareNoCase(L"Name") == 0 && !names_and_occurrences.empty() )
             {
                 std::get<0>(names_and_occurrences.back()) = argument;
             }
-                
-            else if( command.CompareNoCase(_T("Occ")) == 0 && !names_and_occurrences.empty() )
+
+            else if( command.CompareNoCase(L"Occ") == 0 && !names_and_occurrences.empty() )
             {
                 if( !argument.IsEmpty() )
                     std::get<1>(names_and_occurrences.back()) = _ttoi(argument);
             }
-                
-            else if( command.CompareNoCase(_T("[Dictionaries]")) != 0 &&
-                     command.CompareNoCase(_T("[Items]")) != 0 &&
-                     command.CompareNoCase(_T("[Item]")) != 0 &&
-                     command.CompareNoCase(_T("[EndItem]")) != 0 &&
-                     command.CompareNoCase(_T("Stats")) != 0 &&
-                     command.CompareNoCase(_T("NTiles")) != 0 )
+
+            else if( command.CompareNoCase(L"[Dictionaries]") != 0 &&
+                     command.CompareNoCase(L"[Items]") != 0 &&
+                     command.CompareNoCase(L"[Item]") != 0 &&
+                     command.CompareNoCase(L"[EndItem]") != 0 &&
+                     command.CompareNoCase(L"Stats") != 0 &&
+                     command.CompareNoCase(L"NTiles") != 0 )
             {
-                throw CSProException(_T("Spec File: Invalid command: %s"), command.GetString());
+                throw CSProException("Spec File: Invalid command: %s", UTF8_TODO::GetUtf8(command).c_str());
             }
         }
 
@@ -2049,11 +1985,11 @@ std::wstring CSFreqDoc::ConvertPre80SpecFile(NullTerminatedString filename)
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the Tabulate Frequencies specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the Tabulate Frequencies specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
     }
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }

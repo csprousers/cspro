@@ -44,7 +44,7 @@ public:
 
     // serialization
     // ------------------------------
-    static DictLevel CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictLevel CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

@@ -9,7 +9,7 @@ CaseAccess::CaseAccess(const CDataDict& dictionary)
         m_usesStatuses(false),
         m_usesCaseLabels(false),
         m_usesGetBuffer(false),
-        m_usedDictItems(std::make_unique<std::set<CString>>()),
+        m_usedDictItems(std::make_unique<std::set<std::string>>()),
         m_initialized(false),
         m_caseMetadata(nullptr)
 {
@@ -27,7 +27,7 @@ CaseAccess::CaseAccess(const CDataDict& dictionary)
 
         for( int item_counter = 0; item_counter < id_dict_record.GetNumItems(); ++item_counter )
         {
-            const CDictItem& dict_item = *(id_dict_record.GetItem(item_counter));
+            const CDictItem& dict_item = *id_dict_record.GetItem(item_counter);
             SetUseDictionaryItem(dict_item);
         }
     }
@@ -81,30 +81,30 @@ void CaseAccess::SetUseDictionaryItem(const CDictItem& dict_item)
 {
     ASSERT(!IsInitialized());
 
-    if( m_usedDictItems != nullptr )
+    if( m_usedDictItems == nullptr )
+        return;
+
+    // parent items will be added for subitems (which will end up adding the subitems)
+    if( dict_item.GetItemType() == ItemType::Subitem )
     {
-        // parent items will be added for subitems (which will end up adding the subitems)
-        if( dict_item.GetItemType() == ItemType::Subitem )
+        SetUseDictionaryItem(*dict_item.GetParentItem());
+    }
+
+    else
+    {
+        m_usedDictItems->insert(dict_item.GetName());
+
+        // subitems will be added for parent items
+        const CDictRecord& dict_record = *dict_item.GetRecord();
+
+        for( int item_index = dict_item.GetSonNumber() + 1; item_index < dict_record.GetNumItems(); ++item_index )
         {
-            SetUseDictionaryItem(*(dict_item.GetParentItem()));
-        }
+            const CDictItem& potential_child_dict_item = *(dict_record.GetItem(item_index));
 
-        else
-        {
-            m_usedDictItems->insert(dict_item.GetName());
+            if( potential_child_dict_item.GetParentItem() != &dict_item )
+                break;
 
-            // subitems will be added for parent items
-            const CDictRecord& dict_record = *(dict_item.GetRecord());
-
-            for( int item_index = dict_item.GetSonNumber() + 1; item_index < dict_record.GetNumItems(); ++item_index )
-            {
-                const CDictItem& potential_child_dict_item = *(dict_record.GetItem(item_index));
-
-                if( potential_child_dict_item.GetParentItem() != &dict_item )
-                    break;
-
-                m_usedDictItems->insert(potential_child_dict_item.GetName());
-            }
+            m_usedDictItems->insert(potential_child_dict_item.GetName());
         }
     }
 }
@@ -120,27 +120,23 @@ void CaseAccess::SetUseAllDictionaryItems()
 
 void CaseAccess::Initialize()
 {
-    if( !IsInitialized() )
+    if( IsInitialized() )
+        return;
+
+    m_caseMetadata = std::make_unique<CaseMetadata>(m_dictionary, *this);
+
+    // set up the case item lookup
+    for( const CaseLevelMetadata& case_level_metadata : m_caseMetadata->GetCaseLevelsMetadata() )
     {
-        m_caseMetadata = std::make_unique<CaseMetadata>(m_dictionary, *this);
-
-        // setup the case item lookup
-        auto add_case_items_from_record = [&](const CaseRecordMetadata* case_record_metadata)
-        {
-            for( const CaseItem* case_item : case_record_metadata->GetCaseItems() )
-                m_caseItemLookup.emplace(case_item->GetDictionaryItem().GetName(), case_item);
-        };
-
-        for( const CaseLevelMetadata* case_level_metadata : m_caseMetadata->GetCaseLevelsMetadata() )
-        {
-            add_case_items_from_record(case_level_metadata->GetIdCaseRecordMetadata());
-
-            for( const CaseRecordMetadata* case_record_metadata : case_level_metadata->GetCaseRecordsMetadata() )
-                add_case_items_from_record(case_record_metadata);
-        }
-
-        m_initialized = true;
+        case_level_metadata.ForeachCaseRecordMetadata(
+            [&](const CaseRecordMetadata& case_record_metadata)
+            {
+                for( const CaseItem* const case_item : case_record_metadata.GetCaseItems() )
+                    m_caseItemLookup.emplace(case_item->GetDictItem().GetName(), case_item);
+            });
     }
+
+    m_initialized = true;
 }
 
 
@@ -152,18 +148,20 @@ const CaseMetadata& CaseAccess::GetCaseMetadata() const
 }
 
 
-const CaseItem* CaseAccess::LookupCaseItem(const CString& item_name) const
+const CaseItem* CaseAccess::LookupCaseItem(const std::string& item_name) const
 {
     ASSERT(IsInitialized());
 
-    auto case_item_search = m_caseItemLookup.find(item_name);
-    return ( case_item_search != m_caseItemLookup.end() ) ? case_item_search->second : nullptr;
+    const auto& case_item_search = m_caseItemLookup.find(item_name);
+
+    return ( case_item_search != m_caseItemLookup.end() ) ? case_item_search->second :
+                                                            nullptr;
 }
 
 
 const CaseItem* CaseAccess::LookupCaseItem(const CDictItem& dict_item) const
 {
-    const CaseItem* case_item = LookupCaseItem(dict_item.GetName());
+    const CaseItem* const case_item = LookupCaseItem(dict_item.GetName());
 
     // if here, make sure that you call SetUseDictionaryItem with the dictionary item
     ASSERT(case_item != nullptr);
@@ -172,7 +170,7 @@ const CaseItem* CaseAccess::LookupCaseItem(const CDictItem& dict_item) const
 }
 
 
-std::optional<std::wstring> CaseAccess::GetUnsupportedContentTypesString(const std::set<CaseItem::Type>& supported_case_item_types) const
+std::optional<std::string> CaseAccess::GetUnsupportedContentTypesString(const std::set<CaseItem::Type>& supported_case_item_types) const
 {
     ASSERT(IsInitialized());
 
@@ -181,18 +179,18 @@ std::optional<std::wstring> CaseAccess::GetUnsupportedContentTypesString(const s
     for( const auto& [item_name, case_item] : m_caseItemLookup )
     {
         if( supported_case_item_types.find(case_item->GetType()) == supported_case_item_types.cend() )
-            unsupported_content_types.emplace(case_item->GetDictionaryItem().GetContentType());
+            unsupported_content_types.emplace(case_item->GetDictItem().GetContentType());
     }
 
     if( unsupported_content_types.empty() )
         return std::nullopt;
 
-    std::vector<std::wstring> content_type_names;
+    std::string content_type_names;
 
     for( const ContentType content_type : unsupported_content_types )
-        content_type_names.emplace_back(ToString(content_type));
+        SO::AppendWithSeparator(content_type_names, ToString(content_type), ", ");
 
-    return SO::CreateSingleString(content_type_names);
+    return content_type_names;
 }
 
 
@@ -203,7 +201,7 @@ void CaseAccess::IssueWarningIfUsingUnsupportedCaseItems(const std::set<CaseItem
     if( m_caseConstructionReporter == nullptr )
         return;
 
-    const std::optional<std::wstring> unsupported_content_types_string = GetUnsupportedContentTypesString(supported_case_item_types);
+    const std::optional<std::string> unsupported_content_types_string = GetUnsupportedContentTypesString(supported_case_item_types);
 
     if( unsupported_content_types_string.has_value() )
         m_caseConstructionReporter->UnsupportedContentType(m_dictionary.GetName(), *unsupported_content_types_string);

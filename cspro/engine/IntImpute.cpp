@@ -5,7 +5,6 @@
 #include "ParadataDriver.h"
 #include <zEngineO/Imputation.h>
 #include <zEngineO/ValueSet.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineO/Nodes/Impute.h>
 #include <zToolsO/Hash.h>
 #include <ZBRIDGEO/npff.h>
@@ -15,6 +14,7 @@
 #include <zCaseO/CaseItemHelpers.h>
 #include <zCaseO/FixedWidthNumericCaseItem.h>
 #include <zCaseO/FixedWidthStringCaseItem.h>
+#include <zDataO/DictionarySource.h>
 #include <zFreqO/FrequencyPrinter.h>
 #include <zFreqO/FrequencyPrinterEntry.h>
 #include <zFreqO/FrequencyPrinterOptions.h>
@@ -25,10 +25,10 @@
 // the imputation driver implementation
 // --------------------------------------------------------------------------
 
-ImputationDriver::ImputationDriver(CIntDriver& int_driver)
-    :   m_pIntDriver(&int_driver),
-        m_engineData(m_pIntDriver->m_engineData),
-        m_pEngineDriver(m_pIntDriver->m_pEngineDriver),
+ImputationDriver::ImputationDriver(CIntDriver& interpreter)
+    :   m_interpreter(&interpreter),
+        m_engineData(&m_interpreter->m_pEngineArea->GetEngineData()),
+        m_pEngineDriver(m_interpreter->m_pEngineDriver),
         m_statCaseIdRecord(nullptr),
         m_statCaseKeyIncrementer(0)
 {
@@ -37,12 +37,12 @@ ImputationDriver::ImputationDriver(CIntDriver& int_driver)
     {
         if( imputation->GetVariable()->IsNumeric() )
         {
-            SetupImputationFrequency(m_numericImputationFrequencies, imputation);
+            SetUpImputationFrequency(m_numericImputationFrequencies, imputation);
         }
 
         else
         {
-            SetupImputationFrequency(m_stringImputationFrequencies, imputation);
+            SetUpImputationFrequency(m_stringImputationFrequencies, imputation);
         }
     }
 
@@ -51,7 +51,7 @@ ImputationDriver::ImputationDriver(CIntDriver& int_driver)
         issaerror(MessageType::Warning, 8111);
 
 
-    // setup the stat data file
+    // set up the stat data file
     if( m_pEngineDriver->GetApplication()->GetHasImputeStatStatements() )
     {
         // warn if no stat connection string was provided
@@ -62,7 +62,7 @@ ImputationDriver::ImputationDriver(CIntDriver& int_driver)
 
         else
         {
-            SetupStatDataFile();
+            SetUpStatDataFile();
         }
     }
 };
@@ -85,14 +85,14 @@ ImputationDriver::~ImputationDriver()
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Error, 8114, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Error, 8114, exception.what());
         }
     }
 }
 
 
 template<typename T>
-void ImputationDriver::SetupImputationFrequency(std::vector<ImputationFrequency<T>>& imputation_frequencies, std::shared_ptr<Imputation> imputation)
+void ImputationDriver::SetUpImputationFrequency(std::vector<ImputationFrequency<T>>& imputation_frequencies, const std::shared_ptr<Imputation> imputation)
 {
     // imputation frequencies will be combined if they:
     // - do not have specific set
@@ -122,7 +122,7 @@ void ImputationDriver::SetupImputationFrequency(std::vector<ImputationFrequency<
         imputation_frequencies.emplace_back(ImputationFrequency<T>
             {
                 imputation,
-                FrequencyCounter<T, size_t>::Create(imputation->GetVariable()->GetDictItem())
+                FrequencyCounter<typename ImputationFrequency<T>::FrequencyCounterT, size_t>::Create(imputation->GetVariable()->GetDictItem())
             });
 
         m_imputationFrequenciesPrintingOrder.emplace_back(imputation->GetVariable()->IsNumeric());
@@ -145,7 +145,7 @@ namespace
     std::unique_ptr<FrequencyTable> CreateImputationFrequencyTable(FrequencyPrinterOptions& frequency_printer_options,
                                                                    const ImputationFrequency<T>& imputation_frequency)
     {
-        const CDictItem* dict_item = imputation_frequency.imputation->GetVariable()->GetDictItem();
+        const CDictItem* const dict_item = imputation_frequency.imputation->GetVariable()->GetDictItem();
         const DictValueSet* dict_value_set;
         bool distinct;
 
@@ -163,10 +163,9 @@ namespace
             distinct = true;
         }
 
-        FrequencyPrinterEntry<T, size_t> frequency_print_entry(imputation_frequency.frequency_counter,
-            *dict_item, nullptr, std::nullopt, std::nullopt);
+        FrequencyPrinterEntry<typename ImputationFrequency<T>::FrequencyCounterT, size_t> frequency_print_entry(imputation_frequency.frequency_counter, *dict_item, nullptr, std::nullopt, std::nullopt);
 
-        auto frequency_table = frequency_print_entry.CreateFrequencyTable(std::wstring(), frequency_printer_options, dict_value_set, distinct);
+        std::unique_ptr<FrequencyTable> frequency_table = frequency_print_entry.CreateFrequencyTable(std::string(), frequency_printer_options, dict_value_set, distinct);
 
         // override the table title
         if( imputation_frequency.imputation->GetTitle().has_value() )
@@ -178,9 +177,9 @@ namespace
         {
             // if no table title is specified, use the default frequency title (but modify it
             // to prefix it with imputed)
-            ASSERT(!frequency_table->titles.empty() && frequency_table->titles.front().find(_T("Item")) == 0);
+            ASSERT(!frequency_table->titles.empty() && frequency_table->titles.front().find("Item") == 0);
             frequency_table->titles.resize(1);
-            frequency_table->titles.front().insert(0, _T("Imputed "));
+            frequency_table->titles.front().insert(0, "Imputed ");
         }
 
         frequency_table->special_formatting = FrequencyTable::SpecialFormatting::CenterTitles;
@@ -198,12 +197,13 @@ void ImputationDriver::WriteFrequencies()
     try
     {
         // open the frequency file
-        std::unique_ptr<FrequencyPrinter> frequency_printer = FrequencyDriver::CreateFrequencyPrinter(
-            CS2WS(m_pEngineDriver->m_pPifFile->GetImputeFrequenciesFilename()), *m_pEngineDriver->m_pPifFile);
+        const std::unique_ptr<FrequencyPrinter> frequency_printer =
+            FrequencyDriver::CreateFrequencyPrinter(UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetImputeFrequenciesFilename()),
+                                                    *m_pEngineDriver->m_pPifFile);
 
         FrequencyPrinterOptions frequency_printer_options;
         frequency_printer_options.SetSortType(FrequencyPrinterOptions::SortType::ByCode);
-        frequency_printer_options.SetHeadings({ _T("IMPUTE FREQUENCIES") });
+        frequency_printer_options.SetHeadings({ "IMPUTE FREQUENCIES" });
 
         // print the frequencies
         frequency_printer->StartFrequencyGroup();
@@ -211,7 +211,7 @@ void ImputationDriver::WriteFrequencies()
         auto numeric_imputation_frequency_itr = m_numericImputationFrequencies.cbegin();
         auto string_imputation_frequency_itr = m_stringImputationFrequencies.cbegin();
 
-        for( bool print_numeric_imputation : m_imputationFrequenciesPrintingOrder )
+        for( const bool print_numeric_imputation : m_imputationFrequenciesPrintingOrder )
         {
             std::unique_ptr<FrequencyTable> frequency_table;
 
@@ -231,7 +231,7 @@ void ImputationDriver::WriteFrequencies()
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 8115, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 8115, exception.what());
     }
 }
 
@@ -252,11 +252,11 @@ namespace
     class StatDictionaryWorker
     {
     private:
-        constexpr static wstring_view NamePrefix     = _T("IMPUTE_");
-        constexpr static size_t KeyIncrementerLength = 2;
+        constexpr static std::string_view NamePrefix_sv = "IMPUTE_";
+        constexpr static size_t KeyIncrementerLength    = 2;
 
     public:
-        StatDictionaryWorker(std::vector<ImputationsAndStatVariables>& imputations_and_stat_variables, const CDataDict* source_dictionary)
+        StatDictionaryWorker(std::vector<ImputationsAndStatVariables>& imputations_and_stat_variables, const CDataDict* const source_dictionary)
             :   m_imputationsAndStatVariables(imputations_and_stat_variables),
                 m_sourceDictionary(source_dictionary),
                 m_sourceIdItemsByLevel(m_sourceDictionary->GetIdItemsByLevel())
@@ -264,72 +264,72 @@ namespace
         }
 
 
-        std::shared_ptr<CDataDict> CreateDictionary()
+        std::shared_ptr<const CDataDict> CreateDictionary()
         {
-            m_statDictionary = std::make_shared<CDataDict>();
+            auto stat_dictionary = std::make_unique<CDataDict>();
 
-            // setup the dictionary and the level
-            m_statDictionary->SetName(NamePrefix + m_sourceDictionary->GetName());
-            m_statDictionary->SetLabel(CString(_T("(Impute) ")) + m_sourceDictionary->GetLabel());
-            m_statDictionary->SetPosRelative(true);
-            m_statDictionary->SetRecTypeStart(1);
-            m_statDictionary->CopyDictionarySettings(*m_sourceDictionary);
+            // set up the dictionary and the level
+            stat_dictionary->SetName(SO::Concatenate(NamePrefix_sv, m_sourceDictionary->GetName()));
+            stat_dictionary->SetLabel(CString(_T("(Impute) ")) + m_sourceDictionary->GetLabel());
+            stat_dictionary->SetPosRelative(true);
+            stat_dictionary->SetRecTypeStart(1);
+            stat_dictionary->CopyDictionarySettings(*m_sourceDictionary);
 
             const DictLevel& source_dict_level = m_sourceDictionary->GetLevel(0);
 
             DictLevel dict_level;
-            dict_level.SetName(NamePrefix + source_dict_level.GetName());
+            dict_level.SetName(SO::Concatenate(NamePrefix_sv, source_dict_level.GetName()));
             dict_level.SetLabel(source_dict_level.GetLabel());
 
 
             // add the record type and first level ID items
-            size_t record_length = GetLengthToStoreValue(m_imputationsAndStatVariables.size());
-            CString record_length_formatter = FormatText(_T("%%0%dd"), static_cast<int>(record_length));
-            m_statDictionary->SetRecTypeLen(record_length);
+            const size_t record_length = GetLengthToStoreValue(m_imputationsAndStatVariables.size());
+            const CString record_length_formatter = FormatText(_T("%%0%dd"), static_cast<int>(record_length));
+            stat_dictionary->SetRecTypeLen(record_length);
 
-            CDictRecord* destination_id_record = dict_level.GetIdItemsRec();
-            destination_id_record->SetRecLen(m_statDictionary->GetRecTypeLen());
+            CDictRecord* const destination_id_record = dict_level.GetIdItemsRec();
+            destination_id_record->SetRecLen(stat_dictionary->GetRecTypeLen());
 
             for( const CDictItem* id_item : m_sourceIdItemsByLevel.front() )
-                CopyItem(*id_item, *destination_id_record, NamePrefix + id_item->GetName());
+                CopyItem(*id_item, *destination_id_record, SO::Concatenate(NamePrefix_sv, id_item->GetName()));
 
             // add the key incrementer ID item
             CDictItem key_incrementer_item;
-            key_incrementer_item.SetName(_T("KEY_INCREMENTER"));
+            key_incrementer_item.SetName("KEY_INCREMENTER");
             key_incrementer_item.SetLabel(_T("Key Incrementer"));
             key_incrementer_item.SetContentType(ContentType::Numeric);
             key_incrementer_item.SetLen(KeyIncrementerLength);
-            key_incrementer_item.SetZeroFill(m_statDictionary->IsZeroFill());
-            CopyItem(key_incrementer_item, *destination_id_record, NamePrefix + key_incrementer_item.GetName());
+            key_incrementer_item.SetZeroFill(stat_dictionary->IsZeroFill());
+            CopyItem(key_incrementer_item, *destination_id_record, SO::Concatenate(NamePrefix_sv, key_incrementer_item.GetName()));
 
 
             // calculate the lengths of the line number and compilation units and
             // create items for those two values (that will be put on each record)
             size_t max_line_number = 0;
-            size_t compilation_unit_length = 0;
+            size_t compilation_unit_wide_length = 0;
 
             for( const ImputationsAndStatVariables& imputations_and_stat_variables : m_imputationsAndStatVariables )
             {
                 for( const std::shared_ptr<Imputation>& imputation : imputations_and_stat_variables.imputations )
                 {
                     max_line_number = std::max(max_line_number, imputation->GetLineNumber());
-                    compilation_unit_length = std::max(compilation_unit_length, imputation->GetCompilationUnit().length());
+                    compilation_unit_wide_length = std::max(compilation_unit_wide_length, SO::WideLength(imputation->GetCompilationUnit()));
                 }
             }
 
-            m_lineNumberItem.SetName(_T("LINE_NUMBER"));
+            m_lineNumberItem.SetName("LINE_NUMBER");
             m_lineNumberItem.SetLabel(_T("Line Number"));
             m_lineNumberItem.SetContentType(ContentType::Numeric);
             m_lineNumberItem.SetLen(GetLengthToStoreValue(max_line_number));
-            m_lineNumberItem.SetZeroFill(m_statDictionary->IsZeroFill());
+            m_lineNumberItem.SetZeroFill(stat_dictionary->IsZeroFill());
 
-            if( compilation_unit_length != 0 )
+            if( compilation_unit_wide_length != 0 )
             {
                 m_compilationUnitItem = std::make_unique<CDictItem>();
-                m_compilationUnitItem->SetName(_T("COMPILATION_UNIT"));
+                m_compilationUnitItem->SetName("COMPILATION_UNIT");
                 m_compilationUnitItem->SetLabel(_T("Compilation Unit"));
                 m_compilationUnitItem->SetContentType(ContentType::Alpha);
-                m_compilationUnitItem->SetLen(std::min(compilation_unit_length, static_cast<size_t>(MAX_ALPHA_ITEM_LEN)));
+                m_compilationUnitItem->SetLen(std::min(compilation_unit_wide_length, static_cast<size_t>(MAX_ALPHA_ITEM_LEN)));
             }
 
 
@@ -355,19 +355,23 @@ namespace
 
 
             // finalize the dictionary
-            m_statDictionary->AddLevel(std::move(dict_level));
-            m_statDictionary->UpdatePointers();
+            stat_dictionary->AddLevel(std::move(dict_level));
+            stat_dictionary->UpdatePointers();
+
+            m_statDictionary = std::move(stat_dictionary);
 
             return m_statDictionary;
         }
 
 
-        std::shared_ptr<CaseAccess> CreateCaseAccess()
+        std::shared_ptr<const CaseAccess> CreateCaseAccess()
         {
-            m_statCaseAccess = std::make_shared<CaseAccess>(*m_statDictionary);
+            auto stat_case_access = std::make_unique<CaseAccess>(*m_statDictionary);
 
-            m_statCaseAccess->SetUseAllDictionaryItems();
-            m_statCaseAccess->Initialize();
+            stat_case_access->SetUseAllDictionaryItems();
+            stat_case_access->Initialize();
+
+            m_statCaseAccess = std::move(stat_case_access);
 
             return m_statCaseAccess;
         }
@@ -410,7 +414,7 @@ namespace
                     ASSERT(item_index == stat_record.case_record->GetNumberCaseItems());
 
                     // not all imputations for the same variable will use the same stat variables, so we need to filter them in the correct order
-                    for( const VART* stat_variable : imputation->GetStatVariables() )
+                    for( const VART* const stat_variable : imputation->GetStatVariables() )
                     {
                         auto stat_case_item_lookup = std::find_if(stat_case_items.cbegin(), stat_case_items.cend(),
                             [&](const auto& stat_case_item) { return ( stat_variable->GetDictItem() == std::get<0>(stat_case_item) ); });
@@ -431,31 +435,36 @@ namespace
         }
 
     private:
-        static size_t GetLengthToStoreValue(size_t value)
+        static size_t GetLengthToStoreValue(const size_t value)
         {
             return static_cast<size_t>(std::floor(std::log10(value))) + 1;
         }
 
 
-        CString GetImputeName(const CDictItem* item, ImputeNameType type, const CDictItem* additional_item = nullptr)
+        static std::string GetImputeName(const CDictItem* const dict_item, const ImputeNameType type,
+                                         const CDictItem* const additional_dict_item = nullptr)
         {
-            CString name = NamePrefix + item->GetName() + _T("_") +
-                (
-                    ( type == ImputeNameType::Record )            ?   _T("REC") :
-                    ( type == ImputeNameType::Initial )           ?   _T("INITIAL") :
-                    ( type == ImputeNameType::Imputed )           ?   _T("IMPUTED") :
-                    ( type == ImputeNameType::Key )               ?   _T("KEY") :
-                    ( type == ImputeNameType::Stat )              ?   _T("STAT") :
-                    ( type == ImputeNameType::LineNumber )        ?   _T("LINE_NUMBER") :
-                    /*( type == ImputeNameType::CompilationUnit ) ? */_T("COMPILATION_UNIT")
-                );
+            std::string name = SO::Concatenate(NamePrefix_sv, dict_item->GetName(), "_",
+                    ( type == ImputeNameType::Record )            ?   "REC" :
+                    ( type == ImputeNameType::Initial )           ?   "INITIAL" :
+                    ( type == ImputeNameType::Imputed )           ?   "IMPUTED" :
+                    ( type == ImputeNameType::Key )               ?   "KEY" :
+                    ( type == ImputeNameType::Stat )              ?   "STAT" :
+                    ( type == ImputeNameType::LineNumber )        ?   "LINE_NUMBER" :
+                    /*( type == ImputeNameType::CompilationUnit ) ? */"COMPILATION_UNIT");
 
-            return ( additional_item != nullptr ) ? ( name + _T("_") + additional_item->GetName() ) : name;
+            if( additional_dict_item != nullptr )
+            {
+                name.push_back('_');
+                name.append(additional_dict_item->GetName());
+            }
+
+            return name;
         }
 
 
         void CopyItem(const CDictItem& source_dict_item, CDictRecord& dest_dict_record,
-                      const CString& name, std::optional<CString> label = std::nullopt)
+                      const std::string& name, const std::optional<CString> label = std::nullopt)
         {
             CDictItem dest_dict_item;
             dest_dict_item.SetName(name);
@@ -476,7 +485,7 @@ namespace
             for( const DictValueSet& source_dict_value_set : source_dict_item.GetValueSets() )
             {
                 DictValueSet dest_dict_value_set = source_dict_value_set;
-                dest_dict_value_set.SetName(FormatText(_T("%s_VS%d"), dest_dict_item.GetName().GetString(), ++i));
+                dest_dict_value_set.SetName(FormatText("%s_VS%d", dest_dict_item.GetName().c_str(), ++i));
 
                 // if the source value set was not a linked value set, create a fake link because
                 // then the initial and imputed, and potentially stat values, can be linked
@@ -492,10 +501,10 @@ namespace
 
         void FillRecord(ImputationsAndStatVariables& imputations_and_stat_variables, CDictRecord& impute_record)
         {
-            const CDictItem* impute_item = imputations_and_stat_variables.imputations.front()->GetVariable()->GetDictItem();
+            const CDictItem* const impute_dict_item = imputations_and_stat_variables.imputations.front()->GetVariable()->GetDictItem();
 
-            impute_record.SetName(GetImputeName(impute_item, ImputeNameType::Record));
-            impute_record.SetLabel(impute_item->GetLabel());
+            impute_record.SetName(GetImputeName(impute_dict_item, ImputeNameType::Record));
+            impute_record.SetLabel(impute_dict_item->GetLabel());
             impute_record.SetRequired(false);
             impute_record.SetMaxRecs(imputations_and_stat_variables.max_occurrences);
 
@@ -503,7 +512,7 @@ namespace
             std::set<const VART*> seen_stat_variables;
             std::map<const CDictItem*, int> stat_variables_next_occurrence_map;
 
-            for( const VART* stat_variable : imputations_and_stat_variables.stat_variables )
+            for( const VART* const stat_variable : imputations_and_stat_variables.stat_variables )
             {
                 if( seen_stat_variables.find(stat_variable) == seen_stat_variables.cend() )
                 {
@@ -517,62 +526,65 @@ namespace
             }
 
             IterateOverRecordItems(imputations_and_stat_variables,
-                [&](const CDictItem* source_item, ImputeNameType type, CString new_item_name)
+                [&](const CDictItem* const source_dict_item, ImputeNameType type, std::string new_item_name)
                 {
-                    CString label_prefix = ( type == ImputeNameType::Initial )  ? _T("(Initial) ") :
-                                           ( type == ImputeNameType::Imputed )  ? _T("(Imputed) ") :
-                                           ( type == ImputeNameType::Key )      ? _T("(Key) ") :
-                                           ( type == ImputeNameType::Stat )     ? _T("(Stat) ") :
-                                                                                  _T("");
+                    const char* const label_prefix = ( type == ImputeNameType::Initial )  ? "(Initial) " :
+                                                     ( type == ImputeNameType::Imputed )  ? "(Imputed) " :
+                                                     ( type == ImputeNameType::Key )      ? "(Key) " :
+                                                     ( type == ImputeNameType::Stat )     ? "(Stat) " :
+                                                                                            "";
 
                     if( type == ImputeNameType::Stat )
                     {
-                        auto occurrence_lookup = stat_variables_next_occurrence_map.find(source_item);
+                        auto occurrence_lookup = stat_variables_next_occurrence_map.find(source_dict_item);
 
                         if( occurrence_lookup != stat_variables_next_occurrence_map.end() )
                         {
-                            new_item_name.AppendFormat(_T("_%d"), occurrence_lookup->second);
+                            new_item_name.push_back('_');
+                            new_item_name.append(IntToString(occurrence_lookup->second));
                             ++occurrence_lookup->second;
                         }
                     }
 
-                    CopyItem(*source_item, impute_record, new_item_name, label_prefix + source_item->GetLabel());
+                    CopyItem(*source_dict_item, impute_record, new_item_name, UTF8_TODO::GetCString(label_prefix) + source_dict_item->GetLabel());
 
-                    imputations_and_stat_variables.impute_item_types.emplace_back(type, source_item);
+                    imputations_and_stat_variables.impute_item_types.emplace_back(type, source_dict_item);
                 });
         }
 
 
         template<typename CallbackFunction>
-        void IterateOverRecordItems(const ImputationsAndStatVariables& imputations_and_stat_variables, CallbackFunction callback_function)
+        void IterateOverRecordItems(const ImputationsAndStatVariables& imputations_and_stat_variables, const CallbackFunction callback_function)
         {
-            const CDictItem* impute_item = imputations_and_stat_variables.imputations.front()->GetVariable()->GetDictItem();
+            const CDictItem* const impute_dict_item = imputations_and_stat_variables.imputations.front()->GetVariable()->GetDictItem();
 
             // add the initial and imputed values
-            callback_function(impute_item, ImputeNameType::Initial, GetImputeName(impute_item, ImputeNameType::Initial));
-            callback_function(impute_item, ImputeNameType::Imputed, GetImputeName(impute_item, ImputeNameType::Imputed));
+            callback_function(impute_dict_item, ImputeNameType::Initial, GetImputeName(impute_dict_item, ImputeNameType::Initial));
+            callback_function(impute_dict_item, ImputeNameType::Imputed, GetImputeName(impute_dict_item, ImputeNameType::Imputed));
 
             // if this is not on the main level, add any ID items
-            for( size_t level_number = 1; level_number <= impute_item->GetLevel()->GetLevelNumber(); ++level_number )
+            for( size_t level_number = 1; level_number <= impute_dict_item->GetLevel()->GetLevelNumber(); ++level_number )
             {
-                for( const CDictItem* id_item : m_sourceIdItemsByLevel[level_number] )
-                    callback_function(id_item, ImputeNameType::Key, GetImputeName(impute_item, ImputeNameType::Key, id_item));
+                for( const CDictItem* const id_dict_item : m_sourceIdItemsByLevel[level_number] )
+                    callback_function(id_dict_item, ImputeNameType::Key, GetImputeName(impute_dict_item, ImputeNameType::Key, id_dict_item));
             }
 
             // add any stat variables
-            for( const VART* stat_variable : imputations_and_stat_variables.stat_variables )
+            for( const VART* const stat_variable : imputations_and_stat_variables.stat_variables )
             {
                 callback_function(stat_variable->GetDictItem(), ImputeNameType::Stat,
-                    GetImputeName(impute_item, ImputeNameType::Stat, stat_variable->GetDictItem()));
+                                  GetImputeName(impute_dict_item, ImputeNameType::Stat, stat_variable->GetDictItem()));
             }
 
             // add the line number and compilation unit
             callback_function(&m_lineNumberItem, ImputeNameType::LineNumber,
-                GetImputeName(impute_item, ImputeNameType::LineNumber));
+                              GetImputeName(impute_dict_item, ImputeNameType::LineNumber));
 
             if( m_compilationUnitItem != nullptr )
+            {
                 callback_function(m_compilationUnitItem.get(), ImputeNameType::CompilationUnit,
-                    GetImputeName(impute_item, ImputeNameType::CompilationUnit));
+                                  GetImputeName(impute_dict_item, ImputeNameType::CompilationUnit));
+            }
         }
 
 
@@ -585,16 +597,18 @@ namespace
         CDictItem m_lineNumberItem;
         std::unique_ptr<CDictItem> m_compilationUnitItem;
 
-        std::shared_ptr<CDataDict> m_statDictionary;
-        std::shared_ptr<CaseAccess> m_statCaseAccess;
+        std::shared_ptr<const CDataDict> m_statDictionary;
+        std::shared_ptr<const CaseAccess> m_statCaseAccess;
     };
 }
 
 
-void ImputationDriver::SetupStatDataFile()
+void ImputationDriver::SetUpStatDataFile()
 {
-    // there is no reason to setup the stat data file is this information will not be written out
-    if( !m_pEngineDriver->m_pPifFile->GetImputeStatConnectionString().IsFilenamePresent() )
+    const ConnectionString& stat_connection_string = m_pEngineDriver->m_pPifFile->GetImputeStatConnectionString();
+
+    // there is no reason to set up the stat data file if this information will not be written out
+    if( !stat_connection_string.HasResource() )
         return;
 
     // first determine the imputations that are being used for stat and
@@ -620,7 +634,7 @@ void ImputationDriver::SetupStatDataFile()
                 // add any new stat variables
                 std::map<const VART*, size_t> last_found_index_map;
 
-                for( const VART* stat_variable : imputation->GetStatVariables() )
+                for( const VART* const stat_variable : imputation->GetStatVariables() )
                 {
                     const auto& last_found_index_map_lookup = last_found_index_map.find(stat_variable);
                     size_t index = ( last_found_index_map_lookup != last_found_index_map.cend() ) ? ( last_found_index_map_lookup->second + 1 ) : 0;
@@ -645,13 +659,13 @@ void ImputationDriver::SetupStatDataFile()
             // add a new entry
             else
             {
-                const CDictItem* dict_item = imputation->GetVariable()->GetDictItem();
+                const CDictItem* const dict_item = imputation->GetVariable()->GetDictItem();
 
                 imputations_and_stat_variables.emplace_back(ImputationsAndStatVariables
                     {
                         { imputation },
                         imputation->GetStatVariables(),
-                        std::min((unsigned int)MAX_MAX_RECS, dict_item->GetRecord()->GetMaxRecs() * dict_item->GetOccurs())
+                        std::min(static_cast<unsigned int>(MAX_MAX_RECS), dict_item->GetRecord()->GetMaxRecs() * dict_item->GetOccurs())
                     });
             }
         }
@@ -661,29 +675,33 @@ void ImputationDriver::SetupStatDataFile()
 
 
     // create the dictionary describing the imputations
-    StatDictionaryWorker stat_dictionary_worker(imputations_and_stat_variables, m_pIntDriver->m_engineData->dictionaries_pre80.front()->GetDataDict());
+    StatDictionaryWorker stat_dictionary_worker(imputations_and_stat_variables, m_engineData->dictionaries_pre80.front()->GetDataDict());
     m_statDictionary = stat_dictionary_worker.CreateDictionary();
 
-    // the dictionary will be saved using the name of the data file but with a different extension
-    const ConnectionString& stat_connection_string = m_pEngineDriver->m_pPifFile->GetImputeStatConnectionString();
-    std::wstring data_filename = stat_connection_string.GetFilename();
+    // unless overridden, the dictionary will be saved using the name of the data file but with a different extension
+    std::string dictionary_file_path = DictionarySource::GetDictionaryPathOverride(stat_connection_string);
 
-    std::wstring dictionary_filename = PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory(data_filename),
-        PortableFunctions::PathGetFilenameWithoutExtension(data_filename) + FileExtensions::WithDot::Dictionary);
-
-    try
+    if( dictionary_file_path.empty() && stat_connection_string.HasFilePath() )
     {
-        m_statDictionary->Save(dictionary_filename);
+        dictionary_file_path = PortableFunctions::PathReplaceFileExtension(stat_connection_string.GetFilePath(), FileExtensions::Dictionary);
     }
 
-    catch( const CSProException& )
+    if( !dictionary_file_path.empty() )
     {
-        issaerror(MessageType::Error, 8113);
-        return;
+        try
+        {
+            m_statDictionary->Save(std::move(dictionary_file_path));
+        }
+
+        catch( const CSProException& )
+        {
+            issaerror(MessageType::Error, 8113);
+            return;
+        }
     }
 
 
-    // setup the case access and case item links
+    // set up the case access and case item links
     m_statCaseAccess = stat_dictionary_worker.CreateCaseAccess();
     m_statCase = m_statCaseAccess->CreateCase();
 
@@ -691,16 +709,18 @@ void ImputationDriver::SetupStatDataFile()
     m_statRecords = stat_dictionary_worker.CreateStatRecords(m_statCase->GetRootCaseLevel());
 
 
-    // open the data file
+    // open the data source
     try
     {
-        m_statDataRepository = DataRepository::CreateAndOpen(m_statCaseAccess, stat_connection_string,
-            DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
+        m_statDataRepository = DataRepository::CreateAndOpen(m_statCaseAccess,
+                                                             stat_connection_string,
+                                                             DataRepositoryAccess::BatchOutput,
+                                                             DataRepositoryOpenFlag::CreateNew);
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 8114, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 8114, exception.what());
     }
 }
 
@@ -715,7 +735,7 @@ void ImputationDriver::WriteStatCase()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 8114, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 8114, exception.what());
     }
 
 }
@@ -723,7 +743,7 @@ void ImputationDriver::WriteStatCase()
 
 template<typename T>
 void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initial_value, const T& imputed_value,
-    const Nodes::List& stat_variable_compilations)
+                                   const Nodes::List& stat_variable_compilations)
 {
     if( m_statDataRepository == nullptr )
         return;
@@ -732,12 +752,11 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
 
     // see if a new case has to be created, which will occur if this case is different from the previous case,
     // or if we have reached the maximum number of occurrences for this record
-    DICX* pDicX = DIX(0);
+    DICX* const pDicX = DIX(0);
     Case& input_case = pDicX->GetCase();
-    const CString& input_case_uuid = input_case.GetOrCreateUuid();
-    bool case_is_new = !SO::EqualsNoCase(m_statCaseUuid, input_case_uuid);
+    const bool case_is_new = ( m_statCaseUuid != input_case.GetOrCreateUuid() );
 
-    if( case_is_new || stat_record.case_record->GetNumberOccurrences() == stat_record.case_record->GetCaseRecordMetadata().GetDictionaryRecord().GetMaxRecs() )
+    if( case_is_new || stat_record.case_record->GetNumberOccurrences() == stat_record.case_record->GetCaseRecordMetadata().GetDictRecord().GetMaxRecs() )
     {
         WriteStatCase();
 
@@ -745,7 +764,7 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
 
         if( case_is_new )
         {
-            m_statCaseUuid = input_case_uuid;
+            m_statCaseUuid = input_case.GetOrCreateUuid();
             m_statCaseKeyIncrementer = 1;
         }
 
@@ -765,7 +784,7 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
 
         auto stat_id_case_item_itr = m_statCaseIdRecord->GetCaseItems().cbegin();
 
-        for( const CaseItem* input_id_case_item : input_id_case_record.GetCaseItems() )
+        for( const CaseItem* const input_id_case_item : input_id_case_record.GetCaseItems() )
         {
             CaseItemHelpers::CopyValue(*input_id_case_item, input_id_index, *(*stat_id_case_item_itr), stat_id_index);
             ++stat_id_case_item_itr;
@@ -777,7 +796,7 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
 
 
     // set the base stat record values
-    size_t stat_record_occurence = stat_record.case_record->GetNumberOccurrences();
+    const size_t stat_record_occurence = stat_record.case_record->GetNumberOccurrences();
     stat_record.case_record->SetNumberOccurrences(stat_record_occurence + 1);
 
     CaseItemIndex stat_record_index = stat_record.case_record->GetCaseItemIndex(stat_record_occurence);
@@ -796,13 +815,13 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
     if( !stat_record.key_case_items.empty() )
     {
         // CR_TODO for now this will get the values from the key, but eventually it should access the CaseLevel's ID case record
-        const TCHAR* key_itr = pDicX->current_key + input_case.GetKey().GetLength();
+        const TCHAR* key_itr = pDicX->current_key + UTF8_TODO::GetWide(input_case.GetKey()).length();
 
-        for( const CaseItem* key_case_item : stat_record.key_case_items )
+        for( const CaseItem* const key_case_item : stat_record.key_case_items )
         {
-            ASSERT(key_case_item->IsTypeFixed());
+            ASSERT(key_case_item->IsFixedWidth());
 
-            if( key_case_item->IsTypeNumeric() )
+            if( IsNumeric(key_case_item->GetDataType()) )
             {
                 assert_cast<const FixedWidthNumericCaseItem*>(key_case_item)->SetValueFromTextInput(stat_record_index, key_itr);
             }
@@ -812,7 +831,7 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
                 assert_cast<const FixedWidthStringCaseItem*>(key_case_item)->SetFixedWidthValue(stat_record_index, key_itr);
             }
 
-            key_itr += key_case_item->GetDictionaryItem().GetLen();
+            key_itr += key_case_item->GetDictItem().GetLen();
         }
     }
 
@@ -821,16 +840,16 @@ void ImputationDriver::ProcessStat(const Imputation& imputation, const T& initia
     ASSERT(stat_record.stat_case_items.size() == static_cast<size_t>(stat_variable_compilations.number_elements));
     const int* expression_itr = stat_variable_compilations.elements;
 
-    for( const CaseItem* stat_case_item : stat_record.stat_case_items )
+    for( const CaseItem* const stat_case_item : stat_record.stat_case_items )
     {
-        if( stat_case_item->IsTypeNumeric() )
+        if( IsNumeric(stat_case_item->GetDataType()) )
         {
-            CaseItemHelpers::SetValue(*stat_case_item, stat_record_index, m_pIntDriver->EvaluateVARTValue<double>(*expression_itr));
+            CaseItemHelpers::SetValue(*stat_case_item, stat_record_index, m_interpreter->EvaluateVARTValue<double>(*expression_itr));
         }
 
         else
         {
-            CaseItemHelpers::SetValue(*stat_case_item, stat_record_index, m_pIntDriver->EvaluateVARTValue<std::wstring>(*expression_itr));
+            CaseItemHelpers::SetValue(*stat_case_item, stat_record_index, m_interpreter->EvaluateVARTValue<SharableString>(*expression_itr));
         }
 
         ++expression_itr;
@@ -848,7 +867,7 @@ double CIntDriver::eximpute_worker(const TIN& impute_node, TIO imputation)
 {
     ASSERT(m_imputationDriver != nullptr);
 
-    std::shared_ptr<Paradata::FieldInfo> paradata_field_info;
+    std::unique_ptr<Paradata::FieldInfo> paradata_field_info;
 
     T initial_value;
     T imputed_value;
@@ -860,7 +879,7 @@ double CIntDriver::eximpute_worker(const TIN& impute_node, TIO imputation)
             initial_value = value;
 
             // assign the new value
-            value = EvaluateExpression<T>(impute_node.value_expression);
+            value = Evaluate<T>(impute_node.value_expression);
             imputed_value = value;
 
         }, Paradata::Logger::IsOpen() ? &paradata_field_info : nullptr);
@@ -871,17 +890,26 @@ double CIntDriver::eximpute_worker(const TIN& impute_node, TIO imputation)
     {
         // only numeric imputations are recorded
         if constexpr(std::is_same_v<T, double>)
-            m_pParadataDriver->RegisterAndLogEvent(std::make_shared<Paradata::ImputeEvent>(paradata_field_info, initial_value, imputed_value));
+            m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::ImputeEvent>(std::move(paradata_field_info), initial_value, imputed_value));
     }
 
 
     // update the imputation frequency
     auto& imputation_frequency = m_imputationDriver->GetImputationFrequency<T>(imputation.GetImputationFrequencyIndex());
-    imputation_frequency.frequency_counter->Add(imputed_value, 1);
+
+    if constexpr(std::is_same_v<T, double>)
+    {
+        imputation_frequency.frequency_counter->Add(imputed_value, 1);
+    }
+
+    else
+    {
+        imputation_frequency.frequency_counter->Add(imputed_value.GetString(), 1);
+    }
 
     // update a (non-string literal) title
     if( impute_node.title_expression != -1 )
-        imputation_frequency.imputation->SetTitle(EvalAlphaExpr(impute_node.title_expression));
+        imputation_frequency.imputation->SetTitle(EvaluateString(impute_node.title_expression));
 
 
     // process the stat variables
@@ -905,18 +933,11 @@ double CIntDriver::eximpute_worker(const TIN& impute_node, TIO imputation)
 }
 
 
-double CIntDriver::eximpute(int iExpr)
+double CIntDriver::ex_impute(const int program_index)
 {
-    if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-    {
-        // for old .pen files, simply execute the compute node assignment (which was located after the IMPUTE_NODE)
-        evalexpr(iExpr + 11);
-        return 0;
-    }
-
-    const auto& impute_node = GetNode<Nodes::Impute>(iExpr);
+    const auto& impute_node = GetNode<Nodes::Impute>(program_index);
     Imputation& imputation = *m_engineData->imputations[impute_node.imputation_index];
 
     return imputation.GetVariable()->IsNumeric() ? eximpute_worker<double>(impute_node, imputation) :
-                                                   eximpute_worker<std::wstring>(impute_node, imputation);
+                                                   eximpute_worker<SharableString>(impute_node, imputation);
 }

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zCaseO/zCaseO.h>
+#include <zCaseO/FixedWidthCaseItem.h>
 #include <zCaseO/NumericCaseItem.h>
 
 
@@ -12,29 +13,18 @@ protected:
     FixedWidthNumericCaseItem(const CDictItem& dict_item, Type type = Type::FixedWidthNumeric);
 
 public:
-    /// <summary>
-    /// Sets the numeric case item based on the text input.
-    /// </summary>
-    virtual void SetValueFromTextInput(CaseItemIndex& index, const TCHAR* text_value) const
-    {
-        SetValueFromInput(index, ConvertTextToNumber(text_value));
-    }
+    // Sets the numeric value based on the text input.
+    virtual void SetValueFromTextInput(CaseItemIndex& index, const TCHAR* text_value) const;
 
-    /// <summary>
-    /// Converts the text to a number using the dictionary properties.
-    /// </summary>
+    // Converts the text to a number using the dictionary properties.
     double ConvertTextToNumber(const TCHAR* text_value) const;
 
-    /// <summary>
-    /// Converts the number to text using the dictionary properties. The buffer must have
-    /// enough space to store the complete length of the number.
-    /// </summary>
+    // Converts the number to text using the dictionary properties.
+    // The buffer must have enough space to store the complete length of the number.
     void ConvertNumberToText(double value, TCHAR* text_buffer) const;
 
-    void OutputFixedValue(const CaseItemIndex& index, TCHAR* text_buffer) const override
-    {
-        ConvertNumberToText(GetValueForOutput(index), text_buffer);
-    }
+    size_t GetMaxUtf8FixedValueWidth() const override;
+    size_t OutputFixedValue(const CaseItemIndex& index, char* text_buffer) const override;
 
 private:
     enum class ConvertTextRoutine { Int32, Int64, Double };

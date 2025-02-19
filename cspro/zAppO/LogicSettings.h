@@ -3,10 +3,6 @@
 #include <zAppO/zAppO.h>
 #include <zAppO/AppFileType.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 class ZAPPO_API LogicSettings
 {
@@ -36,27 +32,27 @@ public:
     bool CaseSensitiveSymbols() const       { return m_caseSensitiveSymbols; }
     void SetCaseSensitiveSymbols(bool flag) { m_caseSensitiveSymbols = flag; }
 
-    const std::wstring& GetSingleLineComment() const { return m_singleLineComment; }
+    const std::string& GetSingleLineComment() const { return m_singleLineComment; }
 
-    const std::wstring& GetMultilineCommentStart() const { return std::get<0>(MeetsVersion(Version::V8_0) ? m_multilineCommentNew : m_multilineCommentOld); }
-    const std::wstring& GetMultilineCommentEnd() const   { return std::get<1>(MeetsVersion(Version::V8_0) ? m_multilineCommentNew : m_multilineCommentOld); }
+    const std::string& GetMultilineCommentStart() const { return std::get<0>(MeetsVersion(Version::V8_0) ? m_multilineCommentNew : m_multilineCommentOld); }
+    const std::string& GetMultilineCommentEnd() const   { return std::get<1>(MeetsVersion(Version::V8_0) ? m_multilineCommentNew : m_multilineCommentOld); }
 
     // default line methods
-    std::wstring GetDefaultFirstLineForTextSource(NullTerminatedString application_label, AppFileType app_file_type) const;
-    std::wstring GetGeneratedCodeTextForTextSource() const;
+    std::string GetDefaultFirstLineForTextSource(cs::string_sz application_label, AppFileType app_file_type) const;
+    std::string GetGeneratedCodeTextForTextSource() const;
 
     // Action Invoker settings
     ActionInvokerAccessFromExternalCaller GetActionInvokerAccessFromExternalCaller() const      { return m_actionInvokerAccessFromExternalCaller; }
     void SetActionInvokerAccessFromExternalCaller(ActionInvokerAccessFromExternalCaller access) { m_actionInvokerAccessFromExternalCaller = access; }
 
-    const std::vector<std::wstring>& GetActionInvokerAccessTokens() const      { return m_actionInvokerAccessTokens; }
-    void SetActionInvokerAccessTokens(std::vector<std::wstring> access_tokens) { m_actionInvokerAccessTokens = std::move(access_tokens); }
+    const std::vector<std::string>& GetActionInvokerAccessTokens() const      { return m_actionInvokerAccessTokens; }
+    void SetActionInvokerAccessTokens(std::vector<std::string> access_tokens) { m_actionInvokerAccessTokens = std::move(access_tokens); }
 
     bool GetActionInvokerConvertResults() const    { return m_actionInvokerConvertResults; }
     void SetActionInvokerConvertResults(bool flag) { m_actionInvokerConvertResults = flag; }
 
     // serialization
-    static LogicSettings CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static LogicSettings CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
 
@@ -65,26 +61,26 @@ private:
     bool m_caseSensitiveSymbols;
 
     ActionInvokerAccessFromExternalCaller m_actionInvokerAccessFromExternalCaller;
-    std::vector<std::wstring> m_actionInvokerAccessTokens;
+    std::vector<std::string> m_actionInvokerAccessTokens;
     bool m_actionInvokerConvertResults;
 
-    static const std::wstring m_singleLineComment;
-    static const std::tuple<const std::wstring, const std::wstring> m_multilineCommentNew;
-    static const std::tuple<const std::wstring, const std::wstring> m_multilineCommentOld;
+    static const std::string m_singleLineComment;
+    static const std::tuple<const std::string, const std::string> m_multilineCommentNew;
+    static const std::tuple<const std::string, const std::string> m_multilineCommentOld;
 };
 
 
 namespace CommentStrings
 {
-    constexpr std::wstring_view SingleLine        = _T("//");
-    constexpr std::wstring_view MultilineNewStart = _T("/*");
-    constexpr std::wstring_view MultilineNewEnd   = _T("*/");
-    constexpr std::wstring_view MultilineOldStart = _T("{");
-    constexpr std::wstring_view MultilineOldEnd   = _T("}");
+    constexpr std::string_view SingleLine_sv        = "//";
+    constexpr std::string_view MultilineNewStart_sv = "/*";
+    constexpr std::string_view MultilineNewEnd_sv   = "*/";
+    constexpr std::string_view MultilineOldStart_sv = "{";
+    constexpr std::string_view MultilineOldEnd_sv   = "}";
 
-    constexpr std::tuple<const std::wstring_view&, const std::wstring_view&> GetMultilineStartEnd(bool new_version)
+    constexpr std::tuple<const std::string_view&, const std::string_view&> GetMultilineStartEnd(bool new_version)
     {
-        return new_version ? std::tuple<const std::wstring_view&, const std::wstring_view&>(MultilineNewStart, MultilineNewEnd) :
-                             std::tuple<const std::wstring_view&, const std::wstring_view&>(MultilineOldStart, MultilineOldEnd);
+        return new_version ? std::tuple<const std::string_view&, const std::string_view&>(MultilineNewStart_sv, MultilineNewEnd_sv) :
+                             std::tuple<const std::string_view&, const std::string_view&>(MultilineOldStart_sv, MultilineOldEnd_sv);
     }
 }

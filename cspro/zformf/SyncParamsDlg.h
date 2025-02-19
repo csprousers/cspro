@@ -1,37 +1,37 @@
 ﻿#pragma once
 
-// CSyncParamsDlg dialog
+#include <zUtilO/ResizableDlg.h>
+#include <zUtilF/DialogValidators.h>
+#include <zSyncF/SyncServiceSelectorDlg.h>
 
-class CSyncParamsDlg : public CDialogEx
+
+class SyncParamsDlg : public DynamicLayoutResizableDlg
 {
-    DECLARE_DYNAMIC(CSyncParamsDlg)
-
 public:
-    CSyncParamsDlg(CWnd* pParent = NULL);   // standard constructor
-    virtual ~CSyncParamsDlg();
+    SyncParamsDlg(const AppSyncParameters& sync_params, CWnd* pParent = nullptr);
 
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-    enum { IDD = IDD_SYNC_PARAMS_DIALOG };
-#endif
+    AppSyncParameters GetSyncParameters() const;
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    virtual BOOL OnInitDialog();
-    virtual void OnOK();
-
     DECLARE_MESSAGE_MAP()
-    afx_msg void OnBnClickedTestConnection();
 
-    void UpdateEnabled();
+    void DoDataExchange(CDataExchange* pDX) override;
+    BOOL OnInitDialog() override;
+
+    std::vector<std::tuple<CWnd*, SizingDirection>> GetDynamicLayoutControls() override;
+
+    void OnOK() override;
+
+    void OnEnable();
+    void UpdateEnabledUI();
+
+    void OnTestConnection();
 
 public:
-    CString m_csServerUrl;
-    int m_iSyncDirection;
-    int m_iServerType;
-    BOOL m_bEnabled;
-    afx_msg void OnBnClickedCsweb();
-    afx_msg void OnBnClickedDropbox();
-    afx_msg void OnBnClickedFtp();
-    afx_msg void OnBnClickedCheckboxEnable();
+    BOOL m_enabled;
+
+    SyncServiceSelectorDlg m_syncServiceSelectorDlg;
+
+    SyncDirection m_syncDirection;
+    RadioEnumHelper<SyncDirection> m_syncDirectionRadioEnumHelper;
 };

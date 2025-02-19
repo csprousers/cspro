@@ -12,21 +12,32 @@ public:
 
     DelimitedTextCreator(Type type, NewlineType newline_type);
 
-    const TCHAR* GetTextBuffer() const { return m_bufferStart; }
-    size_t GetTextLength() const       { return ( m_bufferCurrent - m_bufferStart ); }
+    const char* GetTextBuffer() const { return m_bufferStart; }
+    size_t GetTextLength() const      { return ( m_bufferCurrent - m_bufferStart ); }
 
-    void ResetText()                   { m_bufferCurrent = m_bufferStart; }
+    std::string_view GetSV() const { return std::string_view(GetTextBuffer(), GetTextLength()); }
 
-    void AddText(wstring_view text_sv);
+    void ResetText() { m_bufferCurrent = m_bufferStart; }
+
+    void ResetBufferPosition(size_t current_position);
+
+    // delimits the text and adds it to the buffer, adding a delimiter between the buffer and the new text
+    void AddText(std::string_view text_sv);
+
+    // adds text that does not need delimiting, adding a delimiter between the buffer and the new text
+    void AddTextNoNeedToDelimit(std::string_view text_sv);
+
+    // adds the already-delimited text to the buffer, adding a delimiter between the buffer and the new text
+    void AddAlreadyDelimitedText(std::string_view text_sv);
 
 private:
-    void ResetBufferPositions(size_t current_position);
+    void ResetBufferPositionFull(size_t current_position);
 
 private:
-    const TCHAR m_delimiter;
+    const char m_delimiter;
     const NewlineType m_newlineType;
-    std::vector<TCHAR> m_buffer;
-    TCHAR* m_bufferStart;
-    TCHAR* m_bufferCurrent;
-    TCHAR* m_bufferEnd;
+    std::vector<char> m_buffer;
+    char* m_bufferStart;
+    char* m_bufferCurrent;
+    char* m_bufferEnd;
 };

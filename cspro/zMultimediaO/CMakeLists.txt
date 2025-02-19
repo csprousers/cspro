@@ -9,6 +9,7 @@ include_directories(${PROJECT_NAME} PUBLIC
 
 add_library(${PROJECT_NAME}
     BmpFile.cpp
+    Icon.cpp
     Image.cpp
     Mp4Reader.cpp
     Mp4Writer.cpp

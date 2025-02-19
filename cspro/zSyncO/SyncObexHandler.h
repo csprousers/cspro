@@ -5,15 +5,25 @@
 #include <zNetwork/HeaderList.h>
 #include <zAppO/SyncTypes.h>
 
-struct IDataRepositoryRetriever;
+class ApplicationPackageManager;
+class DataRepository;
 namespace Paradata { class Syncer; }
+class SyncMessage;
 
 
-struct ISyncEngineFunctionCaller
+class ISyncObexEngineAccessor
 {
-    virtual ~ISyncEngineFunctionCaller() { }
+public:
+    virtual ~ISyncObexEngineAccessor() { }
 
-    virtual std::optional<CString> onSyncMessage(const CString& message_key, const CString& message_value) = 0;
+    // returns the data repository associated with the dictionary name or null if not found
+    virtual DataRepository* GetDataRepository(const std::string& syncable_dictionary_name, const std::string& dictionary_name) = 0;
+
+    // creates an application package manager, or null if not able to
+    virtual std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager() = 0;
+
+    // returns the response of the OnSyncMessage callback, or std::nullopt if none
+    virtual std::optional<SharableString> OnSyncMessage(const SyncMessage& sync_message) = 0;
 };
 
 
@@ -21,7 +31,7 @@ struct ISyncEngineFunctionCaller
 class SYNC_API SyncObexHandler
 {
 public:
-    SyncObexHandler(DeviceId deviceId, IDataRepositoryRetriever* pRepoRetriever, CString rootPath, ISyncEngineFunctionCaller* sync_engine_function_caller);
+    SyncObexHandler(DeviceId device_id, std::string root_directory, std::unique_ptr<ISyncObexEngineAccessor> sync_obex_engine_accessor);
     ~SyncObexHandler();
 
     ObexResponseCode onConnect(const char* target, int targetSizeBytes);
@@ -33,12 +43,14 @@ public:
     ObexResponseCode onPut(CString type, CString name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
 
 private:
-    ObexResponseCode handleSyncPut(const std::wstring& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
-    ObexResponseCode handleSyncGet(const std::wstring& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
-    ObexResponseCode handleDirectoryListing(CString path, std::unique_ptr<IObexResource>& resource);
+    DataRepository* FindDataRepository(const std::string& syncable_dictionary_name, const HeaderList& request_headers) const;
+
+    ObexResponseCode handleSyncPut(const std::string& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
+    ObexResponseCode handleSyncGet(const std::string& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
+    ObexResponseCode handleDirectoryListing(const std::string& path, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
     ObexResponseCode handleFileGet(CString path, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource);
     ObexResponseCode handleFilePut(CString path, std::unique_ptr<IObexResource>& resource);
-    ObexResponseCode handleSyncApp(const CString& app_name, const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource);
+    ObexResponseCode handleSyncApp(const std::string& package_name, const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource);
     ObexResponseCode handleSyncMessage(const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource);
 
     ObexResponseCode handleSyncParadataStart(const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource);
@@ -48,8 +60,7 @@ private:
 
 private:
     DeviceId m_deviceId;
-    IDataRepositoryRetriever* m_pDataRepositoryRetriever;
-    CString m_rootPath;
-    ISyncEngineFunctionCaller* m_syncEngineFunctionCaller;
+    std::string m_rootDirectory;
+    std::unique_ptr<ISyncObexEngineAccessor> m_syncObexEngineAccessor;
     std::unique_ptr<Paradata::Syncer> m_paradataSyncer;
 };

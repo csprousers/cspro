@@ -47,25 +47,25 @@
 
 namespace
 {
-    static const std::vector<const TCHAR*> FrequencyCommands =
+    constexpr const char* FrequencyCommands[] =
     {
-        _T("INCLUDE"),
-        _T("EXCLUDE"),
-        _T("UNIVERSE"), _T("SELECT"),
-        _T("WEIGHT"),   _T("WEIGHTED"),
-        _T("DISJOINT"),
-        _T("BREAKDOWN"),
-        _T("HEADING"), _T("TITLE"),
-        _T("DISTINCT"),
-        _T("VALUESET"),
-        _T("VSET"), _T("VSETS"),
-        _T("STAT"),
-        _T("NOFREQ"),
-        _T("PERCENTILES"), _T("NTILES"),
-        _T("NONETPERCENTS"),
-        _T("DECIMALS"),
-        _T("PAGELENGTH"),
-        _T("SORT"),
+        "INCLUDE",
+        "EXCLUDE",
+        "UNIVERSE",     "SELECT",
+        "WEIGHT",       "WEIGHTED",
+        "DISJOINT",
+        "BREAKDOWN",
+        "HEADING",      "TITLE",
+        "DISTINCT",
+        "VALUESET",
+        "VSET",         "VSETS",
+        "STAT",
+        "NOFREQ",
+        "PERCENTILES",  "NTILES",
+        "NONETPERCENTS",
+        "DECIMALS",
+        "PAGELENGTH",
+        "SORT",
     };
 
     constexpr size_t CI_INCLUDE       =  1; // CI = command index
@@ -214,12 +214,12 @@ void FrequencyCompilerHelper::CompileFreqCommands(std::optional<size_t> initial_
         }
 
         // some commands have aliases
-        size_t aliased_command_type = ( command_type == CI_SELECT )   ? CI_UNIVERSE :
-                                      ( command_type == CI_WEIGHTED ) ? CI_WEIGHT :
-                                      ( command_type == CI_TITLE )    ? CI_HEADING :
-                                      ( command_type == CI_VSETS )    ? CI_VSET :
-                                      ( command_type == CI_NTILES )   ? CI_PERCENTILES :
-                                                                        command_type;
+        const size_t aliased_command_type = ( command_type == CI_SELECT )   ? CI_UNIVERSE :
+                                            ( command_type == CI_WEIGHTED ) ? CI_WEIGHT :
+                                            ( command_type == CI_TITLE )    ? CI_HEADING :
+                                            ( command_type == CI_VSETS )    ? CI_VSET :
+                                            ( command_type == CI_NTILES )   ? CI_PERCENTILES :
+                                                                              command_type;
 
         // don't allow duplicate commands
         if( defined_commands.find(aliased_command_type) != defined_commands.cend() )
@@ -305,7 +305,8 @@ void FrequencyCompilerHelper::CompileFreqCommands(std::optional<size_t> initial_
             // for backwards compatibility, only warn if a parenthesis isn't used for SELECT
             else
             {
-                m_compiler.IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF::deprecation_freq_without_parentheses_95025, FrequencyCommands[command_type - 1]);
+                m_compiler.IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF::deprecation_freq_without_parentheses_95025,
+                                        FrequencyCommands[command_type - 1]);
             }
 
             m_compiler.NextToken();
@@ -380,7 +381,7 @@ void FrequencyCompilerHelper::CompileFreqCommands(std::optional<size_t> initial_
             // multiple lines can be supplied, separated by commas;
             // in PROC GLOBAL, only string literals can be used
             std::vector<int> heading_expressions;
-            std::vector<std::wstring> headings;
+            std::vector<std::string> headings;
 
             validate_left_parenthesis(true);
 
@@ -407,8 +408,8 @@ void FrequencyCompilerHelper::CompileFreqCommands(std::optional<size_t> initial_
                     {
                         ASSERT(heading_expressions.empty());
 
-                        for( const std::wstring& heading : headings )
-                            heading_expressions.emplace_back(m_compiler.CreateStringLiteralNode(heading));
+                        for( std::string& heading : headings )
+                            heading_expressions.emplace_back(m_compiler.CreateStringLiteralNode(std::move(heading)));
 
                         headings.clear();
                     }
@@ -572,7 +573,7 @@ void FrequencyCompilerHelper::CompileFreqCommands(std::optional<size_t> initial_
 
                 else if( Tkn == TOKBY && !sort_type.has_value() )
                 {
-                    size_t by_type = m_compiler.NextKeywordOrError({ _T("valueset"), _T("code"), _T("label"), _T("freq") });
+                    const size_t by_type = m_compiler.NextKeywordOrError({ "valueset", "code", "label", "freq" });
                     sort_type = static_cast<FrequencyPrinterOptions::SortType>(by_type - 1);
                 }
 
@@ -1127,7 +1128,7 @@ int LogicCompiler::CompileFrequencyDeclaration()
 
         if( Tkn == TOKNEWSYMBOL )
         {
-            named_frequency = std::make_shared<NamedFrequency>(Tokstr);
+            named_frequency = std::make_unique<NamedFrequency>(Tokstr);
             m_engineData->AddSymbol(named_frequency);
 
             named_frequency->SetFrequencyIndex(frequency_index);
@@ -1162,7 +1163,7 @@ int LogicCompiler::CompileFrequencyDeclaration()
     FrequencyCompilerHelper frequency_compiler_helper(*this);
 
     frequency_compiler_helper.CompileFreqCommands(command_type, frequency_parameters_node, true,
-        [&](size_t command_type, std::optional<std::variant<int, const std::vector<std::wstring>*, const std::vector<int>*>> argument)
+        [&](size_t command_type, std::optional<std::variant<int, const std::vector<std::string>*, const std::vector<int>*>> argument)
         {
             // INCLUDE / EXCLUDE
             if( bool include = ( command_type == CI_INCLUDE ); include || command_type == CI_EXCLUDE )
@@ -1180,7 +1181,7 @@ int LogicCompiler::CompileFrequencyDeclaration()
                     potentially_allow_occurrences = false;
 
                     // process the optional variable inclusion flags
-                    size_t flag_type = NextKeyword({ _T("short"), _T("long"), _T("integer"), _T("float"), _T("numeric"), _T("alpha") });
+                    const size_t flag_type = NextKeyword({ "short", "long", "integer", "float", "numeric", "alpha" });
 
                     if( flag_type != 0 )
                     {
@@ -1268,7 +1269,8 @@ int LogicCompiler::CompileFrequencyDeclaration()
 
                         else
                         {
-                            IssueError(MGF::Freq_command_requires_variable_94511, FrequencyCommands[command_type - 1]);
+                            IssueError(MGF::Freq_command_requires_variable_94511,
+                                       FrequencyCommands[command_type - 1]);
                         }
                     }
 
@@ -1281,7 +1283,8 @@ int LogicCompiler::CompileFrequencyDeclaration()
             else if( bool universe = ( command_type == CI_UNIVERSE); universe || command_type == CI_WEIGHT )
             {
                 if( using_named_frequency )
-                    IssueError(MGF::Freq_command_cannot_be_used_with_named_freqs_94503, FrequencyCommands[command_type - 1], named_frequency->GetName().c_str());
+                    IssueError(MGF::Freq_command_cannot_be_used_with_named_freqs_94503,
+                               FrequencyCommands[command_type - 1], named_frequency->GetName().c_str());
 
                 if( universe )
                 {
@@ -1309,7 +1312,7 @@ int LogicCompiler::CompileFrequencyDeclaration()
             // HEADING
             else if( command_type == CI_HEADING )
             {
-                frequency->GetFrequencyPrinterOptions().SetHeadings(*std::get<const std::vector<std::wstring>*>(*argument));
+                frequency->GetFrequencyPrinterOptions().SetHeadings(*std::get<const std::vector<std::string>*>(*argument));
             }
 
             // VALUESET
@@ -1468,7 +1471,7 @@ int LogicCompiler::CompileNamedFrequencyFunctions()
                 const Report& report = GetSymbolReport(Tokstindex);
                 CheckReportIsCurrentlyWriteable(report);
 
-                if( !report.IsHtmlType() && !report.IsFunctionParameter() )
+                if( report.GetEscapeType() != ReportFile::EscapeType::Html && !report.IsFunctionParameter() )
                     IssueError(MGF::Freq_cannot_be_saved_to_non_HTML_report_94533, named_frequency.GetName().c_str(), report.GetName().c_str());
 
                 arguments[0] = static_cast<int>(SymbolType::Report);
@@ -1519,7 +1522,7 @@ int LogicCompiler::CompileNamedFrequencyFunctions()
         FrequencyCompilerHelper frequency_compiler_helper(*this);
 
         frequency_compiler_helper.CompileFreqCommands(std::nullopt, frequency_parameters_node, false,
-            [&](size_t command_type, std::optional<std::variant<int, const std::vector<std::wstring>*, const std::vector<int>*>> argument)
+            [&](size_t command_type, std::optional<std::variant<int, const std::vector<std::string>*, const std::vector<int>*>> argument)
             {
                 if( command_type == CI_VALUESET )
                 {

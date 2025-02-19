@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "PropertyBuilder.h"
+#include <zDesignerF/PropertyGrid/PropertyBuilder.h>
 
 
 namespace PropertyGrid

@@ -12,15 +12,14 @@ public:
     {
     }
 
-    [[noreturn]] void IssueError(int message_number, ...) override
+protected:
+    [[noreturn]] void IssueErrorWorker(const int message_number, ...) override
     {
         Logic::ParserError parser_error;
 
         va_list parg;
         va_start(parg, message_number);
-
-        m_compiler.IssueMessage(parser_error, message_number, parg);
-
+        m_compiler.IssueMessageWorkerVA(parser_error, message_number, parg);
         va_end(parg);
 
         throw parser_error;

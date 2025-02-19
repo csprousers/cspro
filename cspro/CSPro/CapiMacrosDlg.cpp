@@ -33,7 +33,7 @@ namespace
         {
             // field names are preceeded by the dictionary name
             const CDEField* pField = (const CDEField*)pItemBase;
-            return FormatText(_T("%s.%s"), (LPCTSTR)pField->GetItemDict(), (LPCTSTR)pField->GetName());
+            return FormatText(_T("%s.%s"), pField->GetItemDict().GetString(), pField->GetName().GetString());
         }
 
         ASSERT(false);
@@ -42,9 +42,9 @@ namespace
 }
 
 
-CString CapiMacrosDlg::ConstructHtmlFromText(wstring_view text)
+CString CapiMacrosDlg::ConstructHtmlFromText(const wstring_view text_sv)
 {
-    return WS2CS(_T("<p>") + Encoders::ToHtml(text) + _T("</p>"));
+    return UTF8_TODO::GetCString("<p>" + Encoders::ToHtml(UTF8_TODO::GetUtf8(text_sv) + "</p>"));
 }
 
 
@@ -87,7 +87,7 @@ void CapiMacrosDlg::OnBnClickedAuditUndefinedText()
     std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
         [&fields_with_undefined_text](CDEItemBase* pItemBase, const CDataDict*) -> void
     {
-        fields_with_undefined_text.AppendFormat(_T("%s\r\n"), (LPCTSTR)GetCapiFieldName(pItemBase));
+        fields_with_undefined_text.AppendFormat(_T("%s\r\n"), GetCapiFieldName(pItemBase).GetString());
     };
 
     int number_fields_with_undefined_text = IterateThroughBlocksAndFields(callback_function, include_blocks, include_protected_fields, true);
@@ -101,16 +101,12 @@ void CapiMacrosDlg::OnBnClickedAuditUndefinedText()
 
     else
     {
-        CString block_heading;
+        std::string heading = FormatText("There are %d %sfield%s with undefined question text:",
+                                         number_fields_with_undefined_text,
+                                         include_blocks ? FormatText("block%s or ", PluralizeWord(number_fields_with_undefined_text)).c_str() : "",
+                                         PluralizeWord(number_fields_with_undefined_text));
 
-        if( include_blocks )
-            block_heading.Format(_T("block%s or "), PluralizeWord(number_fields_with_undefined_text));
-
-        CString heading;
-        heading.Format(_T("There are %d %sfield%s with undefined question text:"),
-            number_fields_with_undefined_text, (LPCTSTR)block_heading, PluralizeWord(number_fields_with_undefined_text));
-
-        TextReportDlg text_report_dialog(heading, fields_with_undefined_text);
+        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(fields_with_undefined_text)));
         text_report_dialog.DoModal();
     }
 }
@@ -137,26 +133,27 @@ void CapiMacrosDlg::OnBnClickedRemoveUnusedText()
     {
         if( all_blocks_fields.find(question.GetItemName()) == all_blocks_fields.end() )
         {
-            unused_fields_text.AppendFormat(_T("%s\r\n"), (LPCTSTR)question.GetItemName());
+            unused_fields_text.AppendFormat(_T("%s\r\n"), question.GetItemName().GetString());
             number_unused_fields++;
             m_pAplDoc->m_pQuestMgr->RemoveQuestion(question.GetItemName());
         }
     }
 
     if( number_unused_fields == 0 )
-        AfxMessageBox(_T("All question text is associated with a block or field."));
+    {
+        AfxMessageBox(L"All question text is associated with a block or field.");
+    }
 
     else
     {
+        std::string heading = FormatText("Unused question text was removed for the following %d nonexistent block%s or field%s:",
+                                         number_unused_fields, PluralizeWord(number_unused_fields), PluralizeWord(number_unused_fields));
 
-        CString heading;
-        heading.Format(_T("Unused question text was removed for the following %d nonexistent block%s or field%s:"),
-            number_unused_fields, PluralizeWord(number_unused_fields), PluralizeWord(number_unused_fields));
-
-        TextReportDlg text_report_dialog(heading, unused_fields_text);
+        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(unused_fields_text)));
         text_report_dialog.DoModal();
     }
 }
+
 
 void CapiMacrosDlg::OnBnClickedInitializeFromDictionaryLabel()
 {
@@ -165,7 +162,7 @@ void CapiMacrosDlg::OnBnClickedInitializeFromDictionaryLabel()
     std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
         [this, &fields_with_added_text](CDEItemBase* pItemBase, const CDataDict* pDataDict) -> void
     {
-        fields_with_added_text.AppendFormat(_T("%s\r\n"), (LPCTSTR)GetCapiFieldName(pItemBase));
+        fields_with_added_text.AppendFormat(_T("%s\r\n"), GetCapiFieldName(pItemBase).GetString());
 
         // first set the text for the main language
         const CDictItem* pDictItem = ((CDEField*)pItemBase)->GetDictItem();
@@ -179,8 +176,7 @@ void CapiMacrosDlg::OnBnClickedInitializeFromDictionaryLabel()
             // don't set the text (an expensive operation) unless the language is different
             if( labels[i] != labels[0] )
             {
-                m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(labels[i]),
-                    pDataDict->GetLanguages()[i].GetName());
+                m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(labels[i]), pDataDict->GetLanguages()[i].GetName());
             }
         }
     };
@@ -188,16 +184,16 @@ void CapiMacrosDlg::OnBnClickedInitializeFromDictionaryLabel()
     int number_fields_with_added_text = IterateThroughBlocksAndFields(callback_function, false, true, true);
 
     if( number_fields_with_added_text == 0 )
-        AfxMessageBox(_T("All fields have question text in at least one language."));
+    {
+        AfxMessageBox(L"All fields have question text in at least one language.");
+    }
 
     else
     {
+        std::string heading = FormatText("Dictionary labels were added as the question text for the following %d field%s:",
+                                         number_fields_with_added_text, PluralizeWord(number_fields_with_added_text));
 
-        CString heading;
-        heading.Format(_T("Dictionary labels were added as the question text for the following %d field%s:"),
-            number_fields_with_added_text, PluralizeWord(number_fields_with_added_text));
-
-        TextReportDlg text_report_dialog(heading, fields_with_added_text);
+        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(fields_with_added_text)));
         text_report_dialog.DoModal();
     }
 }
@@ -221,7 +217,7 @@ void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
     dictionary_prefixes.push_back(_T(""));
 
     for( const auto& form_file : m_pAplDoc->GetAppObject().GetRuntimeFormFiles() )
-        dictionary_prefixes.push_back(form_file->GetDictionary()->GetName() + _T("."));
+        dictionary_prefixes.emplace_back(UTF8_TODO::GetCString(form_file->GetDictionary()->GetName() + "."));
 
     // process the clipboard contents
     enum class ProcessingStep { InvalidLine, InvalidField, InvalidLanguage, Success };
@@ -288,7 +284,7 @@ void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
                 language_name.Trim();
                 language_name.MakeUpper();
 
-                message_for_processing_buffer.AppendFormat(_T("(%s)"), (LPCTSTR)language_name);
+                message_for_processing_buffer.AppendFormat(_T("(%s)"), language_name.GetString());
 
                 tab_position1 = tab_position2;
             }
@@ -337,7 +333,7 @@ void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
             // add or modify the question text
             processing_step = ProcessingStep::Success;
 
-            m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(question_text), language_name);
+            m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(question_text), UTF8_TODO::GetUtf8(language_name));
         }
 
         catch(...)
@@ -346,18 +342,19 @@ void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
 
         // add the message to the appropriate buffer
         lines_processed++;
-        processing_buffers[(int)processing_step].AppendFormat(_T("    %s\r\n"), (LPCTSTR)message_for_processing_buffer);
+        processing_buffers[(int)processing_step].AppendFormat(_T("    %s\r\n"), message_for_processing_buffer.GetString());
     }
 
 
     if( lines_processed == 0 )
-        AfxMessageBox(_T("No suitable content found on the clipboard"));
+    {
+        AfxMessageBox(L"No suitable content found on the clipboard");
+    }
 
     else
     {
-        CString heading;
-        heading.Format(_T("%d line%s of text from the clipboard processed:"),
-            lines_processed, PluralizeWord(lines_processed));
+        std::string heading = FormatText("%d line%s of text from the clipboard processed:",
+                                         lines_processed, PluralizeWord(lines_processed));
 
         CString clipboard_paste_report;
 
@@ -373,12 +370,12 @@ void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
 
                 clipboard_paste_report.AppendFormat(_T("%s%s:\r\n%s"),
                     clipboard_paste_report.IsEmpty() ? _T("") : _T("\r\n"),
-                    (LPCTSTR)processing_buffer_header,
-                    (LPCTSTR)processing_buffers[i]);
+                    processing_buffer_header.GetString(),
+                    processing_buffers[i].GetString());
             }
         }
 
-        TextReportDlg text_report_dialog(heading, clipboard_paste_report);
+        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(clipboard_paste_report)));
         text_report_dialog.DoModal();
     }
 }

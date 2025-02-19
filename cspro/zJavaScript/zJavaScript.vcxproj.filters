@@ -14,18 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zJavaScript.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libunicode.c">
-      <Filter>QuickJS</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\QuickJS\quickjs.c">
-      <Filter>QuickJS</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\QuickJS\cutils.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
@@ -35,24 +23,42 @@
     <ClCompile Include="..\external\QuickJS\libregexp.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="Executor.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\external\QuickJS\libunicode.c">
+      <Filter>QuickJS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\QuickJS\quickjs.c">
+      <Filter>QuickJS</Filter>
     </ClCompile>
     <ClCompile Include="ActionInvokerJS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Executor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QuickJSAccess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VariablePropertyNameEvaluator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zJavaScript.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="ActionInvokerJS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zJavaScript.h">
+    <ClInclude Include="Atom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Executor.h">
@@ -61,19 +67,22 @@
     <ClInclude Include="Overrides.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Definitions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="QuickJSAccess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ActionInvokerJS.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Value.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ValueGetter.h">
+    <ClInclude Include="ValueInternal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VariablePropertyNameEvaluator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zJavaScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,22 +14,22 @@ namespace
 }
 
 
-std::vector<std::wstring> PackSpec::GetFilenamesForPack() const
+std::vector<std::string> PackSpec::GetFilePathsForPack() const
 {
-    std::vector<std::wstring> filenames;
+    std::vector<std::string> file_paths;
 
     for( const PackEntry& pack_entry : GetEntries() )
-        VectorHelpers::Append(filenames, pack_entry.GetAssociatedFilenames());
+        VectorHelpers::Append(file_paths, pack_entry.GetAssociatedFilePaths());
 
-    VectorHelpers::RemoveDuplicateStringsNoCase(filenames);
+    VectorHelpers::RemoveDuplicateStringsNoCase(file_paths);
 
-    return filenames;
+    return file_paths;
 }
 
 
 bool PackSpec::IsPffUsingPackSpec(const PFF& pff)
 {
-    return SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(pff.GetAppFName()), FileExtensions::PackSpec);
+    return SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(pff.GetAppFName())), FileExtensions::PackSpec);
 }
 
 
@@ -39,18 +39,18 @@ PackSpec PackSpec::CreateFromPff(const PFF& pff, const bool silent, const bool t
 
     if( IsPffUsingPackSpec(pff) )
     {
-        pack_spec.Load(CS2WS(pff.GetAppFName()), silent, throw_exception_on_missing_entry);
+        pack_spec.Load(UTF8_TODO::GetUtf8(pff.GetAppFName()), silent, throw_exception_on_missing_entry);
     }
 
     else
     {
-        // if the PFF's application filename is not a pack specification, simulate one
-        std::unique_ptr<PackEntry> pack_entry = PackEntry::Create(CS2WS(pff.GetAppFName()));
+        // if the PFF's application file path is not a pack specification, simulate one
+        std::unique_ptr<PackEntry> pack_entry = PackEntry::Create(UTF8_TODO::GetUtf8(pff.GetAppFName()));
 
-        pack_spec.SetZipFilename(CS2WS(pff.GetPackOutputFName()));
+        pack_spec.SetZipFilePath(UTF8_TODO::GetUtf8(pff.GetPackOutputFName()));
 
         // for pre-8.0 files, apply the PackExtra settings
-        if( GetCSProVersionNumeric(pff.GetVersion()) < VersionNewPackIntroduced )
+        if( GetCSProVersionNumeric(UTF8_TODO::GetUtf8(pff.GetVersion())) < VersionNewPackIntroduced )
         {
             ExecuteOnExtras(pack_entry->GetDictionaryExtras(),
                 [&](DictionaryPackEntryExtras& dictionary_extras)
@@ -61,10 +61,10 @@ PackSpec PackSpec::CreateFromPff(const PFF& pff, const bool silent, const bool t
             ExecuteOnExtras(pack_entry->GetApplicationExtras(),
                 [&](ApplicationPackEntryExtras& application_extras)
                 {
-                    application_extras.resource_folders = pff.GetPackInclude(PackIncludeFlag::Resources);
+                    application_extras.resources = pff.GetPackInclude(PackIncludeFlag::Resources);
                     application_extras.pff = true;
                 });
-                
+
             ExecuteOnExtras(pack_entry->GetPffExtras(),
                 [&](PffPackEntryExtras& pff_extras)
                 {
@@ -88,9 +88,9 @@ PackSpec PackSpec::CreateFromPff(const PFF& pff, const bool silent, const bool t
 CREATE_JSON_VALUE(pack)
 
 
-void PackSpec::Load(const std::wstring& filename, const bool silent, const bool throw_exception_on_missing_entry)
+void PackSpec::Load(const std::string& file_path, const bool silent, const bool throw_exception_on_missing_entry)
 {
-    std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(filename);
+    std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path);
 
     try
     {
@@ -102,7 +102,7 @@ void PackSpec::Load(const std::wstring& filename, const bool silent, const bool 
 
     catch( const CSProException& exception )
     {
-        json_reader->GetMessageLogger().RethrowException(filename, exception);
+        json_reader->GetMessageLogger().RethrowException(file_path, exception);
     }
 
     // report any warnings
@@ -110,16 +110,16 @@ void PackSpec::Load(const std::wstring& filename, const bool silent, const bool 
 }
 
 
-void PackSpec::Load(const JsonNode<wchar_t>& json_node, const bool throw_exception_on_missing_entry)
+void PackSpec::Load(const JsonNode& json_node, const bool throw_exception_on_missing_entry)
 {
-    ASSERT(m_zipFilename.empty() && m_packEntries.empty());
+    ASSERT(m_zipFilePath.empty() && m_packEntries.empty());
 
     if( json_node.Contains(JK::output) )
-        m_zipFilename = json_node.GetAbsolutePath(JK::output);
+        m_zipFilePath = json_node.GetAbsolutePath(JK::output);
 
-    for( const auto& input_node : json_node.GetArrayOrEmpty(JK::inputs) )
+    for( const JsonNode& input_node : json_node.GetArrayOrEmpty(JK::inputs) )
     {
-        const std::wstring path = input_node.GetAbsolutePath(JK::path);
+        const std::string path = input_node.GetAbsolutePath(JK::path);
 
         try
         {
@@ -140,10 +140,10 @@ void PackSpec::Load(const JsonNode<wchar_t>& json_node, const bool throw_excepti
             ExecuteOnExtras(pack_entry->GetApplicationExtras(),
                 [&](ApplicationPackEntryExtras& application_extras)
                 {
-                    application_extras.resource_folders = input_node.GetOrDefault(JK::resources, application_extras.resource_folders);
+                    application_extras.resources = input_node.GetOrDefault(JK::resources, application_extras.resources);
                     application_extras.pff = input_node.GetOrDefault(JK::pff, application_extras.pff);
                 });
-                
+
             ExecuteOnExtras(pack_entry->GetPffExtras(),
                 [&](PffPackEntryExtras& pff_extras)
                 {
@@ -160,18 +160,18 @@ void PackSpec::Load(const JsonNode<wchar_t>& json_node, const bool throw_excepti
             if( throw_exception_on_missing_entry )
                 throw exception;
 
-            json_node.LogWarning(_T("The input '%s' could not be found and the entry will be removed."), path.c_str());
+            json_node.LogWarning("The input '%s' could not be found and the entry will be removed.", path.c_str());
         }
     }
 }
 
 
-void PackSpec::Save(const std::wstring& filename) const
+void PackSpec::Save(const std::string& file_path) const
 {
-    std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(filename, JV::pack);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JV::pack);
 
-    if( !SO::IsWhitespace(m_zipFilename) )
-        json_writer->WriteRelativePath(JK::output, m_zipFilename);
+    if( !SO::IsWhitespace(m_zipFilePath) )
+        json_writer->WriteRelativePath(JK::output, m_zipFilePath);
 
     json_writer->WriteObjects(JK::inputs, m_packEntries,
         [&](const std::shared_ptr<const PackEntry>& pack_entry)
@@ -193,10 +193,10 @@ void PackSpec::Save(const std::wstring& filename) const
             ExecuteOnExtras(pack_entry->GetApplicationExtras(),
                 [&](const ApplicationPackEntryExtras& application_extras)
                 {
-                    json_writer->Write(JK::resources, application_extras.resource_folders);
+                    json_writer->Write(JK::resources, application_extras.resources);
                     json_writer->Write(JK::pff, application_extras.pff);
                 });
-                
+
             ExecuteOnExtras(pack_entry->GetPffExtras(),
                 [&](const PffPackEntryExtras& pff_extras)
                 {

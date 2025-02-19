@@ -3,7 +3,6 @@
 #include "Csdfview.h"
 #include "CSDiff.h"
 #include "Filebrow.h"
-#include <zUtilO/Filedlg.h>
 #include <zDiffO/Differ.h>
 
 
@@ -22,7 +21,7 @@ END_MESSAGE_MAP()
 
 
 CCSDiffDoc::CCSDiffDoc()
-    :   m_diffSpec(std::make_shared<DiffSpec>()),
+    :   m_diffSpec(std::make_unique<DiffSpec>()),
         m_bRetSave(false)
 {
     m_diffSpec->SetShowLabels(!SharedSettings::ViewNamesInTree());
@@ -35,76 +34,64 @@ CCSDiffDoc::CCSDiffDoc()
 
 BOOL CCSDiffDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
-    if( !CDocument::OnOpenDocument(lpszPathName) )
+    if( !__super::OnOpenDocument(lpszPathName) )
         return FALSE;
 
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(lpszPathName);
-
-    if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
-    {
-        m_pff.SetPifFileName(lpszPathName);
-
-        if( m_pff.LoadPifFile() )
-            RunBatchDiff();
-
-        return FALSE;
-    }
-
-    else if( SO::EqualsNoCase(extension, FileExtensions::CompareSpec) )
-    {
-        if( !OpenSpecFile(lpszPathName) )
-            return FALSE;
-
-        AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last Open"), lpszPathName);
-
-        const std::wstring spec_filename = lpszPathName;
-        m_pff.SetAppFName(WS2CS(spec_filename));
-        m_pff.SetListingFName(WS2CS(spec_filename) + FileExtensions::WithDot::Listing);
-
-        const std::wstring pff_filename = spec_filename + FileExtensions::WithDot::Pff;
-        m_pff.SetPifFileName(WS2CS(pff_filename));
-
-        if( PortableFunctions::FileIsRegular(pff_filename) && m_pff.LoadPifFile() )
-        {
-            if( !SO::EqualsNoCase(spec_filename, m_pff.GetAppFName()) )
-            {
-                AfxMessageBox(FormatText(_T("Spec file in %s\ndoes not match %s"), pff_filename.c_str(), spec_filename.c_str()));
-                return FALSE;
-            }
-        }
-    }
-
-    else if( SO::EqualsNoCase(extension, FileExtensions::Dictionary) )
-    {
-        m_pff.SetAppFName(_T(""));
-
-        if( !OpenDictFile(lpszPathName) )
-            return FALSE;
-
-        AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last Open"), lpszPathName);
-    }
-
-    else
-    {
-        AfxMessageBox(_T("Invalid file type."));
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-
-bool CCSDiffDoc::OpenDictFile(const std::wstring& filename)
-{
     try
     {
-        m_diffSpec->SetDictionary(CDataDict::InstantiateAndOpen(filename, false));
-        return true;
+        const std::string file_path = TC::ToUtf8(lpszPathName);
+        const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
+
+        if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
+        {
+            m_pff.SetPifFileName(UTF8_TODO::GetCString(file_path));
+
+            if( m_pff.LoadPifFile() )
+                RunBatchDiff();
+
+            return FALSE;
+        }
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::CompareSpec) )
+        {
+            if( !OpenSpecFile(file_path) )
+                return FALSE;
+
+            AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+
+            m_pff.SetAppFName(UTF8_TODO::GetCString(file_path));
+            m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(file_path, FileExtensions::Listing)));
+
+            const std::string pff_file_path = PortableFunctions::PathAppendFileExtension(file_path, FileExtensions::Pff);
+            m_pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
+
+            if( PortableFunctions::FileIsRegular(pff_file_path) && m_pff.LoadPifFile() )
+            {
+                if( !SO::EqualsNoCase(file_path, m_pff.GetAppFName()) )
+                    throw CSProException("Spec file in %s\ndoes not match %s", pff_file_path.c_str(), file_path.c_str());
+            }
+        }
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::Dictionary) )
+        {
+            m_pff.SetAppFName(L"");
+            m_diffSpec->SetDictionary(CDataDict::InstantiateAndOpen(file_path, false));
+
+            AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+        }
+
+        else
+        {
+            throw CSProException("Invalid file type.");
+        }
+
+        return TRUE;
     }
 
-    catch( const CSProException& )
+    catch( const CSProException& exception )
     {
-		return false;
+        ErrorMessage::Display(exception);
+        return FALSE;
     }
 }
 
@@ -127,26 +114,22 @@ void CCSDiffDoc::OnFileSave()
 
 void CCSDiffDoc::OnFileSaveAs()
 {
-    std::wstring path = CS2WS(m_pff.GetAppFName()); // BMD 14 Mar 2002
+    std::string file_path = UTF8_TODO::GetUtf8(m_pff.GetAppFName()); // BMD 14 Mar 2002
 
-    // if no spec filename exists, base it on the dictionary's filename
-    if( path.empty() )
-        path = PortableFunctions::PathReplaceFileExtension(GetDictionary().GetFullFileName(), FileExtensions::CompareSpec);
+    // if no spec file path exists, base it on the dictionary's file path
+    if( file_path.empty() )
+        file_path = PortableFunctions::PathReplaceFileExtension(GetDictionary().GetFilePath(), FileExtensions::CompareSpec);
 
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::CompareSpec,
-                             path.c_str(),
-                             OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                             _T("Compare Specification Files (*.cmp)|*.cmp|All Files (*.*)|*.*||"));
+    SaveFileDlg save_file_dlg(0, FileExtensions::CompareSpec, file_path, L"Compare Specification Files (*.cmp)|*.cmp|All Files (*.*)|*.*||");
+    save_file_dlg.SetTitle(L"Save Compare Specification File");
 
-    file_dlg.m_ofn.lpstrTitle = _T("Save Compare Specification File");
-
-    if( file_dlg.DoModal() == IDOK )
+    if( save_file_dlg.DoModal() == IDOK )
     {
-        m_pff.SetAppFName(file_dlg.GetPathName());
-        AfxGetMainWnd()->SetWindowText(CCSDiffView::CreateWindowTitle(CS2WS(m_pff.GetAppFName()), &GetDictionary()).c_str());
+        m_pff.SetAppFName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
+        AfxGetMainWnd()->SetWindowText(TC::ToWide(CCSDiffView::CreateWindowTitle(UTF8_TODO::GetUtf8(m_pff.GetAppFName()), &GetDictionary()).c_str()).c_str());
         SaveSpecFile();
         SetModifiedFlag(FALSE);
-        AfxGetApp()->AddToRecentFileList(file_dlg.GetPathName());
+        AfxGetApp()->AddToRecentFileList(TC::ToWide(save_file_dlg.GetFilePath()).c_str());
         m_bRetSave = true;
     }
 
@@ -161,7 +144,7 @@ void CCSDiffDoc::SaveSpecFile()
 {
     try
     {
-        m_diffSpec->Save(CS2WS(m_pff.GetAppFName()));
+        m_diffSpec->Save(UTF8_TODO::GetUtf8(m_pff.GetAppFName()));
     }
 
     catch( const CSProException& exception )
@@ -171,12 +154,12 @@ void CCSDiffDoc::SaveSpecFile()
 }
 
 
-bool CCSDiffDoc::OpenSpecFile(const std::wstring& filename)
+bool CCSDiffDoc::OpenSpecFile(const std::string& file_path)
 {
     try
     {
         auto new_diff_spec = std::make_unique<DiffSpec>();
-        new_diff_spec->Load(filename, false);
+        new_diff_spec->Load(file_path, false);
 
         m_diffSpec = std::move(new_diff_spec);
         SharedSettings::ToggleViewNamesInTree(!m_diffSpec->GetShowLabels());
@@ -225,13 +208,13 @@ BOOL CCSDiffDoc::SaveModified()
 }
 
 
-void CCSDiffDoc::OnUpdateIsDictionaryDefined(CCmdUI* pCmdUI)
+void CCSDiffDoc::OnUpdateIsDictionaryDefined(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(m_diffSpec->IsDictionaryDefined());
 }
 
 
-void CCSDiffDoc::OnUpdateOptionsExcluded(CCmdUI* pCmdUI)
+void CCSDiffDoc::OnUpdateOptionsExcluded(CCmdUI* const pCmdUI)
 {
     pCmdUI->SetCheck(m_diffSpec->GetSaveExcludedItems());
 }
@@ -257,9 +240,9 @@ namespace
     protected:
         void HandleNoDifferences(const PFF& /*pff*/) override
         {
-            AfxMessageBox(_T("No differences were found.\n\n")
-                          _T("(Note: The system only compares items defined in the data\n")
-                          _T("dictionary and checked in the dictionary tree.)"));
+            AfxMessageBox(L"No differences were found.\n\n"
+                          L"(Note: The system only compares items defined in the data\n"
+                          L"dictionary and checked in the dictionary tree.)");
         }
     };
 }
@@ -271,8 +254,8 @@ void CCSDiffDoc::OnFileRun()
     if( m_pff.GetListingFName().IsEmpty() )
     {
         m_pff.SetListingFName(WS2CS(m_pff.GetPifFileName().IsEmpty() ?
-            PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory(GetDictionary().GetFullFileName()), _T("CSDiff.lst")) :
-            PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::WithDot::Listing)));
+            UTF8_TODO::GetWide(PortableFunctions::PathReplaceFilename(GetDictionary().GetFilePath(), "CSDiff.lst")) :
+            PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), UTF8_TODO::GetCString(FileExtensions::Listing))));
     }
 
     CFilesBrow file_dlg(this, m_pff);
@@ -283,7 +266,7 @@ void CCSDiffDoc::OnFileRun()
     // save the PFF
     if( !m_pff.GetAppFName().IsEmpty() )
     {
-        m_pff.SetPifFileName(m_pff.GetAppFName() + FileExtensions::WithDot::Pff);
+        m_pff.SetPifFileName(UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(UTF8_TODO::GetUtf8(m_pff.GetAppFName()), FileExtensions::Pff)));
         m_pff.Save();
     }
 
@@ -305,8 +288,8 @@ void CCSDiffDoc::RunBatchDiff()
     {
         if( m_pff.GetAppType() != APPTYPE::COMPARE_TYPE )
         {
-            throw CSProException(_T("PFF file '%s' was not read correctly. Check the file for parameters invalid to CSDiff."),
-                                 m_pff.GetPifFileName().GetString());
+            throw CSProException("PFF file '%s' was not read correctly. Check the file for parameters invalid to CSDiff.",
+                                 UTF8_TODO::GetUtf8(m_pff.GetPifFileName()).c_str());
         }
 
         Differ().Run(m_pff, true);

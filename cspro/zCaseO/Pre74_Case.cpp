@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Pre74_Case.h"
-#include <zToolsO/NewlineSubstitutor.h>
+#include <zUtilO/MemoryHelpers.h>
 
 
 Pre74_CaseRecord::Pre74_CaseRecord(const CDictRecord* pRecord)
@@ -283,7 +283,7 @@ void Pre74_Case::FinalizeLevel(Pre74_CaseLevel* pCaseLevel,bool bAddRequiredReco
             apRequiredRecordsWithoutOccurrences.emplace_back(pCaseRecord->GetOrCreateRecordBuffer(0));
 
             if( case_construction_reporter != nullptr )
-                case_construction_reporter->BlankRecordAdded(pCaseLevel->m_csKey, pDictRecord->GetName());
+                case_construction_reporter->BlankRecordAdded(UTF8_TODO::GetUtf8(pCaseLevel->m_csKey), pDictRecord->GetName());
         }
 
         for( int iOcc = 0; iOcc < pCaseRecord->GetNumRecordOccs(); iOcc++ )

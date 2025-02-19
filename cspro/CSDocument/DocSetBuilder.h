@@ -2,8 +2,8 @@
 
 #include <CSDocument/CSDocCompilerSettings.h>
 
-class CStdioFileUnicode;
 class PdfCreator;
+namespace FileIO { class TextFile; }
 
 
 // --------------------------------------------------------------------------
@@ -19,7 +19,7 @@ public:
     ~DocSetBuilderBaseGenerateTask();
 
     static std::unique_ptr<DocSetBuilderBaseGenerateTask> CreateForBuild(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                                                         const DocBuildSettings& base_build_settings, std::wstring build_name,
+                                                                         const DocBuildSettings& base_build_settings, std::string build_name,
                                                                          bool throw_exceptions_for_serious_issues_when_validating_build_settings);
 
     void SetDocSetBuilderCache(std::shared_ptr<DocSetBuilderCache> doc_set_builder_cache);
@@ -32,7 +32,7 @@ protected:
     DocSetSpec& GetDocSetSpec() { return m_csdocCompilerSettingsForBuilding->GetDocSetSpec(); }
 
     void CreateTempOutputDirectory();
-    const std::wstring& GetTempOutputDirectory() const { ASSERT(!m_tempOutputDirectory.empty()); return m_tempOutputDirectory; }
+    const std::string& GetTempOutputDirectory() const { ASSERT(!m_tempOutputDirectory.empty()); return m_tempOutputDirectory; }
 
     void RunBuild();
 
@@ -42,25 +42,25 @@ protected:
     // base class implementation does nothing
     virtual void OnPreCSDocCompilation();
 
-    // base class implementation returns the filenames in no particular order
-    virtual const std::vector<std::wstring>& GetCSDocFilenamesInCompilationOrder();
+    // base class implementation returns the file paths in no particular order
+    virtual const std::vector<std::string>& GetCSDocFilePathsInCompilationOrder();
 
-    // base class implementation calls CSDocCompilerSettingsForBuilding::CreateHtmlOutputFilename
-    virtual std::wstring GetCSDocOutputFilename(const std::wstring& csdoc_filename);
+    // base class implementation calls CSDocCompilerSettingsForBuilding::CreateHtmlOutputFilePath
+    virtual std::string GetCSDocOutputFilePath(const std::string& csdoc_file_path);
 
     // base class implementation saves the HTML to the output file
-    virtual void OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const std::wstring& html);
+    virtual void OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const std::string& html);
 
     // base class implementation throws the exception
-    virtual void OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const CSProException& exception);
+    virtual void OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const CSProException& exception);
 
     // base class implementation does nothing
     virtual void OnPostCSDocCompilation();
 
 private:
     void GetTextAndModifiedIterationForOpenDocuments();
-    const std::tuple<std::wstring, int64_t>* GetTextAndModifiedIteration(const std::wstring& filename) const;
-    std::wstring GetFileText(const std::wstring& filename) const;
+    const std::tuple<SharableString, int64_t>* GetTextAndModifiedIteration(const std::string& file_path) const;
+    SharableString GetFileText(const std::string& file_path) const;
 
     void IncrementAndUpdateProgress(double progress_increase);
 
@@ -70,11 +70,11 @@ protected:
     std::unique_ptr<CSDocCompilerSettingsForBuilding> m_csdocCompilerSettingsForBuilding;
 
 private:
-    std::map<StringNoCase, std::tuple<std::wstring, int64_t>> m_textAndModifiedIterationForOpenDocuments;
+    std::map<std::string, std::tuple<SharableString, int64_t>, cs::case_insensitive_less> m_textAndModifiedIterationForOpenDocuments;
     std::optional<RAII::PushOnVectorAndPopOnDestruction<DocSetCompiler::GetFileTextOrModifiedIterationCallback>> m_getFileTextOrModifiedIterationCallbackHolder;
     double m_progress;
-    std::vector<std::wstring> m_csdocFilenames;
-    std::wstring m_tempOutputDirectory;
+    std::vector<std::string> m_csdocFilePaths;
+    std::string m_tempOutputDirectory;
 };
 
 
@@ -88,21 +88,21 @@ class DocSetBuilderCompileAllGenerateTask : public DocSetBuilderBaseGenerateTask
 public:
     DocSetBuilderCompileAllGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);
 
-    const std::vector<std::tuple<std::wstring, std::wstring>>& GetDocumentsWithCompilationErrors() const { return m_documentsWithCompilationErrors; }
+    const std::vector<std::tuple<std::string, std::string>>& GetDocumentsWithCompilationErrors() const { return m_documentsWithCompilationErrors; }
 
     void ValidateInputs() override { }
 
 protected:
     void OnRun() override;
 
-    std::wstring GetCSDocOutputFilename(const std::wstring& /*csdoc_filename*/) override { return std::wstring(); }
+    std::string GetCSDocOutputFilePath(const std::string& /*csdoc_file_path*/) override { return std::string(); }
 
-    void OnCSDocCompilationResult(const std::wstring& /*csdoc_filename*/, const std::wstring& /*output_filename*/, const std::wstring& /*html*/) override { }
+    void OnCSDocCompilationResult(const std::string& /*csdoc_file_path*/, const std::string& /*output_file_path*/, const std::string& /*html*/) override { }
 
-    void OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const CSProException& exception) override;
+    void OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const CSProException& exception) override;
 
 private:
-    std::vector<std::tuple<std::wstring, std::wstring>> m_documentsWithCompilationErrors; // filename, error
+    std::vector<std::tuple<std::string, std::string>> m_documentsWithCompilationErrors; // file path, error
 };
 
 
@@ -115,7 +115,7 @@ class DocSetBuilderHtmlPagesGenerateTask : public DocSetBuilderBaseGenerateTask
 {
 public:
     DocSetBuilderHtmlPagesGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                       const DocBuildSettings& base_build_settings, std::wstring build_name,
+                                       const DocBuildSettings& base_build_settings, std::string build_name,
                                        bool throw_exceptions_for_serious_issues_when_validating_build_settings);
 
 protected:
@@ -134,7 +134,7 @@ class DocSetBuilderHtmlWebsiteGenerateTask : public DocSetBuilderBaseGenerateTas
 
 public:
     DocSetBuilderHtmlWebsiteGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                         const DocBuildSettings& base_build_settings, std::wstring build_name,
+                                         const DocBuildSettings& base_build_settings, std::string build_name,
                                          bool throw_exceptions_for_serious_issues_when_validating_build_settings);
     ~DocSetBuilderHtmlWebsiteGenerateTask();
 
@@ -150,13 +150,13 @@ protected:
 private:
     CSDocCompilerSettingsForBuildingHtmlWebsite& GetSettings();
 
-    void Create_htaccess(const std::wstring& directory, const std::wstring& default_document_built_filename);
-    void Create_web_config(const std::wstring& directory, const std::wstring& default_document_built_filename);
+    void Create_htaccess(const std::string& directory, const std::string& default_document_built_filename);
+    void Create_web_config(const std::string& directory, const std::string& default_document_built_filename);
 
 private:
     class TableOfContentsEvaluator;
     std::unique_ptr<TableOfContentsEvaluator> m_tableOfContentsEvaluator;
-    std::wstring m_defaultDocumentBuiltPath;
+    std::string m_defaultDocumentBuiltFilePath;
 };
 
 
@@ -171,7 +171,7 @@ class DocSetBuilderChmGenerateTask : public DocSetBuilderBaseGenerateTask
 
 public:
     DocSetBuilderChmGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                 const DocBuildSettings& base_build_settings, std::wstring build_name,
+                                 const DocBuildSettings& base_build_settings, std::string build_name,
                                  bool throw_exceptions_for_serious_issues_when_validating_build_settings);
 
     void ValidateInputs() override;
@@ -184,35 +184,35 @@ protected:
 
     void OnPreCSDocCompilation() override;
 
-    std::wstring GetCSDocOutputFilename(const std::wstring& csdoc_filename) override;
+    std::string GetCSDocOutputFilePath(const std::string& csdoc_file_path) override;
 
-    void OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const std::wstring& html) override;
+    void OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const std::string& html) override;
 
     void OnPostCSDocCompilation() override;
 
 private:
     CSDocCompilerSettingsForBuildingChm& GetSettings();
 
-    const std::wstring& AddChmInput(std::wstring filename);
+    const std::string& AddChmInput(std::string file_path);
 
-    std::unique_ptr<CStdioFileUnicode> OpenChmFileForOutput(const std::wstring& filename);
+    FileIO::TextFile OpenChmFileForOutput(const std::string& file_path);
 
     class IndexTableOfContentsBaseWriter;
     class IndexWriter;
     class TableOfContentsWriter;
 
-    void WriteChmProjectFile(const std::wstring& hhp_filename, const std::wstring& hhc_filename, const std::wstring& hhk_filename);
-    void WriteChmProjectFileContextIds(CStdioFileUnicode& file);
-    void WriteChmTableOfContentsFile(CStdioFileUnicode& file);
-    void WriteChmIndexFile(CStdioFileUnicode& file);
+    void WriteChmProjectFile(const std::string& hhp_file_path, const std::string& hhc_file_path, const std::string& hhk_file_path);
+    void WriteChmProjectFileContextIds(FileIO::TextFile& text_file);
+    void WriteChmTableOfContentsFile(FileIO::TextFile& text_file);
+    void WriteChmIndexFile(FileIO::TextFile& text_file);
 
 private:
-    std::wstring m_chmOutputFilename;
-    std::wstring m_defaultDocumentBuiltHtmlFilename;
-    std::vector<std::wstring> m_evaluatedButtonValues;
-    std::vector<std::wstring> m_chmInputFilenames;
-    std::wstring m_nonEmbeddedStylesheetHtml;
-    std::map<unsigned, std::wstring> m_contextMap; // context ID -> document where used
+    std::string m_chmOutputFilePath;
+    std::string m_defaultDocumentBuiltHtmlFilename;
+    std::vector<std::string> m_evaluatedButtonValues;
+    std::vector<std::string> m_chmInputFilePaths;
+    std::string m_nonEmbeddedStylesheetHtml;
+    std::map<unsigned, std::string> m_contextMap; // context ID -> document where used
 };
 
 
@@ -227,7 +227,7 @@ class DocSetBuilderPdfGenerateTask : public DocSetBuilderBaseGenerateTask
 
 public:
     DocSetBuilderPdfGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                 const DocBuildSettings& base_build_settings, std::wstring build_name,
+                                 const DocBuildSettings& base_build_settings, std::string build_name,
                                  bool throw_exceptions_for_serious_issues_when_validating_build_settings);
     ~DocSetBuilderPdfGenerateTask();
 
@@ -241,11 +241,11 @@ protected:
 
     void OnPreCSDocCompilation() override;
 
-    const std::vector<std::wstring>& GetCSDocFilenamesInCompilationOrder() override;
+    const std::vector<std::string>& GetCSDocFilePathsInCompilationOrder() override;
 
-    std::wstring GetCSDocOutputFilename(const std::wstring& csdoc_filename) override;
+    std::string GetCSDocOutputFilePath(const std::string& csdoc_file_path) override;
 
-    void OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const std::wstring& html) override;
+    void OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const std::string& html) override;
 
     void OnPostCSDocCompilation() override;
 
@@ -257,14 +257,14 @@ private:
 
 private:
     std::unique_ptr<PdfCreator> m_pdfCreator;
-    std::wstring m_pdfOutputFilename;
+    std::string m_pdfOutputFilePath;
 
-    std::vector<std::tuple<std::size_t, std::wstring>> m_csdocCompilationIndexWithPreceedingTitles;
-    std::vector<std::wstring> m_csdocFilenamesInCompilationOrder;
+    std::vector<std::tuple<size_t, std::string>> m_csdocCompilationIndexWithPreceedingTitles;
+    std::vector<std::string> m_csdocFilePathsInCompilationOrder;
     size_t m_csdocFirstNonCoverPageCompilationIndex;
     size_t m_csdocCurrentCompilationIndex;
 
-    std::wstring m_csdocsHtmlFilename;
+    std::string m_csdocsHtmlFilePath;
     FILE* m_csdocsHtmlFile;
-    std::wstring m_coverPageHtmlFilename;
+    std::string m_coverPageHtmlFilePath;
 };

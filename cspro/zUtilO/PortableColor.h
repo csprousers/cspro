@@ -2,10 +2,6 @@
 
 #include <zUtilO/zUtilO.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 class CLASS_DECL_ZUTILO PortableColor
 {
@@ -23,46 +19,44 @@ public:
     static PortableColor FromRGB(uint32_t red, uint32_t green, uint32_t blue);
 
     COLORREF ToCOLORREF() const { return m_colorref; }
-    int ToColorInt() const      { return (int)m_colorint; }
+    int ToColorInt() const      { return static_cast<int>(m_colorint); }
 
     bool operator==(const PortableColor& rhs_pc) const { return ( m_colorint == rhs_pc.m_colorint ); }
     bool operator!=(const PortableColor& rhs_pc) const { return ( m_colorint != rhs_pc.m_colorint ); }
 
-    static std::optional<PortableColor> FromString(NullTerminatedStringView text);
+    static std::optional<PortableColor> FromString(cs::string_view_sz text_sv);
 
-    static PortableColor FromString(NullTerminatedStringView text, const PortableColor& default_color)
+    static PortableColor FromString(cs::string_view_sz text_sv, const PortableColor& default_color)
     {
-        return FromString(text).value_or(default_color);
+        return FromString(text_sv).value_or(default_color);
     }
 
-    std::wstring ToStringRGBA(bool use_color_names = false) const
+    std::string ToStringRGBA(bool use_color_names = false) const
     {
         return ToString(use_color_names, true);
     }
 
-    std::wstring ToStringRGB(bool use_color_names = false) const
+    std::string ToStringRGB(bool use_color_names = false) const
     {
         return ToString(use_color_names, false);
     }
 
-    /// <summary>
-    /// By default, the HTML color name is returned when possible; if not, then #rrggbb is returned
-    /// if the alpha channel is set to 0xff, or #rrggbbaa otherwise.
-    /// </summary>
-    std::wstring ToString(bool use_color_names = true) const
+    // By default, the HTML color name is returned when possible; if not, then #rrggbb is returned
+    // if the alpha channel is set to 0xff, or #rrggbbaa otherwise.
+    std::string ToString(bool use_color_names = true) const
     {
         return ( ( m_colorint & 0xff000000 ) == 0xff000000 ) ? ToStringRGB(use_color_names) :
                                                                ToStringRGBA(use_color_names);
     }
 
     // serialization
-    static PortableColor CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static PortableColor CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
 
 private:
-    std::wstring ToString(bool use_color_names, bool include_alpha_channel) const;
+    std::string ToString(bool use_color_names, bool include_alpha_channel) const;
 
 private:
     uint32_t m_colorint; // 32-bit AARRGGBB

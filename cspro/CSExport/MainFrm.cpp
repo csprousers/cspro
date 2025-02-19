@@ -1,7 +1,4 @@
-﻿// MainFrm.cpp : implementation of the CMainFrame class
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "MainFrm.h"
 #include "CSExport.h"
 #include "ExptDoc.h"
@@ -10,12 +7,6 @@
 #include <zEdit2O/Lexers.h>
 #include <zInterfaceF/UWM.h>
 
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
@@ -147,11 +138,11 @@ bool CMainFrame::PostRunFileCheck(CString csFilename)
         if( !PortableFunctions::FileExists(csFilename) )
         {
             CString csRunErrorFilename;
-            csRunErrorFilename.Format(_T("%sCSExpRun%d.err"), GetTempDirectory().c_str(), GetCurrentProcessId());
+            csRunErrorFilename.Format(_T("%sCSExpRun%d.err"), UTF8_TODO::GetWide(GetTempDirectory()).c_str(), GetCurrentProcessId());
             bool bHadCompilationWarnings = PortableFunctions::FileExists(csRunErrorFilename);
 
             CIMSAString sMsg;
-            sMsg.Format(_T("No output generated in file %s. File not created."), (LPCTSTR)csFilename);
+            sMsg.Format(_T("No output generated in file %s. File not created."), csFilename.GetString());
 
             if( bHadCompilationWarnings )
                 sMsg.Append(_T(" There were compilation warnings so the universe may not be valid."));
@@ -243,7 +234,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SpssSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN,csDataFile);
                 }
                 break;
@@ -252,7 +243,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SasSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
                 }
                 break;
@@ -261,22 +252,22 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDictionary;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDo;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
                 }
                 break;
 
                 case METHOD::R:
                 {
-                    // GHM 20140520 I forgot to add this, for an export to multiple files / record, when I initially implemented the R export
+                    // 20140520 I forgot to add this, for an export to multiple files / record, when I initially implemented the R export
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::RSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::RSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
                 }
                 break;
@@ -285,7 +276,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::Dictionary;
+                    csDataFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Dictionary));
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
                 }
                 break;
@@ -294,27 +285,27 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SpssSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN,csDataFile);
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SasSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDictionary;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDo;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
 
-                    PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH)); // GHM 20140520
+                    PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH)); // 20140520
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::RSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::RSyntax);
                     IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILEOPEN, csDataFile);
                 }
                 break;
@@ -374,12 +365,11 @@ void CMainFrame::OnUpdateFrameTitle(BOOL /*bAddToTitle*/)
     csAppName.Format(AFX_IDS_APP_TITLE);
 
     CExportDoc* pDoc = (CExportDoc*)GetActiveDocument();
-    CString csDocumentTitle = ( pDoc == nullptr ) ? CString() : pDoc->GetDocumentWindowTitle();
 
-    CString csTitle;
-    csTitle.Format(_T("%s%s%s"), (LPCTSTR)csDocumentTitle, csDocumentTitle.IsEmpty() ? _T("") : _T(" - "), (LPCTSTR)csAppName);
+    std::string title = ( pDoc != nullptr ) ? pDoc->GetDocumentWindowTitle() : std::string();
+    SO::AppendWithSeparator(title, UTF8_TODO::GetUtf8(csAppName.GetString()), " - ");
 
-    SetWindowText(csTitle);
+    WindowsUtf8::SetText(this, title);
 }
 
 

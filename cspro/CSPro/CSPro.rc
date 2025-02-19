@@ -141,7 +141,7 @@ BEGIN
     BUTTON      ID_FILE_OPEN
     SEPARATOR
     BUTTON      ID_HELP_FINDER
-    BUTTON      ID_TOOLS_DATAVIEWER
+    BUTTON      ID_TOOLS_DATAMANAGER
     BUTTON      ID_TOOLS_TEXTVIEW
     BUTTON      ID_TOOLS_TABLEVIEW
     BUTTON      ID_TOOLS_FREQ
@@ -187,7 +187,7 @@ BEGIN
     END
     POPUP "&Tools"
     BEGIN
-        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Data Manager",               ID_TOOLS_DATAMANAGER
         MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
         MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
         MENUITEM SEPARATOR
@@ -304,21 +304,6 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,14,104,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,92,104,50,14
     PUSHBUTTON      "&Help",ID_HELP,170,105,50,14
-END
-
-IDD_DICTTYPE DIALOGEX 0, 0, 186, 126
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dictionary Types"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
-BEGIN
-    CONTROL         "&Main",IDC_DICTTYPE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,42,23,100,10
-    CONTROL         "&External",IDC_RADIOEXT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,42,102,11
-    CONTROL         "&Working",IDC_RADIOWKG,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,62,43,10
-    CONTROL         "&Special Output",IDC_RADIOOUTPUT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,81,63,10
-    DEFPUSHBUTTON   "OK",IDOK,7,109,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,67,109,50,14
-    PUSHBUTTON      "&Help",ID_HELP,129,109,50,14
-    GROUPBOX        "Dictionary Types",IDC_STATIC,7,4,172,97
 END
 
 IDD_START DIALOGEX 0, 0, 416, 249
@@ -480,20 +465,6 @@ BEGIN
     LTEXT           "Context",IDC_STATIC,124,144,27,8
 END
 
-IDD_REPORT_PROPERTIES DIALOGEX 0, 0, 303, 74
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Report Properties"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
-BEGIN
-    EDITTEXT        IDC_REPORT_NAME,39,27,254,14,ES_UPPERCASE | ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,58,53,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,126,53,50,14
-    PUSHBUTTON      "&Help",ID_HELP,194,53,50,14
-    EDITTEXT        IDC_REPORT_FILENAME,39,7,254,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
-    LTEXT           "File:",IDC_STATIC,7,10,14,8
-    LTEXT           "Name:",IDC_STATIC,7,30,22,8
-END
-
 IDD_PROPERTIES_MAPPING DIALOGEX 0, 0, 438, 288
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Mapping"
@@ -621,6 +592,28 @@ BEGIN
     LTEXT           "JSON format:",IDC_STATIC,0,35,44,8
 END
 
+IDD_PROPERTIES_JAVASCRIPT DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "JavaScript"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "These properties apply to embedded JavaScript run with the QuickJS JavaScript Engine.",IDC_STATIC,0,0,282,8
+    GROUPBOX        "Modules",IDC_STATIC,0,17,282,33
+    CONTROL         "Abort on application startup when a module cannot be loaded.",IDC_JAVASCRIPT_ABORT_MODULE_LOAD_ERROR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,30,215,10
+    GROUPBOX        "Action Invoker",IDC_STATIC,0,57,282,53
+    CONTROL         "Add the Action Invoker into the global object.",IDC_JAVASCRIPT_USE_ACTION_INVOKER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,72,162,10
+    LTEXT           "Action Invoker name:",IDC_STATIC,16,90,70,8
+    EDITTEXT        IDC_JAVASCRIPT_ACTION_INVOKER_NAME,96,87,77,14,ES_AUTOHSCROLL
+    GROUPBOX        "Compiled Application Serialization",IDC_STATIC,0,118,282,64
+    CONTROL         "Scripts and bytecode ",IDC_JAVASCRIPT_SCRIPTS_AND_BYTECODE,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,16,133,85,10
+    CONTROL         "Scripts only",IDC_JAVASCRIPT_SCRIPTS_ONLY,"Button",BS_AUTORADIOBUTTON,16,149,53,10
+    CONTROL         "Bytecode only (will not run on x64 devices)",IDC_JAVASCRIPT_BYTECODE_ONLY,
+                    "Button",BS_AUTORADIOBUTTON,16,165,153,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -690,13 +683,6 @@ BEGIN
         RIGHTMARGIN, 233
         TOPMARGIN, 2
         BOTTOMMARGIN, 118
-    END
-
-    IDD_DICTTYPE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        BOTTOMMARGIN, 123
     END
 
     IDD_START, DIALOG
@@ -773,14 +759,6 @@ BEGIN
         BOTTOMMARGIN, 337
     END
 
-    IDD_REPORT_PROPERTIES, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 293
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 67
-    END
-
     IDD_PROPERTIES_MAPPING, DIALOG
     BEGIN
     END
@@ -823,6 +801,11 @@ BEGIN
     IDD_PROPERTIES_JSON, DIALOG
     BEGIN
     END
+
+    IDD_PROPERTIES_JAVASCRIPT, DIALOG
+    BEGIN
+        VERTGUIDE, 16
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -848,11 +831,6 @@ BEGIN
 END
 
 IDD_SYMBOL_ANALYSIS AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
-IDD_REPORT_PROPERTIES AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -898,6 +876,11 @@ BEGIN
 END
 
 IDD_PROPERTIES_JSON AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_JAVASCRIPT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -985,7 +968,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_DICTTYPE             "Dictionary Type\nDictionary Type"
     ID_STATUS_PANE_INDICATOR "                       "
     ID_TOOLS_VERSION_SHIFTER 
                             "Change the default version of CSPro\nVersion Shifter"
@@ -1003,21 +985,9 @@ BEGIN
                             "The form file %s already exists and has an existing dictionary %s.  CSPro will use the existing dictionary rather than setting the new dictionary %s that you chose."
     IDS_FILEOPEN            "%1 is already open."
     IDS_INVLDAPPTYPE        "Invalid Application type :APPFILE = %1"
-    IDS_LOGIC_ALREADY_IN_APP 
-                            "Unable to add the logic file %s to this application because it is already included."
-    IDS_MESSAGE_ALREADY_IN_APP 
-                            "Unable to add the message file %s to this application because it is already included."
     IDS_OPENAPPFLD          "Opening %1 failed "
     IDS_OVERWRITE_FILE      "The file %s already exists.  Overwrite the existing file?"
     IDS_OVERWRITE_OPEN_FILE "The file %s is currently open by another application.  Changing the name of the file while it is open could cause serious problems.  Please choose another name."
-END
-
-STRINGTABLE
-BEGIN
-    IDS_RESOURCE_FOLDER_ALREADY_IN_APP 
-                            "Unable to add the resource folder %s to this application because it is already included."
-    IDS_RESOURCE_FOLDER_INVALID 
-                            "The resource folder %s is not a valid folder."
     IDS_SAVE_AS_SAVE_ERROR  "Save As: unable to save.  Error saving file %s."
 END
 

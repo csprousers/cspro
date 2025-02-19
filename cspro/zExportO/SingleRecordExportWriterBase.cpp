@@ -31,8 +31,8 @@ void SingleRecordExportWriterBase::CreateExportRecordMappings()
                 {
                     if( m_caseAccess->GetCaseConstructionReporter() != nullptr )
                     {
-                        const std::wstring message = FormatTextCS2WS(_T("multiple records are not supported so '%s' will not be exported"),
-                                                                     export_record_mapping.formatted_record_name.c_str());
+                        const std::string message = FormatText("multiple records are not supported so '%s' will not be exported",
+                                                               export_record_mapping.formatted_record_name.c_str());
                         m_caseAccess->GetCaseConstructionReporter()->IssueMessage(MessageType::Warning, 31102, ToString(m_type), message.c_str());
                     }
                 }

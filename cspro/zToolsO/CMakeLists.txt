@@ -2,43 +2,56 @@ project(zToolsO)
 
 include(../WASM/Definitions.cmake)
 
+set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
+
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
 )
 
-add_library(${PROJECT_NAME} 
-    rijndael/rijndael-alg-fst.c
-
-    scrypt/insecure_memzero.c
-    scrypt/sha256.c
-
+add_library(${PROJECT_NAME}
     base64.cpp
     BinaryGen.cpp
     bzlib.c
-    CSProException.cpp
     DateTime.cpp
+    DebugLogging.cpp
     DelimitedTextCreator.cpp
     DirectoryLister.cpp
     Encoders.cpp
     Encryption.cpp
     ErrorMessageDisplayer.cpp
+    ExceptionHolder.cpp
+    File.cpp
     FileIO.cpp
     FuzzyWuzzy.cpp
     Hash.cpp
     ImsaStrMem.cpp
+    IniFile.cpp
+    InterfaceString.cpp
     md5.c
     Memctrl.cpp
+    MemoryStream.cpp
+    NewlineSubstitutor.cpp
     NumberToString.cpp
     ObjectTransporter.cpp
+    Path.cpp
     PortableFunctions.cpp
     Screen.cpp
     serializer.cpp
+    SharableString.cpp
     Special.cpp
     StringOperations.cpp
     TextConverterAnsi.cpp
+    TextEncoding.cpp
     Tools.cpp
+    UniqueId.cpp
+    Utf8.cpp
     Utf8Convert.cpp
     Utf8FileStream.cpp
     uuid.cpp
     VarFuncs.cpp
+
+    rijndael/rijndael-alg-fst.c
+
+    ${SCRYPT_DIRECTORY}/insecure_memzero.c
+    ${SCRYPT_DIRECTORY}/sha256.c
 )

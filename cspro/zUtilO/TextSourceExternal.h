@@ -7,13 +7,18 @@
 class CLASS_DECL_ZUTILO TextSourceExternal : public TextSource
 {
 public:
-    TextSourceExternal(std::wstring filename);
+    TextSourceExternal(std::string file_path);
 
-    const std::wstring& GetText() const override;
+    const std::string& GetText() const override;
+    SharableString GetTextAsSharableString() const override;
 
     int64_t GetModifiedIteration() const override;
 
+    bool RequiresSave() const override;
+
 private:
-    std::wstring m_text;
-    mutable std::unique_ptr<std::tuple<int64_t, std::wstring>> m_iterationAndText;
+    void SyncText() const;
+
+private:
+    mutable std::unique_ptr<std::tuple<int64_t, SharableString>> m_iterationAndText;
 };

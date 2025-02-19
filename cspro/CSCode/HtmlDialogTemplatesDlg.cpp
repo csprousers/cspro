@@ -15,7 +15,7 @@ BEGIN_MESSAGE_MAP(HtmlDialogTemplatesDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-HtmlDialogTemplatesDlg::HtmlDialogTemplatesDlg(const CDocument* active_doc, CWnd* pParent)
+HtmlDialogTemplatesDlg::HtmlDialogTemplatesDlg(const CDocument* const active_doc, CWnd* const pParent)
     :   CDialog(IDD_HTML_DIALOG_TEMPLATES, pParent),
         m_initialSamplePairToSelect(nullptr),
         m_selectedSamplePair(nullptr),
@@ -41,7 +41,7 @@ HtmlDialogTemplatesDlg::HtmlDialogTemplatesDlg(const CDocument* active_doc, CWnd
     // set the initial selection based on the current document
     if( active_doc != nullptr )
     {
-        std::wstring doc_filename = PortableFunctions::PathGetFilename(active_doc->GetPathName());
+        const std::string doc_filename = PortableFunctions::PathGetFilename(TC::ToUtf8(active_doc->GetPathName()));
 
         const auto& lookup = std::find_if(m_usableSamples.cbegin(), m_usableSamples.cend(),
             [&](const SamplePair& sample_pair)
@@ -60,7 +60,7 @@ HtmlDialogTemplatesDlg::HtmlDialogTemplatesDlg(const CDocument* active_doc, CWnd
 }
 
 
-void HtmlDialogTemplatesDlg::DoDataExchange(CDataExchange* pDX)
+void HtmlDialogTemplatesDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
@@ -86,7 +86,7 @@ BOOL HtmlDialogTemplatesDlg::OnInitDialog()
     // set up the read-only Scintilla control to show the JSON input text
     m_inputLogicCtrl.ReplaceCEdit(this, false, false, SCLEX_JSON);
 
-    // select the initial node  
+    // select the initial node
     m_samplesTreeCtrl.SelectItem(initial_node_to_select);
 
     return TRUE;
@@ -105,11 +105,13 @@ HTREEITEM HtmlDialogTemplatesDlg::BuildSamplesTree()
 
     for( const SamplePair& sample_pair : m_usableSamples )
     {
-        auto add_tree_node = [&](HTREEITEM parent_node, const std::wstring& text)
+        auto add_tree_node = [&](HTREEITEM parent_node, const std::string& text)
         {
+            std::wstring wide_text = TC::ToWide(text);
+
             tvi.hParent = parent_node;
-            tvi.item.pszText = const_cast<TCHAR*>(text.c_str());
-            tvi.item.cchTextMax = text.length();
+            tvi.item.pszText = wide_text.data();
+            tvi.item.cchTextMax = wide_text.length();
             tvi.item.lParam = reinterpret_cast<LPARAM>(&sample_pair);
 
             return m_samplesTreeCtrl.InsertItem(&tvi);
@@ -129,7 +131,7 @@ HTREEITEM HtmlDialogTemplatesDlg::BuildSamplesTree()
 
         if( m_initialSamplePairToSelect == &sample_pair )
             initial_node_to_select = sample_node;
-    }        
+    }
 
     ASSERT(initial_node_to_select.has_value());
 
@@ -145,7 +147,7 @@ void HtmlDialogTemplatesDlg::PostNcDestroy()
 }
 
 
-void HtmlDialogTemplatesDlg::OnSize(UINT nType, int cx, int cy)
+void HtmlDialogTemplatesDlg::OnSize(const UINT nType, const int cx, const int cy)
 {
     // the Scintilla control doesn't seem to respond to Dynamic Layout settings
     if( m_dynamicLayoutControlResizer == nullptr )
@@ -158,32 +160,33 @@ void HtmlDialogTemplatesDlg::OnSize(UINT nType, int cx, int cy)
 
 
 void HtmlDialogTemplatesDlg::OnCancel()
-{   
+{
     DestroyWindow();
 }
 
 
-void HtmlDialogTemplatesDlg::OnSampleSelectionChanged(NMHDR* pNMHDR, LRESULT* pResult)
+void HtmlDialogTemplatesDlg::OnSampleSelectionChanged(NMHDR* const pNMHDR, LRESULT* const pResult)
 {
-    NM_TREEVIEW* pNMTreeView = reinterpret_cast<NM_TREEVIEW*>(pNMHDR);
+    NM_TREEVIEW* const pNMTreeView = reinterpret_cast<NM_TREEVIEW*>(pNMHDR);
 
     m_selectedSamplePair = reinterpret_cast<const SamplePair*>(pNMTreeView->itemNew.lParam);
     ASSERT(m_selectedSamplePair != nullptr);
 
-    // show the full filename in the dialogs folder (if it exists)
-    m_selectedDialogTemplatePath = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Dialogs),
-                                                                       m_selectedSamplePair->dialog_template.filename);
+    // show the full file path in the dialogs folder (if it exists)
+    m_selectedDialogTemplateFilePath = Path::Combine(Html::GetDirectory(Html::Subdirectory::Dialogs),
+                                                     m_selectedSamplePair->dialog_template.filename);
 
-    if( !PortableFunctions::FileIsRegular(*m_selectedDialogTemplatePath) )
-        m_selectedDialogTemplatePath.reset();
+    if( !PortableFunctions::FileIsRegular(*m_selectedDialogTemplateFilePath) )
+        m_selectedDialogTemplateFilePath.reset();
 
-    m_filenameCaption.SetWindowText(( m_selectedDialogTemplatePath.has_value() ? *m_selectedDialogTemplatePath:
-                                                                                 m_selectedSamplePair->dialog_template.filename ).c_str());
-    m_descriptionCaption.SetWindowText(m_selectedSamplePair->dialog_template.subdescription.c_str());
-    m_inputLogicCtrl.SetReadOnlyText(m_selectedSamplePair->sample.input);
+    WindowsUtf8::SetText(m_filenameCaption, m_selectedDialogTemplateFilePath.has_value() ? *m_selectedDialogTemplateFilePath :
+                                                                                           m_selectedSamplePair->dialog_template.filename);
 
-    m_showDialogButton.EnableWindow(m_selectedDialogTemplatePath.has_value());
-    m_replaceHtmlButton.EnableWindow(m_activeDocIsHtmlDialog && m_selectedDialogTemplatePath.has_value());
+    WindowsUtf8::SetText(m_descriptionCaption, m_selectedSamplePair->dialog_template.subdescription);
+    m_inputLogicCtrl.SetReadOnlyText(*m_selectedSamplePair->sample.input);
+
+    m_showDialogButton.EnableWindow(m_selectedDialogTemplateFilePath.has_value());
+    m_replaceHtmlButton.EnableWindow(m_activeDocIsHtmlDialog && m_selectedDialogTemplateFilePath.has_value());
 
     // expand the current node (in case they selected a dialog template and not the sample)
     m_samplesTreeCtrl.Expand(pNMTreeView->itemNew.hItem, TVE_EXPAND);
@@ -194,16 +197,16 @@ void HtmlDialogTemplatesDlg::OnSampleSelectionChanged(NMHDR* pNMHDR, LRESULT* pR
 
 void HtmlDialogTemplatesDlg::OnShowDialog()
 {
-    ASSERT(m_selectedSamplePair != nullptr && m_selectedDialogTemplatePath.has_value());
+    ASSERT(m_selectedSamplePair != nullptr && m_selectedDialogTemplateFilePath.has_value());
 
-    std::optional<std::wstring> input_data;
-    std::optional<std::wstring> display_options_json;
+    SharableString input_data;
+    SharableString display_options_json;
 
-    HtmlDialogFunctionRunner::ParseSingleInputText(m_selectedSamplePair->sample.input, input_data, display_options_json);
-    ASSERT(input_data.has_value());
+    HtmlDialogFunctionRunner::ParseSingleInputText(*m_selectedSamplePair->sample.input, input_data, display_options_json);
+    ASSERT(input_data.IsSet());
 
-    HtmlDialogFunctionRunner html_dialog_function_runner(NavigationAddress::CreateHtmlFilenameReference(*m_selectedDialogTemplatePath),
-                                                         std::move(*input_data),
+    HtmlDialogFunctionRunner html_dialog_function_runner(NavigationAddress::CreateHtmlFilePathReference(*m_selectedDialogTemplateFilePath),
+                                                         std::move(input_data),
                                                          std::move(display_options_json));
 
     html_dialog_function_runner.DoModal();
@@ -212,12 +215,12 @@ void HtmlDialogTemplatesDlg::OnShowDialog()
 
 void HtmlDialogTemplatesDlg::OnReplaceHtml()
 {
-    CodeDoc* active_code_doc = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveCodeDoc();
-    ASSERT(active_code_doc != nullptr && m_selectedDialogTemplatePath.has_value());
+    CodeDoc* const active_code_doc = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveCodeDoc();
+    ASSERT(active_code_doc != nullptr && m_selectedDialogTemplateFilePath.has_value());
 
     try
     {
-        std::string html = FileIO::ReadText<std::string>(*m_selectedDialogTemplatePath);
+        const std::string html = FileIO::ReadText(*m_selectedDialogTemplateFilePath);
         active_code_doc->GetPrimaryCodeView().GetLogicCtrl()->SetText(html);
     }
 
@@ -230,22 +233,22 @@ void HtmlDialogTemplatesDlg::OnReplaceHtml()
 
 void HtmlDialogTemplatesDlg::OnReplaceInput()
 {
-    CodeDoc* active_code_doc = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveCodeDoc();
+    CodeDoc* const active_code_doc = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveCodeDoc();
     ASSERT(active_code_doc != nullptr &&
            active_code_doc->GetLanguageSettings().GetLanguageType() == LanguageType::CSProHtmlDialog &&
            active_code_doc->GetSecondaryCodeView() != nullptr);
 
-    active_code_doc->GetSecondaryCodeView()->GetLogicCtrl()->SetText(m_selectedSamplePair->sample.input);
+    active_code_doc->GetSecondaryCodeView()->GetLogicCtrl()->SetText(*m_selectedSamplePair->sample.input);
 }
 
 
-LRESULT HtmlDialogTemplatesDlg::OnActiveDocChanged(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT HtmlDialogTemplatesDlg::OnActiveDocChanged(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    const CodeDoc* code_doc = reinterpret_cast<const CodeDoc*>(wParam);
+    const CodeDoc* const code_doc = reinterpret_cast<const CodeDoc*>(wParam);
 
     m_activeDocIsHtmlDialog = ( code_doc != nullptr && code_doc->GetLanguageSettings().GetLanguageType() == LanguageType::CSProHtmlDialog );
 
-    m_replaceHtmlButton.EnableWindow(m_activeDocIsHtmlDialog && m_selectedDialogTemplatePath.has_value());
+    m_replaceHtmlButton.EnableWindow(m_activeDocIsHtmlDialog && m_selectedDialogTemplateFilePath.has_value());
     m_replaceInputButton.EnableWindow(m_activeDocIsHtmlDialog);
 
     return 1;

@@ -8,10 +8,12 @@
 #include "StringCaseItem.h"
 
 
-CaseItem::CaseItem(const CDictItem& dict_item, Type type)
+CaseItem::CaseItem(const CDictItem& dict_item, const Type type, const DataType data_type, const bool fixed_width)
     :   m_dictItem(dict_item),
         m_itemIndexHelper(m_dictItem),
         m_type(type),
+        m_dataType(data_type),
+        m_fixedWidth(fixed_width),
         m_recordDataOffset(SIZE_MAX),
         m_memorySize(SIZE_MAX),
         m_totalCaseItemIndex(SIZE_MAX),
@@ -19,39 +21,28 @@ CaseItem::CaseItem(const CDictItem& dict_item, Type type)
         m_itemOccurrenceMultiplier(m_dictItem.GetOccurs()),
         m_parentDictionaryItem(m_dictItem.GetParentItem())
 {
-    m_typeString =  ( m_type == Type::String ||
-                      m_type == Type::FixedWidthString );
-
-    m_typeNumeric = ( m_type == Type::Numeric ||
-                      m_type == Type::FixedWidthNumeric || 
-                      m_type == Type::FixedWidthNumericWithStringBuffer );
-
-    m_typeFixed =   ( m_type == Type::FixedWidthString ||
-                      m_type == Type::FixedWidthNumeric || 
-                      m_type == Type::FixedWidthNumericWithStringBuffer );
-
     // m_recordDataOffset, m_memorySize, and m_totalCaseItemIndex will be set in the CaseRecordMetadata constructor
 
     m_hasMultipleOccurrences = ( m_totalNumberOccurrences > 1 );
 }
 
 
-CaseItem* CaseItem::Create(const CDictItem& dict_item, Type type)
+std::unique_ptr<CaseItem> CaseItem::Create(const CDictItem& dict_item, const Type type)
 {
     switch( type )
     {
-        case Type::String:                            return new StringCaseItem(dict_item);
-        case Type::FixedWidthString:                  return new FixedWidthStringCaseItem(dict_item);
-        case Type::Numeric:                           return new NumericCaseItem(dict_item);
-        case Type::FixedWidthNumeric:                 return new FixedWidthNumericCaseItem(dict_item);
-        case Type::FixedWidthNumericWithStringBuffer: return new FixedWidthNumericWithStringBufferCaseItem(dict_item);
-        case Type::Binary:                            return new BinaryCaseItem(dict_item);
+        case Type::String:                            return std::unique_ptr<CaseItem>(new StringCaseItem(dict_item));
+        case Type::FixedWidthString:                  return std::unique_ptr<CaseItem>(new FixedWidthStringCaseItem(dict_item));
+        case Type::Numeric:                           return std::unique_ptr<CaseItem>(new NumericCaseItem(dict_item));
+        case Type::FixedWidthNumeric:                 return std::unique_ptr<CaseItem>(new FixedWidthNumericCaseItem(dict_item));
+        case Type::FixedWidthNumericWithStringBuffer: return std::unique_ptr<CaseItem>(new FixedWidthNumericWithStringBufferCaseItem(dict_item));
+        case Type::Binary:                            return std::unique_ptr<CaseItem>(new BinaryCaseItem(dict_item));
         default:                                      return ReturnProgrammingError(nullptr);
     }
 }
 
 
-CaseItem* CaseItem::Create(const CDictItem& dict_item)
+std::unique_ptr<CaseItem> CaseItem::Create(const CDictItem& dict_item)
 {
     switch( dict_item.GetContentType() )
     {
@@ -78,10 +69,10 @@ const void* CaseItem::GetDataBuffer(const CaseItemIndex& index) const
     // if the last calculated data buffer cannot be reused, calculate the requested data buffer
     if( index.m_lastCalculatedDataBuffer == nullptr || index.m_lastCalculatedCaseItem != this )
     {
-        ASSERT(m_dictItem.GetRecord() == &index.GetCaseRecord().GetCaseRecordMetadata().GetDictionaryRecord());
+        ASSERT(m_dictItem.GetRecord() == &index.GetCaseRecord().GetCaseRecordMetadata().GetDictRecord());
         ASSERT(index.GetRecordOccurrence() < index.GetCaseRecord().GetNumberOccurrences());
 
-        index.m_lastCalculatedDataBuffer = index.m_caseRecord.m_recordData[index.GetRecordOccurrence()] + m_recordDataOffset;
+        index.m_lastCalculatedDataBuffer = index.m_caseRecord.m_recordData[index.GetRecordOccurrence()].get() + m_recordDataOffset;
         index.m_lastCalculatedCaseItem = this;
 
         if( !m_hasMultipleOccurrences )

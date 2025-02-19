@@ -3,9 +3,10 @@
 #include <BluetoothAPIs.h>
 #include <zUtilO/WinBluetoothFunctions.h>
 
-namespace {
 
-    CString getWinsockErrorMessage(int err)
+namespace
+{
+    std::string getWinsockErrorMessage(int err)
     {
         LPTSTR msgBuff = NULL;
         FormatMessage(
@@ -17,21 +18,21 @@ namespace {
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             (LPTSTR)&msgBuff,
             0, NULL);
-        CString msgString(msgBuff);
+        std::string msgString = TC::ToUtf8(msgBuff);
         LocalFree(msgBuff);
         return msgString;
     }
 
-    WinBluetoothScanner::DeviceList scanForRemoteDevices(std::shared_ptr<WinBluetoothFunctions> pBtFuncs)
+    WinBluetoothScanner::DeviceList scanForRemoteDevices(WinBluetoothFunctions& btFuncs)
     {
         WinBluetoothScanner::DeviceList results;
 
         // Check to see if there is a bluetooth radio on the device
         BLUETOOTH_FIND_RADIO_PARAMS btFindParams = { sizeof(BLUETOOTH_FIND_RADIO_PARAMS) };
         HANDLE hRadio;
-        HBLUETOOTH_RADIO_FIND btFind = pBtFuncs->BluetoothFindFirstRadio(&btFindParams, &hRadio);
+        HBLUETOOTH_RADIO_FIND btFind = btFuncs.BluetoothFindFirstRadio(&btFindParams, &hRadio);
         if (btFind == NULL) {
-            throw SyncError(100101, L"Bluetooth is not enabled in system settings or this device does not support Bluetooth");
+            throw SyncConnectionError("Bluetooth is not enabled in system settings or this device does not support Bluetooth");
         }
 
         WSAQUERYSET restrictions;
@@ -54,7 +55,7 @@ namespace {
             if (err == WSASERVICE_NOT_FOUND)
                 return results;
 
-            throw SyncError(100101, getWinsockErrorMessage(err));
+            throw SyncConnectionError(getWinsockErrorMessage(err));
         }
 
         // Iterate over all devices found
@@ -63,14 +64,12 @@ namespace {
             if (WSALookupServiceNext(hLookup, dwControlFlags, &dwBuffSize, pQuerySet) == 0) {
                 // Check for a matching device name
                 if (pQuerySet->lpszServiceInstanceName != NULL) {
-                    BluetoothDeviceInfo info;
-                    info.csName = pQuerySet->lpszServiceInstanceName;
+                    std::string name = TC::ToUtf8(pQuerySet->lpszServiceInstanceName);
                     _TCHAR addrBuffer[1000];
                     DWORD dwAddressSize = sizeof(addrBuffer);
                     WSAAddressToString(pQuerySet->lpcsaBuffer->RemoteAddr.lpSockaddr, pQuerySet->lpcsaBuffer->RemoteAddr.iSockaddrLength,
                         NULL, addrBuffer, &dwAddressSize);
-                    info.csAddress = addrBuffer;
-                    results.push_back(info);
+                    results.emplace_back(BluetoothDeviceInfo { std::move(name), TC::ToUtf8(addrBuffer) });
                 }
             }
             else {
@@ -84,7 +83,7 @@ namespace {
                     pQuerySet = (WSAQUERYSET*)&buffer[0];
                 }
                 else {
-                    throw SyncError(100101, getWinsockErrorMessage(err));
+                    throw SyncConnectionError(getWinsockErrorMessage(err));
                 }
             }
         }
@@ -93,15 +92,17 @@ namespace {
 
         return results;
     }
-
 }
+
 
 WinBluetoothScanner::WinBluetoothScanner(std::shared_ptr<WinBluetoothFunctions> pBtFuncs)
     : m_bScanEndRequested(false),
       m_bScanThreadEnded(true),
-      m_pBtFuncs(pBtFuncs)
+      m_pBtFuncs(std::move(pBtFuncs))
 {
+    ASSERT(m_pBtFuncs != nullptr);
 }
+
 
 WinBluetoothScanner::~WinBluetoothScanner()
 {
@@ -110,6 +111,7 @@ WinBluetoothScanner::~WinBluetoothScanner()
         m_scanThread.join();
     }
 }
+
 
 void WinBluetoothScanner::startScan()
 {
@@ -131,11 +133,13 @@ void WinBluetoothScanner::startScan()
     }
 }
 
+
 void WinBluetoothScanner::stopScan()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_bScanEndRequested = true;
 }
+
 
 void WinBluetoothScanner::setResultCallback(std::function<void(const DeviceList&)>&& cb)
 {
@@ -143,11 +147,13 @@ void WinBluetoothScanner::setResultCallback(std::function<void(const DeviceList&
     m_resultCallback = std::forward<std::function<void(const DeviceList&)>>(cb);
 }
 
+
 void WinBluetoothScanner::setErrorCallback(std::function<void(const SyncError&)>&& cb)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_errorCallback = std::forward<std::function<void(const SyncError&)>>(cb);
 }
+
 
 WinBluetoothScanner::DeviceList WinBluetoothScanner::getLastScanResult()
 {
@@ -155,12 +161,12 @@ WinBluetoothScanner::DeviceList WinBluetoothScanner::getLastScanResult()
     return m_lastScanResult;
 }
 
+
 void WinBluetoothScanner::scanThreadMain()
 {
-
     while (true) {
         try {
-            DeviceList devicesFound = scanForRemoteDevices(m_pBtFuncs);
+            DeviceList devicesFound = scanForRemoteDevices(*m_pBtFuncs);
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 m_lastScanResult = devicesFound;

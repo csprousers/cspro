@@ -9,7 +9,7 @@ ZFORMATTERO_SRC_PATH    := ../../../../../zFormatterO
 LOCAL_SRC_FILES         += $(ZFORMATTERO_SRC_PATH)/QuestionnaireContentCreator.cpp
 LOCAL_SRC_FILES         += $(ZFORMATTERO_SRC_PATH)/QuestionnaireViewer.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DGENERATE_BINARY=1

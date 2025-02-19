@@ -11,7 +11,7 @@ class CSymbolApl : public Symbol
 {
 public:
     CSymbolApl()
-        :   Symbol(_T("GLOBAL"), SymbolType::Application),
+        :   Symbol("GLOBAL", SymbolType::Application),
             ApplicationType(ModuleType::None),
             MaxLevel(0)
     {

@@ -22,7 +22,7 @@ struct JavaScript::Executor::ActionInvokerJS
     std::vector<ClassDetails> class_details;
 
     // adds the text to cached_text_used_for_QuickJS_pointers
-    const char* AddToQuickJSTextCache(wstring_view text_sv);
+    const char* AddToQuickJSTextCache(std::string text);
 
     // adds the CS object to the global object
     void AddToGlobalObject(JSContext* ctx, JSValue js_global_obj);

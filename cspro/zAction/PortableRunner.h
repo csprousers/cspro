@@ -2,21 +2,24 @@
 
 #include <zAction/ActionInvoker.h>
 
+namespace ActionInvoker { class PortableRunner; }
 
-namespace ActionInvoker
+
+class ActionInvoker::PortableRunner
 {
-    class PortableRunner
-    {
-    public:
-        // Clipboard
-        static std::optional<std::wstring> ClipboardGetText();
-        static void ClipboardPutText(const std::wstring& text);
+public:
+    // Clipboard
+    static SharableString Clipboard_GetText();
+    static void Clipboard_PutText(const std::string_view text_sv);
 
-        // Path
-        static Result PathShowNativeFileDialog(const std::wstring& start_directory, bool open_file_dialog, bool confirm_overwrite,
-                                               const TCHAR* name, const TCHAR* filter, const JsonNode<wchar_t>& json_node);
+    // Path
+    static Result Path_ShowNativeFileDialog(const std::string& start_directory, bool open_file_dialog, bool confirm_overwrite,
+                                            const std::optional<std::string>& name, const std::optional<std::string>& filter,
+                                            const JsonNode& json_node);
 
-        // System
-        static std::vector<std::tuple<std::wstring, std::wstring>> SystemShowSelectDocumentDialog(const std::vector<std::wstring>& mime_types, bool multiple);
-    };
-}
+    // System
+    static void System_CreateShortcut(const std::string& shortcut_id, const std::string& target_file_path, const std::optional<std::string>& icon_file_path,
+                                      const std::string& label, const std::optional<std::string>& long_label);
+
+    static std::vector<std::tuple<std::string, std::string>> System_ShowSelectDocumentDialog(const std::vector<std::string>& mime_types, bool multiple);
+};

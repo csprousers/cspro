@@ -4,5 +4,6 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/Encoders.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/TextSourceExternal.h>
 #include <zMessageO/MessageFile.h>

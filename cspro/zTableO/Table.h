@@ -17,6 +17,8 @@
 #include <zTableO/Style.h>
 #include <engine/ttype.h>
 
+class CDictItem;
+class CDictRecord;
 class DictLevel;
 class DictRelation;
 class DictValue;
@@ -268,8 +270,8 @@ public:
 #define XTS_CMD_TBL_GENLOGIC       _T("GenerateLogic")
 #define XTS_CMD_TBL_EXCLUDE_FOR_RUN _T("ExcludeForRun")
 
-#define XTS_CMD_INPUTDATAFILENAME  _T("InputDataFilename")  // GHM 20090915
-#define XTS_DEFAULT_INPUTDATAFILENAME  _T("<data filename>")    // for the &I header and footer option
+#define XTS_CMD_INPUTDATAFILENAME  _T("InputDataFilename")   // 20090915
+#define XTS_DEFAULT_INPUTDATAFILENAME "<data filename>" // for the &I header and footer option
 #define XTS_DEFAULT_INPUTDATAFILENAMEHEADERLENGTH  50
 
 
@@ -1409,7 +1411,7 @@ protected:
     CString                         m_sSpecFile;        // Spec full path name
     std::shared_ptr<const CDataDict>m_pDataDict;        // Data dictionary
 
-    CString                         m_sInputDataFilename;   // 20090915 GHM
+    std::string                     m_inputDataFilename;  // 20090915
 
 //    CStyleReg                       m_StyleReg;         // Styles
 //    CAppFmt*                        m_pAppFmt;          // App-level formats for this set of tables
@@ -1471,7 +1473,7 @@ public:
     const CString& GetName() const     { return m_sName; }
     void SetName(const CString& sName) { m_sName = sName; }
 
-    const CString& GetDictFile()               { return m_sDictFile; }
+    const CString& GetDictFile() const         { return m_sDictFile; }
     void SetDictFile(const CString& sDictFile) { m_sDictFile = sDictFile; }
 
     const CString& GetSpecFile() const         { return m_sSpecFile; }
@@ -1481,8 +1483,8 @@ public:
     std::shared_ptr<const CDataDict> GetSharedDictionary()   { return m_pDataDict; }
     void SetDict(std::shared_ptr<const CDataDict> pDataDict) { m_pDataDict = std::move(pDataDict); }
 
-    const CString& GetInputDataFilename() const                  { return m_sInputDataFilename; } // 20090915
-    void SetInputDataFilename(const CString& sInputDataFilename) { m_sInputDataFilename = sInputDataFilename; }
+    const std::string& GetInputDataFilename() const            { return m_inputDataFilename; } // 20090915
+    void SetInputDataFilename(std::string input_data_filename) { m_inputDataFilename = std::move(input_data_filename); }
 
     CConsolidate* GetConsolidate()                   { return m_pConsolidate; }
     void SetConsolidate (CConsolidate* pConsolidate) { m_pConsolidate = pConsolidate; }
@@ -1531,10 +1533,10 @@ public:
     bool ReconcileLabel(const CDataDict& dictionary);
 
     // Build and Save
-    bool Open (const CString& sXTSFilePath, bool bSilent = false);
+    bool Open(const CString& sXTSFilePath, bool bSilent = false);
     bool Build (CSpecFile& specFile, std::shared_ptr<ProgressDlg> pDlgProgress, const CString& sVersion, bool bSilent = false);
     bool BuildSampSpec(CSpecFile& specFile, bool bSilent=false);
-    bool Save (const CString& sSpecFilePath, const CString& sDictFilePath, const CString& sInputDataFilename = _T(""));
+    bool Save(const CString& sSpecFilePath, const CString& sDictFilePath, std::string input_data_filename = std::string());
     void SaveSamplingSection(CSpecFile& specFile);
     void SetDefaultFmts(CTabVar* pVar, CFmt* pFmtDefaultVar, CFmt* pFmtDefaultVal);
 

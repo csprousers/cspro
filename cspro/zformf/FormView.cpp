@@ -1775,7 +1775,7 @@ LRESULT CFormScrollView::OnDropItem(WPARAM/* wParam*/, LPARAM lParam)
             // BUT, make the roster loop on the record, not the item!
             pRoster->SetMaxLoopOccs (pDR->GetMaxRecs());
             pRoster->SetRIType (CDEFormBase::Record);
-            pRoster->SetTypeName (pDR->GetName());
+            pRoster->SetTypeName(UTF8_TODO::GetCString(pDR->GetName()));
         }
 
         else
@@ -1791,7 +1791,7 @@ LRESULT CFormScrollView::OnDropItem(WPARAM/* wParam*/, LPARAM lParam)
         CDEForm*     pForm = GetCurForm();
 
         pGroup->SetLoopingVars(pDR);
-        pForm->SetRecordRepeatName (pDR->GetName());
+        pForm->SetRecordRepeatName(UTF8_TODO::GetCString(pDR->GetName()));
 
         // form repeats
         ASSERT(pForm->isFormMultiple());
@@ -1893,7 +1893,7 @@ bool CFormScrollView::ItemsSubitemBeingKeyed(const CDataDict* pDD, const CDictIt
 
     while (iItem < max && pSubItem->GetItemType() == ItemType::Subitem && !bKeyedElsewhere)
     {
-        bKeyedElsewhere = pFF->FindItem (pSubItem->GetName());
+        bKeyedElsewhere = pFF->FindItem(UTF8_TODO::GetCString(pSubItem->GetName()));
 
         if (++iItem < max)
             pSubItem = pRec->GetItem(iItem);
@@ -1949,9 +1949,11 @@ bool CFormScrollView::DropARecordUnroster(DictTreeNode* dict_tree_node, CPoint d
 
         if (pDI->GetOccurs() == 1)
         {
-            if (dict_tree_node->GetRecordIndex() != COMMON &&   // don't drop a prev-keyed item as
-                pFF->FindItem (pDI->GetName()) )                // display unless this is the common rec
+            if( dict_tree_node->GetRecordIndex() != COMMON &&          // don't drop a prev-keyed item as
+                pFF->FindItem(UTF8_TODO::GetCString(pDI->GetName())) ) // display unless this is the common rec
+            {
                 continue;
+            }
 
             // because i'm dropping the whole record, i don't know for any given item
             // if it has any subitems, or whether it's ok to drop them or not; so test each one!
@@ -1972,7 +1974,7 @@ bool CFormScrollView::DropARecordUnroster(DictTreeNode* dict_tree_node, CPoint d
         }
         else
         {
-            if (pFF->FindItem (pDI->GetName()))     // don't drop if already being keyed
+            if (pFF->FindItem(UTF8_TODO::GetCString(pDI->GetName())))     // don't drop if already being keyed
                 continue;
 
             if (ItemsSubitemBeingKeyed (pDD, pDI, pFF)) // can't key if a sub being keyed either
@@ -1993,8 +1995,8 @@ bool CFormScrollView::DropARecordUnroster(DictTreeNode* dict_tree_node, CPoint d
 
     if (pDR->GetMaxRecs() > 1)
     {
-        pParent->SetLoopingVars (pDR);
-        pForm->SetRecordRepeatName (pDR->GetName());
+        pParent->SetLoopingVars(pDR);
+        pForm->SetRecordRepeatName(UTF8_TODO::GetCString(pDR->GetName()));
     }
 
     if (form_undo_stack.GetNumURObjs() > 0) { // if something got dropped, then push the stack
@@ -2042,7 +2044,7 @@ void CFormScrollView::DropARecordRoster(DictTreeNode* dict_tree_node, CPoint dro
 void CFormScrollView::DropARecordOnRoster(DictTreeNode* dict_tree_node, CPoint adjustedDP)
 {
     CDEFormFile*    pFF = GetFormFile();
-    CDERoster*     pRoster = (CDERoster*) GetCurForm()->FindItem (adjustedDP);
+    CDERoster*      pRoster = (CDERoster*) GetCurForm()->FindItem(adjustedDP);
     CDEField*       pField;
 
     int iLevel = dict_tree_node->GetLevelIndex();
@@ -2058,7 +2060,7 @@ void CFormScrollView::DropARecordOnRoster(DictTreeNode* dict_tree_node, CPoint a
     bool            bDragSI = false;    // ok to drag subitems?
 
     CIMSAString     sLabel;
-    CIMSAString     sDictName = pFF->GetDictionaryName(); // being keyed, drop/add it!
+    CIMSAString     sDictName = UTF8_TODO::GetCString(pFF->GetDictionaryName()); // being keyed, drop/add it!
 
     for (i = 0; i < max; i++)
     {
@@ -2072,7 +2074,7 @@ void CFormScrollView::DropARecordOnRoster(DictTreeNode* dict_tree_node, CPoint a
 
         ASSERT(pDI->GetOccurs() == 1); // for now, we can't have mult w/in mult
 
-        if (pFF->FindItem(pDI->GetName()) )    // only add keyed items to roster
+        if (pFF->FindItem(UTF8_TODO::GetCString(pDI->GetName())) )    // only add keyed items to roster
             continue;
 
         bDragSI = OkToDropSubitems() &&                    // user indicated desire to drop subitems
@@ -2086,7 +2088,7 @@ void CFormScrollView::DropARecordOnRoster(DictTreeNode* dict_tree_node, CPoint a
             while (i < max && pSI->GetItemType() == ItemType::Subitem)
             {
                 /// don't add subitems that have already been added
-                if( !pFF->FindItem(pSI->GetName()) )
+                if( !pFF->FindItem(UTF8_TODO::GetCString(pSI->GetName())) )
                 {
                     pField = new CDEField(pSI, iFormIndex, sDictName, pDC, GetDragOptions());
 
@@ -2155,7 +2157,7 @@ void CFormScrollView::DropARecordOnRoster(DictTreeNode* dict_tree_node, CPoint a
 
 CDERoster* CFormScrollView::DropItemOnRoster(DictTreeNode* dict_tree_node, CPoint dropPoint)
 {
-    CDERoster*  pRoster = (CDERoster*) GetCurForm()->FindItem (dropPoint);
+    CDERoster*  pRoster = (CDERoster*) GetCurForm()->FindItem(dropPoint);
 
     int iLevel = dict_tree_node->GetLevelIndex();
     int iRec   = dict_tree_node->GetRecordIndex();
@@ -2167,7 +2169,7 @@ CDERoster* CFormScrollView::DropItemOnRoster(DictTreeNode* dict_tree_node, CPoin
 
     if( !pDI->AddToTreeFor80() )
     {
-        ErrorMessage::Display(_T("Adding binary dictionary items to forms is not supported in this release."));
+        ErrorMessage::Display("Adding binary dictionary items to forms is not supported in this release.");
         return nullptr;
     }
 
@@ -2175,7 +2177,7 @@ CDERoster* CFormScrollView::DropItemOnRoster(DictTreeNode* dict_tree_node, CPoin
     CDC*            pDC = GetDC();
 
     int iFormNum = GetFormIndex();
-    CIMSAString sDictName = pFF->GetDictionaryName();
+    CIMSAString sDictName = UTF8_TODO::GetCString(pFF->GetDictionaryName());
 
     // check w/the drop rules to see if it was possible to drop subitems, and
     // check w/the drag opts dialog to see if the user even wants them!
@@ -2277,7 +2279,7 @@ void CFormScrollView::DropMultItem_Unroster (DictTreeNode* dict_tree_node, CPoin
     CDEFormFile* pFF = GetFormFile();
 
     // don't drop a prev-keyed item as display unless this is the common rec
-    if( dict_tree_node->GetRecordIndex() != COMMON && pFF->FindItem(pDI->GetName()) )
+    if( dict_tree_node->GetRecordIndex() != COMMON && pFF->FindItem(UTF8_TODO::GetCString(pDI->GetName())) )
         return;
 
     // don't need to test for subitem drop, it was done in the drop rules
@@ -2300,7 +2302,7 @@ CDERoster* CFormScrollView::DropMultItem_RosterOnItem(DictTreeNode* dict_tree_no
     CDEFormFile* pFF = GetFormFile();
     CDEGroup* pParent = GetCurGroup();
 
-    CDERoster* pRoster = new CDERoster(pDR);
+    CDERoster* pRoster = new CDERoster(*pDR);
     pRoster->SetRightToLeft(pFF->GetRTLRostersFlag());
     pRoster->SetParent(pParent);
 
@@ -2332,7 +2334,7 @@ CDERoster* CFormScrollView::DropMultItem_RosterOnItem(const CDictItem* pDI, cons
     const CDataDict* pDD = GetDocument()->GetSharedDictionary().get();
     CDEFormFile* pFF = GetFormFile();
 
-    CDERoster* pRoster = new CDERoster(pDR);
+    CDERoster* pRoster = new CDERoster(*pDR);
     pRoster->SetRightToLeft(pFF->GetRTLRostersFlag());
     pRoster->SetParent (GetCurGroup());
 
@@ -2372,7 +2374,7 @@ CDEField* CFormScrollView::DropAnItem(DictTreeNode* dict_tree_node, CPoint dropP
 
     if( !pDI->AddToTreeFor80() )
     {
-        ErrorMessage::Display(_T("Adding binary dictionary items to forms is not supported in this release."));
+        ErrorMessage::Display("Adding binary dictionary items to forms is not supported in this release.");
         return nullptr;
     }
 
@@ -2384,8 +2386,8 @@ CDEField* CFormScrollView::DropAnItem(DictTreeNode* dict_tree_node, CPoint dropP
         bDelete = TRUE;
         form_undo_stack.PushUndoObj(CFormUndoObj::Action::UR_delete, &GetDocument()->GetFormFile(), NONE, _T(""));
 
-        pParent->SetLoopingVars (pDR);
-        GetCurForm()->SetRecordRepeatName (pDR->GetName());
+        pParent->SetLoopingVars(pDR);
+        GetCurForm()->SetRecordRepeatName(UTF8_TODO::GetCString(pDR->GetName()));
     }
 
     m_iDropSpacing = 200;   // i don't want the field's text & box too far apart
@@ -2455,7 +2457,7 @@ CDEField* CFormScrollView::DropAnItem(const CDictItem* pDI, CPoint* dropPoint, b
 
     CString csName;
     CString csLabel;
-    CString sDictName = pFF->GetDictionaryName();
+    CString sDictName = UTF8_TODO::GetCString(pFF->GetDictionaryName());
 
     int iItem = 0,  // iItem is 0-based
         max = 0,
@@ -2504,7 +2506,7 @@ CDEField* CFormScrollView::DropAnItem(const CDictItem* pDI, CPoint* dropPoint, b
                 pField = new CDEField (pSubItem, iFormNum, sDictName, pDC,
                                        GetDragOptions(), GetDropSpacing(), *dropPoint, (*dropPoint).y);
 
-                csName = pSubItem->GetName();
+                csName = UTF8_TODO::GetCString(pSubItem->GetName());
                 csLabel = pSubItem->GetLabel();
 
                 (*dropPoint).y += ROWOFFSET;
@@ -2525,7 +2527,7 @@ CDEField* CFormScrollView::DropAnItem(const CDictItem* pDI, CPoint* dropPoint, b
                                    GetDropSpacing(), *dropPoint, (*dropPoint).y);
 
             iItemLen = pDI->GetLen();
-            csName  = pDI->GetName();
+            csName  = UTF8_TODO::GetCString(pDI->GetName());
             csLabel = pDI->GetLabel();
             bDone = true;
         }
@@ -3384,7 +3386,7 @@ void CFormScrollView::DeleteTrackerRegionData()
             else if (pItem->IsKindOf(RUNTIME_CLASS(CDERoster)))
             {
                 CDEGroup* pParent = pItem->GetParent();
-                int iRstrIndex = pParent->FindItem (pItem->GetName());
+                int iRstrIndex = pParent->FindItem(pItem->GetName());
                 form_undo_stack.PushUndoObj(CFormUndoObj::Action::UR_delete, pItem, iRstrIndex, pParent->GetName());
             }
             bRebuildTree |= DeleteSingleItem(pFF, pForm, pGroup, pItem);
@@ -3706,7 +3708,7 @@ void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
     bool bMultipleFieldsSelected = false;
 
     // find the item located at the mouse cursor
-    GetDocument()->GetFormFile().FindItem (GetCurForm(), scrollPt, &pItem);
+    GetDocument()->GetFormFile().FindItem(GetCurForm(), scrollPt, &pItem);
 
     if (pItem == nullptr)  {
         // [1] user didn't click over anything
@@ -4591,11 +4593,7 @@ void CFormScrollView::OnEditFFProp()
         GetDocument()->SetModifiedFlag(true);
 
         if(pID->IsKindOf(RUNTIME_CLASS(CFormNodeID)))
-        {
-            ((CFormNodeID*) pID)->SetFFLabel(dlg.m_sFFLabel);
-
             GetDocument()->GetFormTreeCtrl()->ReBuildTree(GetFormIndex());
-        }
     }
 }
 
@@ -5285,8 +5283,7 @@ void CFormScrollView::OnUpdateDeleteItem(CCmdUI* pCmdUI)
 
     eNodeType eNT = pFormID->GetItemType();
 
-    if (eNT == eFTT_FIELD || eFTT_GRID)
-
+    if (eNT == eFTT_FIELD || eNT == eFTT_GRID)
         pCmdUI->Enable (true);
     else
         pCmdUI->Enable (false);
@@ -5616,7 +5613,7 @@ void CFormScrollView::OnLayoutAlign(UINT nID)
     pDoc->PushUndo(std::move(form_undo_stack));
 
     // leave focus w/the form
-    SetFocus();                 
+    SetFocus();
     RedrawWindow();
     pDoc->SetModifiedFlag(true);
     RefreshTrackers();
@@ -5820,7 +5817,7 @@ CFormGrid* CFormScrollView::FindGrid(CDERoster* pRoster)
 // find the grid object that is associated w/the given roster
 
 void CFormScrollView::RefreshGridOccLabelStubs()
-{    
+{
     const CDEFormFile* pFF = GetFormFile();
 
     for (int i = 0; i < GetNumGrids(); i++)
@@ -7164,7 +7161,7 @@ void CFormScrollView::OnEditPaste()
                     }
 
                     const CDataDict* pDict = pDoc->GetSharedDictionary().get();
-                    const CDictItem* pItem = pDict->LookupName<CDictItem>(pField->GetItemName());
+                    const CDictItem* pItem = pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
 
                     CPoint dropPoint = pField->GetDims().TopLeft();
 
@@ -7253,7 +7250,7 @@ void CFormScrollView::OnEditPaste()
                 const CDataDict* pDict = pDoc->GetSharedDictionary().get();
                 const CDictRecord* pRec;
                 const CDictItem* pItem;
-                pDict->LookupName(pField->GetItemName(), nullptr, &pRec, &pItem);
+                pDict->LookupName(UTF8_TODO::GetUtf8(pField->GetItemName()), nullptr, &pRec, &pItem);
                 pField->SetDictItem(pItem);
                 if(pField->GetLabel().IsEmpty()&& pItem){
                     pField->SetLabel(pItem->GetLabel());
@@ -7404,7 +7401,7 @@ void CFormScrollView::OnEditPaste()
                     {
                         const CDataDict* pDict = pDoc->GetSharedDictionary().get();
                         CDEField* pField = pRoster->GetCol(j)->GetField(0);
-                        const CDictItem* pItem = pDict->LookupName<CDictItem>(pField->GetItemName());
+                        const CDictItem* pItem = pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
                         pField->SetDictItem(pItem);
                         if(pField->GetLabel().IsEmpty()&& pItem){
                             pField->SetLabel(pItem->GetLabel());
@@ -7478,7 +7475,7 @@ void CFormScrollView::OnEditPaste()
                         const CDataDict* pDict = pDoc->GetSharedDictionary().get();
                         ASSERT( pCol != 0 );
                         CDEField* pField = pCol->GetField(0);
-                        const CDictItem* pItem = pDict->LookupName<CDictItem>(pField->GetItemName());
+                        const CDictItem* pItem = pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
                         if(pField->GetLabel().IsEmpty()&& pItem){
                             pField->SetLabel(pItem->GetLabel());
                         }
@@ -7564,7 +7561,7 @@ void CFormScrollView::OnEditPaste()
             {
                 CDEForm* pForm = new CDEForm();
                 const CDataDict* pDict = pDoc->GetSharedDictionary().get();
-                pForm->Build(clipFile,pDict->GetName());
+                pForm->Build(clipFile, UTF8_TODO::GetCString(pDict->GetName()));
                 int count = 0;
                 while (!pFF->IsNameUnique(pForm->GetName()))
                 {
@@ -7679,7 +7676,7 @@ DictTreeNode* CFormScrollView::GetDictTreeNode(const CString& name)
     const DictValueSet* pVSet;
     CDDTreeCtrl* pDictTree = pDoc->GetFormTreeCtrl()->GetDDTreeCtrl();
     DictTreeNode* dict_tree_node = nullptr;
-    if (pDict->LookupName(name,&pLevel,&pRec, &pItem,&pVSet))
+    if (pDict->LookupName(UTF8_TODO::GetUtf8(name),&pLevel,&pRec, &pItem,&pVSet))
     {
         //HITEM hItem = pDictTree->GetRootItem();
         HTREEITEM hNode = pDictTree->GetRootItem();
@@ -8612,7 +8609,7 @@ CDERoster* CFormScrollView::DropAnItemRoster(DictTreeNode* dict_tree_node, CPoin
     pRoster->SetParent (GetCurGroup());
 
 
-    CDEField* pField = new CDEField (pDI, iFormNum, pFF->GetDictionaryName(), pDC, GetDragOptions());
+    CDEField* pField = new CDEField(pDI, iFormNum, UTF8_TODO::GetCString(pFF->GetDictionaryName()), pDC, GetDragOptions());
 
     pFF->AddUniqueName(pField->GetName());
     pFF->CreateRosterField (pField,pRoster);

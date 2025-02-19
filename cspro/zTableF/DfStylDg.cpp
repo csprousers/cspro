@@ -172,7 +172,7 @@ CDefaultStylesDlg::~CDefaultStylesDlg()
 //                      CDefaultStylesDlg::OnPageChange
 // called when page changes for extra handling
 /////////////////////////////////////////////////////////////////////////////////
-void CDefaultStylesDlg::OnPageChange(CDialog* pOldPage, CDialog* pNewPage)
+bool CDefaultStylesDlg::OnPageChange(CDialog* pOldPage, CDialog* pNewPage)
 {
     if (pOldPage == &m_tblPrintFmtDlg) {
         // left table print fmt page - if the header or footer fonts were changed
@@ -216,6 +216,8 @@ void CDefaultStylesDlg::OnPageChange(CDialog* pOldPage, CDialog* pNewPage)
         }
         m_tblPrintFmtDlg.UpdateData(FALSE);
     }
+
+    return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////

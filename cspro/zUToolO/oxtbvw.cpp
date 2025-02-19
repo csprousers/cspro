@@ -10,7 +10,6 @@
 
 #include "StdAfx.h"
 #include "oxtbvw.h"
-#include <zToolsO/Tools.h>
 
 
 #ifdef _DEBUG
@@ -660,8 +659,9 @@ BOOL COXTabViewContainer::InsertPage(int nIndex, CWnd* pWnd,
     if(lpszTitle==NULL)
     {
         pWnd->GetWindowText(pi.sTitle);
-        if(pi.sTitle.IsEmpty())
-            pi.sTitle = IntToString<false>(nIndex);
+        if(pi.sTitle.IsEmpty()) {
+            pi.sTitle.Format(_T("%d"), nIndex);
+        }
     }
     else
     {

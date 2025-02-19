@@ -82,6 +82,9 @@
     <ClInclude Include="basetab2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Bitoper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="BreakIt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -107,6 +110,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="coordmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctstat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctstatv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cttree.h">
@@ -140,15 +149,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TbiFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ctstat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ctstatv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Bitoper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

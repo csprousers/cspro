@@ -5,43 +5,71 @@
 #include <zToolsO/Tools.h>
 
 
-namespace Encoders
+class Encoders
 {
-    constexpr const TCHAR* HexChars = _T("0123456789abcdef");
+public:
+    static constexpr const char* HexChars = "0123456789abcdef";
 
-    constexpr const TCHAR* JsonEscapeRepresentations = _T("/\"\\\b\f\n\r\t");
-    constexpr const TCHAR* JsonEscapeSequences       = _T("/\"\\bfnrt");
+    static constexpr const char* JsonEscapeRepresentations = "/\"\\\b\f\n\r\t";
+    static constexpr const char* JsonEscapeSequences       = "/\"\\bfnrt";
 
-    constexpr TCHAR LastControlCharacter = 0x1F;
+    static constexpr unsigned char LastControlCharacter = 0x1F;
+
+    static constexpr std::string_view FileUrlPrefix_sv = "file:///";
 
     // additional escapes defined in EscapesAndLogicOperators.h
 
-
-    CLASS_DECL_ZTOOLSO std::wstring ToHtml(wstring_view text_sv, bool escape_spaces = true);
-    CLASS_DECL_ZTOOLSO std::wstring ToHtmlTagValue(wstring_view text_sv);
-    CLASS_DECL_ZTOOLSO std::wstring FromHtmlAmpersandEscapes(std::wstring text);
-    CLASS_DECL_ZTOOLSO std::wstring ToPreformattedTextHtml(wstring_view title_sv, wstring_view body_sv);
+    // the ...Worker functions return null values when the text does not need to be encoded
 
 
-    CLASS_DECL_ZTOOLSO std::wstring ToPercentEncoding(wstring_view text_sv);
-    CLASS_DECL_ZTOOLSO std::wstring FromPercentEncoding(wstring_view text_sv, bool assume_utf8_encoding = true);
+    // --- HTML -----------------------------------------------------------------
 
-    constexpr bool IsPercentEncodingUnreservedCharacter(TCHAR ch);
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToHtmlWorker(std::string_view text_sv, bool escape_spaces = true);
+    template<typename T> static std::string ToHtml(T&& text, bool escape_spaces = true);
 
-    CLASS_DECL_ZTOOLSO std::wstring ToUri(wstring_view text_sv, bool allow_hash_to_specify_fragment = true);
-    CLASS_DECL_ZTOOLSO std::wstring ToUriComponent(wstring_view text_sv);
-
-
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::wstring> ToCsvWorker(wstring_view text_sv, TCHAR separator = ',');
-    CLASS_DECL_ZTOOLSO std::wstring ToCsv(std::wstring text, TCHAR separator = ',');
-
-    CLASS_DECL_ZTOOLSO std::unique_ptr<std::wstring> ToTsvWorker(wstring_view text_sv);
-    CLASS_DECL_ZTOOLSO std::wstring ToTsv(std::wstring text);
+    CLASS_DECL_ZTOOLSO static std::string ToHtmlTagValue(std::string_view text_sv);
+    CLASS_DECL_ZTOOLSO static std::string FromHtmlAmpersandEscapes(std::string text);
+    CLASS_DECL_ZTOOLSO static std::string ToPreformattedTextHtml(std::string_view title_sv, std::string_view body_sv);
 
 
-    CLASS_DECL_ZTOOLSO std::wstring ToFileUrl(std::wstring filename);
-    CLASS_DECL_ZTOOLSO std::optional<std::wstring> FromFileUrl(wstring_view file_url_sv);
+    // --- PERCENT-ENCODING + URI------------------------------------------------
 
+    static constexpr bool IsPercentEncodingUnreservedCharacter(int ch);
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToPercentEncodingWorker(std::string_view text_sv);
+    template<typename T> static std::string ToPercentEncoding(T&& text);
+
+    template<typename T = std::string> // can also return std::vector<std::byte>
+    static T FromPercentEncoding(std::string_view text_sv);
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToUriWorker(std::string_view text_sv, bool allow_hash_to_specify_fragment = true);
+    template<typename T> static std::string ToUri(T&& text, bool allow_hash_to_specify_fragment = true);
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToUriComponentWorker(std::string_view text_sv);
+    template<typename T> static std::string ToUriComponent(T&& text);
+
+    CLASS_DECL_ZTOOLSO static std::string ToUriPath(std::string_view text_sv);
+
+    CLASS_DECL_ZTOOLSO static std::string FromUrlQueryString(std::string_view text_sv);
+
+
+    // --- COMMA + SEMICOLON + TAB DELIMITED ------------------------------------
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToCsvWorker(std::string_view text_sv, char separator = ',');
+    template<typename T> static std::string ToCsv(T&& text);
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToTsvWorker(std::string_view text_sv);
+
+
+    // --- FILE URLS ------------------------------------------------------------
+
+    CLASS_DECL_ZTOOLSO static std::string ToFileUrl(std::string file_path);
+
+    // returns std::nullopt if not a valid file URL
+    CLASS_DECL_ZTOOLSO static std::optional<std::string> FromFileUrl(std::string_view file_url_sv);
+
+
+    // --- ESCAPED TEXT ---------------------------------------------------------
 
     // the escape functions work with the most common escape sequences for ' " \ as well as
     // most others from https://en.cppreference.com/w/cpp/language/escape:
@@ -49,32 +77,45 @@ namespace Encoders
     // \n new line       \r carriage return   \t horizontal tab   \v vertical tab
 
     // returns the escaped character's representation, or 0 on error; e.g., 'n' returns '\n'
-    TCHAR GetEscapedRepresentation(TCHAR escape_sequence);
+    static char GetEscapedRepresentation(int escape_sequence);
 
-    CLASS_DECL_ZTOOLSO std::wstring ToEscapedString(std::wstring text, bool escape_single_quotes = true);
-    CLASS_DECL_ZTOOLSO std::wstring FromEscapedString(std::wstring text);
+    CLASS_DECL_ZTOOLSO static std::string ToEscapedString(std::string text, bool escape_single_quotes = true);
+    CLASS_DECL_ZTOOLSO static std::string FromEscapedString(std::string text);
 
     // escapes text for use in CSPro logic strings, surrounding the text with double quotes
-    CLASS_DECL_ZTOOLSO std::wstring ToLogicString(std::wstring text);
+    CLASS_DECL_ZTOOLSO static std::string ToLogicString(std::string text);
 
+
+    // --- JSON -----------------------------------------------------------------
 
     // escapes text for use in JSON, surrounding the text with double quotes
-    CLASS_DECL_ZTOOLSO std::wstring ToJsonString(wstring_view text_sv, bool escape_forward_slashes = true);
+    CLASS_DECL_ZTOOLSO static std::string ToJsonString(std::string_view text_sv, bool escape_forward_slashes = true);
 
 
+    // --- REGEX ----------------------------------------------------------------
+    //
     // converts text to regex literal by escaping regex special characters.
-    CLASS_DECL_ZTOOLSO std::wstring ToRegex(NullTerminatedString text);
+    CLASS_DECL_ZTOOLSO static std::string ToRegex(cs::string_sz text);
 
+
+    // --- DATA URL -------------------------------------------------------------
 
     // returns whether the text begins with the data URL prefix
-    CLASS_DECL_ZTOOLSO bool IsDataUrl(wstring_view text_sv);
+    CLASS_DECL_ZTOOLSO static bool IsDataUrl(std::string_view text_sv);
 
     // decodes a data URL into its data and mediatype values; the data pointer will be null on error
-    CLASS_DECL_ZTOOLSO std::tuple<std::unique_ptr<std::vector<std::byte>>, std::wstring> FromDataUrl(wstring_view data_url_sv);
+    CLASS_DECL_ZTOOLSO static std::tuple<std::unique_ptr<std::vector<std::byte>>, std::string> FromDataUrl(std::string_view data_url_sv);
 
     // encodes binary data to a data URL encoded with Base64; mediatype can be blank
-    CLASS_DECL_ZTOOLSO std::wstring ToDataUrl(const std::vector<std::byte>& content, const std::wstring& mediatype);
-}
+    CLASS_DECL_ZTOOLSO static std::string ToDataUrl(const std::vector<std::byte>& content, std::string_view mediatype_sv);
+
+
+private:
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToPercentEncodingWorker(std::string_view text_sv, const char* additional_characters_allowed);
+
+    template<typename T, bool ProcessPlusAsSpace>
+    static T FromPercentEncodingWorker(std::string_view text_sv);
+};
 
 
 
@@ -82,15 +123,77 @@ namespace Encoders
 // inline implementations
 // --------------------------------------------------------------------------
 
-constexpr bool Encoders::IsPercentEncodingUnreservedCharacter(TCHAR ch)
+template<typename T>
+std::string Encoders::ToHtml(T&& text, const bool escape_spaces/* = true*/)
+{
+    const std::unique_ptr<std::string> encoded_html = ToHtmlWorker(text, escape_spaces);
+
+    if( encoded_html != nullptr )
+        return *encoded_html;
+
+    return std::string(std::forward<T>(text));
+}
+
+
+constexpr bool Encoders::IsPercentEncodingUnreservedCharacter(const int ch)
 {
     // unreserved characters list from https://en.wikipedia.org/wiki/Percent-encoding
     return ( is_tokch(ch) || ch == '-' || ch == '.' || ch == '~' );
 }
 
 
-inline TCHAR Encoders::GetEscapedRepresentation(TCHAR escape_sequence)
+template<typename T>
+std::string Encoders::ToPercentEncoding(T&& text)
 {
-    const TCHAR* escape_sequences_pos = _tcschr(EscapeSequences, escape_sequence);
-    return ( escape_sequences_pos == nullptr ) ? 0 : EscapeRepresentations[escape_sequences_pos - EscapeSequences];
+    const std::unique_ptr<std::string> encoded_text = ToPercentEncodingWorker(text);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(std::forward<T>(text));
+}
+
+
+template<typename T>
+std::string Encoders::ToUri(T&& text, const bool allow_hash_to_specify_fragment/* = true*/)
+{
+    const std::unique_ptr<std::string> encoded_text = ToUriWorker(text, allow_hash_to_specify_fragment);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(std::forward<T>(text));
+}
+
+
+template<typename T>
+std::string Encoders::ToUriComponent(T&& text)
+{
+    const std::unique_ptr<std::string> encoded_text = ToUriComponentWorker(text);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(std::forward<T>(text));
+}
+
+
+template<typename T>
+std::string Encoders::ToCsv(T&& text)
+{
+    const std::unique_ptr<std::string> encoded_text = ToCsvWorker(text);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(std::forward<T>(text));
+}
+
+
+inline char Encoders::GetEscapedRepresentation(const int escape_sequence)
+{
+    const char* const escape_sequences_pos = strchr(EncoderEscapes::Sequences, escape_sequence);
+
+    return ( escape_sequences_pos == nullptr ) ? 0 :
+                                                 EncoderEscapes::Representations[escape_sequences_pos - EncoderEscapes::Sequences];
 }

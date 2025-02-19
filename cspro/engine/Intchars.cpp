@@ -11,17 +11,11 @@
 #include "ScopeChangeNodeIterator.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/PffExecutor.h>
-#include <zEngineO/Versioning.h>
-#include <zEngineO/Nodes/Encryption.h>
 #include <zEngineO/Nodes/Strings.h>
 #include <zEngineO/Nodes/UserInterface.h>
 #include <zEngineO/Nodes/Various.h>
-#include <zToolsO/Encoders.h>
-#include <zToolsO/Encryption.h>
 #include <zToolsO/Tools.h>
-#include <zToolsO/Utf8Convert.h>
 #include <zUtilO/TraceMsg.h>
-#include <zUtilO/CommonStore.h>
 #include <zUtilO/TransactionManager.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/ValueProcessor.h>
@@ -31,312 +25,6 @@
 #include <Zissalib/CsDriver.h>
 #include <zParadataO/Logger.h>
 #include <zEngineF/EngineUI.h>
-
-
-namespace
-{
-    constexpr TCHAR DecimalSeparator = '.';
-}
-
-
-
-template<typename T>
-T CIntDriver::CharacterObjectToString(double working_string_index)
-{
-    const size_t size_t_working_string_index = static_cast<size_t>(working_string_index);
-
-    // if the string is the last one in the array, which should almost always be the case, remove it
-    if( ( m_workingStrings.size() - size_t_working_string_index ) == 1 )
-    {
-        if constexpr(std::is_same_v<T, CString>)
-        {
-            CString value = WS2CS(m_workingStrings.back());
-            m_workingStrings.pop_back();
-            return value;
-        }
-
-        else
-        {
-            T value = std::move(m_workingStrings.back());
-            m_workingStrings.pop_back();
-            return value;
-        }
-    }
-
-    else if( size_t_working_string_index < m_workingStrings.size() )
-    {
-        if constexpr(std::is_same_v<T, CString>)
-        {
-            return WS2CS(m_workingStrings[size_t_working_string_index]);
-        }
-
-        else
-        {
-            return m_workingStrings[size_t_working_string_index];
-        }
-    }
-
-    return ReturnProgrammingError(T());
-}
-
-template std::wstring CIntDriver::CharacterObjectToString(double working_string_index);
-template StringNoCase CIntDriver::CharacterObjectToString(double working_string_index);
-template CString CIntDriver::CharacterObjectToString(double working_string_index);
-
-
-template<typename T/* = std::wstring*/>
-T CIntDriver::EvalAlphaExpr(const int program_index)
-{
-    const double evaluated_char_expression = evalexpr(program_index);
-
-    if constexpr(std::is_same_v<T, std::string>)
-    {
-        return UTF8Convert::WideToUTF8(CharacterObjectToString<std::wstring>(evaluated_char_expression));
-    }
-
-    else
-    {
-        return CharacterObjectToString<T>(evaluated_char_expression);
-    }
-}
-
-template std::wstring CIntDriver::EvalAlphaExpr(int program_index);
-template std::string CIntDriver::EvalAlphaExpr(int program_index);
-template StringNoCase CIntDriver::EvalAlphaExpr(int program_index);
-template CString CIntDriver::EvalAlphaExpr(int program_index);
-
-
-double CIntDriver::AssignAlphaValue(const std::optional<std::wstring>& value)
-{
-    return value.has_value() ? AssignAlphaValue(*value) :
-                               AssignBlankAlphaValue();
-}
-
-
-double CIntDriver::AssignAlphaValue(std::optional<std::wstring>&& value)
-{
-    return value.has_value() ? AssignAlphaValue(std::move(*value)) :
-                               AssignBlankAlphaValue();
-}
-
-
-namespace
-{
-    struct EscapeTypeDetails
-    {
-        std::wstring_view newline_chars_actual_sv;
-        bool escape_backslashes;
-    };
-
-    constexpr EscapeTypeDetails EscapeTypeDetailsMap[] = 
-    {
-        { _T("\n"),   false },
-        { _T("\r\n"), false },
-        { _T("\n"),   true  },
-        { _T("\r\n"), true  },
-    };
-
-    static_assert(_countof(EscapeTypeDetailsMap) == ( static_cast<size_t>(CIntDriver::V0_EscapeType::NewlinesToSlashRN_Backslashes) + 1 ));
-}
-
-
-void CIntDriver::ConvertV0EscapesWorker(std::wstring& text, const V0_EscapeType v0_escape_type)
-{
-    ASSERT(m_usingLogicSettingsV0);
-    const EscapeTypeDetails& escape_type_details = EscapeTypeDetailsMap[static_cast<size_t>(v0_escape_type)];
-
-    size_t backslash_pos = 0;
-
-    while( ( backslash_pos = text.find('\\', backslash_pos) ) != std::wstring::npos )
-    {
-        if( ( backslash_pos + 1 ) == text.length() )
-            break;
-
-        const TCHAR escape_ch = text[backslash_pos + 1];
-
-        // convert "\\n" characters to "\n" or "\r\n"
-        if( escape_ch == 'n' )
-        {
-            text.replace(backslash_pos, 2, escape_type_details.newline_chars_actual_sv);
-            backslash_pos += escape_type_details.newline_chars_actual_sv.length();
-        }
-
-        // optionally convert "\\\\" characters to "\\"
-        else if( escape_type_details.escape_backslashes && escape_ch == '\\' )
-        {
-            text.erase(backslash_pos, 1);
-            ++backslash_pos;
-        }
-
-        else
-        {
-            ++backslash_pos;
-        }
-    }
-}
-
-
-void CIntDriver::ConvertV0EscapesWorker(std::vector<std::wstring>& text_lines, const V0_EscapeType v0_escape_type)
-{
-    for( std::wstring& text : text_lines )
-        ConvertV0EscapesWorker(text, v0_escape_type);
-}
-
-
-void CIntDriver::ApplyV0EscapesWorker(std::wstring& text, const V0_EscapeType v0_escape_type)
-{
-    ASSERT(m_usingLogicSettingsV0);
-    const EscapeTypeDetails& escape_type_details = EscapeTypeDetailsMap[static_cast<size_t>(v0_escape_type)];
-
-    ASSERT(text.find('\r') == std::wstring::npos);
-
-    size_t escape_pos = 0;
-
-    while( ( escape_pos = text.find_first_of(_T("\n\\"), escape_pos) ) != std::wstring::npos )
-    {
-        if( text[escape_pos] == '\n' )
-        {
-            text.replace(escape_pos, 1, _T("\\n"));
-            escape_pos += 2;
-        }
-
-        else if( escape_type_details.escape_backslashes )
-        {
-            text.replace(escape_pos, 1, _T("\\\\"));
-            escape_pos += 2;
-        }
-
-        else
-        {
-            ++escape_pos;
-        }        
-    }
-}
-
-
-//----------------------------------------------------------------------
-//  extonumber: execute TONUMBER function
-//----------------------------------------------------------------------
-double CIntDriver::extonumber(const int program_index)
-{
-    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const std::wstring number_string = EvalAlphaExpr(fnn_node.fn_expr[0]);
-    const wstring_view trimmed_number_string_sv = SO::Trim(number_string);
-
-    enum class Sign { None, Negative, Positive };
-    Sign sign = Sign::None;
-    const TCHAR* start_number_section = nullptr;
-    bool reached_decimal_area = false;
-    size_t length_number_section = 0;
-
-    for( const TCHAR& ch : trimmed_number_string_sv )
-    {
-        if( start_number_section == nullptr && ( ch == '-' || ch == '+' ) )
-        {
-            // allow duplicate signs, but only if they are of the same type
-            const Sign new_sign = ( ch == '-' ) ? Sign::Negative :
-                                                  Sign::Positive;
-
-            if( sign != Sign::None && sign != new_sign )
-                break;
-
-            sign = new_sign;
-        }
-
-        else if( !reached_decimal_area && ch == DecimalSeparator )
-        {
-            reached_decimal_area = true;
-
-            // allow decimals at the beginning of the text
-            if( start_number_section == nullptr)
-                start_number_section = &ch;
-        }
-
-        else if( is_digit(ch) )
-        {
-            if( start_number_section == nullptr )
-                start_number_section = &ch;
-        }
-
-        else if( start_number_section == nullptr && ch == BLANK )
-        {
-            // ignore blanks
-        }
-
-        else
-        {
-            break;
-        }
-
-        if( start_number_section != nullptr )
-            ++length_number_section;
-    }
-
-    // if there was no numeric portion of the string, return 1/0 if boolean, or DEFAULT otherwise
-    if( length_number_section == 0 )
-    {
-        return SO::EqualsNoCase(trimmed_number_string_sv, _T("true"))  ? 1 :
-               SO::EqualsNoCase(trimmed_number_string_sv, _T("false")) ? 0 :
-                                                                         DEFAULT;
-    }
-
-    // get just the string portion
-    double value = atod(wstring_view(start_number_section, length_number_section));
-
-    if( value == IMSA_BAD_DOUBLE || IsSpecial(value) )
-        return DEFAULT;
-
-    return ( sign == Sign::Negative ) ? -value :
-                                        value;
-}
-
-
-//----------------------------------------------------------------------
-//  exsysparm: execute SYSPARM function
-//----------------------------------------------------------------------
-double CIntDriver::exsysparm(int iExpr)
-{
-    // previously this function only returned the one Parameter= parameter, but
-    // now it can also return values from a map of parameters
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    std::wstring parameter;
-
-    if( fnn_node.fn_nargs == 0 )
-    {
-        parameter = CS2WS(m_pEngineDriver->m_pPifFile->GetParamString());
-    }
-
-    else
-    {
-        std::wstring argument = EvalAlphaExpr(fnn_node.fn_expr[0]);
-        parameter = m_pEngineDriver->m_pPifFile->GetCustomParamString(argument);
-
-#ifdef WIN_DESKTOP
-        // on Windows, if the parameter isn't specified in the PFF file, check if it is a command line argument;
-        // if so, return the argument (meaning that checking if sysparm isn't blank is a way of seeing
-        // if something is defined on the command line)
-        if( parameter.empty() )
-        {
-            std::wstring command_line = GetCommandLine();
-            size_t argument_pos = SO::ToLower(command_line).find(SO::ToLower(argument));
-
-            // make sure that the argument is a standalone argument
-            if( argument_pos != std::wstring::npos && argument_pos > 0 )
-            {
-                size_t argument_end_pos = argument_pos + argument.length();
-
-                if( std::iswspace(command_line[argument_pos - 1]) &&
-                    ( argument_end_pos == command_line.length() || std::iswspace(command_line[argument_end_pos]) ) )
-                {
-                    parameter = command_line.substr(argument_pos, argument.length());
-                }
-            }
-        }
-#endif
-    }
-
-    return AssignAlphaValue(std::move(parameter));
-}
 
 
 //----------------------------------------------------------------------
@@ -355,6 +43,8 @@ namespace
 
     bool exedit_scan(CString pattern, PAT_DESC* pat_desc)
     {
+        constexpr char DecimalSeparator = '.';
+
         pat_desc->len = 0;
         pat_desc->num = 0;
         pat_desc->dec = 0;
@@ -428,7 +118,7 @@ namespace
 double CIntDriver::exedit(int iExpr)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    CString pattern = EvalAlphaExpr<CString>(va_node.arguments[0]);
+    CString pattern = EvalAlphaExprCS(va_node.arguments[0]);
     double value = evalexpr(va_node.arguments[1]);
     CString edit_result;
 
@@ -521,7 +211,7 @@ double CIntDriver::exedit(int iExpr)
     // process special values
     else if( IsSpecial(value) )
     {
-        edit_result = SpecialValues::ValueToString(value);
+        edit_result = UTF8_TODO::GetCString(SpecialValues::ValueToString(value));
         SO::MakeExactLength(edit_result, pattern.GetLength());
     }
 
@@ -545,7 +235,7 @@ double CIntDriver::extavar(int iExpr)
     {
         subindex[i] = 0;
         if( pTableNode->tvar_exprindex[i] >= 0 )
-            subindex[i] = evalexpr<int>( pTableNode->tvar_exprindex[i] );
+            subindex[i] = Evaluate<int>(pTableNode->tvar_exprindex[i]);
     }
 
     const TCHAR* pBuf = (TCHAR*)pCtab->m_pAcum.GetValue( subindex[0], subindex[1], subindex[2] );
@@ -578,19 +268,8 @@ double CIntDriver::exavar(int iEpxr)
     if( pSVAR->m_iVarType == SVAR_CODE )
     {
         VART* pVarT = VPT(pSVAR->m_iVarIndex);
-
-        CString* pVariableLengthString = pVarT->GetLogicStringPtr(); // 20140325
-
-        if( pVariableLengthString != nullptr )
-        {
-            csValue = *pVariableLengthString;
-        }
-
-        else
-        {
-            VARX* pVarX = pVarT->GetVarX();
-            csValue = CString((LPCTSTR)svaraddr(pVarX), pVarT->GetLength());
-        }
+        VARX* const pVarX = pVarT->GetVarX();
+        csValue = CString((LPCTSTR)svaraddr(pVarX), pVarT->GetLength());
     }
 
     else if( pMVAR->m_iVarType == MVAR_CODE )
@@ -619,38 +298,6 @@ double CIntDriver::exavar(int iEpxr)
 
 
 //----------------------------------------------------------------------
-//  exstringliteral : executes a string literal
-//----------------------------------------------------------------------
-double CIntDriver::exstringliteral(int iExpr)
-{
-    const auto& string_literal_node = GetNode<Nodes::StringLiteral>(iExpr);
-    return AssignAlphaValue(GetStringLiteral(string_literal_node.string_literal_index));
-}
-
-
-//----------------------------------------------------------------------
-//  exworkstring : returns the value of a WorkString
-//----------------------------------------------------------------------
-double CIntDriver::exworkstring(int program_index)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    return AssignAlphaValue(GetSymbolWorkString(va_node.arguments[0]).GetString());
-}
-
-
-double CIntDriver::exworkstringcompute(int program_index)
-{
-    // assigning a value to a WorkString; this can also happen in exstringcompute
-    const auto& symbol_reset_node = GetNode<Nodes::SymbolReset>(program_index);
-    WorkString& work_string = GetSymbolWorkString(symbol_reset_node.symbol_index);
-
-    work_string.SetString(EvalAlphaExpr(symbol_reset_node.initialize_value));
-
-    return 0;
-}
-
-
-//----------------------------------------------------------------------
 //  excharobj : executes alpha object
 //----------------------------------------------------------------------
 double CIntDriver::excharobj(int program_index)
@@ -659,7 +306,7 @@ double CIntDriver::excharobj(int program_index)
     std::wstring text;
 
     if( string_expression_node.string_expression >= 0 &&
-        Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
         text = EvalAlphaExpr(string_expression_node.string_expression);
     }
@@ -671,15 +318,18 @@ double CIntDriver::excharobj(int program_index)
 
         if( string_expression_function_code == FunctionCode::SVAR_CODE || string_expression_function_code == FunctionCode::MVAR_CODE )
         {
-            text = CharacterObjectToString(exavar(abs_string_expression));
+            text = UTF8_TODO::GetWide(*GetWorkingSharableString(static_cast<size_t>(exavar(abs_string_expression))));
         }
 
         else
         {
-            ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
+            ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
-            text = ( string_expression_function_code == FunctionCode::WORKSTRING_CODE ) ? GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetString() :
-                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? CharacterObjectToString(extavar(abs_string_expression)) :
+            if( string_expression_function_code == FunctionCode::WORKSTRING_CODE && string_expression_node.substring_index_expression == -1 ) // UTF8_TODO here until all the objects return SharableStrings
+                return AssignString(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetSharableString());
+
+            text = ( string_expression_function_code == FunctionCode::WORKSTRING_CODE ) ? UTF8_TODO::GetWide(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetString()) :
+                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? UTF8_TODO::GetWide(*GetWorkingSharableString(static_cast<size_t>(extavar(abs_string_expression)))) :
                                                                                           EvalAlphaExpr(abs_string_expression);
         }
     }
@@ -692,7 +342,7 @@ double CIntDriver::excharobj(int program_index)
 
     // parse the substring values
     int text_length = text.length();
-    int starting_position = evalexpr<int>(string_expression_node.substring_index_expression);
+    int starting_position = Evaluate<int>(string_expression_node.substring_index_expression);
 
     if( starting_position < 0 )
     {
@@ -703,13 +353,13 @@ double CIntDriver::excharobj(int program_index)
 
     // return a blank string if the substring values are not valid
     if( --starting_position < 0 || ( starting_position >= text_length && starting_position > 0 ) )
-        return AssignBlankAlphaValue();
+        return AssignStringNull();
 
     int length;
 
     if( string_expression_node.substring_length_expression != -1 )
     {
-        length = evalexpr<int>(string_expression_node.substring_length_expression);
+        length = Evaluate<int>(string_expression_node.substring_length_expression);
         length = std::max(0, length); // negative lengths are invalid
     }
 
@@ -732,7 +382,7 @@ double CIntDriver::exstringcompute(int program_index)
     const Nodes::SymbolValue* symbol_value_node;
     std::unique_ptr<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>> simulated_nodes_for_pre80_pen_file;
 
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
         string_compute_node = &GetNode<Nodes::StringCompute>(program_index);
         symbol_value_node = &GetNode<Nodes::SymbolValue>(string_compute_node->symbol_value_node_index);
@@ -793,16 +443,17 @@ double CIntDriver::exstringcompute(int program_index)
     // if there are no subscripts used, we can set the value directly
     if( string_compute_node->substring_index_expression == -1 )
     {
-        AssignValueToSymbol(*symbol_value_node, std::move(rhs_value));
+        AssignValueToSymbol(*symbol_value_node, SharableString(UTF8_TODO::GetUtf8(std::move(rhs_value))));
     }
 
     // otherwise get the variable's current value and apply the new value on top of it
     else
     {
-        ModifySymbolValue<std::wstring>(*symbol_value_node,
-            [&](std::wstring& lhs_value)
+        ModifySymbolValue<SharableString>(*symbol_value_node,
+            [&](SharableString& temp_lhs_value)
             {
-                int starting_position = evalexpr<int>(string_compute_node->substring_index_expression) - 1;
+                std::wstring lhs_value = UTF8_TODO::GetWide(*temp_lhs_value);
+                int starting_position = Evaluate<int>(string_compute_node->substring_index_expression) - 1;
 
                 // return if the starting position is invalid
                 if( starting_position < 0 )
@@ -820,7 +471,7 @@ double CIntDriver::exstringcompute(int program_index)
                 // otherwise copy the number of characters requested
                 else
                 {
-                    chars_to_copy = evalexpr<int>(string_compute_node->substring_length_expression);
+                    chars_to_copy = Evaluate<int>(string_compute_node->substring_length_expression);
 
                     // return if nothing to copy
                     if( chars_to_copy <= 0 )
@@ -836,33 +487,35 @@ double CIntDriver::exstringcompute(int program_index)
                     lhs_value.resize(max_string_length, ' ');
 
                 // copy all of some of the RHS string
-                TCHAR* lhs_value_starting_position = lhs_value.data() + starting_position;
+                wchar_t* const lhs_value_starting_position = lhs_value.data() + starting_position;
                 _tmemcpy(lhs_value_starting_position, rhs_value.c_str(), rhs_chars_to_copy);
 
                 // if more characters were requested to copy than exist in the RHS string, pad the LHS string with spaces
                 if( chars_to_copy > rhs_chars_to_copy )
                     _tmemset(lhs_value_starting_position + rhs_chars_to_copy, ' ', chars_to_copy - rhs_chars_to_copy);
-        });
+
+                temp_lhs_value = UTF8_TODO::GetUtf8(lhs_value);
+            });
     }
 
     return 0;
 }
 
 
-Symbol& CIntDriver::GetSymbolFromSymbolName(const StringNoCase& symbol_name, SymbolType preferred_symbol_type/* = SymbolType::None*/)
+Symbol& CIntDriver::GetSymbolFromSymbolName(const std::string_view symbol_name_sv, SymbolType preferred_symbol_type/* = SymbolType::None*/)
 {
     try
     {
-        return m_symbolTable.FindSymbolWithDotNotation(symbol_name, preferred_symbol_type);
+        return m_symbolTable.FindSymbolWithDotNotation(symbol_name_sv, preferred_symbol_type);
     }
 
     catch( const Logic::SymbolTable::Exception& )
     {
         // an exception will be thrown if the symbol is not found; in that case, search any symbols that might have been declared locally
         // (this functionality could be moved to the SymbolTable methods, but this is a rare instance so now it will only be done here)
-        const size_t dot_index = symbol_name.find('.');
-        const wstring_view base_symbol_name_sv = ( dot_index != StringNoCase::npos ) ? wstring_view(symbol_name).substr(0, dot_index) :
-                                                                                       wstring_view(symbol_name);
+        const size_t dot_index = symbol_name_sv.find('.');
+        const std::string_view base_symbol_name_sv = ( dot_index != std::string_view::npos ) ? symbol_name_sv.substr(0, dot_index) :
+                                                                                               symbol_name_sv;
         Symbol* symbol = nullptr;
 
         IterateOverScopeChangeNodes(
@@ -883,7 +536,7 @@ Symbol& CIntDriver::GetSymbolFromSymbolName(const StringNoCase& symbol_name, Sym
                 }
 
                 // if not found, check the original symbol names; this will allow this to work, e.g., CS.Logic.getSymbol(name := "name_of_function_parameter")
-                if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_4) &&
+                if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_4) &&
                     scope_change_node.local_symbol_names_list != -1)
                 {
                     const Nodes::List& local_symbol_names_node = GetListNode(scope_change_node.local_symbol_names_list);
@@ -891,9 +544,9 @@ Symbol& CIntDriver::GetSymbolFromSymbolName(const StringNoCase& symbol_name, Sym
 
                     for( int i = 0; i < local_symbol_names_node.number_elements; ++i )
                     {
-                        if( SO::EqualsNoCase(base_symbol_name_sv, GetStringLiteral(local_symbol_names_node.elements[i])) )
+                        if( SO::EqualsNoCase(base_symbol_name_sv, *m_engineData->string_literals[local_symbol_names_node.elements[i]]) )
                         {
-                            symbol = &NPT_Ref(local_symbol_indices_node.elements[i]);;
+                            symbol = &NPT_Ref(local_symbol_indices_node.elements[i]);
                             return false;
                         }
                     }
@@ -906,18 +559,18 @@ Symbol& CIntDriver::GetSymbolFromSymbolName(const StringNoCase& symbol_name, Sym
             throw;
 
         // if the starting symbol was found, process any dot notation
-        if( dot_index != StringNoCase::npos )
+        if( dot_index != std::string_view::npos )
         {
             try
             {
-                for( const wstring_view name_sv : SO::SplitString<wstring_view>(wstring_view(symbol_name).substr(dot_index + 1), '.') )
+                for( const std::string_view name_sv : SO::SplitString<std::string_view>(symbol_name_sv.substr(dot_index + 1), '.') )
                     symbol = &m_symbolTable.FindSymbol(name_sv, symbol);
             }
 
             catch( const Logic::SymbolTable::NoSymbolsException& )
             {
                 // throw an exception with the full symbol name
-                throw Logic::SymbolTable::NoSymbolsException(symbol_name);
+                throw Logic::SymbolTable::NoSymbolsException(std::string(symbol_name_sv));
             }
         }
 
@@ -926,11 +579,11 @@ Symbol& CIntDriver::GetSymbolFromSymbolName(const StringNoCase& symbol_name, Sym
 }
 
 
-std::tuple<Symbol*, Symbol*> CIntDriver::GetEvaluatedSymbolFromSymbolName(const std::wstring& symbol_name_and_potential_subscript, SymbolType preferred_symbol_type/* = SymbolType::None*/)
+std::tuple<Symbol*, Symbol*> CIntDriver::GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript, const SymbolType preferred_symbol_type/* = SymbolType::None*/)
 {
-    wstring_view symbol_name_sv = symbol_name_and_potential_subscript;
+    std::string_view symbol_name_sv = symbol_name_and_potential_subscript;
     const size_t left_parenthesis_pos = symbol_name_and_potential_subscript.find('(');
-    const bool explicit_subscript_specified = ( left_parenthesis_pos != std::wstring::npos );
+    const bool explicit_subscript_specified = ( left_parenthesis_pos != std::string::npos );
 
     if( explicit_subscript_specified )
         symbol_name_sv = symbol_name_sv.substr(0, left_parenthesis_pos);
@@ -940,15 +593,15 @@ std::tuple<Symbol*, Symbol*> CIntDriver::GetEvaluatedSymbolFromSymbolName(const 
 
     if( explicit_subscript_specified && !base_symbol.IsA(SymbolType::Item) )
     {
-        throw CSProException(_T("A subscript cannot be provided for the symbol '%s' of type '%s'."),
-                                base_symbol.GetName().c_str(), ToString(base_symbol.GetType()));
+        throw CSProException("A subscript cannot be provided for the symbol '%s' of type '%s'.",
+                             base_symbol.GetName().c_str(), ToString(base_symbol.GetType()));
     }
 
     if( base_symbol.IsA(SymbolType::Item) )
     {
         EngineItem& engine_item = assert_cast<EngineItem&>(base_symbol);
-        const TCHAR* subscript_text = explicit_subscript_specified ? ( symbol_name_and_potential_subscript.c_str() + left_parenthesis_pos ) :
-                                                                     nullptr;
+        const char* const subscript_text = explicit_subscript_specified ? ( symbol_name_and_potential_subscript.c_str() + left_parenthesis_pos ) :
+                                                                          nullptr;
 
         wrapped_symbol = &GetWrappedEngineItemSymbol(engine_item, subscript_text);
     }
@@ -966,18 +619,13 @@ double CIntDriver::exgetlabel(int iExpr)
     if( fng_node.m_iFunCode == FNGETSYMBOL_CODE && symbol_index == 0 && m_FieldSymbol != 0 )
         symbol_index = m_FieldSymbol;
 
-    if( symbol_index == 0 )
-    {
-        ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_7_000_1));
-        symbol_index = -1;
-    }
-
+    ASSERT(symbol_index != 0);
 
     // use the current symbol if none was supplied
     if( symbol_index == -1 )
     {
         if( m_iExSymbol <= 0 )
-            return AssignBlankAlphaValue();
+            return AssignStringNull();
 
         symbol_index = m_iExSymbol;
     }
@@ -985,28 +633,29 @@ double CIntDriver::exgetlabel(int iExpr)
     else if( symbol_index == 2147483647/*INT_MAX*/ )
     {
         // get the name of a partial save field
-        CString partial_save_field_name;
         const Case& data_case = DIX(0)->GetCase();
 
-        if( data_case.GetPartialSaveCaseItemReference() != nullptr )
+        if( data_case.GetPartialSaveCaseItemReference() == nullptr )
         {
-            const auto& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
-
-            partial_save_field_name = partial_save_case_item_reference.GetName();
-
-            // add occurrences
-            partial_save_field_name.Append(partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference));
+            return AssignStringNull();
         }
 
-        return AssignAlphaValue(partial_save_field_name);
+        else
+        {
+            const CaseItemReference& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
+
+            // return the name along with the occurrences
+            return AssignString(partial_save_case_item_reference.GetName() +
+                                partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference));
+        }
     }
 
 
-    const Symbol* symbol = NPT(symbol_index);
+    const Symbol* const symbol = NPT(symbol_index);
 
     // getsymbol: evaluate the symbol
     if( fng_node.m_iFunCode == FunctionCode::FNGETSYMBOL_CODE )
-        return AssignAlphaValue(symbol->GetName());
+        return AssignString(symbol->GetName());
 
 
     // getlabel: evaluate the label
@@ -1014,7 +663,7 @@ double CIntDriver::exgetlabel(int iExpr)
     // only 1 parameter was used in the function
     if( fng_node.m_iExpr == -1 )
     {
-        return AssignAlphaValue(SymbolCalculator::GetLabel(*symbol));
+        return AssignString(SymbolCalculator::GetLabel(*symbol));
     }
 
     // otherwise 2 parameters were used, which means that we need
@@ -1048,7 +697,7 @@ double CIntDriver::exgetlabel(int iExpr)
 
             else
             {
-                dict_value = value_processor->GetDictValue(EvalAlphaExpr<CString>(fng_node.m_iExpr));
+                dict_value = value_processor->GetDictValue(EvalAlphaExprCS(fng_node.m_iExpr));
             }
 
             if( dict_value != nullptr )
@@ -1057,7 +706,7 @@ double CIntDriver::exgetlabel(int iExpr)
 
         else
         {
-            const DictValue* dict_value = value_processor->GetDictValueByLabel(EvalAlphaExpr<CString>(fng_node.m_iExpr));
+            const DictValue* dict_value = value_processor->GetDictValueByLabel(EvalAlphaExprCS(fng_node.m_iExpr));
 
             // take the label from the first value pair
             if( dict_value != nullptr && dict_value->HasValuePairs() )
@@ -1078,17 +727,8 @@ double CIntDriver::exgetbuffer(int iExpr)
 
     if( pSVAR->m_iVarType == SVAR_CODE )
     {
-        VART* pVarT = VPT(pSVAR->m_iVarIndex);
-
-        if( pVarT->GetLogicStringPtr() != nullptr ) // 20140326 a variable length string
-        {
-            csValue = *(pVarT->GetLogicStringPtr());
-        }
-
-        else
-        {
-            csValue = CString(pVarT->GetAsciiValue(0), pVarT->GetLength());
-        }
+        VART* const pVarT = VPT(pSVAR->m_iVarIndex);
+        csValue = CString(pVarT->GetAsciiValue(0), pVarT->GetLength());
     }
 
     else if( pMVAR->m_iVarType == MVAR_CODE )
@@ -1110,9 +750,12 @@ double CIntDriver::exgetbuffer(int iExpr)
 }
 
 
-// this function returns false (and issues a warning) if there is a problem evaluating the field reference
-bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared_ptr<NamedReference>& named_reference, int& field_symbol)
+// this function returns a null NamedReference (and issues a warning) if there is a problem evaluating the field reference
+std::tuple<std::shared_ptr<NamedReference>, int> CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node)
 {
+    std::shared_ptr<NamedReference> named_reference;
+    int field_symbol = -1;
+
     // figure out what to evaluate
     int evaluate_simple_note_symbol_index = -1;
     bool evaluate_current_field = false;
@@ -1124,16 +767,16 @@ bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared
     {
         if( m_iExSymbol > 0 )
         {
-            const Symbol* symbol = NPT(m_iExSymbol);
+            const Symbol& symbol = NPT_Ref(m_iExSymbol);
 
             // a level
-            if( symbol->IsA(SymbolType::Group) && SymbolCalculator::GetLevelNumber_base1(*symbol) > 0 )
+            if( symbol.IsA(SymbolType::Group) && SymbolCalculator::GetLevelNumber_base1(symbol) > 0 )
             {
                 evaluate_simple_note_symbol_index = m_iExSymbol;
             }
 
             // a field
-            else if( symbol->IsA(SymbolType::Variable) )
+            else if( symbol.IsA(SymbolType::Variable) )
             {
                 evaluate_current_field = true;
             }
@@ -1154,13 +797,11 @@ bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared
 
 
     // do the evaluations
-    named_reference.reset();
-
     if( evaluate_simple_note_symbol_index >= 0 )
     {
-        const Symbol* symbol = NPT(evaluate_simple_note_symbol_index);
+        const Symbol& symbol = NPT_Ref(evaluate_simple_note_symbol_index);
         field_symbol = evaluate_simple_note_symbol_index;
-        named_reference = std::make_shared<NamedReference>(WS2CS(SymbolCalculator::GetBaseName(*symbol)), CString());
+        named_reference = std::make_unique<NamedReference>(SymbolCalculator::GetBaseName(symbol), std::string());
         check_if_data_is_accessible = false;
     }
 
@@ -1183,10 +824,10 @@ bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared
             CNDIndexes theCurrentIndexes(ONE_BASED);
             GetCurrentVarSubIndexes(m_iExSymbol, theCurrentIndexes);
 
-            auto case_item_reference = std::make_shared<CaseItemReference>(*pVarT->GetCaseItem(), CString());
+            auto case_item_reference = std::make_unique<CaseItemReference>(*pVarT->GetCaseItem(), std::string());
             ConvertIndex(theCurrentIndexes, *case_item_reference);
 
-            named_reference = case_item_reference;
+            named_reference = std::move(case_item_reference);
         }
     }
 
@@ -1197,7 +838,7 @@ bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared
 
         VART* pVarT = VPT(field_symbol);
 
-        auto case_item_reference = std::make_shared<CaseItemReference>(*pVarT->GetCaseItem(), CString());
+        auto case_item_reference = std::make_unique<CaseItemReference>(*pVarT->GetCaseItem(), std::string());
 
         if( pMVAR->m_iVarType == MVAR_CODE )
         {
@@ -1210,101 +851,102 @@ bool CIntDriver::EvaluateNoteReference(const FNNOTE_NODE& note_node, std::shared
             ConvertIndex(the3dObject, *case_item_reference);
         }
 
-        named_reference = case_item_reference;
+        named_reference = std::move(case_item_reference);
     }
 
+
+    bool success;
 
     // no valid entity found
     if( named_reference == nullptr )
     {
         issaerror(MessageType::Error, 46501);
-        return false;
+        success = false;
     }
 
     // verify that the note data is accessible
     else if( check_if_data_is_accessible )
     {
-        return IsDataAccessible(NPT_Ref(field_symbol), true);
+        success = IsDataAccessible(NPT_Ref(field_symbol), true);
     }
 
     // otherwise the data accessibility checks will have been done at compile-time
     else
     {
         ASSERT(IsDataAccessible(NPT_Ref(field_symbol), true));
-        return true;
+        success = true;
     }
+
+    if( success )
+        return std::make_tuple(std::move(named_reference), field_symbol);
+
+    return { nullptr, -1 };
 }
 
 
-std::optional<CString> CIntDriver::EvaluateNoteOperatorId(const FNNOTE_NODE& note_node, int field_symbol)
+std::unique_ptr<std::string> CIntDriver::EvaluateNoteOperatorId(const FNNOTE_NODE& note_node, const int field_symbol)
 {
     // operator IDs will be ignored for case notes
-    if( !NPT(field_symbol)->IsOneOf(SymbolType::Dictionary, SymbolType::Pre80Dictionary) )
+    if( !NPT_Ref(field_symbol).IsOneOf(SymbolType::Dictionary, SymbolType::Pre80Dictionary) )
     {
         if( note_node.operator_id_expression != -1 )
         {
-            return EvalAlphaExpr<CString>(note_node.operator_id_expression);
+            return std::make_unique<std::string>(EvaluateString(note_node.operator_id_expression));
         }
 
         else if( Issamod == ModuleType::Entry )
         {
-            return assert_cast<CEntryDriver*>(m_pEngineDriver)->GetOperatorId();
+            return std::make_unique<std::string>(UTF8_TODO::GetUtf8(assert_cast<CEntryDriver*>(m_pEngineDriver)->GetOperatorId()));
         }
     }
 
-    return std::nullopt;
+    return nullptr;
 }
 
 
-double CIntDriver::exgetnote(int iExpr)
+double CIntDriver::exgetnote(const int program_index)
 {
-    const auto& note_node = GetNode<FNNOTE_NODE>(iExpr);
-    std::shared_ptr<NamedReference> named_reference;
-    int field_symbol;
-    CString note_content;
+    const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
+    const auto [named_reference, field_symbol] = EvaluateNoteReference(note_node);
 
-    if( EvaluateNoteReference(note_node, named_reference, field_symbol) )
-    {
-        std::optional<CString> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
-        note_content = m_pEngineDriver->GetNoteContent(named_reference, operator_id, field_symbol);
-    }
+    if( named_reference == nullptr )
+        return AssignStringNull();
 
-    return AssignAlphaValue(note_content);
+    const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
+
+    return AssignString(m_pEngineDriver->GetNoteContent(*named_reference, operator_id.get(), field_symbol));
 }
 
 
-double CIntDriver::exputnote(int iExpr)
+double CIntDriver::exputnote(const int program_index)
 {
-    const auto& note_node = GetNode<FNNOTE_NODE>(iExpr);
-    std::shared_ptr<NamedReference> named_reference;
-    int field_symbol;
+    const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
+    const auto [named_reference, field_symbol] =  EvaluateNoteReference(note_node);
 
-    if( !EvaluateNoteReference(note_node, named_reference, field_symbol) )
+    if( named_reference == nullptr )
         return 0;
 
-    std::optional<CString> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
-    CString note_content = EvalAlphaExpr<CString>(note_node.note_text_expression);
+    const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
 
-    m_pEngineDriver->SetNote(named_reference, operator_id, note_content, field_symbol);
+    m_pEngineDriver->SetNote(named_reference, operator_id.get(),
+                             EvaluateSharableString(note_node.note_text_expression),
+                             field_symbol);
 
     return 1;
 }
 
 
-double CIntDriver::exeditnote(int iExpr)
+double CIntDriver::exeditnote(const int program_index)
 {
-    const auto& note_node = GetNode<FNNOTE_NODE>(iExpr);
-    std::shared_ptr<NamedReference> named_reference;
-    int field_symbol;
-    CString note_content;
+    const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
+    const auto [named_reference, field_symbol] =  EvaluateNoteReference(note_node);
 
-    if( EvaluateNoteReference(note_node, named_reference, field_symbol) )
-    {
-        std::optional<CString> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
-        note_content = std::get<CString>(m_pEngineDriver->EditNote(named_reference, operator_id, field_symbol, false));
-    }
+    if( named_reference == nullptr )
+        return AssignStringNull();
 
-    return AssignAlphaValue(note_content);
+    const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
+
+    return AssignString(std::get<SharableString>(m_pEngineDriver->EditNote(named_reference, operator_id.get(), field_symbol, false)));
 }
 
 
@@ -1314,13 +956,14 @@ double CIntDriver::exgetoperatorid(int iExpr)
     return AssignAlphaValue(operator_id);
 }
 
+
 double CIntDriver::exsetoperatorid(int iExpr)
 {
     if( Issamod != ModuleType::Entry )
         return 0;
 
     const FNN_NODE* pFun = (FNN_NODE*)PPT(iExpr);
-    CString operator_id = EvalAlphaExpr<CString>(pFun->fn_expr[0]);
+    CString operator_id = EvalAlphaExprCS(pFun->fn_expr[0]);
 
     // the maximum length of an operator ID is 32 characters
     constexpr int MaximumOperatorIdLength = 32;
@@ -1330,124 +973,6 @@ double CIntDriver::exsetoperatorid(int iExpr)
     assert_cast<CEntryDriver*>(m_pEngineDriver)->SetOperatorId(operator_id);
 
     return 1;
-}
-
-
-double CIntDriver::exgetusername(int iExpr) // 20111028
-{
-    return AssignAlphaValue(GetDeviceUserName());
-}
-
-
-double CIntDriver::exgetos(int iExpr)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    int additional_details_node = va_node.arguments[0];
-
-    // the return value: Windows = 10, Android = 20
-    constexpr double os_number = OnWindows() ? 10 : 20;
-
-    if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-    {
-        const FNN_NODE& fnn_node = GetNode<FNN_NODE>(iExpr);
-        additional_details_node = ( fnn_node.fn_expr[0] > 0 ) ? fnn_node.fn_expr[0] : -1;
-    }
-
-    if( additional_details_node != -1 )
-    {
-        const OperatingSystemDetails& operating_system_details = GetOperatingSystemDetails();
-
-        // fill in a hashmap with all details...
-        if( additional_details_node == -2 )
-        {
-            LogicHashMap& hashmap = GetSymbolLogicHashMap(va_node.arguments[1]);
-            ASSERT(hashmap.IsValueTypeString() &&
-                   hashmap.GetNumberDimensions() == 1 &&
-                   hashmap.DimensionTypeHandles(0, DataType::String));
-
-            hashmap.Reset();
-
-            hashmap.SetValue({ _T("name") }, operating_system_details.operating_system);
-            hashmap.SetValue({ _T("version") }, operating_system_details.version_number);
-
-            if( operating_system_details.build_number.has_value() )
-                hashmap.SetValue({ _T("build") }, *operating_system_details.build_number);
-        }
-
-        // ...or a string with the operating system and version
-        else
-        {
-            std::wstring text_description = SO::Concatenate(operating_system_details.operating_system,
-                                                            _T(";"),
-                                                            operating_system_details.version_number);
-
-            if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-            {
-                int iSymVarBuf = additional_details_node;
-
-                VART* pVarT = VPT(iSymVarBuf);
-
-                if( pVarT->GetLogicStringPtr() ) // 20140326 a variable length string
-                {
-                    *( pVarT->GetLogicStringPtr() ) = WS2CS(text_description);
-                }
-
-                else
-                {
-                    VARX* pVarX = VPX(iSymVarBuf);
-                    TCHAR* pBuff = (TCHAR*)svaraddr(pVarX);
-                    SO::MakeExactLength(text_description, pVarT->GetLength());
-                    _tmemcpy(pBuff, text_description.data(), pVarT->GetLength());
-                }
-            }
-
-            else
-            {
-                AssignValueToSymbol(GetNode<Nodes::SymbolValue>(additional_details_node), std::move(text_description));
-            }
-        }
-    }
-
-    return os_number;
-}
-
-
-double CIntDriver::exgetdeviceid(int /*iExpr*/)
-{
-    // originally this function was called getmac and returend the MAC address; on 20141218 it was decided
-    // to change it so that it returns a unique device ID; on Windows it will return the MAC address, while on
-    // Android it will return the ANDROID_ID (which is longer than the MAC address)
-    return AssignAlphaValue(GetDeviceId());
-}
-
-
-double CIntDriver::exuuid(int iExpr)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    std::wstring uuid;
-
-    if( va_node.arguments[0] == -1 )
-    {
-        uuid = CreateUuid();
-    }
-
-    else
-    {
-        // get the UUID of a case or create one if needed
-        Symbol& symbol = NPT_Ref(va_node.arguments[0]);
-
-        if( symbol.IsA(SymbolType::Dictionary) )
-        {
-            uuid = CS2WS(assert_cast<EngineDictionary&>(symbol).GetEngineCase().GetCase().GetOrCreateUuid());
-        }
-
-        else
-        {
-            uuid = CS2WS(assert_cast<DICT&>(symbol).GetDicX()->GetCase().GetOrCreateUuid());
-        }
-    }
-
-    return AssignAlphaValue(std::move(uuid));
 }
 
 
@@ -1495,7 +1020,7 @@ double CIntDriver::ExExecSystem(int iExpr)
             {
                 std::wstring filename = SO::Trim(command_sv.substr(colon_pos + 1));
                 MakeFullPathFileName(filename);
-                command = SO::Concatenate(action_sv, _T(":"), filename);
+                command = SO::ConcatenateWS(action_sv, _T(":"), filename);
                 break;
             }
         }
@@ -1574,7 +1099,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
 
     else
     {
-        pff_filename = logic_pff->GetName();
+        pff_filename = UTF8_TODO::GetWide(logic_pff->GetName());
     }
 
     std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event = ExExecCommonBeforeExecute(FNEXECPFF_CODE, pff_filename, *flags);
@@ -1603,7 +1128,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
 
             catch( const CSProException& exception )
             {
-                issaerror(MessageType::Error, 47195, PortableFunctions::PathGetFilename(pff_filename), exception.GetErrorMessage().c_str());
+                issaerror(MessageType::Error, 47195, PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(pff_filename)).c_str(), exception.what());
                 success = false;
             }
         }
@@ -1612,15 +1137,15 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
         else
         {
 #ifdef WIN_DESKTOP
-            std::optional<std::wstring> exe_filename = pff->GetExecutableProgram();
+            const std::optional<std::string> exe_filename = pff->GetExecutableProgram();
 
             success = exe_filename.has_value() &&
-                      ExExecCommonExecute(FormatTextCS2WS(_T("%s \"%s\""), exe_filename->c_str(), pff_filename.c_str()), *flags);
+                      ExExecCommonExecute(FormatTextCS2WS(_T("%s \"%s\""), UTF8_TODO::GetWide(*exe_filename).c_str(), pff_filename.c_str()), *flags);
 #else
             if( pff->GetAppType() == ENTRY_TYPE || PffExecutor::CanExecute(pff->GetAppType()) )
             {
                 // 20140213 a temporary kludge ... we'll set a parameter concerning the next application to run, which will be run when this application ends
-                success = (bool)PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(pff_filename);
+                success = PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(pff_filename);
             }
 
             else
@@ -1644,7 +1169,7 @@ std::unique_ptr<Paradata::ExternalApplicationEvent> CIntDriver::ExExecCommonBefo
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event;
@@ -1655,7 +1180,7 @@ std::unique_ptr<Paradata::ExternalApplicationEvent> CIntDriver::ExExecCommonBefo
 
         external_application_event = std::make_unique<Paradata::ExternalApplicationEvent>(
             ( source == FNEXECSYSTEM_CODE ) ? Paradata::ExternalApplicationEvent::Source::ExecSystem : Paradata::ExternalApplicationEvent::Source::ExecPff,
-            command,
+            UTF8_TODO::GetUtf8(command),
             stop);
     }
 
@@ -1707,7 +1232,7 @@ double CIntDriver::ExExecCommonAfterExecute(FunctionCode source, int flags, bool
     {
         bool wait = ( ( flags & EXECSYSTEM_WAIT ) != 0 );
         external_application_event->SetPostExecutionValues(success, wait);
-        m_pParadataDriver->RegisterAndLogEvent(std::move(external_application_event));
+        m_paradataDriver->RegisterAndLogEvent(std::move(external_application_event));
     }
 
     return success ? 1 : 0;
@@ -1718,44 +1243,38 @@ double CIntDriver::exview(const int program_index)
 {
     const auto& view_node = GetNode<Nodes::View>(program_index);
 
-    const int symbol_index_or_source_expression =
-        Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_1) ? view_node.symbol_index_or_source_expression :
-                                                                                 GetNode<FNN_NODE>(program_index).fn_expr[0];
+    const int subscript_compilation = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.subscript_compilation :
+                                                                                                                 -1;
 
-    const int subscript_compilation =
-        Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1)  ? view_node.subscript_compilation :
-                                                                                  -1;
-
-    const int viewer_options_node_index =
-        Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1)  ? view_node.viewer_options_node_index :
-        Versioning::MeetsCompiledLogicVersion(Serializer:: Iteration_7_7_000_2) ? view_node.subscript_compilation :
-                                                                                  -1;
+    const int viewer_options_node_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.viewer_options_node_index :
+                                          m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_2) ? view_node.subscript_compilation :
+                                                                                                                     -1;
     std::unique_ptr<const ViewerOptions> viewer_options = EvaluateViewerOptions(viewer_options_node_index);
 
     // viewing files or URLs
-    if( symbol_index_or_source_expression >= 0 )
+    if( view_node.symbol_index_or_source_expression >= 0 )
     {
-        std::wstring filename = EvalAlphaExpr(symbol_index_or_source_expression);
+        SharableString file_path_or_url = EvaluateString(view_node.symbol_index_or_source_expression);
         bool success = false;
 
         Viewer viewer;
         viewer.UseEmbeddedViewer()
               .UseSharedHtmlLocalFileServer()
+              .UseExceptionHolder(nullptr)
               .SetOptions(viewer_options.get());
 
-        if( filename.find(_T("://")) != std::wstring::npos )
+        if( file_path_or_url->find("://") != std::string::npos )
         {
-            success = viewer.ViewHtmlUrl(filename);
+            success = viewer.ViewHtmlUrl(*file_path_or_url);
         }
 
         else
         {
-            MakeFullPathFileName(filename);
-            success = viewer.ViewFile(filename);
+            MakeAbsolutePath(file_path_or_url.MakeModifiable());
+            success = viewer.ViewFile(*file_path_or_url);
         }
 
-        // handle any program control exceptions that may have resulted from JavaScript
-        // calls into CSPro logic
+        // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic
         RethrowProgramControlExceptions();
 
         return success ? 1 : 0;
@@ -1764,7 +1283,7 @@ double CIntDriver::exview(const int program_index)
     // viewing objects
     else
     {
-        Symbol* symbol = GetFromSymbolOrEngineItem(-1 * symbol_index_or_source_expression, subscript_compilation);
+        Symbol* const symbol = GetFromSymbolOrEngineItem(-1 * view_node.symbol_index_or_source_expression, subscript_compilation);
 
         if( symbol == nullptr )
             return 0;
@@ -1776,22 +1295,22 @@ double CIntDriver::exview(const int program_index)
 
         else if( symbol->IsA(SymbolType::Document) )
         {
-            return exDocument_view(assert_cast<const LogicDocument&>(*symbol), viewer_options.get());
+            return ex_Document_view(assert_cast<const LogicDocument&>(*symbol), viewer_options.get());
         }
 
         else if( symbol->IsA(SymbolType::Image) )
         {
-            return exImage_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get());
+            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get());
         }
 
         else if( symbol->IsA(SymbolType::NamedFrequency) )
         {
-            return exFreq_view(assert_cast<const NamedFrequency&>(*symbol), viewer_options.get(), -1);
+            return ex_Freq_view(assert_cast<const NamedFrequency&>(*symbol), viewer_options.get(), -1);
         }
 
         else if( symbol->IsA(SymbolType::Report) )
         {
-            return exReport_view(assert_cast<Report&>(*symbol), viewer_options.get());
+            return ex_Report_view(assert_cast<Report&>(*symbol), viewer_options.get());
         }
 
         else
@@ -1799,70 +1318,6 @@ double CIntDriver::exview(const int program_index)
             return ReturnProgrammingError(DEFAULT);
         }
     }
-}
-
-
-double CIntDriver::exsavesetting(int iExpr)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    bool success = false;
-
-    std::shared_ptr<CommonStore> common_store = m_pEngineDriver->GetCommonStore();
-
-    if( common_store != nullptr )
-    {
-        common_store->SwitchTable(CommonStore::TableType::UserSettings);
-
-        // clear the database
-        if( va_node.arguments[0] == -1 )
-        {
-            success = common_store->Clear();
-        }
-
-        else
-        {
-            std::wstring key = EvalAlphaExpr(va_node.arguments[0]);
-            std::wstring value = EvaluateExpressionAsString(static_cast<DataType>(va_node.arguments[1]), va_node.arguments[2]);
-
-            if( value.empty() )
-            {
-                success = common_store->Delete(key);
-            }
-
-            else
-            {
-                success = common_store->PutString(key, value);
-            }
-        }
-    }
-
-    return success;
-}
-
-
-double CIntDriver::exloadsetting(int iExpr)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    std::wstring key = EvalAlphaExpr(va_node.arguments[0]);
-    std::optional<std::wstring> value;
-
-    std::shared_ptr<CommonStore> common_store = m_pEngineDriver->GetCommonStore();
-
-    if( common_store != nullptr )
-    {
-        common_store->SwitchTable(CommonStore::TableType::UserSettings);
-
-        value = common_store->GetString(key);
-
-        // if they gave a default value, put that in the database and return it
-        if( !value.has_value() && va_node.arguments[1] != -1 )
-        {
-            value = EvaluateExpressionAsString(static_cast<DataType>(va_node.arguments[1]), va_node.arguments[2]);
-            common_store->PutString(key, *value);
-        }
-    }
-
-    return AssignAlphaValue(std::move(value));
 }
 
 
@@ -1876,13 +1331,13 @@ double CIntDriver::exgetcaselabel(int iExpr)
         const EngineDictionary* engine_dictionary = assert_cast<const EngineDictionary*>(symbol);
         const Case& data_case = engine_dictionary->GetEngineCase().GetCase();
 
-        return AssignAlphaValue(data_case.GetCaseLabel());
+        return AssignString(data_case.GetCaseLabel());
     }
 
     else
     {
         const DICX* pDicX = DPX(fn8_node.symbol_index);
-        return AssignAlphaValue(pDicX->GetCase().GetCaseLabel());
+        return AssignString(pDicX->GetCase().GetCaseLabel());
     }
 }
 
@@ -1897,7 +1352,7 @@ double CIntDriver::exsetcaselabel(int iExpr)
         EngineDictionary* engine_dictionary = assert_cast<EngineDictionary*>(symbol);
         Case& data_case = engine_dictionary->GetEngineCase().GetCase();
 
-        data_case.SetCaseLabel(EvalAlphaExpr<CString>(fn8_node.extra_parameter));
+        data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
 
 #ifdef WIN_DESKTOP
         // refresh the case listing
@@ -1911,7 +1366,7 @@ double CIntDriver::exsetcaselabel(int iExpr)
         DICX* pDicX = DPX(fn8_node.symbol_index);
         Case& data_case = pDicX->GetCase();
 
-        data_case.SetCaseLabel(EvalAlphaExpr<CString>(fn8_node.extra_parameter));
+        data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
 
 #ifdef WIN_DESKTOP
         if( symbol->GetSubType() == SymbolSubType::Input ) // refresh the case listing
@@ -1923,65 +1378,21 @@ double CIntDriver::exsetcaselabel(int iExpr)
 }
 
 
-double CIntDriver::exdecryptstring(int iExpr)
-{
-    // currently this is only used to decrypt locally-declared config variables
-    const auto& encryption_node = GetNode<Nodes::Encryption>(iExpr);
-    ASSERT(encryption_node.function_code == FunctionCode::DECRYPT_STRING_CODE);
-
-    std::wstring encrypted_string = EvalAlphaExpr(encryption_node.string_expression);
-    std::wstring decrypted_string = Encryptor(encryption_node.encryption_type).Decrypt(encrypted_string);
-
-    return AssignAlphaValue(std::move(decrypted_string));
-}
-
-
-double CIntDriver::exencode(int iExpr)
-{
-    const auto& encode_node = GetNode<Nodes::Encode>(iExpr);
-    ASSERT(encode_node.encoding_type != Nodes::EncodeType::Default || encode_node.string_expression >= 0);
-
-    // change the default encoding type
-    if( encode_node.string_expression < 0 )
-    {
-        m_currentEncodeType = encode_node.encoding_type;
-        return AssignBlankAlphaValue();
-    }
-
-    // or encode a string
-    else
-    {
-        Nodes::EncodeType encoding_type = ( encode_node.encoding_type == Nodes::EncodeType::Default ) ? m_currentEncodeType :
-                                                                                                        encode_node.encoding_type;
-        std::wstring text = EvalAlphaExpr(encode_node.string_expression);
-
-        return AssignAlphaValue(
-            ( encoding_type == Nodes::EncodeType::Html )            ? Encoders::ToHtml(text) :
-            ( encoding_type == Nodes::EncodeType::Csv )             ? Encoders::ToCsv(std::move(text)) :
-            ( encoding_type == Nodes::EncodeType::PercentEncoding ) ? Encoders::ToPercentEncoding(text) :
-            ( encoding_type == Nodes::EncodeType::Uri )             ? Encoders::ToUri(text) :
-            ( encoding_type == Nodes::EncodeType::UriComponent )    ? Encoders::ToUriComponent(text) :
-            ( encoding_type == Nodes::EncodeType::Slashes )         ? Encoders::ToEscapedString(std::move(text)) :
-            ( encoding_type == Nodes::EncodeType::JsonString )      ? Encoders::ToJsonString(text) :
-                                                                      ReturnProgrammingError(text));
-    }
-}
-
-
-std::wstring CIntDriver::EvaluateTextFill(int program_index)
+SharableString CIntDriver::EvaluateTextFill(const int program_index)
 {
     const auto& text_fill_node = GetNode<Nodes::TextFill>(program_index);
 
     if( IsBinary(text_fill_node.data_type) )
     {
-        const BinarySymbol* binary_symbol = GetFromSymbolOrEngineItem<BinarySymbol*>(text_fill_node.symbol_index_or_expression, text_fill_node.subscript_compilation);
+        const BinarySymbol* const binary_symbol = GetFromSymbolOrEngineItem<BinarySymbol*>(text_fill_node.symbol_index_or_expression,
+                                                                                           text_fill_node.subscript_compilation);
 
         return ( binary_symbol != nullptr ) ? LocalhostCreateMappingForBinarySymbol(*binary_symbol) :
-                                              std::wstring();
+                                              SharableString();
     }
 
     else
     {
-        return EvaluateExpressionAsString(text_fill_node.data_type, text_fill_node.symbol_index_or_expression);
+        return EvaluateSharableString(text_fill_node.data_type, text_fill_node.symbol_index_or_expression);
     }
 }

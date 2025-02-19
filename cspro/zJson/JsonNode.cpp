@@ -2,7 +2,36 @@
 #include "JsonNode.h"
 #include "Json.h"
 #include "JsonConsExceptionRethrower.h"
+#include <zToolsO/Encoders.h>
+#include <zToolsO/PropertyRetriever.h>
 #include <zToolsO/Special.h>
+
+
+// --------------------------------------------------------------------------
+// JsonReaderInterface
+// --------------------------------------------------------------------------
+
+void JsonReaderInterface::OnLogWarning(std::string /*message*/)
+{
+}
+
+
+void JsonReaderInterface::OnReportInvalidAccessUsingKey(const cs::string_sz key, const cs::string_sz node_text,
+                                                        const JsonParseException* const exception_to_be_thrown)
+{
+    if( exception_to_be_thrown == nullptr )
+    {
+        OnLogWarning(FormatText("The value of '%s' was ignored because it contained an invalid entry: %s",
+                                key.c_str(), node_text.c_str()));
+    }
+
+    else
+    {
+        OnLogWarning(FormatText("The value of '%s' was invalid and resulted in an error ('%s'): %s",
+                                key.c_str(), exception_to_be_thrown->what(), node_text.c_str()));
+    }
+}
+
 
 
 // --------------------------------------------------------------------------
@@ -12,10 +41,10 @@
 class NullJsonReaderInterface : public JsonReaderInterface
 {
 public:
-    static NullJsonReaderInterface* GetInstance()
+    static NullJsonReaderInterface& GetInstance()
     {
         static NullJsonReaderInterface null_json_reader_interface;
-        return &null_json_reader_interface;
+        return null_json_reader_interface;
     }
 };
 
@@ -25,13 +54,12 @@ public:
 // JsonNode
 // --------------------------------------------------------------------------
 
-template<typename CharType>
-JsonNode<CharType>::JsonNode(std::basic_string_view<CharType> json_text, JsonReaderInterface* json_reader_interface/* = nullptr*/)
+JsonNode::JsonNode(const std::string_view json_text_sv, JsonReaderInterface* const json_reader_interface/* = nullptr*/)
     :   m_jsonReaderInterface(json_reader_interface)
 {
     try
     {
-        m_ownedJson = std::make_shared<BasicJson>(BasicJson::parse(json_text));
+        m_ownedJson = std::make_unique<BasicJson>(BasicJson::parse(json_text_sv));
     }
 
     catch( const jsoncons::json_exception& exception )
@@ -42,115 +70,122 @@ JsonNode<CharType>::JsonNode(std::basic_string_view<CharType> json_text, JsonRea
     m_json = m_ownedJson.get();
 
     if( m_jsonReaderInterface == nullptr )
-        m_jsonReaderInterface = NullJsonReaderInterface::GetInstance();
+        m_jsonReaderInterface = &NullJsonReaderInterface::GetInstance();
 }
 
 
-template<typename CharType>
-JsonNode<CharType>::JsonNode(std::shared_ptr<const BasicJson> json, JsonReaderInterface* json_reader_interface/* = nullptr*/)
+JsonNode::JsonNode(std::shared_ptr<const BasicJson> json, JsonReaderInterface* const json_reader_interface/* = nullptr*/)
     :   m_ownedJson(std::move(json)),
         m_json(m_ownedJson.get()),
         m_jsonReaderInterface(json_reader_interface)
 {
     if( m_jsonReaderInterface == nullptr )
-        m_jsonReaderInterface = NullJsonReaderInterface::GetInstance();
+        m_jsonReaderInterface = &NullJsonReaderInterface::GetInstance();
 }
 
 
-template<typename CharType>
-JsonNode<CharType>::JsonNode(const BasicJson* json, JsonReaderInterface& json_reader_interface)
-    :   m_json(json),
+JsonNode::JsonNode(std::shared_ptr<const BasicJson> parent_owned_json, const BasicJson* const json, JsonReaderInterface& json_reader_interface)
+    :   m_ownedJson(std::move(parent_owned_json)),
+        m_json(json),
         m_jsonReaderInterface(&json_reader_interface)
 {
 }
 
 
-template<typename CharType>
-JsonNode<CharType>::~JsonNode()
+JsonNode JsonNode::EmptyNode(JsonReaderInterface& json_reader_interface)
 {
+    static BasicJson empty_node;
+    return JsonNode(nullptr, &empty_node, json_reader_interface);
 }
 
 
-template<typename CharType>
-std::basic_string<CharType> JsonNode<CharType>::GetNodeAsString(const JsonFormattingOptions formatting_options/* = DefaultJsonFormattingOptions*/) const
+JsonNode JsonNode::EmptyNode()
 {
-    std::unique_ptr<JsonStringWriter<CharType>> json_writer = Json::CreateStringWriter<CharType>(formatting_options);
-
-    json_writer->Write(*this);
-
-    return json_writer->GetString();
+    return EmptyNode(NullJsonReaderInterface::GetInstance());
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsEmpty() const
+std::string JsonNode::GetNodeAsString(const JsonFormattingOptions formatting_options/* = DefaultJsonFormattingOptions*/) const
+{
+    return GetNodeAsSharableString(formatting_options).Release();
+}
+
+
+SharableString JsonNode::GetNodeAsSharableString(const JsonFormattingOptions formatting_options/* = DefaultJsonFormattingOptions*/) const
+{
+    if( IsString() )
+    {
+        return Encoders::ToJsonString(Get<std::string_view>());
+    }
+
+    else
+    {
+        const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(formatting_options);
+        json_writer->Write(*this);
+        return json_writer->ReleaseSharableString();
+    }
+}
+
+
+bool JsonNode::IsEmpty() const
 {
     return m_json->empty();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsNull() const
+bool JsonNode::IsNull() const
 {
     return m_json->is_null();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsBoolean() const
+bool JsonNode::IsBoolean() const
 {
     return m_json->is_bool();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsNumber() const
+bool JsonNode::IsNumber() const
 {
     return m_json->is_number();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsDouble() const
+bool JsonNode::IsDouble() const
 {
     return m_json->is_double();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsString() const
+bool JsonNode::IsString() const
 {
     return m_json->is_string();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsArray() const
+bool JsonNode::IsArray() const
 {
     return m_json->is_array();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::IsObject() const
+bool JsonNode::IsObject() const
 {
     return m_json->is_object();
 }
 
 
-template<typename CharType>
-bool JsonNode<CharType>::Contains(const StringView key_sv) const
+bool JsonNode::Contains(const std::string_view key_sv) const
 {
     return m_json->contains(key_sv);
 }
 
 
-template<typename CharType>
-JsonNode<CharType> JsonNode<CharType>::operator[](const StringView key_sv) const
+JsonNode JsonNode::operator[](const std::string_view key_sv) const
 {
     try
     {
-        return JsonNode<CharType>(&m_json->at(key_sv), *m_jsonReaderInterface);
+        return JsonNode(m_ownedJson, &m_json->at(key_sv), *m_jsonReaderInterface);
     }
 
     catch( const jsoncons::json_exception& exception )
@@ -160,13 +195,12 @@ JsonNode<CharType> JsonNode<CharType>::operator[](const StringView key_sv) const
 }
 
 
-template<typename CharType>
-JsonNode<CharType> JsonNode<CharType>::GetOrEmpty(const StringView key_sv) const
+JsonNode JsonNode::GetOrEmpty(const std::string_view key_sv) const
 {
     try
     {
         if( Contains(key_sv) )
-            return JsonNode<CharType>(&m_json->at(key_sv), *m_jsonReaderInterface);
+            return JsonNode(m_ownedJson, &m_json->at(key_sv), *m_jsonReaderInterface);
     }
 
     catch( const jsoncons::json_exception& )
@@ -176,20 +210,31 @@ JsonNode<CharType> JsonNode<CharType>::GetOrEmpty(const StringView key_sv) const
         ReportInvalidAccessUsingKey(key_sv, nullptr);
     }
 
-    static BasicJson empty_node;
-    return JsonNode<CharType>(&empty_node, *m_jsonReaderInterface);
+    return EmptyNode(*m_jsonReaderInterface);
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-ValueType JsonNode<CharType>::GetWorker() const
+ValueType JsonNode::GetWorker() const
 {
     try
     {
-        if constexpr(std::is_same_v<ValueType, JsonNode<CharType>>)
+        if constexpr(std::is_same_v<ValueType, JsonNode>)
         {
             return *this;
+        }
+
+        else if constexpr(std::is_same_v<ValueType, SharableString>)
+        {
+            return m_json->template as<std::string_view>();
+        }
+
+        else if constexpr(std::is_same_v<ValueType, std::variant<double, std::string>>)
+        {
+            if( IsNumber() )
+                return m_json->template as<double>();
+
+            return m_json->template as<std::string>();
         }
 
         else if constexpr(std::is_same_v<ValueType, std::variant<double, std::wstring>>)
@@ -197,21 +242,19 @@ ValueType JsonNode<CharType>::GetWorker() const
             if( IsNumber() )
                 return m_json->template as<double>();
 
-            return m_json->template as<std::wstring>();
+            return GetWorker<std::wstring>();
+        }
+
+        else if constexpr(std::is_same_v<ValueType, std::wstring>)
+        {
+            return IsString() ? UTF8_TODO::GetWide(m_json->template as<std::string_view>()) :
+                                UTF8_TODO::GetWide(GetWorker<std::string>());
         }
 
         else if constexpr(std::is_same_v<ValueType, CString>)
         {
-            if( IsString() )
-            {
-                const std::wstring_view sv = m_json->template as<std::wstring_view>();
-                return CString(sv.data(), sv.length());
-            }
-
-            else
-            {
-                return WS2CS(GetWorker<std::wstring>());
-            }
+            return IsString() ? UTF8_TODO::GetCString(m_json->template as<std::string_view>()) :
+                                UTF8_TODO::GetCString(GetWorker<std::string>());
         }
 
         else if constexpr(std::is_same_v<ValueType, std::vector<CString>>)
@@ -232,66 +275,57 @@ ValueType JsonNode<CharType>::GetWorker() const
 }
 
 // instantiate Get for common types
-#define INSTANTIATE_GET(CharType, ValueType) template ZJSON_API ValueType JsonNode<CharType>::GetWorker<ValueType>() const;
+template ZJSON_API JsonNode JsonNode::GetWorker<JsonNode>() const;
 
-#define INSTANTIATE_GET_BOTH(ValueType) INSTANTIATE_GET(char, ValueType)    \
-                                        INSTANTIATE_GET(wchar_t, ValueType)
-
-INSTANTIATE_GET_BOTH(bool)
-INSTANTIATE_GET_BOTH(int)
-INSTANTIATE_GET_BOTH(unsigned int)
+template ZJSON_API bool JsonNode::GetWorker<bool>() const;
+template ZJSON_API int JsonNode::GetWorker<int>() const;
+template ZJSON_API unsigned int JsonNode::GetWorker<unsigned int>() const;
 #ifdef WASM
-INSTANTIATE_GET_BOTH(unsigned long)
+template ZJSON_API unsigned long JsonNode::GetWorker<unsigned long>() const;
 #endif
-INSTANTIATE_GET_BOTH(int64_t)
-INSTANTIATE_GET_BOTH(uint64_t)
-INSTANTIATE_GET_BOTH(float)
-INSTANTIATE_GET_BOTH(double)
-INSTANTIATE_GET_BOTH(std::vector<double>)
+template ZJSON_API int64_t JsonNode::GetWorker<int64_t>() const;
+template ZJSON_API uint64_t JsonNode::GetWorker<uint64_t>() const;
+template ZJSON_API float JsonNode::GetWorker<float>() const;
+template ZJSON_API double JsonNode::GetWorker<double>() const;
 
-INSTANTIATE_GET(char, std::string_view)
-INSTANTIATE_GET(char, std::string)
+template ZJSON_API std::string_view JsonNode::GetWorker<std::string_view>() const;
+template ZJSON_API std::string JsonNode::GetWorker<std::string>() const;
+template ZJSON_API SharableString JsonNode::GetWorker<SharableString>() const;
 
-INSTANTIATE_GET(wchar_t, std::wstring_view)
-INSTANTIATE_GET(wchar_t, wstring_view)
-INSTANTIATE_GET(wchar_t, std::wstring)
-INSTANTIATE_GET(wchar_t, std::string)
-INSTANTIATE_GET(wchar_t, CString)
-INSTANTIATE_GET(wchar_t, std::vector<std::wstring>)
-INSTANTIATE_GET(wchar_t, std::vector<CString>)
+template ZJSON_API std::wstring JsonNode::GetWorker<std::wstring>() const;
+template ZJSON_API CString JsonNode::GetWorker<CString>() const;
 
-INSTANTIATE_GET(char, JsonNode<char>)
-INSTANTIATE_GET(wchar_t, JsonNode<wchar_t>)
+template ZJSON_API std::vector<double> JsonNode::GetWorker<std::vector<double>>() const;
+template ZJSON_API std::vector<std::string> JsonNode::GetWorker<std::vector<std::string>>() const;
+template ZJSON_API std::vector<std::wstring> JsonNode::GetWorker<std::vector<std::wstring>>() const;
+template ZJSON_API std::vector<CString> JsonNode::GetWorker<std::vector<CString>>() const;
 
-template ZJSON_API std::variant<double, std::wstring> JsonNode<wchar_t>::GetWorker<std::variant<double, std::wstring>>() const;
+template ZJSON_API std::variant<double, std::string> JsonNode::GetWorker<std::variant<double, std::string>>() const;
+template ZJSON_API std::variant<double, std::wstring> JsonNode::GetWorker<std::variant<double, std::wstring>>() const;
 
 
-
-template<typename CharType>
-inline time_t JsonNode<CharType>::GetDate() const
+int64_t JsonNode::GetDate() const
 {
-    return PortableFunctions::ParseRFC3339DateTime(Get<std::wstring>());
+    return PortableFunctions::ParseRFC3339DateTime(Get<std::string>());
 }
 
 
-template<typename CharType>
-std::wstring JsonNode<CharType>::GetOnlyString() const
+std::string JsonNode::GetOnlyString() const
 {
     if( !IsString() )
     {
         if( IsNull() )
-            return std::wstring();
+            return std::string();
 
         if( IsArray() || IsObject() )
             throw JsonParseException("Not a string");
     }
 
-    return Get<std::wstring>();
+    return Get<std::string>();
 }
 
 
-template<typename CharType>
-double JsonNode<CharType>::GetDouble() const
+double JsonNode::GetDouble() const
 {
     try
     {
@@ -313,15 +347,14 @@ double JsonNode<CharType>::GetDouble() const
 }
 
 
-template<typename CharType>
 template<typename T>
-bool JsonNode<CharType>::IsEngineValue() const
+bool JsonNode::IsEngineValue() const
 {
     if constexpr(std::is_same_v<T, double>)
     {
         return ( IsNumber() ||
-                 IsBoolean() || 
-                 ( IsString() && SpecialValues::StringIsSpecial(m_json->template as<std::wstring_view>()) ) ||
+                 IsBoolean() ||
+                 ( IsString() && SpecialValues::StringIsSpecial(m_json->template as<std::string_view>()) ) ||
                  IsNull() );
     }
 
@@ -332,20 +365,21 @@ bool JsonNode<CharType>::IsEngineValue() const
     }
 }
 
-template ZJSON_API bool JsonNode<wchar_t>::IsEngineValue<double>() const;
-template ZJSON_API bool JsonNode<wchar_t>::IsEngineValue<std::wstring>() const;
+template ZJSON_API bool JsonNode::IsEngineValue<double>() const;
+template ZJSON_API bool JsonNode::IsEngineValue<std::string>() const;
+template ZJSON_API bool JsonNode::IsEngineValue<SharableString>() const;
+template ZJSON_API bool JsonNode::IsEngineValue<std::wstring>() const;
 
 
-template<typename CharType>
 template<typename T>
-T JsonNode<CharType>::GetEngineValue() const
+T JsonNode::GetEngineValue() const
 {
     if constexpr(std::is_same_v<T, double>)
     {
         // check for special values
         if( IsString() )
         {
-            const double* special_value = SpecialValues::StringIsSpecial<const double* >(m_json->template as<std::wstring_view>());
+            const double* const special_value = SpecialValues::StringIsSpecial<const double*>(m_json->template as<std::string_view>());
 
             if( special_value != nullptr )
                 return *special_value;
@@ -359,9 +393,34 @@ T JsonNode<CharType>::GetEngineValue() const
         return GetDouble();
     }
 
-    else if constexpr(std::is_same_v<T, std::wstring>)
+    else if constexpr(std::is_same_v<T, std::string> ||
+                      std::is_same_v<T, SharableString>)
     {
         return GetOnlyString();
+    }
+
+    else if constexpr(std::is_same_v<T, std::wstring>)
+    {
+        return UTF8_TODO::GetWide(GetOnlyString());
+    }
+
+    else if constexpr(std::is_same_v<T, std::variant<double, SharableString>>)
+    {
+        if( IsEngineValue<double>() && !IsNull() )
+        {
+            return GetEngineValue<double>();
+        }
+
+        else
+        {
+            // when reading variant values, treat special value strings as numbers
+            const double* const special_value = SpecialValues::StringIsSpecial<const double*>(m_json->template as<std::string_view>());
+
+            if( special_value != nullptr )
+                return *special_value;
+
+            return GetEngineValue<SharableString>();
+        }
     }
 
     else if constexpr(std::is_same_v<T, std::variant<double, std::wstring>>)
@@ -374,7 +433,7 @@ T JsonNode<CharType>::GetEngineValue() const
         else
         {
             // when reading variant values, treat special value strings as numbers
-            const double* special_value = SpecialValues::StringIsSpecial<const double* >(m_json->template as<std::wstring_view>());
+            const double* const special_value = SpecialValues::StringIsSpecial<const double*>(m_json->template as<std::string_view>());
 
             if( special_value != nullptr )
                 return *special_value;
@@ -385,29 +444,30 @@ T JsonNode<CharType>::GetEngineValue() const
 
     else
     {
-        static_assert_false();        
+        static_assert_false();
     }
 }
 
-template ZJSON_API double JsonNode<wchar_t>::GetEngineValue() const;
-template ZJSON_API std::wstring JsonNode<wchar_t>::GetEngineValue() const;
-template ZJSON_API std::variant<double, std::wstring> JsonNode<wchar_t>::GetEngineValue() const;
+template ZJSON_API double JsonNode::GetEngineValue() const;
+template ZJSON_API std::string JsonNode::GetEngineValue() const;
+template ZJSON_API SharableString JsonNode::GetEngineValue() const;
+template ZJSON_API std::wstring JsonNode::GetEngineValue() const;
+template ZJSON_API std::variant<double, SharableString> JsonNode::GetEngineValue() const;
+template ZJSON_API std::variant<double, std::wstring> JsonNode::GetEngineValue() const;
 
 
-template<typename CharType>
-JsonNodeArray<CharType> JsonNode<CharType>::GetEmptyArray() const
+JsonNodeArray JsonNode::GetEmptyArray() const
 {
-    static typename JsonNodeArray<CharType>::JsonArray empty_array;
-    return JsonNodeArray<CharType>(&empty_array, *m_jsonReaderInterface);
+    static typename JsonNodeArray::JsonArray empty_array;
+    return JsonNodeArray(nullptr, &empty_array, *m_jsonReaderInterface);
 }
 
 
-template<typename CharType>
-JsonNodeArray<CharType> JsonNode<CharType>::GetArray() const
+JsonNodeArray JsonNode::GetArray() const
 {
     try
     {
-        return JsonNodeArray<CharType>(&m_json->array_value(), *m_jsonReaderInterface);
+        return JsonNodeArray(m_ownedJson, &m_json->array_value(), *m_jsonReaderInterface);
     }
 
     catch( const jsoncons::json_exception& exception )
@@ -417,15 +477,13 @@ JsonNodeArray<CharType> JsonNode<CharType>::GetArray() const
 }
 
 
-template<typename CharType>
-JsonNodeArray<CharType> JsonNode<CharType>::GetArray(const StringView key_sv) const
+JsonNodeArray JsonNode::GetArray(const std::string_view key_sv) const
 {
     return Get(key_sv).GetArray();
 }
 
 
-template<typename CharType>
-JsonNodeArray<CharType> JsonNode<CharType>::GetArrayOrEmpty() const
+JsonNodeArray JsonNode::GetArrayOrEmpty() const
 {
     try
     {
@@ -439,13 +497,12 @@ JsonNodeArray<CharType> JsonNode<CharType>::GetArrayOrEmpty() const
 }
 
 
-template<typename CharType>
-JsonNodeArray<CharType> JsonNode<CharType>::GetArrayOrEmpty(const StringView key_sv) const
+JsonNodeArray JsonNode::GetArrayOrEmpty(const std::string_view key_sv) const
 {
     try
     {
         if( Contains(key_sv) )
-            return (*this)[key_sv].JsonNode<CharType>::GetArray();
+            return (*this)[key_sv].JsonNode::GetArray();
     }
 
     catch( const JsonParseException& )
@@ -457,30 +514,20 @@ JsonNodeArray<CharType> JsonNode<CharType>::GetArrayOrEmpty(const StringView key
 }
 
 
-template<typename CharType>
-std::wstring JsonNode<CharType>::GetAbsolutePath() const
+std::string JsonNode::GetAbsolutePath() const
 {
-    StringView path_sv = Get<StringView>();
+    std::string absolute_path = MakeFullPath(m_jsonReaderInterface->GetDirectory(),
+                                             Get<std::string>());
 
-    if constexpr(std::is_same_v<CharType, wchar_t>)
-    {
-        std::wstring absolute_path = MakeFullPath(m_jsonReaderInterface->GetDirectory(), path_sv);
-        ASSERT(absolute_path == PortableFunctions::PathToNativeSlash(absolute_path));
-        return absolute_path;
-    }
+    ASSERT(absolute_path == PortableFunctions::PathToNativeSlash(absolute_path));
 
-    else
-    {
-        // currently this is only implemented for wide characters
-        return ReturnProgrammingError(UTF8Convert::UTF8ToWide(path_sv));
-    }
+    return absolute_path;
 }
 
 
-template<typename CharType>
-std::vector<std::basic_string<CharType>> JsonNode<CharType>::GetKeys() const
+std::vector<std::string> JsonNode::GetKeys() const
 {
-    std::vector<std::basic_string<CharType>> keys;
+    std::vector<std::string> keys;
 
     if( m_json->is_object() )
     {
@@ -492,30 +539,26 @@ std::vector<std::basic_string<CharType>> JsonNode<CharType>::GetKeys() const
 }
 
 
-template<typename CharType>
-void JsonNode<CharType>::ForeachNode(const std::function<void(StringView, const JsonNode<CharType>&)>& callback_function) const
+void JsonNode::ForeachNode(const std::function<void(std::string_view, const JsonNode&)>& callback_function) const
 {
     if( m_json->is_object() )
     {
         for( const auto& member : m_json->object_range() )
-            callback_function(member.key(), JsonNode<CharType>(&member.value(), *m_jsonReaderInterface));
+            callback_function(member.key(), JsonNode(m_ownedJson, &member.value(), *m_jsonReaderInterface));
     }
 }
 
 
-template<typename CharType>
-void JsonNode<CharType>::ReportInvalidAccessUsingKey(const StringView key_sv, const JsonParseException* exception_to_be_thrown) const
+void JsonNode::ReportInvalidAccessUsingKey(const std::string_view key_sv, const JsonParseException* const exception_to_be_thrown) const
 {
     if( !Contains(key_sv) )
         return;
 
-    std::basic_string<CharType> node_text;
+    std::string node_text;
 
     try
     {
-        std::unique_ptr<JsonStringWriter<CharType>> json_writer = Json::CreateStringWriter<CharType>();
-        json_writer->Write((*this)[key_sv]);
-        node_text = json_writer->GetString();
+        node_text = Json::ToJson(Get(key_sv));
     }
 
     catch(...)
@@ -524,16 +567,41 @@ void JsonNode<CharType>::ReportInvalidAccessUsingKey(const StringView key_sv, co
         ASSERT(false);
     }
 
-    if constexpr(std::is_same_v<CharType, wchar_t>)
+    m_jsonReaderInterface->OnReportInvalidAccessUsingKey(std::string(key_sv), node_text, exception_to_be_thrown);
+}
+
+
+
+// --------------------------------------------------------------------------
+// JsonNodePropertyRetriever
+// --------------------------------------------------------------------------
+
+class JsonNodePropertyRetriever : public PropertyRetriever
+{
+public:
+    JsonNodePropertyRetriever(const JsonNode& json_node)
+        :   m_jsonNode(json_node)
     {
-        m_jsonReaderInterface->OnReportInvalidAccessUsingKey(std::wstring(key_sv).c_str(), node_text.c_str(), exception_to_be_thrown);
     }
 
-    else
+    std::optional<std::string> GetProperty(const std::string_view attribute_sv) override
     {
-        // the reporter is only implemented using wide characters
-        ASSERT(false);
+        return m_jsonNode.template GetOptional<std::string>(attribute_sv);
     }
+
+    void OnInvalidPropertyValue(const std::string_view attribute_sv, const std::string& value) override
+    {
+        throw JsonParseException("'%s' is not a valid %s", value.c_str(), std::string(attribute_sv).c_str());
+    }
+
+private:
+    const JsonNode& m_jsonNode;
+};
+
+
+std::unique_ptr<PropertyRetriever> JsonNode::CreatePropertyRetriever() const
+{
+    return std::make_unique<JsonNodePropertyRetriever>(*this);
 }
 
 
@@ -542,35 +610,32 @@ void JsonNode<CharType>::ReportInvalidAccessUsingKey(const StringView key_sv, co
 // JsonNodeArray
 // --------------------------------------------------------------------------
 
-template<typename CharType>
-JsonNodeArray<CharType>::JsonNodeArray(const JsonArray* json_array, JsonReaderInterface& json_reader_interface)
-    :   m_jsonArray(json_array),
+JsonNodeArray::JsonNodeArray(std::shared_ptr<const BasicJson> parent_owned_json, const JsonArray* const json_array, JsonReaderInterface& json_reader_interface)
+    :   m_ownedJson(std::move(parent_owned_json)),
+        m_jsonArray(json_array),
         m_jsonReaderInterface(json_reader_interface)
 {
 }
 
 
-template<typename CharType>
-bool JsonNodeArray<CharType>::empty() const
+bool JsonNodeArray::empty() const
 {
     return m_jsonArray->empty();
 }
 
 
-template<typename CharType>
-size_t JsonNodeArray<CharType>::size() const
+size_t JsonNodeArray::size() const
 {
     return m_jsonArray->size();
 }
 
 
-template<typename CharType>
-JsonNode<CharType> JsonNodeArray<CharType>::operator[](const size_t index) const
+JsonNode JsonNodeArray::operator[](const size_t index) const
 {
     try
     {
         ASSERT(index < size());
-        return JsonNode<CharType>(&((*m_jsonArray)[index]), m_jsonReaderInterface);
+        return JsonNode(m_ownedJson, &((*m_jsonArray)[index]), m_jsonReaderInterface);
     }
 
     catch( const jsoncons::json_exception& exception )
@@ -580,17 +645,15 @@ JsonNode<CharType> JsonNodeArray<CharType>::operator[](const size_t index) const
 }
 
 
-template<typename CharType>
-JsonNodeArrayIterator<CharType> JsonNodeArray<CharType>::begin() const
+JsonNodeArrayIterator JsonNodeArray::begin() const
 {
-    return JsonNodeArrayIterator<CharType>(this, 0);
+    return JsonNodeArrayIterator(this, 0);
 }
 
 
-template<typename CharType>
-JsonNodeArrayIterator<CharType> JsonNodeArray<CharType>::end() const
+JsonNodeArrayIterator JsonNodeArray::end() const
 {
-    return JsonNodeArrayIterator<CharType>(this, m_jsonArray->size());
+    return JsonNodeArrayIterator(this, m_jsonArray->size());
 }
 
 
@@ -599,41 +662,33 @@ JsonNodeArrayIterator<CharType> JsonNodeArray<CharType>::end() const
 // JsonNodeArrayIterator
 // --------------------------------------------------------------------------
 
-template<typename CharType>
-JsonNodeArrayIterator<CharType>::JsonNodeArrayIterator(const JsonNodeArray<CharType>* json_node_array, const size_t index)
+JsonNodeArrayIterator::JsonNodeArrayIterator(const JsonNodeArray* const json_node_array, const size_t index)
     :   m_jsonNodeArray(json_node_array),
-        m_index(index),
-        m_currentJsonNode(nullptr)
+        m_index(index)
 {
 }
 
 
-template<typename CharType>
-JsonNodeArrayIterator<CharType>& JsonNodeArrayIterator<CharType>::operator++()
+JsonNodeArrayIterator& JsonNodeArrayIterator::operator++()
 {
     ++m_index;
-    m_currentJsonNode = nullptr;
+    m_currentJsonNode.reset();
     return *this;
 }
 
-template<typename CharType>
-const JsonNode<CharType>* JsonNodeArrayIterator<CharType>::operator->() const
-{
-    if( m_currentJsonNode == nullptr )
-        m_currentJsonNode = std::make_shared<const JsonNode<CharType>>((*m_jsonNodeArray)[m_index]);
 
-    return m_currentJsonNode.get();
+JsonNodeArrayIterator& JsonNodeArrayIterator::operator++(int)
+{
+    m_currentJsonNode.emplace((*m_jsonNodeArray)[m_index]);
+    ++m_index;
+    return *this;
 }
 
 
+const JsonNode* JsonNodeArrayIterator::operator->() const
+{
+    if( !m_currentJsonNode.has_value() )
+        m_currentJsonNode.emplace((*m_jsonNodeArray)[m_index]);
 
-// --------------------------------------------------------------------------
-// instantiate the classes for single and wide characters
-// --------------------------------------------------------------------------
-
-template class JsonNode<char>;
-template class JsonNode<wchar_t>;
-template class JsonNodeArray<char>;
-template class JsonNodeArray<wchar_t>;
-template class JsonNodeArrayIterator<char>;
-template class JsonNodeArrayIterator<wchar_t>;
+    return &(*m_currentJsonNode);
+}

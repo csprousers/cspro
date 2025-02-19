@@ -1,31 +1,32 @@
 ﻿#include "StdAfx.h"
 #include "MimeType.h"
+#include <zToolsO/CaseInsensitiveComparer.h>
 
 
 namespace MimeTypeMap
 {
-    const std::vector<std::tuple<const TCHAR*, const TCHAR*>>& GetMimeTypeAndDefaultExtensions();
-    const std::map<StringNoCase, unsigned>& GetExtensionMap();
+    const std::vector<std::tuple<const char*, const char*>>& GetMimeTypeAndDefaultExtensions();
+    const std::map<std::string, unsigned, cs::case_insensitive_less>& GetExtensionMap();
 }
 
 
 namespace
 {
     // splits the text into its type and subtype;
-    // note that wstring_view objects are returned, so the function argument should not be a temporary string
-    std::tuple<wstring_view, wstring_view> GetTypeSubtype(const wstring_view mime_type_text_sv)
+    // note that string_view objects are returned, so the function argument should not be a temporary string
+    std::tuple<std::string_view, std::string_view> GetTypeSubtype(const std::string_view mime_type_text_sv)
     {
         const size_t slash_pos = mime_type_text_sv.find('/');
 
-        return ( slash_pos == wstring_view::npos ) ? std::make_tuple(SO::Trim(mime_type_text_sv), wstring_view()) :
-                                                     std::make_tuple(SO::Trim(mime_type_text_sv.substr(0, slash_pos)), SO::Trim(mime_type_text_sv.substr(slash_pos + 1)));
+        return ( slash_pos == std::string_view::npos ) ? std::make_tuple(SO::Trim(mime_type_text_sv), std::string_view()) :
+                                                         std::make_tuple(SO::Trim(mime_type_text_sv.substr(0, slash_pos)), SO::Trim(mime_type_text_sv.substr(slash_pos + 1)));
     }
 
 #ifdef _DEBUG
-    bool TypeSubtypeAreTrimmed(const wstring_view mime_type_text_sv)
+    bool TypeSubtypeAreTrimmed(const std::string_view mime_type_text_sv)
     {
         const auto [type, subtype] = GetTypeSubtype(mime_type_text_sv);
-        return ( mime_type_text_sv == SO::Concatenate(type, _T("/"), subtype) );
+        return ( mime_type_text_sv == SO::Concatenate(type, "/", subtype) );
     }
 #endif
 
@@ -44,16 +45,16 @@ namespace
     // the mapping of MIME types to extensions
     struct ExtensionMapping
     {
-        const TCHAR* const type_and_subtype;
-        wstring_view type_sv;
-        // wstring_view subtype_sv; /* uncomment if the subtype is ever needed, along with the commented-out line below */
-        const TCHAR* const extension;
+        const char* const type_and_subtype;
+        std::string_view type_sv;
+        // std::string_view subtype_sv; /* uncomment if the subtype is ever needed, along with the commented-out line below */
+        const char* const extension;
         SupportedType supported_type;
     };
 
     const std::vector<ExtensionMapping>& GetExtensionMap()
     {
-        static const std::vector<ExtensionMapping> extension_map = 
+        static const std::vector<ExtensionMapping> extension_map =
         {
 #define CREATE_MAPPING(type_and_subtype, extension, supported_type)  { type_and_subtype,                                   \
                                                                        std::get<0>(GetTypeSubtype(type_and_subtype)),      \
@@ -61,21 +62,21 @@ namespace
                                                                        extension,                                          \
                                                                        supported_type }
 
-            CREATE_MAPPING(MimeType::Type::GeoJson,      _T("geojson"),  GeometryType::GeoJSON),
+            CREATE_MAPPING(MimeType::Type::GeoJson,     "geojson",  GeometryType::GeoJSON),
 
-            CREATE_MAPPING(MimeType::Type::Text,         _T("txt"),      { }),
-        
+            CREATE_MAPPING(MimeType::Type::Text,        "txt",      { }),
+
             // audio
-            CREATE_MAPPING(_T("audio/mp3"),              _T("mp3"),      { }),
-            CREATE_MAPPING(MimeType::Type::AudioM4A,     _T("m4a"),      AudioType::M4A),
-            CREATE_MAPPING(_T("audio/wav"),              _T("wav"),      { }),
+            CREATE_MAPPING("audio/mp3",                 "mp3",      { }),
+            CREATE_MAPPING(MimeType::Type::AudioM4A,    "m4a",      AudioType::M4A),
+            CREATE_MAPPING("audio/wav",                 "wav",      { }),
 
             // image
-            CREATE_MAPPING(MimeType::Type::ImageBitmap,  _T("bmp"),      ImageType::Bitmap),
-            CREATE_MAPPING(_T("image/gif"),              _T("gif"),      { }),
-            CREATE_MAPPING(MimeType::Type::ImageJpeg,    _T("jpg"),      ImageType::Jpeg),
-            CREATE_MAPPING(MimeType::Type::ImageJpeg,    _T("jpeg"),     ImageType::Jpeg),
-            CREATE_MAPPING(MimeType::Type::ImagePng,     _T("png"),      ImageType::Png),
+            CREATE_MAPPING(MimeType::Type::ImageBitmap, "bmp",      ImageType::Bitmap),
+            CREATE_MAPPING("image/gif",                 "gif",      { }),
+            CREATE_MAPPING(MimeType::Type::ImageJpeg,   "jpg",      ImageType::Jpeg),
+            CREATE_MAPPING(MimeType::Type::ImageJpeg,   "jpeg",     ImageType::Jpeg),
+            CREATE_MAPPING(MimeType::Type::ImagePng,    "png",      ImageType::Png),
 
 #undef CREATE_MAPPING
         };
@@ -84,7 +85,7 @@ namespace
     };
 
 
-    const ExtensionMapping* FindExtensionMappingFromMimeType(const wstring_view mime_type_text_sv)
+    const ExtensionMapping* FindExtensionMappingFromMimeType(const std::string_view mime_type_text_sv)
     {
         ASSERT(TypeSubtypeAreTrimmed(mime_type_text_sv));
 
@@ -98,7 +99,7 @@ namespace
     }
 
 
-    const ExtensionMapping* FindExtensionMappingFromFileExtension(const wstring_view extension_sv)
+    const ExtensionMapping* FindExtensionMappingFromFileExtension(const std::string_view extension_sv)
     {
         ASSERT(extension_sv.empty() || extension_sv.front() != '.');
 
@@ -113,12 +114,12 @@ namespace
 }
 
 
-const TCHAR* MimeType::GetFileExtensionFromType(const wstring_view mime_type_text_sv)
+const char* MimeType::GetFileExtensionFromType(const std::string_view mime_type_text_sv)
 {
     ASSERT(TypeSubtypeAreTrimmed(mime_type_text_sv));
 
 #ifdef _DEBUG
-    auto get_extension_from_our_map = [&]() -> std::optional<std::wstring>
+    auto get_extension_from_our_map = [&]() -> std::optional<std::string>
     {
         for( const ExtensionMapping& extension_mapping : GetExtensionMap() )
         {
@@ -130,10 +131,10 @@ const TCHAR* MimeType::GetFileExtensionFromType(const wstring_view mime_type_tex
     };
 #endif
 
-    const std::vector<std::tuple<const TCHAR*, const TCHAR*>>& mime_type_and_default_extensions = MimeTypeMap::GetMimeTypeAndDefaultExtensions();
+    const std::vector<std::tuple<const char*, const char*>>& mime_type_and_default_extensions = MimeTypeMap::GetMimeTypeAndDefaultExtensions();
 
     const auto& lookup = std::find_if(mime_type_and_default_extensions.cbegin(), mime_type_and_default_extensions.cend(),
-        [&](const std::tuple<const TCHAR*, const TCHAR*>& mime_type_and_default_extension)
+        [&](const std::tuple<const char*, const char*>& mime_type_and_default_extension)
         {
             return SO::EqualsNoCase(mime_type_text_sv, std::get<0>(mime_type_and_default_extension));
         });
@@ -148,16 +149,16 @@ const TCHAR* MimeType::GetFileExtensionFromType(const wstring_view mime_type_tex
 }
 
 
-std::vector<const TCHAR*> MimeType::GetFileExtensionsFromTypeWithWildcardSupport(const wstring_view mime_type_text_sv)
+std::vector<const char*> MimeType::GetFileExtensionsFromTypeWithWildcardSupport(const std::string_view mime_type_text_sv)
 {
-    std::vector<const TCHAR*> extensions;
+    std::vector<const char*> extensions;
 
-    auto add_extension = [&](const TCHAR* const default_extension)
+    auto add_extension = [&](const char* const default_extension)
     {
         extensions.emplace_back(default_extension);
 
         // multiple extensions may be mapped to the MIME type/subtype
-        const std::map<StringNoCase, unsigned>& extension_map = MimeTypeMap::GetExtensionMap();
+        const std::map<std::string, unsigned, cs::case_insensitive_less>& extension_map = MimeTypeMap::GetExtensionMap();
 
         const auto& lookup = extension_map.find(default_extension);
 
@@ -175,9 +176,9 @@ std::vector<const TCHAR*> MimeType::GetFileExtensionsFromTypeWithWildcardSupport
     };
 
     // if no wildcards are used, use GetFileExtensionFromType
-    if( mime_type_text_sv.find('*') == wstring_view::npos )
+    if( mime_type_text_sv.find('*') == std::string_view::npos )
     {
-        const TCHAR* const default_extension = GetFileExtensionFromType(mime_type_text_sv);
+        const char* const default_extension = GetFileExtensionFromType(mime_type_text_sv);
 
         if( default_extension != nullptr )
             add_extension(default_extension);
@@ -188,7 +189,7 @@ std::vector<const TCHAR*> MimeType::GetFileExtensionsFromTypeWithWildcardSupport
         const auto [type, subtype] = GetTypeSubtype(mime_type_text_sv);
 
         // only add extensions when using a wildcard for the entire subtype (and not for the type)
-        if( type != _T("*") && subtype == _T("*") )
+        if( type != "*" && subtype == "*" )
         {
             // add all extensions that match the type
             for( const auto& [mime_type, default_extension] : MimeTypeMap::GetMimeTypeAndDefaultExtensions() )
@@ -203,12 +204,12 @@ std::vector<const TCHAR*> MimeType::GetFileExtensionsFromTypeWithWildcardSupport
 }
 
 
-std::optional<std::wstring> MimeType::GetTypeFromFileExtension(const StringNoCase& extension)
+std::optional<std::string> MimeType::GetTypeFromFileExtension(const std::string_view extension_sv)
 {
 #ifdef _DEBUG
-    auto get_type_from_our_map = [&]() -> std::optional<std::wstring>
+    auto get_type_from_our_map = [&]() -> std::optional<std::string>
     {
-        const ExtensionMapping* extension_mapping = FindExtensionMappingFromFileExtension(extension);
+        const ExtensionMapping* const extension_mapping = FindExtensionMappingFromFileExtension(extension_sv);
 
         if( extension_mapping != nullptr )
             return extension_mapping->type_and_subtype;
@@ -217,12 +218,12 @@ std::optional<std::wstring> MimeType::GetTypeFromFileExtension(const StringNoCas
     };
 #endif
 
-    const std::map<StringNoCase, unsigned>& extension_map = MimeTypeMap::GetExtensionMap();
-    const auto& lookup = extension_map.find(extension);
+    const std::map<std::string, unsigned, cs::case_insensitive_less>& extension_map = MimeTypeMap::GetExtensionMap();
+    const auto& lookup = extension_map.find(extension_sv);
 
     if( lookup != extension_map.cend() )
     {
-        const std::vector<std::tuple<const TCHAR*, const TCHAR*>>& mime_type_and_default_extensions = MimeTypeMap::GetMimeTypeAndDefaultExtensions();
+        const std::vector<std::tuple<const char*, const char*>>& mime_type_and_default_extensions = MimeTypeMap::GetMimeTypeAndDefaultExtensions();
         ASSERT(std::get<0>(mime_type_and_default_extensions[lookup->second]) == get_type_from_our_map() || !get_type_from_our_map().has_value());
         return std::get<0>(mime_type_and_default_extensions[lookup->second]);
     }
@@ -231,9 +232,9 @@ std::optional<std::wstring> MimeType::GetTypeFromFileExtension(const StringNoCas
 }
 
 
-std::optional<std::wstring> MimeType::GetServerTypeFromFileExtension(const StringNoCase& extension)
+std::optional<std::string> MimeType::GetServerTypeFromFileExtension(const std::string_view extension_sv)
 {
-    std::optional<std::wstring> mime_type = GetTypeFromFileExtension(extension);
+    std::optional<std::string> mime_type = GetTypeFromFileExtension(extension_sv);
 
     if( mime_type == Type::Text )
         return ServerType::TextUtf8;
@@ -242,10 +243,39 @@ std::optional<std::wstring> MimeType::GetServerTypeFromFileExtension(const Strin
 }
 
 
-std::vector<const TCHAR*> MimeType::GetExtensionsForSupportedContentType(const ContentType content_type)
+bool MimeType::IsTextTypeOrTextBased(const std::string_view mime_type_text_sv)
 {
-    std::vector<const TCHAR*> extensions;
+    if( SO::StartsWith(mime_type_text_sv, "text/") )
+        return true;
+
+    const auto [type, subtype] = GetTypeSubtype(mime_type_text_sv);
+
+    if( type == "application" )
+    {
+        return ( subtype == "javascript" ||
+                 subtype == "json" ||
+                 subtype == "geo+json" );
+    }
+
+    else if( type == "text" )
+    {
+        return ReturnProgrammingError(true);
+    }
+
+    return false;
+}
+
+
+std::vector<const char*> MimeType::GetExtensionsForSupportedContentType(const ContentType content_type)
+{
     const size_t supported_type_index = SupportedIndexType(content_type);
+    std::vector<const char*> extensions;
+
+    if( supported_type_index == SupportedType({ }).index() )
+    {
+        ASSERT(false);
+        return extensions;
+    }
 
     for( const ExtensionMapping& extension_mapping : GetExtensionMap() )
     {
@@ -260,29 +290,29 @@ std::vector<const TCHAR*> MimeType::GetExtensionsForSupportedContentType(const C
 
 namespace
 {
-    bool IsTypeWorker(const wstring_view mime_type_text_sv, const TCHAR* const type_text)
+    bool IsTypeWorker(const std::string_view mime_type_text_sv, const char* const type_text)
     {
         ASSERT(TypeSubtypeAreTrimmed(mime_type_text_sv));
 
-        const ExtensionMapping* extension_mapping = FindExtensionMappingFromMimeType(mime_type_text_sv);
+        const ExtensionMapping* const extension_mapping = FindExtensionMappingFromMimeType(mime_type_text_sv);
 
         return ( extension_mapping != nullptr &&
                  extension_mapping->type_sv == type_text );
     }
 }
 
-bool MimeType::IsAudioType(const wstring_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, _T("audio")); }
-bool MimeType::IsImageType(const wstring_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, _T("image")); }
+bool MimeType::IsAudioType(const std::string_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, "audio"); }
+bool MimeType::IsImageType(const std::string_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, "image"); }
 
 
 namespace
 {
     template<typename T>
-    std::optional<T> GetSupportedTypeWorker(const wstring_view mime_type_text_sv)
+    std::optional<T> GetSupportedTypeWorker(const std::string_view mime_type_text_sv)
     {
         ASSERT(TypeSubtypeAreTrimmed(mime_type_text_sv));
 
-        const ExtensionMapping* extension_mapping = FindExtensionMappingFromMimeType(mime_type_text_sv);
+        const ExtensionMapping* const extension_mapping = FindExtensionMappingFromMimeType(mime_type_text_sv);
         constexpr size_t supported_type_index = SupportedType(T()).index();
 
         if( extension_mapping != nullptr && extension_mapping->supported_type.index() == supported_type_index )
@@ -293,9 +323,9 @@ namespace
 
 
     template<typename T>
-    std::optional<T> GetSupportedTypeFromFileExtensionWorker(const wstring_view extension_sv)
+    std::optional<T> GetSupportedTypeFromFileExtensionWorker(const std::string_view extension_sv)
     {
-        const ExtensionMapping* extension_mapping = FindExtensionMappingFromFileExtension(extension_sv);
+        const ExtensionMapping* const extension_mapping = FindExtensionMappingFromFileExtension(extension_sv);
         constexpr size_t supported_type_index = SupportedType(T()).index();
 
         if( extension_mapping != nullptr && extension_mapping->supported_type.index() == supported_type_index )
@@ -305,17 +335,17 @@ namespace
     }
 }
 
-std::optional<AudioType> MimeType::GetSupportedAudioType(const wstring_view mime_type_text_sv) { return GetSupportedTypeWorker<AudioType>(mime_type_text_sv); }
-std::optional<ImageType> MimeType::GetSupportedImageType(const wstring_view mime_type_text_sv) { return GetSupportedTypeWorker<ImageType>(mime_type_text_sv); }
+std::optional<AudioType> MimeType::GetSupportedAudioType(const std::string_view mime_type_text_sv) { return GetSupportedTypeWorker<AudioType>(mime_type_text_sv); }
+std::optional<ImageType> MimeType::GetSupportedImageType(const std::string_view mime_type_text_sv) { return GetSupportedTypeWorker<ImageType>(mime_type_text_sv); }
 
-std::optional<AudioType> MimeType::GetSupportedAudioTypeFromFileExtension(const wstring_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<AudioType>(extension_sv); }
-std::optional<ImageType> MimeType::GetSupportedImageTypeFromFileExtension(const wstring_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<ImageType>(extension_sv); }
+std::optional<AudioType> MimeType::GetSupportedAudioTypeFromFileExtension(const std::string_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<AudioType>(extension_sv); }
+std::optional<ImageType> MimeType::GetSupportedImageTypeFromFileExtension(const std::string_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<ImageType>(extension_sv); }
 
 
 namespace
 {
     template<typename T>
-    const TCHAR* GetTypeWorker(const T type)
+    const char* GetTypeWorker(const T type)
     {
         for( const ExtensionMapping& extension_mapping : GetExtensionMap() )
         {
@@ -327,5 +357,5 @@ namespace
     }
 }
 
-const TCHAR* MimeType::GetType(const AudioType audio_type) { return GetTypeWorker(audio_type); }
-const TCHAR* MimeType::GetType(const ImageType image_type) { return GetTypeWorker(image_type); }
+const char* MimeType::GetType(const AudioType audio_type) { return GetTypeWorker(audio_type); }
+const char* MimeType::GetType(const ImageType image_type) { return GetTypeWorker(image_type); }

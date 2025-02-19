@@ -3,17 +3,18 @@
 #include <zToolsO/zToolsO.h>
 
 
-namespace Base64
+class Base64
 {
-    template<typename StringType>
-    CLASS_DECL_ZTOOLSO StringType Encode(const void* contents, size_t size);
+public:
+    static std::string Encode(std::string_view text_sv)               { return base64_encode(reinterpret_cast<unsigned const char*>(text_sv.data()), text_sv.length()); }
+    static std::string Encode(const std::vector<std::byte>& contents) { return base64_encode(reinterpret_cast<unsigned const char*>(contents.data()), contents.size()); }
 
-    template<typename StringType>
-    StringType Encode(const std::vector<std::byte>& contents)
-    {
-        return Encode<StringType>(contents.data(), contents.size());
-    }
+    static std::string DecodeToString(std::string_view encoded_string_sv)            { return base64_decode<std::string>(encoded_string_sv); }
+    static std::vector<std::byte> DecodeToBuffer(std::string_view encoded_string_sv) { return base64_decode<std::vector<std::byte>>(encoded_string_sv); }
 
-    template<typename StringType, typename ReturnType = StringType>
-    CLASS_DECL_ZTOOLSO ReturnType Decode(const StringType& encoded_string);
+private:
+    CLASS_DECL_ZTOOLSO static std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
+
+    template<typename ReturnType>
+    static ReturnType base64_decode(std::string_view encoded_string_sv);
 };

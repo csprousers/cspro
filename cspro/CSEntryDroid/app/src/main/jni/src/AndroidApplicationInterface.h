@@ -7,9 +7,6 @@
 #include <jni.h>
 
 struct ActionInvokerData;
-struct IBluetoothAdapter;
-struct IHttpConnection;
-struct IFtpConnection;
 
 
 class AndroidApplicationInterface : public BaseApplicationInterface
@@ -18,41 +15,46 @@ public:
     AndroidApplicationInterface(CoreEntryEngineInterface* core_interface);
 
     void OnProgressDialogCancel();
-    bool IsProgressDialogCancelled() const;
+    bool IsProgressDialogCanceled() const;
 
-    // overrides from BaseAndroidApplicationInterface
+    // ApplicationInterface overrides
+    SharableString BarcodeRead(const std::string& message_text) override;
+    bool IsNetworkConnected(bool wifi, bool mobile) override;
+
+    // BaseApplicationInterface overrides
     ObjectTransporter* GetObjectTransporter() override;
     void RefreshPage(RefreshPageContents contents) override;
-    void DisplayErrorMessage(const TCHAR* error_message) override;
-    std::optional<std::wstring> DisplayCSHtmlDlg(const NavigationAddress& navigation_address, const std::wstring* action_invoker_access_token_override) override;
-    std::optional<std::wstring> DisplayHtmlDialogFunctionDlg(const NavigationAddress& navigation_address, const std::wstring* action_invoker_access_token_override, const std::optional<std::wstring>& display_options_json) override;
-    int ShowModalDialog(NullTerminatedString title, NullTerminatedString message, int mbType) override;
+    void DisplayErrorMessage(cs::string_view_sz error_message_sv) override;
+    SharableString DisplayCSHtmlDlg(const NavigationAddress& navigation_address, const std::string* action_invoker_access_token_override, ExceptionHolder* exception_holder) override;
+    SharableString DisplayHtmlDialogFunctionDlg(const NavigationAddress& navigation_address, const std::string* action_invoker_access_token_override,
+                                                const SharableString& display_options_json, ExceptionHolder* exception_holder) override;
+    int ShowModalDialog(cs::string_view_sz title_sv, cs::string_view_sz message_sv, int mbType) override;
     int ShowMessage(const CString& title, const CString& message, const std::vector<CString>& aButtons) override;
     bool GpsOpen() override;
     bool GpsClose() override;
-    CString GpsRead(int waitTime, int accuracy, const CString& dialog_text) override;
+    CString GpsRead(int waitTime, int accuracy, const std::optional<std::string>& dialog_text) override;
     CString GpsReadLast() override;
-    CString GpsReadInteractive(bool read_interactive_mode, const BaseMapSelection& base_map_selection, const CString& message, double read_duration) override;
-    std::optional<LoginCredentials> ShowLoginDialog(const CString& server, bool show_invalid_error) override;
+    CString GpsReadInteractive(bool read_interactive_mode, const BaseMapSelection& base_map_selection, const std::optional<std::string>& message, double read_duration) override;
+    std::optional<UsernamePassword> ShowLoginDialog(const std::string& server, bool show_invalid_error) override;
     std::optional<BluetoothDeviceInfo> ChooseBluetoothDevice(const GUID& service_uuid) override;
-    CString AuthorizeDropbox(const CString& clientId) override;
-	std::tuple<int, int> GetMaxDisplaySize() const override;
-    std::vector<std::wstring> GetMediaFilenames(MediaStore::MediaType media_type) const override;
-    CString GetUsername() const override;
+    OAuth2Token OAuth2Authorize(OAuth2Authorizer& oauth2_authorizer) override;
+    std::tuple<int, int> GetMaxDisplaySize() const override;
+    std::vector<std::string> GetMediaFilePaths(MediaStore::MediaType media_type) const override;
+    std::string GetUsername() const override;
     void SetUsername(const CString& username);
-    void StoreCredential(const std::wstring& attribute, const std::wstring& secret_value) override;
-    std::wstring RetrieveCredential(const std::wstring& attribute) override;
-    std::optional<std::wstring> GetPassword(const std::wstring& title, const std::wstring& description, bool file_exists) override;
-    CString GetDeviceId() const override;
-    CString GetLocaleLanguage() const override;
+    void StoreCredential(const std::string& attribute, const std::string& secret_value) override;
+    std::string RetrieveCredential(const std::string& attribute) override;
+    std::optional<std::string> GetPassword(const std::string& title, const std::string& description, bool file_exists) override;
+    std::string GetDeviceId() const override;
+    std::string GetLocaleLanguage() const override;
     void EngineAbort() override;
     bool ExecSystem(const std::wstring& command, bool wait) override;
     bool ExecPff(const std::wstring& pff_filename) override;
     CString GetProperty(const CString& parameter) override;
     void SetProperty(const CString& parameter, const CString& value) override;
-    void ShowProgressDialog(const CString& message) override;
+    void ShowProgressDialog(const std::string& message) override;
     void HideProgressDialog() override;
-    bool UpdateProgressDialog(int progressPercent, const CString* message) override;
+    bool UpdateProgressDialog(int progressPercent, const std::string* message) override;
     bool PartialSave(bool bPartialSaveClearSkipped, bool bFromLogic) override;
     int ShowChoiceDialog(const CString& title, const std::vector<std::vector<CString>*>& data) override;
     int ShowShowDialog(const std::vector<CString>* column_titles, const std::vector<PortableColor>* row_text_colors,
@@ -62,17 +64,17 @@ public:
     void ParadataDeviceInfoQuery(Paradata::ApplicationEvent::DeviceInfo& device_info) override;
     void ParadataDeviceStateQuery(Paradata::DeviceStateEvent::DeviceState& device_state) override;
     double GetUpTime() override;
-    bool IsNetworkConnected(int connectionType) override;
-    IBluetoothAdapter* CreateAndroidBluetoothAdapter() override;
-    IHttpConnection* CreateAndroidHttpConnection() override;
-    IFtpConnection* CreateAndroidFtpConnection() override;
-    std::wstring BarcodeRead(const std::wstring& message_text) override;
+
+    std::unique_ptr<IBluetoothAdapter> CreateBluetoothAdapter() override;
+    std::unique_ptr<HttpConnection> CreateHttpConnection() override;
+    std::unique_ptr<FtpConnection> CreateFtpConnection() override;
+
     void GetParadataCachedEvents();
 
-    bool AudioPlay(const std::wstring& filename, const std::wstring& message_text) override;
-    bool AudioStartRecording(const std::wstring& filename, std::optional<double> seconds, std::optional<int> sampling_rate) override;
+    bool AudioPlay(const std::string& file_path, const std::string& message_text) override;
+    bool AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<int> sampling_rate) override;
     bool AudioStopRecording() override;
-    std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::wstring& message_text, std::optional<int> sampling_rate) override;
+    std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::string& message_text, std::optional<int> sampling_rate) override;
 
     void CapturePolygonTrace(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) override;
     void CapturePolygonWalk(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) override;
@@ -91,32 +93,37 @@ public:
 
     // Android-only BaseApplicationInterface overrides
     void MediaScanFiles(const std::vector<CString>& paths) override;
-    std::wstring CreateSharableUri(const std::wstring& path, bool add_write_permission) override;
-    void FileCopySharableUri(const std::wstring& sharable_uri, const std::wstring& destination_path) override;
+    std::string CreateSharableUri(const std::string& path, bool add_write_permission) override;
+    void FileCopySharableUri(const std::string& sharable_uri, const std::string& destination_path) override;
 
     // for the Action Invoker
-    int ActionInvokerCreateWebController(const std::wstring* access_token_override);
-    std::shared_ptr<ActionInvokerData> ActionInvokerGetWebController(int web_controller_key, bool release_web_controller);
+    int ActionInvokerCreateWebController(SharableString access_token_override);
+    std::shared_ptr<ActionInvokerData> ActionInvokerGetWebController(int caller_id, bool release_web_controller);
+    ExceptionHolder* GetTopmostExceptionHolder();
 
     // other methods
     long GetThreadWaitId();
-    void SetThreadWaitComplete(long thread_wait_id, std::optional<std::wstring> response);
+    void SetThreadWaitComplete(long thread_wait_id, SharableString response);
 
 private:
-    std::optional<std::wstring> ThreadWaitForComplete(long thread_wait_id);
+    SharableString ThreadWaitForComplete(long thread_wait_id);
 
-    void ViewWebPageWithJavaScriptInterface(const Viewer& viewer, wstring_view url_sv);
+    void ViewWebPageWithJavaScriptInterface(const Viewer& viewer, const std::string& url);
+
+    OAuth2Token OAuth2Authorize_Dropbox();
+    OAuth2Token OAuth2Authorize_GoogleDrive(OAuth2Authorizer& oauth2_authorizer);
 
 private:
-    static CString m_username;
+    static std::string m_username;
 
     CoreEntryEngineInterface* m_pCoreEngineInterface;
     EngineUIProcessor m_engineUIProcessor;
-    bool m_progressDialogCancelled;
+    bool m_progressDialogCanceled;
 
     std::mutex m_threadWaitIdsMutex;
-    std::map<long, std::unique_ptr<std::optional<std::wstring>>> m_threadWaitIds;
+    std::map<long, std::unique_ptr<SharableString>> m_threadWaitIds;
 
     std::mutex m_actionInvokerWebControllersMutex;
     std::map<int, std::shared_ptr<ActionInvokerData>> m_actionInvokerWebControllers;
+    std::vector<ExceptionHolder*> m_exceptionHolders;
 };

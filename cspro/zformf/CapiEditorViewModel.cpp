@@ -24,15 +24,15 @@ void CapiEditorViewModel::Clear()
 }
 
 
-CapiText CapiEditorViewModel::GetText(size_t language_index, CapiTextType type)
+CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTextType type)
 {
     ASSERT(!m_item_name.IsEmpty());
-    const auto& language_name = m_question_manager->GetLanguages()[language_index].GetName();
+    const std::string& language_name = m_question_manager->GetLanguages()[language_index].GetName();
     auto question = GetQuestion();
     CapiCondition condition = (m_condition_index < question.GetConditions().size())
         ? question.GetConditions()[m_condition_index]
         : CapiCondition();
-    return condition.GetText(language_name, type);
+    return condition.GetText(UTF8_TODO::GetWide(language_name), type);
 }
 
 
@@ -42,10 +42,10 @@ void CapiEditorViewModel::SetText(size_t language_index, CapiTextType type, CStr
     CapiCondition condition = (m_condition_index < question.GetConditions().size())
         ? question.GetConditions()[m_condition_index]
         : CapiCondition();
-    const auto& language_name = m_question_manager->GetLanguages()[language_index].GetName();
+    const std::string& language_name = m_question_manager->GetLanguages()[language_index].GetName();
     if (new_text == "<p></p>")
         new_text.Empty();
-    condition.SetText(new_text, language_name, type);
+    condition.SetText(new_text, UTF8_TODO::GetWide(language_name), type);
     question.SetCondition(condition);
     m_question_manager->SetQuestion(std::move(question));
 }
@@ -78,17 +78,17 @@ void CapiEditorViewModel::DeleteCondition(int condition_index)
         conditions.erase(conditions.begin() + condition_index);
     }
     m_question_manager->SetQuestion(std::move(question));
-    m_condition_index = 0;      
+    m_condition_index = 0;
 }
 
 
 CapiQuestion CapiEditorViewModel::GetQuestion()
 {
     ASSERT(!m_item_name.IsEmpty());
-    auto question = m_question_manager->GetQuestion(m_item_name);
-    if (!question)
+    std::optional<CapiQuestion> question = m_question_manager->GetQuestion(m_item_name);
+    if (!question.has_value())
         question.emplace(m_item_name);
-    return *question;
+    return std::move(*question);
 }
 
 
@@ -97,7 +97,7 @@ void CapiEditorViewModel::SetItem(CDEItemBase* item)
     if (item->IsKindOf(RUNTIME_CLASS(CDEField))) {
         CDEField* pField = DYNAMIC_DOWNCAST(CDEField, item);
         m_item = item;
-        m_item_name = pField->GetDictItem()->GetQualifiedName();
+        m_item_name = UTF8_TODO::GetCString(pField->GetDictItem()->GetQualifiedName());
     }
     else if (item->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
         CDEBlock* pBlock = DYNAMIC_DOWNCAST(CDEBlock, item);
@@ -112,7 +112,7 @@ void CapiEditorViewModel::SetItem(CDEItemBase* item)
 }
 
 
-CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(CapiLogicParameters::Type type, std::wstring logic)
+CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const CapiLogicParameters::Type type, SharableString logic)
 {
     if( m_compiler == nullptr || m_item->GetSymbol() < 1 )
         m_compiler = std::make_unique<DesignerCapiLogicCompiler>(*m_application);
@@ -124,7 +124,7 @@ CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(CapiLogi
     if( std::get<int>(capi_logic_parameters.symbol_index_or_name) < 1 )
     {
         ASSERT(false);
-        capi_logic_parameters.symbol_index_or_name = m_item->GetName();
+        capi_logic_parameters.symbol_index_or_name = UTF8_TODO::GetUtf8(m_item->GetName());
     }
 
     DesignerCapiLogicCompiler::CompileResult result = m_compiler->Compile(capi_logic_parameters);

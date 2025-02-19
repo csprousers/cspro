@@ -101,7 +101,7 @@ LRESULT TabExecutionDlg::OnEngineAbort(WPARAM /*wParam*/, LPARAM /*lParam*/)
     AfxMessageBox(_T("Fatal error in engine. CSBatch closing down."));
 
     ViewFileInTextViewer(m_pff.GetApplicationErrorsFilename());
-    Listing::Lister::View(m_pff.GetListingFName());
+    Listing::Lister::View(UTF8_TODO::GetUtf8(m_pff.GetListingFName()));
 
     exit(0);
 }

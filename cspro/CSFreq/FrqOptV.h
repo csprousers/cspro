@@ -18,8 +18,8 @@ public:
     void ToDoc();
     void FromDoc();
 
-    bool CheckUniverseSyntax(const CString& sUniverseStatement);
-    bool CheckWeightSyntax(CIMSAString sWeight);
+    bool CheckUniverseSyntax(const std::string& universe);
+    bool CheckWeightSyntax(const std::string& weight);
 
     void RefreshLexer();
 
@@ -45,6 +45,6 @@ private:
     int m_sortOrderAscending;
     int m_sortTypeIndex;
     OutputFormat m_outputFormat;
-    CString m_sUniverse;
-    CString m_sWeight;
+    std::string m_universe;
+    std::string m_weight;
 };

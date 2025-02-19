@@ -20,7 +20,7 @@ class ZENGINEO_API ValueSet : public Symbol
 
 protected:
     ValueSet(const ValueSet& value_set);
-    ValueSet(std::wstring value_set_name, CSymbolVar* pVarT, const DictValueSet* dict_value_set, EngineData& engine_data);
+    ValueSet(std::string value_set_name, CSymbolVar* pVarT, const DictValueSet* dict_value_set, EngineData& engine_data);
 
 public:
     ValueSet(const DictValueSet& dict_value_set, CSymbolVar* pVarT, EngineData& engine_data);
@@ -42,7 +42,7 @@ public:
     struct ForeachValueInfo
     {
         const CString& label;
-        const CString& image_filename;
+        const std::string& image_file_path;
         const PortableColor& text_color;
     };
 
@@ -59,7 +59,9 @@ public:
     virtual ResponseProcessor* GetResponseProcessor() const;
 
     // Symbol overrides
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
+
+    void CompareDeclarationAttributes(const Symbol& symbol) const override;
 
     void serialize_subclass(Serializer& ar) override;
 
@@ -100,20 +102,20 @@ private:
     DynamicValueSet(const DynamicValueSet& value_set);
 
 public:
-    DynamicValueSet(std::wstring value_set_name, EngineData& engine_data);
+    DynamicValueSet(std::string value_set_name, EngineData& engine_data);
     ~DynamicValueSet();
- 
+
     void SetNumeric(bool numeric)     { m_numeric = numeric; }
     bool IsNumeric() const override   { return m_numeric; }
 
-    const CString& GetLabel() const override { return WS2CS_Reference(GetName()); }
+    const CString& GetLabel() const override { return UTF8_TODO::Create_Reference<CString>(GetName()); }
 
     size_t GetLength() const override;
 
     void ValidateNumericFromTo(double from_value, std::optional<double>& to_value) const;
 
-    void AddValue(std::wstring label, std::wstring image_filename, PortableColor text_color, double from_value, std::optional<double> to_value);
-    void AddValue(std::wstring label, std::wstring image_filename, PortableColor text_color, std::wstring value);
+    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, double from_value, std::optional<double> to_value);
+    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, std::wstring value);
     size_t AddValues(const ValueSet& value_set);
 
     size_t RemoveValue(double value);
@@ -140,7 +142,7 @@ public:
     void serialize_subclass(Serializer& ar) override;
 
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // protected ValueSet overrides
 protected:
@@ -167,21 +169,26 @@ class ZENGINEO_API ValueSetListWrapper : public LogicList
     friend class ValueSet;
 
 private:
-    ValueSetListWrapper(std::wstring value_set_list_wrapper_name, int value_set_symbol_index, bool codes_wrapper, const EngineData& engine_data);
+    ValueSetListWrapper(std::string value_set_list_wrapper_name, int value_set_symbol_index, bool codes_wrapper, const EngineData& engine_data);
 
 public:
-    ValueSetListWrapper(std::wstring value_set_list_wrapper_name, const EngineData& engine_data);
+    ValueSetListWrapper(std::string value_set_list_wrapper_name, const EngineData& engine_data);
 
     // Symbol overrides
     void serialize_subclass(Serializer& ar) override;
 
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
+
+    JavaScript::Value GetJavaScriptValue(JavaScript::Executor& executor) const override;
+    void SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value) override;
 
     // LogicList overrides
     size_t GetCount() const override;
-    double GetValue(size_t index) const override;
-    const std::wstring& GetString(size_t index) const override;
+
+protected:
+    virtual double GetValueNumeric(size_t index) const override;
+    virtual const SharableString& GetValueString(size_t index) const override;
 
 private:
     const Logic::SymbolTable& GetSymbolTable() const;

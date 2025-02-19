@@ -172,7 +172,7 @@ bool CIntDriver::tbldimchk( TBL_NODE *t1, TBL_NODE *t2 ) {
         /* RHF 15/7/94 */
         t = ltp->GetTotDim(i);
         if( t != 0 && t1->range[i].up >= t || t1->range[i].lo < 0 ) {
-            issaerror( MessageType::Warning, 1031, _T("left"), ltp->GetName().c_str() );
+            issaerror( MessageType::Warning, 1031, "left", ltp->GetName().c_str() );
             return( false );
         }
         /* RHF 15/7/94 */
@@ -182,7 +182,7 @@ bool CIntDriver::tbldimchk( TBL_NODE *t1, TBL_NODE *t2 ) {
             dim1[n1++] = d;
         }
         else if( d < 0 ) {
-            issaerror( MessageType::Warning, 1031, _T("left"), NPT(t1->tbl_index)->GetName().c_str() );
+            issaerror( MessageType::Warning, 1031, "left", NPT(t1->tbl_index)->GetName().c_str() );
             return( false );
         }
     }
@@ -194,7 +194,7 @@ bool CIntDriver::tbldimchk( TBL_NODE *t1, TBL_NODE *t2 ) {
         /* RHF 15/7/94 */
         t = rtp->GetTotDim(i);
         if( t != 0 && t2->range[i].up >= t || t2->range[i].lo < 0 ) {
-            issaerror( MessageType::Warning, 1031, _T("right"), rtp->GetName().c_str() );
+            issaerror( MessageType::Warning, 1031, "right", rtp->GetName().c_str() );
             return( false );
         }
         /* RHF 15/7/94 */
@@ -204,7 +204,7 @@ bool CIntDriver::tbldimchk( TBL_NODE *t1, TBL_NODE *t2 ) {
             dim2[n2++] = d;
         }
         else if( d < 0 ) {
-            issaerror( MessageType::Warning, 1031, _T("right"), NPT(t2->tbl_index)->GetName().c_str() );
+            issaerror( MessageType::Warning, 1031, "right", NPT(t2->tbl_index)->GetName().c_str() );
             return( false );
         }
     }
@@ -547,7 +547,7 @@ int CIntDriver::tblsummed( TBL_NODE *tleft, TBL_NODE *tright, int *rl, int *lind
             if( tleft->range[i].up >= t ||
                 tleft->range[i].lo < 0 ||
                 tleft->range[i].lo > tleft->range[i].up ) {
-                issaerror( MessageType::Warning, 1031, _T("left"), ltp->GetName().c_str() );
+                issaerror( MessageType::Warning, 1031, "left", ltp->GetName().c_str() );
                 errorflg = -1;
                 return( errorflg );
             }
@@ -556,7 +556,7 @@ int CIntDriver::tblsummed( TBL_NODE *tleft, TBL_NODE *tright, int *rl, int *lind
                 if( tright->range[i].up >= t ||
                     tright->range[i].lo < 0 ||
                     tright->range[i].lo > tright->range[i].up ) {
-                    issaerror( MessageType::Warning, 1031, _T("right"), rtp->GetName().c_str() );
+                    issaerror( MessageType::Warning, 1031, "right", rtp->GetName().c_str() );
                     errorflg = -1;
                     return( errorflg );
                 }

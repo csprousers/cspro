@@ -24,10 +24,10 @@ public:
     bool IsReadOnly() const         { return m_readOnly; }
     const CString& GetLabel() const { return m_label; }
 
-    std::optional<std::wstring> GetQuestionTextUrl() const { return m_capiContentVirtualFileMapping.GetQuestionTextUrl(); }
-    std::optional<std::wstring> GetHelpTextUrl() const     { return m_capiContentVirtualFileMapping.GetHelpTextUrl(); }
+    const std::string* GetQuestionTextUrl() const { return m_capiContentVirtualFileMapping.GetQuestionTextUrl(); }
+    const std::string* GetHelpTextUrl() const     { return m_capiContentVirtualFileMapping.GetHelpTextUrl(); }
 
-    CString GetNote() const;
+    SharableString GetNote() const;
 
     const CString& GetName() const;
     bool IsMirror() const;
@@ -60,14 +60,14 @@ public:
     void SetSelectedResponses(const std::vector<size_t>& indices, bool clear_existing_indices = true);
     void SetSelectedResponses(size_t index) { SetSelectedResponses(std::vector<size_t> { index }); }
 
-    void SetNote(CString note);
+    void SetNote(SharableString note);
     void EditNote();
 
     bool IsFieldFilled() const;
 
 #ifdef _CONSOLE
     std::vector<CString> GetVerboseFieldInformation() const;
-    CString GetValueSetName() const;
+    std::string GetValueSetName() const;
 
     CString GetDataBuffer() const { return m_dataBuffer; }
     double GetNumericEngineValue() const { return m_numericEngineValue; }

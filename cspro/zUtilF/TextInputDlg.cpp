@@ -6,7 +6,6 @@ CREATE_JSON_KEY(allowEmptyText)
 CREATE_JSON_KEY(initialValue)
 CREATE_JSON_KEY(multiline)
 CREATE_JSON_KEY(numeric)
-CREATE_JSON_KEY(password)
 CREATE_JSON_KEY(textInput)
 CREATE_JSON_KEY(uppercase)
 
@@ -21,18 +20,18 @@ TextInputDlg::TextInputDlg()
 }
 
 
-const TCHAR* TextInputDlg::GetDialogName()
+std::string TextInputDlg::GetDialogName()
 {
-    return _T("text-input");
+    return "text-input";
 }
 
 
-std::wstring TextInputDlg::GetJsonArgumentsText()
+SharableString TextInputDlg::GetJsonArgumentsText()
 {
     return Json::CreateObjectString(
         {
-            { JK::title,          m_title },
-            { JK::initialValue,   m_initialValue },
+            { JK::title,          *m_title },
+            { JK::initialValue,   *m_initialValue },
             { JK::numeric,        m_numeric },
             { JK::password,       m_password },
             { JK::uppercase,      m_uppercase },
@@ -42,7 +41,7 @@ std::wstring TextInputDlg::GetJsonArgumentsText()
 }
 
 
-void TextInputDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void TextInputDlg::ProcessJsonResults(const JsonNode& json_results)
 {
-    m_textInput = json_results.Get<std::wstring>(JK::textInput);
+    m_textInput = json_results.Get<std::string>(JK::textInput);
 }

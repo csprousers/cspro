@@ -2,8 +2,8 @@
 
 namespace jsoncons
 {
-    template <class CharType> class basic_json_options;
-    template <class CharType> struct ModifiableOptions;
+    template<class CharType> class basic_json_options;
+    template<class CharType> struct ModifiableOptions;
 }
 
 
@@ -18,8 +18,7 @@ constexpr JsonFormattingOptions DefaultJsonFormattingOptions = DebugMode() ? Jso
 
 constexpr JsonFormattingOptions DefaultJsonFileWriterFormattingOptions = JsonFormattingOptions::PrettySpacing;
 
-template<typename CharType>
-const jsoncons::basic_json_options<CharType>& GetJsonOptions(JsonFormattingOptions formatting_options);
+const jsoncons::basic_json_options<char>& GetJsonOptions(JsonFormattingOptions formatting_options);
 
 
 // --------------------------------------------------------------------------
@@ -39,5 +38,4 @@ enum class JsonFormattingAction
     TopmostObjectLineSplitMultiLine, // values in the object being written will be on multiple lines
 };
 
-template<typename CharType>
-const jsoncons::ModifiableOptions<CharType>& GetJsonModifiableOptions(JsonFormattingType formatting_type);
+const jsoncons::ModifiableOptions<char>& GetJsonModifiableOptions(JsonFormattingType formatting_type);

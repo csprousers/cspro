@@ -9,7 +9,7 @@ class DocSetTreeView;
 
 class DocSetSpecFrame : public DocSetBaseFrame
 {
-	DECLARE_DYNCREATE(DocSetSpecFrame)
+    DECLARE_DYNCREATE(DocSetSpecFrame)
 
 protected:
     DocSetSpecFrame(); // create from serialization only
@@ -36,13 +36,13 @@ protected:
     void OnCompileSpecAndComponents() { OnCompileSpec(true); }
 
 protected:
-    void WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node, bool detailed_format) override;
+    void WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode& json_node, bool detailed_format) override;
 
-    const std::optional<DocSetTableOfContents>& GetLastCompiledTableOfContents() override            { return GetDocSetSpec().GetTableOfContents(); }
-    const std::optional<DocSetIndex>& GetLastCompiledIndex() override                                { return GetDocSetSpec().GetIndex(); }
-    const DocSetSettings& GetLastCompiledSettings() override                                         { return GetDocSetSpec().GetSettings(); }
-    const std::vector<std::tuple<std::wstring, std::wstring>>& GetLastCompiledDefinitions() override { return GetDocSetSpec().GetDefinitions(); }
-    const std::map<std::wstring, unsigned>& GetLastCompiledContextIds() override                     { return GetDocSetSpec().GetContextIds(); }
+    const std::optional<DocSetTableOfContents>& GetLastCompiledTableOfContents() override          { return GetDocSetSpec().GetTableOfContents(); }
+    const std::optional<DocSetIndex>& GetLastCompiledIndex() override                              { return GetDocSetSpec().GetIndex(); }
+    const DocSetSettings& GetLastCompiledSettings() override                                       { return GetDocSetSpec().GetSettings(); }
+    const std::vector<std::tuple<std::string, std::string>>& GetLastCompiledDefinitions() override { return GetDocSetSpec().GetDefinitions(); }
+    const std::map<std::string, unsigned>& GetLastCompiledContextIds() override                    { return GetDocSetSpec().GetContextIds(); }
 
 private:
     void OnCompileSpec(bool compile_components);

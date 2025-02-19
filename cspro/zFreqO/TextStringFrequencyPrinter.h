@@ -6,22 +6,22 @@
 class TextStringFrequencyPrinter : public TextFrequencyPrinter
 {
 public:
-    TextStringFrequencyPrinter(int listing_width)
+    TextStringFrequencyPrinter(const int listing_width)
         :   TextFrequencyPrinter(FormatType::IgnorePageLength, listing_width)
     {
     }
 
-    const std::wstring& GetText() const
+    const std::string& GetText() const
     {
         return m_text;
     }
 
 protected:
-    void WriteLine(NullTerminatedString line) override
+    void WriteLine(const std::string_view line_sv) override
     {
-        SO::AppendWithSeparator(m_text, line, '\n');
+        SO::AppendWithSeparator(m_text, line_sv, '\n');
     }
 
 private:
-    std::wstring m_text;
+    std::string m_text;
 };

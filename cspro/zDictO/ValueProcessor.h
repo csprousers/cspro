@@ -31,12 +31,14 @@ public:
     virtual const DictValue* GetDictValue(const CString& value, bool pad_value_to_length = true) const;
 
     const DictValue* GetDictValue(const std::wstring& value, bool pad_value_to_length = true) const { return GetDictValue(WS2CS(value), pad_value_to_length); }
+    const DictValue* GetDictValue(const std::string& value, bool pad_value_to_length = true) const  { return GetDictValue(UTF8_TODO::GetCString(value), pad_value_to_length); }
 
     virtual const DictValue* GetDictValueByLabel(const CString& label) const;
 
     // frequency routines
     virtual std::vector<const DictValue*> GetMatchingDictValues(double value) const;
     virtual std::vector<const DictValue*> GetMatchingDictValues(wstring_view value) const;
+    std::vector<const DictValue*> GetMatchingDictValues(std::string_view value) const { return GetMatchingDictValues(UTF8_TODO::GetWide(value)); }
 
     // formatting routines
     double GetNumericFromInput(const CString& value) const;

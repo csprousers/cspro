@@ -8,7 +8,7 @@ namespace Nodes
     struct HtmlDialog
     {
         FunctionCode function_code;
-        int filename_expression;
+        int file_path_expression;
         int input_data_expression;
         int display_options_json_expression;
         int single_input_version;

@@ -4,37 +4,37 @@
 #include <zSyncO/ApplicationPackage.h>
 
 
-class SYNC_API ApplicationPackageManager {
-
+class SYNC_API ApplicationPackageManager
+{
 public:
+    ApplicationPackageManager(std::string root_directory);
 
-    static void installApplication(const CString &package_name,
-                                   const CString &downloaded_package_zip_path,
-                                   const std::optional<ApplicationPackage> &current_package);
+    void InstallApplication(const std::string& package_name, const std::string& downloaded_package_zip_file_path, const ApplicationPackage* current_package) const;
 
-    static std::vector<ApplicationPackage> getInstalledApplications();
+    std::vector<ApplicationPackage> GetInstalledApplications() const;
 
-    static CString getPackageZipPath(const CString& package_name);
+    std::string GetPackageZipFilePath(const std::string& package_name) const;
 
-    struct ApplicationWithSignature {
+    struct ApplicationWithSignature
+    {
         ApplicationPackage package;
-        CString signature;
+        std::string signature;
     };
 
-    static std::optional<ApplicationWithSignature> getInstalledApplicationPackageWithSignature(
-        const CString &package_name);
+    std::unique_ptr<ApplicationWithSignature> GetInstalledApplicationPackageWithSignature(const std::string& package_name) const;
 
-    static std::optional<ApplicationWithSignature> getApplicationPackageWithSignatureFromAppDirectory(
-            const CString &app_path);
+    std::unique_ptr<ApplicationWithSignature> GetApplicationPackageWithSignatureFromApplicationDirectory(const std::string& application_file_path) const;
 
 private:
+    static std::optional<std::string> GetInstalledPackageJsonFromSpecFile(const std::string& package_spec_file_path);
+    static std::optional<std::string> GetPackageJsonFromInstalledDirectory(const std::string& installed_package_directory);
+    static std::optional<ApplicationPackage> ParsePackageSpec(const std::string& package_spec_json);
+    static std::optional<ApplicationPackage> GetInstalledPackageFromSpecFile(const std::string& package_spec_file_path);
+    static std::unique_ptr<ApplicationWithSignature> GetApplicationPackageWithSignatureFromInstalledDirectory(const std::string& installed_package_directory);
+    std::string GetPackageInstallDirectory(const std::string& package_name) const;
+    std::string GetPackageDownloadDirectory() const;
+    static void UpdatePackageZip(const std::string& package_zip_file_path, const std::string& downloaded_package_zip_file_path);
 
-    static std::optional<std::string> getInstalledPackageJsonFromSpecFile(const CString& spec_file_name);
-    static std::optional<std::string> getPackageJsonFromInstalledDirectory(const CString& installedPackageDirectory);
-    static std::optional<ApplicationPackage> parsePackageSpec(const std::string& package_spec_json);
-    static std::optional<ApplicationPackage> getInstalledPackageFromSpecFile(const CString& spec_file_name);
-    static CString getPackageDownloadDirectory();
-    static CString getPackageInstallDirectory(const CString &packageName);
-    static void updatePackageZip(const CString &downloaded_zip_path,
-                                 const CString &package_zip_path);
+private:
+    std::string m_rootDirectory;
 };

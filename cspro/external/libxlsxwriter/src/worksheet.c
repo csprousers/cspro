@@ -3,7 +3,8 @@
  *
  * Used in conjunction with the libxlsxwriter library.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -140,6 +141,11 @@ lxw_worksheet_new(lxw_worksheet_init_data *init_data)
     worksheet->image_props = calloc(1, sizeof(struct lxw_image_props));
     GOTO_LABEL_ON_MEM_ERROR(worksheet->image_props, mem_error);
     STAILQ_INIT(worksheet->image_props);
+
+    worksheet->embedded_image_props =
+        calloc(1, sizeof(struct lxw_embedded_image_props));
+    GOTO_LABEL_ON_MEM_ERROR(worksheet->embedded_image_props, mem_error);
+    STAILQ_INIT(worksheet->embedded_image_props);
 
     worksheet->chart_data = calloc(1, sizeof(struct lxw_chart_props));
     GOTO_LABEL_ON_MEM_ERROR(worksheet->chart_data, mem_error);
@@ -367,9 +373,10 @@ _free_cell(lxw_cell *cell)
         return;
 
     if (cell->type != NUMBER_CELL && cell->type != STRING_CELL
-        && cell->type != BLANK_CELL && cell->type != BOOLEAN_CELL) {
+        && cell->type != BLANK_CELL && cell->type != BOOLEAN_CELL
+        && cell->type != ERROR_CELL) {
 
-        free(cell->u.string);
+        free((void *) cell->u.string);
     }
 
     free(cell->user_data1);
@@ -486,9 +493,9 @@ _free_worksheet_table_column(lxw_table_column *column)
     if (!column)
         return;
 
-    free(column->header);
-    free(column->formula);
-    free(column->total_string);
+    free((void *) column->header);
+    free((void *) column->formula);
+    free((void *) column->total_string);
 
     free(column);
 }
@@ -604,6 +611,17 @@ lxw_worksheet_free(lxw_worksheet *worksheet)
         }
 
         free(worksheet->image_props);
+    }
+
+    if (worksheet->embedded_image_props) {
+        while (!STAILQ_EMPTY(worksheet->embedded_image_props)) {
+            object_props = STAILQ_FIRST(worksheet->embedded_image_props);
+            STAILQ_REMOVE_HEAD(worksheet->embedded_image_props,
+                               list_pointers);
+            _free_object_properties(object_props);
+        }
+
+        free(worksheet->embedded_image_props);
     }
 
     if (worksheet->chart_data) {
@@ -785,8 +803,8 @@ lxw_worksheet_free(lxw_worksheet *worksheet)
 
     free(worksheet->hbreaks);
     free(worksheet->vbreaks);
-    free(worksheet->name);
-    free(worksheet->quoted_name);
+    free((void *) worksheet->name);
+    free((void *) worksheet->quoted_name);
     free(worksheet->vba_codename);
     free(worksheet->vml_data_id_str);
     free(worksheet->vml_header_id_str);
@@ -896,7 +914,7 @@ _new_inline_string_cell(lxw_row_t row_num,
  */
 STATIC lxw_cell *
 _new_inline_rich_string_cell(lxw_row_t row_num,
-                             lxw_col_t col_num, char *string,
+                             lxw_col_t col_num, const char *string,
                              lxw_format *format)
 {
     lxw_cell *cell = calloc(1, sizeof(lxw_cell));
@@ -984,6 +1002,25 @@ _new_boolean_cell(lxw_row_t row_num, lxw_col_t col_num, int value,
     cell->row_num = row_num;
     cell->col_num = col_num;
     cell->type = BOOLEAN_CELL;
+    cell->format = format;
+    cell->u.number = value;
+
+    return cell;
+}
+
+/*
+ * Create a new worksheet error cell object.
+ */
+STATIC lxw_cell *
+_new_error_cell(lxw_row_t row_num, lxw_col_t col_num, uint32_t value,
+                lxw_format *format)
+{
+    lxw_cell *cell = calloc(1, sizeof(lxw_cell));
+    RETURN_ON_MEM_ERROR(cell, cell);
+
+    cell->row_num = row_num;
+    cell->col_num = col_num;
+    cell->type = ERROR_CELL;
     cell->format = format;
     cell->u.number = value;
 
@@ -1452,7 +1489,7 @@ lxw_basename(const char *path)
 /* Function to count the total concatenated length of the strings in a
  * validation list array, including commas. */
 size_t
-_validation_list_length(char **list)
+_validation_list_length(const char **list)
 {
     uint8_t i = 0;
     size_t length = 0;
@@ -1460,7 +1497,7 @@ _validation_list_length(char **list)
     if (!list || !list[0])
         return 0;
 
-    while (list[i] && length <= LXW_VALIDATION_MAX_STRING_LENGTH) {
+    while (list[i] && length < LXW_VALIDATION_MAX_STRING_LENGTH) {
         /* Include commas in the length. */
         length += 1 + lxw_utf8_strlen(list[i]);
         i++;
@@ -1475,14 +1512,14 @@ _validation_list_length(char **list)
 /* Function to convert an array of strings into a CSV string for data
  * validation lists. */
 char *
-_validation_list_to_csv(char **list)
+_validation_list_to_csv(const char **list)
 {
     uint8_t i = 0;
     char *str;
 
     /* Create a buffer for the concatenated, and quoted, string. */
-    /* Add +3 for quotes and EOL. */
-    str = calloc(1, LXW_VALIDATION_MAX_STRING_LENGTH + 3);
+    /* Allow for 4 byte UTF-8 chars and add 3 bytes for quotes and EOL. */
+    str = calloc(1, LXW_VALIDATION_MAX_STRING_LENGTH * 4 + 3);
     if (!str)
         return NULL;
 
@@ -1670,10 +1707,10 @@ _set_default_table_columns(lxw_table_obj *table_obj)
  *  "[#This Row]" in table formulas. This is the format that Excel uses to
  *  store the references. */
 char *
-_expand_table_formula(char *formula)
+_expand_table_formula(const char *formula)
 {
     char *expanded;
-    char *ptr;
+    const char *ptr;
     size_t i;
     size_t ref_count = 0;
     size_t expanded_len;
@@ -1753,7 +1790,7 @@ _set_custom_table_columns(lxw_table_obj *table_obj,
             RETURN_ON_MEM_ERROR(str, LXW_ERROR_MEMORY_MALLOC_FAILED);
 
             /* Free the default column header. */
-            free(table_column->header);
+            free((void *) table_column->header);
             table_column->header = str;
         }
 
@@ -2993,7 +3030,6 @@ _worksheet_position_object_pixels(lxw_worksheet *self,
     drawing_object->to.row_offset = y2;
     drawing_object->col_absolute = x_abs;
     drawing_object->row_absolute = y_abs;
-
 }
 
 /*
@@ -4447,7 +4483,7 @@ STATIC void
 _write_inline_rich_string_cell(lxw_worksheet *self, char *range,
                                int32_t style_index, lxw_cell *cell)
 {
-    char *string = cell->u.string;
+    const char *string = cell->u.string;
 
     if (style_index)
         fprintf(self->file,
@@ -4520,6 +4556,15 @@ _write_boolean_cell(lxw_worksheet *self, lxw_cell *cell)
     data[1] = '\0';
 
     lxw_xml_data_element(self->file, "v", data, NULL);
+}
+
+/*
+ * Write out a error worksheet cell.
+ */
+STATIC void
+_write_error_cell(lxw_worksheet *self)
+{
+    lxw_xml_data_element(self->file, "v", "#VALUE!", NULL);
 }
 
 /*
@@ -4652,6 +4697,13 @@ _write_cell(lxw_worksheet *self, lxw_cell *cell, lxw_format *row_format)
         _write_array_formula_num_cell(self, cell);
         lxw_xml_end_tag(self->file, "c");
     }
+    else if (cell->type == ERROR_CELL) {
+        LXW_PUSH_ATTRIBUTES_STR("t", "e");
+        LXW_PUSH_ATTRIBUTES_DBL("vm", cell->u.number);
+        lxw_xml_start_tag(self->file, "c", &attributes);
+        _write_error_cell(self);
+        lxw_xml_end_tag(self->file, "c");
+    }
 
     LXW_FREE_ATTRIBUTES();
 }
@@ -4744,7 +4796,7 @@ lxw_worksheet_write_single_row(lxw_worksheet *self)
 
 /* Process a header/footer image and store it in the correct slot. */
 lxw_error
-_worksheet_set_header_footer_image(lxw_worksheet *self, char *filename,
+_worksheet_set_header_footer_image(lxw_worksheet *self, const char *filename,
                                    uint8_t image_position)
 {
     FILE *image_stream;
@@ -7493,6 +7545,105 @@ _validate_conditional_cell(lxw_cond_format_obj *cond_format,
     return LXW_NO_ERROR;
 }
 
+/* Check that the correct criteria and used with the correct conditional format. */
+lxw_error
+_validate_conditional_criteria(lxw_cond_format_obj *cond_format)
+{
+    uint8_t criteria_mismatch = LXW_FALSE;
+
+    if (cond_format->type == LXW_CONDITIONAL_TYPE_CELL) {
+        switch (cond_format->criteria) {
+            case LXW_CONDITIONAL_CRITERIA_EQUAL_TO:
+            case LXW_CONDITIONAL_CRITERIA_NOT_EQUAL_TO:
+            case LXW_CONDITIONAL_CRITERIA_GREATER_THAN:
+            case LXW_CONDITIONAL_CRITERIA_LESS_THAN:
+            case LXW_CONDITIONAL_CRITERIA_GREATER_THAN_OR_EQUAL_TO:
+            case LXW_CONDITIONAL_CRITERIA_LESS_THAN_OR_EQUAL_TO:
+            case LXW_CONDITIONAL_CRITERIA_BETWEEN:
+            case LXW_CONDITIONAL_CRITERIA_NOT_BETWEEN:
+                criteria_mismatch = LXW_FALSE;
+                break;
+            default:
+                criteria_mismatch = LXW_TRUE;
+        }
+    }
+    else if (cond_format->type == LXW_CONDITIONAL_TYPE_TIME_PERIOD) {
+        switch (cond_format->criteria) {
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_YESTERDAY:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_TODAY:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_TOMORROW:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_LAST_7_DAYS:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_LAST_WEEK:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_THIS_WEEK:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_NEXT_WEEK:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_LAST_MONTH:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_THIS_MONTH:
+            case LXW_CONDITIONAL_CRITERIA_TIME_PERIOD_NEXT_MONTH:
+                criteria_mismatch = LXW_FALSE;
+                break;
+            default:
+                criteria_mismatch = LXW_TRUE;
+        }
+    }
+    else if (cond_format->type == LXW_CONDITIONAL_TYPE_TEXT) {
+        switch (cond_format->criteria) {
+            case LXW_CONDITIONAL_CRITERIA_TEXT_CONTAINING:
+            case LXW_CONDITIONAL_CRITERIA_TEXT_NOT_CONTAINING:
+            case LXW_CONDITIONAL_CRITERIA_TEXT_BEGINS_WITH:
+            case LXW_CONDITIONAL_CRITERIA_TEXT_ENDS_WITH:
+                criteria_mismatch = LXW_FALSE;
+                break;
+            default:
+                criteria_mismatch = LXW_TRUE;
+        }
+    }
+    else if (cond_format->type == LXW_CONDITIONAL_TYPE_AVERAGE) {
+        switch (cond_format->criteria) {
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_ABOVE:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_BELOW:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_ABOVE_OR_EQUAL:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_BELOW_OR_EQUAL:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_1_STD_DEV_ABOVE:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_1_STD_DEV_BELOW:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_2_STD_DEV_ABOVE:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_2_STD_DEV_BELOW:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_3_STD_DEV_ABOVE:
+            case LXW_CONDITIONAL_CRITERIA_AVERAGE_3_STD_DEV_BELOW:
+                criteria_mismatch = LXW_FALSE;
+                break;
+            default:
+                criteria_mismatch = LXW_TRUE;
+        }
+    }
+    else if (cond_format->type == LXW_CONDITIONAL_TYPE_TOP
+             || cond_format->type == LXW_CONDITIONAL_TYPE_BOTTOM) {
+        switch (cond_format->criteria) {
+            case LXW_CONDITIONAL_CRITERIA_NONE:
+            case LXW_CONDITIONAL_CRITERIA_TOP_OR_BOTTOM_PERCENT:
+                criteria_mismatch = LXW_FALSE;
+                break;
+            default:
+                criteria_mismatch = LXW_TRUE;
+        }
+    }
+    else {
+        /* Any other conditional type should have a zero criteria. */
+        cond_format->criteria = LXW_CONDITIONAL_CRITERIA_NONE;
+    }
+
+    if (criteria_mismatch) {
+        LXW_WARN_FORMAT2("worksheet_conditional_format_cell()/_range(): "
+                         "LXW_CONDITIONAL_CRITERIA_* = %d is not valid for "
+                         "LXW_CONDITIONAL_TYPE_* = %d", cond_format->criteria,
+                         cond_format->type);
+
+        return LXW_ERROR_PARAMETER_VALIDATION;
+    }
+    else {
+        return LXW_NO_ERROR;
+    }
+}
+
 /*
  * Write the <ignoredErrors> element.
  */
@@ -7845,6 +7996,9 @@ worksheet_write_formula_num(lxw_worksheet *self,
     if (!formula)
         return LXW_ERROR_NULL_PARAMETER_IGNORED;
 
+    if (lxw_str_is_empty(formula))
+        return LXW_ERROR_PARAMETER_IS_EMPTY;
+
     err = _check_dimensions(self, row_num, col_num, LXW_FALSE, LXW_FALSE);
     if (err)
         return err;
@@ -7879,6 +8033,9 @@ worksheet_write_formula_str(lxw_worksheet *self,
 
     if (!formula)
         return LXW_ERROR_NULL_PARAMETER_IGNORED;
+
+    if (lxw_str_is_empty(formula))
+        return LXW_ERROR_PARAMETER_IS_EMPTY;
 
     err = _check_dimensions(self, row_num, col_num, LXW_FALSE, LXW_FALSE);
     if (err)
@@ -7945,6 +8102,9 @@ _store_array_formula(lxw_worksheet *self,
     if (!formula)
         return LXW_ERROR_NULL_PARAMETER_IGNORED;
 
+    if (lxw_str_is_empty(formula))
+        return LXW_ERROR_PARAMETER_IS_EMPTY;
+
     /* Check that row and col are valid and store max and min values. */
     err = _check_dimensions(self, first_row, first_col, LXW_FALSE, LXW_FALSE);
     if (err)
@@ -7959,7 +8119,7 @@ _store_array_formula(lxw_worksheet *self,
     RETURN_ON_MEM_ERROR(range, LXW_ERROR_MEMORY_MALLOC_FAILED);
 
     if (first_row == last_row && first_col == last_col)
-        lxw_rowcol_to_cell(range, first_row, last_col);
+        lxw_rowcol_to_cell(range, first_row, first_col);
     else
         lxw_rowcol_to_range(range, first_row, first_col, last_row, last_col);
 
@@ -7985,7 +8145,7 @@ _store_array_formula(lxw_worksheet *self,
     _insert_cell(self, first_row, first_col, cell);
 
     if (is_dynamic)
-        self->has_dynamic_arrays = LXW_TRUE;
+        self->has_dynamic_functions = LXW_TRUE;
 
     /* Pad out the rest of the area with formatted zeroes. */
     if (!self->optimize) {
@@ -8363,9 +8523,13 @@ worksheet_write_url_opt(lxw_worksheet *self,
     else
         format = user_format;
 
-    err = worksheet_write_string(self, row_num, col_num, string_copy, format);
-    if (err)
-        goto mem_error;
+    if (!self->storing_embedded_image) {
+        err =
+            worksheet_write_string(self, row_num, col_num, string_copy,
+                                   format);
+        if (err)
+            goto mem_error;
+    }
 
     /* Reset default error condition. */
     err = LXW_ERROR_MEMORY_MALLOC_FAILED;
@@ -8423,7 +8587,7 @@ worksheet_write_rich_string(lxw_worksheet *self,
     uint8_t i;
     long file_size;
     char *rich_string = NULL;
-    char *string_copy = NULL;
+    const char *string_copy = NULL;
     lxw_styles *styles = NULL;
     lxw_format *default_format = NULL;
     lxw_rich_string_tuple *rich_string_tuple = NULL;
@@ -8500,9 +8664,9 @@ worksheet_write_rich_string(lxw_worksheet *self,
 
         /* Rewind the file and read the data into the memory buffer. */
         rewind(tmpfile);
-        if (fread(rich_string, file_size, 1, tmpfile) < 1) {
+        if (fread((void *) rich_string, file_size, 1, tmpfile) < 1) {
             fclose(tmpfile);
-            free(rich_string);
+            free((void *) rich_string);
             return LXW_ERROR_READING_TMPFILE;
         }
     }
@@ -8511,14 +8675,14 @@ worksheet_write_rich_string(lxw_worksheet *self,
     fclose(tmpfile);
 
     if (lxw_utf8_strlen(rich_string) > LXW_STR_MAX) {
-        free(rich_string);
+        free((void *) rich_string);
         return LXW_ERROR_MAX_STRING_LENGTH_EXCEEDED;
     }
 
     if (!self->optimize) {
         /* Get the SST element and string id. */
         sst_element = lxw_get_sst_index(self->sst, rich_string, LXW_TRUE);
-        free(rich_string);
+        free((void *) rich_string);
 
         if (!sst_element)
             return LXW_ERROR_SHARED_STRING_INDEX_NOT_FOUND;
@@ -8531,7 +8695,7 @@ worksheet_write_rich_string(lxw_worksheet *self,
         /* Look for and escape control chars in the string. */
         if (lxw_has_control_characters(rich_string)) {
             string_copy = lxw_escape_control_characters(rich_string);
-            free(rich_string);
+            free((void *) rich_string);
         }
         else {
             string_copy = rich_string;
@@ -8570,6 +8734,9 @@ worksheet_write_comment_opt(lxw_worksheet *self,
 
     if (!text)
         return LXW_ERROR_NULL_PARAMETER_IGNORED;
+
+    if (lxw_str_is_empty(text))
+        return LXW_ERROR_PARAMETER_IS_EMPTY;
 
     if (lxw_utf8_strlen(text) > LXW_STR_MAX)
         return LXW_ERROR_MAX_STRING_LENGTH_EXCEEDED;
@@ -9153,7 +9320,7 @@ worksheet_filter_column2(lxw_worksheet *self, lxw_col_t col,
  * Set two autofilter rules for a filter column.
  */
 lxw_error
-worksheet_filter_list(lxw_worksheet *self, lxw_col_t col, char **list)
+worksheet_filter_list(lxw_worksheet *self, lxw_col_t col, const char **list)
 {
     lxw_filter_rule_obj *rule_obj;
     uint16_t rule_index;
@@ -9434,7 +9601,7 @@ worksheet_hide(lxw_worksheet *self)
 /*
  * Set which cell or cells are selected in a worksheet.
  */
-void
+lxw_error
 worksheet_set_selection(lxw_worksheet *self,
                         lxw_row_t first_row, lxw_col_t first_col,
                         lxw_row_t last_row, lxw_col_t last_col)
@@ -9442,19 +9609,29 @@ worksheet_set_selection(lxw_worksheet *self,
     lxw_selection *selection;
     lxw_row_t tmp_row;
     lxw_col_t tmp_col;
+    lxw_error err;
     char active_cell[LXW_MAX_CELL_RANGE_LENGTH];
     char sqref[LXW_MAX_CELL_RANGE_LENGTH];
 
     /* Only allow selection to be set once to avoid freeing/re-creating it. */
     if (!STAILQ_EMPTY(self->selections))
-        return;
+        return LXW_ERROR_PARAMETER_VALIDATION;
 
     /* Excel doesn't set a selection for cell A1 since it is the default. */
     if (first_row == 0 && first_col == 0 && last_row == 0 && last_col == 0)
-        return;
+        return LXW_NO_ERROR;
 
     selection = calloc(1, sizeof(lxw_selection));
-    RETURN_VOID_ON_MEM_ERROR(selection);
+    RETURN_ON_MEM_ERROR(selection, LXW_ERROR_MEMORY_MALLOC_FAILED);
+
+    /* Check that row and col are valid without storing. */
+    err = _check_dimensions(self, first_row, first_col, LXW_TRUE, LXW_TRUE);
+    if (err)
+        return err;
+
+    err = _check_dimensions(self, last_row, last_col, LXW_TRUE, LXW_TRUE);
+    if (err)
+        return err;
 
     /* Set the cell range selection. Do this before swapping max/min to  */
     /* allow the selection direction to be reversed. */
@@ -9484,6 +9661,8 @@ worksheet_set_selection(lxw_worksheet *self,
     lxw_strcpy(selection->sqref, sqref);
 
     STAILQ_INSERT_TAIL(self->selections, selection, list_pointers);
+
+    return LXW_NO_ERROR;
 }
 
 /*
@@ -10312,9 +10491,9 @@ worksheet_insert_image_opt(lxw_worksheet *self,
         object_props->y_offset = user_options->y_offset;
         object_props->x_scale = user_options->x_scale;
         object_props->y_scale = user_options->y_scale;
-        object_props->object_position = user_options->object_position;
         object_props->url = lxw_strdup(user_options->url);
         object_props->tip = lxw_strdup(user_options->tip);
+        object_props->object_position = user_options->object_position;
         object_props->decorative = user_options->decorative;
 
         if (user_options->description)
@@ -10380,10 +10559,12 @@ worksheet_insert_image_buffer_opt(lxw_worksheet *self,
     /* Write the image buffer to a file (preferably in memory) so we can read
      * the dimensions like an ordinary file. */
 #ifdef USE_FMEMOPEN
-    image_stream = fmemopen(NULL, image_size, "w+b");
+    image_stream = fmemopen((void *) image_buffer, image_size, "rb");
+
+    if (!image_stream)
+        return LXW_ERROR_CREATING_TMPFILE;
 #else
     image_stream = lxw_tmpfile(self->tmpdir);
-#endif
 
     if (!image_stream)
         return LXW_ERROR_CREATING_TMPFILE;
@@ -10394,6 +10575,7 @@ worksheet_insert_image_buffer_opt(lxw_worksheet *self,
     }
 
     rewind(image_stream);
+#endif
 
     /* Create a new object to hold the image properties. */
     object_props = calloc(1, sizeof(lxw_object_properties));
@@ -10466,6 +10648,251 @@ worksheet_insert_image_buffer(lxw_worksheet *self,
 }
 
 /*
+ * Embed an image with options into the worksheet.
+ */
+lxw_error
+worksheet_embed_image_opt(lxw_worksheet *self,
+                          lxw_row_t row_num, lxw_col_t col_num,
+                          const char *filename,
+                          lxw_image_options *user_options)
+{
+    FILE *image_stream;
+    lxw_object_properties *object_props;
+    lxw_error err;
+
+    if (!filename) {
+        LXW_WARN("worksheet_embed_image()/_opt(): "
+                 "filename must be specified.");
+        return LXW_ERROR_NULL_PARAMETER_IGNORED;
+    }
+
+    /* Check that the image file exists and can be opened. */
+    image_stream = lxw_fopen(filename, "rb");
+    if (!image_stream) {
+        LXW_WARN_FORMAT1("worksheet_embed_image()/_opt(): "
+                         "file doesn't exist or can't be opened: %s.",
+                         filename);
+        return LXW_ERROR_PARAMETER_VALIDATION;
+    }
+
+    /* Check and store the cell dimensions. */
+    err = _check_dimensions(self, row_num, col_num, LXW_FALSE, LXW_FALSE);
+    if (err)
+        return err;
+
+    /* Create a new object to hold the image properties. */
+    object_props = calloc(1, sizeof(lxw_object_properties));
+    if (!object_props) {
+        fclose(image_stream);
+        return LXW_ERROR_MEMORY_MALLOC_FAILED;
+    }
+
+    /* We only copy/use a limited number of options for embedded images. */
+    if (user_options) {
+        if (user_options->cell_format)
+            object_props->format = user_options->cell_format;
+
+        /* The url for embedded images is written as a cell url. */
+        if (user_options->url) {
+            if (!user_options->cell_format)
+                object_props->format = self->default_url_format;
+
+            self->storing_embedded_image = LXW_TRUE;
+            err = worksheet_write_url(self,
+                                      row_num,
+                                      col_num,
+                                      user_options->url,
+                                      object_props->format);
+            if (err) {
+                _free_object_properties(object_props);
+                fclose(image_stream);
+                return err;
+            }
+
+            self->storing_embedded_image = LXW_FALSE;
+        }
+
+        object_props->decorative = user_options->decorative;
+        if (user_options->description)
+            object_props->description = lxw_strdup(user_options->description);
+    }
+
+    /* Copy other options or set defaults. */
+    object_props->filename = lxw_strdup(filename);
+    object_props->stream = image_stream;
+    object_props->row = row_num;
+    object_props->col = col_num;
+
+    if (object_props->x_scale == 0.0)
+        object_props->x_scale = 1;
+
+    if (object_props->y_scale == 0.0)
+        object_props->y_scale = 1;
+
+    if (_get_image_properties(object_props) == LXW_NO_ERROR) {
+        STAILQ_INSERT_TAIL(self->embedded_image_props, object_props,
+                           list_pointers);
+        fclose(image_stream);
+
+        return LXW_NO_ERROR;
+    }
+    else {
+        _free_object_properties(object_props);
+        fclose(image_stream);
+        return LXW_ERROR_IMAGE_DIMENSIONS;
+    }
+}
+
+/*
+ * Embed an image into the worksheet.
+ */
+lxw_error
+worksheet_embed_image(lxw_worksheet *self,
+                      lxw_row_t row_num, lxw_col_t col_num,
+                      const char *filename)
+{
+    return worksheet_embed_image_opt(self, row_num, col_num, filename, NULL);
+}
+
+/*
+ * Embed an image buffer, with options, into the worksheet.
+ */
+lxw_error
+worksheet_embed_image_buffer_opt(lxw_worksheet *self,
+                                 lxw_row_t row_num,
+                                 lxw_col_t col_num,
+                                 const unsigned char *image_buffer,
+                                 size_t image_size,
+                                 lxw_image_options *user_options)
+{
+    FILE *image_stream;
+    lxw_object_properties *object_props;
+    lxw_error err;
+
+    if (!image_size) {
+        LXW_WARN("worksheet_embed_image_buffer()/_opt(): "
+                 "size must be non-zero.");
+        return LXW_ERROR_NULL_PARAMETER_IGNORED;
+    }
+
+    /* Write the image buffer to a file (preferably in memory) so we can read
+     * the dimensions like an ordinary file. For embedded images we really only
+     * need the image type. */
+#ifdef USE_FMEMOPEN
+    image_stream = fmemopen((void *) image_buffer, image_size, "rb");
+
+    if (!image_stream)
+        return LXW_ERROR_CREATING_TMPFILE;
+#else
+    image_stream = lxw_tmpfile(self->tmpdir);
+
+    if (!image_stream)
+        return LXW_ERROR_CREATING_TMPFILE;
+
+    if (fwrite(image_buffer, 1, image_size, image_stream) != image_size) {
+        fclose(image_stream);
+        return LXW_ERROR_CREATING_TMPFILE;
+    }
+
+    rewind(image_stream);
+#endif
+
+    /* Check and store the cell dimensions. */
+    err = _check_dimensions(self, row_num, col_num, LXW_FALSE, LXW_FALSE);
+    if (err)
+        return err;
+
+    /* Create a new object to hold the image properties. */
+    object_props = calloc(1, sizeof(lxw_object_properties));
+    if (!object_props) {
+        fclose(image_stream);
+        return LXW_ERROR_MEMORY_MALLOC_FAILED;
+    }
+
+    /* Store the image data in the properties structure. */
+    object_props->image_buffer = calloc(1, image_size);
+    if (!object_props->image_buffer) {
+        _free_object_properties(object_props);
+        fclose(image_stream);
+        return LXW_ERROR_MEMORY_MALLOC_FAILED;
+    }
+    else {
+        memcpy(object_props->image_buffer, image_buffer, image_size);
+        object_props->image_buffer_size = image_size;
+        object_props->is_image_buffer = LXW_TRUE;
+    }
+
+    /* We only copy/use a limited number of options for embedded images. */
+    if (user_options) {
+        if (user_options->cell_format)
+            object_props->format = user_options->cell_format;
+
+        /* The url for embedded images is written as a cell url. */
+        if (user_options->url) {
+            if (!user_options->cell_format)
+                object_props->format = self->default_url_format;
+
+            self->storing_embedded_image = LXW_TRUE;
+            err = worksheet_write_url(self,
+                                      row_num,
+                                      col_num,
+                                      user_options->url,
+                                      object_props->format);
+            if (err) {
+                _free_object_properties(object_props);
+                fclose(image_stream);
+                return err;
+            }
+
+            self->storing_embedded_image = LXW_FALSE;
+        }
+
+        object_props->decorative = user_options->decorative;
+        if (user_options->description)
+            object_props->description = lxw_strdup(user_options->description);
+    }
+
+    /* Copy other options or set defaults. */
+    object_props->filename = lxw_strdup("image_buffer");
+    object_props->stream = image_stream;
+    object_props->row = row_num;
+    object_props->col = col_num;
+
+    if (object_props->x_scale == 0.0)
+        object_props->x_scale = 1;
+
+    if (object_props->y_scale == 0.0)
+        object_props->y_scale = 1;
+
+    if (_get_image_properties(object_props) == LXW_NO_ERROR) {
+        STAILQ_INSERT_TAIL(self->embedded_image_props, object_props,
+                           list_pointers);
+        fclose(image_stream);
+
+        return LXW_NO_ERROR;
+    }
+    else {
+        _free_object_properties(object_props);
+        fclose(image_stream);
+        return LXW_ERROR_IMAGE_DIMENSIONS;
+    }
+}
+
+/*
+ * Insert an image buffer into the worksheet.
+ */
+lxw_error
+worksheet_embed_image_buffer(lxw_worksheet *self,
+                             lxw_row_t row_num,
+                             lxw_col_t col_num,
+                             const unsigned char *image_buffer,
+                             size_t image_size)
+{
+    return worksheet_embed_image_buffer_opt(self, row_num, col_num,
+                                            image_buffer, image_size, NULL);
+}
+
+/*
  * Set an image as a worksheet background.
  */
 lxw_error
@@ -10534,10 +10961,12 @@ worksheet_set_background_buffer(lxw_worksheet *self,
     /* Write the image buffer to a file (preferably in memory) so we can read
      * the dimensions like an ordinary file. */
 #ifdef USE_FMEMOPEN
-    image_stream = fmemopen(NULL, image_size, "w+b");
+    image_stream = fmemopen((void *) image_buffer, image_size, "rb");
+
+    if (!image_stream)
+        return LXW_ERROR_CREATING_TMPFILE;
 #else
     image_stream = lxw_tmpfile(self->tmpdir);
-#endif
 
     if (!image_stream)
         return LXW_ERROR_CREATING_TMPFILE;
@@ -10548,6 +10977,7 @@ worksheet_set_background_buffer(lxw_worksheet *self,
     }
 
     rewind(image_stream);
+#endif
 
     /* Create a new object to hold the image properties. */
     object_props = calloc(1, sizeof(lxw_object_properties));
@@ -10849,7 +11279,7 @@ worksheet_data_validation_range(lxw_worksheet *self, lxw_row_t first_row,
 
     /* Create the data validation range. */
     if (first_row == last_row && first_col == last_col)
-        lxw_rowcol_to_cell(copy->sqref, first_row, last_col);
+        lxw_rowcol_to_cell(copy->sqref, first_row, first_col);
     else
         lxw_rowcol_to_range(copy->sqref, first_row, first_col, last_row,
                             last_col);
@@ -10909,11 +11339,6 @@ worksheet_data_validation_range(lxw_worksheet *self, lxw_row_t first_row,
     /* Copy the validation list as a csv string. */
     if (validation->validate == LXW_VALIDATION_TYPE_LIST) {
         copy->value_formula = _validation_list_to_csv(validation->value_list);
-        GOTO_LABEL_ON_MEM_ERROR(copy->value_formula, mem_error);
-    }
-
-    if (validation->validate == LXW_VALIDATION_TYPE_LIST_FORMULA) {
-        copy->value_formula = lxw_strdup_formula(validation->value_formula);
         GOTO_LABEL_ON_MEM_ERROR(copy->value_formula, mem_error);
     }
 
@@ -11029,13 +11454,13 @@ worksheet_conditional_format_range(lxw_worksheet *self, lxw_row_t first_row,
 
     /* Create the data validation range. */
     if (first_row == last_row && first_col == last_col)
-        lxw_rowcol_to_cell(cond_format->sqref, first_row, last_col);
+        lxw_rowcol_to_cell(cond_format->sqref, first_row, first_col);
     else
         lxw_rowcol_to_range(cond_format->sqref, first_row, first_col,
                             last_row, last_col);
 
     /* Store the first cell string for text and date rules. */
-    lxw_rowcol_to_cell(cond_format->first_cell, first_row, last_col);
+    lxw_rowcol_to_cell(cond_format->first_cell, first_row, first_col);
 
     /* Overwrite the sqref range with a user supplied set of ranges. */
     if (user_options->multi_range) {
@@ -11063,6 +11488,11 @@ worksheet_conditional_format_range(lxw_worksheet *self, lxw_row_t first_row,
     cond_format->criteria = user_options->criteria;
     cond_format->stop_if_true = user_options->stop_if_true;
     cond_format->type_string = lxw_strdup(type_strings[cond_format->type]);
+
+    /* Check that the criteria matches the conditional type. */
+    err = _validate_conditional_criteria(cond_format);
+    if (err)
+        goto error;
 
     /* Validate the user input for various types of rules. */
     if (user_options->type == LXW_CONDITIONAL_TYPE_CELL
@@ -11291,4 +11721,20 @@ worksheet_ignore_errors(lxw_worksheet *self, uint8_t type, const char *range)
     self->has_ignore_errors = LXW_TRUE;
 
     return LXW_NO_ERROR;
+}
+
+/*
+ * Write an error cell for versions of Excel that don't support embedded images.
+ */
+void
+worksheet_set_error_cell(lxw_worksheet *self,
+                         lxw_object_properties *object_props, uint32_t ref_id)
+{
+    lxw_row_t row_num = object_props->row;
+    lxw_col_t col_num = object_props->col;
+
+    lxw_cell *cell =
+        _new_error_cell(row_num, col_num, ref_id, object_props->format);
+    _insert_cell(self, row_num, col_num, cell);
+
 }

@@ -6,7 +6,10 @@
 // --------------------------------------------------------------------------
 
 template<typename ViewType = CView, typename CF>
-void WithFirstView(CDocument& doc, CF callback_function);
+void WithFirstView(CDocument& doc, const CF& callback_function);
+
+template<typename CF>
+void WithParentFrame(CDocument& doc, const CF& callback_function);
 
 
 // --------------------------------------------------------------------------
@@ -15,22 +18,25 @@ void WithFirstView(CDocument& doc, CF callback_function);
 // --------------------------------------------------------------------------
 
 template<typename DocType = CDocument, typename CF>
-void ForeachDoc(CF callback_function);
+void ForeachDoc(const CF& callback_function);
 
 template<typename DocType, typename CF>
-void ForeachDocOfType(CF callback_function);
+void ForeachDocOfType(const CF& callback_function);
 
 template<typename ViewType = CView, typename CF>
-void ForeachView(CDocument& doc, CF callback_function);
+void ForeachView(CDocument& doc, const CF& callback_function);
 
 template<typename ViewType, typename CF>
-void ForeachViewOfType(CDocument& doc, CF callback_function);
+void ForeachViewOfType(CDocument& doc, const CF& callback_function);
 
 template<typename ViewType = CView, typename CF>
-void ForeachView(CF callback_function);
+void ForeachView(const CF& callback_function);
 
 template<typename ViewType, typename CF>
-void ForeachViewOfType(CF callback_function);
+void ForeachViewOfType(const CF& callback_function);
+
+template<typename CF>
+void ForeachParentFrame(const CF& callback_function);
 
 
 
@@ -39,7 +45,7 @@ void ForeachViewOfType(CF callback_function);
 // --------------------------------------------------------------------------
 
 template<typename ViewType/* = CView*/, typename CF>
-void WithFirstView(CDocument& doc, CF callback_function)
+void WithFirstView(CDocument& doc, const CF& callback_function)
 {
     POSITION view_pos = doc.GetFirstViewPosition();
 
@@ -48,8 +54,28 @@ void WithFirstView(CDocument& doc, CF callback_function)
 }
 
 
+template<typename CF>
+void WithParentFrame(CDocument& doc, const CF& callback_function)
+{
+    POSITION view_pos = doc.GetFirstViewPosition();
+
+    if( view_pos == nullptr )
+        return;
+
+    CView* const view = doc.GetNextView(view_pos);
+
+    if( view == nullptr )
+        return;
+
+    CFrameWnd* const frame_wnd = view->GetParentFrame();
+
+    if( frame_wnd != nullptr )
+        callback_function(*frame_wnd);
+}
+
+
 template<typename DocType/* = CDocument*/, typename CF>
-void ForeachDoc(CF callback_function)
+void ForeachDoc(const CF& callback_function)
 {
     POSITION template_pos = AfxGetApp()->GetFirstDocTemplatePosition();
 
@@ -68,28 +94,31 @@ void ForeachDoc(CF callback_function)
 
 
 template<typename DocType, typename CF>
-void ForeachDocOfType(CF callback_function)
+void ForeachDocOfType(const CF& callback_function)
 {
     POSITION template_pos = AfxGetApp()->GetFirstDocTemplatePosition();
 
     while( template_pos != nullptr )
     {
-        CDocTemplate* doc_template = AfxGetApp()->GetNextDocTemplate(template_pos);
+        CDocTemplate* const doc_template = AfxGetApp()->GetNextDocTemplate(template_pos);
         POSITION doc_pos = doc_template->GetFirstDocPosition();
 
         while( doc_pos != nullptr )
         {
-            DocType* doc_of_type = dynamic_cast<DocType*>(doc_template->GetNextDoc(doc_pos));
+            CDocument* const doc = doc_template->GetNextDoc(doc_pos);
 
-            if( doc_of_type != nullptr && !callback_function(*doc_of_type) )
-                return;
+            if( doc->IsKindOf(RUNTIME_CLASS(DocType)) )
+            {
+                if( !callback_function(*assert_cast<DocType*>(doc)) )
+                    return;
+            }
         }
     }
 }
 
 
 template<typename ViewType/* = CView*/, typename CF>
-void ForeachView(CDocument& doc, CF callback_function)
+void ForeachView(CDocument& doc, const CF& callback_function)
 {
     POSITION view_pos = doc.GetFirstViewPosition();
 
@@ -102,7 +131,7 @@ void ForeachView(CDocument& doc, CF callback_function)
 
 
 template<typename ViewType, typename CF>
-void ForeachViewOfType(CDocument& doc, CF callback_function)
+void ForeachViewOfType(CDocument& doc, const CF& callback_function)
 {
     POSITION view_pos = doc.GetFirstViewPosition();
 
@@ -117,7 +146,7 @@ void ForeachViewOfType(CDocument& doc, CF callback_function)
 
 
 template<typename ViewType/* = CView*/, typename CF>
-void ForeachView(CF callback_function)
+void ForeachView(const CF& callback_function)
 {
     ForeachDoc(
         [&](CDocument& doc)
@@ -136,7 +165,7 @@ void ForeachView(CF callback_function)
 
 
 template<typename ViewType, typename CF>
-void ForeachViewOfType(CF callback_function)
+void ForeachViewOfType(const CF& callback_function)
 {
     ForeachDoc(
         [&](CDocument& doc)
@@ -148,6 +177,29 @@ void ForeachViewOfType(CF callback_function)
                 ViewType* view_of_type = dynamic_cast<ViewType*>(doc.GetNextView(view_pos));
 
                 if( view_of_type != nullptr && !callback_function(*view_of_type) )
+                    return false;
+            }
+
+            return true;
+        });
+}
+
+
+template<typename CF>
+void ForeachParentFrame(const CF& callback_function)
+{
+    ForeachDoc(
+        [&](CDocument& doc)
+        {
+            POSITION view_pos = doc.GetFirstViewPosition();
+
+            if( view_pos != nullptr )
+            {
+                CView* const view = doc.GetNextView(view_pos);
+                CFrameWnd* const frame_wnd = ( view != nullptr ) ? view->GetParentFrame() :
+                                                                   nullptr;
+
+                if( frame_wnd != nullptr && !callback_function(*frame_wnd) )
                     return false;
             }
 

@@ -11,10 +11,10 @@ namespace Nodes
 
         namespace Text
         {
-            constexpr const TCHAR* FileType = _T("FileType");
-            constexpr const TCHAR* Audio    = _T("Audio");
-            constexpr const TCHAR* Geometry = _T("Geometry");
-            constexpr const TCHAR* Image    = _T("Image");
+            constexpr const char* FileType = "FileType";
+            constexpr const char* Audio    = "Audio";
+            constexpr const char* Geometry = "Geometry";
+            constexpr const char* Image    = "Image";
         }
     }
 

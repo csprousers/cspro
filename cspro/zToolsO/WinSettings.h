@@ -38,6 +38,9 @@ public:
         LocalhostStartAutomatically,
         LocalhostPreferredPort,
         LocalhostAutomaticallyMappedDrives,
+
+        LastSyncConnectionString,
+        LastCSWebUrl,
     };
 
     using KeyType = std::variant<Type, std::wstring>;
@@ -48,7 +51,7 @@ private:
     static WinSettings& GetInstance();
 
 public:
-    ~WinSettings();    
+    ~WinSettings();
 
     template<typename T>
     static T Read(KeyType key) { return ReadWorker<T>(std::move(key), nullptr); }
@@ -61,7 +64,7 @@ public:
 
 private:
     static const TCHAR* GetKeyText(const KeyType& key);
-    
+
 private:
     template<typename T>
     static T ReadWorker(KeyType key, T* default_value);

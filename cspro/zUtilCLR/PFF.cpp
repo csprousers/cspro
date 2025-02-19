@@ -24,7 +24,7 @@ CSPro::Util::PFF::!PFF()
 
 System::String^ CSPro::Util::PFF::Extension::get()
 {
-     return gcnew System::String(FileExtensions::WithDot::Pff);
+     return clr_helpers::to_SystemString(FileExtensions::WithDot(FileExtensions::Pff));
 }
 
 
@@ -120,14 +120,14 @@ CSPro::Util::ConnectionString^ CSPro::Util::PFF::GetExternalDataConnectionString
 }
 
 
-System::String^ CSPro::Util::PFF::SyncUrl::get()
+System::String^ CSPro::Util::PFF::SyncService::get()
 {
-    return gcnew System::String(m_pff->GetSyncUrl());
+    return clr_helpers::to_SystemString(m_pff->GetSyncService().ToString());
 }
 
-void CSPro::Util::PFF::SyncUrl::set(System::String^ value)
+void CSPro::Util::PFF::SyncService::set(System::String^ value)
 {
-    m_pff->SetSyncUrl(CString(value));
+    m_pff->SetSyncService(clr_helpers::to_string(value));
 }
 
 
@@ -142,31 +142,9 @@ void CSPro::Util::PFF::SyncDirection::set(CSPro::Util::SyncDirection value)
 }
 
 
-CSPro::Util::SyncServerType CSPro::Util::PFF::SyncServerType::get()
-{
-    return CSPro::Util::SyncServerType(m_pff->GetSyncServerType());
-}
-
-void CSPro::Util::PFF::SyncServerType::set(CSPro::Util::SyncServerType value)
-{
-    m_pff->SetSyncServerType(::SyncServerType(value));
-}
-
-
 bool CSPro::Util::PFF::Silent::get()
 {
     return m_pff->GetSilent();
-}
-
-
-System::Collections::Generic::List<System::String^>^ CSPro::Util::PFF::CustomParameterMappings::get()
-{
-    auto mappings = gcnew System::Collections::Generic::List<System::String^>;
-
-    for( const std::wstring& mapping : m_pff->GetCustomParamMappings() )
-        mappings->Add(gcnew System::String(mapping.c_str()));
-
-    return mappings;
 }
 
 

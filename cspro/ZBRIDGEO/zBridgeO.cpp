@@ -1,17 +1,9 @@
-﻿// zBridgeO.cpp : Defines the initialization routines for the DLL.
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include <afxdllx.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#endif
 
+AFX_EXTENSION_MODULE zBridgeODLL = { NULL, NULL };
 
-static AFX_EXTENSION_MODULE ZBridgeODLL = { NULL, NULL };
 
 extern "C" int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
@@ -24,7 +16,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         TRACE0("ZBRIDGEO.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
-        if (!AfxInitExtensionModule(ZBridgeODLL, hInstance))
+        if (!AfxInitExtensionModule(zBridgeODLL, hInstance))
             return 0;
 
         // Insert this DLL into the resource chain
@@ -39,13 +31,13 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         //  Regular DLL's resource chain, and serious problems will
         //  result.
 
-        new CDynLinkLibrary(ZBridgeODLL);
+        new CDynLinkLibrary(zBridgeODLL);
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {
         TRACE0("ZBRIDGEO.DLL Terminating!\n");
         // Terminate the library before destructors are called
-        AfxTermExtensionModule(ZBridgeODLL);
+        AfxTermExtensionModule(zBridgeODLL);
     }
     return 1;   // ok
 }

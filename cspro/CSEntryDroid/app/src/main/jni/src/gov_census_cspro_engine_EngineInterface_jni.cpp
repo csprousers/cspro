@@ -1,10 +1,11 @@
 ﻿#include <engine/StandardSystemIncludes.h>
 #include "gov_census_cspro_engine_EngineInterface_jni.h"
 #include "AndroidEngineInterface.h"
+#include "AndroidLocalFileServer.h"
 #include "AndroidMapUI.h"
 #include "JNIHelpers.h"
-#include "PortableLocalhostAndroid.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zToolsO/Encoders.h>
 #include <zToolsO/Screen.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/Messages.h>
@@ -13,6 +14,7 @@
 #include <zCapiO/CapiStyle.h>
 #include <zMapping/CoordinateConverter.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
+#include <zMapping/TPKReader.h>
 #include <Zentryo/CoreEntryEngineInterface.h>
 #include <zEngineO/PffExecutor.h>
 
@@ -214,11 +216,11 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSequentia
                                                              map_options.longitude_item);
 
     for( const auto& case_summary_lat_lon : case_summaries )
-	{
+    {
         // create the java object
-        jstring jsKey = WideToJava(pEnv,case_summary_lat_lon.case_summary.GetKey());
-        jstring jsCaseLabel = WideToJava(pEnv,case_summary_lat_lon.case_summary.GetCaseLabelOrKey());
-        jstring jsCaseNote = WideToJava(pEnv,case_summary_lat_lon.case_summary.GetCaseNote());
+        jstring jsKey = JavaString::ToJava(*pEnv, case_summary_lat_lon.case_summary.GetKey());
+        jstring jsCaseLabel = JavaString::ToJava(*pEnv, case_summary_lat_lon.case_summary.GetCaseLabelOrKey());
+        jstring jsCaseNote = JavaString::ToJava(*pEnv, case_summary_lat_lon.case_summary.GetCaseNote());
 
 
         jobject jCaseKey = pEnv->NewObject(JNIReferences::classCaseSummary,JNIReferences::methodCaseSummaryConstructor,
@@ -371,20 +373,20 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_DoNotSho
  */
 JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_SetAndroidEnvironmentVariables
   (JNIEnv* pEnv, jobject, jlong nativeReference, jstring email, jstring tempFolder,
-   jstring applicationFolder, jstring versionNumber,jstring assetsDirectory, jstring csEntryFolder,
+   jstring applicationFolder, jstring versionNumber, jstring assetsDirectory, jstring csentryFolder,
    jstring externalMemoryCardFolder, jstring internalStorageDirectory, jstring downloadsDirectory)
 {
     auto engine = (AndroidEngineInterface*)nativeReference;
 
-    engine->SetAndroidEnvironmentVariables(JavaToWSZ(pEnv, email),
-                                           JavaToWSZ(pEnv, tempFolder),
-                                           JavaToWSZ(pEnv, applicationFolder),
-                                           JavaToWSZ(pEnv, versionNumber),
-                                           JavaToWSZ(pEnv, assetsDirectory),
-                                           JavaToWSZ(pEnv, csEntryFolder),
-                                           JavaToWSZ(pEnv, externalMemoryCardFolder),
-                                           JavaToWSZ(pEnv, internalStorageDirectory),
-                                           JavaToWSZ(pEnv, downloadsDirectory));
+    engine->SetAndroidEnvironmentVariables(JavaString::ToUtf8(*pEnv, email),
+                                           JavaString::ToUtf8(*pEnv, tempFolder),
+                                           JavaString::ToUtf8(*pEnv, applicationFolder),
+                                           JavaString::ToUtf8(*pEnv, versionNumber),
+                                           JavaString::ToUtf8(*pEnv, assetsDirectory),
+                                           JavaString::ToUtf8(*pEnv, csentryFolder),
+                                           JavaString::ToUtf8(*pEnv, externalMemoryCardFolder),
+                                           JavaString::ToUtf8(*pEnv, internalStorageDirectory),
+                                           JavaString::ToUtf8(*pEnv, downloadsDirectory));
 }
 
 /*
@@ -395,7 +397,8 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_SetAndroidEn
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetInformationForAbout
   (JNIEnv* pEnv, jobject, jboolean versionString)
 {
-    return WideToJava(pEnv,versionString ? Versioning::GetVersionDetailedString() : Versioning::GetReleaseDateString());
+    return JavaString::ToJava(*pEnv, versionString ? Versioning::GetVersionDetailedString() :
+                                                     Versioning::GetReleaseDateString());
 }
 
 /*
@@ -712,7 +715,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_SetThreadWai
   (JNIEnv* pEnv, jobject, jlong /*nativeReference*/, jlong jThreadWaitId, jstring jResponse)
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
-    aai->SetThreadWaitComplete(jThreadWaitId, JavaToOptionalWSZ(pEnv, jResponse));
+    aai->SetThreadWaitComplete(jThreadWaitId, JavaString::ToSharableString(*pEnv, jResponse));
 }
 
 /*
@@ -854,7 +857,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_GetParadataC
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSystemSettingString
 (JNIEnv* pEnv, jobject object, jstring setting_name, jstring default_value)
 {
-    return WideToJava(pEnv, CoreEntryEngineInterface::GetSystemSetting(JavaToWSZ(pEnv, setting_name), JavaToWSZ(pEnv, default_value)));
+    return JavaString::ToJava(*pEnv, CoreEntryEngineInterface::GetSystemSetting(JavaToWSZ(pEnv, setting_name), JavaToWSZ(pEnv, default_value)));
 }
 
 /*
@@ -871,9 +874,9 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSyste
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetRuntimeString
 (JNIEnv* pEnv, jobject object, jint message_number, jstring text)
 {
-    CString message_text = JavaToWSZ(pEnv, text);
-    message_text = MGF::GetMessageText(message_number, message_text);
-    return WideToJava(pEnv, message_text);
+    SharableString message_text  = JavaString::ToSharableString(*pEnv, text);
+    message_text = MGF::GetMessageText(message_number, message_text->c_str());
+    return JavaString::ToJava(*pEnv, message_text);
 }
 
 
@@ -883,8 +886,8 @@ JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_GetMappin
     auto engine = (AndroidEngineInterface*)nativeReference;
 
     const AppMappingOptions& map_opts = engine->GetMappingOptions();
-    JNIReferences::scoped_local_ref<jstring> jLatitudeItem(pEnv, WideToJava(pEnv, map_opts.latitude_item));
-    JNIReferences::scoped_local_ref<jstring> jLongitudeItem(pEnv, WideToJava(pEnv, map_opts.longitude_item));
+    JNIReferences::scoped_local_ref<jstring> jLatitudeItem(pEnv, JavaString::ToJava(*pEnv, map_opts.latitude_item));
+    JNIReferences::scoped_local_ref<jstring> jLongitudeItem(pEnv, JavaString::ToJava(*pEnv, map_opts.longitude_item));
 
     return pEnv->NewObject(JNIReferences::classAppMappingOptions,
                            JNIReferences::methodAppMappingOptionsConstructor,
@@ -912,6 +915,23 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoo
 }
 
 
+JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetTpkMetadataAsJson
+  (JNIEnv* const env, jobject, jstring tpkFilePath)
+{
+    try
+    {
+        TPKReader tpk_reader(JavaString::ToUtf8(*env, tpkFilePath));
+        return JavaString::ToJava(*env, tpk_reader.GetMetadataAsJson());
+    }
+
+    catch( const CSProException& exception )
+    {
+        ThrowJavaException(env, exception);
+        return nullptr;
+    }
+}
+
+
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetApplicationDescription
     (JNIEnv* pEnv, jobject, jlong nativeReference)
 {
@@ -923,31 +943,31 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetApplic
 JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_RunNonEntryApplication
   (JNIEnv* pEnv, jobject, jlong, jstring jzPffFilename)
 {
-	try
-	{
+    try
+    {
         // load the PFF and execute it
         std::wstring pff_filename = JavaToWSZ(pEnv, jzPffFilename);
-		CNPifFile pff(WS2CS(pff_filename));
+        CNPifFile pff(WS2CS(pff_filename));
 
         if( !pff.LoadPifFile(true) || !PffExecutor::CanExecute(pff.GetAppType()) )
         {
-            throw CSProException(L"The PFF %s is not valid or is not a program that can run on Android.",
-                                 PortableFunctions::PathGetFilename(pff_filename));
+            throw CSProException("The PFF %s is not valid or is not a program that can run on Android.",
+                                 PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(pff_filename)).c_str());
         }
 
         PffExecutor pff_executor;
-		pff_executor.Execute(pff);
+        pff_executor.Execute(pff);
 
         // set the OnExit parameter
         if( !pff.GetOnExitFilename().IsEmpty() )
             PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(CS2WS(pff.GetOnExitFilename()));
-	}
+    }
 
-	catch( const CSProException& exception )
-	{
-		PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(
-			_T("Error Running Tool"), exception.GetErrorMessage(), MB_OK);
-	}
+    catch( const CSProException& exception )
+    {
+        PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(
+            "Error Running Tool", exception.what(), MB_OK);
+    }
 }
 
 
@@ -961,7 +981,7 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_UseHtmlD
 JNIEXPORT jint JNICALL Java_gov_census_cspro_engine_EngineInterface_ParseDimensionText
   (JNIEnv* env, jobject, jlong, jstring dimensionText, jboolean isWidth)
 {
-    std::wstring dimension_text = JavaToWSZ(env, dimensionText);
+    const std::string dimension_text = JavaString::ToUtf8(*env, dimensionText);
     return Screen::ParseDimensionText(dimension_text, isWidth ? Screen::GetMaxDisplayWidth() : Screen::GetMaxDisplayHeight());
 }
 
@@ -969,32 +989,27 @@ JNIEXPORT jint JNICALL Java_gov_census_cspro_engine_EngineInterface_ParseDimensi
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_CreateRegularExpressionFromFileSpec
   (JNIEnv* pEnv, jobject, jstring jFileSpec)
 {
-    return WideToJava(pEnv, ::CreateRegularExpressionFromFileSpec(JavaToWSZ(pEnv, jFileSpec)));
+    return JavaString::ToJava(*pEnv, ::CreateRegularExpressionFromFileSpec(JavaString::ToUtf8(*pEnv, jFileSpec)));
 }
 
 
 JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_GetVirtualFile
   (JNIEnv* pEnv, jobject, jlong, jstring jPath)
 {
-    std::wstring path = JavaToWSZ(pEnv, jPath);
+    std::string path = JavaString::ToUtf8(*pEnv, jPath);
 
     // the path URL will arrive percent-encoded
     path = Encoders::FromPercentEncoding(path);
 
-    jbyteArray content = nullptr;
-    std::wstring content_type;
+    const AndroidLocalFileServer::Response response = AndroidLocalFileServer::GetInstance().GetVirtualFile(*pEnv, path);
 
-    if( LocalFileServer::GetInstance().GetVirtualFile(pEnv, path, content, content_type) )
-    {
-        ASSERT(content != nullptr);
+    if( response.content == nullptr )
+        return nullptr;
 
-        return pEnv->NewObject(JNIReferences::classVirtualFile,
-                               JNIReferences::methodVirtualFileConstructor,
-                               content,
-                               !content_type.empty() ? WideToJava(pEnv, content_type) : nullptr);
-    }
-
-    return nullptr;
+    return pEnv->NewObject(JNIReferences::classVirtualFile,
+                           JNIReferences::methodVirtualFileConstructor,
+                           response.content,
+                           !response.content_type.empty() ? JavaString::ToJava(*pEnv, response.content_type) : nullptr);
 }
 
 

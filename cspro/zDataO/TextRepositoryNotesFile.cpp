@@ -1,55 +1,45 @@
 ﻿#include "stdafx.h"
 #include "TextRepositoryNotesFile.h"
 #include "TextRepository.h"
-#include <zUtilO/Specfile.h>
+#include <zToolsO/File.h>
 #include <zUtilO/NameShortener.h>
 
-#pragma warning(disable:4996) // hide secure warnings related to the use of _timezone
 
-
-namespace
-{
-    constexpr int TextRepositoryFieldLength = 32;
-    constexpr int TextRepositoryOperatorIdLength = TextRepositoryFieldLength;
-    constexpr int TextRepositoryModifiedDateLength = 8;
-    constexpr int TextRepositoryModifiedTimeLength = 6;
-    constexpr int TextRepositoryOccurrenceLength = 5;
-}
-
-
-TextRepositoryNotesFile::TextRepositoryNotesFile(const TextRepository& repository, DataRepositoryOpenFlag open_flag)
-    :   m_filename(GetNotesFilename(repository.GetConnectionString())),
-        m_dictionaryName(repository.GetCaseAccess()->GetDataDict().GetName()),
-        m_useTransactionManager(repository.m_useTransactionManager),
+TextRepositoryNotesFile::TextRepositoryNotesFile(const TextRepository& repository, const DataRepositoryOpenFlag open_flag)
+    :   m_repository(repository),
+        m_filePath(GetNotesFilePath(m_repository.GetConnectionString())),
+        m_dictionaryName(m_repository.GetCaseAccess().GetDataDict().GetName()),
         m_hasTransactionsToWrite(false)
 {
     // determine the length of the case keys
-    m_firstLevelKeyLength = repository.m_keyMetadata->key_length;
+    m_firstLevelKeyLength = m_repository.m_keyMetadata->key_length;
     m_allLevelsKeyLength = 0;
 
-    for( const CaseLevelMetadata* case_level_metadata : repository.GetCaseAccess()->GetCaseMetadata().GetCaseLevelsMetadata() )
+    for( const CaseLevelMetadata& case_level_metadata : m_repository.GetCaseAccess().GetCaseMetadata().GetCaseLevelsMetadata() )
     {
-        m_allLevelsKeyLength += case_level_metadata->GetLevelKeyLength();
+        m_allLevelsKeyLength += case_level_metadata.GetLevelKeyLength();
 
-        if( case_level_metadata->GetDictLevel().GetLevelNumber() > 0 )
+        if( case_level_metadata.GetDictLevel().GetLevelNumber() > 0 )
             m_secondaryLevelKeyLengths.emplace_back(m_allLevelsKeyLength - m_firstLevelKeyLength);
     }
 
-    if( PortableFunctions::FileIsRegular(m_filename) )
+    if( PortableFunctions::FileIsRegular(m_filePath) )
     {
         ASSERT(open_flag != DataRepositoryOpenFlag::CreateNew);
-        Load(repository);
+        Load();
     }
 
     // if no notes file exists, see if a pre-7.0 style notes file exists
     else if( open_flag != DataRepositoryOpenFlag::CreateNew )
     {
-        std::wstring old_filename = repository.GetConnectionString().GetFilename() + FileExtensions::Old::Data::WithDot::TextNotes;
+        std::string old_file_path = PortableFunctions::PathAppendFileExtension(m_repository.GetConnectionString().GetFilePath(), FileExtensions::Old::Data::TextNotes);
 
-        if( PortableFunctions::FileIsRegular(old_filename) )
+        if( PortableFunctions::FileIsRegular(old_file_path) )
         {
-            LoadOldFormat(repository, old_filename);
-            Save();
+            LoadOldFormat(std::move(old_file_path));
+
+            if( !m_repository.IsReadOnly() )
+                Save();
         }
     }
 }
@@ -61,115 +51,109 @@ TextRepositoryNotesFile::~TextRepositoryNotesFile()
 }
 
 
-std::wstring TextRepositoryNotesFile::GetNotesFilename(const ConnectionString& connection_string)
+std::string TextRepositoryNotesFile::GetNotesFilePath(const ConnectionString& connection_string)
 {
-     return connection_string.GetFilename() + FileExtensions::Data::WithDot::TextNotes;
+     return PortableFunctions::PathAppendFileExtension(connection_string.GetFilePath(), FileExtensions::Data::TextNotes);
 }
 
 
-Note& TextRepositoryNotesFile::AddNote(const CString& first_level_key, std::shared_ptr<NamedReference> named_reference, const CString& operator_id,
-                                       const time_t& modified_date_time, const CString& content)
+Note& TextRepositoryNotesFile::AddNote(std::string first_level_key, std::shared_ptr<NamedReference> named_reference, std::string operator_id,
+                                       const int64_t modified_date_time, SharableString content)
 {
     // add the note object
     if( m_notesMap == nullptr )
-        m_notesMap = std::make_unique<std::map<CString, std::vector<Note>>>();
+        m_notesMap = std::make_unique<std::map<std::string, std::vector<Note>>>();
 
     auto notes_search = m_notesMap->find(first_level_key);
     std::vector<Note>& notes = ( notes_search != m_notesMap->end() ) ? notes_search->second :
-                                                                       m_notesMap->emplace(first_level_key, std::vector<Note>()).first->second;
+                                                                       m_notesMap->emplace(std::move(first_level_key), std::vector<Note>()).first->second;
 
-    return notes.emplace_back(content, std::move(named_reference), operator_id, modified_date_time);
+    return notes.emplace_back(std::move(content), std::move(named_reference), std::move(operator_id), modified_date_time);
 }
 
 
-void TextRepositoryNotesFile::Load(const TextRepository& repository)
+void TextRepositoryNotesFile::Load()
 {
     try
     {
-        CSpecFile csnot_file;
+        FileIO::TextFile csnot_file;
+        csnot_file.SetProperties(m_repository.GetConnectionString());
 
-        if( !csnot_file.Open(m_filename.c_str(), CFile::modeRead) )
-            throw DataRepositoryException::IOError(_T("There was an error opening the notes file."));
+        try
+        {
+            csnot_file.OpenForTextReading(m_filePath);
+        }
+
+        catch( const CSProException& exception )
+        {
+            throw DataRepositoryException::IOError("There was an error opening the notes file: %s", exception.what());
+        }
 
         // determine the minimum size of a notes line
-        const int min_line_length = m_allLevelsKeyLength + TextRepositoryFieldLength + TextRepositoryOperatorIdLength +
-                                    TextRepositoryModifiedDateLength + TextRepositoryModifiedTimeLength + 3 * TextRepositoryOccurrenceLength + 1; // 1 for the note
+        const size_t min_line_length = m_allLevelsKeyLength + FieldLength + OperatorIdLength +
+                                       ModifiedDateLength + ModifiedTimeLength + 3 * OccurrenceLength + 1; // 1 for the note
 
-        CString line;
+        std::string line;
 
-        while( csnot_file.ReadString(line) )
+        while( csnot_file.ReadLine(line) )
         {
             // ignore lines without valid notes
-            if( line.GetLength() < min_line_length )
+            if( SO::WideLength(line) < min_line_length )
                 continue;
 
-            // ignored deleted rows
-            if( line[0] == _T('~') ) 
+            // ignore deleted rows
+            if( line.front() == TextToCaseConverter::DataFileErasedRecordCharacter )
                 continue;
 
             // turn ␤ -> \n
             NewlineSubstitutor::MakeUnicodeNLToNewline(line);
+            ASSERT(SO::WideLength(line) >= min_line_length);
 
-            CString first_level_key = line.Left(m_firstLevelKeyLength);
-            CIMSAString level_key = line.Mid(m_firstLevelKeyLength, m_allLevelsKeyLength - m_firstLevelKeyLength);
+            const char* line_itr = line.data();
 
-            // make sure that the length of the trimmed level key is valid
-            level_key.TrimRight();
-
-            if( !level_key.IsEmpty() )
+            auto process_wide_entity = [&](const size_t wide_length, const bool right_trim_spaces)
             {
-                for( const size_t length : m_secondaryLevelKeyLengths )
-                {
-                    if( level_key.GetLength() <= static_cast<int>(length) )
-                    {
-                        level_key.MakeExactLength(length);
-                        break;
-                    }
-                }
-            }
+                const size_t utf8_length = SO::WideGetOffset(line_itr, wide_length);
+                std::string entity(line_itr, utf8_length);
+                line_itr += utf8_length;
 
-            int current_pos = m_allLevelsKeyLength;
+                return right_trim_spaces ? SO::MakeTrimRightSpace(entity) :
+                                           entity;
+            };
 
-            CString field_name = line.Mid(current_pos, TextRepositoryFieldLength).Trim();
-            field_name = CSProNameShortener::UnicodeToCSPro(field_name);
-            current_pos += TextRepositoryFieldLength;
+            std::string first_level_key = process_wide_entity(m_firstLevelKeyLength, false);
+            std::string level_key = LoadAdjustLevelKey(process_wide_entity(m_allLevelsKeyLength - m_firstLevelKeyLength, false));
 
-            CString operator_id = line.Mid(current_pos, TextRepositoryOperatorIdLength).Trim();
-            current_pos += TextRepositoryOperatorIdLength;
+            const std::string field_name = NameShortener::Unshorten(process_wide_entity(FieldLength, true));
 
-            CString modified_date = line.Mid(current_pos, TextRepositoryModifiedDateLength).Trim();
-            current_pos += TextRepositoryModifiedDateLength;
+            std::string operator_id = process_wide_entity(OperatorIdLength, true);
+            std::string modified_date = process_wide_entity(ModifiedDateLength, true);
+            std::string modified_time = process_wide_entity(ModifiedTimeLength, true);
 
-            CString modified_time = line.Mid(current_pos, TextRepositoryModifiedTimeLength).Trim();
-            current_pos += TextRepositoryModifiedTimeLength;
+            int64_t modified_date_time = 0;
 
-            time_t modified_date_time = 0;
-
-            if( modified_date.GetLength() == TextRepositoryModifiedDateLength && modified_time.GetLength() == TextRepositoryModifiedTimeLength )
+            if( modified_date.length() == ModifiedDateLength && modified_time.length() == ModifiedTimeLength )
             {
-                const int yyyy_mm_dd = _ttoi(modified_date);
-                const int hh_mm_ss = _ttoi(modified_time);
-
-                std::tm tm;
-                ReadableTimeToTm(&tm, yyyy_mm_dd, hh_mm_ss);
-
-                modified_date_time = mktime(&tm) - _timezone;
+                modified_date_time = DateTime::CreateTime(atoi(modified_date.c_str()),
+                                                          atoi(modified_time.c_str()));
             }
 
             size_t occurrences[3];
 
             for( size_t i = 0; i < _countof(occurrences); ++i )
             {
-                CString occurrence = line.Mid(current_pos, TextRepositoryOccurrenceLength).Trim();
-                current_pos += TextRepositoryOccurrenceLength;
-
-                occurrences[i] = occurrence.IsEmpty() ? 0 : std::max(_ttoi(occurrence) - 1, 0);
+                const std::string occurrence = process_wide_entity(OccurrenceLength, true);
+                occurrences[i] = occurrence.empty() ? 0 : std::max(atoi(occurrence.c_str()) - 1, 0);
             }
 
-            CString content = line.Mid(current_pos).Trim();
+            SharableString content(line_itr);
+            content.MakeTrimRight();
 
-            std::shared_ptr<NamedReference> named_reference = CaseConstructionHelpers::CreateNamedReference(*repository.GetCaseAccess(), level_key, field_name, occurrences);
-            AddNote(first_level_key, std::move(named_reference), operator_id, modified_date_time, content);
+            AddNote(std::move(first_level_key),
+                    CaseConstructionHelpers::CreateNamedReference(m_repository.GetCaseAccess(), std::move(level_key), field_name, occurrences),
+                    std::move(operator_id),
+                    modified_date_time,
+                    std::move(content));
         }
 
         csnot_file.Close();
@@ -180,25 +164,61 @@ void TextRepositoryNotesFile::Load(const TextRepository& repository)
         throw;
     }
 
-    catch(...)
+    catch( const CSProException& exception )
     {
-        throw DataRepositoryException::IOError(_T("There was an error reading the notes file."));
+        throw DataRepositoryException::IOError("There was an error reading the notes file: %s", exception.what());
     }
+}
+
+
+std::string TextRepositoryNotesFile::LoadAdjustLevelKey(std::string level_key) const
+{
+    // make sure that the length of the trimmed level key is valid
+    SO::MakeTrimRightSpace(level_key);
+
+    if( !level_key.empty() )
+    {
+        for( const size_t length : m_secondaryLevelKeyLengths )
+        {
+            const ptrdiff_t length_difference = SO::WideLength(level_key) - length;
+
+            // if length_difference == 0, this note belongs to this level
+            if( length_difference == 0 )
+            {
+                break;
+            }
+
+            // if length_difference < 0, this note belongs to this level but needs to be right-padded with spaces
+            else if( length_difference < 0 )
+            {
+                SO::WideMakeExactLength(level_key, length);
+                break;
+            }
+
+            // continue processing to a future level
+            else
+            {
+                ASSERT(length < m_secondaryLevelKeyLengths.back());
+            }
+        }
+    }
+
+    return level_key;
 }
 
 
 void TextRepositoryNotesFile::CommitTransactions()
 {
-    ASSERT(m_useTransactionManager);
+    ASSERT(m_repository.m_useTransactionManager);
 
     if( m_hasTransactionsToWrite )
         Save(true);
 }
 
 
-void TextRepositoryNotesFile::Save(bool force_write_to_disk/* = false*/)
+void TextRepositoryNotesFile::Save(const bool force_write_to_disk/* = false*/)
 {
-    if( m_useTransactionManager && !force_write_to_disk )
+    if( m_repository.m_useTransactionManager && !force_write_to_disk )
     {
         m_hasTransactionsToWrite = true;
         return;
@@ -206,27 +226,52 @@ void TextRepositoryNotesFile::Save(bool force_write_to_disk/* = false*/)
 
     try
     {
-        CSpecFile csnot_file;
+        FileIO::TextFile csnot_file;
+        csnot_file.SetProperties(m_repository.GetConnectionString());
 
-        if( !csnot_file.Open(m_filename.c_str(), CFile::modeWrite) )
-            throw DataRepositoryException::IOError(_T("There was an error creating the notes file."));
+        try
+        {
+            csnot_file.OpenForTextWritingCreate(m_filePath);
+        }
+
+        catch( const CSProException& exception )
+        {
+            throw DataRepositoryException::IOError("There was an error creating the notes file: %s", exception.what());
+        }
 
         if( m_notesMap != nullptr )
         {
-            const CString formatting_string = FormatText(_T("%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%s"),
-                                                         m_allLevelsKeyLength, m_allLevelsKeyLength,
-                                                         TextRepositoryFieldLength, TextRepositoryFieldLength,
-                                                         TextRepositoryOperatorIdLength, TextRepositoryOperatorIdLength,
-                                                         TextRepositoryModifiedDateLength, TextRepositoryModifiedDateLength,
-                                                         TextRepositoryModifiedTimeLength, TextRepositoryModifiedTimeLength,
-                                                         TextRepositoryOccurrenceLength, TextRepositoryOccurrenceLength,
-                                                         TextRepositoryOccurrenceLength, TextRepositoryOccurrenceLength,
-                                                         TextRepositoryOccurrenceLength, TextRepositoryOccurrenceLength);
+            const std::string formatting_string = FormatText("%%-s%%-s%%-s%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%-%d.%ds%%s",
+                                                             ModifiedDateLength, ModifiedDateLength,
+                                                             ModifiedTimeLength, ModifiedTimeLength,
+                                                             OccurrenceLength, OccurrenceLength,
+                                                             OccurrenceLength, OccurrenceLength,
+                                                             OccurrenceLength, OccurrenceLength);
+
+            auto write_formatted_line = [&](std::string full_key, std::string field_name, std::string operator_id,
+                                            const char* const date, const char* const time,
+                                            const char* const record_occurrence, const char* const item_occurrence, const char* const subitem_occurrence,
+                                            const char* const note_content)
+            {
+                SO::WideMakeExactLength(full_key, m_allLevelsKeyLength);
+                SO::WideMakeExactLength(field_name, FieldLength);
+                SO::WideMakeExactLength(operator_id, OperatorIdLength);
+
+                ASSERT(strlen(date) <= ModifiedDateLength);
+                ASSERT(strlen(time) <= ModifiedTimeLength);
+                ASSERT(strlen(record_occurrence) <= OccurrenceLength);
+                ASSERT(strlen(item_occurrence) <= OccurrenceLength);
+                ASSERT(strlen(subitem_occurrence) <= OccurrenceLength);
+
+                csnot_file.WriteFormattedLine(formatting_string.c_str(),
+                                              full_key.c_str(), field_name.c_str(), operator_id.c_str(),
+                                              date, time,
+                                              record_occurrence, item_occurrence, subitem_occurrence,
+                                              note_content);
+            };
 
             // write the header
-            csnot_file.WriteFormattedLine(formatting_string,
-                                          _T("~Case IDs"), _T("Field Name"), _T("Operator ID"),
-                                          _T("Date"), _T("Time"), _T("Rcrd#"), _T("Item#"), _T("Sub #"), _T("Note"));
+            write_formatted_line("~Case IDs", "Field Name", "Operator ID", "Date", "Time", "Rcrd#", "Item#", "Sub #", "Note");
 
             // write the notes
             for( const auto& [key, notes] : *m_notesMap )
@@ -235,31 +280,21 @@ void TextRepositoryNotesFile::Save(bool force_write_to_disk/* = false*/)
                 {
                     const NamedReference& named_reference = note.GetNamedReference();
 
-                    CString full_key = key + named_reference.GetLevelKey();
+                    const std::string full_key = key + named_reference.GetLevelKey();
 
-                    CString field_name = CSProNameShortener::CSProToUnicode(named_reference.GetName(), TextRepositoryFieldLength);
+                    std::string field_name = NameShortener::Shorten(named_reference.GetName(), FieldLength);
 
-                    CString date;
-                    CString time;
+                    std::string date;
+                    std::string time;
 
                     if( note.GetModifiedDateTime() > 0 )
                     {
-                        time_t modified_date_time = note.GetModifiedDateTime();
-                        std::tm* tm = gmtime(&modified_date_time);
-
-                        int year;
-                        int month;
-                        int day;
-                        int hour;
-                        int minute;
-                        int second;
-                        TmToReadableTime(tm, &year, &month, &day, &hour, &minute, &second);
-
-                        date.Format(_T("%04d%02d%02d"), year, month, day);
-                        time.Format(_T("%02d%02d%02d"), hour, minute, second);
+                        const DateTime::Components date_time_components = DateTime::TimeToComponents(note.GetModifiedDateTime());
+                        date = FormatText("%04d%02d%02d", date_time_components.year, date_time_components.month, date_time_components.day);
+                        time = FormatText("%02d%02d%02d", date_time_components.hour, date_time_components.minute, date_time_components.second);
                     }
 
-                    CString occurrences[3];
+                    std::string occurrences[3];
 
                     if( named_reference.HasOccurrences() )
                     {
@@ -269,17 +304,16 @@ void TextRepositoryNotesFile::Save(bool force_write_to_disk/* = false*/)
                         for( int i = 0; i < _countof(occurrences); ++i )
                         {
                             if( one_based_occurrences[i] > 0 )
-                                occurrences[i].Format(_T("%*d"), TextRepositoryOccurrenceLength, static_cast<int>(one_based_occurrences[i]));
+                                occurrences[i] = FormatText("%*d", OccurrenceLength, static_cast<int>(one_based_occurrences[i]));
                         }
                     }
 
-                    csnot_file.WriteFormattedLine(formatting_string,
-                                                  NewlineSubstitutor::NewlineToUnicodeNL(full_key).GetString(),
-                                                  field_name.GetString(),
-                                                  NewlineSubstitutor::NewlineToUnicodeNL(note.GetOperatorId()).GetString(),
-                                                  date.GetString(), time.GetString(),
-                                                  occurrences[0].GetString(), occurrences[1].GetString(), occurrences[2].GetString(),
-                                                  NewlineSubstitutor::NewlineToUnicodeNL(note.GetContent()).GetString());
+                    write_formatted_line(NewlineSubstitutor::NewlineToUnicodeNL(full_key),
+                                         std::move(field_name),
+                                         NewlineSubstitutor::NewlineToUnicodeNL(note.GetOperatorId()),
+                                         date.c_str(), time.c_str(),
+                                         occurrences[0].c_str(), occurrences[1].c_str(), occurrences[2].c_str(),
+                                         NewlineSubstitutor::NewlineToUnicodeNL(note.GetContent()).c_str());
                 }
             }
         }
@@ -292,58 +326,69 @@ void TextRepositoryNotesFile::Save(bool force_write_to_disk/* = false*/)
         throw;
     }
 
-    catch(...)
+    catch( const CSProException& exception )
     {
-        throw DataRepositoryException::IOError(_T("There was an error writing to the notes file."));
+        throw DataRepositoryException::IOError("There was an error writing to the notes file: %s", exception.what());
     }
 
     m_hasTransactionsToWrite = false;
 }
 
 
-void TextRepositoryNotesFile::LoadOldFormat(const TextRepository& repository, NullTerminatedString filename)
+void TextRepositoryNotesFile::LoadOldFormat(std::string file_path)
 {
     try
     {
-        CSpecFile not_file;
+        FileIO::TextFile not_file;
 
-        if( !not_file.Open(filename.c_str(), CFile::modeRead) )
-            throw DataRepositoryException::IOError(_T("There was an error opening the pre-7.0 notes file."));
+        // make sure that pre-5.0 files without a BOM are read as ANSI (unless overridden in the connection string)
+        not_file.SetTextEncoding(TextEncoding::Type::Ansi);
+        not_file.SetProperties(m_repository.GetConnectionString());
+
+        try
+        {
+            not_file.OpenForTextReading(std::move(file_path));
+        }
+
+        catch( const CSProException& exception )
+        {
+            throw DataRepositoryException::IOError("There was an error opening the pre-7.0 notes file: %s", exception.what());
+        }
 
         // determine the minimum size of a notes line
-        const int note_identifying_portion_length = m_allLevelsKeyLength + TextRepositoryFieldLength + 17; // 17 for three occurrences
-        const int min_length_line = note_identifying_portion_length + 1; // 1 for the note text
+        const size_t note_identifying_portion_length = m_allLevelsKeyLength + FieldLength + 17; // 17 for three occurrences
+        const size_t min_length_line = note_identifying_portion_length + 1; // 1 for the note text
 
-        CString line;
-        CString previous_identifier; // used to combine multiline notes
+        std::string line;
+        std::string previous_identifier; // used to combine multiline notes
         Note* previous_note = nullptr;
 
-        while( not_file.ReadString(line) )
+        while( not_file.ReadLine(line) )
         {
             // ignore lines without valid notes
-            if( line.GetLength() < min_length_line )
+            if( SO::WideLength(line) < min_length_line )
                 continue;
 
             // potentially combine this line with the previous note in the case of multiline notes
-            CString this_identifier = line.Left(note_identifying_portion_length);
+            const std::string_view this_identifier_sv = SO::WideSubstring(line, 0, note_identifying_portion_length);
 
-            if( previous_note != nullptr && this_identifier.Compare(previous_identifier) == 0 )
+            if( previous_note != nullptr && previous_identifier == this_identifier_sv )
             {
-                CString content_continuation = FormatText(_T("%s %s"),
-                                                          previous_note->GetContent().GetString(),
-                                                          line.Mid(note_identifying_portion_length).GetString());
-                previous_note->SetContent(content_continuation);
+                std::string content_continuation = SO::Concatenate(previous_note->GetContent(),
+                                                                   " ",
+                                                                   std::string_view(line).substr(this_identifier_sv.length()));
+                previous_note->SetContent(std::move(content_continuation), false);
                 continue;
             }
 
-            CString key = line.Left(m_allLevelsKeyLength);
-            CString field_name = line.Mid(m_allLevelsKeyLength, TextRepositoryFieldLength).Trim();
-            CString occurrence1_text = line.Mid(m_allLevelsKeyLength + TextRepositoryFieldLength, 6).Trim();
-            CString occurrence2_text = line.Mid(m_allLevelsKeyLength + TextRepositoryFieldLength + 6, 5).Trim();
-            CString occurrence3_text = line.Mid(m_allLevelsKeyLength + TextRepositoryFieldLength + 12, 5).Trim();
-            CString content = line.Mid(note_identifying_portion_length).Trim();
-            ASSERT(occurrence1_text.GetLength() == 0);
+            std::string key(SO::WideSubstring(line, 0, m_allLevelsKeyLength));
+            std::string field_name(SO::Trim(SO::WideSubstring(line, m_allLevelsKeyLength, FieldLength)));
+            const std::string occurrence1_text(SO::Trim(SO::WideSubstring(line, m_allLevelsKeyLength + FieldLength, 6)));
+            const std::string occurrence2_text(SO::Trim(SO::WideSubstring(line, m_allLevelsKeyLength + FieldLength + 6, 5)));
+            const std::string occurrence3_text(SO::Trim(SO::WideSubstring(line, m_allLevelsKeyLength + FieldLength + 12, 5)));
+            std::string content(SO::Trim(SO::WideSubstring(line, note_identifying_portion_length)));
 
+            ASSERT(occurrence1_text.empty());
             int record_occurrence = 0;
             int item_occurrence = 0;
             int subitem_occurrence = 0;
@@ -352,35 +397,35 @@ void TextRepositoryNotesFile::LoadOldFormat(const TextRepository& repository, Nu
             //      1 - singly occurring record     multiply occurring item  _ _ I
             //      2 - multiply occurring record   singly occurring item    _ _ R
             //      3 - multiply occurring record   multiply occurring item  _ R.I
-            if( occurrence3_text.GetLength() > 0 )
+            if( !occurrence3_text.empty() )
             {
-                const CaseItem* case_item = repository.GetCaseAccess()->LookupCaseItem(field_name);
+                const CaseItem* const case_item = m_repository.GetCaseAccess().LookupCaseItem(field_name);
 
                 if( case_item == nullptr ) // the field is not in the dictionary
                     continue;
 
-                const CDictItem& dictionary_item = case_item->GetDictionaryItem();
-                const CDictRecord& dictionary_record = *dictionary_item.GetRecord();
+                const CDictItem& dict_item = case_item->GetDictItem();
+                const CDictRecord& dict_record = *dict_item.GetRecord();
 
-                const int occurrence3 = _ttoi(occurrence3_text);
+                const int occurrence3 = atoi(occurrence3_text.c_str());
 
-                if( dictionary_item.GetOccurs() > 1 && dictionary_record.GetMaxRecs() == 1 ) // case 1
+                if( dict_item.GetOccurs() > 1 && dict_record.GetMaxRecs() == 1 ) // case 1
                 {
-                    ASSERT(occurrence2_text.GetLength() == 0);
+                    ASSERT(occurrence2_text.empty());
                     item_occurrence = occurrence3;
                 }
 
-                else if( dictionary_item.GetOccurs() == 1 && dictionary_record.GetMaxRecs() > 1 ) // case 2
+                else if( dict_item.GetOccurs() == 1 && dict_record.GetMaxRecs() > 1 ) // case 2
                 {
-                    ASSERT(occurrence2_text.GetLength() == 0);
+                    ASSERT(occurrence2_text.empty());
                     record_occurrence = occurrence3;
                 }
 
-                else if( dictionary_item.GetOccurs() > 1 && dictionary_record.GetMaxRecs() > 1 ) // case 3
+                else if( dict_item.GetOccurs() > 1 && dict_record.GetMaxRecs() > 1 ) // case 3
                 {
-                    ASSERT(occurrence2_text.GetLength() > 0);
+                    ASSERT(!occurrence2_text.empty());
                     item_occurrence = occurrence3;
-                    record_occurrence = _ttoi(occurrence2_text);
+                    record_occurrence = atoi(occurrence2_text.c_str());
                 }
 
                 else
@@ -390,8 +435,8 @@ void TextRepositoryNotesFile::LoadOldFormat(const TextRepository& repository, Nu
             }
 
             // construct the note object
-            CString first_level_key = key.Left(m_firstLevelKeyLength);
-            CString level_key = key.Mid(m_firstLevelKeyLength);
+            std::string first_level_key(SO::WideSubstring(key, 0, m_firstLevelKeyLength));
+            std::string level_key = LoadAdjustLevelKey(key.substr(first_level_key.length()));
 
             const size_t occurrences[3] =
             {
@@ -400,9 +445,13 @@ void TextRepositoryNotesFile::LoadOldFormat(const TextRepository& repository, Nu
                 static_cast<size_t>(std::max(subitem_occurrence - 1, 0))
             };
 
-            std::shared_ptr<NamedReference> named_reference = CaseConstructionHelpers::CreateNamedReference(*repository.GetCaseAccess(), level_key, field_name, occurrences);
-            previous_note = &AddNote(first_level_key, std::move(named_reference), CString(), 0, content);
-            previous_identifier = this_identifier;
+            previous_note = &AddNote(std::move(first_level_key),
+                                     CaseConstructionHelpers::CreateNamedReference(m_repository.GetCaseAccess(), std::move(level_key), field_name, occurrences),
+                                     std::string(),
+                                     0,
+                                     std::move(content));
+
+            previous_identifier = this_identifier_sv;
         }
 
         not_file.Close();
@@ -413,16 +462,16 @@ void TextRepositoryNotesFile::LoadOldFormat(const TextRepository& repository, Nu
         throw;
     }
 
-    catch(...)
+    catch( const CSProException& exception )
     {
-        throw DataRepositoryException::IOError(_T("There was an error reading the pre-7.0 notes file."));
+        throw DataRepositoryException::IOError("There was an error reading the pre-7.0 notes file: %s", exception.what());
     }
 }
 
 
-void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter)
+void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter)
 {
-    const CString& key = data_case.GetKey();
+    const std::string& key = data_case.GetKey();
     const std::vector<Note>& new_notes = data_case.GetNotes();
     bool modified = false;
 
@@ -432,7 +481,7 @@ void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* wri
         if( m_notesMap != nullptr )
         {
             // remove the previous notes if the key changed
-            if( write_case_parameter->GetKey().Compare(key) != 0 )
+            if( write_case_parameter->GetKey() != key )
             {
                 modified = RemoveEntry(write_case_parameter->GetKey());
             }
@@ -453,7 +502,7 @@ void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* wri
     if( !new_notes.empty() )
     {
         if( m_notesMap == nullptr )
-            m_notesMap = std::make_unique<std::map<CString, std::vector<Note>>>();
+            m_notesMap = std::make_unique<std::map<std::string, std::vector<Note>>>();
 
         (*m_notesMap)[key] = new_notes;
         modified = true;
@@ -464,7 +513,7 @@ void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* wri
 }
 
 
-bool TextRepositoryNotesFile::RemoveEntry(const CString& key)
+bool TextRepositoryNotesFile::RemoveEntry(const std::string& key)
 {
     ASSERT(m_notesMap != nullptr);
 
@@ -481,7 +530,7 @@ bool TextRepositoryNotesFile::RemoveEntry(const CString& key)
 }
 
 
-void TextRepositoryNotesFile::DeleteCase(const CString& key)
+void TextRepositoryNotesFile::DeleteCase(const std::string& key)
 {
     if( m_notesMap != nullptr && RemoveEntry(key) )
         Save();

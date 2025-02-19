@@ -1,7 +1,8 @@
 ﻿#pragma once
 
+
 struct BluetoothDeviceInfo
 {
-    CString csName;
-    CString csAddress;
+    std::string name;
+    std::string address;
 };

@@ -3,7 +3,7 @@
 #include <zDataO/DataRepository.h>
 
 
-///<summary>Helper class to save and restore the current CaseAccess for a repository using RAII.</summary>
+// Helper class to save and restore the current CaseAccess for a repository using RAII.
 
 class CaseAccessSaver
 {
@@ -16,7 +16,7 @@ public:
 
     ~CaseAccessSaver()
     {
-        if( m_repository.GetCaseAccess() != m_caseAccess.get() )
+        if( &m_repository.GetCaseAccess() != m_caseAccess.get() )
             m_repository.ModifyCaseAccess(std::move(m_caseAccess));
     }
 

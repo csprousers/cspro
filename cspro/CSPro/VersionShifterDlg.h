@@ -15,9 +15,9 @@ protected:
 
     BOOL OnInitDialog() override;
 
-    afx_msg void OnBnClickedOk();
+    void OnBnClickedOk();
 
 private:
-    std::vector<std::wstring> m_versionPaths;
+    std::vector<std::string> m_versionPaths;
     std::optional<size_t> m_currentIndex;
 };

@@ -1,7 +1,4 @@
-﻿// TabView.cpp : implementation file
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "TabView.h"
 #include "AppFmtD.h"
 #include "CmpFmtD.h"
@@ -12,11 +9,10 @@
 #include "TlyVrDlg.h"
 #include "TTallyFD.h"
 #include "Tvdlg.h"
+#include <zUtilO/BCMenu.h>
 #include <zDictF/UWM.h>
 #include <zTableO/TllyStat.h>
 #include <tblview/TblView.h>
-#include <zUtilO/BCMenu.h>
-#include <zUtilO/Filedlg.h>
 #include <strstream>
 #include <sstream>
 #include <fstream>
@@ -174,8 +170,8 @@ LRESULT CTabView::OnDropItem(WPARAM wParam,LPARAM lParam)
     }
 
     if(pDictItem){
-        if(pDictItem->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) ==0){
-            AfxMessageBox(FormatText(_T("Cannot Drop %s"), (LPCTSTR)WORKVAR_TOTAL_NAME));
+        if(SO::EqualsNoCase(pDictItem->GetName(), WORKVAR_TOTAL_NAME)){
+            AfxMessageBox(FormatText(_T("Cannot Drop %s"), WORKVAR_TOTAL_NAME.GetString()));
             return 0;
         }
         if(pDictItem->GetContentType() != ContentType::Numeric){
@@ -224,13 +220,13 @@ LRESULT CTabView::OnDropItem(WPARAM wParam,LPARAM lParam)
     if( !m_pGrid->IsGridVarDrop()){
         if(!DoMultiRecordChk(lookupInfo.pRecord,pTargetTabVar,eDropType,eDropOper)){
             CString sMultErr;
-            sMultErr.Format(IDS_MULT_ERR, (LPCTSTR)lookupInfo.csName);
+            sMultErr.Format(IDS_MULT_ERR, lookupInfo.csName.GetString());
             AfxMessageBox(sMultErr);
             return 0;
         }
         if(!DoMultiItemChk(lookupInfo.pItem,pTargetTabVar,eDropType,eDropOper)){
             CString sMultOccErr;
-            sMultOccErr.Format(IDS_OCCS_ERR, (LPCTSTR)lookupInfo.csName);
+            sMultOccErr.Format(IDS_OCCS_ERR, lookupInfo.csName.GetString());
             AfxMessageBox(sMultOccErr);
             return 0;
         }
@@ -240,13 +236,13 @@ LRESULT CTabView::OnDropItem(WPARAM wParam,LPARAM lParam)
         ASSERT(pDict);
         if(!DoMultiRecordChk(pDictRecord,pTargetTabVar,eDropType,eDropOper)){
             CString sMultErr;
-            sMultErr.Format(IDS_MULT_ERR, (LPCTSTR)m_pGrid->GetDragSourceItem()->GetName());
+            sMultErr.Format(IDS_MULT_ERR, m_pGrid->GetDragSourceItem()->GetName().GetString());
             AfxMessageBox(sMultErr);
             return 0;
         }
         if(!DoMultiItemChk(pDictItem,pTargetTabVar,eDropType,eDropOper)){
             CString sMultOccErr;
-            sMultOccErr.Format(IDS_OCCS_ERR, (LPCTSTR)m_pGrid->GetDragSourceItem()->GetName());
+            sMultOccErr.Format(IDS_OCCS_ERR, m_pGrid->GetDragSourceItem()->GetName().GetString());
             AfxMessageBox(sMultOccErr);
             return 0;
         }
@@ -268,7 +264,7 @@ LRESULT CTabView::OnDropItem(WPARAM wParam,LPARAM lParam)
     }
     if(!GetDocument()->GetTableSpec()->DoAllSubTablesHaveSameUnit(pTable,sUnitName4WkStgSubTable) || sUnitName4WkStgSubTable.IsEmpty()){
         int iLevel = pSpec->GetTableLevelFromUnits(pTable);
-        sUnitName4WkStgSubTable = pSpec->GetDict()->GetLevel(iLevel).GetName();
+        sUnitName4WkStgSubTable = UTF8_TODO::GetCString(pSpec->GetDict()->GetLevel(iLevel).GetName());
     }
     CTabVar* pNewVarAdded = nullptr;
     if (eDropType == TB_DROP_ROW) {
@@ -558,13 +554,13 @@ bool CTabView::IsDropValid(WPARAM wParam,LPARAM lParam)
         {
             pDictItem = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
             if (!pDictItem->HasValueSets()) {
-                csName =    pDictItem->GetName();
-                csLabel =   pDictItem->GetLabel();
+                csName = UTF8_TODO::GetCString(pDictItem->GetName());
+                csLabel = pDictItem->GetLabel();
             }
             else {
                 iVSet = 0;
                 const DictValueSet& dict_value_set = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem)->GetValueSet(iVSet);
-                csName = dict_value_set.GetName();
+                csName = UTF8_TODO::GetCString(dict_value_set.GetName());
                 csLabel = dict_value_set.GetLabel();
             }
             break;
@@ -572,7 +568,7 @@ bool CTabView::IsDropValid(WPARAM wParam,LPARAM lParam)
         case DictElementType::ValueSet :
         {
             const DictValueSet& dict_value_set = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem)->GetValueSet(iVSet);
-            csName = dict_value_set.GetName();
+            csName = UTF8_TODO::GetCString(dict_value_set.GetName());
             csLabel = dict_value_set.GetLabel();
             break;
         }
@@ -597,10 +593,10 @@ bool CTabView::IsDropValid(WPARAM wParam,LPARAM lParam)
     // is the item we're trying to drop from a multiple record or occurring item?
 
     CString csMultErr;
-    csMultErr.Format(IDS_MULT_ERR, (LPCTSTR)csLabel);
+    csMultErr.Format(IDS_MULT_ERR, csLabel.GetString());
 
     CString csOccsErr;
-    csOccsErr.Format(IDS_OCCS_ERR, (LPCTSTR)csLabel);
+    csOccsErr.Format(IDS_OCCS_ERR, csLabel.GetString());
 
     // see if this item belongs to a multiple record
     const CDictRecord* pMultRecord = nullptr;
@@ -616,7 +612,7 @@ bool CTabView::IsDropValid(WPARAM wParam,LPARAM lParam)
     if (uOccs > 1 && dict_tree_node->GetItemOccurs() == NONE) {
         bOcc = true;
         const CDictItem* pDictOccItem = GetDictOccItem(pDictRecord, pDictItem, iDictRecord, iDictItem);
-        csTempOcc = pDictOccItem->GetName();
+        csTempOcc = UTF8_TODO::GetCString(pDictOccItem->GetName());
     }
 
     if (!bMult && !bOcc) {
@@ -1125,8 +1121,8 @@ bool CTabView::SaveTables(CString& csSaveAsFile) // filename returned
     CIMSAString sHtmlFile = sTBWFName;
     CIMSAString sRTFFile = sTBWFName;
     CIMSAString sTxtFile = sTBWFName;
-    sTBWFName += FileExtensions::WithDot::Table;
-    sHtmlFile += FileExtensions::WithDot::HTML;
+    sTBWFName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Table));
+    sHtmlFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::HTML));
     sRTFFile += _T(".rtf");
     sTxtFile += _T(".txt");
     //Save Tables dialog
@@ -1189,16 +1185,16 @@ bool CTabView::SaveTables(CString& csSaveAsFile) // filename returned
     CWaitCursor wait;
     TCHAR pszBuffer[65500];
     memset(pszBuffer,_T('\0'),65500);
-    if ((csSaveAsFile.Right(3)).CompareNoCase(FileExtensions::Table) == 0) {
+    if ((csSaveAsFile.Right(3)).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::Table)) == 0) {
         eSaveMode = TBW_MODE;
     }
     else if((csSaveAsFile.Right(3)).CompareNoCase(_T("rtf")) == 0) {
         eSaveMode = RTF_MODE;
     }
-    else if ((csSaveAsFile.Right(3)).CompareNoCase(FileExtensions::HTM) == 0) {
+    else if ((csSaveAsFile.Right(3)).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::HTM)) == 0) {
         eSaveMode = HTM_MODE;
     }
-    else if ((csSaveAsFile.Right(4)).CompareNoCase(FileExtensions::HTML) == 0) {
+    else if ((csSaveAsFile.Right(4)).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::HTML)) == 0) {
         eSaveMode = HTM_MODE;
     }
     else {
@@ -1901,7 +1897,7 @@ bool CTabView::IsDropValidDictItem(const DictTreeNode& dict_tree_node)
                     }
                     return bRet;
                 }
-                csName = dict_value_set.GetName();
+                csName = UTF8_TODO::GetCString(dict_value_set.GetName());
                 csLabel = dict_value_set.GetLabel();
             }
             break;
@@ -1919,7 +1915,7 @@ bool CTabView::IsDropValidDictItem(const DictTreeNode& dict_tree_node)
                 }
                 return bRet;
             }
-            csName = dict_value_set.GetName();
+            csName = UTF8_TODO::GetCString(dict_value_set.GetName());
             csLabel = dict_value_set.GetLabel();
             break;
         }
@@ -2129,19 +2125,19 @@ bool CTabView::GetDictInfo(const DictTreeNode& dict_tree_node, DICT_LOOKUP_INFO&
     if(dict_tree_node.GetItemOccurs() >= 0) {
         lookupInfo.iOcc = dict_tree_node.GetItemOccurs();
     }
-    switch (dict_element_type) 
+    switch (dict_element_type)
     {
         case DictElementType::Item:
         {
             pDictItem = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
             if (!pDictItem->HasValueSets()) {
-                csName =    pDictItem->GetName();
-                csLabel =   pDictItem->GetLabel();
+                csName = UTF8_TODO::GetCString(pDictItem->GetName());
+                csLabel = pDictItem->GetLabel();
             }
             else {
                 iVSet = 0;
                 const DictValueSet& dict_value_set = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem)->GetValueSet(iVSet);
-                csName = dict_value_set.GetName();
+                csName = UTF8_TODO::GetCString(dict_value_set.GetName());
                 csLabel = dict_value_set.GetLabel();
             }
             break;
@@ -2150,7 +2146,7 @@ bool CTabView::GetDictInfo(const DictTreeNode& dict_tree_node, DICT_LOOKUP_INFO&
         {
             pDictItem = pDataDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
             const DictValueSet& dict_value_set = pDictItem->GetValueSet(iVSet);
-            csName = dict_value_set.GetName();
+            csName = UTF8_TODO::GetCString(dict_value_set.GetName());
             csLabel = dict_value_set.GetLabel();
             break;
         }
@@ -2281,7 +2277,7 @@ void CTabView::AddSystemTotalVar()
     if(!pDict){
         ASSERT(FALSE);
         CIMSAString sMsg;
-        sMsg.Format(_T("Cannot find variable %s"), (LPCTSTR)WORKVAR_TOTAL_NAME);
+        sMsg.Format(_T("Cannot find variable %s"), WORKVAR_TOTAL_NAME.GetString());
         AfxMessageBox(sMsg);
         return;
     }
@@ -3187,7 +3183,7 @@ TB_DROP_TYPE CTabView::GetDropType4Stub(CPoint point)
 void CTabView::MakeDummyVSet (const CDictItem* pDictItem, CStringArray& arrVals)
 {
     // It's an item with no value sets
-    if(pDictItem->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) ==0){
+    if(SO::EqualsNoCase(pDictItem->GetName(), WORKVAR_TOTAL_NAME)){
       //  arrVals.Add("Total");
         return;
     }
@@ -3341,7 +3337,7 @@ void CTabView::CopyCellsToClipboard(bool bIncludeParents)
     if(pTbl->GetTabDataArray().GetSize() ==0)
         return;
 
-    // GHM 20100818 there is no reason to copy the RTF to the clipboard if the user doesn't want it
+    // 20100818 there is no reason to copy the RTF to the clipboard if the user doesn't want it
     // holding shift while copying the cells will mean ASCII only
     bool onlyWantASCII = GetKeyState(VK_SHIFT) & 0x8000;
 
@@ -3495,9 +3491,9 @@ BOOL CTabView::OnEditVarTallyAttributes(UINT nID)
     BOOL bFound = TRUE;
     const CDataDict* pDataDict = pSpec->GetDict();
     const CDataDict* pWorkDict = pSpec->GetWorkDict();
-    bFound = pDataDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+    bFound = pDataDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
     if(!bFound && pWorkDict){
-        bFound = pWorkDict->LookupName(pTabVar->GetName(), nullptr, nullptr, &pDictItem, &pDictVSet);
+        bFound = pWorkDict->LookupName(UTF8_TODO::GetUtf8(pTabVar->GetName()), nullptr, nullptr, &pDictItem, &pDictVSet);
     }
 
     std::tie(varTallyFmtDlg.m_dVarMin, varTallyFmtDlg.m_dVarMax) = pDictVSet->GetMinMax();
@@ -5063,7 +5059,7 @@ void CTabView::UpdateAreaComboBox(bool bResetSelection)
     }
     ASSERT_VALID(pCombo);
 
-    RECT rect; // GHM 20100215
+    RECT rect; // 20100215
     pCombo->GetWindowRect(&rect);
     pCombo->GetParent()->ScreenToClient(&rect);
     int comboWidth = 150; // rect.right - rect.left;
@@ -5091,7 +5087,7 @@ void CTabView::UpdateAreaComboBox(bool bResetSelection)
         CIMSAString sBreakKey = pTabData->GetBreakKey();
         do {
             CIMSAString sToken = sBreakKey.GetToken(_T(";"));
-            if (!SO::IsBlank(sToken)) {
+            if (!SO::IsBlank(wstring_view(sToken))) {
                 sIndent += _T(" ");
             }
         } while (!sBreakKey.IsEmpty());
@@ -5125,7 +5121,7 @@ void CTabView::UpdateAreaComboBox(bool bResetSelection)
             int iNewStr = pCombo->InsertString(-1,indentedStr);
             pCombo->SetItemData(iNewStr, i+1);
 
-            SIZE size; // GHM 20100215
+            SIZE size; // 20100215
             GetTextExtentPoint(comboDC->m_hDC,indentedStr,indentedStr.GetLength(),&size);
             newComboWidth = std::max(newComboWidth,(int) size.cx + 25);
         }
@@ -5134,7 +5130,7 @@ void CTabView::UpdateAreaComboBox(bool bResetSelection)
     pCombo->ReleaseDC(comboDC);
     rect.right = rect.left + newComboWidth;
 
-    if( newComboWidth != comboWidth ) // GHM 20100215
+    if( newComboWidth != comboWidth ) // 20100215
     {
         RECT toolbarRect;
         pCombo->GetParent()->GetClientRect(&toolbarRect);
@@ -5476,7 +5472,7 @@ void CTabView::OnEditPastetable()
     while (clipFile.GetLine(sCmd, sArg) == SF_OK){
             if (sCmd.CompareNoCase(TFT_SECT_FORMAT_TABSET) == 0){  // csc 11/21/2003
                 clipFile.UngetLine();
-                fmtReg.Build(clipFile, CSPRO_VERSION); //Copy will always have the current version
+                fmtReg.Build(clipFile, WS2CS(UTF8_TODO::GetWide(Versioning::CSProVersionText))); //Copy will always have the current version
             }
             else if (sCmd.CompareNoCase(XTS_SECT_TABLE) == 0)
             {
@@ -5496,7 +5492,7 @@ void CTabView::OnEditPastetable()
                 sNum = _T("TABLE") + sNum;
                 CTable* pTable = new CTable();
                 //pTable->Build(clipFile, pDoc->GetTableSpec()->GetFmtReg(),true);
-                pTable->Build(clipFile, fmtReg, CSPRO_VERSION, true);
+                pTable->Build(clipFile, fmtReg, Versioning::CSProVersionText, true);
 
                 //Set a new name for the table
                 pTable->SetName(sNum);

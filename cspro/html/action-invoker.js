@@ -1,6 +1,8 @@
 class CSProActionInvoker{static $Impl={createMessage:function(aiThis,action,args,requestId){return JSON.stringify({accessToken:aiThis.accessToken,action:action,arguments:function(args){if(args===undefined||typeof args==="string"){return args;}
-else{return JSON.stringify(args);}}(args),requestId:requestId,url:window.location.href});},processResponse:function(responseJson){const response=JSON.parse(responseJson);if(response.type==="exception"){throw new Error(response.value);}
-else{return response.value;}},usingWindows:function(){return(typeof AndroidActionInvoker==="undefined");},run:function(aiThis,action,args){const message=this.createMessage(aiThis,action,args);if(this.usingWindows()){const hostSync=window.chrome.webview.hostObjects.sync.cspro;hostSync.setHostProperty("ActionInvoker",message);var response=hostSync.getHostProperty("ActionInvoker");}
+else{return JSON.stringify(args);}}(args),requestId:requestId,url:window.location.href});},processResponse:function(responseJson){const response=JSON.parse(responseJson);if(response.type!=="exception"){return response.value;}
+else if(typeof response.value==="string"){throw new Error(response.value);}
+else{const error=new Error(response.value.message,{cause:response.value.cause});if(response.value.name!==undefined){error.name=response.value.name;}
+throw error;}},usingWindows:function(){return(typeof AndroidActionInvoker==="undefined");},run:function(aiThis,action,args){const message=this.createMessage(aiThis,action,args);if(this.usingWindows()){const hostSync=window.chrome.webview.hostObjects.sync.cspro;hostSync.setHostProperty("ActionInvoker",message);var response=hostSync.getHostProperty("ActionInvoker");}
 else{var response=AndroidActionInvoker.run(message);}
 return this.processResponse(response);},nextRequestId:1,callbacks:{},runAsync:function(aiThis,action,args){const requestId=this.nextRequestId++;const message=this.createMessage(aiThis,action,args,requestId);return new Promise((resolve,reject)=>{this.callbacks[requestId]={resolve:resolve,reject:reject};if(this.usingWindows()){const hostSync=window.chrome.webview.hostObjects.sync.cspro;hostSync.setHostProperty("ActionInvokerAsync",message);}
 else{AndroidActionInvoker.runAsync(message);}});},processAsyncResponse:function(requestId,responseJson){const requestCallback=this.callbacks[requestId];delete this.callbacks[requestId];try{requestCallback.resolve(this.processResponse(responseJson));}
@@ -13,6 +15,8 @@ execute(args) {return CSProActionInvoker.$Impl.run(this,11276,args);}
 executeAsync(args) {return CSProActionInvoker.$Impl.runAsync(this,11276,args);}
 registerAccessToken(args) {return CSProActionInvoker.$Impl.run(this,13052,args);}
 registerAccessTokenAsync(args) {return CSProActionInvoker.$Impl.runAsync(this,13052,args);}
+throwException(args) {return CSProActionInvoker.$Impl.run(this,61320,args);}
+throwExceptionAsync(args) {return CSProActionInvoker.$Impl.runAsync(this,61320,args);}
 
 Application = {
   getFormFile: (args)=>{return CSProActionInvoker.$Impl.run(this,49910,args);},
@@ -86,6 +90,8 @@ Logic = {
   getSymbolValueAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,22923,args);},
   invoke: (args)=>{return CSProActionInvoker.$Impl.run(this,41927,args);},
   invokeAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,41927,args);},
+  setSymbolValue: (args)=>{return CSProActionInvoker.$Impl.run(this,4350,args);},
+  setSymbolValueAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,4350,args);},
   updateSymbolValue: (args)=>{return CSProActionInvoker.$Impl.run(this,17970,args);},
   updateSymbolValueAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,17970,args);}
 };
@@ -95,6 +101,19 @@ Message = {
   formatTextAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,31960,args);},
   getText: (args)=>{return CSProActionInvoker.$Impl.run(this,449,args);},
   getTextAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,449,args);}
+};
+
+Network = {
+  fetch: (args)=>{return CSProActionInvoker.$Impl.run(this,4086,args);},
+  fetchAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,4086,args);},
+  fetchBody: (args)=>{return CSProActionInvoker.$Impl.run(this,53854,args);},
+  fetchBodyAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,53854,args);},
+  fetchBytes: (args)=>{return CSProActionInvoker.$Impl.run(this,1669,args);},
+  fetchBytesAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,1669,args);},
+  fetchJson: (args)=>{return CSProActionInvoker.$Impl.run(this,35194,args);},
+  fetchJsonAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,35194,args);},
+  fetchText: (args)=>{return CSProActionInvoker.$Impl.run(this,45509,args);},
+  fetchTextAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,45509,args);}
 };
 
 Path = {
@@ -130,7 +149,20 @@ Sqlite = {
   rekeyAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,3856,args);}
 };
 
+Sync = {
+  connect: (args)=>{return CSProActionInvoker.$Impl.run(this,55590,args);},
+  connectAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,55590,args);},
+  disconnect: (args)=>{return CSProActionInvoker.$Impl.run(this,40552,args);},
+  disconnectAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,40552,args);},
+  sendMessage: (args)=>{return CSProActionInvoker.$Impl.run(this,51928,args);},
+  sendMessageAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,51928,args);},
+  syncParadata: (args)=>{return CSProActionInvoker.$Impl.run(this,31308,args);},
+  syncParadataAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,31308,args);}
+};
+
 System = {
+  createShortcut: (args)=>{return CSProActionInvoker.$Impl.run(this,37361,args);},
+  createShortcutAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,37361,args);},
   getSharableUri: (args)=>{return CSProActionInvoker.$Impl.run(this,20827,args);},
   getSharableUriAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,20827,args);},
   selectDocument: (args)=>{return CSProActionInvoker.$Impl.run(this,30644,args);},
@@ -140,6 +172,8 @@ System = {
 UI = {
   alert: (args)=>{return CSProActionInvoker.$Impl.run(this,31133,args);},
   alertAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,31133,args);},
+  close: (args)=>{return CSProActionInvoker.$Impl.run(this,56399,args);},
+  closeAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,56399,args);},
   closeDialog: (args)=>{return CSProActionInvoker.$Impl.run(this,60265,args);},
   closeDialogAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,60265,args);},
   enumerateWebViews: (args)=>{return CSProActionInvoker.$Impl.run(this,30914,args);},

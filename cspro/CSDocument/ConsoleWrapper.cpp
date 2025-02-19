@@ -63,7 +63,7 @@ ConsoleWrapper::~ConsoleWrapper()
 }
 
 
-void ConsoleWrapper::WriteLine(wstring_view text_sv/* = wstring_view()*/)
+void ConsoleWrapper::WriteLine(const std::wstring_view text_sv/* = std::wstring_view()*/)
 {
     if( !text_sv.empty() )
         WriteConsole(m_stderrHandle, text_sv.data(), text_sv.length(), nullptr, nullptr);

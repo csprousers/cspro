@@ -1,22 +1,21 @@
 ﻿#include "stdafx.h"
 #include "zNetwork.h"
+#include <external/curl/include/curl/curl.h>
 #include <afxdllx.h>
 
 
 AFX_EXTENSION_MODULE zNetworkDLL = { NULL, NULL };
 
-extern "C" int APIENTRY
-DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{
-    // Remove this if you use lpReserved
-    UNREFERENCED_PARAMETER(lpReserved);
 
-    if (dwReason == DLL_PROCESS_ATTACH)
+extern "C" int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
+{
+    if( dwReason == DLL_PROCESS_ATTACH )
     {
         TRACE0("zNetwork.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
-        if (!AfxInitExtensionModule(zNetworkDLL, hInstance))
+        if( !AfxInitExtensionModule(zNetworkDLL, hInstance) )
             return 0;
 
         // Insert this DLL into the resource chain
@@ -30,14 +29,22 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         //  the CDynLinkLibrary object will not be attached to the
         //  Regular DLL's resource chain, and serious problems will
         //  result.
-
         new CDynLinkLibrary(zNetworkDLL);
+
+        TRACE0("Initializing cURL\n");
+        curl_global_init(CURL_GLOBAL_DEFAULT);
     }
-    else if (dwReason == DLL_PROCESS_DETACH)
+
+    else if( dwReason == DLL_PROCESS_DETACH )
     {
+        TRACE0("Cleaning up cURL\n");
+        curl_global_cleanup();
+
         TRACE0("zNetwork.DLL Terminating!\n");
+
         // Terminate the library before destructors are called
         AfxTermExtensionModule(zNetworkDLL);
     }
+
     return 1;   // ok
 }

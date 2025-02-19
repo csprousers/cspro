@@ -11,20 +11,18 @@
 
 namespace
 {
-    constexpr const TCHAR* Newline = L"<br />";
+    constexpr std::string_view Divider_sv = u8"<span class=\"c2h_divider\">&nbsp; ► &nbsp;</span>";
 
-    constexpr const TCHAR* Divider = L"<span class=\"c2h_divider\">&nbsp; ► &nbsp;</span>";
+    constexpr std::string_view PartialSaveAnchor_sv = "PartialSave";
+    constexpr const char* NoteAnchorFormatter = "Note%p";
 
-    constexpr const TCHAR* PartialSaveAnchor = L"PartialSave";
-    constexpr const TCHAR* NoteAnchorFormatter = L"Note%p";
-
-    // the note image is stored in the DataViewer project
-    constexpr const TCHAR* NoteIcon =
-        L"data:image/png;base64,"
-        L"iVBORw0KGgoAAAANSUhEUgAAAA8AAAAMCAYAAAC9QufkAAAAAXNSR0IArs4c6QAAAARnQU1BAACx"
-        L"jwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABCSURBVChTtc3BCQAwCENR958qm6VYKJRCMII9"
-        L"fMjBhwGAEdFuu4NJvz84t6rEThLnVpXYSeLcbzc8N/OfnWZxNwBcEpWepmQw/5cAAAAASUVORK5C"
-        L"YII=";
+    // the note icon is also in the html/images directory
+    constexpr std::string_view NoteIcon_sv =
+        "data:image/png;base64,"
+        "iVBORw0KGgoAAAANSUhEUgAAAA8AAAAMCAYAAAC9QufkAAAAAXNSR0IArs4c6QAAAARnQU1BAACx"
+        "jwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABCSURBVChTtc3BCQAwCENR958qm6VYKJRCMII9"
+        "fMjBhwGAEdFuu4NJvz84t6rEThLnVpXYSeLcbzc8N/OfnWZxNwBcEpWepmQw/5cAAAAASUVORK5C"
+        "YII=";
 }
 
 
@@ -37,13 +35,50 @@ CaseToHtmlConverter::CaseToHtmlConverter()
         m_itemTypeDisplay(ItemTypeDisplay::ItemSubitem),
         m_blankValues(BlankValues::Show),
         m_notes(Notes::Show),
-        m_caseItemPrinter(CaseItemPrinter::Format::CaseTree),
-        m_createBinaryDataUrls(false)
+        m_caseItemPrinter(CaseItemPrinter::Format::CaseTree)
 {
 }
 
 
-std::wstring CaseToHtmlConverter::ToHtml(const Case& data_case, const CaseSpecificSettings* case_specific_settings/* = nullptr*/) const
+const std::vector<std::string>* CaseToHtmlConverter::GetCaseConstructionErrors() const
+{
+    return nullptr;
+}
+
+
+bool CaseToHtmlConverter::EmbedResources() const
+{
+    return true;
+}
+
+
+std::string CaseToHtmlConverter::CreateFileUrl(const std::string& file_path)
+{
+    return ReturnProgrammingError(Encoders::ToFileUrl(file_path));
+}
+
+
+bool CaseToHtmlConverter::AddBinaryDataOpenAndSaveUrls() const
+{
+    return false;
+}
+
+
+std::tuple<std::string, std::string> CaseToHtmlConverter::CreateBinaryDataOpenAndSaveUrls(const BinaryCaseItem& /*binary_case_item*/, const CaseItemIndex& /*index*/,
+                                                                                          const std::string& /*suggested_filename*/)
+{
+    return ReturnProgrammingError(std::make_tuple(std::string(), std::string()));
+}
+
+
+std::string CaseToHtmlConverter::CreateBinaryDataUrl(const BinaryCaseItem& /*binary_case_item*/, const CaseItemIndex& /*index*/,
+                                                     const std::string& /*mime_type*/, const std::string& /*suggested_filename*/)
+{
+    return std::string();
+}
+
+
+std::string CaseToHtmlConverter::ToHtml(const Case& data_case)
 {
     // set the proper dictionary language
     if( !m_languageName.empty() )
@@ -59,28 +94,49 @@ std::wstring CaseToHtmlConverter::ToHtml(const Case& data_case, const CaseSpecif
     }
 
 
-    // write the header
     HtmlStringWriter html_writer;
-    html_writer.WriteDefaultHeader(data_case.GetCaseLabelOrKey(), Html::CSS::CaseView);
+
+    // write the header
+    html_writer.WriteRaw(HtmlWriter::DefaultHeader_sv);
+    html_writer << "<title>" << data_case.GetCaseLabelOrKey() << "</title>\n";
+
+    if( EmbedResources() )
+    {
+        html_writer << "<style>\n";
+        html_writer.WriteRaw(Html::GetCSS(Html::CSS::CaseView));
+        html_writer << "</style>";
+    }
+
+    else
+    {
+        html_writer << "<link rel=\"stylesheet\" href=\"";
+        html_writer.WriteRaw(CreateFileUrl(Html::GetCSSFilePath(Html::CSS::CaseView)));
+        html_writer << "\"";
+    }
+
+    html_writer << "\n</head>\n";
 
     // write the body
-    html_writer << L"<body>";
+    html_writer << "<body>\n";
 
     // write the key and case label
-    html_writer << L"<p class=\"c2h_case_key\">" << data_case.GetKey();
+    html_writer << "<p class=\"c2h_case_key\">" << data_case.GetKey();
 
-    if( !data_case.GetCaseLabel().IsEmpty() && data_case.GetKey().Compare(data_case.GetCaseLabel()) != 0 )
-        html_writer << Divider << data_case.GetCaseLabel();
+    if( !data_case.GetCaseLabel().empty() && data_case.GetKey() != data_case.GetCaseLabel() )
+    {
+        html_writer.WriteRaw(Divider_sv);
+        html_writer << data_case.GetCaseLabel();
+    }
 
-    html_writer << L"</p>";
+    html_writer << "</p>\n";
 
     // write the case note
     if( m_notes == Notes::Show )
     {
-        const CString& case_note = data_case.GetCaseNote();
+        const std::string& case_note = data_case.GetCaseNote();
 
-        if( !case_note.IsEmpty() )
-            html_writer << L"<p class=\"c2h_case_note\">" << case_note << L"</p>";
+        if( !case_note.empty() )
+            html_writer << "<p class=\"c2h_case_note\">" << case_note << "</p>\n";
     }
 
     // write the statuses
@@ -88,45 +144,74 @@ std::wstring CaseToHtmlConverter::ToHtml(const Case& data_case, const CaseSpecif
         WriteStatuses(html_writer, data_case);
 
     // potentially write the case construction errors
-    if( m_caseConstructionErrors == CaseConstructionErrors::Show &&
-        case_specific_settings != nullptr && case_specific_settings->case_construction_errors != nullptr )
+    std::optional<std::tuple<size_t, size_t, size_t>> case_construction_errors_initial_count_start_position_errors_length;
+
+    if( m_caseConstructionErrors == CaseConstructionErrors::Show )
     {
-        WriteCaseConstructionErrors(html_writer, *case_specific_settings->case_construction_errors);
+        const std::vector<std::string>* const case_construction_errors = GetCaseConstructionErrors();
+
+        case_construction_errors_initial_count_start_position_errors_length.emplace(( case_construction_errors != nullptr ) ? case_construction_errors->size() : 0,
+                                                                                    html_writer.length(),
+                                                                                    0);
+
+        if( std::get<0>(*case_construction_errors_initial_count_start_position_errors_length) != 0 )
+        {
+            const std::string errors_html = GetCaseConstructionErrorsHtml(*case_construction_errors);
+            std::get<2>(*case_construction_errors_initial_count_start_position_errors_length) = errors_html.length();
+            html_writer.WriteRaw(errors_html);
+        }
     }
 
     // write all levels
-    for( const CaseLevel* case_level : data_case.GetAllCaseLevels() )
-        WriteCaseLevel(html_writer, data_case, *case_level, case_specific_settings);
+    for( const CaseLevel* const case_level : data_case.GetAllCaseLevels() )
+        WriteCaseLevel(html_writer, data_case, *case_level);
 
     // write the notes table
     if( m_notes == Notes::Show && !data_case.GetNotes().empty() )
         WriteNotes(html_writer, data_case);
 
-    html_writer << L"</body>"
-                << L"</html>";
+    html_writer << "</body>\n"
+                << "</html>\n";
 
-    return html_writer.str();
+    std::string html = html_writer.str();
+
+    // if any additional case construction errors occurred while writing the HTML,
+    // (e.g., because binary data could not be read), rewrite the errors
+    if( case_construction_errors_initial_count_start_position_errors_length.has_value() )
+    {
+        const std::vector<std::string>* const case_construction_errors = GetCaseConstructionErrors();
+
+        if( case_construction_errors != nullptr &&
+            case_construction_errors->size() != std::get<0>(*case_construction_errors_initial_count_start_position_errors_length) )
+        {
+            html.replace(std::get<1>(*case_construction_errors_initial_count_start_position_errors_length),
+                         std::get<2>(*case_construction_errors_initial_count_start_position_errors_length),
+                         GetCaseConstructionErrorsHtml(*case_construction_errors));
+        }
+    }
+
+    return html;
 }
 
 
 template<typename T>
-CString CaseToHtmlConverter::GetDictionaryText(const T& t) const
+std::string CaseToHtmlConverter::GetDictionaryText(const T& t) const
 {
-    return ( m_nameDisplay == NameDisplay::Label ) ? t.GetLabel() :
+    return ( m_nameDisplay == NameDisplay::Label ) ? UTF8_TODO::GetUtf8(t.GetLabel()) :
            ( m_nameDisplay == NameDisplay::Name )  ? t.GetName() :
-                                                     FormatText(L"%s: %s", t.GetName().GetString(), t.GetLabel().GetString());
+                                                     SO::CreateColonSeparatedString(t.GetName(), UTF8_TODO::GetUtf8(t.GetLabel()));
 }
 
 
 template<typename T>
-CString CaseToHtmlConverter::GetOccurrenceLabel(const T& t, size_t occurrence) const
+std::string CaseToHtmlConverter::GetOccurrenceLabel(const T& t, const size_t occurrence) const
 {
-    CString occurrence_label;
+    std::string occurrence_label;
 
     if( m_occurrenceDisplay == OccurrenceDisplay::Label )
-        occurrence_label = t.GetOccurrenceLabels().GetLabel(occurrence);
+        occurrence_label = UTF8_TODO::GetUtf8(t.GetOccurrenceLabels().GetLabel(occurrence));
 
-    if( occurrence_label.IsEmpty() )
+    if( occurrence_label.empty() )
         occurrence_label = IntToString(occurrence + 1);
 
     return occurrence_label;
@@ -137,99 +222,107 @@ void CaseToHtmlConverter::WriteStatuses(HtmlWriter& html_writer, const Case& dat
 {
     ASSERT(m_statuses != Statuses::Hide);
 
-    if( m_statuses == Statuses::Show && !data_case.GetUuid().IsEmpty() )
-        html_writer << L"<p class=\"c2h_status\">" << L"UUID: " << data_case.GetUuid() << L"</p>";
+    if( m_statuses == Statuses::Show && !data_case.GetUuid().empty() )
+        html_writer << "<p class=\"c2h_status\">" << "UUID: " << data_case.GetUuid() << "</p>\n";
 
     if( m_statuses == Statuses::Show || data_case.GetDeleted() )
-        html_writer << L"<p class=\"c2h_status\">Case is " << ( data_case.GetDeleted() ? L"" : L"not " ) << L"deleted</p>";
+        html_writer << "<p class=\"c2h_status\">Case is " << ( data_case.GetDeleted() ? "" : "not " ) << "deleted</p>\n";
 
     if( m_statuses == Statuses::Show || data_case.GetVerified() )
-        html_writer << L"<p class=\"c2h_status\">Case is " << ( data_case.GetVerified() ? L"" : L"not " ) << L"verified</p>";
+        html_writer << "<p class=\"c2h_status\">Case is " << ( data_case.GetVerified() ? "" : "not " ) << "verified</p>\n";
 
     if( m_statuses == Statuses::Show || data_case.IsPartial() )
     {
-        html_writer << L"<p class=\"c2h_status\">";
+        html_writer << "<p class=\"c2h_status\">";
 
         if( data_case.IsPartial() )
         {
-            html_writer
-                << L"Case is partially saved in <b>"
-                << ( ( data_case.GetPartialSaveMode() == PartialSaveMode::Add )    ? L"add" :
-                     ( data_case.GetPartialSaveMode() == PartialSaveMode::Modify ) ? L"modify" :
-                                                                                     L"verify" )
-                << L"</b> mode";
+            html_writer << "Case is partially saved in <b>"
+                        << ( ( data_case.GetPartialSaveMode() == PartialSaveMode::Add )    ? "add" :
+                             ( data_case.GetPartialSaveMode() == PartialSaveMode::Modify ) ? "modify" :
+                                                                                             "verify" )
+                        << "</b> mode";
 
             if( data_case.GetPartialSaveCaseItemReference() != nullptr )
             {
                 const CaseItemReference& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
 
-                html_writer
-                    << L" on field "
-                    << L"<a class=\"c2h_partial_save_item_link\" href=\"#" << PartialSaveAnchor << L"\">"
-                    << partial_save_case_item_reference.GetName()
-                    << partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference)
-                    << L"</a>";
+                html_writer << " on field "
+                            << "<a class=\"c2h_partial_save_item_link\" href=\"#";
+                html_writer.WriteRaw(PartialSaveAnchor_sv);
+                html_writer << "\">"
+                            << partial_save_case_item_reference.GetName()
+                            << partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference)
+                            << "</a>";
 
-                if( !partial_save_case_item_reference.GetLevelKey().IsEmpty() )
-                    html_writer << L" on level <b>" << partial_save_case_item_reference.GetLevelKey() << L"</b>";
+                if( !partial_save_case_item_reference.GetLevelKey().empty() )
+                {
+                    html_writer << " on level <b>"
+                                << partial_save_case_item_reference.GetLevelKey()
+                                << "</b>";
+                }
             }
         }
 
         else
         {
-            html_writer << L"Case is not partially saved";
+            html_writer << "Case is not partially saved";
         }
 
-        html_writer << L"</p>";
+        html_writer << "</p>\n";
     }
 }
 
 
-void CaseToHtmlConverter::WriteCaseConstructionErrors(HtmlWriter& html_writer, const std::vector<std::wstring>& case_construction_errors) const
+std::string CaseToHtmlConverter::GetCaseConstructionErrorsHtml(const std::vector<std::string>& case_construction_errors)
 {
-    if( case_construction_errors.empty() )
-        return;
+    ASSERT(!case_construction_errors.empty());
 
-    html_writer << L"<p class=\"c2h_errors\">";
+    HtmlStringWriter html_writer;
+
+    html_writer << "<p class=\"c2h_errors\">";
 
     for( size_t i = 0; i < case_construction_errors.size(); ++i )
     {
         if( i > 0 )
-            html_writer << Newline;
+            html_writer.WriteNewline();
 
-        html_writer << L"⚠ " << case_construction_errors[i];
+        html_writer << u8"\n⚠ " << case_construction_errors[i];
     }
 
-    html_writer << L"</p>";
+    html_writer << "\n</p>\n";
+
+    return html_writer.str();
 }
 
 
-void CaseToHtmlConverter::WriteCaseLevel(HtmlWriter& html_writer, const Case& data_case, const CaseLevel& case_level,
-                                         const CaseSpecificSettings* case_specific_settings) const
+void CaseToHtmlConverter::WriteCaseLevel(HtmlWriter& html_writer, const Case& data_case, const CaseLevel& case_level)
 {
     // write out the level name and, if not on the root level, the level key
-    html_writer << L"<p class=\"c2h_level_name\">" << GetDictionaryText(case_level.GetCaseLevelMetadata().GetDictLevel());
+    html_writer << "<p class=\"c2h_level_name\">" << GetDictionaryText(case_level.GetCaseLevelMetadata().GetDictLevel());
 
     if( !case_level.GetLevelKey().IsEmpty() )
-        html_writer << Divider << case_level.GetLevelKey();
+    {
+        html_writer.WriteRaw(Divider_sv);
+        html_writer << UTF8_TODO::GetUtf8(case_level.GetLevelKey());
+    }
 
-    html_writer << L"</p>";
+    html_writer << "</p>\n";
 
     // write the IDs and then each record
-    WriteCaseRecord(html_writer, data_case, case_level.GetIdCaseRecord(), true, case_specific_settings);
+    WriteCaseRecord(html_writer, data_case, case_level.GetIdCaseRecord(), true);
 
     for( size_t record_number = 0; record_number < case_level.GetNumberCaseRecords(); ++record_number )
     {
         const CaseRecord& case_record = case_level.GetCaseRecord(record_number);
-        WriteCaseRecord(html_writer, data_case, case_record, false, case_specific_settings);
+        WriteCaseRecord(html_writer, data_case, case_record, false);
     }
 }
 
 
-void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& data_case, const CaseRecord& case_record,
-                                          bool is_id_record, const CaseSpecificSettings* case_specific_settings) const
+void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& data_case, const CaseRecord& case_record, const bool is_id_record)
 {
-    const CDictRecord& dictionary_record = case_record.GetCaseRecordMetadata().GetDictionaryRecord();
+    const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictRecord();
     CaseItemIndex index = case_record.GetCaseItemIndex();
 
     bool mark_current_partial_save_item_reference = ( m_statuses != Statuses::Hide &&
@@ -243,10 +336,10 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
     {
         for( const Note& note : data_case.GetNotes() )
         {
-            const CaseItemReference* case_item_reference = dynamic_cast<const CaseItemReference*>(&note.GetNamedReference());
+            const CaseItemReference* const case_item_reference = dynamic_cast<const CaseItemReference*>(&note.GetNamedReference());
 
             if( case_item_reference != nullptr &&
-                case_item_reference->GetCaseItem().GetDictionaryItem().GetRecord() == &dictionary_record &&
+                case_item_reference->GetCaseItem().GetDictItem().GetRecord() == &dict_record &&
                 case_item_reference->OnCaseLevel(case_record) )
             {
                 record_notes.emplace_back(&note);
@@ -256,24 +349,30 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
 
     // write out the record name (if not the ID record)
     if( !is_id_record )
-        html_writer << L"<p class=\"c2h_record_name\">" << GetDictionaryText(dictionary_record) << L"</p>";
+    {
+        html_writer << "<p class=\"c2h_record_name\">"
+                    << GetDictionaryText(dict_record)
+                    << "</p>\n";
+    }
 
     if( m_statuses == Statuses::Show && !is_id_record )
     {
-        html_writer << L"<p class=\"c2h_status\">" << L"Record is " <<
-            ( dictionary_record.GetRequired() ? L"" : L"not " ) << L"required, ";
+        html_writer << "<p class=\"c2h_status\">" << "Record is "
+                    << ( dict_record.GetRequired() ? "" : "not " )
+                    << "required, ";
 
-        if( dictionary_record.GetMaxRecs() == 1 )
+        if( dict_record.GetMaxRecs() == 1 )
         {
-            html_writer << L"singly-occurring";
+            html_writer << "singly-occurring";
         }
 
         else
         {
-            html_writer << FormatText(L"multiply-occurring (%d of %d)", (int)case_record.GetNumberOccurrences(), (int)dictionary_record.GetMaxRecs());
+            html_writer << FormatText("multiply-occurring (%d of %d)", static_cast<int>(case_record.GetNumberOccurrences()),
+                                                                       static_cast<int>(dict_record.GetMaxRecs()));
         }
 
-        html_writer << L"</p>";
+        html_writer << "</p>\n";
     }
 
     // determine which items to display
@@ -285,12 +384,12 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
 
     std::vector<CaseItemWithOccurrence> case_item_with_occurrences;
 
-    for( const CaseItem* case_item : case_record.GetCaseItems() )
+    for( const CaseItem* const const case_item : case_record.GetCaseItems() )
     {
-        const CDictItem& dictionary_item = case_item->GetDictionaryItem();
+        const CDictItem& dict_item = case_item->GetDictItem();
 
-        if( ( m_itemTypeDisplay == ItemTypeDisplay::Item && dictionary_item.GetItemType() == ItemType::Subitem ) ||
-            ( m_itemTypeDisplay == ItemTypeDisplay::Subitem && dictionary_item.HasSubitems() ) )
+        if( ( m_itemTypeDisplay == ItemTypeDisplay::Item && dict_item.GetItemType() == ItemType::Subitem ) ||
+            ( m_itemTypeDisplay == ItemTypeDisplay::Subitem && dict_item.HasSubitems() ) )
         {
             continue;
         }
@@ -309,14 +408,14 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
             }
 
             if( use_this_occurrence )
-                case_item_with_occurrences.push_back(CaseItemWithOccurrence { case_item, occurrence });
+                case_item_with_occurrences.emplace_back(CaseItemWithOccurrence { case_item, occurrence });
         }
     }
 
     // if there are no case items to show, don't display the table
     if( case_item_with_occurrences.empty() )
     {
-        html_writer << L"<p class=\"c2h_status\">No occurrences</p>";
+        html_writer << "<p class=\"c2h_status\">No occurrences</p>\n";
         return;
     }
 
@@ -327,11 +426,11 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
     if( m_recordOrientation == RecordOrientation::Vertical )
         std::swap(number_columns, number_rows);
 
-    html_writer << L"<table class=\"c2h_table\">";
+    html_writer << "<table class=\"c2h_table\">\n";
 
     for( size_t row = 0; row < number_rows; ++row )
     {
-        html_writer << L"<tr>";
+        html_writer << "<tr>";
 
         for( size_t column = 0; column < number_columns; ++column )
         {
@@ -341,11 +440,11 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
             if( m_recordOrientation == RecordOrientation::Vertical )
                 std::swap(record_occurrence, case_item_with_occurrences_index);
 
-            const CaseItemWithOccurrence* case_item_with_occurrence =
+            const CaseItemWithOccurrence* const case_item_with_occurrence =
                 ( case_item_with_occurrences_index == SIZE_MAX ) ? nullptr :
                                                                    &case_item_with_occurrences[case_item_with_occurrences_index];
 
-            const std::wstring row_colorizer_class = FormatTextCS2WS(L"c2h_table_r%d", record_occurrence % 2);
+            const std::string row_colorizer_class = FormatText("c2h_table_r%d", static_cast<int>(record_occurrence % 2));
 
             if( row == 0 || column == 0 )
             {
@@ -353,21 +452,21 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
                 if( ( m_recordOrientation == RecordOrientation::Horizontal && row == 0 ) ||
                     ( m_recordOrientation == RecordOrientation::Vertical && column == 0 ) )
                 {
-                    html_writer << L"<td class=\"c2h_table_header\">";
+                    html_writer << "<td class=\"c2h_table_header\">";
 
                     if( case_item_with_occurrence == nullptr )
                     {
-                        html_writer << L"&nbsp;";
+                        html_writer << "&nbsp;";
                     }
 
                     else
                     {
-                        const CDictItem& dictionary_item = case_item_with_occurrence->case_item->GetDictionaryItem();
-                        html_writer << GetDictionaryText(dictionary_item);
+                        const CDictItem& dict_item = case_item_with_occurrence->case_item->GetDictItem();
+                        html_writer << GetDictionaryText(dict_item);
 
                         // add the item occurrence if applicable
                         if( case_item_with_occurrence->case_item->GetTotalNumberItemSubitemOccurrences() > 1 )
-                            html_writer << L" (" << GetOccurrenceLabel(dictionary_item, case_item_with_occurrence->occurrence) << L")";
+                            html_writer << " (" << GetOccurrenceLabel(dict_item, case_item_with_occurrence->occurrence) << ")";
                     }
                 }
 
@@ -375,8 +474,10 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
                 else
                 {
                     ASSERT(record_occurrence >= 0);
-                    html_writer << L"<td class=\"c2h_table_header " << row_colorizer_class << L"\">";
-                    html_writer << GetOccurrenceLabel(dictionary_record, record_occurrence);
+                    html_writer << "<td class=\"c2h_table_header ";
+                    html_writer.WriteRaw(row_colorizer_class);
+                    html_writer << "\">"
+                                << GetOccurrenceLabel(dict_record, record_occurrence);
                 }
             }
 
@@ -392,23 +493,27 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
                 };
 
                 // shade the cell if it is the location of the partial save
-                const bool this_is_partial_field = ( mark_current_partial_save_item_reference && case_item_reference_matches(*data_case.GetPartialSaveCaseItemReference()) );
+                const bool this_is_partial_field = ( mark_current_partial_save_item_reference &&
+                                                     case_item_reference_matches(*data_case.GetPartialSaveCaseItemReference()) );
 
-                html_writer << L"<td class=\"" << row_colorizer_class;
+                html_writer << "<td class=\"";
+                html_writer.WriteRaw(row_colorizer_class);
 
                 if( this_is_partial_field )
-                    html_writer << L" c2h_partial_save_item_cell";
+                    html_writer << " c2h_partial_save_item_cell";
 
-                html_writer << L"\"";
+                html_writer << "\"";
 
                 // add a partial save anchor
                 if( this_is_partial_field )
                 {
-                    html_writer << L" id =\"" << PartialSaveAnchor << L"\"";
+                    html_writer << " id =\"";
+                    html_writer.WriteRaw(PartialSaveAnchor_sv);
+                    html_writer << "\"";
                     mark_current_partial_save_item_reference = false;
                 }
 
-                html_writer << L">";
+                html_writer << ">";
 
                 // add the data
                 html_writer << m_caseItemPrinter.GetText(*case_item_with_occurrence->case_item, index);
@@ -440,38 +545,51 @@ void CaseToHtmlConverter::WriteCaseRecord(HtmlWriter& html_writer, const Case& d
                                   [](const Note* note1, const Note* note2) { return ( note1->GetModifiedDateTime() < note2->GetModifiedDateTime() ); });
 
                         // the note anchor will use the pointer address in the name
-                        html_writer << L"<span class=\"c2h_note_icon\">"
-                                    << L"<a href=\"#" << FormatText(NoteAnchorFormatter, static_cast<const void*>(field_notes.front())) << L"\">"
-                                    << L"<img src=\"" << NoteIcon << L"\" title=\"";
+                        html_writer << "<span class=\"c2h_note_icon\">"
+                                    << "<a href=\"#";
+                        html_writer.WriteTagValue(FormatText(NoteAnchorFormatter, static_cast<const void*>(field_notes.front())));
+                        html_writer << "\">"
+                                       "<img src=\"";
+
+                        if( EmbedResources() )
+                        {
+                            html_writer.WriteRaw(NoteIcon_sv);
+                        }
+
+                        else
+                        {
+                            static const std::string note_icon_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
+                                                                                         "case-note.png");
+                            html_writer.WriteRaw(CreateFileUrl(note_icon_file_path));
+                        }
+
+                        html_writer << "\" title=\"";
 
                         for( size_t i = 0; i < field_notes.size(); ++i )
                         {
                             if( i > 0 )
-                                html_writer << Encoders::ToHtmlTagValue(_T("\n")).c_str();
+                                html_writer.WriteTagValue("\n");
 
-                            html_writer << Encoders::ToHtmlTagValue(field_notes[i]->GetContent()).c_str();
+                            html_writer.WriteTagValue(field_notes[i]->GetContent());
                         }
 
-                        html_writer << L"\" /></a></span>";
+                        html_writer << "\" /></a></span>";
                     }
                 }
 
 
                 // write any additional information for binary data
-                if( case_item_with_occurrence->case_item->IsTypeBinary() )
-                {
-                    WriteBinaryCaseItem(html_writer, assert_cast<const BinaryCaseItem&>(*case_item_with_occurrence->case_item),
-                        index, case_specific_settings);
-                }
+                if( IsBinary(case_item_with_occurrence->case_item->GetDataType()) )
+                    WriteBinaryCaseItem(html_writer, assert_cast<const BinaryCaseItem&>(*case_item_with_occurrence->case_item), index);
             }
 
-            html_writer << L"</td>";
+            html_writer << "</td>";
         }
 
-        html_writer << L"</tr>";
+        html_writer << "</tr>\n";
     }
 
-    html_writer << L"</table>";
+    html_writer << "</table>\n";
 }
 
 
@@ -479,44 +597,49 @@ void CaseToHtmlConverter::WriteNotes(HtmlWriter& html_writer, const Case& data_c
 {
     const std::vector<const Note*> sorted_notes = GetSortedNotes(data_case);
 
-    html_writer << L"<p class=\"c2h_record_name\">Notes</p>";
+    html_writer << "<p class=\"c2h_record_name\">Notes</p>\n";
 
-    html_writer << L"<table class=\"c2h_table\">";
+    html_writer << "<table class=\"c2h_table\">\n";
 
     const bool write_level_key_column = ( data_case.GetCaseMetadata().GetDictionary().GetNumLevels() > 1 );
 
     // write the headers
-    constexpr const TCHAR* Headers[] = { L"Level", L"Field", L"Note", L"Operator ID", L"Date/Time" };
+    constexpr const char* Headers[] = { "Level", "Field", "Note", "Operator ID", "Date/Time" };
 
-    html_writer << L"<tr>";
+    html_writer << "<tr>";
 
     for( size_t i = ( write_level_key_column ? 0 : 1 ); i < _countof(Headers); ++i )
-        html_writer << L"<td class=\"c2h_table_header\">" << Headers[i] << L"</td>";
+        html_writer << "<td class=\"c2h_table_header\">" << Headers[i] << "</td>";
 
-    html_writer << L"</tr>";
+    html_writer << "</tr>\n";
 
     // and write each note
     for( size_t i = 0; i < sorted_notes.size(); ++i )
     {
         const Note& note = *sorted_notes[i];
 
-        const std::wstring row_colorizer_class = FormatTextCS2WS(L"c2h_table_r%d", i % 2);
+        const std::string row_colorizer_class = FormatText("c2h_table_r%d", static_cast<int>(i % 2));
 
-        auto add_column = [&](const CString& text, bool add_anchor = false)
+        auto add_column = [&](const std::string& text, const bool add_anchor = false)
         {
-            html_writer << L"<td class=\"" << row_colorizer_class << L"\"";
+            html_writer << "<td class=\"";
+            html_writer.WriteRaw(row_colorizer_class);
+            html_writer << "\"";
 
             if( add_anchor )
-                html_writer << L" id=\"" << FormatText(NoteAnchorFormatter, static_cast<const void*>(&note)) << L"\"";
+            {
+                html_writer << " id=\"";
+                html_writer.WriteTagValue(FormatText(NoteAnchorFormatter, static_cast<const void*>(&note)));
+                html_writer << "\"";
+            }
 
-            html_writer << L">" << text << L"</td>";
+            html_writer << ">" << text << "</td>";
         };
 
-        html_writer << L"<tr>";
+        html_writer << "<tr>";
 
         const NamedReference& named_reference = note.GetNamedReference();
-        CString display_name = named_reference.GetName();
-        display_name.Append(named_reference.GetMinimalOccurrencesText());
+        const std::string display_name = named_reference.GetName() + named_reference.GetMinimalOccurrencesText();
 
         if( write_level_key_column )
             add_column(named_reference.GetLevelKey());
@@ -524,82 +647,74 @@ void CaseToHtmlConverter::WriteNotes(HtmlWriter& html_writer, const Case& data_c
         add_column(display_name, true);
         add_column(note.GetContent());
         add_column(note.GetOperatorId());
-        add_column(UTF8Convert::UTF8ToWide<CString>(FormatTimestamp((double)note.GetModifiedDateTime(), "%c").c_str()));
+        add_column(FormatTimestamp(static_cast<double>(note.GetModifiedDateTime())));
 
-        html_writer << L"</tr>";
+        html_writer << "</tr>\n";
     }
 
-    html_writer << L"</table>";
+    html_writer << "</table>\n";
 }
 
 
-void CaseToHtmlConverter::WriteBinaryCaseItem(HtmlWriter& html_writer, const BinaryCaseItem& binary_case_item,
-                                              const CaseItemIndex& index, const CaseSpecificSettings* case_specific_settings) const
+void CaseToHtmlConverter::WriteBinaryCaseItem(HtmlWriter& html_writer, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
 {
-    const BinaryDataMetadata* binary_data_metadata = binary_case_item.GetBinaryDataMetadata_noexcept(index);
+    const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
 
-    if( binary_data_metadata == nullptr )
+    if( !binary_data_accessor.IsDefined() )
         return;
 
+    const BinaryDataMetadata& binary_data_metadata = binary_data_accessor.GetBinaryDataMetadata();
+
     // see what kind of file this is
-    const std::optional<std::wstring> extension = binary_data_metadata->GetEvaluatedExtension();
-    const std::optional<std::wstring> mime_type = binary_data_metadata->GetEvaluatedMimeType();
+    const std::string suggested_filename = binary_case_item.GetSuggestedFilename(index);
+    const std::string mime_type = binary_data_metadata.GetEvaluatedMimeType(MimeType::Type::Unknown);
 
-    std::optional<std::tuple<std::wstring, std::wstring>> open_and_save_urls;
+    std::optional<std::tuple<std::string, std::string>> open_and_save_urls;
 
-    if( extension.has_value() && m_createBinaryDataUrls )
-    {
-        const std::wstring url_base = CreateBinaryDataAccessUrlBase(*binary_data_metadata, binary_case_item, index);
-        open_and_save_urls.emplace(url_base + L"/open",
-                                   url_base + L"/save");
-    }
+    if( AddBinaryDataOpenAndSaveUrls() )
+        open_and_save_urls = CreateBinaryDataOpenAndSaveUrls(binary_case_item, index, suggested_filename);
+
+    const std::string data_access_url = CreateBinaryDataUrl(binary_case_item, index, mime_type, suggested_filename);
 
     auto start_open_url = [&]()
     {
         if( open_and_save_urls.has_value() )
-            html_writer << L"<a href=\"" << std::get<0>(*open_and_save_urls).c_str() << L"\">";
+        {
+            html_writer << "<a href=\"";
+            html_writer.WriteTagValue(std::get<0>(*open_and_save_urls));
+            html_writer << "\">";
+        }
     };
 
     auto end_open_url = [&]()
     {
         if( open_and_save_urls.has_value() )
-            html_writer << L"</a>";
+            html_writer << "</a>";
     };
 
-    auto write_image_as_data_url_wrapped_in_open_url = [&](const TCHAR* class_name, const std::wstring& mime_type, const std::vector<std::byte>& data)
+    auto write_image_as_data_url_wrapped_in_open_url = [&](const char* const class_name, const std::string& image_mime_type,
+                                                           const std::vector<std::byte>& data)
     {
         start_open_url();
 
-        html_writer << L"<img class=\"" << class_name << L"\" src=\""
-                    << Encoders::ToDataUrl(data, mime_type).c_str()
-                    << L"\" />";
+        html_writer << "<img class=\"" << class_name << "\" src=\"";
+        html_writer.WriteRaw(Encoders::ToDataUrl(data, image_mime_type));
+        html_writer << "\" />";
 
         end_open_url();
     };
 
-
-    // if the MIME type is known, we can create URLs to access the data
-    std::optional<std::wstring> data_access_url;
-
-    if( mime_type.has_value() && case_specific_settings != nullptr && case_specific_settings->base_url_for_binary_retrieval != nullptr )
-    {
-        data_access_url = FormatTextCS2WS(_T("%s%s/%s/"),
-                                          case_specific_settings->base_url_for_binary_retrieval,
-                                          Encoders::ToUriComponent(index.GetSerializableText(binary_case_item)).c_str(),
-                                          Encoders::ToUriComponent(*mime_type).c_str());
-    }
-
-
     // if this is an image, add the image...
-    if( mime_type.has_value() && MimeType::IsImageType(*mime_type) )
+    if( MimeType::IsImageType(mime_type) )
     {
         // ... as a URL
-        if( data_access_url.has_value() )
+        if( !data_access_url.empty() )
         {
             start_open_url();
 
-            html_writer << L"<img class=\"c2h_image_thumbnail\" "
-                        << L"src=\"" << data_access_url->c_str() << L"\" />";
+            html_writer << "<img class=\"c2h_image_thumbnail\" src=\"";
+            html_writer.WriteTagValue(data_access_url);
+            html_writer << "\" />";
 
             end_open_url();
         }
@@ -607,63 +722,50 @@ void CaseToHtmlConverter::WriteBinaryCaseItem(HtmlWriter& html_writer, const Bin
         // ...or as a data URL
         else
         {
-            const BinaryData* binary_data = binary_case_item.GetBinaryData_noexcept(index);
+            const BinaryData* const binary_data = binary_case_item.GetBinaryData_noexcept(index);
 
             if( binary_data != nullptr )
-                write_image_as_data_url_wrapped_in_open_url(L"c2h_image_thumbnail", mime_type->c_str(), binary_data->GetContent());
+                write_image_as_data_url_wrapped_in_open_url("c2h_image_thumbnail", mime_type, binary_data->GetContent());
         }
     }
 
 
     // if this is audio, add an audio control to play it
-    else if( data_access_url.has_value() && mime_type.has_value() && MimeType::IsAudioType(*mime_type) )
+    else if( !data_access_url.empty() && MimeType::IsAudioType(mime_type) )
     {
-        html_writer << Newline
-                    << L"<audio controls controlsList=\"nodownload\" preload=\"none\">"
-                    << L"<source src=\"" << data_access_url->c_str() << L"\" />"
-                    << L"</audio>";
+        html_writer.WriteNewline();
+        html_writer << "<audio controls controlsList=\"nodownload\" preload=\"none\">"
+                       "<source src=\"";
+        html_writer.WriteTagValue(data_access_url);
+        html_writer << "\" />"
+                       "</audio>";
     }
 
 
     // if not an image or audio, but if the extension is known, get an icon to represent this file type
-    else if( extension.has_value() )
+    else
     {
-        const std::shared_ptr<const std::vector<std::byte>> png_data = SystemIcon::GetPngForExtension(*extension);
+        const std::optional<std::string> extension = binary_data_metadata.GetEvaluatedExtension();
 
-        if( png_data != nullptr )
-            write_image_as_data_url_wrapped_in_open_url(L"c2h_icon", MimeType::Type::ImagePng, *png_data);
+        if( extension.has_value() )
+        {
+            const std::shared_ptr<const std::vector<std::byte>> png_data = SystemIcon::GetPngForExtension(*extension);
+
+            if( png_data != nullptr )
+                write_image_as_data_url_wrapped_in_open_url("c2h_icon", MimeType::Type::ImagePng, *png_data);
+        }
     }
 
 
     // add links to open and save the data
     if( open_and_save_urls.has_value() )
     {
-        html_writer << Newline
-                    << L"<a href=\"" << std::get<0>(*open_and_save_urls).c_str() << L"\">Open</a> - "
-                    << L"<a href=\"" << std::get<1>(*open_and_save_urls).c_str() << L"\">Save</a>";
+        html_writer.WriteNewline();
+        html_writer << "<a href=\"";
+        html_writer.WriteTagValue(std::get<0>(*open_and_save_urls));
+        html_writer << "\">Open</a> - "
+                       "<a href=\"";
+        html_writer.WriteTagValue(std::get<1>(*open_and_save_urls));
+        html_writer << "\">Save</a>";
     }
-}
-
-
-std::wstring CaseToHtmlConverter::CreateBinaryDataAccessUrlBase(const BinaryDataMetadata& binary_data_metadata,
-                                                                const BinaryCaseItem& binary_case_item, const CaseItemIndex& index) const
-{
-    std::optional<std::wstring> suggested_filename = binary_data_metadata.GetFilename();
-
-    // if there is no filename, use the item name with whatever extension the file was saved as
-    if( !suggested_filename.has_value() )
-    {
-        const std::optional<std::wstring> extension = binary_data_metadata.GetEvaluatedExtension();
-        ASSERT(extension.has_value());
-
-        suggested_filename = binary_case_item.GetDictionaryItem().GetName();
-        suggested_filename->append(index.GetMinimalOccurrencesText(binary_case_item));
-
-        if( !extension->empty() )
-            suggested_filename = PortableFunctions::PathAppendFileExtension(*suggested_filename, *extension);
-    }
-
-    return FormatTextCS2WS(_T("https://binary-data-access/%s/%s/"),
-                           Encoders::ToUriComponent(index.GetSerializableText(binary_case_item)).c_str(),
-                           Encoders::ToUriComponent(*suggested_filename).c_str());
 }

@@ -49,7 +49,7 @@ Language=FR
 /* --- Entry Errors */
 89271  Echec de démarrage du questionnaire en mode modifier
 89272  Mode defini dans l'application incorrect. Echec d'arrêt de l'application de saisie
-89273  Erreur de lecture du fichier (binaire) %s
+89273  Erreur de lecture du fichier (binaire) '%s': %s
 89274  Erreur fatale pour CSEntry. Abandon de la saisie.
 
 /* --- Index */

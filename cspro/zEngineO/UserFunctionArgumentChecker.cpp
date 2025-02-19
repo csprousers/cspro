@@ -16,7 +16,7 @@ UserFunctionArgumentChecker::UserFunctionArgumentChecker(const UserFunction& use
 }
 
 
-void UserFunctionArgumentChecker::CheckNumberArguments(size_t number_arguments) const
+void UserFunctionArgumentChecker::CheckNumberArguments(const size_t number_arguments) const
 {
     if( number_arguments >= m_userFunction.GetNumberRequiredParameters() &&
         number_arguments <= m_userFunction.GetNumberParameters() )
@@ -26,69 +26,77 @@ void UserFunctionArgumentChecker::CheckNumberArguments(size_t number_arguments) 
 
     if( m_userFunction.GetNumberParameters() == m_userFunction.GetNumberRequiredParameters() )
     {
-        throw UserFunctionArgumentChecker::CheckError(_T("%d argument%s"),
-                                                      static_cast<int>(m_userFunction.GetNumberParameters()),
-                                                      PluralizeWord(m_userFunction.GetNumberParameters()));
+        throw CheckError("%d argument%s",
+                         static_cast<int>(m_userFunction.GetNumberParameters()),
+                         PluralizeWord(m_userFunction.GetNumberParameters()));
     }
 
     else
     {
-        throw UserFunctionArgumentChecker::CheckError(_T("at least %d (and up to %d) arguments"),
-                                                      static_cast<int>(m_userFunction.GetNumberRequiredParameters()),
-                                                      static_cast<int>(m_userFunction.GetNumberParameters()));
+        throw CheckError("at least %d (and up to %d) arguments",
+                         static_cast<int>(m_userFunction.GetNumberRequiredParameters()),
+                         static_cast<int>(m_userFunction.GetNumberParameters()));
     }
 }
 
 
-void UserFunctionArgumentChecker::IssueArgumentError(const TCHAR* extra_error_text/* = nullptr*/) const
+void UserFunctionArgumentChecker::IssueArgumentError(const cs::string_sz extra_error_text/* = ""*/) const
 {
     ASSERT(m_parameterNumber != SIZE_MAX && m_parameterSymbol != nullptr);
 
-    std::wstring error_message = GetExpectedArgumentText();
+    std::string error_message = GetExpectedArgumentText();
 
-    if( extra_error_text != nullptr )
-        SO::Append(error_message, _T(" "), extra_error_text);
+    if( !extra_error_text.empty() )
+    {
+        error_message.append(" ")
+                     .append(extra_error_text.c_str());
+    }
 
-    SO::Append(error_message, _T(" as argument #"), IntToString(m_parameterNumber + 1));
+    error_message.append(" as argument #")
+                 .append(IntToString(m_parameterNumber + 1));
 
-    // add the symbol name if it is not a function pointer's parameter (which will have .p in the name)
-    if( m_parameterSymbol->GetName().find(_T(".p")) == std::wstring::npos )
-        SO::Append(error_message, _T(" ('"), m_parameterSymbol->GetName(), _T("')"));;
+    // add the symbol name if it is not a function pointer's parameter (which will start with an underscore)
+    if( m_parameterSymbol->GetName().front() != '_' )
+    {
+        error_message.append(" ('")
+                     .append(m_parameterSymbol->GetName())
+                     .append("')");
+    }
 
-    throw UserFunctionArgumentChecker::CheckError(error_message);
+    throw CheckError(error_message);
 }
 
 
-const TCHAR* UserFunctionArgumentChecker::GetExpectedArgumentText(const Symbol& symbol)
+const char* UserFunctionArgumentChecker::GetExpectedArgumentText(const Symbol& symbol)
 {
     switch( symbol.GetType() )
     {
-        case SymbolType::Array:          return _T("an Array");
-        case SymbolType::Audio:          return _T("an Audio object");
+        case SymbolType::Array:          return "an Array";
+        case SymbolType::Audio:          return "an Audio object";
         case SymbolType::Dictionary:     return assert_cast<const EngineDictionary&>(symbol).IsCaseObject() ?
-                                                         _T("a Case") :
-                                                         _T("a DataSource");
-        case SymbolType::Document:       return _T("a Document object");
-        case SymbolType::File:           return _T("a File handler");
-        case SymbolType::Geometry:       return _T("a Geometry object");
-        case SymbolType::HashMap:        return _T("a HashMap");
-        case SymbolType::Image:          return _T("an Image object");
-        case SymbolType::List:           return _T("a List");
-        case SymbolType::Map:            return _T("a Map");
-        case SymbolType::NamedFrequency: return _T("a named frequency");
-        case SymbolType::Pff:            return _T("a Pff object");
-        case SymbolType::Report:         return _T("a Report");
-        case SymbolType::SystemApp:      return _T("a SystemApp");
-        case SymbolType::UserFunction:   return _T("a function pointer");
-        case SymbolType::ValueSet:       return _T("a value set");
-        case SymbolType::WorkString:     return _T("a string expression");
-        case SymbolType::WorkVariable:   return _T("a numeric expression");
-        default:                                  return ReturnProgrammingError(ToString(symbol.GetType()));
+                                                "a Case" :
+                                                "a DataSource";
+        case SymbolType::Document:       return "a Document object";
+        case SymbolType::File:           return "a File handler";
+        case SymbolType::Geometry:       return "a Geometry object";
+        case SymbolType::HashMap:        return "a HashMap";
+        case SymbolType::Image:          return "an Image object";
+        case SymbolType::List:           return "a List";
+        case SymbolType::Map:            return "a Map";
+        case SymbolType::NamedFrequency: return "a named frequency";
+        case SymbolType::Pff:            return "a Pff object";
+        case SymbolType::Report:         return "a Report";
+        case SymbolType::SystemApp:      return "a SystemApp";
+        case SymbolType::UserFunction:   return "a function pointer";
+        case SymbolType::ValueSet:       return "a value set";
+        case SymbolType::WorkString:     return "a string expression";
+        case SymbolType::WorkVariable:   return "a numeric expression";
+        default:                         return ReturnProgrammingError(ToString(symbol.GetType()));
     }
 }
 
 
-const TCHAR* UserFunctionArgumentChecker::GetExpectedArgumentText() const
+const char* UserFunctionArgumentChecker::GetExpectedArgumentText() const
 {
     ASSERT(m_parameterSymbol != nullptr);
 
@@ -96,20 +104,20 @@ const TCHAR* UserFunctionArgumentChecker::GetExpectedArgumentText() const
 }
 
 
-bool UserFunctionArgumentChecker::SymbolTypeIsAnExpression(SymbolType symbol_type)
+bool UserFunctionArgumentChecker::SymbolTypeIsAnExpression(const SymbolType symbol_type)
 {
     return ( symbol_type == SymbolType::WorkVariable ||
              symbol_type == SymbolType::WorkString );
 }
 
 
-bool UserFunctionArgumentChecker::ArgumentShouldBeExpression(size_t parameter_number) const
+bool UserFunctionArgumentChecker::ArgumentShouldBeExpression(const size_t parameter_number) const
 {
     return SymbolTypeIsAnExpression(m_userFunction.GetParameterSymbol(parameter_number).GetType());
 }
 
 
-void UserFunctionArgumentChecker::CheckExpressionArgument(size_t parameter_number, SymbolType argument_type)
+void UserFunctionArgumentChecker::CheckExpressionArgument(const size_t parameter_number, const SymbolType argument_type)
 {
     ASSERT(ArgumentShouldBeExpression(parameter_number));
 
@@ -121,14 +129,14 @@ void UserFunctionArgumentChecker::CheckExpressionArgument(size_t parameter_numbe
 }
 
 
-void UserFunctionArgumentChecker::CheckExpressionArgument(size_t parameter_number, bool argument_is_numeric_expression)
+void UserFunctionArgumentChecker::CheckExpressionArgument(const size_t parameter_number, const bool argument_is_numeric_expression)
 {
     CheckExpressionArgument(parameter_number, argument_is_numeric_expression ? SymbolType::WorkVariable :
                                                                                SymbolType::WorkString);
 }
 
 
-void UserFunctionArgumentChecker::CheckSymbolArgument(size_t parameter_number, Symbol* argument_symbol)
+void UserFunctionArgumentChecker::CheckSymbolArgument(const size_t parameter_number, Symbol* const argument_symbol)
 {
     ASSERT(!ArgumentShouldBeExpression(parameter_number));
 
@@ -164,7 +172,8 @@ void UserFunctionArgumentChecker::CheckSymbolArgument(size_t parameter_number, S
     };
 
     // make sure the symbol type matches
-    if( m_parameterSymbol->GetType() != argument_symbol_type && !argument_can_be_implicity_converted_to_parameter() )
+    if( m_parameterSymbol->GetType() != argument_symbol_type &&
+        !argument_can_be_implicity_converted_to_parameter() )
     {
         IssueArgumentError();
     }
@@ -174,44 +183,76 @@ void UserFunctionArgumentChecker::CheckSymbolArgument(size_t parameter_number, S
 
     if( parameter_data_type.has_value() && parameter_data_type != SymbolCalculator::GetDataType(*argument_symbol) )
     {
-        const std::wstring data_type_text = SO::ToLower(ToString(*parameter_data_type));
+        const std::string data_type_text = SO::ToLower(ToString(*parameter_data_type));
 
         if( m_parameterSymbol->IsA(SymbolType::UserFunction) )
         {
-            IssueArgumentError(FormatText(_T("that returns '%s'"), data_type_text.c_str()));
+            IssueArgumentError(FormatText("that returns '%s'", data_type_text.c_str()));
         }
 
         else
         {
-            IssueArgumentError(FormatText(_T("of type '%s'"), data_type_text.c_str()));
+            IssueArgumentError(FormatText("of type '%s'", data_type_text.c_str()));
         }
     }
 
     // additional checks/operations for symbols
-    if( m_parameterSymbol->IsA(SymbolType::Array) )
+    try
     {
-        CheckLogicArrayArgument(*argument_symbol);
+        if( m_parameterSymbol->IsA(SymbolType::Array) )
+        {
+            CheckLogicArrayArgument(*argument_symbol);
+        }
+
+        else if( m_parameterSymbol->IsA(SymbolType::Dictionary) )
+        {
+            CheckEngineDictionaryArgument(assert_cast<EngineDictionary&>(*argument_symbol));
+        }
+
+        else if( m_parameterSymbol->IsA(SymbolType::File) )
+        {
+            CheckLogicFileArgument(assert_cast<LogicFile&>(*argument_symbol));
+        }
+
+        else if( m_parameterSymbol->IsA(SymbolType::HashMap) )
+        {
+            assert_cast<const LogicHashMap&>(*argument_symbol).CompareDeclarationAttributes(*m_parameterSymbol);
+        }
+
+        else if( m_parameterSymbol->IsA(SymbolType::UserFunction) )
+        {
+            CheckUserFunctionArgument(assert_cast<UserFunction&>(*argument_symbol));
+        }
     }
 
-    else if( m_parameterSymbol->IsA(SymbolType::Dictionary) )
+    catch( const Symbol::CompareDeclarationAttributesException& exception )
     {
-        CheckEngineDictionaryArgument(assert_cast<EngineDictionary&>(*argument_symbol));
+        IssueArgumentError(SO::Concatenate("with ", exception.what()));
+    }
+}
+
+
+std::optional<size_t> UserFunctionArgumentChecker::FindFirstInvalidParameter(const cs::span<const SymbolType> valid_parameter_symbol_types,
+                                                                             const bool include_numeric_and_string_parameters) const noexcept
+{
+    for( size_t i = 0; i < m_userFunction.GetNumberParameters(); ++i )
+    {
+        const SymbolType symbol_type = m_userFunction.GetParameterSymbol(i).GetType();
+
+        if( !include_numeric_and_string_parameters && ( symbol_type == SymbolType::WorkString ||
+                                                        symbol_type == SymbolType::WorkVariable ) )
+        {
+            continue;
+        }
+
+        if( std::find(std::cbegin(valid_parameter_symbol_types), std::cend(valid_parameter_symbol_types),
+                      m_userFunction.GetParameterSymbol(i).GetType()) == std::cend(valid_parameter_symbol_types) )
+        {
+            return i;
+        }
     }
 
-    else if( m_parameterSymbol->IsA(SymbolType::File) )
-    {
-        CheckLogicFileArgument(assert_cast<LogicFile&>(*argument_symbol));
-    }
-
-    else if( m_parameterSymbol->IsA(SymbolType::HashMap) )
-    {
-        CheckLogicHashMapArgument(assert_cast<const LogicHashMap&>(*argument_symbol));
-    }
-
-    else if( m_parameterSymbol->IsA(SymbolType::UserFunction) )
-    {
-        CheckUserFunctionArgument(assert_cast<UserFunction&>(*argument_symbol));
-    }
+    return std::nullopt;
 }
 
 
@@ -223,47 +264,27 @@ void UserFunctionArgumentChecker::CheckSymbolArgument(size_t parameter_number, S
 void UserFunctionArgumentChecker::CheckLogicArrayArgument(const Symbol& argument_symbol) const
 {
     const LogicArray& parameter_array = assert_cast<const LogicArray&>(*m_parameterSymbol);
-    size_t argument_dimensions;
 
     if( argument_symbol.IsA(SymbolType::Array) )
     {
-        const LogicArray& argument_array = assert_cast<const LogicArray&>(argument_symbol);
-        argument_dimensions = argument_array.GetNumberDimensions();
-
-        // make sure the string/alpha setting is consistent
-        if( parameter_array.GetPaddingStringLength() != argument_array.GetPaddingStringLength() )
-        {
-            if( parameter_array.GetPaddingStringLength() == 0 )
-            {
-                IssueArgumentError(_T("of type 'string'"));
-            }
-
-            else
-            {
-                IssueArgumentError(FormatText(_T("of type 'alpha (%d)'"), parameter_array.GetPaddingStringLength()));
-            }
-        }
+        parameter_array.CompareDeclarationAttributes(argument_symbol);
     }
 
     else
     {
+#ifdef WIN_DESKTOP
         // because arrays were previously crosstabs, there is some code that manipulates tables by
         // passing a crosstab to a function; we will allow this for numeric crosstabs
         ASSERT(argument_symbol.IsA(SymbolType::Crosstab));
-
-#ifdef WIN_DESKTOP
         const CTAB& argument_crosstab = assert_cast<const CTAB&>(argument_symbol);
-        argument_dimensions = argument_crosstab.GetNumDim();
-#else
-        argument_dimensions = SIZE_MAX;
-#endif
-    }
 
-    // make sure the number of dimensions is the same
-    if( parameter_array.GetNumberDimensions() != argument_dimensions )
-    {
-        IssueArgumentError(FormatText(_T("with %d dimensions"),
-                                      static_cast<int>(parameter_array.GetNumberDimensions())));
+        // make sure the number of dimensions is the same
+        if( parameter_array.GetNumberDimensions() != static_cast<size_t>(argument_crosstab.GetNumDim()) )
+        {
+            IssueArgumentError(FormatText("with %d dimensions",
+                                          static_cast<int>(parameter_array.GetNumberDimensions())));
+        }
+#endif
     }
 }
 
@@ -287,7 +308,7 @@ void UserFunctionArgumentChecker::CheckEngineDictionaryArgument(EngineDictionary
     // make sure the dictionary matches
     if( !parameter_engine_dictionary.DictionaryMatches(argument_engine_dictionary) )
     {
-        IssueArgumentError(FormatText(_T("based on the dictionary '%s'"), parameter_engine_dictionary.GetDictionary().GetName().GetString()));
+        IssueArgumentError(FormatText("based on the dictionary '%s'", parameter_engine_dictionary.GetDictionary().GetName().c_str()));
     }
 
     // Case checks
@@ -296,7 +317,7 @@ void UserFunctionArgumentChecker::CheckEngineDictionaryArgument(EngineDictionary
         // the case must be an external dictionary
         // ENGINECR_TODO should also make sure dictionaries for external forms can't be used
         if( argument_engine_dictionary.GetSubType() != SymbolSubType::External )
-            IssueArgumentError(_T("from an external dictionary"));
+            IssueArgumentError("from an external dictionary");
     }
 
     // DataSource checks
@@ -315,7 +336,7 @@ void UserFunctionArgumentChecker::CheckEngineDictionaryArgument(EngineDictionary
         if( parameter_engine_data_repository.GetIsWriteable() &&
             argument_engine_dictionary.GetSubType() != SymbolSubType::External )
         {
-            IssueArgumentError(_T("from an external dictionary"));
+            IssueArgumentError("from an external dictionary");
         }
     }
 }
@@ -333,24 +354,7 @@ void UserFunctionArgumentChecker::CheckLogicFileArgument(LogicFile& argument_fil
     // mark the file as used...
     argument_file.SetUsed();
 
-    // ...and potentially written to
-    if( parameter_file.IsWrittenTo() )
-        argument_file.SetIsWrittenTo();
-}
-
-
-
-// --------------------------------------------------------------------------
-// HashMap (additional checks...the data type has already been checked)
-// --------------------------------------------------------------------------
-
-void UserFunctionArgumentChecker::CheckLogicHashMapArgument(const LogicHashMap& argument_hashmap) const
-{
-    const LogicHashMap& parameter_hashmap = assert_cast<const LogicHashMap&>(*m_parameterSymbol);        
-
-    // check the dimensions
-    if( !parameter_hashmap.IsHashMapAssignable(argument_hashmap, false) )
-        IssueArgumentError(_T("with different dimension types"));
+    argument_file.CopyCompileTimeAttributes(parameter_file);
 }
 
 
@@ -367,7 +371,7 @@ void UserFunctionArgumentChecker::CheckUserFunctionArgument(UserFunction& argume
     // check that the parameters match...
     if( parameter_user_function.GetNumberParameters() != argument_user_function.GetNumberParameters() )
     {
-        IssueArgumentError(FormatText(_T("with %d parameters"),
+        IssueArgumentError(FormatText("with %d parameters",
                                       static_cast<int>(parameter_user_function.GetNumberParameters())));
     }
 
@@ -391,7 +395,7 @@ void UserFunctionArgumentChecker::CheckUserFunctionArgument(UserFunction& argume
                 parameter_user_function_argument_checker.CheckSymbolArgument(i, &argument_parameter_symbol);
             }
 
-            catch( const UserFunctionArgumentChecker::CheckError& )
+            catch( const CheckError& )
             {
                 symbols_are_compatible = false;
             }
@@ -399,7 +403,7 @@ void UserFunctionArgumentChecker::CheckUserFunctionArgument(UserFunction& argume
 
         if( !symbols_are_compatible )
         {
-            IssueArgumentError(FormatText(_T("with a matching parameter #%d (%s)"),
+            IssueArgumentError(FormatText("with a matching parameter #%d (%s)",
                                           static_cast<int>(i) + 1, GetExpectedArgumentText(parameter_parameter_symbol)));
         }
     }

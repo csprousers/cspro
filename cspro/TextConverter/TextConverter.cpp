@@ -15,11 +15,11 @@ TextConverterApp::TextConverterApp()
 
 BOOL TextConverterApp::InitInstance()
 {
-    CWinApp::InitInstance();
+    __super::InitInstance();
 
     AfxEnableControlContainer();
 
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     // 20141015 allow TextConverter to be run from the command line
     if( __argc > 1 )
@@ -28,16 +28,16 @@ BOOL TextConverterApp::InitInstance()
 
         for( int i = 1; i < __argc; ++i )
         {
-            std::wstring argument = __targv[i];
+            const std::string argument = TC::ToUtf8(__targv[i]);
 
-            if( SO::StartsWith(argument, _T("/")) ) // a flag
+            if( SO::StartsWith(argument, "/") ) // a flag
             {
-                if( SO::EqualsNoCase(argument, _T("/utf8")) )
+                if( SO::EqualsNoCase(argument, "/utf8") )
                 {
                     convert_to_ansi = false;
                 }
 
-                else if( SO::EqualsNoCase(argument, _T("/ansi")) )
+                else if( SO::EqualsNoCase(argument, "/ansi") )
                 {
                     convert_to_ansi = true;
                 }
@@ -65,7 +65,7 @@ BOOL TextConverterApp::InitInstance()
 
     else
     {
-        CTextConverterDlg dlg;
+        TextConverterDlg dlg;
         m_pMainWnd = &dlg;
         dlg.DoModal();
     }

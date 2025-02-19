@@ -11,13 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CaseConcatenator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextConcatenator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Concatenator.cpp">
@@ -26,24 +20,21 @@
     <ClCompile Include="CSConcatReporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DuplicateCaseChecker.cpp">
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextConcatenator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zConcatO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CaseConcatenator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextConcatenator.h">
+    <ClInclude Include="Concatenator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Concatenator.h">
+    <ClInclude Include="ConcatenatorHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConcatenatorReporter.h">
@@ -52,10 +43,13 @@
     <ClInclude Include="CSConcatReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DuplicateCaseChecker.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConcatenatorHelpers.h">
+    <ClInclude Include="TextConcatenator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zConcatO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

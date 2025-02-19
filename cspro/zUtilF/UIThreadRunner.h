@@ -47,6 +47,12 @@ public:
         return m_result;
     }
 
+    INT_PTR DoModalOnUIThreadOrOnMainThread()
+    {
+        return RunOnUIThread() ? m_result :
+                                 m_pDialog->DoModal();
+    }
+
 private:
     CDialog* m_pDialog;
     INT_PTR m_result;

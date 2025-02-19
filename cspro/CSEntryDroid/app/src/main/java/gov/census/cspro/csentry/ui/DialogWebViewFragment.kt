@@ -342,7 +342,7 @@ class DialogWebViewFragment: DialogFragment(R.layout.fragment_dialog_webview) {
             return success
         }
 
-        override fun onCloseDialog(resultsText: String?, webControllerKey: Int): Boolean? {
+        override fun onClose(resultsText: String?, webControllerKey: Int): Boolean? {
             return if( webControllerKey == actionInvoker?.getWebControllerKey() ) {
                 close(resultsText)
                 true

@@ -7,7 +7,7 @@
 // TableElementTreeNode
 // --------------------------------------------------------------------------
 
-TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, TableElementType table_element_type)
+TableElementTreeNode::TableElementTreeNode(CTabulateDoc* const document, const TableElementType table_element_type)
     :   m_tableElementType(table_element_type),
         m_pTable(nullptr),
         m_pTabLevel(nullptr),
@@ -20,7 +20,7 @@ TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, TableElementT
 }
 
 
-TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, CTabLevel* pTabLevel, int iLevel)
+TableElementTreeNode::TableElementTreeNode(CTabulateDoc* const document, CTabLevel* const pTabLevel, const int iLevel)
     :   TableElementTreeNode(document, TableElementType::Level)
 {
     ASSERT(pTabLevel != nullptr);
@@ -30,7 +30,7 @@ TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, CTabLevel* pT
 }
 
 
-TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, CTable* pTable)
+TableElementTreeNode::TableElementTreeNode(CTabulateDoc* const document, CTable* const pTable)
     :   TableElementTreeNode(document, TableElementType::Table)
 {
     ASSERT(pTable != nullptr);
@@ -39,7 +39,8 @@ TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, CTable* pTabl
 }
 
 
-TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, TableElementType table_element_type, CTable* pTable, CTabVar* pVarItem)
+TableElementTreeNode::TableElementTreeNode(CTabulateDoc* const document, const TableElementType table_element_type,
+                                           CTable* const pTable, CTabVar* const pVarItem)
     :   TableElementTreeNode(document, table_element_type)
 {
     ASSERT(table_element_type == TableElementType::RowItem || table_element_type == TableElementType::ColItem);
@@ -50,15 +51,15 @@ TableElementTreeNode::TableElementTreeNode(CTabulateDoc* document, TableElementT
 }
 
 
-std::wstring TableElementTreeNode::GetNameOrLabel(bool name) const
+std::wstring TableElementTreeNode::GetNameOrLabel(const bool name) const
 {
     if( m_tableElementType == TableElementType::Level )
     {
-        const DictionaryBasedDoc* dictionary_based_doc = assert_cast<const DictionaryBasedDoc*>(GetDocument());
+        const DictionaryBasedDoc* const dictionary_based_doc = assert_cast<const DictionaryBasedDoc*>(GetDocument());
         const DictLevel& dict_level = dictionary_based_doc->GetSharedDictionary()->GetLevel(m_iLevel);
 
-        return CS2WS(name ? dict_level.GetName() :
-                            dict_level.GetLabel());
+        return name ? UTF8_TODO::GetWide(dict_level.GetName()) :
+                      CS2WS(dict_level.GetLabel());
     }
 
     else if( m_tableElementType == TableElementType::Table )
@@ -73,7 +74,7 @@ std::wstring TableElementTreeNode::GetNameOrLabel(bool name) const
             std::wstring label = CS2WS(m_pTable->GetTitleText());
 
             // remove anything but the text on the first line
-            size_t newline_pos = label.find_first_of(_T("\r\n"));
+            const size_t newline_pos = label.find_first_of(L"\r\n");
 
             if( newline_pos != std::wstring::npos )
                 label.resize(newline_pos);
@@ -86,16 +87,16 @@ std::wstring TableElementTreeNode::GetNameOrLabel(bool name) const
     {
         if( m_pTabVar->IsRoot() )
         {
-            return ( m_tableElementType == TableElementType::RowItem ) ? _T("Row Items") :
-                                                                         _T("Column Items");
+            return ( m_tableElementType == TableElementType::RowItem ) ? L"Row Items" :
+                                                                         L"Column Items";
         }
 
-        std::wstring display_text = CS2WS(name ? m_pTabVar->GetName() : 
+        std::wstring display_text = CS2WS(name ? m_pTabVar->GetName() :
                                                  m_pTabVar->GetText());
 
         // potentially add the zero-based occurrence
         if( m_pTabVar->GetOcc() > -1 )
-            SO::AppendFormat(display_text, _T("(%d)"), m_pTabVar->GetOcc() + 1);
+            SO::AppendFormat(display_text, L"(%d)", m_pTabVar->GetOcc() + 1);
 
         return display_text;
     }
@@ -109,18 +110,18 @@ std::wstring TableElementTreeNode::GetNameOrLabel(bool name) const
 // TableSpecTabTreeNode
 // --------------------------------------------------------------------------
 
-TableSpecTabTreeNode::TableSpecTabTreeNode(CTabulateDoc* document, std::wstring table_spec_filename)
+TableSpecTabTreeNode::TableSpecTabTreeNode(CTabulateDoc* const document, std::string table_spec_file_path)
     :   TableElementTreeNode(document, TableElementType::TableSpec),
-        m_tableSpecFilename(std::move(table_spec_filename)),
+        m_tableSpecFilePath(std::move(table_spec_file_path)),
         m_refCount(0)
 {
 }
 
 
-std::wstring TableSpecTabTreeNode::GetNameOrLabel(bool name) const
+std::wstring TableSpecTabTreeNode::GetNameOrLabel(const bool name) const
 {
     if( GetDocument() == nullptr )
-        return GetPath();
+        return UTF8_TODO::GetWide(GetPath());
 
     return CS2WS(name ? GetTabDoc()->GetTableSpec()->GetName() :
                         GetTabDoc()->GetTableSpec()->GetLabel());

@@ -29,7 +29,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-CSymbolDict::CSymbolDict(std::wstring name, CEngineDriver* pEngineDriver)
+CSymbolDict::CSymbolDict(std::string name, CEngineDriver* pEngineDriver)
     :   Symbol(std::move(name), SymbolType::Pre80Dictionary),
         m_pEngineDriver(pEngineDriver),
         m_pEngineArea(pEngineDriver->getEngineAreaPtr())
@@ -113,10 +113,10 @@ void CSymbolDict::GetPrimaryKey(TCHAR* pszKey, bool bCurrent) {
 }
 
 
-Symbol* CSymbolDict::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* CSymbolDict::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
     // get all the symbols matching this name and then check if any belong to this dictionary
-    for( Symbol* symbol : GetSymbolTable().FindSymbols(symbol_name) )
+    for( Symbol* const symbol : GetSymbolTable().FindSymbols(symbol_name_sv) )
     {
         if( symbol != this && SymbolCalculator(GetSymbolTable()).GetDicT(*symbol) == this )
             return symbol;
@@ -139,7 +139,7 @@ void CSymbolDict::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 {
     ASSERT(m_pDataDict != nullptr);
 
-    json_writer.Write(JK::subtype, _T("Dictionary"))
+    json_writer.Write(JK::subtype, "Dictionary")
                .Write(JK::dictionaryType, GetSubType())
                .Write(JK::dictionary, *m_pDataDict);
 }
@@ -168,7 +168,7 @@ void CSymbolDict::WriteValueToJson(JsonWriter& json_writer) const
 
         json_writer.BeginObject(JK::dataSource)
                    .Write(JK::type, ToString(data_repository.GetRepositoryType()))
-                   .Write(JK::connectionString, data_repository.GetConnectionString())
+                   .Write(JK::connection, data_repository.GetConnectionString())
                    .EndObject();
     }
 

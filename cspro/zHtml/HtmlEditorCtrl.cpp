@@ -7,38 +7,38 @@
 
 
 CREATE_ENUM_JSON_SERIALIZER(HtmlEditorCtrl::TextAlign,
-    { HtmlEditorCtrl::TextAlign::Left,        L"left" },
-    { HtmlEditorCtrl::TextAlign::Right,       L"right" },
-    { HtmlEditorCtrl::TextAlign::Center,      L"center" },
-    { HtmlEditorCtrl::TextAlign::Justify,     L"justify" },
-    { HtmlEditorCtrl::TextAlign::Start,       L"start" },
-    { HtmlEditorCtrl::TextAlign::End,         L"end" },
-    { HtmlEditorCtrl::TextAlign::JustifyAll,  L"justify-all" },
-    { HtmlEditorCtrl::TextAlign::MatchParent, L"match-parent" },
-    { HtmlEditorCtrl::TextAlign::Center,      L"-webkit-center" })
+    { HtmlEditorCtrl::TextAlign::Left,        "left" },
+    { HtmlEditorCtrl::TextAlign::Right,       "right" },
+    { HtmlEditorCtrl::TextAlign::Center,      "center" },
+    { HtmlEditorCtrl::TextAlign::Justify,     "justify" },
+    { HtmlEditorCtrl::TextAlign::Start,       "start" },
+    { HtmlEditorCtrl::TextAlign::End,         "end" },
+    { HtmlEditorCtrl::TextAlign::JustifyAll,  "justify-all" },
+    { HtmlEditorCtrl::TextAlign::MatchParent, "match-parent" },
+    { HtmlEditorCtrl::TextAlign::Center,      "-webkit-center" })
 
 CREATE_ENUM_JSON_SERIALIZER(HtmlEditorCtrl::ListStyle,
-    { HtmlEditorCtrl::ListStyle::None,        L"none" },
-    { HtmlEditorCtrl::ListStyle::Ordered,     L"ordered" },
-    { HtmlEditorCtrl::ListStyle::Unordered,   L"unordered" })
+    { HtmlEditorCtrl::ListStyle::None,        "none" },
+    { HtmlEditorCtrl::ListStyle::Ordered,     "ordered" },
+    { HtmlEditorCtrl::ListStyle::Unordered,   "unordered" })
 
 namespace
 {
     template<>
     struct JsonSerializer<HtmlEditorCtrl::Format>
     {
-        static HtmlEditorCtrl::Format CreateFromJson(const JsonNode<wchar_t>& json_node)
+        static HtmlEditorCtrl::Format CreateFromJson(const JsonNode& json_node)
         {
             HtmlEditorCtrl::Format val;
-            val.font_size = json_node.GetOrDefault(L"font-size", 10);
+            val.font_size = json_node.GetOrDefault("font-size", 10);
             ASSERT(val.font_size > 0);
-            val.font_family = json_node.GetOrDefault(L"font-family", std::wstring(L"Arial"));
-            val.bold = json_node.GetOrDefault<bool>(L"font-bold", false);
-            val.italic = json_node.GetOrDefault<bool>(L"font-italic", false);
-            val.underline = json_node.GetOrDefault<bool>(L"font-underline", false);
-            val.text_align = json_node.GetOrDefault<HtmlEditorCtrl::TextAlign>(L"text-align", HtmlEditorCtrl::TextAlign::Left);
-            val.list_style = json_node.GetOrDefault<HtmlEditorCtrl::ListStyle>(L"list-style", HtmlEditorCtrl::ListStyle::None);
-            val.class_name = json_node.GetOrDefault(L"class", SO::EmptyString);
+            val.font_family = json_node.GetOrDefault<std::string>("font-family", "Arial");
+            val.bold = json_node.GetOrDefault<bool>("font-bold", false);
+            val.italic = json_node.GetOrDefault<bool>("font-italic", false);
+            val.underline = json_node.GetOrDefault<bool>("font-underline", false);
+            val.text_align = json_node.GetOrDefault<HtmlEditorCtrl::TextAlign>("text-align", HtmlEditorCtrl::TextAlign::Left);
+            val.list_style = json_node.GetOrDefault<HtmlEditorCtrl::ListStyle>("list-style", HtmlEditorCtrl::ListStyle::None);
+            val.class_name = json_node.GetOrConstruct<std::string>("class");
             return val;
         }
     };
@@ -48,13 +48,12 @@ namespace
     {
         static void WriteJson(JsonWriter& json_writer, const HtmlEditorCtrl::Style& style)
         {
-            json_writer
-                .BeginObject()
-                .Write(L"tag", style.tag)
-                .Write(L"title", style.name)
-                .Write(L"className", style.className)
-                .Write(L"style", style.css)
-                .EndObject();
+            json_writer.BeginObject()
+                       .Write("tag", style.tag)
+                       .Write("title", style.name)
+                       .Write("className", style.class_name)
+                       .Write("style", style.css)
+                       .EndObject();
         }
     };
 }
@@ -75,26 +74,26 @@ HtmlEditorCtrl::HtmlEditorCtrl()
         m_editor_ready(false)
 {
     AddWebViewCreatedObserver([this]() { SetupFocusNotifications(); });
-    AddWebEventObserver([this](const std::wstring& event_json) { OnWebMessageReceived(event_json); });
+    AddWebEventObserver([this](const std::wstring_view message_sv) { OnWebMessageReceived(TC::ToUtf8(message_sv)); });
     SetAcceleratorKeyHandler([this](UINT message, UINT key, INT lParam) { return HandleAcceleratorKey(message, key, lParam); });
 }
 
 
-void HtmlEditorCtrl::SetUrl(std::wstring url)
+void HtmlEditorCtrl::SetUrl(const std::string_view url_sv)
 {
-    NavigateTo(std::move(url));
+    NavigateTo(url_sv);
 }
 
 
-void HtmlEditorCtrl::SetText(wstring_view text)
+void HtmlEditorCtrl::SetText(std::wstring text)
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action", L"setText" },
-            { L"value",  text }
+            { JK::action, "setText" },
+            { JK::value,  std::string_view(UTF8_TODO::GetUtf8(text)) }
         }));
 
-    m_text = text;
+    m_text = std::move(text);
     m_dirty = false;
 }
 
@@ -103,7 +102,7 @@ void HtmlEditorCtrl::Clear()
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action",  L"clear" }
+            { JK::action, "clear" }
         }));
 
     m_text.clear();
@@ -113,22 +112,24 @@ void HtmlEditorCtrl::Clear()
 
 void HtmlEditorCtrl::SetStyles(std::vector<Style> styles)
 {
-    SendCommand(L"customizableStyle.setStyles", styles);
+    SendCommand("customizableStyle.setStyles", styles);
     m_styles = std::move(styles);
 }
 
 
 void HtmlEditorCtrl::ApplyStyle(const Style& style)
 {
-    SendCommand(L"customizableStyle.applyStyle", style.name);
+    SendCommand("customizableStyle.applyStyle", style.name);
 }
 
 
 const HtmlEditorCtrl::Style* HtmlEditorCtrl::GetStyle() const
 {
-    auto style = std::find_if(m_styles.cbegin(), m_styles.cend(),
-                              [&](const Style& s) { return s.className == m_current_format.class_name; });
-    return style != m_styles.cend() ? &(*style) : nullptr;
+    const auto& lookup = std::find_if(m_styles.cbegin(), m_styles.cend(),
+                                      [&](const Style& s) { return ( s.class_name == m_current_format.class_name ); });
+
+    return ( lookup != m_styles.cend() ) ? &(*lookup) :
+                                           nullptr;
 }
 
 
@@ -158,13 +159,13 @@ void HtmlEditorCtrl::Copy()
 
 bool HtmlEditorCtrl::CanPaste() const
 {
-    return WinClipboard::HasHtml() || WinClipboard::HasText() || WinClipboard::HasImage();
+    return ( WinClipboard::HasHtml() || WinClipboard::HasText() || WinClipboard::HasImage() );
 }
 
 
-void HtmlEditorCtrl::Paste(bool with_formatting)
+void HtmlEditorCtrl::Paste(const bool with_formatting)
 {
-    bool simulated_shift_key = !with_formatting;
+    const bool simulated_shift_key = !with_formatting;
     SendCtrlKeyShortcut('V', simulated_shift_key);
 }
 
@@ -189,8 +190,9 @@ void HtmlEditorCtrl::SelectAll()
 
 void HtmlEditorCtrl::Bold()
 {
-    SendCommand(L"bold");
+    SendCommand("bold");
 }
+
 
 bool HtmlEditorCtrl::IsBold() const
 {
@@ -200,13 +202,13 @@ bool HtmlEditorCtrl::IsBold() const
 
 void HtmlEditorCtrl::Italic()
 {
-    SendCommand(L"italic");
+    SendCommand("italic");
 }
 
 
 void HtmlEditorCtrl::Underline()
 {
-    SendCommand(L"underline");
+    SendCommand("underline");
 }
 
 
@@ -224,25 +226,25 @@ HtmlEditorCtrl::TextAlign HtmlEditorCtrl::GetTextAlignment()
 
 void HtmlEditorCtrl::AlignLeft()
 {
-    SendCommand(L"justifyLeft");
+    SendCommand("justifyLeft");
 }
 
 
 void HtmlEditorCtrl::AlignRight()
 {
-    SendCommand(L"justifyRight");
+    SendCommand("justifyRight");
 }
 
 
 void HtmlEditorCtrl::AlignCenter()
 {
-    SendCommand(L"justifyCenter");
+    SendCommand("justifyCenter");
 }
 
 
 void HtmlEditorCtrl::Justify()
 {
-    SendCommand(L"justifyFull");
+    SendCommand("justifyFull");
 }
 
 
@@ -250,7 +252,7 @@ void HtmlEditorCtrl::RightToLeft()
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action",  L"rightToLeft" }
+            { JK::action, "rightToLeft" }
         }));
 }
 
@@ -259,7 +261,7 @@ void HtmlEditorCtrl::LeftToRight()
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action",  L"leftToRight" }
+            { JK::action, "leftToRight" }
         }));
 }
 
@@ -272,24 +274,25 @@ HtmlEditorCtrl::ListStyle HtmlEditorCtrl::GetListStyle() const
 
 void HtmlEditorCtrl::OrderedList()
 {
-    SendCommand(L"insertOrderedList");
+    SendCommand("insertOrderedList");
 }
 
 
 void HtmlEditorCtrl::UnorderedList()
 {
-    SendCommand(L"insertUnorderedList");
+    SendCommand("insertUnorderedList");
 }
 
 
-const std::wstring& HtmlEditorCtrl::GetFontName() const
+const std::string& HtmlEditorCtrl::GetFontName() const
 {
     return m_current_format.font_family;
 }
 
-void HtmlEditorCtrl::SetFont(wstring_view font_name)
+
+void HtmlEditorCtrl::SetFont(const std::string_view font_name_sv)
 {
-    SendCommand(L"fontName", font_name);
+    SendCommand("fontName", font_name_sv);
 }
 
 
@@ -299,26 +302,26 @@ int HtmlEditorCtrl::GetFontSize() const
 }
 
 
-void HtmlEditorCtrl::SetFontSize(int size)
+void HtmlEditorCtrl::SetFontSize(const int size)
 {
-    SendCommand(L"fontSize", size);
+    SendCommand("fontSize", size);
 }
 
 
-void HtmlEditorCtrl::SetForeColor(COLORREF color)
+void HtmlEditorCtrl::SetForeColor(const COLORREF color)
 {
-    auto color_info = Json::CreateObject(
+    const JsonNode color_info_json_node = Json::CreateObject(
         {
-            { L"foreColor", PortableColor::FromCOLORREF(color).ToStringRGB() }
+            { "foreColor", PortableColor::FromCOLORREF(color).ToStringRGB() }
         });
 
-    SendCommand(L"editor.color", color_info);
+    SendCommand("editor.color", color_info_json_node);
 }
 
 
 void HtmlEditorCtrl::ToggleCodeView()
 {
-    SendCommand(L"codeview.toggle");
+    SendCommand("codeview.toggle");
 }
 
 
@@ -334,15 +337,15 @@ bool HtmlEditorCtrl::IsItalic() const
 }
 
 
-void HtmlEditorCtrl::InsertImage(wstring_view image_path)
+void HtmlEditorCtrl::InsertImage(const std::string_view image_path_sv)
 {
-    SendCommand(L"insertImage", image_path);
+    SendCommand("insertImage", image_path_sv);
 }
 
 
 void HtmlEditorCtrl::InsertTable(const CSize& size)
 {
-    SendCommand(L"insertTable", FormatText(L"%dx%d", size.cx, size.cy));
+    SendCommand("insertTable", FormatText("%dx%d", size.cx, size.cy));
 }
 
 
@@ -353,11 +356,11 @@ void HtmlEditorCtrl::ShowInsertLinkDialog()
     if( link_dlg.DoModal() != IDOK )
         return;
 
-    InsertLink(link_dlg.m_url, link_dlg.m_text);
+    InsertLink(UTF8_TODO::GetUtf8(link_dlg.m_url), UTF8_TODO::GetUtf8(link_dlg.m_text));
 }
 
 
-void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, bool open_in_new_window)
+void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, const bool open_in_new_window)
 {
     InsertLinkDlg link_dlg;
 
@@ -371,11 +374,11 @@ void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, bool o
     {
         SendEditorMessage(Json::CreateObjectString(
             {
-                { L"action",      L"editLinkDialogDismissed" },
-                { L"cancelled",   false },
-                { L"url",         link_dlg.m_url },
-                { L"text",        link_dlg.m_text },
-                { L"isNewWindow", open_in_new_window }
+                { JK::action,    "editLinkDialogDismissed" },
+                { "cancelled",   false },
+                { JK::url,       link_dlg.m_url },
+                { JK::text,      link_dlg.m_text },
+                { "isNewWindow", open_in_new_window }
             }));
     }
 
@@ -383,81 +386,81 @@ void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, bool o
     {
         SendEditorMessage(Json::CreateObjectString(
             {
-                { L"action",    L"editLinkDialogDismissed" },
-                { L"cancelled", true }
+                { JK::action,  "editLinkDialogDismissed" },
+                { "cancelled", true }
             }));
     }
 }
 
 
-void HtmlEditorCtrl::InsertLink(wstring_view url, wstring_view text, bool open_in_new_window)
+void HtmlEditorCtrl::InsertLink(const std::string_view url_sv, const std::string_view text_sv, const bool open_in_new_window)
 {
-    auto link_info = Json::CreateObject(
+    const JsonNode link_info_json_node = Json::CreateObject(
         {
-            { L"url",           url },
-            { L"text",          text },
-            { L"isNewWindow",   open_in_new_window },
-            { L"checkProtocol", true }
+            { JK::url,         url_sv },
+            { JK::text,        text_sv },
+            { "isNewWindow",   open_in_new_window },
+            { "checkProtocol", true }
         });
 
-    SendCommand(L"editor.createLink", link_info);
+    SendCommand("editor.createLink", link_info_json_node);
 }
 
 
-void HtmlEditorCtrl::SetSyntaxErrors(const std::map<std::wstring, std::wstring>& logic_to_error)
+void HtmlEditorCtrl::SetSyntaxErrors(const std::map<std::string, std::string>& logic_to_error)
 {
     Json::ObjectCreator arg;
 
     for( const auto& [logic, error] : logic_to_error )
         arg.Set(logic, error);
 
-    SendCommand(L"capifill.setSyntaxErrors", arg.GetJsonNode());
+    SendCommand("capifill.setSyntaxErrors", arg.GetJsonNode());
 }
 
 
-void HtmlEditorCtrl::OnEnable(BOOL bEnabled)
+void HtmlEditorCtrl::OnEnable(const BOOL bEnabled)
 {
     HtmlViewCtrl::OnEnable(bEnabled);
-    SendCommand(bEnabled ? L"enable" : L"disable");
+
+    SendCommand(bEnabled ? "enable" : "disable");
 }
 
 
-void HtmlEditorCtrl::OnWebMessageReceived(wstring_view message)
+void HtmlEditorCtrl::OnWebMessageReceived(const std::string_view message_sv)
 {
     try {
-        auto json = Json::Parse(message);
-        auto action = json.Get<std::wstring_view>(L"action");
+        const JsonNode json_node = Json::Parse(message_sv);
+        const std::string_view action_sv = json_node.Get<std::string_view>(JK::action);
 
-        if (action == L"documentLoaded") {
+        if (action_sv == "documentLoaded") {
             m_editor_ready = true;
-            for (const std::wstring& msg : m_messagesToSendWhenReady) {
+            for (const std::string& msg : m_messagesToSendWhenReady) {
                 PostWebMessageAsJson(msg);
             }
         }
-        else if (action == L"textChanged") {
-            std::wstring value = json.GetOrDefault(L"value", SO::EmptyString);
+        else if (action_sv == "textChanged") {
+            std::wstring value = json_node.GetOrConstruct<std::wstring>("value");
             OnTextChanged(std::move(value));
         }
-        else if (action == L"selectionChanged") {
-            bool is_empty = json.Get<bool>(L"empty");
-            auto current_style = json.Get<Format>(L"currentStyle");
+        else if (action_sv == "selectionChanged") {
+            const bool is_empty = json_node.Get<bool>("empty");
+            Format current_style = json_node.Get<Format>("currentStyle");
             OnSelectionChanged(is_empty, std::move(current_style));
         }
-        else if (action == L"contextMenu") {
-            int clientX = json.Get<int>(L"clientX");
-            int clientY = json.Get<int>(L"clientY");
+        else if (action_sv == "contextMenu") {
+            const int clientX = json_node.Get<int>("clientX");
+            const int clientY = json_node.Get<int>("clientY");
             OnContextMenu(CPoint(clientX, clientY));
         }
-        else if (action == L"codeViewToggled") {
-            bool codeView = json.Get<bool>(L"codeView");
+        else if (action_sv == "codeViewToggled") {
+            const bool codeView = json_node.Get<bool>("codeView");
             OnCodeViewToggled(codeView);
         }
-        else if (action == L"showEditLinkDialog") {
-            auto linkInfo = json[L"linkInfo"];
-            std::wstring text = linkInfo.Get<std::wstring>(L"text");
-            std::wstring url = linkInfo.Get<std::wstring>(L"url");
-            bool isNewWindow = linkInfo.GetOrDefault(L"isNewWindow", false);
-            ShowEditLinkDlg(url, text, isNewWindow);
+        else if (action_sv == "showEditLinkDialog") {
+            const JsonNode link_info_json_node = json_node["linkInfo"];
+            ShowEditLinkDlg(link_info_json_node.Get<std::wstring>("url"),
+                            link_info_json_node.Get<std::wstring>("text"),
+                            link_info_json_node.GetOrDefault("isNewWindow", false));
         }
 
     } catch( const JsonParseException& ) {
@@ -571,7 +574,7 @@ bool HtmlEditorCtrl::ShouldHandleAccelerator(UINT key, bool ctrl, bool shift, bo
     case 'U': // underline
     case 'X': // cut
     case 'C': // copy
-        return ctrl && !shift && !alt; // ctrl only for these shortcuts 
+        return ctrl && !shift && !alt; // ctrl only for these shortcuts
     case 'V': // paste/paste without format
         return ctrl && !alt;
     case 'I': // italic or dev tools (ctrl+shift+I)
@@ -604,41 +607,44 @@ bool HtmlEditorCtrl::ShouldHandleAccelerator(UINT key, bool ctrl, bool shift, bo
         return true;
     default:
         // Other shortcuts with ctrl or alt are not passed to webview and are instead posted
-        // to this process for handling. 
+        // to this process for handling.
         return !ctrl && !alt;
     }
 
 }
 
 
-void HtmlEditorCtrl::SendEditorMessage(const std::wstring& message_json)
+void HtmlEditorCtrl::SendEditorMessage(std::string&& message_json)
 {
-    if (m_editor_ready) {
+    if( m_editor_ready )
+    {
         PostWebMessageAsJson(message_json);
     }
-    else {
-        m_messagesToSendWhenReady.emplace_back(message_json);
+
+    else
+    {
+        m_messagesToSendWhenReady.emplace_back(std::move(message_json));
     }
 }
 
 
-void HtmlEditorCtrl::SendCommand(wstring_view command)
+void HtmlEditorCtrl::SendCommand(const std::string_view command_sv)
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action",  L"summernoteCommand" },
-            { L"command", command }
+            { JK::action,  "summernoteCommand" },
+            { "command", command_sv }
         }));
 }
 
 
-template <typename T>
-void HtmlEditorCtrl::SendCommand(wstring_view command, T arg)
+template<typename T>
+void HtmlEditorCtrl::SendCommand(const std::string_view command_sv, T&& arg)
 {
     SendEditorMessage(Json::CreateObjectString(
         {
-            { L"action",  L"summernoteCommand" },
-            { L"command", command },
-            { L"arg",     arg }
+            { JK::action, "summernoteCommand" },
+            { "command",  command_sv },
+            { "arg",      std::forward<T>(arg) }
         }));
 }

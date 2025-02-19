@@ -1,49 +1,46 @@
 ﻿#include "stdafx.h"
 #include "VectorClock.h"
+#include <zJson/Json.h>
 
-int VectorClock::getVersion(const CString& device) const
+
+CREATE_JSON_KEY(revision)
+
+
+int VectorClock::getVersion(const DeviceId& device_id) const
 {
-    const DeviceRevMap::const_iterator i = m_vector.find(device);
-    return (i == m_vector.end()) ? 0 : i->second;
+    const auto& lookup = m_vector.find(device_id);
+
+    return ( lookup != m_vector.cend() ) ? lookup->second :
+                                           0;
 }
 
-// Compare clocks - clock A is = B iff all versions are == corresponding
-// version in B
+
+// Compare clocks - clock A is = B iff all versions are == corresponding version in B
 bool VectorClock::operator==(const VectorClock& rhs) const
 {
-    for (DeviceRevMap::const_iterator i = m_vector.begin(); i != m_vector.end(); ++i) {
-        const CString& dev = i->first;
-        const int myVersion = i->second;
-        const int rhsVersion = rhs.getVersion(dev);
-        if (myVersion != rhsVersion)
+    for( const auto& [device_id, myVersion] : m_vector ) {
+        if( myVersion != rhs.getVersion(device_id) )
             return false;
     }
-    for (DeviceRevMap::const_iterator i = rhs.m_vector.begin(); i != rhs.m_vector.end(); ++i) {
-        const CString& dev = i->first;
-        const int rhsVersion = i->second;
-        const int myVersion = getVersion(dev);
-        if (myVersion != rhsVersion)
+
+    for( const auto& [device_id, rhsVersion] : rhs.m_vector ) {
+        if( rhsVersion != getVersion(device_id) )
             return false;
     }
+
     return true;
 }
 
-bool VectorClock::operator!=(const VectorClock& rhs) const
-{
-    return !operator==(rhs);
-}
 
 bool VectorClock::operator<(const VectorClock& rhs) const
 {
     // Vector clock A is strictly less than B if all versions
     // in A are less than or equal to those in B and at least
     // one is strictly less.
-
     bool foundStrict = false;
-    for (DeviceRevMap::const_iterator i = m_vector.begin(); i != m_vector.end(); ++i) {
-        const CString& dev = i->first;
-        const int myVersion = i->second;
-        const int rhsVersion = rhs.getVersion(dev);
+
+    for( const auto& [device_id, myVersion] : m_vector ) {
+        const int rhsVersion = rhs.getVersion(device_id);
         if (rhsVersion < myVersion)
             return false;
         if (rhsVersion > myVersion)
@@ -55,54 +52,83 @@ bool VectorClock::operator<(const VectorClock& rhs) const
     //   {a:2, b:1} < {a:2, b:1, c:1}
     // where looking at devs in this only we would assume vectors are equal but
     // looking at c in rhs we can conclude that this < rhs
-    for (DeviceRevMap::const_iterator i = rhs.m_vector.begin(); i != rhs.m_vector.end(); ++i) {
-        if (getVersion(i->first) == 0)
+    for( const auto& [device_id, rhsVersion] : rhs.m_vector ) {
+        if (getVersion(device_id) == 0) {
             foundStrict = true;
+            break;
+        }
     }
 
     return foundStrict;
 }
 
+
 void VectorClock::merge(const VectorClock& rhs)
 {
-    for (DeviceRevMap::const_iterator i = rhs.m_vector.begin(); i != rhs.m_vector.end(); ++i) {
-        const CString& dev = i->first;
-        DeviceRevMap::iterator j = m_vector.find(dev);
-        if (j == m_vector.end()) {
-            m_vector.insert(DeviceRevMap::value_type(dev, i->second));
+    for( const auto& [device_id, rhsVersion] : rhs.m_vector ) {
+        auto lookup = m_vector.find(device_id);
+        if( lookup == m_vector.cend() ) {
+            m_vector.try_emplace(device_id, rhsVersion);
         }
         else {
-            j->second = std::max(j->second, i->second);
+            lookup->second = std::max(rhsVersion, lookup->second);
         }
     }
 }
 
-void VectorClock::increment(const CString& device)
+
+void VectorClock::increment(const DeviceId& device_id)
 {
-    DeviceRevMap::iterator i = m_vector.find(device);
-    if (i == m_vector.end()) {
-        m_vector.insert(DeviceRevMap::value_type(device, 1));
-    }
-    else {
-        ++(i->second);
-    }
+    int& myVersion = m_vector[device_id];
+    ++myVersion;
 }
 
-std::vector<CString> VectorClock::getAllDevices() const
+
+std::vector<DeviceId> VectorClock::getAllDevices() const
 {
-    std::vector<CString> devices;
-    for (DeviceRevMap::const_iterator i = m_vector.begin(); i != m_vector.end(); ++i) {
-        devices.push_back(i->first);
-    }
+    std::vector<DeviceId> devices;
+
+    for( const auto& [device_id, revision] : m_vector )
+        devices.emplace_back(device_id);
+
     return devices;
 }
 
-void VectorClock::setVersion(const CString& device, int version)
+
+void VectorClock::setVersion(const DeviceId& device_id, const int version)
 {
-    m_vector[device] = version;
+    m_vector[device_id] = version;
 }
+
 
 void VectorClock::clear()
 {
     m_vector.clear();
+}
+
+
+VectorClock VectorClock::CreateFromJson(const JsonNode& json_node)
+{
+    VectorClock vector_clock;
+
+    for( const JsonNode& clock_node : json_node.GetArray() )
+        vector_clock.m_vector.try_emplace(clock_node.Get<std::string>(JK::deviceId), clock_node.Get<int>(JK::revision));
+
+    return vector_clock;
+}
+
+
+void VectorClock::WriteJson(JsonWriter& json_writer) const
+{
+    json_writer.BeginArray();
+
+    for( const auto& [device_id, revision] : m_vector )
+    {
+        json_writer.BeginObject()
+                   .Write(JK::deviceId, device_id)
+                   .Write(JK::revision, revision)
+                   .EndObject();
+    }
+
+    json_writer.EndArray();
 }

@@ -2,19 +2,19 @@
 #include "CoordinateConverter.h"
 
 
-std::wstring CoordinateConverter::ToDecimalString(double latitude, double longitude)
+std::string CoordinateConverter::ToDecimalString(const double latitude, const double longitude)
 {
-    return FormatTextCS2WS(_T("%0.6f, %0.6f"), latitude, longitude);
+    return FormatText("%0.6f, %0.6f", latitude, longitude);
 }
 
 
-std::wstring CoordinateConverter::ToDMSString(double latitude, double longitude)
+std::string CoordinateConverter::ToDMSString(const double latitude, const double longitude)
 {
-    auto convert = [](double value, TCHAR pcc, TCHAR ncc)
+    auto convert = [](double value, const char pcc, const char ncc)
     {
         double degrees;
         double minutes;
-        TCHAR cardinal_char;
+        char cardinal_char;
 
         if( value >= 0 )
         {
@@ -28,10 +28,10 @@ std::wstring CoordinateConverter::ToDMSString(double latitude, double longitude)
             cardinal_char = ncc;
         }
 
-        double seconds = 60 * std::modf(minutes, &value);
+        const double seconds = 60 * std::modf(minutes, &value);
 
-        return FormatTextCS2WS(_T("%d° %d' %0.0f\" %c"), (int)degrees, (int)minutes, seconds, cardinal_char);
+        return FormatText(u8"%d° %d′ %0.0f″ %c", static_cast<int>(degrees), static_cast<int>(minutes), seconds, cardinal_char);
     };
 
-    return SO::Concatenate(convert(latitude, 'N', 'S'), _T(", "), convert(longitude, 'E', 'W'));
+    return SO::Concatenate(convert(latitude, 'N', 'S'), ", ", convert(longitude, 'E', 'W'));
 }

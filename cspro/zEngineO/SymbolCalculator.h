@@ -11,10 +11,10 @@ class ZENGINEO_API SymbolCalculator
 public:
     // Returns the symbol's base name. This name will be the same as the symbol's name
     // except for dictionary-based objects, where the dictionary name will be returned.
-    static std::wstring GetBaseName(const Symbol& symbol);
+    static const std::string& GetBaseName(const Symbol& symbol);
 
     // Returns the symbol's label if one exists. If not, it returns the symbol's name.
-    static std::wstring GetLabel(const Symbol& symbol);
+    static std::string GetLabel(const Symbol& symbol);
 
     // Returns the symbol's dictionary object (if applicable).
     static const DictBase* GetDictBase(const Symbol& symbol);
@@ -51,7 +51,7 @@ public:
     // --------------------------------------------------------------------------
     // the following non-static methods require access to the symbol table
     // --------------------------------------------------------------------------
-    
+
     SymbolCalculator(const Logic::SymbolTable& symbol_table)
         : m_symbolTable(symbol_table)
     {

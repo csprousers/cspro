@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{192CBDCE-78BC-4C95-9C9E-9BEE530D677C}</ProjectGuid>
     <RootNamespace>zTableO</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

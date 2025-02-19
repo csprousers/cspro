@@ -42,4 +42,17 @@ using CStdioFile = CCSProStdioFile;
 #define GetBValue(rgb)      ((((uint32_t) (rgb)) >> 16) & 0xff)
 #endif
 
+
+// use CSLOG for asserting and tracing
+#include <zToolsO/StandardTemplates.h>
+#include <zToolsO/DebugLogging.h>
+
+#ifdef _DEBUG
+#undef ASSERT
+#define ASSERT(f) CSLOG_ASSERT(f)
+#undef TRACE
+#define TRACE     CSLOG_TRACE
+#endif
+
+
 #endif // _MFC_VER

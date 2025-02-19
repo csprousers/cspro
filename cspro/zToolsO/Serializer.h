@@ -19,8 +19,8 @@ class SerializerImpl
 public:
     virtual ~SerializerImpl() { }
 
-    virtual void Open(const std::wstring& filename) = 0;
-    virtual void Create(const std::wstring& filename) = 0;
+    virtual void Open(const std::string& file_path) = 0;
+    virtual void Create(const std::string& file_path) = 0;
     virtual void Close() = 0;
     virtual void Read(void* buffer, int length) = 0;
     virtual void Write(const void* buffer, int length) = 0;
@@ -31,10 +31,6 @@ class CLASS_DECL_ZTOOLSO Serializer
 {
 public:
     // released version numbers (_x_x_xxx) and then an iteration number (_x) for betas
-    static constexpr int Iteration_7_5_000_1 = 750001;
-
-    static constexpr int Iteration_7_6_000_1 = 760001;
-
     static constexpr int Iteration_7_7_000_1 = 770001;
     static constexpr int Iteration_7_7_000_2 = 770002;
 
@@ -44,16 +40,18 @@ public:
     static constexpr int Iteration_8_0_000_4 = 800004;
     static constexpr int Iteration_8_0_002_1 = 800021;
 
-    static constexpr int GetEarliestSupportedVersion() { return Iteration_7_5_000_1; }
+    static constexpr int Iteration_8_1_000_1 = 810001;
 
-    static constexpr int GetCurrentVersion()           { return Iteration_8_0_002_1; }
+    static constexpr int GetEarliestSupportedVersion() { return Iteration_7_7_000_1; }
+
+    static constexpr int GetCurrentVersion()           { return Iteration_8_1_000_1; }
 
 public:
     Serializer();
     ~Serializer();
 
-    void OpenInputArchive(std::wstring filename);
-    void CreateOutputArchive(std::wstring filename, bool use_string_conserver = true);
+    void OpenInputArchive(std::string file_path);
+    void CreateOutputArchive(std::string file_path, bool use_string_conserver = true);
     void CloseArchive();
 
     bool IsSaving() const  { return m_saving; }
@@ -63,8 +61,8 @@ public:
     bool MeetsVersionIteration(int iteration) const    { return ( m_archiveVersion >= iteration ); }
     bool PredatesVersionIteration(int iteration) const { return ( m_archiveVersion < iteration ); }
 
-    const std::wstring& GetArchiveFilename() const { return m_archiveFilename; }
-    time_t GetArchiveModifiedDate() const          { return m_archiveModifiedDate; }
+    const std::string& GetArchiveFilePath() const { return m_archiveFilePath; }
+    int64_t GetArchiveModifiedDate() const        { return m_archiveModifiedDate; }
 
     void Read(void* buffer, int length)        { m_serializerImpl->Read(buffer, length); }
     void Write(const void* buffer, int length) { m_serializerImpl->Write(buffer, length); }
@@ -72,25 +70,27 @@ public:
     SerializerHelper& GetSerializerHelper() { return m_serializerHelper; }
 
 private:
+    std::wstring ReadPre81WideString();
+
+private:
     std::unique_ptr<SerializerImpl> m_serializerImpl;
     SerializerHelper m_serializerHelper;
-    std::wstring m_archiveFilename;
-    time_t m_archiveModifiedDate;
+    std::string m_archiveFilePath;
+    int64_t m_archiveModifiedDate;
     int m_archiveVersion;
     bool m_saving;
 
-    std::vector<std::wstring> m_serializedStrings;
-    std::unique_ptr<ConstantConserver<std::wstring>> m_serializedStringConserver;
+    std::vector<std::string> m_serializedStrings;
+    std::unique_ptr<ConstantConserver<std::string>> m_serializedStringConserver;
 
 
 public:
+    void WritePath(const std::string& path);
     void WriteFilename(NullTerminatedString filename);
+    Serializer& SerializePath(std::string& path, bool adjust_to_use_native_slash = false);
+    Serializer& SerializePaths(std::vector<std::string>& paths, bool adjust_to_use_native_slash = false);
     Serializer& SerializeFilename(CString& filename, bool normalize_filename = false);
     Serializer& SerializeFilename(std::wstring& filename, bool normalize_filename = false);
-    Serializer& SerializeFilenameArray(std::vector<CString>& filenames, bool normalize_filename = false);
-
-    template<typename T>
-    void SerializeString(T& str);
 
     void Dump(void* buffer, int length)
     {
@@ -168,15 +168,23 @@ public:
 
 #undef SerializeBasicType
 
+    Serializer& operator<<(const std::string& value);
+    Serializer& operator>>(std::string& value);
+
+    Serializer& operator<<(const SharableString& value);
+    Serializer& operator>>(SharableString& value);
+
+    Serializer& operator<<(const std::wstring& value) { return operator<<(UTF8_TODO::GetUtf8(value)); }
+    Serializer& operator>>(std::wstring& value)       { value = UTF8_TODO::GetWide(Read<std::string>()); return *this; }
+
+    Serializer& operator<<(const CString& value) { return operator<<(UTF8_TODO::GetUtf8(value)); }
+    Serializer& operator>>(CString& value)       { value = UTF8_TODO::GetCString(Read<std::string>()); return *this; }
 
     template<typename T>
     Serializer& SerializeEnum(T& enum_value);
 
     template<typename T>
     Serializer& SerializeEnum(std::optional<T>& enum_value);
-
-    Serializer& operator<<(const std::string& value);
-    Serializer& operator>>(std::string& value);
 
     template<typename T>
     T Read()
@@ -200,6 +208,9 @@ public:
 
         return *this;
     }
+
+    // If loading, skips past some number of bytes.
+    Serializer& IgnoreUnusedBytes(int length);
 };
 
 
@@ -211,8 +222,6 @@ static Serializer& serialize(Serializer& ar, T& object)
 }
 
 
-CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, std::wstring& str);
-CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CString& str);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, size_t& value);
 
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CPoint& rect);

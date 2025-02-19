@@ -20,14 +20,14 @@ void DictValueSet::AddValue(DictValue dict_value)
 }
 
 
-void DictValueSet::InsertValue(size_t index, DictValue dict_value)
+void DictValueSet::InsertValue(const size_t index, DictValue dict_value)
 {
     ASSERT(index <= m_dictValues.size());
     m_dictValues.insert(m_dictValues.begin() + index, std::move(dict_value));
 }
 
 
-void DictValueSet::RemoveValue(size_t index)
+void DictValueSet::RemoveValue(const size_t index)
 {
     ASSERT(index < m_dictValues.size());
     m_dictValues.erase(m_dictValues.begin() + index);
@@ -37,6 +37,12 @@ void DictValueSet::RemoveValue(size_t index)
 void DictValueSet::RemoveAllValues()
 {
     m_dictValues.clear();
+}
+
+
+void DictValueSet::ReverseValues()
+{
+    std::reverse(m_dictValues.begin(), m_dictValues.end());
 }
 
 
@@ -50,7 +56,7 @@ void DictValueSet::LinkValueSet(DictValueSet& source_dict_value_set)
 }
 
 
-void DictValueSet::LinkValueSetByCode(std::wstring code)
+void DictValueSet::LinkValueSetByCode(std::string code)
 {
     m_linkedValueSetCode = std::move(code);
 }
@@ -89,7 +95,7 @@ std::tuple<double, double> DictValueSet::GetMinMax() const
             {
                 if( !SO::IsBlank(text) )
                 {
-                    double value = CIMSAString::fVal(text);
+                    const double value = CIMSAString::fVal(text);
                     std::get<0>(min_max) = std::min(value, std::get<0>(min_max));
                     std::get<1>(min_max) = std::max(value, std::get<1>(min_max));
                 }
@@ -104,7 +110,7 @@ std::tuple<double, double> DictValueSet::GetMinMax() const
 }
 
 
-DictValueSet DictValueSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictValueSet DictValueSet::CreateFromJson(const JsonNode& json_node)
 {
     DictValueSet dict_value_set;
 
@@ -114,14 +120,14 @@ DictValueSet DictValueSet::CreateFromJson(const JsonNode<wchar_t>& json_node)
 
     dict_value_set.DictNamedBase::ParseJsonInput(json_node);
 
-    dict_value_set.m_linkedValueSetCode = json_node.GetOrDefault(JK::link, SO::EmptyString);
+    dict_value_set.m_linkedValueSetCode = json_node.GetOrConstruct<std::string>(JK::link);
 
     dict_value_set.m_dictValues = json_node.GetArrayOrEmpty(JK::values).GetVector<DictValue>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A value was not added to '%s' due to errors: %s"),
-                                 dict_value_set.GetName().GetString(),
-                                 exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A value was not added to '%s' due to errors: %s",
+                                 dict_value_set.GetName().c_str(),
+                                 exception.what());
         });
 
     return dict_value_set;
@@ -191,44 +197,41 @@ void DictValueSet::serialize(Serializer& ar)
     // when using linked value sets, only serialize the values for the first encountered value set
     bool serialize_values = true;
 
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_6_000_1) )
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
-        if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
+        ar & m_linkedValueSetCode;
+    }
+
+    else
+    {
+        int64_t int64_t_code;
+        ar.Dump(&int64_t_code, sizeof(int64_t_code));
+
+        if( int64_t_code != 0 )
+            m_linkedValueSetCode = IntToString(int64_t_code);
+    }
+
+    if( ar.IsSaving() && IsLinkedValueSet() )
+    {
+        auto dict_serializer_helper = ar.GetSerializerHelper().Get<DictionarySerializerHelper>();
+        ASSERT(dict_serializer_helper!= nullptr);
+
+        if( dict_serializer_helper->HasValueSetBeenSerialized(m_linkedValueSetCode) )
         {
-            ar & m_linkedValueSetCode;
+            serialize_values = false;
         }
 
         else
         {
-            int64_t int64_t_code;
-            ar.Dump(&int64_t_code, sizeof(int64_t_code));
-
-            if( int64_t_code != 0 )
-                m_linkedValueSetCode = IntToString(int64_t_code);
+            dict_serializer_helper->MarkValueSetAsSerialized(m_linkedValueSetCode);
         }
-
-        if( ar.IsSaving() && IsLinkedValueSet() )
-        {
-            auto dict_serializer_helper = ar.GetSerializerHelper().Get<DictionarySerializerHelper>();
-            ASSERT(dict_serializer_helper!= nullptr);
-
-            if( dict_serializer_helper->HasValueSetBeenSerialized(m_linkedValueSetCode) )
-            {
-                serialize_values = false;                
-            }
-
-            else
-            {
-                dict_serializer_helper->MarkValueSetAsSerialized(m_linkedValueSetCode);
-            }
-        }
-
-        ar & serialize_values;
     }
+
+    ar & serialize_values;
 
     if( serialize_values )
     {
         ar.IgnoreUnusedVariable<int>(Serializer::Iteration_8_0_000_1); // m_iNumValues
-        ar & m_dictValues;    
+        ar & m_dictValues;
     }
 }

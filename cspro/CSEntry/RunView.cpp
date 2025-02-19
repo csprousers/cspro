@@ -838,8 +838,8 @@ bool CEntryrunView::SetDictItem(CDEField* pField)
     //Search thru the dicts for the dict item
     CString sDictName = pField->GetItemDict();
 
-    if( pFormFile->GetDictionary()->GetName().CompareNoCase(sDictName) == 0 ) {
-        const CDictItem* pItem = pFormFile->GetDictionary()->LookupName<CDictItem>(pField->GetItemName());
+    if( SO::EqualsNoCase(pFormFile->GetDictionary()->GetName(), sDictName) ) {
+        const CDictItem* pItem = pFormFile->GetDictionary()->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
 
         if(pItem != nullptr) {
             pField->SetDictItem(pItem);
@@ -2247,7 +2247,7 @@ void CEntryrunView::ProcessFldAttrib(CDEField* pField)
                     iIndex = iVal+1;
             }
 
-            sData = IntToString(iIndex);
+            sData = UTF8_TODO::GetCString(IntToString(iIndex));
             pField->SetData( sData );
 
             CDEBaseEdit* pEdit = this->SearchEdit(pField);
@@ -2305,7 +2305,7 @@ BOOL CEntryrunView::OutOfSequence(CDEBaseEdit* pEdit)
                 iIndex = iVal+1;
         }
 
-        sData = IntToString(iIndex);
+        sData = UTF8_TODO::GetCString(IntToString(iIndex));
 
         CIMSAString sInput;
         pEdit->GetWindowText(sInput);
@@ -4253,7 +4253,7 @@ void CEntryrunView::DrawScreenStats(CDC* pDC)
     if( pInputRepo == NULL )
         return;
 
-    CString csDataFilename = pInputRepo->GetName(DataRepositoryNameType::ForListing);
+    const CString data_source_name = TC::ToWide<CString>(pInputRepo->GetName(DataRepositoryNameType::ForListing));
 
     CRect rect;
     GetClientRect(&rect);
@@ -4270,7 +4270,7 @@ void CEntryrunView::DrawScreenStats(CDC* pDC)
     CFont* pOldFont = pDC->SelectObject(&font);
 
     pDC->SetBkMode(TRANSPARENT);
-    CSize sz = pDC->GetTextExtent(csDataFilename);
+    CSize sz = pDC->GetTextExtent(data_source_name);
     CSize szMin = pDC->GetTextExtent(_T("Verified 999999999     100 %"));
     CRect rectBox;
     if (sz.cx > szMin.cx) {
@@ -4287,9 +4287,9 @@ void CEntryrunView::DrawScreenStats(CDC* pDC)
     CRect rectFill = CRect(rectBox.left+2,rectBox.top+2,rectBox.right-2,rectBox.bottom-2);
     pDC->FillSolidRect(&rectFill,RGB(255,255,255));
 
-    pDC->TextOut(rectBox.left + iMargin,rectBox.top + iMargin,csDataFilename);
-    pDC->MoveTo(rectBox.left + iMargin,rectBox.top + iMargin + sz.cy);
-    pDC->LineTo(rectBox.right - iMargin,rectBox.top + iMargin + sz.cy);
+    pDC->TextOut(rectBox.left + iMargin, rectBox.top + iMargin, data_source_name);
+    pDC->MoveTo(rectBox.left + iMargin, rectBox.top + iMargin + sz.cy);
+    pDC->LineTo(rectBox.right - iMargin, rectBox.top + iMargin + sz.cy);
 
 
     CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
@@ -5211,7 +5211,7 @@ int CEntryrunView::GetDynamicMaxOccs(CDEGroup* pGroup)
         CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
         CDEField* pDynField = NULL;
         CDEForm* pForm  = NULL;
-        pRunDoc->GetCurFormFile()->FindField(pGroup->GetMaxDEField()->GetName(),&pForm,(CDEItemBase**)&pDynField);
+        pRunDoc->GetCurFormFile()->FindField(UTF8_TODO::GetCString(pGroup->GetMaxDEField()->GetName()), &pForm, (CDEItemBase**)&pDynField);
 
         if( pDynField )
             sVal = pRunApl->GetVal(pGroup->GetMaxDEField()->GetSymbol(), pDynField->GetParent()->GetCurOccurrence());

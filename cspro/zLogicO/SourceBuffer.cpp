@@ -7,7 +7,7 @@ using namespace Logic;
 
 namespace
 {
-    const TokenCode SingleCharacterOperatorTokenCodes[17] =
+    constexpr TokenCode SingleCharacterOperatorTokenCodes[17] =
     {
         TokenCode::TOKADDOP,
         TokenCode::TOKMULOP,
@@ -37,24 +37,24 @@ namespace
 class Logic::SourceBufferTokenizer
 {
 public:
-    SourceBufferTokenizer(const TCHAR* buffer, std::vector<BasicToken>& basic_tokens, const LogicSettings& logic_settings);
+    SourceBufferTokenizer(std::string_view buffer_sv, std::vector<BasicToken>& basic_tokens, const LogicSettings& logic_settings);
 
     void Tokenize();
 
 private:
-    TCHAR NextChar();
+    char NextChar();
 
     bool AdditionalCharactersExistInBuffer() const
     {
         return ( m_currentBufferPosition < m_bufferEndPosition );
     }
 
-    bool AdditionalCharactersExistInBuffer(size_t required_length) const
+    bool AdditionalCharactersExistInBuffer(const size_t required_length) const
     {
         return ( ( m_currentBufferPosition + required_length ) <= m_bufferEndPosition );
     }
 
-    bool CheckFullMatchingText(wstring_view text_sv, bool advance_past_characters);
+    bool CheckFullMatchingText(std::string_view text_sv, bool advance_past_characters);
 
     void AddTokenFromCurrentPosition(BasicToken::Type type, size_t token_length, TokenCode operator_token_code = TokenCode::Unspecified);
 
@@ -63,38 +63,38 @@ private:
     void ReadNumericConstant();
     void ReadStringLiteral();
     void ReadStringLiteralVerbatim();
-    void ReadOperator(const TCHAR* operator_pos);
+    void ReadOperator(const char* operator_pos);
     void ReadText();
 
 private:
-    const TCHAR* m_buffer;
+    const char* m_buffer;
     const LogicSettings& m_logicSettings;
     std::vector<BasicToken>& m_basicTokens;
 
-    const TCHAR* m_currentBufferPosition;
-    const TCHAR* m_bufferEndPosition;
+    const char* m_currentBufferPosition;
+    const char* m_bufferEndPosition;
     size_t m_lineNumber;
     size_t m_positionInLine;
 };
 
 
-SourceBufferTokenizer::SourceBufferTokenizer(const TCHAR* buffer, std::vector<BasicToken>& basic_tokens, const LogicSettings& logic_settings)
-    :   m_buffer(buffer),
+SourceBufferTokenizer::SourceBufferTokenizer(const std::string_view buffer_sv, std::vector<BasicToken>& basic_tokens, const LogicSettings& logic_settings)
+    :   m_buffer(buffer_sv.data()),
         m_basicTokens(basic_tokens),
         m_logicSettings(logic_settings),
         m_currentBufferPosition(m_buffer),
-        m_bufferEndPosition(buffer + _tcslen(buffer)),
+        m_bufferEndPosition(m_buffer + buffer_sv.length()),
         m_lineNumber(1),
         m_positionInLine(0)
 {
 }
 
 
-TCHAR SourceBufferTokenizer::NextChar()
+char SourceBufferTokenizer::NextChar()
 {
-    const TCHAR ch = *m_currentBufferPosition;
+    const char ch = *m_currentBufferPosition;
 
-    if( ch != 0 )
+    if( ch != '\0' )
     {
         if( ch == '\n' )
         {
@@ -117,14 +117,14 @@ TCHAR SourceBufferTokenizer::NextChar()
 void SourceBufferTokenizer::Tokenize()
 {
     bool last_character_was_whitespace = true;
-    const TCHAR* operator_pos;
+    const char* operator_pos;
 
     while( AdditionalCharactersExistInBuffer() )
     {
-        TCHAR ch = *m_currentBufferPosition;
+        const char ch = *m_currentBufferPosition;
 
         // skip over whitespace
-        const bool this_character_is_whitespace = std::iswspace(ch);
+        const bool this_character_is_whitespace = std::isspace(ch);
 
         if( this_character_is_whitespace )
         {
@@ -169,7 +169,7 @@ void SourceBufferTokenizer::Tokenize()
         }
 
         // operator or verbatim string literal
-        else if( ( operator_pos = _tcschr(OperatorCharacters, ch) ) != nullptr )
+        else if( ( operator_pos = strchr(OperatorCharacters, ch) ) != nullptr )
         {
             if( ch == VerbatimStringLiteralStartCh1 &&
                 AdditionalCharactersExistInBuffer(2) && *(m_currentBufferPosition + 1) == VerbatimStringLiteralStartCh2 &&
@@ -195,10 +195,13 @@ void SourceBufferTokenizer::Tokenize()
 }
 
 
-bool SourceBufferTokenizer::CheckFullMatchingText(wstring_view text_sv, bool advance_past_characters)
+bool SourceBufferTokenizer::CheckFullMatchingText(const std::string_view text_sv, const bool advance_past_characters)
 {
-    if( !AdditionalCharactersExistInBuffer(text_sv.length()) || !SO::StartsWithNoCase(m_currentBufferPosition, text_sv) )
+    if( !AdditionalCharactersExistInBuffer(text_sv.length()) ||
+        !SO::EqualsNoCase(std::string_view(m_currentBufferPosition, text_sv.length()), text_sv) )
+    {
         return false;
+    }
 
     // if a match, read the characters
     if( advance_past_characters )
@@ -211,7 +214,7 @@ bool SourceBufferTokenizer::CheckFullMatchingText(wstring_view text_sv, bool adv
 }
 
 
-void SourceBufferTokenizer::AddTokenFromCurrentPosition(BasicToken::Type type, size_t token_length, TokenCode operator_token_code/* = TokenCode::Unspecified*/)
+void SourceBufferTokenizer::AddTokenFromCurrentPosition(const BasicToken::Type type, const size_t token_length, const TokenCode operator_token_code/* = TokenCode::Unspecified*/)
 {
     m_basicTokens.emplace_back(BasicToken
     {
@@ -228,7 +231,7 @@ void SourceBufferTokenizer::AddTokenFromCurrentPosition(BasicToken::Type type, s
 void SourceBufferTokenizer::ReadMultilineComment()
 {
     // save the current state
-    const TCHAR* current_buffer_position_after_comment = m_currentBufferPosition;
+    const char* const current_buffer_position_after_comment = m_currentBufferPosition;
     size_t line_number = m_lineNumber;
     size_t position_in_line_after_comment = m_positionInLine;
 
@@ -285,7 +288,7 @@ void SourceBufferTokenizer::ReadNumericConstant()
 
     while( AdditionalCharactersExistInBuffer() )
     {
-        TCHAR ch = *m_currentBufferPosition;
+        const char ch = *m_currentBufferPosition;
 
         if( !std::isdigit(ch) )
         {
@@ -310,15 +313,15 @@ void SourceBufferTokenizer::ReadNumericConstant()
 
 void SourceBufferTokenizer::ReadStringLiteral()
 {
-    const TCHAR quotemark = NextChar();
-    const TCHAR string_literal_escape_sequence = m_logicSettings.EscapeStringLiterals() ? '\\' : 0;
+    const char quotemark = NextChar();
+    const char string_literal_escape_sequence = m_logicSettings.EscapeStringLiterals() ? '\\' : 0;
     bool last_character_was_an_escape = false;
     size_t literal_length = 1;
 
     // copy over the characters up to the end quote or the newline, allowing for escaped characters
     while( AdditionalCharactersExistInBuffer() )
     {
-        const TCHAR ch = *m_currentBufferPosition;
+        const char ch = *m_currentBufferPosition;
 
         if( is_crlf(ch) )
             break;
@@ -361,7 +364,7 @@ void SourceBufferTokenizer::SourceBufferTokenizer::ReadStringLiteralVerbatim()
     // copy over the characters up to the end quote or the newline, allowing for escaped characters
     while( AdditionalCharactersExistInBuffer() )
     {
-        const TCHAR ch = *m_currentBufferPosition;
+        const char ch = *m_currentBufferPosition;
 
         if( is_crlf(ch) )
             break;
@@ -385,10 +388,10 @@ void SourceBufferTokenizer::SourceBufferTokenizer::ReadStringLiteralVerbatim()
 }
 
 
-void SourceBufferTokenizer::ReadOperator(const TCHAR* operator_pos)
+void SourceBufferTokenizer::ReadOperator(const char* const operator_pos)
 {
     const size_t operator_index = operator_pos - OperatorCharacters;
-    const TCHAR ch = *m_currentBufferPosition;
+    const char ch = *m_currentBufferPosition;
 
     BasicToken::Type type = BasicToken::Type::Operator;
     TokenCode operator_token_code = TokenCode::Unspecified;
@@ -409,7 +412,7 @@ void SourceBufferTokenizer::ReadOperator(const TCHAR* operator_pos)
     // multiple character operators
     else
     {
-        const TCHAR second_ch = AdditionalCharactersExistInBuffer(2) ? *(m_currentBufferPosition + 1) : 0;
+        const char second_ch = AdditionalCharactersExistInBuffer(2) ? *(m_currentBufferPosition + 1) : 0;
 
         if( ch == '-' )
         {
@@ -451,7 +454,7 @@ void SourceBufferTokenizer::ReadOperator(const TCHAR* operator_pos)
             {
                 ++operator_length;
 
-                const TCHAR third_ch = AdditionalCharactersExistInBuffer(3) ? *(m_currentBufferPosition + 2) : 0;
+                const char third_ch = AdditionalCharactersExistInBuffer(3) ? *(m_currentBufferPosition + 2) : 0;
 
                 if( third_ch == '>' )
                 {
@@ -525,15 +528,15 @@ void SourceBufferTokenizer::ReadText()
 
     while( AdditionalCharactersExistInBuffer() )
     {
-        const TCHAR ch = *m_currentBufferPosition;
+        const char ch = *m_currentBufferPosition;
 
         // break on whitespace
-        if( std::iswspace(ch) )
+        if( std::isspace(ch) )
             break;
 
         // break on an operator, though for speed, before checking if the character is an operator,
         // check if it is a typically encounted character
-        if( !_istalnum(ch) && ( _tcschr(OperatorCharacters, ch) != nullptr ) )
+        if( !is_alnum(ch) && strchr(OperatorCharacters, ch) != nullptr )
             break;
 
         // break on a comment
@@ -556,23 +559,9 @@ void SourceBufferTokenizer::ReadText()
 // SourceBuffer
 // --------------------------------------------------------------------------
 
-SourceBuffer::SourceBuffer(std::wstring buffer)
+SourceBuffer::SourceBuffer(SharableString buffer)
     :   m_buffer(std::move(buffer))
 {
-}
-
-
-SourceBuffer::SourceBuffer(const TCHAR* buffer, bool create_copy_of_buffer)
-{
-    if( create_copy_of_buffer )
-    {
-        m_buffer = std::wstring(buffer);
-    }
-
-    else
-    {
-        m_buffer = buffer;
-    }
 }
 
 
@@ -582,7 +571,7 @@ const std::vector<BasicToken>& SourceBuffer::Tokenize(const LogicSettings& logic
     {
         m_basicTokens = std::make_unique<std::vector<BasicToken>>();
 
-        SourceBufferTokenizer source_buffer_tokenizer(GetBuffer(), *m_basicTokens, logic_settings);
+        SourceBufferTokenizer source_buffer_tokenizer(*m_buffer, *m_basicTokens, logic_settings);
         source_buffer_tokenizer.Tokenize();
 
         // adjust line numbers if necessary
@@ -606,12 +595,12 @@ const std::vector<BasicToken>& SourceBuffer::GetTokens() const
 
 size_t SourceBuffer::GetPositionInBuffer(const BasicToken& basic_token) const
 {
-    ASSERT(basic_token.token_text >= GetBuffer() && basic_token.token_text <= ( GetBuffer() + _tcslen(GetBuffer()) ));
-    return ( basic_token.token_text - GetBuffer() );
+    ASSERT(basic_token.token_text >= m_buffer->data() && basic_token.token_text <= ( m_buffer->data() + m_buffer->length() ));
+    return ( basic_token.token_text - m_buffer->data() );
 }
 
 
-void SourceBuffer::RemoveTokensAfterText(size_t start_position, TokenCode token_code, std::optional<wstring_view> end_text_sv/* = std::nullopt*/)
+void SourceBuffer::RemoveTokensAfterText(const size_t start_position, const TokenCode token_code, const cs::cref_optional<std::string> end_text/* = std::nullopt*/)
 {
     ASSERT(m_basicTokens != nullptr);
 
@@ -628,7 +617,7 @@ void SourceBuffer::RemoveTokensAfterText(size_t start_position, TokenCode token_
     {
         if( basic_tokens_itr->token_code == token_code )
         {
-            if( !end_text_sv.has_value() || SO::EqualsNoCase(*end_text_sv, basic_tokens_itr->GetTextSV()) )
+            if( !end_text.has_value() || SO::EqualsNoCase(*end_text, basic_tokens_itr->GetSV()) )
             {
                 m_basicTokens->erase(basic_tokens_itr + 1, basic_tokens_end);
                 return;

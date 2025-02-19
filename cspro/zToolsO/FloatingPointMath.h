@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include <zToolsO/Special.h>
+#include <zLogicO/Token.h>
 
 
-namespace FloatingPointMath
+class FloatingPointMath
 {
     /*--------------------------------------------------------------------------
         Relational operators with "fuzzy noise" due to floating point rounding
@@ -30,52 +31,121 @@ namespace FloatingPointMath
         power to determine the threshold.
     ----------------------------------------------------------------------------*/
 
+public:
     enum class Operation { Equals, LessThan, LessThanEquals, GreaterThanEquals, GreaterThan };
 
+    static constexpr double FloatingPointThreshold = 10E-13;
+
+    // handles: = < <= >= >
     template<Operation operation>
-    static bool Evaluate(double lhs, double rhs)
+    static bool Evaluate(double lhs, double rhs);
+
+    static bool Equals(double lhs, double rhs)            { return Evaluate<Operation::Equals>(lhs, rhs); }
+    static bool LessThan(double lhs, double rhs)          { return Evaluate<Operation::LessThan>(lhs, rhs); }
+    static bool LessThanEquals(double lhs, double rhs)    { return Evaluate<Operation::LessThanEquals>(lhs, rhs); }
+    static bool GreaterThanEquals(double lhs, double rhs) { return Evaluate<Operation::GreaterThanEquals>(lhs, rhs); }
+    static bool GreaterThan(double lhs, double rhs)       { return Evaluate<Operation::GreaterThan>(lhs, rhs); }
+
+    // handles the above, along with <>, with processing for special values
+    template<TokenCode token_code>
+    static bool Evaluate(double lhs, double rhs);
+
+    static bool Evaluate(TokenCode token_code, double lhs, double rhs);
+};
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<FloatingPointMath::Operation operation>
+bool FloatingPointMath::Evaluate(const double lhs, const double rhs)
+{
+    if constexpr(operation == Operation::Equals)
     {
-        constexpr double FloatingPointThreshold = 10E-13;
+        // short circuit a likely result
+        if( lhs == rhs )
+            return true;
+    }
 
-        if constexpr(operation == Operation::Equals)
+    else
+    {
+        // special value processing should be handled elsewhere
+        ASSERT(!IsSpecial(lhs) && !IsSpecial(rhs));
+    }
+
+    const double value_difference = lhs - rhs;
+    const double threshold = std::max(fabs(lhs / 100000000000000), FloatingPointThreshold);
+
+    if constexpr(operation == Operation::Equals)
+    {
+        return ( fabs(value_difference) <= threshold );
+    }
+
+    else if constexpr(operation == Operation::LessThan)
+    {
+        return ( value_difference < -threshold );
+    }
+
+    else if constexpr(operation == Operation::LessThanEquals)
+    {
+        return ( value_difference <= threshold );
+    }
+
+    else if constexpr(operation == Operation::GreaterThanEquals)
+    {
+        return ( value_difference >= -threshold );
+    }
+
+    else if constexpr(operation == Operation::GreaterThan)
+    {
+        return ( value_difference > threshold );
+    }
+
+    else
+    {
+        static_assert_false();
+    }
+}
+
+
+template<TokenCode token_code>
+bool FloatingPointMath::Evaluate(const double lhs, const double rhs)
+{
+    if constexpr(token_code == TokenCode::TOKEQOP)
+    {
+        return FloatingPointMath::Equals(lhs, rhs);
+    }
+
+    else if constexpr(token_code == TokenCode::TOKNEOP)
+    {
+        return !FloatingPointMath::Equals(lhs, rhs);
+    }
+
+    else
+    {
+        if( IsSpecial(lhs) || IsSpecial(rhs) )
+            return false;
+
+        if constexpr(token_code == TokenCode::TOKLTOP)
         {
-            // short circuit a likely result
-            if( lhs == rhs )
-                return true;
+            return FloatingPointMath::LessThan(lhs, rhs);
         }
 
-        else
+        else if constexpr(token_code == TokenCode::TOKLEOP)
         {
-            // special value processing should be handled elsewhere
-            ASSERT(!IsSpecial(lhs) && !IsSpecial(rhs));
+            return FloatingPointMath::LessThanEquals(lhs, rhs);
         }
 
-        double value_difference = lhs - rhs;
-        double threshold = std::max(fabs(lhs / 100000000000000), FloatingPointThreshold);
-
-        if constexpr(operation == Operation::Equals)
+        else if constexpr(token_code == TokenCode::TOKGEOP)
         {
-            return ( fabs(value_difference) <= threshold );
+            return FloatingPointMath::GreaterThanEquals(lhs, rhs);
         }
 
-        else if constexpr(operation == Operation::LessThan)
+        else if constexpr(token_code == TokenCode::TOKGTOP)
         {
-            return ( value_difference < -threshold );
-        }
-
-        else if constexpr(operation == Operation::LessThanEquals)
-        {
-            return ( value_difference <= threshold );
-        }
-
-        else if constexpr(operation == Operation::GreaterThanEquals)
-        {
-            return ( value_difference >= -threshold );
-        }
-
-        else if constexpr(operation == Operation::GreaterThan)
-        {
-            return ( value_difference > threshold );
+            return FloatingPointMath::GreaterThan(lhs, rhs);
         }
 
         else
@@ -83,10 +153,19 @@ namespace FloatingPointMath
             static_assert_false();
         }
     }
+}
 
-    inline bool Equals(double lhs, double rhs)            { return Evaluate<Operation::Equals>(lhs, rhs); }
-    inline bool LessThan(double lhs, double rhs)          { return Evaluate<Operation::LessThan>(lhs, rhs); }
-    inline bool LessThanEquals(double lhs, double rhs)    { return Evaluate<Operation::LessThanEquals>(lhs, rhs); }
-    inline bool GreaterThanEquals(double lhs, double rhs) { return Evaluate<Operation::GreaterThanEquals>(lhs, rhs); }
-    inline bool GreaterThan(double lhs, double rhs)       { return Evaluate<Operation::GreaterThan>(lhs, rhs); }
-};
+
+inline bool FloatingPointMath::Evaluate(const TokenCode token_code, const double lhs, const double rhs)
+{
+    switch( token_code )
+    {
+        case TokenCode::TOKEQOP: return Evaluate<TokenCode::TOKEQOP>(lhs, rhs);
+        case TokenCode::TOKNEOP: return Evaluate<TokenCode::TOKNEOP>(lhs, rhs);
+        case TokenCode::TOKLTOP: return Evaluate<TokenCode::TOKLTOP>(lhs, rhs);
+        case TokenCode::TOKLEOP: return Evaluate<TokenCode::TOKLEOP>(lhs, rhs);
+        case TokenCode::TOKGEOP: return Evaluate<TokenCode::TOKGEOP>(lhs, rhs);
+        case TokenCode::TOKGTOP: return Evaluate<TokenCode::TOKGTOP>(lhs, rhs);
+        default:                 return ReturnProgrammingError(false);
+    }
+}

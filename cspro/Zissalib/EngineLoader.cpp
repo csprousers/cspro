@@ -7,18 +7,16 @@
 // FLOW_TODO with time, more and more functionality can be moved into these loading methods
 
 
-void CEngineDriver::IssueLoadException(int message_number, ...)
+template<typename... Args>
+void CEngineDriver::IssueLoadException(int message_number, Args const&... args)
 {
-    va_list parg;
-    va_start(parg, message_number);
-    std::wstring message = m_pEngineDriver->GetSystemMessageIssuer().GetFormattedMessageVA(message_number, parg);
-    va_end(parg);
+    const std::string message = m_pEngineDriver->GetSystemMessageIssuer().GetFormattedMessage(message_number, args...);
 
-    CREATE_CSPRO_EXCEPTION(EngineLoadException) // FLOW_TODO determine if this should be part of ApplicationLoadException, or even if it has to be a separate named exception
+    CREATE_CSPRO_EXCEPTION(EngineLoadException); // FLOW_TODO determine if this should be part of ApplicationLoadException, or even if it has to be a separate named exception
 
     ASSERT(Issamod == ModuleType::Batch);  // FLOW_TODO make sure that the designer, csentry, etc. catch the engine loading exceptions
 
-    throw EngineLoadException(_T("There was an error loading the engine: %s"), message.c_str());
+    throw EngineLoadException("There was an error loading the engine: %s", message.c_str());
 }
 
 
@@ -59,7 +57,7 @@ std::shared_ptr<EngineDictionary> CEngineDriver::LoadApplicationDictionary(std::
 {
     // make sure the dictionary name is unique
     if( GetSymbolTable().NameExists(dictionary->GetName()) )
-        IssueLoadException(18000, _T("dictionary"), dictionary->GetName().GetString());
+        IssueLoadException(18000, "dictionary", dictionary->GetName().c_str());
 
     // update the dictionary's pointers
     std::const_pointer_cast<CDataDict>(dictionary)->UpdatePointers(); // DD_STD_REFACTOR_TODO should not be necessary when finished
@@ -91,8 +89,8 @@ std::shared_ptr<EngineDictionary> CEngineDriver::LoadApplicationDictionary(std::
     {
         if( flow_subtype == flow_subtype_to_check && subtype != required_dictionary_subtype )
         {
-            IssueLoadException(18001, dictionary->GetName().GetString(), ToString(dictionary_type),
-                ToString(flow_subtype_to_check), ToString(required_dictionary_subtype));
+            IssueLoadException(18001, dictionary->GetName().c_str(), ToString(dictionary_type),
+                               ToString(flow_subtype_to_check), ToString(required_dictionary_subtype));
         }
     };
 
@@ -101,29 +99,29 @@ std::shared_ptr<EngineDictionary> CEngineDriver::LoadApplicationDictionary(std::
 
     // input dictionaries must be part of the primary flow
     if( subtype == SymbolSubType::Input && flow_subtype != SymbolSubType::Primary )
-        IssueLoadException(18002, dictionary->GetName().GetString(), ToString(dictionary_type));
+        IssueLoadException(18002, dictionary->GetName().c_str(), ToString(dictionary_type));
 
 
     return engine_dictionary;
 }
 
 
-void CEngineDriver::LoadApplicationFlow(std::shared_ptr<CDEFormFile> form_file, SymbolSubType flow_subtype)
+void CEngineDriver::LoadApplicationFlow(std::shared_ptr<CDEFormFile> form_file, const SymbolSubType flow_subtype)
 {
     // make sure the form file name is unique
-    if( GetSymbolTable().NameExists(form_file->GetName()) )
-        IssueLoadException(18000, _T("form file"), form_file->GetName().GetString());
+    if( GetSymbolTable().NameExists(UTF8_TODO::GetUtf8(form_file->GetName())) )
+        IssueLoadException(18000, "form file", UTF8_TODO::GetUtf8(form_file->GetName()).c_str());
 
     // update the form file's pointers
     form_file->UpdatePointers();
 
 
     // add the form file's dictionary
-    auto engine_dictionary = LoadApplicationDictionary(form_file->GetSharedDictionary(), flow_subtype);
+    std::shared_ptr<EngineDictionary> engine_dictionary = LoadApplicationDictionary(form_file->GetSharedDictionary(), flow_subtype);
 
 
     // insert the form file (as a flow) into the symbol table
-    int flow_symbol_index = m_engineData->AddSymbol(std::make_unique<Flow>(form_file, flow_subtype, engine_dictionary));
+    int flow_symbol_index = m_engineData->AddSymbol(std::make_unique<Flow>(form_file, flow_subtype, std::move(engine_dictionary)));
 
     form_file->SetSymbol(flow_symbol_index);
 

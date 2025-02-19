@@ -322,7 +322,7 @@ void CSortListCtrl::LoadColumnInfo()
     // you must call this after setting the column headings.
     ASSERT( m_iNumColumns > 0 );
 
-    CString strKey = IntToString(GetDlgCtrlID());
+    CString strKey = UTF8_TODO::GetCString(IntToString(GetDlgCtrlID()));
 
     UINT nBytes = 0;
     BYTE* buf = NULL;
@@ -347,7 +347,7 @@ void CSortListCtrl::SaveColumnInfo()
 {
     ASSERT( m_iNumColumns > 0 );
 
-    CString strKey = IntToString(GetDlgCtrlID());
+    CString strKey = UTF8_TODO::GetCString(IntToString(GetDlgCtrlID()));
 
     CMemFile memFile;
 

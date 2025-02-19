@@ -2,8 +2,8 @@
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/TransactionManager.h>
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteStatement.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteStatement.h>
 
 
 // for storing key-value pairs in a database that can be used across CSPro applications;
@@ -20,8 +20,8 @@ public:
 
     SimpleDbMap& operator=(const SimpleDbMap&) = delete;
 
-    bool Open(std::wstring filename,
-              const std::vector<std::tuple<std::wstring, ValueType>>& table_names_and_value_types,
+    bool Open(std::string file_path,
+              const std::vector<std::tuple<std::string, ValueType>>& table_names_and_value_types,
               bool throw_exceptions = false);
 
     virtual void Close();
@@ -32,30 +32,30 @@ public:
     bool CommitTransactions() override;
 
     virtual bool Clear();
-    virtual bool Delete(wstring_view key);
+    virtual bool Delete(const std::string& key);
 
-    bool Exists(wstring_view key);
+    bool Exists(const std::string& key);
 
-    virtual bool PutString(wstring_view key, wstring_view value);
-    virtual std::optional<std::wstring> GetString(wstring_view key);
+    virtual bool PutString(const std::string& key, const std::string& value);
+    virtual std::optional<std::string> GetString(const std::string& key);
 
-    bool PutLong(wstring_view key, long value);
-    std::optional<long> GetLong(wstring_view key);
-    std::optional<long> GetLongUsingKeyPrefix(CString key_prefix);
+    bool PutLong(const std::string& key, long value);
+    std::optional<long> GetLong(const std::string& key);
+    std::optional<long> GetLongUsingKeyPrefix(std::string key_prefix);
 
     void ResetIterator();
-    bool NextString(std::wstring* key, std::wstring* value);
-    bool NextLong(std::wstring* key, long* value);
+    bool NextString(std::string* key, std::string* value);
+    bool NextLong(std::string* key, long* value);
 
-    const std::wstring& GetDbFilename() const { return m_dbFilename; }
+    const std::string& GetDbFilePath() const { return m_dbFilePath; }
 
 protected:
     struct TableDetails
     {
-        TableDetails(sqlite3* db, std::wstring table_name_, ValueType value_type_);
+        TableDetails(sqlite3* db, std::string table_name_, ValueType value_type_);
 
-        std::wstring table_name;
-        ValueType value_type;
+        const std::string table_name;
+        const ValueType value_type;
 
         SQLiteStatement stmt_put;
         SQLiteStatement stmt_clear;
@@ -63,28 +63,28 @@ protected:
         SQLiteStatement stmt_exists;
         SQLiteStatement stmt_get;
         SQLiteStatement stmt_iterator;
-        std::unique_ptr<std::tuple<TCHAR, SQLiteStatement>> escape_char_and_stmt_get_using_key_prefix;
+        std::unique_ptr<std::tuple<char, SQLiteStatement>> escape_char_and_stmt_get_using_key_prefix;
     };
 
-    TableDetails* CreateTableIfNotExists(std::wstring table_name, ValueType value_type);
+    TableDetails* CreateTableIfNotExists(std::string table_name, ValueType value_type);
 
 private:
     template<typename T>
-    bool Put(wstring_view key, T value);
+    bool Put(const std::string& key, const T& value);
 
     template<typename T>
-    std::optional<T> Get(wstring_view key);
+    std::optional<T> Get(const std::string& key);
 
     template<typename T>
-    bool Next(std::wstring* key, T* value);
+    bool Next(std::string* key, T* value);
 
 protected:
-    std::wstring m_dbFilename;
+    std::string m_dbFilePath;
     sqlite3* m_db;
 
     std::vector<std::unique_ptr<TableDetails>> m_tableDetails;
     TableDetails* m_currentTable;
 
 private:
-    unsigned m_transactions;
+    size_t m_transactions;
 };

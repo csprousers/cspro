@@ -14,9 +14,9 @@ SpssExportWriter::SpssExportWriter(std::shared_ptr<const CaseAccess> case_access
 }
 
 
-bool SpssExportWriter::IsReservedName(const std::wstring& name, bool /*record_name*/)
+bool SpssExportWriter::IsReservedName(const std::string& name, bool /*record_name*/)
 {
-    return ( sav_validate_name_unreserved(UTF8Convert::WideToUTF8(name).c_str()) == READSTAT_ERROR_NAME_IS_RESERVED_WORD );
+    return ( sav_validate_name_unreserved(name.c_str()) == READSTAT_ERROR_NAME_IS_RESERVED_WORD );
 }
 
 
@@ -26,20 +26,20 @@ bool SpssExportWriter::AddStringLabelSets()
 }
 
 
-std::wstring SpssExportWriter::GetFixedWidthNumericFormat(const CDictItem& dict_item)
+std::string SpssExportWriter::GetFixedWidthNumericFormat(const CDictItem& dict_item)
 {
-    return FormatTextCS2WS(_T("F%d.%d"), static_cast<int>(dict_item.GetCompleteLen()),
-                                         static_cast<int>(dict_item.GetDecimal()));
+    return FormatText("F%d.%d", static_cast<int>(dict_item.GetCompleteLen()),
+                                static_cast<int>(dict_item.GetDecimal()));
 }
 
 
-std::optional<std::wstring> SpssExportWriter::GetFixedWidthStringFormat(const unsigned width)
+std::optional<std::string> SpssExportWriter::GetFixedWidthStringFormat(const unsigned width)
 {
-    return FormatTextCS2WS(_T("A%d"), static_cast<int>(width));
+    return FormatText("A%d", static_cast<int>(width));
 }
 
 
-readstat_error_t SpssExportWriter::StartReadStatWriter(readstat_writer_t* writer, void* user_ctx, const long row_count)
+readstat_error_t SpssExportWriter::StartReadStatWriter(readstat_writer_t* const writer, void* const user_ctx, const long row_count)
 {
     return readstat_begin_writing_sav(writer, user_ctx, row_count);
 }

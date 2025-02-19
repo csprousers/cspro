@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AC2E7771-C585-4E0C-9D59-D8B6A2EF74DA}</ProjectGuid>
     <RootNamespace>CSPro</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,40 +72,38 @@
   <ItemGroup>
     <ClCompile Include="AboutMenuDialogs.cpp" />
     <ClCompile Include="AplDoc.cpp" />
-    <ClCompile Include="CodeMenu.cpp" />
-    <ClCompile Include="FileTreeNode.cpp" />
-    <ClCompile Include="NewFileCreator.cpp" />
-    <ClCompile Include="NewFileDlg.cpp" />
-    <ClCompile Include="OnKeyCharacterMapDlg.cpp" />
-    <ClCompile Include="PropertiesDlgApplicationPropertiesFilePage.cpp" />
-    <ClCompile Include="PropertiesDlgJsonPage.cpp" />
-    <ClCompile Include="PropertiesDlgLogicSettingsPage.cpp" />
-    <ClCompile Include="PropertiesDlgPage.cpp" />
-    <ClCompile Include="Report.cpp" />
-    <ClCompile Include="ReportPropertiesDlg.cpp" />
-    <ClCompile Include="SelectAppDlg.cpp" />
+    <ClCompile Include="AplFileAssociationsDlg.cpp" />
+    <ClCompile Include="AplFileAssociationsGrid.cpp" />
     <ClCompile Include="CapiMacrosDlg.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="CodeMenu.cpp" />
     <ClCompile Include="CommonStoreDlg.cpp" />
     <ClCompile Include="CSPro.cpp" />
-    <ClCompile Include="DTYPEDLG.CPP" />
-    <ClCompile Include="FakeDropDoc.cpp" />
+    <ClCompile Include="FileTreeNode.cpp" />
     <ClCompile Include="FontPrefDlg.cpp" />
     <ClCompile Include="HidDTmpl.cpp" />
+    <ClCompile Include="InteractiveNewFileCreator.cpp" />
     <ClCompile Include="LogicReference.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="MDlgBar.cpp" />
     <ClCompile Include="MsrDoc.cpp" />
     <ClCompile Include="MsrView.cpp" />
     <ClCompile Include="MTabCtl.cpp" />
+    <ClCompile Include="NewFileDlg.cpp" />
     <ClCompile Include="ObjTCtrl.cpp" />
-    <ClCompile Include="AplFileAssociationsDlg.cpp" />
-    <ClCompile Include="AplFileAssociationsGrid.cpp" />
+    <ClCompile Include="OnKeyCharacterMapDlg.cpp" />
     <ClCompile Include="PropertiesDlg.cpp" />
     <ClCompile Include="PropertiesDlgAdvancedFeaturesPage.cpp" />
-    <ClCompile Include="PropertiesDlgParadataPage.cpp" />
+    <ClCompile Include="PropertiesDlgApplicationPropertiesFilePage.cpp" />
+    <ClCompile Include="PropertiesDlgJavaScriptPage.cpp" />
+    <ClCompile Include="PropertiesDlgJsonPage.cpp" />
+    <ClCompile Include="PropertiesDlgLogicSettingsPage.cpp" />
     <ClCompile Include="PropertiesDlgMappingPage.cpp" />
     <ClCompile Include="PropertiesDlgMappingTileProviderPage.cpp" />
+    <ClCompile Include="PropertiesDlgPage.cpp" />
+    <ClCompile Include="PropertiesDlgParadataPage.cpp" />
+    <ClCompile Include="Report.cpp" />
+    <ClCompile Include="SelectAppDlg.cpp" />
     <ClCompile Include="SelectDocsDlg.cpp" />
     <ClCompile Include="StartDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -148,45 +142,44 @@
   <ItemGroup>
     <ClInclude Include="AboutMenuDialogs.h" />
     <ClInclude Include="AplDoc.h" />
-    <ClInclude Include="FileTreeNode.h" />
-    <ClInclude Include="NewFileCreator.h" />
-    <ClInclude Include="NewFileDlg.h" />
-    <ClInclude Include="OnKeyCharacterMapDlg.h" />
-    <ClInclude Include="PropertiesDlgApplicationPropertiesFilePage.h" />
-    <ClInclude Include="PropertiesDlgJsonPage.h" />
-    <ClInclude Include="PropertiesDlgLogicSettingsPage.h" />
-    <ClInclude Include="ReportPropertiesDlg.h" />
-    <ClInclude Include="SelectAppDlg.h" />
+    <ClInclude Include="AplFileAssociationsDlg.h" />
+    <ClInclude Include="AplFileAssociationsGrid.h" />
     <ClInclude Include="CapiMacrosDlg.h" />
     <ClInclude Include="ChildFrm.h" />
     <ClInclude Include="CommonStoreDlg.h" />
     <ClInclude Include="CSPro.h" />
-    <ClInclude Include="DTYPEDLG.H" />
-    <ClInclude Include="FakeDropDoc.h" />
+    <ClInclude Include="DesignerApplicationLoaderWithFileSupport.h" />
     <ClInclude Include="FileAssociation.h" />
+    <ClInclude Include="FileTreeNode.h" />
     <ClInclude Include="FontPrefDlg.h" />
     <ClInclude Include="HidDTmpl.h" />
+    <ClInclude Include="InteractiveNewFileCreator.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MDlgBar.h" />
     <ClInclude Include="MsrDoc.h" />
     <ClInclude Include="MsrView.h" />
     <ClInclude Include="MTabCtl.h" />
+    <ClInclude Include="NewFileDlg.h" />
     <ClInclude Include="ObjTCtrl.h" />
-    <ClInclude Include="AplFileAssociationsDlg.h" />
-    <ClInclude Include="AplFileAssociationsGrid.h" />
+    <ClInclude Include="OnKeyCharacterMapDlg.h" />
     <ClInclude Include="PropertiesDlg.h" />
     <ClInclude Include="PropertiesDlgAdvancedFeaturesPage.h" />
+    <ClInclude Include="PropertiesDlgApplicationPropertiesFilePage.h" />
+    <ClInclude Include="PropertiesDlgJavaScriptPage.h" />
+    <ClInclude Include="PropertiesDlgJsonPage.h" />
+    <ClInclude Include="PropertiesDlgLogicSettingsPage.h" />
     <ClInclude Include="PropertiesDlgMappingPage.h" />
     <ClInclude Include="PropertiesDlgMappingTileProviderPage.h" />
     <ClInclude Include="PropertiesDlgPage.h" />
     <ClInclude Include="PropertiesDlgParadataPage.h" />
-    <ClInclude Include="SymbolAnalysisDlg.h" />
-    <ClInclude Include="UWM.h" />
-    <ClInclude Include="VersionShifterDlg.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SelectAppDlg.h" />
     <ClInclude Include="SelectDocsDlg.h" />
     <ClInclude Include="StartDlg.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="SymbolAnalysisDlg.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="VersionShifterDlg.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAction\zAction.vcxproj">
@@ -285,6 +278,10 @@
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zOrderF\zOrderF.vcxproj">
       <Project>{0fbe4310-4dc2-4783-b4d0-9a2f02d36993}</Project>
       <Private>false</Private>
@@ -299,6 +296,10 @@
     </ProjectReference>
     <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
       <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zTableF\zTableF.vcxproj">

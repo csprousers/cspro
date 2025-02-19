@@ -11,7 +11,7 @@ class TableFrequencyPrinterWorker;
 class ZFREQO_API TableFrequencyPrinter : public FrequencyPrinter
 {
 public:
-    TableFrequencyPrinter(std::wstring filename);
+    TableFrequencyPrinter(std::string file_path);
     ~TableFrequencyPrinter();
     
     void StartFrequencyGroup() override { }
@@ -19,7 +19,7 @@ public:
     void Print(const FrequencyTable& frequency_table) override;
 
 private:
-    std::wstring m_filename;
+    std::string m_filePath;
     std::unique_ptr<TableFrequencyPrinterWorker> m_worker;
 };
 

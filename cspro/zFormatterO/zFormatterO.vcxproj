@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{eaa667d9-6593-4bf4-abe3-ca8231b4efec}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zFormatterO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -77,9 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QuestionnaireContentCreator.h" />
-    <ClInclude Include="TempFormFileSerializer.h" />
     <ClInclude Include="QuestionnaireViewer.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TempFormFileSerializer.h" />
     <ClInclude Include="zFormatterO.h" />
   </ItemGroup>
   <ItemGroup>

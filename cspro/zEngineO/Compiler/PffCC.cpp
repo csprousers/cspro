@@ -7,7 +7,7 @@
 
 LogicPff* LogicCompiler::CompileLogicPffDeclaration()
 {
-    std::wstring pff_name = CompileNewSymbolName();
+    std::string pff_name = CompileNewSymbolName();
 
     auto logic_pff = std::make_shared<LogicPff>(std::move(pff_name));
 
@@ -91,7 +91,7 @@ int LogicCompiler::CompileLogicPffFunctions()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    std::optional<std::wstring> set_property_string_literal_argument;
+    std::optional<std::string> set_property_string_literal_argument;
 
     if( function_code == FunctionCode::PFFFN_SETPROPERTY_CODE && CheckNextTokenHelper() == NextTokenHelperResult::StringLiteral )
     {

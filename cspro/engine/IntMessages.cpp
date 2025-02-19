@@ -1,11 +1,8 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "COMPILAD.H"
+#include "INTERPRE.H"
 #include "Engdrv.h"
 #include "Engine.h"
-#include "Exappl.h"
-#include <zEngineO/Versioning.h>
 #include <zEngineO/Nodes/Messages.h>
-#include <zToolsO/Tools.h>
 #include <zMessageO/Messages.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
@@ -15,122 +12,153 @@
 #include <Zissalib/CsDriver.h>
 
 
-namespace
+// --------------------------------------------------------------------------
+// MessageArgument +
+// MessageArgumentsMessageParameterEvaluator
+// --------------------------------------------------------------------------
+
+struct MessageArgument
 {
-    struct MessageArgument
-    {
-        std::variant<double, std::wstring> value;
-        int value_expression;
-    };
+    std::variant<double, SharableString> value;
+    int value_expression;
+};
 
-    class MessageArgumentsMessageParameterEvaluator : public MessageParameterEvaluator
-    {
-    public:
-        MessageArgumentsMessageParameterEvaluator(CIntDriver* pIntDriver, const std::vector<MessageArgument>& arguments, FunctionCode function_code)
-            :   m_pIntDriver(pIntDriver),
-                m_arguments(arguments),
-                m_nextArgumentIndex(0),
-                m_functionCode(function_code)
-        {
-            ASSERT(m_pIntDriver != nullptr);
-        }
 
-        MessageFormat::Type GetMessageFormatType(const MessageFormat& message_format) const override
-        {
-            // process integers as doubles so that special values can be formatted properly
-            return ( message_format.type == MessageFormat::Type::Integer ) ? MessageFormat::Type::Double :
-                                                                             message_format.type;
-        }
+class MessageArgumentsMessageParameterEvaluator : public MessageParameterEvaluator
+{
+public:
+    MessageArgumentsMessageParameterEvaluator(CIntDriver* interpreter, const std::vector<MessageArgument>& arguments, FunctionCode function_code);
 
-        bool ReplaceSpecialValuesWithSpaces() const override
-        {
-            return ( m_functionCode == FNWRITE_CODE || m_functionCode == FNFILE_WRITE_CODE );
-        }
+    MessageFormat::Type GetMessageFormatType(const MessageFormat& message_format) const override;
+    bool ReplaceSpecialValuesWithSpaces() const override;
+    int GetInteger() override;
+    double GetDouble() override;
+    SharableString GetString() override;
+    std::variant<int, SharableString> GetChar() override;
+    SharableString GetProc() override;
+    SharableString GetVariable() override;
+    SharableString GetVariableLabel() override;
 
-        int GetInteger() override
-        {
-            throw ProgrammingErrorException();
-        }
+private:
+    enum class ArgumentType { Number, String, Either };
 
-        double GetDouble() override
-        {
-            const MessageArgument& argument = GetArgument(ArgumentType::Number);
-            return std::get<double>(argument.value);
-        }
+    const MessageArgument& GetArgument(ArgumentType argument_type);
 
-        std::wstring GetString() override
-        {
-            const MessageArgument& argument = GetArgument(ArgumentType::String);
-            return std::get<std::wstring>(argument.value);
-        }
+private:
+    CIntDriver* m_interpreter;
+    const std::vector<MessageArgument>& m_arguments;
+    size_t m_nextArgumentIndex;
+    FunctionCode m_functionCode;
+};
 
-        wchar_t GetChar() override
-        {
-            const MessageArgument& argument = GetArgument(ArgumentType::String);
-            const std::wstring& text = std::get<std::wstring>(argument.value);
-            return text.empty() ? 0 : text.front();
-        }
 
-        std::wstring GetProc() override
-        {
-            return CS2WS(m_pIntDriver->ProcName());
-        }
-
-        std::wstring GetVariable() override
-        {
-            const MessageArgument& argument = GetArgument(ArgumentType::Either);
-            return m_pIntDriver->EvaluateVariableParameter(argument.value, argument.value_expression, false);
-        }
-
-        std::wstring GetVariableLabel() override
-        {
-            const MessageArgument& argument = GetArgument(ArgumentType::Either);
-            return m_pIntDriver->EvaluateVariableParameter(argument.value, argument.value_expression, true);
-        }
-
-    private:
-        enum class ArgumentType { Number, String, Either };
-
-        const MessageArgument& GetArgument(ArgumentType argument_type)
-        {
-            if( m_nextArgumentIndex >= m_arguments.size() )
-                throw MessageParameterEvaluator::EvaluationException(MGF::GetMessageText(MGF::InvalidMessageParameterNumber));
-
-            const MessageArgument& argument = m_arguments[m_nextArgumentIndex++];
-
-            if( ( argument_type != ArgumentType::String && std::holds_alternative<double>(argument.value) ) ||
-                ( argument_type != ArgumentType::Number && std::holds_alternative<std::wstring>(argument.value) ) )
-            {
-                return argument;
-            }
-
-            // data type error
-            constexpr const TCHAR* ParameterTypes[] = { _T("numeric"), _T("string") };
-            const size_t expected_parameter_type_index = ( argument_type == ArgumentType::Number ) ? 0 : 1;
-            const std::wstring& formatter = MGF::GetMessageText(MGF::InvalidMessageParameterCount);
-
-            throw MessageParameterEvaluator::EvaluationException(formatter.c_str(), ParameterTypes[expected_parameter_type_index], ParameterTypes[1 - expected_parameter_type_index]);
-        }
-
-    private:
-        CIntDriver* m_pIntDriver;
-        const std::vector<MessageArgument>& m_arguments;
-        size_t m_nextArgumentIndex;
-        FunctionCode m_functionCode;
-    };
+MessageArgumentsMessageParameterEvaluator::MessageArgumentsMessageParameterEvaluator(CIntDriver* const interpreter, const std::vector<MessageArgument>& arguments, const FunctionCode function_code)
+    :   m_interpreter(interpreter),
+        m_arguments(arguments),
+        m_nextArgumentIndex(0),
+        m_functionCode(function_code)
+{
+    ASSERT(m_interpreter != nullptr);
 }
 
 
-std::wstring CIntDriver::EvaluateVariableParameter(const std::variant<double, std::wstring>& value, int value_expression, bool request_label)
+MessageFormat::Type MessageArgumentsMessageParameterEvaluator::GetMessageFormatType(const MessageFormat& message_format) const
 {
-    bool is_numeric = std::holds_alternative<double>(value);
-    int expression_type = GetNode<int>(value_expression);
+    // process integers as doubles so that special values can be formatted properly
+    return ( message_format.type == MessageFormat::Type::Integer ) ? MessageFormat::Type::Double :
+                                                                     message_format.type;
+}
+
+
+bool MessageArgumentsMessageParameterEvaluator::ReplaceSpecialValuesWithSpaces() const
+{
+    return ( m_functionCode == FNWRITE_CODE || m_functionCode == FNFILE_WRITE_CODE );
+}
+
+
+int MessageArgumentsMessageParameterEvaluator::GetInteger()
+{
+    throw ProgrammingErrorException();
+}
+
+
+double MessageArgumentsMessageParameterEvaluator::GetDouble()
+{
+    const MessageArgument& argument = GetArgument(ArgumentType::Number);
+    return std::get<double>(argument.value);
+}
+
+
+SharableString MessageArgumentsMessageParameterEvaluator::GetString()
+{
+    const MessageArgument& argument = GetArgument(ArgumentType::String);
+    return std::get<SharableString>(argument.value);
+}
+
+
+std::variant<int, SharableString> MessageArgumentsMessageParameterEvaluator::GetChar()
+{
+    return MessageArgumentsMessageParameterEvaluator::GetString();
+}
+
+
+SharableString MessageArgumentsMessageParameterEvaluator::GetProc()
+{
+    return m_interpreter->ProcName();
+}
+
+
+SharableString MessageArgumentsMessageParameterEvaluator::GetVariable()
+{
+    const MessageArgument& argument = GetArgument(ArgumentType::Either);
+    return m_interpreter->EvaluateVariableParameter(argument.value, argument.value_expression, false);
+}
+
+
+SharableString MessageArgumentsMessageParameterEvaluator::GetVariableLabel()
+{
+    const MessageArgument& argument = GetArgument(ArgumentType::Either);
+    return m_interpreter->EvaluateVariableParameter(argument.value, argument.value_expression, true);
+}
+
+
+const MessageArgument& MessageArgumentsMessageParameterEvaluator::GetArgument(const ArgumentType argument_type)
+{
+    if( m_nextArgumentIndex >= m_arguments.size() )
+        throw MessageParameterEvaluator::EvaluationException(MGF::GetMessageText(MGF::InvalidMessageParameterNumber).GetString());
+
+    const MessageArgument& argument = m_arguments[m_nextArgumentIndex++];
+
+    if( ( argument_type != ArgumentType::String && std::holds_alternative<double>(argument.value) ) ||
+        ( argument_type != ArgumentType::Number && std::holds_alternative<SharableString>(argument.value) ) )
+    {
+        return argument;
+    }
+
+    // data type error
+    constexpr const char* ParameterTypes[] = { "numeric", "string" };
+    const size_t expected_parameter_type_index = ( argument_type == ArgumentType::Number ) ? 0 : 1;
+    const SharableString formatter = MGF::GetMessageText(MGF::InvalidMessageParameterCount);
+
+    throw MessageParameterEvaluator::EvaluationException(formatter->c_str(), ParameterTypes[expected_parameter_type_index], ParameterTypes[1 - expected_parameter_type_index]);
+}
+
+
+
+// --------------------------------------------------------------------------
+// CIntDriver
+// --------------------------------------------------------------------------
+
+SharableString CIntDriver::EvaluateVariableParameter(const std::variant<double, SharableString>& value, const int value_expression, const bool request_label)
+{
+    const bool is_numeric = std::holds_alternative<double>(value);
+    const int expression_type = GetNode<int>(value_expression);
 
     if( expression_type == FunctionCode::FN_VARIABLE_VALUE_CODE ) // CSPro 7.3+
     {
         const auto& variable_value_node = GetNode<Nodes::VariableValue>(value_expression);
-        const VART* pVarT = VPT(variable_value_node.symbol_index);
-        const CDictItem* dict_item = pVarT->GetDictItem();
+        const VART* const pVarT = VPT(variable_value_node.symbol_index);
+        const CDictItem* const dict_item = pVarT->GetDictItem();
 
         if( request_label && dict_item != nullptr )
         {
@@ -139,43 +167,22 @@ std::wstring CIntDriver::EvaluateVariableParameter(const std::variant<double, st
 
         else if( is_numeric )
         {
-            const VARX* pVarX = pVarT->GetVarX();
-            double numeric_value = pVarX->varoutval(std::get<double>(value));
+            const VARX* const pVarX = pVarT->GetVarX();
+            const double numeric_value = pVarX->varoutval(std::get<double>(value));
 
             std::wstring formatted_variable(pVarT->GetLength(), '\0');
             pVarT->dvaltochar(numeric_value, formatted_variable.data());
 
-            return formatted_variable;
+            return UTF8_TODO::GetUtf8(formatted_variable);
         }
     }
 
-    return is_numeric ? DoubleToString(std::get<double>(value)) : 
-                        std::get<std::wstring>(value);
+    return is_numeric ? SharableString(DoubleToString(std::get<double>(value))) :
+                        std::get<SharableString>(value);
 }
 
 
-namespace
-{
-    // for pre-7.5 compilation
-    typedef struct {                       // victor Oct 05, 00
-        // specific for DISPLAY & ERRMSG (formerly FNN)
-        int     fn_code;
-        int     m_iMsgNum;                 // 0: interpreted thru a num-expr
-
-        unsigned short m_denomCaseSummary; // this was previously two booleans
-        enum class DenomCaseSummaryMask : unsigned short { DenomIsLastArgument = 0x8000, CaseDisplay = 0x0100, SummaryDisplay = 0x0001 };
-
-        int     iButtonTitleList;          // Buttons text, -1 if none
-        int     iButtonReenterList;        // Reenter list, -1 if NEXT used
-        int     iDefaultButton;            // Default button. -1 if no default
-
-        int     fn_nargs;
-        int     fn_expr[1];
-    } FNMSG_NODE;
-}
-
-
-std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number/* = nullptr*/)
+SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, const FunctionCode function_code, int* const out_message_number/* = nullptr*/)
 {
     const auto& message_node = GetNode<Nodes::Message>(message_node_index);
     MessageManager& user_message_manager = m_pEngineDriver->GetUserMessageManager();
@@ -183,12 +190,12 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
 
     // get the message number
     int message_number;
-    std::optional<std::wstring> unformatted_message_text;
+    SharableString unformatted_message_text;
 
     // a variable-numbered message
     if( message_node.message_number == -1 )
     {
-        message_number = static_cast<int>(evalexpr(message_node.message_expression));
+        message_number = Evaluate<int>(message_node.message_expression);
     }
 
     // constant message number or a string-based message
@@ -199,8 +206,8 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
         // for messages that are not in the message file, evaluate the message text
         if( message_node.message_expression != -1 )
         {
-            unformatted_message_text = EvalAlphaExpr(message_node.message_expression);
-            user_message_manager.UpdateUnnumberedMessageText(message_number, *unformatted_message_text);
+            unformatted_message_text = EvaluateSharableString(message_node.message_expression);
+            user_message_manager.UpdateUnnumberedMessageText(message_number, unformatted_message_text);
         }
     }
 
@@ -216,7 +223,7 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
     {
         DataType argument_data_type;
 
-        if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+        if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
         {
             argument_data_type = static_cast<DataType>(argument_list_node.elements[i]);
             ++i;
@@ -245,7 +252,7 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
 
         arguments.emplace_back(MessageArgument
             {
-                EvaluateVariantExpression(argument_data_type, argument_list_node.elements[i]),
+                EvaluateVariant<SharableString>(argument_data_type, argument_list_node.elements[i]),
                 argument_list_node.elements[i]
             });
     }
@@ -253,7 +260,7 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
     // format the message text
     MessageArgumentsMessageParameterEvaluator message_parameter_evaluator(this, arguments, function_code);
 
-    if( unformatted_message_text.has_value() )
+    if( unformatted_message_text.IsSet() )
     {
         return user_message_evaluator.GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text);
     }
@@ -265,67 +272,65 @@ std::wstring CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCod
 }
 
 
-double CIntDriver::exerrmsg(int iExpr)
+double CIntDriver::exerrmsg(const int program_index)
 {
     if( !m_pEngineSettings->IsErrmsgMessageOn() )
         return 0;
 
-    return DisplayUserMessage(iExpr);
+    return DisplayUserMessage(program_index);
 }
 
 
-double CIntDriver::exdisplay(int iExpr)
+double CIntDriver::exdisplay(const int program_index)
 {
     if( !m_pEngineSettings->IsDisplayMessageOn() )
         return 0;
 
-    return DisplayUserMessage(iExpr);
+    return DisplayUserMessage(program_index);
 }
 
 
-double CIntDriver::exwritemsg(int iExpr)
+double CIntDriver::exwrite(const int program_index)
 {
     ASSERT(m_pEngineDriver->GetWriteFile() != nullptr);
 
-    std::wstring message_text = EvaluateUserMessage(iExpr, FunctionCode::FNWRITE_CODE);
-    m_pEngineDriver->GetWriteFile()->WriteLine(std::move(message_text));
+    m_pEngineDriver->GetWriteFile()->WriteLine(EvaluateUserMessage(program_index, FunctionCode::FNWRITE_CODE));
 
     return 1;
 }
 
 
-double CIntDriver::exmaketext(int iExpr)
+double CIntDriver::exmaketext(const int program_index)
 {
-    std::wstring message_text = EvaluateUserMessage(iExpr, FunctionCode::FNMAKETEXT_CODE);
-    return AssignAlphaValue(std::move(message_text));
+    return AssignString(EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE));
 }
 
 
-double CIntDriver::exlogtext(int iExpr)
+double CIntDriver::exlogtext(const int program_index)
 {
     if( !Paradata::Logger::IsOpen() )
         return 0;
 
     int message_number;
-    std::wstring message_text = EvaluateUserMessage(iExpr, FunctionCode::FNLOGTEXT_CODE, &message_number);
+    SharableString message_text = EvaluateUserMessage(program_index, FunctionCode::FNLOGTEXT_CODE, &message_number);
 
-    m_pParadataDriver->RegisterAndLogEvent(m_pParadataDriver->CreateMessageEvent(FunctionCode::FNLOGTEXT_CODE, message_number, std::move(message_text)));
+    m_paradataDriver->RegisterAndLogEvent(m_paradataDriver->CreateMessageEvent(FunctionCode::FNLOGTEXT_CODE, message_number, std::move(message_text)));
 
     return 1;
 }
 
 
-double CIntDriver::exwarning(int iExpr)
+double CIntDriver::exwarning(const int program_index)
 {
     if( Issamod == ModuleType::Entry )
     {
         // if advancing, don't display the message
-        bool is_advancing = ( m_pCsDriver->GetSourceOfNodeAdvance() >= 0 ) ||
-                            ( m_pCsDriver->GetNumOfPendingAdvances() > 0 );
+        const bool is_advancing = ( m_pCsDriver->GetSourceOfNodeAdvance() >= 0 ) ||
+                                  ( m_pCsDriver->GetNumOfPendingAdvances() > 0 );
 
         if( is_advancing )
         {
-            const auto& message_node = GetNode<Nodes::Message>(iExpr);
+            const auto& message_node = GetNode<Nodes::Message>(program_index);
 
             // return if there was no select statement
             if( message_node.extended_message_node_index == -1 )
@@ -339,14 +344,14 @@ double CIntDriver::exwarning(int iExpr)
             {
                 if( extended_message_node.select_default_button_expression != -1 )
                 {
-                    int default_button_number = evalexpr<int>(extended_message_node.select_default_button_expression);
+                    const int default_button_number = Evaluate<int>(extended_message_node.select_default_button_expression);
 
                     if( default_button_number >= 1 && default_button_number <= select_movements_list_node.number_elements )
                     {
-                        int select_expression = select_movements_list_node.elements[default_button_number - 1];
+                        const int select_expression = select_movements_list_node.elements[default_button_number - 1];
 
                         if( select_expression != -1 )
-                            evalexpr(select_expression);
+                            Evaluate(select_expression);
 
                         return default_button_number;
                     }
@@ -365,11 +370,11 @@ double CIntDriver::exwarning(int iExpr)
         }
     }
 
-    return DisplayUserMessage(iExpr);
+    return DisplayUserMessage(program_index);
 }
 
 
-double CIntDriver::DisplayUserMessage(int message_node_index)
+double CIntDriver::DisplayUserMessage(const int message_node_index)
 {
     const auto& message_node = GetNode<Nodes::Message>(message_node_index);
     const Nodes::ExtendedMessage* extended_message_node = nullptr;
@@ -378,10 +383,10 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
 
     // evaluate the message
     int message_number;
-    const std::wstring message_text = ConvertV0Escapes(EvaluateUserMessage(message_node_index, message_node.function_code, &message_number));
+    SharableString message_text = ConvertV0Escapes(EvaluateUserMessage(message_node_index, message_node.function_code, &message_number));
 
     // process the extended options
-    std::unique_ptr<std::tuple<std::vector<std::wstring>, int>> button_text_and_default_button_number;
+    std::unique_ptr<CEngineDriver::MessageSelectDetails> select_details;
     Nodes::ExtendedMessage::DisplayType display_type = Nodes::ExtendedMessage::DisplayType::Default;
 
     if( message_node.extended_message_node_index != -1 )
@@ -402,23 +407,21 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
 
             if( select_button_texts_list_node.number_elements > 0 )
             {
-                button_text_and_default_button_number = std::make_unique<std::tuple<std::vector<std::wstring>, int>>();
-                std::vector<std::wstring>& message_buttons = std::get<0>(*button_text_and_default_button_number);
-                int& default_button_number = std::get<1>(*button_text_and_default_button_number);
+                select_details = std::make_unique<CEngineDriver::MessageSelectDetails>();
 
                 // add the button text
                 for( int i = 0; i < select_button_texts_list_node.number_elements; ++i )
-                    message_buttons.emplace_back(EvalAlphaExpr(select_button_texts_list_node.elements[i]));
+                    select_details->button_texts.emplace_back(EvaluateSharableString(select_button_texts_list_node.elements[i]));
 
                 // check if there is a valid default button number
                 if( extended_message_node->select_default_button_expression != -1 )
-                    default_button_number = evalexpr<int>(extended_message_node->select_default_button_expression);
+                    select_details->default_button_number = Evaluate<int>(extended_message_node->select_default_button_expression);
 
-                if( default_button_number < 0 || default_button_number > static_cast<int>(message_buttons.size()) )
-                    default_button_number = 0;
+                if( select_details->default_button_number < 0 || select_details->default_button_number > static_cast<int>(select_details->button_texts.size()) )
+                    select_details->default_button_number = 0;
 
                 // the button number should be zero-based (or -1 if none specified)
-                --default_button_number;
+                --select_details->default_button_number;
             }
         }
     }
@@ -454,14 +457,14 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
 
         if( Paradata::Logger::IsOpen() )
         {
-            message_event = m_pParadataDriver->CreateMessageEvent(message_node.function_code, message_number, message_text);
+            message_event = m_paradataDriver->CreateMessageEvent(message_node.function_code, message_number, message_text);
 
-            if( button_text_and_default_button_number != nullptr )
+            if( select_details != nullptr )
                 operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(Paradata::OperatorSelectionEvent::Source::Errmsg);
         }
 
         // display the message
-        const int selected_button_number = m_pEngineDriver->DisplayMessage(MessageType::User, message_number_for_display, message_text, button_text_and_default_button_number.get());
+        const int selected_button_number = m_pEngineDriver->DisplayMessage(MessageType::User, message_number_for_display, std::move(message_text), select_details.get());
 
         ASSERT(selected_button_number > 0);
 
@@ -471,23 +474,23 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
             if( Issamod == ModuleType::Entry )
                 message_event->SetPostDisplayReturnValue(selected_button_number);
 
-            m_pParadataDriver->RegisterAndLogEvent(std::move(message_event));
+            m_paradataDriver->RegisterAndLogEvent(std::move(message_event));
         }
 
         if( operator_selection_event != nullptr )
         {
-            std::optional<std::wstring> button_text = ( selected_button_number == 0 ) ? std::nullopt :
-                                                                                        std::make_optional(std::get<0>(*button_text_and_default_button_number)[selected_button_number - 1]);
+            SharableString button_text = ( selected_button_number == 0 ) ? SharableString() :
+                                                                           select_details->button_texts[selected_button_number - 1];
 
             operator_selection_event->SetPostSelectionValues(selected_button_number, std::move(button_text), true);
-            m_pParadataDriver->RegisterAndLogEvent(std::move(operator_selection_event));
+            m_paradataDriver->RegisterAndLogEvent(std::move(operator_selection_event));
         }
 
         // if not in a select statement, we are done, with the return value meaning success
-        if( button_text_and_default_button_number == nullptr )
+        if( select_details == nullptr )
             return 1;
 
-        // otherwise, the selected button number is returned, and if there is a movement 
+        // otherwise, the selected button number is returned, and if there is a movement
         // associated with the button, we need to execute the movement
 
         // the user must select a valid value
@@ -499,7 +502,7 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
 
         // if not next or continue, execute the move command
         if( select_expression != -1 )
-            evalexpr(select_expression);
+            Evaluate(select_expression);
 
         // return the index of the button selected
         return selected_button_number;
@@ -507,8 +510,8 @@ double CIntDriver::DisplayUserMessage(int message_node_index)
 }
 
 
-double CIntDriver::exvariablevalue(int iExpr)
+double CIntDriver::exvariablevalue(const int program_index)
 {
-    const auto& variable_value_node = GetNode<Nodes::VariableValue>(iExpr);
-    return evalexpr(variable_value_node.expression);
+    const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
+    return Evaluate(variable_value_node.expression);
 }

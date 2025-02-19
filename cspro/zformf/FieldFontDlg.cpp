@@ -4,8 +4,8 @@
 
 namespace
 {
-    constexpr const TCHAR* FieldFontPrefix  = _T("Current font:  ");
-    constexpr const TCHAR* SystemFontPrefix = _T("System font:  ");
+    constexpr const char* FieldFontPrefix  = "Current font:  ";
+    constexpr const char* SystemFontPrefix = "System font:  ";
 }
 
 
@@ -15,8 +15,8 @@ BEGIN_MESSAGE_MAP(FieldFontDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-FieldFontDlg::FieldFontDlg(PortableFont field_font, CWnd* pParent /*=NULL*/)
-    :   CDialog(FieldFontDlg::IDD, pParent),
+FieldFontDlg::FieldFontDlg(PortableFont field_font, CWnd* const pParent /*= nullptr*/)
+    :   CDialog(IDD_FIELD_FONT_DLG, pParent),
         m_fieldFont(std::move(field_font)),
         m_systemFieldFont(PortableFont::FieldDefault),
         m_systemFieldFontDescription(SystemFontPrefix + m_systemFieldFont.GetDescription())
@@ -24,9 +24,9 @@ FieldFontDlg::FieldFontDlg(PortableFont field_font, CWnd* pParent /*=NULL*/)
 }
 
 
-void FieldFontDlg::DoDataExchange(CDataExchange* pDX)
+void FieldFontDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
     if( !pDX->m_bSaveAndValidate )
         m_fieldFontDescription = FieldFontPrefix + m_fieldFont.GetDescription();

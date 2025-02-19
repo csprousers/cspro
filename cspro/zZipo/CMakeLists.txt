@@ -2,9 +2,12 @@ project(zZipO)
 
 include(../WASM/Definitions.cmake)
 
-add_library(${PROJECT_NAME} 
-    IZip.cpp
-    miniz_inclusion.cpp
-    ZipUtility.cpp
-    ZipZL.cpp
+set(MINIZ_DIRECTORY ${EXTERNAL_DIRECTORY}/miniz)
+
+add_library(${PROJECT_NAME}
+    ZipException.cpp
+    ZipFile.cpp
+    ZLib.cpp
+
+    ${MINIZ_DIRECTORY}/miniz.c
 )

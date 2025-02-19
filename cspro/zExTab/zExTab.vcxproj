@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7B61854D-4EED-4A86-BC7B-F5EE315B7447}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -81,12 +77,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PifDlgBuilder.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RunTab.h" />
     <ClInclude Include="SelDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TabExecutionDlg.h" />
     <ClInclude Include="zExTab.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAction\zAction.vcxproj">
@@ -117,6 +113,10 @@
       <Project>{04b22cef-8246-4596-84a2-13faf5019122}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zEngineO\zEngineO.vcxproj">
+      <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zGridO\zGridO.vcxproj">
       <Project>{7179e255-3de3-45fd-939b-cbd0a7f41761}</Project>
       <Private>false</Private>
@@ -135,6 +135,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zTableO\zTableO.vcxproj">

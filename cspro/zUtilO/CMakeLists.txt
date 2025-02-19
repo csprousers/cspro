@@ -4,14 +4,17 @@ include(../WASM/Definitions.cmake)
 
 add_library(${PROJECT_NAME}
     BasicLogger.cpp
+    BinaryContentCacher.cpp
     BinaryDataAccessor.cpp
     BinaryDataMetadata.cpp
     CommonStore.cpp
     ConnectionString.cpp
     CredentialStore.cpp
     CSProExecutables.cpp
+    CustomUri.cpp
     DataTypes.cpp
     ExecutionStack.cpp
+    ExpansiveMap.cpp
     FileExtensions.cpp
     imsaStr.cpp
     Interapp.cpp
@@ -26,12 +29,14 @@ add_library(${PROJECT_NAME}
     ProcessSummary.cpp
     PropertyString.cpp
     Randomizer.cpp
+    SettingsDb.cpp
     SimpleDbMap.cpp
     Specfile.cpp
     SpecialDirectoryLister.cpp
     SQLiteSchema.cpp
     SqlLogicFunctions.cpp
     StdioFileUnicode.cpp
+    SyncConnectionString.cpp
     TemporaryFile.cpp
     TextSource.cpp
     TextSourceEditable.cpp

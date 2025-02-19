@@ -5,18 +5,19 @@
 #include "TextRepositoryIterators.h"
 #include "TextRepositoryNotesFile.h"
 #include "TextRepositoryStatusFile.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/Commands.h>
+#include <zSql/SQLiteHelpers.h>
 #include <zUtilO/StdioFileUnicode.h>
 
 
 namespace Constants
 {
     constexpr size_t TextBufferSize    = 128 * 1024;
-    constexpr const TCHAR* TruncationIOError = _T("There was an error truncating the file.");
+    constexpr const char* TruncationIOError = "There was an error truncating the file.";
 }
 
 
-namespace SqlStatements
+namespace Sqlite::Commands
 {
     // the keys table was initially set with a UNIQUE constraint on Position but that led to problems when executing ShiftKeys
     // because the order of the updates could not be controlled, leading to SQLITE_CONSTRAINT errors
@@ -38,7 +39,12 @@ namespace SqlStatements
 }
 
 
-TextRepository::TextRepository(std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type)
+
+// --------------------------------------------------------------------------
+// TextRepository
+// --------------------------------------------------------------------------
+
+TextRepository::TextRepository(std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type)
     :   IndexableTextRepository(DataRepositoryType::Text, std::move(case_access), access_type),
         m_encoding(Encoding::Utf8),
         m_file(nullptr),
@@ -103,21 +109,21 @@ void TextRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_acc
 }
 
 
-void TextRepository::Open(DataRepositoryOpenFlag open_flag)
+void TextRepository::Open(const DataRepositoryOpenFlag open_flag)
 {
     const bool can_create_file = ( open_flag == DataRepositoryOpenFlag::CreateNew || open_flag == DataRepositoryOpenFlag::OpenOrCreate );
 
-    if( can_create_file && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(m_connectionString.GetFilename())) )
+    if( can_create_file && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(m_connectionString.GetFilePath())) )
     {
-        throw DataRepositoryException::IOError(FormatText(_T("The directory does not exist and could not be created: %s"),
-                                                          PortableFunctions::PathGetDirectory(m_connectionString.GetFilename()).c_str()));
+        throw DataRepositoryException::IOError("The directory does not exist and could not be created: %s",
+                                                PortableFunctions::PathGetDirectory(m_connectionString.GetFilePath()).c_str());
     }
 
-    const bool file_exists = PortableFunctions::FileIsRegular(m_connectionString.GetFilename());
+    const bool file_exists = PortableFunctions::FileIsRegular(m_connectionString.GetFilePath());
 
     if( open_flag == DataRepositoryOpenFlag::OpenMustExist && !file_exists )
     {
-        throw DataRepositoryException::IOError(FormatText(_T("The data file does not exist: %s"), m_connectionString.GetFilename().c_str()));
+        throw DataRepositoryException::IOError("The data file does not exist: %s", m_connectionString.GetFilePath().c_str());
     }
 
     // create a data file if one doesn't exist, if setfile/open used the clear flag,
@@ -128,37 +134,37 @@ void TextRepository::Open(DataRepositoryOpenFlag open_flag)
     {
         DeleteRepositoryFiles(m_connectionString);
 
-        FILE* file = PortableFunctions::FileOpen(m_connectionString.GetFilename(), _T("wb"));
+        FILE* file = PortableFunctions::FileOpen(m_connectionString.GetFilePath(), "wb");
         bool success = ( file != nullptr );
 
         if( success )
         {
             // write out the UTF-8 BOM
-            success = ( fwrite(Utf8BOM_sv.data(), 1, Utf8BOM_sv.length(), file) == Utf8BOM_sv.length() );
+            success = ( fwrite(TextEncoding::Utf8Bom_sv.data(), 1, TextEncoding::Utf8Bom_sv.length(), file) == TextEncoding::Utf8Bom_sv.length() );
             fclose(file);
         }
 
         if( !success )
-            throw DataRepositoryException::IOError(_T("Could not create a new data file."));
+            throw DataRepositoryException::IOError("Could not create a new data file.");
     }
 
 
     // check the encoding
-    if( !GetFileBOM(m_connectionString.GetFilename(), m_encoding) )
-        throw DataRepositoryException::IOError(_T("Could not read the data file's encoding. The file may be open in another program."));
+    if( !GetFileBOM(m_connectionString.GetFilePath(), m_encoding) )
+        throw DataRepositoryException::IOError("Could not read the data file's encoding. The file may be open in another program.");
 
     // if the data file is not UTF-8 but it is writeable, then we need to rewrite it as a UTF-8 file
     if( m_encoding == Encoding::Ansi && !IsReadOnly() )
     {
-        if( !CStdioFileUnicode::ConvertAnsiToUTF8(m_connectionString.GetFilename()) )
-            throw DataRepositoryException::IOError(_T("Could not convert the writeable data file from ANSI to UTF-8."));
+        if( !CStdioFileUnicode::ConvertAnsiToUTF8(m_connectionString.GetFilePath()) )
+            throw DataRepositoryException::IOError("Could not convert the writeable data file from ANSI to UTF-8.");
 
         m_encoding = Encoding::Utf8;
     }
 
     else if( m_encoding != Encoding::Utf8 && m_encoding != Encoding::Ansi )
     {
-        throw DataRepositoryException::IOError(_T("CSPro does not support the specified text encoding."));
+        throw DataRepositoryException::IOError("CSPro does not support the specified text encoding.");
     }
 
     // open the data file
@@ -181,6 +187,17 @@ void TextRepository::Open(DataRepositoryOpenFlag open_flag)
 
     if( m_caseAccess->GetUsesStatuses() || m_caseAccess->GetUsesCaseLabels() )
         m_statusFile.reset(new TextRepositoryStatusFile(*this, open_flag));
+}
+
+
+void TextRepository::ToggleReadWriteMode()
+{
+    ASSERT(m_accessType == DataRepositoryAccess::ReadOnly || m_accessType == DataRepositoryAccess::ReadWrite);
+    CloseDataFile();
+
+    m_accessType = ( m_accessType == DataRepositoryAccess::ReadOnly ) ? DataRepositoryAccess::ReadWrite :
+                                                                        DataRepositoryAccess::ReadOnly;
+    OpenDataFile();
 }
 
 
@@ -226,17 +243,17 @@ void TextRepository::DeleteRepository()
 
 void TextRepository::DeleteRepositoryFiles(const ConnectionString& connection_string)
 {
-    auto delete_file = [](const std::wstring& filename)
+    auto delete_file = [](const std::string& file_path)
     {
-        if( PortableFunctions::FileIsRegular(filename) && !PortableFunctions::FileDelete(filename) )
+        if( PortableFunctions::FileIsRegular(file_path) && !PortableFunctions::FileDelete(file_path) )
             throw DataRepositoryException::DeleteRepositoryError();
     };
 
     // delete the data, index, notes, and status files
-    delete_file(connection_string.GetFilename());
-    delete_file(connection_string.GetFilename() + FileExtensions::Data::WithDot::IndexableTextIndex);
-    delete_file(TextRepositoryNotesFile::GetNotesFilename(connection_string));
-    delete_file(TextRepositoryStatusFile::GetStatusFilename(connection_string));
+    delete_file(connection_string.GetFilePath());
+    delete_file(PortableFunctions::PathAppendFileExtension(connection_string.GetFilePath(), FileExtensions::Data::IndexableTextIndex));
+    delete_file(TextRepositoryNotesFile::GetNotesFilePath(connection_string));
+    delete_file(TextRepositoryStatusFile::GetStatusFilePath(connection_string));
 }
 
 
@@ -244,44 +261,48 @@ void TextRepository::RenameRepository(const ConnectionString& old_connection_str
 {
     DeleteRepositoryFiles(new_connection_string);
 
-    auto rename_file = [](const std::wstring& old_filename, const std::wstring& new_filename)
+    auto rename_file = [](const std::string& old_file_path, const std::string& new_file_path)
     {
-        if( PortableFunctions::FileIsRegular(old_filename) && !PortableFunctions::FileRename(old_filename, new_filename) )
+        if( PortableFunctions::FileIsRegular(old_file_path) && !PortableFunctions::FileRename(old_file_path, new_file_path) )
             throw DataRepositoryException::RenameRepositoryError();
     };
 
     // rename the data, index, notes, and status files
-    rename_file(old_connection_string.GetFilename(), new_connection_string.GetFilename());
-    rename_file(old_connection_string.GetFilename() + FileExtensions::Data::WithDot::IndexableTextIndex, new_connection_string.GetFilename() + FileExtensions::Data::WithDot::IndexableTextIndex);
-    rename_file(TextRepositoryNotesFile::GetNotesFilename(old_connection_string), TextRepositoryNotesFile::GetNotesFilename(new_connection_string));
-    rename_file(TextRepositoryStatusFile::GetStatusFilename(old_connection_string), TextRepositoryStatusFile::GetStatusFilename(new_connection_string));
+    rename_file(old_connection_string.GetFilePath(), new_connection_string.GetFilePath());
+
+    rename_file(PortableFunctions::PathAppendFileExtension(old_connection_string.GetFilePath(), FileExtensions::Data::IndexableTextIndex),
+                PortableFunctions::PathAppendFileExtension(new_connection_string.GetFilePath(), FileExtensions::Data::IndexableTextIndex));
+
+    rename_file(TextRepositoryNotesFile::GetNotesFilePath(old_connection_string), TextRepositoryNotesFile::GetNotesFilePath(new_connection_string));
+
+    rename_file(TextRepositoryStatusFile::GetStatusFilePath(old_connection_string), TextRepositoryStatusFile::GetStatusFilePath(new_connection_string));
 }
 
 
-std::vector<std::wstring> TextRepository::GetAssociatedFileList(const ConnectionString& connection_string)
+std::vector<std::string> TextRepository::GetAssociatedFileList(const ConnectionString& connection_string)
 {
     return
     {
-        connection_string.GetFilename(),
-        TextRepositoryNotesFile::GetNotesFilename(connection_string),
-        TextRepositoryStatusFile::GetStatusFilename(connection_string)
+        connection_string.GetFilePath(),
+        TextRepositoryNotesFile::GetNotesFilePath(connection_string),
+        TextRepositoryStatusFile::GetStatusFilePath(connection_string)
     };
 }
 
 
 void TextRepository::OpenDataFile()
 {
-    m_file = PortableFunctions::FileOpen(m_connectionString.GetFilename(), IsReadOnly() ? _T("rb") : _T("rb+"));
+    m_file = PortableFunctions::FileOpen(m_connectionString.GetFilePath(), IsReadOnly() ? "rb" : "rb+");
 
     if( m_file == nullptr )
-        throw DataRepositoryException::IOError(_T("The data file could not be opened."));
+        throw DataRepositoryException::IOError("The data file could not be opened.");
 
     // create memory for the read and write buffers
     if( m_utf8AnsiBuffer == nullptr )
         m_utf8AnsiBuffer = new char[m_utf8AnsiBufferSize];
 
     if( m_wideBuffer == nullptr )
-        m_wideBuffer = new TCHAR[m_wideBufferSize];
+        m_wideBuffer = new wchar_t[m_wideBufferSize];
 
     // determine the size of the file
     PortableFunctions::fseeki64(m_file, 0, SEEK_END);
@@ -301,7 +322,7 @@ void TextRepository::OpenDataFile()
 }
 
 
-size_t TextRepository::GetIdStructureHashForKeyIndex() const
+uint32_t TextRepository::GetIdStructureHashForKeyIndex() const
 {
     return m_caseAccess->GetDataDict().GetIdStructureHashForKeyIndex(false, true);
 }
@@ -309,8 +330,8 @@ size_t TextRepository::GetIdStructureHashForKeyIndex() const
 
 std::shared_ptr<IndexableTextRepository::IndexCreator> TextRepository::GetIndexCreator()
 {
-    static std::vector<const char*> CreateIndexSqlStatements = { SqlStatements::CreateKeyTablePositionIndex };
-    m_indexCreator = std::make_shared<TextRepositoryIndexCreator>(*this, SqlStatements::CreateKeyTable, CreateIndexSqlStatements);
+    static const std::vector<const char*> CreateIndexSqlStatements = { Sqlite::Commands::CreateKeyTablePositionIndex };
+    m_indexCreator = std::make_shared<TextRepositoryIndexCreator>(*this, CreateIndexSqlStatements);
     return m_indexCreator;
 }
 
@@ -319,27 +340,27 @@ std::vector<std::tuple<const char*, std::shared_ptr<SQLiteStatement>&>> TextRepo
 {
     return std::vector<std::tuple<const char*, std::shared_ptr<SQLiteStatement>&>>
     {
-        { SqlStatements::InsertKey, m_stmtInsertKey },
-        { SqlStatements::KeyExists, m_stmtKeyExists }
+        { Sqlite::Commands::InsertKey, m_stmtInsertKey },
+        { Sqlite::Commands::KeyExists, m_stmtKeyExists }
     };
 }
 
 
-std::variant<const char*, std::shared_ptr<SQLiteStatement>> TextRepository::GetSqlStatementForQuery(SqlQueryType type)
+std::variant<const char*, std::shared_ptr<SQLiteStatement>> TextRepository::GetSqlStatementForQuery(const SqlQueryType type)
 {
     switch( type )
     {
         case SqlQueryType::ContainsNotDeletedKey:             return m_stmtKeyExists;
-        case SqlQueryType::GetPositionBytesFromNotDeletedKey: return SqlStatements::QueryPositionBytesByKey;
-        case SqlQueryType::GetBytesFromPosition:              return SqlStatements::QueryBytesByPosition;
-        case SqlQueryType::CountNotDeletedKeys:               return SqlStatements::CountKeys;
+        case SqlQueryType::GetPositionBytesFromNotDeletedKey: return Sqlite::Commands::QueryPositionBytesByKey;
+        case SqlQueryType::GetBytesFromPosition:              return Sqlite::Commands::QueryBytesByPosition;
+        case SqlQueryType::CountNotDeletedKeys:               return Sqlite::Commands::CountKeys;
     }
 
     throw ProgrammingErrorException();
 }
 
 
-void TextRepository::ResetPosition(int64_t file_position)
+void TextRepository::ResetPosition(const int64_t file_position)
 {
     ASSERT(file_position >= 0 && file_position <= m_fileSize);
     PortableFunctions::fseeki64(m_file, file_position, SEEK_SET);
@@ -348,7 +369,7 @@ void TextRepository::ResetPosition(int64_t file_position)
 
 void TextRepository::ResetPositionToBeginning()
 {
-    const size_t file_position = ( m_encoding == Encoding::Utf8 ) ? Utf8BOM_sv.length() : 0;
+    const size_t file_position = ( m_encoding == Encoding::Utf8 ) ? TextEncoding::Utf8Bom_sv.length() : 0;
     ResetPosition(file_position);
 
     // reset the reading buffers
@@ -431,7 +452,7 @@ bool TextRepository::FillUtf8AnsiTextBufferForKeyChangeReading()
 bool TextRepository::ReadUntilKeyChange()
 {
     // a routine for finding the first non-skipped record that can be used to generate the key
-    const TCHAR* first_line_key = nullptr;
+    const wchar_t* first_line_key = nullptr;
 
     auto find_first_line_key = [&]()
     {
@@ -446,9 +467,9 @@ bool TextRepository::ReadUntilKeyChange()
         }
     };
 
-    auto this_line_key_matches_first_line_key = [&](const TCHAR* buffer, size_t buffer_length) -> bool
+    auto this_line_key_matches_first_line_key = [&](const wchar_t* buffer, size_t buffer_length) -> bool
     {
-        const TCHAR* const this_line_key = m_currentLineKeyFullLineProcessor.GetLine(buffer, buffer_length, m_keyEnd);
+        const wchar_t* const this_line_key = m_currentLineKeyFullLineProcessor.GetLine(buffer, buffer_length, m_keyEnd);
 
         for( const TextToCaseConverter::TextSpan& key_span : m_keyMetadata->key_spans )
         {
@@ -504,7 +525,7 @@ bool TextRepository::ReadUntilKeyChange()
                 if( first_line_key != nullptr )
                 {
                     // if the file ended without a newline, potentially add a dummy line
-                    const TCHAR last_char = *(m_wideBufferPosition - 1);
+                    const wchar_t last_char = *(m_wideBufferPosition - 1);
 
                     if( last_char != '\r' && last_char != '\n' )
                     {
@@ -550,7 +571,7 @@ bool TextRepository::ReadUntilKeyChange()
 
                     m_wideBufferSize *= 2;
 
-                    TCHAR* new_wide_buffer = new TCHAR[m_wideBufferSize];
+                    wchar_t* new_wide_buffer = new wchar_t[m_wideBufferSize];
                     _tmemcpy(new_wide_buffer, m_wideBuffer, buffer_size_currently_used);
                     delete[] m_wideBuffer;
 
@@ -563,7 +584,7 @@ bool TextRepository::ReadUntilKeyChange()
                 // case and adjust the line offsets
                 else
                 {
-                    memmove(m_wideBuffer, m_wideBuffer + this_case_buffer_offset, sizeof(TCHAR) * buffer_size_currently_used);
+                    memmove(m_wideBuffer, m_wideBuffer + this_case_buffer_offset, sizeof(wchar_t) * buffer_size_currently_used);
 
                     for( auto line_iterator = m_wideBufferLines.begin() + m_wideBufferLineCaseStartLineIndex; line_iterator != m_wideBufferLines.end(); ++line_iterator )
                         line_iterator->offset -= this_case_buffer_offset;
@@ -609,7 +630,7 @@ bool TextRepository::ReadUntilKeyChange()
 
                 const  size_t characters_converted = UTF8Convert::EncodedCharsBufferToWideBuffer(m_encoding,
                                                                                                  m_utf8AnsiBuffer, utf8_ansi_bytes_to_copy,
-                                                                                                 const_cast<TCHAR*>(m_wideBufferPosition), remaining_buffer_size);
+                                                                                                 const_cast<wchar_t*>(m_wideBufferPosition), remaining_buffer_size);
 
                 m_wideBufferEnd = m_wideBufferPosition + characters_converted;
 
@@ -642,7 +663,7 @@ bool TextRepository::ReadUntilKeyChange()
 
                 if( current_wide_buffer_line->length > 0 )
                 {
-                    const TCHAR* current_wide_buffer_line_start_position = m_wideBuffer + current_wide_buffer_line->offset;
+                    const wchar_t* current_wide_buffer_line_start_position = m_wideBuffer + current_wide_buffer_line->offset;
 
                     // for erased records, mark the line as having length 0
                     if( *current_wide_buffer_line_start_position == TextToCaseConverter::DataFileErasedRecordCharacter )
@@ -685,16 +706,16 @@ bool TextRepository::ReadUntilKeyChange()
 }
 
 
-void TextRepository::PopulateCaseIdentifiers(CString& key, CString& uuid, double& position_in_repository) const
+void TextRepository::PopulateCaseIdentifiers(std::string& key, std::string& uuid, double& position_in_repository)
 {
     // search the index by key
-    if( !key.IsEmpty() )
+    if( !key.empty() )
     {
         position_in_repository = static_cast<double>(std::get<int64_t>(GetPositionBytesFromKey(key)));
     }
 
     // text files don't have UUIDs
-    else if( !uuid.IsEmpty() )
+    else if( !uuid.empty() )
     {
         throw DataRepositoryException::CaseNotFound();
     }
@@ -705,58 +726,69 @@ void TextRepository::PopulateCaseIdentifiers(CString& key, CString& uuid, double
         key = GetKeyFromPosition(static_cast<int64_t>(position_in_repository));
     }
 
-    ASSERT(uuid.IsEmpty());
+    ASSERT(uuid.empty());
 }
 
 
-CString TextRepository::GetKeyFromPosition(int64_t file_position) const
+DataRepositoryUniqueCaseIdentifer TextRepository::GetUniqueCaseIdentifer(const CaseKey& case_key)
 {
-    EnsureSqlStatementIsPrepared(SqlStatements::QueryKeyByPosition, m_stmtQueryKeyByPosition);
-    SQLiteResetOnDestruction rod(*m_stmtQueryKeyByPosition);
+    return DataRepositoryUniqueCaseIdentifer(DataRepositoryUniqueCaseIdentifer::Type::Key, case_key.GetKey());
+}
+
+
+std::string TextRepository::GetKeyFromPosition(const int64_t file_position)
+{
+    EnsureSqlStatementIsPrepared(Sqlite::Commands::QueryKeyByPosition, m_stmtQueryKeyByPosition);
+    const SQLiteResetOnDestruction rod(*m_stmtQueryKeyByPosition);
 
     m_stmtQueryKeyByPosition->Bind(1, file_position);
 
     if( m_stmtQueryKeyByPosition->Step() != SQLITE_ROW )
         throw DataRepositoryException::CaseNotFound();
 
-    return m_stmtQueryKeyByPosition->GetColumn<CString>(0);
+    return m_stmtQueryKeyByPosition->GetColumn<std::string>(0);
 }
 
 
-SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const TCHAR* columns_to_query,
-                                                                 size_t offset, size_t limit,
-                                                                 const std::optional<CaseIterationMethod>& iteration_method,
-                                                                 const std::optional<CaseIterationOrder>& iteration_order,
-                                                                 const CaseIteratorParameters* start_parameters) const
+SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const char* const columns_to_query,
+                                                                 const size_t offset, const size_t limit,
+                                                                 const std::optional<CaseIterationMethod> iteration_method,
+                                                                 const std::optional<CaseIterationOrder> iteration_order,
+                                                                 const CaseIteratorParameters* const start_parameters)
 {
-    CString order_by_text;
+    std::string order_by_text;
 
     if( iteration_method.has_value() )
     {
-        order_by_text.Format(_T("ORDER BY %s %s "),
-            ( iteration_method == CaseIterationMethod::KeyOrder ) ? _T("`Key`") : _T("`Position`"),
-            ( ( iteration_order == CaseIterationOrder::Ascending )  ? _T("ASC") :
-              ( iteration_order == CaseIterationOrder::Descending ) ? _T("DESC") :
-                                                                      _T("") ));
+        const char* const column = ( *iteration_method == CaseIterationMethod::KeyOrder ) ? "`Key`" :
+                                                                                            "`Position`";
+
+        const char* const order = ( !iteration_order.has_value() )                       ? "" :
+                                  ( *iteration_order == CaseIterationOrder::Ascending )  ? "ASC" :
+                                                                                           "DESC";
+
+        order_by_text = FormatText("ORDER BY %s %s ", column, order);
     }
 
-    const CString limit_text = FormatText(_T("LIMIT %d OFFSET %d "), ( limit == SIZE_MAX ) ? -1 : static_cast<int>(limit), static_cast<int>(offset));
+    const std::string limit_text = FormatText("LIMIT %d OFFSET %d ",
+                                              ( limit == SIZE_MAX ) ? -1 : static_cast<int>(limit),
+                                              static_cast<int>(offset));
 
-    CString where_text;
+    std::string where_text;
     bool use_key_prefix = false;
     bool use_operators = false;
 
     // process any filters
     if( start_parameters != nullptr )
     {
-        // use the key prefix if it is set and and is not empty
-        if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->IsEmpty() )
+        // use the key prefix if it is set and is not empty
+        if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->empty() )
         {
             use_key_prefix = true;
-            where_text = _T("WHERE `Key` >= ? AND `Key` < ?");
+            where_text = "WHERE `Key` >= ? AND `Key` < ?";
 
-            use_operators = std::holds_alternative<CString>(start_parameters->first_key_or_position) ?
-                !std::get<CString>(start_parameters->first_key_or_position).IsEmpty() :
+            use_operators = std::holds_alternative<std::string>(start_parameters->first_key_or_position) ?
+                !std::get<std::string>(start_parameters->first_key_or_position).empty() :
                 ( std::get<double>(start_parameters->first_key_or_position) != -1 );
         }
 
@@ -767,38 +799,32 @@ SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const TCHAR* co
 
         if( use_operators )
         {
-            const TCHAR* const comparison_operator =
-                ( start_parameters->start_type == CaseIterationStartType::LessThan )          ?   _T("<") :
-                ( start_parameters->start_type == CaseIterationStartType::LessThanEquals )    ?   _T("<=") :
-                ( start_parameters->start_type == CaseIterationStartType::GreaterThanEquals ) ?   _T(">=") :
-              /*( start_parameters->start_type == CaseIterationStartType::GreaterThan )       ?*/ _T(">");
-
-            where_text.AppendFormat(where_text.IsEmpty() ? _T("WHERE %s %s ?") : _T(" AND %s %s ?"),
-                std::holds_alternative<CString>(start_parameters->first_key_or_position) ? _T("`Key`") : _T("`Position`"), comparison_operator);
+            where_text.append(FormatText(where_text.empty() ? "WHERE %s %s ?" : " AND %s %s ?",
+                                         std::holds_alternative<std::string>(start_parameters->first_key_or_position) ? "`Key`" : "`Position`",
+                                         ToString(start_parameters->start_type)));
         }
     }
 
-    const CString sql = FormatText(_T("SELECT %s FROM `Keys` %s %s %s;"), columns_to_query,
-                                                                          where_text.GetString(),
-                                                                          order_by_text.GetString(),
-                                                                          limit_text.GetString());
+    const std::string sql = FormatText("SELECT %s FROM `Keys` %s %s %s;", columns_to_query,
+                                                                          where_text.c_str(),
+                                                                          order_by_text.c_str(),
+                                                                          limit_text.c_str());
 
     SQLiteStatement stmt_query_keys = PrepareSqlStatementForQuery(sql);
 
     if( use_key_prefix )
     {
-        const std::string key_prefix = UTF8Convert::WideToUTF8(*start_parameters->key_prefix);
-        stmt_query_keys.Bind(1, key_prefix)
-                       .Bind(2, SQLiteHelpers::GetTextPrefixBoundary(key_prefix));
+        stmt_query_keys.Bind(1, *start_parameters->key_prefix)
+                       .Bind(2, SQLiteHelpers::GetTextPrefixBoundary(*start_parameters->key_prefix));
     }
 
     if( use_operators )
     {
         const int operator_argument_index = use_key_prefix ? 3 : 1;
 
-        if( std::holds_alternative<CString>(start_parameters->first_key_or_position) )
+        if( std::holds_alternative<std::string>(start_parameters->first_key_or_position) )
         {
-            stmt_query_keys.Bind(operator_argument_index, std::get<CString>(start_parameters->first_key_or_position));
+            stmt_query_keys.Bind(operator_argument_index, std::get<std::string>(start_parameters->first_key_or_position));
         }
 
         else
@@ -811,19 +837,19 @@ SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const TCHAR* co
 }
 
 
-std::optional<CaseKey> TextRepository::FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
-                                                   const CaseIteratorParameters* start_parameters/* = nullptr*/) const
+std::optional<CaseKey> TextRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
+                                                   const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
-    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement(_T("`Key`, `Position`"), 0, 1, iteration_method, iteration_order, start_parameters);
+    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`Key`, `Position`", 0, 1, iteration_method, iteration_order, start_parameters);
 
     if( stmt_query_keys.Step() == SQLITE_ROW )
-        return CaseKey(stmt_query_keys.GetColumn<CString>(0), stmt_query_keys.GetColumn<double>(1));
+        return CaseKey(stmt_query_keys.GetColumn<std::string>(0), stmt_query_keys.GetColumn<double>(1));
 
     return std::nullopt;
 }
 
 
-void TextRepository::FillUtf8AnsiTextBufferForCaseReading(int64_t file_position, size_t bytes_for_case)
+void TextRepository::FillUtf8AnsiTextBufferForCaseReading(const int64_t file_position, const size_t bytes_for_case)
 {
     // make sure that the UTF-8/ANSI text buffer is large enough to read this case
     if( bytes_for_case > m_utf8AnsiBufferSize )
@@ -840,25 +866,28 @@ void TextRepository::FillUtf8AnsiTextBufferForCaseReading(int64_t file_position,
 }
 
 
-void TextRepository::SetupOtherCaseAttributes(Case& data_case, double file_position) const
+void TextRepository::SetUpOtherCaseAttributes(Case& data_case, const double file_position) const
 {
     data_case.SetPositionInRepository(file_position);
-    data_case.SetUuid(std::wstring());
+
+    if( !data_case.GetUuid().empty() )
+        data_case.SetUuid(std::string());
+
     data_case.SetDeleted(false);
 
     // update the notes
     if( m_notesFile != nullptr )
-        m_notesFile->SetupCase(data_case);
+        m_notesFile->SetUpCase(data_case);
 
     // update the status information
     if( m_statusFile != nullptr )
-        m_statusFile->SetupCase(data_case);
+        m_statusFile->SetUpCase(data_case);
 
     data_case.GetVectorClock().clear();
 }
 
 
-void TextRepository::ReadCase(Case& data_case, int64_t file_position, size_t bytes_for_case)
+void TextRepository::ReadCase(Case& data_case, const int64_t file_position, const size_t bytes_for_case)
 {
     // read the case
     FillUtf8AnsiTextBufferForCaseReading(file_position, bytes_for_case);
@@ -874,7 +903,7 @@ void TextRepository::ReadCase(Case& data_case, int64_t file_position, size_t byt
         if( bytes_for_case > m_wideBufferSize )
         {
             delete[] m_wideBuffer;
-            m_wideBuffer = new TCHAR[bytes_for_case];
+            m_wideBuffer = new wchar_t[bytes_for_case];
             m_wideBufferSize = bytes_for_case;
         }
 
@@ -885,22 +914,22 @@ void TextRepository::ReadCase(Case& data_case, int64_t file_position, size_t byt
         m_textToCaseConverter->TextWideToCase(data_case, m_wideBuffer, characters_converted);
     }
 
-    SetupOtherCaseAttributes(data_case, static_cast<double>(file_position));
+    SetUpOtherCaseAttributes(data_case, static_cast<double>(file_position));
 }
 
 
-void TextRepository::SetupBatchCase(Case& data_case)
+void TextRepository::SetUpBatchCase(Case& data_case)
 {
     const auto& line_iterator_begin = m_wideBufferLines.cbegin() + m_wideBufferLineCaseStartLineIndex;
     const auto& line_iterator_end = m_wideBufferLines.cend() - 1;
 
     m_textToCaseConverter->TextWideToCase(data_case, m_wideBuffer, line_iterator_begin, line_iterator_end);
 
-    SetupOtherCaseAttributes(data_case, -1);
+    SetUpOtherCaseAttributes(data_case, -1);
 }
 
 
-void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/)
+void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
@@ -913,7 +942,7 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
         m_statusFile->WriteCase(data_case, write_case_parameter);
 
     size_t output_text_length;
-    const char* output_text = m_textToCaseConverter->CaseToTextUtf8(data_case, &output_text_length);
+    const char* const output_text = m_textToCaseConverter->CaseToTextUtf8(data_case, &output_text_length);
 
     // quickly write out the case and get out (for batch processing)
     if( m_accessType == DataRepositoryAccess::BatchOutput || m_accessType == DataRepositoryAccess::BatchOutputAppend )
@@ -939,8 +968,8 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
     enum class WriteMethod { EndOfFile, Insert, Replace, ReplaceIfSpace };
 
     WriteMethod write_method = WriteMethod::Replace;
-    const CString this_key = data_case.GetKey();
-    CString key_to_search;
+    const std::string this_key = data_case.GetKey();
+    std::string key_to_search;
 
     // this will be from CSEntry
     if( write_case_parameter != nullptr )
@@ -1009,13 +1038,13 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
             }
 
             // update the index if the key has changed
-            if( need_to_update_index || this_key.Compare(key_to_search) != 0 )
+            if( need_to_update_index || this_key != key_to_search )
             {
                 if( m_useTransactionManager )
                     WrapInTransaction();
 
-                EnsureSqlStatementIsPrepared(SqlStatements::ModifyKey, m_stmtModifyKey);
-                SQLiteResetOnDestruction rod(*m_stmtModifyKey);
+                EnsureSqlStatementIsPrepared(Sqlite::Commands::ModifyKey, m_stmtModifyKey);
+                const SQLiteResetOnDestruction rod(*m_stmtModifyKey);
 
                 m_stmtModifyKey->Bind(1, this_key);
                 m_stmtModifyKey->Bind(2, replacement_file_position);
@@ -1030,8 +1059,8 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
 
 
     // write out the case contents
-    int64_t write_position = ( write_method == WriteMethod::EndOfFile ) ? m_fileSize :
-                                                                          replacement_file_position;
+    const int64_t write_position = ( write_method == WriteMethod::EndOfFile ) ? m_fileSize :
+                                                                                replacement_file_position;
 
     ResetPosition(write_position);
 
@@ -1048,7 +1077,7 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
             WrapInTransaction();
 
         ASSERT(m_stmtInsertKey != nullptr);
-        SQLiteResetOnDestruction rod(*m_stmtInsertKey);
+        const SQLiteResetOnDestruction rod(*m_stmtInsertKey);
 
         m_stmtInsertKey->Bind(1, this_key);
         m_stmtInsertKey->Bind(2, write_position);
@@ -1065,7 +1094,7 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_p
 }
 
 
-void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bool deleted, const CString* key_if_known)
+void TextRepository::DeleteCase(const int64_t file_position, const size_t bytes_for_case, const bool deleted, const std::string* const key_if_known)
 {
     ASSERT(deleted);
 
@@ -1073,16 +1102,13 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
         throw DataRepositoryException::WriteAccessRequired();
 
     // look up the key if needed for updating the notes or status files
-    std::unique_ptr<CString> key_lookup;
+    cs::shared_or_raw_ptr key_lookup = key_if_known;
 
-    if( key_if_known == nullptr && ( m_notesFile != nullptr || m_statusFile != nullptr ) )
-    {
-        key_lookup = std::make_unique<CString>(GetKeyFromPosition(file_position));
-        key_if_known = key_lookup.get();
-    }
+    if( key_lookup == nullptr && ( m_notesFile != nullptr || m_statusFile != nullptr ) )
+        key_lookup = std::make_shared<std::string>(GetKeyFromPosition(file_position));
 
     // check if this is the last case in the file
-    EnsureSqlStatementIsPrepared(SqlStatements::QueryIsLastPosition, m_stmtQueryIsLastPosition);
+    EnsureSqlStatementIsPrepared(Sqlite::Commands::QueryIsLastPosition, m_stmtQueryIsLastPosition);
     SQLiteResetOnDestruction last_position_rod(*m_stmtQueryIsLastPosition);
 
     m_stmtQueryIsLastPosition->Bind(1, file_position);
@@ -1093,7 +1119,7 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
     if( m_useTransactionManager )
         WrapInTransaction();
 
-    EnsureSqlStatementIsPrepared(SqlStatements::DeleteKeyByPosition, m_stmtDeleteKeyByPosition);
+    EnsureSqlStatementIsPrepared(Sqlite::Commands::DeleteKeyByPosition, m_stmtDeleteKeyByPosition);
     SQLiteResetOnDestruction delete_key_rod(*m_stmtDeleteKeyByPosition);
 
     m_stmtDeleteKeyByPosition->Bind(1, file_position);
@@ -1118,19 +1144,19 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
 
     else if( m_accessType != DataRepositoryAccess::EntryInput )
     {
-        CString case_to_combine_key;
+        std::string case_to_combine_key;
         int64_t case_to_combine_file_position;
         size_t case_to_combine_bytes_for_case;
 
         auto process_statement = [&](SQLiteStatement& stmt_query_key_by_position)
         {
-            case_to_combine_key = stmt_query_key_by_position.GetColumn<CString>(0);
+            case_to_combine_key = stmt_query_key_by_position.GetColumn<std::string>(0);
             case_to_combine_file_position = stmt_query_key_by_position.GetColumn<int64_t>(1);
             case_to_combine_bytes_for_case = stmt_query_key_by_position.GetColumn<size_t>(2);
         };
 
         // check if there is an earlier case to combine with
-        EnsureSqlStatementIsPrepared(SqlStatements::QueryPreviousKeyByPosition, m_stmtQueryPreviousKeyByPosition);
+        EnsureSqlStatementIsPrepared(Sqlite::Commands::QueryPreviousKeyByPosition, m_stmtQueryPreviousKeyByPosition);
         SQLiteResetOnDestruction previous_key_rod(*m_stmtQueryPreviousKeyByPosition);
 
         m_stmtQueryPreviousKeyByPosition->Bind(1, file_position);
@@ -1143,7 +1169,7 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
         // if not, there must be a later case
         else
         {
-            EnsureSqlStatementIsPrepared(SqlStatements::QueryNextKeyByPosition, m_stmtQueryNextKeyByPosition);
+            EnsureSqlStatementIsPrepared(Sqlite::Commands::QueryNextKeyByPosition, m_stmtQueryNextKeyByPosition);
             SQLiteResetOnDestruction next_key_rod(*m_stmtQueryNextKeyByPosition);
 
             m_stmtQueryNextKeyByPosition->Bind(1, file_position);
@@ -1161,7 +1187,7 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
         if( m_useTransactionManager )
             WrapInTransaction();
 
-        EnsureSqlStatementIsPrepared(SqlStatements::ModifyKey, m_stmtModifyKey);
+        EnsureSqlStatementIsPrepared(Sqlite::Commands::ModifyKey, m_stmtModifyKey);
         SQLiteResetOnDestruction modify_key_rod(*m_stmtModifyKey);
 
         m_stmtModifyKey->Bind(1, case_to_combine_key);
@@ -1184,14 +1210,14 @@ void TextRepository::DeleteCase(int64_t file_position, size_t bytes_for_case, bo
 
     // update the notes and statuses
     if( m_notesFile != nullptr )
-        m_notesFile->DeleteCase(*key_if_known);
+        m_notesFile->DeleteCase(*key_lookup);
 
     if( m_statusFile != nullptr )
-        m_statusFile->DeleteCase(*key_if_known);
+        m_statusFile->DeleteCase(*key_lookup);
 }
 
 
-void TextRepository::DeleteCaseInPlace(int64_t file_position, size_t bytes_for_case)
+void TextRepository::DeleteCaseInPlace(const int64_t file_position, const size_t bytes_for_case)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
@@ -1227,7 +1253,7 @@ void TextRepository::DeleteCaseInPlace(int64_t file_position, size_t bytes_for_c
 }
 
 
-void TextRepository::GrowOrShrinkFileAndIndex(int64_t file_position, int bytes_differential)
+void TextRepository::GrowOrShrinkFileAndIndex(const int64_t file_position, const int bytes_differential)
 {
     int64_t bytes_to_shift = m_fileSize - file_position;
 
@@ -1238,7 +1264,7 @@ void TextRepository::GrowOrShrinkFileAndIndex(int64_t file_position, int bytes_d
 
         while( bytes_to_shift > 0 )
         {
-            size_t bytes_to_read = std::min(m_utf8AnsiBufferSize, static_cast<size_t>(bytes_to_shift));
+            const size_t bytes_to_read = std::min(m_utf8AnsiBufferSize, static_cast<size_t>(bytes_to_shift));
 
             FillUtf8AnsiTextBufferForCaseReading(next_read_position, bytes_to_read);
 
@@ -1268,7 +1294,7 @@ void TextRepository::GrowOrShrinkFileAndIndex(int64_t file_position, int bytes_d
 
         while( bytes_to_shift > 0 )
         {
-            size_t bytes_to_read = std::min(m_utf8AnsiBufferSize, static_cast<size_t>(bytes_to_shift));
+            const size_t bytes_to_read = std::min(m_utf8AnsiBufferSize, static_cast<size_t>(bytes_to_shift));
 
             next_read_position -= bytes_to_read;
 
@@ -1291,8 +1317,8 @@ void TextRepository::GrowOrShrinkFileAndIndex(int64_t file_position, int bytes_d
     if( m_useTransactionManager )
         WrapInTransaction();
 
-    EnsureSqlStatementIsPrepared(SqlStatements::ShiftKeys, m_stmtShiftKeys);
-    SQLiteResetOnDestruction rod(*m_stmtShiftKeys);
+    EnsureSqlStatementIsPrepared(Sqlite::Commands::ShiftKeys, m_stmtShiftKeys);
+    const SQLiteResetOnDestruction rod(*m_stmtShiftKeys);
 
     m_stmtShiftKeys->Bind(1, bytes_differential);
     m_stmtShiftKeys->Bind(2, file_position);
@@ -1309,7 +1335,7 @@ void TextRepository::WrapInTransaction()
     if( m_numberTransactions == IndexableTextRepository::MaxNumberSqlInsertsInOneTransaction )
         CommitTransactions();
 
-    if( m_numberTransactions > 0 || sqlite3_exec(m_db, SqlStatements::BeginTransaction, nullptr, nullptr, nullptr) == SQLITE_OK )
+    if( m_numberTransactions > 0 || sqlite3_exec(m_db, Sqlite::Commands::BeginTransaction, nullptr, nullptr, nullptr) == SQLITE_OK )
         ++m_numberTransactions;
 }
 
@@ -1320,7 +1346,7 @@ bool TextRepository::CommitTransactions()
 
     if( m_numberTransactions > 0 )
     {
-        if( sqlite3_exec(m_db, SqlStatements::EndTransaction, nullptr, nullptr, nullptr) != SQLITE_OK )
+        if( sqlite3_exec(m_db, Sqlite::Commands::EndTransaction, nullptr, nullptr, nullptr) != SQLITE_OK )
             throw DataRepositoryException::SQLiteError();
 
         m_numberTransactions = 0;
@@ -1338,7 +1364,7 @@ bool TextRepository::CommitTransactions()
 }
 
 
-size_t TextRepository::GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters/* = nullptr*/) const
+size_t TextRepository::GetNumberCases(const CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
     // text repositories cannot have duplicates
     if( case_status == CaseIterationCaseStatus::DuplicatesOnly )
@@ -1367,7 +1393,7 @@ size_t TextRepository::GetNumberCases(CaseIterationCaseStatus case_status, const
     // if not filtering on partial saves, we can calculate the number easily
     if( !partials_only )
     {
-        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement(_T("COUNT(*)"), 0, SIZE_MAX, std::nullopt, std::nullopt, start_parameters);
+        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("COUNT(*)", 0, SIZE_MAX, std::nullopt, std::nullopt, start_parameters);
 
         if( stmt_query_keys.Step() == SQLITE_ROW )
             number_cases = stmt_query_keys.GetColumn<size_t>(0);
@@ -1376,9 +1402,10 @@ size_t TextRepository::GetNumberCases(CaseIterationCaseStatus case_status, const
     // otherwise, calculate the number by iterating through all the case keys
     else
     {
+        std::unique_ptr<CaseIterator> case_key_iterator = CreateIterator(CaseIterationContent::CaseKey,
+                                                                         case_status, std::nullopt, std::nullopt, start_parameters);
+
         CaseKey case_key;
-        auto case_key_iterator = const_cast<TextRepository*>(this)->CreateIterator(CaseIterationContent::CaseKey,
-                                                                                   case_status, std::nullopt, std::nullopt, start_parameters);
 
         while( case_key_iterator->NextCaseKey(case_key) )
             ++number_cases;
@@ -1388,9 +1415,9 @@ size_t TextRepository::GetNumberCases(CaseIterationCaseStatus case_status, const
 }
 
 
-std::unique_ptr<CaseIterator> TextRepository::CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                             std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                             const CaseIteratorParameters* start_parameters/* = nullptr*/, size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> TextRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
+                                                             const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
+                                                             const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     const bool partials_only = ( case_status == CaseIterationCaseStatus::PartialsOnly );
 
@@ -1405,7 +1432,7 @@ std::unique_ptr<CaseIterator> TextRepository::CreateIterator(CaseIterationConten
     if( iteration_content == CaseIterationContent::Case && iteration_method == CaseIterationMethod::SequentialOrder &&
         iteration_order == CaseIterationOrder::Ascending && start_parameters == nullptr && offset == 0 && limit == SIZE_MAX
         // CR_TODO_ITERATOR eventually remove the next line, but for now, this fast iterator can't be used
-        // until we set the repo position to something other than -1 in SetupBatchCase
+        // until we set the repo position to something other than -1 in SetUpBatchCase
         && !m_requiresIndex )
     {
         return std::make_unique<TextRepositoryBatchCaseIterator>(*this, partials_only);
@@ -1414,11 +1441,409 @@ std::unique_ptr<CaseIterator> TextRepository::CreateIterator(CaseIterationConten
     else
     {
         // partials have to be filtered by the iterator; otherwise, the offset and limit can be used
-        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement(_T("`Key`, `Position`, `Bytes`"),
+        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`Key`, `Position`, `Bytes`",
                                                                            partials_only ? 0 : offset, partials_only ? SIZE_MAX : limit,
                                                                            iteration_method, iteration_order, start_parameters);
 
         return std::make_unique<TextRepositoryCaseIterator>(*this, std::move(stmt_query_keys), case_status, start_parameters,
                                                             partials_only ? std::make_optional(std::make_tuple(offset, limit)) : std::nullopt);
     }
+}
+
+
+
+// --------------------------------------------------------------------------
+// TextRepositoryIndexerPositions
+// --------------------------------------------------------------------------
+
+TextRepositoryIndexerPositions::TextRepositoryIndexerPositions(const int64_t file_bytes_remaining, const int64_t file_size)
+    :   line_number(0),
+        file_position(file_size - file_bytes_remaining),
+        m_fileSize(file_size),
+        m_nextLookupPosition(0)
+{
+    ASSERT(file_position == TextEncoding::Utf8Bom_sv.length() || file_position == 0);
+    AddEntry();
+}
+
+
+int64_t TextRepositoryIndexerPositions::LookupEntry(const int64_t lookup_line_number)
+{
+    const auto& line_search = std::find_if(m_positions.begin() + m_nextLookupPosition, m_positions.end(),
+                                           [&](const std::tuple<int64_t, int64_t>& position) { return ( std::get<0>(position) == lookup_line_number ); });
+    int64_t lookup_file_position;
+
+    // if there is no newline at the end of the file, the lookup will fail and the
+    // position should be the file size
+    if( line_search == m_positions.end() )
+    {
+        ASSERT(lookup_line_number == ( std::get<0>(m_positions.back()) + 1 ));
+        lookup_file_position = m_fileSize;
+    }
+
+    else
+    {
+        lookup_file_position = std::get<1>(*line_search);
+
+        m_nextLookupPosition = line_search - m_positions.begin();
+
+        // don't allow the lookup to get too large
+        if( m_nextLookupPosition > MinPositionsResizeCount )
+        {
+            m_positions.erase(m_positions.begin(), m_positions.begin() + m_nextLookupPosition);
+            m_nextLookupPosition = 0;
+        }
+    }
+
+    return lookup_file_position;
+}
+
+
+
+// --------------------------------------------------------------------------
+// TextRepositoryIndexCreator
+// --------------------------------------------------------------------------
+
+TextRepositoryIndexCreator::TextRepositoryIndexCreator(TextRepository& text_repository, const std::vector<const char*>& create_index_sql_statements)
+    :   m_textRepository(text_repository),
+        m_createIndexSqlStatements(create_index_sql_statements),
+        throwExceptionsOnDuplicateKeys(true),
+        m_indexerPositions(m_textRepository.m_fileBytesRemaining, m_textRepository.m_fileSize),
+        m_keyLength(m_textRepository.m_keyMetadata->key_length),
+        m_processedLineNumbers(0)
+{
+}
+
+
+void TextRepositoryIndexCreator::Initialize(const bool throw_exceptions_on_duplicate_keys)
+{
+    throwExceptionsOnDuplicateKeys = throw_exceptions_on_duplicate_keys;
+}
+
+
+const char* TextRepositoryIndexCreator::GetCreateKeyTableSql() const
+{
+    return Sqlite::Commands::CreateKeyTable;
+}
+
+
+const std::vector<const char*>& TextRepositoryIndexCreator::GetCreateIndexSqlStatements() const
+{
+    return m_createIndexSqlStatements;
+}
+
+
+int64_t TextRepositoryIndexCreator::GetFileSize() const
+{
+    return m_textRepository.m_fileSize;
+}
+
+
+int TextRepositoryIndexCreator::GetPercentRead() const
+{
+    return m_textRepository.GetPercentRead();
+}
+
+
+bool TextRepositoryIndexCreator::ReadCaseAndUpdateIndex(IndexableTextRepositoryIndexDetails& index_details)
+{
+    if( !m_textRepository.ReadUntilKeyChange() )
+        return false;
+
+    // generate the key finding a non-skipped record up to the second-to-last line (because the last line is for the next case)
+    const auto& line_iterator_begin = m_textRepository.m_wideBufferLines.cbegin() + m_textRepository.m_wideBufferLineCaseStartLineIndex;
+    const auto& line_iterator_end = m_textRepository.m_wideBufferLines.cend() - 1;
+
+    for( auto line_iterator = line_iterator_begin; line_iterator != line_iterator_end; ++line_iterator )
+    {
+        // skip blank records
+        if( line_iterator->length == 0 )
+            continue;
+
+        const wchar_t* first_line_key = m_textRepository.m_firstLineKeyFullLineProcessor.GetLine(m_textRepository.m_wideBuffer + line_iterator->offset,
+                                                                                                 line_iterator->length, m_textRepository.m_keyEnd);
+
+#ifdef UTF8_TODO // this was the old code (for reference)
+        index_details.key.resize(m_keyLength);
+        wchar_t* key_iterator = index_details.key.data();
+
+        for( const auto& key_span : m_textRepository.m_keyMetadata->key_spans )
+        {
+            _tmemcpy(key_iterator, first_line_key + key_span.start, key_span.length);
+            key_iterator += key_span.length;
+        }
+#else
+        auto wide_key = std::make_unique_for_overwrite<wchar_t[]>(m_keyLength);
+        wchar_t* key_iterator = wide_key.get();
+
+        for( const auto& key_span : m_textRepository.m_keyMetadata->key_spans )
+        {
+            _tmemcpy(key_iterator, first_line_key + key_span.start, key_span.length);
+            key_iterator += key_span.length;
+        }
+
+        index_details.key = UTF8_TODO::GetUtf8(wstring_view(wide_key.get(), m_keyLength));
+
+        ASSERT(SO::WideLength(index_details.key) == m_keyLength);
+#endif
+
+        break;
+    }
+
+    // turn ␤ -> \n
+    NewlineSubstitutor::MakeUnicodeNLToNewline(index_details.key);
+
+#ifdef _DEBUG
+    // check that the key generated is the same as what is generated by TextToCaseConverter
+    Case index_case(m_textRepository.m_caseAccess->GetCaseMetadata());
+    m_textRepository.SetUpBatchCase(index_case);
+    ASSERT(index_case.GetKey() == index_details.key);
+#endif
+
+    // get the information on the line number and file position
+    index_details.line_number = m_processedLineNumbers + 1;
+
+    index_details.position = m_indexerPositions.LookupEntry(m_processedLineNumbers);
+
+    m_processedLineNumbers += ( line_iterator_end - line_iterator_begin );
+    int64_t file_position_next_case = m_indexerPositions.LookupEntry(m_processedLineNumbers);
+
+    index_details.bytes = static_cast<size_t>(file_position_next_case - index_details.position);
+
+    // update the index
+    UpdateIndex(index_details);
+
+    return true;
+}
+
+
+void TextRepositoryIndexCreator::OnSuccessfulCreation()
+{
+    m_textRepository.m_indexCreator.reset();
+
+    m_textRepository.ResetPositionToBeginning();
+}
+
+
+void TextRepositoryIndexCreator::UpdateIndex(IndexableTextRepositoryIndexDetails& index_details)
+{
+    // check if the key already exists in the index
+    ASSERT(m_textRepository.m_stmtKeyExists != nullptr);
+    SQLiteResetOnDestruction key_exists_rod(*m_textRepository.m_stmtKeyExists);
+
+    m_textRepository.m_stmtKeyExists->Bind(1, index_details.key);
+
+    index_details.case_prevents_index_creation = ( m_textRepository.m_stmtKeyExists->Step() == SQLITE_ROW );
+
+    if( index_details.case_prevents_index_creation )
+    {
+        if( throwExceptionsOnDuplicateKeys )
+        {
+            throw DataRepositoryException::DuplicateCaseWhileCreatingIndex("An index could not be created for a data file with duplicate case IDs, including: '%s'",
+                                                                            index_details.key.c_str());
+        }
+    }
+
+    else
+    {
+        // insert the key information into the index
+        ASSERT(m_textRepository.m_stmtInsertKey != nullptr);
+        SQLiteResetOnDestruction insert_key_rod(*m_textRepository.m_stmtInsertKey);
+
+        m_textRepository.m_stmtInsertKey->Bind(1, index_details.key)
+                                         .Bind(2, index_details.position)
+                                         .Bind(3, index_details.bytes);
+
+        if( m_textRepository.m_stmtInsertKey->Step() != SQLITE_DONE )
+            throw DataRepositoryException::SQLiteError();
+    }
+}
+
+
+
+// --------------------------------------------------------------------------
+// TextRepositoryCaseIterator
+// --------------------------------------------------------------------------
+
+TextRepositoryCaseIterator::TextRepositoryCaseIterator(TextRepository& text_repository, SQLiteStatement stmt_query_keys,
+                                                       const CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters,
+                                                       std::optional<std::tuple<size_t, size_t>> partials_offset_and_limit)
+    :   m_textRepository(text_repository),
+        m_stmtQueryKeys(std::move(stmt_query_keys)),
+        m_notesFile(text_repository.m_notesFile.get()),
+        m_statusFile(text_repository.m_statusFile.get()),
+        m_progressBarParameters({ case_status, ( start_parameters != nullptr ) ? std::make_unique<CaseIteratorParameters>(*start_parameters) : nullptr }),
+        m_casesRead(0),
+        m_partialsOffsetLimit(std::move(partials_offset_and_limit))
+{
+    ASSERT(m_statusFile != nullptr || !m_partialsOffsetLimit.has_value());
+}
+
+
+bool TextRepositoryCaseIterator::Step()
+{
+    // when filtering on partials, quit out if the correct number of cases has been read
+    if( m_partialsOffsetLimit.has_value() && m_casesRead == std::get<1>(*m_partialsOffsetLimit) )
+        return false;
+
+    // get the next case
+    while( m_stmtQueryKeys.Step() == SQLITE_ROW )
+    {
+        // potentially filter on partials
+        if( m_partialsOffsetLimit.has_value() )
+        {
+            if( !m_statusFile->IsPartial(m_stmtQueryKeys.GetColumn<std::string>(0)) )
+                continue;
+
+            // process the offset
+            if( std::get<0>(*m_partialsOffsetLimit) > 0 )
+            {
+                --std::get<0>(*m_partialsOffsetLimit);
+                continue;
+            }
+        }
+
+        ++m_casesRead;
+        return true;
+    }
+
+    return false;
+}
+
+
+bool TextRepositoryCaseIterator::NextCaseKey(CaseKey& case_key)
+{
+    if( !Step() )
+        return false;
+
+    case_key.SetKey(m_stmtQueryKeys.GetColumn<std::string>(0));
+    case_key.SetPositionInRepository(m_stmtQueryKeys.GetColumn<double>(1));
+
+    return true;
+}
+
+
+bool TextRepositoryCaseIterator::NextCaseSummary(CaseSummary& case_summary)
+{
+    if( !NextCaseKey(case_summary) )
+        return false;
+
+    case_summary.SetDeleted(false);
+
+    // update the case note
+    if( RequiresCaseNote() && m_notesFile != nullptr )
+        m_notesFile->SetUpCaseNote(case_summary);
+
+    // update the status information
+    if( m_statusFile != nullptr )
+        m_statusFile->SetUpCaseSummary(case_summary);
+
+    return true;
+}
+
+
+bool TextRepositoryCaseIterator::NextCase(Case& data_case)
+{
+    if( !Step() )
+        return false;
+
+    const int64_t file_position = m_stmtQueryKeys.GetColumn<int64_t>(1);
+    const size_t bytes_for_case = m_stmtQueryKeys.GetColumn<size_t>(2);
+
+    m_textRepository.TextRepository::ReadCase(data_case, file_position, bytes_for_case);
+
+    return true;
+}
+
+
+int TextRepositoryCaseIterator::GetPercentRead() const
+{
+    // get the number of cases if necessary
+    if( !m_percentMultiplier.has_value() )
+    {
+        const size_t number_cases = m_textRepository.GetNumberCases(std::get<0>(m_progressBarParameters), std::get<1>(m_progressBarParameters).get());
+        m_percentMultiplier = CreatePercentMultiplier(number_cases);
+    }
+
+    return static_cast<int>(m_casesRead * *m_percentMultiplier);
+}
+
+
+
+// --------------------------------------------------------------------------
+// TextRepositoryBatchCaseIterator
+// --------------------------------------------------------------------------
+
+TextRepositoryBatchCaseIterator::TextRepositoryBatchCaseIterator(TextRepository& text_repository, const bool partials_only)
+    :   m_textRepository(text_repository),
+        m_partialsOnly(partials_only)
+{
+    m_textRepository.ResetPositionToBeginning();
+
+#ifdef _DEBUG
+    m_lastFileBytesRemaining = m_textRepository.m_fileBytesRemaining;
+#endif
+}
+
+
+template<typename T>
+bool TextRepositoryBatchCaseIterator::NextCaseForNonCaseReading(T& case_object)
+{
+    // in the rare event that the CaseKey or CaseSummary is being queried from
+    // a batch iterator, create a case that can be used to access the case contents
+    if( m_case == nullptr )
+        m_case = m_textRepository.GetCaseAccess().CreateCase();
+
+    if( NextCase(*m_case) )
+    {
+        case_object = *m_case;
+        return true;
+    }
+
+    return false;
+}
+
+
+bool TextRepositoryBatchCaseIterator::NextCaseKey(CaseKey& case_key)
+{
+    return NextCaseForNonCaseReading(case_key);
+}
+
+
+bool TextRepositoryBatchCaseIterator::NextCaseSummary(CaseSummary& case_summary)
+{
+    return NextCaseForNonCaseReading(case_summary);
+}
+
+
+bool TextRepositoryBatchCaseIterator::NextCase(Case& data_case)
+{
+    while( true )
+    {
+        // ensure that the file position hasn't moved
+#ifdef _DEBUG
+        ASSERT(m_lastFileBytesRemaining == m_textRepository.m_fileBytesRemaining);
+#endif
+
+        const bool case_read = m_textRepository.ReadUntilKeyChange();
+
+#ifdef _DEBUG
+        m_lastFileBytesRemaining = m_textRepository.m_fileBytesRemaining;
+#endif
+
+        if( !case_read )
+            return false;
+
+        m_textRepository.SetUpBatchCase(data_case);
+
+        // potentially filter on partials
+        if( !m_partialsOnly || data_case.IsPartial() )
+            return true;
+    }
+}
+
+
+int TextRepositoryBatchCaseIterator::GetPercentRead() const
+{
+    return m_textRepository.GetPercentRead();
 }

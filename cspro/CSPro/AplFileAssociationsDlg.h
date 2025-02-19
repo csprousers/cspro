@@ -48,6 +48,6 @@ public:
     BOOL m_bWorkingStorage;
 
 private:
-    std::vector<std::wstring> m_suggestedDictionaries;
+    std::vector<std::string> m_suggestedDictionaryFilePaths;
     size_t m_nextSuggestedDictionaryIndex;
 };

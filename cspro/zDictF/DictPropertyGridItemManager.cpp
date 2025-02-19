@@ -34,8 +34,8 @@ void DictPropertyGridItemManager::SetupProperties(CMFCPropertyGridCtrl& property
 
     capture_type_list_property_builder.AddOption(CaptureType::Unspecified, _T(""));
 
-    for( CaptureType capture_type : CaptureInfo::GetPossibleCaptureTypes(m_dictItem, CaptureInfo::CaptureTypeSortOrder::Name) )
-        capture_type_list_property_builder.AddOption(capture_type, CaptureInfo::GetCaptureTypeName(capture_type, true));
+    for( const CaptureType capture_type : CaptureInfo::GetPossibleCaptureTypes(m_dictItem, CaptureInfo::CaptureTypeSortOrder::Name) )
+        capture_type_list_property_builder.AddOption(capture_type, TC::ToWide(CaptureInfo::GetCaptureTypeName(capture_type, true)).c_str());
     
     capture_type_list_property_builder.SetOnUpdate([&](CaptureType capture_type)
         {
@@ -114,14 +114,14 @@ void DictPropertyGridItemManager::AddDateCaptureTypeProperties(CMFCPropertyGridC
         _T("Format"),
         _T("The format used to store a date while collecting data in a data entry application."));
 
-    std::vector<const TCHAR*> formats = DateCaptureInfo::GetPossibleFormats(m_dictItem);
-    const CString& current_format = m_dictItem.GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
+    const std::vector<const char*> formats = DateCaptureInfo::GetPossibleFormats(m_dictItem);
+    const std::string& current_format = m_dictItem.GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
 
     // select the format, or if it is invalid (or unset), select a blank string
     if( std::find_if(formats.cbegin(), formats.cend(),
-        [&](const TCHAR* format) { return ( current_format == format ); }) != formats.cend() )
+                     [&](const char* const format) { return SO::Equals(current_format, format); }) != formats.cend() )
     {
-        format_list_property_builder.SetValue(current_format);
+        format_list_property_builder.SetValue(UTF8_TODO::GetCString(current_format));
     }
 
     else
@@ -131,12 +131,12 @@ void DictPropertyGridItemManager::AddDateCaptureTypeProperties(CMFCPropertyGridC
 
     format_list_property_builder.AddOption(CString(), _T(""));
 
-    for( const TCHAR* format : formats )
-        format_list_property_builder.AddOption(format, format);
+    for( const char* const format : formats )
+        format_list_property_builder.AddOption(UTF8_TODO::GetCString(format), UTF8_TODO::GetWide(format).c_str());
     
     format_list_property_builder.SetOnUpdate([&](const CString& format)
         {
-            m_dictItem.GetCaptureInfo().GetExtended<DateCaptureInfo>().SetFormat(format);
+            m_dictItem.GetCaptureInfo().GetExtended<DateCaptureInfo>().SetFormat(UTF8_TODO::GetUtf8(format));
         });
 
     date_heading_property->AddSubItem(format_list_property_builder.Create());

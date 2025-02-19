@@ -3,28 +3,23 @@
 #include <zLogicO/ReservedWords.h>
 
 
-namespace
-{
-    std::wstring CreateUnreservedName(std::wstring text)
-    {
-        return CIMSAString::CreateUnreservedName(text,
-                [&](const std::wstring& name_candidate)
-                {
-                    return !::Logic::ReservedWords::IsReservedWord(name_candidate);
-                });
-    }
-}
-
-
 bool CSPro::Logic::Names::IsValid(System::String^ name_)
 {
-    std::wstring name = ToWS(name_);
+    const std::string name = clr_helpers::to_string(name_);
 
     return ( CIMSAString::IsName(name) && !::Logic::ReservedWords::IsReservedWord(name) );
 }
 
 
-System::String^ CSPro::Logic::Names::MakeName(System::String^ label)
+System::String^ CSPro::Logic::Names::MakeName(System::String^ label_)
 {
-    return gcnew System::String(CreateUnreservedName(ToWS(label)).c_str());
+    const std::string label = clr_helpers::to_string(label_);
+
+    const std::string unreserved_name = CIMSAString::CreateUnreservedName(label,
+            [&](const std::string& name_candidate)
+            {
+                return !::Logic::ReservedWords::IsReservedWord(name_candidate);
+            });
+
+    return clr_helpers::to_SystemString(unreserved_name);
 }

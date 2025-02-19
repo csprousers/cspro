@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0837641D-6F03-4F33-9EB5-C03D2CA8EDB0}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zFormO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -74,8 +70,8 @@
     <ClCompile Include="Field.cpp" />
     <ClCompile Include="FieldColors.cpp" />
     <ClCompile Include="Form.cpp" />
-    <ClCompile Include="FormFile.cpp" />
     <ClCompile Include="FormBase.cpp" />
+    <ClCompile Include="FormFile.cpp" />
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="ItemBase.cpp" />
     <ClCompile Include="Level.cpp" />
@@ -102,15 +98,15 @@
     <ClInclude Include="Field.h" />
     <ClInclude Include="FieldColors.h" />
     <ClInclude Include="Form.h" />
-    <ClInclude Include="FormFile.h" />
     <ClInclude Include="FormBase.h" />
+    <ClInclude Include="FormFile.h" />
+    <ClInclude Include="FormFileIterator.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="ItemBase.h" />
     <ClInclude Include="Level.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="FormFileIterator.h" />
     <ClInclude Include="RenDlg.h" />
     <ClInclude Include="RepeatedItemSerializer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Roster.h" />
     <ClInclude Include="RosterCells.h" />
     <ClInclude Include="RosterColumn.h" />

@@ -443,22 +443,24 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
 
 
                 // process the notes for this variable
-                auto& notes = pDicX->GetCase().GetNotes();
+                std::vector<Note>& notes = pDicX->GetCase().GetNotes();
 
                 for( size_t i = notes.size() - 1; i < notes.size(); --i )
                 {
-                    auto& note = notes[i];
+                    Note& note = notes[i];
 
-                    auto case_item_reference = dynamic_cast<CaseItemReference*>(&note.GetNamedReference());
+                    CaseItemReference* case_item_reference = dynamic_cast<CaseItemReference*>(&note.GetNamedReference());
 
-                    if( case_item_reference == nullptr || case_item_reference->GetCaseItem().GetDictionaryItem().GetSymbol() != pVarT->GetSymbolIndex() )
+                    if( case_item_reference == nullptr || case_item_reference->GetCaseItem().GetDictItem().GetSymbol() != pVarT->GetSymbolIndex() )
                         continue;
 
                     bool delete_note = false;
 
                     // a non-required non-repeating record
                     if( pLoopControl->GetLoopIndex() < 0 )
+                    {
                         delete_note = true;
+                    }
 
                     else
                     {
@@ -470,10 +472,14 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
                         for( int iDim = 0; occurrences_match && iDim < DIM_MAXDIM; ++iDim )
                         {
                             if( iDim == pLoopControl->GetLoopIndex() )
+                            {
                                 occurrences_match = ( comparison_occurrence >= target_occurrence );
+                            }
 
                             else
+                            {
                                 occurrences_match = ( case_item_reference->GetOccurrence(iDim) == (size_t)theIndexTarget.getIndexValue(iDim) );
+                            }
                         }
 
                         if( !occurrences_match )
@@ -482,10 +488,14 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
                         if( bDelete )
                         {
                             if( comparison_occurrence == target_occurrence )
+                            {
                                 delete_note = true;
+                            }
 
                             else
+                            {
                                 case_item_reference->SetOccurrence(pLoopControl->GetLoopIndex(), comparison_occurrence - 1);
+                            }
                         }
 
                         else if( bInsert )
@@ -494,10 +504,14 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
 
                             // delete the note if the new occurrence isn't valid
                             if( new_occurrence >= (size_t)pGroupT->GetMaxOccs() )
+                            {
                                 delete_note = true;
+                            }
 
                             else
+                            {
                                 case_item_reference->SetOccurrence(pLoopControl->GetLoopIndex(), new_occurrence);
+                            }
                         }
 
                         // sort
@@ -521,7 +535,7 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
                     if( delete_note )
                         m_pEngineDriver->DeleteNote_pre80(pDicX, note);
 
-                    m_pEngineDriver->SetNotesModified(pDicX->GetDicT());
+                    m_pEngineDriver->SetNotesModified(*pDicX->GetDicT());
                 }
             }
 
@@ -644,8 +658,9 @@ bool GROUPT::DoMoveOcc( const CNDIndexes& theIndex, const CLoopControl* pLoopCon
     return bRet;
 }
 
-void GROUPT::OccTreeFree() {
-    TRACE( _T("LEAK: Inside OccTreeFree() deleting m_pocctree for group %s\n"), GetName().c_str() );
+void GROUPT::OccTreeFree()
+{
+    TRACE("LEAK: Inside OccTreeFree() deleting m_pocctree for group %s\n", GetName().c_str());
     delete m_pOccTree;
     m_pOccTree = 0;
 }

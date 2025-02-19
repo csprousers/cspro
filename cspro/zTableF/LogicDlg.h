@@ -2,26 +2,23 @@
 
 #include <zEdit2O/LogicCtrl.h>
 
-// CEdtLogicDlg dialog
+
 class CEdtLogicDlg : public CDialog
 {
-    DECLARE_DYNAMIC(CEdtLogicDlg)
-
 public:
     CEdtLogicDlg(CWnd* pParent = NULL);   // standard constructor
-    virtual ~CEdtLogicDlg();
-// Dialog Data
+
     enum { IDD = IDD_EDTLOGIC_DLG };
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    BOOL PreTranslateMessage(MSG* pMsg);
+    void DoDataExchange(CDataExchange* pDX) override;
+    BOOL PreTranslateMessage(MSG* pMsg) override;
 
-    DECLARE_MESSAGE_MAP()
+    BOOL OnInitDialog() override;
+    void OnOK() override;
+
 public:
     bool m_bIsPostCalc;    // BMD 05 Jun 2006
     CLogicCtrl m_edtLogicCtrl;
-    CIMSAString m_sLogic;
-    virtual BOOL OnInitDialog();
-    virtual void OnOK();
+    std::string m_logic;
 };

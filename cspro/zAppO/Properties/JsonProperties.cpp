@@ -3,10 +3,6 @@
 #include <zDataO/ConnectionStringProperties.h>
 
 
-CREATE_JSON_KEY(ArrayFormat)
-CREATE_JSON_KEY(HashMapFormat)
-
-
 bool JsonProperties::operator==(const JsonProperties& rhs) const
 {
     return ( m_jsonFormat == rhs.m_jsonFormat &&
@@ -21,32 +17,35 @@ bool JsonProperties::operator==(const JsonProperties& rhs) const
 // serialization
 // --------------------------------------------------------------------------
 
+CREATE_JSON_KEY(ArrayFormat)
+CREATE_JSON_KEY(HashMapFormat)
+
 CREATE_ENUM_JSON_SERIALIZER(JsonProperties::JsonFormat,
     { JsonProperties::JsonFormat::Compact, CSValue::compact },
     { JsonProperties::JsonFormat::Pretty,  CSValue::pretty })
 
 CREATE_ENUM_JSON_SERIALIZER(JsonProperties::ArrayFormat,
-    { JsonProperties::ArrayFormat::Full,   _T("full") },
-    { JsonProperties::ArrayFormat::Sparse, _T("sparse") })
+    { JsonProperties::ArrayFormat::Full,   "full" },
+    { JsonProperties::ArrayFormat::Sparse, "sparse" })
 
 CREATE_ENUM_JSON_SERIALIZER(JsonProperties::HashMapFormat,
-    { JsonProperties::HashMapFormat::Array,  _T("array") },
-    { JsonProperties::HashMapFormat::Object, _T("object") })
+    { JsonProperties::HashMapFormat::Array,  "array" },
+    { JsonProperties::HashMapFormat::Object, "object" })
 
 CREATE_ENUM_JSON_SERIALIZER(JsonProperties::BinaryDataFormat,
-    { JsonProperties::BinaryDataFormat::DataUrl,      _T("dataUrl") },
-    { JsonProperties::BinaryDataFormat::LocalhostUrl, _T("localhostUrl") })
+    { JsonProperties::BinaryDataFormat::DataUrl,      "dataUrl" },
+    { JsonProperties::BinaryDataFormat::LocalhostUrl, "localhostUrl" })
 
 
-JsonProperties JsonProperties::CreateFromJson(const JsonNode<wchar_t>& json_node)
+JsonProperties JsonProperties::CreateFromJson(const JsonNode& json_node)
 {
     JsonProperties json_properties;
-    json_properties.UpdateFromJson(json_node);    
+    json_properties.UpdateFromJson(json_node);
     return json_properties;
 }
 
 
-void JsonProperties::UpdateFromJson(const JsonNode<wchar_t>& json_node)
+void JsonProperties::UpdateFromJson(const JsonNode& json_node)
 {
     m_jsonFormat = json_node.GetOrDefault(JK::jsonFormat, m_jsonFormat);
     m_arrayFormat = json_node.GetOrDefault(JK::ArrayFormat, m_arrayFormat);

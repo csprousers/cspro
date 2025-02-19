@@ -26,42 +26,44 @@ namespace
 // LanguageJsonSpecFile
 // --------------------------------------------------------------------------
 
-const std::vector<std::tuple<unsigned, std::wstring>> LanguageJsonSpecFile::m_submenuOptions = // JSON_TODO make sure that all spec files all listed here
+const std::vector<std::tuple<unsigned, std::string>> LanguageJsonSpecFile::m_submenuOptions = // JSON_TODO make sure that all spec files all listed here
 {
-    { ID_RUN_CSPRO_SPEC_FILE_APP,     _T("Application (.ent / .bch / .xtb)")  },
-    { ID_RUN_CSPRO_SPEC_FILE_CSPROPS, _T("Application Properties (.csprops)") },
-    { ID_RUN_CSPRO_SPEC_FILE_CMP,     _T("Compare Data (.cmp)")               },
-    { ID_RUN_CSPRO_SPEC_FILE_CSDS,    _T("Deploy Application (.csds)")        },
-    { ID_RUN_CSPRO_SPEC_FILE_DCF,     _T("Dictionary (.dcf)")                 },
-    { ID_RUN_CSPRO_SPEC_FILE_XL2CS,   _T("Excel to CSPro (.xl2cs)")           },
-    { ID_RUN_CSPRO_SPEC_FILE_EXF,     _T("Export Data (.exf)")                },
-    { ID_RUN_CSPRO_SPEC_FILE_CSPACK,  _T("Pack Application (.cspack)")        },
-    { ID_RUN_CSPRO_SPEC_FILE_SSF,     _T("Sort Data (.ssf)")                  },
-    { ID_RUN_CSPRO_SPEC_FILE_FQF,     _T("Tabulate Frequencies (.fqf)")       },
+    { ID_RUN_CSPRO_SPEC_FILE_APP,     "Application (.ent / .bch / .xtb)"  },
+    { ID_RUN_CSPRO_SPEC_FILE_CSPROPS, "Application Properties (.csprops)" },
+    { ID_RUN_CSPRO_SPEC_FILE_CMP,     "Compare Data (.cmp)"               },
+    { ID_RUN_CSPRO_SPEC_FILE_CSDS,    "Deploy Application (.csds)"        },
+    { ID_RUN_CSPRO_SPEC_FILE_DCF,     "Dictionary (.dcf)"                 },
+    { ID_RUN_CSPRO_SPEC_FILE_XL2CS,   "Excel to CSPro (.xl2cs)"           },
+    { ID_RUN_CSPRO_SPEC_FILE_EXF,     "Export Data (.exf)"                },
+    { ID_RUN_CSPRO_SPEC_FILE_CSPACK,  "Pack Application (.cspack)"        },
+    { ID_RUN_CSPRO_SPEC_FILE_SSF,     "Sort Data (.ssf)"                  },
+    { ID_RUN_CSPRO_SPEC_FILE_FQF,     "Tabulate Frequencies (.fqf)"       },
 };
 
 
-std::optional<unsigned> LanguageJsonSpecFile::GetIndexFromFilename(const std::wstring& filename)
+std::optional<unsigned> LanguageJsonSpecFile::GetIndexFromExtension(const std::string& filename)
 {
-    static const std::vector<std::tuple<unsigned, std::vector<const TCHAR*>>> SpecFileExtensions =
+    static const std::vector<std::tuple<unsigned, std::vector<const char*>>> SpecFileExtensions =
     {
-        { ID_RUN_CSPRO_SPEC_FILE_APP,     { FileExtensions::EntryApplication, FileExtensions::BatchApplication, FileExtensions::TabulationApplication } },
-        { ID_RUN_CSPRO_SPEC_FILE_CSPROPS, { FileExtensions::ApplicationProperties                                                                     } },
-        { ID_RUN_CSPRO_SPEC_FILE_CMP,     { FileExtensions::CompareSpec                                                                               } },
-        { ID_RUN_CSPRO_SPEC_FILE_CSDS,    { FileExtensions::DeploySpec                                                                                } },
-        { ID_RUN_CSPRO_SPEC_FILE_DCF,     { FileExtensions::Dictionary                                                                                } },
-        { ID_RUN_CSPRO_SPEC_FILE_XL2CS,   { FileExtensions::ExcelToCSProSpec                                                                          } },
-        { ID_RUN_CSPRO_SPEC_FILE_EXF,     { FileExtensions::ExportSpec                                                                                } },
-        { ID_RUN_CSPRO_SPEC_FILE_CSPACK,  { FileExtensions::PackSpec                                                                                  } },
-        { ID_RUN_CSPRO_SPEC_FILE_SSF,     { FileExtensions::SortSpec                                                                                  } },
-        { ID_RUN_CSPRO_SPEC_FILE_FQF,     { FileExtensions::FrequencySpec                                                                             } },
+        { ID_RUN_CSPRO_SPEC_FILE_APP,     { FileExtensions::EntryApplication,
+                                            FileExtensions::BatchApplication,
+                                            FileExtensions::TabulationApplication } },
+        { ID_RUN_CSPRO_SPEC_FILE_CSPROPS, { FileExtensions::ApplicationProperties } },
+        { ID_RUN_CSPRO_SPEC_FILE_CMP,     { FileExtensions::CompareSpec           } },
+        { ID_RUN_CSPRO_SPEC_FILE_CSDS,    { FileExtensions::DeploySpec            } },
+        { ID_RUN_CSPRO_SPEC_FILE_DCF,     { FileExtensions::Dictionary            } },
+        { ID_RUN_CSPRO_SPEC_FILE_XL2CS,   { FileExtensions::ExcelToCSProSpec      } },
+        { ID_RUN_CSPRO_SPEC_FILE_EXF,     { FileExtensions::ExportSpec            } },
+        { ID_RUN_CSPRO_SPEC_FILE_CSPACK,  { FileExtensions::PackSpec              } },
+        { ID_RUN_CSPRO_SPEC_FILE_SSF,     { FileExtensions::SortSpec              } },
+        { ID_RUN_CSPRO_SPEC_FILE_FQF,     { FileExtensions::FrequencySpec         } },
     };
 
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    const std::string extension = PortableFunctions::PathGetFileExtension(filename);
 
     for( const auto& [index, these_extensions] : SpecFileExtensions )
     {
-        for( const TCHAR* this_extension : these_extensions )
+        for( const char* const this_extension : these_extensions )
         {
             if( SO::EqualsNoCase(extension, this_extension) )
                 return index;
@@ -72,7 +74,7 @@ std::optional<unsigned> LanguageJsonSpecFile::GetIndexFromFilename(const std::ws
 }
 
 
-const std::wstring& LanguageJsonSpecFile::GetDescriptionFromIndex(const unsigned index)
+const std::string& LanguageJsonSpecFile::GetDescriptionFromIndex(const unsigned index)
 {
     const auto& lookup = std::find_if(m_submenuOptions.cbegin(), m_submenuOptions.cend(),
                                       [&](const auto& id_and_description) { return ( std::get<0>(id_and_description) == index ); });
@@ -87,26 +89,26 @@ const std::wstring& LanguageJsonSpecFile::GetDescriptionFromIndex(const unsigned
 // LanguageSettings
 // --------------------------------------------------------------------------
 
-LanguageSettings::LanguageSettings(const std::wstring& filename/* = std::wstring()*/)
+LanguageSettings::LanguageSettings(const std::string& file_path/* = std::string()*/)
 {
     std::optional<LanguageType> language_type;
 
-    // if a filename is specified...
-    if( !filename.empty() )
+    // if a file path is specified...
+    if( !file_path.empty() )
     {
         // ...see if the type has been manually specified at some point
-        language_type = GetLanguageSettingsPersister().GetLanguageType(filename);
+        language_type = GetLanguageSettingsPersister().GetLanguageType(file_path);
 
         // if not, determine the language type based on the filename -> lexer language routine
         if( !language_type.has_value() )
         {
-            const int lexer_language = Lexers::GetLexerFromFilename(filename);
+            const int lexer_language = Lexers::GetLexerFromFilename(file_path);
 
             if( lexer_language == SCLEX_HTML )
             {
                 // for HTML files, if the file is in the HTML dialogs directory, treat it as a HTML dialog
-                language_type = SO::StartsWithNoCase(filename, Html::GetDirectory(Html::Subdirectory::Dialogs)) ? LanguageType::CSProHtmlDialog :
-                                                                                                                  LanguageType::Html;
+                language_type = SO::StartsWithNoCase(file_path, Html::GetDirectory(Html::Subdirectory::Dialogs)) ? LanguageType::CSProHtmlDialog :
+                                                                                                                   LanguageType::Html;
             }
 
             else
@@ -123,10 +125,10 @@ LanguageSettings::LanguageSettings(const std::wstring& filename/* = std::wstring
             }
 
             // if the language type is still unknown, check the extension to see if this is a CSPro specification file
-            if( !language_type.has_value() && LanguageJsonSpecFile::GetIndexFromFilename(filename).has_value() )
+            if( !language_type.has_value() && LanguageJsonSpecFile::GetIndexFromExtension(file_path).has_value() )
             {
-                language_type = JsonSpecFile::IsPre80SpecFile(filename) ? LanguageType::CSProSpecFileIni :
-                                                                          LanguageType::CSProSpecFileJson;
+                language_type = JsonSpecFile::IsPre80SpecFile(file_path) ? LanguageType::CSProSpecFileIni :
+                                                                           LanguageType::CSProSpecFileJson;
             }
         }
     }
@@ -134,27 +136,27 @@ LanguageSettings::LanguageSettings(const std::wstring& filename/* = std::wstring
     // if the language type is still unknown, default to text
     m_languageType = language_type.value_or(LanguageType::Text);
 
-    SyncPropertiesFollowingLanguageChange(filename);
+    SyncPropertiesFollowingLanguageChange(file_path);
 }
 
 
 LanguageSettings::LanguageSettings(const LanguageType language_type)
     :   m_languageType(language_type),
-        m_lexerLanguage(std::get<0>(GetLexerLanguageAndLogicSettings(m_languageType, SO::EmptyString)))
+        m_lexerLanguage(std::get<0>(GetLexerLanguageAndLogicSettings(m_languageType, SO::Empty_string)))
 {
 }
 
 
-void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::wstring& filename)
+void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::string& file_path)
 {
     // get the lexer language and logic settings based on the language type
-    std::tie(m_lexerLanguage, m_logicSettings) = GetLexerLanguageAndLogicSettings(m_languageType, filename);
+    std::tie(m_lexerLanguage, m_logicSettings) = GetLexerLanguageAndLogicSettings(m_languageType, file_path);
 
 
     // sync the Action Invoker settings
     if( m_languageType == LanguageType::CSProActionInvoker )
     {
-        m_actionInvokerJsonResultsAndExceptionFlags = GetLanguageSettingsPersister().GetActionInvokerJsonResultsAndExceptionFlags(filename);
+        m_actionInvokerJsonResultsAndExceptionFlags = GetLanguageSettingsPersister().GetActionInvokerJsonResultsAndExceptionFlags(file_path);
     }
 
     else
@@ -167,7 +169,7 @@ void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::wstring&
     if( m_languageType == LanguageType::CSProSpecFileJson )
     {
         if( !m_jsonSpecFileIndex.has_value() )
-            m_jsonSpecFileIndex = LanguageJsonSpecFile::GetIndexFromFilename(filename).value_or(ID_RUN_CSPRO_SPEC_FILE_DCF);
+            m_jsonSpecFileIndex = LanguageJsonSpecFile::GetIndexFromExtension(file_path).value_or(ID_RUN_CSPRO_SPEC_FILE_DCF);
     }
 
     else
@@ -182,19 +184,12 @@ void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::wstring&
         // CODE_TODO for JavaScript files, can look at the application file to see if the file is a module
         if( !m_javascriptModuleType.has_value() )
         {
-            m_javascriptModuleType = GetLanguageSettingsPersister().GetJavaScriptModuleType(filename);
+            m_javascriptModuleType = GetLanguageSettingsPersister().GetJavaScriptModuleType(file_path);
 
             if( !m_javascriptModuleType.has_value() )
             {
-                if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(filename), FileExtensions::JavaScriptModule) )
-                {
-                    m_javascriptModuleType = ID_RUN_JAVASCRIPT_MODULE_MODULE;
-                }
-
-                else
-                {
-                    m_javascriptModuleType = ID_RUN_JAVASCRIPT_MODULE_AUTODETECT;
-                }
+                m_javascriptModuleType =  Path::ExtensionMatches(file_path, FileExtensions::JavaScriptModule) ? ID_RUN_JAVASCRIPT_MODULE_MODULE :
+                                                                                                                ID_RUN_JAVASCRIPT_MODULE_AUTODETECT;
             }
         }
     }
@@ -206,9 +201,9 @@ void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::wstring&
 }
 
 
-std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguageAndLogicSettings(const LanguageType language_type, const std::wstring& filename)
+std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguageAndLogicSettings(const LanguageType language_type, const std::string& file_path)
 {
-    std::optional<LogicSettings> logic_settings = GetLanguageSettingsPersister().GetLogicSettings(filename);
+    std::optional<LogicSettings> logic_settings = GetLanguageSettingsPersister().GetLogicSettings(file_path);
 
     auto use_logic_version_v8 = [&]()
     {
@@ -216,13 +211,13 @@ std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguage
             return UseLogicVersionV8(*logic_settings);
 
         // if never defined, search for application files in the directory to see if there are any applications that use this file
-        if( !filename.empty() )
+        if( !file_path.empty() )
         {
-            logic_settings = SearchApplicationsForLogicSettings(filename);
+            logic_settings = SearchApplicationsForLogicSettings(file_path);
 
             // if defined, save this setting for future use
             if( logic_settings.has_value() )
-                GetLanguageSettingsPersister().Remember(filename, &language_type, nullptr, &(*logic_settings), nullptr);
+                GetLanguageSettingsPersister().Remember(file_path, &language_type, nullptr, &(*logic_settings), nullptr);
         }
 
         // if not found in any file, use the default settings
@@ -254,42 +249,40 @@ std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguage
 }
 
 
-std::optional<LogicSettings> LanguageSettings::SearchApplicationsForLogicSettings(const std::wstring& filename)
+std::optional<LogicSettings> LanguageSettings::SearchApplicationsForLogicSettings(const std::string& file_path)
 {
-    ASSERT(!filename.empty());
+    ASSERT(!file_path.empty());
 
-    const std::wstring directory = PortableFunctions::PathGetDirectory(filename);
+    const std::string directory = PortableFunctions::PathGetDirectory(file_path);
     ASSERT(PortableFunctions::PathEnsureTrailingSlash(directory) == directory);
 
-    std::vector<std::wstring> application_filenames;
+    std::vector<std::string> application_file_paths;
 
-    for( const TCHAR* wildcard : { FileExtensions::Wildcard::EntryApplication,
-                                   FileExtensions::Wildcard::BatchApplication,
-                                   FileExtensions::Wildcard::TabulationApplication } )
+    for( const char* const wildcard : { FileExtensions::EntryApplication,
+                                        FileExtensions::BatchApplication,
+                                        FileExtensions::TabulationApplication } )
     {
-        DirectoryLister().AddFilenamesWithPossibleWildcard(application_filenames, directory + wildcard, false);
+        DirectoryLister().AddFilePathsWithPossibleWildcard(application_file_paths, directory + FileExtensions::CreateWildcard(wildcard), false);
     }
 
-    for( const std::wstring& application_filename : application_filenames )
+    for( const std::string& application_file_path : application_file_paths )
     {
         try
         {
             Application application;
-            application.Open(application_filename, true, false);
+            application.Open(application_file_path, true, false);
 
             // search code files
-            for( const CodeFile& code_file : application.GetCodeFiles() )
-            {
-                if( SO::EqualsNoCase(filename, code_file.GetFilename()) )
-                    return application.GetLogicSettings();
-            }
+            const CodeFile* const code_file = application.GetCodeFile(file_path);
+
+            if( code_file != nullptr )
+                return application.GetLogicSettings();
 
             // search reports
-            for( const NamedTextSource& report_named_text_sources : VI_V(application.GetReportNamedTextSources()) )
-            {
-                if( SO::EqualsNoCase(filename, report_named_text_sources.text_source->GetFilename()) )
-                    return application.GetLogicSettings();
-            }
+            const ReportFile* const report_file = application.GetReportFile(file_path, false);
+
+            if( report_file != nullptr )
+                return application.GetLogicSettings();
         }
         catch(...) { }
     }
@@ -298,24 +291,25 @@ std::optional<LogicSettings> LanguageSettings::SearchApplicationsForLogicSetting
 }
 
 
-std::wstring LanguageSettings::GetFileTypeDescription() const
+std::string LanguageSettings::GetFileTypeDescription() const
 {
-    std::wstring description = ( m_languageType == LanguageType::CSProActionInvoker ) ? _T("CSPro Action Invoker") :
-                               ( m_languageType == LanguageType::CSProHtmlDialog )    ? _T("CSPro HTML Dialog") :
-                                                                                        Lexers::GetLexerName(m_lexerLanguage);
+    std::string description = ( m_languageType == LanguageType::CSProActionInvoker ) ? "CSPro Action Invoker" :
+                              ( m_languageType == LanguageType::CSProHtmlDialog )    ? "CSPro HTML Dialog" :
+                                                                                       Lexers::GetLexerName(m_lexerLanguage);
 
     if( m_jsonSpecFileIndex.has_value() )
     {
         ASSERT(m_languageType == LanguageType::CSProSpecFileJson);
-        SO::Append(description, _T(": "), LanguageJsonSpecFile::GetDescriptionFromIndex(*m_jsonSpecFileIndex));
+        description.append(": ")
+                   .append(LanguageJsonSpecFile::GetDescriptionFromIndex(*m_jsonSpecFileIndex));
     }
 
     else if( m_javascriptModuleType.has_value() )
     {
         ASSERT(m_languageType == LanguageType::JavaScript);
-        SO::AppendFormat(description, _T(" (%s)"), ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_AUTODETECT ) ? _T("Autodetect") :
-                                                   ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_GLOBAL )     ? _T("Global") :
-                                                                                                                        _T("Module"));
+        description.append(FormatText(" (%s)", ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_AUTODETECT ) ? "Autodetect" :
+                                               ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_GLOBAL )     ? "Global" :
+                                                                                                                    "Module"));
     }
 
     return description;
@@ -345,36 +339,36 @@ const LogicSettings& LanguageSettings::GetOrCreateLogicSettings()
 }
 
 
-void LanguageSettings::SetLanguageType(const LanguageType language_type, const std::wstring& filename)
+void LanguageSettings::SetLanguageType(const LanguageType language_type, const std::string& file_path)
 {
     m_languageType = language_type;
 
     // save the override for future use
-    GetLanguageSettingsPersister().Remember(filename, &m_languageType, nullptr, nullptr, nullptr);
+    GetLanguageSettingsPersister().Remember(file_path, &m_languageType, nullptr, nullptr, nullptr);
 
-    SyncPropertiesFollowingLanguageChange(filename);
+    SyncPropertiesFollowingLanguageChange(file_path);
 }
 
 
-void LanguageSettings::SetActionInvokerDisplayResultsAsJson(const bool display_results_as_json, const std::wstring& filename)
+void LanguageSettings::SetActionInvokerDisplayResultsAsJson(const bool display_results_as_json, const std::string& file_path)
 {
     m_actionInvokerJsonResultsAndExceptionFlags.emplace(display_results_as_json, GetActionInvokerAbortOnException());
 
     // save the override for future use
-    GetLanguageSettingsPersister().Remember(filename, nullptr, &(*m_actionInvokerJsonResultsAndExceptionFlags), nullptr, nullptr);
+    GetLanguageSettingsPersister().Remember(file_path, nullptr, &(*m_actionInvokerJsonResultsAndExceptionFlags), nullptr, nullptr);
 }
 
 
-void LanguageSettings::SetActionInvokerAbortOnException(const bool abort_on_exception, const std::wstring& filename)
+void LanguageSettings::SetActionInvokerAbortOnException(const bool abort_on_exception, const std::string& file_path)
 {
     m_actionInvokerJsonResultsAndExceptionFlags.emplace(GetActionInvokerDisplayResultsAsJson(), abort_on_exception);
 
     // save the override for future use
-    GetLanguageSettingsPersister().Remember(filename, nullptr, &(*m_actionInvokerJsonResultsAndExceptionFlags), nullptr, nullptr);
+    GetLanguageSettingsPersister().Remember(file_path, nullptr, &(*m_actionInvokerJsonResultsAndExceptionFlags), nullptr, nullptr);
 }
 
 
-void LanguageSettings::SetLogicVersion(const LogicSettings::Version version, const std::wstring& filename)
+void LanguageSettings::SetLogicVersion(const LogicSettings::Version version, const std::string& file_path)
 {
     if( !m_logicSettings.has_value() )
         GetOrCreateLogicSettings();
@@ -382,10 +376,10 @@ void LanguageSettings::SetLogicVersion(const LogicSettings::Version version, con
     m_logicSettings->SetVersion(version);
 
     // save the override for future use
-    GetLanguageSettingsPersister().Remember(filename, nullptr, nullptr, &(*m_logicSettings), nullptr);
+    GetLanguageSettingsPersister().Remember(file_path, nullptr, nullptr, &(*m_logicSettings), nullptr);
 
     // get the new lexer language
-    std::tie(m_lexerLanguage, std::ignore) = GetLexerLanguageAndLogicSettings(m_languageType, filename);
+    std::tie(m_lexerLanguage, std::ignore) = GetLexerLanguageAndLogicSettings(m_languageType, file_path);
 }
 
 
@@ -397,12 +391,12 @@ void LanguageSettings::SetJsonSpecFileIndex(const unsigned index)
 }
 
 
-void LanguageSettings::SetJavaScriptModuleType(const unsigned index, const std::wstring& filename)
+void LanguageSettings::SetJavaScriptModuleType(const unsigned index, const std::string& file_path)
 {
     ASSERT(m_languageType == LanguageType::JavaScript);
 
     m_javascriptModuleType = index;
 
     // save the override for future use
-    GetLanguageSettingsPersister().Remember(filename, nullptr, nullptr, nullptr, &(*m_javascriptModuleType));
+    GetLanguageSettingsPersister().Remember(file_path, nullptr, nullptr, nullptr, &(*m_javascriptModuleType));
 }

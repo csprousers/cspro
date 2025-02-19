@@ -11,27 +11,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Reformatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ToolReformatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Reformatter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zReformatO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ToolReformatter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Reformatter.h">
+    <ClInclude Include="BinaryCaseItemConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CaseItemConverter.h">
@@ -40,10 +31,19 @@
     <ClInclude Include="NumericCaseItemConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Reformatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="StringCaseItemConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BinaryCaseItemConverter.h">
+    <ClInclude Include="ToolReformatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zReformatO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

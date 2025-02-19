@@ -11,13 +11,13 @@ MessageManager::MessageManager(std::shared_ptr<MessageFile> message_file/* = nul
 }
 
 
-void MessageManager::Load(const TextSource& text_source, LogicSettings::Version version)
+void MessageManager::Load(const TextSource& text_source, const LogicSettings::Version version)
 {
     return m_messageFile->Load(text_source, version);
 }
 
 
-int MessageManager::CreateMessageNumberForUnnumberedMessage(int line_number, std::optional<std::wstring> string_literal_message_text/* = std::nullopt*/)
+int MessageManager::CreateMessageNumberForUnnumberedMessage(const int line_number, const cs::cref_optional<SharableString> string_literal_message_text/* = std::nullopt*/)
 {
     int message_number;
 
@@ -25,20 +25,19 @@ int MessageManager::CreateMessageNumberForUnnumberedMessage(int line_number, std
     {
         message_number = m_nextUnnumberedMessageNumber--;
 
-    } while( m_messageFile->GetMessageTextWithNoDefaultMessage(message_number) != nullptr );
-
+    } while( m_messageFile->GetMessageTextWithNoDefaultMessage(message_number).IsSet() );
 
     m_unnumberedMessages.try_emplace(message_number, UnnumberedMessage { line_number, { } });
 
     // if the unnumbered message is a string literal, insert it into the message file
     if( string_literal_message_text.has_value() )
-        m_messageFile->InsertMessage(message_number, std::move(*string_literal_message_text));
+        m_messageFile->InsertMessage(message_number, *string_literal_message_text);
 
     return message_number;
 }
 
 
-void MessageManager::AddDenominator(int message_number, int denominator_symbol_index)
+void MessageManager::AddDenominator(const int message_number, const int denominator_symbol_index)
 {
     auto denominator_lookup = m_denominators.find(message_number);
     auto& denominator_set = ( denominator_lookup != m_denominators.end() ) ? denominator_lookup->second :
@@ -47,13 +46,13 @@ void MessageManager::AddDenominator(int message_number, int denominator_symbol_i
 }
 
 
-void MessageManager::ShowMessageInSummary(int message_number)
+void MessageManager::ShowMessageInSummary(const int message_number)
 {
     m_messageCounts.try_emplace(message_number, 0);
 }
 
 
-int MessageManager::GetMessageNumberForDisplay(int message_number) const
+int MessageManager::GetMessageNumberForDisplay(const int message_number) const
 {
     // line numbers are displayed prefixed with a negative sign
     const auto& unnumbered_messages_lookup = m_unnumberedMessages.find(message_number);
@@ -62,7 +61,7 @@ int MessageManager::GetMessageNumberForDisplay(int message_number) const
 }
 
 
-void MessageManager::UpdateUnnumberedMessageText(int message_number, std::wstring last_message_text)
+void MessageManager::UpdateUnnumberedMessageText(const int message_number, SharableString last_message_text)
 {
     auto unnumbered_messages_lookup = m_unnumberedMessages.find(message_number);
     ASSERT(unnumbered_messages_lookup != m_unnumberedMessages.cend());
@@ -70,13 +69,13 @@ void MessageManager::UpdateUnnumberedMessageText(int message_number, std::wstrin
 }
 
 
-const std::wstring& MessageManager::GetUnnumberedMessageText(int message_number) const
+SharableString MessageManager::GetUnnumberedMessageText(const int message_number) const
 {
     // unnumbered string literals are in the message file
-    const std::wstring* message_text = m_messageFile->GetMessageTextWithNoDefaultMessage(message_number);
+    SharableString message_text = m_messageFile->GetMessageTextWithNoDefaultMessage(message_number);
 
-    if( message_text != nullptr )
-        return *message_text;
+    if( message_text.IsSet() )
+        return message_text;
 
     const auto& unnumbered_messages_lookup = m_unnumberedMessages.find(message_number);
 
@@ -88,7 +87,7 @@ const std::wstring& MessageManager::GetUnnumberedMessageText(int message_number)
 }
 
 
-void MessageManager::IncrementMessageCount(int message_number)
+void MessageManager::IncrementMessageCount(const int message_number)
 {
     auto message_count_lookup = m_messageCounts.find(message_number);
 
@@ -104,7 +103,7 @@ void MessageManager::IncrementMessageCount(int message_number)
 }
 
 
-std::vector<MessageSummary> MessageManager::GenerateMessageSummaries(MessageSummary::Type message_summary_type,
+std::vector<MessageSummary> MessageManager::GenerateMessageSummaries(const MessageSummary::Type message_summary_type,
                                                                      const std::function<double(int)>& denominator_calculator)
 {
     std::vector<MessageSummary> message_summaries;
@@ -124,7 +123,7 @@ std::vector<MessageSummary> MessageManager::GenerateMessageSummaries(MessageSumm
         }
 
         // despite the method name, this will work to get the text for all message types
-        const std::wstring& message_text = GetUnnumberedMessageText(message_number);
+        const SharableString message_text = GetUnnumberedMessageText(message_number);
 
         const auto& denominators_lookup = m_denominators.find(message_number);
 
@@ -142,7 +141,7 @@ std::vector<MessageSummary> MessageManager::GenerateMessageSummaries(MessageSumm
         {
             for( const int denominator_symbol_index : denominators_lookup->second )
             {
-                double denominator_value = denominator_calculator(denominator_symbol_index);
+                const double denominator_value = denominator_calculator(denominator_symbol_index);
 
                 if( message_was_issued || denominator_value != 0 )
                     message_summaries.emplace_back(MessageSummary { message_summary_type, message_number_for_display, message_text, frequency, denominator_value });

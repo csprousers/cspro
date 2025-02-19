@@ -4,8 +4,6 @@
 #include <zFormO/Definitions.h>
 #include <zToolsO/SharedPointerHelpers.h>
 
-class Serializer;
-
 
 // --------------------------------------------------------------------------
 //

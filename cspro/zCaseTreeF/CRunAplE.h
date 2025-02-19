@@ -47,7 +47,7 @@ public:
     //Verify functions :
     bool                InVerify();
 
-    void                GetVal( CDEField* pField, const int iOcc, CIMSAString& sData, int* iStatus, bool bFormatValue, COLORREF* pBkColor = NULL );
+    void                GetVal( CDEField* pField, const int iOcc, CString& sData, int* iStatus, bool bFormatValue, COLORREF* pBkColor = NULL );
 
     bool                IsItemSelectable( CDEItemBase* pItem, int iOcc );
 

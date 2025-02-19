@@ -32,25 +32,28 @@
             this.labelProgressMessage = new System.Windows.Forms.Label();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            //
+            // 
             // progressBar
-            //
+            // 
+            this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar.Location = new System.Drawing.Point(13, 64);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(434, 23);
             this.progressBar.TabIndex = 0;
-            //
+            // 
             // labelProgressMessage
-            //
+            // 
             this.labelProgressMessage.AutoSize = true;
             this.labelProgressMessage.Location = new System.Drawing.Point(13, 33);
             this.labelProgressMessage.Name = "labelProgressMessage";
             this.labelProgressMessage.Size = new System.Drawing.Size(100, 13);
             this.labelProgressMessage.TabIndex = 1;
             this.labelProgressMessage.Text = "Creating package...";
-            //
+            // 
             // buttonCancel
-            //
+            // 
+            this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonCancel.Location = new System.Drawing.Point(372, 115);
             this.buttonCancel.Name = "buttonCancel";
@@ -59,9 +62,9 @@
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
-            //
+            // 
             // ProgressDialog
-            //
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;

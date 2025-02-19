@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "SQLiteBlobQuestionnaireSerializer.h"
 #include "SQLiteErrorWithMessage.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/SQLiteHelpers.h>
 #include <zCaseO/TextToCaseConverter.h>
 
 

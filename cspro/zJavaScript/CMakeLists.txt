@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME}
     Executor.cpp
     QuickJSAccess.cpp
     Value.cpp
+    VariablePropertyNameEvaluator.cpp
 
     ${QUICKJS_DIRECTORY}/cutils.c
     ${QUICKJS_DIRECTORY}/libbf.c

@@ -6,7 +6,15 @@
 #include <thread>
 
 
-// a simple modal dialog for displaying a progress bar (with a range of 0-100)
+// --------------------------------------------------------------------------
+// ThreadedProgressDlg
+//
+// A simple modal dialog for displaying a progress bar. The progress bar
+// has a range of 0-100, but if SetPos is called with a negative value,
+// the progress bar will be modified to be a marquee to indicate indefinite
+// progress. If using marquee style, make sure that the executable calls
+// InitializeCommonControls in its CWinApp::InitInstance override.
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILF ThreadedProgressDlg
 {
@@ -14,26 +22,34 @@ public:
     ThreadedProgressDlg();
     ~ThreadedProgressDlg();
 
+    // Setting the marquee style prior to showing the dialog will ensure that
+    // non-marquee dialog elements don't show when the dialog is first shown.
+    void UseMarqueeStyle() { SetPos(-1); }
+
     void Show();
 
-    void SetTitle(const CString& title);
-    void SetStatus(const CString& status);
+    void SetTitle(InterfaceString title);
+    void SetStatus(InterfaceString status);
 
     void SetPos(int position);
 
     bool IsCanceled() const { return m_canceled; }
 
 private:
+    static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
     void Close();
 
+    void ToggleProgressBarMarquee();
+
+private:
     std::unique_ptr<std::thread> m_dialogThread;
     HWND m_hwndDlg;
-    CString m_title;
-    CString m_status;
+    std::wstring m_title;
+    std::wstring m_status;
+    bool m_usingMarquee;
     int m_position;
     bool m_canceled;
-
-    static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 
 
@@ -46,8 +62,8 @@ class ThreadedProgressDlg
 public:
     void Show() { }
 
-    void SetTitle(const CString& /*title*/) { }
-    void SetStatus(const CString& /*status*/) { }
+    void SetTitle(InterfaceString /*title*/) { }
+    void SetStatus(InterfaceString /*status*/) { }
 
     void SetPos(int /*position*/) { }
 

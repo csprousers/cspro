@@ -1,7 +1,9 @@
 ﻿#pragma once
+
 #include <zSyncO/zSyncO.h>
 
-enum ObexResponseCode : unsigned char {
+enum ObexResponseCode : unsigned char
+{
     OBEX_CONTINUE = 0x90,
     OBEX_OK = 0xA0,
     OBEX_CREATED = 0xA1,
@@ -46,7 +48,7 @@ enum ObexResponseCode : unsigned char {
 
 SYNC_API bool IsObexError(ObexResponseCode code);
 
-SYNC_API CString ObexResponseCodeToString(ObexResponseCode code);
+SYNC_API const char* ObexResponseCodeToString(ObexResponseCode code);
 
 // Bluetooth protocol versioning. Increment when changes are not backwards compatible.
 // Mismatched versions will be detected during synchronization and a pop-up warning will be displayed.

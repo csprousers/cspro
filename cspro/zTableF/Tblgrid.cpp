@@ -1649,10 +1649,10 @@ int CTblGrid::StartDragDrop(int iRow , int iCol)
 CString CTblGrid::GetRowColString(int iRow, int iCol)
 {
     if( iCol != 0 )
-        return IntToString(iRow) + _T("-") + IntToString(iCol);
+        return UTF8_TODO::GetCString(IntToString(iRow)) + _T("-") + UTF8_TODO::GetCString(IntToString(iCol));
 
     else
-        return IntToString(iRow);
+        return UTF8_TODO::GetCString(IntToString(iRow));
 }
 
 /////////////////////////////////////////////////////////////////////////////

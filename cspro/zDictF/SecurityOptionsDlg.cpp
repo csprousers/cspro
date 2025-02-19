@@ -4,46 +4,25 @@
 
 namespace
 {
-    struct MinuteOption { const TCHAR* text; int minutes; };
+    struct MinuteOption { const wchar_t* text; int minutes; };
 
-    static MinuteOption MinuteOptions[] =
+    constexpr MinuteOption MinuteOptions[] =
     {
-        { _T("Never"),     0 },
-        { _T("One Hour"),  60 },
-        { _T("One Day"),   60 * 24 },
-        { _T("One Week"),  60 * 24 * 7 },
-        { _T("One Month"), 60 * 24 * 30 },
-        { _T("One Year"),  60 * 24 * 365 },
-        { _T("Forever"),   INT_MAX },
-        { _T("Custom"),    0 },
+        { L"Never",     0 },
+        { L"One Hour",  60 },
+        { L"One Day",   60 * 24 },
+        { L"One Week",  60 * 24 * 7 },
+        { L"One Month", 60 * 24 * 30 },
+        { L"One Year",  60 * 24 * 365 },
+        { L"Forever",   INT_MAX },
+        { L"Custom",    0 },
     };
 
-    const size_t MinuteNeverIndex = 0;
-    const size_t MinuteForeverIndex = 6;
-    const size_t MinuteCustomIndex = 7;
-
-    CString MinutesToText(int minutes)
-    {
-        if( minutes <= 0 || minutes == INT_MAX )
-            return _T("");
-
-        return IntToString(minutes);
-    }
-
-    int MinutesToComboBoxIndex(int minutes)
-    {
-        for( size_t i = 0; i < _countof(MinuteOptions) - 1; i++ )
-        {
-            if( minutes == MinuteOptions[i].minutes )
-                return i;
-        }
-
-        return MinuteCustomIndex;
-    }
+    constexpr size_t MinuteNeverIndex = 0;
+    constexpr size_t MinuteForeverIndex = 6;
+    constexpr size_t MinuteCustomIndex = 7;
 }
 
-
-IMPLEMENT_DYNAMIC(SecurityOptionsDlg, CDialog)
 
 BEGIN_MESSAGE_MAP(SecurityOptionsDlg, CDialog)
     ON_CBN_SELENDOK(IDC_COMBO_PASSWORD_CACHE_MINUTES, OnMinutesComboChange)
@@ -51,30 +30,30 @@ BEGIN_MESSAGE_MAP(SecurityOptionsDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-SecurityOptionsDlg::SecurityOptionsDlg(const CDataDict& dictionary, CWnd* pParent /*=NULL*/)
-    :   CDialog(IDD_SECURITY_OPTIONS, pParent)
+SecurityOptionsDlg::SecurityOptionsDlg(const CDataDict& dictionary, CWnd* const pParent/* = nullptr*/)
+    :   CDialog(IDD_SECURITY_OPTIONS, pParent),
+        m_allowDataManagerModifications(dictionary.GetAllowDataManagerModifications()),
+        m_allowExport(dictionary.GetAllowExport()),
+        m_cachedPasswordMinutes(dictionary.GetCachedPasswordMinutes()),
+        m_minutesText(MinutesToText(m_cachedPasswordMinutes))
 {
-    m_allowDataViewerModifications = dictionary.GetAllowDataViewerModifications();
-    m_allowExport = dictionary.GetAllowExport();
-    m_cachedPasswordMinutes = dictionary.GetCachedPasswordMinutes();
-    m_minutesText = MinutesToText(m_cachedPasswordMinutes);
 }
 
 
-void SecurityOptionsDlg::DoDataExchange(CDataExchange* pDX)
+void SecurityOptionsDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
-    DDX_Check(pDX, IDC_CHECK_ALLOW_DATA_VIEWER_MODIFICATIONS, m_allowDataViewerModifications);
+    DDX_Check(pDX, IDC_CHECK_ALLOW_DATA_MANAGER_MODIFICATIONS, m_allowDataManagerModifications);
     DDX_Check(pDX, IDC_CHECK_ALLOW_EXPORTS, m_allowExport);
-    DDX_Control(pDX, IDC_COMBO_PASSWORD_CACHE_MINUTES, m_minutesCombo);
     DDX_Text(pDX, IDC_EDIT_PASSWORD_CACHE_MINUTES, m_minutesText);
+    DDX_Control(pDX, IDC_COMBO_PASSWORD_CACHE_MINUTES, m_minutesCombo);
 }
 
 
 BOOL SecurityOptionsDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     for( size_t i = 0; i < _countof(MinuteOptions); i++ )
         m_minutesCombo.AddString(MinuteOptions[i].text);
@@ -89,24 +68,31 @@ void SecurityOptionsDlg::OnOK()
 {
     UpdateData(TRUE);
 
-    if( m_minutesCombo.GetCurSel() != MinuteCustomIndex )
-        m_cachedPasswordMinutes = MinuteOptions[m_minutesCombo.GetCurSel()].minutes;
-
-    else
+    try
     {
-        m_cachedPasswordMinutes = -1;
-
-        if( m_minutesText.IsNumeric() )
-            m_cachedPasswordMinutes = _ttoi(m_minutesText);
-
-        if( m_cachedPasswordMinutes < 0 )
+        if( m_minutesCombo.GetCurSel() != MinuteCustomIndex )
         {
-            AfxMessageBox(_T("The minutes value must be a non-negative number"));
-            return;
+            m_cachedPasswordMinutes = MinuteOptions[m_minutesCombo.GetCurSel()].minutes;
         }
+
+        else
+        {
+            m_cachedPasswordMinutes = -1;
+
+            if( CIMSAString::IsNumeric(m_minutesText) )
+                m_cachedPasswordMinutes = std::stoi(m_minutesText);
+
+            if( m_cachedPasswordMinutes < 0 )
+                throw CSProException("The minutes value must be a non-negative number.");
+        }
+
+        __super::OnOK();
     }
 
-    CDialog::OnOK();
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
 }
 
 
@@ -124,7 +110,7 @@ void SecurityOptionsDlg::OnMinutesTextChange()
 {
     UpdateData(TRUE);
 
-    int current_index = m_minutesCombo.GetCurSel();
+    const int current_index = m_minutesCombo.GetCurSel();
     int new_index = current_index;
 
     if( SO::IsBlank(m_minutesText) )
@@ -135,10 +121,29 @@ void SecurityOptionsDlg::OnMinutesTextChange()
 
     else
     {
-        new_index = m_minutesText.IsNumeric() ? MinutesToComboBoxIndex(_ttoi(m_minutesText))
-                                              : MinuteCustomIndex;
+        new_index = CIMSAString::IsNumeric(m_minutesText) ? MinutesToComboBoxIndex(std::stoi(m_minutesText)) :
+                                                            MinuteCustomIndex;
     }
 
     if( current_index != new_index )
         m_minutesCombo.SetCurSel(new_index);
+}
+
+
+std::string SecurityOptionsDlg::MinutesToText(const int minutes)
+{
+    return ( minutes <= 0 || minutes == INT_MAX ) ? std::string() :
+                                                    IntToString(minutes);
+}
+
+
+int SecurityOptionsDlg::MinutesToComboBoxIndex(const int minutes)
+{
+    for( size_t i = 0; i < _countof(MinuteOptions) - 1; i++ )
+    {
+        if( minutes == MinuteOptions[i].minutes )
+            return i;
+    }
+
+    return MinuteCustomIndex;
 }

@@ -37,7 +37,7 @@ protected:
     afx_msg void OnHelp();
     afx_msg LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
 
-    // CLogicView methods that can be overriden
+    // CLogicView methods that can be overridden
 
     // return true if the context-sensitive help was handled
     virtual bool OnHandleHelp() { return false; }

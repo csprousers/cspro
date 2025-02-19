@@ -1,38 +1,28 @@
 ﻿#include "StdAfx.h"
 #include "PropertyString.h"
-#include <zToolsO/Encoders.h>
+#include <zToolsO/PropertyRetriever.h>
 
 
-void PropertyString::InitializeFromString(const wstring_view property_string_text_sv)
+// --------------------------------------------------------------------------
+// PropertyString
+// --------------------------------------------------------------------------
+
+void PropertyString::InitializeFromString(const std::string_view property_string_text_sv)
 {
     // parse the properties
-    wstring_view main_value_sv;
-    wstring_view properties_text_sv;
-    const size_t pipe_pos = property_string_text_sv.find('|');
+    const auto [main_value_sv, properties_text_sv] = SO::GetTextOnEitherSideOfCharacter(property_string_text_sv, PropertySeparatorInitial);
 
-    if( pipe_pos != wstring_view::npos )
-    {
-        main_value_sv = property_string_text_sv.substr(0, pipe_pos);
-        properties_text_sv = property_string_text_sv.substr(pipe_pos + 1);
-    }
-
-    else
-    {
-        main_value_sv = property_string_text_sv;
-    }
-
-    main_value_sv = SO::Trim(main_value_sv);
     SetMainValue(main_value_sv);
 
     if( properties_text_sv.empty() )
         return;
 
-    for( wstring_view attribute_sv : SO::SplitString<wstring_view>(properties_text_sv, '&') )
+    for( std::string_view attribute_sv : SO::SplitString<std::string_view>(properties_text_sv, PropertySeparatorAdditional) )
     {
-        std::wstring value;
+        std::string value;
         const size_t equals_pos = attribute_sv.find('=');
 
-        if( equals_pos != std::wstring::npos )
+        if( equals_pos != std::string_view::npos )
         {
             value = Encoders::FromPercentEncoding(SO::TrimLeft(attribute_sv.substr(equals_pos + 1)));
             attribute_sv = SO::TrimRight(attribute_sv.substr(0, equals_pos));
@@ -44,7 +34,7 @@ void PropertyString::InitializeFromString(const wstring_view property_string_tex
 }
 
 
-const std::wstring* PropertyString::GetProperty(const wstring_view attribute_sv) const
+const std::string* PropertyString::GetProperty(const std::string_view attribute_sv) const
 {
     const auto& lookup = std::find_if(m_properties.cbegin(), m_properties.cend(),
                                       [&](const auto& av) { return SO::EqualsNoCase(std::get<0>(av), attribute_sv); });
@@ -54,7 +44,16 @@ const std::wstring* PropertyString::GetProperty(const wstring_view attribute_sv)
 }
 
 
-void PropertyString::SetProperty(const wstring_view attribute_sv, std::wstring value)
+bool PropertyString::HasPropertyWithValue(const std::string_view attribute_sv) const
+{
+    const std::string* const property = GetProperty(attribute_sv);
+
+    return ( property != nullptr &&
+             !property->empty() );
+}
+
+
+void PropertyString::SetProperty(const std::string_view attribute_sv, std::string value)
 {
     auto lookup = std::find_if(m_properties.begin(), m_properties.end(),
                                [&](const auto& av) { return SO::EqualsNoCase(std::get<0>(av), attribute_sv); });
@@ -71,13 +70,13 @@ void PropertyString::SetProperty(const wstring_view attribute_sv, std::wstring v
 }
 
 
-void PropertyString::SetProperty(const wstring_view attribute_sv, double value)
+void PropertyString::SetProperty(const std::string_view attribute_sv, const double value)
 {
     SetProperty(attribute_sv, DoubleToString(value));
 }
 
 
-void PropertyString::SetOrClearProperty(const wstring_view attribute_sv, std::wstring value)
+void PropertyString::SetOrClearProperty(const std::string_view attribute_sv, std::string value)
 {
     if( value.empty() )
     {
@@ -91,25 +90,25 @@ void PropertyString::SetOrClearProperty(const wstring_view attribute_sv, std::ws
 }
 
 
-void PropertyString::ClearProperty(const wstring_view attribute_sv)
+void PropertyString::ClearProperty(const std::string_view attribute_sv)
 {
     auto lookup = std::find_if(m_properties.begin(), m_properties.end(),
-        [&](const auto& av) { return SO::EqualsNoCase(std::get<0>(av), attribute_sv); });
+                               [&](const auto& av) { return SO::EqualsNoCase(std::get<0>(av), attribute_sv); });
 
     if( lookup != m_properties.end() )
         m_properties.erase(lookup);
 }
 
 
-std::wstring PropertyString::ToString(std::wstring main_value, const std::vector<std::tuple<std::wstring, std::wstring>>& properties) const
+std::string PropertyString::ToString(std::string main_value, const std::vector<std::tuple<std::string, std::string>>& properties)
 {
-    std::wstring& property_string = main_value;
+    std::string& property_string = main_value;
 
     bool added_property = false;
 
     for( const auto& [attribute, value] : properties )
     {
-        property_string.push_back(added_property ? '&' : '|');
+        property_string.push_back(added_property ? PropertySeparatorAdditional : PropertySeparatorInitial);
         property_string.append(attribute);
 
         if( !value.empty() )
@@ -145,4 +144,36 @@ void PropertyString::WriteJson(JsonWriter& json_writer, const bool write_to_new_
 
     if( write_to_new_json_object )
         json_writer.EndObject();
+}
+
+
+
+// --------------------------------------------------------------------------
+// PropertyStringPropertyRetriever
+// --------------------------------------------------------------------------
+
+class PropertyStringPropertyRetriever : public PropertyRetriever
+{
+public:
+    PropertyStringPropertyRetriever(const PropertyString& property_string)
+        :   m_propertyString(property_string)
+    {
+    }
+
+    std::optional<std::string> GetProperty(const std::string_view attribute_sv) override
+    {
+        const std::string* const property = m_propertyString.GetProperty(attribute_sv);
+
+        return ( property != nullptr ) ? std::make_optional(*property) :
+                                         std::nullopt;
+    }
+
+private:
+    const PropertyString& m_propertyString;
+};
+
+
+std::unique_ptr<PropertyRetriever> PropertyString::CreatePropertyRetriever() const
+{
+    return std::make_unique<PropertyStringPropertyRetriever>(*this);
 }

@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "resource_shared.h"
+#include "../zDesignerF/resource_shared.h"
+#include "../zUToolO/resource_shared.h"
 #include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -33,7 +34,8 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""resource_shared.h""\r\n"
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""../zUToolO/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
 END
@@ -180,6 +182,133 @@ BEGIN
     LTEXT           "Enter text in any of the boxes to see it encoded in other formats.",IDC_STATIC,7,7,211,8
 END
 
+IDD_MANAGE_FILES DIALOGEX 0, 0, 633, 287
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Manage Files"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,318,266,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,394,266,50,14
+    PUSHBUTTON      "&Help",ID_HELP,470,266,50,14
+    CONTROL         "",IDC_PROP_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_TRACKSELECT | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,7,180,254
+    CONTROL         "&Add File",IDC_ADD_FILE,"MfcMenuButton",WS_TABSTOP,31,266,50,14
+    CONTROL         "&Remove File",IDC_REMOVE_FILE,"MfcButton",WS_TABSTOP,107,266,50,14
+    LTEXT           "Path:",IDC_STATIC,196,7,18,8
+    LTEXT           "Static",IDC_PATH,222,7,404,8,SS_PATHELLIPSIS
+    LTEXT           "Type:",IDC_STATIC,196,22,20,8
+    LTEXT           "Static",IDC_TYPE,222,22,404,8,SS_PATHELLIPSIS
+    GROUPBOX        "File Properties",IDC_PAGE_PLACEHOLDER,196,40,430,221
+END
+
+IDD_PAGE_DISPLAY_TEXT DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Static",IDC_TEXT,0,0,309,175
+END
+
+IDD_PAGE_PROPERTIES_APP_MESSAGE_FILE DIALOGEX 0, 0, 125, 53
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Type of messages:",IDC_STATIC,0,0,62,8
+    CONTROL         "User-defined messages",IDC_MESSAGES_USER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,17,91,10
+    CONTROL         "System message overrides",IDC_MESSAGES_SYSTEM,"Button",BS_AUTORADIOBUTTON,18,33,101,10
+END
+
+IDD_PAGE_PROPERTIES_CODE_FILE DIALOGEX 0, 0, 139, 94
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Type of code:",IDC_STATIC,0,0,46,8
+    CONTROL         "CSPro Logic (Main)",IDC_CODE_CSPRO_LOGIC_MAIN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,17,75,10
+    CONTROL         "CSPro Logic (External)",IDC_CODE_CSPRO_LOGIC_EXTERNAL,
+                    "Button",BS_AUTORADIOBUTTON,18,33,87,10
+    CONTROL         "JavaScript (Autodetect)",IDC_CODE_JAVASCRIPT_AUTODETECT,
+                    "Button",BS_AUTORADIOBUTTON,18,49,93,10
+    CONTROL         "JavaScript (Global)",IDC_CODE_JAVASCRIPT_GLOBAL,"Button",BS_AUTORADIOBUTTON,18,65,76,10
+    CONTROL         "JavaScript (ECMAScript Module)",IDC_CODE_JAVASCRIPT_MODULE,
+                    "Button",BS_AUTORADIOBUTTON,18,81,118,10
+END
+
+IDD_PAGE_PROPERTIES_REPORT DIALOGEX 0, 0, 223, 83
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    CONTROL         "HTML",IDC_ESCAPE_HTML,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,33,10
+    CONTROL         "Comma Delimited (CSV)",IDC_ESCAPE_CSV,"Button",BS_AUTORADIOBUTTON,18,57,90,10
+    CONTROL         "None",IDC_ESCAPE_NONE,"Button",BS_AUTORADIOBUTTON,18,73,33,10
+    LTEXT           "Name:",IDC_STATIC,0,3,22,8
+    LTEXT           "Escape ~~ fills ~~ as:",IDC_STATIC,0,25,73,8
+END
+
+IDD_PAGE_PROPERTIES_APPLICATION DIALOGEX 0, 0, 228, 41
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Name:",-1,0,3,22,8
+    EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    LTEXT           "Label:",-1,0,26,20,8
+    EDITTEXT        IDC_LABEL,36,23,186,14,ES_AUTOHSCROLL
+END
+
+IDD_PAGE_PROPERTIES_RESOURCE DIALOGEX 0, 0, 382, 168
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Type of resource:",IDC_STATIC,0,0,58,8
+    CONTROL         "Directory",IDC_DIRECTORY,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,17,45,10
+    CONTROL         "File",IDC_FILE,"Button",BS_AUTORADIOBUTTON,18,33,27,10
+    CONTROL         "Include the resource(s) in the compiled application (.pen)",IDC_INCLUDE_IN_COMPILED_APPLICATION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,0,55,198,10
+    CONTROL         "Include files in directory and subdirectories (recursive)",IDC_RECURSIVE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,0,75,189,10
+    LTEXT           "Filename filter(s):",IDC_FILTER_TEXT,0,95,57,8
+    EDITTEXT        IDC_FILTER,72,92,186,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Calculate Resource Files",IDC_CALCULATE_RESOURCE_FILES,271,144,96,14
+    EDITTEXT        IDC_RESOURCE_FILES,0,121,258,37,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | NOT WS_VISIBLE | WS_VSCROLL
+END
+
+IDD_PAGE_PROPERTIES_DICTIONARY DIALOGEX 0, 0, 228, 158
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Name:",IDC_STATIC,0,3,22,8
+    EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Label:",IDC_STATIC,0,26,20,8
+    EDITTEXT        IDC_LABEL,36,23,186,14,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Type of dictionary:",IDC_STATIC,0,46,62,8
+    CONTROL         "Main",IDC_MAIN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,60,31,10
+    CONTROL         "External",IDC_EXTERNAL,"Button",BS_AUTORADIOBUTTON,18,74,43,10
+    CONTROL         "Working",IDC_WORKING,"Button",BS_AUTORADIOBUTTON,18,88,42,10
+    CONTROL         "Special Output",IDC_SPECIAL_OUTPUT,"Button",BS_AUTORADIOBUTTON,18,102,63,10
+    CONTROL         "Synchronize data as part of Simple Synchronization",IDC_INCLUDE_IN_SIMPLE_SYNC,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,0,121,179,10
+    CONTROL         "Include value set images in the compiled application (.pen)",IDC_INCLUDE_IN_COMPILED_APPLICATION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,0,140,202,10
+END
+
+IDD_PAGE_PROPERTIES_FORM_FILE DIALOGEX 0, 0, 228, 41
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Name:",-1,0,3,22,8
+    EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    LTEXT           "Label:",-1,0,26,20,8
+    EDITTEXT        IDC_LABEL,36,23,186,14,ES_AUTOHSCROLL
+END
+
+IDD_PAGE_PROPERTIES_TABLE_SPEC DIALOGEX 0, 0, 228, 41
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Name:",-1,0,3,22,8
+    EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    LTEXT           "Label:",-1,0,26,20,8
+    EDITTEXT        IDC_LABEL,36,23,186,14,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -213,6 +342,56 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 299
     END
+
+    IDD_MANAGE_FILES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 626
+        VERTGUIDE, 196
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 280
+        HORZGUIDE, 261
+    END
+
+    IDD_PAGE_DISPLAY_TEXT, DIALOG
+    BEGIN
+    END
+
+    IDD_PAGE_PROPERTIES_APP_MESSAGE_FILE, DIALOG
+    BEGIN
+        VERTGUIDE, 18
+    END
+
+    IDD_PAGE_PROPERTIES_CODE_FILE, DIALOG
+    BEGIN
+        VERTGUIDE, 18
+    END
+
+    IDD_PAGE_PROPERTIES_REPORT, DIALOG
+    BEGIN
+        VERTGUIDE, 18
+    END
+
+    IDD_PAGE_PROPERTIES_APPLICATION, DIALOG
+    BEGIN
+    END
+
+    IDD_PAGE_PROPERTIES_RESOURCE, DIALOG
+    BEGIN
+        VERTGUIDE, 18
+    END
+
+    IDD_PAGE_PROPERTIES_DICTIONARY, DIALOG
+    BEGIN
+    END
+
+    IDD_PAGE_PROPERTIES_FORM_FILE, DIALOG
+    BEGIN
+    END
+
+    IDD_PAGE_PROPERTIES_TABLE_SPEC, DIALOG
+    BEGIN
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -242,6 +421,77 @@ BEGIN
     0
 END
 
+IDD_MANAGE_FILES AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 0, 100,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 100
+END
+
+IDD_PAGE_DISPLAY_TEXT AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 100
+END
+
+IDD_PAGE_PROPERTIES_APP_MESSAGE_FILE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_CODE_FILE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_REPORT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_APPLICATION AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_RESOURCE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    100, 100, 0, 0,
+    0, 0, 100, 100
+END
+
+IDD_PAGE_PROPERTIES_DICTIONARY AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_FORM_FILE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PAGE_PROPERTIES_TABLE_SPEC AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -260,6 +510,50 @@ BEGIN
 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 
 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000, 
 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 
+    0
+END
+
+IDD_MANAGE_FILES DLGINIT
+BEGIN
+    IDC_ADD_FILE, 0x37c, 284, 0
+0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x4f5f, 0x4d53, 
+0x6e65, 0x3e75, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 
+0x7542, 0x7474, 0x6e6f, 0x4f5f, 0x4d53, 0x6e65, 0x3e75, 0x4d3c, 0x4346, 
+0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x525f, 0x6769, 0x7468, 0x7241, 
+0x6f72, 0x3e77, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 
+0x7542, 0x7474, 0x6e6f, 0x525f, 0x6769, 0x7468, 0x7241, 0x6f72, 0x3e77, 
+0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x535f, 0x6174, 
+0x5079, 0x6572, 0x7373, 0x6465, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 
+0x4d43, 0x6e65, 0x4275, 0x7475, 0x6f74, 0x5f6e, 0x7453, 0x7961, 0x7250, 
+0x7365, 0x6573, 0x3e64, 0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 
+0x6e6f, 0x445f, 0x6665, 0x7561, 0x746c, 0x6c43, 0x6369, 0x3e6b, 0x4146, 
+0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 
+0x445f, 0x6665, 0x7561, 0x746c, 0x6c43, 0x6369, 0x3e6b, 0x4d3c, 0x4346, 
+0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x415f, 0x7475, 0x736f, 0x7a69, 
+0x3e65, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 0x7542, 
+0x7474, 0x6e6f, 0x415f, 0x7475, 0x736f, 0x7a69, 0x3e65, 
+    IDC_REMOVE_FILE, 0x37c, 369, 0
+0x4d3c, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x535f, 0x7974, 0x656c, 0x343e, 
+0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x7453, 0x6c79, 0x3e65, 
+0x4d3c, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x415f, 0x7475, 0x736f, 0x7a69, 
+0x3e65, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x7542, 0x7474, 0x6e6f, 
+0x415f, 0x7475, 0x736f, 0x7a69, 0x3e65, 0x4d3c, 0x4346, 0x7542, 0x7474, 
+0x6e6f, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x4d2f, 0x4346, 0x7542, 
+0x7474, 0x6e6f, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x464d, 0x4243, 
+0x7475, 0x6f74, 0x5f6e, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 
+0x543e, 0x5552, 0x3c45, 0x4d2f, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x465f, 
+0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 0x3e6c, 0x4d3c, 0x4346, 0x7542, 
+0x7474, 0x6e6f, 0x435f, 0x7275, 0x6f73, 0x5472, 0x7079, 0x3e65, 0x3131, 
+0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x7543, 0x7372, 0x726f, 
+0x7954, 0x6570, 0x3c3e, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x6d49, 
+0x6761, 0x5465, 0x7079, 0x3e65, 0x3c38, 0x4d2f, 0x4346, 0x7542, 0x7474, 
+0x6e6f, 0x495f, 0x616d, 0x6567, 0x7954, 0x6570, 0x3c3e, 0x464d, 0x4243, 
+0x7475, 0x6f74, 0x5f6e, 0x6d49, 0x6761, 0x4f65, 0x546e, 0x706f, 0x463e, 
+0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x6d49, 
+0x6761, 0x4f65, 0x546e, 0x706f, 0x3c3e, 0x464d, 0x4243, 0x7475, 0x6f74, 
+0x5f6e, 0x6d49, 0x6761, 0x4f65, 0x526e, 0x6769, 0x7468, 0x463e, 0x4c41, 
+0x4553, 0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x6d49, 0x6761, 
+0x4f65, 0x526e, 0x6769, 0x7468, "\076" 
     0
 END
 
@@ -296,6 +590,26 @@ BEGIN
     END
 END
 
+IDR_ADD_FILE MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Dictionary (External)",       ID_ADD_DICTIONARY_EXTERNAL
+        MENUITEM "Dictionary (Working)",        ID_ADD_DICTIONARY_WORKING
+        MENUITEM SEPARATOR
+        MENUITEM "Form File",                   ID_ADD_FORM_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "Code",                        ID_ADD_CODE
+        MENUITEM SEPARATOR
+        MENUITEM "Messages",                    ID_ADD_MESSAGES
+        MENUITEM SEPARATOR
+        MENUITEM "Report",                      ID_ADD_REPORT
+        MENUITEM SEPARATOR
+        MENUITEM "Resource (Directory)",        ID_ADD_RESOURCE_DIRECTORY
+        MENUITEM "Resource (File)",             ID_ADD_RESOURCE_FILE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -308,6 +622,10 @@ BEGIN
                             "Deprecation warning settings\nDeprecation Warnings"
     ID_CODE_DEPRECATION_WARNINGS_NONE 
                             "Show no deprecation warnings\nNo Deprecation Warnings"
+END
+
+STRINGTABLE
+BEGIN
     ID_CODE_DEPRECATION_WARNINGS_MOST 
                             "Show most deprecation warnings\nMost Deprecation Warnings"
     ID_CODE_DEPRECATION_WARNINGS_ALL 
@@ -320,10 +638,6 @@ BEGIN
     ID_CODE_FOLDING_LEVEL_NONE "Disables code folding\nFold None"
     ID_CODE_FOLDING_LEVEL_PROCS_FUNCS 
                             "Enables code folding only for procedures and functions\nFold Procedures and Functions Only"
-END
-
-STRINGTABLE
-BEGIN
     ID_CODE_FOLDING_LEVEL_ALL "Enables all code folding\nFold All"
     ID_CODE_PASTE_STRING_LITERAL 
                             "Pastes the text on the clipboard as a string literal\nPaste as String Literal"
@@ -335,6 +649,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FILE_MANAGE_FILES    "Add, remove, or manage properties related to application properties\nManage Application Properties"
     ID_LOGIC_FORMAT         "Formats the logic using a defined style\nFormat Logic"
     ID_OPEN_CONTAINING_FOLDER 
                             "Open the folder containing this document in Windows Explorer\nOpen Containing Folder"
@@ -345,6 +660,10 @@ BEGIN
     ID_VIEW_LOGIC           "View currently-selected procedure\nLogic"
     ID_VIEW_ONKEY_CHAR_MAP  "Find a key mapping for the OnKey and OnChar functions\nOnKey Character Map"
     ID_VIEW_QUESTIONNAIRE   "View questionnaire layout\nQuestionnaire"
+END
+
+STRINGTABLE
+BEGIN
     ID_VIEW_REPORT_PREVIEW  "Preview the report\nReport Preview"
 END
 

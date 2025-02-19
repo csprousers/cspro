@@ -9,12 +9,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import gov.census.cspro.bridge.CNPifFile
 import gov.census.cspro.csentry.ui.EntryActivity
 import gov.census.cspro.engine.*
 import java.io.File
+import java.util.Locale
 
 /**
  * A simple [Fragment] subclass that displays and app loading message.
@@ -26,7 +28,7 @@ import java.io.File
  */
 class AppLoadingFragment : DialogFragment() {
 
-    private var m_listener: OnFragmentInteractionListener? = null
+    private var mListener: OnFragmentInteractionListener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                                      savedInstanceState: Bundle?): View? {
@@ -34,7 +36,7 @@ class AppLoadingFragment : DialogFragment() {
         return inflater.inflate(R.layout.fragment_app_loading, container, false)
     }
 
-    public override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // noinspection ConstantConditions
         val appDescription: String? = arguments?.getString(ARG_APP_DESCRIPTION)
         val loadingText: TextView = view.findViewById(R.id.text_app_loading_message)
@@ -42,7 +44,7 @@ class AppLoadingFragment : DialogFragment() {
     }
 
     @Deprecated("Deprecated in Java")
-    public override fun onActivityCreated(savedInstanceState: Bundle?) {
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState == null) {
             // noinspection ConstantConditions
@@ -66,13 +68,13 @@ class AppLoadingFragment : DialogFragment() {
     }
 
     @TargetApi(23)
-    public override fun onAttach(context: Context) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
         attachToContext(context)
     }
 
     @Deprecated("Deprecated in Java")
-    public override fun onAttach(activity: Activity) {
+    override fun onAttach(activity: Activity) {
         @Suppress("DEPRECATION")
         super.onAttach(activity)
         attachToContext(activity)
@@ -80,7 +82,7 @@ class AppLoadingFragment : DialogFragment() {
 
     private fun attachToContext(context: Context) {
         if (context is OnFragmentInteractionListener) {
-            m_listener = context
+            mListener = context
         } else {
             throw RuntimeException(context.toString()
                 + " must implement AppLoadingFragment.OnFragmentInteractionListener")
@@ -89,34 +91,35 @@ class AppLoadingFragment : DialogFragment() {
 
     override fun onDetach() {
         super.onDetach()
-        m_listener = null
+        mListener = null
     }
 
     private fun openApplication(applicationFilename: String?) {
-        Messenger.getInstance().sendMessage(OpenApplicationMessage(activity as AppCompatActivity?, IEngineMessageCompletedListener { msg: EngineMessage ->
-            if (m_listener != null) {
-                val openAppMsg: OpenApplicationMessage = msg as OpenApplicationMessage
-                if (openAppMsg.m_success) {
-                    m_listener?.applicationLoaded()
-                } else {
-                    openAppMsg.m_applicationFilename?.let {
-                        m_listener?.applicationLoadFailed(it)
+        Messenger.getInstance().sendMessage(OpenApplicationMessage(activity as AppCompatActivity?,
+            { msg: EngineMessage ->
+                if (mListener != null) {
+                    val openAppMsg: OpenApplicationMessage = msg as OpenApplicationMessage
+                    if (openAppMsg.mSuccess) {
+                        mListener?.applicationLoaded()
+                    } else {
+                        openAppMsg.mApplicationFilename?.let {
+                            mListener?.applicationLoadFailed(it)
+                        }
                     }
                 }
-            }
-        }, applicationFilename))
+            }, applicationFilename))
     }
 
-    private class OpenApplicationMessage(activity: AppCompatActivity?, listener: IEngineMessageCompletedListener, val m_applicationFilename: String?) : EngineMessage(activity, listener) {
-        var m_success: Boolean = false
+    private class OpenApplicationMessage(activity: AppCompatActivity?, listener: IEngineMessageCompletedListener, val mApplicationFilename: String?) : EngineMessage(activity, listener) {
+        var mSuccess: Boolean = false
         override fun run() {
-            m_success = EngineInterface.getInstance().openApplication(m_applicationFilename)
+            mSuccess = EngineInterface.getInstance().openApplication(mApplicationFilename)
         }
     }
 
     companion object {
-        private val ARG_APP_FILENAME: String = "APP_FILENAME"
-        private val ARG_APP_DESCRIPTION: String = "APP_DESCRIPTION"
+        private const val ARG_APP_FILENAME: String = "APP_FILENAME"
+        private const val ARG_APP_DESCRIPTION: String = "APP_DESCRIPTION"
 
         /**
          * Use this factory method to create a new instance of
@@ -131,34 +134,45 @@ class AppLoadingFragment : DialogFragment() {
             val fragment = AppLoadingFragment()
             val args = Bundle()
             args.putString(ARG_APP_FILENAME, appFilename)
-            if (Util.stringIsNullOrEmpty(description)) description = File(appFilename).name
+            if (Util.stringIsNullOrEmpty(description)) {
+                description = File(appFilename).name
+            }
             args.putString(ARG_APP_DESCRIPTION, description)
             fragment.arguments = args
             return fragment
         }
 
         @JvmStatic
-        fun newInstance(intent: Intent): AppLoadingFragment {
-            val args: Bundle = intent.extras ?: return newInstance("", null)
+        fun newInstance(context: Context, intent: Intent): AppLoadingFragment? {
+            val args = intent.extras
+            try {
+                var pffFilePath: String? = null
 
-            // in the off chance that args is null, try to load an empty application (which will fail)
-            val pff_filename: String = getPffFullPath(args.getString(EntryActivity.PFF_FILENAME_PARAM, ""))
-            val new_pff_filename: String = CreatePffFromIntentExtras(pff_filename, args)
-            val description: String? = args.getString(EntryActivity.APP_DESCRIPTION_PARAM)
-            return newInstance(new_pff_filename, description)
-        }
+                args?.getString(EntryActivity.PFF_FILENAME_PARAM)?.let {
+                    pffFilePath = getPffFullPath(it)
+                }
 
-        private fun CreatePffFromIntentExtras(pff_filename: String, args: Bundle): String {
-            return CNPifFile.CreatePffFromIntentExtras(pff_filename, args)
+                if( pffFilePath == null ) {
+                    throw Exception("You must specify the file path of the PFF using: " + EntryActivity.PFF_FILENAME_PARAM)
+                }
+
+                val newPffFilePath: String = CNPifFile.CreatePffFromIntentExtras(pffFilePath, args)
+                val description: String? = args!!.getString(EntryActivity.APP_DESCRIPTION_PARAM)
+                return newInstance(newPffFilePath, description)
+            }
+            catch(e: Exception) {
+                Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                return null
+            }
         }
 
         private fun getPffFullPath(pffName: String): String {
 
             if (File(pffName).isAbsolute) return pffName
 
-            val lower_case_pff_filename: String = pffName.toLowerCase()
+            val lowercasePffFilePath: String = pffName.lowercase(Locale.getDefault())
             for (filename: String in Util.getApplicationsInDirectory(EngineInterface.getInstance().csEntryDirectory.path)) {
-                if (filename.toLowerCase().contains(lower_case_pff_filename)) return filename
+                if (filename.lowercase(Locale.getDefault()).contains(lowercasePffFilePath)) return filename
             }
             return pffName
         }

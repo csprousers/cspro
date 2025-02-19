@@ -13,20 +13,20 @@ public:
 
     // Create a case with the record/item symbols only added as needed. The dictionary and case access will come
     // from the passed EngineDictionary.
-    static std::unique_ptr<EngineDictionary> CreateCase(std::wstring case_name, const EngineDictionary& base_engine_dictionary,
+    static std::unique_ptr<EngineDictionary> CreateCase(std::string case_name, EngineDictionary& base_engine_dictionary,
                                                         EngineData& engine_data);
 
     // Create a (DataSource) data repository. The dictionary and case access will come from the passed EngineDictionary.
-    static std::unique_ptr<EngineDictionary> CreateDataRepository(std::wstring datasource_name, const EngineDictionary& base_engine_dictionary,
+    static std::unique_ptr<EngineDictionary> CreateDataRepository(std::string datasource_name, EngineDictionary& base_engine_dictionary,
                                                                   EngineData& engine_data);
 
     // Create a dictionary symbol on deserialization.
-    static std::unique_ptr<Symbol> CreateSymbolOnDeserialization(std::wstring symbol_name, SymbolType symbol_type,
+    static std::unique_ptr<Symbol> CreateSymbolOnDeserialization(std::string symbol_name, SymbolType symbol_type,
                                                                  EngineData& engine_data);
 
     // Construct a name for EngineRecord and EngineItem objects to be added to the symbol table.
     template<typename T>
-    static std::wstring GetSymbolName(const EngineCase& engine_case, const T& dictionary_record_or_item);
+    static std::string GetSymbolName(const EngineCase& engine_case, const T& dict_record_or_item);
 };
 
 
@@ -44,14 +44,14 @@ inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateDictiona
 
     return std::unique_ptr<EngineDictionary>(new EngineDictionary(
         EngineDictionary::Contents::Dictionary,
-        CS2WS(dictionary->GetName()),
+        dictionary->GetName(),
         dictionary,
         std::move(case_access),
         engine_data));
 }
 
 
-inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateCase(std::wstring case_name, const EngineDictionary& base_engine_dictionary,
+inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateCase(std::string case_name, EngineDictionary& base_engine_dictionary,
                                                                              EngineData& engine_data)
 {
     std::unique_ptr<EngineDictionary> engine_dictionary(new EngineDictionary(
@@ -68,7 +68,7 @@ inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateCase(std
 
 
 
-inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateDataRepository(std::wstring datasource_name, const EngineDictionary& base_engine_dictionary,
+inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateDataRepository(std::string datasource_name, EngineDictionary& base_engine_dictionary,
                                                                                        EngineData& engine_data)
 {
     std::unique_ptr<EngineDictionary> engine_dictionary(new EngineDictionary(
@@ -85,7 +85,7 @@ inline std::unique_ptr<EngineDictionary> EngineDictionaryFactory::CreateDataRepo
 
 
 // Create a dictionary symbol on deserialization.
-inline std::unique_ptr<Symbol> EngineDictionaryFactory::CreateSymbolOnDeserialization(std::wstring symbol_name, SymbolType symbol_type,
+inline std::unique_ptr<Symbol> EngineDictionaryFactory::CreateSymbolOnDeserialization(std::string symbol_name, const SymbolType symbol_type,
                                                                                       EngineData& engine_data)
 {
     if( symbol_type == SymbolType::Dictionary )
@@ -97,21 +97,21 @@ inline std::unique_ptr<Symbol> EngineDictionaryFactory::CreateSymbolOnDeserializ
     {
         ASSERT(symbol_type == SymbolType::Record);
         return std::unique_ptr<EngineRecord>(new EngineRecord(std::move(symbol_name), engine_data));
-    }             
+    }
 }
 
 
 template<typename T>
-std::wstring EngineDictionaryFactory::GetSymbolName(const EngineCase& engine_case, const T& dictionary_record_or_item)
+std::string EngineDictionaryFactory::GetSymbolName(const EngineCase& engine_case, const T& dict_record_or_item)
 {
     if( engine_case.GetEngineDictionary().IsDictionaryObject() )
     {
-        return CS2WS(dictionary_record_or_item.GetName());
+        return dict_record_or_item.GetName();
     }
 
     else
     {
-        return FormatTextCS2WS(_T("%s.%s"), engine_case.GetEngineDictionary().GetName().c_str(),
-                                            dictionary_record_or_item.GetName().GetString());
+        return FormatText("%s.%s", engine_case.GetEngineDictionary().GetName().c_str(),
+                                   dict_record_or_item.GetName().c_str());
     }
 }

@@ -5,8 +5,8 @@
 
 
 CDatFDlg::CDatFDlg(bool allowCSProExtensions, BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName,
-        DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd) :
-        CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd),
+                   DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd)
+    :   CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd),
         m_bAllowCSProExtensions(allowCSProExtensions)
 {
 }
@@ -15,17 +15,19 @@ CDatFDlg::CDatFDlg(bool allowCSProExtensions, BOOL bOpenFileDialog, LPCTSTR lpsz
 BOOL CDatFDlg::OnFileNameOK()
 {
     // 20130410 to disallow users from using CSPro file extensions for their data files
-    if( !m_bAllowCSProExtensions && FileExtensions::IsExtensionForbiddenForDataFiles(GetFileExt()) )
+    const std::string extension = TC::ToUtf8(GetFileExt());
+
+    if( !m_bAllowCSProExtensions && FileExtensions::IsExtensionForbiddenForDataFiles(extension) )
     {
-        AfxMessageBox(FormatText(_T("CSPro data files cannot have the file extension: .%s"), (LPCTSTR)GetFileExt()));
+        AfxMessageBox(FormatText("CSPro data files cannot have the file extension: .%s", extension.c_str()));
         return TRUE;
     }
 
     if( !PortableFunctions::FileIsRegular(GetPathName()) ) // 20120212
     {
-        CString msg = FormatText(MGF::GetMessageText(MGF::CreateNewFile).c_str(), GetFileName().GetString());
+        const std::string message = FormatText(MGF::GetMessageText(MGF::CreateNewFile)->c_str(), UTF8_TODO::GetUtf8(GetFileName()).c_str());
 
-        if( AfxMessageBox(msg, MB_YESNO | MB_ICONEXCLAMATION) == IDNO )
+        if( AfxMessageBox(message, MB_YESNO | MB_ICONEXCLAMATION) == IDNO )
             return TRUE;
     }
 

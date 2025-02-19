@@ -17,6 +17,7 @@ const int TAB_SPACES = 4; // GHM 20120514
 
 
 #include <zToolsO/Tools.h>
+#include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/StdioFileUnicode.h>

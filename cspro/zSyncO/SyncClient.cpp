@@ -1,1042 +1,1113 @@
 ﻿#include "stdafx.h"
 #include "SyncClient.h"
 #include "ApplicationPackageManager.h"
-#include "BluetoothSyncServerConnection.h"
+#include "BluetoothSyncService.h"
 #include "CaseObservable.h"
-#include "ConnectResponse.h"
 #include "IDataChunk.h"
-#include "ISyncListener.h"
-#include "ISyncServerConnection.h"
-#include "ISyncServerConnectionFactory.h"
+#include "ISyncService.h"
+#include "ISyncServiceFactory.h"
 #include "JsonConverter.h"
-#include "SyncException.h"
-#include "SyncRequest.h"
-#include <zUtilO/Interapp.h>
-#include <zUtilO/TemporaryFile.h>
-#include <zCaseO/VectorClock.h>
+#include "SyncDictionaryInfo.h"
+#include "SyncExceptionRethrower.h"
+#include "SyncMessage.h"
+#include <zToolsO/SpanHelpers.h>
+#include <zNetwork/DropboxConnection.h>
+#include <zNetwork/SyncConnectionStringProperties.h>
+#include <zNetwork/SyncListenerRAII.h>
+#include <zNetwork/SyncListenerWrapper.h>
+#include <zCaseO/Case.h>
+#include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepositoryTransaction.h>
+#include <zDataO/ISyncableDataRepository.h>
+#include <zDataO/SyncBinaryDataUploadManager.h>
+#include <zDataO/SyncHistoryEntry.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
-#include <easyloggingwrapper.h>
-#include <ctime>
-#include <fstream>
-#include <regex>
 
 
-#if defined(ANDROID) && defined(_DEBUG)
-#define LOG_SYNC_TO_ANDROID_LOG 1
-#endif
-
-#ifdef LOG_SYNC_TO_ANDROID_LOG
-#include <android/log.h>
-#endif
-
-// This needs to be done in one cpp file to
-// declare easylogging globals
-INITIALIZE_EASYLOGGINGPP
-
-namespace {
-
-    std::string getLogFilename()
-    {
-#ifdef WIN_DESKTOP
-        // the log file will go in the AppData folder on Windows
-        std::wstring log_directory = GetAppDataPath();
-#else
-        std::wstring log_directory = PlatformInterface::GetInstance()->GetCSEntryDirectory();
-#endif
-
-        std::wstring log_filename = PortableFunctions::PathAppendToPath(log_directory, _T("sync.log"));
-
-        return UTF8Convert::WideToUTF8(log_filename);
-    }
-
-#ifdef LOG_SYNC_TO_ANDROID_LOG
-    class AndroidLogDispatcher : public el::LogDispatchCallback
-    {
-        void handle(const el::LogDispatchData* data) noexcept override {
-            android_LogPriority priority;
-            switch (data->logMessage()->level()) {
-                case el::Level::Debug:
-                case el::Level::Trace:
-                    priority = ANDROID_LOG_DEBUG;
-                    break;
-                case el::Level::Verbose:
-                    priority = ANDROID_LOG_VERBOSE;
-                    break;
-                case el::Level::Error:
-                    priority = ANDROID_LOG_ERROR;
-                    break;
-                case el::Level::Warning:
-                    priority = ANDROID_LOG_WARN;
-                    break;
-                case el::Level::Fatal:
-                    priority = ANDROID_LOG_FATAL;
-                    break;
-                case el::Level::Info:
-                    priority = ANDROID_LOG_INFO;
-                    break;
-                default:
-                    priority = ANDROID_LOG_INFO;
-                    break;
-            }
-            __android_log_print(priority, "Sync", "%s",  data->logMessage()->message().data());
-        }
-    };
-#endif
-
-    // Initial setup of sync log
-    void configureLogging()
-    {
-        static bool loggingConfigured = false;
-        if (!loggingConfigured) {
-            loggingConfigured = true;
-            el::Configurations c;
-            //c.setToDefault();
-            c.set(el::Level::Global, el::ConfigurationType::Enabled, "true");
-            c.set(el::Level::Global, el::ConfigurationType::Format, "%datetime %level: %msg");
-            c.set(el::Level::Global, el::ConfigurationType::ToFile, "true");
-            c.set(el::Level::Global, el::ConfigurationType::Filename, getLogFilename());
-            c.set(el::Level::Global, el::ConfigurationType::ToStandardOutput, "false");
-            c.set(el::Level::Global, el::ConfigurationType::LogFlushThreshold, "0");
-            el::Loggers::reconfigureLogger("sync", c);
-
-#ifdef LOG_SYNC_TO_ANDROID_LOG
-            el::Helpers::installLogDispatchCallback<AndroidLogDispatcher>("AndroidLogDispatcher");
-            auto dispatcher = el::Helpers::logDispatchCallback<AndroidLogDispatcher>("AndroidLogDispatcher");
-            dispatcher->setEnabled(true);
-#endif
-        }
-    }
-
-    const bool bUpdateOnConflict = false;
-
-    CString PathCanonical(CString path)
-    {
-        CString canonicalDirectoryPath;
-        bool canonOk = PathCanonicalize(canonicalDirectoryPath.GetBuffer(MAX_PATH), path) == TRUE;
-        canonicalDirectoryPath.ReleaseBuffer();
-        if (!canonOk) {
-            CLOG(ERROR, "sync") << "Error: Invalid directory " << UTF8Convert::WideToUTF8(path);
-            throw SyncError(100113, path);
-        }
-        return canonicalDirectoryPath;
-    }
-
-    bool containsWildcard(CString path)
-    {
-        return path.FindOneOf(_T("*?#")) != -1;
-    }
-
-    // If path is relative then add root directory
-    // to make it absolute.
-    CString makeClientPathAbsolute(CString clientPath, CString clientFileRoot)
-    {
-        if (PathIsRelative(clientPath)) {
-            return clientFileRoot + clientPath;
-        }
-        return clientPath;
-    }
-
-    CString addFilenameToPathTo(CString pathFrom, CString pathTo, wchar_t pathSeparator)
-    {
-        CString fullPathTo = pathTo;
-
-        // Add the filename if it is not included in pathTo
-        if (fullPathTo.IsEmpty() ||
-            fullPathTo.GetAt(fullPathTo.GetLength() - 1) == _T('/') ||
-            fullPathTo.GetAt(fullPathTo.GetLength() - 1) == _T('\\') ||
-            PortableFunctions::FileIsDirectory(fullPathTo)) {
-
-            CString fromFilename = PortableFunctions::PathGetFilename(pathFrom);
-
-            if (fullPathTo.IsEmpty() ||
-                (fullPathTo.GetAt(fullPathTo.GetLength() - 1) != _T('/') &&
-                fullPathTo.GetAt(fullPathTo.GetLength() - 1) != _T('\\'))) {
-                fullPathTo += pathSeparator;
-            }
-            fullPathTo += fromFilename;
-        }
-
-        return fullPathTo;
-    }
-
-    const char* directionToString(SyncDirection d)
-    {
-        switch (d) {
-        case SyncDirection::Put:
-            return "PUT";
-        case SyncDirection::Get:
-            return "GET";
-        case SyncDirection::Both:
-            return "BOTH";
-        }
-        return "INVALID";
-    }
-
-    std::vector<CString> getPutRevisionsSince(CString deviceId, ISyncableDataRepository& repository, const SyncHistoryEntry& syncEntry)
-    {
-        std::vector<SyncHistoryEntry> syncsSince = repository.GetSyncHistory(deviceId, SyncDirection::Put, syncEntry.getSerialNumber());
-        std::vector<CString> revs;
-        revs.reserve(syncsSince.size());
-        for (const SyncHistoryEntry& s : syncsSince) {
-            if (!s.getServerFileRevision().IsEmpty())
-                revs.push_back(s.getServerFileRevision());
-        }
-        return revs;
-    }
-
-    JsonConverter jsonConverter;
-}
-
-SyncClient::SyncClient(DeviceId myDeviceId,
-    ISyncServerConnectionFactory *pServerFactory)
-    : m_deviceId(myDeviceId),
-      m_pServerFactory(pServerFactory),
-      m_pServer(NULL),
-      m_pListener(NULL)
+namespace
 {
-    configureLogging();
+    constexpr bool UseRemoteCaseOnConflict = false;
 }
+
+
+SyncClient::SyncClient(DeviceId device_id, std::unique_ptr<ISyncServiceFactory> sync_service_factory)
+    :   m_deviceId(std::move(device_id)),
+        m_syncServiceFactory(std::move(sync_service_factory))
+{
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    SyncLog::EnableLogging();
+}
+
+
+SyncClient::SyncClient(std::tuple<std::shared_ptr<ISyncService>, std::shared_ptr<ConnectResponse>> sync_runner_connection)
+    :   m_deviceId(GetDeviceId()),
+        m_syncService(std::move(std::get<0>(sync_runner_connection))),
+        m_connectResponse(std::move(std::get<1>(sync_runner_connection)))
+{
+    ASSERT(m_syncService != nullptr && m_connectResponse != nullptr);
+
+    SyncLog::EnableLogging();
+}
+
+
+SyncClient::SyncClient(SyncClient&&) = default;
+
 
 SyncClient::~SyncClient()
 {
-    if (m_pServer)
-        disconnectFromServer();
+    if( m_syncService != nullptr )
+        DisconnectFromSyncService();
 }
 
-SyncClient::SyncResult SyncClient::connect(const CString& hostUrl, ILoginDialog* pLoginDlg, IDropboxAuthDialog* pAuthDlg,
-    ICredentialStore* pCredentialStore, IChooseBluetoothDeviceDialog* pChooseDlg, std::optional<CString> username,
-    std::optional<CString> password)
+
+SyncClient::SyncResult SyncClient::Connect(const SyncConnectionString& sync_connection_string)
 {
-    if (hostUrl == _T("Dropbox")) {
-        return connectDropbox(pAuthDlg, pCredentialStore);
-    }
-    else if (hostUrl == _T("Bluetooth")) {
-        return connectBluetooth(pChooseDlg);
-    }
-    else if (hostUrl.Left(4).CompareNoCase(_T("http")) == 0) {
-        if (username && password)
-            return connectWeb(hostUrl, *username, *password);
-        else
-            return connectWeb(hostUrl, pLoginDlg, pCredentialStore);
-    }
-    else if (hostUrl.Left(3).CompareNoCase(_T("ftp")) == 0) {
-        if (username && password)
-            return connectFtp(hostUrl, *username, *password);
-        else
-            return connectFtp(hostUrl, pLoginDlg, pCredentialStore);
-    }
-    else if (hostUrl == _T("DropboxLocal")) {
-        return connectDropboxLocal();
-    }
-    else if (hostUrl.Left(4).CompareNoCase(_T("file")) == 0) {
-        return connectLocalFileSystem(hostUrl);
+    SyncResult result;
+
+    if( Paradata::Logger::IsOpen() )
+    {
+        result = ConnectWithParadataSupport(sync_connection_string);
     }
 
-    return SyncResult::SYNC_ERROR;
+    else
+    {
+        result = ConnectWorker(sync_connection_string);
+        m_paradataLogger.reset();
+    }
+
+    return result;
 }
 
-SyncClient::SyncResult SyncClient::connectWeb(CString hostUrl, CString username, CString password)
+
+SyncClient::SyncResult SyncClient::ConnectWorker(const SyncConnectionString& sync_connection_string)
 {
-    ISyncServerConnection* pServer = m_pServerFactory->createCSWebConnection(hostUrl, username, password);
-    if (!pServer) {
-        if (m_pListener) {
-            m_pListener->onError(100120, (LPCTSTR) hostUrl);
-        }
-        CLOG(ERROR, "sync") << "Error failed to connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " using username " << UTF8Convert::WideToUTF8(username) << " and password";
+    if( !sync_connection_string.IsDefined() )
         return SyncResult::SYNC_ERROR;
+
+    switch( sync_connection_string.GetType() )
+    {
+        case SyncServiceType::Bluetooth:  return ConnectBluetooth(sync_connection_string);
+        case SyncServiceType::CSWeb:      return ConnectCSWeb(sync_connection_string);
+        case SyncServiceType::Dropbox:    return ConnectDropbox(sync_connection_string);
+        case SyncServiceType::Ftp:        return ConnectFtp(sync_connection_string);
+        case SyncServiceType::LocalFiles: return ConnectLocalFiles(sync_connection_string);
+        default:                          return ReturnProgrammingError(SyncResult::SYNC_ERROR);
     }
-
-    CLOG(INFO, "sync") << "Connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " as user " << UTF8Convert::WideToUTF8(username);
-    return connectToServer(pServer, hostUrl);
 }
 
-SyncClient::SyncResult SyncClient::connectWeb(CString hostUrl, ILoginDialog* pLoginDlg, ICredentialStore* pCredentialStore)
+
+SyncClient::SyncResult SyncClient::ConnectWithParadataSupport(const SyncConnectionString& sync_connection_string)
 {
-    ISyncServerConnection* pServer = m_pServerFactory->createCSWebConnection(hostUrl, pLoginDlg, pCredentialStore);
-    if (!pServer) {
-        if (m_pListener) {
-            m_pListener->onError(100120, (LPCTSTR) hostUrl);
-        }
-        CLOG(ERROR, "sync") << "Error failed to connect to server: " << UTF8Convert::WideToUTF8(hostUrl) << " using saved token";
-        return SyncResult::SYNC_ERROR;
-    }
-
-    CLOG(INFO, "sync") << "Connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " using saved credentials";
-    return connectToServer(pServer, hostUrl);
-}
-
-SyncClient::SyncResult SyncClient::connectBluetooth(const BluetoothDeviceInfo& deviceInfo)
-{
-    CLOG(INFO, "sync") << "Connect to Bluetooth device " << UTF8Convert::WideToUTF8(deviceInfo.csName);
-    ISyncServerConnection* pServer = m_pServerFactory->createBluetoothConnection(deviceInfo);
-    if (!pServer)
-        return SyncResult::SYNC_ERROR;
-    return connectToServer(pServer, deviceInfo.csName);
-}
-
-SyncClient::SyncResult SyncClient::connectBluetooth(IChooseBluetoothDeviceDialog* pChooseDlg)
-{
-    CLOG(INFO, "sync") << "Connect to Bluetooth device, name not specified";
-    ISyncServerConnection* pServer = m_pServerFactory->createBluetoothConnection(pChooseDlg);
-    if (!pServer)
-        return SyncResult::SYNC_ERROR;
-    return connectToServer(pServer, _T("Bluetooth"));
-}
-
-SyncClient::SyncResult SyncClient::connectDropbox(CString accessToken)
-{
-    CLOG(INFO, "sync") << "Connect to Dropbox ";
-    ISyncServerConnection* pServer = m_pServerFactory->createDropboxConnection(accessToken);
-    if (!pServer)
-        return SyncResult::SYNC_ERROR;
-    return connectToServer(pServer, _T("Dropbox"));
-}
-
-SyncClient::SyncResult SyncClient::connectDropbox(IDropboxAuthDialog* pAuthDlg, ICredentialStore* pCredentialStore)
-{
-    CLOG(INFO, "sync") << "Connect to Dropbox ";
-    ISyncServerConnection* pServer = m_pServerFactory->createDropboxConnection(pAuthDlg, pCredentialStore);
-    if (!pServer)
-        return SyncResult::SYNC_ERROR;
-    return connectToServer(pServer, _T("Dropbox"));
-}
-
-SyncClient::SyncResult SyncClient::connectDropboxLocal()
-{
-    ISyncServerConnection* pServer = m_pServerFactory->createDropboxLocalConnection();
-    if (!pServer) {
-        CLOG(ERROR, "sync") << "Error failed to connect to local Dropbox: ";
-        return SyncResult::SYNC_ERROR;
-    }
-
-    CLOG(INFO, "sync") << "Connect to local Dropbox ";
-    return connectToServer(pServer, _T("LocalDropbox"));
-}
-
-SyncClient::SyncResult SyncClient::connectFtp(CString hostUrl, CString username, CString password)
-{
-    ISyncServerConnection* pServer = m_pServerFactory->createFtpConnection(hostUrl, username, password);
-    if (!pServer) {
-        if (m_pListener) {
-            m_pListener->onError(100120, (LPCTSTR) hostUrl);
-        }
-        CLOG(ERROR, "sync") << "Error failed to connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " using username " << UTF8Convert::WideToUTF8(username) << " and password";
-        return SyncResult::SYNC_ERROR;
-    }
-
-    CLOG(INFO, "sync") << "Connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " as user " << UTF8Convert::WideToUTF8(username);
-    return connectToServer(pServer, hostUrl);
-}
-
-SyncClient::SyncResult SyncClient::connectFtp(CString hostUrl, ILoginDialog * pLoginDlg, ICredentialStore * pCredentialStore)
-{
-    ISyncServerConnection* pServer = m_pServerFactory->createFtpConnection(hostUrl, pLoginDlg, pCredentialStore);
-    if (!pServer) {
-        if (m_pListener) {
-            m_pListener->onError(100120, (LPCTSTR) hostUrl);
-        }
-        CLOG(ERROR, "sync") << "Error failed to connect to server: " << UTF8Convert::WideToUTF8(hostUrl) << " using saved token";
-        return SyncResult::SYNC_ERROR;
-    }
-
-    CLOG(INFO, "sync") << "Connect to server " << UTF8Convert::WideToUTF8(hostUrl) << " using saved credentials";
-    return connectToServer(pServer, hostUrl);
-}
-
-SyncClient::SyncResult SyncClient::connectLocalFileSystem(CString root_directory)
-{
-    ISyncServerConnection* pServer = m_pServerFactory->createLocalFileConnection(root_directory);
-    if (!pServer) {
-        CLOG(ERROR, "sync") << "Error failed to connect to local filesystem: " << UTF8Convert::WideToUTF8(root_directory);
-        return SyncResult::SYNC_ERROR;
-    }
-
-    CLOG(INFO, "sync") << "Connect to local filesystem " << UTF8Convert::WideToUTF8(root_directory);
-    return connectToServer(pServer, root_directory);
-}
-
-SyncClient::SyncResult SyncClient::connectToServer(ISyncServerConnection* pServer, CString serverName)
-{
-    CLOG(INFO, "sync") << "Connect to server " << UTF8Convert::WideToUTF8(serverName);
-
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-
-        // Disconnect old connection before connecting to a new server
-        if (m_pServer) {
-            CLOG(INFO, "sync") << "Disconnect from existing server";
-            disconnectFromServer();
+    // because errors are reported using the SyncListener, we'll use a wrapper to get the error
+    class OnErrorInterceptorSyncListener : public WrapperSyncListener
+    {
+    public:
+        OnErrorInterceptorSyncListener(std::shared_ptr<SyncListener> sync_listener, std::unique_ptr<std::string>& exception_text)
+            :   WrapperSyncListener(std::move(sync_listener)),
+                m_exceptionText(exception_text)
+        {
         }
 
-        pServer->setListener(m_pListener);
-
-        // Connecting...
-        if (m_pListener) {
-            m_pListener->onStart(100102, (LPCTSTR)serverName);
+    protected:
+        void OnError(const int message_number, const std::string& message_text) override
+        {
+            ASSERT(m_exceptionText == nullptr);
+            m_exceptionText = std::make_unique<std::string>(message_text);
+            WrapperSyncListener::OnError(message_number, message_text);
         }
 
-        m_pServer = pServer;
-        std::unique_ptr<ConnectResponse> pResponse(pServer->connect());
-        m_serverDeviceId = pResponse->getServerDeviceId();
-        m_serverDeviceName = pResponse->getServerName();
-        m_userName = pResponse->getUserName();
+    private:
+        std::unique_ptr<std::string>& m_exceptionText;
+    };
 
-        CLOG(INFO, "sync") << "Connection successful. Server id: " << UTF8Convert::WideToUTF8(m_serverDeviceId);
+    std::unique_ptr<std::string> exception_text;
+    const RAII::SetValueAndRestoreOnDestruction sync_listener_modifier(m_syncListener,
+                                                                       std::make_unique<OnErrorInterceptorSyncListener>(m_syncListener, exception_text));
+
+    // set up the paradata data
+    auto [paradata_logger, sync_connect_event_holder] = SyncRunner::ParadataLogger::Create(m_deviceId,
+                                                                                           SyncRunner::ConnectionSource::Logic,
+                                                                                           sync_connection_string);
+
+    // run the connection routines
+    const SyncResult result = ConnectWorker(sync_connection_string);
+
+    if( exception_text != nullptr )
+    {
+        ASSERT(result == SyncResult::SYNC_ERROR);
+        sync_connect_event_holder.SetResultFailure(std::move(*exception_text));
+    }
+
+    else if( result == SyncResult::SYNC_CANCELED )
+    {
+        const SyncCancelException sync_cancel_exception;
+        sync_connect_event_holder.SetResultFailure(sync_cancel_exception);
+    }
+
+    else if( result != SyncResult::SYNC_OK )
+    {
+        sync_connect_event_holder.SetResultFailure("Sync Error");
+    }
+
+    m_paradataLogger = ( result == SyncResult::SYNC_OK ) ? std::move(paradata_logger) :
+                                                           nullptr;
+
+    return result;
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectCSWeb(const SyncConnectionString& sync_connection_string, std::unique_ptr<LoginCredentials> login_credentials/* = nullptr*/)
+{
+    ASSERT(sync_connection_string.GetType() == SyncServiceType::CSWeb);
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    std::unique_ptr<ISyncService> sync_service = m_syncServiceFactory->CreateCSWebSyncService(sync_connection_string, std::move(login_credentials));
+
+    if( sync_service == nullptr )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(100120, sync_connection_string.GetUrl().c_str());
+
+        SYNCLOG_ERROR << "Error failed to create connection to CSWeb server: " << sync_connection_string.GetUrl();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    SYNCLOG_INFO << "Connect to CSWeb server: " << sync_connection_string.GetUrl();
+
+    return ConnectToSyncService(std::move(sync_service), sync_connection_string.GetUrl());
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectBluetooth(const SyncConnectionString& sync_connection_string)
+{
+    ASSERT(sync_connection_string.GetType() == SyncServiceType::Bluetooth);
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    // when using a sync connection string, the service device name is specified as the path
+    const std::string service_device_name = sync_connection_string.GetEvaluatedBluetoothServerDeviceName();
+    std::unique_ptr<ISyncService> sync_service;
+
+    if( service_device_name.empty() )
+    {
+        SYNCLOG_INFO << "Connect to Bluetooth device, name not specified";
+        sync_service = m_syncServiceFactory->CreateBluetoothSyncService();
+    }
+
+    else
+    {
+        SYNCLOG_INFO << "Connect to Bluetooth device " << service_device_name;
+        sync_service = m_syncServiceFactory->CreateBluetoothSyncService(BluetoothDeviceInfo { service_device_name, std::string() });
+    }
+
+    if( sync_service == nullptr )
+        return SyncResult::SYNC_ERROR;
+
+    return ConnectToSyncService(std::move(sync_service), !service_device_name.empty() ? service_device_name : "Bluetooth");
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectDropbox(cs::cref_optional<SyncConnectionString> sync_connection_string/* = std::nullopt*/)
+{
+    ASSERT(!sync_connection_string.has_value() || sync_connection_string->GetType() == SyncServiceType::Dropbox);
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    // determine if a local Dropbox connection should be made
+    if( sync_connection_string.has_value() )
+    {
+        try
+        {
+            std::string local_dropbox_directory = DropboxConnection::GetEvaluatedLocalDropboxDirectory(*sync_connection_string);
+
+            if( !local_dropbox_directory.empty() )
+            {
+                SYNCLOG_INFO << "Connect to local Dropbox directory: " << local_dropbox_directory;
+                std::unique_ptr<ISyncService> sync_service = m_syncServiceFactory->CreateDropboxLocalSyncService(std::move(local_dropbox_directory));
+
+                if( sync_service == nullptr )
+                    return ReturnProgrammingError(SyncResult::SYNC_ERROR);
+
+                return ConnectToSyncService(std::move(sync_service), "LocalDropbox");
+            }
+        }
+
+        catch( const SyncError& exception )
+        {
+            SYNCLOG_ERROR << "Error failed to connect to local Dropbox: " << exception.what();
+
+            if( m_syncListener != nullptr )
+                m_syncListener->ReportError(exception);
+
+            return SyncResult::SYNC_ERROR;
+        }
+    }
+
+    // create a remote Dropbox connection
+    const std::string* const email = sync_connection_string.has_value() ? sync_connection_string->GetProperty(SCSProperty::email) :
+                                                                          nullptr;
+
+    if( email != nullptr )
+    {
+        SYNCLOG_INFO << "Connect to Dropbox using email: " << *email;
+    }
+
+    else
+    {
+        SYNCLOG_INFO << "Connect to Dropbox";
+    }
+
+    std::unique_ptr<ISyncService> sync_service = m_syncServiceFactory->CreateDropboxSyncService(std::move(sync_connection_string));
+
+    if( sync_service == nullptr )
+        return SyncResult::SYNC_ERROR;
+
+    return ConnectToSyncService(std::move(sync_service), "Dropbox");
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectFtp(const SyncConnectionString& sync_connection_string, std::unique_ptr<LoginCredentials> login_credentials/* = nullptr*/)
+{
+    ASSERT(sync_connection_string.GetType() == SyncServiceType::Ftp);
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    std::unique_ptr<ISyncService> sync_service = m_syncServiceFactory->CreateFtpSyncService(sync_connection_string, std::move(login_credentials));
+
+    if( sync_service == nullptr )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(100125, sync_connection_string.GetUrl().c_str());
+
+        SYNCLOG_ERROR << "Error failed to create connection to FTP server: " << sync_connection_string.GetUrl();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    SYNCLOG_INFO << "Connect to FTP server: " << sync_connection_string.GetUrl();
+
+    return ConnectToSyncService(std::move(sync_service), sync_connection_string.GetUrl());
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectLocalFiles(const SyncConnectionString& sync_connection_string)
+{
+    ASSERT(sync_connection_string.GetType() == SyncServiceType::LocalFiles);
+    ASSERT(m_syncServiceFactory != nullptr);
+
+    std::unique_ptr<ISyncService> sync_service = m_syncServiceFactory->CreateLocalFileSyncService(sync_connection_string);
+
+    const std::string root_directory = sync_connection_string.GetEvaluatedDirectoryPath();
+
+    if( sync_service == nullptr )
+    {
+        SYNCLOG_ERROR << "Error failed to create connection to local files: " << root_directory;
+        return SyncResult::SYNC_ERROR;
+    }
+
+    SYNCLOG_INFO << "Connect to local files: " << root_directory;
+
+    return ConnectToSyncService(std::move(sync_service), root_directory);
+}
+
+
+SyncClient::SyncResult SyncClient::ConnectToSyncService(std::unique_ptr<ISyncService> sync_service, const std::string& sync_service_name)
+{
+    ASSERT(sync_service != nullptr);
+
+    SyncResult unsuccessful_result;
+
+    try
+    {
+        // Disconnect old connection before connecting to a new sync service
+        if( m_syncService != nullptr )
+        {
+            SYNCLOG_INFO << "Disconnect from existing sync service";
+            DisconnectFromSyncService();
+        }
+
+        m_syncService = std::move(sync_service);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100102, sync_service_name.c_str());
+
+        SYNCLOG_INFO << "Connect to sync service " << sync_service_name;
+
+        m_connectResponse = m_syncService->Connect();
+        ASSERT(m_connectResponse != nullptr);
+
+        SYNCLOG_INFO << "Connection successful. Server id: " << GetServerDeviceId();
 
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        CLOG(ERROR, "sync") << "Error connecting to server: " << e.what();
-        if (m_pListener) {
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        }
-        m_pServerFactory->destroy(m_pServer);
-        m_pServer = NULL;
-        m_serverDeviceId = DeviceId();
-        return SyncResult::SYNC_ERROR;
-    } catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Canceled connection";
-        m_pServerFactory->destroy(m_pServer);
-        m_pServer = NULL;
-        m_serverDeviceId = DeviceId();
-        return SyncResult::SYNC_CANCELED;
+
+    catch( const SyncError& exception )
+    {
+        SYNCLOG_ERROR << "Error connecting to sync service: " << exception.what();
+
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        unsuccessful_result = SyncResult::SYNC_ERROR;
     }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Canceled connection";
+
+        unsuccessful_result = SyncResult::SYNC_CANCELED;
+    }
+
+    m_syncService.reset();
+    m_connectResponse.reset();
+
+    return unsuccessful_result;
 }
 
-SyncClient::SyncResult SyncClient::disconnect()
+
+SyncClient::SyncResult SyncClient::Disconnect()
 {
-    if (m_pServer == nullptr)
+    if( m_syncService == nullptr )
         return SyncResult::SYNC_ERROR;
 
-    SyncListenerCloser listenerCloser(m_pListener);
-    m_pServer->setListener(m_pListener);
-
-    // disconnecting...
-    if (m_pListener)
-        m_pListener->onStart(100103);
-
-    CLOG(INFO, "sync") << "Disconnecting from server ";
-
-    return disconnectFromServer();
+    return DisconnectFromSyncService();
 }
 
-SyncClient::SyncResult SyncClient::disconnectFromServer()
-{
-    try {
 
-        if (!m_pServer)
+SyncClient::SyncResult SyncClient::DisconnectFromSyncService()
+{
+    try
+    {
+        if( m_syncService == nullptr )
             return SyncResult::SYNC_ERROR;
 
-        m_pServer->disconnect();
-        m_pServerFactory->destroy(m_pServer);
-        m_pServer = NULL;
+        const std::shared_ptr<ISyncService> sync_service = std::move(m_syncService);
+        m_connectResponse.reset();
+        const std::unique_ptr<SyncRunner::ParadataLogger> paradata_logger = std::move(m_paradataLogger);
+
+        SyncRunner sync_runner(m_syncListener);
+        sync_runner.Disconnect(*sync_service, paradata_logger.get());
 
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncException&) {
+
+    catch(...)
+    {
         // Ignore disconnect errors since at this point the sync is done
         // and 90% of the time there was already an error during a call
         // to sync_data or sync_file prior to the disconnect.
+        return SyncResult::SYNC_ERROR;
     }
-
-    m_pServerFactory->destroy(m_pServer);
-    m_pServer = NULL;
-    return SyncResult::SYNC_ERROR;
 }
 
-bool SyncClient::isConnected() const
+
+const DeviceId& SyncClient::GetServerDeviceId() const
 {
-    return m_pServer != NULL;
+    ASSERT(m_connectResponse != nullptr);
+    return m_connectResponse->GetServerDeviceId();
 }
 
-const DeviceId& SyncClient::getServerDeviceId() const
-{
-    return m_serverDeviceId;
-}
 
-SyncClient::SyncResult SyncClient::syncData(SyncDirection direction, ISyncableDataRepository& repository, CString universe)
+SyncClient::SyncResult SyncClient::SyncData(const SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
 
-        const CString dataFileName = repository.GetName(DataRepositoryNameType::Concise);
+        const std::string repository_name = repository.GetName(DataRepositoryNameType::Concise);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100104, (LPCTSTR) dataFileName);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100104, repository_name.c_str());
 
-        CLOG(INFO, "sync") << "Syncing data: " << UTF8Convert::WideToUTF8(dataFileName) << " direction " <<
-            directionToString(direction) << " universe \"" << UTF8Convert::WideToUTF8(universe) << "\"";
+        SYNCLOG_INFO << "Syncing data: " << repository_name
+                     << " direction \"" << ToString(direction) << "\""
+                     << " universe \"" << universe << "\"";
 
-        if (!m_pServer)
+        if( m_syncService == nullptr )
             return SyncResult::SYNC_ERROR;
 
-        if (direction == SyncDirection::Get || direction == SyncDirection::Both)
-            syncDataGet(repository, universe);
+        if( direction == SyncDirection::Get || direction == SyncDirection::Both )
+            SyncDataGet(repository, universe);
 
-        if (direction == SyncDirection::Put || direction == SyncDirection::Both) {
-            syncDataPut(repository, universe);
-        }
+        if( direction == SyncDirection::Put || direction == SyncDirection::Both )
+            SyncDataPut(repository, universe);
 
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error syncing data: " << e.m_errorCode << " " << e.what();
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error syncing data: " << exception.GetErrorMessageNumber() << " " << exception.what();
         return SyncResult::SYNC_ERROR;
-    } catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Canceled sync data";
-        return SyncResult::SYNC_CANCELED;
     }
 
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Canceled sync data";
+        return SyncResult::SYNC_CANCELED;
+    }
 }
 
-void SyncClient::syncDataGet(ISyncableDataRepository& repository, CString universe)
+
+void SyncClient::SyncDataGet(ISyncableDataRepository& repository, const std::string& universe)
 {
-    try {
+    try
+    {
+        std::optional<SyncHistoryEntry> last_sync_revision = GetRevisionFromLastSync(SyncDirection::Get, repository, universe);
 
-        SyncHistoryEntry lastSyncRev = getRevisionFromLastSync(SyncDirection::Get, repository, universe);
+        if( last_sync_revision.has_value() )
+        {
+            SYNCLOG_INFO << "Last GET with this sync service " << DateTime::LocalDateTimeString(last_sync_revision->GetDateTime())
+                         << " local revision " << last_sync_revision->GetFileRevision()
+                         << " sync service revision \"" << last_sync_revision->GetServerFileRevision() << "\"";
 
-        if (lastSyncRev.valid()) {
-            CLOG(INFO, "sync") << "Last GET with this server " << PortableFunctions::TimeToString(lastSyncRev.getDateTime()) <<
-                " local rev " << lastSyncRev.getFileRevision() <<
-                " server rev \"" << UTF8Convert::WideToUTF8(lastSyncRev.getServerFileRevision()) << "\"";
-            if (lastSyncRev.isPartialGet()) {
-                CLOG(INFO, "sync") << "Partial get, resume from case " << UTF8Convert::WideToUTF8(lastSyncRev.getLastCaseUuid());
+            if( last_sync_revision->IsPartialGet() )
+            {
+                SYNCLOG_INFO << "Partial get, resume from case " << last_sync_revision->GetLastCaseUuid();
+
+                if( last_sync_revision->GetUniverse() != universe )
+                {
+                    // Invalid to try to resume a sync with different params
+                    SYNCLOG_INFO << "Universe doesn't match universe from partial - doing full sync";
+                    last_sync_revision.reset();
+                }
             }
         }
-        else {
-            CLOG(INFO, "sync") << "First time GET with this server";
+
+        else
+        {
+            SYNCLOG_INFO << "First time GET with this sync service";
         }
 
-        if (lastSyncRev.isPartialGet() && lastSyncRev.getUniverse() != universe) {
-            // Invalid to try to resume a sync with different params
-            CLOG(INFO, "sync") << "Universe doesn't match universe from partial - doing full sync";
-            lastSyncRev = SyncHistoryEntry();
+        int start_serial_number = -1;
+        std::string server_revision;
+        std::string last_case_uuid;
+
+        if( last_sync_revision.has_value() )
+        {
+            start_serial_number = last_sync_revision->GetSerialNumber();
+            server_revision = last_sync_revision->GetServerFileRevision();
+
+            if( last_sync_revision->IsPartialGet() )
+                last_case_uuid = last_sync_revision->GetLastCaseUuid();
         }
 
-        CString serverRevision = lastSyncRev.getServerFileRevision();
-        CString startCaseUuid = lastSyncRev.isPartialGet() ? lastSyncRev.getLastCaseUuid() : CString();
-        std::vector<CString> excludedRevisions = getPutRevisionsSince(m_serverDeviceId, repository, lastSyncRev);
+        std::vector<std::string> excluded_revisions = GetPutRevisionsSince(GetServerDeviceId(), repository, start_serial_number);
 
-        m_pServer->getChunk().enableOptimization();
-        repository.StartSync(m_serverDeviceId, m_serverDeviceName, m_userName, SyncDirection::Get, universe, bUpdateOnConflict);
+        IDataChunk& data_chunk = m_syncService->GetChunk();
+        data_chunk.EnableOptimization();
+
+        repository.StartSync(GetServerDeviceId(), m_connectResponse->GetServerName(), m_connectResponse->GetUsername(),
+                             SyncDirection::Get, universe, UseRemoteCaseOnConflict);
         DataRepositoryTransaction transaction(repository);
 
-        int total_cases = 0;
+        std::optional<int> total_cases;
         int cases_so_far = 0;
 
-        while (true) {
+        while( true )
+        {
+            // we will update progress below based on cases so disable default handling
+            if( m_syncListener != nullptr && cases_so_far != 0 )
+                m_syncListener->ShowProgressUpdates(false);
 
-            // Send request to server
-            bool first_chunk = cases_so_far == 0;
-            if (m_pListener && !first_chunk)
-                m_pListener->showProgressUpdates(false); // we will update progress below based on cases so disable default handling
+            // send request to sync service
+            SyncGetResponse response = m_syncService->GetCases(repository.GetSharedCaseAccess(),
+                                                               m_deviceId, universe, server_revision,
+                                                               last_case_uuid, excluded_revisions);
 
-            SyncRequest request(*repository.GetCaseAccess(), m_deviceId, universe, serverRevision, startCaseUuid, excludedRevisions, first_chunk);
-            SyncGetResponse response = m_pServer->getData(request);
+            if( response.GetResult() == SyncGetResponse::SyncGetResult::RevisionNotFound )
+            {
+                SYNCLOG_INFO << "Previous revision not found, doing full sync";
 
-            if (response.getResult() == SyncGetResponse::SyncGetResult::RevisionNotFound) {
-
-                CLOG(INFO, "sync") << "Previous revision not found, doing full sync";
                 // Server revision history is out of sync with local revision history. Fallback to doing a full sync instead
                 // of changes since last sync.
-                lastSyncRev = SyncHistoryEntry();
-                serverRevision = CString();
-                startCaseUuid = CString();
-                excludedRevisions.clear();
-
+                last_sync_revision.reset();
+                server_revision.clear();
+                last_case_uuid.clear();
+                excluded_revisions.clear();
             }
-            else {
+
+            else
+            {
                 // OK or more data
-                auto server_revision = response.getServerRevision();
-                if (total_cases == 0 && response.getTotalCases()) {
-                    total_cases = *response.getTotalCases();
-                    if (m_pListener)
-                        m_pListener->setProgressTotal(total_cases);
+                server_revision = response.GetServerRevision();
+
+                if( !total_cases.has_value() )
+                {
+                    total_cases = response.GetTotalCases();
+
+                    if( m_syncListener != nullptr && total_cases.has_value() )
+                        m_syncListener->SetProgressTotal(*total_cases);
                 }
 
-                CString lastUuid;
-                if (response.getCases()) {
+                std::string last_processed_case_uuid;
 
-                    response.getCases()->subscribe(
-                        [this, &repository, server_revision, &lastUuid, &cases_so_far](std::shared_ptr<Case> data_case)
+                if( response.GetCases() != nullptr )
+                {
+                    std::exception_ptr caught_exception;
+
+                    response.GetCases()->subscribe(
+                        [this, &repository, server_revision, &last_processed_case_uuid, &cases_so_far](std::shared_ptr<Case> data_case)
                         {
-                            repository.SyncCasesFromRemote({ data_case }, server_revision);
-                            lastUuid = data_case->GetUuid();
-                            if (m_pListener) {
-                                m_pListener->showProgressUpdates(true);
-                                m_pListener->onProgress(++cases_so_far);
-                                m_pListener->showProgressUpdates(false);
+                            last_processed_case_uuid = data_case->GetUuid();
+
+                            const std::vector<std::shared_ptr<Case>> cases_received { std::move(data_case) };
+                            repository.SyncCasesFromRemote(cases_received, server_revision);
+
+                            if( m_syncListener != nullptr )
+                            {
+                                m_syncListener->ShowProgressUpdates(true);
+                                m_syncListener->Progress(++cases_so_far);
+                                m_syncListener->ShowProgressUpdates(false);
+
+                                m_syncListener->SetLastCaseSynced(*cases_received.back(), true);
                             }
                         },
-                        [](std::exception_ptr eptr)
+                        [&](std::exception_ptr exception)
                         {
-                            std::rethrow_exception(eptr);
+                            caught_exception = exception;
                         }
                     );
+
+                    if( caught_exception )
+                        RethrowAsSyncError(caught_exception);
                 }
 
-                serverRevision = response.getServerRevision();
-
-                if (response.getResult() == SyncGetResponse::SyncGetResult::Complete)
+                if( response.GetResult() == SyncGetResponse::SyncGetResult::Complete )
                     break;
 
-                // Start next chunk after last uuid received
-                startCaseUuid = lastUuid;
+                // Start next chunk after last UUID received
+                last_case_uuid = std::move(last_processed_case_uuid);
             }
         }
 
         repository.EndSync();
-        m_pServer->getChunk().resetOptimization();
 
-        ISyncableDataRepository::SyncStats stats = repository.GetLastSyncStats();
+        data_chunk.ResetOptimization();
 
+        const ISyncableDataRepository::SyncStats stats = repository.GetLastSyncStats();
 
-        CLOG(INFO, "sync") << "New server revision = " << UTF8Convert::WideToUTF8(serverRevision);
-        CLOG(INFO, "sync") << "Sync GET completed. ";
-        CLOG(INFO, "sync") << "Downloaded " << stats.numReceived << " cases";
-        CLOG(INFO, "sync") << stats.numNewCasesNotInRepo
-            << " new cases, " << stats.numCasesNewerOnRemote << " updated, "
-            << stats.numCasesNewerInRepo << " ignored, " << stats.numConflicts
-            << " conflicts";
+        SYNCLOG_INFO << "New sync service revision = " << server_revision;
+        SYNCLOG_INFO << "Sync GET completed. ";
+        SYNCLOG_INFO << "Downloaded " << stats.cases_received << " cases";
+        SYNCLOG_INFO << stats.cases_not_in_repository << " new cases, "
+                     << stats.cases_newer_on_remote << " updated, "
+                     << stats.cases_newer_in_repository << " ignored, "
+                     << stats.cases_with_conflicts << " conflicts";
     }
-    catch( const DataRepositoryException::Error& exception ) {
-        CLOG(ERROR, "sync") << "Database error during sync GET: " << UTF8Convert::WideToUTF8(exception.GetErrorMessage());
-        throw SyncError(100133, WS2CS(exception.GetErrorMessage()));
+
+    catch( const DataRepositoryException::Error& exception )
+    {
+        SYNCLOG_ERROR << "Database error during sync GET: " << exception.what();
+        throw SyncError(100133, exception);
     }
 }
 
-void SyncClient::syncDataPut(ISyncableDataRepository& repository, CString universe)
+
+void SyncClient::SyncDataPut(ISyncableDataRepository& repository, const std::string& universe)
 {
-    try {
-        CString excludeGetsFromDevice = m_serverDeviceId;
-        SyncHistoryEntry lastSyncRev = getRevisionFromLastSync(SyncDirection::Put, repository, universe);
+    try
+    {
+        DeviceId exclude_gets_from_device_id = GetServerDeviceId();
+        std::optional<SyncHistoryEntry> last_sync_revision = GetRevisionFromLastSync(SyncDirection::Put, repository, universe);
 
-        if (lastSyncRev.valid()) {
-            CLOG(INFO, "sync") << "Last PUT with this server " << PortableFunctions::TimeToString(lastSyncRev.getDateTime()) <<
-                " local rev " << lastSyncRev.getFileRevision() <<
-                " server rev \"" << UTF8Convert::WideToUTF8(lastSyncRev.getServerFileRevision()) << "\"";
-            if (lastSyncRev.isPartialPut())
-                CLOG(INFO, "sync") << "Partial put, resume from case " << UTF8Convert::WideToUTF8(lastSyncRev.getLastCaseUuid());
+        if( last_sync_revision.has_value() )
+        {
+            SYNCLOG_INFO << "Last PUT with this sync service " << DateTime::LocalDateTimeString(last_sync_revision->GetDateTime())
+                         << " local revision " << last_sync_revision->GetFileRevision()
+                         << " sync service revision \"" << last_sync_revision->GetServerFileRevision() << "\"";
+
+            if( last_sync_revision->IsPartialPut() )
+            {
+                SYNCLOG_INFO << "Partial put, resume from case " << last_sync_revision->GetLastCaseUuid();
+
+                // Invalid to try to resume a sync with different params
+                if( last_sync_revision->GetUniverse() != universe )
+                {
+                    SYNCLOG_INFO << "Universe doesn't match universe from partial - doing full sync";
+
+                    repository.ClearBinarySyncHistory(exclude_gets_from_device_id);
+
+                    exclude_gets_from_device_id.clear();
+                    last_sync_revision.reset();
+                }
+            }
         }
-        else {
-            CLOG(INFO, "sync") << "First time PUT with this server";
+
+        else
+        {
+            SYNCLOG_INFO << "First time PUT with this sync service";
         }
 
-        if (lastSyncRev.isPartialPut() && lastSyncRev.getUniverse() != universe) {
-            // Invalid to try to resume a sync with different params
-            CLOG(INFO, "sync") << "Universe doesn't match universe from partial - doing full sync";
-            lastSyncRev = SyncHistoryEntry();
-            excludeGetsFromDevice = CString();
-            repository.ClearBinarySyncHistory(m_serverDeviceId);
+
+        std::string server_revision;
+        int client_revision = -1;
+        std::string last_case_uuid;
+
+        if( last_sync_revision.has_value() )
+        {
+            client_revision = last_sync_revision->GetFileRevision();
+
+            // When uploading multiple chunks we store revisions as a comma separated list
+            // so we need to grab the last one to get the most recent sync put revision
+            if( !last_sync_revision->GetServerFileRevision().empty() )
+                server_revision = SO::SplitString(last_sync_revision->GetServerFileRevision(), ',').back();
+
+            if( last_sync_revision->IsPartialPut() )
+                last_case_uuid = last_sync_revision->GetLastCaseUuid();
         }
 
-        int nCaseCount = 0;
-        int nMaxClientRev = 0;
-        int nCasesSent = 0;
+        IDataChunk& data_chunk = m_syncService->GetChunk();
+        data_chunk.EnableOptimization();
 
-        int clientRevision = lastSyncRev.getFileRevision();
+        size_t case_count = 0;
+        int max_client_revision = 0;
+        std::unique_ptr<CaseIterator> case_iterator = repository.GetCasesModifiedSinceRevisionIterator(client_revision, last_case_uuid, universe, data_chunk.GetCaseSize(),
+                                                                                                       &case_count, &max_client_revision, exclude_gets_from_device_id);
 
-        // When uploading multiple chunks we store revs as comma separate list
-        // so we need to grab the last one to get the most recent sync put rev
-        CString serverRevision = lastSyncRev.getServerFileRevision().IsEmpty() ?
-            CString() :
-            CString(SO::SplitString<wstring_view>(lastSyncRev.getServerFileRevision(), ',').back());
+        SYNCLOG_INFO << "Total new/modified cases since last sync: " << case_count;
 
-        CString lastUuid = lastSyncRev.isPartialPut() ? lastSyncRev.getLastCaseUuid() : CString();
-        CString allReturnedRevisions;
+        if( m_syncListener != nullptr )
+            m_syncListener->SetProgressTotal(case_count);
+
+        repository.StartSync(GetServerDeviceId(), m_connectResponse->GetServerName(), m_connectResponse->GetUsername(),
+                             SyncDirection::Put, universe, UseRemoteCaseOnConflict);
+
+        const std::unique_ptr<SyncBinaryDataUploadManager> sync_binary_data_upload_manager =
+            ( repository.GetCaseAccess().GetCaseMetadata().UsesBinaryData() ) ? std::make_unique<SyncableDataRepositorySyncBinaryDataUploadManager>(repository, GetServerDeviceId()) :
+                                                                                nullptr;
 
         std::vector<std::shared_ptr<Case>> cases_pool;
+        size_t cases_sent = 0;
+        std::string all_returned_revisions;
 
-        std::shared_ptr<CaseIterator> case_iterator = repository.GetCasesModifiedSinceRevisionIterator(clientRevision,
-            lastUuid, universe, m_pServer->getChunk().getSize(), &nCaseCount, &nMaxClientRev, excludeGetsFromDevice);
+        while( true )
+        {
+            // read the cases in this chunk, keeping track of the binary data size
+            size_t num_cases_in_chunk = 0;
 
-        CLOG(INFO, "sync") << "Total new/modified cases since last sync: " << nCaseCount;
-        if (m_pListener) {
-            m_pListener->setProgressTotal(nCaseCount);
-        }
-        m_pServer->getChunk().enableOptimization();
-        repository.StartSync(m_serverDeviceId, m_serverDeviceName, m_userName, SyncDirection::Put, universe, bUpdateOnConflict);
+            if( sync_binary_data_upload_manager != nullptr )
+                sync_binary_data_upload_manager->ResetForNextChunk();
 
-        bool bDoneProcessing = false;
-        while (true) {
-            // read the cases in this chunk
-            std::vector<std::shared_ptr<Case>> cases_in_chunk;
-            //loop through each case and keep a running count of the binary items length. If it it exceeds a preset value
-            //send the cases accumulated so far before processing the remaining cases in the chunk
-            while( true ) {
-                size_t cases_in_chunk_index = cases_in_chunk.size();
+            while( true )
+            {
+                Case& this_case = ( num_cases_in_chunk < cases_pool.size() ) ? *cases_pool[num_cases_in_chunk] :
+                                                                               *cases_pool.emplace_back(repository.GetCaseAccess().CreateCase());
 
-                if( cases_in_chunk_index >= cases_pool.size() )
-                    cases_pool.emplace_back(repository.GetCaseAccess()->CreateCase());
-
-                if( case_iterator->NextCase(*cases_pool[cases_in_chunk_index]) )
-                    cases_in_chunk.emplace_back(cases_pool[cases_in_chunk_index]);
-
-                else
+                if( !case_iterator->NextCase(this_case) )
                     break;
+
+                ++num_cases_in_chunk;
+
+                if( sync_binary_data_upload_manager != nullptr )
+                {
+                    sync_binary_data_upload_manager->AnalyzeCaseBinaryData(this_case);
+
+                    if( sync_binary_data_upload_manager->GetBinaryDataSizeOfChunk() > data_chunk.GetBinaryContentSize() )
+                    {
+                        SYNCLOG_INFO << "Binary items in the chunk exceeded (" << sync_binary_data_upload_manager->GetBinaryDataSizeOfChunk()
+                                     << ") << the set limit of chunk size (" << data_chunk.GetBinaryContentSize()
+                                     << "). Sending a subchunk of cases: " << num_cases_in_chunk << " cases";
+                        break;
+                    }
+                }
             }
 
-            if (m_pListener)
-                m_pListener->showProgressUpdates(false); // we will update progress based on cases, so disable default progress
+            // we will update progress based on cases, so disable default progress
+            if( m_syncListener != nullptr )
+                m_syncListener->ShowProgressUpdates(false);
 
-            bool first_chunk = nCasesSent == 0;
-            int  caseIndexInChunk = 0;
-            if (bDoneProcessing)
-                break;
-            while (caseIndexInChunk < cases_in_chunk.size() || nCasesSent == 0) {
-                std::vector<std::shared_ptr<Case>> cases_in_sub_chunk;
-                std::vector<std::pair<const BinaryCaseItem*, CaseItemIndex>> binary_case_items_in_chunk;
-                std::set<std::string> excludeKeys;
-                uint64_t totalBinaryItemsByteSize = 0;
-                //process a subset of the chunk when the totalBinaryItemsByteSize exceeds a set limit
-                while(caseIndexInChunk < cases_in_chunk.size()) {
-                    const auto& currentCase = cases_in_chunk[caseIndexInChunk];
-                    cases_in_sub_chunk.push_back(currentCase);
-                    //always send the server device as we are using this to exclude binary items for puts.  The exclude gets is used for cases to avoid sending
-                    //cases that we get from the server. When a revision on the server is not found this is set to blank to resend items that were previously received from this server.
-                    //however, binary items do this differently as the binary content can be common between cases. In this case clearBinarySyncHistory removes the information
-                    //about binary items for gets and puts from/to the server and they are resent again.
-                    repository.GetBinaryCaseItemsModifiedSinceRevision(currentCase.get(), binary_case_items_in_chunk, excludeKeys, totalBinaryItemsByteSize, m_serverDeviceId);
-                    caseIndexInChunk++;
-                    if (totalBinaryItemsByteSize > m_pServer->getChunk().getBinaryContentSize()) {
-                        CLOG(INFO, "sync") << "Binary items in the chunk exceeded the set limit of chunk size. Sending a subchunk of cases: " << cases_in_sub_chunk.size() << " cases";
-                        break;
-                    }
+            const std::vector<Case*> cases_in_chunk = SpanHelpers::CreatePointersSpan(cases_pool, num_cases_in_chunk);
+
+            const SyncPutResponse response = m_syncService->PutCases(repository.GetSharedCaseAccess(),
+                                                                     cases_in_chunk, sync_binary_data_upload_manager.get(),
+                                                                     m_deviceId, universe, server_revision);
+
+            if( response.GetResult() == SyncPutResponse::SyncPutResult::RevisionNotFound )
+            {
+                SYNCLOG_INFO << "Previous revision not found, doing full sync";
+
+                // Server revision history is out of sync with local revision history. Fallback to doing a full sync instead
+                // of changes since last sync.
+                client_revision = 0;
+                server_revision.clear();
+                exclude_gets_from_device_id.clear();
+                last_case_uuid.clear();
+
+                // clear the binary sync to this device
+                repository.ClearBinarySyncHistory(GetServerDeviceId());
+
+                // Get next chunk of cases
+                case_iterator = repository.GetCasesModifiedSinceRevisionIterator(client_revision, last_case_uuid, universe, data_chunk.GetCaseSize(),
+                                                                                 &case_count, &max_client_revision, exclude_gets_from_device_id);
+
+                if( m_syncListener != nullptr )
+                    m_syncListener->SetProgressTotal(case_count);
+            }
+
+            else
+            {
+                cases_sent += num_cases_in_chunk;
+                SYNCLOG_INFO << "Uploaded chunk of " << num_cases_in_chunk << " cases";
+
+                if( m_syncListener != nullptr )
+                {
+                    m_syncListener->ShowProgressUpdates(true);
+                    m_syncListener->Progress(cases_sent);
+
+                    if( !cases_pool.empty() )
+                        m_syncListener->SetLastCaseSynced(*cases_pool.back(), false);
                 }
-                SyncRequest request(*repository.GetCaseAccess(), m_deviceId, universe, cases_in_sub_chunk, binary_case_items_in_chunk, serverRevision, first_chunk);
-                SyncPutResponse response = m_pServer->putData(request);
-                if (response.getResult() == SyncPutResponse::SyncPutResult::RevisionNotFound) {
 
-                    CLOG(INFO, "sync") << "Previous revision not found, doing full sync";
+                // Since a single sync on client can correspond to multiple server revisions we store
+                // a comma separated list of server revisions in database
+                server_revision = response.GetServerRevision();
+                SO::AppendWithSeparator(all_returned_revisions, server_revision, ",");
 
-                    // Server revision history is out of sync with local revision history. Fallback to doing a full sync instead
-                    // of changes since last sync.
-                    clientRevision = 0;
-                    serverRevision = CString();
-                    excludeGetsFromDevice = CString();
-                    lastUuid = CString();
+                repository.MarkCasesSentToRemote(cases_in_chunk, sync_binary_data_upload_manager.get(), all_returned_revisions, max_client_revision);
 
-                    //clear the binary sync to this device
-                    repository.ClearBinarySyncHistory(m_serverDeviceId);
-                    // Get next chunk of cases
-                    case_iterator = repository.GetCasesModifiedSinceRevisionIterator(clientRevision,
-                        lastUuid, universe, m_pServer->getChunk().getSize(), &nCaseCount, &nMaxClientRev, excludeGetsFromDevice);
+                // break when all cases have been sent
+                if( cases_sent >= case_count )
+                    break;
 
-                    if (m_pListener) {
-                        m_pListener->setProgressTotal(nCaseCount);
-                    }
-                    break; //process the cases in the case_iterator for a full sync 
-                }
-                else {
-                    nCasesSent += cases_in_sub_chunk.size();
-                    CLOG(INFO, "sync") << "Uploaded chunk of " << cases_in_sub_chunk.size() << " cases";
-                    if (m_pListener) {
-                        m_pListener->showProgressUpdates(true);
-                        m_pListener->onProgress(nCasesSent);
-                    }
+                last_case_uuid = cases_in_chunk.back()->GetUuid();
+                client_revision = max_client_revision;
 
-                    // Since a single sync on client can correspond to multiple server revisions we store
-                    // a comma separated list of server revisions in database
-                    serverRevision = response.getServerRevision();
-                    allReturnedRevisions += (allReturnedRevisions.IsEmpty() ? L"" : L",") + serverRevision;
-
-                    //get the max revision at this subchunk size
-                    int nSubchunkMaxClientRev = nMaxClientRev;
-                    if (caseIndexInChunk < cases_in_chunk.size()) {
-                        repository.GetCasesModifiedSinceRevisionIterator(clientRevision,
-                            lastUuid, universe, caseIndexInChunk, NULL, &nSubchunkMaxClientRev, excludeGetsFromDevice);
-                    }
-                    repository.MarkCasesSentToRemote(cases_in_sub_chunk, binary_case_items_in_chunk, allReturnedRevisions, nSubchunkMaxClientRev);
-                    if (nCasesSent >= nCaseCount) {
-                        // No more cases, all done
-                        bDoneProcessing = true;
-                        break;
-                    }
-                    if (caseIndexInChunk < cases_in_chunk.size()) {
-                        CLOG(INFO, "sync") << "Total subchunk of cases sent so far: " << caseIndexInChunk << " of " << cases_in_chunk.size() << " cases";
-                        continue;
-                    }
-
-                    ASSERT(cases_in_sub_chunk.size() > 0);
-                    lastUuid = cases_in_sub_chunk.back()->GetUuid();
-                    clientRevision = nMaxClientRev;
-
-                    // Get next chunk of cases
-                    case_iterator = repository.GetCasesModifiedSinceRevisionIterator(clientRevision,
-                        lastUuid, universe, m_pServer->getChunk().getSize(), NULL, &nMaxClientRev, excludeGetsFromDevice);
-                }
+                // Get next chunk of cases
+                case_iterator = repository.GetCasesModifiedSinceRevisionIterator(client_revision, last_case_uuid, universe, data_chunk.GetCaseSize(),
+                                                                                 nullptr, &max_client_revision, exclude_gets_from_device_id);
             }
         }
 
         repository.EndSync();
-        m_pServer->getChunk().resetOptimization();
 
-        ISyncableDataRepository::SyncStats stats = repository.GetLastSyncStats();
-        CLOG(INFO, "sync") << "New server revision = " << UTF8Convert::WideToUTF8(serverRevision);
-        CLOG(INFO, "sync") << "Sync PUT completed. ";
-        CLOG(INFO, "sync") << "Uploaded " << stats.numSent << " cases";
-    }
-    catch( const DataRepositoryException::Error& exception ) {
-        CLOG(ERROR, "sync") << "Database error during sync PUT: " << UTF8Convert::WideToUTF8(exception.GetErrorMessage());
-        throw SyncError(100133, WS2CS(exception.GetErrorMessage()));
-    }
-}
+        data_chunk.ResetOptimization();
 
-SyncClient::SyncResult SyncClient::syncFile(SyncDirection direction, CString pathFrom, CString pathTo, CString clientFileRoot)
-{
-    CLOG(INFO, "sync") << "Sync file: " << directionToString(direction) << " from: " <<
-        UTF8Convert::WideToUTF8(pathFrom) << " to: " << UTF8Convert::WideToUTF8(pathTo) <<
-        " root: " << UTF8Convert::WideToUTF8(clientFileRoot);
+        const ISyncableDataRepository::SyncStats stats = repository.GetLastSyncStats();
 
-    if (direction == SyncDirection::Get) {
-        pathFrom = PortableFunctions::PathToForwardSlash(pathFrom);
-        pathTo = PortableFunctions::PathToNativeSlash(pathTo);
-        clientFileRoot = PortableFunctions::PathToNativeSlash(clientFileRoot);
-        pathTo = makeClientPathAbsolute(pathTo, clientFileRoot);
-        pathTo = PathCanonical(pathTo);
+        SYNCLOG_INFO << "New sync service revision = " << server_revision;
+        SYNCLOG_INFO << "Sync PUT completed. ";
+        SYNCLOG_INFO << "Uploaded " << stats.cases_sent << " cases";
+    }
 
-        if (containsWildcard(pathFrom)) {
-            return getFilesWithWildcard(pathFrom, pathTo);
-        }
-        else {
-            return getFile(pathFrom, pathTo);
-        }
-    }
-    else if (direction == SyncDirection::Put) {
-        pathFrom = PortableFunctions::PathToNativeSlash(pathFrom);
-        clientFileRoot = PortableFunctions::PathToNativeSlash(clientFileRoot);
-        pathFrom = makeClientPathAbsolute(pathFrom, clientFileRoot);
-        pathTo = PortableFunctions::PathToForwardSlash(pathTo);
-        if (containsWildcard(pathFrom)) {
-            return putFilesWithWildcard(pathFrom, pathTo, clientFileRoot);
-        } else {
-            return putFile(pathFrom, pathTo, clientFileRoot);
-        }
-    }
-    else {
-        return SyncResult::SYNC_ERROR;
+    catch( const DataRepositoryException::Error& exception )
+    {
+        SYNCLOG_ERROR << "Database error during sync PUT: " << exception.what();
+        throw SyncError(100133, exception);
     }
 }
 
-SyncClient::SyncResult SyncClient::getDictionaries(std::vector<DictionaryInfo>& dictionaries)
-{
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
 
-        if (m_pServer == nullptr)
+SyncClient::SyncResult SyncClient::SyncFile(const SyncDirection direction, std::string from_path, std::string to_path)
+{
+    if( direction == SyncDirection::Get )
+    {
+        ASSERT(!to_path.empty() && to_path == PortableFunctions::PathToNativeSlash(to_path));
+
+        PortableFunctions::MakePathToForwardSlash(from_path);
+    }
+
+    else
+    {
+        ASSERT(direction == SyncDirection::Put);
+        ASSERT(!from_path.empty() && from_path == PortableFunctions::PathToNativeSlash(from_path));
+
+        PortableFunctions::MakePathToForwardSlash(to_path);
+
+        if( to_path.empty() )
+            to_path = "/";
+    }
+
+    SYNCLOG_INFO << "Sync file: " << ToString(direction)
+                 << " from: " << from_path
+                 << " to: " << to_path;
+
+    const bool from_path_has_wildcard_characters = Path::HasWildcardCharacters(PortableFunctions::PathGetFilename(from_path));
+
+    if( direction == SyncDirection::Get )
+    {
+        return from_path_has_wildcard_characters ? GetFilesWithWildcard(from_path, to_path) :
+                                                   GetFile(from_path, to_path);
+    }
+
+    else
+    {
+        return from_path_has_wildcard_characters ? PutFilesWithWildcard(from_path, to_path) :
+                                                   PutFile(from_path, to_path);
+
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::GetDictionaries(std::vector<SyncDictionaryInfo>& dictionaries)
+{
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
 
-        m_pServer->setListener(m_pListener);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100128);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100128);
+        SYNCLOG_INFO << "Downloading dictionary list";
+        dictionaries = m_syncService->GetDictionaries();
 
-        CLOG(INFO, "sync") << "Downloading dictionary list";
-        dictionaries = m_pServer->getDictionaries();
-
-        CLOG(INFO, "sync") << "Downloading dictionary list complete";
+        SYNCLOG_INFO << "Downloading dictionary list complete";
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading dictionaries: " << e.what();
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading dictionaries: " << exception.what();
         return SyncResult::SYNC_ERROR;
     }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Dictionary list download canceled";
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Dictionary list download canceled";
         return SyncResult::SYNC_CANCELED;
     }
 }
 
-SyncClient::SyncResult SyncClient::downloadDictionary(CString dictionaryName, CString& dictionaryText)
+
+SyncClient::SyncResult SyncClient::DownloadDictionary(const std::string& dictionary_name, std::string& dictionary_text)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100107, (LPCTSTR) dictionaryName);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100107, dictionary_name.c_str());
 
-        CLOG(INFO, "sync") << "Downloading dictionary file: " << UTF8Convert::WideToUTF8(dictionaryName);
-        dictionaryText = m_pServer->getDictionary(dictionaryName);
+        SYNCLOG_INFO << "Downloading dictionary file: " << dictionary_name;
+        dictionary_text = m_syncService->GetDictionary(dictionary_name);
 
-        CLOG(INFO, "sync") << "Downloading dictionary file complete";
+        SYNCLOG_INFO << "Downloading dictionary file complete";
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading dictionary: " << e.what();
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading dictionary: " << exception.what();
         return SyncResult::SYNC_ERROR;
     }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Dictionary download canceled";
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Dictionary download canceled";
         return SyncResult::SYNC_CANCELED;
     }
 }
 
-SyncClient::SyncResult SyncClient::uploadDictionary(CString dictPath)
+
+void SyncClient::UploadDictionaryWorker(const std::string& dictionary_file_path)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
+    ASSERT(m_syncService != nullptr);
+
+    SYNCLOG_INFO << "Uploading dictionary file: " << dictionary_file_path;
+
+    try
+    {
+        CDataDict dictionary;
+        dictionary.Open(dictionary_file_path, true);
+        m_syncService->PutDictionary(dictionary);
+    }
+
+    catch( const CSProException& exception )
+    {
+        SYNCLOG_ERROR << "Error uploading dictionary: " << exception.what();
+        throw SyncError(100143, exception);
+    }
+
+    SYNCLOG_INFO << "Upload dictionary completed";
+}
+
+
+SyncClient::SyncResult SyncClient::UploadDictionary(const std::string& dictionary_file_path)
+{
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100108, (LPCTSTR) PortableFunctions::PathGetFilename(dictPath));
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener,
+                                                                              100108, Path::GetFilename(dictionary_file_path).c_str());
 
-        CLOG(INFO, "sync") << "Uploading dictionary file: " << UTF8Convert::WideToUTF8(dictPath);
-        m_pServer->putDictionary(dictPath);
+        UploadDictionaryWorker(dictionary_file_path);
 
-        CLOG(INFO, "sync") << "Upload dictionary completed";
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError & e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error uploading dictionary: " << e.what();
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
         return SyncResult::SYNC_ERROR;
     }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Dictionary upload canceled";
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Dictionary upload canceled";
         return SyncResult::SYNC_CANCELED;
     }
 }
 
-SyncHistoryEntry SyncClient::getRevisionFromLastSync(SyncDirection direction, ISyncableDataRepository& repository, CString universe)
-{
-    SyncHistoryEntry lastSyncRev = repository.GetLastSyncForDevice(m_serverDeviceId, direction);
 
-    if (lastSyncRev.valid()) {
-        // only use the previous revision number if the universe stayed the same or became more restrictive
-        if (universe.Find(lastSyncRev.getUniverse()) != 0)
-            return SyncHistoryEntry();
-    }
-    return lastSyncRev;
+std::optional<SyncHistoryEntry> SyncClient::GetRevisionFromLastSync(const SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe) const
+{
+    std::optional<SyncHistoryEntry> last_sync_revision = repository.GetLastSyncForDevice(GetServerDeviceId(), direction);
+
+    // only use the previous revision number if the universe stayed the same or became more restrictive
+    if( last_sync_revision.has_value() && !SO::StartsWith(universe, last_sync_revision->GetUniverse()) )
+        last_sync_revision.reset();
+
+    return last_sync_revision;
 }
 
-SyncClient::SyncResult SyncClient::getFilesWithWildcard(CString pathFrom, CString pathTo)
+
+std::vector<std::string> SyncClient::GetPutRevisionsSince(const DeviceId& device_id, ISyncableDataRepository& repository, const int start_serial_number)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
+    std::vector<std::string> revisions;
+
+    for( const SyncHistoryEntry& sync_history_entry : repository.GetSyncHistory(device_id, SyncDirection::Put, start_serial_number) )
+    {
+        if( !sync_history_entry.GetServerFileRevision().empty() )
+            revisions.emplace_back(sync_history_entry.GetServerFileRevision());
+    }
+
+    return revisions;
+}
+
+
+SyncClient::SyncResult SyncClient::GetFilesWithWildcard(const std::string& from_path, const std::string& to_path)
+{
+    ASSERT(!to_path.empty());
+
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100107, (LPCTSTR)pathFrom);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100107, from_path.c_str());
 
-        CLOG(INFO, "sync") << "Get files from: " << UTF8Convert::WideToUTF8(pathFrom) << " to: " << UTF8Convert::WideToUTF8(pathTo);
+        SYNCLOG_INFO << "Get files from: " << from_path << " to: " << to_path;
 
         // Get the directory listing
-        CString fromDirectory = PortableFunctions::PathGetDirectory<CString>(pathFrom);
+        std::string from_directory = PortableFunctions::PathGetDirectory(from_path);
 
         // If directory is empty send root directory since sending an empty string
         // gives us the server info.
-        if (fromDirectory.IsEmpty())
-            fromDirectory = _T("/");
+        if( from_directory.empty() )
+            from_directory = "/";
 
-        std::unique_ptr<std::vector<FileInfo> > files(m_pServer->getDirectoryListing(fromDirectory));
+        const std::vector<FileInfo> directory_listing = m_syncService->GetDirectoryListing(from_directory, true);
 
         // Download each file in the directory that matches the pattern
-        CString fileSpec = PortableFunctions::PathGetFilename(pathFrom);
-        FileSpecRegex regEx;
-        try {
-            regEx = CreateRegexFromFileSpec(fileSpec);
-        }
-        catch (const std::regex_error&) {
-            CLOG(INFO, "sync") << "Syncfile has an invalid wildcard specification";
-            throw SyncError(100113, fileSpec);
-        }
+        const std::regex from_regex(CreateRegularExpressionFromFileSpec(PortableFunctions::PathGetFilename(from_path)));
 
-        for (std::vector<FileInfo>::const_iterator i = files->begin(); i != files->end(); ++i) {
-            bool process = ( i->getType() == FileInfo::FileType::File ) &&
-#ifdef WIN32
-                           std::regex_match((LPCTSTR)i->getName(), regEx);
-#else
-                           std::regex_match(UTF8Convert::WideToUTF8(i->getName()), regEx);
-#endif
-            if (process) {
-                CString pathToFile = addFilenameToPathTo(i->getDirectory() + i->getName(), pathTo, PATH_CHAR);
+        for( const FileInfo& file_info : directory_listing )
+        {
+            if( file_info.GetType() == FileInfo::FileType::File &&
+                std::regex_match(file_info.GetName(), from_regex) )
+            {
+                const std::string evaluated_to_path = Path::Combine(to_path, file_info.GetName());
+                const std::string existing_file_md5 = PortableFunctions::FileMd5(evaluated_to_path);
 
-                std::wstring md5 = PortableFunctions::FileMd5(pathToFile);
-                if (md5.empty() || !SO::EqualsNoCase(md5, i->getMd5())) {
-                    CLOG(INFO, "sync") << "Downloading file " << UTF8Convert::WideToUTF8(i->getName());
-                    downloadOneFile(i->getDirectory() + i->getName(), pathToFile, WS2CS(md5));
-                } else {
-                    CLOG(INFO, "sync") << "Skipping file " << UTF8Convert::WideToUTF8(i->getName()) << " version on server matches local version";
+                if( existing_file_md5.empty() || !SO::EqualsNoCase(existing_file_md5, file_info.GetMd5()) )
+                {
+                    SYNCLOG_INFO << "Downloading file " << file_info.GetName();
+                    DownloadOneFile(file_info.GetDirectory() + file_info.GetName(), evaluated_to_path, existing_file_md5);
+                }
+
+                else
+                {
+                    SYNCLOG_INFO << "Skipping file " << file_info.GetName() << " version on sync service matches local version";
                 }
             }
         }
 
-        CLOG(INFO, "sync") << "Sync file completed";
+        SYNCLOG_INFO << "Sync file completed";
 
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading files: " << e.what();
+
+    catch( const std::regex_error& )
+    {
+        SYNCLOG_INFO << "Syncfile has an invalid wildcard specification";
+        throw SyncError(100113, PortableFunctions::PathGetFilename(from_path));
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading files: " << exception.what();
         return SyncResult::SYNC_ERROR;
     }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "File download canceled";
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "File download canceled";
         return SyncResult::SYNC_CANCELED;
     }
 }
 
-SyncClient::SyncResult SyncClient::getFile(CString pathFrom, CString pathTo)
+
+SyncClient::SyncResult SyncClient::GetFile(const std::string& from_path, cs::cref_optional<std::string> to_path)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
+    ASSERT(to_path.has_value() && !to_path->empty());
+
+    try
+    {
+        if( m_syncService == nullptr )
             throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100107, (LPCTSTR) pathFrom);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100107, from_path.c_str());
 
-        CString pathToFile = addFilenameToPathTo(pathFrom, pathTo, PATH_CHAR);
-        std::wstring md5 = PortableFunctions::FileMd5(pathToFile);
-        CLOG(INFO, "sync") << "Downloading file: " << UTF8Convert::WideToUTF8(pathFrom) << " to: " << UTF8Convert::WideToUTF8(pathToFile);
-        downloadOneFile(pathFrom, pathToFile, WS2CS(md5));
+        // if the to path is a directory, add the filename
+        if( Path::IsSlashChar(to_path->back()) || PortableFunctions::FileIsDirectory(*to_path) )
+            to_path = Path::Combine(*to_path, PortableFunctions::PathGetFilename(from_path));
 
-        CLOG(INFO, "sync") << "Sync file completed";
+        ASSERT(*to_path == PortableFunctions::PathToNativeSlash(*to_path));
+
+        const std::string existing_file_md5 = PortableFunctions::FileMd5(*to_path);
+
+        SYNCLOG_INFO << "Downloading file: " << from_path << " to: " << *to_path;
+
+        DownloadOneFile(from_path, *to_path, existing_file_md5);
+
+        SYNCLOG_INFO << "Sync file completed";
         return SyncResult::SYNC_OK;
     }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading file: " << e.what();
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading file: " << exception.what();
         return SyncResult::SYNC_ERROR;
     }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "File download canceled";
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "File download canceled";
         return SyncResult::SYNC_CANCELED;
     }
 }
 
-void SyncClient::downloadOneFile(CString pathFrom, CString pathTo, CString md5)
+
+void SyncClient::DownloadOneFile(const std::string& from_path, const std::string& to_path, const std::string& existing_file_md5)
 {
-    if (m_pListener)
-        m_pListener->onProgress(0, 100107, (LPCTSTR) PortableFunctions::PathGetFilename(pathTo));
+    if( m_syncListener != nullptr )
+        m_syncListener->Progress(0, 100107, PortableFunctions::PathGetFilename(to_path).c_str());
 
     // Store the downloaded file in a temporary file first so we don't
     // corrupt the original if the download fails. Put the temp file
@@ -1045,449 +1116,442 @@ void SyncClient::downloadOneFile(CString pathFrom, CString pathTo, CString md5)
     // on different mount points and there is gaurantee that system
     // temp is on same mount point as dest file.
 
-    CString toDir = PortableFunctions::PathGetDirectory<CString>(pathTo);
+    const std::string to_directory = PortableFunctions::PathGetDirectory(to_path);
 
     // Make sure that the directory we are saving the file to exists
-    PortableFunctions::PathMakeDirectories(toDir);
+    PortableFunctions::PathMakeDirectories(to_directory);
 
-    TemporaryFile temp(toDir);
+    TemporaryFile temporary_file(to_directory);
 
-    if (m_pServer->getFile(pathFrom, WS2CS(temp.GetPath()), pathTo, md5)) {
+    if( m_syncService->GetFile(from_path, temporary_file.GetPath(), existing_file_md5) )
+    {
         // Delete the existing file first, otherwise rename will fail
-        PortableFunctions::FileDelete(pathTo);
+        PortableFunctions::FileDelete(to_path);
 
         // Move the temp file to correct location
-        if (!temp.Rename(CS2WS(pathTo)))
-            throw SyncError(100109, pathTo);
+        if( !temporary_file.Rename_noexcept(to_path) )
+            throw SyncError(100109, to_path);
     }
 }
 
-SyncClient::SyncResult SyncClient::putFilesWithWildcard(CString pathFrom, CString pathTo, CString clientFileRoot)
+
+SyncClient::SyncResult SyncClient::PutFilesWithWildcard(const std::string& from_path, cs::cref_optional<std::string> to_path)
 {
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
+    ASSERT(to_path.has_value() && !to_path->empty() && *to_path == PortableFunctions::PathToForwardSlash(*to_path));
 
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100108, (LPCTSTR)pathFrom);
-
-
-        CLOG(INFO, "sync") << "Put files from: " << UTF8Convert::WideToUTF8(pathFrom) << " to: " << UTF8Convert::WideToUTF8(pathTo);
-
-        if (!PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(pathFrom)))
-            throw SyncError(100113, pathFrom);
-
-        // Make sure that destination path ends in "/" so that it gets treated as a directory and not a file
-        pathTo = PortableFunctions::PathEnsureTrailingForwardSlash(pathTo);
-
-        for (const std::wstring& filename : DirectoryLister::GetFilenamesWithPossibleWildcard(pathFrom, true)) {
-            uploadOneFile(WS2CS(filename), pathTo);
-        }
-        CLOG(INFO, "sync") << "File upload completed";
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error uploading files: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "File upload canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-}
-
-SyncClient::SyncResult SyncClient::putFile(CString pathFrom, CString pathTo, CString clientFileRoot)
-{
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
-
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100108, (LPCTSTR)pathFrom);
-
-        uploadOneFile(pathFrom, pathTo);
-
-        CLOG(INFO, "sync") << "File upload completed";
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error uploading file: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "File upload canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-}
-
-void SyncClient::uploadOneFile(CString pathFrom, CString pathTo)
-{
-    if (m_pListener)
-        m_pListener->onProgress(0, 100108, (LPCTSTR) PortableFunctions::PathGetFilename(pathFrom));
-
-    if (!PortableFunctions::FileExists(pathFrom))
-        throw SyncError(100118, pathFrom);
-
-    pathTo = addFilenameToPathTo(pathFrom, pathTo, '/');
-
-    CLOG(INFO, "sync") << "Uploading file: " << UTF8Convert::WideToUTF8(pathFrom) << " to: " << UTF8Convert::WideToUTF8(pathTo);
-
-    // Send request to server
-    m_pServer->putFile(pathFrom, pathTo);
-}
-
-void SyncClient::downloadAndInstallPackage(const CString& packageName, const std::optional<ApplicationPackage>& currentPackage, const CString& currentPackageSignature)
-{
-#ifndef WIN_DESKTOP
-    TemporaryFile tmp_zip;
-
-    if (!m_pServer->downloadApplicationPackage(packageName, WS2CS(tmp_zip.GetPath()), currentPackage, currentPackageSignature)) {
-        CLOG(INFO, "sync") << "Application package " << UTF8Convert::WideToUTF8(packageName) << "already up to date ";
-        return;
-    }
-
-    ApplicationPackageManager::installApplication(packageName, WS2CS(tmp_zip.GetPath()), currentPackage);
-
-#else
-    UNREFERENCED_PARAMETER(packageName);
-    UNREFERENCED_PARAMETER(currentPackage);
-    UNREFERENCED_PARAMETER(currentPackageSignature);
-#endif
-}
-
-SyncClient::SyncResult SyncClient::deleteDictionary(CString dictName)
-{
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
-
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100123, (LPCTSTR) dictName);
-
-        CLOG(INFO, "sync") << "Deleting dictionary  " << UTF8Convert::WideToUTF8(dictName);
-        m_pServer->deleteDictionary(dictName);
-
-        CLOG(INFO, "sync") << "Delete dictionary completed";
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error deleting dictionary: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Dictionary delete canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-}
-
-SyncClient::SyncResult SyncClient::listApplicationPackages(std::vector<ApplicationPackage>& packages)
-{
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-
-        m_pServer->setListener(m_pListener);
-
-        if (m_pListener)
-            m_pListener->onStart(100136);
-
-        CLOG(INFO, "sync") << "Downloading application deployment package list";
-        packages = m_pServer->listApplicationPackages();
-        CLOG(INFO, "sync") << "Found " << packages.size() << " application packages";
-
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading package list: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Package listing canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-}
-
-SyncClient::SyncResult SyncClient::downloadApplicationPackage(const CString& packageName, bool forceFullInstall)
-{
-#ifndef WIN_DESKTOP
-
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-
-        m_pServer->setListener(m_pListener);
-
-        CLOG(INFO, "sync") << "Downloading package " << UTF8Convert::WideToUTF8(packageName);
-
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100107, (LPCTSTR)packageName);
-
-        if (forceFullInstall) {
-            downloadAndInstallPackage(packageName, {}, CString());
-        } else {
-            auto current_package = ApplicationPackageManager::getInstalledApplicationPackageWithSignature(packageName);
-            if (current_package)
-                downloadAndInstallPackage(packageName, current_package->package, current_package->signature);
-            else
-                downloadAndInstallPackage(packageName, {}, CString());
-        }
-
-        CLOG(INFO, "sync") << "Package download completed";
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading package: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Package download canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-
-#else
-    UNREFERENCED_PARAMETER(packageName);
-    UNREFERENCED_PARAMETER(forceFullInstall);
-
-    return SyncResult::SYNC_ERROR;
-#endif
-}
-
-SyncClient::SyncResult SyncClient::uploadApplicationPackage(CString localPath, CString packageName, CString packageSpecJson)
-{
-    try {
-        SyncListenerCloser listenerCloser(m_pListener);
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-        m_pServer->setListener(m_pListener);
-
-        CLOG(INFO, "sync") << "Uploading package " << UTF8Convert::WideToUTF8(packageName);
-
-        // Syncing ...
-        if (m_pListener)
-            m_pListener->onStart(100108, (LPCTSTR)packageName);
-
-        m_pServer->uploadApplicationPackage(localPath, packageName, packageSpecJson);
-
-        CLOG(INFO, "sync") << "Package upload completed";
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error uploading package: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Package upload canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-}
-
-SyncClient::SyncResult SyncClient::updateApplication(const CString& applicationPath)
-{
-#ifndef WIN_DESKTOP
-    try {
-        auto current_package = ApplicationPackageManager::getApplicationPackageWithSignatureFromAppDirectory(applicationPath);
-        if (!current_package) {
-            CLOG(ERROR, "sync")
-                    << "No installed package found when trying to update application package from "
-                    << UTF8Convert::WideToUTF8(applicationPath);
-            throw SyncError(100151);
-        }
-
-        const CString packageName = current_package->package.getName();
-
-        SyncListenerCloser listenerCloser(m_pListener);
-
-        if (m_pServer == nullptr)
-            throw SyncError(100132);
-
-        m_pServer->setListener(m_pListener);
-
-        if (m_pListener)
-            m_pListener->onStart(100107, (LPCTSTR)packageName);
-
-        CLOG(INFO, "sync") << "Checking for updates for package " << UTF8Convert::WideToUTF8(packageName);
-
-        // Download and install the new package
-        downloadAndInstallPackage(packageName, current_package->package, current_package->signature);
-
-        CLOG(INFO, "sync") << "Done checking for updates for package " << UTF8Convert::WideToUTF8(packageName);
-
-        return SyncResult::SYNC_OK;
-    }
-    catch (const SyncError& e) {
-        if (m_pListener)
-            m_pListener->onError(e.m_errorCode, e.GetErrorMessage().c_str());
-        CLOG(ERROR, "sync") << "Error downloading package list: " << e.what();
-        return SyncResult::SYNC_ERROR;
-    }
-    catch (const SyncCancelException&) {
-        CLOG(INFO, "sync") << "Package listing canceled";
-        return SyncResult::SYNC_CANCELED;
-    }
-#else
-    UNREFERENCED_PARAMETER(applicationPath);
-
-    return SyncResult::SYNC_ERROR;
-#endif
-}
-
-std::vector<ApplicationPackage> SyncClient::listInstalledApplicationPackages()
-{
-#ifndef WIN_DESKTOP
-    return ApplicationPackageManager::getInstalledApplications();
-#else
-    return {};
-#endif
-}
-
-
-CString SyncClient::syncMessage(const CString& message_key, const CString& message_value)
-{
     try
     {
-        SyncListenerCloser listenerCloser(m_pListener);
-
-        if( m_pServer == nullptr )
+        if( m_syncService == nullptr )
             throw SyncError(100132);
 
-        m_pServer->setListener(m_pListener);
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100108, from_path.c_str());
 
-        if( m_pListener != nullptr )
-            m_pListener->onStart(100155);
+        SYNCLOG_INFO << "Put files from: " << from_path << " to: " << *to_path;
 
-        CLOG(INFO, "sync") << "Syncing the message " << UTF8Convert::WideToUTF8(message_key);
+        if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(from_path)) )
+            throw SyncError(100113, from_path);
 
-        return m_pServer->syncMessage(message_key, message_value);
+        // Make sure that destination path ends in "/" so that it gets treated as a directory and not a file
+        if( to_path->back() != '/' )
+            to_path = PortableFunctions::PathEnsureTrailingForwardSlash(*to_path);
+
+        for( const std::string& file_path : DirectoryLister::GetFilePathsWithPossibleWildcard(from_path, true) )
+            UploadOneFile(file_path, *to_path);
+
+        SYNCLOG_INFO << "File upload completed";
+        return SyncResult::SYNC_OK;
     }
 
     catch( const SyncError& exception )
     {
-        if( m_pListener != nullptr )
-            m_pListener->onError(exception.m_errorCode, exception.GetErrorMessage().c_str());
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
 
-        return CString();
+        SYNCLOG_ERROR << "Error uploading files: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "File upload canceled";
+        return SyncResult::SYNC_CANCELED;
     }
 }
 
 
-SyncClient::SyncResult SyncClient::syncParadata(SyncDirection sync_directory)
+SyncClient::SyncResult SyncClient::PutFile(const std::string& from_path, const std::string& to_path)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100108, from_path.c_str());
+
+        UploadOneFile(from_path, to_path);
+
+        SYNCLOG_INFO << "File upload completed";
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error uploading file: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "File upload canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+void SyncClient::UploadOneFile(const std::string& from_path, cs::cref_optional<std::string> to_path)
+{
+    ASSERT(to_path.has_value() && !to_path->empty() && *to_path == PortableFunctions::PathToForwardSlash(*to_path));
+
+    if( m_syncListener != nullptr )
+        m_syncListener->Progress(0, 100108, PortableFunctions::PathGetFilename(from_path).c_str());
+
+    if( !PortableFunctions::FileIsRegular(from_path) )
+        throw SyncError(100118, from_path);
+
+    // if the to path is a directory, add the filename
+    if( to_path->back() == '/' )
+        to_path = PortableFunctions::PathAppendForwardSlashToPath(*to_path, PortableFunctions::PathGetFilename(from_path));
+
+    SYNCLOG_INFO << "Uploading file: " << from_path << " to: " << *to_path;
+
+    // Send request to sync service
+    m_syncService->PutFile(from_path, *to_path);
+}
+
+
+void SyncClient::DownloadAndInstallPackage(const ApplicationPackageManager& application_package_manager, const std::string& package_name,
+                                           const ApplicationPackage* const current_package, const std::string* const current_package_signature)
+{
+    const TemporaryFile temporary_zip_file;
+
+    if( !m_syncService->DownloadApplicationPackage(package_name, temporary_zip_file.GetPath(), current_package, current_package_signature) )
+    {
+        SYNCLOG_INFO << "Application package " << package_name << " already up to date";
+        return;
+    }
+
+    application_package_manager.InstallApplication(package_name, temporary_zip_file.GetPath(), current_package);
+}
+
+
+SyncClient::SyncResult SyncClient::DeleteDictionary(const std::string& dictionary_name)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100123, dictionary_name.c_str());
+
+        SYNCLOG_INFO << "Deleting dictionary " << dictionary_name;
+        m_syncService->DeleteDictionary(dictionary_name);
+
+        SYNCLOG_INFO << "Delete dictionary completed";
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error deleting dictionary: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Dictionary delete canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::ListApplicationPackages(std::vector<ApplicationPackage>& packages)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100136);
+
+        SYNCLOG_INFO << "Downloading application deployment package list";
+        packages = m_syncService->ListApplicationPackages();
+        SYNCLOG_INFO << "Found " << packages.size() << " application packages";
+
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading package list: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Package listing canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::DownloadApplicationPackage(const ApplicationPackageManager& application_package_manager, const std::string& package_name, const bool force_full_install)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100107, package_name.c_str());
+
+        SYNCLOG_INFO << "Downloading package " << package_name;
+
+        if( force_full_install )
+        {
+            DownloadAndInstallPackage(application_package_manager, package_name, nullptr, nullptr);
+        }
+
+        else
+        {
+            const std::unique_ptr<ApplicationPackageManager::ApplicationWithSignature> current_package = application_package_manager.GetInstalledApplicationPackageWithSignature(package_name);
+
+            if( current_package != nullptr )
+            {
+                DownloadAndInstallPackage(application_package_manager, package_name, &current_package->package, &current_package->signature);
+            }
+
+            else
+            {
+                DownloadAndInstallPackage(application_package_manager, package_name, nullptr, nullptr);
+            }
+        }
+
+        SYNCLOG_INFO << "Package download completed";
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading package: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Package download canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::UploadApplicationPackage(const std::string& local_package_zip_file_path, const std::string& package_name,
+                                                            const std::string& package_spec_json, const std::string& directory_for_dictionary_upload_evaluation)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100108, package_name.c_str());
+
+        SYNCLOG_INFO << "Uploading package " << package_name;
+
+        m_syncService->UploadApplicationPackage(local_package_zip_file_path, package_name, package_spec_json);
+
+        // upload dictionaries
+        if( !directory_for_dictionary_upload_evaluation.empty() )
+        {
+            try
+            {
+                const ApplicationPackage application_package = JsonConverter::CreateApplicationPackageFromJson(Json::Parse(package_spec_json));
+
+                for( const ApplicationPackage::Dictionary& app_package_dictionary : application_package.GetDictionaries() )
+                {
+                    if( app_package_dictionary.upload_for_sync )
+                    {
+                        const std::string dictionary_file_path = MakeFullPath(directory_for_dictionary_upload_evaluation, app_package_dictionary.path);
+                        UploadDictionaryWorker(dictionary_file_path);
+                    }
+                }
+            }
+
+            catch( const CSProException& exception )
+            {
+                SYNCLOG_ERROR << "Error uploading dictionary as part of package " << package_name << ": " << exception.what();
+                throw;
+            }
+        }
+
+        SYNCLOG_INFO << "Package upload completed";
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error uploading package: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Package upload canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::UpdateApplication(const ApplicationPackageManager& application_package_manager, const std::string& application_file_path)
+{
+    try
+    {
+        const std::unique_ptr<ApplicationPackageManager::ApplicationWithSignature> current_package = application_package_manager.GetApplicationPackageWithSignatureFromApplicationDirectory(application_file_path);
+
+        if( current_package == nullptr )
+        {
+            SYNCLOG_ERROR << "No installed package found when trying to update application package from " << application_file_path;
+            throw SyncError(100151);
+        }
+
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener,
+                                                                              100107, current_package->package.GetName().c_str());
+
+        SYNCLOG_INFO << "Checking for updates for package " << current_package->package.GetName();
+
+        // Download and install the new package
+        DownloadAndInstallPackage(application_package_manager, current_package->package.GetName(), &current_package->package, &current_package->signature);
+
+        SYNCLOG_INFO << "Done checking for updates for package " << current_package->package.GetName();
+
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error downloading package list: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Package listing canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::DeleteApplication(const std::string& package_name)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        const SyncListenerServerSaverAndCloser sync_listener_saver_and_closer(m_syncService.get(), m_syncListener, 100123, package_name.c_str());
+
+        SYNCLOG_INFO << "Deleting package " << package_name;
+        m_syncService->DeleteApplication(package_name);
+
+        SYNCLOG_INFO << "Delete package completed";
+        return SyncResult::SYNC_OK;
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        SYNCLOG_ERROR << "Error deleting package: " << exception.what();
+        return SyncResult::SYNC_ERROR;
+    }
+
+    catch( const SyncCancelException& )
+    {
+        SYNCLOG_INFO << "Package delete canceled";
+        return SyncResult::SYNC_CANCELED;
+    }
+}
+
+
+std::optional<JsonNode> SyncClient::SendSyncMessage(const SyncMessage& sync_message)
+{
+    try
+    {
+        if( m_syncService == nullptr )
+            throw SyncError(100132);
+
+        SyncRunner sync_runner(m_syncListener);
+        return sync_runner.SendSyncMessage(*m_syncService, m_deviceId, sync_message, m_paradataLogger.get());
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
+
+        return std::nullopt;
+    }
+}
+
+
+SyncClient::SyncResult SyncClient::SyncParadata(const SyncDirection sync_direction)
 {
     ASSERT(Paradata::Logger::IsOpen());
 
     try
     {
-        SyncListenerCloser listenerCloser(m_pListener);
-
-        if( m_pServer == nullptr )
+        if( m_syncService == nullptr )
             throw SyncError(100132);
 
-        m_pServer->setListener(m_pListener);
+        const std::unique_ptr<Paradata::Syncer> paradata_syncer = Paradata::Logger::GetSyncer();
+        ASSERT(paradata_syncer != nullptr);
 
-        if( m_pListener != nullptr )
-            m_pListener->onStart(100171);
+        SyncRunner sync_runner(m_syncListener);
+        sync_runner.SyncParadata(*m_syncService, *paradata_syncer, sync_direction, m_paradataLogger.get());
 
-        auto paradata_syncer = Paradata::Logger::GetSyncer();
-
-        // start the sync, sending the client's log UUID and getting the server's log UUID
-        paradata_syncer->SetPeerLogUuid(m_pServer->startParadataSync(paradata_syncer->GetLogUuid()));
-        ASSERT(!paradata_syncer->GetPeerLogUuid().IsEmpty());
-
-        // receive paradata from the server
-        if( sync_directory != SyncDirection::Put )
-        {
-            CLOG(INFO, "sync")
-                << "Requesting paradata events to be added to the log "
-                << UTF8Convert::WideToUTF8(paradata_syncer->GetLogUuid());
-
-            auto received_database_temporary_files = m_pServer->getParadata();
-
-            if( !received_database_temporary_files.empty() )
-            {
-                CLOG(INFO, "sync")
-                    << "Received paradata events from the log "
-                    << UTF8Convert::WideToUTF8(paradata_syncer->GetPeerLogUuid());
-
-                paradata_syncer->SetReceivedSyncableDatabases(received_database_temporary_files);
-            }
-
-            else
-            {
-                CLOG(INFO, "sync")
-                    << "No paradata events from the log "
-                    << UTF8Convert::WideToUTF8(paradata_syncer->GetPeerLogUuid())
-                    << " received as all events are up-to-date";
-            }
-        }
-
-        // send paradata to the server
-        if( sync_directory != SyncDirection::Get )
-        {
-            std::optional<std::wstring> extracted_syncable_database_filename = paradata_syncer->GetExtractedSyncableDatabase();
-
-            if( extracted_syncable_database_filename.has_value() )
-            {
-                CLOG(INFO, "sync")
-                    << "Sending paradata events to be added to the log "
-                    << UTF8Convert::WideToUTF8(paradata_syncer->GetPeerLogUuid());
-
-                m_pServer->putParadata(WS2CS(*extracted_syncable_database_filename));
-            }
-
-            else
-            {
-                CLOG(INFO, "sync")
-                    << "Skipping sending paradata events to the log "
-                    << UTF8Convert::WideToUTF8(paradata_syncer->GetPeerLogUuid())
-                    << " as all events are up-to-date";
-            }
-        }
-
-        // after merging any received data, inform the server that all was transfered well
-        paradata_syncer->MergeReceivedSyncableDatabases();
-
-        m_pServer->stopParadataSync();
-
-        paradata_syncer->RunPostSuccessfulSyncTasks();
+        return SyncResult::SYNC_OK;
     }
 
     catch( const SyncError& exception )
     {
-        if( m_pListener != nullptr )
-            m_pListener->onError(exception.m_errorCode, exception.GetErrorMessage().c_str());
-
-        return SyncResult::SYNC_ERROR;
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(exception);
     }
 
-    return SyncResult::SYNC_OK;
-}
+    catch( const CSProException& exception )
+    {
+        if( m_syncListener != nullptr )
+            m_syncListener->ReportError(8295, exception.what());
+    }
 
-
-void SyncClient::setListener(ISyncListener *pListener)
-{
-    m_pListener = pListener;
+    return SyncResult::SYNC_ERROR;
 }

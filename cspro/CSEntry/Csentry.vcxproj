@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BB8A94FE-E0F7-404F-B3A4-D44FE2736EB0}</ProjectGuid>
     <RootNamespace>CSEntry</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>CSEntry</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -68,10 +64,10 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Zissalib\CsKernel.cpp" />
     <ClCompile Include="BinaryCommandLineInfo.cpp" />
     <ClCompile Include="CaseView.cpp" />
     <ClCompile Include="CSEntry.cpp" />
-    <ClCompile Include="..\Zissalib\CsKernel.cpp" />
     <ClCompile Include="CustMsg.cpp" />
     <ClCompile Include="DEBaseEdit.cpp" />
     <ClCompile Include="DEEdit.cpp" />
@@ -89,22 +85,22 @@
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="Opdlg.cpp" />
     <ClCompile Include="OperatorStatistics.cpp" />
+    <ClCompile Include="OperatorStatisticsLog.cpp" />
     <ClCompile Include="Page1.cpp" />
     <ClCompile Include="Page2.cpp" />
     <ClCompile Include="QuestionnaireSearchDlg.cpp" />
     <ClCompile Include="Rundoc.cpp" />
     <ClCompile Include="RunView.cpp" />
     <ClCompile Include="StatDlg.cpp" />
-    <ClCompile Include="OperatorStatisticsLog.cpp" />
     <ClCompile Include="StatGrid.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ProgressDialog.cpp" />
     <ClCompile Include="XSplWnd.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BinaryCommandLineInfo.h" />
     <ClInclude Include="CaseView.h" />
     <ClInclude Include="CSEntry.h" />
     <ClInclude Include="CustMsg.h" />
@@ -117,7 +113,6 @@
     <ClInclude Include="DiscPDlg.h" />
     <ClInclude Include="DisPMDlg.h" />
     <ClInclude Include="DynamicMenu.h" />
-    <ClInclude Include="BinaryCommandLineInfo.h" />
     <ClInclude Include="GoToDlg.h" />
     <ClInclude Include="IntEDlg.h" />
     <ClInclude Include="leftprop.h" />
@@ -126,29 +121,24 @@
     <ClInclude Include="MessageOverrides.h" />
     <ClInclude Include="Opdlg.h" />
     <ClInclude Include="OperatorStatistics.h" />
+    <ClInclude Include="OperatorStatisticsLog.h" />
     <ClInclude Include="Page1.h" />
     <ClInclude Include="Page2.h" />
     <ClInclude Include="QuestionnaireSearchDlg.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Rundoc.h" />
     <ClInclude Include="RunView.h" />
     <ClInclude Include="StatDlg.h" />
-    <ClInclude Include="OperatorStatisticsLog.h" />
     <ClInclude Include="StatGrid.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="ProgressDialog.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="XSplWnd.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\apartial.ico" />
-    <None Include="res\complete.ico" />
     <None Include="res\CSEntry.ico" />
     <None Include="res\empty.ico" />
-    <None Include="res\mpartial.ico" />
     <None Include="res\node.ico" />
     <None Include="res\Toolbar.bmp" />
-    <None Include="res\vpartial.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CSEntry.rc" />
@@ -190,6 +180,10 @@
       <Project>{04b22cef-8246-4596-84a2-13faf5019122}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zEngineO\zEngineO.vcxproj">
+      <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Zentryo\ZENTRYO.vcxproj">
       <Project>{cfe980f3-5fc0-4c53-9eb5-1c63254503cd}</Project>
       <Private>false</Private>
@@ -222,6 +216,10 @@
       <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
@@ -234,10 +232,6 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="res\deleted.ico" />
-    <Image Include="res\vcomplete.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "ActionInvoker.h"
+#include "ExceptionThrowingJsonReaderInterface.h"
 #include "NameProcessors.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zUtilO/ExecutionStack.h>
@@ -9,8 +10,9 @@
 
 
 ActionInvoker::Runtime::Runtime()
-    :   m_registeredAccessTokensForExternalCallers(std::make_unique<std::set<std::wstring>>()),
-        m_listeners(std::make_shared<std::vector<Listener*>>())
+    :   m_exceptionThrowingJsonReaderInterface(std::make_unique<ExceptionThrowingJsonReaderInterface>()),
+        m_registeredAccessTokensForExternalCallers(std::make_unique<std::set<std::string>>()),
+        m_listeners(std::make_unique<std::vector<Listener*>>())
 {
 }
 
@@ -26,14 +28,14 @@ void ActionInvoker::Runtime::DisableAccessTokenCheckForExternalCallers()
 }
 
 
-void ActionInvoker::Runtime::RegisterAccessToken(std::wstring access_token)
+void ActionInvoker::Runtime::RegisterAccessToken(std::string access_token)
 {
     if( m_registeredAccessTokensForExternalCallers != nullptr )
         m_registeredAccessTokensForExternalCallers->insert(std::move(access_token));
 }
 
 
-void ActionInvoker::Runtime::CheckAccessToken(const std::wstring* access_token, Caller& caller)
+void ActionInvoker::Runtime::CheckAccessToken(const std::string* const access_token, Caller& caller)
 {
     constexpr const char* NoValidAccessTokenMessage = "The application settings require that a valid access token is provided before using the Action Invoker.";
     constexpr const char* UserDidNotAllowMessage    = "The user denied access to the Action Invoker without a valid access token.";
@@ -64,7 +66,7 @@ void ActionInvoker::Runtime::CheckAccessToken(const std::wstring* access_token, 
 
     // get the application's logic settings for additional checks;
     // if no application exists, we will prompt to allow access
-    const Application* application = GetApplication(false);
+    const Application* const application = GetApplication(false);
     bool prompt_to_allow_access;
 
     if( application == nullptr )
@@ -81,7 +83,7 @@ void ActionInvoker::Runtime::CheckAccessToken(const std::wstring* access_token, 
         {
             bool access_token_found = false;
 
-            for( const std::wstring& logic_settings_access_token : logic_settings.GetActionInvokerAccessTokens() )
+            for( const std::string& logic_settings_access_token : logic_settings.GetActionInvokerAccessTokens() )
             {
                 if( m_registeredAccessTokensForExternalCallers->insert(logic_settings_access_token).second &&
                     *access_token == logic_settings_access_token )
@@ -104,14 +106,15 @@ void ActionInvoker::Runtime::CheckAccessToken(const std::wstring* access_token, 
 
     if( prompt_to_allow_access )
     {
-        const std::wstring user_prompt_message = MGF::GetMessageText(MGF::CS_access_without_token_prompt_9208,
-                                                                     _T("A web page or program is attempting to access CSPro functionality, which can include access to data or to files on your device. Do you want to allow this? You should only allow this if you trust this source."));
+        const SharableString user_prompt_message = MGF::GetMessageText(MGF::CS_access_without_token_prompt_9208,
+                                                                       "A web page or program is attempting to access CSPro functionality, which can include access to data or to files on your device. "
+                                                                       "Do you want to allow this? You should only allow this if you trust this source.");
         int result;
 
 #ifdef WIN_DESKTOP
-        result = AfxMessageBox(user_prompt_message.c_str(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION);
+        result = AfxMessageBox(user_prompt_message.GetString(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION);
 #else
-        result = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T("Allow Access?"), user_prompt_message, MB_YESNO);
+        result = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("Allow Access?", user_prompt_message.GetString(), MB_YESNO);
 #endif
         if( result != IDYES )
         {
@@ -134,55 +137,57 @@ ActionInvoker::ListenerHolder ActionInvoker::Runtime::RegisterListener(std::shar
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::ProcessExecute(const std::wstring& json_arguments, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::ProcessExecute(const std::string& json_arguments, Caller& caller)
 {
-    const JsonNode<wchar_t> json_node = ParseJson(json_arguments, nullptr);
+    const JsonNode json_node = ParseJson(json_arguments, caller, nullptr);
     const Action action = GetActionFromJson(json_node);
 
     return RunFunction(action, json_node, caller);
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::ProcessAction(const Action action, const std::optional<std::wstring>& json_arguments, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::ProcessAction(const Action action, const SharableString& json_arguments, Caller& caller)
 {
-    if( json_arguments.has_value() )
+    if( json_arguments.IsSet() )
     {
-        return RunFunction(action, ParseJson(*json_arguments, &action), caller);
+        return RunFunction(action, ParseJson(json_arguments.GetString(), caller, &action), caller);
     }
 
     else
     {
-        static const JsonNode<wchar_t> no_arguments_json_node = Json::Parse(_T("{ }"));
+        static const JsonNode no_arguments_json_node = Json::Parse(Json::Text::EmptyObject_sv);
 
         return RunFunction(action, no_arguments_json_node, caller);
     }
 }
 
 
-JsonNode<wchar_t> ActionInvoker::Runtime::ParseJson(const std::wstring& json_arguments, const Action* const action)
+JsonNode ActionInvoker::Runtime::ParseJson(const std::string_view json_arguments_sv, Caller& caller, const Action* const action)
 {
     try
     {
-        return Json::Parse(json_arguments);
+        // using ExceptionThrowingJsonReaderInterface will result in invalid access requests to be thrown as exceptions
+        assert_cast<ExceptionThrowingJsonReaderInterface*>(m_exceptionThrowingJsonReaderInterface.get())->SetDirectory(caller.GetRootDirectory());
+        return Json::Parse(json_arguments_sv, m_exceptionThrowingJsonReaderInterface.get());
     }
 
     catch( const JsonParseException& exception )
     {
-        IssueError(MGF::CS_json_argument_error_9205, GetActionName(action).c_str(), exception.GetErrorMessage().c_str());
+        IssueError(MGF::CS_json_argument_error_9205, GetActionName(action).c_str(), exception.what());
     }
 }
 
 
-ActionInvoker::Action ActionInvoker::Runtime::GetActionFromJson(const JsonNode<wchar_t>& json_node)
+ActionInvoker::Action ActionInvoker::Runtime::GetActionFromJson(const JsonNode& json_node)
 {
     if( !json_node.Contains(JK::action) )
         IssueError(MGF::CS_action_missing_9201);
 
-    return GetActionFromText(json_node.Get<wstring_view>(JK::action), *this);
+    return GetActionFromText(json_node.Get<std::string_view>(JK::action), *this);
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::RunFunction(const Action action, const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::RunFunction(const Action action, const JsonNode& json_node, Caller& caller)
 {
     const auto& lookup = m_functions.find(action);
 
@@ -199,18 +204,28 @@ ActionInvoker::Result ActionInvoker::Runtime::RunFunction(const Action action, c
     catch( const JsonParseException& exception )
     {
         // the JSON arguments parsed without error, but the arguments did not
-        IssueError(MGF::CS_json_argument_error_9205, GetActionName(action).c_str(), exception.GetErrorMessage().c_str());
+        IssueError(MGF::CS_json_argument_error_9205, GetActionName(action).c_str(), exception.what());
+    }
+
+    catch( const ActionInvoker::Exception& )
+    {
+        // throw ActionInvoker::Exception exceptions directly
+        throw;
     }
 
     catch( const CSProException& exception )
     {
-        // add the action name to the error message
-        throw ExceptionWithActionName(exception, GetActionName(action).c_str());
+        // rethrow as an ActionInvoker::Exception with the action name as the error cause
+        const std::string action_name = GetActionName(action);
+
+        throw ActionInvoker::Exception(FormatText("Error running action '%s': %s", action_name.c_str(), exception.what()),
+                                       Encoders::ToJsonString(action_name),
+                                       std::nullopt);
     }
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::execute(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::execute(const JsonNode& json_node, Caller& caller)
 {
     const Action action = GetActionFromJson(json_node);
 
@@ -218,12 +233,12 @@ ActionInvoker::Result ActionInvoker::Runtime::execute(const JsonNode<wchar_t>& j
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::registerAccessToken(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::registerAccessToken(const JsonNode& json_node, Caller& caller)
 {
     if( caller.IsExternalCaller() )
         throw CSProException("You cannot register access tokens while executing code in an external, untrusted, environment.");
 
-    std::wstring access_token = json_node.Get<std::wstring>(JK::accessToken);
+    std::string access_token = json_node.Get<std::string>(JK::accessToken);
 
     if( SO::IsWhitespace(access_token) )
         throw CSProException("An access token cannot be blank.");
@@ -231,6 +246,77 @@ ActionInvoker::Result ActionInvoker::Runtime::registerAccessToken(const JsonNode
     RegisterAccessToken(std::move(access_token));
 
     return Result::Undefined();
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::throwException(const JsonNode& json_node, Caller& /*caller*/)
+{
+    throw ActionInvoker::Exception(json_node, true);
+}
+
+
+int ActionInvoker::Runtime::CreateResourceId(const Resource resource, Caller& caller)
+{
+    const int resource_id = UniqueId::CreateInt();
+    m_resourceIdCallerMap[caller.GetCallerId()].emplace_back(resource, resource_id);
+    return resource_id;
+}
+
+
+int ActionInvoker::Runtime::GetResourceId(const Resource resource, const JsonNode& json_node, Caller& caller, const char* const id_key,
+                                          const char* const not_specified_formatter, const char* const multiple_implicit_formatter) const
+{
+    if( json_node.Contains(id_key) )
+        return json_node.Get<int>(id_key);
+
+    const auto& lookup = m_resourceIdCallerMap.find(caller.GetCallerId());
+
+    if( lookup != m_resourceIdCallerMap.cend() )
+    {
+        std::optional<int> resource_id;
+
+        for( const auto& [this_resource, this_resource_id] : lookup->second )
+        {
+            if( resource == this_resource )
+            {
+                if( resource_id.has_value() )
+                    throw CSProException(multiple_implicit_formatter, id_key);
+
+                resource_id = this_resource_id;
+            }
+        }
+
+        if( resource_id.has_value() )
+            return *resource_id;
+    }
+
+    throw CSProException(not_specified_formatter, id_key);
+}
+
+
+void ActionInvoker::Runtime::DestroyResourceId(const int resource_id)
+{
+    for( auto& [caller_id, resource_and_id] : m_resourceIdCallerMap )
+    {
+        const auto& resource_and_id_end = resource_and_id.end();
+
+        for( auto resource_and_id_itr = resource_and_id.begin();
+             resource_and_id_itr != resource_and_id_end;
+             ++resource_and_id_itr )
+        {
+            if( resource_id == std::get<1>(*resource_and_id_itr) )
+            {
+                resource_and_id.erase(resource_and_id_itr);
+
+                if( resource_and_id.empty() )
+                    m_resourceIdCallerMap.erase(caller_id);
+
+                return;
+            }
+        }
+    }
+
+    ASSERT(false);
 }
 
 

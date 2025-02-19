@@ -6,9 +6,6 @@ class CDictItem;
 class CSpecFile;
 class DictValueSet;
 class ExtendedCaptureInfo;
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
 class ValueProcessor;
 
 #define CMD_CAPTURE_TYPE        _T("CaptureType")
@@ -39,7 +36,7 @@ enum class CaptureType : int
 class CLASS_DECL_ZDICTO CaptureInfo
 {
 public:
-    CREATE_CSPRO_EXCEPTION(ValidationException)
+    CREATE_CSPRO_EXCEPTION(ValidationException);
 
     CaptureInfo() noexcept;
     CaptureInfo(const CaptureInfo& rhs) noexcept;
@@ -62,9 +59,9 @@ public:
     template<typename T>
     T& GetExtended()             { return assert_cast<T&>(*m_extendedCaptureInfo); }
 
-    static const TCHAR* GetCaptureTypeName(CaptureType capture_type, bool display_name = false);
+    static const char* GetCaptureTypeName(CaptureType capture_type, bool display_name = false);
 
-    static std::optional<CaptureType> GetCaptureTypeFromSerializableName(wstring_view name);
+    static std::optional<CaptureType> GetCaptureTypeFromSerializableName(std::string_view name_sv);
 
     static CaptureType GetBaseCaptureType(const CDictItem& dict_item);
 
@@ -75,7 +72,7 @@ public:
     enum class CaptureTypeSortOrder { Name };
     static std::vector<CaptureType> GetPossibleCaptureTypes(const CDictItem& dict_item, CaptureTypeSortOrder sort_order);
 
-    CString GetDescription() const;
+    std::string GetDescription() const;
 
     // validate the capture info ... an exception will be thrown on error
     void Validate(const CDictItem& dict_item) const;
@@ -90,7 +87,7 @@ public:
     void Build(CSpecFile& spec_file, const CString& argument);
     void Save(CSpecFile& spec_file, bool use_pre77_command_names) const;
 
-    static CaptureInfo CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static CaptureInfo CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
@@ -102,6 +99,7 @@ private:
 };
 
 
+
 class ExtendedCaptureInfo
 {
     friend class CaptureInfo;
@@ -110,7 +108,7 @@ public:
     virtual ~ExtendedCaptureInfo() { }
 
 protected:
-    virtual void AddToDescription(CString& description) const = 0;
+    virtual void AddToDescription(std::string& description) const = 0;
 
     virtual void Validate(const CDictItem& dict_item) const = 0;
 
@@ -120,10 +118,11 @@ protected:
     // ------------------------------
     virtual void Build(CSpecFile& spec_file) = 0;
     virtual void Save(CSpecFile& spec_file) const = 0;
-    virtual void ParseJsonInput(const JsonNode<wchar_t>& json_node) = 0;
+    virtual void ParseJsonInput(const JsonNode& json_node) = 0;
     virtual void WriteJson(JsonWriter& json_writer) const = 0;
     virtual void serialize(Serializer& ar) = 0;
 };
+
 
 
 class CLASS_DECL_ZDICTO DateCaptureInfo : public ExtendedCaptureInfo
@@ -133,12 +132,12 @@ class CLASS_DECL_ZDICTO DateCaptureInfo : public ExtendedCaptureInfo
 public:
     bool operator==(const DateCaptureInfo& rhs) const;
 
-    const CString& GetFormat() const      { return m_format; }
-    void SetFormat(const CString& format) { m_format = format; m_format.MakeUpper(); }
+    const std::string& GetFormat() const       {  return m_format; }
+    void SetFormat(std::string_view format_sv) { m_format = SO::ToUpper(format_sv); }
 
-    static std::vector<const TCHAR*> GetPossibleFormats(const CDictItem& dict_item);
+    static std::vector<const char*> GetPossibleFormats(const CDictItem& dict_item);
 
-    static const TCHAR* GetDefaultFormat(const CDictItem& dict_item);
+    static const char* GetDefaultFormat(const CDictItem& dict_item);
 
     bool IsFormatValid(const CDictItem& dict_item) const;
 
@@ -147,7 +146,7 @@ public:
 protected:
     static bool IsCaptureTypePossible(const CDictItem& dict_item);
 
-    void AddToDescription(CString& description) const override;
+    void AddToDescription(std::string& description) const override;
 
     void Validate(const CDictItem& dict_item) const override;
 
@@ -158,15 +157,15 @@ protected:
     void Build(CSpecFile& spec_file) override;
     void Save(CSpecFile& spec_file) const override;
 
-    void ParseJsonInput(const JsonNode<wchar_t>& json_node) override;
+    void ParseJsonInput(const JsonNode& json_node) override;
     void WriteJson(JsonWriter& json_writer) const override;
 
     void serialize(Serializer& ar) override;
 
-
 private:
-    CString m_format;
+    std::string m_format;
 };
+
 
 
 class CLASS_DECL_ZDICTO CheckBoxCaptureInfo : public ExtendedCaptureInfo

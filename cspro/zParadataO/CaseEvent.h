@@ -1,27 +1,29 @@
 ﻿#pragma once
-#include "Event.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+
+namespace Paradata { class CaseEvent; class KeyingInstance; }
+
+
+class ZPARADATAO_API Paradata::CaseEvent : public Event
 {
-    class KeyingInstance;
+    DECLARE_PARADATA_EVENT(CaseEvent)
 
-    class ZPARADATAO_API CaseEvent : public Event
-    {
-        DECLARE_PARADATA_EVENT(CaseEvent)
+private:
+    CaseEvent(bool start, std::shared_ptr<NamedObject> dictionary = nullptr);
 
-    private:
-        bool PreSave(Log& log) const override;
+public:
+    ~CaseEvent();
 
-        bool m_start;
-        std::shared_ptr<KeyingInstance> m_keyingInstance;
+    static std::unique_ptr<CaseEvent> CreateStartEvent(std::shared_ptr<NamedObject> dictionary, std::string case_uuid);
+    static std::unique_ptr<CaseEvent> CreateStopEvent();
 
-        std::shared_ptr<NamedObject> m_dictionary;
-        CString m_caseUuid;
+private:
+    bool PreSave(Log& log) const override;
 
-        CaseEvent(bool start, std::shared_ptr<NamedObject> dictionary = nullptr);
-
-    public:
-        static std::shared_ptr<CaseEvent> CreateStartEvent(std::shared_ptr<NamedObject> dictionary, const CString& case_uuid);
-        static std::shared_ptr<CaseEvent> CreateStopEvent();
-    };
-}
+private:
+    const bool m_start;
+    const std::shared_ptr<NamedObject> m_dictionary;
+    std::string m_caseUuid;
+    std::unique_ptr<KeyingInstance> m_keyingInstance;
+};

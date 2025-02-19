@@ -7,68 +7,92 @@
 #pragma warning(disable:4250) // 'class1': inherits 'class2::member' via dominance
 
 
-template<typename CharType, typename WriterType>
-class JsonStringWriterImpl : public JsonConsWriter<CharType, WriterType>, public JsonStringWriter<CharType>
+template<typename WriterType>
+class JsonStringWriterImpl : public JsonConsWriter<WriterType>, public JsonStringWriter
 {
 public:
-    JsonStringWriterImpl(std::basic_string<CharType>& text, JsonFormattingOptions formatting_options)
-        :   JsonConsWriter<CharType, WriterType>(formatting_options),
+    JsonStringWriterImpl(std::string& text, const JsonFormattingOptions formatting_options)
+        :   JsonConsWriter<WriterType>(formatting_options),
             m_text(text)
     {
-        JsonConsWriter<CharType, WriterType>::m_writer = std::make_unique<WriterType>(text, GetJsonOptions<CharType>(formatting_options));
+        JsonConsWriter<WriterType>::m_writer = std::make_unique<WriterType>(text, GetJsonOptions(formatting_options));
     }
 
-    const std::basic_string<CharType>& GetString() override
+    const std::string& GetString() const override
     {
-        JsonConsWriter<CharType, WriterType>::m_writer->flush();
+        JsonConsWriter<WriterType>::m_writer->flush();
         return m_text;
     }
 
-private:
-    std::basic_string<CharType>& m_text;
-};
-
-
-
-template<typename CharType, typename WriterType>
-class JsonStringWriterOwningTextBufferImpl : public JsonStringWriterImpl<CharType, WriterType>
-{
-private:
-    JsonStringWriterOwningTextBufferImpl(std::unique_ptr<std::basic_string<CharType>> text, JsonFormattingOptions formatting_options)
-        :   JsonStringWriterImpl<CharType, WriterType>(*text, formatting_options),
-            m_ownedText(std::move(text))
+    std::string ReleaseString() override
     {
+        JsonConsWriter<WriterType>::m_writer->flush();
+        return ReturnProgrammingError(m_text);
     }
 
-public:
-    JsonStringWriterOwningTextBufferImpl(JsonFormattingOptions formatting_options)
-        :   JsonStringWriterOwningTextBufferImpl(std::make_unique<std::basic_string<CharType>>(), formatting_options)
+    SharableString ReleaseSharableString() override
     {
+        JsonConsWriter<WriterType>::m_writer->flush();
+        return ReturnProgrammingError(m_text);
     }
 
 private:
-    std::unique_ptr<std::basic_string<CharType>> m_ownedText;
+    std::string& m_text;
 };
 
 
 
 template<typename WriterType>
-class JsonStringWriterOwningTextBufferWithRelativePathsImpl : public JsonStringWriterOwningTextBufferImpl<wchar_t, WriterType>
+class JsonStringWriterOwningTextBufferImpl : public JsonStringWriterImpl<WriterType>
 {
-public:
-    JsonStringWriterOwningTextBufferWithRelativePathsImpl(std::wstring filename, JsonFormattingOptions formatting_options)
-        :   JsonStringWriterOwningTextBufferImpl<wchar_t, WriterType>(formatting_options),
-            m_filenameForRelativePaths(std::move(filename))
+private:
+    JsonStringWriterOwningTextBufferImpl(std::unique_ptr<std::string> text, const JsonFormattingOptions formatting_options)
+        :   JsonStringWriterImpl<WriterType>(*text, formatting_options),
+            m_ownedText(std::move(text))
     {
     }
 
-    std::wstring GetRelativePath(const std::wstring& path) const override
+public:
+    JsonStringWriterOwningTextBufferImpl(const JsonFormattingOptions formatting_options)
+        :   JsonStringWriterOwningTextBufferImpl(std::make_unique<std::string>(), formatting_options)
     {
-        return GetRelativeFNameForDisplay(m_filenameForRelativePaths, path);
+    }
+
+    std::string ReleaseString() override
+    {
+        JsonConsWriter<WriterType>::m_writer->flush();
+        return std::move(*m_ownedText);
+    }
+
+    SharableString ReleaseSharableString() override
+    {
+        JsonConsWriter<WriterType>::m_writer->flush();
+        return std::move(m_ownedText);
     }
 
 private:
-    std::wstring m_filenameForRelativePaths;
+    std::unique_ptr<std::string> m_ownedText;
+};
+
+
+
+template<typename WriterType>
+class JsonStringWriterOwningTextBufferWithRelativePathsImpl : public JsonStringWriterOwningTextBufferImpl<WriterType>
+{
+public:
+    JsonStringWriterOwningTextBufferWithRelativePathsImpl(std::string file_path, const JsonFormattingOptions formatting_options)
+        :   JsonStringWriterOwningTextBufferImpl<WriterType>(formatting_options),
+            m_filePathForRelativePaths(std::move(file_path))
+    {
+    }
+
+    std::string GetRelativePath(const std::string& path) const override
+    {
+        return GetRelativePathForDisplay(m_filePathForRelativePaths, path);
+    }
+
+private:
+    std::string m_filePathForRelativePaths;
 };
 
 

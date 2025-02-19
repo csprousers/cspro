@@ -15,11 +15,11 @@ private:
 
 public:
     // creates a stream based on a file that is already open; control of the file will be taken over by this object
-    Utf8InputFileStream(std::wstring filename, FileIO::FileAndSize file_and_size);
+    Utf8InputFileStream(InterfaceString file_path, FileIO::FileAndSize file_and_size);
 
     // opens a file and creates a stream from it; open errors result in FileIO::Exception exceptions
-    Utf8InputFileStream(NullTerminatedString filename)
-        :   Utf8InputFileStream(filename, FileIO::OpenFile(filename))
+    Utf8InputFileStream(const InterfaceString file_path)
+        :   Utf8InputFileStream(file_path, FileIO::OpenFile(file_path))
     {
     }
 

@@ -1,13 +1,16 @@
 ﻿#pragma once
 
 #include <zAppO/zAppO.h>
+#include <zAppO/AppMessageFile.h>
+#include <zAppO/AppResource.h>
 #include <zAppO/AppSyncParameters.h>
 #include <zAppO/CodeFile.h>
 #include <zAppO/DictionaryDescription.h>
 #include <zAppO/LogicSettings.h>
 #include <zAppO/MappingDefines.h>
-#include <zUtilO/TextSource.h>
+#include <zAppO/ReportFile.h>
 
+enum class AppFileType;
 class ApplicationLoader;
 class ApplicationProperties;
 class CapiQuestionManager;
@@ -17,12 +20,11 @@ class CDEFormFile;
 class CSourceCode;
 class CSpecFile;
 class CTabSet;
-class Serializer;
 namespace JsonSpecFile { class ReaderMessageLogger; }
 
 
 enum class EngineAppType : int { Invalid = -1, Entry = 1, Tabulation, Batch };
-ZAPPO_API const TCHAR* const ToString(EngineAppType application_type);
+ZAPPO_API const char* ToString(EngineAppType application_type);
 
 enum class CaseTreeType : int { Never = -1, MobileOnly, DesktopOnly, Always };
 
@@ -39,7 +41,7 @@ class ZAPPO_API Application
 public:
     Application();
     Application(Application&& rhs) noexcept;
-    Application(const Application& rhs) = delete;
+    Application(const Application& rhs);
     ~Application();
 
     // application properties
@@ -50,60 +52,69 @@ public:
     EngineAppType GetEngineAppType() const               { return m_engineAppType; }
     void SetEngineAppType(EngineAppType engine_app_type) { m_engineAppType = engine_app_type; }
 
-    const CString& GetName() const    { return m_name; }
-    void SetName(const CString& name) { m_name = name; }
-    void SetName(std::wstring name)   { m_name = WS2CS(name); }
+    AppFileType GetApplicationAppFileType() const;
 
-    void SetLabel(const CString& label) { m_label = label; }
-    void SetLabel(std::wstring label)   { m_label = WS2CS(label); }
-    const CString& GetLabel() const     { return m_label; }
+    const std::string& GetName() const { return m_name; }
+    void SetName(std::string name)     { m_name = std::move(name); }
 
-    const CString& GetApplicationFilename() const        { return m_applicationFilename; }
-    void SetApplicationFilename(const CString& filenane) { m_applicationFilename = filenane; }
+    const std::string& GetLabel() const { return m_label; }
+    void SetLabel(std::string label)    { m_label = std::move(label); }
+
+    const std::string& GetApplicationFilePath() const  { return m_applicationFilePath; }
+    void SetApplicationFilePath(std::string file_path) { m_applicationFilePath = std::move(file_path); }
 
 
-    // when using an application properties file, the properties will be read on Open but will not be saved on Save,
+    // When using an application properties file, the properties will be read on Open but will not be saved on Save,
     // so modifying properties using the non-const version of GetApplicationProperties or SetApplicationProperties
-    // must be done with care
-    const std::wstring& GetApplicationPropertiesFilename() const { return m_applicationPropertiesFilename; }
-    void SetApplicationPropertiesFilename(std::wstring filename) { m_applicationPropertiesFilename = std::move(filename); }
+    // must be done with care.
+    const std::string& GetApplicationPropertiesFilePath() const  { return m_applicationPropertiesFilePath; }
+    void SetApplicationPropertiesFilePath(std::string file_path) { m_applicationPropertiesFilePath = std::move(file_path); }
 
     const ApplicationProperties& GetApplicationProperties() const { return *m_applicationProperties; }
     ApplicationProperties& GetApplicationProperties()             { return *m_applicationProperties; }
     void SetApplicationProperties(ApplicationProperties application_properties);
 
 
-    // other filenames
+    // miscellaneous functionality
     // --------------------------------------------------------------------------
-    const CString& GetQuestionTextFilename() const        { return m_questionTextFilename; }
-    void SetQuestionTextFilename(const CString& filenane) { m_questionTextFilename = filenane; }
+
+    // Clears the values for the objects listed below under "other application files" as
+    // well as the dictionary descriptions.
+    void ClearApplicationFiles();
+
+
+    // question text
+    // --------------------------------------------------------------------------
+    const std::string& GetQuestionTextFilePath() const  { return m_questionTextFilePath; }
+    void SetQuestionTextFilePath(std::string file_path) { m_questionTextFilePath = std::move(file_path); }
 
 
     // form files
     // --------------------------------------------------------------------------
-    const std::vector<CString>& GetFormFilenames() const { return m_formFilenames; }
+    const std::vector<std::string>& GetFormFilePaths() const { return m_formFilePaths; }
 
-    void AddFormFilename(const CString& form_filename);
-    void AddFormFilename(std::wstring form_filename);
-    void DropFormFilename(wstring_view form_filename);
-    void RenameFormFilename(wstring_view original_form_filename, const CString& new_form_filename);
+    const std::string* GetForm(const std::string& form_file_path);
+
+    void AddForm(std::string form_file_path);
+    void DropForm(const std::string& form_file_path);
+    void RenameFormFilePath(const std::string& original_form_file_path, std::string new_form_file_path);
 
 
-    // tab specs
+    // table specs
     // --------------------------------------------------------------------------
-    const std::vector<CString>& GetTabSpecFilenames() const { return m_tabSpecFilenames; }
+    const std::vector<std::string>& GetTableSpecFilePaths() const { return m_tableSpecFilePaths; }
 
-    void AddTabSpecFilename(const CString& tab_spec_filename);
-    void RenameTabSpecFilename(wstring_view original_tab_spec_filename, const CString& new_tab_spec_filename);
+    void AddTableSpec(std::string table_spec_file_path);
+    void RenameTableSpecFilePath(const std::string& original_table_spec_file_path, std::string new_table_spec_file_path);
 
 
     // external dictionaries
     // --------------------------------------------------------------------------
-    const std::vector<CString>& GetExternalDictionaryFilenames() const { return m_externalDictionaryFilenames; }
+    const std::vector<std::string>& GetExternalDictionaryFilePaths() const { return m_externalDictionaryFilePaths; }
 
-    void AddExternalDictionaryFilename(const CString& dictionary_filename);
-    void DropExternalDictionaryFilename(wstring_view dictionary_filename);
-    void RenameExternalDictionaryFilename(wstring_view original_dictionary_filename, std::wstring new_dictionary_filename);
+    void AddExternalDictionary(std::string dictionary_file_path);
+    void DropExternalDictionary(const std::string& dictionary_file_path);
+    void RenameExternalDictionaryFilePath(const std::string& original_dictionary_file_path, std::string new_dictionary_file_path);
 
 
     // code files
@@ -111,51 +122,61 @@ public:
     const std::vector<CodeFile>& GetCodeFiles() const { return m_codeFiles; }
     auto GetCodeFilesIterator()                       { return VI_V(m_codeFiles); }
 
+    const CodeFile* GetCodeFile(const std::string& file_path) const;
+
     const CodeFile* GetLogicMainCodeFile() const;
     CodeFile* GetLogicMainCodeFile();
 
     void AddCodeFile(CodeFile code_file);
-    void DropCodeFile(size_t index);
+    void DropCodeFile(const std::string& file_path);
 
 
     // message files
     // --------------------------------------------------------------------------
-    const std::vector<std::shared_ptr<TextSource>>& GetMessageTextSources() const { return m_messageTextSources; }
+    const std::vector<AppMessageFile>& GetMessageFiles() const { return m_messageFiles; }
+    auto GetMessageFilesIterator()                             { return VI_V(m_messageFiles); }
 
-    void AddMessageFile(std::shared_ptr<TextSource> message_text_source);
-    void DropMessageFile(size_t index);
+    void AddMessageFile(AppMessageFile app_message_file);
+    void DropMessageFile(const std::string& file_path);
 
 
     // reports
     // --------------------------------------------------------------------------
-    const std::vector<std::shared_ptr<NamedTextSource>>& GetReportNamedTextSources() const { return m_reportNamedTextSources; }
+    const std::vector<ReportFile>& GetReportFiles() const { return m_reportFiles; }
+    auto GetReportFilesIterator()                         { return VI_V(m_reportFiles); }
 
-    const NamedTextSource* GetReportNamedTextSource(wstring_view name_or_filename, bool search_by_name) const;
-    void AddReport(std::wstring name, std::shared_ptr<TextSource> report_text_source);
-    void AddReport(std::wstring name, std::wstring filename);
-    void DropReport(size_t index);
+    const ReportFile* GetReportFile(std::string_view name_or_file_path_sv, bool search_by_name) const;
+
+    void AddReport(ReportFile report_file);
+    void DropReport(const std::string& file_path);
 
 
-    // resource folders
+    // resources
     // --------------------------------------------------------------------------
-    const std::vector<CString>& GetResourceFolders() const { return m_resourceFolders; }
+    const std::vector<AppResource>& GetResources() const { return m_resources; }
 
-    void AddResourceFolder(const CString& folder);
-    void DropResourceFolder(size_t index);
+    const AppResource* GetResource(const std::string& path) const;
+
+    const AppResource& AddResource(AppResource resource);
+    void DropResource(const std::string& path);
 
 
     // dictionary descriptions
     // --------------------------------------------------------------------------
-    const std::vector<DictionaryDescription>& GetDictionaryDescriptions() const                   { return m_dictionaryDescriptions; }
-    std::vector<DictionaryDescription>& GetDictionaryDescriptions()                               { return m_dictionaryDescriptions; }
+    const std::vector<DictionaryDescription>& GetDictionaryDescriptions() const { return m_dictionaryDescriptions; }
+    std::vector<DictionaryDescription>& GetDictionaryDescriptions()             { return m_dictionaryDescriptions; }
+
+    DictionaryType GetDictionaryType(const CDataDict& dictionary) const;
+    const DictionaryDescription* GetDictionaryDescription(const CDataDict& dictionary) const;
+    const DictionaryDescription* GetDictionaryDescription(const std::string& dictionary_file_path,
+                                                          const std::string& parent_file_path = SO::Empty_string, bool ignore_parent = false) const;
+    DictionaryDescription* GetDictionaryDescription(const std::string& dictionary_file_path,
+                                                    const std::string& parent_file_path = SO::Empty_string, bool ignore_parent = false);
+    const std::string& GetFirstDictionaryFilePathOfType(DictionaryType dictionary_type) const;
 
     void SetDictionaryDescriptions(std::vector<DictionaryDescription> dictionary_descriptions)    { m_dictionaryDescriptions = std::move(dictionary_descriptions); }
     DictionaryDescription* AddDictionaryDescription(DictionaryDescription dictionary_description) { return &m_dictionaryDescriptions.emplace_back(std::move(dictionary_description)); }
-
-    DictionaryType GetDictionaryType(const CDataDict& dictionary) const;
-    const DictionaryDescription* GetDictionaryDescription(wstring_view dictionary_filename, wstring_view parent_filename = wstring_view()) const;
-    DictionaryDescription* GetDictionaryDescription(wstring_view dictionary_filename, wstring_view parent_filename = wstring_view());
-    const std::wstring& GetFirstDictionaryFilenameOfType(DictionaryType dictionary_type) const;
+    void DropDictionaryDescription(const std::string& file_path, bool file_path_is_parent);
 
 
     // flags
@@ -254,20 +275,21 @@ public:
     // serialization
     // --------------------------------------------------------------------------
 
-    // all serialization methods (with the exception of WriteJson and serialize) can throw exceptions
-    void Open(NullTerminatedString filename, bool silent = false, bool load_text_sources_and_external_application_properties = true);
-    void Save(NullTerminatedString filename, bool continue_using_filename = true) const;
+    // All serialization methods (with the exception of WriteJson and serialize) can throw exceptions.
+    void Open(InterfaceString file_path, bool silent = false, bool load_text_sources_and_external_application_properties = true);
+    void Save(InterfaceString file_path, bool continue_using_file_path = true) const;
 
-    static Application CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static Application CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
 
     void serialize(Serializer& ar);
 
+
 private:
-    void CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool load_text_sources_and_external_application_properties,
+    void CreateFromJsonWorker(const JsonNode& json_node, bool load_text_sources_and_external_application_properties,
                               bool silent, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger);
 
-    static std::wstring ConvertPre80SpecFile(NullTerminatedString filename);
+    static std::string ConvertPre80SpecFile(InterfaceString file_path);
 
 
 public:
@@ -309,13 +331,10 @@ public:
     // other methods
     // --------------------------------------------------------------------------
 
-    // returns false if the name is used by a report or code namespace
-    bool IsNameUnique(const std::wstring& name) const;
+    // Returns false if the name is used by a report.
+    bool IsNameUnique(std::string_view name_sv) const;
 
-    static constexpr int SetMinutesVariable(int minutes, int min_minutes = 0, int max_minutes = 360)
-    {
-        return std::max(min_minutes, std::min(minutes, max_minutes));
-    }
+    static constexpr int SetMinutesVariable(int minutes, int min_minutes = 0, int max_minutes = 360);
 
 
 private:
@@ -323,22 +342,22 @@ private:
     double m_version;
     int m_serializerArchiveVersion;
     EngineAppType m_engineAppType;
-    CString m_name;
-    CString m_label;
-    CString m_applicationFilename;
+    std::string m_name;
+    std::string m_label;
+    std::string m_applicationFilePath;
 
-    std::wstring m_applicationPropertiesFilename;
+    std::string m_applicationPropertiesFilePath;
     std::unique_ptr<ApplicationProperties> m_applicationProperties;
 
-    // other filenames
-    CString m_questionTextFilename;
-    std::vector<CString> m_formFilenames;
-    std::vector<CString> m_tabSpecFilenames;
-    std::vector<CString> m_externalDictionaryFilenames;
+    // other application files
+    std::string m_questionTextFilePath;
+    std::vector<std::string> m_formFilePaths;
+    std::vector<std::string> m_tableSpecFilePaths;
+    std::vector<std::string> m_externalDictionaryFilePaths;
     std::vector<CodeFile> m_codeFiles;
-    std::vector<std::shared_ptr<TextSource>> m_messageTextSources;
-    std::vector<std::shared_ptr<NamedTextSource>> m_reportNamedTextSources;
-    std::vector<CString> m_resourceFolders;
+    std::vector<AppMessageFile> m_messageFiles;
+    std::vector<ReportFile> m_reportFiles;
+    std::vector<AppResource> m_resources;
 
     // other + flags
     std::vector<DictionaryDescription> m_dictionaryDescriptions;
@@ -393,3 +412,14 @@ private:
 
     std::shared_ptr<CTabSet> m_pTableSpec; //Table spec used @ tab runtime
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+constexpr int Application::SetMinutesVariable(const int minutes, const int min_minutes/* = 0*/, const int max_minutes/* = 360*/)
+{
+    return std::max(min_minutes, std::min(minutes, max_minutes));
+}

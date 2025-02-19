@@ -25,7 +25,7 @@ namespace UpdateSEE
                 var header_lines = new List<string>()
                 {
                     "#pragma once",
-                    "#include <SQLite/sqlite_dll.h>",
+                    "#include <zSql/zSql.h>",
                     "#define SQLITE_HAS_CODEC"
                 };
 
@@ -38,7 +38,7 @@ namespace UpdateSEE
                 var source_lines = new List<string>()
                 {
                     "#ifndef ANDROID",
-                    "#include <SQLite/sqlite_dll.h>",
+                    "#include <zSql/zSql.h>",
                     "#endif"
                 };
 

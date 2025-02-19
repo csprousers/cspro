@@ -54,7 +54,7 @@
             const ctx = canvas.getContext("2d");
             ctx.drawImage(photo, 0, 0);
 
-            CS.UI.closeDialog({ result: { url: canvas.toDataURL() } });
+            CS.UI.close({ result: { url: canvas.toDataURL() } });
         }
 
         function clearPhoto() {

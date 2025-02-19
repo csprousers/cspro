@@ -367,7 +367,7 @@ bool CEntryDriver::LoadPersistentFields(std::optional<double> position_in_reposi
                     // load the value from the PFF's persistent map if specified
                     if( m_pPifFile != NULL )
                     {
-                        CString csMappedValue = m_pPifFile->GetPersistentData(WS2CS(pVarT->GetName()));
+                        CString csMappedValue = m_pPifFile->GetPersistentData(UTF8_TODO::GetCString(pVarT->GetName()));
 
                         if( !csMappedValue.IsEmpty() )
                         {
@@ -438,7 +438,7 @@ bool CEntryDriver::LoadPersistentFields(std::optional<double> position_in_reposi
             position_in_repository = optional_case_key->GetPositionInRepository();
         }
 
-        data_case = pInputRepository->GetCaseAccess()->CreateCase();
+        data_case = pInputRepository->GetCaseAccess().CreateCase();
         pInputRepository->ReadCase(*data_case, *position_in_repository);
     }
 
@@ -592,7 +592,7 @@ bool CEntryDriver::LoadAutoIncrementFields()
             {
                 for( auto& auto_increment : aAutoIncrements )
                 {
-                    int64_t llThisValue = (int64_t)chartodval(case_key.GetKey().GetString() + auto_increment._iKeyOffset, auto_increment._iLength, 0);
+                    int64_t llThisValue = (int64_t)chartodval(UTF8_TODO::GetCString(case_key.GetKey()).GetString() + auto_increment._iKeyOffset, auto_increment._iLength, 0);
                     auto_increment._llMaxValue = std::max(llThisValue, auto_increment._llMaxValue);
                 }
             }
@@ -690,7 +690,7 @@ void CEntryDriver::PrefillNonPersistentFields()
         for( const auto& [field_name, field_value] : m_pPifFile->GetCustomParams() )
         {
             // check if this is a valid field on the first level, not persistent, and not repeating
-            Symbol* symbol = DIP(0)->FindChildSymbol(field_name);
+            Symbol* const symbol = DIP(0)->FindChildSymbol(field_name);
 
             if( symbol != nullptr && symbol->IsA(SymbolType::Variable) )
             {
@@ -703,7 +703,7 @@ void CEntryDriver::PrefillNonPersistentFields()
 
                     if( pVarT->IsAlpha() )
                     {
-                        formatted_value = field_value;
+                        formatted_value = UTF8_TODO::GetWide(field_value);
                         SO::MakeExactLength(formatted_value, pVarT->GetLength());
                     }
 
@@ -713,7 +713,7 @@ void CEntryDriver::PrefillNonPersistentFields()
                         formatted_value = pVarT->GetCurrentValueProcessor().GetOutput(numeric_value);
                     }
 
-                    m_prefilledNonPersistentFields->try_emplace(pVarT, formatted_value);
+                    m_prefilledNonPersistentFields->try_emplace(pVarT, std::move(formatted_value));
                 }
             }
         }
@@ -775,28 +775,30 @@ ResponseProcessor* CEntryDriver::GetResponseProcessor(const DEFLD* defld)
 }
 
 
-CString CEntryDriver::GetNoteContent(const DEFLD& defld)
+SharableString CEntryDriver::GetNoteContent(const DEFLD& defld)
 {
     std::shared_ptr<NamedReference> named_reference;
     int field_symbol;
     GetNamedReferenceFromField(defld, named_reference, field_symbol);
 
-    return CEngineDriver::GetNoteContent(named_reference, GetOperatorId(), field_symbol);
+    const std::string operator_id = UTF8_TODO::GetUtf8(GetOperatorId());
+    return CEngineDriver::GetNoteContent(*named_reference, &operator_id, field_symbol);
 }
 
 
-void CEntryDriver::SetNote(const DEFLD& defld, const CString& note_content)
+void CEntryDriver::SetNote(const DEFLD& defld, SharableString note_content)
 {
     std::shared_ptr<NamedReference> named_reference;
     int field_symbol;
     GetNamedReferenceFromField(defld, named_reference, field_symbol);
 
-    CEngineDriver::SetNote(named_reference, GetOperatorId(), note_content, field_symbol);
+    const std::string operator_id = UTF8_TODO::GetUtf8(GetOperatorId());
+    CEngineDriver::SetNote(named_reference, &operator_id, std::move(note_content), field_symbol);
 }
 
 
 // for on-demand (interface) editing of notes
-bool CEntryDriver::EditNote(bool case_note, const DEFLD* defld/* = nullptr*/)
+bool CEntryDriver::EditNote(const bool case_note, const DEFLD* defld/* = nullptr*/)
 {
     std::shared_ptr<NamedReference> named_reference;
     int field_symbol;
@@ -804,7 +806,7 @@ bool CEntryDriver::EditNote(bool case_note, const DEFLD* defld/* = nullptr*/)
     if( case_note )
     {
         const DICT* pDicT = DIP(0);
-        named_reference = std::make_shared<NamedReference>(WS2CS(pDicT->GetName()), CString());
+        named_reference = std::make_unique<NamedReference>(pDicT->GetName(), std::string());
         field_symbol = pDicT->GetSymbolIndex();
     }
 
@@ -822,26 +824,26 @@ bool CEntryDriver::EditNote(bool case_note, const DEFLD* defld/* = nullptr*/)
         GetNamedReferenceFromField(*defld, named_reference, field_symbol);
     }
 
-    return std::get<bool>(CEngineDriver::EditNote(named_reference, case_note ? CString() : GetOperatorId(), field_symbol));
+    const std::string operator_id = UTF8_TODO::GetUtf8(GetOperatorId());
+    return std::get<bool>(CEngineDriver::EditNote(std::move(named_reference), case_note ? nullptr : &operator_id, field_symbol));
 }
 
 
-int CEntryDriver::DisplayMessage(MessageType message_type, int message_number, const std::wstring& message_text, const void* extra_information/* = nullptr*/)
+int CEntryDriver::DisplayMessage(const MessageType message_type, const int message_number, SharableString message_text, const MessageSelectDetails* const select_details)
 {
     // abort messages aren't displayed using the entry message because they are handled elsewhere
     ASSERT(message_type != MessageType::Abort);
 
     if( !UseHtmlDialogs() )
-        return DisplayMessage_pre77(message_type, message_number, WS2CS(message_text), extra_information);
+        return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
 
-    cs::shared_or_raw_ptr<const std::vector<std::wstring>> message_buttons;
+    cs::shared_or_raw_ptr<const std::vector<SharableString>> message_buttons;
     int default_button_index = 0;
 
-    if( extra_information != nullptr )
+    if( select_details != nullptr )
     {
-        const std::tuple<std::vector<std::wstring>, int>& entry_error_information = *static_cast<const std::tuple<std::vector<std::wstring>, int>*>(extra_information);
-        message_buttons = &std::get<0>(entry_error_information);
-        default_button_index = std::get<1>(entry_error_information);
+        message_buttons = &select_details->button_texts;
+        default_button_index = select_details->default_button_number;
 
         // the default button index needs to be one-based
         ++default_button_index;
@@ -854,7 +856,7 @@ int CEntryDriver::DisplayMessage(MessageType message_type, int message_number, c
 #ifdef WIN_DESKTOP
         // use the old message style while in operator-controlled mode
         if( WindowsDesktopMessage::Send(UWM::CSEntry::UsingOperatorControlledMessages) == 1 )
-            return DisplayMessage_pre77(message_type, message_number, WS2CS(message_text), extra_information);
+            return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
 
         // CSEntry may decide that this error message does not need to be displayed
         // (for example, while in an interactive edit)
@@ -866,31 +868,29 @@ int CEntryDriver::DisplayMessage(MessageType message_type, int message_number, c
         // into the engine, display messages using a native message box
         if( WebViewSyncOperationMarker::IsOperationInProgress() )
         {
-            ErrorMessage::Display(message_text);
+            ErrorMessage::Display(*message_text);
             return 1;
         }
 
         // add the default OK text
-        message_buttons = std::make_shared<std::vector<std::wstring>>(std::vector<std::wstring>({ MGF::GetMessageText(MGF::Ok) }));
+        message_buttons = std::make_shared<std::vector<SharableString>>(std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) }));
     }
 
     ErrmsgDlg errmsg_dlg;
 
     // construct the title
-#ifndef WIN_DESKTOP
-    if( GetApplication()->GetShowErrorMessageNumbers() )
-#endif
+    if( OnWindowsDesktop() || GetApplication()->GetShowErrorMessageNumbers() )
     {
-        const std::wstring& message_type_text =
+        const SharableString message_type_text =
             ( message_type == MessageType::User )    ? MGF::GetMessageText(MGF::UserErrorTitle) :
             ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
                                                        MGF::GetMessageText(MGF::SystemErrorTitle);
 
-        errmsg_dlg.SetTitle(FormatTextCS2WS(_T("%s (%d)"), message_type_text.c_str(), message_number));
+        errmsg_dlg.SetTitle(FormatText("%s (%d)", message_type_text->c_str(), message_number));
     }
 
     // add the message text, default button index, and buttons
-    errmsg_dlg.SetMessage(message_text);
+    errmsg_dlg.SetMessage(std::move(message_text));
     errmsg_dlg.SetDefaultButtonIndex(default_button_index);
     errmsg_dlg.SetButtons(*message_buttons);
 
@@ -910,16 +910,17 @@ int CEntryDriver::DisplayMessage(MessageType message_type, int message_number, c
 }
 
 
-int CEntryDriver::DisplayMessage_pre77(MessageType message_type, int message_number, const CString& message_text, const void* extra_information/* = nullptr*/)
+int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int message_number, const CString& message_text, const MessageSelectDetails* const select_details)
 {
     std::vector<CString> message_buttons;
     int default_button_number = -1;
 
-    if( extra_information != nullptr )
+    if( select_details != nullptr )
     {
-        const std::tuple<std::vector<std::wstring>, int>& entry_error_information = *static_cast<const std::tuple<std::vector<std::wstring>, int>*>(extra_information);
-        message_buttons = WS2CS_Vector(std::get<0>(entry_error_information));
-        default_button_number = std::get<1>(entry_error_information);
+        for( const SharableString& button_text : select_details->button_texts )
+            message_buttons.emplace_back(UTF8_TODO::GetCString(*button_text));
+
+        default_button_number = select_details->default_button_number;
     }
 
     CString message = message_text;
@@ -932,12 +933,12 @@ int CEntryDriver::DisplayMessage_pre77(MessageType message_type, int message_num
     if( GetApplication()->GetShowErrorMessageNumbers() )
 #endif
     {
-        const std::wstring& message_type_text =
+        const SharableString message_type_text =
             ( message_type == MessageType::User )    ? MGF::GetMessageText(MGF::UserErrorTitle) :
             ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
                                                        MGF::GetMessageText(MGF::SystemErrorTitle);
 
-        title.Format(_T("%s (%d)"), message_type_text.c_str(), message_number);
+        title.Format(_T("%s (%d)"), UTF8_TODO::GetWide(*message_type_text).c_str(), message_number);
     }
 
     CMsgOptions message_options(title, message, MB_OK, default_button_number, -1, message_buttons, message_type, message_number);
@@ -981,7 +982,7 @@ void CEntryDriver::ViewCurrentCase()
                                                                       { pDicT->GetName() });
 
         // return if the user wants to suppress showing the current case
-        if( CIntDriver::ConditionalValueIsFalse(return_value) )
+        if( !IsTrue(return_value) )
             return;
     }
 
@@ -999,13 +1000,13 @@ void CEntryDriver::ViewCase(const double position_in_repository)
 {
     try
     {
-        DataRepository* input_data_repository = GetInputRepository();
-        std::unique_ptr<Case> data_case = input_data_repository->GetCaseAccess()->CreateCase();
+        DataRepository* const input_data_repository = GetInputRepository();
+        const std::unique_ptr<Case> data_case = input_data_repository->GetCaseAccess().CreateCase();
 
         input_data_repository->ReadCase(*data_case, position_in_repository);
 
-        EngineQuestionnaireViewer engine_questionnaire_viewer(this, CS2WS(input_data_repository->GetCaseAccess()->GetDataDict().GetName()),
-                                                              CS2WS(data_case->GetUuid()), CS2WS(data_case->GetKey()));
+        EngineQuestionnaireViewer engine_questionnaire_viewer(this, input_data_repository->GetCaseAccess().GetDataDict().GetName(),
+                                                              data_case->GetUuid(), data_case->GetKey());
 
         engine_questionnaire_viewer.View();
     }

@@ -157,7 +157,7 @@ void CCapi::GetCapiContent(CapiContent* capi_content, int symbol_index, CapiCont
         // evaluate the question or help text
         CString& text = evaluating_question_text ? capi_content->question_text :
                                                    capi_content->help_text;
-        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(current_language.GetName(), evaluating_question_text, symbol_index, occurrence);
+        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(UTF8_TODO::GetWide(current_language.GetName()), evaluating_question_text, symbol_index, occurrence);
     }
 }
 
@@ -185,7 +185,7 @@ CapiContent CCapi::GetFieldAndBlockCombinedCapiContent(int field_symbol_index, C
 }
 
 
-const std::wstring& CCapi::GetRuntimeStylesCss()
+const std::string& CCapi::GetRuntimeStylesCss()
 {
     return m_pEntryDriver->GetQuestMgr()->GetRuntimeStylesCss();
 }

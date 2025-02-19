@@ -10,7 +10,6 @@
 
 #include "StdAfx.h"
 #include "Specfile.h"
-#include <zToolsO/Utf8Convert.h>
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -217,12 +216,12 @@ CSpecFile::~CSpecFile(void)  {
         if (e->m_cause == CFileException::diskFull) {
             CString csLoad;
             csLoad.LoadString(IDS_DISKFULL);
-            m_csErrorMessage.Format(csLoad, (LPCTSTR)m_csFileName);
+            m_csErrorMessage.Format(csLoad, m_csFileName.GetString());
         }
         else {
             CString csLoad;
             csLoad.LoadString(IDS_ERRORCLOSING);
-            m_csErrorMessage.Format(csLoad, (LPCTSTR)m_csFileName);
+            m_csErrorMessage.Format(csLoad, m_csFileName.GetString());
         }
         if (!IsSilent())  {
             AfxMessageBox(m_csErrorMessage, MB_ICONSTOP);
@@ -324,12 +323,12 @@ UINT CSpecFile::PutLine(const TCHAR* pszLine)
         if (e->m_cause == CFileException::diskFull) {
             CString csLoad;
             csLoad.LoadString(IDS_DISKFULL);
-            m_csErrorMessage.Format(csLoad, (LPCTSTR)m_csFileName);
+            m_csErrorMessage.Format(csLoad, m_csFileName.GetString());
         }
         else {
             CString csLoad;
             csLoad.LoadString(IDS_ERRORWRITING);
-            m_csErrorMessage.Format(csLoad, (LPCTSTR)m_csFileName);
+            m_csErrorMessage.Format(csLoad, m_csFileName.GetString());
         }
         if (!IsSilent())  {
             AfxMessageBox(m_csErrorMessage, MB_ICONSTOP);
@@ -342,7 +341,7 @@ UINT CSpecFile::PutLine(const TCHAR* pszLine)
 #else
 /*virtual*/ void CSpecFile::Write(const csprochar* pszText, UINT uSize) // 20131104
 {
-    std::string str = UTF8Convert::WideToUTF8(pszText,uSize);
+    std::string str = UTF8_TODO::GetUtf8(std::wstring_view(pszText, uSize));
 
     // to ensure correct output on windows systems, we need to write out the \r anytime there is a \n
     int startPos = 0,curPos = 0;
@@ -429,7 +428,7 @@ UINT CSpecFile::PutLine(const TCHAR* pszLine)
                 memcpy(m_pFileException, e, sizeof(m_pFileException));
                 CString csLoad;
                 csLoad.LoadString(IDS_ERRORREADING);
-                m_csErrorMessage.Format(csLoad, (LPCTSTR)m_csFileName);
+                m_csErrorMessage.Format(csLoad, m_csFileName.GetString());
                 if (!IsSilent())  {
                     AfxMessageBox(m_csErrorMessage, MB_ICONSTOP);
                 }
@@ -652,7 +651,7 @@ BOOL CSpecFile::IsHeaderOK(const CString& csType)  {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-BOOL CSpecFile::IsVersionOK(const CString& csVersion, double* out_version_number/* = nullptr*/) {
+BOOL CSpecFile::IsVersionOK(const std::string_view version_sv, double* out_version_number/* = nullptr*/) {
     CString csAttribute;
     CString csValue;
     if (GetLine(csAttribute, csValue) != SF_OK) {
@@ -665,9 +664,9 @@ BOOL CSpecFile::IsVersionOK(const CString& csVersion, double* out_version_number
         return FALSE;
     }*/
     // 20130226 .sts files created in previous versions of CSPro were not being recognized
-    if( csVersion.CompareNoCase(csValue) >= 0 ) {
+    if( SO::CompareNoCase(version_sv, UTF8_TODO::GetUtf8(csValue)) >= 0 ) {
         if( out_version_number != nullptr )
-            *out_version_number = GetCSProVersionNumeric(csValue);
+            *out_version_number = GetCSProVersionNumeric(UTF8_TODO::GetUtf8(csValue));
         return TRUE;
     }
 
@@ -681,7 +680,7 @@ BOOL CSpecFile::IsVersionOK(const CString& csVersion, double* out_version_number
 //
 /////////////////////////////////////////////////////////////////////////////
 
-BOOL CSpecFile::IsVersionOK(CString& csVersion)  {
+BOOL CSpecFile::IsVersionOK_CS(CString& csVersion)  {
 
     CString csAttribute;
     CString csValue;
@@ -694,7 +693,7 @@ BOOL CSpecFile::IsVersionOK(CString& csVersion)  {
         return FALSE;
     }
     csVersion = csValue;
-    if (csVersion.CompareNoCase(CSPRO_VERSION) != 0) {
+    if (!SO::EqualsNoCase(csVersion, UTF8_TODO::GetWide(Versioning::CSProVersionText))) {
         return FALSE;
     }
     return TRUE;

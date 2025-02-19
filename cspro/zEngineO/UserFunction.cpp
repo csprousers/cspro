@@ -6,7 +6,7 @@
 // UserFunction
 // --------------------------------------------------------------------------
 
-UserFunction::UserFunction(std::wstring user_function_name, EngineData& engine_data)
+UserFunction::UserFunction(std::string user_function_name, EngineData& engine_data)
     :   Symbol(std::move(user_function_name), SymbolType::UserFunction),
         m_engineData(engine_data),
         m_programIndex(-1),
@@ -19,15 +19,62 @@ UserFunction::UserFunction(std::wstring user_function_name, EngineData& engine_d
 }
 
 
-void UserFunction::AddParameterSymbol(const Symbol& parameter_symbol)
+void UserFunction::SetParameters(std::vector<int> parameter_symbol_indices, std::vector<int> parameter_default_values)
 {
-    m_parameterSymbols.emplace_back(parameter_symbol.GetSymbolIndex());
+    ASSERT(parameter_default_values.size() <= parameter_symbol_indices.size());
+
+    m_parameterSymbols = std::move(parameter_symbol_indices);
+
+    // whena a function is declared but not defined, the default values should be kept from the declaration
+    if( m_parameterDefaultValues.empty() )
+        m_parameterDefaultValues = std::move(parameter_default_values);
+
+    ASSERT(m_parameterDefaultValues.size() <= m_parameterSymbols.size());
 }
 
 
 Symbol& UserFunction::GetParameterSymbol(const size_t parameter_number)
 {
     return m_engineData.symbol_table.GetAt(m_parameterSymbols[parameter_number]);
+}
+
+
+void UserFunction::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const UserFunction& user_function = assert_cast<const UserFunction&>(symbol);
+
+    CompareDeclarationAttributes(user_function.m_returnType, user_function.m_returnPaddingStringLength,
+                                 user_function.m_sqlCallbackFunction);
+}
+
+
+void UserFunction::CompareDeclarationAttributes(const SymbolType return_type, const int return_padding_string_length,
+                                                const bool sql_callback_function) const
+{
+    if( m_returnType != return_type )
+    {
+        throw CompareDeclarationAttributesException("return type: %s vs. %s", ToDisplayString(m_returnType),
+                                                                              ToDisplayString(return_type));
+    }
+
+    if( m_returnPaddingStringLength != return_padding_string_length )
+    {
+        const bool this_is_alpha = ( m_returnPaddingStringLength == 0 );
+
+        if( this_is_alpha || return_padding_string_length == 0 )
+        {
+            throw CompareDeclarationAttributesException("return type: %s vs. %s", this_is_alpha ? "alpha" : "string",
+                                                                                  this_is_alpha ? "string" : "alpha");
+        }
+
+        throw CompareDeclarationAttributesException("return type alpha length: %d vs. %d", static_cast<int>(m_returnPaddingStringLength),
+                                                                                           static_cast<int>(return_padding_string_length));
+    }
+
+    if( m_sqlCallbackFunction != sql_callback_function )
+        throw CompareDeclarationAttributesException("SQL callback flag");
+
+    // the parameters are compared in LogicCompiler::CompileUserFunctionParameters
 }
 
 
@@ -40,25 +87,27 @@ void UserFunction::Reset()
 
     else
     {
-        if( !std::holds_alternative<std::wstring>(m_returnValue) )
+        if( std::holds_alternative<SharableString>(m_returnValue) )
         {
-            m_returnValue.emplace<std::wstring>();
+            std::get<SharableString>(m_returnValue).Reset();
         }
 
         else
         {
-            std::get<std::wstring>(m_returnValue).clear();
-        }        
+            m_returnValue.emplace<SharableString>();
+        }
     }
 }
 
 
-void UserFunction::SetReturnValue(std::variant<double, std::wstring> return_value)
+void UserFunction::SetReturnValue(std::variant<double, SharableString> return_value)
 {
+    ASSERT(( m_returnType == SymbolType::WorkVariable ) == std::holds_alternative<double>(return_value));
+
     m_returnValue = std::move(return_value);
 
-    if( std::holds_alternative<std::wstring>(m_returnValue) && m_returnPaddingStringLength != 0 )
-        SO::MakeExactLength(std::get<std::wstring>(m_returnValue), m_returnPaddingStringLength);
+    if( std::holds_alternative<SharableString>(m_returnValue) && m_returnPaddingStringLength != 0 )
+        std::get<SharableString>(m_returnValue).WideMakeExactLength(m_returnPaddingStringLength);
 }
 
 
@@ -67,12 +116,6 @@ void UserFunction::serialize_subclass(Serializer& ar)
     ar & m_programIndex;
 
     ar.SerializeEnum(m_returnType);
-
-    if( ar.PredatesVersionIteration(Serializer::Iteration_7_6_000_1) )
-    {
-        if( m_returnType == SymbolType::Variable )
-            m_returnType = SymbolType::WorkString;
-    }
 
     ar & m_returnPaddingStringLength
        & m_sqlCallbackFunction

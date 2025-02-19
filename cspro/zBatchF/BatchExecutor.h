@@ -10,7 +10,7 @@ class BatchExecutorCallback
 public:
     virtual ~BatchExecutorCallback() { }
 
-    virtual bool QueryForFilename(CString& pff_or_batch_filename) = 0;
+    virtual bool QueryForFilePath(std::string& pff_or_batch_file_path) = 0;
 
     virtual bool QueryForFileAssociations(CNPifFile& pff, const EngineData& engine_data) = 0;
 };
@@ -23,7 +23,7 @@ public:
 
     void AddUWMCallback(unsigned message, std::shared_ptr<UWMCallback> uwm_callback);
 
-    void Run(const CString& pff_or_batch_filename);
+    void Run(const std::string& pff_or_batch_file_path);
 
 private:
     BatchExecutorCallback* m_batchExecutorCallback;

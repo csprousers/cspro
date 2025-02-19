@@ -17,14 +17,14 @@ public:
     {
     public:
         virtual ~ActionResponder() { }
-        virtual bool CheckSyntax(const std::wstring& universe) = 0;
+        virtual bool CheckSyntax(const std::string& universe) = 0;
         virtual void ToggleNamesInTree() = 0;
     };
 
-    UniverseDlg(std::shared_ptr<const CDataDict> dictionary, std::wstring universe, ActionResponder& action_responder, CWnd* pParent = nullptr);
+    UniverseDlg(std::shared_ptr<const CDataDict> dictionary, std::string universe, ActionResponder& action_responder, CWnd* pParent = nullptr);
     ~UniverseDlg();
 
-    const std::wstring& GetUniverse() const { return m_universe; }
+    const std::string& GetUniverse() const { return m_universe; }
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -47,15 +47,15 @@ protected:
     void OnParenthesesButtonClicked();
 
 private:
-    void InsertTextToUniverse(std::wstring text);
+    void InsertTextToUniverse(std::string text);
 
 private:
     std::shared_ptr<const CDataDict> m_dictionary;
-    std::wstring m_universe;
+    std::string m_universe;
     ActionResponder& m_actionResponder;
 
     std::unique_ptr<DictionaryTreeCtrl> m_dictionaryTreeCtrl;
     CListBox m_itemValues;
-    std::vector<std::wstring> m_logicForItemValues;
+    std::vector<std::string> m_logicForItemValues;
     std::unique_ptr<CLogicCtrl> m_universeLogicCtrl;
 };

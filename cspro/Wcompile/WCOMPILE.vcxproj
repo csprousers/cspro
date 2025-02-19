@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6949E4E8-0484-44B7-9A39-A28AAB197B07}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>WCompile</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -74,8 +70,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Engine\Common.cpp" />
-    <ClCompile Include="compall.cpp" />
     <ClCompile Include="..\Engine\Exappl.cpp" />
+    <ClCompile Include="compall.cpp" />
     <ClCompile Include="nulas.cpp" />
     <ClCompile Include="wcompile.cpp" />
   </ItemGroup>

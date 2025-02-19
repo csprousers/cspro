@@ -90,7 +90,7 @@ namespace CSDeploy
         {
             var ms = new MemoryStream();
             Save(ms);
-            return Encoding.Default.GetString(ms.GetBuffer());
+            return Encoding.Default.GetString(ms.GetBuffer(), 0, (int)ms.Length);
         }
 
         public void Save(Stream stream)

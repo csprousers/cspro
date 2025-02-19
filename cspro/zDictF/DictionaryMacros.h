@@ -4,25 +4,36 @@
 #include <zCaseO/CaseAccess.h>
 
 struct CaseIteratorRoutine;
+class ConnectionString;
 
 
-// CDictionaryMacros dialog: started 20101108
+// DictionaryMacrosDlg dialog: started 20101108
 
-class CDictionaryMacros : public CDialog
+class DictionaryMacrosDlg : public CDialog
 {
-    DECLARE_DYNAMIC(CDictionaryMacros)
-
 public:
-    CDictionaryMacros(CDDDoc* pDDDoc,CWnd* pParent = NULL);   // standard constructor
-
-// Dialog Data
-    enum { IDD = IDD_DICTIONARY_MACROS };
+    DictionaryMacrosDlg(CDDDoc* pDDDoc, CWnd* pParent = nullptr);
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
     DECLARE_MESSAGE_MAP()
-public:
+
+    void DoDataExchange(CDataExchange* pDX) override;
+
+    void OnBnClickedDeleteValueSets();
+    void OnBnClickedRequireRecordsYes();
+    void OnBnClickedRequireRecordsNo();
+    void OnBnClickedCopyDictionaryNames();
+    void OnBnClickedPasteDictionaryNames();
+    void OnBnClickedCopyValueSets();
+    void OnBnClickedPasteValueSets();
+    void OnBnClickedGenerateDataFile();
+    void OnBnClickedCreateSample();
+    void OnBnClickedAddItemsToRecord();
+    void OnBnClickedCompactDataFile();
+    void OnBnClickedSortDataFile();
+    void OnBnClickedCreateNotesDictionary();
+
+private:
     void SetRequireRecords(bool required);
 
     int readEntry(CString text,int startPos,CString& readWord);
@@ -34,29 +45,17 @@ public:
 
     CString makeValueValid(CString value,CDictItem* pItem,int & numValsModified);
 
-    afx_msg void OnBnClickedDeleteValueSets();
-    afx_msg void OnBnClickedRequireRecordsYes();
-    afx_msg void OnBnClickedRequireRecordsNo();
-    afx_msg void OnBnClickedCopyDictionaryNames();
-    afx_msg void OnBnClickedPasteDictionaryNames();
-    afx_msg void OnBnClickedCopyValueSets();
-    afx_msg void OnBnClickedPasteValueSets();
-    afx_msg void OnBnClickedGenerateDataFile();
-    afx_msg void OnBnClickedCreateSample();
-    afx_msg void OnBnClickedAddItemsToRecord();
-    afx_msg void OnBnClickedCompactDataFile();
-    afx_msg void OnBnClickedSortDataFile();
-    afx_msg void OnBnClickedCreateNotesDictionary();
+    static CString GetTempDataFileName(CString csFilename);
+    static ConnectionString GetTempDataFileConnectionString(const ConnectionString& connection_string);
 
-private:
     std::unique_ptr<CaseAccess> CreateCaseAccess();
-    void RunCaseIteratorRoutine(const CaseIteratorRoutine& case_iterator_routine, const TCHAR* action_verb);
+    void RunCaseIteratorRoutine(const CaseIteratorRoutine& case_iterator_routine, const char* action_verb);
     void RunCompactSortDataFile(bool compact_data);
 
     void AddRandomValue(const CaseItem& case_item, CaseItemIndex& index);
     void AddRandomBinaryValue(const CaseItem& case_item, CaseItemIndex& index);
-    double GenerateRandomNumeric(const CDictItem& dictionary_item);
-    CString GenerateRandomAlpha(const CDictItem& dictionary_item);
+    double GenerateRandomNumeric(const CDictItem& dict_item);
+    CString GenerateRandomAlpha(const CDictItem& dict_item);
     int CountAlphaValues(const DictValueSet& dict_value_set);
 
 private:
@@ -64,6 +63,8 @@ private:
     CDataDict* m_pDict;
 
     // variables for the random file generation
-    int notapplPercent,invalidPercent,regularPercent;
+    int notapplPercent;
+    int invalidPercent;
+    int regularPercent;
     std::map<const DictValueSet*, int> alphaValueSetValueCounts;
 };

@@ -101,7 +101,7 @@ void DictionaryTreeCtrl::BuildTree()
 
                     std::optional<HTREEITEM> hFirstItem;
 
-                    auto add_dictionary_item = [&](const std::optional<size_t> occurrence)
+                    auto add_dict_item = [&](const std::optional<size_t> occurrence)
                     {
                         const HTREEITEM hItemItem = insert_item(hFirstItem.value_or(hRecordItem),
                                                                 std::make_unique<DictionaryTreeNode>(dict_item, occurrence));
@@ -121,13 +121,13 @@ void DictionaryTreeCtrl::BuildTree()
                         return hItemItem;
                     };
 
-                    hFirstItem = add_dictionary_item(std::nullopt);
+                    hFirstItem = add_dict_item(std::nullopt);
 
                     // when there are item/subitem occurrences, add an entry for each occurrence
                     if( dict_item.GetItemSubitemOccurs() > 1 )
                     {
                         for( unsigned occ = 0; occ < dict_item.GetItemSubitemOccurs(); ++occ )
-                            add_dictionary_item(occ);
+                            add_dict_item(occ);
                     }                
                 }
             }

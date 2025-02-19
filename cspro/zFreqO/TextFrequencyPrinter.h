@@ -17,11 +17,11 @@ public:
     void Print(const FrequencyTable& frequency_table) override;
 
 protected:
-    virtual void WriteLine(NullTerminatedString line) = 0;
+    virtual void WriteLine(std::string_view line_sv) = 0;
 
 private:
     FormatType m_formatType;
-    int m_lineLength;
+    const int m_lineLength;
     int m_pageNumber;
     int m_lineNumber;
     bool m_expectingPrinterFirstTable;

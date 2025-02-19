@@ -7,14 +7,8 @@
 
 class QSFEditStyleDlg : public CDialog
 {
-    DECLARE_DYNAMIC(QSFEditStyleDlg)
-
 public:
-
-    QSFEditStyleDlg(std::vector<CapiStyle> styles,
-                    CWnd* pParent = NULL);
-
-    enum { IDD = IDD_QSFSTYLEDLG };
+    QSFEditStyleDlg(std::vector<CapiStyle> styles, CWnd* pParent = NULL);
 
     std::vector<CapiStyle> m_styles;
 
@@ -26,11 +20,14 @@ public:
     afx_msg void OnDeleteStyle();
 
 protected:
-    virtual void OnOK();
-    virtual void DoDataExchange(CDataExchange* pDX);
-    virtual BOOL OnInitDialog();
-
     DECLARE_MESSAGE_MAP()
+
+    void OnOK() override;
+    void DoDataExchange(CDataExchange* pDX) override;
+    BOOL OnInitDialog() override;
+
+private:
+    static std::string MakeCssClassName(std::string class_name);
 
 private:
     CapiStyle& GetSelectedStyle();
@@ -55,4 +52,3 @@ private:
     CMFCButton m_add_button;
     CMFCButton m_delete_button;
 };
-

@@ -3,11 +3,9 @@
 
 
 JsonStringFrequencyPrinter::JsonStringFrequencyPrinter(std::string& json_frequency_text)
-    :   m_ownedJsonWriter(Json::CreateStringWriter(json_frequency_text, JsonFormattingOptions::Compact))
+    :   JsonFrequencyPrinter(Json::CreateStringWriter(json_frequency_text, JsonFormattingOptions::Compact))
 {
     ASSERT(json_frequency_text.empty());
-
-    m_jsonWriter = m_ownedJsonWriter.get();
 
     m_jsonWriter->BeginArray();
 }

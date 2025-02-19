@@ -1,22 +1,25 @@
 ﻿#pragma once
+
 #include <zSyncO/zSyncO.h>
-#include <zSyncO/SyncException.h>
+#include <zSyncO/BluetoothDeviceInfo.h>
 #include <thread>
 #include <mutex>
-#include <functional>
 #include <Winsock2.h>
 #include <Ws2bth.h>
-#include <zSyncO/BluetoothDeviceInfo.h>
+
+class SyncError;
 class WinBluetoothFunctions;
 
-/// <summary>Service to scan for Bluetooth devices in a background thread</summary>
-/// Because device scanning is very slow, in order to be able to cancel we need to run
-/// it in the background. This service lets you register a callback when the scan is complete.
-/// Note that while it is safe to call startScan() multiple times on a single instance
-/// of this object it is not safe to do so on multiple instances since the underlying
-/// Windows calls for Bluetooth scanning are not thread safe.
-class SYNC_API WinBluetoothScanner {
 
+// Service to scan for Bluetooth devices in a background thread.
+// Because device scanning is very slow, in order to be able to cancel we need to run
+// it in the background. This service lets you register a callback when the scan is complete.
+// Note that while it is safe to call startScan() multiple times on a single instance
+// of this object it is not safe to do so on multiple instances since the underlying
+// Windows calls for Bluetooth scanning are not thread safe.
+
+class SYNC_API WinBluetoothScanner
+{
 public:
     WinBluetoothScanner(std::shared_ptr<WinBluetoothFunctions> pBtFuncs);
     ~WinBluetoothScanner();
@@ -46,9 +49,9 @@ public:
     DeviceList getLastScanResult();
 
 private:
-
     void scanThreadMain();
 
+private:
     std::function<void(const DeviceList&)> m_resultCallback;
     std::function<void(const SyncError&)> m_errorCallback;
     std::thread m_scanThread;

@@ -7,8 +7,8 @@ template<typename T>
 struct DictPastedValues
 {
     std::vector<T> values;
-    CString parent_dict_element_name;
-    std::vector<CString> value_set_names_added;
+    std::string parent_dict_element_name;
+    std::vector<std::string> value_set_names_added;
 };
 
 

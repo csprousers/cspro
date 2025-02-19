@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "ProcessorJavaScript.h"
+#include <zToolsO/CancelFlag.h>
 #include <zLogicO/ActionInvoker.h>
 
 
@@ -13,11 +14,11 @@ OutputWndJavaScriptPrinter::OutputWndJavaScriptPrinter(OutputWnd& output_wnd)
 }
 
 
-void OutputWndJavaScriptPrinter::OnPrint(const std::string& text)
+void OutputWndJavaScriptPrinter::OnPrint(SharableString text)
 {
     ASSERT(m_outputWnd.GetSafeHwnd() != nullptr);
 
-    m_outputWnd.AddText(text);
+    m_outputWnd.AddText(std::move(text));
 }
 
 
@@ -26,82 +27,95 @@ void OutputWndJavaScriptPrinter::OnPrint(const std::string& text)
 // JavaScriptRunOperation
 // --------------------------------------------------------------------------
 
-namespace
+class JavaScriptRunOperation : public RunOperation
 {
-    class JavaScriptRunOperation : public RunOperation
+public:
+    JavaScriptRunOperation(JavaScript::Executor& executor, JavaScript::Bytecode bytecode, OutputWnd& output_wnd);
+
+    bool IsCancelable() const override { return true; }
+    bool IsRunning() const override;
+    void Run() override;
+    void OnComplete() override;
+    void Cancel() override;
+
+private:
+    void RunWorker();
+
+private:
+    JavaScript::Executor& m_executor;
+    JavaScript::Bytecode m_bytecode;
+    OutputWnd& m_outputWnd;
+    CancelFlag m_cancelFlag;
+    std::unique_ptr<std::thread> m_runThread;
+};
+
+
+JavaScriptRunOperation::JavaScriptRunOperation(JavaScript::Executor& executor, JavaScript::Bytecode bytecode, OutputWnd& output_wnd)
+    :   m_executor(executor),
+        m_bytecode(std::move(bytecode)),
+        m_outputWnd(output_wnd)
+{
+    m_executor.SetCancelFlag(&m_cancelFlag);
+}
+
+
+bool JavaScriptRunOperation::IsRunning() const
+{
+    return ( m_runThread != nullptr && m_runThread->joinable() );
+}
+
+
+void JavaScriptRunOperation::Run()
+{
+    m_runThread = std::make_unique<std::thread>([&]() { RunWorker(); });
+}
+
+
+void JavaScriptRunOperation::OnComplete()
+{
+    if( m_runThread != nullptr )
     {
-    public:
-        JavaScriptRunOperation(JavaScript::Executor& executor, JavaScript::ByteCode byte_code, OutputWnd& output_wnd)
-            :   m_executor(executor),
-                m_byteCode(byte_code),
-                m_outputWnd(output_wnd)
+        if( m_runThread->joinable() )
+            m_runThread->join();
+
+        m_runThread.reset();
+    }
+}
+
+
+void JavaScriptRunOperation::Cancel()
+{
+    if( m_runThread != nullptr )
+    {
+        if( m_runThread->joinable() )
         {
+            m_cancelFlag = true;
+            m_runThread->join();
         }
 
-        bool IsCancelable() const override
-        {
-            return true;
-        }
+        m_runThread.reset();
+    }
+}
 
-        bool IsRunning() const override
-        {
-            return ( m_runThread != nullptr && m_runThread->joinable() );
-        }
 
-        void Run() override
-        {
-            m_runThread = std::make_unique<std::thread>([&]() { RunWorker(); });
-        }
+void JavaScriptRunOperation::RunWorker()
+{
+    try
+    {
+        // forward any cancelation requests to the JavaScript executor
+        const CancelFlag::ListenerHolder cancel_flag_listener_holder = m_cancelFlag.AddListener([&]() { m_executor.CancelEvaluation(); });
 
-        void OnComplete() override
-        {
-            if( m_runThread != nullptr )
-            {
-                if( m_runThread->joinable() )
-                    m_runThread->join();
+        SharableString result = m_executor.EvaluateBytecode(m_bytecode);
 
-                m_runThread.reset();
-            }
-        }
+        m_outputWnd.AddText(std::move(result));
+    }
 
-        void Cancel() override
-        {
-            if( m_runThread != nullptr )
-            {
-                if( m_runThread->joinable() )
-                {
-                    m_executor.CancelEvaluation();
-                    m_runThread->join();
-                }
+    catch( const JavaScript::Exception& exception )
+    {
+        m_outputWnd.AddText(FormatText("UNHANDLED EXCEPTION: %s", exception.what()));
+    }
 
-                m_runThread.reset();
-            }
-        }
-
-    private:
-        void RunWorker()
-        {
-            try
-            {
-                std::string result = m_executor.EvaluateByteCode(m_byteCode);
-
-                m_outputWnd.AddText(result);
-            }
-
-            catch( const JavaScript::Exception& exception )
-            {
-                m_outputWnd.AddText(_T("UNHANDLED EXCEPTION: ") + exception.GetErrorMessage());
-            }
-
-            WindowsDesktopMessage::Post(UWM::CSCode::RunOperationComplete);
-        }
-
-    private:
-        JavaScript::Executor& m_executor;
-        JavaScript::ByteCode m_byteCode;
-        OutputWnd& m_outputWnd;
-        std::unique_ptr<std::thread> m_runThread;
-    };
+    WindowsDesktopMessage::Post(UWM::CSCode::RunOperationComplete);
 }
 
 
@@ -112,7 +126,7 @@ namespace
 
 ProcessorJavaScript::ProcessorJavaScript(CodeDoc& code_doc)
     :   m_codeDoc(code_doc),
-        m_executor(PortableFunctions::PathGetDirectory(code_doc.GetPathName()))
+        m_executor(PortableFunctions::PathGetDirectory(code_doc.GetFilePath()))
 {
     m_executor.UseActionInvoker(ActionInvoker::GetFunctions(), ActionInvoker::GetNamespaceNames());
 }
@@ -129,22 +143,22 @@ JavaScript::ModuleType ProcessorJavaScript::GetModuleType()
 }
 
 
-bool ProcessorJavaScript::CompileRunWorker(JavaScript::ByteCode* byte_code)
+bool ProcessorJavaScript::CompileRunWorker(JavaScript::Bytecode* const bytecode)
 {
-    const bool compile_mode = ( byte_code == nullptr );
+    const bool compile_mode = ( bytecode == nullptr );
     const bool make_build_window_visible_if_not = compile_mode;
 
     CodeView& code_view = m_codeDoc.GetPrimaryCodeView();
-    CLogicCtrl* logic_ctrl = code_view.GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JAVASCRIPT);
 
-    CMainFrame* main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
-    CSCodeBuildWnd* build_wnd = main_frame->GetBuildWnd(make_build_window_visible_if_not);
+    CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CSCodeBuildWnd* const build_wnd = main_frame->GetBuildWnd(make_build_window_visible_if_not);
 
     if( build_wnd == nullptr )
         return false;
 
-    build_wnd->Initialize(code_view, _T("JavaScript compilation"));
+    build_wnd->Initialize(code_view, "JavaScript compilation");
 
     bool compilation_success = false;
 
@@ -154,12 +168,12 @@ bool ProcessorJavaScript::CompileRunWorker(JavaScript::ByteCode* byte_code)
 
         if( compile_mode )
         {
-            m_executor.CompileScriptOnly(logic_ctrl->GetTextUtf8(), GetModuleType(), CS2WS(m_codeDoc.GetPathName()));
+            m_executor.CompileScriptOnly(logic_ctrl->GetText(), GetModuleType(), m_codeDoc.GetFilePath());
         }
 
         else
         {
-            *byte_code = m_executor.CompileScript(logic_ctrl->GetTextUtf8(), GetModuleType(), CS2WS(m_codeDoc.GetPathName()));
+            *bytecode = m_executor.CompileScript(logic_ctrl->GetText(), GetModuleType(), m_codeDoc.GetFilePath());
         }
 
         compilation_success = true;
@@ -168,20 +182,20 @@ bool ProcessorJavaScript::CompileRunWorker(JavaScript::ByteCode* byte_code)
     catch( const JavaScript::Exception& exception )
     {
         // add the location details when the error occurs in this file
-        if( exception.HasLocationDetails() && SO::EqualsNoCase(m_codeDoc.GetPathName(), exception.GetFilename()) )
+        if( exception.HasLocationDetails() && SO::EqualsNoCase(m_codeDoc.GetFilePath(), exception.GetFilePath()) )
         {
-            build_wnd->AddError(UTF8Convert::UTF8ToWide(exception.GetBaseMessage()), exception.GetLineNumber());
+            build_wnd->AddError(exception.GetBaseMessage(), exception.GetLineNumber());
         }
 
         else
         {
-            build_wnd->AddError(exception.GetErrorMessage());
+            build_wnd->AddError(exception.what());
         }
     }
 
     catch( const CSProException& exception )
     {
-        build_wnd->AddError(exception.GetErrorMessage());
+        build_wnd->AddError(exception.what());
     }
 
     build_wnd->Finalize();
@@ -202,12 +216,12 @@ void ProcessorJavaScript::Compile()
 
 void ProcessorJavaScript::Run()
 {
-    JavaScript::ByteCode byte_code;
+    JavaScript::Bytecode bytecode;
 
-    if( !CompileRunWorker(&byte_code) )
+    if( !CompileRunWorker(&bytecode) )
         return;
 
-    OutputWnd* output_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetOutputWnd();
+    OutputWnd* const output_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetOutputWnd();
 
     if( output_wnd == nullptr )
         return;
@@ -216,5 +230,5 @@ void ProcessorJavaScript::Run()
 
     m_executor.SetPrinter(std::make_unique<OutputWndJavaScriptPrinter>(*output_wnd));
 
-    m_codeDoc.RegisterRunOperation(std::make_unique<JavaScriptRunOperation>(m_executor, std::move(byte_code), *output_wnd));
+    m_codeDoc.RegisterRunOperation(std::make_unique<JavaScriptRunOperation>(m_executor, std::move(bytecode), *output_wnd));
 }

@@ -10,14 +10,94 @@ namespace
 }
 
 
-jstring WideToJava(JNIEnv* pEnv, const wchar_t* text, size_t length)
+template<typename T>
+T JavaString::ToUtf8Worker(JNIEnv& env, const jstring jsText)
 {
+    const char* utf8_chars = ( jsText != nullptr ) ? env.GetStringUTFChars(jsText, nullptr) :
+                                                     nullptr;
+
+    if( utf8_chars == nullptr )
+        return T();
+
+    std::string utf8_result = utf8_chars;
+    env.ReleaseStringUTFChars(jsText, utf8_chars);
+    return utf8_result;
+}
+
+
+std::string JavaString::ToUtf8(JNIEnv& env, const jstring jsText)
+{
+    return ToUtf8Worker<std::string>(env, jsText);
+}
+
+
+std::optional<std::string> JavaString::ToOptionalUtf8(JNIEnv& env, const jstring jsText)
+{
+    return ToUtf8Worker<std::optional<std::string>>(env, jsText);
+}
+
+
+SharableString JavaString::ToSharableString(JNIEnv& env, const jstring jsText)
+{
+    if( jsText != nullptr )
+        return ToUtf8(env, jsText);
+
+    return SharableString();
+}
+
+
+template<typename T>
+jstring JavaString::ToJava(JNIEnv& env, const T& text_or_sharable_string)
+{
+    if constexpr(IsPointer<T>())
+    {
+        if( text_or_sharable_string != nullptr )
+            return ToJava(env, *text_or_sharable_string);
+
+        return nullptr;
+    }
+
+    else if constexpr(cs::is_optional<T>())
+    {
+        if( text_or_sharable_string.has_value() )
+            return ToJava(env, *text_or_sharable_string);
+
+        return nullptr;
+    }
+
+    else if constexpr(std::is_same_v<T, SharableString>)
+    {
+        if( text_or_sharable_string.IsSet() )
+            return ToJava(env, *text_or_sharable_string);
+
+        return nullptr;
+    }
+
+    else
+    {
+        return env.NewStringUTF(text_or_sharable_string.c_str());
+    }
+}
+
+template jstring JavaString::ToJava(JNIEnv& env, const std::string& text_or_sharable_string);
+template jstring JavaString::ToJava(JNIEnv& env, const std::string* const& text_or_sharable_string);
+template jstring JavaString::ToJava(JNIEnv& env, std::string* const& text_or_sharable_string);
+template jstring JavaString::ToJava(JNIEnv& env, const std::optional<std::string>& text_or_sharable_string);
+template jstring JavaString::ToJava(JNIEnv& env, const SharableString& text_or_sharable_string);
+template jstring JavaString::ToJava(JNIEnv& env, const cs::string_view_sz& text_or_sharable_string);
+
+
+jstring WideToJava(JNIEnv* const pEnv, const wchar_t* const text, const size_t length)
+{
+    if( length == 0 )
+        return pEnv->NewString(nullptr, 0);
+
     ASSERT(text != nullptr);
 
     if constexpr(sizeof(wchar_t) != sizeof(jchar))
     {
         // this code executes if jchar doesn't match wchar_t of 2 bytes
-        auto pc = std::make_unique<jchar[]>(length + 1);
+        auto pc = std::make_unique_for_overwrite<jchar[]>(length + 1);
 
         // need to iterate through the buffer transcopying the bytes from
         // the wide array into the jc array
@@ -111,24 +191,14 @@ std::string getStackTrace(JNIEnv* pEnv, jthrowable exception)
     }
     JNIReferences::scoped_local_ref<jstring> messageStr(pEnv,
             (jstring) pEnv->CallObjectMethod(stringWriter.get(), stringWriterToStringMethod));
-    if (messageStr.get() == NULL) {
-        return std::string();
-    }
 
-    const char* utfChars = pEnv->GetStringUTFChars(messageStr.get(), NULL);
-    if (utfChars == NULL) {
-        return std::string();
-    }
-    std::string result = utfChars;
-    pEnv->ReleaseStringUTFChars(messageStr.get(), utfChars);
-
-    return result;
+    return JavaString::ToUtf8(*pEnv, messageStr.get());
 }
 
 
-std::wstring exceptionToString(JNIEnv* pEnv, jthrowable exception, bool include_class_name/* = true*/)
+std::string exceptionToString(JNIEnv* pEnv, jthrowable exception, const bool include_class_name/* = true*/)
 {
-    std::wstring exception_message;
+    std::string exception_message;
 
     jclass exceptionclass = pEnv->GetObjectClass(exception);
 
@@ -141,7 +211,8 @@ std::wstring exceptionToString(JNIEnv* pEnv, jthrowable exception, bool include_
 
         jstring jexceptionName = (jstring)pEnv->CallObjectMethod(classObj, getName);
 
-        exception_message = JavaToWSZ(pEnv, jexceptionName) + _T(": ");
+        exception_message = JavaString::ToUtf8(*pEnv, jexceptionName);
+        exception_message.append(": ");
 
         pEnv->DeleteLocalRef(jexceptionName);
         pEnv->DeleteLocalRef(classClass);
@@ -151,7 +222,7 @@ std::wstring exceptionToString(JNIEnv* pEnv, jthrowable exception, bool include_
     jmethodID getMessage = pEnv->GetMethodID(exceptionclass, "getMessage", "()Ljava/lang/String;");
     jstring jMessage = (jstring)pEnv->CallObjectMethod(exception, getMessage);
 
-    exception_message.append(JavaToWSZ(pEnv, jMessage));
+    exception_message.append(JavaString::ToUtf8(*pEnv, jMessage));
 
     pEnv->DeleteLocalRef(jMessage);
     pEnv->DeleteLocalRef(exceptionclass);
@@ -175,23 +246,32 @@ JNIEnv* GetJNIEnvForCurrentThread()
 }
 
 
-std::map<std::wstring, std::wstring> JavaBundleToMap(JNIEnv* env, jobject jbundle)
+std::map<std::string, std::string> JavaBundleToMap(JNIEnv* env, jobject jbundle)
 {
-    std::map<std::wstring, std::wstring> map;
+    std::map<std::string, std::string> map;
 
     JNIReferences::scoped_local_ref<jobject> jbundle_keys(env, env->CallObjectMethod(jbundle, JNIReferences::methodBundleKeySet));
     JNIReferences::scoped_local_ref<jobject> jbundle_key_iterator(env, env->CallObjectMethod(jbundle_keys.get(), JNIReferences::methodSetIterator));
-    while (env->CallBooleanMethod(jbundle_key_iterator.get(), JNIReferences::methodIteratorHasNext)) {
+
+    while( env->CallBooleanMethod(jbundle_key_iterator.get(), JNIReferences::methodIteratorHasNext) )
+    {
         JNIReferences::scoped_local_ref<jstring> jkey(env, (jstring) env->CallObjectMethod(jbundle_key_iterator.get(), JNIReferences::methodIteratorNext));
-        std::wstring key = JavaToWSZ(env, jkey.get());
+        std::string key = JavaString::ToUtf8(*env, jkey.get());
+
         JNIReferences::scoped_local_ref<jobject> jvalue(env, (jstring) env->CallObjectMethod(jbundle, JNIReferences::methodBundleGet, jkey.get()));
-        if (jvalue.get() == nullptr) {
-            map.try_emplace(std::move(key), std::wstring());
-        } else {
+
+        if( jvalue.get() == nullptr )
+        {
+            map.try_emplace(std::move(key), std::string());
+        }
+
+        else
+        {
             jclass value_class = env->GetObjectClass(jvalue.get());
             jmethodID methodToString = env->GetMethodID(value_class, "toString", "()Ljava/lang/String;");
             JNIReferences::scoped_local_ref<jstring> jstring_value(env, (jstring) env->CallObjectMethod(jvalue.get(), methodToString));
-            map.try_emplace(std::move(key), JavaToWSZ(env, jstring_value.get()));
+
+            map.try_emplace(std::move(key), JavaString::ToUtf8(*env, jstring_value.get()));
         }
     }
 
@@ -256,7 +336,7 @@ jfieldID JNIReferences::fieldPffStartModeParameterModifyCasePosition;
 jclass JNIReferences::classActionInvokerListener;
 jmethodID JNIReferences::methodActionInvokerListener_onGetDisplayOptions;
 jmethodID JNIReferences::methodActionInvokerListener_onSetDisplayOptions;
-jmethodID JNIReferences::methodActionInvokerListener_onCloseDialog;
+jmethodID JNIReferences::methodActionInvokerListener_onClose;
 jmethodID JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted;
 jmethodID JNIReferences::methodActionInvokerListener_onPostWebMessage;
 
@@ -336,7 +416,7 @@ jmethodID JNIReferences::methodApplicationInterfaceSelect;
 jmethodID JNIReferences::methodApplicationInterfaceExecPFF;
 jmethodID JNIReferences::methodApplicationInterfaceGetDeviceID;
 jmethodID JNIReferences::methodApplicationInterfaceGetMaxDisplaySize;
-jmethodID JNIReferences::methodApplicationInterfaceGetMediaFilenames;
+jmethodID JNIReferences::methodApplicationInterfaceGetMediaFilePaths;
 jmethodID JNIReferences::methodApplicationInterfaceIsNetworkConnected;
 jmethodID JNIReferences::methodApplicationInterfacePrompt;
 jmethodID JNIReferences::methodApplicationInterfaceGetProperty;
@@ -346,6 +426,7 @@ jmethodID JNIReferences::methodApplicationInterfaceHideProgressDialog;
 jmethodID JNIReferences::methodApplicationInterfaceUpdateProgressDialog;
 jmethodID JNIReferences::methodApplicationInterfaceChooseBluetoothDevice;
 jmethodID JNIReferences::methodApplicationInterfaceAuthorizeDropbox;
+jmethodID JNIReferences::methodApplicationInterfaceAuthorizeGoogleDrive;
 jmethodID JNIReferences::methodApplicationInterfaceLoginDialog;
 jmethodID JNIReferences::methodApplicationInterfaceStoreCredential;
 jmethodID JNIReferences::methodApplicationInterfaceRetrieveCredential;
@@ -370,6 +451,7 @@ jmethodID JNIReferences::methodApplicationInterfaceGeometryTracePolygon;
 jmethodID JNIReferences::methodApplicationInterfaceGeometryWalkPolygon;
 jmethodID JNIReferences::methodApplicationInterfaceClipboardGetText;
 jmethodID JNIReferences::methodApplicationInterfaceClipboardPutText;
+jmethodID JNIReferences::methodApplicationInterfaceCreatePinShortcut;
 jmethodID JNIReferences::methodApplicationInterfaceShowSelectDocumentDialog;
 
 jclass JNIReferences::classValuePair;
@@ -574,8 +656,8 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::methodApplicationInterfaceExecPFF = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"execPff","(Ljava/lang/String;)Z") ) &&
         ( JNIReferences::methodApplicationInterfaceGetDeviceID = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"exgetdeviceid","()Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceGetMaxDisplaySize = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"getMaxDisplaySize","(Z)I") ) &&
-        ( JNIReferences::methodApplicationInterfaceGetMediaFilenames = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"getMediaFilenames","(I)Ljava/lang/Object;") ) &&
-        ( JNIReferences::methodApplicationInterfaceIsNetworkConnected = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"isNetworkConnected","(I)Z") ) &&
+        ( JNIReferences::methodApplicationInterfaceGetMediaFilePaths = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"getMediaFilePaths","(I)Ljava/lang/Object;") ) &&
+        ( JNIReferences::methodApplicationInterfaceIsNetworkConnected = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"isNetworkConnected","(ZZ)Z") ) &&
         ( JNIReferences::methodApplicationInterfacePrompt = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"exprompt","(Ljava/lang/String;Ljava/lang/String;ZZZZ)Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceGetProperty = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"getProperty","(Ljava/lang/String;)Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceSetProperty = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"setProperty","(Ljava/lang/String;Ljava/lang/String;)V") ) &&
@@ -584,6 +666,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::methodApplicationInterfaceUpdateProgressDialog = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface,"updateProgressDialog","(ILjava/lang/String;)V") ) &&
         ( JNIReferences::methodApplicationInterfaceChooseBluetoothDevice = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "chooseBluetoothDevice", "()Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceAuthorizeDropbox = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "authorizeDropbox", "()Ljava/lang/String;") ) &&
+        ( JNIReferences::methodApplicationInterfaceAuthorizeGoogleDrive = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "authorizeGoogleDrive", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceLoginDialog = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "loginDialog", "(Ljava/lang/String;Z)Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceStoreCredential = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "storeCredential", "(Ljava/lang/String;Ljava/lang/String;)V") ) &&
         ( JNIReferences::methodApplicationInterfaceRetrieveCredential = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "retrieveCredential", "(Ljava/lang/String;)Ljava/lang/String;") ) &&
@@ -608,6 +691,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::methodApplicationInterfaceGeometryWalkPolygon = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "walkPolygon", "(Lgov/census/cspro/maps/geojson/Polygon;Lgov/census/cspro/maps/MapUI;)Ljava/util/List;") ) &&
         ( JNIReferences::methodApplicationInterfaceClipboardGetText = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "clipboardGetText", "()Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceClipboardPutText = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "clipboardPutText", "(Ljava/lang/String;)V") ) &&
+        ( JNIReferences::methodApplicationInterfaceCreatePinShortcut = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "createPinShortcut", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V") ) &&
         ( JNIReferences::methodApplicationInterfaceShowSelectDocumentDialog = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "showSelectDocumentDialog", "([Ljava/lang/String;Z)[Ljava/lang/String;") ) &&
 
         ( JNIReferences::classValuePair = pEnv->FindClass("gov/census/cspro/dict/ValuePair") ) &&
@@ -826,7 +910,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::classActionInvokerListener = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classActionInvokerListener)) ) &&
         ( JNIReferences::methodActionInvokerListener_onGetDisplayOptions = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onGetDisplayOptions", "(I)Ljava/lang/String;") ) &&
         ( JNIReferences::methodActionInvokerListener_onSetDisplayOptions = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onSetDisplayOptions", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
-        ( JNIReferences::methodActionInvokerListener_onCloseDialog = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onCloseDialog", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
+        ( JNIReferences::methodActionInvokerListener_onClose = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onClose", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
         ( JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onEngineProgramControlExecuted", "()Z") ) &&
         ( JNIReferences::methodActionInvokerListener_onPostWebMessage = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onPostWebMessage", "(Ljava/lang/String;Ljava/lang/String;)V") ) &&
 

@@ -6,7 +6,7 @@
 #include <zJson/JsonSpecFile.h>
 
 
-constexpr const TCHAR* RecordTypeItemName = _T("CSSORT_RECTYPE");
+constexpr std::string_view RecordTypeItemName_sv = "CSSORT_RECTYPE";
 
 CREATE_JSON_VALUE_TEXT_OVERRIDE(case_, case)
 CREATE_JSON_VALUE(excluded)
@@ -37,9 +37,9 @@ void SortSpec::ClearSortItems()
 }
 
 
-void SortSpec::Load(const std::wstring& filename, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/)
+void SortSpec::Load(const InterfaceString file_path, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/)
 {
-    std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(filename, nullptr, [&]() { return ConvertPre80SpecFile(filename); });
+    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path, nullptr, [&]() { return ConvertPre80SpecFile(file_path); });
 
     try
     {
@@ -51,7 +51,7 @@ void SortSpec::Load(const std::wstring& filename, const bool silent, std::shared
 
     catch( const CSProException& exception )
     {
-        json_reader->GetMessageLogger().RethrowException(filename, exception);
+        json_reader->GetMessageLogger().RethrowException(file_path, exception);
     }
 
     // report any warnings
@@ -59,7 +59,7 @@ void SortSpec::Load(const std::wstring& filename, const bool silent, std::shared
 }
 
 
-void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/,
+void SortSpec::Load(const JsonNode& json_node, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/,
                     std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
 {
     ClearSortItems();
@@ -72,21 +72,21 @@ void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 
     else
     {
-        const std::wstring dictionary_filename = json_node.GetAbsolutePath(JK::dictionary);
+        const std::string dictionary_file_path = json_node.GetAbsolutePath(JK::dictionary);
 
-        if( WindowsDesktopMessage::Send(UWM::UtilO::GetSharedDictionaryConst, &dictionary_filename, &m_dictionary) == 1 )
+        if( WindowsDesktopMessage::Send(UWM::UtilO::GetSharedDictionaryConst, &dictionary_file_path, &m_dictionary) == 1 )
         {
             ASSERT(m_dictionary != nullptr);
         }
 
         else
         {
-            m_dictionary = CDataDict::InstantiateAndOpen(dictionary_filename, silent, std::move(message_logger));
+            m_dictionary = CDataDict::InstantiateAndOpen(dictionary_file_path, silent, std::move(message_logger));
         }
     }
 
     // get the sort details
-    const bool case_sort = ( json_node.GetOrDefault<wstring_view>(JK::sortType, JV::case_) == JV::case_ );
+    const bool case_sort = ( json_node.GetOrDefault<std::string_view>(JK::sortType, JV::case_) == JV::case_ );
     const bool use_record_items = json_node.GetOrDefault(JK::useRecordItems, false);
 
     m_sortType = case_sort ? ( use_record_items ? SortType::CasePlus : SortType::Case ) :
@@ -94,7 +94,7 @@ void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 
     if( m_sortType == SortType::Record && json_node.Contains(JK::record) )
     {
-        const std::wstring record_name = json_node.Get<std::wstring>(JK::record);
+        const std::string record_name = json_node.Get<std::string>(JK::record);
         m_recordSortDictRecord = m_dictionary->FindRecord(record_name);
 
         if( m_recordSortDictRecord != nullptr )
@@ -104,8 +104,8 @@ void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 
         else
         {
-            json_node.LogWarning(_T("The record '%s' is not in the dictionary '%s'"),
-                                 record_name.c_str(), m_dictionary->GetName().GetString());
+            json_node.LogWarning("The record '%s' is not in the dictionary '%s'",
+                                 record_name.c_str(), m_dictionary->GetName().c_str());
         }
     }
 
@@ -113,23 +113,23 @@ void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
     RefreshPossibleSortItems();
 
     // read the keys
-    for( const auto& key_node : json_node.GetArrayOrEmpty(JK::keys) )
+    for( const JsonNode& key_node : json_node.GetArrayOrEmpty(JK::keys) )
     {
-        const std::wstring item_name = ( key_node.GetOptional<wstring_view>(JK::type) == JV::recordType ) ?
-                                       RecordTypeItemName :
-                                       key_node.Get<std::wstring>(JK::name);
+        const std::string item_name = ( key_node.GetOptional<std::string_view>(JK::type) == JV::recordType ) ?
+                                      std::string(RecordTypeItemName_sv) :
+                                      key_node.Get<std::string>(JK::name);
 
         const auto& item_lookup = std::find_if(m_possibleSortableDictItems.cbegin(), m_possibleSortableDictItems.cend(),
-                                               [&](const CDictItem* dict_item) { return SO::EqualsNoCase(item_name, dict_item->GetName()); });
+                                               [&](const CDictItem* const dict_item) { return SO::EqualsNoCase(item_name, dict_item->GetName()); });
 
         if( item_lookup == m_possibleSortableDictItems.cend() )
         {
-            json_node.LogWarning(_T("The item '%s' is not a valid sortable item in the dictionary '%s'"),
-                                 item_name.c_str(), m_dictionary->GetName().GetString());
+            json_node.LogWarning("The item '%s' is not a valid sortable item in the dictionary '%s'",
+                                 item_name.c_str(), m_dictionary->GetName().c_str());
             continue;
         }
 
-        const CDictItem* dict_item = *item_lookup;
+        const CDictItem* const dict_item = *item_lookup;
         const SortOrder sort_order = key_node.GetOrDefault(JK::ascending, true) ? SortOrder::Ascending :
                                                                                   SortOrder::Descending;
 
@@ -143,13 +143,13 @@ void SortSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 }
 
 
-void SortSpec::Save(const std::wstring& filename) const
+void SortSpec::Save(const InterfaceString file_path) const
 {
     ASSERT(m_dictionary != nullptr);
 
-    std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(filename, JV::sort);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JV::sort);
 
-    json_writer->WriteRelativePath(JK::dictionary, CS2WS(m_dictionary->GetFullFileName()));
+    json_writer->WriteRelativePath(JK::dictionary, m_dictionary->GetFilePath());
 
     json_writer->Write(JK::sortType, IsCaseSort() ? JV::case_ : JV::record);
 
@@ -161,7 +161,7 @@ void SortSpec::Save(const std::wstring& filename) const
     json_writer->WriteObjects(JK::keys, m_usedSortItems,
         [&](const SortItem& used_sort_item)
         {
-            const bool is_record_type = ( used_sort_item.dict_item->GetName() == RecordTypeItemName );
+            const bool is_record_type = ( used_sort_item.dict_item->GetName() == RecordTypeItemName_sv );
 
             json_writer->Write(JK::type, is_record_type ? JV::recordType : JV::item);
 
@@ -183,7 +183,7 @@ void SortSpec::RefreshPossibleSortItems()
     if( IsRecordSort() && m_dictionary->GetRecTypeLen() > 0 )
     {
         m_recordTypeDictItem = std::make_unique<CDictItem>();
-        m_recordTypeDictItem->SetName(RecordTypeItemName);
+        m_recordTypeDictItem->SetName(std::string(RecordTypeItemName_sv));
         m_recordTypeDictItem->SetLabel(_T("<record type>"));
         m_recordTypeDictItem->SetContentType(ContentType::Alpha);
         m_possibleSortableDictItems.emplace_back(m_recordTypeDictItem.get());
@@ -266,14 +266,14 @@ void SortSpec::SetSortItems(const std::vector<std::tuple<int, SortOrder>>& sort_
 }
 
 
-std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
+std::string SortSpec::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
-    
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the sort specification file: %s"), filename.c_str());
 
-    auto json_writer = Json::CreateStringWriter();
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the sort specification file: %s", file_path.c_str_utf8());
+
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -288,7 +288,7 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
         auto read_header = [&](const TCHAR* header)
         {
             if( !specfile.IsHeaderOK(header) )
-                throw CSProException(_T("The heading or section '%s' was missing"), header);
+                throw CSProException("The heading or section '%s' was missing", UTF8_TODO::GetUtf8(header).c_str());
         };
 
         auto read_line = [&](const TCHAR* command_required = nullptr, const bool allow_end_of_file = false)
@@ -303,7 +303,7 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
 
             else if( command_required != nullptr && command.CompareNoCase(command_required) != 0 )
             {
-                throw CSProException(_T("The command '%s' was not found"), command_required);
+                throw CSProException("The command '%s' was not found", UTF8_TODO::GetUtf8(command_required).c_str());
             }
 
             return true;
@@ -330,7 +330,7 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
         read_header(_T("[CSSort]"));
 
         // read the version number (ignoring errors)
-        specfile.IsVersionOK(CSPRO_VERSION);
+        specfile.IsVersionOK(Versioning::CSProVersionText);
 
 
         // get the dictionary filename
@@ -344,7 +344,7 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
         if( read_line_if(_T("[SortType]")) )
         {
             bool case_sort;
-            bool use_record_items;            
+            bool use_record_items;
 
             read_line(_T("Type"));
 
@@ -371,7 +371,7 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
 
             else
             {
-                throw CSProException(_T("The sort type '%s' was not valid"), argument.GetString());
+                throw CSProException("The sort type '%s' was not valid", UTF8_TODO::GetUtf8(argument).c_str());
             }
 
             json_writer->Write(JK::sortType, case_sort ? JV::case_ : JV::record);
@@ -388,14 +388,14 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
             const CString order_text = argument.GetToken();
             const SortOrder sort_order = ( order_text.CompareNoCase(_T("Ascending")) == 0 )  ? SortOrder::Ascending :
                                          ( order_text.CompareNoCase(_T("Descending")) == 0 ) ? SortOrder::Descending :
-                                         throw CSProException(_T("The sort order '%s' was not valid"), order_text.GetString());
+                                         throw CSProException("The sort order '%s' was not valid", UTF8_TODO::GetUtf8(order_text).c_str());
 
-            const CString item_name = argument.GetToken();
+            const std::string item_name = UTF8_TODO::GetUtf8(argument.GetToken());
 
             json_writer->WriteObject(
                 [&]()
                 {
-                    const bool is_record_type = ( item_name == RecordTypeItemName );
+                    const bool is_record_type = ( item_name == RecordTypeItemName_sv );
 
                     json_writer->Write(JK::type, is_record_type ? JV::recordType : JV::item);
 
@@ -415,11 +415,11 @@ std::wstring SortSpec::ConvertPre80SpecFile(const std::wstring& filename)
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the sort specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the sort specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
     }
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }

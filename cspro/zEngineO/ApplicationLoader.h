@@ -5,6 +5,7 @@
 class Application;
 class CDataDict;
 class CDEFormFile;
+class CTabSet;
 class MessageManager;
 class SystemMessageIssuer;
 
@@ -14,11 +15,14 @@ class ApplicationLoader
 public:
     virtual ~ApplicationLoader() { }
 
+    // Returns a non-null pointer to the application.
     virtual Application* GetApplication() = 0;
 
-    virtual std::shared_ptr<CDataDict> GetDictionary(NullTerminatedString dictionary_filename) = 0;
+    virtual std::shared_ptr<CDataDict> GetDictionary(const std::string& dictionary_file_path) = 0;
 
-    virtual std::shared_ptr<CDEFormFile> GetFormFile(const CString& form_filename) = 0;
+    virtual std::shared_ptr<CDEFormFile> GetFormFile(const std::string& form_file_path) = 0;
+
+    virtual std::shared_ptr<CTabSet> GetTableSpec(const std::string& table_spec_file_path) = 0;
 
     virtual std::shared_ptr<SystemMessageIssuer> GetSystemMessageIssuer() { return nullptr; }
 
@@ -27,7 +31,7 @@ public:
 
     virtual void ProcessUserMessagesPostCompile(MessageManager& /*user_message_manager*/) { }
 
-    virtual void ProcessResources() { } 
+    virtual void ProcessResources() { }
 };
 
 

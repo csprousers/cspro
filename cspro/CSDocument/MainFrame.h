@@ -23,8 +23,8 @@ public:
     DocSetSpec* GetActiveDocSetSpec();
     TextEditView* GetActiveTextEditView();
 
-    std::shared_ptr<DocSetSpec> FindSharedDocSetSpec(std::variant<wstring_view, DocSetSpec*> filename_or_doc_set_spec_ptr, bool open_if_not_found);
-    bool IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::wstring& csdoc_filename, bool match_full_path = true);
+    std::shared_ptr<DocSetSpec> FindSharedDocSetSpec(std::variant<std::string_view, DocSetSpec*> file_path_or_doc_set_spec_ptr, bool open_if_not_found);
+    bool IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::string& csdoc_file_path, bool match_full_path = true);
 
     void CompileDocSetSpecIfNecessary(DocSetSpec& doc_set_spec, DocSetCompiler::SpecCompilationType spec_compilation_type,
                                       DocSetCompiler::ErrorIssuerType error_issuer = DocSetCompiler::SuppressErrors { });
@@ -32,8 +32,8 @@ public:
     GlobalSettings& GetGlobalSettings() { return m_globalSettings; }
 
     SharedHtmlLocalFileServer& GetSharedHtmlLocalFileServer() { return m_fileServer; }
-    std::wstring CreateHtmlPage(const CDocument& doc, const std::wstring& html);
-    std::wstring CreateHtmlCompilationErrorPage(const CDocument& doc);
+    std::string CreateHtmlPage(const CDocument& doc, SharableString html);
+    std::string CreateHtmlCompilationErrorPage(const CDocument& doc);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -47,8 +47,10 @@ protected:
     void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
     BOOL OnShowMDITabContextMenu(CPoint point, DWORD dwAllowedItems, BOOL bTabDrop) override;
 
-    // toolbar + status bar + editor handlers
+    // toolbar + tab + status bar + editor handlers
     LRESULT OnSyncToolbarAndWindows(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnGetTabToolTip(WPARAM wParam, LPARAM lParam);
 
     void OnStatusBarAssociatedDocSetClick();
     void OnUpdateStatusBarAssociatedDocSet(CCmdUI* pCmdUI);
@@ -68,7 +70,7 @@ protected:
     LRESULT OnGetOpenTextSourceEditables(WPARAM wParam, LPARAM lParam);
 
     // interapp communication
-    LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);    
+    LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);
 
     // File menu
     void OnFileNewDocumentSet();
@@ -90,10 +92,10 @@ protected:
 private:
     void ShowDockablePane(CDockablePane& dockable_pane, BOOL visibility);
 
-    void OnWebMessageReceived(const std::wstring& message);
+    void OnWebMessageReceived(std::string_view message_sv);
 
 private:
-    const TCHAR* m_className;
+    const wchar_t* m_className;
 
     MFCMenuBarWithoutSerializableState m_wndMenuBar;
     CMFCToolBar m_wndMainToolBar;
@@ -107,5 +109,5 @@ private:
 
     SharedHtmlLocalFileServer m_fileServer;
     std::unique_ptr<VirtualFileMapping> m_virtualFileMapping;
-    std::wstring m_compilationErrorPageHtml;
+    std::string m_compilationErrorPageHtml;
 };

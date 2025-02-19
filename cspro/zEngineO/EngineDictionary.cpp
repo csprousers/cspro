@@ -8,7 +8,7 @@
 // EngineDictionary
 // --------------------------------------------------------------------------
 
-EngineDictionary::EngineDictionary(std::wstring dictionary_name, EngineData& engine_data)
+EngineDictionary::EngineDictionary(std::string dictionary_name, EngineData& engine_data)
     :   Symbol(std::move(dictionary_name), SymbolType::Dictionary),
         m_engineData(engine_data),
         m_contents(Contents::Dictionary)
@@ -16,7 +16,7 @@ EngineDictionary::EngineDictionary(std::wstring dictionary_name, EngineData& eng
 }
 
 
-EngineDictionary::EngineDictionary(Contents contents, std::wstring dictionary_name, std::shared_ptr<const CDataDict> dictionary,
+EngineDictionary::EngineDictionary(const Contents contents, std::string dictionary_name, std::shared_ptr<const CDataDict> dictionary,
                                    std::shared_ptr<CaseAccess> case_access, EngineData& engine_data)
     :   EngineDictionary(std::move(dictionary_name), engine_data)
 {
@@ -69,9 +69,17 @@ EngineDictionary::~EngineDictionary()
 }
 
 
-Symbol* EngineDictionary::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* EngineDictionary::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
-    return HasEngineCase() ? m_engineCase->FindChildSymbol(symbol_name) : nullptr;
+    return HasEngineCase() ? m_engineCase->FindChildSymbol(symbol_name_sv) :
+                             nullptr;
+}
+
+
+void EngineDictionary::CompareDeclarationAttributes(const Symbol& /*symbol*/) const
+{
+    // when enabling this symbol, incorporate the code from UserFunctionArgumentChecker::CheckEngineDictionaryArgument
+    ASSERT(false);
 }
 
 
@@ -84,8 +92,8 @@ void EngineDictionary::Reset()
 
     else if( IsDataRepositoryObject() )
     {
-        ASSERT(m_resetOverride != nullptr);
-        (*m_resetOverride)(*m_engineDataRepository);
+        ASSERT(m_resetOverride);
+        m_resetOverride(*m_engineDataRepository);
         m_engineDataRepository->CloseDataRepository();
     }
 
@@ -152,7 +160,7 @@ void EngineDictionary::serialize_subclass(Serializer& ar)
 
 void EngineDictionary::InitializeRuntime(std::shared_ptr<SystemMessageIssuer> system_message_issuer,
                                          std::shared_ptr<CaseConstructionReporter> case_construction_reporter_override,
-                                         std::shared_ptr<std::function<void(EngineDataRepository&)>> reset_override)
+                                         std::function<void(EngineDataRepository&)> reset_override)
 {
     ASSERT(m_caseAccess->IsInitialized());
     ASSERT(IsDataRepositoryObject() == ( reset_override != nullptr ));
@@ -174,7 +182,7 @@ void EngineDictionary::InitializeRuntime(std::shared_ptr<SystemMessageIssuer> sy
 // --------------------------------------------------------------------------
 
 CREATE_ENUM_JSON_SERIALIZER(EngineDictionary::Contents,
-    { EngineDictionary::Contents::Dictionary,    _T("Dictionary") },
+    { EngineDictionary::Contents::Dictionary,    "Dictionary" },
     { EngineDictionary::Contents::Case,           Logic::KeywordTable::GetKeywordName(TokenCode::TOKKWCASE) },
     { EngineDictionary::Contents::DataRepository, Logic::KeywordTable::GetKeywordName(TokenCode::TOKKWDATASOURCE) })
 
@@ -221,7 +229,7 @@ void EngineDictionary::WriteValueToJson(JsonWriter& json_writer) const
 
         json_writer.BeginObject()
                    .Write(JK::type, ToString(data_repository.GetRepositoryType()))
-                   .Write(JK::connectionString, data_repository.GetConnectionString())
+                   .Write(JK::connection, data_repository.GetConnectionString())
                    .EndObject();
     }
 

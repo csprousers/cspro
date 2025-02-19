@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <RootNamespace>zLogicO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -73,8 +69,8 @@
     <ClInclude Include="AutoComplete.h" />
     <ClInclude Include="BaseCompiler.h" />
     <ClInclude Include="BaseCompilerSettings.h" />
-    <ClInclude Include="BasicTokenCompiler.h" />
     <ClInclude Include="BasicToken.h" />
+    <ClInclude Include="BasicTokenCompiler.h" />
     <ClInclude Include="ChildSymbolNames.h" />
     <ClInclude Include="ContextSensitiveHelp.h" />
     <ClInclude Include="FunctionTable.h" />
@@ -102,12 +98,12 @@
     <ClInclude Include="zLogicO.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ActionInvoker.cpp" />
     <ClCompile Include="AutoComplete.cpp" />
     <ClCompile Include="BaseCompiler.cpp" />
     <ClCompile Include="BasicTokenCompiler.cpp" />
     <ClCompile Include="ContextSensitiveHelp.cpp" />
     <ClCompile Include="FunctionTable.cpp" />
-    <ClCompile Include="ActionInvoker.cpp" />
     <ClCompile Include="GeneralizedFunction.cpp" />
     <ClCompile Include="KeywordTable.cpp" />
     <ClCompile Include="Preprocessor.cpp" />

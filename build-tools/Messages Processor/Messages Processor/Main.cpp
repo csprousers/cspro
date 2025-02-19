@@ -2,16 +2,17 @@
 #include "Main.h"
 
 
-int wmain(int argc, wchar_t* argv[])
+int wmain(const int argc, const wchar_t* const argv[])
 {
     try
     {
-        const std::wstring command = ( argc >= 2 ) ? argv[1] : std::wstring();
+        const std::string command = ( argc >= 2 ) ? TC::ToUtf8(argv[1]) : 
+                                                    std::string();
 
-        SO::Equals(command, L"audit")  ? MessageFileAuditor().DoAudit() :
-        SO::Equals(command, L"assets") ? AssetsGenerator::Create() :
-        SO::Equals(command, L"format") ? MessageFormatter().FormatMessageFiles() : 
-                                         throw CSProException("Run this program with the command line argument \"audit\" or \"assets\" or \"format\"");
+        ( command == "audit" ) ? MessageFileAuditor().DoAudit() :
+        ( command == "assets") ? AssetsGenerator::Create() :
+        ( command == "format") ? MessageFormatter().FormatMessageFiles() : 
+                                 throw CSProException("Run this program with the command line argument \"audit\" or \"assets\" or \"format\"");
     }
 
     catch( const CSProException& exception )

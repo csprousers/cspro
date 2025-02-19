@@ -32,7 +32,7 @@ public:
         }
     }
 
-    const std::wstring& GetPath() const { return m_temporaryFile->GetPath(); }
+    const std::string& GetPath() const { return m_temporaryFile->GetPath(); }
 
     std::unique_ptr<TemporaryFile> ReleaseTemporaryFile() { return std::move(m_temporaryFile); }
 
@@ -46,7 +46,7 @@ private:
 // LogicAudio
 // --------------------------------------------------------------------------
 
-LogicAudio::LogicAudio(std::wstring audio_name)
+LogicAudio::LogicAudio(std::string audio_name)
     :   BinarySymbol(std::move(audio_name), SymbolType::Audio)
 {
 }
@@ -112,7 +112,7 @@ LogicAudio& LogicAudio::operator=(const LogicDocument& logic_document)
         document_audio_data = CreateData(std::move(audio_storage));
 
         if( document_audio_data->is_mp4a_format != true )
-            throw CSProException(_T("The Document '%s' has data that cannot be converted to Audio."), logic_document.GetName().c_str());
+            throw CSProException("The Document '%s' has data that cannot be converted to Audio.", logic_document.GetName().c_str());
     }
 
     m_binarySymbolData = document_binary_symbol_data;
@@ -131,10 +131,10 @@ void LogicAudio::Reset()
 }
 
 
-const std::wstring& LogicAudio::GetPath(const AudioStorage& audio_storage)
+const std::string& LogicAudio::GetPath(const AudioStorage& audio_storage)
 {
-    return std::holds_alternative<std::wstring>(audio_storage) ? std::get<std::wstring>(audio_storage) :
-                                                                 std::get<std::shared_ptr<TemporaryFile>>(audio_storage)->GetPath();
+    return std::holds_alternative<std::string>(audio_storage) ? std::get<std::string>(audio_storage) :
+                                                                std::get<std::shared_ptr<TemporaryFile>>(audio_storage)->GetPath();
 }
 
 
@@ -189,10 +189,10 @@ const LogicAudio::Data& LogicAudio::GetParsedDataWithExceptions() const
 {
     ASSERT(m_binarySymbolData.IsDefined());
 
-    const Data* parsed_data = GetParsedData();
+    const Data* const parsed_data = GetParsedData();
 
     if( parsed_data == nullptr )
-        throw CSProException(_T("Cannot access the audio data in '%s'"), GetName().c_str());
+        throw CSProException("Cannot access the audio data in '%s'", GetName().c_str());
 
     return *parsed_data;
 }
@@ -200,7 +200,7 @@ const LogicAudio::Data& LogicAudio::GetParsedDataWithExceptions() const
 
 bool LogicAudio::HasValidContent() const
 {
-    const Data* parsed_data = GetParsedData();
+    const Data* const parsed_data = GetParsedData();
 
     return ( parsed_data != nullptr &&
              parsed_data->is_mp4a_format == true );
@@ -227,17 +227,17 @@ BinaryData::ContentCallbackType LogicAudio::CreateBinaryDataContentFromAudioCall
 }
 
 
-void LogicAudio::Load(std::wstring filename)
+void LogicAudio::Load(std::string file_path)
 {
-    if( !PortableFunctions::FileIsRegular(filename) )
-        throw FileIO::Exception::FileNotFound(filename);
+    if( !PortableFunctions::FileIsRegular(file_path) )
+        throw FileIO::Exception::FileNotFound(file_path);
 
-    m_data = CreateData(filename);
-    m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromAudioCallback(), std::move(filename));
+    m_data = CreateData(file_path);
+    m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromAudioCallback(), std::move(file_path));
 }
 
 
-void LogicAudio::Save(const std::wstring& filename, std::wstring application_name)
+void LogicAudio::Save(const std::string& file_path, std::string application_name)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -247,30 +247,30 @@ void LogicAudio::Save(const std::wstring& filename, std::wstring application_nam
 
     if( m_data != nullptr )
     {
-        FileIO::CreateDirectoriesForFile(filename);
-        PortableFunctions::FileCopyWithExceptions(GetPath(m_data->audio_storage), filename, PortableFunctions::FileCopyType::AlwaysCopy);
+        FileIO::CreateDirectoriesForFile(file_path);
+        PortableFunctions::FileCopyWithExceptions(GetPath(m_data->audio_storage), file_path, FileOverwriteFlag::Always);
 
-        m_data->audio_storage = filename;
+        m_data->audio_storage = file_path;
     }
 
     else
     {
-        FileIO::Write(filename, m_binarySymbolData.GetContent());
+        FileIO::Write(file_path, m_binarySymbolData.GetContent());
     }
 
-    m_binarySymbolData.SetPath(filename);
+    m_binarySymbolData.SetPath(file_path);
 
     // on a successful write, set the tags, ignoring errors doing so
     try
     {
-        Mp4Writer writer(filename, false);
+        Mp4Writer writer(file_path, false);
 
-        std::wstring artwork_image_path = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Images),
-                                                                              _T("cspro-logo-medium.png"));
+        std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
+                                                       "cspro-logo-medium.png");
         ASSERT(PortableFunctions::FileIsRegular(artwork_image_path));
 
-        writer.SetTags(Mp4Metadata { PortableFunctions::PathGetFilenameWithoutExtension(filename),
-                                     _T("CSPro"),
+        writer.SetTags(Mp4Metadata { Path::GetFilenameWithoutExtension(file_path),
+                                     "CSPro",
                                      std::move(application_name),
                                      std::move(artwork_image_path),
                                    });
@@ -279,7 +279,7 @@ void LogicAudio::Save(const std::wstring& filename, std::wstring application_nam
 }
 
 
-void LogicAudio::Record(std::optional<double> seconds)
+void LogicAudio::Record(const std::optional<double> seconds)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -335,14 +335,14 @@ double LogicAudio::StopCurrentRecording()
     std::unique_ptr<LogicAudio::Data> recorded_data = CreateData(m_currentRecording->ReleaseTemporaryFile());
     m_currentRecording.reset();
 
-    Concat(std::move(recorded_data->audio_storage), _T("Audio Recording (Background)"), _T("Audio.record"));
+    Concat(std::move(recorded_data->audio_storage), "Audio Recording (Background)", "Audio.record");
 
     ASSERT(recorded_data->duration.has_value());
     return recorded_data->duration.value_or(DEFAULT);
 }
 
 
-double LogicAudio::RecordInteractive(const std::wstring& message/* = std::wstring()*/)
+double LogicAudio::RecordInteractive(const std::string& message/* = std::string()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -375,14 +375,14 @@ double LogicAudio::RecordInteractive(const std::wstring& message/* = std::wstrin
 
     std::unique_ptr<LogicAudio::Data> recorded_data = CreateData(std::move(temporary_file));
 
-    Concat(std::move(recorded_data->audio_storage), _T("Audio Recording (Interactive)"), _T("Audio.recordInteractive"));
+    Concat(std::move(recorded_data->audio_storage), "Audio Recording (Interactive)", "Audio.recordInteractive");
 
     ASSERT(recorded_data->duration.has_value());
     return recorded_data->duration.value_or(DEFAULT);
 }
 
 
-void LogicAudio::Play(const std::wstring& message/* = std::wstring()*/)
+void LogicAudio::Play(const std::string& message/* = std::string()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -411,20 +411,20 @@ void LogicAudio::Concat(const LogicAudio& logic_audio)
 
     const Data& rhs_parsed_data = logic_audio.GetParsedDataWithExceptions();
 
-    Concat(rhs_parsed_data.audio_storage, nullptr, _T("Audio.concat"));
+    Concat(rhs_parsed_data.audio_storage, nullptr, "Audio.concat");
 }
 
 
-void LogicAudio::Concat(std::wstring filename)
+void LogicAudio::Concat(std::string file_path)
 {
-    if( !PortableFunctions::FileIsRegular(filename) )
-        throw FileIO::Exception::FileNotFound(filename);
+    if( !PortableFunctions::FileIsRegular(file_path) )
+        throw FileIO::Exception::FileNotFound(file_path);
 
-    Concat(AudioStorage(std::move(filename)), nullptr, _T("Audio.concat"));
+    Concat(AudioStorage(std::move(file_path)), nullptr, "Audio.concat");
 }
 
 
-void LogicAudio::Concat(AudioStorage audio_storage, const TCHAR* label, const TCHAR* source)
+void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, const char* const source)
 {
     ASSERT(PortableFunctions::FileIsRegular(GetPath(audio_storage)));
 
@@ -438,8 +438,8 @@ void LogicAudio::Concat(AudioStorage audio_storage, const TCHAR* label, const TC
     else
     {
         const Data& lhs_parsed_data = GetParsedDataWithExceptions();
-        const std::wstring& lhs_path = GetPath(lhs_parsed_data.audio_storage);
-        const std::wstring& rhs_path = GetPath(audio_storage);
+        const std::string& lhs_path = GetPath(lhs_parsed_data.audio_storage);
+        const std::string& rhs_path = GetPath(audio_storage);
 
         // we can append in place when the destination is a temporary file that is not used by other objects
         if( std::holds_alternative<std::shared_ptr<TemporaryFile>>(lhs_parsed_data.audio_storage) &&
@@ -471,19 +471,19 @@ void LogicAudio::Concat(AudioStorage audio_storage, const TCHAR* label, const TC
     }
 
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromAudioCallback(),
-                                     std::wstring(), // no filename
-                                     m_data->is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::wstring());
+                                     std::string(), // no filename
+                                     m_data->is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::string());
 
     // update the metadata
-    BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadataForModification();
+    BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadata();
 
     if( label != nullptr )
-        binary_data_metadata.SetProperty(_T("label"), label);
+        binary_data_metadata.SetProperty("label", label);
 
     if( source != nullptr )
-        binary_data_metadata.SetProperty(_T("source"), source);
+        binary_data_metadata.SetProperty("source", source);
 
-    binary_data_metadata.SetProperty(_T("timestamp"), GetTimestamp());
+    binary_data_metadata.SetProperty("timestamp", GetTimestamp());
 }
 
 
@@ -492,7 +492,7 @@ double LogicAudio::GetLength() const
     if( !m_binarySymbolData.IsDefined() )
         return 0;
 
-    const Data* parsed_data = GetParsedData();
+    const Data* const parsed_data = GetParsedData();
 
     if( parsed_data != nullptr && parsed_data->duration.has_value() )
         return *parsed_data->duration;
@@ -501,7 +501,7 @@ double LogicAudio::GetLength() const
 }
 
 
-void LogicAudio::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void LogicAudio::SetValueFromJson(const JsonNode& json_node)
 {
     struct LogicAudioContentValidator : public BinarySymbolDataContentValidator
     {
@@ -527,10 +527,10 @@ void LogicAudio::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 
     LogicAudioContentValidator logic_audio_content_validator;
 
-    m_binarySymbolData.UpdateSymbolValueFromJson(*this, json_node, &logic_audio_content_validator);
+    m_binarySymbolData.SetSymbolValueFromJson(*this, json_node, &logic_audio_content_validator);
 
     if( m_binarySymbolData.IsDefined() )
-        m_binarySymbolData.GetMetadataForModification().SetMimeType(MimeType::Type::AudioM4A);
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::AudioM4A);
 
     m_data = std::move(logic_audio_content_validator.ReleaseData());
     m_currentRecording.reset();

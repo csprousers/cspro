@@ -15,42 +15,48 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zSyncF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ChooseBluetoothDeviceDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DropboxAuthDialog.h">
+    <ClInclude Include="DialogBasedSyncListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LoginDialog.h">
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncLoginAccessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncServiceSelectorDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="zSyncF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ChooseBluetoothDeviceDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DialogBasedSyncListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SyncLoginAccessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SyncServiceSelectorDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="zSyncF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DropboxAuthDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LoginDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

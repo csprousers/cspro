@@ -27,11 +27,20 @@ class CSProActionInvoker {
         processResponse: function(responseJson) {
             const response = JSON.parse(responseJson);
 
-            if( response.type === "exception" ) {
+            if( response.type !== "exception" ) {
+                return response.value;
+            }
+            else if( typeof response.value === "string" ) {
                 throw new Error(response.value);
             }
             else {
-                return response.value;
+                const error = new Error(response.value.message, { cause: response.value.cause });
+
+                if( response.value.name !== undefined ) {
+                    error.name = response.value.name;
+                }
+
+                throw error;
             }
         },
 

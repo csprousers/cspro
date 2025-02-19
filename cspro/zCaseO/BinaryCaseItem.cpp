@@ -4,7 +4,7 @@
 
 
 BinaryCaseItem::BinaryCaseItem(const CDictItem& dict_item)
-    :   CaseItem(dict_item, Type::Binary)
+    :   CaseItem(dict_item, Type::Binary, DataType::Binary, false)
 {
 }
 
@@ -15,45 +15,32 @@ size_t BinaryCaseItem::GetSizeForMemoryAllocation() const
 }
 
 
-void BinaryCaseItem::AllocateMemory(void* data_buffer) const
+void BinaryCaseItem::AllocateMemory(void* const data_buffer) const
 {
     new(data_buffer) BinaryDataAccessor();
 }
 
 
-void BinaryCaseItem::DeallocateMemory(void* data_buffer) const
+void BinaryCaseItem::DeallocateMemory(void* const data_buffer) const
 {
     static_cast<BinaryDataAccessor*>(data_buffer)->~BinaryDataAccessor();
 }
 
 
-void BinaryCaseItem::CopyValue(void* data_buffer, const void* copy_data_buffer) const
+void BinaryCaseItem::CopyValue(void* const data_buffer, const void* const copy_data_buffer) const
 {
     const BinaryDataAccessor& copy_binary_data_accessor = *static_cast<const BinaryDataAccessor*>(copy_data_buffer);
     BinaryDataAccessor& this_binary_data_accessor = *static_cast<BinaryDataAccessor*>(data_buffer);
-
-    if( copy_binary_data_accessor.IsDefined() )
-    {
-        try
-        {
-            const BinaryData& binary_data = copy_binary_data_accessor.GetBinaryData();
-            this_binary_data_accessor.SetBinaryData(binary_data);
-            return;
-        }
-        catch(...) { } // ignore errors getting the content
-    }
-
-    this_binary_data_accessor.Clear();
+    this_binary_data_accessor = copy_binary_data_accessor;
 }
 
 
-size_t BinaryCaseItem::StoreBinaryValue(const void* data_buffer, std::byte* binary_buffer) const
+size_t BinaryCaseItem::StoreBinaryValue(const void* const data_buffer, std::byte* binary_buffer) const
 {
     const BinaryDataAccessor& binary_data_accessor = *static_cast<const BinaryDataAccessor*>(data_buffer);
-    const bool binary_data_is_defined = ( binary_data_accessor.IsDefined() );
     const BinaryData* binary_data = nullptr;
 
-    if( binary_data_is_defined )
+    if( binary_data_accessor.IsDefined() )
     {
         try
         {
@@ -62,89 +49,46 @@ size_t BinaryCaseItem::StoreBinaryValue(const void* data_buffer, std::byte* bina
         catch(...) { } // ignore errors getting the content
     }
 
-    size_t binary_size = 0;
+    // the binary data is written as:
+    // - bool (BinaryData is defined)
+    // - if BinaryData is defined:
+    //    - std::vector<std::byte> (content)
+    //    - length (metadata properties size)
+    //    - two strings for each metadata property
 
-    // routines for filling the binary buffer
-    auto store_buffer = [&](const void* value, size_t value_size)
+    const bool binary_data_defined = ( binary_data != nullptr );
+    size_t binary_buffer_size = BinarySerializer::Write(binary_buffer, binary_data_defined);
+
+    if( binary_data_defined )
     {
-        if( binary_buffer != nullptr )
+        auto get_adjusted_binary_buffer = [&]()
         {
-            memcpy(binary_buffer, value, value_size);
-            binary_buffer += value_size;
-        }
+            return ( binary_buffer == nullptr ) ? binary_buffer :
+                                                  ( binary_buffer + binary_buffer_size );
+        };
 
-        binary_size += value_size;
-    };
+        // content
+        binary_buffer_size += BinarySerializer::Write(get_adjusted_binary_buffer(), binary_data->GetContent());
 
-    auto store_value = [&](auto value)
-    {
-        store_buffer(&value, sizeof(value));
-    };
-
-    auto store_string = [&](wstring_view string_sv)
-    {
-        // int (string length)
-        store_value(static_cast<int>(string_sv.length()));
-
-        // the contents
-        store_buffer(string_sv.data(), sizeof(TCHAR) * string_sv.length());
-    };
-
-
-    // bool (BinaryData is defined)
-    store_value(static_cast<bool>(binary_data_is_defined));
-
-    if( binary_data_is_defined )
-    {
-        // size_t (size of the contents)
-        store_value(static_cast<size_t>(binary_data->GetContent().size()));
-
-        // the contents
-        store_buffer(binary_data->GetContent().data(), binary_data->GetContent().size());
-
-        // size_t (metadata properties size)
-        const std::vector<std::tuple<std::wstring, std::wstring>>& properties = binary_data->GetMetadata().GetProperties();
-
-        store_value(static_cast<size_t>(properties.size()));
+        // metadata properties size
+        const std::vector<std::tuple<std::string, std::string>>& properties = binary_data->GetMetadata().GetProperties();
+        binary_buffer_size += BinarySerializer::WriteLength(get_adjusted_binary_buffer(), properties.size());
 
         // the metadata
         for( const auto& [attribute, value] : properties )
         {
-            store_string(attribute);
-            store_string(value);
+            binary_buffer_size += BinarySerializer::Write(get_adjusted_binary_buffer(), attribute);
+            binary_buffer_size += BinarySerializer::Write(get_adjusted_binary_buffer(), value);
         }
     }
 
-    return binary_size;
+    return binary_buffer_size;
 }
 
 
-size_t BinaryCaseItem::RetrieveBinaryValue(void* data_buffer, const std::byte* binary_buffer) const
+void BinaryCaseItem::RetrieveBinaryValue(void* const data_buffer, const std::byte*& binary_buffer) const
 {
-    size_t binary_size = 0;
-
-    auto advance_binary_buffer = [&](size_t value_size)
-    {
-        binary_buffer += value_size;
-        binary_size += value_size;
-    };
-
-    auto read_value = [&](size_t value_size) -> const void*
-    {
-        const std::byte* value = binary_buffer;
-        advance_binary_buffer(value_size);
-        return value;
-    };
-
-    auto read_string = [&]()
-    {
-        const int string_length = *static_cast<const int*>(read_value(sizeof(int)));
-        std::wstring string(reinterpret_cast<const TCHAR*>(binary_buffer), string_length);
-        advance_binary_buffer(sizeof(TCHAR) * string_length);
-        return string;
-    };
-
-    const bool binary_data_defined = *static_cast<const bool*>(read_value(sizeof(bool)));
+    const bool binary_data_defined = BinarySerializer::Read<bool>(binary_buffer);
 
     if( !binary_data_defined )
     {
@@ -153,26 +97,21 @@ size_t BinaryCaseItem::RetrieveBinaryValue(void* data_buffer, const std::byte* b
 
     else
     {
-        const size_t content_size = *static_cast<const size_t*>(read_value(sizeof(size_t)));
-
-        std::vector<std::byte> content(binary_buffer, binary_buffer + content_size);
-        advance_binary_buffer(content_size);
+        std::vector<std::byte> content = BinarySerializer::Read<std::vector<std::byte>>(binary_buffer);
 
         BinaryDataMetadata binary_data_metadata;
 
-        const size_t properties_size = *static_cast<const size_t*>(read_value(sizeof(size_t)));
+        const size_t properties_size = BinarySerializer::ReadLength(binary_buffer);
 
         for( size_t i = 0; i < properties_size; ++i )
         {
-            const std::wstring attribute = read_string();
-            binary_data_metadata.SetProperty(attribute, read_string());
+            const std::string attribute = BinarySerializer::Read<std::string>(binary_buffer);
+            binary_data_metadata.SetProperty(attribute, BinarySerializer::Read<std::string>(binary_buffer));
         }
 
         BinaryDataAccessor& binary_data_accessor = *static_cast<BinaryDataAccessor*>(data_buffer);
-        binary_data_accessor.SetBinaryData(std::move(content), std::move(binary_data_metadata));
+        binary_data_accessor = BinaryData(std::move(content), std::move(binary_data_metadata));
     }
-
-    return binary_size;
 }
 
 
@@ -189,7 +128,7 @@ int BinaryCaseItem::CompareValues(const CaseItemIndex& index1, const CaseItemInd
                             0;
     };
 
-    auto compare_size = [](auto size1, auto size2)
+    auto compare_size = [](const auto size1, const auto size2)
     {
         return ( size1 < size2 ) ? -1 :
                ( size1 > size2 ) ?  1 :
@@ -212,8 +151,8 @@ int BinaryCaseItem::CompareValues(const CaseItemIndex& index1, const CaseItemInd
         return comparison;
 
     // compare the file contents only when the file size was the same
-    const BinaryData* binary_data1 = GetBinaryData_noexcept(index1, binary_data_accessor1);
-    const BinaryData* binary_data2 = GetBinaryData_noexcept(index2, binary_data_accessor2);
+    const BinaryData* const binary_data1 = GetBinaryData_noexcept(index1, binary_data_accessor1);
+    const BinaryData* const binary_data2 = GetBinaryData_noexcept(index2, binary_data_accessor2);
 
     // if there were errors getting the contents, return the state of the data
     if( binary_data1 == nullptr || binary_data2 == nullptr )
@@ -230,13 +169,19 @@ int BinaryCaseItem::CompareValues(const CaseItemIndex& index1, const CaseItemInd
 }
 
 
+void BinaryCaseItem::Clear(CaseItemIndex& index) const
+{
+    ResetValue(GetDataBuffer(index));
+}
+
+
 void BinaryCaseItem::HandleException(const CSProException& exception, const CaseItemIndex& index)
 {
     // log the error
     const Case& data_case = index.GetCase();
 
     if( data_case.GetCaseConstructionReporter() != nullptr )
-        data_case.GetCaseConstructionReporter()->BinaryDataIOError(data_case, true, exception.GetErrorMessage());
+        data_case.GetCaseConstructionReporter()->BinaryDataIOError(data_case, true, exception.what());
 }
 
 
@@ -246,23 +191,6 @@ const BinaryData* BinaryCaseItem::GetBinaryData_noexcept(const CaseItemIndex& in
     {
         if( binary_data_accessor.IsDefined() )
             return &binary_data_accessor.GetBinaryData();
-    }
-
-    catch( const CSProException& exception )
-    {
-        HandleException(exception, index);
-    }
-
-    return nullptr;
-}
-
-
-const BinaryDataMetadata* BinaryCaseItem::GetBinaryDataMetadata_noexcept(const CaseItemIndex& index, const BinaryDataAccessor& binary_data_accessor) const noexcept
-{
-    try
-    {
-        if( binary_data_accessor.IsDefined() )
-            return &binary_data_accessor.GetBinaryDataMetadata();
     }
 
     catch( const CSProException& exception )
@@ -288,4 +216,33 @@ std::optional<uint64_t> BinaryCaseItem::GetBinaryDataSize_noexcept(const CaseIte
     }
 
     return std::nullopt;
+}
+
+
+std::string BinaryCaseItem::GetSuggestedFilename(const CaseItemIndex& index) const
+{
+    std::optional<std::string> filename;
+
+    try
+    {
+         filename = GetBinaryDataAccessor(index).GetBinaryDataMetadata().GetFilename();
+    }
+    catch(...) { }
+
+    // if there is no filename, use the item name with whatever extension the file was saved as
+    if( !filename.has_value() )
+    {
+        filename = GetDictItem().GetName() + index.GetMinimalOccurrencesText(*this);
+
+        try
+        {
+            const std::optional<std::string> extension = GetBinaryDataAccessor(index).GetBinaryDataMetadata().GetEvaluatedExtension();
+
+            if( extension.has_value() )
+                PortableFunctions::MakePathAppendFileExtension(*filename, *extension);
+        }
+        catch(...) { }
+    }
+
+    return std::move(*filename);
 }

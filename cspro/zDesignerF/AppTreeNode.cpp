@@ -8,7 +8,7 @@
 // FormElementAppTreeNode
 // --------------------------------------------------------------------------
 
-FormElementAppTreeNode::FormElementAppTreeNode(CDocument* document, FormElementType form_element, CDEFormBase* form_base)
+FormElementAppTreeNode::FormElementAppTreeNode(CDocument* const document, const FormElementType form_element, CDEFormBase* const form_base)
     :   m_formElement(form_element),
         m_formBase(form_base),
         m_iColumnIndex(NONE),
@@ -19,7 +19,7 @@ FormElementAppTreeNode::FormElementAppTreeNode(CDocument* document, FormElementT
 }
 
 
-std::wstring FormElementAppTreeNode::GetNameOrLabel(bool name) const
+std::wstring FormElementAppTreeNode::GetNameOrLabel(const bool name) const
 {
     ASSERT(!IsFormFileElement());
 
@@ -31,9 +31,10 @@ std::wstring FormElementAppTreeNode::GetNameOrLabel(bool name) const
     if( m_formElement == FormElementType::GridField )
     {
         const CDERoster& roster = assert_cast<const CDERoster&>(*m_formBase);
-        const CDECol* column = roster.GetCol(m_iColumnIndex);
-        const CDEField* field = column->GetField(m_iRosterField);
-        form_base = name ? static_cast<const CDEFormBase*>(field) : &field->GetCDEText();
+        const CDECol* const column = roster.GetCol(m_iColumnIndex);
+        const CDEField* const field = column->GetField(m_iRosterField);
+        form_base = name ? static_cast<const CDEFormBase*>(field) :
+                           &field->GetCDEText();
     }
 
     return CS2WS(name ? form_base->GetName() :
@@ -46,11 +47,10 @@ std::wstring FormElementAppTreeNode::GetNameOrLabel(bool name) const
 // FormOrderAppTreeNode
 // --------------------------------------------------------------------------
 
-FormOrderAppTreeNode::FormOrderAppTreeNode(FormFileBasedDoc* document, AppFileType app_file_type, std::wstring form_order_filename, std::wstring label)
+FormOrderAppTreeNode::FormOrderAppTreeNode(FormFileBasedDoc* const document, const AppFileType app_file_type, std::string form_order_file_path)
     :   FormElementAppTreeNode(document, FormElementType::FormFile, ( document != nullptr ) ? &document->GetFormFile() : nullptr),
         m_appFileType(app_file_type),
-        m_formOrderFilename(std::move(form_order_filename)),
-        m_label(std::move(label)),
+        m_formOrderFilePath(std::move(form_order_file_path)),
         m_refCount(0)
 {
     ASSERT(m_appFileType == AppFileType::Order);
@@ -59,16 +59,19 @@ FormOrderAppTreeNode::FormOrderAppTreeNode(FormFileBasedDoc* document, AppFileTy
 
 std::wstring FormOrderAppTreeNode::GetName() const
 {
-    const FormFileBasedDoc* form_file_based_doc = dynamic_cast<const FormFileBasedDoc*>(GetDocument());
+    const FormFileBasedDoc* const form_file_based_doc = dynamic_cast<const FormFileBasedDoc*>(GetDocument());
 
     return ( form_file_based_doc != nullptr ) ? CS2WS(form_file_based_doc->GetFormFile().GetName()) :
-                                                m_label;
+                                                L"<Name>";
 }
 
 
 std::wstring FormOrderAppTreeNode::GetLabel() const
 {
-    return m_label;
+    const FormFileBasedDoc* const form_file_based_doc = dynamic_cast<const FormFileBasedDoc*>(GetDocument());
+
+    return ( form_file_based_doc != nullptr ) ? CS2WS(form_file_based_doc->GetFormFile().GetLabel()) :
+                                                L"<Label>";
 }
 
 
@@ -77,19 +80,12 @@ std::wstring FormOrderAppTreeNode::GetLabel() const
 // HeadingAppTreeNode
 // --------------------------------------------------------------------------
 
-HeadingAppTreeNode::HeadingAppTreeNode(CDocument* document, AppFileType app_file_type)
+HeadingAppTreeNode::HeadingAppTreeNode(CDocument* const document, const AppFileType app_file_type, const wchar_t* const name_override/* = nullptr*/)
     :   m_appFileType(app_file_type),
-        m_name(ToString(m_appFileType))
+        m_name(( name_override != nullptr ) ? std::wstring(name_override) : UTF8_TODO::GetWide(ToString(m_appFileType)))
 {
     ASSERT(m_appFileType == AppFileType::Code ||
            m_appFileType == AppFileType::Report);
-
-    if( m_appFileType == AppFileType::Report )
-    {
-        // modify to Reports
-        ASSERT(m_name.back() == 't');
-        m_name.push_back('s');
-    }
 
     ASSERT(document != nullptr);
     SetDocument(document);
@@ -100,7 +96,7 @@ HeadingAppTreeNode::HeadingAppTreeNode(CDocument* document, AppFileType app_file
 // ExternalCodeAppTreeNode
 // --------------------------------------------------------------------------
 
-ExternalCodeAppTreeNode::ExternalCodeAppTreeNode(CDocument* document, CodeFile code_file)
+ExternalCodeAppTreeNode::ExternalCodeAppTreeNode(CDocument* const document, CodeFile code_file)
     :   m_codeFile(std::move(code_file))
 {
     ASSERT(document != nullptr && m_codeFile.GetSharedTextSource() != nullptr);
@@ -111,7 +107,13 @@ ExternalCodeAppTreeNode::ExternalCodeAppTreeNode(CDocument* document, CodeFile c
 
 std::wstring ExternalCodeAppTreeNode::GetName() const
 {
-    return PortableFunctions::PathGetFilenameWithoutExtension(m_codeFile.GetFilename());
+    return UTF8_TODO::GetWide(Path::GetFilenameWithoutExtension(m_codeFile.GetFilePath()));
+}
+
+
+const std::string& ExternalCodeAppTreeNode::GetPath() const
+{
+    return m_codeFile.GetFilePath();
 }
 
 
@@ -120,10 +122,10 @@ std::wstring ExternalCodeAppTreeNode::GetName() const
 // ReportAppTreeNode
 // --------------------------------------------------------------------------
 
-ReportAppTreeNode::ReportAppTreeNode(CDocument* document, std::shared_ptr<NamedTextSource> named_text_source)
-    :   m_namedTextSource(std::move(named_text_source))
+ReportAppTreeNode::ReportAppTreeNode(CDocument* const document, ReportFile report_file)
+    :   m_reportFile(std::move(report_file))
 {
-    ASSERT(document != nullptr && m_namedTextSource != nullptr && m_namedTextSource->text_source != nullptr);
+    ASSERT(document != nullptr && m_reportFile.GetSharedTextSource() != nullptr);
 
     SetDocument(document);
 }
@@ -131,11 +133,17 @@ ReportAppTreeNode::ReportAppTreeNode(CDocument* document, std::shared_ptr<NamedT
 
 std::wstring ReportAppTreeNode::GetName() const
 {
-    return m_namedTextSource->name;
+    return UTF8_TODO::GetWide(m_reportFile.GetName());
 }
 
 
 std::wstring ReportAppTreeNode::GetLabel() const
 {
-    return PortableFunctions::PathGetFilenameWithoutExtension(m_namedTextSource->text_source->GetFilename());
+    return UTF8_TODO::GetWide(Path::GetFilenameWithoutExtension(m_reportFile.GetFilePath()));
+}
+
+
+const std::string& ReportAppTreeNode::GetPath() const
+{
+    return m_reportFile.GetFilePath();
 }

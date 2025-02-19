@@ -11,7 +11,7 @@ static char THIS_FILE[]= __FILE__;
 #define new DEBUG_NEW
 #endif
 
-CString CCapiEUtils::StripValue(CIMSAString CSValue, bool bNumericClean /*quita los ceros y blancos que estén a la izquierda*/)
+CString CCapiEUtils::StripValue(CString CSValue, bool bNumericClean /*quita los ceros y blancos que estén a la izquierda*/)
 {
     //quita todos los blancos y valores 0 que estén a la izquierda
     //de Value. (si es que los hay).

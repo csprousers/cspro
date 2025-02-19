@@ -64,10 +64,16 @@ public:
     void SetDDDoc(CDDDoc* pDoc) { m_pDoc = pDoc; }
     CDDDoc* GetDDDoc() const    { return m_pDoc; }
 
-    void DeleteDrag();
+    // Adds the dictionary if it is not already added, increasing the reference count otherwise.
+    HTREEITEM AddDictionary(const std::string& dictionary_file_path, CDDDoc* dictionary_doc);
 
-    HTREEITEM InsertDictionary(const CString& sLabel, const CString& sDictFileName, CDDDoc* pDoc);
-    bool OpenDictionary(const CString& dictionary_filename, bool bMakeVisible = true);
+    // Removes the dictionary if this is the last use of it, decreasing the reference count otherwise.
+    // If removing a modified dictionary, the user will be prompted to save it.
+    void RemoveDictionary(const std::string& dictionary_file_path);
+
+    bool OpenDictionary(const std::string& dictionary_file_path, bool bMakeVisible = true);
+
+    void DeleteDrag();
 
     void BuildTree(DictionaryDictTreeNode& dictionary_dict_tree_node, bool bRedraw = false);
     void BuildTreeRec(int iRel, int iLevel, int iRec, DictionaryDictTreeNode& dictionary_dict_tree_node, HTREEITEM htiLevel);
@@ -77,7 +83,7 @@ public:
     void DefaultExpand(HTREEITEM hItem);
     DictTreeNode* GetTreeNode(HTREEITEM hItem) const { return reinterpret_cast<DictTreeNode*>(GetItemData(hItem)); }
     DictionaryDictTreeNode* GetDictionaryTreeNode(CDocument& document) const;
-    DictionaryDictTreeNode* GetDictionaryTreeNode(wstring_view filename) const;
+    DictionaryDictTreeNode* GetDictionaryTreeNode(std::string_view file_path_sv) const;
     void RemoveDictIDs(HTREEITEM hItem);
     void SetDocTemplate(CDocTemplate* pTemplate) {m_pDocTemplate = pTemplate; }
     void Clean();
@@ -151,5 +157,5 @@ private:
     bool                m_bUpdateAllViews;
     static LOGFONT      m_DefLogFont;
     static CFont        m_font;
-    std::vector<CString> m_viewDataFilenames;
+    std::vector<std::string> m_viewDataFilePaths;
 };

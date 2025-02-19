@@ -13,17 +13,13 @@ public:
     constexpr static const uint8_t FixedSalt[]           = { 0xef, 'I', 0x92, 'N', 0x21, 'S', 0xed, 'O', 0x4b, 'D', 0xa0, 'E', 0x9a, 0xec, 0x81, 0x05 };
     constexpr static std::string_view EncryptionType_sv  = "aes256:";
 
+    EncryptedSQLiteRepository(std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type, DeviceId device_id);
 
-    EncryptedSQLiteRepository(std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type, DeviceId deviceId)
-        :   SQLiteRepository(DataRepositoryType::EncryptedSQLite, std::move(case_access), access_type, deviceId)
-    {
-    }
-
-    static int OpenSQLiteDatabaseFile(const CDataDict* data_dictionary, const ConnectionString& connection_string, sqlite3** ppDb, int flags);
+    static int OpenSQLiteDatabaseFile(const CDataDict* dictionary, const ConnectionString& connection_string, sqlite3** ppDb, int flags);
 
     static std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
 
 protected:
-    const TCHAR* GetFileExtension() const override;
+    const char* GetFileExtension() const override;
     int OpenSQLiteDatabase(const ConnectionString& connection_string, sqlite3** ppDb, int flags) override;
 };

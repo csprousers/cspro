@@ -194,7 +194,7 @@ bool CTAB::AllocBorder() {
     return m_pBorder->Alloc( (double*) m_pAcum.GetAcumArea() );
 }
 
-CTAB::CSymbolCtab(std::wstring name)
+CTAB::CSymbolCtab(std::string name)
     :   Symbol(std::move(name), SymbolType::Crosstab)
 {
     SetTbdSlice( NULL );
@@ -809,7 +809,7 @@ int CTAB::getOwnerGrpIdxForVarOrRecord( int iVar )
     {
         ASSERT( NPT(iVar)->IsA(SymbolType::Group) );
         iGroup = iVar;
-        TRACE( _T("Dynamic completion -> %d %s"), iGroup, GPT(iVar)->GetName().c_str() );
+        TRACE("Dynamic completion -> %d %s", iGroup, GPT(iVar)->GetName().c_str());
     }
 
     ASSERT( iGroup != MAGIC_NUMBER );
@@ -1136,7 +1136,7 @@ int CTAB::AddDefaultUnits( int* pNodeBase[TBD_MAXDIM]) {
                     if( Issamod == ModuleType::Designer )
                         iSyntErr = 8420;
                     else
-                        issaerror( MessageType::Abort, 8421, cSubTable.GetName().GetString() );
+                        issaerror( MessageType::Abort, 8421, UTF8_TODO::GetUtf8(cSubTable.GetName()).c_str() );
                     continue;
                 }
             }
@@ -2136,7 +2136,7 @@ bool CTAB::MakeAuxCtabs()
 
 
         // Generate Auxiliar table
-        auto pAuxCtab = std::make_shared<CTAB>(FormatTextCS2WS(_T("%s_%d"), this->GetName().c_str(), iStatNumber));
+        auto pAuxCtab = std::make_shared<CTAB>(FormatText("%s_%d", this->GetName().c_str(), iStatNumber));
         int iAuxCtab = m_engineData->AddSymbol(pAuxCtab, Logic::SymbolTable::NameMapAddition::ToGlobalScope);
 
         if( pSubTable != NULL ) { // RHF Jan 30, 2003
@@ -3476,7 +3476,7 @@ void CTAB::MakeLinkTableTerms( int* pNodeBase, int iCtNode,
         CLinkVar   cLinkVar;
         CString     csName;
 
-        csName = WS2CS(NPT(pCtNode->m_iSymbol)->GetName());
+        csName = UTF8_TODO::GetCString(NPT(pCtNode->m_iSymbol)->GetName());
 
         cLinkVar.SetName( csName );
 

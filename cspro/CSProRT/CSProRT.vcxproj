@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{F288C711-EB2C-416D-8D66-08D691CC2222}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>CSProRT</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>CSProRT</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="CSProRT.h" />
+    <ClInclude Include="HomeScreenRuntime.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="RuntimeDoc.h" />
+    <ClInclude Include="RuntimeView.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="WindowsApplicationListingRuntime.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CSProRT.cpp" />
+    <ClCompile Include="HomeScreenRuntime.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="RuntimeDoc.cpp" />
+    <ClCompile Include="RuntimeView.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="WindowsApplicationListingRuntime.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CSProRT.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\CSProRT.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zRuntimeO\zRuntimeO.vcxproj">
+      <Project>{e3a56aa1-9d23-4122-87f1-ea4d6c6791cf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

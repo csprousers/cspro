@@ -16,7 +16,7 @@ LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/Symbol.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolTable.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolType.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_STATIC_LIBRARIES  := zAppO zUtilO zJson zToolsO zPlatformO

@@ -16,6 +16,7 @@ namespace ActionInvoker
 
         execute                             = 11276,
         registerAccessToken                 = 13052,
+        throwException                      = 61320,
         Application_getFormFile             = 49910,
         Application_getQuestionnaireContent = 50614,
         Application_getQuestionText         = 60242,
@@ -41,9 +42,15 @@ namespace ActionInvoker
         Logic_getSymbolMetadata             =  4818,
         Logic_getSymbolValue                = 22923,
         Logic_invoke                        = 41927,
+        Logic_setSymbolValue                =  4350,
         Logic_updateSymbolValue             = 17970,
         Message_formatText                  = 31960,
         Message_getText                     =   449,
+        Network_fetch                       =  4086,
+        Network_fetchBody                   = 53854,
+        Network_fetchBytes                  =  1669,
+        Network_fetchJson                   = 35194,
+        Network_fetchText                   = 45509,
         Path_createDirectory                =  9881,
         Path_getDirectoryListing            = 36724,
         Path_getPathInfo                    = 52302,
@@ -56,9 +63,15 @@ namespace ActionInvoker
         Sqlite_exec                         = 63594,
         Sqlite_open                         = 58055,
         Sqlite_rekey                        =  3856,
+        Sync_connect                        = 55590,
+        Sync_disconnect                     = 40552,
+        Sync_sendMessage                    = 51928,
+        Sync_syncParadata                   = 31308,
+        System_createShortcut               = 37361,
         System_getSharableUri               = 20827,
         System_selectDocument               = 30644,
         UI_alert                            = 31133,
+        UI_close                            = 56399,
         UI_closeDialog                      = 60265,
         UI_enumerateWebViews                = 30914,
         UI_getDisplayOptions                = 57563,
@@ -77,7 +90,7 @@ namespace ActionInvoker
     ZLOGICO_API const std::vector<const Logic::FunctionDetails*>& GetFunctions();
 
     // gets the name of each of the CS namespaces
-    ZLOGICO_API std::map<Logic::FunctionNamespace, const TCHAR*> GetNamespaceNames();
+    ZLOGICO_API std::map<Logic::FunctionNamespace, const char*> GetNamespaceNames();
 
     // gets the generalized function definition for an action if it exists
     ZLOGICO_API const GF::Function* GetFunctionDefinition(Action action);

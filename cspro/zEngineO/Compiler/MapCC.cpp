@@ -5,7 +5,7 @@
 
 LogicMap* LogicCompiler::CompileLogicMapDeclaration()
 {
-    std::wstring map_name = CompileNewSymbolName();
+    std::string map_name = CompileNewSymbolName();
 
     auto logic_map = std::make_shared<LogicMap>(std::move(map_name));
 
@@ -39,7 +39,7 @@ int LogicCompiler::CompileLogicMapDeclarations()
 int LogicCompiler::CompileLogicMapFunctions()
 {
     FunctionCode function_code = CurrentToken.function_details->code;
-    std::wstring function_name = Tokstr;
+    const std::string function_name = Tokstr;
     const LogicMap& logic_map = assert_cast<const LogicMap&>(*CurrentToken.symbol);
     Nodes::SymbolVariableArguments& symbol_va_node = CreateSymbolVariableArgumentsNode(function_code, logic_map,
                                                                                        CurrentToken.function_details->number_arguments, -1);

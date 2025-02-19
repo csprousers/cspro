@@ -1,17 +1,16 @@
 ﻿#pragma once
 
 #include <zCaseO/StringBasedCaseConstructionReporter.h>
-#include <zToolsO/Utf8Convert.h>
-#include <easyloggingwrapper.h>
+#include <zNetwork/SyncLog.h>
 
 
 class SyncLogCaseConstructionReporter : public StringBasedCaseConstructionReporter
 {
 protected:
-    void WriteString(NullTerminatedString key, NullTerminatedString message) override
+    void WriteString(const std::string& key, const std::string message) override
     {
-        CLOG(ERROR, "sync") << "Error constructing case:";
-        CLOG(ERROR, "sync") << "*** [" << UTF8Convert::WideToUTF8(key) << "]";
-        CLOG(ERROR, "sync") << "*** " << UTF8Convert::WideToUTF8(message);
+        SYNCLOG_ERROR << "Error constructing case:";
+        SYNCLOG_ERROR << "*** [" << key << "]";
+        SYNCLOG_ERROR << "*** " << message;
     }
 };

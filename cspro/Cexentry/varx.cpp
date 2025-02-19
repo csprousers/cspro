@@ -399,7 +399,7 @@ bool VARX::RemapIndexes( int* paIndex, double* aOccur, bool bCheckTotal, bool bG
         // 20100601 added on tom's request
         if( m_pEngineDriver->m_pIntDriver->m_traceHandler != nullptr )
         {
-            m_pEngineDriver->m_pIntDriver->m_traceHandler->Output(FormatTextCS2WS(_T("Invalid subscript: %s(%.0f)"), pVarT->GetName().c_str(), dBadSubscript),
+            m_pEngineDriver->m_pIntDriver->m_traceHandler->Output(FormatText("Invalid subscript: %s(%.0f)", pVarT->GetName().c_str(), dBadSubscript),
                                                                   TraceHandler::OutputType::SystemText);
         }
     }
@@ -605,14 +605,14 @@ static void setThreeDim( VART* pVarT, CNDIndexes& theIndex, int iOccValue )
     theIndex.setIndexValue( 2, iNewOccValue );
 
     ASSERT( pGroupT != 0 );
-    CString csGroupName = WS2CS(pGroupT->GetName());
+    CString csGroupName = UTF8_TODO::GetCString(pGroupT->GetName());
 
     theIndex.setIndexValue( 1, decrease(pGroupT->GetCurrentExOccurrence()) );
 
     pGroupT = pGroupT->GetParentGPT();
 
     ASSERT( pGroupT != 0 );
-    csGroupName = WS2CS(pGroupT->GetName());
+    csGroupName = UTF8_TODO::GetCString(pGroupT->GetName());
 
     theIndex.setIndexValue( 0, decrease(pGroupT->GetCurrentExOccurrence()) );
 }

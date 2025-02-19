@@ -51,16 +51,16 @@ void EngineCase::AddEngineRecord(const CDictRecord& dict_record)
 }
 
 
-Symbol* EngineCase::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* EngineCase::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
-    for( EngineRecord* engine_record : m_engineRecords )
+    for( EngineRecord* const engine_record : m_engineRecords )
     {
         // check if the record name matches
-        if( SO::EqualsNoCase(symbol_name, engine_record->GetDictionaryRecord().GetName()) )
+        if( SO::EqualsNoCase(symbol_name_sv, engine_record->GetDictRecord().GetName()) )
             return engine_record;
 
         // check if the name matches something underneath the record
-        Symbol* child_symbol = engine_record->FindChildSymbol(symbol_name);
+        Symbol* const child_symbol = engine_record->FindChildSymbol(symbol_name_sv);
 
         if( child_symbol != nullptr )
             return child_symbol;
@@ -70,22 +70,22 @@ Symbol* EngineCase::FindChildSymbol(const std::wstring& symbol_name) const
     // but has not been added yet, so we must search the dictionary for it
     if( m_engineDictionary.IsCaseObject() )
     {
-        const CDictRecord* dictionary_record_to_add = m_engineDictionary.GetDictionary().FindRecord(symbol_name);
+        const CDictRecord* dict_record_to_add = m_engineDictionary.GetDictionary().FindRecord(symbol_name_sv);
 
-        if( dictionary_record_to_add == nullptr )
+        if( dict_record_to_add == nullptr )
         {
-            const CDictItem* dictionary_item_to_add = m_engineDictionary.GetDictionary().FindItem(symbol_name);
+            const CDictItem* const dict_item_to_add = m_engineDictionary.GetDictionary().FindItem(symbol_name_sv);
 
-            if( dictionary_item_to_add != nullptr )
-                dictionary_record_to_add = dictionary_item_to_add->GetRecord();
+            if( dict_item_to_add != nullptr )
+                dict_record_to_add = dict_item_to_add->GetRecord();
         }
 
-        if( dictionary_record_to_add != nullptr )
+        if( dict_record_to_add != nullptr )
         {
-            const_cast<EngineCase*>(this)->AddEngineRecord(*const_cast<CDictRecord*>(dictionary_record_to_add));
+            const_cast<EngineCase*>(this)->AddEngineRecord(*const_cast<CDictRecord*>(dict_record_to_add));
 
             // call the function again so the symbol is found [ENGINECR_TODO test once EngineItems exist]
-            return FindChildSymbol(symbol_name);
+            return FindChildSymbol(symbol_name_sv);
         }
     }
 
@@ -126,9 +126,9 @@ void EngineCase::ResetCasePointers()
     m_currentCaseLevels.clear();
 
     // setup the current CaseLevel objects
-    for( const CaseLevelMetadata* case_level_metadata : m_case->GetCaseMetadata().GetCaseLevelsMetadata() )
+    for( const CaseLevelMetadata& case_level_metadata : m_case->GetCaseMetadata().GetCaseLevelsMetadata() )
     {
-        if( case_level_metadata->GetDictLevel().GetLevelNumber() == 0 )
+        if( case_level_metadata.GetDictLevel().GetLevelNumber() == 0 )
         {
             m_currentCaseLevels.emplace_back(&m_case->GetRootCaseLevel());
         }
@@ -169,7 +169,7 @@ void EngineCase::ShareCase(EngineCase& engine_case)
 
     m_initialCaseKey = engine_case.m_initialCaseKey;
 
-    m_case = engine_case.m_case;    
+    m_case = engine_case.m_case;
 
     ResetCasePointers();
 }
@@ -182,7 +182,7 @@ void EngineCase::CreateNewCase()
 
     m_initialCaseKey.reset();
 
-    InitializeRuntime(m_case->GetSharedCaseConstructionReporter(), false);    
+    InitializeRuntime(m_case->GetSharedCaseConstructionReporter(), false);
 }
 
 
@@ -199,7 +199,7 @@ void EngineCase::ClearCase()
     for( EngineRecord* engine_record : m_engineRecords )
     {
         CaseRecord& case_record = engine_record->GetCurrentCaseRecord();
-        case_record.SetNumberOccurrences(engine_record->m_dictionaryRecord->GetMaxRecs());
+        case_record.SetNumberOccurrences(engine_record->m_dictRecord->GetMaxRecs());
         // ENGINECR_TODO as part of clear, set items to 0/""
     }
 }

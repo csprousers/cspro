@@ -11,14 +11,17 @@ add_library(${PROJECT_NAME}
     Data.cpp
     Dictionary.cpp
     Encoding.cpp
+    Exception.cpp
     File.cpp
     Hash.cpp
     Localhost.cpp
     Logic.cpp
     Path.cpp
     Message.cpp
+    Network.cpp
     Settings.cpp
     Sqlite.cpp
+    Sync.cpp
     System.cpp
     UserInterface.cpp
 )

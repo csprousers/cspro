@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zJson</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -57,23 +53,25 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZJSON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZJSON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IncrementalJsonObjectArrayParser.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="JsonFormattingOptions.cpp" />
     <ClCompile Include="JsonNode.cpp" />
     <ClCompile Include="JsonObjectCreator.cpp" />
     <ClCompile Include="JsonSpecFile.cpp" />
     <ClCompile Include="JsonStream.cpp" />
+    <ClCompile Include="JsonWriter.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -81,6 +79,7 @@
     <ClCompile Include="zJson.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IncrementalJsonObjectArrayParser.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="JsonConsExceptionRethrower.h" />
     <ClInclude Include="JsonConsWriter.h" />
@@ -89,6 +88,7 @@
     <ClInclude Include="JsonKeys.h" />
     <ClInclude Include="JsonNode.h" />
     <ClInclude Include="JsonObjectCreator.h" />
+    <ClInclude Include="JsonParseException.h" />
     <ClInclude Include="JsonSerializer.h" />
     <ClInclude Include="JsonSpecFile.h" />
     <ClInclude Include="JsonStream.h" />

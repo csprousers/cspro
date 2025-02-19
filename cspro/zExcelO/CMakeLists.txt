@@ -28,6 +28,10 @@ add_library(${PROJECT_NAME}
     ${LIBXLSXWRITER_DIRECTORY}/src/metadata.c
     ${LIBXLSXWRITER_DIRECTORY}/src/packager.c
     ${LIBXLSXWRITER_DIRECTORY}/src/relationships.c
+    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value.c
+    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_rel.c
+    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_structure.c
+    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_types.c
     ${LIBXLSXWRITER_DIRECTORY}/src/shared_strings.c
     ${LIBXLSXWRITER_DIRECTORY}/src/styles.c
     ${LIBXLSXWRITER_DIRECTORY}/src/table.c

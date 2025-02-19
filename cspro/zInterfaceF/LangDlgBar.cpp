@@ -15,7 +15,7 @@ void LangDlgBar::UpdateLanguageList(const CDataDict& dictionary)
     pCombo->ResetContent();
 
     for( const Language& language : dictionary.GetLanguages() )
-        pCombo->AddString(FormatText(_T("%s: %s"), language.GetName().c_str(), language.GetLabel().c_str()));
+        pCombo->AddString(TC::ToWide(SO::CreateColonSeparatedString(language.GetName(), language.GetLabel())).c_str());
 
     // set the select to the dictionary's current language
     pCombo->SetCurSel(dictionary.GetCurrentLanguageIndex());

@@ -125,8 +125,8 @@ void ResponseProcessor::SetCanEnterNotAppl(bool add_notappl)
     {
         if( m_addedNotApplResponse == nullptr )
         {
-            const std::wstring& notappl_text = MGF::GetMessageText(110005, _T("Not Applicable"));
-            m_addedNotApplResponse = std::make_shared<ValueSetResponse>(WS2CS(notappl_text), NOTAPPL);
+            const SharableString notappl_text = MGF::GetMessageText(110005, "Not Applicable");
+            m_addedNotApplResponse = std::make_unique<ValueSetResponse>(UTF8_TODO::GetCString(*notappl_text), NOTAPPL);
         }
 
         else

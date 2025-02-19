@@ -140,7 +140,7 @@ void CFormDoc::GenerateFormFile()
 
     m_undoStack.ClearUndo();    // can't go back further in stack than undoing new form file as ptrs will be off
 
-    PushUndo(FormUndoStack(CFormUndoObj::Action::UR_delete, &GetFormFile(), NONE, SO::EmptyCString));
+    PushUndo(FormUndoStack(CFormUndoObj::Action::UR_delete, &GetFormFile(), NONE, SO::Empty_CString));
 
     CWaitCursor wait;
 
@@ -167,52 +167,15 @@ HTREEITEM CFormDoc::BuildAllTrees(HTREEITEM /*hParent = TVI_ROOT*/, HTREEITEM /*
 {
     // BuildAllTrees is invoked from cspro
     // smg: are these args used in other modules BuildAddTrees? cause i'm never using
-    TVITEM      pItem;
-    HTREEITEM   hItem = nullptr;
 
-//  Get the tree control handles and dict path & label
-    CFormTreeCtrl*  pFormTree = GetFormTreeCtrl();
-    CDDTreeCtrl*    pDictTree = pFormTree->GetDDTreeCtrl();
-    CDEFormFile*    pFFSpec = &GetFormFile();
-    CString         csPath, csName, csLabel;
+    // Get the tree control handles and dict path & label
+    CFormTreeCtrl* pFormTree = GetFormTreeCtrl();
 
-    // add dictionary ref
-    csPath  = pFFSpec->GetDictionaryFilename();
-    csLabel = _T("Popstan");    // see note in else blk; comment no longer valid, nd2fix
+    // either add a node to the dict tree, or add a reference
+    pFormTree->GetDDTreeCtrl()->AddDictionary(UTF8_TODO::GetUtf8(GetFormFile().GetDictionaryFilename()), nullptr);
 
-    //  either add a node to the dict tree, or add a reference
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csPath);
-    if (dictionary_dict_tree_node != nullptr)  {
-        // then this dictionary already exists on the tree; just add a ref
-        dictionary_dict_tree_node->AddRef();
-    }
-    else  {
-        // we get the thrill of adding it to the tree
-        // bruce doesn't use the first arg, csLabel, so don't worry that it's not legit
-        pItem.hItem = pDictTree->InsertDictionary (csLabel,csPath,nullptr); // rtns handle;
-        pItem.mask  = TVIF_CHILDREN;
-        pItem.cChildren = 1;
-        pDictTree->SetItem(&pItem);    // set the attributes
-    }
-
-//  either add a node to the form tree, or add a ref
-    csPath = GetPathName();     // mfc; rtns the document's fully qualified path
-    csName = m_formSpec.GetName();
-    csLabel = m_formSpec.GetLabel();
-
-    CFormNodeID* pFormID = pFormTree->GetFormNode(this);
-    if(pFormID) {
-        pFormID->AddRef();
-        hItem = pFormID->GetHItem();
-    }
-    else {
-        hItem = pFormTree->InsertFormFile(csLabel,this->GetPathName(),this);
-        pItem.hItem = hItem;
-        pItem.mask  = TVIF_CHILDREN ;
-        pItem.cChildren = 1;
-        pFormTree->SetItem(&pItem);
-    }
-    return hItem;
+    // either add a node to the form tree, or add a ref
+    return pFormTree->AddFormFile(TC::ToUtf8(GetPathName()), this, false);
 }
 
 
@@ -230,9 +193,9 @@ bool CFormDoc::InitTreeCtrl()
 }
 
 
-bool CFormDoc::LoadFormSpecFile(const CString& csFileName)
+bool CFormDoc::LoadFormSpecFile(const InterfaceString& form_file_path)
 {
-    if ( !m_formSpec.Open(csFileName) )        // load and create CDEFormFile here
+    if( !m_formSpec.Open(form_file_path) )        // load and create CDEFormFile here
         return false;
 
     m_bFormLoaded = true;   // indicate that we've built the CDEFormFile
@@ -264,7 +227,7 @@ bool CFormDoc::LoadDictSpecFile(bool bMakeVisible /*= true */)
 
     // check out all the dicts assoc w/this form
     CString csDictPath = pFFSpec->GetDictionaryFilename();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);  // get the node assoc w/this dict
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPath));  // get the node assoc w/this dict
     if (dictionary_dict_tree_node == nullptr)  {
         // make sure the node's ok
         bOK = false;
@@ -273,7 +236,7 @@ bool CFormDoc::LoadDictSpecFile(bool bMakeVisible /*= true */)
         if(dictionary_dict_tree_node->GetDDDoc() == nullptr)  {
             // has the dictionary already been opened/assigned?
             bMakeVisible = false;
-            if (!pDictTree->OpenDictionary (csDictPath,bMakeVisible))  {
+            if (!pDictTree->OpenDictionary(UTF8_TODO::GetUtf8(csDictPath), bMakeVisible))  {
                 // if not, open it!
                 bOK = false;        // if the open didn't go ok, flag it
             }
@@ -311,7 +274,7 @@ std::shared_ptr<const CDataDict> CFormDoc::GetSharedDictionary() const
         return nullptr;             // ditto comment above
     }
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPath));
     if (dictionary_dict_tree_node == nullptr)  {
         return nullptr;             // ditto comment above
     }
@@ -321,7 +284,7 @@ std::shared_ptr<const CDataDict> CFormDoc::GetSharedDictionary() const
     if(dictionary_dict_tree_node->GetDDDoc() != nullptr) { // there's a doc assoc w/the node
         pDD = dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
     }
-    else if (pDictTree->OpenDictionary (csDictPath, false)) { // open the dict if not already done
+    else if (pDictTree->OpenDictionary(UTF8_TODO::GetUtf8(csDictPath), false)) { // open the dict if not already done
         pDD = dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
     }
 
@@ -407,7 +370,7 @@ void CFormDoc::ReleaseDicts()
         return;
 
     CDEFormFile* pFFSpec = &GetFormFile();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(pFFSpec->GetDictionaryFilename());
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pFFSpec->GetDictionaryFilename()));
 
     if (dictionary_dict_tree_node != nullptr)
         pDictTree->ReleaseDictionaryNode(*dictionary_dict_tree_node);
@@ -422,36 +385,34 @@ void CFormDoc::SaveAllDictionaries()
         return;
 
     CDDTreeCtrl* pDictTree = pFormTree->GetDDTreeCtrl();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(m_formSpec.GetDictionaryFilename());
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(m_formSpec.GetDictionaryFilename()));
 
-    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr ) {
-        if(dictionary_dict_tree_node->GetDDDoc()->IsModified()){
-            dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(dictionary_dict_tree_node->GetDDDoc()->GetPathName());
-        }
+    if( dictionary_dict_tree_node != nullptr &&
+        dictionary_dict_tree_node->GetDDDoc() != nullptr &&
+        dictionary_dict_tree_node->GetDDDoc()->IsModified() )
+    {
+        dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(dictionary_dict_tree_node->GetDDDoc()->GetPathName());
     }
 }
 
 
 BOOL CFormDoc::IsFormModified()
 {
-    if(IsModified())
+    if( IsModified() )
         return TRUE;
 
-    BOOL bRet = FALSE;
+    CFormTreeCtrl* const pFormTree = GetFormTreeCtrl();
 
-    CFormTreeCtrl*  pFormTree  = GetFormTreeCtrl();
+    if( pFormTree == nullptr )
+        return FALSE;
 
-    if (pFormTree == nullptr)
-        return bRet;
+    CDDTreeCtrl* const pDictTree = pFormTree->GetDDTreeCtrl();
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(m_formSpec.GetDictionaryFilename()));
 
-    CDDTreeCtrl* pDictTree = pFormTree->GetDDTreeCtrl();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(m_formSpec.GetDictionaryFilename());
+    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr )
+        return dictionary_dict_tree_node->GetDDDoc()->IsModified();
 
-    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr ) {
-        bRet = dictionary_dict_tree_node->GetDDDoc()->IsModified();
-    }
-
-    return bRet;
+    return FALSE;
 }
 
 
@@ -1111,7 +1072,7 @@ bool CFormDoc::PerformUndoDelete(CFormUndoObj* pUndoObj)
 
     else if (pUndoItem->IsKindOf(RUNTIME_CLASS(CDEFreeCell))) {
 
-        auto new_free_cell = std::make_shared<CDEFreeCell>(static_cast<const CDEFreeCell&>(*pUndoItem));;
+        auto new_free_cell = std::make_shared<CDEFreeCell>(static_cast<const CDEFreeCell&>(*pUndoItem));
         CDERoster* pRoster = pFF->FindRoster(sParentsName);
         ASSERT(pRoster != nullptr);
         pRoster->InsertFreeCell(iIndex, new_free_cell);
@@ -1659,7 +1620,7 @@ void CFormDoc::FileToClip(UINT uFormat)
     }
 
     CFile file(csClipFile, CFile::modeRead);
-    int iSize = file.GetLength() + 1;
+    const int iSize = static_cast<int>(file.GetLength() + 1);
 
     if (iSize > 0)  {
         HGLOBAL hGlobalMemory;

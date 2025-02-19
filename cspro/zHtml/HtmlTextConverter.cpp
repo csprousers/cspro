@@ -2,27 +2,32 @@
 #include "HtmlTextConverter.h"
 
 
-std::wstring HtmlTextConverter::HtmlToText(std::wstring html)
+std::string HtmlTextConverter::HtmlToText(std::string html)
 {
     // this is an incredibly crude implementation that...
 
-    // strips excessive whitespace
-    const TCHAR* start_source_itr = html.data();
-    const TCHAR* const end_source_itr = start_source_itr + html.length();
-    TCHAR* destination_itr = const_cast<TCHAR*>(start_source_itr);
+    // strips excessive non-newline whitespace
+    char* destination_itr = html.data();
+    const char* start_source_itr = destination_itr;
+    const char* const end_source_itr = start_source_itr + html.length();
 
-    for( const TCHAR* source_itr = start_source_itr; source_itr != end_source_itr; ++source_itr )
+    auto is_char_to_strip = [](const char ch)
     {
-        if( !std::iswspace(*source_itr) || ( source_itr == start_source_itr || !std::iswspace(*( source_itr - 1 )) ) )
+        return ( SO::IsWhitespaceChar(ch) && !is_crlf(ch) );
+    };
+
+    for( const char* source_itr = start_source_itr; source_itr != end_source_itr; ++source_itr )
+    {
+        if( !is_char_to_strip(*source_itr) || ( source_itr == start_source_itr || !is_char_to_strip(*( source_itr - 1 )) ) )
             *(destination_itr++) = *source_itr;
     }
 
     html.resize(destination_itr - start_source_itr);
 
     // converts line and paragraph breaks to newlines
-    SO::Replace(html, _T("<br>"), _T("\n"));
-    SO::Replace(html, _T("<br />"), _T("\n"));
-    SO::Replace(html, _T("</p>"), _T("\n"));
+    SO::Replace(html, "<br>", "\n");
+    SO::Replace(html, "<br />", "\n");
+    SO::Replace(html, "</p>", "\n");
 
     // strips other tags
     size_t search_pos = 0;
@@ -31,7 +36,7 @@ std::wstring HtmlTextConverter::HtmlToText(std::wstring html)
     {
         const auto [start_tag_pos, end_tag_pos] = SO::FindCharacters(html, '<', '>', search_pos);
 
-        if( end_tag_pos == std::wstring::npos )
+        if( end_tag_pos == std::string::npos )
             break;
 
         html = html.substr(0, start_tag_pos) + html.substr(end_tag_pos + 1);
@@ -40,11 +45,11 @@ std::wstring HtmlTextConverter::HtmlToText(std::wstring html)
     }
 
     // converts a few other character entities
-    SO::Replace(html, _T("&nbsp;"), _T(" "));
-    SO::Replace(html, _T("&lt;"), _T("<"));
-    SO::Replace(html, _T("&gt;"), _T(">"));
-    SO::Replace(html, _T("&amp;"), _T("&"));
-    SO::Replace(html, _T("&#160;"), _T(" "));
+    SO::Replace(html, "&nbsp;", " ");
+    SO::Replace(html, "&lt;", "<");
+    SO::Replace(html, "&gt;", ">");
+    SO::Replace(html, "&amp;", "&");
+    SO::Replace(html, "&#160;", " ");
 
     // get rid of \r characters
     SO::MakeNewlineLF(html);

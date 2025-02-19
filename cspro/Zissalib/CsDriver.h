@@ -35,21 +35,16 @@
 #include <engine/DEFLD.H>
 #include <engine/3dException.h>
 
-class CSymbolFlow;
-class CEngineDriver;
 class CEngineArea;
-class CIntDriver;
+class CEngineDriver;
 class CEntryDriver;
 class CFlAdmin;
+class CIntDriver;
+class CSymbolFlow;
 struct EngineData;
 class LogicStackSaver;
+namespace Paradata { class FieldEntryEvent; class FieldMovementInstance; struct FieldMovementTypeInfo; }
 
-namespace Paradata
-{
-    struct FieldMovementTypeInfo;
-    class FieldMovementInstance;
-    class FieldEntryEvent;
-}
 
 //---------------------------------------------------------------------------
 //
@@ -579,7 +574,7 @@ public:
 
     // --- paradata
 private:
-    std::shared_ptr<Paradata::FieldMovementTypeInfo> CreateFieldMovementType(RequestNature request_nature);
+    std::unique_ptr<Paradata::FieldMovementTypeInfo> CreateFieldMovementType(RequestNature request_nature);
     std::shared_ptr<Paradata::FieldMovementInstance> m_currentFieldMovementInstance;
     std::shared_ptr<Paradata::FieldMovementInstance> m_currentFieldMovementInstanceForValidationEvent;
     std::shared_ptr<Paradata::FieldEntryEvent> m_currentFieldEntryEvent;

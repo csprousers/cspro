@@ -18,6 +18,6 @@ constexpr bool ExportTypeSupportsMultipleRecords(const DataRepositoryType data_r
 }
 
 
-ZEXPORTO_API const TCHAR* ExportTypeDefaultExtension(DataRepositoryType type);
+ZEXPORTO_API const char* ExportTypeDefaultExtension(DataRepositoryType type);
 
-ZEXPORTO_API std::vector<std::wstring> GetExportFilenames(const ConnectionString& connection_string);
+ZEXPORTO_API std::vector<std::string> GetExportFilePaths(const ConnectionString& connection_string);

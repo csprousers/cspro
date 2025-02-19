@@ -18,16 +18,49 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\CSPro\Colorizer.cpp">
+      <Filter>CSPro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CSPro\LexerCreator.cpp">
+      <Filter>CSPro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexCPP.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexCSPro.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexCSProDocument.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexCSProLogic.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
     <ClCompile Include="..\lexers\LexCSProMessage.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexCSProReport.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexers\LexHTML.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexJSON.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexNull.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexPercentEncoding.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexSQL.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexYAML.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
     <ClCompile Include="..\lexlib\Accessor.cxx">
@@ -40,6 +73,9 @@
       <Filter>lexlib</Filter>
     </ClCompile>
     <ClCompile Include="..\lexlib\DefaultLexer.cxx">
+      <Filter>lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexlib\LexAccessor.cxx">
       <Filter>lexlib</Filter>
     </ClCompile>
     <ClCompile Include="..\lexlib\LexerBase.cxx">
@@ -78,6 +114,15 @@
     <ClCompile Include="..\src\CellBuffer.cxx">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ChangeHistory.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CharacterCategoryMap.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CharacterType.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\CharClassify.cxx">
       <Filter>src</Filter>
     </ClCompile>
@@ -100,6 +145,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\EditView.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry.cxx">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Indicator.cxx">
@@ -138,6 +186,9 @@
     <ClCompile Include="..\src\UniConversion.cxx">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\UniqueString.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ViewStyle.cxx">
       <Filter>src</Filter>
     </ClCompile>
@@ -155,57 +206,6 @@
     </ClCompile>
     <ClCompile Include="ScintillaWin.cxx">
       <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UniqueString.cxx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexJSON.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexCPP.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexSQL.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexPercentEncoding.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexHTML.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexYAML.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexCSProDocument.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CSPro\Colorizer.cpp">
-      <Filter>CSPro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexers\LexCSPro.cxx">
-      <Filter>lexers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ChangeHistory.cxx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\CharacterCategoryMap.cxx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\CharacterType.cxx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Geometry.cxx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexlib\LexAccessor.cxx">
-      <Filter>lexlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CSPro\LexerCreator.cpp">
-      <Filter>CSPro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

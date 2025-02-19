@@ -31,7 +31,7 @@
  *     | | |____ theme1.xml
  *     | |
  *     | |_____rels
- *     | |____ workbook.xml.rels
+ *     |   |____ workbook.xml.rels
  *     |
  *     |_____rels
  *       |____ .rels
@@ -39,7 +39,8 @@
  * The Packager class coordinates the classes that represent the
  * elements of the package and writes them into the XLSX file.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -52,7 +53,7 @@
 STATIC lxw_error _add_file_to_zip(lxw_packager *self, FILE * file,
                                   const char *filename);
 
-STATIC lxw_error _add_buffer_to_zip(lxw_packager *self, char *buffer,
+STATIC lxw_error _add_buffer_to_zip(lxw_packager *self, const char *buffer,
                                     size_t buffer_size, const char *filename);
 
 STATIC lxw_error _add_to_zip(lxw_packager *self, FILE * file,
@@ -81,7 +82,7 @@ STATIC lxw_error _write_vml_drawing_rels_file(lxw_packager *self,
 #ifdef _WIN32
 
 /* Silence Windows warning with duplicate symbol for SLIST_ENTRY in local
- * queue.h and widows.h. */
+ * queue.h and windows.h. */
 #undef SLIST_ENTRY
 
 #include <windows.h>
@@ -153,7 +154,7 @@ _fclose_memstream(voidpf opaque, voidpf stream)
         GOTO_LABEL_ON_MEM_ERROR(packager->output_buffer, mem_error);
 
         rewind(file);
-        if (fread(packager->output_buffer, size, 1, file) < 1)
+        if (fread((void *) packager->output_buffer, size, 1, file) < 1)
             goto mem_error;
 
         packager->output_buffer_size = size;
@@ -170,7 +171,7 @@ mem_error:
  * Create a new packager object.
  */
 lxw_packager *
-lxw_packager_new(const char *filename, char *tmpdir, uint8_t use_zip64)
+lxw_packager_new(const char *filename, const char *tmpdir, uint8_t use_zip64)
 {
     zlib_filefunc_def filefunc;
     lxw_packager *packager = calloc(1, sizeof(lxw_packager));
@@ -239,8 +240,8 @@ lxw_packager_free(lxw_packager *packager)
     if (!packager)
         return;
 
-    free(packager->buffer);
-    free(packager->filename);
+    free((void *) packager->buffer);
+    free((void *) packager->filename);
     free(packager);
 }
 
@@ -382,8 +383,42 @@ _write_image_files(lxw_packager *self)
         else
             worksheet = sheet->u.worksheet;
 
-        if (STAILQ_EMPTY(worksheet->image_props))
+        if (STAILQ_EMPTY(worksheet->image_props)
+            && STAILQ_EMPTY(worksheet->embedded_image_props))
             continue;
+
+        STAILQ_FOREACH(object_props, worksheet->embedded_image_props,
+                       list_pointers) {
+
+            if (object_props->is_duplicate)
+                continue;
+
+            lxw_snprintf(filename, LXW_FILENAME_LENGTH,
+                         "xl/media/image%d.%s", index++,
+                         object_props->extension);
+
+            if (!object_props->is_image_buffer) {
+                /* Check that the image file exists and can be opened. */
+                image_stream = lxw_fopen(object_props->filename, "rb");
+                if (!image_stream) {
+                    LXW_WARN_FORMAT1("Error adding image to xlsx file: file "
+                                     "doesn't exist or can't be opened: %s.",
+                                     object_props->filename);
+                    return LXW_ERROR_CREATING_TMPFILE;
+                }
+
+                err = _add_file_to_zip(self, image_stream, filename);
+                fclose(image_stream);
+            }
+            else {
+                err = _add_buffer_to_zip(self,
+                                         object_props->image_buffer,
+                                         object_props->image_buffer_size,
+                                         filename);
+            }
+
+            RETURN_ON_ERROR(err);
+        }
 
         STAILQ_FOREACH(object_props, worksheet->image_props, list_pointers) {
 
@@ -444,6 +479,35 @@ _add_vba_project(lxw_packager *self)
     }
 
     err = _add_file_to_zip(self, image_stream, "xl/vbaProject.bin");
+    fclose(image_stream);
+    RETURN_ON_ERROR(err);
+
+    return LXW_NO_ERROR;
+}
+
+/*
+ * Write the xl/vbaProjectSignature.bin file.
+ */
+STATIC lxw_error
+_add_vba_project_signature(lxw_packager *self)
+{
+    lxw_workbook *workbook = self->workbook;
+    lxw_error err;
+    FILE *image_stream;
+
+    if (!workbook->vba_project_signature)
+        return LXW_NO_ERROR;
+
+    /* Check that the image file exists and can be opened. */
+    image_stream = lxw_fopen(workbook->vba_project_signature, "rb");
+    if (!image_stream) {
+        LXW_WARN_FORMAT1("Error adding vbaProjectSignature.bin to xlsx file: "
+                         "file doesn't exist or can't be opened: %s.",
+                         workbook->vba_project_signature);
+        return LXW_ERROR_CREATING_TMPFILE;
+    }
+
+    err = _add_file_to_zip(self, image_stream, "xl/vbaProjectSignature.bin");
     fclose(image_stream);
     RETURN_ON_ERROR(err);
 
@@ -1023,6 +1087,10 @@ _write_metadata_file(lxw_packager *self)
         goto mem_error;
     }
 
+    metadata->has_embedded_images = self->workbook->has_embedded_images;
+    metadata->num_embedded_images = self->workbook->num_embedded_images;
+    metadata->has_dynamic_functions = self->workbook->has_dynamic_functions;
+
     lxw_metadata_assemble_xml_file(metadata);
 
     err = _add_to_zip(self, metadata->file, &buffer, &buffer_size,
@@ -1033,6 +1101,177 @@ _write_metadata_file(lxw_packager *self)
 
 mem_error:
     lxw_metadata_free(metadata);
+
+    return err;
+}
+
+/*
+ * Write the rdrichvalue.xml file.
+ */
+STATIC lxw_error
+_write_rich_value_file(lxw_packager *self)
+{
+    lxw_error err = LXW_NO_ERROR;
+    lxw_rich_value *rich_value;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+
+    if (!self->workbook->has_embedded_images)
+        return LXW_NO_ERROR;
+
+    rich_value = lxw_rich_value_new();
+    if (!rich_value) {
+        err = LXW_ERROR_MEMORY_MALLOC_FAILED;
+        goto mem_error;
+    }
+
+    rich_value->workbook = self->workbook;
+
+    rich_value->file =
+        lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rich_value->file) {
+        err = LXW_ERROR_CREATING_TMPFILE;
+        goto mem_error;
+    }
+
+    lxw_rich_value_assemble_xml_file(rich_value);
+
+    err = _add_to_zip(self, rich_value->file, &buffer, &buffer_size,
+                      "xl/richData/rdrichvalue.xml");
+
+    fclose(rich_value->file);
+    free(buffer);
+
+mem_error:
+    lxw_rich_value_free(rich_value);
+
+    return err;
+}
+
+/*
+ * Write the richValueRel.xml file.
+ */
+STATIC lxw_error
+_write_rich_value_rel_file(lxw_packager *self)
+{
+    lxw_error err = LXW_NO_ERROR;
+    lxw_rich_value_rel *rich_value_rel;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+
+    if (!self->workbook->has_embedded_images)
+        return LXW_NO_ERROR;
+
+    rich_value_rel = lxw_rich_value_rel_new();
+    if (!rich_value_rel) {
+        err = LXW_ERROR_MEMORY_MALLOC_FAILED;
+        goto mem_error;
+    }
+
+    rich_value_rel->num_embedded_images = self->workbook->num_embedded_images;
+
+    rich_value_rel->file =
+        lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rich_value_rel->file) {
+        err = LXW_ERROR_CREATING_TMPFILE;
+        goto mem_error;
+    }
+
+    lxw_rich_value_rel_assemble_xml_file(rich_value_rel);
+
+    err = _add_to_zip(self, rich_value_rel->file, &buffer, &buffer_size,
+                      "xl/richData/richValueRel.xml");
+
+    fclose(rich_value_rel->file);
+    free(buffer);
+
+mem_error:
+    lxw_rich_value_rel_free(rich_value_rel);
+
+    return err;
+}
+
+/*
+ * Write the rdRichValueTypes.xml file.
+ */
+STATIC lxw_error
+_write_rich_value_types_file(lxw_packager *self)
+{
+    lxw_error err = LXW_NO_ERROR;
+    lxw_rich_value_types *rich_value_types;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+
+    if (!self->workbook->has_embedded_images)
+        return LXW_NO_ERROR;
+
+    rich_value_types = lxw_rich_value_types_new();
+    if (!rich_value_types) {
+        err = LXW_ERROR_MEMORY_MALLOC_FAILED;
+        goto mem_error;
+    }
+
+    rich_value_types->file =
+        lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rich_value_types->file) {
+        err = LXW_ERROR_CREATING_TMPFILE;
+        goto mem_error;
+    }
+
+    lxw_rich_value_types_assemble_xml_file(rich_value_types);
+
+    err = _add_to_zip(self, rich_value_types->file, &buffer, &buffer_size,
+                      "xl/richData/rdRichValueTypes.xml");
+
+    fclose(rich_value_types->file);
+    free(buffer);
+
+mem_error:
+    lxw_rich_value_types_free(rich_value_types);
+
+    return err;
+}
+
+/*
+ * Write the rdrichvaluestructure.xml file.
+ */
+STATIC lxw_error
+_write_rich_value_structure_file(lxw_packager *self)
+{
+    lxw_error err = LXW_NO_ERROR;
+    lxw_rich_value_structure *rich_value_structure;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+
+    if (!self->workbook->has_embedded_images)
+        return LXW_NO_ERROR;
+
+    rich_value_structure = lxw_rich_value_structure_new();
+    if (!rich_value_structure) {
+        err = LXW_ERROR_MEMORY_MALLOC_FAILED;
+        goto mem_error;
+    }
+
+    rich_value_structure->has_embedded_image_descriptions =
+        self->workbook->has_embedded_image_descriptions;
+
+    rich_value_structure->file =
+        lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rich_value_structure->file) {
+        err = LXW_ERROR_CREATING_TMPFILE;
+        goto mem_error;
+    }
+
+    lxw_rich_value_structure_assemble_xml_file(rich_value_structure);
+
+    err = _add_to_zip(self, rich_value_structure->file, &buffer, &buffer_size,
+                      "xl/richData/rdrichvaluestructure.xml");
+
+    fclose(rich_value_structure->file);
+    free(buffer);
+
+mem_error:
+    lxw_rich_value_structure_free(rich_value_structure);
 
     return err;
 }
@@ -1244,6 +1483,10 @@ _write_content_types_file(lxw_packager *self)
         lxw_ct_add_override(content_types, "/xl/workbook.xml",
                             LXW_APP_DOCUMENT "spreadsheetml.sheet.main+xml");
 
+    if (workbook->vba_project_signature)
+        lxw_ct_add_override(content_types, "/xl/vbaProjectSignature.bin",
+                            "application/vnd.ms-office.vbaProjectSignature");
+
     STAILQ_FOREACH(sheet, workbook->sheets, list_pointers) {
         if (sheet->is_chartsheet) {
             lxw_snprintf(filename, LXW_FILENAME_LENGTH,
@@ -1292,6 +1535,9 @@ _write_content_types_file(lxw_packager *self)
 
     if (workbook->has_metadata)
         lxw_ct_add_metadata(content_types);
+
+    if (workbook->has_embedded_images)
+        lxw_ct_add_rich_value(content_types);
 
     lxw_content_types_assemble_xml_file(content_types);
 
@@ -1362,6 +1608,9 @@ _write_workbook_rels_file(lxw_packager *self)
 
     if (workbook->has_metadata)
         lxw_add_document_relationship(rels, "/sheetMetadata", "metadata.xml");
+
+    if (workbook->has_embedded_images)
+        lxw_add_rich_value_relationship(rels);
 
     lxw_relationships_assemble_xml_file(rels);
 
@@ -1440,15 +1689,15 @@ _write_worksheet_rels_file(lxw_packager *self)
             lxw_add_worksheet_relationship(rels, rel->type, rel->target,
                                            rel->target_mode);
 
-        STAILQ_FOREACH(rel, worksheet->external_table_links, list_pointers) {
-            lxw_add_worksheet_relationship(rels, rel->type, rel->target,
-                                           rel->target_mode);
-        }
-
         rel = worksheet->external_background_link;
         if (rel)
             lxw_add_worksheet_relationship(rels, rel->type, rel->target,
                                            rel->target_mode);
+
+        STAILQ_FOREACH(rel, worksheet->external_table_links, list_pointers) {
+            lxw_add_worksheet_relationship(rels, rel->type, rel->target,
+                                           rel->target_mode);
+        }
 
         rel = worksheet->external_comment_link;
         if (rel)
@@ -1638,6 +1887,119 @@ _write_vml_drawing_rels_file(lxw_packager *self, lxw_worksheet *worksheet,
 }
 
 /*
+ * Write the vbaProject .rels xml file.
+ */
+STATIC lxw_error
+_write_vba_project_rels_file(lxw_packager *self)
+{
+    lxw_relationships *rels;
+    lxw_workbook *workbook = self->workbook;
+    lxw_error err = LXW_NO_ERROR;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+
+    if (!workbook->vba_project_signature)
+        return LXW_NO_ERROR;
+
+    rels = lxw_relationships_new();
+    if (!rels) {
+        err = LXW_ERROR_MEMORY_MALLOC_FAILED;
+        goto mem_error;
+    }
+
+    rels->file = lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rels->file) {
+        err = LXW_ERROR_CREATING_TMPFILE;
+        goto mem_error;
+    }
+
+    lxw_add_ms_package_relationship(rels, "/vbaProjectSignature",
+                                    "vbaProjectSignature.bin");
+
+    lxw_relationships_assemble_xml_file(rels);
+
+    err = _add_to_zip(self, rels->file, &buffer, &buffer_size,
+                      "xl/_rels/vbaProject.bin.rels");
+
+    fclose(rels->file);
+    free(buffer);
+
+mem_error:
+    lxw_free_relationships(rels);
+
+    return err;
+}
+
+/*
+ * Write the richValueRel.xml.rels files for embedded images.
+ */
+STATIC lxw_error
+_write_rich_value_rels_file(lxw_packager *self)
+{
+    lxw_workbook *workbook = self->workbook;
+    lxw_sheet *sheet;
+    lxw_worksheet *worksheet;
+    lxw_object_properties *object_props;
+
+    lxw_relationships *rels;
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+    char sheetname[LXW_FILENAME_LENGTH] = { 0 };
+    char target[LXW_FILENAME_LENGTH] = { 0 };
+    lxw_error err = LXW_NO_ERROR;
+    uint32_t index = 1;
+
+    if (!workbook->has_embedded_images)
+        return LXW_NO_ERROR;
+
+    rels = lxw_relationships_new();
+
+    rels->file = lxw_get_filehandle(&buffer, &buffer_size, self->tmpdir);
+    if (!rels->file) {
+        lxw_free_relationships(rels);
+        return LXW_ERROR_CREATING_TMPFILE;
+    }
+
+    STAILQ_FOREACH(sheet, workbook->sheets, list_pointers) {
+        if (sheet->is_chartsheet)
+            continue;
+        else
+            worksheet = sheet->u.worksheet;
+
+        if (STAILQ_EMPTY(worksheet->embedded_image_props))
+            continue;
+
+        STAILQ_FOREACH(object_props, worksheet->embedded_image_props,
+                       list_pointers) {
+
+            if (object_props->is_duplicate)
+                continue;
+
+            lxw_snprintf(target, LXW_FILENAME_LENGTH,
+                         "../media/image%d.%s", index++,
+                         object_props->extension);
+
+            lxw_add_document_relationship(rels, "/image", target);
+
+        }
+
+    }
+
+    lxw_snprintf(sheetname, LXW_FILENAME_LENGTH,
+                 "xl/richData/_rels/richValueRel.xml.rels");
+
+    lxw_relationships_assemble_xml_file(rels);
+
+    err = _add_to_zip(self, rels->file, &buffer, &buffer_size, sheetname);
+
+    fclose(rels->file);
+    free(buffer);
+    lxw_free_relationships(rels);
+
+    return err;
+}
+
+/*
  * Write the _rels/.rels xml file.
  */
 STATIC lxw_error
@@ -1715,7 +2077,7 @@ _add_file_to_zip(lxw_packager *self, FILE * file, const char *filename)
     fflush(file);
     rewind(file);
 
-    size_read = fread(self->buffer, 1, self->buffer_size, file);
+    size_read = fread((void *) self->buffer, 1, self->buffer_size, file);
 
     while (size_read) {
 
@@ -1734,7 +2096,8 @@ _add_file_to_zip(lxw_packager *self, FILE * file, const char *filename)
             RETURN_ON_ZIP_ERROR(error, LXW_ERROR_ZIP_FILE_ADD);
         }
 
-        size_read = fread(self->buffer, 1, self->buffer_size, file);
+        size_read =
+            fread((void *) (void *) self->buffer, 1, self->buffer_size, file);
     }
 
     error = zipCloseFileInZip(self->zipfile);
@@ -1747,7 +2110,7 @@ _add_file_to_zip(lxw_packager *self, FILE * file, const char *filename)
 }
 
 STATIC lxw_error
-_add_buffer_to_zip(lxw_packager *self, char *buffer, size_t buffer_size,
+_add_buffer_to_zip(lxw_packager *self, const char *buffer, size_t buffer_size,
                    const char *filename)
 {
     int16_t error = ZIP_OK;
@@ -1795,7 +2158,7 @@ _add_to_zip(lxw_packager *self, FILE * file, char **buffer,
 }
 
 /*
- * Write the xml files that make up the XLXS OPC package.
+ * Write the xml files that make up the XLSX OPC package.
  */
 lxw_error
 lxw_create_package(lxw_packager *self)
@@ -1863,10 +2226,31 @@ lxw_create_package(lxw_packager *self)
     error = _add_vba_project(self);
     RETURN_AND_ZIPCLOSE_ON_ERROR(error);
 
+    error = _add_vba_project_signature(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_vba_project_rels_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
     error = _write_core_file(self);
     RETURN_AND_ZIPCLOSE_ON_ERROR(error);
 
     error = _write_metadata_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_rich_value_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_rich_value_rel_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_rich_value_types_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_rich_value_structure_file(self);
+    RETURN_AND_ZIPCLOSE_ON_ERROR(error);
+
+    error = _write_rich_value_rels_file(self);
     RETURN_AND_ZIPCLOSE_ON_ERROR(error);
 
     error = _write_app_file(self);

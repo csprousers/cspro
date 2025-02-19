@@ -9,6 +9,8 @@ include_directories(${PROJECT_NAME} PUBLIC
 add_library(${PROJECT_NAME}
     AppFileType.cpp
     Application.cpp
+    AppMessageFile.cpp
+    AppResource.cpp
     AppSyncParameters.cpp
     CodeFile.cpp
     DictionaryDescription.cpp
@@ -20,8 +22,10 @@ add_library(${PROJECT_NAME}
     OccurrenceLabels.cpp
     PFF.cpp
     Pre80SpecFile.cpp
+    ReportFile.cpp
 
     Properties/ApplicationProperties.cpp
+    Properties/JavaScriptProperties.cpp
     Properties/JsonProperties.cpp
     Properties/MappingProperties.cpp
     Properties/MappingTileProviderProperties.cpp

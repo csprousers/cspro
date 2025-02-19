@@ -19,13 +19,17 @@ private:
 
 
 
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
 inline ExportPropertiesValuesProcessor::ExportPropertiesValuesProcessor(const ConnectionString& connection_string)
 {
     // process whether to write codes and/or labels
     m_writeCodes = connection_string.HasPropertyOrDefault(CSProperty::writeCodes, CSValue::true_, true);
     m_writeLabels = connection_string.HasProperty(CSProperty::writeLabels, CSValue::true_, true);
 
-    const std::wstring* const values_property_pre80 = connection_string.GetProperty(_T("values"));
+    const std::string* const values_property_pre80 = connection_string.GetProperty("values");
 
     if( values_property_pre80 != nullptr )
     {
@@ -41,7 +45,7 @@ inline ExportPropertiesValuesProcessor::ExportPropertiesValuesProcessor(const Co
             m_writeLabels = true;
         }
 
-        else if( SO::EqualsNoCase(*values_property_pre80, _T("codes-and-labels")) )
+        else if( SO::EqualsNoCase(*values_property_pre80, "codes-and-labels") )
         {
             m_writeCodes = true;
             m_writeLabels = true;
@@ -50,7 +54,7 @@ inline ExportPropertiesValuesProcessor::ExportPropertiesValuesProcessor(const Co
 
     if( !m_writeCodes && !m_writeLabels )
     {
-        throw CSProException(_T("You cannot suppress writing both codes and labels when writing a file of type '%s'."),
+        throw CSProException("You cannot suppress writing both codes and labels when writing a file of type '%s'.",
                              ToString(connection_string.GetType()));
     }
 
@@ -65,7 +69,7 @@ void ExportPropertiesValuesProcessor::Process(const CDictItem& dict_item, PC pro
 {
     // add columns for codes and/or labels
     std::shared_ptr<const ValueProcessor> value_processor;
-                
+
     if( m_writeLabels && dict_item.HasValueSets() )
         value_processor = ValueProcessor::CreateValueProcessor(dict_item, &dict_item.GetValueSet(0));
 
@@ -79,7 +83,7 @@ void ExportPropertiesValuesProcessor::Process(const CDictItem& dict_item, PC pro
         process_callback(nullptr, use_label_for_header);
     }
 
-    // add labels 
+    // add labels
     if( value_processor != nullptr )
         process_callback(std::move(value_processor), !m_headerForceNames);
 }

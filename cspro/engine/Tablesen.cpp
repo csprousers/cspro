@@ -159,7 +159,7 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
         }
 
         if( iNewLevel == 1 ) {
-            pDataDict->SetName(sFile + _T("_DICT"));
+            pDataDict->SetName(UTF8_TODO::GetUtf8(sFile) + "_DICT");
             pDataDict->SetNote(_T(""));
 
             int     iRecTypeStart = 0;
@@ -180,9 +180,9 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
         // RHF INIC Feb 03, 2005
         const DictLevel& input_dict_level = pInputDataDict->GetLevel(iExportLevel - 1);
 
-        cLevel.SetLabel( input_dict_level.GetLabel() );
-        cLevel.SetName( input_dict_level.GetName() );
-        cLevel.SetNote( input_dict_level.GetNote() );
+        cLevel.SetLabel(input_dict_level.GetLabel());
+        cLevel.SetName(input_dict_level.GetName());
+        cLevel.SetNote(input_dict_level.GetNote());
         // RHF END Feb 03, 2005
 
         // RHF COM Feb 03, 2005cLevel.SetLabel(pDataDict->GetLabel() + pszLevelLabel[iExportLevel-1] );
@@ -198,8 +198,8 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
 
 
     // Add the record
-    if( SO::IsBlank(pDictRecord->GetLabel()) ) // GHM 20120504 added this condition so that labels from the input dictionary aren't overwritten
-        pDictRecord->SetLabel( pDictRecord->GetName() ); // + " record" );
+    if( SO::IsBlank(pDictRecord->GetLabel()) ) // 20120504 added this condition so that labels from the input dictionary aren't overwritten
+        pDictRecord->SetLabel(UTF8_TODO::GetCString(pDictRecord->GetName())); // + " record" );
 
     pDictRecord->SetRecTypeVal( m_pszSectionCode );
 
@@ -258,7 +258,7 @@ void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
         }
     }
 
-    std::vector<CString> unique_names = pDataDict->GetUniqueNames(_T("RECORD"), IntToStringLength(iMaxRecords), iMaxRecords);
+    const std::vector<std::string> unique_names = pDataDict->GetUniqueNames("RECORD", IntToStringLength(iMaxRecords), iMaxRecords);
 
     //ASSERT( iMaxRecTypeVal == m_pHeadNode->m_iLenRecId );
     // No iMaxRecTypeVal = max( iMaxRecTypeVal, IntToStringLength(iMaxRecords) );
@@ -272,9 +272,9 @@ void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
 
             // Generate a record name
             if( SO::IsBlank(pDictRecord->GetName()) ) {
-                const CString& csRecordName = unique_names[iRecNum];
-                pDictRecord->SetName( csRecordName );
-                pDictRecord->SetLabel( csRecordName );
+                const std::string& record_name = unique_names[iRecNum];
+                pDictRecord->SetName(record_name);
+                pDictRecord->SetLabel(UTF8_TODO::GetCString(record_name));
             }
 
             iRecNum++;
@@ -482,7 +482,7 @@ void CEngineArea::ExportFinish()
 
                     //Add record
                     if( !pExport->ExportAddDictRecord( pDataDict, csFileName, csErrorMsg ) ) {
-                        issaerror( MessageType::Warning, 31040, (LPCTSTR)csFileName, (LPCTSTR)csErrorMsg );
+                        issaerror( MessageType::Warning, 31040, UTF8_TODO::GetUtf8(csFileName).c_str(), UTF8_TODO::GetUtf8(csErrorMsg).c_str() );
                         delete pDataDict;
 
                         pExport->SetRemoveFiles(true);
@@ -534,12 +534,12 @@ void CEngineArea::ExportFinish()
 #else
                 try
                 {
-                    pDataDict->Save(csDataFileName);
+                    pDataDict->Save(UTF8_TODO::GetUtf8(csDataFileName));
                 }
 
                 catch( const CSProException& )
                 {
-                    issaerror(MessageType::Warning, 31073, (LPCTSTR)csDataFileName);
+                    issaerror(MessageType::Warning, 31073, UTF8_TODO::GetUtf8(csDataFileName).c_str());
                 }
 
 #endif // USE_BINARY
@@ -549,7 +549,7 @@ void CEngineArea::ExportFinish()
 
                 if( !pDataDict->IsValid( sError ) ) {
                     sError.TrimRight();
-                    issaerror( MessageType::Warning, 31040, (LPCTSTR)csDataFileName, (LPCTSTR)sError );
+                    issaerror( MessageType::Warning, 31040, UTF8_TODO::GetUtf8(csDataFileName).c_str(), UTF8_TODO::GetUtf8(sError).c_str() );
 
                     pExport->SetRemoveFiles(true);
                     PortableFunctions::FileDelete( csDataFileName );

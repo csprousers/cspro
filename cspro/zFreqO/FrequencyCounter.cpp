@@ -29,7 +29,7 @@ namespace
             return ( count_lookup == m_counts.end() ) ? 0 : count_lookup->second;
         }
 
-        void SetCount(const ValueType& value, CountType count) override
+        void SetCount(const ValueType& value, const CountType count) override
         {
             m_counts[value] = count;
         }
@@ -56,7 +56,7 @@ namespace
     public:
         static constexpr unsigned MaxNumberDigits = 4;
 
-        SmallNumericItemFrequencyCounter(unsigned number_digits)
+        SmallNumericItemFrequencyCounter(const unsigned number_digits)
         {
             // though negative values could be included
             // with a calculation like this: -1 * (int)std::pow(10, number_digits - 1) + 1
@@ -68,7 +68,7 @@ namespace
         }
 
     private:
-        inline bool GetIndex(const double& value, unsigned* out_vector_index) const
+        inline bool GetIndex(const double& value, unsigned* const out_vector_index) const
         {
             *out_vector_index = static_cast<unsigned>(value);
 
@@ -77,7 +77,7 @@ namespace
         }
 
     public:
-        void Add(const double& value, CountType count) override
+        void Add(const double& value, const CountType count) override
         {
             unsigned vector_index;
 
@@ -107,7 +107,7 @@ namespace
             }
         }
 
-        void SetCount(const double& value, CountType count) override
+        void SetCount(const double& value, const CountType count) override
         {
             unsigned vector_index;
 
@@ -154,7 +154,7 @@ namespace
 
 
 template<typename ValueType, typename CountType>
-std::unique_ptr<FrequencyCounter<ValueType, CountType>> FrequencyCounter<ValueType, CountType>::Create(const CDictItem* dict_item/* = nullptr*/)
+std::unique_ptr<FrequencyCounter<ValueType, CountType>> FrequencyCounter<ValueType, CountType>::Create(const CDictItem* const dict_item/* = nullptr*/)
 {
     // see if the frequency counter is a candidate for small integers
     if constexpr(std::is_same_v<ValueType, double>)
@@ -174,5 +174,5 @@ std::unique_ptr<FrequencyCounter<ValueType, CountType>> FrequencyCounter<ValueTy
 
 template class FrequencyCounter<double, size_t>;
 template class FrequencyCounter<double, double>;
-template class FrequencyCounter<std::wstring, size_t>;
-template class FrequencyCounter<std::wstring, double>;
+template class FrequencyCounter<std::string, size_t>;
+template class FrequencyCounter<std::string, double>;

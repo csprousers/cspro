@@ -37,8 +37,8 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
         new CDynLinkLibrary(zEdit2ODLL);
 
-        std::wstring scintilla_dll_filename = PortableFunctions::PathAppendToPath(CSProExecutables::GetApplicationDirectory(), _T("zScintilla.dll"));
-        AfxLoadLibrary(scintilla_dll_filename.c_str());
+        const std::wstring scintilla_dll_file_path = TC::ToWide(Path::Combine(CSProExecutables::GetApplicationDirectory(), "zScintilla.dll"));
+        AfxLoadLibrary(scintilla_dll_file_path.c_str());
     }
 
     else if (dwReason == DLL_PROCESS_DETACH)

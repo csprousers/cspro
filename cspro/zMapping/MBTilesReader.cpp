@@ -1,27 +1,28 @@
 ﻿#include "stdafx.h"
 #include "MBTilesReader.h"
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteHelpers.h>
+#include <zSql/SQLiteStatement.h>
 
 
-MBTilesReader::MBTilesReader(NullTerminatedString filename)
+MBTilesReader::MBTilesReader(const std::string& file_path)
     :   m_db(nullptr),
         m_stmtTileQuery(nullptr)
 {
     try
     {
         // open the database
-        if( sqlite3_open_v2(ToUtf8(filename), &m_db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK )
+        if( sqlite3_open_v2(file_path.c_str(), &m_db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK )
             throw CSProException("database could not be opened");
 
         // read the metadata
         ReadMetadata();
 
         // prepare the tile reading statement
-        const char* sql = "SELECT `tile_data` "
-                          "FROM `tiles` "
-                          "WHERE `zoom_level` = ? AND `tile_column` = ? AND `tile_row` = ? "
-                          "LIMIT 1;";
+       constexpr const char* sql = "SELECT `tile_data` "
+                                   "FROM `tiles` "
+                                   "WHERE `zoom_level` = ? AND `tile_column` = ? AND `tile_row` = ? "
+                                   "LIMIT 1;";
 
         if( sqlite3_prepare_v2(m_db, sql, -1, &m_stmtTileQuery, nullptr) != SQLITE_OK )
             throw CSProException("tiles could not be read");
@@ -31,8 +32,8 @@ MBTilesReader::MBTilesReader(NullTerminatedString filename)
     {
         CloseDatabase();
 
-        throw CSProException(_T("Could not read the MBTiles file %s (%s)"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("Could not read the MBTiles file %s (%s)",
+                             PortableFunctions::PathGetFilename(file_path).c_str(), exception.what());
     }
 }
 
@@ -57,31 +58,35 @@ void MBTilesReader::CloseDatabase()
 
 void MBTilesReader::ReadMetadata()
 {
-    std::map<std::string, std::string> metadata;
-    sqlite3_stmt* stmt_metadata_query;
+    std::map<std::string, std::string, std::less<>> metadata;
 
-    if( sqlite3_prepare_v2(m_db, "SELECT `name`, `value` FROM `metadata`;", -1, &stmt_metadata_query, nullptr) != SQLITE_OK )
+    try
+    {
+        SQLiteStatement stmt_metadata_query(m_db, "SELECT `name`, `value` FROM `metadata`;", true);
+
+        if( stmt_metadata_query.Step() == SQLITE_ROW )
+            metadata[stmt_metadata_query.GetColumn<std::string>(0)] = stmt_metadata_query.GetColumn<std::string>(0);
+    }
+
+    catch(...)
+    {
         throw CSProException("metadata could not be read");
-
-    while( sqlite3_step(stmt_metadata_query) == SQLITE_ROW )
-        metadata[(const char*)sqlite3_column_text(stmt_metadata_query, 0)] = (const char*)sqlite3_column_text(stmt_metadata_query, 1);
-
-    sqlite3_finalize(stmt_metadata_query);
+    }
 
     // parse the metadata
-    auto get_value = [&](const char* name) -> std::optional<std::wstring>
+    auto get_value = [&](const char* const name) -> std::optional<std::string>
     {
         const auto& name_search = metadata.find(name);
 
         if( name_search != metadata.cend() )
-            return UTF8Convert::UTF8ToWide(name_search->second);
+            return name_search->second;
 
         return std::nullopt;
     };
 
-    auto get_optional_int_value = [&](const char* name) -> std::optional<int>
+    auto get_optional_int_value = [&](const char* const name) -> std::optional<int>
     {
-        std::optional<std::wstring> value = get_value(name);
+        const std::optional<std::string> value = get_value(name);
 
         if( value.has_value() && CIMSAString::IsNumeric(*value) )
             return static_cast<int>(CIMSAString::Val(*value));
@@ -89,25 +94,25 @@ void MBTilesReader::ReadMetadata()
         return std::nullopt;
     };
 
-    std::wstring format = get_value("format").value_or(_T("png"));
+    const std::string format = get_value("format").value_or("png");
     m_tileMimeType = ValueOrDefault(MimeType::GetTypeFromFileExtension(format));
 
-    if( !MimeType::IsImageType(m_tileMimeType) )
-        throw CSProException(_T("tile type \"%s\" not supported"), format.c_str());
+    if( !MimeType::IsImageType(*m_tileMimeType) )
+        throw CSProException("tile type '%s' not supported", format.c_str());
 
     m_minNativeZoom = get_optional_int_value("minzoom");
     m_maxNativeZoom = get_optional_int_value("maxzoom");
 
-    std::optional<std::wstring> bounds_value = get_value("bounds");
+    const std::optional<std::string> bounds_value = get_value("bounds");
 
     if( bounds_value.has_value() )
     {
         std::vector<double> values;
 
-        for( wstring_view value_text : SO::SplitString<wstring_view>(*bounds_value, ',') )
+        for( const std::string_view value_text_sv : SO::SplitString<std::string_view>(*bounds_value, ',') )
         {
-            if( CIMSAString::IsNumeric(value_text) )
-                values.emplace_back(CIMSAString::fVal(value_text));
+            if( CIMSAString::IsNumeric(value_text_sv) )
+                values.emplace_back(CIMSAString::fVal(value_text_sv));
         }
 
         // "The bounds are represented as WGS 84 latitude and longitude values, in the
@@ -119,16 +124,14 @@ void MBTilesReader::ReadMetadata()
         }
     }
 
-    m_attribution = get_value("attribution");
+    m_attribution = ValueOrDefault(get_value("attribution"));
 }
 
 
-std::unique_ptr<std::vector<std::byte>> MBTilesReader::GetTile(int z, int x, int y)
+std::optional<OfflineTileReader::Tile> MBTilesReader::GetTile(const int z, const int x, int y)
 {
     // only allow one query to the database at any time
     std::lock_guard lock_guard(m_tileQueryMutex);
-
-    std::unique_ptr<std::vector<std::byte>> tile;
 
     // "Note that in the TMS tiling scheme, the Y axis is reversed from the "XYZ" coordinate system
     //  commonly used in the URLs to request individual tiles, so the tile commonly referred to as 11/327/791
@@ -140,11 +143,13 @@ std::unique_ptr<std::vector<std::byte>> MBTilesReader::GetTile(int z, int x, int
     sqlite3_bind_int(m_stmtTileQuery, 2, x);
     sqlite3_bind_int(m_stmtTileQuery, 3, y);
 
+    std::optional<Tile> tile;
+
     if( sqlite3_step(m_stmtTileQuery) == SQLITE_ROW )
     {
-        auto tile_size = sqlite3_column_bytes(m_stmtTileQuery, 0);
-        tile = std::make_unique<std::vector<std::byte>>(tile_size);
-        memcpy(tile->data(), sqlite3_column_blob(m_stmtTileQuery, 0), tile_size);
+        const size_t tile_size = sqlite3_column_bytes(m_stmtTileQuery, 0);
+        tile.emplace(Tile { BinaryBlock(tile_size), m_tileMimeType });
+        memcpy(tile->image.data(), sqlite3_column_blob(m_stmtTileQuery, 0), tile_size);
     }
 
     return tile;

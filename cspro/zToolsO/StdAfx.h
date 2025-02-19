@@ -4,5 +4,5 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/Tools.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/UWM.h>

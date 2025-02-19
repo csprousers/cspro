@@ -23,27 +23,29 @@ protected:
 
     LRESULT OnUpdateDialogUI(WPARAM wParam, LPARAM lParam);
 
-    afx_msg void OnAppAbout();
-    afx_msg void OnFileOpen();
-    afx_msg void OnFileSaveAs();
+    void OnAppAbout();
+    void OnFileOpen();
+    void OnFileSaveAs();
 
-    afx_msg void OnToggleNames();
-    afx_msg void OnToggleShowOnlyDestructiveChanges();
-    
-    afx_msg void OnTextChange();
-    afx_msg void OnInputDictionaryBrowse();
-    afx_msg void OnInputDataBrowse();
-    afx_msg void OnOutputDictionaryBrowse();
-    afx_msg void OnOutputDataBrowse();
+    void OnToggleNames();
+    void OnToggleShowOnlyDestructiveChanges();
 
-    afx_msg void OnReformatData();
+    void OnTextChange();
+    void OnInputDictionaryBrowse();
+    void OnInputDataBrowse();
+    void OnOutputDictionaryBrowse();
+    void OnOutputDataBrowse();
+
+    void OnReformatData();
 
 private:
     void SetDefaultPffSettings();
     void UIToPff();
 
-    void OnDictionaryBrowse(std::wstring& dictionary_filename, const TCHAR* title_text);
-    void OnDataBrowse(ConnectionString& connection_string, bool open_existing, const std::wstring& dictionary_filename, const ConnectionString& other_connection_string);
+    void OnDictionaryBrowse(std::string& dictionary_file_path, const wchar_t* title_text);
+
+    void OnDataBrowse(ConnectionString& connection_string, bool open_existing,
+                      const std::string& dictionary_file_path, const ConnectionString& other_connection_string);
 
     const std::shared_ptr<const CDataDict> GetUsableInputDictionary() { return ( m_inputDictionary != nullptr ) ? m_inputDictionary :
                                                                                                                   m_embeddedDictionaryFromInputRepository; }
@@ -56,17 +58,17 @@ private:
     PFF m_pff;
     bool m_showOnlyDestructiveChanges;
 
-    std::wstring m_inputDictionaryFilename;
+    std::string m_inputDictionaryFilePath;
     ConnectionString m_inputConnectionString;
 
-    std::wstring m_outputDictionaryFilename;
+    std::string m_outputDictionaryFilePath;
     ConnectionString m_outputConnectionString;
 
     std::shared_ptr<const CDataDict> m_inputDictionary;
-    std::wstring m_lastLoadedInputDictionaryFilename;
+    std::string m_lastLoadedInputDictionaryFilePath;
 
     std::shared_ptr<const CDataDict> m_outputDictionary;
-    std::wstring m_lastLoadedOutputDictionaryFilename;
+    std::string m_lastLoadedOutputDictionaryFilePath;
 
     std::shared_ptr<const CDataDict> m_embeddedDictionaryFromInputRepository;
     ConnectionString m_lastLoadedInputConnectionString;

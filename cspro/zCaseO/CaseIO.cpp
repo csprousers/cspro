@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Pre74_Case.h"
-#include <zToolsO/NewlineSubstitutor.h>
+#include <zUtilO/MemoryHelpers.h>
 
 
 namespace CaseIOConstants
@@ -93,7 +93,7 @@ void Pre74_Case::CalculateConstructionVariables()
                 {
                     const CDictItem* pItem = pRecord->GetItem(iItem);
 
-                    if( iItem == 0 || (int)pItem->GetStart() != iPrevEndPos )
+                    if( iItem == 0 || static_cast<int>(pItem->GetStart()) != iPrevEndPos )
                     {
                         if( iPass == 2 )
                         {
@@ -114,7 +114,7 @@ void Pre74_Case::CalculateConstructionVariables()
                     if( iPass == 2 )
                     {
                         m_aLevelKeys[iLevel].KeyLen += pItem->GetLen();
-                        m_iMinLineLen = (int)std::max((UINT)m_iMinLineLen,pItem->GetStart() + pItem->GetLen() - 1);
+                        m_iMinLineLen = static_cast<int>(std::max(static_cast<UINT>(m_iMinLineLen), pItem->GetStart() + pItem->GetLen() - 1));
                     }
                 }
             }
@@ -226,10 +226,10 @@ void Pre74_Case::ApplySpecialOutputKey(const Pre74_Case* pInputCase, Pre74_CaseL
         int iLeftSpacesNeeded = pOutputLevelKeys->KeyLen - csOutputKey.GetLength() - csThisLevelKey.GetLength();
 
         if( iLeftSpacesNeeded <= 0 )
-            csOutputKey.AppendFormat(_T("%s"), (LPCTSTR)csThisLevelKey - iLeftSpacesNeeded);
+            csOutputKey.AppendFormat(_T("%s"), csThisLevelKey.GetString() - iLeftSpacesNeeded);
 
         else
-            csOutputKey.AppendFormat(_T("%s%s"), (LPCTSTR)CString(_T(' '), iLeftSpacesNeeded), (LPCTSTR)csThisLevelKey);
+            csOutputKey.AppendFormat(_T("%s%s"), CString(_T(' '), iLeftSpacesNeeded).GetString(), csThisLevelKey.GetString());
     }
 
     const LevelKeys* pOutputLevelKeys = m_aLevelKeys + ( pSpecialOutputCaseLevel->GetLevelNum() - 1 );

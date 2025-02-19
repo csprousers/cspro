@@ -39,11 +39,11 @@ class CLASS_DECL_ZFORMF CFormID : public CObject
 
 private:
     eNodeType       m_eNodeType;     // what type of node is it? see list above
-                                     
+
     CFormDoc*       m_pFormDoc;      // ptr to the document that owns this tree ctrl
-                                     
+
     HTREEITEM       m_hItem;         // hItem to which this item corresponds to
-                                     
+
     int             m_iForm;         // form index; it it's a level will be NONE
     int             m_iCol;          // column index (for new grid);
     int             m_iRosterField;  // if the item is a roster, then the index of its field
@@ -70,7 +70,7 @@ public:
 
     void SetHItem       (const HTREEITEM& hItem) { m_hItem = hItem; }
     void SetItemPtr     (CDEFormBase* pFB)       { m_pItem = pFB; }
-                                                 
+
     const eNodeType&    GetItemType()   const    { return m_eNodeType; }
     int                 GetFormIndex()  const    { return m_iForm; }
     int                 GetColumnIndex()const    { return m_iCol; }
@@ -95,8 +95,6 @@ class CFormNodeID : public CFormID {
 
 private:
     CIMSAString     m_sFormFileName;
-    CIMSAString     m_sFormFileLabel;
-
     int             m_iCount;       // smg: track the # of references?
 
 public:
@@ -106,9 +104,6 @@ public:
     //Set and get the dict document name
     void            SetFFName   (const CString& sFileName) { m_sFormFileName = sFileName; }
     const CString&  GetFFName()  const { return m_sFormFileName; }
-
-    void            SetFFLabel  (const CString& sFileLabel) { m_sFormFileLabel = sFileLabel; }
-    const CString&  GetFFLabel() const { return m_sFormFileLabel; }
 
     int AddRef (void)   { m_iCount++; return m_iCount; }
     int Release (void)  { m_iCount--; return m_iCount; }
@@ -145,15 +140,15 @@ class CLASS_DECL_ZFORMF FormReportID : public CFormID
     DECLARE_DYNAMIC(FormReportID)
 
 public:
-    FormReportID(CFormDoc* pDoc, std::shared_ptr<NamedTextSource> named_text_source);
+    FormReportID(CFormDoc* pDoc, std::optional<ReportFile> report_file);
+
+    const ReportFile& GetReportFile() const { ASSERT(m_reportFile.has_value()); return *m_reportFile; }
 
     std::optional<CString> GetName() const override;
     std::optional<CString> GetLabel() const override;
 
     TextSource* GetTextSource() override;
 
-    NamedTextSource* GetNamedTextSource() { return m_namedTextSource.get(); }
-
 private:
-    std::shared_ptr<NamedTextSource> m_namedTextSource;
+    std::optional<ReportFile> m_reportFile;
 };

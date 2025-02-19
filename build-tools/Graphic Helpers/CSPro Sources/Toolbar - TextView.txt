@@ -2,7 +2,7 @@ Quit.png
 Open.png
 Close.png
 Save.png
-Program - DataViewer.png
+Program - DataManager.png
 Print - Page Setup.png
 Print - Preview.png
 Print.png

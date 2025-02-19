@@ -780,6 +780,8 @@ public class EngineInterface
     }
     private native String FormatCoordinates(long applicationReference, double latitude, double longitude);
 
+    public native static String GetTpkMetadataAsJson(String tpkFilePath);
+
     public void runNonEntryApplication(String pffFilename)
     {
         RunNonEntryApplication(m_nativeEngineInterfaceReference, pffFilename);

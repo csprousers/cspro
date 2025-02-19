@@ -352,7 +352,7 @@ BOOL CFileIO::Open ( CString csFileName )  {
     m_unicodeEncoding= GetEncodingFromBOM(m_iHandle);
     bool isValidEncoding = (m_unicodeEncoding == Encoding::Utf8) || (m_unicodeEncoding == Encoding::Ansi) || (m_unicodeEncoding == Encoding::Utf16LE);
     if (!isValidEncoding){
-        AfxMessageBox(FormatText(_T("%s\n\nCSPro does not support the specified text encoding."), (LPCTSTR)csFileName));
+        AfxMessageBox(FormatText(_T("%s\n\nCSPro does not support the specified text encoding."), csFileName.GetString()));
         return FALSE;
     }
 
@@ -1019,7 +1019,7 @@ void CBuffer::LoadBuffer (void)  {
         // csc 5/3/2004 ... detect file deletion or modification
         if (m_currFileIO->RequiresClose()) {
             CString cs;
-            cs.Format(_T("File %s has been deleted, or is no longer available. File will be closed."), (LPCTSTR)m_currFileIO->GetFileName());
+            cs.Format(_T("File %s has been deleted, or is no longer available. File will be closed."), m_currFileIO->GetFileName().GetString());
 //            AfxMessageBox(cs, MB_ICONEXCLAMATION);
 //            m_stStatus=CLOSEFILE;
             m_iaOffs[m_iCurrLine]=CLOSEFILE_SIGNAL;
@@ -1027,7 +1027,7 @@ void CBuffer::LoadBuffer (void)  {
         }
         if (m_currFileIO->RequiresReload()) {
             CString cs;
-            cs.Format(_T("File %s has been changed by another application and will be reloaded."), (LPCTSTR)m_currFileIO->GetFileName());
+            cs.Format(_T("File %s has been changed by another application and will be reloaded."), m_currFileIO->GetFileName().GetString());
 //            AfxMessageBox(cs, MB_ICONEXCLAMATION);
 //            m_stStatus=RELOADFILE;
             m_iaOffs[m_iCurrLine]=RELOADFILE_SIGNAL;

@@ -50,7 +50,7 @@ int CCapiRunAplEntry::GetNNodes()
     return pCase->GetNumberNodes();
 }
 
-void CCapiRunAplEntry::GetVal( CDEField* pField, const int iOcc, CIMSAString& sData, int* iStatus, bool bFormatValue, COLORREF* pBkColor ){
+void CCapiRunAplEntry::GetVal( CDEField* pField, const int iOcc, CString& sData, int* iStatus, bool bFormatValue, COLORREF* pBkColor ){
 
     if(!GetRunAplEntry())
         return;
@@ -209,7 +209,7 @@ void CCapiRunAplEntry::GetInfo(bool          bVerified,
         int         iColor = 0;
         //
 
-        CIMSAString     csData;
+        CString csData;
 
         CCapiRunAplEntry*   pCapiRunAplE    = this;
         if(pCapiRunAplE){
@@ -219,11 +219,11 @@ void CCapiRunAplEntry::GetInfo(bool          bVerified,
         if(bShortRepresentation){
             csToolTip = pField->GetDictItem()->GetLabel();
         } else {
-            csToolTip = pField->GetDictItem()->GetName();
+            csToolTip = UTF8_TODO::GetCString(pField->GetDictItem()->GetName());
         }
 
         csToolTip.TrimRight();
-        csToolTip = csToolTip + _T(" (")+IntToString(iOccurrenceIndex)+_T(")");
+        csToolTip = csToolTip + _T(" (") + UTF8_TODO::GetCString(IntToString(iOccurrenceIndex)) + _T(")");
         csToolTip = csToolTip + _T(" : ");
 
 
@@ -386,7 +386,7 @@ CString CCapiRunAplEntry::StringRepresentation(CDEItemBase* pItem, bool bShortRe
 
     case CDEFormBase::Field   : {
         CDEField*   pField = (CDEField*) pItem;
-        if( bShortRepresentation ) CStringRepresentation = (CString) pField->GetDictItem()->GetName();
+        if( bShortRepresentation ) CStringRepresentation = UTF8_TODO::GetCString(pField->GetDictItem()->GetName());
         else CStringRepresentation = (CString) pField->GetDictItem()->GetLabel();
                    } break;
 

@@ -11,45 +11,45 @@ namespace
 {
     const AdditionalReservedWordDetails AdditionalReservedWords[] =
     {
-        { _T("GLOBAL"),         _T("cspro_program_structure.html") },
-        { _T("PROC"),           _T("proc_statement.html") },
-        { _T("summary"),        _T("errmsg_function.html"), },
-        { _T("denom"),          _T("errmsg_function.html"), },
-        { _T("disjoint"),       _T("Freq_statement_unnamed.html") },
-        { _T("weight"),         _T("Freq_statement_unnamed.html") },
-        { _T("specific"),       _T("impute_function.html") },
-        { _T("outofrange"),     _T("set_behavior_canenter_statement.html") },
-        { _T("confirm"),        _T("set_behavior_canenter_statement.html") },
-        { _T("noconfirm"),      _T("set_behavior_canenter_statement.html") },
-        { _T("specialvalues"),  _T("set_behavior_specialvalues_statement.html") },
+        { "GLOBAL",         "cspro_program_structure.html" },
+        { "PROC",           "proc_statement.html" },
+        { "summary",        "errmsg_function.html" },
+        { "denom",          "errmsg_function.html" },
+        { "disjoint",       "Freq_statement_unnamed.html" },
+        { "weight",         "Freq_statement_unnamed.html" },
+        { "specific",       "impute_function.html" },
+        { "outofrange",     "set_behavior_canenter_statement.html" },
+        { "confirm",        "set_behavior_canenter_statement.html" },
+        { "noconfirm",      "set_behavior_canenter_statement.html" },
+        { "specialvalues",  "set_behavior_specialvalues_statement.html" },
 
         // words that are used in the CSPro DB tables
-        { _T("cases"),          nullptr },
-        { _T("file_revisions"), nullptr },
-        { _T("meta"),           nullptr },
-        { _T("notes"),          nullptr },
-        { _T("occ"),            nullptr },
-        { _T("sync_history"),   nullptr },
-        { _T("vector_clock"),   nullptr },
+        { "cases",          nullptr },
+        { "file_revisions", nullptr },
+        { "meta",           nullptr },
+        { "notes",          nullptr },
+        { "occ",            nullptr },
+        { "sync_history",   nullptr },
+        { "vector_clock",   nullptr },
     };
 
 
     const AdditionalReservedWordDetails SpecialFunctions[] =
     {
-        { ToString(SpecialFunction::OnChangeLanguage),      _T("OnChangeLanguage_global_function.html") },
-        { ToString(SpecialFunction::OnChar),                _T("OnChar_global_function.html") },
-        { ToString(SpecialFunction::OnKey),                 _T("OnKey_global_function.html") },
-        { ToString(SpecialFunction::OnStop),                _T("OnStop_global_function.html") },
-        { ToString(SpecialFunction::OnSyncMessage),         _T("syncmessage_function.html") },
-        { ToString(SpecialFunction::OnRefused),             _T("refused_value.html") },
-        { ToString(SpecialFunction::OnSystemMessage),       _T("OnSystemMessage_global_function.html") },
-        { ToString(SpecialFunction::OnViewQuestionnaire),   _T("OnViewQuestionnaire_global_function.html") },
-        { ToString(SpecialFunction::OnActionInvokerResult), _T("CS_OnActionInvokerResult.html") },
+        { ToString(SpecialFunction::OnChangeLanguage),      "OnChangeLanguage_global_function.html" },
+        { ToString(SpecialFunction::OnChar),                "OnChar_global_function.html" },
+        { ToString(SpecialFunction::OnKey),                 "OnKey_global_function.html" },
+        { ToString(SpecialFunction::OnStop),                "OnStop_global_function.html" },
+        { ToString(SpecialFunction::OnSyncMessage),         "syncmessage_function.html" },
+        { ToString(SpecialFunction::OnRefused),             "refused_value.html" },
+        { ToString(SpecialFunction::OnSystemMessage),       "OnSystemMessage_global_function.html" },
+        { ToString(SpecialFunction::OnViewQuestionnaire),   "OnViewQuestionnaire_global_function.html" },
+        { ToString(SpecialFunction::OnActionInvokerResult), "CS_OnActionInvokerResult.html" },
     };
 }
 
 
-bool ReservedWords::IsReservedWord(const wstring_view text_sv)
+bool ReservedWords::IsReservedWord(const std::string_view text_sv)
 {
     return ( KeywordTable::IsKeyword(text_sv) ||
              FunctionTable::IsFunctionNamespace(text_sv, SymbolType::None) ||
@@ -58,12 +58,12 @@ bool ReservedWords::IsReservedWord(const wstring_view text_sv)
 }
 
 
-void ReservedWords::ForeachReservedWord(const std::function<void(ReservedWordType, const std::wstring&, const void*)>& callback_function)
+void ReservedWords::ForeachReservedWord(const std::function<void(ReservedWordType, const std::string&, const void*)>& callback_function)
 {
     for( const auto& [text, entry_details] : KeywordTable::GetKeywords().GetTable() )
     {
-        if( ( entry_details->token_code == TokenCode::TOKRECODE && SO::EqualsNoCase(text, _T("box")) ) ||
-            ( entry_details->token_code == TokenCode::TOKENDRECODE && SO::EqualsNoCase(text, _T("endbox")) ) )
+        if( ( entry_details->token_code == TokenCode::TOKRECODE && SO::EqualsNoCase(text, "box") ) ||
+            ( entry_details->token_code == TokenCode::TOKENDRECODE && SO::EqualsNoCase(text, "endbox") ) )
         {
             // don't add deprecated words
             continue;
@@ -94,14 +94,14 @@ void ReservedWords::ForeachReservedWord(const std::function<void(ReservedWordTyp
 }
 
 
-const std::vector<std::wstring>& ReservedWords::GetAllReservedWords()
+const std::vector<std::string>& ReservedWords::GetAllReservedWords()
 {
     auto get_reserved_words = []()
     {
-        std::vector<std::wstring> reserved_words;
+        std::vector<std::string> reserved_words;
 
         ForeachReservedWord(
-            [&](ReservedWordType reserved_word_type, const std::wstring& reserved_word, const void*)
+            [&](const ReservedWordType reserved_word_type, const std::string& reserved_word, const void*)
             {
                 if( reserved_word_type == ReservedWordType::FunctionNamespaceChild ||
                     reserved_word_type == ReservedWordType::FunctionDotNotation )
@@ -116,7 +116,7 @@ const std::vector<std::wstring>& ReservedWords::GetAllReservedWords()
         return reserved_words;
     };
 
-    static const std::vector<std::wstring> reserved_words = get_reserved_words();
+    static const std::vector<std::string> reserved_words = get_reserved_words();
     return reserved_words;
 }
 
@@ -138,7 +138,7 @@ const ReservedWordsTable<AdditionalReservedWordDetails>& ReservedWords::GetSpeci
 
 
 template<typename T>
-const TCHAR* ReservedWords::GetDefinedCaseWorker(const wstring_view text_sv, const T& function_domain)
+const char* ReservedWords::GetDefinedCaseWorker(const std::string_view text_sv, const T& function_domain)
 {
     const FunctionDetails* function_details;
 
@@ -153,7 +153,7 @@ const TCHAR* ReservedWords::GetDefinedCaseWorker(const wstring_view text_sv, con
         const KeywordDetails* keyword_details;
         const FunctionNamespaceDetails* function_namespace_details;
         const AdditionalReservedWordDetails* additional_reserved_word_details;
-        const TCHAR* child_symbol_name;
+        const char* child_symbol_name;
 
         return KeywordTable::IsKeyword(text_sv, &keyword_details)                                        ? keyword_details->name :
                FunctionTable::IsFunctionNamespace(text_sv, function_domain, &function_namespace_details) ? function_namespace_details->name :
@@ -170,7 +170,7 @@ const TCHAR* ReservedWords::GetDefinedCaseWorker(const wstring_view text_sv, con
 }
 
 
-const TCHAR* ReservedWords::GetDefinedCase(const wstring_view text_sv, const FunctionDomain& function_domain)
+const char* ReservedWords::GetDefinedCase(const std::string_view text_sv, const FunctionDomain& function_domain)
 {
     return std::visit([&](const auto& value) { return GetDefinedCaseWorker(text_sv, value); },
                       function_domain);

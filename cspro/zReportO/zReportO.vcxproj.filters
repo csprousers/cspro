@@ -17,11 +17,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Pre77ReportManager.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\external\gumbo\attribute.c">
+      <Filter>Gumbo</Filter>
     </ClCompile>
     <ClCompile Include="..\external\gumbo\char_ref.c">
       <Filter>Gumbo</Filter>
@@ -53,33 +50,36 @@
     <ClCompile Include="..\external\gumbo\vector.c">
       <Filter>Gumbo</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\gumbo\attribute.c">
-      <Filter>Gumbo</Filter>
+    <ClCompile Include="Pre77Report.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pre77ReportManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Pre77ReportNodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pre77Report.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zReportO.h">
+    <ClInclude Include="Pre77Report.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="Pre77ReportException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Pre77ReportManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pre77Report.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Pre77ReportNodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pre77ReportException.h">
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zReportO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

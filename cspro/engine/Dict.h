@@ -161,7 +161,7 @@ public:
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction
 public:
-    CSymbolDict(std::wstring name, CEngineDriver* pEngineDriver);
+    CSymbolDict(std::string name, CEngineDriver* pEngineDriver);
     ~CSymbolDict();
 
     // --- executor brother-entry
@@ -233,7 +233,7 @@ public:
     FLOW*       GetFlow()                 { return m_pFlow; }
 
     // Symbol overrides
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
 
     void serialize_subclass(Serializer& ar) override;
 

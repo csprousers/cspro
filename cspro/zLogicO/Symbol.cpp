@@ -2,6 +2,17 @@
 #include "Symbol.h"
 #include "KeywordTable.h"
 #include <zToolsO/Serializer.h>
+#include <zJavaScript/Value.h>
+
+
+void Symbol::CompareDeclarationAttributes(const Symbol& /*symbol*/) const
+{
+}
+
+
+void Symbol::CopyCompileTimeAttributes(const Symbol& /*symbol*/)
+{
+}
 
 
 std::unique_ptr<Symbol> Symbol::CloneInInitialState() const
@@ -15,6 +26,18 @@ void Symbol::Reset()
 {
     // if a symbol needs resetting, it should override this method
     ASSERT(false);
+}
+
+
+JavaScript::Value Symbol::GetJavaScriptValue(JavaScript::Executor& /*executor*/) const
+{
+    throw ProgrammingErrorException();
+}
+
+
+void Symbol::SetValueFromJavaScript(JavaScript::Executor& /*executor*/, const JavaScript::Value& /*js_value*/)
+{
+    throw ProgrammingErrorException();
 }
 
 
@@ -73,20 +96,20 @@ void Symbol::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void Symbol::UpdateValueFromJson(const JsonNode<wchar_t>& /*json_node*/)
+void Symbol::SetValueFromJson(const JsonNode& /*json_node*/)
 {
     // if a symbol supports updating its value from JSON, it should override this method
-    throw NoUpdateValueFromJsonRoutine(_T("No JSON deserialization routine exists for symbols of type: '%s'"), ToString(m_type));
+    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for symbols of type: '%s'", ToString(m_type));
 }
 
 
-const std::map<std::wstring, SymbolType>& Symbol::GetDeclarationTextMap()
+const std::map<std::string, SymbolType>& Symbol::GetDeclarationTextMap()
 {
-    static const std::map<std::wstring, SymbolType> symbol_declaration_text_map = []()
+    static const std::map<std::string, SymbolType> symbol_declaration_text_map = []()
     {
-        std::map<std::wstring, SymbolType> map;
+        std::map<std::string, SymbolType> map;
 
-        for( const auto& [symbol_type, declaration_token] : std::initializer_list<std::tuple<SymbolType, std::variant<TokenCode, const TCHAR*>>>
+        for( const auto& [symbol_type, declaration_token] : std::initializer_list<std::tuple<SymbolType, std::variant<TokenCode, const char*>>>
             {
                 { SymbolType::Array,          TokenCode::TOKKWARRAY },
                 { SymbolType::Audio,          TokenCode::TOKKWAUDIO },
@@ -100,10 +123,10 @@ const std::map<std::wstring, SymbolType>& Symbol::GetDeclarationTextMap()
                 { SymbolType::List,           TokenCode::TOKKWLIST },
                 { SymbolType::Map,            TokenCode::TOKKWMAP },
                 { SymbolType::NamedFrequency, TokenCode::TOKKWFREQ },
-                { SymbolType::NamedFrequency, _T("Frequency") },
+                { SymbolType::NamedFrequency, "Frequency" },
                 { SymbolType::Pff,            TokenCode::TOKKWPFF },
                 { SymbolType::Relation,       TokenCode::TOKKWRELATION },
-                { SymbolType::Report,         _T("Report") },
+                { SymbolType::Report,         "Report" },
                 { SymbolType::SystemApp,      TokenCode::TOKKWSYSTEMAPP },
                 { SymbolType::UserFunction,   TokenCode::TOKKWFUNCTION },
                 { SymbolType::ValueSet,       TokenCode::TOKKWVALUESET },
@@ -112,8 +135,8 @@ const std::map<std::wstring, SymbolType>& Symbol::GetDeclarationTextMap()
                 { SymbolType::WorkVariable,   TokenCode::TOKNUMERIC },
             } )
         {
-            const TCHAR* declaration_name = std::holds_alternative<TokenCode>(declaration_token) ? Logic::KeywordTable::GetKeywordName(std::get<TokenCode>(declaration_token)) :
-                                                                                                   std::get<const TCHAR*>(declaration_token);
+            const char* const declaration_name = std::holds_alternative<TokenCode>(declaration_token) ? Logic::KeywordTable::GetKeywordName(std::get<TokenCode>(declaration_token)) :
+                                                                                                        std::get<const char*>(declaration_token);
 
             ASSERT(declaration_name != nullptr && map.find(declaration_name) == map.cend());
 

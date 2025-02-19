@@ -1,12 +1,7 @@
-﻿// RunTab.cpp: implementation of the CRunTab class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "RunTab.h"
 #include "PifDlgBuilder.h"
 #include "TabExecutionDlg.h"
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/ProcessSummary.h>
 #include <zUtilO/SimpleDbMap.h>
 #include <zUtilF/ProgressDlg.h>
@@ -21,12 +16,6 @@
 #include <engine/ttype.h>
 #include <iostream>
 
-
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -103,9 +92,9 @@ bool CRunTab::PreparePFF(CNPifFile* pPFFFile,PROCESS& eProcess,bool bHideAll/* =
             CIMSAString sAplFName = pPFFFile->GetAppFName();
             PathRemoveExtension(sAplFName.GetBuffer(_MAX_PATH));
             sAplFName.ReleaseBuffer();
-            sTabOutPutFName = sAplFName + FileExtensions::BinaryTable::WithDot::Tab;
+            sTabOutPutFName = sAplFName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab));
             pPFFFile->SetTabOutputFName(sTabOutPutFName);
-            sTempTab = sAplFName + "_precalc" + FileExtensions::BinaryTable::WithDot::Tab ; // Engine is not looking at the piffile ags
+            sTempTab = sAplFName + "_precalc" + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab)); // Engine is not looking at the piffile ags
 
         }
         if(pPFFFile->GetCalcInputFNamesArr().empty()) {
@@ -183,7 +172,7 @@ bool CRunTab::ExecPrep()
     CIMSAString sPrepInputTAI = sTabFileName;
     PathRemoveExtension(sPrepInputTAI.GetBuffer(_MAX_PATH));
     sPrepInputTAI.ReleaseBuffer();
-    sPrepInputTAI = sPrepInputTAI + FileExtensions::BinaryTable::WithDot::TabIndex;
+    sPrepInputTAI = sPrepInputTAI + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
     if(!CFile::GetStatus(sPrepInputTAI,fStatus)){
         if(!CreateTAIFile(sTabFileName,sPrepInputTAI)){
             AfxMessageBox(_T("Failed to create input tabix file"));
@@ -203,29 +192,32 @@ bool CRunTab::ExecPrep()
     if(bRet && !m_pPifFile->GetPrepOutputFName().IsEmpty()){
         CIMSAString sDictFName = m_pPifFile->GetApplication()->GetTabSpec()->GetDictFile();
 
-        // GHM 20090915
-        CIMSAString inputDataFilename;
+        // 20090915
+        std::string input_data_filename;
 
         for( const ConnectionString& input_connection_string : m_pPifFile->GetInputDataConnectionStrings() )
         {
-            if( input_connection_string.IsFilenamePresent() )
+            if( input_connection_string.HasFilePath() )
             {
-                CString filename_only = PortableFunctions::PathGetFilename(input_connection_string.GetFilename());
+                const std::string filename_only = PortableFunctions::PathGetFilename(input_connection_string.GetFilePath());
+                const size_t combined_wide_length = SO::WideLength(input_data_filename) + SO::WideLength(filename_only);
 
-                if( !inputDataFilename.IsEmpty() && ( inputDataFilename.GetLength() + filename_only.GetLength() ) <= XTS_DEFAULT_INPUTDATAFILENAMEHEADERLENGTH )
-                    inputDataFilename.Append(_T(", "));
-
-                else if( ( inputDataFilename.GetLength() + filename_only.GetLength() ) > XTS_DEFAULT_INPUTDATAFILENAMEHEADERLENGTH )
+                if( !input_data_filename.empty() && combined_wide_length <= XTS_DEFAULT_INPUTDATAFILENAMEHEADERLENGTH )
                 {
-                    inputDataFilename.Append(_T(", ..."));
+                    input_data_filename.append(", ");
+                }
+
+                else if( combined_wide_length > XTS_DEFAULT_INPUTDATAFILENAMEHEADERLENGTH )
+                {
+                    input_data_filename.append(", ...");
                     break;
                 }
 
-                inputDataFilename.Append(filename_only);
+                input_data_filename.append(filename_only);
             }
         }
 
-        m_pPifFile->GetApplication()->GetTabSpec()->Save(m_pPifFile->GetPrepOutputFName(),sDictFName,inputDataFilename); //Save .TBW
+        m_pPifFile->GetApplication()->GetTabSpec()->Save(m_pPifFile->GetPrepOutputFName(), sDictFName, input_data_filename); //Save .TBW
     }
     return bRet;
 }
@@ -263,12 +255,12 @@ bool CRunTab::ExecCon()
         CIMSAString sConInputTAI = sConInputTAB;
         PathRemoveExtension(sConInputTAI.GetBuffer(_MAX_PATH));
         sConInputTAI.ReleaseBuffer();
-        sConInputTAI = sConInputTAI + FileExtensions::BinaryTable::WithDot::TabIndex;
+        sConInputTAI = sConInputTAI + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
         CIMSAString sConOutputTAI = sConOutputFName;
         PathRemoveExtension(sConOutputTAI.GetBuffer(_MAX_PATH));
         sConOutputTAI.ReleaseBuffer();
-        sConOutputTAI = sConOutputTAI + FileExtensions::BinaryTable::WithDot::TabIndex;
+        sConOutputTAI = sConOutputTAI + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
         CopyFile(sConInputTAI,sConOutputTAI,false);
         return true;
@@ -295,7 +287,7 @@ bool CRunTab::ExecCon()
         CIMSAString sConInputTAI = m_pPifFile->GetConInputFilenames().at(iIndex);
         PathRemoveExtension(sConInputTAI.GetBuffer(_MAX_PATH));
         sConInputTAI.ReleaseBuffer();
-        sConInputTAI = sConInputTAI + FileExtensions::BinaryTable::WithDot::TabIndex;
+        sConInputTAI = sConInputTAI + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
         if(!CFile::GetStatus(sConInputTAI,fStatus)){
             if(!CreateTAIFile(m_pPifFile->GetConInputFilenames().at(iIndex),sConInputTAI)){
                 AfxMessageBox(_T("Failed to create input tabidx file"));
@@ -410,7 +402,7 @@ bool CRunTab::ExecCalc()
             CString sCalcInputTAI = sTabFileName;
             PathRemoveExtension(sCalcInputTAI.GetBuffer(_MAX_PATH));
             sCalcInputTAI.ReleaseBuffer();
-            sCalcInputTAI = sCalcInputTAI + FileExtensions::BinaryTable::WithDot::TabIndex;
+            sCalcInputTAI = sCalcInputTAI + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
             if(!CFile::GetStatus(sCalcInputTAI,fStatus)){
                 if(!CreateTAIFile(sTabFileName, sCalcInputTAI)){
                     AfxMessageBox(_T("Failed to create input tabidx file"));
@@ -739,7 +731,7 @@ bool CRunTab::MakeNewBreak(CTbdFile* pInputTbdFile , CTbdSlice* pSlice, CConSpec
     for (int i = 0 ; i < pConSpec->GetNumActions() ; i++) {
         iKeyLen = pInputTbdFile->GetBreak(i)->GetLen();
         sKey = sInKey.Mid(iStart, iKeyLen);
-        if (!SO::IsBlank(sKey)) {
+        if (!SO::IsBlank(wstring_view(sKey))) {
             iLowKey = i + 1;
         }
         iStart += iKeyLen;
@@ -1141,8 +1133,8 @@ bool CRunTab::CreateTAIFile(CString sTabFileName, CString sTaiFileName ,bool bSi
 
     // If it does not have ".idx" at the end, it is included
     // If it does, it is used
-    if( csAux.GetLength() <= 7 || csExt.CompareNoCase(FileExtensions::BinaryTable::WithDot::TabIndex) != 0 )
-        sTaiFileName = csAux + FileExtensions::BinaryTable::WithDot::TabIndex;
+    if( csAux.GetLength() <= 7 || csExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex))) != 0 )
+        sTaiFileName = csAux + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
     if( _taccess( sTaiFileName,0) == 0)
         bExistIndexFile = true;
@@ -1188,7 +1180,7 @@ bool CRunTab::CreateTAIFile(CString sTabFileName, CString sTaiFileName ,bool bSi
 
     SimpleDbMap tableIndex;
 
-    if( !tableIndex.Open(sTaiFileName.GetString(), { { _T("TBI"), SimpleDbMap::ValueType::Long } }) )
+    if( !tableIndex.Open(UTF8_TODO::GetUtf8(sTaiFileName), { { "TBI", SimpleDbMap::ValueType::Long } }) )
         return bRet;
 
     bool bAbortedCreation = false;
@@ -1205,12 +1197,14 @@ bool CRunTab::CreateTAIFile(CString sTabFileName, CString sTaiFileName ,bool bSi
             _tmemcpy(pszKey, csKey, iBreakKeyLength);
             sKey.ReleaseBuffer();
 
-            if( tableIndex.Exists(sKey) || !tableIndex.PutLong(sKey,lCurSliceFilePos + 1) )
+            const std::string utf8_key = UTF8_TODO::GetUtf8(sKey);
+
+            if( tableIndex.Exists(utf8_key) || !tableIndex.PutLong(utf8_key, lCurSliceFilePos + 1) )
             {
                 if( !bSilent )
                 {
-                    AfxMessageBox(FormatText(MGF::GetMessageText(MGF::IndexDuplicate).c_str(), csKey.GetString(), sTabFileName.GetString()));
-                    AfxMessageBox(MGF::GetMessageText(MGF::IndexCannotCreate).c_str(), MB_OK | MB_ICONINFORMATION);
+                    AfxMessageBox(FormatText(MGF::GetMessageText(MGF::IndexDuplicate)->c_str(), UTF8_TODO::GetUtf8(csKey).c_str(), UTF8_TODO::GetUtf8(sTabFileName).c_str()));
+                    AfxMessageBox(MGF::GetMessageText(MGF::IndexCannotCreate).GetString(), MB_OK | MB_ICONINFORMATION);
                 }
 
                 iNumInsertions = 0;
@@ -1312,8 +1306,9 @@ bool CRunTab::Exec(bool bSilent /*=false*/)
         PathRemoveFileSpec(sOutputFolder.GetBuffer());
         sOutputFolder.ReleaseBuffer();
 
-        CIMSAString sInputDataFileName =  m_pPifFile->GetSingleInputDataConnectionString().IsFilenamePresent() ?
-            WS2CS(m_pPifFile->GetSingleInputDataConnectionString().GetFilename()) : ( sOutputFolder + _T("\\~InputData") );
+        CString sInputDataFileName = UTF8_TODO::GetCString(
+            m_pPifFile->GetSingleInputDataConnectionString().HasFilePath() ? m_pPifFile->GetSingleInputDataConnectionString().GetFilePath() :
+                                                                             Path::Combine(UTF8_TODO::GetUtf8(sOutputFolder), "~InputData"));
 
         //Make outTabFile name for execTab Process
         CIMSAString sTabOutPutFileName = PifDlgBuilder::MakeOutputFileForProcess(CS_TAB,sInputDataFileName, sOutputFolder, _T(""));
@@ -1368,10 +1363,10 @@ bool CRunTab::Exec(bool bSilent /*=false*/)
                     int iDot = sTAIFile.ReverseFind('.');
                     if (iDot > 0) {
                         sFileExt = sTAIFile.Mid(iDot + 1);
-                        if(sFileExt.CompareNoCase(FileExtensions::BinaryTable::Tab) ==0){
+                        if(sFileExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab)) == 0){
                             PathRemoveExtension(sTAIFile.GetBuffer(_MAX_PATH));
                             sTAIFile.ReleaseBuffer();
-                            sTAIFile += FileExtensions::BinaryTable::WithDot::TabIndex;
+                            sTAIFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
                         }
                     }
                     bRet = CreateTAIFile(sTabFile,sTAIFile);
@@ -1405,10 +1400,10 @@ bool CRunTab::Exec(bool bSilent /*=false*/)
                 int iDot = sFile.ReverseFind('.');
                 if (iDot > 0) {
                     sFileExt = sFile.Mid(iDot + 1);
-                    if(sFileExt.CompareNoCase(FileExtensions::BinaryTable::Tab) ==0){
+                    if(sFileExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab)) == 0){
                         PathRemoveExtension(sFile.GetBuffer(_MAX_PATH));
                         sFile.ReleaseBuffer();
-                        sFile += FileExtensions::BinaryTable::WithDot::TabIndex;
+                        sFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
                         bDeleted = DeleteFile(sFile);
                     }
                 }
@@ -1428,7 +1423,7 @@ bool CRunTab::Exec(bool bSilent /*=false*/)
             sTabOutputTai =sTabOutPutFName;
             PathRemoveExtension(sTabOutputTai.GetBuffer(_MAX_PATH));
             sTabOutputTai.ReleaseBuffer();
-            sTabOutputTai = sTabOutputTai + FileExtensions::BinaryTable::WithDot::TabIndex;
+            sTabOutputTai = sTabOutputTai + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
             bRet = CreateTAIFile(sTabOutPutFName,sTabOutputTai);
             bRet ? sMsg = _T("") : sMsg = _T("Failed to create TABIDX file in Consolidate") ;
@@ -1466,10 +1461,10 @@ bool CRunTab::Exec(bool bSilent /*=false*/)
             int iDot = sFile.ReverseFind('.');
             if (iDot > 0) {
                 CIMSAString sFileExt = sFile.Mid(iDot + 1);
-                if(sFileExt.CompareNoCase(FileExtensions::BinaryTable::Tab) ==0){
+                if(sFileExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab)) == 0){
                     PathRemoveExtension(sFile.GetBuffer(_MAX_PATH));
                     sFile.ReleaseBuffer();
-                    sFile += FileExtensions::BinaryTable::WithDot::TabIndex;
+                    sFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
                     bDeleted = DeleteFile(sFile);
                 }
             }
@@ -1596,13 +1591,13 @@ void CRunTab::WriteConListingHeader(Listing::Lister& lister)
 {
     std::vector<Listing::HeaderAttribute> header_attributes;
 
-    header_attributes.emplace_back(_T("Application"), CS2WS(m_pPifFile->GetAppFName()));
-    header_attributes.emplace_back(_T("Type"), _T("Consolidate"));
+    header_attributes.emplace_back("Application", UTF8_TODO::GetUtf8(m_pPifFile->GetAppFName()));
+    header_attributes.emplace_back("Type", "Consolidate");
 
     for( const CString& file : m_pPifFile->GetConInputFilenames() )
-        header_attributes.emplace_back(_T("Input Data"), CS2WS(file));
+        header_attributes.emplace_back("Input Data", UTF8_TODO::GetUtf8(file));
 
-    header_attributes.emplace_back(_T("Output"), CS2WS(m_pPifFile->GetConOutputFName()));
+    header_attributes.emplace_back("Output", UTF8_TODO::GetUtf8(m_pPifFile->GetConOutputFName()));
 
     lister.WriteHeader(header_attributes);
 }
@@ -1610,10 +1605,10 @@ void CRunTab::WriteConListingHeader(Listing::Lister& lister)
 void CRunTab::WriteConListingContent(Listing::Lister& lister)
 {
     Listing::ListerWriteFile writer(&lister);
-    lister.SetMessageSource(_T("Consolidate"));
-    writer.WriteLine(std::wstring());
+    lister.SetMessageSource("Consolidate");
+    writer.WriteLine(std::string());
 
-    writer.WriteLine(CS2WS(GetConLstHeader()));
+    writer.WriteLine(UTF8_TODO::GetUtf8(GetConLstHeader()));
 
     POSITION pos = m_mapConListing.GetStartPosition();
 
@@ -1642,7 +1637,7 @@ void CRunTab::WriteConListingContent(Listing::Lister& lister)
         sLine += CString(_T('-'),iMax) + _T(" ");
     }
     sLine += CString(_T('-'),11);//"table names" label
-    writer.WriteLine(CS2WS(sLine));
+    writer.WriteLine(UTF8_TODO::GetUtf8(sLine));
     CIMSAString sKey,sValue;
     //Get the array of Keys
     CStringArray arrKeys;
@@ -1686,7 +1681,7 @@ void CRunTab::WriteConListingContent(Listing::Lister& lister)
           iStart += arrAreaLen[iArea];
         }
         sLine += sValue;
-        writer.WriteLine(CS2WS(sLine));
+        writer.WriteLine(UTF8_TODO::GetUtf8(sLine));
     }
 }
 
@@ -1758,7 +1753,7 @@ void CRunTab::DisplayAuxiliaryFilesPostRun(bool force_engine_issued_errors/* = f
         ViewFileInTextViewer(m_pPifFile->GetApplicationErrorsFilename());
 
         if( force_engine_issued_errors || m_engineIssuedNon1008Messages || m_pPifFile->GetViewListing() == ALWAYS )
-            Listing::Lister::View(m_pPifFile->GetListingFName());
+            Listing::Lister::View(UTF8_TODO::GetUtf8(m_pPifFile->GetListingFName()));
     }
 
     if( m_engineIssued1008Messages )

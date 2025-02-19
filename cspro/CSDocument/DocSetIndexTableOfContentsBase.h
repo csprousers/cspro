@@ -15,35 +15,35 @@ public:
     {
     }
 
-    std::wstring GetTitle(const std::wstring& csdoc_filename)
+    std::string GetTitle(const std::string& csdoc_file_path)
     {
-        return m_titleManager.GetTitle(csdoc_filename);
+        return m_titleManager.GetTitle(csdoc_file_path);
     }
 
-    std::optional<std::wstring> GetTitleOrOptional(const std::wstring& csdoc_filename)
+    std::optional<std::string> GetTitleOrOptional(const std::string& csdoc_file_path)
     {
         try
         {
-            return GetTitle(csdoc_filename);
+            return GetTitle(csdoc_file_path);
         }
 
         catch(...)
         {
             return std::nullopt;
-        }        
+        }
     }
 
-    std::wstring GetTitleOrFilenameWithoutExtension(const std::wstring& csdoc_filename)
+    std::string GetTitleOrFilenameWithoutExtension(const std::string& csdoc_file_path)
     {
         try
         {
-            return GetTitle(csdoc_filename);
+            return GetTitle(csdoc_file_path);
         }
 
         catch(...)
         {
-            return PortableFunctions::PathGetFilenameWithoutExtension(csdoc_filename);
-        }        
+            return Path::GetFilenameWithoutExtension(csdoc_file_path);
+        }
     }
 
 private:
@@ -59,7 +59,7 @@ private:
 class DocSetIndexTableOfContentsBaseCompileWorker
 {
 public:
-    DocSetIndexTableOfContentsBaseCompileWorker(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, bool validate_titles)
+    DocSetIndexTableOfContentsBaseCompileWorker(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, const bool validate_titles)
         :   m_docSetCompiler(doc_set_compiler),
             m_docSetSpec(doc_set_spec),
             m_validateTitles(validate_titles),
@@ -68,26 +68,26 @@ public:
     }
 
 protected:
-    void EnsureTitleExists(const std::wstring& csdoc_filename)
+    void EnsureTitleExists(const std::string& csdoc_file_path)
     {
         if( !m_validateTitles )
             return;
 
         try
         {
-            m_titleLookupWorker.GetTitle(csdoc_filename);
+            m_titleLookupWorker.GetTitle(csdoc_file_path);
         }
 
         catch( const CSProException& exception )
         {
-            m_docSetCompiler.AddError(exception.GetErrorMessage());
+            m_docSetCompiler.AddError(exception.what());
         }
     }
 
 protected:
     DocSetCompiler& m_docSetCompiler;
     DocSetSpec& m_docSetSpec;
-    const bool m_validateTitles;
+    bool m_validateTitles;
     DocSetIndexTableOfContentsBaseTitleLookupWorker m_titleLookupWorker;
 };
 
@@ -100,8 +100,8 @@ protected:
 class DocSetIndexTableOfContentsBaseJsonWriterWorker
 {
 protected:
-    DocSetIndexTableOfContentsBaseJsonWriterWorker(JsonWriter& json_writer, DocSetSpec* doc_set_spec, DocSetComponent::Type doc_set_component_type,
-                                                   bool write_documents_with_filename_only_when_possible, bool write_evaluated_titles, bool detailed_format)
+    DocSetIndexTableOfContentsBaseJsonWriterWorker(JsonWriter& json_writer, DocSetSpec* const doc_set_spec, const DocSetComponent::Type doc_set_component_type,
+                                                   const bool write_documents_with_filename_only_when_possible, const bool write_evaluated_titles, const bool detailed_format)
         :   m_jsonWriter(json_writer),
             m_detailedFormat(detailed_format),
             m_docSetSpec(doc_set_spec),
@@ -117,41 +117,41 @@ protected:
         }
     }
 
-    std::optional<std::wstring> GetTitleOrOptional(const std::wstring& csdoc_filename, const std::wstring* title_override) const
+    std::optional<std::string> GetTitleOrOptional(const std::string& csdoc_file_path, const std::string* const title_override) const
     {
         return ( title_override != nullptr )      ? std::make_optional(*title_override) :
-               ( m_titleLookupWorker != nullptr ) ? m_titleLookupWorker->GetTitleOrOptional(csdoc_filename) :
+               ( m_titleLookupWorker != nullptr ) ? m_titleLookupWorker->GetTitleOrOptional(csdoc_file_path) :
                                                     std::nullopt;
     }
 
-    void WritePath(const std::wstring& csdoc_filename) const
+    void WritePath(const std::string& csdoc_file_path) const
     {
         if( m_writeDocumentsWithFilenameOnlyWhenPossible )
         {
             ASSERT(m_docSetSpec != nullptr);
-            m_docSetSpec->WriteDocumentPathWithFilenameOnlyWhenPossible(m_jsonWriter, csdoc_filename, m_writeDocumentsWithFilenameMustComeFromDocumentNodes);
+            m_docSetSpec->WriteDocumentPathWithFilenameOnlyWhenPossible(m_jsonWriter, csdoc_file_path, m_writeDocumentsWithFilenameMustComeFromDocumentNodes);
         }
 
         else
         {
-            m_jsonWriter.WriteRelativePath(csdoc_filename);
+            m_jsonWriter.WriteRelativePath(csdoc_file_path);
         }
     }
 
-    void WriteTitle(const std::wstring* title_override, const std::wstring& title)
+    void WriteTitle(const std::string* const title_override, const std::string& title)
     {
-        // when writing to format the component in detailed mode, include titles that are not overriden with a ~ before the key
-        m_jsonWriter.Write(( m_detailedFormat && title_override == nullptr ) ? _T("~title") : JK::title, title);
+        // when writing to format the component in detailed mode, include titles that are not overridden with a ~ before the key
+        m_jsonWriter.Write(( m_detailedFormat && title_override == nullptr ) ? "~title" : JK::title, title);
     }
 
 protected:
     JsonWriter& m_jsonWriter;
-    const bool m_detailedFormat;
+    bool m_detailedFormat;
     std::optional<JsonWriter::FormattingHolder> m_jsonFormattingHolder;
 
 private:
     DocSetSpec* m_docSetSpec;
-    const bool m_writeDocumentsWithFilenameOnlyWhenPossible;
-    const bool m_writeDocumentsWithFilenameMustComeFromDocumentNodes;
+    bool m_writeDocumentsWithFilenameOnlyWhenPossible;
+    bool m_writeDocumentsWithFilenameMustComeFromDocumentNodes;
     std::unique_ptr<DocSetIndexTableOfContentsBaseTitleLookupWorker> m_titleLookupWorker;
 };

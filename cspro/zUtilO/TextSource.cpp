@@ -3,19 +3,47 @@
 #include <zToolsO/Serializer.h>
 
 
-void TextSource::serialize(Serializer& ar)
+// --------------------------------------------------------------------------
+// TextSource
+// --------------------------------------------------------------------------
+
+const std::string& TextSource::GetText() const
 {
-    ar.SerializeFilename(m_filename);
+    return ReturnProgrammingError(SO::Empty_string);
 }
 
 
-void NamedTextSource::serialize(Serializer& ar)
+SharableString TextSource::GetTextAsSharableString() const
 {
-    ASSERT(ar.IsLoading() == ( text_source == nullptr ));
+    return ReturnProgrammingError(SharableString());
+}
 
-    if( ar.IsLoading() )
-        text_source = std::make_shared<TextSource>();
 
-    ar & name
-       & *text_source;
+int64_t TextSource::GetModifiedIteration() const
+{
+    return ReturnProgrammingError(0);
+}
+
+
+void TextSource::SetText(SharableString /*text*/)
+{
+    ASSERT(false);
+}
+
+
+bool TextSource::RequiresSave() const
+{
+    return ReturnProgrammingError(false);
+}
+
+
+void TextSource::Save()
+{
+    ASSERT(false);
+}
+
+
+void TextSource::serialize(Serializer& ar)
+{
+    ar.SerializePath(m_filePath);
 }

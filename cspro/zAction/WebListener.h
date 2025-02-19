@@ -6,67 +6,79 @@
 #include <zHtml/HtmlViewCtrl.h>
 #endif
 
+namespace ActionInvoker { class WebListener; }
 
-namespace ActionInvoker
+
+// --------------------------------------------------------------------------
+// WebListener
+// a listener owned by WebController
+// --------------------------------------------------------------------------
+
+class ActionInvoker::WebListener : public Listener
 {
-    // --------------------------------------------------------------------------
-    // WebListener
-    // a listener owned by WebController
-    // --------------------------------------------------------------------------
+public:
+    WebListener(int caller_id, void* web_view_tag);
 
-    class WebListener : public Listener
-    {
-    public:
-        WebListener(Caller::WebViewTag web_view_tag);
+    void SetOnGetInputDataCallback(std::function<SharableString()> on_get_input_data_callback);
 
-        void SetOnGetInputDataCallback(std::function<std::wstring()> on_get_input_data_callback) { m_onGetInputDataCallback = std::make_unique<std::function<std::wstring()>>(std::move(on_get_input_data_callback)); }
+    // Listener overrides
+    SharableString OnGetInputData(Caller& caller, bool match_caller) override;
 
-        // Listener overrides
-        std::optional<std::wstring> OnGetInputData(Caller& caller, bool match_caller) override;
+    std::optional<int> OnGetAssociatedWebViewCallerId() override;
+    void OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin) override;
 
-        std::optional<ActionInvoker::Caller::WebViewTag> OnGetAssociatedWebViewDetails() override;
-        void OnPostWebMessage(const std::wstring& message, const std::optional<std::wstring>& target_origin) override;
-
-    protected:
+protected:
 #ifdef WIN_DESKTOP
-        HtmlViewCtrl& GetHtmlViewCtrl() { return *static_cast<HtmlViewCtrl*>(m_webViewTag); }
+    HtmlViewCtrl& GetHtmlViewCtrl() { return *static_cast<HtmlViewCtrl*>(m_webViewTag); }
 #endif
 
-    private:
-        Caller::WebViewTag m_webViewTag;
-        std::unique_ptr<std::function<std::wstring()>> m_onGetInputDataCallback;
-    };
-}
+private:
+    int m_callerId;
+    void* m_webViewTag;
+    std::unique_ptr<std::function<SharableString()>> m_onGetInputDataCallback;
+};
 
 
-inline ActionInvoker::WebListener::WebListener(Caller::WebViewTag web_view_tag)
-    :   m_webViewTag(web_view_tag)
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline ActionInvoker::WebListener::WebListener(const int caller_id, void* const web_view_tag)
+    :   m_callerId(caller_id),
+        m_webViewTag(web_view_tag)
 {
 }
 
 
-inline std::optional<std::wstring> ActionInvoker::WebListener::OnGetInputData(Caller& caller, bool match_caller)
+inline void ActionInvoker::WebListener::SetOnGetInputDataCallback(std::function<SharableString()> on_get_input_data_callback)
+{
+    m_onGetInputDataCallback = std::make_unique<std::function<SharableString()>>(std::move(on_get_input_data_callback));
+}
+
+
+inline SharableString ActionInvoker::WebListener::OnGetInputData(Caller& caller, const bool match_caller)
 {
     if( m_onGetInputDataCallback == nullptr )
     {
         return Listener::OnGetInputData(caller, match_caller);
     }
 
-    else if( !match_caller || caller.IsFromWebView(m_webViewTag) )
+    else if( !match_caller || m_callerId == caller.GetCallerId() )
     {
         return (*m_onGetInputDataCallback)();
     }
 
     else
     {
-        return std::nullopt;
+        return SharableString();
     }
 }
 
 
-inline std::optional<ActionInvoker::Caller::WebViewTag> ActionInvoker::WebListener::OnGetAssociatedWebViewDetails()
+inline std::optional<int> ActionInvoker::WebListener::OnGetAssociatedWebViewCallerId()
 {
-    return m_webViewTag;
+    return m_callerId;
 }
 
 
@@ -74,7 +86,7 @@ inline std::optional<ActionInvoker::Caller::WebViewTag> ActionInvoker::WebListen
 
 // the Android version is defined in CSEntryDroid/.../ActionInvoker.cpp
 
-inline void ActionInvoker::WebListener::OnPostWebMessage(const std::wstring& message, const std::optional<std::wstring>& /*target_origin*/)
+inline void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& /*target_origin*/)
 {
     GetHtmlViewCtrl().PostWebMessageAsString(message);
 }

@@ -15,15 +15,15 @@ AutoComplete::AutoComplete()
 }
 
 
-const std::map<wchar_t, std::map<std::wstring, AutoComplete::SymbolTypes>>& AutoComplete::GetReservedWords()
+const std::map<char, std::map<std::string, AutoComplete::SymbolTypes>>& AutoComplete::GetReservedWords()
 {
-    static const std::map<wchar_t, std::map<std::wstring, SymbolTypes>> reserved_words =
+    static const std::map<char, std::map<std::string, SymbolTypes>> reserved_words =
         []()
         {
             // set up the reserved words table
-            std::map<wchar_t, std::map<std::wstring, SymbolTypes>> reserved_words_map;
+            std::map<char, std::map<std::string, SymbolTypes>> reserved_words_map;
 
-            for( const std::wstring& reserved_word : ReservedWords::GetAllReservedWords() )
+            for( const std::string& reserved_word : ReservedWords::GetAllReservedWords() )
                 AddName(reserved_words_map, reserved_word, { SymbolType::None, SymbolType::None });
 
             return reserved_words_map;
@@ -33,9 +33,34 @@ const std::map<wchar_t, std::map<std::wstring, AutoComplete::SymbolTypes>>& Auto
 }
 
 
-const std::vector<std::wstring>& AutoComplete::GetEntriesForType(const std::variant<SymbolType, FunctionNamespace>& symbol_type_or_function_namespace)
+bool AutoComplete::ShouldAddFunction(const FunctionDetails& function_details)
 {
-    static std::map<std::variant<SymbolType, FunctionNamespace>, std::vector<std::wstring>> entries_by_type;
+    // deprecated function and action names won't be added
+
+    if( function_details.code == FunctionCode::CSFN_ACTIONINVOKER_CODE )
+    {
+        // don't add CS.UI.closeDialog or CS.Logic.updateSymbolValue
+        if( strcmp(function_details.name, "closeDialog") == 0 ||
+            strcmp(function_details.name, "updateSymbolValue") == 0 )
+        {
+            return false;
+        }
+    }
+
+    // don't add Symbol.updateValueFromJson
+    else if( function_details.code == FunctionCode::SYMBOLFN_SETVALUEFROMJSON_CODE &&
+             strcmp(function_details.name, "updateValueFromJson") == 0 )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+const std::vector<std::string>& AutoComplete::GetEntriesForType(const std::variant<SymbolType, FunctionNamespace>& symbol_type_or_function_namespace)
+{
+    static std::map<std::variant<SymbolType, FunctionNamespace>, std::vector<std::string>> entries_by_type;
 
     const auto& entries_search = entries_by_type.find(symbol_type_or_function_namespace);
 
@@ -43,12 +68,15 @@ const std::vector<std::wstring>& AutoComplete::GetEntriesForType(const std::vari
         return entries_search->second;
 
     // calculate the entries for this symbol type or function namespace
-    std::vector<std::wstring>& entry_names = entries_by_type.try_emplace(symbol_type_or_function_namespace, std::vector<std::wstring>()).first->second;
+    std::vector<std::string>& entry_names = entries_by_type.try_emplace(symbol_type_or_function_namespace, std::vector<std::string>()).first->second;
 
     for( const FunctionDetails& function_details : VI_V(FunctionTable::GetFunctions()) )
     {
-        if( function_details.function_domain == symbol_type_or_function_namespace )
+        if( function_details.function_domain == symbol_type_or_function_namespace &&
+            ShouldAddFunction(function_details) )
+        {
             entry_names.emplace_back(function_details.name);
+        }
     }
 
     // add child namespaces
@@ -65,28 +93,28 @@ const std::vector<std::wstring>& AutoComplete::GetEntriesForType(const std::vari
     }
 
     // add some entries that aren't in the function table
-    for( const TCHAR* name : GetChildSymbolNames(symbol_type_or_function_namespace) )
+    for( const char* const name : GetChildSymbolNames(symbol_type_or_function_namespace) )
         entry_names.emplace_back(name);
 
     // sort the entries
     std::sort(entry_names.begin(), entry_names.end(),
-              [&](const std::wstring& s1, const std::wstring& s2) { return ( SO::CompareNoCase(s1, s2) < 0 ); });
+              [&](const std::string& s1, const std::string& s2) { return ( SO::CompareNoCase(s1, s2) < 0 ); });
 
     return entry_names;
 }
 
 
-void AutoComplete::AddName(std::map<wchar_t, std::map<std::wstring, SymbolTypes>>& table, const std::wstring& name, SymbolTypes symbol_types)
+void AutoComplete::AddName(std::map<char, std::map<std::string, SymbolTypes>>& table, const std::string& name, SymbolTypes symbol_types)
 {
     ASSERT(!name.empty() && name.front() != '_');
 
     // check if the name exists
-    const wchar_t name_shortcut = std::towlower(name.front());
+    const char name_shortcut = static_cast<char>(std::tolower(name.front()));
     const auto& name_shortcut_check = table.find(name_shortcut);
 
-    std::map<std::wstring, SymbolTypes>& name_shortcut_symbols =
+    std::map<std::string, SymbolTypes>& name_shortcut_symbols =
         ( name_shortcut_check != table.end() ) ? name_shortcut_check->second :
-                                                 table.try_emplace(name_shortcut, std::map<std::wstring, SymbolTypes>()).first->second;
+                                                 table.try_emplace(name_shortcut, std::map<std::string, SymbolTypes>()).first->second;
 
     auto name_check = name_shortcut_symbols.find(name);
 
@@ -111,7 +139,7 @@ void AutoComplete::AddName(std::map<wchar_t, std::map<std::wstring, SymbolTypes>
 }
 
 
-void AutoComplete::UpdateWithCompiledSymbols(const SymbolTable& symbol_table, bool update_all)
+void AutoComplete::UpdateWithCompiledSymbols(const SymbolTable& symbol_table, const bool update_all)
 {
     // clear the map of symbols upon a new compilation
     if( update_all )
@@ -133,26 +161,26 @@ void AutoComplete::UpdateWithCompiledSymbols(const SymbolTable& symbol_table, bo
             AddName(m_compiledSymbols, symbol.GetName(), { symbol.GetType(), symbol.GetWrappedType() });
 
             // add the symbol's aliases
-            for( const std::wstring& alias : symbol_table.GetAliases(symbol) )
+            for( const std::string& alias : symbol_table.GetAliases(symbol) )
                 AddName(m_compiledSymbols, alias, { symbol.GetType(), symbol.GetWrappedType() });
         }
     }
 }
 
 
-std::tuple<std::wstring, bool> AutoComplete::GetSuggestedWordString(wstring_view name) const
+std::tuple<std::string, bool> AutoComplete::GetSuggestedWordString(const std::string& name) const
 {
     ASSERT(!name.empty());
 
-    std::wstring suggested_words;
+    std::string suggested_words;
     bool word_comes_from_fuzzy_matching = false;
 
-    const wchar_t name_shortcut = std::towlower(name.front());
+    const char name_shortcut = static_cast<char>(std::tolower(name.front()));
 
     for( int pass = 0; pass < 2; ++pass )
     {
-        const std::map<wchar_t, std::map<std::wstring, SymbolTypes>>& table = ( pass == 0 ) ? GetReservedWords() :
-                                                                                              m_compiledSymbols;
+        const std::map<char, std::map<std::string, SymbolTypes>>& table = ( pass == 0 ) ? GetReservedWords() :
+                                                                                          m_compiledSymbols;
 
         const auto& name_shortcut_check = table.find(name_shortcut);
 
@@ -170,7 +198,7 @@ std::tuple<std::wstring, bool> AutoComplete::GetSuggestedWordString(wstring_view
     if( suggested_words.empty() )
     {
         RecommendedWordCalculator recommended_word_calculator(name, RecommendedWordCalculator::StricterSuggestedScore);
-        
+
         for( const auto& [start_letter, symbols] : m_compiledSymbols )
         {
             for( const auto& [symbol_name, symbol_type] : symbols )
@@ -187,7 +215,7 @@ std::tuple<std::wstring, bool> AutoComplete::GetSuggestedWordString(wstring_view
 }
 
 
-std::wstring AutoComplete::GetSuggestedWordString(cs::span<const std::wstring> dot_notation_entries, wstring_view name) const
+std::string AutoComplete::GetSuggestedWordString(const cs::span<const std::string> dot_notation_entries, const std::string_view name_sv) const
 {
     // a routine for dot notation words
     ASSERT(!dot_notation_entries.empty());
@@ -195,12 +223,12 @@ std::wstring AutoComplete::GetSuggestedWordString(cs::span<const std::wstring> d
     std::variant<SymbolType, FunctionNamespace> symbol_type_or_function_namespace = SymbolType::None;
     SymbolType wrapped_symbol_type = SymbolType::None;
 
-    for( const std::wstring& dot_notation_entry : dot_notation_entries )
+    for( const std::string& dot_notation_entry : dot_notation_entries )
     {
         ASSERT(!dot_notation_entry.empty());
 
         // see if the symbol exists and has a unique type
-        const wchar_t name_shortcut = std::towlower(dot_notation_entry.front());
+        const char name_shortcut = static_cast<char>(std::tolower(dot_notation_entry.front()));
         const auto& name_shortcut_check = m_compiledSymbols.find(name_shortcut);
 
         if( name_shortcut_check != m_compiledSymbols.cend() )
@@ -236,19 +264,19 @@ std::wstring AutoComplete::GetSuggestedWordString(cs::span<const std::wstring> d
         }
 
         // if not processed, return no suggestions
-        return std::wstring();
+        return std::string();
     }
 
     ASSERT(symbol_type_or_function_namespace != SymbolType::None);
 
     // construct the suggested word string
-    std::wstring suggested_words;
+    std::string suggested_words;
 
     auto add_entries = [&](const auto& value)
     {
-        for( const std::wstring& entry_name : GetEntriesForType(value) )
+        for( const std::string& entry_name : GetEntriesForType(value) )
         {
-            if( SO::StartsWithNoCase(entry_name, name) )
+            if( SO::StartsWithNoCase(entry_name, name_sv) )
                 SO::AppendWithSeparator(suggested_words, entry_name, ' ');
         }
     };
@@ -266,11 +294,11 @@ std::wstring AutoComplete::GetSuggestedWordString(cs::span<const std::wstring> d
         add_entries(wrapped_symbol_type);
 
         // remove duplicate entries and organize in sorted order
-        std::set<std::wstring> suggested_words_set;
+        std::set<std::string> suggested_words_set;
 
-        for( wstring_view suggested_word_sv : SO::SplitString<wstring_view>(suggested_words, ' ') )
-            suggested_words_set.insert(suggested_word_sv);
+        for( std::string suggested_word : SO::SplitString(suggested_words, ' ') )
+            suggested_words_set.insert(std::move(suggested_word));
 
-        return SO::CreateSingleString(suggested_words_set, _T(" "));
+        return SO::CreateSingleString(suggested_words_set, " ");
     }
 }

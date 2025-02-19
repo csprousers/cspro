@@ -11,7 +11,7 @@ LOCAL_SRC_FILES         += $(RTF2HTML_SRC_PATH)/rtf_keyword.cpp
 LOCAL_SRC_FILES         += $(RTF2HTML_SRC_PATH)/rtf_table.cpp
 LOCAL_SRC_FILES         += $(RTF2HTML_SRC_PATH)/rtf2html.cpp
 
-LOCAL_CFLAGS    		+= -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS    		+= -DUNICODE=1
 LOCAL_CFLAGS    		+= -D_UNICODE=1
 LOCAL_CFLAGS            += -DRTF2HTML_DLL_EXPORTS

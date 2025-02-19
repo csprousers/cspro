@@ -4,6 +4,7 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/DirectoryLister.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>

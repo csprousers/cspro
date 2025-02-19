@@ -270,14 +270,14 @@ public:
 
     // archiving methods
 
-    bool Open(const CString& csFileName, bool bSilent=false);
+    bool Open(const InterfaceString& file_path, bool bSilent=false);
 
     bool Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> = nullptr);
 
     bool BuildWrapUp ();
 
     void Save(CSpecFile& frmFile) const override;
-    bool Save(const CString& csFileName) const;
+    bool Save(const InterfaceString& file_path) const;
 
     void SetVersion(const CString& cs)  { m_csVersion = cs; }
     const CString& GetVersion() const   { return m_csVersion; }
@@ -291,8 +291,8 @@ public:
     const CString& GetDictionaryFilename() const                   { return m_dictionaryFilename; }
     void SetDictionaryFilename(const CString& dictionary_filename) { m_dictionaryFilename = dictionary_filename; }
 
-    const CString& GetDictionaryName() const               { return m_dictionaryName; }
-    void SetDictionaryName(const CString& dictionary_name) { m_dictionaryName = dictionary_name; }
+    const std::string& GetDictionaryName() const        { return m_dictionaryName; }
+    void SetDictionaryName(std::string dictionary_name) { m_dictionaryName = std::move(dictionary_name); }
 
     const CDataDict* GetDictionary() const                          { return m_dictionary.get(); }
     std::shared_ptr<const CDataDict> GetSharedDictionary() const    { return m_dictionary; }
@@ -375,7 +375,7 @@ public:
     bool LoadRTDicts                (CAppLoader* pLoader); // Load the CDataDict objects @ runtime
 
 #ifdef GENERATE_BINARY
-    bool SaveRTDicts(const std::wstring& archive_name); // writes dictionary to disk
+    bool SaveRTDicts(const std::wstring& archive_name) const; // writes dictionary to disk
 #endif
 
     const PortableFont& GetFieldFont() const { return m_fieldFont; }
@@ -416,12 +416,10 @@ public:
 
     bool Compare(CDEFormFile* pFormFile);
 
-    // RHF INIC Nov 13, 2002
-    void SetFileName(const CString& sFormPathName) { m_csFormPathName = sFormPathName; }
-    const CString& GetFileName() const             { return m_csFormPathName; }
+    const std::string& GetFilePath() const  { return m_filePath; }
+    void SetFilePath(std::string file_path) { m_filePath = std::move(file_path); }
 
-    // RHF END Nov 13, 2002
-    void RenumberFormsNItems4BCH() ;
+    void RenumberFormsNItems4BCH();
     void SetMaxFieldPointer ();
 
     void serialize(Serializer& ar);
@@ -437,7 +435,7 @@ private:
     CString m_csVersion; // IMSA 1.0, etc.
 
     CString m_dictionaryFilename;
-    CString m_dictionaryName;
+    std::string m_dictionaryName;
     std::shared_ptr<const CDataDict> m_dictionary;
 
     std::vector<CDEForm*> m_aForm;   // all forms that comprise the form file
@@ -451,7 +449,7 @@ private:
 
     bool m_bDictOrder; //used in ord file
 
-    CString m_csFormPathName;
+    std::string m_filePath;
 
     std::set<const CDictItem*> m_usedDictItems;
 };

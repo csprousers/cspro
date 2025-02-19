@@ -12,10 +12,11 @@
 
 #include "StdAfx.h"
 #include <zToolsO/FileIO.h>
-#include <zToolsO/UTF8Convert.h>
-#include <zUtilO/Filedlg.h>
+#include <zToolsO/TextEncoding.h>
+#include <zToolsO/Utf8.h>
 #include <fstream>
 #include <iostream>
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -150,7 +151,7 @@ void CTVDoc::OnFileSaveAs() {
     else {
         try {
             std::unique_ptr<std::ofstream> os = FileIO::OpenOutputFileStream(csFileName);
-            os->write(Utf8BOM_sv.data(), Utf8BOM_sv.length());
+            os->write(TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length());
 
             // Selected text
             CLRect rclBlockedRect = pView->GetBlockedRectChar();
@@ -164,7 +165,7 @@ void CTVDoc::OnFileSaveAs() {
                 while ( (nOffset = csLine.Find ((TCHAR) 9)) != NONE )  {
                     csLine = csLine.Left (nOffset) + csPadding.Left (TAB_SPACES-(nOffset % TAB_SPACES)) + csLine.Mid (nOffset+1);
                 }
-                std::string utf_text = UTF8Convert::WideToUTF8(wstring_view(csLine).substr(iLeft, iLen));
+                const std::string utf_text = TC::ToUtf8(std::wstring_view(csLine.GetString() + iLeft, iLen));
                 os->write(utf_text.data(), utf_text.length());
                 os->write("\r\n", 2);
             }
@@ -263,7 +264,7 @@ void CTVDoc::ReloadFile()
         if( csFile.IsEmpty() )
             return;
 
-        cs.Format(_T("File %s has been changed by another application and will be reloaded."), (LPCTSTR)csFile);
+        cs.Format(_T("File %s has been changed by another application and will be reloaded."), csFile.GetString());
         AfxMessageBox(cs, MB_ICONEXCLAMATION);
 
         AfxGetApp()->OpenDocumentFile(csFile); //opendocument file is overridden to open a copy when reloading or closing
@@ -276,7 +277,7 @@ void CTVDoc::CloseDeletedFile()
 {
     if (!IsReloadingOrClosing()) {    // prevent recursion
         m_bIsReloadingOrClosing = true;
-        AfxMessageBox(FormatText(_T("File %s has been deleted, or is no longer available. File will be closed."), (LPCTSTR)GetPathName()), MB_ICONEXCLAMATION);
+        AfxMessageBox(FormatText(_T("File %s has been deleted, or is no longer available. File will be closed."), GetPathName().GetString()), MB_ICONEXCLAMATION);
         OnCloseDocument();
     }
 }

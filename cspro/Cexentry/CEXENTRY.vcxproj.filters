@@ -7,7 +7,7 @@
     <ClCompile Include="Entifaz.cpp" />
     <ClCompile Include="Relation.cpp" />
     <ClCompile Include="Secx.cpp" />
-    <ClCompile Include="varx.cpp" />
     <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="varx.cpp" />
   </ItemGroup>
 </Project>

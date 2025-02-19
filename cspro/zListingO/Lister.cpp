@@ -11,57 +11,54 @@
 #include <zDataO/DataRepositoryHelpers.h>
 
 
-namespace
+Listing::ListingType Listing::Lister::GetListingType(const std::string& listing_file_path)
 {
-    Listing::ListingType GetListingType(const std::wstring& listing_filename)
+    if( listing_file_path.empty() )
+        return Listing::ListingType::Null;
+
+    auto matches = [extension = PortableFunctions::PathGetFileExtension(listing_file_path)](const char* const test_extension)
     {
-        if( listing_filename.empty() )
-            return Listing::ListingType::Null;
+        return SO::EqualsNoCase(extension, test_extension);
+    };
 
-        auto matches = [extension = PortableFunctions::PathGetFileExtension(listing_filename)](const auto& test_extension)
-        {
-            return SO::EqualsNoCase(extension, test_extension);
-        };
-
-        return matches(FileExtensions::CSV)                   ? Listing::ListingType::Csv :
-               matches(FileExtensions::Data::CSProDB)         ? Listing::ListingType::DataFile :
-               matches(FileExtensions::Data::TextDataDefault) ? Listing::ListingType::DataFile :
-               matches(FileExtensions::Excel)                 ? Listing::ListingType::Excel :
-               matches(FileExtensions::HTML)                  ? Listing::ListingType::Html :
-               matches(FileExtensions::HTM)                   ? Listing::ListingType::Html :
-               matches(FileExtensions::Json)                  ? Listing::ListingType::Json :
-                                                                Listing::ListingType::Text;
-    }
+    return matches(FileExtensions::CSV)                   ? Listing::ListingType::Csv :
+           matches(FileExtensions::Data::CSProDB)         ? Listing::ListingType::DataFile :
+           matches(FileExtensions::Data::TextDataDefault) ? Listing::ListingType::DataFile :
+           matches(FileExtensions::Excel)                 ? Listing::ListingType::Excel :
+           matches(FileExtensions::HTML)                  ? Listing::ListingType::Html :
+           matches(FileExtensions::HTM)                   ? Listing::ListingType::Html :
+           matches(FileExtensions::Json)                  ? Listing::ListingType::Json :
+                                                            Listing::ListingType::Text;
 }
 
 
 std::unique_ptr<Listing::Lister> Listing::Lister::Create(std::shared_ptr<ProcessSummary> process_summary, const PFF& pff,
-                                                         bool append, std::shared_ptr<const CaseAccess> case_access)
+                                                         const bool append, std::shared_ptr<const CaseAccess> case_access)
 {
-    std::wstring listing_filename;
+    std::string listing_file_path;
 
     if( pff.GetApplication() == nullptr || pff.GetApplication()->GetCreateListingFile() )
     {
-        listing_filename = pff.GetListingFName();
+        listing_file_path = UTF8_TODO::GetUtf8(pff.GetListingFName());
 
         // the listing filename typically isn't specified in the PFF for entry applications;
         // in these cases, we will create the listing filename based on the data file's name,
         // or the application filename is there is no data file
-        if( SO::IsWhitespace(listing_filename) && pff.GetAppType() == APPTYPE::ENTRY_TYPE )
+        if( SO::IsWhitespace(listing_file_path) && pff.GetAppType() == APPTYPE::ENTRY_TYPE )
         {
-            if( pff.GetSingleInputDataConnectionString().IsFilenamePresent() )
+            if( pff.GetSingleInputDataConnectionString().HasFilePath() )
             {
-                listing_filename = pff.GetSingleInputDataConnectionString().GetFilename() + FileExtensions::WithDot::Listing;
+                listing_file_path = PortableFunctions::PathAppendFileExtension(pff.GetSingleInputDataConnectionString().GetFilePath(), FileExtensions::Listing);
             }
 
             else
             {
-                listing_filename = PortableFunctions::PathRemoveFileExtension(pff.GetAppFName()) + FileExtensions::WithDot::Listing;
+                listing_file_path = PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(pff.GetAppFName()), FileExtensions::Listing);
             }
         }
     }
 
-    ListingType listing_type = GetListingType(listing_filename);
+    const ListingType listing_type = GetListingType(listing_file_path);
 
     // if no filename is specified, use the null lister
     if( listing_type == ListingType::Null )
@@ -71,36 +68,36 @@ std::unique_ptr<Listing::Lister> Listing::Lister::Create(std::shared_ptr<Process
 
     else
     {
-        SetupEnvironmentToCreateFile(listing_filename);
+        SetupEnvironmentToCreateFile(listing_file_path);
 
         if( listing_type == ListingType::Text )
         {
-            return std::make_unique<TextLister>(std::move(process_summary), std::move(listing_filename), append, pff);
+            return std::make_unique<TextLister>(std::move(process_summary), listing_file_path, append, pff);
         }
 
         else if( listing_type == ListingType::Csv )
         {
-            return std::make_unique<CsvLister>(std::move(process_summary), std::move(listing_filename), append, std::move(case_access));
+            return std::make_unique<CsvLister>(std::move(process_summary), listing_file_path, append, std::move(case_access));
         }
 
         else if( listing_type == ListingType::DataFile )
         {
-            return std::make_unique<DataFileLister>(std::move(process_summary), std::move(listing_filename), append, std::move(case_access));
+            return std::make_unique<DataFileLister>(std::move(process_summary), listing_file_path, append, std::move(case_access));
         }
 
         else if( listing_type == ListingType::Excel )
         {
-            return std::make_unique<ExcelLister>(std::move(process_summary), std::move(listing_filename), std::move(case_access));
+            return std::make_unique<ExcelLister>(std::move(process_summary), listing_file_path, std::move(case_access));
         }
 
         else if( listing_type == ListingType::Html )
         {
-            return std::make_unique<HtmlLister>(std::move(process_summary), std::move(listing_filename), append, pff);
+            return std::make_unique<HtmlLister>(std::move(process_summary), listing_file_path, append, pff);
         }
 
         else if( listing_type == ListingType::Json )
         {
-            return std::make_unique<JsonLister>(std::move(process_summary), std::move(listing_filename), std::move(case_access));
+            return std::make_unique<JsonLister>(std::move(process_summary), listing_file_path, std::move(case_access));
         }
     }
 
@@ -142,25 +139,27 @@ void Listing::Lister::UpdateCaseSourceDetails(const ConnectionString& connection
 }
 
 
-void Listing::Lister::SetMessageSource(std::wstring message_source)
+std::string Listing::Lister::SetMessageSource(std::string message_source)
 {
     WriteAndResetCachedMessages();
 
     ProcessCaseSource(nullptr);
 
-    m_messages.source = std::move(message_source);
+    std::swap(m_messages.source, message_source);
     m_currentCaseToBeProcessed = nullptr;
     m_currentCasePositionInRepository = std::numeric_limits<double>::lowest();
     m_currentCaseLevelKey.clear();
+
+    return message_source;
 }
 
 
-void Listing::Lister::SetMessageSource(const Case& data_case, std::wstring level_key/* = std::wstring()*/)
+void Listing::Lister::SetMessageSource(const Case& data_case, std::string level_key/* = std::string()*/)
 {
     // in case the position in repository is not properly updated, also use the case key
     // as a check as to whether the case has changed
-    bool case_changed = ( m_currentCasePositionInRepository != data_case.GetPositionInRepository() ||
-                          m_messages.source != CS2WS(data_case.GetKey()) );
+    const bool case_changed = ( m_currentCasePositionInRepository != data_case.GetPositionInRepository() ||
+                                m_messages.source != data_case.GetKey() );
 
     if( case_changed || ( !IssueMultipleLevelMessagesTogether() && level_key != m_currentCaseLevelKey ) )
     {
@@ -178,7 +177,7 @@ void Listing::Lister::SetMessageSource(const Case& data_case, std::wstring level
 }
 
 
-void Listing::Lister::Write(MessageType message_type, int message_number, std::wstring message_text)
+void Listing::Lister::Write(const MessageType message_type, const int message_number, SharableString message_text)
 {
     // if this message is from a new case, process it
     if( m_currentCaseToBeProcessed != nullptr )
@@ -192,7 +191,7 @@ void Listing::Lister::Write(MessageType message_type, int message_number, std::w
 
     if( m_updateProcessSummaryWithMessageNumbers && message_type != MessageType::User )
     {
-        auto& counts_map = m_processSummary->GetSystemMessagesCountMap();
+        std::map<int, size_t>& counts_map = m_processSummary->GetSystemMessagesCountMap();
         auto number_previously_issued_lookup = counts_map.find(message_number);
 
         if( number_previously_issued_lookup != counts_map.cend() )
@@ -207,11 +206,11 @@ void Listing::Lister::Write(MessageType message_type, int message_number, std::w
     }
 
     // cache the message
-    m_messages.messages.emplace_back(Message { m_currentCaseLevelKey, MessageDetails{ message_type, message_number }, std::move(message_text) });
+    m_messages.messages.emplace_back(Message { m_currentCaseLevelKey, MessageDetails { message_type, message_number }, std::move(message_text) });
 }
 
 
-void Listing::Lister::WriteLineForWriteFile(std::wstring text)
+void Listing::Lister::WriteLineForWriteFile(SharableString text)
 {
     m_messages.messages.emplace_back(Message { m_currentCaseLevelKey, std::nullopt, std::move(text) });
 }
@@ -221,14 +220,14 @@ void Listing::Lister::Finalize(const PFF& pff, const std::vector<std::vector<Mes
 {
     WriteAndResetCachedMessages();
 
-    for( const auto& message_summary_set : message_summary_sets )
+    for( const std::vector<MessageSummary>& message_summary_set : message_summary_sets )
     {
         if( !message_summary_set.empty() )
             WriteMessageSummaries(message_summary_set);
     };
 
     if( PortableFunctions::FileIsRegular(pff.GetApplicationErrorsFilename()) )
-        WriteWarningAboutApplicationErrors(CS2WS(pff.GetApplicationErrorsFilename()));
+        WriteWarningAboutApplicationErrors(UTF8_TODO::GetUtf8(pff.GetApplicationErrorsFilename()));
 
     UpdateProcessSummary();
 
@@ -284,25 +283,49 @@ std::tuple<size_t, size_t, size_t, size_t> Listing::Lister::CountMessages() cons
 }
 
 
-void Listing::Lister::View(NullTerminatedString listing_filename)
+const std::string& Listing::Lister::GetMessageTypeText(const std::optional<MessageDetails>& message_details)
 {
-    if( !PortableFunctions::FileIsRegular(listing_filename) )
+    static const std::string TypeNames[] =
+    {
+        "Abort",
+        "Error",
+        "Warning",
+        "User",
+    };
+
+    static const std::string WriteText = "Write";
+
+    if( message_details.has_value() )
+    {
+        ASSERT(static_cast<size_t>(message_details->type) < _countof(TypeNames));
+        return TypeNames[static_cast<size_t>(message_details->type)];
+    }
+
+    else
+    {
+        return WriteText;
+    }
+}
+
+
+void Listing::Lister::View(const std::string& listing_file_path)
+{
+    if( !PortableFunctions::FileIsRegular(listing_file_path) )
         return;
 
 #ifdef WIN_DESKTOP
-    ListingType listing_type = GetListingType(listing_filename);
+    const ListingType listing_type = GetListingType(listing_file_path);
 
-    bool view_in_text_viewer = ( ( listing_type == ListingType::Text ) ||
-                                 ( listing_type == ListingType::DataFile && !DataRepositoryHelpers::IsTypeSQLiteOrDerived(ConnectionString(listing_filename).GetType()) ) );
-
-    if( view_in_text_viewer )
+    // text listing files, as well as data listing files that use text, can be viewed in Text Viewer
+    if( ( listing_type == ListingType::Text ) ||
+        ( listing_type == ListingType::DataFile && DataRepositoryHelpers::TypeWritesToText(ConnectionString::GetDefaultDataRepositoryTypeFromText(listing_file_path)) ) )
     {
-        ViewFileInTextViewer(listing_filename);
+        ViewFileInTextViewer(listing_file_path);
     }
 
     else
 #endif
     {
-        Viewer().ViewFile(listing_filename);
+        Viewer().ViewFile(listing_file_path);
     }
 }

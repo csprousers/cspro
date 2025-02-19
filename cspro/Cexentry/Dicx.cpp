@@ -208,17 +208,16 @@ void DICX::StartRuntime()
 
     // create the case construction reporter, only using the process summary for the batch
     // input file so that record counts for external dictionaries don't get added in
-    std::optional<std::function<void(const Case&)>> update_case_callback;
+    std::function<void(const Case&)> update_case_callback;
 
 #ifdef WIN_DESKTOP
     if( batch_input_mode )
         update_case_callback = [this](const Case& data_case) { m_pEngineDriver->GetLister()->SetMessageSource(data_case); };
 #endif
 
-    case_access->SetCaseConstructionReporter(std::make_shared<EngineCaseConstructionReporter>(
-        m_pEngineDriver->GetSharedSystemMessageIssuer(),
-        batch_input_mode ? m_pEngineDriver->GetProcessSummary() : nullptr,
-        std::move(update_case_callback)));
+    case_access->SetCaseConstructionReporter(std::make_unique<EngineCaseConstructionReporter>(m_pEngineDriver->GetSharedSystemMessageIssuer(),
+                                                                                              batch_input_mode ? m_pEngineDriver->GetProcessSummary() : nullptr,
+                                                                                              std::move(update_case_callback)));
 
     // create the case
     m_rd->m_case = case_access->CreateCase(true);
@@ -267,7 +266,7 @@ void DICX::CloseDataRepository()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10105, exception.what());
     }
 
     m_dataRepository.reset();
@@ -285,9 +284,9 @@ std::tuple<CaseIterationMethod, CaseIterationOrder, CaseIterationCaseStatus> DIC
 }
 
 
-void DICX::CreateCaseIterator(CaseIteratorStyle case_iterator_style, std::optional<CaseKey> starting_key/* = std::nullopt*/,
-                              int dictionary_access/* = 0*/, std::optional<CString> key_prefix/* =std::nullopt*/,
-                              CaseIterationContent iteration_content/* = CaseIterationContent::Case*/)
+void DICX::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const std::optional<CaseKey> starting_key/* = std::nullopt*/,
+                              const int dictionary_access/* = 0*/, const std::optional<std::string> key_prefix/* =std::nullopt*/,
+                              const CaseIterationContent iteration_content/* = CaseIterationContent::Case*/)
 {
     StopCaseIterator();
 
@@ -340,7 +339,7 @@ void DICX::CreateCaseIterator(CaseIteratorStyle case_iterator_style, std::option
 
         if( case_iteration_method == CaseIterationMethod::KeyOrder )
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : CString(), key_prefix);
+            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix);
         }
 
         else
@@ -373,7 +372,7 @@ void DICX::StopCaseIterator()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10105, exception.what());
     }
 }
 

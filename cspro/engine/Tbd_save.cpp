@@ -72,7 +72,6 @@ CTbd::CTbd()
     memset( m_iBreakValue, 0, MAXBREAKVARS*sizeof(long) );
 
     // TBD and TBI files (used in TBD_SAVE & BREAK)
-    m_pTableIndex = NULL;
     m_pTbdFile = NULL;
 
     SetNewTbd( false );
@@ -80,10 +79,6 @@ CTbd::CTbd()
 
 CTbd::~CTbd()
 {
-    if( m_pTableIndex != NULL )
-        delete m_pTableIndex;
-    m_pTableIndex = NULL;
-
     if( m_pTbdFile != NULL )
         delete m_pTbdFile;
     m_pTbdFile = NULL;
@@ -109,7 +104,7 @@ const Logic::SymbolTable& CTbd::GetSymbolTable() const
 
 
 void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open TBD file
-    CString csFileName = PortableFunctions::PathRemoveFileExtension<CString>(pszTbdName) + _T(".") + GetTbdExtension();
+    CString csFileName = PortableFunctions::PathRemoveFileExtensionCS(pszTbdName) + _T(".") + GetTbdExtension();
     CTAB* pCtab;
 
 
@@ -126,7 +121,7 @@ void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open T
         // Add Break vars
         for( int iBreakVar = 0; iBreakVar < Breaknvars; iBreakVar++ ) {
             int     iLen = Breaklvar[iBreakVar];
-            CString csName = WS2CS(NPT(Breakvars[iBreakVar])->GetName());
+            CString csName = UTF8_TODO::GetCString(NPT(Breakvars[iBreakVar])->GetName());
 
             CBreakItem* pBreakItem= new CBreakItem( csName, iLen, cBreakOtherInfo );
 
@@ -141,7 +136,7 @@ void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open T
                                 CBreakById&     rThisBreakId=m_pEngineArea->m_aCtabBreakId[iBreakVar];
 
                                 int     iLen = rThisBreakId.m_iLen;
-                                CString csName = WS2CS(NPT(rThisBreakId.m_iSymVar)->GetName());
+                                CString csName = UTF8_TODO::GetCString(NPT(rThisBreakId.m_iSymVar)->GetName());
 
                                 CBreakItem* pBreakItem= new CBreakItem( csName, iLen, cBreakOtherInfo );
 
@@ -161,7 +156,7 @@ void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open T
             pCtab->SetTableNumber( iTableNum );
             iTableNum++;
 
-            CString csName = WS2CS(pCtab->GetName());
+            CString csName = UTF8_TODO::GetCString(pCtab->GetName());
             int     iNumDims=pCtab->GetNumDim();
             int     iTableType=pCtab->GetTableType();
             int     iCellSize=pCtab->GetCellSize();
@@ -222,24 +217,24 @@ void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open T
         //Creation
         bool     bCreate=true;
         if( !m_pTbdFile->Open( bCreate ) ) //Create an empty trailer and initialize some vars
-            issaerror( MessageType::Abort, 589, csFileName.GetString() );
+            issaerror( MessageType::Abort, 589, UTF8_TODO::GetUtf8(csFileName).c_str() );
 
         m_pTbdFile->Close();
 
         if( !m_pTbdFile->DoOpen( bCreate ) ) // Don't create an empty trailer
-            issaerror( MessageType::Abort, 589, csFileName.GetString() );
+            issaerror( MessageType::Abort, 589, UTF8_TODO::GetUtf8(csFileName).c_str() );
     }
 
     else {
         m_iTbdFile = _topen( csFileName, O_RDWR | O_RAW | O_TRUNC | O_CREAT, 0666 );
         if( m_iTbdFile < 0 )
-            issaerror( MessageType::Abort, 589, csFileName.GetString() );
+            issaerror( MessageType::Abort, 589, UTF8_TODO::GetUtf8(csFileName).c_str() );
 
         m_iNumTables = 0;
         m_iMaxNumTables = m_engineData->crosstabs.size() + 1; /* RHF 7/6/96 */
         m_aTbdTable = (csprochar *) calloc( m_iMaxNumTables, (LNAME8+1)*sizeof(TCHAR));
         if( m_aTbdTable == NULL && m_iMaxNumTables > 0 )
-            issaerror( MessageType::Abort, 1000, _T("m_aTbdTable") );
+            issaerror( MessageType::Abort, 1000, "m_aTbdTable" );
 
         for( CTAB* pCtab : m_engineData->crosstabs )
         {
@@ -270,7 +265,7 @@ void CTbd::tbd_MakeFinalTbd() {
     m_iCtabTemp = _topen( m_pEngineDriver->m_TmpCtabTmp, O_RDONLY | O_RAW, 0666 );
 
     if( m_iCtabTemp < 0 )                   /* cannot open */
-        issaerror( MessageType::Abort, 2001, m_pEngineDriver->m_TmpCtabTmp.GetString() );
+        issaerror( MessageType::Abort, 2001, UTF8_TODO::GetUtf8(m_pEngineDriver->m_TmpCtabTmp).c_str() );
 
     tbd_catheader( m_iCtabTemp, m_iTbdFile );
 
@@ -282,10 +277,10 @@ void CTbd::tbd_MakeFinalTbd() {
 }
 
 void CTbd::tbd_Delete( CString csName ) {
-    CString csFileName = PortableFunctions::PathRemoveFileExtension<CString>(csName) + _T(".") + GetTbdExtension();
+    CString csFileName = PortableFunctions::PathRemoveFileExtensionCS(csName) + _T(".") + GetTbdExtension();
     PortableFunctions::FileDelete(csFileName);
 
-    csFileName = PortableFunctions::PathRemoveFileExtension<CString>(csName) + _T(".") + GetTbiExtension();
+    csFileName = PortableFunctions::PathRemoveFileExtensionCS(csName) + _T(".") + GetTbiExtension();
     PortableFunctions::FileDelete(csFileName);
 }
 
@@ -325,7 +320,7 @@ void CTbd::tbd_WriteTrailer() { // write the TBD file to disk
 
     m_pAuxCtNodebase = (int *) calloc( CtNodenext, sizeof(int) );
     if( m_pAuxCtNodebase == NULL && CtNodenext > 0 )
-        issaerror( MessageType::Abort, 1000, _T("CTAB") );
+        issaerror( MessageType::Abort, 1000, "CTAB" );
 
     // RHF INIC Jul 13, 2001
     m_iAuxCtNodenext = 0;
@@ -350,11 +345,11 @@ void CTbd::tbd_WriteTrailer() { // write the TBD file to disk
 
     m_aVar  = (TBVAR *) calloc( TBDMAXVARS, sizeof(TBVAR) );
     if( m_aVar == NULL && TBDMAXVARS > 0 )
-        issaerror( MessageType::Abort, 1000, _T("m_aVar") );
+        issaerror( MessageType::Abort, 1000, "m_aVar" );
 
     m_aBreakVar = (TBBVAR *) calloc( MAXBREAKVARS, sizeof(TBBVAR) );
     if( m_aBreakVar == NULL && MAXBREAKVARS > 0 )
-        issaerror( MessageType::Abort, 1000, _T("m_aBreakVar") );
+        issaerror( MessageType::Abort, 1000, "m_aBreakVar" );
 
     tbd_DoArrays();
     tbd_DoWriteTrailer();
@@ -406,12 +401,12 @@ void CTbd::tbd_Open() {
     ASSERT( !IsNewTbd() );
 
     // some ICFI apps were failing because a previous $$CTAB$$.TMP file was locked, so create a unique file name
-    m_pEngineDriver->m_TmpCtabTmp = WS2CS(GetUniqueTempFilename(_T("$$CTAB$$.TMP")));
+    m_pEngineDriver->m_TmpCtabTmp = UTF8_TODO::GetCString(GetUniqueTempFilePath("$$CTAB$$.TMP"));
 
     m_iCtabTemp = _topen( m_pEngineDriver->m_TmpCtabTmp, O_RDWR | O_RAW | O_TRUNC | O_CREAT, 0666 );
 
     if( m_iCtabTemp < 0 )
-        issaerror( MessageType::Abort, 589, m_pEngineDriver->m_TmpCtabTmp.GetString() );
+        issaerror( MessageType::Abort, 589, UTF8_TODO::GetUtf8(m_pEngineDriver->m_TmpCtabTmp).c_str() );
 }
 
 // local
@@ -823,7 +818,7 @@ int CTbd::tbd_newvar( int symidx ) {
     }
 
     if( i == m_iNumVars ) {                    // add the var to array m_aVar
-        _tcsnccpy( (m_aVar + i)->varname, NPT(symidx)->GetName().c_str(), LNAME8 ); // rcl, Jun 2005
+        _tcsnccpy( (m_aVar + i)->varname, UTF8_TODO::GetWide(NPT(symidx)->GetName()).c_str(), LNAME8 ); // rcl, Jun 2005
         (m_aVar + i)->SYMTidx = symidx;
         m_iNumVars++;
     }
@@ -840,7 +835,7 @@ int CTbd::tbd_newtable( int symidx ) {
     if( m_iNumTables >= m_iMaxNumTables )
         issaerror( MessageType::Abort, 674 );
 
-    CString csTableName = WS2CS(NPT(symidx)->GetName());
+    CString csTableName = UTF8_TODO::GetCString(NPT(symidx)->GetName());
     int     iLen=csTableName.GetLength();
 
     int i;
@@ -892,7 +887,7 @@ void CTbd::tbd_fcopy( int f1, int f2, long len ) {      // copy from f1 to f2
 
     readbuf = (csprochar *) calloc( LEN_BLOCK, 1 );
     if( readbuf == NULL )
-        issaerror( MessageType::Abort, 1000, _T("READBUF") );
+        issaerror( MessageType::Abort, 1000, "READBUF" );
 
     while( len > 0 ) {
         faltan = ( len > LEN_BLOCK ) ? LEN_BLOCK : (int) len;

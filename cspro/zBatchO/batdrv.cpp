@@ -28,9 +28,9 @@ bool CBatchDriverBase::RunInit() {
     {
         OpenListerAndWriteFiles();
 
-        m_pEngineDriver->GetLister()->SetMessageSource(_T("LEVEL 0 PREPROC"));
+        m_pEngineDriver->GetLister()->SetMessageSource("LEVEL 0 PREPROC");
 
-        m_pIntDriver->StartApplication();        
+        m_pIntDriver->StartApplication();
     }
 
     catch( const CSProException& exception )
@@ -79,7 +79,7 @@ bool CBatchDriverBase::RunInit() {
 
     else if( bCsCalc ) {
         CString csCurrentBreakKey = _T("[") + ((CCalcDriver*)this)->GetCurrentBreakKey() + _T("]");
-        m_pEngineDriver->GetLister()->SetMessageSource(CS2WS(csCurrentBreakKey));
+        m_pEngineDriver->GetLister()->SetMessageSource(UTF8_TODO::GetUtf8(csCurrentBreakKey));
     }
 
     return true;
@@ -92,50 +92,52 @@ void CBatchDriver::RunDriver()
     size_t cases_until_progress_update = process_update_frequency;
     size_t last_percent_read = SIZE_MAX;
 
-    m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
+    m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
 
     DICX* pDicX = DIX(0);
 
-    // generate a list of the output repositories (the batch output and the special output dictionaries), as well as cases for each repository
-    std::vector<DICX*> batch_outputs;
+    // generate a list of the output repositories (the main batch output and the special output dictionaries), as well as cases for each repository
 
-    batch_outputs.emplace_back(pDicX); // the main batch output
+    std::vector<DICX*> batch_outputs { pDicX }; // the main batch output
 
     for( DICT* pOutputDicT : m_engineData->dictionaries_pre80 )
     {
-        if( pOutputDicT->GetSubType() == SymbolSubType::Output ) // special output dictionaries
+        // add special output dictionaries
+        if( pOutputDicT->GetSubType() == SymbolSubType::Output )
             batch_outputs.emplace_back(pOutputDicT->GetDicX());
     }
 
 
     ProcessSummaryReporter* process_summary_reporter = nullptr;
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, (WPARAM)&process_summary_reporter);
+    WindowsDesktopMessage::Send(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, &process_summary_reporter);
     ASSERT(process_summary_reporter != nullptr);
 
-    auto process_summary = m_pEngineDriver->GetProcessSummary();
+    const std::shared_ptr<ProcessSummary> process_summary = m_pEngineDriver->GetProcessSummary();
 
-    CString dialog_title = FormatText(_T("Running %s application %s. Press ESC to interrupt..."),
-                                      m_pEngineDriver->m_lpszExecutorLabel, PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+    std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
+                                                m_pEngineDriver->m_lpszExecutorLabel, PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
 
-    process_summary_reporter->Initialize(dialog_title, m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
+    process_summary_reporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
 
     // cycle through all of the input data
     bool continue_processing = true;
 
     try
     {
-        for( int iFile = 0; continue_processing && iFile < (int)m_pPifFile->GetInputDataConnectionStrings().size(); iFile++ )
+        for( int iFile = 0; continue_processing && iFile < static_cast<int>(m_pPifFile->GetInputDataConnectionStrings().size()); iFile++ )
         {
             // update the progress reporter
             process_summary->SetPercentSourceRead(0);
 
-            CString source_text = _T("File");
+            std::string source_text = "Data Source";
 
             if( m_pPifFile->GetInputDataConnectionStrings().size() > 1 )
-                source_text.AppendFormat(_T(" %d of %d"), iFile + 1, (int)m_pPifFile->GetInputDataConnectionStrings().size());
+                source_text.append(FormatText(" %d of %d", iFile + 1, static_cast<int>(m_pPifFile->GetInputDataConnectionStrings().size())));
 
-            source_text.AppendFormat(_T(": %s"), PortableFunctions::PathGetFilename(m_pPifFile->GetInputDataConnectionString(iFile).GetFilename()));
-            process_summary_reporter->SetSource(source_text);            
+            source_text.append(": ")
+                       .append(m_pPifFile->GetInputDataConnectionString(iFile).ToDisplayString(true));
+
+            process_summary_reporter->SetSource(std::move(source_text));
 
 
             // open the input data
@@ -149,7 +151,7 @@ void CBatchDriver::RunDriver()
 
             while( continue_processing && pDicX->StepCaseIterator() )
             {
-                m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
+                m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
 
                 bool bWriteCase = false;
 
@@ -176,7 +178,7 @@ void CBatchDriver::RunDriver()
                                 update_notes = false;
                             }
 
-                            output_repository.WriteCasetainer(&pOutputDicX->GetCase());
+                            output_repository.WriteCasetainer(pOutputDicX->GetCase());
                         };
 
                         // for the output data, write the case to each repository
@@ -217,7 +219,7 @@ void CBatchDriver::RunDriver()
                     process_summary_reporter->SetKey(pDicX->GetCase().GetKey());
                 }
 
-                m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
+                m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
             }
 
             if( m_pIntDriver->m_bStopProc )
@@ -226,17 +228,17 @@ void CBatchDriver::RunDriver()
             // set the final percent read to 100% if the user didn't cancel, or the percent read if the user did cancel
             process_summary->SetPercentSourceRead(continue_processing ? 100 : pDicX->GetCaseIteratorPercentRead());
 
-            if( continue_processing && ( iFile + 1 ) < (int)m_pPifFile->GetInputDataConnectionStrings().size() )
+            if( continue_processing && ( iFile + 1 ) < static_cast<int>(m_pPifFile->GetInputDataConnectionStrings().size()) )
                 CloseCurrentInputFile();
         }
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10105, exception.what());
     }
 
-    m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
+    m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
 }
 
 
@@ -263,7 +265,7 @@ void CBatchDriverBase::RunEnd() {
 
     // completing other tasks
     if( bCsBatch || bCsTab ) {
-        m_pEngineDriver->GetLister()->SetMessageSource(_T("LEVEL 0 POSTPROC"));
+        m_pEngineDriver->GetLister()->SetMessageSource("LEVEL 0 POSTPROC");
 
         if( Breaknvars > 0 && *m_Tbd.GetCurrId() ) {
             //Save tables with break
@@ -454,18 +456,17 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                         csDirtyTxt.ReleaseBuffer();
 
                         if( !pVarT->IsArray() ) {
-                            csFieldMsg.Format(MGF::GetMessageText(88212).c_str(), pVarT->GetName().c_str(), csDirtyTxt.GetString());
+                            csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), csDirtyTxt.GetString());
                         }
                         else {
-                            CString csVarNameOcc = FormatText(_T("%s%s"), pVarT->GetName().c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
-                            csFieldMsg.Format(MGF::GetMessageText(88212).c_str(), csVarNameOcc.GetString(), csDirtyTxt.GetString());
+                            CString csVarNameOcc = FormatText(_T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
+                            csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), csVarNameOcc.GetString(), csDirtyTxt.GetString());
                         }
 
                         csFinalMsg = m_csSkipStructMsg + csFieldMsg;
 
-                        issaerror( MessageType::Error, 88180, csFinalMsg.GetString() );
+                        issaerror( MessageType::Error, 88180, UTF8_TODO::GetUtf8(csFinalMsg).c_str() );
                     }
-
                 }
 
                 if( !m_pEngineDriver->IsSkipping() && proc_type == ProcType::PreProc )
@@ -495,9 +496,9 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                                 *pVarAsciiAddr = _T('?');
 
                                 if( !pVarT->IsArray() )
-                                    issaerror( MessageType::Error, 88223, pVarT->GetName().c_str(), csAssignText.GetString() );
+                                    issaerror( MessageType::Error, 88223, pVarT->GetName().c_str(), UTF8_TODO::GetUtf8(csAssignText).c_str() );
                                 else
-                                    issaerror( MessageType::Error, 88224, pVarT->GetName().c_str(), iAtOccur, csAssignText.GetString() );
+                                    issaerror( MessageType::Error, 88224, pVarT->GetName().c_str(), iAtOccur, UTF8_TODO::GetUtf8(csAssignText).c_str() );
                             }
                         }
                         // RHF END Nov 09, 2001
@@ -569,11 +570,12 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                                     }
                                     // RHF 12/8/99 Items/SubItems
                                     //  ---- Assign Value
-                                    if( !pVarT->IsArray() )
-                                        issaerror( MessageType::Error, 88223, pVarT->GetName().c_str(), csAssignText.GetString() );
-                                    else
-                                        issaerror( MessageType::Error, 88224, pVarT->GetName().c_str(), iAtOccur, csAssignText.GetString() );
-
+                                    if( !pVarT->IsArray() ) {
+                                        issaerror( MessageType::Error, 88223, pVarT->GetName().c_str(), UTF8_TODO::GetUtf8(csAssignText).c_str() );
+                                    }
+                                    else {
+                                        issaerror( MessageType::Error, 88224, pVarT->GetName().c_str(), iAtOccur, UTF8_TODO::GetUtf8(csAssignText).c_str() );
+                                    }
                                 }
                                 // RHF END Nov 09, 2001
                                 else {
@@ -581,19 +583,19 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                                         CString csFieldMsg;
                                         CString csFinalMsg;
 
-                                        m_csSkipStructMsg = WS2CS(MGF::GetMessageText(88184));
+                                        m_csSkipStructMsg = UTF8_TODO::GetCString(MGF::GetMessageText(88184).GetString());
 
                                         if( !pVarT->IsArray() ) {
-                                            csFieldMsg.Format(MGF::GetMessageText(88221).c_str(), pVarT->GetName().c_str());
+                                            csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str());
                                         }
                                         else {
-                                            CString csVarNameOcc = FormatText( _T("%s%s"), pVarT->GetName().c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str() );
-                                            csFieldMsg.Format( MGF::GetMessageText(88221).c_str(), csVarNameOcc.GetString() );
+                                            CString csVarNameOcc = FormatText( _T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str() );
+                                            csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), csVarNameOcc.GetString() );
                                         }
 
                                         csFinalMsg = m_csSkipStructMsg + csFieldMsg;
 
-                                        issaerror( MessageType::Error, 88182, csFinalMsg.GetString() );
+                                        issaerror( MessageType::Error, 88182, UTF8_TODO::GetUtf8(csFinalMsg).c_str() );
                                     } // RHF Oct 18, 2003
                                 }
                             }
@@ -645,7 +647,7 @@ bool CBatchDriver::BatchProcessCaseLevel(Case* pCasetainer, Pre74_CaseLevel* pIn
     DICX* pDicX = DIX(0);
 
     CString level_key = ( pInputLevel->GetLevelNum() > 1 ) ? pInputLevel->GetKey().Mid(pDicT->qlen[0]) : CString();
-    m_pEngineDriver->GetLister()->SetMessageSource(pDicX->GetCase(), CS2WS(level_key));
+    m_pEngineDriver->GetLister()->SetMessageSource(pDicX->GetCase(), UTF8_TODO::GetUtf8(level_key));
 
     ParseCaseLevel(pCasetainer, pInputLevel, &case_level, pDicT);
 
@@ -698,7 +700,7 @@ bool CBatchDriver::BatchProcessCaseLevel(Case* pCasetainer, Pre74_CaseLevel* pIn
                         if( m_pEngineDriver->IsSkipping() )
                         {
                             // ... check if the skip-target was reached
-                            bool bTargetReached = m_pEngineDriver->IsSkippingTargetReached( iSymbol, tIndex, (int)proc_type );
+                            bool bTargetReached = m_pEngineDriver->IsSkippingTargetReached( iSymbol, tIndex, static_cast<int>(proc_type) );
 
                             if( bTargetReached )
                                 m_pEngineDriver->ResetSkipping();
@@ -781,7 +783,7 @@ bool CBatchDriver::BatchProcessCaseLevel(Case* pCasetainer, Pre74_CaseLevel* pIn
                     const CDataDict* pOutputDict = batch_outputs[i]->GetDicT()->GetDataDict();
                     Pre74_CaseLevel* pParentLevel = apParentLevels[i];
 
-                    if( pInputLevel->GetLevelNum() <= (int)pOutputDict->GetNumLevels() )
+                    if( pInputLevel->GetLevelNum() <= static_cast<int>(pOutputDict->GetNumLevels()) )
                         pOutputLevel = pParentLevel->AddChildLevel(pOutputDict->GetLevel(pInputLevel->GetLevelNum() - 1));
                 }
             }
@@ -806,7 +808,7 @@ bool CBatchDriver::BatchProcessCaseLevel(Case* pCasetainer, Pre74_CaseLevel* pIn
             }
 
             // restore the message source to this case level's
-            m_pEngineDriver->GetLister()->SetMessageSource(pDicX->GetCase(), CS2WS(level_key));
+            m_pEngineDriver->GetLister()->SetMessageSource(pDicX->GetCase(), UTF8_TODO::GetUtf8(level_key));
         }
     }
 

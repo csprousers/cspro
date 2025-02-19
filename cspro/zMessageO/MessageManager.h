@@ -4,8 +4,6 @@
 #include <zMessageO/MessageFile.h>
 #include <zMessageO/MessageSummary.h>
 
-class Serializer;
-
 
 class ZMESSAGEO_API MessageManager
 {
@@ -13,7 +11,7 @@ protected:
     struct UnnumberedMessage
     {
         int line_number;
-        std::wstring last_message_text;
+        SharableString last_message_text;
 
         void serialize(Serializer& ar);
     };
@@ -27,7 +25,7 @@ public:
     void Load(const TextSource& text_source, LogicSettings::Version version);
 
     // compilation routines
-    int CreateMessageNumberForUnnumberedMessage(int line_number, std::optional<std::wstring> string_literal_message_text = std::nullopt);
+    int CreateMessageNumberForUnnumberedMessage(int line_number, cs::cref_optional<SharableString> string_literal_message_text = std::nullopt);
 
     void AddDenominator(int message_number, int denominator_symbol_index);
 
@@ -36,9 +34,9 @@ public:
     // runtime routines
     int GetMessageNumberForDisplay(int message_number) const;
 
-    void UpdateUnnumberedMessageText(int message_number, std::wstring last_message_text);
+    void UpdateUnnumberedMessageText(int message_number, SharableString last_message_text);
 
-    const std::wstring& GetUnnumberedMessageText(int message_number) const;
+    SharableString GetUnnumberedMessageText(int message_number) const;
 
     void IncrementMessageCount(int message_number);
 

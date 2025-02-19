@@ -3,14 +3,12 @@
 #include <zDictO/DictionaryIterator.h>
 
 
-IMPLEMENT_DYNAMIC(MappingOptionsDlg, CDialog)
-
 BEGIN_MESSAGE_MAP(MappingOptionsDlg, CDialog)
     ON_BN_CLICKED(IDC_ENABLE_MAPPING_CASE_LIST, OnBnClickedEnableMappingCaseList)
 END_MESSAGE_MAP()
 
 
-MappingOptionsDlg::MappingOptionsDlg(AppMappingOptions& mapping_options, const CDataDict& dictionary, CWnd* pParent/* =nullptr*/)
+MappingOptionsDlg::MappingOptionsDlg(AppMappingOptions& mapping_options, const CDataDict& dictionary, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD, pParent),
         m_mappingOptions(mapping_options),
         m_dictionary(dictionary),
@@ -40,8 +38,9 @@ BOOL MappingOptionsDlg::OnInitDialog()
         {
             if( IsNumeric(dict_item) && dict_item.GetDecimal() > 0 )
             {
-                m_comboLatitude.AddString(dict_item.GetName());
-                m_comboLongitude.AddString(dict_item.GetName());
+                const std::wstring wide_name = TC::ToWide(dict_item.GetName());
+                m_comboLatitude.AddString(wide_name.c_str());
+                m_comboLongitude.AddString(wide_name.c_str());
             }
         });
 
@@ -66,10 +65,10 @@ void MappingOptionsDlg::OnOK()
         if( m_enabled )
         {
             if( !m_mappingOptions.IsDefined() )
-                throw CSProException(_T("Please choose the dictionary items for latitude and longitude."));
+                throw CSProException("Please choose the dictionary items for latitude and longitude.");
 
             if( m_mappingOptions.latitude_item == m_mappingOptions.longitude_item )
-                throw CSProException(_T("The latitude and longitude dictionary items must be different."));
+                throw CSProException("The latitude and longitude dictionary items must be different.");
         }
     }
 

@@ -2,9 +2,6 @@
 
 #include <zLogicO/zLogicO.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-
 
 namespace GF // GF = Generalized Function
 {
@@ -14,11 +11,11 @@ namespace GF // GF = Generalized Function
 
     struct Variable
     {
-        std::wstring name;
-        std::wstring description;
+        std::string name;
+        std::string description;
         std::vector<VariableType> types;
 
-        ZLOGICO_API static Variable CreateFromJson(const JsonNode<wchar_t>& json_node);
+        ZLOGICO_API static Variable CreateFromJson(const JsonNode& json_node);
         ZLOGICO_API void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
     };
 
@@ -28,23 +25,34 @@ namespace GF // GF = Generalized Function
         Variable variable;
         bool required;
 
-        ZLOGICO_API static Parameter CreateFromJson(const JsonNode<wchar_t>& json_node);
+        ZLOGICO_API static Parameter CreateFromJson(const JsonNode& json_node);
+        ZLOGICO_API void WriteJson(JsonWriter& json_writer) const;
+    };
+
+
+    struct DeprecatedParameter
+    {
+        std::string name;
+        std::vector<VariableType> types;
+
+        ZLOGICO_API static DeprecatedParameter CreateFromJson(const JsonNode& json_node);
         ZLOGICO_API void WriteJson(JsonWriter& json_writer) const;
     };
 
 
     struct Function
     {
-        std::wstring namespace_name;
-        std::wstring name;
-        std::wstring description;
+        std::string namespace_name;
+        std::string name;
+        std::string description;
         std::vector<Parameter> parameters;
+        std::vector<DeprecatedParameter> deprecated_parameters;
         std::vector<Variable> returns;
 
-        ZLOGICO_API static Function CreateFromJson(const JsonNode<wchar_t>& json_node);
+        ZLOGICO_API static Function CreateFromJson(const JsonNode& json_node);
         ZLOGICO_API void WriteJson(JsonWriter& json_writer) const;
     };
 }
 
 
-ZLOGICO_API const TCHAR* ToString(GF::VariableType variable_type);
+ZLOGICO_API const char* ToString(GF::VariableType variable_type);

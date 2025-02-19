@@ -5,9 +5,9 @@
 
 namespace UWM::Sync
 {
-    const unsigned BluetoothUpdateDeviceList   = UWM::Ranges::SyncStart + 0;
-    const unsigned BluetoothScanError          = UWM::Ranges::SyncStart + 1;
-    const unsigned DropboxAuthProcessCompleted = UWM::Ranges::SyncStart + 2;
+    constexpr unsigned UpdateDialogUI            = UWM::Ranges::SyncStart + 0;
+    constexpr unsigned BluetoothUpdateDeviceList = UWM::Ranges::SyncStart + 1;
+    constexpr unsigned BluetoothScanError        = UWM::Ranges::SyncStart + 2;
 
-    CHECK_MESSAGE_NUMBERING(DropboxAuthProcessCompleted, UWM::Ranges::SyncLast)
+    CHECK_MESSAGE_NUMBERING(BluetoothScanError, UWM::Ranges::SyncLast)
 }

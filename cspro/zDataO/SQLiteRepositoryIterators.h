@@ -2,7 +2,7 @@
 
 #include <zDataO/CaseIterator.h>
 #include <zDataO/SQLiteRepository.h>
-#include <SQLite/SQLiteStatement.h>
+#include <zSql/SQLiteStatement.h>
 
 
 class SQLiteRepositoryCaseIterator : public CaseIterator
@@ -30,8 +30,8 @@ private:
     SQLiteRepository& m_repository;
     CaseIterationContent m_iterationContent;
     std::unique_ptr<SQLiteStatement> m_statement;
-    mutable std::optional<std::tuple<CaseIterationCaseStatus, std::unique_ptr<CaseIteratorParameters>>> m_progressBarParameters;
-    mutable double m_percentMultiplier;
+    std::optional<std::tuple<CaseIterationCaseStatus, std::unique_ptr<CaseIteratorParameters>>> m_progressBarParameters;
+    mutable std::optional<double> m_percentMultiplier;
     size_t m_casesRead;
     bool m_processCaseNote;
     std::unique_ptr<Case> m_case;

@@ -52,7 +52,8 @@ enum class SymbolType : int
     Unknown
 };
 
-ZLOGICO_API const TCHAR* ToString(SymbolType symbol_type);
+ZLOGICO_API const char* ToString(SymbolType symbol_type);
+ZLOGICO_API const char* ToDisplayString(SymbolType symbol_type);
 
 template<> struct ZLOGICO_API JsonSerializer<SymbolType>
 {
@@ -82,7 +83,7 @@ enum class SymbolSubType
     WorkAlpha           =  51,
 };
 
-ZLOGICO_API const TCHAR* ToString(SymbolSubType symbol_subtype);
+ZLOGICO_API const char* ToString(SymbolSubType symbol_subtype);
 
 template<> struct ZLOGICO_API JsonSerializer<SymbolSubType>
 {

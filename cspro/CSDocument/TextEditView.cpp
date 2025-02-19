@@ -17,9 +17,9 @@ void TextEditView::OnInitialUpdate()
     __super::OnInitialUpdate();
 
     TextEditDoc& text_edit_doc = GetTextEditDoc();
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
 
-    const std::wstring initial_text = text_edit_doc.OnViewInitialUpdate(*this);
+    const std::string initial_text = text_edit_doc.OnViewInitialUpdate(*this);
 
     // set the proper lexer
     logic_ctrl->InitLogicControl(true, true, text_edit_doc.GetLexerLanguage());
@@ -36,7 +36,7 @@ void TextEditView::OnInitialUpdate()
 }
 
 
-void TextEditView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
+void TextEditView::OnActivateView(const BOOL bActivate, CView* const pActivateView, CView* const pDeactiveView)
 {
     if( !bActivate )
     {
@@ -48,9 +48,9 @@ void TextEditView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* p
 }
 
 
-void TextEditView::SetTextAndSetSavePoint(const std::wstring& text)
+void TextEditView::SetTextAndSetSavePoint(const cs::string_sz text)
 {
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     logic_ctrl->SetText(text);
     logic_ctrl->SetSavePoint();
@@ -86,7 +86,7 @@ void TextEditView::OnFindNext()
 
 void TextEditView::OnWordWrap()
 {
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
     const bool turn_on_word_wrap = ( logic_ctrl->GetWrapMode() == Scintilla::Wrap::None );
 
     logic_ctrl->SetWrapMode(turn_on_word_wrap ? Scintilla::Wrap::WhiteSpace : Scintilla::Wrap::None);
@@ -95,7 +95,7 @@ void TextEditView::OnWordWrap()
 }
 
 
-void TextEditView::OnUpdateWordWrap(CCmdUI* pCmdUI)
+void TextEditView::OnUpdateWordWrap(CCmdUI* const pCmdUI)
 {
     pCmdUI->SetCheck(GetLogicCtrl()->GetWrapMode() != Scintilla::Wrap::None);
 }

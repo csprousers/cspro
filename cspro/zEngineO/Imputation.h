@@ -3,28 +3,27 @@
 #include <zEngineO/zEngineO.h>
 
 struct EngineData;
-class Serializer;
 class ValueSet;
 
 
 class ZENGINEO_API Imputation
 {
 public:
-    Imputation(const std::wstring& compilation_unit, size_t line_number);
+    Imputation(const std::string& compilation_unit, size_t line_number);
 
-    const std::wstring& GetCompilationUnit() const { return m_compilationUnit; }
-                                                
+    const std::string& GetCompilationUnit() const { return m_compilationUnit; }
+
     size_t GetLineNumber() const { return m_lineNumber; }
-                                                        
+
     const VART* GetVariable() const        { return m_variable; }
     void SetVariable(const VART* variable) { m_variable = variable; }
-                                                
-    const std::optional<std::wstring>& GetTitle() const { return m_title; }
-    void SetTitle(std::wstring title)                   { m_title = std::move(title); }
-                                                                          
+
+    const std::optional<std::string>& GetTitle() const { return m_title; }
+    void SetTitle(std::string title)                   { m_title = std::move(title); }
+
     bool GetSpecific() const { return m_specific; }
     void SetSpecific()       { m_specific = true; }
-                                                        
+
     const ValueSet* GetValueSet() const         { return m_valueSet; }
     void SetValueSet(const ValueSet* value_set) { m_valueSet = value_set; }
 
@@ -46,12 +45,12 @@ public:
     static void serialize(Serializer& ar, EngineData& engine_data);
 
 private:
-    std::wstring m_compilationUnit;
+    std::string m_compilationUnit;
     size_t m_lineNumber;
 
     const VART* m_variable;
 
-    std::optional<std::wstring> m_title;
+    std::optional<std::string> m_title;
     bool m_specific;
     const ValueSet* m_valueSet;
     bool m_usingStat;

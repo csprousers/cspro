@@ -3,22 +3,20 @@
 #include <zListingO/zListingO.h>
 #include <zListingO/WriteFile.h>
 
-class CStdioFileUnicode;
+namespace FileIO { class TextFile; }
+namespace Listing { class TextWriteFile; }
 
 
-namespace Listing
+class ZLISTINGO_API Listing::TextWriteFile : public WriteFile
 {
-    class ZLISTINGO_API TextWriteFile : public WriteFile
-    {
-    public:
-        TextWriteFile(std::wstring filename);
-        ~TextWriteFile();
+public:
+    TextWriteFile(std::string file_path);
+    ~TextWriteFile();
 
-        void WriteLine(std::wstring text) override;
+    void WriteLine(SharableString text) override;
 
-    private:
-        std::wstring m_filename;
-        std::unique_ptr<CStdioFileUnicode> m_file;
-        bool m_wroteMessage;
-    };
-}
+private:
+    const std::string m_filePath;
+    std::unique_ptr<FileIO::TextFile> m_textFile;
+    bool m_wroteMessage;
+};

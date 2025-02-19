@@ -3,6 +3,42 @@
 Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), the history of this public repository does not reveal much about CSPro development. Because of this, this document lists information about each pull request merged into the private repository.
 
 
+## CSPro (Latest Release)
+
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2025&#8209;02&#8209;18 | [small-work-2025-02](https://github.com/CSProDevelopment/cspro/commit/57570ab425e13c7ae03c45aa38f6929f2bbe7b00) | added a CSEntry deep link handler for running applications + reworked Leaflet mapping communication to use JSON + removed old serialization routines + implemented some interpreter functionality within zEngineO |
+| 2025&#8209;01&#8209;30 | [JavaScript-integration](https://github.com/CSProDevelopment/cspro/commit/0375490139a79ab3ec47c1a7d75f554a9606df77) | implemented calling into JavaScript from CSPro logic |
+| 2025&#8209;01&#8209;10 | [curl-upgrade](https://github.com/CSProDevelopment/cspro/commit/7b0f3fbce7a51717b0383752e8f35b765e1b8271) | upgaded curl + reworked CurlHttpConnection to properly handle multiple requests |
+| 2025&#8209;01&#8209;08 | [small-work-2025-01](https://github.com/CSProDevelopment/cspro/commit/5fa16e131867bb975628c5203a4c573f7c70f0ff) | added the System.createShortcut action + worked on some small tasks |
+| 2025&#8209;01&#8209;06 | [zSql](https://github.com/CSProDevelopment/cspro/commit/951f7fd0280a8c7135916ef286f0dd7712498eb2) | modified the SQLite DLL framework and added wrapper classes around the database and prepared statements |
+| 2024&#8209;12&#8209;30 | [sync-action-invoker-paradata-1](https://github.com/CSProDevelopment/cspro/commit/9a27faa995d93ade5242a2d7184a6189f989b380) | added Action Invoker actions and paradata events for sync: connecting, disconnecting, sending messages, and syncing paradata |
+| 2024&#8209;12&#8209;12 | [sync-service](https://github.com/CSProDevelopment/cspro/commit/2ac27b4438d4ea987a15c9e6b18728d1631b466d) | modified the name of "sync server connections" to "sync services" |
+| 2024&#8209;11&#8209;27 | [small-work-2024-11](https://github.com/CSProDevelopment/cspro/commit/4fa1d4f167bb5f71f9708efcc86d567763d822fa) | updated the code for newer Gradle, SQLite, and Windows 10 SDK versions |
+| 2024&#8209;11&#8209;27 | [tpkx-mapping](https://github.com/CSProDevelopment/cspro/commit/218395863be2860007197201d4f3e195af416b0b) | added support for mapping TPKX files |
+| 2024&#8209;11&#8209;27 | [optimize-paradata-concatenation](https://github.com/CSProDevelopment/cspro/commit/2dac303232b88b721183dee9b3481ddb558e3250) | optimized paradata concatenation |
+| 2024&#8209;11&#8209;27 | [DataManager](https://github.com/CSProDevelopment/cspro/commit/bc1cd4f8fbe4cadd83d65fa7cc58cf0fd6f8f359) | created Data Manager, a C++ replacement for Data Viewer |
+| 2024&#8209;11&#8209;15 | [sync-connection-string](https://github.com/CSProDevelopment/cspro/commit/33fba784ce9ea2ede87a30c5e77baa745655fa61) | implemented "sync connection strings," a way to specify all sync-related connection parameters in a single string |
+| 2024&#8209;11&#8209;12 | [csweb-connection-string](https://github.com/CSProDevelopment/cspro/commit/a2b0ea5b63be17dcb09ef619bf9585a5cd3d7adb) | added support for URL-based connection strings (for the CSWeb data source) |
+| 2024&#8209;10&#8209;18 | [syncable-name](https://github.com/CSProDevelopment/cspro/commit/b92c97c1f32cfbc38cfd4c9dfb12d5ab9563f4fc) | added a "syncable name" dictionary property to allow the overriding of the name used by synchronization severs |
+| 2024&#8209;10&#8209;15 | [CSWeb-v3](https://github.com/CSProDevelopment/cspro/commit/c0fa83fc026478eb6b96c3b5c0d885a37003d376) | continued to build the CSWeb data source and support CSWeb's V3 API |
+| 2024&#8209;09&#8209;10 | [manage-application-files](https://github.com/CSProDevelopment/cspro/commit/a7c79018d1473a11f896533ecf4e06bba413b76a) | centralized the adding, dropping, and management of an application's file into a new dialog, Manage Application Files |
+| 2024&#8209;09&#8209;10 | [code-cleanup-2024-08](https://github.com/CSProDevelopment/cspro/commit/e771636dabb220d0da8e7b312ccc0e357757ff91) | cleaned up the code + added a build tool to standardize Visual Studio project files |
+| 2024&#8209;09&#8209;10 | [fetch+OAuth](https://github.com/CSProDevelopment/cspro/commit/e733caa588dab2754a51a6b6d7d2507e35b6c91e) | added actions that mirror JavaScript's fetch API + added a generic OAuth 2.0 authorizer |
+| 2024&#8209;08&#8209;07 | [action-invoker-exceptions](https://github.com/CSProDevelopment/cspro/commit/626e8dd1b3c5dc7e584450ae19f7c64a40b50399) | added cross-context exception handling to the Action Invoker |
+| 2024&#8209;08&#8209;05 | [bug-fixes+small-work-2024-08](https://github.com/CSProDevelopment/cspro/commit/7bf15fbb99e7ea5731b89a56270e020b4dd25eb2) | fixed some bugs and worked on some small tasks |
+| 2024&#8209;08&#8209;02 | [utf8-8.0-tools](https://github.com/CSProDevelopment/cspro/commit/e1ef24bb731272db15b12cfb94043165c6f57a0c) | refactored CSCode and CSDocument to use non-wide strings + added the Stygitan build tool |
+| 2024&#8209;07&#8209;30 | [utf8-paradata](https://github.com/CSProDevelopment/cspro/commit/26e442e95b26c2d7760d31084ccf7e31d440d979) | refactored uses of paradata to use non-wide strings |
+| 2024&#8209;07&#8209;30 | [utf8-action-invoker](https://github.com/CSProDevelopment/cspro/commit/400c49d93d2f0616eb131e225b9af5beb70e7fa2) | refactored the Action Invoker to use non-wide strings |
+| 2024&#8209;07&#8209;30 | [utf8-compiler-messages](https://github.com/CSProDevelopment/cspro/commit/13311de03d3ef3c04f20cddcf5dea956938dbac1) | refactored the base compiler and message formatting to use non-wide strings |
+| 2024&#8209;07&#8209;29 | [utf8-json](https://github.com/CSProDevelopment/cspro/commit/47b0c05003bc26c4bb531088a89796060b464fe8) | refactored the use of JSON to use non-wide strings |
+| 2024&#8209;07&#8209;29 | [sync-enhancements](https://github.com/CSProDevelopment/cspro/commit/8ff14c63e08c888c8747bcdd3a33667e501ae8fb) | added the framework for the CSWeb data source + reworked how case binary data is accessed + reworked how cases are synced + made additional sync-related enhancements |
+| 2024&#8209;07&#8209;08 | [CSProRT](https://github.com/CSProDevelopment/cspro/commit/ec12a1137d7d2a6158895a11ee7da41ca89c9493) | added the CSProRT shell + continued building WASM |
+| 2024&#8209;04&#8209;01 | [utf8-tools-data](https://github.com/CSProDevelopment/cspro/commit/56944585fc28aee678eb314acea577d6a0f63a03) | started refactoring uses of strings to use UTF-8, focusing on case/data access and the tools |
+
+
 ## CSPro 8.0.1
 
 **Installer**: [https://csprousers.org/downloads/cspro/cspro8.0.1.exe](https://csprousers.org/downloads/cspro/cspro8.0.1.exe)

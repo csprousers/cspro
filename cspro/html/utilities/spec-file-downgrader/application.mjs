@@ -122,11 +122,12 @@ export function convertApplication(application, rootDirectory) {
     if(application.messages){
         writeApp.push("[Message]");                 //in all
         for (let c=0; c<application.messages.length; c++){
+            const messagePath = ( typeof application.messages[c] === "string" ) ? application.messages[c] : application.messages[c].path;
             if(c==0){
-                writeApp.push("File=" + pathify(application.messages[c]));
+                writeApp.push("File=" + pathify(messagePath));
             }
             else{
-                writeApp.push("Include=" + pathify(application.messages[c]));
+                writeApp.push("Include=" + pathify(messagePath));
             }
         }
     }
@@ -183,7 +184,7 @@ export function convertApplication(application, rootDirectory) {
     }
     if(application.properties.sync){
         writeApp.push("[Sync]");
-        writeApp.push("Server=" + application.properties.sync.server);
+        writeApp.push("Server=" + ( application.properties.sync.server ? application.properties.sync.server : application.properties.sync.connection.url ));
         writeApp.push("Direction=" + application.properties.sync.direction.charAt(0).toUpperCase() + application.properties.sync.direction.slice(1));
     }
     if(application.properties.caseListing){

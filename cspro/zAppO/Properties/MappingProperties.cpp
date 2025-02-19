@@ -30,16 +30,16 @@ const MappingTileProviderProperties& MappingProperties::GetWindowsMappingTilePro
 
 
 
-// -----------------------------------------------------
+// --------------------------------------------------------------------------
 // serialization
-// -----------------------------------------------------
+// --------------------------------------------------------------------------
 
 CREATE_ENUM_JSON_SERIALIZER(CoordinateDisplay,
-    { CoordinateDisplay::Decimal, _T("decimal") },
-    { CoordinateDisplay::DMS,     _T("DMS") })
+    { CoordinateDisplay::Decimal, "decimal" },
+    { CoordinateDisplay::DMS,     "DMS" })
 
 
-MappingProperties MappingProperties::CreateFromJson(const JsonNode<wchar_t>& json_node)
+MappingProperties MappingProperties::CreateFromJson(const JsonNode& json_node)
 {
     MappingProperties mapping_properties;
 
@@ -60,7 +60,7 @@ MappingProperties MappingProperties::CreateFromJson(const JsonNode<wchar_t>& jso
 
     mapping_properties.m_windowsMappingTileProvider = json_node.GetOrDefault(JK::windowsMappingTileProvider, mapping_properties.m_windowsMappingTileProvider);
 
-    for( const auto& tile_provider_node : json_node.GetArrayOrEmpty(JK::tileProviders) )
+    for( const JsonNode& tile_provider_node : json_node.GetArrayOrEmpty(JK::tileProviders) )
     {
         MappingTileProviderProperties mapping_tile_provider_properties = tile_provider_node.Get<MappingTileProviderProperties>();
 
@@ -69,7 +69,7 @@ MappingProperties MappingProperties::CreateFromJson(const JsonNode<wchar_t>& jso
                                                                                                          mapping_properties.m_mapboxMappingTileProviderProperties;
         this_mapping_tile_provider_properties = std::move(mapping_tile_provider_properties);
     }
-    
+
     return mapping_properties;
 }
 
@@ -87,9 +87,9 @@ void MappingProperties::WriteJson(JsonWriter& json_writer) const
 
     else
     {
-        json_writer.WriteRelativePath(JK::defaultBaseMap, std::get<std::wstring>(m_defaultBaseMap));
+        json_writer.WriteRelativePath(JK::defaultBaseMap, std::get<std::string>(m_defaultBaseMap));
     }
-    
+
     json_writer.Write(JK::windowsMappingTileProvider, m_windowsMappingTileProvider);
 
     json_writer.BeginArray(JK::tileProviders)
@@ -108,12 +108,12 @@ void MappingProperties::serialize(Serializer& ar)
 
     if( ar.IsSaving() )
     {
-        ar.Write(ToString(m_defaultBaseMap, ar.GetArchiveFilename().c_str()));
+        ar.Write(ToString(m_defaultBaseMap, ar.GetArchiveFilePath()));
     }
 
     else
     {
-        m_defaultBaseMap = FromString(ar.Read<std::wstring>(), ar.GetArchiveFilename().c_str());
+        m_defaultBaseMap = FromString(ar.Read<std::string>(), ar.GetArchiveFilePath());
     }
 
     ar & m_esriMappingTileProviderProperties;

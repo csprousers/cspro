@@ -3,24 +3,24 @@
 #include <zHtml/AccessUrlSerializer.h>
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Dictionary_getDictionary(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::Dictionary_getDictionary(const JsonNode& json_node, Caller& caller)
 {
     std::shared_ptr<const CDataDict> dictionary;
 
     if( json_node.Contains(JK::path) )
     {
-        const std::wstring path = caller.EvaluateAbsolutePath(json_node.Get<std::wstring>(JK::path));
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
         dictionary = CDataDict::InstantiateAndOpen(path, true);
     }
 
     else
     {
-        dictionary = std::get<2>(GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<wstring_view>(JK::name)));
+        dictionary = std::get<2>(GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<std::string_view>(JK::name)));
     }
 
     ASSERT(dictionary != nullptr);
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->SetVerbose();
 
     // create access URLs for things like value set images
@@ -28,5 +28,5 @@ ActionInvoker::Result ActionInvoker::Runtime::Dictionary_getDictionary(const Jso
 
     json_writer->Write(*dictionary);
 
-    return Result::JsonText(json_writer);
+    return Result::JsonText(*json_writer);
 }

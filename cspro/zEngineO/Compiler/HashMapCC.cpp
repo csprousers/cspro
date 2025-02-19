@@ -4,7 +4,7 @@
 #include "HashMap.h"
 
 
-LogicHashMap* LogicCompiler::CompileLogicHashMapDeclaration(const LogicHashMap* hashmap_to_copy_attributes/* = nullptr*/)
+LogicHashMap* LogicCompiler::CompileLogicHashMapDeclaration(const LogicHashMap* const hashmap_to_copy_attributes/* = nullptr*/)
 {
     DataType value_type;
 
@@ -30,7 +30,7 @@ LogicHashMap* LogicCompiler::CompileLogicHashMapDeclaration(const LogicHashMap* 
         value_type = hashmap_to_copy_attributes->GetValueType();
     }
 
-    std::wstring hashmap_name = CompileNewSymbolName();
+    std::string hashmap_name = CompileNewSymbolName();
 
     auto hashmap = std::make_shared<LogicHashMap>(std::move(hashmap_name));
 
@@ -109,7 +109,7 @@ int LogicCompiler::CompileLogicHashMapDeclarations()
         NextToken();
 
         // allow the specification of a default value
-        if( Tkn == TOKCTE && SO::EqualsNoCase(Tokstr, _T("DEFAULT")) )
+        if( Tkn == TOKCTE && SO::EqualsNoCase(Tokstr, "DEFAULT") )
         {
             NextToken();
 
@@ -117,7 +117,7 @@ int LogicCompiler::CompileLogicHashMapDeclarations()
             {
                 NextToken();
 
-                bool negative = ( Tkn == TOKMINUS );
+                const bool negative = ( Tkn == TOKMINUS );
 
                 if( negative )
                     NextToken();
@@ -173,7 +173,7 @@ int LogicCompiler::CompileLogicHashMapReference(const LogicHashMap* hashmap/* = 
 
     for( size_t i = 0; i < hashmap->GetNumberDimensions(); ++i )
     {
-        DataType value_data_type = GetCurrentTokenDataType();
+        const DataType value_data_type = GetCurrentTokenDataType();
 
         if( !hashmap->DimensionTypeHandles(i, value_data_type) )
         {
@@ -205,7 +205,7 @@ int LogicCompiler::CompileLogicHashMapReference(const LogicHashMap* hashmap/* = 
 }
 
 
-int LogicCompiler::CompileLogicHashMapComputeInstruction(const LogicHashMap* hashmap_from_declaration/* = nullptr*/)
+int LogicCompiler::CompileLogicHashMapComputeInstruction(const LogicHashMap* const hashmap_from_declaration/* = nullptr*/)
 {
     // compiling hashmap_name(key_expression[, key_expression, ...]) = value
     //           hashmap_name = rhs_hashmap_name;
@@ -301,12 +301,12 @@ int LogicCompiler::CompileLogicHashMapFunctions()
     std::vector<int> arguments;
     size_t dimensions_specified = 0;
 
-    size_t min_dimensions_allowed =
+    const size_t min_dimensions_allowed =
         ( function_code == HASHMAPFN_CLEAR_CODE ||
           function_code == HASHMAPFN_GETKEYS_CODE ||
           function_code == HASHMAPFN_LENGTH_CODE )   ? 0 : 1;
 
-    size_t max_dimensions_allowed =
+    const size_t max_dimensions_allowed =
         ( function_code == HASHMAPFN_CLEAR_CODE )    ? 0 :
         ( function_code == HASHMAPFN_GETKEYS_CODE ||
           function_code == HASHMAPFN_LENGTH_CODE )   ? ( hashmap->GetNumberDimensions() - 1 ) :
@@ -323,7 +323,7 @@ int LogicCompiler::CompileLogicHashMapFunctions()
     if( function_code == HASHMAPFN_GETKEYS_CODE )
     {
         if( Tkn != TOKLIST )
-            IssueError(MGF::HashMap_getKeys_requires_List_47237, hashmap->GetName().c_str(), _T(""));
+            IssueError(MGF::HashMap_getKeys_requires_List_47237, hashmap->GetName().c_str(), "");
 
         getkeys_list = &GetSymbolLogicList(Tokstindex);
 
@@ -344,7 +344,7 @@ int LogicCompiler::CompileLogicHashMapFunctions()
     // read the dimensions
     while( Tkn != TOKRPAREN && dimensions_specified < hashmap->GetNumberDimensions() )
     {
-        DataType value_data_type = GetCurrentTokenDataType();
+        const DataType value_data_type = GetCurrentTokenDataType();
 
         if( !hashmap->DimensionTypeHandles(dimensions_specified, value_data_type) )
         {
@@ -375,11 +375,11 @@ int LogicCompiler::CompileLogicHashMapFunctions()
     // check that the list type matches the dimension
     if( getkeys_list != nullptr )
     {
-        bool string_list = hashmap->DimensionTypeHandles(dimensions_specified, DataType::String);
+        const bool string_list = hashmap->DimensionTypeHandles(dimensions_specified, DataType::String);
 
         if( getkeys_list->IsString() != string_list )
         {
-            std::wstring list_type_text = FormatTextCS2WS(_T(" of type '%s'"), ToString(string_list ? DataType::String : DataType::Numeric));
+            const std::string list_type_text = FormatText(" of type '%s'", ToString(string_list ? DataType::String : DataType::Numeric));
             IssueError(MGF::HashMap_getKeys_requires_List_47237, hashmap->GetName().c_str(), list_type_text.c_str());
         }
 

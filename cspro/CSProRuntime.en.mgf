@@ -52,7 +52,7 @@ Language=EN
 /* --- Entry Errors */
 89271  Failed to start questionnaire in modify mode.
 89272  Invalid Application Mode. Failed to stop entry application.
-89273  There was an error reading from the binary file %s
+89273  There was an error reading from the binary file '%s': %s
 89274  Fatal Error in entry engine. Aborting the entry operation.
 
 /* --- Index */
@@ -178,7 +178,7 @@ Language=EN
 1108   You must specify a dictionary or form symbol (a dictionary, form, group, block, or field)
 1109   The property '%s' expects a string value, not the number '%s'
 
-2001   Cannot open file %s
+2001   Cannot open file: %s
 2004   No memory for corrector data structures
 2013   Record occurrences %s for record %s
 2014   Section occurrences %s for section %s because there is no information in the corresponding level
@@ -275,7 +275,7 @@ Language=EN
 14010  Disk full!
 14011  There was an error running the concatenation: %s
 14012  Text file is not encoded in a format supported by CSPro: %s
-14013  Error concatenating cases from file %s: %s. Remaining cases in this file will be skipped.
+14013  Error concatenating cases from data source '%s': %s. Remaining cases in this data source will be skipped.
 
 /* --- Save Array + Array Messages */
 19001  File I/O error writing to the save array file %s: %s
@@ -304,9 +304,9 @@ Language=EN
 19025  The Save Array Viewer can only display Arrays of three dimensions or fewer so %d-dimensional Array '%s' cannot be viewed
 19041  The array %s does not have a dimension %d
 
-29005  The output file %s could not be opened: %s
+29005  The output data source '%s' could not be opened: %s
 29006  The setoutput function only works in batch applications and will be ignored
-29007  The setoutput function could not open %s: %s
+29007  The setoutput function could not open '%s': %s
 
 /* --- EXPORT messages */
 31040  Cannot generate CSPro dictionary '%s' (%s)
@@ -483,16 +483,16 @@ Language=EN
 
 91190  The requested node is no longer available, probably due to an 'EndLevel' command issued by the application
 
-92000  No filename provided for %s Dictionary %s - process will be cancelled
-92001  At %s Dictionary %s, no IDX file was found for existing DAT file %s - process will be cancelled
-92002  At %s Dictionary %s, no DAT file was found for existing IDX file %s - process will be cancelled
-92003  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be found - process will be cancelled
-92004  At %s Dictionary %s, the existing IDX file %s could not be opened - process will be cancelled
-92005  At %s Dictionary %s, the IDX file %s could not be created - process will be cancelled
-92006  At %s Dictionary %s, the existing DAT file %s could not be opened - process will be cancelled
-92007  At %s Dictionary %s, the DAT file %s could not be created - process will be cancelled
-92008  At %s Dictionary %s, nor the existing DAT file %s neither the existing IDX file %s could be open - process will be cancelled
-92009  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be created - process will be cancelled
+92000  No filename provided for %s Dictionary %s - process will be canceled
+92001  At %s Dictionary %s, no IDX file was found for existing DAT file %s - process will be canceled
+92002  At %s Dictionary %s, no DAT file was found for existing IDX file %s - process will be canceled
+92003  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be found - process will be canceled
+92004  At %s Dictionary %s, the existing IDX file %s could not be opened - process will be canceled
+92005  At %s Dictionary %s, the IDX file %s could not be created - process will be canceled
+92006  At %s Dictionary %s, the existing DAT file %s could not be opened - process will be canceled
+92007  At %s Dictionary %s, the DAT file %s could not be created - process will be canceled
+92008  At %s Dictionary %s, nor the existing DAT file %s neither the existing IDX file %s could be open - process will be canceled
+92009  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be created - process will be canceled
 
 92101  Case ids '%s' duplicate an existing case! Case ids must be unique.
 92102  New case ids '%s' duplicate an existing case! Case ids must be unique. Old ids were '%s'.
@@ -561,8 +561,8 @@ Language=EN
 /* --- sync */
 94000  Invalid first argument to %s; must be a valid direction: "get", "put", or "both"
 94003  Invalid first argument to syncfile; must be a valid direction: "get" or "put" ("both" is not supported for files)
-100100 Failed to connect to sync server %s
-100101 Error connecting to server: %s
+100100 Failed to connect to Bluetooth server %s
+100101 Error connecting to sync service: %s
 100102 Connecting to %s...
 100103 Disconnecting...
 100104 Synchronizing %s...
@@ -572,25 +572,25 @@ Language=EN
 100108 Putting %s...
 100109 Error writing file "%s": Check that the path is valid and that you have permission to write to the directory.
 100110 Error downloading file "%s": Check that the file exists on the server, that the path is correct and that you have permission to read the file.
-100111 Error uploading file %s.
+100111 Error uploading file: %s.
 100112 Error downloading from directory %s.
 100113 Invalid file specification: %s
+100114 Synchronization error: %s
 100116 Invalid file used with %s for %s, only CSPro DB files support sync. Please make sure that the file type is CSPro DB and that it is not closed in CSPro application logic.
 100117 File "%s" is to large to synchronize. Files greater than 2GB are not supported.
 100118 Error reading file %s for upload. Check that the path to the file on the local device is correct.
-100119 Error connecting to sync server: %s.
-100120 %s is not a valid url for syncconnect web. Must start with http:// or https://.
+100120 %s is not a valid URL for connecting to CSWeb. Must start with http:// or https://.
 100121 Error: unable to read response from server. See log file for details.
 100122 Synchronization canceled.
 100123 Deleting %s...
-100124 Operation not implemented for this type of server
-100125 %s is not a valid url for syncconnect ftp. Must start with ftp://, ftps://, or ftpes://.
+100124 The sync service does not support this functionality.
+100125 %s is not a valid URL for connecting to a FTP server. Must start with ftp://, ftps://, or ftpes://.
 100126 Invalid username and password.
 100127 Error downloading file "%s": The downloaded file is incomplete or corrupted. Check your network connection and try again.
 100128 Downloading data file list...
 100129 Error downloading data file list. %s
 100130 Error downloading dictionary. %s
-100131 The CSWeb server is using a version of the software that is not compatible with this version of CSPro. Please upgrade this device to match the server or upgrade the server to match this device.
+100131 CSWeb is using an old version that is not compatible with this version of CSPro. Please upgrade the server to match this device.
 100132 You must first call syncconnect() before calling any other synchronization functions.
 100133 Database error while synchronizing data: %s
 100134 Error reading file during synchronization. Make sure that the path is valid and that the file is not in use.
@@ -601,19 +601,18 @@ Language=EN
 100139 Decompression failed.
 100140 Error uploading application package %s.
 100141 Error getting application list %s.
-100142 The version of this CSWeb server does not support application deployment. Please upgrade the software on the server to version 7.1 or later.
+100142 The sync service does not support this functionality. Upgrade the service to the latest version.
 100143 Error uploading dictionary. %s
 100144 Resource not found on server %s. Check that the CSWeb server URL is correct.
 100145 Incompatible versions of CSEntry.
-100146 Bluetooth is not supported on this device.
-100147 Directory specified for local file synchronization %s does not exist
-100148 Dropbox is not installed on this computer. In order to use Dropbox local synchronization you must install Dropbox.
-100149 Application package not found on server. Use the Deploy Applications tool to upload the application to the server and try again.
+100146 %s is not supported on this device.
+100147 Directory specified for local file synchronization does not exist: %s
+100148 Dropbox is not installed on this computer or does not have an account of type '%s'. In order to use Dropbox local synchronization you must install Dropbox.
 100150 Error installing application package. Unable to read application package contents. See log file for details.
 100151 The syncapp() function can only be used with application packages that were installed with the Deploy Applications tool. This application was not installed using Deploy Applications or the installation was corrupted. Please install it again using Add Application.
 100152 The application has changed and will now restart to ensure that you are using the updated version.
-100153 Error while running the sync server: %s
-100154 The syncmessage function can only be called when connected to a Bluetooth server.
+100153 Error while running the sync service: %s
+100154 Error sending a message: %s
 100155 Sending a message...
 100156 No OnSyncMessage function that supports handling the message type is declared in the server's application.
 100157 Error downloading application package "%s": Check that package exists on the server and check your network connection. Check the server for errors.
@@ -623,6 +622,11 @@ Language=EN
 100172 The server does not have a paradata log open.
 100173 The syncparadata function could not compress or decompress a paradata log: %s
 100174 Error setting the Bluetooth name: %s
+100175 Error deleting directory or file on the server: %s
+100176 Error interacting with CSWeb: %s
+100177 Error renaming directory or file on the server: %s
+100178 Error sending the case to the server: %s
+100179 Error processing the cases received in binary format: %s
 
 /* --- CSDB batch file processing */
 100200 Case '%s' has the same uuid as a case already in the output file. Duplicate case preserved but uuid changed in the output file.
@@ -684,4 +688,13 @@ Language=EN
 100430 The JSON text is not valid: %s
 100431 The JSON text compiled with warnings: %s
 100441 Error getting the JSON for '%s': %s
-100442 Error updating '%s' from JSON: %s
+100442 Error setting the value of '%s' from JSON: %s
+
+/* --- JavaScript */
+100461 JavaScript print: %s
+100462 JavaScript console.log: %s
+100463 Error compiling JavaScript: %s
+100464 Error evaluating JavaScript: %s
+100465 No conversion exists for symbol '%s' of type '%s' to or from a JavaScript value
+100466 No conversion exists for JavaScript values to symbols of type '%s' (used as '%s' of user-defined function '%s')
+100467 Error converting JavaScript value to CSPro type '%s': %s

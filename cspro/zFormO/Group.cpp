@@ -116,7 +116,7 @@ namespace
             const DictLevel* dict_level;
             const CDictRecord* dict_record;
 
-            if( ( dictionary.LookupName<CDictRecord>(pGroup->GetTypeName(), &dict_level, &dict_record) ) &&
+            if( ( dictionary.LookupName<CDictRecord>(UTF8_TODO::GetUtf8(pGroup->GetTypeName()), &dict_level, &dict_record) ) &&
                 ( !level_number.has_value() || dict_level->GetLevelNumber() == *level_number ) )
             {
                 for( int i = 0; i < dict_record->GetNumItems(); ++i )
@@ -199,7 +199,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
                 CDEField* pField = DYNAMIC_DOWNCAST(CDEField,pBase);
                 if(pField){
                     // stuff the dictionary name (use may have changed it in dict frame)
-                    csDict = pFormFile->GetDictionary()->GetName();
+                    csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
                     pField->SetItemDict(csDict);
                     structLookup.csName = pField->GetItemName();
                     bFound = LookupSymbol (pFormFile, csDict, structLookup);  // BMD 20 March 2007 - incorrect reconcile
@@ -230,7 +230,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
                 //and the items are all from the same record
                 ASSERT(pRecord);
                 SetRIType(Record);
-                SetTypeName(pRecord->GetName());
+                SetTypeName(UTF8_TODO::GetCString(pRecord->GetName()));
                 SetMaxLoopOccs (pRecord->GetMaxRecs());
             }
         }
@@ -264,7 +264,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
 
                         if( selected_dict_candidates != nullptr )
                         {
-                            this->SetTypeName(selected_dict_candidates->GetName());
+                            this->SetTypeName(UTF8_TODO::GetCString(selected_dict_candidates->GetName()));
                             eReturn = Reconciled;
                             structLookup.csName = GetTypeName();
                             bFound = LookupSymbol(pFormFile, csDict, structLookup);
@@ -325,7 +325,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
             // gsf 23-mar-00
             // assume only one dictionary per forms file
             // stuff the dictionary name (use may have changed it in dict frame)
-            csDict = pFormFile->GetDictionary()->GetName();
+            csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
 
             pField->SetItemDict(csDict);
             //            csDict = pField->GetItemDict();
@@ -342,7 +342,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
             if (bFound) {
                 //if item is from a multiple record. make sure that this comes from the same record as group
                 if(this->GetRIType() == CDEFormBase::Record && structLookup.pRecord->GetMaxRecs() > 1 ) {
-                    if(structLookup.pRecord->GetName().CompareNoCase(GetTypeName()) != 0){
+                    if(!SO::EqualsNoCase(structLookup.pRecord->GetName(), GetTypeName())) {
                         sItemOccs += _T(" Field '");
                         sItemOccs += pItemBase->GetName();
                         sItemOccs += _T("' deleted. The item does not belong to the same record as the record controlling the form looping.\n");
@@ -367,7 +367,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
                         pField->SetLabel(structLookup.pItem->GetLabel());
                         pField->SetDictItem(structLookup.pItem);
                         if(pField->GetFieldLabelType() == FieldLabelType::DictionaryName){
-                            pField->GetCDEText().SetText(structLookup.pItem->GetName());
+                            pField->GetCDEText().SetText(UTF8_TODO::GetCString(structLookup.pItem->GetName()));
                         }
                         else if(pField->GetFieldLabelType() == FieldLabelType::DictionaryLabel){
                             pField->GetCDEText().SetText(structLookup.pItem->GetLabel());
@@ -410,13 +410,13 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
                             CString old_name = pField->GetName();
 
                             pField->SetDictItem(selected_dict_item);
-                            pField->SetItemName(selected_dict_item->GetName());
-                            pField->SetName(selected_dict_item->GetName());
+                            pField->SetItemName(UTF8_TODO::GetCString(selected_dict_item->GetName()));
+                            pField->SetName(UTF8_TODO::GetCString(selected_dict_item->GetName()));
                             pField->SetLabel(selected_dict_item->GetLabel());
 
                             if( pField->GetFieldLabelType() == FieldLabelType::DictionaryName)
                             {
-                                pField->GetCDEText().SetText(selected_dict_item->GetName());                                
+                                pField->GetCDEText().SetText(UTF8_TODO::GetCString(selected_dict_item->GetName()));
                             }
 
                             else if( pField->GetFieldLabelType() == FieldLabelType::DictionaryLabel )
@@ -427,7 +427,7 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
                             // 20120710 if a field is renamed, so should the qsf text be
                             if( AfxGetMainWnd() != nullptr )
                             {
-                                std::tuple<CDEItemBase*, CString> update(pField, pFormFile->GetDictionary()->MakeQualifiedName(old_name));
+                                std::tuple<CDEItemBase*, CString> update(pField, UTF8_TODO::GetCString(pFormFile->GetDictionary()->MakeQualifiedName(UTF8_TODO::GetUtf8(old_name))));
                                 AfxGetMainWnd()->SendMessage(WM_IMSA_RECONCILE_QSF_FIELD_NAME, reinterpret_cast<WPARAM>(pFormFile), reinterpret_cast<LPARAM>(&update));
                             }
 
@@ -711,7 +711,7 @@ eReturnType CDEGroup::ReconcileRecordOccs (CDEFormFile* pFormFile,CString& csErr
             }
             else if(GetItemType() == CDEFormBase::UnknownItem){
                 SetRIType(Record);
-                SetTypeName(structLookup.pRecord->GetName());
+                SetTypeName(UTF8_TODO::GetCString(structLookup.pRecord->GetName()));
             }
             SetMaxLoopOccs (iDictOccs);
             if(GetItemType() == CDEFormBase::Roster){
@@ -840,7 +840,7 @@ void CDEGroup::RefreshAssociatedFieldText()
             if(pField && pField->GetDictItem()){
                 if(pField->GetFieldLabelType() == FieldLabelType::DictionaryName){
                     pField->SetLabel(pField->GetDictItem()->GetLabel());
-                    pField->GetCDEText().SetText(pField->GetDictItem()->GetName());
+                    pField->GetCDEText().SetText(UTF8_TODO::GetCString(pField->GetDictItem()->GetName()));
                 }
                 else if(pField->GetFieldLabelType() == FieldLabelType::DictionaryLabel){
                     pField->SetLabel(pField->GetDictItem()->GetLabel());
@@ -1045,7 +1045,7 @@ CDEGroup* CDEGroup::GetGroupOnForm (int iFormNo)
         return NULL;
 }
 
-const TCHAR* CDEGroup::GetRIStr() const 
+const TCHAR* CDEGroup::GetRIStr() const
 {
     switch (m_eRIType)
     {
@@ -1061,7 +1061,7 @@ const CString& CDEGroup::GetRecordRepeatName() const
     if (m_eRIType == CDEFormBase::Record)
         return m_csTypeName;
     else
-        return SO::EmptyCString;
+        return SO::Empty_CString;
 }
 
 // i'll set it = to Unknown if i can't parse it, up to calling func to check results
@@ -1078,7 +1078,7 @@ void CDEGroup::SetLoopingVars(const CDictRecord* pDR)
 {
     SetMaxLoopOccs(pDR->GetMaxRecs());
     SetRIType(Record);
-    SetTypeName(pDR->GetName());
+    SetTypeName(UTF8_TODO::GetCString(pDR->GetName()));
 }
 
 void CDEGroup::SetLoopingVars()
@@ -1308,7 +1308,7 @@ eReturnType CDEGroup::OReconcile (CDEFormFile* pFormFile,
                 CDEField* pField = DYNAMIC_DOWNCAST(CDEField,pBase);
                 if(pField){
                     // stuff the dictionary Name(use may have changed it in dict frame)
-                    csDict = pFormFile->GetDictionary()->GetName();
+                    csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
                     pField->SetItemDict(csDict);
                     structLookup.csName = pField->GetItemName();
                     if(bFound) {
@@ -1339,7 +1339,7 @@ eReturnType CDEGroup::OReconcile (CDEFormFile* pFormFile,
                 //and the items are all from the same record
                 ASSERT(pRecord);
                 SetRIType(Record);
-                SetTypeName(pRecord->GetName());
+                SetTypeName(UTF8_TODO::GetCString(pRecord->GetName()));
                 SetMaxLoopOccs (pRecord->GetMaxRecs());
                 bOccChange = true;
             }
@@ -1403,9 +1403,9 @@ eReturnType CDEGroup::OReconcile (CDEFormFile* pFormFile,
             // gsf 23-mar-00
             // assume only one dictionary per forms file
             // stuff the dictionary Name(use may have changed it in dict frame)
-            csDict = pFormFile->GetDictionary()->GetName();
+            csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
 
-            const CDictItem* pDictItem = pFormFile->GetDictionary()->LookupName<CDictItem>(pField->GetItemName());
+            const CDictItem* pDictItem = pFormFile->GetDictionary()->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
             if(pDictItem){
                 pField->SetLabel(pDictItem->GetLabel());
                 pField->SetDictItem(pDictItem);
@@ -1613,7 +1613,7 @@ void CDEGroup::ChangeDName(const CDataDict& dictionary)
         {
             CDEField* pField = DYNAMIC_DOWNCAST(CDEField,pItem);
             if (pField) {//ignoring blocks as they do not have associated dictionary item like groups
-                pField->SetItemDict(dictionary.GetName());
+                pField->SetItemDict(UTF8_TODO::GetCString(dictionary.GetName()));
             }
         }
     }
@@ -1696,7 +1696,7 @@ void CDEGroup::CheckGroups (CDEFormFile* pFormFile)
     CString csDict;     // name (symbol) of dictionary
     CString csName;     // name (symbol) of an item
 
-    csDict = pFormFile->GetDictionary()->GetName();
+    csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
 
     // if group is tied to a record or item, make sure it exists
     // tell caller to delete this group if not
@@ -1801,12 +1801,12 @@ void CDEGroup::CheckGroups (CDEFormFile* pFormFile)
 
 void CDEGroup::SetItemSubItemFlags(CDEFormFile* pFormFile, const CDictItem* pDictItem ,bool bFlag /*=true*/)
 {
-    CString csDict = pFormFile->GetDictionary()->GetName();
+    CString csDict = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
 
     bool bFound = false;
     DICT_LOOKUP_INFO structLookup;
 
-    structLookup.csName = pDictItem->GetName();
+    structLookup.csName = UTF8_TODO::GetCString(pDictItem->GetName());
     bFound = LookupSymbol (pFormFile, csDict, structLookup);
 
     if (bFound){
@@ -1922,7 +1922,7 @@ void CDEGroup::SetMaxFieldPointer(CDEFormFile* pFormFile)
     if(!m_csMaxField.IsEmpty() && this->GetMaxLoopOccs() > 1){
         const CDictItem* pItem = nullptr;
         if( pFormFile->GetDictionary() != nullptr ) {
-            pItem = pFormFile->GetDictionary()->LookupName<CDictItem>(m_csMaxField);
+            pItem = pFormFile->GetDictionary()->LookupName<CDictItem>(UTF8_TODO::GetUtf8(m_csMaxField));
         }
         if(pItem){
             this->SetMaxDEField(pItem);
@@ -2058,7 +2058,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
                                 pForm = pFF->GetForm(GetFormNum());
                                 AddItem(pRoster);      // add the item to the page
                                 //      FinishFormInit4Rosters (pForm, pRoster);
-                                if(GetCSProVersionNumeric(pFF->GetVersion()) <= 6.1){
+                                if(GetCSProVersionNumeric(UTF8_TODO::GetUtf8(pFF->GetVersion())) <= 6.1){
                                     //for version 6.1 and below, force the roster's header text to field text when there is only one field in the col
                                     for(int iCol =0; iCol < pRoster->GetNumCols(); iCol++){
                                         if(pRoster->GetCol(iCol)->GetNumFields()==1){
@@ -2097,7 +2097,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
                                 //Search in all forms and reset.
                                 if (!SearchInAllForms(pFF,pField))
                                 {
-                                    ErrorMessage::Display(FormatText( _T("Line %d: [Group]'s field \"%s\" not found on the form"), localLN, (LPCTSTR)pField->GetName()));
+                                    ErrorMessage::Display(FormatText( _T("Line %d: [Group]'s field \"%s\" not found on the form"), localLN, pField->GetName().GetString()));
                                     RemoveItem (pField->GetName());
                                 }
                                 else
@@ -2164,7 +2164,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
         else {
             // Incorrect attribute
             if (!bSilent) {
-                ErrorMessage::Display(FormatText(_T("Line#%d: Incorrect [%s] attribute\n\n%s"), (int)frmFile.GetLineNumber(), HEAD_GROUP, (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Line#%d: Incorrect [%s] attribute\n\n%s"), (int)frmFile.GetLineNumber(), HEAD_GROUP, csCmd.GetString()));
             }
             bRtnVal = false;    // keep parsing, don't set bDone yet
         }
@@ -2265,8 +2265,6 @@ void CDEGroup::serialize(Serializer& ar) // 20121114
         int iGetNumItems = GetNumItems();
 
         ar & m_bRequired;
-
-        ar.IgnoreUnusedVariable<bool>(Serializer::Iteration_7_6_000_1); // m_bLogicControl
 
         ar.SerializeEnum(m_eRIType)
            & m_csTypeName

@@ -25,7 +25,7 @@ public:
 
     const ItemIndexHelper& GetItemIndexHelper() const { return m_itemIndexHelper; }
 
-    // ENGINECR_TODO: FindChildSymbol (value sets), WriteJsonMetadata_subclass, WriteValueToJson, UpdateValueFromJson?
+    // ENGINECR_TODO: FindChildSymbol (value sets), WriteJsonMetadata_subclass, WriteValueToJson, SetValueFromJson?
 
 private:
     CSymbolVar& m_vart;
@@ -79,7 +79,7 @@ public:
 
     // returns a label for the symbol's current value;
     // if a language is specified and the label supports multiple languages but does not contain the language, blank is returned
-    virtual std::wstring GetValueLabel(const std::optional<std::wstring>& language) = 0;
+    virtual std::string GetValueLabel(const std::optional<std::string>& language) = 0;
 
 private:
     const EngineItem* m_engineItem; // EIA_TODO_REMOVE can make "const EngineItem&"

@@ -2,8 +2,6 @@
 
 #include <zToolsO/StringView.h>
 
-class NullTerminatedStringView;
-
 
 // ------------------------------------------------------
 // NullTerminatedString
@@ -20,14 +18,13 @@ class NullTerminatedStringView;
 class NullTerminatedString
 {
 public:
+    using value_type = wchar_t;
+
     NullTerminatedString(const std::wstring& text) noexcept
         :   m_text(text.c_str()),
             m_length(text.length())
     {
     }
-
-    // defined below NullTerminatedStringView
-    NullTerminatedString(const NullTerminatedStringView& text) noexcept;
 
     NullTerminatedString(const CString& text)
         :   m_text(text.GetString()),
@@ -52,7 +49,7 @@ public:
         return m_text;
     }
 
-    size_t length() const
+    [[nodiscard]] size_t length() const
     {
         if( m_length == SIZE_MAX )
             m_length = wcslen(m_text);
@@ -83,6 +80,16 @@ public:
         return m_text[offset];
     }
 
+    [[nodiscard]] const wchar_t* cbegin() const noexcept
+    {
+        return m_text;
+    }
+
+    [[nodiscard]] const wchar_t* cend() const
+    {
+        return m_text + length();
+    }
+
     operator wstring_view() const
     {
         return wstring_view(c_str(), length());
@@ -102,55 +109,3 @@ private:
     const wchar_t* const m_text;
     mutable size_t m_length;
 };
-
-
-
-// ------------------------------------------------------
-// NullTerminatedStringView
-// 
-// this class is similar to the above one except that it
-// wraps the null-terminated string as a string view, so 
-// the calculation hit of determining the length of the
-// string, if necessary, is immediately incurred
-// ------------------------------------------------------
-
-class NullTerminatedStringView : public wstring_view
-{
-public:
-    NullTerminatedStringView(const std::wstring& text)
-        :   wstring_view(text)
-    {
-        ASSERT80(c_str()[length()] == 0);
-    }
-
-    NullTerminatedStringView(const CString& text)
-        :   wstring_view(text)
-    {
-        ASSERT80(c_str()[length()] == 0);
-    }
-
-    NullTerminatedStringView(const wchar_t* const text)
-        :   wstring_view(text)
-    {
-        ASSERT80(c_str()[length()] == 0);
-    }
-
-    NullTerminatedStringView(NullTerminatedString text) noexcept
-        :   wstring_view(text)
-    {
-        ASSERT80(c_str()[length()] == 0);
-    }
-
-    [[nodiscard]] constexpr const_pointer c_str() const noexcept
-    {
-        return data();
-    }
-};
-
-
-
-inline NullTerminatedString::NullTerminatedString(const NullTerminatedStringView& text) noexcept
-    :   m_text(text.c_str()),
-        m_length(text.length())
-{
-}

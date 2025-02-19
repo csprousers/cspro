@@ -13,8 +13,8 @@ const short SasTransportWriter::MaxTransportStringLength; // a definition (of a 
 
 namespace
 {
-    constexpr char* const SasVersion = "6.12";  // the last version of 6
-    constexpr char* const SasOs      = "CSPro";
+    constexpr const char* SasVersion = "6.12";  // the last version of 6
+    constexpr const char* SasOs      = "CSPro";
 
     inline void AssignShort(short& destination, const short source)
     {
@@ -37,12 +37,12 @@ namespace
 }
 
 
-SasTransportWriter::SasTransportWriter(FILE* file)
-    :   m_file(file),
+SasTransportWriter::SasTransportWriter(std::unique_ptr<FileIO::File> file)
+    :   m_file(std::move(file)),
         m_writingDataSetDirectly(false),
         m_directDataSetWritingObservationsStarted(false)
 {
-    ASSERT(m_file != nullptr && PortableFunctions::ftelli64(m_file) == 0);
+    ASSERT(m_file != nullptr && m_file->GetPosition() == 0);
 
     WriteInitialHeader();
 }
@@ -50,30 +50,29 @@ SasTransportWriter::SasTransportWriter(FILE* file)
 
 SasTransportWriter::~SasTransportWriter()
 {
-    if( m_file != nullptr )
-        fclose(m_file);
 }
 
 
 void SasTransportWriter::PadToRecordLengthBoundary()
 {
-    const int64_t position = PortableFunctions::ftelli64(m_file);
+    const int64_t position = m_file->GetPosition();
     int64_t position_in_boundary = position % static_cast<int64_t>(RecordLength);
 
     if( position_in_boundary > 0 )
     {
+        constexpr char padding_ch = ' ';
+
         while( position_in_boundary++ < RecordLength )
-            fputc(' ', m_file);
+            m_file->Write(&padding_ch, sizeof(padding_ch));
     }
 }
 
 
-void SasTransportWriter::WriteRecord(const char* record_text)
+void SasTransportWriter::WriteRecord(const char* const record_text)
 {
-    const size_t record_length = strlen(record_text);
-    ASSERT(record_length <= RecordLength);
+    ASSERT(strlen(record_text) <= RecordLength);
 
-    fwrite(record_text, 1, record_length, m_file);
+    m_file->Write(record_text);
 
     PadToRecordLengthBoundary();
 }
@@ -82,17 +81,17 @@ void SasTransportWriter::WriteRecord(const char* record_text)
 void SasTransportWriter::WriteInitialHeader()
 {
     // format the timestamp
-    constexpr char* const Months[] =
+    constexpr const char* Months[] =
     {
         "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
         "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
     };
 
-    struct tm tp = GetLocalTime();
+    const DateTime::Components date_time_components = DateTime::TimeToComponents(DateTime::Now(), true);
 
     snprintf(m_timestamp, sizeof(m_timestamp), "%02d%s%02d:%02d:%02d:%02d",
-                                               tp.tm_mday, Months[tp.tm_mon], tp.tm_year,
-                                               tp.tm_hour, tp.tm_min, tp.tm_sec);
+                                               date_time_components.day, Months[date_time_components.month - 1], date_time_components.year % 100,
+                                               date_time_components.hour, date_time_components.minute, date_time_components.second);
 
 
     // write the initial header
@@ -305,7 +304,7 @@ void SasTransportWriter::WriteVariablesMetadata(const DataSet& data_set)
         AssignShort(namestr.nifd, data_variable->decimals);
         AssignLong(namestr.npos, position_in_observation);
 
-        fwrite(&namestr, 1, sizeof(namestr), m_file);
+        m_file->Write(&namestr, sizeof(namestr));
 
         ++variable_number;
         position_in_observation += variable_width;
@@ -330,11 +329,11 @@ void SasTransportWriter::StopObservations()
 void SasTransportWriter::WriteNumericObservation(const double value)
 {
     static char MissingValues[8] = { 0 };
-    const size_t size_value_to_write = sizeof(MissingValues);
+    constexpr size_t size_value_to_write = sizeof(MissingValues);
 
     auto write_value = [&](const void* data)
     {
-        fwrite(data, 1, size_value_to_write, m_file);
+        m_file->Write(data, size_value_to_write);
     };
 
     auto write_missing_value = [&](const char first_byte)
@@ -380,7 +379,7 @@ void SasTransportWriter::WriteStringObservation(const DataVariable& data_variabl
 
     auto write_value = [&](const std::string& properly_sized_value)
     {
-        fwrite(properly_sized_value.data(), 1, data_variable.length, m_file);
+        m_file->Write(properly_sized_value.data(), data_variable.length);
     };
 
     if( value.size() == static_cast<size_t>(data_variable.length) )

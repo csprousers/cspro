@@ -28,7 +28,7 @@ LOCAL_SRC_FILES         += $(ZCASEO_SRC_PATH)/StringCaseItem.cpp
 LOCAL_SRC_FILES         += $(ZCASEO_SRC_PATH)/TextToCaseConverter.cpp
 LOCAL_SRC_FILES         += $(ZCASEO_SRC_PATH)/VectorClock.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO zJson zUtilO zAppO zDictO zMessageO

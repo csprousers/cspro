@@ -1,10 +1,8 @@
 ﻿#include "stdafx.h"
-#include <sstream>
-#include <assert.h>
 #include "ObexPacketSerializer.h"
 #include "IObexTransport.h"
 #include "ObexPacket.h"
-#include "SyncException.h"
+
 
 ObexPacketSerializer::ObexPacketSerializer(IObexTransport * pTransport)
     : m_pTransport(pTransport),
@@ -12,6 +10,7 @@ ObexPacketSerializer::ObexPacketSerializer(IObexTransport * pTransport)
     m_packetContinuationTimeoutSecs(5)
 {
 }
+
 
 void ObexPacketSerializer::sendPacket(const ObexPacket & packet, bool isConnect /*= false*/)
 {
@@ -33,11 +32,12 @@ void ObexPacketSerializer::sendPacket(const ObexPacket & packet, bool isConnect 
     buffer << packet.getHeaders();
 
     std::string packetData = buffer.str();
-    assert(packetData.size() == (size_t) totalSize);
+    ASSERT(packetData.size() == (size_t) totalSize);
     int bytesWritten = m_pTransport->write(&packetData[0], totalSize);
     if (bytesWritten != totalSize)
-        throw SyncError(100101, L"Error sending data to server");
+        throw SyncConnectionError("Error sending data to server");
 }
+
 
 ObexPacket ObexPacketSerializer::receivePacket(bool isConnectResponse /* = false */)
 {
@@ -50,7 +50,7 @@ ObexPacket ObexPacketSerializer::receivePacket(bool isConnectResponse /* = false
     packet.setCode(basePacket[0]);
     int receivedPacketSize = (((unsigned char)basePacket[1]) << 8) | ((unsigned char)basePacket[2]);
     if (receivedPacketSize < OBEX_BASE_PACKET_SIZE)
-        throw SyncError(100101, L"Invalid packet size");
+        throw SyncConnectionError("Invalid packet size");
     int remainingPacketSize = receivedPacketSize - OBEX_BASE_PACKET_SIZE;
     if (remainingPacketSize == 0)
         return packet;
@@ -63,7 +63,7 @@ ObexPacket ObexPacketSerializer::receivePacket(bool isConnectResponse /* = false
 
     if (((unsigned char) basePacket[0]) == OBEX_CONNECT || isConnectResponse) {
         if (receivedPacketSize < OBEX_BASE_PACKET_SIZE + 4)
-            throw SyncError(100101, L"Invalid packet size");
+            throw SyncConnectionError("Invalid packet size");
         packet.setObexVersion((unsigned char)receivedPacketStream.get());
         packet.setFlags((unsigned char)receivedPacketStream.get());
         int packetSize = ((unsigned char)receivedPacketStream.get()) << 8 | ((unsigned char)receivedPacketStream.get());
@@ -78,16 +78,18 @@ ObexPacket ObexPacketSerializer::receivePacket(bool isConnectResponse /* = false
     }
 
     if (!receivedPacketStream.eof())
-        throw SyncError(100101, L"OBEX packet is not expected size");
+        throw SyncConnectionError("OBEX packet is not expected size");
 
     return packet;
 }
+
 
 void ObexPacketSerializer::setReceiveTimeout(int packetStartTimeoutSecs, int packetContinuationTimeoutSecs)
 {
     m_packetStartTimeoutSecs = packetStartTimeoutSecs;
     m_packetContinuationTimeoutSecs = packetContinuationTimeoutSecs;
 }
+
 
 void ObexPacketSerializer::waitForData(char * data, int sizeBytes, int timeoutSecs)
 {
@@ -110,7 +112,7 @@ void ObexPacketSerializer::waitForData(char * data, int sizeBytes, int timeoutSe
             time_t currentTime;
             time(&currentTime);
             if (timeoutSecs != -1 && difftime(currentTime, startTime) > timeoutSecs)
-                throw SyncError(100101, L"Timeout waiting for response from server");
+                throw SyncConnectionError("Timeout waiting for response from server");
         }
         else {
             // Got some data - restart the timeout

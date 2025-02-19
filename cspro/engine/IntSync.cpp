@@ -1,127 +1,28 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
+#include <zToolsO/Encoders.h>
 #include <zLogicO/SpecialFunction.h>
 #include <zEngineO/EngineDictionary.h>
-#include <zEngineO/Versioning.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zMessageO/Messages.h>
 #include <ZBRIDGEO/npff.h>
-#include <zSyncO/BluetoothDeviceInfo.h>
+#include <zDataO/ISyncableDataRepository.h>
+#include <zNetwork/LoginAccessor.h>
+#include <zSyncO/ApplicationPackageManager.h>
 #include <zSyncO/BluetoothObexServer.h>
-#include <zSyncO/IChooseBluetoothDeviceDialog.h>
-#include <zSyncO/IDataRepositoryRetriever.h>
-#include <zSyncO/IDropboxAuthDialog.h>
-#include <zSyncO/ILoginDialog.h>
+#include <zSyncO/IBluetoothAdapter.h>
 #include <zSyncO/SyncClient.h>
+#include <zSyncO/SyncMessage.h>
 #include <zSyncO/SyncObexHandler.h>
+#include <zSyncO/SyncServiceFactory.h>
+#include <zSyncF/DialogBasedSyncListener.h>
+#include <zSyncF/SyncLoginAccessor.h>
 #include <zParadataO/Logger.h>
-
-#ifdef WIN_DESKTOP
-#include <zSyncF/ChooseBluetoothDeviceDialog.h>
-#include <zSyncF/DropboxAuthDialog.h>
-#include <zSyncF/LoginDialog.h>
-#include <zSyncO/WinBluetoothAdapter.h>
-#endif
 
 
 namespace
 {
-    // Translate dictionary name to repository for sync
-    class DataRepositoryRetriever : public IDataRepositoryRetriever
-    {
-    public:
-        DataRepositoryRetriever(CEngineArea* pEngineArea)
-            :   m_pEngineArea(pEngineArea)
-        {
-        }
-
-        DataRepository* get(const std::wstring& dictionary_name)
-        {
-            int dictionary_symbol_index = m_pEngineArea->SymbolTableSearch(dictionary_name, { SymbolType::Pre80Dictionary });
-
-            if( dictionary_symbol_index != 0 )
-            {
-                DICT* pDicT = DPT(dictionary_symbol_index);
-                DICX* pDicX = pDicT->GetDicX();
-                return &pDicX->GetDataRepository().GetRealRepository();
-            }
-
-            return nullptr;
-        }
-
-    private:
-        const Logic::SymbolTable& GetSymbolTable() const { return m_pEngineArea->GetSymbolTable(); }
-
-    private:
-        CEngineArea* m_pEngineArea;
-    };
-
-#ifndef WIN_DESKTOP
-    class CLoginDialog : public ILoginDialog
-    {
-        std::optional<std::tuple<CString, CString>> Show(const CString& server, bool show_invalid_error) override
-        {
-            auto credentials = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowLoginDialog(server, show_invalid_error);
-            if (credentials)
-                return std::make_tuple(credentials->username, credentials->password);
-            else
-                return {};
-        }
-    };
-
-    class DropboxAuthDialog : public IDropboxAuthDialog
-    {
-        CString Show(CString clientId) override
-        {
-            return PlatformInterface::GetInstance()->GetApplicationInterface()->AuthorizeDropbox(clientId);
-        }
-    };
-
-    class ChooseBluetoothDeviceDialog : public IChooseBluetoothDeviceDialog
-    {
-    public:
-        explicit ChooseBluetoothDeviceDialog(IBluetoothAdapter*)
-        {
-        }
-
-        bool Show(BluetoothDeviceInfo& deviceInfo) override
-        {
-            auto result = PlatformInterface::GetInstance()->GetApplicationInterface()->ChooseBluetoothDevice(OBEX_SYNC_SERVICE_UUID);
-            if (result) {
-                deviceInfo = *result;
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
-
-#endif
-
-    struct SyncEngineFunctionCaller : public ISyncEngineFunctionCaller
-    {
-        SyncEngineFunctionCaller(CIntDriver* int_driver, int field_symbol_index)
-            :   m_intDriver(int_driver),
-                m_fieldSymbolIndex(field_symbol_index)
-        {
-        }
-
-        std::optional<CString> onSyncMessage(const CString& message_key, const CString& message_value)
-        {
-            if( !m_intDriver->HasSpecialFunction(SpecialFunction::OnSyncMessage) )
-                return std::nullopt;
-
-            int message_response = (int)m_intDriver->ExecSpecialFunction(m_fieldSymbolIndex, SpecialFunction::OnSyncMessage, { CS2WS(message_key), CS2WS(message_value) });
-            return m_intDriver->CharacterObjectToString<CString>(message_response);
-        }
-
-    private:
-        CIntDriver* m_intDriver;
-        int m_fieldSymbolIndex;
-    };
-
-
-    std::optional<SyncDirection> GetSyncDirection(CIntDriver* pIntDriver, int expression)
+    std::optional<SyncDirection> GetSyncDirection(CIntDriver& interpreter, const int expression)
     {
         if( expression >= static_cast<int>(SyncDirection::Put) &&
             expression <= static_cast<int>(SyncDirection::Both) )
@@ -131,12 +32,12 @@ namespace
 
         else if( expression < 0 )
         {
-            std::wstring direction_string = pIntDriver->EvalAlphaExpr(-1 * expression);
+            const std::string direction_string = interpreter.EvaluateString(-1 * expression);
 
-            return SO::EqualsNoCase(direction_string, _T("PUT"))  ? std::make_optional(SyncDirection::Put) :
-                   SO::EqualsNoCase(direction_string, _T("GET"))  ? std::make_optional(SyncDirection::Get) :
-                   SO::EqualsNoCase(direction_string, _T("BOTH")) ? std::make_optional(SyncDirection::Both) :
-                                                                    std::nullopt;
+            return SO::EqualsNoCase(direction_string, ToString(SyncDirection::Put))  ? std::make_optional(SyncDirection::Put) :
+                   SO::EqualsNoCase(direction_string, ToString(SyncDirection::Get))  ? std::make_optional(SyncDirection::Get) :
+                   SO::EqualsNoCase(direction_string, ToString(SyncDirection::Both)) ? std::make_optional(SyncDirection::Both) :
+                                                                                       std::nullopt;
         }
 
         else
@@ -144,116 +45,249 @@ namespace
             return std::nullopt;
         }
     }
+
+
+    std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager()
+    {
+#ifdef WIN_DESKTOP
+        return nullptr;
+#else
+        return std::make_unique<ApplicationPackageManager>(PlatformInterface::GetInstance()->GetCSEntryDirectory());
+#endif
+    }
+
+
+    class SyncObexEngineAccessor : public ISyncObexEngineAccessor
+    {
+    public:
+        SyncObexEngineAccessor(CIntDriver& interpreter, const int field_symbol_index)
+            :   m_interpreter(interpreter),
+                m_pEngineArea(m_interpreter.m_pEngineArea),
+                m_fieldSymbolIndex(field_symbol_index)
+        {
+        }
+
+        DataRepository* GetDataRepository(const std::string& syncable_dictionary_name, const std::string& dictionary_name) override
+        {
+            const int dictionary_symbol_index = m_pEngineArea->SymbolTableSearch(dictionary_name, { SymbolType::Pre80Dictionary });
+
+            if( dictionary_symbol_index != 0 )
+            {
+                DICT* pDicT = DPT(dictionary_symbol_index);
+                DICX* pDicX = pDicT->GetDicX();
+
+                if( syncable_dictionary_name == pDicT->GetDataDict()->GetSyncableName() )
+                    return &pDicX->GetDataRepository().GetRealRepository();
+            }
+
+            return nullptr;
+        }
+
+        std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager() override
+        {
+            return ::CreateApplicationPackageManager();
+        }
+
+        std::optional<SharableString> OnSyncMessage(const SyncMessage& sync_message) override
+        {
+            if( !m_interpreter.HasSpecialFunction(SpecialFunction::OnSyncMessage) )
+                return std::nullopt;
+
+            const double message_response = m_interpreter.ExecSpecialFunction(m_fieldSymbolIndex,
+                                                                              SpecialFunction::OnSyncMessage,
+                                                                              { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() });
+
+            return m_interpreter.GetWorkingSharableString(static_cast<size_t>(message_response));
+        }
+
+
+    private:
+        const Logic::SymbolTable& GetSymbolTable() const { return m_pEngineArea->GetSymbolTable(); }
+
+    private:
+        CIntDriver& m_interpreter;
+        CEngineArea* m_pEngineArea;
+        int m_fieldSymbolIndex;
+    };
 }
 
 
-double CIntDriver::exsyncconnect(int iExpr)
+struct SyncObjects
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    std::shared_ptr<LoginAccessor> login_accessor;
+    std::unique_ptr<SyncClient> sync_client;
+    std::shared_ptr<SyncListener> sync_listener;
+};
+
+
+SyncClient& CIntDriver::GetSyncClient()
+{
+    if( m_syncObjects == nullptr )
+    {
+        auto login_accessor = std::make_shared<SyncLoginAccessor>();
+
+        m_syncObjects = std::make_unique<SyncObjects>(
+            SyncObjects
+            {
+                login_accessor,
+                std::make_unique<SyncClient>(GetDeviceId(), std::make_unique<SyncServiceFactory>(std::move(login_accessor))),
+                std::make_unique<DialogBasedSyncListener>(m_pEngineDriver->GetSharedSystemMessageIssuer())
+            });
+
+            m_syncObjects->sync_client->SetSyncListener(m_syncObjects->sync_listener);
+    }
+
+    return *m_syncObjects->sync_client;
+}
+
+
+double CIntDriver::ex_syncconnect(const int program_index)
+{
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
+    SyncClient& sync_client = GetSyncClient();
 
     int connection_type = va_node.arguments[0];
+    std::optional<SyncConnectionString> sync_connection_string;
 
-    if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    // process sync connection strings
+    if( connection_type == 0 )
     {
-        if( connection_type == 5 ) // Web -> CSWeb
+        sync_connection_string.emplace(EvaluateSharableString(va_node.arguments[1]).GetString());
+        sync_connection_string->AdjustRelativePath(GetCurrentWorkingDirectory());
+    }
+
+    // otherwise create a sync connection string from the arguments
+    else
+    {
+        if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
         {
-            connection_type = 1;
+            if( connection_type == 5 ) // Web -> CSWeb
+            {
+                connection_type = 1;
+            }
+
+            else if( connection_type > 5 ) // to account for the removed Web
+            {
+                --connection_type;
+            }
         }
 
-        else if( connection_type > 5 ) // to account for the removed Web
+        auto evaluate_host_url_and_username_and_password = [&](const SyncServiceType sync_service_type)
         {
-            --connection_type;
+            // add the URL and the type (in case the URL doesn't start properly)
+            // e.g., in CSPro 8.0 you could say: syncconnect(FTP, "localhost")
+            std::string sync_connection_string_text = EvaluateString(va_node.arguments[1]);
+            SO::MakeTrim(sync_connection_string_text);
+
+            // add the type
+            sync_connection_string_text.append(FormatText("%c%s=%s", PropertyString::PropertySeparatorInitial,
+                                                                     SyncConnectionString::PropertyType,
+                                                                     ToString(sync_service_type)));
+
+            sync_connection_string.emplace(sync_connection_string_text);
+
+            // add the username and password
+            if( va_node.arguments[2] >= 0 )
+            {
+                sync_connection_string->SetUsernamePasswordProperties(EvaluateString(va_node.arguments[2]),
+                                                                      EvaluateString(va_node.arguments[3]));
+            }
+        };
+
+        switch( connection_type )
+        {
+            // CSWeb
+            case 1:
+            {
+                evaluate_host_url_and_username_and_password(SyncServiceType::CSWeb);
+                break;
+            }
+
+            // Bluetooth sync
+            case 2:
+            {
+                std::string sync_connection_string_text = ToString(SyncServiceType::Bluetooth);
+
+                // add the server device name as a path
+                if( va_node.arguments[1] != -1 )
+                {
+                    std::string service_device_name = EvaluateString(va_node.arguments[1]);
+                    SO::MakeTrim(service_device_name);
+                    Path::MakeCombineForwardSlash(sync_connection_string_text, Encoders::ToUri(std::move(service_device_name)));
+                }
+
+                sync_connection_string.emplace(sync_connection_string_text);
+
+                break;
+            }
+
+            // Dropbox sync
+            case 3:
+            {
+                sync_connection_string.emplace(SyncConnectionString::CreateDropboxSyncConnectionString());
+                break;
+            }
+
+            // FTP
+            case 4:
+            {
+                evaluate_host_url_and_username_and_password(SyncServiceType::Ftp);
+                break;
+            }
+
+            // LocalDropbox
+            case 5:
+            {
+                sync_connection_string.emplace(SyncConnectionString::CreateLocalDropboxSyncConnectionString());
+                break;
+            }
+
+            // LocalFiles
+            case 6:
+            {
+                std::string directory_path = EvaluateString(va_node.arguments[1]);
+
+                if( SO::StartsWith(directory_path, "file:/") )
+                {
+                    sync_connection_string.emplace(directory_path);
+                }
+
+                else
+                {
+                    MakeAbsolutePath(directory_path);
+                    sync_connection_string.emplace(SyncConnectionString::CreateLocalFilesSyncConnectionString(std::move(directory_path)));
+                }
+
+                ASSERT(sync_connection_string->GetType() == SyncServiceType::LocalFiles);
+
+                break;
+            }
+
+            // Error
+            default:
+                return ReturnProgrammingError(0);
         }
     }
 
-    switch (connection_type) {
-        // CSWeb
-        case 1:
-        {
-            CString csHost = SO::Trim(EvalAlphaExpr(va_node.arguments[1]));
-            CString csUsername, csPassword;
-            if (va_node.arguments[2] >= 0) {
-                // Username and password specified
-                csUsername = EvalAlphaExpr<CString>(va_node.arguments[2]);
-                csPassword = EvalAlphaExpr<CString>(va_node.arguments[3]);
-                return m_pSyncClient->connectWeb(csHost, csUsername, csPassword) == SyncClient::SyncResult::SYNC_OK;
-            } else {
-                CLoginDialog loginDialog;
-                return m_pSyncClient->connectWeb(csHost, &loginDialog, m_pSyncCredentialStore) == SyncClient::SyncResult::SYNC_OK;
-            }
-        }
+    ASSERT(sync_connection_string.has_value());
 
-        // Bluetooth sync
-        case 2:
-        {
-            BluetoothDeviceInfo deviceInfo;
-            if (va_node.arguments[1] >= 0) {
-                deviceInfo.csName = CString(SO::Trim(EvalAlphaExpr(va_node.arguments[1])));
-            }
-            if (deviceInfo.csName.IsEmpty()) {
-                // No device specified - let user choose from nearby devices
-                ChooseBluetoothDeviceDialog chooseDeviceDlg(m_pBluetoothAdapter);
-                return m_pSyncClient->connectBluetooth(&chooseDeviceDlg) == SyncClient::SyncResult::SYNC_OK;
-            }
-            else {
-                return m_pSyncClient->connectBluetooth(deviceInfo) == SyncClient::SyncResult::SYNC_OK;
-            }
-        }
+    const SyncClient::SyncResult result = sync_client.Connect(*sync_connection_string);
 
-        // Dropbox sync
-        case 3:
-        {
-            DropboxAuthDialog authDialog;
-            return m_pSyncClient->connectDropbox(&authDialog, m_pSyncCredentialStore) == SyncClient::SyncResult::SYNC_OK;
-        }
-
-        // FTP
-        case 4:
-        {
-            CString csHost = SO::Trim(EvalAlphaExpr(va_node.arguments[1]));
-            CString csUsername, csPassword;
-            if (va_node.arguments[2] >= 0) {
-                // Username and password specified
-                csUsername = EvalAlphaExpr<CString>(va_node.arguments[2]);
-                csPassword = EvalAlphaExpr<CString>(va_node.arguments[3]);
-                return m_pSyncClient->connectFtp(csHost, csUsername, csPassword) == SyncClient::SyncResult::SYNC_OK;
-            } else {
-                CLoginDialog loginDialog;
-                return m_pSyncClient->connectFtp(csHost, &loginDialog, m_pSyncCredentialStore) == SyncClient::SyncResult::SYNC_OK;
-            }
-        }
-
-        // Local Dropbox
-        case 5:
-        {
-            return m_pSyncClient->connectDropboxLocal() == SyncClient::SyncResult::SYNC_OK;
-        }
-
-        // Local filesystem
-        case 6:
-        {
-            CString csPath = EvalAlphaExpr<CString>(va_node.arguments[1]);
-            if( csPath.Find(_T("file:/")) < 0 )
-                MakeFullPathFileName(csPath);
-            return m_pSyncClient->connectLocalFileSystem(csPath) == SyncClient::SyncResult::SYNC_OK;
-        }
-    }
-
-    return ReturnProgrammingError(0);
+    return ( result == SyncClient::SyncResult::SYNC_OK );
 }
 
 
-double CIntDriver::exsyncdisconnect(int /*iExpr*/)
+double CIntDriver::ex_syncdisconnect(int /*program_index*/)
 {
-    return m_pSyncClient->disconnect() == SyncClient::SyncResult::SYNC_OK;
+    return ( GetSyncClient().Disconnect() == SyncClient::SyncResult::SYNC_OK );
 }
 
 
-double CIntDriver::exsyncdata(int iExpr)
+double CIntDriver::ex_syncdata(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    std::optional<SyncDirection> direction = GetSyncDirection(this, va_node.arguments[0]);
+    const std::optional<SyncDirection> direction = GetSyncDirection(*this, va_node.arguments[0]);
 
     if( !direction.has_value() )
     {
@@ -281,17 +315,17 @@ double CIntDriver::exsyncdata(int iExpr)
         return 0;
     }
 
-    std::wstring universe = ValueOrDefault(EvaluateOptionalStringExpression(va_node.arguments[2]));
+    const std::string universe = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
 
-    return ( m_pSyncClient->syncData(*direction, *syncable_data_repository, WS2CS(universe)) == SyncClient::SyncResult::SYNC_OK );
+    return ( GetSyncClient().SyncData(*direction, *syncable_data_repository, universe) == SyncClient::SyncResult::SYNC_OK );
 }
 
 
-double CIntDriver::exsyncfile(int iExpr)
+double CIntDriver::ex_syncfile(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    std::optional<SyncDirection> sync_direction = GetSyncDirection(this, va_node.arguments[0]);
+    const std::optional<SyncDirection> sync_direction = GetSyncDirection(*this, va_node.arguments[0]);
 
     if( !sync_direction.has_value() || *sync_direction == SyncDirection::Both )
     {
@@ -299,114 +333,133 @@ double CIntDriver::exsyncfile(int iExpr)
         return 0;
     }
 
-    CString from = EvalAlphaExpr<CString>(va_node.arguments[1]);
-    CString to = ( va_node.arguments[2] >= 0 ) ? EvalAlphaExpr<CString>(va_node.arguments[2]) : CString();
+    auto evaluate_local_path = [&](std::string& path)
+    {
+        if( path.empty() )
+        {
+            path = PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()));
+        }
 
-    CString fileRoot;
-    fileRoot.Format(_T("%s%s"), GetFilePath(m_pEngineDriver->m_pPifFile->GetAppFName()).GetString(), PATH_STRING);
+        else
+        {
+            MakeAbsolutePath(path);
+        }
+    };
 
-    return m_pSyncClient->syncFile(*sync_direction, from, to, fileRoot) == SyncClient::SyncResult::SYNC_OK;
+    std::string from_path = EvaluateString(va_node.arguments[1]);
+    std::string to_path = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
+
+    if( *sync_direction == SyncDirection::Get )
+    {
+        evaluate_local_path(to_path);
+    }
+
+    else
+    {
+        ASSERT(*sync_direction == SyncDirection::Put);
+        evaluate_local_path(from_path);
+    }
+
+    return ( GetSyncClient().SyncFile(*sync_direction, std::move(from_path), std::move(to_path)) == SyncClient::SyncResult::SYNC_OK );
 }
 
 
-double CIntDriver::exsyncserver(int iExpr)
+double CIntDriver::ex_syncserver(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == 2); // the connection type is always 2 (Bluetooth) for now
 
-    if (!m_pBluetoothAdapter) {
-        // Bluetooth not supported on this device
+    if( m_syncObjects == nullptr )
+        GetSyncClient();
+
+    ASSERT(m_syncObjects->login_accessor != nullptr && m_syncObjects->sync_listener != nullptr);
+
+    std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+
+    // Bluetooth not supported on this device
+    if( bluetooth_adapter == nullptr )
+    {
         issaerror(MessageType::Error, 100146);
         return 0;
     }
 
-    CString csFileRoot;
-    if (va_node.arguments[1] > 0) {
-        csFileRoot = EvalAlphaExpr<CString>(va_node.arguments[1]);
-        csFileRoot = PortableFunctions::PathToNativeSlash(csFileRoot);
-        if (PathIsRelative(csFileRoot)) {
-            csFileRoot = PortableFunctions::PathAppendToPath(GetFilePath(m_pEngineDriver->m_pPifFile->GetAppFName()), csFileRoot);
-        }
-        TCHAR canonPath[MAX_PATH];
-        if (!PathCanonicalize(canonPath, csFileRoot)) {
-            issaerror(MessageType::Error, 100113, csFileRoot.GetString());
-            return 0;
-        }
-        csFileRoot = canonPath;
-    } else {
-        // Default file root is app directory
-        csFileRoot = GetFilePath(m_pEngineDriver->m_pPifFile->GetAppFName());
-    }
+    // Default file root is app directory
+    std::string root_directory = ( va_node.arguments[1] != -1 ) ? EvaluatePath(va_node.arguments[1]) :
+                                                                  UTF8_TODO::GetUtf8(GetFilePath(m_pEngineDriver->m_pPifFile->GetAppFName()));
 
-    auto sync_engine_function_caller = std::make_unique<SyncEngineFunctionCaller>(this, m_iExSymbol);
-
-    DataRepositoryRetriever repoRetriever(m_pEngineArea);
-    SyncObexHandler obexHandler(GetDeviceId(), &repoRetriever, csFileRoot, sync_engine_function_caller.get());
-    BluetoothObexServer bluetoothServer(GetDeviceId(), m_pBluetoothAdapter, &obexHandler);
-    bluetoothServer.setListener(m_pSyncListener);
+    BluetoothObexServer bluetooth_server(std::move(bluetooth_adapter),
+                                         std::make_unique<SyncObexHandler>(GetDeviceId(), std::move(root_directory), std::make_unique<SyncObexEngineAccessor>(*this, m_iExSymbol)),
+                                         m_syncObjects->sync_listener);
 
     try
     {
-        return bluetoothServer.run();
+        return bluetooth_server.run();
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100153, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 100153, exception.what());
         return 0;
     }
 }
 
 
-double CIntDriver::exsyncapp(int /*iExpr*/)
+double CIntDriver::ex_syncapp(int /*program_index*/)
 {
-#ifdef ANDROID
-    auto app_path = PortableFunctions::PathRemoveFileExtension(m_pEngineDriver->m_pPifFile->GetAppFName()) + FileExtensions::WithDot::BinaryEntryPen;
-    auto app_file_time_before = PortableFunctions::FileModifiedTime(app_path);
+    const std::string application_file_path = PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()), FileExtensions::BinaryEntryPen);
+    const int64_t app_file_time_before = PortableFunctions::FileModifiedTime(application_file_path);
 
-    if (m_pSyncClient->updateApplication(m_pEngineDriver->m_pPifFile->GetAppFName()) == SyncClient::SyncResult::SYNC_OK) {
+    const std::unique_ptr<ApplicationPackageManager> application_package_manager = CreateApplicationPackageManager();
+    SyncClient& sync_client = GetSyncClient();
 
-        if (difftime(PortableFunctions::FileModifiedTime(app_path), app_file_time_before) > 0) {
+    if( application_package_manager != nullptr &&
+        sync_client.UpdateApplication(*application_package_manager, UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName())) == SyncClient::SyncResult::SYNC_OK )
+    {
+        if( PortableFunctions::FileModifiedTime(application_file_path) > app_file_time_before )
+        {
+            sync_client.Disconnect();
 
-            m_pSyncClient->disconnect();
+            const SharableString restart_message = MGF::GetMessageText(100152);
+            ErrorMessage::Display(*restart_message);
 
-            const std::wstring& restart_message = MGF::GetMessageText(100152);
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T(""), restart_message, MB_OK);
-
+#ifndef WIN_DESKTOP
             const CString& pff_name = m_pEngineDriver->m_pPifFile->GetPifFileName();
             PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(CS2WS(pff_name));
+#endif
             m_bStopProc = true;
             m_pEngineDriver->SetStopCode(1);
         }
 
         return 1;
     }
-#endif
 
     return 0;
 }
 
 
-double CIntDriver::exsyncmessage(int iExpr)
+double CIntDriver::ex_syncmessage(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == -1); // the type of message, for now, is ignored
 
-    CString message_key = EvalAlphaExpr<CString>(va_node.arguments[1]);
-    CString message_value;
+    const SyncMessage sync_message(EvaluateSharableString(va_node.arguments[1]),
+                                   EvaluateNullableSharableString(va_node.arguments[2]));
 
-    if( va_node.arguments[2] >= 0 )
-        message_value = EvalAlphaExpr<CString>(va_node.arguments[2]);
+    const std::optional<JsonNode> response_json_node = GetSyncClient().SendSyncMessage(sync_message);
 
-    return AssignAlphaValue(m_pSyncClient->syncMessage(message_key, message_value));
+    if( !response_json_node.has_value() )
+        return AssignStringNull();
+
+    return AssignString(response_json_node->IsString() ? response_json_node->Get<SharableString>() :
+                                                         response_json_node->GetNodeAsSharableString());
 }
 
 
-double CIntDriver::exsyncparadata(int iExpr)
+double CIntDriver::ex_syncparadata(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    std::optional<SyncDirection> sync_direction = GetSyncDirection(this, va_node.arguments[0]);
+    const std::optional<SyncDirection> sync_direction = GetSyncDirection(*this, va_node.arguments[0]);
 
     if( !sync_direction.has_value() )
     {
@@ -419,34 +472,34 @@ double CIntDriver::exsyncparadata(int iExpr)
         if( !Paradata::Logger::IsOpen() )
             throw CSProException("A paradata log must be open before calling syncparadata.");
 
-        if( m_pSyncClient->syncParadata(*sync_direction) == SyncClient::SyncResult::SYNC_OK )
+        if( GetSyncClient().SyncParadata(*sync_direction) == SyncClient::SyncResult::SYNC_OK )
             return 1;
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 8295, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 8295, exception.what());
     }
 
     return 0;
 }
 
 
-double CIntDriver::exsynctime(int iExpr)
+double CIntDriver::ex_synctime(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    const Symbol& symbol = NPT_Ref(va_node.arguments[0]);
-    const ISyncableDataRepository* syncable_data_repository;
+    Symbol& symbol = NPT_Ref(va_node.arguments[0]);
+    ISyncableDataRepository* syncable_data_repository;
 
     if( symbol.IsA(SymbolType::Dictionary) )
     {
-        syncable_data_repository = assert_cast<const EngineDictionary&>(symbol).GetEngineDataRepository().GetDataRepository().GetSyncableDataRepository();
+        syncable_data_repository = assert_cast<EngineDictionary&>(symbol).GetEngineDataRepository().GetDataRepository().GetSyncableDataRepository();
     }
 
     else
     {
-        syncable_data_repository = assert_cast<const DICT&>(symbol).GetDicX()->GetDataRepository().GetSyncableDataRepository();
+        syncable_data_repository = assert_cast<DICT&>(symbol).GetDicX()->GetDataRepository().GetSyncableDataRepository();
     }
 
     if( syncable_data_repository == nullptr )
@@ -455,8 +508,8 @@ double CIntDriver::exsynctime(int iExpr)
         return NOTAPPL;
     }
 
-    std::wstring device_identifier = ValueOrDefault(EvaluateOptionalStringExpression(va_node.arguments[1]));
-    std::wstring case_uuid = ValueOrDefault(EvaluateOptionalStringExpression(va_node.arguments[2]));
+    const std::string device_identifier = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[1]);
+    const std::string case_uuid = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
 
     try
     {
@@ -468,27 +521,40 @@ double CIntDriver::exsynctime(int iExpr)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100153, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 100153, exception.what());
     }
 
     return NOTAPPL;
 }
 
 
-
-double CIntDriver::exgetbluetoothname(int /*iExpr*/)
+double CIntDriver::ex_getbluetoothname(int /*program_index*/)
 {
-    return ( m_pBluetoothAdapter != nullptr ) ? AssignAlphaValue(m_pBluetoothAdapter->getName()) :
-                                                AssignBlankAlphaValue();
+    if( m_syncObjects == nullptr )
+        GetSyncClient();
+
+    ASSERT(m_syncObjects->login_accessor != nullptr);
+
+    const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+
+    return ( bluetooth_adapter != nullptr ) ? AssignString(bluetooth_adapter->GetName()) :
+                                              AssignStringNull();
 }
 
 
-double CIntDriver::exsetbluetoothname(int iExpr)
+double CIntDriver::ex_setbluetoothname(const int program_index)
 {
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    std::wstring bluetooth_name = EvalAlphaExpr(fnn_node.fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const SharableString bluetooth_name = EvaluateSharableString(fnn_node.fn_expr[0]);
 
-    if( m_pBluetoothAdapter == nullptr )
+    if( m_syncObjects == nullptr )
+        GetSyncClient();
+
+    ASSERT(m_syncObjects->login_accessor != nullptr);
+
+    const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+
+    if( bluetooth_adapter == nullptr )
     {
         issaerror(MessageType::Error, 100146);
         return 0;
@@ -497,15 +563,15 @@ double CIntDriver::exsetbluetoothname(int iExpr)
     try
     {
         // only set the Bluetooth name when it differs from the current one
-        if( m_pBluetoothAdapter->getName() != bluetooth_name )
-            m_pBluetoothAdapter->setName(WS2CS(bluetooth_name));
+        if( bluetooth_adapter->GetName() != *bluetooth_name )
+            bluetooth_adapter->SetName(*bluetooth_name);
 
         return 1;
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100174, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 100174, exception.what());
         return 0;
     }
 }

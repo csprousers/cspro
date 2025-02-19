@@ -84,12 +84,6 @@
     <Compile Include="..\WinForms Shared\AboutForm.Designer.cs">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="..\WinForms Shared\DropboxAuthDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="..\WinForms Shared\DropboxAuthDialog.Designer.cs">
-      <DependentUpon>DropboxAuthDialog.cs</DependentUpon>
-    </Compile>
     <Compile Include="..\WinForms Shared\LoginDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,9 +133,6 @@
     <Compile Include="Util.cs" />
     <EmbeddedResource Include="..\WinForms Shared\AboutForm.resx">
       <DependentUpon>AboutForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\WinForms Shared\DropboxAuthDialog.resx">
-      <DependentUpon>DropboxAuthDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="..\WinForms Shared\LoginDialog.resx">
       <DependentUpon>LoginDialog.cs</DependentUpon>

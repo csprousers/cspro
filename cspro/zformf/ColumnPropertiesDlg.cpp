@@ -58,9 +58,8 @@ BOOL CColumnProp::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    CString cs;
-    cs.Format(IDS_DEFAULTFONT, PortableFont(m_lfDefault).GetDescription().GetString());
-    GetDlgItem(IDC_RADIOFONT)->SetWindowText(cs);
+    WindowsUtf8::SetText(this, IDC_RADIOFONT, FormatText("&Use default font (%s)",
+                                                         PortableFont(m_lfDefault).GetDescription().c_str()));
 
     GetDlgItem(IDC_FONT)->EnableWindow(m_iFont==1?true:false);
     GetDlgItem(IDC_ROWCOL_EDIT)->EnableWindow(!m_bDisableTxt);

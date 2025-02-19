@@ -7,7 +7,7 @@ using namespace CSPro::Dictionary;
 
 String^ DataDictionary::Extension::get()
 {
-     return gcnew String(FileExtensions::WithDot::Dictionary);
+     return clr_helpers::to_SystemString(FileExtensions::WithDot(FileExtensions::Dictionary));
 }
 
 DataDictionary::DataDictionary(CDataDict* pNativeDict, bool owns_dictionary)
@@ -26,18 +26,18 @@ DataDictionary::DataDictionary()
 {
 }
 
-DataDictionary::DataDictionary(String^ filename)
+DataDictionary::DataDictionary(String^ file_path)
     :   DataDictionary()
 {
     try
     {
-        m_pNativeDict->Open((CString)filename, true);
+        m_pNativeDict->Open(clr_helpers::to_string(file_path), true);
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
-    }        
+        throw gcnew Exception(clr_helpers::to_SystemString(exception.what()));
+    }
 }
 
 DataDictionary::!DataDictionary()
@@ -46,27 +46,27 @@ DataDictionary::!DataDictionary()
         delete m_pNativeDict;
 }
 
-void DataDictionary::Save(System::String^ filename)
+void DataDictionary::Save(System::String^ file_path)
 {
     try
     {
-        m_pNativeDict->Save((CString)filename);
+        m_pNativeDict->Save(clr_helpers::to_string(file_path));
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
-    }        
+        throw gcnew Exception(clr_helpers::to_SystemString(exception.what()));
+    }
 }
 
 System::String^ DataDictionary::Name::get()
 {
-    return gcnew System::String(m_pNativeDict->GetName());
+    return clr_helpers::to_SystemString(m_pNativeDict->GetName());
 }
 
 void DataDictionary::Name::set(System::String^ name)
 {
-    m_pNativeDict->SetName((CString) name);
+    m_pNativeDict->SetName(clr_helpers::to_string(name));
 }
 
 System::String^ DataDictionary::Label::get()
@@ -77,11 +77,6 @@ System::String^ DataDictionary::Label::get()
 void DataDictionary::Label::set(System::String^ label)
 {
     m_pNativeDict->SetLabel((CString)label);
-}
-
-bool DataDictionary::AllowDataViewerModifications::get()
-{
-    return m_pNativeDict->GetAllowDataViewerModifications();
 }
 
 bool DataDictionary::AllowExport::get()

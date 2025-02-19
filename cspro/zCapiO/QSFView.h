@@ -24,10 +24,10 @@ protected:
 public:
     ~QSFView();
 
-    void SetupFileServer(const CString& application_filename);
+    void SetUpQuestionTextView(const std::string& application_file_path);
 
-    void SetText(const CString& text, std::optional<PortableColor> background_color = std::nullopt);
-    void SetStyleCss(std::wstring css);
+    void SetText(const std::string text, std::optional<PortableColor> background_color = std::nullopt);
+    void SetStyleCss(std::string css);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -49,10 +49,10 @@ private:
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
     std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
 
-    std::wstring m_backgroundColor;
-    std::wstring m_stylesheet;
-    CString m_questionText;
+    std::string m_backgroundColor;
+    std::string m_stylesheet;
+    std::string m_questionText;
 
-    std::string m_html;
+    SharableString m_html;
     std::mutex m_htmlMutex;
 };

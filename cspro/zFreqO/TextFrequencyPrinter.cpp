@@ -9,22 +9,22 @@ namespace
 
     constexpr int SpacingBetweenTables = 2;
 
-    constexpr const TCHAR* TitleSeparatorFormatter   = _T("____________%s_____________________________________________________________________________");
-
-    constexpr const TCHAR* RowAboveColumns1Formatter = _T("            %s                    _____________________________ _____________");
-    constexpr const TCHAR* RowColumns1Formatter      = _T("  Categories%s                         Frequency        CumFreq      %%  Cum %%");
-    constexpr const TCHAR* RowBelowColumns1Formatter = _T("____________%s___________________ _____________________________ _____________");
-
-    constexpr const TCHAR* RowAboveColumns2          = _T(" _____________");
-    constexpr const TCHAR* RowColumns2               = _T("  Net % cNet %");
-    constexpr const TCHAR* RowBelowColumns2          = _T(" _____________");
-
+    constexpr const char* TitleSeparatorFormatter    = "____________%s_____________________________________________________________________________";
+                                                         
+    constexpr const char* RowAboveColumns1Formatter  = "            %s                    _____________________________ _____________";
+    constexpr const char* RowColumns1Formatter       = "  Categories%s                         Frequency        CumFreq      %%  Cum %%";
+    constexpr const char* RowBelowColumns1Formatter  = "____________%s___________________ _____________________________ _____________";
+                                                         
+    constexpr const char* RowAboveColumns2           = " _____________";
+    constexpr const char* RowColumns2                = "  Net % cNet %";
+    constexpr const char* RowBelowColumns2           = " _____________";
+                                                         
     constexpr int RowFormatter1BaseWidth             = 31;
-    constexpr const TCHAR* RowFormatter1Formatter    = _T("%%-%d.%ds %%14s %%14s  %%5s  %%5s");
-    constexpr const TCHAR* RowFormatter2             = _T("  %5s  %5s");
+    constexpr const char* RowFormatter1              = "%s %14s %14s  %5s  %5s";
+    constexpr const char* RowFormatter2              = "  %5s  %5s";
 
-    constexpr TCHAR OutOfValueSetRowCharacter        = _T('@');
-    constexpr TCHAR MultipleLabelsPerValueCharacter  = _T('†');
+    constexpr const char* OutOfValueSetRowText       = "@";
+    constexpr const char* MultipleLabelsPerValueText = u8"†";
 }
 
 
@@ -35,12 +35,12 @@ namespace
 class TextFrequencyPrinterWorker
 {
 public:
-    TextFrequencyPrinterWorker(int line_length, std::vector<std::wstring>& title_lines, std::vector<std::wstring>& lines);
+    TextFrequencyPrinterWorker(int line_length, std::vector<std::string>& title_lines, std::vector<std::string>& lines);
 
     void Print(const FrequencyTable& frequency_table);
 
 private:
-    void AddLine(std::wstring line = std::wstring())
+    void AddLine(std::string line = std::string())
     {
         ASSERT(!SO::ContainsNewlineCharacter(line));
         SO::MakeTrimRight(line);
@@ -51,19 +51,19 @@ private:
     void PrintStatistics(const FrequencyTable& frequency_table);
 
 private:
-    std::vector<std::wstring>& m_titleLines;
-    std::vector<std::wstring>& m_lines;
+    std::vector<std::string>& m_titleLines;
+    std::vector<std::string>& m_lines;
 
     const int m_lineLength;
-    std::wstring m_titleSeparator;
-    std::wstring m_rowAboveColumns1;
-    std::wstring m_rowColumns1;
-    std::wstring m_rowBelowColumns1;
-    std::wstring m_rowFormatter1;
+    std::string m_titleSeparator;
+    std::string m_rowAboveColumns1;
+    std::string m_rowColumns1;
+    std::string m_rowBelowColumns1;
+    int m_rowFormatter1String1Width;
 };
 
 
-TextFrequencyPrinterWorker::TextFrequencyPrinterWorker(int line_length, std::vector<std::wstring>& title_lines, std::vector<std::wstring>& lines)
+TextFrequencyPrinterWorker::TextFrequencyPrinterWorker(const int line_length, std::vector<std::string>& title_lines, std::vector<std::string>& lines)
     :   m_lineLength(line_length),
         m_titleLines(title_lines),
         m_lines(lines)
@@ -71,16 +71,15 @@ TextFrequencyPrinterWorker::TextFrequencyPrinterWorker(int line_length, std::vec
     // adjust the formats for the listing width
     const int line_length_increase = m_lineLength - MinimumLineLength;
 
-    const std::wstring underscores(line_length_increase, '_');
-    const std::wstring spaces(line_length_increase, ' ');
+    const char* const underscores = SO::GetRepeatingCharacterString('_', line_length_increase);
+    const char* const spaces = SO::GetRepeatingCharacterString(' ', line_length_increase);
 
-    m_titleSeparator = FormatTextCS2WS(TitleSeparatorFormatter, underscores.c_str());
-    m_rowAboveColumns1 = FormatTextCS2WS(RowAboveColumns1Formatter, spaces.c_str());
-    m_rowColumns1 = FormatTextCS2WS(RowColumns1Formatter, spaces.c_str());
-    m_rowBelowColumns1 = FormatTextCS2WS(RowBelowColumns1Formatter, underscores.c_str());
+    m_titleSeparator = FormatText(TitleSeparatorFormatter, underscores);
+    m_rowAboveColumns1 = FormatText(RowAboveColumns1Formatter, spaces);
+    m_rowColumns1 = FormatText(RowColumns1Formatter, spaces);
+    m_rowBelowColumns1 = FormatText(RowBelowColumns1Formatter, underscores);
 
-    const int width = RowFormatter1BaseWidth + line_length_increase;
-    m_rowFormatter1 = FormatTextCS2WS(RowFormatter1Formatter, width, width);
+    m_rowFormatter1String1Width = RowFormatter1BaseWidth + line_length_increase;
 }
 
 
@@ -89,14 +88,14 @@ void TextFrequencyPrinterWorker::Print(const FrequencyTable& frequency_table)
     // print the titles
     m_titleLines.emplace_back(m_titleSeparator);
 
-    for( std::wstring title : frequency_table.titles )
+    for( std::string title : frequency_table.titles )
     {
         ASSERT(!SO::ContainsNewlineCharacter(title));
 
         if( frequency_table.special_formatting == FrequencyTable::SpecialFormatting::CenterTitles )
         {
             SO::MakeTrim(title);
-            SO::CenterExactLength(title, m_lineLength);
+            SO::WideCenterExactLength(title, m_lineLength);
         }
 
         m_titleLines.emplace_back(std::move(title));
@@ -118,7 +117,7 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
     // print column information
     const bool show_net_percents = FPH::ShowFrequencyTableNetPercents(frequency_table);
 
-    auto join_columns = [&](std::wstring set1, const TCHAR* set2)
+    auto join_columns = [&](std::string set1, const char* const set2)
     {
         if( show_net_percents )
             set1.append(set2);
@@ -129,8 +128,8 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
     AddLine(join_columns(m_rowAboveColumns1, RowAboveColumns2));
     AddLine(join_columns(m_rowColumns1, RowColumns2));
 
-    const std::wstring below_columns_text = join_columns(m_rowBelowColumns1, RowBelowColumns2);
-    const std::wstring row_formatter = join_columns(m_rowFormatter1, RowFormatter2);
+    const std::string below_columns_text = join_columns(m_rowBelowColumns1, RowBelowColumns2);
+    const std::string row_formatter = join_columns(RowFormatter1, RowFormatter2);
 
     if( !frequency_table.frequency_rows.empty() )
         AddLine(below_columns_text);
@@ -140,56 +139,58 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
     const int number_frequency_decimals = frequency_table.frequency_printer_options.GetUsingDecimals() ?
                                           frequency_table.frequency_printer_options.GetDecimals() : 0;
 
-    auto print_row = [&](NullTerminatedString category, double count, const FrequencyRowStatistics& frequency_row_statistics, size_t left_indentation_if_wrapping_lines = SIZE_MAX)
+    auto print_row = [&](std::string category, const double count, const FrequencyRowStatistics& frequency_row_statistics,
+                         const size_t left_indentation_if_wrapping_lines = SIZE_MAX)
     {
         auto get_formatted_frequency = [&](const std::optional<double>& frequency)
         {
-            return frequency.has_value() ? FormatTextCS2WS(_T("%0.*f"), number_frequency_decimals, frequency) : std::wstring();
+            return frequency.has_value() ? FormatText("%0.*f", number_frequency_decimals, *frequency) :
+                                           std::string();
         };
 
         auto get_formatted_percent = [&](const std::optional<double>& percent)
         {
-            return percent.has_value() ? FormatTextCS2WS(_T("%3.1f"), *percent) : std::wstring();
+            return percent.has_value() ? FormatText("%3.1f", *percent) :
+                                         std::string();
         };
 
-        auto add_first_row = [&](NullTerminatedString this_category)
+        auto add_first_row = [&](std::string this_category)
         {
-            AddLine(FormatTextCS2WS(row_formatter.c_str(),
-                                    this_category.c_str(),
-                                    get_formatted_frequency(count).c_str(),
-                                    get_formatted_frequency(frequency_row_statistics.cumulative_count).c_str(),
-                                    get_formatted_percent(frequency_row_statistics.percent_against_total).c_str(),
-                                    get_formatted_percent(frequency_row_statistics.cumulative_percent_against_total).c_str(),
-                                    get_formatted_percent(frequency_row_statistics.percent_against_non_blank_total).c_str(),
-                                    get_formatted_percent(frequency_row_statistics.cumulative_percent_against_non_blank_total).c_str()));
+            SO::WideMakeExactLength(this_category, m_rowFormatter1String1Width);
+
+            AddLine(FormatText(row_formatter.c_str(),
+                               this_category.c_str(),
+                               get_formatted_frequency(count).c_str(),
+                               get_formatted_frequency(frequency_row_statistics.cumulative_count).c_str(),
+                               get_formatted_percent(frequency_row_statistics.percent_against_total).c_str(),
+                               get_formatted_percent(frequency_row_statistics.cumulative_percent_against_total).c_str(),
+                               get_formatted_percent(frequency_row_statistics.percent_against_non_blank_total).c_str(),
+                               get_formatted_percent(frequency_row_statistics.cumulative_percent_against_non_blank_total).c_str()));
         };
 
-        if( left_indentation_if_wrapping_lines == SIZE_MAX || !SO::ContainsNewlineCharacter(wstring_view(category)) )
+        if( left_indentation_if_wrapping_lines == SIZE_MAX || !SO::ContainsNewlineCharacter(category) )
         {
-            add_first_row(category);
+            add_first_row(std::move(category));
         }
 
         else
         {
-            const TCHAR* indentation_text = nullptr;
+            const char* indentation_text = nullptr;
 
-            SO::ForeachLine(category, true,
-                [&](const std::wstring& per_line_category)
+            SO::ForeachLine<std::string>(category, true,
+                [&](std::string per_line_category)
                 {
                     if( indentation_text == nullptr )
                     {
-                        add_first_row(per_line_category);
+                        add_first_row(std::move(per_line_category));
                         indentation_text = SO::GetRepeatingCharacterString(' ', left_indentation_if_wrapping_lines);
                     }
 
                     else
                     {
-                        AddLine(FormatTextCS2WS(row_formatter.c_str(),
-                                                ( indentation_text + per_line_category ).c_str(),
-                                                _T(""), _T(""), _T(""), _T(""), _T(""), _T("")));
+                        SO::WideMakeExactLength(per_line_category, m_rowFormatter1String1Width - left_indentation_if_wrapping_lines);
+                        AddLine(indentation_text + per_line_category);
                     }
-                    
-                    return true;
                 });
         }
     };
@@ -200,8 +201,8 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
     for( size_t i = 0; i < frequency_table.frequency_rows.size(); ++i )
     {
         const FrequencyRow& frequency_row = frequency_table.frequency_rows[i];
-        std::wstring formatted_value;
-        std::wstring display_label = frequency_row.display_label;
+        std::string formatted_value;
+        std::string display_label = frequency_row.display_label;
 
         // add the values if printing values
         if( frequency_table.distinct )
@@ -216,45 +217,45 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
         }
 
         // use some indicator characters to show details about each row
-        std::wstring indicator_characters;
+        std::string indicator_characters;
 
-        auto update_indicator_characters = [&](bool condition, bool& global_value, TCHAR character)
+        auto update_indicator_characters = [&](const bool condition, bool& global_value, const char* const character_text)
         {
             if( condition )
             {
                 global_value = true;
-                indicator_characters.push_back(character);
+                indicator_characters.append(character_text);
             }
         };
 
-        update_indicator_characters(frequency_row.mark_as_out_of_value_set, has_out_of_value_set_rows, OutOfValueSetRowCharacter);
-        update_indicator_characters(frequency_row.mark_as_value_appearing_in_multiple_rows, has_value_appearing_in_multiple_rows, MultipleLabelsPerValueCharacter);
+        update_indicator_characters(frequency_row.mark_as_out_of_value_set, has_out_of_value_set_rows, OutOfValueSetRowText);
+        update_indicator_characters(frequency_row.mark_as_value_appearing_in_multiple_rows, has_value_appearing_in_multiple_rows, MultipleLabelsPerValueText);
+        SO::WideMakeExactLength(indicator_characters, 2);
 
         constexpr size_t LeftIndentationForCategoryIfWrappingLines = 2;
 
-        const std::wstring category = FormatTextCS2WS(_T("%-2s%s%s%s"),
-                                                      indicator_characters.c_str(),
-                                                      formatted_value.c_str(),
-                                                      formatted_value.empty() ? _T("") : _T(" "),
-                                                      display_label.c_str());
+        std::string category = SO::Concatenate(indicator_characters,
+                                               formatted_value,
+                                               formatted_value.empty() ? "" : " ",
+                                               display_label);
 
         // add a separator before the blank entry
         if( frequency_row.value_is_blank )
             AddLine(below_columns_text);
 
-        print_row(category, frequency_row.count, frequency_table.frequency_row_statistics[i], LeftIndentationForCategoryIfWrappingLines);
+        print_row(std::move(category), frequency_row.count, frequency_table.frequency_row_statistics[i], LeftIndentationForCategoryIfWrappingLines);
     }
 
 
     // print the total line
     AddLine(m_rowBelowColumns1);
-    print_row(_T("  Total"), frequency_table.total_count, FPH::CreateTotalFrequencyRowStatistics(frequency_table, true));
+    print_row("  Total", frequency_table.total_count, FPH::CreateTotalFrequencyRowStatistics(frequency_table, true));
 
 
     // print information on the indicators
     bool indicator_space_added = false;
 
-    auto print_indicator = [&](bool global_value, TCHAR character, const TCHAR* text)
+    auto print_indicator = [&](const bool global_value, const char* const character_text, const char* const text)
     {
         if( !global_value )
             return;
@@ -265,14 +266,14 @@ void TextFrequencyPrinterWorker::PrintRowsAndTotal(const FrequencyTable& frequen
             indicator_space_added = true;
         }
 
-        AddLine(FormatTextCS2WS(_T("%c %s"), character, text));
+        AddLine(FormatText("%s %s", character_text, text));
     };
 
-    print_indicator(has_out_of_value_set_rows, OutOfValueSetRowCharacter,
-                    _T("This value is out of range (not in the value set)."));
+    print_indicator(has_out_of_value_set_rows, OutOfValueSetRowText,
+                    "This value is out of range (not in the value set).");
 
-    print_indicator(has_value_appearing_in_multiple_rows, MultipleLabelsPerValueCharacter,
-                    _T("This value appears in multiple rows and therefore cumulative frequencies are not shown."));
+    print_indicator(has_value_appearing_in_multiple_rows, MultipleLabelsPerValueText,
+                    "This value appears in multiple rows and therefore cumulative frequencies are not shown.");
 }
 
 
@@ -284,13 +285,13 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
 
     auto get_category_text = [](const auto& table_statistics)
     {
-        return FormatTextCS2WS(_T("• Statistics:  %d categor%s"),
-                               static_cast<int>(table_statistics.number_defined_categories),
-                               ( table_statistics.number_defined_categories == 1 ) ? _T("y") : _T("ies"));
+        return FormatText(u8"• Statistics:  %d categor%s",
+                          static_cast<int>(table_statistics.number_defined_categories),
+                          PluralizeWord(table_statistics.number_defined_categories, "y", "ies"));
     };
 
     // spacing to match the statistics
-    constexpr const TCHAR* StatisticsSpacing = _T("               ");
+    constexpr const char* StatisticsSpacing = "               ";
 
     // numeric statistics
     if( std::holds_alternative<FrequencyNumericStatistics>(*frequency_table.table_statistics) )
@@ -300,21 +301,21 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
         if( frequency_table.frequency_printer_options.GetShowStatistics() )
         {
             // categories
-            std::wstring category_text = get_category_text(table_statistics);
+            std::string category_text = get_category_text(table_statistics);
 
             for( size_t i = 0; i < table_statistics.non_blank_special_values_used.size(); ++i )
             {
                 if( i == 0 )
                 {
-                    category_text.append(_T(" as well as "));
+                    category_text.append(" as well as ");
                 }
 
                 else
                 {
-                    category_text.append(_T(", "));
+                    category_text.append(", ");
 
                     if( ( i + 1 ) == table_statistics.non_blank_special_values_used.size() )
-                        category_text.append(_T("and "));
+                        category_text.append("and ");
                 }
 
                 category_text.append(SpecialValues::ValueToString(table_statistics.non_blank_special_values_used[i], false));
@@ -326,29 +327,29 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
             // min / max
             if( table_statistics.min_value.has_value() )
             {
-                AddLine(FormatTextCS2WS(_T("%sMin: %s,  Max: %s"),
-                                        StatisticsSpacing,
-                                        FPH::GetFormattedValue(*table_statistics.min_value, frequency_table.dict_item).c_str(),
-                                        FPH::GetFormattedValue(*table_statistics.max_value, frequency_table.dict_item).c_str()));
+                AddLine(FormatText("%sMin: %s,  Max: %s",
+                                   StatisticsSpacing,
+                                   FPH::GetFormattedValue(*table_statistics.min_value, frequency_table.dict_item).c_str(),
+                                   FPH::GetFormattedValue(*table_statistics.max_value, frequency_table.dict_item).c_str()));
             }
 
 
             // mean / standard deviation / variance
-            std::wstring mean_stddev_variance_text;
+            std::string mean_stddev_variance_text;
 
             if( table_statistics.mean.has_value() )
             {
-                mean_stddev_variance_text = FormatTextCS2WS(_T("%sMean: %s"),
-                                                            StatisticsSpacing,
-                                                            FPH::GetValueWithMinimumDecimals(*table_statistics.mean, frequency_table.dict_item).c_str());
+                mean_stddev_variance_text = FormatText("%sMean: %s",
+                                                       StatisticsSpacing,
+                                                       FPH::GetValueWithMinimumDecimals(*table_statistics.mean, frequency_table.dict_item).c_str());
             }
 
             if( table_statistics.variance.has_value() )
             {
-                SO::AppendFormat(mean_stddev_variance_text, _T("%sStd.Dev: %s,  Variance: %s"),
-                                                            mean_stddev_variance_text.empty() ? StatisticsSpacing : _T(",  "),
+                mean_stddev_variance_text.append(FormatText("%sStd.Dev: %s,  Variance: %s",
+                                                            mean_stddev_variance_text.empty() ? StatisticsSpacing : ",  ",
                                                             FPH::GetValueWithMinimumDecimals(*table_statistics.standard_deviation, frequency_table.dict_item).c_str(),
-                                                            FPH::GetValueWithMinimumDecimals(*table_statistics.variance, frequency_table.dict_item).c_str());
+                                                            FPH::GetValueWithMinimumDecimals(*table_statistics.variance, frequency_table.dict_item).c_str()));
             }
 
             if( !mean_stddev_variance_text.empty() )
@@ -356,21 +357,21 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
 
 
             // mode / median
-            std::wstring mode_median_text;
+            std::string mode_median_text;
 
             if( table_statistics.mode_value.has_value() )
             {
-                mode_median_text = FormatTextCS2WS(_T("%sMode: %s"),
-                                                   StatisticsSpacing,
-                                                   FPH::GetFormattedValue(*table_statistics.mode_value, frequency_table.dict_item).c_str());
+                mode_median_text = FormatText("%sMode: %s",
+                                              StatisticsSpacing,
+                                              FPH::GetFormattedValue(*table_statistics.mode_value, frequency_table.dict_item).c_str());
             }
 
             if( table_statistics.median.has_value() )
             {
-                SO::AppendFormat(mode_median_text, _T("%sMedian: %s,  Interpolated Median: %s"),
-                                                   mode_median_text.empty() ? StatisticsSpacing : _T(",  "),
+                mode_median_text.append(FormatText("%sMedian: %s,  Interpolated Median: %s",
+                                                   mode_median_text.empty() ? StatisticsSpacing : ",  ",
                                                    FPH::GetValueWithMinimumDecimals(*table_statistics.median, frequency_table.dict_item).c_str(),
-                                                   FPH::GetValueWithMinimumDecimals(*table_statistics.median_interpolated, frequency_table.dict_item).c_str());
+                                                   FPH::GetValueWithMinimumDecimals(*table_statistics.median_interpolated, frequency_table.dict_item).c_str()));
             }
 
             if( !mode_median_text.empty() )
@@ -382,43 +383,44 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
         if( table_statistics.percentiles.has_value() )
         {
             // format the values first so that they can be aligned properly
-            const std::vector<std::wstring> formatted_percentile_percents = FPH::GetFormattedPercentilePercents(table_statistics);
+            const std::vector<std::string> formatted_percentile_percents = FPH::GetFormattedPercentilePercents(table_statistics);
+            ASSERT(SO::WideLength(formatted_percentile_percents.back()) == formatted_percentile_percents.back().length());
             const size_t max_percentile_length = formatted_percentile_percents.back().length();
 
-            std::vector<std::wstring> formatted_value_type2s;
-            size_t max_value_type2_length = wstring_view(FPH::DiscontinuousLabel).length();
+            std::vector<std::string> formatted_value_type2s;
+            size_t max_value_type2_length = std::string_view(FPH::DiscontinuousLabel).length();
 
-            std::vector<std::wstring> formatted_value_type6s;
-            size_t max_value_type6_length  = wstring_view(FPH::ContinuousTextLabel).length();
+            std::vector<std::string> formatted_value_type6s;
+            size_t max_value_type6_length  = std::string_view(FPH::ContinuousTextLabel).length();
 
             for( const FrequencyNumericStatistics::Percentile& percentile : *table_statistics.percentiles )
             {
                 formatted_value_type2s.emplace_back(FPH::GetFormattedValue(percentile.value_type2, frequency_table.dict_item));
-                max_value_type2_length = std::max(max_value_type2_length, formatted_value_type2s.back().length());
+                max_value_type2_length = std::max(max_value_type2_length, SO::WideLength(formatted_value_type2s.back()));
 
                 formatted_value_type6s.emplace_back(FPH::GetValueWithMinimumDecimals(percentile.value_type6, frequency_table.dict_item));
             }
 
             const size_t max_decimals_after_value_type6 = FPH::GetNumberDecimalsUsed(formatted_value_type6s);
 
-            for( std::wstring& formatted_value_type6 : formatted_value_type6s )
+            for( std::string& formatted_value_type6 : formatted_value_type6s )
             {
                 FPH::EnsureValueHasMinimumDecimals(formatted_value_type6, max_decimals_after_value_type6);
-                max_value_type6_length = std::max(max_value_type6_length, formatted_value_type6.length());
+                max_value_type6_length = std::max(max_value_type6_length, SO::WideLength(formatted_value_type6));
             }
 
-            AddLine(FormatTextCS2WS(_T("• Percentiles:   %*s  %*s  %*s"),
-                                    max_percentile_length, _T(""),
-                                    max_value_type2_length, _T("Discontinuous"),
-                                    max_value_type6_length, _T("Continuous")));
+            AddLine(FormatText(u8"• Percentiles:   %*s  %*s  %*s",
+                               static_cast<int>(max_percentile_length), "",
+                               static_cast<int>(max_value_type2_length), "Discontinuous",
+                               static_cast<int>(max_value_type6_length), "Continuous"));
 
             for( size_t i = 0; i < formatted_percentile_percents.size(); ++i )
             {
-                AddLine(FormatTextCS2WS(_T("%s%*s%%:  %*s  %*s"),
-                                        StatisticsSpacing,
-                                        max_percentile_length, formatted_percentile_percents[i].c_str(),
-                                        max_value_type2_length, formatted_value_type2s[i].c_str(),
-                                        max_value_type6_length, formatted_value_type6s[i].c_str()));
+                AddLine(FormatText("%s%*s%%:  %*s  %*s",
+                                   StatisticsSpacing,
+                                   static_cast<int>(max_percentile_length), formatted_percentile_percents[i].c_str(),
+                                   static_cast<int>(max_value_type2_length), formatted_value_type2s[i].c_str(),
+                                   static_cast<int>(max_value_type6_length), formatted_value_type6s[i].c_str()));
             }
         }
 
@@ -428,10 +430,10 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
             // variance calculations
             if( table_statistics.sum_count.has_value() )
             {
-                AddLine(FormatTextCS2WS(_T("• SumsNumCats: (freq) %s, (cat*freq) %s, (cat*cat*freq) %s"),
-                                        FPH::GetValueWithMinimumDecimals(*table_statistics.sum_count, frequency_table.dict_item).c_str(),
-                                        FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_count, frequency_table.dict_item).c_str(),
-                                        FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_value_count, frequency_table.dict_item).c_str()));
+                AddLine(FormatText(u8"• SumsNumCats: (freq) %s, (cat*freq) %s, (cat*cat*freq) %s",
+                                   FPH::GetValueWithMinimumDecimals(*table_statistics.sum_count, frequency_table.dict_item).c_str(),
+                                   FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_count, frequency_table.dict_item).c_str(),
+                                   FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_value_count, frequency_table.dict_item).c_str()));
             }
         }
     }
@@ -453,7 +455,7 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
 // TextFrequencyPrinter
 // --------------------------------------------------------------------------
 
-TextFrequencyPrinter::TextFrequencyPrinter(FormatType format_type, int listing_width)
+TextFrequencyPrinter::TextFrequencyPrinter(const FormatType format_type, const int listing_width)
     :   m_formatType(format_type),
         m_lineLength(std::max(listing_width, MinimumLineLength)),
         m_pageNumber(0),
@@ -473,9 +475,11 @@ void TextFrequencyPrinter::StartFrequencyGroup()
 void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
 {
     // generate the table
-    std::vector<std::wstring> title_lines;
-    std::vector<std::wstring> lines;
-    TextFrequencyPrinterWorker(m_lineLength, title_lines, lines).Print(frequency_table);
+    std::vector<std::string> title_lines;
+    std::vector<std::string> lines;
+
+    TextFrequencyPrinterWorker worker(m_lineLength, title_lines, lines);
+    worker.Print(frequency_table);
 
 
     // now do the actual printing, adding line breaks as needed
@@ -483,7 +487,7 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
 
     if( m_formatType == FormatType::IgnorePageLength )
     {
-        page_length = INT_MAX;
+        page_length = std::numeric_limits<int>::max();
     }
 
     else
@@ -501,11 +505,11 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
 
 
     // routines for printing lines and form feeds
-    auto print_line = [&](NullTerminatedString line = SO::EmptyString)
+    auto print_line = [&](std::string_view line_sv = std::string_view())
     {
-        ASSERT(SO::Equals(SO::TrimRightSpace(line), line));
+        ASSERT(line_sv == SO::TrimRightSpace(line_sv));
 
-        WriteLine(line);
+        WriteLine(line_sv);
 
         ++m_lineNumber;
         ASSERT(m_lineNumber <= page_length);
@@ -514,7 +518,7 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
     auto print_form_feed = [&]()
     {
         if( m_formatType != FormatType::IgnorePageLength )
-            WriteLine(_T("\f"));
+            WriteLine("\f");
 
         m_lineNumber = 0;
     };
@@ -540,33 +544,31 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
     {
         ASSERT(m_lineNumber == 0);
 
-        std::vector<std::wstring> heading_lines = frequency_table.frequency_printer_options.GetHeadings();
+        std::vector<std::string> heading_lines = frequency_table.frequency_printer_options.GetHeadings();
 
         // if formatting for pages, add a blank heading line for the page number if no heading exists
         if( format_for_pages && heading_lines.empty() )
             heading_lines.emplace_back();
 
         // center the headings
-        for( std::wstring& heading_line : heading_lines )
-            SO::CenterExactLength(heading_line, m_lineLength);
+        for( std::string& heading_line : heading_lines )
+            SO::WideCenterExactLength(heading_line, m_lineLength);
 
         // if formatting for pages, add the page number (right-justified) to the first heading line
         if( format_for_pages )
         {
-            std::wstring& first_heading_line = heading_lines.front();
-            ASSERT(first_heading_line.length() == static_cast<size_t>(m_lineLength));
+            std::string& first_heading_line = heading_lines.front();
+            ASSERT(SO::WideLength(first_heading_line) == static_cast<size_t>(m_lineLength));
 
-            const std::wstring page_text = SO::Concatenate(_T("Page "), IntToString(++m_pageNumber));
+            const std::string page_text = "Page " + IntToString(++m_pageNumber);
+            ASSERT(SO::WideLength(page_text) == page_text.length());
             first_heading_line.resize(m_lineLength - page_text.length());
             first_heading_line.append(page_text);
         }
 
         // print the headings
-        for( std::wstring& heading_line : heading_lines )
-        {
-            SO::MakeTrimRightSpace(heading_line);
-            print_line(heading_line);
-        }
+        for( const std::string& heading_line : heading_lines )
+            print_line(SO::TrimRightSpace(heading_line));
 
         // add a blank line to separate the heading from the title
         print_line();
@@ -602,15 +604,12 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
 
 
     // print the title
-    for( std::wstring& title_line : title_lines )
-    {
-        SO::MakeTrimRightSpace(title_line);
-        print_line(title_line);
-    }
+    for( const std::string& title_line : title_lines )
+        print_line(SO::TrimRightSpace(title_line));
 
 
     // print the table, adding the heading anytime a new page is reached
-    for( const std::wstring& line : lines )
+    for( const std::string& line : lines )
     {
         if( format_for_pages && m_lineNumber == page_length )
         {

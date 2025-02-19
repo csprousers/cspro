@@ -15,15 +15,15 @@ void DocSetComponentFrame::OnCompile()
     const bool input_is_json = ( doc_set_component_type != DocSetComponent::Type::ContextIds );
 
     CompileWrapper(
-        FormatTextCS2WS(_T("CSPro Document Set compilation (%s)"), ToString(doc_set_component_type)),
+        FormatText("CSPro Document Set compilation (%s)", ToString(doc_set_component_type)),
         input_is_json,
-        [&](DocSetCompiler& doc_set_compiler, std::variant<JsonNode<wchar_t>, std::wstring> input)
+        [&](DocSetCompiler& doc_set_compiler, const std::variant<JsonNode, std::string> input)
         {
-            ASSERT(input_is_json == std::holds_alternative<JsonNode<wchar_t>>(input));
+            ASSERT(input_is_json == std::holds_alternative<JsonNode>(input));
 
             if( input_is_json )
             {
-                CompileJsonBasedComponent(doc_set_compiler, std::get<JsonNode<wchar_t>>(input));
+                CompileJsonBasedComponent(doc_set_compiler, std::get<JsonNode>(input));
             }
 
             else
@@ -31,13 +31,13 @@ void DocSetComponentFrame::OnCompile()
                 ASSERT(doc_set_component_type == DocSetComponent::Type::ContextIds);
 
                 m_lastCompiledContextIds.clear();
-                doc_set_compiler.CompileContextIds(std::get<std::wstring>(input), m_lastCompiledContextIds);
+                doc_set_compiler.CompileContextIds(std::get<std::string>(input), m_lastCompiledContextIds);
             }
         });
 }
 
 
-void DocSetComponentFrame::CompileJsonBasedComponent(DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node)
+void DocSetComponentFrame::CompileJsonBasedComponent(DocSetCompiler& doc_set_compiler, const JsonNode& json_node)
 {
     DocSetComponentDoc& doc_set_component_doc = GetDocSetComponentDoc();
     const DocSetComponent::Type doc_set_component_type = doc_set_component_doc.GetDocSetComponentType();
@@ -75,7 +75,7 @@ void DocSetComponentFrame::CompileJsonBasedComponent(DocSetCompiler& doc_set_com
 }
 
 
-void DocSetComponentFrame::WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node, bool detailed_format)
+void DocSetComponentFrame::WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode& json_node, const bool detailed_format)
 {
     DocSetComponentDoc& doc_set_component_doc = GetDocSetComponentDoc();
     DocSetSpec& doc_set_spec = doc_set_component_doc.GetDocSetSpec();
@@ -96,7 +96,7 @@ void DocSetComponentFrame::WriteFormattedComponent(JsonWriter& json_writer, DocS
         ASSERT(m_lastCompiledIndex.has_value());
 
         m_lastCompiledIndex->SortByTitle(doc_set_spec);
-        
+
         m_lastCompiledIndex->WriteJson(json_writer, &doc_set_spec, true, false, detailed_format);
     }
 
@@ -135,14 +135,14 @@ const DocSetSettings& DocSetComponentFrame::GetLastCompiledSettings()
 }
 
 
-const std::vector<std::tuple<std::wstring, std::wstring>>& DocSetComponentFrame::GetLastCompiledDefinitions()
+const std::vector<std::tuple<std::string, std::string>>& DocSetComponentFrame::GetLastCompiledDefinitions()
 {
     ASSERT(GetDocSetComponentType() == DocSetComponent::Type::Definitions);
     return m_lastCompiledDefinitions;
 }
 
 
-const std::map<std::wstring, unsigned>& DocSetComponentFrame::GetLastCompiledContextIds() 
+const std::map<std::string, unsigned>& DocSetComponentFrame::GetLastCompiledContextIds()
 {
     ASSERT(GetDocSetComponentType() == DocSetComponent::Type::ContextIds);
     return m_lastCompiledContextIds;

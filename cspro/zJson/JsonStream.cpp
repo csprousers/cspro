@@ -2,23 +2,22 @@
 #include "JsonStream.h"
 #include "JsonConsExceptionRethrower.h"
 #include "JsonSpecFile.h"
-#include <zToolsO/Utf8FileStream.h>
 #include <external/jsoncons/json_cursor.hpp>
 #include <fstream>
 
 
-using BasicJson = jsoncons::basic_json<wchar_t, jsoncons::order_preserving_policy, std::allocator<char>>;
+using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // JsonStreamData
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 struct JsonStreamData
 {
-    std::unique_ptr<std::wistream> stream;
-    std::unique_ptr<std::wstring> owned_text;
-    std::unique_ptr<jsoncons::wjson_stream_cursor> cursor;
+    std::unique_ptr<std::istream> stream;
+    std::optional<std::streampos> stream_size;
+    std::unique_ptr<jsoncons::json_stream_cursor> cursor;
     size_t current_level = 0;
     bool cursor_started = false;
 
@@ -30,7 +29,7 @@ void JsonStreamData::InitializeCursor()
 {
     try
     {
-        cursor = std::make_unique<jsoncons::wjson_stream_cursor>(*stream);
+        cursor = std::make_unique<jsoncons::json_stream_cursor>(*stream);
         current_level = 0;
         cursor_started = false;
     }
@@ -43,9 +42,9 @@ void JsonStreamData::InitializeCursor()
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // JsonStream
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 JsonStream::JsonStream(std::unique_ptr<JsonStreamData> data)
     :   m_data(std::move(data))
@@ -64,49 +63,43 @@ JsonStream::~JsonStream()
 }
 
 
-JsonStream JsonStream::FromStream(std::unique_ptr<std::wistream> stream)
+JsonStream JsonStream::FromStream(std::unique_ptr<std::istream> stream, std::optional<std::streampos> stream_size/* = std::nullopt*/)
 {
-    return JsonStream(std::make_unique<JsonStreamData>(JsonStreamData { std::move(stream) }));
+    return JsonStream(std::make_unique<JsonStreamData>(JsonStreamData { std::move(stream), std::move(stream_size) }));
 }
 
 
-JsonStream JsonStream::FromString(std::wstring text)
+JsonStream JsonStream::FromString(const std::string& text)
 {
-    auto owned_text = std::make_unique<std::wstring>(std::move(text));
-    auto string_stream = std::make_unique<std::wstringstream>(*owned_text);
-
-    return JsonStream(std::make_unique<JsonStreamData>(JsonStreamData { std::move(string_stream), std::move(owned_text) }));
+    return FromStream(std::make_unique<std::stringstream>(text));
 }
 
 
-JsonStream JsonStream::FromFile(NullTerminatedString filename)
+JsonStream JsonStream::FromString(std::string&& text)
 {
-    return FromStream(FileIO::OpenWideTextInputFileStream(filename));
+    static_assert(__cplusplus < 202002L, "move text into the created std::stringstream");
+    return FromString(text);
 }
 
 
-JsonStream JsonStream::FromSpecFile(NullTerminatedString filename, const std::function<std::wstring()>& pre_80_spec_file_converter)
+JsonStream JsonStream::FromFile(const InterfaceString file_path)
 {
-    FileIO::FileAndSize file_and_size = FileIO::OpenFile(filename);
+    std::streampos file_size;
+    std::unique_ptr<std::ifstream> stream = FileIO::OpenTextInputFileStream(file_path, &file_size);
+    
+    return FromStream(std::move(stream), file_size);
+}
 
-    if( JsonSpecFile::IsPre80SpecFile(file_and_size) )
-    {
-        fclose(file_and_size.file);
-        return FromString(pre_80_spec_file_converter());
-    }
 
-    else
-    {
-        fseek(file_and_size.file, 0, SEEK_SET);
-        return FromStream(std::make_unique<Utf8InputFileStream>(filename, std::move(file_and_size)));
-    }                                                     
+JsonStream JsonStream::FromSpecFile(const InterfaceString file_path, const std::function<std::string()>& pre_80_spec_file_converter)
+{
+    return JsonSpecFile::IsPre80SpecFile(file_path) ? FromString(pre_80_spec_file_converter()) :
+                                                      FromFile(file_path);
 }
 
 
 bool JsonStream::RestartStream()
 {
-    ASSERT(dynamic_cast<Utf8InputFileStream*>(m_data->stream.get()) != nullptr);
-
     if( m_data->stream->seekg(0) )
     {
         m_data->InitializeCursor();
@@ -117,7 +110,7 @@ bool JsonStream::RestartStream()
 }
 
 
-JsonNode<wchar_t> JsonStream::ReadUntilKey(wstring_view key, bool parse_keys_only_at_this_level/* = true*/)
+JsonNode JsonStream::ReadUntilKey(const std::string_view key_sv, const bool parse_keys_only_at_this_level/* = true*/)
 {
     try
     {
@@ -130,13 +123,13 @@ JsonNode<wchar_t> JsonStream::ReadUntilKey(wstring_view key, bool parse_keys_onl
 
             if( key_found )
             {
-                jsoncons::json_decoder<jsoncons::wojson> json_decoder;
+                jsoncons::json_decoder<jsoncons::ojson> json_decoder;
                 m_data->cursor->read_to(json_decoder);
 
-                return JsonNode<wchar_t>(std::make_shared<BasicJson>(json_decoder.get_result()));
+                return JsonNode(std::make_unique<BasicJson>(json_decoder.get_result()));
             }
 
-            else if( event.event_type() == jsoncons::staj_event_type::key && event.get<std::wstring_view>() == key )
+            else if( event.event_type() == jsoncons::staj_event_type::key && event.get<std::string_view>() == key_sv )
             {
                 if( !parse_keys_only_at_this_level || starting_level == m_data->current_level )
                     key_found = true;
@@ -165,7 +158,7 @@ JsonNode<wchar_t> JsonStream::ReadUntilKey(wstring_view key, bool parse_keys_onl
             m_data->cursor_started = true;
         }
 
-        throw JsonParseException(_T("'%s' key not found"), std::wstring(key).c_str());
+        throw JsonParseException("'%s' key not found", std::string(key_sv).c_str());
     }
 
     catch( const jsoncons::json_exception& exception )
@@ -176,19 +169,18 @@ JsonNode<wchar_t> JsonStream::ReadUntilKey(wstring_view key, bool parse_keys_onl
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // JsonStreamObjectArrayIterator +
 // JsonStream::CreateObjectArrayIterator
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 JsonStreamObjectArrayIterator::JsonStreamObjectArrayIterator(JsonStreamData& data)
-    :   m_data(data),
-        m_streamAsUtf8InputFileStream(dynamic_cast<Utf8InputFileStream*>(m_data.stream.get()))
+    :   m_data(data)
 {
 }
 
 
-std::optional<JsonNode<wchar_t>> JsonStreamObjectArrayIterator::Next()
+std::optional<JsonNode> JsonStreamObjectArrayIterator::Next()
 {
     try
     {
@@ -208,10 +200,10 @@ std::optional<JsonNode<wchar_t>> JsonStreamObjectArrayIterator::Next()
 
             else if( event.event_type() == jsoncons::staj_event_type::begin_object )
             {
-                jsoncons::json_decoder<jsoncons::wojson> json_decoder;
+                jsoncons::json_decoder<jsoncons::ojson> json_decoder;
                 m_data.cursor->read_to(json_decoder);
 
-                return JsonNode<wchar_t>(std::make_shared<BasicJson>(json_decoder.get_result()));
+                return JsonNode(std::make_unique<BasicJson>(json_decoder.get_result()));
             }
         }
 
@@ -227,11 +219,16 @@ std::optional<JsonNode<wchar_t>> JsonStreamObjectArrayIterator::Next()
 
 int JsonStreamObjectArrayIterator::GetPercentRead() const
 {
-    // creating the cursor on a Utf8InputFileStream object led to tellg always returning -1 and
-    // overriden methods like seekoff not being called, so we will query for the percent read
-    // directly (for the 99% use case where the stream is a Utf8InputFileStream)
-    return ( m_streamAsUtf8InputFileStream != nullptr ) ? m_streamAsUtf8InputFileStream->GetPercentRead() :
-                                                          0;
+    if( m_data.stream_size.has_value() )
+    {
+        const std::streampos current_pos = m_data.stream->tellg();
+
+        if( current_pos != -1 )
+            return CreatePercent(current_pos, *m_data.stream_size);
+    }
+
+    return m_data.stream->eof() ? 100 :
+                                  ReturnProgrammingError(0);
 }
 
 
@@ -243,7 +240,10 @@ bool JsonStreamObjectArrayIterator::AtEndOfStream() const
         m_data.cursor->check_done(ec);
 
         if( ec )
+        {
+            std::string rest = static_cast<const std::stringstream*>(m_data.stream.get())->str();
             return false;
+        }
     }
 
     return true;

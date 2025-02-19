@@ -189,7 +189,7 @@ double CIntDriver::DoXtabGroupUnit( CTAB* pCtab, double dTableWeight, int iTabLo
             dWhereExprValue = evalexpr( -iWhereExpr );
         }
 
-        if( ConditionalValueIsTrue(dWhereExprValue) && dWhereExprValue > -MAXVALUE ) {
+        if( IsTrue(dWhereExprValue) && dWhereExprValue > -MAXVALUE ) {
             double      dSubTableWeight;
 
             if( iWeightExpr == 0 )
@@ -213,7 +213,7 @@ double CIntDriver::DoXtabGroupUnit( CTAB* pCtab, double dTableWeight, int iTabLo
             }
         }
 
-        if( m_iStopExec )
+        if( m_bStopExec )
             break;
     }
 
@@ -1096,7 +1096,7 @@ void CIntDriver::CtPos_FillIndexArray( CTAB* ct, VART* pVarT, int iOccExpr )
 
             for( int i = 0; i < iLowIndex; i++ )
             {
-                ASSERT( pMvarNode->m_iVarSubindexType[i] = MVAR_CONSTANT );
+                ASSERT( pMvarNode->m_iVarSubindexType[i] == MVAR_CONSTANT );
                 ptrvar->m_iVarSubindexExpr[i] = pMvarNode->m_iVarSubindexExpr[i];
                 ptrvar->m_iVarSubindexType[i] = pMvarNode->m_iVarSubindexType[i];
             }
@@ -1209,7 +1209,7 @@ void CIntDriver::CtPos_FillIndexArray( CTAB* ct, VART* pVarT, int iOccExpr )
                                           // to get each set of indexes
 
     //TRACE( _T("~~ CtPos_FillIndexArray: Number of loops: %d\n"), iHowMany );
-    CString csVarName = WS2CS(pVarT->GetName());
+    CString csVarName = UTF8_TODO::GetCString(pVarT->GetName());
 
     double dOccur[DIM_MAXDIM]; // 1-based double indexes
 
@@ -1340,7 +1340,7 @@ void CIntDriver::CtPos_Var( CTAB* pCtab, int iCtNode, int *vector, CSubTable* pS
 #ifdef _DEBUG
         {
             CString csMsg;
-            csMsg.Format( _T("CtPos: VarName=(%s) CoorNumber=%d, SeqNumber=%d"), pVarT->GetName().c_str(), pNode->m_iCoordNumber, pNode->m_iSeqNumber );
+            csMsg.Format( _T("CtPos: VarName=(%s) CoorNumber=%d, SeqNumber=%d"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), pNode->m_iCoordNumber, pNode->m_iSeqNumber );
             //TRACE( csMsg );
         }
 #endif
@@ -2789,7 +2789,7 @@ void CIntDriver::CtPos_Var(  CTAB* pCtab, int iCtNode, std::vector<std::shared_p
 #ifdef _DEBUG
         {
             CString csMsg;
-            csMsg.Format( _T("CtPos: VarName=(%s) CoorNumber=%d, SeqNumber=%d"), pVarT->GetName().c_str(), pNode->m_iCoordNumber, pNode->m_iSeqNumber );
+            csMsg.Format( _T("CtPos: VarName=(%s) CoorNumber=%d, SeqNumber=%d"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), pNode->m_iCoordNumber, pNode->m_iSeqNumber );
             //TRACE( csMsg );
         }
 #endif

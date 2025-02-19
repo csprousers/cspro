@@ -11,7 +11,7 @@ class ApplicationShutdownRunner
 public:
     ~ApplicationShutdownRunner()
     {
-        for( auto& shutdown_operation : m_shutdownOperations )
+        for( std::function<void()>& shutdown_operation : m_shutdownOperations )
             shutdown_operation();
     }
 

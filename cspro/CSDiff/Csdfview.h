@@ -17,7 +17,7 @@ public:
     const CCSDiffDoc* GetDocument() const { return assert_cast<const CCSDiffDoc*>(m_pDocument); }
     CCSDiffDoc* GetDocument()             { return assert_cast<CCSDiffDoc*>(m_pDocument); }
 
-    static std::wstring CreateWindowTitle(const std::wstring& spec_filename, const CDataDict* dictionary);
+    static std::string CreateWindowTitle(const std::string& spec_file_path, const CDataDict* dictionary);
 
 protected:
     DECLARE_MESSAGE_MAP()

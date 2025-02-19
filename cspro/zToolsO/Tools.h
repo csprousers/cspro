@@ -4,7 +4,6 @@
 #include <zToolsO/DateTime.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zToolsO/NumberToString.h>
-#include <zToolsO/TextFormatter.h>
 #include <zToolsO/WindowsDesktopMessage.h>
 
 #ifdef WIN32
@@ -30,20 +29,15 @@ CLASS_DECL_ZTOOLSO short strreplace(csprochar *buf, csprochar *in, csprochar *ou
 CLASS_DECL_ZTOOLSO CString clearString(CString ss, bool bNum);
 
 
+// TEXT_ENCODING_TODO the below should move to TextEncoding.h
 enum class Encoding : int { Invalid, Ansi, Utf16LE, Utf16BE, Utf8 };
-
-constexpr std::string_view Utf8BOM_sv = "\xEF\xBB\xBF";
-
-inline bool HasUtf8BOM(const void* buffer, size_t buffer_size)
-{
-    return ( buffer_size >= Utf8BOM_sv.length() && memcmp(buffer, Utf8BOM_sv.data(), Utf8BOM_sv.length()) == 0 );
-}
 
 CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(int iFileHandle);
 CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(FILE* file);
-CLASS_DECL_ZTOOLSO bool GetFileBOM(NullTerminatedString filename, Encoding& encoding);
+CLASS_DECL_ZTOOLSO bool GetFileBOM(InterfaceString file_path, Encoding& encoding);
 
-CLASS_DECL_ZTOOLSO const TCHAR* ToString(Encoding encoding);
+CLASS_DECL_ZTOOLSO const char* ToString(Encoding encoding);
+// TEXT_ENCODING_TODO the above should move to TextEncoding.h
 
 
 CLASS_DECL_ZTOOLSO bool ReadLine( CFile& cFile, CString * pStr, Encoding encoding );
@@ -67,67 +61,92 @@ public:
 };
 //////////////////////////////////////////////////////////////////////////
 
-CLASS_DECL_ZTOOLSO bool RecycleFile(NullTerminatedString filename);
+CLASS_DECL_ZTOOLSO bool RecycleFile(InterfaceString file_path);
 
-CLASS_DECL_ZTOOLSO std::wstring GetWorkingFolder(wstring_view base_filename);
+CLASS_DECL_ZTOOLSO std::wstring GetWorkingFolder(wstring_view base_filename_sv);
+CLASS_DECL_ZTOOLSO std::string GetWorkingDirectory(std::string_view base_filename_sv);
 CLASS_DECL_ZTOOLSO std::wstring GetWorkingFolder();
+CLASS_DECL_ZTOOLSO std::string GetWorkingDirectory();
 
-template<typename T>
-CLASS_DECL_ZTOOLSO void NormalizePathSlash(T& path);
-
-CLASS_DECL_ZTOOLSO std::wstring MakeFullPath(wstring_view relative_to_directory, std::wstring filename);
+CLASS_DECL_ZTOOLSO std::wstring MakeFullPath(wstring_view relative_to_directory_sv, std::wstring filename);
+CLASS_DECL_ZTOOLSO std::string MakeFullPath(std::string_view relative_to_directory_sv, std::string filename);
 
 template<typename T = std::wstring>
 CLASS_DECL_ZTOOLSO T GetRelativeFName(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
 
-template<typename T = std::wstring>
-CLASS_DECL_ZTOOLSO T GetRelativeFNameForDisplay(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
+CLASS_DECL_ZTOOLSO std::string GetRelativePathForDisplay(cs::string_view_sz relative_to_file_path, cs::string_sz filename);
 
 
 // wraps the argument in double quotes if a space appears in the argument;
 // if the argument comes wrapped in double quotes, the argument is not modified
+CLASS_DECL_ZTOOLSO std::string EscapeCommandLineArgument(std::string argument);
 CLASS_DECL_ZTOOLSO std::wstring EscapeCommandLineArgument(std::wstring argument);
 
 // if the argument comes wrapped in double quotes, the quotes are removed
-CLASS_DECL_ZTOOLSO std::wstring UnescapeCommandLineArgument(std::wstring argument);
+CLASS_DECL_ZTOOLSO std::string UnescapeCommandLineArgument(std::string argument);
 
 
 #ifdef WIN_DESKTOP
 
 enum class WindowsSpecialFolder { Desktop, Windows, Documents, ProgramFiles32, ProgramFiles64 };
-CLASS_DECL_ZTOOLSO std::wstring GetWindowsSpecialFolder(WindowsSpecialFolder folder);
+CLASS_DECL_ZTOOLSO std::string GetWindowsSpecialFolder(WindowsSpecialFolder folder);
 
-CLASS_DECL_ZTOOLSO std::vector<std::wstring> GetLogicalDrivesVector();
+CLASS_DECL_ZTOOLSO std::vector<std::string> GetLogicalDrivesVector();
 
 #endif
 
-CLASS_DECL_ZTOOLSO const std::wstring& GetDownloadsFolder();
+CLASS_DECL_ZTOOLSO const std::string& GetDownloadsDirectory();
 
-CLASS_DECL_ZTOOLSO std::wstring CreateUuid();
+CLASS_DECL_ZTOOLSO std::string CreateUuid();
 
-CLASS_DECL_ZTOOLSO CString GetDeviceId();
-CLASS_DECL_ZTOOLSO CString GetDeviceUserName();
-CLASS_DECL_ZTOOLSO CString GetLocaleLanguage();
+// Returns the device ID. On Windows, this is based on the MAC address.
+CLASS_DECL_ZTOOLSO const std::string& GetDeviceId();
+
+CLASS_DECL_ZTOOLSO std::string GetDeviceUserName();
+
+// Subtags are separated by either underscores or hyphens.
+CLASS_DECL_ZTOOLSO std::string GetLocaleLanguage(bool separate_subtags_by_underscores = true);
+
+#ifdef WIN32
+
+// Wraps the Win32 GetLocaleInfo call.
+CLASS_DECL_ZTOOLSO const std::string& GetLocaleInformation(LCTYPE LCType);
+
+#endif
+
+
+template<typename NT, typename DT>
+constexpr double CreateProportion(NT&& numerator, DT&& denominator)
+{
+    if( denominator == 0 )
+        return 0;
+
+    return static_cast<double>(std::forward<NT>(numerator)) / static_cast<double>(std::forward<DT>(denominator));
+}
 
 
 template<typename PT = int, typename NT, typename DT>
 constexpr PT CreatePercent(NT&& numerator, DT&& denominator)
 {
-    if( denominator == 0 )
-        return 0;
+    return static_cast<PT>(100 * CreateProportion(std::forward<NT>(numerator), std::forward<DT>(denominator)));
+}
 
-    return static_cast<PT>(100 * ( static_cast<double>(std::forward<NT>(numerator)) /
-                                   static_cast<double>(std::forward<DT>(denominator)) ));
+
+template<typename T>
+constexpr double CreatePercentMultiplier(T number_values)
+{
+    return 100.0 / std::max(number_values, static_cast<T>(1));
 }
 
 
 struct OperatingSystemDetails
 {
-    std::wstring operating_system;
-    std::wstring version_number;
-    std::optional<std::wstring> build_number;
+    std::string operating_system;
+    std::string version_number;
+    std::optional<std::string> build_number;
 };
 
+CLASS_DECL_ZTOOLSO const char* GetOperatingSystemName();
 CLASS_DECL_ZTOOLSO const OperatingSystemDetails& GetOperatingSystemDetails();
 
 
@@ -144,17 +163,18 @@ CLASS_DECL_ZTOOLSO BOOL PathCanonicalize( csprochar* lpszDst, const csprochar* l
 #endif
 
 #ifdef WIN32
-CLASS_DECL_ZTOOLSO std::wstring PathGetVolume(NullTerminatedString path);
+CLASS_DECL_ZTOOLSO std::string PathGetVolume(std::string_view path_sv);
 #endif
 
-CLASS_DECL_ZTOOLSO CString ReplaceInvalidFileChars(CString filename, TCHAR replaceWith);
+CLASS_DECL_ZTOOLSO std::string ReplaceInvalidFileChars(std::string filename, char replace_with_ch);
 
-CLASS_DECL_ZTOOLSO TCHAR GetUnusedCharacter(LPCTSTR lpszText, TCHAR chStartingCharacter = '0');
+CLASS_DECL_ZTOOLSO char GetUnusedCharacter(std::string_view text_sv, char starting_ch);
 
 template<typename T>
-constexpr const TCHAR* PluralizeWord(T count, const TCHAR* word_for_one = _T(""), const TCHAR* word_for_rest = _T("s"))
+constexpr const char* PluralizeWord(const T& count, const char* const word_for_one = "", const char* const word_for_rest = "s")
 {
-    return ( count == 1 ) ? word_for_one : word_for_rest;
+    return ( count == 1 ) ? word_for_one :
+                            word_for_rest;
 }
 
 template<typename T>

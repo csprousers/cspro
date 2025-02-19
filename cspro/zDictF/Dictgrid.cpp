@@ -19,7 +19,7 @@ namespace
     constexpr long HEADER_ROW_LEVEL = 2;
     constexpr long LEVEL_ROW_OFFSET = HEADER_ROW_LEVEL + 1;
     static_assert(LEVEL_ROW_OFFSET == CDictGrid::GetFirstLevelRow());
-                             
+
     constexpr int DICT_NOTE_COL     = 0;
     constexpr int DICT_LABEL_COL    = 1;
     constexpr int DICT_NAME_COL     = 2;
@@ -216,7 +216,7 @@ void CDictGrid::Update()
         QuickSetBitmap(DICT_NOTE_COL,  0, m_pNoteNo);
     }
     QuickSetText      (DICT_LABEL_COL, 0, m_pDict->GetLabel());
-    QuickSetText      (DICT_NAME_COL,  0, m_pDict->GetName());
+    QuickSetText      (DICT_NAME_COL,  0, UTF8_TODO::GetCString(m_pDict->GetName()));
 
     QuickSetBackColor (DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
     QuickSetHBackColor(DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
@@ -239,7 +239,7 @@ void CDictGrid::Update()
             QuickSetBitmap(DICT_NOTE_COL,  row, m_pNoteNo);
         }
         QuickSetText      (DICT_LABEL_COL, row, dict_level.GetLabel());
-        QuickSetText      (DICT_NAME_COL,  row, dict_level.GetName());
+        QuickSetText      (DICT_NAME_COL,  row, UTF8_TODO::GetCString(dict_level.GetName()));
     }
     RedrawWindow();
     //force on row change call to fix the property grid refresh when grids change
@@ -581,7 +581,7 @@ void CDictGrid::EditBegin(int col, long row, UINT vcKey)
 
     // Create name edit
     if (m_bAdding || m_bInserting) {
-        m_pDict->GetLevel(row - LEVEL_ROW_OFFSET).SetName(_T(" X"));
+        m_pDict->GetLevel(row - LEVEL_ROW_OFFSET).SetName(" X");
     }
     m_pNameEdit = new CNameEdit();
     GetCellRect(DICT_NAME_COL, row, &rect);
@@ -643,11 +643,11 @@ bool CDictGrid::EditEnd(bool bSilent)
             m_pDict->SetLabel(csNewLabel);
         }
         m_aEditControl[DICT_NAME_COL]->GetWindowText(csNewName);
-        csOldName = m_pDict->GetName();
+        csOldName = UTF8_TODO::GetCString(m_pDict->GetName());
         if (csNewName.Compare(csOldName) != 0) {
             bChanged = true;
             bChangedName = true;
-            m_pDict->SetName(csNewName);
+            m_pDict->SetName(UTF8_TODO::GetUtf8(csNewName));
         }
         if (bChanged) {
             CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
@@ -660,7 +660,7 @@ bool CDictGrid::EditEnd(bool bSilent)
             }
             else {
                 m_pDict->SetLabel(csOldLabel);
-                m_pDict->SetName(csOldName);
+                m_pDict->SetName(UTF8_TODO::GetUtf8(csOldName));
             }
         }
     }
@@ -673,14 +673,14 @@ bool CDictGrid::EditEnd(bool bSilent)
             dict_level->SetLabel(csNewLabel);
         }
         m_aEditControl[DICT_NAME_COL]->GetWindowText(csNewName);
-        csOldName = dict_level->GetName();
+        csOldName = UTF8_TODO::GetCString(dict_level->GetName());
         if (csNewName.Compare(csOldName) != 0) {
             bChanged = true;
             bChangedName = true;
-            dict_level->SetName(csNewName);
+            dict_level->SetName(UTF8_TODO::GetUtf8(csNewName));
         }
         if (m_bAdding || m_bInserting) {
-            if (dict_level->GetLabel().IsEmpty() && dict_level->GetName().IsEmpty()) {
+            if (dict_level->GetLabel().IsEmpty() && dict_level->GetName().empty()) {
                 bUndo = true;
                 m_bAdding = false;
                 m_bInserting = false;
@@ -698,7 +698,7 @@ bool CDictGrid::EditEnd(bool bSilent)
             }
             else {
                 dict_level->SetLabel(csOldLabel);
-                dict_level->SetName(csOldName);
+                dict_level->SetName(UTF8_TODO::GetUtf8(csOldName));
             }
         }
     }

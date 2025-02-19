@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89D69981-4131-4B75-8ADB-A596219F7ED3}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zSrcMgrO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -83,10 +79,10 @@
   <ItemGroup>
     <ClInclude Include="BackgroundCompiler.h" />
     <ClInclude Include="Compiler.h" />
-    <ClInclude Include="DesignerCompiler.h" />
-    <ClInclude Include="DesignerCompilerMessageProcessor.h" />
     <ClInclude Include="DesignerApplicationLoader.h" />
     <ClInclude Include="DesignerCapiLogicCompiler.h" />
+    <ClInclude Include="DesignerCompiler.h" />
+    <ClInclude Include="DesignerCompilerMessageProcessor.h" />
     <ClInclude Include="ProcGlobalConditionalCompiler.h" />
     <ClInclude Include="SrcCode.h" />
     <ClInclude Include="StdAfx.h" />
@@ -128,6 +124,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zDictO\zDictO.vcxproj">
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEngineF\zEngineF.vcxproj">
+      <Project>{04b22cef-8246-4596-84a2-13faf5019122}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zEngineO\zEngineO.vcxproj">

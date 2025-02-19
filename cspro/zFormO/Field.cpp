@@ -127,7 +127,7 @@ CDEField::CDEField(const CDictItem* pDictItem,      // dictItem we're pulling va
     BaseConstructorInit();
 
     CString csFieldLabelOrName = ( drag_options.GetTextUse() == TextUse::Label ) ?
-        pDictItem->GetLabel() : pDictItem->GetName();
+        pDictItem->GetLabel() : UTF8_TODO::GetCString(pDictItem->GetName());
 
     CSize sizeCh = std::holds_alternative<CDC*>(pDC_or_single_character_text_extent) ? std::get<CDC*>(pDC_or_single_character_text_extent)->GetTextExtent(_T("9")) :
                                                                                        std::get<CSize>(pDC_or_single_character_text_extent);
@@ -214,17 +214,17 @@ CDEField::CDEField(const CDictItem* pDictItem,      // dictItem we're pulling va
     FieldLabelType field_label_type = ( drag_options.GetTextUse() == TextUse::Label ) ? FieldLabelType::DictionaryLabel :
                                                                                         FieldLabelType::DictionaryName;
 
-    SetCDEText(( field_label_type == FieldLabelType::DictionaryLabel ) ? pDictItem->GetLabel() : pDictItem->GetName());
+    SetCDEText(( field_label_type == FieldLabelType::DictionaryLabel ) ? pDictItem->GetLabel() : UTF8_TODO::GetCString(pDictItem->GetName()));
 
     SetFieldLabelType(drag_options.LinkFieldTextToDictionary() ? field_label_type : FieldLabelType::Custom);
 
-    SetName     (pDictItem->GetName());
+    SetName     (UTF8_TODO::GetCString(pDictItem->GetName()));
     SetLabel    (pDictItem->GetLabel());
     SetFormNum  (iFormNum);
 
     SetItemType (Field);
 
-    SetItemName(pDictItem->GetName());
+    SetItemName(UTF8_TODO::GetCString(pDictItem->GetName()));
     SetItemDict(sDictName);
 
     IsEnterKeyRequired(drag_options.UseEnterKey());
@@ -244,15 +244,15 @@ CDEField::CDEField (const CDictItem* pDictItem,  // dictItem we're pulling vals 
     BaseConstructorInit();
 
     SetLabel    (pDictItem->GetLabel());
-    SetName     (pDictItem->GetName());
+    SetName     (UTF8_TODO::GetCString(pDictItem->GetName()));
     SetFormNum  (iFormNum);
-    SetItemName (pDictItem->GetName());
+    SetItemName (UTF8_TODO::GetCString(pDictItem->GetName()));
     SetItemDict (sDictName);
 
     FieldLabelType field_label_type = ( drag_options.GetTextUse() == TextUse::Label ) ? FieldLabelType::DictionaryLabel :
                                                                                         FieldLabelType::DictionaryName;
 
-    SetCDEText(( field_label_type == FieldLabelType::DictionaryLabel ) ? pDictItem->GetLabel() : pDictItem->GetName());
+    SetCDEText(( field_label_type == FieldLabelType::DictionaryLabel ) ? pDictItem->GetLabel() : UTF8_TODO::GetCString(pDictItem->GetName()));
 
     SetFieldLabelType(drag_options.LinkFieldTextToDictionary() ? field_label_type : FieldLabelType::Custom);
 
@@ -371,18 +371,18 @@ bool CDEField::Compare(CDEField* pField)
 }
 
 
-void CDEField::SetupCaptureInfo(const CDictItem& dictionary_item, const DragOptions& drag_options)
+void CDEField::SetupCaptureInfo(const CDictItem& dict_item, const DragOptions& drag_options)
 {
     if( !drag_options.UseExtendedControls() || IsMirror() )
     {
         // use the base capture type when not using extended controls or for mirror fields
-        m_captureInfo = CaptureInfo::GetBaseCaptureType(dictionary_item);
+        m_captureInfo = CaptureInfo::GetBaseCaptureType(dict_item);
     }
 
     else
     {
         // use the dictionary item's capture info if possible
-        if( dictionary_item.GetCaptureInfo().IsSpecified() )
+        if( dict_item.GetCaptureInfo().IsSpecified() )
         {
             m_captureInfo = CaptureType::Unspecified;
         }
@@ -390,14 +390,14 @@ void CDEField::SetupCaptureInfo(const CDictItem& dictionary_item, const DragOpti
         // otherwise get the default capture type (which takes to account the item's primary value set)
         else
         {
-            m_captureInfo = CaptureInfo::GetDefaultCaptureInfo(dictionary_item);
+            m_captureInfo = CaptureInfo::GetDefaultCaptureInfo(dict_item);
         }
 
-        m_bUseUnicodeTextBox = ( dictionary_item.GetContentType() == ContentType::Alpha &&
+        m_bUseUnicodeTextBox = ( dict_item.GetContentType() == ContentType::Alpha &&
                                  m_captureInfo.GetCaptureType() == CaptureType::TextBox );
     }
 
-    ASSERT(m_captureInfo.IsSpecified() || dictionary_item.GetCaptureInfo().IsSpecified());
+    ASSERT(m_captureInfo.IsSpecified() || dict_item.GetCaptureInfo().IsSpecified());
 }
 
 
@@ -527,12 +527,12 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
                 CString csPart1 = csArg.Left(iCommaPos).Trim();
                 CString csPart2 = csArg.Mid(iCommaPos + 1).Trim();
 
-                std::optional<CaptureInfo> capture_info = CaptureInfo::GetCaptureTypeFromSerializableName(csPart1);
+                std::optional<CaptureInfo> capture_info = CaptureInfo::GetCaptureTypeFromSerializableName(UTF8_TODO::GetUtf8(csPart1));
 
                 if( capture_info == CaptureType::Date )
                 {
                     m_captureInfo.SetCaptureType(CaptureType::Date);
-                    m_captureInfo.GetExtended<DateCaptureInfo>().SetFormat(csPart2);
+                    m_captureInfo.GetExtended<DateCaptureInfo>().SetFormat(UTF8_TODO::GetUtf8(csPart2));
                     use_capture_info_build = false;
                 }
             }
@@ -560,7 +560,7 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
         {
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Field] attribute\n\n%s"), (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Incorrect [Field] attribute\n\n%s"), csCmd.GetString()));
             }
 
             ASSERT(false);
@@ -583,8 +583,8 @@ void CDEField::Save(CSpecFile& frmFile) const
 
 void CDEField::Save(CSpecFile& frmFile, bool bGridField) const
 {
-    CaptureInfoSaveTemp::WriteCaptureInfo = ( PortableFunctions::PathGetFileExtension<CString>(frmFile.GetFileName()).CompareNoCase(FileExtensions::Order) != 0 );
-    
+    CaptureInfoSaveTemp::WriteCaptureInfo = !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(frmFile.GetFileName())), FileExtensions::Order);
+
     const CDictItem* pDictItem = GetDictItem();
 
     frmFile.PutLine(HEAD_FIELD);
@@ -695,7 +695,7 @@ void CDEField::serialize(Serializer& ar) // 20121114
            & m_sDictName
            & m_bRequireEnter
            & m_bVerify;
-        
+
         ar.SerializeEnum(m_eValidationMethod);
 
         ar & m_sPlusTarget
@@ -709,27 +709,9 @@ void CDEField::serialize(Serializer& ar) // 20121114
 
         ar & m_cText
            & m_sData
-           & m_bHidden;
-
-        if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-        {
-           ar & m_captureInfo;
-        }
-
-        else
-        {
-            CaptureType capture_type;
-            ar.SerializeEnum(capture_type);
-
-            m_captureInfo.SetCaptureType(capture_type);
-
-            CString date_format = ar.Read<CString>();
-
-            if( capture_type == CaptureType::Date )
-                m_captureInfo.GetExtended<DateCaptureInfo>().SetFormat(date_format);
-        }
-
-        ar & m_bUseUnicodeTextBox
+           & m_bHidden
+           & m_captureInfo
+           & m_bUseUnicodeTextBox
            & m_bAllowMultiLine
            & m_KLID;
 

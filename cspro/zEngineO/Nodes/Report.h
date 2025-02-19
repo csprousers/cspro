@@ -31,7 +31,7 @@ namespace Nodes
             int symbol_index;
             Type type;
             int expression;
-            int encode_text; // 0 = false, 1 = true
+            int escape_text; // 0 = false, 1 = true
         };
     }
 }

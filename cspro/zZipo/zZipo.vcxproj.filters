@@ -9,47 +9,47 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Source Files\miniz">
+      <UniqueIdentifier>{1ef39768-046a-4351-81eb-ddef12db2781}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\miniz">
+      <UniqueIdentifier>{9b2c3c6f-91bc-441c-b0b5-bbf0778d64fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IZip.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\external\miniz\miniz.c">
+      <Filter>Source Files\miniz</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ZipZL.cpp">
+    <ClCompile Include="ZipException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ZipUtility.cpp">
+    <ClCompile Include="ZipFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ZipReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="miniz_inclusion.cpp">
+    <ClCompile Include="ZLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IZip.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\external\miniz\miniz.h">
+      <Filter>Header Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ZipZL.h">
+    <ClInclude Include="ZipException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ZipFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ZLib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zZipo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ZipUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ZipReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ZipHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -44,7 +44,7 @@ bool CCalcDriver::OpenInputTbd( CString csInputTbdName ) {
         CString csInputTbiName(csInputTbdName);
         PathRemoveExtension(csInputTbiName.GetBuffer(_MAX_PATH));
         csInputTbiName.ReleaseBuffer();
-        csInputTbiName += FileExtensions::BinaryTable::WithDot::TabIndex;
+        csInputTbiName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
         int     iKeyLen = m_InputTbd.GetBreakKeyLen() + sizeof(short);
         m_InputTbi.SetFileName( csInputTbiName, iKeyLen );
@@ -144,13 +144,13 @@ void CCalcDriver::RunDriver( void ) {
     AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, (WPARAM)&process_summary_reporter);
     ASSERT(process_summary_reporter != nullptr);
 
-    CString dialog_title = FormatText(_T("Running %s application %s. Press ESC to interrupt..."),
-                                      m_pEngineDriver->m_lpszExecutorLabel,
-                                      PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+    std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
+                                                m_pEngineDriver->m_lpszExecutorLabel,
+                                                PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
 
-    process_summary_reporter->Initialize(dialog_title, m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
+    process_summary_reporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
 
-    process_summary_reporter->SetSource(m_InputTbd.GetFileName());
+    process_summary_reporter->SetSource(UTF8_TODO::GetUtf8(m_InputTbd.GetFileName()));
 
     for( int i=0; i < iTotalBreaks; i++ ) {
 
@@ -165,7 +165,7 @@ void CCalcDriver::RunDriver( void ) {
         sLoadedBreakKey = csBreakKey;
         LoadBreak( csBreakKey, iBreakKeyNum, &m_aUsedCtabs, i, iTotalBreaks );
 
-        process_summary_reporter->SetKey(sLoadedBreakKey);
+        process_summary_reporter->SetKey(UTF8_TODO::GetUtf8(sLoadedBreakKey));
 
         try
         {
@@ -192,9 +192,9 @@ void CCalcDriver::RunDriver( void ) {
                         {
                             case CPrSlot::LEVELslot:
                             {
-                                m_pEngineDriver->GetLister()->SetMessageSource(FormatTextCS2WS(_T("LEVEL %s, Break '%s'"),
-                                                                                               GPT(iSymbol)->GetName().c_str(),
-                                                                                               GetCurrentBreakKey().GetString()));
+                                m_pEngineDriver->GetLister()->SetMessageSource(FormatText("LEVEL %s, Break '%s'",
+                                                                                          GPT(iSymbol)->GetName().c_str(),
+                                                                                          UTF8_TODO::GetUtf8(GetCurrentBreakKey()).c_str()));
 
                                 m_pIntDriver->ExecuteProcGroup(iSymbol, pPrSlot->GetProcType(), false);
                                 break;
@@ -202,9 +202,9 @@ void CCalcDriver::RunDriver( void ) {
 
                             case CPrSlot::CTslot:
                             {
-                                m_pEngineDriver->GetLister()->SetMessageSource(FormatTextCS2WS(_T("TABLE %s, Break '%s'"),
-                                                                                               NPT(iSymbol)->GetName().c_str(),
-                                                                                               GetCurrentBreakKey().GetString()));
+                                m_pEngineDriver->GetLister()->SetMessageSource(FormatText("TABLE %s, Break '%s'",
+                                                                                          NPT(iSymbol)->GetName().c_str(),
+                                                                                          UTF8_TODO::GetUtf8(GetCurrentBreakKey()).c_str()));
 
                                 m_pIntDriver->ExecuteProcTable(iSymbol, pPrSlot->GetProcType());
                                 break;
@@ -253,7 +253,7 @@ bool CCalcDriver::LoadBreak( CString csCurrentBreakKey, int iBreakKeyNum, CArray
 
     //Now we are sending the full break key in the new idx format
     /*int iTableNumForCurrentBreakKey = */CTbdFile::GetTableNum(csCurrentBreakKey, sizeof(short));
-    m_pEngineDriver->GetLister()->SetMessageSource(FormatTextCS2WS(_T("Loading Break '%s'"), csCurrentBreakKey.GetString()));
+    m_pEngineDriver->GetLister()->SetMessageSource(FormatText("Loading Break '%s')", UTF8_TODO::GetUtf8(csCurrentBreakKey).c_str()));
 
     CString csBreakKeyNoTableNum;
     //break key is blank when the area breaks are not present.
@@ -352,17 +352,17 @@ bool CCalcDriver::LoadBreak( CString csCurrentBreakKey, int iBreakKeyNum, CArray
             ASSERT(iTbdFile >= 0 );
             if( !pTbdSlice->Load( iTbdFile, lFilePos ) ) {
                 bRet = false;
-                issaerror( MessageType::Error, 2300, csLoadedBreak.GetString(), pCtab->GetName().c_str(), pTbdFile->GetFileName().GetString() ); // Can't load
+                issaerror( MessageType::Error, 2300, UTF8_TODO::GetUtf8(csLoadedBreak).c_str(), pCtab->GetName().c_str(), UTF8_TODO::GetUtf8(pTbdFile->GetFileName()).c_str() ); // Can't load
                 process_summary->IncrementAttributesUnknown();
             }
             else if( memcmp( &oldSlice, pTbdSlice->GetSliceHdr(), sizeof(TBD_SLICE_HDR) ) != 0 ) {
                 bRet = false;
-                issaerror( MessageType::Error, 2302, csLoadedBreak.GetString(), pCtab->GetName().c_str(), pTbdFile->GetFileName().GetString() ); // Invalid Slice
+                issaerror( MessageType::Error, 2302, UTF8_TODO::GetUtf8(csLoadedBreak).c_str(), pCtab->GetName().c_str(), UTF8_TODO::GetUtf8(pTbdFile->GetFileName()).c_str() ); // Invalid Slice
                 process_summary->IncrementAttributesUnknown();
             }
         }
         else {
-            issaerror( MessageType::Warning, 2304, csLoadedBreak.GetString(), pCtab->GetName().c_str(), pTbdFile->GetFileName().GetString() ); // Key not found // RHF Apr 17, 2003 Now thd TBD contains tables with Break Prefixs!
+            issaerror( MessageType::Warning, 2304, UTF8_TODO::GetUtf8(csLoadedBreak).c_str(), pCtab->GetName().c_str(), UTF8_TODO::GetUtf8(pTbdFile->GetFileName()).c_str() ); // Key not found // RHF Apr 17, 2003 Now thd TBD contains tables with Break Prefixs!
             process_summary->IncrementAttributesErased();
         }
 
@@ -402,6 +402,4 @@ void CCalcDriver::SetRunTimeBreakKeys( CStringArray* aBreakKeys, CUIntArray* aBr
         for( int i=0; i < aUsedCtabs->GetSize(); i++ )
             m_aUsedCtabs.Add( aUsedCtabs->ElementAt(i) );
     }
-
 }
-

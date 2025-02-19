@@ -5,5 +5,5 @@
 
 namespace Pre77Report
 {
-    CREATE_CSPRO_EXCEPTION(Exception)
+    CREATE_CSPRO_EXCEPTION(Exception);
 }

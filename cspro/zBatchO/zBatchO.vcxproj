@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F376CFD8-71E7-4046-B8D9-E3FEBBEA1FBC}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zBatchO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -110,7 +106,7 @@
       <Project>{9556badf-5360-45d1-91a7-449e003cde54}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -192,6 +188,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">
       <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">

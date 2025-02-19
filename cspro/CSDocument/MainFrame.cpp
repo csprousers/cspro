@@ -43,6 +43,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     // toolbar handlers
     ON_MESSAGE(UWM::CSDocument::SyncToolbarAndWindows, OnSyncToolbarAndWindows)
 
+    // tab handlers
+    ON_REGISTERED_MESSAGE(AFX_WM_ON_GET_TAB_TOOLTIP, OnGetTabToolTip)
+
     // status bar handlers
     ON_COMMAND(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnStatusBarAssociatedDocSetClick)
     ON_UPDATE_COMMAND_UI(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnUpdateStatusBarAssociatedDocSet)
@@ -62,7 +65,7 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    constexpr UINT StatusBarIndicators[] = 
+    constexpr UINT StatusBarIndicators[] =
     {
         ID_SEPARATOR,           // status line indicator
         ID_STATUS_PANE_ASSOCIATED_DOCSET,
@@ -108,32 +111,33 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
-    // set up the tabs    
-	CMDITabInfo mdiTabParams;
-	mdiTabParams.m_style = CMFCTabCtrl::STYLE_3D_ONENOTE;   // other styles available...
-	mdiTabParams.m_bActiveTabCloseButton = TRUE;            // set to FALSE to place close button at right of tab area
-	mdiTabParams.m_bTabIcons = FALSE;                       // set to TRUE to enable document icons on MDI tabs
-	mdiTabParams.m_bAutoColor = FALSE;                      // set to FALSE to disable auto-coloring of MDI tabs
-	mdiTabParams.m_bDocumentMenu = TRUE;                    // enable the document menu at the right edge of the tab area
-	EnableMDITabbedGroups(TRUE, mdiTabParams);
-    
+    // set up the tabs
+    CMDITabInfo mdiTabParams;
+    mdiTabParams.m_style = CMFCTabCtrl::STYLE_3D_ONENOTE;   // other styles available...
+    mdiTabParams.m_bTabCustomTooltips = TRUE;               // set to TRUE to enable custom tooltips
+    mdiTabParams.m_bActiveTabCloseButton = TRUE;            // set to FALSE to place close button at right of tab area
+    mdiTabParams.m_bTabIcons = FALSE;                       // set to TRUE to enable document icons on MDI tabs
+    mdiTabParams.m_bAutoColor = FALSE;                      // set to FALSE to disable auto-coloring of MDI tabs
+    mdiTabParams.m_bDocumentMenu = TRUE;                    // enable the document menu at the right edge of the tab area
+    EnableMDITabbedGroups(TRUE, mdiTabParams);
+
     // add the menu
-	if( !m_wndMenuBar.Create(this) )
+    if( !m_wndMenuBar.Create(this) )
     {
-		return -1;
+        return -1;
     }
 
-	m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
+    m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
 
-	// prevent the menu bar from taking the focus on activation
-	CMFCPopupMenu::SetForceMenuFocus(FALSE);
+    // prevent the menu bar from taking the focus on activation
+    CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
 
     // add the toolbars
     auto add_toolbar = [&](CMFCToolBar& toolbar, const unsigned id)
     {
-    	return ( toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), id) &&
-	    	     toolbar.LoadToolBar(id) );
+        return ( toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), id) &&
+                 toolbar.LoadToolBar(id) );
     };
 
     if( !add_toolbar(m_wndMainToolBar, IDR_MAINFRAME) ||
@@ -159,26 +163,26 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     CDockingManager::SetDockingMode(DT_SMART);
 
     DockPane(&m_wndMenuBar);
-	DockPane(&m_wndMainToolBar);
-	DockPane(&m_wndDocumentToolBar);
+    DockPane(&m_wndMainToolBar);
+    DockPane(&m_wndDocumentToolBar);
 
     PostMessage(UWM::CSDocument::SyncToolbarAndWindows);
 
-	// Switch the order of document name and application name on the window title bar. This
-	// improves the usability of the taskbar because the document name is visible with the thumbnail.
-	ModifyStyle(0, FWS_PREFIXTITLE);
+    // Switch the order of document name and application name on the window title bar. This
+    // improves the usability of the taskbar because the document name is visible with the thumbnail.
+    ModifyStyle(0, FWS_PREFIXTITLE);
 
-	return 0;
+    return 0;
 }
 
 
-void CMainFrame::OnActivateApp(BOOL bActive, DWORD dwThreadID)
+void CMainFrame::OnActivateApp(const BOOL bActive, const DWORD dwThreadID)
 {
     __super::OnActivateApp(bActive, dwThreadID);
 
     if( bActive )
     {
-        CMDIChildWnd* active_wnd = MDIGetActive();
+        CMDIChildWnd* const active_wnd = MDIGetActive();
 
         if( active_wnd != nullptr )
             active_wnd->PostMessage(UWM::CSDocument::TextEditFrameActivate, static_cast<WPARAM>(-1));
@@ -195,7 +199,7 @@ void CMainFrame::OnDestroy()
         if( !main_frame_rect.has_value() )
             GetWindowRect(main_frame_rect.emplace());
 
-        int main_frame_width_or_height = ((*main_frame_rect).*width_or_height)();
+        const int main_frame_width_or_height = ((*main_frame_rect).*width_or_height)();
 
         if( main_frame_width_or_height == 0 )
             return;
@@ -218,7 +222,7 @@ void CMainFrame::OnDestroy()
 }
 
 
-void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
+void CMainFrame::OnInitMenuPopup(CMenu* const pPopupMenu, const UINT nIndex, const BOOL bSysMenu)
 {
     __super::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 
@@ -246,7 +250,7 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 }
 
 
-void CMainFrame::OnWindowDocument(UINT nID)
+void CMainFrame::OnWindowDocument(const UINT nID)
 {
     WindowsMenuManager::ActivateDocument(*this, nID);
 }
@@ -258,17 +262,17 @@ void CMainFrame::OnWindowWindows()
 }
 
 
-void CMainFrame::ShowDockablePane(CDockablePane& dockable_pane, BOOL visibility)
+void CMainFrame::ShowDockablePane(CDockablePane& dockable_pane, const BOOL visibility)
 {
-	SetFocus();
-	ShowPane(&dockable_pane, visibility, FALSE, FALSE);
-	RecalcLayout();
+    SetFocus();
+    ShowPane(&dockable_pane, visibility, FALSE, FALSE);
+    RecalcLayout();
 }
 
 
-void CMainFrame::OnWindowDockablePane(UINT nID)
+void CMainFrame::OnWindowDockablePane(const UINT nID)
 {
-    auto need_to_create = [&](CDockablePane* dockable_pane)
+    auto need_to_create = [&](CDockablePane* const dockable_pane)
     {
         // if already created, toggle the visibility
         if( dockable_pane != nullptr )
@@ -296,7 +300,7 @@ void CMainFrame::OnWindowDockablePane(UINT nID)
 }
 
 
-void CMainFrame::OnUpdateWindowDockablePane(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateWindowDockablePane(CCmdUI* const pCmdUI)
 {
     const CDockablePane* dockable_pane = ( pCmdUI->m_nID == ID_WINDOW_BUILD )  ? static_cast<CDockablePane*>(m_buildWnd.get()) :
                                        /*( pCmdUI->m_nID == ID_WINDOW_OUTPUT )*/ static_cast<CDockablePane*>(m_htmlOutputWnd.get());
@@ -305,7 +309,7 @@ void CMainFrame::OnUpdateWindowDockablePane(CCmdUI* pCmdUI)
 }
 
 
-CSDocumentBuildWnd* CMainFrame::GetBuildWnd(bool make_visible_if_not/* = true*/)
+CSDocumentBuildWnd* CMainFrame::GetBuildWnd(const bool make_visible_if_not/* = true*/)
 {
     if( m_buildWnd != nullptr )
     {
@@ -329,13 +333,13 @@ CSDocumentBuildWnd* CMainFrame::GetBuildWnd(bool make_visible_if_not/* = true*/)
         rect.right = rect.Width() * 3 / 4;
         rect.bottom = std::max(MinHeight, std::min(rect.Height(), static_cast<int>(rect.Height() * m_globalSettings.build_window_proportion)));
 
-	    if( !m_buildWnd->Create(_T("Build"), this, rect, TRUE, ID_BUILD_WINDOW,
+        if( !m_buildWnd->Create(L"Build", this, rect, TRUE, ID_BUILD_WINDOW,
                                 WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM | CBRS_FLOAT_MULTI) )
-	    {
-		    return ReturnProgrammingError(nullptr);
-	    }
+        {
+            return ReturnProgrammingError(nullptr);
+        }
 
-	    m_buildWnd->EnableDocking(CBRS_ALIGN_ANY);
+        m_buildWnd->EnableDocking(CBRS_ALIGN_ANY);
         DockPane(m_buildWnd.get());
 
         if( !make_visible_if_not )
@@ -357,7 +361,7 @@ HtmlOutputWnd* CMainFrame::GetHtmlOutputWnd()
     else
     {
         m_htmlOutputWnd = std::make_unique<HtmlOutputWnd>();
-        m_htmlOutputWnd->GetHtmlViewCtrl().AddWebEventObserver([&](const std::wstring& message) { OnWebMessageReceived(message); });
+        m_htmlOutputWnd->GetHtmlViewCtrl().AddWebEventObserver([&](const std::wstring_view message_sv) { OnWebMessageReceived(TC::ToUtf8(message_sv)); });
 
         // the window will be docked, but if it is dragged out as a proper window, make sure the width and height are reasonable;
         // the width does dictate how large the window shows while docked (by default, at the right)
@@ -368,21 +372,21 @@ HtmlOutputWnd* CMainFrame::GetHtmlOutputWnd()
         rect.right = std::max(MinWidth, std::min(rect.Width(), static_cast<int>(rect.Width() * m_globalSettings.html_window_proportion)));
         rect.bottom = rect.Height() * 8 / 10;
 
-	    if( !m_htmlOutputWnd->Create(_T("Output"), this, rect, TRUE, ID_HTML_OUTPUT_WINDOW,
+        if( !m_htmlOutputWnd->Create(L"Output", this, rect, TRUE, ID_HTML_OUTPUT_WINDOW,
                                      WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI) )
-	    {
-		    return ReturnProgrammingError(nullptr);
-	    }
+        {
+            return ReturnProgrammingError(nullptr);
+        }
 
-	    m_htmlOutputWnd->EnableDocking(CBRS_ALIGN_ANY);
-	    DockPane(m_htmlOutputWnd.get());
+        m_htmlOutputWnd->EnableDocking(CBRS_ALIGN_ANY);
+        DockPane(m_htmlOutputWnd.get());
     }
 
     return m_htmlOutputWnd.get();
 }
 
 
-BOOL CMainFrame::OnShowMDITabContextMenu(CPoint point, DWORD dwAllowedItems, BOOL bTabDrop)
+BOOL CMainFrame::OnShowMDITabContextMenu(const CPoint point, const DWORD dwAllowedItems, const BOOL bTabDrop)
 {
     if( bTabDrop )
         return __super::OnShowMDITabContextMenu(point, dwAllowedItems, bTabDrop);
@@ -393,19 +397,19 @@ BOOL CMainFrame::OnShowMDITabContextMenu(CPoint point, DWORD dwAllowedItems, BOO
     menu.LoadMenu(IDR_TAB_CONTEXT);
     ASSERT(menu.GetMenuItemCount() == 1);
 
-    CMenu* submenu = menu.GetSubMenu(0);
+    CMenu* const submenu = menu.GetSubMenu(0);
 
-    CMFCPopupMenu* popup_menu = new CMFCPopupMenu;
+    CMFCPopupMenu* const popup_menu = new CMFCPopupMenu;
     popup_menu->SetAutoDestroy(FALSE);
     popup_menu->Create(this, point.x, point.y, submenu->GetSafeHmenu());
 
-    return TRUE;    
+    return TRUE;
 }
 
 
 TextEditDoc* CMainFrame::GetActiveDoc()
 {
-    CMDIChildWnd* active_wnd = MDIGetActive();
+    CMDIChildWnd* const active_wnd = MDIGetActive();
     return ( active_wnd != nullptr ) ? assert_cast<TextEditDoc*>(active_wnd->GetActiveDocument()) :
                                        nullptr;
 }
@@ -413,7 +417,7 @@ TextEditDoc* CMainFrame::GetActiveDoc()
 
 DocSetSpec* CMainFrame::GetActiveDocSetSpec()
 {
-    TextEditDoc* text_edit_doc = GetActiveDoc();
+    TextEditDoc* const text_edit_doc = GetActiveDoc();
     return ( text_edit_doc != nullptr ) ? text_edit_doc->GetAssociatedDocSetSpec() :
                                           nullptr;
 }
@@ -421,11 +425,11 @@ DocSetSpec* CMainFrame::GetActiveDocSetSpec()
 
 TextEditView* CMainFrame::GetActiveTextEditView()
 {
-    CFrameWnd* active_frame = GetActiveFrame();
+    CFrameWnd* const active_frame = GetActiveFrame();
 
     if( active_frame != nullptr )
     {
-        CView* active_view = active_frame->GetActiveView();
+        CView* const active_view = active_frame->GetActiveView();
 
         if( active_view != nullptr && active_view->IsKindOf(RUNTIME_CLASS(TextEditView)) )
             return assert_cast<TextEditView*>(active_view);
@@ -435,9 +439,9 @@ TextEditView* CMainFrame::GetActiveTextEditView()
 }
 
 
-std::shared_ptr<DocSetSpec> CMainFrame::FindSharedDocSetSpec(std::variant<wstring_view, DocSetSpec*> filename_or_doc_set_spec_ptr, bool open_if_not_found)
+std::shared_ptr<DocSetSpec> CMainFrame::FindSharedDocSetSpec(const std::variant<std::string_view, DocSetSpec*> file_path_or_doc_set_spec_ptr, const bool open_if_not_found)
 {
-    ASSERT(std::holds_alternative<wstring_view>(filename_or_doc_set_spec_ptr) || !open_if_not_found);
+    ASSERT(std::holds_alternative<std::string_view>(file_path_or_doc_set_spec_ptr) || !open_if_not_found);
 
     std::shared_ptr<DocSetSpec> matched_doc_set_spec;
 
@@ -445,12 +449,12 @@ std::shared_ptr<DocSetSpec> CMainFrame::FindSharedDocSetSpec(std::variant<wstrin
     ForeachDoc<TextEditDoc>(
         [&](TextEditDoc& text_edit_doc)
         {
-            DocSetSpec* doc_set_spec = text_edit_doc.GetAssociatedDocSetSpec();
+            DocSetSpec* const doc_set_spec = text_edit_doc.GetAssociatedDocSetSpec();
 
             if( doc_set_spec != nullptr )
             {
-                if( std::holds_alternative<wstring_view>(filename_or_doc_set_spec_ptr) ? SO::EqualsNoCase(doc_set_spec->GetFilename(), std::get<wstring_view>(filename_or_doc_set_spec_ptr)) :
-                                                                                         ( doc_set_spec == std::get<DocSetSpec*>(filename_or_doc_set_spec_ptr) ) )
+                if( std::holds_alternative<std::string_view>(file_path_or_doc_set_spec_ptr) ? SO::EqualsNoCase(doc_set_spec->GetFilePath(), std::get<std::string_view>(file_path_or_doc_set_spec_ptr)) :
+                                                                                              ( doc_set_spec == std::get<DocSetSpec*>(file_path_or_doc_set_spec_ptr) ) )
                 {
                     matched_doc_set_spec = text_edit_doc.GetSharedAssociatedDocSetSpec();
                     return false;
@@ -462,15 +466,15 @@ std::shared_ptr<DocSetSpec> CMainFrame::FindSharedDocSetSpec(std::variant<wstrin
 
     if( open_if_not_found && matched_doc_set_spec == nullptr )
     {
-        ASSERT(PortableFunctions::FileIsRegular(std::wstring(std::get<wstring_view>(filename_or_doc_set_spec_ptr))));
-        matched_doc_set_spec = std::make_shared<DocSetSpec>(std::get<wstring_view>(filename_or_doc_set_spec_ptr));
+        ASSERT(PortableFunctions::FileIsRegular(std::string(std::get<std::string_view>(file_path_or_doc_set_spec_ptr))));
+        matched_doc_set_spec = std::make_unique<DocSetSpec>(std::string(std::get<std::string_view>(file_path_or_doc_set_spec_ptr)));
     }
 
     return matched_doc_set_spec;
 }
 
 
-bool CMainFrame::IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::wstring& csdoc_filename, bool match_full_path/* = true*/)
+bool CMainFrame::IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::string& csdoc_file_path, const bool match_full_path/* = true*/)
 {
     try
     {
@@ -478,7 +482,7 @@ bool CMainFrame::IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::wstrin
 
         if( match_full_path )
         {
-            std::shared_ptr<const DocSetComponent> matched_doc_set_component = doc_set_spec.FindComponent(csdoc_filename, true);
+            const std::shared_ptr<const DocSetComponent> matched_doc_set_component = doc_set_spec.FindComponent(csdoc_file_path, true);
 
             if( matched_doc_set_component != nullptr )
             {
@@ -489,7 +493,7 @@ bool CMainFrame::IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::wstrin
 
         else
         {
-            const std::vector<std::shared_ptr<DocSetComponent>>* doc_set_components_with_name = doc_set_spec.FindDocument(csdoc_filename);
+            const std::vector<std::shared_ptr<DocSetComponent>>* doc_set_components_with_name = doc_set_spec.FindDocument(csdoc_file_path);
 
             if( doc_set_components_with_name != nullptr )
             {
@@ -504,7 +508,7 @@ bool CMainFrame::IsCSDocPartOfDocSet(DocSetSpec& doc_set_spec, const std::wstrin
 }
 
 
-void CMainFrame::CompileDocSetSpecIfNecessary(DocSetSpec& doc_set_spec, DocSetCompiler::SpecCompilationType spec_compilation_type,
+void CMainFrame::CompileDocSetSpecIfNecessary(DocSetSpec& doc_set_spec, const DocSetCompiler::SpecCompilationType spec_compilation_type,
                                               DocSetCompiler::ErrorIssuerType error_issuer/* = DocSetCompiler::SuppressErrors { }*/)
 {
     try
@@ -515,16 +519,16 @@ void CMainFrame::CompileDocSetSpecIfNecessary(DocSetSpec& doc_set_spec, DocSetCo
 
     catch( const CSProException& exception )
     {
-        throw CSProExceptionWithFilename(doc_set_spec.GetFilename(),
-                                         _T("There were errors compiling the associated Document Set '%s': %s"),
-                                         PortableFunctions::PathGetFilename(doc_set_spec.GetFilename()), exception.GetErrorMessage().c_str());
+        throw CSProExceptionWithFilePath(doc_set_spec.GetFilePath(),
+                                         "There were errors compiling the associated Document Set '%s': %s",
+                                         PortableFunctions::PathGetFilename(doc_set_spec.GetFilePath()).c_str(), exception.what());
     }
 }
 
 
 LRESULT CMainFrame::OnSyncToolbarAndWindows(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    bool show_main_frame_toolbar = ( MDIGetActive() == nullptr );
+    const bool show_main_frame_toolbar = ( MDIGetActive() == nullptr );
 
     m_wndMainToolBar.ShowPane(show_main_frame_toolbar, TRUE, FALSE);
     m_wndDocumentToolBar.ShowPane(!show_main_frame_toolbar, FALSE, FALSE);
@@ -532,7 +536,7 @@ LRESULT CMainFrame::OnSyncToolbarAndWindows(WPARAM /*wParam*/, LPARAM /*lParam*/
     // when no documents are open, hide the build and HTML output windows
     if( show_main_frame_toolbar )
     {
-        for( CDockablePane* dockable_pane : std::initializer_list<CDockablePane*>{ m_buildWnd.get(), m_htmlOutputWnd.get() } )
+        for( CDockablePane* const dockable_pane : std::initializer_list<CDockablePane*>{ m_buildWnd.get(), m_htmlOutputWnd.get() } )
         {
             if( dockable_pane != nullptr && dockable_pane->IsVisible() )
                 ShowDockablePane(*dockable_pane, FALSE);
@@ -543,20 +547,38 @@ LRESULT CMainFrame::OnSyncToolbarAndWindows(WPARAM /*wParam*/, LPARAM /*lParam*/
 }
 
 
+LRESULT CMainFrame::OnGetTabToolTip(const WPARAM /*wParam*/, const LPARAM lParam)
+{
+    CMFCTabToolTipInfo* const tab_tool_tip_info = reinterpret_cast<CMFCTabToolTipInfo*>(lParam);
+    ASSERT(tab_tool_tip_info != nullptr);
+    ASSERT_VALID(tab_tool_tip_info->m_pTabWnd);
+
+    const CDocument* const active_doc = GetActiveDoc();
+
+    if( active_doc != nullptr && !active_doc->GetPathName().IsEmpty() &&
+        tab_tool_tip_info->m_pTabWnd->IsMDITab() )
+    {
+        tab_tool_tip_info->m_strText = active_doc->GetPathName();
+    }
+
+    return 0;
+}
+
+
 void CMainFrame::OnStatusBarAssociatedDocSetClick()
 {
     // when double-clicking on the associated Document Set in the status bar, open the spec
-    const DocSetSpec* doc_set_spec = GetActiveDocSetSpec();
+    const DocSetSpec* const doc_set_spec = GetActiveDocSetSpec();
 
     if( doc_set_spec != nullptr )
     {
-        AfxGetApp()->OpenDocumentFile(doc_set_spec->GetFilename().c_str());
+        AfxGetApp()->OpenDocumentFile(TC::ToWide(doc_set_spec->GetFilePath()).c_str());
     }
 
     // otherwise, if a CSPro Document, bring up the Associate with Document Set dialog
     else
     {
-        CFrameWnd* active_frame = GetActiveFrame();
+        CFrameWnd* const active_frame = GetActiveFrame();
 
         if( active_frame != nullptr && active_frame->IsKindOf(RUNTIME_CLASS(CSDocFrame)) )
             active_frame->PostMessage(WM_COMMAND, ID_ASSOCIATE_WITH_DOCSET);
@@ -564,29 +586,29 @@ void CMainFrame::OnStatusBarAssociatedDocSetClick()
 }
 
 
-void CMainFrame::OnUpdateStatusBarAssociatedDocSet(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateStatusBarAssociatedDocSet(CCmdUI* const pCmdUI)
 {
-    TextEditDoc* text_edit_doc = GetActiveDoc();
-    std::wstring pane_text;
+    TextEditDoc* const text_edit_doc = GetActiveDoc();
+    std::string pane_text;
 
     if( text_edit_doc != nullptr )
     {
-        const DocSetSpec* doc_set_spec = text_edit_doc->GetAssociatedDocSetSpec();
+        const DocSetSpec* const doc_set_spec = text_edit_doc->GetAssociatedDocSetSpec();
 
-        pane_text = _T("Document Set: ") + ( ( doc_set_spec == nullptr ) ? _T("<unassociated>") :
-                                                                           doc_set_spec->GetTitleOrFilenameWithoutExtension() );
+        pane_text = FormatText("Document Set: %s", ( doc_set_spec == nullptr ) ? "<unassociated>" :
+                                                                                 doc_set_spec->GetTitleOrFilenameWithoutExtension().c_str());
     }
 
-    pCmdUI->SetText(pane_text.c_str());
+    pCmdUI->SetText(TC::ToWide(pane_text).c_str());
 }
 
 
-LRESULT CMainFrame::OnSetStatusBarFilePos(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnSetStatusBarFilePos(const WPARAM wParam, LPARAM /*lParam*/)
 {
     constexpr int pane_index = 2;
     static_assert(StatusBarIndicators[pane_index] == ID_STATUS_PANE_FILE_POS);
 
-    const TCHAR* text = reinterpret_cast<const TCHAR*>(wParam);
+    const wchar_t* const text = reinterpret_cast<const wchar_t*>(wParam);
 
     m_wndStatusBar.SetPaneText(pane_index, text);
 
@@ -594,25 +616,25 @@ LRESULT CMainFrame::OnSetStatusBarFilePos(WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-void CMainFrame::OnUpdateStatusBar(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateStatusBar(CCmdUI* const pCmdUI)
 {
     // enable the status bar file position indicator
     pCmdUI->Enable(TRUE);
 }
 
 
-void CMainFrame::OnUpdateKeyOvertype(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateKeyOvertype(CCmdUI* const pCmdUI)
 {
-    TextEditView* text_edit_view = GetActiveTextEditView();
+    TextEditView* const text_edit_view = GetActiveTextEditView();
 
     pCmdUI->Enable(text_edit_view != nullptr &&
                    text_edit_view->GetLogicCtrl()->GetOvertype());
 }
 
 
-void CMainFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* const pCmdUI)
 {
-    CDocument* active_doc = GetActiveDoc();
+    CDocument* const active_doc = GetActiveDoc();
 
     pCmdUI->Enable(active_doc != nullptr &&
                    !active_doc->GetPathName().IsEmpty());
@@ -621,7 +643,7 @@ void CMainFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* pCmdUI)
 
 void CMainFrame::OnCopyFullPath()
 {
-    const CDocument* active_doc = GetActiveDoc();
+    const CDocument* const active_doc = GetActiveDoc();
     ASSERT(active_doc != nullptr);
 
     WinClipboard::PutText(this, active_doc->GetPathName());
@@ -630,7 +652,7 @@ void CMainFrame::OnCopyFullPath()
 
 void CMainFrame::OnCopyFilename()
 {
-    const CDocument* active_doc = GetActiveDoc();
+    const CDocument* const active_doc = GetActiveDoc();
     ASSERT(active_doc != nullptr);
 
     WinClipboard::PutText(this, PortableFunctions::PathGetFilename(active_doc->GetPathName()));
@@ -639,23 +661,23 @@ void CMainFrame::OnCopyFilename()
 
 void CMainFrame::OnOpenContainingFolder()
 {
-    const CDocument* active_doc = GetActiveDoc();
+    const CDocument* const active_doc = GetActiveDoc();
     ASSERT(active_doc != nullptr);
 
     OpenContainingFolder(active_doc->GetPathName());
 }
 
 
-LRESULT CMainFrame::OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnFindOpenTextSourceEditable(const WPARAM wParam, const LPARAM lParam)
 {
-    const std::wstring& filename = *reinterpret_cast<const std::wstring*>(wParam);
+    const std::string& file_path = *reinterpret_cast<const std::string*>(wParam);
     std::shared_ptr<TextSourceEditable>& out_text_source = *reinterpret_cast<std::shared_ptr<TextSourceEditable>*>(lParam);
     ASSERT(out_text_source == nullptr);
 
     ForeachDoc(
         [&](CDocument& doc)
         {
-            if( SO::EqualsNoCase(filename, doc.GetPathName()) )
+            if( SO::EqualsNoCase(file_path, doc.GetPathName()) )
             {
                 out_text_source = assert_cast<TextEditDoc&>(doc).GetSharedTextSourceEditable();
                 return false;
@@ -668,15 +690,16 @@ LRESULT CMainFrame::OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnGetOpenTextSourceEditables(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnGetOpenTextSourceEditables(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    std::map<StringNoCase, TextSourceEditable*>& text_sources_for_open_documents = *reinterpret_cast<std::map<StringNoCase, TextSourceEditable*>*>(wParam);
+    std::map<std::string, TextSourceEditable*, cs::case_insensitive_less>& text_sources_for_open_documents =
+        *reinterpret_cast<std::map<std::string, TextSourceEditable*, cs::case_insensitive_less>*>(wParam);
 
     ForeachDoc<TextEditDoc>(
         [&](TextEditDoc& doc)
         {
             if( !doc.GetPathName().IsEmpty() )
-                text_sources_for_open_documents.try_emplace(CS2WS(doc.GetPathName()), doc.GetTextSource());
+                text_sources_for_open_documents.try_emplace(TC::ToUtf8(doc.GetPathName()), doc.GetTextSource());
 
             return true;
         });
@@ -688,16 +711,16 @@ LRESULT CMainFrame::OnGetOpenTextSourceEditables(WPARAM wParam, LPARAM /*lParam*
 LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     // this message is sent by another instance of CSDocument to open a file in an existing instance of CSDocument
-    CString filenames_json;
+    CString file_paths_json;
 
-    if( IMSAOpenSharedFile(filenames_json) )
+    if( IMSAOpenSharedFile(file_paths_json) )
     {
         try
         {
-            const std::vector<std::wstring> filenames = Json::Parse(filenames_json).Get<std::vector<std::wstring>>();
+            const std::vector<std::string> file_paths = Json::Parse(TC::ToUtf8(file_paths_json)).Get<std::vector<std::string>>();
 
-            for( const std::wstring& filename : filenames )
-                AfxGetApp()->OpenDocumentFile(filename.c_str(), TRUE);
+            for( const std::string& file_path : file_paths )
+                AfxGetApp()->OpenDocumentFile(TC::ToWide(file_path).c_str(), TRUE);
         }
         catch(...) { ASSERT(false); }
     }
@@ -715,14 +738,14 @@ void CMainFrame::OnFileNewDocumentSet()
 void CMainFrame::OnFileCloseAll()
 {
     CMDIChildWnd* active_wnd = MDIGetActive();
-    
+
     while( active_wnd != nullptr )
     {
         active_wnd->GetActiveFrame()->SendMessage(WM_CLOSE);
 
         CMDIChildWnd* const new_active_wnd = MDIGetActive();
 
-        // if the active window is the same as the one that was supposed to be 
+        // if the active window is the same as the one that was supposed to be
         // closed, it means that the user has canceled the closing operation
         if( new_active_wnd == active_wnd )
             return;
@@ -752,7 +775,7 @@ void CMainFrame::OnFileSaveAll()
 }
 
 
-void CMainFrame::OnUpdateFileSaveAll(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateFileSaveAll(CCmdUI* const pCmdUI)
 {
     bool a_document_is_modified = false;
 

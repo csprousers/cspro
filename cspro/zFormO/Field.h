@@ -89,7 +89,7 @@ public:
     const CaptureInfo& GetCaptureInfo() const            { return m_captureInfo; }
     void SetCaptureInfo(const CaptureInfo& capture_info) { m_captureInfo = capture_info; }
 
-    void SetupCaptureInfo(const CDictItem& dictionary_item, const DragOptions& drag_options);
+    void SetupCaptureInfo(const CDictItem& dict_item, const DragOptions& drag_options);
 
     // returns the field's capture info, or if unspecified, the dictionary item's capture info
     const CaptureInfo&  GetEvaluatedCaptureInfo() const;

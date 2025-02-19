@@ -2,26 +2,30 @@
 
 #include <zHtml/zHtml.h>
 
-/// <summary>
-/// Extract attributes from a CSS style string like "font-family: Arial; font-size: 10;"
-/// </summary>
+
+// --------------------------------------------------------------------------
+// CssStyleParser
+//
+// This class extracts attributes from a CSS style string like:
+//     "font-family: Arial; font-size: 10;"
+// --------------------------------------------------------------------------
 
 class ZHTML_API CssStyleParser
 {
 public:
-    static std::optional<std::wstring> Attribute(NullTerminatedString attribute_name, NullTerminatedString css);
+    static std::optional<std::string> Attribute(cs::string_sz attribute_name, cs::string_sz css);
 
-    static std::optional<std::wstring> FontName(NullTerminatedString css);
+    static std::optional<std::string> FontName(cs::string_sz css);
 
-    static std::optional<int> FontSize(NullTerminatedString css);
+    static std::optional<int> FontSize(cs::string_sz css);
 
-    static bool Bold(NullTerminatedString css);
+    static bool Bold(cs::string_sz css);
 
-    static bool Italic(NullTerminatedString css);
+    static bool Italic(cs::string_sz css);
 
-    static bool Underline(NullTerminatedString css);
+    static bool Underline(cs::string_sz css);
 
-    static std::optional<COLORREF> TextColor(NullTerminatedString css);
+    static std::optional<COLORREF> TextColor(cs::string_sz css);
 
-    static LOGFONT ToLogfont(NullTerminatedString css);
+    static LOGFONT ToLogfont(cs::string_sz css);
 };

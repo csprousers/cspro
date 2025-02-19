@@ -15,7 +15,7 @@ ChartManager::~ChartManager()
 }
 
 
-const std::wstring& ChartManager::GetFrequencyViewUrl()
+const std::string& ChartManager::GetFrequencyViewUrl()
 {
     ASSERT(m_fileServer == nullptr || !m_frequencyViewUrl.empty());
 
@@ -23,19 +23,19 @@ const std::wstring& ChartManager::GetFrequencyViewUrl()
     {
         m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
 
-        const std::wstring frequency_view_filename = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Charting),
-                                                                                         _T("frequency-view.html"));
+        const std::string frequency_view_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Charting),
+                                                                   "frequency-view.html");
 
-        ASSERT(ActionInvoker::AccessToken::Charting_FrequencyView_sv == ActionInvoker::AccessToken::CreateAccessTokenForHtmlDirectoryFile(frequency_view_filename));
+        ASSERT(ActionInvoker::AccessToken::Charting_FrequencyView_sv == ActionInvoker::AccessToken::CreateAccessTokenForHtmlDirectoryFile(frequency_view_file_path));
 
-        m_frequencyViewUrl = m_fileServer->GetFilenameUrl(frequency_view_filename);
+        m_frequencyViewUrl = m_fileServer->CreateFileUrl(frequency_view_file_path);
     }
 
     return m_frequencyViewUrl;
 }
 
 
-bool ChartManager::TableSupportsCharting(CTblGrid* table_grid)
+bool ChartManager::TableSupportsCharting(CTblGrid* const table_grid)
 {
     if( table_grid->GetSafeHwnd() == nullptr )
         return false;
@@ -47,10 +47,10 @@ bool ChartManager::TableSupportsCharting(CTblGrid* table_grid)
     const auto& lookup = m_frequencyJson.find(table);
 
     if( lookup != m_frequencyJson.cend() )
-        return !lookup->second.empty();
+        return lookup->second.IsSet();
 
     // if not, try to create frequency JSON for the table
-    std::wstring& frequency_json = m_frequencyJson.try_emplace(table, std::wstring()).first->second;
+    SharableString& frequency_json = m_frequencyJson.try_emplace(table, SharableString()).first->second;
 
     try
     {
@@ -66,11 +66,11 @@ bool ChartManager::TableSupportsCharting(CTblGrid* table_grid)
         ASSERT(false);
     }
 
-    return !frequency_json.empty();
+    return frequency_json.IsSet();
 }
 
 
-const std::wstring& ChartManager::GetTableFrequencyJson(CTblGrid* table_grid) const
+SharableString ChartManager::GetTableFrequencyJson(CTblGrid* const table_grid) const
 {
     if( table_grid != nullptr )
     {
@@ -80,5 +80,5 @@ const std::wstring& ChartManager::GetTableFrequencyJson(CTblGrid* table_grid) co
             return lookup->second;
     }
 
-    return ReturnProgrammingError(SO::EmptyString);
+    return ReturnProgrammingError(SO::Empty_string);
 }

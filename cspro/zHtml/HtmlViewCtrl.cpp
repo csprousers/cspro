@@ -32,9 +32,10 @@ HtmlViewCtrl::HtmlViewCtrl(bool initialize_webview_in_pre_subclass_window/* = tr
     :   m_impl(std::make_unique<HtmlViewCtrl::Impl>()),
         m_initializeWebviewInPreSubclassWindow(initialize_webview_in_pre_subclass_window),
         m_contextMenuEnabled(true),
+        m_zoomControlEnabled(false),
         m_openNonLocalhostLinksInBrowser(false),
         m_initialized(false),
-        m_accelerator_key_handler([this](UINT message, UINT key, INT lParam) { return DefaultAcceleratorKeyHandler(message, key, lParam); })
+        m_acceleratorKeyHandler([this](UINT message, UINT key, INT lParam) { return DefaultAcceleratorKeyHandler(message, key, lParam); })
 {
 }
 
@@ -44,13 +45,28 @@ HtmlViewCtrl::~HtmlViewCtrl()
 }
 
 
-void HtmlViewCtrl::SetContextMenuEnabled(bool enabled)
+void HtmlViewCtrl::SetContextMenuEnabled(const bool enabled)
 {
     m_contextMenuEnabled = enabled;
-    if (m_impl->view) {
-        ICoreWebView2Settings* Settings;
-        m_impl->view->get_Settings(&Settings);
-        Settings->put_AreDefaultContextMenusEnabled(enabled);
+
+    if( m_impl->view != nullptr )
+    {
+        ICoreWebView2Settings* settings;
+        m_impl->view->get_Settings(&settings);
+        settings->put_AreDefaultContextMenusEnabled(enabled);
+    }
+}
+
+
+void HtmlViewCtrl::SetZoomControlEnabled(const bool enabled)
+{
+    m_zoomControlEnabled = enabled;
+
+    if( m_impl->view != nullptr )
+    {
+        ICoreWebView2Settings* settings;
+        m_impl->view->get_Settings(&settings);
+        settings->put_IsZoomControlEnabled(m_zoomControlEnabled);
     }
 }
 
@@ -63,7 +79,7 @@ void HtmlViewCtrl::SetOpenNonLocalhostLinksInBrowser(bool open_in_browser)
 
 void HtmlViewCtrl::PreSubclassWindow()
 {
-    CWnd::PreSubclassWindow();
+    __super::PreSubclassWindow();
 
     if( m_initializeWebviewInPreSubclassWindow )
         InitializeWebView(); // If used in dialog OnCreate is never called so we initialize here
@@ -72,7 +88,7 @@ void HtmlViewCtrl::PreSubclassWindow()
 
 int HtmlViewCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if (CWnd::OnCreate(lpCreateStruct) == -1)
+    if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
     InitializeWebView();
@@ -81,10 +97,12 @@ int HtmlViewCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 
-void HtmlViewCtrl::OnSize(UINT nType, int cx, int cy)
+void HtmlViewCtrl::OnSize(const UINT nType, const int cx, const int cy)
 {
-    CWnd::OnSize(nType, cx, cy);
-    if (m_impl->controller) {
+    __super::OnSize(nType, cx, cy);
+
+    if( m_impl->controller != nullptr )
+    {
         RECT bounds;
         GetClientRect(&bounds);
         m_impl->controller->put_Bounds(bounds);
@@ -112,7 +130,7 @@ ICoreWebView2Controller* HtmlViewCtrl::GetController()
 
 void HtmlViewCtrl::InitializeWebView()
 {
-    if (m_initialized)
+    if( m_initialized )
         return;
 
     m_initialized = true;
@@ -147,169 +165,184 @@ void HtmlViewCtrl::InitializeWebView()
 }
 
 
-std::wstring HtmlViewCtrl::GetUserDataDirectory()
+const std::wstring& HtmlViewCtrl::GetUserDataDirectory()
 {
-    static std::wstring user_data_directory;
-
-    if( user_data_directory.empty() )
-    {
-        #define InstanceLockPrefix    _T("CSIL")
-        #define InstanceLockExtension _T(".wb2")
-        constexpr wstring_view InstanceLockFilter = InstanceLockPrefix _T("*") InstanceLockExtension;
-        constexpr size_t MaxInstances = 25;
-
-        // because multiple instances of applications may be using WebView2 controls, make sure that
-        // each is using a unique directory; if not, an operation such as using execpff with wait would
-        // cause both CSEntry instances to hang because of threading issues with WaitForSingleObject
-        std::wstring user_data_root_directory = PortableFunctions::PathAppendToPath(GetAppDataPath(), _T("webview"));
-        PortableFunctions::PathMakeDirectories(user_data_root_directory);
-
-        // try to delete each temporary instance lock file; the ones that can't be deleted are locked
-        std::vector<bool> instance_lock_flags(MaxInstances, false);
-
-        for( const std::wstring& instance_filename : DirectoryLister().SetNameFilter(InstanceLockFilter)
-                                                                      .GetPaths(user_data_root_directory) )
+    static const std::wstring calculated_user_data_directory =
+        []()
         {
-            constexpr size_t InstanceLockPrefix_length = std::wstring_view(InstanceLockPrefix).length();
-            const TCHAR* instance_number_pos = PortableFunctions::PathGetFilename(instance_filename) + InstanceLockPrefix_length;
-            size_t instance_number = static_cast<size_t>(_ttoi(instance_number_pos));
+            #define InstanceLockPrefix    "CSIL"
+            #define InstanceLockExtension ".wb2"
+            constexpr std::string_view InstanceLockFilter_sv = InstanceLockPrefix "*" InstanceLockExtension;
+            constexpr size_t MaxInstances = 25;
 
-            if( !PortableFunctions::FileDelete(instance_filename) && instance_number < instance_lock_flags.size() )
-                instance_lock_flags[instance_number] = true;
-        }
+            // because multiple instances of applications may be using WebView2 controls, make sure that
+            // each is using a unique directory; if not, an operation such as using execpff with wait would
+            // cause both CSEntry instances to hang because of threading issues with WaitForSingleObject
+            const std::string user_data_root_directory = Path::Combine(GetAppDataPath(), "webview");
+            PortableFunctions::PathMakeDirectories(user_data_root_directory);
 
-        // use the first instance number not locked (or the max value if all are locked)
-        const auto& instance_lookup = std::find(instance_lock_flags.cbegin(), instance_lock_flags.cend(), false);
-        int instance_number = (int)std::distance(instance_lock_flags.cbegin(), instance_lookup);
+            // try to delete each temporary instance lock file; the ones that can't be deleted are locked
+            std::vector<bool> instance_lock_flags(MaxInstances, false);
 
-        // create the unique directory name (\CSIL0, \CSIL1, etc.)
-        user_data_directory = PortableFunctions::PathAppendToPath(user_data_root_directory,
-                                                                  SO::Concatenate(InstanceLockPrefix, IntToString(instance_number)));
-
-        // create a temporary file that will only be deleted when this instance ends
-        class TemporaryInstanceFile
-        {
-        public:
-            TemporaryInstanceFile(std::wstring temporary_filename)
-                :   m_temporaryFilename(std::move(temporary_filename))
+            for( const std::string& instance_file_path : DirectoryLister().SetNameFilter(InstanceLockFilter_sv)
+                                                                          .GetPaths(user_data_root_directory) )
             {
-                m_file = PortableFunctions::FileOpen(m_temporaryFilename, _T("wb"));
+                constexpr size_t InstanceLockPrefix_length = std::string_view(InstanceLockPrefix).length();
+                const std::string filename = PortableFunctions::PathGetFilename(instance_file_path);
+                const char* const instance_number_pos = filename.data() + InstanceLockPrefix_length;
+                const size_t instance_number = static_cast<size_t>(atoi(instance_number_pos));
+
+                if( !PortableFunctions::FileDelete(instance_file_path) && instance_number < instance_lock_flags.size() )
+                    instance_lock_flags[instance_number] = true;
             }
 
-            ~TemporaryInstanceFile()
+            // use the first instance number not locked (or the max value if all are locked)
+            const auto& instance_lookup = std::find(instance_lock_flags.cbegin(), instance_lock_flags.cend(), false);
+            const int instance_number = static_cast<int>(std::distance(instance_lock_flags.cbegin(), instance_lookup));
+
+            // create the unique directory name (\CSIL0, \CSIL1, etc.)
+            std::string user_data_directory = Path::Combine(user_data_root_directory,
+                                                            SO::Concatenate(InstanceLockPrefix, IntToString(instance_number)));
+
+            // create a temporary file that will only be deleted when this instance ends
+            class TemporaryInstanceFile
             {
-                if( m_file != nullptr )
+            public:
+                TemporaryInstanceFile(std::string temporary_filename)
+                    :   m_temporaryFilename(std::move(temporary_filename))
                 {
-                    fclose(m_file);
-                    PortableFunctions::FileDelete(m_temporaryFilename);
+                    m_file = PortableFunctions::FileOpen(m_temporaryFilename, "wb");
                 }
-            }
 
-        private:
-            std::wstring m_temporaryFilename;
-            FILE* m_file;
-        };
+                ~TemporaryInstanceFile()
+                {
+                    if( m_file != nullptr )
+                    {
+                        fclose(m_file);
+                        PortableFunctions::FileDelete(m_temporaryFilename);
+                    }
+                }
 
-        static TemporaryInstanceFile temporary_instance_file(user_data_directory + InstanceLockExtension);
-    }
+            private:
+                std::string m_temporaryFilename;
+                FILE* m_file;
+            };
 
-    return user_data_directory;
+            static TemporaryInstanceFile temporary_instance_file(user_data_directory + InstanceLockExtension);
+
+            return TC::ToWide(user_data_directory);
+        }();
+
+    return calculated_user_data_directory;
 }
 
 
-void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* controller)
+void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* const controller)
 {
-    if (controller != nullptr) {
+    if( controller != nullptr )
+    {
         m_impl->controller = controller;
         m_impl->controller->get_CoreWebView2(&m_impl->view);
     }
 
+    // set the background color to white (without transparency);
+    // prior to CSPro 8.1 this didn't ever seem necessary, but without this code,
+    // the margin of DataManager's HtmlView would be transparent
+    try
+    {
+        wil::com_ptr<ICoreWebView2Controller2> controller2 = m_impl->controller.query<ICoreWebView2Controller2>();
+        controller2->put_DefaultBackgroundColor(COREWEBVIEW2_COLOR { 255, 255, 255, 255});
+    }
+    catch(...) { ASSERT(false); }
+
+    // if a message box is displayed while the control is being created, the control is created
+    // without being set to visible, so we manually set it to be visible
+    m_impl->controller->put_IsVisible(TRUE);
+
+
     ConfigureSettings();
     FitWebViewToWindow();
 
-    for (auto& observer : m_webview_created_observers)
+    for( const auto& observer : m_webViewCreatedObservers )
         observer();
 
-    SetupWebMessageReceiver();
     SetupAcceleratorHandler();
-
 
     HRESULT hr = m_impl->view->add_NavigationStarting(
         Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-        [this](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
+        [this](ICoreWebView2* /*sender*/, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
         {
-            if( m_openNonLocalhostLinksInBrowser )
-            {
-                constexpr wstring_view LocalhostPrefix = _T("http://localhost");
-
-                wil::unique_cotaskmem_string uri;
-                args->get_Uri(&uri);
-
-                if( !SO::StartsWithNoCase(uri.get(), LocalhostPrefix) )
-                {
-                    args->put_Cancel(true);
-                    Viewer().ViewHtmlUrl(uri.get());
-                }
-            }
-            return S_OK;
-        }).Get(), nullptr);
-    ASSERT(SUCCEEDED(hr));
-
-
-    // add the host object...
-    if( m_csproHostObject != nullptr )
-    {
-        try
-        {
-            VARIANT host_object_as_variant = { };
-            host_object_as_variant.vt = VT_DISPATCH;
-            host_object_as_variant.pdispVal = m_csproHostObject->GetIDispatch(FALSE);
-
-            hr = m_impl->view->AddHostObjectToScript(L"cspro", &host_object_as_variant);
-
-            // ...and its CSPro JavaScript class "before the HTML document has been parsed
-            // and before any other script included by the HTML document is run"
-            if( SUCCEEDED(hr) )
-            {
-                hr = m_impl->view->AddScriptToExecuteOnDocumentCreated(
-                    m_csproHostObject->GetJavaScriptClassText().c_str(), nullptr);
-            }
-        }
-
-        catch(...)
-        {
-            hr = E_FAIL;
-        }
-
-        if( FAILED(hr) )
-        {
-            ErrorMessage::Display(_T("There was an error adding the CSPro host object and ")
-                                  _T("some functionality will not work as expected."));
-        }
-    }
-
-
-    hr = m_impl->view->add_NavigationCompleted(
-        Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
-        [this](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT
-        {
-            OnNavigationCompleted(args);
+            OnNavigationStarted(args);
             return S_OK;
         }).Get(), nullptr);
     ASSERT(SUCCEEDED(hr));
 
     hr = m_impl->view->add_SourceChanged(
         Microsoft::WRL::Callback<ICoreWebView2SourceChangedEventHandler>(
-        [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* /*args*/) -> HRESULT
+        [this](ICoreWebView2* /*sender*/, ICoreWebView2SourceChangedEventArgs* /*args*/) -> HRESULT
         {
-            wil::unique_cotaskmem_string uri;
-            sender->get_Source(&uri);
-            OnSourceChanged(( _tcscmp(uri.get(), _T("about:blank")) != 0 ) ? uri.get() : _T(""));
+            OnSourceChanged();
             return S_OK;
         }).Get(), nullptr);
     ASSERT(SUCCEEDED(hr));
 
+    hr = m_impl->view->add_NavigationCompleted(
+        Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+        [this](ICoreWebView2* /*sender*/, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT
+        {
+            OnNavigationCompleted(args);
+            return S_OK;
+        }).Get(), nullptr);
+    ASSERT(SUCCEEDED(hr));
 
+    hr = m_impl->view->add_WebMessageReceived(
+        Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+        [this](ICoreWebView2* /*sender*/, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT
+        {
+            OnWebMessageReceived(args);
+            return S_OK;
+        }).Get(), nullptr);
+    ASSERT(SUCCEEDED(hr));
+
+    if( m_csproHostObject != nullptr )
+        AddCSProHostObject();
+
+    ProcessPendingEvents();
+}
+
+
+void HtmlViewCtrl::AddCSProHostObject()
+{
+    ASSERT(m_csproHostObject != nullptr);
+
+    try
+    {
+        VARIANT host_object_as_variant = { };
+        host_object_as_variant.vt = VT_DISPATCH;
+        host_object_as_variant.pdispVal = m_csproHostObject->GetIDispatch(FALSE);
+
+        // add the host object...
+        HRESULT hr = m_impl->view->AddHostObjectToScript(L"cspro", &host_object_as_variant);
+
+        // ...and its CSPro JavaScript class "before the HTML document has been parsed
+        // and before any other script included by the HTML document is run"
+        if( SUCCEEDED(hr) )
+        {
+            hr = m_impl->view->AddScriptToExecuteOnDocumentCreated(TC::ToWide(m_csproHostObject->GetJavaScriptClassText()).c_str(),
+                                                                   nullptr);
+
+            if( SUCCEEDED(hr) )
+                return;
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    ErrorMessage::Display("There was an error adding the CSPro host object and some functionality will not work as expected.");
+}
+
+
+void HtmlViewCtrl::ProcessPendingEvents()
+{
     for( PendingEvent& pending_event : m_pendingEvents )
     {
         if( std::holds_alternative<std::shared_ptr<UriResolver>>(pending_event) )
@@ -327,9 +360,8 @@ void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* controller)
             SetHtml(std::move(std::get<PendingEvent_SetHtml>(pending_event).html));
         }
 
-        else
+        else if( std::holds_alternative<PendingEvent_ExecuteScript >(pending_event) )
         {
-            ASSERT(std::holds_alternative<PendingEvent_ExecuteScript>(pending_event));
             PendingEvent_ExecuteScript& pending_event_execute_script = std::get<PendingEvent_ExecuteScript>(pending_event);
 
             if( pending_event_execute_script.result_handler )
@@ -342,38 +374,120 @@ void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* controller)
                 ExecuteScript(pending_event_execute_script.javascript);
             }
         }
+
+        else
+        {
+            ASSERT(std::holds_alternative<PendingEvent_PostWebMessage>(pending_event));
+            const PendingEvent_PostWebMessage& pending_event_post_web_message = std::get<PendingEvent_PostWebMessage>(pending_event);
+
+            if( pending_event_post_web_message.as_json )
+            {
+                PostWebMessageAsJson(pending_event_post_web_message.message);
+            }
+
+            else
+            {
+                PostWebMessageAsString(pending_event_post_web_message.message);
+            }
+        }
     }
 
     m_pendingEvents.clear();
 }
 
 
-void HtmlViewCtrl::OnSourceChanged(const std::wstring& uri)
+void HtmlViewCtrl::OnNavigationStarted(ICoreWebView2NavigationStartingEventArgs* const args)
 {
-    for( auto& listener : m_source_changed_observers )
-        listener(uri);
+    if( m_navigationStartedObservers.empty() && !m_openNonLocalhostLinksInBrowser )
+        return;
+
+    const std::string uri = GetSource(args, false);
+
+    if( !m_navigationStartedObservers.empty() )
+    {
+        bool cancel_navigation = false;
+
+        for( const auto& observer : m_navigationStartedObservers )
+        {
+            observer(cancel_navigation, uri);
+
+            if( cancel_navigation )
+                break;
+        }
+
+        if( cancel_navigation )
+        {
+            args->put_Cancel(TRUE);
+            return;
+        }
+    }
+
+    if( m_openNonLocalhostLinksInBrowser )
+    {
+        constexpr std::string_view LocalhostPrefix_sv = "http://localhost";
+
+        if( !SO::StartsWithNoCase(uri, LocalhostPrefix_sv) )
+        {
+            args->put_Cancel(true);
+            Viewer().ViewHtmlUrl(uri);
+        }
+    }
 }
 
 
-void HtmlViewCtrl::OnNavigationCompleted(ICoreWebView2NavigationCompletedEventArgs* args)
+void HtmlViewCtrl::OnSourceChanged()
 {
+    if( m_sourceChangedObservers.empty() )
+        return;
+
+    const std::string uri = GetSource();
+
+    for( const auto& observer : m_sourceChangedObservers )
+        observer(uri);
+}
+
+
+void HtmlViewCtrl::OnNavigationCompleted(ICoreWebView2NavigationCompletedEventArgs* const args)
+{
+    if( m_navigationCompletedObservers.empty() )
+        return;
+
     BOOL success;
     args->get_IsSuccess(&success);
-    for (auto& listener : m_navigation_completed_observers)
-        listener(success);
+
+    for( const auto& observer : m_navigationCompletedObservers )
+        observer(success);
+}
+
+
+void HtmlViewCtrl::OnWebMessageReceived(ICoreWebView2WebMessageReceivedEventArgs* const args)
+{
+    if( m_webEventObservers.empty() )
+        return;
+
+    PWSTR message;
+    args->get_WebMessageAsJson(&message);
+
+    const std::wstring_view message_sv(message);
+
+    for( const auto& observer : m_webEventObservers )
+        observer(message_sv);
+
+    CoTaskMemFree(message);
 }
 
 
 void HtmlViewCtrl::ConfigureSettings()
 {
-    ICoreWebView2Settings* Settings;
-    m_impl->view->get_Settings(&Settings);
-    Settings->put_IsScriptEnabled(TRUE);
-    Settings->put_AreDefaultScriptDialogsEnabled(TRUE);
-    Settings->put_IsWebMessageEnabled(TRUE);
-    Settings->put_IsStatusBarEnabled(FALSE);
-    Settings->put_IsZoomControlEnabled(FALSE);
-    Settings->put_AreDefaultContextMenusEnabled(m_contextMenuEnabled);
+    ICoreWebView2Settings* settings;
+    m_impl->view->get_Settings(&settings);
+
+    settings->put_IsScriptEnabled(TRUE);
+    settings->put_AreDefaultScriptDialogsEnabled(TRUE);
+    settings->put_IsWebMessageEnabled(TRUE);
+    settings->put_IsStatusBarEnabled(FALSE);
+    settings->put_IsZoomControlEnabled(m_zoomControlEnabled);
+    settings->put_AreDefaultContextMenusEnabled(m_contextMenuEnabled);
 }
 
 
@@ -385,44 +499,46 @@ void HtmlViewCtrl::FitWebViewToWindow()
 }
 
 
-void HtmlViewCtrl::SetupWebMessageReceiver()
-{
-    HRESULT hr = m_impl->view->add_WebMessageReceived(
-        Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-        [this](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT
-        {
-            PWSTR message;
-            args->get_WebMessageAsJson(&message);
-            for (auto& listener : m_web_event_observers)
-                listener(message);
-            CoTaskMemFree(message);
-            return S_OK;
-        }).Get(), nullptr);
-    ASSERT(SUCCEEDED(hr));
-}
-
-
 void HtmlViewCtrl::PostWebMessageAsJson(const std::wstring& message_json)
 {
-    if (m_impl->view) {
+    if( m_impl->view != nullptr )
+    {
         HRESULT hr = m_impl->view->PostWebMessageAsJson(message_json.c_str());
         ASSERT(SUCCEEDED(hr));
     }
-    else {
-        ASSERT(!"WAIT FOR THE VIEW TO BE INITIALIZED");
+
+    else
+    {
+        m_pendingEvents.emplace_back(PendingEvent_PostWebMessage { message_json, true });
     }
+}
+
+
+void HtmlViewCtrl::PostWebMessageAsJson(const std::string_view message_json_sv)
+{
+    AssertValidJson(message_json_sv);
+    PostWebMessageAsJson(TC::ToWide(message_json_sv));
 }
 
 
 void HtmlViewCtrl::PostWebMessageAsString(const std::wstring& message_string)
 {
-    if (m_impl->view) {
+    if( m_impl->view != nullptr )
+    {
         HRESULT hr = m_impl->view->PostWebMessageAsString(message_string.c_str());
         ASSERT(SUCCEEDED(hr));
     }
-    else {
-        ASSERT(!"WAIT FOR THE VIEW TO BE INITIALIZED");
+
+    else
+    {
+        m_pendingEvents.emplace_back(PendingEvent_PostWebMessage { message_string, false });
     }
+}
+
+
+void HtmlViewCtrl::PostWebMessageAsString(const std::string_view message_string_sv)
+{
+    PostWebMessageAsString(TC::ToWide(message_string_sv));
 }
 
 
@@ -462,39 +578,21 @@ void HtmlViewCtrl::ExecuteScript(NullTerminatedString javascript, std::function<
 }
 
 
-void HtmlViewCtrl::AddWebViewCreatedObserver(std::function<void()> observer)
+void HtmlViewCtrl::ExecuteScript(const std::string_view javascript_sv)
 {
-    m_webview_created_observers.emplace_back(std::move(observer));
-}
-
-
-void HtmlViewCtrl::AddSourceChangedObserver(std::function<void(const std::wstring& event_json)> observer)
-{
-    m_source_changed_observers.emplace_back(std::move(observer));
-}
-
-
-void HtmlViewCtrl::AddNavigationCompletedObserver(std::function<void(bool)> observer)
-{
-    m_navigation_completed_observers.emplace_back(std::move(observer));
-}
-
-
-void HtmlViewCtrl::AddWebEventObserver(std::function<void(const std::wstring& event_json)> observer)
-{
-    m_web_event_observers.emplace_back(std::move(observer));
+    ExecuteScript(TC::ToWide(javascript_sv));
 }
 
 
 void HtmlViewCtrl::SetAcceleratorKeyHandler(std::function<bool(UINT message, UINT key, INT lParam)> handler)
 {
-    m_accelerator_key_handler = std::move(handler);
+    m_acceleratorKeyHandler = std::move(handler);
 }
 
 
 void HtmlViewCtrl::UseWebView2AcceleratorKeyHandler()
 {
-    m_accelerator_key_handler = std::function<bool(UINT, UINT, INT)>();
+    m_acceleratorKeyHandler = std::function<bool(UINT, UINT, INT)>();
 }
 
 
@@ -504,7 +602,7 @@ void HtmlViewCtrl::NavigateTo(std::shared_ptr<UriResolver> uri_resolver)
 
     if( m_impl->view != nullptr )
     {
-        uri_resolver->Navigate(*this, [&](const wchar_t* uri) { return m_impl->view->Navigate(uri); });
+        uri_resolver->Navigate(*this, [&](const std::string& uri) { return m_impl->view->Navigate(TC::ToWide(uri).c_str()); });
     }
 
     else
@@ -514,17 +612,17 @@ void HtmlViewCtrl::NavigateTo(std::shared_ptr<UriResolver> uri_resolver)
 }
 
 
-void HtmlViewCtrl::NavigateTo(const std::wstring& uri)
+void HtmlViewCtrl::NavigateTo(const std::string_view uri_sv)
 {
     if( m_impl->view != nullptr )
     {
-        HRESULT hr = m_impl->view->Navigate(uri.c_str());
+        HRESULT hr = m_impl->view->Navigate(TC::ToWide(uri_sv).c_str());
         ASSERT(SUCCEEDED(hr));
     }
 
     else
     {
-        m_pendingEvents.emplace_back(PendingEvent_NavigateToUri { uri });
+        m_pendingEvents.emplace_back(PendingEvent_NavigateToUri { std::string(uri_sv) });
     }
 }
 
@@ -544,6 +642,12 @@ void HtmlViewCtrl::SetHtml(std::wstring html)
 }
 
 
+void HtmlViewCtrl::SetHtml(const std::string_view html_sv)
+{
+    SetHtml(TC::ToWide(html_sv));
+}
+
+
 void HtmlViewCtrl::Reload()
 {
     if( m_impl->view != nullptr )
@@ -555,34 +659,33 @@ void HtmlViewCtrl::SetupAcceleratorHandler()
 {
     HRESULT hr = GetController()->add_AcceleratorKeyPressed(
         Microsoft::WRL::Callback<ICoreWebView2AcceleratorKeyPressedEventHandler>(
-        [this](ICoreWebView2Controller*, ICoreWebView2AcceleratorKeyPressedEventArgs* args) -> HRESULT
+        [this](ICoreWebView2Controller*, ICoreWebView2AcceleratorKeyPressedEventArgs* const args) -> HRESULT
         {
-            BOOL handled = FALSE;
-            if (m_accelerator_key_handler) {
+            if( m_acceleratorKeyHandler )
+            {
                 UINT key;
                 args->get_VirtualKey(&key);
+
                 INT lParam;
                 args->get_KeyEventLParam(&lParam);
+
                 COREWEBVIEW2_KEY_EVENT_KIND kind;
                 args->get_KeyEventKind(&kind);
-                UINT msg = WM_KEYDOWN;
-                switch (kind) {
-                    case COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN:
-                        msg = WM_KEYDOWN;
-                        break;
-                    case COREWEBVIEW2_KEY_EVENT_KIND_KEY_UP:
-                        msg = WM_KEYUP;
-                        break;
-                    case COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN:
-                        msg = WM_SYSKEYDOWN;
-                        break;
-                    case COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_UP:
-                        msg = WM_SYSKEYUP;
-                        break;
-                }
-                handled = m_accelerator_key_handler(msg, key, lParam) == true;
+
+                const UINT msg = ( kind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN )        ? WM_KEYDOWN :
+                                 ( kind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_UP )          ? WM_KEYUP :
+                                 ( kind == COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN ) ? WM_SYSKEYDOWN :
+                                 ( kind == COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_UP )   ? WM_SYSKEYUP :
+                                                                                           ReturnProgrammingError(WM_KEYDOWN);
+
+                args->put_Handled(m_acceleratorKeyHandler(msg, key, lParam));
             }
-            args->put_Handled(handled);
+
+            else
+            {
+                args->put_Handled(FALSE);
+            }
+
             return S_OK;
         }).Get(), nullptr);
     ASSERT(SUCCEEDED(hr));
@@ -630,16 +733,34 @@ void HtmlViewCtrl::MoveFocus()
 }
 
 
-std::wstring HtmlViewCtrl::GetSource()
+template<typename T>
+std::string HtmlViewCtrl::GetSource(T* const view_or_args, const bool clear_about_blank)
 {
-    if( m_impl->view != nullptr )
+    if( view_or_args != nullptr )
     {
         wil::unique_cotaskmem_string uri;
-        m_impl->view->get_Source(&uri);
-        return uri.get();
+
+        if constexpr(std::is_same_v<T, ICoreWebView2NavigationStartingEventArgs>)
+        {
+            view_or_args->get_Uri(&uri);
+        }
+
+        else
+        {
+            view_or_args->get_Source(&uri);
+        }
+
+        if( !clear_about_blank || wcscmp(uri.get(), L"about:blank") != 0 )
+            return TC::ToUtf8(uri.get());
     }
 
-    return std::wstring();
+    return std::string();
+}
+
+
+std::string HtmlViewCtrl::GetSource()
+{
+    return GetSource(m_impl->view.get(), true);
 }
 
 
@@ -649,7 +770,17 @@ ActionInvoker::WebController& HtmlViewCtrl::RegisterCSProHostObject()
 
     m_csproHostObject = std::make_unique<CSProHostObject>(this);
 
+    if( m_impl->view != nullptr )
+        AddCSProHostObject();
+
     return m_csproHostObject->GetActionInvokerWebController();
+}
+
+
+ActionInvoker::WebController* HtmlViewCtrl::GetActionInvokerWebController()
+{
+    return ( m_csproHostObject != nullptr ) ? &m_csproHostObject->GetActionInvokerWebController() :
+                                              nullptr;
 }
 
 
@@ -672,9 +803,9 @@ LRESULT HtmlViewCtrl::OnActionInvokerProcessAsyncMessage(WPARAM wParam, LPARAM /
     {
         while( !m_csproHostObjectAsyncMessageIds.empty() )
         {
-            const std::shared_ptr<const std::wstring> response = m_csproHostObject->GetActionInvokerWebController().ProcessMessage(m_csproHostObjectAsyncMessageIds.front(), true);
+            const SharableString response = m_csproHostObject->GetActionInvokerWebController().ProcessMessage(m_csproHostObjectAsyncMessageIds.front(), true);
 
-            if( response != nullptr )
+            if( response.IsSet() )
                 ExecuteScript(*response);
 
             m_csproHostObjectAsyncMessageIds.pop();
@@ -685,9 +816,21 @@ LRESULT HtmlViewCtrl::OnActionInvokerProcessAsyncMessage(WPARAM wParam, LPARAM /
 }
 
 
-void HtmlViewCtrl::SaveScreenshot(NullTerminatedString filename)
+void HtmlViewCtrl::ShowPrintUI()
 {
-    std::optional<std::wstring> mime_type = MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(filename));
+    if( m_impl->view == nullptr )
+        return;
+
+    wil::com_ptr<ICoreWebView2_16> web_view2_16;
+
+    if( m_impl->view->QueryInterface(IID_PPV_ARGS(&web_view2_16)) == S_OK )
+        web_view2_16->ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND::COREWEBVIEW2_PRINT_DIALOG_KIND_BROWSER);
+}
+
+
+void HtmlViewCtrl::SaveScreenshot(const std::string& file_path)
+{
+    std::optional<std::string> mime_type = MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(file_path));
     std::optional<COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT> image_format;
 
     if( mime_type.has_value() )
@@ -706,7 +849,7 @@ void HtmlViewCtrl::SaveScreenshot(NullTerminatedString filename)
         // create the file stream
         wil::com_ptr<IStream> stream;
 
-        if( !SUCCEEDED(SHCreateStreamOnFileEx(filename.c_str(), STGM_READWRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, TRUE, nullptr, &stream)) )
+        if( !SUCCEEDED(SHCreateStreamOnFileEx(TC::ToWide(file_path).c_str(), STGM_READWRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, TRUE, nullptr, &stream)) )
             throw std::exception();
 
         // capture the screenshot
@@ -716,7 +859,7 @@ void HtmlViewCtrl::SaveScreenshot(NullTerminatedString filename)
 
     catch(...)
     {
-        throw CSProException(_T("There was an error saving the screenshot: %s"), PortableFunctions::PathGetFilename(filename));
+        throw CSProException("There was an error saving the screenshot: " + PortableFunctions::PathGetFilename(file_path));
     }
 }
 

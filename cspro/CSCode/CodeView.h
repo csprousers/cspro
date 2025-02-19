@@ -20,9 +20,9 @@ public:
 
     virtual const LanguageSettings& GetLanguageSettings() const { return GetCodeDoc().GetLanguageSettings(); }
 
-    virtual std::variant<const CDocument*, std::wstring> GetDocumentOrTitleForBuildWnd() const;
+    virtual std::variant<const CDocument*, std::string> GetDocumentOrTitleForBuildWnd() const;
 
-    void SetTextAndSetSavePoint(const std::wstring& text);
+    void SetTextAndSetSavePoint(cs::string_sz text);
 
     void RefreshLogicControlLexer();
 
@@ -30,7 +30,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void OnInitialUpdate() override;
-    void OnInitialUpdateWorker(const std::wstring& initial_text);
+    void OnInitialUpdateWorker(cs::string_sz initial_text);
 
     // CScintillaView overrides
     // --------------------------------------------------------------------------

@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B865564A-7C54-4C9E-A1C9-1DBDF17E0446}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -72,18 +68,18 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\CompileExport.cpp" />
-    <ClCompile Include="..\CompileProgramControl.cpp" />
     <ClCompile Include="..\Cdeclare.cpp" />
     <ClCompile Include="..\Comp.cpp" />
-    <ClCompile Include="..\Comp_set.cpp" />
     <ClCompile Include="..\Compall.cpp" />
-    <ClCompile Include="..\Compctab.cpp" />
+    <ClCompile Include="..\CompCTab.cpp" />
+    <ClCompile Include="..\CompileExport.cpp" />
+    <ClCompile Include="..\CompileProgramControl.cpp" />
     <ClCompile Include="..\Compissa.cpp" />
     <ClCompile Include="..\Comptbl.cpp" />
+    <ClCompile Include="..\Comp_set.cpp" />
     <ClCompile Include="..\Ctab.cpp" />
     <ClCompile Include="..\Ctab_Helper.cpp" />
-    <ClCompile Include="..\Expresc.cpp" />
+    <ClCompile Include="..\ExpresC.cpp" />
     <ClCompile Include="..\Expresc_Helper.cpp" />
     <ClCompile Include="..\Instruc.cpp" />
     <ClCompile Include="..\LoadSaveBinary.cpp" />

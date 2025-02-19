@@ -6,11 +6,11 @@
 #include <zEngineO/Array.h>
 #include <zEngineO/EngineDictionary.h>
 #include <zEngineO/List.h>
-#include <zEngineO/UserFunction.h>
+#include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineO/Nodes/Query.h>
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
 #include <zToolsO/DirectoryLister.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteHelpers.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zDictO/DDClass.h>
 #include <ZBRIDGEO/npff.h>
@@ -27,29 +27,29 @@ namespace
     class LogicConcatenator : public Paradata::Concatenator
     {
     public:
-        LogicConcatenator(CIntDriver* pIntDriver)
-            :   m_pEngineDriver(pIntDriver->m_pEngineDriver),
-                m_pIntDriver(pIntDriver),
+        LogicConcatenator(CIntDriver* const interpreter)
+            :   m_pEngineDriver(interpreter->m_pEngineDriver),
+                m_pIntDriver(interpreter),
                 m_logsConcatenated(0)
         {
         }
 
         double GetReturnValue() const
         {
-            return m_logsConcatenated;
+            return m_logsConcatenated.value_or(DEFAULT);
         }
 
     protected:
-        void OnInputProcessedSuccess(const std::variant<std::wstring, sqlite3*>& /*filename_or_database*/, int64_t /*iEventsProcessed*/) override
+        void OnInputProcessedSuccess(const std::variant<std::string, sqlite3*>& /*output_file_path_or_database*/, int64_t /*events_processed*/) override
         {
-            if( m_logsConcatenated != DEFAULT )
-                ++m_logsConcatenated;
+            if( m_logsConcatenated.has_value() )
+                ++(*m_logsConcatenated);
         }
 
-        void OnInputProcessedError(NullTerminatedString input_filename, const std::wstring& error_message) override
+        void OnInputProcessedError(const std::string& input_file_path, const char* const error_message) override
         {
-            issaerror(MessageType::Error, 8291, FormatText(_T(" in file %s"), input_filename.c_str()).GetString(), error_message.c_str());
-            m_logsConcatenated = DEFAULT;
+            issaerror(MessageType::Error, 8291, FormatText(" in file %s", input_file_path.c_str()).c_str(), error_message);
+            m_logsConcatenated.reset();
         }
 
         bool UserRequestsCancellation() override
@@ -60,26 +60,26 @@ namespace
     private:
         CEngineDriver* m_pEngineDriver;
         CIntDriver* m_pIntDriver;
-        double m_logsConcatenated;
+        std::optional<double> m_logsConcatenated;
     };
 }
 
 
-double CIntDriver::exparadata(int program_index)
+double CIntDriver::ex_paradata(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    int action = va_node.arguments[0];
+    const int action = va_node.arguments[0];
 
     // --------------------------------------------------------------------------
     // open
     // --------------------------------------------------------------------------
     if( action == 1 )
     {
-        std::wstring filename = EvalFullPathFileName(va_node.arguments[1]);
+        std::string file_path = EvaluatePath(va_node.arguments[1]);
 
         Paradata::Logger::Stop();
 
-        return Paradata::Logger::Start(std::move(filename), m_pEngineDriver->m_pPifFile->GetApplication());
+        return Paradata::Logger::Start(std::move(file_path), m_pEngineDriver->m_pPifFile->GetApplication());
     }
 
 
@@ -91,7 +91,7 @@ double CIntDriver::exparadata(int program_index)
         if( Paradata::Logger::IsOpen() && Paradata::Logger::Flush() )
         {
             Paradata::Logger::Stop();
-            m_pParadataDriver->ClearCachedObjects();
+            m_paradataDriver->ClearCachedObjects();
             return !Paradata::Logger::IsOpen();
         }
 
@@ -119,98 +119,95 @@ double CIntDriver::exparadata(int program_index)
         if( Paradata::Logger::IsOpen() )
             Paradata::Logger::Flush();
 
-        std::wstring output_filename;
-        bool bOutputFilenameIsCurrentlyOpenParadataLog = false;
-        std::set<std::wstring> paradata_log_filenames;
-        int iNumberArguments = va_node.arguments[1];
-        bool bOutputIsAlsoAnInput = false;
+        std::string output_file_path;
+        bool output_file_path_is_currently_open_paradata_log = false;
+        std::set<std::string> paradata_log_file_paths;
+        const int number_arguments = va_node.arguments[1];
+        bool output_is_also_an_input = false;
 
-        for( int i = 0; i < iNumberArguments; i += 2 )
+        for( int i = 0; i < number_arguments; i += 2 )
         {
-            bool bArgumentIsFilename = ( va_node.arguments[i + 2] == 0 );
-            int iArgument = va_node.arguments[i + 3];
-            std::vector<std::wstring> filenames;
+            const bool arugment_is_file_path = ( va_node.arguments[i + 2] == 0 );
+            const int argument = va_node.arguments[i + 3];
+            std::vector<std::string> file_paths;
 
-            if( bArgumentIsFilename )
+            if( arugment_is_file_path )
             {
-                std::wstring filename = EvalFullPathFileName(iArgument);
+                std::string file_path = EvaluatePath(argument);
 
                 if( i == 0 )
                 {
-                    output_filename = std::move(filename);
-                    bOutputFilenameIsCurrentlyOpenParadataLog = SO::EqualsNoCase(Paradata::Logger::GetFilename(), output_filename);
+                    output_file_path = std::move(file_path);
+                    output_file_path_is_currently_open_paradata_log = SO::EqualsNoCase(Paradata::Logger::GetFilePath(), output_file_path);
                 }
 
                 else
                 {
                     // evaluate the filename in case it uses wildcards
-                    DirectoryLister::AddFilenamesWithPossibleWildcard(filenames, filename, true);
+                    DirectoryLister::AddFilePathsWithPossibleWildcard(file_paths, file_path, true);
                 }
             }
 
             else // the argument is a list
             {
                 ASSERT(i != 0);
-                const LogicList& logic_list = GetSymbolLogicList(iArgument);
-                size_t list_count = logic_list.GetCount();
+                const LogicList& logic_list = GetSymbolLogicList(argument);
+                const size_t list_count = logic_list.GetCount();
 
                 for( size_t j = 1; j <= list_count; ++j )
-                {
-                    std::wstring& filename = filenames.emplace_back(logic_list.GetString(j));
-                    MakeFullPathFileName(filename);
-                }
+                    file_paths.emplace_back(GetAbsolutePath(logic_list.GetValue<SharableString>(j).GetString()));
             }
 
             if( i > 0 )
             {
-                for( std::wstring& filename : filenames )
+                for( std::string& file_path : file_paths )
                 {
-                    if( SO::EqualsNoCase(filename, output_filename) )
+                    if( SO::EqualsNoCase(file_path, output_file_path) )
                     {
-                        bOutputIsAlsoAnInput = true;
+                        output_is_also_an_input = true;
 
-                        // change the filename so that the insert below is in the right case in the case
-                        // that the filename is later removed (if concatenating to the current paradata log)
-                        filename = output_filename;
+                        // change the file path so that the insert below is in the right case in the case
+                        // that the file path is later removed (if concatenating to the current paradata log)
+                        file_path = output_file_path;
                     }
 
-                    paradata_log_filenames.insert(filename);
+                    paradata_log_file_paths.insert(std::move(file_path));
                 }
             }
         }
 
         try
         {
-            sqlite3* outputDbOverride = nullptr;
+            sqlite3* output_db_override = nullptr;
 
             // some checks if concatenating into the currently open paradata file
-            if( bOutputFilenameIsCurrentlyOpenParadataLog )
+            if( output_file_path_is_currently_open_paradata_log )
             {
-                if( !bOutputIsAlsoAnInput )
+                if( !output_is_also_an_input )
                     throw CSProException("You cannot concatenate into the currently open paradata log without also specifying that log as an input log");
 
-                outputDbOverride = Paradata::Logger::GetSqlite();
+                output_db_override = Paradata::Logger::GetSqlite();
             }
 
-            LogicConcatenator logicConcatenator(this);
+            LogicConcatenator logic_concatenator(this);
 
-            if( outputDbOverride != nullptr )
+            if( output_db_override != nullptr )
             {
-                paradata_log_filenames.erase(output_filename);
-                logicConcatenator.Run(outputDbOverride, paradata_log_filenames);
+                paradata_log_file_paths.erase(output_file_path);
+                logic_concatenator.Run(output_db_override, paradata_log_file_paths);
             }
 
             else
             {
-                logicConcatenator.Run(output_filename, paradata_log_filenames);
+                logic_concatenator.Run(output_file_path, paradata_log_file_paths);
             }
 
-            return logicConcatenator.GetReturnValue();
+            return logic_concatenator.GetReturnValue();
         }
 
         catch( const CSProException& exception )
         {
-            issaerror(MessageType::Error, 8291, _T(""), exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Error, 8291, "", exception.what());
             return DEFAULT;
         }
     }
@@ -220,16 +217,16 @@ double CIntDriver::exparadata(int program_index)
 }
 
 
-double CIntDriver::exsqlquery(int program_index)
+double CIntDriver::exsqlquery(const int program_index)
 {
     return exsqlquery(program_index, nullptr);
 }
 
 
-double CIntDriver::exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback)
+double CIntDriver::exsqlquery(const int program_index, const std::function<double(sqlite3*, const std::string&)>* const setreportdata_callback)
 {
     const auto& sqlquery_node = GetNode<Nodes::SqlQuery>(program_index);
-    std::string sql_query = EvalAlphaExpr<std::string>(sqlquery_node.sql_query_expression);
+    const SharableString sql_query = EvaluateSharableString(sqlquery_node.sql_query_expression);
 
     sqlite3* db = nullptr;
     bool must_close_db = false;
@@ -261,7 +258,7 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
             else
             {
-                DICX* pDicX = assert_cast<DICT&>(symbol).GetDicX();
+                DICX* const pDicX = assert_cast<DICT&>(symbol).GetDicX();
                 data_repository = &pDicX->GetDataRepository();
             }
 
@@ -283,27 +280,27 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
         else if( sqlquery_node.source_type == Nodes::SqlQuery::Type::File )
         {
-            ConnectionString connection_string(EvalAlphaExpr(sqlquery_node.source_symbol_index_or_expression));
-            MakeFullPathFileName(connection_string);
+            const ConnectionString connection_string = EvaluateConnectionString(sqlquery_node.source_symbol_index_or_expression);
 
-            bool success = PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(connection_string.GetFilename()));
+            bool success = ( connection_string.HasFilePath() &&
+                             PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) );
 
             if( success )
             {
                 // if specifying an Encrypted CSPro DB file, open it so that a password can be processed
-                if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(connection_string.GetFilename()), FileExtensions::Data::EncryptedCSProDB) )
+                if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(connection_string.GetFilePath()), FileExtensions::Data::EncryptedCSProDB) )
                 {
                     success = ( EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(nullptr, connection_string, &db, SQLITE_OPEN_READWRITE) == SQLITE_OK );
                 }
 
                 else
                 {
-                    success = ( sqlite3_open(ToUtf8(connection_string.GetFilename()), &db) == SQLITE_OK );
+                    success = ( sqlite3_open(connection_string.GetFilePath().c_str(), &db) == SQLITE_OK );
                 }
             }
 
             if( !success )
-                throw CSProException(_T("The SQLite file could not be opened: %s"), connection_string.GetFilename().c_str());
+                throw CSProException("The SQLite file could not be opened: " + connection_string.ToDisplayString());
 
             must_close_db = true;
         }
@@ -318,18 +315,18 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
         if( sqlquery_node.destination_symbol_index == Nodes::SqlQuery::SetReportDataDestinationJson )
         {
             ASSERT(setreportdata_callback != nullptr);
-            return_value = (*setreportdata_callback)(db, sql_query);
+            return_value = (*setreportdata_callback)(db, sql_query.GetString());
         }
 
         else // called from a standard sqlquery call
         {
-            Symbol* symbol = ( sqlquery_node.destination_symbol_index >= 0 ) ? &NPT_Ref(sqlquery_node.destination_symbol_index) :
-                                                                               nullptr;
+            Symbol* const symbol = ( sqlquery_node.destination_symbol_index >= 0 ) ? &NPT_Ref(sqlquery_node.destination_symbol_index) :
+                                                                                     nullptr;
 
             // execute the query
             sqlite3_stmt* stmt = nullptr;
 
-            std::vector<std::string> sql_statements = SQLiteHelpers::SplitSqlStatement(sql_query);
+            const std::vector<std::string> sql_statements = SQLiteHelpers::SplitSqlStatement(sql_query.GetString());
 
             if( sql_statements.empty() )
                 throw CSProException("Empty SQL statement");
@@ -338,13 +335,13 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
             for( size_t i = 0; i < ( sql_statements.size() - 1 ); i++ )
             {
                 if( sqlite3_exec(db, sql_statements[i].c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-                    throw CSProException(_T("SQL syntax: %s"), FromUtf8(sqlite3_errmsg(db)).GetString());
+                    throw CSProException("SQL syntax: %s", sqlite3_errmsg(db));
             }
 
             if( sqlite3_prepare_v2(db, sql_statements.back().c_str(), -1, &stmt, nullptr) != SQLITE_OK )
-                throw CSProException(_T("SQL syntax: %s"), FromUtf8(sqlite3_errmsg(db)).GetString());
+                throw CSProException("SQL syntax: %s", sqlite3_errmsg(db));
 
-            int sql_result = sqlite3_step(stmt);
+            const int sql_result = sqlite3_step(stmt);
 
             if( sql_result == SQLITE_DONE )
             {
@@ -359,7 +356,6 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
                     {
                         assert_cast<LogicList&>(*symbol).Reset();
                     }
-                    
 
                     else if( symbol->IsA(SymbolType::Section) )
                     {
@@ -370,13 +366,13 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
             else if( sql_result == SQLITE_ROW )
             {
-                int number_columns = sqlite3_column_count(stmt);
+                const int number_columns = sqlite3_column_count(stmt);
                 ASSERT(number_columns > 0);
 
                 if( symbol == nullptr )
                 {
                     // the return value will be the first row / first column result
-                    bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
+                    const bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
                     return_value = value_is_null ? NOTAPPL : sqlite3_column_double(stmt, 0);
                 }
 
@@ -393,7 +389,7 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
                         LogicArray& logic_array = assert_cast<LogicArray&>(*symbol);
 
                         // - 1 in the next two statements because the arrays will be filled in starting at index 1
-                        size_t max_rows_to_read = logic_array.GetDimension(0) - 1;
+                        const size_t max_rows_to_read = logic_array.GetDimension(0) - 1;
                         size_t columns_to_read = 1;
 
                         std::vector<size_t> indices(logic_array.GetNumberDimensions(), 0);
@@ -414,7 +410,7 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
                                 ASSERT(logic_array.IsValidIndex(indices));
 
-                                bool value_is_null = ( sqlite3_column_type(stmt, column) == SQLITE_NULL );
+                                const bool value_is_null = ( sqlite3_column_type(stmt, column) == SQLITE_NULL );
 
                                 if( logic_array.IsNumeric() )
                                 {
@@ -424,8 +420,8 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
                                 else
                                 {
-                                    logic_array.SetValue(indices, value_is_null ? std::wstring() :
-                                                                                  FromUtf8WS(sqlite3_column_text(stmt, column)));
+                                    logic_array.SetValue(indices, value_is_null ? SharableString() :
+                                                                                  SharableString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, column))));
                                 }
                             }
 
@@ -448,7 +444,7 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
                         do
                         {
-                            bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
+                            const bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
 
                             if( logic_list.IsNumeric() )
                             {
@@ -458,8 +454,8 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
                             else
                             {
-                                logic_list.AddString(value_is_null ? std::wstring() :
-                                                                     FromUtf8WS(sqlite3_column_text(stmt, 0)));
+                                logic_list.AddValue(value_is_null ? SharableString() :
+                                                                    SharableString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))));
                             }
 
                         } while( ++row_number < MaximumRowsToRead && sqlite3_step(stmt) == SQLITE_ROW );
@@ -473,14 +469,14 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
                     // --------------------------------------------------------------------------
                     else
                     {
-                        SECT* pSecT = assert_cast<SECT*>(symbol);
+                        SECT* const pSecT = assert_cast<SECT*>(symbol);
 
                         // map the columns
                         std::vector<VART*> aItemMapping(number_columns, nullptr);
 
                         for( int iColumn = 0; iColumn < number_columns; iColumn++ )
                         {
-                            CString csColumnName = FromUtf8(sqlite3_column_name(stmt,iColumn));
+                            const std::string column_name = sqlite3_column_name(stmt, iColumn);
                             VART* pVarT = nullptr;
 
                             for( int iSymVar = pSecT->SYMTfvar; iSymVar >= 0; iSymVar = pVarT->SYMTfwd )
@@ -494,7 +490,7 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
                                     continue;
                                 }
 
-                                else if( SO::EqualsNoCase(pVarT->GetName(), csColumnName) )
+                                else if( SO::EqualsNoCase(pVarT->GetName(), column_name) )
                                 {
                                     aItemMapping[iColumn] = pVarT;
                                     break;
@@ -514,29 +510,29 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
                             for( int iColumn = 0; iColumn < number_columns; iColumn++ )
                             {
-                                VART* pVarT = aItemMapping[iColumn];
+                                VART* const pVarT = aItemMapping[iColumn];
 
                                 if( pVarT == nullptr ) // the column wasn't mapped
                                     continue;
 
-                                bool value_is_null = ( sqlite3_column_type(stmt, iColumn) == SQLITE_NULL );
+                                const bool value_is_null = ( sqlite3_column_type(stmt, iColumn) == SQLITE_NULL );
 
                                 if( pVarT->IsNumeric() )
                                 {
-                                    VARX* pVarX = pVarT->GetVarX();
-                                    double dValue = value_is_null ? NOTAPPL : sqlite3_column_double(stmt, iColumn);
+                                    VARX* const pVarX = pVarT->GetVarX();
+                                    const double dValue = value_is_null ? NOTAPPL : sqlite3_column_double(stmt, iColumn);
                                     SetVarFloatValue(dValue,pVarX,theIndex);
                                 }
 
                                 else
                                 {
-                                    CString csValue = value_is_null ? CString() : FromUtf8(sqlite3_column_text(stmt, iColumn));
+                                    CString csValue = value_is_null ? CString() : UTF8_TODO::GetCString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, iColumn)));
                                     TCHAR* lpszBuffer = GetVarAsciiAddr(pVarT,theIndex);
                                     _tmemcpy(lpszBuffer, CIMSAString::MakeExactLength(csValue, pVarT->GetLength()), pVarT->GetLength());
                                 }
                             }
 
-                        } while( ( iRowNumber < pSecT->GetMaxOccs() ) && ( sqlite3_step(stmt) == SQLITE_ROW ) );
+                        } while( iRowNumber < pSecT->GetMaxOccs() && sqlite3_step(stmt) == SQLITE_ROW );
 
                         pSecT->GetGroup(0)->SetTotalOccurrences(iRowNumber);
 
@@ -551,12 +547,9 @@ double CIntDriver::exsqlquery(int program_index, const std::function<double(sqli
 
     catch( const CSProException& exception )
     {
-        std::wstring filename;
-
-        if( db != nullptr )
-            filename = FormatTextCS2WS(_T("(%s)"), PortableFunctions::PathGetFilename(FromUtf8WS(sqlite3_db_filename(db, nullptr))));
-
-        issaerror(MessageType::Error, 8292, filename.c_str(), exception.GetErrorMessage().c_str());
+        const std::string filename = ( db != nullptr ) ? FormatText("(%s)", PortableFunctions::PathGetFilename(sqlite3_db_filename(db, nullptr)).c_str()) :
+                                                         std::string();
+        issaerror(MessageType::Error, 8292, filename.c_str(), exception.what());
     }
 
     if( must_close_db )
@@ -576,7 +569,7 @@ namespace
 {
     using InterpreterAndUserFunction = std::tuple<CIntDriver&, UserFunction&>;
 
-    void SqlCallbackFunction(sqlite3_context* context, int iArgC, sqlite3_value** ppArgV)
+    void SqlCallbackFunction(sqlite3_context* const context, int iArgC, sqlite3_value** const ppArgV)
     {
         InterpreterAndUserFunction& interpreter_and_user_function = *static_cast<InterpreterAndUserFunction*>(sqlite3_user_data(context));
 
@@ -598,10 +591,11 @@ void CIntDriver::RegisterSqlCallbackFunctions(sqlite3* const db)
                     {
                         auto interpreter_and_user_function = std::make_unique<InterpreterAndUserFunction>(*this, user_function);
 
-                        if( sqlite3_create_function(db, ToUtf8(user_function.GetName()), user_function.GetNumberParameters(),
+                        if( sqlite3_create_function(db, user_function.GetName().c_str(), user_function.GetNumberParameters(),
                                                     SQLITE_UTF8, interpreter_and_user_function.get(), SqlCallbackFunction, nullptr, nullptr) != SQLITE_OK )
                         {
-                            throw CSProException("There was an error adding a user-defined function as a SQL callback function");
+                            throw CSProException("There was an error adding the user-defined function '%s' as a SQL callback function.",
+                                                 user_function.GetName().c_str());
                         }
 
                         m_sqlCallbackFunctions.emplace_back(std::move(interpreter_and_user_function));
@@ -611,41 +605,46 @@ void CIntDriver::RegisterSqlCallbackFunctions(sqlite3* const db)
 }
 
 
-namespace
+class SqlQueryUserFunctionArgumentEvaluator : public UserFunctionArgumentEvaluator
 {
-    class SqlQueryUserFunctionArgumentEvaluator : public UserFunctionArgumentEvaluator
+public:
+    SqlQueryUserFunctionArgumentEvaluator(const size_t number_arguments, sqlite3_value** const ppArgV)
+        :   m_numberArguments(number_arguments),
+            m_ppArgV(ppArgV)
     {
-    public:
-        SqlQueryUserFunctionArgumentEvaluator(sqlite3_value** ppArgV)
-            :   m_ppArgV(ppArgV)
-        {
-        }
+    }
 
-        double GetNumeric(int parameter_number) override
-        {
-            return sqlite3_value_double(m_ppArgV[parameter_number]);
-        }
+protected:
+    std::optional<size_t> GetNumberArguments() override
+    {
+        return m_numberArguments;
+    }
 
-        std::wstring GetString(int parameter_number) override
-        {
-            return UTF8Convert::UTF8ToWide(sqlite3_value_text(m_ppArgV[parameter_number]));
-        }
+    double GetNumeric(const size_t parameter_number) override
+    {
+        ASSERT(parameter_number < m_numberArguments);
+        return sqlite3_value_double(m_ppArgV[parameter_number]);
+    }
 
-    private:
-        sqlite3_value** m_ppArgV;
-    };
-}
+    SharableString GetString(const size_t parameter_number) override
+    {
+        ASSERT(parameter_number < m_numberArguments);
+        return reinterpret_cast<const char*>(sqlite3_value_text(m_ppArgV[parameter_number]));
+    }
+
+private:
+    size_t m_numberArguments;
+    sqlite3_value** m_ppArgV;
+};
 
 
-void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* void_context, int iArgC, void* void_ppArgV)
+void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* const void_context, const int iArgC, void* const void_ppArgV)
 {
-    sqlite3_context* context = reinterpret_cast<sqlite3_context*>(void_context);
-    sqlite3_value** ppArgV = reinterpret_cast<sqlite3_value**>(void_ppArgV);
-
+    sqlite3_context* const context = reinterpret_cast<sqlite3_context*>(void_context);
     ASSERT(user_function.GetNumberParameters() == static_cast<size_t>(iArgC));
 
-    SqlQueryUserFunctionArgumentEvaluator argument_evaluator(ppArgV);
-    double return_value = CallUserFunction(user_function, argument_evaluator);
+    SqlQueryUserFunctionArgumentEvaluator argument_evaluator(iArgC, reinterpret_cast<sqlite3_value**>(void_ppArgV));
+    const double return_value = CallUserFunction(user_function, argument_evaluator);
 
     if( user_function.GetReturnType() == SymbolType::WorkVariable )
     {
@@ -654,7 +653,7 @@ void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* v
 
     else
     {
-        std::wstring value = CharacterObjectToString(return_value);
-        sqlite3_result_text(context, ToUtf8(value), -1, SQLITE_TRANSIENT);
+        const SharableString value = GetWorkingSharableString(static_cast<size_t>(return_value));
+        sqlite3_result_text(context, value->c_str(), value->length(), SQLITE_TRANSIENT);
     }
 }

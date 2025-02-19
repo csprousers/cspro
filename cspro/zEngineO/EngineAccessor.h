@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class CommonStore;
+namespace Listing { class Lister; }
 class Symbol;
 class SystemMessageIssuer;
 
@@ -15,7 +15,7 @@ public:
 
     virtual SystemMessageIssuer& ea_GetSystemMessageIssuer() = 0;
 
-    virtual std::shared_ptr<CommonStore> ea_CommonStore() = 0;
-
     virtual std::set<int>& ea_GetPersistentSymbolsNeedingResetSet() = 0;
+
+    virtual Listing::Lister* ea_GetLister() = 0;
 };

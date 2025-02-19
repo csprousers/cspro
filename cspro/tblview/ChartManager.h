@@ -9,15 +9,15 @@ public:
     ChartManager();
     ~ChartManager();
 
-    const std::wstring& GetFrequencyViewUrl();
+    const std::string& GetFrequencyViewUrl();
 
     bool TableSupportsCharting(CTblGrid* table_grid);
 
-    const std::wstring& GetTableFrequencyJson(CTblGrid* table_grid) const;
+    SharableString GetTableFrequencyJson(CTblGrid* table_grid) const;
 
 private:
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
-    std::wstring m_frequencyViewUrl;
+    std::string m_frequencyViewUrl;
 
-    std::map<const CTable*, std::wstring> m_frequencyJson;
+    std::map<const CTable*, SharableString> m_frequencyJson;
 };

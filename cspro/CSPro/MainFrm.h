@@ -79,6 +79,8 @@ protected:  // control bar embedded members
 private:
     CMDlgBar    m_SizeDlgBar;
 
+    std::map<std::string, std::tuple<CodeType, int64_t>> m_codeFileSuccessfulCompilations;
+
     std::unique_ptr<ObjectTransporter> m_objectTransporter;
     ApplicationShutdownRunner m_applicationShutdownRunner;
 
@@ -111,7 +113,7 @@ public:
 
     // gets the application using this form file (or order); if there are multiple ones,
     // the user must select which one to use
-    CAplDoc* GetApplicationUsingFormFile(wstring_view form_filename, bool silent = false);
+    CAplDoc* GetApplicationUsingFormFile(const std::string& form_file_path, bool silent = false);
 
     CAplDoc* ProcessFOForSrcCode(CDocument& document);
 
@@ -121,6 +123,9 @@ protected:
 private:
     template<typename T>
     T* GetNodeIdForSourceCode(T* pNodeId = nullptr);
+
+    template<typename T>
+    int GetLexerLanguageForSourceCode(const Application& application, const T& app_tree_node) const;
 
 public:
     void SetSourceCode(CAplDoc* pDoc);
@@ -149,10 +154,11 @@ public:
     LRESULT OnGetApplication(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetFormFileOrDictionary(WPARAM wParam, LPARAM lParam);
 
+    LRESULT OnCanCodeFileCompilationBeSkipped(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetCodeFileSuccessfullyCompiled(WPARAM wParam, LPARAM lParam);
+
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetApplicationShutdownRunner(WPARAM wParam, LPARAM lParam);
-
-    LRESULT OnCreateUniqueName(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnGetDictionaryType(WPARAM wParam, LPARAM lParam);
     LRESULT OnDictNameChange(WPARAM wParam, LPARAM lParam);//On changing the names of dict/level/recordin the dictionary
@@ -204,7 +210,6 @@ protected:
     afx_msg void OnClose();
     afx_msg void OnUpdateKeyOvr(CCmdUI* pCmdUI);
     afx_msg void OnEndSession(BOOL bEnding);
-    afx_msg void OnDictType();
     afx_msg LRESULT OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu);
     afx_msg void OnAbout1();
     LRESULT OnRunTab(WPARAM wParam, LPARAM lParam);
@@ -214,7 +219,8 @@ protected:
     afx_msg void OnUpdateIfApplicationIsAvailable(CCmdUI* pCmdUI);
     afx_msg void OnOptionsProperties();
     LRESULT OnSetExternalApplicationProperties(WPARAM wParam, LPARAM lParam);
-    LRESULT IsReservedWord(WPARAM wParam, LPARAM lParam);
+    LRESULT OnShowFileProperties(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIsReservedWord(WPARAM wParam, LPARAM lParam);
     LRESULT OnCapiMacros(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnUpdateLanguageList(WPARAM wParam, LPARAM lParam);
@@ -226,20 +232,21 @@ protected:
     // document functions
     // --------------------------------------------------------------------------
 private:
-    CDocTemplate* GetDocTemplate(wstring_view extension);
+    // the filter extension should be provided with a dot, e.g.: .dcf or .json;.geojson
+    CDocTemplate* GetDocTemplate(std::wstring_view filter_extension_sv);
 
     // the callback function to the foreach iterators should return true to keep processing
     template<typename DocumentType, typename CF>
-    void ForeachDocument(CF callback_function);
+    void ForeachDocument(const CF& callback_function);
 
     template<typename DocumentType, typename CF>
-    void ForeachDocumentUsingDictionary(const CDataDict& dictionary, CF callback_function);
+    void ForeachDocumentUsingDictionary(const CDataDict& dictionary, const CF& callback_function);
 
     template<typename CF>
-    void ForeachApplicationDocumentUsingFormFile(const CDEFormFile& form_file, CF callback_function);
+    void ForeachApplicationDocumentUsingFormFile(const CDEFormFile& form_file, const CF& callback_function);
 
     template<typename CF>
-    void ForeachLogicAndReportTextSource(CF callback_function);
+    void ForeachLogicAndReportTextSource(const CF& callback_function);
 
 
     // logic functions
@@ -256,8 +263,8 @@ protected:
     LRESULT OnLogicAutoComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicInsertProcName(WPARAM wParam, LPARAM lParam);
 
-    LRESULT OnCanAddResourceFolder(WPARAM wParam, LPARAM lParam);
-    LRESULT OnCreateResourceFolder(WPARAM wParam, LPARAM lParam);
+    LRESULT OnCanAddResources(WPARAM wParam, LPARAM lParam);
+    LRESULT OnCopyToResourceDirectory(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnUpdateApplicationExternalities(WPARAM wParam, LPARAM lParam);
     LRESULT OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam);
@@ -272,13 +279,11 @@ protected:
     // report functions
     // --------------------------------------------------------------------------
 protected:
-    LRESULT OnEditReportProperties(WPARAM wParam, LPARAM lParam);
-
     void OnViewReportPreview();
     void OnUpdateViewReportPreview(CCmdUI* pCmdUI);
 
 private:
-    const TextSource* GetHtmlReportTextSourceCurrentlyEditing(std::wstring* report_name_for_report_preview);
+    const TextSource* GetHtmlReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
 
 
     // Code menu handlers

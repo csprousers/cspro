@@ -1,28 +1,51 @@
 ﻿#pragma once
+
+#include <external/rxcpp/rx-lite.hpp>
 #include <ostream>
 #include <sstream>
-#include <rxcpp/rx-lite.hpp>
 
-struct ObservableResponseBody {
+
+struct ObservableResponseBody
+{
     rxcpp::observable<std::string> observable;
 
-    std::ostream& ToStream(std::ostream& os) {
-        if (observable != rxcpp::observable<std::string>())
-            observable.as_blocking().subscribe_with_rethrow(
-                [&os](std::string s) {
-                    os << s;
-                });
-        return os;
-    }
-
-    std::string ToString() {
-        std::stringstream result;
-        ToStream(result);
-        return result.str();
-    }
+    std::ostream& ToStream(std::ostream& os) const;
+    std::string ToString() const;
 };
 
-inline std::ostream& operator<<(std::ostream& os, ObservableResponseBody& body)
+
+std::ostream& operator<<(std::ostream& os, const ObservableResponseBody& body);
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline std::ostream& ObservableResponseBody::ToStream(std::ostream& os) const
+{
+    if( observable != rxcpp::observable<std::string>() )
+    {
+        observable.as_blocking().subscribe_with_rethrow(
+            [&os](const std::string& s)
+            {
+                os << s;
+            });
+    }
+
+    return os;
+}
+
+
+inline std::string ObservableResponseBody::ToString() const
+{
+    std::stringstream result;
+    ToStream(result);
+    return result.str();
+}
+
+
+inline std::ostream& operator<<(std::ostream& os, const ObservableResponseBody& body)
 {
     return body.ToStream(os);
 }

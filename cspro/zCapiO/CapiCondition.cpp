@@ -2,22 +2,18 @@
 #include "CapiCondition.h"
 
 
-CapiCondition::CapiCondition()
-    :   CapiCondition(CString())
-{
-    static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_7_6_000_1, "when removing pre-7.6 runtime support, remove m_minOcc and m_maxOcc");
-}
-
-CapiCondition::CapiCondition(const CString& logic)
+CapiCondition::CapiCondition(const CString& logic/* = CString()*/)
     :   CapiCondition(logic, -1, -1)
 {
 }
+
 
 CapiCondition::CapiCondition(const CString& logic, int min_occ, int max_occ)
     :   m_logic(logic),
         m_minOcc(min_occ),
         m_maxOcc(max_occ)
 {
+    // m_minOcc and m_maxOcc are only used when converting pre-7.6 question text files
 }
 
 
@@ -99,14 +95,14 @@ void CapiCondition::ModifyLanguage(const std::wstring& old_language_name, const 
 
 
 CREATE_ENUM_JSON_SERIALIZER(CapiTextType,
-    { CapiTextType::QuestionText, _T("question") },
-    { CapiTextType::HelpText,     _T("help") })
+    { CapiTextType::QuestionText, "question" },
+    { CapiTextType::HelpText,     "help" })
 
 void CapiCondition::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    json_writer.WriteIfNotBlank(JK::logic, m_logic);
+    json_writer.WriteIfNotBlank(JK::logic, UTF8_TODO::GetUtf8(m_logic));
 
     if( json_writer.Verbose() || !m_questionTexts.empty() || !m_helpTexts.empty() )
     {

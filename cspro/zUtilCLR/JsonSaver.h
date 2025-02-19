@@ -8,7 +8,7 @@ namespace CSPro
         public ref class JsonSaver sealed
         {
         public:
-            static void SaveInSpecFileFormat(System::String^ filename, System::String^ json_text);
+            static void SaveInSpecFileFormat(System::String^ file_path, System::String^ json_text);
         };
     }
 }

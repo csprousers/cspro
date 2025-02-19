@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{99bf62e3-bb12-4dbf-b64b-46a27a36d8a1}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zBatchF</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -120,6 +116,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zListingO\zListingO.vcxproj">
       <Project>{15f84c2e-c943-4448-856d-641ac229e3c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

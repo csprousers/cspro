@@ -1,50 +1,65 @@
 ﻿#pragma once
-#include "Event.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+#include <zDataO/DataRepositoryDefines.h>
+
+namespace Paradata { class DataRepositoryEvent; class DataRepositoryOpenEvent; }
+
+
+// --------------------------------------------------------------------------
+// DataRepositoryEvent
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::DataRepositoryEvent : public Event
 {
-    class ZPARADATAO_API DataRepositoryEvent : public Event
+    DECLARE_PARADATA_EVENT(DataRepositoryEvent)
+
+public:
+    enum class Action
     {
-        DECLARE_PARADATA_EVENT(DataRepositoryEvent)
-
-    public:
-        enum class Action
-        {
-            Close,
-            Open,
-            ReadCase,
-            WriteCase,
-            DeleteCase,
-            CaseNotFound,
-            UndeleteCase
-        };
-
-    protected:
-        Action m_action;
-        std::shared_ptr<NamedObject> m_dictionary;
-
-    private:
-        CString m_caseUuid;
-        CString m_caseKey;
-        bool m_partialSave;
-
-    public:
-        DataRepositoryEvent(Action action, std::shared_ptr<NamedObject> dictionary,
-            const CString& case_uuid = CString(), const CString& case_key = CString(), bool partial_save = false);
+        Close,
+        Open,
+        ReadCase,
+        WriteCase,
+        DeleteCase,
+        CaseNotFound,
+        UndeleteCase
     };
 
-    class ZPARADATAO_API DataRepositoryOpenEvent : public DataRepositoryEvent
-    {
-    private:
-        CString m_filename;
-        int m_dataRepositoryType;
-        int m_dataRepositoryAccess;
-        int m_dataRepositoryOpenFlag;
+public:
+    DataRepositoryEvent(Action action, std::shared_ptr<NamedObject> dictionary,
+                        std::string case_uuid = std::string(), std::string case_key = std::string(),
+                        bool partial_save = false);
 
-    public:
-        DataRepositoryOpenEvent(std::shared_ptr<NamedObject> dictionary, const CString& filename,
-            int data_repository_type, int data_repository_access, int data_repository_open_flag);
+private:
+    static constexpr int DataRepositoryTypeToParadataInt(DataRepositoryType data_repository_type);
 
-        void Save(Log& log, long base_event_id) const override;
-    };
-}
+protected:
+    const Action m_action;
+    const std::shared_ptr<NamedObject> m_dictionary;
+
+private:
+    const std::string m_caseUuid;
+    const std::string m_caseKey;
+    const bool m_partialSave;
+};
+
+
+// --------------------------------------------------------------------------
+// DataRepositoryOpenEvent
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::DataRepositoryOpenEvent : public DataRepositoryEvent
+{
+public:
+    DataRepositoryOpenEvent(std::shared_ptr<NamedObject> dictionary, std::string repository_name,
+                            DataRepositoryType type, DataRepositoryAccess access_type, DataRepositoryOpenFlag open_flag);
+
+    void Save(Log& log, long base_event_id) const override;
+
+private:
+    std::string m_repositoryName;
+    DataRepositoryType m_dataRepositoryType;
+    DataRepositoryAccess m_dataRepositoryAccess;
+    DataRepositoryOpenFlag m_dataRepositoryOpenFlag;
+};

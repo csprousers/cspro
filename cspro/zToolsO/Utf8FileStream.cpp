@@ -1,5 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "Utf8FileStream.h"
+#include "Utf8Convert.h"
+#include <zToolsO/TextEncoding.h>
 
 
 namespace
@@ -9,7 +11,7 @@ namespace
         constexpr static size_t MaxUtf8BytesSequence = 4;
         constexpr static size_t ReadBufferSize = 1024;
         constexpr static size_t ReadBufferSizeWithUnicodeOverflow = ReadBufferSize + MaxUtf8BytesSequence - 1;
-        static_assert(Utf8BOM_sv.length() <= ReadBufferSize);
+        static_assert(TextEncoding::Utf8Bom_sv.length() <= ReadBufferSize);
 
     public:
         Utf8InputFileStreamBuffer(std::wstring filename, FileIO::FileAndSize&& file_and_size);
@@ -41,7 +43,7 @@ namespace
     Utf8InputFileStreamBuffer::Utf8InputFileStreamBuffer(std::wstring filename, FileIO::FileAndSize&& file_and_size)
         :   m_filename(std::move(filename)),
             m_file(file_and_size.file),
-            m_fileSize((size_t)file_and_size.size),
+            m_fileSize(static_cast<size_t>(file_and_size.size)),
             m_fileSizeRemaining(m_fileSize),
             m_filePositionStart(0)
     {
@@ -49,19 +51,20 @@ namespace
         ASSERT(file_and_size.size >= 0);
 
         // skip past the BOM if necessary
-        if( m_fileSizeRemaining >= Utf8BOM_sv.length() )
+        if( m_fileSizeRemaining >= TextEncoding::Utf8Bom_sv.length() )
         {
-            ReadBytes(m_utf8Buffer, Utf8BOM_sv.length());
+            ReadBytes(m_utf8Buffer, TextEncoding::Utf8Bom_sv.length());
+            const TextEncoding text_encoding(m_utf8Buffer, TextEncoding::Utf8Bom_sv.length());
 
-            if( HasUtf8BOM(m_utf8Buffer, Utf8BOM_sv.length()) )
+            if( text_encoding.GetType() == TextEncoding::Type::Utf8Bom )
             {
-                m_filePositionStart = Utf8BOM_sv.length();
+                m_filePositionStart = TextEncoding::Utf8Bom_sv.length();
             }
 
             else
             {
                 // if this is not a BOM, read more bytes and convert this set
-                ReadBytesAndConvert(m_utf8Buffer + Utf8BOM_sv.length(), ReadBufferSize - Utf8BOM_sv.length());
+                ReadBytesAndConvert(m_utf8Buffer + TextEncoding::Utf8Bom_sv.length(), ReadBufferSize - TextEncoding::Utf8Bom_sv.length());
             }
         }
     }
@@ -96,14 +99,14 @@ namespace
 
         // this has only been tested to go to the beginning of the file
         ASSERT(file_offset == static_cast<long>(m_filePositionStart));
-        
+
         if( file_offset < static_cast<long>(m_fileSize) && fseek(m_file, static_cast<long>(file_offset), SEEK_SET) == 0 )
         {
             m_fileSizeRemaining = m_fileSize - file_offset;
             return sp;
         }
 
-        throw FileIO::Exception(_T("Could not seek to position %d in file %s."), (int)file_offset, PortableFunctions::PathGetFilename(m_filename));
+        throw FileIO::Exception("Could not seek to position %d in file %s.", static_cast<int>(file_offset), PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(m_filename)).c_str());
     }
 
 
@@ -112,7 +115,7 @@ namespace
         ASSERT(bytes <= m_fileSizeRemaining);
 
         if( fread(buffer, 1, bytes, m_file) != bytes )
-            throw FileIO::Exception(_T("The file %s could not be fully read."), PortableFunctions::PathGetFilename(m_filename));
+            throw FileIO::Exception::FileReadError(m_filename);
 
         m_fileSizeRemaining -= bytes;
     }
@@ -130,8 +133,8 @@ namespace
         // the bytes read in for the BOM check, adjust the figures
         if( buffer_start_read_pos != m_utf8Buffer )
         {
-            ASSERT(m_utf8Buffer == ( buffer_start_read_pos - Utf8BOM_sv.length() ));
-            bytes_in_buffer += Utf8BOM_sv.length();
+            ASSERT(m_utf8Buffer == ( buffer_start_read_pos - TextEncoding::Utf8Bom_sv.length() ));
+            bytes_in_buffer += TextEncoding::Utf8Bom_sv.length();
         }
 
         ASSERT(bytes_in_buffer > 0);
@@ -152,7 +155,7 @@ namespace
                 ASSERT(( *start_utf_sequence & 0xC0 ) == 0xC0);
 
                 size_t bytes_in_sequence = ( ( *start_utf_sequence & 0xF0 ) == 0xF0 ) ? 4 :
-                                           ( ( *start_utf_sequence & 0xE0 ) == 0xE0 ) ? 3 : 
+                                           ( ( *start_utf_sequence & 0xE0 ) == 0xE0 ) ? 3 :
                                                                                         2;
 
                 size_t current_sequence_bytes_read = last_char_in_buffer + 1 - start_utf_sequence;
@@ -172,7 +175,7 @@ namespace
         }
 
         // convert the bytes read
-        int wide_chars = UTF8Convert::UTF8BufferToWideBuffer(m_utf8Buffer, bytes_in_buffer, m_wideBuffer, _countof(m_wideBuffer));
+        const int wide_chars = UTF8Convert::UTF8BufferToWideBuffer(m_utf8Buffer, bytes_in_buffer, m_wideBuffer, _countof(m_wideBuffer));
 
         setg(m_wideBuffer, m_wideBuffer, m_wideBuffer + wide_chars);
     }
@@ -187,8 +190,8 @@ Utf8InputFileStream::Utf8InputFileStream(std::unique_ptr<std::wstreambuf> stream
 }
 
 
-Utf8InputFileStream::Utf8InputFileStream(std::wstring filename, FileIO::FileAndSize file_and_size)
-    :   Utf8InputFileStream(std::make_unique<Utf8InputFileStreamBuffer>(std::move(filename), std::move(file_and_size)))
+Utf8InputFileStream::Utf8InputFileStream(InterfaceString file_path, FileIO::FileAndSize file_and_size)
+    :   Utf8InputFileStream(std::make_unique<Utf8InputFileStreamBuffer>(file_path.Release<std::wstring>(), std::move(file_and_size)))
 {
 }
 

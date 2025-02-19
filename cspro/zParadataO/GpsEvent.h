@@ -1,62 +1,78 @@
 ﻿#pragma once
-#include "Event.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+
+namespace Paradata { class GpsEvent; struct GpsReadingInstance;; class GpsReadRequestEvent; }
+
+
+// --------------------------------------------------------------------------
+// GpsReadingInstance
+// --------------------------------------------------------------------------
+
+struct Paradata::GpsReadingInstance
 {
-    struct GpsReadingInstance
+    std::optional<double> latitude;
+    std::optional<double> longitude;
+    std::optional<double> altitude;
+    std::optional<double> satellites;
+    std::optional<double> accuracy;
+    std::optional<double> readtime;
+};
+
+
+
+// --------------------------------------------------------------------------
+// GpsEvent
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::GpsEvent : public Event
+{
+    DECLARE_PARADATA_EVENT(GpsEvent)
+
+public:
+    enum class Action
     {
-        std::optional<double> latitude;
-        std::optional<double> longitude;
-        std::optional<double> altitude;
-        std::optional<double> satellites;
-        std::optional<double> accuracy;
-        std::optional<double> readtime;
+        Close,
+        Open,
+        Read,
+        ReadLast,
+        BackgroundReading,
+        ReadInteractive,
+        Select,
+        BackgroundOpen, // will be logged as Open
+        BackgroundClose // will be logged as Close
     };
 
-    class ZPARADATAO_API GpsEvent : public Event
-    {
-        DECLARE_PARADATA_EVENT(GpsEvent)
+public:
+    GpsEvent(Action action, std::unique_ptr<GpsReadingInstance> gps_reading_instance = nullptr);
 
-    public:
-        enum class Action
-        {
-            Close,
-            Open,
-            Read,
-            ReadLast,
-            BackgroundReading,
-            ReadInteractive,
-            Select,
-            BackgroundOpen, // will be logged as Open
-            BackgroundClose // will be logged as Close
-        };
+    virtual void SetPostExecutionValues(double return_value, std::unique_ptr<GpsReadingInstance> gps_reading_instance = nullptr);
 
-    protected:
-        Action m_action;
-        std::optional<double> m_returnValue;
-        mutable std::optional<long> m_gpsReadRequestInstanceId;
-        std::optional<GpsReadingInstance> m_gpsReadingInstance;
+protected:
+    Action m_action;
+    std::optional<double> m_returnValue;
+    mutable std::optional<long> m_gpsReadRequestInstanceId;
+    std::unique_ptr<GpsReadingInstance> m_gpsReadingInstance;
+};
 
-    public:
-        GpsEvent(Action action, const std::optional<GpsReadingInstance>& gps_reading_instance = std::nullopt);
 
-        virtual void SetPostExecutionValues(double return_value, const std::optional<GpsReadingInstance>& gps_reading_instance = std::nullopt);
-    };
 
-    class ZPARADATAO_API GpsReadRequestEvent : public GpsEvent
-    {
-    private:
-        int m_maxReadDuration;
-        std::optional<int> m_desiredAccuracy;
-        std::optional<CString> m_dialogText;
-        double m_readDuration;
+// --------------------------------------------------------------------------
+// GpsReadRequestEvent
+// --------------------------------------------------------------------------
 
-    public:
-        GpsReadRequestEvent(Action action, int max_read_duration, const std::optional<int>& desired_accuracy,
-            const std::optional<CString>& dialog_text);
+class ZPARADATAO_API Paradata::GpsReadRequestEvent : public GpsEvent
+{
+public:
+    GpsReadRequestEvent(Action action, int max_read_duration, std::optional<int> desired_accuracy, std::optional<std::string> dialog_text);
 
-        void SetPostExecutionValues(double return_value, const std::optional<GpsReadingInstance>& gps_reading_instance = std::nullopt) override;
+    void SetPostExecutionValues(double return_value, std::unique_ptr<GpsReadingInstance> gps_reading_instance = nullptr) override;
 
-        void Save(Log& log, long base_event_id) const override;
-    };
-}
+    void Save(Log& log, long base_event_id) const override;
+
+private:
+    int m_maxReadDuration;
+    std::optional<int> m_desiredAccuracy;
+    std::optional<std::string> m_dialogText;
+    double m_readDuration;
+};

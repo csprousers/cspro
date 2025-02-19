@@ -46,10 +46,11 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
             return true;
         }
 
-        catch(...)
+        catch( const std::exception& exception )
         {
-            ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen).c_str(),
-                                             GetApplication()->GetAppLoader()->GetArchiveName().c_str()));
+            ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
+                                             Path::GetFilename(UTF8_TODO::GetUtf8(GetApplication()->GetAppLoader()->GetArchiveName())).c_str(),
+                                             exception.what()));
             return false;
         }
     }
@@ -57,22 +58,22 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
 #ifdef WIN_DESKTOP
     ASSERT(Appl.m_AppTknSource == nullptr);
 
-    std::wstring compiler_buffer;
+    SharableString compiler_buffer;
 
     // load the buffer from passed in lines
     if( pcsLines != nullptr )
     {
-        compiler_buffer = CS2WS(*pcsLines);
+        compiler_buffer = UTF8_TODO::GetUtf8(*pcsLines);
     }
 
     // or from the disk
     else
     {
-        const CodeFile* logic_main_code_file = GetApplication()->GetLogicMainCodeFile();
+        const CodeFile* const logic_main_code_file = GetApplication()->GetLogicMainCodeFile();
 
         if( logic_main_code_file != nullptr )
         {
-            compiler_buffer = logic_main_code_file->GetTextSource().GetText();
+            compiler_buffer = logic_main_code_file->GetTextSource().GetTextAsSharableString();
         }
 
         else
@@ -82,7 +83,7 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
         }
     }
 
-    Appl.m_AppTknSource = std::make_shared<Logic::SourceBuffer>(std::move(compiler_buffer));
+    Appl.m_AppTknSource = std::make_unique<Logic::SourceBuffer>(std::move(compiler_buffer));
 
     // scan for tables so the symbols exist and will be valid for adding to the PROC directory
     if( Appl.ApplicationType != ModuleType::Entry && !m_pEngineCompFunc->ScanTables() )
@@ -97,6 +98,7 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
 
     return true;
 }
+
 
 bool CEngineDriver::LoadApplMessage( void ) {
     // evaluate load done & prepare message

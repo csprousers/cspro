@@ -52,7 +52,7 @@ namespace PropertyGrid
 
         else
         {
-            return GetRelativeFNameForDisplay<CString>(m_data->value->display_relative_to_filename, value.filename);
+            return UTF8_TODO::GetCString(GetRelativePathForDisplay(UTF8_TODO::GetUtf8(m_data->value->display_relative_to_filename), UTF8_TODO::GetUtf8(value.filename)));
         }
     }
 
@@ -68,7 +68,7 @@ namespace PropertyGrid
             if( !value.filename.IsEmpty() && !PortableFunctions::FileIsRegular(value.filename) )
             {
                 throw PropertyValidationException<T>(FromOleVariant(COleVariant(CString())),
-                    FormatText(_T("No file could be located at %s"), (LPCTSTR)value.filename));
+                                                     FormatText("No file could be located at %s", UTF8_TODO::GetUtf8(value.filename).c_str()));
             }
 
             // custom validation

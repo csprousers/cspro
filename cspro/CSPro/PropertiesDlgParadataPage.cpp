@@ -42,17 +42,17 @@ void PropertiesDlgParadataPage::SetupEventNames()
             // 1) remove the _event from the table name
             // 2) convert the underscores to spaces
             // 3) capitalize each word
-            std::wstring display_text = table_definition.name;
+            std::string display_text = table_definition.name;
 
-            SO::Replace(display_text, _T("_event"), _T(""));
-            SO::Replace(display_text, _T("_"), _T(" "));
+            SO::Replace(display_text, "_event", "");
+            SO::Replace(display_text, "_", " ");
             display_text = SO::ToProperCase(display_text);
 
             // fix the GPS table name
-            if( display_text == _T("Gps") )
+            if( display_text == "Gps" )
                 SO::MakeUpper(display_text);
             
-            m_eventMappings.emplace_back(display_text, &table_definition);
+            m_eventMappings.emplace_back(std::move(display_text), &table_definition);
         }
     }
 
@@ -85,11 +85,11 @@ BOOL PropertiesDlgParadataPage::OnInitDialog()
     CDialog::OnInitDialog();
 
     // add the events and make sure the vertical height appears correctly
-    CDC* pDC = m_eventsCheckListBox.GetDC();
+    CDC* const pDC = m_eventsCheckListBox.GetDC();
 
     for( const auto& [display_text, table_definition] : m_eventMappings )
     {
-        int index = m_eventsCheckListBox.AddString(display_text.c_str());
+        const int index = m_eventsCheckListBox.AddString(TC::ToWide(display_text).c_str());
         m_eventsCheckListBox.SetItemHeight(index, pDC->GetTextExtent(display_text.c_str()).cy);
     }
 
@@ -123,14 +123,14 @@ void PropertiesDlgParadataPage::FormToProperties()
     m_paradataProperties.SetRecordIteratorLoadCases(FromForm::Check(m_recordIteratorLoadCases));
     m_paradataProperties.SetRecordInitialPropertyValues(FromForm::Check(m_recordInitialPropertyValues));
 
-    auto validate_minutes = [&](const CString& text_value, const TCHAR* description)
+    auto validate_minutes = [&](const std::string& text_value, const char* const description)
     {
         try
         {
             int minutes = FromForm::Text<int>(text_value, description, 0);
 
             if( minutes < 0 )
-                throw CSProException(_T("The %s cannot be negative."), description);
+                throw CSProException("The %s cannot be negative.", description);
 
             return minutes;
         }
@@ -145,21 +145,21 @@ void PropertiesDlgParadataPage::FormToProperties()
         }
     };
 
-    m_paradataProperties.SetDeviceStateIntervalMinutes(validate_minutes(m_deviceStateIntervalMinutes, _T("device state collection interval")));
-    m_paradataProperties.SetGpsLocationIntervalMinutes(validate_minutes(m_gpsLocationIntervalMinutes, _T("GPS location collection interval")));
+    m_paradataProperties.SetDeviceStateIntervalMinutes(validate_minutes(m_deviceStateIntervalMinutes, "device state collection interval"));
+    m_paradataProperties.SetGpsLocationIntervalMinutes(validate_minutes(m_gpsLocationIntervalMinutes, "GPS location collection interval"));
 
-    std::set<std::wstring> event_names;
+    std::set<std::string> event_names;
 
     if( m_paradataProperties.GetCollectionType() == ParadataProperties::CollectionType::SomeEvents )
     {
         for( size_t i = 0; i < m_eventMappings.size(); ++i )
         {
-            if( FromForm::Check(m_eventsCheckListBox.GetCheck((int)i)) )
+            if( FromForm::Check(m_eventsCheckListBox.GetCheck(static_cast<int>(i))) )
                 event_names.insert(std::get<1>(m_eventMappings[i])->name);
         }
 
         if( event_names.empty() )
-            throw CSProException(_T("You must select at least one paradata event to collect."));
+            throw CSProException("You must select at least one paradata event to collect.");
     }
 
     m_paradataProperties.SetEventNames(std::move(event_names));
@@ -192,7 +192,7 @@ void PropertiesDlgParadataPage::OnOK()
 
 void PropertiesDlgParadataPage::OnCollectionTypeChange(UINT /*nID*/)
 {
-    ParadataProperties::CollectionType previous_collection_type = m_collectionTypeRadioEnumHelper.FromForm(m_collectionType);
+    const ParadataProperties::CollectionType previous_collection_type = m_collectionTypeRadioEnumHelper.FromForm(m_collectionType);
 
     UpdateData(TRUE);
 
@@ -207,7 +207,7 @@ void PropertiesDlgParadataPage::OnCollectionTypeChange(UINT /*nID*/)
 
         else if( previous_collection_type == ParadataProperties::CollectionType::AllEvents )
         {
-            std::set<std::wstring> event_names = m_paradataProperties.GetEventNames();
+            std::set<std::string> event_names = m_paradataProperties.GetEventNames();
 
             for( const auto& [display_text, table_definition] : m_eventMappings )
                 event_names.insert(table_definition->name);
@@ -222,26 +222,26 @@ void PropertiesDlgParadataPage::OnCollectionTypeChange(UINT /*nID*/)
 
 void PropertiesDlgParadataPage::SelectEventNamesAndEnableDisableUI()
 {
-    ParadataProperties::CollectionType collection_type =  m_collectionTypeRadioEnumHelper.FromForm(m_collectionType);
+    const ParadataProperties::CollectionType collection_type =  m_collectionTypeRadioEnumHelper.FromForm(m_collectionType);
     int index = 0;
 
     for( const auto& [display_text, table_definition] : m_eventMappings )
     {
         m_eventsCheckListBox.SetCheck(index++,
-            ToForm::Check(m_paradataProperties.IncludeEvent(collection_type, table_definition->name)));
+                                      ToForm::Check(m_paradataProperties.IncludeEvent(collection_type, table_definition->name)));
     }
 
     // conditionally enable some of the controls
     m_eventsCheckListBox.EnableWindow(( collection_type == ParadataProperties::CollectionType::SomeEvents ));
 
-    BOOL using_paradata = ( collection_type != ParadataProperties::CollectionType::No );
+    const BOOL using_paradata = ( collection_type != ParadataProperties::CollectionType::No );
 
-    for( int resource_id : { IDC_PARADATA_RECORD_ENTERED_VALUES,
-                             IDC_PARADATA_RECORD_COORDINATES,
-                             IDC_PARADATA_RECORD_ITERATOR_LOAD_CASES,
-                             IDC_PARADATA_RECORD_INITIAL_PROPERTY_VALUES,
-                             IDC_PARADATA_DEVICE_STATE_MINUTES,
-                             IDC_PARADATA_GPS_LOCATION_MINUTES } )
+    for( const int resource_id : { IDC_PARADATA_RECORD_ENTERED_VALUES,
+                                   IDC_PARADATA_RECORD_COORDINATES,
+                                   IDC_PARADATA_RECORD_ITERATOR_LOAD_CASES,
+                                   IDC_PARADATA_RECORD_INITIAL_PROPERTY_VALUES,
+                                   IDC_PARADATA_DEVICE_STATE_MINUTES,
+                                   IDC_PARADATA_GPS_LOCATION_MINUTES } )
     {
         GetDlgItem(resource_id)->EnableWindow(using_paradata);
     }

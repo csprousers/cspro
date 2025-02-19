@@ -25,7 +25,7 @@ namespace
 
     CString GetErrorName(const DictNamedBase& dict_element)
     {
-        CString name = dict_element.GetName();
+        CString name = UTF8_TODO::GetCString(dict_element.GetName());
 
         if( !name.IsEmpty() )
             name.Append(_T(":  "));
@@ -48,6 +48,7 @@ namespace
     constexpr const TCHAR* IDS_RULE_MSG008     = _T("Dictionary name must contain A-Z, 0-9, or underline. It must start with a letter and end with either a letter or number.");
     constexpr const TCHAR* IDS_RULE_MSG009     = _T("Dictionary name is not unique in this dictionary.");
     constexpr const TCHAR* IDS_RULE_MSG010     = _T("Dictionary name is a reserved word.");
+    constexpr const TCHAR* IDS_RULE_MSG018     = _T("Syncable dictionary name must contain A-Z, 0-9, or underline. It must start with a letter and end with either a letter or number.");
 
     constexpr const TCHAR* IDS_RULE_MSG021     = _T("Record type start must be <= %d.");
     constexpr const TCHAR* IDS_RULE_MSG022     = _T("Record type start must be 0 if record type length is 0.");
@@ -297,7 +298,7 @@ bool DictionaryValidator::IsValid(CDataDict* pDict,
         // RHF INIC Jul 10, 2003
         CString csFullMsg;
 
-        csFullMsg.Format( csMsg, pDict->GetName().GetString() );
+        csFullMsg.Format( csMsg, UTF8_TODO::GetWide(pDict->GetName()).c_str() );
         csMsg = csFullMsg;
         // RHF INIC Jul 10, 2003
 
@@ -363,7 +364,7 @@ bool DictionaryValidator::CheckLabel(CDataDict* pDict)
 bool DictionaryValidator::CheckName(CDataDict* pDict)
 {
     bool bValid = true;
-    CIMSAString csName = pDict->GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(pDict->GetName());
 
     // Dictionary name cannot be empty.
     if (csName.GetLength() == 0)  {
@@ -376,6 +377,7 @@ bool DictionaryValidator::CheckName(CDataDict* pDict)
         }
         return bValid;
     }
+
     // Dictionary name must contain A-Z, 0-9, or underline and start with letter.
     if (!csName.IsName())  {
         bValid = false;
@@ -383,30 +385,47 @@ bool DictionaryValidator::CheckName(CDataDict* pDict)
         m_csErrorReport += GetErrorName(*pDict) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             csName.MakeName();
-            pDict->SetName(csName);
+            pDict->SetName(UTF8_TODO::GetUtf8(csName));
             m_pDict->UpdateNameList(*pDict);
         }
     }
+
     // Dictionary name is not unique in this dictionary.
-    if (!pDict->IsNameUnique(csName))  {
+    if (!pDict->IsNameUnique(UTF8_TODO::GetUtf8(csName)))  {
         bValid = false;
         csMsg = IDS_RULE_MSG009;
         m_csErrorReport += GetErrorName(*pDict) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
-            pDict->SetName(pDict->GetUniqueName(csName));
+            pDict->SetName(pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
             m_pDict->UpdateNameList(*pDict);
         }
     }
+
     // Dictionary name is a reserved word.
     if (csName.IsReservedWord())  {
         bValid = false;
         csMsg = IDS_RULE_MSG010;
         m_csErrorReport += GetErrorName(*pDict) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
-            pDict->SetName(pDict->GetUniqueName(csName));
+            pDict->SetName(pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
             m_pDict->UpdateNameList(*pDict);
         }
     }
+
+
+    // syncable name must be valid
+    const std::string& syncable_name = pDict->GetSyncableName(false);
+
+    if( !syncable_name.empty() && !CIMSAString::IsName(syncable_name) )
+    {
+        bValid = false;
+        csMsg = IDS_RULE_MSG018;
+        m_csErrorReport += GetErrorName(*pDict) + csMsg + CRLF;
+
+        if( m_bAutoFixAndRecurse )
+            pDict->SetSyncableName(std::string());
+    }
+
     return bValid;
 }
 
@@ -507,7 +526,7 @@ bool DictionaryValidator::CheckRecTypeLen(CDataDict* pDict)
                     iRTLen = std::max(iRTLen, dict_record.GetRecTypeVal().GetLength());
                 });
             if (iRTLen == 0) {
-                iRTLen = IntToString(num_records).GetLength();
+                iRTLen = IntToStringLength(num_records);
             }
             pDict->SetRecTypeLen((UINT) iRTLen);
         }
@@ -683,7 +702,7 @@ bool DictionaryValidator::CheckLabel(DictLevel& dict_level)
 bool DictionaryValidator::CheckName(DictLevel& dict_level)
 {
     bool bValid = true;
-    CIMSAString csName = dict_level.GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(dict_level.GetName());
 
     // Level name cannot be empty.
     if (csName.GetLength() == 0)  {
@@ -703,17 +722,17 @@ bool DictionaryValidator::CheckName(DictLevel& dict_level)
         m_csErrorReport += GetErrorName(dict_level) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             csName.MakeName();
-            dict_level.SetName(csName);
+            dict_level.SetName(UTF8_TODO::GetUtf8(csName));
             m_pDict->UpdateNameList(dict_level);
         }
     }
     // Level name is not unique in this dictionary.
-    if (!m_pDict->IsNameUnique(csName, m_iLevelNum))  {
+    if (!m_pDict->IsNameUnique(UTF8_TODO::GetUtf8(csName), m_iLevelNum))  {
         bValid = false;
         csMsg = IDS_RULE_MSG109;
         m_csErrorReport += GetErrorName(dict_level) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
-            dict_level.SetName(m_pDict->GetUniqueName(csName, m_iLevelNum));
+            dict_level.SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum));
             m_pDict->UpdateNameList(dict_level, m_iLevelNum);
         }
     }
@@ -723,7 +742,7 @@ bool DictionaryValidator::CheckName(DictLevel& dict_level)
         csMsg = IDS_RULE_MSG110;
         m_csErrorReport += GetErrorName(dict_level) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
-            dict_level.SetName(m_pDict->GetUniqueName(csName, m_iLevelNum));
+            dict_level.SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum));
             m_pDict->UpdateNameList(dict_level, m_iLevelNum);
         }
     }
@@ -874,7 +893,7 @@ bool DictionaryValidator::CheckLabel(CDictRecord* pRec)
 bool DictionaryValidator::CheckName(CDictRecord* pRec)
 {
     bool bValid = true;
-    CIMSAString csName = pRec->GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(pRec->GetName());
 
     // A Level Id record (COMMON) does not have a name
     if (m_iRecordNum == COMMON)  {
@@ -898,19 +917,19 @@ bool DictionaryValidator::CheckName(CDictRecord* pRec)
             m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
                 csName.MakeName();
-                pRec->SetName(csName);
+                pRec->SetName(UTF8_TODO::GetUtf8(csName));
                 m_pDict->UpdateNameList(*pRec, m_iLevelNum, m_iRecordNum);
             }
         }
     }
     // Record name is not unique in this dictionary.
     if (bValid)  {
-        if (!m_pDict->IsNameUnique(csName, m_iLevelNum, m_iRecordNum))  {
+        if (!m_pDict->IsNameUnique(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum))  {
             bValid = false;
             csMsg = IDS_RULE_MSG209;
             m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum));
+                pRec->SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum));
                 m_pDict->UpdateNameList(*pRec, m_iLevelNum, m_iRecordNum);
             }
         }
@@ -922,7 +941,7 @@ bool DictionaryValidator::CheckName(CDictRecord* pRec)
             csMsg = IDS_RULE_MSG210;
             m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum));
+                pRec->SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum));
                 m_pDict->UpdateNameList(*pRec, m_iLevelNum, m_iRecordNum);
             }
         }
@@ -1359,7 +1378,7 @@ bool DictionaryValidator::CheckLabel(CDictItem* pItem)
 bool DictionaryValidator::CheckName(CDictItem* pItem)
 {
     bool bValid = true;
-    CIMSAString csName = pItem->GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(pItem->GetName());
 
     // Item name cannot be empty.
     if (csName.GetLength() == 0)  {
@@ -1379,19 +1398,19 @@ bool DictionaryValidator::CheckName(CDictItem* pItem)
             m_csErrorReport += GetErrorName(*pItem) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
                 csName.MakeName();
-                pItem->SetName(csName);
+                pItem->SetName(UTF8_TODO::GetUtf8(csName));
                 m_pDict->UpdateNameList(*pItem, m_iLevelNum, m_iRecordNum, m_iItemNum);
             }
         }
     }
     // Item name is not unique in this dictionary.
     if (bValid)  {
-        if (!m_pDict->IsNameUnique(csName, m_iLevelNum, m_iRecordNum, m_iItemNum))  {
+        if (!m_pDict->IsNameUnique(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum))  {
             bValid = false;
             csMsg = IDS_RULE_MSG309;
             m_csErrorReport += GetErrorName(*pItem) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pItem->SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum, m_iItemNum));
+                pItem->SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum));
                 m_pDict->UpdateNameList(*pItem, m_iLevelNum, m_iRecordNum, m_iItemNum);
             }
         }
@@ -1403,7 +1422,7 @@ bool DictionaryValidator::CheckName(CDictItem* pItem)
             csMsg = IDS_RULE_MSG310;
             m_csErrorReport += GetErrorName(*pItem) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pItem->SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum, m_iItemNum));
+                pItem->SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum));
                 m_pDict->UpdateNameList(*pItem, m_iLevelNum, m_iRecordNum, m_iItemNum);
             }
         }
@@ -1549,7 +1568,7 @@ bool DictionaryValidator::CheckDataType(CDictItem& dict_item)
     {
         if( m_iRecordNum == COMMON && !DictionaryRules::CanBeIdItem(dict_item) )
         {
-            m_csErrorReport.AppendFormat(_T("%sID items cannot be of type %s.%s"), GetErrorName(dict_item).GetString(), ToString(dict_item.GetContentType()), CRLF);
+            m_csErrorReport.AppendFormat(_T("%sID items cannot be of type %s.%s"), GetErrorName(dict_item).GetString(), UTF8_TODO::GetWide(ToString(dict_item.GetContentType())).c_str(), CRLF);
             valid = false;
         }
     }
@@ -1655,7 +1674,7 @@ bool DictionaryValidator::CheckOccurs(CDictItem* pItem)
                 ASSERT(pSItem->GetItemType() == ItemType::Subitem);
                 if (pSItem->GetOccurs() > 1)  {
                     bValid = false;
-                    csMsg.Format(IDS_RULE_MSG342, pSItem->GetName().GetString());   // BMD 10 Mar 2003
+                    csMsg.Format(IDS_RULE_MSG342, UTF8_TODO::GetWide(pSItem->GetName()).c_str());   // BMD 10 Mar 2003
                     m_csErrorReport += GetErrorName(*pItem) + csMsg + CRLF;
                     if (m_bAutoFixAndRecurse)  {
                         pItem->SetOccurs(1);
@@ -1670,7 +1689,7 @@ bool DictionaryValidator::CheckOccurs(CDictItem* pItem)
             const CDictItem* pParentItem = m_pDict->GetParentItem(m_iLevelNum, m_iRecordNum, m_iItemNum);
             if (pParentItem->GetOccurs() > 1)  {
                 bValid = false;
-                csMsg.Format(IDS_RULE_MSG343, pParentItem->GetName().GetString());
+                csMsg.Format(IDS_RULE_MSG343, UTF8_TODO::GetWide(pParentItem->GetName()).c_str());
                 m_csErrorReport += GetErrorName(*pItem) + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse)  {
                     pItem->SetOccurs(1);
@@ -1805,7 +1824,7 @@ bool DictionaryValidator::CheckCaptureInfo(CDictItem* pItem)
 
     catch( const CaptureInfo::ValidationException& exception )
     {
-        m_csErrorReport += GetErrorName(*pItem) + WS2CS(exception.GetErrorMessage()) + CRLF;
+        m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(exception.what()) + CRLF;
 
         // ...set it to unspecified if it is not valid
         if( m_bAutoFixAndRecurse )
@@ -1831,7 +1850,7 @@ bool DictionaryValidator::CheckSubitem (CDictItem* pItem)
     // Subitem %s declared before any item.
     int iParentItemNum = m_pDict->GetParentItemNum(m_iLevelNum, m_iRecordNum, m_iItemNum);
     if (iParentItemNum == NONE)  {
-        csMsg.Format(IDS_RULE_MSG371, pItem->GetName().GetString());
+        csMsg.Format(IDS_RULE_MSG371, UTF8_TODO::GetWide(pItem->GetName()).c_str());
         m_csErrorReport += csMsg + CRLF;
         if (m_bAutoFixAndRecurse) {
             pItem->SetContentType(ContentType::Numeric);
@@ -1843,7 +1862,7 @@ bool DictionaryValidator::CheckSubitem (CDictItem* pItem)
     bool bValid = true;
 
     if (!DictionaryRules::CanBeSubitem(*dict_record, *pItem)) {
-        csMsg.Format(IDS_RULE_MSG374, pItem->GetName().GetString());
+        csMsg.Format(IDS_RULE_MSG374, UTF8_TODO::GetWide(pItem->GetName()).c_str());
         m_csErrorReport += csMsg + CRLF;
         bValid = false;
         if (m_bAutoFixAndRecurse) {
@@ -1854,7 +1873,7 @@ bool DictionaryValidator::CheckSubitem (CDictItem* pItem)
     CDictItem* pParentItem = dict_record->GetItem(iParentItemNum);
 
     if (!DictionaryRules::CanHaveSubitems(*dict_record, *pParentItem)) {
-        csMsg.Format(IDS_RULE_MSG375, pItem->GetName().GetString());
+        csMsg.Format(IDS_RULE_MSG375, UTF8_TODO::GetWide(pItem->GetName()).c_str());
         m_csErrorReport += csMsg + CRLF;
         bValid = false;
         if (m_bAutoFixAndRecurse) {
@@ -1865,7 +1884,7 @@ bool DictionaryValidator::CheckSubitem (CDictItem* pItem)
     // Subitem %s must start within the preceeding item.
     if (pItem->GetStart() < pParentItem->GetStart() || pItem->GetStart() >= pParentItem->GetStart() + pParentItem->GetLen()) {
         bValid = false;
-        csMsg.Format(IDS_RULE_MSG372, pItem->GetName().GetString());
+        csMsg.Format(IDS_RULE_MSG372, UTF8_TODO::GetWide(pItem->GetName()).c_str());
         m_csErrorReport += csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             pItem->SetStart(pParentItem->GetStart());
@@ -1874,7 +1893,7 @@ bool DictionaryValidator::CheckSubitem (CDictItem* pItem)
     // Subitem %s extends past preceeding item.
     if (pItem->GetStart() + pItem->GetLen()*pItem->GetOccurs() > pParentItem->GetStart() + pParentItem->GetLen()) {
         bValid = false;
-        csMsg.Format(IDS_RULE_MSG373, pItem->GetName().GetString());
+        csMsg.Format(IDS_RULE_MSG373, UTF8_TODO::GetWide(pItem->GetName()).c_str());
         m_csErrorReport += csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             pParentItem->SetLen(pItem->GetStart()+pItem->GetLen()*pItem->GetOccurs()-pParentItem->GetStart());
@@ -1952,7 +1971,7 @@ bool DictionaryValidator::CheckStartLen(CDictItem* pItem)
             UINT uTestEnd = uTestStart + pTestItem->GetLen()*pTestItem->GetOccurs();
             if (uStart < uTestEnd && uEnd > uTestStart)  {
                 bValid = false;
-                csMsg.Format(IDS_RULE_MSG383, pItem->GetName().GetString(), pTestItem->GetName().GetString());
+                csMsg.Format(IDS_RULE_MSG383, UTF8_TODO::GetWide(pItem->GetName()).c_str(), UTF8_TODO::GetWide(pTestItem->GetName()).c_str());
                 m_csErrorReport += csMsg + CRLF;
                 if (m_bAutoFixAndRecurse && m_iLevelNum != NONE) {
                     if (m_iRecordNum == COMMON) {
@@ -1982,7 +2001,7 @@ bool DictionaryValidator::CheckStartLen(CDictItem* pItem)
                     UINT uTestEnd = uTestStart + pTestItem->GetLen()*pTestItem->GetOccurs();
                     if (uStart < uTestEnd && uEnd > uTestStart)  {
                         bValid = false;
-                        csMsg.Format(IDS_RULE_MSG383, pItem->GetName().GetString(), pTestItem->GetName().GetString());
+                        csMsg.Format(IDS_RULE_MSG383, UTF8_TODO::GetWide(pItem->GetName()).c_str(), UTF8_TODO::GetWide(pTestItem->GetName()).c_str());
                         m_csErrorReport += csMsg + CRLF;
                         if (m_bAutoFixAndRecurse && m_iLevelNum != NONE) {
                             pItem->SetStart(GetMaxRecLen() + 1);
@@ -2004,7 +2023,7 @@ bool DictionaryValidator::CheckStartLen(CDictItem* pItem)
             UINT uTestEnd = uTestStart + pTestItem->GetLen()*pTestItem->GetOccurs();
             if (uStart < uTestEnd && uEnd > uTestStart)  {
                 bValid = false;
-                csMsg.Format(IDS_RULE_MSG383, pItem->GetName().GetString(), pTestItem->GetName().GetString());
+                csMsg.Format(IDS_RULE_MSG383, UTF8_TODO::GetWide(pItem->GetName()).c_str(), UTF8_TODO::GetWide(pTestItem->GetName()).c_str());
                 m_csErrorReport += csMsg + CRLF;
                 if (m_bAutoFixAndRecurse) {
                     pItem->SetStart(pRec->GetRecLen() + 1);
@@ -2076,7 +2095,7 @@ bool DictionaryValidator::IsValid(DictValueSet& dict_value_set,
 
     if( !DictionaryRules::CanHaveValueSet(*pItem) ) {
         bValid = false;
-        csMsg.Format(_T("Items of type %s cannot have value sets"), ToString(pItem->GetContentType()));
+        csMsg.Format(_T("Items of type %s cannot have value sets"), UTF8_TODO::GetWide(ToString(pItem->GetContentType())).c_str());
         m_csErrorReport += GetErrorName(*pItem) + GetErrorName(dict_value_set) + csMsg + CRLF;
 
         if (bAutoFixAndRecurse) {
@@ -2165,7 +2184,7 @@ bool DictionaryValidator::CheckLabel(DictValueSet& dict_value_set)
 bool DictionaryValidator::CheckName(DictValueSet& dict_value_set)
 {
     bool bValid = true;
-    CIMSAString csName = dict_value_set.GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(dict_value_set.GetName());
 
     // Value set name cannot be empty.
     if (csName.GetLength() == 0)  {
@@ -2187,20 +2206,20 @@ bool DictionaryValidator::CheckName(DictValueSet& dict_value_set)
             m_csErrorReport += GetErrorName(*pItem) + GetErrorName(dict_value_set) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
                 csName.MakeName();
-                dict_value_set.SetName(csName);
+                dict_value_set.SetName(UTF8_TODO::GetUtf8(csName));
                 m_pDict->UpdateNameList(dict_value_set, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum);
             }
         }
     }
     // Value set name is not unique in this dictionary.
     if (bValid)  {
-        if (!m_pDict->IsNameUnique(csName, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum))  {
+        if (!m_pDict->IsNameUnique(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum))  {
             bValid = false;
             csMsg = IDS_RULE_MSG409;
             CDictItem* pItem = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum);
             m_csErrorReport += GetErrorName(*pItem) + GetErrorName(dict_value_set) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                dict_value_set.SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum));
+                dict_value_set.SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum));
                 m_pDict->UpdateNameList(dict_value_set, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum);
             }
         }
@@ -2213,7 +2232,7 @@ bool DictionaryValidator::CheckName(DictValueSet& dict_value_set)
             CDictItem* pItem = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum);
             m_csErrorReport += GetErrorName(*pItem) + GetErrorName(dict_value_set) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                dict_value_set.SetName(m_pDict->GetUniqueName(csName, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum));
+                dict_value_set.SetName(m_pDict->GetUniqueName(UTF8_TODO::GetUtf8(csName), m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum));
                 m_pDict->UpdateNameList(dict_value_set, m_iLevelNum, m_iRecordNum, m_iItemNum, m_iVSetNum);
             }
         }
@@ -2249,7 +2268,7 @@ bool DictionaryValidator::CheckValueType(DictValueSet& dict_value_set)
         else
         {
             valid = false;
-            csMsg.Format(_T("More than one %s value"), SpecialValues::ValueToString(dict_value.GetSpecialValue(), false));
+            csMsg.Format(_T("More than one %s value"), UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str());
 
             const CDictItem* pItem = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum);
             m_csErrorReport += GetErrorName(*pItem) + GetErrorName(dict_value_set) + csMsg + CRLF;
@@ -2718,7 +2737,7 @@ bool DictionaryValidator::IsValid(const DictRelation& dict_relation,
             m_iInvalidEdit = 2;
         }
     }
-    for( const auto& dict_relation_part : dict_relation.GetRelationParts() ) {
+    for( const DictRelationPart& dict_relation_part : dict_relation.GetRelationParts() ) {
         bool bValidPart = true;
         if (bBadPrimary) {
             bValidPart = false;
@@ -2776,7 +2795,7 @@ bool DictionaryValidator::IsValid(const DictRelation& dict_relation,
 bool DictionaryValidator::CheckName(const DictRelation& dict_relation)
 {
     bool bValid = true;
-    CIMSAString csName = dict_relation.GetName();
+    CIMSAString csName = UTF8_TODO::GetCString(dict_relation.GetName());
 
     // Relation name cannot be empty.
     if (csName.GetLength() == 0)  {
@@ -2794,14 +2813,14 @@ bool DictionaryValidator::CheckName(const DictRelation& dict_relation)
     }
     // Relation name is not unique in this dictionary.
     if (bValid)  {
-        if (m_pDict->LookupName(csName, nullptr)) {
+        if (m_pDict->LookupName(UTF8_TODO::GetUtf8(csName), nullptr)) {
             bValid = false;
             csMsg = IDS_RULE_MSG704;
             m_csErrorReport += GetErrorName(dict_relation) + csMsg + CRLF;
         }
         else {
-            for( const auto& test_dict_relation : m_pDict->GetRelations() ) {
-                if (&dict_relation != &test_dict_relation && csName == test_dict_relation.GetName() ) {
+            for( const DictRelation& test_dict_relation : m_pDict->GetRelations() ) {
+                if (&dict_relation != &test_dict_relation && UTF8_TODO::GetUtf8(csName) == test_dict_relation.GetName() ) {
                     bValid = false;
                     csMsg = IDS_RULE_MSG704;
                     m_csErrorReport += GetErrorName(dict_relation) + csMsg + CRLF;
@@ -2978,7 +2997,7 @@ bool DictionaryValidator::CheckSecondaryName(const DictRelation& dict_relation, 
             csMsg.Format(_T("Secondary %s is the same as the primary."), dict_relation_part.GetSecondaryName().c_str());
             m_csErrorReport += GetErrorName(dict_relation) + csMsg + CRLF;
         }
-        for( const auto& test_dict_relation_part : dict_relation.GetRelationParts() ) {
+        for( const DictRelationPart& test_dict_relation_part : dict_relation.GetRelationParts() ) {
             if (&dict_relation_part != &test_dict_relation_part && SO::EqualsNoCase(dict_relation_part.GetSecondaryName(), test_dict_relation_part.GetSecondaryName())) {
                 bValid = false;
                 csMsg.Format(_T("Secondary %s is a duplicate."), dict_relation_part.GetSecondaryName().c_str());
@@ -3074,7 +3093,7 @@ bool DictionaryValidator::CheckLinks(const DictRelation& dict_relation, const Di
 {
     bool bValid = true;
     if (!dict_relation_part.IsPrimaryLinkedByOccurrence() && dict_relation_part.IsSecondaryLinkedByOccurrence()) {
-        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(WS2CS(dict_relation_part.GetPrimaryLink()));
+        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(dict_relation_part.GetPrimaryLink());
         if (pPrimItem->GetContentType() != ContentType::Numeric) {
             bValid = false;
             csMsg.Format(_T("Primary link %s must be numeric."), dict_relation_part.GetPrimaryLink().c_str());
@@ -3082,7 +3101,7 @@ bool DictionaryValidator::CheckLinks(const DictRelation& dict_relation, const Di
         }
     }
     if (dict_relation_part.IsPrimaryLinkedByOccurrence() && !dict_relation_part.IsSecondaryLinkedByOccurrence()) {
-        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(WS2CS(dict_relation_part.GetSecondaryLink()));
+        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(dict_relation_part.GetSecondaryLink());
         if (pSecItem->GetContentType() != ContentType::Numeric) {
             bValid = false;
             csMsg.Format(_T("Secondary link %s must be numeric."), dict_relation_part.GetSecondaryLink().c_str());
@@ -3090,8 +3109,8 @@ bool DictionaryValidator::CheckLinks(const DictRelation& dict_relation, const Di
         }
     }
     if (!dict_relation_part.IsPrimaryLinkedByOccurrence() && !dict_relation_part.IsSecondaryLinkedByOccurrence()) {
-        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(WS2CS(dict_relation_part.GetPrimaryLink()));
-        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(WS2CS(dict_relation_part.GetSecondaryLink()));
+        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(dict_relation_part.GetPrimaryLink());
+        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(dict_relation_part.GetSecondaryLink());
         if (pPrimItem->GetContentType() != pSecItem->GetContentType()) {
             bValid = false;
             csMsg.Format(_T("Primary %s and secondary %s links must be the same data type."),
@@ -3440,12 +3459,10 @@ int DictionaryValidator::GetDefaultItemStart(int iLevel, int iRec, int iItem)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-CString DictionaryValidator::GetDefaultName(const CString& label)
+std::string DictionaryValidator::GetDefaultName(const CString& label) const
 {
-    CIMSAString name = label;
-    name.MakeName();
-    name = m_pDict->GetUniqueName(name, m_iLevelNum, m_iRecordNum, m_iItemNum);
-    return name;
+    const std::string name = CIMSAString::MakeName(UTF8_TODO::GetUtf8(label));
+    return m_pDict->GetUniqueName(name, m_iLevelNum, m_iRecordNum, m_iItemNum);
 }
 
 
@@ -3736,31 +3753,36 @@ bool DictionaryValidator::AdjustValues(DictValueSet& dict_value_set)
 }
 
 
-bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, bool throw_error/* = false*/,
-    const std::set<CString>* new_aliases_to_check/* = nullptr*/)
+bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, const bool throw_error/* = false*/,
+                                       const std::set<std::string>* const new_aliases_to_check/* = nullptr*/)
 {
-    const auto& current_aliases = dict_element.GetAliases();
-    const auto& aliases_to_check = ( new_aliases_to_check != nullptr ) ? *new_aliases_to_check : current_aliases;
+    const std::set<std::string>& current_aliases = dict_element.GetAliases();
+    const std::set<std::string>& aliases_to_check = ( new_aliases_to_check != nullptr ) ? *new_aliases_to_check :
+                                                                                          current_aliases;
     bool valid = true;
 
-    for( const CString& alias : aliases_to_check )
+    for( const std::string& alias : aliases_to_check )
     {
-        auto issue_error = [&](const TCHAR* error_message)
+        auto issue_error = [&](const char* const error_message)
         {
-            CString full_message = FormatText(_T("The alias '%s' %s."), alias.GetString(), error_message);
+            const std::string full_message = FormatText("The alias '%s' %s.", alias.c_str(), error_message);
 
             if( throw_error )
                 throw CSProException(full_message);
 
-            m_csErrorReport += GetErrorName(dict_element) + full_message + CRLF;
+            m_csErrorReport += GetErrorName(dict_element) + UTF8_TODO::GetCString(full_message) + CRLF;
             valid = false;
         };
 
         if( !CIMSAString::IsName(alias) )
-            issue_error(_T("is not a valid CSPro name"));
+        {
+            issue_error("is not a valid CSPro name");
+        }
 
         else if( CIMSAString::IsReservedWord(alias) )
-            issue_error(_T("cannot be used because it is a reserved word"));
+        {
+            issue_error("cannot be used because it is a reserved word");
+        }
 
         else
         {
@@ -3771,7 +3793,7 @@ bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, bool throw_e
             m_pDict->LookupName(dict_element.GetName(), &iLevel, &iRec, &iItem, &iVSet);
 
             if( !m_pDict->IsNameUnique(alias, iLevel, iRec, iItem, iVSet) )
-                issue_error(_T("cannot be used because the name is already in use"));
+                issue_error("cannot be used because the name is already in use");
         }
     }
 

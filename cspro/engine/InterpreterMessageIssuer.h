@@ -12,7 +12,8 @@ public:
     {
     }
 
-    void IssueError(int message_number, ...) override
+protected:
+    void IssueErrorWorker(int message_number, ...) override
     {
         va_list parg;
         va_start(parg, message_number);

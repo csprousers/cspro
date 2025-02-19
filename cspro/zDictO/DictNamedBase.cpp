@@ -13,15 +13,14 @@ DictNamedBase& DictNamedBase::operator=(const DictNamedBase& rhs)
 }
 
 
-void DictNamedBase::ParseJsonInput(const JsonNode<wchar_t>& json_node, bool also_parse_dict_base/* = true*/)
+void DictNamedBase::ParseJsonInput(const JsonNode& json_node, const bool also_parse_dict_base/* = true*/)
 {
-    m_name = json_node.Get<CString>(JK::name);
-    m_name.MakeUpper();
+    m_name = SO::ToUpper(json_node.Get<std::string_view>(JK::name));
 
     if( json_node.Contains(JK::aliases) )
     {
-        for( const auto& alias_node : json_node.GetArray(JK::aliases) )
-            m_aliases.insert(alias_node.Get<CString>().MakeUpper());
+        for( const JsonNode& alias_node : json_node.GetArray(JK::aliases) )
+            m_aliases.insert(SO::ToUpper(alias_node.Get<std::string>()));
     }
 
     if( also_parse_dict_base )
@@ -29,7 +28,7 @@ void DictNamedBase::ParseJsonInput(const JsonNode<wchar_t>& json_node, bool also
 }
 
 
-void DictNamedBase::WriteJson(JsonWriter& json_writer, bool also_write_dict_base/* = true*/) const
+void DictNamedBase::WriteJson(JsonWriter& json_writer, const bool also_write_dict_base/* = true*/) const
 {
     json_writer.Write(JK::name, m_name);
 
@@ -45,8 +44,6 @@ void DictNamedBase::serialize(Serializer& ar)
 {
     DictBase::serialize(ar);
 
-    ar & m_name;
-
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-        ar & m_aliases;
+    ar & m_name
+       & m_aliases;
 }

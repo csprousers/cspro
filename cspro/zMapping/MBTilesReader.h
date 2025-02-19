@@ -13,10 +13,8 @@ struct sqlite3_stmt;
 class MBTilesReader : public OfflineTileReader
 {
 public:
-    MBTilesReader(NullTerminatedString filename);
+    MBTilesReader(const std::string& file_path);
     ~MBTilesReader();
-
-    std::wstring GetTileMimeType() override { return m_tileMimeType; }
 
     int GetTileWidth() override  { return 256; }
     int GetTileHeight() override { return 256; }
@@ -26,9 +24,9 @@ public:
 
     std::optional<Bounds> GetBounds() override { return m_bounds; };
 
-    std::optional<std::wstring> GetAttribution() override { return m_attribution; }
+    const std::string& GetAttribution() override { return m_attribution; }
 
-    std::unique_ptr<std::vector<std::byte>> GetTile(int z, int x, int y) override;
+    std::optional<Tile> GetTile(int z, int x, int y) override;
 
 private:
     void CloseDatabase();
@@ -40,9 +38,9 @@ private:
     sqlite3_stmt* m_stmtTileQuery;
     std::mutex m_tileQueryMutex;
 
-    std::wstring m_tileMimeType;
+    SharableString m_tileMimeType;
     std::optional<int> m_minNativeZoom;
     std::optional<int> m_maxNativeZoom;
     std::optional<Bounds> m_bounds;
-    std::optional<std::wstring> m_attribution;
+    std::string m_attribution;
 };

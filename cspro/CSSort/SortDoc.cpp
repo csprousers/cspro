@@ -28,7 +28,6 @@
 #include "SortView.h"
 #include "TwoFldlg.h"
 #include "TypeDlg.h"
-#include <zUtilO/Filedlg.h>
 #include <zSortO/Sorter.h>
 
 
@@ -56,67 +55,86 @@ CSortDoc::CSortDoc()
 
 BOOL CSortDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
-    if( !CDocument::OnOpenDocument(lpszPathName) )
+    if( !__super::OnOpenDocument(lpszPathName) )
         return FALSE;
 
-    CString extension = PortableFunctions::PathGetFileExtension<CString>(lpszPathName);
+    try
+    {
+        const std::string file_path = TC::ToUtf8(lpszPathName);
+        const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
-    if (extension.CompareNoCase(FileExtensions::Pff) == 0) {
-        m_pff.SetPifFileName(lpszPathName);
-        if (m_pff.LoadPifFile()) {
-            RunBatchSort();
-            assert_cast<CSortApp*>(AfxGetApp())->m_iReturnCode = 0;
-        }
-        else {
-            assert_cast<CSortApp*>(AfxGetApp())->m_iReturnCode = 8;
-        }
-        return FALSE;
-    }
+        if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
+        {
+            m_pff.SetPifFileName(UTF8_TODO::GetCString(file_path));
 
-    else if (extension.CompareNoCase(FileExtensions::SortSpec) == 0) {
-        if (OpenSpecFile(lpszPathName)) {
-            AfxGetApp()->WriteProfileString(_T("Settings"),_T("Last Open"), lpszPathName);
-            CString csFileName = lpszPathName;
-            m_pff.SetAppFName(csFileName);
-            m_pff.SetListingFName(csFileName + FileExtensions::WithDot::Listing);
-            CString csPFF = csFileName + FileExtensions::WithDot::Pff;
-            m_pff.SetPifFileName(csPFF);
-            CFileStatus status;
-            if (CFile::GetStatus(csPFF, status)) {
-                if (m_pff.LoadPifFile()) {
-                    if (csFileName.CompareNoCase(m_pff.GetAppFName()) != 0) {
-                        AfxMessageBox(FormatText(_T("Spec files in %s\ndoes not match %s"), csPFF.GetString(), csFileName.GetString()));
-                        return FALSE;
-                    }
-                }
+            if( m_pff.LoadPifFile() )
+            {
+                RunBatchSort();
+                assert_cast<CSortApp*>(AfxGetApp())->m_iReturnCode = 0;
+            }
+
+            else
+            {
+                assert_cast<CSortApp*>(AfxGetApp())->m_iReturnCode = 8;
+            }
+
+            return FALSE;
+        }
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::SortSpec) )
+        {
+            if( !OpenSpecFile(file_path) )
+                return FALSE;
+
+            AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+
+            m_pff.SetAppFName(UTF8_TODO::GetCString(file_path));
+            m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(file_path, FileExtensions::Listing)));
+
+            const std::string pff_file_path = PortableFunctions::PathAppendFileExtension(file_path, FileExtensions::Pff);
+            m_pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
+
+            if( PortableFunctions::FileIsRegular(pff_file_path) && m_pff.LoadPifFile() )
+            {
+                if( !SO::EqualsNoCase(file_path, m_pff.GetAppFName()) )
+                    throw CSProException("Spec file in %s\ndoes not match %s", pff_file_path.c_str(), file_path.c_str());
             }
         }
-        else {
-            return FALSE;
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::Dictionary) )
+        {
+            m_pff.SetAppFName(CString());
+
+            if( !OpenDictionary(file_path) )
+                return FALSE;
+
+            AfxGetApp()->WriteProfileString(L"Settings", L"Last Open", lpszPathName);
+
+            m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathReplaceFilename(file_path, "CSSort.lst")));
         }
-    }
-    else if (extension.CompareNoCase(FileExtensions::Dictionary) ==0) {
-        m_pff.SetAppFName(_T(""));
-        if (!OpenDictFile(lpszPathName)) {
-            return FALSE;
+
+        else
+        {
+            throw CSProException("Invalid file type.");
         }
-        AfxGetApp()->WriteProfileString(_T("Settings"),_T("Last Open"), lpszPathName);
-        m_pff.SetListingFName(PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory<CString>(lpszPathName), _T("CSSort.lst")));
+
+        return TRUE;
     }
-    else {
-        AfxMessageBox(_T("Invalid file type"));
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
         return FALSE;
     }
-    return TRUE;
 }
 
 
-bool CSortDoc::OpenSpecFile(const TCHAR* filename)
+bool CSortDoc::OpenSpecFile(const std::string& file_path)
 {
     try
     {
         auto new_sort_spec = std::make_unique<SortSpec>();
-        new_sort_spec->Load(filename, false);
+        new_sort_spec->Load(file_path, false);
 
         m_sortSpec = std::move(new_sort_spec);
 
@@ -133,34 +151,35 @@ bool CSortDoc::OpenSpecFile(const TCHAR* filename)
 }
 
 
-bool CSortDoc::OpenDictFile(const TCHAR* filename)
+bool CSortDoc::OpenDictionary(const std::string& file_path)
 {
     try
     {
-        std::shared_ptr<const CDataDict> dictionary = CDataDict::InstantiateAndOpen(filename, false);
+        std::unique_ptr<const CDataDict> dictionary = CDataDict::InstantiateAndOpen(file_path, false);
 
-        m_sortSpec = std::make_shared<SortSpec>();
-        m_sortSpec->SetDictionary(dictionary);
+        m_sortSpec = std::make_unique<SortSpec>();
+        m_sortSpec->SetDictionary(std::move(dictionary));
 
         ConvertSortItemsSpecToSortDoc();
 
-        SetTitle(filename);
+        SetTitle(TC::ToWide(file_path).c_str());
 
         return true;
     }
 
     catch( const CSProException& exception )
     {
-		ErrorMessage::Display(exception);
+        ErrorMessage::Display(exception);
         return false;
     }
 }
 
 
-void CSortDoc::OnUpdateOptionsSortType(CCmdUI* pCmdUI)
+void CSortDoc::OnUpdateOptionsSortType(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(( m_sortSpec != nullptr ));
 }
+
 
 void CSortDoc::OnOptionsSortType()
 {
@@ -178,9 +197,8 @@ void CSortDoc::OnOptionsSortType()
 }
 
 
-
-BOOL CSortDoc::SaveModified() {
-
+BOOL CSortDoc::SaveModified()
+{
     // borrowed from CDocument::SaveModified() ; see doccore.cpp
 
     if (!IsModified()) {
@@ -217,13 +235,14 @@ BOOL CSortDoc::SaveModified() {
 
 
 
-void CSortDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
+void CSortDoc::OnUpdateFileSave(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(( m_aKey.GetSize() > 0 ));
 }
 
-void CSortDoc::OnFileSave() {
 
+void CSortDoc::OnFileSave()
+{
     if (!IsModified()) {
         m_bRetSave = true;
         return;
@@ -238,36 +257,39 @@ void CSortDoc::OnFileSave() {
 }
 
 
-void CSortDoc::OnUpdateFileSaveAs(CCmdUI* pCmdUI)
+void CSortDoc::OnUpdateFileSaveAs(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(( m_aKey.GetSize() > 0 ));
 }
 
-void CSortDoc::OnFileSaveAs() {
-    CString csDictFileName = m_sortSpec->GetDictionary().GetFullFileName();
 
-    CIMSAString csPath = m_pff.GetAppFName();         // BMD 14 Mar 2002
-    if (SO::IsBlank(csPath)) {
-        csPath = csDictFileName.Left(csDictFileName.ReverseFind('\\')) + _T("\\*.ssf");
-    }
-    CString csFilter;
-//    csFilter.LoadString(IDS_SPEC_FILTER);
-    csFilter = _T("Sort Specification Files (*.ssf)|*.ssf|All Files (*.*)|*.*||");
-    CIMSAFileDialog dlgFile(FALSE, FileExtensions::SortSpec, csPath, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Save Sort Specification File");
-    if (dlgFile.DoModal() == IDOK) {
-        m_pff.SetAppFName(dlgFile.GetPathName());
-        m_pff.SetListingFName(dlgFile.GetPathName() + FileExtensions::WithDot::Listing);
-        AfxGetMainWnd()->SetWindowText(CSortView::CreateWindowTitle(m_pff.GetAppFName(), csDictFileName));
+void CSortDoc::OnFileSaveAs()
+{
+    std::string file_path = UTF8_TODO::GetUtf8(m_pff.GetAppFName());
+
+    // if no spec file path exists, base it on the dictionary's file path
+    if( file_path.empty() )
+        file_path = PortableFunctions::PathReplaceFileExtension(m_sortSpec->GetDictionary().GetFilePath(), FileExtensions::SortSpec);
+
+    SaveFileDlg save_file_dlg(0, FileExtensions::SortSpec, file_path, L"Sort Specification Files (*.ssf)|*.ssf|All Files (*.*)|*.*||");
+    save_file_dlg.SetTitle(L"Save Sort Specification File");
+
+    if( save_file_dlg.DoModal() == IDOK )
+    {
+        m_pff.SetAppFName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(save_file_dlg.GetFilePath(), FileExtensions::Listing)));
+        AfxGetMainWnd()->SetWindowText(TC::ToWide(CSortView::CreateWindowTitle(UTF8_TODO::GetUtf8(m_pff.GetAppFName()), m_sortSpec->GetDictionary().GetFilePath())).c_str());
         SaveSpecFile();
         SetModifiedFlag(FALSE);
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-
+        AfxGetApp()->AddToRecentFileList(TC::ToWide(save_file_dlg.GetFilePath()).c_str());
         m_bRetSave = true;
-        return;
     }
 
-    m_bRetSave = false;
+    else
+    {
+        m_bRetSave = false;
+    }
+
 }
 
 
@@ -287,16 +309,16 @@ void CSortDoc::SaveSpecFile()
 }
 
 
-CString CSortDoc::GetSpecFileName() const
+const std::string& CSortDoc::GetSpecFilePath() const
 {
-    return PortableFunctions::PathGetFilename(m_pff.GetAppFName());
+    return UTF8_TODO::Create_Reference(m_pff.GetAppFName());
 }
 
 
-CString CSortDoc::GetDictFileName() const
+const std::string& CSortDoc::GetDictionaryFilePath() const
 {
-    return ( m_sortSpec != nullptr ) ? PortableFunctions::PathGetFilename(m_sortSpec->GetDictionary().GetFullFileName()) :
-                                       CString();
+    return ( m_sortSpec != nullptr ) ? m_sortSpec->GetDictionary().GetFilePath() :
+                                       SO::Empty_string;
 }
 
 
@@ -308,8 +330,8 @@ void CSortDoc::ConvertSortItemsSpecToSortDoc()
     m_aAvail.RemoveAll();
     m_aKey.RemoveAll();
 
-    // add all of the sort items  
-    for( const CDictItem* dict_item : m_sortSpec->GetPossibleSortableDictItems() )
+    // add all of the sort items
+    for( const CDictItem* const dict_item : m_sortSpec->GetPossibleSortableDictItems() )
     {
         m_aAvail.Add(m_aItem.GetCount());
         m_aItem.Add(SORTITEM { dict_item, SortSpec::SortOrder::Ascending });
@@ -345,10 +367,9 @@ void CSortDoc::ConvertSortItemsSortDocToSpec()
 }
 
 
-
 void CSortDoc::OnFileRun()
 {
-    CTwoFileDialog dlg(m_pff, m_sortSpec->GetDictionary().GetFullFileName());
+    CTwoFileDialog dlg(m_pff, m_sortSpec->GetDictionary().GetFilePath());
 
     if( dlg.DoModal() != IDOK )
         return;
@@ -356,7 +377,7 @@ void CSortDoc::OnFileRun()
     // save the PFF
     if( !m_pff.GetAppFName().IsEmpty() )
     {
-        m_pff.SetPifFileName(m_pff.GetAppFName() + FileExtensions::WithDot::Pff);
+        m_pff.SetPifFileName(UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(UTF8_TODO::GetUtf8(m_pff.GetAppFName()), FileExtensions::Pff)));
         m_pff.Save();
     }
 
@@ -364,18 +385,20 @@ void CSortDoc::OnFileRun()
     {
         ConvertSortItemsSortDocToSpec();
 
-        switch( Sorter(m_sortSpec).Run(m_pff, false) )
+        const Sorter::RunSuccess run_success = Sorter(m_sortSpec).Run(m_pff, false);
+
+        switch( run_success )
         {
             case Sorter::RunSuccess::Success:
-                AfxMessageBox(_T("Sort completed successfully."));
+                AfxMessageBox(L"Sort completed successfully.");
                 break;
 
             case Sorter::RunSuccess::SuccessWithStructuralErrors:
-                AfxMessageBox(_T("Sort completed successfully but with structure errors in resulting file."));
+                AfxMessageBox(L"Sort completed successfully but with structure errors in resulting data source.");
                 break;
 
             case Sorter::RunSuccess::Errors:
-                AfxMessageBox(_T("Sort had errors."));
+                AfxMessageBox(L"Sort had errors.");
                 break;
         }
     }
@@ -392,7 +415,10 @@ void CSortDoc::RunBatchSort()
     try
     {
         if( m_pff.GetAppType() != SORT_TYPE )
-            throw CSProException(_T("PFF file %s was not read correctly. Check the file for parameters invalid to CSSort."), m_pff.GetPifFileName().GetString());
+        {
+            throw CSProException("PFF file %s was not read correctly. Check the file for parameters invalid to CSSort.",
+                                 UTF8_TODO::GetUtf8(m_pff.GetPifFileName()).c_str());
+        }
 
         Sorter().Run(m_pff, true);
 

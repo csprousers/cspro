@@ -202,9 +202,10 @@ private:
 public:
     void    SetEngineDriver( CEngineDriver* pEngineDriver );
 
-    EngineData& GetEngineData()                { return *m_engineData; }
-    LogicByteCode& GetLogicByteCode()          { return m_engineData->logic_byte_code; }
-    Logic::SymbolTable& GetSymbolTable() const { return m_engineData->symbol_table; }
+    EngineData& GetEngineData()                       { return *m_engineData; }
+    std::shared_ptr<EngineData> GetSharedEngineData() { return m_engineData; }
+    LogicByteCode& GetLogicByteCode()                 { return m_engineData->logic_byte_code; }
+    Logic::SymbolTable& GetSymbolTable() const        { return m_engineData->symbol_table; }
 
     // --- main tables management
 public:
@@ -224,13 +225,13 @@ public:
 
     void ChainSymbol(int previous_chained_symbol_index, ChainedSymbol* chained_symbol) const;
 
-    std::unique_ptr<Symbol> CreateSymbol(std::wstring symbol_name, SymbolType symbol_type, SymbolSubType symbol_subtype);
+    std::unique_ptr<Symbol> CreateSymbol(std::string symbol_name, SymbolType symbol_type, SymbolSubType symbol_subtype);
 
-    int SymbolTableSearchWithPreference(const StringNoCase& full_symbol_name, SymbolType preferred_symbol_type) const { return SymbolTableSearch(full_symbol_name, preferred_symbol_type, nullptr); }
-    int SymbolTableSearch(const StringNoCase& full_symbol_name, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch(full_symbol_name, preferred_symbol_type, &allowable_symbol_types); }
-    std::vector<Symbol*> SymbolTableSearchAllSymbols(const StringNoCase& full_symbol_name) const;
+    int SymbolTableSearchWithPreference(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, nullptr); }
+    int SymbolTableSearch(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
+    std::vector<Symbol*> SymbolTableSearchAllSymbols(std::string_view full_symbol_name_sv) const;
 private:
-    int SymbolTableSearch(const StringNoCase& full_symbol_name, SymbolType preferred_symbol_type, const std::vector<SymbolType>* allowable_symbol_types) const;
+    int SymbolTableSearch(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type, const std::vector<SymbolType>* allowable_symbol_types) const;
 
 private:
     static std::shared_ptr<EngineAccessor> CreateEngineAccessor(CEngineArea* pEngineArea);

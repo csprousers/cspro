@@ -10,16 +10,28 @@ class GenerateTask
 public:
     enum class Status { NotStarted, Running, Complete, Canceled, EndedInException };
 
-    struct Interface
+    class Interface
     {
+    public:
         virtual ~Interface() { }
-        virtual void SetTitle(const std::wstring& title) = 0;
-        virtual void LogText(std::wstring text) = 0;
+
+        virtual void SetTitle(const std::string& title) = 0;
+
+        virtual void LogText(SharableString text) = 0;
+
+        template<typename... Args>
+        void LogText(const char* formatter, Args const&... args);
+
         virtual void UpdateProgress(double percent) = 0;
-        virtual void SetOutputText(const std::wstring& text) = 0;
-        virtual void OnCreatedOutput(std::wstring output_title, std::wstring path) = 0;
+
+        virtual void SetOutputText(const std::string& text) = 0;
+
+        virtual void OnCreatedOutput(std::string output_title, std::string path) = 0;
+
         virtual void OnException(const CSProException& exception) = 0;
+
         virtual void OnCompletion(Status status) = 0;
+
         virtual const GlobalSettings& GetGlobalSettings() = 0;
     };
 
@@ -37,8 +49,6 @@ public:
     void Cancel();
     bool IsCanceled() const { return ( m_status == Status::Canceled ); }
 
-    static std::wstring GetElapsedTimeText(int64_t start_timestamp, int64_t end_timestamp = -1);
-
 protected:
     // subclasses must override OnRun
     virtual void OnRun() = 0;
@@ -48,6 +58,18 @@ private:
     std::thread m_runThread;
     Status m_status = Status::NotStarted;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename... Args>
+void GenerateTask::Interface::LogText(const char* const formatter, Args const&... args)
+{
+    LogText(FormatText(formatter, args...));
+}
 
 
 inline GenerateTask::~GenerateTask()
@@ -94,17 +116,4 @@ inline void GenerateTask::Cancel()
         m_status = Status::Canceled;
         m_runThread.join();
     }
-}
-
-
-inline std::wstring GenerateTask::GetElapsedTimeText(int64_t start_timestamp, int64_t end_timestamp/* = -1*/)
-{
-    if( end_timestamp == -1 )
-        end_timestamp = GetTimestamp<int64_t>();
-
-    const int elapsed_seconds = static_cast<int>(end_timestamp - start_timestamp);
-    ASSERT(elapsed_seconds >= 0);
-
-    return ( elapsed_seconds < 60 ) ? FormatTextCS2WS(_T("%d second%s"), elapsed_seconds, PluralizeWord(elapsed_seconds)) :
-                                      FormatTextCS2WS(_T("%d:%02d minutes"), elapsed_seconds / 60, elapsed_seconds % 60);
 }

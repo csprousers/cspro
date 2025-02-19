@@ -3,17 +3,17 @@
 #include <zUtilO/zUtilO.h>
 #include <zToolsO/PointerClasses.h>
 
-template<typename CharType> class JsonNode;
+class ExceptionHolder;
 
 
 // additional options that can be used by viewers
 struct ViewerOptions
 {
     std::optional<CSize> requested_size;
-    std::optional<std::wstring> title;
+    SharableString title;
     std::optional<bool> show_close_button;
-    std::shared_ptr<const JsonNode<wchar_t>> display_options_node;
-    cs::shared_or_raw_ptr<const std::wstring> action_invoker_ui_get_input_data;
+    std::shared_ptr<const JsonNode> display_options_node;
+    SharableString action_invoker_ui_get_input_data;
 };
 
 
@@ -27,30 +27,34 @@ public:
     // to serve the content
     Viewer& UseSharedHtmlLocalFileServer();
 
+    // in an environment where exceptions may be thrown by a viewer (such as by an Action Invoker action),
+    // these exceptions will be held by the supplied ExceptionHolder (or a created one if passed null)
+    Viewer& UseExceptionHolder(std::shared_ptr<ExceptionHolder> exception_holder);
+
     // sets an Action Invoker access token override that will be associated with ActionInvoker::WebCaller
-    Viewer& SetAccessInvokerAccessTokenOverride(std::wstring action_invoker_access_token_override);
-    Viewer& SetAccessInvokerAccessTokenOverride(const std::wstring* action_invoker_access_token_override);
+    Viewer& SetAccessInvokerAccessTokenOverride(std::string action_invoker_access_token_override);
+    Viewer& SetAccessInvokerAccessTokenOverride(const std::string* action_invoker_access_token_override);
 
-    bool ViewFile(const std::wstring& filename);
+    bool ViewFile(const std::string& file_path);
 
-    bool ViewFileInEmbeddedBrowser(std::wstring filename);
+    bool ViewFileInEmbeddedBrowser(std::string file_path);
 
-    bool ViewHtmlUrl(const std::wstring& url);
+    bool ViewHtmlUrl(const std::string& url);
 
-    bool ViewHtmlContent(std::string html, const std::wstring& local_file_server_root_directory = std::wstring());
-    bool ViewHtmlContent(wstring_view html_sv, const std::wstring& local_file_server_root_directory = std::wstring());
+    bool ViewHtmlContent(SharableString html, const std::string& local_file_server_root_directory = std::string());
 
     struct Data
     {
-        enum class Type { Filename, HtmlUrl };
+        enum class Type { FilePath, HtmlUrl };
 
         bool use_embedded_viewers = false;
         bool use_shared_html_local_file_server = false;
-        std::unique_ptr<std::wstring> action_invoker_access_token_override;
+        std::shared_ptr<ExceptionHolder> exception_holder;
+        std::unique_ptr<std::string> action_invoker_access_token_override;
 
-        Type content_type = Type::Filename;
-        std::wstring content;
-        std::wstring local_file_server_root_directory;
+        Type content_type = Type::FilePath;
+        std::string content;
+        std::string local_file_server_root_directory;
     };
 
     const Data& GetData() const { return m_data; }
@@ -61,7 +65,7 @@ public:
     Viewer& SetOptions(const ViewerOptions* options);
 
     // set the title of the Options structure
-    Viewer& SetTitle(std::wstring title);
+    Viewer& SetTitle(SharableString title);
 
 private:
     bool View();
@@ -77,13 +81,13 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline Viewer& Viewer::SetAccessInvokerAccessTokenOverride(const std::wstring* action_invoker_access_token_override)
+inline Viewer& Viewer::SetAccessInvokerAccessTokenOverride(const std::string* const action_invoker_access_token_override)
 {
     return ( action_invoker_access_token_override != nullptr ) ? SetAccessInvokerAccessTokenOverride(*action_invoker_access_token_override) :
                                                                  *this;
 }
 
-inline Viewer& Viewer::SetOptions(const ViewerOptions* options)
+inline Viewer& Viewer::SetOptions(const ViewerOptions* const options)
 {
     return ( options != nullptr ) ? SetOptions(*options) :
                                     *this;

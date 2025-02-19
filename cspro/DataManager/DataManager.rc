@@ -1,0 +1,1108 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "../zDesignerF/resource_shared.h"
+#include "../zUtilF/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""../zUtilF/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\DataManager.ico"
+
+IDR_DATA_SOURCE_FRAME   ICON                    "res\\DataSourceFrame.ico"
+
+IDR_CASE_FRAME          ICON                    "res\\CaseFrame.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        POPUP "&New"
+        BEGIN
+            MENUITEM "Download Data From &Synchronization Service...", ID_FILE_DOWNLOAD_DATA_SOURCE
+        END
+        POPUP "&Open"
+        BEGIN
+            MENUITEM "Data &File...\tCtrl+O",       ID_FILE_OPEN
+            MENUITEM "Data &Source...\tCtrl+Shift+O", ID_FILE_OPEN_DATA_SOURCE
+            MENUITEM "CS&Web Data...",              ID_FILE_OPEN_CSWEB_DATA
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Data Manager...",      ID_APP_ABOUT
+    END
+END
+
+IDR_DATA_SOURCE_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        POPUP "&New"
+        BEGIN
+            MENUITEM "Download Data From &Synchronization Service...", ID_FILE_DOWNLOAD_DATA_SOURCE
+        END
+        POPUP "&Open"
+        BEGIN
+            MENUITEM "Data &File...\tCtrl+O",       ID_FILE_OPEN
+            MENUITEM "Data &Source...\tCtrl+Shift+O", ID_FILE_OPEN_DATA_SOURCE
+            MENUITEM "CS&Web Data...",              ID_FILE_OPEN_CSWEB_DATA
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Refresh Data\tF5",            ID_FILE_REFRESH
+        MENUITEM "Synchroni&ze Data...\tCtrl+Shift+S", ID_FILE_SYNCHRONIZE
+        MENUITEM SEPARATOR
+        MENUITEM "S&ave Data...",               ID_FILE_SAVE_DATA
+        POPUP "Extract"
+        BEGIN
+            MENUITEM "Dictionary...",               ID_FILE_EXTRACT_DICTIONARY
+            MENUITEM "Notes...",                    ID_FILE_EXTRACT_NOTES
+            MENUITEM "Binary Data...",              ID_FILE_EXTRACT_BINARY_DATA
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Save View...\tCtrl+S",       ID_FILE_SAVE_VIEW
+        MENUITEM "&Print View...\tCtrl+P",      ID_FILE_PRINT_VIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Listing"
+    BEGIN
+        MENUITEM "Sequential\tCtrl+Q",          ID_LISTING_SEQUENTIAL
+        MENUITEM "Indexed",                     ID_LISTING_INDEXED
+        MENUITEM SEPARATOR
+        MENUITEM "All Cases",                   ID_LISTING_CASES_ALL
+        MENUITEM "Not Deleted Cases Only",      ID_LISTING_CASES_NOT_DELETED
+        MENUITEM "Partial Cases Only",          ID_LISTING_CASES_PARTIAL
+        MENUITEM "Duplicate Cases Only",        ID_LISTING_CASES_DUPLICATE
+        MENUITEM SEPARATOR
+        MENUITEM "Ascending",                   ID_LISTING_ASCENDING
+        MENUITEM "Descending",                  ID_LISTING_DESCENDING
+        MENUITEM SEPARATOR
+        MENUITEM "Case Label\tCtrl+L",          ID_LISTING_CASE_LABEL
+        MENUITEM "Case Key",                    ID_LISTING_CASE_KEY
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Data Summary",                ID_VIEW_DATA_SUMMARY
+        MENUITEM "Logic Helper",                ID_VIEW_LOGIC_HELPER
+        MENUITEM SEPARATOR
+        MENUITEM "Case",                        ID_VIEW_CASE_HTML
+        MENUITEM "Case (JSON)",                 ID_VIEW_CASE_JSON
+        MENUITEM "Case (Text)",                 ID_VIEW_CASE_TEXT
+        MENUITEM "Case (Questionnaire View)",   ID_VIEW_CASE_QUESTIONNAIRE
+    END
+    POPUP "View &Options"
+    BEGIN
+        MENUITEM "<no options>",                ID_VIEW_OPTIONS_PLACEHOLDER
+    END
+    POPUP "&Data"
+    BEGIN
+        MENUITEM "Read-Only Mode",              ID_DATA_TOGGLE_READ_ONLY
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete Case\tDel",           ID_DATA_DELETE_CASE
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Export Data",                ID_TOOLS_EXPORT_DATA
+        MENUITEM "Tabulate &Frequencies",       ID_TOOLS_TABULATE_FREQUENCIES
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
+        MENUITEM SEPARATOR
+        MENUITEM "&Windows...",                 ID_WINDOWS_WINDOWS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Data Manager...",      ID_APP_ABOUT
+    END
+END
+
+IDR_CASE_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        POPUP "&New"
+        BEGIN
+            MENUITEM "Download Data From &Synchronization Service...", ID_FILE_DOWNLOAD_DATA_SOURCE
+        END
+        POPUP "&Open"
+        BEGIN
+            MENUITEM "Data &File...\tCtrl+O",       ID_FILE_OPEN
+            MENUITEM "Data &Source...\tCtrl+Shift+O", ID_FILE_OPEN_DATA_SOURCE
+            MENUITEM "CS&Web Data...",              ID_FILE_OPEN_CSWEB_DATA
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        POPUP "Extract"
+        BEGIN
+            MENUITEM "Dictionary...",               ID_FILE_EXTRACT_DICTIONARY
+            MENUITEM "Notes...",                    ID_FILE_EXTRACT_NOTES
+            MENUITEM "Binary Data...",              ID_FILE_EXTRACT_BINARY_DATA
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Save View...\tCtrl+S",       ID_FILE_SAVE_VIEW
+        MENUITEM "&Print View...\tCtrl+P",      ID_FILE_PRINT_VIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Case",                        ID_VIEW_CASE_HTML
+        MENUITEM "Case (JSON)",                 ID_VIEW_CASE_JSON
+        MENUITEM "Case (Text)",                 ID_VIEW_CASE_TEXT
+        MENUITEM "Case (Questionnaire View)",   ID_VIEW_CASE_QUESTIONNAIRE
+    END
+    POPUP "View &Options"
+    BEGIN
+        MENUITEM "<no options>",                ID_VIEW_OPTIONS_PLACEHOLDER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
+        MENUITEM SEPARATOR
+        MENUITEM "&Windows...",                 ID_WINDOWS_WINDOWS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Data Manager...",      ID_APP_ABOUT
+    END
+END
+
+IDR_VIEW_CASE_HTML MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        POPUP "Dictionary Display"
+        BEGIN
+            MENUITEM "Labels\tCtrl+T",              ID_VIEW_OPTIONS_HTML_DICTIONARY_LABELS
+            MENUITEM "Names",                       ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES
+            MENUITEM "Names and Labels",            ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES_AND_LABELS
+            MENUITEM SEPARATOR
+            MENUITEM "Items and Subitems",          ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS
+            MENUITEM "Items Only",                  ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS
+            MENUITEM "Subitems Only",               ID_VIEW_OPTIONS_HTML_DICTIONARY_SUBITEMS
+        END
+        POPUP "Record Display"
+        BEGIN
+            MENUITEM "Horizontal Orientation",      ID_VIEW_OPTIONS_HTML_RECORD_HORIZONTAL
+            MENUITEM "Vertical Orientation",        ID_VIEW_OPTIONS_HTML_RECORD_VERTICAL
+            MENUITEM SEPARATOR
+            MENUITEM "Occurrence Labels",           ID_VIEW_OPTIONS_HTML_RECORD_OCCURRENCE_LABELS
+            MENUITEM "Occurrence Numbers",          ID_VIEW_OPTIONS_HTML_RECORD_OCCURRENCE_NUMBERS
+        END
+        POPUP "Value Display"
+        BEGIN
+            MENUITEM "Case Tree Style\tCtrl+Shift+T", ID_VIEW_OPTIONS_HTML_VALUE_CASE_TREE
+            MENUITEM "Labels",                      ID_VIEW_OPTIONS_HTML_VALUE_LABELS
+            MENUITEM "Codes",                       ID_VIEW_OPTIONS_HTML_VALUE_CODES
+            MENUITEM "Labels and Codes",            ID_VIEW_OPTIONS_HTML_VALUE_LABELS_AND_CODES
+            MENUITEM "Codes and Labels",            ID_VIEW_OPTIONS_HTML_VALUE_CODES_AND_LABELS
+            MENUITEM SEPARATOR
+            MENUITEM "Show Blank Values",           ID_VIEW_OPTIONS_HTML_VALUE_SHOW_BLANKS
+            MENUITEM "Hide Blank Values",           ID_VIEW_OPTIONS_HTML_VALUE_HIDE_BLANKS
+        END
+        POPUP "Case Details"
+        BEGIN
+            MENUITEM "Default Display",             ID_VIEW_OPTIONS_HTML_CASE_DEFAULT_DETAILS
+            MENUITEM "Show All Details",            ID_VIEW_OPTIONS_HTML_CASE_ALL_DETAILS
+            MENUITEM SEPARATOR
+            MENUITEM "Show Case Errors",            ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS
+            MENUITEM "Hide Case Errors",            ID_VIEW_OPTIONS_HTML_CASE_HIDE_ERRORS
+        END
+    END
+END
+
+IDR_VIEW_CASE_JSON MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Compact JSON",               ID_VIEW_OPTIONS_JSON_COMPACT_JSON
+        MENUITEM "&Verbose",                    ID_VIEW_OPTIONS_JSON_VERBOSE
+        MENUITEM "Include &Labels",             ID_VIEW_OPTIONS_JSON_WRITE_LABELS
+        MENUITEM "Include &Blank Values",       ID_VIEW_OPTIONS_JSON_WRITE_BLANK_VALUES
+        MENUITEM "Embed Binary Data",           ID_VIEW_OPTIONS_JSON_WRITE_DATA_URLS
+    END
+END
+
+IDR_VIEW_CASE_QUESTIONNAIRE MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Modify Associated Questionnaire Content...", ID_VIEW_OPTIONS_QUESTIONNAIRE_MODIFY_CONTENT
+    END
+END
+
+IDR_VIEW_CASE_TEXT MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Colorize Items",             ID_VIEW_OPTIONS_TEXT_COLORIZE
+        MENUITEM "Show &Details Pane",          ID_VIEW_OPTIONS_TEXT_DETAILS_PANE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE_ALL,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN_DATA_SOURCE, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT_VIEW,     VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_FILE_REFRESH,        VIRTKEY, NOINVERT
+    "S",            ID_FILE_SAVE_VIEW,      VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SYNCHRONIZE,    VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
+    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
+    "Q",            ID_TOGGLE_CASE_ITERATION_METHOD, VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_TOGGLE_CASE_KEY_LABEL, VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_TOGGLE_DICTIONARY_DISPLAY, VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_TOGGLE_VALUE_DISPLAY, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_DELETE,      ID_DATA_DELETE_CASE,    VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "CSPro Data Manager"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "DataManager"
+            VALUE "OriginalFilename", "DataManager.exe"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CASE_LISTING DIALOGEX 0, 0, 80, 138
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_CASES,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,2,14,76,122
+    LTEXT           "Cases",IDC_STATIC,2,3,20,8
+    CONTROL         "Show Filters",IDC_TOGGLE_FILTERS,"MfcLink",WS_TABSTOP,36,1,42,11
+END
+
+IDD_QUESTIONNAIRE_CONTENT DIALOGEX 0, 0, 415, 128
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Associated Questionnaire Content"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,112,107,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,182,107,50,14
+    PUSHBUTTON      "&Help",ID_HELP,252,107,50,14
+    LTEXT           "By default, the Questionnaire View displays case data using only content from the dictionary. You can also show the content using the layout from forms, and question text for fields, by linking a form file, question text file, or an application.",IDC_STATIC,7,7,401,20
+    LTEXT           "Form content:",IDC_STATIC,7,35,46,8
+    EDITTEXT        IDC_FORM_CONTENT,92,32,316,14,ES_AUTOHSCROLL
+    LTEXT           "Question text content:",IDC_STATIC,7,57,74,8
+    EDITTEXT        IDC_QUESTION_TEXT_CONTENT,92,54,316,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Select Content",IDC_SELECT_CONTENT,180,77,62,14
+    PUSHBUTTON      "Auto Search",IDC_AUTO_SEARCH,263,77,62,14
+    PUSHBUTTON      "Reset",IDC_RESET,346,77,62,14
+END
+
+IDD_EXTRACT_NOTES DIALOGEX 0, 0, 473, 123
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Extract Notes"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Save",IDOK,141,102,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,211,102,50,14
+    PUSHBUTTON      "&Help",ID_HELP,281,102,50,14
+    LTEXT           "Specify how to save the notes from cases:",IDC_HEADING,7,7,459,8
+    GROUPBOX        "Format",IDC_STATIC,7,26,70,67
+    CONTROL         "CSPro Data",IDC_NOTES_FORMAT_CSPRO,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,53,10
+    CONTROL         "CSV",IDC_NOTES_FORMAT_CSV,"Button",BS_AUTORADIOBUTTON,18,57,29,10
+    CONTROL         "Excel",IDC_NOTES_FORMAT_EXCEL,"Button",BS_AUTORADIOBUTTON,18,73,33,10
+    GROUPBOX        "Paths",IDC_STATIC,95,26,371,67
+    LTEXT           "Notes file:",IDC_STATIC,106,41,34,8
+    EDITTEXT        IDC_NOTES,168,38,257,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_NOTES_SELECT,435,38,23,14
+    LTEXT           "Notes dictionary:",IDC_DICTIONARY_TEXT,106,68,56,8
+    EDITTEXT        IDC_DICTIONARY_FILE_PATH,168,65,257,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DICTIONARY_SELECT,435,65,23,14
+END
+
+IDD_TASK DIALOGEX 0, 0, 485, 218
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Data Manager Task"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,428,197,50,14
+    LISTBOX         IDC_LOG,7,22,471,141,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Close",IDOK,217,197,50,14,WS_DISABLED
+    LTEXT           "Running a Data Manager task...",IDC_TASK_TITLE,7,7,471,8
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,174,471,14
+END
+
+IDD_EXTRACT_BINARY_DATA DIALOGEX 0, 0, 523, 181
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Extract Binary Data"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Save",IDOK,167,160,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,237,160,50,14
+    PUSHBUTTON      "&Help",ID_HELP,307,160,50,14
+    LTEXT           "Specify how to save the binary data contained in cases:",IDC_HEADING,7,7,459,8
+    GROUPBOX        "Filename Format",IDC_STATIC,7,26,145,125
+    CONTROL         "Binary Data Filename",IDC_BINARY_DATA_FORMAT_FILENAME,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,83,10
+    CONTROL         "Case Key - Binary Data Filename",IDC_BINARY_DATA_FORMAT_KEY_FILENAME,
+                    "Button",BS_AUTORADIOBUTTON,18,57,120,10
+    CONTROL         "Binary Data Signature",IDC_BINARY_DATA_FORMAT_SIGNATURE,
+                    "Button",BS_AUTORADIOBUTTON,18,73,86,10
+    CONTROL         "Case Key - Binary Data Signature",IDC_BINARY_DATA_FORMAT_KEY_SIGNATURE,
+                    "Button",BS_AUTORADIOBUTTON,18,89,123,10
+    CONTROL         "Right-trim case keys",IDC_RIGHT_TRIM_CASE_KEYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,112,81,10
+    LTEXT           "Invalid character replacement:",IDC_STATIC,19,134,99,8
+    EDITTEXT        IDC_INVALID_CHAR_REPLACEMENT,125,131,16,14,ES_AUTOHSCROLL
+    GROUPBOX        "Paths",IDC_STATIC,164,26,352,42
+    LTEXT           "Output directory:",IDC_STATIC,177,42,57,8
+    EDITTEXT        IDC_BINARY_DATA_DIRECTORY,246,39,228,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BINARY_DATA_DIRECTORY_SELECT,484,39,23,14
+    GROUPBOX        "Sample Filenames",IDC_STATIC,164,74,352,77
+    LTEXT           "Key with valid characters:",IDC_STATIC,177,89,84,8
+    LTEXT           "Key with invalid characters (if applicable):",IDC_STATIC,177,105,134,8
+    LTEXT           "Key with right spaces (if applicable):",IDC_STATIC,177,121,116,8
+    LTEXT           "...",IDC_FILENAME_KEY_RIGHT_SPACES,320,121,189,8
+    LTEXT           "...",IDC_FILENAME_KEY_INVALID,320,105,189,8
+    LTEXT           "...",IDC_FILENAME_KEY_VALID,320,89,189,8
+END
+
+IDD_OPEN_DATA_SOURCE DIALOGEX 0, 0, 383, 98
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Open Data Source"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Provide the details about the data source to open. For data sources that do not contain an embedded dictionary, you must also specify a dictionary that describes the data.",IDC_STATIC,7,7,369,21
+    LTEXT           "Data source:",IDC_STATIC,7,34,42,8
+    EDITTEXT        IDC_DATA_SOURCE,60,31,284,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DATA_SOURCE_SELECT,353,30,23,14
+    LTEXT           "Dictionary:",IDC_STATIC,7,56,36,8
+    EDITTEXT        IDC_DICTIONARY_FILE_PATH,60,53,284,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DICTIONARY_SELECT,353,52,23,14
+    DEFPUSHBUTTON   "&Open",IDOK,94,77,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,166,77,50,14
+    PUSHBUTTON      "&Help",ID_HELP,238,77,50,14
+END
+
+IDD_OPEN_CSWEB_DATA DIALOGEX 0, 0, 401, 169
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Open CSWeb Data"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Open",IDOK,104,148,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,176,148,50,14
+    PUSHBUTTON      "&Help",ID_HELP,248,148,50,14
+    LTEXT           "You can view cases on CSWeb without having to download data locally. Provide the URL of the CSWeb server and click Show Available Data to get a list of viewable data.",IDC_STATIC,7,7,387,21
+    LTEXT           "URL:",IDC_STATIC,7,35,16,8
+    EDITTEXT        IDC_URL,38,32,262,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Show Available Data",IDC_SHOW_AVAILABLE_DATA,311,32,83,14
+    LTEXT           "Data:",IDC_STATIC,7,55,19,8
+    CONTROL         "",IDC_DATA_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,38,55,356,85,WS_EX_ACCEPTFILES
+END
+
+IDD_DOWNLOAD_DATA_SOURCE DIALOGEX 0, 0, 507, 331
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Download Data From Synchronization Service"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Download",IDOK,156,310,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,228,310,50,14
+    PUSHBUTTON      "&Help",ID_HELP,300,310,50,14
+    LTEXT           "You can create a new data source by downloading data from a synchronization service. Provide the details of the service and click Show Available Data to get a list of downloadable data.",IDC_STATIC,7,7,493,21
+    GROUPBOX        "Synchronization Service",IDC_STATIC,0,28,500,129
+    LTEXT           "SyncServiceSelectorDlg",IDC_SYNC_SERVICE,12,40,483,92,WS_BORDER
+    PUSHBUTTON      "Show Available Data",IDC_SHOW_AVAILABLE_DATA,412,137,83,14
+    GROUPBOX        "Data on Synchronization Service",IDC_STATIC,7,164,493,89
+    CONTROL         "",IDC_DATA_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,12,177,483,69,WS_EX_ACCEPTFILES
+    GROUPBOX        "Local Data Source",IDC_STATIC,0,261,500,34
+    EDITTEXT        IDC_DATA_SOURCE,12,273,450,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DATA_SOURCE_SELECT,472,273,23,14
+END
+
+IDD_SYNCHRONIZE DIALOGEX 0, 0, 507, 208
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Synchronize Data"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "You can send and/or receive cases by synchronizing data with a synchronization service. Provide the details of the service, the direction of synchronization, and an optional universe.",IDC_STATIC,7,7,493,21
+    DEFPUSHBUTTON   "&Synchronize",IDOK,147,187,62,14
+    PUSHBUTTON      "Cancel",IDCANCEL,227,187,62,14
+    PUSHBUTTON      "&Help",ID_HELP,299,187,62,14
+    GROUPBOX        "Synchronization Service",IDC_STATIC,0,28,500,111
+    LTEXT           "SyncServiceSelectorDlg",IDC_SYNC_SERVICE,12,40,483,92,WS_BORDER
+    GROUPBOX        "Synchronization Parameters",IDC_STATIC,7,145,493,34
+    COMBOBOX        IDC_COMBO_DIRECTION,57,158,151,70,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Direction:",IDC_STATIC,12,160,32,8
+    LTEXT           "Universe:",IDC_STATIC,240,160,32,8
+    EDITTEXT        IDC_UNIVERSE,281,158,151,12,ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_CASE_LISTING, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 78
+        TOPMARGIN, 2
+        BOTTOMMARGIN, 136
+    END
+
+    IDD_QUESTIONNAIRE_CONTENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 408
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 121
+    END
+
+    IDD_EXTRACT_NOTES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 466
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 116
+    END
+
+    IDD_TASK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 478
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 211
+    END
+
+    IDD_EXTRACT_BINARY_DATA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 516
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 174
+        HORZGUIDE, 151
+    END
+
+    IDD_OPEN_DATA_SOURCE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 376
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 91
+    END
+
+    IDD_OPEN_CSWEB_DATA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 394
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_DOWNLOAD_DATA_SOURCE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 500
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 324
+    END
+
+    IDD_SYNCHRONIZE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 500
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 201
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_CASE_LISTING AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    100, 0, 0, 0
+END
+
+IDD_QUESTIONNAIRE_CONTENT AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0
+END
+
+IDD_EXTRACT_NOTES AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0
+END
+
+IDD_TASK AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    100, 100, 0, 0,
+    0, 0, 100, 100,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 100, 100, 0
+END
+
+IDD_EXTRACT_BINARY_DATA AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0
+END
+
+IDD_OPEN_DATA_SOURCE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0
+END
+
+IDD_OPEN_CSWEB_DATA AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100
+END
+
+IDD_DOWNLOAD_DATA_SOURCE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 100, 100,
+    0, 100, 100, 0,
+    0, 100, 100, 0,
+    100, 100, 0, 0
+END
+
+IDD_SYNCHRONIZE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_CASE_LISTING DLGINIT
+BEGIN
+    IDC_TOGGLE_FILTERS, 0x37c, 157, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x3c3e, 0x4d2f, 0x4346, 
+0x694c, 0x6b6e, 0x555f, 0x6c72, 0x3c3e, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
+0x7255, 0x506c, 0x6572, 0x6966, 0x3e78, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 
+0x5f6b, 0x7255, 0x506c, 0x6572, 0x6966, 0x3e78, 0x4d3c, 0x4346, 0x694c, 
+0x6b6e, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x4d2f, 0x4346, 0x694c, 
+0x6b6e, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x464d, 0x4c43, 0x6e69, 
+0x5f6b, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x694c, 0x6b6e, 0x465f, 0x6c75, 
+0x546c, 0x7865, 0x5474, 0x6f6f, 0x746c, 0x7069, "\076" 
+    0
+END
+
+IDD_SYNCHRONIZE DLGINIT
+BEGIN
+    IDC_COMBO_DIRECTION, 0x403, 31, 0
+0x7055, 0x6f6c, 0x6461, 0x6320, 0x6168, 0x676e, 0x7365, 0x7420, 0x206f, 
+0x6573, 0x7672, 0x7265, 0x2820, 0x5550, 0x2954, "\000" 
+    IDC_COMBO_DIRECTION, 0x403, 35, 0
+0x6f44, 0x6e77, 0x6f6c, 0x6461, 0x6320, 0x6168, 0x676e, 0x7365, 0x6620, 
+0x6f72, 0x206d, 0x6573, 0x7672, 0x7265, 0x2820, 0x4547, 0x2954, "\000" 
+    IDC_COMBO_DIRECTION, 0x403, 37, 0
+0x7953, 0x636e, 0x6c20, 0x636f, 0x6c61, 0x6120, 0x646e, 0x7220, 0x6d65, 
+0x746f, 0x2065, 0x6863, 0x6e61, 0x6567, 0x2073, 0x4228, 0x544f, 0x2948, 
+"\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "Data Manager"
+    IDR_DATA_SOURCE_FRAME   "\n\nCSPro Data Files\nCSPro Data Files (*.csdb;*.csdbe;*.dat)\n.csdb\nDataManager.Document\nData Manager Document"
+    IDR_CASE_FRAME          "\n\nCSPro Case\n\n\n\n"
+END
+
+STRINGTABLE
+BEGIN
+    ID_LISTING_ASCENDING    "View cases in ascending order\nAscending"
+    ID_LISTING_DESCENDING   "View cases in descending order\nDescending"
+    ID_LISTING_CASE_LABEL   "Show case labels in the case listing\nCase Label"
+    ID_LISTING_CASE_KEY     "Show case keys in the case listing\nCase Key"
+    ID_LISTING_CASES_ALL    "View all cases\nAll Cases"
+    ID_LISTING_CASES_NOT_DELETED 
+                            "View only cases that are not deleted\nNot Deleted Cases Only"
+    ID_LISTING_CASES_PARTIAL 
+                            "View only cases that are partial and not deleted\nPartial Cases Only"
+    ID_LISTING_CASES_DUPLICATE 
+                            "View only cases that have duplicate keys and are not deleted\nDuplicate Cases Only"
+    ID_LISTING_SEQUENTIAL   "View cases in sequential order\nSequential"
+    ID_LISTING_INDEXED      "View cases in indexed (key) order\nIndexed"
+    ID_STATUS_PANE_DATA_SOURCE_INFO "          "
+    ID_STATUS_PANE_CASE_COUNT "          "
+    ID_STATUS_PANE_CASE_KEY "          "
+    ID_STATUS_PANE_CASE_POSITION "          "
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOOLS_EXPORT_DATA    "Export data for other applications\nExport Data"
+    ID_TOOLS_TABULATE_FREQUENCIES 
+                            "Produce frequency tables for data items\nTabulate Frequencies"
+    ID_VIEW_DATA_SUMMARY    "View a summary for this Data Source\nData Summary"
+    ID_VIEW_LOGIC_HELPER    "View ways to interact with this Data Source using CSPro logic\nLogic Helper"
+    ID_VIEW_CASE_HTML       "View the case data\nCase"
+    ID_VIEW_CASE_JSON       "View the case data as JSON\nCase (JSON)"
+    ID_VIEW_CASE_TEXT       "View the case data as text\nCase (Text)"
+    ID_VIEW_CASE_QUESTIONNAIRE 
+                            "View the case data as using the Questionnaire View\nCase (Questionnaire View)"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_LABELS "Display dictionary labels\nLabels"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES "Display dictionary names\nNames"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES_AND_LABELS 
+                            "Display dictionary names and labels\nNames and Labels"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS 
+                            "Display both item and subitems\nItems and Subitems"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS 
+                            "Display only items and not subitems\nItems Only"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_SUBITEMS 
+                            "Display only subitems and not items\nSubitems Only"
+    ID_VIEW_OPTIONS_HTML_RECORD_HORIZONTAL 
+                            "Display records as rosters in horizontal orientation\nHorizontal Orientation"
+    ID_VIEW_OPTIONS_HTML_RECORD_VERTICAL 
+                            "Display records as rosters in vertical orientation\nVertical Orientation"
+    ID_VIEW_OPTIONS_HTML_RECORD_OCCURRENCE_LABELS 
+                            "Display occurrence headers as labels\nOccurrence Labels"
+    ID_VIEW_OPTIONS_HTML_RECORD_OCCURRENCE_NUMBERS 
+                            "Display occurrence headers as numbers\nOccurrence Numbers"
+    ID_VIEW_OPTIONS_HTML_VALUE_CASE_TREE 
+                            "Show values using the Case Tree style\nCase Tree Style"
+    ID_VIEW_OPTIONS_HTML_VALUE_LABELS "Show values as labels\nLabels"
+    ID_VIEW_OPTIONS_HTML_VALUE_CODES "Show values as codes\nCodes"
+    ID_VIEW_OPTIONS_HTML_VALUE_LABELS_AND_CODES 
+                            "Show values as both labels and codes\nLabels and Codes"
+    ID_VIEW_OPTIONS_HTML_VALUE_CODES_AND_LABELS 
+                            "Show values as both codes and labels\nCodes and Labels"
+    ID_VIEW_OPTIONS_HTML_VALUE_SHOW_BLANKS 
+                            "Show items with blank values\nShow Blank Values"
+    ID_VIEW_OPTIONS_HTML_VALUE_HIDE_BLANKS 
+                            "Hide items with blank values\nHide Blank Values"
+    ID_VIEW_OPTIONS_HTML_CASE_DEFAULT_DETAILS 
+                            "Display non-default information about cases\nDefault Display"
+    ID_VIEW_OPTIONS_HTML_CASE_ALL_DETAILS 
+                            "Display all information about cases\nShow All Details"
+    ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS 
+                            "Show case errors and inconsistencies\nShow Case Errors"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_OPTIONS_HTML_CASE_HIDE_ERRORS 
+                            "Hide case errors and inconsistencies\nHide Case Errors"
+    ID_VIEW_OPTIONS_JSON_COMPACT_JSON 
+                            "View the case JSON in a compact format\nCompact JSON"
+    ID_VIEW_OPTIONS_JSON_VERBOSE "Write all case details to the JSON\nVerbose"
+    ID_VIEW_OPTIONS_JSON_WRITE_LABELS 
+                            "Include the value set label with each item\nInclude Labels"
+    ID_VIEW_OPTIONS_JSON_WRITE_BLANK_VALUES 
+                            "Include items with blank values\nInclude Blank Values"
+    ID_VIEW_OPTIONS_JSON_WRITE_DATA_URLS 
+                            "Include binary data (written as a data URL)\nEmbed Binary Data"
+    ID_VIEW_OPTIONS_QUESTIONNAIRE_MODIFY_CONTENT 
+                            "Modifies the forms and question text that are associated with the data\nModify Associated Questionnaire Content"
+    ID_VIEW_OPTIONS_TEXT_COLORIZE 
+                            "Colorize record types, ID items, and record items\nColorize Items"
+    ID_VIEW_OPTIONS_TEXT_DETAILS_PANE 
+                            "Show a details pane that provides information on each item\nShow Details Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_OPTIONS_PLACEHOLDER "No options exist for this view\n<no options>"
+END
+
+STRINGTABLE
+BEGIN
+    ID_DATA_DELETE_CASE     "Delete the selected cases\nDelete Case"
+    ID_DATA_TOGGLE_READ_ONLY 
+                            "Toggle whether the data source is opened only for reading\nRead-Only Mode"
+    ID_FILE_CLOSE_ALL       "Close all documents\nClose All"
+    ID_FILE_DOWNLOAD_DATA_SOURCE 
+                            "Create a new data source by downloading data from a synchronization service\nDownload Data"
+    ID_FILE_EXTRACT_BINARY_DATA 
+                            "Extract the binary data from cases\nExtract Binary Data"
+    ID_FILE_EXTRACT_DICTIONARY "Extract the dictionary\nExtract Dictionary"
+    ID_FILE_EXTRACT_NOTES   "Extract the notes from cases\nExtract Notes"
+    ID_FILE_OPEN_CSWEB_DATA "Open a connection to data on a CSWeb server\nOpen CSWeb Data"
+    ID_FILE_OPEN_DATA_SOURCE "Open an existing data source\nOpen Data Source"
+    ID_FILE_PRINT_VIEW      "Print the active view\nPrint View"
+    ID_FILE_REFRESH         "Refresh the case listing and view\nRefresh Data"
+    ID_FILE_SAVE_DATA       "Save the cases to a new data source\nSave Data"
+    ID_FILE_SAVE_VIEW       "Save the active view\nSave View"
+    ID_FILE_SYNCHRONIZE     "Synchronize cases to the data source\nSynchronize Data"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro Data Manager"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "List Help topics\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -2,7 +2,6 @@
 #include "INTERPRE.H"
 #include <zEngineO/Userbar.h>
 #include <zEngineO/UserFunction.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineF/EngineUI.h>
 
 
@@ -46,22 +45,7 @@ double CIntDriver::exuserbar(int iExpr)
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
     const Userbar::Command userbar_command = static_cast<Userbar::Command>(va_node.arguments[0]);
 
-    std::vector<int> arguments;
-    bool Iteration_7_6_000_1_assert_check = true;
-
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-    {
-        arguments = GetListNodeContents(va_node.arguments[1]);
-    }
-
-    else
-    {
-        // this is risky because a certain compilation where the userbar is the last thing in the
-        // buffer could lead to this crashing, but this is only temporary until <= 7.5 code is removed
-        arguments.resize(4);
-        memcpy(arguments.data(), &va_node.arguments[1], sizeof(int) * arguments.size());
-        Iteration_7_6_000_1_assert_check = false;
-    }
+    const std::vector<int> arguments = GetListNodeContents(va_node.arguments[1]);
 
     try
     {
@@ -102,7 +86,7 @@ double CIntDriver::exuserbar(int iExpr)
                     return static_cast<Userbar::ControlAction>(i);
             }
 
-            throw CSProException(_T("The command '%s' is not supported on this system"), name.c_str());
+            throw CSProException("The command '%s' is not supported on this system", UTF8_TODO::GetUtf8(name).c_str());
         };
 
 
@@ -133,9 +117,9 @@ double CIntDriver::exuserbar(int iExpr)
         // set color
         else if( userbar_command == Userbar::Command::SetColor )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 4);
+            ASSERT(arguments.size() == 4);
 
-            auto evaluate_color = [&](size_t index) { return std::min(255, evalexpr<int>(arguments[index])); };
+            auto evaluate_color = [&](size_t index) { return std::min(255, Evaluate<int>(arguments[index])); };
             const int red = evaluate_color(1);
             const int green = evaluate_color(2);
             const int blue = evaluate_color(3);
@@ -145,7 +129,7 @@ double CIntDriver::exuserbar(int iExpr)
 
             // evaluate the resource ID if the user isn't setting the color of the entire bar
             if( arguments[0] != -1 )
-                id = evalexpr<int>(arguments[0]);
+                id = Evaluate<int>(arguments[0]);
 
             return userbar.SetColor(color, id);
         }
@@ -154,15 +138,15 @@ double CIntDriver::exuserbar(int iExpr)
         // remove
         else if( userbar_command == Userbar::Command::Remove )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 1);
-            return userbar.Remove(evalexpr<int>(arguments.front()));
+            ASSERT(arguments.size() == 1);
+            return userbar.Remove(Evaluate<int>(arguments.front()));
         }
 
 
         // add button / add field
         else if( userbar_command == Userbar::Command::AddButton || userbar_command == Userbar::Command::AddField )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 2 || arguments.size() == 3);
+            ASSERT(arguments.size() == 2 || arguments.size() == 3);
             std::wstring text = EvalAlphaExpr(arguments[0]);
             std::optional<Userbar::Action> action;
 
@@ -192,7 +176,7 @@ double CIntDriver::exuserbar(int iExpr)
         // add text
         else if( userbar_command == Userbar::Command::AddText )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 1);
+            ASSERT(arguments.size() == 1);
             return userbar.AddText(EvalAlphaExpr(arguments.front()));
         }
 
@@ -200,24 +184,24 @@ double CIntDriver::exuserbar(int iExpr)
         // add spacing
         else if( userbar_command == Userbar::Command::AddSpacing )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 1);
-            return userbar.AddSpacing(evalexpr<int>(arguments.front()));
+            ASSERT(arguments.size() == 1);
+            return userbar.AddSpacing(Evaluate<int>(arguments.front()));
         }
 
 
         // modify
         else if( userbar_command == Userbar::Command::Modify )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() >= 2 && arguments.size() <= 4);
+            ASSERT(arguments.size() >= 2 && arguments.size() <= 4);
 
-            const int id = evalexpr<int>(arguments[0]);
+            const int id = Evaluate<int>(arguments[0]);
             std::optional<std::wstring> text;
             std::optional<Userbar::Action> action;
             std::optional<int> spacing;
 
             if( arguments[1] == -2 ) // then the user is modifying spacing
             {
-                spacing = evalexpr<int>(arguments[2]);
+                spacing = Evaluate<int>(arguments[2]);
             }
 
             else
@@ -243,46 +227,20 @@ double CIntDriver::exuserbar(int iExpr)
         // get
         else if( userbar_command == Userbar::Command::GetField )
         {
-            ASSERT(!Iteration_7_6_000_1_assert_check || arguments.size() == 1 || arguments.size() == 2);
+            ASSERT(arguments.size() == 1 || arguments.size() == 2);
 
             // the user is querying the last called resource ID
             if( arguments[0] == -1 )
                 return userbar.GetLastActivatedItem().value_or(0);
 
             // otherwise get the field text
-            std::optional<std::wstring> field_text = userbar.GetFieldText(evalexpr<int>(arguments[0]));
+            std::optional<std::wstring> field_text = userbar.GetFieldText(Evaluate<int>(arguments[0]));
 
             if( !field_text.has_value() )
                 return 0;
 
-            if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-            {
-                const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(arguments[1]);
-                AssignValueToSymbol(symbol_value_node, std::move(*field_text));
-            }
-
-            else
-            {
-                VART* pVarT = VPT(arguments[1]);
-
-                if( pVarT->GetLogicStringPtr() ) // 20140326 a variable length string
-                {
-                    *( pVarT->GetLogicStringPtr() ) = WS2CS(*field_text);
-                }
-
-                else
-                {
-                    TCHAR* pBuffer = (TCHAR*)svaraddr(pVarT->GetVarX());
-                    int bufferLength = pVarT->GetLength();
-
-                    int charsToCopy = std::min(bufferLength, static_cast<int>(field_text->length()));
-
-                    _tmemcpy(pBuffer, field_text->c_str(), charsToCopy);
-
-                    if( charsToCopy < bufferLength )
-                        _tmemset(pBuffer + charsToCopy, BLANK, bufferLength - charsToCopy);
-                }
-            }
+            const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(arguments[1]);
+            AssignValueToSymbol(symbol_value_node, SharableString(UTF8_TODO::GetUtf8(std::move(*field_text))));
 
             return 1;
         }
@@ -296,7 +254,7 @@ double CIntDriver::exuserbar(int iExpr)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 50106, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 50106, exception.what());
     }
 
     return 0;

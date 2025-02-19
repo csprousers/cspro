@@ -4,7 +4,6 @@
 
 class CSpecFile;
 class ProgressDlg;
-class Serializer;
 
 
 namespace CapiPre76 {
@@ -139,7 +138,7 @@ namespace CapiPre76 {
         std::vector<CNewCapiQuestionHelp> m_aQuestions;
         std::vector<CNewCapiQuestionHelp> m_aHelps;
         bool m_bIsModified;
-        
+
         void Init(bool bOnlyArrays);
         void Copy(const CNewCapiQuestionFile& rOther);
 
@@ -163,7 +162,7 @@ namespace CapiPre76 {
 
         // Languages
         void        AddLanguage(CNewCapiLanguage& rNewCapiLanguage);
-        CNewCapiLanguage* GetLanguage(int iLangNum);
+        const CNewCapiLanguage& GetLanguage(int iLangNum);
         CNewCapiLanguage* GetLanguage(CString csLangName, bool bCaseSensitive = true);
         int         GetNumLanguages();
 

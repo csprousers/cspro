@@ -1,43 +1,33 @@
 ﻿#pragma once
 
 #include <zFreqO/TextFrequencyPrinter.h>
-#include <zUtilO/Interapp.h>
-#include <zUtilO/StdioFileUnicode.h>
+#include <zToolsO/File.h>
 
 
 class TextFileFrequencyPrinter : public TextFrequencyPrinter
 {
 public:
-    TextFileFrequencyPrinter(CStdioFileUnicode& file, int listing_width)
+    TextFileFrequencyPrinter(FileIO::TextFile& text_file, const int listing_width)
         :   TextFrequencyPrinter(FormatType::UsePageLengthAddFormFeedBeforeFirstFrequency, listing_width),
-            m_file(file)
+            m_textFile(&text_file)
     {
     }
 
-    TextFileFrequencyPrinter(NullTerminatedString filename, int listing_width)
+    TextFileFrequencyPrinter(const std::string& file_path, const int listing_width)
         :   TextFrequencyPrinter(FormatType::UsePageLength, listing_width),
-            m_ownedFile(std::make_unique<CStdioFileUnicode>()),
-            m_file(*m_ownedFile)
+            m_textFile(std::make_unique<FileIO::TextFile>())
     {
-        SetupEnvironmentToCreateFile(filename);
+        SetupEnvironmentToCreateFile(file_path);
 
-        if( !m_ownedFile->Open(filename.c_str(), CFile::modeWrite | CFile::modeCreate) )
-            throw CSProException(_T("Could not create the frequency file: %s"), filename.c_str());
-    }
-
-    ~TextFileFrequencyPrinter()
-    {
-        if( m_ownedFile != nullptr )
-            m_ownedFile->Close();
+        m_textFile->OpenForTextWritingCreate(file_path); // TEXT_ENCODING_TODO refactor to use connection strings with properties
     }
 
 protected:
-    void WriteLine(NullTerminatedString line) override
+    void WriteLine(const std::string_view line_sv) override
     {
-        m_file.WriteLine(line.c_str());
+        m_textFile->WriteLine(line_sv);
     }
 
 private:
-    std::unique_ptr<CStdioFileUnicode> m_ownedFile;
-    CStdioFileUnicode& m_file;
+    cs::non_null_shared_or_raw_ptr<FileIO::TextFile> m_textFile;
 };

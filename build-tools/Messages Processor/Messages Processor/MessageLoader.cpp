@@ -5,55 +5,53 @@
 #include <zToolsO/VectorHelpers.h>
 
 
-std::wstring MessageLoader::GetCSProDevelopmentDirectory()
+std::string MessageLoader::GetCSProDevelopmentDirectory()
 {
-    std::wstring application_directory(_MAX_PATH, '\0');
-    GetModuleFileName(nullptr, application_directory.data(), application_directory.length());
-    application_directory.resize(_tcslen(application_directory.data()));
+    auto module_file_name = std::make_unique_for_overwrite<wchar_t[]>(_MAX_PATH);
+    GetModuleFileName(nullptr, module_file_name.get(), _MAX_PATH);
 
-    application_directory = PortableFunctions::PathGetDirectory(application_directory);
-
-    return MakeFullPath(application_directory, L"..\\..\\..\\cspro\\");
+    return MakeFullPath(PortableFunctions::PathGetDirectory(TC::ToUtf8(module_file_name.get())), 
+                        "..\\..\\..\\cspro\\");
 }
 
 
-std::vector<std::wstring> MessageLoader::GetMessageFilenames(bool include_designer_messages)
+std::vector<std::string> MessageLoader::GetMessageFilePaths(const bool include_designer_messages)
 {
-    std::vector<std::wstring> message_filenames;
+    std::vector<std::string> message_file_paths;
 
-    auto add_messages = [&](wstring_view file_spec_sv)
+    auto add_messages = [&](const std::string_view file_spec_sv)
     {
-        VectorHelpers::Append(message_filenames, DirectoryLister().SetNameFilter(file_spec_sv)
-                                                                  .GetPaths(GetCSProDevelopmentDirectory()));
+        VectorHelpers::Append(message_file_paths, DirectoryLister().SetNameFilter(file_spec_sv)
+                                                                   .GetPaths(GetCSProDevelopmentDirectory()));
     };
 
     if( include_designer_messages )
-        add_messages(L"CSProDesigner*.mgf");
+        add_messages("CSProDesigner*.mgf");
 
-    add_messages(L"CSProRuntime*.mgf");
+    add_messages("CSProRuntime*.mgf");
 
-    return message_filenames;
+    return message_file_paths;
 }
 
 
-void MessageLoader::LoadMessageFiles(MessageFile& message_file, bool include_designer_messages, bool* loading_english_messages)
+void MessageLoader::LoadMessageFiles(MessageFile& message_file, const bool include_designer_messages, bool* const loading_english_messages)
 {
     // load all of the message files
-    const std::vector<std::wstring> message_filenames = GetMessageFilenames(include_designer_messages);
+    const std::vector<std::string> message_file_paths = GetMessageFilePaths(include_designer_messages);
 
     for( int pass = 0; pass < 2; ++pass )
     {
-        for( const std::wstring& message_filename : message_filenames )
+        for( const std::string& message_file_path : message_file_paths )
         {
             // first load the English messages
-            const bool english_messages = ( message_filename.find(L".en.") != std::wstring::npos );
+            const bool english_messages = ( message_file_path.find(".en.") != std::string::npos );
 
             if( ( pass == 0 ) == english_messages )
             {
                 if( loading_english_messages != nullptr )
                     *loading_english_messages = english_messages;
 
-                TextSourceExternal system_message_text_source(message_filename);
+                TextSourceExternal system_message_text_source(message_file_path);
                 message_file.Load(system_message_text_source, LogicSettings::Version::V8_0);
             }
         }

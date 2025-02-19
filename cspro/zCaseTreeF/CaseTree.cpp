@@ -378,7 +378,7 @@ bool CCaseTree::ShowTreeOfNodes(bool bDisplayNodeChilds, CDEField* pWantedField,
         chitem->m_iNonSelectedIconIdx   = iArray.GetAt(iNodeIdx);
         chitem->m_iSelectedIconIdx      = iArray.GetAt(iNodeIdx);
         chitem->m_pInfo                 = new CTreeItemInfo( iNodeIdx,
-                                                             IntToString(iNodeIdx),
+                                                             UTF8_TODO::GetCString(IntToString(iNodeIdx)),
                                                              iNodeIdx,
                                                              CS_NODE_INFO,
                                                              -1,
@@ -483,7 +483,7 @@ bool CCaseTree::DoStackCalls()
                 pItem = m_InsertItemConfigArray.GetAt(iCallIdx)->m_pItem;
                 ASSERT( pItem && pItem->GetItemType() == CDEFormBase::Field );
                 if( m_bShowNames ){
-                        csFieldLabel    = ((CDEField*)pItem)->GetDictItem()->GetName();
+                        csFieldLabel    = UTF8_TODO::GetCString(((CDEField*)pItem)->GetDictItem()->GetName());
                 } else {
                         csFieldLabel    = ((CDEField*)pItem)->GetDictItem()->GetLabel();
                 }
@@ -742,8 +742,8 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
 
         //FABN Feb 14, 2003
         if(bSpecialInsert && bOccIcon){
-            int     iNumDigits          = (IntToString(iNumDrawableOccs)).GetLength();
-            CString csOccNumber         = IntToString( iItemOcc/*iWantedOcc*/ );
+            int     iNumDigits          = IntToStringLength(iNumDrawableOccs);
+            CString csOccNumber         = UTF8_TODO::GetCString(IntToString( iItemOcc/*iWantedOcc*/ ));
             int     iNumZeros           = iNumDigits - csOccNumber.GetLength();
             CString csFormatedNumber    = _T("");
             for(int i=0; i<iNumZeros; i++) csFormatedNumber += _T("0");
@@ -765,9 +765,9 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
 
         //CString csOldNote   = m_pCapiRunAplEntry->GetNote( pItem, iOcc );
 
-        CString csKey = csParentKey + _T("-") + IntToString(pItem->GetSymbol()) + /*"#" + IntToString(iItemIndex) +*/ _T("#");
+        CString csKey = csParentKey + _T("-") + UTF8_TODO::GetCString(IntToString(pItem->GetSymbol())) + /*"#" + IntToString(iItemIndex) +*/ _T("#");
                 if( bSpecialInsert ){
-                        csKey+=IntToString(iItemOcc);
+                        csKey+=UTF8_TODO::GetCString(IntToString(iItemOcc));
                 } else {
                         csKey+=_T("1");
                 }
@@ -825,19 +825,19 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
         csItemLabel.TrimRight();
 
         if(csItemLabel.GetAt(csItemLabel.GetLength()-1)!=':'){
-            csItemLabel += (_T(" : ") + IntToString(iNumDrawableOccs) + _T(" occurrences"));
+            csItemLabel += (_T(" : ") + UTF8_TODO::GetCString(IntToString(iNumDrawableOccs)) + _T(" occurrences"));
         } else {
-            csItemLabel += (_T(" ") + IntToString(iNumDrawableOccs) + _T(" occurrences"));
+            csItemLabel += (_T(" ") + UTF8_TODO::GetCString(IntToString(iNumDrawableOccs)) + _T(" occurrences"));
         }
 
 
         hItem           = m_pTree->Insert( csItemLabel, hItemParent, hInsertAfter/*TVI_LAST*/, 8,9);
-        CString csKey   = csParentKey + _T("-") + IntToString(pItem->GetSymbol()) + _T("#0");
+        CString csKey   = csParentKey + _T("-") + UTF8_TODO::GetCString(IntToString(pItem->GetSymbol())) + _T("#0");
 
         if(m_bShowNames){
-            csToolTip = pItem->GetLabel() + _T(" ( ") + IntToString(iNumDrawableOccs) + _T(" occurrences )");
+            csToolTip = pItem->GetLabel() + _T(" ( ") + UTF8_TODO::GetCString(IntToString(iNumDrawableOccs)) + _T(" occurrences )");
         } else {
-            csToolTip = pItem->GetName() + _T(" ( ") + IntToString(iNumDrawableOccs) + _T(" occurrences )");
+            csToolTip = pItem->GetName() + _T(" ( ") + UTF8_TODO::GetCString(IntToString(iNumDrawableOccs)) + _T(" occurrences )");
         }
 
         CTreeItemInfo * pItemInfo = new CTreeItemInfo(  iNodeIdx, csKey, iItemIndex, CS_GROUP_OCCURRENCES_TITTLE, 0, iNumDrawableOccs, -1, 8, 9, csToolTip);
@@ -851,11 +851,11 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
 
 
         CString csItemOccKey;
-        int     iNumDigits = (IntToString(iNumDrawableOccs)).GetLength();
+        int     iNumDigits = IntToStringLength(iNumDrawableOccs);
         CString csNotUsed;
         for(int iItemItr = 1; iItemItr<=iNumDrawableOccs; iItemItr++){
 
-            csOccNumber       = IntToString(iItemItr);
+            csOccNumber       = UTF8_TODO::GetCString(IntToString(iItemItr));
             iNumZeros         = iNumDigits - csOccNumber.GetLength();
             csFormatedNumber  = _T("");
             for(int i=0; i<iNumZeros; i++) csFormatedNumber += _T("0");
@@ -871,7 +871,7 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
             iNonSelectedIconIndex   = iItemItr <= iDataOccs ? 32 : 30;
             iSelectedIconIndex      = 1 + iNonSelectedIconIndex;
             hOccTittle              = m_pTree->Insert( csOccTittle, hItem, TVI_LAST, iNonSelectedIconIndex, iSelectedIconIndex);
-            csItemOccKey            = csParentKey + _T("-") + IntToString(pItem->GetSymbol()) + _T("#") + IntToString(iItemItr);
+            csItemOccKey            = csParentKey + _T("-") + UTF8_TODO::GetCString(IntToString(pItem->GetSymbol())) + _T("#") + UTF8_TODO::GetCString(IntToString(iItemItr));
             pItemInfo               = new CTreeItemInfo( iNodeIdx, csItemOccKey, iItemIndex, CS_OCCURRENCE_INDEX, iItemItr, iNumDrawableOccs, -1, iNonSelectedIconIndex , iSelectedIconIndex, csToolTip);
             pItemInfo->SetItem( pItem );
             pItemInfo->SetLabel( csOccTittle );
@@ -964,7 +964,7 @@ bool CCaseTree::InsertLevel(CString csParentKey, int iNodeIdx, CDELevel* pLevel,
                 }
         }
 
-        CString csKey = csParentKey  + _T("#") + IntToString(pLevel->GetSymbol()) + _T("#") + IntToString(iLevelIndex);
+        CString csKey = csParentKey  + _T("#") + UTF8_TODO::GetCString(IntToString(pLevel->GetSymbol())) + _T("#") + UTF8_TODO::GetCString(IntToString(iLevelIndex));
 
     CTreeItemInfo * pItemInfo = bNewTreeItemInfo ? new CTreeItemInfo( iNodeIdx, csKey, iLevelIndex, CS_LEVEL_INFO, pLevel->GetCurOccurrence(), pLevel->GetMaxLoopOccs(), -1, 4, 5,pLevel->GetName()  ) : NULL;
         if(pItemInfo){
@@ -1679,7 +1679,7 @@ bool CCaseTree::xRefresh( HTREEITEM hItem, CDEField* pWantedField, int iWantedOc
                         if( pItemInfo->GetTypeOfInfo()==CS_GROUP_OCCURRENCES_TITTLE  ||
                             pItemInfo->GetTypeOfInfo()==CS_ROSTER_OCCURRENCES_TITTLE ){
 
-                                CSLabel = CSLabel + _T(" : ") + IntToString( pItemInfo->GetMaxNumOccurrences() ) + _T(" occurrences ");
+                                CSLabel = CSLabel + _T(" : ") + UTF8_TODO::GetCString(IntToString( pItemInfo->GetMaxNumOccurrences() )) + _T(" occurrences ");
 
                         }
 
@@ -1785,7 +1785,7 @@ void CCaseTree::UserSelectItem(HTREEITEM hSelectedItem, CPoint ptScrollPos, bool
         m_pTree->SelectItem(NULL);
 
         m_pParent->PostMessage(UWM::CaseTree::GoTo, (WPARAM)pMsgParam, 0);
-        
+
         return;
     }
 
@@ -2316,7 +2316,7 @@ bool CCaseTree::RefreshItemBase(CArray<CDEItemBase*,CDEItemBase*>*          pIte
         }
         int iNumOccsToAdd = aOccsToAdd.GetSize();
         #ifdef _DEBUG
-                TRACE(_T("occs that will be added for item %s\n"),(LPCTSTR)pItemBaseToRefresh->GetName());
+                TRACE(_T("occs that will be added for item %s\n"), pItemBaseToRefresh->GetName().GetString());
                 if(iNumOccsToAdd==0){
                         TRACE(_T("None\n"));
                 }
@@ -2398,7 +2398,7 @@ bool CCaseTree::RefreshItemBase(CArray<CDEItemBase*,CDEItemBase*>*          pIte
             ASSERT(iOccToRemove!=-1); //to fill hInsertAfter and hParent
             TRACE(_T("build tittle of occs, with %d occs\n"), aOccsToAdd.GetSize() );
             int iDataOccs = ((CDEGroup*)pItemBaseToRefresh)->GetDataOccs();
-            hTittleOfOccs = InsertItemOccsTittle( pItemBaseToRefresh, iDataOccs, pTree, hInsertAfter, hParent);
+            hTittleOfOccs = InsertItemOccsTitle( pItemBaseToRefresh, iDataOccs, pTree, hInsertAfter, hParent);
             TRACE(_T("Done\n"));
         } else if( bExistTittleOfOccs ){
             hTittleOfOccs = aTittleItem.GetAt(0);
@@ -2541,7 +2541,7 @@ CWnd* CCaseTree::GetWnd()
 }
 
 
-HTREEITEM CCaseTree::InsertItemOccsTittle( CDEItemBase* pItem, int iNumOccsInTheTittle, CGenericTreeCtrl* pTree, HTREEITEM hInsertAfter, HTREEITEM hParent)
+HTREEITEM CCaseTree::InsertItemOccsTitle( CDEItemBase* pItem, int iNumOccsInTheTitle, CGenericTreeCtrl* pTree, HTREEITEM hInsertAfter, HTREEITEM hParent)
 {
     //item label
     CString csItemLabel;
@@ -2552,17 +2552,17 @@ HTREEITEM CCaseTree::InsertItemOccsTittle( CDEItemBase* pItem, int iNumOccsInThe
     }
     csItemLabel.TrimRight();
     if(csItemLabel.GetAt(csItemLabel.GetLength()-1)!=':'){
-        csItemLabel += (_T(" : ") + IntToString(iNumOccsInTheTittle) + _T(" occurrences"));
+        csItemLabel += (_T(" : ") + UTF8_TODO::GetCString(IntToString(iNumOccsInTheTitle)) + _T(" occurrences"));
     } else {
-        csItemLabel += (_T(" ") + IntToString(iNumOccsInTheTittle) + _T(" occurrences"));
+        csItemLabel += (_T(" ") + UTF8_TODO::GetCString(IntToString(iNumOccsInTheTitle)) + _T(" occurrences"));
     }
 
     //tooltip
     CString csToolTip;
     if(m_bShowNames){
-        csToolTip = pItem->GetLabel() + _T(" ( ") + IntToString(iNumOccsInTheTittle) + _T(" occurrences )");
+        csToolTip = pItem->GetLabel() + _T(" ( ") + UTF8_TODO::GetCString(IntToString(iNumOccsInTheTitle)) + _T(" occurrences )");
     } else {
-        csToolTip = pItem->GetName() + _T(" ( ") + IntToString(iNumOccsInTheTittle) + _T(" occurrences )");
+        csToolTip = pItem->GetName() + _T(" ( ") + UTF8_TODO::GetCString(IntToString(iNumOccsInTheTitle)) + _T(" occurrences )");
     }
 
     //item icons
@@ -2570,10 +2570,10 @@ HTREEITEM CCaseTree::InsertItemOccsTittle( CDEItemBase* pItem, int iNumOccsInThe
     int iSelectedIconIdx    = 9;
 
     //item key
-    CString csKey   = pTree->GetKey( hParent ) + _T("-") + IntToString(pItem->GetSymbol()) + /*"#" + IntToString(iItemIndex) +*/ _T("#0");
+    CString csKey   = pTree->GetKey( hParent ) + _T("-") + UTF8_TODO::GetCString(IntToString(pItem->GetSymbol())) + /*"#" + IntToString(iItemIndex) +*/ _T("#0");
 
     //TreeItemInfo
-    CTreeItemInfo * pItemInfo = new CTreeItemInfo(  -1/*ignored*/, csKey, -1/*iItemIndex ignored*/, CS_GROUP_OCCURRENCES_TITTLE, 0/*occurrence index*/, iNumOccsInTheTittle, -1, iNonSelectedIconIdx, iSelectedIconIdx, csToolTip);
+    CTreeItemInfo * pItemInfo = new CTreeItemInfo(  -1/*ignored*/, csKey, -1/*iItemIndex ignored*/, CS_GROUP_OCCURRENCES_TITTLE, 0/*occurrence index*/, iNumOccsInTheTitle, -1, iNonSelectedIconIdx, iSelectedIconIdx, csToolTip);
     pItemInfo->SetItem( pItem );
 
     HTREEITEM hItem = pTree->Insert( csItemLabel, hParent, hInsertAfter, iNonSelectedIconIdx,iSelectedIconIdx);
@@ -2639,9 +2639,9 @@ bool CCaseTree::RefreshTittleOfOccs(CGenericTreeCtrl* pTree, HTREEITEM hItem)
     }
     csItemLabel.TrimRight();
     if(csItemLabel.GetAt(csItemLabel.GetLength()-1)!=':'){
-        csItemLabel += (_T(" : ") + IntToString(iDataOccs) + _T(" occurrences"));
+        csItemLabel += (_T(" : ") + UTF8_TODO::GetCString(IntToString(iDataOccs)) + _T(" occurrences"));
     } else {
-        csItemLabel += (_T(" ") + IntToString(iDataOccs) + _T(" occurrences"));
+        csItemLabel += (_T(" ") + UTF8_TODO::GetCString(IntToString(iDataOccs)) + _T(" occurrences"));
     }
 
     pTree->SetItemText(hItem, csItemLabel);
@@ -2667,7 +2667,7 @@ bool CCaseTree::RefreshNodeLabel(int iNodeIdx)
     bool bFoundNode = true;
 
     //Build the key
-    CString csNodeKey = IntToString(iNodeIdx);
+    CString csNodeKey = UTF8_TODO::GetCString(IntToString(iNodeIdx));
 
     //Search the hitem
     HTREEITEM   hNodeItem   = NULL;

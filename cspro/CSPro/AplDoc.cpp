@@ -1,29 +1,22 @@
 ﻿#include "StdAfx.h"
 #include "AplDoc.h"
-#include "NewFileCreator.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
 #include <zCapiO/QSFView.h>
 #include <Zentryo/Runaple.h>
+#include <zDesignerF/NewFileCreator.h>
 #include <regex>
-
-
-namespace
-{
-    CString GetCapiItemName(const CDEItemBase* pBase)
-    {
-        const CDEBlock* block = dynamic_cast<const CDEBlock*>(pBase);
-        return ( block != nullptr ) ? block->GetName() :
-                                      assert_cast<const CDEField*>(pBase)->GetDictItem()->GetQualifiedName();
-    }
-}
 
 
 /////////////////////////////////////////////////////////////////////////////
 // CAplDoc
-#include "shlwapi.h"
 
 IMPLEMENT_DYNCREATE(CAplDoc, CDocument)
+
+BEGIN_MESSAGE_MAP(CAplDoc, CDocument)
+    ON_COMMAND(ID_FILE_CSPRO_CLOSE, OnFileClose)
+END_MESSAGE_MAP()
+
 
 CAplDoc::CAplDoc()
     :   m_application(std::make_unique<Application>())
@@ -34,42 +27,22 @@ CAplDoc::CAplDoc()
     m_deployWnd = nullptr;
 }
 
-BOOL CAplDoc::OnNewDocument()
-{
-    if (!CDocument::OnNewDocument())
-        return FALSE;
-    return TRUE;
-}
 
 CAplDoc::~CAplDoc()
 {
-    if(m_application->GetAppSrcCode()) {
-        delete m_application->GetAppSrcCode();
-        m_application->SetAppSrcCode(nullptr);
-    }
+    delete m_application->GetAppSrcCode();
 }
 
 
-BEGIN_MESSAGE_MAP(CAplDoc, CDocument)
-    //{{AFX_MSG_MAP(CAplDoc)
-    ON_COMMAND(ID_FILE_CSPRO_CLOSE, OnFileClose)
-    //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-/////////////////////////////////////////////////////////////////////////////
-// CAplDoc diagnostics
-
-#ifdef _DEBUG
-void CAplDoc::AssertValid() const
+void CAplDoc::ReplaceAppObject(std::unique_ptr<Application> application)
 {
-    CDocument::AssertValid();
-}
+    ASSERT(application != nullptr);
 
-void CAplDoc::Dump(CDumpContext& dc) const
-{
-    CDocument::Dump(dc);
+    application->SetAppSrcCode(m_application->GetAppSrcCode());
+    m_application->SetAppSrcCode(nullptr);
+
+    m_application = std::move(application);
 }
-#endif //_DEBUG
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -99,17 +72,17 @@ BOOL CAplDoc::OnOpenDocument(LPCTSTR lpszPathName)
     // make sure tabulation applications have a working storage dictionary
     if( m_application->GetEngineAppType() == EngineAppType::Tabulation )
     {
-        const std::wstring& working_storage_dictionary_filename = m_application->GetFirstDictionaryFilenameOfType(DictionaryType::Working);
+        const std::string& working_storage_dictionary_file_path = m_application->GetFirstDictionaryFilePathOfType(DictionaryType::Working);
 
-        if( !PortableFunctions::FileIsRegular(working_storage_dictionary_filename) )
+        if( !PortableFunctions::FileIsRegular(working_storage_dictionary_file_path) )
         {
-            AfxMessageBox(working_storage_dictionary_filename.empty() ?
-                _T("Missing working storage dictionary.\n\nA new working storage dictionary will be added to the application.") :
-                _T("This application's working storage dictionary is missing. It will be recreated."));
+            AfxMessageBox(working_storage_dictionary_file_path.empty() ?
+                L"Missing working storage dictionary.\n\nA new working storage dictionary will be added to the application." :
+                L"This application's working storage dictionary is missing. It will be recreated.");
 
             try
             {
-                NewFileCreator::CreateWorkingStorageDictionary(*m_application);
+                NewFileCreator::CreateWorkingStorageDictionary(*m_application, true);
                 SetModifiedFlag();
             }
 
@@ -125,7 +98,7 @@ BOOL CAplDoc::OnOpenDocument(LPCTSTR lpszPathName)
 }
 
 /********************************************************************************
-BuildAllTrees Adds the labels of the objects to the tree if it  is opened standalone
+BuildAllTrees Adds the labels of the objects to the tree if it is opened standalone
 then hParent = TVI_ROOTITEM else the hParent is hItem of the Project
 *********************************************************************************/
 
@@ -140,12 +113,7 @@ HTREEITEM CAplDoc::BuildAllTrees()
     CFormTreeCtrl&  formTree = dlgBar.m_FormTree;
     COrderTreeCtrl& orderTree = dlgBar.m_OrderTree;
 
-    AppFileType app_file_type = ( m_application->GetEngineAppType() == EngineAppType::Entry )      ? AppFileType::ApplicationEntry :
-                                ( m_application->GetEngineAppType() == EngineAppType::Batch )      ? AppFileType::ApplicationBatch :
-                                ( m_application->GetEngineAppType() == EngineAppType::Tabulation ) ? AppFileType::ApplicationTabulation :
-                                                                                                     ReturnProgrammingError(AppFileType::ApplicationBatch);
-
-    HTREEITEM hRet = ObjTree.InsertNode(TVI_ROOT, std::make_unique<ApplicationFileTreeNode>(app_file_type, CS2WS(m_application->GetApplicationFilename())));
+    HTREEITEM hRet = ObjTree.InsertNode(TVI_ROOT, std::make_unique<ApplicationFileTreeNode>(m_application));
 
     //Insert label for the child items
 
@@ -153,43 +121,11 @@ HTREEITEM CAplDoc::BuildAllTrees()
     if(m_application->GetEngineAppType() == EngineAppType::Entry) {
 
         HTREEITEM hForm = hRet;
-        for( const CString& form_filename : m_application->GetFormFilenames() )
+
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
         {
-            CSpecFile specFormFile (true); //do it silently
-
-            if(specFormFile.Open(form_filename, CFile::modeRead)){
-
-                ObjTree.InsertFormNode(hForm, CS2WS(form_filename), AppFileType::Form);
-
-                CFormNodeID* pID = formTree.GetFormNode(form_filename);
-
-                if(pID) {
-                    pID->AddRef();
-
-                }
-                else {
-                    CString sLabel = ValFromHeader(specFormFile,CSPRO_CMD_LABEL);
-
-                    HTREEITEM hItem = formTree.InsertFormFile(sLabel, form_filename, nullptr);
-                    pID =formTree.GetFormNode(form_filename);
-
-                    TVITEM pItem;
-                    pItem.hItem = hItem;
-                    pItem.mask = TVIF_CHILDREN ;
-                    pItem.cChildren = 1;
-                    formTree.SetItem(&pItem);
-                }
-
-                ASSERT(pID != nullptr);
-                formTree.InsertFormDependencies(pID);
-                specFormFile.Close();
-            }
-            else {
-                CString sString;
-                sString.FormatMessage(IDS_OPENAPPFLD, form_filename.GetString());
-                AfxMessageBox(sString);
-                continue;
-            }
+            ObjTree.InsertFormNode(hForm, form_file_path, AppFileType::Form);
+            formTree.AddFormFile(form_file_path, nullptr, true);
         }
     }
 
@@ -198,28 +134,26 @@ HTREEITEM CAplDoc::BuildAllTrees()
 
         HTREEITEM hOrder = hRet;
 
-        for( const CString& form_filename : m_application->GetFormFilenames() )
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
         {
             CSpecFile specFormFile (true); //do it silently
 
-            if(specFormFile.Open(form_filename, CFile::modeRead)){
+            if(specFormFile.Open(UTF8_TODO::GetCString(form_file_path), CFile::modeRead)){
 
-                ObjTree.InsertFormNode(hOrder, CS2WS(form_filename), AppFileType::Order);
+                ObjTree.InsertFormNode(hOrder, form_file_path, AppFileType::Order);
 
-                FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
+                FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
 
                 if(form_order_app_tree_node != nullptr) {
                     form_order_app_tree_node->AddRef();
                 }
                 else {
-                    CString sLabel = ValFromHeader(specFormFile,CSPRO_CMD_LABEL);
-
-                    HTREEITEM hItem = orderTree.InsertOrderFile(sLabel, form_filename, nullptr);
-                    form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
+                    HTREEITEM hItem = orderTree.InsertOrderFile(UTF8_TODO::GetCString(form_file_path), nullptr);
+                    form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
 
                     TVITEM pItem;
                     pItem.hItem = hItem;
-                    pItem.mask = TVIF_CHILDREN ;
+                    pItem.mask = TVIF_CHILDREN;
                     pItem.cChildren = 1;
                     orderTree.SetItem(&pItem);
                 }
@@ -230,7 +164,7 @@ HTREEITEM CAplDoc::BuildAllTrees()
             }
             else {
                 CString sString;
-                sString.FormatMessage(IDS_OPENAPPFLD, form_filename.GetString());
+                sString.FormatMessage(IDS_OPENAPPFLD, UTF8_TODO::GetWide(form_file_path).c_str());
                 AfxMessageBox(sString);
                 continue;
             }
@@ -243,25 +177,25 @@ HTREEITEM CAplDoc::BuildAllTrees()
 
         HTREEITEM hSpec = hRet;
 
-        for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() )
+        for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() )
         {
             CSpecFile specTabFile(TRUE); //do it silently
-            if(specTabFile.Open(tab_spec_filename, CFile::modeRead)){
+            if(specTabFile.Open(UTF8_TODO::GetCString(table_spec_file_path), CFile::modeRead)){
 
-                ObjTree.InsertTableNode(hSpec, CS2WS(tab_spec_filename));
+                ObjTree.InsertTableNode(hSpec, table_spec_file_path);
 
-                TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(tab_spec_filename);
+                TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(table_spec_file_path);
 
                 if( table_spec_tab_tree_node != nullptr ) {
                     table_spec_tab_tree_node->AddRef();
                 }
                 else {
-                    HTREEITEM hItem = tabTree.InsertTableSpec(tab_spec_filename, nullptr);
-                    table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(tab_spec_filename);
+                    HTREEITEM hItem = tabTree.InsertTableSpec(UTF8_TODO::GetCString(table_spec_file_path), nullptr);
+                    table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(table_spec_file_path);
 
                     TVITEM pItem;
                     pItem.hItem = hItem;
-                    pItem.mask = TVIF_CHILDREN ;
+                    pItem.mask = TVIF_CHILDREN;
                     pItem.cChildren = 1;
                     tabTree.SetItem(&pItem);
                 }
@@ -273,7 +207,7 @@ HTREEITEM CAplDoc::BuildAllTrees()
             }
             else {
                 CString sString;
-                sString.FormatMessage(IDS_OPENAPPFLD, tab_spec_filename.GetString());
+                sString.FormatMessage(IDS_OPENAPPFLD, UTF8_TODO::GetWide(table_spec_file_path).c_str());
                 AfxMessageBox(sString);
                 continue;
             }
@@ -283,36 +217,10 @@ HTREEITEM CAplDoc::BuildAllTrees()
     // Insert External Dictionaries
     HTREEITEM hExternal = hRet;
 
-    for( const CString& dictionary_filename : m_application->GetExternalDictionaryFilenames() )
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_filename);
-
-        if( dictionary_dict_tree_node != nullptr )
-        {
-            ObjTree.InsertNode(hExternal, std::make_unique<DictionaryFileTreeNode>(CS2WS(dictionary_filename)));
-            dictionary_dict_tree_node->AddRef();
-        }
-
-        else
-        {
-            try
-            {
-                LabelSet dictionary_label_set = JsonStream::GetValueFromSpecFile<LabelSet, CDataDict>(JK::labels, dictionary_filename);
-
-                ObjTree.InsertNode(hExternal, std::make_unique<DictionaryFileTreeNode>(CS2WS(dictionary_filename)));
-
-                TVITEM pItem;
-                pItem.hItem = dictTree.InsertDictionary(dictionary_label_set.GetLabel(), dictionary_filename, nullptr);
-                pItem.mask = TVIF_CHILDREN;
-                pItem.cChildren = 1;
-                dictTree.SetItem(&pItem);
-            }
-
-            catch( const CSProException& exception )
-            {
-                ErrorMessage::Display(exception);
-            }
-        }
+        dictTree.AddDictionary(dictionary_file_path, nullptr);
+        ObjTree.InsertNode(hExternal, std::make_unique<DictionaryFileTreeNode>(dictionary_file_path));
     }
 
 
@@ -336,16 +244,16 @@ HTREEITEM CAplDoc::BuildAllTrees()
             ASSERT(false);
         }
     }
-    
+
 
     // message files
     {
         HTREEITEM hMessageParentItem = hRet;
         bool external_messages = false;
 
-        for( const auto& message_text_source : m_application->GetMessageTextSources() )
+        for( const AppMessageFile& app_message_file : m_application->GetMessageFiles() )
         {
-            HTREEITEM hItem = ObjTree.InsertNode(hMessageParentItem, std::make_unique<MessageFileTreeNode>(message_text_source->GetFilename(), external_messages));
+            const HTREEITEM hItem = ObjTree.InsertNode(hMessageParentItem, std::make_unique<MessageFileTreeNode>(app_message_file.GetFilePath(), external_messages));
 
             if( !external_messages )
             {
@@ -361,47 +269,38 @@ HTREEITEM CAplDoc::BuildAllTrees()
     {
         // 20100624 when QSF files didn't exist they were getting set up as ".qsf" which was:
         // 1) not a good filename, and 2) causing problems with Save As
-        std::optional<CString> modified_qsf_filename;
+        std::optional<std::string> modified_qsf_file_path;
 
-        if( m_application->GetQuestionTextFilename().IsEmpty() )
+        if( m_application->GetQuestionTextFilePath().empty() )
         {
-            modified_qsf_filename = m_application->GetApplicationFilename() + FileExtensions::WithDot::QuestionText;
+            modified_qsf_file_path = PortableFunctions::PathAppendFileExtension(m_application->GetApplicationFilePath(), FileExtensions::QuestionText);
         }
 
-        else if( !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(m_application->GetQuestionTextFilename()), FileExtensions::QuestionText) )
+        else if( !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(m_application->GetQuestionTextFilePath()), FileExtensions::QuestionText) )
         {
-            modified_qsf_filename = PortableFunctions::PathRemoveFileExtension<CString>(m_application->GetQuestionTextFilename()) + FileExtensions::WithDot::QuestionText;
+            modified_qsf_file_path = PortableFunctions::PathReplaceFileExtension(m_application->GetQuestionTextFilePath(), FileExtensions::QuestionText);
         }
 
-        if( modified_qsf_filename.has_value() )
+        if( modified_qsf_file_path.has_value() )
         {
-            m_application->SetQuestionTextFilename(*modified_qsf_filename);
+            m_application->SetQuestionTextFilePath(std::move(*modified_qsf_file_path));
             SetModifiedFlag(true);
         }
 
-        ObjTree.InsertNode(hRet, std::make_unique<QuestionTextFileTreeNode>(CS2WS(m_application->GetQuestionTextFilename())));
+        ObjTree.InsertNode(hRet, std::make_unique<QuestionTextFileTreeNode>(m_application->GetQuestionTextFilePath()));
     }
 
 
     // reports
-    for( const auto& report_named_text_sources : m_application->GetReportNamedTextSources() )
-        ObjTree.InsertNode(hRet, std::make_unique<ReportFileTreeNode>(report_named_text_sources->text_source->GetFilename()));
+    for( const ReportFile& report_file : m_application->GetReportFiles() )
+        ObjTree.InsertNode(hRet, std::make_unique<ReportFileTreeNode>(report_file.GetFilePath()));
 
 
-    // resource folders
-    for( const CString& folder_name : m_application->GetResourceFolders() )
-        ObjTree.InsertNode(hRet, std::make_unique<ResourceFolderTreeNode>(CS2WS(folder_name)));
+    // resources
+    for( const AppResource& resource : m_application->GetResources() )
+        ObjTree.InsertNode(hRet, std::make_unique<ResourceFileTreeNode>(resource.GetPath()));
 
     return hRet;
-}
-
-// ****************************************************************************
-
-void CAplDoc::OnFileClose()
-{
-    // TODO: Add your command handler code here
-    CDocument::OnFileClose();
-
 }
 
 // ****************************************************************************
@@ -416,8 +315,8 @@ void CAplDoc::OnCloseDocument()
     ReleaseOrders();    //Release the orders
     ReleaseEDicts();    //Release the external dictionaries
 
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
-    FileTreeNode* file_tree_node = pFrame->GetDlgBar().m_ObjTree.FindNode(this);
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    FileTreeNode* const file_tree_node = pFrame->GetDlgBar().m_ObjTree.FindNode(this);
 
     CDocument::OnCloseDocument();
 
@@ -450,7 +349,7 @@ BOOL CAplDoc::OnSaveDocument(LPCTSTR lpszPathName)
     else if(m_application->GetEngineAppType() == EngineAppType::Entry) {
         SaveForms();
         if(m_pQuestMgr != nullptr && m_pQuestMgr->IsModified()) {
-            m_pQuestMgr->Save(CS2WS(m_application->GetQuestionTextFilename()));
+            m_pQuestMgr->Save(m_application->GetQuestionTextFilePath());
         }
     }
 
@@ -496,22 +395,22 @@ BOOL CAplDoc::OnSaveDocument(LPCTSTR lpszPathName)
             save_text_source(code_file.GetTextSource());
     }
 
-    for( size_t index = 0; index < m_application->GetMessageTextSources().size(); ++index )
+    bool main_message_file = true;
+
+    for( AppMessageFile& app_message_file : m_application->GetMessageFilesIterator() )
     {
         // external message files currently aren't editable so only save the first one
-        if( index == 0 )
-        {
-            save_text_source(*m_application->GetMessageTextSources()[index]);
-        }
+        ASSERT(main_message_file || ( std::dynamic_pointer_cast<TextSourceExternal, TextSource>(app_message_file.GetSharedTextSource()) != nullptr ));
 
-        else
+        if( main_message_file )
         {
-            ASSERT(( std::dynamic_pointer_cast<TextSourceExternal, TextSource>(m_application->GetMessageTextSources()[index]) != nullptr ));
+            save_text_source(app_message_file.GetTextSource());
+            main_message_file = false;
         }
     }
 
-    for( const auto& report_named_text_sources : m_application->GetReportNamedTextSources() )
-        save_text_source(*report_named_text_sources->text_source);
+    for( ReportFile& report_file : m_application->GetReportFilesIterator() )
+        save_text_source(report_file.GetTextSource());
 
 
     // save the application object
@@ -540,11 +439,11 @@ BOOL CAplDoc::OnSaveDocument(LPCTSTR lpszPathName)
 BOOL CAplDoc::AreAplDictsOK() {            // BMD  28 Jun 00
 
     bool bOK = true;
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
     // Examine external dictionaries
-    for( const CString& sDictFName : m_application->GetExternalDictionaryFilenames() ) {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFName);
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() ) {
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
         if (dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
             bOK &= dictionary_dict_tree_node->GetDDDoc()->GetDictionaryValidator()->IsValidSave(*dictionary_dict_tree_node->GetDDDoc()->GetDict());
         }
@@ -553,12 +452,12 @@ BOOL CAplDoc::AreAplDictsOK() {            // BMD  28 Jun 00
     // Examine form dictionaries
     if(appType == EngineAppType::Entry) {
         CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-        for( const CString& sFormFileName : m_application->GetFormFilenames() ) {
-            CFormNodeID* pID = formTree.GetFormNode(sFormFileName);
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() ) {
+            CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
             if(pID != nullptr && pID->GetFormDoc()) {
                 CDEFormFile* pFormFile = &pID->GetFormDoc()->GetFormFile();
                 CString sDictName = pFormFile->GetDictionaryFilename();
-                DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictName);
+                DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictName));
                 if (dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                     bOK &= dictionary_dict_tree_node->GetDDDoc()->GetDictionaryValidator()->IsValidSave(*dictionary_dict_tree_node->GetDDDoc()->GetDict());
                 }
@@ -572,15 +471,15 @@ BOOL CAplDoc::AreAplDictsOK() {            // BMD  28 Jun 00
 
 void CAplDoc::SaveAllDictionaries()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
     //Save the input dictionaries
-    for( const CString& sDictFName : m_application->GetExternalDictionaryFilenames() ) {
-        //get at the dictionary tree and get the documents
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFName);
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() ) {
+        // get at the dictionary tree and get the documents
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
             if (dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 if(dictionary_dict_tree_node->GetDDDoc()->IsModified()){
-                    dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(sDictFName);
+                    dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(UTF8_TODO::GetCString(dictionary_file_path));
                 }
             }
     }
@@ -602,15 +501,15 @@ void CAplDoc::SaveAllDictionaries()
 
 void CAplDoc::SaveTabSpecs()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CTabTreeCtrl& tableTree = pFrame->GetDlgBar().m_TableTree;
     //Save the input dictionaries
-    for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() ) {
-        //get at the dictionary tree and get the documents
-        TableSpecTabTreeNode* table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(tab_spec_filename);
+    for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() ) {
+        // get at the dictionary tree and get the documents
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(table_spec_file_path);
         if(table_spec_tab_tree_node->GetTabDoc()){
             if(table_spec_tab_tree_node->GetTabDoc()->IsModified()){
-                table_spec_tab_tree_node->GetTabDoc()->OnSaveDocument(tab_spec_filename);
+                table_spec_tab_tree_node->GetTabDoc()->OnSaveDocument(TC::ToWide(table_spec_file_path).c_str());
             }
             CTabulateDoc* pTabDoc = table_spec_tab_tree_node->GetTabDoc();
             //Update the source code if required
@@ -629,16 +528,16 @@ void CAplDoc::SaveTabSpecs()
 
 void CAplDoc::SaveTableDicts()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     CTabTreeCtrl& tableTree = pFrame->GetDlgBar().m_TableTree;
-    CDDTreeCtrl&   dictTree = pFrame->GetDlgBar().m_DictTree;
+    CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
     // Save the table dicts
 
-    for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() )
+    for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() )
     {
         //Save the dictionaries of the tab specs files
-        TableSpecTabTreeNode* table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(tab_spec_filename);
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(table_spec_file_path);
 
         if(table_spec_tab_tree_node && table_spec_tab_tree_node->GetTabDoc()) {
 
@@ -649,7 +548,7 @@ void CAplDoc::SaveTableDicts()
             {
                 //To Do Get the dict path SAVY&&& 11/05/02
                 CString sDictName = pTabSpec->GetDictFile();
-                DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictName);
+                DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictName));
                 if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr){
                     if(dictionary_dict_tree_node->GetDDDoc()->IsModified()) {
                         dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(sDictName);
@@ -665,21 +564,20 @@ void CAplDoc::SaveTableDicts()
 
 void CAplDoc::SaveForms()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
 
     // Save the input dicts
 
-    for( const CString& form_filename : m_application->GetFormFilenames() )
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
     {
-        //get at the dictionary tree and get the documents
-
-        CFormNodeID* pID = formTree.GetFormNode(form_filename);
+        // get at the dictionary tree and get the documents
+        CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
 
         if(pID != nullptr && pID->GetFormDoc()) {
             CFormDoc* pFormDoc = pID->GetFormDoc();
             if(pFormDoc->IsModified()) {
-                pFormDoc->OnSaveDocument(form_filename);
+                pFormDoc->OnSaveDocument(TC::ToWide(form_file_path).c_str());
                 pFormDoc->SetModifiedFlag(FALSE);
             }
 
@@ -697,21 +595,21 @@ void CAplDoc::SaveForms()
 
 void CAplDoc::SaveFormDicts()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-    CDDTreeCtrl&   dictTree = pFrame->GetDlgBar().m_DictTree;
+    CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
     // Save the Form dicts
-    for( const CString& sFormFileName : m_application->GetFormFilenames() )
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
     {
-        //Save  the dictioanries of the form files
-        CFormNodeID* pID = formTree.GetFormNode(sFormFileName);
+        //Save the dictionaries of the form files
+        CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
 
         if(pID != nullptr && pID->GetFormDoc()) {
-            CDEFormFile* pFormFile = &pID->GetFormDoc()->GetFormFile();
+            CDEFormFile* const pFormFile = &pID->GetFormDoc()->GetFormFile();
             CString sDictName = pFormFile->GetDictionaryFilename();
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictName);
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictName));
             if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 if(dictionary_dict_tree_node->GetDDDoc()->IsModified()) {
                     dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(sDictName);
@@ -725,19 +623,19 @@ void CAplDoc::SaveFormDicts()
 // SAVY Save Orders Updated for CSBatch 05/18/00
 void CAplDoc::SaveOrders()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     COrderTreeCtrl& OrderTree = pFrame->GetDlgBar().m_OrderTree;
 
-    for( const CString& form_filename : m_application->GetFormFilenames() ) {
-        //get at the dictionary tree and get the documents
-
-        FormOrderAppTreeNode* form_order_app_tree_node = OrderTree.GetFormOrderAppTreeNode(form_filename);
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+    {
+        // get at the dictionary tree and get the documents
+        FormOrderAppTreeNode* const form_order_app_tree_node = OrderTree.GetFormOrderAppTreeNode(form_file_path);
 
         if(form_order_app_tree_node->GetDocument() != nullptr) {
             COrderDoc* pOrderDoc = form_order_app_tree_node->GetOrderDocument();
             if(pOrderDoc->IsModified()){
-                pOrderDoc->OnSaveDocument(form_filename);
+                pOrderDoc->OnSaveDocument(TC::ToWide(form_file_path).c_str());
                 pOrderDoc->SetModifiedFlag(FALSE);
             }
 
@@ -758,19 +656,19 @@ void CAplDoc::SaveOrders()
 //SAVY 05/18/00 No Update required for CSBatch
 void CAplDoc::SaveOrderDicts()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
-    CDDTreeCtrl&   dictTree = pFrame->GetDlgBar().m_DictTree;
+    CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
     //Save the dictionaries of the order files
-    for( const CString& sOrderFileName : m_application->GetFormFilenames() )
+    for( const std::string& order_file_path : m_application->GetFormFilePaths() )
     {
-        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(sOrderFileName);
+        FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(order_file_path);
 
         if(form_order_app_tree_node != nullptr && form_order_app_tree_node->GetDocument() != nullptr) {
-            CDEFormFile* pOrderFile = &form_order_app_tree_node->GetOrderDocument()->GetFormFile();
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(pOrderFile->GetDictionaryFilename());
+            CDEFormFile* const pOrderFile = &form_order_app_tree_node->GetOrderDocument()->GetFormFile();
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pOrderFile->GetDictionaryFilename()));
             if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 if(dictionary_dict_tree_node->GetDDDoc()->IsModified()){
                     dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(pOrderFile->GetDictionaryFilename());
@@ -783,14 +681,14 @@ void CAplDoc::SaveOrderDicts()
 
 void CAplDoc::ReleaseEDicts()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
-    for( const CString& sDictFName : m_application->GetExternalDictionaryFilenames() )
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() )
     {
         //get at the form tree, get the docs, and release them
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFName);
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
 
         if( dictionary_dict_tree_node != nullptr )
         {
@@ -809,19 +707,20 @@ void CAplDoc::ReleaseForms()
 
     m_bIsClosing = true;
 
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
     formTree.SetSndMsgFlg(FALSE);
-    for( const CString& form_filename : m_application->GetFormFilenames() ) {
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+    {
         //get at the form tree, get the docs, and release them
-        CFormNodeID* pID = formTree.GetFormNode(form_filename);
+        CFormNodeID* pID = formTree.GetFormNode(form_file_path);
         // ASSERT(AfxIsValidAddress( (void*)pID, sizeof(CFormNodeID)));
         if(!pID)
             continue;
         formTree.ReleaseFormDependencies(pID);
         formTree.ReleaseFormNodeID(pID);
 
-        pID = formTree.GetFormNode(form_filename);
+        pID = formTree.GetFormNode(form_file_path);
         if(pID != nullptr && pID->GetFormDoc()) {
             CView* pView = pID->GetFormDoc()->GetView();
             CFormChildWnd* pFormChildWnd = (CFormChildWnd*)pView->GetParentFrame();
@@ -841,24 +740,25 @@ void CAplDoc::ReleaseOrders()
         return;
 
     m_bIsClosing = true;
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
 
-    for( const CString& form_filename : m_application->GetFormFilenames() ) {
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+    {
         //get at the form tree, get the docs, and release them
 
-        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
+        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
         if(form_order_app_tree_node == nullptr)
             continue;
         orderTree.ReleaseOrderDependencies(*form_order_app_tree_node);
         orderTree.ReleaseOrderNode(*form_order_app_tree_node);
 
-        form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
+        form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
 
         if(form_order_app_tree_node != nullptr && form_order_app_tree_node->GetDocument() != nullptr) {
             POSITION pos = form_order_app_tree_node->GetOrderDocument()->GetFirstViewPosition();
-            COrderChildWnd* pOrderChildWnd = (COrderChildWnd*)form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame();
+            COrderChildWnd* const pOrderChildWnd = (COrderChildWnd*)form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame();
             if(pOrderChildWnd) {
                 AfxGetMainWnd()->PostMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Order);
             }
@@ -870,13 +770,13 @@ void CAplDoc::ReleaseOrders()
 
 void CAplDoc::ReleaseTabSpecs()
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CTabTreeCtrl& tableTree = pFrame->GetDlgBar().m_TableTree;
 
-    for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() )
+    for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() )
     {
         //get at the table  tree and get the documents and release the docs
-        TableSpecTabTreeNode* table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(tab_spec_filename);
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = tableTree.GetTableSpecTabTreeNode(table_spec_file_path);
         if(table_spec_tab_tree_node != nullptr) {
             tableTree.ReleaseTableDependencies(*table_spec_tab_tree_node);
             tableTree.ReleaseTableNode(*table_spec_tab_tree_node);
@@ -885,79 +785,171 @@ void CAplDoc::ReleaseTabSpecs()
 }
 
 
-std::vector<const CDataDict*> CAplDoc::GetAllDictsInApp()
+std::vector<std::tuple<std::string, std::shared_ptr<CDataDict>>> CAplDoc::GetAllDictionaries()
 {
     Application& app = GetAppObject();
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CStringArray aDictFNames;
 
-    switch (GetEngineAppType()) {
+    switch( GetEngineAppType() )
+    {
         case EngineAppType::Entry:
-            {
-                CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-                for( const CString& form_filename : app.GetFormFilenames() ) {
+        {
+            CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
 
-                    CFormNodeID* pFormNode = formTree.GetFormNode(form_filename);
-                    ASSERT(pFormNode);
-                    CFormDoc* pFormDoc = pFormNode->GetFormDoc();
-                    ASSERT_VALID(pFormDoc);
-                    CDEFormFile* pFormSpec = &pFormDoc->GetFormFile();
-                    aDictFNames.Add(pFormSpec->GetDictionaryFilename());
-                }
-            }
-            break;
-        case EngineAppType::Tabulation:
+            for( const std::string& form_file_path : app.GetFormFilePaths() )
             {
-                ASSERT(app.GetTabSpecFilenames().size() == 1);
-                CTabTreeCtrl& tabTree = pFrame->GetDlgBar().m_TableTree;
-                TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(app.GetTabSpecFilenames().front());
-                CTabulateDoc* pTabDoc = table_spec_tab_tree_node->GetTabDoc();
-                ASSERT_VALID(pTabDoc);
-                CTabSet* pTabSpec = pTabDoc->GetTableSpec();
-                ASSERT_VALID(pTabSpec);
-
-                // get dictionary
-                aDictFNames.Add(pTabSpec->GetDictFile());
+                CFormNodeID* const pFormNode = formTree.GetFormNode(form_file_path);
+                ASSERT(pFormNode);
+                CFormDoc* const pFormDoc = pFormNode->GetFormDoc();
+                ASSERT_VALID(pFormDoc);
+                CDEFormFile* const pFormSpec = &pFormDoc->GetFormFile();
+                aDictFNames.Add(pFormSpec->GetDictionaryFilename());
             }
+
             break;
+        }
 
         case EngineAppType::Batch:
+        {
+            COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
+
+            for( const std::string& form_file_path : m_application->GetFormFilePaths() )
             {
-                COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
-                for( const CString& form_filename : m_application->GetFormFilenames() ) {
+                // get dictionary children
+                const FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
+                ASSERT(form_order_app_tree_node != nullptr);
+                const COrderDoc* pOrderDoc = form_order_app_tree_node->GetOrderDocument();
+                ASSERT_VALID(pOrderDoc);
 
-                    // get dictionary children
-                    const FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
-                    ASSERT(form_order_app_tree_node != nullptr);
-                    const COrderDoc* pOrderDoc = form_order_app_tree_node->GetOrderDocument();
-                    ASSERT_VALID(pOrderDoc);
-
-                    aDictFNames.Add(pOrderDoc->GetFormFile().GetDictionaryFilename());
-                }
+                aDictFNames.Add(pOrderDoc->GetFormFile().GetDictionaryFilename());
             }
+
             break;
+        }
+
+        case EngineAppType::Tabulation:
+        {
+            ASSERT(app.GetTableSpecFilePaths().size() == 1);
+            CTabTreeCtrl& tabTree = pFrame->GetDlgBar().m_TableTree;
+            TableSpecTabTreeNode* const table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(app.GetTableSpecFilePaths().front());
+            CTabulateDoc* const pTabDoc = table_spec_tab_tree_node->GetTabDoc();
+            ASSERT_VALID(pTabDoc);
+            CTabSet* const pTabSpec = pTabDoc->GetTableSpec();
+            ASSERT_VALID(pTabSpec);
+
+            // get dictionary
+            aDictFNames.Add(pTabSpec->GetDictFile());
+
+            break;
+        }
 
         default:
-            ASSERT(!_T("INVALID APP TYPE FOR SAVE AS"));
+            ASSERT(false); // INVALID APP TYPE FOR SAVE AS
     }
 
     // add external dicts
-    AppendUnique(aDictFNames, GetAppObject().GetExternalDictionaryFilenames());
+    AppendUnique(aDictFNames, UTF8_TODO::GetCString(GetAppObject().GetExternalDictionaryFilePaths()));
 
     // now get the actual dictionaries (rather than the names)
-    std::vector<const CDataDict*> dictionaries;
+    std::vector<std::tuple<std::string, std::shared_ptr<CDataDict>>> dictionaries;
 
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
     for( int iDict = 0; iDict < aDictFNames.GetSize(); iDict++ )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(aDictFNames[iDict]);
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(aDictFNames[iDict]));
         ASSERT(dictionary_dict_tree_node != nullptr);
         ASSERT_VALID(dictionary_dict_tree_node->GetDDDoc());
-        dictionaries.emplace_back(dictionary_dict_tree_node->GetDDDoc()->GetDict());
+        dictionaries.emplace_back(UTF8_TODO::GetUtf8(aDictFNames[iDict]), dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary());
     }
 
     return dictionaries;
 }
+
+
+std::vector<const CDataDict*> CAplDoc::GetAllDictsInApp()
+{
+    std::vector<const CDataDict*> dictionaries;
+
+    for( const auto& [dictionary_file_path, dictionary] : GetAllDictionaries() )
+        dictionaries.emplace_back(dictionary.get());
+
+    return dictionaries;
+}
+
+
+std::vector<std::tuple<std::string, std::shared_ptr<CDEFormFile>>> CAplDoc::GetAllFormFiles()
+{
+    std::vector<std::tuple<std::string, std::shared_ptr<CDEFormFile>>> form_file_paths;
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+
+    auto add_form_file = [&](const std::string& form_file_path, FormFileBasedDoc* const form_doc)
+    {
+        ASSERT_VALID(form_doc);
+        form_file_paths.emplace_back(form_file_path, form_doc->GetSharedFormFile());
+    };
+
+    if( GetEngineAppType() == EngineAppType::Entry )
+    {
+        CFormTreeCtrl& form_tree = pFrame->GetDlgBar().m_FormTree;
+
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
+            CFormNodeID* const form_node = form_tree.GetFormNode(form_file_path);
+            ASSERT(form_node != nullptr);
+
+            add_form_file(form_file_path, form_node->GetFormDoc());
+        }
+    }
+
+    else if( GetEngineAppType() == EngineAppType::Batch )
+    {
+        COrderTreeCtrl& order_tree = pFrame->GetDlgBar().m_OrderTree;
+
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
+            FormOrderAppTreeNode* const form_order_app_tree_node = order_tree.GetFormOrderAppTreeNode(form_file_path);
+            ASSERT(form_order_app_tree_node != nullptr);
+
+            add_form_file(form_file_path, form_order_app_tree_node->GetOrderDocument());
+        }
+    }
+
+    else
+    {
+        ASSERT(false);
+    }
+
+    return form_file_paths;
+}
+
+
+std::vector<std::tuple<std::string, std::shared_ptr<CTabSet>>> CAplDoc::GetAllTableSpecs()
+{
+    std::vector<std::tuple<std::string, std::shared_ptr<CTabSet>>> table_specs;
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+
+    if( GetEngineAppType() == EngineAppType::Tabulation )
+    {
+        CTabTreeCtrl& tab_tree = pFrame->GetDlgBar().m_TableTree;
+
+        for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() )
+        {
+            TableSpecTabTreeNode* const table_spec_tab_tree_node = tab_tree.GetTableSpecTabTreeNode(table_spec_file_path);
+            ASSERT(table_spec_tab_tree_node != nullptr && table_spec_tab_tree_node->GetTabDoc() != nullptr);
+
+            table_specs.emplace_back(table_spec_file_path, table_spec_tab_tree_node->GetTabDoc()->GetSharedTableSpec());
+        }
+    }
+
+    else
+    {
+        ASSERT(false);
+    }
+
+    return table_specs;
+}
+
 
 // Function name    : CAplDoc::SetAppObjects
 // Description      : Sets the application objects for compile time (Now supports Forms && Orders)
@@ -970,16 +962,18 @@ void CAplDoc::SetAppObjects()
     m_application->GetRuntimeFormFiles().clear();
 
     //Get the form object from the memory
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
     COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
     CTabTreeCtrl& tabTree = pFrame->GetDlgBar().m_TableTree;
 
     CDDTreeCtrl& dictTree =  pFrame->GetDlgBar().m_DictTree;
 
-    if(m_application->GetEngineAppType() == EngineAppType::Entry) {
-        for( const CString& form_filename : m_application->GetFormFilenames() ) {
-            CFormNodeID* pFormNode = formTree.GetFormNode(form_filename);
+    if( m_application->GetEngineAppType() == EngineAppType::Entry )
+    {
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
+            CFormNodeID* const pFormNode = formTree.GetFormNode(form_file_path);
             if (pFormNode == nullptr)
                 continue;
             ASSERT(pFormNode->GetFormDoc());
@@ -987,36 +981,40 @@ void CAplDoc::SetAppObjects()
             std::shared_ptr<CDEFormFile> pFormFile = pFormNode->GetFormDoc()->GetSharedFormFile();
             m_application->AddRuntimeFormFile(pFormFile);
 
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(pFormFile->GetDictionaryFilename());
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pFormFile->GetDictionaryFilename()));
             if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 pFormFile->SetDictionary(dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary());
             }
         }
+
         SetEDictObjects();
 
         m_application->SetCapiQuestionManager(m_pQuestMgr);
     }
 
-    else if (m_application->GetEngineAppType() == EngineAppType::Batch) {
-        for( const CString& form_filename : m_application->GetFormFilenames() ) {
-            FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
-
+    else if( m_application->GetEngineAppType() == EngineAppType::Batch )
+    {
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
+            FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
             ASSERT(form_order_app_tree_node->GetDocument() != nullptr);
 
             std::shared_ptr<CDEFormFile> pOrderFile = form_order_app_tree_node->GetOrderDocument()->GetSharedFormFile();
             m_application->AddRuntimeFormFile(pOrderFile);
 
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(pOrderFile->GetDictionaryFilename());
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pOrderFile->GetDictionaryFilename()));
             CDDDoc* pDDDoc = dictionary_dict_tree_node->GetDDDoc();
             if(pDDDoc) {
                 pOrderFile->SetDictionary(pDDDoc->GetSharedDictionary());
             }
         }
+
         SetEDictObjects();
     }
 
-    else if (m_application->GetEngineAppType() == EngineAppType::Tabulation) {
-        TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(m_application->GetTabSpecFilenames().front());
+    else if( m_application->GetEngineAppType() == EngineAppType::Tabulation )
+    {
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(m_application->GetTableSpecFilePaths().front());
         if(!table_spec_tab_tree_node->GetTabDoc()){
             return;
         }
@@ -1027,16 +1025,16 @@ void CAplDoc::SetAppObjects()
         SetEDictObjects();
         std::shared_ptr<const CDataDict> pWorkDataDict;
 
-        for( size_t i = 0; i < m_application->GetExternalDictionaryFilenames().size(); ++i )
+        for( size_t i = 0; i < m_application->GetExternalDictionaryFilePaths().size(); ++i )
         {
-            CString sDictFName = m_application->GetExternalDictionaryFilenames()[i];
+            const std::string& dictionary_file_path = m_application->GetExternalDictionaryFilePaths()[i];
             std::shared_ptr<CDataDict> pDataDict = m_application->GetRuntimeExternalDictionaries()[i];
 
-            DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(sDictFName);
+            DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(dictionary_file_path);
 
             if( dictionary_description == nullptr )
             {
-                dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(CS2WS(sDictFName), DictionaryType::Working));
+                dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(dictionary_file_path, DictionaryType::Working));
                 pWorkDataDict = pDataDict;
             }
 
@@ -1129,7 +1127,7 @@ BOOL CAplDoc::OpenAllDocuments()
         if( !Reconcile() )
             return FALSE;
 
-        CFormNodeID* pNode = dlgBar.m_FormTree.GetFormNode(m_application->GetFormFilenames().front());
+        CFormNodeID* const pNode = dlgBar.m_FormTree.GetFormNode(m_application->GetFormFilePaths().front());
 
         if( pNode != nullptr )
         {
@@ -1143,14 +1141,14 @@ BOOL CAplDoc::OpenAllDocuments()
     else if( engine_app_type== EngineAppType::Batch )
     {
         COrderTreeCtrl& orderTree = dlgBar.m_OrderTree;
-        if(!m_application->GetFormFilenames().empty()) {
-            FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(m_application->GetFormFilenames().front());
+        if(!m_application->GetFormFilePaths().empty()) {
+            FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(m_application->GetFormFilePaths().front());
             ASSERT(form_order_app_tree_node != nullptr &&
                    form_order_app_tree_node->GetHItem() != nullptr &&
                    form_order_app_tree_node->GetOrderDocument() != nullptr);
 
             POSITION pos = form_order_app_tree_node->GetOrderDocument()->GetFirstViewPosition();
-            COrderChildWnd* pOrderChildWnd = assert_cast<COrderChildWnd*>(form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame());
+            COrderChildWnd* const pOrderChildWnd = assert_cast<COrderChildWnd*>(form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame());
             application_child_wnd = pOrderChildWnd;
 
             orderTree.Select(form_order_app_tree_node->GetHItem(), TVGN_CARET);
@@ -1169,8 +1167,8 @@ BOOL CAplDoc::OpenAllDocuments()
     {
         CTabTreeCtrl& tabTree = dlgBar.m_TableTree;
         CTabulateDoc* pTabDoc = nullptr;
-        if(!m_application->GetTabSpecFilenames().empty()) {
-            TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(m_application->GetTabSpecFilenames().front());
+        if(!m_application->GetTableSpecFilePaths().empty()) {
+            TableSpecTabTreeNode* const table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(m_application->GetTableSpecFilePaths().front());
             ASSERT(table_spec_tab_tree_node != nullptr);
             pTabDoc = table_spec_tab_tree_node->GetTabDoc();
         }
@@ -1212,7 +1210,7 @@ BOOL CAplDoc::OpenAllDocuments()
 
 void CAplDoc::RefreshExternalLogicAndReportNodes()
 {
-    if( m_application->GetFormFilenames().empty() )
+    if( m_application->GetFormFilePaths().empty() )
         return;
 
     CMDlgBar& dlgBar = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetDlgBar();
@@ -1220,14 +1218,14 @@ void CAplDoc::RefreshExternalLogicAndReportNodes()
     if( GetEngineAppType() == EngineAppType::Entry )
     {
         CFormTreeCtrl& formTree = dlgBar.m_FormTree;
-        CFormNodeID* pNode = formTree.GetFormNode(m_application->GetFormFilenames().front());
+        CFormNodeID* const pNode = formTree.GetFormNode(m_application->GetFormFilePaths().front());
         formTree.InsertExternalCodeAndReportNodes(pNode);
     }
 
     else if( GetEngineAppType() == EngineAppType::Batch )
     {
         COrderTreeCtrl& orderTree = dlgBar.m_OrderTree;
-        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(m_application->GetFormFilenames().front());
+        FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(m_application->GetFormFilePaths().front());
         orderTree.InsertExternalCodeAndReportNodes(form_order_app_tree_node);
     }
 }
@@ -1243,26 +1241,24 @@ BOOL CAplDoc::ProcessEDictsOpen()
     BOOL bRet = TRUE;
 
     //Open External Dictionaries if there are any
-    if( !m_application->GetExternalDictionaryFilenames().empty() ) {
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    if( !m_application->GetExternalDictionaryFilePaths().empty() ) {
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
         CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
-        for( int iIndex = 0; iIndex < (int)m_application->GetExternalDictionaryFilenames().size(); iIndex++ ) {
-            CString sDictFile = m_application->GetExternalDictionaryFilenames()[iIndex];
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFile);
+        for( int iIndex = 0; iIndex < static_cast<int>(m_application->GetExternalDictionaryFilePaths().size()); iIndex++ ) {
+            const std::string& dictionary_file_path = m_application->GetExternalDictionaryFilePaths()[iIndex];
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
 
             if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() == nullptr )
             {
-                if( !dictTree.OpenDictionary(sDictFile, FALSE) )
+                if( !dictTree.OpenDictionary(dictionary_file_path, FALSE) )
                 {
-                    CString sMsg;
-                    sMsg.FormatMessage(_T("Failed to open external dictionary %1. It will be removed from the application."), sDictFile.GetString());
-                    AfxMessageBox(sMsg);
+                    AfxMessageBox(FormatText("Failed to open external dictionary '%s'. It will be removed from the application.", dictionary_file_path.c_str()));
 
                     dictTree.ReleaseDictionaryNode(*dictionary_dict_tree_node);
 
-                    m_application->DropExternalDictionaryFilename(sDictFile);
+                    m_application->DropExternalDictionary(dictionary_file_path);
                     iIndex--;
 
                     bRet = FALSE;
@@ -1288,25 +1284,25 @@ bool CAplDoc::IsAppModified()
     }
 
     // message files
-    for( const auto& message_text_source : m_application->GetMessageTextSources() )
+    for( const AppMessageFile& app_message_file : m_application->GetMessageFiles() )
     {
-        if( message_text_source->RequiresSave() )
+        if( app_message_file.GetTextSource().RequiresSave() )
             return true;
     }
 
     // reports
-    for( const auto& report_named_text_sources : m_application->GetReportNamedTextSources() )
+    for( const ReportFile& report_file : m_application->GetReportFiles() )
     {
-        if( report_named_text_sources->text_source->RequiresSave() )
+        if( report_file.GetTextSource().RequiresSave() )
             return true;
     }
 
     CCSProApp* pApp = assert_cast<CCSProApp*>(AfxGetApp());
 
     // external dictionaries
-    for( const auto& dictionary_filename : m_application->GetExternalDictionaryFilenames() )
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() )
     {
-        CDocument* pDoc = pApp->GetDoc(dictionary_filename);
+        CDocument* const pDoc = pApp->GetDoc(dictionary_file_path);
 
         if( pDoc != nullptr && pDoc->IsModified() )
             return true;
@@ -1319,41 +1315,41 @@ bool CAplDoc::IsAppModified()
         if(m_application->GetUseQuestionText() && m_pQuestMgr != nullptr && m_pQuestMgr->IsModified())
             return TRUE;
 
-        for( const auto& sFormFileName : m_application->GetFormFilenames() ) {
-            CDocument* pDoc = pApp->GetDoc(sFormFileName);
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() ) {
+            CDocument* const pDoc = pApp->GetDoc(form_file_path);
             if(!pDoc) {
                 continue;
             }
+
             if(pDoc->IsModified()) {
                 return true;
             }
             else {
-
                 //check the forms dictionaries
                 ASSERT(pDoc->IsKindOf(RUNTIME_CLASS(CFormDoc)));
-                CDEFormFile* pFormFile = &assert_cast<CFormDoc*>(pDoc)->GetFormFile();
+                CDEFormFile* const pFormFile = &assert_cast<CFormDoc*>(pDoc)->GetFormFile();
 
-                CDocument* pDictDoc = pApp->GetDoc(pFormFile->GetDictionaryFilename());
+                CDocument* const pDictDoc = pApp->GetDoc(UTF8_TODO::GetUtf8(pFormFile->GetDictionaryFilename()));
                 if(pDictDoc->IsModified())
                     return true;
             }
+
             if(m_application->GetUseQuestionText() ) {
                 CFormDoc* pFormDoc = assert_cast<CFormDoc*>(pDoc);
                 CFormChildWnd* pFrame = (CFormChildWnd*)pFormDoc->GetView(FormViewType::Form)->GetParentFrame();
                 if( pFrame ) {
-                if(pFrame->GetQSFView1()) {
-                    CQSFEView* pView1= pFrame->GetQSFView1();
-                    if(pView1->IsDirty())
-                        return true;
-                }
-                if(pFrame->GetQSFView2()) {
-                    CQSFEView* pView2= pFrame->GetQSFView2();
-                    if(pView2->IsDirty())
-                        return true;
-                }
+                    if(pFrame->GetQSFView1()) {
+                        CQSFEView* pView1= pFrame->GetQSFView1();
+                        if(pView1->IsDirty())
+                            return true;
+                    }
+                    if(pFrame->GetQSFView2()) {
+                        CQSFEView* pView2= pFrame->GetQSFView2();
+                        if(pView2->IsDirty())
+                            return true;
+                    }
                 }
             }
-
         }
     }
 
@@ -1361,8 +1357,8 @@ bool CAplDoc::IsAppModified()
         if(m_application->GetAppSrcCode()->IsModified())
             return true;
 
-        for( const auto& sOrderFileName : m_application->GetFormFilenames() ) {
-            CDocument* pDoc = pApp->GetDoc(sOrderFileName);
+        for( const std::string& order_file_path : m_application->GetFormFilePaths() ) {
+            CDocument* const pDoc = pApp->GetDoc(order_file_path);
             if(!pDoc) {
                 continue;
             }
@@ -1372,8 +1368,8 @@ bool CAplDoc::IsAppModified()
             else {
                 //check the order dictionaries
                 ASSERT(pDoc->IsKindOf(RUNTIME_CLASS(COrderDoc)));
-                CDEFormFile* pOrderFile = &assert_cast<COrderDoc*>(pDoc)->GetFormFile();
-                CDocument* pDictDoc = pApp->GetDoc(pOrderFile->GetDictionaryFilename());
+                CDEFormFile* const pOrderFile = &assert_cast<COrderDoc*>(pDoc)->GetFormFile();
+                CDocument* const pDictDoc = pApp->GetDoc(UTF8_TODO::GetUtf8(pOrderFile->GetDictionaryFilename()));
                 if(pDictDoc->IsModified())
                     return true;
             }
@@ -1384,8 +1380,8 @@ bool CAplDoc::IsAppModified()
         if(m_application->GetAppSrcCode()->IsModified())
             return true;
 
-        for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() ) {
-            CDocument* pDoc = pApp->GetDoc(tab_spec_filename);
+        for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() ) {
+            CDocument* const pDoc = pApp->GetDoc(table_spec_file_path);
             if(!pDoc) {
                 continue;
             }
@@ -1398,7 +1394,7 @@ bool CAplDoc::IsAppModified()
                 CTabSet* pTabSpec = ((CTabulateDoc*)pDoc)->GetTableSpec();
                 int iNumDicts = 1; // HARDCODED For #1 dictionary in table file //SAVY &&&
                 for(int iDict =0; iDict < iNumDicts ; iDict++) {
-                    CDocument* pDictDoc = pApp->GetDoc(pTabSpec->GetDictFile());
+                    CDocument* const pDictDoc = pApp->GetDoc(UTF8_TODO::GetUtf8(pTabSpec->GetDictFile()));
                     if(pDictDoc->IsModified())
                         return true;
                 }
@@ -1414,12 +1410,13 @@ BOOL CAplDoc::Reconcile(CString& csErr, bool bSilent, bool bAutoFix)
 {
     BOOL bRet = FALSE;
     if(GetEngineAppType() == EngineAppType::Entry) {
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
         CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
 
-        for( const CString& form_filename : m_application->GetFormFilenames() ) {
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
             //get at the form tree, get the docs, and release them
-            CFormNodeID* pID = formTree.GetFormNode(form_filename);
+            CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
             if(pID != nullptr && pID->GetFormDoc()) {
                 CFormScrollView* pFView = (CFormScrollView*)pID->GetFormDoc()->GetView();
                 if( pFView )
@@ -1433,16 +1430,18 @@ BOOL CAplDoc::Reconcile(CString& csErr, bool bSilent, bool bAutoFix)
                 }
             }
         }
+
         ReconcileDictTypes();
     }
 
     else if(GetEngineAppType()==EngineAppType::Batch) {
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
         COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
 
-        for( const CString& form_filename : m_application->GetFormFilenames() ) {
+        for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+        {
             //get at the order tree, get the docs, and release them
-            FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_filename);
+            FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(form_file_path);
             if(form_order_app_tree_node != nullptr && form_order_app_tree_node->GetDocument() != nullptr) {
                 orderTree.SetSndMsgFlg(FALSE);
                 orderTree.SetRedraw(FALSE);
@@ -1458,16 +1457,17 @@ BOOL CAplDoc::Reconcile(CString& csErr, bool bSilent, bool bAutoFix)
                 orderTree.SetSndMsgFlg(TRUE);
             }
         }
+
         ReconcileDictTypes();
     }
 
     else if(GetEngineAppType()==EngineAppType::Tabulation) {
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
         CTabTreeCtrl& tabTree = pFrame->GetDlgBar().m_TableTree;
 
-        for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() ) {
+        for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() ) {
             //get at the tabsped tree, get the docs, and release them
-            TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(tab_spec_filename);
+            TableSpecTabTreeNode* const table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(table_spec_file_path);
             if(table_spec_tab_tree_node != nullptr && table_spec_tab_tree_node->GetTabDoc()) {
                 bRet =  table_spec_tab_tree_node->GetTabDoc()->Reconcile(csErr, bSilent, bAutoFix);
                 if (bRet) {//if something has changed
@@ -1489,23 +1489,23 @@ BOOL CAplDoc::Reconcile(CString& csErr, bool bSilent, bool bAutoFix)
 bool CAplDoc::IsNameUnique(const CDocument* pDoc, const CString& name) const
 {
     // check reports and code namespaces
-    if( !m_application->IsNameUnique(CS2WS(name)) )
+    if( !m_application->IsNameUnique(UTF8_TODO::GetUtf8(name)) )
         return false;
 
     // check external dictionaries
-    if( !ProcessEDicts(name) )
+    if( !IsNameUniqueInExternalDictionaries(name) )
         return false;
 
     // check application-specific values
     if( pDoc->IsKindOf(RUNTIME_CLASS(CFormDoc)) )
     {
-        if( !ProcessFormDicts(name) || !ProcessForms(name) )
+        if( !IsNameUniqueInFormDictionaries(name) || !IsNameUniqueInForms(name) )
             return false;
     }
 
     else if( pDoc->IsKindOf(RUNTIME_CLASS(COrderDoc)) )
     {
-        if( !ProcessOrderDicts(name) || !ProcessOrders(name) )
+        if( !IsNameUniqueInOrderDictionaries(name) || !IsNameUniqueInOrders(name) )
             return false;
     }
 
@@ -1520,7 +1520,7 @@ bool CAplDoc::IsNameUnique(const CDocument* pDoc, const CString& name) const
         // check table dictionary name
         const CDataDict* pDict = pTabDoc->GetTableSpec()->GetDict();
         int iL, iR, iI, iVS;
-        if( pDict != nullptr && pDict->LookupName(name, &iL, &iR, &iI, &iVS) )
+        if( pDict != nullptr && pDict->LookupName(UTF8_TODO::GetUtf8(name), &iL, &iR, &iI, &iVS) )
             return false;
 
         // check the tables
@@ -1536,115 +1536,115 @@ bool CAplDoc::IsNameUnique(const CDocument* pDoc, const CString& name) const
 }
 
 
-BOOL CAplDoc::ProcessFormDicts(const CString& name) const
+bool CAplDoc::IsNameUniqueInFormDictionaries(const CString& name) const
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-    CDDTreeCtrl&   dictTree = pFrame->GetDlgBar().m_DictTree;
+    CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
-    for( const auto& sFormFileName : m_application->GetFormFilenames() ) {
-        CFormNodeID* pID = formTree.GetFormNode(sFormFileName);
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() ) {
+        CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
 
         if(pID != nullptr && pID->GetFormDoc()) {
 
             CDEFormFile* pFormFile = &pID->GetFormDoc()->GetFormFile();
             CString sDictName = pFormFile->GetDictionaryFilename();
-            DictionaryDictTreeNode* dictionary_dict_tree_node =  dictTree.GetDictionaryTreeNode(sDictName);
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictName));
             if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 int iL, iR, iI, iVS;
-                if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(name, &iL, &iR, &iI, &iVS))
-                    return FALSE;
+                if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(UTF8_TODO::GetUtf8(name), &iL, &iR, &iI, &iVS))
+                    return false;
             }
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 
 
-BOOL CAplDoc::ProcessEDicts(const CString& name) const
+bool CAplDoc::IsNameUniqueInExternalDictionaries(const CString& name) const
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
     //Save the input dictionaries
-    for( const auto& sDictFName : m_application->GetExternalDictionaryFilenames() ) {
-        //get at the dictionary tree and get the documents
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFName);
-            if(dictionary_dict_tree_node->GetDDDoc() != nullptr) {
-                int iL, iR, iI, iVS;
-                if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(name, &iL, &iR, &iI, &iVS))
-                    return FALSE;
-            }
+    for( const std::string& dictionary_file_path: m_application->GetExternalDictionaryFilePaths() ) {
+        // get at the dictionary tree and get the documents
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
+        if(dictionary_dict_tree_node->GetDDDoc() != nullptr) {
+            int iL, iR, iI, iVS;
+            if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(UTF8_TODO::GetUtf8(name), &iL, &iR, &iI, &iVS))
+                return false;
+        }
     }
 
-    return TRUE;
+    return true;
 }
 
 
-BOOL CAplDoc::ProcessForms(const CString& name) const
+bool CAplDoc::IsNameUniqueInForms(const CString& name) const
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
 
-    for( const CString& form_filename : m_application->GetFormFilenames() )
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
     {
-        CFormNodeID* pID = formTree.GetFormNode(form_filename);
+        CFormNodeID* const pID = formTree.GetFormNode(form_file_path);
 
         if(pID->GetFormDoc()) {
             if(!pID->GetFormDoc()->GetFormFile().IsNameUnique(name))
-                return FALSE;
+                return false;
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 //SAVY 05/18/00 No Update required for CSBatch
-BOOL CAplDoc::ProcessOrders(const CString& name) const
+bool CAplDoc::IsNameUniqueInOrders(const CString& name) const
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     COrderTreeCtrl& OrderTree = pFrame->GetDlgBar().m_OrderTree;
 
-    for( const CString& form_filename : m_application->GetFormFilenames() ) {
-
-        FormOrderAppTreeNode* form_order_app_tree_node = OrderTree.GetFormOrderAppTreeNode(form_filename);
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
+    {
+        FormOrderAppTreeNode* const form_order_app_tree_node = OrderTree.GetFormOrderAppTreeNode(form_file_path);
 
         if(form_order_app_tree_node->GetDocument() != nullptr) {
             if(!form_order_app_tree_node->GetOrderDocument()->GetFormFile().IsNameUnique(name))
-                return FALSE;
+                return false;
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 //SAVY 05/18/00 No Update required for CSBatch
-BOOL CAplDoc::ProcessOrderDicts(const CString& name) const
+bool CAplDoc::IsNameUniqueInOrderDictionaries(const CString& name) const
 {
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
     COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
-    CDDTreeCtrl&   dictTree = pFrame->GetDlgBar().m_DictTree;
+    CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
-    for( const CString& sOrderFileName : m_application->GetFormFilenames() ) {
-        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(sOrderFileName);
+    for( const std::string& order_file_path : m_application->GetFormFilePaths() ) {
+        FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(order_file_path);
 
         if(form_order_app_tree_node != nullptr && form_order_app_tree_node->GetDocument() != nullptr) {
 
-            CDEFormFile* pOrderFile = &form_order_app_tree_node->GetOrderDocument()->GetFormFile();
+            CDEFormFile* const pOrderFile = &form_order_app_tree_node->GetOrderDocument()->GetFormFile();
             CString sDictName = pOrderFile->GetDictionaryFilename();
-            DictionaryDictTreeNode* dictionary_dict_tree_node =  dictTree.GetDictionaryTreeNode(sDictName);
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictName));
             if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr) {
                 int iL, iR, iI, iVS;
-                if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(name, &iL, &iR, &iI, &iVS))
-                    return FALSE;
+                if(dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(UTF8_TODO::GetUtf8(name), &iL, &iR, &iI, &iVS))
+                    return false;
             }
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 
@@ -1653,13 +1653,13 @@ void CAplDoc::SetEDictObjects()
     m_application->GetRuntimeExternalDictionaries().clear();
 
     //Get the form object from the memory
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CDDTreeCtrl& dictTree = pFrame->GetDlgBar().m_DictTree;
 
-    for( const CString& sDictFName : m_application->GetExternalDictionaryFilenames() ) {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFName);
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() ) {
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_file_path);
         if(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() == nullptr){
-            if(!dictTree.OpenDictionary(sDictFName))
+            if(!dictTree.OpenDictionary(dictionary_file_path))
                 continue;
             CCSProApp* pApp = assert_cast<CCSProApp*>(AfxGetApp());
             pApp->UpdateViews(dictionary_dict_tree_node->GetDDDoc());
@@ -1678,33 +1678,31 @@ BOOL CAplDoc::ProcessFormOpen()
 
     //Open Forms
     CFormTreeCtrl&  formTree = dlgBar.m_FormTree;
-    if(m_application->GetFormFilenames().empty()) {
+    if(m_application->GetFormFilePaths().empty()) {
         CString sMsg;
         sMsg.FormatMessage(_T("No Form File Associated with this Application"));
         AfxMessageBox(sMsg);
         return FALSE;
     }
 
-    for(int iIndex=0 ;iIndex < (int)m_application->GetFormFilenames().size(); iIndex ++) {
-        CString sFormFile = m_application->GetFormFilenames()[iIndex];
-        CFormNodeID* pNode = formTree.GetFormNode(sFormFile);
+    for(int iIndex=0 ;iIndex < static_cast<int>(m_application->GetFormFilePaths().size()); iIndex ++) {
+        const std::string& form_file_path = m_application->GetFormFilePaths()[iIndex];
+        CFormNodeID* const pNode = formTree.GetFormNode(form_file_path);
 
         if(!pNode->GetFormDoc()) {
-            if(!formTree.OpenFormFile(sFormFile,TRUE))
+            if(!formTree.OpenFormFile(form_file_path, TRUE))
                 return FALSE;
             else {
                 CDEFormFile* pFile = &pNode->GetFormDoc()->GetFormFile();
                 ASSERT(pFile);
                 if(pFile->GetDictionaryFilename().IsEmpty()) {
-                    CString sMsg;
-                    sMsg.FormatMessage(_T("%1 has no associated dictionaries"), pNode->GetFormDoc()->GetPathName().GetString());
-                    AfxMessageBox(sMsg);
+                    AfxMessageBox(FormatText(L"%s has no associated dictionaries", pNode->GetFormDoc()->GetPathName().GetString()));
                     return FALSE;
                 }
                 CDDTreeCtrl& dictTree = dlgBar.m_DictTree;
 
                 CString sDictFile = pFile->GetDictionaryFilename();
-                DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFile);
+                DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictFile));
 
                 CString sMsg;
                 sMsg.FormatMessage(_T("Failed to open %1"), sDictFile.GetString());
@@ -1714,7 +1712,7 @@ BOOL CAplDoc::ProcessFormOpen()
                 }
 
                 if(dictionary_dict_tree_node->GetDDDoc() == nullptr) {
-                    if(!dictTree.OpenDictionary(sDictFile,FALSE)) {
+                    if(!dictTree.OpenDictionary(UTF8_TODO::GetUtf8(sDictFile), FALSE)) {
                         AfxMessageBox(sMsg);
                         return FALSE;
                     }
@@ -1734,7 +1732,7 @@ BOOL CAplDoc::ProcessFormOpen()
         QSFView* pQTView = (QSFView*)pNode->GetFormDoc()->GetView(FormViewType::QuestionText);
         if (pQTView) {
             pQTView->SetStyleCss(m_pQuestMgr->GetStylesCss());
-            pQTView->SetupFileServer(m_application->GetApplicationFilename());
+            pQTView->SetUpQuestionTextView(m_application->GetApplicationFilePath());
         }
     }
 
@@ -1749,33 +1747,31 @@ BOOL CAplDoc::ProcessOrderOpen()
 
     //Open Forms
     COrderTreeCtrl& orderTree = dlgBar.m_OrderTree;
-    if(m_application->GetFormFilenames().empty()) {
+    if(m_application->GetFormFilePaths().empty()) {
         CString sMsg;
         sMsg.FormatMessage(_T("No Order File Associated with this Application"));
         AfxMessageBox(sMsg);
         return FALSE;
     }
 
-    for(int iIndex=0 ;iIndex < (int)m_application->GetFormFilenames().size(); iIndex ++) {
-        CString sOrderFile = m_application->GetFormFilenames()[iIndex];
-        FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(sOrderFile);
+    for(int iIndex=0 ;iIndex < static_cast<int>(m_application->GetFormFilePaths().size()); iIndex ++) {
+        const std::string& order_file_path = m_application->GetFormFilePaths()[iIndex];
+        FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(order_file_path);
 
         if(form_order_app_tree_node->GetDocument() == nullptr) {
-            if(!orderTree.OpenOrderFile(sOrderFile))
+            if(!orderTree.OpenOrderFile(order_file_path))
                 return FALSE;
             else {
                 CDEFormFile* pFile = &form_order_app_tree_node->GetOrderDocument()->GetFormFile();
                 ASSERT(pFile);
                 if(pFile->GetDictionaryFilename().IsEmpty()) {
-                    CString sMsg;
-                    sMsg.FormatMessage(_T("%1 has no associated dictionaries"), form_order_app_tree_node->GetOrderDocument()->GetPathName().GetString());
-                    AfxMessageBox(sMsg);
+                    AfxMessageBox(FormatText(L"%s has no associated dictionaries", form_order_app_tree_node->GetOrderDocument()->GetPathName().GetString()));
                     return FALSE;
                 }
                 CDDTreeCtrl&    dictTree = dlgBar.m_DictTree;
 
                 CString sDictFile = pFile->GetDictionaryFilename();
-                DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(sDictFile);
+                DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictFile));
 
                 CString sMsg;
                 sMsg.FormatMessage(_T("Failed to open %1"), sDictFile.GetString());
@@ -1785,7 +1781,7 @@ BOOL CAplDoc::ProcessOrderOpen()
                 }
 
                 if(dictionary_dict_tree_node->GetDDDoc() == nullptr) {
-                    if(!dictTree.OpenDictionary(sDictFile)) {
+                    if(!dictTree.OpenDictionary(UTF8_TODO::GetUtf8(sDictFile))) {
                         AfxMessageBox(sMsg);
                         return FALSE;
                     }
@@ -1796,7 +1792,7 @@ BOOL CAplDoc::ProcessOrderOpen()
         ASSERT(form_order_app_tree_node->GetOrderDocument() != nullptr);
        // orderTree.Select(pNode->GetHItem(),TVGN_CARET);
         POSITION pos = form_order_app_tree_node->GetOrderDocument()->GetFirstViewPosition();
-        COrderChildWnd* pOrderChildWnd = (COrderChildWnd*)form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame();
+        COrderChildWnd* const pOrderChildWnd = (COrderChildWnd*)form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame();
         ASSERT(pOrderChildWnd);
         if(pOrderChildWnd->GetApplicationName().IsEmpty()) {
             pOrderChildWnd->SetApplicationName(this->GetPathName());
@@ -1813,7 +1809,7 @@ BOOL CAplDoc::ProcessTabOpen()
     ASSERT(m_application->GetEngineAppType() == EngineAppType::Tabulation);
     CMDlgBar& dlgBar = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetDlgBar();
     CTabTreeCtrl&   tabTree = dlgBar.m_TableTree;
-    if(m_application->GetTabSpecFilenames().empty()) {
+    if(m_application->GetTableSpecFilePaths().empty()) {
         CString sMsg;
         sMsg.FormatMessage(_T("No Tab Spec File Associated with this Application"));
         AfxMessageBox(sMsg);
@@ -1831,18 +1827,18 @@ BOOL CAplDoc::ProcessTabOpen()
         if( dictionary_description.GetDictionaryType() != DictionaryType::Working )
             continue;
 
-        DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_description.GetDictionaryFilename());
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(dictionary_description.GetDictionaryFilePath());
         ASSERT(dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr);
 
         pWorkDict = dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
         break;
     }
 
-    for( const CString& tab_spec_filename : m_application->GetTabSpecFilenames() ) {
-        TableSpecTabTreeNode* table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(tab_spec_filename);
+    for( const std::string& table_spec_file_path : m_application->GetTableSpecFilePaths() ) {
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = tabTree.GetTableSpecTabTreeNode(table_spec_file_path);
         CTabulateDoc* pTabDoc = nullptr;
         if(!table_spec_tab_tree_node->GetTabDoc()) {
-            if(!tabTree.OpenTableFile(tab_spec_filename,pWorkDict)){
+            if(!tabTree.OpenTableFile(table_spec_file_path, pWorkDict)){
                 return FALSE;
             }
             else {
@@ -1850,7 +1846,7 @@ BOOL CAplDoc::ProcessTabOpen()
                 CTabSet* pFile = table_spec_tab_tree_node->GetTabDoc()->GetTableSpec();
                 CDDTreeCtrl& dictTreeBar = dlgBar.m_DictTree;
                 CString sDictFile = pFile->GetDictFile();
-                DictionaryDictTreeNode* dictionary_dict_tree_node = dictTreeBar.GetDictionaryTreeNode(sDictFile);
+                DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTreeBar.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(sDictFile));
                 //SAVY &&& Xtabspec has no support for multiple dicts now .
                 //add it later
                 CString sMsg;
@@ -1860,7 +1856,7 @@ BOOL CAplDoc::ProcessTabOpen()
                     return FALSE;
                 }
                 if(dictionary_dict_tree_node->GetDDDoc() == nullptr) {
-                    if(!dictTreeBar.OpenDictionary(sDictFile,FALSE)) {
+                    if(!dictTreeBar.OpenDictionary(UTF8_TODO::GetUtf8(sDictFile), FALSE)) {
                         AfxMessageBox(sMsg);
                         return FALSE;
                     }
@@ -1894,8 +1890,8 @@ BOOL CAplDoc::CheckUniqueNames(BOOL bSilent)
     CMapStringToString arrMap; //UNMAME --->PATH
     //arrMap.SetAt(m_application->GetAppName() , ""); Stop Checking for the application name
 
-    for(int iIndex = 0; iIndex < (int)m_application->GetRuntimeFormFiles().size(); iIndex++) {
-        auto pFormFile = m_application->GetRuntimeFormFiles()[iIndex];
+    for(int iIndex = 0; iIndex < static_cast<int>(m_application->GetRuntimeFormFiles().size()); iIndex++) {
+        const std::shared_ptr<const CDEFormFile> pFormFile = m_application->GetRuntimeFormFiles()[iIndex];
         ASSERT(pFormFile);
         CString sPath;
         CString sName = pFormFile->GetName();
@@ -1903,49 +1899,49 @@ BOOL CAplDoc::CheckUniqueNames(BOOL bSilent)
         if(arrMap.Lookup(sName,sPath)) {
             if(sPath.IsEmpty())
                 sPath = _T("Application");
-            sMsg += _T("Unique Name - ") + sName + _T(" in ") + sPath + _T(" clashes with the name in ") + m_application->GetFormFilenames()[iIndex];
+            sMsg += _T("Unique Name - ") + sName + _T(" in ") + sPath + _T(" clashes with the name in ") + UTF8_TODO::GetCString(m_application->GetFormFilePaths()[iIndex]);
             sMsg += _T("\n");
             bRet = FALSE;
 
         }
         else {
-            arrMap.SetAt(sName, m_application->GetFormFilenames()[iIndex]);
+            arrMap.SetAt(sName, UTF8_TODO::GetCString(m_application->GetFormFilePaths()[iIndex]));
         }
         //Do for each dictionary of the form
         auto pDict = pFormFile->GetDictionary();
         ASSERT(pDict);
-        sName = pDict->GetName();
+        sName = UTF8_TODO::GetCString(pDict->GetName());
         sName.MakeUpper();
         if(arrMap.Lookup(sName,sPath)) {
             if(sPath.IsEmpty())
                 sPath = _T("Application");
-            sMsg += _T("Unique Name - ") + sName + _T(" in ") + sPath + _T(" clashes with the name in ") + pFormFile->GetDictionaryName();
+            sMsg += _T("Unique Name - ") + sName + _T(" in ") + sPath + _T(" clashes with the name in ") + UTF8_TODO::GetCString(pFormFile->GetDictionaryName());
             sMsg += _T("\n");
             bRet = FALSE;
 
         }
         else {
-            arrMap.SetAt(sName,pFormFile->GetDictionaryFilename());
+            arrMap.SetAt(sName, pFormFile->GetDictionaryFilename());
         }
     }
 
     //Do for the external dictionaries
-    for(int iEDict =0; iEDict < (int)m_application->GetRuntimeExternalDictionaries().size(); iEDict++) {
+    for(int iEDict =0; iEDict < static_cast<int>(m_application->GetRuntimeExternalDictionaries().size()); iEDict++) {
         auto pDict = m_application->GetRuntimeExternalDictionaries()[iEDict];
         ASSERT(pDict);
         CString sPath;
-        CString sName = pDict->GetName();
+        CString sName = UTF8_TODO::GetCString(pDict->GetName());
         sName.MakeUpper();
         if(arrMap.Lookup(sName,sPath)) {
             if(sPath.IsEmpty())
                 sPath = _T("Application");
-            sMsg += _T("Unique Name - ") +  sName + _T(" in ") + sPath + _T(" clashes with the name in ") + m_application->GetExternalDictionaryFilenames()[iEDict];
+            sMsg += _T("Unique Name - ") +  sName + _T(" in ") + sPath + _T(" clashes with the name in ") + UTF8_TODO::GetCString(m_application->GetExternalDictionaryFilePaths()[iEDict]);
             sMsg += _T("\n");
             bRet = FALSE;
 
         }
         else {
-            arrMap.SetAt(sName,m_application->GetExternalDictionaryFilenames()[iEDict]);
+            arrMap.SetAt(sName, UTF8_TODO::GetCString(m_application->GetExternalDictionaryFilePaths()[iEDict]));
         }
     }
 
@@ -1987,20 +1983,20 @@ void CAplDoc::ReconcileDictTypes()
     {
         const DictionaryDescription& dictionary_description = dictionary_descriptions[i];
 
-        if( !FindDictName(dictionary_description.GetDictionaryFilename(), dictionary_description.GetParentFilename()) )
+        if( !FindDictName(dictionary_description.GetDictionaryFilePath(), UTF8_TODO::GetWide(dictionary_description.GetParentFilePath())) )
             dictionary_descriptions.erase(dictionary_descriptions.begin() + i);
     }
 
     //Add the DictionaryDescription for objects which do not exist
     //Make sure that the first formfile dictionary type is input
     //Make sure that no other dictype is of input type
-    CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     if(application.GetEngineAppType() == EngineAppType::Entry){
         CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-        for(int iIndex=0; iIndex < (int)application.GetFormFilenames().size(); iIndex++){
+        for(int iIndex=0; iIndex < static_cast<int>(application.GetFormFilePaths().size()); iIndex++){
             //for each form
-            CString sFormFName = application.GetFormFilenames()[iIndex];
-            CFormNodeID* pFormNode = formTree.GetFormNode(sFormFName);
+            const std::string& form_file_path = application.GetFormFilePaths()[iIndex];
+            CFormNodeID* const pFormNode = formTree.GetFormNode(form_file_path);
             if (pFormNode == nullptr)
                 continue;
             CFormDoc* pFDoc = pFormNode->GetFormDoc();
@@ -2009,11 +2005,11 @@ void CAplDoc::ReconcileDictTypes()
             ASSERT(pFormFile);
 
             CString sDictFName = pFormFile->GetDictionaryFilename();
-            DictionaryDescription* dictionary_description = application.GetDictionaryDescription(sDictFName, sFormFName);
+            DictionaryDescription* dictionary_description = application.GetDictionaryDescription(UTF8_TODO::GetUtf8(sDictFName), form_file_path);
 
-            if( dictionary_description == nullptr) {
+            if( dictionary_description == nullptr ) {
                 dictionary_description = application.AddDictionaryDescription(
-                    DictionaryDescription(CS2WS(sDictFName), CS2WS(sFormFName), ( iIndex == 0 ) ? DictionaryType::Input : DictionaryType::External));
+                    DictionaryDescription(UTF8_TODO::GetUtf8(sDictFName), form_file_path, ( iIndex == 0 ) ? DictionaryType::Input : DictionaryType::External));
             }
             else {
                 if(iIndex != 0 && dictionary_description->GetDictionaryType() == DictionaryType::Input ){
@@ -2028,21 +2024,21 @@ void CAplDoc::ReconcileDictTypes()
     }
     else if(application.GetEngineAppType() == EngineAppType::Batch){
         COrderTreeCtrl& orderTree = pFrame->GetDlgBar().m_OrderTree;
-        for(int iIndex=0; iIndex < (int)application.GetFormFilenames().size(); iIndex++){
+        for(int iIndex=0; iIndex < static_cast<int>(application.GetFormFilePaths().size()); iIndex++){
             //for each form
-            CString sOrderFName = application.GetFormFilenames()[iIndex];
-            FormOrderAppTreeNode* form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(sOrderFName);
+            const std::string& order_file_path = application.GetFormFilePaths()[iIndex];
+            FormOrderAppTreeNode* const form_order_app_tree_node = orderTree.GetFormOrderAppTreeNode(order_file_path);
             ASSERT(form_order_app_tree_node != nullptr);
             COrderDoc* pFDoc = form_order_app_tree_node->GetOrderDocument();
             ASSERT(pFDoc);
             CDEFormFile* pFormFile = &pFDoc->GetFormFile();
 
             CString sDictFName = pFormFile->GetDictionaryFilename();
-            DictionaryDescription* dictionary_description = application.GetDictionaryDescription(sDictFName, sOrderFName);
+            DictionaryDescription* dictionary_description = application.GetDictionaryDescription(UTF8_TODO::GetUtf8(sDictFName), order_file_path);
 
             if( dictionary_description == nullptr ) {
                 dictionary_description = application.AddDictionaryDescription(
-                    DictionaryDescription(CS2WS(sDictFName), CS2WS(sOrderFName), ( iIndex == 0 ) ? DictionaryType::Input : DictionaryType::External));
+                    DictionaryDescription(UTF8_TODO::GetUtf8(sDictFName), order_file_path, ( iIndex == 0 ) ? DictionaryType::Input : DictionaryType::External));
             }
             else {
                 if(iIndex != 0 && dictionary_description->GetDictionaryType() == DictionaryType::Input ){
@@ -2057,15 +2053,15 @@ void CAplDoc::ReconcileDictTypes()
     }
 
     //Look in edicts
-    for(int iIndex =0 ;iIndex < (int)application.GetExternalDictionaryFilenames().size(); iIndex++){
-        CString sDictFName = application.GetExternalDictionaryFilenames()[iIndex];
-        DictionaryDescription* dictionary_description = application.GetDictionaryDescription(sDictFName);
+    for(int iIndex =0 ;iIndex < static_cast<int>(application.GetExternalDictionaryFilePaths().size()); iIndex++){
+        const std::string& dictionary_file_path = application.GetExternalDictionaryFilePaths()[iIndex];
+        DictionaryDescription* dictionary_description = application.GetDictionaryDescription(dictionary_file_path);
 
         if( dictionary_description == nullptr ) {
-            dictionary_description = application.AddDictionaryDescription(DictionaryDescription(CS2WS(sDictFName), DictionaryType::External));
+            dictionary_description = application.AddDictionaryDescription(DictionaryDescription(dictionary_file_path, DictionaryType::External));
         }
         else {
-            if(iIndex < (int)application.GetRuntimeExternalDictionaries().size()){
+            if(iIndex < static_cast<int>(application.GetRuntimeExternalDictionaries().size())){
                 if( dictionary_description->GetDictionaryType() == DictionaryType::Input ){
                     //Change the dict type to external'cos there can be only one dict with external
                     ASSERT(FALSE); //Test to see when it happens
@@ -2080,49 +2076,49 @@ void CAplDoc::ReconcileDictTypes()
 
 //////////////////////////////////////////////////////////////////////
 //
-//BOOL CAplDoc::FindDictName(const std::wstring& sDictName, const std::wstring& sFormName)
+//BOOL CAplDoc::FindDictName(const std::string& dictionary_file_path, const std::wstring& sFormName)
 //  Assumes that the AppObjects are set
 /////////////////////////////////////////////////////////////////////
-bool CAplDoc::FindDictName(const std::wstring& sDictName, const std::wstring& sFormName)
+bool CAplDoc::FindDictName(const std::string& dictionary_file_path, const std::wstring& sFormName)
 {
     Application& application = this->GetAppObject();
 
     if(!sFormName.empty() && GetEngineAppType() == EngineAppType::Entry){
         //You cannot get the CDEFormFile name from the object so get the
         //CFormDoc  and look in it
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
         CFormTreeCtrl& formTree = pFrame->GetDlgBar().m_FormTree;
-        CFormNodeID* pFormNode = formTree.GetFormNode(sFormName);
+        CFormNodeID* const pFormNode = formTree.GetFormNode(UTF8_TODO::GetUtf8(sFormName));
         if(!pFormNode || !pFormNode->GetFormDoc())
             return false;
         CFormDoc* pFormDoc = pFormNode->GetFormDoc();
         CDEFormFile* pFFSpec = &pFormDoc->GetFormFile();
 
-        if(SO::EqualsNoCase(sDictName, pFFSpec->GetDictionaryFilename())){
+        if(SO::EqualsNoCase(dictionary_file_path, pFFSpec->GetDictionaryFilename())){
             return true;
         }
     }
     else if(!sFormName.empty() && GetEngineAppType() == EngineAppType::Batch){
         //You cannot get the CDEFormFile name from the object so get the
         //CFormDoc  and look in it
-        CMainFrame* pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
         COrderTreeCtrl& formTree = pFrame->GetDlgBar().m_OrderTree;
-        FormOrderAppTreeNode* form_order_app_tree_node = formTree.GetFormOrderAppTreeNode(sFormName);
+        FormOrderAppTreeNode* const form_order_app_tree_node = formTree.GetFormOrderAppTreeNode(UTF8_TODO::GetUtf8(sFormName));
         if(form_order_app_tree_node == nullptr || form_order_app_tree_node->GetOrderDocument() == nullptr )
             return false;
         COrderDoc* pOrderDoc = form_order_app_tree_node->GetOrderDocument();
         CDEFormFile* pFFSpec = &pOrderDoc->GetFormFile();
 
-        if(SO::EqualsNoCase(sDictName, pFFSpec->GetDictionaryFilename())){
+        if(SO::EqualsNoCase(dictionary_file_path, pFFSpec->GetDictionaryFilename())){
             return true;
         }
     }
     else {
         //look in edicts
-        for( const CString& sDictFName : application.GetExternalDictionaryFilenames() ) {
-            if(SO::EqualsNoCase(sDictName, sDictFName)){
+        for( const std::string& external_dictionary_file_path : application.GetExternalDictionaryFilePaths() )
+        {
+            if( SO::EqualsNoCase(dictionary_file_path, external_dictionary_file_path) )
                 return true;
-            }
         }
     }
 
@@ -2140,28 +2136,42 @@ void CAplDoc::BuildQuestMgr()
     m_pQuestMgr = std::make_shared<CapiQuestionManager>();
 
     //if qsf file does not exist then create one
-    if( !PortableFunctions::FileIsRegular(m_application->GetQuestionTextFilename()) )
-        m_pQuestMgr->Save(CS2WS(m_application->GetQuestionTextFilename()));
+    if( !PortableFunctions::FileIsRegular(m_application->GetQuestionTextFilePath()) )
+        m_pQuestMgr->Save(m_application->GetQuestionTextFilePath());
 
-    m_pQuestMgr->Load(CS2WS(m_application->GetQuestionTextFilename()));
+    m_pQuestMgr->Load(m_application->GetQuestionTextFilePath());
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  CString CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
+//  CAplDoc::GetCapiItemName
 //
 /////////////////////////////////////////////////////////////////////////////////
-CString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* pBase, wstring_view language_name/* = wstring_view()*/)
+CString CAplDoc::GetCapiItemName(const CDEItemBase* const pBase)
+{
+    const CDEBlock* const block = dynamic_cast<const CDEBlock*>(pBase);
+    return ( block != nullptr ) ? block->GetName() :
+                                  UTF8_TODO::GetCString(assert_cast<const CDEField*>(pBase)->GetDictItem()->GetQualifiedName());
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//  std::string CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
+//
+/////////////////////////////////////////////////////////////////////////////////
+std::string CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
 {
     ASSERT(m_pQuestMgr != nullptr);
     auto question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
     if (question && !question->GetConditions().empty()) {
-        if (language_name.empty())
+        if (!language_name.has_value())
             language_name = m_pQuestMgr->GetDefaultLanguage().GetName();
-        return question->GetConditions().front().GetQuestionText(language_name).GetText();
+        return UTF8_TODO::GetUtf8(question->GetConditions().front().GetQuestionText(UTF8_TODO::GetWide(*language_name)).GetText());
     }
     else {
-        return CString();
+        return std::string();
     }
 }
 
@@ -2170,7 +2180,7 @@ CString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* pBase, wstring_view l
 //  SetCapiTextForAllConditions
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, wstring_view language_name/* = wstring_view()*/)
+void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, const std::string& language_name/* = SO::Empty_string*/)
 {
     ASSERT(m_pQuestMgr != nullptr);
 
@@ -2185,11 +2195,11 @@ void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_t
         CapiCondition new_condition;
         if (language_name.empty()) {
             for (const Language& lang : m_pQuestMgr->GetLanguages()) {
-                new_condition.SetQuestionText(question_text, lang.GetName());
+                new_condition.SetQuestionText(question_text, UTF8_TODO::GetWide(lang.GetName()));
             }
         }
         else {
-            new_condition.SetQuestionText(question_text, language_name);
+            new_condition.SetQuestionText(question_text, UTF8_TODO::GetWide(language_name));
         }
         conditions.emplace_back(new_condition);
     }
@@ -2197,11 +2207,11 @@ void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_t
         for (CapiCondition& cond : conditions) {
             if (language_name.empty()) {
                 for (const Language& lang : m_pQuestMgr->GetLanguages()) {
-                    cond.SetQuestionText(question_text, lang.GetName());
+                    cond.SetQuestionText(question_text, UTF8_TODO::GetWide(lang.GetName()));
                 }
             }
             else {
-                cond.SetQuestionText(question_text, language_name);
+                cond.SetQuestionText(question_text, UTF8_TODO::GetWide(language_name));
             }
         }
     }
@@ -2216,19 +2226,23 @@ void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_t
 //  bool CAplDoc::IsQHAvailable(CDEItemBase* pBase)
 //
 /////////////////////////////////////////////////////////////////////////////////
-bool CAplDoc::IsQHAvailable(const CDEItemBase* pBase)
+bool CAplDoc::IsQHAvailable(const CDEItemBase* const pBase)
 {
-    if(!m_application->GetUseQuestionText() || !m_pQuestMgr)
+    if( !m_application->GetUseQuestionText() || m_pQuestMgr == nullptr )
         return false;
 
-    auto question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
-    if (!question)
+    const std::optional<CapiQuestion> question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
+
+    if( !question.has_value() )
         return false;
 
-    for (const CapiCondition& cond : question->GetConditions()) {
-
-        for (const Language& lang : m_pQuestMgr->GetLanguages()) {
-            if (!cond.GetQuestionText(lang.GetName()).GetText().IsEmpty() || !cond.GetHelpText(lang.GetName()).GetText().IsEmpty()) {
+    for( const CapiCondition& cond : question->GetConditions() )
+    {
+        for( const Language& lang : m_pQuestMgr->GetLanguages() )
+        {
+            if( !cond.GetQuestionText(UTF8_TODO::GetWide(lang.GetName())).GetText().IsEmpty() ||
+                !cond.GetHelpText(UTF8_TODO::GetWide(lang.GetName())).GetText().IsEmpty() )
+            {
                 return true;
             }
         }
@@ -2242,10 +2256,10 @@ bool CAplDoc::GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo)
 {
     ASSERT(m_pQuestMgr != nullptr);
     arrInfo.RemoveAll();
-    for (const auto& lang : m_pQuestMgr->GetLanguages()) {
+    for (const Language& lang : m_pQuestMgr->GetLanguages()) {
         CLangInfo langInfo;
-        langInfo.m_sLangName = WS2CS(lang.GetName());
-        langInfo.m_sLabel = WS2CS(lang.GetLabel());
+        langInfo.m_sLangName = UTF8_TODO::GetCString(lang.GetName());
+        langInfo.m_sLabel = UTF8_TODO::GetCString(lang.GetLabel());
         arrInfo.Add(langInfo);
     }
 
@@ -2267,7 +2281,7 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
             CString sName = langInfo.m_sLangName;
             sName.Trim();
             const auto& current_language = m_pQuestMgr->GetLanguages()[iLangInfo];
-            m_pQuestMgr->ModifyLanguage(current_language.GetName(), Language(CS2WS(sName), CS2WS(langInfo.m_sLabel)));
+            m_pQuestMgr->ModifyLanguage(current_language.GetName(), Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
         }
     }
 
@@ -2275,7 +2289,7 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
     for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
         CLangInfo langInfo =arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
-            m_pQuestMgr->DeleteLanguage(langInfo.m_sLangName);
+            m_pQuestMgr->DeleteLanguage(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
         }
     }
 
@@ -2285,7 +2299,7 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
         if(langInfo.m_eLangInfo == eLANGINFO::NEW_INFO) {
             CString sName = langInfo.m_sLangName;
             sName.Trim();
-            m_pQuestMgr->AddLanguage(Language(CS2WS(sName), CS2WS(langInfo.m_sLabel)));
+            m_pQuestMgr->AddLanguage(Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
         }
     }
 }
@@ -2311,36 +2325,18 @@ void CAplDoc::ChangeCapiDictName(const CDataDict& dictionary)
     if( m_application->GetUseQuestionText() && m_pQuestMgr != nullptr )
     {
         CString old_dict_name = dictionary.GetOldName();
-        CString new_item_prefix = dictionary.GetName() + _T(".");
+        CString new_item_prefix = UTF8_TODO::GetCString(dictionary.GetName() + ".");
 
         std::wregex dict_item_regex(FormatText(_T("^%s\\."), old_dict_name.GetString()));
 
         std::vector<CapiQuestion> questions = m_pQuestMgr->GetQuestions();
-        for (auto& question : questions) {
+        for (CapiQuestion& question : questions) {
             m_pQuestMgr->RemoveQuestion(question.GetItemName());
             CString new_item_name = std::regex_replace(question.GetItemName().GetString(), dict_item_regex, new_item_prefix.GetString()).c_str();
             question.SetItemName(new_item_name);
             m_pQuestMgr->SetQuestion(std::move(question));
         }
     }
-}
-
-
-namespace CodeMessage
-{
-    std::shared_ptr<TextSource> GetTextSourceWithDefaultText(Application& application, const std::optional<CString>& base_filename, AppFileType app_file_type)
-    {
-        std::wstring filename = PortableFunctions::PathAppendFileExtension(CS2WS(base_filename.value_or(application.GetApplicationFilename())), GetFileExtension(app_file_type));
-        std::wstring default_text = application.GetLogicSettings().GetDefaultFirstLineForTextSource(application.GetLabel(), app_file_type);
-
-        return TextSourceEditable::FindOpenOrCreate(std::move(filename), std::move(default_text));
-    }
-}
-
-
-void CAplDoc::AddDefaultCodeFile(Application& application, std::optional<CString> base_filename/* = std::nullopt*/)
-{
-    application.AddCodeFile(CodeFile(CodeType::LogicMain, CodeMessage::GetTextSourceWithDefaultText(application, base_filename, AppFileType::Code)));
 }
 
 
@@ -2351,7 +2347,7 @@ std::shared_ptr<TextSourceEditable> CAplDoc::GetLogicMainCodeFileTextSource()
 
     if( logic_main_code_file == nullptr )
     {
-        AddDefaultCodeFile(*m_application, std::nullopt);
+        m_application->AddCodeFile(NewFileCreator::CreateOrOpenCodeFile(*m_application));
         SetModifiedFlag(TRUE);
 
         logic_main_code_file = m_application->GetLogicMainCodeFile();
@@ -2364,23 +2360,22 @@ std::shared_ptr<TextSourceEditable> CAplDoc::GetLogicMainCodeFileTextSource()
 }
 
 
-void CAplDoc::AddDefaultMessageFile(Application& application, std::optional<CString> base_filename/* = std::nullopt*/)
-{
-    application.AddMessageFile(CodeMessage::GetTextSourceWithDefaultText(application, base_filename, AppFileType::Message));
-}
-
-
 std::shared_ptr<TextSourceEditable> CAplDoc::GetMessageTextSource()
 {
     // if no message file exists, create a default one
-    if( m_application->GetMessageTextSources().empty() )
+    if( m_application->GetMessageFiles().empty() )
     {
-        AddDefaultMessageFile(*m_application, std::nullopt);
+        m_application->AddMessageFile(NewFileCreator::CreateOrOpenMessageFile(*m_application));
         SetModifiedFlag(TRUE);
     }
 
-    auto text_source = std::dynamic_pointer_cast<TextSourceEditable, TextSource>(m_application->GetMessageTextSources().front());
-    ASSERT(text_source != nullptr);
+    for( AppMessageFile& app_message_file : m_application->GetMessageFilesIterator() )
+    {
+        auto text_source = std::dynamic_pointer_cast<TextSourceEditable, TextSource>(app_message_file.GetSharedTextSource());
 
-    return text_source;
+        if( text_source != nullptr )
+            return text_source;
+    }
+
+    return ReturnProgrammingError(nullptr);
 }

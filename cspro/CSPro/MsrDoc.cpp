@@ -15,11 +15,11 @@ BOOL CCSProDoc::OnOpenDocument(LPCTSTR /*lpszPathName*/)
 This function returns TRUE if a File is "OPEN" either as an object in the memory or
 as a part of an application /project
 ****************************************************************************/
-bool CCSProDoc::IsFileOpen(const std::wstring& filename) const
+bool CCSProDoc::IsFileOpen(const std::string_view file_path_sv) const
 {
     //Traverse thru the Object Tree
     CMainFrame* pFrm = (CMainFrame*)AfxGetMainWnd();
     CObjTreeCtrl& refObjTree = pFrm->GetDlgBar().m_ObjTree;
 
-    return ( refObjTree.FindNode(filename) != nullptr );
+    return ( refObjTree.FindNode(file_path_sv) != nullptr );
 }

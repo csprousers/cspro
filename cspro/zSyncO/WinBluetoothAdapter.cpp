@@ -1,8 +1,6 @@
 ﻿#include "stdafx.h"
 #include "WinBluetoothAdapter.h"
 #include "IObexTransport.h"
-#include "ISyncListener.h"
-#include "SyncException.h"
 #include "WinBluetoothNameSetter.h"
 #include "WinBluetoothScanner.h"
 #include "WinObexBluetoothTransport.h"
@@ -16,11 +14,13 @@
 #include <Ws2bth.h>
 
 
-namespace {
+namespace
+{
 
     // Enable bluetooth discovery and incoming connections then restore
     // previous state on destruction (RAII pattern).
-    class BluetoothRadioEnabler {
+    class BluetoothRadioEnabler
+    {
     public:
         BluetoothRadioEnabler(std::shared_ptr<WinBluetoothFunctions> pBtFuncs)
             : m_pBtFuncs(pBtFuncs)
@@ -30,7 +30,7 @@ namespace {
             //Locate bluetooth radio
             HBLUETOOTH_RADIO_FIND btFind = m_pBtFuncs->BluetoothFindFirstRadio(&btFindParams, &m_hRadio);
             if (btFind == NULL) {
-                throw SyncError(100101, L"Bluetooth is not enabled in system settings or this device does not support Bluetooth");
+                throw SyncConnectionError("Bluetooth is not enabled in system settings or this device does not support Bluetooth");
             }
             m_discoveryEnabled = m_pBtFuncs->BluetoothIsDiscoverable(m_hRadio) == TRUE;
             if (!m_discoveryEnabled)
@@ -55,21 +55,23 @@ namespace {
         std::shared_ptr<WinBluetoothFunctions> m_pBtFuncs;
     };
 
-    CString getWinsockErrorMessage(int err)
+    std::string getWinsockErrorMessage(int err)
     {
-        LPTSTR msgBuff = NULL;
-        FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            err,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPTSTR)&msgBuff,
-            0, NULL);
-        CString msgString(msgBuff);
-        LocalFree(msgBuff);
-        return msgString;
+        wchar_t* buffer = nullptr;
+
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                      nullptr,
+                      err,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                      reinterpret_cast<LPTSTR>(&buffer),
+                      0,
+                      nullptr);
+
+        std::string message = TC::ToUtf8(buffer);
+
+        LocalFree(buffer);
+
+        return message;
     }
 
     /// <summary>Register/deregister Bluetooth service discovery protocol service</summary>
@@ -82,9 +84,9 @@ namespace {
     /// to unregister the service otherwise later client connections will fail.
     /// The listening socket is closed on destruction of the object and should not
     /// be closed by clients.
-    class SDPService {
+    class SDPService
+    {
     public:
-
         SDPService()
             : m_listeningSocket(INVALID_SOCKET),
               m_pQuerySet(NULL),
@@ -105,7 +107,7 @@ namespace {
             // Create a socket to listen on
             m_listeningSocket = socket(AF_BTH, SOCK_STREAM, BTHPROTO_RFCOMM);
             if (m_listeningSocket == INVALID_SOCKET) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
 
             // Bind socket to blueooth, any port
@@ -118,17 +120,17 @@ namespace {
 
 
             if (bind(m_listeningSocket, (SOCKADDR*)m_pSockAddrBthLocal, sizeof(*m_pSockAddrBthLocal)) == SOCKET_ERROR) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
 
             if (listen(m_listeningSocket, SOMAXCONN) == SOCKET_ERROR) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
 
             // Get socket info
             int addrLen = sizeof(SOCKADDR_BTH);
             if (getsockname(m_listeningSocket, (SOCKADDR*)m_pSockAddrBthLocal, &addrLen) == SOCKET_ERROR) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
 
             m_pAddrInfo = new CSADDR_INFO{ 0 };
@@ -148,7 +150,7 @@ namespace {
             m_pQuerySet->lpcsaBuffer = m_pAddrInfo;
 
             if (WSASetService(m_pQuerySet, RNRSERVICE_REGISTER, 0) == SOCKET_ERROR) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
 
             m_registered = true;
@@ -178,7 +180,7 @@ namespace {
         void unregisterService()
         {
             if (WSASetService(m_pQuerySet, RNRSERVICE_DELETE, 0) == SOCKET_ERROR) {
-                throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+                throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
             }
         }
 
@@ -190,7 +192,8 @@ namespace {
         bool m_registered;
     };
 
-    bool scanForRemoteDevice(WinBluetoothScanner* pScanner, CString remoteDeviceName, PSOCKADDR_BTH pAddress, ISyncListener* pListener)
+
+    bool scanForRemoteDevice(WinBluetoothScanner* pScanner, const std::string& remoteDeviceName, PSOCKADDR_BTH pAddress, SyncListener* sync_listener)
     {
         // Scanning is done in a background thread in the WinBluetoothScanner since it is a time consuming operation
         // and we want to be able to cancel it.
@@ -200,10 +203,11 @@ namespace {
 
         // Set a scan listener that will copy bt address and set doneFlag to true if it finds the device in the scan results
         pScanner->setResultCallback([remoteDeviceName, pAddress, &doneFlag](const WinBluetoothScanner::DeviceList& dl) {
-            auto i = std::find_if(dl.begin(), dl.end(), [remoteDeviceName](const BluetoothDeviceInfo& d) { return d.csName == remoteDeviceName;});
+            auto i = std::find_if(dl.begin(), dl.end(), [remoteDeviceName](const BluetoothDeviceInfo& d) { return d.name == remoteDeviceName;});
             if (i != dl.end()) {
                 int addrSize = sizeof(*pAddress);
-                LPTSTR addrString = const_cast<LPTSTR>((LPCTSTR) i->csAddress);
+                std::wstring wide_address = TC::ToWide(i->address);
+                LPTSTR addrString = wide_address.data();
                 WSAStringToAddress(addrString, AF_BTH, NULL, (LPSOCKADDR) pAddress, &addrSize);
                 doneFlag = true;
             }
@@ -221,9 +225,9 @@ namespace {
         const std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
         const int keepOnTryingForSeconds = 30; // this is approximate since lookup takes a good chunk of time
         while (!doneFlag && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - startTime).count() < keepOnTryingForSeconds)) {
-            if (pListener) {
-                pListener->onProgress();
-                if (pListener->isCancelled()) {
+            if (sync_listener != nullptr) {
+                sync_listener->Progress();
+                if (sync_listener->IsCanceled()) {
                     break;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -238,7 +242,7 @@ namespace {
         if (pScanError)
             throw SyncError(*pScanError);
 
-        return (doneFlag && (!pListener || !pListener->isCancelled()));
+        return (doneFlag && (sync_listener == nullptr || !sync_listener->IsCanceled()));
     }
 
     SOCKET connectToDevice(PSOCKADDR_BTH pAddr, GUID serviceUuid)
@@ -263,7 +267,7 @@ namespace {
         return sock;
     }
 
-    SOCKET connectToDeviceWithCancel(PSOCKADDR_BTH pAddr, GUID serviceUuid, ISyncListener* pListener)
+    SOCKET connectToDeviceWithCancel(PSOCKADDR_BTH pAddr, GUID serviceUuid, SyncListener* sync_listener)
     {
         SOCKET result = INVALID_SOCKET;
 
@@ -280,9 +284,9 @@ namespace {
             std::future_status status;
             do {
                 status = future.wait_for(std::chrono::milliseconds(100));
-                if (pListener) {
-                    pListener->onProgress();
-                    if (pListener->isCancelled()) {
+                if (sync_listener != nullptr) {
+                    sync_listener->Progress();
+                    if (sync_listener->IsCanceled()) {
                         // Request that thread abort but keep running loop
                         // so that UI stays responsive while we wait for thread to exit.
                         throw SyncCancelException();
@@ -300,9 +304,11 @@ namespace {
 }
 
 
-WinBluetoothAdapter::WinBluetoothAdapter(std::shared_ptr<WinBluetoothFunctions> pBtFuncs) :
-    m_pBtFuncs(pBtFuncs)
+WinBluetoothAdapter::WinBluetoothAdapter(std::shared_ptr<WinBluetoothFunctions> pBtFuncs)
+    :   m_pBtFuncs(std::move(pBtFuncs))
 {
+    ASSERT(m_pBtFuncs != nullptr);
+
     // Intitialize winsock (must do this at least once per DLL/exe, ok to do multiple times)
     WSADATA wsaData;
     WSAStartup(0x202, &wsaData); // request winsock v2.2
@@ -310,17 +316,19 @@ WinBluetoothAdapter::WinBluetoothAdapter(std::shared_ptr<WinBluetoothFunctions> 
     m_pScanner = new WinBluetoothScanner(m_pBtFuncs);
 }
 
-WinBluetoothAdapter* WinBluetoothAdapter::create()
+
+std::unique_ptr<WinBluetoothAdapter> WinBluetoothAdapter::Create()
 {
-    auto pBtFuncs = WinBluetoothFunctions::instance();
+    std::shared_ptr<WinBluetoothFunctions> pBtFuncs = WinBluetoothFunctions::instance();
 
     // Failed to load Bluetooth DLLs, machine does not have Bluetooth support
     // (e.g. Windows Server OS)
     if (!pBtFuncs)
         return nullptr;
 
-    return new WinBluetoothAdapter(pBtFuncs);
+    return std::unique_ptr<WinBluetoothAdapter>(new WinBluetoothAdapter(std::move(pBtFuncs)));
 }
+
 
 WinBluetoothAdapter::~WinBluetoothAdapter()
 {
@@ -330,61 +338,62 @@ WinBluetoothAdapter::~WinBluetoothAdapter()
     WSACleanup();
 }
 
-IObexTransport* WinBluetoothAdapter::connectToRemoteDevice(CString remoteDeviceName,
-    CString remoteDeviceAddress, GUID service, ISyncListener* pListener /*= NULL */)
+
+std::unique_ptr<IObexTransport> WinBluetoothAdapter::ConnectToRemoteDevice(const std::string& remoteDeviceName, const std::string& remoteDeviceAddress,
+                                                                           GUID serviceUuid, SyncListener* sync_listener/* = nullptr*/)
 {
     SOCKADDR_BTH deviceAddress;
 
-    if (remoteDeviceAddress.IsEmpty()) {
+    if (remoteDeviceAddress.empty()) {
         // Lookup device from name
         bool bFound;
 
         // First check the last scan result before starting a new scan
         WinBluetoothScanner::DeviceList lastScanResult = m_pScanner->getLastScanResult();
-        auto i = std::find_if(lastScanResult.begin(), lastScanResult.end(), [remoteDeviceName](const BluetoothDeviceInfo& d) { return d.csName == remoteDeviceName;});
+        auto i = std::find_if(lastScanResult.begin(), lastScanResult.end(), [remoteDeviceName](const BluetoothDeviceInfo& d) { return d.name == remoteDeviceName;});
         if (i != lastScanResult.end()) {
             int addrSize = sizeof(deviceAddress);
-            LPTSTR addrString = const_cast<LPTSTR>((LPCTSTR) i->csAddress);
+            std::wstring wide_address = TC::ToWide(i->address);
+            LPTSTR addrString = wide_address.data();
             WSAStringToAddress(addrString, AF_BTH, NULL, (LPSOCKADDR) &deviceAddress, &addrSize);
             bFound = true;
         } else {
             // Not in last scan, do a new scan
-            bFound = scanForRemoteDevice(m_pScanner, remoteDeviceName, &deviceAddress, pListener);
+            bFound = scanForRemoteDevice(m_pScanner, remoteDeviceName, &deviceAddress, sync_listener);
         }
 
         if (!bFound)
             return NULL;
     } else {
         int addrSize = sizeof(deviceAddress);
-        WSAStringToAddress(remoteDeviceAddress.GetBuffer(), AF_BTH, NULL, (LPSOCKADDR) &deviceAddress, &addrSize);
+        WSAStringToAddress(TC::ToWide(remoteDeviceAddress).data(), AF_BTH, NULL, (LPSOCKADDR) &deviceAddress, &addrSize);
     }
 
-    SOCKET socket = connectToDeviceWithCancel(&deviceAddress, service, pListener);
+    SOCKET socket = connectToDeviceWithCancel(&deviceAddress, serviceUuid, sync_listener);
     if (socket == INVALID_SOCKET)
         return NULL;
 
-    return new WinObexBluetoothTransport(socket);
+    return std::make_unique<WinObexBluetoothTransport>(socket);
 }
 
-IObexTransport* WinBluetoothAdapter::acceptConnection(
-    GUID serviceId,
-    ISyncListener* pListener /*= NULL*/)
+
+std::unique_ptr<IObexTransport> WinBluetoothAdapter::AcceptConnection(GUID serviceUuid, SyncListener* sync_listener/* = nullptr*/)
 {
     // Enable bluetooth and restore to previous state on destruction
     BluetoothRadioEnabler enableRadio(m_pBtFuncs);
 
     SDPService sdpService;
-    sdpService.registerService(serviceId);
+    sdpService.registerService(serviceUuid);
 
     // Wait for a connection on the socket
     SOCKET clientSocket = INVALID_SOCKET;
     fd_set readSet;
     timeval timeout;
-    while (true) {
 
-        if (pListener) {
-            pListener->onProgress();
-            if (pListener->isCancelled()) {
+    while (true) {
+        if (sync_listener != nullptr) {
+            sync_listener->Progress();
+            if (sync_listener->IsCanceled()) {
                 throw SyncCancelException();
             }
         }
@@ -403,7 +412,7 @@ IObexTransport* WinBluetoothAdapter::acceptConnection(
         }
         else if (selectResult == SOCKET_ERROR) {
             // Error
-            throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+            throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
         }
 
         // If we get here selectResult is zero which means that select timed out
@@ -412,34 +421,33 @@ IObexTransport* WinBluetoothAdapter::acceptConnection(
 
     clientSocket = accept(sdpService.getListeningSocket(), NULL, 0);
     if (clientSocket == INVALID_SOCKET) {
-        throw SyncError(100101, getWinsockErrorMessage(WSAGetLastError()));
+        throw SyncConnectionError(getWinsockErrorMessage(WSAGetLastError()));
     }
 
-    return new WinObexBluetoothTransport(clientSocket);
+    return std::make_unique<WinObexBluetoothTransport>(clientSocket);
 }
 
-void WinBluetoothAdapter::enable()
+
+void WinBluetoothAdapter::Enable()
 {
     // On Windows always enabled
 }
 
-void WinBluetoothAdapter::disable()
+
+void WinBluetoothAdapter::Disable()
 {
     // On Windows always enabled
 }
 
-bool WinBluetoothAdapter::isEnabled() const
+
+bool WinBluetoothAdapter::IsEnabled() const
 {
     // On Windows always enabled
     return true;
 }
 
-WinBluetoothScanner* WinBluetoothAdapter::scanner()
-{
-    return m_pScanner;
-}
 
-std::wstring WinBluetoothAdapter::getName() const
+std::string WinBluetoothAdapter::GetName() const
 {
     BLUETOOTH_FIND_RADIO_PARAMS btFindParams = { sizeof(BLUETOOTH_FIND_RADIO_PARAMS) };
 
@@ -451,21 +459,22 @@ std::wstring WinBluetoothAdapter::getName() const
         BLUETOOTH_RADIO_INFO radioInfo = { sizeof(BLUETOOTH_RADIO_INFO) };
 
         if( m_pBtFuncs->BluetoothGetRadioInfo(hRadio, &radioInfo) == ERROR_SUCCESS )
-            return radioInfo.szName;
+            return TC::ToUtf8(radioInfo.szName);
     }
 
-    return std::wstring();
+    return std::string();
 }
 
-void WinBluetoothAdapter::setName(const CString& bluetooth_name)
+
+void WinBluetoothAdapter::SetName(const std::string& bluetooth_name)
 {
-    if( SetBluetoothName(bluetooth_name) )
+    if( WinBluetoothNameSetter::SetBluetoothName(bluetooth_name) )
     {
         // the name change does not immediately occur so loop until getName returns successfully, waiting up to 5 seconds
         constexpr int MaxWaitTimesSeconds = 5;
         auto start_time = std::chrono::steady_clock::now();
 
-        while( !SO::Equals(getName(), bluetooth_name) )
+        while( GetName() != bluetooth_name )
         {
             if( std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count() > MaxWaitTimesSeconds )
                 throw CSProException("The name was changed but did not seem to take effect.");
@@ -476,7 +485,7 @@ void WinBluetoothAdapter::setName(const CString& bluetooth_name)
 
     else
     {
-        throw CSProException(_T("Unable to access the Bluetooth device or modify the registry.%s"),
-                             IsUserAnAdmin() ? _T("") : _T(" This operation may require admin rights."));
+        throw CSProException(SO::Concatenate("Unable to access the Bluetooth device or modify the registry.",
+                                             IsUserAnAdmin() ? "" : " This operation may require admin rights."));
     }
 }

@@ -21,6 +21,7 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Geometry.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/HashMap.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Image.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Imputation.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/JavaScriptProcessor.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/List.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/LogicByteCode.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/LoopStack.cpp
@@ -42,9 +43,9 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/SymbolCalculator.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/SystemApp.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunction.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentChecker.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentEvaluator.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionLocalSymbolsManager.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/ValueSet.cpp
-LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Versioning.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/WorkString.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/WorkVariable.cpp
 
@@ -55,6 +56,7 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/AudioCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/BarcodeCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/CaseCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/CompilerHelper.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/CompilersCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ControlFlowCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/DataAccessCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/DictionaryCC.cpp
@@ -71,14 +73,15 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/HashMapCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ImageCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ImputeCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ItemCC.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/JavaScriptCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/JsonCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ListCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/LogicCompiler.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/MapCC.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/MathCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/MessagesCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/NextTokenCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/NodeCreationCC.cpp
-LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/NumbersCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/OptionalNamedArgumentsCompiler.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/PathCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/PffCC.cpp
@@ -97,13 +100,43 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/UserInterfaceCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ValueSetCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/VariableCC.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ActionInvokerRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ArrayRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/AudioRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/BarcodeRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/BytecodeRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/CompressionRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/DateRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/DocumentRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ExecutionRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/GeometryRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/HashMapRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ImageRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ItemRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/JavaScriptRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/JsonRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ListRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/LocalhostRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/LogicInterpreter.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/MapRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/MathRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/NetworkRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/PathRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ReportRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/StringRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SwitchRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SymbolRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SystemAppRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SystemRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/UserInterfaceRT.cpp
+
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../zEngineO
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
 
-LOCAL_STATIC_LIBRARIES  := zLogicO zAppO zCaseO zConcatO zDataO zDictO zDiffO zFreqO zFormO zIndexO zMapping zMessageO zMultimediaO zPackO zParadataO zReformatO zSortO zUtilF zHtml zUtilO zJson zToolsO zPlatformO 
+LOCAL_STATIC_LIBRARIES  := zAppO zCaseO zConcatO zDataO zDictO zDiffO zFreqO zFormO zIndexO zJavaScript zListingO zLogicO zMapping zMessageO zMultimediaO zPackO zParadataO zReformatO zSortO zUtilF zHtml zUtilO zJson zZipO zToolsO zPlatformO
 
 include $(BUILD_STATIC_LIBRARY)

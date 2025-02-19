@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_gov_census_cspro_bridge_CNPifFile_LoadPif
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv*, jobject, jstring);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_gov_census_cspro_bridge_CNPifFile_LoadPif
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetDescription
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -29,7 +29,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetDescription
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_bridge_CNPifFile_IsAppTypeEntry
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -37,7 +37,7 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_bridge_CNPifFile_IsAppTypeEntry
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetShowInApplicationListing
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -45,7 +45,7 @@ JNIEXPORT jint JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetShowInApplicati
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetInputFilename
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -53,7 +53,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetInputFilenam
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetAppFilename
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -61,7 +61,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetAppFilename
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_gov_census_cspro_bridge_CNPifFile_ClosePif
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_bridge_CNPifFile_ClosePif
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetExternalFilenames
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -77,7 +77,7 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetExterna
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetUserFilenames
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -85,7 +85,7 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetUserFil
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetWriteFilename
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
@@ -93,14 +93,21 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetWriteFilenam
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_GetOnExitFilename
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv*, jobject, jlong);
 
 /*
  * Class:     gov_census_cspro_bridge_CNPifFile
  * Method:    CreatePffFromIntentExtras
  */
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_CreatePffFromIntentExtras
-  (JNIEnv *, jobject, jstring, jobject);
+  (JNIEnv*, jobject, jstring, jobject);
+
+/*
+ * Class:     gov_census_cspro_bridge_CNPifFile
+ * Method:    CreatePffFromDeepLinkUrl
+ */
+JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_CreatePffFromDeepLinkUrl
+  (JNIEnv*, jobject, jstring);
 
 #ifdef __cplusplus
 }

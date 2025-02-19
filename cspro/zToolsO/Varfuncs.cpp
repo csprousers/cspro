@@ -398,77 +398,96 @@ double chartodval_original( const csprochar *buf, int len, int dec )
   // CR_TODO get rid of the above functions ... should be able to if none of the asserts below get hit
 #include "NumberConverter.h"
 
-void dvaltochar( double value, csprochar *buf, int len, int dec, bool bLeadingZeros, bool bExplicitDecimals )
+void dvaltochar(double value, csprochar *buf, int len, int dec, bool bLeadingZeros, bool bExplicitDecimals)
 {
     dvaltochar_original(value, buf, len, dec, bLeadingZeros, bExplicitDecimals);
 
 #ifdef _DEBUG
 
     // test against the new routines
-    double no_mask_val = ( value == MASKBLK ) ? NOTAPPL : value;
-    CString cstring_temp_buffer;
-    TCHAR* temp_buffer = cstring_temp_buffer.GetBufferSetLength(len);
+    const double no_mask_val = ( value == MASKBLK ) ? NOTAPPL : value;
+    auto temp_buffer = std::make_unique_for_overwrite<wchar_t[]>(len);
 
     if( len <= 9 && dec == 0 )
     {
-        NumberConverter::IntegerDoubleToText<int>(no_mask_val, temp_buffer, len, bLeadingZeros);
-        ASSERT(_tmemcmp(buf, temp_buffer, len) == 0);
+        NumberConverter::IntegerDoubleToText<int>(temp_buffer.get(), no_mask_val, len, bLeadingZeros);
+        ASSERT(_tmemcmp(buf, temp_buffer.get(), len) == 0);
     }
 
     if( dec == 0 )
     {
-        NumberConverter::IntegerDoubleToText<int64_t>(no_mask_val, temp_buffer, len, bLeadingZeros);
-        ASSERT(_tmemcmp(buf, temp_buffer, len) == 0);
+        NumberConverter::IntegerDoubleToText<int64_t>(temp_buffer.get(), no_mask_val, len, bLeadingZeros);
+        ASSERT(_tmemcmp(buf, temp_buffer.get(), len) == 0);
     }
 
     {
-        NumberConverter::DoubleToText(no_mask_val, temp_buffer, len, dec, bLeadingZeros, bExplicitDecimals);
-        ASSERT(_tmemcmp(buf, temp_buffer, len) == 0);
+        NumberConverter::DoubleToText(temp_buffer.get(), no_mask_val, len, dec, bLeadingZeros, bExplicitDecimals);
+        ASSERT(_tmemcmp(buf, temp_buffer.get(), len) == 0);
         // if only wanting to test everything up to the last character of the fractional part, comment above and uncomment below
         //ASSERT(_tmemcmp(buf, temp_buffer, len - ( ( dec > 0 ) ? 1 : 0 )) == 0);
     }
-	
+
 #endif
 }
 
 
-std::wstring dvaltochar(double dValue, int iLen, int iDec, bool bLeadingZeros/* = false*/, bool bExplicitDecimals/* = true*/)
+template<typename T/* = std::wstring*/>
+T dvaltochar(double dValue, int iLen, int iDec, bool bLeadingZeros/* = false*/, bool bExplicitDecimals/* = true*/)
 {
     std::wstring text(iLen, '\0');
     dvaltochar(dValue, text.data(), iLen, iDec, bLeadingZeros, bExplicitDecimals);
     ASSERT80(_tcslen(text.c_str()) == static_cast<size_t>(iLen));
-    return text;
+
+    if constexpr(std::is_same_v<T, std::wstring>)
+    {
+        return text;
+    }
+
+    else
+    {
+        return UTF8_TODO::GetUtf8(text);
+    }
 }
 
+template CLASS_DECL_ZTOOLSO std::wstring dvaltochar(double dValue, int iLen, int iDec, bool bLeadingZeros, bool bExplicitDecimals);
+template CLASS_DECL_ZTOOLSO std::string dvaltochar(double dValue, int iLen, int iDec, bool bLeadingZeros, bool bExplicitDecimals);
 
-double chartodval( const csprochar *buf, int len, int dec )
+
+double chartodval(const csprochar *buf, int len, int dec)
 {
     double value = chartodval_original(buf, len, dec);
 
 #ifdef _DEBUG
 
     // test against the new routines
-    double no_mask_val = ( value == MASKBLK ) ? NOTAPPL : value;
+    const double no_mask_val = ( value == MASKBLK ) ? NOTAPPL : value;
 
     if( len <= 9 && dec == 0 )
     {
-        double test_value = NumberConverter::TextToIntegerDouble<int>(buf, len);
+        const double test_value = NumberConverter::TextToIntegerDouble<int>(buf, len);
         ASSERT(test_value == no_mask_val);
     }
 
     if( dec == 0 )
     {
-        double test_value = NumberConverter::TextToIntegerDouble<int64_t>(buf, len);
+        const double test_value = NumberConverter::TextToIntegerDouble<int64_t>(buf, len);
         ASSERT(test_value == no_mask_val);
     }
 
     {
-        double test_value = NumberConverter::TextToDouble(buf, len, dec);
-        double diff = test_value - no_mask_val;
+        const double test_value = NumberConverter::TextToDouble(buf, len, dec);
+        const double diff = test_value - no_mask_val;
         ASSERT(fabs(diff) < 0.00000001);
     }
 
 #endif
 
     return value;
+}
+
+
+double chartodval(const std::string_view buffer_sv, const int decimals)
+{
+    const std::wstring wide_buffer = UTF8_TODO::GetWide(buffer_sv);
+    return chartodval(wide_buffer.c_str(), wide_buffer.length(), decimals);
 }

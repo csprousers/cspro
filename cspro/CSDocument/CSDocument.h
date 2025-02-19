@@ -8,14 +8,14 @@ class CSDocumentApp : public CWinAppEx
 public:
     CSDocumentApp();
 
-    static bool DocumentCanBeOpenedDirectly(const std::wstring& filename);
+    static bool DocumentCanBeOpenedDirectly(const std::string& file_path);
 
-    bool HasDocSetParametersForNextOpen(const std::wstring& filename) const;
+    bool HasDocSetParametersForNextOpen(const std::string& file_path) const;
     void SetDocSetParametersForNextOpen(DocSetComponent doc_set_component, std::shared_ptr<DocSetSpec> doc_set_spec);
     std::tuple<std::shared_ptr<DocSetSpec>, DocSetComponent::Type> ReleaseDocSetParametersForNextOpen();
 
     CDocument* OpenDocumentFile(LPCTSTR lpszFileName) override;
-	CDocument* OpenDocumentFile(LPCTSTR lpszFileName, BOOL bAddToMRU) override;
+    CDocument* OpenDocumentFile(LPCTSTR lpszFileName, BOOL bAddToMRU) override;
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -39,15 +39,15 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline bool CSDocumentApp::DocumentCanBeOpenedDirectly(const std::wstring& filename)
+inline bool CSDocumentApp::DocumentCanBeOpenedDirectly(const std::string& file_path)
 {
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
     return SO::EqualsOneOfNoCase(extension, FileExtensions::CSDocument, FileExtensions::CSDocumentSet);
 }
 
 
-inline bool CSDocumentApp::HasDocSetParametersForNextOpen(const std::wstring& filename) const
+inline bool CSDocumentApp::HasDocSetParametersForNextOpen(const std::string& file_path) const
 {
     return ( m_docSetParametersForNextOpen.has_value() &&
-             SO::EqualsNoCase(filename, std::get<0>(*m_docSetParametersForNextOpen).filename) );
+             SO::EqualsNoCase(file_path, std::get<0>(*m_docSetParametersForNextOpen).file_path) );
 }

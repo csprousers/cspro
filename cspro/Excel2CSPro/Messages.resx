@@ -186,14 +186,8 @@
   <data name="ViewSourceCode" xml:space="preserve">
     <value>You can view the source code here: {0}</value>
   </data>
-  <data name="DataFileFilter" xml:space="preserve">
-    <value>CSPro DB Files (*.csdb)|*.csdb|Encrypted CSPro DB Files (*.csdbe)|*.csdbe|Text Data Files (*.dat)|*.dat|All Files (*.*)|*.*</value>
-  </data>
   <data name="DataLabelFilter" xml:space="preserve">
-    <value>Output data file: {0}</value>
-  </data>
-  <data name="DataSaveTitle" xml:space="preserve">
-    <value>Save CSPro Data File</value>
+    <value>Output data source: {0}</value>
   </data>
   <data name="DictionaryLabelFilter" xml:space="preserve">
     <value>{0}: {1}</value>
@@ -211,7 +205,7 @@
     <value>There was an error reading the dictionary.</value>
   </data>
   <data name="DataWriteError" xml:space="preserve">
-    <value>There was an error writing the data file.</value>
+    <value>There was an error writing the data source.</value>
   </data>
   <data name="MappingUnassigned" xml:space="preserve">
     <value>&lt;unassigned&gt;</value>
@@ -243,8 +237,8 @@
   <data name="PrerunCheckMappingNoIdsDefined" xml:space="preserve">
     <value>You must map at least one ID item to a column.</value>
   </data>
-  <data name="PrerunCheckNoDataFile" xml:space="preserve">
-    <value>You must specify a CSPro output data file.</value>
+  <data name="PrerunCheckNoDataSource" xml:space="preserve">
+    <value>You must specify a CSPro output data source.</value>
   </data>
   <data name="PrerunCheckNoDictionary" xml:space="preserve">
     <value>You must specify a CSPro dictionary.</value>

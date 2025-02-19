@@ -150,8 +150,9 @@ private:
 public:
     int CompileProc(Symbol* symbol);
 
-    void CompileExternalCode();
-    virtual void CompileExternalCode(const CodeFile& code_file);
+private:
+    void CompileExternalCodeLogic(const CodeFile& code_file) override;
+    void CompileExternalCodeJavaScript(const CodeFile& code_file) override;
 
 public:
     int     GetRelationSymbol(int symbol_index);
@@ -553,8 +554,6 @@ public:
     void    SetHasBreakBy(bool bHasBreakBy) { m_bHasBreakBy = bHasBreakBy; }
     bool    GetHasBreakBy() const           { return m_bHasBreakBy; }
 
-    void    CheckUnusedFileNames();
-
     // BasicTokenCompiler overrides
 protected:
     const LogicSettings& GetLogicSettings() const override;
@@ -569,7 +568,7 @@ protected:
     void MarkSymbolAsUsed(Symbol& symbol) override;
 
 public:
-    Logic::ParserMessage CreateParserMessageFromIssaError(MessageType message_type, int message_number, std::wstring message_text) const;
+    Logic::ParserMessage CreateParserMessageFromIssaError(MessageType message_type, int message_number, const std::string& message_text) const;
 
     const Logic::ProcDirectory* CreateProcDirectory();
     const Logic::ProcDirectoryEntry* GetProcDirectoryEntry(int symbol_index) const;

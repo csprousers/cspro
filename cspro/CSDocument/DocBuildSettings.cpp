@@ -70,7 +70,7 @@ DocBuildSettings DocBuildSettings::DefaultSettingsForCSDocBuildToPdf()
 }
 
 
-DocBuildSettings DocBuildSettings::DefaultSettingsForBuildType(BuildType build_type)
+DocBuildSettings DocBuildSettings::DefaultSettingsForBuildType(const BuildType build_type)
 {
     if( build_type == BuildType::Pdf )
         return DefaultSettingsForCSDocBuildToPdf();
@@ -83,7 +83,7 @@ DocBuildSettings DocBuildSettings::DefaultSettingsForBuildType(BuildType build_t
     {
         build_settings.m_buildDocumentsUsingRelativePaths = true;
         build_settings.m_stylesheetAction = StylesheetAction::Directory;
-        build_settings.m_stylesheetDirectory = _T("css");
+        build_settings.m_stylesheetDirectory = "css";
         build_settings.m_titleLinkageAction = TitleLinkageAction::Suppress;
         build_settings.m_docSetLinkageAction = DocSetLinkageAction::Link;
         build_settings.m_projectLinkageAction = ProjectLinkageAction::Link;
@@ -92,27 +92,27 @@ DocBuildSettings DocBuildSettings::DefaultSettingsForBuildType(BuildType build_t
         build_settings.m_imageAction = ImageAction::RelativeToOutput;
     }
 
-    else 
+    else
     {
         ASSERT(build_type == BuildType::Chm);
 
         build_settings.m_buildDocumentsUsingRelativePaths = false;
         build_settings.m_stylesheetAction = StylesheetAction::Directory;
-        build_settings.m_stylesheetDirectory = _T(".");
+        build_settings.m_stylesheetDirectory = ".";
         build_settings.m_titleLinkageAction = TitleLinkageAction::Suppress;
         build_settings.m_docSetLinkageAction = DocSetLinkageAction::Link;
         build_settings.m_projectLinkageAction = ProjectLinkageAction::Link;
         build_settings.m_externalLinkageAction = ExternalLinkageAction::Suppress;
         build_settings.m_logicLinkageAction = LogicLinkageAction::CSProUsers;
         build_settings.m_imageAction = ImageAction::Directory;
-        build_settings.m_imageDirectory = _T(".");
+        build_settings.m_imageDirectory = ".";
     }
 
     return build_settings;
 }
 
 
-void DocBuildSettings::FixIncompatibleSettingsForBuildType(bool throw_exceptions_for_serious_issues)
+void DocBuildSettings::FixIncompatibleSettingsForBuildType(const bool throw_exceptions_for_serious_issues)
 {
     if( GetBuildType() == BuildType::Chm ||
         GetBuildType() == BuildType::Pdf )
@@ -163,9 +163,9 @@ bool DocBuildSettings::HasCustomSettings() const
 }
 
 
-std::tuple<std::wstring, std::wstring, bool>* DocBuildSettings::FindPathAdjustment(const std::wstring& path)
+std::tuple<std::string, std::string, bool>* DocBuildSettings::FindPathAdjustment(const std::string& path)
 {
-    for( std::tuple<std::wstring, std::wstring, bool>& path_and_adjustment : m_pathAdjustments )
+    for( std::tuple<std::string, std::string, bool>& path_and_adjustment : m_pathAdjustments )
     {
         if( SO::EqualsNoCase(std::get<0>(path_and_adjustment), path) )
             return &path_and_adjustment;
@@ -175,15 +175,15 @@ std::tuple<std::wstring, std::wstring, bool>* DocBuildSettings::FindPathAdjustme
 }
 
 
-bool DocBuildSettings::ContainsChmButton(const std::tuple<std::wstring, std::wstring>& link_and_text) const
+bool DocBuildSettings::ContainsChmButton(const std::tuple<std::string, std::string>& link_and_text) const
 {
     return ( std::find(m_chmButtons.cbegin(), m_chmButtons.cend(), link_and_text) != m_chmButtons.cend() );
 }
 
 
-std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::wstring, std::wstring>* DocBuildSettings::FindWkhtmltopdfFlag(WkhtmltopdfFlagType type, const std::wstring& flag)
+std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::string, std::string>* DocBuildSettings::FindWkhtmltopdfFlag(const WkhtmltopdfFlagType type, const std::string& flag)
 {
-    for( std::tuple<WkhtmltopdfFlagType, std::wstring, std::wstring>& type_flag_and_value : m_wkhtmltopdfFlags )
+    for( std::tuple<WkhtmltopdfFlagType, std::string, std::string>& type_flag_and_value : m_wkhtmltopdfFlags )
     {
         if( std::get<0>(type_flag_and_value) == type &&
             std::get<1>(type_flag_and_value) == flag )
@@ -208,7 +208,7 @@ DocBuildSettings DocBuildSettings::ApplySettings(DocBuildSettings base_build_set
 
     for( const auto& [other_path, other_adjustment, other_relative_to_path] : other_build_settings.m_pathAdjustments )
     {
-        std::tuple<std::wstring, std::wstring, bool>* existing_path_and_adjustment = base_build_settings.FindPathAdjustment(other_path);
+        std::tuple<std::string, std::string, bool>* const existing_path_and_adjustment = base_build_settings.FindPathAdjustment(other_path);
 
         if( existing_path_and_adjustment != nullptr )
         {
@@ -241,7 +241,7 @@ DocBuildSettings DocBuildSettings::ApplySettings(DocBuildSettings base_build_set
     assign_if_has_value(base_build_settings.m_imageAction, other_build_settings.m_imageAction);
     assign_if_not_empty(base_build_settings.m_imageDirectory, other_build_settings.m_imageDirectory);
 
-    for( const std::tuple<std::wstring, std::wstring>& other_link_and_text : other_build_settings.m_chmButtons )
+    for( const std::tuple<std::string, std::string>& other_link_and_text : other_build_settings.m_chmButtons )
     {
         if( !base_build_settings.ContainsChmButton(other_link_and_text) )
             base_build_settings.m_chmButtons.emplace_back(other_link_and_text);
@@ -249,7 +249,7 @@ DocBuildSettings DocBuildSettings::ApplySettings(DocBuildSettings base_build_set
 
     for( const auto& [other_type, other_flag, other_value] : other_build_settings.m_wkhtmltopdfFlags )
     {
-        std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::wstring, std::wstring>* existing_type_flag_and_value = base_build_settings.FindWkhtmltopdfFlag(other_type, other_flag);
+        std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::string, std::string>* const existing_type_flag_and_value = base_build_settings.FindWkhtmltopdfFlag(other_type, other_flag);
 
         if( existing_type_flag_and_value != nullptr )
         {
@@ -266,10 +266,10 @@ DocBuildSettings DocBuildSettings::ApplySettings(DocBuildSettings base_build_set
 }
 
 
-std::wstring DocBuildSettings::GetEvaluatedOutputName(const DocSetSpec& doc_set_spec) const
+std::string DocBuildSettings::GetEvaluatedOutputName(const DocSetSpec& doc_set_spec) const
 {
-    return m_outputName.empty() ? PortableFunctions::PathGetFilenameWithoutExtension(doc_set_spec.GetFilename()) : 
-                                  m_outputName;                                                                                          
+    return m_outputName.empty() ? Path::GetFilenameWithoutExtension(doc_set_spec.GetFilePath()) :
+                                  m_outputName;
 }
 
 
@@ -372,12 +372,12 @@ CREATE_ENUM_JSON_SERIALIZER(DocBuildSettings::WkhtmltopdfFlagType,
     { DocBuildSettings::WkhtmltopdfFlagType::Page,            JV::page })
 
 
-void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node)
+void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode& json_node)
 {
     // output directory
     if( json_node.Contains(JK::outputDirectory) )
     {
-        std::wstring output_directory = json_node.GetAbsolutePath(JK::outputDirectory);
+        std::string output_directory = json_node.GetAbsolutePath(JK::outputDirectory);
 
         if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::outputDirectory, output_directory, m_outputDirectory) )
             m_outputDirectory = std::move(output_directory);
@@ -386,7 +386,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     // output name
     if( json_node.Contains(JK::outputName) )
     {
-        std::wstring output_name = json_node.Get<std::wstring>(JK::outputName);
+        std::string output_name = json_node.Get<std::string>(JK::outputName);
 
         if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::outputName, output_name, m_outputName) )
             m_outputName = std::move(output_name);
@@ -399,18 +399,18 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     // path adjustments
     if( json_node.Contains(JK::pathAdjustments) )
     {
-        for( const auto& path_adjustment_node : json_node.GetArray(JK::pathAdjustments) )
+        for( const JsonNode& path_adjustment_node : json_node.GetArray(JK::pathAdjustments) )
         {
-            std::wstring path = path_adjustment_node.GetAbsolutePath(JK::path);
+            std::string path = path_adjustment_node.GetAbsolutePath(JK::path);
 
-            if( !doc_set_compiler.CheckIfDirectoryExists(_T("path adjustment"), path) )
+            if( !doc_set_compiler.CheckIfDirectoryExists("path adjustment", path) )
                 continue;
 
             const bool relative_to_path = path_adjustment_node.GetOrDefault(JK::relativeToPath, true);
-            std::wstring adjustment = relative_to_path ? path_adjustment_node.Get<std::wstring>(JK::adjustment) :
-                                                         path_adjustment_node.GetAbsolutePath(JK::adjustment);
+            std::string adjustment = relative_to_path ? path_adjustment_node.Get<std::string>(JK::adjustment) :
+                                                        path_adjustment_node.GetAbsolutePath(JK::adjustment);
 
-            std::tuple<std::wstring, std::wstring, bool>* existing_path_and_adjustment = FindPathAdjustment(path);
+            std::tuple<std::string, std::string, bool>* const existing_path_and_adjustment = FindPathAdjustment(path);
 
             if( existing_path_and_adjustment != nullptr )
             {
@@ -440,7 +440,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     {
         if( json_node.Contains(JK::stylesheetOutputDirectory) )
         {
-            std::wstring stylesheet_directory = json_node.Get<std::wstring>(JK::stylesheetOutputDirectory);
+            std::string stylesheet_directory = json_node.Get<std::string>(JK::stylesheetOutputDirectory);
 
             if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::stylesheetOutputDirectory, stylesheet_directory, m_stylesheetDirectory) )
                 m_stylesheetDirectory = std::move(stylesheet_directory);
@@ -448,8 +448,8 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
         if( m_stylesheetDirectory.empty() )
         {
-            doc_set_compiler.AddError(FormatTextCS2WS(_T("When copying stylesheets to a specific directory, you must specify the directory with the key '%s'."),
-                                                      JK::stylesheetOutputDirectory));
+            doc_set_compiler.AddError("When copying stylesheets to a specific directory, you must specify the directory with the key '%s'.",
+                                      JK::stylesheetOutputDirectory);
         }
     }
 
@@ -461,7 +461,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     {
         if( json_node.Contains(JK::titleLinkPrefix) )
         {
-            std::wstring title_link_prefix = json_node.Get<std::wstring>(JK::titleLinkPrefix);
+            std::string title_link_prefix = json_node.Get<std::string>(JK::titleLinkPrefix);
 
             if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::titleLinkPrefix, title_link_prefix, m_titleLinkPrefix) )
                 m_titleLinkPrefix = std::move(title_link_prefix);
@@ -469,8 +469,8 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
         if( m_titleLinkPrefix.empty() )
         {
-            doc_set_compiler.AddError(FormatTextCS2WS(_T("When creating links around titles, you must specify the prefix with the key '%s'."),
-                                                      JK::titleLinkPrefix));
+            doc_set_compiler.AddError("When creating links around titles, you must specify the prefix with the key '%s'.",
+                                      JK::titleLinkPrefix);
         }
     }
 
@@ -490,7 +490,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     {
         if( json_node.Contains(JK::externalLinkDirectory) )
         {
-            std::wstring external_link_directory = json_node.Get<std::wstring>(JK::externalLinkDirectory);
+            std::string external_link_directory = json_node.Get<std::string>(JK::externalLinkDirectory);
 
             if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::externalLinkDirectory, external_link_directory, m_externalLinkDirectory) )
                 m_externalLinkDirectory = std::move(external_link_directory);
@@ -498,8 +498,8 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
         if( m_externalLinkDirectory.empty() )
         {
-            doc_set_compiler.AddError(FormatTextCS2WS(_T("When indicating that external CSPro Documents will be built to specific directory, you must specify the directory with the key '%s'."),
-                                                      JK::externalLinkDirectory));
+            doc_set_compiler.AddError("When indicating that external CSPro Documents will be built to specific directory, you must specify the directory with the key '%s'.",
+                                      JK::externalLinkDirectory);
         }
     }
 
@@ -515,7 +515,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
     {
         if( json_node.Contains(JK::imageOutputDirectory) )
         {
-            std::wstring image_directory = json_node.Get<std::wstring>(JK::imageOutputDirectory);
+            std::string image_directory = json_node.Get<std::string>(JK::imageOutputDirectory);
 
             if( doc_set_compiler.CheckIfOverridesWithNewValue(JK::imageOutputDirectory, image_directory, m_imageDirectory) )
                 m_imageDirectory = std::move(image_directory);
@@ -523,22 +523,22 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
         if( m_imageDirectory.empty() )
         {
-            doc_set_compiler.AddError(FormatTextCS2WS(_T("When copying images to a specific directory, you must specify the directory with the key '%s'."),
-                                                      JK::imageOutputDirectory));
+            doc_set_compiler.AddError("When copying images to a specific directory, you must specify the directory with the key '%s'.",
+                                      JK::imageOutputDirectory);
         }
     }
 
     // CHM buttons
     if( json_node.Contains(JK::chmButtons) )
     {
-        const auto& chm_buttons_node = json_node.Get(JK::chmButtons);
+        const JsonNode chm_buttons_node = json_node.Get(JK::chmButtons);
 
         if( doc_set_compiler.EnsureJsonNodeIsArray(chm_buttons_node, JK::chmButtons) )
         {
-            for( const auto& chm_button_node : chm_buttons_node.GetArray() )
+            for( const JsonNode& chm_button_node : chm_buttons_node.GetArray() )
             {
-                std::tuple<std::wstring, std::wstring> link_and_text(doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(chm_button_node, JK::link),
-                                                                     doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(chm_button_node, JK::text));
+                std::tuple<std::string, std::string> link_and_text(doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(chm_button_node, JK::link),
+                                                                   doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(chm_button_node, JK::text));
 
                 if( !ContainsChmButton(link_and_text) )
                     m_chmButtons.emplace_back(std::move(link_and_text));
@@ -547,27 +547,27 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
         while( m_chmButtons.size() > 2 )
         {
-            doc_set_compiler.AddError(FormatTextCS2WS(_T("Only two buttons can be added to a Compiled HTML Help file so the button with text '%s' will be removed."),
-                                                      std::get<1>(m_chmButtons.back()).c_str()));
+            doc_set_compiler.AddError("Only two buttons can be added to a Compiled HTML Help file so the button with text '%s' will be removed.",
+                                      std::get<1>(m_chmButtons.back()).c_str());
             m_chmButtons.pop_back();
         }
-    }    
+    }
 
     // wkhtmltopdf flags
     if( json_node.Contains(JK::wkhtmltopdfFlags) )
     {
-        const auto& flags_node = json_node.Get(JK::wkhtmltopdfFlags);
+        const JsonNode flags_node = json_node.Get(JK::wkhtmltopdfFlags);
 
         if( doc_set_compiler.EnsureJsonNodeIsArray(flags_node, JK::wkhtmltopdfFlags) )
         {
-            for( const auto& flag_node : flags_node.GetArray() )
+            for( const JsonNode& flag_node : flags_node.GetArray() )
             {
                 // flags can be specified as strings (which default to the Global type),
                 // or as objects, with an optional type and value
                 WkhtmltopdfFlagType type = WkhtmltopdfFlagType::Global;
-                std::wstring flag = flag_node.IsObject() ? flag_node.Get<std::wstring>(JK::flag) :
-                                                           flag_node.Get<std::wstring>();
-                std::wstring value;
+                std::string flag = flag_node.IsObject() ? flag_node.Get<std::string>(JK::flag) :
+                                                          flag_node.Get<std::string>();
+                std::string value;
                 bool value_was_null = false;
 
                 if( flag_node.IsObject() )
@@ -577,15 +577,15 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 
                     if( flag_node.Contains(JK::value) )
                     {
-                        const auto& value_node = flag_node.Get(JK::value);
+                        const JsonNode value_node = flag_node.Get(JK::value);
                         value_was_null = value_node.IsNull();
 
                         if( !value_was_null )
-                            value = value_node.Get<std::wstring>();
+                            value = value_node.Get<std::string>();
                     }
                 }
 
-                std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::wstring, std::wstring>* existing_type_flag_and_value = FindWkhtmltopdfFlag(type, flag);
+                std::tuple<DocBuildSettings::WkhtmltopdfFlagType, std::string, std::string>* const existing_type_flag_and_value = FindWkhtmltopdfFlag(type, flag);
 
                 // add a new flag
                 if( existing_type_flag_and_value == nullptr )
@@ -596,7 +596,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
                 // clear an existing one
                 else if( value_was_null )
                 {
-                    size_t index_to_delete = existing_type_flag_and_value - m_wkhtmltopdfFlags.data();
+                    const size_t index_to_delete = existing_type_flag_and_value - m_wkhtmltopdfFlags.data();
                     m_wkhtmltopdfFlags.erase(m_wkhtmltopdfFlags.cbegin() + index_to_delete);
                 }
 
@@ -611,7 +611,7 @@ void DocBuildSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<
 }
 
 
-void DocBuildSettings::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/* = true*/) const
+void DocBuildSettings::WriteJson(JsonWriter& json_writer, const bool write_to_new_json_object/* = true*/) const
 {
     if( write_to_new_json_object )
         json_writer.BeginObject();
@@ -624,7 +624,7 @@ void DocBuildSettings::WriteJson(JsonWriter& json_writer, bool write_to_new_json
     json_writer.WriteIfHasValue(JK::buildType, m_buildType);
 
     json_writer.WriteArrayIfNotEmpty(JK::pathAdjustments, m_pathAdjustments,
-        [&](const std::tuple<std::wstring, std::wstring, bool>& path_and_adjustment)
+        [&](const std::tuple<std::string, std::string, bool>& path_and_adjustment)
         {
             json_writer.BeginObject()
                        .WriteRelativePathWithDirectorySupport(JK::path, std::get<0>(path_and_adjustment));
@@ -644,7 +644,7 @@ void DocBuildSettings::WriteJson(JsonWriter& json_writer, bool write_to_new_json
         });
 
     json_writer.WriteIfHasValue(JK::buildDocumentsUsingRelativePaths, m_buildDocumentsUsingRelativePaths);
-    
+
     if( m_stylesheetAction.has_value() )
     {
         json_writer.Write(JK::stylesheetOutput, *m_stylesheetAction);
@@ -683,19 +683,19 @@ void DocBuildSettings::WriteJson(JsonWriter& json_writer, bool write_to_new_json
     }
 
     json_writer.WriteArrayIfNotEmpty(JK::chmButtons, m_chmButtons,
-        [&](const std::tuple<std::wstring, std::wstring>& link_and_text)
+        [&](const std::tuple<std::string, std::string>& link_and_text)
         {
             const JsonWriter::FormattingHolder json_formatting_holder = json_writer.SetFormattingType(JsonFormattingType::ObjectArraySingleLineSpacing);
             json_writer.BeginObject();
             json_writer.SetFormattingAction(JsonFormattingAction::TopmostObjectLineSplitSameLine);
-            
+
             json_writer.Write(JK::text, std::get<1>(link_and_text))
                        .Write(JK::link, std::get<0>(link_and_text))
                        .EndObject();
         });
 
     json_writer.WriteArrayIfNotEmpty(JK::wkhtmltopdfFlags, m_wkhtmltopdfFlags,
-        [&](const std::tuple<WkhtmltopdfFlagType, std::wstring, std::wstring>& type_flag_and_value)
+        [&](const std::tuple<WkhtmltopdfFlagType, std::string, std::string>& type_flag_and_value)
         {
             const JsonWriter::FormattingHolder json_formatting_holder = json_writer.SetFormattingType(JsonFormattingType::ObjectArraySingleLineSpacing);
             json_writer.BeginObject();
@@ -712,11 +712,11 @@ void DocBuildSettings::WriteJson(JsonWriter& json_writer, bool write_to_new_json
 }
 
 
-template<> std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(wstring_view text_sv)
+template<> std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(const std::string_view text_sv)
 {
     return SO::Equals(text_sv, JV::HTML)    ? std::make_optional(DocBuildSettings::BuildType::HtmlPages) :
-           SO::Equals(text_sv, JV::website) ? std::make_optional(DocBuildSettings::BuildType::HtmlWebsite) : 
-           SO::Equals(text_sv, JV::CHM)     ? std::make_optional(DocBuildSettings::BuildType::Chm) : 
+           SO::Equals(text_sv, JV::website) ? std::make_optional(DocBuildSettings::BuildType::HtmlWebsite) :
+           SO::Equals(text_sv, JV::CHM)     ? std::make_optional(DocBuildSettings::BuildType::Chm) :
            SO::Equals(text_sv, JV::PDF)     ? std::make_optional(DocBuildSettings::BuildType::Pdf) :
                                               std::nullopt;
 }

@@ -22,7 +22,7 @@ private:
     COperatorStatisticsLog*  m_pOperatorStatisticsLog;
     bool                     m_bInteractiveEdit;
     MessageOverrides         m_messageOverrides;
-    std::unique_ptr<CString> m_windowTitleOverride;
+    std::unique_ptr<std::string> m_windowTitleOverride;
 
 public:
     COperatorStatisticsLog* GetOperatorStatisticsLog() { return m_pOperatorStatisticsLog; }
@@ -71,9 +71,9 @@ public:
 
     void IncVerifiedField(void);
 
-    CString MakeTitle(bool reset_to_default = false);
-    CString GetWindowTitle();
-    void SetWindowTitle(const CString& window_title);
+    std::string MakeTitle(bool reset_to_default = false);
+    std::string GetWindowTitle() const;
+    void SetWindowTitle(std::string window_title);
 
     bool IsPartialAdd() {
         bool bRet = false;

@@ -21,7 +21,7 @@ public:
 
     void Clear();
 
-    void AddText(std::wstring text);
+    void AddText(SharableString text);
 
 protected:
     virtual void AddAdditionalContextMenuItems(CMenu& popup_menu);
@@ -29,10 +29,8 @@ protected:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    void PreSubclassWindow() override;
-
-	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) override;
-	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
+    void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) override;
+    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
 
     void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
     BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
@@ -56,6 +54,10 @@ protected:
     void OnUpdateSaveLines(CCmdUI* pCmdUI);
 
 private:
+    // the mutex must be locked by the calling method; the pointer returned is non-null
+    const std::wstring* GetWideLine(size_t index, bool line_is_for_displaying);
+
+private:
     LOGFONT m_logfont;
     CFont m_font;
     std::tuple<size_t, LONG> m_maxLineLengthAndHorizontalExtent;
@@ -64,6 +66,13 @@ private:
     int m_pendingMouseWheelActions;
     bool m_userScrolledManually;
 
-    std::vector<std::unique_ptr<std::wstring>> m_lines;
+    struct Line
+    {
+        SharableString utf8_line;
+        std::unique_ptr<std::wstring> wide_line;
+        std::unique_ptr<std::wstring> wide_line_for_display;
+    };
+
+    std::vector<Line> m_lines;
     std::mutex m_linesMutex;
 };

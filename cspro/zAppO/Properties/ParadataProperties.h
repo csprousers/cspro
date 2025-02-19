@@ -2,10 +2,6 @@
 
 #include <zAppO/zAppO.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 class ZAPPO_API ParadataProperties
 {
@@ -38,16 +34,16 @@ public:
     int GetGpsLocationIntervalMinutes() const { return m_gpsLocationIntervalMinutes; }
     void SetGpsLocationIntervalMinutes(int minutes);
 
-    const std::set<std::wstring>& GetEventNames() const    { return m_eventNames; }
-    void SetEventNames(std::set<std::wstring> event_names) { m_eventNames = std::move(event_names); }
+    const std::set<std::string>& GetEventNames() const    { return m_eventNames; }
+    void SetEventNames(std::set<std::string> event_names) { m_eventNames = std::move(event_names); }
 
-    bool IncludeEvent(CollectionType collection_type, const std::wstring& event_name) const;
-    bool IncludeEvent(const std::wstring& event_name) const { return IncludeEvent(m_collectionType, event_name); }
+    bool IncludeEvent(CollectionType collection_type, const char* event_name) const;
+    bool IncludeEvent(const char* event_name) const { return IncludeEvent(m_collectionType, event_name); }
 
 
     // serialization
-    // -----------------------------------------------------
-    static ParadataProperties CreateFromJson(const JsonNode<wchar_t>& json_node);
+    // --------------------------------------------------------------------------
+    static ParadataProperties CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
@@ -61,5 +57,5 @@ private:
     bool m_recordInitialPropertyValues;
     int m_deviceStateIntervalMinutes;
     int m_gpsLocationIntervalMinutes;
-    std::set<std::wstring> m_eventNames;
+    std::set<std::string> m_eventNames;
 };

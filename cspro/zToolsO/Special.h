@@ -24,10 +24,10 @@ public:
 
      // can return: bool, const double*, std::optional<double>
      template<typename T = bool>
-     static T StringIsSpecial(wstring_view text_sv);
+     static T StringIsSpecial(std::string_view text_sv);
 
-     static double StringToValue(wstring_view text_sv);
-     static const TCHAR* const ValueToString(double value, bool all_caps_version = true);
+     static double StringToValue(std::string_view text_sv);
+     static const char* const ValueToString(double value, bool all_caps_version = true);
 
      static double SmallestSpecialValue() { return m_MISSING; }
      static double LargestSpecialValue()  { return m_REFUSED; }
@@ -48,4 +48,11 @@ public:
 inline bool IsSpecial(double value)
 {
     return ( value >= MAXVALUE );
+}
+
+
+// IsTrue can be used to evaluate a value as a conditional with processing for special values
+inline bool IsTrue(double value)
+{
+    return ( value != 0 && !IsSpecial(value) );
 }

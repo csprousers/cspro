@@ -395,12 +395,12 @@ void CCustMsg::CalcRMsgDims()
     // Get size of error message
     CFont* pOldFont = dc.SelectObject(&m_ErrorFont1);
     m_rectErr = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(MGF::OutOfRangeOperatorControlledTitle).c_str(), &m_rectErr, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(MGF::OutOfRangeOperatorControlledTitle).GetString()).c_str(), &m_rectErr, DT_CALCRECT);
 
     // Get size of instructions
     dc.SelectObject(&m_ErrorFont2);
     m_rectInst = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterValidValue).c_str(), &m_rectInst, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterValidValue).GetString()).c_str(), &m_rectInst, DT_CALCRECT);
     dc.SelectObject(pOldFont);
 
     // Calc size of window
@@ -460,7 +460,7 @@ void CCustMsg::CalcGMsgDims()
     m_rectInst = CRect(0,0,100,100);
 
     const std::wstring& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
-                                                                                 MGF::GetMessageText(MGF::PressF8ToClear);
+                                                                                 UTF8_TODO::GetWide(MGF::GetMessageText(MGF::PressF8ToClear).GetString());
     dc.DrawText(clear_text.c_str(), &m_rectInst, DT_CALCRECT);
 
     // Get size of message
@@ -504,12 +504,12 @@ void CCustMsg::CalcSMsgDims()
     // Get size of error message
     CFont* pOldFont = dc.SelectObject(&m_ErrorFont1);
     m_rectErr = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(MGF::OutOfSequenceTitle).c_str(), &m_rectErr, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(MGF::OutOfSequenceTitle).GetString()).c_str(), &m_rectErr, DT_CALCRECT);
 
     // Get size of instructions
     dc.SelectObject(&m_ErrorFont2);
     m_rectInst = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterCorrectValue).c_str(), &m_rectInst, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterCorrectValue).GetString()).c_str(), &m_rectInst, DT_CALCRECT);
     dc.SelectObject(pOldFont);
 
     // Calc size of window
@@ -548,12 +548,12 @@ void CCustMsg::CalcVMsgDims()
     // Get size of error message
     CFont* pOldFont = dc.SelectObject(&m_ErrorFont1);
     m_rectErr = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(MGF::VerifyFieldNotMatch).c_str(), &m_rectErr, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(MGF::VerifyFieldNotMatch).GetString()).c_str(), &m_rectErr, DT_CALCRECT);
 
     // Get size of instructions
     dc.SelectObject(&m_ErrorFont2);
     m_rectInst = CRect(0,0,100,100);
-    dc.DrawText(MGF::GetMessageText(MGF::VerifyReenter).c_str(), &m_rectInst, DT_CALCRECT);
+    dc.DrawText(TC::ToWide(MGF::GetMessageText(MGF::VerifyReenter).GetString()).c_str(), &m_rectInst, DT_CALCRECT);
     dc.SelectObject(pOldFont);
 
     // Calc size of window
@@ -617,7 +617,7 @@ void CCustMsg::DrawRMsg(CDC* pDC)
     // Display error message
     CFont* pOldFont = pDC->SelectObject(&m_ErrorFont1);
     pDC->SetTextColor(RGB(0,0,255));
-    pDC->DrawText(MGF::GetMessageText(MGF::OutOfRangeOperatorControlledTitle).c_str(), m_rectErr, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(MGF::OutOfRangeOperatorControlledTitle).GetString()).c_str(), m_rectErr, DT_CENTER);
 
     // Display line
     CPen penCell(PS_SOLID, 1, RGB(0,0,0));
@@ -627,7 +627,7 @@ void CCustMsg::DrawRMsg(CDC* pDC)
     // Display instructions
     pDC->SelectObject(&m_ErrorFont2);
     pDC->SetTextColor(RGB(0,0,0));
-    pDC->DrawText(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterValidValue).c_str(), m_rectInst, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterValidValue).GetString()).c_str(), m_rectInst, DT_CENTER);
     pDC->SelectObject(pOldFont);
 }
 
@@ -656,7 +656,7 @@ void CCustMsg::DrawGMsg(CDC* pDC)
     pDC->SetTextColor(RGB(0,0,0));
 
     const std::wstring& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
-                                                                                 MGF::GetMessageText(MGF::PressF8ToClear);
+                                                                                 UTF8_TODO::GetWide(MGF::GetMessageText(MGF::PressF8ToClear).GetString());
     pDC->DrawText(clear_text.c_str(), m_rectInst, DT_CENTER);
 
     if (m_sMsgNum  != _T("")) {
@@ -678,7 +678,7 @@ void CCustMsg::DrawSMsg(CDC *pDC)
     // Display error message
     CFont* pOldFont = pDC->SelectObject(&m_ErrorFont1);
     pDC->SetTextColor(RGB(0,0,255));
-    pDC->DrawText(MGF::GetMessageText(MGF::OutOfSequenceTitle).c_str(), m_rectErr, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(MGF::OutOfSequenceTitle).GetString()).c_str(), m_rectErr, DT_CENTER);
 
     // Display line
     CPen penCell(PS_SOLID, 1, RGB(0,0,0));
@@ -688,7 +688,7 @@ void CCustMsg::DrawSMsg(CDC *pDC)
     // Display instructions
     pDC->SelectObject(&m_ErrorFont2);
     pDC->SetTextColor(RGB(0,0,0));
-    pDC->DrawText(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterCorrectValue).c_str(), m_rectInst, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(m_bCanForceOutOfRange ? MGF::EnterValidValueConfirm : MGF::EnterCorrectValue).GetString()).c_str(), m_rectInst, DT_CENTER);
     pDC->SelectObject(pOldFont);
 }
 
@@ -705,7 +705,7 @@ void CCustMsg::DrawVMsg(CDC *pDC)
     // Display error message
     CFont* pOldFont = pDC->SelectObject(&m_ErrorFont1);
     pDC->SetTextColor(RGB(0,128,0));
-    pDC->DrawText(MGF::GetMessageText(MGF::VerifyFieldNotMatch).c_str(), m_rectErr, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(MGF::VerifyFieldNotMatch).GetString()).c_str(), m_rectErr, DT_CENTER);
 
     // Display line
     CPen penCell(PS_SOLID, 1, RGB(0,0,0));
@@ -715,7 +715,7 @@ void CCustMsg::DrawVMsg(CDC *pDC)
     // Display instructions
     pDC->SelectObject(&m_ErrorFont2);
     pDC->SetTextColor(RGB(0,0,0));
-    pDC->DrawText(MGF::GetMessageText(MGF::VerifyReenter).c_str(), m_rectInst, DT_CENTER);
+    pDC->DrawText(TC::ToWide(MGF::GetMessageText(MGF::VerifyReenter).GetString()).c_str(), m_rectInst, DT_CENTER);
     pDC->SelectObject(pOldFont);
 }
 

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
+using WinFormsShared;
 using System.Windows.Forms;
 
 namespace Excel2CSPro
 {
     public interface ProgressFormWorker
     {
-        void RunTask(BackgroundWorker backgroundWorker);
+        void RunTask(BackgroundWorker backgroundWorker, CSPro.Data.Excel2CSPro.OnQueryUsernamePassword onQueryUsernamePassword);
     }
 
     partial class ProgressForm : Form
@@ -38,7 +39,21 @@ namespace Excel2CSPro
             _backgroundWorker.DoWork += new DoWorkEventHandler(
                 delegate(object o,DoWorkEventArgs args)
                 {
-                    task.RunTask(_backgroundWorker);
+                    CSPro.Data.Excel2CSPro.OnQueryUsernamePassword onQueryUsernamePassword = (bool showError) =>
+                    {
+                        return (CSPro.Data.Excel2CSPro.UsernamePassword)this.Invoke(new Func<CSPro.Data.Excel2CSPro.UsernamePassword>(() =>
+                        {
+                            var loginDlg = new LoginDialog();
+                            loginDlg.ShowError = showError;
+
+                            if( loginDlg.ShowDialog(this) != DialogResult.OK )
+                                return null;
+
+                            return new CSPro.Data.Excel2CSPro.UsernamePassword { username = loginDlg.Username, password = loginDlg.Password };
+                        }));
+                    };
+
+                    task.RunTask(_backgroundWorker, onQueryUsernamePassword);
                 });
 
             _backgroundWorker.ProgressChanged += new ProgressChangedEventHandler(

@@ -1,8 +1,8 @@
 ﻿#pragma once
 
+#include <zJson/zJson.h>
 #include <zJson/JsonNode.h>
 #include <zJson/JsonSerializer.h>
-#include <zToolsO/PortableFunctions.h>
 #include <zToolsO/SerializerHelper.h>
 
 
@@ -13,18 +13,13 @@
 class JsonWriter
 {
 public:
-    JsonWriter()
-        :   m_verbose(false)
-    {
-    }
-
+    JsonWriter();
     virtual ~JsonWriter() { }
 
     // --------------------------------------------------------------------------
     // key methods
     // --------------------------------------------------------------------------
     virtual JsonWriter& Key(std::string_view key_sv) = 0;
-    virtual JsonWriter& Key(wstring_view key_sv) = 0;
 
 
     // --------------------------------------------------------------------------
@@ -33,11 +28,7 @@ public:
     virtual JsonWriter& BeginObject() = 0;
     virtual JsonWriter& EndObject() = 0;
 
-    template<typename KeyType>
-    JsonWriter& BeginObject(KeyType key)
-    {
-        return Key(key).BeginObject();
-    }
+    JsonWriter& BeginObject(std::string_view key_sv);
 
 
     // --------------------------------------------------------------------------
@@ -46,11 +37,7 @@ public:
     virtual JsonWriter& BeginArray() = 0;
     virtual JsonWriter& EndArray() = 0;
 
-    template<typename KeyType>
-    JsonWriter& BeginArray(KeyType key)
-    {
-        return Key(key).BeginArray();
-    }
+    JsonWriter& BeginArray(std::string_view key_sv);
 
 
     // --------------------------------------------------------------------------
@@ -59,30 +46,7 @@ public:
     virtual JsonWriter& WriteNull() = 0;
 
     template<typename ValueType>
-    JsonWriter& Write(const ValueType& value)
-    {
-        if constexpr(JsonSerializerTester<ValueType>::HasWriteJson())
-        {
-            value.WriteJson(*this);
-        }
-
-        else if constexpr(JsonSerializerTester<JsonSerializer<ValueType>>::HasWriteJson())
-        {
-            JsonSerializer<ValueType>::WriteJson(*this, value);
-        }
-
-        else
-        {
-#if defined(WIN32) && !defined(_CONSOLE)
-            // this fails on Clang
-            static_assert(false, "create a JsonSerializer for ValueType");
-#else
-            static_assert_false();
-#endif
-        }
-
-        return *this;
-    }
+    JsonWriter& Write(const ValueType& value);
 
     virtual JsonWriter& Write(bool value) = 0;
 
@@ -90,11 +54,7 @@ public:
     virtual JsonWriter& Write(unsigned int value) = 0;
 
 #ifdef WASM
-    JsonWriter& Write(unsigned long value)
-    {
-        static_assert(sizeof(unsigned long) == sizeof(unsigned int));
-        return Write(static_cast<unsigned int>(value));
-    }
+    JsonWriter& Write(unsigned long value);
 #endif
 
     virtual JsonWriter& Write(int64_t value) = 0;
@@ -103,271 +63,105 @@ public:
     virtual JsonWriter& Write(double value) = 0;
 
     virtual JsonWriter& Write(std::string_view value_sv) = 0;
-    virtual JsonWriter& Write(wstring_view value_sv) = 0;
+    JsonWriter& Write(const std::string& value);
+    JsonWriter& Write(const SharableString& value);
+    JsonWriter& Write(const char* value);
+    JsonWriter& Write(const unsigned char* value);
+    JsonWriter& Write(cs::string_sz value);
 
-    virtual JsonWriter& Write(const JsonNode<char>& json_node) = 0;
-    virtual JsonWriter& Write(const JsonNode<wchar_t>& json_node) = 0;
+    ZJSON_API JsonWriter& Write(const std::wstring& value);
+    ZJSON_API JsonWriter& Write(const CString& value);
 
-    JsonWriter& Write(const char* value)
-    {
-        // to prevent Write(bool) from being called
-        return Write(std::string_view(value));
-    }
-
-    JsonWriter& Write(const unsigned char* value)
-    {
-        // to prevent Write(bool) from being called
-        return Write(std::string_view(reinterpret_cast<const char*>(value)));
-    }
-
-    JsonWriter& Write(const wchar_t* value)
-    {
-        // to prevent Write(bool) from being called
-        return Write(wstring_view(value));
-    }
-
-    JsonWriter& Write(const CString& value)
-    {
-        // necessary to allow CString writing when used in templates (like writing a vector of CStrings)
-        return Write(wstring_view(value));
-    }
-
-    JsonWriter& Write(const std::wstring& value)
-    {
-        // necessary to allow std::wstring writing on Clang
-        return Write(wstring_view(value));
-    }
-
-    JsonWriter& Write(NullTerminatedStringView value)
-    {
-        return Write(wstring_view(value));
-    }
+    virtual JsonWriter& Write(const JsonNode& json_node) = 0;
 
     template<typename ValueType>
-    JsonWriter& WriteVariant(const ValueType& variant_value)
-    {
-        std::visit([&](const auto& value) { Write(value); }, variant_value);
-        return *this;
-    }
+    JsonWriter& WriteVariant(const ValueType& variant_value);
+
+    ZJSON_API JsonWriter& WriteEngineValue(double value);
+    JsonWriter& WriteEngineValue(const std::string& value);
+    JsonWriter& WriteEngineValue(const SharableString& value);
+    JsonWriter& WriteEngineValue(const std::variant<double, std::string>& value);
+    JsonWriter& WriteEngineValue(const std::variant<double, SharableString>& value);
+    ZJSON_API JsonWriter& WriteEngineValue(const std::wstring& value);
+    ZJSON_API JsonWriter& WriteEngineValue(const std::variant<double, std::wstring>& value);
 
     template<typename ValueType>
-    JsonWriter& WriteEngineValue(const ValueType& value)
-    {
-        if constexpr(std::is_same_v<ValueType, double>)
-        {
-            return WriteEngineValueDouble(value);
-        }
-
-        else if constexpr(std::is_same_v<ValueType, std::variant<double, std::wstring>>)
-        {
-            return std::holds_alternative<double>(value) ? WriteEngineValueDouble(std::get<double>(value)) :
-                                                           Write(wstring_view((std::get<std::wstring>(value))));
-        }
-
-        else
-        {
-            return Write(wstring_view(value));
-        }
-    }
+    JsonWriter& Write(const std::vector<ValueType>& values);
 
     template<typename ValueType>
-    JsonWriter& Write(const std::vector<ValueType>& values)
-    {
-        BeginArray();
+    JsonWriter& Write(const std::set<ValueType>& values);
 
-        for( const ValueType& value : values )
-            Write(value);
-
-        return EndArray();
-    }
+    JsonWriter& WriteNull(std::string_view key_sv);
 
     template<typename ValueType>
-    JsonWriter& Write(const std::set<ValueType>& values)
-    {
-        BeginArray();
+    JsonWriter& Write(std::string_view key_sv, const ValueType& value);
 
-        for( const ValueType& value : values )
-            Write(value);
+    template<typename ValueType>
+    JsonWriter& WriteVariant(std::string_view key_sv, const ValueType& value);
 
-        return EndArray();
-    }
-
-    template<typename KeyType>
-    JsonWriter& WriteNull(KeyType key)
-    {
-        return Key(key).WriteNull();
-    }
-
-    template<typename KeyType, typename ValueType>
-    JsonWriter& Write(KeyType key, const ValueType& value)
-    {
-        return Key(key).Write(value);
-    }
-
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteVariant(KeyType key, const ValueType& value)
-    {
-        return Key(key).WriteVariant(value);
-    }
-
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteEngineValue(KeyType key, const ValueType& value)
-    {
-        return Key(key).WriteEngineValue(value);
-    }
+    template<typename ValueType>
+    JsonWriter& WriteEngineValue(std::string_view key_sv, const ValueType& value);
 
 
     // --------------------------------------------------------------------------
     // writing convenience methods
     // --------------------------------------------------------------------------
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteIfNotBlank(KeyType key, const ValueType& value)
-    {
-        if( !SO::IsWhitespace(value) )
-            Key(key).Write(SO::TrimRight(value));
+    JsonWriter& WriteIfNotBlank(std::string_view key_sv, std::string_view value_sv);
 
-        return *this;
-    }
+    template<typename ValueType>
+    JsonWriter& WriteIfHasValue(std::string_view key_sv, const std::optional<ValueType>& value);
 
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteIfHasValue(KeyType key, const std::optional<ValueType>& value)
-    {
-        if( value.has_value() )
-            Key(key).Write(*value);
+    JsonWriter& WriteIfHasValue(std::string_view key_sv, const SharableString& value);
 
-        return *this;
-    }
+    template<typename ValueType>
+    JsonWriter& WriteIfNot(std::string_view key_sv, const ValueType& value, const ValueType& default_value);
 
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteIfNot(KeyType key, const ValueType& value, const ValueType& default_value)
-    {
-        if( value != default_value )
-            Key(key).Write(value);
+    JsonWriter& WriteIfNotEmpty(std::string_view key_sv, const JsonNode& json_node);
 
-        return *this;
-    }
+    template<typename ValueType>
+    JsonWriter& WriteIfNotEmpty(std::string_view key_sv, const std::vector<ValueType>& values);
 
-    template<typename KeyType, typename ValueType>
-    JsonWriter& WriteIfNotEmpty(KeyType key, const std::vector<ValueType>& values)
-    {
-        if( !values.empty() )
-            Key(key).Write(values);
-
-        return *this;
-    }
+    template<typename MapKeyType, typename MapValueType>
+    JsonWriter& WriteMap(std::string_view key_sv, const std::map<MapKeyType, MapValueType>& values);
 
     // writes the date in RFC 3339 format
-    template<typename KeyType>
-    JsonWriter& WriteDate(KeyType key, time_t date)
-    {
-        return Key(key).Write(PortableFunctions::TimeToRFC3339String(date));
-    }
-
+    ZJSON_API JsonWriter& WriteDate(std::string_view key_sv, int64_t date);
 
     // writes a path with forward slashes
-    JsonWriter& WritePath(std::wstring path)
-    {
-        return Write(PortableFunctions::PathToForwardSlash(std::move(path)));
-    }
-
-    template<typename KeyType>
-    JsonWriter& WritePath(KeyType key, std::wstring path)
-    {
-        return Key(key).WritePath(std::move(path));
-    }
+    ZJSON_API JsonWriter& WritePath(std::string path);
+    JsonWriter& WritePath(std::string_view key_sv, std::string path);
 
     // writes a relative path with forward slashes, evaluated relative to the spec file (if available)
-    JsonWriter& WriteRelativePath(const std::wstring& path)
-    {
-        return WritePath(GetRelativePath(path));
-    }
+    ZJSON_API JsonWriter& WriteRelativePath(const std::string& path);
+    JsonWriter& WriteRelativePath(std::string_view key_sv, const std::string& path);
 
-    JsonWriter& WriteRelativePathWithDirectorySupport(const std::wstring& path)
-    {
-        // the relative path calculation functions don't work properly with a directory if it does not end in a slash
-        if( !path.empty() && path.back() != PATH_CHAR && PortableFunctions::FileIsDirectory(path) )
-        {
-            std::wstring modified_path = GetRelativePath(PortableFunctions::PathEnsureTrailingSlash(path));
-
-            if( modified_path.empty() )
-                return Write(_T("."));
-
-            ASSERT(modified_path.back() == PATH_CHAR);
-            return WritePath(modified_path.substr(0, modified_path.length() - 1));
-        }
-
-        else
-        {
-            return WriteRelativePath(path);
-        }
-    }
-
-    template<typename KeyType>
-    JsonWriter& WriteRelativePath(KeyType key, const std::wstring& path)
-    {
-        return Key(key).WriteRelativePath(path);
-    }
-
-    template<typename KeyType>
-    JsonWriter& WriteRelativePathWithDirectorySupport(KeyType key, const std::wstring& path)
-    {
-        return Key(key).WriteRelativePathWithDirectorySupport(path);
-    }
+    ZJSON_API JsonWriter& WriteRelativePathWithDirectorySupport(const std::string& path);
+    JsonWriter& WriteRelativePathWithDirectorySupport(std::string_view key_sv, const std::string& path);
 
 
     // --------------------------------------------------------------------------
     // writing methods using callbacks
     // --------------------------------------------------------------------------
     template<typename WriterCallback>
-    JsonWriter& WriteObject(WriterCallback writer_callback)
-    {
-        BeginObject();
-        writer_callback();
-        return EndObject();
-    }
+    JsonWriter& WriteObject(const WriterCallback& writer_callback);
 
     template<typename ObjectType, typename WriterCallback>
-    JsonWriter& WriteObject(const ObjectType& value, WriterCallback writer_callback)
-    {
-        BeginObject();
-        writer_callback(value);
-        return EndObject();
-    }
+    JsonWriter& WriteObject(const ObjectType& value, const WriterCallback& writer_callback);
 
-    template<typename KeyType, typename ObjectType, typename WriterCallback>
-    JsonWriter& WriteObject(KeyType key, const ObjectType& value, WriterCallback writer_callback)
-    {
-        return Key(key).WriteObject(value, writer_callback);
-    }
+    template<typename ObjectType, typename WriterCallback>
+    JsonWriter& WriteObject(std::string_view key_sv, const ObjectType& value, const WriterCallback& writer_callback);
 
-    template<typename KeyType, typename ObjectType, typename WriterCallback>
-    JsonWriter& WriteObjects(KeyType key, const std::vector<ObjectType>& values, WriterCallback writer_callback)
-    {
-        BeginArray(key);
+    template<typename ObjectType, typename WriterCallback>
+    JsonWriter& WriteObjects(const std::vector<ObjectType>& values, const WriterCallback& writer_callback);
 
-        for( const ObjectType& value : values )
-            WriteObject(value, writer_callback);
+    template<typename ObjectType, typename WriterCallback>
+    JsonWriter& WriteObjects(std::string_view key_sv, const std::vector<ObjectType>& values, const WriterCallback& writer_callback);
 
-        return EndArray();
-    }
+    template<typename ValueType, typename WriterCallback>
+    JsonWriter& WriteArray(std::string_view key_sv, const std::vector<ValueType>& values, const WriterCallback& writer_callback);
 
-    template<typename KeyType, typename ValueType, typename WriterCallback>
-    JsonWriter& WriteArray(KeyType key, const std::vector<ValueType>& values, WriterCallback writer_callback)
-    {
-        BeginArray(key);
-
-        for( const ValueType& value : values )
-            writer_callback(value);
-
-        return EndArray();
-    }
-
-    template<typename KeyType, typename ValueType, typename WriterCallback>
-    JsonWriter& WriteArrayIfNotEmpty(KeyType&& key, const std::vector<ValueType>& values, WriterCallback&& writer_callback)
-    {
-        return values.empty() ? *this :
-                                WriteArray(std::forward<KeyType>(key), values, std::forward<WriterCallback>(writer_callback));
-    }
+    template<typename ValueType, typename WriterCallback>
+    JsonWriter& WriteArrayIfNotEmpty(std::string_view key_sv, const std::vector<ValueType>& values, const WriterCallback& writer_callback);
 
 
     // --------------------------------------------------------------------------
@@ -388,9 +182,7 @@ public:
 
 
 protected:
-    virtual JsonWriter& WriteEngineValueDouble(double value) = 0;
-
-    virtual std::wstring GetRelativePath(const std::wstring& path) const { return path; }
+    virtual std::string GetRelativePath(const std::string& path) const { return path; }
 
 private:
     virtual void RemoveTopmostFormattingType() = 0;
@@ -406,16 +198,12 @@ private:
 // JsonStringWriter
 // --------------------------------------------------------------------------
 
-template<typename CharType>
 class JsonStringWriter : virtual public JsonWriter
 {
 public:
-    virtual const std::basic_string<CharType>& GetString() = 0;
-
-    const CharType* c_str()
-    {
-        return GetString().c_str();
-    }
+    virtual const std::string& GetString() const = 0;
+    virtual std::string ReleaseString() = 0;
+    virtual SharableString ReleaseSharableString() = 0;
 };
 
 
@@ -454,25 +242,376 @@ public:
 class JsonWriter::FormattingHolder
 {
 public:
-    FormattingHolder(JsonWriter* json_writer)
-        :   m_jsonWriter(json_writer)
-    {
-    }
-
+    FormattingHolder(JsonWriter* json_writer);
     FormattingHolder(const FormattingHolder& rhs) = delete;
-
-    FormattingHolder(FormattingHolder&& rhs) noexcept
-        :   m_jsonWriter(rhs.m_jsonWriter)
-    {
-        rhs.m_jsonWriter = nullptr;
-    }
-
-    ~FormattingHolder()
-    {
-        if( m_jsonWriter != nullptr )
-            m_jsonWriter->RemoveTopmostFormattingType();
-    }
+    FormattingHolder(FormattingHolder&& rhs) noexcept;
+    ~FormattingHolder();
 
 private:
     JsonWriter* m_jsonWriter;
 };
+
+
+
+// --------------------------------------------------------------------------
+// JsonWriter inline implementations
+// --------------------------------------------------------------------------
+
+inline JsonWriter::JsonWriter()
+    :   m_verbose(false)
+{
+}
+
+
+inline JsonWriter& JsonWriter::BeginObject(const std::string_view key_sv)
+{
+    return Key(key_sv).BeginObject();
+}
+
+
+inline JsonWriter& JsonWriter::BeginArray(const std::string_view key_sv)
+{
+    return Key(key_sv).BeginArray();
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::Write(const ValueType& value)
+{
+    if constexpr(JsonSerializerTester<ValueType>::HasWriteJson())
+    {
+        value.WriteJson(*this);
+    }
+
+    else if constexpr(JsonSerializerTester<JsonSerializer<ValueType>>::HasWriteJson())
+    {
+        JsonSerializer<ValueType>::WriteJson(*this, value);
+    }
+
+    else
+    {
+#if defined(WIN32) && !defined(_CONSOLE)
+        // this fails on Clang
+        static_assert(false, "create a JsonSerializer for ValueType");
+#else
+        static_assert_false();
+#endif
+    }
+
+    return *this;
+}
+
+
+#ifdef WASM
+inline JsonWriter& JsonWriter::Write(const unsigned long value)
+{
+    static_assert(sizeof(unsigned long) == sizeof(unsigned int));
+    return Write(static_cast<unsigned int>(value));
+}
+#endif
+
+
+inline JsonWriter& JsonWriter::Write(const std::string& value)
+{
+    // necessary to allow std::string writing on Clang
+    return Write(std::string_view(value));
+}
+
+
+inline JsonWriter& JsonWriter::Write(const SharableString& value)
+{
+    return Write(std::string_view(*value));
+}
+
+
+inline JsonWriter& JsonWriter::Write(const char* const value)
+{
+    // to prevent Write(bool) from being called
+    return Write(std::string_view(value));
+}
+
+
+inline JsonWriter& JsonWriter::Write(const unsigned char* const value)
+{
+    // to prevent Write(bool) from being called
+    return Write(std::string_view(reinterpret_cast<const char*>(value)));
+}
+
+
+inline JsonWriter& JsonWriter::Write(const cs::string_sz value)
+{
+    return Write(value.c_str());
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteVariant(const ValueType& variant_value)
+{
+    std::visit([&](const auto& value) { Write(value); }, variant_value);
+    return *this;
+}
+
+
+inline JsonWriter& JsonWriter::WriteEngineValue(const std::string& value)
+{
+    return Write(value);
+}
+
+
+inline JsonWriter& JsonWriter::WriteEngineValue(const SharableString& value)
+{
+    return Write(value);
+}
+
+
+inline JsonWriter& JsonWriter::WriteEngineValue(const std::variant<double, std::string>& value)
+{
+    return std::holds_alternative<double>(value) ? WriteEngineValue(std::get<double>(value)) :
+                                                   Write(std::get<std::string>(value));
+}
+
+
+inline JsonWriter& JsonWriter::WriteEngineValue(const std::variant<double, SharableString>& value)
+{
+    return std::holds_alternative<double>(value) ? WriteEngineValue(std::get<double>(value)) :
+                                                   Write(std::get<SharableString>(value));
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::Write(const std::vector<ValueType>& values)
+{
+    BeginArray();
+
+    for( const ValueType& value : values )
+        Write(value);
+
+    return EndArray();
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::Write(const std::set<ValueType>& values)
+{
+    BeginArray();
+
+    for( const ValueType& value : values )
+        Write(value);
+
+    return EndArray();
+}
+
+
+inline JsonWriter& JsonWriter::WriteNull(const std::string_view key_sv)
+{
+    return Key(key_sv).WriteNull();
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::Write(const std::string_view key_sv, const ValueType& value)
+{
+    return Key(key_sv).Write(value);
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteVariant(const std::string_view key_sv, const ValueType& value)
+{
+    return Key(key_sv).WriteVariant(value);
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteEngineValue(const std::string_view key_sv, const ValueType& value)
+{
+    return Key(key_sv).WriteEngineValue(value);
+}
+
+
+inline JsonWriter& JsonWriter::WriteIfNotBlank(const std::string_view key_sv, const std::string_view value_sv)
+{
+    if( !SO::IsWhitespace(value_sv) )
+        Key(key_sv).Write(SO::TrimRight(value_sv));
+
+    return *this;
+}
+
+
+template<typename MapKeyType, typename MapValueType>
+JsonWriter& JsonWriter::WriteMap(const std::string_view key_sv, const std::map<MapKeyType, MapValueType>& values)
+{
+    BeginObject(key_sv);
+
+    for( const auto& [key, value] : values )
+    {
+        if constexpr(std::is_same_v<MapKeyType, int>)
+        {
+            Key(IntToString(key));
+        }
+
+        else
+        {
+            Key(key);
+        }
+
+        Write(value);
+    }
+
+    return EndObject();
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteIfHasValue(const std::string_view key_sv, const std::optional<ValueType>& value)
+{
+    if( value.has_value() )
+        Key(key_sv).Write(*value);
+
+    return *this;
+}
+
+
+inline JsonWriter& JsonWriter::WriteIfHasValue(const std::string_view key_sv, const SharableString& value)
+{
+    if( value.IsSet() )
+        Key(key_sv).Write(value);
+
+    return *this;
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteIfNot(const std::string_view key_sv, const ValueType& value, const ValueType& default_value)
+{
+    if( value != default_value )
+        Key(key_sv).Write(value);
+
+    return *this;
+}
+
+
+inline JsonWriter& JsonWriter::WriteIfNotEmpty(const std::string_view key_sv, const JsonNode& json_node)
+{
+    if( !json_node.IsEmpty() )
+        Key(key_sv).Write(json_node);
+
+    return *this;
+}
+
+
+template<typename ValueType>
+JsonWriter& JsonWriter::WriteIfNotEmpty(const std::string_view key_sv, const std::vector<ValueType>& values)
+{
+    if( !values.empty() )
+        Key(key_sv).Write(values);
+
+    return *this;
+}
+
+
+inline JsonWriter& JsonWriter::WritePath(const std::string_view key_sv, std::string path)
+{
+    return Key(key_sv).WritePath(std::move(path));
+}
+
+
+inline JsonWriter& JsonWriter::WriteRelativePath(const std::string_view key_sv, const std::string& path)
+{
+    return Key(key_sv).WriteRelativePath(path);
+}
+
+
+inline JsonWriter& JsonWriter::WriteRelativePathWithDirectorySupport(const std::string_view key_sv, const std::string& path)
+{
+    return Key(key_sv).WriteRelativePathWithDirectorySupport(path);
+}
+
+
+template<typename WriterCallback>
+JsonWriter& JsonWriter::WriteObject(const WriterCallback& writer_callback)
+{
+    BeginObject();
+    writer_callback();
+    return EndObject();
+}
+
+
+template<typename ObjectType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteObject(const ObjectType& value, const WriterCallback& writer_callback)
+{
+    BeginObject();
+    writer_callback(value);
+    return EndObject();
+}
+
+
+template<typename ObjectType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteObject(const std::string_view key_sv, const ObjectType& value, const WriterCallback& writer_callback)
+{
+    return Key(key_sv).WriteObject(value, writer_callback);
+}
+
+
+template<typename ObjectType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteObjects(const std::vector<ObjectType>& values, const WriterCallback& writer_callback)
+{
+    BeginArray();
+
+    for( const ObjectType& value : values )
+        WriteObject(value, writer_callback);
+
+    return EndArray();
+}
+
+
+template<typename ObjectType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteObjects(const std::string_view key_sv, const std::vector<ObjectType>& values, const WriterCallback& writer_callback)
+{
+    return Key(key_sv).WriteObjects(values, writer_callback);
+}
+
+
+template<typename ValueType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteArray(const std::string_view key_sv, const std::vector<ValueType>& values, const WriterCallback& writer_callback)
+{
+    BeginArray(key_sv);
+
+    for( const ValueType& value : values )
+        writer_callback(value);
+
+    return EndArray();
+}
+
+
+template<typename ValueType, typename WriterCallback>
+JsonWriter& JsonWriter::WriteArrayIfNotEmpty(const std::string_view key_sv, const std::vector<ValueType>& values, const WriterCallback& writer_callback)
+{
+    return values.empty() ? *this :
+                            WriteArray(key_sv, values, writer_callback);
+}
+
+
+
+// --------------------------------------------------------------------------
+// JsonWriter::FormattingHolder inline implementations
+// --------------------------------------------------------------------------
+
+inline JsonWriter::FormattingHolder::FormattingHolder(JsonWriter* const json_writer)
+    :   m_jsonWriter(json_writer)
+{
+}
+
+
+inline JsonWriter::FormattingHolder::FormattingHolder(FormattingHolder&& rhs) noexcept
+    :   m_jsonWriter(rhs.m_jsonWriter)
+{
+    rhs.m_jsonWriter = nullptr;
+}
+
+
+inline JsonWriter::FormattingHolder::~FormattingHolder()
+{
+    if( m_jsonWriter != nullptr )
+        m_jsonWriter->RemoveTopmostFormattingType();
+}

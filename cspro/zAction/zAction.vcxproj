@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{7f125ef6-a327-11ed-a8fc-0242ac120002}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zAction</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -68,20 +64,22 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ActionInvoker.cpp" />
     <ClCompile Include="ActionFunctionMapping.cpp" />
+    <ClCompile Include="ActionInvoker.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Caller.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Dictionary.cpp" />
     <ClCompile Include="Encoding.cpp" />
+    <ClCompile Include="Exception.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="JsonExecutor.cpp" />
     <ClCompile Include="Localhost.cpp" />
     <ClCompile Include="Logic.cpp" />
     <ClCompile Include="Message.cpp" />
+    <ClCompile Include="Network.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="PortableRunnerWindows.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -90,6 +88,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Sync.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="UserInterface.cpp" />
     <ClCompile Include="zAction.cpp" />
@@ -97,9 +96,10 @@
   <ItemGroup>
     <ClInclude Include="AccessToken.h" />
     <ClInclude Include="ActionInvoker.h" />
-    <ClInclude Include="Encoding.h" />
     <ClInclude Include="Caller.h" />
-    <ClInclude Include="ExceptionWithActionName.h" />
+    <ClInclude Include="Encoding.h" />
+    <ClInclude Include="Exception.h" />
+    <ClInclude Include="ExceptionThrowingJsonReaderInterface.h" />
     <ClInclude Include="ExternalCaller.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="JsonExecutor.h" />
@@ -110,13 +110,17 @@
     <ClInclude Include="PortableRunner.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="WebController.h" />
     <ClInclude Include="WebCaller.h" />
+    <ClInclude Include="WebController.h" />
     <ClInclude Include="WebListener.h" />
     <ClInclude Include="zAction.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">
+      <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -162,6 +166,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">

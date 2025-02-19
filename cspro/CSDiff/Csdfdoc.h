@@ -29,8 +29,7 @@ protected:
     afx_msg void OnUpdateOptionsExcluded(CCmdUI* pCmdUI);
 
 private:
-    bool OpenDictFile(const std::wstring& filename);
-    bool OpenSpecFile(const std::wstring& filename);
+    bool OpenSpecFile(const std::string& file_path);
 
     void SaveSpecFile();
 

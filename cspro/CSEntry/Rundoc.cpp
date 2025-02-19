@@ -121,7 +121,7 @@ BOOL CEntryrunDoc::OnOpenDocument(LPCTSTR lpszPathName)
     if( !UseHtmlDialogs() )
     {
         CString csOperatorId = m_pPIFFile->GetOpID();
-        
+
         if( m_pPIFFile->GetApplication()->GetAskOperatorId() )
         {
             COPDlg opDlg;
@@ -133,7 +133,7 @@ BOOL CEntryrunDoc::OnOpenDocument(LPCTSTR lpszPathName)
         }
 
         m_pRunApl->SetOperatorId(csOperatorId);
-    }    
+    }
 
     CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
     CEntryrunView* pRunView = pFrame->GetRunView();
@@ -143,7 +143,7 @@ BOOL CEntryrunDoc::OnOpenDocument(LPCTSTR lpszPathName)
         QSFView* pQTView = pFrame->GetQTxtView();
         if (pQTView) {
             pQTView->SetStyleCss(m_pRunApl->GetCapi()->GetRuntimeStylesCss());
-            pQTView->SetupFileServer(lpszPathName);
+            pQTView->SetUpQuestionTextView(TC::ToUtf8(lpszPathName));
         }
     }
 
@@ -340,73 +340,74 @@ void CEntryrunDoc::IncVerifiedField(void)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      CString CEntryrunDoc::MakeTitle()
+//      std::string CEntryrunDoc::MakeTitle()
 //
 /////////////////////////////////////////////////////////////////////////////////
-CString CEntryrunDoc::MakeTitle(bool reset_to_default/*= false*/)
+std::string CEntryrunDoc::MakeTitle(const bool reset_to_default/* = false*/)
 {
-    CString window_title = _T("CSEntry");
+    std::string window_title = "CSEntry";
 
     if( reset_to_default )
         m_windowTitleOverride.reset();
 
     if( m_pPIFFile != nullptr && m_pRunApl != nullptr )
     {
-        CString data_file = m_pRunApl->GetInputRepository()->GetName(DataRepositoryNameType::Concise);
-        window_title.AppendFormat(_T(" (%s%s%s)"),
-            (LPCTSTR)GetWindowTitle(),
-            data_file.IsEmpty() ? _T("") : _T(" - Data: "),
-            (LPCTSTR)data_file);
+        window_title.append(" (")
+                    .append(GetWindowTitle());
+
+        const std::string data_source_name = m_pRunApl->GetInputRepository()->GetName(DataRepositoryNameType::Concise);
+
+        if( !data_source_name.empty() )
+        {
+            window_title.append(" - Data: ")
+                        .append(data_source_name);
+        }
+
+        window_title.push_back(')');
     }
 
     return window_title;
 }
 
-CString CEntryrunDoc::GetWindowTitle()
+
+std::string CEntryrunDoc::GetWindowTitle() const
 {
-    CString window_title;
-
-    if( m_windowTitleOverride == nullptr || m_appMode == NO_MODE )
-    {
-        if( m_pPIFFile != nullptr )
-            window_title = m_pPIFFile->GetEvaluatedAppDescription(true);
-    }
-
-    else
-        window_title = *m_windowTitleOverride;
-
-    return window_title;
+    return ( m_windowTitleOverride != nullptr && m_appMode != NO_MODE ) ? *m_windowTitleOverride :
+           ( m_pPIFFile != nullptr )                                    ? UTF8_TODO::GetUtf8(m_pPIFFile->GetEvaluatedAppDescription(true)) :
+                                                                          std::string();
 }
 
-void CEntryrunDoc::SetWindowTitle(const CString& window_title)
+
+void CEntryrunDoc::SetWindowTitle(std::string window_title)
 {
-    m_windowTitleOverride = std::make_unique<CString>(window_title);
+    m_windowTitleOverride = std::make_unique<std::string>(std::move(window_title));
 }
 
 
 void CEntryrunDoc::OpenOperatorStatisticsLog()
 {
-    Application* pApplication = m_pPIFFile->GetApplication();
+    Application* const application = m_pPIFFile->GetApplication();
+    ASSERT(application != nullptr);
 
-    if( !pApplication->GetCreateLogFile() )
+    if( !application->GetCreateLogFile() )
         return;
 
-    if( m_pOperatorStatisticsLog != NULL )
+    if( m_pOperatorStatisticsLog != nullptr )
     {
-        if( m_pOperatorStatisticsLog->GetCurrentStatsObj() != NULL )
+        if( m_pOperatorStatisticsLog->GetCurrentStatsObj() != nullptr )
             m_pOperatorStatisticsLog->Save();
 
         delete m_pOperatorStatisticsLog;
     }
 
-    CString csLogFilename = m_pRunApl->GetInputRepository()->GetName(DataRepositoryNameType::Full);
+    // base the log file path on the the application name when the data source is not file-based
+    std::string log_file_path = m_pRunApl->GetInputRepository()->GetConnectionString().HasFilePath() ?
+                                m_pRunApl->GetInputRepository()->GetConnectionString().GetFilePath() :
+                                Path::RemoveExtension(UTF8_TODO::GetUtf8(m_pPIFFile->GetAppFName()));
 
-    if( csLogFilename.IsEmpty() ) // if the repository filename is empty, then use the name of the application
-        csLogFilename = PortableFunctions::PathRemoveFileExtension<CString>(m_pPIFFile->GetAppFName());
-
-    csLogFilename.Append(FileExtensions::WithDot::OperatorStatistics);
+    Path::MakeAppendExtension(log_file_path, FileExtensions::OperatorStatistics);
 
     m_pOperatorStatisticsLog = new COperatorStatisticsLog();
 
-    m_pOperatorStatisticsLog->Open(csLogFilename);
+    m_pOperatorStatisticsLog->Open(std::move(log_file_path));
 }

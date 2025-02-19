@@ -5,19 +5,19 @@
 
 namespace TableLabelSerializer
 {
-    inline std::wstring Create(wstring_view text_sv)
+    inline CString Create(const wstring_view text_sv)
     {
-        return Encoders::ToEscapedString(SO::ToNewlineLF(text_sv), false);
+        return UTF8_TODO::GetCString(Encoders::ToEscapedString(UTF8_TODO::GetUtf8(SO::ToNewlineLF(text_sv)), false));
     }
 
 
-    inline CString ParseV8(wstring_view text_sv)
+    inline CString ParseV8(const wstring_view text_sv)
     {
-        return WS2CS(SO::ToNewlineCRLF(Encoders::FromEscapedString(text_sv)));
+        return UTF8_TODO::GetCString(SO::ToNewlineCRLF(Encoders::FromEscapedString(UTF8_TODO::GetUtf8(text_sv))));
     }
 
 
-    inline CString Parse(wstring_view text_sv, const CString& sVersion)
+    inline CString Parse(const wstring_view text_sv, const CString& sVersion)
     {
         if( sVersion.CompareNoCase(_T("CSPro 8.0")) < 0 )
             return text_sv;

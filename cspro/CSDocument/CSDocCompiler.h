@@ -12,7 +12,7 @@ class PdfCreator;
 class CSDocCompiler
 {
 public:
-    std::wstring CompileToHtml(CSDocCompilerSettings& settings, std::wstring csdoc_filename, wstring_view csdoc_text_sv);
+    std::string CompileToHtml(CSDocCompilerSettings& settings, std::string csdoc_file_path, std::string_view csdoc_text_sv);
 };
 
 
@@ -23,8 +23,8 @@ public:
 class CSDocCompilerBuildToFileGenerateTask : public GenerateTask
 {
 public:
-    CSDocCompilerBuildToFileGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings build_settings,
-                                         std::wstring csdoc_filename, std::wstring csdoc_text, std::wstring output_filename);
+    CSDocCompilerBuildToFileGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings base_build_settings,
+                                         std::string csdoc_file_path, std::string csdoc_text, std::string output_file_path);
 
     void ValidateInputs() override;
 
@@ -33,10 +33,10 @@ protected:
 
 private:
     cs::non_null_shared_or_raw_ptr<DocSetSpec> m_docSetSpec;
-    const DocBuildSettings m_baseBuildSettings;
-    const std::wstring m_csdocFilename;
-    const std::wstring m_csdocText;
-    const std::wstring m_outputFilename;
+    DocBuildSettings m_baseBuildSettings;
+    std::string m_csdocFilePath;
+    std::string m_csdocText;
+    std::string m_outputFilePath;
     std::unique_ptr<CSDocCompilerSettingsForBuilding> m_csdocCompilerSettingsForBuilding;
     std::unique_ptr<PdfCreator> m_pdfCreator;
 };

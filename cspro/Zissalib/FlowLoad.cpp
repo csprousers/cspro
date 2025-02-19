@@ -46,9 +46,8 @@ bool CEngineDriver::LoadApplFlows()
         m_iGlobalFlowOrder = 0;         // reset flow order
         iNumGroupsBefore = m_engineData->groups.size();
         if( !AddGroupTForOneFlow() ) {
-            CString csMsgText;
-            csMsgText.Format( _T("Unable to load Visible groups of Flow '%s'"), NPT(iSymFlow)->GetName().c_str() );
-            issaerror( MessageType::Abort, MGF::OpenMessage, csMsgText.GetString() );
+            const std::string message = FormatText("Unable to load Visible groups of Flow '%s'", NPT(iSymFlow)->GetName().c_str());
+            issaerror(MessageType::Abort, MGF::OpenMessage, message.c_str());
         }
         iNumGroupsAfter = m_engineData->groups.size();
         GetFlowInProcess()->SetVisibleGroups( iNumGroupsAfter - iNumGroupsBefore );
@@ -56,9 +55,8 @@ bool CEngineDriver::LoadApplFlows()
         // 2. loading invisible Groups from Dictionaries
         iNumGroupsBefore = m_engineData->groups.size();
         if( !AddGroupTForFlowDics() ) {
-            CString csMsgText;
-            csMsgText.Format( _T("Unable to load Invisible groups of Flow '%s'"), NPT(iSymFlow)->GetName().c_str() );
-            issaerror( MessageType::Abort, MGF::OpenMessage, csMsgText.GetString() );
+            const std::string message = FormatText("Unable to load Invisible groups of Flow '%s'", NPT(iSymFlow)->GetName().c_str());
+            issaerror(MessageType::Abort, MGF::OpenMessage, message.c_str());
         }
         iNumGroupsAfter = m_engineData->groups.size();
         GetFlowInProcess()->SetInvisibleGroups( iNumGroupsAfter - iNumGroupsBefore );
@@ -154,7 +152,7 @@ bool CEngineDriver::LoadApplFlows()
         bool    bFlowLoadedOK = LoadApplMessage();  // evaluate & prepare message
 
 #ifdef _DEBUG
-        TRACE( _T("\n--Loading Flow %s: ending with status=%d ------------\n"), NPT(iSymFlow)->GetName().c_str(), bFlowLoadedOK );
+        TRACE( _T("\n--Loading Flow %s: ending with status=%d ------------\n"), UTF8_TODO::GetWide(NPT(iSymFlow)->GetName()).c_str(), (int)bFlowLoadedOK );
 #endif
 
         if( !bFlowLoadedOK ) {              // failure
@@ -265,13 +263,12 @@ void CEngineDriver::AttachFormItem( CDEForm* pForm, CDEItemBase* pMember ) { // 
             // BINARY_TYPES_TO_ENGINE_TODO ignore above and continue, adding the item as a VART
         }
 
-        CString csFullName;
-        csFullName.Format( _T("%s.%s"), pField->GetItemDict().GetString(), pField->GetItemName().GetString());
-        int iSymItem = m_pEngineArea->SymbolTableSearch(csFullName, { SymbolType::Variable });
+        const std::string full_name = FormatText("%s.%s", UTF8_TODO::GetUtf8(pField->GetItemDict()).c_str(), UTF8_TODO::GetUtf8(pField->GetItemName()).c_str());
+        const int iSymItem = m_pEngineArea->SymbolTableSearch(full_name, { SymbolType::Variable });
 
         if( iSymItem == 0 )
         {
-            issaerror(MessageType::Abort, 502, csFullName.GetString());
+            issaerror(MessageType::Abort, 502, full_name.c_str());
             return;
         }
 
@@ -373,7 +370,7 @@ bool CEngineDriver::AddGroupTForOneFlow( void ) {
 
     // checking levels <begin>                          // victor Mar 02, 00
     if( iNumLevels != iMaxLevel ) {
-        issaerror( MessageType::Error, 10081, pFormFile->GetName().GetString(), iNumLevels, iMaxLevel );
+        issaerror( MessageType::Error, 10081, UTF8_TODO::GetUtf8(pFormFile->GetName()).c_str(), iNumLevels, iMaxLevel );
         return false;
     }
 
@@ -440,9 +437,9 @@ GROUPT* CEngineDriver::AddGroupTForLevelZero( int iMaxLevel ) {
     if( pFlow->IsPrimary() )
         csLevelName = csLevelZeroName;
     else
-        csLevelName.Format( _T("__%s_%s"), NPT(iSymFlow)->GetName().c_str(), csLevelZeroName.GetString() );
+        csLevelName.Format( _T("__%s_%s"), UTF8_TODO::GetWide(NPT(iSymFlow)->GetName()).c_str(), csLevelZeroName.GetString() );
 
-    auto pGroupTLevel = std::make_shared<GROUPT>(CS2WS(csLevelName), this);
+    auto pGroupTLevel = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(csLevelName), this);
     int iSymLevel = m_engineData->AddSymbol(pGroupTLevel);
 
     pGroupTLevel->SYMTfwd = 0; // SEE W/RHF victor Jan 09, 00
@@ -476,11 +473,11 @@ bool CEngineDriver::AddGroupTForLevel( CDEFormFile* pFormFile, CDELevel* pLevel,
 
     // insert given Level name                          // victor Dec 16, 99
     CString level_name = CString(pLevel->GetName()).MakeUpper();
-    auto pGroupTLevel = std::make_shared<GROUPT>(CS2WS(level_name), this);
+    auto pGroupTLevel = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(level_name), this);
     int iSymLevel = m_engineData->AddSymbol(pGroupTLevel);
 
-    for( const CString& alias : pFormFile->GetDictionary()->LookupName(level_name)->GetAliases() )
-        GetSymbolTable().AddAlias(CS2WS(alias), *pGroupTLevel);
+    for( const std::string& alias : pFormFile->GetDictionary()->LookupName(UTF8_TODO::GetUtf8(level_name))->GetAliases() )
+        GetSymbolTable().AddAlias(alias, *pGroupTLevel);
 
     pGroupTLevel->SYMTfwd = 0; // SEE W/RHF victor Jan 09, 00
     pGroupTLevel->SetFlow( GetFlowInProcess() );
@@ -547,7 +544,7 @@ bool CEngineDriver::AddItemToOwner( CDEItemBase* pItem, GROUPT* pGroupTOwner, in
     // Groups & Rosters: insert in symbol table (doesn't exist previously)
     if( eType == CDEFormBase::Group || eType == CDEFormBase::Roster )
     {
-        auto pGroupT = std::make_shared<GROUPT>(CS2WS(pItem->GetName()), this);
+        auto pGroupT = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(pItem->GetName()), this);
         iSymItem = m_engineData->AddSymbol(pGroupT);
 
         pItem->SetSymbol(iSymItem);
@@ -690,18 +687,12 @@ bool CEngineDriver::SetOwnerIntoItem( int iSymItem, int iSymGroup ) {
     ASSERT( iSymGroup );
     int     iSymOwner = VPT(iSymItem)->GetOwnerGroup();
 
-    if( iSymOwner ) {
-        CString csOwnerText;
-
-        if( iSymOwner > 0 )
-            csOwnerText.Format(_T("Group %s"), NPT(iSymOwner)->GetName().c_str());
-        else
-            csOwnerText = _T("a Record");
-
-        CString csMsgText;
-        csMsgText.Format(_T("Cannot set Group %s as owner of Item %s (already owned by %s)"),
-                         NPT(iSymGroup)->GetName().c_str(), NPT(iSymItem)->GetName().c_str(), csOwnerText.GetString() );
-        issaerror( MessageType::Abort, MGF::OpenMessage, csMsgText.GetString() );
+    if( iSymOwner != 0 )
+    {
+        const std::string message = FormatText("Cannot set Group %s as owner of Item %s (already owned by %s)",
+                                               NPT(iSymGroup)->GetName().c_str(), NPT(iSymItem)->GetName().c_str(),
+                                               ( iSymOwner > 0 ) ? FormatText("Group %s", NPT(iSymOwner)->GetName().c_str()).c_str(): "a Record");
+        issaerror(MessageType::Abort, MGF::OpenMessage, message.c_str());
 
         return false;
     }
@@ -857,21 +848,21 @@ bool CEngineDriver::AddGroupTForOneSec( int iSymSec ) {
     if( bAllMatching ) {                // ... all are no-form: same name as the section
         // RHF INIC Mar 26, 2004
         if( bOutput )
-            csNewName.Format( _T("%s_ORD"), NPT(iSymSec)->GetName().c_str() );
+            csNewName.Format( _T("%s_ORD"), UTF8_TODO::GetWide(NPT(iSymSec)->GetName()).c_str() );
         else
-            csNewName.Format( _T("%s"), NPT(iSymSec)->GetName().c_str() );
+            csNewName.Format( _T("%s"), UTF8_TODO::GetWide(NPT(iSymSec)->GetName()).c_str() );
         // RHF END Mar 26, 2004
     }
     else                                // ... some with form: prefix plus section' name
     {
-        csNewName.Format( _T("__%s"), NPT(iSymSec)->GetName().c_str() );
+        csNewName.Format( _T("__%s"), UTF8_TODO::GetWide(NPT(iSymSec)->GetName()).c_str() );
     }
     // naming depending to "all items no-form"  <end>   // victor Jun 15, 00
 
     if( bAllMatching ) // RHF Nov 15, 2002
         pSecT->SetOccGenerator(true); // RHF Nov 15, 2002
 
-    auto pGroupT = std::make_shared<GROUPT>(CS2WS(csNewName), this);
+    auto pGroupT = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(csNewName), this);
     int iSymGroup = m_engineData->AddSymbol(pGroupT);
 
     pGroupT->SetSubType( GetFlowInProcess()->GetSubType() ); // RHF Dec 30, 2003
@@ -976,7 +967,7 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
     CString csNewName;
     csNewName.Format( _T("__%s"), NPT(iSymMultVar)->GetName().c_str() );
 
-    auto pGroupT = std::make_shared<GROUPT>(CS2WS(csNewName), this);
+    auto pGroupT = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(csNewName), this);
     int iSymGroup = m_engineData->AddSymbol(pGroupT);
 
     pGroupT->SYMTfwd = 0;
@@ -1005,7 +996,7 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
         pCDEGroup->SetRIType(CDEFormBase::Item );
     else
         pCDEGroup->SetRIType(CDEFormBase::SubItem );
-    pCDEGroup->SetTypeName( WS2CS(pVart->GetName()) );
+    pCDEGroup->SetTypeName( UTF8_TODO::GetCString(pVart->GetName()) );
 
     pGroupT->SetCDEGroup( pCDEGroup );
     ASSERT( pGroupT->GetCDEGroup() != NULL );
@@ -1029,7 +1020,7 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
 
 #ifdef _DEBUG
     TRACE( _T("\n\n... AddGroupTForMultVar %s, Group %s: %d Items {GroupSource=%d, GroupType=%d, owner=%s}\n"),
-        m_pEngineArea->DumpGroupTName(iSymMultVar).GetString(), m_pEngineArea->DumpGroupTName(iSymGroup).GetString(), pGroupT->GetNumItems(), pGroupT->GetSource(), pGroupT->GetGroupType(),
+        m_pEngineArea->DumpGroupTName(iSymMultVar).GetString(), m_pEngineArea->DumpGroupTName(iSymGroup).GetString(), pGroupT->GetNumItems(), (int)pGroupT->GetSource(), pGroupT->GetGroupType(),
         m_pEngineArea->DumpGroupTName(iSymOwner).GetString() );
 #endif
 

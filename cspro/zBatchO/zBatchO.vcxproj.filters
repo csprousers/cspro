@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BatchDriver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="batdrv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,11 +44,11 @@
     <ClCompile Include="zBatchO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BatchDriver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BatchDriver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Runaplb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -56,9 +59,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zBatchO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BatchDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

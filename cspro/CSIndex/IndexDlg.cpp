@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "IndexDlg.h"
 #include "ToolIndexer.h"
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
 #include <zUtilO/PathHelpers.h>
 #include <ZBRIDGEO/DataFileDlg.h>
@@ -10,15 +10,15 @@
 
 namespace
 {
-    constexpr int ActionOutput = 0;
-    constexpr int ActionView = 1;
-    constexpr int ActionPrompt = 2;
+    constexpr int ActionOutput     = 0;
+    constexpr int ActionView       = 1;
+    constexpr int ActionPrompt     = 2;
     constexpr int ActionAutoDelete = 3;
 
-    constexpr const TCHAR* OutputConnectionStringOptionsLinkCtrlText =
-        _T("If Output Data is a proper filename, then all input files will be concatenated into that single file. Alternatively, if ")
-        _T("Output Data includes ") IndexerFilenameWildcard _T(", each input file will be output to a separate file with a new name based on the ")
-        _T("input filename. For example, ") IndexerFilenameWildcard _T("-fixed, would append -fixed after each filename (in front of the extension).");
+    constexpr const wchar_t* OutputConnectionStringOptionsLinkCtrlText =
+        L"If Output Data is a proper filename, then all input files will be concatenated into that single file. Alternatively, if "
+        L"Output Data includes " _T(IndexerFilenameWildcard) L", each input file will be output to a separate file with a new name based on the "
+        L"input filename. For example, " _T(IndexerFilenameWildcard) L"-fixed, would append -fixed after each filename (in front of the extension).";
 }
 
 
@@ -44,10 +44,10 @@ BEGIN_MESSAGE_MAP(IndexDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-IndexDlg::IndexDlg(std::wstring initial_dictionary_filename, CWnd* pParent/* = nullptr*/)
+IndexDlg::IndexDlg(std::string initial_dictionary_file_path, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IndexDlg::IDD, pParent),
         m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME)),
-        m_dictionaryFilename(std::move(initial_dictionary_filename)),
+        m_dictionaryFilePath(std::move(initial_dictionary_file_path)),
         m_action(ActionOutput),
         m_autoDeleteIdentical(TRUE),
         m_suggestOutputConnectionString(true),
@@ -57,11 +57,11 @@ IndexDlg::IndexDlg(std::wstring initial_dictionary_filename, CWnd* pParent/* = n
 }
 
 
-void IndexDlg::DoDataExchange(CDataExchange* pDX)
+void IndexDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_DICTIONARY_FILE, m_dictionaryFilename);
+    DDX_Text(pDX, IDC_DICTIONARY_FILE, m_dictionaryFilePath);
     DDX_Control(pDX, IDC_FILE_LIST, m_fileList);
     DDX_Radio(pDX, IDC_ACTION_OUTPUT, m_action);
     DDX_Check(pDX, IDC_ACTION_AUTO_DELETE_IDENTICAL, m_autoDeleteIdentical);
@@ -72,7 +72,7 @@ void IndexDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL IndexDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     // add the menu
     m_menu.LoadMenu(IDR_CSINDEX_MENU);
@@ -83,12 +83,12 @@ BOOL IndexDlg::OnInitDialog()
     SetIcon(m_hIcon, FALSE);
 
     m_fileList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_fileList.SetHeadings(_T("Name,250;Directory,450"));
+    m_fileList.SetHeadings(L"Name,250;Directory,450");
     m_fileList.LoadColumnInfo();
 
     // set up the callback to allow the dragging of files onto the list of data to index
     m_fileList.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::RecurseInto,
-        [&](const std::vector<std::wstring>& paths)
+        [&](const std::vector<std::string>& paths)
         {
             OnDropFiles(paths);
         });
@@ -107,7 +107,7 @@ LRESULT IndexDlg::OnUpdateDialogUI(WPARAM /*wParam*/, LPARAM /*lParam*/)
     // fill in a default output filename
     if( enable_output_file && m_suggestOutputConnectionString )
     {
-        m_outputConnectionString = ConnectionString(wstring_view(IndexerFilenameWildcard _T("-fixed")));
+        m_outputConnectionString = ConnectionString(std::string_view(IndexerFilenameWildcard "-fixed"));
         UpdateData(FALSE);
     }
 
@@ -119,15 +119,15 @@ LRESULT IndexDlg::OnUpdateDialogUI(WPARAM /*wParam*/, LPARAM /*lParam*/)
     // handle the run button
     bool enable_run = false;
 
-    if( !SO::IsBlank(m_dictionaryFilename) && m_fileList.GetItemCount() > 0 )
+    if( !SO::IsWhitespace(m_dictionaryFilePath) && m_fileList.GetItemCount() > 0 )
         enable_run = ( !enable_output_file || m_outputConnectionString.IsDefined() );
 
     m_menu.EnableMenuItem(ID_FILE_RUN, enable_run ? MF_ENABLED : MF_DISABLED);
     GetDlgItem(IDC_RUN)->EnableWindow(enable_run);
 
     // update the number of files
-    WindowsWS::SetDlgItemText(this, IDC_NUMBER_FILES,
-                              FormatTextCS2WS(_T("%d file%s"), m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount())));
+    WindowsUtf8::SetText(this, IDC_NUMBER_FILES,
+                         FormatText("%d file%s", m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount())));
 
     return 0;
 }
@@ -158,22 +158,22 @@ void IndexDlg::SetDefaultPffSettings()
 
 void IndexDlg::OnFileOpen()
 {
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::Pff, nullptr, OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Input PFF");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff, this);
+    open_file_dlg.SetTitle(L"Select Input PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
     m_pff.ResetContents();
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(open_file_dlg.GetFilePath()));
 
     if( !m_pff.LoadPifFile() || m_pff.GetAppType() != INDEX_TYPE )
     {
-        AfxMessageBox(_T("The PFF could not be read or was not a Index Data PFF."));
+        AfxMessageBox(L"The PFF could not be read or was not a Index Data PFF.");
         SetDefaultPffSettings();
     }
 
-    m_dictionaryFilename = m_pff.GetInputDictFName();
+    m_dictionaryFilePath = UTF8_TODO::GetUtf8(m_pff.GetInputDictFName());
 
     m_fileList.DeleteAllItems();
     AddConnectionStrings(m_pff.GetInputDataConnectionStrings());
@@ -188,11 +188,11 @@ void IndexDlg::OnFileOpen()
     m_outputConnectionString = m_pff.GetSingleOutputDataConnectionString();
 
     // don't show the full path if using the wildcard
-    if( m_outputConnectionString.IsFilenamePresent() )
+    if( m_outputConnectionString.HasFilePath() )
     {
-        const std::wstring filename = PortableFunctions::PathGetFilename(m_outputConnectionString.GetFilename());
+        const std::string filename = PortableFunctions::PathGetFilename(m_outputConnectionString.GetFilePath());
 
-        if( filename.find(IndexerFilenameWildcard) != std::wstring::npos )
+        if( filename.find(IndexerFilenameWildcard) != std::string::npos )
             m_outputConnectionString = ConnectionString(filename);
     }
 
@@ -207,17 +207,23 @@ void IndexDlg::UIToPff()
 {
     UpdateData(TRUE);
 
-    m_pff.SetInputDictFName(WS2CS(m_dictionaryFilename));
+    m_pff.SetInputDictFName(UTF8_TODO::GetCString(m_dictionaryFilePath));
 
     m_pff.ClearInputDataConnectionStrings();
 
     for( int i = 0; i < m_fileList.GetItemCount(); ++i )
     {
-        const std::wstring name = m_fileList.GetItemText(i, 0);
-        const std::wstring directory = m_fileList.GetItemText(i, 1);
+        const size_t connection_string_index = m_fileList.GetItemData(i);
 
-        m_pff.AddInputDataConnectionString(WS2CS(!directory.empty() ? MakeFullPath(directory, name) :
-                                                                      name));
+        if( connection_string_index < m_fileListConnectionStrings.size() )
+        {
+            m_pff.AddInputDataConnectionString(m_fileListConnectionStrings[connection_string_index]);
+        }
+
+        else
+        {
+            ASSERT(false);
+        }
     }
 
     m_pff.SetDuplicateCase(( m_action == ActionOutput )     ? DuplicateCase::List :
@@ -232,19 +238,19 @@ void IndexDlg::UIToPff()
 
 void IndexDlg::OnFileSaveAs()
 {
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::Pff, m_pff.GetPifFileName(), OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Output PFF");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Pff, m_pff.GetPifFileName(), FileFilters::Pff, this);
+    save_file_dlg.SetTitle(L"Select Output PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
 
     UIToPff();
 
     // base the listing filename on the PFF filename
     if( m_pff.GetListingFName().IsEmpty() )
-        m_pff.SetListingFName(WS2CS(PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::WithDot::Listing)));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pff.GetPifFileName()), FileExtensions::Listing)));
 
     m_pff.Save();
 }
@@ -254,14 +260,13 @@ void IndexDlg::OnDictionaryBrowse()
 {
     UpdateData(TRUE);
 
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::Dictionary, m_dictionaryFilename.c_str(), 0,
-                             _T("Data Dictionary Files (*.dcf)|*.dcf|All Files (*.*)|*.*||"));
-    file_dlg.m_ofn.lpstrTitle =  _T("Select Dictionary File");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Dictionary, m_dictionaryFilePath, FileFilters::Dictionary, this);
+    open_file_dlg.SetTitle(L"Select Dictionary");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    m_dictionaryFilename = file_dlg.GetPathName();
+    m_dictionaryFilePath = open_file_dlg.GetFilePath();
 
     UpdateData(FALSE);
     PostMessage(UWM::CSIndex::UpdateDialogUI);
@@ -272,15 +277,25 @@ void IndexDlg::AddConnectionStrings(const std::vector<ConnectionString>& connect
 {
     for( const ConnectionString& connection_string : connection_strings )
     {
-        for( const ConnectionString& expanded_connection_string : PathHelpers::ExpandConnectionStringWildcards(connection_string) )
+        for( ConnectionString& expanded_connection_string : PathHelpers::ExpandConnectionStringWildcards(connection_string) )
         {
-            std::wstring name = expanded_connection_string.ToStringWithoutDirectory();
-            std::wstring directory;
+            auto add = [&](const std::string_view name_sv, const wchar_t* const directory)
+            {
+                const int pos = m_fileList.AddItem(TC::ToWide(name_sv).c_str(), directory);
+                m_fileList.SetItemData(pos, m_fileListConnectionStrings.size());
+                m_fileListConnectionStrings.emplace_back(std::move(expanded_connection_string));
+            };
 
-            if( expanded_connection_string.IsFilenamePresent() )
-                directory = PortableFunctions::PathGetDirectory(expanded_connection_string.GetFilename());
+            if( expanded_connection_string.HasFilePath() )
+            {
+                add(PortableFunctions::PathGetFilename(expanded_connection_string.GetFilePath()),
+                    TC::ToWide(PortableFunctions::PathGetDirectory(expanded_connection_string.GetFilePath())).c_str());
+            }
 
-            m_fileList.AddItem(name.c_str(), directory.c_str());
+            else if( expanded_connection_string.HasUrl() )
+            {
+                add(expanded_connection_string.ToDisplayString(), L"");
+            }
         }
     }
 }
@@ -289,8 +304,8 @@ void IndexDlg::AddConnectionStrings(const std::vector<ConnectionString>& connect
 void IndexDlg::OnAddFiles()
 {
     DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true);
-    data_file_dlg.SetTitle(_T("Select Files To Index"))
-                 .SetDictionaryFilename(WS2CS(m_dictionaryFilename))
+    data_file_dlg.SetTitle(L"Select Data Sources To Index")
+                 .SetDictionaryFilePath(m_dictionaryFilePath)
                  .AllowMultipleSelections();
 
     if( data_file_dlg.DoModal() != IDOK )
@@ -302,12 +317,12 @@ void IndexDlg::OnAddFiles()
 }
 
 
-void IndexDlg::OnDropFiles(const std::vector<std::wstring>& filenames)
+void IndexDlg::OnDropFiles(const std::vector<std::string>& paths)
 {
     std::vector<ConnectionString> connection_strings;
 
-    std::transform(filenames.cbegin(), filenames.cend(),
-                   std::back_inserter(connection_strings), [](const std::wstring& filename) { return ConnectionString(filename); });
+    std::transform(paths.cbegin(), paths.cend(),
+                   std::back_inserter(connection_strings), [](const std::string& path) { return ConnectionString(path); });
 
     const int initial_number_files = m_fileList.GetItemCount();
 
@@ -323,7 +338,7 @@ void IndexDlg::OnRemoveFiles()
 {
     if( m_fileList.GetItemCount() == 0 )
     {
-        AfxMessageBox(_T("No files to remove."));
+        AfxMessageBox(L"No files to remove.");
         return;
     }
 
@@ -331,7 +346,7 @@ void IndexDlg::OnRemoveFiles()
 
     if( file_list_pos == nullptr )
     {
-       AfxMessageBox(_T("No files selected."));
+       AfxMessageBox(L"No files selected.");
        return;
     }
 
@@ -361,8 +376,8 @@ void IndexDlg::OnClearFiles()
     if( m_fileList.GetItemCount() == 0 )
         return;
 
-    const std::wstring prompt = FormatTextCS2WS(_T("Are you sure that you want to clear %d file%s?"),
-                                                m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount()));
+    const std::string prompt = FormatText("Are you sure that you want to clear %d file%s?",
+                                          m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount()));
 
     if( AfxMessageBox(prompt, MB_YESNOCANCEL) != IDYES )
         return;
@@ -385,7 +400,7 @@ void IndexDlg::OnOutputBrowse()
     UIToPff();
 
     DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false, m_outputConnectionString);
-    data_file_dlg.SetDictionaryFilename(WS2CS(m_dictionaryFilename))
+    data_file_dlg.SetDictionaryFilePath(m_dictionaryFilePath)
                  .SuggestMatchingDataRepositoryType(m_pff.GetInputDataConnectionStrings())
                  .WarnIfDifferentDataRepositoryType();
 
@@ -404,12 +419,12 @@ void IndexDlg::OnRun()
     UIToPff();
 
     // if the listing file hasn't been defined, put it in the same folder as the PFF, or in the temporary folder if the PFF hasn't been saved
-    const bool use_temporary_listing_filename = m_pff.GetListingFName().IsEmpty();
+    const bool use_temporary_listing_file = m_pff.GetListingFName().IsEmpty();
 
-    if( use_temporary_listing_filename )
+    if( use_temporary_listing_file )
     {
-        m_pff.SetListingFName(WS2CS(m_pff.GetPifFileName().IsEmpty() ? PortableFunctions::PathAppendToPath(GetTempDirectory(), _T("CSIndex.lst")) :
-                                                                       PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::Listing)));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(m_pff.GetPifFileName().IsEmpty() ? Path::Combine(GetTempDirectory(), "CSIndex.lst") :
+                                                                                       PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pff.GetPifFileName()), FileExtensions::Listing)));
     }
 
     try
@@ -422,6 +437,6 @@ void IndexDlg::OnRun()
         ErrorMessage::Display(exception);
     }
 
-    if( use_temporary_listing_filename )
+    if( use_temporary_listing_file )
         m_pff.SetListingFName(CString());
 }

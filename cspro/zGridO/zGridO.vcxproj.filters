@@ -14,97 +14,97 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCBTYPE.CPP">
+    <ClCompile Include="Ugcbtype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCELL.CPP">
+    <ClCompile Include="Ugcell.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCELTYP.CPP">
+    <ClCompile Include="Ugceltyp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCNRBTN.CPP">
+    <ClCompile Include="Ugcnrbtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCTARRW.CPP">
+    <ClCompile Include="Ugctarrw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCTRL.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGDLTYPE.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGDRGDRP.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGDRWHNT.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGDTASRC.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGEDIT.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGEXCEL.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGFORMAT.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGGDINFO.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGGRID.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGHINT.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGHSCROL.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGLSTBOX.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGMEMMAN.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGMULTIS.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGPRINT.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGPTRLST.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGSIDEHD.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGTAB.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGTOPHDG.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UGVSCROL.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zGridO.cpp">
+    <ClCompile Include="UGCTbutn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Ugctelps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Ugctrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="UGCTsarw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugdltype.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugdrgdrp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugdrwhnt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugdtasrc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugedit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugexcel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugformat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Uggdinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Uggrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ughint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ughscrol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Uglstbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Ugmedit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UGCTbutn.cpp">
+    <ClCompile Include="Ugmemman.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugmultis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugprint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugptrlst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugsidehd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugtab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugtophdg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ugvscrol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zGridO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -112,100 +112,100 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCBTYPE.H">
+    <ClInclude Include="Ugcbtype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCELL.H">
+    <ClInclude Include="Ugcell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCELTYP.H">
+    <ClInclude Include="Ugceltyp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCNRBTN.H">
+    <ClInclude Include="Ugcnrbtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCTARRW.H">
+    <ClInclude Include="Ugctarrw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCTRL.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGDEFINE.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGDLTYPE.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGDRGDRP.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGDRWHNT.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGDTASRC.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGEDIT.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGEXCEL.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGFORMAT.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGGDINFO.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGGRID.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGHINT.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGHSCROL.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGLSTBOX.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGMEMMAN.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGMULTIS.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGPRINT.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGPTRLST.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGSIDEHD.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGTAB.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGTOPHDG.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UGVSCROL.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zGridO.h">
+    <ClInclude Include="UGCTbutn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ugctelps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Ugctrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="UGCTsarw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugdefine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugdltype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugdrgdrp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugdrwhnt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugdtasrc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugexcel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugformat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Uggdinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Uggrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ughint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ughscrol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Uglstbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ugmedit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UGCTbutn.h">
+    <ClInclude Include="Ugmemman.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugmultis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugprint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugptrlst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugsidehd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugtab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugtophdg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ugvscrol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zGridO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

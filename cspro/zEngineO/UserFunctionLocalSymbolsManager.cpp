@@ -2,8 +2,6 @@
 #include "UserFunctionLocalSymbolsManager.h"
 #include "List.h"
 #include "UserFunction.h"
-#include "Versioning.h"
-#include <engine/Engarea.h>
 
 
 // --------------------------------------------------------------------------
@@ -59,7 +57,7 @@ UserFunctionLocalSymbolsManager::~UserFunctionLocalSymbolsManager()
 void UserFunctionLocalSymbolsManager::CreateLocalSymbolsData(UserFunction& user_function)
 {
     // the first set can use the original symbols but subsequent ones must be cloned
-    bool use_original_set = user_function.m_localSymbolsManagerData.empty();
+    const bool use_original_set = user_function.m_localSymbolsManagerData.empty();
 
     m_data = user_function.m_localSymbolsManagerData.emplace_back(
         std::make_shared<UserFunctionLocalSymbolsManager::Data>(UserFunctionLocalSymbolsManager::Data
@@ -68,7 +66,7 @@ void UserFunctionLocalSymbolsManager::CreateLocalSymbolsData(UserFunction& user_
             user_function.m_engineData.symbol_table,
         })).get();
 
-    auto create_local_symbol = [&](int symbol_index)
+    auto create_local_symbol = [&](const int symbol_index)
     {
         std::shared_ptr<Symbol> local_symbol;
 
@@ -96,32 +94,8 @@ void UserFunctionLocalSymbolsManager::CreateLocalSymbolsData(UserFunction& user_
 
             else
             {
-                if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-                {
-                    if( local_symbol->IsA(SymbolType::Variable) )
-                    {
-                        static bool error_displayed = false;
-
-                        if( !error_displayed )
-                        {
-                            error_displayed = true;
-                            ErrorMessage::Display(_T("Recursive functions will no longer work properly with .pen files ")
-                                                    _T("generated prior to CSPro 7.6. Regenerate the .pen and try again."));
-                        }
-                    }
-
-                    else
-                    {
-                        // prior to the WorkString object existing, work sections could get mixed up with this;
-                        ASSERT(local_symbol->IsA(SymbolType::Section));
-                    }
-                }
-
-                else
-                {
-                    // if asserting, implement cloning for the symbol
-                    ASSERT(false);
-                }
+                // if asserting, implement cloning for the symbol
+                ASSERT(false);
             }
         }
 
@@ -130,10 +104,10 @@ void UserFunctionLocalSymbolsManager::CreateLocalSymbolsData(UserFunction& user_
         m_data->local_symbols.try_emplace(symbol_index, local_symbol);
     };
 
-    for( int symbol_index : user_function.m_parameterSymbols )
+    for( const int symbol_index : user_function.m_parameterSymbols )
         create_local_symbol(symbol_index);
 
-    for( int symbol_index : user_function.m_functionBodySymbols )
+    for( const int symbol_index : user_function.m_functionBodySymbols )
         create_local_symbol(symbol_index);
 }
 

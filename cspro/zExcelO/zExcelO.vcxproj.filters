@@ -14,12 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ExcelWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\app.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
@@ -50,16 +44,34 @@
     <ClCompile Include="..\external\libxlsxwriter\src\hash_table.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\metadata.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\packager.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\relationships.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\rich_value.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_rel.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_structure.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_types.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\shared_strings.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\styles.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\table.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\src\theme.c">
@@ -83,9 +95,6 @@
     <ClCompile Include="..\external\libxlsxwriter\third_party\md5\md5.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\tmpfileplus\tmpfileplus.c">
-      <Filter>libxlsxwriter</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\ioapi.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
@@ -95,21 +104,24 @@
     <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\zip.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\table.c">
+    <ClCompile Include="..\external\libxlsxwriter\third_party\tmpfileplus\tmpfileplus.c">
       <Filter>libxlsxwriter</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\metadata.c">
-      <Filter>libxlsxwriter</Filter>
+    <ClCompile Include="ExcelWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zExcelO.h">
+    <ClInclude Include="ExcelWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExcelWriter.h">
+    <ClInclude Include="zExcelO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -166,7 +166,7 @@ void WindowsDocsDlg::OnCloseWindows()
     if( closed_documents.empty() )
         return;
 
-    // it is possible that an overriden OnCloseDocument prevented a document from closing, so ensure
+    // it is possible that an overridden OnCloseDocument prevented a document from closing, so ensure
     // that all documents were actually closed
     POSITION template_pos = AfxGetApp()->GetFirstDocTemplatePosition();
 

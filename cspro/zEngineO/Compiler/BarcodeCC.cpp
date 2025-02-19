@@ -37,11 +37,11 @@ int LogicCompiler::CompileBarcodeFunctions()
 
 
     // Barcode.createQRCode("filename", "text" | number,
-	//				        errorCorrection := "L" | "M" | "Q" | "H" | "low" | "medium" | "quartile" | "high",
-    //					    scale := number,
-    //					    quietZone := number,
-    //					    darkColor := color,
-    //					    lightColor := color);
+    //                      errorCorrection := "L" | "M" | "Q" | "H" | "low" | "medium" | "quartile" | "high",
+    //                      scale := number,
+    //                      quietZone := number,
+    //                      darkColor := color,
+    //                      lightColor := color);
     //
     // image_name.createQRCode (as above but without the first parameter)
     else if( function_code == FunctionCode::BARCODEFN_CREATEQRCODE_CODE )
@@ -82,17 +82,17 @@ int LogicCompiler::CompileBarcodeFunctions()
             // process optional arguments
             OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
-            optional_named_arguments_compiler.AddArgumentWithStringLiteralCheck(_T("errorCorrection"), create_qr_code_options_node.error_correction_expression,
-                [&](const std::wstring& text)
+            optional_named_arguments_compiler.AddArgumentWithStringLiteralCheck("errorCorrection", create_qr_code_options_node.error_correction_expression,
+                [&](const std::string text)
                 {
                     if( Multimedia::QRCode::GetErrorCorrectionLevelFromText(text) == std::nullopt )
                         IssueError(100330, text.c_str());
                 });
 
-            optional_named_arguments_compiler.AddArgumentInteger(_T("scale"), create_qr_code_options_node.scale_expression, Multimedia::QRCode::ScaleMin, std::nullopt);
-            optional_named_arguments_compiler.AddArgumentInteger(_T("quietZone"), create_qr_code_options_node.quiet_zone_expression, Multimedia::QRCode::QuietZoneMin, std::nullopt);
-            optional_named_arguments_compiler.AddArgumentPortableColorText(_T("darkColor"), create_qr_code_options_node.dark_color_expression);
-            optional_named_arguments_compiler.AddArgumentPortableColorText(_T("lightColor"), create_qr_code_options_node.light_color_expression);
+            optional_named_arguments_compiler.AddArgumentInteger("scale", create_qr_code_options_node.scale_expression, Multimedia::QRCode::ScaleMin, std::nullopt);
+            optional_named_arguments_compiler.AddArgumentInteger("quietZone", create_qr_code_options_node.quiet_zone_expression, Multimedia::QRCode::QuietZoneMin, std::nullopt);
+            optional_named_arguments_compiler.AddArgumentPortableColorText("darkColor", create_qr_code_options_node.dark_color_expression);
+            optional_named_arguments_compiler.AddArgumentPortableColorText("lightColor", create_qr_code_options_node.light_color_expression);
 
             optional_named_arguments_compiler.Compile();
         }

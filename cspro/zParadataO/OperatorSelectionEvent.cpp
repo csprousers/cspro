@@ -7,32 +7,32 @@ using namespace Paradata;
 void OperatorSelectionEvent::SetupTables(Log& log)
 {
     log.CreateTable(ParadataTable::OperatorSelectionEvent)
-            .AddColumn(_T("source"), Table::ColumnType::Integer)
-                    .AddCode((int)Source::Errmsg, _T("errmsg"))
-                    .AddCode((int)Source::Accept, _T("accept"))
-                    .AddCode((int)Source::Prompt, _T("prompt"))
-                    .AddCode((int)Source::Userbar, _T("userbar"))
-                    .AddCode((int)Source::SelCase, _T("selcase"))
-                    .AddCode((int)Source::Show, _T("show"))
-                    .AddCode((int)Source::ShowArray, _T("showarray"))
-                    .AddCode((int)Source::ListShow, _T("list.show"))
-                    .AddCode((int)Source::MapShow, _T("map.show"))
-                    .AddCode((int)Source::ValueSetShow, _T("valueset.show"))
-                    .AddCode((int)Source::BarcodeRead, _T("barcode.read"))
-            .AddColumn(_T("selection_number"), Table::ColumnType::Integer, true)
-            .AddColumn(_T("selection_text"), Table::ColumnType::Long, true)
-            .AddColumn(_T("display_duration"), Table::ColumnType::Double, true)
+            .AddColumn("source", Table::ColumnType::Integer)
+                    .AddCode(Source::Errmsg, "errmsg")
+                    .AddCode(Source::Accept, "accept")
+                    .AddCode(Source::Prompt, "prompt")
+                    .AddCode(Source::Userbar, "userbar")
+                    .AddCode(Source::SelCase, "selcase")
+                    .AddCode(Source::Show, "show")
+                    .AddCode(Source::ShowArray, "showarray")
+                    .AddCode(Source::ListShow, "List.show")
+                    .AddCode(Source::MapShow, "Map.show")
+                    .AddCode(Source::ValueSetShow, "ValueSet.show")
+                    .AddCode(Source::BarcodeRead, "Barcode.read")
+            .AddColumn("selection_number", Table::ColumnType::Integer, true)
+            .AddColumn("selection_text", Table::ColumnType::Long, true)
+            .AddColumn("display_duration", Table::ColumnType::Double, true)
         ;
 }
 
 
-OperatorSelectionEvent::OperatorSelectionEvent(Source source)
+OperatorSelectionEvent::OperatorSelectionEvent(const Source source)
     :   m_source(source)
 {
 }
 
 
-void OperatorSelectionEvent::SetPostSelectionValues(std::optional<int> selection_number, std::optional<std::wstring> selection_text, bool set_display_duration)
+void OperatorSelectionEvent::SetPostSelectionValues(std::optional<int> selection_number, SharableString selection_text, const bool set_display_duration)
 {
     m_selectionNumber = std::move(selection_number);
     m_selectionText = std::move(selection_text);

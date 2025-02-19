@@ -13,31 +13,28 @@
 // nameless symbol declarations when compiling function pointers
 // --------------------------------------------------------------------------
 
-std::wstring LogicCompiler::CompileNewSymbolName()
+std::string LogicCompiler::CompileNewSymbolName(const std::optional<TokenCode> additional_token_allowed/* = std::nullopt*/)
 {
-    // if no symbol name compiler exists, add the default one
-    if( m_symbolCompilerModifier.name_compiler.empty() )
+    // use a symbol name compiler when set
+    if( !m_symbolCompilerModifier.name_compiler.empty() )
     {
-        m_symbolCompilerModifier.name_compiler.push(
-            [&]()
-            {
-                NextTokenOrNewSymbolName();
-
-                if( Tkn != TOKNEWSYMBOL )
-                {
-                    // if not a new symbol, run the token through the name checks
-                    // so that a more accurate message occurs is issued...
-                    CheckIfValidNewSymbolName(Tokstr);
-
-                    // ...or default to a generic error
-                    IssueError(MGF::symbol_name_in_use_102, Tokstr.c_str());
-                }
-
-                return Tokstr;
-            });
+        ASSERT(!additional_token_allowed.has_value());
+        return (m_symbolCompilerModifier.name_compiler.top())();
     }
 
-    return (m_symbolCompilerModifier.name_compiler.top())();
+    NextTokenOrNewSymbolName();
+
+    if( Tkn != TOKNEWSYMBOL && ( !additional_token_allowed.has_value() || Tkn != *additional_token_allowed ) )
+    {
+        // if not a new symbol, run the token through the name checks
+        // so that a more accurate message occurs is issued...
+        CheckIfValidNewSymbolName(Tokstr);
+
+        // ...or default to a generic error
+        IssueError(MGF::symbol_name_in_use_102, Tokstr.c_str());
+    }
+
+    return Tokstr;
 }
 
 
@@ -49,17 +46,22 @@ std::wstring LogicCompiler::CompileNewSymbolName()
 
 int LogicCompiler::CompileSymbolWithModifiers()
 {
-    static const std::vector<TokenCode> ConfigTokens =
+    constexpr TokenCode ConfigTokens[] =
     {
         TOKNUMERIC,
         TOKSTRING,
     };
 
-    static const std::vector<TokenCode> PersistentTokens =
+    constexpr TokenCode DeclareTokens[] =
+    {
+        TOKKWFUNCTION,
+    };
+
+    constexpr TokenCode PersistentTokens[] =
     {
         TOKNUMERIC,
         TOKSTRING, TOKALPHA,
-        TOKKWARRAY, 
+        TOKKWARRAY,
         TOKKWAUDIO,
         TOKKWDOCUMENT,
         TOKKWGEOMETRY,
@@ -70,17 +72,24 @@ int LogicCompiler::CompileSymbolWithModifiers()
         TOKKWVALUESET,
     };
 
+    if( Tkn == TOKDECLARE && !IsGlobalCompilation() )
+        IssueError(MGF::variable_modifier_declare_must_be_proc_global_94106);
+
     std::vector<RAII::SetValueAndRestoreOnDestruction<bool>> raii_modifiers;
 
     // read all modifiers
-    while( Tkn == TOKCONFIG || Tkn == TOKPERSISTENT )
+    while( Tkn == TOKCONFIG || Tkn == TOKDECLARE || Tkn == TOKPERSISTENT )
     {
-        bool& compilation_flag = ( Tkn == TOKCONFIG ) ? m_symbolCompilerModifier.config_variable :
-                                                        m_symbolCompilerModifier.persistent_variable;
+        bool& compilation_flag = ( Tkn == TOKCONFIG )  ? m_symbolCompilerModifier.config_variable :
+                                 ( Tkn == TOKDECLARE ) ? m_symbolCompilerModifier.declare_variable :
+                                                         m_symbolCompilerModifier.persistent_variable;
 
         // multiple modifiers of the same type are not allowed
         if( compilation_flag )
-            IssueError(MGF::variable_modifier_duplicated_94100, Logic::KeywordTable::GetKeywordName(Tkn));
+        {
+            IssueError(MGF::variable_modifier_duplicated_94100,
+                       Logic::KeywordTable::GetKeywordName(Tkn));
+        }
 
         raii_modifiers.emplace_back(compilation_flag, true);
 
@@ -89,7 +98,7 @@ int LogicCompiler::CompileSymbolWithModifiers()
         {
             const Logic::BasicToken* next_basic_token = PeekNextBasicToken();
 
-            if( next_basic_token != nullptr && !Logic::KeywordTable::IsKeyword(next_basic_token->GetTextSV()) )
+            if( next_basic_token != nullptr && !Logic::KeywordTable::IsKeyword(next_basic_token->GetSV()) )
             {
                 IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, MGF::deprecation_config_without_type_95030);
                 return CompileLogicStrings();
@@ -102,24 +111,37 @@ int LogicCompiler::CompileSymbolWithModifiers()
     ASSERT(!raii_modifiers.empty());
 
     // check that the modifier is valid for the token
-    auto check_modifier_validity = [&](bool compilation_flag, TokenCode modifier_token, const std::vector<TokenCode>& valid_tokens)
-    {
-        if( compilation_flag && std::find(valid_tokens.cbegin(), valid_tokens.cend(), Tkn) == valid_tokens.cend() )
-            IssueError(MGF::variable_modifier_invalid_94101, Logic::KeywordTable::GetKeywordName(modifier_token), Logic::KeywordTable::GetKeywordName(Tkn));
-    };
+    auto check_modifier_validity =
+        [&](const bool compilation_flag, const TokenCode modifier_token,
+            const auto& valid_tokens_cbegin, const auto& valid_tokens_cend)
+        {
+            if( compilation_flag && std::find(valid_tokens_cbegin, valid_tokens_cend, Tkn) == valid_tokens_cend )
+            {
+                IssueError(MGF::variable_modifier_invalid_94101,
+                           Logic::KeywordTable::GetKeywordName(modifier_token),
+                           Logic::KeywordTable::GetKeywordName(Tkn));
+            }
+        };
 
-    check_modifier_validity(m_symbolCompilerModifier.config_variable, TOKCONFIG, ConfigTokens);
-    check_modifier_validity(m_symbolCompilerModifier.persistent_variable, TOKPERSISTENT, PersistentTokens);
+
+    check_modifier_validity(m_symbolCompilerModifier.config_variable, TOKCONFIG, std::cbegin(ConfigTokens), std::cend(ConfigTokens));
+    check_modifier_validity(m_symbolCompilerModifier.declare_variable, TOKDECLARE, std::cbegin(DeclareTokens), std::cend(DeclareTokens));
+    check_modifier_validity(m_symbolCompilerModifier.persistent_variable, TOKPERSISTENT, std::cbegin(PersistentTokens), std::cend(PersistentTokens));
 
 
     // compile the symbol declaration
-    size_t initial_number_symbols = m_symbolTable.GetTableSize();
-    int program_index = CompileSymbolRouter();
+    const size_t initial_number_symbols = m_symbolTable.GetTableSize();
+    const int program_index = CompileSymbolRouter();
 
 
     // config
     // ------
     // the processing of config variables is done in the symbol's compilation function
+
+
+    // declare
+    // ------
+    // the processing of a declaration is done in the symbol's compilation function
 
 
     // persistent
@@ -130,7 +152,7 @@ int LogicCompiler::CompileSymbolWithModifiers()
 
         for( size_t i = initial_number_symbols; i < m_symbolTable.GetTableSize(); ++i )
         {
-            Symbol& symbol = NPT_Ref(i);
+            const Symbol& symbol = NPT_Ref(i);
 
             // prevent the use of multiple persistent variables with the same name
             if( persistent_variable_processor.HasSymbolWithSameName(symbol) )
@@ -166,6 +188,7 @@ int LogicCompiler::CompileSymbolRouter()
         { TOKKWDOCUMENT,    &LogicCompiler::CompileLogicDocumentDeclarations },
         { TOKKWFILE,        &LogicCompiler::CompileLogicFiles },
         { TOKKWFREQ,        &LogicCompiler::CompileFrequencyDeclaration },
+        { TOKKWFUNCTION,    &LogicCompiler::CompileUserFunctionDeclarations },
         { TOKKWGEOMETRY,    &LogicCompiler::CompileLogicGeometryDeclarations },
         { TOKKWHASHMAP,     &LogicCompiler::CompileLogicHashMapDeclarations },
         { TOKKWIMAGE,       &LogicCompiler::CompileLogicImageDeclarations },
@@ -259,18 +282,18 @@ unsigned LogicCompiler::CompileAlphaLength()
 
 int LogicCompiler::CompileSymbolInitialAssignment(const Symbol& symbol)
 {
-    bool numeric = IsNumeric(symbol);
-    size_t exact_string_length = 0;
+    const bool numeric = IsNumeric(symbol);
+    size_t exact_wide_string_length = 0;
 
     if( symbol.IsA(SymbolType::WorkString) )
     {
         if( symbol.GetSubType() == SymbolSubType::WorkAlpha )
-            exact_string_length = assert_cast<const WorkAlpha&>(symbol).GetLength();
+            exact_wide_string_length = assert_cast<const WorkAlpha&>(symbol).GetWideLength();
     }
 
     else if( symbol.IsA(SymbolType::Array) )
     {
-        exact_string_length = assert_cast<const LogicArray&>(symbol).GetPaddingStringLength();
+        exact_wide_string_length = assert_cast<const LogicArray&>(symbol).GetPaddingStringLength();
     }
 
     else
@@ -309,15 +332,15 @@ int LogicCompiler::CompileSymbolInitialAssignment(const Symbol& symbol)
             // only string literals are allowed
             IssueErrorOnTokenMismatch(TOKSCTE, MGF::string_literal_expected_8218);
 
-            std::wstring value = Tokstr;
+            std::string value = Tokstr;
 
             // ensure that the value is the correct length for alpha variables
-            if( exact_string_length != 0 )
+            if( exact_wide_string_length != 0 )
             {
-                if( value.size() > exact_string_length )
+                if( SO::WideLength(value) > exact_wide_string_length )
                     IssueWarning(MGF::string_literal_will_be_truncated_8216);
 
-                SO::MakeExactLength(value, exact_string_length);
+                SO::WideMakeExactLength(value, exact_wide_string_length);
             }
 
             conserver_index = ConserveConstant(std::move(value));
@@ -337,6 +360,13 @@ int LogicCompiler::CompileSymbolInitialAssignment(const Symbol& symbol)
 }
 
 
+bool LogicCompiler::IsFunctionParameterSymbol(const Symbol& symbol) const
+{
+    return ( std::find(m_functionParameterSymbols.cbegin(),
+                       m_functionParameterSymbols.cend(), &symbol) != m_functionParameterSymbols.cend() );
+}
+
+
 
 // --------------------------------------------------------------------------
 //  Working Variables (numeric)
@@ -344,7 +374,7 @@ int LogicCompiler::CompileSymbolInitialAssignment(const Symbol& symbol)
 
 WorkVariable* LogicCompiler::CompileWorkVariableDeclaration()
 {
-    std::wstring numeric_name = CompileNewSymbolName();
+    std::string numeric_name = CompileNewSymbolName();
 
     auto work_variable = std::make_shared<WorkVariable>(std::move(numeric_name));
 
@@ -379,11 +409,9 @@ int LogicCompiler::CompileWorkVariables()
         // if a config variable, the value can come from common store
         if( m_symbolCompilerModifier.config_variable )
         {
-            bool value_already_provided = ( initialize_value != -1 );
+            const bool value_already_provided = ( initialize_value != -1 );
 
-            std::optional<double> config_value =
-                GetCompilerHelper<CommonStoreCompilerHelper>().GetConfigValue<double>(
-                work_variable->GetName(), !value_already_provided);
+            std::optional<double> config_value = GetCompilerHelper<CommonStoreCompilerHelper>().GetConfigValue<double>(work_variable->GetName(), !value_already_provided);
 
             // default to NOTAPPL if there is no value
             if( !config_value.has_value() && !value_already_provided )
@@ -423,37 +451,37 @@ int LogicCompiler::CompileWorkVariables()
 
 WorkString* LogicCompiler::CompileLogicStringDeclaration(TokenCode token_code, const WorkString* work_string_to_copy_attributes/* = nullptr*/)
 {
-    std::optional<unsigned> string_length;
+    std::optional<size_t> wide_string_length;
 
     // the string length can be specified for the first alpha variable
     if( token_code == TOKALPHA )
     {
         if( work_string_to_copy_attributes != nullptr )
         {
-            string_length = assert_cast<const WorkAlpha*>(work_string_to_copy_attributes)->GetLength();
+            wide_string_length = assert_cast<const WorkAlpha*>(work_string_to_copy_attributes)->GetWideLength();
         }
 
         else
         {
-            string_length = CompileAlphaLength();
+            wide_string_length = CompileAlphaLength();
         }
     }
 
     // add the variable
-    std::wstring string_name = CompileNewSymbolName();
+    std::string string_name = CompileNewSymbolName();
 
     std::shared_ptr<WorkString> work_string;
 
-    if( string_length.has_value() )
+    if( wide_string_length.has_value() )
     {
         auto work_alpha = std::make_unique<WorkAlpha>(std::move(string_name));
-        work_alpha->SetLength(*string_length);
+        work_alpha->SetWideLength(*wide_string_length);
         work_string = std::move(work_alpha);
     }
 
     else
     {
-        work_string = std::make_shared<WorkString>(std::move(string_name));
+        work_string = std::make_unique<WorkString>(std::move(string_name));
     }
 
     m_engineData->AddSymbol(work_string);
@@ -491,17 +519,16 @@ int LogicCompiler::CompileLogicStrings()
 
         if( m_symbolCompilerModifier.config_variable )
         {
-            bool value_already_provided = ( initialize_value != -1 );
+            const bool value_already_provided = ( initialize_value != -1 );
 
-            std::optional<std::wstring> config_value =
-                GetCompilerHelper<CommonStoreCompilerHelper>().GetConfigValue<std::wstring>(
-                last_work_string_compiled->GetName(), !value_already_provided);
+            const std::optional<std::string> config_value = GetCompilerHelper<CommonStoreCompilerHelper>().GetConfigValue<std::string>(last_work_string_compiled->GetName(), !value_already_provided);
 
             if( config_value.has_value() )
             {
                 // encrypt the value
                 const Encryptor::Type encryption_type = PreinitializedVariable::GetEncryptionType();
-                std::wstring encrypted_value = Encryptor(encryption_type).Encrypt(*config_value);
+                Encryptor encryptor(encryption_type);
+                std::string encrypted_value = encryptor.Encrypt(*config_value);
 
                 if( IsGlobalCompilation() )
                 {
@@ -528,8 +555,8 @@ int LogicCompiler::CompileLogicStrings()
             }
         }
 
-        // for non-config variables (or config variables with a direct assignment that was not overriden),
-		// add to the preinitialized variables if in PROC GLOBAL
+        // for non-config variables (or config variables with a direct assignment that was not overridden),
+        // add to the preinitialized variables if in PROC GLOBAL
         if( IsGlobalCompilation() && initialize_value >= 0 && !value_processed )
         {
             m_engineData->runtime_events_processor.AddEvent(std::make_unique<PreinitializedVariable>(
@@ -558,7 +585,7 @@ void LogicCompiler::CompileAlias()
 
     do
     {
-        std::wstring alias_name = CompileNewSymbolName();
+        std::string alias_name = CompileNewSymbolName();
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKCOLON, MGF::alias_invalid_8206);
@@ -642,13 +669,16 @@ int LogicCompiler::CompileSymbolFunctions()
     //      [all symbols].getJson([serializationOptions := s]);
     //      [all symbols].getName()
     //      [some symbols].getValueJson([serializationOptions := s]);
-    //      [some symbols].updateValueFromJson(json);
+    //      [some symbols].setValueFromJson(json);
     ASSERT(CurrentToken.symbol != nullptr);
 
-    const Logic::FunctionDetails* function_details = CurrentToken.function_details;
+    const Logic::FunctionDetails* const function_details = CurrentToken.function_details;
     const Symbol& symbol = *CurrentToken.symbol;
     const int symbol_subscript_compilation = CurrentToken.symbol_subscript_compilation;
     const bool symbol_subscript_used = ( symbol_subscript_compilation != -1 );
+
+    if( Tokstr.find("updateValueFromJson") != std::string::npos )
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, 95001, "Symbol.updateValueFromJson", "Symbol.setValueFromJson");
 
     // read the left parenthesis but nothing more (in case any compilers use named arguments as the first argument)
     NextToken();
@@ -697,7 +727,7 @@ int LogicCompiler::CompileSymbolFunctions()
         {
             OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
             int language_expression = -1;
-            optional_named_arguments_compiler.AddArgument(_T("language"), language_expression, DataType::String);
+            optional_named_arguments_compiler.AddArgument("language", language_expression, DataType::String);
 
             if( optional_named_arguments_compiler.Compile(true) != 0 )
             {
@@ -727,9 +757,9 @@ int LogicCompiler::CompileSymbolFunctions()
     }
 
 
-    // [some symbols].updateValueFromJson(json);
+    // [some symbols].setValueFromJson(json);
     // --------------------------------------------------------------------------
-    else if( function_details->code == FunctionCode::SYMBOLFN_UPDATEVALUEFROMJSON_CODE )
+    else if( function_details->code == FunctionCode::SYMBOLFN_SETVALUEFROMJSON_CODE )
     {
         instantiate_node();
 
@@ -752,7 +782,7 @@ int LogicCompiler::CompileSymbolFunctions()
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
         optional_named_arguments_compiler.AddArgumentJsonText(JK::serializationOptions, symbol_va_with_subscript_node->arguments[0],
-            [&](const JsonNode<wchar_t>& json_node)
+            [&](const JsonNode& json_node)
             {
                 JsonProperties::CreateFromJson(json_node);
             });

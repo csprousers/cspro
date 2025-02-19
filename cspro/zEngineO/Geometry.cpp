@@ -6,6 +6,7 @@
 #include <zMapping/GeoJson.h>
 #include <zMapping/GreatCircle.h>
 #include <fstream>
+#include <sstream>
 
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
@@ -263,7 +264,7 @@ namespace
 
         catch( const std::exception& exception )
         {
-            throw CSProException(_T("Error reading GeoJSON: ") + CSProException::GetErrorMessage(exception));
+            throw CSProException("Error reading GeoJSON: %s", exception.what());
         }
     }
 }
@@ -274,7 +275,7 @@ namespace
 // LogicGeometry
 // --------------------------------------------------------------------------
 
-LogicGeometry::LogicGeometry(std::wstring geometry_name)
+LogicGeometry::LogicGeometry(std::string geometry_name)
     :   BinarySymbol(std::move(geometry_name), SymbolType::Geometry)
 {
 }
@@ -337,13 +338,13 @@ LogicGeometry& LogicGeometry::operator=(const LogicDocument& logic_document)
 
         catch(...)
         {
-            throw CSProException(_T("The Document '%s' has data that cannot be converted to Geometry."), logic_document.GetName().c_str());                
+            throw CSProException("The Document '%s' has data that cannot be converted to Geometry.", logic_document.GetName().c_str());
         }
-        
+
         ASSERT(content == document_binary_symbol_data.GetSharedContent());
 
         m_binarySymbolData = document_binary_symbol_data;
-        m_binarySymbolData.GetMetadataForModification().SetMimeType(MimeType::Type::GeoJson);
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::GeoJson);
     }
 
     else
@@ -375,9 +376,7 @@ BinaryData::ContentCallbackType LogicGeometry::CreateBinaryDataContentFromGeomet
             try
             {
                 const std::string json_contents = SaveToString(*features);
-                const std::byte* string_data = reinterpret_cast<const std::byte*>(json_contents.data());
-
-                return std::make_shared<const std::vector<std::byte>>(string_data, string_data + json_contents.length());
+                return std::make_shared<const std::vector<std::byte>>(SO::CreateByteVector(json_contents));
             }
 
             catch(...)
@@ -388,7 +387,7 @@ BinaryData::ContentCallbackType LogicGeometry::CreateBinaryDataContentFromGeomet
 }
 
 
-bool LogicGeometry::HasValidContent(bool parse_data_if_necessary) const noexcept
+bool LogicGeometry::HasValidContent(const bool parse_data_if_necessary) const noexcept
 {
     ASSERT(HasContent());
 
@@ -421,24 +420,24 @@ bool LogicGeometry::HasValidContent() const
 }
 
 
-void LogicGeometry::Load(std::wstring filename)
+void LogicGeometry::Load(std::string file_path)
 {
     std::shared_ptr<const std::vector<std::byte>> content;
-    std::tie(content, m_features, m_bounds) = ParseGeometry(FileIO::Read(filename));
-    m_binarySymbolData.SetBinaryData(std::move(content), std::move(filename));
+    std::tie(content, m_features, m_bounds) = ParseGeometry(FileIO::Read(file_path));
+    m_binarySymbolData.SetBinaryData(std::move(content), std::move(file_path));
 }
 
 
-void LogicGeometry::Save(std::wstring filename)
+void LogicGeometry::Save(std::string file_path)
 {
     ASSERT(HasValidContent(false));
 
-    std::unique_ptr<std::ofstream> os = FileIO::OpenOutputFileStream(filename);
+    std::unique_ptr<std::ofstream> os = FileIO::OpenOutputFileStream(file_path);
     Save(*os, *m_features);
     os.reset();
 
-    m_binarySymbolData.SetPath(std::move(filename));
-    m_binarySymbolData.GetMetadataForModification().SetMimeType(MimeType::Type::GeoJson);
+    m_binarySymbolData.SetPath(std::move(file_path));
+    m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::GeoJson);
 }
 
 
@@ -451,7 +450,7 @@ void LogicGeometry::Save(std::ostream& os, const Geometry::FeatureCollection& fe
 
     catch( const std::exception& exception )
     {
-        throw CSProException(_T("Error writing GeoJSON: ") + CSProException::GetErrorMessage(exception));
+        throw CSProException("Error writing GeoJSON: %s", exception.what());
     }
 }
 
@@ -508,54 +507,50 @@ const Geometry::Polygon* LogicGeometry::GetFirstPolygon() const
 }
 
 
-std::wstring LogicGeometry::GetProperty(wstring_view key_sv) const
+std::string LogicGeometry::GetProperty(const std::string& key) const
 {
     ASSERT(HasValidContent(false));
 
     // Find first feature with that has matching key
-    const std::string key_utf8 = UTF8Convert::WideToUTF8(key_sv);
-
     for( const Geometry::Feature& feature : *m_features )
     {
-        const auto& lookup = feature.properties.find(key_utf8);
+        const auto& lookup = feature.properties.find(key);
 
         if( lookup != feature.properties.end() )
         {
             return lookup->second.match(
-                    [](mapbox::feature::null_value_t) { return std::wstring(); },
-                    [](bool b) { return b ? _T("true") : _T("false"); },
-                    [](uint64_t i) { return CS2WS(IntToString(i)); },
-                    [](int64_t i) { return CS2WS(IntToString(i)); },
+                    [](mapbox::feature::null_value_t) { return std::string(); },
+                    [](bool b) { return b ? "true" : "false"; },
+                    [](uint64_t i) { return IntToString(i); },
+                    [](int64_t i) { return IntToString(i); },
                     [](double d) { return DoubleToString(d); },
-                    [](const std::string& s) { return UTF8Convert::UTF8ToWide(s); },
-                    [](const mapbox::feature::value::array_ptr_type&) { return std::wstring(); }, // TODO: support array and object types
-                    [](const mapbox::feature::value::object_ptr_type&) { return std::wstring(); });
+                    [](const std::string& s) { return s; },
+                    [](const mapbox::feature::value::array_ptr_type&) { return std::string(); }, // TODO: support array and object types
+                    [](const mapbox::feature::value::object_ptr_type&) { return std::string(); });
         }
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-void LogicGeometry::SetProperty(wstring_view key_sv, const std::variant<double, std::wstring>& value)
+void LogicGeometry::SetProperty(const std::string& key, const std::variant<double, SharableString>& value)
 {
     ASSERT(HasValidContent(false));
 
     // Set the property in all features
-    const std::string utf8_key = UTF8Convert::WideToUTF8(key_sv);
-
     if( std::holds_alternative<double>(value) )
     {
         for( Geometry::Feature& feature : *m_features )
-            feature.properties[utf8_key] = std::get<double>(value);
+            feature.properties[key] = std::get<double>(value);
     }
 
     else
     {
-        const std::string utf8_value = UTF8Convert::WideToUTF8(std::get<std::wstring>(value));
+        const std::string& string_value = std::get<SharableString>(value).GetString();
 
         for( Geometry::Feature& feature : *m_features )
-            feature.properties[utf8_key] = utf8_value;
+            feature.properties[key] = string_value;
     }
 
     // if saved, the content must be modified
@@ -579,7 +574,7 @@ void LogicGeometry::WriteValueToJson(JsonWriter& json_writer) const
 
                 // TODO: refactor the serialization of m_features to work with JsonWriter
                 const std::string json_contents = SaveToString(*m_features);
-                json_writer.Write(JK::json, Json::Parse(UTF8Convert::UTF8ToWide(json_contents)));
+                json_writer.Write(JK::json, Json::Parse(json_contents));
             }
             catch(...) { ASSERT(false); }
         };
@@ -588,7 +583,7 @@ void LogicGeometry::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void LogicGeometry::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void LogicGeometry::SetValueFromJson(const JsonNode& json_node)
 {
     class LogicGeometryContentValidator : public BinarySymbolDataContentValidator
     {
@@ -610,22 +605,21 @@ void LogicGeometry::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 
     LogicGeometryContentValidator logic_geometry_content_validator(*this);
 
-    const std::function<BinaryData::ContentCallbackType(const JsonNode<wchar_t>&)> non_url_content_reader = 
-        [&](const JsonNode<wchar_t>& content_node)
+    const std::function<BinaryData::ContentCallbackType(const JsonNode&)> non_url_content_reader =
+        [&](const JsonNode& content_node)
         {
             // TODO: refactor the serialization of m_features to work with JsonNode parsing
-            const std::string json_contents = UTF8Convert::WideToUTF8(content_node.Get(JK::json).GetNodeAsString());
-            std::stringstream stream(json_contents);
+            std::stringstream stream(content_node.Get(JK::json).GetNodeAsString());
 
             std::tie(std::ignore, m_features, m_bounds) = ParseGeometry(&stream);
 
             return CreateBinaryDataContentFromGeometryCallback();
         };
 
-    m_binarySymbolData.UpdateSymbolValueFromJson(*this, json_node, &logic_geometry_content_validator, &non_url_content_reader);
+    m_binarySymbolData.SetSymbolValueFromJson(*this, json_node, &logic_geometry_content_validator, &non_url_content_reader);
 
     if( m_binarySymbolData.IsDefined() )
-        m_binarySymbolData.GetMetadataForModification().SetMimeType(MimeType::Type::GeoJson);
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::GeoJson);
 
     ASSERT(m_binarySymbolData.IsDefined() == ( m_features != nullptr ));
 }

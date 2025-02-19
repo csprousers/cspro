@@ -77,7 +77,7 @@ void WindowHelpers::CenterOnParent(HWND hWnd, int width, int height)
         HMONITOR hMonitor = MonitorFromWindow(hParentWnd, MONITOR_DEFAULTTONEAREST);
 
         monitor_info.cbSize = sizeof(monitor_info);
-    
+
         if( GetMonitorInfo(hMonitor, &monitor_info) != 0 )
         {
             use_monitor_info = true;
@@ -120,7 +120,7 @@ void WindowHelpers::CenterOnParent(HWND hWnd, int width, int height)
     };
 
     auto& screen_rect = use_monitor_info ? monitor_info.rcWork : parent_wnd_rect;
-    
+
     int x = calculate_position(width, parent_wnd_rect.left, parent_wnd_rect.right, screen_rect.left, screen_rect.right);
     int y = calculate_position(height, parent_wnd_rect.top, parent_wnd_rect.bottom, screen_rect.top, screen_rect.bottom);
 
@@ -142,6 +142,18 @@ void WindowHelpers::BringToForefront(HWND hWnd)
     SetForegroundWindow(hWnd);
     SetActiveWindow(hWnd);
     SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+}
+
+
+void WindowHelpers::EnableWindow(CDialog& dlg, const BOOL bEnable)
+{
+    CWnd* pChild = dlg.GetWindow(GW_CHILD);
+
+    while( pChild != nullptr )
+    {
+        pChild->EnableWindow(bEnable);
+        pChild = pChild->GetNextWindow();
+    }
 }
 
 
@@ -194,7 +206,7 @@ void WindowHelpers::ReplaceMenuItemWithPopupMenu(CMenu* pPopupMenu, unsigned men
     // load the menu from the resource file
     HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(popup_menu_resource_id));
     ASSERT(hMenu != nullptr);
-        
+
     CMenu* resource_menu = CMenu::FromHandle(hMenu);
     ASSERT(resource_menu->GetMenuItemCount() == 1);
 
@@ -219,12 +231,26 @@ void WindowHelpers::DoUpdateForMenuItems(CMenu* pPopupMenu, CCmdTarget* pTarget,
     // from https://forums.codeguru.com/showthread.php?369301-UPDATE_COMMAND_UI-does-not-work-for-popup-menu&p=1295853#post1295853
     CCmdUI state;
     state.m_pMenu = pPopupMenu;
- 
+
     state.m_nIndexMax = state.m_pMenu->GetMenuItemCount();
- 
+
     for( state.m_nIndex = 0; state.m_nIndex < state.m_nIndexMax; ++state.m_nIndex )
     {
         state.m_nID = state.m_pMenu->GetMenuItemID(state.m_nIndex);
         state.DoUpdate(pTarget, disable_if_no_handler);
     }
+}
+
+
+int WindowHelpers::GetMenuItemPositionByCommand(CMenu& menu, const unsigned command)
+{
+    const int count = menu.GetMenuItemCount();
+
+    for( int i = 0; i < count; ++i )
+    {
+        if( menu.GetMenuItemID(i) == command )
+            return i;
+    }
+
+    return -1;
 }

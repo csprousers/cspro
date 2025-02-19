@@ -1,4 +1,4 @@
-﻿LOCAL_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 JNI_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -8,6 +8,8 @@ ZAPPO_SRC_PATH          := ../../../../../zAppO
 
 LOCAL_SRC_FILES         := $(ZAPPO_SRC_PATH)/AppFileType.cpp
 LOCAL_SRC_FILES         := $(ZAPPO_SRC_PATH)/Application.cpp
+LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/AppMessageFile.cpp
+LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/AppResource.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/AppSyncParameters.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/CodeFile.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/DictionaryDescription.cpp
@@ -19,13 +21,16 @@ LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/MappingDefines.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/OccurrenceLabels.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/PFF.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Pre80SpecFile.cpp
+LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/ReportFile.cpp
+
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/ApplicationProperties.cpp
+LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/JavaScriptProperties.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/JsonProperties.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/MappingProperties.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/MappingTileProviderProperties.cpp
 LOCAL_SRC_FILES         += $(ZAPPO_SRC_PATH)/Properties/ParadataProperties.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../zAppO

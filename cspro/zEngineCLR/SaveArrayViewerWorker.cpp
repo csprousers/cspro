@@ -16,8 +16,8 @@ namespace
     struct SaveArrayLogicDetails
     {
         std::wstring name;
-        std::vector<std::wstring> dimensions;
-        std::set<std::wstring> uses;
+        std::vector<std::string> dimensions;
+        std::set<std::string> uses;
     };
 }
 
@@ -31,10 +31,10 @@ namespace CSPro::Engine
 
         std::vector<const DictValueSet*> GetValueSets() const;
 
-        SaveArrayLogicDetails* GetLogicDetails(wstring_view save_array_name)
+        SaveArrayLogicDetails* GetLogicDetails(std::string_view save_array_name_sv)
         {
-            auto save_array_logic_details = std::find_if(m_saveArrayLogicDetails.begin(), m_saveArrayLogicDetails.end(),
-                                                         [&](const SaveArrayLogicDetails& sald) { return SO::EqualsNoCase(save_array_name, sald.name); });
+            const auto& save_array_logic_details = std::find_if(m_saveArrayLogicDetails.begin(), m_saveArrayLogicDetails.end(),
+                                                                [&](const SaveArrayLogicDetails& sald) { return SO::EqualsNoCase(save_array_name_sv, sald.name); });
 
             return ( save_array_logic_details != m_saveArrayLogicDetails.end() ) ? &*save_array_logic_details :
                                                                                    nullptr;
@@ -42,7 +42,7 @@ namespace CSPro::Engine
 
     private:
         void ProcessApplication(const std::wstring& application_filename);
-        void ProcessLogic(const std::wstring& logic_filename, const LogicSettings& logic_settings);
+        void ProcessLogic(const std::string& logic_file_path, const LogicSettings& logic_settings);
 
     private:
         std::vector<SaveArrayLogicDetails> m_saveArrayLogicDetails;
@@ -61,12 +61,12 @@ CSPro::Engine::SaveArrayViewerWorker::SaveArrayViewerWorker(System::String^ save
 {
     try
     {
-        m_impl = new SaveArrayViewerWorkerImpl(ToWS(save_array_filename), ToVectorWS(save_array_names));
+        m_impl = new SaveArrayViewerWorkerImpl(clr_helpers::to_wstring(save_array_filename), clr_helpers::to_wstring_vector(save_array_names));
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 
@@ -83,11 +83,11 @@ System::Collections::Hashtable^ CSPro::Engine::SaveArrayViewerWorker::ValueSets:
 
     for( const DictValueSet* dict_value_set : m_impl->GetValueSets() )
     {
-        valuesets_hashtable->Add(gcnew System::String(dict_value_set->GetName()),
+        valuesets_hashtable->Add(clr_helpers::to_SystemString(dict_value_set->GetName()),
                                  gcnew CSPro::Dictionary::ValueSet(*dict_value_set));
     }
 
-    return valuesets_hashtable;    
+    return valuesets_hashtable;
 }
 
 
@@ -96,16 +96,16 @@ void CSPro::Engine::SaveArrayViewerWorker::GetLogicDetails(System::String^ save_
 {
     ASSERT(dimensions->Count == 0 && proc_references->Count == 0);
 
-    SaveArrayLogicDetails* save_array_logic_details = m_impl->GetLogicDetails(ToWS(save_array_name));
+    SaveArrayLogicDetails* const save_array_logic_details = m_impl->GetLogicDetails(clr_helpers::to_string(save_array_name));
 
     if( save_array_logic_details == nullptr )
         return;
 
-    for( const std::wstring& dimension : save_array_logic_details->dimensions )
-        dimensions->Add(gcnew System::String(dimension.c_str()));
+    for( const std::string& dimension : save_array_logic_details->dimensions )
+        dimensions->Add(clr_helpers::to_SystemString(dimension));
 
-    for( const std::wstring& use : save_array_logic_details->uses )
-        proc_references->Add(gcnew System::String(use.c_str()));
+    for( const std::string& use : save_array_logic_details->uses )
+        proc_references->Add(clr_helpers::to_SystemString(use));
 }
 
 
@@ -133,13 +133,13 @@ CSPro::Engine::SaveArrayViewerWorkerImpl::SaveArrayViewerWorkerImpl(const std::w
     // 2) look for a reference to this file in any of the PFFs
     else
     {
-        for( const std::wstring& pff_filename : DirectoryLister().SetNameFilter(FileExtensions::Wildcard::Pff)
-                                                                 .GetPaths(PortableFunctions::PathGetDirectory(save_array_filename)) )
+        for( const std::string& pff_file_path : DirectoryLister().SetNameFilter(FileExtensions::CreateWildcard(FileExtensions::Pff))
+                                                                 .GetPaths(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(save_array_filename))) )
         {
             try
             {
                 PFF pff;
-                pff.SetPifFileName(WS2CS(pff_filename));
+                pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
                 pff.LoadPifFile();
 
                 if( SO::EqualsNoCase(pff.GetSaveArrayFilename(), save_array_filename) &&
@@ -176,13 +176,13 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessApplication(const std::wst
     application.Open(application_filename, true, false);
 
     // read the dictionary
-    const std::wstring& dictionary_filename = application.GetFirstDictionaryFilenameOfType(DictionaryType::Input);
+    const std::string& dictionary_file_path = application.GetFirstDictionaryFilePathOfType(DictionaryType::Input);
 
-    if( dictionary_filename.empty() )
+    if( dictionary_file_path.empty() )
         throw CSProException("No input dictionary");
 
     m_dictionary = std::make_unique<CDataDict>();
-    m_dictionary->Open(dictionary_filename, true);
+    m_dictionary->Open(dictionary_file_path, true);
 
     // process the logic
     const CodeFile* logic_main_code_file = application.GetLogicMainCodeFile();
@@ -190,25 +190,25 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessApplication(const std::wst
     if( logic_main_code_file == nullptr )
         throw CSProException("No logic");
 
-    ProcessLogic(logic_main_code_file->GetFilename(), application.GetLogicSettings());
+    ProcessLogic(logic_main_code_file->GetFilePath(), application.GetLogicSettings());
 }
 
 
-void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& logic_filename, const LogicSettings& logic_settings)
+void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::string& logic_file_path, const LogicSettings& logic_settings)
 {
-    const std::wstring ProcTokenText = _T("PROC");
-    const std::wstring GlobalTokenText = _T("GLOBAL");
-    const std::wstring FunctionStartTokenText = SO::ToLower(Logic::KeywordTable::GetKeywordName(TokenCode::TOKKWFUNCTION));
-    const std::wstring FunctionEndTokenText = Logic::KeywordTable::GetKeywordName(TokenCode::TOKEND);
+    const std::string ProcTokenText = "PROC";
+    const std::string GlobalTokenText = "GLOBAL";
+    const std::string FunctionStartTokenText = SO::ToLower(Logic::KeywordTable::GetKeywordName(TokenCode::TOKKWFUNCTION));
+    const std::string FunctionEndTokenText = Logic::KeywordTable::GetKeywordName(TokenCode::TOKEND);
 
     // parse the logic for the array declaration and the PROCs and functions where the array is used
-    Logic::SourceBuffer source_buffer(FileIO::ReadText(logic_filename));
+    Logic::SourceBuffer source_buffer(FileIO::ReadText(logic_file_path));
     const std::vector<Logic::BasicToken>& basic_tokens = source_buffer.Tokenize(logic_settings);
 
-    std::optional<std::wstring> current_proc_or_function;
+    std::optional<std::string> current_proc_or_function;
     bool in_function = false;
 
-    for( auto basic_token_itr = basic_tokens.cbegin(); basic_token_itr < basic_tokens.cend(); ++basic_token_itr ) 
+    for( auto basic_token_itr = basic_tokens.cbegin(); basic_token_itr < basic_tokens.cend(); ++basic_token_itr )
     {
         auto current_token_is_text = [&]() { return ( basic_token_itr->type == Logic::BasicToken::Type::Text ); };
         auto advance_token = [&]() { return ( ++basic_token_itr < basic_tokens.cend() ); };
@@ -217,24 +217,24 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& 
             continue;
 
         // if starting a procedure or function, read the name
-        if( SO::EqualsOneOfNoCase(basic_token_itr->GetTextSV(), ProcTokenText, FunctionStartTokenText) )
+        if( SO::EqualsOneOfNoCase(basic_token_itr->GetSV(), ProcTokenText, FunctionStartTokenText) )
         {
             current_proc_or_function.reset();
-            in_function = SO::EqualsNoCase(basic_token_itr->GetTextSV(), FunctionStartTokenText);
+            in_function = SO::EqualsNoCase(basic_token_itr->GetSV(), FunctionStartTokenText);
 
             while( advance_token() )
             {
                 // only keep track of references in functions and non-GLOBAL procedures
                 if( current_token_is_text() )
                 {
-                    if( SO::EqualsNoCase(basic_token_itr->GetTextSV(), GlobalTokenText) )
+                    if( SO::EqualsNoCase(basic_token_itr->GetSV(), GlobalTokenText) )
                     {
                         break;
                     }
 
-                    else if( !Logic::ReservedWords::IsReservedWord(basic_token_itr->GetTextSV()) )
+                    else if( !Logic::ReservedWords::IsReservedWord(basic_token_itr->GetSV()) )
                     {
-                        current_proc_or_function = SO::Concatenate(in_function ? FunctionStartTokenText : ProcTokenText, _T(" "), basic_token_itr->GetTextSV());
+                        current_proc_or_function = SO::Concatenate(in_function ? FunctionStartTokenText : ProcTokenText, " ", basic_token_itr->GetSV());
                         break;
                     }
                 }
@@ -242,7 +242,7 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& 
         }
 
         // if ending a function, reset the current function details
-        else if( in_function && SO::EqualsNoCase(basic_token_itr->GetTextSV(), FunctionEndTokenText) )
+        else if( in_function && SO::EqualsNoCase(basic_token_itr->GetSV(), FunctionEndTokenText) )
         {
             current_proc_or_function.reset();
             in_function = false;
@@ -251,7 +251,7 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& 
         // for other text, see if it matches an array name
         else
         {
-            SaveArrayLogicDetails* save_array_logic_details = GetLogicDetails(basic_token_itr->GetTextSV());
+            SaveArrayLogicDetails* save_array_logic_details = GetLogicDetails(basic_token_itr->GetSV());
 
             if( save_array_logic_details == nullptr )
                 continue;
@@ -263,19 +263,19 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& 
             }
 
             // otherwise parse the declaration
-            else if( advance_token() && basic_token_itr->GetTextSV() == _T("(") )
+            else if( advance_token() && basic_token_itr->GetSV() == "(" )
             {
-                std::wstring parentheses_contents;
+                std::string parentheses_contents;
                 size_t open_parentheses = 1;
 
                 while( advance_token() )
                 {
-                    if( basic_token_itr->GetTextSV() == _T("(") )
+                    if( basic_token_itr->GetSV() == "(" )
                     {
                         ++open_parentheses;
                     }
 
-                    else if( basic_token_itr->GetTextSV() == _T(")") )
+                    else if( basic_token_itr->GetSV() == ")" )
                     {
                         if( --open_parentheses == 0 )
                         {
@@ -284,7 +284,7 @@ void CSPro::Engine::SaveArrayViewerWorkerImpl::ProcessLogic(const std::wstring& 
                         }
                     }
 
-                    parentheses_contents.append(basic_token_itr->GetTextSV());
+                    parentheses_contents.append(basic_token_itr->GetSV());
                 }
             }
         }

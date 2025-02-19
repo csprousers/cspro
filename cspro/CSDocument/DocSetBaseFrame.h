@@ -28,19 +28,19 @@ protected:
     void OnUpdateFormatComponent(CCmdUI* pCmdUI);
 
 protected:
-    void CompileWrapper(std::wstring action, bool input_is_json, std::function<void(DocSetCompiler&, std::variant<JsonNode<wchar_t>, std::wstring>)> compilation_function);
+    void CompileWrapper(std::string action, bool input_is_json, std::function<void(DocSetCompiler&, std::variant<JsonNode, std::string>)> compilation_function);
 
-    virtual void WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node, bool detailed_format) = 0;
+    virtual void WriteFormattedComponent(JsonWriter& json_writer, DocSetCompiler& doc_set_compiler, const JsonNode& json_node, bool detailed_format) = 0;
 
     virtual const std::optional<DocSetTableOfContents>& GetLastCompiledTableOfContents() = 0;
     virtual const std::optional<DocSetIndex>& GetLastCompiledIndex() = 0;
     virtual const DocSetSettings& GetLastCompiledSettings() = 0;
-    virtual const std::vector<std::tuple<std::wstring, std::wstring>>& GetLastCompiledDefinitions() = 0;
-    virtual const std::map<std::wstring, unsigned>& GetLastCompiledContextIds() = 0;
+    virtual const std::vector<std::tuple<std::string, std::string>>& GetLastCompiledDefinitions() = 0;
+    virtual const std::map<std::string, unsigned>& GetLastCompiledContextIds() = 0;
 
 private:
-    static void SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::wstring formatted_text);
+    static void SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text);
 
 private:
-    std::wstring m_docSetPreviewUrl;
+    std::string m_docSetPreviewUrl;
 };

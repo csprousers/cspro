@@ -113,8 +113,7 @@ BEGIN
         MENUITEM "Save &As...",                 ID_FILE_CSPRO_SAVE_AS
         MENUITEM "Save &Tables...",             ID_FILE_SAVE_TABLE
         MENUITEM SEPARATOR
-        MENUITEM "Add &Files...",               ID_FILE_ADD_FILE
-        MENUITEM "&Drop Files...",              ID_FILE_DROP_FILE
+        MENUITEM "Manage Application &Files...", ID_FILE_MANAGE_FILES
         MENUITEM SEPARATOR
         MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
         MENUITEM SEPARATOR
@@ -189,11 +188,11 @@ BEGIN
     END
     POPUP "&Options"
     BEGIN
-        MENUITEM "Application Properties",      ID_OPTIONS_PROPERTIES
+        MENUITEM "Application Properties",      ID_OPTIONS_APPLICATION_PROPERTIES
     END
     POPUP "&Tools"
     BEGIN
-        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Data Manager",               ID_TOOLS_DATAMANAGER
         MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
         MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
         MENUITEM SEPARATOR
@@ -818,20 +817,6 @@ BEGIN
     PUSHBUTTON      "&Help",ID_HELP,8,190,48,14
 END
 
-IDD_TABSET_PROP_DLG DIALOGEX 0, 0, 235, 71
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Table Set Properties"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
-BEGIN
-    EDITTEXT        IDC_FF_LABEL,39,7,186,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_FF_NAME,39,27,140,14,ES_UPPERCASE | ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,24,50,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,92,50,50,14
-    PUSHBUTTON      "&Help",ID_HELP,160,50,50,14
-    LTEXT           "Label:",IDC_STATIC,7,10,20,8
-    LTEXT           "Name:",IDC_STATIC,7,30,22,8
-END
-
 IDD_TABLE_PROP_DLG DIALOGEX 0, 0, 203, 52
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Table Properties"
@@ -1243,10 +1228,6 @@ BEGIN
     END
 
     IDD_TABLE_PRINT_DLG, DIALOG
-    BEGIN
-    END
-
-    IDD_TABSET_PROP_DLG, DIALOG
     BEGIN
     END
 

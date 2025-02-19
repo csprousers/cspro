@@ -93,7 +93,7 @@ int CDEForm::GetItemIndex(const CDEItemBase* pItem) const
                     return i;
                 }
             }
-        }        
+        }
     }
 
     return NONE;
@@ -501,7 +501,7 @@ bool CDEForm::Build (CSpecFile& frmFile, const CString& sDictName, bool bSilent 
         {
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Form] attribute\n\n%s"), (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Incorrect [Form] attribute\n\n%s"), csCmd.GetString()));
             }
         }
     }
@@ -519,7 +519,7 @@ form in "Item=<Name>" format
 
 //////////////////////////////////////////////////////////////////////////// */
 
-void CDEForm::Save(CSpecFile& frmFile) const 
+void CDEForm::Save(CSpecFile& frmFile) const
 {
     CString sOutput;
     CIMSAString sTemp;
@@ -615,9 +615,6 @@ void CDEForm::serialize(Serializer& ar)
     ar & m_questionTextHeight
        & m_capturePos
        & m_boxSet;
-
-    if( ar.PredatesVersionIteration(Serializer::Iteration_7_7_000_1) && m_questionTextHeight == 0 )
-        m_questionTextHeight = 60;
 
     int iNumItems = GetNumItems();
     ar & iNumItems;

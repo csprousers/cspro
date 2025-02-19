@@ -198,7 +198,7 @@
 //
 //---------------------------------------------------------------------------
 //
-//  BOOL CSpecFile::IsVersionOK(const CString& csVersion);
+//  BOOL CSpecFile::IsVersionOK(std::string_view version_sv, double* out_version_number = nullptr);
 //
 //      Parmeters
 //          csVersion           Version string which the file should have.
@@ -208,7 +208,7 @@
 //
 //---------------------------------------------------------------------------
 //
-//  BOOL CSpecFile::IsVersionOK(CString& csVersion);
+//  BOOL CSpecFile::IsVersionOK_CS(CString& csVersion);
 //
 //      Parmeters
 //          csVersion           Version string which file has is returned here.
@@ -272,13 +272,13 @@ public:
     UINT PutLine(const TCHAR* pszLine);
 
     UINT PutLine(NullTerminatedString attribute, NullTerminatedString value) { return PutLine(FormatText(_T("%s=%s"), attribute.c_str(), value.c_str())); }
-    UINT PutLine(NullTerminatedString attribute, int32_t value)              { return PutLine(std::move(attribute), IntToString(value)); }
-    UINT PutLine(NullTerminatedString attribute, uint32_t value)             { return PutLine(std::move(attribute), IntToString(value)); }
+    UINT PutLine(NullTerminatedString attribute, int32_t value)              { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
+    UINT PutLine(NullTerminatedString attribute, uint32_t value)             { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
 #ifdef WASM
-    UINT PutLine(NullTerminatedString attribute, unsigned long value)        { return PutLine(std::move(attribute), IntToString(value)); }
+    UINT PutLine(NullTerminatedString attribute, unsigned long value)        { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
 #endif
-    UINT PutLine(NullTerminatedString attribute, int64_t value)              { return PutLine(std::move(attribute), IntToString(value)); }
-    UINT PutLine(NullTerminatedString attribute, uint64_t value)             { return PutLine(std::move(attribute), IntToString(value)); }
+    UINT PutLine(NullTerminatedString attribute, int64_t value)              { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
+    UINT PutLine(NullTerminatedString attribute, uint64_t value)             { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
     UINT PutLine(NullTerminatedString attribute, double value)               { return PutLine(std::move(attribute), FormatText(_T("%f"), value)); }
 
     void SetSilent(BOOL bIsSilent)  { m_bIsSilent = bIsSilent; }
@@ -289,8 +289,8 @@ public:
     BOOL IsReading(void) const { return (m_bIsReading); }
     BOOL IsSilent(void) const { return m_bIsSilent; }
     BOOL IsHeaderOK(const CString& csType);
-    BOOL IsVersionOK(const CString& csVersion, double* out_version_number = nullptr);
-    BOOL IsVersionOK(CString& csVersion);
+    BOOL IsVersionOK(std::string_view version_sv, double* out_version_number = nullptr);
+    BOOL IsVersionOK_CS(CString& csVersion);
 
 #ifdef WIN_DESKTOP
     CFileException* GetFileException(void) const { return m_pFileException; }

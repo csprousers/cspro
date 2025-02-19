@@ -16,8 +16,8 @@ class ReturnProcessingEdit : public CEdit
             // on Return, send the URL to the browser
             if( pMsg->wParam == VK_RETURN )
             {
-                std::wstring url = WindowsWS::GetWindowText(this);
-                assert_cast<HtmlBrowserView*>(GetParent())->NavigateTo(UriResolver::CreateFromUserUri(url));
+                std::string url = WindowsUtf8::GetText(this);
+                assert_cast<HtmlBrowserView*>(GetParent())->NavigateTo(UriResolver::CreateFromUserUri(std::move(url)));
                 return TRUE;
             }
 
@@ -50,7 +50,7 @@ HtmlBrowserView::HtmlBrowserView()
 {
     m_htmlViewCtrl.UseWebView2AcceleratorKeyHandler();
 
-    m_htmlViewCtrl.AddSourceChangedObserver([&](const std::wstring& uri) { OnSourceChanged(uri); });
+    m_htmlViewCtrl.AddSourceChangedObserver([&](const std::string& uri) { OnSourceChanged(uri); });
 }
 
 
@@ -102,12 +102,12 @@ void HtmlBrowserView::NavigateTo(std::shared_ptr<UriResolver> uri_resolver)
 }
 
 
-void HtmlBrowserView::OnSourceChanged(const std::wstring& uri) const
+void HtmlBrowserView::OnSourceChanged(const std::string& uri) const
 {
     // search, in reverse order, for a domain that matches
     const auto& lookup = std::find_if(m_uriResolversWithDomains.crbegin(), m_uriResolversWithDomains.crend(),
                                       [&](const std::shared_ptr<UriResolver>& uri_resolver) { return ( uri_resolver->DomainMatches(uri) ); });
 
-    m_htmlSourceEdit->SetWindowText(( lookup != m_uriResolversWithDomains.crend() ) ? (*lookup)->GetSourceText(uri).c_str() :
-                                                                                      uri.c_str());
+    WindowsUtf8::SetText(m_htmlSourceEdit.get(), ( lookup != m_uriResolversWithDomains.crend() ) ? (*lookup)->GetSourceText(uri) :
+                                                                                                   uri);
 }

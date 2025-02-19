@@ -22,7 +22,7 @@ public:
     afx_msg void OnCbnSelchangeComboCommonStoreType();
 
 private:
-    int AddSetting(const TCHAR* attribute, const TCHAR* value);
+    int AddSetting(const std::wstring& attribute, const std::wstring& value);
     void UpdateSelections();
 
 private:
@@ -30,6 +30,6 @@ private:
     int m_selectedItem;
     CListCtrl* m_pListCtrl;
     CComboBox* m_pComboBoxType;
-    CString m_attribute;
-    CString m_value;
+    std::wstring m_attribute;
+    std::wstring m_value;
 };

@@ -2,29 +2,33 @@
 #include "FrequencyPrinterHelpers.h"
 
 
-size_t FPH::GetNumberDecimalsUsed(wstring_view text)
+size_t FPH::GetNumberDecimalsUsed(const std::string_view text_sv)
 {
-    size_t period_pos = text.find('.');
-    return ( period_pos == wstring_view::npos ) ? 0 : ( text.length() - period_pos - 1 );
+    const size_t period_pos = text_sv.find('.');
+
+    if( period_pos != std::string_view::npos )
+        return text_sv.length() - period_pos - 1;
+
+    return 0;
 };
 
 
-size_t FPH::GetNumberDecimalsUsed(const std::vector<std::wstring>& texts)
+size_t FPH::GetNumberDecimalsUsed(const std::vector<std::string>& texts)
 {
     size_t decimals = 0;
 
-    for( const std::wstring& text : texts )
+    for( const std::string& text : texts )
         decimals = std::max(decimals, GetNumberDecimalsUsed(text));
 
     return decimals;
 }
 
 
-void FPH::EnsureValueHasMinimumDecimals(std::wstring& text, size_t decimals)
+void FPH::EnsureValueHasMinimumDecimals(std::string& text, const size_t decimals)
 {
     size_t period_pos = text.find('.');
 
-    if( period_pos == std::wstring::npos )
+    if( period_pos == std::string::npos )
     {
         if( decimals == 0 )
             return;
@@ -40,7 +44,7 @@ void FPH::EnsureValueHasMinimumDecimals(std::wstring& text, size_t decimals)
 }
 
 
-std::wstring FPH::GetFormattedValue(double value, const CDictItem* dict_item)
+std::string FPH::GetFormattedValue(const double value, const CDictItem* const dict_item)
 {
     if( dict_item == nullptr || IsSpecial(value) )
     {
@@ -49,15 +53,15 @@ std::wstring FPH::GetFormattedValue(double value, const CDictItem* dict_item)
 
     else
     {
-        std::wstring formatted_value = dvaltochar(value, dict_item->GetCompleteLen(), dict_item->GetDecimal(), false, true);
+        std::string formatted_value = dvaltochar<std::string>(value, dict_item->GetCompleteLen(), dict_item->GetDecimal(), false, true);
         return SO::MakeTrimLeft(formatted_value);
     }
 }
 
 
-std::wstring FPH::GetValueWithMinimumDecimals(double value, const CDictItem* dict_item)
+std::string FPH::GetValueWithMinimumDecimals(const double value, const CDictItem* const dict_item)
 {
-    std::wstring formatted_value = DoubleToString(value);
+    std::string formatted_value = DoubleToString(value);
 
     if( dict_item != nullptr && dict_item->GetDecimal() > 0 && !IsSpecial(value) )
         EnsureValueHasMinimumDecimals(formatted_value, dict_item->GetDecimal());
@@ -66,10 +70,10 @@ std::wstring FPH::GetValueWithMinimumDecimals(double value, const CDictItem* dic
 }
 
 
-std::wstring FPH::GetFrequencyTableName(const FrequencyTable& frequency_table)
+std::string FPH::GetFrequencyTableName(const FrequencyTable& frequency_table)
 {
-    return ( frequency_table.dict_value_set != nullptr ) ? CS2WS(frequency_table.dict_value_set->GetName()) :
-           ( frequency_table.dict_item != nullptr )      ? CS2WS(frequency_table.dict_item->GetName()) :
+    return ( frequency_table.dict_value_set != nullptr ) ? frequency_table.dict_value_set->GetName() :
+           ( frequency_table.dict_item != nullptr )      ? frequency_table.dict_item->GetName() :
                                                            frequency_table.symbol_name;
 }
 
@@ -88,7 +92,7 @@ bool FPH::FrequencyTableValuesAreNumeric(const FrequencyTable& frequency_table)
 }
 
 
-FrequencyRowStatistics FPH::CreateTotalFrequencyRowStatistics(const FrequencyTable& frequency_table, bool include_cumulative_columns)
+FrequencyRowStatistics FPH::CreateTotalFrequencyRowStatistics(const FrequencyTable& frequency_table, const bool include_cumulative_columns)
 {
     FrequencyRowStatistics total_row_statistics;
 
@@ -104,22 +108,22 @@ FrequencyRowStatistics FPH::CreateTotalFrequencyRowStatistics(const FrequencyTab
 }
 
 
-std::vector<std::wstring> FPH::GetFormattedPercentilePercents(const FrequencyNumericStatistics& table_statistics)
+std::vector<std::string> FPH::GetFormattedPercentilePercents(const FrequencyNumericStatistics& table_statistics)
 {
     constexpr size_t MaxDecimalsToDisplay = 2;
     ASSERT(table_statistics.percentiles.has_value());
-    std::vector<std::wstring> percentile_strings;
+    std::vector<std::string> percentile_strings;
     size_t decimals_necessary = 0;
 
-    for( const auto& percentile : *table_statistics.percentiles )
+    for( const FrequencyNumericStatistics::Percentile& percentile : *table_statistics.percentiles )
     {
-        const std::wstring& text = percentile_strings.emplace_back(DoubleToString(percentile.percentile * 100, std::nullopt, MaxDecimalsToDisplay));
+        const std::string& text = percentile_strings.emplace_back(DoubleToString(percentile.percentile * 100, std::nullopt, MaxDecimalsToDisplay));
         decimals_necessary = std::max(decimals_necessary, GetNumberDecimalsUsed(text));
     }
 
     if( decimals_necessary != 0 )
     {
-        for( std::wstring& percentile_string : percentile_strings )
+        for( std::string& percentile_string : percentile_strings )
             EnsureValueHasMinimumDecimals(percentile_string, decimals_necessary);
     }
 

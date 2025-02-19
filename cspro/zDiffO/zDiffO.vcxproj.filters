@@ -11,27 +11,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Differ.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DiffSpec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zDiffO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="Differ.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DiffSpec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Differ.h">
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDiffO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <CSPro/FileTreeNode.h>
+#include <zDesignerF/AppFileTypeImageList.h>
 
 
 class CObjTreeCtrl : public CTreeCtrl
@@ -8,27 +9,32 @@ class CObjTreeCtrl : public CTreeCtrl
 public:
     CObjTreeCtrl();
 
+    static std::unique_ptr<AppFileTypeImageList> CreateAppFileTypeImageList();
     void InitImageList();
 
     FileTreeNode* GetFileTreeNode(HTREEITEM hItem) const { return ( hItem != nullptr ) ? reinterpret_cast<FileTreeNode*>(GetItemData(hItem)) :
                                                                                          nullptr; }
 
     FileTreeNode* FindNode(const CDocument* document) const;
-    FileTreeNode* FindNode(wstring_view path) const;
-    FileTreeNode* FindChildNodeRecursive(const FileTreeNode& parent_file_tree_node, wstring_view path) const;    
+    FileTreeNode* FindNode(std::string_view path_sv) const;
+    FileTreeNode* FindChildNodeRecursive(const FileTreeNode& parent_file_tree_node, std::string_view path_sv) const;
 
     FileTreeNode* GetActiveObject() { return m_pActiveObj; }
     void SetActiveObject()          { m_pActiveObj = GetSelectedFileTreeNode(); }
 
-    HTREEITEM InsertNode(HTREEITEM hParentItem, std::unique_ptr<FileTreeNode> file_tree_node);
-    HTREEITEM InsertFormNode(HTREEITEM hParentItem, std::wstring form_filename, AppFileType app_file_type);
-    HTREEITEM InsertTableNode(HTREEITEM hParentItem, std::wstring tab_spec_filename);
+    HTREEITEM InsertNode(HTREEITEM hParentItem, std::unique_ptr<FileTreeNode> file_tree_node, HTREEITEM hInsertAfter = TVI_LAST);
+
+    // Inserts a node under the application, after all other nodes of the type identified by file_tree_node.
+    HTREEITEM InsertNode(const FileTreeNode& application_file_tree_node, std::unique_ptr<FileTreeNode> file_tree_node);
+
+    HTREEITEM InsertFormNode(std::variant<HTREEITEM, const FileTreeNode*> hParentItem_or_application_file_tree_node,
+                             std::string form_file_path, AppFileType app_file_type);
+
+    HTREEITEM InsertTableNode(HTREEITEM hParentItem, std::string table_spec_file_path);
 
     void DeleteNode(const FileTreeNode& tree_file_node);
 
     void DefaultExpand(HTREEITEM hItem, bool initialize_font = true);
-
-    bool GetDictTypeArgs(CString& sAplFileName, CString& sDictFName, CString& sParentFName);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -39,7 +45,7 @@ protected:
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnClose();
     afx_msg void OnSave();
-    afx_msg void OnDictType();
+    afx_msg void OnFileProperties();
     afx_msg void OnCopyFullPath();
     afx_msg void OnOpenContainingFolder();
     afx_msg void OnPackApplication();
@@ -53,12 +59,12 @@ private:
 
     void InitializeFont();
 
-    bool GetDictTypeState();
+    // returns the application node containing the supplied node, returning null if not part of an application
+    const FileTreeNode* GetApplicationFileTreeNode(const FileTreeNode* file_tree_node);
 
 private:
     FileTreeNode* m_pActiveObj;
-    CImageList m_imageList;
-    std::map<AppFileType, int> m_imageIndexMap;
+    std::unique_ptr<AppFileTypeImageList> m_appFileTypeImageList;
     std::vector<std::unique_ptr<FileTreeNode>> m_fileTreeNodes;
     static std::unique_ptr<LOGFONT> m_defaultLogfont;
     static CFont m_font;

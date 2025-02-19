@@ -12,18 +12,18 @@ public:
     DesignerCapiLogicCompiler(Application& application);
 
     CEngineDriver* GetEngineDriver() override;
-    CString GetProcName() const override               { return m_procName; }
+    std::string GetProcName() const override           { return m_procName; }
     int GetLineNumberOfCurrentCompile() const override { return 0; }
 
     struct CompileResult
     {
         int expression;
-        std::wstring error_message;
+        std::string error_message;
     };
 
     CompileResult Compile(const CapiLogicParameters& capi_logic_parameters);
 
 private:
     Application& m_application;
-    CString m_procName;
+    std::string m_procName;
 };

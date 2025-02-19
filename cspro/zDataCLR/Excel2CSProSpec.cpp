@@ -29,40 +29,40 @@ CREATE_ENUM_JSON_SERIALIZER(CaseManagementNative,
 
 namespace Pre80Spec
 {
-    constexpr std::wstring_view Excel          = _T("Excel");
-    constexpr std::wstring_view InputDict      = _T("InputDict");
-    constexpr std::wstring_view OutputData     = _T("OutputData");
-    constexpr std::wstring_view StartingRow    = _T("StartingRow");
-    constexpr std::wstring_view CaseManagement = _T("CaseManagement");
-    constexpr std::wstring_view RunOnlyIfNewer = _T("RunOnlyIfNewer");
-    constexpr std::wstring_view Mapping        = _T("Mapping");
+    constexpr std::string_view Excel          = "Excel";
+    constexpr std::string_view InputDict      = "InputDict";
+    constexpr std::string_view OutputData     = "OutputData";
+    constexpr std::string_view StartingRow    = "StartingRow";
+    constexpr std::string_view CaseManagement = "CaseManagement";
+    constexpr std::string_view RunOnlyIfNewer = "RunOnlyIfNewer";
+    constexpr std::string_view Mapping        = "Mapping";
 
-    std::wstring ConvertFile(const TCHAR* filename);
+    std::string ConvertFile(InterfaceString file_path);
 
-    System::Collections::Generic::List<CSPro::Data::Excel2CSPro::RecordMapping^>^ ConvertMappings(const CString& dictionary_filename,
-        const std::vector<std::vector<CString>>& mapping_lines);
+    System::Collections::Generic::List<CSPro::Data::Excel2CSPro::RecordMapping^>^ ConvertMappings(const std::string& dictionary_file_path,
+                                                                                                  const std::vector<std::vector<CString>>& mapping_lines);
 }
 
 namespace
 {
-    std::unique_ptr<JsonSpecFile::Reader> CreateJsonReader(const TCHAR* filename)
+    std::unique_ptr<JsonSpecFile::Reader> CreateJsonReader(InterfaceString file_path)
     {
-        std::wstring file_contents = FileIO::ReadText(filename);
+        const std::string file_contents = FileIO::ReadText(file_path);
 
         // see if the file contains one of the pre-8.0 spec commands
-        for( const auto& command : { Pre80Spec::Excel,
-                                     Pre80Spec::InputDict,
-                                     Pre80Spec::OutputData,
-                                     Pre80Spec::StartingRow,
-                                     Pre80Spec::CaseManagement,
-                                     Pre80Spec::RunOnlyIfNewer,
-                                     Pre80Spec::Mapping } )
+        for( const std::string_view& command_sv : { Pre80Spec::Excel,
+                                                    Pre80Spec::InputDict,
+                                                    Pre80Spec::OutputData,
+                                                    Pre80Spec::StartingRow,
+                                                    Pre80Spec::CaseManagement,
+                                                    Pre80Spec::RunOnlyIfNewer,
+                                                    Pre80Spec::Mapping } )
         {
-            if( SO::StartsWithNoCase(file_contents, command) )
-                return JsonSpecFile::CreateReader(filename, Pre80Spec::ConvertFile(filename));
+            if( SO::StartsWithNoCase(file_contents, command_sv) )
+                return JsonSpecFile::CreateReader(file_path, Pre80Spec::ConvertFile(file_path));
         }
 
-        return JsonSpecFile::CreateReader(filename, file_contents);
+        return JsonSpecFile::CreateReader(std::move(file_path), file_contents);
     }
 }
 
@@ -77,12 +77,11 @@ CSPro::Data::Excel2CSPro::Spec::Spec()
 }
 
 
-void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ filename)
+void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ file_path)
 {
     try
     {
-        std::wstring ws_filename = ToWS(filename);
-        auto json_reader = CreateJsonReader(ws_filename.c_str());
+        auto json_reader = CreateJsonReader(clr_helpers::to_string(file_path));
 
         try
         {
@@ -98,7 +97,7 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ filename)
             if( json_reader->Contains(JK::output) )
             {
                 OutputConnectionString = gcnew CSPro::Util::ConnectionString(gcnew System::String(json_reader->Get<CString>(JK::output)));
-                OutputConnectionString->AdjustRelativePath(System::IO::Path::GetDirectoryName(filename));
+                OutputConnectionString->AdjustRelativePath(System::IO::Path::GetDirectoryName(file_path));
             }
 
             StartingRow = json_reader->GetOrDefault<int>(JK::startingRow, StartingRow);
@@ -149,12 +148,12 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ filename)
             }
 
             if( errors_processing_mappings )
-                json_reader->LogWarning(_T("Some mappings were not included due to errors in the file"));
+                json_reader->LogWarning("Some mappings were not included due to errors in the file");
         }
 
         catch( const CSProException& exception )
         {
-            json_reader->GetMessageLogger().RethrowException(ws_filename.c_str(), exception);
+            json_reader->GetMessageLogger().RethrowException(clr_helpers::to_string(file_path), exception);
         }
 
         json_reader->GetMessageLogger().DisplayWarnings();
@@ -162,7 +161,7 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ filename)
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 
@@ -180,14 +179,14 @@ namespace
 
             json_writer.BeginObject();
 
-            json_writer.Write(JK::name, ToWS(record_mapping->RecordName));
+            json_writer.Write(JK::name, clr_helpers::to_wstring(record_mapping->RecordName));
 
             // worksheet
             {
                 json_writer.BeginObject(JK::worksheet);
 
                 if( record_mapping->WorksheetName != nullptr )
-                    json_writer.Write(JK::name, ToWS(record_mapping->WorksheetName));
+                    json_writer.Write(JK::name, clr_helpers::to_wstring(record_mapping->WorksheetName));
 
                 json_writer.Write(JK::index, record_mapping->WorksheetIndex);
 
@@ -204,7 +203,7 @@ namespace
 
                     json_writer.BeginObject();
 
-                    json_writer.Write(JK::name, ToWS(item_mapping->ItemName));
+                    json_writer.Write(JK::name, clr_helpers::to_wstring(item_mapping->ItemName));
 
                     if( item_mapping->Occurrence.HasValue )
                         json_writer.Write(JK::occurrence, item_mapping->Occurrence.Value);
@@ -225,23 +224,22 @@ namespace
 }
 
 
-void CSPro::Data::Excel2CSPro::Spec::Save(System::String^ filename)
+void CSPro::Data::Excel2CSPro::Spec::Save(System::String^ file_path)
 {
     try
     {
-        std::wstring ws_filename = ToWS(filename);
-        auto json_writer = JsonSpecFile::CreateWriter(ws_filename.c_str(), JV::excelConverter);
+        const std::string utf8_file_path = clr_helpers::to_string(file_path);
+        const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(utf8_file_path, JV::excelConverter);
 
         if( ExcelFilename != nullptr )
-            json_writer->WriteRelativePath(JK::excel, ToWS(ExcelFilename));
+            json_writer->WriteRelativePath(JK::excel, clr_helpers::to_string(ExcelFilename));
 
         if( DictionaryFilename != nullptr )
-            json_writer->WriteRelativePath(JK::dictionary, ToWS(DictionaryFilename));
+            json_writer->WriteRelativePath(JK::dictionary, clr_helpers::to_string(DictionaryFilename));
 
         if( OutputConnectionString != nullptr )
         {
-            json_writer->Write(JK::output, OutputConnectionString->GetNativeConnectionString().
-                                           ToRelativeString(PortableFunctions::PathGetDirectory(ws_filename), true));
+            json_writer->Write(JK::output, OutputConnectionString->GetNativeConnectionString().ToRelativeString(PortableFunctions::PathGetDirectory(utf8_file_path), true));
         }
 
         json_writer->Write(JK::startingRow, StartingRow)
@@ -255,35 +253,35 @@ void CSPro::Data::Excel2CSPro::Spec::Save(System::String^ filename)
         json_writer->Close();
 
         // save a PFF file for this spec file if one does not already exist
-        std::wstring pff_filename = PortableFunctions::PathRemoveFileExtension(ws_filename) + FileExtensions::WithDot::Pff;
+        const std::string pff_file_path = PortableFunctions::PathReplaceFileExtension(utf8_file_path, FileExtensions::Pff);
 
-        if( !PortableFunctions::FileIsRegular(pff_filename) )
+        if( !PortableFunctions::FileIsRegular(pff_file_path) )
         {
             PFF pff;
-            pff.SetPifFileName(WS2CS(pff_filename));
+            pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
             pff.SetAppType(APPTYPE::EXCEL2CSPRO_TYPE);
-            pff.SetAppFName(ws_filename.c_str());
+            pff.SetAppFName(UTF8_TODO::GetCString(utf8_file_path));
             pff.Save();
         }
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 
 
 namespace Pre80Spec
 {
-    std::wstring ConvertFile(const TCHAR* filename)
+    std::string ConvertFile(const InterfaceString file_path)
     {
         CSpecFile specfile;
 
-        if( !specfile.Open(filename, CFile::modeRead) )
-            throw CSProException(_T("Failed to open the Excel to CSPro specification file: %s"), filename);
+        if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+            throw CSProException("Failed to open the Excel to CSPro specification file: %s", file_path.c_str_utf8());
 
-        auto json_writer = Json::CreateStringWriter();
+        const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
         json_writer->BeginObject();
 
@@ -292,7 +290,7 @@ namespace Pre80Spec
 
         try
         {
-            CString dictionary_filename;
+            std::string dictionary_file_path;
             std::vector<std::vector<CString>> mapping_lines;
 
             CString command;
@@ -300,34 +298,34 @@ namespace Pre80Spec
 
             while( specfile.GetLine(command, argument) == SF_OK )
             {
-                if( SO::EqualsNoCase(command, Pre80Spec::Excel) )
+                if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::Excel)) )
                 {
                     json_writer->Write(JK::excel, specfile.EvaluateRelativeFilename(argument));
                 }
 
-                else if( SO::EqualsNoCase(command, Pre80Spec::InputDict) )
+                else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::InputDict)) )
                 {
-                    dictionary_filename = specfile.EvaluateRelativeFilename(argument);
-                    json_writer->Write(JK::dictionary, dictionary_filename);
+                    dictionary_file_path = UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument));
+                    json_writer->Write(JK::dictionary, dictionary_file_path);
                 }
 
-                else if( SO::EqualsNoCase(command, Pre80Spec::OutputData) )
+                else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::OutputData)) )
                 {
-                    ConnectionString output_data(argument);
-                    output_data.AdjustRelativePath(PortableFunctions::PathGetDirectory(filename));
-                    json_writer->Write(JK::output, output_data.ToRelativeString(PortableFunctions::PathGetDirectory(filename), true));
+                    ConnectionString output_data(UTF8_TODO::GetUtf8(argument));
+                    output_data.AdjustRelativePath(PortableFunctions::PathGetDirectory(file_path.GetString<std::string>()));
+                    json_writer->Write(JK::output, output_data.ToRelativeString(PortableFunctions::PathGetDirectory(file_path.GetString<std::string>()), true));
                 }
 
-                else if( SO::EqualsNoCase(command, Pre80Spec::StartingRow) )
+                else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::StartingRow)) )
                 {
                     json_writer->Write(JK::startingRow, _ttoi(argument));
                 }
 
-                else if( SO::EqualsNoCase(command, Pre80Spec::CaseManagement) )
+                else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::CaseManagement)) )
                 {
                     for( const auto& potential_argument : { JV::createNewFile, JV::modifyAddCases, JV::modifyAddDeleteCases } )
                     {
-                        if( SO::EqualsNoCase(argument, potential_argument) )
+                        if( SO::EqualsNoCase(argument, UTF8_TODO::GetWide(potential_argument)) )
                         {
                             json_writer->Write(JK::caseManagement, potential_argument);
                             break;
@@ -335,7 +333,7 @@ namespace Pre80Spec
                     }
                 }
 
-                else if( SO::EqualsNoCase(command, Pre80Spec::RunOnlyIfNewer) )
+                else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::RunOnlyIfNewer)) )
                 {
                     json_writer->Write(JK::runOnlyIfNewer, SO::EqualsNoCase(argument, _T("Yes")));
                 }
@@ -345,18 +343,18 @@ namespace Pre80Spec
                     std::vector<CString> components = WS2CS_Vector(SO::SplitString(argument, ';'));
 
                     if( components.size() < 2 || components.size() > 3 )
-                        throw CSProException(_T("Unrecognized mapping at line %d"), specfile.GetLineNumber());
+                        throw CSProException("Unrecognized mapping at line %d", specfile.GetLineNumber());
 
                     mapping_lines.emplace_back(std::move(components));
                 }
 
                 else
                 {
-                    throw CSProException(_T("Unrecognized command at line %d"), specfile.GetLineNumber());
+                    throw CSProException("Unrecognized command at line %d", specfile.GetLineNumber());
                 }
             }
 
-            WriteMappings(*json_writer, ConvertMappings(dictionary_filename, mapping_lines));
+            WriteMappings(*json_writer, ConvertMappings(dictionary_file_path, mapping_lines));
 
             specfile.Close();
         }
@@ -365,30 +363,30 @@ namespace Pre80Spec
         {
             specfile.Close();
 
-            throw CSProException(_T("There was an error reading the Excel to CSPro specification file %s:\n\n%s"),
-                                 PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+            throw CSProException("There was an error reading the Excel to CSPro specification file %s:\n\n%s",
+                                 PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
         }
 
         json_writer->EndObject();
 
-        return json_writer->GetString();
+        return json_writer->ReleaseString();
     }
 
 
-    System::Collections::Generic::List<CSPro::Data::Excel2CSPro::RecordMapping^>^ ConvertMappings(const CString& dictionary_filename,
-        const std::vector<std::vector<CString>>& mapping_lines)
+    System::Collections::Generic::List<CSPro::Data::Excel2CSPro::RecordMapping^>^ ConvertMappings(const std::string& dictionary_file_path,
+                                                                                                  const std::vector<std::vector<CString>>& mapping_lines)
     {
         // ignore any errors while converting the mappings
         auto mappings = gcnew System::Collections::Generic::List<CSPro::Data::Excel2CSPro::RecordMapping^>();
 
-        if( mapping_lines.empty() || dictionary_filename.IsEmpty() )
+        if( mapping_lines.empty() || dictionary_file_path.empty() )
             return mappings;
 
         CDataDict dictionary;
 
         try
         {
-            dictionary.Open(dictionary_filename, true);
+            dictionary.Open(dictionary_file_path, true);
         }
 
         catch( const CSProException& )
@@ -400,14 +398,14 @@ namespace Pre80Spec
         std::map<std::wstring, int> record_map; // name, index into mappings list
         std::map<std::wstring, int> item_lines; // name, column index from the file
 
-        for( const auto& components : mapping_lines )
+        for( const std::vector<CString>& components : mapping_lines )
         {
             ASSERT(components.size() >= 2);
 
-            std::wstring name = SO::ToUpper(components.front());
+            std::wstring name = SO::ToUpper(wstring_view(components.front()));
             int index = _ttoi(CString(components[1]).TrimLeft('@'));
 
-            const CDictRecord* record = dictionary.FindRecord(name);
+            const CDictRecord* record = dictionary.FindRecord(UTF8_TODO::GetUtf8(name));
 
             if( record != nullptr )
             {
@@ -463,12 +461,12 @@ namespace Pre80Spec
             const CDictRecord* dict_record;
             const CDictItem* dict_item;
 
-            if( dictionary.LookupName<CDictItem>(CString(item_name), nullptr, &dict_record, &dict_item) )
+            if( dictionary.LookupName<CDictItem>(UTF8_TODO::GetUtf8(item_name), nullptr, &dict_record, &dict_item) )
             {
                 // if the record name was not provided, use the record name
-                // (the record name is not overriden because it had to be explicitly specified for ID items)
+                // (the record name is not overridden because it had to be explicitly specified for ID items)
                 if( !record_name.has_value() )
-                    record_name = dict_record->GetName();
+                    record_name = UTF8_TODO::GetWide(dict_record->GetName());
 
                 const auto& record_lookup = record_map.find(*record_name);
 
@@ -476,7 +474,7 @@ namespace Pre80Spec
                 {
                     auto item_mapping = gcnew CSPro::Data::Excel2CSPro::ItemMapping();
 
-                    item_mapping->ItemName = gcnew System::String(dict_item->GetName());
+                    item_mapping->ItemName = clr_helpers::to_SystemString(dict_item->GetName());
 
                     if( occurrence.has_value() )
                         item_mapping->Occurrence = *occurrence;

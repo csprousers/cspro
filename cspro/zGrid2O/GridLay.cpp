@@ -48,7 +48,7 @@ void CGridWnd::RecalcLayout(CSize szNewPage /*=CSize(-1,-1)*/, bool bRedraw /*=t
 #ifdef _DEBUG
         if(rcCell.Width() > 1024) {
             CString sMsg = _T("STOP! THIS IS THE 'BIG COLUMN BUG'\n\n");
-            sMsg.AppendFormat(_T("Header Cell Width is %d for '%s'\n"), rcCell.right, (LPCTSTR)cell.GetText(0).GetText());
+            sMsg.AppendFormat(_T("Header Cell Width is %d for '%s'\n"), rcCell.right, cell.GetText(0).GetText().GetString());
             sMsg += _T("Think about what you just did and see if you can reproduce it\n\n");
             sMsg += _T("CSPro will now reset the width to something reasonable.");
 

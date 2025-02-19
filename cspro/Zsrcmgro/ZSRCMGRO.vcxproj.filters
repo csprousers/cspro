@@ -11,16 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Compiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SrcCode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BackgroundCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Compiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DesignerApplicationLoader.cpp">
@@ -29,30 +23,27 @@
     <ClCompile Include="DesignerCapiLogicCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SymbolAnalysisCompiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DesignerCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ProcGlobalConditionalCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SrcCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SymbolAnalysisCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Compiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SrcCode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zSrcMgrO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BackgroundCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DesignerApplicationLoader.h">
@@ -61,16 +52,25 @@
     <ClInclude Include="DesignerCapiLogicCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DesignerCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DesignerCompilerMessageProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcGlobalConditionalCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SrcCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SymbolAnalysisCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DesignerCompiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProcGlobalConditionalCompiler.h">
+    <ClInclude Include="zSrcMgrO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

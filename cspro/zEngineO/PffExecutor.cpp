@@ -6,7 +6,6 @@
 #include <zDiffO/Differ.h>
 #include <zIndexO/Indexer.h>
 #include <zParadataO/GuiConcatenator.h>
-#include <zParadataO/GuiConcatenatorPffWrapper.h>
 #include <zPackO/Packer.h>
 #include <zReformatO/ToolReformatter.h>
 #include <zSortO/Sorter.h>
@@ -70,7 +69,7 @@ bool PffExecutor::Execute(const PFF& pff)
 
 bool PffExecutor::ExecuteCSConcat(const PFF& pff)
 {
-    Concatenator::RunSuccess run_success = Concatenator().Run(pff, true, m_inputDictionary);
+    const Concatenator::RunSuccess run_success = Concatenator().Run(pff, true, m_inputDictionary);
     return ( run_success == Concatenator::RunSuccess::Success ||
              run_success == Concatenator::RunSuccess::SuccessWithErrors );
 }
@@ -102,7 +101,7 @@ namespace
             return false;
         }
 
-        void DisplayInteractiveModeMessage(NullTerminatedString /*message*/) const override
+        void DisplayInteractiveModeMessage(const std::string& /*message*/) const override
         {
             throw ProgrammingErrorException();
         }
@@ -145,7 +144,7 @@ bool PffExecutor::ExecuteCSReFmt(const PFF& pff)
 
 bool PffExecutor::ExecuteCSSort(const PFF& pff)
 {
-    Sorter::RunSuccess run_success = Sorter().Run(pff, true, m_inputDictionary);
+    const Sorter::RunSuccess run_success = Sorter().Run(pff, true, m_inputDictionary);
     return ( run_success == Sorter::RunSuccess::Success ||
              run_success == Sorter::RunSuccess::SuccessWithStructuralErrors );
 }
@@ -158,8 +157,7 @@ bool PffExecutor::ExecuteCSSort(const PFF& pff)
 
 bool PffExecutor::ExecuteParadataConcat(const PFF& pff)
 {
-    Paradata::GuiConcatenatorPffWrapper pff_wrapper(pff);
-    return Paradata::GuiConcatenator::Run(pff_wrapper);
+    return Paradata::GuiConcatenator::Run(pff);
 }
 
 
@@ -186,8 +184,9 @@ bool PffExecutor::ExecuteCSView(const PFF& pff)
 
     Viewer viewer;
     viewer.UseEmbeddedViewer()
+          .UseExceptionHolder(nullptr)
           .UseSharedHtmlLocalFileServer()
-          .ViewFileInEmbeddedBrowser(input_processor.GetFilename());
+          .ViewFileInEmbeddedBrowser(input_processor.GetFilePath());
 
     return true;
 }

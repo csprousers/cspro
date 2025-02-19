@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CSPro WASM</title>
+
+    <script type="text/javascript" src="CSPro.js"></script>
+</head>
+
+<body>
+    <h1>CSPro WASM</h1>
+
+    <script>
+        let cswasm;
+        const lfsCallbacks = new Map();
+
+        // set up the local file server
+        navigator.serviceWorker.register("cspro-lfs.js")
+        .then(registration => {
+            startCSPro(registration.scope);
+        })
+        .catch(error => {
+            console.error("Service worker registration failed:", error);
+        });
+
+        navigator.serviceWorker.addEventListener("message", event => {
+            // the callback will be called when the virtual file is ready
+            lfsCallbacks.set(event.data, (lfsIndex) => {
+                let virtualFile = Module.CSWasm.GetVirtualFile(cswasm, lfsIndex);
+
+                // clone the content, which is part of a SharedArrayBuffer
+                if( virtualFile !== undefined ) {
+                    virtualFile = {
+                        content: virtualFile.content.slice(),
+                        contentType: virtualFile.contentType
+                    }
+                }
+
+                event.ports[0].postMessage(virtualFile);
+            });
+
+            Module.CSWasm.PrepareVirtualFile(cswasm, event.data);
+        });
+
+
+        function startCSPro(baseUrl) {
+            Module.onRuntimeInitialized = () =>  {
+                cswasm = new Module.CSWasm(baseUrl);
+            };
+        }
+
+
+        self.addEventListener("message", event => {
+            try {
+                const message = JSON.parse(event.data);
+
+                if( message.action === "CSWasm.virtualFilePrepared" ) {
+                    const lfsCallback = lfsCallbacks.get(message.lfsPath);
+
+                    if( lfsCallback !== undefined ) {
+                        lfsCallbacks.delete(message.lfsPath);
+                        lfsCallback(message.lfsIndex);
+                    }
+                }
+            }
+            catch(error) {
+                console.log(error);
+            }
+        });
+    </script>
+</body>
+
+</html>

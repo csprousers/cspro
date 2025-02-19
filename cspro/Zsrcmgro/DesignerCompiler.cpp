@@ -2,6 +2,8 @@
 #include "DesignerCompiler.h"
 #include "ProcGlobalConditionalCompiler.h"
 #include "SrcCode.h"
+#include <zToolsO/WindowsDesktopMessage.h>
+#include <zDesignerF/UWM.h>
 #include <CSPro/AplDoc.h>
 
 
@@ -64,20 +66,31 @@ bool DesignerCompiler::CompileExternalCode(const CodeFile& code_file)
     std::unique_ptr<ProcGlobalConditionalCompilerCreator> compiler_creator = ProcGlobalConditionalCompilerCreator::CompileSomeExternalCode(code_file.GetTextSource(), true);
     CreateCompiler(compiler_creator.get());
 
-    CCompiler::Result result = m_compiler->CompileExternalLogicOnly();
+    CCompiler::Result result;
+
+    // skip compiling files that haven't changed
+    if( WindowsDesktopMessage::Send(UWM::Designer::CanCodeFileCompilationBeSkipped, &code_file) == 1 )
+    {
+        result = CCompiler::Result::NoErrors;
+    }
+
+    else
+    {
+        result = m_compiler->CompileExternalLogicOnly();
+    }
 
     return ProcessCompilerResult(result, false);
 }
 
 
-bool DesignerCompiler::CompileReport(const NamedTextSource& report_named_text_source)
+bool DesignerCompiler::CompileReport(const ReportFile& report_file)
 {
     CWaitCursor wait;
 
-    std::unique_ptr<ProcGlobalConditionalCompilerCreator> compiler_creator = ProcGlobalConditionalCompilerCreator::CompileReport(report_named_text_source);
+    std::unique_ptr<ProcGlobalConditionalCompilerCreator> compiler_creator = ProcGlobalConditionalCompilerCreator::CompileReport(report_file);
     CreateCompiler(compiler_creator.get());
 
-    CCompiler::Result result = m_compiler->CompileReport(report_named_text_source);
+    CCompiler::Result result = m_compiler->CompileReport(report_file);
 
     return ProcessCompilerResult(result, false);
 }
@@ -101,7 +114,7 @@ bool DesignerCompiler::CompileProc(const CString& proc_name, const CStringArray&
     CCompiler::Result result = m_compiler->Compile(ProcGlobalName, proc_global_lines);
 
     ProcessCompilerResult(result, true);
-  
+
     m_compiler->SetFullCompile(false);
 
     // clear any parser messages from the application procedure

@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6B536C24-A5DF-489E-AFB7-7979328BBBC5}</ProjectGuid>
     <RootNamespace>zDictF</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -79,32 +75,32 @@
     <ClCompile Include="DDTrCtl.CPP" />
     <ClCompile Include="DictClipboard.cpp" />
     <ClCompile Include="DictDialogBar.cpp" />
-    <ClCompile Include="DICTGRID.CPP" />
-    <ClCompile Include="DictTreeNode.cpp" />
+    <ClCompile Include="Dictgrid.cpp" />
     <ClCompile Include="DictionaryMacros.cpp" />
-    <ClCompile Include="DictPropertyGridCtrl.cpp" />
     <ClCompile Include="DictPropertyGridBaseManager.cpp" />
+    <ClCompile Include="DictPropertyGridCtrl.cpp" />
     <ClCompile Include="DictPropertyGridDictionaryManager.cpp" />
-    <ClCompile Include="DictPropertyGridRecordManager.cpp" />
     <ClCompile Include="DictPropertyGridItemManager.cpp" />
-    <ClCompile Include="DictPropertyGridValueSetManager.cpp" />
-    <ClCompile Include="DictPropertyGridValueManager.cpp" />
     <ClCompile Include="DictPropertyGridLevelManager.cpp" />
+    <ClCompile Include="DictPropertyGridRecordManager.cpp" />
+    <ClCompile Include="DictPropertyGridValueManager.cpp" />
+    <ClCompile Include="DictPropertyGridValueSetManager.cpp" />
+    <ClCompile Include="DictTreeNode.cpp" />
     <ClCompile Include="DSplWnd.cpp" />
-    <ClCompile Include="SecurityOptionsDlg.cpp" />
     <ClCompile Include="FindDlg.cpp" />
     <ClCompile Include="GenerateVSDlg.cpp" />
-    <ClCompile Include="ITEMGRID.CPP" />
+    <ClCompile Include="Itemgrid.cpp" />
     <ClCompile Include="langedt.cpp" />
     <ClCompile Include="langgrid.cpp" />
-    <ClCompile Include="LEVGRID.CPP" />
+    <ClCompile Include="Levgrid.cpp" />
     <ClCompile Include="OccDlg.cpp" />
     <ClCompile Include="OccGrid.cpp" />
-    <ClCompile Include="StartPositionDlg.cpp" />
     <ClCompile Include="PrintDlg.cpp" />
-    <ClCompile Include="RECGRID.CPP" />
+    <ClCompile Include="Recgrid.cpp" />
     <ClCompile Include="RelDlg.cpp" />
     <ClCompile Include="RelGrid.cpp" />
+    <ClCompile Include="SecurityOptionsDlg.cpp" />
+    <ClCompile Include="StartPositionDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -139,7 +135,7 @@
     <ClInclude Include="BeforeAfterDlg.h" />
     <ClInclude Include="CapiLDlg.h" />
     <ClInclude Include="DDChWnd.H" />
-    <ClInclude Include="DDDOC.H" />
+    <ClInclude Include="Dddoc.h" />
     <ClInclude Include="DDDpTgt.H" />
     <ClInclude Include="DDEdit.h" />
     <ClInclude Include="DDGrid.h" />
@@ -148,33 +144,33 @@
     <ClInclude Include="DDTrCtl.H" />
     <ClInclude Include="DictClipboard.h" />
     <ClInclude Include="DictDialogBar.h" />
-    <ClInclude Include="DICTGRID.H" />
-    <ClInclude Include="DictTreeNode.h" />
+    <ClInclude Include="Dictgrid.h" />
     <ClInclude Include="DictionaryMacros.h" />
+    <ClInclude Include="DictPropertyGridBaseManager.h" />
     <ClInclude Include="DictPropertyGridCtrl.h" />
     <ClInclude Include="DictPropertyGridDictionaryManager.h" />
-    <ClInclude Include="DictPropertyGridBaseManager.h" />
     <ClInclude Include="DictPropertyGridItemManager.h" />
     <ClInclude Include="DictPropertyGridLevelManager.h" />
     <ClInclude Include="DictPropertyGridRecordManager.h" />
     <ClInclude Include="DictPropertyGridValueManager.h" />
     <ClInclude Include="DictPropertyGridValueSetManager.h" />
+    <ClInclude Include="DictTreeNode.h" />
     <ClInclude Include="DSplWnd.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="SecurityOptionsDlg.h" />
     <ClInclude Include="FindDlg.h" />
     <ClInclude Include="GenerateVSDlg.h" />
-    <ClInclude Include="ITEMGRID.H" />
+    <ClInclude Include="Itemgrid.h" />
     <ClInclude Include="langedt.h" />
     <ClInclude Include="langgrid.h" />
-    <ClInclude Include="LEVGRID.H" />
+    <ClInclude Include="Levgrid.h" />
     <ClInclude Include="OccDlg.h" />
     <ClInclude Include="OccGrid.h" />
-    <ClInclude Include="StartPositionDlg.h" />
     <ClInclude Include="PrintDlg.h" />
-    <ClInclude Include="RECGRID.H" />
+    <ClInclude Include="Recgrid.h" />
     <ClInclude Include="RelDlg.h" />
     <ClInclude Include="RelGrid.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SecurityOptionsDlg.h" />
+    <ClInclude Include="StartPositionDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="VSLabelRenamerDlg.h" />

@@ -188,6 +188,8 @@
       android:exported="false"
       android:label="@string/app_name" />
     <activity android:name=".ui.ChooseBluetoothDeviceActivity" />
+
+    <!-- for Dropbox -->
     <activity
       android:name="com.dropbox.core.android.AuthActivity"
       android:exported="true"
@@ -202,6 +204,19 @@
       </intent-filter>
     </activity>
 
+    <!-- for Google Drive -->
+    <activity
+      android:name="net.openid.appauth.RedirectUriReceiverActivity"
+      android:exported="true"
+      tools:node="replace">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="gov.census.cspro.csentry" android:path="/oauth2" />
+      </intent-filter>
+    </activity>
+
     <activity
       android:name="gov.census.cspro.commonui.DeepLinkListener"
       android:exported="true"
@@ -210,10 +225,12 @@
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.BROWSABLE" />
         <category android:name="android.intent.category.DEFAULT" />
-        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_path_prefix" />
+        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_apps_path_prefix" />
+        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_pff_path_prefix" />
         <data android:scheme="@string/deeplink_http_scheme" />
       </intent-filter>
     </activity>
+
     <activity
       android:name="gov.census.cspro.camera.BarcodeCaptureActivity"
       android:exported="false"

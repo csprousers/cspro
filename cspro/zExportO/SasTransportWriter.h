@@ -2,6 +2,8 @@
 
 #include <zUtilO/ExpansiveList.h>
 
+namespace FileIO { class File; }
+
 
 // code based on https://support.sas.com/techsup/technote/ts140.pdf
 // and the ReadStat library's implementation
@@ -40,7 +42,7 @@ public:
 
 public:
     // the file must already be open and will henceforth be controlled by this class
-    SasTransportWriter(FILE* file);
+    SasTransportWriter(std::unique_ptr<FileIO::File> file);
     ~SasTransportWriter();
 
     // this method can be used to write a data set with all observations filled
@@ -76,7 +78,7 @@ private:
 private:
     static constexpr size_t RecordLength = 80;
 
-    FILE* m_file;
+    std::unique_ptr<FileIO::File> m_file;
     char m_timestamp[17];
     char m_header[RecordLength + 1];
 

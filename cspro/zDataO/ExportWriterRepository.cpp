@@ -10,7 +10,7 @@
 #include <zExportO/StataExportWriter.h>
 
 
-ExportWriterRepository::ExportWriterRepository(DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type)
+ExportWriterRepository::ExportWriterRepository(const DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type)
     :   DataRepository(type, std::move(case_access), access_type)
 {
 }
@@ -28,7 +28,7 @@ ExportWriterRepository::~ExportWriterRepository()
 }
 
 
-void ExportWriterRepository::LogInvalidAccess(const TCHAR* access_message, const Case* data_case/* = nullptr*/) const
+void ExportWriterRepository::LogInvalidAccess(const char* const access_message, const Case* const data_case/* = nullptr*/) const
 {
     CaseConstructionReporter* case_construction_reporter = ( data_case != nullptr ) ? data_case->GetCaseConstructionReporter() :
                                                                                       nullptr;
@@ -48,72 +48,72 @@ void ExportWriterRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> 
 }
 
 
-void ExportWriterRepository::Open(DataRepositoryOpenFlag open_flag)
+void ExportWriterRepository::Open(const DataRepositoryOpenFlag open_flag)
 {
     ASSERT(DataRepositoryHelpers::IsTypeExportWriter(m_type));
 
     if( open_flag == DataRepositoryOpenFlag::OpenMustExist )
     {
-        throw DataRepositoryException::IOError(FormatText(_T("Files of type '%s' cannot be opened as input files"), ToString(m_type)));
+        throw DataRepositoryException::IOError("Files of type '%s' cannot be opened as input files", ToString(m_type));
     }
 
     if( m_accessType != DataRepositoryAccess::BatchOutput &&
         m_accessType != DataRepositoryAccess::BatchOutputAppend &&
         m_accessType != DataRepositoryAccess::ReadWrite )
     {
-        throw DataRepositoryException::IOError(FormatText(_T("Files of type '%s' can only be opened as files that will receive output"), ToString(m_type)));
+        throw DataRepositoryException::IOError("Files of type '%s' can only be opened as files that will receive output", ToString(m_type));
     }
 
     try
     {
-        if( m_type == DataRepositoryType::CommaDelimited ||
-            m_type == DataRepositoryType::SemicolonDelimited ||
-            m_type == DataRepositoryType::TabDelimited )
+        switch( m_type )
         {
-            m_exportWriter = std::make_unique<DelimitedTextExportWriter>(m_type, m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::CommaDelimited:
+            case DataRepositoryType::SemicolonDelimited:
+            case DataRepositoryType::TabDelimited:
+                m_exportWriter = std::make_unique<DelimitedTextExportWriter>(m_type, m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::Excel )
-        {
-            m_exportWriter = std::make_unique<ExcelExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::Excel:
+                m_exportWriter = std::make_unique<ExcelExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::CSProExport )
-        {
-            m_exportWriter = std::make_unique<CSProExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::CSProExport:
+                m_exportWriter = std::make_unique<CSProExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::R )
-        {
-            m_exportWriter = std::make_unique<RExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::R:
+                m_exportWriter = std::make_unique<RExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::SAS )
-        {
-            m_exportWriter = std::make_unique<SasExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::SAS:
+                m_exportWriter = std::make_unique<SasExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::SPSS )
-        {
-            m_exportWriter = std::make_unique<SpssExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::SPSS:
+                m_exportWriter = std::make_unique<SpssExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else if( m_type == DataRepositoryType::Stata )
-        {
-            m_exportWriter = std::make_unique<StataExportWriter>(m_caseAccess, m_connectionString);
-        }
+            case DataRepositoryType::Stata:
+                m_exportWriter = std::make_unique<StataExportWriter>(m_caseAccess, m_connectionString);
+                break;
 
-        else
-        {
-            throw ProgrammingErrorException();
+            default:
+                throw ProgrammingErrorException();
         }
     }
 
     catch( const CSProException& exception )
     {
         // rethrow as a DataRepositoryException
-        throw DataRepositoryException::IOError(exception.GetErrorMessage());
+        throw DataRepositoryException::IOError(exception.what());
     }
+}
+
+
+void ExportWriterRepository::ToggleReadWriteMode()
+{
+    throw ProgrammingErrorException();
 }
 
 
@@ -131,23 +131,23 @@ void ExportWriterRepository::DeleteRepository()
 {
     Close();
 
-    for( const std::wstring& filename : GetExportFilenames(m_connectionString) )
-        PortableFunctions::FileDelete(filename);
+    for( const std::string& file_path : GetExportFilePaths(m_connectionString) )
+        PortableFunctions::FileDelete(file_path);
 }
 
 
 void ExportWriterRepository::RenameRepository(const ConnectionString& old_connection_string, const ConnectionString& new_connection_string)
 {
-    std::vector<std::wstring> old_filenames = GetExportFilenames(old_connection_string);
-    std::vector<std::wstring> new_filenames = GetExportFilenames(new_connection_string);
-    ASSERT(old_filenames.size() == new_filenames.size());
+    const std::vector<std::string> old_file_paths = GetExportFilePaths(old_connection_string);
+    const std::vector<std::string> new_file_paths = GetExportFilePaths(new_connection_string);
+    ASSERT(old_file_paths.size() == new_file_paths.size());
 
     // this routine is not perfect (because the newly renamed SAS syntax file will have a reference to the old
     // transport filename), but at the moment this function is not used in any context where that would matter
-    for( size_t i = 0; i < old_filenames.size(); ++i )
+    for( size_t i = 0; i < old_file_paths.size(); ++i )
     {
-        if( ( PortableFunctions::FileIsRegular(new_filenames[i]) && !PortableFunctions::FileDelete(new_filenames[i]) ) ||
-            ( PortableFunctions::FileIsRegular(old_filenames[i]) && !PortableFunctions::FileRename(old_filenames[i], new_filenames[i]) ) )
+        if( ( PortableFunctions::FileIsRegular(new_file_paths[i]) && !PortableFunctions::FileDelete(new_file_paths[i]) ) ||
+            ( PortableFunctions::FileIsRegular(old_file_paths[i]) && !PortableFunctions::FileRename(old_file_paths[i], new_file_paths[i]) ) )
         {
             throw DataRepositoryException::RenameRepositoryError();
         }
@@ -155,49 +155,56 @@ void ExportWriterRepository::RenameRepository(const ConnectionString& old_connec
 }
 
 
-std::vector<std::wstring> ExportWriterRepository::GetAssociatedFileList(const ConnectionString& connection_string)
+std::vector<std::string> ExportWriterRepository::GetAssociatedFileList(const ConnectionString& connection_string)
 {
-    return GetExportFilenames(connection_string);
+    return GetExportFilePaths(connection_string);
 }
 
 
-bool ExportWriterRepository::ContainsCase(const CString& /*key*/) const
+bool ExportWriterRepository::ContainsCase(const std::string& /*key*/)
 {
-    LogInvalidAccess(_T("search for cases"));
+    LogInvalidAccess("search for cases");
     return false;
 }
 
 
-void ExportWriterRepository::PopulateCaseIdentifiers(CString& /*key*/, CString& /*uuid*/, double& /*position_in_repository*/) const
+void ExportWriterRepository::PopulateCaseIdentifiers(std::string& /*key*/, std::string& /*uuid*/, double& /*position_in_repository*/)
 {
-    LogInvalidAccess(_T("search for cases"));
+    LogInvalidAccess("search for cases");
+    throw DataRepositoryException::CaseNotFound();
+}
+
+
+DataRepositoryUniqueCaseIdentifer ExportWriterRepository::GetUniqueCaseIdentifer(const CaseKey& /*case_key*/)
+{
+    LogInvalidAccess("search for cases");
     throw DataRepositoryException::CaseNotFound();
 }
 
 
 std::optional<CaseKey> ExportWriterRepository::FindCaseKey(CaseIterationMethod /*iteration_method*/, CaseIterationOrder /*iteration_order*/,
-    const CaseIteratorParameters* /*start_parameters = nullptr*/) const
+                                                           const CaseIteratorParameters* /*start_parameters = nullptr*/)
 {
-    LogInvalidAccess(_T("search for cases"));
+    LogInvalidAccess("search for cases");
     return std::nullopt;
 }
 
 
-void ExportWriterRepository::ReadCase(Case& data_case, const CString& /*key*/)
+void ExportWriterRepository::ReadCase(Case& data_case, const std::string& /*key*/)
 {
-    LogInvalidAccess(_T("load cases"), &data_case);
+    LogInvalidAccess("load cases", &data_case);
     throw DataRepositoryException::CaseNotFound();
 }
 
 
 void ExportWriterRepository::ReadCase(Case& data_case, double /*position_in_repository*/)
 {
-    LogInvalidAccess(_T("load cases"), &data_case);
+    LogInvalidAccess("load cases", &data_case);
     throw DataRepositoryException::CaseNotFound();
 }
 
 
-void ExportWriterRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/)
+void ExportWriterRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     ASSERT(write_case_parameter == nullptr);
 
@@ -207,29 +214,29 @@ void ExportWriterRepository::WriteCase(Case& data_case, WriteCaseParameter* writ
 
 void ExportWriterRepository::DeleteCase(double /*position_in_repository*/, bool /*deleted = true*/)
 {
-    LogInvalidAccess(_T("delete cases"));
+    LogInvalidAccess("delete cases");
     throw DataRepositoryException::CaseNotFound();
 }
 
 
-size_t ExportWriterRepository::GetNumberCases() const
+size_t ExportWriterRepository::GetNumberCases()
 {
-    LogInvalidAccess(_T("count cases"));
+    LogInvalidAccess("count cases");
     return 0;
 }
 
 
-size_t ExportWriterRepository::GetNumberCases(CaseIterationCaseStatus /*case_status*/, const CaseIteratorParameters* /*start_parameters= nullptr*/) const
+size_t ExportWriterRepository::GetNumberCases(CaseIterationCaseStatus /*case_status*/, const CaseIteratorParameters* /*start_parameters = nullptr*/)
 {
-    LogInvalidAccess(_T("count cases"));
+    LogInvalidAccess("count cases");
     return 0;
 }
 
 
 std::unique_ptr<CaseIterator> ExportWriterRepository::CreateIterator(CaseIterationContent /*iteration_content*/, CaseIterationCaseStatus /*case_status*/,
-    std::optional<CaseIterationMethod> /*iteration_method*/, std::optional<CaseIterationOrder> /*iteration_order*/,
-    const CaseIteratorParameters* /*start_parameters = nullptr*/, size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
+                                                                     std::optional<CaseIterationMethod> /*iteration_method*/, std::optional<CaseIterationOrder> /*iteration_order*/,
+                                                                     const CaseIteratorParameters* /*start_parameters = nullptr*/, size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
 {
-    LogInvalidAccess(_T("iterate over cases"));
+    LogInvalidAccess("iterate over cases");
     return std::make_unique<NullRepositoryCaseIterator>();
 }

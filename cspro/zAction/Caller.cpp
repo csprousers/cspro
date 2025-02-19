@@ -3,28 +3,24 @@
 #include <zUtilO/SpecialDirectoryLister.h>
 
 
-std::wstring ActionInvoker::Caller::EvaluateAbsolutePath(std::wstring path)
+std::string ActionInvoker::Caller::EvaluateAbsolutePath(std::string path)
 {
-    if( PathIsRelative(path.c_str()) )
+    if( Path::IsRelative(path) )
     {
-        const std::wstring& root_directory = GetRootDirectory();
+        const std::string& root_directory = GetRootDirectory();
 
         if( !root_directory.empty() )
             return MakeFullPath(root_directory, std::move(path));
     }
 
-    NormalizePathSlash(path);
-    return path;
+    return PortableFunctions::MakePathToNativeSlash(path);
 }
 
 
-std::wstring ActionInvoker::Caller::EvaluateAbsolutePath(std::wstring path, const bool allow_special_directories)
+std::string ActionInvoker::Caller::EvaluateAbsolutePath(std::string path, const bool allow_special_directories)
 {
     if( allow_special_directories && SpecialDirectoryLister::IsSpecialDirectory(path) )
-    {
-        NormalizePathSlash(path);
-        return path;
-    }
+        return PortableFunctions::MakePathToNativeSlash(path);
 
     return EvaluateAbsolutePath(std::move(path));
 }

@@ -185,7 +185,7 @@ void CFolio::Create(CIMSAString csFileName) {
         csRet = csRet.Left(i) + csFileName + csRet.Mid(i + 2);
     }
     while ((i = csRet.Find(_T("&P"))) != -1) {
-        csRet = csRet.Left(i) + IntToString(iPage) + csRet.Mid(i + 2);
+        csRet = csRet.Left(i) + UTF8_TODO::GetCString(IntToString(iPage)) + csRet.Mid(i + 2);
     }
     // 20090915 GHM also look in zTableF\PrtView.cpp CTabPrtView::BuildHeaders
     // for handling of the &I (input data filename) option
@@ -231,7 +231,7 @@ CIMSAString CFolio::SetPage(CIMSAString cs, int iPage) {
     CIMSAString csPage = cs;
 
     while ((i = csPage.Find(_T("&P"))) != -1) {
-        csPage = csPage.Left(i) + IntToString(iPage) + csPage.Mid(i + 2);
+        csPage = csPage.Left(i) + UTF8_TODO::GetCString(IntToString(iPage)) + csPage.Mid(i + 2);
     }
     return csPage;
 }

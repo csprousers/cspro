@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>~~TITLE~~</title>
+    <style>
+        a {
+            color: #000000;
+            text-decoration: none;
+        }
+        table {
+            border-collapse: collapse;
+            border: 1px solid #cccccc;
+        }
+        th, td {
+            border: 1px solid #cccccc;
+            padding: 8px;
+            text-align: left;
+            white-space: pre;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .caseText {
+            font-family: monospace;
+        }
+        .recordType {
+            color: #b22222;
+        }
+        .id0 {
+            color: #0056b3;
+        }
+        .id1 {
+            color: #004998;
+        }
+        .item0 {
+            color: #2e8b57;
+        }
+        .item1 {
+            color: #277649;
+        }
+    </style>
+</head>
+<body>
+    <p class="caseText">
+        ~~CASE~~
+    </p>
+    <div id="detailsDiv" style="display: none;">
+        <table id="detailsTable">
+            <thead><tr><th colspan="2">Details</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+        // ~~CASE_DETAILS~~
+
+        function addRow(tbody, label, value) {
+            const row = document.createElement("tr");
+            let cell = document.createElement("td");
+            cell.textContent = label;
+            row.appendChild(cell);
+            cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+            tbody.appendChild(row);
+        }
+
+        function showDetails(index) {
+            const table = document.getElementById("detailsTable");
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = "";
+
+            const metadata = details[index].metadata;
+
+            for( let i = 1; i < metadata.length; i += 2 ) {
+                addRow(tbody, metadata[i - 1], metadata[i]);
+            }
+        }
+
+        if( details != undefined ) {
+            document.querySelectorAll("a").forEach(element => {
+                const id = element.id.substr(2);
+                element.href = "javascript:void(0);";
+                element.addEventListener("focus", () => { showDetails(id); });
+                element.addEventListener("mouseover", () => { showDetails(id); });
+            });
+
+            document.getElementById("detailsDiv").style.display = "block";
+            showDetails(0);
+        }
+    </script>
+</body>
+</html>

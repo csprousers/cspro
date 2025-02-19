@@ -25,22 +25,22 @@ protected:
 
     // GenerateTask::Interface overrides
     // the methods will post messages to update values as they will be called from a non-UI thread
-    void SetTitle(const std::wstring& title) override;
-    void LogText(std::wstring text) override;
+    void SetTitle(const std::string& title) override;
+    void LogText(SharableString text) override;
     void UpdateProgress(double percent) override;
-    void SetOutputText(const std::wstring& text) override;
-    void OnCreatedOutput(std::wstring output_title, std::wstring path) override;
+    void SetOutputText(const std::string& text) override;
+    void OnCreatedOutput(std::string output_title, std::string path) override;
     void OnException(const CSProException& exception) override;
     void OnCompletion(GenerateTask::Status status) override;
     const GlobalSettings& GetGlobalSettings() override;
 
 private:
-    void PostTextForUpdate(CWnd* pWnd, std::wstring text);
+    void PostTextForUpdate(CWnd* pWnd, std::string_view text_sv);
 
 private:
     GlobalSettings& m_globalSettings;
     GenerateTask& m_generateTask;
-    std::vector<std::tuple<std::wstring, std::wstring>> m_finalOutputs;
+    std::vector<std::tuple<std::string, std::string>> m_finalOutputs;
 
     LoggingListBox m_loggingListBox;
     CProgressCtrl m_progressCtrl;

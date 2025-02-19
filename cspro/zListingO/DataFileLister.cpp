@@ -9,57 +9,55 @@
 
 namespace
 {
-    constexpr const TCHAR* ListingPrefix     = _T("LISTING_");
+    constexpr const char* ListingPrefix     = "LISTING_";
 
-    constexpr const TCHAR* MessageTypeName   = _T("LISTING_MESSAGE_TYPE");
-    constexpr const TCHAR* MessageNumberName = _T("LISTING_MESSAGE_NUMBER");
-    constexpr const TCHAR* MessageTextName   = _T("LISTING_MESSAGE_TEXT");
-    
+    constexpr const char* MessageTypeName   = "LISTING_MESSAGE_TYPE";
+    constexpr const char* MessageNumberName = "LISTING_MESSAGE_NUMBER";
+    constexpr const char* MessageTextName   = "LISTING_MESSAGE_TEXT";
+
     constexpr size_t MaxMessagesPerCase = 500;
 
     constexpr double WriteMessageTypeCode = static_cast<double>(MessageType::User) + 1;
 }
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // DataFileLister::ClassVariables
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
-namespace Listing
+struct Listing::DataFileLister::ClassVariables
 {
-    struct DataFileLister::ClassVariables
+    std::unique_ptr<CDataDict> dictionary;
+    std::shared_ptr<CaseAccess> case_access;
+    std::unique_ptr<DataRepository> repository;
+    std::unique_ptr<Case> data_case;
+
+    CaseRecord* id_case_record;
+    CaseRecord* listing_case_record;
+
+    struct IdLink
     {
-        std::unique_ptr<CDataDict> dictionary;
-        std::shared_ptr<CaseAccess> case_access;
-        std::unique_ptr<DataRepository> repository;
-        std::unique_ptr<Case> data_case;
-
-        CaseRecord* id_case_record;
-        CaseRecord* listing_case_record;
-
-        struct IdLink
-        {
-            size_t level_number;
-            const CaseItem* input_case_item;
-            const CaseItem* listing_case_item;
-        };
-
-        std::vector<IdLink> id_links;
-
-        const CaseItem* message_type_case_item;
-        const CaseItem* message_number_case_item;
-        const CaseItem* message_text_case_item;
+        size_t level_number;
+        const CaseItem* input_case_item;
+        const CaseItem* listing_case_item;
     };
-}
+
+    std::vector<IdLink> id_links;
+
+    const CaseItem* message_type_case_item;
+    const CaseItem* message_number_case_item;
+    const CaseItem* message_text_case_item;
+};
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // DataFileLister
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
-Listing::DataFileLister::DataFileLister(std::shared_ptr<ProcessSummary> process_summary, const std::wstring& filename, bool append, std::shared_ptr<const CaseAccess> case_access)
-    :   Lister(process_summary),
+Listing::DataFileLister::DataFileLister(std::shared_ptr<ProcessSummary> process_summary, const std::string& file_path,
+                                        const bool append, std::shared_ptr<const CaseAccess> case_access)
+    :   Lister(std::move(process_summary)),
         m_cv(std::make_unique<DataFileLister::ClassVariables>()),
         m_caseAccess(std::move(case_access))
 {
@@ -69,12 +67,13 @@ Listing::DataFileLister::DataFileLister(std::shared_ptr<ProcessSummary> process_
     // create the dictionary and save it
     CreateAndInitializeListingDictionary(m_caseAccess->GetDataDict());
 
-    m_cv->dictionary->Save(filename + FileExtensions::WithDot::Dictionary);
+    m_cv->dictionary->Save(PortableFunctions::PathAppendFileExtension(file_path, FileExtensions::Dictionary));
 
     // open the listing data file
-    m_cv->repository = DataRepository::CreateAndOpen(m_cv->case_access, ConnectionString(filename),
-        append ? DataRepositoryAccess::BatchOutputAppend : DataRepositoryAccess::BatchOutput,
-        DataRepositoryOpenFlag::OpenOrCreate);
+    m_cv->repository = DataRepository::CreateAndOpen(m_cv->case_access,
+                                                     ConnectionString(file_path),
+                                                     append ? DataRepositoryAccess::BatchOutputAppend : DataRepositoryAccess::BatchOutput,
+                                                     DataRepositoryOpenFlag::OpenOrCreate);
 }
 
 
@@ -87,20 +86,21 @@ Listing::DataFileLister::~DataFileLister()
 
 void Listing::DataFileLister::CreateAndInitializeListingDictionary(const CDataDict& source_dictionary)
 {
-    DictionaryCreator dictionary_creator(source_dictionary, ListingPrefix, _T("Listing"), MaxMessagesPerCase);
-    dictionary_creator.AddItem(MessageTypeName, _T("Message Type"), ContentType::Numeric, 1)
-                        .AddValueSet(MessageTypeName,
-                            {
-                                { _T("Abort"),   static_cast<double>(MessageType::Abort)   },
-                                { _T("Error"),   static_cast<double>(MessageType::Error)   },
-                                { _T("Warning"), static_cast<double>(MessageType::Warning) },
-                                { _T("User"),    static_cast<double>(MessageType::User)    },
-                                { _T("Write"),   WriteMessageTypeCode         }
-                            })
-                        .AddItem(MessageNumberName, _T("Message Number"), ContentType::Numeric, 15)
-                        .AddItem(MessageTextName, _T("Message Text"), ContentType::Alpha, 500);
+    DictionaryCreator dictionary_creator(source_dictionary, ListingPrefix, "Listing", MaxMessagesPerCase);
+    dictionary_creator
+        .AddItem(MessageTypeName, "Message Type", ContentType::Numeric, 1)
+            .AddValueSet(MessageTypeName, std::initializer_list<std::tuple<const char*, double>>
+            {
+                { "Abort",   static_cast<double>(MessageType::Abort)   },
+                { "Error",   static_cast<double>(MessageType::Error)   },
+                { "Warning", static_cast<double>(MessageType::Warning) },
+                { "User",    static_cast<double>(MessageType::User)    },
+                { "Write",   WriteMessageTypeCode                      }
+            })
+        .AddItem(MessageNumberName, "Message Number", ContentType::Numeric, 15)
+        .AddItem(MessageTextName, "Message Text", ContentType::Alpha, 500);
 
-    m_cv->dictionary = dictionary_creator.GetDictionary();
+    m_cv->dictionary = dictionary_creator.ReleaseDictionary();
 
     m_cv->case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*m_cv->dictionary);
 
@@ -110,13 +110,13 @@ void Listing::DataFileLister::CreateAndInitializeListingDictionary(const CDataDi
     m_cv->listing_case_record = &m_cv->data_case->GetRootCaseLevel().GetCaseRecord(0);
 
     // setup the ID links
-    for( const CDictItem* id_item : source_dictionary.GetIdItems() )
+    for( const CDictItem* const id_dict_item : source_dictionary.GetIdItems() )
     {
         m_cv->id_links.emplace_back(ClassVariables::IdLink
             {
-                id_item->GetLevel()->GetLevelNumber(),
+                id_dict_item->GetLevel()->GetLevelNumber(),
                 nullptr,
-                m_cv->case_access->LookupCaseItem(ListingPrefix + id_item->GetName())
+                m_cv->case_access->LookupCaseItem(ListingPrefix + id_dict_item->GetName())
             });
     }
 
@@ -130,7 +130,7 @@ void Listing::DataFileLister::CreateAndInitializeListingDictionary(const CDataDi
 void Listing::DataFileLister::WriteMessages(const Messages& messages)
 {
     // setup the listing record
-    size_t listing_occurrences = std::min(MaxMessagesPerCase, messages.messages.size());
+    const size_t listing_occurrences = std::min(MaxMessagesPerCase, messages.messages.size());
     m_cv->listing_case_record->SetNumberOccurrences(listing_occurrences);
     CaseItemIndex listing_index = m_cv->listing_case_record->GetCaseItemIndex();
 
@@ -141,14 +141,15 @@ void Listing::DataFileLister::WriteMessages(const Messages& messages)
         {
             // unfortunately, due to when this method is called, the level key's values
             // will have to be reconstructed from the text of the level key
-            const TCHAR* level_key_itr = message.level_key.c_str();
-            const TCHAR* level_key_end = level_key_itr + message.level_key.length();
+            const std::wstring wide_level_key = UTF8_TODO::GetWide(message.level_key);
+            const wchar_t* level_key_itr = wide_level_key.c_str();
+            const wchar_t* const level_key_end = level_key_itr + wide_level_key.length();
 
-            for( const auto& id_link : m_cv->id_links )
+            for( const ClassVariables::IdLink& id_link : m_cv->id_links )
             {
                 if( id_link.level_number > 0 && level_key_itr < level_key_end )
                 {
-                    if( id_link.listing_case_item->IsTypeNumeric() )
+                    if( IsNumeric(id_link.listing_case_item->GetDataType()) )
                     {
                         assert_cast<const FixedWidthNumericCaseItem&>(*id_link.listing_case_item).SetValueFromTextInput(listing_index, level_key_itr);
                     }
@@ -158,7 +159,7 @@ void Listing::DataFileLister::WriteMessages(const Messages& messages)
                         assert_cast<const FixedWidthStringCaseItem&>(*id_link.listing_case_item).SetFixedWidthValue(listing_index, level_key_itr);
                     }
 
-                    level_key_itr += id_link.listing_case_item->GetDictionaryItem().GetLen();
+                    level_key_itr += id_link.listing_case_item->GetDictItem().GetLen();
                 }
             }
         }
@@ -194,7 +195,7 @@ void Listing::DataFileLister::WriteMessages(const Messages& messages)
 }
 
 
-void Listing::DataFileLister::ProcessCaseSource(const Case* data_case)
+void Listing::DataFileLister::ProcessCaseSource(const Case* const data_case)
 {
     m_cv->data_case->Reset();
 
@@ -207,20 +208,20 @@ void Listing::DataFileLister::ProcessCaseSource(const Case* data_case)
     {
         ASSERT(m_caseAccess->IsInitialized());
 
-        const auto& case_levels = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
-        std::vector<const CaseItem*> id_case_items = case_levels.front()->GetIdCaseRecordMetadata()->GetCaseItems();
-        ASSERT(id_case_items.size() == (size_t)std::count_if(m_cv->id_links.cbegin(), m_cv->id_links.cend(),
-                                                             [&](const auto& id_link) { return ( id_link.level_number == 0 ); }));
+        const std::vector<CaseLevelMetadata>& case_levels = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
+        const std::vector<const CaseItem*>& id_case_items = case_levels.front().GetIdCaseRecordMetadata().GetCaseItems();
+        ASSERT(id_case_items.size() == static_cast<size_t>(std::count_if(m_cv->id_links.cbegin(), m_cv->id_links.cend(),
+                                                                         [&](const auto& id_link) { return ( id_link.level_number == 0 ); })));
 
         for( size_t i = 0; i < id_case_items.size(); ++i )
             m_cv->id_links[i].input_case_item = id_case_items[i];
     }
 
     // copy the root IDs
-    CaseItemIndex input_id_index = data_case->GetRootCaseLevel().GetIdCaseRecord().GetCaseItemIndex();
+    const CaseItemIndex input_id_index = data_case->GetRootCaseLevel().GetIdCaseRecord().GetCaseItemIndex();
     CaseItemIndex listing_id_index = m_cv->id_case_record->GetCaseItemIndex();
 
-    for( const auto& id_link : m_cv->id_links )
+    for( const ClassVariables::IdLink& id_link : m_cv->id_links )
     {
         if( id_link.level_number != 0 )
             break;

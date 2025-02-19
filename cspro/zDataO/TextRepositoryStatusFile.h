@@ -14,53 +14,53 @@ class TextRepositoryStatusFile
 private:
     TextRepositoryStatusFile(TextRepository& repository, DataRepositoryOpenFlag open_flag);
 
-    static std::wstring GetStatusFilename(const ConnectionString& connection_string);
+    static std::string GetStatusFilePath(const ConnectionString& connection_string);
 
 public:
     ~TextRepositoryStatusFile();
 
     void CommitTransactions();
 
-    bool IsPartial(CString key) const;
+    bool IsPartial(const std::string& key) const;
 
     bool ContainsPartials() const;
 
     size_t GetNumberPartials() const;
 
-    void SetupCase(Case& data_case) const;
-    void SetupCaseSummary(CaseSummary& case_summary) const;
+    void SetUpCase(Case& data_case) const;
+    void SetUpCaseSummary(CaseSummary& case_summary) const;
 
     void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter);
 
-    void DeleteCase(const CString& key);
+    void DeleteCase(const std::string& key);
 
 private:
-    void Load(TextRepository& repository);
+    void Load();
 
     void Save(bool force_write_to_disk = false);
 
     struct Status;
-    const Status& LookupStatus(const CString& key) const;
-    Status& GetOrCreateStatus(const CString& key);
+    const Status& LookupStatus(const std::string& key) const;
+    Status& GetOrCreateStatus(const std::string& key);
 
-    bool RemoveEntry(const CString& key);
+    bool RemoveEntry(const std::string& key);
 
     struct Status
     {
-        CString case_label;
+        std::string case_label;
         bool verified = false;
         PartialSaveMode partial_save_mode = PartialSaveMode::None;
         std::shared_ptr<CaseItemReference> partial_save_case_item_reference;
     };
 
 private:
-    const std::wstring m_filename;
-    const CString m_dictionaryName;
+    TextRepository& m_repository;
+    const std::string m_filePath;
+    const std::string m_dictionaryName;
 
-    std::unique_ptr<std::map<CString, Status>> m_statuses;
+    std::unique_ptr<std::map<std::string, Status>> m_statuses;
     const Status m_defaultStatus;
 
-    bool m_useTransactionManager;
     bool m_hasTransactionsToWrite;
 };
 
@@ -70,7 +70,7 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline bool TextRepositoryStatusFile::IsPartial(CString key) const
+inline bool TextRepositoryStatusFile::IsPartial(const std::string& key) const
 {
     const Status& status = LookupStatus(key);
     return ( status.partial_save_mode != PartialSaveMode::None );
@@ -81,9 +81,9 @@ inline bool TextRepositoryStatusFile::ContainsPartials() const
 {
     if( m_statuses != nullptr )
     {
-        for( const auto& key_status : *m_statuses )
+        for( const auto& [key, status] : *m_statuses )
         {
-            if( key_status.second.partial_save_mode != PartialSaveMode::None )
+            if( status.partial_save_mode != PartialSaveMode::None )
                 return true;
         }
     }
@@ -109,7 +109,7 @@ inline size_t TextRepositoryStatusFile::GetNumberPartials() const
 }
 
 
-inline void TextRepositoryStatusFile::SetupCase(Case& data_case) const
+inline void TextRepositoryStatusFile::SetUpCase(Case& data_case) const
 {
     const Status& status = LookupStatus(data_case.GetKey());
 
@@ -119,7 +119,7 @@ inline void TextRepositoryStatusFile::SetupCase(Case& data_case) const
 }
 
 
-inline void TextRepositoryStatusFile::SetupCaseSummary(CaseSummary& case_summary) const
+inline void TextRepositoryStatusFile::SetUpCaseSummary(CaseSummary& case_summary) const
 {
     const Status& status = LookupStatus(case_summary.GetKey());
 
@@ -129,7 +129,7 @@ inline void TextRepositoryStatusFile::SetupCaseSummary(CaseSummary& case_summary
 }
 
 
-inline const TextRepositoryStatusFile::Status& TextRepositoryStatusFile::LookupStatus(const CString& key) const
+inline const TextRepositoryStatusFile::Status& TextRepositoryStatusFile::LookupStatus(const std::string& key) const
 {
     if( m_statuses != nullptr )
     {
@@ -143,10 +143,10 @@ inline const TextRepositoryStatusFile::Status& TextRepositoryStatusFile::LookupS
 }
 
 
-inline TextRepositoryStatusFile::Status& TextRepositoryStatusFile::GetOrCreateStatus(const CString& key)
+inline TextRepositoryStatusFile::Status& TextRepositoryStatusFile::GetOrCreateStatus(const std::string& key)
 {
     if( m_statuses == nullptr )
-        m_statuses = std::make_unique<std::map<CString, Status>>();
+        m_statuses = std::make_unique<std::map<std::string, Status>>();
 
     const auto& status_search = m_statuses->find(key);
 

@@ -1,19 +1,16 @@
 ﻿#pragma once
 
 #include <zAppO/SyncTypes.h>
-
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
+#include <zUtilO/SyncConnectionString.h>
 
 
 struct AppSyncParameters
 {
-    std::wstring server;
+    SyncConnectionString sync_connection_string;
     SyncDirection sync_direction = SyncDirection::Put;
 
     // serialization
-    static AppSyncParameters CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static AppSyncParameters CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
 };

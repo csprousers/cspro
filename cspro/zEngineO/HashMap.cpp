@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "HashMap.h"
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
@@ -12,7 +13,7 @@ struct LogicHashMap::DimensionValue
 };
 
 
-LogicHashMap::LogicHashMap(std::wstring hashmap_name)
+LogicHashMap::LogicHashMap(std::string hashmap_name)
     :   Symbol(std::move(hashmap_name), SymbolType::HashMap),
         m_valueType(DataType::Numeric)
 {
@@ -33,13 +34,28 @@ LogicHashMap::~LogicHashMap()
 }
 
 
+void LogicHashMap::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const LogicHashMap& hashmap = assert_cast<const LogicHashMap&>(symbol);
+
+    if( m_valueType != hashmap.m_valueType )
+    {
+        throw CompareDeclarationAttributesException("data type: %s vs. %s", ToString(m_valueType),
+                                                                            ToString(hashmap.m_valueType));
+    }
+
+    if( !IsHashMapAssignable(hashmap, false) )
+        throw CompareDeclarationAttributesException("different dimension types");
+}
+
+
 std::unique_ptr<Symbol> LogicHashMap::CloneInInitialState() const
 {
     return std::unique_ptr<LogicHashMap>(new LogicHashMap(*this));
 }
 
 
-bool LogicHashMap::IsHashMapAssignable(const LogicHashMap& rhs_hashmap, bool allow_implicit_dimension_type_conversion) const
+bool LogicHashMap::IsHashMapAssignable(const LogicHashMap& rhs_hashmap, const bool allow_implicit_dimension_type_conversion) const
 {
     if( m_valueType != rhs_hashmap.m_valueType || m_dimensionTypes.size() != rhs_hashmap.m_dimensionTypes.size() )
         return false;
@@ -63,7 +79,7 @@ LogicHashMap& LogicHashMap::operator=(const LogicHashMap& rhs_hashmap)
 
     Reset();
 
-    std::function<void(std::map<Data, std::unique_ptr<DimensionValue>>&, const std::map<Data, std::unique_ptr<DimensionValue>>&)> data_copier =
+    const std::function<void(std::map<Data, std::unique_ptr<DimensionValue>>&, const std::map<Data, std::unique_ptr<DimensionValue>>&)> data_copier =
         [&](std::map<Data, std::unique_ptr<DimensionValue>>& lhs_map, const std::map<Data, std::unique_ptr<DimensionValue>>& rhs_map)
         {
             for( const auto& [rhs_key, rhs_value] : rhs_map )
@@ -99,7 +115,7 @@ void LogicHashMap::Reset()
 
 
 const std::map<LogicHashMap::Data, std::unique_ptr<LogicHashMap::DimensionValue>>* LogicHashMap::TraverseData(
-    const std::vector<Data>& dimension_values, size_t dimensions_to_traverse) const
+    const std::vector<Data>& dimension_values, const size_t dimensions_to_traverse) const
 {
     ASSERT(dimensions_to_traverse <= dimension_values.size() && dimensions_to_traverse < m_dimensionTypes.size());
 
@@ -169,13 +185,16 @@ void LogicHashMap::SetValue(std::map<Data, std::unique_ptr<DimensionValue>>& dat
         {
             if( data_lookup != data_traverser->cend() )
             {
-                data_lookup->second->data = value;
+                data_lookup->second->data = std::move(value);
             }
 
             else
             {
-                (*data_traverser)[dimension_values[i]] = std::unique_ptr<DimensionValue>(new DimensionValue { value });
+                (*data_traverser)[dimension_values[i]] = std::unique_ptr<DimensionValue>(new DimensionValue { std::move(value) });
             }
+
+            // the break is not necessary but will prevent any warnings about the std::move entries above
+            break;
         }
     }
 }
@@ -185,7 +204,7 @@ void LogicHashMap::SetValue(const std::vector<Data>& dimension_values, Data valu
 {
     ASSERT(dimension_values.size() == m_dimensionTypes.size());
 
-    SetValue(m_data, dimension_values, value);
+    SetValue(m_data, dimension_values, std::move(value));
 }
 
 
@@ -193,9 +212,9 @@ bool LogicHashMap::Contains(const std::vector<Data>& dimension_values) const
 {
     ASSERT(!dimension_values.empty() && dimension_values.size() <= m_dimensionTypes.size());
 
-    bool checking_if_contains_value = ( dimension_values.size() == m_dimensionTypes.size() );
+    const bool checking_if_contains_value = ( dimension_values.size() == m_dimensionTypes.size() );
 
-    auto* data_traverser = TraverseData(dimension_values, checking_if_contains_value ? ( dimension_values.size() - 1 ) : dimension_values.size());
+    auto* const data_traverser = TraverseData(dimension_values, checking_if_contains_value ? ( dimension_values.size() - 1 ) : dimension_values.size());
 
     if( data_traverser != nullptr )
     {
@@ -214,7 +233,7 @@ size_t LogicHashMap::GetLength(const std::vector<Data>& dimension_values) const
 {
     ASSERT(dimension_values.size() < m_dimensionTypes.size());
 
-    auto* data_traverser = TraverseData(dimension_values, dimension_values.size());
+    auto* const data_traverser = TraverseData(dimension_values, dimension_values.size());
 
     return ( data_traverser == nullptr ) ? 0 : data_traverser->size();
 }
@@ -224,7 +243,7 @@ bool LogicHashMap::Remove(const std::vector<Data>& dimension_values)
 {
     ASSERT(!dimension_values.empty() && dimension_values.size() <= m_dimensionTypes.size());
 
-    auto* data_traverser = const_cast<std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>*>(
+    auto* const data_traverser = const_cast<std::map<Data, std::unique_ptr<DimensionValue>>*>(
         TraverseData(dimension_values, dimension_values.size() - 1));
 
     if( data_traverser != nullptr )
@@ -240,7 +259,7 @@ std::vector<const LogicHashMap::Data*> LogicHashMap::GetKeys(const std::vector<D
 
     std::vector<const Data*> keys;
 
-    auto* data_traverser = TraverseData(dimension_values, dimension_values.size());
+    auto* const data_traverser = TraverseData(dimension_values, dimension_values.size());
 
     if( data_traverser != nullptr )
     {
@@ -280,12 +299,12 @@ void LogicHashMap::serialize_subclass(Serializer& ar)
 
                 if( ar.IsLoading() )
                 {
-                    default_value = ar.Read<std::wstring>();
+                    default_value = ar.Read<SharableString>();
                 }
 
                 else
                 {
-                    ar << std::get<std::wstring>(default_value);
+                    ar << std::get<SharableString>(default_value);
                 }
             }
         });
@@ -320,10 +339,55 @@ void LogicHashMap::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 }
 
 
+void LogicHashMap::IterateInObjectStyle(const std::function<void(const SharableString* key_name)>& start_object_callback,
+                                        const std::function<void(const SharableString& key_name, const Data& data)>& set_value_callback,
+                                        const std::function<void()>& end_object_callback) const
+{
+    SharableString double_string;
+
+    const std::function<void(const SharableString*, const std::map<Data, std::unique_ptr<DimensionValue>>&)> iterate_worker =
+        [&](const SharableString* const object_key, const std::map<Data, std::unique_ptr<DimensionValue>>& data)
+        {
+            start_object_callback(object_key);
+
+            for( const auto& [key, value] : data )
+            {
+                const SharableString* key_string;
+
+                // write numeric keys as strings
+                if( std::holds_alternative<double>(key) )
+                {
+                    double_string = DoubleToString(std::get<double>(key));
+                    key_string = &double_string;
+                }
+
+                else
+                {
+                    key_string = &std::get<SharableString>(key);
+                }
+
+                if( std::holds_alternative<Data>(value->data) )
+                {
+                    set_value_callback(*key_string, std::get<Data>(value->data));
+                }
+
+                else
+                {
+                    iterate_worker(key_string, std::get<std::map<Data, std::unique_ptr<DimensionValue>>>(value->data));
+                }
+            }
+
+            end_object_callback();
+        };
+
+    iterate_worker(nullptr, m_data);
+}
+
+
 void LogicHashMap::WriteValueToJson(JsonWriter& json_writer) const
 {
     // the HashMap can be written out as an array or an object
-    const SymbolSerializerHelper* symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
+    const SymbolSerializerHelper* const symbol_serializer_helper = json_writer.GetSerializerHelper().Get<SymbolSerializerHelper>();
     const JsonProperties::HashMapFormat hash_map_format =
         ( symbol_serializer_helper != nullptr ) ? symbol_serializer_helper->GetJsonProperties().GetHashMapFormat() :
                                                   JsonProperties::DefaultHashMapFormat;
@@ -331,8 +395,8 @@ void LogicHashMap::WriteValueToJson(JsonWriter& json_writer) const
     // write in array-style
     if( hash_map_format == JsonProperties::HashMapFormat::Array )
     {
-        std::function<void(JsonWriter&, const std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>&)> write_map_as_array =
-            [&](JsonWriter& json_writer, const std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>& data)
+        const std::function<void(const std::map<Data, std::unique_ptr<DimensionValue>>&)> write_map_as_array =
+            [&](const std::map<Data, std::unique_ptr<DimensionValue>>& data)
             {
                 json_writer.BeginArray();
 
@@ -344,14 +408,14 @@ void LogicHashMap::WriteValueToJson(JsonWriter& json_writer) const
 
                     json_writer.Key(JK::value);
 
-                    if( std::holds_alternative<LogicHashMap::Data>(value->data) )
+                    if( std::holds_alternative<Data>(value->data) )
                     {
-                        json_writer.WriteEngineValue(std::get<LogicHashMap::Data>(value->data));
+                        json_writer.WriteEngineValue(std::get<Data>(value->data));
                     }
 
                     else
                     {
-                        write_map_as_array(json_writer, std::get<std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>>(value->data));
+                        write_map_as_array(std::get<std::map<Data, std::unique_ptr<DimensionValue>>>(value->data));
                     }
 
                     json_writer.EndObject();
@@ -360,7 +424,7 @@ void LogicHashMap::WriteValueToJson(JsonWriter& json_writer) const
                 json_writer.EndArray();
             };
 
-        write_map_as_array(json_writer, m_data);
+        write_map_as_array(m_data);
     }
 
 
@@ -369,44 +433,27 @@ void LogicHashMap::WriteValueToJson(JsonWriter& json_writer) const
     {
         ASSERT(hash_map_format == JsonProperties::HashMapFormat::Object);
 
-        std::function<void(JsonWriter&, const std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>&)> write_map_as_object =
-            [&](JsonWriter& json_writer, const std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>& data)
+        IterateInObjectStyle(
+            [&](const SharableString* const key_name)
             {
+                if( key_name != nullptr )
+                    json_writer.Key(key_name->GetString());
+
                 json_writer.BeginObject();
-
-                for( const auto& [key, value] : data )
-                {
-                    // write numeric keys as strings
-                    if( std::holds_alternative<double>(key) )
-                    {
-                        json_writer.Key(DoubleToString(std::get<double>(key)));
-                    }
-
-                    else
-                    {
-                        json_writer.Key(std::get<std::wstring>(key));
-                    }
-
-                    if( std::holds_alternative<LogicHashMap::Data>(value->data) )
-                    {
-                        json_writer.WriteEngineValue(std::get<LogicHashMap::Data>(value->data));
-                    }
-
-                    else
-                    {
-                        write_map_as_object(json_writer, std::get<std::map<LogicHashMap::Data, std::unique_ptr<DimensionValue>>>(value->data));
-                    }
-                }
-
+            },
+            [&](const SharableString& key_name, const Data& data)
+            {
+                json_writer.WriteEngineValue(key_name.GetString(), data);
+            },
+            [&]()
+            {
                 json_writer.EndObject();
-            };
-
-        write_map_as_object(json_writer, m_data);
+            });
     }
 }
 
 
-void LogicHashMap::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void LogicHashMap::SetValueFromJson(const JsonNode& json_node)
 {
     std::map<Data, std::unique_ptr<DimensionValue>> new_data;
     std::vector<Data> dimension_values;
@@ -414,38 +461,38 @@ void LogicHashMap::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
     // read in array-style
     if( json_node.IsArray() )
     {
-        std::function<void(const JsonNodeArray<wchar_t>&)> process_array_nodes =
-            [&](const JsonNodeArray<wchar_t>& json_node_array)
+        const std::function<void(const JsonNodeArray&)> process_array_nodes =
+            [&](const JsonNodeArray& json_node_array)
             {
-                for( const JsonNode<wchar_t>& array_node : json_node_array )
+                for( const JsonNode& array_node : json_node_array )
                 {
                     ASSERT(dimension_values.size() < m_dimensionTypes.size());
                     const std::optional<DataType>& dimension_type = m_dimensionTypes[dimension_values.size()];
 
-                    const JsonNode<wchar_t>& key_node = array_node.Get(JK::key);
-                    const JsonNode<wchar_t>& value_node = array_node.Get(JK::value);
+                    const JsonNode& key_node = array_node.Get(JK::key);
+                    const JsonNode& value_node = array_node.Get(JK::value);
 
                     // process the key
                     try
                     {
-                        dimension_values.emplace_back(( !dimension_type.has_value() )          ? Data(key_node.GetEngineValue<std::variant<double, std::wstring>>()) :
+                        dimension_values.emplace_back(( !dimension_type.has_value() )          ? Data(key_node.GetEngineValue<std::variant<double, SharableString>>()) :
                                                       ( *dimension_type == DataType::Numeric ) ? Data(key_node.GetEngineValue<double>()) :
-                                                                                                 Data(key_node.GetEngineValue<std::wstring>()));
+                                                                                                 Data(key_node.GetEngineValue<SharableString>()));
                     }
 
                     catch(...)
                     {
-                        throw CSProException(_T("Dimension '%d' of HashMap '%s' cannot be '%s'"),
-                                                static_cast<int>(dimension_values.size()) + 1,
-                                                GetName().c_str(),
-                                                key_node.GetNodeAsString().c_str());
+                        throw CSProException("Dimension '%d' of HashMap '%s' cannot be '%s'",
+                                             static_cast<int>(dimension_values.size()) + 1,
+                                             GetName().c_str(),
+                                             key_node.GetNodeAsString().c_str());
                     }
 
                     // if we have read in the correct number of dimensions, store the value
                     if( dimension_values.size() == m_dimensionTypes.size() )
                     {
                         SetValue(new_data, dimension_values, IsValueTypeNumeric() ? Data(value_node.GetEngineValue<double>()) :
-                                                                                    Data(value_node.GetEngineValue<std::wstring>()));
+                                                                                    Data(value_node.GetEngineValue<SharableString>()));
                     }
 
                     // otherwise read more dimensions
@@ -465,8 +512,8 @@ void LogicHashMap::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
     // read in object-style
     else
     {
-        std::function<void(std::wstring_view, const JsonNode<wchar_t>&)> process_object_node =
-            [&](std::wstring_view key_sv, const JsonNode<wchar_t>& value_node)
+        const std::function<void(std::string_view, const JsonNode&)> process_object_node =
+            [&](const std::string_view key_sv, const JsonNode& value_node)
             {
                 ASSERT(dimension_values.size() < m_dimensionTypes.size());
                 const std::optional<DataType>& dimension_type = m_dimensionTypes[dimension_values.size()];
@@ -485,21 +532,21 @@ void LogicHashMap::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 
                     if( add_key_as_string && dimension_type == DataType::Numeric )
                     {
-                        throw CSProException(_T("Dimension '%d' of HashMap '%s' cannot be '%s'"),
+                        throw CSProException("Dimension '%d' of HashMap '%s' cannot be '%s'",
                                              static_cast<int>(dimension_values.size()) + 1,
                                              GetName().c_str(),
-                                             std::wstring(key_sv).c_str());
+                                             std::string(key_sv).c_str());
                     }
                 }
 
-                dimension_values.emplace_back(add_key_as_string ? Data(std::wstring(key_sv)) :
+                dimension_values.emplace_back(add_key_as_string ? Data(key_sv) :
                                                                   Data(StringToNumber(key_sv)));
 
                 // if we have read in the correct number of dimensions, store the value
                 if( dimension_values.size() == m_dimensionTypes.size() )
                 {
                     SetValue(new_data, dimension_values, IsValueTypeNumeric() ? Data(value_node.GetEngineValue<double>()) :
-                                                                                Data(value_node.GetEngineValue<std::wstring>()));
+                                                                                Data(value_node.GetEngineValue<SharableString>()));
                 }
 
                 // otherwise read more dimensions
@@ -513,6 +560,121 @@ void LogicHashMap::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 
         json_node.ForeachNode(process_object_node);
     }
+
+    m_data = std::move(new_data);
+}
+
+
+JavaScript::Value LogicHashMap::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    std::vector<std::tuple<JavaScript::Value, SharableString>> js_object_and_name_stack;
+
+    IterateInObjectStyle(
+        [&](const SharableString* const key_name)
+        {
+            ASSERT(( key_name == nullptr ) == js_object_and_name_stack.empty());
+
+            js_object_and_name_stack.emplace_back(executor.CreateObject(),
+                                                  ( key_name != nullptr ) ? *key_name : SharableString());
+        },
+        [&](const SharableString& key_name, const LogicHashMap::Data& data)
+        {
+            ASSERT(!js_object_and_name_stack.empty());
+
+            std::visit(
+                [&](const auto& value)
+                {
+                    executor.SetObjectProperty(std::get<0>(js_object_and_name_stack.back()),
+                                               key_name.GetString(),
+                                               executor.CreateEngineValue(value));
+                }, data);
+        },
+        [&]()
+        {
+            ASSERT(!js_object_and_name_stack.empty());
+
+            // keep the root object on the stack (to be returned at the end of the method),
+            // but assign this level's object to the previous level
+            if( js_object_and_name_stack.size() >= 2 )
+            {
+                std::tuple<JavaScript::Value, SharableString>& js_this_object_and_name = js_object_and_name_stack.back();
+                std::tuple<JavaScript::Value, SharableString>& js_parent_object_and_name = *( &js_this_object_and_name - 1 );
+
+                ASSERT(std::get<1>(js_this_object_and_name).IsSet());
+
+                executor.SetObjectProperty(std::get<0>(js_parent_object_and_name),
+                                           std::get<1>(js_this_object_and_name).GetString(),
+                                           std::move(std::get<0>(js_this_object_and_name)));
+
+                js_object_and_name_stack.pop_back();
+            }
+        });
+
+    ASSERT(js_object_and_name_stack.size() == 1 && !std::get<1>(js_object_and_name_stack.front()).IsSet());
+
+    return std::move(std::get<0>(js_object_and_name_stack.front()));
+}
+
+
+void LogicHashMap::SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    // this routine is modeled after the JSON parser
+    std::map<Data, std::unique_ptr<DimensionValue>> new_data;
+    std::vector<Data> dimension_values;
+
+    const std::function<void(const JavaScript::Value&)> process_object =
+        [&](const JavaScript::Value& js_object)
+        {
+            if( !js_object.IsObject() )
+                throw CSProException("An HashMap must be specified as an obect.");
+
+            for( const auto& [property_name, js_property_value] : executor.GetObjectPropertyNamesAndValues(js_object) )
+            {
+                ASSERT(dimension_values.size() < m_dimensionTypes.size());
+                const std::optional<DataType>& dimension_type = m_dimensionTypes[dimension_values.size()];
+
+                // process the property name
+                bool add_property_name_as_string;
+
+                if( dimension_type == DataType::String )
+                {
+                    add_property_name_as_string = true;
+                }
+
+                else
+                {
+                    add_property_name_as_string = !CIMSAString::IsNumericOrSpecial(property_name);
+
+                    if( add_property_name_as_string && dimension_type == DataType::Numeric )
+                    {
+                        throw CSProException("Dimension '%d' of HashMap '%s' cannot be '%s'",
+                                             static_cast<int>(dimension_values.size()) + 1,
+                                             GetName().c_str(),
+                                             property_name.c_str());
+                    }
+                }
+
+                dimension_values.emplace_back(add_property_name_as_string ? Data(property_name) :
+                                                                            Data(StringToNumber(property_name)));
+
+                // if we have read in the correct number of dimensions, store the value
+                if( dimension_values.size() == m_dimensionTypes.size() )
+                {
+                    SetValue(new_data, dimension_values, IsValueTypeNumeric() ? Data(executor.ConvertEngineValue<double>(js_property_value)) :
+                                                                                Data(executor.ConvertEngineValue<SharableString>(js_property_value)));
+                }
+
+                // otherwise read more dimensions
+                else
+                {
+                    process_object(js_property_value);
+                }
+
+                dimension_values.pop_back();
+            }
+        };
+
+    process_object(js_value);
 
     m_data = std::move(new_data);
 }

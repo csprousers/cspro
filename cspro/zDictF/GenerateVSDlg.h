@@ -3,36 +3,45 @@
 
 class GenerateVSDlg : public CDialog
 {
-    DECLARE_DYNAMIC(GenerateVSDlg)
-
 public:
-    GenerateVSDlg(CWnd* pParent = nullptr);
+    GenerateVSDlg(const CDataDict& dictionary, const CDictItem& dict_item, CWnd* pParent = nullptr);
+
+    DictValueSet CreateValueSet() const;
 
 protected:
     DECLARE_MESSAGE_MAP()
 
     void DoDataExchange(CDataExchange* pDX) override;
     BOOL OnInitDialog() override;
+
+    void OnKillFocusInterval();
+
     void OnOK() override;
 
-    afx_msg void OnEnKillfocusGetVsetInterval();
-    afx_msg void OnEnKillfocusGenVsetName();
-    afx_msg void OnEnKillfocusGenVsetFrom();
-    afx_msg void OnEnKillfocusGenVsetTo();
+private:
+    bool UsingToValues() const { return ( m_interval > m_minInterval ); }
 
-public:
-    CDDDoc*     m_pDoc;
-    CDictItem*  m_pItem;
+    bool ValidateDefinedName();
+    void ValidateFromTo(double& value, const char* const value_name) const;
+    void ValidateInterval() const;
+    void ValidateTemplate() const;
 
-    double      m_dMinVal;
-    double      m_dMaxVal;
-    double      m_dMinInterval;
+    struct FormattingOptions;
+    std::tuple<std::string, std::string> GetFormattedValueAndLabel(FormattingOptions& options, double value) const;
 
-    CIMSAString m_sLabel;
-    CIMSAString m_sName;
-    double      m_dFrom;
-    double      m_dTo;
-    double      m_dInterval;
-    CIMSAString m_sTemplate;
-    BOOL        m_bUseThousandsSeparator;
+private:
+    const CDataDict& m_dictionary;
+    const CDictItem& m_dictItem;
+    std::string m_label;
+    std::string m_name;
+    double m_minValue;
+    double m_maxValue;
+    double m_minInterval;
+    double m_from;
+    double m_to;
+    double m_interval;
+    std::string m_template;
+    const std::string& m_thousandsSeparator;
+    std::optional<BOOL> m_useThousandsSeparator;
+    int m_valueOrder;
 };

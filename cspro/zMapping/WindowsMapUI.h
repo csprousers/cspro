@@ -13,76 +13,69 @@ class SharedHtmlLocalFileServer;
 class WindowsMapUIThreadRunner;
 
 
+// --------------------------------------------------------------------------
+// Windows implementation of mapping.
+// --------------------------------------------------------------------------
+
 class ZMAPPING_API WindowsMapUI : public IMapUI
 {
     friend class WindowsMapDlg;
+
+    struct Button;
+    struct MapGeometry;
+    struct Marker;
+    struct Zoom;
 
 public:
     WindowsMapUI(const MappingProperties& mapping_properties);
     ~WindowsMapUI();
 
-    int Show() override;
+    bool Show() override;
+    bool Hide() override;
 
-    int Hide() override;
-
-    int SaveSnapshot(const std::wstring& filename) override;
+    bool SaveSnapshot(const std::string& image_file_path) override;
 
     int AddMarker(double latitude, double longitude) override;
-
-    int RemoveMarker(int marker_id) override;
-
+    bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
 
-    int SetMarkerImage(int marker_id, std::wstring image_file_path) override;
+    bool SetMarkerImage(int marker_id, const std::string& image_file_path) override;
+    bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) override;
+    bool SetMarkerOnClick(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
+    bool SetMarkerDescription(int marker_id, SharableString description) override;
+    bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
+    std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 
-    int SetMarkerText(int marker_id, std::wstring text, int background_color, int text_color) override;
-
-    int SetMarkerOnClick(int marker_id, int on_click_callback) override;
-
-    int SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
-
-    int SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
-
-    int SetMarkerDescription(int marker_id, std::wstring description) override;
-
-    int SetMarkerLocation(int marker_id, double latitude, double longitude) override;
-
-    int GetMarkerLocation(int marker_id, double& latitude, double& longitude) override;
-
-    int AddImageButton(std::wstring image_path, int on_click_callback) override;
-
-    int AddTextButton(std::wstring label, int on_click_callback) override;
-
-    int RemoveButton(int button_id) override;
-
+    int AddImageButton(const std::string& image_file_path, int on_click_callback) override;
+    int AddTextButton(SharableString label, int on_click_callback) override;
+    bool RemoveButton(int button_id) override;
     void ClearButtons() override;
 
     void Clear() override;
 
     bool IsBaseMapDefined() const override;
 
-    int SetBaseMap(const BaseMapSelection& base_map_selection) override;
+    bool SetBaseMap(BaseMapSelection base_map_selection) override;
 
-    int SetShowCurrentLocation(bool show) override;
+    bool SetShowCurrentLocation(bool show) override;
 
-    int SetTitle(std::wstring title) override;
+    bool SetTitle(SharableString title) override;
 
-    int ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
-    int ZoomTo(double minLat, double minLong, double maxLat, double maxLong, double paddingPercent = 0) override;
-
-    int SetCamera(const MapCamera& camera) override;
+    bool SetCamera(const MapCamera& camera) override;
 
     int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
-
-    int RemoveGeometry(int geometry_id) override;
-
+    bool RemoveGeometry(int geometry_id) override;
     void ClearGeometry() override;
 
     MapEvent WaitForEvent() override;
 
 protected:
-    virtual int WindowsShow();
+    virtual bool WindowsShow();
 
     virtual WindowsMapDlg* GetMapDlgForAction();
 
@@ -90,75 +83,23 @@ private:
     template<typename Action>
     void PerformMapDlgAction(Action action);
 
-private:
-    struct Marker
-    {
-        double latitude = 0;
-        double longitude = 0;
-        int on_click_callback = -1;
-        int on_drag_callback = -1;
-        int on_info_window_click_callback = -1;
-        int leaflet_id = -1;
-        std::wstring image_url;
-        std::wstring description;
-        std::wstring text;
-        PortableColor background_color = PortableColor::White;
-        PortableColor text_color = PortableColor::Black;
-    };
-
-    enum class ButtonType { Text, Image };
-
-    struct Button
-    {
-        ButtonType type;
-        int on_click_callback;
-        std::wstring content;
-    };
-
-    struct Zoom
-    {
-        double latitude;
-        double longitude;
-        double latitude2;
-        double longitude2;
-        double level;
-    };
-
-    struct MapGeometry
-    {
-        std::shared_ptr<const Geometry::FeatureCollection> geometry;
-        int leaflet_id;
-    };
-
 protected:
     virtual void NotifyEvent(EventCode code, int marker_id = -1, int callback_id = -1,
-        double latitude = 0, double longitude = 0, const MapCamera& camera = MapCamera { 0, 0, 0, 0 });
+                             double latitude = 0, double longitude = 0, const MapCamera& camera = MapCamera { 0, 0, 0, 0 });
 
 private:
     void WaitForShowThreadToTerminate();
 
+    constexpr bool AreCoordinatesValid(double latitude, double longitude);
+
     void EnsureFileServerIsSetup();
 
-    std::wstring GetUrlOfMapHtml() const;
-    std::wstring GetUrlForFilename(NullTerminatedStringView filename);
+    std::string GetUrlOfMapHtml() const;
+    std::string GetUrlForFile(const std::string& file_path);
 
-    Marker* GetMarker(int marker_id)
-    {
-        auto marker_search = m_markers.find(marker_id);
-        return ( marker_search != m_markers.cend() ) ? &marker_search->second : nullptr;
-    }
-
-    Button* GetButton(int button_id)
-    {
-        auto button_search = m_buttons.find(button_id);
-        return ( button_search != m_buttons.cend() ) ? &button_search->second : nullptr;
-    }
-
-    MapGeometry* GetGeometry(int geometry_id)
-    {
-        auto geometry_search = m_geometries.find(geometry_id);
-        return ( geometry_search != m_geometries.cend() ) ? &geometry_search->second : nullptr;
-    }
+    Marker* GetMarker(int marker_id);
+    Button* GetButton(int button_id);
+    MapGeometry* GetGeometry(int geometry_id);
 
 private:
     const MappingProperties& m_mappingProperties;
@@ -168,13 +109,13 @@ private:
     std::unique_ptr<MapEvent> m_mapEvent;
     std::mutex m_mapEventMutex;
 
-    std::wstring m_fileServerDirectory;
+    std::string m_fileServerDirectory;
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
 
 protected:
-    std::wstring m_title;
+    SharableString m_title;
     std::optional<BaseMapSelection> m_baseMapSelection;
-    std::optional<Zoom> m_zoom;
+    std::unique_ptr<Zoom> m_zoom;
     bool m_showCurrentLocation;
     int m_nextMapId;
 
@@ -185,3 +126,71 @@ protected:
     std::shared_ptr<OfflineTileReader> m_tileReader;
     std::unique_ptr<OfflineTileProvider> m_tileProvider;
 };
+
+
+struct WindowsMapUI::Marker
+{
+    double latitude = 0;
+    double longitude = 0;
+    int on_click_callback = -1;
+    int on_drag_callback = -1;
+    int on_info_window_click_callback = -1;
+    int leaflet_id = -1;
+    std::string image_url;
+    SharableString description;
+    SharableString text;
+    PortableColor background_color = PortableColor::White;
+    PortableColor text_color = PortableColor::Black;
+};
+
+
+struct WindowsMapUI::Button
+{
+    enum class Type { Text, Image };
+    Type type;
+    int on_click_callback;
+    SharableString content;
+};
+
+
+struct WindowsMapUI::MapGeometry
+{
+    std::shared_ptr<const Geometry::FeatureCollection> geometry;
+    int leaflet_id;
+};
+
+
+struct WindowsMapUI::Zoom
+{
+    double latitude;
+    double longitude;
+    double latitude2;
+    double longitude2;
+    double level;
+};
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline WindowsMapUI::Marker* WindowsMapUI::GetMarker(const int marker_id)
+{
+    auto marker_search = m_markers.find(marker_id);
+    return ( marker_search != m_markers.cend() ) ? &marker_search->second : nullptr;
+}
+
+
+inline WindowsMapUI::Button* WindowsMapUI::GetButton(const int button_id)
+{
+    auto button_search = m_buttons.find(button_id);
+    return ( button_search != m_buttons.cend() ) ? &button_search->second : nullptr;
+}
+
+
+inline WindowsMapUI::MapGeometry* WindowsMapUI::GetGeometry(const int geometry_id)
+{
+    auto geometry_search = m_geometries.find(geometry_id);
+    return ( geometry_search != m_geometries.cend() ) ? &geometry_search->second : nullptr;
+}

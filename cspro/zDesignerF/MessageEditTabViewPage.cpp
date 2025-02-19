@@ -2,7 +2,7 @@
 #include "MessageEditTabViewPage.h"
 
 
-MessageEditTabViewPage::MessageEditTabViewPage(ApplicationChildWnd* application_child_wnd)
+MessageEditTabViewPage::MessageEditTabViewPage(ApplicationChildWnd* const application_child_wnd)
     :   m_applicationChildWnd(application_child_wnd)
 {
     ASSERT(application_child_wnd != nullptr);
@@ -22,7 +22,7 @@ void MessageEditTabViewPage::OnTabChange()
     if( m_textSourceEditable != nullptr )
         return;
 
-    CDocument* active_document = m_applicationChildWnd->GetActiveDocument();
+    CDocument* const active_document = m_applicationChildWnd->GetActiveDocument();
 
     if( active_document != nullptr &&
         WindowsDesktopMessage::Send(UWM::Designer::GetMessageTextSource, active_document, &m_textSourceEditable) == 1 )
@@ -35,7 +35,7 @@ void MessageEditTabViewPage::OnTabChange()
 }
 
 
-void MessageEditTabViewPage::SetModified(bool modified/* = true*/)
+void MessageEditTabViewPage::SetModified(const bool modified/* = true*/)
 {
     MessageEditCtrl::SetModified(modified);
 

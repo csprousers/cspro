@@ -6,22 +6,22 @@
 class FileTreeNode : public TreeNode
 {
 protected:
-    FileTreeNode(AppFileType app_file_type, std::wstring path);
+    FileTreeNode(AppFileType app_file_type, std::string path);
 
 public:
     // TreeNode overrides
     std::optional<AppFileType> GetAppFileType() const override { return m_appFileType; }
 
-    std::wstring GetName() const override; // if not overriden, the name is the application type followed by the path
+    std::wstring GetName() const override; // if not overridden, the name is the application type followed by the path
 
-    const std::wstring& GetPath() const override final { return m_path; }
+    const std::string& GetPath() const override final { return m_path; }
 
     // other methods
-    void SetRenamedPath(std::wstring path) { m_path = std::move(path); }
+    void SetRenamedPath(std::string path) { m_path = std::move(path); }
 
 private:
     AppFileType m_appFileType;
-    std::wstring m_path;
+    std::string m_path;
 };
 
 
@@ -29,9 +29,12 @@ private:
 class ApplicationFileTreeNode : public FileTreeNode
 {
 public:
-    ApplicationFileTreeNode(AppFileType app_file_type, std::wstring path);
+    ApplicationFileTreeNode(std::shared_ptr<const Application> application);
 
     std::wstring GetName() const override;
+
+private:
+    std::shared_ptr<const Application> m_application;
 };
 
 
@@ -39,7 +42,7 @@ public:
 class DictionaryFileTreeNode : public FileTreeNode
 {
 public:
-    DictionaryFileTreeNode(std::wstring path);
+    DictionaryFileTreeNode(std::string path);
 
     std::wstring GetName() const override;
 };
@@ -49,7 +52,7 @@ public:
 class FormFileTreeNode : public FileTreeNode
 {
 public:
-    FormFileTreeNode(std::wstring path);
+    FormFileTreeNode(std::string path);
 
     std::wstring GetName() const override;
 };
@@ -60,6 +63,8 @@ class CodeFileTreeNode : public FileTreeNode
 {
 public:
     CodeFileTreeNode(const CodeFile& code_file);
+
+    void Update(const CodeFile& code_file);
 
     std::wstring GetName() const override;
 
@@ -72,7 +77,7 @@ private:
 class MessageFileTreeNode : public FileTreeNode
 {
 public:
-    MessageFileTreeNode(std::wstring path, bool external_messages);
+    MessageFileTreeNode(std::string path, bool external_messages);
 
     std::wstring GetName() const override;
 
@@ -85,7 +90,7 @@ private:
 class OrderFileTreeNode : public FileTreeNode
 {
 public:
-    OrderFileTreeNode(std::wstring path);
+    OrderFileTreeNode(std::string path);
 
     std::wstring GetName() const override;
 };
@@ -95,7 +100,7 @@ public:
 class QuestionTextFileTreeNode : public FileTreeNode
 {
 public:
-    QuestionTextFileTreeNode(std::wstring path);
+    QuestionTextFileTreeNode(std::string path);
 
     std::wstring GetName() const override;
 };
@@ -105,15 +110,15 @@ public:
 class ReportFileTreeNode : public FileTreeNode
 {
 public:
-    ReportFileTreeNode(std::wstring path);
+    ReportFileTreeNode(std::string path);
 };
 
 
 
-class ResourceFolderTreeNode : public FileTreeNode
+class ResourceFileTreeNode : public FileTreeNode
 {
 public:
-    ResourceFolderTreeNode(std::wstring path);
+    ResourceFileTreeNode(std::string path);
 };
 
 
@@ -121,7 +126,7 @@ public:
 class TableSpecFileTreeNode : public FileTreeNode
 {
 public:
-    TableSpecFileTreeNode(std::wstring path);
+    TableSpecFileTreeNode(std::string path);
 
     std::wstring GetName() const override;
 };

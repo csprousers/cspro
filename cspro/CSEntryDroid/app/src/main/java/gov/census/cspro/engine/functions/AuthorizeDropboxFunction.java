@@ -8,11 +8,11 @@ import gov.census.cspro.util.DbxRequestConfigFactory;
 
 public class AuthorizeDropboxFunction implements EngineFunction {
     private static boolean authenticationStarted  = false;
-	@Override
-	public void runEngineFunction(Activity activity) {
+    @Override
+    public void runEngineFunction(Activity activity) {
         authenticationStarted = true;
         Auth.startOAuth2PKCE(activity, activity.getString(R.string.dropbox_key), DbxRequestConfigFactory.getRequestConfig());
-	}
+    }
     public static boolean isAuthenticating()
     {
         return authenticationStarted;

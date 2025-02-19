@@ -37,7 +37,7 @@ namespace ParadataViewer
             webView.Dock = DockStyle.Fill;
 
             localFileServer = new MappingSharedHtmlLocalFileServer();
-            webView.Source = new Uri(localFileServer.GetProjectUrl("paradata-viewer-location-mapper.html"));
+            webView.Source = new Uri(localFileServer.CreateProjectUrl("paradata-viewer-location-mapper.html"));
         }
 
         private void webView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)

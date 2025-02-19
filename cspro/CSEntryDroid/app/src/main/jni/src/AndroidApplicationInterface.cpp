@@ -15,6 +15,7 @@
 // Project Includes
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Tools.h>
+#include <zJson/Json.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
@@ -36,16 +37,20 @@
 #include <Zentryo/CoreEntryPage.h>
 #include <Zentryo/CaseTreeNode.h>
 #include <Zentryo/CaseTreeUpdate.h>
+#include <zNetwork/LoginCredentials.h>
+#include <zNetwork/OAuth2Authorizer.h>
+#include <zNetwork/SyncException.h>
 #include <zSyncO/BluetoothDeviceInfo.h>
 #include <zParadataO/Logger.h>
-
 #include <mapbox/geometry.hpp>
 #include <typeinfo>
 
-CString AndroidApplicationInterface::m_username;
 
-namespace {
+std::string AndroidApplicationInterface::m_username;
 
+
+namespace
+{
     bool SplitNewlineSeparatedPair(const CString& pair, CString& first, CString& second)
     {
         int iNewline = pair.Find(_T('\n'));
@@ -59,12 +64,27 @@ namespace {
             return false;
         }
     }
+
+    bool SplitNewlineSeparatedPair(const std::string& pair, std::string& first, std::string& second)
+    {
+        const size_t newline_pos = pair.find('\n');
+        if (newline_pos != std::string::npos) {
+            first = pair.substr(0, newline_pos);
+            second = pair.substr(newline_pos + 1);
+            return true;
+        } else {
+            first.empty();
+            second.empty();
+            return false;
+        }
+    }
 }
+
 
 AndroidApplicationInterface::AndroidApplicationInterface(CoreEntryEngineInterface* core_interface)
     :   m_pCoreEngineInterface(core_interface),
         m_engineUIProcessor(*this),
-        m_progressDialogCancelled(false)
+        m_progressDialogCanceled(false)
 {
 }
 
@@ -85,39 +105,40 @@ void AndroidApplicationInterface::RefreshPage(RefreshPageContents contents)
 }
 
 
-void AndroidApplicationInterface::DisplayErrorMessage(const TCHAR* error_message)
+void AndroidApplicationInterface::DisplayErrorMessage(const cs::string_view_sz error_message_sv)
 {
-    ShowModalDialog(_T(""), error_message, MB_OK);
+    ShowModalDialog("", error_message_sv, MB_OK);
 }
 
 
-std::optional<std::wstring> AndroidApplicationInterface::DisplayCSHtmlDlg(const NavigationAddress& navigation_address,
-                                                                          const std::wstring* const action_invoker_access_token_override)
+SharableString AndroidApplicationInterface::DisplayCSHtmlDlg(const NavigationAddress& navigation_address,
+                                                             const std::string* const action_invoker_access_token_override,
+                                                             ExceptionHolder* const exception_holder)
 {
     // action_invoker_access_token_override is null when the HTML dialog is not in the assets folder, meaning that it is a custom
     // dialog, which may not properly be using access tokens; this method relies on the dialog not calling back into JNI to display
     // any UI, but that may not be the case for a custom dialog (if nothing else, ShowModalDialog may display a message asking the user
     // to allow access to the Action Invoker); so without an access token, use the code path used by htmlDialog
     if( action_invoker_access_token_override == nullptr )
-        return DisplayHtmlDialogFunctionDlg(navigation_address, action_invoker_access_token_override, std::nullopt);
+        return DisplayHtmlDialogFunctionDlg(navigation_address, action_invoker_access_token_override, SharableString(), exception_holder);
 
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
-    ASSERT(navigation_address.IsHtmlFilename());
-    const std::wstring filename_url = PortableLocalhost::CreateFilenameUrl(navigation_address.GetHtmlFilename());
-    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, WideToJava(pEnv, filename_url));
+    ASSERT(navigation_address.IsHtmlFilePath());
+    const std::string url = PortableLocalhost::CreateFileUrl(navigation_address.GetHtmlFilePath());
+    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, JavaString::ToJava(*pEnv, url));
 
-    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv);
-
-    if( action_invoker_access_token_override != nullptr )
-        jActionInvokerAccessTokenOverride.reset(WideToJava(pEnv, *action_invoker_access_token_override));
+    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv, JavaString::ToJava(*pEnv, action_invoker_access_token_override));
 
     WebViewSyncOperationMarker::DisplayErrorIfOperationInProcess();
 
     if( WebViewSyncOperationMarker::IsOperationInProgress() )
     {
-        return std::nullopt; // HTML_TODO why is this necessary to keep our dialogs from locking the JavaScript?
+        return SharableString(); // HTML_TODO why is this necessary to keep our dialogs from locking the JavaScript?
     }
+
+    // if the Action Invoker terminates in an exception, it will be held using an ExceptionHolder
+    const RAII::PushOnVectorAndPopOnDestruction<ExceptionHolder*> raii_holder(m_exceptionHolders, exception_holder);
 
     jstring jJsonResultsText = (jstring)pEnv->CallStaticObjectMethod(
         JNIReferences::classApplicationInterface,
@@ -125,28 +146,32 @@ std::optional<std::wstring> AndroidApplicationInterface::DisplayCSHtmlDlg(const 
         jUrl.get(),
         jActionInvokerAccessTokenOverride.get());
 
-    return JavaToOptionalWSZ(pEnv, jJsonResultsText);
+    return JavaString::ToSharableString(*pEnv, jJsonResultsText);
 }
 
 
-std::optional<std::wstring> AndroidApplicationInterface::DisplayHtmlDialogFunctionDlg(const NavigationAddress& navigation_address,
-                                                                                      const std::wstring* const action_invoker_access_token_override,
-                                                                                      const std::optional<std::wstring>& display_options_json)
+SharableString AndroidApplicationInterface::DisplayHtmlDialogFunctionDlg(const NavigationAddress& navigation_address,
+                                                                         const std::string* const action_invoker_access_token_override,
+                                                                         const SharableString& display_options_json,
+                                                                         ExceptionHolder* const exception_holder)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
-    ASSERT(navigation_address.IsHtmlFilename());
-    std::wstring filename_url = PortableLocalhost::CreateFilenameUrl(navigation_address.GetHtmlFilename());
-    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, WideToJava(pEnv, filename_url));
+    ASSERT(navigation_address.IsHtmlFilePath());
+    const std::string url = PortableLocalhost::CreateFileUrl(navigation_address.GetHtmlFilePath());
+    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, JavaString::ToJava(*pEnv, url));
 
-    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv);
+    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv, JavaString::ToJava(*pEnv, action_invoker_access_token_override));
 
     if( action_invoker_access_token_override != nullptr )
-        jActionInvokerAccessTokenOverride.reset(WideToJava(pEnv, *action_invoker_access_token_override));
+        jActionInvokerAccessTokenOverride.reset(JavaString::ToJava(*pEnv, *action_invoker_access_token_override));
 
-    JNIReferences::scoped_local_ref<jstring> jDisplayOptionsJson(pEnv, OptionalWideToJava(pEnv, display_options_json));
+    JNIReferences::scoped_local_ref<jstring> jDisplayOptionsJson(pEnv, JavaString::ToJava(*pEnv, display_options_json));
 
     WebViewSyncOperationMarker::DisplayErrorIfOperationInProcess();
+
+    // if the Action Invoker terminates in an exception, it will be held using an ExceptionHolder
+    const RAII::PushOnVectorAndPopOnDestruction<ExceptionHolder*> raii_holder(m_exceptionHolders, exception_holder);
 
     long thread_wait_id = pEnv->CallStaticLongMethod(
         JNIReferences::classApplicationInterface,
@@ -157,18 +182,18 @@ std::optional<std::wstring> AndroidApplicationInterface::DisplayHtmlDialogFuncti
 
     // return if there was an error launching the HTML dialog
     if( thread_wait_id < 0 )
-        return _T("");
+        return SharableString();
 
     return ThreadWaitForComplete(thread_wait_id);
 }
 
 
-int AndroidApplicationInterface::ShowModalDialog(const NullTerminatedString title, const NullTerminatedString message, const int mbType)
+int AndroidApplicationInterface::ShowModalDialog(const cs::string_view_sz title_sv, const cs::string_view_sz message_sv, const int mbType)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, WideToJava(pEnv, title));
-    JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, WideToJava(pEnv, message));
+    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, title_sv));
+    JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message_sv));
 
     // call the function
     const int result = pEnv->CallStaticIntMethod(JNIReferences::classApplicationInterface,
@@ -191,8 +216,7 @@ int AndroidApplicationInterface::ShowModalDialog(const NullTerminatedString titl
 }
 
 
-int AndroidApplicationInterface::ShowMessage(const CString& title, const CString& message,
-                                             const std::vector<CString> &buttons)
+int AndroidApplicationInterface::ShowMessage(const CString& title, const CString& message, const std::vector<CString> &buttons)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
 
@@ -211,6 +235,7 @@ int AndroidApplicationInterface::ShowMessage(const CString& title, const CString
     return pEnv->CallStaticLongMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceErrmsg, errmsgTitle, errmsgMessage, stringArray);
 }
 
+
 std::tuple<int, int> AndroidApplicationInterface::GetMaxDisplaySize() const
 {
     auto env = GetJNIEnvForCurrentThread();
@@ -221,66 +246,73 @@ std::tuple<int, int> AndroidApplicationInterface::GetMaxDisplaySize() const
                                              JNIReferences::methodApplicationInterfaceGetMaxDisplaySize, width);
     };
 
-	return std::make_tuple(get_dimension(true), get_dimension(false));
+    return std::make_tuple(get_dimension(true), get_dimension(false));
 }
 
 
-std::vector<std::wstring> AndroidApplicationInterface::GetMediaFilenames(MediaStore::MediaType media_type) const
+std::vector<std::string> AndroidApplicationInterface::GetMediaFilePaths(const MediaStore::MediaType media_type) const
 {
     auto pEnv = GetJNIEnvForCurrentThread();
 
-    std::vector<std::wstring> media_filenames;
+    std::vector<std::string> media_file_paths;
 
-    jobject jMediaFilenamesList = pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
-        JNIReferences::methodApplicationInterfaceGetMediaFilenames, (int)media_type);
+    jobject jMediaFilePathsList = pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
+                                                               JNIReferences::methodApplicationInterfaceGetMediaFilePaths,
+                                                               static_cast<int>(media_type));
 
-    if( jMediaFilenamesList != nullptr )
+    if( jMediaFilePathsList != nullptr )
     {
-        int number_filenames = pEnv->CallIntMethod(jMediaFilenamesList, JNIReferences::methodListSize);
+        const int number_file_paths = pEnv->CallIntMethod(jMediaFilePathsList, JNIReferences::methodListSize);
+        media_file_paths.reserve(number_file_paths);
 
-        for( int i = 0; i < number_filenames; ++i )
+        for( int i = 0; i < number_file_paths; ++i )
         {
-            auto jFilename = (jstring)pEnv->CallObjectMethod(jMediaFilenamesList, JNIReferences::methodListGet, i);
-            media_filenames.emplace_back(JavaToWSZ(pEnv, jFilename));
-            pEnv->DeleteLocalRef(jFilename);
+            jstring jFilePath = (jstring)pEnv->CallObjectMethod(jMediaFilePathsList, JNIReferences::methodListGet, i);
+            media_file_paths.emplace_back(JavaString::ToUtf8(*pEnv, jFilePath));
+            pEnv->DeleteLocalRef(jFilePath);
         }
 
-        pEnv->DeleteLocalRef(jMediaFilenamesList);
+        pEnv->DeleteLocalRef(jMediaFilePathsList);
     }
 
-    return media_filenames;
+    return media_file_paths;
 }
 
 
-CString AndroidApplicationInterface::GetUsername() const
+std::string AndroidApplicationInterface::GetUsername() const
 {
     return m_username;
 }
 
-IBluetoothAdapter* AndroidApplicationInterface::CreateAndroidBluetoothAdapter()
+
+std::unique_ptr<IBluetoothAdapter> AndroidApplicationInterface::CreateBluetoothAdapter()
 {
-    return AndroidBluetoothAdapter::create();
+    return AndroidBluetoothAdapter::Create();
 }
 
-IHttpConnection* AndroidApplicationInterface::CreateAndroidHttpConnection()
+
+std::unique_ptr<HttpConnection> AndroidApplicationInterface::CreateHttpConnection()
 {
-    return new AndroidHttpConnection();
+    return std::make_unique<AndroidHttpConnection>();
 }
 
-IFtpConnection* AndroidApplicationInterface::CreateAndroidFtpConnection()
+
+std::unique_ptr<FtpConnection> AndroidApplicationInterface::CreateFtpConnection()
 {
-    return new AndroidFtpConnection();
+    return std::make_unique<AndroidFtpConnection>();
 }
+
 
 void AndroidApplicationInterface::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
 {
     map_ui = std::make_unique<AndroidMapUI>();
 }
 
+
 void AndroidApplicationInterface::EngineAbort()
 {
     //Call Java layer and put up an Alert for engine terminating message.
-    ShowModalDialog(MGF::GetMessageText(MGF::AbortTitle), MGF::GetMessageText(MGF::ErrorEngine), MB_OK);
+    ShowModalDialog(MGF::GetMessageText(MGF::AbortTitle).GetString(), MGF::GetMessageText(MGF::ErrorEngine).GetString(), MB_OK);
 }
 
 
@@ -394,6 +426,7 @@ int AndroidApplicationInterface::ShowShowDialog(const std::vector<CString>* colu
         jHeadersArray.get(), jrowTextColorsArray.get(), jLinesArray.get(), jHeadingText.get());
 }
 
+
 int AndroidApplicationInterface::ShowSelcaseDialog(const std::vector<CString>* column_titles, const std::vector<std::vector<CString>*>& data, const CString& heading, std::vector<bool>* selections)
 {
     auto pEnv = GetJNIEnvForCurrentThread();
@@ -462,43 +495,47 @@ bool AndroidApplicationInterface::ExecPff(const std::wstring& pff_filename)
 
 bool AndroidApplicationInterface::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node)
 {
-    auto pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jpackage(pEnv, WideToJava(pEnv, exec_system_app_node.package_name));
-    JNIReferences::scoped_local_ref<jstring> jactivity(pEnv, exec_system_app_node.activity_name ? WideToJava(pEnv, *exec_system_app_node.activity_name) : nullptr );
+    JNIReferences::scoped_local_ref<jstring> jsPackage(env, JavaString::ToJava(*env, exec_system_app_node.package_name));
+    JNIReferences::scoped_local_ref<jstring> jsActivity(env, JavaString::ToJava(*env, exec_system_app_node.activity_name));
 
-    JNIReferences::scoped_local_ref<jobject> jarguments(pEnv, pEnv->NewObject(JNIReferences::classBundle, JNIReferences::methodBundleConstructor));
+    JNIReferences::scoped_local_ref<jobject> jArguments(env, env->NewObject(JNIReferences::classBundle, JNIReferences::methodBundleConstructor));
 
     for( const SystemApp::Argument& argument : exec_system_app_node.system_app.GetArguments() )
     {
-        JNIReferences::scoped_local_ref<jstring> jarg_name(pEnv, WideToJava(pEnv, argument.name));
+        JNIReferences::scoped_local_ref<jstring> jsArgumentName(env, JavaString::ToJava(*env, argument.name));
 
-        if( !argument.value.has_value() ) {
-            pEnv->CallObjectMethod(jarguments.get(), JNIReferences::methodBundlePutString, jarg_name.get(),
-                                   nullptr);
-        } else if( std::holds_alternative<std::wstring>(*argument.value) ) {
-            JNIReferences::scoped_local_ref<jstring> jarg_value(pEnv, WideToJava(pEnv, std::get<std::wstring>(*argument.value)));
-            pEnv->CallVoidMethod(jarguments.get(), JNIReferences::methodBundlePutString, jarg_name.get(),
-                                   jarg_value.get());
+        if( !argument.value.has_value() )
+        {
+            env->CallObjectMethod(jArguments.get(), JNIReferences::methodBundlePutString, jsArgumentName.get(), nullptr);
         }
-        else {
-            pEnv->CallVoidMethod(jarguments.get(), JNIReferences::methodBundlePutDouble, jarg_name.get(), std::get<double>(*argument.value));
+
+        else if( std::holds_alternative<SharableString>(*argument.value) )
+        {
+            JNIReferences::scoped_local_ref<jstring> jsArgumentValue(env, JavaString::ToJava(*env, std::get<SharableString>(*argument.value)));
+            env->CallVoidMethod(jArguments.get(), JNIReferences::methodBundlePutString, jsArgumentName.get(), jsArgumentValue.get());
+        }
+
+        else
+        {
+            env->CallVoidMethod(jArguments.get(), JNIReferences::methodBundlePutDouble, jsArgumentName.get(), std::get<double>(*argument.value));
         }
     }
 
-    JNIReferences::scoped_local_ref<jobject> jresult(pEnv, pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
-        JNIReferences::methodApplicationInterfaceRunSystemApp,
-        jpackage.get(),
-        jactivity.get(),
-        jarguments.get()));
+    JNIReferences::scoped_local_ref<jobject> jResult(env, env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
+                                                                                      JNIReferences::methodApplicationInterfaceRunSystemApp,
+                                                                                      jsPackage.get(),
+                                                                                      jsActivity.get(),
+                                                                                      jArguments.get()));
 
-    if (jresult.get() == nullptr)
+    if( jResult.get() == nullptr )
         return false;
 
-    std::map<std::wstring, std::wstring> bundle_extras = JavaBundleToMap(pEnv, jresult.get());
-    for (const auto& [key, value]: bundle_extras) {
-        exec_system_app_node.system_app.SetResult(key, value);
-    }
+    std::map<std::string, std::string> bundle_extras = JavaBundleToMap(env, jResult.get());
+
+    for( auto& [key, value] : bundle_extras )
+        exec_system_app_node.system_app.SetResult(std::move(key), std::move(value));
 
     return true;
 }
@@ -515,19 +552,26 @@ bool AndroidApplicationInterface::PartialSave(bool bPartialSaveClearSkipped, boo
     return m_pCoreEngineInterface->PartialSave(bPartialSaveClearSkipped, bFromLogic);
 }
 
-CString AndroidApplicationInterface::GetDeviceId() const
+
+std::string AndroidApplicationInterface::GetDeviceId() const
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> retVal(env, (jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceGetDeviceID));
-    return JavaToWSZ(env,retVal.get());
+    JNIReferences::scoped_local_ref<jstring> retVal(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
+                                                                                              JNIReferences::methodApplicationInterfaceGetDeviceID));
+
+    return JavaString::ToUtf8(*env, retVal.get());
 }
 
-bool AndroidApplicationInterface::IsNetworkConnected(int connectionType)
+
+bool AndroidApplicationInterface::IsNetworkConnected(const bool wifi, const bool mobile)
 {
-    auto pEnv = GetJNIEnvForCurrentThread();
-    return pEnv->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceIsNetworkConnected,connectionType) != 0;
+    auto env = GetJNIEnvForCurrentThread();
+    return ( env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                          JNIReferences::methodApplicationInterfaceIsNetworkConnected,
+                                          wifi, mobile) != 0 );
 }
+
 
 CString AndroidApplicationInterface::GetProperty(const CString& parameter)
 {
@@ -543,6 +587,7 @@ CString AndroidApplicationInterface::GetProperty(const CString& parameter)
     return result;
 }
 
+
 void AndroidApplicationInterface::SetProperty(const CString& parameter, const CString& value)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
@@ -552,13 +597,14 @@ void AndroidApplicationInterface::SetProperty(const CString& parameter, const CS
     pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceSetProperty, jparameter.get(), jvalue.get());
 }
 
-void AndroidApplicationInterface::ShowProgressDialog(const CString& message)
+
+void AndroidApplicationInterface::ShowProgressDialog(const std::string& message)
 {
     auto pEnv = GetJNIEnvForCurrentThread();
 
-    m_progressDialogCancelled = false;
+    m_progressDialogCanceled = false;
 
-    jstring dialogText = WideToJava(pEnv,message);
+    jstring dialogText = JavaString::ToJava(*pEnv, message);
 
     pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
             JNIReferences::methodApplicationInterfaceShowProgressDialog,
@@ -566,6 +612,7 @@ void AndroidApplicationInterface::ShowProgressDialog(const CString& message)
 
     pEnv->DeleteLocalRef(dialogText);
 }
+
 
 void AndroidApplicationInterface::HideProgressDialog()
 {
@@ -575,12 +622,13 @@ void AndroidApplicationInterface::HideProgressDialog()
             JNIReferences::methodApplicationInterfaceHideProgressDialog);
 }
 
-bool AndroidApplicationInterface::UpdateProgressDialog(int progressPercent, const CString* message)
+
+bool AndroidApplicationInterface::UpdateProgressDialog(const int progressPercent, const std::string* const message)
 {
-    if (!m_progressDialogCancelled) {
+    if (!m_progressDialogCanceled) {
         auto pEnv = GetJNIEnvForCurrentThread();
 
-        jstring dialogText = message ? WideToJava(pEnv, *message) : nullptr;
+        jstring dialogText = JavaString::ToJava(*pEnv, message);
 
         if (dialogText != nullptr || progressPercent >= -1) // Don't call for -2 (NO_PROGRESS_UPDATE)
             pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
@@ -590,92 +638,182 @@ bool AndroidApplicationInterface::UpdateProgressDialog(int progressPercent, cons
         pEnv->DeleteLocalRef(dialogText);
     }
 
-    return m_progressDialogCancelled;
+    return m_progressDialogCanceled;
 }
+
 
 std::optional<BluetoothDeviceInfo> AndroidApplicationInterface::ChooseBluetoothDevice(const GUID& service_uuid)
 {
     auto pEnv = GetJNIEnvForCurrentThread();
     auto retVal = (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceChooseBluetoothDevice);
-    CString nameAndAddress = JavaToWSZ(pEnv, retVal);
+    const std::string nameAndAddress = JavaString::ToUtf8(*pEnv, retVal);
 
     // Name and address separated by newline
     BluetoothDeviceInfo device_info;
-    if (SplitNewlineSeparatedPair(nameAndAddress, device_info.csName, device_info.csAddress))
+    if (SplitNewlineSeparatedPair(nameAndAddress, device_info.name, device_info.address))
         return device_info;
     else
         return {};
 }
 
-CString AndroidApplicationInterface::AuthorizeDropbox(const CString& clientId)
+
+OAuth2Token AndroidApplicationInterface::OAuth2Authorize(OAuth2Authorizer& oauth2_authorizer)
 {
-    auto pEnv = GetJNIEnvForCurrentThread();
-    auto retVal = (jstring) pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceAuthorizeDropbox);
-    return JavaToWSZ(pEnv, retVal);
+    const OAuth2AuthenticationParameters& parameters = oauth2_authorizer.GetParameters();
+
+    return ( parameters.client_type == OAuth2ClientType::Dropbox )     ? OAuth2Authorize_Dropbox() :
+           ( parameters.client_type == OAuth2ClientType::GoogleDrive ) ? OAuth2Authorize_GoogleDrive(oauth2_authorizer) :
+                                                                         throw SyncConnectionError("Authorization of %s not supported.", parameters.client_name.c_str());
 }
 
-std::optional<BaseApplicationInterface::LoginCredentials> AndroidApplicationInterface::ShowLoginDialog(const CString& server, bool show_invalid_error)
+
+OAuth2Token AndroidApplicationInterface::OAuth2Authorize_Dropbox()
+{
+    JNIEnv* const env = GetJNIEnvForCurrentThread();
+    jstring jsonResult = (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceAuthorizeDropbox);
+    const std::string json_result = JavaString::ToUtf8(*env, jsonResult);
+
+    if( json_result.empty() )
+        throw SyncCancelException();
+
+    try
+    {
+        // the result is a JSON string of a JSON object
+        const std::string parsed_json_result = Json::Parse(json_result).Get<std::string>();
+        const JsonNode json_node = Json::Parse(parsed_json_result);
+        return json_node.Get<OAuth2Token>();
+    }
+    catch(...) { ASSERT(false); }
+
+    throw SyncConnectionError("Authorization of Dropbox did not succeed.");
+}
+
+
+OAuth2Token AndroidApplicationInterface::OAuth2Authorize_GoogleDrive(OAuth2Authorizer& oauth2_authorizer)
+{
+    JNIEnv* const env = GetJNIEnvForCurrentThread();
+
+    const OAuth2AuthenticationParameters& parameters = oauth2_authorizer.GetParameters();
+
+    jstring jOAuth2Endpoint = JavaString::ToJava(*env, parameters.oauth2_endpoint);
+    jstring jTokenEndpoint = JavaString::ToJava(*env, parameters.token_endpoint);
+    jstring jClientId = JavaString::ToJava(*env, parameters.client_id);
+    jstring jScope = nullptr;
+    JNIReferences::scoped_local_ref<jobject> jAdditionalParameters(env, env->NewObject(JNIReferences::classHashMap,
+                                                                                       JNIReferences::methodHashMapConstructor));
+
+    for( const auto& [key, value] : parameters.extra_authorization_parameters )
+    {
+        if( SO::Equals(key, "scope") )
+        {
+            ASSERT(jScope == nullptr);
+            jScope = JavaString::ToJava(*env, value);
+        }
+
+        else
+        {
+            env->CallObjectMethod(jAdditionalParameters.get(), JNIReferences::methodHashMapPut,
+                                  JavaString::ToJava(*env, key), JavaString::ToJava(*env, value));
+        }
+    }
+
+    jstring jResult = (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
+                                                           JNIReferences::methodApplicationInterfaceAuthorizeGoogleDrive,
+                                                           jOAuth2Endpoint, jTokenEndpoint, jClientId, jScope, jAdditionalParameters.get());
+
+    const std::string result = JavaString::ToUtf8(*env, jResult);
+
+    constexpr std::string_view TokenPrefix_sv     = "t:";
+    constexpr std::string_view ExceptionPrefix_sv = "e:";
+
+    if( SO::StartsWith(result, TokenPrefix_sv) )
+    {
+        try
+        {
+            return Json::FromJson<OAuth2Token>(std::string_view(result).substr(TokenPrefix_sv.length()));
+        }
+        catch(...) { }
+    }
+
+    else if( SO::StartsWith(result, ExceptionPrefix_sv) )
+    {
+        throw SyncConnectionError("There was an error authenticating with Google Drive: %s", result.c_str() + ExceptionPrefix_sv.length());
+    }
+
+    else if( result.empty() )
+    {
+        throw SyncCancelException();
+    }
+
+    throw SyncConnectionError("Authorization of Google Drive did not succeed.");
+}
+
+
+std::optional<UsernamePassword> AndroidApplicationInterface::ShowLoginDialog(const std::string& server, const bool show_invalid_error)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    auto jserver =  WideToJava(pEnv, server);
+    auto jServer =  JavaString::ToJava(*pEnv, server);
 
-    auto retVal = (jstring) pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceLoginDialog, jserver, show_invalid_error);
+    auto retVal = (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceLoginDialog,
+                                                        jServer, show_invalid_error);
     // Username and password separated by newline
-    CString usernameAndPassword = JavaToWSZ(pEnv, retVal);
-    LoginCredentials credentials;
-    if (SplitNewlineSeparatedPair(usernameAndPassword, credentials.username, credentials.password))
-        return credentials;
-    else
-        return {};
+    UsernamePassword username_password;
+
+    if( SplitNewlineSeparatedPair(JavaString::ToUtf8(*pEnv, retVal), username_password.username, username_password.password) )
+        return username_password;
+
+    return std::nullopt;
 }
 
 
-void AndroidApplicationInterface::StoreCredential(const std::wstring& attribute, const std::wstring& secret_value)
+void AndroidApplicationInterface::StoreCredential(const std::string& attribute, const std::string& secret_value)
 {
     auto env = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jAttribute(env, WideToJava(env, attribute));
-    JNIReferences::scoped_local_ref<jstring> jSecretValue(env, WideToJava(env, secret_value));
+    JNIReferences::scoped_local_ref<jstring> jAttribute(env, JavaString::ToJava(*env, attribute));
+    JNIReferences::scoped_local_ref<jstring> jSecretValue(env, JavaString::ToJava(*env, secret_value));
 
     env->CallStaticVoidMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceStoreCredential, jAttribute.get(), jSecretValue.get());
 }
 
 
-std::wstring AndroidApplicationInterface::RetrieveCredential(const std::wstring& attribute)
+std::string AndroidApplicationInterface::RetrieveCredential(const std::string& attribute)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jAttribute(env, WideToJava(env, attribute));
+    JNIReferences::scoped_local_ref<jstring> jAttribute(env, JavaString::ToJava(*env, attribute));
 
     JNIReferences::scoped_local_ref<jstring> retVal(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceRetrieveCredential, jAttribute.get()));
 
-    return JavaToWSZ(env, retVal.get());
+    return JavaString::ToUtf8(*env, retVal.get());
 }
 
 
-std::optional<std::wstring> AndroidApplicationInterface::GetPassword(const std::wstring& title, const std::wstring& description, bool file_exists)
+std::optional<std::string> AndroidApplicationInterface::GetPassword(const std::string& title, const std::string& description, const bool file_exists)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jTitle(env, WideToJava(env, title));
-    JNIReferences::scoped_local_ref<jstring> jDescription(env, WideToJava(env, description));
+    JNIReferences::scoped_local_ref<jstring> jTitle(env, JavaString::ToJava(*env, title));
+    JNIReferences::scoped_local_ref<jstring> jDescription(env, JavaString::ToJava(*env, description));
 
     JNIReferences::scoped_local_ref<jstring> jPassword(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
         JNIReferences::methodApplicationInterfaceGetPassword, jTitle.get(), jDescription.get(), file_exists));
 
-    return JavaToOptionalWSZ(env, jPassword.get());
+    return JavaString::ToOptionalUtf8(*env, jPassword.get());
 }
 
 
 void AndroidApplicationInterface::OnProgressDialogCancel()
 {
     __android_log_print(ANDROID_LOG_INFO, "AndroidApplicationInterface", "OnProgressDialogCancel");
-    m_progressDialogCancelled = true;
+    m_progressDialogCanceled = true;
 }
 
-bool AndroidApplicationInterface::IsProgressDialogCancelled() const
+
+bool AndroidApplicationInterface::IsProgressDialogCanceled() const
 {
-    return m_progressDialogCancelled;
+    return m_progressDialogCanceled;
 }
+
 
 void AndroidApplicationInterface::ParadataDriverManager(Paradata::PortableMessage eMessage, const Application* application)
 {
@@ -700,83 +838,90 @@ void AndroidApplicationInterface::ParadataDriverManager(Paradata::PortableMessag
     }
 }
 
+
 void AndroidApplicationInterface::GetParadataCachedEvents()
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    std::vector<CString> aEventStrings;
 
-    jobject object = pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
-        JNIReferences::methodApplicationInterfaceParadataDriverManager,(int)Paradata::PortableMessage::QueryCachedEvents,0);
 
-    if( object != nullptr )
+    jobject object = pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceParadataDriverManager,
+                                                  static_cast<int>(Paradata::PortableMessage::QueryCachedEvents), 0);
+
+    if( object == nullptr )
+        return;
+
+    const int num_events = pEnv->CallIntMethod(object, JNIReferences::methodListSize);
+
+    std::vector<std::string> event_strings;
+    event_strings.reserve(num_events);
+
+    for( int i = 0; i < num_events; ++i )
     {
-        int iEvents = pEnv->CallIntMethod(object,JNIReferences::methodListSize);
-
-        for( int i = 0; i < iEvents; i++ )
-        {
-            auto jEvent = (jstring)pEnv->CallObjectMethod(object,JNIReferences::methodListGet,i);
-            aEventStrings.emplace_back(JavaToWSZ(pEnv,jEvent));
-            pEnv->DeleteLocalRef(jEvent);
-        }
-
-        pEnv->DeleteLocalRef(object);
-
-        m_pCoreEngineInterface->ProcessParadataCachedEvents(aEventStrings);
+        auto jEvent = (jstring)pEnv->CallObjectMethod(object, JNIReferences::methodListGet, i);
+        event_strings.emplace_back(JavaString::ToUtf8(*pEnv, jEvent));
+        pEnv->DeleteLocalRef(jEvent);
     }
+
+    pEnv->DeleteLocalRef(object);
+
+    m_pCoreEngineInterface->ProcessParadataCachedEvents(event_strings);
 }
+
 
 void AndroidApplicationInterface::ParadataDeviceInfoQuery(Paradata::ApplicationEvent::DeviceInfo& device_info)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    const int iValuesToFill = Paradata::ApplicationEvent::DeviceInfo::ValuesToFill;
+    JNIReferences::scoped_local_ref<jobjectArray> valuesArray(env, env->NewObjectArray(Paradata::ApplicationEvent::DeviceInfo::ValuesToFill,
+                                                                                      JNIReferences::classString,env->NewStringUTF("")));
 
-    JNIReferences::scoped_local_ref<jobjectArray> valuesArray(env, env->NewObjectArray(iValuesToFill,JNIReferences::classString,env->NewStringUTF("")));
-    env->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceParadataDeviceQuery,1,valuesArray.get());
+    env->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceParadataDeviceQuery, 1 ,valuesArray.get());
 
-    for( int i = 0; i < iValuesToFill; ++i ) {
-        CString* pcsValue =
-        ( i == 0 ) ? &device_info.screen_width :
-        ( i == 1 ) ? &device_info.screen_height :
-        ( i == 2 ) ? &device_info.screen_inches :
-        ( i == 3 ) ? &device_info.memory_ram :
-        ( i == 4 ) ? &device_info.battery_capacity :
-        ( i == 5 ) ? &device_info.device_brand :
-        ( i == 6 ) ? &device_info.device_device :
-        ( i == 7 ) ? &device_info.device_hardware :
-        ( i == 8 ) ? &device_info.device_manufacturer :
-        ( i == 9 ) ? &device_info.device_model :
-        ( i == 10 ) ? &device_info.device_processor :
-        ( i == 11 ) ? &device_info.device_product :
-        nullptr;
+    for( size_t i = 0; i < Paradata::ApplicationEvent::DeviceInfo::ValuesToFill; ++i )
+    {
+        std::string* const value = ( i == 0 )  ? &device_info.screen_width :
+                                   ( i == 1 )  ? &device_info.screen_height :
+                                   ( i == 2 )  ? &device_info.screen_inches :
+                                   ( i == 3 )  ? &device_info.memory_ram :
+                                   ( i == 4 )  ? &device_info.battery_capacity :
+                                   ( i == 5 )  ? &device_info.device_brand :
+                                   ( i == 6 )  ? &device_info.device_device :
+                                   ( i == 7 )  ? &device_info.device_hardware :
+                                   ( i == 8 )  ? &device_info.device_manufacturer :
+                                   ( i == 9 )  ? &device_info.device_model :
+                                   ( i == 10 ) ? &device_info.device_processor :
+                                   ( i == 11 ) ? &device_info.device_product :
+                                                 nullptr;
 
-        ASSERT(pcsValue != nullptr);
+        ASSERT(value != nullptr);
 
         JNIReferences::scoped_local_ref<jstring> jval(env, (jstring) env->GetObjectArrayElement(valuesArray.get(),i));
-        *pcsValue = JavaToWSZ(env, jval.get());
+        *value = JavaString::ToUtf8(*env, jval.get());
     }
 }
+
 
 void AndroidApplicationInterface::ParadataDeviceStateQuery(Paradata::DeviceStateEvent::DeviceState& device_state)
 {
     auto env = GetJNIEnvForCurrentThread();
-    const int iValuesToFill = Paradata::DeviceStateEvent::DeviceState::ValuesToFill;
 
-    JNIReferences::scoped_local_ref<jobjectArray> valuesArray(env, env->NewObjectArray(iValuesToFill,JNIReferences::classString,env->NewStringUTF("")));
+    JNIReferences::scoped_local_ref<jobjectArray> valuesArray(env, env->NewObjectArray(Paradata::DeviceStateEvent::DeviceState::ValuesToFill,
+                                                                                       JNIReferences::classString,env->NewStringUTF("")));
     env->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceParadataDeviceQuery,3,valuesArray.get());
 
-    for( int i = 0; i < iValuesToFill; ++i ) {
-        JNIReferences::scoped_local_ref<jstring> jvalue(env, (jstring) env->GetObjectArrayElement(
-                valuesArray.get(), i));
-        CString value = JavaToWSZ(env, jvalue.get());
+    for( size_t i = 0; i < Paradata::DeviceStateEvent::DeviceState::ValuesToFill; ++i )
+    {
+        JNIReferences::scoped_local_ref<jstring> jvalue(env, (jstring)env->GetObjectArrayElement(valuesArray.get(), i));
+        std::string value = JavaString::ToUtf8(*env, jvalue.get());
 
-        if (value.IsEmpty())
+        if( value.empty() )
             continue;
 
-        auto convert_boolean = [&value]() -> bool   { return ( value.Compare(_T("1")) == 0 ); };
-        auto convert_double  = [&value]() -> double { return wcstod(value, nullptr); };
+        auto convert_boolean = [&value]() -> bool   { return ( value == "1" ); };
+        auto convert_double  = [&value]() -> double { return strtod(value.c_str(), nullptr); };
 
-        switch (i) {
+        switch( i )
+        {
             case 0:
                 device_state.bluetooth_enabled = convert_boolean();
                 break;
@@ -787,16 +932,16 @@ void AndroidApplicationInterface::ParadataDeviceStateQuery(Paradata::DeviceState
                 device_state.wifi_enabled = convert_boolean();
                 break;
             case 3:
-                device_state.wifi_ssid = value;
+                device_state.wifi_ssid = std::move(value);
                 break;
             case 4:
                 device_state.mobile_network_enabled = convert_boolean();
                 break;
             case 5:
-                device_state.mobile_network_type = value;
+                device_state.mobile_network_type = std::move(value);
                 break;
             case 6:
-                device_state.mobile_network_name = value;
+                device_state.mobile_network_name = std::move(value);
                 break;
             case 7:
                 device_state.mobile_network_strength = convert_double();
@@ -817,6 +962,7 @@ void AndroidApplicationInterface::ParadataDeviceStateQuery(Paradata::DeviceState
     }
 }
 
+
 double AndroidApplicationInterface::GetUpTime()
 {
     auto env = GetJNIEnvForCurrentThread();
@@ -824,15 +970,20 @@ double AndroidApplicationInterface::GetUpTime()
     JNIReferences::scoped_local_ref<jobjectArray> valuesArray(env, env->NewObjectArray(1, JNIReferences::classString,env->NewStringUTF("")));
     env->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceParadataDeviceQuery,2,valuesArray.get());
     JNIReferences::scoped_local_ref<jstring> jval(env, (jstring) env->GetObjectArrayElement(valuesArray.get(), 0));
-    CString uptime = JavaToWSZ(env, jval.get());
-    return _tstof(uptime)/1000.0;
+
+    const std::string uptime = JavaString::ToUtf8(*env, jval.get());
+
+    return strtod(uptime.c_str(), nullptr) / 1000.0;
 }
 
-CString AndroidApplicationInterface::GetLocaleLanguage() const
+
+std::string AndroidApplicationInterface::GetLocaleLanguage() const
 {
     auto env = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jLanguageName(env, (jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceGetLocaleLanguage));
-    return JavaToWSZ(env,jLanguageName.get());
+
+    JNIReferences::scoped_local_ref<jstring> jLanguageName(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceGetLocaleLanguage));
+
+    return JavaString::ToUtf8(*env, jLanguageName.get());
 }
 
 
@@ -852,10 +1003,10 @@ void AndroidApplicationInterface::MediaScanFiles(const std::vector<CString>& pat
 }
 
 
-std::wstring AndroidApplicationInterface::CreateSharableUri(const std::wstring& path, const bool add_write_permission)
+std::string AndroidApplicationInterface::CreateSharableUri(const std::string& path, const bool add_write_permission)
 {
-    auto env = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jPath(env, WideToJava(env, path));
+    JNIEnv* env = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jPath(env, JavaString::ToJava(*env, path));
 
     jstring jSharableUri = (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
                                                                 JNIReferences::methodApplicationInterfaceCreateSharableUri,
@@ -864,15 +1015,15 @@ std::wstring AndroidApplicationInterface::CreateSharableUri(const std::wstring& 
     ThrowJavaExceptionAsCSProException(env);
 
     ASSERT(jSharableUri != nullptr);
-    return JavaToWSZ(env, jSharableUri);
+    return JavaString::ToUtf8(*env, jSharableUri);
 }
 
 
-void AndroidApplicationInterface::FileCopySharableUri(const std::wstring& sharable_uri, const std::wstring& destination_path)
+void AndroidApplicationInterface::FileCopySharableUri(const std::string& sharable_uri, const std::string& destination_path)
 {
-    auto env = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jSharableUri(env, WideToJava(env, sharable_uri));
-    JNIReferences::scoped_local_ref<jstring> jDestinationPath(env, WideToJava(env, destination_path));
+    auto* env = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jSharableUri(env, JavaString::ToJava(*env, sharable_uri));
+    JNIReferences::scoped_local_ref<jstring> jDestinationPath(env, JavaString::ToJava(*env, destination_path));
 
     env->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
                               JNIReferences::methodApplicationInterfaceFileCopySharableUri,
@@ -887,21 +1038,21 @@ long AndroidApplicationInterface::View(const Viewer& viewer)
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
     const auto& data = viewer.GetData();
 
-    if( data.content_type == Viewer::Data::Type::Filename )
+    if( data.content_type == Viewer::Data::Type::FilePath )
     {
         // if the file has a local file server specified, it is a HTML file
         if( !data.local_file_server_root_directory.empty() )
         {
-            std::wstring filename_url = PortableLocalhost::CreateFilenameUrl(data.content);
-            ViewWebPageWithJavaScriptInterface(viewer, filename_url);
+            const std::string url = PortableLocalhost::CreateFileUrl(data.content);
+            ViewWebPageWithJavaScriptInterface(viewer, url);
         }
 
         // otherwise view as a file
         else
         {
-            JNIReferences::scoped_local_ref<jstring> java_filename(pEnv, WideToJava(pEnv, data.content));
+            JNIReferences::scoped_local_ref<jstring> jFilePath(pEnv, JavaString::ToJava(*pEnv, data.content));
             pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
-                JNIReferences::methodApplicationInterfaceViewFile, java_filename.get());
+                JNIReferences::methodApplicationInterfaceViewFile, jFilePath.get());
         }
     }
 
@@ -915,18 +1066,17 @@ long AndroidApplicationInterface::View(const Viewer& viewer)
 }
 
 
-void AndroidApplicationInterface::ViewWebPageWithJavaScriptInterface(const Viewer& viewer, wstring_view url_sv)
+void AndroidApplicationInterface::ViewWebPageWithJavaScriptInterface(const Viewer& viewer, const std::string& url)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, OptionalWideToJava(pEnv, viewer.GetOptions().title));
-    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, WideToJava(pEnv, url_sv));
-
-    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv);
-
-    if( viewer.GetData().action_invoker_access_token_override != nullptr )
-        jActionInvokerAccessTokenOverride.reset(WideToJava(pEnv, *viewer.GetData().action_invoker_access_token_override));
+    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, viewer.GetOptions().title));
+    JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, JavaString::ToJava(*pEnv, url));
+    JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv, JavaString::ToJava(*pEnv, viewer.GetData().action_invoker_access_token_override.get()));
 
     WebViewSyncOperationMarker::DisplayErrorIfOperationInProcess();
+
+    // if the Action Invoker terminates in an exception, it will be held using an ExceptionHolder
+    const RAII::PushOnVectorAndPopOnDestruction<ExceptionHolder*> raii_holder(m_exceptionHolders, viewer.GetData().exception_holder.get());
 
     long thread_wait_id = pEnv->CallStaticLongMethod(JNIReferences::classApplicationInterface,
         JNIReferences::methodApplicationInterfaceViewWebPageWithJavaScriptInterface,
@@ -954,22 +1104,21 @@ long AndroidApplicationInterface::GetThreadWaitId()
 }
 
 
-void AndroidApplicationInterface::SetThreadWaitComplete(long thread_wait_id, std::optional<std::wstring> response)
+void AndroidApplicationInterface::SetThreadWaitComplete(long thread_wait_id, SharableString response)
 {
     std::scoped_lock<std::mutex> lock(m_threadWaitIdsMutex);
 
     ASSERT(m_threadWaitIds.find(thread_wait_id) != m_threadWaitIds.cend());
-    ASSERT(!m_threadWaitIds[thread_wait_id].has_value());
+    ASSERT(m_threadWaitIds[thread_wait_id] == nullptr);
 
     // fill the response
-    m_threadWaitIds[thread_wait_id] = std::make_unique<std::optional<std::wstring>>(std::move(response));
+    m_threadWaitIds[thread_wait_id] = std::make_unique<SharableString>(std::move(response));
 }
 
 
-std::optional<std::wstring> AndroidApplicationInterface::ThreadWaitForComplete(long thread_wait_id)
+SharableString AndroidApplicationInterface::ThreadWaitForComplete(const long thread_wait_id)
 {
     constexpr useconds_t SleepInterval = 100 * 1000; // 100 milliseconds
-    std::optional<std::wstring> response;
 
     // wait until the thread is marked as complete
     while( true )
@@ -980,20 +1129,15 @@ std::optional<std::wstring> AndroidApplicationInterface::ThreadWaitForComplete(l
         auto lookup = m_threadWaitIds.find(thread_wait_id);
 
         if( lookup == m_threadWaitIds.cend() )
-        {
-            ASSERT(false);
-            break;
-        }
+            return ReturnProgrammingError(SharableString());
 
         if( lookup->second != nullptr )
         {
-            response = std::move(*lookup->second);
+            std::unique_ptr<SharableString> sharable_string = std::move(lookup->second);
             m_threadWaitIds.erase(lookup);
-            break;
+            return std::move(*sharable_string);
         }
     }
-
-    return response;
 }
 
 
@@ -1011,24 +1155,27 @@ void AndroidApplicationInterface::Prompt(EngineUI::PromptNode& prompt_node)
         prompt_node.return_value = JavaToWSZ(pEnv, return_value);
 }
 
+
 bool AndroidApplicationInterface::RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node)
 {
-	try
-	{
-		return run_pff_executor_node.pff_executor->Execute(run_pff_executor_node.pff);
-	}
+    try
+    {
+        return run_pff_executor_node.pff_executor->Execute(run_pff_executor_node.pff);
+    }
 
-	catch(...)
-	{
-		run_pff_executor_node.thrown_exception = std::current_exception();
-		return false;
-	}
+    catch(...)
+    {
+        run_pff_executor_node.thrown_exception = std::current_exception();
+        return false;
+    }
 }
+
 
 void AndroidApplicationInterface::SetUsername(const CString& username)
 {
-    m_username = username;
+    m_username = UTF8_TODO::GetUtf8(username);
 }
+
 
 bool AndroidApplicationInterface::GpsOpen()
 {
@@ -1036,23 +1183,26 @@ bool AndroidApplicationInterface::GpsOpen()
     return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceGpsOpen);
 }
 
+
 bool AndroidApplicationInterface::GpsClose()
 {
     auto env = GetJNIEnvForCurrentThread();
     return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceGpsClose);
 }
 
-CString AndroidApplicationInterface::GpsRead(int wait_time, int accuracy, const CString& dialog_text)
+
+CString AndroidApplicationInterface::GpsRead(const int wait_time, const int accuracy, const std::optional<std::string>& dialog_text)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jdialog_text(env, WideToJava(env,dialog_text));
+    JNIReferences::scoped_local_ref<jstring> jdialog_text(env, JavaString::ToJava(*env, dialog_text));
 
     JNIReferences::scoped_local_ref<jstring> return_value(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
         JNIReferences::methodApplicationInterfaceGpsRead, wait_time, accuracy, jdialog_text.get()));
 
     return JavaToWSZ(env, return_value.get());
 }
+
 
 CString AndroidApplicationInterface::GpsReadLast()
 {
@@ -1062,12 +1212,13 @@ CString AndroidApplicationInterface::GpsReadLast()
     return JavaToWSZ(env, return_value.get());
 }
 
-CString AndroidApplicationInterface::GpsReadInteractive(bool read_interactive_mode, const BaseMapSelection& base_map_selection,
-    const CString& message, double read_duration)
+
+CString AndroidApplicationInterface::GpsReadInteractive(const bool read_interactive_mode, const BaseMapSelection& base_map_selection,
+                                                        const std::optional<std::string>& message, const double read_duration)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jmessage(env, WideToJava(env, message));
+    JNIReferences::scoped_local_ref<jstring> jmessage(env, JavaString::ToJava(*env, message));
 
     JNIReferences::scoped_local_ref<jstring> return_value(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
         JNIReferences::methodApplicationInterfaceGpsReadInteractive, read_interactive_mode,
@@ -1077,34 +1228,36 @@ CString AndroidApplicationInterface::GpsReadInteractive(bool read_interactive_mo
 }
 
 
-std::wstring AndroidApplicationInterface::BarcodeRead(const std::wstring& message_text)
+SharableString AndroidApplicationInterface::BarcodeRead(const std::string& message_text)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    jstring message = WideToJava(env, message_text);
+    const JNIReferences::scoped_local_ref<jstring> jsMessageText(env, JavaString::ToJava(*env, message_text));
 
-    jstring barcode = (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
-        JNIReferences::methodApplicationInterfaceBarcodeRead, message);
+    jstring jsBarcode = (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,
+                                                             JNIReferences::methodApplicationInterfaceBarcodeRead,
+                                                             jsMessageText.get());
 
-    return JavaToWSZ(env, barcode);
+    return JavaString::ToSharableString(*env, jsBarcode);
 }
 
 
-bool AndroidApplicationInterface::AudioPlay(const std::wstring& filename, const std::wstring& message_text)
+bool AndroidApplicationInterface::AudioPlay(const std::string& file_path, const std::string& message_text)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, WideToJava(env, filename));
-    auto jmessage = JNIReferences::make_local_ref(env, WideToJava(env, message_text));
+    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
+    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
     return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioPlay, jfilename.get(), jmessage.get());
 }
 
-bool AndroidApplicationInterface::AudioStartRecording(const std::wstring& filename, std::optional<double> seconds, std::optional<int> sampling_rate)
+
+bool AndroidApplicationInterface::AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<int> sampling_rate)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, WideToJava(env, filename));
+    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
 
     return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
             JNIReferences::methodApplicationInterfaceAudioStartRecording, jfilename.get(),
@@ -1119,14 +1272,14 @@ bool AndroidApplicationInterface::AudioStopRecording()
 }
 
 
-std::unique_ptr<TemporaryFile> AndroidApplicationInterface::AudioRecordInteractive(const std::wstring& message_text, std::optional<int> sampling_rate)
+std::unique_ptr<TemporaryFile> AndroidApplicationInterface::AudioRecordInteractive(const std::string& message_text, std::optional<int> sampling_rate)
 {
     auto env = GetJNIEnvForCurrentThread();
 
     auto temporary_file = std::make_unique<TemporaryFile>();
 
-    auto jfilename = JNIReferences::make_local_ref(env, WideToJava(env, temporary_file->GetPath()));
-    auto jmessage = JNIReferences::make_local_ref(env, WideToJava(env, message_text));
+    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, temporary_file->GetPath()));
+    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
     if( env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioRecordInteractive,
                                      jfilename.get(), jmessage.get(), sampling_rate.value_or(-1)) )
@@ -1148,24 +1301,24 @@ bool AndroidApplicationInterface::CaptureImage(EngineUI::CaptureImageNode& captu
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto joverlay_message = JNIReferences::make_local_ref(env, capture_image_node.overlay_message ? WideToJava(env, *capture_image_node.overlay_message) : nullptr);
+    JNIReferences::scoped_local_ref<jstring> jOverlayMessage(env, JavaString::ToJava(*env, capture_image_node.overlay_message));
 
     JNIReferences::scoped_local_ref<jstring> filename(env);
     switch (capture_image_node.action) {
         case EngineUI::CaptureImageNode::Action::TakePhoto:
-            filename.reset((jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceImageTakePhoto, joverlay_message.get()));
+            filename.reset((jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceImageTakePhoto, jOverlayMessage.get()));
             break;
         case EngineUI::CaptureImageNode::Action::CaptureSignature:
-            filename.reset((jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceImageCaptureSignature, joverlay_message.get()));
+            filename.reset((jstring) env->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceImageCaptureSignature, jOverlayMessage.get()));
             break;
     }
 
-    if (filename.get()) {
-        capture_image_node.output_filename = JavaToWSZ(env, filename.get());
-        return true;
-    } else {
+    if( filename.get() == nullptr )
         return false;
-    }
+
+    capture_image_node.output_file_path = JavaString::ToUtf8(*env, filename.get());
+
+    return true;
 }
 
 

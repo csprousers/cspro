@@ -14,7 +14,7 @@ private:
     LogicPff(const LogicPff& logic_pff);
 
 public:
-    LogicPff(std::wstring pff_name);
+    LogicPff(std::string pff_name);
 	
     LogicPff& operator=(const LogicPff& rhs);
 

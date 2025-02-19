@@ -1,123 +1,138 @@
 ﻿#pragma once
 
-//***************************************************************************
-//  File name: FILEDLG.H
-//
-//  Description:
-//       Header for CIMSAFileDialog
-//
-//
-//  History:    Date       Author   Comment
-//              ---------------------------
-//              21 Jan 98   bmd     Created from IMPS 4.1.
-//              04 Mar 98   bmd     Remove Windows version stuff.
-//              05 Mar 98   bmd     Add to CIMSAFileDialog to handle opening new files.
-//              12 Mar 98   bmd     Add to CIMSAFileDialog to change button text.
-//
-//***************************************************************************
-//
-//  class CIMSAFileDialog : public CFileDialog
-//
-//  Description:
-//      Add functionality to CFileDialog for IMSA.
-//
-//  Construction
-//      CIMSAFileDialog         Construction of the dialog
-//
-//***************************************************************************
-//
-//  void CIMSAFileDialog::CIMSAFileDialog(BOOL bOpenFileDialog,
-//                                        LPCTSTR pszDefExt = NULL,
-//                                        LPCTSTR pszFileName = NULL,
-//                                        DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-//                                        LPCTSTR pszFilter = NULL,
-//                                        CWnd* pParentWnd = NULL,
-//                                        UNIT uSavePathType = CFD_PROJ_DIR,
-//                                        BOOL bNewFile = FALSE);
-//
-//      Parameters
-//          bOpenFileDialog     TRUE to construct a File Open dialog box or
-//                              FALSE to construct a File Save As dialog box.
-//          pszDefExt           Required file name extensions.  This is different
-//                              from CFileDialog. (see remarks below)
-//          pszFileName         The initial filename that appears in the filename edit box.
-//                              If NULL, no filename initially appears.
-//          dwFlags             A combination of one or more flags that allow you to
-//                              customize the dialog box.  For a description of these flags,
-//                              see the OPENFILENAME structure in the Win32 SDK documentation.
-//                              If you modify the m_ofn.Flags structure member, use a bitwise-OR
-//                              operator in your changes to keep the default behavior intact.
-//          pszFilter           A series of string pairs that specify filters you can apply to the file.
-//          pParentWnd          A pointer to the file dialog-box object's parent or owner window.
-//          uSavePathType       CFD_NO_DIR      Don't set or save the path.
-//                              CFD_PROJ_DIR    Set and save the path as the project directory.
-//                              CFD_DATA_DIR    Set and save the path as the data directory.
-//          bNewFile            TRUE to create a new file to open.
-//                              FALSE to open an already existing file.
-//
-//      Remarks
-//          If pszDefExt has one extension and the user does not include an extension
-//          in the Filename edit box, the extension specified by pszDefExt is automatically appended
-//          to the filename.  If an extension is supplied in the File name it must be the specified
-//          extension.  If pszDefExt contains more than on extension separated by commas, the user
-//          must supply one of the these extensions in the filename.  If pszDefExt is "*", then the
-//          append extensions from filter list but allow for no extension if filter list entry is
-//          all (*.*).
-//
-//          If pszDefExt is NULL, no file extension is appended or required.
-//
-//***************************************************************************
-//***************************************************************************
-//***************************************************************************
-
-
 #include <zUtilO/zUtilO.h>
 
 
-/////////////////////////////////////////////////////////////////////////////
+// --------------------------------------------------------------------------
+// FileDlg / OpenFileDlg / SaveFileDlg
 //
-//                             CIMSAFileDialog
+// A wrapper around CFileDialog that supports working with UTF-8 paths.
 //
-/////////////////////////////////////////////////////////////////////////////
+// There is some additional functionality compared CFileDialog:
+//
+//     - The constructor's parameters are in a different order.
+//
+//     - If no flags are specified (passing 0), the following flags are
+//       applied by default:
+//
+//           - Open: OFN_HIDEREADONLY | OFN_FILEMUSTEXIST
+//           - Save: OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT
+//
+//     - If the filename argument used in the constructor is a directory
+//       that exists, a trailing slash will be added so that a string
+//       like "C:\\Directory" isn't treated as a file named "Directory"
+//       to be placed in C:\.
+//
+//     - If default extension(s) are given, an error is shown if the filename
+//       contains an extension that does not match one of the extensions. To
+//       disable this behavior, call DisableExtensionCheck.
+//
+// If migrating from CIMSAFileDialog, there are some differences:
+//
+//     - For open dialogs, CIMSAFileDialog always checks for the existence
+//       of file(s). To get this same behavior, use the flag
+//       OFN_FILEMUSTEXIST. This is part of the default open flags.
+//
+//     - For save dialogs, CIMSAFileDialog tried to create a file at the
+//       selected file path, displaying an error if this was not possible.
+//       FileDlg does not do this.
+//
+//     - CIMSAFileDialog allowed * to be used as a default extension. This is
+//       no longer allowed and DisableExtensionCheck should be called
+//       instead if all extensions are valid.
+//
+//     - Calling SetMultiSelectBuffer will automatically add the
+//       OFN_ALLOWMULTISELECT flag.
+// --------------------------------------------------------------------------
 
-constexpr UINT CFD_NO_DIR   = 0;
-constexpr UINT CFD_PROJ_DIR = 1;
-constexpr UINT CFD_DATA_DIR = 2;
-
-
-class CLASS_DECL_ZUTILO CIMSAFileDialog : public CFileDialog
+class CLASS_DECL_ZUTILO FileDlg : public CFileDialog
 {
 public:
-    CIMSAFileDialog(BOOL bOpenFileDialog,
-                    LPCTSTR lpszDefExt = NULL,
-                    LPCTSTR lpszFileName = NULL,
-                    DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                    LPCTSTR lpszFilter = NULL,
-                    CWnd* pParentWnd = NULL,
-                    UINT uSavePathType = CFD_PROJ_DIR,
-                    BOOL bNewFile = FALSE);
+    using StringType = std::variant<std::monostate, const wchar_t*, std::string_view>;
 
-    // if pMDIFrameWnd is not null and a document is open, its directory will be used as the initial directory
-    CIMSAFileDialog& UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* pMDIFrameWnd);
+    static constexpr DWORD DefaultOpenFlags = OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
+    static constexpr DWORD DefaultSaveFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 
-    CIMSAFileDialog& SetMultiSelectBuffer(size_t MaxFiles = 250);
+    FileDlg(bool open_dialog,
+            DWORD flags = 0,
+            StringType default_extension = std::monostate(), // this can contain one or more extensions
+            StringType filename = std::monostate(),          // this can be a file or directory path, or just a filename
+            StringType filter = std::monostate(),
+            CWnd* pParentWnd = nullptr,
+            std::vector<std::unique_ptr<std::wstring>> wide_strings = std::vector<std::unique_ptr<std::wstring>>()); // this is used internally for string conversions
+
+    // Sets the dialog title.
+    FileDlg& SetTitle(StringType title);
+
+    // Disables the checking of file extensions when default_extension was set in the constructor.
+    FileDlg& DisableExtensionCheck();
+
+    // Sets the initial dictionary.
+    FileDlg& SetInitialDirectory(std::wstring directory);
+    FileDlg& SetInitialDirectory(std::string_view directory_sv) { return SetInitialDirectory(TC::ToWide(directory_sv)); }
+
+    // If pMDIFrameWnd is not null and a document is open, its directory will be used as the initial directory.
+    FileDlg& UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* pMDIFrameWnd);
+
+    // Establishes the size of the multiple selection buffer. OFN_ALLOWMULTISELECT will be added to the flags.
+    FileDlg& SetMultiSelectBuffer(size_t max_files = 250);
+
+    // Returns a single selected path.
+    const std::string& GetFilePath() const;
+
+    // Returns the selected paths (when using multiple selection).
+    const std::vector<std::string>& GetFilePaths() const { return m_filePaths; }
 
 protected:
     BOOL OnFileNameOK() override;
 
 private:
-    void CheckNewFile(const CString& csFullFileName, BOOL& bReturn);
+    static const wchar_t* ConvertString(std::vector<std::unique_ptr<std::wstring>>& wide_strings, const StringType& optional_string);
+    static const wchar_t* ConvertString(std::vector<std::unique_ptr<std::wstring>>& wide_strings, std::wstring text);
 
-public:
-    CStringArray m_aFileName;
+    const wchar_t* StoreString(std::wstring text)        { return ConvertString(m_wideStrings, std::move(text)); }
+    const wchar_t* StoreString(std::string_view text_sv) { return StoreString(TC::ToWide(text_sv)); }
+
+    static const wchar_t* ConvertConstructorFilename(std::vector<std::unique_ptr<std::wstring>>& wide_strings, const StringType& filename);
+
+    void CheckExtension(const std::string& file_path);
+
+    // this is not implemented but is added here to cause a compiler error since GetFilePath should be used instead
+    CString GetPathName() const;
 
 private:
-    BOOL m_bOpenFileDialog;
-    BOOL m_bNewFile;
-    UINT m_uDirType;
-    TCHAR m_pszDefExt[64];
-    CStringArray m_aDefExt;
-    TCHAR m_pszFileTitle[_MAX_PATH];
-    std::unique_ptr<std::wstring> m_initialDirectory;
-    std::unique_ptr<TCHAR[]> m_multiSelectBuffer;
+    std::vector<std::unique_ptr<std::wstring>> m_wideStrings;
+
+    bool m_checkExtensions;
+    std::optional<std::vector<std::string>> m_validExtensions;
+
+    std::unique_ptr<wchar_t[]> m_multiSelectBuffer;
+
+    std::vector<std::string> m_filePaths;
+};
+
+
+
+// --------------------------------------------------------------------------
+// OpenFileDlg
+// --------------------------------------------------------------------------
+
+class OpenFileDlg : public FileDlg
+{
+public:
+    template<typename... Args>
+    OpenFileDlg(Args&&... args) : FileDlg(true, std::forward<Args>(args)...) { }
+};
+
+
+
+// --------------------------------------------------------------------------
+// SaveFileDlg
+// --------------------------------------------------------------------------
+
+class SaveFileDlg : public FileDlg
+{
+public:
+    template<typename... Args>
+    SaveFileDlg(Args&&... args) : FileDlg(false, std::forward<Args>(args)...) { }
 };

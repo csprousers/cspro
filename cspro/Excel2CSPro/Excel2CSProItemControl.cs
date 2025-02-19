@@ -87,21 +87,13 @@ namespace Excel2CSPro
 
         private void buttonSelectOutputFile_Click(object sender,EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Title = Messages.DataSaveTitle;
-            sfd.Filter = Messages.DataFileFilter;
+            CSPro.Util.ConnectionString selected_connection_string = CSPro.Util.ConnectionString.ShowDataFileDlg(
+                this.Handle, CSPro.Util.DataFileDlgType.CreateNew, false, _excel2CSProManager._spec.OutputConnectionString);
 
-            if( _excel2CSProManager._spec.OutputConnectionString != null )
-                SetFileDialogPath(sfd, _excel2CSProManager._spec.OutputConnectionString.Filename);
-
-            if( sfd.ShowDialog() != DialogResult.OK )
+            if( selected_connection_string == null )
                 return;
 
-            if( _excel2CSProManager._spec.OutputConnectionString == null ||
-                !_excel2CSProManager._spec.OutputConnectionString.FilenameMatches(sfd.FileName) )
-            {
-                _excel2CSProManager._spec.OutputConnectionString = new CSPro.Util.ConnectionString(sfd.FileName);
-            }
+            _excel2CSProManager._spec.OutputConnectionString = selected_connection_string;
 
             RefreshMappings(false);
         }
@@ -167,7 +159,7 @@ namespace Excel2CSPro
         {
             labelExcelFile.Text = ( _excel2CSProManager._spec.ExcelFilename == null ) ? _savedLabelTextExcelFile : String.Format(Messages.ExcelLabelFilter,_excel2CSProManager._spec.ExcelFilename);
             labelCSProDictionary.Text = ( _excel2CSProManager._spec.DictionaryFilename == null ) ? _savedLabelTextCSProDictionary : String.Format(Messages.DictionaryLabelFilter,_excel2CSProManager._dictionary.Name,_excel2CSProManager._spec.DictionaryFilename);
-            labelDataFile.Text = ( _excel2CSProManager._spec.OutputConnectionString == null ) ? _savedLabelTextDataFile : String.Format(Messages.DataLabelFilter,_excel2CSProManager._spec.OutputConnectionString.Filename);
+            labelDataFile.Text = ( _excel2CSProManager._spec.OutputConnectionString == null ) ? _savedLabelTextDataFile : String.Format(Messages.DataLabelFilter, _excel2CSProManager._spec.OutputConnectionString.ToDisplayString());
 
             if( updateMappings )
             {

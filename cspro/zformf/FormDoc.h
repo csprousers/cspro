@@ -126,13 +126,13 @@ class CLASS_DECL_ZFORMF CFormDoc : public FormFileBasedDoc
 {
     DECLARE_DYNCREATE(CFormDoc)
 
-protected: 
+protected:
     CFormDoc(); // create from serialization only
 
 public:
     ~CFormDoc();
 
-    static constexpr const TCHAR* GetExtensionWithDot() { return FileExtensions::WithDot::Form; }
+    static constexpr const char* GetExtension() { return FileExtensions::Form; }
 
     const CString& GetClipFile() const   { return m_csClipFile; }
     UINT GetClipBoardFormat(UINT format) { return m_auFormat[format]; }
@@ -158,7 +158,7 @@ public:
 
     HTREEITEM BuildAllTrees(HTREEITEM hParent = TVI_ROOT, HTREEITEM hInsertAfter = TVI_LAST);
 
-    bool LoadFormSpecFile(const CString& csFileName);
+    bool LoadFormSpecFile(const InterfaceString& form_file_path);
     bool LoadDictSpecFile(bool bMakeVisible = true);
 
     bool InitTreeCtrl();

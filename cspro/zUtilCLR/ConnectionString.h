@@ -16,6 +16,7 @@ namespace CSPro
             EncryptedSQLite,
             Memory,
             Json,
+            CSWeb,
             CommaDelimited,
             SemicolonDelimited,
             TabDelimited,
@@ -25,6 +26,11 @@ namespace CSPro
             SAS,
             SPSS,
             Stata
+        };
+
+        public enum class DataFileDlgType
+        {
+            OpenExisting, OpenOrCreate, CreateNew
         };
 
         public ref class ConnectionString sealed
@@ -38,24 +44,19 @@ namespace CSPro
             ~ConnectionString() { this->!ConnectionString(); }
             !ConnectionString();
 
-            property System::String^ Filename
-            {
-                System::String^ get();
-            }
+            property System::String^ FilePath { System::String^ get(); }
 
-            bool FilenameMatches(System::String^ filename);
+            property DataRepositoryType Type { DataRepositoryType get(); }
 
-            property DataRepositoryType Type
-            {
-                DataRepositoryType get();
-            }
+            property bool HasResource { bool get(); }
+            property bool HasFilePath { bool get(); }
 
-            property bool TypeContainsEmbeddedDictionary
-            {
-                bool get();
-            }
+            property bool TypeContainsEmbeddedDictionary { bool get(); }
 
             System::String^ ToString() override;
+
+            System::String^ ToDisplayString(bool use_filename_only);
+            System::String^ ToDisplayString();
 
             System::String^ ToRelativeString(System::String^ directory_name);
 
@@ -67,6 +68,10 @@ namespace CSPro
             static System::String^ GetDataRepositoryTypeDisplayText(DataRepositoryType type);
 
             System::String^ ToStringWithModifiedType(DataRepositoryType new_type);
+
+            // a way to use the DataFileDlg from .NET
+            static ConnectionString^ ShowDataFileDlg(System::IntPtr^ hWndOwner, DataFileDlgType type, bool add_only_readable_types,
+                                                     ConnectionString^ connection_string);
 
         private:
             ::ConnectionString *m_nativeConnectionString;

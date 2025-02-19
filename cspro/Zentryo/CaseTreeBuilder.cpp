@@ -344,7 +344,7 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
             double numeric_value = value_processor.GetNumericFromInput(csData);
 
             if( numeric_value < MAXVALUE )
-                code = WS2CS(ValueSetResponse::FormatValueForDisplay(*pItem, numeric_value));
+                code = UTF8_TODO::GetCString(ValueSetResponse::FormatValueForDisplay(*pItem, numeric_value));
 
             else if( first_dict_value_pair != nullptr )
                 code = first_dict_value_pair->GetFrom();
@@ -446,7 +446,7 @@ CString CaseTreeBuilder::getGroupOccLabel(CDEGroup* pGroup, const std::array<int
         if (pGroup->GetItemType() == CDEFormBase::Roster) {
             //for rosters get the stub texts for labels if the stub text is not just the occ
             CString stubText = assert_cast<CDERoster*>(pGroup)->GetStubTextSet().GetText(occNum - 1).GetText();
-            CString occToString = IntToString(occNum);
+            CString occToString = UTF8_TODO::GetCString(IntToString(occNum));
             bool bStubTextIsOcc = occToString.Compare(stubText) == 0;
             if (!stubText.IsEmpty() && !bStubTextIsOcc) {//use the custom stub text
                 sOccLabel = stubText;

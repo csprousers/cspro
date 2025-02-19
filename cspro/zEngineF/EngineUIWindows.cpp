@@ -15,7 +15,7 @@
 #include <zEdit2O/ScintillaColorizer.h>
 
 
-EngineUIProcessor::EngineUIProcessor(const PFF* pff, const bool engine_runs_on_ui_thread)
+EngineUIProcessor::EngineUIProcessor(const PFF* const pff, const bool engine_runs_on_ui_thread)
     :   m_pff(pff),
         m_engineRunsOnUIThread(engine_runs_on_ui_thread)
 {
@@ -94,23 +94,23 @@ long EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
 
 long EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node)
 {
-    ASSERT(exec_system_app_node.evaluated_call.find(exec_system_app_node.package_name) == 0);
-    std::wstring evaluated_call = exec_system_app_node.evaluated_call;
+    ASSERT(exec_system_app_node.evaluated_call.find(*exec_system_app_node.package_name) == 0);
+    std::string evaluated_call = exec_system_app_node.evaluated_call;
 
     // remove any quotes around the executable name
-    std::wstring exe_name = UnescapeCommandLineArgument(exec_system_app_node.package_name);
+    std::string exe_name = UnescapeCommandLineArgument(*exec_system_app_node.package_name);
 
     // if the executable file doesn't exist (for example, chrome.exe), look it up in the registry
     if( !PortableFunctions::FileIsRegular(exe_name) )
     {
-        std::wstring key_name = SO::Concatenate(_T("Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\"), exec_system_app_node.package_name);
+        const std::string key_name = "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\" + *exec_system_app_node.package_name;
 
         WinRegistry registry;
 
-        if( registry.Open(HKEY_LOCAL_MACHINE, key_name) && registry.ReadString(_T(""), exe_name) )
+        if( registry.Open(HKEY_LOCAL_MACHINE, key_name) && registry.ReadString("", exe_name) )
         {
             evaluated_call = EscapeCommandLineArgument(exe_name) +
-                             exec_system_app_node.evaluated_call.substr(exec_system_app_node.package_name.length());
+                             exec_system_app_node.evaluated_call.substr(exec_system_app_node.package_name->length());
         }
 
         registry.Close();
@@ -118,22 +118,22 @@ long EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_a
 
     // RunProgram must run in the engine thread
     exec_system_app_node.function_to_run_in_engine_thread =
-        [command = std::move(evaluated_call)]() mutable
+        [command = std::move(evaluated_call)]()
         {
             int return_code;
-            return RunProgram(std::move(command), &return_code, SW_SHOWNA, true, true);
+            return RunProgram(UTF8_TODO::GetWide(command), &return_code, SW_SHOWNA, true, true);
         };
 
     return 1;
 }
 
 
-long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::wstring& html_dialogs_directory)
+long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory)
 {
     if( m_pff == nullptr )
         return 0;
 
-    html_dialogs_directory = CS2WS(m_pff->GetHtmlDialogsDirectory());
+    html_dialogs_directory = UTF8_TODO::GetUtf8(m_pff->GetHtmlDialogsDirectory());
     return 1;
 }
 
@@ -170,14 +170,14 @@ long EngineUIProcessor::View(const Viewer& viewer)
     const Viewer::Data& data = viewer.GetData();
     ASSERT(data.use_embedded_viewers);
 
-    std::wstring url =
+    std::string url =
         [&]()
         {
-            if( data.content_type == Viewer::Data::Type::Filename )
+            if( data.content_type == Viewer::Data::Type::FilePath )
             {
                 // if these contents are tied to the file system, we will start a local file server to serve the HTML and any other files
-                return !data.local_file_server_root_directory.empty() ? PortableLocalhost::CreateFilenameUrl(data.content) :
-                                                                        std::wstring();
+                return !data.local_file_server_root_directory.empty() ? PortableLocalhost::CreateFileUrl(data.content) :
+                                                                        std::string();
             }
 
             else
@@ -200,7 +200,7 @@ long EngineUIProcessor::View(const Viewer& viewer)
     // if we don't know how to view a file, return 0 and the file will be opened in an external viewer
     else
     {
-        ASSERT(data.content_type == Viewer::Data::Type::Filename && !FileExtensions::IsFilenameHtml(data.content));
+        ASSERT(data.content_type == Viewer::Data::Type::FilePath && !FileExtensions::IsFileHtml(data.content));
         return 0;
     }
 }

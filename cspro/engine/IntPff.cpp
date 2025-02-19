@@ -4,7 +4,7 @@
 #include <zEngineO/List.h>
 #include <zEngineO/Pff.h>
 #include <zEngineO/PffExecutor.h>
-#include <zEngineO/Versioning.h>
+#include <zEngineO/Messages/EngineMessages.h>
 #include <zUtilO/TemporaryFile.h>
 #include <ZBRIDGEO/npff.h>
 
@@ -44,7 +44,7 @@ double CIntDriver::expffload(int iExpr)
 
     if( !PortableFunctions::FileExists(pff_filename) || !logic_pff.Load(pff_filename) )
     {
-        issaerror(MessageType::Error, 47191, pff_filename.c_str());
+        issaerror(MessageType::Error, 47191, UTF8_TODO::GetUtf8(pff_filename).c_str());
         return 0;
     }
 
@@ -58,12 +58,12 @@ double CIntDriver::expffsave(int iExpr)
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
     // make sure that the filename ends with .pff
-    std::wstring pff_filename = PortableFunctions::PathEnsureFileExtension(EvalFullPathFileName(symbol_va_node.arguments[0]),
-                                                                           FileExtensions::Pff);
+    const std::string pff_file_path = PortableFunctions::PathEnsureFileExtension(EvaluatePath(symbol_va_node.arguments[0]),
+                                                                                 FileExtensions::Pff);
 
-    if( !logic_pff.Save(pff_filename) )
+    if( !logic_pff.Save(UTF8_TODO::GetWide(pff_file_path)) )
     {
-        issaerror(MessageType::Error, 47192, pff_filename.c_str());
+        issaerror(MessageType::Error, 47192, pff_file_path.c_str());
         return 0;
     }
 
@@ -79,7 +79,7 @@ double CIntDriver::expffgetproperty(int iExpr)
     std::wstring property_name = EvalAlphaExpr(symbol_va_node.arguments[0]);
     LogicList* logic_list;
 
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
         logic_list = ( symbol_va_node.arguments[1] != -1 ) ? &GetSymbolLogicList(symbol_va_node.arguments[1]) :
                                                              nullptr;
@@ -91,24 +91,28 @@ double CIntDriver::expffgetproperty(int iExpr)
                                                            nullptr;
     }
 
-    std::vector<std::wstring> values = logic_pff.GetProperties(property_name);
+    const std::vector<std::wstring> values_temp = logic_pff.GetProperties(property_name);
+    std::vector<SharableString> values;
+    for( const std::wstring& vt : values_temp ) values.emplace_back(UTF8_TODO::GetUtf8(vt));
+
+    double return_value = !values.empty() ? AssignString(values.front()) :
+                                            AssignStringNull();
 
     if( logic_list != nullptr )
     {
         if( logic_list->IsReadOnly() )
         {
-            issaerror(MessageType::Error, 965, logic_list->GetName().c_str());
+            IssueMessage(MessageType::Error, MGF::List_read_only_cannot_be_modified_965, logic_list->GetName().c_str());
         }
 
         else
         {
             logic_list->Reset();
-            logic_list->AddStrings(values);
+            logic_list->AddValues(std::move(values));
         }
     }
 
-    return !values.empty() ? AssignAlphaValue(values.front()) :
-                             AssignBlankAlphaValue();
+    return return_value;
 }
 
 
@@ -117,20 +121,13 @@ double CIntDriver::expffsetproperty(int iExpr)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    std::wstring property_name = EvalAlphaExpr(symbol_va_node.arguments[0]);
-    std::vector<std::wstring> values;
+    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    std::vector<SharableString> values;
 
     if( symbol_va_node.arguments[1] >= 0 )
     {
-        if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_7_000_1) )
-        {
-            values.emplace_back(EvalAlphaExpr(symbol_va_node.arguments[1]));
-        }
-
-        else
-        {
-            values.emplace_back(EvaluateExpressionAsString(static_cast<DataType>(symbol_va_node.arguments[1]), symbol_va_node.arguments[2]));
-        }
+        values.emplace_back(EvaluateSharableString(static_cast<DataType>(symbol_va_node.arguments[1]),
+                                                   symbol_va_node.arguments[2]));
     }
 
     else
@@ -140,10 +137,10 @@ double CIntDriver::expffsetproperty(int iExpr)
         if( symbol.IsA(SymbolType::List) )
         {
             const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-            size_t list_count = logic_list.GetCount();
+            const size_t list_count = logic_list.GetCount();
 
             for( size_t i = 1; i <= list_count; ++i )
-                values.emplace_back(logic_list.GetString(i));
+                values.emplace_back(logic_list.GetValue<SharableString>(i));
         }
 
         else
@@ -154,18 +151,18 @@ double CIntDriver::expffsetproperty(int iExpr)
                                                      assert_cast<const DICT&>(symbol).GetSharedDictionary();
 
             // use the dictionary filename for the PFF value
-            values.emplace_back(CS2WS(dictionary->GetFullFileName()));
+            values.emplace_back(dictionary->GetFilePath());
 
             // set the embedded dictionary, issuing an error if the property name is invalid
             if( logic_pff.GetPffExecutor() == nullptr )
                 logic_pff.SetPffExecutor(std::make_unique<PffExecutor>());
 
-            if( !logic_pff.GetPffExecutor()->SetEmbeddedDictionary(property_name, dictionary) )
-                issaerror(MessageType::Error, 47194, property_name.c_str());
+            if( !logic_pff.GetPffExecutor()->SetEmbeddedDictionary(UTF8_TODO::GetWide(*property_name), std::move(dictionary)) )
+                issaerror(MessageType::Error, 47194, property_name->c_str());
         }
     }
 
-    logic_pff.SetProperties(property_name, values, CS2WS(m_pEngineDriver->m_pPifFile->GetAppFName()));
+    logic_pff.SetProperties(UTF8_TODO::GetWide(*property_name), UTF8_TODO::GetWide(values), CS2WS(m_pEngineDriver->m_pPifFile->GetAppFName()));
 
     return 1;
 }

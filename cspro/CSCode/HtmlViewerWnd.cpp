@@ -1,11 +1,12 @@
 ﻿#include "StdAfx.h"
 #include "HtmlViewerWnd.h"
+#include <zToolsO/ExceptionHolder.h>
 #include <zAction/WebController.h>
 
 
 BEGIN_MESSAGE_MAP(HtmlViewerWnd, CDockablePane)
-	ON_WM_CREATE()
-	ON_WM_SIZE()
+    ON_WM_CREATE()
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -19,19 +20,19 @@ HtmlViewerWnd::HtmlViewerWnd()
 
 int HtmlViewerWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if( __super::OnCreate(lpCreateStruct) == -1 )
+    if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
     if( !m_htmlBrowserView->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, this, IDC_HTML_VIEWER) )
         return -1;
 
-	return 0;
+    return 0;
 }
 
 
-void HtmlViewerWnd::OnSize(UINT nType, int cx, int cy)
+void HtmlViewerWnd::OnSize(const UINT nType, const int cx, const int cy)
 {
-	__super::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     m_htmlBrowserView->SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
@@ -48,7 +49,7 @@ public:
     HtmlViewerActionInvokerListener(HtmlViewerWnd& html_viewer_wnd, ActionInvoker::Caller& caller);
 
     // Listener overrides
-    std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnClose(CloseResult& close_result, ActionInvoker::Caller& caller) override;
 
 private:
     HtmlViewerWnd& m_htmlViewerWnd;
@@ -63,15 +64,18 @@ HtmlViewerActionInvokerListener::HtmlViewerActionInvokerListener(HtmlViewerWnd& 
 }
 
 
-std::optional<bool> HtmlViewerActionInvokerListener::OnCloseDialog(const JsonNode<wchar_t>& /*result_node*/, ActionInvoker::Caller& caller)
+std::optional<bool> HtmlViewerActionInvokerListener::OnClose(CloseResult& close_result, ActionInvoker::Caller& /*caller*/)
 {
-    if( caller.IsFromWebView(m_actionInvokerCaller) )
+    if( std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) )
     {
-        AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_WINDOW_HTML_VIEWER);
-        return true;
+        ASSERT(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr);
+        auto action_invoker_exception = std::move(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result));
+        ErrorMessage::PostMessageForDisplay(ExceptionHolder::GetMessageToDisplay(*action_invoker_exception));
     }
 
-    return false;
+    AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_WINDOW_HTML_VIEWER);
+
+    return true;
 }
 
 

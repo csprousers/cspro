@@ -1,7 +1,179 @@
 ﻿#include "StdAfx.h"
 #include "DateTime.h"
-#include "Special.h"
 #include <chrono>
+
+
+// because time_t is 64-bits on Windows and 32-bits on Android,
+// the cross-platform int64_t will be used instead of time_t
+static_assert(sizeof(time_t) <= sizeof(int64_t));
+
+namespace portable
+{
+#ifdef WIN32
+    inline tm* gmtime(const int64_t* const time)    { return ::gmtime(time); }
+    inline tm* localtime(const int64_t* const time) { return ::localtime(time); }
+#elif defined(ANDROID) || defined(WASM)
+    inline time_t get_time(const int64_t* const time) { ASSERT(time != nullptr); return static_cast<time_t>(*time); }
+    inline tm* gmtime(const int64_t* const time)      { const time_t t = get_time(time); return ::gmtime(&t); }
+    inline tm* localtime(const int64_t* const time)   { const time_t t = get_time(time); return ::localtime(&t); }
+#endif
+}
+
+
+const tm& DateTime::UtcTm(const int64_t time)
+{
+    const tm* const tm = portable::gmtime(&time);
+    ASSERT(tm != nullptr);
+    return *tm;
+}
+
+
+const tm& DateTime::LocalTm(const int64_t time)
+{
+    const tm* const tm = portable::localtime(&time);
+    ASSERT(tm != nullptr);
+    return *tm;
+}
+
+
+tm DateTime::ToTm(const Components& components)
+{
+    tm tm;
+    tm.tm_year = YearToTm(components.year);
+    tm.tm_mon = MonthToTm(components.month);
+    tm.tm_mday = components.day;
+    tm.tm_hour = components.hour;
+    tm.tm_min = components.minute;
+    tm.tm_sec = components.second;
+    return tm;
+}
+
+
+tm DateTime::ToTm(int yyyymmdd, int hhmmss)
+{
+    tm tm;
+
+    tm.tm_mday = yyyymmdd % 100;
+    yyyymmdd /= 100;
+    tm.tm_mon = MonthToTm(yyyymmdd % 100);
+    tm.tm_year = YearToTm(yyyymmdd / 100);
+
+    tm.tm_sec = hhmmss % 100;
+    hhmmss /= 100;
+    tm.tm_min = hhmmss % 100;
+    tm.tm_hour = hhmmss / 100;
+
+    return tm;
+}
+
+
+std::string DateTime::LocalDateTimeString(const int64_t time, const cs::string_sz formatter/* = "%Y-%m-%d %H:%M:%S"*/)
+{
+    constexpr size_t BufferSize = 30;
+    std::string text(BufferSize, '\0');
+
+    const tm& tm = LocalTm(time);
+    const size_t length = std::strftime(text.data(), BufferSize, formatter.c_str(), &tm);
+
+    ASSERT(length > 0);
+    text.resize(length);
+
+    return text;
+}
+
+
+std::string DateTime::LocalDateString(const int64_t time, const bool use_abbreviated_month/* = true*/)
+{
+    return LocalDateTimeString(time, use_abbreviated_month ? "%b %d, %Y" :
+                                                             "%B %d, %Y");
+}
+
+
+std::string DateTime::LocalTimeString()
+{
+    const tm& tm = LocalTm(Now());
+    return FormatText("%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+}
+
+
+DateTime::Components DateTime::TimeToComponents(const tm& tm)
+{
+    return Components
+    {
+        TmToYear(tm),
+        TmToMonth(tm),
+        tm.tm_mday,
+        tm.tm_hour,
+        tm.tm_min,
+        tm.tm_sec
+    };
+}
+
+
+DateTime::Components DateTime::TimeToComponents(const int64_t time, const bool adjust_to_local_time/* = false*/)
+{
+    const tm* const tm = adjust_to_local_time ? portable::localtime(&time) :
+                                                portable::gmtime(&time);
+    ASSERT(tm != nullptr);
+
+    return TimeToComponents(*tm);
+}
+
+
+int DateTime::TimeToYYYYMMDD(const Components& components)
+{
+    return components.year * 10000 +
+           components.month * 100 +
+           components.day;
+}
+
+
+int DateTime::TimeToYYMMDD(const Components& components)
+{
+    return ( components.year % 100 ) * 10000 +
+           components.month * 100 +
+           components.day;
+}
+
+
+int DateTime::TimeToHHMMSS(const Components& components)
+{
+    return components.hour * 10000 +
+           components.minute * 100 +
+           components.second;
+}
+
+
+int64_t DateTime::TimeToYYYYMMDDHHMMSS(const Components& components)
+{
+    return static_cast<int64_t>(TimeToYYYYMMDD(components)) * 1000000 +
+           TimeToHHMMSS(components);
+}
+
+
+std::string DateTime::TimeToRFC3339(const int64_t time)
+{
+    const Components components = TimeToComponents(time, false);
+
+    return FormatText("%04d-%02d-%02dT%02d:%02d:%02dZ",
+                      components.year, components.month, components.day,
+                      components.hour, components.minute, components.second);
+}
+
+
+int64_t DateTime::CreateTime(tm tm, const bool adjust_to_local_time/* = false*/)
+{
+    if( adjust_to_local_time )
+    {
+        tm.tm_isdst = -1;
+        return mktime(&tm);
+    }
+
+    else
+    {
+        return _mkgmtime(&tm);
+    }
+}
 
 
 template<typename T/* = double*/>
@@ -11,13 +183,13 @@ T GetTimestamp()
 
     if constexpr(std::is_same_v<T, double>)
     {
-        milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+        const milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
         return static_cast<T>(ms.count()) / 1000;
     }
 
     else
     {
-        seconds s = duration_cast<seconds>(system_clock::now().time_since_epoch());
+        const seconds s = duration_cast<seconds>(system_clock::now().time_since_epoch());
         return static_cast<T>(s.count());
     }
 }
@@ -26,27 +198,26 @@ template CLASS_DECL_ZTOOLSO double GetTimestamp();
 template CLASS_DECL_ZTOOLSO int64_t GetTimestamp();
 
 
-template<typename T/* = std::string*/>
-T FormatTimestamp(double timestamp, const std::string& formatter)
+std::string FormatTimestamp(const double timestamp, const std::string& formatter/* = "%c"*/)
 {
-    constexpr std::string_view ValidFormatters = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
-    constexpr std::string_view InvalidFormatterText = "<invalid formatter>";
+    constexpr std::string_view ValidFormatters_sv = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
+    constexpr std::string_view InvalidFormatterText_sv = "<invalid formatter>";
 
     // ensure that the formatting options are all valid, with an optimization for %c, which will
     // be used the most frequently (by the Paradata Viewer)
     if( formatter != "%c" )
     {
-        auto formatter_end = formatter.cend();
+        const auto formatter_end = formatter.cend();
 
         for( auto formatter_itr = formatter.cbegin(); formatter_itr != formatter_end; ++formatter_itr )
         {
             // the next character must be in the valid formatters
-            if( *formatter_itr == '%' ) 
+            if( *formatter_itr == '%' )
             {
                 if( ++formatter_itr == formatter_end ||
-                    ValidFormatters.find(*formatter_itr) == std::string_view::npos )
+                    ValidFormatters_sv.find(*formatter_itr) == std::string_view::npos )
                 {
-                    return UTF8Convert::GetString<T>(InvalidFormatterText);
+                    return std::string(InvalidFormatterText_sv);
                 }
             }
         }
@@ -55,20 +226,86 @@ T FormatTimestamp(double timestamp, const std::string& formatter)
     constexpr int BufferSize = 256;
     std::string buffer(BufferSize, '\0');
 
-    time_t tm = static_cast<time_t>(timestamp);
-    std::tm* local_time = localtime(&tm);
+    const time_t time = static_cast<time_t>(timestamp);
+    tm* const local_time = localtime(&time);
 
     if( local_time == nullptr )
-        return T();
+        return std::string();
 
-    int string_length = strftime(buffer.data(), buffer.size(), formatter.c_str(), local_time);
+    const size_t string_length = std::strftime(buffer.data(), buffer.size(), formatter.c_str(), local_time);
     buffer.resize(string_length);
 
-    return UTF8Convert::GetString<T>(std::move(buffer));
+    return buffer;
 }
 
-template CLASS_DECL_ZTOOLSO std::string FormatTimestamp(double timestamp, const std::string& formatter);
-template CLASS_DECL_ZTOOLSO std::wstring FormatTimestamp(double timestamp, const std::string& formatter);
+
+std::string GetElapsedTimeTextHHMMSS(int elapsed_seconds)
+{
+    ASSERT(elapsed_seconds >= 0);
+
+    const int seconds = elapsed_seconds % 60;
+    elapsed_seconds /= 60;
+
+    return FormatText("%02d:%02d:%02d", elapsed_seconds / 60,
+                                        elapsed_seconds % 60,
+                                        seconds);
+}
+
+
+std::string GetElapsedTimeText(const int64_t start_timestamp, const int64_t end_timestamp)
+{
+    const int elapsed_seconds = static_cast<int>(end_timestamp - start_timestamp);
+    ASSERT(elapsed_seconds >= 0);
+
+    return ( elapsed_seconds < 60 ) ? FormatText("%d second%s", elapsed_seconds, PluralizeWord(elapsed_seconds)) :
+                                      FormatText("%d:%02d minutes", elapsed_seconds / 60, elapsed_seconds % 60);
+}
+
+
+std::string GetTimeAgo(const double timestamp)
+{
+    const double seconds_elapsed = std::max(GetTimestamp() - timestamp, 0.0);
+    double current_threshold = 1;
+    std::string time_ago;
+
+    auto format_time_ago = [&](const double new_multiplier, const char* name, const char* single_name = nullptr)
+    {
+        const double new_threshold = new_multiplier * current_threshold;
+
+        if( seconds_elapsed < new_threshold )
+        {
+            const int units = static_cast<int>(seconds_elapsed / current_threshold);
+
+            if( units == 1 )
+            {
+                time_ago = ( single_name != nullptr ) ? single_name :
+                                                        FormatText("a %s ago", name);
+            }
+
+            else
+            {
+                time_ago = FormatText("%d %ss ago", units, name);
+            }
+
+            return true;
+        }
+
+        else
+        {
+            current_threshold = new_threshold;
+            return false;
+        }
+    };
+
+    format_time_ago(60, "second") ||
+    format_time_ago(60, "minute") ||
+    format_time_ago(24, "hour", "an hour ago") ||
+    format_time_ago(365.25 / 12, "day", "yesterday") ||
+    format_time_ago(12, "month") ||
+    format_time_ago(100000, "year");
+
+    return time_ago;
+}
 
 
 long GetUtcOffset()
@@ -86,106 +323,78 @@ long GetUtcOffset()
 }
 
 
-struct tm GetLocalTime()
+std::optional<uint64_t> FormatDate(std::string_view format_sv, const int year, const int month, const int day)
 {
-    struct tm tp;
-    time_t t = time(&t);
-    memcpy(&tp, localtime(&t), sizeof(tp));
-    return tp;
-}
+    std::optional<uint64_t> date;
 
-
-void ReadableTimeToTm(std::tm* ptm,int iYYYYMMDD,int iHHMMSS)
-{
-    memset(ptm,0,sizeof(tm));
-    ptm->tm_year = DateHelper::GetYYYY(iYYYYMMDD) - 1900;
-    ptm->tm_mon = DateHelper::GetMM(iYYYYMMDD) - 1;
-    ptm->tm_mday = DateHelper::GetDD(iYYYYMMDD);
-    ptm->tm_hour = iHHMMSS / 10000;
-    ptm->tm_min = ( iHHMMSS / 100 ) % 100;
-    ptm->tm_sec = iHHMMSS % 100;
-}
-
-
-void TmToReadableTime(const std::tm* ptm,int* pYear,int* pMonth,int* pDay,int* pHour,int* pMinute,int* pSecond)
-{
-#define TmToReadableTime_Assign(pValue,iAssignedValue) { if( pValue != nullptr ) *pValue = ( iAssignedValue ); }
-
-    TmToReadableTime_Assign(pYear,ptm->tm_year + 1900);
-    TmToReadableTime_Assign(pMonth,ptm->tm_mon + 1);
-    TmToReadableTime_Assign(pDay,ptm->tm_mday);
-    TmToReadableTime_Assign(pHour,ptm->tm_hour);
-    TmToReadableTime_Assign(pMinute,ptm->tm_min);
-    TmToReadableTime_Assign(pSecond,ptm->tm_sec);
-}
-
-
-double FormatDateToDouble(CString csFormat,int iYear,int iMonth,int iDay)
-{
-    double dRet = 0;
-    bool bHadEntry = false;
-
-    for( int i = 0; i < csFormat.GetLength(); )
+    while( format_sv.length() >= 2 )
     {
-        int iValue = -1;
-        int iTypeWidth = 2;
+        const int first_ch = std::toupper(format_sv.front());
 
-        if( ( ( i + 4 ) <= csFormat.GetLength() ) && ( csFormat.Mid(i,4).CompareNoCase(_T("YYYY")) == 0 ) )
+        if( first_ch != std::toupper(format_sv[1]) )
+            return std::nullopt;
+
+        auto add_value = [&](const int value, const int value_width)
         {
-            iValue = iYear;
-            iTypeWidth = 4;
-        }
+            ASSERT(value_width == 2 || value_width == 4);
 
-        else if( ( i + 2 ) <= csFormat.GetLength() )
-        {
-            CString csType = csFormat.Mid(i,2);
-
-            if( csType.CompareNoCase(_T("YY")) == 0 )
+            if( date.has_value() )
             {
-                iValue = ( iYear % 100 );
+                *date = *date * ( ( value_width == 2 ) ? 100 : 1000 ) + value;
             }
 
-            else if( csType.CompareNoCase(_T("MM")) == 0 )
+            else
             {
-                iValue = iMonth;
+                date = value;
             }
 
-            else if( csType.CompareNoCase(_T("DD")) == 0 )
-            {
-                iValue = iDay;
-            }
-        }
+            format_sv = format_sv.substr(value_width);
+        };
 
-        if( iValue < 0 )
+        switch( first_ch )
         {
-            dRet = DEFAULT;
-            break;
+            case 'Y':
+                SO::StartsWithNoCase(format_sv.substr(2, 2), "YY") ? add_value(year, 4) :
+                                                                     add_value(year % 100, 2);
+                break;
+
+            case 'M':
+                add_value(month, 2);
+                break;
+
+            case 'D':
+                add_value(day, 2);
+                break;
+
+            default:
+                return std::nullopt;
         }
-
-        if( i > 0 )
-            dRet *= pow(10,iTypeWidth);
-
-        dRet += iValue;
-        bHadEntry = true;
-        i += iTypeWidth;
     }
 
-    if( !bHadEntry )
-        dRet = DEFAULT;
+    // there should be no remaining formats
+    if( !format_sv.empty() )
+        date.reset();
 
-    return dRet;
+    return date;
+}
+
+
+std::optional<uint64_t> FormatDate(const std::string_view format_sv, const DateTime::Components& date_time_components)
+{
+    return FormatDate(format_sv, date_time_components.year, date_time_components.month, date_time_components.day);
 }
 
 
 namespace DateHelper
 {
-    const int DaysPerMonth[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    constexpr int DaysPerMonth[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     int GetDaysInMonth(int year, int month)
     {
         ASSERT(month >= 1 && month <= 12);
 
-        return ( month == 2 && IsLeapYear(year) ) ? 29 : DaysPerMonth[month - 1];
+        return ( month == 2 && IsLeapYear(year) ) ? 29 :
+                                                    DaysPerMonth[month - 1];
     }
 
     bool IsValid(int year_month_day)

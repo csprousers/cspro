@@ -2,48 +2,24 @@
 #include "SyncObexHandler.h"
 #include "ApplicationPackageManager.h"
 #include "BluetoothChunk.h"
-#include "ConnectResponse.h"
-#include "IDataRepositoryRetriever.h"
 #include "JsonConverter.h"
-#include "SyncCustomHeaders.h"
-#include "SyncException.h"
-#include "SyncLogCaseConstructionReporter.h"
-#include "SyncRequest.h"
+#include "SyncMessage.h"
 #include <zToolsO/base64.h>
+#include <zToolsO/SpanHelpers.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/TemporaryFile.h>
-#include <zUtilO/Versioning.h>
-#include <zZipo/IZip.h>
-#include <zZipo/ZipUtility.h>
+#include <zNetwork/SyncCustomHeaders.h>
 #include <zCaseO/Case.h>
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepositoryTransaction.h>
 #include <zDataO/ISyncableDataRepository.h>
+#include <zDataO/SyncBinaryDataUploadManager.h>
+#include <zDataO/SyncHistoryEntry.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
-#include <easyloggingwrapper.h>
-#include <fstream>
-#include <sstream>
-#include <utility>
 
 
-namespace {
-
-    JsonConverter jsonConverter;
-
-    const char* directionToString(SyncDirection d)
-    {
-        switch (d) {
-        case SyncDirection::Put:
-            return "PUT";
-        case SyncDirection::Get:
-            return "GET";
-        case SyncDirection::Both:
-            return "BOTH";
-        }
-        return "INVALID";
-    }
-
+namespace
+{
     // Check if child path is contained inside parentPath or one of its
     // descendants. Assumes that both paths are relative and that
     // parentPath is canonical.
@@ -93,33 +69,10 @@ namespace {
         return streamSize;
     }
 
-    float GetClientCSProVersion(const HeaderList& headers)
-    {
-        CString userAgent = headers.value("User-Agent");
-        const CString userAgentHeaderStart("CSPro sync client/");
-        if (userAgent.Left(userAgentHeaderStart.GetLength()) == userAgentHeaderStart) {
-            //version string will be a detailed version string of CSPro without the prefix like 7.7.3
-            std::string versionString = UTF8Convert::WideToUTF8(userAgent.Mid(userAgentHeaderStart.GetLength()));
-            std::regex  pattern{R"(\d+\.?\d+)"};
-            std::smatch matches;
-            //convert the major and minor version to decimal (do not include the patch release)
-            if (std::regex_search(versionString, matches, pattern)) {
-                return (float)atod(UTF8Convert::UTF8ToWide(matches[0].str()));
-            }
-        }
-        return 0.0f;
-    }
-
-    bool UseCSPro74Compatability(const HeaderList& headers)
-    {
-        return GetClientCSProVersion(headers) <= 7.5;
-    }
-
     /// <summary>Obex resource for a string constant</summary>
-    class StringResource : public IObexResource {
-
+    class StringResource : public IObexResource
+    {
     public:
-
         StringResource(const std::string& s, HeaderList response_headers = HeaderList())
             : m_size(s.size()),
               m_stream(s),
@@ -169,9 +122,9 @@ namespace {
     };
 
     /// <summary>Obex resource for a getting a file</summary>
-    class FileReadResource : public IObexResource {
+    class FileReadResource : public IObexResource
+    {
     public:
-
         explicit FileReadResource(const CString& filename, const HeaderList& response_headers = HeaderList())
             : m_filename(filename),
               m_responseHeaders(response_headers)
@@ -187,10 +140,10 @@ namespace {
         {
             if (!m_fileStream.is_open()) {
                 m_fileStream.open(m_filename, std::ifstream::in | std::ifstream::binary);
-                CLOG(INFO, "sync") << "FileGetResource: open " << UTF8Convert::WideToUTF8(m_filename);
+                SYNCLOG_INFO << "FileGetResource: open " << UTF8_TODO::GetUtf8(m_filename);
             }
 
-            CLOG(INFO, "sync") << "FileGetResource: openForReading";
+            SYNCLOG_INFO << "FileGetResource: openForReading";
 
             if (!m_fileStream) {
                 return OBEX_FORBIDDEN;
@@ -198,12 +151,12 @@ namespace {
 
             std::string chunkString;
             bool isLastFileChunk = readFileChunk(chunkString);
-            CLOG(INFO, "sync") << "FileGetResource: sending " << chunkString.size();
+            SYNCLOG_INFO << "FileGetResource: sending " << chunkString.size();
             compress(chunkString);
-            CLOG(INFO, "sync") << "FileGetResource: compressed " << chunkString.size();
+            SYNCLOG_INFO << "FileGetResource: compressed " << chunkString.size();
             std::istringstream tempChunkStream(chunkString);
             m_chunkStream.swap(tempChunkStream);
-            CLOG(INFO, "sync") << "isLastFileChunk " << isLastFileChunk;
+            SYNCLOG_INFO << "isLastFileChunk " << isLastFileChunk;
 
             return isLastFileChunk ? OBEX_IS_LAST_FILE_CHUNK : OBEX_OK;
         }
@@ -234,11 +187,10 @@ namespace {
         }
 
     private:
-
         bool readFileChunk(std::string& chunkString)
         {
             bool isLastFileChunk = false;
-            const std::vector<char>::size_type bufferSize = BluetoothFileChunk::size;
+            const size_t bufferSize = BluetoothDataChunk::FileChunkSize;
             std::streamsize chunkSize = bufferSize;
             std::vector<char> chunk(bufferSize, 0);
 
@@ -258,8 +210,8 @@ namespace {
 
         void compress(std::string& data)
         {
-            if (ZipUtility::compression(data)) {
-                CLOG(ERROR, "sync") << "Compression failed";
+            if (!ZLib::Deflate(data)) {
+                SYNCLOG_ERROR << "Compression failed";
                 throw SyncError(100138);
             }
         }
@@ -274,16 +226,17 @@ namespace {
     };
 
     /// <summary>Obex file resource for use with temp files. Deletes the file when done reading.</summary>
-    class TemporaryFileReadResource : public FileReadResource {
+    class TemporaryFileReadResource : public FileReadResource
+    {
     public:
-        explicit TemporaryFileReadResource(const CString& filename)
-        : FileReadResource(filename)
-        {}
-
-        virtual ~TemporaryFileReadResource()
+        explicit TemporaryFileReadResource(TemporaryFile temporary_file)
+            :   FileReadResource(UTF8_TODO::GetCString(temporary_file.GetPath())),
+                m_temporaryFile(std::move(temporary_file))
         {
-            PortableFunctions::FileDelete(m_filename);
         }
+
+    private:
+        TemporaryFile m_temporaryFile;
     };
 
     /// <summary>Obex resource for a putting a file</summary>
@@ -302,8 +255,8 @@ namespace {
                 return OBEX_OK;
             }
             else {
-                m_tempFile = std::make_unique<TemporaryFile>(PortableFunctions::PathGetDirectory<CString>(m_filename));
-                m_fileStream.open(m_tempFile->GetPath().c_str(), std::ofstream::out | std::ofstream::app | std::ofstream::binary);
+                m_tempFile = std::make_unique<TemporaryFile>(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_filename)));
+                m_fileStream.open(UTF8_TODO::GetWide(m_tempFile->GetPath()).c_str(), std::ofstream::out | std::ofstream::app | std::ofstream::binary);
                 return !m_fileStream ? OBEX_FORBIDDEN : OBEX_OK;
             }
         }
@@ -318,7 +271,7 @@ namespace {
         ObexResponseCode close() override
         {
             m_fileStream.close();
-            if (m_tempFile->Rename(CS2WS(m_filename)))
+            if (m_tempFile->Rename_noexcept(UTF8_TODO::GetUtf8(m_filename)))
                 return OBEX_OK;
             else
                 return OBEX_FORBIDDEN;
@@ -352,9 +305,9 @@ namespace {
     };
 
     /// <summary>Obex resource for a syncing (GET) a dictionary</summary>
-    class DictionaryReadResource : public IObexResource {
+    class DictionaryReadResource : public IObexResource
+    {
     public:
-
         DictionaryReadResource(ISyncableDataRepository* pRepo, HeaderList requestHeaders) :
             m_pRepo(pRepo),
             m_requestHeaders(std::move(requestHeaders))
@@ -405,15 +358,14 @@ namespace {
         }
 
     private:
-
         ObexResponseCode checkIfMatchHeader()
         {
             m_lastSyncRev = -1;
-            CString ifMatch = m_requestHeaders.value(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER);
+            CString ifMatch = UTF8_TODO::GetCString(m_requestHeaders.GetValue(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER));
             if (!ifMatch.IsEmpty()) {
-                int serverRevNum = _ttoi((LPCTSTR) ifMatch);
-                if (!m_pRepo->IsValidFileRevision(serverRevNum)) {
-                    CLOG(INFO, "sync") << "Revision " << serverRevNum << " not found. Need to do a full sync";
+                int serverRevNum = _ttoi(ifMatch.GetString());
+                if (!m_pRepo->IsValidClientRevision(serverRevNum)) {
+                    SYNCLOG_INFO << "Revision " << serverRevNum << " not found. Need to do a full sync";
                     return OBEX_PRECONDITION_FAILED;
                 }
                 m_lastSyncRev = serverRevNum;
@@ -424,120 +376,113 @@ namespace {
 
         ObexResponseCode performSync()
         {
-            CString remoteDeviceId = m_requestHeaders.value(SyncCustomHeaders::DEVICE_ID_HEADER);
-            if (remoteDeviceId.IsEmpty())
+            DeviceId remoteDeviceId = m_requestHeaders.GetValue(SyncCustomHeaders::DEVICE_ID_HEADER);
+            if (remoteDeviceId.empty())
                 return OBEX_BAD_REQUEST;
 
-            CString universe = m_requestHeaders.value(SyncCustomHeaders::UNIVERSE_HEADER);
-            CString startAfter = m_requestHeaders.value(SyncCustomHeaders::START_AFTER_HEADER);
-            CString rangeCount = m_requestHeaders.value(SyncCustomHeaders::RANGE_COUNT_HEADER);
-            CString excludeRevisionsString = m_requestHeaders.value(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER);
-            std::vector<std::wstring> excludeRevisions = SO::SplitString(excludeRevisionsString, ',');
+            const std::string universe = m_requestHeaders.GetValue(SyncCustomHeaders::UNIVERSE_HEADER);
+            const std::string startAfter = m_requestHeaders.GetValue(SyncCustomHeaders::START_AFTER_HEADER);
+            const std::string rangeCount = m_requestHeaders.GetValue(SyncCustomHeaders::RANGE_COUNT_HEADER);
+            const std::vector<std::string> revisions_to_exclude = SO::SplitString(m_requestHeaders.GetValue(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER), ',');
 
-            CLOG(INFO, "sync") << "Get: remote device " << UTF8Convert::WideToUTF8(remoteDeviceId)
-                << ", universe \"" << UTF8Convert::WideToUTF8(universe) << "\""
-                << ", startAfter \"" << UTF8Convert::WideToUTF8(startAfter) << "\""
-                << ", count \"" << UTF8Convert::WideToUTF8(rangeCount) << "\"";
+            SYNCLOG_INFO << "Get: remote device " << remoteDeviceId
+                         << ", universe \"" << universe << "\""
+                         << ", startAfter \"" << startAfter << "\""
+                         << ", count \"" << rangeCount << "\"";
 
             if (m_lastSyncRev != -1) {
-                CLOG(INFO, "sync") << "Last synced file with this device at revision " << m_lastSyncRev;
-                SyncHistoryEntry lastSyncRev = m_pRepo->GetLastSyncForDevice(remoteDeviceId, SyncDirection::Put);
+                SYNCLOG_INFO << "Last synced file with this device at revision " << m_lastSyncRev;
+                const std::optional<SyncHistoryEntry> last_sync_revision = m_pRepo->GetLastSyncForDevice(remoteDeviceId, SyncDirection::Put);
                 bool clearBinarySyncHistory = true;
-                if (lastSyncRev.valid()) {
+                if (last_sync_revision.has_value()) {
                     clearBinarySyncHistory = false;
                     // only use the previous revision number if the universe and last case id are matching
-                    if (universe != lastSyncRev.getUniverse() || startAfter != lastSyncRev.getLastCaseUuid())
+                    if (universe != last_sync_revision->GetUniverse() || startAfter != last_sync_revision->GetLastCaseUuid())
                         clearBinarySyncHistory = true;
                 }
                 if (clearBinarySyncHistory) {
                     m_pRepo->ClearBinarySyncHistory(remoteDeviceId, m_lastSyncRev);
-                    CLOG(INFO, "sync") << "Revision not found. Clearing binary sync history for device: " << UTF8Convert::WideToUTF8(remoteDeviceId);
+                    SYNCLOG_INFO << "Revision not found. Clearing binary sync history for device: " << remoteDeviceId;
                 }
             } else {
-                m_pRepo->ClearBinarySyncHistory(remoteDeviceId);
-                CLOG(INFO, "sync") << "First time sync with this device";
+                SYNCLOG_INFO << "First time sync with this device (or no cases were previously sent)";
             }
 
             // Get max cases to send from count header or send all if header not present
-            int chunkSize = INT_MAX;
-            if (!rangeCount.IsEmpty()) {
-                chunkSize = _ttoi(rangeCount);
-                if (chunkSize <= 0) {
-                    CLOG(ERROR, "sync") << "Invalid range count header";
+            size_t chunk_size = SIZE_MAX;
+            if (!rangeCount.empty()) {
+                const int new_size = atoi(rangeCount.c_str());
+                if (new_size <= 0) {
+                    SYNCLOG_ERROR << "Invalid range count header";
                     return OBEX_BAD_REQUEST;
                 }
+                chunk_size = new_size;
             }
 
-            int nResponseCases, maxRevisionInChunk;
-            std::shared_ptr<CaseIterator> case_iterator = m_pRepo->GetCasesModifiedSinceRevisionIterator(
-                    m_lastSyncRev,
-                    startAfter,
-                    universe, chunkSize, &nResponseCases,
-                    &maxRevisionInChunk,
-                    CString(),
-                    excludeRevisions);
-
-            std::vector<std::pair<const BinaryCaseItem*, CaseItemIndex>> binary_case_items_in_chunk;
-            uint64_t totalBinaryItemsByteSize = 0;
-            std::set<std::string> excludeKeys;
+            const std::unique_ptr<SyncBinaryDataUploadManager> sync_binary_data_upload_manager =
+                ( m_pRepo->GetCaseAccess().GetCaseMetadata().UsesBinaryData() ) ? std::make_unique<SyncableDataRepositorySyncBinaryDataUploadManager>(*m_pRepo, remoteDeviceId) :
+                                                                                   nullptr;
+            size_t nResponseCases;
+            int maxRevisionInChunk;
+            std::unique_ptr<CaseIterator> case_iterator = m_pRepo->GetCasesModifiedSinceRevisionIterator(m_lastSyncRev, startAfter, universe, chunk_size,
+                                                                                                         &nResponseCases, &maxRevisionInChunk, std::nullopt, revisions_to_exclude);
 
             // read the cases in this chunk
             std::vector<std::shared_ptr<Case>> cases_in_chunk;
-            cases_in_chunk.emplace_back(m_pRepo->GetCaseAccess()->CreateCase());
 
-            while( case_iterator->NextCase(*cases_in_chunk.back()) ) {
-                const auto& currentCase = cases_in_chunk.back().get();
-                m_pRepo->GetBinaryCaseItemsModifiedSinceRevision(currentCase, binary_case_items_in_chunk, excludeKeys, totalBinaryItemsByteSize, remoteDeviceId);
-                cases_in_chunk.emplace_back(m_pRepo->GetCaseAccess()->CreateCase());
-                //process a subset of the chunk when the totalBinaryItemsByteSize exceeds a set limit
-                if (totalBinaryItemsByteSize > BluetoothFileChunk::size) {
-                    chunkSize = cases_in_chunk.size() - 1;
-                    //get the max revision number at this chunksize
-                    m_pRepo->GetCasesModifiedSinceRevisionIterator(
-                        m_lastSyncRev,
-                        startAfter,
-                        universe, chunkSize, &nResponseCases,
-                        &maxRevisionInChunk,
-                        CString(),
-                        excludeRevisions);
-                    CLOG(INFO, "sync") << "Binary items in the chunk exceeded the set limit of chunk byte content size. Sending a subchunk of cases: " << chunkSize << " cases";
+            while( true )
+            {
+                std::shared_ptr<Case> data_case = m_pRepo->GetCaseAccess().CreateCase();
+
+                if( !case_iterator->NextCase(*data_case) )
                     break;
+
+                cases_in_chunk.emplace_back(data_case);
+
+                if( sync_binary_data_upload_manager != nullptr )
+                {
+                    sync_binary_data_upload_manager->AnalyzeCaseBinaryData(*data_case);
+
+                    // process a subset of the chunk when the total binary bytes exceeds a set limit
+                    if( sync_binary_data_upload_manager->GetBinaryDataSizeOfChunk() > BluetoothDataChunk::FileChunkSize )
+                    {
+                        chunk_size = cases_in_chunk.size() - 1;
+
+                        // get the max revision number at this chunksize
+                        m_pRepo->GetCasesModifiedSinceRevisionIterator(m_lastSyncRev, startAfter, universe, chunk_size, &nResponseCases,
+                                                                       &maxRevisionInChunk, std::nullopt, revisions_to_exclude);
+                        SYNCLOG_INFO << "Binary items in the chunk exceeded the set limit of chunk byte content size. Sending a subchunk of cases: " << chunk_size << " cases";
+                        break;
+                    }
                 }
             }
 
-            cases_in_chunk.pop_back();
-            int casesThisChunk = std::min(chunkSize, nResponseCases);
+            const size_t casesThisChunk = std::min(chunk_size, nResponseCases);
 
 
-            CLOG(INFO, "sync") << "Sending " << casesThisChunk << "/" << nResponseCases << " cases";
+            SYNCLOG_INFO << "Sending " << casesThisChunk << "/" << nResponseCases << " cases";
 
-            CString etag;
-            etag.Format(_T("ETag: %d"), maxRevisionInChunk);
-            m_responseHeaders.push_back(etag);
-            CLOG(INFO, "sync") <<  UTF8Convert::WideToUTF8(etag);
+            std::string etag = FormatText("ETag: %d", maxRevisionInChunk);
+            SYNCLOG_INFO << etag;
+            m_responseHeaders.Add(std::move(etag));
 
-            if (!rangeCount.IsEmpty()) {
-                CString rangeCountResponse;
-                rangeCountResponse.Format(_T("%s: %d/%d"), (LPCTSTR) SyncCustomHeaders::RANGE_COUNT_HEADER, casesThisChunk, nResponseCases);
-                m_responseHeaders.push_back(rangeCountResponse);
-            }
+            if( !rangeCount.empty() )
+                m_responseHeaders.Add(SyncCustomHeaders::RANGE_COUNT_HEADER, FormatText("%d/%d", casesThisChunk, nResponseCases));
 
-            
-            std::string responseJson = jsonConverter.toJson(cases_in_chunk, UseCSPro74Compatability(m_requestHeaders));
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(m_pRepo->GetSharedCaseAccess(), m_requestHeaders);
 
-            if (binary_case_items_in_chunk.size() > 0) { //write the new binary json format only if cases have binary items
-                std::ostringstream binary_cases_json_stream;
-                JsonConverter converter;
-                //cases have binary content send the questionnaire data using binary format
-                converter.writeBinaryJson(binary_cases_json_stream, responseJson, binary_case_items_in_chunk);
-                responseJson = binary_cases_json_stream.str();
-            }
-            CLOG(INFO, "sync") << "Binary items in the chunk: " << binary_case_items_in_chunk.size();
+            const std::vector<Case*> cases_in_chunk_for_span = SpanHelpers::CreatePointersSpan(cases_in_chunk);
 
-            if (ZipUtility::compression(responseJson)) {
-                CLOG(ERROR, "sync") << "Compression failed";
+            std::string case_data = sync_case_serializer.GetSyncableCaseData(cases_in_chunk_for_span, sync_binary_data_upload_manager.get());
+
+            SYNCLOG_INFO << "Binary bytes in the chunk: " << ( ( sync_binary_data_upload_manager == nullptr ) ? 0 : sync_binary_data_upload_manager->GetBinaryDataSizeOfChunk() );
+
+            if( !ZLib::Deflate(case_data) )
+            {
+                SYNCLOG_ERROR << "Compression failed";
                 throw SyncError(100138);
             }
+
             //previous versions of sync did not have a record of the cases sent from the bluetooth server
             //the client kept track of what it received. However, with binary items sync
             //the server needs to keep track of the binary items sent from a get request from the client to avoid
@@ -548,17 +493,17 @@ namespace {
             //use the remote client id as the "server" device id
             //direction is put from the bluetooth server to the remote device
             //clientRevision stores the version that the server sent to the client. Leaving the server version as blank as it not used.
-            const bool bUpdateOnConflict = false;
-            m_pRepo->StartSync(remoteDeviceId, CString(), CString(), SyncDirection::Put, universe, bUpdateOnConflict);
-            m_pRepo->MarkCasesSentToRemote(cases_in_chunk, binary_case_items_in_chunk, CString(), maxRevisionInChunk);
-            m_pResponseJsonStream.str(responseJson);
+            constexpr bool UseRemoteCaseOnConflict = false; // this flag's value will not actually be used because we are only putting cases
+            m_pRepo->StartSync(remoteDeviceId, std::string(), std::string(), SyncDirection::Put, universe, UseRemoteCaseOnConflict);
+            m_pRepo->MarkCasesSentToRemote(cases_in_chunk_for_span, sync_binary_data_upload_manager.get(), SO::Empty_string, maxRevisionInChunk);
+            m_pResponseJsonStream.str(case_data);
 
-            ObexResponseCode response = (casesThisChunk >= nResponseCases) ? OBEX_OK : OBEX_PARTIAL_CONTENT;
-            //set the sync history to revision complete when all cases are sent 
-            if(response == OBEX_OK)
+            const ObexResponseCode response = ( casesThisChunk >= nResponseCases ) ? OBEX_OK : OBEX_PARTIAL_CONTENT;
+            //set the sync history to revision complete when all cases are sent
+            if( response == OBEX_OK )
                 m_pRepo->EndSync();
 
-            CLOG(INFO, "sync") << "Response: " << UTF8Convert::WideToUTF8(ObexResponseCodeToString(response));
+            SYNCLOG_INFO << "Response: " << ObexResponseCodeToString(response);
 
             return response;
         }
@@ -575,11 +520,11 @@ namespace {
     class DictionaryWriteResource : public IObexResource
     {
     public:
-
         DictionaryWriteResource(ISyncableDataRepository* pRepo, HeaderList requestHeaders) :
             m_pRepo(pRepo),
             m_requestHeaders(std::move(requestHeaders))
-        {}
+        {
+        }
 
         ObexResponseCode openForWriting() override
         {
@@ -617,16 +562,15 @@ namespace {
         }
 
     private:
-
         ObexResponseCode checkIfMatchHeader()
         {
             m_lastSyncRev = -1;
-            CString ifMatch = m_requestHeaders.value(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER);
-            CString deviceId = m_requestHeaders.value(SyncCustomHeaders::DEVICE_ID_HEADER);
-            if (!ifMatch.IsEmpty()) {
-                int serverRevNum = _ttoi((LPCTSTR) ifMatch);
-                if (!m_pRepo->IsPreviousSync(serverRevNum, deviceId)) {
-                    CLOG(INFO, "sync") << "Revision " << serverRevNum << " not found. Need to do a full sync";
+            const std::string ifMatch = m_requestHeaders.GetValue(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER);
+            const DeviceId device_id = m_requestHeaders.GetValue(SyncCustomHeaders::DEVICE_ID_HEADER);
+            if (!ifMatch.empty()) {
+                const int serverRevNum = atoi(ifMatch.c_str());
+                if (!m_pRepo->IsPreviousSync(serverRevNum, device_id)) {
+                    SYNCLOG_INFO << "Revision " << serverRevNum << " not found. Need to do a full sync";
                     return OBEX_PRECONDITION_FAILED;
                 }
                 m_lastSyncRev = serverRevNum;
@@ -635,61 +579,57 @@ namespace {
             return OBEX_OK;
         }
 
-
         ObexResponseCode performSync()
         {
-            CString remoteDeviceId = m_requestHeaders.value(SyncCustomHeaders::DEVICE_ID_HEADER);
-            if (remoteDeviceId.IsEmpty())
+            DeviceId remoteDeviceId = m_requestHeaders.GetValue(SyncCustomHeaders::DEVICE_ID_HEADER);
+            if (remoteDeviceId.empty())
                 return OBEX_BAD_REQUEST;
-            CString universe = m_requestHeaders.value(SyncCustomHeaders::UNIVERSE_HEADER);
 
-            CLOG(INFO, "sync") << "Put: remote device " << UTF8Convert::WideToUTF8(remoteDeviceId)
-                << ", universe \"" << UTF8Convert::WideToUTF8(universe) << "\"";
-            std::string requestString = m_requestJsonStream.str();
+            const std::string universe = m_requestHeaders.GetValue(SyncCustomHeaders::UNIVERSE_HEADER);
+
+            SYNCLOG_INFO << "Put: remote device " << remoteDeviceId
+                         << ", universe \"" << universe << "\"";
+
+            const std::string requestString = m_requestJsonStream.str();
+
+            //Start sync and ensure that the repo has readwrite permissions on dictionaries
+            constexpr bool UseRemoteCaseOnConflict = true;
+            m_pRepo->StartSync(remoteDeviceId, "Bluetooth", std::string(), SyncDirection::Get, universe, UseRemoteCaseOnConflict);
+
             std::vector<std::shared_ptr<Case>> cases;
 
-            //Start sync and ensure that the repo has readwrite permissions on  dictionaries
-            const bool bUpdateOnConflict = true;
-            m_pRepo->StartSync(remoteDeviceId, _T("Bluetooth"), CString(), SyncDirection::Get,
-                universe, bUpdateOnConflict);
+            try
+            {
+                SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(m_pRepo->GetSharedCaseAccess(), m_requestHeaders);
 
-            try {
-                //check if binary sync and read binary sync items
-                std::istringstream iss;
-                bool isBinaryFormat = false;
-                if (jsonConverter.IsBinaryJson(requestString)) {
-                    isBinaryFormat = true;
-                    iss.str(requestString);
-                    requestString = jsonConverter.readCasesJsonFromBinary(iss);
-                }
-                cases = jsonConverter.caseListFromJson(requestString, *m_pRepo->GetCaseAccess(), std::make_shared<SyncLogCaseConstructionReporter>());
-                if (isBinaryFormat) {
-                    jsonConverter.readBinaryCaseItems(iss, cases);
-                }
+                cases = sync_case_serializer.ParseSyncableCaseData(requestString);
             }
-            catch (const InvalidJsonException& e) {
-                CLOG(ERROR, "sync") << "Failed to parse request JSON " << requestString;
-                CLOG(ERROR, "sync") << e.what();
+
+            catch( const std::exception& exception )
+            {
+                SYNCLOG_ERROR << "Failed to parse request cases data: " << requestString;
+                SYNCLOG_ERROR << exception.what();
                 return OBEX_BAD_REQUEST;
             }
 
             DataRepositoryTransaction transaction(*m_pRepo);
-            //TODO: Make cases observable
-            int thisSyncRev = m_pRepo->SyncCasesFromRemote(cases, CString());
-            m_pRepo->EndSync();
-            ISyncableDataRepository::SyncStats stats = m_pRepo->GetLastSyncStats();
 
-            CLOG(INFO, "sync") << "Received " << stats.numReceived << " cases. " << stats.numNewCasesNotInRepo
-                << " new cases, " << stats.numCasesNewerOnRemote << " updated, "
-                << stats.numCasesNewerInRepo << " ignored, " << stats.numConflicts
-                << " conflicts.";
+            //TODO: Make cases observable
+            const int thisSyncRev = m_pRepo->SyncCasesFromRemote(cases, std::string());
+            m_pRepo->EndSync();
+
+            const ISyncableDataRepository::SyncStats stats = m_pRepo->GetLastSyncStats();
+
+            SYNCLOG_INFO << "Received " << stats.cases_received << " cases. "
+                         << stats.cases_not_in_repository << " new cases, "
+                         << stats.cases_newer_on_remote << " updated, "
+                         << stats.cases_newer_in_repository << " ignored, "
+                         << stats.cases_with_conflicts << " conflicts.";
 
             // Add new rev for this sync
-            CString etag;
-            etag.Format(_T("ETag: %d"), thisSyncRev);
-            m_responseHeaders.push_back(etag);
-
-            CLOG(INFO, "sync") << UTF8Convert::WideToUTF8(etag);
+            std::string etag = FormatText("ETag: %d", thisSyncRev);
+            SYNCLOG_INFO << etag;
+            m_responseHeaders.Add(std::move(etag));
 
             return OBEX_OK;
         }
@@ -719,21 +659,22 @@ namespace {
     };
 }
 
-SyncObexHandler::SyncObexHandler(DeviceId deviceId, IDataRepositoryRetriever* pRepoRetriever,
-    CString fileRoot, ISyncEngineFunctionCaller* sync_engine_function_caller)
-    : m_deviceId(deviceId),
-      m_pDataRepositoryRetriever(pRepoRetriever),
-      m_rootPath(PortableFunctions::PathEnsureTrailingSlash(PortableFunctions::PathToNativeSlash(fileRoot))),
-      m_syncEngineFunctionCaller(sync_engine_function_caller)
+
+SyncObexHandler::SyncObexHandler(DeviceId device_id, std::string root_directory, std::unique_ptr<ISyncObexEngineAccessor> sync_obex_engine_accessor)
+    :   m_deviceId(std::move(device_id)),
+        m_rootDirectory(PortableFunctions::PathEnsureTrailingSlash(PortableFunctions::PathToNativeSlash(std::move(root_directory)))),
+        m_syncObexEngineAccessor(std::move(sync_obex_engine_accessor))
 {
-    CLOG(INFO, "sync") << "Creating Bluetooth Server handler";
-    CLOG(INFO, "sync") << "Device id: " << UTF8Convert::WideToUTF8(m_deviceId);
-    CLOG(INFO, "sync") << "Root folder: " << UTF8Convert::WideToUTF8(m_rootPath);
+    SYNCLOG_INFO << "Creating Bluetooth Server handler";
+    SYNCLOG_INFO << "Device id: " << m_deviceId;
+    SYNCLOG_INFO << "Root folder: " << m_rootDirectory;
 }
+
 
 SyncObexHandler::~SyncObexHandler()
 {
 }
+
 
 ObexResponseCode SyncObexHandler::onConnect(const char* target, int sizeBytes)
 {
@@ -744,40 +685,43 @@ ObexResponseCode SyncObexHandler::onConnect(const char* target, int sizeBytes)
         return OBEX_SERVICE_UNAVAILABLE;
 }
 
+
 ObexResponseCode SyncObexHandler::onDisconnect()
 {
     return OBEX_OK;
 }
+
 
 ObexResponseCode SyncObexHandler::onGet(CString type, CString name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
 {
     if (name.IsEmpty()) {
         // Empty name in Obex means get the default resource which for us
         // will be the server info sent in connect response.
-        assert(resource.get() == nullptr);
+        ASSERT(resource.get() == nullptr);
         std::regex  pattern{ R"(\d+\.?\d+)" };
         std::smatch matches;
         float apiVersion = 0.0f;
         //convert the major and minor version to decimal (do not include the patch release)
-        std::string versionString = UTF8Convert::WideToUTF8(Versioning::GetVersionString());
-        if (std::regex_search(versionString, matches, pattern)) {
-            apiVersion = (float)atod(UTF8Convert::UTF8ToWide(matches[0].str()));
+        const std::string version_string = Versioning::GetVersionString();
+        if (std::regex_search(version_string, matches, pattern)) {
+            apiVersion = (float)atod(matches[0].str());
         }
-        ConnectResponse connectResponse(m_deviceId, CString("Bluetooth"), CString(), apiVersion);
-        std::string responseJson = jsonConverter.toJson(connectResponse);
-        resource = std::unique_ptr<IObexResource>(new StringResource(responseJson));
 
-        CLOG(INFO, "sync") << "Received connection";
+        const ConnectResponse connectResponse(m_deviceId, "Bluetooth", std::string(), apiVersion);
+        std::string responseJson = Json::ToJson(connectResponse);
+        resource = std::make_unique<StringResource>(responseJson);
+
+        SYNCLOG_INFO << "Received connection";
 
         return OBEX_OK;
     }
 
     if (type == OBEX_SYNC_DATA_MEDIA_TYPE) {
-        return handleSyncGet(CS2WS(name), requestHeaders, resource);
+        return handleSyncGet(UTF8_TODO::GetUtf8(name), requestHeaders, resource);
     } else if (type == OBEX_DIRECTORY_LISTING_MEDIA_TYPE) {
-        return handleDirectoryListing(name, resource);
+        return handleDirectoryListing(UTF8_TODO::GetUtf8(name), requestHeaders, resource);
     } else if (type == OBEX_SYNC_APP_MEDIA_TYPE) {
-        return handleSyncApp(name, requestHeaders, resource);
+        return handleSyncApp(UTF8_TODO::GetUtf8(name), requestHeaders, resource);
     } else if (type == OBEX_SYNC_MESSAGE_MEDIA_TYPE) {
         return handleSyncMessage(requestHeaders, resource);
     } else if (type == OBEX_SYNC_PARADATA_SYNC_HANDSHAKE) {
@@ -792,10 +736,11 @@ ObexResponseCode SyncObexHandler::onGet(CString type, CString name, const Header
     return OBEX_NOT_IMPLEMENTED;
 }
 
+
 ObexResponseCode SyncObexHandler::onPut(CString type, CString name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
 {
     if (type == OBEX_SYNC_DATA_MEDIA_TYPE) {
-        return handleSyncPut(CS2WS(name), requestHeaders, resource);
+        return handleSyncPut(UTF8_TODO::GetUtf8(name), requestHeaders, resource);
     } else if (type == OBEX_SYNC_PARADATA_SYNC_HANDSHAKE) {
         return handleSyncParadataStop(requestHeaders, resource);
     } else if (type == OBEX_SYNC_PARADATA_TYPE) {
@@ -808,61 +753,80 @@ ObexResponseCode SyncObexHandler::onPut(CString type, CString name, const Header
     return OBEX_NOT_IMPLEMENTED;
 }
 
-ObexResponseCode SyncObexHandler::handleSyncPut(const std::wstring& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
-{
-    assert(resource.get() == nullptr);
-    CLOG(INFO, "sync") << "Sync put " << UTF8Convert::WideToUTF8(dictionary_name);
 
-    DataRepository* pRepo = m_pDataRepositoryRetriever->get(dictionary_name);
+DataRepository* SyncObexHandler::FindDataRepository(const std::string& syncable_dictionary_name, const HeaderList& request_headers) const
+{
+    if( m_syncObexEngineAccessor == nullptr )
+        return nullptr;
+
+    std::string dictionary_name = request_headers.GetValue(SyncCustomHeaders::DICTIONARY_NAME);
+
+    // the dictionary name header does not exist when syncing with versions earlier than CSPro 8.1
+    return m_syncObexEngineAccessor->GetDataRepository(syncable_dictionary_name,
+                                                       dictionary_name.empty() ? syncable_dictionary_name : dictionary_name);
+}
+
+
+ObexResponseCode SyncObexHandler::handleSyncPut(const std::string& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
+{
+    ASSERT(resource.get() == nullptr);
+    SYNCLOG_INFO << "Sync put " << dictionary_name;
+
+    DataRepository* pRepo = FindDataRepository(dictionary_name, requestHeaders);
     if (pRepo == nullptr) {
-        CLOG(ERROR, "sync") << "Error: dictionary " << UTF8Convert::WideToUTF8(dictionary_name) << " not found in current application";
+        SYNCLOG_ERROR << "Error: dictionary " << dictionary_name << " not found in current application";
         return OBEX_NOT_FOUND;
     }
 
     ISyncableDataRepository* pSyncableRepo = pRepo->GetSyncableDataRepository();
 
     if (pSyncableRepo == nullptr) {
-        CLOG(ERROR, "sync") << "Error: dictionary " << UTF8Convert::WideToUTF8(dictionary_name) << " is not syncable";
+        SYNCLOG_ERROR << "Error: dictionary " << dictionary_name << " is not syncable";
         return OBEX_BAD_REQUEST;
     }
 
-    resource = std::unique_ptr<IObexResource>(new DictionaryWriteResource(pSyncableRepo, requestHeaders));
+    resource = std::make_unique<DictionaryWriteResource>(pSyncableRepo, requestHeaders);
     return OBEX_OK;
 }
 
-ObexResponseCode SyncObexHandler::handleSyncGet(const std::wstring& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
-{
-    assert(resource.get() == nullptr);
-    CLOG(INFO, "sync") << "Sync get " << UTF8Convert::WideToUTF8(dictionary_name);
 
-    DataRepository* pRepo = m_pDataRepositoryRetriever->get(dictionary_name);
+ObexResponseCode SyncObexHandler::handleSyncGet(const std::string& dictionary_name, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
+{
+    ASSERT(resource.get() == nullptr);
+    SYNCLOG_INFO << "Sync get " << dictionary_name;
+
+    DataRepository* pRepo = FindDataRepository(dictionary_name, requestHeaders);
     if (pRepo == nullptr) {
-        CLOG(ERROR, "sync") << "Error: dictionary " << UTF8Convert::WideToUTF8(dictionary_name) << " not found in current application";
+        SYNCLOG_ERROR << "Error: dictionary " << dictionary_name << " not found in current application";
         return OBEX_NOT_FOUND;
     }
 
     ISyncableDataRepository* pSyncableRepo = pRepo->GetSyncableDataRepository();
 
     if (pSyncableRepo == nullptr) {
-        CLOG(ERROR, "sync") << "Error: dictionary " << UTF8Convert::WideToUTF8(dictionary_name) << " is not syncable";
+        SYNCLOG_ERROR << "Error: dictionary " << dictionary_name << " is not syncable";
         return OBEX_BAD_REQUEST;
     }
 
-    resource = std::unique_ptr<IObexResource>(new DictionaryReadResource(pSyncableRepo, requestHeaders));
+    resource = std::make_unique<DictionaryReadResource>(pSyncableRepo, requestHeaders);
     return OBEX_OK;
 }
 
-ObexResponseCode SyncObexHandler::handleDirectoryListing(CString path, std::unique_ptr<IObexResource>& resource)
-{
-    assert(resource.get() == nullptr);
-    CLOG(INFO, "sync") << "Listing directory " << UTF8Convert::WideToUTF8(path);
 
-    CString fullDirectoryPath = PortableFunctions::PathAppendToPath(m_rootPath, PortableFunctions::PathToNativeSlash(path));
+ObexResponseCode SyncObexHandler::handleDirectoryListing(const std::string& path, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
+{
+    ASSERT(resource.get() == nullptr);
+    SYNCLOG_INFO << "Listing directory " << path;
+
+    // this header was not used until CSPro 8.1 so default to true
+    const bool request_file_md5s = ( requestHeaders.GetValue(SyncCustomHeaders::GET_FILE_MD5_HEADER) != Json::Text::Bool(false) );
+
+    CString fullDirectoryPath = UTF8_TODO::GetCString(Path::Combine(m_rootDirectory, PortableFunctions::PathToNativeSlash(path)));
     CString canonicalDirectoryPath;
     bool canonOk = PathCanonicalize(canonicalDirectoryPath.GetBuffer(MAX_PATH), fullDirectoryPath) == TRUE;
     canonicalDirectoryPath.ReleaseBuffer();
     if (!canonOk) {
-        CLOG(ERROR, "sync") << "Error: Invalid directory " << UTF8Convert::WideToUTF8(fullDirectoryPath);
+        SYNCLOG_ERROR << "Error: Invalid directory " << UTF8_TODO::GetUtf8(fullDirectoryPath);
         return OBEX_NOT_FOUND;
     }
 
@@ -872,16 +836,16 @@ ObexResponseCode SyncObexHandler::handleDirectoryListing(CString path, std::uniq
 #ifndef WIN_DESKTOP
     CString csentryPath;
     // Don't allow a GET that is outside both root and csentry paths
-    if (!isDescendantDirectory(m_rootPath, canonicalDirectoryPath)
-        && (!createCSEntryPath(m_rootPath, csentryPath) || !isDescendantDirectory(csentryPath, canonicalDirectoryPath))) {
-        CLOG(ERROR, "sync") << "Error: Directory " << UTF8Convert::WideToUTF8(canonicalDirectoryPath) << " is outside of both the project root directory "
-            << UTF8Convert::WideToUTF8(m_rootPath) << " and the csentry root directory " << UTF8Convert::WideToUTF8(csentryPath);
+    if (!isDescendantDirectory(UTF8_TODO::GetCString(m_rootDirectory), canonicalDirectoryPath)
+        && (!createCSEntryPath(UTF8_TODO::GetCString(m_rootDirectory), csentryPath) || !isDescendantDirectory(csentryPath, canonicalDirectoryPath))) {
+        SYNCLOG_ERROR << "Error: Directory " << UTF8_TODO::GetUtf8(canonicalDirectoryPath) << " is outside of both the project root directory "
+                      << m_rootDirectory << " and the csentry root directory " << UTF8_TODO::GetUtf8(csentryPath);
         return OBEX_FORBIDDEN;
     }
 #endif
 
     if (!PortableFunctions::FileIsDirectory(canonicalDirectoryPath)) {
-        CLOG(ERROR, "sync") << "Error: " << UTF8Convert::WideToUTF8(canonicalDirectoryPath) << " is a file not a directory";
+        SYNCLOG_ERROR << "Error: " << UTF8_TODO::GetUtf8(canonicalDirectoryPath) << " is a file not a directory";
         return OBEX_NOT_FOUND;
     }
 
@@ -889,28 +853,39 @@ ObexResponseCode SyncObexHandler::handleDirectoryListing(CString path, std::uniq
                                                             .GetPaths(canonicalDirectoryPath);
 
     // Store the relative path that when concatenated with the root path will construct the full path
-    CString pathFromRoot = PortableFunctions::PathToForwardSlash(path);
+    CString pathFromRoot = UTF8_TODO::GetCString(PortableFunctions::PathToForwardSlash(path));
     if (pathFromRoot.Left(2) != _T("./") && pathFromRoot.Left(3) != _T("../")) {
         pathFromRoot = PortableFunctions::PathAppendForwardSlashToPath<CString>(L"/", pathFromRoot);
     }
 
-    std::vector<FileInfo> listing;
-    for (const std::wstring& fullPath : aFileNames) {
-        CString filename = PortableFunctions::PathRemoveTrailingSlash<CString>(PortableFunctions::PathGetFilename(fullPath));
-        FileInfo::FileType type = PortableFunctions::FileIsDirectory(fullPath) ? FileInfo::FileType::Directory : FileInfo::FileType::File;
-        if (type == FileInfo::FileType::File) {
-            int64_t size = PortableFunctions::FileSize(fullPath);
-            listing.emplace_back(type, filename, pathFromRoot, size, time_t(0), PortableFunctions::FileMd5(fullPath));
-        } else {
-            listing.emplace_back(type, filename, pathFromRoot);
+    std::vector<FileInfo> directory_listing;
+
+    for( const std::wstring& fullPath : aFileNames )
+    {
+        std::string filename = PortableFunctions::PathRemoveTrailingSlash(PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(fullPath)));
+        const FileInfo::FileType type = PortableFunctions::FileIsDirectory(fullPath) ? FileInfo::FileType::Directory :
+                                                                                       FileInfo::FileType::File;
+
+        if( type == FileInfo::FileType::File )
+        {
+            directory_listing.emplace_back(type, std::move(filename), UTF8_TODO::GetUtf8(pathFromRoot),
+                                           PortableFunctions::FileSize(fullPath),
+                                           int64_t(0),
+                                           request_file_md5s ? PortableFunctions::FileMd5(fullPath) : std::string());
+        }
+
+        else
+        {
+            directory_listing.emplace_back(type, std::move(filename), UTF8_TODO::GetUtf8(pathFromRoot));
         }
     }
 
-    resource = std::unique_ptr<IObexResource>(new StringResource(jsonConverter.toJson(listing)));
-    CLOG(INFO, "sync") << "Found " << listing.size() << " files in directory " << UTF8Convert::WideToUTF8(canonicalDirectoryPath);
+    resource = std::make_unique<StringResource>(Json::ToJson(directory_listing));
+    SYNCLOG_INFO << "Found " << directory_listing.size() << " files in directory " << UTF8_TODO::GetUtf8(canonicalDirectoryPath);
 
     return OBEX_OK;
 }
+
 
 ObexResponseCode SyncObexHandler::handleFileGet(CString path, const HeaderList& requestHeaders, std::unique_ptr<IObexResource>& resource)
 {
@@ -919,42 +894,43 @@ ObexResponseCode SyncObexHandler::handleFileGet(CString path, const HeaderList& 
         return OBEX_OK;
     }
 
-    CString fullPath = PortableFunctions::PathAppendToPath(m_rootPath, PortableFunctions::PathToNativeSlash(path));
-    CLOG(INFO, "sync") << "Sending file " << UTF8Convert::WideToUTF8(fullPath);
+    CString fullPath = PortableFunctions::PathAppendToPath(UTF8_TODO::GetCString(m_rootDirectory), PortableFunctions::PathToNativeSlash(path));
+    SYNCLOG_INFO << "Sending file " << UTF8_TODO::GetUtf8(fullPath);
 
 #ifndef WIN_DESKTOP
     CString csentryPath;
     // Don't allow a GET that is outside both root and csentry paths
-    if (!isDescendantDirectory(m_rootPath, fullPath)
-        && (!createCSEntryPath(m_rootPath, csentryPath) || !isDescendantDirectory(csentryPath, fullPath))) {
-        CLOG(ERROR, "sync") << "Error: File " << UTF8Convert::WideToUTF8(fullPath) << " is outside of both the project root directory "
-            << UTF8Convert::WideToUTF8(m_rootPath) << " and the csentry root directory " << UTF8Convert::WideToUTF8(csentryPath);
+    if (!isDescendantDirectory(UTF8_TODO::GetCString(m_rootDirectory), fullPath)
+        && (!createCSEntryPath(UTF8_TODO::GetCString(m_rootDirectory), csentryPath) || !isDescendantDirectory(csentryPath, fullPath))) {
+        SYNCLOG_ERROR << "Error: File " << UTF8_TODO::GetUtf8(fullPath) << " is outside of both the project root directory "
+                      << m_rootDirectory << " and the csentry root directory " << UTF8_TODO::GetUtf8(csentryPath);
         return OBEX_FORBIDDEN;
     }
 #endif
 
     if (!PortableFunctions::FileExists(fullPath)) {
-        CLOG(ERROR, "sync") << "Error: File " << UTF8Convert::WideToUTF8(fullPath) << " does not exist";
+        SYNCLOG_ERROR << "Error: File " << UTF8_TODO::GetUtf8(fullPath) << " does not exist";
         return OBEX_NOT_FOUND;
     }
 
     if (PortableFunctions::FileIsDirectory(fullPath)) {
-        CLOG(ERROR, "sync") << "Error: File " << UTF8Convert::WideToUTF8(fullPath) << " is a directory, not a regular file";
+        SYNCLOG_ERROR << "Error: File " << UTF8_TODO::GetUtf8(fullPath) << " is a directory, not a regular file";
         return OBEX_NOT_FOUND;
     }
 
-    CString ifNoneMatch = requestHeaders.value(_T("If-None-Match"));
+    CString ifNoneMatch = UTF8_TODO::GetCString(requestHeaders.GetValue("If-None-Match"));
     if (!ifNoneMatch.IsEmpty() && PortableFunctions::FileExists(fullPath)) {
-        std::wstring md5 = PortableFunctions::FileMd5(fullPath);
+        std::wstring md5 = UTF8_TODO::GetWide(PortableFunctions::FileMd5(fullPath));
         if (SO::EqualsNoCase(md5, ifNoneMatch)) {
-            CLOG(INFO, "sync") << "File not modified. Skipping.";
+            SYNCLOG_INFO << "File not modified. Skipping.";
             return OBEX_NOT_MODIFIED;
         }
     }
 
-    resource = std::unique_ptr<IObexResource>(new FileReadResource(fullPath));
+    resource = std::make_unique<FileReadResource>(fullPath);
     return OBEX_OK;
 }
+
 
 ObexResponseCode SyncObexHandler::handleFilePut(CString path, std::unique_ptr<IObexResource>& resource)
 {
@@ -963,16 +939,16 @@ ObexResponseCode SyncObexHandler::handleFilePut(CString path, std::unique_ptr<IO
         return OBEX_OK;
     }
 
-    CString fullPath = PortableFunctions::PathAppendToPath(m_rootPath, PortableFunctions::PathToNativeSlash(path));
-    CLOG(INFO, "sync") << "Receiving file " << UTF8Convert::WideToUTF8(fullPath);
+    CString fullPath = PortableFunctions::PathAppendToPath(UTF8_TODO::GetCString(m_rootDirectory), PortableFunctions::PathToNativeSlash(path));
+    SYNCLOG_INFO << "Receiving file " << UTF8_TODO::GetUtf8(fullPath);
 
 #ifndef WIN_DESKTOP
     CString csentryPath;
     // Don't allow a PUT that is outside both root and csentry paths
-    if (!isDescendantDirectory(m_rootPath, fullPath)
-        && (!createCSEntryPath(m_rootPath, csentryPath) || !isDescendantDirectory(csentryPath, fullPath))) {
-        CLOG(ERROR, "sync") << "Error: File " << UTF8Convert::WideToUTF8(fullPath) << " is outside of both the project root directory "
-            << UTF8Convert::WideToUTF8(m_rootPath) << " and the csentry root directory " << UTF8Convert::WideToUTF8(csentryPath);
+    if (!isDescendantDirectory(UTF8_TODO::GetCString(m_rootDirectory), fullPath)
+        && (!createCSEntryPath(UTF8_TODO::GetCString(m_rootDirectory), csentryPath) || !isDescendantDirectory(csentryPath, fullPath))) {
+        SYNCLOG_ERROR << "Error: File " << UTF8_TODO::GetUtf8(fullPath) << " is outside of both the project root directory "
+                      << m_rootDirectory << " and the csentry root directory " << UTF8_TODO::GetUtf8(csentryPath);
         return OBEX_FORBIDDEN;
     }
 #endif
@@ -981,114 +957,147 @@ ObexResponseCode SyncObexHandler::handleFilePut(CString path, std::unique_ptr<IO
     CString dir = PortableFunctions::PathGetDirectory<CString>(fullPath);
     if (!PortableFunctions::FileExists(dir)) {
         if (!PortableFunctions::PathMakeDirectories(dir)) {
-            CLOG(ERROR, "sync") << "Error: Failed to create directory " << UTF8Convert::WideToUTF8(dir);
+            SYNCLOG_ERROR << "Error: Failed to create directory " << UTF8_TODO::GetUtf8(dir);
             return OBEX_FORBIDDEN;
         }
     }
 
-    resource = std::unique_ptr<IObexResource>(new FileWriteResource(fullPath));
+    resource = std::make_unique<FileWriteResource>(fullPath);
     return OBEX_OK;
 }
 
-ObexResponseCode SyncObexHandler::handleSyncApp(const CString& app_name, const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource)
+
+ObexResponseCode SyncObexHandler::handleSyncApp(const std::string& package_name, const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource)
 {
-#ifdef ANDROID
-    auto signed_package = ApplicationPackageManager::getInstalledApplicationPackageWithSignature(app_name);
-    if (!signed_package) {
-        CLOG(ERROR, "sync") << "Error: Application Package " << UTF8Convert::WideToUTF8(app_name) << " is not installed";
+    const std::unique_ptr<const ApplicationPackageManager> application_package_manager = ( m_syncObexEngineAccessor != nullptr ) ? m_syncObexEngineAccessor->CreateApplicationPackageManager() : nullptr;
+
+    if( application_package_manager == nullptr ) {
+        SYNCLOG_ERROR << "Error: Application Package Manager cannot be created because no root directory exists";
         return OBEX_NOT_FOUND;
     }
 
-    auto request_signature = request_headers.value(_T("If-None-Match"));
-    if (!request_signature.IsEmpty() && request_signature.CompareNoCase(signed_package->signature) == 0) {
-        CLOG(INFO, "sync") << "Application signature matches installed version. Skipping.";
+    const std::unique_ptr<const ApplicationPackageManager::ApplicationWithSignature> signed_package = application_package_manager->GetInstalledApplicationPackageWithSignature(package_name);
+    if (signed_package == nullptr) {
+        SYNCLOG_ERROR << "Error: Application Package " << package_name << " is not installed";
+        return OBEX_NOT_FOUND;
+    }
+
+    const std::string request_signature = request_headers.GetValue("If-None-Match");
+    if (!request_signature.empty() && SO::EqualsNoCase(request_signature, signed_package->signature)) {
+        SYNCLOG_INFO << "Application signature matches installed version. Skipping.";
         return OBEX_NOT_MODIFIED;
     }
 
-    auto request_build_time_header = request_headers.value(SyncCustomHeaders::APP_PACKAGE_BUILD_TIME_HEADER);
-    if (!request_build_time_header.IsEmpty()) {
-        auto request_build_time = PortableFunctions::ParseRFC3339DateTime(CS2WS(request_build_time_header));
-        if (request_build_time > 0 && request_build_time >= signed_package->package.getBuildTime()) {
-            CLOG(INFO, "sync") << "Application build time less than currently installed. Skipping.";
+    const std::string request_build_time_header = request_headers.GetValue(SyncCustomHeaders::APP_PACKAGE_BUILD_TIME_HEADER);
+    if (!request_build_time_header.empty()) {
+        const int64_t request_build_time = PortableFunctions::ParseRFC3339DateTime(request_build_time_header);
+        if (request_build_time > 0 && request_build_time >= signed_package->package.GetBuildTime()) {
+            SYNCLOG_INFO << "Application build time less than currently installed. Skipping.";
             return OBEX_NOT_MODIFIED;
         }
     }
 
-    auto request_files_header = request_headers.value(SyncCustomHeaders::APP_PACKAGE_FILES_HEADER);
-    auto request_files_json = Base64::Decode<std::string>(UTF8Convert::WideToUTF8(request_files_header));
-    ZipUtility::decompression(request_files_json);
-    auto request_files = jsonConverter.fileSpecListFromJson(request_files_json);
+    const std::string request_files_header = request_headers.GetValue(SyncCustomHeaders::APP_PACKAGE_FILES_HEADER);
 
-    std::vector<CString> files_to_exclude;
-    for (const auto& package_file : signed_package->package.getFiles()) {
+    std::string request_files_json = Base64::DecodeToString(request_files_header);
 
-        auto match = std::find_if(request_files.begin(), request_files.end(), [& package_file](const auto& f) {return package_file.Path.CompareNoCase(f.Path) == 0;});
-        if (match != request_files.end() && (match->Signature.CompareNoCase(package_file.Signature) == 0 || package_file.OnlyOnFirstInstall)) {
-            CString path_in_zip;
-            PathCanonicalize(path_in_zip.GetBuffer(MAX_PATH), package_file.Path);
-            path_in_zip.ReleaseBuffer();
-            path_in_zip.Replace(_T("/"), _T("\\"));
-            if (path_in_zip.Left(2) == L".\\")
-                path_in_zip = path_in_zip.Right(path_in_zip.GetLength() - 2);
-            files_to_exclude.emplace_back(path_in_zip);
+    if( !ZLib::Inflate(request_files_json) )
+        throw SyncError(100139);
+
+    const std::vector<ApplicationPackage::File> request_files = JsonConverter::CreateFileSpecListFromJson(Json::Parse(request_files_json));
+    std::vector<std::string> files_to_include;
+
+    for( const ApplicationPackage::File& package_file : signed_package->package.GetFiles() )
+    {
+        const auto& match = std::find_if(request_files.cbegin(), request_files.cend(),
+                                         [&package_file](const auto& f) { return SO::EqualsNoCase(package_file.path, f.path); });
+
+        if( match == request_files.cend() || ( !package_file.only_on_first_install && !SO::EqualsNoCase(match->signature, package_file.signature) ) )
+        {
+            std::string& path_in_zip = PortableFunctions::MakePathToForwardSlash(files_to_include.emplace_back(package_file.path));
+
+            if( SO::StartsWith(path_in_zip, "./") )
+                path_in_zip = path_in_zip.substr(2);
         }
     }
 
-    const auto& application_package_zip_path = ApplicationPackageManager::getPackageZipPath(app_name);
-    if (files_to_exclude.empty()) {
-        resource = std::unique_ptr<IObexResource>(new FileReadResource(application_package_zip_path));
-    } else {
-        CString temp_zip_path = PortableFunctions::FileTempName(GetTempDirectory());
-        PortableFunctions::FileCopy(application_package_zip_path, temp_zip_path, false);
-        std::unique_ptr<IZip> pZip = std::unique_ptr<IZip>(IZip::Create());
-        size_t filesDeleted = pZip->RemoveFiles(temp_zip_path, files_to_exclude);
-        if(filesDeleted != files_to_exclude.size() ){
-            CLOG(INFO, "sync") << "Total files removed from zip does not match the number of files to be excluded. Application package zip may be a subset of the full package.";
+    const std::string application_package_zip_path = application_package_manager->GetPackageZipFilePath(package_name);
+
+    if( files_to_include.size() == signed_package->package.GetFiles().size() )
+    {
+        resource = std::make_unique<FileReadResource>(UTF8_TODO::GetCString(application_package_zip_path));
+    }
+
+    else
+    {
+        // create a temporary ZIP file with only the files to send
+        TemporaryFile temporary_zip_file;
+        ZipCreator zip_creator(temporary_zip_file.GetPath());
+
+        ZipReader zip_reader(application_package_zip_path);
+
+        auto add_package_json = [&](std::string filename)
+        {
+            if( zip_reader.FindPathInZip(filename).has_value() )
+            {
+                files_to_include.emplace_back(filename);
+                return true;
+            }
+
+            return false;
+        };
+
+        if( !add_package_json("package.json") )
+        {
+            if( !add_package_json("package.csds") )
+                ASSERT(false);
         }
-        resource = std::unique_ptr<IObexResource>(new TemporaryFileReadResource(temp_zip_path));
+
+        zip_creator.AddFiles(zip_reader, files_to_include);
+
+        zip_creator.Close();
+
+        resource = std::make_unique<TemporaryFileReadResource>(std::move(temporary_zip_file));
     }
 
     return OBEX_OK;
-
-#else
-    UNREFERENCED_PARAMETER(resource);
-    UNREFERENCED_PARAMETER(request_headers);
-    UNREFERENCED_PARAMETER(app_name);
-
-    return OBEX_NOT_IMPLEMENTED;
-#endif
 }
 
 
 ObexResponseCode SyncObexHandler::handleSyncMessage(const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource)
 {
-    CString message_json = request_headers.value(SyncCustomHeaders::MESSAGE_HEADER);
+    const std::string sync_message_json = request_headers.GetValue(SyncCustomHeaders::MESSAGE_HEADER);
 
-    if( message_json.IsEmpty() )
+    if( sync_message_json.empty() )
         return OBEX_BAD_REQUEST;
 
-    SyncMessage sync_message;
+    std::optional<SyncMessage> sync_message;
 
     try
     {
-        sync_message = jsonConverter.syncMessageFromJson(UTF8Convert::WideToUTF8(message_json));
+        const JsonNode json_node = Json::Parse(sync_message_json);
+        sync_message.emplace(SyncMessage::CreateFromJsonFromBluetooth(json_node));
     }
 
-    catch( const InvalidJsonException& exception )
+    catch( const JsonParseException& exception )
     {
-        CLOG(ERROR, "sync") << "Failed to parse request JSON " << message_json;
-        CLOG(ERROR, "sync") << exception.what();
+        SYNCLOG_ERROR << "Failed to parse request JSON " << sync_message_json;
+        SYNCLOG_ERROR << exception.what();
         return OBEX_BAD_REQUEST;
     }
 
-    const auto& optional_response = m_syncEngineFunctionCaller->onSyncMessage(sync_message.key, sync_message.value);
+    std::optional<SharableString> optional_response = ( m_syncObexEngineAccessor != nullptr ) ? m_syncObexEngineAccessor->OnSyncMessage(*sync_message) :
+                                                                                                std::nullopt;
 
     if( !optional_response.has_value() )
         return OBEX_METHOD_NOT_ALLOWED;
 
-    sync_message.value = *optional_response;
+    const SyncMessage sync_message_response(sync_message->GetName(), std::move(*optional_response));
 
-    resource = std::make_unique<StringResource>(jsonConverter.toJson(sync_message));
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    sync_message_response.WriteJsonForBluetooth(*json_writer);
+
+    resource = std::make_unique<StringResource>(json_writer->GetString());
 
     return OBEX_OK;
 }
@@ -1096,9 +1105,9 @@ ObexResponseCode SyncObexHandler::handleSyncMessage(const HeaderList& request_he
 
 ObexResponseCode SyncObexHandler::handleSyncParadataStart(const HeaderList& request_headers, std::unique_ptr<IObexResource>& resource)
 {
-    CString client_log_uuid = request_headers.value(SyncCustomHeaders::PARADATA_LOG_UUID);
+    std::string client_log_uuid = request_headers.GetValue(SyncCustomHeaders::PARADATA_LOG_UUID);
 
-    if( client_log_uuid.IsEmpty() )
+    if( client_log_uuid.empty() )
         return OBEX_BAD_REQUEST;
 
     HeaderList response_headers;
@@ -1107,15 +1116,16 @@ ObexResponseCode SyncObexHandler::handleSyncParadataStart(const HeaderList& requ
     {
         m_paradataSyncer = Paradata::Logger::GetSyncer();
 
-        m_paradataSyncer->SetPeerLogUuid(client_log_uuid);
+        m_paradataSyncer->SetPeerLogUuid(std::move(client_log_uuid));
 
-        response_headers.push_back(SyncCustomHeaders::PARADATA_LOG_UUID + _T(": ") + m_paradataSyncer->GetLogUuid());
+        response_headers.Add(SyncCustomHeaders::PARADATA_LOG_UUID, m_paradataSyncer->GetLogUuid());
     }
 
     resource = std::make_unique<StringResource>("", response_headers);
 
     return OBEX_OK;
 }
+
 
 ObexResponseCode SyncObexHandler::handleSyncParadataPut(const HeaderList& /*request_headers*/, std::unique_ptr<IObexResource>& resource)
 {
@@ -1127,12 +1137,13 @@ ObexResponseCode SyncObexHandler::handleSyncParadataPut(const HeaderList& /*requ
         return OBEX_OK;
     }
 
-    CLOG(INFO, "sync") << "Receiving paradata events from the log " << UTF8Convert::WideToUTF8(m_paradataSyncer->GetPeerLogUuid());
+    SYNCLOG_INFO << "Receiving paradata events from the log " << m_paradataSyncer->GetPeerLogUuid();
 
-    resource = std::make_unique<FileWriteResource>(WS2CS(m_paradataSyncer->GetFilenameForReceivedSyncableDatabase()));
+    resource = std::make_unique<FileWriteResource>(UTF8_TODO::GetCString(m_paradataSyncer->GetFilePathForReceivedSyncableDatabase()));
 
     return OBEX_OK;
 }
+
 
 ObexResponseCode SyncObexHandler::handleSyncParadataGet(const HeaderList& /*request_headers*/, std::unique_ptr<IObexResource>& resource)
 {
@@ -1144,29 +1155,30 @@ ObexResponseCode SyncObexHandler::handleSyncParadataGet(const HeaderList& /*requ
         return OBEX_OK;
     }
 
-    std::optional<std::wstring> extracted_syncable_database_filename = m_paradataSyncer->GetExtractedSyncableDatabase();
+    const std::optional<std::string> extracted_syncable_database_file_path = m_paradataSyncer->GetExtractedSyncableDatabaseFilePath();
 
-    if( extracted_syncable_database_filename.has_value() )
+    if( extracted_syncable_database_file_path.has_value() )
     {
-        CLOG(INFO, "sync")
+        SYNCLOG_INFO
             << "Sending paradata events to be added to the log "
-            << UTF8Convert::WideToUTF8(m_paradataSyncer->GetPeerLogUuid());
+            << m_paradataSyncer->GetPeerLogUuid();
 
-        resource = std::make_unique<FileReadResource>(WS2CS(*extracted_syncable_database_filename));
+        resource = std::make_unique<FileReadResource>(UTF8_TODO::GetCString(*extracted_syncable_database_file_path));
 
         return OBEX_OK;
     }
 
     else
     {
-        CLOG(INFO, "sync")
+        SYNCLOG_INFO
             << "Skipping sending paradata events to the log "
-            << UTF8Convert::WideToUTF8(m_paradataSyncer->GetPeerLogUuid())
+            << m_paradataSyncer->GetPeerLogUuid()
             << " as all events are up-to-date";
 
         return OBEX_NOT_MODIFIED;
     }
 }
+
 
 ObexResponseCode SyncObexHandler::handleSyncParadataStop(const HeaderList& /*request_headers*/, std::unique_ptr<IObexResource>& resource)
 {

@@ -7,6 +7,7 @@
 #include "DocSetComponentFrame.h"
 #include "DocSetSpecFrame.h"
 #include <zUtilO/imsaDlg.H>
+#include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
 
 
@@ -18,8 +19,8 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(CSDocumentApp, CWinAppEx)
-	ON_COMMAND(ID_FILE_NEW, CSDocumentApp::OnFileNew)
-	ON_COMMAND(ID_FILE_OPEN, CSDocumentApp::OnFileOpen)
+    ON_COMMAND(ID_FILE_NEW, CSDocumentApp::OnFileNew)
+    ON_COMMAND(ID_FILE_OPEN, CSDocumentApp::OnFileOpen)
     ON_COMMAND(ID_APP_ABOUT, CSDocumentApp::OnAppAbout)
     ON_COMMAND(ID_HELP_FINDER, CWinAppEx::OnHelpFinder)
     ON_COMMAND(ID_HELP, CWinAppEx::OnHelp)
@@ -36,22 +37,12 @@ CSDocumentApp::CSDocumentApp()
 }
 
 
-// necessary to use the SysLink Controls (along with the inclusion of ICC_LINK_CLASS below)
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
 BOOL CSDocumentApp::InitInstance()
 {
-	// InitCommonControlsEx() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
-	INITCOMMONCONTROLSEX InitCtrls;
-	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
-	InitCtrls.dwICC = ICC_WIN95_CLASSES | ICC_LINK_CLASS;
-	InitCommonControlsEx(&InitCtrls);
+    // ICC_LINK_CLASS is necessary to use the SysLink Controls
+    InitializeCommonControls(ICC_LINK_CLASS);
 
-	__super::InitInstance();
+    __super::InitInstance();
 
     // Initialize OLE libraries
     if( !AfxOleInit() )
@@ -65,7 +56,7 @@ BOOL CSDocumentApp::InitInstance()
     //  the specific initialization routines you do not need.
 
     // Change the registry key under which our settings are stored.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     // load the global settings
     GlobalSettings global_settings;
@@ -101,17 +92,17 @@ BOOL CSDocumentApp::InitInstance()
 
     // if an instance of CSDocument is open and the user is opening files via the command line,
     // open them in the other instance (unless the shift key is depressed)
-    if( GetKeyState(VK_SHIFT) >= 0 && !command_line_parser.GetFilenames().empty() )
+    if( GetKeyState(VK_SHIFT) >= 0 && !command_line_parser.GetFilePaths().empty() )
     {
-        CWnd* other_instance = CWnd::FindWindow(IMSA_WNDCLASS_CSDOCUMENT, nullptr);
+        CWnd* const other_instance = CWnd::FindWindow(IMSA_WNDCLASS_CSDOCUMENT, nullptr);
 
         if( other_instance != nullptr )
         {
             // send the filenames using JSON
-            auto json_writer = Json::CreateStringWriter();
-            json_writer->Write(command_line_parser.GetFilenames());
+            const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+            json_writer->Write(command_line_parser.GetFilePaths());
 
-            IMSASendMessage(IMSA_WNDCLASS_CSDOCUMENT, WM_IMSA_FILEOPEN, json_writer->GetString());
+            IMSASendMessage(IMSA_WNDCLASS_CSDOCUMENT, WM_IMSA_FILEOPEN, TC::ToWide(json_writer->GetString()));
 
             other_instance->SetForegroundWindow();
 
@@ -125,7 +116,7 @@ BOOL CSDocumentApp::InitInstance()
 
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
-    auto add_doc_template = [&](CMultiDocTemplate* pDocTemplate)
+    auto add_doc_template = [&](CMultiDocTemplate* const pDocTemplate)
     {
         if( pDocTemplate == nullptr )
             return false;
@@ -142,13 +133,13 @@ BOOL CSDocumentApp::InitInstance()
         return FALSE;
     }
 
-	// create main MDI Frame window
-	CMainFrame* pMainFrame = new CMainFrame(std::move(global_settings));
+    // create main MDI Frame window
+    CMainFrame* pMainFrame = new CMainFrame(std::move(global_settings));
 
     if( pMainFrame == nullptr || !pMainFrame->LoadFrame(IDR_MAINFRAME) )
-		return FALSE;
+        return FALSE;
 
-	m_pMainWnd = pMainFrame;
+    m_pMainWnd = pMainFrame;
 
     // allow drag-and-drop of files
     pMainFrame->DragAcceptFiles();
@@ -156,9 +147,9 @@ BOOL CSDocumentApp::InitInstance()
     // open any files specified on the command line
     bool file_opened = false;
 
-    for( const std::wstring& filename : command_line_parser.GetFilenames() )
+    for( const std::string& file_path : command_line_parser.GetFilePaths() )
     {
-        if( OpenDocumentFile(filename.c_str()) )
+        if( OpenDocumentFile(TC::ToWide(file_path).c_str()) )
             file_opened = true;
     }
 
@@ -167,8 +158,8 @@ BOOL CSDocumentApp::InitInstance()
         OnFileNew();
 
     // The main window has been initialized, so show and update it
-	pMainFrame->ShowWindow(m_nCmdShow);
-	pMainFrame->UpdateWindow();
+    pMainFrame->ShowWindow(m_nCmdShow);
+    pMainFrame->UpdateWindow();
 
     return TRUE;
 }
@@ -187,7 +178,7 @@ CDocument* CSDocumentApp::OpenDocumentFile(LPCTSTR lpszFileName)
 }
 
 
-CDocument* CSDocumentApp::OpenDocumentFile(LPCTSTR lpszFileName, BOOL bAddToMRU)
+CDocument* CSDocumentApp::OpenDocumentFile(LPCTSTR lpszFileName, const BOOL bAddToMRU)
 {
     return MDIFrameWndHelpers::OpenDocumentFileAndCloseSingleUnmodifiedPathlessDocument<CWinAppEx>(*this, lpszFileName, bAddToMRU);
 }
@@ -201,28 +192,25 @@ void CSDocumentApp::OnFileNew()
 
 void CSDocumentApp::OnFileOpen()
 {
-    const std::wstring wildcard_text = SO::Concatenate(FileExtensions::Wildcard::CSDocument, _T(";"), FileExtensions::Wildcard::CSDocumentSet);
-    const std::wstring filter = FormatTextCS2WS(_T("CSPro Documents and Document Sets (%s)|%s|All Files (*.*)|*.*||"), wildcard_text.c_str(), wildcard_text.c_str());
+    const std::string wildcard_text = FormatText("*.%s;*.%s", FileExtensions::CSDocument, FileExtensions::CSDocumentSet);
+    const std::string filter = FormatText("CSPro Documents and Document Sets (%s)|%s|All Files (*.*)|*.*||", wildcard_text.c_str(), wildcard_text.c_str());
 
-    CIMSAFileDialog file_dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter.c_str(), nullptr, CFD_NO_DIR);
+    OpenFileDlg open_file_dlg(0, nullptr, nullptr, filter, nullptr);
+    open_file_dlg.UseInitialDirectoryOfActiveDocument(assert_cast<CMainFrame*>(AfxGetMainWnd()))
+                 .SetMultiSelectBuffer();
 
-    file_dlg.UseInitialDirectoryOfActiveDocument(assert_cast<CMainFrame*>(AfxGetMainWnd()))
-            .SetMultiSelectBuffer();
-
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    for( int i = 0; i < file_dlg.m_aFileName.GetSize(); ++i )
-        OpenDocumentFile(file_dlg.m_aFileName[i]);
+    for( const std::string& file_path : open_file_dlg.GetFilePaths() )
+        OpenDocumentFile(TC::ToWide(file_path).c_str());
 }
 
 
 void CSDocumentApp::OnAppAbout()
 {
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = LoadIcon(IDR_MAINFRAME);
-    dlg.m_csModuleName.Format(AFX_IDS_APP_TITLE);
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }
 
 

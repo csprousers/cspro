@@ -3,8 +3,6 @@
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiText.h>
 
-class JsonWriter;
-class Serializer;
 namespace YAML { template <typename T> struct convert; }
 
 
@@ -13,8 +11,7 @@ class CLASS_DECL_ZCAPIO CapiCondition
     friend struct YAML::convert<CapiCondition>;
 
 public:
-    CapiCondition();
-    CapiCondition(const CString& logic);
+    CapiCondition(const CString& logic = CString());
     CapiCondition(const CString& logic, int min_occ, int max_occ);
 
     const CString& GetLogic() const { return m_logic; }

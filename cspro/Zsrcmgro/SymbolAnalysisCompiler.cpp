@@ -9,7 +9,7 @@
 namespace
 {
     // only keep track of dictionary/form symbols, as well as user-defined functions
-    std::vector<SymbolType> SymbolTypesToProcess =
+    const std::vector<SymbolType> SymbolTypesToProcess =
     {
         SymbolType::Pre80Dictionary,
         SymbolType::Section,
@@ -28,7 +28,7 @@ namespace
     class SymbolAnalysisCompilerEngineCompFunc : public CEngineCompFunc
     {
     public:
-        SymbolAnalysisCompilerEngineCompFunc(CEngineDriver* pEngineDriver)
+        SymbolAnalysisCompilerEngineCompFunc(CEngineDriver* const pEngineDriver)
             :   CEngineCompFunc(pEngineDriver),
                 m_symbolUseMap(nullptr)
         {
@@ -46,7 +46,7 @@ namespace
             CEngineCompFunc::ProcessSymbol();
 
             // only process certain symbols
-            const Symbol* symbol = CurrentToken.symbol;
+            const Symbol* const symbol = CurrentToken.symbol;
 
             if( !symbol->IsOneOf(SymbolTypesToProcess) ||
                 symbol->GetSubType() == SymbolSubType::DynamicValueSet )
@@ -54,7 +54,7 @@ namespace
                 return;
             }
 
-            const Logic::BasicToken* basic_token = GetCurrentBasicToken();
+            const Logic::BasicToken* const basic_token = GetCurrentBasicToken();
 
             ASSERT(m_symbolUseMap != nullptr && basic_token != nullptr);
 
@@ -62,8 +62,8 @@ namespace
             auto& symbol_uses = ( symbol_use_lookup != m_symbolUseMap->end() ) ? symbol_use_lookup->second :
                                                                                  m_symbolUseMap->try_emplace(symbol).first->second;
 
-            std::wstring proc_name = GetCurrentProcName();
-            int line_number_in_proc = (int)basic_token->line_number;
+            std::string proc_name = GetCurrentProcName();
+            const int line_number_in_proc = static_cast<int>(basic_token->line_number);
 
             // don't add multiple entries for the same line
             const auto& entry_lookup = std::find_if(symbol_uses.cbegin(), symbol_uses.cend(),
@@ -79,7 +79,7 @@ namespace
                 SymbolAnalysisCompiler::SymbolUse
                 {
                     GetCurrentCompilationUnitName(),
-                    proc_name,
+                    std::move(proc_name),
                     GetBasicTokenLine(*basic_token),
                     line_number_in_proc,
                     line_number_in_proc
@@ -96,7 +96,7 @@ namespace
         }
 
     private:
-        std::map<std::wstring, int> m_procLineNumberMap;
+        std::map<std::string, int> m_procLineNumberMap;
         std::map<const Symbol*, std::vector<SymbolAnalysisCompiler::SymbolUse>>* m_symbolUseMap;
     };
 
@@ -104,7 +104,7 @@ namespace
     class SymbolAnalysisCompilerEngineCompFuncCreator : public CompilerCreator
     {
     public:
-        std::unique_ptr<CEngineCompFunc> CreateCompiler(CEngineDriver* pEngineDriver) override
+        std::unique_ptr<CEngineCompFunc> CreateCompiler(CEngineDriver* const pEngineDriver) override
         {
             return std::make_unique<SymbolAnalysisCompilerEngineCompFunc>(pEngineDriver);
         }
@@ -123,7 +123,7 @@ void SymbolAnalysisCompiler::Compile()
 {
     try
     {
-        SymbolAnalysisCompilerEngineCompFunc* compiler = assert_cast<SymbolAnalysisCompilerEngineCompFunc*>(GetEngineDriver()->m_pEngineCompFunc.get());
+        SymbolAnalysisCompilerEngineCompFunc* const compiler = assert_cast<SymbolAnalysisCompilerEngineCompFunc*>(GetEngineDriver()->m_pEngineCompFunc.get());
 
         compiler->Initialize(m_application, m_symbolUseMap);
 
@@ -134,6 +134,6 @@ void SymbolAnalysisCompiler::Compile()
     for( const Logic::ParserMessage& parser_message : GetParserMessages() )
     {
         if( parser_message.type == Logic::ParserMessage::Type::Error )
-            throw CSProException(_T("Compilation error: %s"), parser_message.message_text.c_str());
+            throw CSProException("Compilation error: %s", parser_message.message_text.c_str());
     }
 }

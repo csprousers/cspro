@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include <zListingO/zListingO.h>
+#include <zListingO/Lister.h>
+#include <zToolsO/File.h>
 
 class CDataDict;
 class ConnectionString;
@@ -8,20 +10,10 @@ class ConnectionString;
 
 namespace Listing
 {
-    std::unique_ptr<CStdioFileUnicode> OpenListingFile(const std::wstring& filename, bool append, const TCHAR* file_type = _T("listing"));
+    std::unique_ptr<FileIO::TextFile> OpenListingFile(const std::string& file_path, bool append, const char* file_type = "listing");
 
-    /// <summary>Gets the current "long" date.</summary>
-    ZLISTINGO_API std::wstring GetSystemDate();
+    std::optional<std::string> CreateDataUri(const ConnectionString& connection_string, const CDataDict& dictionary);
 
-    /// <summary>Gets the current time in the format hh:mm:ss.</summary>
-    ZLISTINGO_API std::wstring GetSystemTime();
-
-    std::wstring Base64EncodeIfNecessary(const std::wstring& text);
-
-    std::wstring CreateTextViewerUri(const std::wstring& filename);
-
-    std::optional<std::wstring> CreateDataUri(const ConnectionString& connection_string, const CDataDict& dictionary);
-
-    std::optional<std::wstring> CreateCaseUri(const std::optional<std::wstring>& input_data_uri,
-                                              const std::optional<std::tuple<std::wstring, std::wstring>>& case_key_uuid);
+    std::optional<std::string> CreateCaseUri(const std::optional<std::string>& input_data_uri,
+                                             const std::optional<std::tuple<std::string, std::string>>& case_key_uuid);
 }

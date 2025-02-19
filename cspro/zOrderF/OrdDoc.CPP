@@ -68,7 +68,7 @@ void COrderDoc::DeleteContents()
     if( m_pOrderTreeCtrl == nullptr )
         return;
 
-    FormOrderAppTreeNode* form_order_app_tree_node = m_pOrderTreeCtrl->GetFormOrderAppTreeNode(*this);   //Get the item CFormNodeItem  corresponding to this pDoc
+    FormOrderAppTreeNode* const form_order_app_tree_node = m_pOrderTreeCtrl->GetFormOrderAppTreeNode(*this);   //Get the item CFormNodeItem  corresponding to this pDoc
 
     if( form_order_app_tree_node->GetRefCount() > 0 )
         m_pOrderTreeCtrl->ReleaseDoc(*form_order_app_tree_node);
@@ -99,41 +99,20 @@ HTREEITEM COrderDoc::BuildAllTrees(HTREEITEM /*hParent = TVI_ROOT*/, HTREEITEM /
     TVITEM      pItem;
     HTREEITEM   hItem = nullptr;
 
-//  Get the tree control handles and dict path & label
-
+    // Get the tree control handles and dict path & label
     COrderTreeCtrl* pOrderTree = GetOrderTreeCtrl();
     CDDTreeCtrl*    pDictTree = pOrderTree->GetDDTreeCtrl();
 
     CDEFormFile*    pOrderSpec = &GetFormFile();
-    CString         csPath, csLabel;
+    CString         csPath = pOrderSpec->GetDictionaryFilename();
 
-    csPath  = pOrderSpec->GetDictionaryFilename();
-    csLabel = _T("Popstan");    // see note in else blk; comment no longer valid, nd2fix
+    //  either add a node to the dict tree, or add a reference
+    pDictTree->AddDictionary(UTF8_TODO::GetUtf8(csPath), nullptr);
 
-//  either add a node to the dict tree, or add a reference
+    //  either add a node to the order tree, or add a ref
+    csPath = GetPathName();             // mfc; rtns the document’s fully qualified path
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csPath);
-
-    if (dictionary_dict_tree_node != nullptr ) // then this dictionary already exists on the tree; add a ref
-    {
-        dictionary_dict_tree_node->AddRef();
-    }
-
-    else                // we get the thrill of adding it to the tree
-    {
-        pItem.hItem = pDictTree->InsertDictionary (csLabel,csPath,nullptr); // rtns handle
-        pItem.mask  = TVIF_CHILDREN ;
-        pItem.cChildren = 1;
-
-        pDictTree->SetItem(&pItem);    // smg: what exactly does this do?
-    }
-
-//  either add a node to the order tree, or add a ref
-
-    csPath = GetPathName();             // mfc; rtns the document's fully qualified path
-    csLabel = m_orderSpec.GetLabel();
-
-    FormOrderAppTreeNode* form_order_app_tree_node = pOrderTree->GetFormOrderAppTreeNode(*this);
+    FormOrderAppTreeNode* const form_order_app_tree_node = pOrderTree->GetFormOrderAppTreeNode(*this);
 
     if( form_order_app_tree_node != nullptr )
     {
@@ -143,7 +122,7 @@ HTREEITEM COrderDoc::BuildAllTrees(HTREEITEM /*hParent = TVI_ROOT*/, HTREEITEM /
 
     else
     {
-        hItem = pOrderTree->InsertOrderFile(csLabel,csPath,this);
+        hItem = pOrderTree->InsertOrderFile(csPath, this);
 
         pItem.hItem = hItem;
         pItem.mask  = TVIF_CHILDREN;
@@ -161,7 +140,7 @@ bool COrderDoc::InitTreeCtrl()
     // build up the form tree ctrl only after we know the loading of the form spec file went ok
     ASSERT(m_pOrderTreeCtrl != nullptr);
 
-    FormOrderAppTreeNode* form_order_app_tree_node = m_pOrderTreeCtrl->GetFormOrderAppTreeNode(*this);
+    FormOrderAppTreeNode* const form_order_app_tree_node = m_pOrderTreeCtrl->GetFormOrderAppTreeNode(*this);
 
     m_pOrderTreeCtrl->BuildTree(form_order_app_tree_node);
 
@@ -169,9 +148,9 @@ bool COrderDoc::InitTreeCtrl()
 }
 
 
-bool COrderDoc::LoadOrderSpecFile(const CString& csFileName)
+bool COrderDoc::LoadOrderSpecFile(const InterfaceString& order_file_path)
 {
-    if (!m_orderSpec.Open(csFileName) )       // load and create CDEFormFile here
+    if( !m_orderSpec.Open(order_file_path) )       // load and create CDEFormFile here
         return false;
 
     m_bOrderLoaded = true;  // indicate that we've built the CDEFormFile
@@ -212,7 +191,7 @@ bool COrderDoc::LoadDictSpecFile()
     bool            bOK = true;
     CString         csDictPath = pOrderSpec->GetDictionaryFilename();
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);  // get the node assoc w/this dict
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPath));  // get the node assoc w/this dict
 
     if (dictionary_dict_tree_node == nullptr)    // make sure the node's ok
     {
@@ -223,7 +202,7 @@ bool COrderDoc::LoadDictSpecFile()
     {
         if(dictionary_dict_tree_node->GetDDDoc() == nullptr)    // has the dictionary already been opened/assigned?
         {
-            if (!pDictTree->OpenDictionary(csDictPath, false) )    // if not, open it!
+            if (!pDictTree->OpenDictionary(UTF8_TODO::GetUtf8(csDictPath), false) )    // if not, open it!
                 bOK = false;        // if the open didn't go ok, flag it
         }
     }
@@ -262,20 +241,22 @@ std::shared_ptr<const CDataDict> COrderDoc::GetSharedDictionary() const
     if (csDictPath.IsEmpty())
         return nullptr;            // ditto comment above
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPath));
 
-    if (dictionary_dict_tree_node== nullptr)
+    if( dictionary_dict_tree_node == nullptr )
         return nullptr;            // ditto comment above
 
-    std::shared_ptr<const CDataDict> pDD;
+    if( dictionary_dict_tree_node->GetDDDoc() != nullptr ) // there's a doc assoc w/the node
+    {
+        return dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
+    }
 
-    if(dictionary_dict_tree_node->GetDDDoc() != nullptr) // there's a doc assoc w/the node
-        pDD = dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
+    else if( pDictTree->OpenDictionary(UTF8_TODO::GetUtf8(csDictPath), false) ) // open the dict if not already done
+    {
+        return dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
+    }
 
-    else if (pDictTree->OpenDictionary (csDictPath, false) ) // open the dict if not already done
-        pDD = dictionary_dict_tree_node->GetDDDoc()->GetSharedDictionary();
-
-    return pDD;
+    return nullptr;
 }
 
 
@@ -284,7 +265,7 @@ BOOL COrderDoc::OnSaveDocument(LPCTSTR lpszPathName)
     SaveAllDictionaries();
     bool bOK = m_orderSpec.Save(lpszPathName);
 
-    if (bOK) 
+    if (bOK)
         SetModifiedFlag(false);
 
     return bOK;
@@ -335,20 +316,20 @@ void COrderDoc::OnCloseDocument()
 
 void COrderDoc::ReleaseDicts()
 {
-    COrderTreeCtrl* pOrderTree  = GetOrderTreeCtrl();
+    COrderTreeCtrl* const pOrderTree = GetOrderTreeCtrl();
 
-    if (pOrderTree == nullptr)
+    if( pOrderTree == nullptr )
         return;
 
-    CDDTreeCtrl* pDictTree = pOrderTree->GetDDTreeCtrl();
+    CDDTreeCtrl* const pDictTree = pOrderTree->GetDDTreeCtrl();
 
-    if (pDictTree == nullptr)
+    if( pDictTree == nullptr )
         return;
 
-    CDEFormFile* pOrderSpec = &GetFormFile();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(pOrderSpec->GetDictionaryFilename());
+    CDEFormFile* const pOrderSpec = &GetFormFile();
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pOrderSpec->GetDictionaryFilename()));
 
-    if (dictionary_dict_tree_node != nullptr)
+    if( dictionary_dict_tree_node != nullptr )
         pDictTree->ReleaseDictionaryNode(*dictionary_dict_tree_node);
 }
 
@@ -361,8 +342,8 @@ void COrderDoc::SaveAllDictionaries()
 
     CDDTreeCtrl* pDictTree = pOrderTree->GetDDTreeCtrl();
 
-    //get at the dictionary tree and get the documents
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(m_orderSpec.GetDictionaryFilename());
+    // get at the dictionary tree and get the documents
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(m_orderSpec.GetDictionaryFilename()));
     if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr ) {
         if(dictionary_dict_tree_node->GetDDDoc()->IsModified()){
             dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(dictionary_dict_tree_node->GetDDDoc()->GetPathName());
@@ -373,24 +354,21 @@ void COrderDoc::SaveAllDictionaries()
 
 BOOL COrderDoc::IsOrderModified()
 {
-    if(IsModified())
+    if( IsModified() )
         return TRUE;
 
-    BOOL bRet = FALSE;
+    COrderTreeCtrl* const pOrderTree  = GetOrderTreeCtrl();
 
-    COrderTreeCtrl* pOrderTree  = GetOrderTreeCtrl();
+    if( pOrderTree == nullptr )
+        return FALSE;
 
-    if (pOrderTree == nullptr)
-        return bRet;
+    CDDTreeCtrl* const pDictTree = pOrderTree->GetDDTreeCtrl();
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(m_orderSpec.GetDictionaryFilename()));
 
-    CDDTreeCtrl* pDictTree = pOrderTree->GetDDTreeCtrl();
+    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr )
+        return dictionary_dict_tree_node->GetDDDoc()->IsModified();
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(m_orderSpec.GetDictionaryFilename());
-    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr ) {
-        bRet = dictionary_dict_tree_node->GetDDDoc()->IsModified();
-    }
-
-    return bRet;
+    return FALSE;
 }
 
 

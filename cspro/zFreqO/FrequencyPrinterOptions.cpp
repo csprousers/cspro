@@ -27,14 +27,14 @@ FrequencyPrinterOptions::FrequencyPrinterOptions()
 }
 
 
-void FrequencyPrinterOptions::SetHeadings(std::vector<std::wstring> headings)
+void FrequencyPrinterOptions::SetHeadings(std::vector<std::string> headings)
 {
     m_headings = std::move(headings);
     SO::MakeSplitVectorStringsOnNewlines(m_headings);
 }
 
 
-int FrequencyPrinterOptions::GetSortOrderAndTypeAsInt(bool ascending, SortType sort_type)
+int FrequencyPrinterOptions::GetSortOrderAndTypeAsInt(const bool ascending, const SortType sort_type)
 {
     return ( ascending ? SortAscendingFlag : 0 ) | ( static_cast<int>(sort_type) & SortTypeMask );
 }
@@ -92,7 +92,7 @@ void FrequencyPrinterOptions::serialize(Serializer& ar)
 
 
 DEFINE_ENUM_JSON_SERIALIZER_CLASS(FrequencyPrinterOptions::SortType,
-    { FrequencyPrinterOptions::SortType::ByValueSetOrder, _T("valueSet") },
-    { FrequencyPrinterOptions::SortType::ByCode,          _T("code") },
-    { FrequencyPrinterOptions::SortType::ByLabel,         _T("label") },
-    { FrequencyPrinterOptions::SortType::ByCount,         _T("freq") })
+    { FrequencyPrinterOptions::SortType::ByValueSetOrder, "valueSet" },
+    { FrequencyPrinterOptions::SortType::ByCode,          "code" },
+    { FrequencyPrinterOptions::SortType::ByLabel,         "label" },
+    { FrequencyPrinterOptions::SortType::ByCount,         "freq" })

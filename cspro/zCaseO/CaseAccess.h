@@ -2,13 +2,10 @@
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseItem.h>
-#include <zDictO/DDClass.h>
 
-class Case;
 class CaseConstructionReporter;
 class CaseMetadata;
-class ProcessSummary;
-class Serializer;
+class CDataDict;
 
 
 class ZCASEO_API CaseAccess
@@ -46,28 +43,16 @@ public:
 
     const CaseMetadata& GetCaseMetadata() const;
 
-    const CaseItem* LookupCaseItem(const CString& item_name) const;
+    const CaseItem* LookupCaseItem(const std::string& item_name) const;
     const CaseItem* LookupCaseItem(const CDictItem& dict_item) const;
 
-    // Sets an object that can optionally receive reports issued by case construction operations.
-    // Cases constructed using CaseAccess can be initialized with CaseAccess' case construction
-    // reporter (if one has been set).
-    void SetCaseConstructionReporter(std::shared_ptr<CaseConstructionReporter> case_construction_reporter)
-    {
-        m_caseConstructionReporter = std::move(case_construction_reporter);
-    }
+    // The CaseConstructionReporter is an object that can optionally receive reports issued by case construction operations.
+    // Cases constructed using CaseAccess can be initialized with CaseAccess' case construction reporter (if one has been set).
+    CaseConstructionReporter* GetCaseConstructionReporter() const                                          { return m_caseConstructionReporter.get(); }
+    std::shared_ptr<CaseConstructionReporter> GetSharedCaseConstructionReporter() const                    { return m_caseConstructionReporter; }
+    void SetCaseConstructionReporter(std::shared_ptr<CaseConstructionReporter> case_construction_reporter) { m_caseConstructionReporter = std::move(case_construction_reporter); }
 
-    CaseConstructionReporter* GetCaseConstructionReporter() const
-    {
-        return m_caseConstructionReporter.get();
-    }
-
-    std::shared_ptr<CaseConstructionReporter> GetSharedCaseConstructionReporter() const
-    {
-        return m_caseConstructionReporter;
-    }
-
-    std::optional<std::wstring> GetUnsupportedContentTypesString(const std::set<CaseItem::Type>& supported_case_item_types) const;
+    std::optional<std::string> GetUnsupportedContentTypesString(const std::set<CaseItem::Type>& supported_case_item_types) const;
 
     void IssueWarningIfUsingUnsupportedCaseItems(const std::set<CaseItem::Type>& supported_case_item_types) const;
 
@@ -76,11 +61,7 @@ public:
     void serialize(Serializer& ar);
 
 private:
-    void SetFlag(bool* flag)
-    {
-        ASSERT(!IsInitialized());
-        *flag = true;
-    }
+    void SetFlag(bool* flag) { ASSERT(!IsInitialized()); *flag = true; }
 
 private:
     const CDataDict& m_dictionary;
@@ -91,11 +72,11 @@ private:
     bool m_usesGetBuffer;
 
     // if m_usedDictItems is null, then all items are used
-    std::unique_ptr<std::set<CString>> m_usedDictItems;
+    std::unique_ptr<std::set<std::string>> m_usedDictItems;
 
     bool m_initialized;
     std::unique_ptr<const CaseMetadata> m_caseMetadata;
-    std::map<CString, const CaseItem*> m_caseItemLookup;
+    std::map<std::string, const CaseItem*> m_caseItemLookup;
 
     std::shared_ptr<CaseConstructionReporter> m_caseConstructionReporter;
 };

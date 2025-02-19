@@ -59,8 +59,11 @@ namespace
 }
 
 
-std::optional<std::wstring> RunSHBrowseForFolder(HWND hWnd, UINT flags, const TCHAR* title/* = nullptr*/, const TCHAR* initial_path/* = nullptr*/)
+std::optional<std::string> RunSHBrowseForFolder(HWND hWnd, const UINT flags, const std::string_view title_sv, const std::string& initial_path)
 {
+    const std::wstring wide_title = TC::ToWide(title_sv);
+    std::optional<std::wstring> wide_initial_path;
+
     if( FAILED(::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)) )
         return std::nullopt;
 
@@ -69,37 +72,37 @@ std::optional<std::wstring> RunSHBrowseForFolder(HWND hWnd, UINT flags, const TC
     if( FAILED(SHGetMalloc(&pMalloc)) )
         return std::nullopt;
 
-    std::wstring path(MAX_PATH, '\0');
+    auto path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
+    path[0] = '\0';
 
     BROWSEINFO browse_info;
     memset(&browse_info, 0, sizeof(browse_info));
 
     browse_info.hwndOwner = hWnd;
-    browse_info.pszDisplayName = path.data();
+    browse_info.pszDisplayName = path.get();
     browse_info.ulFlags = flags;
-    browse_info.lpszTitle = title;
+    browse_info.lpszTitle = wide_title.c_str();
 
-    if( initial_path != nullptr && PortableFunctions::FileIsDirectory(initial_path) )
+    if( !initial_path.empty() && PortableFunctions::FileIsDirectory(initial_path) )
     {
         browse_info.lpfn = RunSHBrowseForFolder_Callback;
-        browse_info.lParam = reinterpret_cast<LPARAM>(initial_path);
+        wide_initial_path.emplace(TC::ToWide(initial_path));
+        browse_info.lParam = reinterpret_cast<LPARAM>(wide_initial_path->c_str());
     }
 
-    ITEMIDLIST* pItemList = ::SHBrowseForFolder(&browse_info);
+    ITEMIDLIST* const pItemList = ::SHBrowseForFolder(&browse_info);
 
     if( pItemList != nullptr )
     {
-        ::SHGetPathFromIDList(pItemList, path.data());
+        ::SHGetPathFromIDList(pItemList, path.get());
         pMalloc->Free(pItemList);
     }
 
     pMalloc->Release();
     ::CoUninitialize();
 
-    path.resize(_tcslen(path.data()));
+    if( path[0] == '\0' )
+        return std::nullopt;
 
-    if( !path.empty() )
-        return path;
-
-    return std::nullopt;
+    return TC::ToUtf8(path.get());
 }

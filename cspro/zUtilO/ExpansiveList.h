@@ -1,13 +1,19 @@
 ﻿#pragma once
 
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/DataStorage.h>
+#include <zSql/SQLite.h>
 
 
-// this class allows for the storage of a large number of values, first storing
-// them in a std::vector, and after that vector is "full," it will use an in-memory
-// SQLite database to store values; once iteration on the list has started,
-// no more values can be added to the list
+// --------------------------------------------------------------------------
+// ExpansiveList
+//
+// This class allows for the storage of a large number of values, first
+// storing them in a std::vector, and after that vector is "full," it will
+// use an in-memory SQLite database to store values. Once iteration on the
+// list has started, no more values can be added to the list.
+//
+// A related class is ExpansiveMap.
+// --------------------------------------------------------------------------
 
 template<typename T>
 class ExpansiveList
@@ -20,7 +26,7 @@ public:
 
     size_t GetSize() const { return m_size; }
 
-    // AddValue will throw an exception if there is an error interacting with the SQLite database
+    // AddValue will throw an exception if there is an error interacting with the SQLite database.
     template<typename VT>
     void AddValue(VT&& value);
 
@@ -32,17 +38,14 @@ private:
     static constexpr const char* ExceptionMessage = "The ExpansiveList could not create an in-memory database.";
 
     void AddValueToSQLite(const T& value);
-    void SetupDatabase(const T& value);
+    void SetUpDatabase();
 
-    static const TCHAR* GetDataType(const int&)         { return _T("INTEGER"); }
     void BindValue(int value)                           { sqlite3_bind_int(m_stmtPut, 1, value); }
     void GetValueFromSQLite(int& value)                 { value = sqlite3_column_int(m_stmtIterator, 0); }
 
-    static const TCHAR* GetDataType(const double&)      { return _T("REAL"); }
     void BindValue(double value)                        { sqlite3_bind_double(m_stmtPut, 1, value); }
     void GetValueFromSQLite(double& value)              { value = sqlite3_column_double(m_stmtIterator, 0); }
 
-    static const TCHAR* GetDataType(const std::string&) { return _T("TEXT"); }
     void BindValue(const std::string& value)            { sqlite3_bind_text(m_stmtPut, 1, value.data(), value.length(), SQLITE_TRANSIENT); }
     void GetValueFromSQLite(std::string& value)         { value = reinterpret_cast<const char*>(sqlite3_column_text(m_stmtIterator, 0)); }
 
@@ -84,8 +87,8 @@ ExpansiveList<T>::~ExpansiveList()
 {
     if( m_db != nullptr )
     {
-        safe_sqlite3_finalize(m_stmtIterator);
-        safe_sqlite3_finalize(m_stmtPut);
+        sqlite3_finalize(m_stmtIterator);
+        sqlite3_finalize(m_stmtPut);
         sqlite3_close(m_db);
     }
 }
@@ -178,9 +181,9 @@ void ExpansiveList<T>::RestartIterator()
 template<typename T>
 void ExpansiveList<T>::AddValueToSQLite(const T& value)
 {
-    // setup the database if necessary
+    // set up the database if necessary
     if( m_db == nullptr )
-        SetupDatabase(value);
+        SetUpDatabase();
 
     sqlite3_reset(m_stmtPut);
 
@@ -192,12 +195,12 @@ void ExpansiveList<T>::AddValueToSQLite(const T& value)
 
 
 template<typename T>
-void ExpansiveList<T>::SetupDatabase(const T& value)
+void ExpansiveList<T>::SetUpDatabase()
 {
-    const std::wstring create_table_sql = FormatTextCS2WS(_T("CREATE TABLE `values` ( `value` %s );"), GetDataType(value));
+    const std::string create_table_sql = FormatText("CREATE TABLE `values` ( `value` %s );", Sqlite::GetDataType<T>());
 
     if( sqlite3_open("", &m_db) != SQLITE_OK ||
-        sqlite3_exec(m_db, ToUtf8(create_table_sql), nullptr, nullptr, nullptr) != SQLITE_OK ||
+        sqlite3_exec(m_db, create_table_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK ||
         sqlite3_prepare_v2(m_db, "INSERT INTO `values` ( `value` ) VALUES ( ? );", -1, &m_stmtPut, nullptr) != SQLITE_OK ||
         sqlite3_prepare_v2(m_db, "SELECT `value` FROM `values` ORDER BY `_rowid_`;", -1, &m_stmtIterator, nullptr) != SQLITE_OK )
     {

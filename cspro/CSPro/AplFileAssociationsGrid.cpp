@@ -5,7 +5,6 @@ Skeleton Class for a Derived CAplFileAssociationsGrid v3.5
 ****************************************************/
 #include "StdAfx.h"
 #include "AplFileAssociationsGrid.h"
-#include <zUtilO/FileUtil.h>
 
 const int GRID_DEFAULT_ROWHEIGHT =  5;
 const int GRID_DEFAULT_COLWIDTH  = 75;
@@ -486,35 +485,24 @@ int CAplFileAssociationsGrid::OnCellTypeNotify(long ID,int col,long row,long msg
 
             const FileAssociation& file_association = ((CAplFileAssociationsDlg*)GetParent())->m_fileAssociations[row];
 
-            // selecting a folder
-            if( file_association.IsFolderBased() )
-            {
-                CString csMessage;
-                csMessage.Format(_T("Choose %s"), (LPCTSTR)file_association.GetDescription());
+            // select a file
+            CIMSAString sDatFileName = this->QuickGetText(col, row);
 
-                std::optional<std::wstring> folder = SelectFolderDialog(GetSafeHwnd(), csMessage);
+            std::string filter;
+            const char* default_extension;
+            std::tie(filter, default_extension) = file_association.GetFilterAndDefaultExtension();
+            filter.append("All Files (*.*)|*.*||");
 
-                if( folder.has_value() )
-                    QuickSetText(col, row, folder->c_str());
-            }
+            const std::wstring wide_default_extension = TC::ToWide(default_extension);
+            CFileDialog fileDlg(FALSE, wide_default_extension.c_str(), sDatFileName,
+                                OFN_HIDEREADONLY | OFN_CREATEPROMPT | OFN_PATHMUSTEXIST,
+                                TC::ToWide(filter).c_str(), NULL);
+            fileDlg.m_ofn.lpstrTitle = L"Enter or Select File";
 
-            // selecting a file
-            else
-            {
-                CIMSAString sDatFileName = this->QuickGetText(col, row);
-                CString filter;
-                CString default_extension;
-
-                std::tie(filter, default_extension) = file_association.GetFilterAndDefaultExtension();
-                filter.Append(_T("All Files (*.*)|*.*||"));
-
-                CFileDialog fileDlg(FALSE, default_extension, sDatFileName, OFN_HIDEREADONLY | OFN_CREATEPROMPT | OFN_PATHMUSTEXIST, filter, NULL);
-                fileDlg.m_ofn.lpstrTitle = _T("Enter or Select File");
-                if(fileDlg.DoModal() == IDOK) {
-                    CString sTemp = fileDlg.GetPathName();
-                    file_association.FixExtension(sTemp);
-                    QuickSetText(col,row,sTemp);
-                }
+            if(fileDlg.DoModal() == IDOK) {
+                CString sTemp = fileDlg.GetPathName();
+                file_association.FixExtension(sTemp);
+                QuickSetText(col,row,sTemp);
             }
         }
     }
@@ -681,4 +669,3 @@ void CAplFileAssociationsGrid::ResetGrid() {
     }
     SetRedraw(TRUE);
 }
-

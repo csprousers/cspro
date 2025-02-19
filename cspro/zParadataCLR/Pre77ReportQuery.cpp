@@ -3,226 +3,225 @@
 #include <zReportO/Pre77ReportException.h>
 #include <zReportO/Pre77ReportManager.h>
 #include <zReportO/Pre77ReportNodes.h>
-#include <zToolsO/Utf8Convert.h>
 
-namespace CSPro
+
+namespace CSPro::ParadataViewer::Metadata
 {
-    namespace ParadataViewer
+    #define MetadataPrefix                             "data-paradata-viewer-"
+    constexpr const char* Prefix                     = MetadataPrefix;
+    constexpr const char* Grouping                   = MetadataPrefix "grouping";
+    constexpr const char* ReportTypes                = MetadataPrefix "report-types";
+    constexpr std::string_view ColumnLabelPrefix_sv  = MetadataPrefix "label-column-";
+    constexpr std::string_view ColumnFormatPrefix_sv = MetadataPrefix "format-column-";
+    constexpr std::string_view ColumnTypePrefix_sv   = MetadataPrefix "type-column-";
+
+    constexpr const char* ReportTypeTable            = "table";
+    constexpr const char* ReportTypeSummaryTable     = "summary_table";
+    constexpr const char* ReportTypeChart            = "chart";
+
+    constexpr const char* ColumnTypeTimestamp        = "timestamp";
+
+    constexpr const char* UndefinedGrouping          = "<Undefined>";
+}
+
+
+CSPro::ParadataViewer::ReportQuery::ReportQuery(Pre77Report::ReportQueryNode* const report_query_node)
+{
+    // set the default report type, which may be modified later
+    DefaultReportType = ReportType::Table;
+    m_supportedReportTypes = static_cast<int>(DefaultReportType);
+    IsTabularQuery = true;
+
+    Columns = gcnew System::Collections::Generic::List<ReportQueryColumn^>();
+
+
+    // process the main attributes
+    Name = clr_helpers::to_SystemString(SO::Trim(report_query_node->GetName()));
+    Description = clr_helpers::to_SystemString(SO::Trim(report_query_node->GetDescription()));
+    SqlQuery = clr_helpers::to_SystemString(SO::Trim(report_query_node->GetQuery()));
+
+    // if the description isn't defined, use the name
+    if( System::String::IsNullOrWhiteSpace(Description) )
+        Description = Name;
+
+    // remove any tabs (that follow a newline) in the query and then replace the tabs with spaces
+    while( true )
     {
-        namespace Metadata
+        const int initial_length = SqlQuery->Length;
+        SqlQuery = SqlQuery->Replace("\n\t", "\n");
+
+        if( SqlQuery->Length == initial_length )
+            break;
+    }
+
+    SqlQuery = SqlQuery->Replace("\t", " ");
+
+    // process the Paradata Viewer metadata
+    std::vector<std::string> attributes;
+    std::vector<std::string> values;
+    report_query_node->GetMetadata(Metadata::Prefix, attributes, values);
+
+    for( size_t i = 0; i < attributes.size(); ++i )
+    {
+        const std::string& attribute = attributes[i];
+        const std::string value(SO::Trim(values[i]));
+
+        if( attribute == Metadata::Grouping )
         {
-            #define MetadataPrefix "data-paradata-viewer-"
-            const char* Prefix = MetadataPrefix;
-            const char* Grouping = MetadataPrefix "grouping";
-            const char* ReportTypes = MetadataPrefix "report-types";
-            const char* ColumnLabelPrefix = MetadataPrefix "label-column-";
-            const char* ColumnFormatPrefix = MetadataPrefix "format-column-";
-            const char* ColumnTypePrefix = MetadataPrefix "type-column-";
-
-            #define ReportTypeTable "table"
-            #define ReportTypeSummaryTable "summary_table"
-            #define ReportTypeChart "chart"
-
-            #define ColumnTypeTimestamp "timestamp"
-
-            #define UndefinedGrouping "<Undefined>"
+            Grouping = clr_helpers::to_SystemString(value);
         }
 
-
-        System::String^ Utf8ToTrimmedString(const std::string& sText)
+        else if( attribute == Metadata::ReportTypes )
         {
-            CString csText = UTF8Convert::UTF8ToWide<CString>(sText);
-            auto text = gcnew System::String(csText);
-            return text->Trim();
-        }
+            m_supportedReportTypes = 0;
 
+            const std::vector<std::string_view> token_svs = SO::SplitString<std::string_view>(value, SO::WhitespaceChars_sv, false, false);
 
-        ReportQuery::ReportQuery(Pre77Report::ReportQueryNode* pReportQueryNode)
-        {
-            // set the default report type, which may be modified later
-            DefaultReportType = ReportType::Table;
-            m_iSupportedReportTypes = (int)DefaultReportType;
-            IsTabularQuery = true;
-
-            Columns = gcnew System::Collections::Generic::List<ReportQueryColumn^>();
-
-
-            // process the main attributes
-            Name = Utf8ToTrimmedString(pReportQueryNode->GetName());
-            Description = Utf8ToTrimmedString(pReportQueryNode->GetDescription());
-            SqlQuery = Utf8ToTrimmedString(pReportQueryNode->GetQuery());
-
-            // if the description isn't defined, use the name
-            if( System::String::IsNullOrWhiteSpace(Description) )
-                Description = Name;
-
-            // remove any tabs (that follow a newline) in the query and then replace the tabs with spaces
-            while( true )
+            for( size_t j = 0; j < token_svs.size(); ++j )
             {
-                int iInitialLength = SqlQuery->Length;
-                SqlQuery = SqlQuery->Replace("\n\t","\n");
+                const std::string_view token_sv = token_svs[j];
+                ReportType report_type;
 
-                if( SqlQuery->Length == iInitialLength )
-                    break;
-            }
-
-            SqlQuery = SqlQuery->Replace("\t"," ");
-
-            // process the Paradata Viewer metadata
-            std::vector<std::string> aAttributes;
-            std::vector<std::string> aValues;
-            pReportQueryNode->GetMetadata(Metadata::Prefix,aAttributes,aValues);
-
-            for( size_t i = 0; i < aAttributes.size(); i++ )
-            {
-                const std::string& sAttribute = aAttributes[i];
-                System::String^ value = Utf8ToTrimmedString(aValues[i]);
-
-                if( sAttribute.compare(Metadata::Grouping) == 0 )
-                    Grouping = value;
-
-                else if( sAttribute.compare(Metadata::ReportTypes) == 0 )
+                if( SO::EqualsNoCase(token_sv, Metadata::ReportTypeTable) )
                 {
-                    m_iSupportedReportTypes = 0;
+                    report_type = ReportType::Table;
+                }
 
-                    auto tokens = value->Split((array<System::String^>^)nullptr,System::StringSplitOptions::RemoveEmptyEntries);
+                else if( SO::EqualsNoCase(token_sv, Metadata::ReportTypeSummaryTable) )
+                {
+                    report_type = ReportType::Table;
+                    IsTabularQuery = false;
+                }
 
-                    for( int j = 0; j < tokens->Length; j++ )
-                    {
-                        ReportType reportType;
-
-                        if( tokens[j]->Equals(ReportTypeTable,System::StringComparison::InvariantCultureIgnoreCase) )
-                            reportType = ReportType::Table;
-
-                        else if( tokens[j]->Equals(ReportTypeSummaryTable,System::StringComparison::InvariantCultureIgnoreCase) )
-                        {
-                            reportType = ReportType::Table;
-                            IsTabularQuery = false;
-                        }
-
-                        else if( tokens[j]->Equals(ReportTypeChart,System::StringComparison::InvariantCultureIgnoreCase) )
-                        {
-                            reportType = ReportType::Chart;
-                            IsTabularQuery = false;
-                        }
-
-                        else
-                        {
-                            // quit out of the loop and throw the exception
-                            m_iSupportedReportTypes = 0;
-                            break;
-                        }
-
-                        if( j == 0 )
-                            DefaultReportType = reportType;
-
-                        m_iSupportedReportTypes |= (int)reportType;
-                    }
-
-                    if( m_iSupportedReportTypes == 0 )
-                        throw gcnew System::Exception(System::String::Format("Invalid or unspecified report type detected: \"{0}\"",value));
+                else if( SO::EqualsNoCase(token_sv, Metadata::ReportTypeChart) )
+                {
+                    report_type = ReportType::Chart;
+                    IsTabularQuery = false;
                 }
 
                 else
                 {
-                    bool bLabel = ( sAttribute.find(Metadata::ColumnLabelPrefix) == 0 );
-                    bool bFormat = !bLabel && ( sAttribute.find(Metadata::ColumnFormatPrefix) == 0 );
-
-                    if( bLabel || bFormat || ( sAttribute.find(Metadata::ColumnTypePrefix) == 0 ) )
-                    {
-                        // calculate the column number
-                        int iColumnNumberPosition = strlen(
-                            bLabel ? Metadata::ColumnLabelPrefix :
-                            bFormat ? Metadata::ColumnFormatPrefix :
-                            Metadata::ColumnTypePrefix);
-                        std::string sColumnNumber = sAttribute.substr(iColumnNumberPosition);
-
-                        const int MaximumNumberColumns = 1024;
-                        int iColumnNumber = atoi(sColumnNumber.c_str());
-
-                        if( iColumnNumber < 1 || iColumnNumber > MaximumNumberColumns )
-                            throw gcnew System::Exception(System::String::Format("Specified column numbers must be between 1 and {0} and cannot be {1}",MaximumNumberColumns,iColumnNumber));
-
-                        // create the column (and any missing ones)
-                        while( Columns->Count < iColumnNumber )
-                            Columns->Add(gcnew ReportQueryColumn());
-
-                        // the column number is one-based
-                        auto reportQueryColumn = Columns[iColumnNumber - 1];
-
-                        if( bLabel )
-                            reportQueryColumn->Label = value;
-
-                        else if( bFormat )
-                            reportQueryColumn->Format = value;
-
-                        else // type
-                        {
-                            if( value->Equals(ColumnTypeTimestamp,System::StringComparison::InvariantCultureIgnoreCase) )
-                                reportQueryColumn->IsTimestamp = true;
-
-                            else
-                                throw gcnew System::Exception(System::String::Format("Invalid or unspecified column type detected: \"{0}\"",value));
-                        }
-                    }
-
-                    else
-                    {
-                        throw gcnew System::Exception(System::String::Format(
-                            "Unknown metadata detected: {0}=\"{1}\"",Utf8ToTrimmedString(sAttribute),value));
-                    }
+                    // quit out of the loop and throw the exception
+                    m_supportedReportTypes = 0;
+                    break;
                 }
+
+                if( j == 0 )
+                    DefaultReportType = report_type;
+
+                m_supportedReportTypes |= static_cast<int>(report_type);
             }
 
-            // set the grouping if it wasn't defined
-            if( Grouping == nullptr )
-                Grouping = UndefinedGrouping;
+            if( m_supportedReportTypes == 0 )
+                throw gcnew System::Exception(clr_helpers::to_FormattedSystemString("Invalid or unspecified report type detected: '%s'", value.c_str()));
         }
 
-        bool ReportQuery::SupportsReportType(ReportType reportType)
+        else
         {
-            return ( ( m_iSupportedReportTypes & (int)reportType ) != 0 );
-        }
+            const bool label = SO::StartsWith(attribute, Metadata::ColumnLabelPrefix_sv);
+            const bool format = ( !label && SO::StartsWith(attribute, Metadata::ColumnFormatPrefix_sv) );
 
-        bool ReportQuery::CanViewAsTable::get()
-        {
-            return SupportsReportType(ReportType::Table);
-        }
-
-        bool ReportQuery::CanViewAsChart::get()
-        {
-            return SupportsReportType(ReportType::Chart);
-        }
-
-
-        System::Collections::Generic::List<ReportQuery^>^ ReportManager::LoadParadataQueries(System::String^ workingDirectory)
-        {
-            try
+            if( label || format || SO::StartsWith(attribute, Metadata::ColumnTypePrefix_sv) )
             {
-                auto reportQueries = gcnew System::Collections::Generic::List<ReportQuery^>();
-                Pre77Report::ReportManager reportManager(nullptr);
-                std::vector<Pre77Report::ReportQueryNode*> aQueries;
+                // calculate the column number
+                const size_t column_number_position = label  ? Metadata::ColumnLabelPrefix_sv.length() :
+                                                      format ? Metadata::ColumnFormatPrefix_sv.length() :
+                                                               Metadata::ColumnTypePrefix_sv.length();
+                const int column_number = atoi(attribute.substr(column_number_position).c_str());
 
-                reportManager.LoadQueries(CString(workingDirectory),aQueries);
+                constexpr int MaximumNumberColumns = 1024;
 
-                for( auto pReportQueryNode : aQueries )
+                if( column_number < 1 || column_number > MaximumNumberColumns )
                 {
-                    // filter for only paradata filters
-                    CString csDataSourceName = UTF8Convert::UTF8ToWide<CString>(pReportQueryNode->GetDataSource());
-
-                    if( csDataSourceName.CompareNoCase(_T("paradata")) != 0 )
-                        continue;
-
-                    reportQueries->Add(gcnew ReportQuery(pReportQueryNode));
+                    throw gcnew System::Exception(clr_helpers::to_FormattedSystemString("Specified column numbers must be between 1 and %d and cannot be %d",
+                                                                                        MaximumNumberColumns, column_number));
                 }
 
-                return reportQueries;
+                // create the column (and any missing ones)
+                while( Columns->Count < column_number )
+                    Columns->Add(gcnew ReportQueryColumn());
+
+                // the column number is one-based
+                ReportQueryColumn^ report_query_column = Columns[column_number - 1];
+
+                if( label )
+                {
+                    report_query_column->Label = clr_helpers::to_SystemString(value);
+                }
+
+                else if( format )
+                {
+                    report_query_column->Format = clr_helpers::to_SystemString(value);
+                }
+
+                else if( SO::EqualsNoCase(value, Metadata::ColumnTypeTimestamp) ) // type
+                {
+                    report_query_column->IsTimestamp = true;
+                }
+
+                else
+                {
+                    throw gcnew System::Exception(clr_helpers::to_FormattedSystemString("Invalid or unspecified column type detected: '%s'", value.c_str()));
+                }
             }
 
-            catch( const Pre77Report::Exception& exception )
+            else
             {
-                throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+                throw gcnew System::Exception(clr_helpers::to_FormattedSystemString("Unknown metadata detected: %s='%s'", std::string(SO::Trim(attribute)).c_str(),
+                                                                                                                          value.c_str()));
             }
         }
+    }
+
+    // set the grouping if it wasn't defined
+    if( Grouping == nullptr )
+        Grouping = clr_helpers::to_SystemString(Metadata::UndefinedGrouping);
+}
+
+
+bool CSPro::ParadataViewer::ReportQuery::SupportsReportType(ReportType report_type)
+{
+    return ( ( m_supportedReportTypes & static_cast<int>(report_type) ) != 0 );
+}
+
+
+bool CSPro::ParadataViewer::ReportQuery::CanViewAsTable::get()
+{
+    return SupportsReportType(ReportType::Table);
+}
+
+
+bool CSPro::ParadataViewer::ReportQuery::CanViewAsChart::get()
+{
+    return SupportsReportType(ReportType::Chart);
+}
+
+
+System::Collections::Generic::List<CSPro::ParadataViewer::ReportQuery^>^ CSPro::ParadataViewer::ReportManager::LoadParadataQueries(System::String^ working_directory)
+{
+    try
+    {
+        auto report_queries = gcnew System::Collections::Generic::List<ReportQuery^>();
+
+        Pre77Report::ReportManager report_manager(nullptr);
+        const std::vector<Pre77Report::ReportQueryNode*> queries = report_manager.LoadQueries(clr_helpers::to_string(working_directory));
+
+        for( Pre77Report::ReportQueryNode* const query_node : queries )
+        {
+            // filter for only paradata filters
+            const std::string data_source_name = query_node->GetDataSource();
+
+            if( !SO::EqualsNoCase(data_source_name, "paradata") )
+                continue;
+
+            report_queries->Add(gcnew ReportQuery(query_node));
+        }
+
+        return report_queries;
+    }
+
+    catch( const Pre77Report::Exception& exception )
+    {
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }

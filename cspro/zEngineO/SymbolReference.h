@@ -14,7 +14,9 @@ struct EvaluatedEngineItemSubscript
 
 
 // --------------------------------------------------------------------------
-// the SymbolReference struct stores a reference to a particular symbol
+// SymbolReference
+//
+// The struct stores a reference to a particular symbol.
 // --------------------------------------------------------------------------
 
 template<typename T>
@@ -23,7 +25,7 @@ struct SymbolReference
     // a non-null pointer, or shared pointer, to the symbol
     T symbol;
 
-    // the logic byte code address of the subscript compilation
+    // the logic bytecode address of the subscript compilation
     int subscript_compilation;
 
     // the portions of the subscript evaluated from subscript compilation

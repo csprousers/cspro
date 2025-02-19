@@ -43,7 +43,7 @@ CFieldPropDlg::CFieldPropDlg(CDEField* pField, CFormScrollView* pParent)
 
     const CDataDict* pDD = m_pMyParent->GetDocument()->GetSharedDictionary().get();
 
-    bool bFound = pDD->LookupName<CDictItem>(pField->GetItemName(), &dict_level, &dict_record, &m_pDictItem);
+    bool bFound = pDD->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()), &dict_level, &dict_record, &m_pDictItem);
     ASSERT(bFound);
 
     m_bIDItem = ( dict_record->GetSonNumber() == COMMON );
@@ -254,7 +254,7 @@ void CFieldPropDlg::OnOK()
         CString date_format;
         m_cmbCaptureTypeDateFormat.GetLBText(m_cmbCaptureTypeDateFormat.GetCurSel(), date_format);
 
-        m_captureInfo.GetExtended<DateCaptureInfo>().SetFormat(date_format);
+        m_captureInfo.GetExtended<DateCaptureInfo>().SetFormat(UTF8_TODO::GetUtf8(date_format));
         ASSERT(m_captureInfo == m_captureInfo.MakeValid(*m_pDictItem, nullptr, false));
     }
 
@@ -387,9 +387,9 @@ void CFieldPropDlg::OnChangeLabel()
 
 void CFieldPropDlg::PopulateCaptureInfo()
 {
-    auto add_entry = [&](auto capture_type, const TCHAR* text, std::optional<bool> selected = std::nullopt)
+    auto add_entry = [&](auto capture_type, const char* const text, std::optional<bool> selected = std::nullopt)
     {
-        int capture_type_pos = m_cmbCaptureType.AddString(text);
+        const int capture_type_pos = m_cmbCaptureType.AddString(TC::ToWide(text).c_str());
         m_cmbCaptureType.SetItemDataPtr(capture_type_pos, (void*)capture_type);
 
         if( !selected.has_value() )
@@ -450,8 +450,8 @@ void CFieldPropDlg::PopulateCaptureInfo()
 
 
     // add the date formats
-    for( const TCHAR* date_format : DateCaptureInfo::GetPossibleFormats(*m_pDictItem) )
-        m_cmbCaptureTypeDateFormat.AddString(date_format);
+    for( const char* const date_format : DateCaptureInfo::GetPossibleFormats(*m_pDictItem) )
+        m_cmbCaptureTypeDateFormat.AddString(TC::ToWide(date_format).c_str());
 }
 
 
@@ -496,7 +496,7 @@ void CFieldPropDlg::OnCbnSelchangeCaptureInfo()
                 CString date_format;
                 m_cmbCaptureTypeDateFormat.GetLBText(i, date_format);
 
-                if( date_capture_info.GetFormat() == date_format )
+                if( date_capture_info.GetFormat() == UTF8_TODO::GetUtf8(date_format) )
                 {
                     date_format_index_selected = true;
                     m_cmbCaptureTypeDateFormat.SetCurSel(i);
@@ -504,12 +504,11 @@ void CFieldPropDlg::OnCbnSelchangeCaptureInfo()
                 }
             }
 
-            // this may not happen; it would if an invalid date format was somehow set
-            if( !date_format_index_selected )
-                date_capture_info.SetFormat(date_capture_info.GetDefaultFormat(*m_pDictItem));
-
-            else
+            if( date_format_index_selected )
                 break;
+
+            // this may not happen; it would if an invalid date format was somehow set
+            date_capture_info.SetFormat(date_capture_info.GetDefaultFormat(*m_pDictItem));
         }
     }
 
@@ -522,9 +521,8 @@ void CFieldPropDlg::OnCbnSelchangeCaptureInfo()
 
     if( is_unspecified )
     {
-        pCaptureDescriptionWnd->SetWindowText(FormatText(_T("%s%s"),
-            capture_info_is_not_fully_valid ? _T("Evaluates to: ") : _T(""),
-            valid_capture_info.GetDescription().GetString()));
+        pCaptureDescriptionWnd->SetWindowText(TC::ToWide(SO::Concatenate(capture_info_is_not_fully_valid ? "Evaluates to: " : "",
+                                                                         valid_capture_info.GetDescription())).c_str());
     }
 
     else if( capture_info_is_not_fully_valid )

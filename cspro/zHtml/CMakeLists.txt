@@ -8,6 +8,8 @@ add_library(${PROJECT_NAME}
     FileSystemVirtualFileMappingHandler.cpp
     HtmlDlgBaseRunner.cpp
     LocalhostUrl.cpp
+    PortableLocalFileServer.cpp
+    PortableLocalhost.cpp
     VirtualFileMappingHandlers.cpp
     WebViewSyncOperationMarker.cpp
 )

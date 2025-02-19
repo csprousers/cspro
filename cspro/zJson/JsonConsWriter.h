@@ -1,18 +1,17 @@
 ﻿#pragma once
 
 #include <zJson/JsonWriter.h>
-#include <zToolsO/Special.h>
 
 
 // --------------------------------------------------------------------------
 // JsonConsWriter (the wrapper around jsoncons)
 // --------------------------------------------------------------------------
 
-template<typename CharType, typename WriterType>
+template<typename WriterType>
 class JsonConsWriter : virtual public JsonWriter
 {
 protected:
-    JsonConsWriter(JsonFormattingOptions formatting_options)
+    JsonConsWriter(const JsonFormattingOptions formatting_options)
         :   m_allowFormattingModifications(formatting_options == JsonFormattingOptions::PrettySpacing)
     {
         // m_writer must be set by subclasses
@@ -22,36 +21,11 @@ public:
     // --------------------------------------------------------------------------
     // key methods
     // --------------------------------------------------------------------------
-    JsonWriter& Key(std::string_view key_sv) override
+    JsonWriter& Key(const std::string_view key_sv) override
     {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            m_writer->key(key_sv);
-        }
-
-        else
-        {
-            m_writer->key(UTF8Convert::UTF8ToWide(key_sv));
-        }
-
+        m_writer->key(key_sv);
         return *this;
     }
-
-    JsonWriter& Key(wstring_view key_sv) override
-    {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            m_writer->key(UTF8Convert::WideToUTF8(key_sv));
-        }
-
-        else
-        {
-            m_writer->key(key_sv);
-        }
-
-        return *this;
-    }
-
 
     // --------------------------------------------------------------------------
     // object methods
@@ -94,112 +68,51 @@ public:
         return *this;
     }
 
-    JsonWriter& Write(bool value) override
+    JsonWriter& Write(const bool value) override
     {
         m_writer->bool_value(value);
         return *this;
     }
 
-    JsonWriter& Write(int value) override
+    JsonWriter& Write(const int value) override
     {
         m_writer->int64_value(value);
         return *this;
     }
 
-    JsonWriter& Write(unsigned int value) override
+    JsonWriter& Write(const unsigned int value) override
     {
         m_writer->uint64_value(value);
         return *this;
     }
 
-    JsonWriter& Write(int64_t value) override
+    JsonWriter& Write(const int64_t value) override
     {
         m_writer->int64_value(value);
         return *this;
     }
 
-    JsonWriter& Write(uint64_t value) override
+    JsonWriter& Write(const uint64_t value) override
     {
         m_writer->uint64_value(value);
         return *this;
     }
 
-    JsonWriter& Write(double value) override
+    JsonWriter& Write(const double value) override
     {
         m_writer->double_value(value);
         return *this;
     }
 
-    JsonWriter& Write(std::string_view value_sv) override
+    JsonWriter& Write(const std::string_view value_sv) override
     {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            m_writer->string_value(value_sv);
-        }
-
-        else
-        {
-            m_writer->string_value(UTF8Convert::UTF8ToWide(value_sv));
-        }
-
+        m_writer->string_value(value_sv);
         return *this;
     }
 
-    JsonWriter& Write(wstring_view value_sv) override
+    JsonWriter& Write(const JsonNode& json_node) override
     {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            m_writer->string_value(UTF8Convert::WideToUTF8(value_sv));
-        }
-
-        else
-        {
-            m_writer->string_value(value_sv);
-        }
-
-        return *this;
-    }
-
-    JsonWriter& WriteEngineValueDouble(double value) override
-    {
-        if( IsSpecial(value) )
-        {
-            return Write(wstring_view(SpecialValues::ValueToString(value)));
-        }
-
-        else
-        {
-            return Write(value);
-        }
-    }
-
-    JsonWriter& Write(const JsonNode<char>& json_node) override
-    {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            json_node.GetBasicJson().dump(*m_writer);
-        }
-
-        else
-        {
-            ASSERT(false);
-        }
-
-        return *this;
-    }
-
-    JsonWriter& Write(const JsonNode<wchar_t>& json_node) override
-    {
-        if constexpr(std::is_same_v<CharType, char>)
-        {
-            ASSERT(false);
-        }
-
-        else
-        {
-            json_node.GetBasicJson().dump(*m_writer);
-        }
-
+        json_node.GetBasicJson().dump(*m_writer);
         return *this;
     }
 
@@ -219,20 +132,24 @@ protected:
 
 private:
     const bool m_allowFormattingModifications;
-    std::unique_ptr<std::stack<const jsoncons::ModifiableOptions<CharType>*>> m_formattingOptionsStack;
+    std::unique_ptr<std::stack<const jsoncons::ModifiableOptions<char>*>> m_formattingOptionsStack;
 };
 
 
 
-template<typename CharType, typename WriterType>
-JsonWriter::FormattingHolder JsonConsWriter<CharType, WriterType>::SetFormattingType(JsonFormattingType formatting_type)
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename WriterType>
+JsonWriter::FormattingHolder JsonConsWriter<WriterType>::SetFormattingType(const JsonFormattingType formatting_type)
 {
     if( m_allowFormattingModifications )
     {
         if( m_formattingOptionsStack == nullptr )
-            m_formattingOptionsStack = std::make_unique<std::stack<const jsoncons::ModifiableOptions<CharType>*>>();
+            m_formattingOptionsStack = std::make_unique<std::stack<const jsoncons::ModifiableOptions<char>*>>();
 
-        const jsoncons::ModifiableOptions<CharType>& modifiable_options = GetJsonModifiableOptions<CharType>(formatting_type);
+        const jsoncons::ModifiableOptions<char>& modifiable_options = GetJsonModifiableOptions(formatting_type);
 
         m_formattingOptionsStack->push(&modifiable_options);
         m_writer->ModifyOptions(&modifiable_options);
@@ -244,8 +161,8 @@ JsonWriter::FormattingHolder JsonConsWriter<CharType, WriterType>::SetFormatting
 }
 
 
-template<typename CharType, typename WriterType>
-void JsonConsWriter<CharType, WriterType>::SetFormattingAction(JsonFormattingAction formatting_action)
+template<typename WriterType>
+void JsonConsWriter<WriterType>::SetFormattingAction(const JsonFormattingAction formatting_action)
 {
     if( m_allowFormattingModifications )
     {
@@ -263,8 +180,8 @@ void JsonConsWriter<CharType, WriterType>::SetFormattingAction(JsonFormattingAct
 }
 
 
-template<typename CharType, typename WriterType>
-void JsonConsWriter<CharType, WriterType>::RemoveTopmostFormattingType()
+template<typename WriterType>
+void JsonConsWriter<WriterType>::RemoveTopmostFormattingType()
 {
     ASSERT(m_formattingOptionsStack != nullptr && !m_formattingOptionsStack->empty());
     m_formattingOptionsStack->pop();

@@ -21,8 +21,9 @@ public:
 private:
     JavaScript::ModuleType GetModuleType();
 
-    // Compile will call with byte_code as null; Run will provide space for the compiled byte code
-    bool CompileRunWorker(JavaScript::ByteCode* byte_code);
+    // Compile will call with bytecode as null.
+    // Run will provide space for the compiled bytecode.
+    bool CompileRunWorker(JavaScript::Bytecode* bytecode);
 
 private:
     CodeDoc& m_codeDoc;
@@ -39,7 +40,7 @@ class OutputWndJavaScriptPrinter : public JavaScript::Printer
 public:
     OutputWndJavaScriptPrinter(OutputWnd& output_wnd);
 
-    void OnPrint(const std::string& text) override;
+    void OnPrint(SharableString text) override;
 
 private:
     OutputWnd& m_outputWnd;

@@ -3,25 +3,25 @@
 #include <external/rapidfuzz/fuzz.hpp>
 
 
-double FuzzyWuzzy::Ratio(const std::wstring& text1, const std::wstring& text2)
+double FuzzyWuzzy::Ratio(const std::string& text1, const std::string& text2)
 {
     return rapidfuzz::fuzz::ratio(text1, text2);
 }
 
 
-double FuzzyWuzzy::PartialRatio(const std::wstring& text1, const std::wstring& text2, double score_cutoff/* = 0*/)
+double FuzzyWuzzy::PartialRatio(const std::string& text1, const std::string& text2, const double score_cutoff/* = 0*/)
 {
     return rapidfuzz::fuzz::partial_ratio(text1, text2, score_cutoff);
 }
 
 
-double FuzzyWuzzy::TokenSortRatio(const std::wstring& text1, const std::wstring& text2, double score_cutoff/* = 0*/)
+double FuzzyWuzzy::TokenSortRatio(const std::string& text1, const std::string& text2, const double score_cutoff/* = 0*/)
 {
     return rapidfuzz::fuzz::token_sort_ratio(text1, text2, score_cutoff);
 }
 
 
-double FuzzyWuzzy::TokenSetRatio(const std::wstring& text1, const std::wstring& text2, double score_cutoff/* = 0*/)
+double FuzzyWuzzy::TokenSetRatio(const std::string& text1, const std::string& text2, const double score_cutoff/* = 0*/)
 {
     return rapidfuzz::fuzz::token_set_ratio(text1, text2, score_cutoff);
 }
@@ -32,10 +32,10 @@ double FuzzyWuzzy::TokenSetRatio(const std::wstring& text1, const std::wstring& 
 // BestMatchProcessorScorer
 // --------------------------------------------------------------------------
 
-using BestMatchProcessorScorer_ScorerType = rapidfuzz::fuzz::CachedRatio<std::wstring::value_type>;
+using BestMatchProcessorScorer_ScorerType = rapidfuzz::fuzz::CachedRatio<std::string::value_type>;
 
 
-FuzzyWuzzy::BestMatchProcessorScorer::BestMatchProcessorScorer(const std::wstring& query, double score_cutoff)
+FuzzyWuzzy::BestMatchProcessorScorer::BestMatchProcessorScorer(const std::string& query, const double score_cutoff)
     :   m_scorer(new BestMatchProcessorScorer_ScorerType(query)),
         m_matchCount(0),
         m_bestMatchScore(score_cutoff)
@@ -49,11 +49,11 @@ FuzzyWuzzy::BestMatchProcessorScorer::~BestMatchProcessorScorer()
 };
 
 
-bool FuzzyWuzzy::BestMatchProcessorScorer::ScoresHigher(const std::wstring& text)
+bool FuzzyWuzzy::BestMatchProcessorScorer::ScoresHigher(const std::string& text)
 {
     BestMatchProcessorScorer_ScorerType& scorer = *reinterpret_cast<BestMatchProcessorScorer_ScorerType*>(m_scorer);
 
-    double score = scorer.similarity(text, m_bestMatchScore);
+    const double score = scorer.similarity(text, m_bestMatchScore);
 
     if( score < m_bestMatchScore )
         return false;

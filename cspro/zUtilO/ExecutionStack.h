@@ -58,7 +58,7 @@ private:
 public:
     ExecutionStackEntry(const ExecutionStackEntry&) = delete;
 
-    ExecutionStackEntry(ExecutionStackEntry&& rhs)
+    ExecutionStackEntry(ExecutionStackEntry&& rhs) noexcept
         :   m_entryId(rhs.m_entryId)
     {
         rhs.m_entryId = 0;

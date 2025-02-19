@@ -1,65 +1,57 @@
-﻿// TabDlg.cpp : implementation file
-//
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "TabDlg.h"
 #include "CSTab.h"
-#include <zUtilO/Filedlg.h>
-#include <zUtilO/FileUtil.h>
+#include <zToolsO/WinSettings.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Interapp.h>
 #include <zJson/JsonStream.h>
 #include <ZBRIDGEO/PifDlg.h>
-#include <zTableO/Table.h>
-#include <zExTab/zExTab.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
-
-// CSTabDlg dialog
-
-CSTabDlg::CSTabDlg(CWnd* pParent /*=NULL*/)
-    : CDialog(CSTabDlg::IDD, pParent)
-{
-    m_sFileName = _T("");
-    m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-}
-
-void CSTabDlg::DoDataExchange(CDataExchange* pDX)
-{
-    CDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_FILENAME, m_sFileName);
-}
 
 BEGIN_MESSAGE_MAP(CSTabDlg, CDialog)
     ON_WM_SYSCOMMAND()
-    ON_WM_DESTROY()
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
     ON_BN_CLICKED(IDC_LOCATE, OnLocate)
-    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 
-// CSTabDlg message handlers
+CSTabDlg::CSTabDlg(std::shared_ptr<CNPifFile> pff, std::string application_file_path, CWnd* const pParent/* = nullptr*/)
+    :   CDialog(IDD_CSTAB_DIALOG, pParent),
+        m_pff(std::move(pff)),
+        m_sFileName(UTF8_TODO::GetCString(std::move(application_file_path))),
+        m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME))
+{
+    ASSERT(m_pff != nullptr);
+}
+
+
+void CSTabDlg::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Text(pDX, IDC_FILENAME, m_sFileName);
+}
+
 
 BOOL CSTabDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     // Add "About..." menu item to system menu.
 
     // IDM_ABOUTBOX must be in the system command range.
-    ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
+    ASSERT(( IDM_ABOUTBOX & 0xFFF0 ) == IDM_ABOUTBOX);
     ASSERT(IDM_ABOUTBOX < 0xF000);
 
-    CMenu* pSysMenu = GetSystemMenu(FALSE);
-    if (pSysMenu != NULL)
+    CMenu* const pSysMenu = GetSystemMenu(FALSE);
+
+    if( pSysMenu != nullptr )
     {
         CString strAboutMenu;
         strAboutMenu.LoadString(IDS_ABOUTBOX);
-        if (!strAboutMenu.IsEmpty())
+
+        if( !strAboutMenu.IsEmpty() )
         {
             pSysMenu->AppendMenu(MF_SEPARATOR);
             pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
@@ -71,37 +63,32 @@ BOOL CSTabDlg::OnInitDialog()
     SetIcon(m_hIcon, TRUE);         // Set big icon
     SetIcon(m_hIcon, FALSE);        // Set small icon
 
-    // TODO: Add extra initialization here
     UpdateData(FALSE);
-    if(!m_sFileName.IsEmpty() && GetSafeHwnd()) {
-        //this->OnOK();
-        m_pPIFFile->SetSilent(true);
-        this->PostMessage(WM_COMMAND,IDOK);
+
+    if( !m_sFileName.IsEmpty() && GetSafeHwnd() != nullptr )
+    {
+        m_pff->SetSilent(true);
+        PostMessage(WM_COMMAND, IDOK);
     }
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CSTabDlg::OnSysCommand(UINT nID, LPARAM lParam)
+
+void CSTabDlg::OnSysCommand(const UINT nID, const LPARAM lParam)
 {
-    if ((nID & 0xFFF0) == IDM_ABOUTBOX)
+    if( ( nID & 0xFFF0 ) == IDM_ABOUTBOX )
     {
-        CIMSAAboutDlg dlg;
-        HICON hIcon = AfxGetApp()-> LoadIcon(IDR_MAINFRAME);
-        dlg.m_hIcon = hIcon;
-        dlg.m_csModuleName = _T("CSTab");
-        dlg.DoModal();
+        CIMSAAboutDlg about_dlg(L"CSTab", m_hIcon);
+        about_dlg.DoModal();
     }
+
     else
     {
-        CDialog::OnSysCommand(nID, lParam);
+        __super::OnSysCommand(nID, lParam);
     }
 }
 
-void CSTabDlg::OnDestroy()
-{
-    CDialog::OnDestroy();
-}
 
 // If you add a minimize button to your dialog, you will need the code below
 //  to draw the icon.  For MFC applications using the document/view model,
@@ -126,11 +113,13 @@ void CSTabDlg::OnPaint()
         // Draw the icon
         dc.DrawIcon(x, y, m_hIcon);
     }
+
     else
     {
-        CDialog::OnPaint();
+        __super::OnPaint();
     }
 }
+
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
@@ -138,37 +127,40 @@ HCURSOR CSTabDlg::OnQueryDragIcon()
 {
     return static_cast<HCURSOR>(m_hIcon);
 }
+
+
 void CSTabDlg::OnLocate()
 {
-    CString sFilter= _T("Tabulation Application Files (*.xtb)|*.xtb|PFF Files (*.pff)|*.pff||");
     UpdateData(TRUE);
 
-    CString sPath(m_sFileName);
-    PathRemoveFileSpec(sPath.GetBuffer(_MAX_PATH));
-    sPath.ReleaseBuffer();
+    OpenFileDlg open_file_dlg(0, nullptr, nullptr,
+                              L"Tabulation Application Files (*.xtb)|*.xtb|PFF Files (*.pff)|*.pff||", this);
 
-    CIMSAFileDialog fileDlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,sFilter,NULL,CFD_NO_DIR,FALSE);
-    if(!sPath.IsEmpty()) {
-      fileDlg.m_ofn.lpstrInitialDir = sPath;
-    }
-    else {
-        CString sDir = AfxGetApp()->GetProfileString(_T("Settings"),_T("Last Folder"));
-        if(m_sFileName.IsEmpty() && !sDir.IsEmpty()){
-            fileDlg.m_ofn.lpstrInitialDir = sDir;
-        }
+    // if the file exists, start in its directory
+    if( PortableFunctions::FileIsRegular(m_sFileName) )
+    {
+        open_file_dlg.SetInitialDirectory(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_sFileName)));
     }
 
-    if(fileDlg.DoModal() == IDOK) {
-        m_sFileName= fileDlg.GetPathName();
-        CString sPath(m_sFileName);
-        PathRemoveFileSpec(sPath.GetBuffer(_MAX_PATH));
-        sPath.ReleaseBuffer();
-        AfxGetApp()->WriteProfileString(_T("Settings"),_T("Last  Folder"),sPath);
+    // otherwise use the last application directory
+    else
+    {
+        open_file_dlg.SetInitialDirectory(WinSettings::Read<std::wstring>(WinSettings::Type::LastApplicationDirectory));
+    }
+
+    if( open_file_dlg.DoModal() == IDOK )
+    {
+        m_sFileName = UTF8_TODO::GetCString(open_file_dlg.GetFilePath());
+
+        WinSettings::Write(WinSettings::Type::LastApplicationDirectory, PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_sFileName)));
+
         UpdateData(FALSE);
     }
+
     Invalidate();
     UpdateWindow();
 }
+
 
 void CSTabDlg::OnOK()
 {
@@ -176,110 +168,109 @@ void CSTabDlg::OnOK()
     //if it is apl file select the data file
     //Check if the file is .pff / .apl
     UpdateData(TRUE);
-    CString sTemp(m_sFileName);
-    CString sExt = PathFindExtension(sTemp.GetBuffer(_MAX_PATH));
-    sTemp.ReleaseBuffer();
+
+    std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_sFileName));
 
     CString sFileName(m_sFileName);
     PathRemoveExtension(sFileName.GetBuffer(_MAX_PATH));
     sFileName.ReleaseBuffer();
-//    delete m_pPIFFile;
-//    m_pPIFFile = new CNPifFile(m_sFileName);
-    m_pPIFFile->SetPifFileName(m_sFileName);
-    m_pPIFFile->SetAppType(TAB_TYPE);
 
-    if(sExt.IsEmpty()) {
-        sExt += FileExtensions::WithDot::TabulationApplication;
-        m_sFileName += FileExtensions::WithDot::TabulationApplication;
+    m_pff->SetPifFileName(m_sFileName);
+    m_pff->SetAppType(TAB_TYPE);
+
+    if( extension.empty() )
+    {
+        extension = FileExtensions::TabulationApplication;
+        m_sFileName += L"." + UTF8_TODO::GetCString(FileExtensions::TabulationApplication);
         UpdateData(FALSE);
-        m_pPIFFile->SetPifFileName(m_sFileName);
+        m_pff->SetPifFileName(m_sFileName);
     }
-    if(sExt.CompareNoCase(FileExtensions::WithDot::Pff) ==0) {
+
+    if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
+    {
         //Check if the PffFile is valid
-        sFileName += FileExtensions::WithDot::Pff;
+        sFileName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         m_sFileName = sFileName;
         UpdateData(FALSE);
-        m_pPIFFile->SetSilent(true);
-        m_pPIFFile->SetPifFileName(m_sFileName);
+        m_pff->SetSilent(true);
+        m_pff->SetPifFileName(m_sFileName);
         if(!((CSTabApp*)AfxGetApp())->InitNCompileApp()) {
-            m_pPIFFile->SetSilent(false);
+            m_pff->SetSilent(false);
             return ;
         }
         if(!CheckNCollectInputFiles()){
-            m_pPIFFile->SetSilent(false);
+            m_pff->SetSilent(false);
             return;
         }
         else {//If All stuff prepare intermediate files
-            if(m_pPIFFile->GetTabProcess() == ALL_STUFF){
-                CString sTabOutPutFName = m_pPIFFile->GetTabOutputFName();
+            if(m_pff->GetTabProcess() == ALL_STUFF){
+                CString sTabOutPutFName = m_pff->GetTabOutputFName();
                 CString sTempTab;
                 if(sTabOutPutFName.IsEmpty()) {
-                    CString sAplFName = m_pPIFFile->GetAppFName();
+                    CString sAplFName = m_pff->GetAppFName();
                     PathRemoveExtension(sAplFName.GetBuffer(_MAX_PATH));
                     sAplFName.ReleaseBuffer();
-                    sTabOutPutFName = sAplFName + FileExtensions::BinaryTable::WithDot::Tab;
-                    m_pPIFFile->SetTabOutputFName(sTabOutPutFName);
-                    sTempTab = sAplFName + _T("_precalc") +  FileExtensions::BinaryTable::WithDot::Tab ; // Engine is not looking at the piffile ags
+                    sTabOutPutFName = sAplFName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab));
+                    m_pff->SetTabOutputFName(sTabOutPutFName);
+                    sTempTab = sAplFName + L"_precalc" +  UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab)); // Engine is not looking at the piffile ags
 
                 }
-                if(m_pPIFFile->GetCalcInputFNamesArr().empty()) {
-                    m_pPIFFile->GetCalcInputFNamesArr().emplace_back(sTempTab);
+                if(m_pff->GetCalcInputFNamesArr().empty()) {
+                    m_pff->GetCalcInputFNamesArr().emplace_back(sTempTab);
                 }
-                CString sCalcOFName = m_pPIFFile->GetCalcOutputFName();
+                CString sCalcOFName = m_pff->GetCalcOutputFName();
                 if(sCalcOFName.IsEmpty()){
-                    m_pPIFFile->SetCalcOutputFName(sTabOutPutFName);
+                    m_pff->SetCalcOutputFName(sTabOutPutFName);
                 }
             }
         }
-
     }
-    else if (sExt.CompareNoCase(FileExtensions::WithDot::TabulationApplication) == 0) {
+
+    else if( SO::EqualsNoCase(extension, FileExtensions::TabulationApplication) )
+    {
         //If the file is of .apl type ShowDialog selection for the pff file generation
         //change the lpszFileName
         CFileStatus fStatus;
-        m_pPIFFile->SetPifFileName(m_sFileName+FileExtensions::WithDot::Pff);
-        if(CFile::GetStatus(m_sFileName+FileExtensions::WithDot::Pff,fStatus)){
-           m_pPIFFile->LoadPifFile();
+        m_pff->SetPifFileName(m_sFileName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff)));
+        if(CFile::GetStatus(m_sFileName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff)), fStatus)){
+           m_pff->LoadPifFile();
         }
 
-        ((CSTabApp*)AfxGetApp())->m_pPIFFile = m_pPIFFile;
         if(!((CSTabApp*)AfxGetApp())->InitNCompileApp()) {
-            return ;
+            return;
         }
         if(!MakePifFile()){
         //  AfxMessageBox("Failed to generate PFF file");
             return;
         }
         else {
-            m_sFileName += FileExtensions::WithDot::Pff;
-            m_pPIFFile->Save();
+            m_sFileName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
+            m_pff->Save();
             UpdateData(FALSE);
         }
 
     }
-    else {
-        if(!sFileName.IsEmpty()){
-            AfxMessageBox(_T("Invalid File Type"));
-        }
-        return ;
+
+    else
+    {
+        if( !sFileName.IsEmpty() )
+            AfxMessageBox(L"Invalid File Type");
+
+        return;
     }
+
     Invalidate();
     UpdateWindow();
-    CDialog::OnOK();
+
+    __super::OnOK();
 }
 
 
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  bool CSTabDlg::MakePifFile()
-//
-/////////////////////////////////////////////////////////////////////////////////
 bool CSTabDlg::MakePifFile()
 {
     CRunTab runTab;
     PROCESS eProcess = PROCESS_INVALID;
-    if(runTab.PreparePFF(m_pPIFFile,eProcess,false)){
+    if(runTab.PreparePFF(m_pff.get(), eProcess, false)){
         //((CSTabApp*)AfxGetApp())->m_eProcess = eProcess;
     }
     else {
@@ -290,20 +281,16 @@ bool CSTabDlg::MakePifFile()
     return true;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  bool CSTabDlg::CheckNCollectInputFiles()
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 bool CSTabDlg::CheckNCollectInputFiles()
 {
     bool bRet = false;
     CRunTab runTab;
     if(!BuildPifInfo4Check()){
-        PROCESS eCurrentProcess = m_pPIFFile->GetTabProcess();
-        bRet = runTab.PreparePFF(m_pPIFFile,eCurrentProcess,false);
-        if(bRet && !m_pPIFFile->GetSilent())
-            m_pPIFFile->Save();
+        PROCESS eCurrentProcess = m_pff->GetTabProcess();
+        bRet = runTab.PreparePFF(m_pff.get(), eCurrentProcess, false);
+        if(bRet && !m_pff->GetSilent())
+            m_pff->Save();
     }
     else {
         bRet = true;
@@ -311,52 +298,51 @@ bool CSTabDlg::CheckNCollectInputFiles()
     return bRet;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CTRunInfoDlg::BuildPifInfo()
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 bool CSTabDlg::BuildPifInfo4Check()
 {
     //Prepare pifinfo as if the dialog is going to be called and the check files similar to  CTRunInfoDlg::CheckFiles()
     CArray<PIFINFO,PIFINFO>  arrPifInfo;
     //Get the application file
     CFileStatus fStatus;
-    PROCESS eCurrentProcess = m_pPIFFile->GetTabProcess();
+    PROCESS eCurrentProcess = m_pff->GetTabProcess();
 
-    Application* pApp = m_pPIFFile->GetApplication();
+    Application* pApp = m_pff->GetApplication();
     CString sXTSFile= pApp->GetTabSpec()->GetSpecFile();
     bool bHasArea = pApp->GetTabSpec()->GetConsolidate()->GetNumAreas() > 0;
     const CDataDict* pDict = pApp->GetTabSpec()->GetDict();
     //Get the dictionary file . This is the Inputdata
-    if(pDict && (eCurrentProcess == ALL_STUFF || eCurrentProcess == CS_TAB)) {
-        PIFINFO PifInfo;
-        PifInfo.eType = PIFDICT;
-        PifInfo.sUName = pDict->GetName();
-        PifInfo.sDisplay = INPUTDATA;
-        PifInfo.dictionary_filename = pDict->GetFullFileName();
-        PifInfo.SetConnectionStrings(m_pPIFFile->GetInputDataConnectionStringsSerializable());
-        arrPifInfo.Add(PifInfo);
+    if(pDict && (eCurrentProcess == ALL_STUFF || eCurrentProcess == CS_TAB))
+    {
+        {
+            PIFINFO PifInfo;
+            PifInfo.eType = PIFDICT;
+            PifInfo.sUName = UTF8_TODO::GetCString(pDict->GetName());
+            PifInfo.sDisplay = INPUTDATA;
+            PifInfo.dictionary_file_path = pDict->GetFilePath();
+            PifInfo.SetConnectionStrings(m_pff->GetInputDataConnectionStringsSerializable());
+            arrPifInfo.Add(PifInfo);
+        }
 
         //Now do each of the external dicts
-        for( const CString& dictionary_filename : pApp->GetExternalDictionaryFilenames() )
+        for( const std::string& dictionary_file_path : pApp->GetExternalDictionaryFilePaths() )
         {
-            const DictionaryDescription* dictionary_description = pApp->GetDictionaryDescription(dictionary_filename);
+            const DictionaryDescription* const dictionary_description = pApp->GetDictionaryDescription(dictionary_file_path);
 
             if( dictionary_description != nullptr && dictionary_description->GetDictionaryType() == DictionaryType::Working )
                 continue;
 
             try
             {
-                CString dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_filename);
+                CString dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_file_path);
 
                 PIFINFO PifInfo;
                 PifInfo.eType = PIFDICT;
                 PifInfo.sUName = dictionary_name;
-                PifInfo.sDisplay = _T("External File ");
-                PifInfo.sDisplay += _T("(") + dictionary_name + _T(")");
-                PifInfo.dictionary_filename = dictionary_filename;
-                PifInfo.SetConnectionString(m_pPIFFile->GetExternalDataConnectionString(dictionary_name));
+                PifInfo.sDisplay = L"External File ";
+                PifInfo.sDisplay += L"(" + dictionary_name + L")";
+                PifInfo.dictionary_file_path = dictionary_file_path;
+                PifInfo.SetConnectionString(m_pff->GetExternalDataConnectionString(dictionary_name));
 
                 //Add pff Info for the dict
                 arrPifInfo.Add(PifInfo);
@@ -364,7 +350,7 @@ bool CSTabDlg::BuildPifInfo4Check()
 
             catch( const CSProException& exception )
             {
-		        ErrorMessage::Display(exception);
+                ErrorMessage::Display(exception);
                 return false;
             }
         }
@@ -374,7 +360,7 @@ bool CSTabDlg::BuildPifInfo4Check()
             PIFINFO PifInfo;
             PifInfo.eType = FILE_NONE;
             PifInfo.sUName = WRITEFILE;
-            PifInfo.sFileName =  m_pPIFFile->GetWriteFName(true);
+            PifInfo.sFileName = m_pff->GetWriteFName(true);
             PifInfo.sDisplay = WRITEFILE;
             arrPifInfo.Add(PifInfo);
         }
@@ -384,17 +370,16 @@ bool CSTabDlg::BuildPifInfo4Check()
             PIFINFO PifInfo;
             PifInfo.eType = FILE_NONE;
             PifInfo.sUName = OUTPUTTBD;
-            PifInfo.sFileName =  m_pPIFFile->GetTabOutputFName(); //Get the output TBD from the pff file
+            PifInfo.sFileName = m_pff->GetTabOutputFName(); //Get the output TBD from the pff file
             PifInfo.sDisplay = OUTPUTTBD;
             arrPifInfo.Add(PifInfo);
         }
         if(eCurrentProcess == ALL_STUFF ) {
-            PIFINFO PifInfo;
-
-            PifInfo.eType = FILE_NONE;
             if(true){//requires output tbw in CSTab
+                PIFINFO PifInfo;
+                PifInfo.eType = FILE_NONE;
                 PifInfo.sUName = OUTPUTTBW;
-                PifInfo.sFileName =  m_pPIFFile->GetPrepOutputFName();
+                PifInfo.sFileName = m_pff->GetPrepOutputFName();
                 PifInfo.sDisplay = OUTPUTTBW;
                 arrPifInfo.Add(PifInfo);
             }
@@ -402,7 +387,7 @@ bool CSTabDlg::BuildPifInfo4Check()
                 PIFINFO PifInfo;
                 PifInfo.eType = FILE_NONE;
                 PifInfo.sUName = AREANAMES;
-                PifInfo.sFileName  = m_pPIFFile->GetAreaFName(); //Get Area names file
+                PifInfo.sFileName = m_pff->GetAreaFName(); //Get Area names file
                 PifInfo.sDisplay = AREANAMES;
                 arrPifInfo.Add(PifInfo);
             }
@@ -411,13 +396,13 @@ bool CSTabDlg::BuildPifInfo4Check()
         if(true){
             //Now do the listing file
             PIFINFO PifInfo;
-            if(!m_pPIFFile->GetListingFName().IsEmpty()){
-                PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+            if(!m_pff->GetListingFName().IsEmpty()){
+                PifInfo.sFileName = m_pff->GetListingFName();
             }
             //do listing
             PifInfo.eType = FILE_NONE;
             PifInfo.sUName = LISTFILE;
-            //PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+            //PifInfo.sFileName = m_pff->GetListingFName();
             PifInfo.sDisplay = LISTFILE;
             arrPifInfo.Add(PifInfo);
         }
@@ -427,15 +412,15 @@ bool CSTabDlg::BuildPifInfo4Check()
         PIFINFO PifInfo;
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = INPUTTBD;
-        PifInfo.sFileName = _T("");
+        PifInfo.sFileName.Empty();
         if(eCurrentProcess == CS_CON){
-            if(!m_pPIFFile->GetConInputFilenames().empty()){
-                PifInfo.sFileName = m_pPIFFile->GetConInputFilenames().front();
+            if(!m_pff->GetConInputFilenames().empty()){
+                PifInfo.sFileName = m_pff->GetConInputFilenames().front();
             }
         }
         else if(eCurrentProcess == CS_CALC){
-            if(!m_pPIFFile->GetCalcInputFNamesArr().empty()){
-                PifInfo.sFileName = m_pPIFFile->GetCalcInputFNamesArr().front();
+            if(!m_pff->GetCalcInputFNamesArr().empty()){
+                PifInfo.sFileName = m_pff->GetCalcInputFNamesArr().front();
             }
         }
         PifInfo.sDisplay = INPUTTBD;
@@ -444,18 +429,18 @@ bool CSTabDlg::BuildPifInfo4Check()
         //output tbd
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = OUTPUTTBD;
-        PifInfo.sFileName =  m_pPIFFile->GetTabOutputFName();
+        PifInfo.sFileName = m_pff->GetTabOutputFName();
         PifInfo.sDisplay = OUTPUTTBD;
         arrPifInfo.Add(PifInfo);
 
-        if(!m_pPIFFile->GetListingFName().IsEmpty()){
-            PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+        if(!m_pff->GetListingFName().IsEmpty()){
+            PifInfo.sFileName = m_pff->GetListingFName();
         }
 
         //Now do the listing file
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = LISTFILE;
-        //PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+        //PifInfo.sFileName = m_pff->GetListingFName();
         PifInfo.sDisplay = LISTFILE;
         arrPifInfo.Add(PifInfo);
 
@@ -465,8 +450,8 @@ bool CSTabDlg::BuildPifInfo4Check()
         PIFINFO PifInfo;
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = INPUTTBD;
-        if(!m_pPIFFile->GetPrepInputFName().IsEmpty()){
-            PifInfo.sFileName = m_pPIFFile->GetPrepInputFName();
+        if(!m_pff->GetPrepInputFName().IsEmpty()){
+            PifInfo.sFileName = m_pff->GetPrepInputFName();
         }
         PifInfo.sDisplay = INPUTTBD;
         arrPifInfo.Add(PifInfo);
@@ -474,7 +459,7 @@ bool CSTabDlg::BuildPifInfo4Check()
         if(bHasArea) { //Add this when the flag for areanames goes into the app file
             PifInfo.eType = FILE_NONE;
             PifInfo.sUName = AREANAMES;
-            PifInfo.sFileName  = m_pPIFFile->GetAreaFName(); //Get Area names file
+            PifInfo.sFileName = m_pff->GetAreaFName(); //Get Area names file
             PifInfo.sDisplay = AREANAMES;
             arrPifInfo.Add(PifInfo);
         }
@@ -482,23 +467,23 @@ bool CSTabDlg::BuildPifInfo4Check()
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = OUTPUTTBW;
 
-        PifInfo.sFileName =  m_pPIFFile->GetPrepOutputFName();
+        PifInfo.sFileName = m_pff->GetPrepOutputFName();
         PifInfo.sDisplay = OUTPUTTBW;
         arrPifInfo.Add(PifInfo);
 
         //Now do the listing file
-        if(!m_pPIFFile->GetListingFName().IsEmpty()){
-            PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+        if(!m_pff->GetListingFName().IsEmpty()){
+            PifInfo.sFileName = m_pff->GetListingFName();
         }
         PifInfo.eType = FILE_NONE;
         PifInfo.sUName = LISTFILE;
-        //PifInfo.sFileName  = m_pPIFFile->GetListingFName();
+        //PifInfo.sFileName = m_pff->GetListingFName();
         PifInfo.sDisplay = LISTFILE;
         arrPifInfo.Add(PifInfo);
 
     }
     else {
-        m_pPIFFile->SetTabProcess(PROCESS_INVALID);
+        m_pff->SetTabProcess(PROCESS_INVALID);
         return false;
     }
 
@@ -536,7 +521,6 @@ bool CSTabDlg::BuildPifInfo4Check()
                             return false;
                         }
                         else {
-                            CFileStatus fStatus;
                             if(CFile::GetStatus(pifInfo.sFileName,fStatus)){
                                 //sMsg.Format("Output file %s already exists.\nDo you want to replace it?",pifInfo.sFileName);
                                 return false;

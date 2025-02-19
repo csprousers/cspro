@@ -115,7 +115,7 @@ int LogicCompiler::CompileFunctionsVarious()
     // --------------------------------------------------------------------------
     else if( function_code == FunctionCode::FNCHANGEKEYBOARD_CODE ) // 20120820
     {
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF::deprecation_use_setProperty_95015, _T("Keyboard"));
+        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF::deprecation_use_setProperty_95015, "Keyboard");
 
         NextToken();
 
@@ -287,7 +287,7 @@ int LogicCompiler::CompileFunctionsVarious()
                 IssueError(MGF::Array_not_correct_data_type_955, ToString(DataType::String));
 
             if( accept_array.GetNumberDimensions() != 1 )
-                IssueError(MGF::Array_not_correct_dimensions_956, ToString(DataType::String), _T("1"));
+                IssueError(MGF::Array_not_correct_dimensions_956, ToString(DataType::String), "1");
 
             arguments.emplace_back(-1 * accept_array.GetSymbolIndex());
 
@@ -381,15 +381,15 @@ int LogicCompiler::CompileFunctionsVarious()
     // --------------------------------------------------------------------------
     else if( function_code == FunctionCode::FNPUBLISHDATE_CODE )
     {
-        // there is no interpreted function associated with pubishdate; we will simply insert the value as a double
-        double publish_date = LogicCompiler::GetCompilerHelper<PublishDateCompilerHelper>().GetPublishDate();
+        // there is no interpreted function associated with publishdate; we will simply insert the value as a double
+        const int64_t publish_date = LogicCompiler::GetCompilerHelper<PublishDateCompilerHelper>().GetPublishDate();
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
         NextToken();
 
-        return CreateNumericConstantNode(publish_date);
+        return CreateNumericConstantNode(static_cast<double>(publish_date));
     }
 
 
@@ -407,7 +407,7 @@ int LogicCompiler::CompileFunctionsVarious()
 
         else
         {
-            size_t specified_connection_type = NextKeywordOrError({ _T("Mobile"), _T("Wifi") });
+            const size_t specified_connection_type = NextKeywordOrError({ "Mobile", "Wifi" });
             connection_node.connection_type = ( specified_connection_type == 1 ) ? Nodes::Connection::Mobile :
                                                                                    Nodes::Connection::WiFi;
         }
@@ -439,8 +439,7 @@ int LogicCompiler::CompileFunctionsVarious()
         {
             IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-            const std::vector<const TCHAR*> PromptCommands = { _T("Numeric"),   _T("Password"),
-                                                               _T("Uppercase"), _T("Multiline") };
+            constexpr const char* PromptCommands[] = { "Numeric", "Password", "Uppercase", "Multiline" };
             size_t prompt_type = NextKeyword(PromptCommands);
 
             if( prompt_type == 0 )
@@ -496,7 +495,7 @@ int LogicCompiler::CompileFunctionsVarious()
                 IssueError(MGF::savepartial_invalid_in_proc_8054);
         }
 
-        bool clear_skipped = ( NextKeyword({ _T("CLEAR") }) == 1 );
+        const bool clear_skipped = ( NextKeyword({ "CLEAR" }) == 1 );
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
@@ -515,7 +514,7 @@ int LogicCompiler::CompileFunctionsVarious()
     {
         std::vector<int> arguments;
 
-        if( function_code == FunctionCode::FNSAVESETTING_CODE && NextKeyword({ _T("CLEAR") }) == 1 )
+        if( function_code == FunctionCode::FNSAVESETTING_CODE && NextKeyword({ "CLEAR" }) == 1 )
             arguments.emplace_back(-1);
 
         NextToken();
@@ -735,12 +734,12 @@ int LogicCompiler::CompileFunctionsVarious()
         NextToken();
 
         int regex_expression = CompileStringExpressionWithStringLiteralCheck(
-            [&](const std::wstring& text)
+            [&](const std::string text)
             {
                 try
                 {
                     // throws an exception if the regular expression syntax is invalid
-                    std::regex regex_tester(UTF8Convert::WideToUTF8(text));
+                    std::regex regex_tester(text);
                 }
 
                 catch( const std::regex_error& )
@@ -827,13 +826,13 @@ int LogicCompiler::CompileFunctionsVarious()
         auto& encode_node = CreateNode<Nodes::Encode>(function_code);
 
         // get the optional encoding type (if specified)
-        encode_node.encoding_type = static_cast<Nodes::EncodeType>(NextKeyword({ _T("HTML"),
-                                                                                 _T("CSV"),
-                                                                                 _T("PercentEncoding"),
-                                                                                 _T("URI"),
-                                                                                 _T("URIComponent"),
-                                                                                 _T("Slashes"),
-                                                                                 _T("JsonString") }));
+        encode_node.encoding_type = static_cast<Nodes::EncodeType>(NextKeyword({ "HTML",
+                                                                                 "CSV",
+                                                                                 "PercentEncoding",
+                                                                                 "URI",
+                                                                                 "URIComponent",
+                                                                                 "Slashes",
+                                                                                 "JsonString" }));
         encode_node.string_expression = -1;
 
         NextToken();
@@ -963,7 +962,7 @@ int LogicCompiler::CompileFunctionsVarious()
 
         NextToken();
 
-        html_dialog_node.filename_expression = CompileStringExpression();
+        html_dialog_node.file_path_expression = CompileStringExpression();
 
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
@@ -1042,7 +1041,7 @@ int LogicCompiler::CompileFunctionsVarious()
                 OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
                 int utc_offset_expression = -1;
 
-                optional_named_arguments_compiler.AddArgument(_T("utcOffset"), utc_offset_expression, DataType::Numeric);
+                optional_named_arguments_compiler.AddArgument("utcOffset", utc_offset_expression, DataType::Numeric);
 
                 // if no optional arguments were encountered, but there are additional arguments, read the the hour/minute/second
                 while( Tkn == TOKCOMMA && optional_named_arguments_compiler.Compile() == 0 && arguments.size() < 6 )

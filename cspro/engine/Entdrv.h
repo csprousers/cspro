@@ -168,8 +168,8 @@ public:
     void    ResetLevelCurOccs( int iLevel, bool bResetItAlso );
     void    ResetGroupCurOccs( int iSymGroup, bool bResetItAlso = true );
 
-    int     DisplayMessage(MessageType message_type, int message_number, const std::wstring& message_text, const void* extra_information = nullptr) override;
-    int     DisplayMessage_pre77(MessageType message_type, int message_number, const CString& message_text, const void* extra_information = nullptr);
+    int     DisplayMessage(MessageType message_type, int message_number, SharableString message_text, const MessageSelectDetails* select_details) override;
+    int     DisplayMessage_pre77(MessageType message_type, int message_number, const CString& message_text, const MessageSelectDetails* select_details);
 
     // defuncs
 public:
@@ -334,8 +334,8 @@ public:
     ResponseProcessor* GetResponseProcessor(const DEFLD* defld);
 
     // notes
-    CString GetNoteContent(const DEFLD& defld);
-    void SetNote(const DEFLD& defld, const CString& note_content);
+    SharableString GetNoteContent(const DEFLD& defld);
+    void SetNote(const DEFLD& defld, SharableString note_content);
     bool EditNote(bool case_note, const DEFLD* defld = nullptr);
 
     // level node processing

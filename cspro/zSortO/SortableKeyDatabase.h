@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <SQLite/SQLite.h>
+#include <zSql/SQLite.h>
 
 
 class SortableKeyDatabase
@@ -15,12 +15,12 @@ public:
 
     bool Open();
 
-    bool CaseExists(wstring_view key_sv);
+    bool CaseExists(const std::string& key);
 
-    void InitCaseInfo(double position_in_repository, wstring_view key_sv = wstring_view());
+    void InitCaseInfo(double position_in_repository, const std::string& key = SO::Empty_string);
     void InitRecordInfo(size_t record_index, const void* id_record_buffer, size_t id_buffer_size, const void* record_buffer, size_t buffer_size);
     void AddCaseKeyValue(double value);
-    void AddCaseKeyValue(wstring_view value_sv);
+    void AddCaseKeyValue(const std::string& value);
     void AddCaseKeyValue(const CaseItem& case_item, const CaseItemIndex& index);
     void AddCaseKeyValue(const NumericCaseItem& numeric_case_item, const CaseItemIndex& index);
     void AddCaseKeyValue(const StringCaseItem& string_case_item, const CaseItemIndex& index);

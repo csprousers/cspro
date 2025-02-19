@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "Viewers.h"
-#include <zToolsO/Encoders.h>
+#include <zToolsO/ExceptionHolder.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zHtml/VirtualFileMapping.h>
 #include <zAction/OnGetInputDataListener.h>
@@ -22,10 +22,19 @@ Viewer& Viewer::UseSharedHtmlLocalFileServer()
 }
 
 
-Viewer& Viewer::SetAccessInvokerAccessTokenOverride(std::wstring action_invoker_access_token_override)
+Viewer& Viewer::UseExceptionHolder(std::shared_ptr<ExceptionHolder> exception_holder)
+{
+    ASSERT(m_data.exception_holder == nullptr);
+    m_data.exception_holder = ( exception_holder != nullptr ) ? std::move(exception_holder) :
+                                                                std::make_shared<ExceptionHolder>();
+    return *this;
+}
+
+
+Viewer& Viewer::SetAccessInvokerAccessTokenOverride(std::string action_invoker_access_token_override)
 {
     ASSERT(m_data.action_invoker_access_token_override == nullptr);
-    m_data.action_invoker_access_token_override = std::make_unique<std::wstring>(std::move(action_invoker_access_token_override));
+    m_data.action_invoker_access_token_override = std::make_unique<std::string>(std::move(action_invoker_access_token_override));
     return *this;
 }
 
@@ -33,7 +42,7 @@ Viewer& Viewer::SetAccessInvokerAccessTokenOverride(std::wstring action_invoker_
 Viewer& Viewer::SetOptions(ViewerOptions options)
 {
     // options should be set before SetTitle is called
-    ASSERT(!m_options.title.has_value());
+    ASSERT(!m_options.title.IsSet());
 
     m_options = std::move(options);
 
@@ -41,35 +50,35 @@ Viewer& Viewer::SetOptions(ViewerOptions options)
 }
 
 
-Viewer& Viewer::SetTitle(std::wstring title)
+Viewer& Viewer::SetTitle(SharableString title)
 {
     m_options.title = std::move(title);
     return *this;
 }
 
 
-bool Viewer::ViewFile(const std::wstring& filename)
+bool Viewer::ViewFile(const std::string& file_path)
 {
-    if( !PortableFunctions::FileIsRegular(filename) )
+    if( !PortableFunctions::FileIsRegular(file_path) )
         return false;
 
-    m_data.content_type = Data::Type::Filename;
-    m_data.content = filename;
+    m_data.content_type = Data::Type::FilePath;
+    m_data.content = file_path;
 
     if( m_data.use_embedded_viewers )
     {
-        if( FileExtensions::IsFilenameHtml(filename) )
+        if( FileExtensions::IsFileHtml(file_path) )
         {
             if( m_data.use_shared_html_local_file_server )
             {
-                m_data.local_file_server_root_directory = PortableFunctions::PathGetDirectory(filename);
+                m_data.local_file_server_root_directory = PortableFunctions::PathGetDirectory(file_path);
             }
 
             // if not using a local file server, view the file using its file URL
             else
             {
                 m_data.content_type = Data::Type::HtmlUrl;
-                m_data.content = Encoders::ToFileUrl(filename);
+                m_data.content = Encoders::ToFileUrl(file_path);
             }
         }
     }
@@ -78,42 +87,42 @@ bool Viewer::ViewFile(const std::wstring& filename)
 }
 
 
-bool Viewer::ViewFileInEmbeddedBrowser(std::wstring filename)
+bool Viewer::ViewFileInEmbeddedBrowser(std::string file_path)
 {
     ASSERT(m_data.use_embedded_viewers && m_data.use_shared_html_local_file_server);
 
-    if( !PortableFunctions::FileIsRegular(filename) )
+    if( !PortableFunctions::FileIsRegular(file_path) )
         return false;
 
-    m_data.content_type = Data::Type::Filename;
-    m_data.content = std::move(filename);
+    m_data.content_type = Data::Type::FilePath;
+    m_data.content = std::move(file_path);
     m_data.local_file_server_root_directory = PortableFunctions::PathGetDirectory(m_data.content);
 
     return View();
 }
 
 
-bool Viewer::ViewHtmlUrl(const std::wstring& url)
+bool Viewer::ViewHtmlUrl(const std::string& url)
 {
     // check if this URL is a file URL, and if so, view it as a file
-    std::optional<std::wstring> filename = Encoders::FromFileUrl(url);
+    const std::optional<std::string> file_path = Encoders::FromFileUrl(url);
 
-    if( filename.has_value() )
+    if( file_path.has_value() )
     {
-        return ViewFile(*filename);
+        return ViewFile(*file_path);
     }
 
     else
     {
         m_data.content_type = Data::Type::HtmlUrl;
-        m_data.content = url.c_str();
+        m_data.content = url;
 
         return View();
     }
 }
 
 
-bool Viewer::ViewHtmlContent(std::string html, const std::wstring& local_file_server_root_directory/* = std::wstring()*/)
+bool Viewer::ViewHtmlContent(SharableString html, const std::string& local_file_server_root_directory/* = std::string()*/)
 {
     ASSERT(m_data.use_embedded_viewers);
     ASSERT(m_data.use_shared_html_local_file_server || local_file_server_root_directory.empty());
@@ -138,23 +147,17 @@ bool Viewer::ViewHtmlContent(std::string html, const std::wstring& local_file_se
 }
 
 
-bool Viewer::ViewHtmlContent(const wstring_view html_sv, const std::wstring& local_file_server_root_directory/* = std::wstring()*/)
-{
-    return ViewHtmlContent(UTF8Convert::WideToUTF8(html_sv), local_file_server_root_directory);
-}
-
-
 bool Viewer::View()
 {
     std::unique_ptr<ActionInvoker::ListenerHolder> on_get_input_data_listener;
 
     // set up an Action Invoker listener for the UI.getInputData action
-    if( m_options.action_invoker_ui_get_input_data != nullptr )
+    if( m_options.action_invoker_ui_get_input_data.IsSet() )
     {
         on_get_input_data_listener = ActionInvoker::ListenerHolder::Create<ActionInvoker::OnGetInputDataListener>(
             [&]()
             {
-                return *m_options.action_invoker_ui_get_input_data;
+                return m_options.action_invoker_ui_get_input_data;
             });
     }
 
@@ -169,8 +172,8 @@ bool Viewer::View()
     // if not using embedded viewers (or if they could not handle the viewing)
     else
     {
-        const TCHAR* operation = ( m_data.content_type == Data::Type::HtmlUrl ) ? _T("open") : nullptr;
-        HINSTANCE result = ShellExecute(nullptr, operation, m_data.content.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        const wchar_t* operation = ( m_data.content_type == Data::Type::HtmlUrl ) ? L"open" : nullptr;
+        HINSTANCE result = ShellExecute(nullptr, operation, TC::ToWide(m_data.content).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 
         if( reinterpret_cast<INT_PTR>(result) >= 32 )
             return true;

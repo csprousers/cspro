@@ -65,28 +65,24 @@ const int REPETITION_ERROR      = 605; // CSPRO.MGF 'Repeated Crosstab parameter
 static int aTheFlags[]    = { ct_MISSING, ct_REFUSED, ct_DEFAULT, ct_NOTAPPL, ct_UNDEFINED };
 static double aTheCTValues[] = { VAL_CTMISSING, VAL_CTREFUSED, VAL_CTDEFAULT, VAL_CTNOTAPPL, VAL_CTUNDEFINED };
 
-static csprochar* aTheFlagNames[] = { _T("MISSING"), _T("REFUSED"), _T("DEFAULT"), _T("NOTAPPL"), _T("UNDEFINED") };
+constexpr const char* aTheFlagNames[] = { "MISSING", "REFUSED", "DEFAULT", "NOTAPPL", "UNDEFINED" };
 
 // specialString2Index()
 // given a string [hopefully one of special value names] will return
 // the index suitable to be used in the other arrays, defined above
-static int specialString2Index(const std::wstring& possibleSpecialValue)
+static int specialString2Index(const std::string_view possible_special_value_sv)
 {
-    int iPossibleIndex = -1;
-    const TCHAR* p = possibleSpecialValue.c_str();
-    for( int i = 0; i < _countof(aTheFlagNames); i++ )
+    int i = 0;
+
+    for( const char* const flag_name : aTheFlagNames )
     {
-        if( *p == *aTheFlagNames[i] )  // compare just 1st character to make comparison faster
-        {
-            if( _tcscmp( p, aTheFlagNames[i] ) == 0 )
-            {
-                iPossibleIndex = i;
-                break;
-            }
-        }
+        if( SO::Equals(possible_special_value_sv, flag_name) )
+            return i;
+
+        ++i;
     }
 
-    return iPossibleIndex;
+    return -1;
 }
 
 static int specialValue2Index( double dValue )
@@ -483,7 +479,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 #endif
 
     // RHF INIC Jun 05, 2000
-    size_t size_type = NextKeyword({ _T("SINT"), _T("LINT"), _T("FLOAT") });
+    const size_t size_type = NextKeyword({ "SINT", "LINT", "FLOAT" });
 
     if( size_type != 0 &&
         ( g_iCtabmode != MODE_APP_DECL || (eTableType != CTableDef::Ctab_Crosstab && eTableType != CTableDef::Ctab_STable && eTableType != CTableDef::Ctab_Hotdeck) ) )
@@ -926,14 +922,18 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 
                 // added "UNDEFINED", rcl, Apr 2005
                 if( CSettings::m_bNewTbd ) // RHF Sep 13, 2002
-                    include_type = NextKeyword({ _T("SPECVAL"), _T("MISSING"), _T("DEFAULT"), _T("NOTAPPL"),
-                    _T("ROWZERO"), _T("COLZERO"), _T("LAYZERO"), _T("REFUSED"), _T("UNDEFINED") });
+                {
+                    include_type = NextKeyword({ "SPECVAL",     "MISSING", "DEFAULT",   "NOTAPPL",
+                                                 "ROWZERO",     "COLZERO", "LAYZERO",   "REFUSED",  "UNDEFINED" });
+                }
                 else
-                    include_type = NextKeyword({ _T("SPECVAL"), _T("MISSING"), _T("DEFAULT"), _T("NOTAPPL"),
-                    _T("ROWZERO"), _T("COLZERO"), _T("LAYZERO"), _T("REFUSED"), _T("UNDEFINED"),
-                    _T("TOTALS"), _T("ROWTOT"), _T("COLTOT"), _T("LAYTOT"),
-                    _T("PERCENTS"), _T("ROWPCT"), _T("COLPCT"), _T("LAYPCT"), _T("TOTPCT"),
-                    _T("CHISQUARE"), _T("FREQ") });
+                {
+                    include_type = NextKeyword({ "SPECVAL",     "MISSING",  "DEFAULT",  "NOTAPPL",
+                                                 "ROWZERO",     "COLZERO",  "LAYZERO",  "REFUSED",  "UNDEFINED",
+                                                 "TOTALS",      "ROWTOT",   "COLTOT",   "LAYTOT",
+                                                 "PERCENTS",    "ROWPCT",   "COLPCT",   "LAYPCT",   "TOTPCT",
+                                                 "CHISQUARE",   "FREQ" });
+                }
 
                 if( include_type == 0 )
                 {
@@ -981,14 +981,18 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
                 size_t exclude_type = 0;
 
                 if( CSettings::m_bNewTbd ) // RHF Sep 13, 2002
-                    exclude_type = NextKeyword({ _T("SPECVAL"), _T("MISSING"), _T("DEFAULT"), _T("NOTAPPL"),
-                    _T("ROWZERO"), _T("COLZERO"), _T("LAYZERO"), _T("REFUSED"), _T("UNDEFINED") });
+                {
+                    exclude_type = NextKeyword({ "SPECVAL",     "MISSING",  "DEFAULT",  "NOTAPPL",
+                                                 "ROWZERO",     "COLZERO",  "LAYZERO",  "REFUSED",  "UNDEFINED" });
+                }
                 else
-                    exclude_type = NextKeyword({ _T("SPECVAL"), _T("MISSING"), _T("DEFAULT"), _T("NOTAPPL"),
-                    _T("ROWZERO"), _T("COLZERO"), _T("LAYZERO"), _T("REFUSED"), _T("UNDEFINED"),
-                    _T("TOTALS"), _T("ROWTOT"), _T("COLTOT"), _T("LAYTOT"),
-                    _T("PERCENTS"), _T("ROWPCT"), _T("COLPCT"), _T("LAYPCT"), _T("TOTPCT"),
-                    _T("CHISQUARE"), _T("FREQ") });
+                {
+                    exclude_type = NextKeyword({ "SPECVAL",     "MISSING",  "DEFAULT",  "NOTAPPL",
+                                                 "ROWZERO",     "COLZERO",  "LAYZERO",  "REFUSED",  "UNDEFINED",
+                                                 "TOTALS",      "ROWTOT",   "COLTOT",   "LAYTOT",
+                                                 "PERCENTS",    "ROWPCT",   "COLPCT",   "LAYPCT",   "TOTPCT",
+                                                 "CHISQUARE",   "FREQ" });
+                }
 
                 if( exclude_type == 0 )
                 {
@@ -1500,16 +1504,16 @@ int CEngineCompFunc::ct_title( CTAB* ct, int iFlag ) { //  compile titles
         if( Tkn == TOKSCTE ) {
             int     iLen;
 
-            if( ( iLen = (int)Tokstr.length() )  >= 0 ) {
+            if( ( iLen = UTF8_TODO::GetCString(Tokstr).GetLength() )  >= 0 ) {
                 if( iFlag == TOKTITLE ) {
-                    ct->GetTitle().Add( WS2CS(Tokstr) );
+                    ct->GetTitle().Add( UTF8_TODO::GetCString(Tokstr) );
 
                     iLen += ct->GetTitleLen() + 1;
 
                     ct->SetTitleLen( iLen );
                 }
                 else if( iFlag == TOKSTUB ) {
-                    ct->GetStubTitle().Add( WS2CS(Tokstr) );
+                    ct->GetStubTitle().Add( UTF8_TODO::GetCString(Tokstr) );
 
                     iLen += ct->GetStubLen() + 1;
 
@@ -2841,7 +2845,7 @@ void CEngineCompFunc::GetSubTableList( int* pNodeBase[TBD_MAXDIM],
                     if( Issamod == ModuleType::Designer )  // SubTable already used!
                         SetSyntErr(8415);
                     else {
-                        issaerror( MessageType::Abort, 8416, cSubTable.GetName().GetString() );
+                        issaerror( MessageType::Abort, 8416, UTF8_TODO::GetUtf8(cSubTable.GetName()).c_str() );
                     }
                 }
                 else
@@ -3155,10 +3159,11 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
             CSubTable& cSubTable = CTAB::pCurrentCtab->GetSubTable(iSubTable);
 
             if( cSubTable.IsUsed() ) {
-                if( Issamod == ModuleType::Designer )  // SubTable already used!
+                if( Issamod == ModuleType::Designer ) { // SubTable already used!
                     SetSyntErr(8415);
+                }
                 else {
-                    issaerror( MessageType::Abort, 8416, cSubTable.GetName().GetString() );
+                    issaerror( MessageType::Abort, 8416, UTF8_TODO::GetUtf8(cSubTable.GetName()).c_str() );
                 }
 
                 return;
@@ -3465,7 +3470,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
             {
             case TOKGROUP:
                 TRACE( _T("~ CompileUnit Could complete using group [%s] info\n"),
-                    GPT(iLastSeenVar)->GetName().c_str()); break;
+                    UTF8_TODO::GetWide(GPT(iLastSeenVar)->GetName()).c_str()); break;
                 ASSERT( pMVarNode != 0 );
                 pMVarNode->m_iVarType = MVAR_CODE;
                 {
@@ -3477,7 +3482,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
                         int iVarIndex =
                             pMVarNode->m_iVarIndex = pRelT->GetBaseObjIndex();
                         TRACE( _T("~ CompileUnit Using variable %d [%s] info\n"),
-                            iVarIndex, VPT(iVarIndex)->GetName().c_str() );
+                            iVarIndex, UTF8_TODO::GetWide(VPT(iVarIndex)->GetName()).c_str() );
                         ctUnit.setExtraInfo( iMVarNode );
                     }
                 }
@@ -3485,7 +3490,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
 
             case TOKVAR:
                 TRACE( _T("~ CompileUnit Could complete using var [%s] info\n"),
-                    NPT(iLastSeenVar)->GetName().c_str());
+                    UTF8_TODO::GetWide(NPT(iLastSeenVar)->GetName()).c_str());
                 #ifdef GENCODE
                 {
                     int iNewMVarNode = getNewMVarNodeIndex();
@@ -3526,28 +3531,28 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
 
 int CEngineCompFunc::GetNextStat()
 {
-    int iStatOption = (int)NextKeyword
-    ({
-        _T("FREQ"),                     // 1
-        _T("TOTAL"),                    // 2
-        _T("PERCENT"), _T("PCT"),       // 3,4
-        _T("PROP"), _T("PROPORTION"),   // 5,6
-        _T("MIN"), _T("MINIMUM"),       // 7,8
-        _T("MAX"), _T("MAXIMUM"),       // 9,10
-        _T("MODE"),                     // 11
-        _T("MEAN"),                     // 12
-        _T("MEDIAN"),                   // 13
-        _T("PTILE"),                    // 14
-        _T("PTILENOINT"),               // 15
-        _T("STDDEV"),                   // 16
-        _T("VARIANCE"),                 // 17
-        _T("VPCT"),                     // 18
-        _T("STDERR"),                   // 19
-        _T("SAMPLINGERROR"), _T("SAMPLINGERR"), _T("SAMPERR"), _T("SAMPERROR"), // 20,21,22,23
-        _T(")"), // 24
-        _T("("), // 25
-        _T(","), // 26
-        });
+    int iStatOption = static_cast<int>(NextKeyword(
+    {
+        "FREQ",                     // 1
+        "TOTAL",                    // 2
+        "PERCENT", "PCT",           // 3,4
+        "PROP", "PROPORTION",       // 5,6
+        "MIN", "MINIMUM",           // 7,8
+        "MAX", "MAXIMUM",           // 9,10
+        "MODE",                     // 11
+        "MEAN",                     // 12
+        "MEDIAN",                   // 13
+        "PTILE",                    // 14
+        "PTILENOINT",               // 15
+        "STDDEV",                   // 16
+        "VARIANCE",                 // 17
+        "VPCT",                     // 18
+        "STDERR",                   // 19
+        "SAMPLINGERROR", "SAMPLINGERR", "SAMPERR", "SAMPERROR", // 20,21,22,23
+        ")", // 24
+        "(", // 25
+        ",", // 26
+    }));
 
     if( iStatOption == 0 ) {
         iStatOption = -1;
@@ -3745,7 +3750,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                     if( iTotalOption == 25 ) {
                         bTotalOption = true;
 
-                        if( NextKeyword({ _T("PERCENT"), _T("PCT"), _T("%") }) == 0 ) {
+                        if( NextKeyword({ "PERCENT", "PCT", "%" }) == 0 ) {
                             SetSyntErr(8562);
                             iStatOption = -1;
                             continue; // iStatOption
@@ -3785,7 +3790,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                         continue; // iStatOption
                     }
 
-                    int iPctOption = (int)NextKeyword({ _T("CELL"), _T("ROW"), _T("COLUMN"), _T("TOTAL") });
+                    int iPctOption = static_cast<int>(NextKeyword({ "CELL", "ROW", "COLUMN", "TOTAL" }));
 
                     if( iPctOption == 0 ) {
                         SetSyntErr(8532);
@@ -3902,7 +3907,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                         bool    bHasPropPct=false;
 
                         while( GetSyntErr() == 0 ) {
-                            int iPropOption = (int)NextKeyword({ _T("FREQ"), _T("PERCENT"), _T("PCT"), _T("%") });
+                            int iPropOption = static_cast<int>(NextKeyword({ "FREQ", "PERCENT", "PCT", "%" }));
 
                             if( iPropOption == 0 )
                             {
@@ -4035,15 +4040,14 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                 {
                     CtStatMedian*  pStatMedian= new CtStatMedian;
 
-                    // RHF COM Sep 13, 2005 // mean [( [continuos/discrete] [intervals( ... ) ] ) ]
+                    // RHF COM Sep 13, 2005 // mean [( [continuous/discrete] [intervals( ... ) ] ) ]
                     // median [ (lower/upper) ]
                     int iMedianOption=GetNextStat();
                     int iMedianType = 0; // Default old behavior
 
                     // Has parameters
                     if( iMedianOption == 25 ) {
-
-                        size_t median_type = NextKeyword({ _T("CONTINUOUS"), _T("DISCRETE"), _T("INTERVALS") });
+                        const size_t median_type = NextKeyword({ "CONTINUOUS", "DISCRETE", "INTERVALS" });
 
                         if( median_type == 0 ) {
                             SetSyntErr(8546);
@@ -4131,7 +4135,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                         // Has parameters
                         if( iPTileOption == 25 ) {
                             // RHF INIT Sep 12, 2005
-                            size_t ptile_type = NextKeyword({ _T("LOWER"), _T("UPPER"), _T( "INTERVALS") });
+                            const size_t ptile_type = NextKeyword({ "LOWER", "UPPER",  "INTERVALS" });
 
                             if( ptile_type == 0 ) {
                                 SetSyntErr(8546);
@@ -4262,7 +4266,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
                     int     iSymVar=ctStatVar.GetSymVar();
                     ASSERT( iSymVar > 0 );
 
-                    issaerror( MessageType::Warning, 8720, NPT(iSymVar)->GetName().c_str(), CTAB::pCurrentCtab->GetName().c_str()); // GHM 20111125 added table name to this warning message about overlapping ranges
+                    issaerror( MessageType::Warning, 8720, NPT(iSymVar)->GetName().c_str(), CTAB::pCurrentCtab->GetName().c_str()); // 20111125 added table name to this warning message about overlapping ranges
                 }
                 // ASSERT( aStatVar.IsUsed() );
 
@@ -4315,9 +4319,9 @@ bool CEngineCompFunc::ScanTables()
             // make sure that the name is valid
             try
             {
-                CheckIfValidNewSymbolName(basic_token.GetText());
+                CheckIfValidNewSymbolName(basic_token.GetSV());
 
-                last_compiled_crosstab = std::make_shared<CTAB>(basic_token.GetText());
+                last_compiled_crosstab = std::make_unique<CTAB>(basic_token.GetText());
                 last_compiled_crosstab->SetPreDeclared(true);
                 last_compiled_crosstab->SetNodeExpr(0, 0);
 
@@ -4328,7 +4332,7 @@ bool CEngineCompFunc::ScanTables()
                 {
                     int iCtabLevel = -1;
 
-                    if( pTabSet->SearchTable(WS2CS(last_compiled_crosstab->GetName()), iCtabLevel) != NULL )
+                    if( pTabSet->SearchTable(UTF8_TODO::GetCString(last_compiled_crosstab->GetName()), iCtabLevel) != NULL )
                         iCtabSetLevel = iCtabLevel + 1;
                 }
 
@@ -4345,7 +4349,7 @@ bool CEngineCompFunc::ScanTables()
 
         else if( last_compiled_crosstab != nullptr && token_index == token_index_of_level_name )
         {
-            int iGroupSym = m_pEngineArea->SymbolTableSearch(basic_token.GetText(), { SymbolType::Group });
+            const int iGroupSym = m_pEngineArea->SymbolTableSearch(basic_token.GetSV(), { SymbolType::Group });
 
             if( iGroupSym > 0 && m_pEngineArea->IsLevel(iGroupSym) )
             {
@@ -4356,7 +4360,7 @@ bool CEngineCompFunc::ScanTables()
             }
         }
 
-        else if( SO::EqualsNoCase(basic_token.GetTextSV(), _T("CROSSTAB")) )
+        else if( SO::EqualsNoCase(basic_token.GetSV(), "CROSSTAB") )
         {
             token_index_of_crosstab_name = token_index + 1;
 
@@ -4365,19 +4369,19 @@ bool CEngineCompFunc::ScanTables()
             {
                 const Logic::BasicToken& next_basic_token = basic_tokens[token_index + 1];
 
-                if( SO::EqualsOneOfNoCase(next_basic_token.GetTextSV(), _T("SINT"), _T("LINT")) )
+                if( SO::EqualsOneOfNoCase(next_basic_token.GetSV(), "SINT", "LINT") )
                 {
                     ++token_index_of_crosstab_name;
                 }
 
-                else if( SO::EqualsNoCase(next_basic_token.GetTextSV(), _T("FLOAT")) )
+                else if( SO::EqualsNoCase(next_basic_token.GetSV(), "FLOAT") )
                 {
                     token_index_of_crosstab_name += 4;
                 }
             }
         }
 
-        else if( SO::EqualsNoCase(basic_token.GetTextSV(), _T("LEVEL")) )
+        else if( SO::EqualsNoCase(basic_token.GetSV(), "LEVEL") )
         {
             token_index_of_level_name = token_index + 2;
         }

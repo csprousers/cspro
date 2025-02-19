@@ -1,7 +1,4 @@
-﻿// FrqOptV.cpp : implementation file
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "FrqOptV.h"
 #include <zInterfaceF/UniverseDlg.h>
 
@@ -16,9 +13,9 @@ namespace
         {
         }
 
-        bool CheckSyntax(const std::wstring& universe) override
+        bool CheckSyntax(const std::string& universe) override
         {
-            return m_view.CheckUniverseSyntax(WS2CS(universe));
+            return m_view.CheckUniverseSyntax(universe);
         }
 
         void ToggleNamesInTree() override
@@ -59,7 +56,7 @@ CFrqOptionsView::CFrqOptionsView()
         m_sortTypeIndex(1),
         m_outputFormat(OutputFormat::Table)
 {
-    ASSERT(SO::EqualsNoCase(SortTypeNames[m_sortTypeIndex], _T("Code")));
+    ASSERT(strcmp(SortTypeNames[m_sortTypeIndex], "Code") == 0);
 }
 
 
@@ -84,18 +81,18 @@ void CFrqOptionsView::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_SORT_ORDER, m_sortOrderAscending);
     DDX_CBIndex(pDX, IDC_SORT_TYPE, m_sortTypeIndex);
     DDX_Control(pDX, IDC_FRQ_UNIV, m_cEditUniverse);
-    DDX_Text(pDX, IDC_WEIGHT, m_sWeight);
+    DDX_Text(pDX, IDC_WEIGHT, m_weight);
 
     if( m_cEditUniverse.AlreadyReplacedCEdit() )
     {
         if( pDX->m_bSaveAndValidate )
         {
-            m_sUniverse = WS2CS(m_cEditUniverse.GetText());
+            m_universe = m_cEditUniverse.GetText();
         }
 
         else
         {
-            m_cEditUniverse.SetText(m_sUniverse);
+            m_cEditUniverse.SetText(m_universe);
         }
     }
 
@@ -108,16 +105,16 @@ void CFrqOptionsView::OnDataChange()
     if( UpdateData() )
         GetDocument()->SetModifiedFlag();
 
-    auto write_to_registry = [](const TCHAR* key_name, const TCHAR* value)
+    auto write_to_registry = [](const wchar_t* const key_name, const wchar_t* const value)
     {
-        AfxGetApp()->WriteProfileString(_T("Settings"), key_name, value);
+        AfxGetApp()->WriteProfileString(L"Settings", key_name, value);
     };
 
-    write_to_registry(_T("TypeValueSet"), ( m_iUseVSet == 0 ) ? _T("Yes") : _T("No"));
-    write_to_registry(_T("GenerateStats"), ( m_iNoStats == 1 ) ? _T("Yes") : _T("No"));
-    write_to_registry(_T("SortOrder"), ( m_sortOrderAscending == 1 ) ? _T("Ascending") : _T("Descending"));
-    write_to_registry(_T("SortType"), SortTypeNames[m_sortTypeIndex]);
-    write_to_registry(_T("OutputFormat"), OutputFormatNames[(size_t)m_outputFormat]);
+    write_to_registry(L"TypeValueSet", ( m_iUseVSet == 0 ) ? L"Yes" : L"No");
+    write_to_registry(L"GenerateStats", ( m_iNoStats == 1 ) ? L"Yes" : L"No");
+    write_to_registry(L"SortOrder", ( m_sortOrderAscending == 1 ) ? L"Ascending" : L"Descending");
+    write_to_registry(L"SortType", TC::ToWide(SortTypeNames[m_sortTypeIndex]).c_str());
+    write_to_registry(L"OutputFormat", TC::ToWide(OutputFormatNames[static_cast<size_t>(m_outputFormat)]).c_str());
 }
 
 
@@ -129,7 +126,7 @@ void CFrqOptionsView::OnDataChange(UINT /*nID*/)
 
 void CFrqOptionsView::UpdateControlVisibility()
 {
-    int percentiles_show_window = ( m_iNoStats == 1 ) ? SW_SHOW : SW_HIDE ;
+    const int percentiles_show_window = ( m_iNoStats == 1 ) ? SW_SHOW : SW_HIDE ;
     GetDlgItem(IDC_PERCENTILES_TEXT)->ShowWindow(percentiles_show_window);
     GetDlgItem(IDC_PERCENTILES)->ShowWindow(percentiles_show_window);
 }
@@ -147,9 +144,10 @@ void CFrqOptionsView::ToDoc()
     pDoc->m_sortOrderAscending = ( m_sortOrderAscending == 1 );
     pDoc->m_sortType = static_cast<FrequencyPrinterOptions::SortType>(m_sortTypeIndex);
     pDoc->m_outputFormat = m_outputFormat;
-    pDoc->m_sUniverse = m_sUniverse;
-    pDoc->m_sWeight = m_sWeight;
+    pDoc->m_universe = m_universe;
+    pDoc->m_weight = m_weight;
 }
+
 
 void CFrqOptionsView::FromDoc()
 {
@@ -161,40 +159,41 @@ void CFrqOptionsView::FromDoc()
     m_sortOrderAscending = pDoc->m_sortOrderAscending ? TRUE : FALSE;
     m_sortTypeIndex = static_cast<int>(pDoc->m_sortType);
     m_outputFormat = pDoc->m_outputFormat;
-    m_sUniverse = pDoc->m_sUniverse;
-    m_sWeight = pDoc->m_sWeight;
+    m_universe = pDoc->m_universe;
+    m_weight = pDoc->m_weight;
 
     UpdateData(FALSE);
 }
 
 
-bool CFrqOptionsView::CheckWeightSyntax(CIMSAString sWeight)
+bool CFrqOptionsView::CheckWeightSyntax(const std::string& weight)
 {
-    GetDlgItem(IDC_WEIGHT)->SetWindowText(sWeight);
-    if(!GetDocument()->CompileApp(XTABSTMENT_WGHT_ONLY)){
-        AfxMessageBox(_T("Invalid Weight Syntax"));
+    WindowsUtf8::SetText(this, IDC_WEIGHT, weight);
+
+    if( !GetDocument()->CompileApp(XTABSTMENT_WGHT_ONLY) )
+    {
+        AfxMessageBox(L"Invalid Weight Syntax");
         return false;
     }
-    else {
-        return true;
-    }
+
+    return true;
 }
 
 
-bool CFrqOptionsView::CheckUniverseSyntax(const CString& sUniverseStatement)
+bool CFrqOptionsView::CheckUniverseSyntax(const std::string& universe)
 {
-    CString saved_universe = m_sUniverse;
+    std::string saved_universe = m_universe;
 
     // CompileApp calls UpdateData(TRUE) so update the text
-    m_cEditUniverse.SetText(sUniverseStatement);
+    m_cEditUniverse.SetText(universe);
 
-    bool success = GetDocument()->CompileApp(XTABSTMENT_UNIV_ONLY);
+    const bool success = GetDocument()->CompileApp(XTABSTMENT_UNIV_ONLY);
 
-    m_sUniverse = saved_universe;
+    m_universe = saved_universe;
     UpdateData(FALSE);
 
     if( !success )
-        AfxMessageBox(_T("Invalid Universe"));
+        AfxMessageBox(L"Invalid Universe");
 
     return success;
 }
@@ -215,17 +214,17 @@ void CFrqOptionsView::OnBnClickedEditUniverse()
     // 20111228 for tom
     if( !pDoc->IsAtLeastOneItemSelected() )
     {
-        AfxMessageBox(_T("You must select at least one item to tabulate before you add a universe"));
+        AfxMessageBox(L"You must select at least one item to tabulate before you add a universe");
         return;
     }
 
     FreqUniverseDlgActionResponder universe_dlg_action_responder(*this);
 
-    UniverseDlg universe_dlg(pDoc->GetSharedDictionary(), CS2WS(m_sUniverse), universe_dlg_action_responder);
+    UniverseDlg universe_dlg(pDoc->GetSharedDictionary(), m_universe, universe_dlg_action_responder);
 
     if( universe_dlg.DoModal() == IDOK )
     {
-        m_sUniverse = WS2CS(universe_dlg.GetUniverse());
+        m_universe = universe_dlg.GetUniverse();
         UpdateData(FALSE);
     }
 }

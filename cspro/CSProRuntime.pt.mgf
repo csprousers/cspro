@@ -49,7 +49,7 @@ Language=PT
 /* --- Entry Errors */
 89271  Falha ao iniciar o questionário em modo de Modificação.
 89272  Modo de Aplicação Inválido. Falha ao parar a aplicação de entrada de dados.
-89273  Houve um êrro ao ler o arquivo binário %s
+89273  Houve um êrro ao ler o arquivo binário '%s': %s
 89274  Erro Fatal no motor da entrada de dados. A operação de entrada de dados foi abortada.
 
 /* --- Index */
@@ -402,7 +402,6 @@ Language=PT
 99990  O operador digitou um valor fora de faixa
 
 /* --- sync */
-100100 Falha na conexão para sincronizar com o servidor %s
 100101 Erro ao conectar com o servidor: %s
 100102 Conectando com %s...
 100103 Desconectando...
@@ -413,25 +412,21 @@ Language=PT
 100108 Transmitindo %s...
 100109 Erro ao gravar o arquivo "%s": Verifique se o passo é válido e que você tem permissão para gravar no diretório.
 100110 Erro baixando o arquivo "%s": Verifique se o arquivo existe no servidor, que o passo está correto e que você tem permissão para ler o arquivo.
-100111 Erro subindo o arquivo %s.
+100111 Erro subindo o arquivo: %s.
 100112 Erro baixando do diretório %s.
 100113 Especificação de arquivo inválida: %s
 100116 Arquivo inválido usado com %s para %s, somente arquivos tipo CSPro DB aceitam SYNC. Por favor certifique-se de que o tipo de arquivo é um CSPro DB e que ele não está fechado na aplicação CsPro.
 100117 Arquivo "%s" é muito grande para sncronizar. Não são permitidos arquivos maiores que 2GB.
 100118 Erro ao ler o arquivo %s para subir. Certifique-se de que o passo do arquivo no dispositivo local está correto.
-100119 Erro ao conectar-se ao servidor de sincronização: %s.
-100120 %s não é um endereço URL válido para executar um SYNCCONECT de WEB. O endereço deve começar com http:// ou https://.
+100120 %s não é um endereço URL válido para executar um SYNCCONNECT de CSWeb. O endereço deve começar com http:// ou https://.
 100121 Erro: não foi possível ler a resposta do servidor. Veja o arquivo LOG para mais detalhes.
 100122 Sincronização cancelada.
 100123 Deletando %s...
-100124 Operação não implementada para este tipo de servidor
-100125 %s não é um endereço URL válido para executar um SYNCCONECT de FTP. O endereço deve começar com ftp://, ftps://, ou ftpes://.
 100126 Nome de usuário e senha inválidos.
 100127 Erro baixando o arquivo "%s": O arquivo baixado está incompleto ou corrompido. Verifique sua conexão de rede e tente de novo.
 100128 Baixando a lista de arquivos de dados...
 100129 Erro baixando a lista de arquivos de dados. %s
 100130 Erro baixando o dicionário. %s
-100131 O servidor de CSWeb está usando uma versão do software que não é compatíve com esta versão do CSPro. Favor atualizar este dispositivo para casar com o servidor, ou atualizar o servidor paa casar com este dispositivo.
 100132 Primeiro é preciso chamar a função SYNCCONECT() antes de usar SYNCDATA() ou SYNCFILE().
 100133 Erro na base de dados durante a sincronização: %s
 100134 Erro de leitura do arquivo durante a sincronização. Certifique-se de que o passo é válido e que o arquivo não esteja sendo usado.
@@ -442,7 +437,6 @@ Language=PT
 100139 Falha na descompressão.
 100140 Erro subindo o pacote da aplicação %s.
 100141 Erro ao obter a lista de aplicações %s.
-100142 A versão deste servidor CSWeb não suporta operações de DEPLOY. Por favor atualize o software no servidor para a versão 7.1 ou superior.
 100143 Erro subindo o dicionário. %s
 100144 Recurso não encontrado no servidor %s. Verifique se o endereço de URL do servidor CSWeb está correto.
 100145 Versões de CSEntry incompatíveis.

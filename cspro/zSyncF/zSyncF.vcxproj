@@ -12,10 +12,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F937DF04-B0CB-4B04-8671-D7CFB13CAE56}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>zSyncF</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -65,27 +61,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ChooseBluetoothDeviceDialog.h" />
-    <ClInclude Include="DropboxAuthDialog.h" />
-    <ClInclude Include="LoginDialog.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="DialogBasedSyncListener.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SyncLoginAccessor.h" />
+    <ClInclude Include="SyncServiceSelectorDlg.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zSyncF.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChooseBluetoothDeviceDialog.cpp" />
-    <ClCompile Include="DropboxAuthDialog.cpp" />
-    <ClCompile Include="LoginDialog.cpp" />
+    <ClCompile Include="DialogBasedSyncListener.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SyncLoginAccessor.cpp" />
+    <ClCompile Include="SyncServiceSelectorDlg.cpp" />
     <ClCompile Include="zSyncF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zSyncF.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
       <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>

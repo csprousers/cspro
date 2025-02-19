@@ -22,12 +22,13 @@ struct SORTITEM
 
 class CSortDoc : public CDocument
 {
-public:
-    CSortDoc();
     DECLARE_DYNCREATE(CSortDoc)
 
-    CString GetSpecFileName() const;
-    CString GetDictFileName() const;
+public:
+    CSortDoc();
+
+    const std::string& GetSpecFilePath() const;
+    const std::string& GetDictionaryFilePath() const;
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -35,17 +36,17 @@ protected:
     BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
     BOOL SaveModified() override;
 
-    afx_msg void OnFileRun();
-    afx_msg void OnFileSave();
-    afx_msg void OnFileSaveAs();
-    afx_msg void OnUpdateFileSave(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateFileSaveAs(CCmdUI* pCmdUI);
-    afx_msg void OnOptionsSortType();
-    afx_msg void OnUpdateOptionsSortType(CCmdUI* pCmdUI);
+    void OnFileRun();
+    void OnFileSave();
+    void OnFileSaveAs();
+    void OnUpdateFileSave(CCmdUI* pCmdUI);
+    void OnUpdateFileSaveAs(CCmdUI* pCmdUI);
+    void OnOptionsSortType();
+    void OnUpdateOptionsSortType(CCmdUI* pCmdUI);
 
 private:
-    bool OpenSpecFile(const TCHAR* filename);
-    bool OpenDictFile(const TCHAR* filename);
+    bool OpenSpecFile(const std::string& file_path);
+    bool OpenDictionary(const std::string& file_path);
 
     void ConvertSortItemsSpecToSortDoc();
     void ConvertSortItemsSortDocToSpec();
@@ -58,9 +59,9 @@ public:
     CArray<SORTITEM, SORTITEM> m_aItem;
     CArray<int, int> m_aAvail;
     CArray<int, int> m_aKey;
-    bool m_bRetSave;
 
 private:
+    bool m_bRetSave;
     std::shared_ptr<SortSpec> m_sortSpec;
     PFF m_pff;
 };

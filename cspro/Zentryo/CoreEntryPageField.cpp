@@ -56,7 +56,7 @@ CoreEntryPageField::CoreEntryPageField(CoreEntryEngineInterface* core_entry_engi
         CapiContent field_capi_content;
         capi->GetCapiContent(&field_capi_content, symbol_index, CCapi::CapiContentType::All);
 
-        m_capiContentVirtualFileMapping.SetCapiContent(std::move(field_capi_content), *m_pEntryDriver);
+        m_capiContentVirtualFileMapping.SetCapiContent(field_capi_content, *m_pEntryDriver);
     }
 
     RefreshValues();
@@ -334,17 +334,17 @@ void CoreEntryPageField::RefreshSelectedResponses()
 }
 
 
-CString CoreEntryPageField::GetNote() const
+SharableString CoreEntryPageField::GetNote() const
 {
-    return WS2CS(m_pIntDriver->ConvertV0Escapes(CS2WS(m_pEntryDriver->GetNoteContent(m_DeFld)), CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes));
+    return m_pIntDriver->ConvertV0Escapes(m_pEntryDriver->GetNoteContent(m_DeFld), CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes);
 }
 
 
-void CoreEntryPageField::SetNote(CString note)
+void CoreEntryPageField::SetNote(SharableString note)
 {
     ASSERT(!IsMirror());
 
-    m_pEntryDriver->SetNote(m_DeFld, WS2CS(m_pIntDriver->ApplyV0Escapes(CS2WS(note), CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes)));
+    m_pEntryDriver->SetNote(m_DeFld, m_pIntDriver->ApplyV0Escapes(std::move(note), CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes));
 }
 
 
@@ -401,9 +401,10 @@ std::vector<CString> CoreEntryPageField::GetVerboseFieldInformation() const
 }
 
 
-CString CoreEntryPageField::GetValueSetName() const
+std::string CoreEntryPageField::GetValueSetName() const
 {
-    return ( m_valueSet != nullptr ) ? WS2CS(m_valueSet->GetName()) : _T("<undefined>");
+    return ( m_valueSet != nullptr ) ? m_valueSet->GetName() :
+                                       "<undefined>";
 }
 
 #endif // ending _CONSOLE

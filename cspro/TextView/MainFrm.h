@@ -76,15 +76,15 @@ public:
 
     int GetFontHeight(int iPointSize) const;     // added csc 4 Jan 03
 
-    void OpenInDataViewer(const CString& filename);
+    static void OpenInDataManager(const wchar_t* file_path);
 
 // Generated message map functions
 protected:
     //{{AFX_MSG(CMainFrame)
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnViewRuler();
-    afx_msg void OnUpdateOpenInDataViewer(CCmdUI* pCmdUI);
-    afx_msg void OnOpenInDataViewer();
+    afx_msg void OnUpdateOpenInDataManager(CCmdUI* pCmdUI);
+    afx_msg void OnOpenInDataManager();
     afx_msg void OnUpdateOptionsCommas(CCmdUI* pCmdUI);
     afx_msg void OnOptionsCommas();
     afx_msg void OnDestroy();

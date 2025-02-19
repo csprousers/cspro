@@ -1,59 +1,61 @@
 ﻿#include "stdafx.h"
-#include "CppUnitTest.h"
 #include <zNetwork/CurlHttpConnection.h>
-#include <zSyncO/SyncException.h>
-#include <rxcpp/operators/rx-reduce.hpp>
-#include <external/jsoncons/json.hpp>
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace SyncUnitTest
 {
     TEST_CLASS(CurlHttpConnectionTest)
     {
     public:
-        TEST_METHOD(TestGet) {
-
+        TEST_METHOD(TestGet)
+        {
             CurlHttpConnection connection;
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/get?test=hello").build();
+            auto request = HttpRequestBuilder("https://httpbin.org/get?test=hello").build();
             auto response = connection.Request(request);
-            Assert::AreEqual(200, response.http_status);
-            std::string body_string = response.body.ToString();
-            jsoncons::json j = jsoncons::json::parse(body_string);
-            auto test = j["args"]["test"].as<std::string>();
+            Assert::AreEqual(HttpResponse::Status_200_OK, response.http_status);
+            const std::string body_string = response.body.ToString();
+            const JsonNode json_node = Json::Parse(body_string);
+            const std::string test = json_node["args"]["test"].Get<std::string>();
             Assert::AreEqual("hello", test.c_str());
         }
 
-        TEST_METHOD(TestHeaders) {
 
+        TEST_METHOD(TestHeaders)
+        {
             CurlHttpConnection connection;
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/get")
-                .headers({ L"X-Cspro-Test-Header: test-header-value" })
+            HeaderList requestHeaders;
+            requestHeaders.Add("X-Cspro-Test-Header: test-header-value");
+
+            auto request = HttpRequestBuilder("https://httpbin.org/get")
+                .headers(requestHeaders)
                 .build();
             auto response = connection.Request(request);
-            Assert::AreEqual(200, response.http_status);
-            std::string body_string = response.body.ToString();
-            jsoncons::json j = jsoncons::json::parse(body_string);
-            auto header_value = j["headers"]["X-Cspro-Test-Header"].as<std::string>();
+            Assert::AreEqual(HttpResponse::Status_200_OK, response.http_status);
+            const std::string body_string = response.body.ToString();
+            const JsonNode json_node = Json::Parse(body_string);
+            const std::string header_value = json_node["headers"]["X-Cspro-Test-Header"].Get<std::string>();
             Assert::AreEqual("test-header-value", header_value.c_str());
         }
-        TEST_METHOD(TestStatus) {
 
+
+        TEST_METHOD(TestStatus)
+        {
             CurlHttpConnection connection;
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/status/404").build();
+            auto request = HttpRequestBuilder("https://httpbin.org/status/404").build();
             auto response = connection.Request(request);
-            Assert::AreEqual(404, response.http_status);
+            Assert::AreEqual(HttpResponse::Status_404_NotFound, response.http_status);
         }
 
-        TEST_METHOD(TestError) {
 
+        TEST_METHOD(TestError)
+        {
             CurlHttpConnection connection;
 
             bool threw = false;
-            auto request = HttpRequestBuilder(L"httsdfsdfp://this-host-does-not-exist.com").build();
+            auto request = HttpRequestBuilder("httsdfsdfp://this-host-does-not-exist.com").build();
             try {
                 connection.Request(request);
             }
@@ -63,28 +65,30 @@ namespace SyncUnitTest
             Assert::IsTrue(threw);
         }
 
-        TEST_METHOD(TestPost) {
 
+        TEST_METHOD(TestPost)
+        {
             CurlHttpConnection connection;
 
             std::string post_data("CSPro rocks!!!!!!");
             std::istringstream post_data_stream(post_data);
             HeaderList requestHeaders;
-            requestHeaders.push_back(L"Content-Type: application/json");
+            requestHeaders.Add_ContentType_Json();
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/post").headers(requestHeaders).post(post_data_stream, post_data.size()).build();
+            auto request = HttpRequestBuilder("https://httpbin.org/post").headers(requestHeaders).post(post_data_stream, post_data.size()).build();
             auto response = connection.Request(request);
-            Assert::AreEqual(200, response.http_status);
-            std::string body_string = response.body.ToString();
-            jsoncons::json j = jsoncons::json::parse(body_string);
-            auto posted = j["data"].as<std::string>();
+            Assert::AreEqual(HttpResponse::Status_200_OK, response.http_status);
+            const std::string body_string = response.body.ToString();
+            const JsonNode json_node = Json::Parse(body_string);
+            const std::string posted = json_node["data"].Get<std::string>();
             Assert::AreEqual(post_data, posted);
-            auto content_length = j["headers"]["Content-Length"].as<int>();
-            Assert::AreEqual((int)post_data.size(), content_length);
+            const size_t content_length = json_node["headers"]["Content-Length"].Get<size_t>();
+            Assert::AreEqual(post_data.size(), content_length);
         }
 
-        TEST_METHOD(TestPostChunked) {
 
+        TEST_METHOD(TestPostChunked)
+        {
             CurlHttpConnection connection;
 
             // Make some big test data
@@ -95,44 +99,45 @@ namespace SyncUnitTest
 
             std::istringstream post_data_stream(post_data);
             HeaderList requestHeaders;
-            requestHeaders.push_back(L"Content-Type: application/json");
+            requestHeaders.Add_ContentType_Json();
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/post").headers(requestHeaders).post(post_data_stream).build();
+            auto request = HttpRequestBuilder("https://httpbin.org/post").headers(requestHeaders).post(post_data_stream).build();
             auto response = connection.Request(request);
-            Assert::AreEqual(200, response.http_status);
-            std::string body_string = response.body.ToString();
-            jsoncons::json j = jsoncons::json::parse(body_string);
-            auto posted = j["data"].as<std::string>();
+            Assert::AreEqual(HttpResponse::Status_200_OK, response.http_status);
+            const std::string body_string = response.body.ToString();
+            const JsonNode json_node = Json::Parse(body_string);
+            const std::string posted = json_node["data"].Get<std::string>();
             Assert::AreEqual(post_data, posted);
-            auto chunked = j["headers"]["Transfer-Encoding"].as<std::string>();
+            const std::string chunked = json_node["headers"]["Transfer-Encoding"].Get<std::string>();
             Assert::AreEqual("chunked", chunked.c_str());
         }
-        TEST_METHOD(TestPut) {
 
+
+        TEST_METHOD(TestPut)
+        {
             CurlHttpConnection connection;
 
             std::string put_data("I love me some CSPro!");
             std::istringstream put_data_stream(put_data);
             HeaderList requestHeaders;
-            requestHeaders.push_back(L"Content-Type: application/json");
+            requestHeaders.Add_ContentType_Json();
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/put").headers(requestHeaders).put(put_data_stream, put_data.size()).build();
+            auto request = HttpRequestBuilder("https://httpbin.org/put").headers(requestHeaders).put(put_data_stream, put_data.size()).build();
             auto response = connection.Request(request);
-            std::string body_string = response.body.ToString();
-            jsoncons::json j = jsoncons::json::parse(body_string);
-            auto posted = j["data"].as<std::string>();
+            const std::string body_string = response.body.ToString();
+            const JsonNode json_node = Json::Parse(body_string);
+            const std::string posted = json_node["data"].Get<std::string>();
             Assert::AreEqual(put_data, posted);
         }
 
-        TEST_METHOD(TestDelete) {
 
+        TEST_METHOD(TestDelete)
+        {
             CurlHttpConnection connection;
 
-            auto request = HttpRequestBuilder(L"https://httpbin.org/delete").del().build();
+            auto request = HttpRequestBuilder("https://httpbin.org/delete").del().build();
             auto response = connection.Request(request);
-            Assert::AreEqual(200, response.http_status);
+            Assert::AreEqual(HttpResponse::Status_200_OK, response.http_status);
         }
-
-
     };
 }

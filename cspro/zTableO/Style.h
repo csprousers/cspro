@@ -14,6 +14,10 @@
 //***************************************************************************
 
 #include <zTableO/zTableO.h>
+#include <zUtilO/imsaStr.h>
+
+class DictValueSet;
+
 
 // commands -- header section
 #define TFT_SECT_FORMAT_FILE         _T("[TableFormatFile]")        // heading for a TFT file
@@ -81,7 +85,7 @@
 #define TFT_CMD_INTERVALS_MIN        _T("IntervalsMin")             // lower limit of ranges for median/ntiles
 #define TFT_CMD_INTERVALS_MAX        _T("IntervalsMax")             // upper limit of ranges for median/ntiles
 #define TFT_CMD_INTERVALS_STEP       _T("IntervalsStep")            // bucket size for ranges for median/ntiles
-#define TFT_CMD_MEDIAN_TYPE          _T("MedianType")               // median type, discrete or continuos
+#define TFT_CMD_MEDIAN_TYPE          _T("MedianType")               // median type, discrete or continuous
 #define TFT_CMD_PROP_TYPE            _T("ProportionType")           // type of proportion, percent, percent & total, etc...
 #define TFT_CMD_PROP_RANGE           _T("ProportionRange")          // rangelist for proportion
 

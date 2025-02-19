@@ -7,6 +7,7 @@ LOCAL_MODULE            := zMultimediaO
 ZMULTIMEDIAO_SRC_PATH   := ../../../../../zMultimediaO
 
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/BmpFile.cpp
+LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Icon.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Image.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4Reader.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4Writer.cpp
@@ -14,7 +15,7 @@ LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/QRCode.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/../external/qrcodegen/qrcodegen.cpp
 
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external

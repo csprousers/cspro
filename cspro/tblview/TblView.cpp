@@ -7,7 +7,8 @@
 #include "TableChartWnd.h"
 #include "TblDoc.h"
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/ImsaFileDlg.h>
+#include <zUtilF/CommonControls.h>
 #include <zTableO/Table.h>
 #include <zTableF/TabChWnd.h>
 #include <zTableF/TabView.h>
@@ -106,15 +107,7 @@ public:
 
 BOOL CTblViewApp::InitInstance()
 {
-	// InitCommonControlsEx() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
-	INITCOMMONCONTROLSEX InitCtrls;
-	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
-	InitCtrls.dwICC = ICC_WIN95_CLASSES;
-	InitCommonControlsEx(&InitCtrls);
+    InitializeCommonControls();
 
     CWinApp::InitInstance();
 
@@ -214,7 +207,7 @@ BOOL CTblViewApp::InitInstance()
         do
         {
             CSpecFile specFile;
-            CString exportFilename = cmdInfo.m_sExptFilename;
+            std::string export_file_path = UTF8_TODO::GetUtf8(cmdInfo.m_sExptFilename);
 
             if( cmdInfo.m_fmt == CTblViewCommandLineInfo::EXPT_FMT_ALL || processNum )
             {
@@ -223,17 +216,17 @@ BOOL CTblViewApp::InitInstance()
                 case 0:
                     cmdInfo.m_fmt = CTblViewCommandLineInfo::EXP_FMT_HTML;
                     processNum = 1;
-                    exportFilename.Append(FileExtensions::WithDot::HTML);
+                    PortableFunctions::MakePathAppendFileExtension(export_file_path, FileExtensions::HTML);
                     break;
                 case 1:
                     cmdInfo.m_fmt = CTblViewCommandLineInfo::EXPT_FMT_RTF;
                     processNum = 2;
-                    exportFilename.Append(_T(".rtf"));
+                    PortableFunctions::MakePathAppendFileExtension(export_file_path, "rtf");
                     break;
                 case 2:
                     cmdInfo.m_fmt = CTblViewCommandLineInfo::EXPT_FMT_TABDELIM;
                     processNum = 0; // we're done after this export
-                    exportFilename.Append(_T(".txt"));
+                    PortableFunctions::MakePathAppendFileExtension(export_file_path, "txt");
                     break;
                 }
             }
@@ -241,7 +234,7 @@ BOOL CTblViewApp::InitInstance()
             if( cmdInfo.m_fmt == CTblViewCommandLineInfo::EXPT_FMT_RTF )
                 specFile.SetEncoding(Encoding::Ansi); // GHM 20120207 rtf files should be in ANSI
 
-            if (!specFile.Open(exportFilename, CFile::modeWrite)) {
+            if (!specFile.Open(UTF8_TODO::GetWide(export_file_path).c_str(), CFile::modeWrite)) {
                 CString sError;
                 sError = _T("Error:  Could not open file ") + cmdInfo.m_sExptFilename;
                 AfxMessageBox(sError,MB_ICONEXCLAMATION);
@@ -295,7 +288,8 @@ void CTblViewApp::OnFileOpen()
     ASSERT(AfxGetMainWnd()->IsKindOf(RUNTIME_CLASS(CMDIFrameWnd)));
     CString csFile = AfxGetApp()->GetProfileString(_T("Settings"), _T("Last File"), _T(""));
 
-    CIMSAFileDialog dlgFile(TRUE, FileExtensions::Table, csFile, OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY | OFN_SHAREAWARE,
+    const std::wstring default_extension = TC::ToWide(FileExtensions::Table);
+    CIMSAFileDialog dlgFile(TRUE, default_extension.c_str(), csFile, OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY | OFN_SHAREAWARE,
                             _T("CSPro Tables (*.tbw)|*.tbw|All Files (*.*)|*.*||"));
 
     constexpr int MaxFiles = 50;
@@ -338,7 +332,7 @@ void CTblViewApp::OnFileSaveAs()
     if (pActTabFrame->GetTabView()->SaveTables(sFilename)) {
 
         // if save as TBW
-        if ((sFilename.Right(3)).CompareNoCase(FileExtensions::Table) == 0) {
+        if ((sFilename.Right(3)).CompareNoCase(UTF8_TODO::GetCString(FileExtensions::Table)) == 0) {
             CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, pActTabFrame->GetTabView()->GetDocument());
             pDoc->SetModifiedFlag(FALSE); // avoid any "save changes" msgs
             pDoc->SetPathName(sFilename); // update doc name in toolbar

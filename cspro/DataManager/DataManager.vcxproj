@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{4CD74CD1-E966-4425-B90E-9D32FF5F71F1}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>DataManager</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>DataManager</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="CaseContentCreatorBase.h" />
+    <ClInclude Include="CaseDoc.h" />
+    <ClInclude Include="CaseFrame.h" />
+    <ClInclude Include="CaseHoldingDoc.h" />
+    <ClInclude Include="CaseHoldingFrame.h" />
+    <ClInclude Include="CaseHtmlContentCreator.h" />
+    <ClInclude Include="CaseHtmlContentCreatorSettings.h" />
+    <ClInclude Include="CaseJsonContentCreator.h" />
+    <ClInclude Include="CaseJsonContentCreatorSettings.h" />
+    <ClInclude Include="CaseListingView.h" />
+    <ClInclude Include="CaseProvider.h" />
+    <ClInclude Include="CaseQuestionnaireContentCreator.h" />
+    <ClInclude Include="CaseQuestionnaireContentCreatorSettings.h" />
+    <ClInclude Include="CaseTask.h" />
+    <ClInclude Include="CaseTextContentCreator.h" />
+    <ClInclude Include="CaseTextContentCreatorSettings.h" />
+    <ClInclude Include="ContentCreator.h" />
+    <ClInclude Include="DataManager.h" />
+    <ClInclude Include="DataSourceCaseListingCtrl.h" />
+    <ClInclude Include="DataSourceDoc.h" />
+    <ClInclude Include="DataSourceDocTemplate.h" />
+    <ClInclude Include="DataSourceFrame.h" />
+    <ClInclude Include="DataSourceSettings.h" />
+    <ClInclude Include="DataSummaryContentCreator.h" />
+    <ClInclude Include="DownloadDataSourceDlg.h" />
+    <ClInclude Include="ExtractBinaryDataDlg.h" />
+    <ClInclude Include="ExtractBinaryDataSettings.h" />
+    <ClInclude Include="ExtractBinaryDataTask.h" />
+    <ClInclude Include="ExtractCasesTask.h" />
+    <ClInclude Include="ExtractNotesDlg.h" />
+    <ClInclude Include="ExtractNotesSettings.h" />
+    <ClInclude Include="ExtractNotesTask.h" />
+    <ClInclude Include="HtmlView.h" />
+    <ClInclude Include="LogicHelperContentCreator.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="OpenCSWebDataDlg.h" />
+    <ClInclude Include="OpenDataSourceDlg.h" />
+    <ClInclude Include="ProductionSyncer.h" />
+    <ClInclude Include="QuestionnaireContentDlg.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="SyncHelpers.h" />
+    <ClInclude Include="SynchronizeDlg.h" />
+    <ClInclude Include="SyncTask.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TaskRunner.h" />
+    <ClInclude Include="TaskRunnerDlg.h" />
+    <ClInclude Include="TaskRunnerSyncListener.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="ViewOptionsHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CaseContentCreatorBase.cpp" />
+    <ClCompile Include="CaseDoc.cpp" />
+    <ClCompile Include="CaseFrame.cpp" />
+    <ClCompile Include="CaseHoldingDoc.cpp" />
+    <ClCompile Include="CaseHoldingFrame.cpp" />
+    <ClCompile Include="CaseHtmlContentCreator.cpp" />
+    <ClCompile Include="CaseJsonContentCreator.cpp" />
+    <ClCompile Include="CaseListingView.cpp" />
+    <ClCompile Include="CaseProvider.cpp" />
+    <ClCompile Include="CaseQuestionnaireContentCreator.cpp" />
+    <ClCompile Include="CaseTask.cpp" />
+    <ClCompile Include="CaseTextContentCreator.cpp" />
+    <ClCompile Include="ContentCreator.cpp" />
+    <ClCompile Include="DataManager.cpp" />
+    <ClCompile Include="DataSourceCaseListingCtrl.cpp" />
+    <ClCompile Include="DataSourceDoc.cpp" />
+    <ClCompile Include="DataSourceFrame.cpp" />
+    <ClCompile Include="DataSourceSettings.cpp" />
+    <ClCompile Include="DataSummaryContentCreator.cpp" />
+    <ClCompile Include="DownloadDataSourceDlg.cpp" />
+    <ClCompile Include="ExtractBinaryDataDlg.cpp" />
+    <ClCompile Include="ExtractBinaryDataTask.cpp" />
+    <ClCompile Include="ExtractCasesTask.cpp" />
+    <ClCompile Include="ExtractNotesDlg.cpp" />
+    <ClCompile Include="ExtractNotesTask.cpp" />
+    <ClCompile Include="HtmlView.cpp" />
+    <ClCompile Include="LogicHelperContentCreator.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="OpenCSWebDataDlg.cpp" />
+    <ClCompile Include="OpenDataSourceDlg.cpp" />
+    <ClCompile Include="ProductionSyncer.cpp" />
+    <ClCompile Include="QuestionnaireContentDlg.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SyncHelpers.cpp" />
+    <ClCompile Include="SynchronizeDlg.cpp" />
+    <ClCompile Include="SyncTask.cpp" />
+    <ClCompile Include="TaskRunnerDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DataManager.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\CaseFrame.ico" />
+    <Image Include="res\DataManager.ico" />
+    <Image Include="res\DataSourceFrame.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAction\zAction.vcxproj">
+      <Project>{7f125ef6-a327-11ed-a8fc-0242ac120002}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCapiO\zCapiO.vcxproj">
+      <Project>{9cff378d-0d09-4800-866d-5fab8df44fbf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEdit2O\zEdit2O.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormatterO\zFormatterO.vcxproj">
+      <Project>{eaa667d9-6593-4bf4-abe3-ca8231b4efec}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zInterfaceF\zInterfaceF.vcxproj">
+      <Project>{a777b4a3-a0b4-4f0e-86c4-7077630e0b54}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncF\zSyncF.vcxproj">
+      <Project>{f937df04-b0cb-4b04-8671-d7cfb13cae56}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

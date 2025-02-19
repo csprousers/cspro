@@ -5,7 +5,7 @@
 
 LogicGeometry* LogicCompiler::CompileLogicGeometryDeclaration()
 {
-    std::wstring geometry_name = CompileNewSymbolName();
+    std::string geometry_name = CompileNewSymbolName();
 
     auto logic_geometry = std::make_shared<LogicGeometry>(std::move(geometry_name));
 
@@ -127,7 +127,11 @@ int LogicCompiler::CompileLogicGeometryFunctions()
         if( Tkn != TOKRPAREN )
         {
             if( Tkn != TOKMAP )
-                IssueError(MGF::Geometry_Map_argument_expected_47322, Logic::FunctionTable::GetFunctionName(symbol_va_with_subscript_node.function_code), Tokstr.c_str());
+            {
+                IssueError(MGF::Geometry_Map_argument_expected_47322,
+                           Logic::FunctionTable::GetFunctionName(symbol_va_with_subscript_node.function_code),
+                           Tokstr.c_str());
+            }
 
             symbol_va_with_subscript_node.arguments[0] = Tokstindex;
             NextToken();

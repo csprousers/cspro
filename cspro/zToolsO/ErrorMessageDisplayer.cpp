@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "ErrorMessageDisplayer.h"
-#include <zPlatformO/PlatformInterface.h>
 #include <mutex>
 
 
@@ -8,17 +7,28 @@
 
 namespace
 {
-    std::vector<std::wstring> posted_messages;
+    std::unique_ptr<std::vector<std::string>> posted_messages;
     std::mutex posted_messages_mutex;
 }
 
 
-void ErrorMessage::PostMessageForDisplay(std::wstring error_message)
+void ErrorMessage::Display(const cs::string_view_sz error_message_sv)
+{
+    Display(TC::ToWide(error_message_sv).c_str());
+}
+
+
+void ErrorMessage::PostMessageForDisplay(std::string error_message, const bool send_post_messages/* = true*/)
 {
     std::lock_guard<std::mutex> lock(posted_messages_mutex);
-    posted_messages.emplace_back(std::move(error_message));
 
-    AfxGetMainWnd()->PostMessage(UWM::ToolsO::DisplayErrorMessage);
+    if( posted_messages == nullptr )
+        posted_messages = std::make_unique<std::vector<std::string>>();
+
+    posted_messages->emplace_back(std::move(error_message));
+
+    if( send_post_messages )
+        WindowsDesktopMessage::Post(UWM::ToolsO::DisplayErrorMessage);
 
     // make sure the posted messages are displayed
 #ifdef _DEBUG
@@ -27,7 +37,7 @@ void ErrorMessage::PostMessageForDisplay(std::wstring error_message)
     public:
         ~PostedMessageCheck()
         {
-            ASSERT(posted_messages.empty());
+            ASSERT(posted_messages == nullptr);
         }
     };
 
@@ -38,22 +48,43 @@ void ErrorMessage::PostMessageForDisplay(std::wstring error_message)
 
 void ErrorMessage::DisplayPostedMessages()
 {
-    std::lock_guard<std::mutex> lock(posted_messages_mutex);
+    if( posted_messages == nullptr )
+        return;
 
-    ASSERT(!posted_messages.empty());
+    std::unique_ptr<std::vector<std::string>> these_posted_messages;
 
-    for( const std::wstring& error_message : posted_messages )
+    {
+        std::lock_guard<std::mutex> lock(posted_messages_mutex);
+        these_posted_messages = std::move(posted_messages);
+    }
+
+    ASSERT(!these_posted_messages->empty());
+
+    for( const std::string& error_message : *these_posted_messages )
         Display(error_message);
+}
 
-    posted_messages.clear();
+
+int AfxMessageBox(const std::string_view text_sv, const UINT nType/* = MB_OK*/, const UINT nIDHelp/* = 0*/)
+{
+    return AfxMessageBox(TC::ToWide(text_sv).c_str(), nType, nIDHelp);
 }
 
 
 #else
 
-void ErrorMessage::Display(NullTerminatedString error_message)
+#include <zPlatformO/PlatformInterface.h>
+
+
+void ErrorMessage::Display(const cs::string_view_sz error_message_sv)
 {
-    PlatformInterface::GetInstance()->GetApplicationInterface()->DisplayErrorMessage(error_message.c_str());
+    PlatformInterface::GetInstance()->GetApplicationInterface()->DisplayErrorMessage(error_message_sv);
+}
+
+
+void ErrorMessage::Display(const NullTerminatedString error_message)
+{
+    Display(TC::ToUtf8(error_message.c_str()));
 }
 
 #endif

@@ -73,7 +73,7 @@ CDERoster::CDERoster(const CDERoster& rhs)
             pColCopy->AddField(pField);
         }
         AddCol(pColCopy);
-    }    
+    }
 }
 
 
@@ -252,7 +252,7 @@ int CDERoster::GetGroupInsertIndexForCol(int iSearchCol) const
     return iGrpItem;
 }
 
-    
+
 
 void CDERoster::RecalcOffsets(int iCol /*=0*/)    // default to 1st col if nothing given
 {
@@ -357,7 +357,7 @@ void CDERoster::AddNonOccItem(const CDictRecord* pDR, const CDictItem* pDI, int 
 {
     bool bOkToDropSubitems = pFF->TestSubitemDrop (pDR, pDI, drag_options);
 
-    CString sDictName = pFF->GetDictionaryName();
+    CString sDictName = UTF8_TODO::GetCString(pFF->GetDictionaryName());
     CDEField* pField;
     CDECol* pCol;
     CDEText text;
@@ -466,7 +466,7 @@ void CDERoster::FinishStubTextInit()
         SetAllStubs(&stub_template);
     }
 
-    else if( GetMaxLoopOccs() < (int)m_stubTextSet.GetNumTexts() )   
+    else if( GetMaxLoopOccs() < (int)m_stubTextSet.GetNumTexts() )
     {
         // have too many stub text items, ditch the extra
         for( size_t i = m_stubTextSet.GetNumTexts() - 1; (int)i >= GetMaxLoopOccs(); --i )
@@ -479,7 +479,7 @@ void CDERoster::FinishStubTextInit()
         for( int i = (int)m_stubTextSet.GetNumTexts(); i < GetMaxLoopOccs(); ++i )
         {
             // default for now to use the index as the stub txt
-            m_stubTextSet.AddText(std::make_shared<CDEText>(IntToString(i + 1)));
+            m_stubTextSet.AddText(std::make_shared<CDEText>(UTF8_TODO::GetCString(IntToString(i + 1))));
         }
     }
 }
@@ -523,7 +523,7 @@ void CDERoster::SetAllStubs(const CDEText& stub_template, CF callback_function)
     int pos = stub_text.Find('@');
 
     // '@' found, need to adjust the stubs accordingly
-    if( pos >= 0 )   
+    if( pos >= 0 )
     {
         CString left_text = stub_text.Left(pos);
         CString right_text = stub_text.Mid(pos + 1);
@@ -533,7 +533,7 @@ void CDERoster::SetAllStubs(const CDEText& stub_template, CF callback_function)
             CString text = callback_function(occurrence);
 
             if( text.IsEmpty() )
-                text = left_text + IntToString(occurrence + 1) + right_text;
+                text = left_text + UTF8_TODO::GetCString(IntToString(occurrence + 1)) + right_text;
 
             m_stubTextSet.GetText(occurrence).SetText(text);
         }
@@ -547,7 +547,7 @@ void CDERoster::SetAllStubs(const CDEText* stub_template, const DictNamedBase* d
         stub_template = &DefaultStubTemplate;
 
     // get rid of any extant stub text
-    m_stubTextSet.RemoveAllTexts(); 
+    m_stubTextSet.RemoveAllTexts();
 
     // initialize the stubs
     for( int i = 0; i < GetMaxLoopOccs(); ++i )
@@ -582,7 +582,7 @@ void CDERoster::RefreshStubsFromOccurrenceLabels(const CDEFormFile& form_file)
     //Fix the occurrence labels for the current language
     const CDictRecord* dict_record;
     const CDictItem* dict_item;
-    form_file.GetDictionary()->LookupName(GetTypeName(), nullptr, &dict_record, &dict_item, nullptr);
+    form_file.GetDictionary()->LookupName(UTF8_TODO::GetUtf8(GetTypeName()), nullptr, &dict_record, &dict_item, nullptr);
 
     if( dict_item != nullptr )
     {
@@ -690,7 +690,7 @@ bool CDERoster::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
 
         else if (csCmd.CompareNoCase(FRM_CMD_DEFAULTMOVEMENT) == 0) {
             m_freeMovement = ( csArg.CompareNoCase(ROSTER_ORIENT_HORZ) == 0 ) ? FreeMovement::Horizontal :
-                             ( csArg.CompareNoCase(ROSTER_ORIENT_VERT) == 0 ) ? FreeMovement::Vertical : 
+                             ( csArg.CompareNoCase(ROSTER_ORIENT_VERT) == 0 ) ? FreeMovement::Vertical :
                                                                                 FreeMovement::Disabled;
         }
 
@@ -776,7 +776,7 @@ bool CDERoster::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
         {                      // Incorrect attribute
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Grid] attribute\n\n%s"), (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Incorrect [Grid] attribute\n\n%s"), csCmd.GetString()));
             }
             rtnVal = false;
         }
@@ -890,7 +890,7 @@ void CDERoster::serialize(Serializer& ar)
                              ( iDefaultMovement == 1 ) ? FreeMovement::Horizontal :
                                                          FreeMovement::Vertical;
         }
-        
+
         ar & m_iFieldRowHeight
            & m_iColWidth
            & m_iHeadingRowHeight

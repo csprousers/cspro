@@ -4,7 +4,7 @@
 //
 #define IDR_MAINFRAME                   101
 #define IDR_VIEWTYPE                    102
-#define IDD_DATA_VIEWER_QUERY           103
+#define IDD_DATA_MANAGER_QUERY          103
 #define IDD_DLG_FIND                    104
 #define IDD_DLG_FONT_SIZE               105
 #define IDD_DLG_GOTO                    106
@@ -29,16 +29,16 @@
 #define IDC_CASE_SENSITIVE              1001
 #define IDC_FONT_SIZE                   1002
 #define IDC_GOTO_LINE_NUMBER            1003
-#define IDC_OPEN_IN_DATA_VIEWER_RADIOBUTTON 1004
+#define IDC_OPEN_IN_DATA_MANAGER_RADIOBUTTON 1004
 #define IDC_OPEN_IN_TEXT_VIEWER_RADIOBUTTON 1005
-#define IDC_REMEMBER_DATA_VIEWER_SETTING_CHECKBOX 1006
+#define IDC_REMEMBER_DATA_MANAGER_SETTING_CHECKBOX 1006
 #define IDC_SEARCH_TEXT                 1007
 #define IDC_SELECTION                   1008
 #define ID_CLOSE_WINDOW                 40001
 #define ID_EDIT_COPY_SS                 40002
 #define ID_EDIT_FIND_NEXT               40003
 #define ID_EDIT_FIND_PREV               40004
-#define ID_FILE_OPEN_IN_DATA_VIEWER     40005
+#define ID_FILE_OPEN_IN_DATA_MANAGER    40005
 #define ID_FONT_BIGGER                  40006
 #define ID_FONT_BIGGER2                 40007
 #define ID_FONT_SMALLER                 40008

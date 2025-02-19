@@ -8,20 +8,18 @@ DocumentVirtualFileMappingHandler::DocumentVirtualFileMappingHandler(const CDocu
         m_filePath(GetFilePathForDocument(m_document))
 {
     RegisterSpecialHandler(m_filePath, std::make_unique<CallbackVirtualFileMappingHandler>(
-        [this](void* response_object)
+        [this](VirtualFileMappingResponse& response)
         {
-            return this->ServeDocumentContent(response_object);
+            return this->ServeDocumentContent(response);
         }));
 }
 
 
-std::wstring DocumentVirtualFileMappingHandler::GetFilePathForDocument(const CDocument& document)
+std::string DocumentVirtualFileMappingHandler::GetFilePathForDocument(const CDocument& document)
 {
-    std::wstring file_path = CS2WS(document.GetPathName());
+    std::string file_path = TC::ToUtf8(document.GetPathName());
 
-    // if a filename does not exist, create a dummy filename
-    if( file_path.empty() )
-        return CS2WS(PortableFunctions::FileTempName(GetTempDirectory()));
-
-    return file_path;
+    // if a file path does not exist, create a dummy file path
+    return file_path.empty() ? PortableFunctions::FileTempPath(GetTempDirectory()) :
+                               file_path;
 }

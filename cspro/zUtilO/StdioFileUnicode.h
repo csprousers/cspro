@@ -31,12 +31,17 @@ public:
     static FILE* _tfopen(LPCTSTR lpszFileName,LPCTSTR lpszOpenFlags,Encoding forcedEncoding = Encoding::Invalid,Encoding * pReturnEncoding = NULL);
 
     static bool ReadTextFile(NullTerminatedString filename, CString& buffer);
-    static bool ConvertAnsiToUTF8(NullTerminatedString filename);
-    static bool ConvertUTF8ToAnsi(NullTerminatedString filename);
+    static bool ConvertAnsiToUTF8(const std::string& file_path);
+    static bool ConvertUTF8ToAnsi(const std::string& file_path);
 
     void WriteString(const TCHAR* text)
     {
         CStdioFile::WriteString(text);
+    }
+
+    void WriteString(const char* text)
+    {
+        WriteString(UTF8_TODO::GetWide(text));
     }
 
     void WriteString(const std::wstring& text)
@@ -44,27 +49,36 @@ public:
         CStdioFile::WriteString(text.c_str());
     }
 
-    void WriteLine(const TCHAR* text = nullptr)
+    void WriteString(const std::string& text)
     {
-        if( text != nullptr )
-            CStdioFile::WriteString(text);
-
-        CStdioFile::WriteString(_T("\n"));
+        WriteString(UTF8_TODO::GetWide(text));
     }
 
-    void WriteLine(const std::wstring& text)
+    void WriteString(const std::string_view& text_sv)
     {
-        WriteLine(text.c_str());
+        WriteString(UTF8_TODO::GetWide(text_sv));
     }
 
-    template<typename... Args>
-    void WriteFormattedString(const TCHAR* formatter, Args const&... args)
+    void WriteLine()
     {
-        CStdioFile::WriteString(FormatText(formatter, args...));
+        WriteString(_T("\n"));
     }
 
-    template<typename... Args>
-    void WriteFormattedLine(const TCHAR* formatter, Args const&... args)
+    template<typename T>
+    void WriteLine(T&& text)
+    {
+        WriteString(std::forward<T>(text));
+        WriteLine();
+    }
+
+    template<typename CharType, typename... Args>
+    void WriteFormattedString(const CharType* formatter, Args const&... args)
+    {
+        WriteString(FormatText(formatter, args...));
+    }
+
+    template<typename CharType, typename... Args>
+    void WriteFormattedLine(const CharType* formatter, Args const&... args)
     {
         WriteLine(FormatText(formatter, args...));
     }

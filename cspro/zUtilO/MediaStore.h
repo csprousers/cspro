@@ -16,15 +16,15 @@ namespace MediaStore
 
     namespace Text
     {
-        constexpr const TCHAR* Media = _T("Media");
+        constexpr const char* Media = "Media";
     }
 
-    CLASS_DECL_ZUTILO const std::vector<const TCHAR*>& GetMediaTypeStrings();
+    CLASS_DECL_ZUTILO const std::vector<const char*>& GetMediaTypeStrings();
 
-    // returns a non-null pointer to the media filenames
-    CLASS_DECL_ZUTILO std::shared_ptr<const std::vector<std::wstring>> GetMediaFilenames(MediaType media_type);
+    // returns the media file paths
+    CLASS_DECL_ZUTILO const std::vector<std::string>& GetMediaFilePaths(MediaType media_type);
 }
 
-CLASS_DECL_ZUTILO const TCHAR* ToString(MediaStore::MediaType media_type);
+CLASS_DECL_ZUTILO const char* ToString(MediaStore::MediaType media_type);
 
-template<> CLASS_DECL_ZUTILO std::optional<MediaStore::MediaType> FromString<MediaStore::MediaType>(wstring_view text);
+template<> CLASS_DECL_ZUTILO std::optional<MediaStore::MediaType> FromString<MediaStore::MediaType>(std::string_view text_sv);

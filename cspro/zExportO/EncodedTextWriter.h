@@ -1,22 +1,32 @@
 ﻿#pragma once
 
+#include <zToolsO/File.h>
 
-class EncodedTextWriter
+
+class EncodedTextWriter : private FileIO::TextFile
 {
 public:
-    EncodedTextWriter(DataRepositoryType type, const CaseAccess& case_access, const std::wstring& filename, const ConnectionString& connection_string);
-    ~EncodedTextWriter();
-
-    void WriteLine(wstring_view line_sv = wstring_view());
-
-    template<typename... Args>
-    void WriteFormattedLine(const TCHAR* formatter, Args const&... args)
+    EncodedTextWriter(const std::string& file_path, const ConnectionString& connection_string_with_properties)
     {
-        WriteLine(FormatText(formatter, args...));
+        // default to writing UTF-8 with a BOM so that other tools (like Excel) know that this is UTF-8,
+        // but this can be overridden based on properties from the connection string
+        SetTextEncoding(TextEncoding::Type::Utf8Bom);
+        SetProperties(connection_string_with_properties);
+
+        SetupEnvironmentToCreateFile(file_path);
+
+        OpenForTextWritingCreate(file_path);
     }
 
-private:
-    FILE* m_file;
-    bool m_ansi;
-    std::vector<char> m_outputBuffer;
+    template<typename... Args>
+    void WriteLine(Args const&... args)
+    {
+        TextFile::WriteLine(args...);
+    }
+
+    template<typename... Args>
+    void WriteFormattedLine(const char* const formatter, Args const&... args)
+    {
+        TextFile::WriteFormattedLine(formatter, args...);
+    }
 };

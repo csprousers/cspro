@@ -28,22 +28,22 @@ namespace EngineUI
     {
         enum class Action { TakePhoto, CaptureSignature };
         Action action;
-        std::optional<std::wstring> overlay_message;
-        std::wstring output_filename;
+        SharableString overlay_message; // nullable
+        std::string output_file_path;
     };
 
 
     struct ColorizeLogicNode
     {
-        const std::wstring& logic;
-        std::wstring html;
+        const std::string& logic;
+        std::string html;
     };
 
 
     struct CreateVirtualFileMappingAroundViewHtmlContentNode
     {
-        std::string html;
-        const std::wstring& local_file_server_root_directory;
+        SharableString html;
+        const std::string& local_file_server_root_directory;
         std::unique_ptr<VirtualFileMapping> virtual_file_mapping;
     };
 
@@ -59,9 +59,9 @@ namespace EngineUI
     struct ExecSystemAppNode
     {
         SystemApp& system_app;
-        std::wstring evaluated_call;
-        std::wstring package_name;
-        std::optional<std::wstring> activity_name;
+        SharableString package_name;
+        SharableString activity_name;
+        std::string evaluated_call;
         std::function<bool()> function_to_run_in_engine_thread;
     };
 

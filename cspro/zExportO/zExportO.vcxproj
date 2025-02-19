@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{e462afa3-0a1e-4309-a5fc-9987d5be07fa}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zExportO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -153,11 +149,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="CSProExportWriter.cpp" />
-    <ClCompile Include="EncodedTextWriter.cpp" />
+    <ClCompile Include="DelimitedTextExportWriter.cpp" />
     <ClCompile Include="ExcelExportWriter.cpp" />
     <ClCompile Include="ExportDefinitions.cpp" />
     <ClCompile Include="ExportWriterBase.cpp" />
-    <ClCompile Include="DelimitedTextExportWriter.cpp" />
     <ClCompile Include="ReadStatExportWriterBase.cpp" />
     <ClCompile Include="RExportWriter.cpp" />
     <ClCompile Include="SasExportWriter.cpp" />
@@ -178,8 +173,8 @@
     <ClInclude Include="ExportDefinitions.h" />
     <ClInclude Include="ExportMapping.h" />
     <ClInclude Include="ExportPropertiesValuesProcessor.h" />
-    <ClInclude Include="ExportWriterBase.h" />
     <ClInclude Include="ExportWriter.h" />
+    <ClInclude Include="ExportWriterBase.h" />
     <ClInclude Include="ReadStatExportWriterBase.h" />
     <ClInclude Include="RExportWriter.h" />
     <ClInclude Include="SasExportWriter.h" />

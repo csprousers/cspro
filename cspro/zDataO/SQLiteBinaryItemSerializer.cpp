@@ -1,155 +1,120 @@
 ﻿#include "stdafx.h"
 #include "SQLiteBinaryItemSerializer.h"
-#include "SQLiteBinaryDataReader.h"
+#include "SQLiteBinaryContentReader.h"
 #include "SQLiteErrorWithMessage.h"
-#include "SyncJsonBinaryDataReader.h"
-#include <zCaseO/BinaryCaseItem.h>
-#include <mutex>
+#include "SyncWithDataBinaryContentReader.h"
 
 
-SQLiteBinaryItemSerializer::SQLiteBinaryItemSerializer(sqlite3* database)
-    :   m_db(database),
-        m_get_binary_item_size_statement(nullptr),
-        m_get_binary_item_data_statement(nullptr),
-        m_insert_binary_item_statement(nullptr),
-        m_insert_case_binary_item_statement(nullptr),
-        m_get_binary_items_for_case(nullptr),
-        m_delete_binary_item_by_signature(nullptr)
+SQLiteBinaryItemSerializer::SQLiteBinaryItemSerializer(UniqueId repository_id, sqlite3* const db)
+    :   m_repositoryId(std::move(repository_id)),
+        m_db(db),
+        m_stmtGetContent(db, "SELECT `data` FROM `binary-data` WHERE `signature` = ?;"),
+        m_stmtGetContentSize(db, "SELECT length(`data`) FROM `binary-data` WHERE `signature` = ?;"),
+        m_stmtHasContentAssociatedWithCaseUuid(db, "SELECT 1 FROM `case-binary-data` WHERE `case-id` = ? LIMIT 1;"),
+        m_stmtHasContentAssociatedWithAnyCase(db, "SELECT 1 FROM `binary-data` WHERE `signature` = ? LIMIT 1;"),
+        m_stmtAssociateContentWithCase(db, "INSERT INTO `case-binary-data` ( `case-id`, `binary-data-signature` ) VALUES( ?, ? );"),
+        m_stmtInsertContent(db, "INSERT INTO `binary-data` ( `signature`, `data`, `last_modified_revision`) VALUES( ?, ?, ? )")
 {
+    ASSERT(m_db != nullptr);
 }
 
 
-SQLiteBinaryItemSerializer::~SQLiteBinaryItemSerializer()
+uint64_t SQLiteBinaryItemSerializer::GetContentSize(const std::string& signature)
 {
-    sqlite3_finalize(m_get_binary_item_size_statement);
-    sqlite3_finalize(m_get_binary_item_data_statement);
-    sqlite3_finalize(m_insert_binary_item_statement);
-    sqlite3_finalize(m_insert_case_binary_item_statement);
-    sqlite3_finalize(m_get_binary_items_for_case);
-    sqlite3_finalize(m_delete_binary_item_by_signature);
-}
+    const SQLiteResetOnDestruction rod(m_stmtGetContentSize);
+    m_stmtGetContentSize.Bind(1, signature);
 
-
-BinaryData SQLiteBinaryItemSerializer::GetBinaryItemData(const BinaryDataMetadata& binary_data_metadata) const
-{
-    static std::mutex binary_reader_mutex;
-    std::lock_guard<std::mutex> lock(binary_reader_mutex);
-
-    SQLiteStatement statement(m_db, m_get_binary_item_data_statement,
-        "SELECT data from `binary-data` WHERE signature=?");
-    statement.Bind(1, binary_data_metadata.GetBinaryDataKey());
-
-    if (statement.Step() != SQLITE_ROW) {
-        throw SQLiteErrorWithMessage(m_db, _T("The binary data could not be located in the CSPro DB file: "));
-    }
-
-    return BinaryData(statement.GetColumn<std::vector<std::byte>>(0), binary_data_metadata);
-}
-
-
-uint64_t SQLiteBinaryItemSerializer::GetBinaryItemSize(const BinaryDataMetadata& binary_data_metadata) const
-{
-    SQLiteStatement statement(m_db, m_get_binary_item_size_statement,
-        "SELECT length(data) FROM `binary-data` WHERE signature=?");
-    statement.Bind(1, binary_data_metadata.GetBinaryDataKey());
-
-    if (statement.Step()!= SQLITE_ROW) {
+    if( m_stmtGetContentSize.Step() != SQLITE_ROW )
         throw SQLiteErrorWithMessage(m_db);
-    }
 
-    return statement.GetColumn<int64_t>(0);
+    return m_stmtGetContentSize.GetColumn<uint64_t>(0);
 }
 
 
-std::wstring SQLiteBinaryItemSerializer::SetBinaryItem(int64_t revision, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
+std::vector<std::byte> SQLiteBinaryItemSerializer::GetContent(const std::string& signature)
 {
-    const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+    std::lock_guard<std::mutex> lock(m_binaryReaderMutex);
 
-    // if the item is not defined, return a blank string
-    if( !binary_data_accessor.IsDefined() )
-        return std::wstring();
+    const SQLiteResetOnDestruction rod(m_stmtGetContent);
+    m_stmtGetContent.Bind(1, signature);
 
-    const BinaryDataReader* binary_data_reader = binary_data_accessor.GetBinaryDataReader();
-    const SQLiteBinaryDataReader* sqlite_binary_data_reader = dynamic_cast<const SQLiteBinaryDataReader*>(binary_data_reader);
+    if( m_stmtGetContent.Step() != SQLITE_ROW )
+        throw SQLiteErrorWithMessage(m_db, "The binary data could not be located in the CSPro DB file: ");
 
-    // if the data came from this repository and wasn't changed, we don't need to write it out again and can directly return the signature
-    if( sqlite_binary_data_reader != nullptr && sqlite_binary_data_reader->IsUpToDate(this) )
-        return sqlite_binary_data_reader->GetMetadata().GetBinaryDataKey();
-
-    const SyncJsonBinaryDataReader* sync_json_binary_data_reader = ( sqlite_binary_data_reader == nullptr ) ? dynamic_cast<const SyncJsonBinaryDataReader*>(binary_data_reader) :
-                                                                                                              nullptr;
-
-    std::optional<std::wstring> signature;
-    bool binary_data_already_written = false;
-
-    // if this is coming from a sync, the signature has already been calculated
-    if( sync_json_binary_data_reader != nullptr )
-    {
-        signature = sync_json_binary_data_reader->GetMetadata().GetBinaryDataKey();
-        ASSERT(!signature->empty());
-
-        binary_data_already_written = !sync_json_binary_data_reader->HasSyncedContent();
-    }
-
-    try
-    {
-        return InsertBinaryItem(CS2WS(index.GetCase().GetUuid()), revision, binary_data_accessor, std::move(signature), binary_data_already_written);
-    }
-    catch(...) { ASSERT(false); }
-
-    return std::wstring();
+    return m_stmtGetContent.GetColumn<std::vector<std::byte>>(0);
 }
 
 
-std::wstring SQLiteBinaryItemSerializer::InsertBinaryItem(const std::wstring& case_id, int64_t revision, const BinaryDataAccessor& binary_data_accessor,
-                                                          std::optional<std::wstring> signature, bool binary_data_already_written)
+std::string SQLiteBinaryItemSerializer::InsertContent(const BinaryDataAccessor& binary_data_accessor, const std::string& case_uuid, const int64_t revision)
 {
-    ASSERT(!binary_data_already_written || signature.has_value());
+    ASSERT(binary_data_accessor.IsDefined());
 
-    // we only need to get the data if we need to calculate the signature, or if the binary data must be written
-    if( !signature.has_value() || !binary_data_already_written )
+    const std::string& signature = binary_data_accessor.GetSignature();
+    ASSERT(BinaryDataAccessor::IsValidSignature(signature));
+
+    // we only want to add the content when necessary, as it may be an expensive operation to retrieve
+    auto bind_and_execute_scalar_query = [&](SQLiteStatement& stmt, const std::string& bind_value)
     {
-        const std::vector<std::byte>& content = binary_data_accessor.GetBinaryData().GetContent();
+        const SQLiteResetOnDestruction rod(stmt);
+        stmt.Bind(1, bind_value);
 
-        if( !signature.has_value() )
-            signature = PortableFunctions::BinaryMd5(content);
-
-        // if the binary data has not been written, insert the the data into the binary-data table
-        if( !binary_data_already_written )
+        switch( stmt.Step() )
         {
-            SQLiteStatement content_stmt(m_db, m_insert_binary_item_statement,
-                "INSERT OR IGNORE INTO `binary-data`(`signature`,data,last_modified_revision) VALUES(?,?,?)");
-            content_stmt.Bind(1, *signature)
-                        .Bind(2, content)
-                        .Bind(3, revision);
-
-            if( content_stmt.Step() != SQLITE_DONE )
-                throw SQLiteErrorWithMessage(m_db);
+            case SQLITE_DONE: return false;
+            case SQLITE_ROW:  return true;
+            default:          throw SQLiteErrorWithMessage(m_db);
         }
+    };
+
+    // if the content already exists and is already associated with this case, there is nothing to do
+    if( bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithCaseUuid, case_uuid) )
+        return signature;
+
+    // if the content is not associated with any case, add it
+    if( !bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, signature) )
+    {
+        GetContentAndInsert(binary_data_accessor, signature, revision);
+        ASSERT81(bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, signature));
     }
 
-    ASSERT(!signature->empty());
+    // associate this content with this case
+    const SQLiteResetOnDestruction rod(m_stmtAssociateContentWithCase);
+    m_stmtAssociateContentWithCase.Bind(1, case_uuid)
+                                  .Bind(2, signature);
 
-    // associate the signature with the case
-    SQLiteStatement signature_stmt(m_db, m_insert_case_binary_item_statement,
-        "INSERT OR IGNORE INTO `case-binary-data`(`case-id`,`binary-data-signature`) VALUES(?,?)");
-    signature_stmt.Bind(1, case_id)
-                  .Bind(2, *signature);
-
-    if( signature_stmt.Step() != SQLITE_DONE )
+    if( m_stmtAssociateContentWithCase.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
 
-    return *signature;
+    return signature;
 }
 
 
-void SQLiteBinaryItemSerializer::DeleteBinaryItem(const std::wstring& signature)
+void SQLiteBinaryItemSerializer::GetContentAndInsert(const BinaryDataAccessor& binary_data_accessor, const std::string& signature, const int64_t revision)
 {
-    SQLiteStatement statement(m_db, m_delete_binary_item_by_signature,
-        "DELETE FROM `binary-data` WHERE signature=?");
-    statement.Bind(1, signature.c_str());
+    ASSERT(binary_data_accessor.IsDefined());
 
-    if (statement.Step() != SQLITE_DONE) {
+    // checks on data that comes from a variety of binary data readers
+#ifdef _DEBUG
+    // content served using SQLiteBinaryContentReader should already be in the database and
+    // we would never get to this method unless it came from a different .csdb file
+    const SQLiteBinaryContentReader* const sqlite_binary_content_reader = dynamic_cast<const SQLiteBinaryContentReader*>(binary_data_accessor.GetBinaryContentReader());
+    ASSERT(sqlite_binary_content_reader == nullptr || sqlite_binary_content_reader->GetUniqueId() != &m_repositoryId);
+
+    // content served using SyncWithDataBinaryContentReader could have come in a previous chunk, but that
+    // chunk should already have been added to the database, so only readers with data should be used here
+    const SyncWithDataBinaryContentReader* const sync_with_data_binary_content_reader = dynamic_cast<const SyncWithDataBinaryContentReader*>(binary_data_accessor.GetBinaryContentReader());
+    ASSERT(sync_with_data_binary_content_reader == nullptr || sync_with_data_binary_content_reader->ContentReceivedDuringSync());
+#endif
+
+    // insert the new binary content
+    const std::vector<std::byte>& content = binary_data_accessor.GetBinaryData().GetContent();
+    ASSERT(binary_data_accessor.IsDefinedAndContentLoaded() && signature == PortableFunctions::BinaryMd5(content));
+
+    const SQLiteResetOnDestruction rod(m_stmtInsertContent);
+    m_stmtInsertContent.Bind(1, signature)
+                       .Bind(2, content)
+                       .Bind(3, revision);
+
+    if( m_stmtInsertContent.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
-    }
 }

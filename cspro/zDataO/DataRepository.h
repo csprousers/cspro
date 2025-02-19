@@ -3,12 +3,14 @@
 #include <zDataO/zDataO.h>
 #include <zDataO/DataRepositoryDefines.h>
 #include <zDataO/DataRepositoryException.h>
+#include <zToolsO/UniqueId.h>
 #include <zUtilO/ConnectionString.h>
 #include <zCaseO/CaseAccess.h>
 #include <zCaseO/CaseKey.h>
 
 class CaseIterator;
 class CaseSummary;
+class DataRepositoryUniqueCaseIdentifer;
 class ISyncableDataRepository;
 class WriteCaseParameter;
 
@@ -23,192 +25,151 @@ protected:
     virtual void Open(DataRepositoryOpenFlag open_flag) = 0;
 
 public:
-    virtual ~DataRepository();
+    virtual ~DataRepository() { }
 
-    /// <summary>
-    /// Create a new repository based on the type that comes from a connection string.
-    /// </summary>
+    // Creates a new repository based on the type that comes from a connection string.
     static std::unique_ptr<DataRepository> Create(std::shared_ptr<const CaseAccess> case_access,
                                                   const ConnectionString& connection_string,
                                                   DataRepositoryAccess access_type);
 
-    /// <summary>
-    /// Create and open a new repository based on the type that comes from a connection string .
-    /// </summary>
+    // Creates and opens a new repository based on the type that comes from a connection string.
     static std::unique_ptr<DataRepository> CreateAndOpen(std::shared_ptr<const CaseAccess> case_access,
                                                          const ConnectionString& connection_string,
                                                          DataRepositoryAccess access_type, DataRepositoryOpenFlag open_flag);
 
-    /// <summary>
-    /// Returns the repository type.
-    /// </summary>
+    // Returns a unique ID that identifies this instance of a data repository object.
+    const UniqueId& GetRepositoryId() { return m_repositoryId; }
+
+    // Returns the repository type.
     DataRepositoryType GetRepositoryType() const { return m_type; }
 
-    /// <summary>
-    /// Returns the current connection string.
-    /// </summary>
+    // Returns the repository access.
+    DataRepositoryAccess GetRepositoryAccess() const { return m_accessType; }
+
+    // Returns the current connection string.
     const ConnectionString& GetConnectionString() const { return m_connectionString; }
 
-    /// <summary>
-    /// Returns the case access associated with repository.
-    /// </summary>
-    const CaseAccess* GetCaseAccess() const                       { return m_caseAccess.get(); }
+    // Returns the case access associated with repository.
+    const CaseAccess& GetCaseAccess() const                       { return *m_caseAccess; }
     std::shared_ptr<const CaseAccess> GetSharedCaseAccess() const { return m_caseAccess; }
 
-    /// <summary>
-    /// Returns the real underlying repository, not a wrapper repository like ParadataWrapperRepository.
-    /// </summary>
-    virtual const DataRepository& GetRealRepository() const { return *this; }
-    virtual DataRepository& GetRealRepository()             { return *this; }
+    // Returns the real underlying repository, not a wrapper repository like ParadataWrapperRepository.
+    virtual DataRepository& GetRealRepository() { return *this; }
 
-    /// <summary>
-    /// Returns the repository, or nullptr if the repository does not support data synchronization.
-    /// </summary>
-    virtual const ISyncableDataRepository* GetSyncableDataRepository() const { return nullptr; }
-    virtual ISyncableDataRepository* GetSyncableDataRepository()             { return nullptr; }
+    // Returns the repository, or null if the repository does not support data synchronization.
+    virtual ISyncableDataRepository* GetSyncableDataRepository() { return nullptr; }
 
-    /// <summary>
-    /// Opens the source using the access parameters previously specified when creating the repository. If
-    /// open_flag is CreateNew, any existing cases will be removed from the repository.
-    /// </summary>
+    // Opens the source using the access parameters previously specified when creating the repository.
+    // If open_flag is CreateNew, any existing cases will be removed from the repository.
     void Open(const ConnectionString& connection_string, DataRepositoryOpenFlag open_flag);
 
-    /// <summary>
-    /// Returns a name that combines the repository type as well as information about the source. This
-    /// name can be used when printing out information about the repository in listing files.
-    /// </summary>
-    CString GetName(DataRepositoryNameType name_type) const;
+    // Returns a name that combines the repository type as well as information about the source.
+    // This name can be used when printing out information about the repository in listing files.
+    std::string GetName(DataRepositoryNameType name_type) const;
 
-public:
-    /// <summary>
-    /// Modifies the case access used by the repository. The dictionary will never change
-    /// for the repository but the other access parameters may.
-    /// </summary>
+    // Modifies the case access used by the repository. The dictionary will never change
+    // for the repository but the other access parameters may.
     virtual void ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_access) = 0;
 
-    /// <summary>
-    /// Closes the repository. The repository will not be opened again after a Close and the only expected
-    /// behavior is that the destructor will be executed.
-    /// </summary>
+    // Toggles the access from DataRepositoryAccess::ReadOnly to DataRepositoryAccess::ReadWrite,
+    // or vice versa, after a repository has been opened in one of those modes. The case access is
+    // left unchanged. If the mode cannot be toggled, an exception is thrown and the only expected
+    // behavior is that Close and the destructor will be executed, so the repository can be left in
+    // a bad state.
+    virtual void ToggleReadWriteMode() = 0;
+
+    // Closes the repository. The repository will not be opened again after a Close and
+    // the only expected behavior is that the destructor will be executed.
     virtual void Close() = 0;
 
-    /// <summary>
-    /// Delete the repository. If the repository is disk-based, it will be removed from the disk.
-    /// </summary>
+    // Deletes the repository. If the repository is disk-based, it will be removed from the disk.
     virtual void DeleteRepository() = 0;
 
-    /// <summary>
-    /// Returns whether or not a case with the given key exists in the repository.
-    /// </summary>
-    virtual bool ContainsCase(const CString& key) const = 0;
+    // Returns whether or not a non-deleted case with the given key exists in the repository.
+    virtual bool ContainsCase(const std::string& key) = 0;
 
-    /// <summary>
-    /// Searches for a case using one of three (generally unique) identifiers and then populates the
-    /// other identifiers. If the key is not empty, it is used in the search; otherwise, if the UUID is not empty,
-    /// it is used in the search; if both string values are empty, then the position in the repository is used.
-    /// When searching using the key, deleted cases will not be processed, but the other search types will look at
-    /// deleted cases. If the case does not exist, DataRepositoryException::CaseNotFound will be thrown.
-    /// </summary>
-    virtual void PopulateCaseIdentifiers(CString& key, CString& uuid, double& position_in_repository) const = 0;
+    // Searches for a case using one of three (generally unique) identifiers and then populates the
+    // other identifiers. If the key is not empty, it is used in the search; otherwise, if the UUID is not empty,
+    // it is used in the search; if both string values are empty, then the position in the repository is used.
+    // When searching using the key, deleted cases will not be processed, but the other search types will look at
+    // deleted cases. If the case does not exist, DataRepositoryException::CaseNotFound will be thrown.
+    virtual void PopulateCaseIdentifiers(std::string& key, std::string& uuid, double& position_in_repository) = 0;
 
-    /// <summary>
-    /// Searches for a case key using the search rules. If no key is found, std::nullopt is returned.
-    /// </summary>
+    // Returns an identifier that uniquely identifies a case in instances when the repository changes positions.
+    virtual DataRepositoryUniqueCaseIdentifer GetUniqueCaseIdentifer(const CaseKey& case_key) = 0;
+
+    // Searches for a case key using the search rules. If no key is found, std::nullopt is returned.
     virtual std::optional<CaseKey> FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
-                                               const CaseIteratorParameters* start_parameters = nullptr) const = 0;
+                                               const CaseIteratorParameters* start_parameters = nullptr) = 0;
 
-    std::optional<CaseKey> FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
-                                       const CaseIteratorParameters& start_parameters) const
-    {
-        return FindCaseKey(iteration_method, iteration_order, &start_parameters);
-    }
+    // Reads the non-deleted case with the given key. If no case with the given key is in the repository,
+    // DataRepositoryException::CaseNotFound will be thrown.
+    virtual void ReadCase(Case& data_case, const std::string& key) = 0;
 
-    /// <summary>
-    /// Reads the non-deleted case with the given key. If no case with the given key is in the repository,
-    /// DataRepositoryException::CaseNotFound will be thrown.
-    /// </summary>
-    virtual void ReadCase(Case& data_case, const CString& key) = 0;
-
-    /// <summary>
-    /// Reads the case at the given position in the repository. The position is a number returned by
-    /// Case::GetPositionInRepository. If no case at the given position is in the repository,
-    /// DataRepositoryException::CaseNotFound will be thrown.
-    /// </summary>
+    // Reads the case at the given position in the repository. The position is a number returned by
+    // Case::GetPositionInRepository. If no case at the given position is in the repository,
+    // DataRepositoryException::CaseNotFound will be thrown.
     virtual void ReadCase(Case& data_case, double position_in_repository) = 0;
 
-    /// <summary>
-    /// Writes the case using rules based on the access parameters previously specified when creating
-    /// the repository.
-    /// </summary>
+    // Reads the case at the given UUID. If no case with the given UUID is in the repository,
+    // DataRepositoryException::CaseNotFound will be thrown.
+    // The default implementation uses PopulateCaseIdentifiers to determine the position and then calls the position-based ReadCase.
+    virtual void ReadCaseByUuid(Case& data_case, const std::string& uuid);
+
+    // Writes the case using rules based on the access parameters previously specified when creating
+    // the repository.
     virtual void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) = 0;
 
-    /// <summary>
-    /// Modifies the case's deleted status. If the case does not exist,
-    /// DataRepositoryException::CaseNotFound will be thrown.
-    /// </summary>
+    // Modifies the case's deleted status. If the case does not exist,
+    // DataRepositoryException::CaseNotFound will be thrown.
     virtual void DeleteCase(double position_in_repository, bool deleted = true) = 0;
 
-    /// <summary>
-    /// Deletes the case. If the case does not exist,
-    /// DataRepositoryException::CaseNotFound will be thrown.
-    /// </summary>
-    virtual void DeleteCase(const CString& key);
+    // Deletes the case. If the case does not exist,
+    // DataRepositoryException::CaseNotFound will be thrown.
+    // The default implementation uses PopulateCaseIdentifiers to determine the position and then calls the position-based DeleteCase.
+    virtual void DeleteCase(const std::string& key);
 
-    /// <summary>
-    /// Returns the number of non-deleted cases in the repository.
-    /// </summary>
-    virtual size_t GetNumberCases() const = 0;
+    // Returns the number of non-deleted cases in the repository.
+    virtual size_t GetNumberCases() = 0;
 
-    /// <summary>
-    /// Gets the number of cases matching the specified parameters.
-    /// </summary>
-    virtual size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) const = 0;
+    // Gets the number of cases matching the specified parameters.
+    virtual size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) = 0;
 
-    /// <summary>
-    /// Returns an iterator that can be used to process all of the cases in the repository matching the
-    /// specified parameters. The iteration is optimized for the specified iteration content, but can
-    /// be used to read any of the applicable objects.
-    /// </summary>
+    // Returns an iterator that can be used to process all of the cases in the repository matching the
+    // specified parameters. The iteration is optimized for the specified iteration content, but can
+    // be used to read any of the applicable objects.
     virtual std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                         std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order, 
+                                                         std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
                                                          const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) = 0;
 
-    /// <summary>
-    /// Returns an iterator that can be used to process all of the cases in the repository.
-    /// </summary>
+    // Returns an iterator that can be used to process all of the cases in the repository.
     std::unique_ptr<CaseIterator> CreateCaseIterator(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order);
 
-    /// <summary>
-    /// Returns an iterator that can be used to process all of the case keys in the repository.
-    /// </summary>
+    // Returns an iterator that can be used to process all of the case keys in the repository.
     std::unique_ptr<CaseIterator> CreateCaseKeyIterator(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order);
 
-    /// <summary>
-    /// Starts a transaction in the repository. A transaction does not need to be started to modify
-    /// the repository, but wrapping writes or deletes in a transaction may speed any such modifications.
-    /// </summary>
+    // Starts a transaction in the repository. A transaction does not need to be started to modify
+    // the repository, but wrapping writes or deletes in a transaction may speed any such modifications.
     virtual void StartTransaction() { }
 
-    /// <summary>
-    /// Ends a transaction in the repository.
-    /// </summary>
+    // Ends a transaction in the repository.
     virtual void EndTransaction() { }
 
 
 protected:
-    DataRepositoryType m_type;
-    std::shared_ptr<const CaseAccess> m_caseAccess;
+    UniqueId m_repositoryId;
+    const DataRepositoryType m_type;
+    std::shared_ptr<const CaseAccess> m_caseAccess; // non-null
     DataRepositoryAccess m_accessType;
     ConnectionString m_connectionString;
 
 
+    // --------------------------------------------------------------------------
     // CR_TODO remove all below...
+    // --------------------------------------------------------------------------
 public:
-    void ReadCasetainer(Case* pCasetainer, CString key);
-    void ReadCasetainer(Case& casetainer, CString key) { ReadCasetainer(&casetainer, key); }
-
-    void ReadCasetainer(Case* pCasetainer, double position_in_repository);
-    void ReadCasetainer(Case& casetainer, double position_in_repository) { ReadCasetainer(&casetainer, position_in_repository); }
-
-    void WriteCasetainer(Case* pCasetainer, WriteCaseParameter* write_case_parameter = nullptr);
+    void ReadCasetainer(Case& casetainer, const std::string& key);
+    void ReadCasetainer(Case& casetainer, double position_in_repository);
+    void WriteCasetainer(Case& casetainer, WriteCaseParameter* write_case_parameter = nullptr);
+    static bool NextCasetainer(CaseIterator& case_iterator, Case& data_case);
 };

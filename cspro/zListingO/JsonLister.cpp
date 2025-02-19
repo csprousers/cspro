@@ -4,24 +4,24 @@
 #include <zCaseO/CaseItemJsonWriter.h>
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // serialization routines
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 struct SerializableTimestamp { double timestamp; };
 struct SerializableDuration  { double duration;  }; // duration in seconds
 
 
 CREATE_ENUM_JSON_SERIALIZER(MessageType,
-    { MessageType::Abort,   _T("abort") },
-    { MessageType::Error,   _T("error") },
-    { MessageType::Warning, _T("warning") },
-    { MessageType::User,    _T("user") })
+    { MessageType::Abort,   "abort" },
+    { MessageType::Error,   "error" },
+    { MessageType::Warning, "warning" },
+    { MessageType::User,    "user" })
 
 CREATE_ENUM_JSON_SERIALIZER(MessageSummary::Type,
-    { MessageSummary::Type::System,         _T("system") },
-    { MessageSummary::Type::UserNumbered,   _T("user") },
-    { MessageSummary::Type::UserUnnumbered, _T("user") })
+    { MessageSummary::Type::System,         "system" },
+    { MessageSummary::Type::UserNumbered,   "user" },
+    { MessageSummary::Type::UserUnnumbered, "user" })
 
 
 template<>
@@ -29,19 +29,18 @@ struct JsonSerializer<SerializableTimestamp>
 {
     static void WriteJson(JsonWriter& json_writer, const SerializableTimestamp& serializable_timestamp)
     {
-        time_t tm = static_cast<time_t>(serializable_timestamp.timestamp);
-        int year, month, day, hour, minute, second;
-        TmToReadableTime(localtime(&tm), &year, &month, &day, &hour, &minute, &second);
+        const int64_t time = static_cast<int64_t>(serializable_timestamp.timestamp);
+        const DateTime::Components date_time_components = DateTime::TimeToComponents(time, true);
 
         json_writer.BeginObject()
-                   .WriteDate(JK::date, tm)
+                   .WriteDate(JK::date, time)
                    .Write(JK::timestamp, serializable_timestamp.timestamp)
-                   .Write(JK::year, year)
-                   .Write(JK::month, month)
-                   .Write(JK::day, day)
-                   .Write(JK::hour, hour)
-                   .Write(JK::minute, minute)
-                   .Write(JK::second, second)
+                   .Write(JK::year, date_time_components.year)
+                   .Write(JK::month, date_time_components.month)
+                   .Write(JK::day, date_time_components.day)
+                   .Write(JK::hour, date_time_components.hour)
+                   .Write(JK::minute, date_time_components.minute)
+                   .Write(JK::second, date_time_components.second)
                    .EndObject();
     }
 };
@@ -73,24 +72,22 @@ struct JsonSerializer<Listing::HeaderAttribute>
         json_writer.BeginObject();
 
         // descriptions
-        json_writer.Write(JK::description, header_attribute.description);
-
-        if( header_attribute.secondary_description.has_value() )
-            json_writer.Write(JK::subdescription, *header_attribute.secondary_description);
+        json_writer.Write(JK::description, header_attribute.description)
+                   .WriteIfHasValue(JK::subdescription, header_attribute.secondary_description);
 
         // value
         json_writer.Key(JK::value);
 
-        if( std::holds_alternative<std::wstring>(header_attribute.value) )
+        if( std::holds_alternative<std::string>(header_attribute.value) )
         {
-            if( PortableFunctions::FileExists(std::get<std::wstring>(header_attribute.value)) )
+            if( PortableFunctions::FileExists(std::get<std::string>(header_attribute.value)) )
             {
-                json_writer.WritePath(std::get<std::wstring>(header_attribute.value));
+                json_writer.WritePath(std::get<std::string>(header_attribute.value));
             }
 
             else
             {
-                json_writer.Write(std::get<std::wstring>(header_attribute.value));
+                json_writer.Write(std::get<std::string>(header_attribute.value));
             }
         }
 
@@ -104,7 +101,7 @@ struct JsonSerializer<Listing::HeaderAttribute>
         {
             json_writer.BeginObject(JK::dictionary)
                        .Write(JK::name, header_attribute.dictionary->GetName())
-                       .WritePath(JK::path, CS2WS(header_attribute.dictionary->GetFullFileName()))
+                       .WritePath(JK::path, header_attribute.dictionary->GetFilePath())
                        .EndObject();
         }
 
@@ -138,13 +135,13 @@ struct JsonSerializer<MessageSummary>
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // JsonLister
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
-Listing::JsonLister::JsonLister(std::shared_ptr<ProcessSummary> process_summary, const std::wstring& filename, std::shared_ptr<const CaseAccess> case_access)
+Listing::JsonLister::JsonLister(std::shared_ptr<ProcessSummary> process_summary, const std::string& file_path, std::shared_ptr<const CaseAccess> case_access)
     :   Lister(std::move(process_summary)),
-        m_jsonWriter(Json::CreateFileWriter(filename)),
+        m_jsonWriter(Json::CreateFileWriter(UTF8_TODO::GetWide(file_path))),
         m_mustEndListingArray(false),
         m_mustEndMessageSummariesArray(false),
         m_caseAccess(std::move(case_access)),
@@ -182,9 +179,9 @@ void Listing::JsonLister::WriteMessages(const Messages& messages)
 
         for( const auto& [case_item, value] : m_keyValues )
         {
-            m_jsonWriter->Key(case_item->GetDictionaryItem().GetName());
+            m_jsonWriter->Key(case_item->GetDictItem().GetName());
 
-            if( case_item->IsTypeNumeric() )
+            if( IsNumeric(case_item->GetDataType()) )
             {
                 ASSERT(std::holds_alternative<double>(value));
                 CaseItemJsonWriter::WriteCaseItemCode(*m_jsonWriter, assert_cast<const NumericCaseItem&>(*case_item), std::get<double>(value));
@@ -192,8 +189,8 @@ void Listing::JsonLister::WriteMessages(const Messages& messages)
 
             else
             {
-                ASSERT(std::holds_alternative<std::wstring>(value));
-                CaseItemJsonWriter::WriteCaseItemCode(*m_jsonWriter, assert_cast<const StringCaseItem&>(*case_item), std::get<std::wstring>(value));
+                ASSERT(std::holds_alternative<SharableString>(value));
+                CaseItemJsonWriter::WriteCaseItemCode(*m_jsonWriter, assert_cast<const StringCaseItem&>(*case_item), *std::get<SharableString>(value));
             }
         }
 
@@ -235,9 +232,9 @@ void Listing::JsonLister::WriteFrequencies()
     {
         for( const std::string& json_frequency_text : m_jsonFrequencyTexts )
         {
-            const auto frequencies_array_node = Json::Parse(json_frequency_text);
+            const JsonNode frequencies_array_node = Json::Parse(json_frequency_text);
 
-            for( const auto& json_node : frequencies_array_node.GetArray() )
+            for( const JsonNode& json_node : frequencies_array_node.GetArray() )
                 m_jsonWriter->Write(json_node);
         }
     }
@@ -253,23 +250,23 @@ void Listing::JsonLister::WriteFrequencies()
 }
 
 
-void Listing::JsonLister::ProcessCaseSource(const Case* data_case)
+void Listing::JsonLister::ProcessCaseSource(const Case* const data_case)
 {
-    // look at the 20220810 note in Exopfile.cpp to see that this can be done in the 
+    // look at the 20220810 note in Exopfile.cpp to see that this can be done in the
     // constructor if the lister is created after the CaseAccess object is initialized
     if( m_idCaseItems.empty() && data_case != nullptr && m_caseAccess != nullptr )
     {
         ASSERT(m_caseAccess->IsInitialized());
 
         // get the case items for the key
-        const auto& case_levels = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
-        m_idCaseItems = case_levels.front()->GetIdCaseRecordMetadata()->GetCaseItems();
+        const std::vector<CaseLevelMetadata>& case_levels = m_caseAccess->GetCaseMetadata().GetCaseLevelsMetadata();
+        m_idCaseItems = case_levels.front().GetIdCaseRecordMetadata().GetCaseItems();
 
         // get the level names
-        m_levelNames = std::make_unique<std::vector<std::wstring>>();
+        m_levelNames = std::make_unique<std::vector<std::string>>();
 
-        for( const CaseLevelMetadata* case_level_metadata : case_levels )
-            m_levelNames->emplace_back(case_level_metadata->GetDictLevel().GetName());
+        for( const CaseLevelMetadata& case_level_metadata : case_levels )
+            m_levelNames->emplace_back(case_level_metadata.GetDictLevel().GetName());
     }
 
     if( m_idCaseItems.empty() )
@@ -280,24 +277,24 @@ void Listing::JsonLister::ProcessCaseSource(const Case* data_case)
     if( data_case == nullptr )
         return;
 
-    CaseItemIndex index = data_case->GetRootCaseLevel().GetIdCaseRecord().GetCaseItemIndex();
+    const CaseItemIndex index = data_case->GetRootCaseLevel().GetIdCaseRecord().GetCaseItemIndex();
 
-    for( const CaseItem* case_item : m_idCaseItems )
+    for( const CaseItem* const case_item : m_idCaseItems )
     {
-        ASSERT(case_item->IsTypeFixed());
+        ASSERT(case_item->IsFixedWidth());
 
         if( case_item->IsBlank(index) )
             continue;
 
-        if( case_item->IsTypeNumeric() )
+        if( IsNumeric(case_item->GetDataType()) )
         {
             m_keyValues.emplace_back(case_item, assert_cast<const NumericCaseItem&>(*case_item).GetValueForOutput(index));
         }
 
         else
         {
-            ASSERT(case_item->IsTypeString());
-            m_keyValues.emplace_back(case_item, CS2WS(assert_cast<const StringCaseItem&>(*case_item).GetValue(index)));
+            ASSERT(IsString(case_item->GetDataType()));
+            m_keyValues.emplace_back(case_item, assert_cast<const StringCaseItem&>(*case_item).GetSharableString(index));
         }
     }
 }
@@ -311,7 +308,7 @@ void Listing::JsonLister::EndListingArrayAndStartSummaryObjectIfNecessary()
         if( !m_jsonFrequencyTexts.empty() )
         {
             m_jsonWriter->BeginObject()
-                         .Write(JK::source, _T(""));
+                         .Write(JK::source, "");
 
             WriteFrequencies();
 
@@ -359,9 +356,9 @@ void Listing::JsonLister::WriteFooter()
 
     // write the start/end times and duration
     {
-        SerializableTimestamp start_timestamp { m_startTimestamp };
-        SerializableTimestamp end_timestamp { GetTimestamp() };
-        SerializableDuration duration { end_timestamp.timestamp - start_timestamp.timestamp };
+        const SerializableTimestamp start_timestamp { m_startTimestamp };
+        const SerializableTimestamp end_timestamp { GetTimestamp() };
+        const SerializableDuration duration { end_timestamp.timestamp - start_timestamp.timestamp };
 
         m_jsonWriter->BeginObject(JK::runtime)
                      .Write(JK::start, start_timestamp)

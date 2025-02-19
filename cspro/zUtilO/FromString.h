@@ -2,4 +2,4 @@
 
 
 template<typename T>
-std::optional<T> FromString(wstring_view text);
+std::optional<T> FromString(std::string_view text_sv);

@@ -17,13 +17,13 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    const std::wstring DefaultBackgroundColor = PortableColor::FromRGB(0xFE, 0xFD, 0xE2).ToString(); // yellow
+    std::string DefaultBackgroundColor() { return PortableColor::FromRGB(0xFE, 0xFD, 0xE2).ToString(); } // yellow
 }
 
 
 QSFView::QSFView()
     :   CFormView(IDD_QSFVIEW),
-        m_backgroundColor(DefaultBackgroundColor)
+        m_backgroundColor(DefaultBackgroundColor())
 {
     m_htmlViewCtrl.SetContextMenuEnabled(false);
     m_htmlViewCtrl.SetOpenNonLocalhostLinksInBrowser(true);
@@ -37,9 +37,6 @@ QSFView::QSFView()
         return true;
 #endif
     });
-
-    // set up the Action Invoker
-    SetUpActionInvoker();
 }
 
 
@@ -75,12 +72,19 @@ void QSFView::OnDestroy()
 }
 
 
-void QSFView::SetupFileServer(const CString& application_filename)
+void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 {
-    m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
+    if( m_fileServer == nullptr )
+    {
+        // set up the Action Invoker
+        SetUpActionInvoker();
+
+        // set up the file server
+        m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
+    }
 
     m_questionTextVirtualFileMapping = std::make_unique<VirtualFileMapping>(
-        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(application_filename),
+        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(application_file_path),
         [&]()
         {
             std::lock_guard<std::mutex> lock(m_htmlMutex);
@@ -91,16 +95,16 @@ void QSFView::SetupFileServer(const CString& application_filename)
 }
 
 
-void QSFView::SetText(const CString& text, std::optional<PortableColor> background_color/* = std::nullopt*/)
+void QSFView::SetText(std::string text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
 {
     m_backgroundColor = background_color.has_value() ? background_color->ToStringRGB() :
-                                                       DefaultBackgroundColor;
-    m_questionText = text;
+                                                       DefaultBackgroundColor();
+    m_questionText = std::move(text);
     UpdateHtml();
 }
 
 
-void QSFView::SetStyleCss(std::wstring css)
+void QSFView::SetStyleCss(std::string css)
 {
     m_stylesheet = std::move(css);
     UpdateHtml();
@@ -109,34 +113,34 @@ void QSFView::SetStyleCss(std::wstring css)
 
 void QSFView::UpdateHtml()
 {
-    constexpr wstring_view Part1 =
-        _T("<!DOCTYPE html>\n")
-        _T("<html>\n")
-        _T("<head>\n")
-        _T("<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n")
-        _T("<title>CSPro</title>")
-        _T("<style>body{background-color: #EFEFEF;} table{width: 100%;border-collapse: collapse;} td, th{border: 1px solid #ececec;padding: 5px 3px;}</style>\n")
-        _T("<style>\n");
-    
-    constexpr wstring_view Part2 =
-        _T("</style>\n")
-        _T("</head>\n")
-        _T("<body style=\"background-color: ");
+    constexpr std::string_view Part1_sv =
+        "<!DOCTYPE html>\n"
+        "<html>\n"
+        "<head>\n"
+        "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n"
+        "<title>CSPro</title>"
+        "<style>body{background-color: #EFEFEF;} table{width: 100%;border-collapse: collapse;} td, th{border: 1px solid #ececec;padding: 5px 3px;}</style>\n"
+        "<style>\n";
 
-    constexpr wstring_view Part3 =
-        _T(";\">\n");
+    constexpr std::string_view Part2_sv =
+        "</style>\n"
+        "</head>\n"
+        "<body style=\"background-color: ";
 
-    constexpr wstring_view Part4 =
-        _T("</body>\n")
-        _T("</html>\n");
+    constexpr std::string_view Part3_sv =
+        ";\">\n";
 
-    std::wstring html = SO::Concatenate(Part1, m_stylesheet,
-                                        Part2, m_backgroundColor,
-                                        Part3, m_questionText,
-                                        Part4);
+    constexpr std::string_view Part4_sv =
+        "</body>\n"
+        "</html>\n";
+
+    std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
+                                       Part2_sv, m_backgroundColor,
+                                       Part3_sv, m_questionText,
+                                       Part4_sv);
 
     std::lock_guard<std::mutex> lock(m_htmlMutex);
-    m_html = UTF8Convert::WideToUTF8(html);
+    m_html = std::move(html);
 
     PostMessage(UWM::Capi::RefreshQuestionText);
 }
@@ -162,8 +166,8 @@ public:
     QuestionTextActionInvokerListener(ActionInvoker::Caller& caller);
 
     // Listener overrides
-    std::optional<std::wstring> OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
-    std::optional<bool> OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller) override;
+    SharableString OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller) override;
 
     bool OnEngineProgramControlExecuted() override;
 
@@ -192,10 +196,10 @@ QuestionTextActionInvokerListener::QuestionTextActionInvokerListener(ActionInvok
 }
 
 
-std::optional<std::wstring> QuestionTextActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
+SharableString QuestionTextActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
 {
-    if( !caller.IsFromWebView(m_actionInvokerCaller) )
-        return std::nullopt;
+    if( &caller != &m_actionInvokerCaller )
+        return SharableString();
 
     if( !m_height.has_value() )
     {
@@ -204,23 +208,23 @@ std::optional<std::wstring> QuestionTextActionInvokerListener::OnGetDisplayOptio
         if( WindowsDesktopMessage::Send(UWM::Capi::GetWindowHeight, &*m_height) != 1 )
         {
             m_height.reset();
-            return Json::Text::EmptyObject;
+            return Json::Text::EmptyObject_sv;
         }
     }
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
                 .Write(JK::height, *m_height)
                 .EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-std::optional<bool> QuestionTextActionInvokerListener::OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller)
+std::optional<bool> QuestionTextActionInvokerListener::OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller)
 {
-    if( !caller.IsFromWebView(m_actionInvokerCaller) )
+    if( &caller != &m_actionInvokerCaller )
         return std::nullopt;
 
     if( !json_node.Contains(JK::height) )
@@ -268,5 +272,5 @@ void QSFView::SetUpActionInvoker()
     ActionInvoker::WebController& web_controller = m_htmlViewCtrl.RegisterCSProHostObject();
 
     web_controller.SetPreProcessMessageWorker(std::make_unique<QuestionTextActionInvokerWebControllerPreProcessMessageWorker>(
-                                              std::make_shared<QuestionTextActionInvokerListener>(web_controller.GetCaller())));
+                                              std::make_unique<QuestionTextActionInvokerListener>(web_controller.GetCaller())));
 }

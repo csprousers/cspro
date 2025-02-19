@@ -10,7 +10,7 @@ class TraceWnd;
 // WindowsTraceHandler
 // --------------------------------------------------------------------------
 
-class WindowsTraceHandler : public TraceHandler 
+class WindowsTraceHandler : public TraceHandler
 {
 public:
     WindowsTraceHandler();
@@ -21,7 +21,7 @@ public:
     void DeleteTraceWindow();
 
 protected:
-    void OutputLine(const std::wstring& text) override;
+    void OutputLine(SharableString text) override;
 
 private:
     TraceWnd* m_traceWnd;
@@ -66,7 +66,7 @@ public:
 
     bool CreateTraceControl();
 
-    void AddText(std::wstring text);
+    void AddText(SharableString text) { m_traceLoggingListBox.AddText(std::move(text)); }
 
 protected:
     DECLARE_MESSAGE_MAP()

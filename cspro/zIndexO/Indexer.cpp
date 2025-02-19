@@ -1,18 +1,18 @@
 ﻿#include "stdafx.h"
 #include "Indexer.h"
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
+#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/Tools.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteHelpers.h>
 #include <zUtilO/BasicLogger.h>
 #include <zUtilO/FileExtensions.h>
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/StdioCaseConstructionReporter.h>
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <zListingO/ListingHelpers.h>
 
 
 namespace
@@ -58,7 +58,7 @@ namespace
         "SELECT `CaseIndex`, `Keep` FROM `Duplicates` "
         "WHERE `FileIndex` = ? AND `CaseIndex` > ? ORDER BY `CaseIndex` LIMIT 1;";
 
-    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(IndexerDatabaseException, "There was an error with the indexing database")
+    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(IndexerDatabaseException, "There was an error with the indexing database.");
 
     constexpr size_t ProgressBarCaseUpdateFrequency = 100;
 }
@@ -139,16 +139,16 @@ void Indexer::Run(const PFF& pff, const bool silent, std::shared_ptr<const CData
 }
 
 
-void Indexer::RunIndexer(bool silent)
+void Indexer::RunIndexer(const bool silent)
 {
     // check that the PFF specifies all required properties
     if( m_pff->GetInputDataConnectionStrings().empty() )
-        throw CSProException("You must specify at least one input file.");
+        throw CSProException("You must specify at least one input data source.");
 
-    if( ( m_pff->GetDuplicateCase() != DuplicateCase::List && m_pff->GetDuplicateCase() != DuplicateCase::View ) &&
+    if( m_pff->GetDuplicateCase() != DuplicateCase::List && m_pff->GetDuplicateCase() != DuplicateCase::View &&
         !m_pff->GetSingleOutputDataConnectionString().IsDefined() )
     {
-        throw CSProException("You must specify an output file.");
+        throw CSProException("You must specify an output data source.");
     }
 
 
@@ -165,15 +165,15 @@ void Indexer::RunIndexer(bool silent)
     // write the log header
     if( m_log != nullptr )
     {
-        m_log->WriteFormattedLine(_T("%-15s %s"), _T("Dictionary:"), m_pff->GetInputDictFName().GetString());
+        m_log->WriteFormattedLine("%-15s %s", "Dictionary:", UTF8_TODO::GetUtf8(m_pff->GetInputDictFName()).c_str());
         m_log->WriteLine();
 
-        m_log->WriteFormattedLine(_T("%-15s %8s"), _T("Date"), Listing::GetSystemDate().c_str());
+        m_log->WriteFormattedLine("%-15s %8s", "Date", DateTime::LocalDateString().c_str());
 
-        const std::wstring time = Listing::GetSystemTime();
-        m_log->WriteFormattedLine(_T("%-15s %s"), _T("Start Time"), time.c_str());
+        const std::string time = DateTime::LocalTimeString();
+        m_log->WriteFormattedLine("%-15s %s", "Start Time", time.c_str());
 
-        m_log->WriteFormattedString(_T("%-15s %s"), _T("End Time"), time.c_str());
+        m_log->WriteFormattedString("%-15s %s", "End Time", time.c_str());
         m_endTimePosition = m_log->FlushAndGetPosition() - time.length();
         m_log->WriteLine();
 
@@ -182,17 +182,17 @@ void Indexer::RunIndexer(bool silent)
 
 
     // setup the case access
-    m_keyReaderCaseAccess = std::make_shared<CaseAccess>(*m_dictionary);
+    m_keyReaderCaseAccess = std::make_unique<CaseAccess>(*m_dictionary);
     m_keyReaderCaseAccess->Initialize();
 
     m_fullCaseAccess = CaseAccess::CreateAndInitializeFullCaseAccess(*m_dictionary);
-    m_fullCaseAccess->SetCaseConstructionReporter(std::make_shared<StdioCaseConstructionReporter>(*m_log));
+    m_fullCaseAccess->SetCaseConstructionReporter(std::make_unique<StdioCaseConstructionReporter>(*m_log));
 
     // open the key information (in memory) database and create some prepared statements
-    if( ( sqlite3_open("", &m_db) != SQLITE_OK ) ||
-        ( sqlite3_exec(m_db, CreateTableSql, nullptr, nullptr, nullptr) != SQLITE_OK ) ||
-        ( sqlite3_prepare_v2(m_db, PutCaseSql, -1, &m_stmtPutCase, nullptr ) != SQLITE_OK ) ||
-        ( sqlite3_prepare_v2(m_db, DeleteCasesByFileIndexSql, -1, &m_stmtDeleteCasesByFileIndex, nullptr ) != SQLITE_OK ) )
+    if( sqlite3_open("", &m_db) != SQLITE_OK ||
+        sqlite3_exec(m_db, CreateTableSql, nullptr, nullptr, nullptr) != SQLITE_OK ||
+        sqlite3_prepare_v2(m_db, PutCaseSql, -1, &m_stmtPutCase, nullptr ) != SQLITE_OK ||
+        sqlite3_prepare_v2(m_db, DeleteCasesByFileIndexSql, -1, &m_stmtDeleteCasesByFileIndex, nullptr ) != SQLITE_OK )
     {
         throw IndexerDatabaseException();
     }
@@ -216,10 +216,13 @@ void Indexer::RunIndexer(bool silent)
 
     for( const IndexResult& index_result : m_indexResults )
     {
-        m_maxRepositoryNameLength = std::max(m_maxRepositoryNameLength, index_result.repository_name.length());
+        m_maxRepositoryNameLength = std::max(m_maxRepositoryNameLength, SO::WideLength(index_result.repository_name));
 
-        if( index_result.output_connection_string.IsFilenamePresent() )
-            m_maxRepositoryNameLength = std::max(m_maxRepositoryNameLength, index_result.output_connection_string.GetFilename().length());
+        if( index_result.output_connection_string.IsDefined() )
+        {
+            m_maxRepositoryNameLength = std::max(m_maxRepositoryNameLength,
+                                                 SO::WideLength(index_result.output_connection_string.GetName(DataRepositoryNameType::Full)));
+        }
     }
 
     for( const IndexResult& index_result : m_indexResults )
@@ -232,10 +235,12 @@ void Indexer::RunIndexer(bool silent)
         else
         {
             if( error_log.IsEmpty() )
-                error_log.AppendLine(_T("The following data files could not be processed due to errors:"));
+                error_log.AppendLine("The following data sources could not be processed due to errors:");
 
-            error_log.AppendFormatLine(_T("    %-*s    [%s]"), static_cast<int>(m_maxRepositoryNameLength), index_result.repository_name.c_str(),
-                                                               index_result.exception_message.c_str());
+            error_log.AppendFormatLine("    %-*s    [%s]",
+                                       static_cast<int>(m_maxRepositoryNameLength),
+                                       index_result.repository_name.c_str(),
+                                       index_result.exception_message.c_str());
         }
     }
 
@@ -249,7 +254,7 @@ void Indexer::RunIndexer(bool silent)
             DisplayInteractiveModeMessage(error_log.ToString());
 
         if( !files_without_errors_exist )
-            throw CSProException("No data files could be processed.");
+            throw CSProException("No data sources could be processed.");
     }
 
 
@@ -269,7 +274,7 @@ void Indexer::RunIndexer(bool silent)
     // similarly, we are finished if viewing duplicates with none found
     else if( m_pff->GetDuplicateCase() == DuplicateCase::View && m_numberDuplicates == 0 )
     {
-        DisplayInteractiveModeMessage(_T("No duplicate cases were found in your data files."));
+        DisplayInteractiveModeMessage("No duplicate cases were found in your data sources.");
         return;
     }
 
@@ -295,40 +300,38 @@ void Indexer::StartLog()
 
     //  open the log file
     if( m_pff->GetListingFName().IsEmpty() )
-        throw CSProException("You must specify a listing filename.");
+        throw CSProException("You must specify a listing file.");
 
-    m_log = std::make_unique<CStdioFileUnicode>();
+    m_log = std::make_unique<FileIO::TextFile>();
+    m_log->OpenForTextWritingCreate(m_pff->GetListingFName());
 
-    if( !m_log->Open(m_pff->GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-        throw CSProException(_T("There was an error creating the listing file:\n\n%s"), m_pff->GetListingFName().GetString());
-
-    m_log->WriteLine(_T("CSIndex"));
-    m_log->WriteLine(_T("-------"));
+    m_log->WriteLine("CSIndex");
+    m_log->WriteLine("-------");
 }
 
 
-void Indexer::StopLog(const CSProException* exception/* = nullptr*/)
+void Indexer::StopLog(const CSProException* const exception/* = nullptr*/)
 {
     if( m_log == nullptr )
         return;
 
     if( exception == nullptr )
     {
-        m_log->WriteLine(_T("CSIndex completed successfully."));
+        m_log->WriteLine("CSIndex completed successfully.");
     }
 
     else
     {
-        m_log->WriteLine(_T("CSIndex terminated before completing:"));
+        m_log->WriteLine("CSIndex terminated before completing:");
         m_log->WriteLine();
-        m_log->WriteLine(exception->GetErrorMessage());
+        m_log->WriteLine(exception->what());
     }
 
     // write the end time
     if( m_endTimePosition.has_value() )
     {
         m_log->Seek(*m_endTimePosition, SEEK_SET);
-        m_log->WriteString(Listing::GetSystemTime().c_str());
+        m_log->WriteString(DateTime::LocalTimeString());
         m_log->SeekToEnd();
     }
 
@@ -343,11 +346,12 @@ void Indexer::IndexFile()
 {
     try
     {
-        std::unique_ptr<DataRepository> repository = DataRepository::Create(m_keyReaderCaseAccess,
-            m_currentlyProcessingIndexResult->input_connection_string, DataRepositoryAccess::ReadOnly);
+        const std::unique_ptr<DataRepository> repository = DataRepository::Create(m_keyReaderCaseAccess,
+                                                                                  m_currentlyProcessingIndexResult->input_connection_string,
+                                                                                  DataRepositoryAccess::ReadOnly);
 
         // for text-based repositories, use the indexer callback
-        if( DataRepositoryHelpers::DoesTypeUseIndexableText(repository->GetRepositoryType()) )
+        if( DataRepositoryHelpers::TypeUsesIndexableText(repository->GetRepositoryType()) )
         {
             try
             {
@@ -369,9 +373,9 @@ void Indexer::IndexFile()
 
             process_summary_dlg.SetTask([&]
             {
-                std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
-                process_summary_dlg.Initialize(_T("Reading keys..."), process_summary);
-                process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), repository->GetName(DataRepositoryNameType::Full).GetString()));
+                const std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
+                process_summary_dlg.Initialize("Reading keys...", process_summary);
+                process_summary_dlg.SetSource("Input Data: " + repository->GetName(DataRepositoryNameType::Full));
 
                 size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
 
@@ -380,7 +384,7 @@ void Indexer::IndexFile()
 
                 while( case_key_iterator->NextCaseKey(case_key) )
                 {
-                    IndexCallback(CS2WS(case_key.GetKey()), case_key.GetPositionInRepository(), 0, 0);
+                    IndexCallback(case_key.GetKey(), case_key.GetPositionInRepository(), 0, 0);
 
                     if( process_summary_dlg.IsCanceled() )
                         throw UserCanceledException();
@@ -409,7 +413,7 @@ void Indexer::IndexFile()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        m_currentlyProcessingIndexResult->exception_message = exception.GetErrorMessage();
+        m_currentlyProcessingIndexResult->exception_message = exception.what();
 
         // delete any case data for this file
         sqlite3_reset(m_stmtDeleteCasesByFileIndex);
@@ -427,12 +431,12 @@ void Indexer::IndexCallback(const IndexableTextRepositoryIndexDetails& index_det
 }
 
 
-void Indexer::IndexCallback(const std::wstring& key, const double position_in_repository, const size_t bytes_for_case, const int64_t line_number)
+void Indexer::IndexCallback(const std::string& key, const double position_in_repository, const size_t bytes_for_case, const int64_t line_number)
 {
     ++m_currentlyProcessingIndexResult->number_cases;
 
     sqlite3_reset(m_stmtPutCase);
-    sqlite3_bind_text(m_stmtPutCase, 1, ToUtf8(key), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPutCase, 1, key.data(), key.length(), SQLITE_TRANSIENT);
     sqlite3_bind_int(m_stmtPutCase, 2, static_cast<int>(m_currentlyProcessingIndexResult->file_index));
     sqlite3_bind_int(m_stmtPutCase, 3, static_cast<int>(m_currentlyProcessingIndexResult->number_cases));
     sqlite3_bind_double(m_stmtPutCase, 4, position_in_repository);
@@ -534,35 +538,36 @@ void Indexer::CalculateDuplicateCounts()
             {
                 if( !header_written )
                 {
-                    m_log->WriteLine(( pass == 0 ) ? _T("The following data files did not have internal duplicates:") :
-                                     ( pass == 1 ) ? _T("The following data files had internal duplicates:") :
-                                                     _T("The following data files had duplicates across files:"));
+                    m_log->WriteLine(( pass == 0 ) ? "The following data sources did not have internal duplicates:" :
+                                     ( pass == 1 ) ? "The following data sources had internal duplicates:" :
+                                                     "The following data sources had duplicates across data sources:");
                     header_written = true;
                 }
 
-                std::wstring extra_text = FormatTextCS2WS(_T("%d case%s"),
-                                                          static_cast<int>(index_result.number_cases), PluralizeWord(index_result.number_cases));
+                std::string extra_text = FormatText("%d case%s",
+                                                    static_cast<int>(index_result.number_cases), PluralizeWord(index_result.number_cases));
 
                 if( index_result.number_internal_duplicates > 0 )
                 {
-                    SO::AppendFormat(extra_text, _T(", %d internal duplicate case%s"),
-                                                 static_cast<int>(index_result.number_internal_duplicates), PluralizeWord(index_result.number_internal_duplicates));
+                    extra_text.append(FormatText(", %d internal duplicate case%s",
+                                                 static_cast<int>(index_result.number_internal_duplicates), PluralizeWord(index_result.number_internal_duplicates)));
                 }
 
                 if( pass == 2 )
                 {
-                    SO::AppendFormat(extra_text, _T(", %d duplicate case%s across files"),
-                                                 static_cast<int>(index_result.number_global_duplicates), PluralizeWord(index_result.number_global_duplicates));
+                    extra_text.append(FormatText(", %d duplicate case%s across data sources",
+                                                 static_cast<int>(index_result.number_global_duplicates), PluralizeWord(index_result.number_global_duplicates)));
                 }
 
                 if( pass <= 1 && index_result.indexable_text_repository_index_created )
                 {
-                    const std::wstring index_filename = index_result.input_connection_string.GetFilename() + FileExtensions::Data::WithDot::IndexableTextIndex;
-                    ASSERT(PortableFunctions::FileIsRegular(index_filename));
-                    SO::AppendFormat(extra_text, _T(", \"%s\" index created"), PortableFunctions::PathGetFilename(index_filename));
+                    const std::string index_file_path = PortableFunctions::PathAppendFileExtension(index_result.input_connection_string.GetFilePath(), FileExtensions::Data::IndexableTextIndex);
+                    ASSERT(PortableFunctions::FileIsRegular(index_file_path));
+                    extra_text.append(FormatText(", \"%s\" index created",
+                                                 PortableFunctions::PathGetFilename(index_file_path).c_str()));
                 }
 
-                m_log->WriteFormattedLine(_T("    %-*s    [%s]"),
+                m_log->WriteFormattedLine("    %-*s    [%s]",
                                           static_cast<int>(m_maxRepositoryNameLength), index_result.repository_name.c_str(),
                                           extra_text.c_str());
             }
@@ -579,26 +584,26 @@ void Indexer::WriteDuplicatesToLog()
     if( m_log == nullptr )
         return;
 
-    std::wstring duplicate_line;
-    std::wstring previous_duplicate_key;
+    std::string duplicate_line;
+    std::string previous_duplicate_key;
 
     sqlite3_reset(m_stmtFullDuplicateIteratorByKey);
 
     while( sqlite3_step(m_stmtFullDuplicateIteratorByKey) == SQLITE_ROW )
     {
         if( duplicate_line.empty() )
-            m_log->WriteLine(_T("The following duplicate cases were located in your data files:"));
+            m_log->WriteLine("The following duplicate cases were located in your data sources:");
 
-        std::wstring key = FromUtf8WS(sqlite3_column_text(m_stmtFullDuplicateIteratorByKey, 0));
+        std::string key = sqlite3_column_string(m_stmtFullDuplicateIteratorByKey, 0);
 
         // write the header if this is the first duplicate with the key
         if( previous_duplicate_key != key )
         {
             const int number_duplicates = sqlite3_column_int(m_stmtFullDuplicateIteratorByKey, 4);
 
-            duplicate_line = FormatTextCS2WS(_T("*** Case [%s] has %d duplicate%s"),
-                                             NewlineSubstitutor::NewlineToUnicodeNL(key).c_str(),
-                                             number_duplicates, PluralizeWord(number_duplicates));
+            duplicate_line = FormatText("*** Case [%s] has %d duplicate%s",
+                                        NewlineSubstitutor::NewlineToUnicodeNL(key).c_str(),
+                                        number_duplicates, PluralizeWord(number_duplicates));
             m_log->WriteLine();
             m_log->WriteLine(duplicate_line);
 
@@ -609,19 +614,19 @@ void Indexer::WriteDuplicatesToLog()
         const size_t case_index = sqlite3_column_int(m_stmtFullDuplicateIteratorByKey, 2);
         const int64_t line_number = sqlite3_column_int64(m_stmtFullDuplicateIteratorByKey, 3);
 
-        const std::wstring index_text = FormatTextCS2WS(( line_number == 0 ) ? _T("#%d") : _T("#%d Line #%d"),
-                                                        static_cast<int>(case_index),
-                                                        static_cast<int>(line_number));
+        const std::string index_text = FormatText(( line_number == 0 ) ? "#%d" : "#%d Line #%d",
+                                                  static_cast<int>(case_index),
+                                                  static_cast<int>(line_number));
 
-        duplicate_line = FormatTextCS2WS(_T("    %-*s    [Case %s]"),
-                                         static_cast<int>(m_maxRepositoryNameLength), m_indexResults[file_index].repository_name.c_str(),
-                                         index_text.c_str());
+        duplicate_line = FormatText("    %-*s    [Case %s]",
+                                    static_cast<int>(m_maxRepositoryNameLength), m_indexResults[file_index].repository_name.c_str(),
+                                    index_text.c_str());
 
         m_log->WriteLine(duplicate_line);
     }
 
     if( duplicate_line.empty() )
-        m_log->WriteLine(_T("No duplicate cases were found in your data files."));
+        m_log->WriteLine("No duplicate cases were found in your data sources.");
 
     m_log->WriteLine();
 }
@@ -632,19 +637,19 @@ void Indexer::CalculateOutputConnectionStrings()
     if( m_pff->GetDuplicateCase() == DuplicateCase::List || m_pff->GetDuplicateCase() == DuplicateCase::View )
         return;
 
-    std::wstring filename_mask;
+    std::string filename_mask;
 
-    if( m_pff->GetSingleOutputDataConnectionString().IsFilenamePresent() )
+    if( m_pff->GetSingleOutputDataConnectionString().HasFilePath() )
     {
-        const std::wstring filename = PortableFunctions::PathGetFilename(m_pff->GetSingleOutputDataConnectionString().GetFilename());
+        const std::string filename = PortableFunctions::PathGetFilename(m_pff->GetSingleOutputDataConnectionString().GetFilePath());
 
-        if( filename.find(IndexerFilenameWildcard) != std::wstring::npos )
+        if( filename.find(IndexerFilenameWildcard) != std::string::npos )
         {
             filename_mask = filename;
             m_writeToCombinedFile = false;
 
             // remove the no-longer-used extension mask
-            SO::Replace(filename_mask, _T("<.extension>"), _T(""));
+            SO::Replace(filename_mask, "<.extension>", "");
         }
     }
 
@@ -657,22 +662,22 @@ void Indexer::CalculateOutputConnectionStrings()
 
         else
         {
-            // use the file mask to create a new filename
+            // use the file mask to create a new file path
             index_result.output_connection_string = index_result.input_connection_string;
 
-            if( index_result.output_connection_string.IsFilenamePresent() )
+            if( index_result.output_connection_string.HasFilePath() )
             {
-                const std::wstring directory = PortableFunctions::PathGetDirectory(index_result.output_connection_string.GetFilename());
-                const std::wstring filename = PortableFunctions::PathGetFilenameWithoutExtension(index_result.output_connection_string.GetFilename());
-                const std::wstring extension = PortableFunctions::PathGetFileExtension(index_result.output_connection_string.GetFilename());
+                const std::string directory = PortableFunctions::PathGetDirectory(index_result.output_connection_string.GetFilePath());
+                const std::string filename = Path::GetFilenameWithoutExtension(index_result.output_connection_string.GetFilePath());
+                const std::string extension = PortableFunctions::PathGetFileExtension(index_result.output_connection_string.GetFilePath());
 
-                std::wstring new_filename = filename_mask;
+                std::string new_filename = filename_mask;
                 SO::Replace(new_filename, IndexerFilenameWildcard, filename);
 
-                new_filename = MakeFullPath(directory, PortableFunctions::PathAppendFileExtension(new_filename, extension));
+                std::string new_file_path = MakeFullPath(directory, PortableFunctions::PathAppendFileExtension(std::move(new_filename), extension));
 
                 // this will ensure that any connection strings properties are maintained
-                index_result.output_connection_string = ConnectionString(index_result.output_connection_string.ToString(new_filename));
+                index_result.output_connection_string = ConnectionString(index_result.output_connection_string.ToString(std::move(new_file_path)));
             }
         }
     }
@@ -690,7 +695,7 @@ void Indexer::ReadDuplicates()
     {
         std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
         auto case_construction_reporter = std::make_shared<CaseConstructionReporter>(process_summary);
-        process_summary_dlg.Initialize(_T("Reading duplicate cases..."), process_summary);
+        process_summary_dlg.Initialize("Reading duplicate cases...", process_summary);
 
         double progress_bar_value = 0;
         const double progress_bar_increment_value = 100.0 / m_numberDuplicates;
@@ -709,12 +714,14 @@ void Indexer::ReadDuplicates()
             if( current_file_index != file_index )
             {
                 // if a text-based repository has duplicates, it can't be opened using read only mode, so open in batch mode
-                using_text_based_repository = DataRepositoryHelpers::DoesTypeUseIndexableText(m_indexResults[file_index].input_connection_string.GetType());
+                using_text_based_repository = DataRepositoryHelpers::TypeUsesIndexableText(m_indexResults[file_index].input_connection_string.GetType());
 
-                input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess, m_indexResults[file_index].input_connection_string,
-                    using_text_based_repository ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly, DataRepositoryOpenFlag::OpenMustExist);
+                input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
+                                                                 m_indexResults[file_index].input_connection_string,
+                                                                 using_text_based_repository ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
+                                                                 DataRepositoryOpenFlag::OpenMustExist);
 
-                process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), input_repository->GetName(DataRepositoryNameType::Full).GetString()));
+                process_summary_dlg.SetSource("Input Data: " + input_repository->GetName(DataRepositoryNameType::Full));
 
                 current_file_index = file_index;
             }
@@ -742,11 +749,11 @@ void Indexer::ReadDuplicates()
             }
 
             // add the case to the duplicate cases map
-            auto duplicate_lookup = m_duplicates.find(CS2WS(duplicate_case.GetKey()));
+            auto duplicate_lookup = m_duplicates.find(duplicate_case.GetKey());
 
             if( duplicate_lookup == m_duplicates.cend() )
             {
-                m_duplicates.try_emplace(CS2WS(duplicate_case.GetKey()), std::vector<DuplicateInfo> { duplicate });
+                m_duplicates.try_emplace(duplicate_case.GetKey(), std::vector<DuplicateInfo> { duplicate });
             }
 
             else
@@ -845,39 +852,39 @@ void Indexer::WriteCases()
     if( m_indexResults.size() == 1 )
         m_writeToCombinedFile = false;
 
-    // ensure that output filenames are unique
+    // ensure that output data sources are unique
     auto verify_output_connection_string_is_unique = [&](const ConnectionString& output_connection_string)
     {
         for( const IndexResult& index_result : m_indexResults )
         {
-            if( index_result.input_connection_string.Equals(output_connection_string) )
-                throw CSProException(_T("You cannot output to the same data file as the input: %s"), output_connection_string.ToString().c_str());
+            if( index_result.input_connection_string.SharesResource(output_connection_string) )
+                throw CSProException("You cannot output to the same data source as the input: " + output_connection_string.ToDisplayString());
         }
     };
 
     ASSERT(m_log != nullptr);
 
-    auto write_output_file_information = [&](const std::unique_ptr<DataRepository>& output_repository,
-                                             size_t number_cases_written, size_t number_duplicates_kept,
-                                             size_t number_duplicates_skipped)
+    auto write_output_file_information = [&](const DataRepository& output_repository,
+                                             const size_t number_cases_written, const size_t number_duplicates_kept,
+                                             const size_t number_duplicates_skipped)
     {
-        std::wstring extra_text = FormatTextCS2WS(_T("%d case%s written"),
-                                                  static_cast<int>(number_cases_written), PluralizeWord(number_cases_written));
+        std::string extra_text = FormatText("%d case%s written",
+                                            static_cast<int>(number_cases_written), PluralizeWord(number_cases_written));
 
         if( number_duplicates_kept > 0 )
         {
-            SO::AppendFormat(extra_text, _T(", %d duplicate case%s kept"),
-                                         static_cast<int>(number_duplicates_kept), PluralizeWord(number_duplicates_kept));
+            extra_text.append(FormatText(", %d duplicate case%s kept",
+                                         static_cast<int>(number_duplicates_kept), PluralizeWord(number_duplicates_kept)));
         }
 
         if( number_duplicates_skipped > 0 )
         {
-            SO::AppendFormat(extra_text, _T(", %d duplicate case%s skipped"),
-                                         static_cast<int>(number_duplicates_skipped), PluralizeWord(number_duplicates_skipped));
+            extra_text.append(FormatText(", %d duplicate case%s skipped",
+                                         static_cast<int>(number_duplicates_skipped), PluralizeWord(number_duplicates_skipped)));
         }
 
-        m_log->WriteFormattedLine(_T("    %-*s    [%s]"),
-                                  static_cast<int>(m_maxRepositoryNameLength), output_repository->GetName(DataRepositoryNameType::Full).GetString(),
+        m_log->WriteFormattedLine("    %-*s    [%s]",
+                                  static_cast<int>(m_maxRepositoryNameLength), output_repository.GetName(DataRepositoryNameType::Full).c_str(),
                                   extra_text.c_str());
     };
 
@@ -887,8 +894,10 @@ void Indexer::WriteCases()
     {
         verify_output_connection_string_is_unique(m_pff->GetSingleOutputDataConnectionString());
 
-        std::unique_ptr<DataRepository> combined_output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess, m_pff->GetSingleOutputDataConnectionString(),
-            DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
+        std::unique_ptr<DataRepository> combined_output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
+                                                                                                   m_pff->GetSingleOutputDataConnectionString(),
+                                                                                                   DataRepositoryAccess::BatchOutput,
+                                                                                                   DataRepositoryOpenFlag::CreateNew);
 
         size_t number_files_processed = 0;
         size_t number_cases_written = 0;
@@ -903,7 +912,7 @@ void Indexer::WriteCases()
             if( !index_result.exception_message.empty() )
                 continue;
 
-            WriteCases(combined_output_repository, index_result);
+            WriteCases(*combined_output_repository, index_result);
 
             ++number_files_processed;
             number_cases_written += index_result.number_cases_written;
@@ -911,10 +920,10 @@ void Indexer::WriteCases()
             number_duplicates_skipped += index_result.number_duplicates_skipped;
         }
 
-        m_log->WriteFormattedLine(_T("A combined data file was output from %d input file%s:"),
+        m_log->WriteFormattedLine("A combined data source was output from %d input data source%s:",
                                   static_cast<int>(number_files_processed), PluralizeWord(number_files_processed));
 
-        write_output_file_information(combined_output_repository, number_cases_written, number_duplicates_kept, number_duplicates_skipped);
+        write_output_file_information(*combined_output_repository, number_cases_written, number_duplicates_kept, number_duplicates_skipped);
     }
 
 
@@ -935,18 +944,20 @@ void Indexer::WriteCases()
 
             verify_output_connection_string_is_unique(index_result.output_connection_string);
 
-            std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess, index_result.output_connection_string,
-                DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
+            const std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
+                                                                                                    index_result.output_connection_string,
+                                                                                                    DataRepositoryAccess::BatchOutput,
+                                                                                                    DataRepositoryOpenFlag::CreateNew);
 
-            WriteCases(output_repository, index_result);
+            WriteCases(*output_repository, index_result);
 
             if( !header_written )
             {
-                m_log->WriteLine(_T("The following data files were output:"));
+                m_log->WriteLine("The following data sources were output:");
                 header_written = true;
             }
 
-            write_output_file_information(output_repository, index_result.number_cases_written, index_result.number_duplicates_kept, index_result.number_duplicates_skipped);
+            write_output_file_information(*output_repository, index_result.number_cases_written, index_result.number_duplicates_kept, index_result.number_duplicates_skipped);
         }
     }
 
@@ -954,11 +965,13 @@ void Indexer::WriteCases()
 }
 
 
-void Indexer::WriteCases(const std::unique_ptr<DataRepository>& output_repository, IndexResult& index_result)
+void Indexer::WriteCases(DataRepository& output_repository, IndexResult& index_result)
 {
     // open the input in batch mode
-    std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
-        index_result.input_connection_string, DataRepositoryAccess::BatchInput, DataRepositoryOpenFlag::OpenMustExist);
+    const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
+                                                                                           index_result.input_connection_string,
+                                                                                           DataRepositoryAccess::BatchInput,
+                                                                                           DataRepositoryOpenFlag::OpenMustExist);
 
     // show a progress bar
     ProcessSummaryDlg process_summary_dlg;
@@ -966,12 +979,13 @@ void Indexer::WriteCases(const std::unique_ptr<DataRepository>& output_repositor
     process_summary_dlg.SetTask([&]
     {
         std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
-        process_summary_dlg.Initialize(_T("Reading and writing cases..."), process_summary);
-        process_summary_dlg.SetSource(FormatText(_T("Input Data: %s"), input_repository->GetName(DataRepositoryNameType::Full).GetString()));
+        process_summary_dlg.Initialize("Reading and writing cases...", process_summary);
+        process_summary_dlg.SetSource("Input Data: " + input_repository->GetName(DataRepositoryNameType::Full));
 
         size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
 
-        auto input_case_iterator = input_repository->CreateCaseIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+        std::unique_ptr<CaseIterator> input_case_iterator = input_repository->CreateCaseIterator(CaseIterationMethod::SequentialOrder,
+                                                                                                 CaseIterationOrder::Ascending);
         size_t case_index = 0;
 
         size_t next_duplicate_case_index = SIZE_MAX;
@@ -1000,7 +1014,7 @@ void Indexer::WriteCases(const std::unique_ptr<DataRepository>& output_repositor
 
 
         // read (and potentially write) each case
-        std::unique_ptr<Case> data_case = m_fullCaseAccess->CreateCase();
+        const std::unique_ptr<Case> data_case = m_fullCaseAccess->CreateCase();
         data_case->SetCaseConstructionReporter(std::make_unique<CaseConstructionReporter>(process_summary));
 
         while( input_case_iterator->NextCase(*data_case) )
@@ -1023,7 +1037,9 @@ void Indexer::WriteCases(const std::unique_ptr<DataRepository>& output_repositor
                     if( m_pff->GetDuplicateCase() == DuplicateCase::KeepFirst )
                     {
                         sqlite3_reset(m_stmtUpdateCaseDoNotKeepByKey);
-                        sqlite3_bind_text(m_stmtUpdateCaseDoNotKeepByKey, 1, ToUtf8(data_case->GetKey()), -1, SQLITE_TRANSIENT);
+
+                        const std::string& key = data_case->GetKey();
+                        sqlite3_bind_text(m_stmtUpdateCaseDoNotKeepByKey, 1, key.data(), key.length(), SQLITE_TRANSIENT);
 
                         if( sqlite3_step(m_stmtUpdateCaseDoNotKeepByKey) != SQLITE_DONE )
                             throw IndexerDatabaseException();
@@ -1035,7 +1051,7 @@ void Indexer::WriteCases(const std::unique_ptr<DataRepository>& output_repositor
 
             if( write_case )
             {
-                output_repository->WriteCase(*data_case);
+                output_repository.WriteCase(*data_case);
                 ++index_result.number_cases_written;
             }
 

@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zDataO/CaseIterator.h>
-#include <zDataO/JsonRepository.h>
 
 
 class JsonRepositoryCaseIterator : public CaseIterator
@@ -25,8 +24,8 @@ private:
     JsonRepository& m_jsonRepository;
     CaseIterationContent m_iterationContent;
     SQLiteStatement m_stmtQueryKeys;
-    mutable std::optional<std::tuple<CaseIterationCaseStatus, std::unique_ptr<CaseIteratorParameters>>> m_progressBarParameters;
-    mutable double m_percentMultiplier;
+    std::tuple<CaseIterationCaseStatus, std::unique_ptr<CaseIteratorParameters>> m_progressBarParameters;
+    mutable std::optional<double> m_percentMultiplier;
     size_t m_casesRead;
 };
 

@@ -3,20 +3,20 @@
   <ItemGroup>
     <ClCompile Include="..\Cdeclare.cpp" />
     <ClCompile Include="..\Comp.cpp" />
-    <ClCompile Include="..\Comp_set.cpp" />
-    <ClCompile Include="..\Compctab.cpp" />
+    <ClCompile Include="..\CompCTab.cpp" />
+    <ClCompile Include="..\CompileExport.cpp" />
+    <ClCompile Include="..\CompileProgramControl.cpp" />
     <ClCompile Include="..\Compissa.cpp" />
     <ClCompile Include="..\Comptbl.cpp" />
+    <ClCompile Include="..\Comp_set.cpp" />
     <ClCompile Include="..\Ctab.cpp" />
     <ClCompile Include="..\Ctab_Helper.cpp" />
-    <ClCompile Include="..\Expresc.cpp" />
+    <ClCompile Include="..\ExpresC.cpp" />
     <ClCompile Include="..\Expresc_Helper.cpp" />
     <ClCompile Include="..\Instruc.cpp" />
     <ClCompile Include="..\oexpresc.cpp" />
-    <ClCompile Include="..\RangeFunctions.cpp" />
     <ClCompile Include="..\ParameterManager.cpp" />
-    <ClCompile Include="..\CompileProgramControl.cpp" />
-    <ClCompile Include="..\CompileExport.cpp" />
     <ClCompile Include="..\Preprocessor.cpp" />
+    <ClCompile Include="..\RangeFunctions.cpp" />
   </ItemGroup>
 </Project>

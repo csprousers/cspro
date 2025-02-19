@@ -11,9 +11,9 @@ protected:
     ViewDoc(); // create from serialization only
 
 public:
-    const std::wstring* GetDescription() const;
+    const std::string* GetDescription() const;
 
-    std::wstring GetDocumentUrl(SharedHtmlLocalFileServer& file_server);
+    std::string GetDocumentUrl(SharedHtmlLocalFileServer& file_server);
 
 protected:
     BOOL OnNewDocument() override;
@@ -21,7 +21,7 @@ protected:
     void OnCloseDocument() override;
 
 private:
-    std::wstring GetDocumentUrlForNoDocument(SharedHtmlLocalFileServer& file_server);
+    std::string GetDocumentUrlForNoDocument(SharedHtmlLocalFileServer& file_server);
 
     void ProcessCloseDocument();
 

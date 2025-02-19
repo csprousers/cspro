@@ -6,7 +6,7 @@
 // SystemApp
 // --------------------------------------------------------------------------
 
-SystemApp::SystemApp(std::wstring system_app_name)
+SystemApp::SystemApp(std::string system_app_name)
     :   Symbol(std::move(system_app_name), SymbolType::SystemApp)
 {
 }
@@ -31,7 +31,7 @@ void SystemApp::Reset()
 }
 
 
-void SystemApp::SetArgument(std::wstring argument_name, std::optional<std::variant<double, std::wstring>> value)
+void SystemApp::SetArgument(std::string argument_name, std::optional<std::variant<double, SharableString>> value)
 {
     auto argument_lookup = std::find_if(m_arguments.begin(), m_arguments.end(),
                                         [&](const Argument& argument) { return SO::EqualsNoCase(argument.name, argument_name); });
@@ -50,17 +50,17 @@ void SystemApp::SetArgument(std::wstring argument_name, std::optional<std::varia
 }
 
 
-const std::wstring& SystemApp::GetResult(const std::wstring& result_name) const
+SharableString SystemApp::GetResult(const std::string& result_name) const
 {
     const auto& result_lookup = std::find_if(m_results.cbegin(), m_results.cend(),
                                              [&](const Result& result) { return SO::EqualsNoCase(result.name, result_name); });
 
     return ( result_lookup != m_results.cend() ) ? result_lookup->value :
-                                                   SO::EmptyString;
+                                                   SharableString();
 }
 
 
-void SystemApp::SetResult(std::wstring result_name, std::wstring value)
+void SystemApp::SetResult(std::string result_name, SharableString value)
 {
     auto result_lookup = std::find_if(m_results.begin(), m_results.end(),
                                       [&](const Result& result) { return SO::EqualsNoCase(result.name, result_name); });
@@ -103,29 +103,29 @@ void SystemApp::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void SystemApp::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void SystemApp::SetValueFromJson(const JsonNode& json_node)
 {
-    std::vector<Argument> arguments;    
+    std::vector<Argument> arguments;
 
-    for( const auto& argument_node : json_node.GetArrayOrEmpty(JK::arguments) )
+    for( const JsonNode& argument_node : json_node.GetArrayOrEmpty(JK::arguments) )
     {
         arguments.emplace_back(
             Argument
             {
-                argument_node.Get<std::wstring>(JK::name),
-                argument_node.Contains(JK::value) ? std::make_optional(argument_node.GetEngineValue<std::variant<double, std::wstring>>(JK::value)) : std::nullopt
+                argument_node.Get<std::string>(JK::name),
+                argument_node.Contains(JK::value) ? std::make_optional(argument_node.GetEngineValue<std::variant<double, SharableString>>(JK::value)) : std::nullopt
             });
     }
 
     std::vector<Result> results;
 
-    for( const auto& result_node : json_node.GetArrayOrEmpty(JK::results) )
+    for( const JsonNode& result_node : json_node.GetArrayOrEmpty(JK::results) )
     {
         results.emplace_back(
             Result
             {
-                result_node.Get<std::wstring>(JK::name),
-                result_node.GetEngineValue<std::wstring>(JK::value)
+                result_node.Get<std::string>(JK::name),
+                result_node.GetEngineValue<SharableString>(JK::value)
             });
     }
 

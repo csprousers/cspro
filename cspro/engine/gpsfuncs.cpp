@@ -296,7 +296,7 @@ double CIntDriver::exgps(int iExpr)
 
             if( gps_node.options[2] != 0 )
             {
-                gpsTI.windowText = EvalAlphaExpr<CString>(gps_node.options[2]);
+                gpsTI.windowText = EvalAlphaExprCS(gps_node.options[2]);
                 pDlg = (CDialog*)AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GPS_DIALOG,0,(LPARAM)&gpsTI);
             }
 
@@ -479,14 +479,14 @@ bool TranslateGPSReading(GPSInfo* pGPSInfo, const CString& gpsString)
 }
 
 
-Paradata::GpsReadingInstance GPSInfoToGpsReadingInstance(bool record_coordinates, const GPSInfo& gps_info)
+std::unique_ptr<Paradata::GpsReadingInstance> GPSInfoToGpsReadingInstance(const bool record_coordinates, const GPSInfo& gps_info)
 {
-    auto conditionally_assign = [](double value, bool assign = true) -> std::optional<double>
+    auto conditionally_assign = [](const double value, const bool assign = true)
     {
         return ( assign && value != DEFAULT ) ? std::make_optional(value) : std::nullopt;
     };
 
-    return Paradata::GpsReadingInstance
+    return std::make_unique<Paradata::GpsReadingInstance>(Paradata::GpsReadingInstance
     {
         conditionally_assign(gps_info.latitude, record_coordinates),
         conditionally_assign(gps_info.longitude, record_coordinates),
@@ -494,7 +494,7 @@ Paradata::GpsReadingInstance GPSInfoToGpsReadingInstance(bool record_coordinates
         conditionally_assign(gps_info.satellites),
         conditionally_assign(gps_info.accuracy),
         conditionally_assign(gps_info.readtime)
-    };
+    });
 }
 
 
@@ -521,7 +521,7 @@ double CIntDriver::exgps(int iExpr)
         }
     };
 
-    std::shared_ptr<Paradata::GpsEvent> gps_event;
+    std::unique_ptr<Paradata::GpsEvent> gps_event;
 
     if( Paradata::Logger::IsOpen() )
     {
@@ -535,7 +535,7 @@ double CIntDriver::exgps(int iExpr)
         case Nodes::GPS::Command::Open:
         {
             if( Paradata::Logger::IsOpen() )
-                gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::Open);
+                gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::Open);
 
             dRetVal = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsOpen();
             break;
@@ -545,7 +545,7 @@ double CIntDriver::exgps(int iExpr)
         case Nodes::GPS::Command::Close:
         {
             if( Paradata::Logger::IsOpen() )
-                gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::Close);
+                gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::Close);
 
             dRetVal = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsClose();
             break;
@@ -568,25 +568,13 @@ double CIntDriver::exgps(int iExpr)
             maxWaitTime = 1000 * std::min(maxWaitTime,600.0); // max time is ten minutes
 
             int wait_time = (int)maxWaitTime;
-            int desired_accuracy = 0;
-            CString gpsDialogText;
-
-            if( gps_node.options[1] != 0 ) // desired accuracy
-                desired_accuracy = evalexpr<int>(gps_node.options[1]);
-
-            if( gps_node.options[2] != 0 )
-                gpsDialogText = EvalAlphaExpr<CString>(gps_node.options[2]);
+            const std::optional<int> desired_accuracy = ( gps_node.options[1] != 0 ) ? std::make_optional(Evaluate<int>(gps_node.options[1])) : std::nullopt;
+            const std::optional<std::string> gpsDialogText = ( gps_node.options[2] != 0 ) ? std::make_optional(EvaluateString(gps_node.options[2])) : std::nullopt;
 
             if( Paradata::Logger::IsOpen() )
-            {
-                gps_event = std::make_shared<Paradata::GpsReadRequestEvent>(
-                    Paradata::GpsEvent::Action::Read,
-                    wait_time,
-                    ( gps_node.options[1] != 0 ) ? std::make_optional(desired_accuracy) : std::nullopt,
-                    ( gps_node.options[2] != 0 ) ? std::make_optional(gpsDialogText) : std::nullopt);
-            }
+                gps_event = std::make_unique<Paradata::GpsReadRequestEvent>(Paradata::GpsEvent::Action::Read, wait_time, desired_accuracy, gpsDialogText);
 
-            gpsReturnValue = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsRead(wait_time, desired_accuracy, gpsDialogText);
+            gpsReturnValue = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsRead(wait_time, desired_accuracy.value_or(0), gpsDialogText);
 
             process_read_return_value();
 
@@ -597,7 +585,7 @@ double CIntDriver::exgps(int iExpr)
         case Nodes::GPS::Command::ReadLast:
         {
             if( Paradata::Logger::IsOpen() )
-                gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::ReadLast);
+                gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::ReadLast);
 
             gpsReturnValue = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsReadLast();
             validGPSRead = TranslateGPSReading(&gpsInfo, gpsReturnValue);
@@ -675,17 +663,16 @@ double CIntDriver::exgps(int iExpr)
 
             else if( base_map_type == 0 )
             {
-                CString base_map_text = EvalAlphaExpr<CString>(base_map_filename_expression);
-                base_map_selection = FromString(base_map_text, m_pEngineDriver->m_pPifFile->GetAppFName());
+                const SharableString base_map_text = EvaluateSharableString(base_map_filename_expression);
+                base_map_selection = FromString(*base_map_text, UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()));
             }
 
             else
             {
-                base_map_selection = (BaseMap)base_map_type;
+                base_map_selection = static_cast<BaseMap>(base_map_type);
             }
 
-            CString message = ( gps_node.options[2] != -1 ) ? EvalAlphaExpr<CString>(gps_node.options[2]) :
-                                                              CString();
+            const std::optional<std::string> message = EvaluateOptional<std::string>( gps_node.options[2]);
 
             // if the read duration wasn't specified, default to 15 seconds
             double read_duration = ( gps_node.command == Nodes::GPS::Command::ReadInteractive && gps_node.options[3] != -1 ) ?
@@ -693,11 +680,8 @@ double CIntDriver::exgps(int iExpr)
 
             if( Paradata::Logger::IsOpen() )
             {
-                gps_event = std::make_shared<Paradata::GpsReadRequestEvent>(
-                    read_interactive_mode ? Paradata::GpsEvent::Action::ReadInteractive : Paradata::GpsEvent::Action::Select ,
-                    read_duration,
-                    std::nullopt,
-                    ( gps_node.options[1] != -1 ) ? std::make_optional(message) : std::nullopt);
+                gps_event = std::make_unique<Paradata::GpsReadRequestEvent>(read_interactive_mode ? Paradata::GpsEvent::Action::ReadInteractive : Paradata::GpsEvent::Action::Select ,
+                                                                            read_duration, std::nullopt, message);
             }
 
             gpsReturnValue = PlatformInterface::GetInstance()->GetApplicationInterface()->GpsReadInteractive(read_interactive_mode,
@@ -712,19 +696,19 @@ double CIntDriver::exgps(int iExpr)
 
     if( gps_event != nullptr )
     {
-        std::optional<Paradata::GpsReadingInstance> gps_reading_instance;
+        std::unique_ptr<Paradata::GpsReadingInstance> gps_reading_instance;
 
         if( dRetVal == 1 && ( gps_node.command == Nodes::GPS::Command::Read ||
                               gps_node.command == Nodes::GPS::Command::ReadLast ||
                               gps_node.command == Nodes::GPS::Command::ReadInteractive ||
                               gps_node.command == Nodes::GPS::Command::Select ) )
         {
-            bool record_coordinates = m_pEngineDriver->GetPifFile()->GetApplication()->GetApplicationProperties().GetParadataProperties().GetRecordCoordinates();
+            const bool record_coordinates = m_pEngineDriver->GetPifFile()->GetApplication()->GetApplicationProperties().GetParadataProperties().GetRecordCoordinates();
             gps_reading_instance = GPSInfoToGpsReadingInstance(record_coordinates, gpsInfo);
         }
 
-        gps_event->SetPostExecutionValues(dRetVal, gps_reading_instance);
-        m_pParadataDriver->RegisterAndLogEvent(gps_event);
+        gps_event->SetPostExecutionValues(dRetVal, std::move(gps_reading_instance));
+        m_paradataDriver->RegisterAndLogEvent(std::move(gps_event));
     }
 
 
@@ -734,31 +718,33 @@ double CIntDriver::exgps(int iExpr)
 #endif
 
 
-std::shared_ptr<Paradata::Event> CIntDriver::CreateParadataGpsEvent(const CString& event_type, const CString& event_information)
+std::unique_ptr<Paradata::Event> CIntDriver::CreateParadataGpsEvent(const std::string_view event_type_sv, const std::string_view event_information_sv)
 {
-    std::shared_ptr<Paradata::GpsEvent> gps_event;
+    std::unique_ptr<Paradata::GpsEvent> gps_event;
 
 #ifndef WIN_DESKTOP
 
-    if( event_type.Compare(_T("gps_background_open")) == 0 )
+    if( SO::Equals(event_type_sv, "gps_background_open") )
     {
-        gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundOpen);
-        gps_event->SetPostExecutionValues(( event_information.Compare(_T("1")) == 0 ) ? 1 : 0);
+        gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundOpen);
+        gps_event->SetPostExecutionValues(SO::Equals(event_information_sv, "1") ? 1 : 0);
     }
 
-    else if( event_type.Compare(_T("gps_background_close")) == 0 )
+    else if( SO::Equals(event_type_sv, "gps_background_close") )
     {
-        gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundClose);
+        gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundClose);
         gps_event->SetPostExecutionValues(1);
     }
 
-    else if( event_type.Compare(_T("gps_background_read")) == 0 )
+    else if( SO::Equals(event_type_sv, "gps_background_read") )
     {
         GPSInfo gps_info;
-        TranslateGPSReading(&gps_info, event_information);
-        bool record_coordinates = m_pEngineDriver->GetPifFile()->GetApplication()->GetApplicationProperties().GetParadataProperties().GetRecordCoordinates();
-        gps_event = std::make_shared<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundReading,
-            GPSInfoToGpsReadingInstance(record_coordinates, gps_info));
+        TranslateGPSReading(&gps_info, UTF8_TODO::GetCString(event_information_sv));
+
+        const bool record_coordinates = m_pEngineDriver->GetPifFile()->GetApplication()->GetApplicationProperties().GetParadataProperties().GetRecordCoordinates();
+
+        gps_event = std::make_unique<Paradata::GpsEvent>(Paradata::GpsEvent::Action::BackgroundReading,
+                                                         GPSInfoToGpsReadingInstance(record_coordinates, gps_info));
     }
 
     else

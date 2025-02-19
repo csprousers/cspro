@@ -12,15 +12,15 @@ using namespace Logic;
 
 namespace
 {
-    constexpr const TCHAR* CommandIf          = _T("if");
-    constexpr const TCHAR* CommandElseIf      = _T("elseif");
-    constexpr const TCHAR* CommandElse        = _T("else");
-    constexpr const TCHAR* CommandEndif       = _T("endif");
+    constexpr std::string_view CommandIf_sv          = "if";
+    constexpr std::string_view CommandElseIf_sv      = "elseif";
+    constexpr std::string_view CommandElse_sv        = "else";
+    constexpr std::string_view CommandEndif_sv       = "endif";
 
-    constexpr const TCHAR* CommandSetProperty = _T("setProperty");
+    constexpr std::string_view CommandSetProperty_sv = "setProperty";
 
-    constexpr const TCHAR* FunctionExists     = _T("exists");
-    constexpr const TCHAR* FunctionAppType    = _T("AppType");
+    constexpr std::string_view FunctionExists_sv     = "exists";
+    constexpr std::string_view FunctionAppType_sv    = "AppType";
 }
 
 
@@ -63,9 +63,10 @@ void Preprocessor::ProcessBuffer()
                     bool preprocessor_handled_command = true;
 
                     // #if -> start a new block
-                    if( command == CommandIf )
+                    if( command == &CommandIf_sv )
                     {
-                        IncludeType include_type = include_types.empty() ? IncludeType::Include : include_types.back();
+                        IncludeType include_type = include_types.empty() ? IncludeType::Include :
+                                                                           include_types.back();
 
                         if( include_type == IncludeType::Include )
                         {
@@ -83,11 +84,11 @@ void Preprocessor::ProcessBuffer()
                     }
 
                     // #elseif -> a new condition for the current block
-                    else if( command == CommandElseIf )
+                    else if( command == &CommandElseIf_sv )
                     {
                         // no matching #if block or an #elseif following an #else
                         if( current_block_types.empty() || current_block_types.back() == CurrentBlockType::Else )
-                            IssueError(63, CommandElseIf);
+                            IssueError(63, std::string(CommandElseIf_sv).c_str());
 
                         IncludeType& include_type = include_types.back();
 
@@ -103,11 +104,11 @@ void Preprocessor::ProcessBuffer()
                     }
 
                     // #else -> the last condition for the current block
-                    else if( command == CommandElse )
+                    else if( command == &CommandElse_sv )
                     {
                         // no matching #if block
                         if( current_block_types.empty() )
-                            IssueError(63, CommandElse);
+                            IssueError(63, std::string(CommandElse_sv).c_str());
 
                         // and #else following an #else
                         CurrentBlockType& current_block_type = current_block_types.back();
@@ -131,18 +132,18 @@ void Preprocessor::ProcessBuffer()
                     }
 
                     // #endif -> end the current block
-                    else if( command == CommandEndif )
+                    else if( command == &CommandEndif_sv )
                     {
                         // no matching #if block
                         if( current_block_types.empty() )
-                            IssueError(63, CommandEndif);
+                            IssueError(63, std::string(CommandEndif_sv).c_str());
 
                         include_types.pop_back();
                         current_block_types.pop_back();
                     }
 
                     // #setProperty
-                    else if( command == CommandSetProperty )
+                    else if( command == &CommandSetProperty_sv )
                     {
                         preprocessor_handled_command = ProcessSetProperty(true, arguments_token_itr_begin, arguments_token_itr_end);
                     }
@@ -195,7 +196,7 @@ void Preprocessor::ProcessLineDuringCompilation()
 {
     m_nextBasicTokenIndexOnError = m_compiler.m_nextBasicTokenIndex;
 
-    ASSERT(m_nextBasicTokenIndexOnError > 0 && m_compiler.m_basicTokens[m_nextBasicTokenIndexOnError - 1].GetTextSV() == _T("#"));
+    ASSERT(m_nextBasicTokenIndexOnError > 0 && m_compiler.m_basicTokens[m_nextBasicTokenIndexOnError - 1].GetSV() == "#");
 
     try
     {
@@ -206,7 +207,7 @@ void Preprocessor::ProcessLineDuringCompilation()
         m_compiler.m_nextBasicTokenIndex += 1 + ( arguments_token_itr_end - arguments_token_itr_begin );
 
         // process the command
-        if( SO::EqualsNoCase(command, CommandSetProperty) )
+        if( command == &CommandSetProperty_sv )
         {
             ProcessSetProperty(false, arguments_token_itr_begin, arguments_token_itr_end);
         }
@@ -229,9 +230,9 @@ void Preprocessor::ProcessLineDuringCompilation()
 }
 
 
-std::tuple<const TCHAR*, std::vector<BasicToken>::const_iterator, std::vector<BasicToken>::const_iterator> Preprocessor::GetCommandAndLineTokens(const std::vector<BasicToken>::const_iterator& hash_token_position)
+std::tuple<const std::string_view*, std::vector<BasicToken>::const_iterator, std::vector<BasicToken>::const_iterator> Preprocessor::GetCommandAndLineTokens(const std::vector<BasicToken>::const_iterator& hash_token_position)
 {
-    ASSERT(hash_token_position->GetTextSV() == _T("#"));
+    ASSERT(hash_token_position->GetSV() == "#");
 
     m_lastHashTokenPosition = hash_token_position;
 
@@ -249,25 +250,20 @@ std::tuple<const TCHAR*, std::vector<BasicToken>::const_iterator, std::vector<Ba
         IssueError(61);
 
     // get the preprocessor command
-    const wstring_view command_text_sv = token_itr_begin->GetTextSV();
-    const TCHAR* command = nullptr;
+    const std::string_view command_text_sv = token_itr_begin->GetSV();
 
-    for( const TCHAR* possible_command_text : { CommandIf, CommandElseIf, CommandElse, CommandEndif,
-                                                CommandSetProperty } )
+    for( const std::string_view* const possible_command_text : { &CommandIf_sv, &CommandElseIf_sv, &CommandElse_sv, &CommandEndif_sv,
+                                                                 &CommandSetProperty_sv } )
     {
-        if( SO::EqualsNoCase(command_text_sv, possible_command_text) )
+        if( SO::EqualsNoCase(command_text_sv, *possible_command_text) )
         {
-            command = possible_command_text;
-            break;
+            // the argument tokens begin 1 token after the command
+            return std::make_tuple(possible_command_text, token_itr_begin + 1, token_itr_end);
         }
     }
 
     // invalid command error
-    if( command == nullptr )
-        IssueError(62, std::wstring(command_text_sv).c_str());
-
-    // the argument tokens begin 1 token after the command
-    return std::make_tuple(command, token_itr_begin + 1, token_itr_end);
+    IssueError(62, std::string(command_text_sv).c_str());
 }
 
 
@@ -331,7 +327,7 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
     for( auto token_itr = token_itr_begin; token_itr != token_itr_end; ++token_itr )
     {
         TokenCode token_code = token_itr->token_code;
-        const wstring_view token_text_sv = token_itr->GetTextSV();
+        const std::string_view token_text_sv = token_itr->GetSV();
 
         // convert keywords to their proper token code
         const KeywordDetails* keyword_details;
@@ -346,7 +342,7 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
         previous_token_was_part_of_an_expression = true;
 
         // a routine to check the next token
-        auto is_next_token_code = [&](TokenCode next_token_code)
+        auto is_next_token_code = [&](const TokenCode next_token_code)
         {
             const auto next_token_itr = token_itr + 1;
             return ( next_token_itr != token_itr_end && next_token_itr->token_code == next_token_code );
@@ -360,14 +356,14 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
         // if the token is a numeric constant, add it to the output
         if( token_itr->type == BasicToken::Type::NumericConstant )
         {
-            parsed_tokens.emplace_back(chartodval(std::wstring(token_text_sv).c_str(), token_text_sv.length(), 0));
+            parsed_tokens.emplace_back(chartodval(token_text_sv, 0));
         }
 
 
         // if the token is a string literal, add it to the output
         else if( token_itr->type == BasicToken::Type::StringLiteral )
         {
-            parsed_tokens.emplace_back(token_text_sv);
+            parsed_tokens.emplace_back(std::string(token_text_sv));
         }
 
 
@@ -408,16 +404,15 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
 
         else
         {
-            const Operator* this_operator = OperatorSearch(token_code);
+            const Operator* const this_operator = OperatorSearch(token_code);
 
             // if the token is plain text...
             if( token_itr->type == BasicToken::Type::Text && this_operator == nullptr )
             {
                 // if this is a function, push it to the operator stack
-                const std::optional<FunctionCode> function_code =
-                    SO::EqualsNoCase(token_text_sv, FunctionAppType) ? FunctionCode::AppType :
-                    SO::EqualsNoCase(token_text_sv, FunctionExists)  ? FunctionCode::Exists :
-                                                                       std::optional<FunctionCode>();
+                const std::optional<FunctionCode> function_code = SO::EqualsNoCase(token_text_sv, FunctionAppType_sv) ? FunctionCode::AppType :
+                                                                  SO::EqualsNoCase(token_text_sv, FunctionExists_sv)  ? FunctionCode::Exists :
+                                                                                                                        std::optional<FunctionCode>();
 
                 if( function_code.has_value() )
                 {
@@ -437,14 +432,14 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
                     if( keyword_constant.has_value() )
                     {
                         if( IsSpecial(*keyword_constant) )
-                            IssueError(68, _T("You cannot use special values"));
+                            IssueError(68, "You cannot use special values");
 
                         parsed_tokens.emplace_back(*keyword_constant);
                     }
 
                     else
                     {
-                        parsed_tokens.emplace_back(token_text_sv);
+                        parsed_tokens.emplace_back(std::string(token_text_sv));
                     }
                 }
             }
@@ -462,7 +457,7 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
                     // not a left parenthesis
                     if( !std::holds_alternative<TokenCode>(top_operator) || std::get<TokenCode>(top_operator) != TOKLPAREN )
                     {
-                        int precedence_difference = GetPrecedence(top_operator) - this_operator->precedence;
+                        const int precedence_difference = GetPrecedence(top_operator) - this_operator->precedence;
 
                         // and the operator at the top of the operator stack has greater precedence
                         // or the operator at the top of the operator stack has equal precedence and the token is left associative
@@ -487,7 +482,7 @@ std::vector<Preprocessor::ParsedToken> Preprocessor::ParseTokens(const std::vect
             // an invalid token
             else
             {
-                IssueError(67, std::wstring(token_text_sv).c_str());
+                IssueError(67, std::string(token_text_sv).c_str());
             }
         }
     }
@@ -546,13 +541,14 @@ std::vector<Preprocessor::FunctionArgument> Preprocessor::ParseFunctionArguments
 
         if( token_itr->type == BasicToken::Type::NumericConstant )
         {
-            function_arguments.emplace_back(chartodval(token_itr->GetText(), 0));
+            function_arguments.emplace_back(chartodval(token_itr->GetSV(), 0));
         }
 
         else if( token_itr->type == BasicToken::Type::StringLiteral )
         {
-            std::wstring& parsed_string_literal = std::get<std::wstring>(function_arguments.emplace_back(std::wstring()));
-            StringLiteralParser::Parse(*this, parsed_string_literal, token_itr->GetTextSV());
+            std::string parsed_string_literal;
+            StringLiteralParser::Parse(*this, parsed_string_literal, token_itr->GetSV());
+            function_arguments.emplace_back(std::move(parsed_string_literal));
         }
 
         else if( token_itr->type == BasicToken::Type::Text )
@@ -561,7 +557,7 @@ std::vector<Preprocessor::FunctionArgument> Preprocessor::ParseFunctionArguments
             const KeywordDetails* keyword_details;
             std::optional<double> keyword_constant;
 
-            if( KeywordTable::IsKeyword(token_itr->GetTextSV(), &keyword_details) )
+            if( KeywordTable::IsKeyword(token_itr->GetSV(), &keyword_details) )
                 keyword_constant = KeywordTable::GetKeywordConstant(keyword_details->token_code);
 
             if( keyword_constant.has_value() )
@@ -571,7 +567,7 @@ std::vector<Preprocessor::FunctionArgument> Preprocessor::ParseFunctionArguments
 
             else
             {
-                Symbol* symbol = FindSymbol(token_itr->GetText(), false);
+                Symbol* const symbol = FindSymbol(token_itr->GetSV(), false);
 
                 if( symbol == nullptr )
                     IssueError(93000, token_itr->GetText().c_str());
@@ -582,7 +578,7 @@ std::vector<Preprocessor::FunctionArgument> Preprocessor::ParseFunctionArguments
 
         else
         {
-            IssueError(69, _T("only numeric constants, string literals, and symbols are supported"));
+            IssueError(69, "only numeric constants, string literals, and symbols are supported");
         }
 
         next_token_must_be_comma = true;
@@ -604,59 +600,62 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
         IssueError(66);
 
     // process the tokens with a very simple interpreter
-    std::vector<std::variant<double, std::wstring>> values_stack;
+    std::vector<std::variant<double, SharableString>> values_stack;
 
     auto get_value = [&]()
     {
         if( values_stack.empty() )
-            IssueError(68, _T("A value was expected but none was provided"));
+            IssueError(68, "A value was expected but none was provided");
 
-        std::variant<double, std::wstring> value = values_stack.back();
+        std::variant<double, SharableString> value = values_stack.back();
         values_stack.pop_back();
         return value;
     };
 
     auto get_numeric_value = [&]()
     {
-        std::variant<double, std::wstring> value = get_value();
+        const std::variant<double, SharableString> value = get_value();
 
         if( !std::holds_alternative<double>(value) )
-            IssueError(68, FormatText(_T("A numeric value was expected but the string value \"%s\" was provided"), std::get<std::wstring>(value).c_str()).GetString());
+            IssueError(68, FormatText("A numeric value was expected but the string value '%s' was provided", std::get<SharableString>(value)->c_str()).c_str());
 
         return std::get<double>(value);
     };
 
-    auto get_string_value = [&](bool string_literal)
+    auto get_string_value = [&](const bool string_literal) -> SharableString
     {
-        std::variant<double, std::wstring> value = get_value();
+        const std::variant<double, SharableString> value = get_value();
 
-        if( !std::holds_alternative<std::wstring>(value) )
-            IssueError(68, FormatText(_T("A string value was expected but the numeric value %s was provided"), DoubleToString(std::get<double>(value)).c_str()).GetString());
+        if( !std::holds_alternative<SharableString>(value) )
+            IssueError(68, FormatText("A string value was expected but the numeric value '%s' was provided", DoubleToString(std::get<double>(value)).c_str()).c_str());
 
-        const std::wstring& string_value = std::get<std::wstring>(value);
-        const bool is_string_literal = StringLiteralParser::IsStringLiteralStart(string_value);
+        SharableString string_value = std::get<SharableString>(value);
+        const bool is_string_literal = StringLiteralParser::IsStringLiteralStart(*string_value);
 
         if( string_literal != is_string_literal )
         {
             if( string_literal )
             {
-                IssueError(68, FormatText(_T("A string literal was expected but \"%s\" was provided"), string_value.c_str()).GetString());
+                IssueError(68, FormatText("A string literal was expected but '%s' was provided", string_value->c_str()).c_str());
             }
 
             else
             {
-                IssueError(68, FormatText(_T("Text was expected but the string literal %s was provided"), string_value.c_str()).GetString());
+                IssueError(68, FormatText("Text was expected but the string literal '%s' was provided", string_value->c_str()).c_str());
             }
         }
 
         if( string_literal )
         {
-            std::wstring parsed_string_literal;
-            StringLiteralParser::Parse(*this, parsed_string_literal, string_value);
+            std::string parsed_string_literal;
+            StringLiteralParser::Parse(*this, parsed_string_literal, *string_value);
             return parsed_string_literal;
         }
 
-        return string_value;
+        else
+        {
+            return string_value;
+        }
     };
 
 
@@ -670,9 +669,9 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
 
 
         // add strings to the values stack
-        else if( std::holds_alternative<std::wstring>(parsed_token) )
+        else if( std::holds_alternative<SharableString>(parsed_token) )
         {
-            values_stack.emplace_back(std::get<std::wstring>(parsed_token));
+            values_stack.emplace_back(std::get<SharableString>(parsed_token));
         }
 
 
@@ -680,12 +679,12 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
         else if( std::holds_alternative<FunctionCode>(parsed_token) )
         {
             const FunctionCode function_code = std::get<FunctionCode>(parsed_token);
-            const std::wstring value = get_string_value(false);
+            const SharableString value = get_string_value(false);
             bool result;
 
             if( function_code == FunctionCode::AppType )
             {
-                result = SO::EqualsNoCase(value, GetAppType());
+                result = SO::EqualsNoCase(*value, GetAppType());
             }
 
             else
@@ -693,7 +692,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
                 ASSERT(std::get<FunctionCode>(parsed_token) == FunctionCode::Exists);
 
                 // only count a symbol as existing if it was part of the base symbols, not symbols created in logic
-                result = ( FindSymbol(value, true) != nullptr );
+                result = ( FindSymbol(*value, true) != nullptr );
             }
 
             values_stack.emplace_back(result ? 1.0 : 0.0);
@@ -707,19 +706,19 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
             const TokenCode token_code = std::get<TokenCode>(parsed_token);
 
             // string operators
-            if( values_stack.size() > 1 && std::holds_alternative<std::wstring>(values_stack[values_stack.size() - 2]) )
+            if( values_stack.size() > 1 && std::holds_alternative<SharableString>(values_stack[values_stack.size() - 2]) )
             {
-                const std::wstring right_value = get_string_value(true);
-                const std::wstring left_value = get_string_value(true);
+                const SharableString right_value = get_string_value(true);
+                const SharableString left_value = get_string_value(true);
 
                 if( token_code == TOKADDOP )
                 {
-                    values_stack.emplace_back(SO::Concatenate(_T("\""), left_value, right_value, _T("\"")));
+                    values_stack.emplace_back(SO::Concatenate("\"", *left_value, *right_value, "\""));
                 }
 
                 else
                 {
-                    const int string_comparison = left_value.compare(right_value);
+                    const int string_comparison = left_value->compare(*right_value);
 
                     const std::optional<bool> result =
                         ( token_code == TOKEQOP ) ? ( string_comparison == 0 ) :
@@ -737,7 +736,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
 
                     else
                     {
-                        IssueError(68, _T("An operator was used with string values when only numeric values are allowed"));
+                        IssueError(68, "An operator was used with string values when only numeric values are allowed");
                     }
                 }
             }
@@ -760,7 +759,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
                         result = std::pow(left_value, right_value);
 
                         if( isnan(result) || !std::isfinite(result) )
-                            IssueError(68, _T("The ^ operator was used with invalid values"));
+                            IssueError(68, "The ^ operator was used with invalid values");
 
                         break;
                     }
@@ -772,7 +771,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
                     case TOKDIVOP:
                     {
                         if( right_value == 0 )
-                            IssueError(68, _T("The / operator cannot be used with 0 as a denominator"));
+                            IssueError(68, "The / operator cannot be used with 0 as a denominator");
 
                         result = left_value / right_value;
                         break;
@@ -781,7 +780,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
                     case TOKMODOP:
                     {
                         if( right_value == 0 )
-                            IssueError(68, _T("The % operator cannot be used with 0 as a denominator"));
+                            IssueError(68, "The % operator cannot be used with 0 as a denominator");
 
                         result = fmod(left_value, right_value);
                         break;
@@ -841,7 +840,7 @@ bool Preprocessor::EvaluateCondition(const std::vector<BasicToken>::const_iterat
     }
 
     if( values_stack.size() != 1 || !std::holds_alternative<double>(values_stack.front()) )
-        IssueError(68, _T("The expression must evaluate to a single numeric value"));
+        IssueError(68, "The expression must evaluate to a single numeric value");
 
     return ( std::get<double>(values_stack.front()) != 0 );
 }
@@ -857,7 +856,7 @@ bool Preprocessor::ProcessSetProperty(const bool currently_preprocessing, const 
     const std::vector<FunctionArgument> function_arguments = ParseFunctionArguments(token_itr_begin, token_itr_end);
 
     if( function_arguments.size() < 2 || function_arguments.size() > 3 )
-        IssueError(69, _T("setProperty requires two arguments, or three if specifying a symbol as the first argument"));
+        IssueError(69, "setProperty requires two arguments, or three if specifying a symbol as the first argument");
 
     auto function_arguments_itr = function_arguments.begin();
 
@@ -866,27 +865,27 @@ bool Preprocessor::ProcessSetProperty(const bool currently_preprocessing, const 
     if( function_arguments.size() == 3 )
     {
         if( !std::holds_alternative<Symbol*>(*function_arguments_itr) )
-            IssueError(69, _T("setProperty requires a symbol as the first argument when specifying three arguments"));
+            IssueError(69, "setProperty requires a symbol as the first argument when specifying three arguments");
 
         symbol = std::get<Symbol*>(*function_arguments_itr);
         ++function_arguments_itr;
     }
 
-    if( !std::holds_alternative<std::wstring>(*function_arguments_itr) )
-        IssueError(69, _T("setProperty requires a string literal for the attribute"));
+    if( !std::holds_alternative<SharableString>(*function_arguments_itr) )
+        IssueError(69, "setProperty requires a string literal for the attribute");
 
-    const std::wstring& attribute = std::get<std::wstring>(*function_arguments_itr);
+    const SharableString& attribute = std::get<SharableString>(*function_arguments_itr);
     ++function_arguments_itr;
 
-    const std::variant<double, std::wstring> value =
-        [&]() -> std::variant<double, std::wstring>
+    const std::variant<double, SharableString> value =
+        [&]() -> std::variant<double, SharableString>
         {
-            if( std::holds_alternative<double>(*function_arguments_itr) )            return std::get<double>(*function_arguments_itr);
-            else if( std::holds_alternative<std::wstring>(*function_arguments_itr) ) return std::get<std::wstring>(*function_arguments_itr);
-            else                                                                     IssueError(69, _T("setProperty requires a numeric constant or string literal for the value"));
+            if( std::holds_alternative<double>(*function_arguments_itr) )              return std::get<double>(*function_arguments_itr);
+            else if( std::holds_alternative<SharableString>(*function_arguments_itr) ) return std::get<SharableString>(*function_arguments_itr);
+            else                                                                       IssueError(69, "setProperty requires a numeric constant or string literal for the value");
         }();
 
-    SetProperty(symbol, attribute, value);
+    SetProperty(symbol, *attribute, value);
 
     return true;
 }

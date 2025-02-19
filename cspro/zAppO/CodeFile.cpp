@@ -6,15 +6,21 @@
 // CodeType
 // --------------------------------------------------------------------------
 
-const TCHAR* ToString(CodeType code_type)
+constexpr const char* ToString(const CodeType code_type)
 {
-    return ( code_type == CodeType::LogicMain )     ?   _T("Logic") :
-         /*( code_type == CodeType::LogicExternal ) ? */_T("Logic (External)");
+    return ( code_type == CodeType::LogicMain )       ?      "Logic" :
+           ( code_type == CodeType::LogicExternal )   ?      "Logic (External)" :
+           ( code_type == CodeType::JavaScriptAutodetect ) ? "JavaScript (Autodetect)" :
+           ( code_type == CodeType::JavaScriptGlobal ) ?     "JavaScript (Global)" :
+         /*( code_type == CodeType::JavaScriptModule ) ? */  "JavaScript (Module)";
 }
 
 CREATE_ENUM_JSON_SERIALIZER(CodeType,
-    { CodeType::LogicMain,     _T("main") },
-    { CodeType::LogicExternal, _T("external") })
+    { CodeType::LogicMain,            "main" },
+    { CodeType::LogicExternal,        "external" },
+    { CodeType::JavaScriptAutodetect, "JavaScript" },
+    { CodeType::JavaScriptGlobal,     "JavaScript:global" },
+    { CodeType::JavaScriptModule,     "JavaScript:module" })
 
 
 
@@ -22,10 +28,9 @@ CREATE_ENUM_JSON_SERIALIZER(CodeType,
 // CodeFile
 // --------------------------------------------------------------------------
 
-CodeFile::CodeFile(CodeType code_type, std::shared_ptr<TextSource> text_source, std::wstring namespace_name/* = std::wstring()*/)
+CodeFile::CodeFile(const CodeType code_type, std::shared_ptr<TextSource> text_source)
     :   m_codeType(code_type),
-        m_textSource(std::move(text_source)),
-        m_namespaceName(std::move(namespace_name))
+        m_textSource(std::move(text_source))
 {
     ASSERT(m_textSource != nullptr);
 }
@@ -38,26 +43,25 @@ CodeFile::CodeFile()
 }
 
 
-CodeFile CodeFile::CreateFromJson(const JsonNode<wchar_t>& json_node,
-                                  const std::function<std::shared_ptr<TextSource>(const std::wstring& filename)>& text_source_creator/* = { }*/)
+CodeFile CodeFile::CreateFromJson(const JsonNode& json_node,
+                                  const std::function<std::shared_ptr<TextSource>(const std::string& file_path)>& text_source_creator/* = { }*/)
 {
-    std::wstring filename = json_node.GetAbsolutePath(json_node.Contains(JK::filename) ? JK::filename : JK::path);
+    std::string file_path = json_node.GetAbsolutePath(json_node.Contains(JK::filename) ? JK::filename : JK::path);
     std::shared_ptr<TextSource> text_source;
 
     if( text_source_creator )
     {
-        text_source = text_source_creator(filename);
+        text_source = text_source_creator(file_path);
         ASSERT(text_source != nullptr);
     }
 
     else
     {
-        text_source = std::make_shared<TextSource>(filename);
+        text_source = std::make_unique<TextSource>(std::move(file_path));
     }
 
     return CodeFile(json_node.GetOrDefault(JK::type, CodeType::LogicMain),
-                    std::move(text_source),
-                    json_node.GetOrDefault(JK::namespace_, SO::EmptyString));
+                    std::move(text_source));
 }
 
 
@@ -67,24 +71,26 @@ void CodeFile::WriteJson(JsonWriter& json_writer) const
 
     json_writer.BeginObject()
                .Write(JK::type, m_codeType)
-               .WriteRelativePath(JK::path, m_textSource->GetFilename())
-               .WriteIfNotBlank(JK::namespace_, m_namespaceName)
+               .WriteRelativePath(JK::path, m_textSource->GetFilePath())
                .EndObject();
 }
 
 
 void CodeFile::serialize(Serializer& ar)
 {
-    if( ar.IsLoading() )
-        m_textSource = std::make_shared<TextSource>();
+    ASSERT(ar.IsLoading() == ( m_textSource == nullptr ));
 
-    ASSERT(m_textSource != nullptr);
+    if( ar.IsLoading() )
+        m_textSource = std::make_unique<TextSource>();
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
         ar.SerializeEnum(m_codeType);
 
     ar & *m_textSource;
 
-    if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
-       ar & m_namespaceName;
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) &&
+        ar.PredatesVersionIteration(Serializer::Iteration_8_1_000_1) )
+    {
+        ar.Read<std::string>(); // m_namespaceName;
+    }
 }

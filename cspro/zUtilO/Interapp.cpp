@@ -21,6 +21,7 @@
 #include "StdAfx.h"
 #include "Interapp.h"
 #include "CSProExecutables.h"
+#include "CustomUri.h"
 #include <zPlatformO/PlatformInterface.h>
 
 #ifdef _CONSOLE
@@ -34,7 +35,8 @@
 //                           CIMSA40CommandLineInfo::ParseParam
 //
 /////////////////////////////////////////////////////////////////////////////
-void CIMSACommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast)  {
+void CIMSACommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast)
+{
     if (bFlag)  {
         if (lstrcmp(pszParam,_T("c")) == 0)  {
             m_bChildApp = TRUE;
@@ -47,23 +49,53 @@ void CIMSACommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bL
 }
 
 
-std::vector<std::wstring> GetFilenamesFromCommandLine()
+std::vector<std::wstring> GetPathsFromCommandLine()
 {
-    std::vector<std::wstring> filenames;
+    std::vector<std::wstring> paths;
 
-	for( int i = 1; i < __argc; ++i )
-	{
-        const TCHAR* filename = __targv[i];
-        ASSERT(filename != nullptr);
+    for( int i = 1; i < __argc; ++i )
+    {
+        const wchar_t* const path = __wargv[i];
+        ASSERT(path != nullptr);
 
         // ignore flags
-        if( *filename == '-' || *filename == '/' )
+        if( *path == '-' || *path == '/' )
             continue;
 
-        filenames.emplace_back(MakeFullPath(GetWorkingFolder(), __targv[i]));
-	}
+        paths.emplace_back(MakeFullPath(GetWorkingFolder(), path));
+    }
 
-    return filenames;
+    return paths;
+}
+
+
+std::vector<std::string> GetArgumentsFromCommandLineWithCSProUriSupport()
+{
+    std::vector<std::string> arguments;
+
+    for( int i = 1; i < __argc; ++i )
+    {
+        const wchar_t* const arg = __wargv[i];
+        ASSERT(arg != nullptr);
+
+        // ignore flags
+        if( *arg == '-' || *arg == '/' )
+            continue;
+
+        std::string argument = TC::ToUtf8(arg);
+
+        if( CustomUri::UsesCSProScheme(argument) )
+        {
+            arguments.emplace_back(std::move(argument));
+        }
+
+        else
+        {
+            arguments.emplace_back(MakeFullPath(GetWorkingDirectory(), std::move(argument)));
+        }
+    }
+
+    return arguments;
 }
 
 
@@ -339,53 +371,52 @@ HWND GetThreadMainWindow(DWORD threadId)
 }
 
 
-void CloseFileInTextViewer(NullTerminatedString filename, bool delete_file)
+void CloseFileInTextViewer(const InterfaceString file_path, bool delete_file)
 {
-    if( PortableFunctions::FileIsRegular(filename) )
+    if( PortableFunctions::FileIsRegular(file_path) )
     {
-        IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILECLOSE, filename);
+        IMSASendMessage(IMSA_WNDCLASS_TEXTVIEW, WM_IMSA_FILECLOSE, file_path.GetStringView());
 
         if( delete_file )
-            PortableFunctions::FileDelete(filename);
+            PortableFunctions::FileDelete(file_path);
     }
 }
 
 
-void ViewFileInTextViewer(NullTerminatedString filename)
+void ViewFileInTextViewer(InterfaceString file_path)
 {
-    if( PortableFunctions::FileIsRegular(filename) )
-    {
-        const std::optional<std::wstring> textviewer_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::TextView);
+    if( !PortableFunctions::FileIsRegular(file_path) )
+        return;
 
-        if( textviewer_exe.has_value() )
-            IMSASpawnApp(*textviewer_exe, IMSA_WNDCLASS_TEXTVIEW, filename, TRUE);
-    }
+    const std::optional<std::string> textviewer_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::TextView);
+
+    if( textviewer_exe.has_value() )
+        IMSASpawnApp(UTF8_TODO::GetWide(*textviewer_exe), IMSA_WNDCLASS_TEXTVIEW, WS2CS(file_path.Release()), TRUE);
 }
 
 #endif
 
 
-void SetupEnvironmentToCreateFile(NullTerminatedString filename)
+void SetupEnvironmentToCreateFile(InterfaceString file_path)
 {
     // make sure the directory for this file exists
-    PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(filename));
+    FileIO::CreateDirectoriesForFile(file_path);
 
 #ifdef WIN_DESKTOP
-    CloseFileInTextViewer(filename, false);
+    CloseFileInTextViewer(std::move(file_path), false);
 #endif
 }
 
 
-const std::wstring& GetTempDirectory()
+const std::string& GetTempDirectory()
 {
-    static const std::wstring temp_directory =
+    static const std::string temp_directory =
         []()
         {
 #ifdef WIN32
-            std::wstring path(_MAX_PATH, '\0');
-            GetTempPath(_MAX_PATH, path.data());
-            path.resize(_tcslen(path.data()));
-            return path;
+            wchar_t path[MAX_PATH];
+            GetTempPath(MAX_PATH, path);
+            return TC::ToUtf8(path);
 #else
             return PlatformInterface::GetInstance()->GetTempDirectory();
 #endif
@@ -397,65 +428,67 @@ const std::wstring& GetTempDirectory()
 }
 
 
-std::wstring GetUniqueTempFilename(NullTerminatedString base_filename, bool overwrite_hour_old_files/* = false*/)
+std::string GetUniqueTempFilePath(const std::string_view base_filename_sv, const bool overwrite_hour_old_files/* = false*/)
 {
-    ASSERT(!base_filename.empty());
-    ASSERT(PortableFunctions::PathGetDirectory(base_filename).empty());
+    ASSERT(!base_filename_sv.empty());
+    ASSERT(PortableFunctions::PathGetDirectory(base_filename_sv).empty());
 
-    const std::wstring& directory = GetTempDirectory();
+    const std::string& directory = GetTempDirectory();
     ASSERT(directory == PortableFunctions::PathEnsureTrailingSlash(directory));
 
-    std::wstring filename_without_extension = PortableFunctions::PathRemoveFileExtension(base_filename);
-    std::wstring extension = PortableFunctions::PathGetFileExtension(base_filename, true);
+    const std::string filename_without_extension = PortableFunctions::PathRemoveFileExtension(base_filename_sv);
+    const std::string extension = PortableFunctions::PathGetFileExtension(base_filename_sv, true);
 
     // create a unique name
     for( int i = 0; ; ++i )
     {
-        std::wstring test_filename = SO::Concatenate(directory,
+        std::string test_file_path = SO::Concatenate(directory,
                                                      filename_without_extension,
-                                                     ( i > 0 ) ? IntToString(i) : CString(),
+                                                     ( i > 0 ) ? IntToString(i) : std::string(),
                                                      extension);
 
-        if( !PortableFunctions::FileExists(test_filename) ||
-            ( overwrite_hour_old_files && ( GetTimestamp() - PortableFunctions::FileModifiedTime(test_filename) ) > DateHelper::SecondsInHour<double>() ) )
+        if( !PortableFunctions::FileExists(test_file_path) ||
+            ( overwrite_hour_old_files && ( GetTimestamp() - PortableFunctions::FileModifiedTime(test_file_path) ) > DateHelper::SecondsInHour<double>() ) )
         {
-            return test_filename;
+            return test_file_path;
         }
 
         if( i > 20000 )
         {
             // this should never happen but is a safeguard to being in an infinite loop
-            return ReturnProgrammingError(std::wstring());
+            return ReturnProgrammingError(std::string());
         }
     }
 }
 
 
-const std::wstring& GetAppDataPath()
+const std::string& GetAppDataPath()
 {
-    static std::wstring app_data_path;
-
-    if( app_data_path.empty() )
-    {
-#if defined(WIN_DESKTOP) || defined(_CONSOLE)
-        TCHAR sPath[MAX_PATH];
-
-        if( SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE,NULL, 0, sPath)) )
+    static const std::string app_data_path =
+        []()
         {
-            app_data_path = PortableFunctions::PathAppendToPath(std::wstring(sPath),
-                                                                OnWindowsDesktop() ? _T("CSPro") : _T("CSEntryConsole"));
-            CreateDirectory(app_data_path.c_str(), NULL);
-        }
+#ifdef WIN32
+            wchar_t path[MAX_PATH];
 
-        // in case the AppData folder can't be found, use the temp directory
-        else
-        {
-            app_data_path = GetTempDirectory();
-        }
+            if( SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, path)) )
+            {
+                std::string full_path = Path::Combine(TC::ToUtf8(path),
+                                                      OnWindowsDesktop() ? "CSPro" : "CSEntryConsole");
+
+                PortableFunctions::PathMakeDirectory(full_path);
+
+                return full_path;
+            }
+
+            // in case the AppData folder can't be found, use the temp directory
+            else
+            {
+                return GetTempDirectory();
+            }
 #else
-        app_data_path = PlatformInterface::GetInstance()->GetInternalStorageDirectory();
+            return PlatformInterface::GetInstance()->GetInternalStorageDirectory();
 #endif
-    }
+        }();
 
     return app_data_path;
 }
@@ -578,9 +611,9 @@ CString ValFromHeader(const CSpecFile& specFile, const CString& csAttribute) // 
 //              //if the path is relative then it gives the full path relative to the specfile
 /////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::wstring> GetFileNameArrayFromSpecFile(CSpecFile& specFile, wstring_view section_name)
+std::vector<std::string> GetFileNameArrayFromSpecFile(CSpecFile& specFile, const std::wstring_view section_name_sv)
 {
-    std::vector<std::wstring> filenames;
+    std::vector<std::string> file_paths;
     bool found_section = false;
 
     CString csCmd;     // the string command  (left side of =)
@@ -593,7 +626,7 @@ std::vector<std::wstring> GetFileNameArrayFromSpecFile(CSpecFile& specFile, wstr
 
         if (csCmd[0] == '[')  {
             // we are starting a new section
-            if (SO::EqualsNoCase(csCmd, section_name)) {
+            if (SO::EqualsNoCase(csCmd, section_name_sv)) {
                 found_section = true;
                 break;
             }
@@ -616,7 +649,7 @@ std::vector<std::wstring> GetFileNameArrayFromSpecFile(CSpecFile& specFile, wstr
                 CString sFileName = csArg;
                 sFileName.Trim();
                 sFileName = specFile.EvaluateRelativeFilename(sFileName);
-                filenames.emplace_back(CS2WS(sFileName));
+                file_paths.emplace_back(UTF8_TODO::GetUtf8(sFileName));
             }
             else {
                 ErrorMessage::Display(FormatText(_T("Invalid line at %d\n%s"), specFile.GetLineNumber(), csCmd.GetString()));
@@ -624,18 +657,18 @@ std::vector<std::wstring> GetFileNameArrayFromSpecFile(CSpecFile& specFile, wstr
         }
     }
 
-    return filenames;
+    return file_paths;
 }
 
 
 // extract version number of CSPro version string (i.e. the 3.3 of "CSPro 3.3")
 // returns -1 if unable to extract a valid number or string doesn't start w. CSPro
-double GetCSProVersionNumeric(wstring_view version_text)
+double GetCSProVersionNumeric(const std::string_view version_text_sv)
 {
-    constexpr wstring_view CSProPrefix = _T("CSPro ");
+    constexpr std::string_view CSProPrefix_sv = "CSPro ";
 
-    if( SO::StartsWithNoCase(version_text, CSProPrefix) )
-        return CIMSAString(SO::Trim(version_text.substr(CSProPrefix.length()))).fVal();
+    if( SO::StartsWithNoCase(version_text_sv, CSProPrefix_sv) )
+        return CIMSAString::fVal(version_text_sv.substr(CSProPrefix_sv.length()));
 
     return -1;
 }
@@ -644,71 +677,74 @@ double GetCSProVersionNumeric(wstring_view version_text)
 // return true if version string is valid CSPro version.
 // Must be well formed, i.e. "CSPro X.X" and the version number must be
 // greater than or equal to minVersion and less than or equal to the current version
-// as defined by CSPRO_VERSION.
-bool IsValidCSProVersion(wstring_view version_text, double min_version/* = 2.0*/)
+// as defined by Versioning::CSProVersionText.
+bool IsValidCSProVersion(const std::string_view version_text_sv, const double min_version/* = 2.0*/)
 {
-    double d = GetCSProVersionNumeric(version_text);
-    return ( d >= min_version && d <= CSPRO_VERSION_NUMBER );
+    const double d = GetCSProVersionNumeric(version_text_sv);
+    return ( d >= min_version && d <= Versioning::Number );
 }
 
 
-namespace Html
+const std::string& Html::GetDirectory()
 {
-    const std::wstring& GetDirectory()
-    {
-        static const std::wstring html_directory = []()
+    static const std::string html_directory =
+        []()
         {
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
             // the html directory is copied to the executables folder in a post build event,
             // but in case other DLLs are being worked on that depend on the contents of that folder,
             // use the direct folder while in debug mode
-            return MakeFullPath(CSProExecutables::GetApplicationDirectory(), _T("..\\..\\html"));
+            return MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\html");
 #else
-            return PortableFunctions::PathAppendToPath(CSProExecutables::GetApplicationOrAssetsDirectory(), _T("html"));
+            return Path::Combine(CSProExecutables::GetApplicationOrAssetsDirectory(), "html");
 #endif
         }();
 
-        return html_directory;
+    return html_directory;
+}
+
+
+std::string Html::GetDirectory(const Subdirectory html_subdirectory)
+{
+    return Path::Combine(GetDirectory(),
+        ( html_subdirectory == Subdirectory::Charting )          ? "charting" :
+        ( html_subdirectory == Subdirectory::CSS )               ? "css" :
+        ( html_subdirectory == Subdirectory::Dialogs )           ? "dialogs" :
+        ( html_subdirectory == Subdirectory::Document )          ? "document" :
+        ( html_subdirectory == Subdirectory::HtmlEditor )        ? "html-editor" :
+        ( html_subdirectory == Subdirectory::Images )            ? "images" :
+        ( html_subdirectory == Subdirectory::Mustache )          ? PortableFunctions::PathToNativeSlash("external\\mustache") :
+        ( html_subdirectory == Subdirectory::QuestionnaireView ) ? "questionnaire-view" :
+        ( html_subdirectory == Subdirectory::Runtime )           ? "runtime" :
+        ( html_subdirectory == Subdirectory::Templates  )        ? "templates" :
+        ( html_subdirectory == Subdirectory::Utilities  )        ? "utilities" :
+      /*( html_subdirectory == Subdirectory::Visualizations )*/    "visualizations");
+}
+
+
+std::string Html::GetCSSFilePath(const CSS css)
+{
+    return Path::Combine(GetDirectory(Subdirectory::CSS), ( css == CSS::CaseView ) ? "case-view.css" :
+                                                        /*( css == CSS::Common )*/   "common.css");
+}
+
+
+const std::string& Html::GetCSS(const CSS css)
+{
+    static std::map<CSS, std::string> css_contents;
+    const auto& css_lookup = css_contents.find(css);
+
+    if( css_lookup != css_contents.cend() )
+        return css_lookup->second;
+
+    // load the CSS if it hasn't already been loaded
+    try
+    {
+        return css_contents.try_emplace(css, FileIO::ReadText(GetCSSFilePath(css))).first->second;
     }
 
-
-    std::wstring GetDirectory(Subdirectory html_subdirectory)
+    catch(...)
     {
-        return PortableFunctions::PathAppendToPath(GetDirectory(),
-            ( html_subdirectory == Subdirectory::Charting )          ? _T("charting") :
-            ( html_subdirectory == Subdirectory::CSS )               ? _T("css") :
-            ( html_subdirectory == Subdirectory::Dialogs )           ? _T("dialogs") :
-            ( html_subdirectory == Subdirectory::Document )          ? _T("document") :
-            ( html_subdirectory == Subdirectory::HtmlEditor )        ? _T("html-editor") :
-            ( html_subdirectory == Subdirectory::Images )            ? _T("images") :
-            ( html_subdirectory == Subdirectory::Mustache )          ? PortableFunctions::PathToNativeSlash<std::wstring>(_T("external\\mustache")) :
-            ( html_subdirectory == Subdirectory::QuestionnaireView ) ? _T("questionnaire-view") :
-            ( html_subdirectory == Subdirectory::Templates  )        ? _T("templates") :
-          /*( html_subdirectory == Subdirectory::Utilities )*/         _T("utilities"));
-    }
-
-
-    const std::wstring& GetCSS(CSS css)
-    {
-        static std::map<CSS, std::wstring> css_contents;
-        const auto& css_lookup = css_contents.find(css);
-
-        if( css_lookup != css_contents.cend() )
-            return css_lookup->second;
-
-        // load the CSS if it hasn't already been loaded
-        std::wstring css_filename = PortableFunctions::PathAppendToPath(GetDirectory(Subdirectory::CSS),
-            ( css == CSS::CaseView ) ? _T("case-view.css") :
-          /*( css == CSS::Common )*/   _T("common.css"));
-
-        try
-        {
-            return css_contents.try_emplace(css, FileIO::ReadText(css_filename)).first->second;
-        }
-
-        catch(...)
-        {
-            return SO::EmptyString;
-        }
+        return ReturnProgrammingError(SO::Empty_string);
     }
 }

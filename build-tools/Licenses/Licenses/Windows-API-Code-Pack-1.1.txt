@@ -1,32 +1,32 @@
-﻿License: Custom License
+License: Custom License
 MICROSOFT SOFTWARE LICENSE TERMS
 MICROSOFT WINDOWS API CODE PACK FOR MICROSOFT .NET FRAMEWORK
 ___________________________________________________
 These license terms are an agreement between Microsoft Corporation (or based on where you live, one of its affiliates) and you. Please read them. They apply to the software named above, which includes the media on which you received it, if any. The terms also apply to any Microsoft
 • updates,
 • supplements,
-• Internet-based services, and 
+• Internet-based services, and
 • support services
 for this software, unless other terms accompany those items. If so, those terms apply.
 _______________________________________________________________________________________
 BY USING THE SOFTWARE, YOU ACCEPT THESE TERMS. IF YOU DO NOT ACCEPT THEM, DO NOT USE THE SOFTWARE.
 If you comply with these license terms, you have the rights below.
-1. INSTALLATION AND USE RIGHTS. 
+1. INSTALLATION AND USE RIGHTS.
 • You may use any number of copies of the software to design, develop and test your programs that run on a Microsoft Windows operating system.
 • This agreement gives you rights to the software only. Any rights to a Microsoft Windows operating system (such as testing pre-release versions of Windows in a live operating environment) are provided separately by the license terms for Windows.
 2. ADDITIONAL LICENSING REQUIREMENTS AND/OR USE RIGHTS.
 a. Distributable Code. You may modify, copy, and distribute the software, in source or compiled form, to run on a Microsoft Windows operating system.
 ii. Distribution Requirements. If you distribute the software, you must
-• require distributors and external end users to agree to terms that protect it at least as much as this agreement; 
+• require distributors and external end users to agree to terms that protect it at least as much as this agreement;
 • if you modify the software and distribute such modified files, include prominent notices in such modified files so that recipients know that they are not receiving the original software;
 • display your valid copyright notice on your programs; and
 • indemnify, defend, and hold harmless Microsoft from any claims, including attorneys' fees, related to the distribution or use of your programs or to your modifications to the software.
 iii. Distribution Restrictions. You may not
-• alter any copyright, trademark or patent notice in the software; 
-• use Microsoft's trademarks in your programs' names or in a way that suggests your programs come from or are endorsed by Microsoft; 
+• alter any copyright, trademark or patent notice in the software;
+• use Microsoft's trademarks in your programs' names or in a way that suggests your programs come from or are endorsed by Microsoft;
 • include the software in malicious, deceptive or unlawful programs; or
 • modify or distribute the source code of the software so that any part of it becomes subject to an Excluded License. An Excluded License is one that requires, as a condition of use, modification or distribution, that
-• the code be disclosed or distributed in source code form; or 
+• the code be disclosed or distributed in source code form; or
 • others have the right to modify it.
 3. SCOPE OF LICENSE. The software is licensed, not sold. This agreement only gives you some rights to use the software. Microsoft reserves all other rights. Unless applicable law gives you more rights despite this limitation, you may use the software only as expressly permitted in this agreement.
 4. EXPORT RESTRICTIONS. The software is subject to United States export laws and regulations. You must comply with all domestic and international export laws and regulations that apply to the software. These laws include restrictions on destinations, end users and end use. For additional information, see <http://www.microsoft.com/exporting>.

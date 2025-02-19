@@ -1,92 +1,117 @@
 ﻿#include "StdAfx.h"
 #include "BinaryDataAccessor.h"
-#include "BinaryDataReader.h"
+#include "BinaryContentReader.h"
 
 
-BinaryDataAccessor::BinaryDataAccessor(const BinaryDataAccessor& rhs)
-    :   m_binaryDataReader(rhs.m_binaryDataReader),
-        m_binaryDataReaderRequiresQuerying(rhs.m_binaryDataReaderRequiresQuerying)
+BinaryDataAccessor::BinaryDataAccessor(BinaryData binary_data)
+    :   m_data(std::move(binary_data))
 {
-    if( rhs.m_binaryData != nullptr )
-        m_binaryData = std::make_unique<BinaryData>(*rhs.m_binaryData);
 }
 
 
-void BinaryDataAccessor::Clear()
+BinaryDataAccessor::BinaryDataAccessor(BinaryDataMetadata binary_data_metadata, std::string signature, std::shared_ptr<BinaryContentReader> binary_content_reader)
+    :   m_data(ReaderData(std::move(binary_data_metadata), std::move(binary_content_reader))),
+        m_signature(std::move(signature))
 {
-    if( m_binaryDataReader != nullptr )
-    {
-        m_binaryDataReader->OnBinaryDataChange();
-        m_binaryDataReaderRequiresQuerying = false;
-    }
-
-    m_binaryData.reset();
+    ASSERT(IsValidSignature(m_signature) && GetBinaryContentReader() != nullptr);
 }
 
 
-BinaryData& BinaryDataAccessor::GetBinaryDataUsingBinaryDataReader()
+const BinaryDataMetadata& BinaryDataAccessor::GetBinaryDataMetadata() const
 {
-    ASSERT(m_binaryData == nullptr);
-
-    if( !m_binaryDataReaderRequiresQuerying )
+    if( !IsDefined() )
         throw ProgrammingErrorException();
 
-    ASSERT(m_binaryDataReader != nullptr);
-
-    m_binaryData = std::make_unique<BinaryData>(m_binaryDataReader->GetBinaryData());
-    m_binaryDataReaderRequiresQuerying = false;
-
-    return *m_binaryData;
+    return std::holds_alternative<BinaryData>(*m_data) ? std::get<BinaryData>(*m_data).GetMetadata() :
+                                                         std::get<0>(std::get<ReaderData>(*m_data));
 }
 
 
-const BinaryDataMetadata& BinaryDataAccessor::GetBinaryDataMetadataUsingBinaryDataReader()
+BinaryDataMetadata& BinaryDataAccessor::GetBinaryDataMetadata()
 {
-    ASSERT(m_binaryData == nullptr);
-
-    if( m_binaryDataReader == nullptr )
+    if( !IsDefined() )
         throw ProgrammingErrorException();
 
-    return m_binaryDataReader->GetMetadata();
+    return std::holds_alternative<BinaryData>(*m_data) ? std::get<BinaryData>(*m_data).GetMetadata() :
+                                                         std::get<0>(std::get<ReaderData>(*m_data));
 }
 
 
-uint64_t BinaryDataAccessor::GetBinaryDataSizeUsingBinaryDataReader()
+const BinaryContentReader* BinaryDataAccessor::GetBinaryContentReader() const noexcept
 {
-    ASSERT(m_binaryData == nullptr);
+    if( m_data.has_value() && std::holds_alternative<ReaderData>(*m_data) )
+        return std::get<1>(std::get<ReaderData>(*m_data)).get();
 
-    if( m_binaryDataReader == nullptr )
+    return nullptr;
+}
+
+
+BinaryContentReader* BinaryDataAccessor::GetBinaryContentReader() noexcept
+{
+    return const_cast<BinaryContentReader*>(const_cast<const BinaryDataAccessor*>(this)->GetBinaryContentReader());
+}
+
+
+uint64_t BinaryDataAccessor::GetBinaryDataSize() const
+{
+    if( !IsDefined() )
+    {
         throw ProgrammingErrorException();
+    }
 
-    return m_binaryDataReader->GetSize();
+    else if( std::holds_alternative<BinaryData>(*m_data) )
+    {
+        return std::get<BinaryData>(*m_data).GetContent().size();
+    }
+
+    else
+    {
+        const ReaderData& reader_data = std::get<ReaderData>(*m_data);
+        return std::get<1>(reader_data)->GetSize(m_signature);
+    }
 }
 
 
-void BinaryDataAccessor::SetBinaryData(BinaryData binary_data)
+const BinaryData& BinaryDataAccessor::GetBinaryData() const
 {
-    if( m_binaryDataReader != nullptr )
+    if( !IsDefined() )
     {
-        m_binaryDataReader->OnBinaryDataChange();
-        m_binaryDataReaderRequiresQuerying = false;
+        throw ProgrammingErrorException();
     }
 
-    m_binaryData = std::make_unique<BinaryData>(std::move(binary_data));
+    else if( std::holds_alternative<ReaderData>(*m_data) )
+    {
+        // load the content from the reader and use the metadata stored by this object
+        ReaderData& reader_data = std::get<ReaderData>(*m_data);
+        std::shared_ptr<const std::vector<std::byte>> content = std::get<1>(reader_data)->GetContent(m_signature);
+
+        m_data.emplace(BinaryData(std::move(content),
+                                  std::move(std::get<0>(reader_data))));
+    }
+
+    return std::get<BinaryData>(*m_data);
 }
 
 
-void BinaryDataAccessor::SetBinaryDataReader(std::shared_ptr<BinaryDataReader> binary_data_reader)
+BinaryData& BinaryDataAccessor::GetBinaryData()
 {
-    ASSERT(binary_data_reader != nullptr);
+    return const_cast<BinaryData&>(const_cast<const BinaryDataAccessor&>(*this).GetBinaryData());
+}
 
-    if( m_binaryDataReader != nullptr )
-    {
-        if( m_binaryDataReader == binary_data_reader )
-            return;
 
-        m_binaryDataReader->OnBinaryDataChange();
-    }
+const std::string& BinaryDataAccessor::GetSignature() const
+{
+    if( m_signature.empty() && std::holds_alternative<BinaryData>(*m_data) )
+        m_signature = PortableFunctions::BinaryMd5(std::get<BinaryData>(*m_data).GetContent());
 
-    m_binaryData.reset();
-    m_binaryDataReader = std::move(binary_data_reader);
-    m_binaryDataReaderRequiresQuerying = true;
+    ASSERT(( IsDefined() && IsValidSignature(m_signature) ) || ( !IsDefined() && m_signature.empty() ));
+
+    return m_signature;
+}
+
+
+bool BinaryDataAccessor::IsValidSignature(const std::string_view signature_sv)
+{
+    return ( signature_sv.length() == 32 &&
+             signature_sv == SO::ToLower(signature_sv) );
 }

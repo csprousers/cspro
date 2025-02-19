@@ -28,18 +28,18 @@ template<typename T>
 void DictPropertyGridBaseManager::AddGeneralSection(CMFCPropertyGridCtrl& property_grid_ctrl)
 {
     // General heading
-    auto general_heading_property = new PropertyGrid::HeadingProperty(_T("General"));
+    auto general_heading_property = new PropertyGrid::HeadingProperty(L"General");
     property_grid_ctrl.AddProperty(general_heading_property);
 
     // Type property (read only)
     general_heading_property->AddSubItem(
-        new PropertyGrid::ReadOnlyTextProperty(_T("Type"),
+        new PropertyGrid::ReadOnlyTextProperty(L"Type",
                                                nullptr,
                                                m_typeName));
 
     // Label property (read only)
     general_heading_property->AddSubItem(
-        new PropertyGrid::ReadOnlyTextProperty(_T("Label"),
+        new PropertyGrid::ReadOnlyTextProperty(L"Label",
                                                nullptr,
                                                m_dictBase.GetLabel()));
 
@@ -47,9 +47,9 @@ void DictPropertyGridBaseManager::AddGeneralSection(CMFCPropertyGridCtrl& proper
     {
         // Name property (read only)
         general_heading_property->AddSubItem(
-            new PropertyGrid::ReadOnlyTextProperty(_T("Name"),
+            new PropertyGrid::ReadOnlyTextProperty(L"Name",
                                                    nullptr,
-                                                   assert_cast<T&>(m_dictBase).GetName()));
+                                                   TC::ToWide<CString>(assert_cast<T&>(m_dictBase).GetName())));
 
         // Alias property (string)
         general_heading_property->AddSubItem(CreateAliasesProperty<T>());
@@ -61,50 +61,47 @@ void DictPropertyGridBaseManager::AddGeneralSection(CMFCPropertyGridCtrl& proper
 }
 
 
-namespace
+std::set<std::string> DictPropertyGridBaseManager::SingleStringToAliases(const std::string_view aliases_text_sv)
 {
-    std::set<CString> SingleStringToAliases(wstring_view aliases_text)
-    {
-        std::set<CString> aliases;
+    std::set<std::string> aliases;
 
-        // remove any trailing comma and capitalize 
-        std::wstring capitalized_aliases_text = SO::ToUpper(SO::TrimRight(SO::TrimRight(aliases_text), ','));
+    // remove any trailing comma and capitalize
+    std::string capitalized_aliases_text = SO::ToUpper(SO::TrimRight(SO::TrimRight(aliases_text_sv), ','));
 
-        for( wstring_view alias : SO::SplitString(capitalized_aliases_text, ',') )
-            aliases.insert(alias);
+    for( std::string alias : SO::SplitString(capitalized_aliases_text, ',') )
+        aliases.insert(std::move(alias));
 
-        return aliases;
-    }
+    return aliases;
 }
+
 
 template<typename T>
 CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateAliasesProperty()
 {
-    return PropertyGrid::PropertyBuilder<CString>(_T("Aliases"),
-                                                  FormatText(_T("Alternative names for the %s. Specify valid names, ")
-                                                             _T("separating names by commas if defining more than one."),
-                                                             SO::ToLower(m_typeName).c_str()),
-                                                  WS2CS(SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases())))
-        .SetOnFormat([&](const CString& /*aliases_text*/)
+    return PropertyGrid::PropertyBuilder<std::string>(L"Aliases",
+                                                      FormatText(L"Alternative names for the %s. Specify valid names, "
+                                                                 L"separating names by commas if defining more than one.",
+                                                                 SO::ToLower(wstring_view(m_typeName)).c_str()),
+                                                      SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases()))
+        .SetOnFormat([&](const std::string& /*aliases_text*/)
             {
-                return WS2CS(SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases()));
+                return TC::ToWide<CString>(SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases()));
             })
-        .SetOnValidate([&](const CString& aliases_text)
+        .SetOnValidate([&](const std::string& aliases_text)
             {
                 try
                 {
-                    std::set<CString> new_aliases = SingleStringToAliases(aliases_text);
+                    const std::set<std::string> new_aliases = SingleStringToAliases(aliases_text);
                     m_pDDDoc->GetDictionaryValidator()->CheckAliases(assert_cast<T&>(m_dictBase), true, &new_aliases);
                 }
 
                 catch( const CSProException& exception )
                 {
-                    throw PropertyGrid::PropertyValidationException<CString>(
-                        WS2CS(SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases())),
-                        WS2CS(exception.GetErrorMessage()));
+                    throw PropertyGrid::PropertyValidationException(SO::CreateSingleString(assert_cast<T&>(m_dictBase).GetAliases()),
+                                                                    exception.what());
                 }
             })
-        .SetOnUpdate([&](const CString& aliases_text)
+        .SetOnUpdate([&](const std::string& aliases_text)
             {
                 assert_cast<T&>(m_dictBase).SetAliases(SingleStringToAliases(aliases_text));
                 m_pDDDoc->GetDict()->BuildNameList();
@@ -116,15 +113,15 @@ CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateAliasesProperty()
 template<typename T>
 CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateNoteProperty()
 {
-    return PropertyGrid::PropertyBuilder<CString>(_T("Note"),
-                                                  FormatText(_T("A note associated with the %s."),
-                                                             SO::ToLower(m_typeName).c_str()),
+    return PropertyGrid::PropertyBuilder<CString>(L"Note",
+                                                  FormatText(L"A note associated with the %s.",
+                                                             SO::ToLower(wstring_view(m_typeName)).c_str()),
                                                   m_dictBase.GetNote())
         .SetOnFormat([](const CString& note)
             {
                 // show newlines as spaces
                 CString note_copy = note;
-                note_copy.Replace(_T("\r\n"), _T(" "));
+                note_copy.Replace(L"\r\n", L" ");
 
                 return note_copy;
             })
@@ -136,7 +133,7 @@ CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateNoteProperty()
         .SetOnButtonClick([&]() -> std::optional<CString>
             {
                 CNoteDlg note_dlg;
-                note_dlg.SetTitle(FormatText(_T("%s: %s (Note)"), (LPCTSTR)m_typeName, (LPCTSTR)m_dictBase.GetLabel()));
+                note_dlg.SetTitle(FormatText(L"%s: %s (Note)", m_typeName.GetString(), m_dictBase.GetLabel().GetString()));
                 note_dlg.SetNote(m_dictBase.GetNote());
 
                 if( note_dlg.DoModal() == IDOK && m_dictBase.GetNote() != note_dlg.GetNote() )
@@ -180,7 +177,7 @@ namespace
         auto process_undefined_occurrence_labels = [&]()
         {
             if( previous_occurrence_label_was_empty )
-                defined_occurrence_labels.Append(defined_occurrence_labels.IsEmpty() ? _T("...") : _T(", ..."));
+                defined_occurrence_labels.Append(defined_occurrence_labels.IsEmpty() ? L"..." : L", ...");
         };
 
         for( unsigned i = 0; i < GetNumberOccurrenceLabels(dict_element); ++i )
@@ -198,7 +195,7 @@ namespace
                 previous_occurrence_label_was_empty = false;
 
                 if( !defined_occurrence_labels.IsEmpty() )
-                    defined_occurrence_labels.Append(_T(", "));
+                    defined_occurrence_labels.Append(L", ");
 
                 defined_occurrence_labels.Append(occurrence_label);
             }
@@ -211,11 +208,12 @@ namespace
     }
 }
 
+
 template<typename T>
 CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateOccurrenceLabelsProperty()
 {
-    return PropertyGrid::PropertyBuilder<CString>(_T("Occurrence Labels"),
-                                                  _T("The occurrence labels to appear when using a roster."),
+    return PropertyGrid::PropertyBuilder<CString>(L"Occurrence Labels",
+                                                  L"The occurrence labels to appear when using a roster.",
                                                   CreateDefinedOccurrenceLabelsString(assert_cast<T&>(m_dictBase)))
     .DisableDirectEdit()
     .SetOnButtonClick([&]() -> std::optional<CString>

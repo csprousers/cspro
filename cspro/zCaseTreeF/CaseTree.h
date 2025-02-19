@@ -49,7 +49,7 @@ private:
     int         FirstSetOfLastNodeIdx(int iCurLastOpenNodeIdx = -1);
 
     bool        RemoveItem( CDEItemBase* pItem, int iOcc, int iLayerIdx, HTREEITEM* hInsertAfter, HTREEITEM* hParent );
-    HTREEITEM   InsertItemOccsTittle( CDEItemBase* pItem, int iNumOccsInTheTittle, CGenericTreeCtrl* pTree, HTREEITEM hInsertAfter, HTREEITEM hParent);
+    HTREEITEM   InsertItemOccsTitle( CDEItemBase* pItem, int iNumOccsInTheTitle, CGenericTreeCtrl* pTree, HTREEITEM hInsertAfter, HTREEITEM hParent);
     bool        DestroyAndCreateAllTreeLayers(CDEField* pWantedField, int iWantedOcc, CString csWantedKey);
 
     void        ShowTree(int xo, int yo, int x1, int y1);

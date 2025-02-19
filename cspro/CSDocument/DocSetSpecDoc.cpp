@@ -7,22 +7,22 @@ IMPLEMENT_DYNCREATE(DocSetSpecDoc, TextEditDoc)
 
 void DocSetSpecDoc::CreateNewDocument()
 {
-    const std::wstring filter = FormatTextCS2WS(_T("CSPro Document Sets (%s)|%s|All Files (*.*)|*.*||"),
-                                                FileExtensions::Wildcard::CSDocumentSet, FileExtensions::Wildcard::CSDocumentSet);
+    const std::string filter = FormatText("CSPro Document Sets (*.%s)|*.%s|All Files (*.*)|*.*||",
+                                          FileExtensions::CSDocumentSet, FileExtensions::CSDocumentSet);
 
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::CSDocumentSet, nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter.c_str(), nullptr, CFD_NO_DIR);
-    file_dlg.m_ofn.lpstrTitle = _T("Create Document Set");
+    SaveFileDlg save_file_dlg(0, FileExtensions::CSDocumentSet, nullptr, filter, nullptr);
+    save_file_dlg.SetTitle(L"Create Document Set");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
     try
     {
-        const std::wstring filename = CS2WS(file_dlg.GetPathName());
+        const std::string& file_path = save_file_dlg.GetFilePath();
 
-        DocSetSpec::WriteNewDocumentSetShell(filename);
+        DocSetSpec::WriteNewDocumentSetShell(file_path);
 
-        AfxGetApp()->OpenDocumentFile(filename.c_str());
+        AfxGetApp()->OpenDocumentFile(TC::ToWide(file_path).c_str());
     }
 
     catch( const CSProException& exception )
@@ -40,7 +40,7 @@ BOOL DocSetSpecDoc::OnOpenDocument(LPCTSTR lpszPathName)
     if( !__super::OnOpenDocument(lpszPathName) )
         return FALSE;
 
-    m_docSetSpec = assert_cast<CMainFrame*>(AfxGetMainWnd())->FindSharedDocSetSpec(lpszPathName, true);
+    m_docSetSpec = assert_cast<CMainFrame*>(AfxGetMainWnd())->FindSharedDocSetSpec(TC::ToUtf8(lpszPathName), true);
     ASSERT(m_docSetSpec != nullptr);
 
     return TRUE;

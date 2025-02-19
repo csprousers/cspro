@@ -26,7 +26,7 @@ LOCAL_SRC_FILES         += $(ZDICTO_SRC_PATH)/ValueProcessor.cpp
 LOCAL_SRC_FILES         += $(ZDICTO_SRC_PATH)/ValueSetFixer.cpp
 LOCAL_SRC_FILES         += $(ZDICTO_SRC_PATH)/ValueSetResponse.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DGENERATE_BINARY

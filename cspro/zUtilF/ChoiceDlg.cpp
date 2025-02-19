@@ -6,32 +6,32 @@ CREATE_JSON_KEY(choices)
 CREATE_JSON_KEY(defaultIndex)
 
 
-ChoiceDlg::ChoiceDlg(int starting_choice_index)
+ChoiceDlg::ChoiceDlg(const int starting_choice_index)
     :   m_startingChoiceIndex(starting_choice_index),
         m_selectedChoiceIndex(-1)
 {
 }
 
 
-const std::wstring& ChoiceDlg::GetSelectedChoiceText() const
+const SharableString& ChoiceDlg::GetSelectedChoiceText() const
 {
-    size_t index = static_cast<size_t>(m_selectedChoiceIndex - m_startingChoiceIndex);
+    const size_t index = static_cast<size_t>(m_selectedChoiceIndex - m_startingChoiceIndex);
     ASSERT(index < m_choices.size());
     return m_choices[index];
 }
 
 
-const TCHAR* ChoiceDlg::GetDialogName()
+std::string ChoiceDlg::GetDialogName()
 {
-    return _T("choice");
+    return "choice";
 }
 
 
-std::wstring ChoiceDlg::GetJsonArgumentsText()
+SharableString ChoiceDlg::GetJsonArgumentsText()
 {
     ASSERT(!m_choices.empty());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -49,7 +49,7 @@ std::wstring ChoiceDlg::GetJsonArgumentsText()
     int choice_index = m_startingChoiceIndex;
 
     json_writer->WriteObjects(JK::choices, m_choices,
-        [&](const std::wstring& choice)
+        [&](const SharableString& choice)
         {
             json_writer->Write(JK::caption, choice)
                         .Write(JK::index, choice_index++);
@@ -57,16 +57,16 @@ std::wstring ChoiceDlg::GetJsonArgumentsText()
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-void ChoiceDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void ChoiceDlg::ProcessJsonResults(const JsonNode& json_results)
 {
     m_selectedChoiceIndex = json_results.Get<int>(JK::index);
 
-    size_t index = static_cast<size_t>(m_selectedChoiceIndex - m_startingChoiceIndex);
+    const size_t index = static_cast<size_t>(m_selectedChoiceIndex - m_startingChoiceIndex);
 
     if( index >= m_choices.size() )
-        throw CSProException(_T("Invalid index: %d"), m_selectedChoiceIndex);
+        throw CSProException("Invalid index: %d", m_selectedChoiceIndex);
 }

@@ -10,19 +10,15 @@
 class CLASS_DECL_ZEDIT2O CSProScintillaCtrl : public Scintilla::CScintillaCtrl
 {
 public:
-    [[nodiscard]] std::string GetTextUtf8(int length = -1);
-    [[nodiscard]] std::wstring GetText(int length = -1);
+    [[nodiscard]] std::string GetText(int length = -1);
 
-    [[nodiscard]] std::wstring GetTargetText();
+    [[nodiscard]] std::string GetTargetText();
 
-    void SetText(const char* text)        { Scintilla::CScintillaCtrl::SetText(text); }
-    void SetText(const std::string& text) { Scintilla::CScintillaCtrl::SetText(text.c_str()); }
+    void SetText(cs::string_sz text) { __super::SetText(text.c_str()); }
 
-    void SetText(wstring_view text_sv);
-    void SetReadOnlyText(wstring_view text_sv);
+    void SetReadOnlyText(cs::string_sz text);
 
-    void AddText(wstring_view text_sv);
+    void AddText(std::string_view text_sv) { __super::AddText(text_sv.length(), text_sv.data()); }
 
-    [[nodiscard]] std::wstring GetSelText();
-    void ReplaceSel(wstring_view text_sv);
+    [[nodiscard]] std::string GetSelText();
 };

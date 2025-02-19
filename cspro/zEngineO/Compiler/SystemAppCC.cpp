@@ -5,7 +5,7 @@
 
 SystemApp* LogicCompiler::CompileSystemAppDeclaration()
 {
-    std::wstring system_app_name = CompileNewSymbolName();
+    std::string system_app_name = CompileNewSymbolName();
 
     auto system_app = std::make_shared<SystemApp>(std::move(system_app_name));
 
@@ -43,9 +43,9 @@ int LogicCompiler::CompileSystemAppFunctions()
     //           system_app_name.getResult(name);
     //           system_app_name.exec([package_name, activity_name])
 
-    FunctionCode function_code = CurrentToken.function_details->code;
+    const FunctionCode function_code = CurrentToken.function_details->code;
     const SystemApp* system_app = assert_cast<const SystemApp*>(CurrentToken.symbol);
-    int number_arguments = CurrentToken.function_details->number_arguments;
+    const int number_arguments = CurrentToken.function_details->number_arguments;
     Nodes::SymbolVariableArguments& symbol_va_node = CreateSymbolVariableArgumentsNode(function_code, *system_app, number_arguments, -1);
 
     NextToken();
@@ -54,7 +54,7 @@ int LogicCompiler::CompileSystemAppFunctions()
     NextToken();
 
     // all functions with arguments have at least one argument, which is a string
-    bool argumentless_exec = ( function_code == FunctionCode::SYSTEMAPPFN_EXEC_CODE && Tkn == TOKRPAREN );
+    const bool argumentless_exec = ( function_code == FunctionCode::SYSTEMAPPFN_EXEC_CODE && Tkn == TOKRPAREN );
 
     if( number_arguments > 0 && !argumentless_exec )
     {
@@ -63,7 +63,7 @@ int LogicCompiler::CompileSystemAppFunctions()
         if( Tkn == TOKCOMMA && function_code != FunctionCode::SYSTEMAPPFN_GETRESULT_CODE )
         {
             NextToken();
-            bool read_string = IsCurrentTokenString();
+            const bool read_string = IsCurrentTokenString();
 
             // setargument can take a string or number
             if( read_string || function_code != FunctionCode::SYSTEMAPPFN_SETARGUMENT_CODE )

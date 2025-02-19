@@ -4,23 +4,23 @@
 
 SelectFileDlg::SelectFileDlg()
     :   m_showDirectories(true),
-        m_startDirectory(std::wstring())
+        m_startDirectory(std::string())
 {
 }
 
 
-const TCHAR* SelectFileDlg::GetDialogName()
+std::string SelectFileDlg::GetDialogName()
 {
-    return _T("Path-selectFile");
+    return "Path-selectFile";
 }
 
 
-std::wstring SelectFileDlg::GetJsonArgumentsText()
+SharableString SelectFileDlg::GetJsonArgumentsText()
 {
-    ASSERT(!std::holds_alternative<std::wstring>(m_startDirectory) ||
-           !std::get<std::wstring>(m_startDirectory).empty());
+    ASSERT(!std::holds_alternative<std::string>(m_startDirectory) ||
+           !std::get<std::string>(m_startDirectory).empty());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -34,11 +34,11 @@ std::wstring SelectFileDlg::GetJsonArgumentsText()
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-void SelectFileDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void SelectFileDlg::ProcessJsonResults(const JsonNode& json_results)
 {
-    m_selectedPath = json_results.Get<std::wstring>();
+    m_selectedPath = json_results.Get<std::string>();
 }

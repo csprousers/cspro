@@ -3,173 +3,81 @@
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/BinaryData.h>
 
-class BinaryDataReader;
+class BinaryContentReader;
 
 
-// BinaryDataAccessor:
-// this class wraps what should evaluate to a BinaryData object but
-// allows for the lazy loading of binary data using a BinaryDataReader
-
-// while the name of the BinaryDataReader class suggests that it only
-// is for reading, even post-reading, it may be accessed by this
-// class to notify of data changes
-
+// --------------------------------------------------------------------------
+// BinaryDataAccessor
+//
+// This class wraps what should evaluate to a BinaryData object but allows
+// for the lazy loading of content by using a BinaryContentReader.
+//
+// The signature is the lowercase MD5 of the content (length 32). It is
+// assumed that a signature, if not empty, is valid for any content.
+//
+// When using a binary content reader, the reader will be reset once the
+// content has been queried or modified.
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO BinaryDataAccessor
 {
 public:
-    // creates an object with potentially defined data
-    BinaryDataAccessor(std::unique_ptr<BinaryData> binary_data = nullptr);
+    // Creates an object without defined binary data.
+    BinaryDataAccessor() noexcept { }
 
-    // creates an object with defined binary data
+    // Creates an object with defined binary data.
     BinaryDataAccessor(BinaryData binary_data);
 
-    // creates an object using a binary data reader;
-    // the content and metadata will only be loaded on demand
-    BinaryDataAccessor(std::shared_ptr<BinaryDataReader> binary_data_reader);
+    // Creates an object with defined binary data that will be accessed using a binary content reader.
+    // The content will only be loaded on demand.
+    BinaryDataAccessor(BinaryDataMetadata binary_data_metadata, std::string signature, std::shared_ptr<BinaryContentReader> binary_content_reader);
 
-    // copy and move constructors
-    BinaryDataAccessor(const BinaryDataAccessor& rhs);
-    BinaryDataAccessor(BinaryDataAccessor&& rhs) = default;
+    BinaryDataAccessor(const BinaryDataAccessor&) = default;
+    BinaryDataAccessor(BinaryDataAccessor&& rhs) noexcept = default;
 
-    // returns true if the binary data is defined
-    bool IsDefined() const;
-
-
-    // resets the binary data to an undefined state
-    void Reset();
-
-    // clears the binary data, resetting the binary data to an undefined state;
-    // this method is similar to Reset except that, if using a binary data reader,
-    // it will be notified that the data changed
-    void Clear();
+    BinaryDataAccessor& operator=(const BinaryDataAccessor&) = default;
+    BinaryDataAccessor& operator=(BinaryDataAccessor&&) noexcept = default;
 
 
-    // returns binary data reader
-    const BinaryDataReader* GetBinaryDataReader() const { return m_binaryDataReader.get(); }
+    // Returns true if the binary data is defined (not empty).
+    bool IsDefined() const noexcept { return m_data.has_value(); }
 
-    // returns the binary data, loading it using the binary data reader if necessary;
-    // if using binary data reader, an exception might be thrown
-    const BinaryData& GetBinaryData() const;
+    // Returns true if the binary data is defined and the content has been loaded.
+    // If a binary content reader was used, it indicates that the content has been retrieved.
+    bool IsDefinedAndContentLoaded() const noexcept { return ( m_data.has_value() && std::holds_alternative<BinaryData>(*m_data) ); }
 
-    // returns the binary data metadata, loading it using the binary data reader if necessary;
-    // if using a binary data reader, an exception might be thrown
+    // Clears the binary data, resetting the binary data to an undefined (empty) state.
+    void Clear() noexcept { m_data.reset(); m_signature.clear(); }
+
+
+    // Returns the binary data metadata.
+    // An exception will only be thrown if the binary data is undefined (empty).
     const BinaryDataMetadata& GetBinaryDataMetadata() const;
+    BinaryDataMetadata& GetBinaryDataMetadata();
 
-    // returns the size of the binary data, querying it from the binary data reader if necessary;
-    // if using a binary data reader, an exception might be thrown
+    // Returns the binary content reader (if applicable).
+    const BinaryContentReader* GetBinaryContentReader() const noexcept;
+    BinaryContentReader* GetBinaryContentReader() noexcept;
+
+    // Returns the size of the binary data, querying it from the binary content reader if necessary.
+    // An exception can be thrown when using a binary content reader, or if the binary data is undefined (empty).
     uint64_t GetBinaryDataSize() const;
 
+    // Returns the binary data, loading it using the binary content reader if necessary.
+    // An exception can be thrown when using a binary content reader, or if the binary data is undefined (empty).
+    const BinaryData& GetBinaryData() const;
+    BinaryData& GetBinaryData();
 
-    // sets the binary data;
-    // if using a binary data reader, it will be notified that the data changed
-    void SetBinaryData(BinaryData binary_data);
+    // Returns the signature of the content. If the content is not coming from a binary content reader,
+    // it will be calculated (if not already set). The signature is blank for undefined (empty) data.
+    const std::string& GetSignature() const;
 
-    template<typename... Args>
-    void SetBinaryData(Args&&... args);
-
-    // sets the binary data to be read using a binary data reader;
-    // the content and metadata will only be loaded on demand;
-    // if previously using a different binary data reader, it will be notified that the data
-    // changed and the binary data reader will be modified to this new one
-    void SetBinaryDataReader(std::shared_ptr<BinaryDataReader> binary_data_reader);
-
-    // returns a non-const reference to the binary data metadata that allows for modifications;
-    // if the binary data has not been loaded (when using a binary data reader), it will be loaded;
-    // if using a binary data reader, or if trying to access undefined data, an exception might be thrown
-    BinaryDataMetadata& GetBinaryDataMetadataForModification();
-
+    // Returns true if the signature is defined properly.
+    static bool IsValidSignature(std::string_view signature_sv);
 
 private:
-    BinaryData& GetBinaryDataUsingBinaryDataReader();
-    const BinaryDataMetadata& GetBinaryDataMetadataUsingBinaryDataReader();
-    uint64_t GetBinaryDataSizeUsingBinaryDataReader();
+    using ReaderData = std::tuple<BinaryDataMetadata, std::shared_ptr<BinaryContentReader>>;
 
-private:
-    std::unique_ptr<BinaryData> m_binaryData;
-    std::shared_ptr<BinaryDataReader> m_binaryDataReader;
-    bool m_binaryDataReaderRequiresQuerying;
-
-
-public:
-    std::shared_ptr<BinaryDataReader> GetSharedBinaryDataReaderIfNotQueried() const // BINARY_TYPES_TO_ENGINE_TODO remove as this is only used by Case::ApplyBinaryDataFor80
-    {        
-        return m_binaryDataReaderRequiresQuerying ? m_binaryDataReader :
-                                                    nullptr;
-    } 
+    mutable std::optional<std::variant<BinaryData, ReaderData>> m_data;
+    mutable std::string m_signature;
 };
-
-
-
-// --------------------------------------------------------------------------
-// inline implementations
-// --------------------------------------------------------------------------
-
-inline BinaryDataAccessor::BinaryDataAccessor(std::unique_ptr<BinaryData> binary_data/* = nullptr*/)
-    :   m_binaryData(std::move(binary_data)),
-        m_binaryDataReaderRequiresQuerying(false)
-{
-}
-
-
-inline BinaryDataAccessor::BinaryDataAccessor(BinaryData binary_data)
-    :   BinaryDataAccessor(std::make_unique<BinaryData>(std::move(binary_data)))
-{
-}
-
-
-inline BinaryDataAccessor::BinaryDataAccessor(std::shared_ptr<BinaryDataReader> binary_data_reader)
-    :   m_binaryDataReader(std::move(binary_data_reader)),
-        m_binaryDataReaderRequiresQuerying(true)
-{
-    ASSERT(m_binaryDataReader != nullptr);
-}
-
-
-inline bool BinaryDataAccessor::IsDefined() const
-{
-    return ( m_binaryData != nullptr || m_binaryDataReaderRequiresQuerying );
-}
-
-
-inline void BinaryDataAccessor::Reset()
-{
-    m_binaryData.reset();
-    m_binaryDataReader.reset();
-    m_binaryDataReaderRequiresQuerying = false;
-}
-
-
-inline const BinaryData& BinaryDataAccessor::GetBinaryData() const
-{
-    return ( m_binaryData != nullptr ) ? *m_binaryData :
-                                         const_cast<BinaryDataAccessor*>(this)->GetBinaryDataUsingBinaryDataReader();
-}
-
-
-inline const BinaryDataMetadata& BinaryDataAccessor::GetBinaryDataMetadata() const
-{
-    return ( m_binaryData != nullptr ) ? m_binaryData->GetMetadata() :
-                                         const_cast<BinaryDataAccessor*>(this)->GetBinaryDataMetadataUsingBinaryDataReader();
-}
-
-
-inline uint64_t BinaryDataAccessor::GetBinaryDataSize() const
-{
-    return ( m_binaryData != nullptr ) ? m_binaryData->GetContent().size() :
-                                         const_cast<BinaryDataAccessor*>(this)->GetBinaryDataSizeUsingBinaryDataReader();
-}
-
-
-template<typename... Args>
-void BinaryDataAccessor::SetBinaryData(Args&&... args)
-{
-    SetBinaryData(BinaryData(std::forward<Args>(args)...));
-}
-
-
-inline BinaryDataMetadata& BinaryDataAccessor::GetBinaryDataMetadataForModification()
-{
-    return ( m_binaryData != nullptr ) ? m_binaryData->GetMetadata() :
-                                         GetBinaryDataUsingBinaryDataReader().GetMetadata();
-}

@@ -29,7 +29,6 @@ protected:
     BOOL Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext = NULL) override;
     void OnInitialUpdate() override;
     void DoDataExchange(CDataExchange* pDX) override;
-    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
 
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnSize(UINT nType, int cx, int cy);

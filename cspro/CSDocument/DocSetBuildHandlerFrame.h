@@ -21,7 +21,7 @@ protected:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    void ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& html_view_ctrl, std::wstring url);
+    void ShowHtmlAndRestoreScrollbarState(HtmlViewCtrl& html_view_ctrl, std::string url);
     LRESULT OnShowHtmlAndRestoreScrollbarState(WPARAM wParam, LPARAM lParam);    
 
     void OnUpdateDocumentSetMustExist(CCmdUI* pCmdUI);
@@ -30,5 +30,5 @@ protected:
     void OnExportDocumentSet();
 
 protected:
-    std::tuple<std::wstring, int> m_currentUrlAndScrollbarStateToRestore;
+    std::tuple<std::string, int> m_currentUrlAndScrollbarStateToRestore;
 };

@@ -224,4 +224,5 @@ enum TokenCode : int
     TOKREPORT       = 481, // 20210610
     TOKPERSISTENT   = 482, // 20211229
     TOKITEM         = 483, // 20230613
+    TOKDECLARE      = 484, // 20250127
 };

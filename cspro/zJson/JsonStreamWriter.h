@@ -7,22 +7,22 @@
 #pragma warning(disable:4250) // 'class1': inherits 'class2::member' via dominance
 
 
-template<typename CharType, typename StreamType, typename WriterType>
-class JsonStreamWriterImpl : public JsonConsWriter<CharType, WriterType>, public JsonStreamWriter<StreamType>
+template<typename StreamType, typename WriterType>
+class JsonStreamWriterImpl : public JsonConsWriter<WriterType>, public JsonStreamWriter<StreamType>
 {
 public:
-    JsonStreamWriterImpl(StreamType& stream, JsonFormattingOptions formatting_options)
-        :   JsonConsWriter<CharType, WriterType>(formatting_options),
+    JsonStreamWriterImpl(StreamType& stream, const JsonFormattingOptions formatting_options)
+        :   JsonConsWriter<WriterType>(formatting_options),
             m_stream(stream)
     {
-        JsonConsWriter<CharType, WriterType>::m_writer = std::make_unique<WriterType>(stream, GetJsonOptions<CharType>(formatting_options));
+        JsonConsWriter<WriterType>::m_writer = std::make_unique<WriterType>(stream, GetJsonOptions(formatting_options));
     }
 
     ~JsonStreamWriterImpl()
     {
-        // destroy the writer so that the stream is finalized 
+        // destroy the writer so that the stream is finalized
         // before we potentially lose access to m_stream
-        JsonConsWriter<CharType, WriterType>::m_writer.reset();
+        JsonConsWriter<WriterType>::m_writer.reset();
     }
 
     StreamType& GetStream() override
@@ -32,7 +32,7 @@ public:
 
     void Flush() override
     {
-        JsonConsWriter<CharType, WriterType>::m_writer->flush();
+        JsonConsWriter<WriterType>::m_writer->flush();
     }
 
 private:

@@ -35,51 +35,32 @@ BEGIN_MESSAGE_MAP(CSortView, CFormView)
 END_MESSAGE_MAP()
 
 
-
 CSortView::CSortView()
-    :   CFormView(CSortView::IDD),
+    :   CFormView(IDD_DATASORT_FORM),
         m_bFirst(true)
 {
 }
 
 
-CSortView::~CSortView()
+std::string CSortView::CreateWindowTitle(const std::string& spec_file_path, const std::string& dictionary_file_path)
 {
+    return FormatText("CSPro Sort Data - [Spec File = %s / Dictionary = %s]",
+                      !spec_file_path.empty() ? PortableFunctions::PathGetFilename(spec_file_path).c_str() : "Untitled",
+                      PortableFunctions::PathGetFilename(dictionary_file_path).c_str());
 }
 
 
-CString CSortView::CreateWindowTitle(const TCHAR* spec_filename, const TCHAR* dictionary_filename)
+void CSortView::DoDataExchange(CDataExchange* const pDX)
 {
-    return FormatText(_T("CSPro Sort Data - [Spec File = %s / Dictionary = %s]"),
-                      ( _tcslen(spec_filename) > 0 ) ? PortableFunctions::PathGetFilename(spec_filename) : _T("Untitled"),
-                      PortableFunctions::PathGetFilename(dictionary_filename));
-}
+    __super::DoDataExchange(pDX);
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::DoDataExchange
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::DoDataExchange(CDataExchange* pDX) {
-
-    CFormView::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CSortView)
     DDX_Control(pDX, IDC_SORT_KEYS, m_SortKeys);
     DDX_Control(pDX, IDC_ITEMS_TO_SORT, m_SortItems);
-    //}}AFX_DATA_MAP
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnInsert
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnInsert() {
-
+void CSortView::OnInsert()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -106,14 +87,8 @@ void CSortView::OnInsert() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnDelete
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnDelete() {
-
+void CSortView::OnDelete()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -145,14 +120,8 @@ void CSortView::OnDelete() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnInsertAll
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnInsertAll() {
-
+void CSortView::OnInsertAll()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -170,14 +139,8 @@ void CSortView::OnInsertAll() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnDeleteAll
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnDeleteAll() {
-
+void CSortView::OnDeleteAll()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -199,14 +162,8 @@ void CSortView::OnDeleteAll() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnMoveUp
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnMoveUp() {
-
+void CSortView::OnMoveUp()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -223,14 +180,8 @@ void CSortView::OnMoveUp() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnMoveDown
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnMoveDown() {
-
+void CSortView::OnMoveDown()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -250,14 +201,8 @@ void CSortView::OnMoveDown() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnAscending
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnAscending() {
-
+void CSortView::OnAscending()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -275,14 +220,8 @@ void CSortView::OnAscending() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnDescending
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnDescending() {
-
+void CSortView::OnDescending()
+{
     CSortDoc* pDoc = GetDocument();
     pDoc->SetModifiedFlag();
     ASSERT (pDoc != NULL);
@@ -301,16 +240,9 @@ void CSortView::OnDescending() {
 }
 
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnInitialUpdate
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnInitialUpdate() {
-
-    CFormView::OnInitialUpdate();
+void CSortView::OnInitialUpdate()
+{
+    __super::OnInitialUpdate();
 
     ASSERT (GetDocument() != NULL);
 
@@ -334,7 +266,7 @@ void CSortView::OnInitialUpdate() {
         m_SortItems.InsertItem(i, pDoc->m_aItem[pDoc->m_aAvail[i]].dict_item->GetLabel());
     }
 
-    GetParent()->SetWindowText(CreateWindowTitle(pDoc->GetSpecFileName(), pDoc->GetDictFileName()));
+    GetParent()->SetWindowText(TC::ToWide(CreateWindowTitle(pDoc->GetSpecFilePath(), pDoc->GetDictionaryFilePath())).c_str());
 
     if (m_bFirst) {
         m_bFirst = FALSE;
@@ -353,14 +285,8 @@ void CSortView::OnInitialUpdate() {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnClickItemsToSort
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnClickItemsToSort(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
-
+void CSortView::OnClickItemsToSort(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
+{
     m_SortKeys.DeleteAllItems();
     CSortDoc* pDoc = GetDocument();
     for (int i = 0 ; i < pDoc->m_aKey.GetSize() ; i++)  {
@@ -378,14 +304,8 @@ void CSortView::OnClickItemsToSort(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnClickSortKeys
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnClickSortKeys(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
-
+void CSortView::OnClickSortKeys(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
+{
     m_SortItems.DeleteAllItems();
     CSortDoc* pDoc = GetDocument();
     for (int i = 0 ; i < pDoc->m_aAvail.GetSize() ; i++)  {
@@ -397,57 +317,28 @@ void CSortView::OnClickSortKeys(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                       CSortView::OnDblclkItemsToSort
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnDblclkItemsToSort(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
-
+void CSortView::OnDblclkItemsToSort(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
+{
     OnInsert();
     *pResult = 0;
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                       CSortView::OnDblclkSortKeys
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnDblclkSortKeys(NMHDR* /*pNMHDR*/, LRESULT* pResult) {
-
+void CSortView::OnDblclkSortKeys(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
+{
     OnDelete();
     *pResult = 0;
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::OnUpdateFileRun
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::OnUpdateFileRun(CCmdUI* pCmdUI) {
-
-    if (m_SortKeys.GetItemCount() > 0) {
-        pCmdUI->Enable(TRUE);
-    }
-    else {
-        pCmdUI->Enable(FALSE);
-    }
+void CSortView::OnUpdateFileRun(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(( m_SortKeys.GetItemCount() > 0 ));
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::UpdateListViews
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::UpdateListViews(void) {
-
+void CSortView::UpdateListViews()
+{
     m_SortItems.DeleteAllItems();
     m_SortKeys.DeleteAllItems();
     CSortDoc* pDoc = GetDocument();
@@ -467,14 +358,8 @@ void CSortView::UpdateListViews(void) {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortView::UpdateForm
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortView::UpdateForm(void) {
-
+void CSortView::UpdateForm()
+{
     if (m_SortItems.GetItemCount() > 0) {
         GetDlgItem(IDC_ITEMS_TO_SORT)->EnableWindow(TRUE);
         GetDlgItem(IDC_INSERT_ALL)->EnableWindow(TRUE);

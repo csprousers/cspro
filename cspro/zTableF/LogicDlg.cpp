@@ -1,39 +1,25 @@
-﻿// LogicDlg.cpp : implementation file
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "LogicDlg.h"
 
 
-// CEdtLogicDlg dialog
-
-IMPLEMENT_DYNAMIC(CEdtLogicDlg, CDialog)
 CEdtLogicDlg::CEdtLogicDlg(CWnd* pParent /*=NULL*/)
-    : CDialog(CEdtLogicDlg::IDD, pParent)
-    , m_sLogic(_T(""))
+    :   CDialog(CEdtLogicDlg::IDD, pParent)
 {
 }
 
-CEdtLogicDlg::~CEdtLogicDlg()
-{
-}
 
 void CEdtLogicDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_EDT_LOGIC2, m_edtLogicCtrl);
 }
 
 
-BEGIN_MESSAGE_MAP(CEdtLogicDlg, CDialog)
-END_MESSAGE_MAP()
-
-
-// CEdtLogicDlg message handlers
-
 BOOL CEdtLogicDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
+
     //Create the custom logic control and subclass it.
     DWORD dwStyle = m_edtLogicCtrl.GetStyle();
     RECT rect;
@@ -65,17 +51,12 @@ BOOL CEdtLogicDlg::OnInitDialog()
     }*/
     UpdateData(FALSE);
 
-    m_edtLogicCtrl.SetText(m_sLogic); //call base class instead of window text
+    m_edtLogicCtrl.SetText(m_logic); //call base class instead of window text
     m_edtLogicCtrl.SetFocus();
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-////////////////////////////////////////////////////////////////////////////
-//
-// CEdtLogicDlg::PreTranslateMessage
-//
-////////////////////////////////////////////////////////////////////////////
 
 BOOL CEdtLogicDlg::PreTranslateMessage(MSG* pMsg)
 {
@@ -95,9 +76,10 @@ BOOL CEdtLogicDlg::PreTranslateMessage(MSG* pMsg)
     return CDialog::PreTranslateMessage(pMsg);
 }
 
+
 void CEdtLogicDlg::OnOK()
 {
-    // TODO: Add your specialized code here and/or call the base class
-    m_sLogic = WS2CS(m_edtLogicCtrl.GetText());
+    m_logic = m_edtLogicCtrl.GetText();
+
     CDialog::OnOK();
 }

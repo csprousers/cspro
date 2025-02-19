@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C35C643F-EDBD-4134-8F94-DCC43C8B52EB}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -81,12 +77,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CSFreq.h" />
-    <ClInclude Include="DDTRCTL.H" />
+    <ClInclude Include="Ddtrctl.h" />
     <ClInclude Include="FreqDoc.h" />
     <ClInclude Include="FreqView.h" />
     <ClInclude Include="FrqOptV.h" />
     <ClInclude Include="MainFrm.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>

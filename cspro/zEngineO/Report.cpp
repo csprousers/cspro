@@ -6,12 +6,18 @@
 // Report
 // --------------------------------------------------------------------------
 
-Report::Report(std::wstring report_name, std::wstring report_filename)
+Report::Report(std::string report_name, const ReportFile::EscapeType report_escape_type, std::string report_file_path)
     :   Symbol(std::move(report_name), SymbolType::Report),
-        m_filename(std::move(report_filename)),
-        m_isHtmlType(FileExtensions::IsFilenameHtml(m_filename)),
+        m_escapeType(report_escape_type),
+        m_filePath(std::move(report_file_path)),
         m_programIndex(-1),
         m_reportTextBuilder(nullptr)
+{
+}
+
+
+Report::Report(const ReportFile& report_file)
+    :   Report(report_file.GetName(), report_file.GetEscapeType(), report_file.GetFilePath())
 {
 }
 
@@ -30,16 +36,19 @@ void Report::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
     if( IsFunctionParameter() )
         return;
 
-    ASSERT(!m_filename.empty());
+    ASSERT(!m_filePath.empty());
 
-    const std::wstring name = PortableFunctions::PathGetFilename(m_filename);
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(name);
+    const std::string name = PortableFunctions::PathGetFilename(m_filePath);
+    const std::string extension = PortableFunctions::PathGetFileExtension(name);
 
     json_writer.BeginObject(JK::template_);
 
-    if( PortableFunctions::FileIsRegular(m_filename) )
+    json_writer.Write(JK::name, name)
+               .Write(JK::escapeType, m_escapeType);
+
+    if( PortableFunctions::FileIsRegular(m_filePath) )
     {
-        json_writer.WritePath(JK::path, m_filename);
+        json_writer.WritePath(JK::path, m_filePath);
     }
 
     else
@@ -47,8 +56,7 @@ void Report::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
         json_writer.WriteNull(JK::path);
     }
 
-    json_writer.Write(JK::name, name)
-               .Write(JK::extension, extension)
+    json_writer.Write(JK::extension, extension)
                .WriteIfHasValue(JK::contentType, MimeType::GetTypeFromFileExtension(extension));
 
     json_writer.EndObject();

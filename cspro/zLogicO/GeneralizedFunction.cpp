@@ -4,16 +4,19 @@
 using namespace GF;
 
 
-const TCHAR* ToString(VariableType variable_type)
+CREATE_JSON_KEY(deprecatedParameters)
+
+
+const char* ToString(const VariableType variable_type)
 {
     switch( variable_type)
     {
-        case VariableType::String:  return _T("string");
-        case VariableType::Number:  return _T("number");
-        case VariableType::Boolean: return _T("boolean");
-        case VariableType::Array:   return _T("array");
-        case VariableType::Object:  return _T("object");
-        default:                    return ReturnProgrammingError(_T(""));
+        case VariableType::String:  return "string";
+        case VariableType::Number:  return "number";
+        case VariableType::Boolean: return "boolean";
+        case VariableType::Array:   return "array";
+        case VariableType::Object:  return "object";
+        default:                    return ReturnProgrammingError("");
     }
 }
 
@@ -26,20 +29,20 @@ CREATE_ENUM_JSON_SERIALIZER(VariableType,
     { VariableType::Object,  ToString(VariableType::Object) })
 
 
-Variable Variable::CreateFromJson(const JsonNode<wchar_t>& json_node)
+Variable Variable::CreateFromJson(const JsonNode& json_node)
 {
-    const auto& name_node = json_node.Get(JK::name);
+    const JsonNode name_node = json_node.Get(JK::name);
 
     return Variable
     {
-        name_node.IsNull() ? std::wstring() : json_node.Get<std::wstring>(JK::name),
-        json_node.GetOrDefault<std::wstring>(JK::description, SO::EmptyString),
+        name_node.IsNull() ? std::string() : json_node.Get<std::string>(JK::name),
+        json_node.GetOrConstruct<std::string>(JK::description),
         json_node.GetArray(JK::types).GetVector<VariableType>(),
     };
 }
 
 
-void Variable::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/* = true*/) const
+void Variable::WriteJson(JsonWriter& json_writer, const bool write_to_new_json_object/* = true*/) const
 {
     if( write_to_new_json_object )
         json_writer.BeginObject();
@@ -53,7 +56,7 @@ void Variable::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/
 }
 
 
-Parameter Parameter::CreateFromJson(const JsonNode<wchar_t>& json_node)
+Parameter Parameter::CreateFromJson(const JsonNode& json_node)
 {
     return Parameter
     {
@@ -74,14 +77,34 @@ void Parameter::WriteJson(JsonWriter& json_writer) const
 }
 
 
-Function Function::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DeprecatedParameter DeprecatedParameter::CreateFromJson(const JsonNode& json_node)
+{
+    return DeprecatedParameter
+    {
+        json_node.Get<std::string>(JK::name),
+        json_node.GetArray(JK::types).GetVector<VariableType>()
+    };
+}
+
+
+void DeprecatedParameter::WriteJson(JsonWriter& json_writer) const
+{
+    json_writer.BeginObject()
+               .Write(JK::name, name)
+               .Write(JK::types, types)
+               .EndObject();
+}
+
+
+Function Function::CreateFromJson(const JsonNode& json_node)
 {
     return Function
     {
-        json_node.GetOrDefault<std::wstring>(JK::namespace_, SO::EmptyString),
-        json_node.Get<std::wstring>(JK::name),
-        json_node.GetOrDefault<std::wstring>(JK::description, SO::EmptyString),
+        json_node.GetOrConstruct<std::string>(JK::namespace_),
+        json_node.Get<std::string>(JK::name),
+        json_node.GetOrConstruct<std::string>(JK::description),
         json_node.GetArrayOrEmpty(JK::parameters).GetVector<Parameter>(),
+        json_node.GetArrayOrEmpty(JK::deprecatedParameters).GetVector<DeprecatedParameter>(),
         json_node.GetArrayOrEmpty(JK::returns).GetVector<Variable>()
     };
 }
@@ -94,6 +117,7 @@ void Function::WriteJson(JsonWriter& json_writer) const
                .Write(JK::name, name)
                .WriteIfNotBlank(JK::description, description)
                .WriteIfNotEmpty(JK::parameters, parameters)
+               .WriteIfNotEmpty(JK::deprecatedParameters, deprecated_parameters)
                .WriteIfNotEmpty(JK::returns, returns)
                .EndObject();
 }

@@ -4,31 +4,35 @@
 
 class Symbol;
 
-namespace Logic { struct FunctionDetails; }
+namespace Logic { struct FunctionDetails; struct Token; }
 
 
-namespace Logic
+struct Logic::Token
 {
-    struct Token
-    {
-        TokenCode code;
-        std::wstring text;
-        double value;
-        const FunctionDetails* function_details;
-        Symbol* symbol;
-        int symbol_subscript_compilation;
+    TokenCode code;
+    std::string text;
+    double value;
+    const FunctionDetails* function_details;
+    Symbol* symbol;
+    int symbol_subscript_compilation;
 
-    public:
-        Token();
+public:
+    Token();
 
-        void reset(TokenCode code_);
-        void reset(TokenCode code_, wstring_view text_sv);
+    void reset(TokenCode code_);
 
-    private:
-        void reset_all_but_text(TokenCode code_);
-    };
-}
+    template<typename T>
+    void reset(TokenCode code_, T&& text_);
 
+private:
+    void reset_all_but_text(TokenCode code_);
+};
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 inline Logic::Token::Token()
 {
@@ -36,7 +40,7 @@ inline Logic::Token::Token()
 }
 
 
-inline void Logic::Token::reset_all_but_text(TokenCode code_)
+inline void Logic::Token::reset_all_but_text(const TokenCode code_)
 {
     code = code_;
     value = 0;
@@ -46,15 +50,16 @@ inline void Logic::Token::reset_all_but_text(TokenCode code_)
 }
 
 
-inline void Logic::Token::reset(TokenCode code_)
+inline void Logic::Token::reset(const TokenCode code_)
 {
     reset_all_but_text(code_);
     text.clear();
 }
 
 
-inline void Logic::Token::reset(TokenCode code_, wstring_view text_sv)
+template<typename T>
+void Logic::Token::reset(const TokenCode code_, T&& text_)
 {
     reset_all_but_text(code_);
-    text = text_sv;
+    text = std::forward<T>(text_);
 }

@@ -9,7 +9,7 @@ void AssetsGenerator::Create()
     MessageLoader::LoadMessageFiles(message_file, false, nullptr);
 
     Serializer serializer;
-    serializer.CreateOutputArchive(L"system.mgf", false);
+    serializer.CreateOutputArchive("system.mgf", false);
     serializer >> message_file;
     serializer.CloseArchive();
 }

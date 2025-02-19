@@ -272,7 +272,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
                 // retrieve the current value of the name-expression
                 LogicFile& logic_file = GetSymbolLogicFile(m_iFileSymbol);
-                csFilename = WS2CS(SO::TrimRight(logic_file.GetFilename()));
+                csFilename = UTF8_TODO::GetCString(SO::TrimRight(logic_file.GetFilePath()));
 
                 // close the file so that it isn't locked when opened below
                 logic_file.Close();
@@ -332,7 +332,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
                 if( bAllowDuplicatedFiles ) // Only CsPro allows file name duplication (multi record export)
                     ;
                 else {
-                    issaerror( MessageType::Warning, 31072, GetExpoName().GetString(), iSameName + 1 );
+                    issaerror( MessageType::Warning, 31072, UTF8_TODO::GetUtf8(GetExpoName()).c_str(), iSameName + 1 );
 
                     SetExportUnable();          // export becomes "unable to open"
                     *bDeleteWhenFail = false;
@@ -416,7 +416,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
             if( ( GetExportItemOnly() || GetExportItemSubItem() ) && bIsSubItem ) {
                 //Check if parent item is already in the list
                 bool    bParentItemInList = false;
-                CString csParentName = WS2CS(NPT(iParentItem)->GetName());
+                CString csParentName = UTF8_TODO::GetCString(NPT(iParentItem)->GetName());
 
                 if( m_aItemNames.Lookup( csParentName, iDummy ) )
                     bParentItemInList = true;
@@ -483,7 +483,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
                     while( pSubItem != NULL ) {
                         int    iSymSubItem = pSubItem->GetSymbolIndex();
-                        CString csSubItemName = WS2CS(NPT(iSymSubItem)->GetName());
+                        CString csSubItemName = UTF8_TODO::GetCString(NPT(iSymSubItem)->GetName());
 
 
                         //ASSERT( !m_aItemNames.Lookup(csSubItemName,iDummy) );
@@ -550,7 +550,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
         for( iItem = 0; !bError && iItem < aSymbolsAux.GetSize(); iItem++ ) {
             int iSym = aSymbolsAux.GetAt(iItem);
-            CString csName = WS2CS(NPT(iSym)->GetName());
+            CString csName = UTF8_TODO::GetCString(NPT(iSym)->GetName());
             CString& csOcc=aOccExprStringAux.ElementAt(iItem);
 
             CString csFullName=csName+csOcc;
@@ -563,7 +563,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
         if( !bError ) {
             for( iItem=0; !bError && iItem < m_pHeadNode->m_iNumCaseId; iItem++ ) {
-                CString csName = WS2CS(NPT(m_iCaseIdItems[iItem])->GetName());
+                CString csName = UTF8_TODO::GetCString(NPT(m_iCaseIdItems[iItem])->GetName());
 
                 // RHF INIC Feb 16, 2005 NEW_EXPORT
                 CString& csOcc=m_aCaseIdOccExprString[iItem];
@@ -634,8 +634,8 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
             GetRecNameAndOcc( csCsProRecordName, iMaxRecOcc );
 
         // RHF INIC Feb 03, 2005
-            if( !SO::IsBlank(csCsProRecordName) && !csCsProRecordName.IsName() ) {
-                issaerror( MessageType::Warning, 31058, csCsProRecordName.GetString() );
+            if( !SO::IsBlank(wstring_view(csCsProRecordName)) && !csCsProRecordName.IsName() ) {
+                issaerror( MessageType::Warning, 31058, UTF8_TODO::GetUtf8(csCsProRecordName).c_str() );
                 ExportClose();
                 return false;
             }
@@ -717,7 +717,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
                     }
 
                     // rec_name must be different
-                    else if( !csCsProRecordName.IsEmpty() && csCsProRecordName.Compare(pDuplicatedExport->m_pRecordCSPRO->GetName()) == 0 ) {
+                    else if( !csCsProRecordName.IsEmpty() && csCsProRecordName.Compare(UTF8_TODO::GetCString(pDuplicatedExport->m_pRecordCSPRO->GetName())) == 0 ) {
                         issaerror( MessageType::Warning, 31078 );
                         bError = true;
                     }
@@ -736,10 +736,10 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
                         for( iItem = 0; !bError && iItem < pDuplicatedExport->m_aSymbols.GetSize(); iItem++ ) {
                             int iSym = pDuplicatedExport->m_aSymbols.GetAt(iItem);
-                            CString csName = WS2CS(NPT(iSym)->GetName());
+                            CString csName = UTF8_TODO::GetCString(NPT(iSym)->GetName());
 
                             if( aListItems.Lookup( csName, iDummy ) ) {
-                                issaerror( MessageType::Warning, 31081, csName.GetString() );
+                                issaerror( MessageType::Warning, 31081, UTF8_TODO::GetUtf8(csName).c_str() );
                                 bError = true;
                             }
                             aListItems.SetAt( csName, iDummy );
@@ -747,10 +747,10 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
                         for( iItem = 0; !bError && iItem < m_aSymbols.GetSize(); iItem++ ) {
                             int iSym = m_aSymbols.GetAt(iItem);
-                            CString csName = WS2CS(NPT(iSym)->GetName());
+                            CString csName = UTF8_TODO::GetCString(NPT(iSym)->GetName());
 
                             if( aListItems.Lookup( csName, iDummy ) ) {
-                                issaerror( MessageType::Warning, 31081, csName.GetString() );
+                                issaerror( MessageType::Warning, 31081, UTF8_TODO::GetUtf8(csName).c_str() );
                                 bError = true;
                             }
                             aListItems.SetAt( csName, iDummy );
@@ -798,7 +798,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         // SPSS codebook file
         if( GetExportToSPSS() ) {
             if (pPifFile->GetSPSSSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::SpssSyntax;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::SpssSyntax)));
             else                                           // Chirag Mar 13, 2002
                 csFilename = pPifFile->GetSPSSSyntaxFName(); // Chirag Mar 13, 2002
 
@@ -818,7 +818,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         // SAS codebook file
         if( GetExportToSAS() ) {
             if (pPifFile->GetSASSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::SasSyntax;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::SasSyntax)));
             else                                                 // Chirag Mar 13, 2002
                 csFilename = pPifFile->GetSASSyntaxFName(); // Chirag Mar 13, 2002
 
@@ -832,7 +832,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         if( GetExportToSTATA() ) {
             // DCT file
             if (pPifFile->GetSTATASyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::StataDictionary;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::StataDictionary)));
             else                                       // Chirag Mar 13, 2002
                  csFilename = pPifFile->GetSTATASyntaxFName(); // Chirag Mar 13, 2002
 
@@ -843,7 +843,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
             // DO file
             if (pPifFile->GetSTATADOFName().IsEmpty())  // Chirag Mar 13, 2002
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::StataDo;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::StataDo)));
             else                                        // Chirag Mar 13, 2002
                 csFilename = pPifFile->GetSTATADOFName();// Chirag Mar 13, 2002
 
@@ -857,7 +857,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         if( GetExportToR() ) // GHM 20120507
         {
             if( pPifFile->GetRSyntaxFName().IsEmpty() )
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::RSyntax;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::RSyntax)));
             else
                 csFilename = pPifFile->GetRSyntaxFName();
 
@@ -870,7 +870,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         // CSPRO DataDict
         if( GetExportToCSPRO() ) {
             if (pPifFile->GetCSPROSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-                csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::Dictionary;
+                csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetCString(FileExtensions::Dictionary)));
             else                                           // Chirag Mar 13, 2002
                 csFilename = pPifFile->GetCSPROSyntaxFName(); // Chirag Mar 13, 2002
 
@@ -893,10 +893,10 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
             if( m_pRecordCSPRO == NULL )
                 throw ExportException( COULD_NOT_OPEN_FILE_CODE );
 
-            m_pRecordCSPRO->SetName( csCsProRecordName );
+            m_pRecordCSPRO->SetName(UTF8_TODO::GetUtf8(csCsProRecordName));
 
             // GHM 20120514 use the actual record name from input dictionary
-            if( SO::IsBlank(csCsProRecordName) && m_aSymbols.GetSize() )
+            if( SO::IsBlank(wstring_view(csCsProRecordName)) && m_aSymbols.GetSize() )
             {
                 const CDictRecord* pRec1 = VPT(m_aSymbols[0])->GetDictItem()->GetRecord();
                 const CDictRecord* pRec2 = VPT(m_aSymbols[m_aSymbols.GetSize() - 1])->GetDictItem()->GetRecord();
@@ -922,7 +922,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
         default:
         case 0: break; // 0 means do not output any message, just close Export later
         case COULD_NOT_OPEN_FILE_CODE:
-                    issaerror( MessageType::Warning, e.getErrorCode(), csFilename.GetString() );
+                    issaerror( MessageType::Warning, e.getErrorCode(), UTF8_TODO::GetUtf8(csFilename).c_str() );
                     break;
 
         case 31055: ; // fall through to show message
@@ -1028,11 +1028,11 @@ int CExport::Export_PrintNames( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[D
     if( pVarT->IsArray() ) {
         CString csValue[DIM_MAXDIM];
 
-        csValue[0] = IntToString( aIndex[0] );
-        csValue[1] = IntToString( aIndex[1] );
-        csValue[2] = IntToString( aIndex[2] );
+        csValue[0] = UTF8_TODO::GetCString(IntToString( aIndex[0] ));
+        csValue[1] = UTF8_TODO::GetCString(IntToString( aIndex[1] ));
+        csValue[2] = UTF8_TODO::GetCString(IntToString( aIndex[2] ));
 
-        CString csVarName = WS2CS(pVarT->GetName());
+        CString csVarName = UTF8_TODO::GetCString(pVarT->GetName());
 
         if( aDimFlag[0] & CITERATOR_FLAG_EXPLICIT )
             csVarName += _T("(") + csValue[0];
@@ -1052,7 +1052,7 @@ int CExport::Export_PrintNames( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[D
         pVarNames->Add( csVarName );
     }
     else {
-        pVarNames->Add( WS2CS(pVarT->GetName()) );
+        pVarNames->Add( UTF8_TODO::GetCString(pVarT->GetName()) );
     }
 
     return 0;
@@ -1671,7 +1671,7 @@ int CExport::Export_StataValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDim
     // sets also be B_01, B_02, etc., but when associating the value set would say: label values b_01     B
     // so now, i only define the value set once, so it will be just B, and the "label values b_01     B" code will work
 
-    CString csGenName = WS2CS(pVarT->GetName());
+    CString csGenName = UTF8_TODO::GetCString(pVarT->GetName());
 
     static int prevVar = -1;
 
@@ -1774,7 +1774,7 @@ int CExport::Export_StataAsocValueLabels( int iVar, int aIndex[DIM_MAXDIM], int 
             _tcscpy( pszGenName, csExportedVarName );
             _tcslwr( pszGenName );
 
-            _ftprintf( m_pFileSTATAdo, _T("label values %-8s %-8s\n"), pszGenName, pVarT->GetName().c_str() );
+            _ftprintf( m_pFileSTATAdo, _T("label values %-8s %-8s\n"), pszGenName, UTF8_TODO::GetWide(pVarT->GetName()).c_str() );
         }
     }
 
@@ -1827,7 +1827,7 @@ int CExport::Export_CsProDescription( int iVar, int aIndex[DIM_MAXDIM], int aDim
     for( int i=0; !bFound && i < m_pRecordCSPRO->GetNumItems(); i++ ) {
         CDictItem* pItem = m_pRecordCSPRO->GetItem(i);
 
-        if( pItem->GetName() == WS2CS(pVarT->GetName()) ) {
+        if( pItem->GetName() == pVarT->GetName() ) {
 
             //When Items and SubItems are exported, subitems can't change the number of the original ocurrences
             if( !bIsSubItem || GetExportSubItemOnly() || pVarT->GetMaxOccs() > (int)pItem->GetOccurs()) {
@@ -1846,7 +1846,7 @@ int CExport::Export_CsProDescription( int iVar, int aIndex[DIM_MAXDIM], int aDim
 
         CDictItem    cNewItem( *pDictItem );
 
-        cNewItem.SetName( csExportedVarName );
+        cNewItem.SetName(UTF8_TODO::GetUtf8(csExportedVarName));
         cNewItem.SetStart(*pLoc);
 
         //transform to item
@@ -1889,9 +1889,9 @@ int CExport::Export_CsProDescription( int iVar, int aIndex[DIM_MAXDIM], int aDim
         // record so we can add them to exported dict note later.
         if (!pDictItem->GetRecord()->GetNote().IsEmpty()) {
             CString note;
-            const CIMSAString recName = pDictItem->GetRecord()->GetName();
-            if (!m_mapRecNotes.Lookup(recName, note)) {
-                m_mapRecNotes[recName] = pDictItem->GetRecord()->GetNote();
+            const CString& record_name = UTF8_TODO::GetCString(pDictItem->GetRecord()->GetName());
+            if (!m_mapRecNotes.Lookup(record_name, note)) {
+                m_mapRecNotes[record_name] = pDictItem->GetRecord()->GetNote();
             }
         }
     }
@@ -2107,7 +2107,7 @@ CString CExport::GetDcfExpoName() const
     CNPifFile* pPifFile = m_pEngineDriver->GetPifFile();
 
     if( pPifFile->GetCSPROSyntaxFName().IsEmpty() )
-        return PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::Dictionary;
+        return WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetCString(FileExtensions::Dictionary)));
 
     else
         return pPifFile->GetCSPROSyntaxFName();
@@ -2125,11 +2125,11 @@ void CExport::GetRecNameAndOcc( CString& csRecordName, int& iMaxOcc ) {
     if( pHeadNode->m_bIsSymbolRecName ) {
         SECT* pSecT=SPT(pHeadNode->m_iRecNameExpr);
 
-        csRecordName = WS2CS(pSecT->GetName());
+        csRecordName = UTF8_TODO::GetCString(pSecT->GetName());
         iMaxOcc = pSecT->GetMaxOccs();
     }
     else if( pHeadNode->m_iRecNameExpr >= 0 )  {
-        csRecordName = pIntDriver->EvalAlphaExpr<CString>(pHeadNode->m_iRecNameExpr);
+        csRecordName = pIntDriver->EvalAlphaExprCS(pHeadNode->m_iRecNameExpr);
     }
     else
         csRecordName.Empty();
@@ -2152,7 +2152,7 @@ void CExport::ExportRecType( bool bCopyToRecArea ) {
             strcpymax( m_pszSectionCode, pSecT->code, std::min( iSecCodeLen, MAX_RECTYPECODE ) );
         }
         else if( pHeadNode->m_iRecTypeExpr >= 0 )  {
-            CString csRecordType = pIntDriver->EvalAlphaExpr<CString>(pHeadNode->m_iRecTypeExpr);
+            CString csRecordType = pIntDriver->EvalAlphaExprCS(pHeadNode->m_iRecTypeExpr);
 
             strcpymax( m_pszSectionCode, csRecordType, MAX_RECTYPECODE );
         }
@@ -2213,7 +2213,7 @@ int CExport::ExportCaseIdVarNames( bool bCopyToRecArea ) {
         VART* pVarT=VPT(iSymVar);
         ASSERT( !pVarT->IsArray() );
 
-        CString csVarName = WS2CS(pVarT->GetName());
+        CString csVarName = UTF8_TODO::GetCString(pVarT->GetName());
 
         if( bCopyToRecArea ) {
             CopyToExportArea( csVarName, csVarName.GetLength() );
@@ -2309,7 +2309,7 @@ bool CExport::MakeDefaultCaseId(  int iUntilLevel ) {
             for( int i = 0; ( iSymVar = m_pEngineArea->m_pEngineSettings->m_QidVars[iLevel][i] ) > 0; i++ ) {
                 VART*   pVarT   = VPT(iSymVar);
 
-                CString csItemName = WS2CS(pVarT->GetName());
+                CString csItemName = UTF8_TODO::GetCString(pVarT->GetName());
                 int        iDummy;
                 if( this->m_aItemNames.Lookup( csItemName, iDummy ) )
                     return false;
@@ -2375,7 +2375,7 @@ void CExport::RemoveFiles() {
     // SPSS codebook file
     if( GetExportToSPSS() ) {
         if (pPifFile->GetSPSSSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::SpssSyntax;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::SpssSyntax)));
         else                                           // Chirag Mar 13, 2002
             csFilename = pPifFile->GetSPSSSyntaxFName(); // Chirag Mar 13, 2002
         PortableFunctions::FileDelete( csFilename );
@@ -2384,7 +2384,7 @@ void CExport::RemoveFiles() {
     // SAS codebook file
     if( GetExportToSAS() ) {
         if (pPifFile->GetSASSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::SasSyntax;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::SasSyntax)));
         else                                                 // Chirag Mar 13, 2002
             csFilename = pPifFile->GetSASSyntaxFName(); // Chirag Mar 13, 2002
         PortableFunctions::FileDelete( csFilename );
@@ -2394,7 +2394,7 @@ void CExport::RemoveFiles() {
     if( GetExportToSTATA() ) {
         // DCT file
         if (pPifFile->GetSTATASyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::StataDictionary;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::StataDictionary)));
         else                                       // Chirag Mar 13, 2002
             csFilename = pPifFile->GetSTATASyntaxFName(); // Chirag Mar 13, 2002
 
@@ -2402,7 +2402,7 @@ void CExport::RemoveFiles() {
 
         // DO file
         if (pPifFile->GetSTATADOFName().IsEmpty())  // Chirag Mar 13, 2002
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::StataDo;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::StataDo)));
         else                                        // Chirag Mar 13, 2002
             csFilename = pPifFile->GetSTATADOFName();// Chirag Mar 13, 2002
 
@@ -2413,7 +2413,7 @@ void CExport::RemoveFiles() {
     // CSPRO DataDict
     if( GetExportToCSPRO() ) {
         if (pPifFile->GetCSPROSyntaxFName().IsEmpty())  // Chirag Mar 13, 2002
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::Dictionary;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetCString(FileExtensions::Dictionary)));
         else                                           // Chirag Mar 13, 2002
             csFilename = pPifFile->GetCSPROSyntaxFName(); // Chirag Mar 13, 2002
 
@@ -2423,7 +2423,7 @@ void CExport::RemoveFiles() {
     // R codebook file
     if( GetExportToR() ) {
         if (pPifFile->GetRSyntaxFName().IsEmpty())
-            csFilename = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::RSyntax;
+            csFilename = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::RSyntax)));
         else
             csFilename = pPifFile->GetRSyntaxFName();
         PortableFunctions::FileDelete( csFilename );

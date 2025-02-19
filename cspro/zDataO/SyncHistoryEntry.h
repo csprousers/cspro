@@ -8,59 +8,70 @@ class SyncHistoryEntry
 public:
     enum class SyncState
     {
-        Complete = 0,
+        Complete   = 0,
         PartialGet = 1,
         PartialPut = 2
     };
 
-    SyncHistoryEntry()
-        : m_serialNumber(-1),
-          m_fileRevision(-1),
-          m_dateTime(0)
-    {
-    }
+    SyncHistoryEntry(int serial_number, int file_revision, DeviceId device_id,
+                     std::string device_name, SyncDirection direction, std::string universe, int64_t date_time, std::string server_file_revision,
+                     SyncState state = SyncState::Complete, std::string last_case_uuid = std::string());
 
-    SyncHistoryEntry(int serialNumber, int fileRevision, DeviceId deviceId,
-        CString deviceName, SyncDirection direction,
-        CString universe, time_t dateTime, CString serverFileRevision,
-        SyncState state = SyncState::Complete, CString lastCaseUuid = CString()) :
-        m_serialNumber(serialNumber),
-        m_fileRevision(fileRevision),
-        m_deviceId(deviceId),
-        m_deviceName(deviceName),
-        m_direction(direction),
-        m_universe(universe),
-        m_dateTime(dateTime),
-        m_serverFileRevision(serverFileRevision),
-        m_state(state),
-        m_lastCaseUuid(lastCaseUuid)
-    {
-    }
+    int GetSerialNumber() const { return m_serialNumber; }
 
-    int getSerialNumber() const { return m_serialNumber; }
-    int getFileRevision() const { return m_fileRevision; }
-    SyncState getState() const { return m_state; }
-    DeviceId getDeviceId() const { return m_deviceId; }
-    CString getDeviceName() const { return m_deviceName; }
-    CString getUniverse() const { return m_universe; }
-    SyncDirection getDirection() const { return m_direction; }
-    time_t getDateTime() const { return m_dateTime; }
-    CString getServerFileRevision() const { return m_serverFileRevision; }
-    CString getLastCaseUuid() const { return m_lastCaseUuid; }
+    int GetFileRevision() const { return m_fileRevision; }
 
-    bool valid() const { return m_serialNumber >= 0; }
-    bool isPartialGet() const { return m_state == SyncState::PartialGet; }
-    bool isPartialPut() const { return m_state == SyncState::PartialPut; }
+    SyncState GetState() const { return m_state; }
+
+    const DeviceId& GetDeviceId() const { return m_deviceId; }
+
+    const std::string& GetDeviceName() const { return m_deviceName; }
+
+    const std::string& GetUniverse() const { return m_universe; }
+
+    SyncDirection GetDirection() const { return m_direction; }
+
+    int64_t GetDateTime() const { return m_dateTime; }
+
+    const std::string& GetServerFileRevision() const { return m_serverFileRevision; }
+
+    const std::string& GetLastCaseUuid() const { return m_lastCaseUuid; }
+
+    bool IsPartialGet() const { return m_state == SyncState::PartialGet; }
+    bool IsPartialPut() const { return m_state == SyncState::PartialPut; }
 
 private:
     int m_serialNumber;
     int m_fileRevision;
     DeviceId m_deviceId;
-    CString m_deviceName;
+    std::string m_deviceName;
     SyncDirection m_direction;
-    CString m_universe;
-    time_t m_dateTime;
-    CString m_serverFileRevision;
+    std::string m_universe;
+    int64_t m_dateTime;
+    std::string m_serverFileRevision;
     SyncState m_state;
-    CString m_lastCaseUuid;
+    std::string m_lastCaseUuid;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline SyncHistoryEntry::SyncHistoryEntry(const int serial_number, const int file_revision, DeviceId device_id,
+                                          std::string device_name, const SyncDirection direction, std::string universe, const int64_t date_time, std::string server_file_revision,
+                                          const SyncState state/* = SyncState::Complete*/, std::string last_case_uuid/* = std::string()*/)
+    :   m_serialNumber(serial_number),
+        m_fileRevision(file_revision),
+        m_deviceId(std::move(device_id)),
+        m_deviceName(std::move(device_name)),
+        m_direction(direction),
+        m_universe(std::move(universe)),
+        m_dateTime(date_time),
+        m_serverFileRevision(std::move(server_file_revision)),
+        m_state(state),
+        m_lastCaseUuid(std::move(last_case_uuid))
+{
+    ASSERT(serial_number >= 0);
+}

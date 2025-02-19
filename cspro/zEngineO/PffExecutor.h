@@ -9,10 +9,10 @@ class CDataDict;
 class ZENGINEO_API PffExecutor
 {
 public:
-    static bool IsValidEmbeddedProperty(const std::wstring& property_name)
+    static bool IsValidEmbeddedProperty(const std::string& property_name)
     {
-        return SO::EqualsOneOfNoCase(property_name, PFF_COMMAND_INPUT_DICT,
-                                                    PFF_COMMAND_OUTPUT_DICT);
+        return SO::EqualsOneOfNoCase(property_name, UTF8_TODO::GetUtf8(PFF_COMMAND_INPUT_DICT),
+                                                    UTF8_TODO::GetUtf8(PFF_COMMAND_OUTPUT_DICT));
     }
 
     bool SetEmbeddedDictionary(const std::wstring& property_name, std::shared_ptr<const CDataDict> dictionary);

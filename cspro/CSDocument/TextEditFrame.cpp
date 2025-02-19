@@ -15,7 +15,7 @@ TextEditFrame::TextEditFrame()
 }
 
 
-void TextEditFrame::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd)
+void TextEditFrame::OnMDIActivate(BOOL const bActivate, CWnd* const pActivateWnd, CWnd* const pDeactivateWnd)
 {
     // code based on CodeFrame::OnMDIActivate
     __super::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd);
@@ -28,7 +28,7 @@ void TextEditFrame::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDea
 }
 
 
-LRESULT TextEditFrame::OnTextEditFrameActivate(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT TextEditFrame::OnTextEditFrameActivate(const WPARAM wParam, LPARAM /*lParam*/)
 {
     // code based on CodeFrame::OnCodeFrameActivate
     const WPARAM& post_message_counter = wParam;
@@ -47,25 +47,25 @@ LRESULT TextEditFrame::OnTextEditFrameActivate(WPARAM wParam, LPARAM /*lParam*/)
 
 void TextEditFrame::CheckIfFileIsUpdated()
 {
-    TextEditDoc* text_edit_doc = assert_nullable_cast<TextEditDoc*>(GetActiveDocument());
+    TextEditDoc* const text_edit_doc = assert_nullable_cast<TextEditDoc*>(GetActiveDocument());
 
     if( text_edit_doc == nullptr )
         return;
 
-    const TextSource* text_source = text_edit_doc->GetTextSource();
+    const TextSource* const text_source = text_edit_doc->GetTextSource();
 
     if( text_source == nullptr )
         return;
 
-    const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(text_source->GetFilename());
-    const bool file_on_disk_is_newer = ( text_source->GetModifiedIteration() < PortableFunctions::FileModifiedTime(text_source->GetFilename()) );
+    const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(text_source->GetFilePath());
+    const bool file_on_disk_is_newer = ( text_source->GetModifiedIteration() < file_on_disk_modified_time );
 
     if( file_on_disk_is_newer && file_on_disk_modified_time > m_lastCheckIfFileIsUpdatedTime )
     {
-        const int response = AfxMessageBox(FormatText(_T("The file has been modified by another program.\nDo you want to reload '%s'?"),
-                                                      PortableFunctions::PathGetFilename(text_source->GetFilename())), MB_YESNO);
+        const std::string message = FormatText("The file has been modified by another program.\nDo you want to reload '%s'?",
+                                               PortableFunctions::PathGetFilename(text_source->GetFilePath()).c_str());
 
-        if( response == IDYES )
+        if( AfxMessageBox(message, MB_YESNO) == IDYES )
             text_edit_doc->ReloadFromDisk();
     }
 
@@ -73,7 +73,7 @@ void TextEditFrame::CheckIfFileIsUpdated()
 }
 
 
-void TextEditFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* pCmdUI)
+void TextEditFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!GetActiveDocument()->GetPathName().IsEmpty());
 }

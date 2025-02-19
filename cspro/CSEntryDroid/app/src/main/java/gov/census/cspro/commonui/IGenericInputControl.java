@@ -1,22 +1,22 @@
 /***************************************************************************************
- * 
+ *
  * CSEntry for Android
- * 
- * Module:		IGenericInputControl.java
- * 
+ *
+ * Module:      IGenericInputControl.java
+ *
  * Description: Interface contract used to define the behaviors that should
- * 				be expected across all custom CSPro input controls.
- * 
+ *              be expected across all custom CSPro input controls.
+ *
  **************************************************************************************/
 package gov.census.cspro.commonui;
 
 import gov.census.cspro.form.CDEField;
 
-public interface IGenericInputControl 
+public interface IGenericInputControl
 {
-	/*
-	 * adds a value changed listener to the listener list
-	 */
+    /*
+     * adds a value changed listener to the listener list
+     */
     public void addValueChangedListener(IInputControlValueChangedListener listener);
     /*
      * returns the edit field object this control is working on

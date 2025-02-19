@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: FrmTrCtl.h
 //
@@ -20,10 +21,9 @@ class CFormNodeID;
 
 class CLASS_DECL_ZFORMF CFormTreeCtrl : public CTreeCtrl
 {
+    DECLARE_DYNCREATE (CFormTreeCtrl)
+
 private:
-
-DECLARE_DYNCREATE (CFormTreeCtrl)
-
     CWnd*           m_pDropWnd;
     CImageList*     m_pDragImage;   // the current image being dragged (i think)
     CImageList      m_cImageList;   // where my icons will be stored during registration
@@ -52,15 +52,19 @@ DECLARE_DYNCREATE (CFormTreeCtrl)
 
     COleDropTarget  m_dropTarget;   // nd for registering the tree ctrl as a recipient of a drop op
 
+public:
     BOOL            m_bSendMsg;     //Flag for sending messages to the main window
-    static LOGFONT      m_DefLogFont;
-    static CFont        m_font;
+
+private:
+    static LOGFONT  m_DefLogFont;
+    static CFont    m_font;
 
 public:
-    void SwitchRefresh();
-    void RestoreItemSelection();
     CFormTreeCtrl();
     virtual ~CFormTreeCtrl();
+
+    void SwitchRefresh();
+    void RestoreItemSelection();
 
 //  ****************
 //  this blk of funcs support multi-selection in the tree control
@@ -81,7 +85,12 @@ public:
     void SetSndMsgFlg(BOOL bFlag) {m_bSendMsg = bFlag;}
 //  ****************
 
-    HTREEITEM InsertFormFile(const CString& sLabel , const CString& sFormFileName ,CFormDoc* pDoc);
+    // Adds the form file if it is not already added, increasing the reference count otherwise.
+    HTREEITEM AddFormFile(const std::string& form_file_path, CFormDoc* form_doc, bool add_dependencies);
+
+    // Removes the form file if this is the last use of it, decreasing the reference count otherwise.
+    // If removing a modified form file, the user will be prompted to save it.
+    void RemoveFormFile(const std::string& form_file_path);
 
     void SetDocTemplate (CDocTemplate* pTemplate) { m_pDocTemplate = pTemplate; }
 
@@ -115,12 +124,12 @@ public:
 
     void InsertExternalCodeAndReportNodes(const CFormNodeID* pFormNodeId);
 
-    CFormNodeID* GetFormNode (CFormDoc* pDoc) const ;
-    CFormNodeID* GetFormNode (wstring_view filename) const;
+    CFormNodeID* GetFormNode(CFormDoc* pDoc) const;
+    CFormNodeID* GetFormNode(std::string_view file_path_sv) const;
 
     void DeleteActiveItem   (HTREEITEM );
 
-    BOOL OpenFormFile       (const CString &sFormFile ,BOOL bMakeVisible = TRUE);
+    BOOL OpenFormFile       (const std::string& form_file_path, BOOL bMakeVisible = TRUE);
 
     void RemoveFormIDs      (HTREEITEM hItem);
     void Clean              (void);

@@ -18,14 +18,15 @@ public:
 
     LocalFileServer& GetLocalFileServer() { return m_localFileServer; }
 
-    std::wstring GetFilenameUrl(NullTerminatedStringView filename, bool get_complete_escaped_url);
+    std::string CreateFileUrl(const std::string& file_path, bool get_complete_escaped_url, bool make_url_unique = false);
+    std::string CreateUniqueFileUrl(const std::string& file_path);
 
-    VirtualFileMapping CreateVirtualHtmlFile(wstring_view directory_sv, std::function<std::string()> callback);
+    VirtualFileMapping CreateVirtualHtmlFile(const std::string& directory, std::function<SharableString()> callback);
 
 private:
     LocalFileServer m_localFileServer;
-    std::map<std::wstring, std::wstring> m_volumeMapping;
-    std::set<std::wstring> m_virtualHtmlFilenames;
+    std::map<std::string, std::string> m_volumeMapping;
+    std::set<std::string> m_virtualHtmlFilePaths;
 };
 
 
@@ -36,14 +37,18 @@ SharedHtmlLocalFileServer::Impl::Impl()
 }
 
 
-std::wstring SharedHtmlLocalFileServer::Impl::GetFilenameUrl(const NullTerminatedStringView filename, const bool get_complete_escaped_url)
+std::string SharedHtmlLocalFileServer::Impl::CreateFileUrl(const std::string& file_path, const bool get_complete_escaped_url, const bool make_url_unique/* = false*/)
 {
-    const std::wstring volume_name = PathGetVolume(filename);
+    const std::string real_volume_name = PathGetVolume(file_path);
+    const std::string path_without_volume = PortableFunctions::PathToForwardSlash(file_path.substr(real_volume_name.length()));
 
-    std::wstring path_without_volume = PortableFunctions::PathToForwardSlash<std::wstring>(filename.substr(volume_name.length()));
+    cs::non_null_shared_or_raw_ptr<const std::string> mapped_volume_name(&real_volume_name);
 
-    const auto& volume_lookup = m_volumeMapping.find(volume_name);
-    std::wstring volume_url;
+    if( make_url_unique )
+        mapped_volume_name = std::make_shared<std::string>(IntToString(m_volumeMapping.size()) + real_volume_name);
+
+    const auto& volume_lookup = m_volumeMapping.find(*mapped_volume_name);
+    std::string volume_url;
 
     if( volume_lookup != m_volumeMapping.cend() )
     {
@@ -53,52 +58,60 @@ std::wstring SharedHtmlLocalFileServer::Impl::GetFilenameUrl(const NullTerminate
     else
     {
         // if the volume has not been mapped yet, mount it,
-        // removing any non-letter characters from the volume name
-        std::wstring volume_letter;
+        // removing any non-alphanumeric characters from the volume name
+        std::string volume_letter;
 
-        for( const TCHAR ch : volume_name )
+        for( const char ch : *mapped_volume_name )
         {
-            if( std::isalpha(ch) )
+            if( std::isalnum(ch) )
                 volume_letter.push_back(ch);
         }
 
-        volume_url = FormatTextCS2WS(_T("/%s/%s/"), LocalhostUrl::LocalFileSystemDirectoryName, volume_letter.c_str());
+        volume_url = FormatText("/%s/%s/", LocalhostUrl::LocalFileSystemDirectoryName, volume_letter.c_str());
 
-        m_localFileServer.AddMountPoint(volume_url, volume_name);
+        m_localFileServer.AddMountPoint(volume_url, real_volume_name);
 
-        m_volumeMapping.try_emplace(volume_name, volume_url);
+        m_volumeMapping.try_emplace(*mapped_volume_name, volume_url);
     }
 
     ASSERT(!volume_url.empty() && volume_url.front() == '/' && volume_url.back() == '/');
 
     if( get_complete_escaped_url )
     {
-        return SO::Concatenate(m_localFileServer.GetBaseUrl(), wstring_view(volume_url).substr(1), Encoders::ToUri(path_without_volume, false));
+        return SO::Concatenate(m_localFileServer.GetBaseUrl(),
+                               std::string_view(volume_url).substr(1),
+                               Encoders::ToUri(path_without_volume, false));
     }
 
     else
     {
-        return SO::Concatenate(std::move(volume_url), std::move(path_without_volume));
+        return volume_url + path_without_volume;
     }
 }
 
 
-VirtualFileMapping SharedHtmlLocalFileServer::Impl::CreateVirtualHtmlFile(const wstring_view directory_sv, std::function<std::string()> callback)
+std::string SharedHtmlLocalFileServer::Impl::CreateUniqueFileUrl(const std::string& file_path)
 {
-    // create a filename that does not exist in the directory and that was not used for a previous mapping
-    const std::wstring filename = PortableFunctions::GetUniqueFilenameInDirectory(directory_sv, FileExtensions::HTML, nullptr,
-        [&](const std::wstring& test_filename)
+    return CreateFileUrl(file_path, true, true);
+}
+
+
+VirtualFileMapping SharedHtmlLocalFileServer::Impl::CreateVirtualHtmlFile(const std::string& directory, std::function<SharableString()> callback)
+{
+    // create a file path that does not exist in the directory and that was not used for a previous mapping
+    const std::string file_path = PortableFunctions::GetUniqueFilePathInDirectory(directory, FileExtensions::HTML, nullptr,
+        [&](const std::string& test_file_path)
         {
-            return ( m_virtualHtmlFilenames.find(test_filename) == m_virtualHtmlFilenames.cend() );
+            return ( m_virtualHtmlFilePaths.find(test_file_path) == m_virtualHtmlFilePaths.cend() );
         });
 
-    m_virtualHtmlFilenames.insert(filename);
+    m_virtualHtmlFilePaths.insert(file_path);
 
-    const std::wstring url_for_mapping = GetFilenameUrl(filename, false);
+    const std::string url_for_mapping = CreateFileUrl(file_path, false);
 
     std::shared_ptr<bool> virtual_file_mapping_active = m_localFileServer.AddMapping(url_for_mapping, "text/html; charset=utf-8", std::move(callback));
 
-    return VirtualFileMapping(GetFilenameUrl(filename, true), std::move(virtual_file_mapping_active));
+    return VirtualFileMapping(CreateFileUrl(file_path, true), std::move(virtual_file_mapping_active));
 }
 
 
@@ -110,7 +123,7 @@ VirtualFileMapping SharedHtmlLocalFileServer::Impl::CreateVirtualHtmlFile(const 
 std::unique_ptr<SharedHtmlLocalFileServer::Impl> SharedHtmlLocalFileServer::m_sharedImpl;
 
 
-SharedHtmlLocalFileServer::SharedHtmlLocalFileServer(std::wstring project_root/* = std::wstring()*/)
+SharedHtmlLocalFileServer::SharedHtmlLocalFileServer(std::string project_root/* = std::string()*/)
     :   m_projectRoot(PortableFunctions::PathEnsureTrailingForwardSlash(std::move(project_root))),
         m_impl(m_sharedImpl.get()),
         m_usingSharedImpl(true)
@@ -128,7 +141,7 @@ SharedHtmlLocalFileServer::SharedHtmlLocalFileServer(std::wstring project_root/*
 
     // if there is no application shutdown runner in place, we cannot use a shared implementation
     // because we need a way to be able to stop the server thread when using the shared implementation
-    ApplicationShutdownRunner* application_shutdown_runner = ApplicationShutdownRunner::Get();
+    ApplicationShutdownRunner* const application_shutdown_runner = ApplicationShutdownRunner::Get();
 
     if( application_shutdown_runner == nullptr )
     {
@@ -146,18 +159,18 @@ SharedHtmlLocalFileServer::SharedHtmlLocalFileServer(std::wstring project_root/*
     }
 
     // potentially map some drives automatically
-    const std::vector<std::wstring> automatically_mapped_drives = LocalhostSettings::GetDrivesToAutomaticallyMap();
+    const std::vector<std::string> automatically_mapped_drives = LocalhostSettings::GetDrivesToAutomaticallyMap();
 
     if( !automatically_mapped_drives.empty() )
     {
-        const std::vector<std::wstring> logical_drives = GetLogicalDrivesVector();
+        const std::vector<std::string> logical_drives = GetLogicalDrivesVector();
 
-        for( const std::wstring& drive : automatically_mapped_drives )
+        for( const std::string& drive : automatically_mapped_drives )
         {
             if( std::find(logical_drives.cbegin(), logical_drives.cend(), drive) != logical_drives.cend() )
             {
-                const std::wstring fake_filename = PortableFunctions::PathAppendToPath(drive, _T("j"));
-                GetFilenameUrl(fake_filename);
+                const std::string fake_filename = Path::Combine(drive, "j");
+                CreateFileUrl(fake_filename);
             }
         }
     }
@@ -171,26 +184,35 @@ SharedHtmlLocalFileServer::~SharedHtmlLocalFileServer()
 }
 
 
-std::wstring SharedHtmlLocalFileServer::GetProjectUrl(const wstring_view url_from_project_root_sv) const
+std::string SharedHtmlLocalFileServer::CreateProjectUrl(const std::string_view url_from_project_root_sv) const
 {
     ASSERT(!url_from_project_root_sv.empty() || url_from_project_root_sv.front() != '/');
-    return SO::Concatenate(m_impl->GetLocalFileServer().GetBaseUrl(), m_projectRoot, url_from_project_root_sv);
+
+    return SO::Concatenate(m_impl->GetLocalFileServer().GetBaseUrl(),
+                           m_projectRoot,
+                           url_from_project_root_sv);
 }
 
 
-std::wstring SharedHtmlLocalFileServer::GetFilenameUrl(const NullTerminatedStringView filename)
+std::string SharedHtmlLocalFileServer::CreateFileUrl(const std::string& file_path)
 {
-    return m_impl->GetFilenameUrl(filename, true);
+    return m_impl->CreateFileUrl(file_path, true);
 }
 
 
-VirtualFileMapping SharedHtmlLocalFileServer::CreateVirtualHtmlFile(const wstring_view directory_sv, std::function<std::string()> callback)
+std::string SharedHtmlLocalFileServer::CreateUniqueFileUrl(const std::string& file_path)
 {
-    return m_impl->CreateVirtualHtmlFile(directory_sv, std::move(callback));
+    return m_impl->CreateUniqueFileUrl(file_path);
 }
 
 
-void SharedHtmlLocalFileServer::CreateVirtualFile(VirtualFileMappingHandler& virtual_file_mapping_handler, const NullTerminatedString filename/* = _T("")*/)
+VirtualFileMapping SharedHtmlLocalFileServer::CreateVirtualHtmlFile(const std::string& directory, std::function<SharableString()> callback)
+{
+    return m_impl->CreateVirtualHtmlFile(directory, std::move(callback));
+}
+
+
+void SharedHtmlLocalFileServer::CreateVirtualFile(VirtualFileMappingHandler& virtual_file_mapping_handler, const cs::string_sz filename/* = ""*/)
 {
     m_impl->GetLocalFileServer().AddMapping(virtual_file_mapping_handler, filename);
 }

@@ -154,7 +154,7 @@ int LogicCompiler::CompileWhen()
 int LogicCompiler::CompileRecode()
 {
     // first see if they are using the pre-7.4 version of recode
-    bool using_old_recode = SO::EqualsNoCase(Tokstr, _T("box"));
+    bool using_old_recode = SO::EqualsNoCase(Tokstr, "box");
 
     if( !using_old_recode )
     {
@@ -210,7 +210,7 @@ int LogicCompiler::CompileRecode()
                     }
 
                     destination_data_types.emplace_back(SymbolCalculator::GetDataType(*symbol));
-                    result_destinations.emplace_back(CompileDestinationVariable(symbol));
+                    result_destinations.emplace_back(CompileDestinationVariable(*symbol));
                 }
 
                 else

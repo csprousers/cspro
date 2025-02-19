@@ -16,9 +16,11 @@ public:
 
     Application* GetApplication() override;
 
-    std::shared_ptr<CDataDict> GetDictionary(NullTerminatedString dictionary_filename) override;
+    std::shared_ptr<CDataDict> GetDictionary(const std::string& dictionary_file_path) override;
 
-    std::shared_ptr<CDEFormFile> GetFormFile(const CString& form_filename) override;
+    std::shared_ptr<CDEFormFile> GetFormFile(const std::string& form_file_path) override;
+
+    std::shared_ptr<CTabSet> GetTableSpec(const std::string& table_spec_file_path) override;
 
     std::shared_ptr<SystemMessageIssuer> GetSystemMessageIssuer() override;
 

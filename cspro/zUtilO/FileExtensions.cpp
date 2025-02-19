@@ -2,16 +2,28 @@
 #include "FileExtensions.h"
 
 
-bool FileExtensions::IsFilenameHtml(wstring_view filename_sv)
+bool FileExtensions::IsExtensionHtml(const std::string_view extension_sv)
 {
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(filename_sv);
-    return SO::EqualsOneOfNoCase(extension, FileExtensions::HTML, FileExtensions::HTM, FileExtensions::CSHTML);
+    return SO::EqualsOneOfNoCase(extension_sv, FileExtensions::HTML, FileExtensions::HTM, FileExtensions::CSHTML);
 }
 
 
-bool FileExtensions::IsExtensionForbiddenForDataFiles(wstring_view extension_sv)
+bool FileExtensions::IsFileHtml(const std::string_view filename_sv)
 {
-    static const std::vector<const TCHAR*> disallowed_extensions =
+    return IsExtensionHtml(PortableFunctions::PathGetFileExtension(filename_sv));
+}
+
+
+bool FileExtensions::IsFileCompressedData(const std::string_view filename_sv)
+{
+    const std::string extension = PortableFunctions::PathGetFileExtension(filename_sv);
+    return SO::EqualsOneOfNoCase(extension, FileExtensions::Zip, "jpg", "jpeg", "png", "gif", "pdf", "7z", "rar", "tar", "gz", "bz2");
+}
+
+
+bool FileExtensions::IsExtensionForbiddenForDataFiles(const std::string_view extension_sv)
+{
+    static const std::vector<const char*> disallowed_extensions =
     {
         AreaName,
         Logic,
@@ -47,10 +59,10 @@ bool FileExtensions::IsExtensionForbiddenForDataFiles(wstring_view extension_sv)
         TableSpec
     };
 
-    ASSERT(!SO::StartsWith(extension_sv, _T(".")));
+    ASSERT(!SO::StartsWith(extension_sv, "."));
 
     const auto& lookup = std::find_if(disallowed_extensions.cbegin(), disallowed_extensions.cend(),
-                                      [&](const TCHAR* this_extension) { return SO::EqualsNoCase(extension_sv, this_extension); });
+                                      [&](const char* const this_extension) { return SO::EqualsNoCase(extension_sv, this_extension); });
 
     return ( lookup != disallowed_extensions.cend() );
 }

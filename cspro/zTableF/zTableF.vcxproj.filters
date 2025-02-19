@@ -81,13 +81,13 @@
     <ClCompile Include="TabDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TabPDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TabTrCtl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabTreeNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TabView.cpp">
@@ -99,7 +99,7 @@
     <ClCompile Include="TblFmtD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TBLGRID.CPP">
+    <ClCompile Include="Tblgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TblPFmtD.cpp">
@@ -112,9 +112,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TlyVrDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TSPDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TSView.CPP">
@@ -268,6 +265,12 @@
     <ClInclude Include="prtvundo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="RTFExpt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -280,13 +283,16 @@
     <ClInclude Include="TabDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TabTreeNode.h">
+    <ClInclude Include="TabDropSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TabPDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TabTrCtl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TabTreeNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TabView.h">
@@ -298,7 +304,7 @@
     <ClInclude Include="TblFmtD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TBLGRID.H">
+    <ClInclude Include="Tblgrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TblPFmtD.h">
@@ -313,9 +319,6 @@
     <ClInclude Include="TlyVrDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TSPDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TSView.H">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -325,19 +328,10 @@
     <ClInclude Include="Tvdlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zTableF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TabDropSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource_shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="zTableF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -15,7 +15,7 @@ const int GRID_DEFAULT_COLWIDTH = 75;
 
 namespace
 {
-    const TCHAR* const DataRepositoryMultipleFiles = _T("Multiple Files");
+    const wchar_t* const DataRepositoryMultipleFiles = _T("Multiple Files");
 
     void TrimRelativePathIfInSameDirectory(CString& text)
     {
@@ -23,16 +23,14 @@ namespace
             text = text.Mid(2);
     }
 
-    CString GetConnectionStringText(const std::vector<ConnectionString>& connection_strings, CString sPifFileName)
+    CString GetConnectionStringText(const std::vector<ConnectionString>& connection_strings, const CString& sPifFileName)
     {
-        CString text;
+        // don't show any text for repositories that do not use resources
+        if( connection_strings.size() == 1 && !DataRepositoryHelpers::TypeUsesResource(connection_strings.front().GetType()) )
+            return CString();
 
-        // don't show any text for repositories that do not use filenames
-        if( connection_strings.size() != 1 || !DataRepositoryHelpers::TypeDoesNotUseFilename(connection_strings.front().GetType()) )
-        {
-            text = PathHelpers::CreateSingleStringFromConnectionStrings(connection_strings, false, sPifFileName);
-            TrimRelativePathIfInSameDirectory(text);
-        }
+        CString text = UTF8_TODO::GetCString(PathHelpers::CreateSingleStringFromConnectionStrings(connection_strings, false, UTF8_TODO::GetUtf8(sPifFileName)));
+        TrimRelativePathIfInSameDirectory(text);
 
         return text;
     }
@@ -59,14 +57,14 @@ CPifGrid::~CPifGrid()
 
 void CPifGrid::SetGridData(const CArray<PIFINFO*, PIFINFO*>& gridData, int windowWidth)
 {
-    int descriptionColumnWidth = windowWidth / 5; // GHM 20120510 changed from 4 to 5 because of enlarging the window
+    int descriptionColumnWidth = windowWidth / 5; // 20120510 changed from 4 to 5 because of enlarging the window
     CClientDC dc(this);
     CFont* pOldFont = dc.SelectObject(&m_font);
     int iCount = gridData.GetSize();
     int iCurRow = 0;
     LONG options_column_width = 0;
 
-    std::set<const TCHAR*> options_cell_strings;
+    std::set<const wchar_t*> options_cell_strings;
 
     for( int iIndex = 0; iIndex < iCount; iIndex++ )
     {
@@ -90,7 +88,7 @@ void CPifGrid::SetGridData(const CArray<PIFINFO*, PIFINFO*>& gridData, int windo
         QuickSetCellType(0, iCurRow, m_iEllipsisIndex);
 
 
-        auto build_options_cell = [&](const std::vector<const TCHAR*>& options)
+        auto build_options_cell = [&](const std::vector<const wchar_t*>& options)
         {
             // build newline-separated list of options
             CString options_text;
@@ -114,10 +112,14 @@ void CPifGrid::SetGridData(const CArray<PIFINFO*, PIFINFO*>& gridData, int windo
         std::shared_ptr<FilteredExtensionProcessor> filtered_extension_processor;
 
         if( pifInfo->sUName.CompareNoCase(LISTFILE) == 0 )
+        {
             filtered_extension_processor = CreateListingFilteredExtensionProcessor();
+        }
 
         else if( pifInfo->sUName.CompareNoCase(FREQFILE) == 0 || pifInfo->sUName.CompareNoCase(IMPUTEFILE) == 0 )
+        {
             filtered_extension_processor = CreateFrequencyFilteredExtensionProcessor();
+        }
 
 
         // files with a filtered extension processor
@@ -131,7 +133,7 @@ void CPifGrid::SetGridData(const CArray<PIFINFO*, PIFINFO*>& gridData, int windo
         }
 
         // non-data files
-        else if( pifInfo->dictionary_filename.IsEmpty() )
+        else if( pifInfo->dictionary_file_path.empty() )
         {
             CString sString;
 
@@ -158,12 +160,12 @@ void CPifGrid::SetGridData(const CArray<PIFINFO*, PIFINFO*>& gridData, int windo
         // data files
         else
         {
-            bool add_only_readable_types = ( ( pifInfo->uOptions & ( PIF_FILE_MUST_EXIST | PIF_REPOSITORY_MUST_BE_READABLE ) ) != 0 );
+            const bool add_only_readable_types = ( ( pifInfo->uOptions & ( PIF_FILE_MUST_EXIST | PIF_REPOSITORY_MUST_BE_READABLE ) ) != 0 );
             const DataFileFilterManager& data_file_filter_manager = DataFileFilterManager::Get(DataFileFilterManager::UseType::FileAssociationsDlg, add_only_readable_types);
 
             m_dataFileFilterManagers[iCurRow] = &data_file_filter_manager;
 
-            std::vector<const TCHAR*> data_repository_types = data_file_filter_manager.GetTypeNames();
+            std::vector<const wchar_t*> data_repository_types = data_file_filter_manager.GetTypeNames();
 
             if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) != 0 )
                 data_repository_types.emplace_back(DataRepositoryMultipleFiles);
@@ -201,7 +203,7 @@ PIFINFO* CPifGrid::GetRowInfo(long row)
 
 void CPifGrid::GetDialogTitleAndFilter(PIFINFO* pPifInfo, CString& sTitle, CString& sFilter)
 {
-    ASSERT(pPifInfo->dictionary_filename.IsEmpty());
+    ASSERT(pPifInfo->dictionary_file_path.empty());
 
     if (pPifInfo->sUName.CompareNoCase(PARADATAFILE) == 0) {
         sFilter = _T("Paradata Log (*.cslog)|*.cslog||");
@@ -682,7 +684,9 @@ int CPifGrid::OnCellTypeNotify(long,int col,long row,long msg,long param)
         return FALSE;
 
     if( col == 0 && msg == UGCT_ELLIPSISBUTTONCLICK )
+    {
         return ChooseFile(pPifInfo, col, row) ? TRUE : FALSE;
+    }
 
     else if( col == 1 && msg == UGCT_DROPLISTSELECT )
     {
@@ -721,15 +725,17 @@ int CPifGrid::OnCellTypeNotify(long,int col,long row,long msg,long param)
 
             else
             {
+                const bool new_type_uses_file_resource = DataRepositoryHelpers::TypeUsesFileResource(data_file_filter->type);
+
                 for( auto connection_string = pPifInfo->connection_strings.begin(); connection_string != pPifInfo->connection_strings.end(); )
                 {
-                    if( connection_string->IsFilenamePresent() )
+                    if( new_type_uses_file_resource && connection_string->HasFilePath() )
                     {
                         data_file_filter_manager->AdjustConnectionStringFromDataFileFilter(*connection_string, *data_file_filter);
                         ++connection_string;
                     }
 
-                    // remove repositories without filenames
+                    // remove repositories without file paths
                     else
                     {
                         connection_string = pPifInfo->connection_strings.erase(connection_string);
@@ -790,7 +796,7 @@ int CPifGrid::OnEditFinish(int col, long row,CWnd *,LPCTSTR string, BOOL)
         if( pPifInfo != nullptr )
         {
             // non-data files
-            if( pPifInfo->dictionary_filename.IsEmpty() )
+            if( pPifInfo->dictionary_file_path.empty() )
             {
                 pPifInfo->sFileName = WS2CS(MakeFullPath(GetWorkingFolder(m_sPifFileName), string));
 
@@ -804,21 +810,21 @@ int CPifGrid::OnEditFinish(int col, long row,CWnd *,LPCTSTR string, BOOL)
             // data files
             else
             {
-                pPifInfo->connection_strings = PathHelpers::SplitSingleStringIntoConnectionStrings(string);
+                pPifInfo->connection_strings = PathHelpers::SplitSingleStringIntoConnectionStrings(UTF8_TODO::GetUtf8(string));
 
                 const DataFileFilter* data_file_filter = GetSelectedDataFileFilter(row);
 
                 for( ConnectionString& connection_string : pPifInfo->connection_strings )
                 {
-                    connection_string.AdjustRelativePath(GetWorkingFolder(m_sPifFileName));
+                    connection_string.AdjustRelativePath(UTF8_TODO::GetUtf8(GetWorkingFolder(m_sPifFileName)));
 
                     // add the file extension of the selected type if they didn't add an extension
                     // and the data file doesn't already exist
                     if( data_file_filter != nullptr && data_file_filter->type != connection_string.GetType() &&
-                        data_file_filter->force_extension && connection_string.IsFilenamePresent() &&
-                        !PathHasWildcardCharacters(connection_string.GetFilename()) &&
-                        !PortableFunctions::FileExists(connection_string.GetFilename()) &&
-                        PortableFunctions::PathGetFileExtension(connection_string.GetFilename()).empty() )
+                        data_file_filter->force_extension && connection_string.HasFilePath() &&
+                        !Path::HasWildcardCharacters(connection_string.GetFilePath()) &&
+                        !PortableFunctions::FileExists(connection_string.GetFilePath()) &&
+                        PortableFunctions::PathGetFileExtension(connection_string.GetFilePath()).empty() )
                     {
                         ASSERT(m_dataFileFilterManagers.find(row) != m_dataFileFilterManagers.cend());
                         const auto& data_file_filter_manager = m_dataFileFilterManagers[row];
@@ -962,6 +968,7 @@ void CPifGrid::ResetGrid() {
     SetRedraw(TRUE);
 }
 
+
 void CPifGrid::SetDefaultInputDataFilename(CString filename)
 {
     PIFINFO* pPifInfo = GetRowInfo(0);
@@ -970,16 +977,17 @@ void CPifGrid::SetDefaultInputDataFilename(CString filename)
     {
         if( pPifInfo->connection_strings.empty() || !pPifInfo->connection_strings.front().IsDefined() )
         {
-            pPifInfo->connection_strings = { ConnectionString(filename) };
+            pPifInfo->connection_strings = { ConnectionString(UTF8_TODO::GetUtf8(filename)) };
             UpdateDataRepositoryRow(0, pPifInfo->connection_strings);
         }
     }
 }
 
+
 bool CPifGrid::ChooseFile(PIFINFO* pPifInfo, int col, long row)
 {
     // data files
-    if( !pPifInfo->dictionary_filename.IsEmpty() )
+    if( !pPifInfo->dictionary_file_path.empty() )
     {
         DataFileDlg::Type data_file_dlg_type =
             ( ( pPifInfo->uOptions & PIF_MULTIPLE_FILES ) != 0 ) ? DataFileDlg::Type::OpenExisting :
@@ -988,11 +996,11 @@ bool CPifGrid::ChooseFile(PIFINFO* pPifInfo, int col, long row)
         bool add_only_readable_types = ( ( pPifInfo->uOptions & ( PIF_FILE_MUST_EXIST | PIF_REPOSITORY_MUST_BE_READABLE ) ) != 0 );
 
         DataFileDlg data_file_dlg(data_file_dlg_type, add_only_readable_types, pPifInfo->connection_strings);
-        data_file_dlg.SetDictionaryFilename(pPifInfo->dictionary_filename);
+        data_file_dlg.SetDictionaryFilePath(pPifInfo->dictionary_file_path);
 
-        const DataFileFilter* data_file_filter = GetSelectedDataFileFilter(row);
+        const DataFileFilter* const data_file_filter = GetSelectedDataFileFilter(row);
 
-        if( data_file_filter != nullptr && !DataRepositoryHelpers::TypeDoesNotUseFilename(data_file_filter->type) )
+        if( data_file_filter != nullptr && DataRepositoryHelpers::TypeUsesFileResource(data_file_filter->type) )
             data_file_dlg.SetCreateNewDefaultDataRepositoryType(data_file_filter->type);
 
         if( ( pPifInfo->uOptions & PIF_MULTIPLE_FILES ) != 0 )
@@ -1019,62 +1027,62 @@ bool CPifGrid::ChooseFile(PIFINFO* pPifInfo, int col, long row)
         if (pPifInfo->uOptions & PIF_FILE_MUST_EXIST)
             dwFlags |= OFN_FILEMUSTEXIST;
 
-        std::vector<TCHAR> bigBuff(132000, 0);
+        std::vector<wchar_t> bigBuff(132000, 0);
 
         CString sStartDir = AfxGetApp()->GetProfileString(_T("Settings"), _T("Last DataFolder"));
         if (sDatFileName.ReverseFindOneOf(_T("\\")) == sDatFileName.GetLength() - 1) {
             //if the last character is "\" then we have a directory
-		    sStartDir = sDatFileName.TrimRight(_T("\\"));
-		    sDatFileName = _T("");
-	    }
+            sStartDir = sDatFileName.TrimRight(_T("\\"));
+            sDatFileName = _T("");
+        }
 
-	    // GHM 20110322 if the user had <none> or multiple files selected ("file1" "file2" etc.)
-	    // it was impossible to open the file dialog
-	    bool usingProperName = sDatFileName.FindOneOf(_T("\"<")) < 0;
+        // 20110322 if the user had <none> or multiple files selected ("file1" "file2" etc.)
+        // it was impossible to open the file dialog
+        bool usingProperName = sDatFileName.FindOneOf(_T("\"<")) < 0;
 
-	    if (usingProperName)
-		    _tcscpy(bigBuff.data(), sDatFileName);
+        if (usingProperName)
+            _tcscpy(bigBuff.data(), sDatFileName);
 
 
-	    CString sTitle, sFilter;
-	    GetDialogTitleAndFilter(pPifInfo, sTitle, sFilter);
-	    bool allowCSProExtensions = ( ( pPifInfo->uOptions & PIF_DISALLOW_CSPRO_EXTENSIONS ) == 0 );
+        CString sTitle, sFilter;
+        GetDialogTitleAndFilter(pPifInfo, sTitle, sFilter);
+        bool allowCSProExtensions = ( ( pPifInfo->uOptions & PIF_DISALLOW_CSPRO_EXTENSIONS ) == 0 );
 
-	    CDatFDlg fileDlg(allowCSProExtensions, TRUE, pPifInfo->sDefaultFileExtension, usingProperName ? sDatFileName : _T(""), dwFlags, sFilter);
+        CDatFDlg fileDlg(allowCSProExtensions, TRUE, pPifInfo->sDefaultFileExtension, usingProperName ? sDatFileName : _T(""), dwFlags, sFilter);
 
-	    if (!sStartDir.IsEmpty()) {
-		    fileDlg.m_ofn.lpstrInitialDir = sStartDir;
-	    }
-	    fileDlg.m_ofn.lpstrTitle = sTitle;
-	    fileDlg.m_ofn.lpstrFile = bigBuff.data();
-	    fileDlg.m_ofn.nMaxFile = bigBuff.size();
+        if (!sStartDir.IsEmpty()) {
+            fileDlg.m_ofn.lpstrInitialDir = sStartDir;
+        }
+        fileDlg.m_ofn.lpstrTitle = sTitle;
+        fileDlg.m_ofn.lpstrFile = bigBuff.data();
+        fileDlg.m_ofn.nMaxFile = bigBuff.size();
 
-	    if (fileDlg.DoModal() != IDOK) {
-		    return false;
-	    }
+        if (fileDlg.DoModal() != IDOK) {
+            return false;
+        }
 
-	    if (pPifInfo->uOptions & PIF_MULTIPLE_FILES)
+        if (pPifInfo->uOptions & PIF_MULTIPLE_FILES)
         {
-		    m_arrMultFiles.RemoveAll();
-		    CIMSAString sMultipleFiles = bigBuff.data();
-		    POSITION pos = fileDlg.GetStartPosition();
-		    while (pos) {
-			    CString sFileName = fileDlg.GetNextPathName(pos);
-			    m_arrMultFiles.Add(sFileName);
-		    }
+            m_arrMultFiles.RemoveAll();
+            CIMSAString sMultipleFiles = bigBuff.data();
+            POSITION pos = fileDlg.GetStartPosition();
+            while (pos) {
+                CString sFileName = fileDlg.GetNextPathName(pos);
+                m_arrMultFiles.Add(sFileName);
+            }
 
-		    CIMSAString sText;
-		    if (m_arrMultFiles.GetSize() > 1) {
-			    for (int iFile = 0; iFile < m_arrMultFiles.GetSize(); iFile++) {
-				    sText += _T("\"") + GetFileName(m_arrMultFiles[iFile]) + _T("\" ");
-			    }
-			    sText.Trim();
-			    QuickSetText(col, row, sText);
-		    } else {
-	            pPifInfo->sFileName = bigBuff.data();
-			    QuickSetText(col, row, GetFilenameText(bigBuff.data(), m_sPifFileName));
-		    }
-	    }
+            CIMSAString sText;
+            if (m_arrMultFiles.GetSize() > 1) {
+                for (int iFile = 0; iFile < m_arrMultFiles.GetSize(); iFile++) {
+                    sText += _T("\"") + GetFileName(m_arrMultFiles[iFile]) + _T("\" ");
+                }
+                sText.Trim();
+                QuickSetText(col, row, sText);
+            } else {
+                pPifInfo->sFileName = bigBuff.data();
+                QuickSetText(col, row, GetFilenameText(bigBuff.data(), m_sPifFileName));
+            }
+        }
 
         else
         {
@@ -1084,29 +1092,32 @@ bool CPifGrid::ChooseFile(PIFINFO* pPifInfo, int col, long row)
             const auto& filtered_extension_processor_lookup = m_filteredExtensionProcessors.find(row);
 
             if( filtered_extension_processor_lookup != m_filteredExtensionProcessors.cend() )
+            {
                 UpdateFilteredExtensionRow(row, pPifInfo->sFileName);
+            }
 
             else
+            {
                 QuickSetText(col, row, GetFilenameText(pPifInfo->sFileName, m_sPifFileName));
-	    }
+            }
+        }
 
-
-	    CIMSAString sFileName = fileDlg.GetPathName();
-	    CString sPath(sFileName);
-	    PathRemoveFileSpec(sPath.GetBuffer(_MAX_PATH));
-	    sPath.ReleaseBuffer();
-	    AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last DataFolder"), sPath);
+        CIMSAString sFileName = fileDlg.GetPathName();
+        CString sPath(sFileName);
+        PathRemoveFileSpec(sPath.GetBuffer(_MAX_PATH));
+        sPath.ReleaseBuffer();
+        AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last DataFolder"), sPath);
     }
 
     return true;
 }
 
 
-bool CPifGrid::UpdateDataRepositoryRow(long row, const std::vector<ConnectionString>& connection_strings,
-    DataRepositoryType default_data_repository_type/* = DataRepositoryType::SQLite*/)
+bool CPifGrid::UpdateDataRepositoryRow(const long row, const std::vector<ConnectionString>& connection_strings,
+                                       const DataRepositoryType default_data_repository_type/* = DataRepositoryType::SQLite*/)
 {
-    const TCHAR* repository_text = nullptr;
-    bool using_repository_without_filename = false;
+    const wchar_t* repository_text;
+    bool using_repository_without_resource = false;
 
     if( connection_strings.size() > 1 )
     {
@@ -1115,24 +1126,24 @@ bool CPifGrid::UpdateDataRepositoryRow(long row, const std::vector<ConnectionStr
 
     else if( !connection_strings.empty() )
     {
-        repository_text = ToString(connection_strings.front().GetType());
-        using_repository_without_filename = DataRepositoryHelpers::TypeDoesNotUseFilename(connection_strings.front().GetType());
+        repository_text = UTF8_TODO::Create_wide_c_str(ToString(connection_strings.front().GetType()));
+        using_repository_without_resource = !DataRepositoryHelpers::TypeUsesResource(connection_strings.front().GetType());
     }
 
     // default to CSPro DB (unless the user manually modified the type)
     else
     {
-        repository_text = ToString(default_data_repository_type);
+        repository_text = UTF8_TODO::Create_wide_c_str(ToString(default_data_repository_type));
     }
 
-	CUGCell fileNameCell;
-	GetCell(0, row, &fileNameCell);
+    CUGCell fileNameCell;
+    GetCell(0, row, &fileNameCell);
     fileNameCell.SetText(GetConnectionStringText(connection_strings, m_sPifFileName));
-    fileNameCell.SetBackColor(GetSysColor(using_repository_without_filename ? COLOR_BTNFACE : COLOR_WINDOW));
+    fileNameCell.SetBackColor(GetSysColor(using_repository_without_resource ? COLOR_BTNFACE : COLOR_WINDOW));
     SetCell(0, row, &fileNameCell);
-	RedrawCell(0, row);
+    RedrawCell(0, row);
 
-	CUGCell repoTypeCell;
+    CUGCell repoTypeCell;
     GetCell(1, row, &repoTypeCell);
 
     // check if there is a need to update the repository type
@@ -1160,17 +1171,17 @@ const DataFileFilter* CPifGrid::GetSelectedDataFileFilter(long row)
 
 bool CPifGrid::UpdateFilteredExtensionRow(long row, const CString& filename)
 {
-    auto filtered_extension_processor = m_filteredExtensionProcessors[row];
+    FilteredExtensionProcessor* const filtered_extension_processor = m_filteredExtensionProcessors[row].get();
 
-	CUGCell filename_cell;
-	GetCell(0, row, &filename_cell);
+    CUGCell filename_cell;
+    GetCell(0, row, &filename_cell);
     filename_cell.SetText(GetFilenameText(filename, m_sPifFileName));
     SetCell(0, row, &filename_cell);
-	RedrawCell(0, row);
+    RedrawCell(0, row);
 
     filtered_extension_processor->UpdateWinSettings(filename);
 
-	CUGCell extension_cell;
+    CUGCell extension_cell;
     GetCell(1, row, &extension_cell);
 
     CString type = filtered_extension_processor->GetTypeFromFilename(filename);

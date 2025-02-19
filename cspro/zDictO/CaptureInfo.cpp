@@ -11,27 +11,27 @@
 
 namespace
 {
-    const TCHAR* const CaptureTypeNames[]
+    constexpr const char* CaptureTypeNames[] =
     {
-        _T("TextBox"),
-        _T("RadioButton"),
-        _T("CheckBox"),
-        _T("DropDown"),
-        _T("ComboBox"),
-        _T("Date"),
-        _T("NumberPad"),
-        _T("Barcode"),
-        _T("Slider"),
-        _T("ToggleButton"),
-        _T("Photo"),
-        _T("Signature"),
-        _T("Audio"),
+        "TextBox",
+        "RadioButton",
+        "CheckBox",
+        "DropDown",
+        "ComboBox",
+        "Date",
+        "NumberPad",
+        "Barcode",
+        "Slider",
+        "ToggleButton",
+        "Photo",
+        "Signature",
+        "Audio",
     };
 
-    const TCHAR* const UnspecifiedCaptureTypeName = _T("Unspecified");
+    constexpr const char* UnspecifiedCaptureTypeName = "Unspecified";
 
 
-    bool CaptureTypeSupportedOnPlatform(CaptureType capture_type)
+    bool CaptureTypeSupportedOnPlatform(const CaptureType capture_type)
     {
 #ifdef WIN_DESKTOP
         if( capture_type == CaptureType::Barcode ||
@@ -63,7 +63,7 @@ CaptureInfo::CaptureInfo(const CaptureInfo& rhs) noexcept
 }
 
 
-CaptureInfo::CaptureInfo(CaptureType capture_type) noexcept
+CaptureInfo::CaptureInfo(const CaptureType capture_type) noexcept
 {
     SetCaptureType(capture_type);
 }
@@ -106,7 +106,8 @@ namespace
     }
 }
 
-void CaptureInfo::SetCaptureType(CaptureType capture_type)
+
+void CaptureInfo::SetCaptureType(const CaptureType capture_type)
 {
     m_captureType = capture_type;
 
@@ -124,14 +125,14 @@ void CaptureInfo::SetCaptureType(CaptureType capture_type)
 
 void CaptureInfo::Build(CSpecFile& spec_file, const CString& argument)
 {
-    SetCaptureType(GetCaptureTypeFromSerializableName(argument).value_or(CaptureType::Unspecified));
+    SetCaptureType(GetCaptureTypeFromSerializableName(UTF8_TODO::GetUtf8(argument)).value_or(CaptureType::Unspecified));
 
     if( m_extendedCaptureInfo != nullptr )
         m_extendedCaptureInfo->Build(spec_file);
 }
 
 
-void CaptureInfo::Save(CSpecFile& spec_file, bool use_pre77_command_names) const
+void CaptureInfo::Save(CSpecFile& spec_file, const bool use_pre77_command_names) const
 {
     const TCHAR* command = CMD_CAPTURE_TYPE;
 
@@ -154,26 +155,26 @@ void CaptureInfo::Save(CSpecFile& spec_file, bool use_pre77_command_names) const
                 break;
         }
     }
-    
-    spec_file.PutLine(command, GetCaptureTypeName(m_captureType));
+
+    spec_file.PutLine(command, UTF8_TODO::GetCString(GetCaptureTypeName(m_captureType)));
 
     if( m_extendedCaptureInfo != nullptr )
         m_extendedCaptureInfo->Save(spec_file);
 }
 
 
-CaptureInfo CaptureInfo::CreateFromJson(const JsonNode<wchar_t>& json_node)
+CaptureInfo CaptureInfo::CreateFromJson(const JsonNode& json_node)
 {
     CaptureInfo capture_info;
     ASSERT(!capture_info.IsSpecified());
 
     if( !json_node.IsNull() )
     {
-        wstring_view type_text = json_node.Get<wstring_view>(JK::type);
-        std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(type_text);
+        const std::string_view type_text_sv = json_node.Get<std::string_view>(JK::type);
+        const std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(type_text_sv);
 
         if( !capture_type.has_value() )
-            throw JsonParseException(_T("'%s' is not a valid capture type"), std::wstring(type_text).c_str());
+            throw JsonParseException("'%s' is not a valid capture type", std::string(type_text_sv).c_str());
 
         capture_info.SetCaptureType(*capture_type);
 
@@ -183,6 +184,7 @@ CaptureInfo CaptureInfo::CreateFromJson(const JsonNode<wchar_t>& json_node)
 
     return capture_info;
 }
+
 
 void CaptureInfo::WriteJson(JsonWriter& json_writer) const
 {
@@ -217,19 +219,19 @@ void CaptureInfo::serialize(Serializer& ar)
 }
 
 
-const TCHAR* CaptureInfo::GetCaptureTypeName(CaptureType capture_type, bool display_name/* = false*/)
+const char* CaptureInfo::GetCaptureTypeName(const CaptureType capture_type, const bool display_name/* = false*/)
 {
-    static_assert(_countof(CaptureTypeNames) == ( (size_t)CaptureType::LastDefined + 1 ));
+    static_assert(_countof(CaptureTypeNames) == static_cast<size_t>(CaptureType::LastDefined) + 1);
 
     if( display_name )
     {
-             if( capture_type == CaptureType::TextBox )      return _T("Text Box");
-        else if( capture_type == CaptureType::RadioButton )  return _T("Radio Button");
-        else if( capture_type == CaptureType::CheckBox )     return _T("Check Box");
-        else if( capture_type == CaptureType::DropDown )     return _T("Drop Down");
-        else if( capture_type == CaptureType::ComboBox )     return _T("Combo Box");
-        else if( capture_type == CaptureType::NumberPad )    return _T("Number Pad");
-        else if( capture_type == CaptureType::ToggleButton ) return _T("Toggle Button");
+             if( capture_type == CaptureType::TextBox )      return "Text Box";
+        else if( capture_type == CaptureType::RadioButton )  return "Radio Button";
+        else if( capture_type == CaptureType::CheckBox )     return "Check Box";
+        else if( capture_type == CaptureType::DropDown )     return "Drop Down";
+        else if( capture_type == CaptureType::ComboBox )     return "Combo Box";
+        else if( capture_type == CaptureType::NumberPad )    return "Number Pad";
+        else if( capture_type == CaptureType::ToggleButton ) return "Toggle Button";
     }
 
     else if( capture_type == CaptureType::Unspecified )
@@ -237,19 +239,19 @@ const TCHAR* CaptureInfo::GetCaptureTypeName(CaptureType capture_type, bool disp
         return UnspecifiedCaptureTypeName;
     }
 
-    return CaptureTypeNames[(size_t)capture_type];
+    return CaptureTypeNames[static_cast<size_t>(capture_type)];
 }
 
 
-std::optional<CaptureType> CaptureInfo::GetCaptureTypeFromSerializableName(wstring_view name)
+std::optional<CaptureType> CaptureInfo::GetCaptureTypeFromSerializableName(const std::string_view name_sv)
 {
     for( size_t i = 0; i < _countof(CaptureTypeNames); ++i )
     {
-        if( SO::EqualsNoCase(name, CaptureTypeNames[i]) )
-            return (CaptureType)i;
+        if( SO::EqualsNoCase(name_sv, CaptureTypeNames[i]) )
+            return static_cast<CaptureType>(i);
     }
 
-    if( SO::EqualsNoCase(name, UnspecifiedCaptureTypeName) )
+    if( SO::EqualsNoCase(name_sv, UnspecifiedCaptureTypeName) )
         return CaptureType::Unspecified;
 
     return std::nullopt;
@@ -327,7 +329,7 @@ CaptureInfo CaptureInfo::GetDefaultCaptureInfo(const CDictItem& dict_item)
 }
 
 
-bool CaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item, CaptureType capture_type)
+bool CaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item, const CaptureType capture_type)
 {
     ASSERT(capture_type != CaptureType::Unspecified);
 
@@ -372,13 +374,13 @@ bool CaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item, CaptureType 
 }
 
 
-std::vector<CaptureType> CaptureInfo::GetPossibleCaptureTypes(const CDictItem& dict_item, CaptureTypeSortOrder sort_order)
+std::vector<CaptureType> CaptureInfo::GetPossibleCaptureTypes(const CDictItem& dict_item, const CaptureTypeSortOrder sort_order)
 {
     std::vector<CaptureType> possible_capture_types;
 
     for( CaptureType capture_type = CaptureType::FirstDefined;
          capture_type <= CaptureType::LastDefined;
-         capture_type = (CaptureType)( (int)capture_type + 1 ) )
+         capture_type = static_cast<CaptureType>(static_cast<int>(capture_type) + 1) )
     {
         if( IsCaptureTypePossible(dict_item, capture_type) )
             possible_capture_types.emplace_back(capture_type);
@@ -387,9 +389,9 @@ std::vector<CaptureType> CaptureInfo::GetPossibleCaptureTypes(const CDictItem& d
     if( sort_order == CaptureTypeSortOrder::Name )
     {
         std::sort(possible_capture_types.begin(), possible_capture_types.end(),
-            [](CaptureType ct1, CaptureType ct2)
+            [](const CaptureType ct1, const CaptureType ct2)
             {
-                return ( _tcscmp(GetCaptureTypeName(ct1, true), GetCaptureTypeName(ct2, true)) < 0 );
+                return ( strcmp(GetCaptureTypeName(ct1, true), GetCaptureTypeName(ct2, true)) < 0 );
             });
     }
 
@@ -397,9 +399,9 @@ std::vector<CaptureType> CaptureInfo::GetPossibleCaptureTypes(const CDictItem& d
 }
 
 
-CString CaptureInfo::GetDescription() const
+std::string CaptureInfo::GetDescription() const
 {
-    CString description = GetCaptureTypeName(m_captureType, true);
+    std::string description = GetCaptureTypeName(m_captureType, true);
 
     if( m_extendedCaptureInfo != nullptr )
         m_extendedCaptureInfo->AddToDescription(description);
@@ -415,13 +417,13 @@ void CaptureInfo::Validate(const CDictItem& dict_item) const
 
     if( !IsCaptureTypePossible(dict_item, m_captureType) )
     {
-        CString extra_message;
+        std::string extra_message;
 
         if( m_captureType == CaptureType::Date )
-            extra_message = FormatText(_T(" and length %u"), dict_item.GetLen());
+            extra_message = FormatText(" and length %u", dict_item.GetLen());
 
-        throw ValidationException(_T("The capture type %s is not valid for an item of type %s%s."),
-            GetCaptureTypeName(m_captureType, true), ToString(dict_item.GetContentType()), (LPCTSTR)extra_message);
+        throw ValidationException("The capture type %s is not valid for an item of type %s%s.",
+                                  GetCaptureTypeName(m_captureType, true), ToString(dict_item.GetContentType()), extra_message.c_str());
     }
 
     if( m_extendedCaptureInfo != nullptr )
@@ -430,7 +432,7 @@ void CaptureInfo::Validate(const CDictItem& dict_item) const
 
 
 CaptureInfo CaptureInfo::MakeValid(const CDictItem& dict_item, const DictValueSet* dict_value_set,
-    bool get_capture_type_supported_on_current_platform/* = true*/) const
+                                   const bool get_capture_type_supported_on_current_platform/* = true*/) const
 {
     bool has_value_set = ( dict_value_set != nullptr );
     size_t num_values = has_value_set ? dict_value_set->GetNumValues() : 0;
@@ -523,30 +525,30 @@ CaptureInfo CaptureInfo::MakeValid(const CDictItem& dict_item, const DictValueSe
 
 namespace
 {
-    const TCHAR* const DateFormats[]
+    constexpr const char* DateFormats[]
     {
-        _T("DDMMYYYY"),
-        _T("DDYYYYMM"),
-        _T("YYYYDDMM"),
-        _T("YYYYMMDD"),
-        _T("MMDDYYYY"),
-        _T("MMYYYYDD"),
-        _T("DDMMYY"),
-        _T("DDYYMM"),
-        _T("YYDDMM"),
-        _T("YYMMDD"),
-        _T("MMDDYY"),
-        _T("MMYYDD"),
-        _T("DDYYYY"),
-        _T("DDYY"),
-        _T("DDMM"),
-        _T("MMYYYY"),
-        _T("MMYY"),
-        _T("MMDD"),
-        _T("YYMM"),
-        _T("YYDD"),
-        _T("YYYYMM"),
-        _T("YYYYDD")
+       "DDMMYYYY",
+       "DDYYYYMM",
+       "YYYYDDMM",
+       "YYYYMMDD",
+       "MMDDYYYY",
+       "MMYYYYDD",
+       "DDMMYY",
+       "DDYYMM",
+       "YYDDMM",
+       "YYMMDD",
+       "MMDDYY",
+       "MMYYDD",
+       "DDYYYY",
+       "DDYY",
+       "DDMM",
+       "MMYYYY",
+       "MMYY",
+       "MMDD",
+       "YYMM",
+       "YYDD",
+       "YYYYMM",
+       "YYYYDD"
     };
 }
 
@@ -566,7 +568,7 @@ void DateCaptureInfo::Build(CSpecFile& spec_file)
     {
         if( command.CompareNoCase(CMD_CAPTURE_TYPE_DATE) == 0 )
         {
-            m_format = argument;
+            m_format = UTF8_TODO::GetUtf8(argument);
         }
 
         else
@@ -580,20 +582,20 @@ void DateCaptureInfo::Build(CSpecFile& spec_file)
 
 void DateCaptureInfo::Save(CSpecFile& spec_file) const
 {
-    if( !m_format.IsEmpty() )
-        spec_file.PutLine(CMD_CAPTURE_TYPE_DATE, m_format);
+    if( !m_format.empty() )
+        spec_file.PutLine(CMD_CAPTURE_TYPE_DATE, UTF8_TODO::GetCString(m_format));
 }
 
 
-void DateCaptureInfo::ParseJsonInput(const JsonNode<wchar_t>& json_node)
+void DateCaptureInfo::ParseJsonInput(const JsonNode& json_node)
 {
-    m_format = json_node.GetOrDefault(JK::dateFormat, SO::EmptyCString);
+    m_format = json_node.GetOrConstruct<std::string>(JK::dateFormat);
 }
 
 
 void DateCaptureInfo::WriteJson(JsonWriter& json_writer) const
 {
-    if( json_writer.Verbose() || !m_format.IsEmpty() )
+    if( json_writer.Verbose() || !m_format.empty() )
         json_writer.Write(JK::dateFormat, m_format);
 }
 
@@ -619,13 +621,13 @@ bool DateCaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item)
 }
 
 
-std::vector<const TCHAR*> DateCaptureInfo::GetPossibleFormats(const CDictItem& dict_item)
+std::vector<const char*> DateCaptureInfo::GetPossibleFormats(const CDictItem& dict_item)
 {
-    std::vector<const TCHAR*> formats;
+    std::vector<const char*> formats;
 
     for( size_t i = 0; i < _countof(DateFormats); ++i )
     {
-        if( _tcslen(DateFormats[i]) == dict_item.GetLen() )
+        if( strlen(DateFormats[i]) == dict_item.GetLen() )
             formats.emplace_back(DateFormats[i]);
     }
 
@@ -633,7 +635,7 @@ std::vector<const TCHAR*> DateCaptureInfo::GetPossibleFormats(const CDictItem& d
 }
 
 
-const TCHAR* DateCaptureInfo::GetDefaultFormat(const CDictItem& dict_item)
+const char* DateCaptureInfo::GetDefaultFormat(const CDictItem& dict_item)
 {
     switch( dict_item.GetLen() )
     {
@@ -648,16 +650,16 @@ const TCHAR* DateCaptureInfo::GetDefaultFormat(const CDictItem& dict_item)
 }
 
 
-void DateCaptureInfo::AddToDescription(CString& description) const
+void DateCaptureInfo::AddToDescription(std::string& description) const
 {
-    description.AppendFormat(_T(" (format: \"%s\")"), (LPCTSTR)m_format);
+    description.append(FormatText(" (format: \"%s\")", m_format.c_str()));
 }
 
 
 bool DateCaptureInfo::IsFormatValid(const CDictItem& dict_item) const
 {
     // if the format is specified, make sure it is valid
-    if( dict_item.GetLen() == (unsigned)m_format.GetLength() )
+    if( dict_item.GetLen() == m_format.length() )
     {
         for( size_t i = 0; i < _countof(DateFormats); ++i )
         {
@@ -674,8 +676,8 @@ void DateCaptureInfo::Validate(const CDictItem& dict_item) const
 {
     ASSERT(IsCaptureTypePossible(dict_item));
 
-    if( !m_format.IsEmpty() && !IsFormatValid(dict_item) )
-        throw CaptureInfo::ValidationException(_T("The date format %s is not valid."), (LPCTSTR)m_format);
+    if( !m_format.empty() && !IsFormatValid(dict_item) )
+        throw CaptureInfo::ValidationException("The date format '%s' is not valid.", m_format.c_str());
 }
 
 
@@ -691,7 +693,7 @@ void DateCaptureInfo::MakeValid(const CDictItem& dict_item)
 
 bool DateCaptureInfo::IsResponseValid(const CString& date_text) const
 {
-   ASSERT(m_format.GetLength() == date_text.GetLength());
+   ASSERT(m_format.length() == static_cast<size_t>(date_text.GetLength()));
 
     // use a leap year and a month with 31 days as the default values to
     // make this the most comprehensive when not all values are supplied
@@ -699,33 +701,32 @@ bool DateCaptureInfo::IsResponseValid(const CString& date_text) const
     int month = 1;
     int day = 1;
 
-    for( int date_index = 0; date_index < m_format.GetLength(); )
+    for( size_t date_index = 0; date_index < m_format.length(); )
     {
-        int component_length = 2;
+        size_t component_length = 2;
         int* numeric_component;
 
-        if( m_format[date_index] == _T('Y') )
+        if( m_format[date_index] == 'Y' )
         {
-            if( ( date_index + 2 ) < m_format.GetLength() && m_format[date_index + 2] == _T('Y') )
+            if( ( date_index + 2 ) < m_format.length() && m_format[date_index + 2] == 'Y' )
                 component_length = 4;
 
             numeric_component = &year;
         }
 
-        else if( m_format[date_index] == _T('M') )
+        else if( m_format[date_index] == 'M' )
         {
             numeric_component = &month;
         }
 
         else
         {
-            ASSERT(m_format[date_index] == _T('D'));
+            ASSERT(m_format[date_index] == 'D');
             numeric_component = &day;
         }
 
-        CIMSAString component = date_text.Mid(date_index, component_length);
-
-        *numeric_component = (int)component.Val();
+        const CString component = date_text.Mid(date_index, component_length);
+        *numeric_component = static_cast<int>(CIMSAString::Val(component));
 
         if( numeric_component == &year && component_length == 2 )
             year += 1900;
@@ -782,7 +783,7 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
            value_processor.GetDictValueSet() != nullptr);
 
     int checkbox_length = CString(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()).Trim().GetLength();
-    ASSERT(checkbox_length == (int)CheckBoxCaptureInfo::GetCheckBoxLength(value_processor.GetDictItem(), *value_processor.GetDictValueSet()));
+    ASSERT(checkbox_length == static_cast<int>(CheckBoxCaptureInfo::GetCheckBoxLength(value_processor.GetDictItem(), *value_processor.GetDictValueSet())));
     ASSERT(checkbox_text.GetLength() % checkbox_length == 0);
 
     std::vector<const DictValue*> selected_values;
@@ -831,6 +832,7 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
         return selected_values;
     }
 }
+
 
 bool CheckBoxCaptureInfo::IsResponseValid(const CString& checkbox_text, const ValueProcessor& value_processor)
 {

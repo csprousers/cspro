@@ -166,7 +166,7 @@ static char THIS_FILE[]= __FILE__;
         ASSERT(rcUnion.bottom>rcCell.bottom || rcUnion.right>rcCell.right);
         CString csMsg, csDirection;
         csDirection = (rcUnion.bottom>rcCell.bottom?_T("height"):_T("width"));
-        csMsg.Format(_T("Can't select partially obscured boxes. You need to increase the %s of the cell so that the box is completely uncovered, then try again."), (LPCTSTR)csDirection);
+        csMsg.Format(_T("Can't select partially obscured boxes. You need to increase the %s of the cell so that the box is completely uncovered, then try again."), csDirection.GetString());
         AfxMessageBox(csMsg,MB_ICONEXCLAMATION);
         return false;
     }
@@ -206,7 +206,7 @@ static char THIS_FILE[]= __FILE__;
         ASSERT(rcUnion.bottom>rcCell.bottom || rcUnion.right>rcCell.right);
         CString csMsg, csDirection;
         csDirection = (rcUnion.bottom>rcCell.bottom?_T("height"):_T("width"));
-        csMsg.Format(_T("Can't select partially obscured text objects. You need to increase the %s of the cell so that text object is completely uncovered, then try again."), (LPCTSTR)csDirection);
+        csMsg.Format(_T("Can't select partially obscured text objects. You need to increase the %s of the cell so that text object is completely uncovered, then try again."), csDirection.GetString());
         AfxMessageBox(csMsg,MB_ICONEXCLAMATION);
         return false;
     }

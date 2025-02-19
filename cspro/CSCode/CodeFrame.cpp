@@ -73,13 +73,13 @@ CodeFrame::~CodeFrame()
 }
 
 
-BOOL CodeFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContext)
+BOOL CodeFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* const pContext)
 {
     return m_splitterWnd.Create(this, 2, 1, CSize(1, 1), pContext, WS_CHILD | WS_VISIBLE | SPLS_DYNAMIC_SPLIT);
 }
 
 
-void CodeFrame::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd)
+void CodeFrame::OnMDIActivate(const BOOL bActivate, CWnd* const pActivateWnd, CWnd* const pDeactivateWnd)
 {
     __super::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd);
 
@@ -93,11 +93,11 @@ void CodeFrame::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactiv
         // if this is the last code tab being deactivated, we need to update the file type in the
         // status bar to clear the file type
         AfxGetMainWnd()->PostMessage(UWM::CSCode::SetStatusBarFileType);
-    }    
+    }
 }
 
 
-void CodeFrame::OnSize(UINT nType, int cx, int cy)
+void CodeFrame::OnSize(const UINT nType, const int cx, const int cy)
 {
     // when showing two code views, resize them proportionally
     if( m_splitterWnd.GetRowCount() == 2 && nType != SIZE_MINIMIZED )
@@ -113,9 +113,9 @@ void CodeFrame::OnSize(UINT nType, int cx, int cy)
 
         if( non_view1_height_current > 0 )
         {
-            double view1_proportion_current = static_cast<double>(view1_height_current) / non_view1_height_current;
+            const double view1_proportion_current = static_cast<double>(view1_height_current) / non_view1_height_current;
 
-            int view1_height_new = static_cast<int>(( cy - m_splitterWnd.GetSplitterGap() ) * view1_proportion_current);
+            const int view1_height_new = static_cast<int>(( cy - m_splitterWnd.GetSplitterGap() ) * view1_proportion_current);
 
             if( view1_height_new > view1_height_min )
                 m_splitterWnd.SetRowInfo(0, view1_height_new, view1_height_min);
@@ -126,7 +126,7 @@ void CodeFrame::OnSize(UINT nType, int cx, int cy)
 }
 
 
-LRESULT CodeFrame::OnCodeFrameActivate(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CodeFrame::OnCodeFrameActivate(const WPARAM wParam, LPARAM /*lParam*/)
 {
     const WPARAM& post_message_counter = wParam;
 
@@ -152,7 +152,7 @@ LRESULT CodeFrame::OnSyncCodeFrameSplitter(WPARAM /*wParam = 0*/, LPARAM /*lPara
 {
     CodeDoc& code_doc = GetCodeDoc();
 
-    int code_views_to_use = code_doc.GetLanguageSettings().UsesTwoCodeViews() ? 2 : 1;
+    const int code_views_to_use = code_doc.GetLanguageSettings().UsesTwoCodeViews() ? 2 : 1;
 
     if( code_views_to_use != m_splitterWnd.GetRowCount() )
     {
@@ -166,7 +166,7 @@ LRESULT CodeFrame::OnSyncCodeFrameSplitter(WPARAM /*wParam = 0*/, LPARAM /*lPara
             // show the second code window in the bottom third of the frame
             CRect rect;
             GetClientRect(rect);
-            int height = rect.Height() * 2 / 3;
+            const int height = rect.Height() * 2 / 3;
 
             ASSERT(code_doc.GetLanguageSettings().GetLanguageType() == LanguageType::CSProHtmlDialog);
             m_splitterWnd.SplitRow(height, RUNTIME_CLASS(HtmlDialogCodeView));
@@ -187,8 +187,8 @@ void CodeFrame::CheckIfFileIsUpdated()
 
     if( file_on_disk_is_newer && file_on_disk_modified_time > m_lastCheckIfFileIsUpdatedTime )
     {
-        int response = AfxMessageBox(FormatText(_T("The file has been modified by another program.\nDo you want to reload '%s'?"),
-                                                PortableFunctions::PathGetFilename(code_doc.GetPathName())), MB_YESNO);
+        const int response = AfxMessageBox(FormatText("The file has been modified by another program.\nDo you want to reload '%s'?",
+                                                      PortableFunctions::PathGetFilename(code_doc.GetFilePath()).c_str()), MB_YESNO);
 
         if( response == IDYES )
             code_doc.ReloadFromDisk();
@@ -198,13 +198,13 @@ void CodeFrame::CheckIfFileIsUpdated()
 }
 
 
-void CodeFrame::OnLanguageType(UINT nID)
+void CodeFrame::OnLanguageType(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
     LanguageType language_type = GetLanguageTypeFromId(nID);
 
-    doc_language_settings.SetLanguageType(language_type, CS2WS(code_doc.GetPathName()));
+    doc_language_settings.SetLanguageType(language_type, code_doc.GetFilePath());
 
     // refresh the logic control
     assert_cast<CodeView*>(m_splitterWnd.GetPane(0, 0))->RefreshLogicControlLexer();
@@ -217,10 +217,10 @@ void CodeFrame::OnLanguageType(UINT nID)
 }
 
 
-void CodeFrame::OnUpdateLanguageType(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateLanguageType(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
-    LanguageType language_type = GetLanguageTypeFromId(pCmdUI->m_nID);
+    const LanguageType language_type = GetLanguageTypeFromId(pCmdUI->m_nID);
 
     pCmdUI->SetCheck(doc_language_settings.GetLanguageType() == language_type);
 }
@@ -229,7 +229,7 @@ void CodeFrame::OnUpdateLanguageType(CCmdUI* pCmdUI)
 void CodeFrame::OnStringEncoder()
 {
     LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
-    CLogicCtrl* active_logic_ctrl = assert_cast<CodeView*>(GetActiveView())->GetLogicCtrl();
+    CLogicCtrl* const active_logic_ctrl = assert_cast<CodeView*>(GetActiveView())->GetLogicCtrl();
 
     CodeMenu::OnStringEncoder(doc_language_settings.GetOrCreateLogicSettings(), active_logic_ctrl->GetSelText());
 }
@@ -240,17 +240,17 @@ void CodeFrame::OnPathAdjuster()
     const CodeDoc& code_doc = GetCodeDoc();
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
-    CodeMenu::OnPathAdjuster(doc_language_settings.GetLexerLanguage(), CS2WS(code_doc.GetPathName()));
+    CodeMenu::OnPathAdjuster(doc_language_settings.GetLexerLanguage(), code_doc.GetFilePath());
 }
 
 
-void CodeFrame::OnDeprecationWarnings(UINT nID)
+void CodeFrame::OnDeprecationWarnings(const UINT nID)
 {
     CodeMenu::DeprecationWarnings::OnDeprecationWarnings(nID);
 }
 
 
-void CodeFrame::OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateDeprecationWarnings(CCmdUI* const pCmdUI)
 {
     CodeMenu::DeprecationWarnings::OnUpdateDeprecationWarnings(pCmdUI);
 }
@@ -258,7 +258,7 @@ void CodeFrame::OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
 
 void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
 {
-    // most options will display based on the document settings, but a few are based 
+    // most options will display based on the document settings, but a few are based
     // on the view settings (e.g., for HTML dialogs, which have multiple code views)
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
     const LanguageSettings& view_language_settings = GetActiveCodeView().GetLanguageSettings();
@@ -268,46 +268,46 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
 
     if( view_language_settings.CanCompileCode() )
     {
-        dynamic_menu_builder.AddOption(ID_RUN_COMPILE_OR_VALIDATE, _T("Co&mpile\tCtrl+K"));
+        dynamic_menu_builder.AddOption(ID_RUN_COMPILE_OR_VALIDATE, L"Co&mpile\tCtrl+K");
     }
 
     if( view_language_settings.CanValidateCode() )
     {
         const bool is_spec_file = ( view_language_settings.GetLanguageType() == LanguageType::CSProSpecFileJson );
 
-        const std::wstring validate_text = FormatTextCS2WS(_T("&Validate%s\tCtrl+K"),
-                                                           is_spec_file                                                                 ? _T(" Specification File") :
-                                                           ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? _T(" JSON Input") :
-                                                                                                                                          _T(""));
+        const std::wstring validate_text = FormatTextCS2WS(L"&Validate%s\tCtrl+K",
+                                                           is_spec_file                                                                 ? L" Specification File" :
+                                                           ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? L" JSON Input" :
+                                                                                                                                          L"");
         dynamic_menu_builder.AddOption(ID_RUN_COMPILE_OR_VALIDATE, validate_text);
 
         if( is_spec_file )
-            dynamic_menu_builder.AddOption(ID_RUN_VALIDATE_JSON_ONLY, _T("Validate &JSON Only"));
+            dynamic_menu_builder.AddOption(ID_RUN_VALIDATE_JSON_ONLY, L"Validate &JSON Only");
     }
 
     if( doc_language_settings.CanRunCode() )
     {
-        dynamic_menu_builder.AddOption(ID_RUN_RUN, _T("&Run\tCtrl+R"));
+        dynamic_menu_builder.AddOption(ID_RUN_RUN, L"&Run\tCtrl+R");
 
         if( doc_language_settings.CanStopCode() )
-            dynamic_menu_builder.AddOption(ID_RUN_STOP, _T("Stop"));        
+            dynamic_menu_builder.AddOption(ID_RUN_STOP, L"Stop");
     }
 
     if( doc_language_settings.CanViewReportPreview() )
     {
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddOption(ID_RUN_REPORT_PREVIEW, _T("Report Preview\tCtrl+F5"));
+        dynamic_menu_builder.AddOption(ID_RUN_REPORT_PREVIEW, L"Report Preview\tCtrl+F5");
     }
 
     if( view_language_settings.GetLexerLanguage() == SCLEX_JSON )
     {
         dynamic_menu_builder.AddSeparator();
 
-        const std::wstring json_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? _T("JSON Input") :
-                                                                                                                      _T("JSON");
+        const std::wstring json_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? L"JSON Input" :
+                                                                                                                      L"JSON";
 
-        dynamic_menu_builder.AddOption(ID_RUN_FORMAT_JSON, _T("&Format ") + json_type);
-        dynamic_menu_builder.AddOption(ID_RUN_COMPRESS_JSON, _T("&Compact ") + json_type);
+        dynamic_menu_builder.AddOption(ID_RUN_FORMAT_JSON, L"&Format " + json_type);
+        dynamic_menu_builder.AddOption(ID_RUN_COMPRESS_JSON, L"&Compact " + json_type);
     }
 
 
@@ -339,7 +339,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
         };
 
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddSubmenu(_T("CSPro Logic Version"), logic_versions);
+        dynamic_menu_builder.AddSubmenu(L"CSPro Logic Version", logic_versions);
     }
 
 
@@ -347,7 +347,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     if( doc_language_settings.GetLanguageType() == LanguageType::CSProSpecFileJson )
     {
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddSubmenu(_T("CSPro Specification File"), LanguageJsonSpecFile::GetSubmenuOptions());
+        dynamic_menu_builder.AddSubmenu(L"CSPro Specification File", LanguageJsonSpecFile::GetSubmenuOptions());
 
         dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE));
     }
@@ -364,7 +364,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
         };
 
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddSubmenu(_T("JavaScript Module"), module_texts);
+        dynamic_menu_builder.AddSubmenu(L"JavaScript Module", module_texts);
     }
 
 
@@ -377,7 +377,7 @@ void CodeFrame::OnRunRun()
 {
     CodeDoc& code_doc = GetCodeDoc();
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
-    LanguageType language_type = doc_language_settings.GetLanguageType();
+    const LanguageType language_type = doc_language_settings.GetLanguageType();
 
     if( language_type == LanguageType::CSProActionInvoker )
     {
@@ -407,18 +407,18 @@ void CodeFrame::OnRunRun()
 }
 
 
-void CodeFrame::OnUpdateRunRun(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunRun(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 
-    pCmdUI->Enable(!assert_cast<CMainFrame*>(AfxGetMainWnd())->IsRunOperationInProgress() && 
+    pCmdUI->Enable(!assert_cast<CMainFrame*>(AfxGetMainWnd())->IsRunOperationInProgress() &&
                    doc_language_settings.CanRunCode());
 }
 
 
 void CodeFrame::OnRunReportPreview()
 {
-    HtmlViewerWnd* html_viewer_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetHtmlViewerWnd();
+    HtmlViewerWnd* const html_viewer_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetHtmlViewerWnd();
 
     if( html_viewer_wnd == nullptr )
         return;
@@ -426,12 +426,12 @@ void CodeFrame::OnRunReportPreview()
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
     const LogicSettings& logic_settings = doc_language_settings.GetOrCreateLogicSettings();
-    CLogicCtrl* logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
 
     try
     {
         m_reportPreviewer = std::make_unique<ReportPreviewer>(logic_ctrl->GetText(), logic_settings);
-        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver(code_doc.GetPathNameOrFakeTempName(FileExtensions::HTML)));
+        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver(code_doc.GetActualOrTempFilePath(FileExtensions::HTML)));
     }
 
     catch( const CSProException& exception )
@@ -441,7 +441,7 @@ void CodeFrame::OnRunReportPreview()
 }
 
 
-void CodeFrame::OnUpdateRunReportPreview(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunReportPreview(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 
@@ -454,11 +454,11 @@ void CodeFrame::OnRunActionInvokerDisplayResultsAsJson()
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
-    doc_language_settings.SetActionInvokerDisplayResultsAsJson(!doc_language_settings.GetActionInvokerDisplayResultsAsJson(), CS2WS(code_doc.GetPathName()));
+    doc_language_settings.SetActionInvokerDisplayResultsAsJson(!doc_language_settings.GetActionInvokerDisplayResultsAsJson(), code_doc.GetFilePath());
 }
 
 
-void CodeFrame::OnUpdateRunActionInvokerDisplayResultsAsJson(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunActionInvokerDisplayResultsAsJson(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 
@@ -471,11 +471,11 @@ void CodeFrame::OnRunActionInvokerAbortOnFirstException()
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
-    doc_language_settings.SetActionInvokerAbortOnException(!doc_language_settings.GetActionInvokerAbortOnException(), CS2WS(code_doc.GetPathName()));
+    doc_language_settings.SetActionInvokerAbortOnException(!doc_language_settings.GetActionInvokerAbortOnException(), code_doc.GetFilePath());
 }
 
 
-void CodeFrame::OnUpdateRunActionInvokerAbortOnFirstException(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunActionInvokerAbortOnFirstException(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 
@@ -483,7 +483,7 @@ void CodeFrame::OnUpdateRunActionInvokerAbortOnFirstException(CCmdUI* pCmdUI)
 }
 
 
-void CodeFrame::OnRunLogicVersion(UINT nID)
+void CodeFrame::OnRunLogicVersion(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
@@ -491,14 +491,14 @@ void CodeFrame::OnRunLogicVersion(UINT nID)
     const LogicSettings::Version version = ( nID == ID_RUN_CSPRO_LOGIC_V8 ) ? LogicSettings::Version::V8_0 :
                                                                               LogicSettings::Version::V0;
 
-    doc_language_settings.SetLogicVersion(version, CS2WS(code_doc.GetPathName()));
+    doc_language_settings.SetLogicVersion(version, code_doc.GetFilePath());
 
     // refresh the logic control
     code_doc.GetPrimaryCodeView().RefreshLogicControlLexer();
 }
 
 
-void CodeFrame::OnUpdateRunLogicVersion(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunLogicVersion(CCmdUI* const pCmdUI)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
@@ -510,7 +510,7 @@ void CodeFrame::OnUpdateRunLogicVersion(CCmdUI* pCmdUI)
 }
 
 
-void CodeFrame::OnRunSpecFileType(UINT nID)
+void CodeFrame::OnRunSpecFileType(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
@@ -522,7 +522,7 @@ void CodeFrame::OnRunSpecFileType(UINT nID)
 }
 
 
-void CodeFrame::OnUpdateRunSpecFileType(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunSpecFileType(CCmdUI* const pCmdUI)
 {
     const CodeDoc& code_doc = GetCodeDoc();
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
@@ -531,19 +531,19 @@ void CodeFrame::OnUpdateRunSpecFileType(CCmdUI* pCmdUI)
 }
 
 
-void CodeFrame::OnRunJavaScriptModuleType(UINT nID)
+void CodeFrame::OnRunJavaScriptModuleType(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
-    doc_language_settings.SetJavaScriptModuleType(nID, CS2WS(code_doc.GetPathName()));
+    doc_language_settings.SetJavaScriptModuleType(nID, code_doc.GetFilePath());
 
     // update the file type in the status bar
     AfxGetMainWnd()->PostMessage(UWM::CSCode::SetStatusBarFileType);
 }
 
 
-void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* const pCmdUI)
 {
     const CodeDoc& code_doc = GetCodeDoc();
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
@@ -552,7 +552,7 @@ void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* pCmdUI)
 }
 
 
-void CodeFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* pCmdUI)
+void CodeFrame::OnUpdateDocumentMustBeSavedToDisk(CCmdUI* const pCmdUI)
 {
     const CodeDoc& code_doc = GetCodeDoc();
 
@@ -582,8 +582,8 @@ void CodeFrame::OnOpenInAssociatedApplication()
 
     if( code_doc.IsModified() )
     {
-        int result = AfxMessageBox(FormatText(_T("Do you want to save '%s' before opening it?"),
-                                              PortableFunctions::PathGetFilename(code_doc.GetPathName())), MB_YESNOCANCEL);
+        const int result = AfxMessageBox(FormatText("Do you want to save '%s' before opening it?",
+                                                    PortableFunctions::PathGetFilename(code_doc.GetFilePath()).c_str()), MB_YESNOCANCEL);
 
         if( ( result == IDCANCEL ) ||
             ( result == IDYES && !code_doc.DoFileSave() ) )
@@ -592,5 +592,5 @@ void CodeFrame::OnOpenInAssociatedApplication()
         }
     }
 
-    ShellExecute(nullptr, _T("open"), EscapeCommandLineArgument(CS2WS(code_doc.GetPathName())).c_str(), nullptr, nullptr, SW_SHOW);
+    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(code_doc.GetFilePath())).c_str(), nullptr, nullptr, SW_SHOW);
 }

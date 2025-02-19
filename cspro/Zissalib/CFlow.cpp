@@ -34,7 +34,7 @@ const Logic::SymbolTable& CSymbolFlow::GetSymbolTable() const
 //
 /////////////////////////////////////////////////////////////////////////////
 
-CSymbolFlow::CSymbolFlow(std::wstring name, CEngineArea* pEngineArea)
+CSymbolFlow::CSymbolFlow(std::string name, CEngineArea* pEngineArea)
     :   Symbol(std::move(name), SymbolType::Pre80Flow),
         m_pEngineArea(pEngineArea),
         m_engineData(&m_pEngineArea->GetEngineData())
@@ -202,7 +202,7 @@ void FLOW::RestoreAfterEnter()
     m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExLevel   = m_ExLevel;
     m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExSymbol  = m_ExSymbol;
 
-    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iStopExec = FALSE; // RHF Dec 19, 2000 Fix problem with enter. Enter was not executing the instructions after ENTER
+    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_bStopExec = false; // RHF Dec 19, 2000 Fix problem with enter. Enter was not executing the instructions after ENTER
     //m_pEngineArea->m_pEngineDriver->m_pIntDriver->SkipStmt = m_SkipStmt;
     //m_pEngineArea->m_pEngineDriver->m_pIntDriver->ExitProc = m_ExitProc;
     //m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_bStopProc = m_StopProc;

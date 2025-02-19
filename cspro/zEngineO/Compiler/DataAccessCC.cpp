@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "IncludesCC.h"
+#include "EngineDictionary.h"
 #include "Nodes/DataAccess.h"
-#include <zEngineO/EngineDictionary.h>
 
 
 int LogicCompiler::WrapNodeAroundValidDataAccessCheck(const int program_index, const Symbol& symbol,
@@ -41,7 +41,7 @@ int LogicCompiler::WrapNodeAroundValidDataAccessCheck(const int program_index, c
     }
 
     // if in a proc, we have to check if the data is available at this level only at compile-time
-    else 
+    else
     {
         if( GetCompilationLevelNumber_base1() < SymbolCalculator::GetLevelNumber_base1(symbol) )
             IssueError(MGF::DataAccess_data_not_available_until_lower_level_94601, symbol.GetName().c_str());

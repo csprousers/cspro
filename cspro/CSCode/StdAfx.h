@@ -10,10 +10,12 @@
 #include <CSCode/MainFrame.h>
 #include <CSCode/resource.h>
 #include <CSCode/UWM.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zToolsO/ObjectTransporter.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
 #include <zJson/Json.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>

@@ -2,8 +2,10 @@
 
 #include <zJson/zJson.h>
 #include <zJson/JsonFormattingOptions.h>
+#include <zJson/JsonParseException.h>
 #include <zJson/JsonSerializer.h>
 #include <zToolsO/SerializerHelper.h>
+#include <zToolsO/span.h>
 
 namespace jsoncons
 {
@@ -13,73 +15,31 @@ namespace jsoncons
     struct order_preserving_policy;
 }
 
-template<typename CharType> class JsonNodeArray;
-template<typename CharType> class JsonNodeArrayIterator;
-
-
-
-// --------------------------------------------------------------------------
-// JsonParseException
-// --------------------------------------------------------------------------
-
-class JsonParseException : public CSProException
-{
-public:
-    using CSProException::CSProException;
-
-    JsonParseException(int line_number, const std::string& message)
-        :   CSProException(message.c_str()),
-            m_lineNumber(line_number)
-    {
-        // json_exception exceptions will be rethrown as JsonParseException
-        // exceptions with the line number of the parse error
-    }
-
-    int GetLineNumber() const { return m_lineNumber; }
-
-private:
-    const int m_lineNumber = -1;
-};
-
+class JsonNodeArray;
+class JsonNodeArrayIterator;
+class PropertyRetriever;
 
 
 // --------------------------------------------------------------------------
 // JsonReaderInterface
 // --------------------------------------------------------------------------
 
-class JsonReaderInterface
+class ZJSON_API JsonReaderInterface
 {
 public:
-    JsonReaderInterface(std::wstring directory = std::wstring())
-        :   m_directory(std::move(directory))
-    {
-    }
-
+    JsonReaderInterface(std::string directory = std::string());
     virtual ~JsonReaderInterface() { }
 
-    const std::wstring& GetDirectory() { return m_directory; }
+    const std::string& GetDirectory() const { return m_directory; }
 
     SerializerHelper& OnGetSerializerHelper() const { return const_cast<SerializerHelper&>(m_serializerHelper); }
 
-    virtual void OnLogWarning(std::wstring /*message*/) { }
+    virtual void OnLogWarning(std::string message);
 
-    virtual void OnReportInvalidAccessUsingKey(const TCHAR* key, const TCHAR* node_text,
-                                               const JsonParseException* exception_to_be_thrown)
-    {
-        if( exception_to_be_thrown == nullptr )
-        {
-            OnLogWarning(FormatTextCS2WS(_T("The value of '%s' was ignored because it contained an invalid entry: %s"), key, node_text));
-        }
-
-        else
-        {
-            OnLogWarning(FormatTextCS2WS(_T("The value of '%s' was invalid and resulted in an error ('%s'): %s"),
-                                         key, exception_to_be_thrown->GetErrorMessage().c_str(), node_text));
-        }
-    }
+    virtual void OnReportInvalidAccessUsingKey(cs::string_sz key, cs::string_sz node_text, const JsonParseException* exception_to_be_thrown);
 
 protected:
-    std::wstring m_directory;
+    std::string m_directory;
 
 private:
     SerializerHelper m_serializerHelper;
@@ -91,14 +51,12 @@ private:
 // JsonNode
 // --------------------------------------------------------------------------
 
-template<typename CharType>
 class ZJSON_API JsonNode
 {
-    friend JsonNodeArray<CharType>;
+    friend JsonNodeArray;
 
 protected:
-    using BasicJson = jsoncons::basic_json<CharType, jsoncons::order_preserving_policy, std::allocator<char>>;
-    using StringView = typename std::conditional_t<std::is_same_v<CharType, char>, std::string_view, wstring_view>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
 
     // --------------------------------------------------------------------------
     // construction
@@ -106,7 +64,10 @@ protected:
 
 private:
     // constructs a node from a jsoncons operation
-    JsonNode(const BasicJson* json, JsonReaderInterface& json_reader_interface);
+    JsonNode(std::shared_ptr<const BasicJson> parent_owned_json, const BasicJson* json, JsonReaderInterface& json_reader_interface);
+
+    // constructs an empty node
+    static JsonNode EmptyNode(JsonReaderInterface& json_reader_interface);
 
 public:
     // constructs a node from a jsoncons operation, assuming ownership of the jsoncons object
@@ -114,9 +75,12 @@ public:
 
     // constructs a node by parsing text;
     // on error, throws JsonParseException
-    JsonNode(std::basic_string_view<CharType> json_text, JsonReaderInterface* json_reader_interface = nullptr);
+    JsonNode(std::string_view json_text_sv, JsonReaderInterface* json_reader_interface = nullptr);
 
-    virtual ~JsonNode();
+    // constructs an empty node
+    static JsonNode EmptyNode();
+
+    virtual ~JsonNode() { }
 
 
     // --------------------------------------------------------------------------
@@ -124,7 +88,8 @@ public:
     // --------------------------------------------------------------------------
 
     // returns a string representation of the node
-    [[nodiscard]] std::basic_string<CharType> GetNodeAsString(JsonFormattingOptions formatting_options = DefaultJsonFormattingOptions) const;
+    [[nodiscard]] std::string GetNodeAsString(JsonFormattingOptions formatting_options = DefaultJsonFormattingOptions) const;
+    [[nodiscard]] SharableString GetNodeAsSharableString(JsonFormattingOptions formatting_options = DefaultJsonFormattingOptions) const;
 
     // returns whether or not the node is empty
     [[nodiscard]] bool IsEmpty() const;
@@ -151,15 +116,15 @@ public:
     [[nodiscard]] bool IsObject() const;
 
     // indicates whether the node contains a property with the given key name
-    [[nodiscard]] bool Contains(StringView key_sv) const;
+    [[nodiscard]] bool Contains(std::string_view key_sv) const;
 
     // returns the property with the given key name;
     // on error, throws JsonParseException
-    [[nodiscard]] JsonNode<CharType> operator[](StringView key_sv) const;
+    [[nodiscard]] JsonNode operator[](std::string_view key_sv) const;
 
     // returns the node with the given key name;
     // if it does not exist, an empty node is returned
-    [[nodiscard]] JsonNode<CharType> GetOrEmpty(StringView key_sv) const;
+    [[nodiscard]] JsonNode GetOrEmpty(std::string_view key_sv) const;
 
 
     // --------------------------------------------------------------------------
@@ -191,21 +156,26 @@ public:
 
     // returns the value of the node with the name key, interpreted as ValueType;
     // on error, throws JsonParseException
-    template<typename ValueType = JsonNode<CharType>>
-    [[nodiscard]] ValueType Get(StringView key_sv) const;
+    template<typename ValueType = JsonNode>
+    [[nodiscard]] ValueType Get(std::string_view key_sv) const;
 
     // returns the value of the node with the name key, if it can be interpreted as ValueType;
     // on error, returns std::nullopt
     template<typename ValueType>
-    [[nodiscard]] std::optional<ValueType> GetOptional(StringView key_sv) const;
+    [[nodiscard]] std::optional<ValueType> GetOptional(std::string_view key_sv) const;
 
     // returns the value of the node with the name key, if it can be interpreted as ValueType;
     // on error, returns default_value
     template<typename ValueType, class = typename std::enable_if<!std::is_lvalue_reference<ValueType>::value>::type>
-    [[nodiscard]] auto GetOrDefault(StringView key_sv, ValueType&& default_value) const;
+    [[nodiscard]] auto GetOrDefault(std::string_view key_sv, ValueType&& default_value) const;
 
     template<typename ValueType>
-    [[nodiscard]] auto GetOrDefault(StringView key_sv, const ValueType& default_value) const;
+    [[nodiscard]] auto GetOrDefault(std::string_view key_sv, const ValueType& default_value) const;
+
+    // returns the value of the node with the name key, if it can be interpreted as ValueType;
+    // on error, returns ValueType()
+    template<typename ValueType>
+    [[nodiscard]] auto GetOrConstruct(std::string_view key_sv) const;
 
 
     // --------------------------------------------------------------------------
@@ -214,31 +184,34 @@ public:
 
     // returns the value of the node interpreted as a date in RFC 3339 format;
     // on error, throws JsonParseException
-    [[nodiscard]] time_t GetDate() const;
-    [[nodiscard]] time_t GetDate(StringView key_sv) const { return JsonNode<CharType>::Get(key_sv).GetDate(); }
+    [[nodiscard]] int64_t GetDate() const;
+    [[nodiscard]] int64_t GetDate(std::string_view key_sv) const { return Get(key_sv).GetDate(); }
 
     // returns the value of the node interpreted as a string (failing if the node is an object or an array);
     // on error, throws JsonParseException
-    [[nodiscard]] std::wstring GetOnlyString() const;
-    [[nodiscard]] std::wstring GetOnlyString(StringView key_sv) const { return JsonNode<CharType>::Get(key_sv).GetOnlyString(); }
+    [[nodiscard]] std::string GetOnlyString() const;
+    [[nodiscard]] std::string GetOnlyString(std::string_view key_sv) const { return Get(key_sv).GetOnlyString(); }
 
     // interprets the node as a string and returns the 0-based index of the node in the options;
     // on error, or if not in the options, throws JsonParseException
     template<typename T>
     [[nodiscard]] size_t GetFromStringOptions(const T& option_strings) const;
+    [[nodiscard]] size_t GetFromStringOptions(std::initializer_list<const char*> option_strings) const { return GetFromStringOptions(cs::span<const char* const>(option_strings)); }
+
     template<typename T>
-    [[nodiscard]] size_t GetFromStringOptions(StringView key_sv, const T& option_strings) const { return JsonNode<CharType>::Get(key_sv).template GetFromStringOptions<T>(option_strings); }
+    [[nodiscard]] size_t GetFromStringOptions(std::string_view key_sv, const T& option_strings) const                           { return Get(key_sv).GetFromStringOptions(option_strings); }
+    [[nodiscard]] size_t GetFromStringOptions(std::string_view key_sv, std::initializer_list<const char*> option_strings) const { return Get(key_sv).GetFromStringOptions(option_strings); }
 
     // returns the value of the node interpreted as a double (casting booleans to numbers);
     // on error, throws JsonParseException
     [[nodiscard]] double GetDouble() const;
-    [[nodiscard]] double GetDouble(StringView key_sv) const { return JsonNode<CharType>::Get(key_sv).GetDouble(); }
+    [[nodiscard]] double GetDouble(std::string_view key_sv) const { return Get(key_sv).GetDouble(); }
 
     // returns whether or not the node is valid for the engine (i.e., GetEngineValue will succeed)
     template<typename T>
     [[nodiscard]] bool IsEngineValue() const;
     template<typename T>
-    [[nodiscard]] bool IsEngineValue(StringView key_sv) const { return JsonNode<CharType>::Get(key_sv).template IsEngineValue<T>(); }
+    [[nodiscard]] bool IsEngineValue(std::string_view key_sv) const { return Get(key_sv).template IsEngineValue<T>(); }
 
     // returns the value of the node interpreted for the engine;
     // for numerics: it processes string values specified as text, and calls GetDouble otherwise
@@ -246,7 +219,7 @@ public:
     template<typename T>
     [[nodiscard]] T GetEngineValue() const;
     template<typename T>
-    [[nodiscard]] T GetEngineValue(StringView key_sv) const { return JsonNode<CharType>::Get(key_sv).template GetEngineValue<T>(); }
+    [[nodiscard]] T GetEngineValue(std::string_view key_sv) const { return Get(key_sv).template GetEngineValue<T>(); }
 
 
     // --------------------------------------------------------------------------
@@ -255,13 +228,13 @@ public:
 
     // returns a JsonNodeArray wrapper around the node (when it is an array)
     // on error, throws JsonParseException
-    [[nodiscard]] JsonNodeArray<CharType> GetArray() const;
-    [[nodiscard]] JsonNodeArray<CharType> GetArray(StringView key_sv) const;
+    [[nodiscard]] JsonNodeArray GetArray() const;
+    [[nodiscard]] JsonNodeArray GetArray(std::string_view key_sv) const;
 
     // returns a JsonNodeArray wrapper around the node (when it is an array)
     // on error, returns an empty array
-    [[nodiscard]] JsonNodeArray<CharType> GetArrayOrEmpty() const;
-    [[nodiscard]] JsonNodeArray<CharType> GetArrayOrEmpty(StringView key_sv) const;
+    [[nodiscard]] JsonNodeArray GetArrayOrEmpty() const;
+    [[nodiscard]] JsonNodeArray GetArrayOrEmpty(std::string_view key_sv) const;
 
 
     // --------------------------------------------------------------------------
@@ -269,13 +242,17 @@ public:
     // --------------------------------------------------------------------------
 
     // returns a list of all the keys that are part of an object (returning an empty list if not an object)
-    std::vector<std::basic_string<CharType>> GetKeys() const;
+    std::vector<std::string> GetKeys() const;
 
     // executes the callback function for all child nodes, passing the key and child node
-    void ForeachNode(const std::function<void(StringView, const JsonNode<CharType>&)>& callback_function) const;
+    void ForeachNode(const std::function<void(std::string_view, const JsonNode&)>& callback_function) const;
 
     // returns the underlying jsonscons object representing this node
     [[nodiscard]] const BasicJson& GetBasicJson() const { return *m_json; }
+
+    // returns a PropertyRetriever object that can retrieve properties from the node;
+    // the object throws a JsonParseException when processing a property with an invalid value
+    std::unique_ptr<PropertyRetriever> CreatePropertyRetriever() const;
 
 
     // --------------------------------------------------------------------------
@@ -285,14 +262,17 @@ public:
 
     // logs a warning
     template<typename... Args>
-    void LogWarning(const TCHAR* warning_or_formatter, Args const&... args) const
+    void LogWarning(const char* warning_or_formatter, Args const&... args) const
     {
-        m_jsonReaderInterface->OnLogWarning(FormatTextCS2WS(warning_or_formatter, args...));
+        m_jsonReaderInterface->OnLogWarning(FormatText(warning_or_formatter, args...));
     }
 
     // returns an absolute path with native slashes, evaluated relative to the spec file (if available)
-    std::wstring GetAbsolutePath() const;
-    std::wstring GetAbsolutePath(StringView key_sv) const { return Get(key_sv).GetAbsolutePath(); }
+    std::string GetAbsolutePath() const;
+    std::string GetAbsolutePath(std::string_view key_sv) const { return Get(key_sv).GetAbsolutePath(); }
+
+    // returns the JsonNode's JsonReaderInterface
+    const JsonReaderInterface& GetJsonReaderInterface() const { return *m_jsonReaderInterface; }
 
     // returns the serializer helper
     SerializerHelper& GetSerializerHelper() const { return m_jsonReaderInterface->OnGetSerializerHelper(); }
@@ -302,9 +282,9 @@ private:
     template<typename ValueType>
     [[nodiscard]] ValueType GetWorker() const;
 
-    [[nodiscard]] JsonNodeArray<CharType> GetEmptyArray() const;
+    [[nodiscard]] JsonNodeArray GetEmptyArray() const;
 
-    void ReportInvalidAccessUsingKey(StringView key_sv, const JsonParseException* exception_to_be_thrown) const;
+    void ReportInvalidAccessUsingKey(std::string_view key_sv, const JsonParseException* exception_to_be_thrown) const;
 
 private:
     std::shared_ptr<const BasicJson> m_ownedJson;
@@ -319,16 +299,16 @@ private:
 // JsonNodeArrayIterator
 // --------------------------------------------------------------------------
 
-template<typename CharType>
 class ZJSON_API JsonNodeArray
 {
-    friend JsonNode<CharType>;
+    friend JsonNode;
 
-    using JsonArray = jsoncons::json_array<jsoncons::basic_json<CharType, jsoncons::order_preserving_policy, std::allocator<char>>, std::vector>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+    using JsonArray = jsoncons::json_array<BasicJson, std::vector>;
 
 private:
     // constructs a node from a jsoncons operation
-    JsonNodeArray(const JsonArray* json_array, JsonReaderInterface& json_reader_interface);
+    JsonNodeArray(std::shared_ptr<const BasicJson> parent_owned_json, const JsonArray* json_array, JsonReaderInterface& json_reader_interface);
 
 public:
     // returns whether or not the array is empty
@@ -339,11 +319,11 @@ public:
 
     // returns the node at the given index;
     // on error, throws JsonParseException
-    [[nodiscard]] JsonNode<CharType> operator[](size_t index) const;
+    [[nodiscard]] JsonNode operator[](size_t index) const;
 
     // returns an interator to the elements of the array
-    [[nodiscard]] JsonNodeArrayIterator<CharType> begin() const;
-    [[nodiscard]] JsonNodeArrayIterator<CharType> end() const;
+    [[nodiscard]] JsonNodeArrayIterator begin() const;
+    [[nodiscard]] JsonNodeArrayIterator end() const;
 
     // returns a vector of the contents of the array
     template<typename ValueType>
@@ -360,32 +340,44 @@ public:
     [[nodiscard]] std::set<ValueType> GetSet() const;
 
 private:
+    std::shared_ptr<const BasicJson> m_ownedJson;
     const JsonArray* m_jsonArray;
     JsonReaderInterface& m_jsonReaderInterface;
 };
 
 
-template<typename CharType>
 class ZJSON_API JsonNodeArrayIterator
 {
-    friend JsonNodeArray<CharType>;
+    friend JsonNodeArray;
 
 private:
-    JsonNodeArrayIterator(const JsonNodeArray<CharType>* json_node_array, size_t index);
+    JsonNodeArrayIterator(const JsonNodeArray* json_node_array, size_t index);
 
 public:
-    [[nodiscard]] bool operator!=(const JsonNodeArrayIterator<CharType>& rhs) const { return ( m_index != rhs.m_index ); }
+    [[nodiscard]] bool operator!=(const JsonNodeArrayIterator& rhs) const { return ( m_index != rhs.m_index ); }
 
     JsonNodeArrayIterator& operator++();
+    JsonNodeArrayIterator& operator++(int);
 
-    [[nodiscard]] const JsonNode<CharType>* operator->() const;
-    [[nodiscard]] const JsonNode<CharType>& operator*() const { return *operator->(); }
+    [[nodiscard]] const JsonNode* operator->() const;
+    [[nodiscard]] const JsonNode& operator*() const { return *operator->(); }
 
 private:
-    const JsonNodeArray<CharType>* m_jsonNodeArray;
+    const JsonNodeArray* m_jsonNodeArray;
     size_t m_index;
-    mutable std::shared_ptr<const JsonNode<CharType>> m_currentJsonNode;
+    mutable std::optional<const JsonNode> m_currentJsonNode;
 };
+
+
+
+// --------------------------------------------------------------------------
+// JsonReaderInterfaceinline implementations
+// --------------------------------------------------------------------------
+
+inline JsonReaderInterface::JsonReaderInterface(std::string directory/* = std::string()*/)
+    :   m_directory(std::move(directory))
+{
+}
 
 
 
@@ -393,9 +385,8 @@ private:
 // JsonNode inline implementations
 // --------------------------------------------------------------------------
 
-template<typename CharType>
 template<typename ValueType>
-ValueType JsonNode<CharType>::Get() const
+ValueType JsonNode::Get() const
 {
     if constexpr(JsonSerializerTester<ValueType>::HasCreateFromJson())
     {
@@ -414,9 +405,8 @@ ValueType JsonNode<CharType>::Get() const
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-std::optional<ValueType> JsonNode<CharType>::GetOptional() const
+std::optional<ValueType> JsonNode::GetOptional() const
 {
     try
     {
@@ -430,9 +420,8 @@ std::optional<ValueType> JsonNode<CharType>::GetOptional() const
 }
 
 
-template<typename CharType>
 template<typename ValueType, class/* = typename std::enable_if<!std::is_lvalue_reference<ValueType>::value>::type*/>
-auto JsonNode<CharType>::GetOrDefault(ValueType&& default_value) const
+auto JsonNode::GetOrDefault(ValueType&& default_value) const
 {
     try
     {
@@ -446,9 +435,8 @@ auto JsonNode<CharType>::GetOrDefault(ValueType&& default_value) const
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-auto JsonNode<CharType>::GetOrDefault(const ValueType& default_value) const
+auto JsonNode::GetOrDefault(const ValueType& default_value) const
 {
     try
     {
@@ -462,13 +450,12 @@ auto JsonNode<CharType>::GetOrDefault(const ValueType& default_value) const
 }
 
 
-template<typename CharType>
-template<typename ValueType/* = JsonNode<CharType>*/>
-ValueType JsonNode<CharType>::Get(const StringView key_sv) const
+template<typename ValueType/* = JsonNode*/>
+ValueType JsonNode::Get(const std::string_view key_sv) const
 {
     try
     {
-        return (*this)[key_sv].JsonNode<CharType>::Get<ValueType>();
+        return (*this)[key_sv].JsonNode::Get<ValueType>();
     }
 
     catch( const JsonParseException& exception )
@@ -479,14 +466,13 @@ ValueType JsonNode<CharType>::Get(const StringView key_sv) const
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-std::optional<ValueType> JsonNode<CharType>::GetOptional(const StringView key_sv) const
+std::optional<ValueType> JsonNode::GetOptional(const std::string_view key_sv) const
 {
     try
     {
         if( Contains(key_sv) )
-            return (*this)[key_sv].JsonNode<CharType>::Get<ValueType>();
+            return (*this)[key_sv].JsonNode::Get<ValueType>();
     }
 
     catch( const JsonParseException& )
@@ -498,14 +484,13 @@ std::optional<ValueType> JsonNode<CharType>::GetOptional(const StringView key_sv
 }
 
 
-template<typename CharType>
 template<typename ValueType, class/* = typename std::enable_if<!std::is_lvalue_reference<ValueType>::value>::type*/>
-auto JsonNode<CharType>::GetOrDefault(const StringView key_sv, ValueType&& default_value) const
+auto JsonNode::GetOrDefault(const std::string_view key_sv, ValueType&& default_value) const
 {
     try
     {
         if( Contains(key_sv) )
-            return (*this)[key_sv].JsonNode<CharType>::Get<ValueType>();
+            return (*this)[key_sv].JsonNode::Get<ValueType>();
     }
 
     catch( const JsonParseException& )
@@ -517,14 +502,13 @@ auto JsonNode<CharType>::GetOrDefault(const StringView key_sv, ValueType&& defau
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-auto JsonNode<CharType>::GetOrDefault(const StringView key_sv, const ValueType& default_value) const
+auto JsonNode::GetOrDefault(const std::string_view key_sv, const ValueType& default_value) const
 {
     try
     {
         if( Contains(key_sv) )
-            return (*this)[key_sv].JsonNode<CharType>::Get<ValueType>();
+            return (*this)[key_sv].JsonNode::Get<ValueType>();
     }
 
     catch( const JsonParseException& )
@@ -536,11 +520,28 @@ auto JsonNode<CharType>::GetOrDefault(const StringView key_sv, const ValueType& 
 }
 
 
-template<typename CharType>
-template<typename T>
-size_t JsonNode<CharType>::GetFromStringOptions(const T& option_strings) const
+template<typename ValueType>
+auto JsonNode::GetOrConstruct(const std::string_view key_sv) const
 {
-    const wstring_view text_sv = Get<wstring_view>();
+    try
+    {
+        if( Contains(key_sv) )
+            return (*this)[key_sv].JsonNode::Get<ValueType>();
+    }
+
+    catch( const JsonParseException& )
+    {
+        ReportInvalidAccessUsingKey(key_sv, nullptr);
+    }
+
+    return ValueType();
+}
+
+
+template<typename T>
+size_t JsonNode::GetFromStringOptions(const T& option_strings) const
+{
+    const std::string_view text_sv = Get<std::string_view>();
     size_t index = 0;
 
     for( const auto& option_string : option_strings )
@@ -552,7 +553,7 @@ size_t JsonNode<CharType>::GetFromStringOptions(const T& option_strings) const
     }
 
     ASSERT(index > 0);
-    throw JsonParseException(_T("'%s' is not a valid option"), std::wstring(text_sv).c_str());
+    throw JsonParseException("'%s' is not a valid option", std::string(text_sv).c_str());
 }
 
 
@@ -561,9 +562,8 @@ size_t JsonNode<CharType>::GetFromStringOptions(const T& option_strings) const
 // JsonNodeArray inline implementations
 // --------------------------------------------------------------------------
 
-template<typename CharType>
 template<typename ValueType>
-std::vector<ValueType> JsonNodeArray<CharType>::GetVector() const
+std::vector<ValueType> JsonNodeArray::GetVector() const
 {
     std::vector<ValueType> values;
     values.reserve(size());
@@ -575,9 +575,8 @@ std::vector<ValueType> JsonNodeArray<CharType>::GetVector() const
 }
 
 
-template<typename CharType>
 template<typename ValueType, typename ExceptionHandler>
-std::vector<ValueType> JsonNodeArray<CharType>::GetVector(ExceptionHandler exception_handler) const
+std::vector<ValueType> JsonNodeArray::GetVector(ExceptionHandler exception_handler) const
 {
     std::vector<ValueType> values;
     values.reserve(size());
@@ -599,9 +598,8 @@ std::vector<ValueType> JsonNodeArray<CharType>::GetVector(ExceptionHandler excep
 }
 
 
-template<typename CharType>
 template<typename ValueType>
-std::set<ValueType> JsonNodeArray<CharType>::GetSet() const
+std::set<ValueType> JsonNodeArray::GetSet() const
 {
     std::set<ValueType> values;
 

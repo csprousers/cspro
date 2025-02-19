@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "runpff.h"
-#include <zUtilO/Filedlg.h>
+#include <zToolsO/Utf8.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zAppO/PFF.h>
 
@@ -27,41 +28,40 @@ BOOL RunPffApp::InitInstance()
     CCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
-    std::wstring filename = CS2WS(cmdInfo.m_strFileName);
-    std::optional<std::wstring> optional_command_line_arguments;
+    std::string pff_file_path = TC::ToUtf8(cmdInfo.m_strFileName);
+    std::unique_ptr<const std::string> optional_command_line_arguments;
 
-    // prompt for a filename...
-    if( filename.empty() )
+    // prompt for a file...
+    if( pff_file_path.empty() )
     {
-        CIMSAFileDialog dlgFile(TRUE, FileExtensions::Pff, NULL, OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY,
-                                _T("CSPro Tasks (*.pff)|*.pff|All Files (*.*)|*.*||"));
-        dlgFile.m_ofn.lpstrTitle = _T("Select CSPro Task File to Run");
+        OpenFileDlg open_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff);
+        open_file_dlg.SetTitle(L"Select CSPro Task File to Run");
 
-        if( dlgFile.DoModal() == IDOK )
-            filename = CS2WS(dlgFile.GetPathName());
+        if( open_file_dlg.DoModal() == IDOK )
+            pff_file_path = open_file_dlg.GetFilePath();
     }
 
-    // or use command line arguments, forwarding any to the program that will be executed
+    // ...or use command line arguments, forwarding any to the program that will be executed
     else
     {
-        std::wstring command_line_arguments = GetCommandLine();
-        size_t filename_pos = command_line_arguments.find(filename);
+        std::string command_line_arguments = TC::ToUtf8(GetCommandLine());
+        const size_t pff_file_path_pos = command_line_arguments.find(pff_file_path);
 
-        if( filename_pos != std::wstring::npos )
+        if( pff_file_path_pos != std::string::npos )
         {
-            size_t command_line_arguments_pos = filename_pos + filename.length();
+            size_t command_line_arguments_pos = pff_file_path_pos + pff_file_path.length();
 
-            // skip past any quote in the filename
+            // skip past any quote in the file path
             if( command_line_arguments_pos < command_line_arguments.length() && command_line_arguments[command_line_arguments_pos] == '"' )
                 ++command_line_arguments_pos;
 
             if( command_line_arguments_pos != command_line_arguments.length() )
-                optional_command_line_arguments = SO::Trim(wstring_view(command_line_arguments).substr(command_line_arguments_pos));
+                optional_command_line_arguments = std::make_unique<std::string>(SO::Trim(std::string_view(command_line_arguments).substr(command_line_arguments_pos)));
         }
     }
 
-    if( !filename.empty() )
-        PFF::ExecutePff(filename, optional_command_line_arguments);
+    if( !pff_file_path.empty() )
+        PFF::ExecutePff(pff_file_path, optional_command_line_arguments.get());
 
     // Since the dialog has been closed, return FALSE so that we exit the
     //  application, rather than start the application's message pump.

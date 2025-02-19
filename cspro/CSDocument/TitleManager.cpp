@@ -6,10 +6,10 @@
 namespace
 {
     // titles will be be persisted for four weeks
-    constexpr const TCHAR* CSDocTitlesTableName    = _T("csdoc_titles");
+    constexpr const char* CSDocTitlesTableName     = "csdoc_titles";
     constexpr int64_t CSDocTitlesExpirationSeconds = DateHelper::SecondsInWeek(4);
 
-    constexpr TCHAR TimeAndTitleSeparator = ';';
+    constexpr char TimeAndTitleSeparator = ';';
 }
 
 
@@ -20,61 +20,61 @@ TitleManager::TitleManager(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_sp
 }
 
 
-std::wstring TitleManager::GetTitle(const std::wstring& csdoc_filename)
+std::string TitleManager::GetTitle(const std::string& csdoc_file_path)
 {
-    ASSERT(PortableFunctions::FileIsRegular(csdoc_filename));
+    ASSERT(PortableFunctions::FileIsRegular(csdoc_file_path));
 
-    std::wstring title;
+    std::string title;
 
     // return a title when a cached title exists and the file has not been modified from when the cached title was set
-    if( GetTitleFromCache(title, csdoc_filename) )
+    if( GetTitleFromCache(title, csdoc_file_path) )
         return title;
 
     // otherwise compile the document for the title
-    constexpr const TCHAR* RecursivePreventionMessageText = _T("cannot be accessed before it is set.");
+    constexpr const char* RecursivePreventionMessageText = "cannot be accessed before it is set.";
 
-    static std::vector<std::wstring> csdoc_filenames_currently_compiling;
+    static std::vector<std::string> csdoc_file_paths_currently_compiling;
 
-    if( std::find_if(csdoc_filenames_currently_compiling.cbegin(), csdoc_filenames_currently_compiling.cend(),
-                     [&](const std::wstring& filename) { return SO::EqualsNoCase(filename, csdoc_filename); }) != csdoc_filenames_currently_compiling.cend() )
+    if( std::find_if(csdoc_file_paths_currently_compiling.cbegin(), csdoc_file_paths_currently_compiling.cend(),
+                     [&](const std::string& file_path) { return SO::EqualsNoCase(file_path, csdoc_file_path); }) != csdoc_file_paths_currently_compiling.cend() )
     {
-        throw CSProException(_T("The title for '%s' %s"), + PortableFunctions::PathGetFilename(csdoc_filename), RecursivePreventionMessageText);
+        throw CSProException("The title for '%s' %s", + PortableFunctions::PathGetFilename(csdoc_file_path).c_str(), RecursivePreventionMessageText);
     }
 
-    RAII::PushOnVectorAndPopOnDestruction<std::wstring> filename_holder(csdoc_filenames_currently_compiling, csdoc_filename);
+    const RAII::PushOnVectorAndPopOnDestruction<std::string> file_path_holder(csdoc_file_paths_currently_compiling, csdoc_file_path);
 
     try
     {
         CSDocCompilerSettingsForTitleManager settings(m_docSetSpec);
 
         CSDocCompiler csdoc_compiler;
-        csdoc_compiler.CompileToHtml(settings, csdoc_filename, FileIO::ReadText(csdoc_filename));
+        csdoc_compiler.CompileToHtml(settings, csdoc_file_path, FileIO::ReadText(csdoc_file_path));
     }
 
     catch( const CSProException& exception )
     {
-        if( exception.GetErrorMessage().find(RecursivePreventionMessageText) != std::wstring::npos )
+        if( std::string_view(exception.what()).find(RecursivePreventionMessageText) != std::string_view::npos )
             throw;
     }
 
-    if( GetTitleFromCache(title, csdoc_filename) )
+    if( GetTitleFromCache(title, csdoc_file_path) )
         return title;
 
-    throw CSProException(_T("The document title is not known for: ") + csdoc_filename);
+    throw CSProException("The document title is not known for: %s", csdoc_file_path.c_str());
 }
 
 
-bool TitleManager::GetTitleFromCache(std::wstring& title, const std::wstring& csdoc_filename)
+bool TitleManager::GetTitleFromCache(std::string& title, const std::string& csdoc_file_path)
 {
     // if a cached title exists, check if the file has been modified from when the cached title was set
-    const std::wstring* cached_title = m_settingsDb.Read<std::wstring*>(csdoc_filename);
+    const std::string* const cached_title = m_settingsDb.Read<std::string*>(csdoc_file_path);
 
     if( cached_title != nullptr )
     {
         const size_t semicolon_pos = cached_title->find(TimeAndTitleSeparator);
 
-        if( semicolon_pos != std::wstring::npos &&
-            PortableFunctions::FileModifiedTime(csdoc_filename) == CIMSAString::Val(cached_title->substr(0, semicolon_pos)) )
+        if( semicolon_pos != std::string::npos &&
+            PortableFunctions::FileModifiedTime(csdoc_file_path) == CIMSAString::Val(cached_title->substr(0, semicolon_pos)) )
         {
             title = cached_title->substr(semicolon_pos + 1);
             return true;
@@ -85,15 +85,15 @@ bool TitleManager::GetTitleFromCache(std::wstring& title, const std::wstring& cs
 }
 
 
-void TitleManager::SetTitle(const std::wstring& csdoc_filename, const std::wstring* title)
+void TitleManager::SetTitle(const std::string& csdoc_file_path, const std::string* const title)
 {
-    if( csdoc_filename.empty() )
+    if( csdoc_file_path.empty() )
         return;
 
-    ASSERT(PortableFunctions::FileIsRegular(csdoc_filename));
-    const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(csdoc_filename);
+    ASSERT(PortableFunctions::FileIsRegular(csdoc_file_path));
+    const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(csdoc_file_path);
 
-    std::wstring cached_title = CS2WS(IntToString(file_on_disk_modified_time));
+    std::string cached_title = IntToString(file_on_disk_modified_time);
 
     if( title != nullptr )
     {
@@ -101,5 +101,5 @@ void TitleManager::SetTitle(const std::wstring& csdoc_filename, const std::wstri
         cached_title.append(*title);
     }
 
-    m_settingsDb.Write(csdoc_filename, cached_title);
+    m_settingsDb.Write(csdoc_file_path, cached_title);
 }

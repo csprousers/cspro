@@ -4,18 +4,18 @@
 #include "SystemMessages.h"
 
 
-const std::wstring& MGF::GetMessageText(int message_number)
+SharableString MGF::GetMessageText(const int message_number)
 {
     return SystemMessages::GetMessageFile().GetMessageText(message_number);
 }
 
 
-std::wstring MGF::GetMessageText(int message_number, const TCHAR* default_text)
+SharableString MGF::GetMessageText(const int message_number, const char* const default_text)
 {
     ASSERT(default_text != nullptr);
 
-    const std::wstring* message_text = SystemMessages::GetMessageFile().GetMessageTextWithNoDefaultMessage(message_number);
+    SharableString message_text = SystemMessages::GetMessageFile().GetMessageTextWithNoDefaultMessage(message_number);
 
-    return ( message_text != nullptr ) ? *message_text :
-                                         default_text;
+    return message_text.IsSet() ? message_text :
+                                  default_text;
 }

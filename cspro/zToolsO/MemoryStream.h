@@ -1,25 +1,25 @@
 ﻿#pragma once
 
-#include <streambuf>
+#include <zToolsO/zToolsO.h>
+#include <istream>
 
 
-// based on https://stackoverflow.com/questions/13059091/creating-an-input-stream-from-constant-memory
-
-struct MemoryStreamBuffer : public std::streambuf
+class CLASS_DECL_ZTOOLSO MemoryStream : public std::istream
 {
-    MemoryStreamBuffer(const std::byte* data, size_t size)
-    {
-        char* data_as_char = const_cast<char*>(reinterpret_cast<const char*>(data));
-        setg(data_as_char, data_as_char, data_as_char + size);
-    }
-};
+private:
+    class Buffer;
+    MemoryStream(std::unique_ptr<Buffer> stream_buffer);
 
+public:
+    MemoryStream(const std::byte* data, size_t size);
 
-struct MemoryStream : virtual public MemoryStreamBuffer, public std::istream
-{
-    MemoryStream(const std::byte* data, size_t size)
-        :   MemoryStreamBuffer(data, size),
-            std::istream(static_cast<std::streambuf*>(this))
-    {
-    }
+    MemoryStream(const char* data, size_t size) : MemoryStream(reinterpret_cast<const std::byte*>(data), size) { }
+
+    template<typename T>
+    MemoryStream(const T& data) : MemoryStream(reinterpret_cast<const std::byte*>(data.data()), data.size()) { }
+
+    ~MemoryStream();
+
+private:
+    std::unique_ptr<Buffer> m_streamBuffer;
 };

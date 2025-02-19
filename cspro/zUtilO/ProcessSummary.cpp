@@ -2,7 +2,7 @@
 #include "ProcessSummary.h"
 
 
-void ProcessSummary::WriteJson(JsonWriter& json_writer, const std::vector<std::wstring>* level_names/* = nullptr*/) const
+void ProcessSummary::WriteJson(JsonWriter& json_writer, const std::vector<std::string>* const level_names/* = nullptr*/) const
 {
     json_writer.BeginObject();
 

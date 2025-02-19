@@ -52,7 +52,7 @@ class ChooseBluetoothDeviceActivity : AppCompatActivity() {
 
             // Cancel discovery because it's costly and we're about to connect
             stopDiscovery()
-            val name = selectedItem?.m_device
+            val name = selectedItem?.m_device?.name
             val address = selectedItem?.m_device?.address
 
             // Create the result Intent and include the MAC address

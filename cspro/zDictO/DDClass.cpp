@@ -22,60 +22,6 @@
 #include <zUtilO/TemporaryFile.h>
 
 
-namespace
-{
-    inline void DeserializeSecurityOptions(const CString& encrypted_security_options, const CString& dictionary_name,
-                                           bool& allow_data_viewer_modifications, bool& allow_export, int& cached_password_minutes)
-    {
-        CString security_options = WS2CS(Encryptor(Encryptor::Type::RijndaelHex, dictionary_name).Decrypt(encrypted_security_options));
-        int pos = 0;
-
-        for( int i = 0; i < 5; ++i )
-        {
-            CString argument = security_options.Tokenize(_T("\t"), pos);
-
-            // only process text that was correctly decrypted
-            if( i == 0 )
-            {
-                if( argument.Compare(dictionary_name) != 0 )
-                    return;
-            }
-
-            else if( i == 1 )
-            {
-                if( argument.Compare(_T("v1")) != 0 )
-                    return;
-            }
-
-            else if( i == 2 )
-            {
-                allow_data_viewer_modifications = ( CIMSAString::Val(argument) == 1 );
-            }
-
-            else if( i == 3 )
-            {
-                allow_export = ( CIMSAString::Val(argument) == 1 );
-            }
-
-            else if( i == 4 )
-            {
-                cached_password_minutes = (int)CIMSAString::Val(argument);
-            }
-        }
-    }
-}
-
-// this is out of the namespace because it is used by the pre-8.0 spec file converter
-inline std::wstring SerializeSecurityOptions(const TCHAR* dictionary_name, bool allow_data_viewer_modifications,
-                                             bool allow_export, int cached_password_minutes)
-{
-    CString security_options = FormatText(_T("%s\tv1\t%d\t%d\t%d"), dictionary_name,
-        allow_data_viewer_modifications ? 1 : 0, allow_export ? 1 : 0, cached_password_minutes);
-
-    return Encryptor(Encryptor::Type::RijndaelHex, dictionary_name).Encrypt(security_options);
-}
-
-
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           CDataDict::CDataDict
@@ -88,7 +34,7 @@ CDataDict::CDataDict()
         m_bPosRelative(DictionaryDefaults::RelativePositions),
         m_bZeroFill(DictionaryDefaults::ZeroFill),
         m_bDecChar(DictionaryDefaults::DecChar),
-        m_allowDataViewerModifications(false),
+        m_allowDataManagerModifications(false),
         m_allowExport(false),
         m_cachedPasswordMinutes(0),
         m_readOptimization(DictionaryDefaults::ReadOptimization),
@@ -109,15 +55,16 @@ CDataDict::CDataDict(const CDataDict& rhs)
         m_bZeroFill(rhs.m_bZeroFill),
         m_bDecChar(rhs.m_bDecChar),
         m_mapNames(rhs.m_mapNames),
-        m_allowDataViewerModifications(rhs.m_allowDataViewerModifications),
+        m_allowDataManagerModifications(rhs.m_allowDataManagerModifications),
         m_allowExport(rhs.m_allowExport),
         m_cachedPasswordMinutes(rhs.m_cachedPasswordMinutes),
         m_readOptimization(rhs.m_readOptimization),
-        m_filename(rhs.m_filename),
+        m_filePath(rhs.m_filePath),
         m_serializedFileModifiedTime(rhs.m_serializedFileModifiedTime),
         m_iSymbol(-1),
         m_pChangedObject(nullptr),
         m_enableBinaryItems(rhs.m_enableBinaryItems),
+        m_syncableName(rhs.m_syncableName),
         m_languages(rhs.m_languages),
         m_dictLevels(rhs.m_dictLevels),
         m_dictRelations(rhs.m_dictRelations)
@@ -146,7 +93,7 @@ void CDataDict::CopyDictionarySettings(const CDataDict& dictionary)
 {
     SetZeroFill(dictionary.IsZeroFill());
     SetDecChar(dictionary.IsDecChar());
-    SetAllowDataViewerModifications(dictionary.GetAllowDataViewerModifications());
+    SetAllowDataManagerModifications(dictionary.GetAllowDataManagerModifications());
     SetAllowExport(dictionary.GetAllowExport());
     SetCachedPasswordMinutes(dictionary.GetCachedPasswordMinutes());
 }
@@ -200,11 +147,13 @@ void CDataDict::operator=(CDataDict& dict)
     m_bPosRelative  = dict.m_bPosRelative;
     m_bZeroFill     = dict.m_bZeroFill;
     m_bDecChar      = dict.m_bDecChar;
-    m_allowDataViewerModifications = dict.m_allowDataViewerModifications;
+    m_allowDataManagerModifications = dict.m_allowDataManagerModifications;
     m_allowExport = dict.m_allowExport;
     m_cachedPasswordMinutes = dict.m_cachedPasswordMinutes;
     m_readOptimization = dict.m_readOptimization;
     m_enableBinaryItems = dict.m_enableBinaryItems;
+    m_syncableName = dict.m_syncableName;
+    m_languages = dict.m_languages;
     m_dictLevels = dict.m_dictLevels;
     m_dictRelations = dict.m_dictRelations;
 
@@ -241,7 +190,7 @@ void CDataDict::BuildNameList()
             else
             {
                 // don't add the _IDS name
-                ASSERT(dict_record->GetName()[0] == '_');
+                ASSERT(dict_record->GetName().front() == '_');
             }
 
             for( int i = 0; i < dict_record->GetNumItems(); ++i )
@@ -328,12 +277,12 @@ void CDataDict::UpdateNameList(int iLevel, int iRec)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDataDict::AddToNameList(const CString& name, int iLevel /*=NONE*/,
-                                                   int iRec /*=NONE*/,
-                                                   int iItem /*=NONE*/,
-                                                   int iVSet /*=NONE*/)
+void CDataDict::AddToNameList(const std::string& name, int iLevel /*=NONE*/,
+                                                       int iRec /*=NONE*/,
+                                                       int iItem /*=NONE*/,
+                                                       int iVSet /*=NONE*/)
 {
-    if( !name.IsEmpty() )
+    if( !name.empty() )
     {
         ASSERT(SO::IsUpper(name) && CIMSAString::IsName(name));
         ASSERT(m_mapNames.find(name) == m_mapNames.cend());
@@ -349,7 +298,7 @@ void CDataDict::AddToNameList(const DictNamedBase& dict_element, int iLevel /*=N
 {
     AddToNameList(dict_element.GetName(), iLevel, iRec, iItem, iVSet);
 
-    for( const CString& alias : dict_element.GetAliases() )
+    for( const std::string& alias : dict_element.GetAliases() )
         AddToNameList(alias, iLevel, iRec, iItem, iVSet);
 }
 
@@ -380,7 +329,7 @@ void CDataDict::RemoveFromNameList(int iLevel /*=NONE*/, int iRec /*=NONE*/, int
 //
 /////////////////////////////////////////////////////////////////////////////
 template<typename T/* = void*/>
-bool CDataDict::LookupName(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record/* = nullptr*/,
+bool CDataDict::LookupName(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record/* = nullptr*/,
                            const CDictItem** dict_item/* = nullptr*/, const DictValueSet** dict_value_set/* = nullptr*/) const
 {
     ASSERT(SO::IsUpper(name));
@@ -450,15 +399,28 @@ bool CDataDict::LookupName(const CString& name, const DictLevel** dict_level, co
     return found;
 }
 
-template CLASS_DECL_ZDICTO bool CDataDict::LookupName<void>(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
-template CLASS_DECL_ZDICTO bool CDataDict::LookupName<DictLevel>(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
-template CLASS_DECL_ZDICTO bool CDataDict::LookupName<CDictRecord>(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
-template CLASS_DECL_ZDICTO bool CDataDict::LookupName<CDictItem>(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
-template CLASS_DECL_ZDICTO bool CDataDict::LookupName<DictValueSet>(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<void>(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<DictLevel>(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<CDictRecord>(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<CDictItem>(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<DictValueSet>(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record, const CDictItem** dict_item, const DictValueSet** dict_value_set) const;
+
+template<typename T/* = void*/>
+bool CDataDict::LookupName(const std::string& name, DictLevel** dict_level, CDictRecord** dict_record/* = nullptr*/,
+                           CDictItem** dict_item/* = nullptr*/, DictValueSet** dict_value_set/* = nullptr*/)
+{
+    return const_cast<const CDataDict*>(this)->LookupName<T>(name, const_cast<const DictLevel**>(dict_level),
+                                                                   const_cast<const CDictRecord**>(dict_record),
+                                                                   const_cast<const CDictItem**>(dict_item),
+                                                                   const_cast<const DictValueSet**>(dict_value_set));
+}
+
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<void>(const std::string& name, DictLevel** dict_level, CDictRecord** dict_record, CDictItem** dict_item, DictValueSet** dict_value_set);
+template CLASS_DECL_ZDICTO bool CDataDict::LookupName<DictValueSet>(const std::string& name, DictLevel** dict_level, CDictRecord** dict_record, CDictItem** dict_item, DictValueSet** dict_value_set);
 
 
 template<typename T>
-const T* CDataDict::LookupName(const CString& name) const
+const T* CDataDict::LookupName(const std::string& name) const
 {
     ASSERT(SO::IsUpper(name));
 
@@ -497,38 +459,33 @@ const T* CDataDict::LookupName(const CString& name) const
     return nullptr;
 }
 
-template CLASS_DECL_ZDICTO const DictLevel* CDataDict::LookupName<DictLevel>(const CString& name) const;
-template CLASS_DECL_ZDICTO const CDictRecord* CDataDict::LookupName<CDictRecord>(const CString& name) const;
-template CLASS_DECL_ZDICTO const CDictItem* CDataDict::LookupName<CDictItem>(const CString& name) const;
-template CLASS_DECL_ZDICTO const DictValueSet* CDataDict::LookupName<DictValueSet>(const CString& name) const;
+template CLASS_DECL_ZDICTO const DictLevel* CDataDict::LookupName<DictLevel>(const std::string& name) const;
+template CLASS_DECL_ZDICTO const CDictRecord* CDataDict::LookupName<CDictRecord>(const std::string& name) const;
+template CLASS_DECL_ZDICTO const CDictItem* CDataDict::LookupName<CDictItem>(const std::string& name) const;
+template CLASS_DECL_ZDICTO const DictValueSet* CDataDict::LookupName<DictValueSet>(const std::string& name) const;
 
 
-bool CDataDict::LookupName(const CString& csName, int* iLevel, int* iRecord, int* iItem, int* iVSet) const
+bool CDataDict::LookupName(const std::string& name, int* iLevel, int* iRecord, int* iItem, int* iVSet) const
 {
     *iLevel = *iRecord = *iItem = *iVSet = NONE;
 
-    const auto& name_map_pair_lookup = m_mapNames.find(csName);
+    const auto& name_map_pair_lookup = m_mapNames.find(name);
 
     if( name_map_pair_lookup == m_mapNames.cend() )
         return false;
 
-    const CDictName& name = name_map_pair_lookup->second;
+    const CDictName& dict_name = name_map_pair_lookup->second;
 
-    *iLevel = name.m_iLevel;
-    *iRecord = name.m_iRec;
-    *iItem = name.m_iItem;
-    *iVSet = name.m_iVSet;
+    *iLevel = dict_name.m_iLevel;
+    *iRecord = dict_name.m_iRec;
+    *iItem = dict_name.m_iItem;
+    *iVSet = dict_name.m_iVSet;
 
     return true;
 }
 
-bool CDataDict::LookupName(const std::wstring& name, int* iLevel, int* iRecord, int* iItem, int* iVSet) const
-{
-    return LookupName(WS2CS(name), iLevel, iRecord, iItem, iVSet);
-}
 
-
-const DictNamedBase* CDataDict::LookupName(const CString& name) const
+const DictNamedBase* CDataDict::LookupName(const std::string& name) const
 {
     const DictLevel* dict_level;
     const CDictRecord* dict_record;
@@ -537,16 +494,17 @@ const DictNamedBase* CDataDict::LookupName(const CString& name) const
 
     if( LookupName(name, &dict_level, &dict_record, &dict_item, &dict_value_set) )
     {
-        return ( dict_level != nullptr )  ? (const DictNamedBase*)dict_level :
-               ( dict_record != nullptr ) ? (const DictNamedBase*)dict_record :
-               ( dict_item != nullptr )   ? (const DictNamedBase*)dict_item :
-                                            (const DictNamedBase*)dict_value_set;
+        return ( dict_level != nullptr )  ? static_cast<const DictNamedBase*>(dict_level) :
+               ( dict_record != nullptr ) ? static_cast<const DictNamedBase*>(dict_record) :
+               ( dict_item != nullptr )   ? static_cast<const DictNamedBase*>(dict_item) :
+                                            static_cast<const DictNamedBase*>(dict_value_set);
     }
 
     return nullptr;
 }
 
-bool CDataDict::IsNameUnique(const CString& name, int iLevel /*=NONE*/, int iRec /*=NONE*/, int iItem /*=NONE*/, int iVSet /*=NONE*/) const
+
+bool CDataDict::IsNameUnique(const std::string& name, int iLevel /*=NONE*/, int iRec /*=NONE*/, int iItem /*=NONE*/, int iVSet /*=NONE*/) const
 {
     ASSERT(SO::IsUpper(name));
 
@@ -562,7 +520,7 @@ bool CDataDict::IsNameUnique(const CString& name, int iLevel /*=NONE*/, int iRec
     // also check against relation names
     for( const auto& dict_relation : m_dictRelations )
     {
-        if( dict_relation.GetName().CompareNoCase(name) == 0 )
+        if( SO::EqualsNoCase(dict_relation.GetName(), name) )
             return false;
     }
 
@@ -575,24 +533,27 @@ bool CDataDict::IsNameUnique(const CString& name, int iLevel /*=NONE*/, int iRec
 //
 /////////////////////////////////////////////////////////////////////////////
 
-CString CDataDict::GetUniqueName(const CString& base_name,
-                                 int iLevelNum /*=NONE*/,
-                                 int iRecordNum /*=NONE*/,
-                                 int iItemNum /*=NONE*/,
-                                 int iVSetNum /*=NONE*/,
-                                 const std::set<CString>* additional_names_in_use/* = nullptr*/) const
+std::string  CDataDict::GetUniqueName(const std::string & base_name,
+                                      int iLevelNum /*=NONE*/,
+                                      int iRecordNum /*=NONE*/,
+                                      int iItemNum /*=NONE*/,
+                                      int iVSetNum /*=NONE*/,
+                                      const std::set<std::string>* const additional_names_in_use/* = nullptr*/) const
 {
     // names should come here already as valid CSPro names
     ASSERT(CIMSAString::MakeName(base_name) == base_name);
 
-    return WS2CS(CIMSAString::CreateUnreservedName(base_name,
-            [&](const std::wstring& name_candidate)
+    return CIMSAString::CreateUnreservedName(base_name,
+            [&](const std::string& name_candidate)
             {
-                if( additional_names_in_use != nullptr && additional_names_in_use->find(WS2CS(name_candidate)) != additional_names_in_use->cend() )
+                if( additional_names_in_use != nullptr &&
+                    additional_names_in_use->find(name_candidate) != additional_names_in_use->cend() )
+                {
                     return false;
+                }
 
-                return IsNameUnique(WS2CS(name_candidate), iLevelNum, iRecordNum, iItemNum, iVSetNum);
-            }));
+                return IsNameUnique(name_candidate, iLevelNum, iRecordNum, iItemNum, iVSetNum);
+            });
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -601,7 +562,7 @@ CString CDataDict::GetUniqueName(const CString& base_name,
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
+bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_text,
                      int& iLevel, int& iRec, int& iItem, int& iVSet, int& iValue)
 {
     // Intermediate variables
@@ -636,7 +597,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
             if (!bCaseSensitive) {
                 csLabel.MakeUpper();
             }
-            if (csLabel.Find(csFindText) != NONE || GetName().Find(csFindText) != NONE) {
+            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || GetName().find(find_text) != std::string::npos ) {
                 if (iLevel != NONE || iRec != NONE || iItem != NONE || iVSet != NONE || iValue != NONE) {
                     iLevel = NONE;
                     iRec = NONE;
@@ -656,7 +617,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                 if (!bCaseSensitive) {
                     csLabel.MakeUpper();
                 }
-                if (csLabel.Find(csFindText) != NONE || pLevel->GetName().Find(csFindText) != NONE) {
+                if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pLevel->GetName().find(find_text) != std::string::npos) {
                     if (iLevel != iL || iRec != NONE || iItem != NONE || iVSet != NONE || iValue != NONE) {
                         iLevel = iL;
                         iRec = NONE;
@@ -679,7 +640,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
                         }
-                        if (csLabel.Find(csFindText) != -1 || pItem->GetName().Find(csFindText) != -1) {
+                        if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != -1 || pItem->GetName().find(find_text) != std::string::npos) {
                             if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != NONE || iValue != NONE) {
                                 iLevel = iL;
                                 iRec = COMMON;
@@ -700,7 +661,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE || dict_value_set.GetName().Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || dict_value_set.GetName().find(find_text) != std::string::npos) {
                                 if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != iVS || iValue != NONE) {
                                     iLevel = iL;
                                     iRec=COMMON;
@@ -720,7 +681,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE) {
                                 if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != iVS || iValue != iV) {
                                     iLevel = iL;
                                     iRec = COMMON;
@@ -747,7 +708,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                     if (!bCaseSensitive) {
                         csLabel.MakeUpper();
                     }
-                    if (csLabel.Find(csFindText) != NONE || pRec->GetName().Find(csFindText) != NONE) {
+                    if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pRec->GetName().find(find_text) != std::string::npos) {
                         if (iLevel != iL || iRec != iR || iItem != NONE || iVSet != NONE || iValue != NONE) {
                             iLevel = iL;
                             iRec = iR;
@@ -768,7 +729,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
                         }
-                        if (csLabel.Find(csFindText) != NONE || pItem->GetName().Find(csFindText) != NONE) {
+                        if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pItem->GetName().find(find_text) != std::string::npos) {
                             if (iLevel != iL || iRec != iR || iItem != iI || iVSet != NONE || iValue != NONE) {
                                 iLevel = iL;
                                 iRec = iR;
@@ -789,7 +750,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE || dict_value_set.GetName().Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || dict_value_set.GetName().find(find_text) != std::string::npos) {
                                 if (iLevel != iL || iRec != iR || iItem != iI || iVSet != iVS || iValue != NONE) {
                                     iLevel = iL;
                                     iRec = iR;
@@ -809,7 +770,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE) {
                                 if (iLevel != iL || iRec != iR || iItem != iI || iVSet != iVS || iValue != iV) {
                                     iLevel = iL;
                                     iRec = iR;
@@ -854,7 +815,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE) {
                                 if (iLevel != iL || iRec != iR || iItem != iI || iVSet != iVS || iValue != iV) {
                                     iLevel = iL;
                                     iRec = iR;
@@ -870,7 +831,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
                             }
-                            if (csLabel.Find(csFindText) != NONE || dict_value_set.GetName().Find(csFindText) != NONE) {
+                            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || dict_value_set.GetName().find(find_text) != std::string::npos) {
                                 if (iLevel != iL || iRec != iR || iItem != iI || iVSet != iVS || iValue != NONE) {
                                     iLevel = iL;
                                     iRec = iR;
@@ -889,7 +850,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
                         }
-                        if (csLabel.Find(csFindText) != NONE || pItem->GetName().Find(csFindText) != NONE) {
+                        if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pItem->GetName().find(find_text) != std::string::npos) {
                             if (iLevel != iL || iRec != iR || iItem != iI || iVSet != NONE || iValue != NONE) {
                                 iLevel = iL;
                                 iRec = iR;
@@ -908,7 +869,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                     if (!bCaseSensitive) {
                         csLabel.MakeUpper();
                     }
-                    if (csLabel.Find(csFindText) != NONE || pRec->GetName().Find(csFindText) != NONE) {
+                    if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pRec->GetName().find(find_text) != std::string::npos) {
                         if (iLevel != iL || iRec != iR || iItem != NONE || iVSet != NONE || iValue != NONE) {
                             iLevel = iL;
                             iRec = iR;
@@ -939,7 +900,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
                         }
-                        if (csLabel.Find(csFindText) != NONE) {
+                        if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE) {
                             if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != iVS || iValue != iV) {
                                 iLevel = iL;
                                 iRec = COMMON;
@@ -955,7 +916,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
                         }
-                        if (csLabel.Find(csFindText) != NONE || dict_value_set.GetName().Find(csFindText) != NONE) {
+                        if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || dict_value_set.GetName().find(find_text) != std::string::npos) {
                             if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != iVS || iValue != NONE) {
                                 iLevel = iL;
                                 iRec=COMMON;
@@ -975,7 +936,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                     if (!bCaseSensitive) {
                         csLabel.MakeUpper();
                     }
-                    if (csLabel.Find(csFindText) != -1 || pItem->GetName().Find(csFindText) != -1) {
+                    if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != -1 || pItem->GetName().find(find_text) != std::string::npos) {
                         if (iLevel != iL || iRec != COMMON || iItem != iI || iVSet != NONE || iValue != NONE) {
                             iLevel = iL;
                             iRec = COMMON;
@@ -996,7 +957,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
                 if (!bCaseSensitive) {
                     csLabel.MakeUpper();
                 }
-                if (csLabel.Find(csFindText) != NONE || pLevel->GetName().Find(csFindText) != NONE) {
+                if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || pLevel->GetName().find(find_text) != std::string::npos) {
                     if (iLevel != iL || iRec != NONE || iItem != NONE || iVSet != NONE || iValue != NONE) {
                         iLevel = iL;
                         iRec = NONE;
@@ -1016,7 +977,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
             if (!bCaseSensitive) {
                 csLabel.MakeUpper();
             }
-            if (csLabel.Find(csFindText) != NONE || GetName().Find(csFindText) != NONE) {
+            if (csLabel.Find(UTF8_TODO::GetCString(find_text)) != NONE || GetName().find(find_text) != std::string::npos) {
                 if (iLevel != NONE || iRec != NONE || iItem != NONE || iVSet != NONE || iValue != NONE) {
                     iLevel = NONE;
                     iRec = NONE;
@@ -1049,7 +1010,7 @@ namespace
         {
         }
 
-        std::wstring GetMd5() const
+        std::string GetMd5() const
         {
             return PortableFunctions::BinaryMd5(m_structureData);
         }
@@ -1091,14 +1052,14 @@ namespace
     private:
         void Process(const void* data, size_t data_length)
         {
-            size_t current_size = m_structureData.size();
+            const size_t current_size = m_structureData.size();
             m_structureData.resize(current_size + data_length);
             memcpy(m_structureData.data() + current_size, data, data_length);
         }
 
-        void Process(const CString& text)
+        void Process(const std::string& text)
         {
-            Process(text.GetString(), text.GetLength() * sizeof(TCHAR));
+            Process(text.c_str(), text.length());
         }
 
         template<typename T>
@@ -1112,7 +1073,8 @@ namespace
     };
 }
 
-std::wstring CDataDict::GetStructureMd5() const
+
+std::string CDataDict::GetStructureMd5() const
 {
     DictionaryIteratorForStructureMd5 iterator;
     iterator.Iterate(const_cast<CDataDict&>(*this));
@@ -1120,36 +1082,62 @@ std::wstring CDataDict::GetStructureMd5() const
 }
 
 
-size_t CDataDict::GetIdStructureHashForKeyIndex(bool hash_name, bool hash_start) const
+uint32_t CDataDict::GetIdStructureHashForKeyIndex(const bool hash_name, const bool hash_start) const
 {
     // calculate a hash that describes the IDs
-    size_t id_structure_hash = m_dictLevels.size();
+    uint32_t id_structure_hash = 0;
 
-    for( const DictLevel& dict_level : m_dictLevels )
+    const CDictRecord& dict_id_record = *m_dictLevels.front().GetIdItemsRec();
+
+    for( int i = 0; i < dict_id_record.GetNumItems(); ++i )
     {
-        const CDictRecord& dict_id_record = *dict_level.GetIdItemsRec();
+        const CDictItem& dict_id_item = *dict_id_record.GetItem(i);
 
-        for( int i = 0; i < dict_id_record.GetNumItems(); ++i )
-        {
-            const CDictItem& dict_id_item = *dict_id_record.GetItem(i);
+        ASSERT(!DictionaryRules::CanHaveSubitems(dict_id_record, dict_id_item) &&
+               !DictionaryRules::CanItemHaveMultipleOccurrences(dict_id_record) &&
+               !DictionaryRules::CanHaveDecimals(dict_id_record, dict_id_item.GetContentType()));
 
-            ASSERT(!DictionaryRules::CanHaveSubitems(dict_id_record, dict_id_item) &&
-                   !DictionaryRules::CanItemHaveMultipleOccurrences(dict_id_record) &&
-                   !DictionaryRules::CanHaveDecimals(dict_id_record, dict_id_item.GetContentType()));
+        if( hash_name )
+            Hash::Combine(id_structure_hash, dict_id_item.GetName());
 
-            if( hash_name )
-                Hash::Combine(id_structure_hash, wstring_view(dict_id_item.GetName()));
+        if( hash_start )
+            Hash::Combine(id_structure_hash, dict_id_item.GetStart());
 
-            if( hash_start )
-                Hash::Combine(id_structure_hash, dict_id_item.GetStart());
-
-            Hash::Combine(id_structure_hash, dict_id_item.GetLen());
-            Hash::Combine(id_structure_hash, dict_id_item.GetContentType());
-            Hash::Combine(id_structure_hash, dict_id_item.GetZeroFill());
-        }
+        Hash::Combine(id_structure_hash, dict_id_item.GetLen());
+        Hash::Combine(id_structure_hash, dict_id_item.GetContentType());
+        Hash::Combine(id_structure_hash, dict_id_item.GetZeroFill());
     }
 
     return id_structure_hash;
+}
+
+
+const std::string& CDataDict::GetSyncableName(const bool get_evaluated_name/* = true*/) const
+{
+    if( get_evaluated_name && m_syncableName.empty() )
+        return GetName();
+
+    return m_syncableName;
+}
+
+
+void CDataDict::SetSyncableName(std::string syncable_name)
+{
+    if( syncable_name == GetName() || SO::IsWhitespace(syncable_name) )
+    {
+        m_syncableName.clear();
+    }
+
+    else
+    {
+        m_syncableName = std::move(syncable_name);
+    }
+}
+
+
+std::string CDataDict::MakeQualifiedName(const std::string& name) const
+{
+    return FormatText("%s.%s", GetName().c_str(), name.c_str());
 }
 
 
@@ -1161,24 +1149,22 @@ size_t CDataDict::GetIdStructureHashForKeyIndex(bool hash_name, bool hash_start)
 
 int64_t CDataDict::GetFileModifiedTime() const
 {
-    if( m_serializedFileModifiedTime.has_value() )
-        return *m_serializedFileModifiedTime;
-
-    else
-        return PortableFunctions::FileModifiedTime(m_filename);
+    return m_serializedFileModifiedTime.has_value() ? *m_serializedFileModifiedTime :
+                                                      PortableFunctions::FileModifiedTime(m_filePath);
 }
 
 
-const CDictRecord* CDataDict::FindRecord(wstring_view record_name) const
+const CDictRecord* CDataDict::FindRecord(const std::string_view record_name_sv) const
 {
     for( const DictLevel& dict_level : m_dictLevels )
     {
         for( int r = -1; r < dict_level.GetNumRecords(); ++r )
         {
-            const CDictRecord* record = ( r == -1 ) ? dict_level.GetIdItemsRec() : dict_level.GetRecord(r);
+            const CDictRecord* const dict_record = ( r == -1 ) ? dict_level.GetIdItemsRec() :
+                                                                 dict_level.GetRecord(r);
 
-            if( SO::EqualsNoCase(record_name, record->GetName()) )
-                return record;
+            if( SO::EqualsNoCase(record_name_sv, dict_record->GetName()) )
+                return dict_record;
         }
     }
 
@@ -1186,17 +1172,19 @@ const CDictRecord* CDataDict::FindRecord(wstring_view record_name) const
 }
 
 
-const CDictItem* CDataDict::FindItem(wstring_view item_name) const
+const CDictItem* CDataDict::FindItem(const std::string_view item_name_sv) const
 {
     for( const DictLevel& dict_level : m_dictLevels )
     {
         for( int iRecord = -1; iRecord < dict_level.GetNumRecords(); ++iRecord )
         {
-            const CDictRecord* pRec = ( iRecord == -1 ) ? dict_level.GetIdItemsRec() : dict_level.GetRecord(iRecord);
-            const CDictItem* pItem = pRec->FindItem(item_name);
+            const CDictRecord* const dict_record = ( iRecord == -1 ) ? dict_level.GetIdItemsRec() :
+                                                                       dict_level.GetRecord(iRecord);
 
-            if( pItem != nullptr )
-                return pItem;
+            const CDictItem* const dict_item = dict_record->FindItem(item_name_sv);
+
+            if( dict_item != nullptr )
+                return dict_item;
         }
     }
 
@@ -1251,7 +1239,7 @@ void CDataDict::UpdatePointers()
 
             if( r == COMMON )
             {
-                dict_record->SetName(FormatText(_T("_IDS%d"), (int)level_number));
+                dict_record->SetName(FormatText("_IDS%d", static_cast<int>(level_number)));
 
                 static_assert(COMMON == -2);
                 ++r;
@@ -1290,10 +1278,10 @@ void CDataDict::UpdatePointers()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-std::optional<size_t> CDataDict::IsLanguageDefined(wstring_view language_name) const
+std::optional<size_t> CDataDict::IsLanguageDefined(const std::string_view language_name_sv) const
 {
     const auto& lookup = std::find_if(m_languages.cbegin(), m_languages.cend(),
-                                      [&](const auto& language) { return SO::EqualsNoCase(language.GetName(), language_name); });
+                                      [&](const Language& language) { return SO::EqualsNoCase(language.GetName(), language_name_sv); });
 
     if( lookup != m_languages.cend() )
         return std::distance(m_languages.cbegin(), lookup);
@@ -1402,16 +1390,15 @@ unsigned CDataDict::GetKeyLength() const
 }
 
 
-std::vector<CString> CDataDict::GetUniqueNames(const TCHAR* prefix, int iNumDigits, int iNumNames) const
+std::vector<std::string> CDataDict::GetUniqueNames(const char* const prefix, int iNumDigits, int iNumNames) const
 {
-    std::vector<CString> unique_names;
+    std::vector<std::string> unique_names;
 
     for( int i = 0; i < iNumNames; ++i )
     {
-        CString csName = FormatText(_T("%s%0*d"), prefix, iNumDigits, i + 1);
-        csName = CIMSAString::MakeName(csName);
-        csName = GetUniqueName(csName);
-        unique_names.emplace_back(std::move(csName));
+        std::string name = FormatText("%s%0*d", prefix, iNumDigits, i + 1);
+        name = CIMSAString::MakeName(name);
+        unique_names.emplace_back(GetUniqueName(name));
     }
 
     return unique_names;
@@ -1535,7 +1522,7 @@ size_t CDataDict::CountValueSetLinks(const DictValueSet& dict_value_set) const
 
 
 void CDataDict::SyncLinkedValueSets(std::variant<SyncLinkedValueSetsAction, DictValueSet*> action_or_updated_dict_value_set/* = SyncLinkedValueSetsAction::UpdateValuesFromLinks*/,
-                                    const std::vector<CString>* value_set_names_added_on_paste/* = nullptr*/)
+                                    const std::vector<std::string>* const value_set_names_added_on_paste/* = nullptr*/)
 {
     // - if action_or_updated_dict_value_set is not null, then all value sets linked to it are updated with the values in action_or_updated_dict_value_set
     // - if the action is UpdateValuesFromLinks, all value sets are updated based on the values in the value set with the most values
@@ -1547,7 +1534,7 @@ void CDataDict::SyncLinkedValueSets(std::variant<SyncLinkedValueSetsAction, Dict
                              std::get<DictValueSet*>(action_or_updated_dict_value_set)->IsLinkedValueSet() ));
 
     // first pass: figure out the linkages
-    std::map<std::wstring, std::vector<DictValueSet*>> linked_value_sets;
+    std::map<std::string, std::vector<DictValueSet*>> linked_value_sets;
 
     DictionaryIterator::Foreach<DictValueSet>(*this,
         [&](DictValueSet& dict_value_set)
@@ -1700,17 +1687,17 @@ const CDictItem* GetDictOccItem(const CDictRecord* pRecord, const CDictItem* pIt
 }
 
 
-std::unique_ptr<CDataDict> CDataDict::InstantiateAndOpen(const NullTerminatedString filename, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
+std::unique_ptr<CDataDict> CDataDict::InstantiateAndOpen(const InterfaceString& file_path, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
 {
     auto dictionary = std::make_unique<CDataDict>();
-    dictionary->Open(filename, silent, std::move(message_logger));
+    dictionary->Open(file_path, silent, std::move(message_logger));
     return dictionary;
 }
 
 
-void CDataDict::Open(const NullTerminatedString filename, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
+void CDataDict::Open(const InterfaceString& file_path, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
 {
-    auto json_reader = JsonSpecFile::CreateReader(filename, std::move(message_logger), [&]() { return ConvertPre80SpecFile(filename); });
+    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path, std::move(message_logger), [&]() { return ConvertPre80SpecFile(file_path); });
     return Open(*json_reader, silent);
 }
 
@@ -1724,12 +1711,12 @@ void CDataDict::Open(JsonSpecFile::Reader& json_reader, const bool silent)
 
         CreateFromJsonWorker(json_reader);
 
-        m_filename = WS2CS(json_reader.GetFilename());
+        m_filePath = json_reader.GetFilePath();
     }
 
     catch( const CSProException& exception )
     {
-        json_reader.GetMessageLogger().RethrowException(json_reader.GetFilename().c_str(), exception);
+        json_reader.GetMessageLogger().RethrowException(json_reader.GetFilePath(), exception);
     }
 
     // report any warnings
@@ -1737,41 +1724,41 @@ void CDataDict::Open(JsonSpecFile::Reader& json_reader, const bool silent)
 }
 
 
-void CDataDict::OpenFromText(wstring_view text)
+void CDataDict::OpenFromText(const std::string_view text_sv)
 {
-    if( !text.empty() && text.front() == JsonSpecFile::Pre80SpecFileStartCharacter )
+    if( !text_sv.empty() && text_sv.front() == JsonSpecFile::Pre80SpecFileStartCharacter )
     {
         // save the pre-JSON file to a temporary file and open it
         TemporaryFile temporary_file;
-        FileIO::WriteText(temporary_file.GetPath(), text, true);
+        FileIO::WriteText(temporary_file.GetPath(), text_sv, true);
         ConvertPre80SpecFile(temporary_file.GetPath());
         Open(temporary_file.GetPath(), true);
     }
 
     else
     {
-        auto json_reader = JsonSpecFile::CreateReader(_T(""), text);
+        const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader("", text_sv);
         return Open(*json_reader, true);
     }
 }
 
 
-void CDataDict::Save(NullTerminatedString filename, bool continue_using_filename/* = true*/) const
+void CDataDict::Save(std::string file_path, bool continue_using_file_path/* = true*/) const
 {
-    auto json_writer = JsonSpecFile::CreateWriter(filename, JK::dictionary);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JK::dictionary);
 
     WriteJson(*json_writer, false);
 
     json_writer->EndObject();
 
-    if( continue_using_filename )
-        const_cast<CDataDict*>(this)->m_filename = CString(filename.c_str());
+    if( continue_using_file_path )
+        const_cast<CDataDict*>(this)->m_filePath = std::move(file_path);
 }
 
 
-std::wstring CDataDict::GetJson(const bool spec_file_format/* = true*/) const
+std::string CDataDict::GetJson(const bool spec_file_format/* = true*/) const
 {
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -1782,29 +1769,47 @@ std::wstring CDataDict::GetJson(const bool spec_file_format/* = true*/) const
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }
 
 
-CDataDict CDataDict::CreateFromJson(const JsonNode<wchar_t>& json_node)
+template<typename T/* = CDataDict*/>
+T CDataDict::CreateFromJson(const JsonNode& json_node)
 {
-    CDataDict dictionary;
-    dictionary.CreateFromJsonWorker(json_node);
+    T dictionary;
+
+    if constexpr(std::is_same_v<T, std::unique_ptr<CDataDict>>)
+    {
+        dictionary = std::make_unique<CDataDict>();
+        dictionary->CreateFromJsonWorker(json_node);
+    }
+
+    else
+    {
+        dictionary.CreateFromJsonWorker(json_node);
+    }
+
     return dictionary;
 }
 
+template CLASS_DECL_ZDICTO CDataDict CDataDict::CreateFromJson(const JsonNode& json_node);
+template CLASS_DECL_ZDICTO std::unique_ptr<CDataDict> CDataDict::CreateFromJson(const JsonNode& json_node);
 
-void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
+
+void CDataDict::CreateFromJsonWorker(const JsonNode& json_node)
 {
     // some values are assumed to come in with the default values
     ASSERT(m_languages.size() == 1 && m_languages[0] == Language());
-    ASSERT(!m_allowDataViewerModifications && !m_allowExport && m_cachedPasswordMinutes == 0);
+    ASSERT(!m_allowDataManagerModifications && !m_allowExport && m_cachedPasswordMinutes == 0);
 
     DictionarySerializerHelper dict_serializer_helper(*this);
-    auto dict_serializer_helper_holder = json_node.GetSerializerHelper().Register(&dict_serializer_helper);
+    const auto dict_serializer_helper_holder = json_node.GetSerializerHelper().Register(&dict_serializer_helper);
 
     // only parse DictBase after the languages have been parsed
     DictNamedBase::ParseJsonInput(json_node, false);
+
+    if( json_node.Contains(JK::sync) )
+        SetSyncableName(json_node.Get(JK::sync).GetOrConstruct<std::string>(JK::name));
 
     if( json_node.Contains(JK::languages) )
     {
@@ -1813,7 +1818,7 @@ void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
         // add a default language if no languages were defind
         if( m_languages.empty() )
         {
-            json_node.LogWarning(_T("A default language was added to '%s'"), GetName().GetString());
+            json_node.LogWarning("A default language was added to '%s'", GetName().c_str());
             m_languages.emplace_back();
         }
     }
@@ -1821,15 +1826,18 @@ void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
     DictBase::ParseJsonInput(json_node);
 
     if( json_node.Contains(JK::security) )
-        DeserializeSecurityOptions(json_node.Get(JK::security).Get<CString>(JK::settings), GetName(), m_allowDataViewerModifications, m_allowExport, m_cachedPasswordMinutes);
+    {
+        DeserializeSecurityOptions(json_node.Get(JK::security).Get<std::string_view>(JK::settings), GetName(),
+                                   m_allowDataManagerModifications, m_allowExport, m_cachedPasswordMinutes);
+    }
 
     m_readOptimization = json_node.GetOrDefault(JK::readOptimization, DictionaryDefaults::ReadOptimization);
 
-    const auto& record_type_node = json_node.Get(JK::recordType);
+    const JsonNode record_type_node = json_node.Get(JK::recordType);
     m_uRecTypeStart = record_type_node.Get<unsigned>(JK::start);
     m_uRecTypeLen = record_type_node.Get<unsigned>(JK::length);
 
-    const auto& defaults_node = json_node.GetOrEmpty(JK::defaults);
+    const JsonNode defaults_node = json_node.GetOrEmpty(JK::defaults);
     m_bDecChar = defaults_node.GetOrDefault(JK::decimalMark, DictionaryDefaults::DecChar);
     m_bZeroFill = defaults_node.GetOrDefault(JK::zeroFill, DictionaryDefaults::ZeroFill);
 
@@ -1840,7 +1848,7 @@ void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
     m_dictLevels = json_node.GetArrayOrEmpty(JK::levels).GetVector<DictLevel>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A level was not added to '%s' due to errors: %s"), GetName().GetString(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A level was not added to '%s' due to errors: %s", GetName().c_str(), exception.what());
         });
 
     ResetLevelNumbers(m_dictLevels, 1);
@@ -1856,11 +1864,11 @@ void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
     m_dictRelations = json_node.GetArrayOrEmpty(JK::relations).GetVector<DictRelation>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A relation was not added to '%s' due to errors: %s"), GetName().GetString(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A relation was not added to '%s' due to errors: %s", GetName().c_str(), exception.what());
         });
 
     m_enableBinaryItems = ( dict_serializer_helper.GetUsesBinaryItems() ||
-                            json_node.GetOrDefault(_T("enableBinaryItems"), false) );
+                            json_node.GetOrDefault("enableBinaryItems", false) );
 
     // finalize the dictionary
     BuildNameList();
@@ -1872,13 +1880,20 @@ void CDataDict::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
 void CDataDict::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/* = true*/) const
 {
     DictionarySerializerHelper dict_serializer_helper(*this);
-    auto dict_serializer_helper_holder = json_writer.GetSerializerHelper().Register(&dict_serializer_helper);
+    const auto dict_serializer_helper_holder = json_writer.GetSerializerHelper().Register(&dict_serializer_helper);
 
     if( write_to_new_json_object )
         json_writer.BeginObject();
 
-    // only write DictBase once the languages have been written
+    // DictBase will be written once the languages have been written
     DictNamedBase::WriteJson(json_writer, false);
+
+    if( !m_syncableName.empty() )
+    {
+        json_writer.BeginObject(JK::sync)
+                   .Write(JK::name, m_syncableName)
+                   .EndObject();
+    }
 
     ASSERT(!m_languages.empty());
 
@@ -1888,15 +1903,15 @@ void CDataDict::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object
     DictBase::WriteJson(json_writer);
 
     json_writer.BeginObject(JK::security)
-               .Write(JK::allowDataViewerModifications, m_allowDataViewerModifications)
+               .Write(JK::allowDataManagerModifications, m_allowDataManagerModifications)
                .Write(JK::allowExport, m_allowExport)
                .Write(JK::cachedPasswordMinutes, m_cachedPasswordMinutes)
-               .Write(JK::settings, SerializeSecurityOptions(GetName(), m_allowDataViewerModifications, m_allowExport, m_cachedPasswordMinutes))
+               .Write(JK::settings, SerializeSecurityOptions(GetName(), m_allowDataManagerModifications, m_allowExport, m_cachedPasswordMinutes))
                .EndObject();
 
     json_writer.Write(JK::readOptimization, m_readOptimization);
 
-    json_writer.WriteIfNot(_T("enableBinaryItems"), m_enableBinaryItems, false);
+    json_writer.WriteIfNot("enableBinaryItems", m_enableBinaryItems, false);
 
     json_writer.BeginObject(JK::recordType)
                .Write(JK::start, m_uRecTypeStart)
@@ -1922,7 +1937,7 @@ void CDataDict::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object
 
 void CDataDict::serialize(Serializer& ar)
 {
-    auto dict_serializer_helper_holder = ar.GetSerializerHelper().Register(std::make_shared<DictionarySerializerHelper>(*this));
+    const auto dict_serializer_helper_holder = ar.GetSerializerHelper().Register(std::make_unique<DictionarySerializerHelper>(*this));
 
     m_serializedFileModifiedTime = static_cast<int64_t>(ar.GetArchiveModifiedDate());
 
@@ -1944,9 +1959,12 @@ void CDataDict::serialize(Serializer& ar)
     ar & m_csOldName;
     ar & m_iSymbol;
 
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+        ar & m_syncableName;
+
     ar & m_languages;
 
-    ar & m_allowDataViewerModifications
+    ar & m_allowDataManagerModifications
        & m_allowExport
        & m_cachedPasswordMinutes;
 
@@ -1973,11 +1991,44 @@ void CDataDict::serialize(Serializer& ar)
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
     // allow a way for developers to recover people's dictionaries from .pen files
-    if( std::wstring(GetCommandLine()).find(_T("/extract")) != std::wstring::npos )
+    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
     {
-        const std::wstring filename = PortableFunctions::PathAppendToPath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
-                                                                          GetName() + FileExtensions::WithDot::Dictionary);
-        Save(filename);
+        const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
+                                                                        GetName(), FileExtensions::Dictionary);
+        Save(file_path);
     }
 #endif
+}
+
+
+std::string CDataDict::SerializeSecurityOptions(const std::string& dictionary_name, const bool allow_data_manager_modifications,
+                                                const bool allow_export, const int cached_password_minutes)
+{
+    const std::string security_options_text = FormatText("%s\tv1\t%d\t%d\t%d",
+                                                         dictionary_name.c_str(),
+                                                         allow_data_manager_modifications ? 1 : 0,
+                                                         allow_export ? 1 : 0,
+                                                         cached_password_minutes);
+
+    Encryptor encryptor(Encryptor::Type::RijndaelHex, dictionary_name);
+    return encryptor.Encrypt(security_options_text);
+}
+
+
+void CDataDict::DeserializeSecurityOptions(const std::string_view encrypted_security_options_sv, const std::string& dictionary_name,
+                                           bool& allow_data_manager_modifications, bool& allow_export, int& cached_password_minutes)
+{
+    Encryptor encryptor(Encryptor::Type::RijndaelHex, dictionary_name);
+    const std::string security_options_text = encryptor.Decrypt(encrypted_security_options_sv);
+    const std::vector<std::string> security_options = SO::SplitString(security_options_text, "\t");
+
+    // only process text that was correctly decrypted
+    if( security_options.size() == 5 &&
+        security_options[0] == dictionary_name &&
+        security_options[1] == "v1" )
+    {
+        allow_data_manager_modifications = ( CIMSAString::Val(security_options[2]) == 1 );
+        allow_export = ( CIMSAString::Val(security_options[3]) == 1 );
+        cached_password_minutes = static_cast<int>(CIMSAString::Val(security_options[4]));
+    }
 }

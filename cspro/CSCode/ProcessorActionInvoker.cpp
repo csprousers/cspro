@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "ProcessorActionInvoker.h"
+#include <zToolsO/UniqueId.h>
 #include <zAction/ActionInvoker.h>
 #include <zAction/JsonExecutor.h>
 
@@ -8,127 +9,156 @@
 // ActionInvokerJsonCaller
 // --------------------------------------------------------------------------
 
-namespace
+class ActionInvokerJsonCaller : public ActionInvoker::Caller
 {
-    class ActionInvokerJsonCaller : public ActionInvoker::Caller
+public:
+    ActionInvokerJsonCaller(CodeDoc& code_doc)
+        :   m_callerId(UniqueId::CreateInt()),
+            m_rootDirectory(PortableFunctions::PathGetDirectory(code_doc.GetFilePath()))
     {
-    public:
-        ActionInvokerJsonCaller(CodeDoc& code_doc)
-            :   m_cancelFlag(false),
-                m_rootDirectory(PortableFunctions::PathGetDirectory(code_doc.GetPathName()))
-        {
-        }
+    }
 
-        bool& GetCancelFlag() override { return m_cancelFlag; }
+    int GetCallerId() const override { return m_callerId; }
 
-        std::wstring GetRootDirectory() override { return m_rootDirectory; }
+    CancelFlag& GetCancelFlag() override { return m_cancelFlag; }
 
-    private:
-        bool m_cancelFlag;
-        const std::wstring m_rootDirectory;
-    };
+    std::string GetRootDirectory() override { return m_rootDirectory; }
+
+private:
+    int m_callerId;
+    CancelFlag m_cancelFlag;
+    const std::string m_rootDirectory;
+};
+
+
+
+// --------------------------------------------------------------------------
+// CSCodeJsonExecutor
+// --------------------------------------------------------------------------
+
+class CSCodeJsonExecutor : public ActionInvoker::JsonExecutor
+{
+public:
+    CSCodeJsonExecutor(OutputWnd& output_wnd);
+
+    virtual void DisplayResultsPostRunActions();
+
+protected:
+    static SharableString GetFormattedJson(std::string_view json_sv);
+
+protected:
+    OutputWnd& m_outputWnd;
+};
+
+
+CSCodeJsonExecutor::CSCodeJsonExecutor(OutputWnd& output_wnd)
+    :   JsonExecutor(false),
+        m_outputWnd(output_wnd)
+{
 }
 
 
+void CSCodeJsonExecutor::DisplayResultsPostRunActions()
+{
+    m_outputWnd.AddText(GetFormattedJson(ReleaseResultsJson().GetString()));
+}
+
+
+SharableString CSCodeJsonExecutor::GetFormattedJson(const std::string_view json_sv)
+{
+    // format the JSON text nicely before displaying it
+    try
+    {
+        const JsonNode json_node = Json::Parse(json_sv);
+        return json_node.GetNodeAsSharableString(JsonFormattingOptions::PrettySpacing);
+    }
+
+    catch(...)
+    {
+        return ReturnProgrammingError(json_sv);
+    }
+}
+
 
 // --------------------------------------------------------------------------
-// CSCodeJsonExecutor +
 // CSCodeJsonExecutorDisplayingResultsAsNonJson
 // --------------------------------------------------------------------------
 
-namespace
+class CSCodeJsonExecutorDisplayingResultsAsNonJson : public CSCodeJsonExecutor
 {
-    class CSCodeJsonExecutor : public ActionInvoker::JsonExecutor
+public:
+    using CSCodeJsonExecutor::CSCodeJsonExecutor;
+
+protected:
+    void DisplayResultsPostRunActions() override;
+    void ProcessActionResult(ActionInvoker::Result result) override;
+    void ProcessActionResult(const CSProException& exception) override;
+
+private:
+    void OutputResult(SharableString result_text);
+
+private:
+    bool m_spaceOutResultsWithNewline = false;
+};
+
+
+void CSCodeJsonExecutorDisplayingResultsAsNonJson::DisplayResultsPostRunActions()
+{
+    // everything has been displayed in the ProcessAction... methods
+}
+
+
+void CSCodeJsonExecutorDisplayingResultsAsNonJson::ProcessActionResult(const ActionInvoker::Result result)
+{
+    switch( result.GetType() )
     {
-    public:
-        CSCodeJsonExecutor(OutputWnd& output_wnd)
-            :   JsonExecutor(false),
-                m_outputWnd(output_wnd)
-        {
-        }
+        case ActionInvoker::Result::Type::Bool:
+        case ActionInvoker::Result::Type::Number:
+        case ActionInvoker::Result::Type::String:
+            OutputResult(result.GetResultAsString<false>());
+            break;
 
-        virtual void DisplayResultsPostRunActions()
-        {
-            m_outputWnd.AddText(GetFormattedJson(*GetResultsJson()));
-        }
+        case ActionInvoker::Result::Type::JsonText:
+            OutputResult(GetFormattedJson(result.GetStringResult().GetString()));
+            break;
 
-    protected:
-        template<typename T>
-        static std::wstring GetFormattedJson(T&& json)
-        {
-            // format the JSON text nicely before displaying it
-            try
-            {
-                const auto json_node = Json::Parse(json);
-                return json_node.GetNodeAsString(JsonFormattingOptions::PrettySpacing);
-            }
-
-            catch(...)
-            {
-                return ReturnProgrammingError(std::forward<T>(json));
-            }
-        }
-
-    protected:
-        OutputWnd& m_outputWnd;
-    };
+        default:
+            ASSERT(result.GetType() == ActionInvoker::Result::Type::Undefined);
+            break;
+    }
+}
 
 
-    class CSCodeJsonExecutorDisplayingResultsAsNonJson : public CSCodeJsonExecutor
+void CSCodeJsonExecutorDisplayingResultsAsNonJson::ProcessActionResult(const CSProException& exception)
+{
+    const ActionInvoker::Exception* const action_invoker_exception = dynamic_cast<const ActionInvoker::Exception*>(&exception);
+
+    if( action_invoker_exception == nullptr )
     {
-    public:
-        using CSCodeJsonExecutor::CSCodeJsonExecutor;
+        ASSERT(false);
+        OutputResult(exception.what());
+    }
 
-    protected:
-        void DisplayResultsPostRunActions() override
-        {
-            // everything has been displayed in the ProcessAction... methods
-        }
+    else
+    {
+        OutputResult(SO::CreateColonSeparatedString(action_invoker_exception->GetName(), action_invoker_exception->what()));
+    }
+}
 
-        void ProcessActionResult(ActionInvoker::Result result) override
-        {
-            switch( result.GetType() )
-            {
-                case ActionInvoker::Result::Type::Bool:
-                case ActionInvoker::Result::Type::Number:
-                case ActionInvoker::Result::Type::String:
-                    OutputResult(result.ReleaseResultAsString<false>());
-                    break;
 
-                case ActionInvoker::Result::Type::JsonText:
-                    OutputResult(GetFormattedJson(result.ReleaseStringResult()));
-                    break;
+void CSCodeJsonExecutorDisplayingResultsAsNonJson::OutputResult(SharableString result_text)
+{
+    if( m_spaceOutResultsWithNewline )
+    {
+        m_outputWnd.AddText(SharableString());
+    }
 
-                default:
-                    ASSERT(result.GetType() == ActionInvoker::Result::Type::Undefined);
-                    break;
-            }
-        }
+    else
+    {
+        m_spaceOutResultsWithNewline = true;
+    }
 
-        void ProcessActionResult(const CSProException& exception) override
-        {
-            OutputResult(ActionInvoker::JsonResponse::GetExceptionText(exception));
-        }
-
-    private:
-        void OutputResult(std::wstring result_text)
-        {
-            if( m_spaceOutResultsWithNewline )
-            {
-                m_outputWnd.AddText(std::wstring());
-            }
-
-            else
-            {
-                m_spaceOutResultsWithNewline = true;
-            }
-
-            m_outputWnd.AddText(std::move(result_text));
-        }
-
-    private:
-        bool m_spaceOutResultsWithNewline = false;
-    };
+    m_outputWnd.AddText(std::move(result_text));
 }
 
 
@@ -137,75 +167,81 @@ namespace
 // ActionInvokerJsonRunOperation
 // --------------------------------------------------------------------------
 
-namespace
+class ActionInvokerJsonRunOperation : public RunOperation
 {
-    class ActionInvokerJsonRunOperation : public RunOperation
+public:
+    ActionInvokerJsonRunOperation(CodeDoc& code_doc, std::unique_ptr<CSCodeJsonExecutor> cscode_json_executor, OutputWnd& output_wnd);
+
+    bool IsCancelable() const override { return true; }
+
+    bool IsRunning() const override { return ( m_runThread != nullptr && m_runThread->joinable() ); }
+
+    void Run() override;
+
+    void OnComplete() override;
+
+    void Cancel() override;
+
+private:
+    void RunWorker();
+
+private:
+    ActionInvokerJsonCaller m_actionInvokerCaller;
+    std::unique_ptr<CSCodeJsonExecutor> m_cscodeJsonExecutor;
+    OutputWnd& m_outputWnd;
+    std::unique_ptr<std::thread> m_runThread;
+};
+
+
+ActionInvokerJsonRunOperation::ActionInvokerJsonRunOperation(CodeDoc& code_doc, std::unique_ptr<CSCodeJsonExecutor> cscode_json_executor, OutputWnd& output_wnd)
+    :   m_actionInvokerCaller(code_doc),
+        m_cscodeJsonExecutor(std::move(cscode_json_executor)),
+        m_outputWnd(output_wnd)
+{
+    ASSERT(m_cscodeJsonExecutor != nullptr);
+}
+
+
+void ActionInvokerJsonRunOperation::Run()
+{
+    m_runThread = std::make_unique<std::thread>([&]() { RunWorker(); });
+}
+
+
+void ActionInvokerJsonRunOperation::OnComplete()
+{
+    if( m_runThread != nullptr )
     {
-    public:
-        ActionInvokerJsonRunOperation(CodeDoc& code_doc, std::unique_ptr<CSCodeJsonExecutor> cscode_json_executor, OutputWnd& output_wnd)
-            :   m_actionInvokerCaller(code_doc),
-                m_cscodeJsonExecutor(std::move(cscode_json_executor)),
-                m_outputWnd(output_wnd)
+        if( m_runThread->joinable() )
+            m_runThread->join();
+
+        m_runThread.reset();
+    }
+}
+
+
+void ActionInvokerJsonRunOperation::Cancel()
+{
+    if( m_runThread != nullptr )
+    {
+        if( m_runThread->joinable() )
         {
-            ASSERT(m_cscodeJsonExecutor != nullptr);
+            m_actionInvokerCaller.GetCancelFlag() = true;
+            m_runThread->join();
         }
 
-        bool IsCancelable() const override
-        {
-            return true;
-        }
+        m_runThread.reset();
+    }
+}
 
-        bool IsRunning() const override
-        {
-            return ( m_runThread != nullptr && m_runThread->joinable() );
-        }
 
-        void Run() override
-        {
-            m_runThread = std::make_unique<std::thread>([&]() { RunWorker(); });
-        }
+void ActionInvokerJsonRunOperation::RunWorker()
+{
+    m_cscodeJsonExecutor->RunActions(m_actionInvokerCaller);
 
-        void OnComplete() override
-        {
-            if( m_runThread != nullptr )
-            {
-                if( m_runThread->joinable() )
-                    m_runThread->join();
+    m_cscodeJsonExecutor->DisplayResultsPostRunActions();
 
-                m_runThread.reset();
-            }
-        }
-
-        void Cancel() override
-        {
-            if( m_runThread != nullptr )
-            {
-                if( m_runThread->joinable() )
-                {
-                    m_actionInvokerCaller.SetCancelFlag(true);
-                    m_runThread->join();
-                }
-
-                m_runThread.reset();
-            }
-        }
-
-    private:
-        void RunWorker()
-        {
-            m_cscodeJsonExecutor->RunActions(m_actionInvokerCaller);
-
-            m_cscodeJsonExecutor->DisplayResultsPostRunActions();
-
-            WindowsDesktopMessage::Post(UWM::CSCode::RunOperationComplete);
-        }
-
-    private:
-        ActionInvokerJsonCaller m_actionInvokerCaller;
-        std::unique_ptr<CSCodeJsonExecutor> m_cscodeJsonExecutor;
-        OutputWnd& m_outputWnd;
-        std::unique_ptr<std::thread> m_runThread;
-    };
+    WindowsDesktopMessage::Post(UWM::CSCode::RunOperationComplete);
 }
 
 
@@ -219,22 +255,22 @@ bool ProcessorActionInvoker::ValidateJson(CodeView& code_view, ActionInvoker::Js
     const bool run_mode = ( json_executor != nullptr );
     const bool make_build_window_visible_if_not = !run_mode;
 
-    CLogicCtrl* logic_ctrl = code_view.GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JSON);
 
-    CMainFrame* main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
-    CSCodeBuildWnd* build_wnd = main_frame->GetBuildWnd(make_build_window_visible_if_not);
+    CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+    CSCodeBuildWnd* const build_wnd = main_frame->GetBuildWnd(make_build_window_visible_if_not);
 
     if( build_wnd == nullptr )
         return false;
 
-    build_wnd->Initialize(code_view, _T("Action Invoker validation"));
+    build_wnd->Initialize(code_view, "Action Invoker validation");
 
     bool validation_success = false;
 
     try
     {
-        const std::wstring actions_text = logic_ctrl->GetText();
+        const std::string actions_text = logic_ctrl->GetText();
 
         if( run_mode )
         {
@@ -273,7 +309,7 @@ void ProcessorActionInvoker::ValidateJson(CodeView& code_view)
 
 void ProcessorActionInvoker::Run(CodeDoc& code_doc)
 {
-    OutputWnd* output_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetOutputWnd();
+    OutputWnd* const output_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetOutputWnd();
 
     if( output_wnd == nullptr )
         return;

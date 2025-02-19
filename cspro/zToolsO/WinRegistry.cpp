@@ -14,21 +14,27 @@ WinRegistry::~WinRegistry()
 }
 
 
-bool WinRegistry::Open(HKEY base_key, NullTerminatedString key, bool create_key_if_not_exists/* = false*/)
+bool WinRegistry::Open(const HKEY base_key, const wchar_t* const key, const bool create_key_if_not_exists/* = false*/)
 {
     Close();
 
     if( create_key_if_not_exists )
     {
-        RegCreateKey(base_key, key.c_str(), &m_hKey);
+        RegCreateKey(base_key, key, &m_hKey);
     }
 
     else
     {
-        RegOpenKey(base_key, key.c_str(), &m_hKey);
+        RegOpenKey(base_key, key, &m_hKey);
     }
 
     return ( m_hKey != nullptr );
+}
+
+
+bool WinRegistry::Open(const HKEY base_key, const std::string_view key_sv, const bool create_key_if_not_exists/* = false*/)
+{
+    return Open(base_key, TC::ToWide(key_sv).c_str(), create_key_if_not_exists);
 }
 
 
@@ -42,16 +48,16 @@ void WinRegistry::Close()
 }
 
 
-bool WinRegistry::ReadString(NullTerminatedString value_name, CString* pcsValueData)
+bool WinRegistry::ReadString(const wchar_t* const value_name, CString* const pcsValueData)
 {
     if( m_hKey != nullptr )
     {
-        const int BufferSize = 500;
+        constexpr int BufferSize = 500;
         TCHAR szBuff[BufferSize];
         DWORD dwType = 0;
         DWORD dwKeyLen = sizeof(szBuff);
 
-        LSTATUS lStatus = RegQueryValueEx(m_hKey, value_name.c_str(), nullptr, &dwType, reinterpret_cast<LPBYTE>(szBuff), &dwKeyLen);
+        LSTATUS lStatus = RegQueryValueEx(m_hKey, value_name, nullptr, &dwType, reinterpret_cast<LPBYTE>(szBuff), &dwKeyLen);
         ASSERT(lStatus != ERROR_MORE_DATA);
 
         if( lStatus == ERROR_SUCCESS )
@@ -71,7 +77,7 @@ bool WinRegistry::ReadString(NullTerminatedString value_name, CString* pcsValueD
             else if( dwType == REG_EXPAND_SZ )
             {
                 TCHAR szExpandedBuff[BufferSize];
-                int characters_used = ExpandEnvironmentStrings(szBuff, szExpandedBuff, BufferSize);
+                const int characters_used = ExpandEnvironmentStrings(szBuff, szExpandedBuff, BufferSize);
 
                 if( characters_used > 0 && characters_used <= BufferSize )
                 {
@@ -86,11 +92,11 @@ bool WinRegistry::ReadString(NullTerminatedString value_name, CString* pcsValueD
 }
 
 
-bool WinRegistry::ReadString(NullTerminatedString value_name, std::wstring& value_data)
+bool WinRegistry::ReadString(const wchar_t* const value_name, std::wstring& value_data)
 {
     CString cstring_value_data;
 
-    if( ReadString(value_name.c_str(), &cstring_value_data) )
+    if( ReadString(value_name, &cstring_value_data) )
     {
         value_data = CS2WS(cstring_value_data);
         return true;
@@ -100,30 +106,52 @@ bool WinRegistry::ReadString(NullTerminatedString value_name, std::wstring& valu
 }
 
 
-std::optional<std::wstring> WinRegistry::ReadOptionalString(NullTerminatedString value_name)
+bool WinRegistry::ReadString(const std::string_view value_name_sv, std::string& value_data)
 {
-    std::wstring value;
+    CString cstring_value_data;
 
-    return ReadString(value_name, value) ? std::make_optional(std::move(value)) :
-                                           std::nullopt;
+    if( ReadString(TC::ToWide(value_name_sv).c_str(), &cstring_value_data) )
+    {
+        value_data = UTF8_TODO::GetUtf8(cstring_value_data);
+        return true;
+    }
+
+    return false;
 }
 
 
-bool WinRegistry::WriteString(NullTerminatedString value_name, wstring_view value_data)
+std::optional<std::string> WinRegistry::ReadOptionalString(const std::string_view value_name_sv)
+{
+    std::string value;
+
+    if( ReadString(value_name_sv, value) )
+        return value;
+
+    return std::nullopt;
+}
+
+
+bool WinRegistry::WriteString(const wchar_t* const value_name, const wstring_view value_data_sv)
 {
     return ( m_hKey != nullptr &&
-             RegSetKeyValue(m_hKey, nullptr, value_name.c_str(), REG_SZ, value_data.data(), value_data.length() * sizeof(TCHAR)) == ERROR_SUCCESS );
+             RegSetKeyValue(m_hKey, nullptr, value_name, REG_SZ, value_data_sv.data(), value_data_sv.length() * sizeof(TCHAR)) == ERROR_SUCCESS );
 }
 
 
-bool WinRegistry::ReadDWord(NullTerminatedString value_name, DWORD* pdwData)
+bool WinRegistry::WriteString(const std::string_view value_name_sv, const std::string_view value_data_sv)
+{
+    return WriteString(TC::ToWide(value_name_sv).c_str(), TC::ToWide(value_data_sv));
+}
+
+
+bool WinRegistry::ReadDWord(const wchar_t* const value_name, DWORD* const pdwData)
 {
     if( m_hKey != nullptr )
     {
         DWORD dwType = 0;
         DWORD dwKeyLen = sizeof(*pdwData);
 
-        LSTATUS lStatus = RegQueryValueEx(m_hKey, value_name.c_str(), nullptr, &dwType, reinterpret_cast<LPBYTE>(pdwData), &dwKeyLen);
+        LSTATUS lStatus = RegQueryValueEx(m_hKey, value_name, nullptr, &dwType, reinterpret_cast<LPBYTE>(pdwData), &dwKeyLen);
         return ( lStatus == ERROR_SUCCESS && dwType == REG_DWORD );
     }
 
@@ -131,11 +159,17 @@ bool WinRegistry::ReadDWord(NullTerminatedString value_name, DWORD* pdwData)
 }
 
 
-bool WinRegistry::WriteDWord(NullTerminatedString value_name, DWORD valueData)
+bool WinRegistry::ReadDWord(const std::string_view value_name_sv, DWORD* const pdwData)
+{
+    return ReadDWord(TC::ToWide(value_name_sv).c_str(), pdwData);
+}
+
+
+bool WinRegistry::WriteDWord(const wchar_t* const value_name, const DWORD valueData)
 {
     if( m_hKey != nullptr )
     {
-        LSTATUS lStatus = RegSetKeyValue(m_hKey, nullptr, value_name.c_str(), REG_DWORD, reinterpret_cast<const BYTE*>(&valueData), sizeof(valueData));
+        LSTATUS lStatus = RegSetKeyValue(m_hKey, nullptr, value_name, REG_DWORD, reinterpret_cast<const BYTE*>(&valueData), sizeof(valueData));
         return ( lStatus  == ERROR_SUCCESS );
     }
 

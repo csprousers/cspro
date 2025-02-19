@@ -260,7 +260,7 @@ void CLevelGrid::Update()
     COLORREF rgb;
     int ir = 0;
     for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
-	    const DictLevel& dict_level = m_pDict->GetLevel(level_number);
+        const DictLevel& dict_level = m_pDict->GetLevel(level_number);
         if ((int)level_number == m_iLevel) {
             rgb = GetSysColor(COLOR_WINDOWTEXT);
         }
@@ -293,13 +293,13 @@ void CLevelGrid::Update()
             QuickSetText     (LEVEL_LABEL_COL, ir, pRec->GetLabel());
             QuickSetTextColor(LEVEL_LABEL_COL, ir, rgb);
 
-            QuickSetText     (LEVEL_NAME_COL, ir, pRec->GetName());
+            QuickSetText     (LEVEL_NAME_COL, ir, UTF8_TODO::GetCString(pRec->GetName()));
             QuickSetTextColor(LEVEL_NAME_COL, ir, rgb);
 
             QuickSetText     (LEVEL_TYPE_COL, ir, pRec->GetRecTypeVal());
             QuickSetTextColor(LEVEL_TYPE_COL, ir, rgb);
 
-            QuickSetText      (LEVEL_REQ_COL, ir, BOOL_TO_TEXT(pRec->GetRequired()));
+            QuickSetText      (LEVEL_REQ_COL, ir, pRec->GetRequired() ? CSPRO_ARG_YES : CSPRO_ARG_NO);
             QuickSetTextColor (LEVEL_REQ_COL, ir, rgb);
 
             CIMSAString csTemp;
@@ -384,7 +384,7 @@ void CLevelGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* 
             int iLevel = 0;
             int iRec = -1;
             for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
-	            const DictLevel& dict_level = m_pDict->GetLevel(level_number);
+                const DictLevel& dict_level = m_pDict->GetLevel(level_number);
                 for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
                     iRec++;
                     if (iRec == row) {
@@ -853,11 +853,11 @@ bool CLevelGrid::EditEnd(bool bSilent)
     }
     CString csNewName, csOldName;
     m_aEditControl[LEVEL_NAME_COL]->GetWindowText(csNewName);
-    csOldName = pRec->GetName();
+    csOldName = UTF8_TODO::GetCString(pRec->GetName());
     if (csNewName.Compare(csOldName) != 0) {
         bChanged = true;
         bChangedName = true;
-        pRec->SetName(csNewName);
+        pRec->SetName(UTF8_TODO::GetUtf8(csNewName));
     }
     CString csNewValue, csOldValue;
     m_aEditControl[LEVEL_TYPE_COL]->GetWindowText(csNewValue);
@@ -886,7 +886,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         pRec->SetMaxRecs(uNewMax);
     }
     if (m_bAdding || m_bInserting) {
-        if (pRec->GetLabel().IsEmpty() && pRec->GetName().IsEmpty()) {
+        if (pRec->GetLabel().IsEmpty() && pRec->GetName().empty()) {
             bUndo = true;
             m_bAdding = false;
             m_bInserting = false;
@@ -894,7 +894,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
             bValid = true;
         }
     }
-    else if( bChanged == false && pRec->GetLabel().IsEmpty() && pRec->GetName().IsEmpty() ) // 20130412 this should happen when called from OnRClicked (via EditChange), this will prevent a blank row from being accepted
+    else if( bChanged == false && pRec->GetLabel().IsEmpty() && pRec->GetName().empty() ) // 20130412 this should happen when called from OnRClicked (via EditChange), this will prevent a blank row from being accepted
     {
         bUndo = true;
         bChanged = false;
@@ -922,7 +922,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         }
         else {
             pRec->SetLabel(csOldLabel);
-            pRec->SetName(csOldName);
+            pRec->SetName(UTF8_TODO::GetUtf8(csOldName));
             pRec->SetRecTypeVal(csOldValue);
             pRec->SetRequired(bOldReq);
             pRec->SetMaxRecs(uOldMax);

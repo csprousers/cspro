@@ -187,7 +187,7 @@
         }
 
         function dialogReturn(idx) {
-            CS.UI.closeDialog(( idx == undefined ) ? undefined : { result: input.currentListing.paths[idx - 1].path });
+            CS.UI.close(( idx == undefined ) ? undefined : { result: input.currentListing.paths[idx - 1].path });
         }
 
         function replaceNewline() {

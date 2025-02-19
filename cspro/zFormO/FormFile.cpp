@@ -45,7 +45,7 @@ void CDEFormFile::BaseConstructor()
 }
 
 CDEFormFile::CDEFormFile()
-    :   m_csVersion(CSPRO_VERSION)
+    :   m_csVersion(Versioning::CSProVersionText)
 {
     BaseConstructor();
 }
@@ -60,16 +60,16 @@ void CDEFormFile::CopyFF(const CDEFormFile& ff)
 
     // [0] CDEFormBase-level vars
 
-    SetName         (ff.GetName());
-    SetLabel        (ff.GetLabel());
+    SetName(ff.GetName());
+    SetLabel(ff.GetLabel());
     // dims are applicable for a form file
 
     // [1] set CDEFormFile-level vars
 
-    IsPathOn                (ff.IsPathOn());
-    SetVersion              (ff.GetVersion());
-    SetDictionaryName       (ff.GetDictionaryName());
-    SetDictionaryFilename   (ff.GetDictionaryFilename());
+    IsPathOn(ff.IsPathOn());
+    SetVersion(ff.GetVersion());
+    SetDictionaryName(ff.GetDictionaryName());
+    SetDictionaryFilename(ff.GetDictionaryFilename());
 
     m_fieldFont = ff.m_fieldFont;
     m_defaultTextFont = ff.m_defaultTextFont;
@@ -110,7 +110,7 @@ void CDEFormFile::CopyFF(const CDEFormFile& ff)
 
     m_uniqueNames = ff.m_uniqueNames; // and finally, unique names stored in the file
 
-    SetFileName( ff.GetFileName() ); // RHF Nov 13, 2002
+    m_filePath = ff.m_filePath;
 }
 
 
@@ -125,7 +125,8 @@ CDEFormFile::CDEFormFile(const CDEFormFile& ff) // copy constructor
 // hence, initialize the name and label to bogus vals, and create a blank form & 1st level
 
 CDEFormFile::CDEFormFile(const CString& sFormPathName, const CString& sPrimaryDictName)
-    :   m_csVersion(CSPRO_VERSION)
+    :   m_csVersion(Versioning::CSProVersionText),
+        m_filePath(UTF8_TODO::GetUtf8(sFormPathName))
 {
     BaseConstructor();
 
@@ -134,19 +135,17 @@ CDEFormFile::CDEFormFile(const CString& sFormPathName, const CString& sPrimaryDi
     CIMSAString sFFName = sPrimaryDictName;
 
     sFFName = PortableFunctions::PathGetFilename(sFFName);
-    sFFName = PortableFunctions::PathRemoveFileExtension<CString>(sFFName);
+    sFFName = PortableFunctions::PathRemoveFileExtensionCS(sFFName);
 
     sFFName.MakeName();         // converts '-' to '_', etc.
     sFFName += _T("_FF");       // for now, do this until savy passes me internal dict Name(i.e., what file will store, not the file name!)
 
     SetName(IsNameUnique(sFFName) ? sFFName : CreateUniqueName(sFFName));
 
-    SetFileName( sFormPathName );// RHF Nov 13, 2002
-
     // set label to the file name
     CString sLabel = sFormPathName;
     sLabel = PortableFunctions::PathGetFilename(sLabel);
-    sLabel = PortableFunctions::PathRemoveFileExtension<CString>(sLabel);
+    sLabel = PortableFunctions::PathRemoveFileExtensionCS(sLabel);
     SetLabel(sLabel);
 
     SetDictionaryFilename(sPrimaryDictName);
@@ -310,17 +309,17 @@ bool CDEFormFile::Reconcile (CString& csErr, bool bSilent, bool bAutoFix)
 bool LookupSymbol(CDEFormFile* pFormFile, const CString& csDict, DICT_LOOKUP_INFO& sL)
 {
     if( pFormFile->GetDictionary() != nullptr ) {
-        CString csDictName = pFormFile->GetDictionary()->GetName();
+        CString csDictName = UTF8_TODO::GetCString(pFormFile->GetDictionary()->GetName());
         if (!csDict.IsEmpty()) {
             if (csDict.CompareNoCase(csDictName) != 0) {
                 return false;
             }
         }
-        bool b = pFormFile->GetDictionary()->LookupName(sL.csName, &sL.pLevel, &sL.pRecord, &sL.pItem, &sL.pVSet);
+        bool b = pFormFile->GetDictionary()->LookupName(UTF8_TODO::GetUtf8(sL.csName), &sL.pLevel, &sL.pRecord, &sL.pItem, &sL.pVSet);
         if (b) {
             if( sL.pItem != nullptr && !sL.pItem->AddToTreeFor80() )
                 return false;
-            pFormFile->GetDictionary()->LookupName(sL.csName, &sL.iLevel, &sL.iRecord, &sL.iItem, &sL.iVSet);
+            pFormFile->GetDictionary()->LookupName(UTF8_TODO::GetUtf8(sL.csName), &sL.iLevel, &sL.iRecord, &sL.iItem, &sL.iVSet);
             return true;
         }
     }
@@ -630,9 +629,9 @@ void CDEFormFile::CreateFormFile(const CDataDict* pDD, const std::variant<CDC*, 
         CString sRootName = CreateUniqueName(_T("BaseGrp"), false);        // don't add name to uniq name list
         pFormLevel->GetRoot()->SetName(sRootName);
 
-        AddUniqueName(dict_level.GetName());       // since we're not calling CreateUniqName, must "manually" add it
+        AddUniqueName(UTF8_TODO::GetCString(dict_level.GetName()));       // since we're not calling CreateUniqName, must "manually" add it
 
-        pFormLevel->SetName(dict_level.GetName());   // use the dict name for our unique name
+        pFormLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));   // use the dict name for our unique name
         pFormLevel->SetLabel(dict_level.GetLabel());
 
         if (!bBuildRecords)     // if we're not building w/the records, give a blank form
@@ -758,7 +757,7 @@ void CDEFormFile::CreateRosterField (CDEField* pField,
 
     pCol->SetHeaderText(pField->GetCDEText());
     pCol->AddField (pField);
-    pRoster->AddCol (pCol);
+    pRoster->AddCol(pCol);
     pRoster->AddItem (pField);   // CDEGroup nds to see it too (for Serpro)
 }
 
@@ -774,20 +773,20 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster,
 {
     // CDEGroup member info
 
-    pRoster->SetMaxLoopOccs (pDR->GetMaxRecs());
-    pRoster->SetRIType (Record);
-    pRoster->SetTypeName (pDR->GetName());
+    pRoster->SetMaxLoopOccs(pDR->GetMaxRecs());
+    pRoster->SetRIType(Record);
+    pRoster->SetTypeName(UTF8_TODO::GetCString(pDR->GetName()));
 
     // CItemBase member info
-    pRoster->SetFormNum (iFormNum);
+    pRoster->SetFormNum(iFormNum);
 
     // and finally, stuff from CFormBase
 
     // NOTE! the roster's name can't be the unique dict record name, as the
     //       user could choose to create several rosters based on items from
     //       this record
-    pRoster->SetName  (CreateUniqueName (pDR->GetName()) );
-    pRoster->SetLabel (pDR->GetLabel());
+    pRoster->SetName(CreateUniqueName(UTF8_TODO::GetCString(pDR->GetName())));
+    pRoster->SetLabel(pDR->GetLabel());
     pRoster->SetRequired (pDR->GetRequired());
     pRoster->SetDims (dropPt.x, dropPt.y, 0, 0);
 
@@ -796,7 +795,7 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster,
 
     // provide stub column, default to #s down the side
     CDECol* pCol = new CDECol();    // the first will be the stub col
-    pCol->SetWidth (10);
+    pCol->SetWidth(10);
     pRoster->AddCol(pCol);
 
     CDEText* pText = new CDEText(); // use this as a template for stub text
@@ -829,7 +828,7 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster,
             // Only add items
             continue;
         }
-        else if (FindItem (pDI->GetName())) {
+        else if (FindItem(UTF8_TODO::GetCString(pDI->GetName()))) {
             // it's located elsewhere as a keyed field, skip
             continue;
         }
@@ -840,7 +839,7 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster,
             for (int iSubItem = 1 ; iSubItem <= iNumSubItems ; iSubItem++)
             {
                 const CDictItem* pSubItem = pDR->GetItem(i+iSubItem);
-                bKeyedElsewhere = FindItem(pSubItem->GetName());
+                bKeyedElsewhere = FindItem(UTF8_TODO::GetCString(pSubItem->GetName()));
                 if (bKeyedElsewhere)
                     break;
             }
@@ -887,35 +886,35 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster, const CDictItem* pDI, int iFo
     // look at CFormDropRules::AnalyzeDrop() for a bit of commentary on determing occs
 
     if (pDI->GetOccurs() == 1)  {   // then use the parent's vals
-        pRoster->SetMaxLoopOccs (iOcc);
+        pRoster->SetMaxLoopOccs(iOcc);
 
         int iLevel, iRec, iItem, iVset;
         pDD->LookupName(pDI->GetName(), &iLevel, &iRec, &iItem, &iVset);
         const CDictItem* pParent = pDD->GetParentItem (iLevel, iRec, iItem);
-        pRoster->SetTypeName (pParent->GetName());
+        pRoster->SetTypeName(UTF8_TODO::GetCString(pParent->GetName()));
     }
     else  {                         // use the item's value
-        pRoster->SetMaxLoopOccs (pDI->GetOccurs());
-        pRoster->SetTypeName (pDI->GetName());
+        pRoster->SetMaxLoopOccs(pDI->GetOccurs());
+        pRoster->SetTypeName(UTF8_TODO::GetCString(pDI->GetName()));
     }
     // gsf 01/24/01
     if (pDI->GetItemType() == ItemType::Item) {
-        pRoster->SetRIType (Item);
+        pRoster->SetRIType(Item);
     }
     else {
-        pRoster->SetRIType (SubItem);
+        pRoster->SetRIType(SubItem);
     }
 
     // CItemBase member info
-    pRoster->SetFormNum (iFormNum);
+    pRoster->SetFormNum(iFormNum);
 
     // and finally, stuff from CFormBase
-    pRoster->SetName ( CreateUniqueName (pDI->GetName()) );
-    pRoster->SetLabel (pDI->GetLabel());
+    pRoster->SetName(CreateUniqueName(UTF8_TODO::GetCString(pDI->GetName())));
+    pRoster->SetLabel(pDI->GetLabel());
 
     CDECol* pCol = new CDECol();    // provide the stub col
-    pCol->SetWidth (10);
-    pRoster->AddCol (pCol);
+    pCol->SetWidth(10);
+    pRoster->AddCol(pCol);
 
     CDEText* pText = new CDEText(); // use this as a template for stub text
     pText->SetText (_T("@"));           // default to #s down the side
@@ -946,7 +945,8 @@ void CDEFormFile::CreateRoster(CDERoster* pRoster, const CDictItem* pDI, int iFo
     // now get the item/subitem(s) in to the roster
     // i (smg) nd the field to contain the unique dict name, so init the field first
     CDEField* pField = NULL;
-    CString csLabel, sDictName = GetDictionaryName();
+    CString csLabel;
+    CString sDictName = UTF8_TODO::GetCString(GetDictionaryName());
 
     if (bDropSubitems) {
         if (pDD != NULL)  {
@@ -1106,7 +1106,7 @@ bool CDEFormFile::AreAnySubitemsBeingKeyed(const CDictRecord* pDR, const CDictIt
         {
             const CDictItem* pSubItems = pDR->GetItem(i);
 
-            bKeyedElsewhere = FindItem (pSubItems->GetName());
+            bKeyedElsewhere = FindItem(UTF8_TODO::GetCString(pSubItems->GetName()));
         }
     }
     return bKeyedElsewhere;
@@ -1172,7 +1172,7 @@ void CDEFormFile::CreateGroup(CDEGroup*    pGroup,
     // give the group a name based on the dict record name; however,
     // can't use the dict name itself, as ISSA can't handle
 
-    CString sName = dict_level.GetName() + _T("_FORM");
+    CString sName = UTF8_TODO::GetCString(dict_level.GetName() + "_FORM");
 
     if (IsNameUnique (sName))       // if nobody else is using this name
     {
@@ -1185,7 +1185,7 @@ void CDEFormFile::CreateGroup(CDEGroup*    pGroup,
     pGroup->SetFormNum(iFormNum);
     pGroup->SetRequired(true);
     pGroup->SetLabel(dict_level.GetLabel());
-    pGroup->SetMaxLoopOccs (1);
+    pGroup->SetMaxLoopOccs(1);
 }
 
 
@@ -1203,7 +1203,7 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
     // give the group a name based on the dict record name; however,
     // can't use the dict name itself, as ISSA can't handle
 
-    CString sRecName = pDictRec->GetName();
+    CString sRecName = UTF8_TODO::GetCString(pDictRec->GetName());
 
     while (sRecName[0] == '_')      // get rid of any leading underscores...which happens w/Level ID record
         sRecName.Delete (0, 1);         // nIndex, nCount
@@ -1222,19 +1222,19 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
         return;
 
     pGroup->SetRequired(pDictRec->GetRequired());
-    pGroup->SetLabel        (pDictRec->GetLabel());
-    pGroup->SetTypeName(pDictRec->GetName());
+    pGroup->SetLabel(pDictRec->GetLabel());
+    pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
 
     RecTypeVal = pDictRec->GetRecTypeVal();
 
     if (bIdRec || pDictRec->GetMaxRecs() == 1) // group doesn't loop, not dependant on a rec
     {
-        pGroup->SetMaxLoopOccs (1);
+        pGroup->SetMaxLoopOccs(1);
     }
     else                                            // group depends on a record
     {
-        pGroup->SetRIType (Record);
-        pGroup->SetMaxLoopOccs (pDictRec->GetMaxRecs());
+        pGroup->SetRIType(Record);
+        pGroup->SetMaxLoopOccs(pDictRec->GetMaxRecs());
     }
 
     //  first, loop thru all LevelIDs on prev group, if any
@@ -1248,13 +1248,13 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
         for (int i = 0; i < pPrevGroup->GetNumItems(); i++)
         {
             pField = new CDEField();
-            
+
             *pField = *assert_cast<CDEField*>(pPrevGroup->GetItem(i));
 
             pField->SetName( CreateUniqueName(pField->GetItemName()) );   //adds the uniq name to the NameList
 
-            pField->IsMirror (true);
-            pField->SetFormNum (iFormNum);
+            pField->IsMirror(true);
+            pField->SetFormNum(iFormNum);
             pField->SetParent(pGroup);
 
             pGroup->AddItem(pField);
@@ -1272,8 +1272,8 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
 
     if (drag_options.UseRosters() && pGroup->GetMaxLoopOccs() > 1 && !pDictRec->Is2DRecord())
     {
-        pGroup->SetMaxLoopOccs (1);             // unset
-        pGroup->SetRIType (UnknownRI);
+        pGroup->SetMaxLoopOccs(1);             // unset
+        pGroup->SetRIType(UnknownRI);
 
         if (pDictRec->GetNumItems() == 0 )       // if there's no items in the rec, bail, o/w grid croaks
         {
@@ -1292,7 +1292,7 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
     }
     else    // drop the items as regular text/box fields
     {
-        CString sDictName = GetDictionaryName();
+        CString sDictName = UTF8_TODO::GetCString(GetDictionaryName());
 
         int iNumDIs = pDictRec->GetNumItems();
 
@@ -1518,9 +1518,9 @@ void CDEFormFile::UpdateFormFieldIndices (int iStartingFormNo)
         {
             pItem = pForm->GetItem(i);
 
-            pItem->SetFormNum (pItem->GetFormNum() - 1);
+            pItem->SetFormNum(pItem->GetFormNum() - 1);
             if(pItem->GetParent()) {
-                pItem->GetParent()->SetFormNum (pItem->GetFormNum());
+                pItem->GetParent()->SetFormNum(pItem->GetFormNum());
             }
         }
     }
@@ -1570,7 +1570,7 @@ void CDEForm::RenumberItems(int iNewFormLoc)
     for (int i = 0; i < max; i++)
     {
         CDEItemBase* pItem = GetItem(i);
-        pItem->SetFormNum (iNewFormLoc);
+        pItem->SetFormNum(iNewFormLoc);
 
         //SAVY &&& this sets the formnum for roster items
         if(pItem->GetItemType() == CDEItemBase::eItemType::Roster)
@@ -1584,7 +1584,7 @@ void CDEForm::RenumberItems(int iNewFormLoc)
                 int iNumFields = pCol->GetNumFields();
                 for (int k = 0; k < iNumFields; k++)
                 {
-                    pCol->GetField(k)->SetFormNum (iNewFormLoc);
+                    pCol->GetField(k)->SetFormNum(iNewFormLoc);
                 }
             }
         }
@@ -1973,9 +1973,11 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
             dictionary->UpdatePointers();
         }
 
-        catch(...)
+        catch( const std::exception& exception )
         {
-            ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen).c_str(), pLoader->GetArchiveName().c_str()));
+            ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
+                                             Path::GetFilename(UTF8_TODO::GetUtf8(pLoader->GetArchiveName())).c_str(),
+                                             exception.what()));
             return false;
         }
     }
@@ -1988,8 +1990,8 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
 
         catch( const CSProException& exception )
         {
-            ErrorMessage::Display(FormatText(_T("Failed to load dictionary %s (%s)"), m_dictionaryFilename.GetString(),
-                                                                                      exception.GetErrorMessage().c_str()));
+            ErrorMessage::Display(FormatText("Failed to load dictionary %s (%s)", UTF8_TODO::GetUtf8(m_dictionaryFilename).c_str(),
+                                                                                  exception.what()));
             return false;
         }
     }
@@ -1998,7 +2000,7 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
 }
 
 #ifdef GENERATE_BINARY
-bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name)
+bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name) const
 {
     ASSERT(BinaryGen::isGeneratingBinary());
     if( !BinaryGen::isGeneratingBinary() )
@@ -2006,7 +2008,7 @@ bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name)
 
     try // 20121109 for the portable environment
     {
-        APP_LOAD_TODO_GetArchive() & *std::const_pointer_cast<CDataDict>(m_dictionary);
+        APP_LOAD_TODO_GetArchive().Write(*m_dictionary);
     }
 
     catch(...)
@@ -2025,7 +2027,7 @@ bool CDEFormFile::SetDictItem(CDEField* pField)
     //Search thru the dicts for the dict item
     if( m_dictionary != nullptr && SO::EqualsNoCase(pField->GetItemDict(), m_dictionary->GetName()) )
     {
-        const CDictItem* dict_item = m_dictionary->LookupName<CDictItem>(pField->GetItemName());
+        const CDictItem* dict_item = m_dictionary->LookupName<CDictItem>(UTF8_TODO::GetUtf8(pField->GetItemName()));
 
         if( dict_item != nullptr )
         {
@@ -2169,7 +2171,7 @@ bool CDEFormFile::OReconcile(CString& csErr, bool bSilent, bool bAutoFix)
     else if(!bRet && IsDictOrder()){
         //just always force it to regenerate the stuff
         if(m_dictionary !=nullptr){
-            ErrorMessage::Display(_T("Items in dictionary changed, items will be processed in the new dictionary order."));
+            ErrorMessage::Display("Items in dictionary changed, items will be processed in the new dictionary order.");
             CreateOrderFile(*m_dictionary, true);
         }
     }
@@ -2179,7 +2181,7 @@ bool CDEFormFile::OReconcile(CString& csErr, bool bSilent, bool bAutoFix)
         formFile.CreateOrderFile(*m_dictionary, true);
         formFile.UpdatePointers();
         if(!this->Compare(&formFile)){
-            ErrorMessage::Display(_T("Items in dictionary changed, items will be processed in the new dictionary order."));
+            ErrorMessage::Display("Items in dictionary changed, items will be processed in the new dictionary order.");
             CreateOrderFile(*m_dictionary, true);
             bRet =false;
         }
@@ -2197,10 +2199,10 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
     LONG rightCol = 0;
     CString RecTypeVal;
 
-    CString sDictName = pDictRec->GetDataDict()->GetName();
+    CString sDictName = UTF8_TODO::GetCString(pDictRec->GetDataDict()->GetName());
 
-    pGroup->SetFormNum  (iFormNum);
-    CString sRecName = pDictRec->GetName();
+    pGroup->SetFormNum(iFormNum);
+    CString sRecName = UTF8_TODO::GetCString(pDictRec->GetName());
 
     // get rid of any leading underscores...which happens w/Level ID record
     while (sRecName[0] == '_')  {
@@ -2224,16 +2226,16 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
     }
 
     pGroup->SetRequired(pDictRec->GetRequired());
-    pGroup->SetLabel    (pDictRec->GetLabel());
-    pGroup->SetTypeName(pDictRec->GetName());
+    pGroup->SetLabel(pDictRec->GetLabel());
+    pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
 
     RecTypeVal = pDictRec->GetRecTypeVal();
-    if (bIdRec)         {
-        pGroup->SetMaxLoopOccs (1);
+    if (bIdRec) {
+        pGroup->SetMaxLoopOccs(1);
     }
     else{
-        pGroup->SetRIType (Record);
-        pGroup->SetMaxLoopOccs (pDictRec->GetMaxRecs());
+        pGroup->SetRIType(Record);
+        pGroup->SetMaxLoopOccs(pDictRec->GetMaxRecs());
     }
 
     //  first, loop thru all LevelIDs on prev group, if any
@@ -2248,8 +2250,8 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
             pField->SetItemDict(sDictName);
             pField->SetName( CreateUniqueName(pField->GetItemName()) );       //adds the uniq name to the NameList
 
-            pField->IsMirror (true);
-            pField->SetFormNum (iFormNum);
+            pField->IsMirror(true);
+            pField->SetFormNum(iFormNum);
             pField->SetParent(pGroup);
 
             pGroup->AddItem(pField);
@@ -2268,7 +2270,7 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
         if( !pDictItem->AddToTreeFor80() )
             continue;
         if (pDictItem->GetItemType() == ItemType::Subitem && pDictItem->GetOccurs() == 1) {
-            CDEField* pField = new CDEField(pDictItem->GetName(),sDictName);
+            CDEField* pField = new CDEField(UTF8_TODO::GetCString(pDictItem->GetName()), sDictName);
             pField->SetLabel(pDictItem->GetLabel());
             pField->SetItemDict(sDictName);
             CDEGroup* pParentGroup = pGroup;
@@ -2276,7 +2278,7 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
             int iStart  = i1 - 1;
             while(iStart >= 0 ) {
                 if(pRecord->GetItem(iStart)->GetItemType() == ItemType::Item){
-                    CString sFindName = pRecord->GetItem(iStart)->GetName();
+                    CString sFindName = UTF8_TODO::GetCString(pRecord->GetItem(iStart)->GetName());
                     if(pRecord->GetItem(iStart)->GetOccurs() > 1){
                         pParentGroup = this->FindItemGroup(pGroup,sFindName,true);
                     }
@@ -2333,7 +2335,7 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
                         continue;
                     }
 
-                    CDEField* pField = new CDEField(pDictItem->GetName(), sDictName) ;
+                    CDEField* pField = new CDEField(UTF8_TODO::GetCString(pDictItem->GetName()), sDictName);
                     pField->SetItemDict(sDictName);
                     pField->SetLabel(pDictItem->GetLabel());
                     pField->SetFormNum(iFormNum);
@@ -2348,7 +2350,7 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
             }
             else {      // else just drop the item itself
                 //Order File does not use pDC info
-                CDEField* pField = new CDEField(pDictItem->GetName(), sDictName) ;
+                CDEField* pField = new CDEField(UTF8_TODO::GetCString(pDictItem->GetName()), sDictName);
                 pField->SetFormNum(iFormNum);
                 pField->SetItemDict(sDictName);
                 pField->SetLabel(pDictItem->GetLabel());
@@ -2392,17 +2394,17 @@ bool CDEFormFile::CheckNAddMissingItems()
     {
         const DictLevel& dict_level = m_dictionary->GetLevel(level_number);
         CDELevel* pOrderLevel = this->GetLevel(level_number);
-        int iCompare = pOrderLevel->GetName().CompareNoCase(dict_level.GetName());
+        int iCompare = pOrderLevel->GetName().CompareNoCase(UTF8_TODO::GetCString(dict_level.GetName()));
         ASSERT(iCompare == 0 );
 
         //Check the IDItems Record
         const CDictRecord* pIDRecord = dict_level.GetIdItemsRec();
 
-        CDEGroup* pRecGroup1 = FindGroup(pOrderLevel->GetRoot(),pIDRecord->GetName());
+        CDEGroup* pRecGroup1 = FindGroup(pOrderLevel->GetRoot(), UTF8_TODO::GetCString(pIDRecord->GetName()));
         if(!pRecGroup1)  {
             //Go through the items and find the group which has any of these items
             for(int iItem=0; iItem<pIDRecord->GetNumItems();iItem++) {
-                pRecGroup1 = FindItemGroup(pOrderLevel->GetRoot(),pIDRecord->GetItem(iItem)->GetName());
+                pRecGroup1 = FindItemGroup(pOrderLevel->GetRoot(), UTF8_TODO::GetCString(pIDRecord->GetItem(iItem)->GetName()));
                 if(pRecGroup1)
                     break;
             }
@@ -2426,9 +2428,9 @@ bool CDEFormFile::CheckNAddMissingItems()
                 iPageNum = pOrderLevel->GetGroup(iGroupIndex)->GetFormNum()+1;
             }
             this->CreateGroupForOrder(pGroup,pIDRecord,iPageNum,true );
-            pGroup->SetTypeName(pIDRecord->GetName());
-            pGroup->SetRIType (Record);
-            pGroup->SetMaxLoopOccs (pIDRecord->GetMaxRecs());
+            pGroup->SetTypeName(UTF8_TODO::GetCString(pIDRecord->GetName()));
+            pGroup->SetRIType(Record);
+            pGroup->SetMaxLoopOccs(pIDRecord->GetMaxRecs());
 
             pOrderLevel->AddGroup(pGroup);
             CreateForm(level_number, pGroup);                // pass in the curr level
@@ -2436,17 +2438,17 @@ bool CDEFormFile::CheckNAddMissingItems()
             // I Should reset all the other page numbers . Do it Later
             this->RenumberFormsAndItems();
 
-            ErrorMessage::Display(FormatText(_T("%s added; new in dictionary"), pIDRecord->GetName().GetString()));
+            ErrorMessage::Display(FormatText("%s added; new in dictionary", pIDRecord->GetName().c_str()));
         }
 
         //Check for each record and for each item in the dict
         for (int iRec = 0; iRec < dict_level.GetNumRecords(); iRec++) {
             const CDictRecord* pRecord = dict_level.GetRecord(iRec);
-            CDEGroup* pRecGroup2 = FindGroup(pOrderLevel->GetRoot(),pRecord->GetName());
+            CDEGroup* pRecGroup2 = FindGroup(pOrderLevel->GetRoot(), UTF8_TODO::GetCString(pRecord->GetName()));
             if(!pRecGroup2)  {
                 //Go through the items and find the group which has any of these items
                 for(int iItem=0; iItem<pRecord->GetNumItems();iItem++) {
-                    pRecGroup2 = FindItemGroup(pOrderLevel->GetRoot(),pRecord->GetItem(iItem)->GetName());
+                    pRecGroup2 = FindItemGroup(pOrderLevel->GetRoot(), UTF8_TODO::GetCString(pRecord->GetItem(iItem)->GetName()));
                     if(pRecGroup2)
                         break;
                 }
@@ -2470,9 +2472,9 @@ bool CDEFormFile::CheckNAddMissingItems()
                     iPageNum = pOrderLevel->GetGroup(iGroupIndex)->GetFormNum()+1;
                 }
                 this->CreateGroupForOrder(pGroup,pRecord,iPageNum,false );
-                pGroup->SetTypeName(pRecord->GetName());
-                pGroup->SetRIType (Record);
-                pGroup->SetMaxLoopOccs (pRecord->GetMaxRecs());
+                pGroup->SetTypeName(UTF8_TODO::GetCString(pRecord->GetName()));
+                pGroup->SetRIType(Record);
+                pGroup->SetMaxLoopOccs(pRecord->GetMaxRecs());
 
                 pOrderLevel->AddGroup(pGroup);
                 CreateForm(level_number, pGroup);            // pass in the curr level
@@ -2484,7 +2486,7 @@ bool CDEFormFile::CheckNAddMissingItems()
                     RenumberFormsNItems4BCH();
                 }
 
-                ErrorMessage::Display(FormatText(_T("%s added; new in dictionary"), pRecord->GetName().GetString()));
+                ErrorMessage::Display(FormatText("%s added; new in dictionary", pRecord->GetName().c_str()));
             }
         }
     }
@@ -2556,14 +2558,14 @@ bool CDEFormFile::EnsureAllItemsPresent(CDELevel* pLevel, const CDictRecord* pRe
     bool bRet = true ; //Nothing has changed
     CDEGroup* pRGroup = pLevel->GetRoot();
     CDEGroup* pLastGroup =NULL;
-    CString sDictName = m_dictionary->GetName();
+    CString sDictName = UTF8_TODO::GetCString(m_dictionary->GetName());
     ASSERT(pRGroup);
     for(int iItem1 = 0; iItem1<pRecord->GetNumItems(); iItem1++) {
         const CDictItem* pItem = pRecord->GetItem(iItem1);
         ASSERT(pItem);
         if( !pItem->AddToTreeFor80() )
             continue;
-        CString sFindName1 = pItem->GetName();
+        CString sFindName1 = UTF8_TODO::GetCString(pItem->GetName());
         CDEGroup* pRetGroup1 = NULL;
         if(pItem->GetOccurs() > 1 && pItem->GetItemType() == ItemType::Item) {//if item occurs look for the item's looping group with typename set to true
             pRetGroup1 = this->FindItemGroup(pRGroup,sFindName1,true);
@@ -2579,14 +2581,14 @@ bool CDEFormFile::EnsureAllItemsPresent(CDELevel* pLevel, const CDictRecord* pRe
         else  {
             if(!pLastGroup) {
                 for(int iItem2 = 0; iItem2<pRecord->GetNumItems(); iItem2++)  {
-                    pLastGroup = this->FindItemGroup(pRGroup,pRecord->GetItem(iItem2)->GetName());
+                    pLastGroup = this->FindItemGroup(pRGroup, UTF8_TODO::GetCString(pRecord->GetItem(iItem2)->GetName()));
                     if(pLastGroup)
                         break;
                 }
             }
             if(!pLastGroup) {
                 //finally look @ the possiblity of the group being there but none of the items present
-                pLastGroup = this->FindGroup(pRGroup,pRecord->GetName());
+                pLastGroup = this->FindGroup(pRGroup, UTF8_TODO::GetCString(pRecord->GetName()));
             }
             ASSERT(pLastGroup); //There should be atleast one
             //Add this CDEField which is absent in to this group
@@ -2631,10 +2633,10 @@ bool CDEFormFile::EnsureAllItemsPresent(CDELevel* pLevel, const CDictRecord* pRe
                 if(pLastGroup &&( pLastGroup->GetRIType() == CDEFormBase::Item || pLastGroup->GetRIType() == CDEFormBase::SubItem )){
                     pLastGroup = pLastGroup->GetParent();
                 }
-                CDEField* pField = new CDEField(pRecord->GetItem(iItem1)->GetName(),sDictName);
+                CDEField* pField = new CDEField(UTF8_TODO::GetCString(pRecord->GetItem(iItem1)->GetName()), sDictName);
                 pField->SetLabel(pRecord->GetItem(iItem1)->GetLabel());
                 if(pField->GetFieldLabelType() == FieldLabelType::DictionaryName){
-                    pField->GetCDEText().SetText(pRecord->GetItem(iItem1)->GetName());
+                    pField->GetCDEText().SetText(UTF8_TODO::GetCString(pRecord->GetItem(iItem1)->GetName()));
                 }
                 else if(pField->GetFieldLabelType() == FieldLabelType::DictionaryLabel){
                     pField->GetCDEText().SetText(pRecord->GetItem(iItem1)->GetLabel());
@@ -2645,7 +2647,7 @@ bool CDEFormFile::EnsureAllItemsPresent(CDELevel* pLevel, const CDictRecord* pRe
                     int iStart = iItem1 - 1;
                     while(iStart >= 0 ) {
                         if(pRecord->GetItem(iStart)->GetItemType() == ItemType::Item){
-                            CString sFindName2 = pRecord->GetItem(iStart)->GetName();
+                            CString sFindName2 = UTF8_TODO::GetCString(pRecord->GetItem(iStart)->GetName());
                             if(pRecord->GetItem(iStart)->GetOccurs() > 1) {
                                 pParentGroup = this->FindItemGroup(pRGroup,sFindName2,true);
                             }
@@ -2668,7 +2670,7 @@ bool CDEFormFile::EnsureAllItemsPresent(CDELevel* pLevel, const CDictRecord* pRe
                     text.SetText (pField->GetLabel());
                     pCol->SetHeaderText (text);
                     pCol->AddField (pField);
-                    pRoster->AddCol (pCol);
+                    pRoster->AddCol(pCol);
                     pRoster->FillItemPtrs2();
                 }
                 else {
@@ -2765,7 +2767,7 @@ bool CDEFormFile::FCheckNAddLevels()
 
             }
             //Go through all the forms whose level is greater than this and increment their level by one
-            for(iForm = 0; iForm < this->GetNumForms() ; iForm++) {
+            for(iForm = 0; iForm < this->GetNumForms(); iForm++) {
                 CDEForm* pForm = this->GetForm(iForm);
                 if(pForm->GetLevel() > iDLevel) {
                     pForm->SetLevel(pForm->GetLevel()+1);
@@ -2776,9 +2778,9 @@ bool CDEFormFile::FCheckNAddLevels()
             this->InsertLevelAt(pFormLevel,iDLevel);
 
             const DictLevel& dict_level = m_dictionary->GetLevel(iDLevel);
-            AddUniqueName(dict_level.GetName());
+            AddUniqueName(UTF8_TODO::GetCString(dict_level.GetName()));
 
-            pFormLevel->SetName(dict_level.GetName());
+            pFormLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
             pFormLevel->SetLabel(dict_level.GetLabel());
 
             CDEGroup* pGroup = new CDEGroup();  //create the root group
@@ -2819,7 +2821,7 @@ bool CDEFormFile::FCheckNAddLevels()
 bool CDEFormFile::FindNMatchFLevel(const CDataDict& dictionary, int iDictLevel)
 {
     const DictLevel& dict_level = dictionary.GetLevel(iDictLevel);
-    CString sDLName = dict_level.GetName();
+    CString sDLName = UTF8_TODO::GetCString(dict_level.GetName());
     bool bFound = false;
     for(int iFLevel =iDictLevel ; iFLevel < this->GetNumLevels(); iFLevel++) {
         CDELevel* pFLevel = this->GetLevel(iFLevel);
@@ -2835,7 +2837,7 @@ bool CDEFormFile::FindNMatchFLevel(const CDataDict& dictionary, int iDictLevel)
             const CDictRecord* pRec = dict_level.GetIdItemsRec();
 
             for(int iItem = 0; iItem < pRec->GetNumItems(); iItem++) {
-                CString sItemName = pRec->GetItem(iItem)->GetName();
+                CString sItemName = UTF8_TODO::GetCString(pRec->GetItem(iItem)->GetName());
                 CDEForm* pForm = NULL;
                 CDEItemBase* pBase = NULL;
                 this->FindItem(sItemName,&pForm,&pBase);
@@ -2856,7 +2858,7 @@ bool CDEFormFile::FindNMatchFLevel(const CDataDict& dictionary, int iDictLevel)
                 for (int iRec = 0; iRec < dict_level.GetNumRecords(); iRec++) {
                     pRec = dict_level.GetRecord(iRec);
                     for(int iItem = 0; iItem < pRec->GetNumItems(); iItem++) {
-                        CString sItemName = pRec->GetItem(iItem)->GetName();
+                        CString sItemName = UTF8_TODO::GetCString(pRec->GetItem(iItem)->GetName());
                         CDEForm* pForm = NULL;
                         CDEItemBase* pBase = NULL;
                         this->FindItem(sItemName,&pForm,&pBase);
@@ -2881,7 +2883,7 @@ bool CDEFormFile::FindNMatchFLevel(const CDataDict& dictionary, int iDictLevel)
         //see to it that the form level name matches the dict level name
         //and the positions match too
         if(bFound) {
-            pFLevel->SetName(dict_level.GetName());
+            pFLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
             if(iDictLevel != iFLevel) {
 
                 //HERE YOU CHANGE THE FORM'S  LEVEL NUMS WITH THE NEW ONE
@@ -2943,13 +2945,13 @@ CDEField* CDEFormFile::GetField(int iSym)
 /////////////////////////////////////////////////////////////////////////////////
 CDEGroup* CDEFormFile::OCreateGroupField(CDEGroup* pGroup, const CDictItem* pDI, int iFormNum)
 {
-    CString sDictName = pDI->GetRecord()->GetDataDict()->GetName();
+    CString sDictName = UTF8_TODO::GetCString(pDI->GetRecord()->GetDataDict()->GetName());
 
     CDEGroup* pFieldOccGroup = new CDEGroup();
     pFieldOccGroup->SetParent(pGroup);
     pFieldOccGroup->SetFormNum(iFormNum);
     pFieldOccGroup->SetMaxLoopOccs(pDI->GetOccurs());
-    pFieldOccGroup->SetTypeName(pDI->GetName());
+    pFieldOccGroup->SetTypeName(UTF8_TODO::GetCString(pDI->GetName()));
 
     // gsf 01/24/01
     bool bProcess = true;
@@ -2966,7 +2968,7 @@ CDEGroup* CDEFormFile::OCreateGroupField(CDEGroup* pGroup, const CDictItem* pDI,
     //Create a field for this Item
     if(bProcess){//if item with occs has subitems then only the subitems shld go into
         //group wrt discussion Engine cant handle both in batch as well
-        CDEField* pField = new CDEField(pDI->GetName(), sDictName) ;
+        CDEField* pField = new CDEField(UTF8_TODO::GetCString(pDI->GetName()), sDictName);
         pField->SetItemDict(sDictName);
         pField->SetLabel(pDI->GetLabel());
         pField->SetFormNum(iFormNum);
@@ -2977,7 +2979,7 @@ CDEGroup* CDEFormFile::OCreateGroupField(CDEGroup* pGroup, const CDictItem* pDI,
         pFieldOccGroup->AddItem(pField);
     }
     pFieldOccGroup->SetLabel(pDI->GetLabel());
-    pFieldOccGroup->SetName(CreateUniqueName(pDI->GetName()));
+    pFieldOccGroup->SetName(CreateUniqueName(UTF8_TODO::GetCString(pDI->GetName())));
 
     return pFieldOccGroup;
 }
@@ -3014,8 +3016,8 @@ void CDEFormFile::CreateOrderFile(const CDataDict& dictionary, bool bBuildRecord
         const DictLevel& dict_level = dictionary.GetLevel(level_number);
         CDELevel* pFormLevel = new CDELevel();   // new-ing a level creates it's ("hidden") placeholder CDEGroup
 
-        AddUniqueName(dict_level.GetName());       // since we're not calling CreateUniqName, must "manually" add it
-        pFormLevel->SetName(dict_level.GetName());   // use the dict name for our unique name
+        AddUniqueName(UTF8_TODO::GetCString(dict_level.GetName()));       // since we're not calling CreateUniqName, must "manually" add it
+        pFormLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));   // use the dict name for our unique name
         pFormLevel->SetLabel(dict_level.GetLabel());
         const CDictRecord* pDictRec = dict_level.GetIdItemsRec();
 
@@ -3184,7 +3186,7 @@ bool CDEFormFile::ReconcileLevels(CString& csErr, bool /*bSilent*/, bool /*bAuto
         if(iIndex > GetNumLevels() -1){
             break;
         }
-        if(m_dictionary->GetLevel(iIndex).GetName().CompareNoCase(GetLevel(iIndex)->GetName())==0){
+        if(SO::EqualsNoCase(m_dictionary->GetLevel(iIndex).GetName(), GetLevel(iIndex)->GetName())){
             continue;
         }
         else {//Names do not match so remove the level
@@ -3204,7 +3206,7 @@ bool CDEFormFile::ReconcileLevels(CString& csErr, bool /*bSilent*/, bool /*bAuto
 
                     if( selected_dict_candidates != nullptr )
                     {
-                        GetLevel(iIndex)->SetName(selected_dict_candidates->GetName());
+                        GetLevel(iIndex)->SetName(UTF8_TODO::GetCString(selected_dict_candidates->GetName()));
                         bRet = false;
                         continue;
                     }
@@ -3229,13 +3231,13 @@ bool CDEFormFile::ReconcileLevels(CString& csErr, bool /*bSilent*/, bool /*bAuto
             this->InsertLevelAt(pFormLevel,iIndex);
 
             const DictLevel& dict_level = m_dictionary->GetLevel(iIndex);
-            AddUniqueName(dict_level.GetName());
+            AddUniqueName(UTF8_TODO::GetCString(dict_level.GetName()));
 
-            pFormLevel->SetName(dict_level.GetName());
+            pFormLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
             pFormLevel->SetLabel(dict_level.GetLabel());
 
             CDEGroup* pGroup = new CDEGroup();  //create the root group
-            pGroup->SetName(CreateUniqueName(dict_level.GetName()));
+            pGroup->SetName(CreateUniqueName(UTF8_TODO::GetCString(dict_level.GetName())));
             pGroup->SetParent(pFormLevel->GetRoot());
             pFormLevel->AddItem(pGroup);
             CreateForm(iIndex, pGroup);
@@ -3253,13 +3255,13 @@ bool CDEFormFile::ReconcileLevels(CString& csErr, bool /*bSilent*/, bool /*bAuto
             this->AddLevel(pFormLevel);
 
             const DictLevel& dict_level = m_dictionary->GetLevel(iIndex);
-            AddUniqueName(dict_level.GetName());
+            AddUniqueName(UTF8_TODO::GetCString(dict_level.GetName()));
 
-            pFormLevel->SetName(dict_level.GetName());
+            pFormLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
             pFormLevel->SetLabel(dict_level.GetLabel());
 
             CDEGroup* pGroup = new CDEGroup();  //create the root group
-            pGroup->SetName(CreateUniqueName(dict_level.GetName()));
+            pGroup->SetName(CreateUniqueName(UTF8_TODO::GetCString(dict_level.GetName())));
 
             pGroup->SetParent(pFormLevel->GetRoot());
             pFormLevel->AddItem(pGroup);
@@ -3297,7 +3299,7 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
             CDELevel* pLevel = GetLevel(iIndex);
             CString sOldName = dictionary.GetOldName();
             if(pLevel->GetName().CompareNoCase(sOldName)==0 ){
-                pLevel->SetName(dict_level.GetName());
+                pLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
                 return true;
             }
         }
@@ -3308,7 +3310,7 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
         //look in all groups which in all levels which have this record as the RIType
         //change the corresponding forms also if they are repeating
         CString sOldName = dictionary.GetOldName();
-        ChangeGName(sOldName,pDictRecord->GetName());
+        ChangeGName(sOldName, UTF8_TODO::GetCString(pDictRecord->GetName()));
         return true;
     }
 
@@ -3331,8 +3333,8 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
 
         CDEField* pField = DYNAMIC_DOWNCAST(CDEField,pBase);
         if(pField) {
-            pField->SetItemName(pDictItem->GetName());
-            pField->SetName(pDictItem->GetName());
+            pField->SetItemName(UTF8_TODO::GetCString(pDictItem->GetName()));
+            pField->SetName(UTF8_TODO::GetCString(pDictItem->GetName()));
 
             //Do all the mirror fields
             for (int iIndex = 0; iIndex < GetNumForms(); iIndex++){
@@ -3342,12 +3344,12 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
 
                     pField = DYNAMIC_DOWNCAST(CDEField,pItem);
                     if(pField && pField->GetPlusTarget().CompareNoCase(sOldName) ==0 ) {
-                        pField->SetPlusTarget(pDictItem->GetName());
+                        pField->SetPlusTarget(UTF8_TODO::GetCString(pDictItem->GetName()));
                     }
 
                     if (pField && pField->IsMirror()){
                         if(pField->GetItemName().CompareNoCase(sOldName) == 0 ) {
-                            pField->SetItemName(pDictItem->GetName());
+                            pField->SetItemName(UTF8_TODO::GetCString(pDictItem->GetName()));
                         }
                     }
                 }
@@ -3469,7 +3471,7 @@ void CDEFormFile::CheckLevels()
         if(iIndex >= (int)m_dictionary->GetNumLevels()){//if we cant find the levels
             break;
         }
-        if(m_dictionary->GetLevel(iIndex).GetName().CompareNoCase(GetLevel(iIndex)->GetName())==0){
+        if(SO::EqualsNoCase(m_dictionary->GetLevel(iIndex).GetName(), GetLevel(iIndex)->GetName())){
             GetLevel(iIndex)->SetUsed(true);
         }
         else {
@@ -3767,7 +3769,7 @@ bool CDEFormFile::CheckFieldAttributes(CDEField* pSource, CString& sMsg)
             pDictItem->GetFirstValueSetOrNull(), false);
 
         sMsg.AppendFormat(_T("%s: %s\nThe capture type has been reset to: %s.\n"), pSource->GetName().GetString(),
-                          exception.GetErrorMessage().c_str(), new_capture_info.GetDescription().GetString());
+                          UTF8_TODO::GetWide(exception.what()).c_str(), UTF8_TODO::GetWide(new_capture_info.GetDescription()).c_str());
 
         pSource->SetCaptureInfo(new_capture_info);
     }
@@ -3846,12 +3848,12 @@ bool CDEFormFile::CheckFieldAttributes(CDEField* pSource, CString& sMsg)
 }
 
 
-bool CDEFormFile::Open(const CString& csFileName, bool bSilent /* =false */ )
+bool CDEFormFile::Open(const InterfaceString& file_path, bool bSilent /* =false */ )
 {
-    if( !PortableFunctions::FileIsRegular(csFileName) )
+    if( !PortableFunctions::FileIsRegular(file_path) )
     {
         if( !bSilent )
-            ErrorMessage::Display(_T("FRMCLASS.CPP, CDEForm::Open() - Internal error: Form File does not exist!"));
+            ErrorMessage::Display("FRMCLASS.CPP, CDEForm::Open() - Internal error: Form File does not exist!");
 
         return false;
     }
@@ -3861,7 +3863,7 @@ bool CDEFormFile::Open(const CString& csFileName, bool bSilent /* =false */ )
 
     CString sMsg = _T("Failed to load .fmf file -- fatal error(s) found.");
 
-    if (frmFile.Open(csFileName, CFile::modeRead))      {
+    if (frmFile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead))      {
         CString csCmd, csArg;
         std::shared_ptr<ProgressDlg> dlgProgress;
         int len = (int)( frmFile.GetLength() / 100 );
@@ -3892,8 +3894,8 @@ bool CDEFormFile::Open(const CString& csFileName, bool bSilent /* =false */ )
             }
 
             if (csCmd.CompareNoCase(HEAD_FORM_FILE) == 0 )  {
-                CString sVersion(CSPRO_VERSION);
-                if ( !frmFile.IsVersionOK (sVersion))   {//first get the version
+                CString sVersion(Versioning::CSProVersionText);
+                if ( !frmFile.IsVersionOK_CS(sVersion))   {//first get the version
                     //                                      sMsg.FormatMessage (_T("Form File is not Version 2.2; load anyway?"));
                     //                    if (AfxMessageBox(sMsg, MB_YESNO | MB_ICONQUESTION) != IDYES)  {
                     //                        return false;
@@ -3907,7 +3909,7 @@ bool CDEFormFile::Open(const CString& csFileName, bool bSilent /* =false */ )
                 if (bRetVal) {  // so far so good
                     bRetVal = BuildWrapUp();
                 }
-                SetVersion (CSPRO_VERSION);    // store the version info //now set it to the latest version stuff as usual
+                SetVersion (Versioning::CSProVersionText);    // store the version info //now set it to the latest version stuff as usual
             }
             else {
                 sMsg = _T("[FormFile] header block missing or corrupted");
@@ -3960,7 +3962,7 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
         }
         else if( csCmd.CompareNoCase (FRM_DEF_TXTFONT) == 0 ) {
             if(!csArg.IsEmpty()){
-                m_defaultTextFont.BuildFromPre80String(csArg);
+                m_defaultTextFont.BuildFromPre80String(UTF8_TODO::GetUtf8(csArg));
             }
         }
         else if( csCmd.CompareNoCase (FRM_CMD_DICTORDER) == 0 ) {
@@ -3968,7 +3970,7 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
         }
         else if( csCmd.CompareNoCase (FRM_FLD_FONT) == 0 ){
             if(!csArg.IsEmpty()){
-                m_fieldFont.BuildFromPre80String(csArg);
+                m_fieldFont.BuildFromPre80String(UTF8_TODO::GetUtf8(csArg));
             }
         }
         else if( csCmd.CompareNoCase(FRM_FIELDCOLOR_BASE) == 0 ) {
@@ -4025,13 +4027,13 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
 
                 if (DictCnt == 0 )
                 {
-                    ErrorMessage::Display(_T(".frm file has no dictionaries in the [Dictionaries] block"));
+                    ErrorMessage::Display(".frm file has no dictionaries in the [Dictionaries] block");
                     return false;
                 }
 
                 if (DictCnt > 1)
                 {
-                    ErrorMessage::Display(_T(".frm file has more than one [Dictionaries] block"));
+                    ErrorMessage::Display(".frm file has more than one [Dictionaries] block");
                     return false;
                 }
 
@@ -4094,7 +4096,7 @@ bool CDEFormFile::BuildWrapUp()
 
     if (GetNumLevels() == 0 )
     {
-        ErrorMessage::Display(_T("No [Level] blocks were found in the .frm file"));
+        ErrorMessage::Display("No [Level] blocks were found in the .frm file");
         bWentOK = false;
     }
 
@@ -4106,7 +4108,7 @@ bool CDEFormFile::BuildWrapUp()
 
     if (num == 0 )
     {
-        ErrorMessage::Display(_T("No [Form] blocks were found in the .frm file"));
+        ErrorMessage::Display("No [Form] blocks were found in the .frm file");
         bWentOK = false;
     }
     else    // check that each field on each [form] has been initialized; if not, drop
@@ -4153,21 +4155,21 @@ bool CDEFormFile::BuildWrapUp()
 }
 
 
-bool CDEFormFile::Save(const CString& csFileName) const
+bool CDEFormFile::Save(const InterfaceString& file_path) const
 {
     CSpecFile frmFile;
 
-    if (!frmFile.Open(csFileName, CFile::modeWrite))
+    if (!frmFile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeWrite))
     {
-        ErrorMessage::Display(_T("Error: Could not open file ") + csFileName);
+        ErrorMessage::Display("Error: Could not open file " + file_path.GetString<std::string>());
         return false;
     }
 
     Save(frmFile);
     frmFile.Close();
 
-    if (!PortableFunctions::FileIsRegular(csFileName)) {
-        ErrorMessage::Display(_T("FRMCLASS.CPP, CDEFormFile::Save() - Internal error: FRM file does not exist!"));
+    if (!PortableFunctions::FileIsRegular(file_path)) {
+        ErrorMessage::Display("FRMCLASS.CPP, CDEFormFile::Save() - Internal error: FRM file does not exist!");
     }
 
     return true;
@@ -4182,11 +4184,11 @@ void CDEFormFile::Save(CSpecFile& frmFile) const
     const_cast<CDEFormFile*>(this)->UpdateFlagsNFonts();//Update the font stuff
 
     frmFile.PutLine(HEAD_FORM_FILE);
-    frmFile.PutLine(CMD_VERSION, GetVersion());        // want to check against CSPRO_VERSION
+    frmFile.PutLine(CMD_VERSION, GetVersion());        // want to check against Versioning::CSProVersionText
     frmFile.PutLine(FRM_CMD_NAME, GetName());
     frmFile.PutLine(FRM_CMD_LABEL, GetLabel());
-    frmFile.PutLine(FRM_DEF_TXTFONT, m_defaultTextFont.GetPre80String());
-    frmFile.PutLine(FRM_FLD_FONT, m_fieldFont.GetPre80String());
+    frmFile.PutLine(FRM_DEF_TXTFONT, UTF8_TODO::GetWide(m_defaultTextFont.GetPre80String()));
+    frmFile.PutLine(FRM_FLD_FONT, UTF8_TODO::GetWide(m_fieldFont.GetPre80String()));
     m_fieldColors.Save(frmFile);
     frmFile.PutLine(FRM_CMD_PATH, IsPathOn() ? _T("SystemControlled") : _T("OperatorControlled")); // originally "Survey" and "Census"
 
@@ -4250,7 +4252,7 @@ void CDEFormFile::serialize(Serializer& ar)
         }
     }
 
-    ar.SerializeFilename(m_csFormPathName);
+    ar.SerializePath(m_filePath);
 
     if( ar.IsLoading() )
         UpdateFlagsNFonts();
@@ -4259,10 +4261,11 @@ void CDEFormFile::serialize(Serializer& ar)
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
     // allow a way for developers to recover people's form files from .pen files
-    if( CString(GetCommandLine()).Find(_T("/extract")) >= 0 )
+    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
     {
-        const std::wstring filename = PortableFunctions::PathAppendToPath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop), FormatText(_T("%s.fmf"), GetName().GetString()));
-        Save(WS2CS(filename));
+        const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
+                                                                        UTF8_TODO::GetUtf8(GetName()), FileExtensions::Form);
+        Save(file_path);
     }
 #endif
 }

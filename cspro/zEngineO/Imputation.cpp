@@ -4,8 +4,8 @@
 #include <engine/VarT.h>
 
 
-Imputation::Imputation(const std::wstring& compilation_unit, size_t line_number)
-    :   m_compilationUnit(PortableFunctions::PathGetFilenameWithoutExtension(compilation_unit)),
+Imputation::Imputation(const std::string& compilation_unit, size_t line_number)
+    :   m_compilationUnit(Path::GetFilenameWithoutExtension(compilation_unit)),
         m_lineNumber(line_number),
         m_variable(nullptr),
         m_specific(false),
@@ -25,17 +25,17 @@ void Imputation::serialize(Serializer& ar, EngineData& engine_data)
     {
         for( size_t i = ar.Read<size_t>(); i != 0; --i )
         {
-            std::wstring compilation_unit_name = ar.Read<std::wstring>();
+            const std::string compilation_unit_name = ar.Read<std::string>();
             size_t line_number = ar.Read<size_t>();
 
-            Imputation& imputation = *engine_data.imputations.emplace_back(std::make_unique<Imputation>(std::move(compilation_unit_name), line_number));
+            Imputation& imputation = *engine_data.imputations.emplace_back(std::make_unique<Imputation>(compilation_unit_name, line_number));
 
             ar >> imputation.m_specific;
 
             imputation.m_variable = VPT(ar.Read<int>());
 
             if( ar.Read<bool>() )
-                imputation.m_title = ar.Read<std::wstring>();
+                imputation.m_title = ar.Read<std::string>();
 
             if( int value_set_symbol_index = ar.Read<int>(); value_set_symbol_index != -1 )
                 imputation.m_valueSet = &GetSymbolValueSet(value_set_symbol_index);

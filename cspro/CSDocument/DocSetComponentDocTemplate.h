@@ -15,8 +15,10 @@ public:
         // only match documents when parameters for the next open have been set
         CSDocumentApp& csdoc_app = *assert_cast<CSDocumentApp*>(AfxGetApp());
 
-        if( csdoc_app.HasDocSetParametersForNextOpen(lpszPathName) &&
-            !CSDocumentApp::DocumentCanBeOpenedDirectly(lpszPathName) )
+        const std::string path = TC::ToUtf8(lpszPathName);
+
+        if( csdoc_app.HasDocSetParametersForNextOpen(path) &&
+            !CSDocumentApp::DocumentCanBeOpenedDirectly(path) )
         {
             // check if the document is already open
             if( __super::MatchDocType(lpszPathName, rpDocMatch) == Confidence::yesAlreadyOpen )

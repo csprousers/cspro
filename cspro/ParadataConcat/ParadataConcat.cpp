@@ -3,12 +3,11 @@
 #include "ParadataConcatDlg.h"
 
 
-// The one and only CParadataConcatApp object
-CParadataConcatApp theApp;
+// The one and only ParadataConcatApp object
+ParadataConcatApp theApp;
 
-// CParadataConcatApp initialization
 
-CParadataConcatApp::CParadataConcatApp()
+ParadataConcatApp::ParadataConcatApp()
     :   m_hAccelerators(nullptr)
 {
     InitializeCSProEnvironment();
@@ -17,16 +16,16 @@ CParadataConcatApp::CParadataConcatApp()
 }
 
 
-BOOL CParadataConcatApp::InitInstance()
+BOOL ParadataConcatApp::InitInstance()
 {
     CWinApp::InitInstance();
 
     AfxEnableControlContainer();
 
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     // add the accelerators to the dialog
-    m_hAccelerators = LoadAccelerators(AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_PARADATACONCAT_ACCEL));
+    m_hAccelerators = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_PARADATACONCAT_ACCEL));
 
     RunProgram();
 
@@ -34,35 +33,34 @@ BOOL CParadataConcatApp::InitInstance()
 }
 
 
-BOOL CParadataConcatApp::ProcessMessageFilter(int iCode,LPMSG lpMsg)
+BOOL ParadataConcatApp::ProcessMessageFilter(const int iCode, LPMSG lpMsg)
 {
-    if( ( iCode >= 0 ) && ( m_pMainWnd != nullptr ) && ( m_hAccelerators != nullptr ) )
+    if( iCode >= 0 && m_pMainWnd != nullptr && m_hAccelerators != nullptr )
     {
-        if( ::TranslateAccelerator(m_pMainWnd->m_hWnd,m_hAccelerators,lpMsg) )
+        if( ::TranslateAccelerator(m_pMainWnd->m_hWnd, m_hAccelerators, lpMsg) )
             return TRUE;
     }
 
-    return CWinApp::ProcessMessageFilter(iCode,lpMsg);
+    return CWinApp::ProcessMessageFilter(iCode, lpMsg);
 }
 
 
-void CParadataConcatApp::RunProgram()
+void ParadataConcatApp::RunProgram()
 {
-    CCommandLineInfo cmdInfo;
-    ParseCommandLine(cmdInfo);
-    CString pff_filename = cmdInfo.m_strFileName;
+    CCommandLineInfo cmd_info;
+    ParseCommandLine(cmd_info);
+    const std::string pff_file_path = TC::ToUtf8(cmd_info.m_strFileName);
 
-    if( !pff_filename.IsEmpty() ) // just run the PFF
+    if( !pff_file_path.empty() ) // just run the PFF
     {
         try
         {
-            PFF pff(pff_filename);
+            PFF pff(UTF8_TODO::GetCString(pff_file_path));
 
             if( !pff.LoadPifFile() || pff.GetAppType() != PARADATA_CONCAT_TYPE )
                 throw CSProException("The PFF was not a Paradata Concatenator PFF");
 
-            Paradata::GuiConcatenatorPffWrapper pff_wrapper(pff);
-            Paradata::GuiConcatenator::Run(pff_wrapper);
+            Paradata::GuiConcatenator::Run(pff);
 
             pff.ExecuteOnExitPff();
         }
@@ -76,7 +74,7 @@ void CParadataConcatApp::RunProgram()
     }
 
     // if here, show the UI
-    CParadataConcatDlg dlg;
+    ParadataConcatDlg dlg;
     m_pMainWnd = &dlg;
     dlg.DoModal();
 }

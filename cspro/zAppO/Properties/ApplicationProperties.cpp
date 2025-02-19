@@ -2,6 +2,9 @@
 #include "ApplicationProperties.h"
 
 
+CREATE_JSON_KEY(javaScript)
+
+
 ApplicationProperties::ApplicationProperties()
     :   m_useHtmlComponentsInsteadOfNativeVersions(false)
 {
@@ -13,14 +16,15 @@ bool ApplicationProperties::operator==(const ApplicationProperties& rhs) const
     return ( m_paradataProperties == rhs.m_paradataProperties &&
              m_mappingProperties == rhs.m_mappingProperties &&
              m_jsonProperties == rhs.m_jsonProperties &&
+             m_javascriptProperties == rhs.m_javascriptProperties &&
              m_useHtmlComponentsInsteadOfNativeVersions == rhs.m_useHtmlComponentsInsteadOfNativeVersions &&
              UseHtmlDialogs == rhs.UseHtmlDialogs );
 }
 
 
-void ApplicationProperties::Open(const std::wstring& filename, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
+void ApplicationProperties::Open(const InterfaceString file_path, const bool silent/* = false*/, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
 {
-    auto json_reader = JsonSpecFile::CreateReader(filename, std::move(message_logger), [&]() { return ConvertPre80SpecFile(filename); });
+    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path, std::move(message_logger), [&]() { return ConvertPre80SpecFile(file_path); });
 
     try
     {
@@ -32,7 +36,7 @@ void ApplicationProperties::Open(const std::wstring& filename, const bool silent
 
     catch( const CSProException& exception )
     {
-        json_reader->GetMessageLogger().RethrowException(filename, exception);
+        json_reader->GetMessageLogger().RethrowException(file_path, exception);
     }
 
     // report any warnings
@@ -40,9 +44,9 @@ void ApplicationProperties::Open(const std::wstring& filename, const bool silent
 }
 
 
-void ApplicationProperties::Save(const std::wstring& filename) const
+void ApplicationProperties::Save(const InterfaceString file_path) const
 {
-    auto json_writer = JsonSpecFile::CreateWriter(filename, JK::properties);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JK::properties);
 
     WriteJson(*json_writer, false, true);
 
@@ -50,7 +54,7 @@ void ApplicationProperties::Save(const std::wstring& filename) const
 }
 
 
-ApplicationProperties ApplicationProperties::CreateFromJson(const JsonNode<wchar_t>& json_node)
+ApplicationProperties ApplicationProperties::CreateFromJson(const JsonNode& json_node)
 {
     ApplicationProperties application_properties;
     application_properties.CreateFromJsonWorker(json_node);
@@ -58,7 +62,7 @@ ApplicationProperties ApplicationProperties::CreateFromJson(const JsonNode<wchar
 }
 
 
-void ApplicationProperties::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node)
+void ApplicationProperties::CreateFromJsonWorker(const JsonNode& json_node)
 {
     UseHtmlDialogs = json_node.GetOrDefault(JK::htmlDialogs, UseHtmlDialogs);
 
@@ -70,6 +74,9 @@ void ApplicationProperties::CreateFromJsonWorker(const JsonNode<wchar_t>& json_n
 
     if( json_node.Contains(JK::json) )
         m_jsonProperties = json_node.Get<JsonProperties>(JK::json);
+
+    if( json_node.Contains(JK::javaScript) )
+        m_javascriptProperties = json_node.Get<JavaScriptProperties>(JK::javaScript);
 
     m_useHtmlComponentsInsteadOfNativeVersions = json_node.GetOrDefault(JK::useHtmlComponentsInsteadOfNativeVersions, m_useHtmlComponentsInsteadOfNativeVersions);
 }
@@ -91,6 +98,9 @@ void ApplicationProperties::WriteJson(JsonWriter& json_writer, const bool write_
     if( write_sections_if_all_default_values || m_jsonProperties != JsonProperties() )
         json_writer.Write(JK::json, m_jsonProperties);
 
+    if( write_sections_if_all_default_values || m_javascriptProperties != JavaScriptProperties() )
+        json_writer.Write(JK::javaScript, m_javascriptProperties);
+
     json_writer.Write(JK::useHtmlComponentsInsteadOfNativeVersions, m_useHtmlComponentsInsteadOfNativeVersions);
 
     if( write_to_new_json_object )
@@ -105,6 +115,9 @@ void ApplicationProperties::serialize(Serializer& ar)
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
         ar & m_jsonProperties;
+
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+        ar & m_javascriptProperties;
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_3) )
         ar & m_useHtmlComponentsInsteadOfNativeVersions;

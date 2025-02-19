@@ -24,7 +24,7 @@ ExcelExportWriter::~ExcelExportWriter()
 void ExcelExportWriter::Open(const ConnectionString& connection_string)
 {
     m_excelWriter = std::make_unique<ExcelWriter>();
-    m_excelWriter->CreateWorkbook(connection_string.GetFilename());
+    m_excelWriter->CreateWorkbook(connection_string.GetFilePath());
 }
 
 
@@ -38,9 +38,9 @@ void ExcelExportWriter::Close()
 }
 
 
-bool ExcelExportWriter::IsReservedName(const std::wstring& name, const bool record_name)
+bool ExcelExportWriter::IsReservedName(const std::string& name, const bool record_name)
 {
-    return ( record_name && SO::EqualsNoCase(name, _T("History")) );
+    return ( record_name && SO::EqualsNoCase(name, "History") );
 }
 
 
@@ -51,19 +51,14 @@ void ExcelExportWriter::SetupWorksheets()
     lxw_format* header_format = m_excelWriter->GetFormat(ExcelWriter::Format::Bold);
 
     const bool write_header = ( !m_connectionString.HasProperty(CSProperty::header, CSValue::suppress) &&
-                                !m_connectionString.HasProperty(CSProperty::header, _T("none")) ); // pre-8.0
+                                !m_connectionString.HasProperty(CSProperty::header, "none") ); // pre-8.0
 
     for( std::vector<ExportRecordMapping>& export_record_mapping_for_level : m_exportRecordMappingByLevel )
     {
         for( ExportRecordMapping& export_record_mapping : export_record_mapping_for_level )
         {
-            std::wstring worksheet_name = export_record_mapping.formatted_record_name;
-
-            // if the sheet name is not valid, set it to empty (which will then use the default sheet name)
-            if( !m_excelWriter->ValidateWorksheetName(worksheet_name) )
-                worksheet_name.clear();
-
             // create the worksheet
+            const std::string worksheet_name = m_excelWriter->CreateValidWorksheetName(export_record_mapping.formatted_record_name);
             const size_t sheet_index = m_excelWriter->AddAndSetCurrentWorksheet(worksheet_name);
 
             RecordMappingInfo* record_mapping_info = m_recordMappingInfos.emplace_back(std::make_shared<RecordMappingInfo>(
@@ -90,7 +85,7 @@ void ExcelExportWriter::SetupWorksheets()
                 export_item_mapping.tag = item_mapping_info;
 
                 // add columns for codes and/or labels
-                const CDictItem& dict_item = export_item_mapping.case_item->GetDictionaryItem();
+                const CDictItem& dict_item = export_item_mapping.case_item->GetDictItem();
 
                 export_properties_values_processor.Process(dict_item,
                     [&](std::shared_ptr<const ValueProcessor> value_processor, const bool use_label_for_header)
@@ -100,7 +95,7 @@ void ExcelExportWriter::SetupWorksheets()
                         if( write_header )
                         {
                             m_excelWriter->Write(item_mapping_info->row, column,
-                                                 use_label_for_header ? CS2WS(dict_item.GetLabel()) : export_item_mapping.formatted_item_name,
+                                                 use_label_for_header ? UTF8_TODO::GetUtf8(dict_item.GetLabel()) : export_item_mapping.formatted_item_name,
                                                  header_format);
                         }
 
@@ -137,7 +132,7 @@ void ExcelExportWriter::EndRow()
 void ExcelExportWriter::WriteCaseItem(const ExportItemMapping& export_item_mapping, const CaseItemIndex& index)
 {
     const ItemMappingInfo* item_mapping_info = static_cast<const ItemMappingInfo*>(export_item_mapping.tag);
-    
+
     for( const ColumnMappingInfo& column_mapping_info : item_mapping_info->column_mapping_infos )
     {
         auto write_label_if_valid = [&](const auto& value)
@@ -148,7 +143,7 @@ void ExcelExportWriter::WriteCaseItem(const ExportItemMapping& export_item_mappi
 
                 if( dict_value != nullptr && !dict_value->GetLabel().IsEmpty() )
                 {
-                    m_excelWriter->Write(item_mapping_info->row, column_mapping_info.column, dict_value->GetLabel());
+                    m_excelWriter->Write(item_mapping_info->row, column_mapping_info.column, UTF8_TODO::GetUtf8(dict_value->GetLabel()));
                     return true;
                 }
             }
@@ -165,7 +160,7 @@ void ExcelExportWriter::WriteCaseItem(const ExportItemMapping& export_item_mappi
 
 
         // numeric values
-        else if( export_item_mapping.case_item->IsTypeNumeric() )
+        else if( IsNumeric(export_item_mapping.case_item->GetDataType()) )
         {
             const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(*export_item_mapping.case_item);
             double value = numeric_case_item.GetValue(index);
@@ -191,15 +186,15 @@ void ExcelExportWriter::WriteCaseItem(const ExportItemMapping& export_item_mappi
 
 
         // string values
-        else if( export_item_mapping.case_item->IsTypeString() )
+        else if( IsString(export_item_mapping.case_item->GetDataType()) )
         {
             const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(*export_item_mapping.case_item);
-            std::wstring text = CS2WS(string_case_item.GetValue(index));
+            std::string value = string_case_item.GetValue(index);
 
-            if( !write_label_if_valid(text) )
+            if( !write_label_if_valid(value) )
             {
-                ModifyValueForOutput(text);
-                m_excelWriter->Write(item_mapping_info->row, column_mapping_info.column, text);
+                ModifyValueForOutput(value);
+                m_excelWriter->Write(item_mapping_info->row, column_mapping_info.column, value);
             }
         }
 

@@ -4,13 +4,13 @@
 #include "CSDocCompilerWorker.h"
 #include "DocSetBuilderCache.h"
 #include "GenerateTaskProcessRunner.h"
-#include <zUtilO/StdioFileUnicode.h>
+#include <zToolsO/File.h>
 
 
 namespace
 {
-    constexpr const TCHAR* HhcDisplayText = _T("Microsoft HTML Help Compiler");
-    constexpr const TCHAR* ChmDisplayText = _T("Compiled HTML Help");
+    constexpr const char* HhcDisplayText = "Microsoft HTML Help Compiler";
+    constexpr const char* ChmDisplayText = "Compiled HTML Help";
 }
 
 
@@ -18,19 +18,21 @@ namespace
 // CSDocCompilerSettingsForBuildingChm
 // --------------------------------------------------------------------------
 
-std::wstring CSDocCompilerSettingsForBuildingChm::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuildingChm::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const
 {
     ASSERT(m_buildSettings.GetProjectLinkageAction() == DocBuildSettings::ProjectLinkageAction::Link);
 
-    const std::wstring project_output_filename = project_settings.GetDocSetBuildOutputFilename();
+    const std::string project_output_file_path = project_settings.GetDocSetBuildOutputFilePath();
 
-    return CreateRelativeUrlForPath(project_output_filename) + _T("::") + Encoders::ToUri(GetBuiltHtmlFilename(path));
+    return SO::Concatenate(CreateRelativeUrlForPath(project_output_file_path),
+                           "::",
+                           Encoders::ToUri(GetBuiltHtmlFilename(path)));
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingChm::GetDefaultDocumentPath() const
+std::string CSDocCompilerSettingsForBuildingChm::GetDefaultDocumentFilePath() const
 {
-    return GetDocSetBuilderCache().GetDefaultDocumentPath(*m_docSetSpec, true);
+    return GetDocSetBuilderCache().GetDefaultDocumentFilePath(*m_docSetSpec, true);
 }
 
 
@@ -40,7 +42,7 @@ void CSDocCompilerSettingsForBuildingChm::RunPreCompilationTasks(DocSetBuilderCh
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingChm::GetStylesheetsHtml()
+std::string CSDocCompilerSettingsForBuildingChm::GetStylesheetsHtml()
 {
     if( m_buildSettings.GetStylesheetAction() == DocBuildSettings::StylesheetAction::Embed )
         return CSDocCompilerSettingsForBuilding::GetStylesheetsHtml();
@@ -48,17 +50,17 @@ std::wstring CSDocCompilerSettingsForBuildingChm::GetStylesheetsHtml()
     // if not embedded, the stylesheet will be linked as if it were in the same location as the compiled HTML
     if( m_generateTask->m_nonEmbeddedStylesheetHtml.empty() )
     {
-        const StringNoCase& source_css_path = m_generateTask->AddChmInput(GetStylesheetCssPath(CSDocStylesheetFilename));
-        m_generateTask->m_nonEmbeddedStylesheetHtml = GetStylesheetLinkHtml(Encoders::ToUri(PortableFunctions::PathGetFilename(source_css_path)));
+        const std::string& source_css_file_path = m_generateTask->AddChmInput(GetStylesheetCssFilePath(CSDocStylesheetFilename));
+        m_generateTask->m_nonEmbeddedStylesheetHtml = GetStylesheetLinkHtml(Encoders::ToUri(PortableFunctions::PathGetFilename(source_css_file_path)));
     }
 
     return m_generateTask->m_nonEmbeddedStylesheetHtml;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingChm::EvaluateBuildExtra(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuildingChm::EvaluateBuildExtra(const std::string& path)
 {
-    std::wstring evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
+    std::string evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
 
     CreatePathAndCopyFileToDirectory(evaluated_path, m_generateTask->GetTempOutputDirectory());
 
@@ -66,7 +68,7 @@ std::wstring CSDocCompilerSettingsForBuildingChm::EvaluateBuildExtra(const std::
 }
 
 
-std::wstring CSDocCompilerSettingsForBuildingChm::CreateUrlForImageFile(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuildingChm::CreateUrlForImageFile(const std::string& path)
 {
     if( m_buildSettings.GetImageAction() == DocBuildSettings::ImageAction::DataUrl )
         return CSDocCompilerSettingsForBuilding::CreateUrlForImageFile(path);
@@ -78,7 +80,7 @@ std::wstring CSDocCompilerSettingsForBuildingChm::CreateUrlForImageFile(const st
 }
 
 
-std::optional<unsigned> CSDocCompilerSettingsForBuildingChm::GetContextId(const std::wstring& context, bool use_if_exists)
+std::optional<unsigned> CSDocCompilerSettingsForBuildingChm::GetContextId(const std::string& context, const bool use_if_exists)
 {
     std::optional<unsigned> context_id = CSDocCompilerSettingsForBuilding::GetContextId(context, use_if_exists);
 
@@ -88,16 +90,18 @@ std::optional<unsigned> CSDocCompilerSettingsForBuildingChm::GetContextId(const 
 
         if( lookup != m_generateTask->m_contextMap.cend() )
         {
-            throw CSProException(_T("The context '%s' (%d) has already been used for: %s"),
-                                 context.c_str(), static_cast<int>(*context_id), lookup->second.c_str());
+            throw CSProException("The context '%s' (%d) has already been used for: %s",
+                                 context.c_str(),
+                                 static_cast<int>(*context_id),
+                                 lookup->second.c_str());
         }
 
-        m_generateTask->m_contextMap.try_emplace(*context_id, GetCompilationFilename());
+        m_generateTask->m_contextMap.try_emplace(*context_id, GetCompilationFilePath());
     }
 
     else if( !use_if_exists )
     {
-        throw CSProException(_T("The context '%s' is unknown."), context.c_str());
+        throw CSProException("The context '%s' is unknown.", context.c_str());
     }
 
     return context_id;
@@ -110,9 +114,11 @@ std::optional<unsigned> CSDocCompilerSettingsForBuildingChm::GetContextId(const 
 // --------------------------------------------------------------------------
 
 DocSetBuilderChmGenerateTask::DocSetBuilderChmGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec,
-                                                           const DocBuildSettings& base_build_settings, std::wstring build_name,
-                                                           bool throw_exceptions_for_serious_issues_when_validating_build_settings)
-    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings, DocBuildSettings::BuildType::Chm, std::move(build_name), throw_exceptions_for_serious_issues_when_validating_build_settings))
+                                                           const DocBuildSettings& base_build_settings, std::string build_name,
+                                                           const bool throw_exceptions_for_serious_issues_when_validating_build_settings)
+    :   DocSetBuilderBaseGenerateTask(CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(std::move(doc_set_spec), base_build_settings,
+                                      DocBuildSettings::BuildType::Chm, std::move(build_name),
+                                      throw_exceptions_for_serious_issues_when_validating_build_settings))
 {
 }
 
@@ -123,28 +129,29 @@ CSDocCompilerSettingsForBuildingChm& DocSetBuilderChmGenerateTask::GetSettings()
 }
 
 
-const std::wstring& DocSetBuilderChmGenerateTask::AddChmInput(std::wstring filename)
+const std::string& DocSetBuilderChmGenerateTask::AddChmInput(std::string file_path)
 {
-    const std::wstring filename_only = PortableFunctions::PathGetFilename(filename);
+    const std::string filename = PortableFunctions::PathGetFilename(file_path);
 
-    for( const std::wstring& previously_added_filename : m_chmInputFilenames )
+    for( const std::string& previously_added_file_path : m_chmInputFilePaths )
     {
-        if( SO::EqualsNoCase(filename_only, PortableFunctions::PathGetFilename(previously_added_filename)) )
+        if( SO::EqualsNoCase(filename, PortableFunctions::PathGetFilename(previously_added_file_path)) )
         {
             // when a file has the same name (but is not the same file, as the path is different),
             // issue an error when the contents are different
-            if( !SO::EqualsNoCase(filename, previously_added_filename) &&
-                PortableFunctions::FileSizeAndModifiedTime(filename) != PortableFunctions::FileSizeAndModifiedTime(previously_added_filename) &&
-                PortableFunctions::FileMd5(filename) != PortableFunctions::FileMd5(previously_added_filename) )
+            if( !SO::EqualsNoCase(file_path, previously_added_file_path) &&
+                PortableFunctions::FileSizeAndModifiedTime(file_path) != PortableFunctions::FileSizeAndModifiedTime(previously_added_file_path) &&
+                PortableFunctions::FileMd5(file_path) != PortableFunctions::FileMd5(previously_added_file_path) )
             {
-                throw CSProException(_T("Multiple files with the same name cannot be built into a %s: %s"), ChmDisplayText, filename.c_str());
+                throw CSProException("Multiple files with the same name cannot be built into a %s: %s",
+                                     ChmDisplayText, file_path.c_str());
             }
 
-            return previously_added_filename;
+            return previously_added_file_path;
         }
     }
 
-    return m_chmInputFilenames.emplace_back(std::move(filename));
+    return m_chmInputFilePaths.emplace_back(std::move(file_path));
 }
 
 
@@ -154,7 +161,8 @@ void DocSetBuilderChmGenerateTask::ValidateInputs()
 
     if( IsInterfaceSet() && !PortableFunctions::FileIsRegular(GetInterface().GetGlobalSettings().html_help_compiler_path) )
     {
-        throw CSProException(_T("The program %s must be installed to create %s files. Install the software and then add a reference to it in the Global Settings."),
+        throw CSProException("The program %s must be installed to create %s files. "
+                             "Install the software and then add a reference to it in the Global Settings.",
                              HhcDisplayText, ChmDisplayText);
     }
 }
@@ -165,11 +173,14 @@ void DocSetBuilderChmGenerateTask::ValidateInputsPostDocSetCompilation()
     CSDocCompilerSettingsForBuildingChm& settings = GetSettings();
 
     if( !GetDocSetSpec().GetTitle().has_value() )
-        throw CSProException(_T("You cannot create a %s file without defining a title."), ChmDisplayText);
+    {
+        throw CSProException("You cannot create a %s file without defining a title.",
+                             ChmDisplayText);
+    }
 
     // this will throw an exception is there is no default document
-    const std::wstring default_document_path = settings.GetDefaultDocumentPath();
-    m_defaultDocumentBuiltHtmlFilename = settings.GetBuiltHtmlFilename(default_document_path);
+    const std::string default_document_file_path = settings.GetDefaultDocumentFilePath();
+    m_defaultDocumentBuiltHtmlFilename = settings.GetBuiltHtmlFilename(default_document_file_path);
 
     // make sure that the button links are valid
     m_evaluatedButtonValues.clear();
@@ -178,16 +189,16 @@ void DocSetBuilderChmGenerateTask::ValidateInputsPostDocSetCompilation()
     {
         if( m_evaluatedButtonValues.size() == 4 )
         {
-            throw CSProException(_T("Only two buttons can be added to a %s file so the button with text '%s' cannot be processed."),
+            throw CSProException("Only two buttons can be added to a %s file so the button with text '%s' cannot be processed.",
                                  ChmDisplayText, text.c_str());
         }
 
-        std::wstring& evaluated_link = m_evaluatedButtonValues.emplace_back(link);
+        std::string& evaluated_link = m_evaluatedButtonValues.emplace_back(link);
 
-        if( !SO::StartsWithNoCase(link, _T("http")) )
+        if( !SO::StartsWithNoCase(link, "http") )
         {
-            // evaluating links requires an output filename, so use the default document to set one
-            m_csdocCompilerSettingsForBuilding->SetOutputFilename(GetCSDocOutputFilename(default_document_path));
+            // evaluating links requires an output file path, so use the default document to set one
+            m_csdocCompilerSettingsForBuilding->SetOutputFilePath(GetCSDocOutputFilePath(default_document_file_path));
 
             evaluated_link = CSDocCompilerWorker::EvaluateAndCreateUrlForTopicComponent(settings, evaluated_link);
         }
@@ -203,16 +214,16 @@ void DocSetBuilderChmGenerateTask::OnRun()
 {
     const int64_t start_timestamp = GetTimestamp<int64_t>();
 
-    GetInterface().SetTitle(FormatTextCS2WS(_T("Building Document Set to a %s file: %s"), ChmDisplayText, GetDocSetSpec().GetFilename().c_str()));
+    GetInterface().SetTitle(FormatText("Building Document Set to a %s file: %s", ChmDisplayText, GetDocSetSpec().GetFilePath().c_str()));
 
     // all compiled files will be saved to a temporary directory
     CreateTempOutputDirectory();
 
     RunBuild();
 
-    GetInterface().LogText(FormatTextCS2WS(_T("\nBuild completed in %s."), GetElapsedTimeText(start_timestamp).c_str()));
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
 
-    GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_chmOutputFilename), m_chmOutputFilename);
+    GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_chmOutputFilePath), m_chmOutputFilePath);
 }
 
 
@@ -229,133 +240,132 @@ void DocSetBuilderChmGenerateTask::OnPreCSDocCompilation()
 {
     GetSettings().RunPreCompilationTasks(*this);
 
-    m_chmOutputFilename = m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputFilename();
-    FileIO::CreateDirectoriesForFile(m_chmOutputFilename);
-    PortableFunctions::FileDelete(m_chmOutputFilename);
+    m_chmOutputFilePath = m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputFilePath();
+    FileIO::CreateDirectoriesForFile(m_chmOutputFilePath);
+    PortableFunctions::FileDelete(m_chmOutputFilePath);
 }
 
 
-std::wstring DocSetBuilderChmGenerateTask::GetCSDocOutputFilename(const std::wstring& csdoc_filename)
+std::string DocSetBuilderChmGenerateTask::GetCSDocOutputFilePath(const std::string& csdoc_file_path)
 {
     CSDocCompilerSettingsForBuildingChm& settings = GetSettings();
 
-    // return a fake filename (with the the right name in the ultimate output directory)
-    return PortableFunctions::PathAppendToPath(settings.GetDocSetBuildOutputDirectory(),
-                                               settings.GetBuiltHtmlFilename(csdoc_filename));
+    // return a fake file path (with the the right name in the ultimate output directory)
+    return Path::Combine(settings.GetDocSetBuildOutputDirectory(),
+                         settings.GetBuiltHtmlFilename(csdoc_file_path));
 }
 
 
-void DocSetBuilderChmGenerateTask::OnCSDocCompilationResult(const std::wstring& csdoc_filename, const std::wstring& output_filename, const std::wstring& html)
+void DocSetBuilderChmGenerateTask::OnCSDocCompilationResult(const std::string& csdoc_file_path, const std::string& output_file_path, const std::string& html)
 {
-    const std::wstring& built_html_filename = AddChmInput(PortableFunctions::PathAppendToPath(GetTempOutputDirectory(),
-                                                                                              PortableFunctions::PathGetFilename(output_filename)));
+    const std::string& built_html_file_path = AddChmInput(Path::Combine(GetTempOutputDirectory(),
+                                                                        PortableFunctions::PathGetFilename(output_file_path)));
 
-    DocSetBuilderBaseGenerateTask::OnCSDocCompilationResult(csdoc_filename, built_html_filename, html);
+    DocSetBuilderBaseGenerateTask::OnCSDocCompilationResult(csdoc_file_path, built_html_file_path, html);
 }
 
 
 void DocSetBuilderChmGenerateTask::OnPostCSDocCompilation()
 {
-    const std::wstring hh_base_filename = PortableFunctions::PathAppendToPath(GetTempOutputDirectory(),
-                                                                              PortableFunctions::PathGetFilenameWithoutExtension(m_chmOutputFilename));
+    const std::string hh_base_file_path = Path::Combine(GetTempOutputDirectory(),
+                                                        Path::GetFilenameWithoutExtension(m_chmOutputFilePath));
 
-    const std::wstring hhc_filename = GetDocSetSpec().GetTableOfContents().has_value() ? ( hh_base_filename + _T(".hhc") ) : std::wstring();
-    const std::wstring hhk_filename = GetDocSetSpec().GetIndex().has_value() ? ( hh_base_filename + _T(".hhk") ) : std::wstring();
-    const std::wstring hhp_filename = hh_base_filename + _T(".hhp");
+    const std::string hhc_file_path = GetDocSetSpec().GetTableOfContents().has_value() ? ( hh_base_file_path + ".hhc" ) : std::string();
+    const std::string hhk_file_path = GetDocSetSpec().GetIndex().has_value() ? ( hh_base_file_path + ".hhk" ) : std::string();
+    const std::string hhp_file_path = hh_base_file_path + ".hhp";
 
-    if( !hhc_filename.empty() )
+    if( !hhc_file_path.empty() )
     {
-        auto file = OpenChmFileForOutput(hhc_filename);
-        WriteChmTableOfContentsFile(*file);
+        FileIO::TextFile text_file = OpenChmFileForOutput(hhc_file_path);
+        WriteChmTableOfContentsFile(text_file);
 
         if( IsCanceled() )
             return;
     }
 
-    if( !hhk_filename.empty() )
+    if( !hhk_file_path.empty() )
     {
-        auto file = OpenChmFileForOutput(hhk_filename);
-        WriteChmIndexFile(*file);
+        FileIO::TextFile text_file = OpenChmFileForOutput(hhk_file_path);
+        WriteChmIndexFile(text_file);
 
         if( IsCanceled() )
             return;
     }
 
-    WriteChmProjectFile(hhp_filename, hhc_filename, hhk_filename);
+    WriteChmProjectFile(hhp_file_path, hhc_file_path, hhk_file_path);
 
     if( IsCanceled() )
         return;
 
     // create the CHM
-    std::wstring command_line = EscapeCommandLineArgument(GetInterface().GetGlobalSettings().html_help_compiler_path) +
-                                _T(" ") + EscapeCommandLineArgument(hhp_filename);
+    const std::string command_line = SO::Concatenate(EscapeCommandLineArgument(GetInterface().GetGlobalSettings().html_help_compiler_path),
+                                                     " ",
+                                                     EscapeCommandLineArgument(hhp_file_path));
 
-    GetInterface().LogText(FormatTextCS2WS(_T("\nCreating %s file using %s: %s"), ChmDisplayText, HhcDisplayText, command_line.c_str()));
+    GetInterface().LogText("\nCreating %s file using %s: %s", ChmDisplayText, HhcDisplayText, command_line.c_str());
 
-    GenerateTaskProcessRunner process_runner(*this, HhcDisplayText, _T("hhc"), &ProcessRunner::ReadStdOut);
+    GenerateTaskProcessRunner process_runner(*this, HhcDisplayText, "hhc", &ProcessRunner::ReadStdOut);
 
     process_runner.SetOutputPreprocessor(
-        [&](std::wstring& output)
+        [&](std::string& output)
         {
             // for some reason lots of \r characters (without a matching \n) end up in the output
             SO::Remove(output, '\r');
             SO::ConvertTabsToSpaces(output);
         });
 
-    process_runner.Run(std::move(command_line));
+    process_runner.Run(command_line);
 
     if( IsCanceled() )
     {
-        PortableFunctions::FileDelete(m_chmOutputFilename);
+        PortableFunctions::FileDelete(m_chmOutputFilePath);
         return;
     }
 
-    if( !PortableFunctions::FileIsRegular(m_chmOutputFilename) )
-        throw CSProException(_T("There was a problem creating the %s file."), ChmDisplayText);
+    if( !PortableFunctions::FileIsRegular(m_chmOutputFilePath) )
+        throw CSProException("There was a problem creating the %s file.", ChmDisplayText);
 }
 
 
-std::unique_ptr<CStdioFileUnicode> DocSetBuilderChmGenerateTask::OpenChmFileForOutput(const std::wstring& filename)
+FileIO::TextFile DocSetBuilderChmGenerateTask::OpenChmFileForOutput(const std::string& file_path)
 {
-    auto file = std::make_unique<CStdioFileUnicode>();
+    FileIO::TextFile text_file;
+    text_file.SetTextEncoding(TextEncoding::Type::Ansi);
 
-    file->SetEncoding(Encoding::Ansi);
+    text_file.OpenForTextWritingCreate(file_path);
 
-    if( !file->Open(filename.c_str(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-        throw FileIO::Exception::FileOpenError(filename);
-
-    return file;
+    return text_file;
 }
 
 
-void DocSetBuilderChmGenerateTask::WriteChmProjectFile(const std::wstring& hhp_filename, const std::wstring& hhc_filename, const std::wstring& hhk_filename)
+void DocSetBuilderChmGenerateTask::WriteChmProjectFile(const std::string& hhp_file_path, const std::string& hhc_file_path, const std::string& hhk_file_path)
 {
     CSDocCompilerSettingsForBuildingChm& settings = GetSettings();
 
-    auto file = OpenChmFileForOutput(hhp_filename);
+    FileIO::TextFile text_file = OpenChmFileForOutput(hhp_file_path);
 
-    file->WriteLine(_T("[OPTIONS]"));
-    
-    file->WriteLine(_T("Compiled File=") + m_chmOutputFilename);
-    file->WriteLine(_T("Title=") + *GetDocSetSpec().GetTitle());
+    text_file.WriteLine("[OPTIONS]");
 
-    if( !hhc_filename.empty() )
-        file->WriteLine(_T("Contents File=") + hhc_filename);
+    text_file.WriteLine("Compiled File=" + m_chmOutputFilePath);
+    text_file.WriteLine("Title=" + *GetDocSetSpec().GetTitle());
 
-    if( !hhk_filename.empty() )
-        file->WriteLine(_T("Index File=") + hhk_filename);
+    if( !hhc_file_path.empty() )
+        text_file.WriteLine("Contents File=" + hhc_file_path);
 
-    file->WriteLine(_T("Default topic=") + settings.GetBuiltHtmlFilename(settings.GetDefaultDocumentPath()));
-    file->WriteLine(_T("Default Window=main"));
-    file->WriteLine(_T("Auto Index=No"));
-    file->WriteLine(_T("Binary Index=Yes"));
-    file->WriteLine(_T("Binary TOC=No"));
-    file->WriteLine(_T("Flat=No"));
-    file->WriteLine(_T("Full-text search=Yes"));
-    file->WriteLine(_T("Language=0x409 English (United States)"));
-    file->WriteLine(_T("Display compile progress=Yes"));
+    if( !hhk_file_path.empty() )
+        text_file.WriteLine("Index File=" + hhk_file_path);
 
-    file->WriteLine(_T("[WINDOWS]"));
+    text_file.WriteLine("Default topic=" + settings.GetBuiltHtmlFilename(settings.GetDefaultDocumentFilePath()));
+    text_file.WriteLine("Default Window=main");
+    text_file.WriteLine("Auto Index=No");
+    text_file.WriteLine("Binary Index=Yes");
+    text_file.WriteLine("Binary TOC=No");
+    text_file.WriteLine("Flat=No");
+    text_file.WriteLine("Full-text search=Yes");
+    text_file.WriteLine("Language=0x409 English (United States)");
+    text_file.WriteLine("Display compile progress=Yes");
+
+    text_file.WriteLine("[WINDOWS]");
 
     constexpr int window_properties = HHWIN_PROP_TRI_PANE | HHWIN_PROP_AUTO_SYNC | HHWIN_PROP_TAB_SEARCH |
                                       HHWIN_PROP_TAB_ADVSEARCH | HHWIN_PROP_USER_POS;
@@ -367,46 +377,46 @@ void DocSetBuilderChmGenerateTask::WriteChmProjectFile(const std::wstring& hhp_f
                                   ( m_evaluatedButtonValues.front().empty() ? 0 : HHWIN_BUTTON_JUMP1 ) |
                                   ( m_evaluatedButtonValues[2].empty()      ? 0 : HHWIN_BUTTON_JUMP2 );
 
-    file->WriteFormattedLine(_T("main=\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%s"),
-                             _T(""),                                     // window caption (no need to specify as it is specified above)
-                             hhc_filename.c_str(),                       // table of contents file
-                             hhk_filename.c_str(),                       // index file
-                             _T(""),                                     // default topic (no need to specify as it is specified above)
-                             m_defaultDocumentBuiltHtmlFilename.c_str(), // home topic
-                             m_evaluatedButtonValues.front().c_str(),    // button 1 link
-                             m_evaluatedButtonValues[1].c_str(),         // button 1 text
-                             m_evaluatedButtonValues[2].c_str(),         // button 2 link
-                             m_evaluatedButtonValues.back().c_str(),     // button 2 link
-                             window_properties,                          // HHWIN_PROP_ settings
-                             0,                                          // navigation pane width
-                             button_properties,                          // HHWIN_BUTTON_ settings
-                             _T("[0,0,800,600]"));                       // default window position
+    text_file.WriteFormattedLine("main=\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%s",
+                                 "",                                         // window caption (no need to specify as it is specified above)
+                                 hhc_file_path.c_str(),                      // table of contents file
+                                 hhk_file_path.c_str(),                      // index file
+                                 "",                                         // default topic (no need to specify as it is specified above)
+                                 m_defaultDocumentBuiltHtmlFilename.c_str(), // home topic
+                                 m_evaluatedButtonValues.front().c_str(),    // button 1 link
+                                 m_evaluatedButtonValues[1].c_str(),         // button 1 text
+                                 m_evaluatedButtonValues[2].c_str(),         // button 2 link
+                                 m_evaluatedButtonValues.back().c_str(),     // button 2 link
+                                 window_properties,                          // HHWIN_PROP_ settings
+                                 0,                                          // navigation pane width
+                                 button_properties,                          // HHWIN_BUTTON_ settings
+                                 "[0,0,800,600]");                           // default window position
 
-    file->WriteLine(_T("[FILES]"));
+    text_file.WriteLine("[FILES]");
 
-    for( const std::wstring& filename : m_chmInputFilenames )
-        file->WriteLine(filename);
+    for( const std::string& file_path : m_chmInputFilePaths )
+        text_file.WriteLine(file_path);
 
     if( !m_contextMap.empty() )
-        WriteChmProjectFileContextIds(*file);
+        WriteChmProjectFileContextIds(text_file);
 }
 
 
-void DocSetBuilderChmGenerateTask::WriteChmProjectFileContextIds(CStdioFileUnicode& file)
+void DocSetBuilderChmGenerateTask::WriteChmProjectFileContextIds(FileIO::TextFile& text_file)
 {
     CSDocCompilerSettingsForBuildingChm& settings = GetSettings();
 
     // write context entries that are used and map all others (that begin with valid prefixes) to the default document
-    std::vector<std::tuple<unsigned, const std::wstring*>> entries_for_map_section;
+    std::vector<std::tuple<unsigned, const std::string*>> entries_for_map_section;
 
-    file.WriteLine(_T("[ALIAS]"));
+    text_file.WriteLine("[ALIAS]");
 
     for( const auto& [context, context_id] : GetDocSetSpec().GetContextIds() )
     {
-        const unsigned context_id_adjustment = SO::StartsWith(context, _T("ID_"))  ? 0x10000 :
-                                               SO::StartsWith(context, _T("IDD_")) ? 0x20000 :
-                                               SO::StartsWith(context, _T("IDR_")) ? 0x20000 :
-                                                                                     0;
+        const unsigned context_id_adjustment = SO::StartsWith(context, "ID_")  ? 0x10000 :
+                                               SO::StartsWith(context, "IDD_") ? 0x20000 :
+                                               SO::StartsWith(context, "IDR_") ? 0x20000 :
+                                                                                 0;
 
         if( context_id_adjustment != 0 )
         {
@@ -414,15 +424,15 @@ void DocSetBuilderChmGenerateTask::WriteChmProjectFileContextIds(CStdioFileUnico
 
             const auto& used_lookup = m_contextMap.find(context_id);
 
-            file.WriteFormattedLine(_T("%s=%s"), context.c_str(), ( used_lookup != m_contextMap.cend() ) ? settings.GetBuiltHtmlFilename(used_lookup->second).c_str() :
-                                                                                                           m_defaultDocumentBuiltHtmlFilename.c_str());
+            text_file.WriteFormattedLine("%s=%s", context.c_str(), ( used_lookup != m_contextMap.cend() ) ? settings.GetBuiltHtmlFilename(used_lookup->second).c_str() :
+                                                                                                            m_defaultDocumentBuiltHtmlFilename.c_str());
         }
     }
 
-    file.WriteLine(_T("[MAP]"));
+    text_file.WriteLine("[MAP]");
 
     for( const auto& [adjusted_context_id, context] : entries_for_map_section )
-        file.WriteFormattedLine(_T("#define %s %d"), context->c_str(), static_cast<int>(adjusted_context_id));
+        text_file.WriteFormattedLine("#define %s %d", context->c_str(), static_cast<int>(adjusted_context_id));
 }
 
 
@@ -434,80 +444,80 @@ void DocSetBuilderChmGenerateTask::WriteChmProjectFileContextIds(CStdioFileUnico
 class DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter
 {
 public:
-    IndexTableOfContentsBaseWriter(CSDocCompilerSettingsForBuilding& settings, CStdioFileUnicode& file);
+    IndexTableOfContentsBaseWriter(CSDocCompilerSettingsForBuilding& settings, FileIO::TextFile& text_file);
     ~IndexTableOfContentsBaseWriter();
 
 protected:
-    void WriteObject(const TCHAR* type, std::initializer_list<std::tuple<const TCHAR*, const TCHAR*>> params);
+    void WriteObject(const char* type, std::initializer_list<std::tuple<const char*, const char*>> params);
 
-    void WriteSitemapEntry(const std::wstring& csdoc_filename, const std::wstring* title_override);
+    void WriteSitemapEntry(const std::string& csdoc_file_path, const std::string* title_override);
 
     struct Tags
     {
-        static constexpr const TCHAR* ul_start = _T("<ul>");
-        static constexpr const TCHAR* ul_end   = _T("</ul>");
-        static constexpr const TCHAR* li_start = _T("<li>");
-        static constexpr const TCHAR* li_end   = _T("</li>");
+        static constexpr const char* ul_start = "<ul>";
+        static constexpr const char* ul_end   = "</ul>";
+        static constexpr const char* li_start = "<li>";
+        static constexpr const char* li_end   = "</li>";
     };
 
 protected:
     CSDocCompilerSettingsForBuilding& m_settings;
-    CStdioFileUnicode& m_file;
+    FileIO::TextFile& m_textFile;
 };
 
 
-DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::IndexTableOfContentsBaseWriter(CSDocCompilerSettingsForBuilding& settings, CStdioFileUnicode& file)
+DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::IndexTableOfContentsBaseWriter(CSDocCompilerSettingsForBuilding& settings, FileIO::TextFile& text_file)
     :   m_settings(settings),
-        m_file(file)
+        m_textFile(text_file)
 {
-    m_file.WriteLine(_T("<html>"));
+    m_textFile.WriteLine("<html>");
 }
 
 
 DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::~IndexTableOfContentsBaseWriter()
 {
-    m_file.WriteLine(_T("</html>"));
+    m_textFile.WriteLine("</html>");
 }
 
 
-void DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::WriteObject(const TCHAR* type, std::initializer_list<std::tuple<const TCHAR*, const TCHAR*>> params)
+void DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::WriteObject(const char* const type, const std::initializer_list<std::tuple<const char*, const char*>> params)
 {
     ASSERT(Encoders::ToHtmlTagValue(type) == type);
 
-    m_file.WriteString(_T("<object type=\"text/"));
-    m_file.WriteString(type);
-    m_file.WriteLine(_T("\">"));
+    m_textFile.WriteString("<object type=\"text/");
+    m_textFile.WriteString(type);
+    m_textFile.WriteLine("\">");
 
     for( const auto& [name, value] : params )
     {
         ASSERT(Encoders::ToHtmlTagValue(name) == name);
 
-        m_file.WriteString(_T("<param name=\""));
-        m_file.WriteString(name);
-        m_file.WriteString(_T("\" value=\""));
-        m_file.WriteString(Encoders::ToHtmlTagValue(value));
-        m_file.WriteLine(_T("\"/>"));
+        m_textFile.WriteString("<param name=\"");
+        m_textFile.WriteString(name);
+        m_textFile.WriteString("\" value=\"");
+        m_textFile.WriteString(Encoders::ToHtmlTagValue(value));
+        m_textFile.WriteLine("\"/>");
     }
 
-    m_file.WriteLine(_T("</object>"));
+    m_textFile.WriteLine("</object>");
 }
 
 
-void DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::WriteSitemapEntry(const std::wstring& csdoc_filename, const std::wstring* title_override)
+void DocSetBuilderChmGenerateTask::IndexTableOfContentsBaseWriter::WriteSitemapEntry(const std::string& csdoc_file_path, const std::string* const title_override)
 {
-    const std::wstring title = ( title_override != nullptr ) ? *title_override :
-                                                               m_settings.GetTitle(csdoc_filename);
-    const std::wstring built_filename = m_settings.GetBuiltHtmlFilename(csdoc_filename);
+    const std::string title = ( title_override != nullptr ) ? *title_override :
+                                                              m_settings.GetTitle(csdoc_file_path);
+    const std::string built_filename = m_settings.GetBuiltHtmlFilename(csdoc_file_path);
 
-    m_file.WriteString(Tags::li_start); // <li> cannot be followed by a newline
+    m_textFile.WriteString(Tags::li_start); // <li> cannot be followed by a newline
 
-    WriteObject(_T("sitemap"),
+    WriteObject("sitemap",
         {
-            { _T("Name"),  title.c_str() },
-            { _T("Local"), built_filename.c_str() }
+            { "Name",  title.c_str()          },
+            { "Local", built_filename.c_str() }
         });
 
-    m_file.WriteLine(Tags::li_end);
+    m_textFile.WriteLine(Tags::li_end);
 }
 
 
@@ -524,12 +534,12 @@ public:
 protected:
     void StartWriting(size_t num_root_nodes) override;
 
-    void WriteProject(const std::wstring& project)override;
+    void WriteProject(const std::string& project) override;
 
-    void StartChapter(const std::wstring& title, bool write_title_to_pdf) override;
+    void StartChapter(const std::string& title, bool write_title_to_pdf) override;
     void FinishChapter() override;
 
-    void WriteDocument(const std::wstring& csdoc_filename, const std::wstring* title_override) override;
+    void WriteDocument(const std::string& csdoc_file_path, const std::string* title_override) override;
 
 private:
     size_t m_chapterLevel = 0;
@@ -539,76 +549,76 @@ private:
 
 void DocSetBuilderChmGenerateTask::TableOfContentsWriter::StartWriting(size_t /*num_root_nodes*/)
 {
-    WriteObject(_T("site properties"),
+    WriteObject("site properties",
         {
-            { _T("SiteType"),    _T("toc") },
-            { _T("Image Width"), _T("16") }
+            { "SiteType",    "toc" },
+            { "Image Width", "16"  }
         });
 }
 
 
-void DocSetBuilderChmGenerateTask::TableOfContentsWriter::WriteProject(const std::wstring& project)
+void DocSetBuilderChmGenerateTask::TableOfContentsWriter::WriteProject(const std::string& project)
 {
     const CSDocCompilerSettingsForBuilding& project_settings = m_settings.GetProjectSettings(project);
-    const std::wstring project_built_path = project_settings.GetDocSetBuildOutputFilename();
+    const std::string project_built_file_path = project_settings.GetDocSetBuildOutputFilePath();
 
     if( !project_settings.GetDocSetSpec().GetTableOfContents().has_value() )
     {
-        throw CSProException(_T("The %s cannot link to a project that does not have a %s itself: %s"),
+        throw CSProException("The %s cannot link to a project that does not have a %s itself: %s",
                              ToString(DocSetComponent::Type::TableOfContents),
                              ToString(DocSetComponent::Type::TableOfContents),
-                             project_built_path.c_str());
+                             project_built_file_path.c_str());
     }
 
-    const std::wstring project_hhc_url = FormatTextCS2WS(_T("%s::/%s.hhc"),
-                                                         PortableFunctions::PathGetFilename(project_built_path),
-                                                         PortableFunctions::PathGetFilenameWithoutExtension(project_built_path).c_str());
+    const std::string project_hhc_url = FormatText("%s::/%s.hhc",
+                                                   PortableFunctions::PathGetFilename(project_built_file_path).c_str(),
+                                                   Path::GetFilenameWithoutExtension(project_built_file_path).c_str());
 
-    WriteObject(_T("sitemap"),
+    WriteObject("sitemap",
         {
-            { _T("Name"),  project_hhc_url.c_str() },
-            { _T("Merge"), project_hhc_url.c_str() }
+            { "Name",  project_hhc_url.c_str() },
+            { "Merge", project_hhc_url.c_str() }
         });
 }
 
 
-void DocSetBuilderChmGenerateTask::TableOfContentsWriter::StartChapter(const std::wstring& title, bool /*write_title_to_pdf*/)
+void DocSetBuilderChmGenerateTask::TableOfContentsWriter::StartChapter(const std::string& title, bool /*write_title_to_pdf*/)
 {
     if( ++m_chapterLevel == 1 )
-        m_file.WriteLine(Tags::ul_start);
+        m_textFile.WriteLine(Tags::ul_start);
 
-    m_file.WriteString(Tags::li_start); // <li> cannot be followed by a newline
+    m_textFile.WriteString(Tags::li_start); // <li> cannot be followed by a newline
 
-    WriteObject(_T("sitemap"),
+    WriteObject("sitemap",
         {
-            { _T("Name"), title.c_str() }
+            { "Name", title.c_str() }
         });
 
-    m_file.WriteLine(Tags::ul_start);
+    m_textFile.WriteLine(Tags::ul_start);
 }
 
 
 void DocSetBuilderChmGenerateTask::TableOfContentsWriter::FinishChapter()
 {
-    m_file.WriteLine(Tags::ul_end);
-    m_file.WriteLine(Tags::li_end);
+    m_textFile.WriteLine(Tags::ul_end);
+    m_textFile.WriteLine(Tags::li_end);
 
     if( m_chapterLevel-- == 1 )
-        m_file.WriteLine(Tags::ul_end);
+        m_textFile.WriteLine(Tags::ul_end);
 }
 
 
-void DocSetBuilderChmGenerateTask::TableOfContentsWriter::WriteDocument(const std::wstring& csdoc_filename, const std::wstring* title_override)
+void DocSetBuilderChmGenerateTask::TableOfContentsWriter::WriteDocument(const std::string& csdoc_file_path, const std::string* const title_override)
 {
-    WriteSitemapEntry(csdoc_filename, title_override);
+    WriteSitemapEntry(csdoc_file_path, title_override);
 }
 
 
-void DocSetBuilderChmGenerateTask::WriteChmTableOfContentsFile(CStdioFileUnicode& file)
+void DocSetBuilderChmGenerateTask::WriteChmTableOfContentsFile(FileIO::TextFile& text_file)
 {
     ASSERT(GetDocSetSpec().GetTableOfContents().has_value());
 
-    TableOfContentsWriter table_of_contents_writer(GetSettings(), file);
+    TableOfContentsWriter table_of_contents_writer(GetSettings(), text_file);
     table_of_contents_writer.Write(*GetDocSetSpec().GetTableOfContents());
 }
 
@@ -627,29 +637,29 @@ protected:
     void StartWriting() override;
 
     void StartEntries() override;
-    void WriteEntry(const std::wstring& csdoc_filename, const std::wstring* title_override, const void* subentries_tag) override;
+    void WriteEntry(const std::string& csdoc_file_path, const std::string* title_override, const void* subentries_tag) override;
     void FinishEntries() override;
 };
 
 
 void DocSetBuilderChmGenerateTask::IndexWriter::StartWriting()
 {
-    WriteObject(_T("site properties"),
+    WriteObject("site properties",
         {
-            { _T("SiteType"), _T("index") }
+            { "SiteType", "index" }
         });
 }
 
 
 void DocSetBuilderChmGenerateTask::IndexWriter::StartEntries()
 {
-    m_file.WriteLine(Tags::ul_start);
+    m_textFile.WriteLine(Tags::ul_start);
 }
 
 
-void DocSetBuilderChmGenerateTask::IndexWriter::WriteEntry(const std::wstring& csdoc_filename, const std::wstring* title_override, const void* subentries_tag)
+void DocSetBuilderChmGenerateTask::IndexWriter::WriteEntry(const std::string& csdoc_file_path, const std::string* const title_override, const void* const subentries_tag)
 {
-    WriteSitemapEntry(csdoc_filename, title_override);
+    WriteSitemapEntry(csdoc_file_path, title_override);
 
     if( subentries_tag != nullptr )
         WriteSubentries(subentries_tag);
@@ -658,14 +668,14 @@ void DocSetBuilderChmGenerateTask::IndexWriter::WriteEntry(const std::wstring& c
 
 void DocSetBuilderChmGenerateTask::IndexWriter::FinishEntries()
 {
-    m_file.WriteLine(Tags::ul_end);
+    m_textFile.WriteLine(Tags::ul_end);
 }
 
 
-void DocSetBuilderChmGenerateTask::WriteChmIndexFile(CStdioFileUnicode& file)
+void DocSetBuilderChmGenerateTask::WriteChmIndexFile(FileIO::TextFile& text_file)
 {
     ASSERT(GetDocSetSpec().GetIndex().has_value());
 
-    IndexWriter index_writer(GetSettings(), file);
+    IndexWriter index_writer(GetSettings(), text_file);
     index_writer.Write(*GetDocSetSpec().GetIndex());
 }

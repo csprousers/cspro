@@ -7,17 +7,16 @@ SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& rep
     :   m_repository(repository),
         m_iterationContent(iteration_content),
         m_statement(std::move(statement)),
-        m_percentMultiplier(0),
         m_casesRead(0)
 {
-    m_processCaseNote = ( iteration_content == CaseIterationContent::CaseSummary && m_repository.GetCaseAccess()->GetUsesNotes() && RequiresCaseNote() );
+    m_processCaseNote = ( iteration_content == CaseIterationContent::CaseSummary && m_repository.GetCaseAccess().GetUsesNotes() && RequiresCaseNote() );
 }
 
 
 SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
                                                            std::unique_ptr<SQLiteStatement> statement,
                                                            CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters)
-    :   SQLiteRepositoryCaseIterator(repository, iteration_content, std::move(statement))        
+    :   SQLiteRepositoryCaseIterator(repository, iteration_content, std::move(statement))
 {
     m_progressBarParameters.emplace(case_status, ( start_parameters != nullptr ) ? std::make_unique<CaseIteratorParameters>(*start_parameters) : nullptr);
 }
@@ -41,7 +40,7 @@ bool SQLiteRepositoryCaseIterator::NextCaseForNonCaseReading(T& case_object)
     // in the rare event that the CaseKey or CaseSummary is being queried from
     // a case iterator, create a case that can be used to access the case contents
     if( m_case == nullptr )
-        m_case = m_repository.GetCaseAccess()->CreateCase();
+        m_case = m_repository.GetCaseAccess().CreateCase();
 
     if( NextCase(*m_case) )
     {
@@ -65,7 +64,7 @@ bool SQLiteRepositoryCaseIterator::NextCaseKey(CaseKey& case_key)
         return false;
     }
 
-    case_key.SetKey(m_statement->GetColumn<CString>(0));
+    case_key.SetKey(m_statement->GetColumn<std::string>(0));
     case_key.SetPositionInRepository(m_statement->GetColumn<double>(1));
 
     return true;
@@ -83,37 +82,30 @@ bool SQLiteRepositoryCaseIterator::NextCaseSummary(CaseSummary& case_summary)
     int column = 2;
     case_summary.SetDeleted(m_statement->GetColumn<bool>(column++));
 
-    if( m_repository.GetCaseAccess()->GetUsesCaseLabels() )
-        case_summary.SetCaseLabel(m_statement->GetColumn<CString>(column++));
+    if( m_repository.GetCaseAccess().GetUsesCaseLabels() )
+        case_summary.SetCaseLabel(m_statement->GetColumn<std::string>(column++));
 
-    if( m_repository.GetCaseAccess()->GetUsesStatuses() )
+    if( m_repository.GetCaseAccess().GetUsesStatuses() )
     {
         case_summary.SetVerified(m_statement->GetColumn<bool>(column++));
 
-        PartialSaveMode partial_save_mode;
-
-        if( m_statement->IsColumnNull(column) )
-        {
-            partial_save_mode = PartialSaveMode::None;
-        }
-
-        else
-        {
-            partial_save_mode = (PartialSaveMode)m_statement->GetColumn<int>(column);
-        }
-
-        case_summary.SetPartialSaveMode(partial_save_mode);
+        case_summary.SetPartialSaveMode(m_statement->IsColumnNull(column) ? PartialSaveMode::None :
+                                                                            static_cast<PartialSaveMode>(m_statement->GetColumn<int>(column)));
         ++column;
     }
 
     if( m_processCaseNote )
     {
-        CString case_note;
+        if( m_statement->IsColumnNull(column) )
+        {
+            case_summary.ResetCaseNote();
+        }
 
-        if( !m_statement->IsColumnNull(column) )
-            case_note = m_statement->GetColumn<CString>(column);
+        else
+        {
+            case_summary.SetCaseNote(m_statement->GetColumn<std::string>(column));
+        }
 
-        case_summary.SetCaseNote(case_note);
         // ++column;
     }
 
@@ -123,21 +115,18 @@ bool SQLiteRepositoryCaseIterator::NextCaseSummary(CaseSummary& case_summary)
 
 bool SQLiteRepositoryCaseIterator::NextCase(Case& data_case)
 {
+    if( !Step() )
+        return false;
+
     if( m_iterationContent != CaseIterationContent::Case )
     {
-        if( !Step() )
-            return false;
-
-        double position_in_repository = m_statement->GetColumn<double>(1);
+        const double position_in_repository = m_statement->GetColumn<double>(1);
         m_repository.ReadCase(data_case, position_in_repository);
     }
 
     else
     {
-        if( !m_repository.ReadCaseFromDatabase(data_case, *m_statement) )
-            return false;
-
-        ++m_casesRead;
+        m_repository.ReadCaseFromDatabase(data_case, *m_statement);
     }
 
     return true;
@@ -147,13 +136,14 @@ bool SQLiteRepositoryCaseIterator::NextCase(Case& data_case)
 int SQLiteRepositoryCaseIterator::GetPercentRead() const
 {
     // get the number of cases if necessary
-    if( m_progressBarParameters.has_value() )
+    if( !m_percentMultiplier.has_value() )
     {
-        // max used to avoid a divide by zero error
-        size_t number_cases = m_repository.GetNumberCases(std::get<0>(*m_progressBarParameters), std::get<1>(*m_progressBarParameters).get());
-        m_percentMultiplier = 100.0 / std::max<size_t>(number_cases, 1);
-        m_progressBarParameters.reset();
+        if( !m_progressBarParameters.has_value() )
+            return ReturnProgrammingError(0);
+
+        const size_t number_cases = m_repository.GetNumberCases(std::get<0>(*m_progressBarParameters), std::get<1>(*m_progressBarParameters).get());
+        m_percentMultiplier = CreatePercentMultiplier(number_cases);
     }
 
-    return (int)( m_casesRead * m_percentMultiplier );
+    return static_cast<int>(m_casesRead * *m_percentMultiplier);
 }

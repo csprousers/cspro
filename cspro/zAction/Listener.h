@@ -3,55 +3,69 @@
 #include <zAction/ActionInvoker.h>
 #include <zToolsO/ObjectTransporter.h>
 
+namespace ActionInvoker { class Exception; class Listener; class ListenerHolder; }
 
-namespace ActionInvoker
+
+// --------------------------------------------------------------------------
+// Listener
+//
+// Subclasses only need to override what they implement. The default
+// implementations return a value meaning that the action was not processed.
+// --------------------------------------------------------------------------
+
+class ActionInvoker::Listener
 {
-    // subclasses only need to override what they implement;
-    // the default implementations return a value meaning that the action was not processed
-    class Listener
-    {
-    public:
-        virtual ~Listener() { }
+public:
+    virtual ~Listener() { }
 
-        virtual std::optional<std::wstring> OnGetDisplayOptions(Caller& caller);
-        virtual std::optional<bool> OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, Caller& caller);
+    virtual SharableString OnGetDisplayOptions(Caller& caller);
+    virtual std::optional<bool> OnSetDisplayOptions(const JsonNode& json_node, Caller& caller);
 
-        virtual std::optional<std::wstring> OnGetInputData(Caller& caller, bool match_caller);
+    virtual SharableString OnGetInputData(Caller& caller, bool match_caller);
 
-        virtual std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, Caller& caller);
+    using CloseResult = std::variant<std::monostate,                                   // close without a result
+                                     const JsonNode,                                   // close with a result
+                                     std::unique_ptr<const ActionInvoker::Exception>>; // close with a non-null exception;
+                                                                                       // if the caller handles the exception, it should set this value to null
+    virtual std::optional<bool> OnClose(CloseResult& close_result, Caller& caller);
 
-        virtual std::optional<Caller::WebViewTag> OnGetAssociatedWebViewDetails();
-        virtual void OnPostWebMessage(const std::wstring& message, const std::optional<std::wstring>& target_origin);
+    virtual std::optional<int> OnGetAssociatedWebViewCallerId();
+    virtual void OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin);
 
-        virtual bool OnEngineProgramControlExecuted();
-    };
+    virtual bool OnEngineProgramControlExecuted();
+};
 
 
-    // a RAII class for maintaining the lifecyle of the listeners
-    class ListenerHolder
-    {
-        friend class Runtime;
 
-    private:
-        ListenerHolder(std::shared_ptr<std::vector<Listener*>> listeners, std::shared_ptr<Listener> listener);
+// --------------------------------------------------------------------------
+// ListenerHolder
+//
+// a RAII class for maintaining the lifecyle of the listeners
+// --------------------------------------------------------------------------
 
-    public:
-        ListenerHolder(const ListenerHolder&) = delete;
-        ListenerHolder(ListenerHolder&& rhs) = default;
-        ~ListenerHolder();
+class ActionInvoker::ListenerHolder
+{
+    friend class Runtime;
 
-        // a convenience method to register a listener if the Action Invoker is available, returning null if not
-        [[nodiscard]] static std::unique_ptr<ListenerHolder> Register(std::shared_ptr<Listener> listener);
+private:
+    ListenerHolder(std::shared_ptr<std::vector<Listener*>> listeners, std::shared_ptr<Listener> listener);
 
-        // a convenience method to create a listener if the Action Invoker is available, returning null if not
-        template<typename T, typename... Args>
-        [[nodiscard]] static std::unique_ptr<ListenerHolder> Create(Args&&... args);
+public:
+    ListenerHolder(const ListenerHolder&) = delete;
+    ListenerHolder(ListenerHolder&& rhs) = default;
+    ~ListenerHolder();
 
-    private:
-        std::shared_ptr<std::vector<Listener*>> m_listeners;
-        std::shared_ptr<Listener> m_thisListener;
-    };
-}
+    // a convenience method to register a listener if the Action Invoker is available, returning null if not
+    [[nodiscard]] static std::unique_ptr<ListenerHolder> Register(std::shared_ptr<Listener> listener);
+
+    // a convenience method to create a listener if the Action Invoker is available, returning null if not
+    template<typename T, typename... Args>
+    [[nodiscard]] static std::unique_ptr<ListenerHolder> Create(Args&&... args);
+
+private:
+    std::shared_ptr<std::vector<Listener*>> m_listeners;
+    std::shared_ptr<Listener> m_thisListener;
+};
 
 
 
@@ -59,37 +73,37 @@ namespace ActionInvoker
 // Listener: default implementations
 // --------------------------------------------------------------------------
 
-inline std::optional<bool> ActionInvoker::Listener::OnSetDisplayOptions(const JsonNode<wchar_t>& /*json_node*/, Caller& /*caller*/)
+inline std::optional<bool> ActionInvoker::Listener::OnSetDisplayOptions(const JsonNode& /*json_node*/, Caller& /*caller*/)
 {
     return std::nullopt;
 }
 
 
-inline std::optional<std::wstring> ActionInvoker::Listener::OnGetDisplayOptions(Caller& /*caller*/)
+inline SharableString ActionInvoker::Listener::OnGetDisplayOptions(Caller& /*caller*/)
+{
+    return SharableString();
+}
+
+
+inline SharableString ActionInvoker::Listener::OnGetInputData(Caller& /*caller*/, bool /*match_caller*/)
+{
+    return SharableString();
+}
+
+
+inline std::optional<bool> ActionInvoker::Listener::OnClose(CloseResult& /*close_result*/, Caller& /*caller*/)
 {
     return std::nullopt;
 }
 
 
-inline std::optional<std::wstring> ActionInvoker::Listener::OnGetInputData(Caller& /*caller*/, bool /*match_caller*/)
+inline std::optional<int> ActionInvoker::Listener::OnGetAssociatedWebViewCallerId()
 {
     return std::nullopt;
 }
 
 
-inline std::optional<bool> ActionInvoker::Listener::OnCloseDialog(const JsonNode<wchar_t>& /*result_node*/, Caller& /*caller*/)
-{
-    return std::nullopt;
-}
-
-
-inline std::optional<ActionInvoker::Caller::WebViewTag> ActionInvoker::Listener::OnGetAssociatedWebViewDetails() 
-{
-    return std::nullopt;
-}
-
-
-inline void ActionInvoker::Listener::OnPostWebMessage(const std::wstring& /*message*/, const std::optional<std::wstring>& /*target_origin*/)
+inline void ActionInvoker::Listener::OnPostWebMessage(const std::string& /*message*/, const std::optional<std::string>& /*target_origin*/)
 {
     ASSERT(false);
 }

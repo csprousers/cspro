@@ -12,11 +12,11 @@ class ProgressDlg;
 constexpr int MAX_MAX_RECS = 9999;  /* the Max recs field in CDictRecord  */
 
 
-class CLASS_DECL_ZDICTO CDictRecord : public DictNamedBase 
+class CLASS_DECL_ZDICTO CDictRecord : public DictNamedBase
 {
 public:
     // Construction/destruction
-    CDictRecord(bool id_record = false);
+    explicit CDictRecord(bool id_record = false);
     CDictRecord(const CDictRecord& r);       // copy constructor
     ~CDictRecord();
 
@@ -43,8 +43,8 @@ public:
     const OccurrenceLabels& GetOccurrenceLabels() const { return m_occurrenceLabels; }
     OccurrenceLabels& GetOccurrenceLabels()             { return m_occurrenceLabels; }
 
-    const CDictItem* FindItem(wstring_view item_name) const;
-    CDictItem* FindItem(wstring_view item_name);
+    const CDictItem* FindItem(std::string_view item_name_sv) const;
+    CDictItem* FindItem(std::string_view item_name_sv);
 
     // assignment methods
     void SetRecTypeVal  (const CString& csRecTypeVal) { m_csRecTypeVal = csRecTypeVal; }
@@ -76,7 +76,7 @@ public:
 
     // serialization
     // ------------------------------
-    static CDictRecord CreateFromJson(const JsonNode<wchar_t>& json_node, bool id_record = false);
+    static CDictRecord CreateFromJson(const JsonNode& json_node, bool id_record = false);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

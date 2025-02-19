@@ -2,43 +2,41 @@
 #include "MappingDefines.h"
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // BaseMap
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
-namespace
+const std::vector<const char*>& GetBaseMapStrings()
 {
-    const std::vector<std::wstring> BaseMapStrings =
+    static const std::vector<const char*> base_map_strings =
     {
-        _T("Normal"),
-        _T("Hybrid"),
-        _T("Satellite"),
-        _T("Terrain"),
-        _T("None")
+        "Normal",
+        "Hybrid",
+        "Satellite",
+        "Terrain",
+        "None"
     };
-}
 
-const std::vector<std::wstring>& GetBaseMapStrings()
-{
-    return BaseMapStrings;
+    return base_map_strings;
 }
 
 
-const TCHAR* ToString(BaseMap base_map)
+const char* ToString(const BaseMap base_map)
 {
+    const std::vector<const char*>& base_map_strings = GetBaseMapStrings();
     const size_t index = static_cast<size_t>(base_map);
-    ASSERT(index >= 1 && index <= BaseMapStrings.size());
-    return BaseMapStrings[index - 1].c_str();
+    ASSERT(index >= 1 && index <= base_map_strings.size());
+    return base_map_strings[index - 1];
 }
 
 
-template<> std::optional<BaseMap> FromString<BaseMap>(wstring_view text)
+template<> std::optional<BaseMap> FromString<BaseMap>(const std::string_view text_sv)
 {
     size_t index = 1;
 
-    for( const std::wstring& base_map_string : BaseMapStrings )
+    for( const char* const base_map_string : GetBaseMapStrings() )
     {
-        if( SO::EqualsNoCase(base_map_string, text) )
+        if( SO::EqualsNoCase(base_map_string, text_sv) )
             return static_cast<BaseMap>(index);
 
         ++index;
@@ -48,7 +46,7 @@ template<> std::optional<BaseMap> FromString<BaseMap>(wstring_view text)
 }
 
 
-std::wstring ToString(const BaseMapSelection& base_map_selection, std::optional<NullTerminatedString> relative_to_path/* = std::nullopt*/)
+std::string ToString(const BaseMapSelection& base_map_selection, const cs::cref_optional<std::string> relative_to_path/* = std::nullopt*/)
 {
     if( std::holds_alternative<BaseMap>(base_map_selection) )
     {
@@ -57,19 +55,19 @@ std::wstring ToString(const BaseMapSelection& base_map_selection, std::optional<
 
     else if( relative_to_path.has_value() )
     {
-        return GetRelativeFName(*relative_to_path, std::get<std::wstring>(base_map_selection));
+        return GetRelativePathForDisplay(*relative_to_path, std::get<std::string>(base_map_selection));
     }
 
     else
     {
-        return std::get<std::wstring>(base_map_selection);
+        return std::get<std::string>(base_map_selection);
     }
 }
 
 
-BaseMapSelection FromString(wstring_view text, NullTerminatedString relative_to_path)
+BaseMapSelection FromString(const std::string_view text_sv, const std::string_view relative_to_path_sv)
 {
-    std::optional<BaseMap> base_map = FromString<BaseMap>(text);
+    std::optional<BaseMap> base_map = FromString<BaseMap>(text_sv);
 
     if( base_map.has_value() )
     {
@@ -78,56 +76,54 @@ BaseMapSelection FromString(wstring_view text, NullTerminatedString relative_to_
 
     else
     {
-        return MakeFullPath(GetWorkingFolder(relative_to_path.c_str()), std::wstring(text));
+        return MakeFullPath(GetWorkingDirectory(relative_to_path_sv), std::string(text_sv));
     }
 }
 
 
 DEFINE_ENUM_JSON_SERIALIZER_CLASS(BaseMap,
-    { BaseMap::Normal,    _T("Normal") },
-    { BaseMap::Hybrid,    _T("Hybrid") },
-    { BaseMap::Satellite, _T("Satellite") },
-    { BaseMap::Terrain,   _T("Terrain") },
-    { BaseMap::None,      _T("None") })
+    { BaseMap::Normal,    "Normal" },
+    { BaseMap::Hybrid,    "Hybrid" },
+    { BaseMap::Satellite, "Satellite" },
+    { BaseMap::Terrain,   "Terrain" },
+    { BaseMap::None,      "None" })
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // MappingTileProvider
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
-namespace
+const std::vector<const char*>& GetMappingTileProviderStrings()
 {
-    const std::vector<std::wstring> TileProviderStrings = 
+    static const std::vector<const char*> tile_provider_strings =
     {
-        _T("Esri"),
-        _T("Mapbox")
+        "Esri",
+        "Mapbox"
     };
-}
 
-const std::vector<std::wstring>& GetMappingTileProviderStrings()
-{
-    return TileProviderStrings;
+    return tile_provider_strings;
 }
 
 
-const TCHAR* ToString(MappingTileProvider mapping_tile_provider)
+const char* ToString(const MappingTileProvider mapping_tile_provider)
 {
+    const std::vector<const char*>& tile_provider_strings = GetMappingTileProviderStrings();
     const size_t index = static_cast<size_t>(mapping_tile_provider);
-    ASSERT(index < TileProviderStrings.size());
-    return TileProviderStrings[index].c_str();
+    ASSERT(index < tile_provider_strings.size());
+    return tile_provider_strings[index];
 }
 
 
 DEFINE_ENUM_JSON_SERIALIZER_CLASS(MappingTileProvider,
-    { MappingTileProvider::Esri,   _T("Esri") },
-    { MappingTileProvider::Mapbox, _T("Mapbox") })
+    { MappingTileProvider::Esri,   "Esri" },
+    { MappingTileProvider::Mapbox, "Mapbox" })
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // AppMappingOptions
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 bool AppMappingOptions::operator==(const AppMappingOptions& rhs) const
 {
@@ -136,17 +132,17 @@ bool AppMappingOptions::operator==(const AppMappingOptions& rhs) const
 }
 
 
-AppMappingOptions AppMappingOptions::CreateFromJson(const JsonNode<wchar_t>& json_node)
+AppMappingOptions AppMappingOptions::CreateFromJson(const JsonNode& json_node)
 {
     AppMappingOptions app_mapping_options
     {
-        json_node.GetOrDefault(JK::latitude, SO::EmptyString),
-        json_node.GetOrDefault(JK::longitude, SO::EmptyString)
+        json_node.GetOrConstruct<std::string>(JK::latitude),
+        json_node.GetOrConstruct<std::string>(JK::longitude)
     };
 
     if( app_mapping_options.latitude_item.empty() != app_mapping_options.longitude_item.empty() )
     {
-        json_node.LogWarning(_T("Both latitude and longitude items must be specified to use a map as a case listing"));
+        json_node.LogWarning("Both latitude and longitude items must be specified to use a map as a case listing");
         return AppMappingOptions();
     }
 
@@ -154,7 +150,7 @@ AppMappingOptions AppMappingOptions::CreateFromJson(const JsonNode<wchar_t>& jso
 }
 
 
-void AppMappingOptions::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/* = true*/) const
+void AppMappingOptions::WriteJson(JsonWriter& json_writer, const bool write_to_new_json_object/* = true*/) const
 {
     if( write_to_new_json_object )
         json_writer.BeginObject();

@@ -1,48 +1,20 @@
 ﻿#include "stdafx.h"
 #include "DataRepositoryHelpers.h"
-#include "EncryptedSQLiteRepository.h"
 #include "ExportWriterRepository.h"
 #include "JsonRepository.h"
 #include "SQLiteRepository.h"
 #include "TextRepository.h"
 
 
-std::unique_ptr<CDataDict> DataRepositoryHelpers::GetEmbeddedDictionary(const ConnectionString& connection_string)
-{
-    if( connection_string.IsFilenamePresent() && PortableFunctions::FileIsRegular(connection_string.GetFilename()) )
-    {
-        try
-        {
-            if( connection_string.GetType() == DataRepositoryType::SQLite )
-            {
-                return SQLiteRepository::GetEmbeddedDictionary(connection_string);
-            }
-
-            else if( connection_string.GetType() == DataRepositoryType::EncryptedSQLite )
-            {
-                return EncryptedSQLiteRepository::GetEmbeddedDictionary(connection_string);
-            }
-        }
-
-        catch( const CSProException& )
-        {
-            // ignore errors
-        }
-    }
-
-    return nullptr;
-}
-
-
 void DataRepositoryHelpers::RenameRepository(const ConnectionString& old_connection_string, const ConnectionString& new_connection_string)
 {
     ASSERT(old_connection_string.GetType() == new_connection_string.GetType());
-    ASSERT(old_connection_string.IsFilenamePresent() == new_connection_string.IsFilenamePresent());
+    ASSERT(old_connection_string.HasFilePath() == new_connection_string.HasFilePath());
 
-    if( !old_connection_string.IsFilenamePresent() )
+    if( !old_connection_string.HasFilePath() )
         return;
 
-    ASSERT(old_connection_string.GetFilename() != new_connection_string.GetFilename());
+    ASSERT(old_connection_string.GetFilePath() != new_connection_string.GetFilePath());
 
     if( old_connection_string.GetType() == DataRepositoryType::Json )
     {
@@ -59,17 +31,17 @@ void DataRepositoryHelpers::RenameRepository(const ConnectionString& old_connect
         ExportWriterRepository::RenameRepository(old_connection_string, new_connection_string);
     }
 
-    else if( ( PortableFunctions::FileIsRegular(new_connection_string.GetFilename()) && !PortableFunctions::FileDelete(new_connection_string.GetFilename()) ) ||
-             ( PortableFunctions::FileIsRegular(old_connection_string.GetFilename()) && !PortableFunctions::FileRename(old_connection_string.GetFilename(), new_connection_string.GetFilename()) ) )
+    else if( ( PortableFunctions::FileIsRegular(new_connection_string.GetFilePath()) && !PortableFunctions::FileDelete(new_connection_string.GetFilePath()) ) ||
+             ( PortableFunctions::FileIsRegular(old_connection_string.GetFilePath()) && !PortableFunctions::FileRename(old_connection_string.GetFilePath(), new_connection_string.GetFilePath()) ) )
     {
         throw DataRepositoryException::RenameRepositoryError();
     }
 }
 
 
-std::vector<std::wstring> DataRepositoryHelpers::GetAssociatedFileList(const ConnectionString& connection_string, bool include_only_files_that_exist)
+std::vector<std::string> DataRepositoryHelpers::GetAssociatedFileList(const ConnectionString& connection_string, const bool include_only_files_that_exist)
 {
-    std::vector<std::wstring> associated_files;
+    std::vector<std::string> associated_files;
 
     if( connection_string.GetType() == DataRepositoryType::Json )
     {
@@ -86,9 +58,9 @@ std::vector<std::wstring> DataRepositoryHelpers::GetAssociatedFileList(const Con
         associated_files = ExportWriterRepository::GetAssociatedFileList(connection_string);
     }
 
-    else if( connection_string.IsFilenamePresent() )
+    else if( connection_string.HasFilePath() )
     {
-        associated_files.emplace_back(connection_string.GetFilename());
+        associated_files.emplace_back(connection_string.GetFilePath());
     }
 
     // filter out files that don't exist
@@ -121,7 +93,7 @@ sqlite3* DataRepositoryHelpers::GetSqliteDatabase(DataRepository& data_repositor
         return assert_cast<SQLiteRepository&>(real_data_repository).GetSqlite();
     }
 
-    else if( DoesTypeUseIndexableText(real_data_repository.GetRepositoryType()) )
+    else if( TypeUsesIndexableText(real_data_repository.GetRepositoryType()) )
     {
         return assert_cast<IndexableTextRepository&>(real_data_repository).GetIndexSqlite();
     }

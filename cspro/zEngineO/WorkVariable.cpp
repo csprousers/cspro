@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "WorkVariable.h"
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
@@ -12,7 +13,7 @@ namespace
 }
 
 
-WorkVariable::WorkVariable(std::wstring variable_name)
+WorkVariable::WorkVariable(std::string variable_name)
     :   Symbol(std::move(variable_name), SymbolType::WorkVariable),
         m_value(DefaultValue)
 {
@@ -44,7 +45,19 @@ void WorkVariable::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void WorkVariable::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void WorkVariable::SetValueFromJson(const JsonNode& json_node)
 {
-    SetValue(json_node.GetEngineValue<double>());
+    m_value = json_node.GetEngineValue<double>();
+}
+
+
+JavaScript::Value WorkVariable::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    return executor.CreateEngineValue(m_value);
+}
+
+
+void WorkVariable::SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    m_value = executor.ConvertEngineValue<double>(js_value);
 }

@@ -21,7 +21,7 @@ namespace Excel2CSPro
             _worker = new CSPro.Data.Excel2CSPro.Worker();
         }
 
-        public void RunTask(BackgroundWorker backgroundWorker)
+        public void RunTask(BackgroundWorker backgroundWorker, CSPro.Data.Excel2CSPro.OnQueryUsernamePassword onQueryUsernamePassword)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace Excel2CSPro
                 }
 
                 // initialize the worker
-                _worker.Initialize(_excel2CSProManager._dictionary, record_conversion_information_list, _excel2CSProManager._spec);
+                _worker.Initialize(onQueryUsernamePassword, _excel2CSProManager._dictionary, record_conversion_information_list, _excel2CSProManager._spec);
 
                 // convert the data
                 while( !backgroundWorker.CancellationPending && cellsRead < totalCellsToRead )
@@ -60,7 +60,7 @@ namespace Excel2CSPro
 
                         record_conversion_information.SetRowsRead(rows_to_read);
 
-                        Worksheet worksheet = (Worksheet)record_conversion_information.ExcelWorksheet;                        
+                        Worksheet worksheet = (Worksheet)record_conversion_information.ExcelWorksheet;
 
                         // ...column-by-column
                         foreach( var item_conversion_information in record_conversion_information.Items )

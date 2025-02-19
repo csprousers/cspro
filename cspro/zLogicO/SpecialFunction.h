@@ -21,24 +21,24 @@ template<> constexpr SpecialFunction FirstInEnum<SpecialFunction>() { return Spe
 template<> constexpr SpecialFunction LastInEnum<SpecialFunction>()  { return SpecialFunction::OnActionInvokerResult; }
 
 
-constexpr const TCHAR* SpecialFunctionNames[] =
+constexpr const char* SpecialFunctionNames[] =
 {
-    _T("On_Focus"),
-    _T("OnStop"),
-    _T("OnKey"),
-    _T("OnChar"),
-    _T("OnChangeLanguage"),
-    _T("OnSyncMessage"),
-    _T("OnRefused"),
-    _T("OnSystemMessage"),
-    _T("OnViewQuestionnaire"),
-    _T("OnActionInvokerResult"),
+    "On_Focus",
+    "OnStop",
+    "OnKey",
+    "OnChar",
+    "OnChangeLanguage",
+    "OnSyncMessage",
+    "OnRefused",
+    "OnSystemMessage",
+    "OnViewQuestionnaire",
+    "OnActionInvokerResult",
 };
 
 static_assert(_countof(SpecialFunctionNames) == ( 1 + static_cast<size_t>(LastInEnum<SpecialFunction>()) ));
 
 
-constexpr const TCHAR* ToString(SpecialFunction special_function)
+constexpr const char* ToString(SpecialFunction special_function)
 {
     const size_t index = static_cast<size_t>(special_function);
     ASSERT(index >= 0 && index < _countof(SpecialFunctionNames));

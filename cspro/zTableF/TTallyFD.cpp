@@ -89,9 +89,9 @@ namespace
         {
         }
 
-        bool CheckSyntax(const std::wstring& universe) override
+        bool CheckSyntax(const std::string& universe) override
         {
-            return m_dlg.CheckUniverseSyntax(WS2CS(universe));
+            return m_dlg.CheckUniverseSyntax(UTF8_TODO::GetCString(universe));
         }
 
         void ToggleNamesInTree() override
@@ -113,8 +113,8 @@ namespace
 void CTblTallyFmtDlg::OnBnClickedUniverse()
 {
     CTabulateDoc* pDoc = m_pTabView->GetDocument();
-    std::wstring universe = m_editUniv.GetText();
-    
+    std::string universe = m_editUniv.GetText();
+
     CrosstabUniverseDlgActionResponder universe_dlg_action_responder(*this);
 
     UniverseDlg universe_dlg(pDoc->GetTableSpec()->GetSharedDictionary(), std::move(universe), universe_dlg_action_responder);
@@ -219,9 +219,9 @@ void CTblTallyFmtDlg::OnBnClickedOk()
     // TODO: Add your control notification handler code here
     UpdateData(TRUE);
 
-    m_sUnivString = WS2CS(m_editUniv.GetText());
-    m_sTabLogic = WS2CS(m_editTabLogic.GetText());
-    m_sPostCalc = WS2CS(m_editPostCalc.GetText());
+    m_sUnivString = UTF8_TODO::GetCString(m_editUniv.GetText());
+    m_sTabLogic = UTF8_TODO::GetCString(m_editTabLogic.GetText());
+    m_sPostCalc = UTF8_TODO::GetCString(m_editPostCalc.GetText());
 
 
     m_iBreakLevel = m_cBreakLevel.GetItemData(m_cBreakLevel.GetCurSel());
@@ -325,9 +325,9 @@ BOOL CTblTallyFmtDlg::OnInitDialog()
     m_editPostCalc.SetScrollWidth(1);
     m_editPostCalc.SetScrollWidthTracking(TRUE);
 
-    m_editUniv.SetText(m_sUnivString); //call base class instead of window text
-    m_editTabLogic.SetText(m_sTabLogic); //call base class instead of window text
-    m_editPostCalc.SetText(m_sPostCalc); //call base class instead of window text
+    m_editUniv.SetText(UTF8_TODO::GetUtf8(m_sUnivString)); //call base class instead of window text
+    m_editTabLogic.SetText(UTF8_TODO::GetUtf8(m_sTabLogic)); //call base class instead of window text
+    m_editPostCalc.SetText(UTF8_TODO::GetUtf8(m_sPostCalc)); //call base class instead of window text
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
@@ -541,7 +541,7 @@ void CTblTallyFmtDlg::OnCbnSelchangeSubtables()
     pUnitSpec->SetWeightExpr(sString);
 
     //universe
-    sString = WS2CS(m_editUniv.GetText());
+    sString = UTF8_TODO::GetCString(m_editUniv.GetText());
     sString.Trim();
     pUnitSpec->SetUniverse(sString);
 
@@ -554,7 +554,7 @@ void CTblTallyFmtDlg::OnCbnSelchangeSubtables()
     SetLoopingVar(pUnitSpec);
 
     //TabLogic
-    sString = WS2CS(m_editTabLogic.GetText());
+    sString = UTF8_TODO::GetCString(m_editTabLogic.GetText());
     CStringArray& arrTabLogic = pUnitSpec->GetTabLogicArray();
     arrTabLogic.RemoveAll();
     MakeTabLogicArray(sString,arrTabLogic);
@@ -573,9 +573,9 @@ void CTblTallyFmtDlg::OnCbnSelchangeSubtables()
 
     //weight
     ((CWnd*)GetDlgItem(IDC_WEIGHT))->SetWindowText(pUnitSpec->GetWeightExpr());
-     m_editUniv.SetText(pUnitSpec->GetUniverse());
+    m_editUniv.SetText(UTF8_TODO::GetUtf8(pUnitSpec->GetUniverse()));
     ((CWnd*)GetDlgItem(IDC_VALUE))->SetWindowText(pUnitSpec->GetValue());
-    m_editTabLogic.SetText(MakeStringFromTabLogicArray(pUnitSpec->GetTabLogicArray()));
+    m_editTabLogic.SetText(UTF8_TODO::GetUtf8(MakeStringFromTabLogicArray(pUnitSpec->GetTabLogicArray())));
     if(m_cSubTables.GetCurSel() > 0){
         SetWindowText(_T("Tally Attributes (Subtable)"));
     }
@@ -600,7 +600,7 @@ bool CTblTallyFmtDlg::CheckSyntax(int iSubtable, XTABSTMENT_TYPE eStatementType)
 {
     bool bRet = false;
     CTabulateDoc* pDoc = m_pTabView->GetDocument();
-    pDoc->SetErrorString();
+    pDoc->ClearErrorString();
     CTable* pTable = m_pTabView->GetGrid()->GetTable();
     //Store current table units in temp
     CArray<CUnitSpec, CUnitSpec&>  arrTempUnitSpec;
@@ -619,7 +619,7 @@ bool CTblTallyFmtDlg::CheckSyntax(int iSubtable, XTABSTMENT_TYPE eStatementType)
     SetLoopingVar(&unitSpec);
 
     if(eStatementType == XTABSTMENT_UNIV_ONLY){
-        CIMSAString sUnivString = WS2CS(m_editUniv.GetText());
+        CIMSAString sUnivString = UTF8_TODO::GetCString(m_editUniv.GetText());
         sUnivString.Trim();
 
         unitSpec.SetUniverse(sUnivString);
@@ -652,7 +652,7 @@ bool CTblTallyFmtDlg::CheckSyntax(int iSubtable, XTABSTMENT_TYPE eStatementType)
         unitSpec.SetWeightExpr(_T(""));
         unitSpec.SetValue(_T(""));
 
-        CIMSAString sTabLogic = WS2CS(m_editTabLogic.GetText());
+        CIMSAString sTabLogic = UTF8_TODO::GetCString(m_editTabLogic.GetText());
         sTabLogic.Trim();
 
         CStringArray& arrTabLogic  = unitSpec.GetTabLogicArray();
@@ -669,7 +669,7 @@ bool CTblTallyFmtDlg::CheckSyntax(int iSubtable, XTABSTMENT_TYPE eStatementType)
         unitSpec.GetTabLogicArray().RemoveAll();
 
         //value
-        CIMSAString sPostCalc = WS2CS(m_editPostCalc.GetText());
+        CIMSAString sPostCalc = UTF8_TODO::GetCString(m_editPostCalc.GetText());
         sPostCalc.Trim();
         pTable->GetPostCalcLogic().RemoveAll();
         if(sPostCalc.IsEmpty()){
@@ -726,10 +726,10 @@ bool CTblTallyFmtDlg::CheckSyntax(int iSubtable, XTABSTMENT_TYPE eStatementType)
 bool CTblTallyFmtDlg::CheckUniverseSyntax(const CString& sUniverseStatement)
 {
     CTabulateDoc* pDoc = m_pTabView->GetDocument();
-    CString sOldUniv = WS2CS(m_editUniv.GetText());
-    m_editUniv.SetText(sUniverseStatement);
+    CString sOldUniv = UTF8_TODO::GetCString(m_editUniv.GetText());
+    m_editUniv.SetText(UTF8_TODO::GetUtf8(sUniverseStatement));
     bool bRet = CheckSyntax(m_iCurSubTable, XTABSTMENT_UNIV_ONLY);
-    m_editUniv.SetText(sOldUniv);
+    m_editUniv.SetText(UTF8_TODO::GetUtf8(sOldUniv));
     if (!bRet) {
         CIMSAString sMsg = _T("Invalid Universe Syntax \r\n");
         sMsg += pDoc->GetErrorString();
@@ -811,7 +811,7 @@ void CTblTallyFmtDlg::OnBnClickedUnivApplyall()
         return;
     }
     else {
-         CString sUniverse = WS2CS(m_editUniv.GetText());
+         CString sUniverse = UTF8_TODO::GetCString(m_editUniv.GetText());
          CTabSet* pTabSet = pDoc->GetTableSpec();
          bool bApplied = false;
          for(int iIndex = 0; iIndex < pTabSet->GetNumTables(); iIndex++){
@@ -866,18 +866,19 @@ CIMSAString CTblTallyFmtDlg::MakeStringFromTabLogicArray(CStringArray& arrTabLog
     }
     return sRet;
 }
+
 void CTblTallyFmtDlg::OnBnClickedBtnTablogic()
 {
     CEdtLogicDlg dlg;
     dlg.m_bIsPostCalc = false;    // BMD 05 Jun 2006
-    CIMSAString sTemp ;
+    CString sTemp;
     m_editTabLogic.GetWindowText(sTemp);
     CStringArray arrTabLogic;
     MakeTabLogicArray(sTemp,arrTabLogic);
     sTemp = MakeStringFromTabLogicArray(arrTabLogic);
-    dlg.m_sLogic =sTemp;
+    dlg.m_logic = UTF8_TODO::GetUtf8(sTemp);
     if(dlg.DoModal() == IDOK){
-        m_editTabLogic.SetText(dlg.m_sLogic);
+        m_editTabLogic.SetText(dlg.m_logic);
     }
 }
 
@@ -885,9 +886,11 @@ void CTblTallyFmtDlg::OnBnClickedBtnPostcalc()
 {
     CEdtLogicDlg dlg;
     dlg.m_bIsPostCalc = true;    // BMD 05 Jun 2006
-    m_editPostCalc.GetWindowText(dlg.m_sLogic);
+    CString temp;
+    m_editPostCalc.GetWindowText(temp);
+    dlg.m_logic = UTF8_TODO::GetUtf8(temp);
     if(dlg.DoModal() == IDOK){
-        m_editPostCalc.SetText(dlg.m_sLogic);
+        m_editPostCalc.SetText(dlg.m_logic);
     }
 }
 

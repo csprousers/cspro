@@ -1,23 +1,22 @@
 ﻿#include "StdAfx.h"
 #include "BasicLogger.h"
-#include <zToolsO/Encoders.h>
 
 
 namespace
 {
-    const TCHAR* const ColorNames[] =
+    constexpr const char* ColorNames[] =
     {
-        _T("Black"),
-        _T("Red"),
-        _T("DarkBlue"),
-        _T("SlateBlue")
+        "Black",
+        "Red",
+        "DarkBlue",
+        "SlateBlue"
     };
 }
 
 
-std::wstring BasicLogger::ToString() const
+std::string BasicLogger::ToString() const
 {
-    std::wstring text;
+    std::string text;
 
     for( const Span& span : m_spans )
         text.append(span.text);
@@ -26,17 +25,17 @@ std::wstring BasicLogger::ToString() const
 }
 
 
-std::wstring BasicLogger::ToHtml() const
+std::string BasicLogger::ToHtml() const
 {
-    std::wstring html = _T("<html><body><p style=\"word-wrap:break-word; margin:0px; padding:0px; border:0px; ")
-                        _T("background-color:#ffffff; font-family: Consolas, monaco, monospace; font-size:10pt;\">");
+    std::string html = "<html><body><p style=\"word-wrap:break-word; margin:0px; padding:0px; border:0px; "
+                       "background-color:#ffffff; font-family: Consolas, monaco, monospace; font-size:10pt;\">";
 
     std::optional<Color> last_color;
 
     auto end_color_span = [&]()
     {
         if( last_color.has_value() )
-            html.append(_T("</span>"));
+            html.append("</span>");
     };
 
     for( const Span& span : m_spans )
@@ -45,7 +44,7 @@ std::wstring BasicLogger::ToHtml() const
         if( last_color != span.color )
         {
             end_color_span();
-            SO::AppendFormat(html, _T("<span style=\"color: %s;\">"), ColorNames[(size_t)span.color]);
+            html.append(FormatText("<span style=\"color: %s;\">", ColorNames[static_cast<size_t>(span.color)]));
             last_color = span.color;
         }
 
@@ -54,7 +53,7 @@ std::wstring BasicLogger::ToHtml() const
 
     end_color_span();
 
-    html.append(_T("</p></body></html>"));
+    html.append("</p></body></html>");
 
     return html;
 }

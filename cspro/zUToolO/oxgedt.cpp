@@ -226,7 +226,7 @@ void COXGridEdit::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
                 CDC* pDC=GetDC();
                 ASSERT_VALID(pDC);
                 VERIFY(GetTextExtentPoint(pDC->GetSafeHdc(),
-                    (LPCTSTR)sText, sText.GetLength(), &textSize));
+                    sText.GetString(), sText.GetLength(), &textSize));
                 nTextSizeX = textSize.cx;
                 ReleaseDC(pDC);
             }

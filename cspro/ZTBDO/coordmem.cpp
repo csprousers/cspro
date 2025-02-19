@@ -35,8 +35,8 @@ void CCoordMember::Dump( CString& csMsg, int* pCtNodebase, const Logic::SymbolTa
         pSymbolRight = &pSymbolTable->GetAt(pRightNode->m_iSymbol);
     }
 
-    csMsg.Format( _T("Left=%s  Right=%s, CellLeft=%d"), (pSymbolLeft==NULL) ? _T("none") : pSymbolLeft->GetName().c_str(),
-                                                        (pSymbolRight==NULL) ? _T("none") : pSymbolRight->GetName().c_str(),
+    csMsg.Format( _T("Left=%s  Right=%s, CellLeft=%d"), (pSymbolLeft==NULL) ? _T("none") : UTF8_TODO::GetWide(pSymbolLeft->GetName()).c_str(),
+                                                        (pSymbolRight==NULL) ? _T("none") : UTF8_TODO::GetWide(pSymbolRight->GetName()).c_str(),
                                                         m_iCellLeft);
 }
 #endif

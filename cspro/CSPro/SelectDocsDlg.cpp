@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "SelectDocsDlg.h"
-#include "FakeDropDoc.h"
 
 
 BEGIN_MESSAGE_MAP(SelectDocsDlg, CDialog)
@@ -37,21 +36,20 @@ BOOL SelectDocsDlg::OnInitDialog()
     for( const CDocument* document : m_documents )
     {
         CString description =
-            document->IsKindOf(RUNTIME_CLASS(CDDDoc))           ? assert_cast<const CDDDoc*>(document)->GetDict()->GetName() :
+            document->IsKindOf(RUNTIME_CLASS(CDDDoc))           ? UTF8_TODO::GetCString(assert_cast<const CDDDoc*>(document)->GetDict()->GetName()) :
             document->IsKindOf(RUNTIME_CLASS(FormFileBasedDoc)) ? assert_cast<const FormFileBasedDoc*>(document)->GetFormFile().GetName() :
             document->IsKindOf(RUNTIME_CLASS(CTabulateDoc))     ? assert_cast<const CTabulateDoc*>(document)->GetTableSpec()->GetName() :
-            document->IsKindOf(RUNTIME_CLASS(CAplDoc))          ? assert_cast<const CAplDoc*>(document)->GetAppObject().GetLabel() :
-            document->IsKindOf(RUNTIME_CLASS(FakeDropDoc))      ? assert_cast<const FakeDropDoc*>(document)->GetLabel() :
+            document->IsKindOf(RUNTIME_CLASS(CAplDoc))          ? UTF8_TODO::GetCString(assert_cast<const CAplDoc*>(document)->GetAppObject().GetLabel()) :
                                                                   ReturnProgrammingError(_T("Unknown Document"));
 
         CString filename = document->GetPathName();
 
         if( m_relativePathFilename.has_value() )
-            filename = GetRelativeFNameForDisplay<CString>(*m_relativePathFilename, filename);
+            filename = UTF8_TODO::GetCString(GetRelativePathForDisplay(UTF8_TODO::GetUtf8(*m_relativePathFilename), UTF8_TODO::GetUtf8(filename)));
 
         ASSERT(!description.IsEmpty() && !filename.IsEmpty());
 
-        pBox->AddString(FormatText(_T("%s: %s"), (LPCTSTR)description, (LPCTSTR)filename));
+        pBox->AddString(FormatText(_T("%s: %s"), description.GetString(), filename.GetString()));
     }
 
     // select the first option

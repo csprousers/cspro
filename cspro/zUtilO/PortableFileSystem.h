@@ -2,17 +2,19 @@
 
 #include <zUtilO/zUtilO.h>
 
+enum class FileOverwriteFlag : int;
+
 
 // some portable routines related to the file system
 
 class CLASS_DECL_ZUTILO PortableFileSystem
 {
 public:
-    static bool IsSharableUri(wstring_view uri_sv);
+    static bool IsSharableUri(std::string_view uri_sv);
 
     // throws exceptions
-    static std::wstring CreateSharableUri(const std::wstring& path, bool add_write_permission);
+    static std::string CreateSharableUri(const std::string& path, bool add_write_permission);
 
     // throws exceptions
-    static void FileCopy(const std::wstring& source_path_or_sharable_uri, const std::wstring& destination_path, bool overwrite);
+    static bool FileCopy(const std::string& source_path_or_sharable_uri, const std::string& destination_path, FileOverwriteFlag file_overwrite_flag);
 };

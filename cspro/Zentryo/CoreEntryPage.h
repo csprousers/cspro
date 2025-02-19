@@ -14,12 +14,12 @@ public:
 
     CDEField* GetField() const { return m_pField; }
 
-    const CString& GetOccurrenceLabel() const { return m_occurrenceLabel; }
-    const CString& GetBlockName() const       { return m_blockName; }
-    const CString& GetBlockLabel() const      { return m_blockLabel; }
+    const std::string& GetOccurrenceLabel() const { return m_occurrenceLabel; }
+    const CString& GetBlockName() const           { return m_blockName; }
+    const CString& GetBlockLabel() const          { return m_blockLabel; }
 
-    std::optional<std::wstring> GetBlockQuestionTextUrl() const { return m_blockCapiContentVirtualFileMapping.GetQuestionTextUrl(); }
-    std::optional<std::wstring> GetBlockHelpTextUrl() const     { return m_blockCapiContentVirtualFileMapping.GetHelpTextUrl(); }
+    const std::string* GetBlockQuestionTextUrl() const { return m_blockCapiContentVirtualFileMapping.GetQuestionTextUrl(); }
+    const std::string* GetBlockHelpTextUrl() const     { return m_blockCapiContentVirtualFileMapping.GetHelpTextUrl(); }
 
     const std::vector<CoreEntryPageField>& GetPageFields() const { return m_pageFields; }
     CoreEntryPageField& GetPageField(size_t index)               { ASSERT(index < m_pageFields.size()); return m_pageFields[index]; }
@@ -29,7 +29,7 @@ public:
 
 private:
     CDEField* m_pField;
-    CString m_occurrenceLabel;
+    std::string m_occurrenceLabel;
     CString m_blockName;
     CString m_blockLabel;
     CapiContentVirtualFileMapping m_blockCapiContentVirtualFileMapping;

@@ -8,16 +8,16 @@
 // BinarySymbol
 // --------------------------------------------------------------------------
 
-bool BinarySymbol::IsBinaryToken(TokenCode token_code)
+bool BinarySymbol::IsBinaryToken(const TokenCode token_code)
 {
     return ( token_code == TokenCode::TOKAUDIO ||
-             token_code == TokenCode::TOKDOCUMENT || 
-             token_code == TokenCode::TOKGEOMETRY || 
+             token_code == TokenCode::TOKDOCUMENT ||
+             token_code == TokenCode::TOKGEOMETRY ||
              token_code == TokenCode::TOKIMAGE );
 }
 
 
-BinarySymbol::BinarySymbol(std::wstring name, SymbolType symbol_type)
+BinarySymbol::BinarySymbol(std::string name, const SymbolType symbol_type)
     :   Symbol(std::move(name), symbol_type)
 {
 }
@@ -60,9 +60,9 @@ void BinarySymbol::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void BinarySymbol::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void BinarySymbol::SetValueFromJson(const JsonNode& json_node)
 {
-    m_binarySymbolData.UpdateSymbolValueFromJson(*this, json_node);
+    m_binarySymbolData.SetSymbolValueFromJson(*this, json_node);
 }
 
 
@@ -79,7 +79,7 @@ public:
 
     bool HasValue() override;
     bool IsValid() override;
-    std::wstring GetValueLabel(const std::optional<std::wstring>& language) override;
+    std::string GetValueLabel(const std::optional<std::string>& language) override;
 
 private:
     const BinarySymbol& m_binarySymbol;
@@ -106,11 +106,11 @@ bool BinarySymbolEngineItemAccessor::IsValid()
 }
 
 
-std::wstring BinarySymbolEngineItemAccessor::GetValueLabel(const std::optional<std::wstring>& /*language*/)
+std::string BinarySymbolEngineItemAccessor::GetValueLabel(const std::optional<std::string>& /*language*/)
 {
     const BinarySymbolData& binary_symbol_data = m_binarySymbol.GetBinarySymbolData();
     return binary_symbol_data.IsDefined() ? binary_symbol_data.GetMetadata().GetEvaluatedLabel() :
-                                            std::wstring();
+                                            std::string();
 }
 
 

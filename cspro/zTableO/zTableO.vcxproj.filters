@@ -28,6 +28,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LabelSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,9 +44,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zTableO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LabelSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

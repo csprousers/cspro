@@ -2,6 +2,8 @@
 
 #include <zUtilO/BinaryDataMetadata.h>
 
+// BINARY_BLOCK_TODO BinaryData is a perfect candidate to use BinaryBlock instead of std::shared_ptr<const std::vector<std::byte>>
+
 
 class BinaryData
 {

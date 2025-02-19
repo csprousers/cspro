@@ -7,42 +7,16 @@
 // TextVirtualFileMappingHandler
 // --------------------------------------------------------------------------
 
-TextVirtualFileMappingHandler::TextVirtualFileMappingHandler(TextStorage text, std::string content_type/* = "text/plain;charset=UTF-8"*/)
+TextVirtualFileMappingHandler::TextVirtualFileMappingHandler(SharableString text, std::string content_type/* = "text/plain;charset=UTF-8"*/)
     :   m_text(std::move(text)),
         m_contentType(std::move(content_type))
 {
 }
 
 
-TextVirtualFileMappingHandler::TextVirtualFileMappingHandler(TextStorage text, wstring_view content_type_sv)
-    :   TextVirtualFileMappingHandler(std::move(text), UTF8Convert::WideToUTF8(content_type_sv))
+bool TextVirtualFileMappingHandler::ServeContent(VirtualFileMappingResponse& response)
 {
-}
-
-
-bool TextVirtualFileMappingHandler::ServeContent(void* response_object)
-{
-    if( std::holds_alternative<std::string>(m_text) )
-    {
-        const std::string& this_text = std::get<std::string>(m_text);
-        LocalFileServerSetResponse(response_object, this_text, m_contentType);
-    }
-
-    else
-    {
-        // if a wide string, convert to UTF-8 bytes
-        if( std::holds_alternative<std::wstring>(m_text) )
-        {
-            const std::wstring& this_text = std::get<std::wstring>(m_text);
-            m_text = UTF8Convert::WideToUTF8Buffer(this_text);
-        }
-
-        ASSERT(std::holds_alternative<std::vector<std::byte>>(m_text));
-
-        const std::vector<std::byte>& content = std::get<std::vector<std::byte>>(m_text);
-        LocalFileServerSetResponse(response_object, content, m_contentType);
-    }
-
+    response.SetContent(*m_text, m_contentType);
     return true;
 }
 
@@ -52,33 +26,33 @@ bool TextVirtualFileMappingHandler::ServeContent(void* response_object)
 // FileVirtualFileMappingHandler
 // --------------------------------------------------------------------------
 
-FileVirtualFileMappingHandler::FileVirtualFileMappingHandler(std::wstring path, bool cache_contents_on_load, wstring_view content_type_sv)
+FileVirtualFileMappingHandler::FileVirtualFileMappingHandler(std::string path, const bool cache_contents_on_load, std::string content_type)
     :   m_path(std::move(path)),
-        m_contentType(UTF8Convert::WideToUTF8(content_type_sv)),
+        m_contentType(std::move(content_type)),
         m_cacheContentsOnLoad(cache_contents_on_load)
 {
     ASSERT(PortableFunctions::FileIsRegular(m_path));
 }
 
 
-FileVirtualFileMappingHandler::FileVirtualFileMappingHandler(const std::wstring& path, bool cache_contents_on_load)
+FileVirtualFileMappingHandler::FileVirtualFileMappingHandler(const std::string& path, const bool cache_contents_on_load)
     :   FileVirtualFileMappingHandler(path, cache_contents_on_load, ValueOrDefault(MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(path))))
 {
 }
 
 
-bool FileVirtualFileMappingHandler::ServeContent(void* response_object)
+bool FileVirtualFileMappingHandler::ServeContent(VirtualFileMappingResponse& response)
 {
     if( m_cachedContent != nullptr )
     {
-        LocalFileServerSetResponse(response_object, *m_cachedContent, m_contentType);
+        response.SetContent(m_cachedContent, m_contentType);
         return true;
     }
 
     try
     {
-        std::unique_ptr<const std::vector<std::byte>> content = FileIO::Read(m_path);
-        LocalFileServerSetResponse(response_object, *content, m_contentType);
+        std::shared_ptr<const std::vector<std::byte>> content = FileIO::Read(m_path);
+        response.SetContent(content, m_contentType);
 
         if( m_cacheContentsOnLoad )
             m_cachedContent = std::move(content);
@@ -91,3 +65,20 @@ bool FileVirtualFileMappingHandler::ServeContent(void* response_object)
         return false;
     }
 }
+
+
+
+// --------------------------------------------------------------------------
+// KeyBasedVirtualFileMappingHandler
+// --------------------------------------------------------------------------
+
+std::string KeyBasedVirtualFileMappingHandler::CreateUrl(const std::string_view key_sv, const bool use_uri_component_escaping/* = true*/) const
+{
+    ASSERT(m_virtualFileMapping != nullptr && !key_sv.empty());
+
+    const std::string escaped_key = use_uri_component_escaping ? Encoders::ToUriComponent(key_sv) :
+                                                                 Encoders::ToUri(key_sv);
+        
+    return PortableFunctions::PathAppendForwardSlashToPath(m_virtualFileMapping->GetUrl(), escaped_key);
+}
+

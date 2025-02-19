@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <CSPro/NewFileCreator.h>
+#include <zDesignerF/NewFileCreator.h>
 
 
 class NewFileDlg : public CDialog

@@ -71,7 +71,7 @@ CString DictValue::GetRangeString() const
 {
     CString range_text;
 
-    for( const auto& dict_value_pair : m_dictValuePairs )
+    for( const DictValuePair& dict_value_pair : m_dictValuePairs )
     {
         if( !range_text.IsEmpty() )
             range_text += _T(", ");
@@ -86,26 +86,26 @@ CString DictValue::GetRangeString() const
 }
 
 
-DictValue DictValue::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictValue DictValue::CreateFromJson(const JsonNode& json_node)
 {
     DictValue dict_value;
 
     dict_value.DictBase::ParseJsonInput(json_node);
 
     if( json_node.Contains(JK::image) )
-        dict_value.m_imageFilename = WS2CS(json_node.GetAbsolutePath(JK::image));
+        dict_value.m_imageFilePath = json_node.GetAbsolutePath(JK::image);
 
     dict_value.m_textColor = json_node.GetOrDefault(JK::textColor, DictionaryDefaults::ValueLabelTextColor);
 
     if( json_node.Contains(JK::special) )
     {
-        const wstring_view special_text_sv = json_node.Get<wstring_view>(JK::special);
+        const std::string_view special_text_sv = json_node.Get<std::string_view>(JK::special);
         dict_value.m_specialValue = SpecialValues::StringIsSpecial<std::optional<double>>(special_text_sv);
 
         if( !dict_value.m_specialValue.has_value() )
         {
-            json_node.LogWarning(_T("The special value text '%s' is not valid"),
-                                 std::wstring(special_text_sv).c_str());
+            json_node.LogWarning("The special value text '%s' is not valid",
+                                 std::string(special_text_sv).c_str());
         }
     }
 
@@ -114,9 +114,9 @@ DictValue DictValue::CreateFromJson(const JsonNode<wchar_t>& json_node)
         {
             const DictionarySerializerHelper* dict_serializer_helper = json_node.GetSerializerHelper().Get<DictionarySerializerHelper>();
 
-            json_node.LogWarning(_T("A value pair was not added to '%s' due to errors: %s"),
-                                 ( dict_serializer_helper != nullptr && dict_serializer_helper->GetCurrentValueSet() != nullptr ) ? dict_serializer_helper->GetCurrentValueSet()->GetName().GetString() : _T(""),
-                                 exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A value pair was not added to '%s' due to errors: %s",
+                                 ( dict_serializer_helper != nullptr && dict_serializer_helper->GetCurrentValueSet() != nullptr ) ? dict_serializer_helper->GetCurrentValueSet()->GetName().c_str() : "",
+                                 exception.what());
         });
 
     return dict_value;
@@ -129,10 +129,10 @@ void DictValue::WriteJson(JsonWriter& json_writer) const
 
     DictBase::WriteJson(json_writer);
 
-    if( json_writer.Verbose() || !m_imageFilename.IsEmpty() )
+    if( json_writer.Verbose() || !m_imageFilePath.empty() )
     {
-        json_writer.WriteRelativePath(JK::image, CS2WS(m_imageFilename));
-        AccessUrl::WriteFileAccessUrl(json_writer, m_imageFilename);
+        json_writer.WriteRelativePath(JK::image, m_imageFilePath);
+        AccessUrl::WriteFileAccessUrl(json_writer, m_imageFilePath);
     }
 
     if( json_writer.Verbose() || m_textColor != DictionaryDefaults::ValueLabelTextColor )
@@ -192,8 +192,7 @@ void DictValue::serialize(Serializer& ar)
 
     ar & m_dictValuePairs;
 
-    ar.SerializeFilename(m_imageFilename, true);
+    ar.SerializePath(m_imageFilePath, true);
 
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-        ar & m_textColor;
+    ar & m_textColor;
 }

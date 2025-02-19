@@ -10,7 +10,7 @@ namespace
 {
     void DisplayException(const CSProException& exception)
     {
-        ErrorMessage::Display(_T("Error pasting from the clipboard: ") + exception.GetErrorMessage());
+        ErrorMessage::Display(SO::Concatenate("Error pasting from the clipboard: ", exception.what()));
     }
 
     template<typename CF>
@@ -56,10 +56,10 @@ namespace
     class DictionaryPasteJsonReaderInterface : public JsonReaderInterface
     {
     public:
-        void OnLogWarning(std::wstring message) override
+        void OnLogWarning(std::string message) override
         {
-            if( std::find(m_messages.cbegin(), m_messages.cend(), message) == m_messages.cend() )
-                m_messages.emplace_back(std::move(message));
+            if( std::find(m_messages.cbegin(), m_messages.cend(), UTF8_TODO::GetWide(message)) == m_messages.cend() )
+                m_messages.emplace_back(std::move(UTF8_TODO::GetWide(message)));
         }
 
         bool DisplayWarningsAndPromptToContinue() const
@@ -102,7 +102,7 @@ void DictClipboard::PutOnClipboard(CWnd* pWnd, std::vector<const T*> dict_elemen
 {
     unsigned clipboard_format = GetClipboardFormat<T>();
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     // write all details
     json_writer->SetVerbose();
@@ -131,12 +131,13 @@ void DictClipboard::PutOnClipboard(CWnd* pWnd, std::vector<const T*> dict_elemen
 
 
 template<typename T>
-DictPastedValues<T> DictClipboard::GetFromClipboardWorker(CWnd* pWnd) const
+DictPastedValues<T> DictClipboard::GetFromClipboardWorker(CWnd* const pWnd) const
 {
-    unsigned clipboard_format = GetClipboardFormat<T>();
+    const unsigned clipboard_format = GetClipboardFormat<T>();
+    const std::string clipboard_text = WinClipboard::GetTextWithFormat<std::string>(clipboard_format, pWnd);
 
     DictionaryPasteJsonReaderInterface dictionary_paste_json_reader_interface;
-    JsonNode<wchar_t> json_node(WinClipboard::GetTextWithFormat(clipboard_format, pWnd), &dictionary_paste_json_reader_interface);
+    const JsonNode json_node(clipboard_text, &dictionary_paste_json_reader_interface);
 
     // read labels with the proper languages
     const CDataDict& dictionary = m_dictionaryDoc.GetDictionary();
@@ -146,7 +147,7 @@ DictPastedValues<T> DictClipboard::GetFromClipboardWorker(CWnd* pWnd) const
     DictPastedValues<T> pasted_values =
     {
         json_node.GetArray(JK::values).GetVector<T>(),
-        json_node.GetOrDefault(JK::parent, CString())
+        json_node.GetOrConstruct<std::string>(JK::parent)
     };
 
     // warn about issues from the paste, and clear the values if the user chooses not to continue
@@ -181,7 +182,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
         DictPastedValues<T> pasted_values = GetFromClipboardWorker<T>(pWnd);
 
         CDataDict& dictionary = m_dictionaryDoc.GetDictionary();
-        std::set<CString> names_added;
+        std::set<std::string> names_added;
         std::vector<CDictRecord*> non_id_records_added;
 
         for( T& dict_element : pasted_values.values )
@@ -208,17 +209,16 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
 
                     // 2. check the name
                     // -----------------
-                    auto name_is_unique_and_add_to_set =
-                        [&](CString name)
-                        {
-                            name.MakeUpper();
+                    auto name_is_unique_and_add_to_set = [&](std::string name)
+                    {
+                        SO::MakeUpper(name);
 
-                            if( !dictionary.IsNameUnique(name) || names_added.find(name) != names_added.cend() )
-                                return false;
+                        if( !dictionary.IsNameUnique(name) || names_added.find(name) != names_added.cend() )
+                            return false;
 
-                            names_added.insert(name);
-                            return true;
-                        };
+                        names_added.insert(name);
+                        return true;
+                    };
 
                     // ensure the name is unique (with special override processing for value set names)
                     if( parent_dict_item != nullptr && !dictionary.IsNameUnique(dict_element.GetName()) )
@@ -227,8 +227,8 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                         const auto& all_dict_value_sets = parent_dict_item->GetValueSets();
                         const auto& dict_value_set_lookup = std::find_if(all_dict_value_sets.cbegin(), all_dict_value_sets.cend(),
                             [&](const DictValueSet& this_dict_value_set) { return ( &this_dict_value_set == &dict_value_set ); });
-                        size_t value_set_index = std::distance(all_dict_value_sets.cbegin(), dict_value_set_lookup);                            
-                        dict_element.SetName(FormatText(_T("%s_VS%d"), (LPCTSTR)parent_dict_item->GetName(), (int)value_set_index + 1));
+                        size_t value_set_index = std::distance(all_dict_value_sets.cbegin(), dict_value_set_lookup);
+                        dict_element.SetName(FormatText("%s_VS%d", parent_dict_item->GetName().c_str(), static_cast<int>(value_set_index) + 1));
                     }
 
                     while( !name_is_unique_and_add_to_set(dict_element.GetName()) )
@@ -237,18 +237,22 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                     // drop aliases when the alias' name is in use
                     if( !dict_element.GetAliases().empty() )
                     {
-                        std::set<CString> valid_aliases = dict_element.GetAliases();
+                        std::set<std::string> valid_aliases = dict_element.GetAliases();
 
                         for( auto alias_itr = valid_aliases.begin(); alias_itr != valid_aliases.end(); )
                         {
                             if( name_is_unique_and_add_to_set(*alias_itr) )
+                            {
                                 ++alias_itr;
+                            }
 
                             else
+                            {
                                 alias_itr = valid_aliases.erase(alias_itr);
+                            }
                         }
 
-                        dict_element.SetAliases(valid_aliases);
+                        dict_element.SetAliases(std::move(valid_aliases));
                     }
 
 
@@ -281,7 +285,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                     // otherwise disallow the operation
                     else
                     {
-                        throw CSProException(_T("You cannot paste %d records until you make space for a record type"), (int)non_id_records_added.size());
+                        throw CSProException("You cannot paste %d records until you make space for a record type", static_cast<int>(non_id_records_added.size()));
                     }
                 }
 
@@ -292,7 +296,10 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                     CString record_type = dict_record->GetRecTypeVal();
 
                     if( !DictionaryValidator::MakeRecordTypeUnique(dictionary, record_type, record_types_added) )
-                        throw CSProException(_T("A unique record type could not be created for %s. Try pasting again after increasing the record type length"), (LPCTSTR)dict_record->GetName());
+                    {
+                        throw CSProException("A unique record type could not be created for %s. Try pasting again after increasing the record type length",
+                                             dict_record->GetName().c_str());
+                    }
 
                     dict_record->SetRecTypeVal(record_type);
                     record_types_added.insert(record_type);

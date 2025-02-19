@@ -125,7 +125,7 @@ void DictLevel::RemoveRecordAt (int iIndex) {
 }
 
 
-DictLevel DictLevel::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictLevel DictLevel::CreateFromJson(const JsonNode& json_node)
 {
     DictLevel dict_level;
 
@@ -140,7 +140,7 @@ DictLevel DictLevel::CreateFromJson(const JsonNode<wchar_t>& json_node)
     std::vector<CDictRecord> dict_records = json_node.GetArrayOrEmpty(JK::records).GetVector<CDictRecord>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A record was not added to '%s' due to errors: %s"), (LPCTSTR)dict_level.GetName(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A record was not added to '%s' due to errors: %s", dict_level.GetName().c_str(), exception.what());
         });
 
     for( const CDictRecord& dict_record : dict_records )

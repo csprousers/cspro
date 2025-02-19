@@ -5,7 +5,7 @@
 #include <zJson/JsonKeys.h>
 
 
-EnginePreprocessor::EnginePreprocessor(Logic::BasicTokenCompiler& compiler, CEngineDriver* pEngineDriver)
+EnginePreprocessor::EnginePreprocessor(Logic::BasicTokenCompiler& compiler, CEngineDriver* const pEngineDriver)
     :   Logic::Preprocessor(compiler),
         m_pEngineDriver(pEngineDriver),
         m_symbolTable(m_pEngineDriver->getEngineAreaPtr()->GetSymbolTable()),
@@ -14,15 +14,15 @@ EnginePreprocessor::EnginePreprocessor(Logic::BasicTokenCompiler& compiler, CEng
 }
 
 
-const TCHAR* EnginePreprocessor::GetAppType()
+const char* EnginePreprocessor::GetAppType()
 {
     return ToString(m_pEngineDriver->m_pApplication->GetEngineAppType());
 }
 
 
-Symbol* EnginePreprocessor::FindSymbol(const std::wstring& name, const bool search_only_base_symbols)
+Symbol* EnginePreprocessor::FindSymbol(const std::string_view symbol_name_sv, const bool search_only_base_symbols)
 {
-    for( Symbol* symbol : m_symbolTable.FindSymbols(name) )
+    for( Symbol* const symbol : m_symbolTable.FindSymbols(symbol_name_sv) )
     {
         if( !search_only_base_symbols || symbol->GetSymbolIndex() < static_cast<int>(m_initialSymbolTableSize) )
             return symbol;
@@ -33,7 +33,7 @@ Symbol* EnginePreprocessor::FindSymbol(const std::wstring& name, const bool sear
 
 
 template<>
-std::optional<bool> EnginePreprocessor::ParseValue(const std::variant<double, std::wstring>& value)
+std::optional<bool> EnginePreprocessor::ParseValue(const std::variant<double, SharableString>& value)
 {
     if( std::holds_alternative<double>(value) )
     {
@@ -44,23 +44,23 @@ std::optional<bool> EnginePreprocessor::ParseValue(const std::variant<double, st
 
     else
     {
-        return ( std::get<std::wstring>(value) == _T("true") )  ? std::make_optional(true) :
-               ( std::get<std::wstring>(value) == _T("false") ) ? std::make_optional(false) :
-                                                                  std::nullopt;
+        return ( *std::get<SharableString>(value) == "true" )  ? std::make_optional(true) :
+               ( *std::get<SharableString>(value) == "false" ) ? std::make_optional(false) :
+                                                                 std::nullopt;
     }
 }
 
 
-void EnginePreprocessor::SetProperty(Symbol* symbol, const std::wstring& attribute, const std::variant<double, std::wstring>& value)
+void EnginePreprocessor::SetProperty(Symbol* const symbol, const std::string& attribute, const std::variant<double, SharableString>& value)
 {
     auto issue_value_error = [&]()
     {
-        std::wstring error_message = FormatTextCS2WS(_T("the value '%s' is invalid for attribute '%s'"),
-                                                     std::holds_alternative<double>(value) ? DoubleToString(std::get<double>(value)).c_str() : std::get<std::wstring>(value).c_str(),
-                                                     attribute.c_str());
+        std::string error_message = FormatText("the value '%s' is invalid for attribute '%s'",
+                                               std::holds_alternative<double>(value) ? DoubleToString(std::get<double>(value)).c_str() : std::get<SharableString>(value)->c_str(),
+                                               attribute.c_str());
 
         if( symbol != nullptr )
-            error_message.append(FormatTextCS2WS(_T(" for symbol type '%s'"), ToString(symbol->GetType())));
+            error_message.append(FormatText(" for symbol type '%s'", ToString(symbol->GetType())));
 
         IssueError(69, error_message.c_str());
     };
@@ -78,10 +78,10 @@ void EnginePreprocessor::SetProperty(Symbol* symbol, const std::wstring& attribu
         return;
     }
 
-    std::wstring error_message = FormatTextCS2WS(_T("the attribute '%s' is invalid"), attribute.c_str());
+    std::string error_message = FormatText("the attribute '%s' is invalid", attribute.c_str());
 
     if( symbol != nullptr )
-        error_message.append(FormatTextCS2WS(_T(" for symbol type '%s'"), ToString(symbol->GetType())));
+        error_message.append(FormatText(" for symbol type '%s'", ToString(symbol->GetType())));
 
     IssueError(69, error_message.c_str());
 }

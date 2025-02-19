@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zExportO/ExportWriterBase.h>
+#include <zToolsO/File.h>
 #include <zUtilO/ExpansiveList.h>
 #include <external/librdata/rdata.h>
 
@@ -9,13 +10,12 @@ class RExportWriter : public ExportWriterBase
 {
 public:
     RExportWriter(std::shared_ptr<const CaseAccess> case_access, const ConnectionString& connection_string);
-    ~RExportWriter();
 
     void Close() override;
 
 protected:
-    bool SupportsBinaryData() override { return false; }
-    bool IsReservedName(const std::wstring& name, bool record_name) override;
+    bool SupportsBinaryData() const override { return false; }
+    bool IsReservedName(const std::string& name, bool record_name) override;
 
     void StartRecord(const ExportRecordMapping& /*export_record_mapping*/) override { }
     void StartRow() override { }
@@ -27,7 +27,7 @@ private:
     struct FactoredVector
     {
         std::unique_ptr<ExpansiveList<int>> expansive_list;
-        std::vector<std::wstring> labels;
+        std::vector<std::string> labels;
     };
 
 private:
@@ -47,7 +47,7 @@ private:
     void WriteExpansiveListValuesToR(FactoredVector& factored_vector);
 
 private:
-    FILE* m_file;
+    FileIO::File m_file;
     rdata_writer_t* m_rWriter;
 
     // options from the connection string

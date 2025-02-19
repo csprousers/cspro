@@ -60,13 +60,13 @@ namespace PropertyGrid
         CString color_text;
         m_pWndInPlace->GetWindowText(color_text);
 
-        std::optional<PortableColor> portable_color = PortableColor::FromString(color_text);
+        std::optional<PortableColor> portable_color = PortableColor::FromString(UTF8_TODO::GetUtf8(color_text));
 
         // if the color text was not valid, try again with a # before any text
         if( !portable_color.has_value() && !color_text.IsEmpty() && color_text[0] != _T('#') )
         {
             color_text.Insert(0, _T('#'));
-            portable_color = PortableColor::FromString(color_text);
+            portable_color = PortableColor::FromString(UTF8_TODO::GetUtf8(color_text));
         }
 
         // set to black if invalid
@@ -95,7 +95,7 @@ namespace PropertyGrid
         else
         {
             // format the colors so that names are used when possible
-            return WS2CS(value.ToString());
+            return UTF8_TODO::GetCString(value.ToString());
         }
     }
 

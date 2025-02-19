@@ -1,15 +1,16 @@
 ﻿#pragma once
-#include <cstddef>
-#include <cstdint>
 
-/// <summary>Interface to a data chunk</summary>
-struct IDataChunk
+
+// Interface to a data chunk
+
+class IDataChunk
 {
-    virtual ~IDataChunk() {};
+public:
+    virtual ~IDataChunk() { }
 
-    virtual int getSize() const = 0;
-    virtual int getBinaryContentSize() const = 0;
+    virtual size_t GetCaseSize() const = 0;
+    virtual uint64_t GetBinaryContentSize() const = 0;
 
-    virtual void enableOptimization() = 0;
-    virtual void resetOptimization() = 0;
+    virtual void EnableOptimization() = 0;
+    virtual void ResetOptimization() = 0;
 };

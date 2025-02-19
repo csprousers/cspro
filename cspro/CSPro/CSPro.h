@@ -10,6 +10,7 @@ class CCSProDoc;
 class CAplFileAssociationsDlg;
 class CWindowFocusMgr;
 class FileTreeNode;
+class ManageFilesDlg;
 
 
 int CALLBACK BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData );
@@ -38,12 +39,12 @@ public:
 
 //methods
 public:
-    bool IsFileOpen(wstring_view filename) { return ( GetDoc(filename) != nullptr ); }
+    bool IsFileOpen(std::string_view file_path_sv) { return ( GetDoc(file_path_sv) != nullptr ); }
 
     bool UpdateViews(CDocument* pDoc);
     const CDocTemplate* GetAppTemplate() const { return m_pAplTemplate; }
     void SetInitialViews(CDocument* pDoc);
-    CDocument* GetDoc(wstring_view filename);
+    CDocument* GetDoc(std::string_view file_path_sv);
     CDocument* IsDocOpen(LPCTSTR lpszFileName)const;
     BOOL Reconcile(CDocument *pDoc, CString& csErr, bool bSilent, bool bAutoFix );
     bool IsDictNew(const CDDDoc* pDoc);
@@ -94,6 +95,7 @@ protected:
 
 public:
     bool IsApplicationOpen();
+
 protected:
     afx_msg void OnUpdateIsApplicationOpen(CCmdUI* pCmdUI);
 
@@ -112,15 +114,18 @@ private:
 protected:
     afx_msg void OnFileSaveAs();
 
-    // Add/Drop Files methods
-private:
-    void AddFileToApp(FileTreeNode& application_file_tree_item, const FileAssociation& file_association);
-    std::vector<CDocument*> GetDropCandidatesForApplication(const CAplDoc* pAplDoc);
-protected:
-    afx_msg void OnAddFiles();
-    afx_msg void OnDropFiles();
+
+    // Manage Files methods
 public:
-    void AddResourceFolderToApp(CAplDoc* pAplDoc, const CString& sFolderName);
+    void AddResourceToApplication(CAplDoc& application_doc, AppResource resource);
+    void ManageFiles(cs::cref_optional<std::string> initial_path_to_select);
+
+protected:
+    afx_msg void OnManageFiles();
+
+private:
+    void PostManageFilesChanges(CAplDoc& application_doc, const ManageFilesDlg& dlg);
+
 
 public:
     afx_msg void OnViewNames();
@@ -157,9 +162,6 @@ protected:
     afx_msg void OnHelpShowSyncLog();
 
     afx_msg void OnPreferencesFonts();
-
-private:
-    void CreateDefaultReport(const std::wstring& report_filename);
 
 private:
     CDocument* GetActiveDocument();

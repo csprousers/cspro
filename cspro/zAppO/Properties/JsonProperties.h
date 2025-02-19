@@ -2,17 +2,13 @@
 
 #include <zAppO/zAppO.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 class ZAPPO_API JsonProperties
 {
 public:
     enum class JsonFormat : int { Compact, Pretty };
     static constexpr JsonFormat DefaultJsonFormat = JsonFormat::Compact;
-    
+
     enum class ArrayFormat : int { Full, Sparse };
     static constexpr ArrayFormat DefaultArrayFormat = ArrayFormat::Full;
 
@@ -40,8 +36,8 @@ public:
 
     // serialization
     // --------------------------------------------------------------------------
-    static JsonProperties CreateFromJson(const JsonNode<wchar_t>& json_node);
-    void UpdateFromJson(const JsonNode<wchar_t>& json_node);
+    static JsonProperties CreateFromJson(const JsonNode& json_node);
+    void UpdateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

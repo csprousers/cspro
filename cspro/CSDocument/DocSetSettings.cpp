@@ -20,40 +20,40 @@ bool DocSetSettings::HasCustomSettings() const
 }
 
 
-std::wstring DocSetSettings::FindProjectDocSetSpecFilename(const std::wstring& project) const
+std::string DocSetSettings::FindProjectDocSetSpecFilePath(const std::string& project) const
 {
     if( m_projectRootDirectory.empty() )
-        throw CSProException(_T("No project root directory has been set so the project '%s' cannot be found."), project.c_str());
+        throw CSProException("No project root directory has been set so the project '%s' cannot be found.", project.c_str());
 
-    const std::wstring& project_directory = PortableFunctions::PathAppendToPath(m_projectRootDirectory, project);
+    const std::string project_directory = Path::Combine(m_projectRootDirectory, project);
 
-    return CacheableCalculator::FindProjectDocSetSpecFilename(project_directory);
+    return CacheableCalculator::FindProjectDocSetSpecFilePath(project_directory);
 }
 
 
-std::wstring DocSetSettings::GetProjectNameFromDocSetSpecFilename(wstring_view project_doc_set_spec_filename_sv) const
+std::string DocSetSettings::GetProjectNameFromDocSetSpecFilePath(std::string_view project_doc_set_spec_file_path_sv) const
 {
-    if( !m_projectRootDirectory.empty() && SO::StartsWithNoCase(project_doc_set_spec_filename_sv, m_projectRootDirectory) )
+    if( !m_projectRootDirectory.empty() && SO::StartsWithNoCase(project_doc_set_spec_file_path_sv, m_projectRootDirectory) )
     {
-        project_doc_set_spec_filename_sv = project_doc_set_spec_filename_sv.substr(m_projectRootDirectory.length());
+        project_doc_set_spec_file_path_sv.remove_prefix(m_projectRootDirectory.length());
 
-        if( !project_doc_set_spec_filename_sv.empty() && PortableFunctions::IsPathCharacter(project_doc_set_spec_filename_sv.front()) )
-            project_doc_set_spec_filename_sv = project_doc_set_spec_filename_sv.substr(1);
+        if( !project_doc_set_spec_file_path_sv.empty() && Path::IsSlashChar(project_doc_set_spec_file_path_sv.front()) )
+            project_doc_set_spec_file_path_sv.remove_prefix(1);
 
-        // the project name is name of the first directory
-        const size_t slash_pos = project_doc_set_spec_filename_sv.find_first_of(PortableFunctions::PathSlashChars);
+        // the project name is the name of the first directory
+        const size_t slash_pos = project_doc_set_spec_file_path_sv.find_first_of(Path::SlashChars_sv);
 
-        if( slash_pos != wstring_view::npos )
-            return project_doc_set_spec_filename_sv.substr(0, slash_pos);
+        if( slash_pos != std::string_view::npos )
+            return std::string(project_doc_set_spec_file_path_sv.substr(0, slash_pos));
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-const std::wstring* DocSetSettings::FindInImageDirectories(const std::wstring& image_name) const
+const std::string* DocSetSettings::FindInImageDirectories(const std::string& image_name) const
 {
-    const std::wstring* image_path = nullptr;
+    const std::string* image_path = nullptr;
 
     for( const ImageDirectory& image_directory : m_imageDirectories )
         image_path = CacheableCalculator::FindFileByNameInDirectory(image_directory.directory, image_directory.recursive, image_name, image_path);
@@ -72,7 +72,7 @@ DocBuildSettings DocSetSettings::GetEvaluatedBuildSettings(const DocBuildSetting
 }
 
 
-DocBuildSettings DocSetSettings::GetEvaluatedBuildSettings(const std::wstring& name) const
+DocBuildSettings DocSetSettings::GetEvaluatedBuildSettings(const std::string& name) const
 {
     for( const auto& [this_name, build_settings] : m_namedBuildSettings )
     {
@@ -80,11 +80,11 @@ DocBuildSettings DocSetSettings::GetEvaluatedBuildSettings(const std::wstring& n
             return GetEvaluatedBuildSettings(build_settings);
     }
 
-    throw CSProException(_T("There are no build settings with the name: ") + name);
+    throw CSProException("There are no build settings with the name: %s", name.c_str());
 }
 
 
-std::tuple<DocBuildSettings, std::wstring> DocSetSettings::GetEvaluatedBuildSettings(DocBuildSettings::BuildType build_type, const std::wstring& name/* = std::wstring()*/) const
+std::tuple<DocBuildSettings, std::string> DocSetSettings::GetEvaluatedBuildSettings(const DocBuildSettings::BuildType build_type, const std::string& name/* = SO::Empty_string*/) const
 {
     // search by name
     if( !name.empty() )
@@ -104,10 +104,10 @@ std::tuple<DocBuildSettings, std::wstring> DocSetSettings::GetEvaluatedBuildSett
     }
 
     if( m_defaultBuildSettings.has_value() && m_defaultBuildSettings->GetBuildType() == build_type )
-        return { *m_defaultBuildSettings, std::wstring() };
+        return { *m_defaultBuildSettings, std::string() };
 
     // return the default settings for the build type
-    return { GetEvaluatedBuildSettings(DocBuildSettings::DefaultSettingsForBuildType(build_type)), std::wstring() };
+    return { GetEvaluatedBuildSettings(DocBuildSettings::DefaultSettingsForBuildType(build_type)), std::string() };
 }
 
 
@@ -116,7 +116,7 @@ std::tuple<DocBuildSettings, std::wstring> DocSetSettings::GetEvaluatedBuildSett
 // serialization
 // --------------------------------------------------------------------------
 
-void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node, bool reset_settings)
+void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode& json_node, const bool reset_settings)
 {
     if( reset_settings )
         Reset();
@@ -127,10 +127,10 @@ void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wc
     // project root
     if( json_node.Contains(JK::projectRootDirectory) )
     {
-        std::wstring path = json_node.GetAbsolutePath(JK::projectRootDirectory);
+        std::string path = json_node.GetAbsolutePath(JK::projectRootDirectory);
 
-        if( doc_set_compiler.CheckIfDirectoryExists(_T("project root"), path) &&
-            doc_set_compiler.CheckIfOverridesWithNewValue(_T("project root directory"), path, m_projectRootDirectory) )
+        if( doc_set_compiler.CheckIfDirectoryExists("project root", path) &&
+            doc_set_compiler.CheckIfOverridesWithNewValue("project root directory", path, m_projectRootDirectory) )
         {
             m_projectRootDirectory = std::move(path);
         }
@@ -139,11 +139,11 @@ void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wc
     // image directories
     if( json_node.Contains(JK::imageDirectories) )
     {
-        for( const auto& image_directory_node : json_node.GetArray(JK::imageDirectories) )
+        for( const JsonNode& image_directory_node : json_node.GetArray(JK::imageDirectories) )
         {
             auto [path, recursive] = doc_set_compiler.GetPathWithRecursiveOption(image_directory_node);
 
-            if( !doc_set_compiler.CheckIfDirectoryExists(_T("image"), path) )
+            if( !doc_set_compiler.CheckIfDirectoryExists("image", path) )
                 continue;
 
             auto lookup = std::find_if(m_imageDirectories.begin(), m_imageDirectories.end(),
@@ -184,13 +184,13 @@ void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wc
     // named build settings
     if( json_node.Contains(JK::builds) )
     {
-        const auto& builds_node = json_node.Get(JK::builds);
+        const JsonNode builds_node = json_node.Get(JK::builds);
 
         if( doc_set_compiler.EnsureJsonNodeIsArray(builds_node, JK::builds) )
         {
-            for( const auto& build_node : builds_node.GetArray() )
+            for( const JsonNode& build_node : builds_node.GetArray() )
             {
-                std::wstring name = doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(build_node, JK::name);
+                std::string name = doc_set_compiler.JsonNodeGetStringWithWhitespaceCheck(build_node, JK::name);
 
                 DocBuildSettings* named_build_settings = nullptr;
 
@@ -214,7 +214,7 @@ void DocSetSettings::Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wc
 }
 
 
-void DocSetSettings::WriteJson(JsonWriter& json_writer, bool write_evaluated_build_settings/* = true*/) const
+void DocSetSettings::WriteJson(JsonWriter& json_writer, const bool write_evaluated_build_settings/* = true*/) const
 {
     json_writer.BeginObject();
 
@@ -242,7 +242,7 @@ void DocSetSettings::WriteJson(JsonWriter& json_writer, bool write_evaluated_bui
         m_defaultBuildSettings->WriteJson(json_writer, false);
 
     json_writer.WriteArrayIfNotEmpty(JK::builds, m_namedBuildSettings,
-        [&](const std::tuple<std::wstring, DocBuildSettings>& name_and_build_settings)
+        [&](const std::tuple<std::string, DocBuildSettings>& name_and_build_settings)
         {
             json_writer.BeginObject()
                        .Write(JK::name, std::get<0>(name_and_build_settings));

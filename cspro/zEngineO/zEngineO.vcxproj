@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{45DADBF6-072A-4A5F-94B3-39FB607807F2}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>zEngineO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -78,16 +74,18 @@
     <ClCompile Include="Compiler\ArgumentSpecificationCompiler.cpp" />
     <ClCompile Include="Compiler\ArrayCC.cpp" />
     <ClCompile Include="Compiler\AudioCC.cpp" />
+    <ClCompile Include="Compiler\BarcodeCC.cpp" />
     <ClCompile Include="Compiler\CaseCC.cpp" />
     <ClCompile Include="Compiler\CompilerHelper.cpp" />
+    <ClCompile Include="Compiler\CompilersCC.cpp" />
     <ClCompile Include="Compiler\ControlFlowCC.cpp" />
     <ClCompile Include="Compiler\DataAccessCC.cpp" />
+    <ClCompile Include="Compiler\DictionaryCC.cpp" />
     <ClCompile Include="Compiler\DocumentCC.cpp" />
     <ClCompile Include="Compiler\EngineDictionaryCC.cpp" />
     <ClCompile Include="Compiler\ExpressionsCC.cpp" />
     <ClCompile Include="Compiler\FileCC.cpp" />
     <ClCompile Include="Compiler\FreqCC.cpp" />
-    <ClCompile Include="Compiler\DictionaryCC.cpp" />
     <ClCompile Include="Compiler\FunctionsGenericCC.cpp" />
     <ClCompile Include="Compiler\FunctionsVariousCC.cpp" />
     <ClCompile Include="Compiler\GeometryCC.cpp" />
@@ -96,15 +94,15 @@
     <ClCompile Include="Compiler\ImageCC.cpp" />
     <ClCompile Include="Compiler\ImputeCC.cpp" />
     <ClCompile Include="Compiler\ItemCC.cpp" />
+    <ClCompile Include="Compiler\JavaScriptCC.cpp" />
     <ClCompile Include="Compiler\JsonCC.cpp" />
     <ClCompile Include="Compiler\ListCC.cpp" />
     <ClCompile Include="Compiler\LogicCompiler.cpp" />
     <ClCompile Include="Compiler\MapCC.cpp" />
+    <ClCompile Include="Compiler\MathCC.cpp" />
     <ClCompile Include="Compiler\MessagesCC.cpp" />
-    <ClCompile Include="Compiler\BarcodeCC.cpp" />
     <ClCompile Include="Compiler\NextTokenCC.cpp" />
     <ClCompile Include="Compiler\NodeCreationCC.cpp" />
-    <ClCompile Include="Compiler\NumbersCC.cpp" />
     <ClCompile Include="Compiler\OptionalNamedArgumentsCompiler.cpp" />
     <ClCompile Include="Compiler\PathCC.cpp" />
     <ClCompile Include="Compiler\PffCC.cpp" />
@@ -118,8 +116,8 @@
     <ClCompile Include="Compiler\TokenCC.cpp" />
     <ClCompile Include="Compiler\TraceCC.cpp" />
     <ClCompile Include="Compiler\UserbarCC.cpp" />
-    <ClCompile Include="Compiler\UserInterfaceCC.cpp" />
     <ClCompile Include="Compiler\UserFunctionCC.cpp" />
+    <ClCompile Include="Compiler\UserInterfaceCC.cpp" />
     <ClCompile Include="Compiler\ValueSetCC.cpp" />
     <ClCompile Include="Compiler\VariableCC.cpp" />
     <ClCompile Include="Document.cpp" />
@@ -127,6 +125,7 @@
     <ClCompile Include="EngineData.cpp" />
     <ClCompile Include="EngineDataRepository.cpp" />
     <ClCompile Include="EngineDictionary.cpp" />
+    <ClCompile Include="EngineItem.cpp" />
     <ClCompile Include="EngineRecord.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileApplicationLoader.cpp" />
@@ -135,6 +134,36 @@
     <ClCompile Include="HashMap.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Imputation.cpp" />
+    <ClCompile Include="Interpreter\ActionInvokerRT.cpp" />
+    <ClCompile Include="Interpreter\ArrayRT.cpp" />
+    <ClCompile Include="Interpreter\AudioRT.cpp" />
+    <ClCompile Include="Interpreter\BarcodeRT.cpp" />
+    <ClCompile Include="Interpreter\BytecodeRT.cpp" />
+    <ClCompile Include="Interpreter\CompressionRT.cpp" />
+    <ClCompile Include="Interpreter\DateRT.cpp" />
+    <ClCompile Include="Interpreter\DocumentRT.cpp" />
+    <ClCompile Include="Interpreter\ExecutionRT.cpp" />
+    <ClCompile Include="Interpreter\GeometryRT.cpp" />
+    <ClCompile Include="Interpreter\HashMapRT.cpp" />
+    <ClCompile Include="Interpreter\ImageRT.cpp" />
+    <ClCompile Include="Interpreter\ItemRT.cpp" />
+    <ClCompile Include="Interpreter\JavaScriptRT.cpp" />
+    <ClCompile Include="Interpreter\JsonRT.cpp" />
+    <ClCompile Include="Interpreter\ListRT.cpp" />
+    <ClCompile Include="Interpreter\LocalhostRT.cpp" />
+    <ClCompile Include="Interpreter\LogicInterpreter.cpp" />
+    <ClCompile Include="Interpreter\MapRT.cpp" />
+    <ClCompile Include="Interpreter\MathRT.cpp" />
+    <ClCompile Include="Interpreter\NetworkRT.cpp" />
+    <ClCompile Include="Interpreter\PathRT.cpp" />
+    <ClCompile Include="Interpreter\ReportRT.cpp" />
+    <ClCompile Include="Interpreter\StringRT.cpp" />
+    <ClCompile Include="Interpreter\SwitchRT.cpp" />
+    <ClCompile Include="Interpreter\SymbolRT.cpp" />
+    <ClCompile Include="Interpreter\SystemAppRT.cpp" />
+    <ClCompile Include="Interpreter\SystemRT.cpp" />
+    <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
+    <ClCompile Include="JavaScriptProcessor.cpp" />
     <ClCompile Include="List.cpp" />
     <ClCompile Include="LogicByteCode.cpp" />
     <ClCompile Include="LoopStack.cpp" />
@@ -158,13 +187,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SymbolCalculator.cpp" />
-    <ClCompile Include="EngineItem.cpp" />
     <ClCompile Include="SystemApp.cpp" />
     <ClCompile Include="UserFunction.cpp" />
     <ClCompile Include="UserFunctionArgumentChecker.cpp" />
+    <ClCompile Include="UserFunctionArgumentEvaluator.cpp" />
     <ClCompile Include="UserFunctionLocalSymbolsManager.cpp" />
     <ClCompile Include="ValueSet.cpp" />
-    <ClCompile Include="Versioning.cpp" />
     <ClCompile Include="WorkString.cpp" />
     <ClCompile Include="WorkVariable.cpp" />
   </ItemGroup>
@@ -195,13 +223,15 @@
     <ClInclude Include="DeprecatedSymbol.h" />
     <ClInclude Include="Document.h" />
     <ClInclude Include="EngineAccessor.h" />
-    <ClInclude Include="EngineCaseConstructionReporter.h" />
     <ClInclude Include="EngineCase.h" />
+    <ClInclude Include="EngineCaseConstructionReporter.h" />
     <ClInclude Include="EngineData.h" />
     <ClInclude Include="EngineDataRepository.h" />
     <ClInclude Include="EngineDictionary.h" />
     <ClInclude Include="EngineDictionaryFactory.h" />
+    <ClInclude Include="EngineItem.h" />
     <ClInclude Include="EngineRecord.h" />
+    <ClInclude Include="EngineSettings.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileApplicationLoader.h" />
     <ClInclude Include="Flow.h" />
@@ -209,6 +239,11 @@
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Imputation.h" />
+    <ClInclude Include="Interpreter\IncludesRT.h" />
+    <ClInclude Include="Interpreter\LogicInterpreter.h" />
+    <ClInclude Include="Interpreter\SelectDlgHelper.h" />
+    <ClInclude Include="Interpreter\StringComparer.h" />
+    <ClInclude Include="JavaScriptProcessor.h" />
     <ClInclude Include="List.h" />
     <ClInclude Include="LogicByteCode.h" />
     <ClInclude Include="LoopStack.h" />
@@ -258,14 +293,13 @@
     <ClInclude Include="SymbolCalculator.h" />
     <ClInclude Include="SymbolReference.h" />
     <ClInclude Include="SymbolSerializerHelper.h" />
-    <ClInclude Include="EngineItem.h" />
     <ClInclude Include="SystemApp.h" />
     <ClInclude Include="Userbar.h" />
     <ClInclude Include="UserFunction.h" />
     <ClInclude Include="UserFunctionArgumentChecker.h" />
+    <ClInclude Include="UserFunctionArgumentEvaluator.h" />
     <ClInclude Include="UserFunctionLocalSymbolsManager.h" />
     <ClInclude Include="ValueSet.h" />
-    <ClInclude Include="Versioning.h" />
     <ClInclude Include="WorkString.h" />
     <ClInclude Include="WorkVariable.h" />
     <ClInclude Include="zEngineO.h" />
@@ -315,8 +349,16 @@
       <Project>{7aef3dcc-6117-4029-9bde-5ed800332e29}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zJavaScript\zJavaScript.vcxproj">
+      <Project>{8187aad7-a872-4a95-b650-e197f40bc1c1}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zListingO\zListingO.vcxproj">
+      <Project>{15f84c2e-c943-4448-856d-641ac229e3c2}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
@@ -361,6 +403,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+      <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

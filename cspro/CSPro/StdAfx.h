@@ -7,9 +7,11 @@
 
 #include <zToolsO/Encoders.h>
 #include <zToolsO/SharedSettings.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/CSProExecutables.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
+#include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/StdioFileUnicode.h>
@@ -18,7 +20,6 @@
 #include <zUtilO/TextSourceExternal.h>
 #include <zUtilO/Viewers.h>
 #include <zUtilO/WindowsWS.h>
-#include <zJson/JsonStream.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictF/DDChWnd.H>
 #include <zDictF/Dddoc.h>

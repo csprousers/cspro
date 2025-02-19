@@ -22,22 +22,26 @@ public:
     void SetCapiQuestionManager(std::shared_ptr<const CapiQuestionManager> capi_question_manager) { m_capiQuestionManager = std::move(capi_question_manager); }
     void SetCase(std::shared_ptr<const Case> data_case)                                           { m_case = std::move(data_case); }
 
-    // resets the inputs (in anticipation of setting them up again)
+    // Resets the inputs (in anticipation of setting them up again).
     void ResetInputs();
 
-    // sets the serialization options (throws exceptions on errors)
-    void SetSerializationOptions(const JsonNode<wchar_t>& serialization_options_node);
+    // Disables the check that ensures that the dictionary matches the dictionary used by other components.
+    // This should only be called if the caller has ensured that the dictionaries are identical.
+    void SetBypassDictionaryMatchesCheck() { m_bypassDictionaryMatchesCheck = true; }
 
-    // sets a field status retriever
+    // Sets the serialization options (throws exceptions on errors).
+    void SetSerializationOptions(const JsonNode& serialization_options_node);
+
+    // Sets a field status retriever.
     void SetFieldStatusRetriever(std::shared_ptr<FieldStatusRetriever> function);
 
-    // returns all available content in JSON format
-    std::wstring GetContent();
+    // Returns all available content in JSON format.
+    std::string GetContent();
 
-    // returns the case content in JSON format
-    std::wstring GetCaseContent();
+    // Returns the case content in JSON format.
+    std::string GetCaseContent();
 
-    // returns the virtual file mapping handler that serves case binary data
+    // Returns the virtual file mapping handler that serves case binary data.
     std::shared_ptr<CaseBinaryDataVirtualFileMappingHandler> GetCaseBinaryDataVirtualFileMappingHandler() { return m_caseBinaryDataVirtualFileMappingHandler; }
 
 private:
@@ -52,6 +56,8 @@ private:
     std::shared_ptr<const CDEFormFile> m_formFile;
     std::shared_ptr<const CapiQuestionManager> m_capiQuestionManager;
     std::shared_ptr<const Case> m_case;
+
+    bool m_bypassDictionaryMatchesCheck;
 
     std::optional<bool> m_writeLabels;
     std::optional<bool> m_writeFieldStatuses;

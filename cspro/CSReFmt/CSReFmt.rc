@@ -89,12 +89,12 @@ BEGIN
     PUSHBUTTON      "Reformat Data",IDC_REFORMAT_DATA,566,88,58,14,WS_DISABLED
     CONTROL         "",IDC_DICT_DIFFERENCES,
                     "{8856F961-340A-11D0-A96B-00C04FD705A2}",WS_TABSTOP,11,129,618,221
-    LTEXT           "Select the input dictionary and/or a data file. If using a data source with an embedded dictionary, such as a CSPro DB file, you do not have to specify a dictionary.",IDC_STATIC,21,20,529,8
+    LTEXT           "Select the input dictionary and/or a data source. If using a data source with an embedded dictionary, such as a CSPro DB file, you do not have to specify a dictionary.",IDC_STATIC,21,20,533,8
     LTEXT           "Dictionary",IDC_STATIC,21,37,33,8
     GROUPBOX        "Input Dictionary / Data",IDC_STATIC,7,7,627,50
     LTEXT           "Data",IDC_STATIC,298,37,16,8
     GROUPBOX        "Output Dictionary / Data",IDC_STATIC,7,61,627,50
-    LTEXT           "Select the output dictionary. If you want to reformat data, supply the name of an output data file.",IDC_STATIC,21,74,318,8
+    LTEXT           "Select the output dictionary. If you want to reformat data, supply the name of an output data source.",IDC_STATIC,21,74,329,8
     LTEXT           "Dictionary",IDC_STATIC,22,90,33,8
     LTEXT           "Data",IDC_STATIC,299,90,16,8
     GROUPBOX        "Dictionary Differences",IDC_STATIC,7,116,627,240

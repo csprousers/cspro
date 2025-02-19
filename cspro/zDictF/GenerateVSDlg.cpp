@@ -1,238 +1,102 @@
 ﻿#include "StdAfx.h"
 #include "GenerateVSDlg.h"
-
-
-IMPLEMENT_DYNAMIC(GenerateVSDlg, CDialog)
+#include <zDictO/ValueProcessor.h>
 
 
 BEGIN_MESSAGE_MAP(GenerateVSDlg, CDialog)
-    ON_EN_KILLFOCUS(IDC_GET_VSET_INTERVAL, OnEnKillfocusGetVsetInterval)
-    ON_EN_KILLFOCUS(IDC_GEN_VSET_NAME, OnEnKillfocusGenVsetName)
-    ON_EN_KILLFOCUS(IDC_GEN_VSET_FROM, OnEnKillfocusGenVsetFrom)
-    ON_EN_KILLFOCUS(IDC_GEN_VSET_TO, OnEnKillfocusGenVsetTo)
+    ON_EN_KILLFOCUS(IDC_GET_VSET_INTERVAL, OnKillFocusInterval)
 END_MESSAGE_MAP()
 
 
-GenerateVSDlg::GenerateVSDlg(CWnd* pParent /* = nullptr*/)
-    :   CDialog(IDD_GENERATE_VSET, pParent),
-        m_dFrom(0),
-        m_dTo(0),
-        m_dInterval(0),
-        m_bUseThousandsSeparator(TRUE)
+namespace
 {
+    constexpr double MaxNumIntervals = 10000;
+
+    constexpr std::string_view DefaultTemplateFrom_sv   = "%s";
+    constexpr std::string_view DefaultTemplateFromTo_sv = "%s - %s";
 }
 
 
-void GenerateVSDlg::DoDataExchange(CDataExchange* pDX)
+GenerateVSDlg::GenerateVSDlg(const CDataDict& dictionary, const CDictItem& dict_item, CWnd* const pParent /* = nullptr*/)
+    :   CDialog(IDD_GENERATE_VSET, pParent),
+        m_dictionary(dictionary),
+        m_dictItem(dict_item),
+        m_from(0),
+        m_thousandsSeparator(GetLocaleInformation(LOCALE_STHOUSAND)),
+        m_useThousandsSeparator(( m_dictItem.GetIntegerLen() > 3 ) ? std::make_optional(TRUE) : std::nullopt),
+        m_valueOrder(0)
 {
-    CDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_GEN_VSET_LABEL, m_sLabel);
-    DDV_MaxChars(pDX, m_sLabel, MAX_LABEL_LEN);
-    DDX_Text(pDX, IDC_GEN_VSET_NAME, m_sName);
-    DDX_Text(pDX, IDC_GEN_VSET_FROM, m_dFrom);
-    DDX_Text(pDX, IDC_GEN_VSET_TO, m_dTo);
-    DDX_Text(pDX, IDC_GET_VSET_INTERVAL, m_dInterval);
-    DDX_Text(pDX, IDC_GEN_VSET_TEMPLATE, m_sTemplate);
-    DDX_Check(pDX, IDC_GEN_VSET_USE_THOUSANDS_SEPARATOR, m_bUseThousandsSeparator);
+    ASSERT(IsNumeric(m_dictItem));
+    const std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(m_dictItem);
+    const NumericValueProcessor* const numeric_value_processor = assert_cast<const NumericValueProcessor*>(value_processor.get());
+
+    // Initialize Label and Name
+    m_label = UTF8_TODO::GetUtf8(m_dictItem.GetLabel());
+
+    m_name = FormatText("%s_VS%d", m_dictItem.GetName().c_str(), static_cast<int>(m_dictItem.GetNumValueSets() + 1));
+    m_name = m_dictionary.GetUniqueName(m_name);
+
+    // Calculate Min and Max values and Min Interval
+    m_minValue = numeric_value_processor->GetMinValue();
+    m_maxValue = numeric_value_processor->GetMaxValue();
+    m_minInterval = pow(10.0, -1.0 * m_dictItem.GetDecimal());
+
+    // Initialize To and Interval
+    m_to = m_maxValue;
+    m_interval = pow(10.0, m_dictItem.GetIntegerLen() - 1);
+
+    // Initialize Template
+    m_template = ( m_interval == m_minInterval ) ? DefaultTemplateFrom_sv :
+                                                   DefaultTemplateFromTo_sv;
+}
+
+
+void GenerateVSDlg::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Text(pDX, IDC_GEN_VSET_LABEL, m_label);
+    DDV_MaxChars(pDX, m_label, MAX_LABEL_LEN);
+    DDX_Text(pDX, IDC_GEN_VSET_NAME, m_name);
+    DDX_Text(pDX, IDC_GEN_VSET_FROM, m_from);
+    DDX_Text(pDX, IDC_GEN_VSET_TO, m_to);
+    DDX_Text(pDX, IDC_GET_VSET_INTERVAL, m_interval);
+    DDX_Text(pDX, IDC_GEN_VSET_TEMPLATE, m_template);
+
+    if( m_useThousandsSeparator.has_value() )
+        DDX_Check(pDX, IDC_GEN_VSET_USE_THOUSANDS_SEPARATOR, *m_useThousandsSeparator);
+
+    DDX_CBIndex(pDX, IDC_GEN_VSET_VALUE_ORDER, m_valueOrder);
 }
 
 
 BOOL GenerateVSDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    const BOOL result = __super::OnInitDialog();
 
-    // Calculate Min and Max values and Min Interval
-    UINT uLen = m_pItem->GetLen();
-    if (m_pItem->GetDecimal() > 0 && !m_pItem->GetDecChar()) {
-        uLen++;
-    }
-    CIMSAString sMinVal = CString(_T('9'),uLen);
-    sMinVal.SetAt(0,'-');
-    CIMSAString sMaxVal = CString(_T('9'),uLen);
-    if (m_pItem->GetDecimal() > 0) {
-        sMinVal.SetAt(uLen - m_pItem->GetDecimal() - 1,'.');
-        sMaxVal.SetAt(uLen - m_pItem->GetDecimal() - 1,'.');
-    }
-    m_dMinVal = atod(sMinVal);
-    m_dMaxVal = atod(sMaxVal);
-    if (m_pItem->GetDecimal() > 0) {
-        m_dMinInterval = pow(10.0,-((double) m_pItem->GetDecimal()));
-    }
-    else {
-        m_dMinInterval = 1.0;
-    }
+    CWnd* const thousands_wnd = GetDlgItem(IDC_GEN_VSET_USE_THOUSANDS_SEPARATOR);
+    WindowsUtf8::SetText(thousands_wnd, FormatText("Use 1000 separator (%s)", m_thousandsSeparator.c_str()));
 
-    // Initialize Label and Name
-    m_sName.Format(_T("%s_VS%d"), (LPCTSTR)m_pItem->GetName(), (int)m_pItem->GetNumValueSets() + 1);
-    m_sLabel = m_pItem->GetLabel();
+    if( !m_useThousandsSeparator.has_value() )
+        thousands_wnd->EnableWindow(FALSE);
 
-    m_sName = m_pDoc->GetDict()->GetUniqueName(m_sName);
-    // Initialize From, To, and Interval
-    m_dFrom = 0.0;
-    m_dTo = m_dMaxVal;
-
-    int dTemp = m_pItem->GetLen() - m_pItem->GetDecimal();
-    m_dInterval = pow(10.0,(double) dTemp - 1);
-
-    // Initialize Template
-    if (m_dInterval == m_dMinInterval) {
-        m_sTemplate = _T("%s");
-    }
-    else {
-        m_sTemplate = _T("%s - %s");
-    }
-    UpdateData(FALSE);
-
-    TCHAR sThousandSep[30];
-    GetPrivateProfileString(_T("intl"), _T("sThousand"), _T(""), sThousandSep, 30, _T("WIN.INI"));
-    CString sThousandSeparatorCheckboxLabel = FormatText(_T("Use 1000 separator (%s)"), sThousandSep);
-    GetDlgItem(IDC_GEN_VSET_USE_THOUSANDS_SEPARATOR)->SetWindowText(sThousandSeparatorCheckboxLabel);
-
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return result;
 }
 
 
-void GenerateVSDlg::OnEnKillfocusGenVsetName()
+void GenerateVSDlg::OnKillFocusInterval()
 {
+    // if using the default formatter, modify the template if the interval changes accordingly
     UpdateData(TRUE);
-    if (SO::IsBlank(m_sName)) {
-        AfxMessageBox(_T("A name must be given."));
-    }
-    m_sName.MakeName();
-    m_sName = m_pDoc->GetDict()->GetUniqueName(m_sName);
-    UpdateData(FALSE);
-}
 
+    const std::string_view* const template_to_use =
+        UsingToValues() ? ( ( m_template == DefaultTemplateFrom_sv   ) ? &DefaultTemplateFromTo_sv : nullptr ) :
+                          ( ( m_template == DefaultTemplateFromTo_sv ) ? &DefaultTemplateFrom_sv   : nullptr );
 
-void GenerateVSDlg::OnEnKillfocusGenVsetFrom()
-{
-    UpdateData(TRUE);
-    bool bError = false;
-    // Normalize from value
-    TCHAR pszTemp[30];
-    UINT uDec = m_pItem->GetDecimal();
-    UINT uLen = m_pItem->GetLen();
-    if (uDec > 0 && !m_pItem->GetDecChar()) {
-        uLen++;
-    }
-    CIMSAString sFrom = dtoa(m_dFrom, pszTemp, m_pItem->GetDecimal(), DOT, false);
-    m_dFrom = atod(sFrom);
-    // Check size of from value
-    if ((UINT) sFrom.GetLength() > uLen) {
-        AfxMessageBox(_T("From value is too large."));
-        if (m_dFrom < 0.0) {
-            m_dFrom = m_dMinVal;
-        }
-        else {
-            m_dFrom = 0.0;
-        }
-        bError = true;
-    }
-    // Check if from less than to
-    if (m_dFrom >= m_dTo) {
-        AfxMessageBox(_T("From value must be less than To value."));
-        if (m_dTo > 0.0) {
-            m_dFrom = 0.0;
-        }
-        else {
-            m_dFrom = m_dMinVal;
-        }
-        bError = true;
-    }
-    UpdateData(FALSE);
-    if (bError) {
-        CWnd* pWnd = GetDlgItem(IDC_GEN_VSET_FROM);
-        pWnd->SetFocus();
-    }
-}
-
-
-void GenerateVSDlg::OnEnKillfocusGenVsetTo()
-{
-    UpdateData(TRUE);
-    bool bError = false;
-    // Normalize to value
-    TCHAR pszTemp[30];
-    UINT uDec = m_pItem->GetDecimal();
-    UINT uLen = m_pItem->GetLen();
-    if (uDec > 0 && !m_pItem->GetDecChar()) {
-        uLen++;
-    }
-    CIMSAString sTo = dtoa(m_dTo, pszTemp, m_pItem->GetDecimal(), DOT, false);
-    m_dTo = atod(sTo);
-    if ((UINT) sTo.GetLength() > uLen) {
-        AfxMessageBox(_T("From value is too large."));
-        m_dTo = m_dMaxVal;
-        bError = true;
-    }
-    // Check if to is greater than from
-    if (m_dTo <= m_dFrom) {
-        AfxMessageBox(_T("To value must be greater than From value."));
-        m_dTo = m_dMaxVal;
-        bError = true;
-    }
-    UpdateData(FALSE);
-    if (bError) {
-        CWnd* pWnd = GetDlgItem(IDC_GEN_VSET_TO);
-        pWnd->SetFocus();
-    }
-}
-
-
-void GenerateVSDlg::OnEnKillfocusGetVsetInterval()
-{
-    UpdateData(TRUE);
-    bool bError = false;
-    // Normalize interval value
-    TCHAR pszTemp[30];
-    UINT uDec = m_pItem->GetDecimal();
-    UINT uLen = m_pItem->GetLen();
-    if (uDec > 0 && !m_pItem->GetDecChar()) {
-        uLen++;
-    }
-    CIMSAString sInterval = dtoa(m_dInterval, pszTemp, m_pItem->GetDecimal(), DOT, false);
-    m_dInterval = atod(sInterval);
-    if (m_dInterval > m_dTo - m_dFrom + m_dMinInterval) {
-        AfxMessageBox(_T("Interval is too large."));
-        if (m_pItem->GetLen() < 4) {
-            m_dInterval = 1.0;
-        }
-        else {
-            m_dInterval = pow(10.0,(double) m_pItem->GetLen() - 3);
-        }
-        bError = true;
-    }
-    // Interval must be positive
-    if (m_dInterval <= 0.0) {
-        AfxMessageBox(_T("Interval must be greater than 0."));
-        m_dInterval = 1.0;
-        bError = true;
-    }
-    // Cannot be more than 9999 intervals
-    if ((m_dTo - m_dFrom) / m_dInterval > 9999.0) {
-        AfxMessageBox(_T("Too many intervals (more than 10000)."));
-        if (m_pItem->GetLen() < 4) {
-            m_dInterval = 1.0;
-        }
-        else {
-            m_dInterval = pow(10.0,(double) m_pItem->GetLen() - 3);
-        }
-        bError = true;
-    }
-    if (m_dInterval == m_dMinInterval) {
-        if (m_sTemplate == _T("%s - %s")) {
-            m_sTemplate = _T("%s");
-        }
-    }
-    else {
-        if (m_sTemplate == _T("%s")) {
-            m_sTemplate = _T("%s - %s");
-        }
-    }
-    UpdateData(FALSE);
-    if (bError) {
-        CWnd* pWnd = GetDlgItem(IDC_GET_VSET_INTERVAL);
-        pWnd->SetFocus();
+    if( template_to_use != nullptr )
+    {
+        m_template = *template_to_use;
+        UpdateData(FALSE);
     }
 }
 
@@ -240,13 +104,257 @@ void GenerateVSDlg::OnEnKillfocusGetVsetInterval()
 void GenerateVSDlg::OnOK()
 {
     UpdateData(TRUE);
-    if (SO::IsBlank(m_sLabel)) {
-        AfxMessageBox(_T("Value Set label must be given."));
+
+    try
+    {
+        if( SO::IsBlank(m_label) )
+            throw CSProException("You must specify a value set label.");
+
+        if( SO::IsBlank(m_name) )
+            throw CSProException("You must specify a value set name.");
+
+        if( !ValidateDefinedName() )
+            return;
+
+        ValidateFromTo(m_from, "From");
+        ValidateFromTo(m_to, "To");
+
+        ValidateInterval();
+
+        ValidateTemplate();
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
         return;
     }
-    if (SO::IsBlank(m_sTemplate)) {
-        AfxMessageBox(_T("Template must be given."));
-        return;
+
+    __super::OnOK();
+}
+
+
+bool GenerateVSDlg::ValidateDefinedName()
+{
+    ASSERT(!SO::IsBlank(m_name));
+
+    const std::string valid_name = CIMSAString::MakeName(m_name);
+    std::string valid_and_unique_name = m_dictionary.GetUniqueName(valid_name);
+
+    if( m_name == valid_and_unique_name )
+        return true;
+
+    std::string message = ( m_name != valid_name ) ?
+        FormatText("The name '%s' is not a valid name.", m_name.c_str()) :
+        FormatText("The name '%s' is not unique in the dictionary '%s.", m_name.c_str(), m_dictionary.GetName().c_str());
+
+    message.append(FormatText(" Do you want to use the suggested name '%s'?", valid_and_unique_name.c_str()));
+
+    if( AfxMessageBox(message, MB_YESNO) != IDYES )
+        return false;
+
+    m_name = std::move(valid_and_unique_name);
+
+    CDataExchange dx(this, FALSE);
+    DDX_Text(&dx, IDC_GEN_VSET_NAME, m_name);
+
+    return true;
+}
+
+
+void GenerateVSDlg::ValidateFromTo(double& value, const char* const value_name) const
+{
+    ASSERT(&value == &m_from || &value == &m_to);
+
+    if( value < m_minValue )
+    {
+        throw CSProException("%s value (%s) is too small. The minimum value is: %s",
+                             value_name, DoubleToString(value).c_str(), DoubleToString(m_minValue).c_str());
     }
-    CDialog::OnOK();
+
+    if( value > m_maxValue )
+    {
+        throw CSProException("%s value (%s) is too large. The maximum value is: %s",
+                             value_name, DoubleToString(value).c_str(), DoubleToString(m_maxValue).c_str());
+    }
+
+    if( m_from >= m_to )
+    {
+        if( &value == &m_from )
+        {
+            throw CSProException("From value (%s) must be less than To value (%s).",
+                                 DoubleToString(m_from).c_str(), DoubleToString(m_to).c_str());
+        }
+
+        else
+        {
+            throw CSProException("To value (%s) must be greater than From value (%s).",
+                                 DoubleToString(m_to).c_str(), DoubleToString(m_from).c_str());
+        }
+    }
+}
+
+
+void GenerateVSDlg::ValidateInterval() const
+{
+    ASSERT(m_from < m_to);
+
+    if( m_interval <= 0 )
+    {
+        throw CSProException("The interval (%s) must be greater than 0.",
+                             DoubleToString(m_interval).c_str());
+    }
+
+    if( m_interval < m_minInterval )
+    {
+        throw CSProException("The interval (%s) is too small. The minimum value is: %s",
+                             DoubleToString(m_interval).c_str(),
+                             DoubleToString(m_minInterval).c_str());
+    }
+
+    const double max_calculated_value = m_to - m_from + m_minInterval;
+
+    if( m_interval > max_calculated_value )
+    {
+        throw CSProException("The interval (%s) is too large, resulting in no values between %s and %s.",
+                             DoubleToString(m_interval).c_str(),
+                             DoubleToString(m_from).c_str(),
+                             DoubleToString(m_to).c_str());
+    }
+
+    const double num_intervals = max_calculated_value / m_interval;
+
+    if( num_intervals > MaxNumIntervals )
+    {
+        throw CSProException("The interval (%s) results in too many values (" Formatter_uint64_t "). The maximum number of values is %0.f.",
+                             DoubleToString(m_interval).c_str(),
+                             static_cast<uint64_t>(std::ceil(num_intervals)),
+                             MaxNumIntervals);
+    }
+}
+
+
+void GenerateVSDlg::ValidateTemplate() const
+{
+    if( SO::IsBlank(m_template) )
+        throw CSProException("You must specify a value label template.");
+
+    std::string_view template_sv = m_template;
+    const int max_percent_s_formatters = UsingToValues() ? 2 : 1;
+    int percent_s_formatters_remaining = max_percent_s_formatters;
+    size_t percent_pos;
+
+    while( ( percent_pos = template_sv.find('%') ) != std::string_view::npos )
+    {
+        template_sv.remove_prefix(percent_pos + 1);
+
+        const char formatter = !template_sv.empty() ? template_sv.front() : '\0';
+
+        if( formatter == 's' )
+        {
+            if( percent_s_formatters_remaining-- == 0 )
+            {
+                throw CSProException("The value label template is invalid because it can only use %d %%s formatter%s.",
+                                     max_percent_s_formatters, PluralizeWord(max_percent_s_formatters));
+            }
+        }
+
+        else if( formatter != '%' )
+        {
+            throw CSProException("The value label template formatter is invalid starting at: %%%s",
+                                 std::string(template_sv).c_str());
+        }
+
+        template_sv.remove_prefix(1);
+    }
+}
+
+
+struct GenerateVSDlg::FormattingOptions
+{
+    bool use_leading_zero;
+    char decimal_ch;
+    bool indic_groupings;
+    wchar_t buffer[30];
+};
+
+
+DictValueSet GenerateVSDlg::CreateValueSet() const
+{
+    DictValueSet dict_value_set;
+    dict_value_set.SetName(m_name);
+    dict_value_set.SetLabel(UTF8_TODO::GetCString(m_label));
+
+    // format values based on the locale
+    FormattingOptions options
+    {
+        ( GetLocaleInformation(LOCALE_ILZERO) == "1" ),
+        CIMSAString::GetDecChar(),
+        ( GetLocaleInformation(LOCALE_SGROUPING) == "3;2;0" )
+    };
+
+    const bool using_to_values = UsingToValues();
+
+    for( double lower = m_from; lower <= m_to; lower += m_interval )
+    {
+        std::tuple<std::string, std::string> from_value_and_label = GetFormattedValueAndLabel(options, lower);
+        std::optional<std::tuple<std::string, std::string>> to_value_and_label;
+
+        if( using_to_values )
+        {
+            const double upper = std::min(m_to, lower + m_interval - m_minInterval);
+            to_value_and_label = GetFormattedValueAndLabel(options, upper);
+        }
+
+        DictValue dict_value;
+        dict_value.SetLabel(UTF8_TODO::GetCString(FormatText(m_template.c_str(),
+                                                             std::get<1>(from_value_and_label).c_str(),
+                                                             to_value_and_label.has_value() ? std::get<1>(*to_value_and_label).c_str() : "")));
+
+        dict_value.AddValuePair(DictValuePair(std::move(std::get<0>(from_value_and_label)),
+                                              to_value_and_label.has_value() ? std::move(std::get<0>(*to_value_and_label)) : std::string()));
+
+        dict_value_set.AddValue(std::move(dict_value));
+    }
+
+    if( m_valueOrder == 1 )
+        dict_value_set.ReverseValues();
+
+    auto temp = dict_value_set.GetMinMax();temp;
+    ASSERT(dict_value_set.GetMinMax() == std::make_tuple(m_from, m_to));
+
+    return dict_value_set;
+}
+
+
+std::tuple<std::string, std::string> GenerateVSDlg::GetFormattedValueAndLabel(FormattingOptions& options, const double value) const
+{
+    std::string text_value = UTF8_TODO::GetUtf8(dtoa(value, options.buffer, m_dictItem.GetDecimal(), options.decimal_ch, options.use_leading_zero));
+    std::string label = text_value;
+
+    if( m_useThousandsSeparator == TRUE )
+    {
+        ASSERT(!label.empty() && label.length() == SO::WideLength(label));
+
+        // start processing at the integer portion
+        const size_t first_digit_pos = ( label.front() == '-' ) ? 1 : 0;
+        size_t digit_itr_pos = std::min(label.length(), label.find('.')) - 1;
+        int digits_until_next_separator = 3;
+
+        ASSERT(digit_itr_pos >= first_digit_pos);
+        ASSERT(std::isdigit(label[digit_itr_pos]));
+
+        for( ; digit_itr_pos != first_digit_pos; --digit_itr_pos )
+        {
+            ASSERT(std::isdigit(label[digit_itr_pos]));
+
+            if( --digits_until_next_separator == 0 )
+            {
+                label.insert(digit_itr_pos, m_thousandsSeparator);
+                digits_until_next_separator = options.indic_groupings ? 2 : 3;
+            }
+        }
+    }
+
+    return { std::move(text_value), std::move(label) };
 }

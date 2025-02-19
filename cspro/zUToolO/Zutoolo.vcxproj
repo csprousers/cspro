@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{28F15179-5B3D-4A06-A076-2774611CA534}</ProjectGuid>
     <RootNamespace>zUtoolO</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zUToolO</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -100,7 +96,7 @@
     <ClInclude Include="OxFWndDk.h" />
     <ClInclude Include="oxgedt.h" />
     <ClInclude Include="oxghdr.h" />
-    <ClInclude Include="OXGLRES.H" />
+    <ClInclude Include="Oxglres.h" />
     <ClInclude Include="oxMDkFW.h" />
     <ClInclude Include="OxMFlWnd.h" />
     <ClInclude Include="OxRTrack.h" />
@@ -109,12 +105,19 @@
     <ClInclude Include="OxszDKB.h" />
     <ClInclude Include="OxSzDlgB.h" />
     <ClInclude Include="oxtbvw.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TreePropertiesPageValidator.h" />
     <ClInclude Include="TreePrps.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zUtoolO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,7 +22,7 @@ Logger::~Logger()
 }
 
 
-void Logger::SendPortableMessage(PortableMessage message, const Application* application/* = nullptr*/)
+void Logger::SendPortableMessage(const PortableMessage message, const Application* const application/* = nullptr*/)
 {
 #ifdef WIN_DESKTOP
     UNREFERENCED_PARAMETER(message);
@@ -34,21 +34,26 @@ void Logger::SendPortableMessage(PortableMessage message, const Application* app
 }
 
 
-const std::wstring& Logger::GetFilename()
+const std::string& Logger::GetFilePath()
 {
-    return IsOpen() ? _logger.m_filename :
-                      SO::EmptyString;
+    if( IsOpen() )
+    {
+        ASSERT(_logger.m_filePath == _logger.m_log->GetFilePath());
+        return _logger.m_filePath;
+    }
+
+    return SO::Empty_string;
 }
 
 
-bool Logger::Start(std::wstring filename, const Application* application/* = nullptr*/)
+bool Logger::Start(std::string file_path, const Application* const application/* = nullptr*/)
 {
-    if( !IsOpen() && !filename.empty() )
+    if( !IsOpen() && !file_path.empty() )
     {
         try
         {
-            _logger.m_log = std::make_unique<Log>(filename);
-            _logger.m_filename = std::move(filename);
+            _logger.m_log = std::make_unique<Log>(file_path);
+            _logger.m_filePath = std::move(file_path);
             _logger.m_includedEvents.resize(ParadataTable_NumberTables, true);
         }
 
@@ -142,7 +147,7 @@ sqlite3* Logger::GetSqlite()
 }
 
 
-void Logger::LogEvent(std::shared_ptr<Event> event, const void* instance_object/* = nullptr*/)
+void Logger::LogEvent(std::shared_ptr<Event> event, const void* const instance_object/* = nullptr*/)
 {
     if( !IsOpen() || !_logger.m_includedEvents[static_cast<size_t>(event->GetType())] )
         return;
@@ -165,5 +170,6 @@ void Logger::LogEvent(std::shared_ptr<Event> event, const void* instance_object/
 std::unique_ptr<Syncer> Logger::GetSyncer()
 {
     ASSERT(IsOpen());
-    return std::make_unique<Syncer>(*_logger.m_log);
+
+    return std::make_unique<Syncer>(_logger.m_log.get());
 }

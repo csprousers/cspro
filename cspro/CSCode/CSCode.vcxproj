@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5fe16724-ee73-46e8-805a-6894a9a083ab}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -66,24 +62,24 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CodeFrame.cpp" />
     <ClCompile Include="BuildWnd.cpp" />
+    <ClCompile Include="CodeDoc.cpp" />
+    <ClCompile Include="CodeFrame.cpp" />
+    <ClCompile Include="CodeView.cpp" />
     <ClCompile Include="CSCode.cpp" />
     <ClCompile Include="HtmlDialogCodeView.cpp" />
     <ClCompile Include="HtmlDialogTemplates.cpp" />
     <ClCompile Include="HtmlDialogTemplatesDlg.cpp" />
     <ClCompile Include="HtmlViewerWnd.cpp" />
+    <ClCompile Include="LanguageSettings.cpp" />
     <ClCompile Include="LanguageSettingsPersister.cpp" />
     <ClCompile Include="LocalhostSettingsDlg.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="ProcessorActionInvoker.cpp" />
     <ClCompile Include="ProcessorHtml.cpp" />
     <ClCompile Include="ProcessorJavaScript.cpp" />
     <ClCompile Include="ProcessorJson.cpp" />
-    <ClCompile Include="LanguageSettings.cpp" />
-    <ClCompile Include="MainFrame.cpp" />
-    <ClCompile Include="CodeDoc.cpp" />
-    <ClCompile Include="CodeView.cpp" />
-    <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="ProcessorMessages.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -94,26 +90,26 @@
     <ResourceCompile Include="CSCode.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildWnd.h" />
+    <ClInclude Include="CodeDoc.h" />
     <ClInclude Include="CodeDocVirtualFileMappingHandler.h" />
     <ClInclude Include="CodeFrame.h" />
-    <ClInclude Include="BuildWnd.h" />
+    <ClInclude Include="CodeView.h" />
     <ClInclude Include="CSCode.h" />
     <ClInclude Include="HtmlDialogCodeView.h" />
     <ClInclude Include="HtmlDialogTemplates.h" />
     <ClInclude Include="HtmlDialogTemplatesDlg.h" />
     <ClInclude Include="HtmlViewerWnd.h" />
+    <ClInclude Include="LanguageSettings.h" />
     <ClInclude Include="LanguageSettingsPersister.h" />
     <ClInclude Include="LocalhostSettingsDlg.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="OutputWnd.h" />
     <ClInclude Include="ProcessorActionInvoker.h" />
     <ClInclude Include="ProcessorHtml.h" />
     <ClInclude Include="ProcessorJavaScript.h" />
     <ClInclude Include="ProcessorJson.h" />
-    <ClInclude Include="LanguageSettings.h" />
-    <ClInclude Include="MainFrame.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="CodeDoc.h" />
-    <ClInclude Include="CodeView.h" />
-    <ClInclude Include="OutputWnd.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RunOperation.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UWM.h" />
@@ -183,6 +179,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zSortO\zSortO.vcxproj">
       <Project>{d4ca666c-f10e-4bc1-bc08-ba291052c1d9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolso\zToolsO.vcxproj">

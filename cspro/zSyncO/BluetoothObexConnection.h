@@ -2,24 +2,21 @@
 
 #include <zSyncO/BluetoothDeviceInfo.h>
 #include <zSyncO/ObexConstants.h>
-#include <zNetwork/HeaderList.h>
 
-class ObexClient;
-struct IBluetoothAdapter;
-struct IDataChunk;
+class HeaderList;
+class IBluetoothAdapter;
+class IDataChunk;
 struct IObexTransport;
-struct ISyncListener;
+class ObexClient;
+class SyncListener;
 
 
-/**
-* Client side connection for smart sync over Bluetooth using Obex
-*/
-class BluetoothObexConnection {
+//  Client side connection for smart sync over Bluetooth using Obex
 
+class BluetoothObexConnection
+{
 public:
-
-    BluetoothObexConnection(IBluetoothAdapter* pAdapter);
-
+    BluetoothObexConnection(std::shared_ptr<IBluetoothAdapter> pAdapter);
     ~BluetoothObexConnection();
 
     bool connect(const BluetoothDeviceInfo& deviceInfo);
@@ -32,12 +29,11 @@ public:
 
     IDataChunk& getChunk();
 
-    virtual void setListener(ISyncListener* pListener);
+    void SetSyncListener(std::shared_ptr<SyncListener> sync_listener) { m_syncListener = std::move(sync_listener); }
 
 private:
-
-    IObexTransport* m_pTransport;
-    ObexClient* m_pObexClient;
-    IBluetoothAdapter* m_pAdapter;
-    ISyncListener* m_pListener;
+    std::shared_ptr<IBluetoothAdapter> m_pAdapter;
+    std::unique_ptr<IObexTransport> m_pTransport;
+    std::unique_ptr<ObexClient> m_pObexClient;
+    std::shared_ptr<SyncListener> m_syncListener;
 };

@@ -46,7 +46,7 @@ namespace
         {
             return ( argument.CompareNoCase(CSPRO_ARG_YES) == 0 ) ? true :
                    ( argument.CompareNoCase(CSPRO_ARG_NO) == 0 ) ? false :
-                   throw CSProException(_T("The argument '%s' was not a boolean (Yes/No)."), argument.GetString());
+                   throw CSProException("The argument '%s' was not a boolean (Yes/No).", UTF8_TODO::GetUtf8(argument).c_str());
         };
 
         auto argument_as_int = [&]()
@@ -56,10 +56,10 @@ namespace
 
         if( command_is(_T("Collection")) )
         {
-            m_node.Set(JK::collection, argument_is(_T("AllEvents"))  ? _T("all") :
-                                       argument_is(_T("SomeEvents")) ? _T("partial") :
-                                       argument_is(_T("No"))         ? _T("none") :
-                                                                       argument);
+            m_node.Set(JK::collection, argument_is(_T("AllEvents"))  ? "all" :
+                                       argument_is(_T("SomeEvents")) ? "partial" :
+                                       argument_is(_T("No"))         ? "none" :
+                                                                       UTF8_TODO::GetUtf8(argument).c_str());
         }
 
         else if( command_is(_T("RecordIteratorLoadCases")) )
@@ -107,19 +107,19 @@ namespace
 }
 
 
-std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
+std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
 
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the Application file: %s"), filename.c_str());
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the Application file: %s", file_path.c_str_utf8());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
     json_writer->Write(JK::version, 7.7);
-    json_writer->Write(JK::fileType, _T("application"));
+    json_writer->Write(JK::fileType, "application");
 
     enum class Section { Properties, ExternalDictionaries, Logic, Messages, Reports, QuestionText,
                          FormsOrdersTabSpecs, Resources, DictionaryTypes, Sync, Mapping };
@@ -128,7 +128,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
     std::optional<double> file_version;
     std::optional<EngineAppType> engine_app_type;
 
-    auto properties_json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> properties_json_writer = Json::CreateStringWriter();
     properties_json_writer->BeginObject();
 
     Json::ObjectCreator partial_save_node;
@@ -139,9 +139,9 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
     std::vector<DictionaryDescription> dictionary_descriptions;
     std::vector<CodeFile> code_files;
     std::vector<CString> message_filenames;
-    std::unique_ptr<JsonStringWriter<wchar_t>> reports_json_writer;
+    std::unique_ptr<JsonStringWriter> reports_json_writer;
     std::vector<CString> form_order_tab_spec_filenames;
-    std::vector<CString> resource_folders;
+    std::vector<AppResource> resources;
     std::optional<Json::ObjectCreator> sync_node;
     std::optional<Json::ObjectCreator> mapping_node;
 
@@ -164,7 +164,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
         {
             return ( argument.CompareNoCase(CSPRO_ARG_YES) == 0 ) ? true :
                    ( argument.CompareNoCase(CSPRO_ARG_NO) == 0 ) ? false :
-                   throw CSProException(_T("The argument '%s' was not a boolean (Yes/No)."), argument.GetString());
+                   throw CSProException("The argument '%s' was not a boolean (Yes/No).", UTF8_TODO::GetUtf8(argument).c_str());
         };
 
         auto argument_as_int = [&]()
@@ -174,7 +174,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
         auto throw_invalid_command = [&]()
         {
-            throw CSProException(_T("Spec File: Invalid command: %s"), command.GetString());
+            throw CSProException("Spec File: Invalid command: %s", UTF8_TODO::GetUtf8(command).c_str());
         };
 
         while( specfile.GetLine(command, argument) == SF_OK )
@@ -247,7 +247,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
                 else if( command_is(_T("Version")) )
                 {
-                    file_version = GetCSProVersionNumeric(argument);
+                    file_version = GetCSProVersionNumeric(UTF8_TODO::GetUtf8(argument));
 
                     // for older applications, set some new properties to what their old state would have been
                     if( file_version < 7.4 )
@@ -271,7 +271,8 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                                       argument_is(_T("Batch"))      ? EngineAppType::Batch :
                                                                       EngineAppType::Invalid;
 
-                    json_writer->Write(JK::type, ( engine_app_type == EngineAppType::Entry ) ? _T("entry") : SO::ToLower(argument));
+                    json_writer->Write(JK::type, ( engine_app_type == EngineAppType::Entry ) ? std::string_view("entry") :
+                                                                                               std::string_view(SO::ToLower(UTF8_TODO::GetUtf8(argument))));
 
                     if( engine_app_type == EngineAppType::Tabulation && file_version < 3.0 )
                         throw CSProException("Can support only .xtb files of CSPro 3.0 or newer.");
@@ -300,11 +301,11 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                 else if( command_is(_T("CaseTree")) )
                 {
                     properties_json_writer->Write(JK::caseTree,
-                        ( argument_is(_T("Yes")) || argument_is(_T("Always")) )      ? _T("on") :
-                        ( argument_is(_T("Desktop")) || argument_is(_T("Windows")) ) ? _T("desktopOnly") :
-                        ( argument_is(_T("Mobile")) )                                ? _T("mobileOnly") :
-                        ( argument_is(_T("Never")) )                                 ? _T("off") :
-                                                                                       argument);
+                        ( argument_is(_T("Yes")) || argument_is(_T("Always")) )      ? "on" :
+                        ( argument_is(_T("Desktop")) || argument_is(_T("Windows")) ) ? "desktopOnly" :
+                        ( argument_is(_T("Mobile")) )                                ? "mobileOnly" :
+                        ( argument_is(_T("Never")) )                                 ? "off" :
+                                                                                       UTF8_TODO::GetUtf8(argument).c_str());
                 }
 
                 else if( command_is(_T("CenterForms")) )
@@ -314,7 +315,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
                 else if( command_is(_T("DecimalComma")) )
                 {
-                    properties_json_writer->Write(JK::decimalMark, argument_as_bool() ? _T("comma") : _T("dot"));
+                    properties_json_writer->Write(JK::decimalMark, argument_as_bool() ? "comma" : "dot");
                 }
 
                 else if( command_is(_T("VerifyFrequency")) )
@@ -326,13 +327,13 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                 {
                     if( argument_is(_T("RANDOM")) )
                     {
-                        verify_node.Set(JK::start, SO::ToLower(argument));
+                        verify_node.Set(JK::start, SO::ToLower(UTF8_TODO::GetUtf8(argument)));
                     }
 
                     else
                     {
                         verify_node.Set(JK::start, argument_as_int());
-                    }                    
+                    }
                 }
 
                 else if( command_is(_T("UseHtmlDialogs")) )
@@ -357,14 +358,14 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
                 else if( command_is(_T("NotesDeleteOtherOperators")) )
                 {
-                    notes_node.Set(JK::delete_, argument_as_bool() ? _T("all") : _T("operator"));
+                    notes_node.Set(JK::delete_, argument_as_bool() ? "all" : "operator");
                 }
-                
+
                 else if( command_is(_T("NotesEditOtherOperators")) )
                 {
-                    notes_node.Set(JK::edit, argument_as_bool() ? _T("all") : _T("operator"));
+                    notes_node.Set(JK::edit, argument_as_bool() ? "all" : "operator");
                 }
-                
+
                 else if( command_is(_T("AutoAdvanceOnSelection")) )
                 {
                     properties_json_writer->Write(JK::autoAdvanceOnSelection, argument_as_bool());
@@ -429,7 +430,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
             {
                 if( command_is(_T("File")) )
                 {
-                    dictionary_descriptions.emplace_back(CS2WS(specfile.EvaluateRelativeFilename(argument)), DictionaryType::External);
+                    dictionary_descriptions.emplace_back(UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)), DictionaryType::External);
                 }
 
                 else
@@ -440,10 +441,10 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
             else if( current_section == Section::Logic  )
             {
-                if( bool main_file = command_is(_T("File")); main_file || command_is(_T("Include")) )
+                if( const bool main_file = command_is(_T("File")); main_file || command_is(_T("Include")) )
                 {
                     code_files.emplace_back(main_file ? CodeType::LogicMain : CodeType::LogicExternal,
-                                            std::make_shared<TextSource>(CS2WS(specfile.EvaluateRelativeFilename(argument))));
+                                            std::make_unique<TextSource>(UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument))));
                 }
 
                 else
@@ -505,7 +506,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
             {
                 if( command_is(_T("Folder")) )
                 {
-                    resource_folders.emplace_back(specfile.EvaluateRelativeFilename(argument).TrimRight(PATH_CHAR));
+                    resources.emplace_back(PortableFunctions::PathRemoveTrailingSlash(UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument))));
                 }
 
                 else
@@ -513,7 +514,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                     throw_invalid_command();
                 }
             }
-            
+
             else if( current_section == Section::DictionaryTypes )
             {
                 if( command_is(_T("Dict-Type")) )
@@ -521,28 +522,28 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                     std::vector<std::wstring> arguments = SO::SplitString(argument, ',');
 
                     if( arguments.size() < 2 || arguments.size() > 3 )
-                        throw CSProException(_T("Invalid dictionary type: %s"), argument.GetString());
+                        throw CSProException("Invalid dictionary type: %s", UTF8_TODO::GetUtf8(argument).c_str());
 
                     DictionaryType dictionary_type = SO::EqualsNoCase(arguments[1], _T("Input"))   ? DictionaryType::Input :
                                                      SO::EqualsNoCase(arguments[1], _T("Output"))  ? DictionaryType::Output :
                                                      SO::EqualsNoCase(arguments[1], _T("Working")) ? DictionaryType::Working :
                                                                                                      DictionaryType::External;
 
-                    std::wstring parent_filename = ( arguments.size() == 3 ) ? CS2WS(specfile.EvaluateRelativeFilename(WS2CS(arguments[2]))) :
-                                                                               std::wstring();
+                    std::string parent_file_path = ( arguments.size() == 3 ) ? UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(WS2CS(arguments[2]))) :
+                                                                               std::string();
 
                     // the dictionary filename is relative to the parent (when applicable)
-                    std::wstring dictionary_filename = parent_filename.empty() ? CS2WS(specfile.EvaluateRelativeFilename(WS2CS(arguments[0]))) :
-                                                                                 MakeFullPath(PortableFunctions::PathGetDirectory(parent_filename), arguments[0]);
+                    std::string dictionary_file_path = parent_file_path.empty() ? UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(WS2CS(arguments[0]))) :
+                                                                                  MakeFullPath(PortableFunctions::PathGetDirectory(parent_file_path), UTF8_TODO::GetUtf8(arguments[0]));
 
                     // remove the description added in the external dictionaries section
                     const auto& dd_lookup = std::find_if(dictionary_descriptions.cbegin(), dictionary_descriptions.cend(),
-                                                         [&](const auto& dd) { return SO::EqualsNoCase(dd.GetDictionaryFilename(), dictionary_filename); });
+                                                         [&](const auto& dd) { return SO::EqualsNoCase(dd.GetDictionaryFilePath(), dictionary_file_path); });
 
                     if( dd_lookup != dictionary_descriptions.cend() )
                         dictionary_descriptions.erase(dd_lookup);
 
-                    dictionary_descriptions.emplace_back(std::move(dictionary_filename), std::move(parent_filename), dictionary_type);
+                    dictionary_descriptions.emplace_back(std::move(dictionary_file_path), std::move(parent_file_path), dictionary_type);
                 }
 
                 else
@@ -550,19 +551,19 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                     throw_invalid_command();
                 }
             }
-                        
+
             else if( current_section == Section::Sync )
             {
                 ASSERT(sync_node.has_value());
 
                 if( command_is(_T("Server")) )
                 {
-                    sync_node->Set(JK::server, argument);
+                    sync_node->Set(JK::connection, argument);
                 }
 
                 else if( command_is(_T("Direction")) )
                 {
-                    sync_node->Set(JK::direction, SO::ToLower(argument));
+                    sync_node->Set(JK::direction, SO::ToLower(UTF8_TODO::GetUtf8(argument)));
                 }
 
                 else if( !command_is(_T("AppDownloadPath")) &&
@@ -572,7 +573,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                     throw_invalid_command();
                 }
             }
-                                    
+
             else if( current_section == Section::Mapping )
             {
                 ASSERT(mapping_node.has_value());
@@ -613,7 +614,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
                            ( engine_app_type == EngineAppType::Tabulation ) ? JK::tableSpecs :
                                                                               JK::forms, form_order_tab_spec_filenames);
 
-        json_writer->Write(JK::resources, resource_folders);
+        json_writer->Write(JK::resources, resources);
 
         properties_json_writer->Write(JK::partialSave, partial_save_node.GetJsonNode());
         properties_json_writer->Write(JK::verify, verify_node.GetJsonNode());
@@ -627,7 +628,7 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
 
         if( mapping_node.has_value() )
         {
-            mapping_node->Set(JK::type, _T("map"));
+            mapping_node->Set(JK::type, "map");
             properties_json_writer->Write(JK::caseListing, mapping_node->GetJsonNode());
         }
 
@@ -641,24 +642,25 @@ std::wstring Application::ConvertPre80SpecFile(NullTerminatedString filename)
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the Application specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the Application specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(),
+                             exception.what());
     }
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }
 
 
-std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString filename)
+std::string ApplicationProperties::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
 
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the Application Properties file: %s"), filename.c_str());
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the Application Properties file: %s", file_path.c_str_utf8());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -671,7 +673,7 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
     ParadataNode paradata_node;
 
     Json::ObjectCreator mapping_node;
-    std::unique_ptr<JsonStringWriter<wchar_t>> mapping_tile_provider_json_writer;
+    std::unique_ptr<JsonStringWriter> mapping_tile_provider_json_writer;
 
     try
     {
@@ -681,7 +683,7 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
         auto read_header = [&](const TCHAR* header)
         {
             if( !specfile.IsHeaderOK(header) )
-                throw CSProException(_T("The heading or section '%s' was missing"), header);
+                throw CSProException("The heading or section '%s' was missing", UTF8_TODO::GetUtf8(header).c_str());
         };
 
         auto command_is = [&](wstring_view text)
@@ -698,7 +700,7 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
         {
             return ( argument.CompareNoCase(CSPRO_ARG_YES) == 0 ) ? true :
                    ( argument.CompareNoCase(CSPRO_ARG_NO) == 0 ) ? false :
-                   throw CSProException(_T("The argument '%s' was not a boolean (Yes/No)."), argument.GetString());
+                   throw CSProException("The argument '%s' was not a boolean (Yes/No).", UTF8_TODO::GetUtf8(argument).c_str());
         };
 
         auto argument_as_int = [&]()
@@ -708,14 +710,14 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
 
         auto throw_invalid_command = [&]()
         {
-            throw CSProException(_T("Spec File: Invalid command: %s"), command.GetString());
+            throw CSProException("Spec File: Invalid command: %s", UTF8_TODO::GetUtf8(command).c_str());
         };
 
         // is this a correct spec file?
         read_header(_T("[CSPro Properties]"));
 
         // read the version number (ignoring errors)
-        specfile.IsVersionOK(CSPRO_VERSION);
+        specfile.IsVersionOK(Versioning::CSProVersionText);
 
         while( specfile.GetLine(command, argument) == SF_OK )
         {
@@ -759,7 +761,7 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
             {
                 if( command_is(_T("CoordinateDisplay")) )
                 {
-                    mapping_node.Set(JK::coordinateDisplay, argument_is(_T("Decimal")) ? _T("decimal") : argument);
+                    mapping_node.Set(JK::coordinateDisplay, argument_is(_T("Decimal")) ? "decimal" : UTF8_TODO::GetUtf8(argument).c_str());
                 }
 
                 else if( command_is(_T("DefaultBaseMap")) )
@@ -794,7 +796,7 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
 
                 else
                 {
-                    mapping_tile_provider_json_writer->Write(command, argument);
+                    mapping_tile_provider_json_writer->Write(UTF8_TODO::GetUtf8(command), argument);
                 }
             }
 
@@ -811,8 +813,9 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the Application Properties specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the Application Properties specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(),
+                             exception.what());
     }
 
     paradata_node.WriteNode(*json_writer);
@@ -828,5 +831,5 @@ std::wstring ApplicationProperties::ConvertPre80SpecFile(NullTerminatedString fi
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }

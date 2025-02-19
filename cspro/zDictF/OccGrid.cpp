@@ -75,7 +75,7 @@ void COccGrid::OnSetup()
     for (int row = 0; row < m_iRows; row++)
     {
         QuickSetText(0,row,m_Labels[row]);
-        QuickSetText(-1,row,IntToString(row+1));
+        QuickSetText(-1,row,UTF8_TODO::GetCString(IntToString(row+1)));
         QuickSetAlignment (-1,row, UG_ALIGNBOTTOM | UG_ALIGNCENTER);
     }
 
@@ -406,7 +406,7 @@ bool COccGrid::IsClipValidForPaste() const
     bool valid_line_found = false;
 
     SO::ForeachLine(WinClipboard::GetText(), false,
-        [&](wstring_view /*line*/)
+        [&](wstring_view /*line_sv*/)
         {
             valid_line_found = true;
             return false;

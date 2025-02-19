@@ -12,70 +12,12 @@
 #include "INTERPRE.H"
 #include "Engine.h"
 #include "Ctab.h"
-#include "EngineStringComparer.h"
 #include "helper.h"
 #include <zEngineO/Block.h>
-#include <zEngineO/List.h>
-#include <zEngineO/ValueSet.h>
-#include <zEngineO/Versioning.h>
 #include <zEngineO/WorkVariable.h>
 #include <zEngineO/Nodes/Switch.h>
 #include <zDictO/ValueProcessor.h>
 #include <Zissalib/groupt2.h>
-
-
-/*--------------------------------------------------------------------------*/
-/*  node helpers                                                            */
-/*--------------------------------------------------------------------------*/
-
-const Nodes::List& CIntDriver::GetListNode(int program_index) const
-{
-    if( program_index != -1 )
-    {
-        return GetNode<Nodes::List>(program_index);
-    }
-
-    else
-    {
-        // return a dummy empty list node
-        ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
-        return GetOptionalListNode(-1);
-    }
-}
-
-
-const Nodes::List& CIntDriver::GetOptionalListNode(int program_index) const
-{
-    if( program_index != -1 )
-    {
-        return GetNode<Nodes::List>(program_index);
-    }
-
-    else
-    {
-        // return a dummy empty list node
-        const static Nodes::List list_node = { 0, 0 };
-        return list_node;
-    }
-}
-
-
-std::vector<int> CIntDriver::GetListNodeContents(int program_index) const
-{
-    const Nodes::List& list_node = GetListNode(program_index);
-    return std::vector<int>(list_node.elements, list_node.elements + list_node.number_elements);
-}
-
-
-
-/*--------------------------------------------------------------------------*/
-/*  exnumericconstant: value of a constant                                  */
-/*--------------------------------------------------------------------------*/
-double CIntDriver::exnumericconstant(int iExpr)
-{
-    const auto& const_node = GetNode<CONST_NODE>(iExpr);
-    return GetNumericConstant(const_node.const_index);
-}
 
 
 /*--------------------------------------------------------------------------*/
@@ -87,16 +29,6 @@ double CIntDriver::exsvar(int iExpr)
     SVAR_NODE* ptrvar = (SVAR_NODE*)PPT(iExpr);
     VARX* pVarX = VPX(ptrvar->m_iVarIndex);
     return svarvalue(pVarX);
-}
-
-
-/*--------------------------------------------------------------------------*/
-/*  exworkvariable: value of work variable                                  */
-/*--------------------------------------------------------------------------*/
-double CIntDriver::exworkvariable(int iExpr)
-{
-    const auto& svar_node = GetNode<SVAR_NODE>(iExpr);
-    return GetSymbolWorkVariable(svar_node.m_iVarIndex).GetValue();
 }
 
 
@@ -543,124 +475,6 @@ TRUE    or  TRUE    =TRUE
 */
 
 
-bool CIntDriver::InWorker(int in_node_expression, const std::variant<double, std::wstring>& value,
-                          const std::function<const std::variant<double, std::wstring>&(int)>* expression_evaluator/* = nullptr*/)
-{
-    const Nodes::In::Entry* in_node_entry = &GetNode<Nodes::In::Entry>(in_node_expression);
-    const bool is_alpha_expression = std::holds_alternative<std::wstring>(value);
-
-    while( in_node_entry != nullptr )
-    {
-        bool in_range = false;
-
-        // using a list or a value set
-        if( in_node_entry->expression_low < 0 )
-        {
-            const Symbol& symbol = NPT_Ref(-1 * in_node_entry->expression_low);
-
-            if( symbol.IsA(SymbolType::List) )
-            {
-                const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-                in_range = is_alpha_expression ? logic_list.Contains(std::get<std::wstring>(value)) :
-                                                 logic_list.Contains(std::get<double>(value));
-            }
-
-            else
-            {
-                const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
-                const ValueProcessor& value_processor = value_set.GetValueProcessor();
-                in_range = is_alpha_expression ? value_processor.IsValid(WS2CS(std::get<std::wstring>(value))) :
-                                                 value_processor.IsValid(std::get<double>(value));
-            }
-        }
-
-        // or a range
-        else
-        {
-            const bool range_has_two_values = ( in_node_entry->expression_high != -1 );
-
-            // alpha
-            if( is_alpha_expression )
-            {
-                auto get_string_comparison = [&](int expression)
-                {
-                    const std::wstring rhs = ( expression_evaluator == nullptr ) ? EvalAlphaExpr(expression) :
-                                                                                   std::get<std::wstring>((*expression_evaluator)(expression));
-
-                    return m_usingLogicSettingsV0 ? EngineStringComparer::V0::Compare(std::get<std::wstring>(value), rhs) :
-                                                    std::get<std::wstring>(value).compare(rhs);
-                };
-
-                const int alpha_comparison = get_string_comparison(in_node_entry->expression_low);
-                in_range = ( alpha_comparison == 0 );
-
-                if( !in_range && range_has_two_values && alpha_comparison > 0 )
-                    in_range = ( get_string_comparison(in_node_entry->expression_high) <= 0 );
-            }
-
-            // numeric
-            else
-            {
-                auto get_number = [&](int expression) -> double
-                {
-                    return ( expression_evaluator == nullptr ) ? evalexpr(expression) :
-                                                                 std::get<double>((*expression_evaluator)(expression));
-                };
-
-                const double low_value = get_number(in_node_entry->expression_low);
-
-                if( range_has_two_values )
-                {
-                    const double high_value = get_number(in_node_entry->expression_high);
-
-                    if( !IsSpecial(std::get<double>(value)) )
-                    {
-                        in_range = ( std::get<double>(value) >= low_value &&
-                                     std::get<double>(value) <= high_value );
-                    }
-
-                    // handle the "special" alias that gets compiled as a range
-                    else if( low_value == SpecialValues::SmallestSpecialValue() && high_value == SpecialValues::LargestSpecialValue() )
-                    {
-                        in_range = true;
-                    }
-                }
-
-                else
-                {
-                    in_range = ( std::get<double>(value) == low_value );
-                }
-            }
-        }
-
-        if( in_range )
-            return true;
-
-        in_node_entry = ( in_node_entry->next_entry_index != -1 ) ? &GetNode<Nodes::In::Entry>(in_node_entry->next_entry_index) :
-                                                                      nullptr;
-    }
-
-    return false;
-}
-
-
-double CIntDriver::exin(int iExpr)
-{
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-    {
-        const auto& in_node = GetNode<Nodes::In>(iExpr);
-        return InWorker(in_node.right_expr, EvaluateVariantExpression(in_node.data_type, in_node.left_expr));
-    }
-
-    else
-    {
-        const auto& operator_node = GetNode<Nodes::Operator>(iExpr);
-        const bool numeric = ( GetNode<Nodes::Operator>(operator_node.left_expr).oper != CHOBJ_CODE );
-        return InWorker(operator_node.right_expr, EvaluateVariantExpression(numeric, operator_node.left_expr));
-    }
-}
-
-
 double CIntDriver::exinsert_delete(int iExpr)
 {
     const FNINS_NODE* func_node = (FNINS_NODE*)PPT(iExpr);
@@ -914,7 +728,7 @@ double CIntDriver::exswap(int iExpr) // 20100105
     int data_occurrences = pGroupT->GetDataOccurrences();
 
     // invalid subscripts
-    if( occurrence1 < 1 || occurrence2 < 1 || occurrence1 > data_occurrences || occurrence2 > data_occurrences ) 
+    if( occurrence1 < 1 || occurrence2 < 1 || occurrence1 > data_occurrences || occurrence2 > data_occurrences )
     {
         //1089 Invalid subscript in swap: %s(%d and %d), occs = %d -- %p
         issaerror(MessageType::Error, 1089, pGroupT->GetName().c_str(), occurrence1, occurrence2, data_occurrences);
@@ -922,7 +736,7 @@ double CIntDriver::exswap(int iExpr) // 20100105
     }
 
     // quit out if no need to swap
-    if( occurrence1 == occurrence2 ) 
+    if( occurrence1 == occurrence2 )
         return 1;
 
     // code adapted from exsort and GROUPT::SortOcc

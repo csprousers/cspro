@@ -1,85 +1,56 @@
 ﻿#include "stdafx.h"
-
-#include "CppUnitTest.h"
-#include <zSyncO/SyncObexHandler.h>
-#include <zSyncO/JsonConverter.h>
-#include <zSyncO/SyncRequest.h>
-#include <zSyncO/ConnectResponse.h>
-#include <zSyncO/IDataRepositoryRetriever.h>
-#include <fstream>
-#include "TestRepoBuilder.h"
-#include <zDictO/DDClass.h>
-#include <zSyncO/SyncCustomHeaders.h>
-#include <zZipo/ZipUtility.h>
 #include "CaseTestHelpers.h"
+#include "TestRepoBuilder.h"
 #include <zToolsO/PortableFunctions.h>
 #include <zUtilO/Versioning.h>
+#include <zDictO/DDClass.h>
+#include <zNetwork/SyncCustomHeaders.h>
+#include <zSyncO/SyncObexHandler.h>
+#include <fstream>
 
-namespace Microsoft {
-    namespace VisualStudio {
-        namespace CppUnitTestFramework
-        {
-            // ToString specialization is required for all types used in the AssertTrue macro
-            template<> inline std::wstring ToString<CString>(const CString& t) { return std::wstring(t); }
-        }
-    }
-}
-
-namespace {
-    JsonConverter jsonConverter;
-}
-
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace fakeit;
+
 
 namespace SyncUnitTest
 {
     TEST_CLASS(SyncObexHandlerTest)
     {
     private:
-        const DeviceId serverDeviceId = L"serverid";
-        const DeviceId clientDeviceId = L"clientid";
-        const CString dictionary = L"popstan";
-
-    private:
-
-        void createTestFile(const wchar_t* path, const char* content)
-        {
-            std::wofstream s(path, std::ios::binary);
-            s << content;
-            s.close();
-        }
+        const DeviceId serverDeviceId = "serverid";
+        const DeviceId clientDeviceId = "clientid";
+        const std::string dictionary = "popstan";
 
     public:
         TEST_METHOD(TestGetDeviceId)
         {
-            SyncObexHandler handler(serverDeviceId, nullptr, CString(), nullptr);
+            SyncObexHandler handler(serverDeviceId, std::string(), nullptr);
             std::unique_ptr<IObexResource> resource;
             ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, L"", HeaderList(), resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForReading();
             std::string responseJson;
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            std::unique_ptr<ConnectResponse> response(jsonConverter.connectResponseFromJson(responseJson));
-            Assert::AreEqual(serverDeviceId, response->getServerDeviceId());
+            ConnectResponse response = Json::FromJson<ConnectResponse>(responseJson);
+            Assert::AreEqual(serverDeviceId, response.GetServerDeviceId());
         }
+
 
         TEST_METHOD(TestSync)
         {
-            std::unique_ptr<const CDataDict> data_dictionary = createTestDict();
+            std::unique_ptr<const CDataDict> data_dictionary = CreateTestDictionary();
             std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*data_dictionary);
             TestRepoBuilder serverRepoBuilder(serverDeviceId, data_dictionary.get());
             ISyncableDataRepository* pServerRepo = serverRepoBuilder.GetRepo();
 
-            Mock<IDataRepositoryRetriever> mockRepoRetriever;
-            When(Method(mockRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            Mock<ISyncObexEngineAccessor> mockEngineAccessor;
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            SyncObexHandler handler(serverDeviceId, &mockRepoRetriever.get(), CString(), nullptr);
+            SyncObexHandler handler(serverDeviceId, std::string(), std::unique_ptr<ISyncObexEngineAccessor>(&mockEngineAccessor.get()));
 
             // Add a few initial cases to the server
-            auto initServerCase1 = makeCase(*case_access, L"guid1", 1, { L"initialserverdata1" });
-            auto initServerCase2 = makeCase(*case_access, L"guid2", 2, { L"initialserverdata2" });
-            auto initServerCase3 = makeCase(*case_access, L"guid3", 3, { L"initialserverdata3" });
+            std::shared_ptr<Case> initServerCase1 = CreateCase(*case_access, "guid1", 1, { "initialserverdata1" });
+            std::shared_ptr<Case> initServerCase2 = CreateCase(*case_access, "guid2", 2, { "initialserverdata2" });
+            std::shared_ptr<Case> initServerCase3 = CreateCase(*case_access, "guid3", 3, { "initialserverdata3" });
             VectorClock clockServer1;
             clockServer1.increment(serverDeviceId);
             initServerCase1->SetVectorClock(clockServer1);
@@ -93,10 +64,10 @@ namespace SyncUnitTest
             serverRepoBuilder.setInitialRepoCases(serverCases, serverDeviceId);
 
             // Create cases to put from client
-            auto clientCase1 = makeCase(*case_access, L"guid1", 1, { L"newclientdata1" });
-            auto clientCase2 = makeCase(*case_access, L"guid2", 2, { L"newclientdata2" });
-            auto clientCase3 = makeCase(*case_access, L"guid3", 3, { L"newclientdata3" });
-            auto clientCase4 = makeCase(*case_access, L"guid4", 4, { L"newclientdata4" });
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guid1", 1, { "newclientdata1" });
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guid2", 2, { "newclientdata2" });
+            std::shared_ptr<Case> clientCase3 = CreateCase(*case_access, "guid3", 3, { "newclientdata3" });
+            std::shared_ptr<Case> clientCase4 = CreateCase(*case_access, "guid4", 4, { "newclientdata4" });
             VectorClock clockClient1;
             clockClient1.increment(clientDeviceId);
             clientCase1->SetVectorClock(clockClient1);
@@ -108,30 +79,30 @@ namespace SyncUnitTest
             clientCase4->SetVectorClock(clockClient1);
             std::vector<std::shared_ptr<Case>> clientCases = { clientCase1, clientCase2, clientCase3, clientCase4 };
 
-            CString syncPath = L"/dictionaries/" + dictionary + L"/syncs";
+            const std::string syncPath = "/dictionaries/" + dictionary + "/syncs";
             HeaderList requestHeaders;
-            CString userAgentHeader = CString("User-Agent: CSPro sync client/") + Versioning::GetVersionDetailedString();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
             std::unique_ptr<IObexResource> resource;
-            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             std::string responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             HeaderList responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            CString serverRevisionFromGet = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            std::string serverRevisionFromGet = responseHeaders.GetValue("ETag");
             resource.reset();
-            auto responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
 
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
             // First get, should retrieve all three server cases
             Assert::AreEqual(3, (int)responseCases.size());
-            Verify(Method(mockRepoRetriever, get)).Exactly(1);
+            Verify(Method(mockEngineAccessor, GetDataRepository)).Exactly(1);
 
-            std::string putJson = convertCasesToJSON(jsonConverter, clientCases);
-            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            std::string putJson = GetSyncableCaseData(case_access, SpanHelpers::CreatePointersSpan(clientCases), SyncCaseSerializer::Version::V2);
+            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForWriting();
             resource->getOStream()->write(&putJson[0], putJson.size());
@@ -139,8 +110,8 @@ namespace SyncUnitTest
             Assert::IsNull(resource->getIStream());
             Assert::AreEqual((int)OBEX_OK, (int)resource->close());
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            CString serverRevisionFromPut = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            const std::string serverRevisionFromPut = responseHeaders.GetValue("ETag");
             resource.reset();
 
             // Case 1 will be a conflict and should be overwritten with client data since client always wins conflicts
@@ -159,52 +130,50 @@ namespace SyncUnitTest
             Assert::AreEqual(4, (int)pServerRepo->GetNumberCases());
 
             // Sync again with no changes should retrieve no new cases
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + serverRevisionFromGet);
-            requestHeaders.push_back(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER + _T(": ") + serverRevisionFromPut);
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromGet);
+            requestHeaders.Add(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER, serverRevisionFromPut);
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
-            responseCases.clear();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            ZLib::Inflate(responseJson);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
             Assert::AreEqual(0, (int)responseCases.size());
 
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            serverRevisionFromGet = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            serverRevisionFromGet = responseHeaders.GetValue("ETag");
             resource.reset();
 
             // Update a case on the server and get and should get updated case
-            serverRepoBuilder.updateRepoCase(initServerCase1->GetUuid(), 1, L"updatedserverdata1");
+            serverRepoBuilder.updateRepoCase(initServerCase1->GetUuid(), 1, "updatedserverdata1");
 
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + serverRevisionFromGet);
-            requestHeaders.push_back(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER + _T(": ") + serverRevisionFromPut);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromGet);
+            requestHeaders.Add(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER, serverRevisionFromPut);
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
-            responseCases.clear();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            ZLib::Inflate(responseJson);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            serverRevisionFromGet = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            serverRevisionFromGet = responseHeaders.GetValue("ETag");
             resource.reset();
             Assert::AreEqual(1, (int)responseCases.size());
 
             // Add new case on client and put
-            auto clientCase5 = makeCase(*case_access, L"guid5", 1, { L"newclientdata5" });
+            std::shared_ptr<Case> clientCase5 = CreateCase(*case_access, "guid5", 1, { "newclientdata5" });
             clientCase5->SetVectorClock(clockClient1);
-            putJson = convertCasesToJSON(jsonConverter, { clientCase5 });
+            putJson = GetSyncableCaseData(case_access, { clientCase5.get() }, SyncCaseSerializer::Version::V2);
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + serverRevisionFromPut);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromPut);
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForWriting();
             resource->getOStream()->write(&putJson[0], putJson.size());
@@ -212,53 +181,53 @@ namespace SyncUnitTest
             Assert::IsNull(resource->getIStream());
             Assert::AreEqual((int)OBEX_OK, (int)resource->close());
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            CString serverRevisionFromPut2 = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            const std::string serverRevisionFromPut2 = responseHeaders.GetValue("ETag");
             resource.reset();
 
             // Get again, should get no new cases
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + serverRevisionFromGet);
-            requestHeaders.push_back(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER + _T(": ") + serverRevisionFromPut + _T(",") + serverRevisionFromPut2);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromGet);
+            requestHeaders.Add(SyncCustomHeaders::EXCLUDE_REVISIONS_HEADER, serverRevisionFromPut + "," + serverRevisionFromPut2);
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
-            responseCases.clear();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            ZLib::Inflate(responseJson);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
             Assert::AreEqual(0, (int)responseCases.size());
         }
 
-        TEST_METHOD(TestSyncServerHistoryLost)
+
+        TEST_METHOD(TestSyncServiceHistoryLost)
         {
-            std::unique_ptr<const CDataDict> pDictAP = createTestDict();
+            std::unique_ptr<const CDataDict> pDictAP = CreateTestDictionary();
             const CDataDict* pDict = pDictAP.get();
             std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*pDict);
 
             TestRepoBuilder serverRepoBuilder(serverDeviceId, pDict);
             ISyncableDataRepository* pServerRepo = serverRepoBuilder.GetRepo();
 
-            Mock<IDataRepositoryRetriever> mockRepoRetriever;
-            When(Method(mockRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            Mock<ISyncObexEngineAccessor> mockEngineAccessor;
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            SyncObexHandler handler(serverDeviceId, &mockRepoRetriever.get(), CString(), nullptr);
+            SyncObexHandler handler(serverDeviceId, std::string(), std::unique_ptr<ISyncObexEngineAccessor>(&mockEngineAccessor.get()));
 
             // Add a few initial cases to the server
             VectorClock clockServer1Client1;
             clockServer1Client1.increment(clientDeviceId);
             clockServer1Client1.increment(serverDeviceId);
-            auto initServerCase1 = makeCase(*case_access, L"guid1", 1, { L"initialserverdata1" });
+            std::shared_ptr<Case> initServerCase1 = CreateCase(*case_access, "guid1", 1, { "initialserverdata1" });
             initServerCase1->SetVectorClock(clockServer1Client1);
             VectorClock clockServer1;
             clockServer1.increment(serverDeviceId);
 
-            auto initServerCase2 = makeCase(*case_access, L"guid2", 2, { L"initialserverdata2" });
+            std::shared_ptr<Case> initServerCase2 = CreateCase(*case_access, "guid2", 2, { "initialserverdata2" });
             initServerCase2->SetVectorClock(clockServer1);
             std::vector<std::shared_ptr<Case>> serverCases = { initServerCase1, initServerCase2 };
             serverRepoBuilder.setInitialRepoCases(serverCases, serverDeviceId);
@@ -266,36 +235,36 @@ namespace SyncUnitTest
             std::vector<std::shared_ptr<Case>> clientCases;
 
             // Get cases from server
-            CString syncPath = L"/dictionaries/" + dictionary + L"/syncs";
+            const std::string syncPath = "/dictionaries/" + dictionary + "/syncs";
             HeaderList requestHeaders;
-            CString userAgentHeader = CString("User-Agent: CSPro sync client/") + Versioning::GetVersionDetailedString();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
             std::unique_ptr<IObexResource> resource;
-            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             std::string responseJson;
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             HeaderList responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
 
-            auto responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
             // First get, should retrieve the two server cases
             Assert::AreEqual(2, (int) responseCases.size());
 
             // Sync again with get without the etag should retrieve same 2 cases again
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
             Assert::AreEqual(2, (int) responseCases.size());
             resource.reset();
@@ -303,10 +272,10 @@ namespace SyncUnitTest
             // Delete server history and use etag, should get precondition failed
             serverRepoBuilder.ResetRepo(serverDeviceId, pDict);
             pServerRepo = serverRepoBuilder.GetRepo();
-            When(Method(mockRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + responseHeaders.value(_T("ETag")));
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, responseHeaders.GetValue("ETag"));
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_PRECONDITION_FAILED, (int)resource->openForReading());
             resource.reset();
@@ -314,37 +283,36 @@ namespace SyncUnitTest
         }
 
 
-        TEST_METHOD(TestSyncServerHistoryLostPut)
+        TEST_METHOD(TestSyncServiceHistoryLostPut)
         {
-            std::unique_ptr<const CDataDict> pDictAP = createTestDict();
+            std::unique_ptr<const CDataDict> pDictAP = CreateTestDictionary();
             const CDataDict* pDict = pDictAP.get();
             std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*pDict);
 
             TestRepoBuilder serverRepoBuilder(serverDeviceId, pDict);
             ISyncableDataRepository* pServerRepo = serverRepoBuilder.GetRepo();
 
-            Mock<IDataRepositoryRetriever> mockServoRepoRetriever;
-            When(Method(mockServoRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            Mock<ISyncObexEngineAccessor> mockEngineAccessor;
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            SyncObexHandler handler(serverDeviceId, &mockServoRepoRetriever.get(), CString(), nullptr);
+            SyncObexHandler handler(serverDeviceId, std::string(), std::unique_ptr<ISyncObexEngineAccessor>(&mockEngineAccessor.get()));
 
             // Add a few initial cases to the client
             VectorClock clockClient1;
             clockClient1.increment(clientDeviceId);
-            auto clientCase1 = makeCase(*case_access, L"guid1", 1, { L"initialclientdata1" });
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guid1", 1, { "initialclientdata1" });
             clientCase1->SetVectorClock(clockClient1);
-            auto clientCase2 = makeCase(*case_access, L"guid2", 2, { L"initialclientdata2" });
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guid2", 2, { "initialclientdata2" });
             clientCase2->SetVectorClock(clockClient1);
 
             // Put cases to server
-            CString syncPath = L"/dictionaries/" + dictionary + L"/syncs";
+            const std::string syncPath = "/dictionaries/" + dictionary + "/syncs";
             HeaderList requestHeaders;
-            CString userAgentHeader = CString("User-Agent: CSPro sync client/") + Versioning::GetVersionDetailedString();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            std::string putJson = convertCasesToJSON(jsonConverter, { clientCase1, clientCase2 });
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            std::string putJson = GetSyncableCaseData(case_access, { clientCase1.get(), clientCase2.get() }, SyncCaseSerializer::Version::V2);
             std::unique_ptr<IObexResource> resource;
-            ObexResponseCode responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            ObexResponseCode responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForWriting();
             resource->getOStream()->write(&putJson[0], putJson.size());
@@ -352,28 +320,28 @@ namespace SyncUnitTest
             Assert::IsNull(resource->getIStream());
             Assert::AreEqual((int)OBEX_OK, (int)resource->close());
             HeaderList responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            CString serverRevisionFromPut = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            const std::string serverRevisionFromPut = responseHeaders.GetValue("ETag");
             resource.reset();
 
             // Delete server history and use etag, should get precondition failed
             serverRepoBuilder.ResetRepo(serverDeviceId, pDict);
             pServerRepo = serverRepoBuilder.GetRepo();
-            When(Method(mockServoRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + serverRevisionFromPut);
-            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromPut);
+            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_PRECONDITION_FAILED, (int)resource->openForWriting());
             resource.reset();
 
             // Add a case on server from a different client
-            auto clientCase3 = makeCase(*case_access, L"guid3", 3, { L"13newclientdata3" });
+            std::shared_ptr<Case> clientCase3 = CreateCase(*case_access, "guid3", 3, { "13newclientdata3" });
             clientCase3->SetVectorClock(clockClient1);
-            putJson = convertCasesToJSON(jsonConverter, { clientCase3 });
+            putJson = GetSyncableCaseData(case_access, { clientCase3.get() }, SyncCaseSerializer::Version::V2);
             HeaderList requestHeadersClient2;
-            requestHeadersClient2.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": client2"));
-            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeadersClient2, resource);
+            requestHeadersClient2.Add(SyncCustomHeaders::DEVICE_ID_HEADER, ": client2");
+            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeadersClient2, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForWriting();
             resource->getOStream()->write(&putJson[0], putJson.size());
@@ -381,32 +349,33 @@ namespace SyncUnitTest
             Assert::IsNull(resource->getIStream());
             Assert::AreEqual((int)OBEX_OK, (int)resource->close());
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
-            CString serverRevisionFromPut2 = responseHeaders.value(_T("ETag"));
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
+            const std::string serverRevisionFromPut2 = responseHeaders.GetValue("ETag");
             resource.reset();
 
             // Sync again from client1 - should still fail on precondition
-            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_PRECONDITION_FAILED, (int)resource->openForWriting());
             resource.reset();
 
         }
 
+
         TEST_METHOD(TestSyncResumableGet)
         {
-            std::unique_ptr<const CDataDict> pDictAP = createTestDict();
+            std::unique_ptr<const CDataDict> pDictAP = CreateTestDictionary();
             const CDataDict* pDict = pDictAP.get();
             std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*pDict);
             TestRepoBuilder serverRepoBuilder(serverDeviceId, pDict);
             ISyncableDataRepository* pServerRepo = serverRepoBuilder.GetRepo();
 
-            Mock<IDataRepositoryRetriever> mockRepoRetriever;
-            When(Method(mockRepoRetriever, get)).AlwaysReturn(pServerRepo);
+            Mock<ISyncObexEngineAccessor> mockEngineAccessor;
+            When(Method(mockEngineAccessor, GetDataRepository)).AlwaysReturn(pServerRepo);
 
-            SyncObexHandler handler(serverDeviceId, &mockRepoRetriever.get(), CString(), nullptr);
+            SyncObexHandler handler(serverDeviceId, std::string(), std::unique_ptr<ISyncObexEngineAccessor>(&mockEngineAccessor.get()));
 
-            CString syncPath = L"/dictionaries/" + dictionary + L"/syncs";
+            const std::string syncPath = "/dictionaries/" + dictionary + "/syncs";
             std::unique_ptr<IObexResource> resource;
 
             std::vector<std::shared_ptr<Case>> serverCases;
@@ -415,10 +384,9 @@ namespace SyncUnitTest
             // Start with 30 cases on server
             VectorClock clockServer;
             clockServer.increment(serverDeviceId);
-            for (int i = 1; i <= 30; ++i) {
-                CString uuid;
-                uuid.Format(L"guid%02d", i);
-                auto initServerCase = makeCase(*case_access, uuid, i, { L"initialserverdata" });
+            for (int i = 0; i < 30; ++i) {
+                std::string uuid = FormatText("guid%02d", i);
+                std::shared_ptr<Case> initServerCase = CreateCase(*case_access, uuid, i % 10, { "initialserverdata" });
                 initServerCase->SetVectorClock(clockServer);
                 serverCases.emplace_back(initServerCase);
             }
@@ -426,128 +394,126 @@ namespace SyncUnitTest
 
             // Get 10 cases
             HeaderList requestHeaders;
-            CString userAgentHeader = CString("User-Agent: CSPro sync client/") + Versioning::GetVersionDetailedString();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            requestHeaders.push_back(SyncCustomHeaders::RANGE_COUNT_HEADER + _T(": ") + _T("10"));
-            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            requestHeaders.Add(SyncCustomHeaders::RANGE_COUNT_HEADER, "10");
+            ObexResponseCode responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int) OBEX_OK, (int) responseCode);
             Assert::AreEqual((int) OBEX_PARTIAL_CONTENT, (int) resource->openForReading());
             std::string responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             HeaderList responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
-            auto responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
-            Assert::AreEqual(10, (int) responseCases.size());
-            mergeCaseList(clientCases, responseCases);
+
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
+            Assert::AreEqual(size_t(10), responseCases.size());
+            MergeCaseList(clientCases, responseCases);
 
             // Get next 10 cases
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            requestHeaders.push_back(SyncCustomHeaders::RANGE_COUNT_HEADER + _T(": ") + _T("10"));
-            requestHeaders.push_back(SyncCustomHeaders::START_AFTER_HEADER + _T(": ") + responseCases.back()->GetUuid());
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + responseHeaders.value(_T("ETag")));
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            requestHeaders.Add(SyncCustomHeaders::RANGE_COUNT_HEADER, "10");
+            requestHeaders.Add(SyncCustomHeaders::START_AFTER_HEADER, responseCases.back()->GetUuid());
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, responseHeaders.GetValue("ETag"));
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int) OBEX_OK, (int) responseCode);
             Assert::AreEqual((int) OBEX_PARTIAL_CONTENT, (int) resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
-            Assert::AreEqual(10, (int) responseCases.size());
-            mergeCaseList(clientCases, responseCases);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
+            Assert::AreEqual(size_t(10), responseCases.size());
+            MergeCaseList(clientCases, responseCases);
 
             // Add a new case on server and modify existing cases
-            auto new_server_case = makeCase(*case_access, L"aaaa", 1, { L"addeddata" });
-            new_server_case->SetVectorClock(clockServer);
-            serverCases.emplace_back(new_server_case);
-            serverRepoBuilder.addRepoCase(L"aaaa", 1, { L"addeddata" });
-            serverRepoBuilder.updateRepoCase(serverCases[10]->GetUuid(), 10, L"updateddata");
-            serverRepoBuilder.updateRepoCase(serverCases[25]->GetUuid(), 25, L"updateddata");
+            serverCases.emplace_back(serverRepoBuilder.addRepoCase("aaaa", 1, { "addeddata" }, clockServer));
+            serverCases[10] = serverRepoBuilder.updateRepoCase(serverCases[10]->GetUuid(), 10 % 10, "updateddata");
+            serverCases[25] = serverRepoBuilder.updateRepoCase(serverCases[25]->GetUuid(), 25 % 10, "updateddata");
 
             // Get next 10 cases
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            requestHeaders.push_back(SyncCustomHeaders::RANGE_COUNT_HEADER + _T(": ") + _T("10"));
-            requestHeaders.push_back(SyncCustomHeaders::START_AFTER_HEADER + _T(": ") + responseCases.back()->GetUuid());
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + responseHeaders.value(_T("ETag")));
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            requestHeaders.Add(SyncCustomHeaders::RANGE_COUNT_HEADER, "10");
+            requestHeaders.Add(SyncCustomHeaders::START_AFTER_HEADER, responseCases.back()->GetUuid());
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, responseHeaders.GetValue("ETag"));
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int) OBEX_OK, (int) responseCode);
             Assert::AreEqual((int) OBEX_PARTIAL_CONTENT, (int) resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
-            Assert::AreEqual(10, (int) responseCases.size());
-            mergeCaseList(clientCases, responseCases);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
+            Assert::AreEqual(size_t(10), responseCases.size());
+            MergeCaseList(clientCases, responseCases);
 
             // Get remaining 2 cases
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(SyncCustomHeaders::DEVICE_ID_HEADER + _T(": ") + clientDeviceId);
-            requestHeaders.push_back(SyncCustomHeaders::RANGE_COUNT_HEADER + _T(": ") + _T("10"));
-            requestHeaders.push_back(SyncCustomHeaders::START_AFTER_HEADER + _T(": ") + responseCases.back()->GetUuid());
-            requestHeaders.push_back(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER + _T(':') + responseHeaders.value(_T("ETag")));
-            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, syncPath, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
+            requestHeaders.Add(SyncCustomHeaders::RANGE_COUNT_HEADER, "10");
+            requestHeaders.Add(SyncCustomHeaders::START_AFTER_HEADER, responseCases.back()->GetUuid());
+            requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, responseHeaders.GetValue("ETag"));
+            responseCode = handler.onGet(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int) OBEX_OK, (int) responseCode);
             Assert::AreEqual((int) OBEX_OK, (int) resource->openForReading());
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(responseJson);
+            ZLib::Inflate(responseJson);
             responseHeaders = resource->getHeaders();
-            Assert::IsFalse(responseHeaders.value(_T("ETag")).IsEmpty(), L"Response missing etag");
+            Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
-            responseCases = getCaseListFromJson(jsonConverter, responseJson, *case_access);
+            responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
-            Assert::AreEqual(2, (int) responseCases.size());
-            mergeCaseList(clientCases, responseCases);
+            Assert::AreEqual(size_t(2), responseCases.size());
+            MergeCaseList(clientCases, responseCases);
 
-            checkCaseList(serverCases, clientCases);
+            CompareCases(SpanHelpers::CreatePointersSpan(serverCases),
+                         SpanHelpers::CreatePointersSpan(clientCases),
+                         CompareCasesType::CountsAndBinaryData);
         }
+
 
         TEST_METHOD(TestGetFile)
         {
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
-            CString rootPath = CString(pszTempPath) + L"syncobexhandlertest/";
-            PortableFunctions::DirectoryDelete(rootPath);
-            CreateDirectory(rootPath, NULL);
+            const std::string rootPath = Path::Combine(GetTempDirectory(), "syncobexhandlertest/");
+            PortableFunctions::DirectoryDelete(rootPath, true);
+            PortableFunctions::PathMakeDirectories(rootPath);
 
             const std::string fileContents("SOME DATA");
-            CString testFile = "test-get.txt";
-            createTestFile(rootPath + testFile, fileContents.c_str());
+            const std::string testFile = "test-get.txt";
+            FileIO::WriteText(rootPath + testFile, fileContents, false);
 
-            SyncObexHandler handler(serverDeviceId, nullptr, rootPath, nullptr);
+            SyncObexHandler handler(serverDeviceId, rootPath, nullptr);
 
             std::unique_ptr<IObexResource> resource;
-            ObexResponseCode responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, testFile, HeaderList(), resource);
+            ObexResponseCode responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, UTF8_TODO::GetCString(testFile), HeaderList(), resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_IS_LAST_FILE_CHUNK, (int)resource->openForReading());
 
             std::string response(std::istreambuf_iterator<char>(*resource->getIStream()), {});
-            ZipUtility::decompression(response);
+            ZLib::Inflate(response);
             Assert::AreEqual(fileContents, response);
             resource.reset();
 
             // Etag should return not-modified
             HeaderList requestHeaders;
-            CString userAgentHeader = CString("User-Agent: CSPro sync client/") + Versioning::GetVersionDetailedString();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(_T("If-None-Match:662411C1698ECC13DD07AEE13439EADC"));
-            responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, testFile, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add_IfNoneMatch("662411C1698ECC13DD07AEE13439EADC");
+            responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, UTF8_TODO::GetCString(testFile), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_NOT_MODIFIED, (int)responseCode);
 
             // Non-matching Etag should download
             requestHeaders = HeaderList();
-            requestHeaders.push_back(userAgentHeader);
-            requestHeaders.push_back(_T("If-None-Match:1234567890"));
-            responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, testFile, requestHeaders, resource);
+            requestHeaders.Add_UserAgent_CSProSyncClient();
+            requestHeaders.Add_IfNoneMatch("1234567890");
+            responseCode = handler.onGet(OBEX_BINARY_FILE_MEDIA_TYPE, UTF8_TODO::GetCString(testFile), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource.reset();
 
@@ -558,21 +524,20 @@ namespace SyncUnitTest
             PortableFunctions::DirectoryDelete(rootPath);
         }
 
+
         TEST_METHOD(TestPutFile)
         {
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
-            CString rootPath = CString(pszTempPath) + L"syncobexhandlertest/";
-            PortableFunctions::DirectoryDelete(rootPath);
-            CreateDirectory(rootPath, nullptr);
+            const std::string rootPath = Path::Combine(GetTempDirectory(), "syncobexhandlertest/");
+            PortableFunctions::DirectoryDelete(rootPath, true);
+            PortableFunctions::PathMakeDirectories(rootPath);
 
             const std::string fileContents("SOME DATA");
-            CString testFile = "test-put.txt";
+            const std::string testFile = "test-put.txt";
 
-            SyncObexHandler handler(serverDeviceId, nullptr, rootPath, nullptr);
+            SyncObexHandler handler(serverDeviceId, rootPath, nullptr);
 
             std::unique_ptr<IObexResource> resource;
-            ObexResponseCode responseCode = handler.onPut(OBEX_BINARY_FILE_MEDIA_TYPE, testFile, HeaderList(), resource);
+            ObexResponseCode responseCode = handler.onPut(OBEX_BINARY_FILE_MEDIA_TYPE, UTF8_TODO::GetCString(testFile), HeaderList(), resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             Assert::AreEqual((int)OBEX_OK, (int)resource->openForWriting());
 
@@ -581,33 +546,28 @@ namespace SyncUnitTest
             Assert::AreEqual((int) OBEX_OK, (int) resource->close());
             resource.reset();
 
-            CString testFileFullPath = rootPath + testFile;
-            Assert::IsTrue(GetFileAttributes(testFileFullPath) != -1);
-            std::ifstream srcReadStream(testFileFullPath);
-            std::string actualContents(std::istreambuf_iterator<char>(srcReadStream), {});
-            srcReadStream.close();
-            Assert::AreEqual(actualContents, fileContents);
+            Assert::AreEqual(fileContents, FileIO::ReadText(rootPath + testFile));
 
             PortableFunctions::DirectoryDelete(rootPath);
         }
 
+
         TEST_METHOD(TestGetDirectoryListing)
         {
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
-            CString rootPath = CString(pszTempPath) + L"syncobexhandlertest/";
-            PortableFunctions::DirectoryDelete(rootPath,true);
-            CreateDirectory(rootPath, NULL);
+            const std::string rootPath = Path::Combine(GetTempDirectory(), "syncobexhandlertest/");
+            PortableFunctions::DirectoryDelete(rootPath, true);
+            PortableFunctions::PathMakeDirectories(rootPath);
 
             const std::string fileContents("SOME DATA");
-            CString testFile1 = "test1.txt";
-            CString testFile2 = "test2.txt";
-            createTestFile(rootPath + testFile1, fileContents.c_str());
-            createTestFile(rootPath + testFile2, fileContents.c_str());
-            CString testDir = "test3-dir";
-            CreateDirectory(rootPath + testDir, NULL);
+            const std::string testFile1 = "test1.txt";
+            const std::string testFile2 = "test2.txt";
+            FileIO::WriteText(rootPath + testFile1, fileContents, false);
+            FileIO::WriteText(rootPath + testFile2, fileContents, false);
 
-            SyncObexHandler handler(serverDeviceId, nullptr, rootPath, nullptr);
+            const std::string testDir = "test3-dir";
+            PortableFunctions::PathMakeDirectories(rootPath + testDir);
+
+            SyncObexHandler handler(serverDeviceId, rootPath, nullptr);
 
             std::unique_ptr<IObexResource> resource;
             ObexResponseCode responseCode = handler.onGet(OBEX_DIRECTORY_LISTING_MEDIA_TYPE, ".", HeaderList(), resource);
@@ -618,21 +578,21 @@ namespace SyncUnitTest
             responseJson = std::string(std::istreambuf_iterator<char>(*resource->getIStream()), {});
             resource.reset();
 
-            std::unique_ptr<std::vector<FileInfo>> pListing(jsonConverter.fileInfoFromJson(responseJson));
-            Assert::IsNotNull(pListing.get());
+            const std::vector<FileInfo> directory_listing = Json::Parse(responseJson).GetArray().GetVector<FileInfo>();
+            Assert::IsFalse(directory_listing.empty());
 
-            Assert::AreEqual(testFile1, pListing->at(0).getName());
-            Assert::AreEqual(L"/.", pListing->at(0).getDirectory());
-            Assert::AreEqual(L"662411c1698ecc13dd07aee13439eadc", pListing->at(0).getMd5().c_str());
-            Assert::AreEqual((int) FileInfo::FileType::File, (int) pListing->at(0).getType());
-            Assert::AreEqual((int) fileContents.size(), (int) pListing->at(0).getSize());
-            Assert::AreEqual(testFile2, pListing->at(1).getName());
-            Assert::AreEqual(L"/.", pListing->at(1).getDirectory());
-            Assert::AreEqual(L"662411c1698ecc13dd07aee13439eadc", pListing->at(1).getMd5().c_str());
-            Assert::AreEqual((int)FileInfo::FileType::File, (int)pListing->at(1).getType());
-            Assert::AreEqual((int)fileContents.size(), (int) pListing->at(1).getSize());
-            Assert::AreEqual(testDir, pListing->at(2).getName());
-            Assert::AreEqual((int)FileInfo::FileType::Directory, (int)pListing->at(2).getType());
+            Assert::AreEqual(testFile1, directory_listing[0].GetName());
+            Assert::AreEqual("/.", directory_listing[0].GetDirectory().c_str());
+            Assert::AreEqual("662411c1698ecc13dd07aee13439eadc", directory_listing[0].GetMd5().c_str());
+            Assert::AreEqual((int) FileInfo::FileType::File, (int) directory_listing[0].GetType());
+            Assert::AreEqual((int) fileContents.size(), (int) directory_listing[0].GetSize());
+            Assert::AreEqual(testFile2, directory_listing[1].GetName());
+            Assert::AreEqual("/.", directory_listing[1].GetDirectory().c_str());
+            Assert::AreEqual("662411c1698ecc13dd07aee13439eadc", directory_listing[1].GetMd5().c_str());
+            Assert::AreEqual((int)FileInfo::FileType::File, (int)directory_listing[1].GetType());
+            Assert::AreEqual((int)fileContents.size(), (int) directory_listing[1].GetSize());
+            Assert::AreEqual(testDir, directory_listing[2].GetName());
+            Assert::AreEqual((int)FileInfo::FileType::Directory, (int)directory_listing[2].GetType());
 
             // Non-existent directory should fail
             responseCode = handler.onGet(OBEX_DIRECTORY_LISTING_MEDIA_TYPE, "directory-that-doesnt-exist.txt", HeaderList(), resource);
@@ -642,4 +602,3 @@ namespace SyncUnitTest
         }
     };
 }
-

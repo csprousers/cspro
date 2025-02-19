@@ -4,10 +4,11 @@
 #include <zUtilO/CustomFont.h>
 
 
-const int MAX_KEYLEN = 1024;
+namespace
+{
+    constexpr int MAX_KEYLEN = 1024;
+}
 
-////////////////////////
-// CSelectListCtrlOptions Class
 
 CSelectListCtrlOptions::CSelectListCtrlOptions()
 {
@@ -247,11 +248,12 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
         clrTextSave = pDC->SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
         clrBkSave = pDC->SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
 
-        pDC->FillRect(rcAllLabels, &CBrush(::GetSysColor(COLOR_HIGHLIGHT)));
+        CBrush brush(::GetSysColor(COLOR_HIGHLIGHT));
+        pDC->FillRect(rcAllLabels, &brush);
     }
     else {
-        //pDC->FillRect(rcAllLabels, &CBrush(::GetSysColor(COLOR_WINDOW)));
-        pDC->FillRect(rcAllLabels, &CBrush(m_TextBkColor));
+        CBrush brush(m_TextBkColor);
+        pDC->FillRect(rcAllLabels, &brush);
 
         COLORREF text_color;
 
@@ -294,7 +296,8 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
         CRect TxtRect = rcLabel;
 
         TxtRect.right = TxtRect.left + TxtSize.cx;
-        pDC->FillRect(TxtRect, &CBrush(m_MarkedBkColor));
+        CBrush brush(m_MarkedBkColor);
+        pDC->FillRect(TxtRect, &brush);
         pDC->DrawText(csItemTxt,TxtRect,DT_LEFT | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP | DT_VCENTER);
         pDC->SetTextColor(TextColorSave);
         pDC->SetBkColor(BkColorSave);
@@ -349,7 +352,8 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
             CSize TxtSize = pDC->GetTextExtent( csItemTxt );
             CRect TxtRect = rcLabel;
             TxtRect.right = TxtRect.left + TxtSize.cx;
-            pDC->FillRect(TxtRect, &CBrush(m_MarkedBkColor));
+            CBrush brush(m_MarkedBkColor);
+            pDC->FillRect(TxtRect, &brush);
             pDC->DrawText( csItemTxt, TxtRect, nJustify | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP | DT_VCENTER);
             pDC->SetTextColor(TextColorSave);
             pDC->SetBkColor(BkColorSave);
@@ -1109,7 +1113,7 @@ void CSelectListCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) {
             int         iNumElemFound=0;
 
             // concat new csprochar to current buffer
-            csKeyBuffNew.Format( _T("%s%lc"), (LPCTSTR)m_csKeyBuff, nChar );
+            csKeyBuffNew.Format( _T("%s%lc"), m_csKeyBuff.GetString(), nChar );
 
             iLen = m_csKeyBuff.GetLength();
             iMaxElem = m_pOptions->m_paData->size();
@@ -1133,7 +1137,7 @@ void CSelectListCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) {
                 bool    bOldMoving=m_bIsMoving; // RHF Apr 01, 2003
                 if( iNumElemFound > 1 ) m_bIsMoving = true; // RHF Apr 01, 2003
 
-                TRACE( _T("Keyboard Buff=(%s)\n"), (LPCTSTR)m_csKeyBuff );
+                TRACE( _T("Keyboard Buff=(%s)\n"), m_csKeyBuff.GetString() );
                 // RHF COM Apr 01, 2003 if( iNumElemFound == 1 || iLen + 1 >= m_pOptions->m_iKeyBuffMaxLen ) { // Reset buff
                 if( true ) { // RHF Apr 01, 2003
                     SetItemState( iFirstElemFound, 0, LVIS_SELECTED ); // // RHF Apr 01, 2003 UnMark

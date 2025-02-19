@@ -8,8 +8,8 @@
 class EngineQuestionnaireViewer : public QuestionnaireViewer
 {
 public:
-    EngineQuestionnaireViewer(CEngineDriver* engine_driver, std::wstring dictionary_name,
-                              std::wstring case_uuid = std::wstring(), std::wstring case_key = std::wstring())
+    EngineQuestionnaireViewer(CEngineDriver* engine_driver, std::string dictionary_name,
+                              std::string case_uuid = std::string(), std::string case_key = std::string())
         :   m_pEngineDriver(engine_driver),
             m_dictionaryName(std::move(dictionary_name)),
             m_caseUuid(std::move(case_uuid)),
@@ -20,12 +20,12 @@ public:
 
 protected:
     // QuestionnaireViewer overrides
-    std::wstring GetDictionaryName() override
+    std::string GetDictionaryName() override
     {
         return m_dictionaryName;
     }
 
-    std::wstring GetCurrentLanguageName() override
+    std::string GetCurrentLanguageName() override
     {
         return m_pEngineDriver->GetCurrentLanguageName();
     }
@@ -35,24 +35,24 @@ protected:
         return true;
     }
 
-    std::wstring GetDirectoryForUrl() override
+    std::string GetDirectoryForUrl() override
     {
-        return PortableFunctions::PathGetDirectory(m_pEngineDriver->GetApplication()->GetApplicationFilename());
+        return PortableFunctions::PathGetDirectory(m_pEngineDriver->GetApplication()->GetApplicationFilePath());
     }
 
-    const std::wstring& GetCaseUuid() override
+    const std::string& GetCaseUuid() override
     {
         return m_caseUuid;
     }
 
-    const std::wstring& GetCaseKey() override
+    const std::string& GetCaseKey() override
     {
         return m_caseKey;
     }
 
 private:
     CEngineDriver* m_pEngineDriver;
-    const std::wstring m_dictionaryName;
-    const std::wstring m_caseUuid;
-    const std::wstring m_caseKey;
+    std::string m_dictionaryName;
+    std::string m_caseUuid;
+    std::string m_caseKey;
 };

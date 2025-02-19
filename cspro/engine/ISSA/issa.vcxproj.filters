@@ -4,12 +4,12 @@
     <ClCompile Include="..\Applload.cpp" />
     <ClCompile Include="..\CtUnit.cpp" />
     <ClCompile Include="..\Form.cpp" />
-    <ClCompile Include="..\Issafunc.cpp" />
+    <ClCompile Include="..\IssaFunc.cpp" />
+    <ClCompile Include="..\Messages.cpp" />
     <ClCompile Include="..\Settings.cpp" />
     <ClCompile Include="..\subtable.cpp" />
     <ClCompile Include="..\Tables.cpp" />
     <ClCompile Include="..\Tablesen.cpp" />
     <ClCompile Include="..\VariableInOut.cpp" />
-    <ClCompile Include="..\Messages.cpp" />
   </ItemGroup>
 </Project>

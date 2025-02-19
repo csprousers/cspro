@@ -27,12 +27,12 @@ void TextEditDoc::UpdateTitle()
     std::wstring title = GetPathName().IsEmpty() ? SO::TrimLeft(GetTitle(), '*') :
                                                    PortableFunctions::PathGetFilename(GetPathName());
 
-    SetTitle(IsModified() ? ( _T("*") + title ).c_str() :
+    SetTitle(IsModified() ? ( L"*" + title ).c_str() :
                             title.c_str());
 }
 
 
-void TextEditDoc::SetModifiedFlag(BOOL modified/* = TRUE*/)
+void TextEditDoc::SetModifiedFlag(const BOOL modified/* = TRUE*/)
 {
     if( IsModified() == modified )
         return;
@@ -50,7 +50,7 @@ BOOL TextEditDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
     try
     {
-        m_textSource = TextSourceEditable::FindOpenOrCreate(lpszPathName);
+        m_textSource = TextSourceEditable::FindOpenOrCreate(TC::ToUtf8(lpszPathName));
     }
 
     catch( const CSProException& exception )
@@ -70,12 +70,12 @@ BOOL TextEditDoc::OnSaveDocument(LPCTSTR lpszPathName)
     try
     {
         ASSERT(m_textEditView != nullptr);
-        CLogicCtrl* logic_ctrl = m_textEditView->GetLogicCtrl();
+        CLogicCtrl* const logic_ctrl = m_textEditView->GetLogicCtrl();
 
         // if saving to the same file, use the existing text source
         if( GetPathName() == lpszPathName )
         {
-            ASSERT(m_textSource != nullptr && SO::EqualsNoCase(m_textSource->GetFilename(), lpszPathName));
+            ASSERT(m_textSource != nullptr && SO::EqualsNoCase(m_textSource->GetFilePath(), lpszPathName));
             m_textSource->Save();
         }
 
@@ -88,7 +88,7 @@ BOOL TextEditDoc::OnSaveDocument(LPCTSTR lpszPathName)
             if( m_textSource != nullptr )
                 m_textSource->SetSourceModifier(nullptr);
 
-            m_textSource = std::make_shared<TextSourceEditable>(lpszPathName, logic_ctrl->GetText());
+            m_textSource = std::make_unique<TextSourceEditable>(TC::ToUtf8(lpszPathName), logic_ctrl->GetText());
             m_textSource->SetSourceModifier(this);
         }
 
@@ -106,17 +106,17 @@ BOOL TextEditDoc::OnSaveDocument(LPCTSTR lpszPathName)
 }
 
 
-void TextEditDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
+void TextEditDoc::OnUpdateFileSave(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsModified());
 }
 
 
-std::wstring TextEditDoc::OnViewInitialUpdate(TextEditView& text_edit_view)
+std::string TextEditDoc::OnViewInitialUpdate(TextEditView& text_edit_view)
 {
     m_textEditView = &text_edit_view;
 
-    std::wstring initial_text;
+    std::string initial_text;
 
     if( m_textSource != nullptr )
     {
@@ -143,7 +143,7 @@ void TextEditDoc::ReloadFromDisk()
 
     try
     {
-        const std::wstring& text = m_textSource->ReloadFromDisk();
+        const std::string& text = m_textSource->ReloadFromDisk();
         m_textEditView->SetTextAndSetSavePoint(text);
 
         SetModifiedFlag(FALSE);
@@ -160,7 +160,7 @@ void TextEditDoc::SyncTextSource()
 {
     ASSERT(m_textSource != nullptr && m_textEditView != nullptr);
 
-    std::wstring text = m_textEditView->GetLogicCtrl()->GetText();
+    std::string text = m_textEditView->GetLogicCtrl()->GetText();
 
     if( ConvertTabsToSpacesAndTrimRightEachLine() )
         SO::ConvertTabsToSpacesAndTrimRightEachLine(text);

@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "StdioFileUnicode.h"
 #include <zToolsO/TextConverter.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/TextEncoding.h>
 #include <zPlatformO/PlatformInterface.h>
 
 
@@ -217,7 +217,7 @@ FILE* CStdioFileUnicode::_tfopen(LPCTSTR lpszFileName,LPCTSTR lpszOpenFlags,Enco
         fseek(pFile,0,SEEK_END);
 
         if( ftell(pFile) == 0 ) // an empty file, so write out the BOM
-            fwrite(Utf8BOM_sv.data(), 1, Utf8BOM_sv.length(), pFile);
+            fwrite(TextEncoding::Utf8Bom_sv.data(), 1, TextEncoding::Utf8Bom_sv.length(), pFile);
 
         fseek(pFile,3,SEEK_SET); // go to just after the BOM
     }
@@ -256,9 +256,10 @@ bool CStdioFileUnicode::ReadTextFile(NullTerminatedString filename, CString& buf
 
 
 #ifdef WIN_DESKTOP
-bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 20120120
+bool CStdioFileUnicode::ConvertAnsiToUTF8(const std::string& file_path) // 20120120
 {
-    CFile ansiFile,utf8File;
+    CFile ansiFile;
+    CFile utf8File;
 
     TCHAR tempPath[MAX_PATH - 14 + 1];
     TCHAR tempFilename[MAX_PATH + 1];
@@ -266,7 +267,7 @@ bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 2012
     if( !GetTempPath(MAX_PATH - 14,tempPath) || !GetTempFileName(tempPath,_T("CSP"),0,tempFilename) )
         return false;
 
-    if( !ansiFile.Open(filename.c_str(), CFile::modeRead) )
+    if( !ansiFile.Open(UTF8_TODO::GetWide(file_path).c_str(), CFile::modeRead) )
         return false;
 
     if( !utf8File.Open(tempFilename, CFile::modeWrite) )
@@ -275,7 +276,7 @@ bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 2012
         return false;
     }
 
-    utf8File.Write(Utf8BOM_sv.data(), Utf8BOM_sv.length());
+    utf8File.Write(TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length());
 
     const int BUFFER_SIZE = 64 * 1024;
     char mbBuffer[BUFFER_SIZE * 2]; // every byte in an ansi file will map to at most two UTF-8 bytes
@@ -300,23 +301,24 @@ bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 2012
     utf8File.Close();
 
     // instead of deleting the file we'll recycle it, then copy over the temp file
-    if( RecycleFile(filename) )
-        return MoveFile(tempFilename, filename.c_str()) != 0;
+    if( RecycleFile(file_path) )
+        return PortableFunctions::FileRename(tempFilename, file_path);
 
     return false;
 }
 
 #else
 
-bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 20131028
+bool CStdioFileUnicode::ConvertAnsiToUTF8(const std::string& file_path) // 20131028
 {
-    CFile ansiFile,utf8File;
+    CFile ansiFile;
+    CFile utf8File;
 
     // 20131209 it is possible to create files in the Android cache directory, but the CFile::Rename below failed
     // as the file was moved to the SD card; instead we'll simply create a file in the working directory
-    std::wstring temp_filename = PlatformInterface::GetInstance()->GetWorkingDirectory() + _T("_ConvertAnsiToUTF8.tmp");
+    std::wstring temp_filename = UTF8_TODO::GetWide(PlatformInterface::GetInstance()->GetWorkingDirectory() + "_ConvertAnsiToUTF8.tmp");
 
-    if( !ansiFile.Open(filename.c_str(), CFile::modeRead) )
+    if( !ansiFile.Open(UTF8_TODO::GetWide(file_path).c_str(), CFile::modeRead) )
         return false;
 
     if( !utf8File.Open(temp_filename.c_str(), CFile::modeWrite | CFile::modeCreate ) )
@@ -325,7 +327,7 @@ bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 2013
         return false;
     }
 
-    utf8File.Write(Utf8BOM_sv.data(), Utf8BOM_sv.length());
+    utf8File.Write(TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length());
 
     const int BUFFER_SIZE = 64 * 1024;
     char mbBuffer[BUFFER_SIZE + 1];
@@ -339,27 +341,27 @@ bool CStdioFileUnicode::ConvertAnsiToUTF8(NullTerminatedString filename) // 2013
         remainingSize -= idatalen;
 
         mbBuffer[idatalen] = 0;
-        std::wstring wideString = TextConverter::WindowsAnsiToWide(const_cast<const char*>(mbBuffer));
-        std::string utf8String = UTF8Convert::WideToUTF8(wideString.c_str());
+        const std::wstring wide_string = TextConverter::WindowsAnsiToWide(const_cast<const char*>(mbBuffer));
+        const std::string utf8_string = TC::ToUtf8(wide_string);
 
-        utf8File.Write(utf8String.c_str(),utf8String.length());
+        utf8File.Write(utf8_string.c_str(), utf8_string.length());
     }
 
     ansiFile.Close();
     utf8File.Close();
 
-    CFile::Remove(filename.c_str());
-    CFile::Rename(temp_filename.c_str(), filename.c_str());
+    PortableFunctions::FileDelete(file_path);
 
-    return true;
+    return PortableFunctions::FileRename(temp_filename, file_path);
 }
 #endif
 
 
-bool CStdioFileUnicode::ConvertUTF8ToAnsi(NullTerminatedString filename) // 20120123
+bool CStdioFileUnicode::ConvertUTF8ToAnsi(const std::string& file_path) // 20120123
 {
 #ifdef WIN_DESKTOP
-    CFile ansiFile,utf8File;
+    CFile ansiFile;
+    CFile utf8File;
 
     TCHAR tempPath[MAX_PATH - 14 + 1];
     TCHAR tempFilename[MAX_PATH + 1];
@@ -367,7 +369,7 @@ bool CStdioFileUnicode::ConvertUTF8ToAnsi(NullTerminatedString filename) // 2012
     if( !GetTempPath(MAX_PATH - 14,tempPath) || !GetTempFileName(tempPath,_T("CSP"),0,tempFilename) )
         return false;
 
-    if( !utf8File.Open(filename.c_str(), CFile::modeRead) )
+    if( !utf8File.Open(UTF8_TODO::GetWide(file_path).c_str(), CFile::modeRead) )
         return false;
 
     if( !ansiFile.Open(tempFilename,CFile::modeWrite) )
@@ -419,13 +421,12 @@ bool CStdioFileUnicode::ConvertUTF8ToAnsi(NullTerminatedString filename) // 2012
     ansiFile.Close();
 
     // instead of deleting the file we'll recycle it, then copy over the temp file
-    if( RecycleFile(filename) )
-        return MoveFile(tempFilename, filename.c_str()) != 0;
+    if( RecycleFile(file_path) )
+        return PortableFunctions::FileRename(tempFilename, file_path);
 
     return false;
 
 #else
-    assert(false);
-    return false;
+    return ReturnProgrammingError(false);
 #endif
 }

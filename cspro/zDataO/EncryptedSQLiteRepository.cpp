@@ -1,34 +1,40 @@
 ﻿#include "stdafx.h"
 #include "EncryptedSQLiteRepository.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
-#include <SQLite/Encryption.h>
 #include <zToolsO/Hash.h>
+#include <zSql/Encryption.h>
 #include <zUtilO/Interapp.h>
 
 
-const TCHAR* EncryptedSQLiteRepository::GetFileExtension() const
+EncryptedSQLiteRepository::EncryptedSQLiteRepository(std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type, DeviceId device_id)
+    :   SQLiteRepository(DataRepositoryType::EncryptedSQLite, std::move(case_access), access_type, std::move(device_id))
+{
+}
+
+
+const char* EncryptedSQLiteRepository::GetFileExtension() const
 {
     return FileExtensions::Data::EncryptedCSProDB;
 }
 
 
-int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* data_dictionary, const ConnectionString& connection_string, sqlite3** ppDb, const int flags)
+int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* const dictionary, const ConnectionString& connection_string, sqlite3** ppDb, const int flags)
 {
     if( !SqliteEncryption::IsEnabled() )
         throw DataRepositoryException::IOError(SqliteEncryption::NoSeeExceptionMessage);
 
-    const std::wstring& filename = connection_string.GetFilename();
+    const std::string& file_path = connection_string.GetFilePath();
     int open_result = 0;
 
     const EncryptedSQLiteRepositoryPasswordManager::OpenByPasswordHashCallback file_open_by_password_hash_callback =
-        [&](const std::byte* password_hash)
+        [&](const std::byte* const password_hash)
         {
             // to get the SQLite key, prefix the password hash with the encryption type
             std::vector<char> key(EncryptionType_sv.length() + PasswordHashSize);
             memcpy(key.data(), EncryptionType_sv.data(), EncryptionType_sv.length());
             memcpy(key.data() + EncryptionType_sv.length(), password_hash, PasswordHashSize);
 
-            const bool file_exists = PortableFunctions::FileExists(filename);
+            const bool file_exists = PortableFunctions::FileExists(file_path);
 
             sqlite3* db;
             open_result = SQLiteRepository::OpenSQLiteDatabaseFile(connection_string, &db, flags);
@@ -70,21 +76,19 @@ int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* data_dict
         };
 
     const EncryptedSQLiteRepositoryPasswordManager::OpenByPasswordCallback file_open_by_password_callback =
-        [&](const std::wstring& password, const EncryptedSQLiteRepositoryPasswordManager::SuccessfulOpenCallback* successful_open_callback)
+        [&](const std::string& password, const EncryptedSQLiteRepositoryPasswordManager::SuccessfulOpenCallback* const successful_open_callback)
         {
             // check that the password is long enough
-            if( password.length() < PasswordMinimumLength )
+            if( SO::WideLength(password) < PasswordMinimumLength )
             {
-                const std::wstring& formatter = MGF::GetMessageText(94301, _T("Passwords must be at least %d characters"));
-                throw DataRepositoryException::EncryptionError(FormatText(formatter.c_str(), static_cast<int>(PasswordMinimumLength)));
+                const SharableString formatter = MGF::GetMessageText(94301, "Passwords must be at least %d characters");
+                throw DataRepositoryException::EncryptionError(formatter->c_str(), static_cast<int>(PasswordMinimumLength));
             }
-
-            const std::string utf8_password = UTF8Convert::WideToUTF8(password);
 
             // generate the password hash with the fixed salt; it would be ideal to have a randomly
             // generated salt, but because there is no place to store this, we will use a fixed salt
             // even though this does not add cryptographic value
-            const std::vector<std::byte> password_hash = Hash::Hash(reinterpret_cast<const std::byte*>(utf8_password.c_str()), utf8_password.length(),
+            const std::vector<std::byte> password_hash = Hash::Hash(reinterpret_cast<const std::byte*>(password.c_str()), password.length(),
                                                                     reinterpret_cast<const std::byte*>(FixedSalt), _countof(FixedSalt),
                                                                     PasswordHashSize, PasswordHashIterations);
 
@@ -97,7 +101,7 @@ int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* data_dict
                     {
                         try
                         {
-                            return std::unique_ptr<CDataDict>(ReadDictFromDatabase(*ppDb));
+                            return ReadDictionaryFromDatabase(*ppDb);
                         }
                         catch(...) { }
 
@@ -112,20 +116,20 @@ int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* data_dict
 
     // check the password specified in the connection string, if available;
     // if not, prompt for a password (or retrieve it from the saved credentials)
-    const std::wstring* connection_string_password = connection_string.GetProperty(CSProperty::password);
+    const std::string* const connection_string_password = connection_string.GetProperty(CSProperty::password);
 
     if( connection_string_password != nullptr )
     {
         if( !file_open_by_password_callback(*connection_string_password, nullptr) )
         {
-            const std::wstring& formatter = MGF::GetMessageText(94302, _T("The connection string contained an invalid password for the file %s"));
-            throw DataRepositoryException::EncryptionError(FormatText(formatter.c_str(), PortableFunctions::PathGetFilename(filename)));
+            const SharableString formatter = MGF::GetMessageText(94302, "The connection string contained an invalid password for the file %s");
+            throw DataRepositoryException::EncryptionError(formatter->c_str(), PortableFunctions::PathGetFilename(file_path).c_str());
         }
     }
 
     else
     {
-        EncryptedSQLiteRepositoryPasswordManager password_manager(data_dictionary, filename, file_open_by_password_callback, file_open_by_password_hash_callback);
+        EncryptedSQLiteRepositoryPasswordManager password_manager(dictionary, file_path, file_open_by_password_callback, file_open_by_password_hash_callback);
         password_manager.GetPassword();
     }
 
@@ -135,7 +139,8 @@ int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* data_dict
 
 int EncryptedSQLiteRepository::EncryptedSQLiteRepository::OpenSQLiteDatabase(const ConnectionString& connection_string, sqlite3** ppDb, const int flags)
 {
-    return OpenSQLiteDatabaseFile(&m_caseAccess->GetDataDict(), connection_string, ppDb, flags);
+    const CDataDict& dictionary = m_caseAccess->GetDataDict();
+    return OpenSQLiteDatabaseFile(&dictionary, connection_string, ppDb, flags);
 }
 
 
@@ -146,7 +151,7 @@ std::unique_ptr<CDataDict> EncryptedSQLiteRepository::GetEmbeddedDictionary(cons
 
     if( OpenSQLiteDatabaseFile(nullptr, connection_string, &db, SQLITE_OPEN_READONLY) == SQLITE_OK )
     {
-        dictionary = ReadDictFromDatabase(db);
+        dictionary = ReadDictionaryFromDatabase(db);
         sqlite3_close(db);
     }
 

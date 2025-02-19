@@ -6,7 +6,7 @@
 
 
 ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseData(QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case,
-                                                                                  const JsonNode<wchar_t>& json_node, const bool write_all_content, const bool case_content_is_from_current_case)
+                                                                                  const JsonNode& json_node, const bool write_all_content, const bool case_content_is_from_current_case)
 {
     ASSERT(data_case != nullptr);
 
@@ -24,8 +24,8 @@ ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseDat
         catch(...) { }
     }
 
-    std::wstring content = write_all_content ? questionnaire_content_creator.GetContent() :
-                                               questionnaire_content_creator.GetCaseContent();
+    std::string content = write_all_content ? questionnaire_content_creator.GetContent() :
+                                              questionnaire_content_creator.GetCaseContent();
 
     // QuestionnaireContentCreator may write out the binary data in a case using a virtual file mapping handler;
     // if so add it to the Action Invoker's handlers
@@ -38,9 +38,9 @@ ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseDat
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Data_getCase(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Data_getCase(const JsonNode& json_node, Caller& /*caller*/)
 {
-    std::shared_ptr<const CDataDict> dictionary = std::get<2>(GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<wstring_view>(JK::name)));
+    std::shared_ptr<const CDataDict> dictionary = std::get<2>(GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<std::string_view>(JK::name)));
     ASSERT(dictionary != nullptr);
 
     std::unique_ptr<Case> data_case;
@@ -49,16 +49,16 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_getCase(const JsonNode<wchar_
     // get content for a specific case...
     if( json_node.Contains(JK::key) || json_node.Contains(JK::uuid) )
     {
-        data_case = GetInterpreterAccessor().GetCase(CS2WS(dictionary->GetName()),
-                                                     json_node.GetOptional<std::wstring>(JK::uuid),
-                                                     json_node.GetOptional<std::wstring>(JK::key));
+        data_case = GetInterpreterAccessor().GetCase(dictionary->GetName(),
+                                                     json_node.GetOptional<std::string>(JK::uuid),
+                                                     json_node.GetOptional<std::string>(JK::key));
         case_content_is_from_current_case = false;
     }
 
     // ...or the current case
     else
     {
-        data_case = GetInterpreterAccessor().GetCurrentCase(CS2WS(dictionary->GetName()));
+        data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
         case_content_is_from_current_case = true;
     }
 

@@ -50,7 +50,7 @@ Language=ES
 /* --- Entry Errors */
 89271  No se pudo iniciar el cuestionario en modo de modificación.
 89272  Modo de aplicación inválida Error al detener la aplicación de entrada de datos.
-89273  Se produjo un error al leer el archivo binario %s
+89273  Se produjo un error al leer el archivo binario '%s': %s
 89274  Error fatal en el motor de ingreso. Abortando la operación de entrada.
 
 /* --- Index */

@@ -8,23 +8,30 @@ BEGIN_MESSAGE_MAP(PropertiesDlgApplicationPropertiesFilePage, CDialog)
 END_MESSAGE_MAP()
 
 
-PropertiesDlgApplicationPropertiesFilePage::PropertiesDlgApplicationPropertiesFilePage(const Application& application, CWnd* pParent/* = nullptr*/)
+PropertiesDlgApplicationPropertiesFilePage::PropertiesDlgApplicationPropertiesFilePage(const Application& application, CWnd* const pParent/* = nullptr*/)
     :   CDialog(PropertiesDlgApplicationPropertiesFilePage::IDD, pParent),
         m_application(application),
-        m_applicationPropertiesFilename(application.GetApplicationPropertiesFilename()),
-        m_applicationFilename(CS2WS(application.GetApplicationFilename())),
-        m_useApplicationPropertiesFile(m_applicationPropertiesFilename.empty() ? 0 : 1)
+        m_applicationPropertiesFilePath(application.GetApplicationPropertiesFilePath()),
+        m_applicationFilePath(application.GetApplicationFilePath()),
+        m_useApplicationPropertiesFile(m_applicationPropertiesFilePath.empty() ? 0 : 1)
 {
 }
 
 
-void PropertiesDlgApplicationPropertiesFilePage::DoDataExchange(CDataExchange* pDX)
+const std::string& PropertiesDlgApplicationPropertiesFilePage::GetApplicationPropertiesFilePath() const
+{
+    return ( m_useApplicationPropertiesFile == 0 ) ? SO::Empty_string :
+                                                     m_applicationPropertiesFilePath;
+}
+
+
+void PropertiesDlgApplicationPropertiesFilePage::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
     DDX_Radio(pDX, IDC_SAVE_PROPERTIES_TO_APPLICATION, m_useApplicationPropertiesFile);
-    DDX_Text(pDX, IDC_APPLICATION_FILENAME, m_applicationFilename);
-    DDX_Text(pDX, IDC_CSPROPS_FILENAME, m_applicationPropertiesFilename);
+    DDX_Text(pDX, IDC_APPLICATION_FILENAME, m_applicationFilePath);
+    DDX_Text(pDX, IDC_CSPROPS_FILENAME, m_applicationPropertiesFilePath);
 }
 
 
@@ -42,17 +49,17 @@ void PropertiesDlgApplicationPropertiesFilePage::FormToProperties()
 {
     UpdateData(TRUE);
 
-    SO::MakeTrim(m_applicationPropertiesFilename);
+    SO::MakeTrim(m_applicationPropertiesFilePath);
 
-    if( m_useApplicationPropertiesFile == 1 && m_applicationPropertiesFilename.empty() )
+    if( m_useApplicationPropertiesFile == 1 && m_applicationPropertiesFilePath.empty() )
         throw CSProException("You must specify an Application Properties file.");
 }
 
 
 void PropertiesDlgApplicationPropertiesFilePage::ResetProperties()
 {
-    m_applicationPropertiesFilename = m_application.GetApplicationPropertiesFilename();
-    m_useApplicationPropertiesFile = m_applicationPropertiesFilename.empty() ? 0 : 1;
+    m_applicationPropertiesFilePath = m_application.GetApplicationPropertiesFilePath();
+    m_useApplicationPropertiesFile = m_applicationPropertiesFilePath.empty() ? 0 : 1;
 
     UpdateData(FALSE);
     EnableDisableControls();
@@ -69,7 +76,7 @@ void PropertiesDlgApplicationPropertiesFilePage::OnOK()
 
 void PropertiesDlgApplicationPropertiesFilePage::EnableDisableControls()
 {
-    BOOL enabled = ( m_useApplicationPropertiesFile == 1 );
+    const BOOL enabled = ( m_useApplicationPropertiesFile == 1 );
     GetDlgItem(IDC_SELECT_CSPROPS_FILE)->EnableWindow(enabled);
 }
 
@@ -85,43 +92,41 @@ void PropertiesDlgApplicationPropertiesFilePage::OnSelectFile()
 {
     UpdateData(TRUE);
 
-    std::wstring filename = m_applicationPropertiesFilename;
+    std::string file_path = m_applicationPropertiesFilePath;
 
-    // if no filename is provided, base the default filename on the application filename
-    if( filename.empty() )
-        filename = PortableFunctions::PathRemoveFileExtension(m_applicationFilename) + FileExtensions::WithDot::ApplicationProperties;
+    // if no file path is provided, base the default file path on the application file path
+    if( file_path.empty() )
+        file_path = PortableFunctions::PathReplaceFileExtension(m_applicationFilePath, FileExtensions::ApplicationProperties);
 
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::ApplicationProperties, filename.c_str(), OFN_HIDEREADONLY,
-                             _T("Application Properties Files (*.csprops)|*.csprops||"), this);
+    SaveFileDlg save_file_dlg(OFN_HIDEREADONLY, FileExtensions::ApplicationProperties, file_path,
+                             L"Application Properties Files (*.csprops)|*.csprops||", this);
+    save_file_dlg.SetTitle(L"Select Application Properties File");
 
-    file_dlg.m_ofn.lpstrTitle = _T("Select Application Properties File");
-
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    std::wstring new_filename = CS2WS(file_dlg.GetPathName());
+    std::string new_file_path = save_file_dlg.GetFilePath();
 
-    if( !SO::EqualsNoCase(new_filename, m_application.GetApplicationPropertiesFilename()) && PortableFunctions::FileIsRegular(new_filename) )
+    if( !SO::EqualsNoCase(new_file_path, m_application.GetApplicationPropertiesFilePath()) &&
+        PortableFunctions::FileIsRegular(new_file_path) )
     {
         try
         {
             // read the new application properties
             ApplicationProperties application_properties;
-            application_properties.Open(new_filename);
+            application_properties.Open(new_file_path);
 
-            int result = AfxMessageBox(FormatText(_T("The file '%s' already exists. If you select this file, the current application properties will be ")
-                                                  _T("discarded in favor of the properties in this file. Are you sure you want to use this file?"),
-                                                  PortableFunctions::PathGetFilename(new_filename)),
-                                       MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION);
+            const std::string message = FormatText("The file '%s' already exists. If you select this file, the current application properties will be "
+                                                   "discarded in favor of the properties in this file. Are you sure you want to use this file?",
+                                                   PortableFunctions::PathGetFilename(new_file_path).c_str());
+
+            const int result = AfxMessageBox(message, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION);
 
             if( result == IDYES )
             {
                 // set them
-                if( AfxGetMainWnd()->SendMessage(UWM::CSPro::SetExternalApplicationProperties,
-                                                 reinterpret_cast<WPARAM>(&new_filename), reinterpret_cast<LPARAM>(&application_properties)) != 1 )
-                {
+                if( WindowsDesktopMessage::Send(UWM::CSPro::SetExternalApplicationProperties, &new_file_path, &application_properties) != 1 )
                     throw CSProException("There was an error setting the application properties.");
-                }
 
                 // and then close the Application Properties dialog on success
                 GetParent()->SendMessage(WM_CLOSE);
@@ -134,10 +139,10 @@ void PropertiesDlgApplicationPropertiesFilePage::OnSelectFile()
             ErrorMessage::Display(exception);
         }
 
-        new_filename.clear();
+        new_file_path.clear();
     }
 
-    m_applicationPropertiesFilename = new_filename;
+    m_applicationPropertiesFilePath = std::move(new_file_path);
 
     UpdateData(FALSE);
 }

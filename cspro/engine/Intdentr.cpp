@@ -73,7 +73,7 @@ double CIntDriver::exskipto( int iExpr ) {
     if( Issamod != ModuleType::Entry )
         return BatchExSkipTo( iExpr );                  // victor Mar 08, 01
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     // --- target can be either a Var or Group          // victor Apr 07, 00
     SKIP_NODE*  pSkipNode = (SKIP_NODE*) (PPT(iExpr));
@@ -99,8 +99,8 @@ double CIntDriver::exskipto( int iExpr ) {
 
         GROUPT* pGroupT = m_pEngineArea->GetGroupTOfSymbol(iSymTarget);
 
-        int iOccTarget = // transition
-            dIndex[0] = pGroupT->GetCurrentOccurrences() + 1;
+        int iOccTarget = pGroupT->GetCurrentOccurrences() + 1; // transition
+        dIndex[0] = iOccTarget;
 
         // probably dIndex should be filled with information coming from
         // pGroupT->GetCurrent3DObject().
@@ -213,7 +213,7 @@ double CIntDriver::exadvance( int iExpr ) {
     if( Issamod != ModuleType::Entry )
         return BatchExAdvance( iExpr );                 // victor Mar 20, 01
 
-    m_iSkipStmt = TRUE;                // to break the current proc
+    m_bSkipStmt = true;                // to break the current proc
 
     SKIP_NODE*  pAdvanceNode  = (SKIP_NODE*) (PPT(iExpr));
 
@@ -305,7 +305,7 @@ double CIntDriver::exreenter( int iExpr ) {
     if( Issamod != ModuleType::Entry )
         return BatchExReenter( iExpr );                 // victor Mar 08, 01
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     SKIP_NODE*  pReenterNode = (SKIP_NODE*) (PPT(iExpr));
 
@@ -458,7 +458,7 @@ double CIntDriver::exendsect( int iExpr ) {
     if( Issamod != ModuleType::Entry )
         return BatchExEndsect( iExpr );                 // victor Mar 08, 01
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     ASSERT( IsUsing3D_Driver() );
     m_pCsDriver->SetLogicRequestNature( CsDriver::LogicEndGroup );
@@ -502,7 +502,7 @@ double CIntDriver::exendlevl( int iExpr ) {
     if( Issamod != ModuleType::Entry )
         return BatchExEndLevel( iExpr );                // victor Mar 20, 01
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     ASSERT( IsUsing3D_Driver() );
 
@@ -543,7 +543,7 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
     if( !m_pEngineSettings->HasSkipStruc() )
         return 0;
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     SKIP_NODE*  pSkipNode   = (SKIP_NODE*) (PPT(iExpr));
 
@@ -564,7 +564,6 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
         VPT(iSymSource)->GetOwnerGroup();
 
     int         iOccSource      = GPT(iSymSourceGroup)->GetCurrentExOccurrence();
-    bool        bSeeSource      = ( m_iProgType == PROCTYPE_PRE || m_iProgType == PROCTYPE_ONFOCUS );
     int         iProgSource     = m_iProgType;
 
     if( iOccSource < 1 )
@@ -587,7 +586,8 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
             ( NPT(iSymTarget)->IsA(SymbolType::Block) ) ? GetSymbolEngineBlock(iSymTarget).GetGroupT() :
             VPT(iSymTarget)->GetOwnerGPT();
 
-        iOccTarget = dIndex[0] = pGroupT->GetCurrentExOccurrence() + 1;
+        iOccTarget = pGroupT->GetCurrentExOccurrence() + 1;
+        dIndex[0] = iOccTarget;
 
         iSkipType = 2;                  // ... to next Var
 
@@ -689,7 +689,7 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
     BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg.Format( MGF::GetMessageText(88190).c_str(), bSkipToNext ? _T("SKIP TO NEXT") : _T("SKIP"), ProcName().GetString() );
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT" : "SKIP", ProcName().c_str()));
 
     return 0;
 }
@@ -710,7 +710,7 @@ double CIntDriver::BatchExAdvance( int iExpr ) {        // victor Mar 20, 01
     }
     // RHF END Nov 24, 2003
 
-    m_iSkipStmt = TRUE;                // to break the current proc
+    m_bSkipStmt = true;                // to break the current proc
 
     return 0;
 }
@@ -722,7 +722,7 @@ double CIntDriver::BatchExReenter( int iExpr ) {        // victor Mar 08, 01
     if( !m_pEngineSettings->HasSkipStruc() )
         return 0;
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     SKIP_NODE*  pReenterNode = (SKIP_NODE*) (PPT(iExpr));
 
@@ -769,14 +769,12 @@ double CIntDriver::BatchExReenter( int iExpr ) {        // victor Mar 08, 01
         }
     }
 
-    CString csTargetName = ( iSymTarget != 0 ) ? WS2CS(NPT(iSymTarget)->GetName()) : CString();
-
-    if( !iSymTarget || csTargetName.IsEmpty() )
+    if( iSymTarget == 0 )
         issaerror( MessageType::Error, 88230 );
     else if( !bMulTarget )
-        issaerror( MessageType::Error, 88231, csTargetName.GetString() );
+        issaerror( MessageType::Error, 88231, NPT(iSymTarget)->GetName().c_str() );
     else
-        issaerror( MessageType::Error, 88232, csTargetName.GetString(), iOccTarget );
+        issaerror( MessageType::Error, 88232, NPT(iSymTarget)->GetName().c_str(), iOccTarget );
 
     return 0;
 }
@@ -789,7 +787,7 @@ double CIntDriver::BatchExEndsect( int iExpr ) {        // victor Mar 08, 01
     if( !m_pEngineSettings->HasSkipStruc() )
         return 0;
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     C3DObject   o3DSourceDummy;
     int         iSymSource      = m_iExSymbol;
@@ -809,7 +807,7 @@ double CIntDriver::BatchExEndsect( int iExpr ) {        // victor Mar 08, 01
     BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg.Format( MGF::GetMessageText(88190).c_str(), _T("ENDGROUP"), ProcName().GetString() );
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), "ENDGROUP", ProcName().c_str()));
 
     return 0;
 }
@@ -829,7 +827,7 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
     if( !m_pEngineSettings->HasSkipStruc() )
         return 0;
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     int     iSkipType = 7;              // 6-EndLevel
 
@@ -861,7 +859,6 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
     //                 otherwise               - the iSymLevelGroup, PROCTYPE_POST
     int         iSymTarget      = iSymSourceGroup;
     int         iOccTarget      = 1;
-    int         iSymTargetGroup = iSymSourceGroup;
     ProcType    proc_target     = ProcType::PostProc;
 
     bool    bFromLevelPreProc=false;
@@ -992,16 +989,15 @@ void CIntDriver::BatchExDisplayDirty( std::vector<int>& aDirtySymbol, std::vecto
     if( iDirtyFound || iSkipType == 7 ) { // TODO - erase this line once BatchExEndLevel ready
 //  if( iDirtyFound )                    // TODO - uncomment this line once BatchExEndLevel ready
         // adjusting iSkipType if needed
-        C3DObject* pSkippingSource = m_pEngineDriver->GetSkippingSource();
         C3DObject* pSkippingTarget = m_pEngineDriver->GetSkippingTarget();
-        CString csTargetName;
+        std::string csTargetName;
         int iTargetOcc = -1;
 
         if( pSkippingTarget != NULL ) {
             int     iTargetSymbol = pSkippingTarget->GetSymbol();
 
             if( iTargetSymbol > 0 ) {
-                csTargetName = WS2CS(NPT(iTargetSymbol)->GetName());
+                csTargetName = NPT(iTargetSymbol)->GetName();
 
                 if( iSkipType == 4 ) {
                     iTargetOcc = pSkippingTarget->getIndexValue( 0 ) + 1; // ***TRANSITION*** // victor Apr 19, 01
@@ -1023,13 +1019,13 @@ void CIntDriver::BatchExDisplayDirty( std::vector<int>& aDirtySymbol, std::vecto
             case 1:                     // to Group
             case 2:                     // to next Var
             case 3:                     // to Var
-                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.GetString() );
+                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.c_str() );
                 break;
             case 4:                     // to Var(i)
-                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.GetString(), iTargetOcc );
+                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.c_str(), iTargetOcc );
                 break;
             case 5:                     // to Var(i) and 'i' is invalid
-                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.GetString() );
+                issaerror( MessageType::Error, iHeadMessage, iDirtyFound, csTargetName.c_str() );
                 break;
             case 0:                     // to generic
             case 6:                     // endsect
@@ -1050,8 +1046,9 @@ void CIntDriver::BatchExDisplayDirty( std::vector<int>& aDirtySymbol, std::vecto
             iSymCheck = aDirtySymbol[iDirty];
             iOccCheck = aDirtyOccur[iDirty];
 
-            if( NPT(iSymCheck)->IsA(SymbolType::Group) )
+            if( NPT(iSymCheck)->IsA(SymbolType::Group) ) {
                 issaerror( MessageType::Error, 88211, NPT(iSymCheck)->GetName().c_str() );
+            }
             else {
                 pVarT = VPT(iSymCheck);
 
@@ -1118,16 +1115,16 @@ void CIntDriver::BatchExDisplayDirty( std::vector<int>& aDirtySymbol, std::vecto
                     }
 
                     if( !pVarT->IsArray() )
-                        issaerror( MessageType::Error, 88214, pVarT->GetName().c_str(), csDirtyTxt.GetString(), csAssignText.GetString() );
+                        issaerror( MessageType::Error, 88214, pVarT->GetName().c_str(), UTF8_TODO::GetUtf8(csDirtyTxt).c_str(), UTF8_TODO::GetUtf8(csAssignText).c_str() );
                     else
-                        issaerror( MessageType::Error, 88215, pVarT->GetName().c_str(), iOccCheck, csDirtyTxt.GetString(), csAssignText.GetString() );
+                        issaerror( MessageType::Error, 88215, pVarT->GetName().c_str(), iOccCheck, UTF8_TODO::GetUtf8(csDirtyTxt).c_str(), UTF8_TODO::GetUtf8(csAssignText).c_str() );
                 }
                 // RHF END Nov 09, 2001
                 else {
                     if( !pVarT->IsArray() )
-                        issaerror( MessageType::Error, 88212, pVarT->GetName().c_str(), csDirtyTxt.GetString() );
+                        issaerror( MessageType::Error, 88212, pVarT->GetName().c_str(), UTF8_TODO::GetUtf8(csDirtyTxt).c_str() );
                     else
-                        issaerror( MessageType::Error, 88213, pVarT->GetName().c_str(), iOccCheck, csDirtyTxt.GetString() );
+                        issaerror( MessageType::Error, 88213, pVarT->GetName().c_str(), iOccCheck, UTF8_TODO::GetUtf8(csDirtyTxt).c_str() );
                 }
             }
         }
@@ -1148,7 +1145,7 @@ double CIntDriver::EntryExSkipToAt( int iExpr ) {       // victor Mar 26, 01
 
     if( pSkipNode->m_iAlphaExpr ) // 20120325
     {
-        CString csTargetName = EvalAlphaExpr<CString>(pSkipNode->m_iAlphaExpr);
+        CString csTargetName = EvalAlphaExprCS(pSkipNode->m_iAlphaExpr);
         csTargetName.TrimLeft();
         csTargetName.TrimRight();
         iSymTarget = GetReferredTargetSymbolChar(csTargetName,bSkipToNext,false,&iOccTargetAt,&bExplicitOcc);
@@ -1264,7 +1261,7 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
     if( !m_pEngineSettings->HasSkipStruc() )
         return 0;
 
-    m_iSkipStmt = TRUE;                    // to break the current proc
+    m_bSkipStmt = true;                    // to break the current proc
 
     SKIP_NODE*  pSkipNode   = (SKIP_NODE*) (PPT(iExpr));
     bool        bSkipToNext = ( pSkipNode->var_exprind == SKIP_TO_NEXT_OCCURRENCE );
@@ -1373,7 +1370,7 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
     BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg.Format( MGF::GetMessageText(88190).c_str(), bSkipToNext ? _T("SKIP TO NEXT (by reference)") : _T("SKIP (by reference)"), ProcName().GetString() );
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT (by reference)" : "SKIP (by reference)", ProcName().c_str()));
 
     return 0;
 }
@@ -1436,7 +1433,7 @@ bool CIntDriver::CheckAtSymbol(const CString& csFullName, int* piSymTarget, int*
             SymbolType::Group,
         };
 
-        *piSymTarget = m_pEngineArea->SymbolTableSearch(csTargetName, allowable_symbol_types);
+        *piSymTarget = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csTargetName), allowable_symbol_types);
 
         if( *piSymTarget == 0 )
             bRet = false;
@@ -1457,37 +1454,28 @@ bool CIntDriver::CheckAtSymbol(const CString& csFullName, int* piSymTarget, int*
 
 int CIntDriver::GetReferredTargetSymbol( int iSymAt, bool bSkipToNext, bool bMove, int* iOccTargetAt, bool* bExplicitOcc ) { // victor Mar 26, 01
     ASSERT( iSymAt > 0 );
-    Symbol* symbol = NPT(iSymAt);
+    const Symbol& symbol = NPT_Ref(iSymAt);
     CString csTargetName;
 
-    if( symbol->IsA(SymbolType::WorkString) )
+    if( symbol.IsA(SymbolType::WorkString) )
     {
-        csTargetName = WS2CS(assert_cast<const WorkString*>(symbol)->GetString());
+        csTargetName = UTF8_TODO::GetCString(assert_cast<const WorkString&>(symbol).GetString());
     }
 
     else
     {
-        VART* pAtVarT = assert_cast<VART*>(symbol);
+        VART* pAtVarT = assert_cast<VART*>(const_cast<Symbol*>(&symbol));
         ASSERT( !pAtVarT->IsNumeric() );// 'AtSymbol' must be alpha
         ASSERT( !pAtVarT->IsArray() );  // 'AtSymbol' must be Sing-var
 
-        if( pAtVarT->GetLogicStringPtr() ) // 20140403 a variable length string
-        {
-            csTargetName = *( pAtVarT->GetLogicStringPtr() );
-        }
-
-        else
-        {
-            // get the referred target-name from 'AtSymbol'
-            const TCHAR* pVarAsciiAddr = GetSingVarAsciiAddr(pAtVarT);
-            int iAtLength = pAtVarT->GetLength();
-            csTargetName = CString(pVarAsciiAddr, iAtLength);
-        }
+        // get the referred target-name from 'AtSymbol'
+        const TCHAR* pVarAsciiAddr = GetSingVarAsciiAddr(pAtVarT);
+        csTargetName = CString(pVarAsciiAddr, pAtVarT->GetLength());
     }
 
     csTargetName.Trim();
 
-    return GetReferredTargetSymbolChar(csTargetName, bSkipToNext, bMove, iOccTargetAt, bExplicitOcc, symbol);
+    return GetReferredTargetSymbolChar(csTargetName, bSkipToNext, bMove, iOccTargetAt, bExplicitOcc, &symbol);
 }
 
 
@@ -1540,8 +1528,8 @@ int CIntDriver::GetReferredTargetSymbolChar(const CString& csTargetName, bool bS
 
     if( iErrorMsg != 0 ) // issue message and forgets the target
     {
-        CString csAtName = ( symbol_holding_name != nullptr ) ? WS2CS(symbol_holding_name->GetName()) : csTargetName;
-        issaerror( MessageType::Error, iErrorMsg, csAtName.GetString(), csTargetName.GetString(), _T(" - the procedure is abandoned anyway") );
+        const CString csAtName = ( symbol_holding_name != nullptr ) ? UTF8_TODO::GetCString(symbol_holding_name->GetName()) : csTargetName;
+        issaerror( MessageType::Error, iErrorMsg, UTF8_TODO::GetUtf8(csAtName).c_str(), UTF8_TODO::GetUtf8(csTargetName).c_str(), " - the procedure is abandoned anyway" );
         iSymTarget = 0;
     }
 
@@ -1556,37 +1544,28 @@ int CIntDriver::GetReferredTargetSymbolChar(const CString& csTargetName, bool bS
 // RHF INIC Nov 24, 2003
 int CIntDriver::GetReferredReenterAdvanceTargetSymbol( int iSymAt, bool bAdvance, bool bMove, int* iOccTargetAt, bool* bExplicitOcc ) {
     ASSERT( iSymAt > 0 );
-    Symbol* symbol = NPT(iSymAt);
+    const Symbol& symbol = NPT_Ref(iSymAt);
     CString csTargetName;
 
-    if( symbol->IsA(SymbolType::WorkString) )
+    if( symbol.IsA(SymbolType::WorkString) )
     {
-        csTargetName = WS2CS(assert_cast<const WorkString*>(symbol)->GetString());
+        csTargetName = UTF8_TODO::GetCString(assert_cast<const WorkString&>(symbol).GetString());
     }
 
     else
     {
-        VART* pAtVarT = assert_cast<VART*>(symbol);
+        VART* pAtVarT = assert_cast<VART*>(const_cast<Symbol*>(&symbol));
         ASSERT( !pAtVarT->IsNumeric() );// 'AtSymbol' must be alpha
         ASSERT( !pAtVarT->IsArray() );  // 'AtSymbol' must be Sing-var
 
-        if( pAtVarT->GetLogicStringPtr() ) // 20140403 a variable length string
-        {
-            csTargetName = *( pAtVarT->GetLogicStringPtr() );
-        }
-
-        else
-        {
-            // get the referred target-name from 'AtSymbol'
-            const csprochar* pVarAsciiAddr = GetSingVarAsciiAddr( pAtVarT );
-            int iAtLength = pAtVarT->GetLength();
-            csTargetName = CString(pVarAsciiAddr, iAtLength);
-        }
+        // get the referred target-name from 'AtSymbol'
+        const TCHAR* pVarAsciiAddr = GetSingVarAsciiAddr( pAtVarT );
+        csTargetName = CString(pVarAsciiAddr, pAtVarT->GetLength());
     }
 
     csTargetName.Trim();
 
-    return GetReferredReenterAdvanceTargetSymbolChar(csTargetName, bAdvance, bMove, iOccTargetAt, bExplicitOcc, symbol);
+    return GetReferredReenterAdvanceTargetSymbolChar(csTargetName, bAdvance, bMove, iOccTargetAt, bExplicitOcc, &symbol);
 }
 
 
@@ -1618,8 +1597,8 @@ int CIntDriver::GetReferredReenterAdvanceTargetSymbolChar(const CString& csTarge
     }
 
     if( iErrorMsg ) {                   // issue message and forgets the target
-        CString csAtName = ( symbol_holding_name != nullptr ) ? WS2CS(symbol_holding_name->GetName()) : csTargetName;
-        issaerror( MessageType::Error, iErrorMsg, csAtName.GetString(), csTargetName.GetString(), _T(" - the procedure is abandoned anyway") );
+        const CString csAtName = ( symbol_holding_name != nullptr ) ? UTF8_TODO::GetCString(symbol_holding_name->GetName()) : csTargetName;
+        issaerror( MessageType::Error, iErrorMsg, UTF8_TODO::GetUtf8(csAtName).c_str(), UTF8_TODO::GetUtf8(csTargetName).c_str(), " - the procedure is abandoned anyway" );
         iSymTarget = 0;
     }
 
@@ -1644,7 +1623,7 @@ double CIntDriver::EntryExReenterAdvanceToAt( int iExpr, bool bAdvance ) {
 
     if( pReenterNode->m_iAlphaExpr ) // 20120521
     {
-        CString csTargetName = EvalAlphaExpr<CString>(pReenterNode->m_iAlphaExpr);
+        CString csTargetName = EvalAlphaExprCS(pReenterNode->m_iAlphaExpr);
         csTargetName.TrimLeft();
         csTargetName.TrimRight();
         iSymTarget = GetReferredReenterAdvanceTargetSymbolChar(csTargetName,bAdvance,false,&iOccTargetAt,&bExplicitOcc);
@@ -1776,7 +1755,7 @@ double CIntDriver::exmoveto( int iExpr ) {
     }
 
     else { // !bError
-        m_iSkipStmt = TRUE;                    // to break the current proc
+        m_bSkipStmt = true;                    // to break the current proc
 
         SKIP_NODE*  pMoveNode = (SKIP_NODE*) (PPT(iExpr));
         bSkipMode = ( pMoveNode->var_exprind == 0 ||  pMoveNode->var_exprind == 1 );
@@ -1791,7 +1770,7 @@ double CIntDriver::exmoveto( int iExpr ) {
 
             else
             {
-                CString csTargetName = EvalAlphaExpr<CString>(pMoveNode->m_iAlphaExpr);
+                CString csTargetName = EvalAlphaExprCS(pMoveNode->m_iAlphaExpr);
                 csTargetName.TrimLeft();
                 csTargetName.TrimRight();
                 iSymTarget = GetReferredTargetSymbolChar(csTargetName,false,true,&iOccTarget,&bExplicitOccDummy);
@@ -1955,7 +1934,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
 {
     ASK_NODE* pAskNode = (ASK_NODE*)PPT(iExpr);
     bool bIsTargetlessSkip = ( pAskNode->ask_universe < 0 );
-    const TCHAR* const skip_name = bIsTargetlessSkip ? _T("skip") : _T("ask-if");
+    const char* const skip_name = bIsTargetlessSkip ? "skip" : "ask-if";
 
     if( !bIsTargetlessSkip )
     {
@@ -1978,7 +1957,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
         return 0;
     }
 
-    m_iSkipStmt = TRUE; // to break the current proc
+    m_bSkipStmt = true; // to break the current proc
 
     // evaluate where we should skip
     Symbol* pSymbol = NPT(m_iExSymbol);
@@ -2052,7 +2031,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
                 BatchExSetSkipping(o3DSourceDummy, m_iProgType, o3DTarget, PROCTYPE_PRE);
 
                 // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-                m_csSkipStructMsg.Format(MGF::GetMessageText(88190).c_str(), skip_name, ProcName().GetString());
+                m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), skip_name, ProcName().c_str()));
             }
         }
     }

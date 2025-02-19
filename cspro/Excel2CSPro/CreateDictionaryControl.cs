@@ -125,7 +125,7 @@ namespace Excel2CSPro
             }
         }
 
-        public void RunTask(BackgroundWorker backgroundWorker)
+        public void RunTask(BackgroundWorker backgroundWorker, CSPro.Data.Excel2CSPro.OnQueryUsernamePassword onQueryUsernamePassword)
         {
             try
             {
@@ -427,7 +427,7 @@ namespace Excel2CSPro
                 }
             }
 
-            excel2CSProManager._spec.Mappings.Add(record_mapping);            
+            excel2CSProManager._spec.Mappings.Add(record_mapping);
 
             ((MainForm)this.TopLevelControl).LoadSpecFileFromCreateDictionaryControl(excel2CSProManager);
         }

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <zUtilO/ConnectionStringFileSimulator.h>
 #include <ZBRIDGEO/PifDlg.h>
 
 class CExportDoc;
@@ -10,24 +11,23 @@ class CExportApp : public CWinApp
 public:
     CExportApp();
 
+    ConnectionStringFileSimulator& GetConnectionStringFileSimulator() { return m_connectionStringFileSimulator; }
+
     void DeletePifInfos();
     void ManageLanguageDlgBar() const;
-
-    BOOL InitInstance() override;
 
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnAppAbout();
-    afx_msg void OnFileOpen();
+    BOOL InitInstance() override;
+
+    void OnAppAbout();
+    void OnFileOpen();
 
 public:
     CArray<PIFINFO*,PIFINFO*> m_arrPifInfo;
 
-    CIMSAString m_csModuleName;
-    HICON m_hIcon;
-    CIMSAString m_csWndClassName;
-
 private:
     CExportDoc* m_pExportDoc;
+    ConnectionStringFileSimulator m_connectionStringFileSimulator;
 };

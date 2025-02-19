@@ -20,7 +20,7 @@ public:
 
     void RebuildTreeIfNecessary();
 
-    struct SpecialDocumentType { std::wstring type; };
+    struct SpecialDocumentType { std::string type; };
     using ExtendedDocSetComponentType = std::variant<DocSetComponent::Type, SpecialDocumentType>;
 
 protected:
@@ -60,7 +60,7 @@ private:
         DataForTree() { }
         DataForTree(const DocSetSpec& doc_set_spec);
 
-        std::optional<std::wstring> title;
+        std::optional<std::string> title;
         std::vector<std::shared_ptr<DocSetComponent>> doc_set_components;
         std::optional<DocSetTableOfContents> table_of_contents;
         std::shared_ptr<DocSetComponent> cover_page_document;

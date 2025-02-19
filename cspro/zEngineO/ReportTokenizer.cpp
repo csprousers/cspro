@@ -3,7 +3,7 @@
 #include <zLogicO/LogicScanner.h>
 
 
-bool ReportTokenizer::Tokenize(wstring_view report_text_sv, const LogicSettings& logic_settings)
+bool ReportTokenizer::Tokenize(const std::string_view report_text_sv, const LogicSettings& logic_settings)
 {
     size_t line_number = 1;
 
@@ -17,14 +17,14 @@ bool ReportTokenizer::Tokenize(wstring_view report_text_sv, const LogicSettings&
 
     for( auto report_text_itr = report_text_sv.cbegin(); report_text_itr < report_text_end; ++report_text_itr )
     {
-        auto get_future_ch = [&](size_t index) -> TCHAR
+        auto get_future_ch = [&](const size_t index) -> char
         {
-            auto future_ch_pos = report_text_itr + index;
+            const auto future_ch_pos = report_text_itr + index;
             return ( future_ch_pos < report_text_end ) ? *future_ch_pos : 0;
         };
 
-        const TCHAR ch = *report_text_itr;
-        const TCHAR next_ch = get_future_ch(1);
+        const char ch = *report_text_itr;
+        const char next_ch = get_future_ch(1);
 
         if( ( ch == '\r' && next_ch != '\n' ) || ch == '\n' )
             ++line_number;
@@ -37,7 +37,7 @@ bool ReportTokenizer::Tokenize(wstring_view report_text_sv, const LogicSettings&
 
         bool section_changed = false;
 
-        auto change_section = [&](ReportToken::Type new_report_token_type, size_t extra_characters_processed)
+        auto change_section = [&](const ReportToken::Type new_report_token_type, const size_t extra_characters_processed)
         {
             m_reportTokens.emplace_back(ReportToken { new_report_token_type, line_number });
             report_text_itr += extra_characters_processed;

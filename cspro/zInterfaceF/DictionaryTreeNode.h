@@ -32,7 +32,7 @@ public:
     // other methods
     DictElementType GetDictElementType() const { return m_dictBase.GetElementType(); }
 
-    std::wstring GetLogicName() const { return GetNameOrLabelWithOccurrenceInfo(NameOrLabelType::LogicName); }
+    std::string GetLogicName() const { return UTF8_TODO::GetUtf8(GetNameOrLabelWithOccurrenceInfo(NameOrLabelType::LogicName)); }
 
     // a helper method for getting the dictionary object from a dictionary tree element;
     // throws an exception if the cast is invalid

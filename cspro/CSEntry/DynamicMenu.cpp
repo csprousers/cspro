@@ -125,12 +125,12 @@ namespace
 }
 
 
-void ActivateDynamicMenus(const CString& override_filename, BCMenu& menu) // 20111125
+void ActivateDynamicMenus(const std::string& override_file_path, BCMenu& menu) // 20111125
 {
     // open the file and process the overrides
     CSpecFile override_file;
 
-    if( override_file.Open(override_filename, CFile::modeRead) )
+    if( override_file.Open(UTF8_TODO::GetCString(override_file_path), CFile::modeRead) )
     {
         CString command;
         CString argument;

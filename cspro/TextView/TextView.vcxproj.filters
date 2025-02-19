@@ -30,13 +30,16 @@
     <ClCompile Include="MainFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OpenInDataManagerDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Seldlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="textview.cpp">
+    <ClCompile Include="TextView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tvblock.cpp">
@@ -52,9 +55,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TVView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenInDataViewerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,13 +74,19 @@
     <ClInclude Include="MainFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OpenInDataManagerDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Seldlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="textview.h">
+    <ClInclude Include="TextView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tvblock.h">
@@ -98,13 +104,7 @@
     <ClInclude Include="TVView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenInDataViewerDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

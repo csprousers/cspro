@@ -263,7 +263,7 @@ private:
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction/initialization
 public:
-    CSymbolFlow(std::wstring name, CEngineArea* pEngineArea);
+    CSymbolFlow(std::string name, CEngineArea* pEngineArea);
     ~CSymbolFlow();
 
     // --- getting attributes

@@ -1,0 +1,353 @@
+﻿[
+  {
+    "projectName": "android-audio-visualizer",
+    "projectUrl": "https://github.com/GautamChibde/android-audio-visualizer",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://github.com/GautamChibde/android-audio-visualizer/blob/master/LICENSE"
+  },
+  {
+    "projectName": "BCMenu",
+    "projectUrl": "https://www.codeproject.com/Articles/2354/Owner-Drawn-Menu-with-Icons-Titles-and-Shading",
+    "licenseFilename": "CPOL.htm",
+    "licenseUrl": "https://www.codeproject.com/info/cpol10.aspx"
+  },
+  {
+    "projectName": "Bootstrap",
+    "projectUrl": "https://getbootstrap.com",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/twbs/bootstrap/main/LICENSE"
+  },
+  {
+    "projectName": "bzip2",
+    "projectUrl": "https://sourceforge.net/projects/bzip2",
+    "licenseFilename": "LICENSE"
+  },
+  {
+    "projectName": "Chart.js",
+    "projectUrl": "https://www.chartjs.org",
+    "licenseFilename": "LICENSE.md",
+    "licenseUrl": "https://raw.githubusercontent.com/chartjs/Chart.js/master/LICENSE.md"
+  },
+  {
+    "projectName": "CHMLib",
+    "projectUrl": "https://github.com/jedwing/CHMLib",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://raw.githubusercontent.com/jedwing/CHMLib/master/COPYING"
+  },
+  {
+    "projectName": "codemirror",
+    "projectUrl": "https://github.com/codemirror/CodeMirror",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://github.com/codemirror/CodeMirror/blob/master/LICENSE"
+  },
+  {
+    "projectName": "cpp-base64",
+    "projectUrl": "https://github.com/ReneNyffenegger/cpp-base64",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/ReneNyffenegger/cpp-base64/master/LICENSE"
+  },
+  {
+    "projectName": "cpp-httplib",
+    "projectUrl": "https://github.com/yhirose/cpp-httplib",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/yhirose/cpp-httplib/master/LICENSE"
+  },
+  {
+    "projectName": "CString-clone",
+    "projectUrl": "https://www.codeproject.com/Articles/1146/CString-clone-Using-Standard-C",
+    "licenseFilename": "CPOL.htm",
+    "licenseUrl": "https://www.codeproject.com/info/cpol10.aspx"
+  },
+  {
+    "projectName": "Easylogging++",
+    "projectUrl": "https://github.com/amrayn/easyloggingpp",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/amrayn/easyloggingpp/master/LICENSE"
+  },
+  {
+    "projectName": "FakeIt",
+    "projectUrl": "https://github.com/eranpeer/FakeIt",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/eranpeer/FakeIt/master/LICENSE"
+  },
+  {
+    "projectName": "ftp4j",
+    "projectUrl": "http://www.sauronsoftware.it/projects/ftp4j",
+    "licenseFilename": "LICENSE.txt"
+  },
+  {
+    "projectName": "geometry.hpp",
+    "projectUrl": "https://github.com/mapbox/geometry.hpp",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://github.com/mapbox/geometry.hpp/blob/master/LICENSE"
+  },
+  {
+    "projectName": "glide",
+    "projectUrl": "https://github.com/bumptech/glide",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE"
+  },
+  {
+    "projectName": "gumbo-parser",
+    "projectUrl": "https://github.com/google/gumbo-parser",
+    "licenseFilename": "gumbo.h / LICENSE-2.0.txt",
+    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+  },
+  {
+    "projectName": "Handlebars.js",
+    "projectUrl": "https://handlebarsjs.com",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/handlebars-lang/handlebars.js/master/LICENSE"
+  },
+  {
+    "projectName": "jQuery",
+    "projectUrl": "https://jquery.com",
+    "licenseFilename": "LICENSE.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/jquery/jquery/master/LICENSE.txt"
+  },
+  {
+    "projectName": "jQuery UI",
+    "projectUrl": "https://jqueryui.com/",
+    "licenseFilename": "LICENSE.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/jquery/jquery-ui/main/LICENSE.txt"
+  },
+  {
+    "projectName": "JsBarcode",
+    "projectUrl": "https://lindell.me/JsBarcode",
+    "licenseFilename": "MIT-LICENSE.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/lindell/JsBarcode/master/MIT-LICENSE.txt"
+  },
+  {
+    "projectName": "JSMin",
+    "projectUrl": "https://github.com/douglascrockford/JSMin",
+    "licenseFilename": "jsmin.c",
+    "licenseUrl": "https://raw.githubusercontent.com/douglascrockford/JSMin/master/jsmin.c"
+  },
+  {
+    "projectName": "Json.NET",
+    "projectUrl": "https://www.newtonsoft.com/json",
+    "licenseFilename": "LICENSE.md",
+    "licenseUrl": "https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md"
+  },
+  {
+    "projectName": "jsoncons",
+    "projectUrl": "https://github.com/danielaparker/jsoncons",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/danielaparker/jsoncons/master/LICENSE"
+  },
+  {
+    "projectName": "JsonPath",
+    "projectUrl": "https://github.com/json-path/JsonPath",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/json-path/JsonPath/master/LICENSE"
+  },
+  {
+    "projectName": "Kotlin",
+    "projectUrl": "https://github.com/JetBrains/kotlin",
+    "licenseFilename": "LICENSE.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/JetBrains/kotlin/master/license/LICENSE.txt"
+  },
+  {
+    "projectName": "Leaflet",
+    "projectUrl": "https://leafletjs.com",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://github.com/Leaflet/Leaflet/blob/master/LICENSE"
+  },
+  {
+    "projectName": "leaflet-ajax",
+    "projectUrl": "https://github.com/calvinmetcalf/leaflet-ajax",
+    "licenseFilename": "license.md",
+    "licenseUrl": "https://raw.githubusercontent.com/calvinmetcalf/leaflet-ajax/gh-pages/license.md"
+  },
+  {
+    "projectName": "libcurl",
+    "projectUrl": "https://curl.haxx.se/libcurl",
+    "licenseUrl": "https://curl.haxx.se/docs/copyright.html"
+  },
+  {
+    "projectName": "librdata",
+    "projectUrl": "https://github.com/WizardMac/librdata",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/WizardMac/librdata/master/LICENSE"
+  },
+  {
+    "projectName": "libxlsxwriter",
+    "projectUrl": "https://github.com/jmcnamara/libxlsxwriter",
+    "licenseFilename": "License.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/jmcnamara/libxlsxwriter/master/License.txt"
+  },
+  {
+    "projectName": "MD5",
+    "projectUrl": "https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5",
+    "licenseFilename": "md5.c"
+  },
+  {
+    "projectName": "miniz",
+    "projectUrl": "https://github.com/richgel999/miniz",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/richgel999/miniz/master/LICENSE"
+  },
+  {
+    "projectName": "mp4v2",
+    "projectUrl": "https://github.com/CSProDevelopment/mp4v2",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://raw.githubusercontent.com/CSProDevelopment/mp4v2/master/COPYING"
+  },
+  {
+    "projectName": "mustache.js",
+    "projectUrl": "https://github.com/janl/mustache.js",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/janl/mustache.js/master/LICENSE"
+  },
+  {
+    "projectName": "pugixml",
+    "projectUrl": "https://pugixml.org",
+    "licenseFilename": "license.html",
+    "licenseUrl": "https://pugixml.org/license.html"
+  },
+  {
+    "projectName": "QR-Code-generator",
+    "projectUrl": "https://github.com/nayuki/QR-Code-generator",
+    "licenseFilename": "qrcodegen.hpp",
+    "licenseUrl": "https://raw.githubusercontent.com/nayuki/QR-Code-generator/master/cpp/qrcodegen.hpp"
+  },
+  {
+    "projectName": "QuickJS",
+    "projectUrl": "https://bellard.org/quickjs",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/bellard/quickjs/master/LICENSE"
+  },
+  {
+    "projectName": "RapidFuzz",
+    "projectUrl": "https://github.com/maxbachmann/rapidfuzz-cpp",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/maxbachmann/rapidfuzz-cpp/main/LICENSE"
+  },
+  {
+    "projectName": "ReadStat",
+    "projectUrl": "https://github.com/WizardMac/ReadStat",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/WizardMac/ReadStat/master/LICENSE"
+  },
+  {
+    "projectName": "rijndael-alg-fst",
+    "projectUrl": "https://opensource.apple.com/source/Heimdal/Heimdal-323.92.1/lib/hcrypto/rijndael-alg-fst.h",
+    "licenseFilename": "rijndael-alg-fst.h",
+    "licenseUrl": "https://opensource.apple.com/source/Heimdal/Heimdal-323.92.1/lib/hcrypto/rijndael-alg-fst.h"
+  },
+  {
+    "projectName": "rtf2html",
+    "projectUrl": "https://github.com/lvu/rtf2html",
+    "licenseFilename": "COPYING.LESSER",
+    "licenseUrl": "https://github.com/lvu/rtf2html/blob/master/COPYING.LESSER"
+  },
+  {
+    "projectName": "RxCpp",
+    "projectUrl": "https://github.com/ReactiveX/RxCpp",
+    "licenseFilename": "license.md",
+    "licenseUrl": "https://raw.githubusercontent.com/ReactiveX/RxCpp/master/license.md"
+  },
+  {
+    "projectName": "Scintilla",
+    "projectUrl": "https://www.scintilla.org",
+    "licenseFilename": "License.txt",
+    "licenseUrl": "https://www.scintilla.org/License.txt"
+  },
+  {
+    "projectName": "ScintillaCtrl, ScintillaView",
+    "projectUrl": "http://www.naughter.com/scintilla.html"
+  },
+  {
+    "projectName": "scrypt",
+    "projectUrl": "http://www.tarsnap.com/scrypt.html",
+    "licenseFilename": "COPYRIGHT",
+    "licenseUrl": "https://raw.githubusercontent.com/Tarsnap/scrypt/master/COPYRIGHT"
+  },
+  {
+    "projectName": "SortHeaderCtrl, SortListCtrl",
+    "licenseFilename": "SortHeaderCtrl.h"
+  },
+  {
+    "projectName": "span",
+    "projectUrl": "https://github.com/tcbrindle/span",
+    "licenseFilename": "LICENSE_1_0.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/tcbrindle/span/master/LICENSE_1_0.txt"
+  },
+  {
+    "projectName": "sprintf-js",
+    "projectUrl": "https://github.com/alexei/sprintf.js",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/alexei/sprintf.js/master/LICENSE"
+  },
+  {
+    "projectName": "SQLite",
+    "projectUrl": "https://www.sqlite.org",
+    "licenseFilename": "sqlite3.h"
+  },
+  {
+    "projectName": "stb_image",
+    "projectUrl": "https://github.com/nothings/stb",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/nothings/stb/master/LICENSE"
+  },
+  {
+    "projectName": "stduuid",
+    "projectUrl": "https://github.com/mariusbancila/stduuid",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/mariusbancila/stduuid/master/LICENSE"
+  },
+  {
+    "projectName": "Summernote",
+    "projectUrl": "https://github.com/summernote/summernote",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/summernote/summernote/develop/LICENSE"
+  },
+  {
+    "projectName": "summernote-rtl-plugin",
+    "projectUrl": "https://github.com/virtser/summernote-rtl-plugin",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/virtser/summernote-rtl-plugin/master/LICENSE"
+  },
+  {
+    "projectName": "timber",
+    "projectUrl": "https://github.com/JakeWharton/timber",
+    "licenseFilename": "LICENSE.txt",
+    "licenseUrl": "https://raw.githubusercontent.com/JakeWharton/timber/master/LICENSE.txt"
+  },
+  {
+    "projectName": "Ultimate Grid",
+    "projectUrl": "https://www.codeproject.com/Articles/20183/The-Ultimate-Grid-Home-Page",
+    "licenseFilename": "license.htm",
+    "licenseUrl": "https://www.codeproject.com/info/cpol10.aspx"
+  },
+  {
+    "projectName": "util_snprintf",
+    "projectUrl": "https://stuff.mit.edu/afs/athena/course/other/compututor/apache_1.2.0/src/util_snprintf.c",
+    "licenseFilename": "util_snprintf.c",
+    "licenseUrl": "https://stuff.mit.edu/afs/athena/course/other/compututor/apache_1.2.0/src/util_snprintf.c"
+  },
+  {
+    "projectName": "Windows-API-Code-Pack-1.1",
+    "projectUrl": "https://github.com/aybe/Windows-API-Code-Pack-1.1",
+    "licenseFilename": "LICENCE",
+    "licenseUrl": "https://raw.githubusercontent.com/aybe/Windows-API-Code-Pack-1.1/master/LICENCE"
+  },
+  {
+    "projectName": "Writing Your Own RTF Converter",
+    "projectUrl": "https://www.codeproject.com/Articles/27431/Writing-Your-Own-RTF-Converter",
+    "licenseFilename": "CPOL.htm",
+    "licenseUrl": "https://www.codeproject.com/info/cpol10.aspx"
+  },
+  {
+    "projectName": "yaml-cpp",
+    "projectUrl": "https://github.com/jbeder/yaml-cpp",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/jbeder/yaml-cpp/master/LICENSE"
+  },
+  {
+    "projectName": "zlib",
+    "projectUrl": "https://www.zlib.net",
+    "licenseFilename": "zlib.h",
+    "licenseUrl": "https://www.zlib.net/zlib_license.html"
+  }
+]

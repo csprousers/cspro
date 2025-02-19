@@ -37,7 +37,7 @@ const Token& BaseCompiler::NextTokenWithPreference(SymbolType preferred_symbol_t
         m_currentToken = m_tokens;
 
     // read and process the next token
-    const BasicToken* basic_token = NextBasicToken();
+    const BasicToken* const basic_token = NextBasicToken();
 
     // quit if at the end of the procedure
     if( basic_token == nullptr )
@@ -47,7 +47,7 @@ const Token& BaseCompiler::NextTokenWithPreference(SymbolType preferred_symbol_t
     }
 
     // set the token code and string, and then handle special cases
-    m_currentToken->reset(basic_token->token_code, basic_token->GetTextSV());
+    m_currentToken->reset(basic_token->token_code, basic_token->GetSV());
 
     if( basic_token->type == BasicToken::Type::Operator )
     {
@@ -57,7 +57,7 @@ const Token& BaseCompiler::NextTokenWithPreference(SymbolType preferred_symbol_t
     else if( basic_token->type == BasicToken::Type::NumericConstant )
     {
         ASSERT(basic_token->token_code == TokenCode::TOKCTE);
-        m_currentToken->value = chartodval(m_currentToken->text.c_str(), m_currentToken->text.length(), 0);
+        m_currentToken->value = chartodval(m_currentToken->text, 0);
     }
 
     else if( basic_token->type == BasicToken::Type::StringLiteral )
@@ -85,7 +85,7 @@ void BaseCompiler::ProcessOperatorToken()
     // conditionally change a minus operator to a minus
     if( m_currentToken->code == TokenCode::TOKMINOP )
     {
-        const BasicToken* previous_basic_token = GetPreviousBasicToken();
+        const BasicToken* const previous_basic_token = GetPreviousBasicToken();
 
         if( previous_basic_token != nullptr )
         {
@@ -120,7 +120,7 @@ void BaseCompiler::ProcessStringLiteralToken()
     // loop because multiple string literals listed directly after each other are automatically concatenated together
     while( true )
     {
-        StringLiteralParser::Parse(*this, m_currentToken->text, basic_token->GetTextSV());
+        StringLiteralParser::Parse(*this, m_currentToken->text, basic_token->GetSV());
 
         // see if the next token is a string literal, or a + with a string literal
         size_t tokens_to_read_before_next_string_literal = 0;
@@ -151,7 +151,7 @@ void BaseCompiler::ProcessStringLiteralToken()
 }
 
 
-void BaseCompiler::ProcessText(SymbolType preferred_symbol_type)
+void BaseCompiler::ProcessText(const SymbolType preferred_symbol_type)
 {
     const BasicToken* basic_token = GetCurrentBasicToken();
 
@@ -178,7 +178,7 @@ void BaseCompiler::ProcessText(SymbolType preferred_symbol_type)
 
         else
         {
-            m_textTokensForProcessText.emplace_back(basic_token->GetTextSV());
+            m_textTokensForProcessText.emplace_back(basic_token->GetSV());
         }
 
         m_currentToken->text.append(m_textTokensForProcessText.back());
@@ -194,7 +194,7 @@ void BaseCompiler::ProcessText(SymbolType preferred_symbol_type)
             {
                 // parse the next part of the dot notation
                 basic_token = NextBasicToken();
-                m_currentToken->text.append(basic_token->GetTextSV());
+                m_currentToken->text.append(basic_token->GetSV());
                 basic_token = NextBasicToken();
                 continue;
             }
@@ -212,7 +212,7 @@ void BaseCompiler::ProcessText(SymbolType preferred_symbol_type)
 
         size_t number_remaining_tokens =  m_textTokensForProcessText.size();
 
-        for( const std::wstring& name : m_textTokensForProcessText )
+        for( const std::string& name : m_textTokensForProcessText )
         {
             --number_remaining_tokens;
 
@@ -304,7 +304,7 @@ void BaseCompiler::ProcessText(SymbolType preferred_symbol_type)
     // or, when no symbols were found, we can check if there is a symbol name or reserved word that nearly matches
     if( error_number == 93000 )
     {
-        const std::wstring fuzzy_matched_word = m_symbolTable.GetRecommendedWordUsingFuzzyMatching(m_currentToken->text);
+        const std::string fuzzy_matched_word = m_symbolTable.GetRecommendedWordUsingFuzzyMatching(m_currentToken->text);
 
         if( !fuzzy_matched_word.empty() )
             IssueError(93007, m_currentToken->text.c_str(), fuzzy_matched_word.c_str());
@@ -334,7 +334,7 @@ void BaseCompiler::ProcessSymbol()
 }
 
 
-TokenCode BaseCompiler::GetTokenCodeFromSymbolType(SymbolType symbol_type)
+TokenCode BaseCompiler::GetTokenCodeFromSymbolType(const SymbolType symbol_type)
 {
     static const std::map<SymbolType, TokenCode> symbol_to_token_code_map =
     {
@@ -383,7 +383,7 @@ void BaseCompiler::ProcessFunction()
 }
 
 
-void BaseCompiler::CheckSymbolCase(const Symbol& symbol, const std::wstring& compiled_case)
+void BaseCompiler::CheckSymbolCase(const Symbol& symbol, const std::string& compiled_case)
 {
     if( symbol.GetName() == compiled_case )
         return;
@@ -393,9 +393,9 @@ void BaseCompiler::CheckSymbolCase(const Symbol& symbol, const std::wstring& com
         IssueError(93006, compiled_case.c_str(), symbol.GetName().c_str());
 
     // check if this is an alias
-    std::vector<std::wstring> aliases = m_symbolTable.GetAliases(symbol);
+    const std::vector<std::string> aliases = m_symbolTable.GetAliases(symbol);
     const auto& alias_lookup = std::find_if(aliases.cbegin(), aliases.cend(),
-                                            [&](const std::wstring& alias) { return SO::EqualsNoCase(alias, compiled_case); });
+                                            [&](const std::string& alias) { return SO::EqualsNoCase(alias, compiled_case); });
 
     if( alias_lookup != aliases.cend() )
     {
@@ -407,14 +407,14 @@ void BaseCompiler::CheckSymbolCase(const Symbol& symbol, const std::wstring& com
     else
     {
         // if here, this is a constructed symbol like valueset_name.codes
-        size_t dot_pos = symbol.GetName().find_last_of('.');
+        const size_t dot_pos = symbol.GetName().find_last_of('.');
 
-        if( dot_pos != std::wstring::npos )
+        if( dot_pos != std::string::npos )
         {
-            wstring_view last_name_sv = wstring_view(symbol.GetName()).substr(dot_pos + 1);
+            const std::string_view last_name_sv = std::string_view(symbol.GetName()).substr(dot_pos + 1);
 
             if( compiled_case != last_name_sv )
-                IssueError(93006, compiled_case.c_str(), std::wstring(last_name_sv).c_str());
+                IssueError(93006, compiled_case.c_str(), std::string(last_name_sv).c_str());
         }
 
         else
@@ -443,45 +443,30 @@ const Token& BaseCompiler::NextTokenOrNewSymbolName()
 }
 
 
-void BaseCompiler::CheckIfValidNewSymbolName(const std::wstring& new_symbol_name)
+void BaseCompiler::CheckIfValidNewSymbolName(const std::string_view new_symbol_name_sv)
 {
     // check that the name is valid
-    if( !CIMSAString::IsName(new_symbol_name) )
-        IssueError(101, new_symbol_name.c_str());
+    if( !CIMSAString::IsName(new_symbol_name_sv) )
+        IssueError(101, std::string(new_symbol_name_sv).c_str());
 
     // check if the name is already in use
-    if( m_symbolTable.NameExists(new_symbol_name) )
-        IssueError(102, new_symbol_name.c_str());
+    if( m_symbolTable.NameExists(new_symbol_name_sv) )
+        IssueError(102, std::string(new_symbol_name_sv).c_str());
 
     // check if this is a reserved name
-    if( ReservedWords::IsReservedWord(new_symbol_name) )
-        IssueError(162, new_symbol_name.c_str());
+    if( ReservedWords::IsReservedWord(new_symbol_name_sv) )
+        IssueError(162, std::string(new_symbol_name_sv).c_str());
 }
 
 
-void BaseCompiler::IssueErrorOnTokenMismatch(const Token& _token, TokenCode token_code, int message_number)
+void BaseCompiler::IssueErrorOnTokenMismatch(const Token& _token, const TokenCode token_code, const int message_number)
 {
     if( _token.code != token_code )
         IssueError(message_number);
 }
 
 
-template<typename T/* = const TCHAR**/>
-size_t BaseCompiler::NextKeywordOrError(const std::vector<T>& keywords)
-{
-    size_t keyword_type = NextKeyword(keywords);
-
-    if( keyword_type == 0 )
-        IssueError(7016, SO::CreateSingleString(keywords).c_str());
-
-    return keyword_type;
-}
-
-template ZLOGICO_API size_t BaseCompiler::NextKeywordOrError(const std::vector<const TCHAR*>& keywords);
-template ZLOGICO_API size_t BaseCompiler::NextKeywordOrError(const std::vector<std::wstring>& keywords);
-
-
-bool BaseCompiler::NextKeywordIf(TokenCode token_code)
+bool BaseCompiler::NextKeywordIf(const TokenCode token_code)
 {
     if( IsNextToken(token_code) )
     {
@@ -494,9 +479,9 @@ bool BaseCompiler::NextKeywordIf(TokenCode token_code)
 }
 
 
-bool BaseCompiler::IsNextToken(cs::span<const TokenCode> token_codes) const
+bool BaseCompiler::IsNextToken(const cs::span<const TokenCode> token_codes) const
 {
-    const BasicToken* next_basic_token = PeekNextBasicToken();
+    const BasicToken* const next_basic_token = PeekNextBasicToken();
 
     if( next_basic_token != nullptr )
     {
@@ -508,7 +493,7 @@ bool BaseCompiler::IsNextToken(cs::span<const TokenCode> token_codes) const
             next_token_code = next_basic_token->token_code;
         }
 
-        else if( KeywordTable::IsKeyword(next_basic_token->GetTextSV(), &keyword_details) )
+        else if( KeywordTable::IsKeyword(next_basic_token->GetSV(), &keyword_details) )
         {
             next_token_code = keyword_details->token_code;
         }
@@ -526,7 +511,7 @@ bool BaseCompiler::IsNextToken(cs::span<const TokenCode> token_codes) const
 
 bool BaseCompiler::IsNextTokenNamedArgument() const
 {
-    const Logic::BasicToken* two_tokens_from_here = PeekNextBasicToken(1);
+    const Logic::BasicToken* const two_tokens_from_here = PeekNextBasicToken(1);
 
     return ( two_tokens_from_here != nullptr &&
              two_tokens_from_here->token_code == TokenCode::TOKNAMEDARGOP );

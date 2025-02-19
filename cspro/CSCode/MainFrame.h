@@ -28,7 +28,7 @@ public:
 
     CodeDoc* GetActiveCodeDoc();
 
-    CodeDoc* FindDocument(const std::variant<const CDocument*, std::wstring>& document_or_filename);
+    CodeDoc* FindDocument(const std::variant<const CDocument*, std::string_view>& document_or_file_path_sv);
     bool ActivateDocument(CodeView* code_view);
 
     bool IsRunOperationInProgress() const { return ( m_currentRunOperation != nullptr && m_currentRunOperation->IsRunning() ); }
@@ -75,8 +75,10 @@ protected:
     void OnCloseAllButThis();
     void OnLocalhostMapping(UINT nID);
 
-    // toolbar + status bar + editor handlers
+    // toolbar + tab + status bar + editor handlers
     LRESULT OnSyncToolbar(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnGetTabToolTip(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnSetStatusBarFilePos(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetStatusBarFileType(WPARAM wParam, LPARAM lParam);
@@ -93,6 +95,7 @@ protected:
     LRESULT OnRunOperationComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnModelessDialogDestroyed(WPARAM wParam, LPARAM lParam);
 
+    LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetObjectTransporter(WPARAM wParam, LPARAM lParam);
     LRESULT OnEngineUI(WPARAM wParam, LPARAM lParam);
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
@@ -101,9 +104,9 @@ protected:
 private:
     void ShowDockablePane(CDockablePane& dockable_pane, BOOL visibility);
 
-    void SetStatusBarPaneText(UINT indicator, const TCHAR* text);
+    void SetStatusBarPaneText(UINT indicator, const wchar_t* text);
 
-    std::wstring GetLocalhostMappingUrlForActiveDocument();
+    std::string GetLocalhostMappingUrlForActiveDocument();
 
 private:
     MFCMenuBarWithoutSerializableState m_wndMenuBar;
@@ -113,21 +116,21 @@ private:
 
     std::unique_ptr<CSCodeBuildWnd> m_buildWnd;
     std::unique_ptr<OutputWnd> m_outputWnd;
-    
+
     std::unique_ptr<HtmlViewerWnd> m_htmlViewerWnd;
     std::unique_ptr<ChmFileVirtualFile> m_chmFileVirtualFile;
 
     std::unique_ptr<LanguageSettingsPersister> m_languageSettingsPersister;
 
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
-    std::vector<std::tuple<std::wstring, std::unique_ptr<DocumentVirtualFileMappingHandler>>> m_documentVirtualFileMappingHandlers;
+    std::vector<std::tuple<std::string, std::unique_ptr<DocumentVirtualFileMappingHandler>>> m_documentVirtualFileMappingHandlers;
 
     std::shared_ptr<RunOperation> m_currentRunOperation;
 
     enum class ModelessDialogType { HtmlDialogTemplates };
     std::map<ModelessDialogType, WindowHelpers::ModelessDialogHolder> m_modelessDialogHolders;
 
-    std::map<StringNoCase, std::tuple<int64_t, std::shared_ptr<const CDataDict>>> m_loadedDictionaries;
+    std::map<std::string, std::tuple<int64_t, std::shared_ptr<const CDataDict>>, cs::case_insensitive_less> m_loadedDictionaries;
 
     std::unique_ptr<ObjectTransporter> m_objectTransporter;
     std::unique_ptr<EngineUIProcessor> m_engineUIProcessor;

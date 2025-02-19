@@ -22,7 +22,7 @@ void ReadOnlyEditCtrl::ClearReadOnlyText()
 }
 
 
-void ReadOnlyEditCtrl::AppendReadOnlyText(wstring_view text_sv)
+void ReadOnlyEditCtrl::AppendReadOnlyText(const std::string_view text_sv)
 {
     SetReadOnly(FALSE);
     AppendText(text_sv.length(), text_sv.data());

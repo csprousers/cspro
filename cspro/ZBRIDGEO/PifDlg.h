@@ -1,8 +1,8 @@
 ﻿#pragma once
-// PifDlg.h : header file
-//
+
 #include <ZBRIDGEO/npff.h>
 #include <ZBRIDGEO/Pifgrid.h>
+
 
 enum FILETYPE { FILE_NONE, PIFDICT, PIFUSRFILE };
 
@@ -28,7 +28,7 @@ struct PIFINFO
     CString sFileName; // non-data filename
 
     std::vector<ConnectionString> connection_strings;
-    CString dictionary_filename;
+    std::string dictionary_file_path;
 
     void SetConnectionString(const ConnectionString& connection_string_)
     {
@@ -97,10 +97,8 @@ public:
 private:
     CArray<PIFINFO*, PIFINFO*> m_arrPifInfo;
     bool Validate();
-    bool IsValidFilePath(NullTerminatedStringView path, bool must_be_writeable);
+    bool IsValidFilePath(const std::wstring& path, bool must_be_writeable);
     void SaveAssociations();
-    bool DictionaryChangesIfAnyAreOk(const ConnectionString& connection_string, const CString& dictionary_filename);
-
 };
 
 //{{AFX_INSERT_LOCATION}}

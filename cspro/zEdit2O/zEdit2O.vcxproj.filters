@@ -11,13 +11,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zEdit2O.cpp">
+    <ClCompile Include="CSProScintillaCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="CSProScintillaFindReplaceDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScintillaCtrl.cpp">
+    <ClCompile Include="EditCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GoToDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LexerProperties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lexers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LogicCtrl.cpp">
@@ -26,45 +35,45 @@
     <ClCompile Include="LogicView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScintillaDocView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EditCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MessageEditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ReadOnlyEditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GoToDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ScintillaColorizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Lexers.cpp">
+    <ClCompile Include="ScintillaCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LexerProperties.cpp">
+    <ClCompile Include="ScintillaDocView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSProScintillaCtrl.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSProScintillaFindReplaceDlg.cpp">
+    <ClCompile Include="zEdit2O.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="CSProScintillaCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zEdit2O.h">
+    <ClInclude Include="CSProScintillaFindReplaceDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScintillaCtrl.h">
+    <ClInclude Include="EditCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GoToDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LexerProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lexers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogicCtrl.h">
@@ -73,43 +82,34 @@
     <ClInclude Include="LogicView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScintillaDocView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EditCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MessageEditCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReadOnlyEditCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GoToDlg.h">
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScintillaColorizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Lexers.h">
+    <ClInclude Include="ScintillaCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LexerProperties.h">
+    <ClInclude Include="ScintillaDocView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSProScintillaCtrl.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSProScintillaFindReplaceDlg.h">
+    <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource_win32.h">
+    <ClInclude Include="zEdit2O.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,14 +8,14 @@ class DictValueSet;
 
 struct FrequencyRow
 {
-    std::vector<std::variant<double, std::wstring>> values;
-    std::vector<std::wstring> formatted_values;
+    std::vector<std::variant<double, std::string>> values;
+    std::vector<std::string> formatted_values;
     const DictValue* dict_value = nullptr;
     double count = 0;
     bool value_is_blank = false;
 
     // some additional values that can be used for printing
-    std::wstring display_label;
+    std::string display_label;
     bool mark_as_out_of_value_set = false;
     bool mark_as_value_appearing_in_multiple_rows = false;
 };
@@ -71,16 +71,16 @@ struct FrequencyAlphanumericStatistics
 
 struct FrequencyTable
 {
-    std::wstring frequency_name;
+    std::string frequency_name;
 
     FrequencyPrinterOptions frequency_printer_options;
 
-    std::wstring symbol_name;
+    std::string symbol_name;
     const CDictItem* dict_item = nullptr;
     const DictValueSet* dict_value_set = nullptr;
 
-    std::vector<std::wstring> titles;
-    std::map<size_t, std::tuple<std::wstring, std::wstring>> logic_based_titles; // index into titles -> heading + logic
+    std::vector<std::string> titles;
+    std::map<size_t, std::tuple<std::string, std::string>> logic_based_titles; // index into titles -> heading + logic
 
     double total_count = 0;
     double total_non_blank_count = 0;

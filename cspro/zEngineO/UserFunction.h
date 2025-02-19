@@ -4,6 +4,7 @@
 #include <zEngineO/UserFunctionLocalSymbolsManager.h>
 
 struct EngineData;
+class UserFunctionArgumentEvaluator;
 
 
 // --------------------------------------------------------------------------
@@ -15,7 +16,7 @@ class ZENGINEO_API UserFunction : public Symbol
     friend UserFunctionLocalSymbolsManager;
 
 public:
-    UserFunction(std::wstring user_function_name, EngineData& engine_data);
+    UserFunction(std::string user_function_name, EngineData& engine_data);
 
     void SetProgramIndex(int program_index) { m_programIndex = program_index; }
     int GetProgramIndex() const             { return m_programIndex; }
@@ -30,7 +31,8 @@ public:
     void SetSqlCallbackFunction(bool bIsSqlCallbackFunction) { m_sqlCallbackFunction = bIsSqlCallbackFunction; }
     bool IsSqlCallbackFunction() const                       { return m_sqlCallbackFunction; }
 
-    void AddParameterSymbol(const Symbol& parameter_symbol);
+    void SetParameters(std::vector<int> parameter_symbol_indices, std::vector<int> parameter_default_values);
+
     int GetParameterSymbolIndex(size_t parameter_number) const { return m_parameterSymbols[parameter_number]; }
     const std::vector<int>& GetParameterSymbolIndices() const  { return m_parameterSymbols; }
     size_t GetNumberParameters() const                         { return m_parameterSymbols.size(); }
@@ -38,7 +40,6 @@ public:
     Symbol& GetParameterSymbol(size_t parameter_number);
     const Symbol& GetParameterSymbol(size_t parameter_number) const { return const_cast<UserFunction*>(this)->GetParameterSymbol(parameter_number); }
 
-    void AddParameterDefaultValue(int default_value_expression) { m_parameterDefaultValues.emplace_back(default_value_expression); }
     int GetParameterDefaultValue(size_t parameter_number) const { return m_parameterDefaultValues[parameter_number - GetNumberRequiredParameters()]; }
     size_t GetNumberRequiredParameters() const                  { return m_parameterSymbols.size() - m_parameterDefaultValues.size(); };
 
@@ -47,10 +48,13 @@ public:
     // runtime methods
     UserFunctionLocalSymbolsManager GetLocalSymbolsManager() { return UserFunctionLocalSymbolsManager(*this); }
 
-    void SetReturnValue(std::variant<double, std::wstring> return_value);
-    template<typename T> const T& GetReturnValue() const { return std::get<T>(m_returnValue); }    
+    void SetReturnValue(std::variant<double, SharableString> return_value);
+    const std::variant<double, SharableString>& GetReturnValue() const { return m_returnValue; }
 
     // Symbol overrides
+    void CompareDeclarationAttributes(const Symbol& symbol) const override;
+    void CompareDeclarationAttributes(SymbolType return_type, int return_padding_string_length, bool sql_callback_function) const;
+
     void Reset() override;
 
     void serialize_subclass(Serializer& ar) override;
@@ -73,37 +77,8 @@ private:
     std::vector<int> m_functionBodySymbols;
 
     // runtime only
-    std::variant<double, std::wstring> m_returnValue;
+    std::variant<double, SharableString> m_returnValue;
 
     std::vector<std::shared_ptr<UserFunctionLocalSymbolsManager::Data>> m_localSymbolsManagerData;
     size_t m_functionCallCount;
-};
-
-
-
-// --------------------------------------------------------------------------
-// UserFunctionArgumentEvaluator
-//
-// for evaluating the arguments to a function
-// --------------------------------------------------------------------------
-
-class UserFunctionArgumentEvaluator
-{
-public:
-    virtual ~UserFunctionArgumentEvaluator() { }
-
-    // return the evaluated numeric expression
-    virtual double GetNumeric(int parameter_number) = 0;
-
-    // return the evaluated string expression
-    virtual std::wstring GetString(int parameter_number) = 0;
-
-    // return true if the symbol's argument was constructed in place (using the parameter symbol)
-    virtual bool ConstructSymbolInPlace(int /*parameter_number*/, Symbol& /*parameter_symbol*/) { return false; }
-
-    // return the evaluated symbol if the symbol was not constructed in place, or null to use the parameter symbol;
-    // if the symbol is not valid (e.g., has a invalid subscript), throw an InvalidSubscript exception
-    virtual std::shared_ptr<Symbol> GetSymbol(int /*parameter_number*/) { return ReturnProgrammingError(nullptr); }
-
-    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(InvalidSubscript, "")
 };

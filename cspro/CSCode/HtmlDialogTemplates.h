@@ -3,14 +3,14 @@
 
 struct HtmlDialogTemplate
 {
-    std::wstring filename;
-    std::wstring description;
-    std::wstring subdescription;
+    std::string filename;
+    std::string description;
+    std::string subdescription;
 
     struct Sample
     {
-        std::wstring description;
-        std::wstring input;
+        std::string description;
+        SharableString input;
     };
 
     std::vector<Sample> samples;
@@ -24,7 +24,7 @@ public:
 
     const std::vector<HtmlDialogTemplate>& GetTemplates() const { return m_htmlDialogTemplates; }
 
-    std::optional<std::wstring> GetDefaultInputText(const std::wstring& filename) const;
+    SharableString GetDefaultInputText(const std::string& file_path) const;
 
 private:
     static std::vector<HtmlDialogTemplate> ReadTemplates();

@@ -4,46 +4,43 @@
 #include <zMultimediaO/BmpFile.h>
 #include <zUtilO/PortableColor.h>
 
-namespace Multimedia { class Image; }
+namespace Multimedia { class Image; class QRCode; }
 
 
-namespace Multimedia
+// a simple QR code creator that wraps the qrcodegen library
+
+class ZMULTIMEDIAO_API Multimedia::QRCode
 {
-    // a simple QR code creator that wraps the qrcodegen library
+public:
+    static constexpr int ScaleMin         = 1;
+    static constexpr int ScaleDefault     = 4;
 
-    class ZMULTIMEDIAO_API QRCode
-    {
-    public:
-        static constexpr int ScaleMin         = 1;
-        static constexpr int ScaleDefault     = 4;
+    static constexpr int QuietZoneMin     = 4;
+    static constexpr int QuietZoneDefault = 4;
 
-        static constexpr int QuietZoneMin     = 4;
-        static constexpr int QuietZoneDefault = 4;
+    QRCode();
+    ~QRCode();
 
-        QRCode();
-        ~QRCode();
+    static std::optional<int> GetErrorCorrectionLevelFromText(std::string_view ecc_text_sv);
 
-        static std::optional<int> GetErrorCorrectionLevelFromText(wstring_view ecc_text_sv);
+    // the Set... methods can throw CSProException exceptions
+    void SetErrorCorrectionLevel(int error_correction_level);
+    void SetErrorCorrectionLevel(std::string_view ecc_text_sv);
+    void SetScale(int scale);
+    void SetQuietZone(int quiet_zone);
+    void SetDarkColor(PortableColor dark_color);
+    void SetLightColor(PortableColor light_color);
 
-        // the Set... methods can throw CSProException exceptions
-        void SetErrorCorrectionLevel(int error_correction_level);
-        void SetErrorCorrectionLevel(wstring_view ecc_text_sv);
-        void SetScale(int scale);
-        void SetQuietZone(int quiet_zone);
-        void SetDarkColor(PortableColor dark_color);
-        void SetLightColor(PortableColor light_color);
+    // can throw CSProException exceptions
+    void Create(const cs::string_sz text);
 
-        // can throw CSProException exceptions
-        void Create(const std::string& text);
+    // can throw CSProException exceptions
+    BmpFile GetBmpFile() const;
 
-        // can throw CSProException exceptions
-        BmpFile GetBmpFile() const;
+    // can throw CSProException and Multimedia::ImageException exceptions
+    std::unique_ptr<Multimedia::Image> GetImage() const;
 
-        // can throw CSProException and Multimedia::ImageException exceptions
-        std::unique_ptr<Multimedia::Image> GetImage() const;
-
-    private:
-        struct Data;
-        std::unique_ptr<Data> m_data;
-    };
-}
+private:
+    struct Data;
+    std::unique_ptr<Data> m_data;
+};

@@ -1,45 +1,45 @@
 ﻿#pragma once
-#include "Event.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+
+namespace Paradata { class DeviceStateEvent; }
+
+
+class ZPARADATAO_API Paradata::DeviceStateEvent : public Event
 {
-    class ZPARADATAO_API DeviceStateEvent : public Event
+    DECLARE_PARADATA_EVENT(DeviceStateEvent)
+
+public:
+    struct DeviceState
     {
-        DECLARE_PARADATA_EVENT(DeviceStateEvent)
+        static const size_t ValuesToFill = 12;
 
-    public:
-        struct DeviceState
-        {
-            static const int ValuesToFill = 12;
+        bool bluetooth_enabled = false;
+        std::optional<bool> gps_enabled;
+        bool wifi_enabled = false;
+        std::optional<std::string> wifi_ssid;
+        std::optional<bool> mobile_network_enabled;
+        std::optional<std::string> mobile_network_type;
+        std::optional<std::string> mobile_network_name;
+        std::optional<double> mobile_network_strength;
+        std::optional<double> battery_level;
+        std::optional<bool> battery_charging;
+        std::optional<double> screen_brightness;
+        bool screen_orientation_portrait = false;
+    };
 
-            bool bluetooth_enabled;
-            std::optional<bool> gps_enabled;
-            bool wifi_enabled;
-            std::optional<CString> wifi_ssid;
-            std::optional<bool> mobile_network_enabled;
-            std::optional<CString> mobile_network_type;
-            std::optional<CString> mobile_network_name;
-            std::optional<double> mobile_network_strength;
-            std::optional<double> battery_level;
-            std::optional<bool> battery_charging;
-            std::optional<double> screen_brightness;
-            bool screen_orientation_portrait;
+public:
+    DeviceStateEvent();
 
-            DeviceState();
-        };
-
-    private:
-        DeviceState m_deviceState;
-
+private:
 #ifdef WIN_DESKTOP
-        void GetBluetoothEnabled();
-        void GetWiFiEnabledAndWiFiSsid();
-        void GetBatteryLevelAndBatteryCharging();
-        void GetScreenBrightness();
-        void GetScreenOrientation();
+    void GetBluetoothEnabled();
+    void GetWiFiEnabledAndWiFiSsid();
+    void GetBatteryLevelAndBatteryCharging();
+    void GetScreenBrightness();
+    void GetScreenOrientation();
 #endif
 
-    public:
-        DeviceStateEvent();
-    };
-}
+private:
+    DeviceState m_deviceState;
+};

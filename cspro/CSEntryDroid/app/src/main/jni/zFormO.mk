@@ -24,7 +24,7 @@ LOCAL_SRC_FILES         += $(ZFORMO_SRC_PATH)/RosterCells.cpp
 LOCAL_SRC_FILES         += $(ZFORMO_SRC_PATH)/RosterColumn.cpp
 LOCAL_SRC_FILES         += $(ZFORMO_SRC_PATH)/Text.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DGENERATE_BINARY=1

@@ -129,19 +129,23 @@ bool CEntryDriver::CheckIdCollision(int iSymDic)
 
         // RHF INIC Jul 28, 2003
         if( m_pEntryDriver->IsPartial() ) {
-            if( !bSameKey )
-                bCollisionDetected = pDicX->GetDataRepository().ContainsCase( pszCurrentKey );
+            if( !bSameKey ) {
+                bCollisionDetected = pDicX->GetDataRepository().ContainsCase(UTF8_TODO::GetUtf8(pszCurrentKey));
+            }
         }
-        else
-            bCollisionDetected = pDicX->GetDataRepository().ContainsCase( pszCurrentKey );
+        else {
+            bCollisionDetected = pDicX->GetDataRepository().ContainsCase(UTF8_TODO::GetUtf8(pszCurrentKey));
+        }
         // RHF END Jul 28, 2003
 
 
         if( bCollisionDetected ) {
-            if( bIsNewKey )
-                issaerror( MessageType::Warning, 92101, pszCurrentKey );
-            else
-                issaerror( MessageType::Warning, 92102, pszCurrentKey, pszInitialKey );
+            if( bIsNewKey ) {
+                issaerror( MessageType::Warning, 92101, UTF8_TODO::GetUtf8(pszCurrentKey).c_str() );
+            }
+            else {
+                issaerror( MessageType::Warning, 92102, UTF8_TODO::GetUtf8(pszCurrentKey).c_str(), UTF8_TODO::GetUtf8(pszInitialKey).c_str() );
+            }
         }
     }
 
@@ -149,7 +153,7 @@ bool CEntryDriver::CheckIdCollision(int iSymDic)
         // for existing case, changed key...
         if( !( bIsNewKey || bSameKey ) ) {
             // issuing warning of changed key
-            issaerror( MessageType::Warning, 92103, pszCurrentKey, pszInitialKey );
+            issaerror( MessageType::Warning, 92103, UTF8_TODO::GetUtf8(pszCurrentKey).c_str(), UTF8_TODO::GetUtf8(pszInitialKey).c_str() );
         }
 
         // mark CheckPending flag as "done"
@@ -457,8 +461,8 @@ void CEntryDriver::BuildQuestMgr()
     if( m_pApplication->GetAppLoader() != nullptr && m_pApplication->GetAppLoader()->GetBinaryFileLoad() )
         return;
 
-    if( !m_pApplication->GetQuestionTextFilename().IsEmpty() )
-        m_pQuestMgr->Load(CS2WS(m_pApplication->GetQuestionTextFilename()));
+    if( !m_pApplication->GetQuestionTextFilePath().empty() )
+        m_pQuestMgr->Load(m_pApplication->GetQuestionTextFilePath());
 }
 
 // RHF END Nov 07, 2002

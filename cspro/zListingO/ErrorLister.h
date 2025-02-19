@@ -4,34 +4,32 @@
 #include <zLogicO/ParserMessage.h>
 
 class PFF;
-class CStdioFileUnicode;
+namespace FileIO { class TextFile; }
+namespace Listing { class ErrorLister; }
 
 
-namespace Listing
+class ZLISTINGO_API Listing::ErrorLister
 {
-    class ZLISTINGO_API ErrorLister
-    {
-    public:
-        ErrorLister(const PFF& pff);
-        ~ErrorLister();
+public:
+    ErrorLister(const PFF& pff);
+    ~ErrorLister();
 
-        void Write(const Logic::ParserMessage& parser_message);
+    void Write(const Logic::ParserMessage& parser_message);
 
-        void Write(NullTerminatedString message_text);
+    void Write(std::string_view message_text_sv);
 
-        bool HasErrors() const { return m_hasErrors; }
+    bool HasErrors() const { return m_hasErrors; }
 
-    private:
-        void EnsureFileExists();
+private:
+    void EnsureFileExists();
 
-    private:
-        std::wstring m_listingFilename;
-        std::unique_ptr<CStdioFileUnicode> m_file;
+private:
+    std::string m_applicationErrorsFilePath;
+    std::unique_ptr<FileIO::TextFile> m_textFile;
 
-        std::wstring m_applicationFilename;
-        std::wstring m_applicationType;
+    std::string m_applicationFilePath;
+    std::string m_applicationType;
 
-        std::wstring m_lastErrorSource;
-        bool m_hasErrors;
-    };
-}
+    std::string m_lastErrorSource;
+    bool m_hasErrors;
+};

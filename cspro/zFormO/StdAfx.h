@@ -9,6 +9,7 @@
 #include <zFormO/resource.h>
 #include <zFormO/Roster.h>
 #include <zToolsO/Serializer.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/Specfile.h>
 #include <zJson/JsonSpecFile.h>

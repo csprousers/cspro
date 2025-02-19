@@ -136,7 +136,7 @@ bool CBatchIFaz::C_BatchInit( CNPifFile* pPifFile, int iRunMode ) {
         pBatchDriverBase->m_csOutputTbdName = pPifFile->GetTabOutputFName();
 
         if( pBatchDriverBase->m_csOutputTbdName.IsEmpty() )
-            pBatchDriverBase->m_csOutputTbdName = PortableFunctions::PathRemoveFileExtension<CString>(pPifFile->GetAppFName()) + _T(".xxx");
+            pBatchDriverBase->m_csOutputTbdName = PortableFunctions::PathRemoveFileExtensionCS(pPifFile->GetAppFName()) + _T(".xxx");
         // RHF END May 07, 2003
 
 
@@ -149,7 +149,7 @@ bool CBatchIFaz::C_BatchInit( CNPifFile* pPifFile, int iRunMode ) {
         if( pBatchDriverBase->GetNumCtabToWrite() > 0 ) {
             // RHF INIC May 07, 2003
             if( !pTbd->breakinit( pBatchDriverBase->m_csOutputTbdName ) )
-                issaerror( MessageType::Abort, 590, pBatchDriverBase->m_csOutputTbdName.GetString() );    // cannot open TBI
+                issaerror( MessageType::Abort, 590, UTF8_TODO::GetUtf8(pBatchDriverBase->m_csOutputTbdName).c_str() );    // cannot open TBI
             // RHF END May 07, 2003
         }
     }
@@ -197,7 +197,7 @@ bool CBatchIFaz::C_BatchInit1( CNPifFile* pPifFile, int iRunMode )
         m_pBatchDriverBase->m_csOutputTbdName = pPifFile->GetTabOutputFName();
 
         if( m_pBatchDriverBase->m_csOutputTbdName.IsEmpty() )
-            m_pBatchDriverBase->m_csOutputTbdName = PortableFunctions::PathRemoveFileExtension<CString>(pPifFile->GetAppFName()) + _T(".xxx");
+            m_pBatchDriverBase->m_csOutputTbdName = PortableFunctions::PathRemoveFileExtensionCS(pPifFile->GetAppFName()) + _T(".xxx");
         // RHF END May 07, 2003
     }
 
@@ -307,10 +307,8 @@ void CBatchIFaz::C_BatchStop() {
 
     if( !CSettings::m_bNewTbd ) {
         if( _tspawnl( _P_WAIT, pszProgName, ((CBatchDriver*)m_pBatchDriverBase)->m_csExprtab.GetString(), m_pBatchDriverBase->m_csOutputTbdName.GetString(), mark, NULL ) != 0 ) {
-            CString csMsg;
-
-            csMsg.Format( _T("Error invoking '%s'"), pszProgName );
-            issaerror( MessageType::Error, MGF::OpenMessage, csMsg.GetString() );
+            const std::string message = FormatText("Error invoking '%s'", UTF8_TODO::GetUtf8(pszProgName).c_str());
+            issaerror( MessageType::Error, MGF::OpenMessage, message.c_str());
         }
     }
 }

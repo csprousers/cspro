@@ -15,8 +15,6 @@ BEGIN
     ID_FILE_CSPRO_SAVE      "Save the active document\nSave"
     ID_FILE_CSPRO_SAVE_AS   "Save the active document with a new name\nSave As"
     ID_FILE_CSPRO_CLOSE     "Close the active document\nClose"
-    ID_FILE_ADD_FILE        "Add a file to the selected application\nAdd File"
-    ID_FILE_DROP_FILE       "Drop the selected file from an application\nDrop File"
     ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
 END
 	
@@ -31,7 +29,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_OPTIONS_PROPERTIES   "Modify application properties\nApplication Properties"
+    ID_OPTIONS_APPLICATION_PROPERTIES   "Modify application properties\nApplication Properties"
 END
 
 STRINGTABLE
@@ -44,7 +42,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_TOOLS_DATAVIEWER     "View CSPro data files\nData Viewer"
+    ID_TOOLS_DATAMANAGER    "View and manage CSPro data sources\nData Manager"
     ID_TOOLS_TEXTVIEW       "View text files\nText Viewer"
     ID_TOOLS_TABLEVIEW      "View CSPro tables\nTable Viewer"
     ID_TOOLS_FREQ           "Produce frequency tables for data items\nFrequencies"

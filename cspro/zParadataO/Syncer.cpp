@@ -1,34 +1,35 @@
 ﻿#include "stdafx.h"
 #include "Syncer.h"
 #include "Concatenator.h"
-#include <SQLite/SQLiteHelpers.h>
-#include <SQLite/SQLiteStatement.h>
 #include <zToolsO/Encoders.h>
+#include <zSql/Transaction.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/SQLiteTransaction.h>
 #include <zUtilO/TemporaryFile.h>
 
 using namespace Paradata;
 
 
-namespace
+namespace SyncerErrors
 {
-    namespace SyncerErrors
-    {
-        constexpr const TCHAR* SyncParadataStateTable = _T("Could not create or query the `syncparadata_state` table.");
-        constexpr const TCHAR* AttachDetachDatabase   = _T("Could not attach or detach the extracted paradata log.");
-        constexpr const TCHAR* Pragma                 = _T("Could not set a pragma on the paradata log.");
-        constexpr const TCHAR* Insert                 = _T("Could not insert events to the extracted paradata log.");
-        constexpr const TCHAR* ModifySyncState        = _T("Could not modify the paradata log's sync state.");
-    }
+    constexpr const char* SyncParadataStateTable = "Could not create or query the `syncparadata_state` table.";
+    constexpr const char* AttachDetachDatabase   = "Could not attach or detach the extracted paradata log.";
+    constexpr const char* Pragma                 = "Could not set a pragma on the paradata log.";
+    constexpr const char* Insert                 = "Could not insert events to the extracted paradata log.";
+    constexpr const char* ModifySyncState        = "Could not modify the paradata log's sync state.";
 }
 
 
-Syncer::Syncer(Log& log)
-    :   m_log(log),
-        m_inputDb(log.m_db)
+Syncer::Syncer(cs::non_null_shared_or_raw_ptr<Log> log)
+    :   m_log(std::move(log)),
+        m_inputDb(m_log->m_db)
 {
     SetupSyncTableAndGetLogUuid();
+}
+
+
+Syncer::Syncer(const std::string& file_path)
+    :   Syncer(std::make_unique<Log>(file_path))
+{
 }
 
 
@@ -40,16 +41,16 @@ Syncer::~Syncer()
 void Syncer::FlushAndResetPreparedStatements()
 {
     // flush any events
-    m_log.WriteEvents(false);
+    m_log->WriteEvents(false);
 
     // reset all of the prepared statements; if this is not done, the detach command will fail
-    for( Table& table : VI_V(m_log.m_tables) )
+    for( Table& table : VI_V(m_log->m_tables) )
     {
         if( table.m_insertStmt != nullptr )
-            sqlite3_reset(table.m_insertStmt);
+            table.m_insertStmt->Reset();
 
         if( table.m_findDuplicateRowStmt != nullptr )
-            sqlite3_reset(table.m_findDuplicateRowStmt);
+            table.m_findDuplicateRowStmt->Reset();
     }
 }
 
@@ -74,13 +75,13 @@ void Syncer::SetupSyncTableAndGetLogUuid()
 
     if( query_log_uuid_stmt.Step() == SQLITE_ROW )
     {
-        m_logUuid = query_log_uuid_stmt.GetColumn<CString>(0);
+        m_logUuid = query_log_uuid_stmt.GetColumn<std::string>(0);
     }
 
     // if no identifier exists, then this is the first time syncing, so create a new identifier for this log
     else
     {
-        m_logUuid = WS2CS(CreateUuid());
+        m_logUuid = CreateUuid();
 
         SQLiteStatement insert_log_uuid_stmt(m_inputDb,
             "INSERT INTO `syncparadata_state` "
@@ -110,7 +111,7 @@ std::optional<int64_t> Syncer::GetMaxEventId()
 }
 
 
-std::optional<std::wstring> Syncer::GetExtractedSyncableDatabase()
+std::optional<std::string> Syncer::GetExtractedSyncableDatabaseFilePath()
 {
     FlushAndResetPreparedStatements();
 
@@ -132,14 +133,16 @@ void Syncer::ConsolidateEventBoundaries(std::vector<EventBoundary>& event_bounda
 
     // sort the event boundaries
     std::sort(event_boundaries.begin(), event_boundaries.end(),
-        [](const auto& eb1, const auto& eb2)
+        [](const EventBoundary& eb1, const EventBoundary& eb2)
         {
             return ( eb1.start_event_id != eb2.start_event_id ) ? ( eb1.start_event_id < eb2.start_event_id ) :
                                                                   ( eb1.end_event_id < eb2.end_event_id );
         });
 
     // consolidate the event boundaries
-    for( auto current_event_boundary = event_boundaries.end() - 1; current_event_boundary != event_boundaries.begin(); --current_event_boundary )
+    for( auto current_event_boundary = event_boundaries.end() - 1;
+         current_event_boundary != event_boundaries.begin();
+         --current_event_boundary )
     {
         auto previous_event_boundary = current_event_boundary - 1;
 
@@ -208,12 +211,12 @@ void Syncer::RemovePreviouslySyncedFromSyncableEventBoundaries()
             //     ***          ****
             if( previous_start >= sync_start && previous_end <= sync_end )
             {
-                int64_t new_sync1_start = sync_start;
-                int64_t new_sync1_end = previous_start - 1;
+                const int64_t new_sync1_start = sync_start;
+                const int64_t new_sync1_end = previous_start - 1;
                 ASSERT(new_sync1_start <= new_sync1_end);
 
-                int64_t new_sync2_start = previous_end + 1;
-                int64_t new_sync2_end = sync_end;
+                const int64_t new_sync2_start = previous_end + 1;
+                const int64_t new_sync2_end = sync_end;
                 ASSERT(new_sync2_start <= new_sync2_end);
 
                 syncable_event_boundary->start_event_id = new_sync1_start;
@@ -237,16 +240,16 @@ void Syncer::RemovePreviouslySyncedFromSyncableEventBoundaries()
 
 void Syncer::CalculateSyncableEventBoundaries()
 {
-    ASSERT(!m_peerLogUuid.IsEmpty() && m_syncableEventBoundaries.empty());
+    ASSERT(!m_peerLogUuid.empty() && m_syncableEventBoundaries.empty());
 
     // the last syncable event ID is either the largest event ID, or the largest one before
     // the first event written as part of this paradata log's session; this means
     // that events that are part of the currently running application aren't included in a sync
     std::optional<int64_t> syncable_event_end_id;
 
-    if( m_log.m_firstWrittenEventId.has_value() )
+    if( m_log->m_firstWrittenEventId.has_value() )
     {
-        syncable_event_end_id = *m_log.m_firstWrittenEventId - 1;
+        syncable_event_end_id = *m_log->m_firstWrittenEventId - 1;
     }
 
     else
@@ -317,7 +320,7 @@ void Syncer::ExtractSyncableDatabase()
         // construct a list of all the tables, many of which will be linking tables
         std::vector<Table*> event_tables;
 
-        for( const std::shared_ptr<Table>& table : m_log.m_tables )
+        for( const std::shared_ptr<Table>& table : m_log->m_tables )
         {
             m_linkingTableStartIds.try_emplace(table, std::nullopt);
 
@@ -327,17 +330,18 @@ void Syncer::ExtractSyncableDatabase()
 
 
         // convert the event boundaries to SQL
-        CString where_sql;
+        std::string where_sql;
 
         for( const EventBoundary& event_boundary : m_syncableEventBoundaries )
         {
-            where_sql.AppendFormat(_T("%s( `id` >= ") Formatter_int64_t _T(" AND `id` <= ") Formatter_int64_t _T(" )"),
-                where_sql.IsEmpty() ? _T("") : _T(" OR "),
-                event_boundary.start_event_id, event_boundary.end_event_id);
+            where_sql.append(FormatText("%s( `id` >= " Formatter_int64_t " AND `id` <= " Formatter_int64_t " )",
+                                        where_sql.empty() ? "" : " OR ",
+                                        event_boundary.start_event_id,
+                                        event_boundary.end_event_id));
         }
 
         // extract all of the events from each event table
-        for( Table* event_table : event_tables )
+        for( Table* const event_table : event_tables )
             ExtractEvents(*event_table, where_sql);
 
         // cycle through to get all of the linking table start IDs (until no changes are made)
@@ -359,7 +363,7 @@ void Syncer::ExtractSyncableDatabase()
         for( const auto& [table, start_id] : m_linkingTableStartIds )
         {
             if( start_id.has_value() )
-                ExtractLinkingTableData(table, *start_id);
+                ExtractLinkingTableData(*table, *start_id);
         }
     }
 
@@ -369,7 +373,6 @@ void Syncer::ExtractSyncableDatabase()
         {
             StopExtraction();
         }
-
         catch(...) { }
 
         throw;
@@ -379,59 +382,57 @@ void Syncer::ExtractSyncableDatabase()
 }
 
 
-void Syncer::SetJournalModeAndSynchronous(bool speedup)
+void Syncer::SetJournalModeAndSynchronous(const bool speedup)
 {
-    CString journal_mode_setting;
-    CString synchronous_setting;
+    std::string journal_mode_setting;
+    std::string synchronous_setting;
 
     if( speedup )
     {
         // save the default pragma settings
-        auto get_current_pragma = [&](const char* sql)
+        auto get_current_pragma = [&](const char* const sql)
         {
             SQLiteStatement query_pragma_stmt(m_inputDb, sql);
 
             if( query_pragma_stmt.Step() != SQLITE_ROW )
                 throw CSProException(SyncerErrors::Pragma);
 
-            return query_pragma_stmt.GetColumn<CString>(0);
+            return query_pragma_stmt.GetColumn<std::string>(0);
         };
 
         m_journalModeSetting = get_current_pragma("PRAGMA journal_mode;");
         m_synchronousSetting = get_current_pragma("PRAGMA synchronous;");
 
-        journal_mode_setting = _T("OFF");
-        synchronous_setting = _T("OFF");
+        journal_mode_setting = "OFF";
+        synchronous_setting = "OFF";
     }
 
     else
     {
-        ASSERT(!m_journalModeSetting.IsEmpty() && !m_synchronousSetting.IsEmpty());
+        ASSERT(!m_journalModeSetting.empty() && !m_synchronousSetting.empty());
         journal_mode_setting = m_journalModeSetting;
         synchronous_setting = m_synchronousSetting;
     }
 
-    if( ( sqlite3_exec(m_inputDb, ToUtf8(FormatText(_T("PRAGMA journal_mode = %s;"),
-                       journal_mode_setting.GetString())), nullptr, nullptr, nullptr) != SQLITE_OK ) ||
-        ( sqlite3_exec(m_inputDb, ToUtf8(FormatText(_T("PRAGMA synchronous = %s;"),
-                       synchronous_setting.GetString())), nullptr, nullptr, nullptr) != SQLITE_OK ) )
+    if( sqlite3_exec(m_inputDb, FormatText("PRAGMA journal_mode = %s;", journal_mode_setting.c_str()).c_str(), nullptr, nullptr, nullptr) != SQLITE_OK ||
+        sqlite3_exec(m_inputDb, FormatText("PRAGMA synchronous = %s;", synchronous_setting.c_str()).c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
     {
         throw CSProException(SyncerErrors::Pragma);
     }
 }
 
 
-void Syncer::StartExtraction(const std::wstring& extracted_events_filename)
+void Syncer::StartExtraction(const std::string& extracted_events_file_path)
 {
     // create a log with all tables and then immediately close it
     {
-        Log log(extracted_events_filename);
+        Log log(extracted_events_file_path);
     }
 
     // attach this file to the current log
-    CString attach_database_sql = FormatText(_T("ATTACH DATABASE \"%s\" AS `extract_db`;"), Encoders::ToFileUrl(extracted_events_filename).c_str());
+    const std::string attach_database_sql = FormatText("ATTACH DATABASE \"%s\" AS `extract_db`;", Encoders::ToFileUrl(extracted_events_file_path).c_str());
 
-    if( sqlite3_exec(m_inputDb, ToUtf8(attach_database_sql), nullptr, nullptr, nullptr) != SQLITE_OK )
+    if( sqlite3_exec(m_inputDb, attach_database_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
         throw CSProException(SyncerErrors::AttachDetachDatabase);
 
     SetJournalModeAndSynchronous(true);
@@ -447,13 +448,14 @@ void Syncer::StopExtraction()
 }
 
 
-void Syncer::ExtractEvents(Table& event_table, const CString& where_sql)
+void Syncer::ExtractEvents(Table& event_table, const std::string& where_sql)
 {
-    CString insert_events_sql;
-    insert_events_sql.Format(_T("INSERT INTO `extract_db`.`%s` SELECT * FROM `%s` WHERE %s;"),
-                             event_table.m_tableDefinition.name, event_table.m_tableDefinition.name, where_sql.GetString());
+    const std::string insert_events_sql = FormatText("INSERT INTO `extract_db`.`%s` SELECT * FROM `%s` WHERE %s;",
+                                                     event_table.m_tableDefinition.name,
+                                                     event_table.m_tableDefinition.name,
+                                                     where_sql.c_str());
 
-    if( sqlite3_exec(m_inputDb, ToUtf8(insert_events_sql), nullptr, nullptr, nullptr) != SQLITE_OK )
+    if( sqlite3_exec(m_inputDb, insert_events_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
         throw CSProException(SyncerErrors::Insert);
 
     // if any events were copied, process the events to get details on any info or instance linking tables
@@ -462,18 +464,19 @@ void Syncer::ExtractEvents(Table& event_table, const CString& where_sql)
 }
 
 
-void Syncer::ExtractLinkingTableData(std::shared_ptr<Table> table, int64_t start_id)
+void Syncer::ExtractLinkingTableData(const Table& table, const int64_t start_id)
 {
-    CString insert_data_sql;
-    insert_data_sql.Format(_T("INSERT INTO `extract_db`.`%s` SELECT * FROM `%s` WHERE `id` >= ") Formatter_int64_t _T(";"),
-        table->m_tableDefinition.name, table->m_tableDefinition.name, start_id);
+    const std::string insert_data_sql = FormatText("INSERT INTO `extract_db`.`%s` SELECT * FROM `%s` WHERE `id` >= " Formatter_int64_t ";",
+                                                   table.m_tableDefinition.name,
+                                                   table.m_tableDefinition.name,
+                                                   start_id);
 
-    if( sqlite3_exec(m_inputDb, ToUtf8(insert_data_sql), nullptr, nullptr, nullptr) != SQLITE_OK )
+    if( sqlite3_exec(m_inputDb, insert_data_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
         throw CSProException(SyncerErrors::Insert);
 }
 
 
-bool Syncer::UpdateLinkingTableStartIds(Table& table, std::optional<int64_t> table_start_id)
+bool Syncer::UpdateLinkingTableStartIds(Table& table, const std::optional<int64_t> table_start_id)
 {
     bool changes_made = false;
 
@@ -488,41 +491,46 @@ bool Syncer::UpdateLinkingTableStartIds(Table& table, std::optional<int64_t> tab
                 if( start_id == 1 )
                     continue;
 
-                int table_name_pos = column.name.Find(column_table->m_tableDefinition.name);
+                const size_t table_name_pos = column.name.find(column_table->m_tableDefinition.name);
 
                 // if the table name is at the end, it's a match
-                if( ( table_name_pos >= 0 ) &&
-                    ( ( table_name_pos + (int)_tcslen(column_table->m_tableDefinition.name) ) == column.name.GetLength() ) )
+                if( ( table_name_pos != std::string::npos ) &&
+                    ( ( table_name_pos + strlen(column_table->m_tableDefinition.name) ) == column.name.length() ) )
                 {
-                    CString query_min_id_used_sql;
+                    std::string query_min_id_used_sql;
 
                     // if no start ID is specified, then this is a search of an events table (in the extract database)
                     if( !table_start_id.has_value() )
                     {
-                        query_min_id_used_sql.Format(
-                            _T("SELECT `%s` ")
-                            _T("FROM `extract_db`.`%s` ")
-                            _T("WHERE `%s` IS NOT NULL ")
-                            _T("ORDER BY 1 ")
-                            _T("LIMIT 1;"), column.name.GetString(), table.m_tableDefinition.name, column.name.GetString());
+                        query_min_id_used_sql = FormatText("SELECT `%s` "
+                                                           "FROM `extract_db`.`%s` "
+                                                           "WHERE `%s` IS NOT NULL "
+                                                           "ORDER BY 1 "
+                                                           "LIMIT 1;",
+                                                           column.name.c_str(),
+                                                           table.m_tableDefinition.name,
+                                                           column.name.c_str());
                     }
 
                     // otherwise this is a search of a secondary link in a linking table (in the main database)
                     else
                     {
-                        query_min_id_used_sql.Format(
-                            _T("SELECT `%s` ")
-                            _T("FROM `%s` ")
-                            _T("WHERE ( `id` >= ") Formatter_int64_t _T(" ) AND ( `%s` IS NOT NULL ) ")
-                            _T("ORDER BY 1 ")
-                            _T("LIMIT 1;"), column.name.GetString(), table.m_tableDefinition.name, *table_start_id, column.name.GetString());
+                        query_min_id_used_sql = FormatText("SELECT `%s` "
+                                                           "FROM `%s` "
+                                                           "WHERE ( `id` >= " Formatter_int64_t " ) AND ( `%s` IS NOT NULL ) "
+                                                           "ORDER BY 1 "
+                                                           "LIMIT 1;",
+                                                           column.name.c_str(),
+                                                           table.m_tableDefinition.name,
+                                                           *table_start_id,
+                                                           column.name.c_str());
                     }
 
                     SQLiteStatement query_min_id_used_stmt(m_inputDb, query_min_id_used_sql);
 
                     if( query_min_id_used_stmt.Step() == SQLITE_ROW )
                     {
-                        int64_t linking_min_id = query_min_id_used_stmt.GetColumn<int64_t>(0);
+                        const int64_t linking_min_id = query_min_id_used_stmt.GetColumn<int64_t>(0);
 
                         if( !start_id.has_value() || linking_min_id < *start_id )
                         {
@@ -539,14 +547,15 @@ bool Syncer::UpdateLinkingTableStartIds(Table& table, std::optional<int64_t> tab
 }
 
 
-const std::wstring& Syncer::GetFilenameForReceivedSyncableDatabase()
+const std::string& Syncer::GetFilePathForReceivedSyncableDatabase()
 {
     ASSERT(m_receivedDatabaseTemporaryFiles.empty());
-    return m_receivedDatabaseTemporaryFiles.emplace_back(std::make_shared<TemporaryFile>())->GetPath();
+
+    return m_receivedDatabaseTemporaryFiles.emplace_back().GetPath();
 }
 
 
-void Syncer::SetReceivedSyncableDatabases(std::vector<std::shared_ptr<TemporaryFile>> received_database_temporary_files)
+void Syncer::SetReceivedSyncableDatabases(std::vector<TemporaryFile> received_database_temporary_files)
 {
     ASSERT(m_receivedDatabaseTemporaryFiles.empty());
 
@@ -555,11 +564,11 @@ void Syncer::SetReceivedSyncableDatabases(std::vector<std::shared_ptr<TemporaryF
 
 
 void Syncer::UpdateEventBoundaries(const std::vector<EventBoundary>& event_boundaries,
-                                   std::optional<int64_t> delete_events_boundaries_up_to_including_id)
+                                   const std::optional<int64_t> delete_events_boundaries_up_to_including_id)
 {
-    ASSERT(!m_peerLogUuid.IsEmpty());
+    ASSERT(!m_peerLogUuid.empty());
 
-    SQLiteTransaction transaction(m_inputDb);
+    Sqlite::Transaction transaction(m_inputDb);
     transaction.Begin();
 
     // delete all of the current entries detailing previous syncs
@@ -606,20 +615,20 @@ void Syncer::MergeReceivedSyncableDatabases()
     // if paradata was received, add it to this log
     FlushAndResetPreparedStatements();
 
-    int64_t next_event_id = GetMaxEventId().value_or(0) + 1;
+    const int64_t next_event_id = GetMaxEventId().value_or(0) + 1;
     ASSERT(m_syncableEventBoundaries.empty() || m_syncableEventBoundaries.back().end_event_id < next_event_id);
     ASSERT(m_previouslySyncedEventBoundaries.empty() || m_previouslySyncedEventBoundaries.back().end_event_id < next_event_id);
 
     Concatenator concatenator;
 
-    std::set<std::wstring> paradata_log_filenames;
+    std::set<std::string> paradata_log_file_paths;
 
     for( const TemporaryFile& received_database_temporary_file : VI_V(m_receivedDatabaseTemporaryFiles) )
-        paradata_log_filenames.emplace(received_database_temporary_file.GetPath());
+        paradata_log_file_paths.emplace(received_database_temporary_file.GetPath());
 
-    concatenator.Run(m_inputDb, paradata_log_filenames);
+    concatenator.Run(m_inputDb, paradata_log_file_paths);
 
-    std::optional<int64_t> max_event_id_after_concatenation = GetMaxEventId();
+    const std::optional<int64_t> max_event_id_after_concatenation = GetMaxEventId();
     ASSERT(max_event_id_after_concatenation.has_value());
 
     // add the events to the sync state so that they are not sent back to the peer during a future sync
@@ -642,8 +651,8 @@ void Syncer::RunPostSuccessfulSyncTasks()
     std::vector<EventBoundary> all_synced_event_boundaries = m_syncableEventBoundaries;
 
     // ...and previously synced events
-    all_synced_event_boundaries.insert(all_synced_event_boundaries.end(),
-        m_previouslySyncedEventBoundaries.begin(), m_previouslySyncedEventBoundaries.end());
+    all_synced_event_boundaries.insert(all_synced_event_boundaries.end(), m_previouslySyncedEventBoundaries.begin(),
+                                                                          m_previouslySyncedEventBoundaries.end());
 
     ConsolidateEventBoundaries(all_synced_event_boundaries);
 

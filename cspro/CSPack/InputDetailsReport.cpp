@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "PackDlg.h"
-#include <zToolsO/Utf8Convert.h>
 #include <zUtilO/MimeType.h>
 #include <zHtml/HtmlViewDlg.h>
 #include <zHtml/HtmlWriter.h>
@@ -10,7 +9,7 @@
 
 namespace
 {
-    constexpr const TCHAR* ReportHeader = LR"(<!doctype html>
+    constexpr std::string_view ReportHeader_sv = R"(<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -98,7 +97,7 @@ namespace
     <table>
 )";
 
-    constexpr const TCHAR* ReportFooter = LR"(
+    constexpr std::string_view ReportFooter_sv = R"(
     </table>
 
     <script>
@@ -144,13 +143,13 @@ namespace
     class IconPngProvider : public KeyBasedVirtualFileMappingHandler
     {
     public:
-        bool ServeContent(void* response_object, const std::wstring& key) override
+        bool ServeContent(VirtualFileMappingResponse& response, const std::string& key) override
         {
             std::shared_ptr<const std::vector<std::byte>> png_data = SystemIcon::GetPngForPath(key);
 
             if( png_data != nullptr )
             {
-                LocalFileServerSetResponse(response_object, *png_data, MimeType::Type::ImagePng);
+                response.SetContent(std::move(png_data), MimeType::Type::ImagePng);
                 return true;
             }
 
@@ -175,47 +174,44 @@ void PackDlg::DisplayInputDetailsReport()
 
     HtmlStringWriter html_writer;
 
-    html_writer << ReportHeader;
+    html_writer.WriteRaw(ReportHeader_sv);
 
     for( const PackEntry& pack_entry : m_packSpec->GetEntries() )
     {
-        auto write_thumbnail_cell = [&](const std::wstring& path)
+        auto write_thumbnail_cell = [&](const std::string& path)
         {
-            html_writer << LR"(<td class="thumbnailSmall"><div class="thumbnailSmall"><img src=")"
-                        << icon_png_provider->CreateUrl(path).c_str()
-                        << LR"(" alt="")";
+            html_writer << R"(<td class="thumbnailSmall"><div class="thumbnailSmall"><img src=")";
+            html_writer.WriteTagValue(icon_png_provider->CreateUrl(path))
+                        << R"(" alt="")";
 
             if( PortableFunctions::FileIsRegular(path) )
             {
-                const std::optional<std::wstring> mime_type = MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(path));
+                const std::optional<std::string> mime_type = MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(path));
 
                 if( mime_type.has_value() && MimeType::IsImageType(*mime_type) )
                 {
-                    html_writer << LR"( data-image=")"
-                                << file_server.GetFilenameUrl(path).c_str()
-                                << LR"(")";
+                    html_writer << R"( data-image=")";
+                    html_writer.WriteTagValue(file_server.CreateFileUrl(path))
+                                << R"(")";
                 }
             }
 
-            html_writer << LR"(></div></td>)";
+            html_writer << R"(></div></td>)";
         };
 
-        auto write_path = [&](const TCHAR* full_path, const TCHAR* short_path)
+        auto write_path = [&](const std::string& full_path, const std::string* const short_path)
         {
-            std::wstring file_size = PortableFunctions::FileSizeString(full_path);
+            const std::string file_size = PortableFunctions::FileSizeString(full_path);
 
-            if( !file_size.empty() )
-                file_size = FormatTextCS2WS(_T("  (%s)"), file_size.c_str());
-
-            auto write_path_and_file_size = [&](const TCHAR* path)
+            auto write_path_and_file_size = [&](const std::string& path)
             {
                 html_writer << path;
 
                 if( !file_size.empty() )
                 {
-                    html_writer << LR"(<span class="fileSize">)"
-                                << file_size
-                                << LR"(</span>)";
+                    html_writer << R"(<span class="fileSize">)"
+                                << "  (" << file_size << ")"
+                                << R"(</span>)";
                 }
             };
 
@@ -226,37 +222,37 @@ void PackDlg::DisplayInputDetailsReport()
 
             else
             {
-                html_writer << LR"(<span class="pathShort">)";
-                write_path_and_file_size(short_path);
-                html_writer << LR"(</span><span class="pathFull">)";
+                html_writer << R"(<span class="pathShort">)";
+                write_path_and_file_size(*short_path);
+                html_writer << R"(</span><span class="pathFull">)";
                 write_path_and_file_size(full_path);
-                html_writer << LR"(</span>)";
+                html_writer << R"(</span>)";
             }
         };
 
-        html_writer << LR"(<tr class="mainInput">)";
-        write_thumbnail_cell(pack_entry.GetPath().c_str());
-        html_writer << LR"(<td colspan="2">)";
-        write_path(pack_entry.GetPath().c_str(), nullptr);
-        html_writer << LR"(</td></tr>)"
-                       L"\n";
+        html_writer << R"(<tr class="mainInput">)";
+        write_thumbnail_cell(pack_entry.GetPath());
+        html_writer << R"(<td colspan="2">)";
+        write_path(pack_entry.GetPath(), nullptr);
+        html_writer << R"(</td></tr>)"
+                       "\n";
 
         for( const auto& [path, filename_for_display] : pack_entry.GetFilenamesForDisplay() )
         {
-            html_writer << LR"(<tr class="dependentInput">)"
-                           LR"(<td class="thumbnailSmall"></td>)";
-            write_thumbnail_cell(path.c_str());
-            html_writer << LR"(<td>)";
-            write_path(path.c_str(), filename_for_display.c_str());
-            html_writer << LR"(</td></tr>)"
-                           L"\n";
+            html_writer << R"(<tr class="dependentInput">)"
+                           R"(<td class="thumbnailSmall"></td>)";
+            write_thumbnail_cell(path);
+            html_writer << R"(<td>)";
+            write_path(path, &filename_for_display);
+            html_writer << R"(</td></tr>)"
+                           "\n";
         }
     }
 
-    html_writer << ReportFooter;
+    html_writer.WriteRaw(ReportFooter_sv);
 
     VirtualFileMapping virtual_file_mapping = file_server.CreateVirtualHtmlFile(GetTempDirectory(),
-        [ html = UTF8Convert::WideToUTF8(html_writer.str()) ]()
+        [ html = SharableString(html_writer.str()) ]()
         {
             return html;
         });

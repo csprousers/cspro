@@ -32,12 +32,12 @@ constexpr bool NO_VISUAL_VALUE = false;
 constexpr bool VISUAL_VALUE = true;
 
 class Application;
+struct AppSyncParameters;
 class CIntDriver;
 class CEngineCompFunc;
 class CNPifFile;
 class CDEItemBase;
 class CDEForm;
-class CommonStore;
 class CompilerCreator;
 class CWnd;
 class ExecutionStackEntry;
@@ -46,7 +46,6 @@ class LogicByteCode;
 class MessageManager;
 class Pre74_CaseLevel;
 class Pre74_CaseRecord;
-class Serializer;
 class Userbar;
 namespace Listing { class ErrorLister; class WriteFile; }
 
@@ -87,18 +86,11 @@ public:
     Userbar& GetUserbar()                             { ASSERT(HasUserbar()); return *m_userbar; }
     void SetUserbar(std::unique_ptr<Userbar> userbar);
 
-    // CommonStore
-private:
-    std::shared_ptr<CommonStore> m_commonStore;
-public:
-    // marked as virtual to make it accessible outside of the engine library
-    virtual std::shared_ptr<CommonStore> GetCommonStore();
-
 public:
     ModuleType      m_Issamod;
     int             m_ExMode;               // $MODE   for ENTRY & INDEX apps
 private:
-    std::wstring    m_currentLanguageName;
+    std::string     m_currentLanguageName;
 public:
     const TCHAR*    m_lpszExecutorLabel;    // executor label   VC Nov 20, 95
 
@@ -136,13 +128,14 @@ public:
     MessageManager& GetUserMessageManager()     { return *m_userMessageManager; }
     MessageEvaluator& GetUserMessageEvaluator() { return *m_userMessageEvaluator; }
 
-    virtual int DisplayMessage(MessageType message_type, int message_number, const std::wstring& message_text, const void* extra_information = nullptr);
+    struct MessageSelectDetails { std::vector<SharableString> button_texts; int default_button_number; };
+    virtual int DisplayMessage(MessageType message_type, int message_number, SharableString message_text, const MessageSelectDetails* select_details);
 
     // listing and write files
 private:
     std::shared_ptr<ProcessSummary> m_processSummary;
     std::shared_ptr<Listing::Lister> m_lister;
-    std::shared_ptr<Listing::ErrorLister> m_compilerErrorLister;
+    std::unique_ptr<Listing::ErrorLister> m_compilerErrorLister;
     std::unique_ptr<Listing::WriteFile> m_writeFile;
 
 public:
@@ -198,7 +191,7 @@ public:
     virtual ~CEngineDriver();
 
     // marked as virtual to make it accessible outside of the engine library
-    virtual std::shared_ptr<InterpreterAccessor> CreateInterpreterAccessor();
+    virtual std::unique_ptr<InterpreterAccessor> CreateInterpreterAccessor();
 
 public:
     void          InitAppName();
@@ -206,8 +199,8 @@ public:
     CNPifFile*    GetPifFile()    { ASSERT(m_pPifFile != nullptr);     return m_pPifFile;     }
     Application* GetApplication() { ASSERT(m_pApplication != nullptr); return m_pApplication; }
 
-    const std::wstring& GetCurrentLanguageName() const      { return m_currentLanguageName; }
-    void SetCurrentLanguageName(std::wstring language_name) { m_currentLanguageName = std::move(language_name); }
+    const std::string& GetCurrentLanguageName() const      { return m_currentLanguageName; }
+    void SetCurrentLanguageName(std::string language_name) { m_currentLanguageName = std::move(language_name); }
 
 public:
     bool    exapplinit();
@@ -260,10 +253,10 @@ public:
 private:
     void InitializeData();
 public:
-    void OpenRepository(EngineDataRepository& engine_data_repository, const ConnectionString& connection_string, DataRepositoryOpenFlag open_flag,
-                        bool load_binary_data_from_currently_open_repository_before_closing);
-    void OpenRepository(DICX* pDicX, const ConnectionString& connection_string, DataRepositoryOpenFlag eOpenFlag,
-                        bool load_binary_data_from_currently_open_repository_before_closing);
+    void OpenRepository(EngineDataRepository& engine_data_repository, const ConnectionString& connection_string,
+                        DataRepositoryOpenFlag open_flag, bool load_binary_data_from_currently_open_repository_before_closing);
+    void OpenRepository(DICX* pDicX, const ConnectionString& connection_string,
+                        DataRepositoryOpenFlag open_flag, bool load_binary_data_from_currently_open_repository_before_closing);
     bool OpenRepositories(bool open_input_repository);
     bool OpenBatchOutputRepositories(const std::vector<ConnectionString>& output_connection_strings, bool setoutput_mode);
 
@@ -277,6 +270,8 @@ public:
     Case& GetInputCase();
 
     int GetInputDictionaryKeyLength() const;
+
+    int RunSync(const AppSyncParameters& sync_params);
 
     CString key_string(const DICT* pDicT);
 
@@ -319,7 +314,6 @@ private:
     bool m_bBinaryLoaded;
 
     size_t LoadBaseSymbols(Serializer& ar);
-    void InitCompiledWorkDict();
 
 public:
     void LoadCompiledBinary(); // compall() mirror
@@ -431,33 +425,27 @@ protected:
 private:
     void ParseCaseNotes_pre80(DICX* pDicX);
     const Pre74_CaseLevel* FindNoteCaseLevel_pre80(const DICX* pDicX, int field_symbol) const;
-    NoteByCaseLevel* GetNoteByCaseLevel_pre80(const NamedReference& named_reference,
-        const std::optional<CString>& operator_id, int field_symbol) const;
-    void CreateNote_pre80(DICX* pDicX, std::shared_ptr<NamedReference> named_reference, const CString& operator_id,
-        const CString& note_content, int field_symbol);
+    NoteByCaseLevel* GetNoteByCaseLevel_pre80(const NamedReference& named_reference, const std::string* operator_id, int field_symbol) const;
+    void CreateNote_pre80(DICX* pDicX, std::shared_ptr<NamedReference> named_reference, std::string operator_id, SharableString note_content, int field_symbol);
     void DeleteNote_pre80(DICX* pDicX, const NoteByCaseLevel& note_by_case_level);
 
-    Note* FindNote(const NamedReference& named_reference, const std::optional<CString>& operator_id, int field_symbol) const;
+    Note* FindNote(const NamedReference& named_reference, const std::string* operator_id, int field_symbol) const;
 
 public:
-    void SetNotesModified(const Symbol* dictionary_symbol);
+    void SetNotesModified(const Symbol& dictionary_symbol);
     void UpdateCaseNotesLevelKeys_pre80(DICX* pDicX);
     void GetNamedReferenceFromField(const DEFLD& defld, std::shared_ptr<NamedReference>& named_reference, int& field_symbol);
-    CString GetNoteContent(std::shared_ptr<NamedReference> named_reference, const std::optional<CString>& operator_id, int field_symbol);
-    void SetNote(std::shared_ptr<NamedReference> named_reference, const std::optional<CString>& operator_id,
-        const CString& note_content, int field_symbol, bool add_paradata_event_if_applicable = true);
-    void SetNote_pre80(std::shared_ptr<NamedReference> named_reference, const std::optional<CString>& operator_id,
-        const CString& note_content, int field_symbol, bool add_paradata_event_if_applicable = true);
-    std::tuple<CString, bool> EditNote(std::shared_ptr<NamedReference> named_reference,
-        const std::optional<CString>& operator_id, int field_symbol, bool called_from_interface = true);
-    std::tuple<CString, bool> EditNote_pre77(std::shared_ptr<NamedReference> named_reference,
-        const std::optional<CString>& operator_id, int field_symbol, bool called_from_interface = true);
+    SharableString GetNoteContent(const NamedReference& named_reference, const std::string* operator_id, int field_symbol);
+    void SetNote(std::shared_ptr<NamedReference> named_reference, const std::string* operator_id, SharableString note_content, int field_symbol, bool add_paradata_event_if_applicable = true);
+    void SetNote_pre80(std::shared_ptr<NamedReference> named_reference, const std::string* operator_id, SharableString note_content, int field_symbol, bool add_paradata_event_if_applicable = true);
+    std::tuple<SharableString, bool> EditNote(std::shared_ptr<NamedReference> named_reference, const std::string* operator_id, int field_symbol, bool called_from_interface = true);
+    std::tuple<SharableString, bool> EditNote_pre77(std::shared_ptr<NamedReference> named_reference, const std::string* operator_id, int field_symbol, bool called_from_interface = true);
     void DeleteNote_pre80(DICX* pDicX, const Note& note);
 
     std::vector<std::wstring> GetOccurrenceLabels(const VART* pVarT, const CaseItemReference* case_item_reference = nullptr);
 
     // shows a dialog where notes can be reviewed; in a data entry application, the return value, if set,
-    // indicates the field that the user wants to go to 
+    // indicates the field that the user wants to go to
     std::shared_ptr<const CaseItemReference> ReviewNotes();
 
 
@@ -468,7 +456,8 @@ public:
     bool UseOldDriver() const         { return !UseNewDriver(); }
 
 private:
-    [[noreturn]] void IssueLoadException(int message_number, ...);
+    template<typename... Args>
+    [[noreturn]] void IssueLoadException(int message_number, Args const&... args);
 
     void LoadApplication();
     std::shared_ptr<EngineDictionary> LoadApplicationDictionary(std::shared_ptr<const CDataDict> dictionary,

@@ -5,12 +5,12 @@
 class CaseAccess;
 class CDataDict;
 class CDictRecord;
-class CStdioFileUnicode;
 class DataRepository;
 class PFF;
 class SortableKeyDatabase;
 struct SortCaseItem;
 class SortSpec;
+namespace FileIO { class TextFile; }
 
 
 class ZSORTO_API Sorter
@@ -38,7 +38,7 @@ private:
 private:
     std::shared_ptr<SortSpec> m_sortSpec;
 
-    std::unique_ptr<CStdioFileUnicode> m_log;
+    std::unique_ptr<FileIO::TextFile> m_log;
 
     std::shared_ptr<CaseAccess> m_firstPassCaseAccess;
     std::shared_ptr<CaseAccess> m_caseAccess;

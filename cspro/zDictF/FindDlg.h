@@ -28,16 +28,16 @@ protected:
 public:
     CFindDlg(CWnd* pParent = NULL);
 
-    BOOL Create(void);
+    BOOL Create();
     void SetCurrView(CView* pView) { m_pCurrView = pView; }
 
     void SetNext(bool bNext)        { m_bNext = bNext; }
-    bool IsNext(void)               { return m_bNext; }
-    BOOL IsCaseSensitive(void)      { return m_bCaseSensitive; }
-    CIMSAString GetFindText(void)   { return m_csSearchText;   }
+    bool IsNext() const             { return m_bNext; }
+    BOOL IsCaseSensitive() const    { return m_bCaseSensitive; }
+    const CString& GetFindText()    { return m_csSearchText; }
 
-    void EnableButtons(bool);       // Turn the "Find Next" and "Find Prev" buttons on (active) or off (grayed)
-    void UpdateHistoryList(void);   // Update recent combo box choices
+    void EnableButtons(bool bEnableFlag); // Turn the "Find Next" and "Find Prev" buttons on (active) or off (grayed)
+    void UpdateHistoryList();             // Update recent combo box choices
 
 // Overrides
     // ClassWizard generated virtual function overrides

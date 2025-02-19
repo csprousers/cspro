@@ -38,8 +38,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     //{{AFX_MSG_MAP(CMainFrame)
     ON_WM_CREATE()
     ON_COMMAND(ID_VIEW_RULER, OnViewRuler)
-    ON_UPDATE_COMMAND_UI(ID_FILE_OPEN_IN_DATA_VIEWER, OnUpdateOpenInDataViewer)
-    ON_COMMAND(ID_FILE_OPEN_IN_DATA_VIEWER, OnOpenInDataViewer)
+    ON_UPDATE_COMMAND_UI(ID_FILE_OPEN_IN_DATA_MANAGER, OnUpdateOpenInDataManager)
+    ON_COMMAND(ID_FILE_OPEN_IN_DATA_MANAGER, OnOpenInDataManager)
     ON_UPDATE_COMMAND_UI(ID_OPTIONS_COMMAS, OnUpdateOptionsCommas)
     ON_COMMAND(ID_OPTIONS_COMMAS, OnOptionsCommas)
     ON_WM_DESTROY()
@@ -949,23 +949,25 @@ LRESULT CMainFrame::OnDDEExecute(WPARAM wParam, LPARAM lParam)
 }
 
 
-void CMainFrame::OnUpdateOpenInDataViewer(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateOpenInDataManager(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(MDIGetActive() != nullptr);
 }
 
-void CMainFrame::OnOpenInDataViewer()
+
+void CMainFrame::OnOpenInDataManager()
 {
-    CMDIChildWnd* pChild = MDIGetActive();
+    CMDIChildWnd* const pChild = MDIGetActive();
 
     if( pChild == nullptr )
         return;
 
-    CTVDoc* pDoc = (CTVDoc*)pChild->GetActiveDocument();
-    OpenInDataViewer(pDoc->GetPathName());
+    const CTVDoc* const pDoc = assert_cast<const CTVDoc*>(pChild->GetActiveDocument());
+    OpenInDataManager(pDoc->GetPathName());
 }
 
-void CMainFrame::OpenInDataViewer(const CString& filename)
+
+void CMainFrame::OpenInDataManager(const wchar_t* const file_path)
 {
-    CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::DataViewer, CS2WS(filename));
+    CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::DataManager, file_path);
 }

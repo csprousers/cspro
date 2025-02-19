@@ -2,10 +2,12 @@
 
 #include <engine/StandardSystemIncludes.h>
 
+#include <zToolsO/Utf8.h>
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/Specfile.h>
+#include <zUtilO/WindowsUtf8.h>
 #include <zHtml/CssStyleParser.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>

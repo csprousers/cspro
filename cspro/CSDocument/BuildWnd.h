@@ -9,10 +9,10 @@ class TextEditView;
 class CSDocumentBuildWnd : public BuildWnd
 {
 protected:
-    CLogicCtrl* ActivateDocumentAndGetLogicCtrl(std::variant<const CLogicCtrl*, const std::wstring*> source_logic_ctrl_or_filename) override;
+    CLogicCtrl* ActivateDocumentAndGetLogicCtrl(std::variant<const CLogicCtrl*, const std::string*> source_logic_ctrl_or_file_path) override;
 
 private:
-    TextEditView* FindTextEditView(const std::variant<const CLogicCtrl*, const std::wstring*>& source_logic_ctrl_or_filename);
+    TextEditView* FindTextEditView(const std::variant<const CLogicCtrl*, const std::string*>& source_logic_ctrl_or_file_path);
 
-    TextEditDoc* OpenDocumentOnMessageClick(const std::wstring& filename);
+    TextEditDoc* OpenDocumentOnMessageClick(const std::string& file_path);
 };

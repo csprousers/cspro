@@ -4,7 +4,7 @@
 
 
 CSDocCompilerSettingsForBuilding::CSDocCompilerSettingsForBuilding(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings build_settings,
-                                                                   std::wstring build_name)
+                                                                   std::string build_name)
     :   CSDocCompilerSettings(std::move(doc_set_spec)),
         m_buildSettings(std::move(build_settings)),
         m_buildName(std::move(build_name)),
@@ -15,13 +15,13 @@ CSDocCompilerSettingsForBuilding::CSDocCompilerSettingsForBuilding(cs::non_null_
 
 std::unique_ptr<CSDocCompilerSettingsForBuilding>
 CSDocCompilerSettingsForBuilding::CreateForDocSetBuild(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, const DocBuildSettings& base_build_settings,
-                                                       DocBuildSettings::BuildType build_type, std::wstring build_name,
-                                                       bool throw_exceptions_for_serious_issues_when_validating_build_settings)
+                                                       const DocBuildSettings::BuildType build_type, std::string build_name,
+                                                       const bool throw_exceptions_for_serious_issues_when_validating_build_settings)
 {
     // create build settings for the build type and apply any user build settings on top
     DocBuildSettings build_settings = DocBuildSettings::ApplySettings(DocBuildSettings::DefaultSettingsForBuildType(build_type), base_build_settings);
 
-    // make sure the build type is properly set (in case it was overriden by ApplySettings)
+    // make sure the build type is properly set (in case it was overridden by ApplySettings)
     build_settings.SetBuildType(build_type);
 
     // fix any issues with the settings
@@ -66,11 +66,11 @@ void CSDocCompilerSettingsForBuilding::SetDocSetBuilderCache(std::shared_ptr<Doc
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetDocSetBuildOutputDirectoryOrFilename(bool directory) const
+std::string CSDocCompilerSettingsForBuilding::GetDocSetBuildOutputDirectoryOrFilePath(const bool directory) const
 {
     ASSERT(!m_buildSettings.GetOutputDirectory().empty());
 
-    const std::wstring evaluated_output_name = m_buildSettings.GetEvaluatedOutputName(*m_docSetSpec);
+    const std::string evaluated_output_name = m_buildSettings.GetEvaluatedOutputName(*m_docSetSpec);
 
     if( m_buildSettings.GetBuildType() == DocBuildSettings::BuildType::HtmlPages ||
         m_buildSettings.GetBuildType() == DocBuildSettings::BuildType::HtmlWebsite )
@@ -79,7 +79,7 @@ std::wstring CSDocCompilerSettingsForBuilding::GetDocSetBuildOutputDirectoryOrFi
 
         // if an output name is specified, or if building as part of a project, append the evaluated output name to the output directory
         if( !m_buildSettings.GetOutputName().empty() || m_docSetSpec->GetSettings().IsDocSetPartOfProject() )
-            return PortableFunctions::PathAppendToPath(m_buildSettings.GetOutputDirectory(), evaluated_output_name);
+            return Path::Combine(m_buildSettings.GetOutputDirectory(), evaluated_output_name);
 
         return m_buildSettings.GetOutputDirectory();
     }
@@ -96,16 +96,15 @@ std::wstring CSDocCompilerSettingsForBuilding::GetDocSetBuildOutputDirectoryOrFi
 
         else
         {
-            const TCHAR* const extension = ( m_buildSettings.GetBuildType() == DocBuildSettings::BuildType::Chm ) ? FileExtensions::WithDot::CHM :
-                                                                                                                    FileExtensions::WithDot::PDF;
-
-            return PortableFunctions::PathAppendToPath(m_buildSettings.GetOutputDirectory(), evaluated_output_name + extension);
+            const char* const extension = ( m_buildSettings.GetBuildType() == DocBuildSettings::BuildType::Chm ) ? FileExtensions::CHM :
+                                                                                                                   FileExtensions::PDF;
+            return PortableFunctions::CreateFilePath(m_buildSettings.GetOutputDirectory(), evaluated_output_name, extension);
         }
     }
 }
 
 
-const std::wstring& CSDocCompilerSettingsForBuilding::GetOutputDirectoryForRelativeEvaluation(bool use_evaluated_output_directory) const
+const std::string& CSDocCompilerSettingsForBuilding::GetOutputDirectoryForRelativeEvaluation(const bool use_evaluated_output_directory) const
 {
     // for Document Set builds
     if( !m_docSetBuildOutputDirectory.empty() )
@@ -131,80 +130,80 @@ const std::wstring& CSDocCompilerSettingsForBuilding::GetOutputDirectoryForRelat
 }
 
 
-const std::wstring& CSDocCompilerSettingsForBuilding::GetDefaultDocumentPath() const
+const std::string& CSDocCompilerSettingsForBuilding::GetDefaultDocumentFilePath() const
 {
-    return m_docSetBuilderCache->GetDefaultDocumentPath(*m_docSetSpec, false);
+    return m_docSetBuilderCache->GetDefaultDocumentFilePath(*m_docSetSpec, false);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateHtmlOutputFilename(const std::wstring& csdoc_filename) const
+std::string CSDocCompilerSettingsForBuilding::CreateHtmlOutputFilePath(const std::string& csdoc_file_path) const
 {
-    const std::wstring built_path = GetBuiltHtmlPathInSourceDirectory(csdoc_filename);
-    const std::wstring& evaluated_output_directory = GetOutputDirectoryForRelativeEvaluation(true);
+    const std::string built_file_path = GetBuiltHtmlFilePathInSourceDirectory(csdoc_file_path);
+    const std::string& evaluated_output_directory = GetOutputDirectoryForRelativeEvaluation(true);
 
     if( m_buildSettings.BuildDocumentsUsingRelativePaths() )
     {
         // when building using relative paths, paths are based off the default document
-        return CreatePathIfCopiedRelativeToFile(built_path, GetDefaultDocumentPath(), evaluated_output_directory);
+        return CreatePathIfCopiedRelativeToFile(built_file_path, GetDefaultDocumentFilePath(), evaluated_output_directory);
     }
 
     else
     {
-        return CreatePathIfCopiedToDirectory(built_path, evaluated_output_directory);
+        return CreatePathIfCopiedToDirectory(built_file_path, evaluated_output_directory);
     }
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetBuiltHtmlFilename(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::GetBuiltHtmlFilename(const std::string& path)
 {
-    return PortableFunctions::PathGetFilenameWithoutExtension(path) + FileExtensions::WithDot::HTML;
+    return Path::ReplaceExtension(path, FileExtensions::HTML);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetBuiltHtmlPathInSourceDirectory(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::GetBuiltHtmlFilePathInSourceDirectory(const std::string& path)
 {
-    return PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory(path), GetBuiltHtmlFilename(path));
+    return PortableFunctions::PathReplaceFilename(path, GetBuiltHtmlFilename(path));
 }
 
 
-void CSDocCompilerSettingsForBuilding::SetOutputFilename(std::wstring output_filename)
+void CSDocCompilerSettingsForBuilding::SetOutputFilePath(std::string output_file_path)
 {
-    m_csdocOutputFilename = std::move(output_filename);
-    m_csdocOutputDirectory = PortableFunctions::PathGetDirectory(m_csdocOutputFilename);
+    m_csdocOutputFilePath = std::move(output_file_path);
+    m_csdocOutputDirectory = PortableFunctions::PathGetDirectory(m_csdocOutputFilePath);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetTitle(const std::wstring& csdoc_filename)
+std::string CSDocCompilerSettingsForBuilding::GetTitle(const std::string& csdoc_file_path)
 {
-    return m_docSetBuilderCache->GetTitle(m_titleManager, csdoc_filename);
+    return m_docSetBuilderCache->GetTitle(m_titleManager, csdoc_file_path);
 }
 
 
-void CSDocCompilerSettingsForBuilding::SetTitleForCompilationFilename(const std::wstring& title)
+void CSDocCompilerSettingsForBuilding::SetTitleForCompilationFilePath(const std::string& title)
 {
-    return m_docSetBuilderCache->SetTitle(m_titleManager, GetCompilationFilename(), title);
+    return m_docSetBuilderCache->SetTitle(m_titleManager, GetCompilationFilePath(), title);
 }
 
 
-void CSDocCompilerSettingsForBuilding::ClearTitleForCompilationFilename()
+void CSDocCompilerSettingsForBuilding::ClearTitleForCompilationFilePath()
 {
-    return m_docSetBuilderCache->ClearTitle(m_titleManager, GetCompilationFilename());
+    return m_docSetBuilderCache->ClearTitle(m_titleManager, GetCompilationFilePath());
 }
 
 
-void CSDocCompilerSettingsForBuilding::EnsurePathIsRelative(const std::wstring& path)
+void CSDocCompilerSettingsForBuilding::EnsurePathIsRelative(const std::string& path)
 {
-    if( !PathIsRelative(path.c_str()) )
-        throw CSProException(_T("The file cannot be processed as a relative path because it is not on the same drive as the output: ") + path);
+    if( !Path::IsRelative(path) )
+        throw CSProException("The file cannot be processed as a relative path because it is not on the same drive as the output: " + path);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetPathWithPathAdjustments(const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuilding::GetPathWithPathAdjustments(const std::string& path) const
 {
-    const std::tuple<std::wstring, std::wstring, bool>* best_match = nullptr;
+    const std::tuple<std::string, std::string, bool>* best_match = nullptr;
 
     // find the best match, which will be the path with the longest length
-    for( const std::tuple<std::wstring, std::wstring, bool>& path_and_adjustment : m_buildSettings.GetPathAdjustments() )
+    for( const std::tuple<std::string, std::string, bool>& path_and_adjustment : m_buildSettings.GetPathAdjustments() )
     {
         if( SO::StartsWithNoCase(path, std::get<0>(path_and_adjustment)) )
         {
@@ -216,183 +215,183 @@ std::wstring CSDocCompilerSettingsForBuilding::GetPathWithPathAdjustments(const 
     if( best_match == nullptr )
         return path;
 
-    const std::wstring& matched_adjustment = std::get<1>(*best_match);
+    const std::string& matched_adjustment = std::get<1>(*best_match);
     const bool& relative_to_path = std::get<2>(*best_match);
 
     // adjust the directory and append the rest of the path (which can include subdirectories in addition to the filename)
     if( relative_to_path )
     {
-        const std::wstring matched_path = PortableFunctions::PathEnsureTrailingSlash(std::get<0>(*best_match));
+        const std::string matched_path = PortableFunctions::PathEnsureTrailingSlash(std::get<0>(*best_match));
         ASSERT(PortableFunctions::FileIsDirectory(matched_path));
 
-        const std::wstring adjusted_directory = MakeFullPath(PortableFunctions::PathGetDirectory(matched_path), matched_adjustment);
-        const TCHAR* remaining_subdirectories_and_filename = path.c_str() + matched_path.length();
+        const std::string adjusted_directory = MakeFullPath(PortableFunctions::PathGetDirectory(matched_path), matched_adjustment);
+        const char* const remaining_subdirectories_and_filename = path.c_str() + matched_path.length();
 
-        return PortableFunctions::PathAppendToPath(adjusted_directory, remaining_subdirectories_and_filename);
+        return Path::Combine(adjusted_directory, remaining_subdirectories_and_filename);
     }
 
     // if not adjusting relative to the source path, append the filename to the matched path
     else
     {
-        ASSERT(!PathIsRelative(matched_adjustment.c_str()));
-        return PortableFunctions::PathAppendToPath(matched_adjustment, PortableFunctions::PathGetFilename(path));
+        ASSERT(!Path::IsRelative(matched_adjustment));
+        return Path::Combine(matched_adjustment, PortableFunctions::PathGetFilename(path));
     }
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::EvaluateDirectoryRelativeToOutputDirectory(const std::wstring& directory, bool use_evaluated_output_directory) const
+std::string CSDocCompilerSettingsForBuilding::EvaluateDirectoryRelativeToOutputDirectory(const std::string& directory, const bool use_evaluated_output_directory) const
 {
     return MakeFullPath(GetOutputDirectoryForRelativeEvaluation(use_evaluated_output_directory), directory);
 }
 
 
-void CSDocCompilerSettingsForBuilding::WriteTextToFile(const std::wstring& filename, wstring_view text_content_sv, bool write_utf8_bom) const
+void CSDocCompilerSettingsForBuilding::WriteTextToFile(const std::string& file_path, const std::string_view text_content_sv, const bool write_utf8_bom) const
 {
-    if( m_docSetBuilderCache->LogWrittenFile(filename, text_content_sv) )
-        FileIO::WriteText(filename, text_content_sv, write_utf8_bom);
+    if( m_docSetBuilderCache->LogWrittenFile(file_path, text_content_sv) )
+        FileIO::WriteText(file_path, text_content_sv, write_utf8_bom);
 }
 
 
-void CSDocCompilerSettingsForBuilding::CopyFileToDirectory(const std::wstring& source_path, const std::wstring& destination_path) const
+void CSDocCompilerSettingsForBuilding::CopyFileToDirectory(const std::string& source_file_path, const std::string& destination_file_path) const
 {
-    FileIO::CreateDirectoriesForFile(destination_path);
+    FileIO::CreateDirectoriesForFile(destination_file_path);
 
-    std::tuple<int64_t, time_t> file_size_and_modified_time;
-    PortableFunctions::FileCopyWithExceptions(source_path, destination_path, PortableFunctions::FileCopyType::CopyIfDifferent, &file_size_and_modified_time);
+    std::tuple<int64_t, int64_t> file_size_and_modified_time;
+    PortableFunctions::FileCopyWithExceptions(source_file_path, destination_file_path, FileOverwriteFlag::Different, &file_size_and_modified_time);
 
-    m_docSetBuilderCache->LogCopiedFile(destination_path, file_size_and_modified_time);
+    m_docSetBuilderCache->LogCopiedFile(destination_file_path, file_size_and_modified_time);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreatePathIfCopiedToDirectory(const std::wstring& source_path, const std::wstring& destination_directory)
+std::string CSDocCompilerSettingsForBuilding::CreatePathIfCopiedToDirectory(const std::string& source_file_path, const std::string& destination_directory)
 {
-    return PortableFunctions::PathAppendToPath(destination_directory, PortableFunctions::PathGetFilename(source_path));
+    return Path::Combine(destination_directory, PortableFunctions::PathGetFilename(source_file_path));
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreatePathIfCopiedRelativeToFile(const std::wstring& source_path, const std::wstring& relative_to_file,
-                                                                                const std::wstring& output_directory) const
+std::string CSDocCompilerSettingsForBuilding::CreatePathIfCopiedRelativeToFile(const std::string& source_file_path, const std::string& relative_to_file,
+                                                                               const std::string& output_directory) const
 {
     ASSERT(!output_directory.empty());
 
-    const std::wstring adjusted_csdoc_input_path = GetPathWithPathAdjustments(relative_to_file);
-    const std::wstring adjusted_source_path = GetPathWithPathAdjustments(source_path);
+    const std::string adjusted_csdoc_input_path = GetPathWithPathAdjustments(relative_to_file);
+    const std::string adjusted_source_file_path = GetPathWithPathAdjustments(source_file_path);
 
-    const std::wstring relative_path_to_input = GetRelativeFNameForDisplay(adjusted_csdoc_input_path, adjusted_source_path);
+    const std::string relative_path_to_input = GetRelativePathForDisplay(adjusted_csdoc_input_path, adjusted_source_file_path);
     EnsurePathIsRelative(relative_path_to_input);
 
-    std::wstring destination_path = MakeFullPath(output_directory, relative_path_to_input);
+    std::string destination_file_path = MakeFullPath(output_directory, relative_path_to_input);
 
-    ASSERT(GetRelativeFNameForDisplay(PortableFunctions::PathAppendToPath(output_directory, _T("fake-filename")), destination_path) == relative_path_to_input);
+    ASSERT(GetRelativePathForDisplay(Path::Combine(output_directory, "fake-filename"), destination_file_path) == relative_path_to_input);
 
-    return destination_path;
+    return destination_file_path;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreatePathIfCopiedRelativeToOutput(const std::wstring& source_path) const
+std::string CSDocCompilerSettingsForBuilding::CreatePathIfCopiedRelativeToOutput(const std::string& source_file_path) const
 {
-    return CreatePathIfCopiedRelativeToFile(source_path, GetCompilationFilename(), m_csdocOutputDirectory);
+    return CreatePathIfCopiedRelativeToFile(source_file_path, GetCompilationFilePath(), m_csdocOutputDirectory);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreatePathAndCopyFileToDirectory(const std::wstring& source_path, const std::wstring& destination_directory) const
+std::string CSDocCompilerSettingsForBuilding::CreatePathAndCopyFileToDirectory(const std::string& source_file_path, const std::string& destination_directory) const
 {
-    std::wstring destination_path = CreatePathIfCopiedToDirectory(source_path, destination_directory);
+    std::string destination_file_path = CreatePathIfCopiedToDirectory(source_file_path, destination_directory);
 
-    CopyFileToDirectory(source_path, destination_path);
+    CopyFileToDirectory(source_file_path, destination_file_path);
 
-    return destination_path;
+    return destination_file_path;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreatePathAndCopyFileIfCopiedRelativeToOutput(const std::wstring& source_path) const
+std::string CSDocCompilerSettingsForBuilding::CreatePathAndCopyFileIfCopiedRelativeToOutput(const std::string& source_file_path) const
 {
-    std::wstring destination_path = CreatePathIfCopiedRelativeToOutput(source_path);
+    std::string destination_file_path = CreatePathIfCopiedRelativeToOutput(source_file_path);
 
-    CopyFileToDirectory(source_path, destination_path);
+    CopyFileToDirectory(source_file_path, destination_file_path);
 
-    return destination_path;
+    return destination_file_path;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateAbsoluteUrlForPath(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::CreateAbsoluteUrlForPath(std::string path)
 {
-    std::wstring url = Encoders::ToFileUrl(path);
+    std::string url = Encoders::ToFileUrl(std::move(path));
     ASSERT(url == Encoders::ToHtmlTagValue(url));
     return url;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateRelativeUrlForPath(const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuilding::CreateRelativeUrlForPath(const std::string& path) const
 {
-    ASSERT(!m_csdocOutputFilename.empty());
+    ASSERT(!m_csdocOutputFilePath.empty());
 
-    std::wstring relative_path_to_output = GetRelativeFNameForDisplay(m_csdocOutputFilename, path);
+    std::string relative_path_to_output = GetRelativePathForDisplay(m_csdocOutputFilePath, path);
     EnsurePathIsRelative(relative_path_to_output);
 
-    std::wstring url = Encoders::ToUri(PortableFunctions::PathToForwardSlash(std::move(relative_path_to_output)));
+    std::string url = Encoders::ToUri(PortableFunctions::PathToForwardSlash(std::move(relative_path_to_output)));
     ASSERT(url == Encoders::ToHtmlTagValue(url));
     return url;
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetStylesheetsHtml()
+std::string CSDocCompilerSettingsForBuilding::GetStylesheetsHtml()
 {
     return GetStylesheetsHtmlWorker(CSDocStylesheetFilename);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::GetStylesheetsHtmlWorker(const TCHAR* css_filename) const
+std::string CSDocCompilerSettingsForBuilding::GetStylesheetsHtmlWorker(const char* const css_filename) const
 {
     const DocBuildSettings::StylesheetAction stylesheet_action = m_buildSettings.GetStylesheetAction();
 
     // embed the stylesheet...
     if( stylesheet_action == DocBuildSettings::StylesheetAction::Embed )
     {
-        std::map<const TCHAR*, std::wstring>& embedded_stylesheets_html_cache = m_docSetBuilderCache->GetEmbeddedStylesheetsHtmlCache();
+        std::map<const char*, std::string>& embedded_stylesheets_html_cache = m_docSetBuilderCache->GetEmbeddedStylesheetsHtmlCache();
 
         auto lookup = embedded_stylesheets_html_cache.find(css_filename);
 
         if( lookup == embedded_stylesheets_html_cache.cend() )
         {
-            std::wstring css = GetStylesheetEmbeddedHtml(FileIO::ReadText(GetStylesheetCssPath(css_filename)));
+            std::string css = GetStylesheetEmbeddedHtml(FileIO::ReadText(GetStylesheetCssFilePath(css_filename)));
             lookup = embedded_stylesheets_html_cache.try_emplace(css_filename, std::move(css)).first;
         }
 
         return lookup->second;
     }
 
-    else 
+    else
     {
-        const std::wstring source_css_path = GetStylesheetCssPath(css_filename);
+        const std::string source_css_file_path = GetStylesheetCssFilePath(css_filename);
 
         // ...use the existing stylesheet path
         if( stylesheet_action == DocBuildSettings::StylesheetAction::SourceAbsolute )
         {
-            return GetStylesheetLinkHtml(CreateAbsoluteUrlForPath(source_css_path));
+            return GetStylesheetLinkHtml(CreateAbsoluteUrlForPath(source_css_file_path));
         }
 
         else if( stylesheet_action == DocBuildSettings::StylesheetAction::SourceRelative )
         {
-            return GetStylesheetLinkHtml(CreateRelativeUrlForPath(source_css_path));
+            return GetStylesheetLinkHtml(CreateRelativeUrlForPath(source_css_file_path));
         }
 
         // ...or copy the stylesheet to a specific directory
-        else 
+        else
         {
             ASSERT(stylesheet_action == DocBuildSettings::StylesheetAction::Directory);
 
-            const std::wstring stylesheet_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetStylesheetDirectory(), false);
-            const std::wstring destination_css_path = CreatePathAndCopyFileToDirectory(source_css_path, stylesheet_directory);
-            return GetStylesheetLinkHtml(CreateRelativeUrlForPath(destination_css_path));
+            const std::string stylesheet_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetStylesheetDirectory(), false);
+            const std::string destination_css_file_path = CreatePathAndCopyFileToDirectory(source_css_file_path, stylesheet_directory);
+            return GetStylesheetLinkHtml(CreateRelativeUrlForPath(destination_css_file_path));
         }
     }
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::EvaluateBuildExtra(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::EvaluateBuildExtra(const std::string& path)
 {
-    std::wstring evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
+    std::string evaluated_path = CSDocCompilerSettings::EvaluateBuildExtra(path);
 
     if( !m_csdocOutputDirectory.empty() )
         CreatePathAndCopyFileToDirectory(evaluated_path, m_csdocOutputDirectory);
@@ -401,14 +400,14 @@ std::wstring CSDocCompilerSettingsForBuilding::EvaluateBuildExtra(const std::wst
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTitle(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForTitle(const std::string& path)
 {
     const DocBuildSettings::TitleLinkageAction title_linkage_action = m_buildSettings.GetTitleLinkageAction();
 
     // suppress title links...
     if( title_linkage_action == DocBuildSettings::TitleLinkageAction::Suppress )
     {
-        return std::wstring();
+        return std::string();
     }
 
     else
@@ -416,7 +415,7 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTitle(const std::wstr
         // ...or create a URL based on a prefix, potentially followed by the output name
         ASSERT(!m_buildSettings.GetTitleLinkPrefix().empty());
 
-        const std::wstring built_filename_uri = Encoders::ToUri(GetBuiltHtmlFilename(path));
+        const std::string built_filename_uri = Encoders::ToUri(GetBuiltHtmlFilename(path));
 
         if( title_linkage_action == DocBuildSettings::TitleLinkageAction::Prefix )
         {
@@ -427,7 +426,7 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTitle(const std::wstr
         {
             ASSERT(title_linkage_action == DocBuildSettings::TitleLinkageAction::OutputNamePrefix);
 
-            const std::wstring evaluated_output_name = m_buildSettings.GetEvaluatedOutputName(*m_docSetSpec);
+            const std::string evaluated_output_name = m_buildSettings.GetEvaluatedOutputName(*m_docSetSpec);
             return PortableFunctions::PathAppendForwardSlashToPath(PortableFunctions::PathAppendForwardSlashToPath(m_buildSettings.GetTitleLinkPrefix(),
                                                                                                                    Encoders::ToUri(evaluated_output_name)),
                                                                                                                    built_filename_uri);
@@ -436,14 +435,14 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTitle(const std::wstr
 }
 
 
-const CSDocCompilerSettingsForBuilding& CSDocCompilerSettingsForBuilding::GetProjectSettings(const std::wstring& project) const
+const CSDocCompilerSettingsForBuilding& CSDocCompilerSettingsForBuilding::GetProjectSettings(const std::string& project) const
 {
-    const std::wstring project_doc_set_spec_filename = m_docSetSpec->GetSettings().FindProjectDocSetSpecFilename(project);
-    return m_docSetBuilderCache->GetDocSetForProjectCompiledForDataForTree(project_doc_set_spec_filename, *this);
+    const std::string project_doc_set_spec_file_path = m_docSetSpec->GetSettings().FindProjectDocSetSpecFilePath(project);
+    return m_docSetBuilderCache->GetDocSetForProjectCompiledForDataForTree(project_doc_set_spec_file_path, *this);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTopic(const std::wstring& project, const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForTopic(const std::string& project, const std::string& path)
 {
     if( m_docSetSpec->FindComponent(path, false) != nullptr )
     {
@@ -467,33 +466,33 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForTopic(const std::wstr
     }
 
     // suppressed links
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForDocSetTopic(const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForDocSetTopic(const std::string& path) const
 {
     ASSERT(m_buildSettings.GetDocSetLinkageAction() == DocBuildSettings::DocSetLinkageAction::Link);
 
     // link to the built path
-    const std::wstring built_path = CreateHtmlOutputFilename(path);
+    const std::string built_file_path = CreateHtmlOutputFilePath(path);
 
-    return CreateRelativeUrlForPath(built_path);
+    return CreateRelativeUrlForPath(built_file_path);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForProjectTopic(const CSDocCompilerSettingsForBuilding& project_settings, const std::string& path) const
 {
     ASSERT(m_buildSettings.GetProjectLinkageAction() == DocBuildSettings::ProjectLinkageAction::Link);
 
     // link to the project's built path
-    const std::wstring built_path = project_settings.CreateHtmlOutputFilename(path);
+    const std::string built_file_path = project_settings.CreateHtmlOutputFilePath(path);
 
-    return CreateRelativeUrlForPath(built_path);
+    return CreateRelativeUrlForPath(built_file_path);
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForExternalTopic(const std::wstring& path) const
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForExternalTopic(const std::string& path) const
 {
     const DocBuildSettings::ExternalLinkageAction external_linkage_action = m_buildSettings.GetExternalLinkageAction();
     ASSERT(external_linkage_action != DocBuildSettings::ExternalLinkageAction::Suppress);
@@ -501,25 +500,25 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForExternalTopic(const s
     // issue an error for forbidden links
     if( external_linkage_action == DocBuildSettings::ExternalLinkageAction::Forbid )
     {
-        throw CSProException(_T("The build settings forbid linking to external documents: ") + path);
+        throw CSProException("The build settings forbid linking to external documents: %s", path.c_str());
     }
 
     // ...use a built path where the input is
     else if( external_linkage_action == DocBuildSettings::ExternalLinkageAction::SourceAbsolute )
     {
-        return CreateAbsoluteUrlForPath(GetBuiltHtmlPathInSourceDirectory(path));
+        return CreateAbsoluteUrlForPath(GetBuiltHtmlFilePathInSourceDirectory(path));
     }
 
     else if( external_linkage_action == DocBuildSettings::ExternalLinkageAction::SourceRelative )
     {
-        return CreateRelativeUrlForPath(GetBuiltHtmlPathInSourceDirectory(path));
+        return CreateRelativeUrlForPath(GetBuiltHtmlFilePathInSourceDirectory(path));
     }
 
     // ...use a built path relative to the output
     else if( external_linkage_action == DocBuildSettings::ExternalLinkageAction::RelativeToOutput )
     {
-        const std::wstring built_path_in_destination_directory = CreatePathIfCopiedRelativeToOutput(GetBuiltHtmlPathInSourceDirectory(path));
-        return CreateRelativeUrlForPath(built_path_in_destination_directory);
+        const std::string built_file_path_in_destination_directory = CreatePathIfCopiedRelativeToOutput(GetBuiltHtmlFilePathInSourceDirectory(path));
+        return CreateRelativeUrlForPath(built_file_path_in_destination_directory);
     }
 
     // ...use a built path in a specific directory
@@ -527,25 +526,25 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForExternalTopic(const s
     {
         ASSERT(external_linkage_action == DocBuildSettings::ExternalLinkageAction::Directory);
 
-        const std::wstring external_link_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetExternalLinkDirectory(), false);
-        const std::wstring built_path_in_destination_directory = CreatePathIfCopiedToDirectory(GetBuiltHtmlFilename(path), external_link_directory);
-        return CreateRelativeUrlForPath(built_path_in_destination_directory);
+        const std::string external_link_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetExternalLinkDirectory(), false);
+        const std::string built_file_path_in_destination_directory = CreatePathIfCopiedToDirectory(GetBuiltHtmlFilename(path), external_link_directory);
+        return CreateRelativeUrlForPath(built_file_path_in_destination_directory);
     }
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForLogicTopic(const TCHAR* help_topic_filename)
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForLogicTopic(const char* const help_topic_filename)
 {
     const DocBuildSettings::LogicLinkageAction logic_linkage_action = m_buildSettings.GetLogicLinkageAction();
 
-    return ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::Suppress )   ? std::wstring() :
+    return ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::Suppress )   ? std::string() :
            ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::CSProUsers ) ? CreateUrlForLogicTopicOnCSProUsersForum(help_topic_filename) :
            ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::Project )    ? CreateUrlForLogicHelpTopicInCSProProject(help_topic_filename) :
                                                                                           throw ProgrammingErrorException();
 }
 
 
-std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForImageFile(const std::wstring& path)
+std::string CSDocCompilerSettingsForBuilding::CreateUrlForImageFile(const std::string& path)
 {
     const DocBuildSettings::ImageAction image_action = m_buildSettings.GetImageAction();
 
@@ -569,7 +568,7 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForImageFile(const std::
     // ...copy the image to a directory relative to the output
     else if( image_action == DocBuildSettings::ImageAction::RelativeToOutput )
     {
-        const std::wstring destination_image_path = CreatePathAndCopyFileIfCopiedRelativeToOutput(path);
+        const std::string destination_image_path = CreatePathAndCopyFileIfCopiedRelativeToOutput(path);
         return CreateRelativeUrlForPath(destination_image_path);
     }
 
@@ -578,8 +577,8 @@ std::wstring CSDocCompilerSettingsForBuilding::CreateUrlForImageFile(const std::
     {
         ASSERT(image_action == DocBuildSettings::ImageAction::Directory);
 
-        const std::wstring image_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetImageDirectory(), false);
-        const std::wstring destination_image_path = CreatePathAndCopyFileToDirectory(path, image_directory);
+        const std::string image_directory = EvaluateDirectoryRelativeToOutputDirectory(m_buildSettings.GetImageDirectory(), false);
+        const std::string destination_image_path = CreatePathAndCopyFileToDirectory(path, image_directory);
         return CreateRelativeUrlForPath(destination_image_path);
     }
 }

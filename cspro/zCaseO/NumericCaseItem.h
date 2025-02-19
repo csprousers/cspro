@@ -2,7 +2,6 @@
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseItem.h>
-#include <zToolsO/Special.h>
 #include <zUtilO/VectorMap.h>
 
 
@@ -11,102 +10,85 @@ class ZCASEO_API NumericCaseItem : public CaseItem
     friend class CaseItem;
 
 protected:
-    NumericCaseItem(const CDictItem& dict_item, Type type = Type::Numeric);
+    NumericCaseItem(const CDictItem& dict_item, Type type = Type::Numeric, bool fixed_width = false);
 
     size_t GetSizeForMemoryAllocation() const override;
     void AllocateMemory(void* data_buffer) const override;
     void DeallocateMemory(void* data_buffer) const override;
 
-    void ResetValue(void* data_buffer) const override
-    {
-        *static_cast<double*>(data_buffer) = NOTAPPL;
-    }
-
-    void CopyValue(void* data_buffer, const void* copy_data_buffer) const override
-    {
-        *static_cast<double*>(data_buffer) = *static_cast<const double*>(copy_data_buffer);
-    }
+    void ResetValue(void* data_buffer) const override;
+    void CopyValue(void* data_buffer, const void* copy_data_buffer) const override;
 
     size_t StoreBinaryValue(const void* data_buffer, std::byte* binary_buffer) const override;
-    size_t RetrieveBinaryValue(void* data_buffer, const std::byte* binary_buffer) const override;
+    void RetrieveBinaryValue(void* data_buffer, const std::byte*& binary_buffer) const override;
 
 public:
-    bool IsBlank(const CaseItemIndex& index) const override
-    {
-        return ( GetValue(index) == NOTAPPL );
-    }
+    // Returns true if the string if not NOTAPPL.
+    bool IsBlank(const CaseItemIndex& index) const override;
 
     int CompareValues(const CaseItemIndex& index1, const CaseItemIndex& index2) const override;
 
-    /// <summary>
-    /// Gets the numeric case item.
-    /// </summary>
-    double GetValue(const CaseItemIndex& index) const
-    {
-        return *static_cast<const double*>(GetDataBuffer(index));
-    }
+    // Gets the numeric value.
+    double GetValue(const CaseItemIndex& index) const { return GetValue(GetDataBuffer(index)); }
 
-    /// <summary>
-    /// Gets the numeric case item's value for saving to an output source. Missing and refused
-    /// values will be converted to the appropriate value for serializing.
-    /// </summary>
-    double GetValueForOutput(const CaseItemIndex& index) const
-    {
-        return GetValueForOutput(GetValue(index));
-    }
+    // Gets the numeric value for saving to an output source.
+    // Missing and refused values will be converted to the appropriate value for serializing.
+    double GetValueForOutput(const CaseItemIndex& index) const { return GetValueForOutput(GetValue(index)); }
+    double GetValueForOutput(double value) const;
 
-    double GetValueForOutput(double value) const
-    {
-        AdjustValueForSpecialCoding(m_specialToSerializedValues, value);
-        return value;
-    }
-
-    /// <summary>
-    /// Gets the numeric case item's value that can be used for comparisons (with notappl
-    /// values being sorted before all other numbers.
-    /// </summary>
+    // Gets the numeric value that can be used for comparisons (with NOTAPPL values being sorted before all other numbers).
     double GetValueForComparison(const CaseItemIndex& index) const;
 
-    /// <summary>
-    /// Sets the numeric case item.
-    /// </summary>
-    virtual void SetValue(CaseItemIndex& index, double value) const
-    {
-        *static_cast<double*>(GetDataBuffer(index)) = value;
-        RunPostSetValueTasks(index);
-    }
+    // Sets the numeric value.
+    virtual void SetValue(CaseItemIndex& index, double value) const;
 
-    /// <summary>
-    /// Sets the numeric case item to notappl.
-    /// </summary>
-    void SetNotappl(CaseItemIndex& index) const
-    {
-        SetValue(index, NOTAPPL);
-    }
+    // Sets the numeric value to NOTAPPL.
+    void SetNotappl(CaseItemIndex& index) const;
 
-    /// <summary>
-    /// Sets the numeric case item from a value retrieved from an input source. Special values
-    /// will be converted to the appropriate value.
-    /// </summary>
-    void SetValueFromInput(CaseItemIndex& index, double value) const
-    {
-        AdjustValueForSpecialCoding(m_serializedToSpecialValues, value);
-        SetValue(index, value);
-    }
+    // Sets the numeric value from a value retrieved from an input source.
+    // Special values will be converted to the appropriate value.
+    void SetValueFromInput(CaseItemIndex& index, double value) const;
 
 private:
-    inline void AdjustValueForSpecialCoding(const std::optional<VectorMap<double, double>>& values_map, double& value) const
-    {
-        if( values_map.has_value() )
-        {
-            const double* new_value = values_map->Find(value);
+    static double GetValue(const void* data_buffer)        { return *static_cast<const double*>(data_buffer); }
+    static double& GetModifiableValue(void* data_buffer)   { return *static_cast<double*>(data_buffer); }
+    double& GetModifiableValue(CaseItemIndex& index) const { return GetModifiableValue(GetDataBuffer(index)); }
 
-            if( new_value != nullptr )
-                value = *new_value;
-        }
-    }
+    static void AdjustValueForSpecialCoding(const VectorMap<double, double>& values_map, double& value);
 
 private:
-    std::optional<VectorMap<double, double>> m_specialToSerializedValues;
-    std::optional<VectorMap<double, double>> m_serializedToSpecialValues;
+    std::unique_ptr<VectorMap<double, double>> m_specialToSerializedValues;
+    std::unique_ptr<VectorMap<double, double>> m_serializedToSpecialValues;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline double NumericCaseItem::GetValueForOutput(double value) const
+{
+    if( m_specialToSerializedValues != nullptr )
+        AdjustValueForSpecialCoding(*m_specialToSerializedValues, value);
+
+    return value;
+}
+
+
+inline void NumericCaseItem::SetValue(CaseItemIndex& index, const double value) const
+{
+    double& this_value = GetModifiableValue(index);
+    this_value = value;
+
+    RunPostSetValueTasks(index);
+}
+
+
+inline void NumericCaseItem::SetValueFromInput(CaseItemIndex& index, double value) const
+{
+    if( m_serializedToSpecialValues != nullptr )
+        AdjustValueForSpecialCoding(*m_serializedToSpecialValues, value);
+
+    SetValue(index, value);
+}

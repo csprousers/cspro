@@ -39,10 +39,10 @@ private:
     int m_coordinateDisplay;
     RadioEnumHelper<CoordinateDisplay> m_coordinateDisplayRadioEnumHelper;
 
-    CString m_coordinateDisplayExample;
+    std::string m_coordinateDisplayExample;
 
     CComboBox m_defaultBaseMap;
-    CString m_defaultBaseMapFilename;
+    std::string m_defaultBaseMapFilePath;
     std::optional<int> m_customDefaultBaseMapIndex;
 
     int m_windowsMappingTileProvider;

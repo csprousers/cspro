@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6E3880D-2A22-40A3-8B44-DDB60196AE5D}</ProjectGuid>
     <RootNamespace>CSTab</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -68,7 +64,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CSTab.cpp" />
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -76,8 +72,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CSTab.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TabDlg.h" />
   </ItemGroup>
   <ItemGroup>

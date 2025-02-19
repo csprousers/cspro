@@ -1,11 +1,12 @@
 ﻿#include "stdafx.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
+#include <zToolsO/TextEncoding.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteHelpers.h>
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/Interapp.h>
 #include <zJson/Json.h>
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
 #include <zPlatformO/PlatformInterface.h>
 
 
@@ -38,10 +39,10 @@ namespace Pre77Report
     }
 
 
-    void ReportManager::SetReportData(CString csAttribute,const std::string& sValue)
+    void ReportManager::SetReportData(const CString& attribute, std::string value)
     {
-        ASSERT(( sValue[0] == '{' ) && ( sValue[sValue.length() - 1] == '}' ));
-        m_mapData[csAttribute] = sValue;
+        ASSERT(value.front() == '{' && value.back() == '}');
+        m_mapData[attribute] = std::move(value);
     }
 
 
@@ -87,23 +88,23 @@ namespace Pre77Report
         for( size_t i = 0; i < ( aSqlStatements.size() - 1 ); i++ )
         {
             if( sqlite3_exec(db,aSqlStatements[i].c_str(),nullptr,nullptr,nullptr) != SQLITE_OK )
-                throw Exception(_T("SQL syntax: %s"), (LPCTSTR)FromUtf8(sqlite3_errmsg(db)));
+                throw Exception("SQL syntax: %s", sqlite3_errmsg(db));
         }
 
         if( sqlite3_prepare_v2(db,aSqlStatements[aSqlStatements.size() - 1].c_str(),-1,&stmt,nullptr) != SQLITE_OK )
-            throw Exception(_T("SQL syntax: %s"), (LPCTSTR)FromUtf8(sqlite3_errmsg(db)));
+            throw Exception("SQL syntax: %s", sqlite3_errmsg(db));
 
-        auto jsw = Json::CreateStringWriter<char>();
+        const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
-        jsw->BeginObject();
+        json_writer->BeginObject();
 
-        jsw->Key(csAttribute);
+        json_writer->Key(UTF8_TODO::GetUtf8(csAttribute));
 
         int iSqlResult = sqlite3_step(stmt);
 
         if( iSqlResult != SQLITE_ROW )
         {
-            jsw->Write(0);
+            json_writer->Write(0);
         }
 
         else
@@ -117,42 +118,42 @@ namespace Pre77Report
             for( int iColumn = 0; iColumn < iNumberColumns; iColumn++ )
                 aColumnNames.push_back(sqlite3_column_name(stmt,iColumn));
 
-            jsw->BeginArray();
+            json_writer->BeginArray();
 
             do
             {
                 iRowNumber++;
 
-                jsw->BeginObject();
+                json_writer->BeginObject();
 
                 for( int iColumn = 0; iColumn < iNumberColumns; iColumn++ )
                 {
-                    jsw->Key(aColumnNames[iColumn]);
+                    json_writer->Key(aColumnNames[iColumn]);
 
                     int iColumnType = sqlite3_column_type(stmt,iColumn);
 
                     if( iColumnType == SQLITE_NULL )
-                        jsw->WriteNull();
+                        json_writer->WriteNull();
 
                     else if( iColumnType == SQLITE_TEXT )
-                        jsw->Write(sqlite3_column_text(stmt, iColumn));
+                        json_writer->Write(sqlite3_column_text(stmt, iColumn));
 
                     else
-                        jsw->Write(sqlite3_column_double(stmt, iColumn));
+                        json_writer->Write(sqlite3_column_double(stmt, iColumn));
                 }
 
-                jsw->EndObject();
+                json_writer->EndObject();
 
             } while( ( iRowNumber < MaximumRowsToRead ) && ( sqlite3_step(stmt) == SQLITE_ROW ) );
 
-            jsw->EndArray();
+            json_writer->EndArray();
         }
 
         safe_sqlite3_finalize(stmt);
 
-        jsw->EndObject();
+        json_writer->EndObject();
 
-        SetReportData(csAttribute, jsw->GetString());
+        SetReportData(csAttribute, json_writer->ReleaseString());
     }
 
 
@@ -170,15 +171,15 @@ namespace Pre77Report
         // if an output filename is not supplied, create a temporary filename based off the template filename
         if( pcsOutputFilename->IsEmpty() )
         {
-            CString csExtension = PortableFunctions::PathGetFileExtension<CString>(csTemplateFilename);
+            const std::wstring extension = PortableFunctions::PathGetFileExtension(csTemplateFilename);
 
             for( int i = 1; i < 100000; i++ )
             {
                 pcsOutputFilename->Format(_T("%s%05d%s%s"),
                     PortableFunctions::PathRemoveFileExtension(csTemplateFilename).c_str(),
                     i,
-                    csExtension.IsEmpty() ? _T("") : _T("."),
-                    (LPCTSTR)csExtension
+                    extension.empty() ? _T("") : _T("."),
+                    extension.c_str()
                 );
 
                 if( !PortableFunctions::FileExists(*pcsOutputFilename) )
@@ -216,7 +217,7 @@ namespace Pre77Report
             csDirectory = m_csOutputDirectory;
 
         else // the reports distributed with CSPro
-            csDirectory = PortableFunctions::PathAppendToPath(WS2CS(CSProExecutables::GetApplicationOrAssetsDirectory()), _T("Reports"));
+            csDirectory = UTF8_TODO::GetCString(Path::Combine(CSProExecutables::GetApplicationOrAssetsDirectory(), "Reports"));
 
         // read in the scripts in the directory if they haven't been read in already
         if( m_mapSourceScriptReports.find(csDirectory) == m_mapSourceScriptReports.end() )
@@ -224,7 +225,7 @@ namespace Pre77Report
             m_mapSourceScriptReports[csDirectory] = std::vector<Report*>();
             auto& apReports = m_mapSourceScriptReports[csDirectory];
 
-            for( const std::wstring& report_filename : DirectoryLister().SetNameFilter(FileExtensions::Wildcard::Pre77Report)
+            for( const std::wstring& report_filename : DirectoryLister().SetNameFilter(FileExtensions::CreateWildcard(FileExtensions::Pre77Report))
                                                                         .GetPaths(csDirectory) )
             {
                 Report* pReport = new Report(ReadUtf8File(report_filename));
@@ -277,17 +278,15 @@ namespace Pre77Report
 
     void ReportManager::ExecuteQueryIfNecessary(const ReportQueryNode* pReportQueryNode)
     {
-        CString csQueryName = UTF8Convert::UTF8ToWide<CString>(pReportQueryNode->GetName());
+        CString csQueryName = UTF8_TODO::GetCString(pReportQueryNode->GetName());
 
         if( m_mapData.find(csQueryName) != m_mapData.end() )
             return; // the query has already been executed
 
-        CString csDataSourceName = UTF8Convert::UTF8ToWide<CString>(pReportQueryNode->GetDataSource());
-
-        sqlite3* db = m_pReportManagerAssistant->GetSqlite(csDataSourceName);
+        sqlite3* db = m_pReportManagerAssistant->GetSqlite(UTF8_TODO::GetCString(pReportQueryNode->GetDataSource()));
 
         if( db == nullptr )
-            throw Exception(_T("The data source %s could not be located"), (LPCTSTR)csDataSourceName);
+            throw Exception("The data source %s could not be located", pReportQueryNode->GetDataSource().c_str());
 
         SetReportData(csQueryName, db, pReportQueryNode->GetQuery());
     }
@@ -297,12 +296,12 @@ namespace Pre77Report
     {
         try
         {
-            return FileIO::ReadText<std::string>(filename);
+            return FileIO::ReadText(filename);
         }
 
         catch( const std::exception& )
         {
-            throw Exception(_T("Could not read the file %s"), filename.c_str());
+            throw Exception("Could not read the file %s", UTF8_TODO::GetUtf8(filename).c_str());
         }
     }
 
@@ -318,7 +317,7 @@ namespace Pre77Report
 
             if( pFile != nullptr )
             {
-                if( ( fwrite(Utf8BOM_sv.data(), 1, Utf8BOM_sv.length(), pFile) == Utf8BOM_sv.length() ) &&
+                if( ( fwrite(TextEncoding::Utf8Bom_sv.data(), 1, TextEncoding::Utf8Bom_sv.length(), pFile) == TextEncoding::Utf8Bom_sv.length() ) &&
                     ( fwrite(sText.c_str(), 1, sText.length(), pFile) == sText.length() ) )
                 {
                     bSuccess = true;
@@ -331,21 +330,26 @@ namespace Pre77Report
                 return;
         }
 
-        throw Exception(_T("Could not create or write to the file %s"), filename.c_str());
+        throw Exception("Could not create or write to the file %s", UTF8_TODO::GetUtf8(filename).c_str());
     }
+}
 
 
-    // used by the Paradata Viewer to get the queries
-    void ReportManager::LoadQueries(CString csWorkingDirectory,std::vector<ReportQueryNode*>& aQueries)
+// used by the Paradata Viewer to get the queries
+std::vector<Pre77Report::ReportQueryNode*> Pre77Report::ReportManager::LoadQueries(const std::string& working_directory)
+{
+    std::vector<Pre77Report::ReportQueryNode*> queries;
+
+    m_csOutputDirectory = UTF8_TODO::GetCString(working_directory);
+
+    for( const SourceScriptLocation location : { SourceScriptLocation::OutputDirectory,
+                                                 SourceScriptLocation::CSProReportsDirectory } )
     {
-        m_csOutputDirectory = csWorkingDirectory;
+        const std::vector<Report*>& reports = GetSourceScriptReports(location);
 
-        for( int i = 0; i < 2; i++ )
-        {
-            auto apReports = GetSourceScriptReports(( i == 0 ) ? SourceScriptLocation::OutputDirectory : SourceScriptLocation::CSProReportsDirectory);
-
-            for( auto pReport : apReports )
-                pReport->GetReportQueryNodes(aQueries);
-        }
+        for( Report* const report : reports )
+            report->GetReportQueryNodes(queries);
     }
+
+    return queries;
 }

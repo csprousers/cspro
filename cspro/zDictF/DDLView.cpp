@@ -702,7 +702,7 @@ int CDDLView::GetItemLine (int iRec, int iItem, int iIdRec /*=NONE*/) {
             else {
                 csTemp = pItem->GetLabel();
             }
-            csTTip.Format(_T("%s: Start=%d, Len=%d"), (LPCTSTR)csTemp, ipi.GetStart(), pItem->GetLen());
+            csTTip.Format(_T("%s: Start=%d, Len=%d"), csTemp.GetString(), ipi.GetStart(), pItem->GetLen());
             break;
         case LAYOUT_IDSUBITEM:
             ASSERT(ipi.GetRec()==COMMON);
@@ -714,7 +714,7 @@ int CDDLView::GetItemLine (int iRec, int iItem, int iIdRec /*=NONE*/) {
             else {
                 csTemp = pItem->GetLabel();
             }
-            csTTip.Format(_T("%s: Start=%d, Len=%d"), (LPCTSTR)csTemp, ipi.GetStart(), pItem->GetLen());
+            csTTip.Format(_T("%s: Start=%d, Len=%d"), csTemp.GetString(), ipi.GetStart(), pItem->GetLen());
             break;
         case LAYOUT_RTITEM:
             pItem = pDict->GetLevel(ipi.GetLevel()).GetRecord(ipi.GetRec())->GetItem(ipi.GetItem());
@@ -730,7 +730,7 @@ int CDDLView::GetItemLine (int iRec, int iItem, int iIdRec /*=NONE*/) {
             else {
                 csTemp = pItem->GetLabel();
             }
-            csTTip.Format(_T("%s: Start=%d, Len=%d"), (LPCTSTR)csTemp, ipi.GetStart(), pItem->GetLen());
+            csTTip.Format(_T("%s: Start=%d, Len=%d"), csTemp.GetString(), ipi.GetStart(), pItem->GetLen());
             break;
         case LAYOUT_RTSUBITEM:
             pItem = pDict->GetLevel(ipi.GetLevel()).GetRecord(ipi.GetRec())->GetItem(ipi.GetItem());
@@ -747,7 +747,7 @@ int CDDLView::GetItemLine (int iRec, int iItem, int iIdRec /*=NONE*/) {
             else {
                 csTemp = pItem->GetLabel();
             }
-            csTTip.Format(_T("%s: Start=%d, Len=%d"), (LPCTSTR)csTemp, ipi.GetStart(), pItem->GetLen());
+            csTTip.Format(_T("%s: Start=%d, Len=%d"), csTemp.GetString(), ipi.GetStart(), pItem->GetLen());
             break;
         default:
 //            ASSERT(false);

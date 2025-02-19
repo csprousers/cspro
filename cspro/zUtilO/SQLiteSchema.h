@@ -1,19 +1,14 @@
 ﻿#pragma once
 
-#include <cstring>
-#include <ostream>
-#include <vector>
-#include <sstream>
-#include <variant>
-#include <SQLite/SQLite.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zSql/SQLite.h>
 #include <zUtilO/zUtilO.h>
+#include <ostream>
+
 
 /// <summary>
 /// Classes to represent the structure of a SQLite database
 /// </summary>
 namespace SQLiteSchema {
-
     /// <summary>
     /// Identifier for name of column/table/index - wrapper on std::string
     /// </summary>
@@ -332,5 +327,4 @@ namespace SQLiteSchema {
         }
         return os;
     }
-
 }

@@ -11,10 +11,10 @@
 // Color and style analysis routines
 // --------------------------------------------------------------------------
 
-ScintillaColorizer::ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl, Sci_Position start_pos, Sci_Position end_pos)
+ScintillaColorizer::ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl, const Sci_Position start_pos, const Sci_Position end_pos)
     :   m_styleColorMap(LexerProperties::GetColors(scintilla_ctrl.GetLexer()))
 {
-    Sci_Position text_length = end_pos - start_pos;
+    const Sci_Position text_length = end_pos - start_pos;
     ASSERT(start_pos >= 0 && text_length >= 0 && end_pos <= scintilla_ctrl.GetLength());
 
     if( text_length == 0 )
@@ -36,16 +36,10 @@ ScintillaColorizer::ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl
 }
 
 
-ScintillaColorizer::ScintillaColorizer(int lexer_language, std::string_view text_sv)
+ScintillaColorizer::ScintillaColorizer(const int lexer_language, const std::string_view text_sv)
     :   m_styleColorMap(LexerProperties::GetColors(lexer_language))
 {
     GenerateEntities(CSProScintilla::GetStyledText(lexer_language, LexerProperties::GetKeywords(lexer_language), text_sv));
-}
-
-
-ScintillaColorizer::ScintillaColorizer(int lexer_language, wstring_view text_sv)
-    :   ScintillaColorizer(lexer_language, UTF8Convert::WideToUTF8(text_sv))
-{
 }
 
 
@@ -54,6 +48,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
     // the styled text is encoded as UTF-8, so combine the entities by style and then
     // convert each styled section to wide characters
     char* chars_and_styles_itr = chars_and_styles.get();
+    ASSERT(chars_and_styles_itr != nullptr);
 
     // return on a blank string
     if( *chars_and_styles_itr == 0 )
@@ -83,7 +78,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
 
         Entity& entity = m_entities.emplace_back(Entity
             {
-                UTF8Convert::UTF8ToWide(entity_start_pos, destination_char_itr - entity_start_pos),
+                std::string(entity_start_pos, destination_char_itr - entity_start_pos),
                 current_entity_style
             });
 
@@ -110,7 +105,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
 }
 
 
-COLORREF ScintillaColorizer::GetStyleColor(char style)
+COLORREF ScintillaColorizer::GetStyleColor(const char style)
 {
     const auto& style_lookup = m_styleColorMap.find(style);
 
@@ -119,9 +114,9 @@ COLORREF ScintillaColorizer::GetStyleColor(char style)
 }
 
 
-const TCHAR* ScintillaColorizer::GetHtmlColor(COLORREF color)
+const char* ScintillaColorizer::GetHtmlColor(const COLORREF color)
 {
-    static std::map<COLORREF, std::wstring> color_to_name_map;
+    static std::map<COLORREF, std::string> color_to_name_map;
     const auto& color_name_lookup = color_to_name_map.find(color);
 
     if( color_name_lookup != color_to_name_map.cend() )
@@ -139,27 +134,27 @@ const TCHAR* ScintillaColorizer::GetHtmlColor(COLORREF color)
 namespace
 {
     template<typename ET>
-    std::wstring CreateHtml(ScintillaColorizer& colorizer, ScintillaColorizer::HtmlProcessor& html_processor,
-                            const std::vector<ET>& entities)
+    std::string CreateHtml(ScintillaColorizer& colorizer, ScintillaColorizer::HtmlProcessor& html_processor,
+                           const std::vector<ET>& entities)
     {
-        std::wstringstream output;
+        std::stringstream output;
         std::optional<COLORREF> current_color;
 
         auto end_current_color = [&]()
         {
             if( current_color.has_value() )
             {
-                output << _T("</span>");
+                output << "</span>";
                 current_color.reset();
             }
         };
 
         html_processor.WriteHtmlHeader(output);
 
-        for( const auto& entity : entities )
+        for( const ET& entity : entities )
         {
             // set the color if it has changed from the previous entity or if this entity has tags
-            COLORREF color = colorizer.GetStyleColor(entity.style);
+            const COLORREF color = colorizer.GetStyleColor(entity.style);
 
             bool set_color = ( !current_color.has_value() || current_color != color );
             bool end_color = false;
@@ -187,7 +182,7 @@ namespace
             // set the color
             if( set_color )
             {
-                output << _T("<span style=\"color:") << colorizer.GetHtmlColor(color) << _T(";\">");
+                output << "<span style=\"color:" << colorizer.GetHtmlColor(color) << ";\">";
                 current_color = color;
             }
 
@@ -231,46 +226,46 @@ namespace
     class DefaultHtmlProcessor : public ScintillaColorizer::HtmlProcessor
     {
     public:
-        DefaultHtmlProcessor(ScintillaColorizer::HtmlProcessorType html_processor_type)
+        DefaultHtmlProcessor(const ScintillaColorizer::HtmlProcessorType html_processor_type)
             :   m_type(html_processor_type)
         {
         }
 
-        void WriteHtmlHeader(std::wstringstream& output) const override
+        void WriteHtmlHeader(std::stringstream& output) const override
         {
             if( m_type == ScintillaColorizer::HtmlProcessorType::FullHtml )
             {
-                output << DEFAULT_HTML_HEADER
-                       << _T("<!--cspro-->\n")
-                          _T("<title>CSPro</title>")
-                          _T("</head>\n")
-                          _T("<body>\n")
-                          _T("<div");
+                output.write(HtmlWriter::DefaultHeader_sv.data(), HtmlWriter::DefaultHeader_sv.length());
+                output << "<!--cspro-->\n"
+                          "<title>CSPro</title>"
+                          "</head>\n"
+                          "<body>\n"
+                          "<div";
             }
 
             else if( m_type == ScintillaColorizer::HtmlProcessorType::SpanOnly )
             {
-                output << _T("<span");
+                output << "<span";
             }
 
             if( m_type != ScintillaColorizer::HtmlProcessorType::ContentOnly )
             {
-                output << _T(" style=\"word-wrap:break-word; margin:0px; padding:0px; border:0px; background-color:#ffffff; font-family: Consolas, monaco, monospace; font-size:10pt;\">");
+                output << " style=\"word-wrap:break-word; margin:0px; padding:0px; border:0px; background-color:#ffffff; font-family: Consolas, monaco, monospace; font-size:10pt;\">";
             }
         }
 
-        void WriteHtmlFooter(std::wstringstream& output) const override
+        void WriteHtmlFooter(std::stringstream& output) const override
         {
             if( m_type == ScintillaColorizer::HtmlProcessorType::FullHtml )
             {
-                output << _T("</div>\n")
-                          _T("</body>\n")
-                          _T("</html>");
+                output << "</div>\n"
+                          "</body>\n"
+                          "</html>";
             }
 
             else if( m_type == ScintillaColorizer::HtmlProcessorType::SpanOnly )
             {
-                output << _T("</span>");
+                output << "</span>";
             }
         }
 
@@ -280,7 +275,7 @@ namespace
 }
 
 
-std::wstring ScintillaColorizer::GetHtml(std::variant<HtmlProcessorType, HtmlProcessor*> html_processor_or_type)
+std::string ScintillaColorizer::GetHtml(const std::variant<HtmlProcessorType, HtmlProcessor*> html_processor_or_type)
 {
     if( std::holds_alternative<HtmlProcessorType>(html_processor_or_type) )
     {
@@ -291,11 +286,11 @@ std::wstring ScintillaColorizer::GetHtml(std::variant<HtmlProcessorType, HtmlPro
 
     else
     {
-        HtmlProcessor* html_processor = std::get<HtmlProcessor*>(html_processor_or_type);
+        HtmlProcessor* const html_processor = std::get<HtmlProcessor*>(html_processor_or_type);
         ASSERT(html_processor != nullptr);
 
         // run the HTML generation either on entities or extended entities
-        std::vector<ExtendedEntity> extended_entities = html_processor->GetExtendedEntities(m_entities);
+        const std::vector<ExtendedEntity> extended_entities = html_processor->GetExtendedEntities(m_entities);
 
         return extended_entities.empty() ? CreateHtml(*this, *html_processor, m_entities):
                                            CreateHtml(*this, *html_processor, extended_entities);
@@ -308,26 +303,26 @@ std::wstring ScintillaColorizer::GetHtml(std::variant<HtmlProcessorType, HtmlPro
 // CSPro Users code generation
 // --------------------------------------------------------------------------
 
-std::wstring ScintillaColorizer::GetCSProUsersForumCode()
+std::string ScintillaColorizer::GetCSProUsersForumCode()
 {
-    std::wstringstream output;
+    std::stringstream output;
     std::optional<COLORREF> current_color;
 
     auto end_current_color = [&]()
     {
         if( current_color.has_value() )
         {
-            output << _T("[/color]");
+            output << "[/color]";
             current_color.reset();
         }
     };
 
-    output << _T("[cspro]");
+    output << "[cspro]";
 
     for( const Entity& entity : m_entities )
     {
         // set the color if there are non-whitespace characters and the color has changed from the previous color
-        COLORREF color = GetStyleColor(entity.style);
+        const COLORREF color = GetStyleColor(entity.style);
 
         if( !SO::IsWhitespace(entity.text) && ( !current_color.has_value() || *current_color != color ) )
         {
@@ -336,23 +331,23 @@ std::wstring ScintillaColorizer::GetCSProUsersForumCode()
             // only set the color if it not the default black color
             if( color != RGB(0, 0, 0) )
             {
-                output << _T("[color=") << GetHtmlColor(color) << _T("]");
+                output << "[color=" << GetHtmlColor(color) << "]";
                 current_color = color;
             }
         }
 
         // replace consecutive spaces with an actual space character
-        std::wstring modified_text = entity.text;
-        ASSERT(modified_text.find('\t') == std::wstring::npos);
+        std::string modified_text = entity.text;
+        ASSERT(modified_text.find('\t') == std::string::npos);
 
-        SO::RecursiveReplace(modified_text, _T("  "), _T("[sp][/sp] "));
+        SO::RecursiveReplace(modified_text, "  ", "[sp][/sp] ");
 
         output << modified_text.c_str();
     }
 
     end_current_color();
 
-    output << _T("[/cspro]");
+    output << "[/cspro]";
 
     return output.str();
 }
@@ -362,25 +357,25 @@ namespace
 {
     struct CSProUsersBlogHtmlProcessor : public ScintillaColorizer::HtmlProcessor
     {
-        void WriteHtmlHeader(std::wstringstream& output) const override
+        void WriteHtmlHeader(std::stringstream& output) const override
         {
-            output << _T("<div style=\"margin: 0px; padding: 1em; ")
-                      _T("border-radius: 3px; ")
-                      _T("line-height: 1.5; ")
-                      _T("font-family: 'Inconsolata', monospace; font-size: 10pt; ")
-                      _T("color: rgb(51, 51, 51); ")
-                      _T("background-color: rgb(232, 232, 232);\">\n");
+            output << "<div style=\"margin: 0px; padding: 1em; "
+                      "border-radius: 3px; "
+                      "line-height: 1.5; "
+                      "font-family: 'Inconsolata', monospace; font-size: 10pt; "
+                      "color: rgb(51, 51, 51); "
+                      "background-color: rgb(232, 232, 232);\">\n";
         }
 
-        void WriteHtmlFooter(std::wstringstream& output) const override
+        void WriteHtmlFooter(std::stringstream& output) const override
         {
-            output << _T("\n</div>\n");
+            output << "\n</div>\n";
         }
     };
 }
 
 
-std::wstring ScintillaColorizer::GetCSProUsersBlogCode()
+std::string ScintillaColorizer::GetCSProUsersBlogCode()
 {
     CSProUsersBlogHtmlProcessor html_processor;
     return GetHtml(&html_processor);

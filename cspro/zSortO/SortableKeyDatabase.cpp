@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "SortableKeyDatabase.h"
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/SQLiteHelpers.h>
 
 
 SortableKeyDatabase::SortableKeyDatabase(const SortType sort_type)
@@ -41,60 +41,60 @@ bool SortableKeyDatabase::Open()
     // open the temporary database
     if( sqlite3_open("", &m_db) == SQLITE_OK )
     {
-        std::wstring create_sql_columns;
-        std::wstring put_sql_columns;
-        std::wstring put_sql_values;
-        std::wstring iterator_sql_columns;
+        std::string create_sql_columns;
+        std::string put_sql_columns;
+        std::string put_sql_values;
+        std::string iterator_sql_columns;
         int key_type_index = 0;
 
         for( const auto& [numeric, ascending] : m_keyTypes )
         {
-            SO::AppendFormat(create_sql_columns, _T(", `Col%03d` %s NOT NULL"), key_type_index, numeric ? _T("REAL") : _T("TEXT"));
-            SO::AppendFormat(put_sql_columns, _T(", `Col%03d`"), key_type_index);
-            put_sql_values.append(_T(", ?"));
-            SO::AppendFormat(iterator_sql_columns, _T("%s`Col%03d` %s"), ( key_type_index > 0 ) ? _T(", ") : _T(""), key_type_index, ascending ? _T("ASC") : _T("DESC"));
+            create_sql_columns.append(FormatText( ", `Col%03d` %s NOT NULL", key_type_index, numeric ? "REAL" : "TEXT"));
+            put_sql_columns.append(FormatText(", `Col%03d`", key_type_index));
+            put_sql_values.append(", ?");
+            iterator_sql_columns.append(FormatText("%s`Col%03d` %s", ( key_type_index > 0 ) ? ", " : "", key_type_index, ascending ? "ASC" : "DESC"));
 
             ++key_type_index;
         }
 
-        std::wstring create_sql;
-        std::wstring put_sql;
-        std::wstring iterator_sql;
+        std::string create_sql;
+        std::string put_sql;
+        std::string iterator_sql;
 
         if( m_sortType == SortType::CaseSort || m_sortType == SortType::CaseOnly )
         {
             if( m_sortType == SortType::CaseSort )
             {
-                create_sql = FormatTextCS2WS(_T("CREATE TABLE `CSSort` (`Key` TEXT NOT NULL, `Position` REAL PRIMARY KEY UNIQUE NOT NULL%s) WITHOUT ROWID;"), create_sql_columns.c_str());
+                create_sql = FormatText("CREATE TABLE `CSSort` (`Key` TEXT NOT NULL, `Position` REAL PRIMARY KEY UNIQUE NOT NULL%s) WITHOUT ROWID;", create_sql_columns.c_str());
             }
 
             else
             {
-                create_sql = FormatTextCS2WS(_T("CREATE TABLE `CSSort` (`Key` TEXT PRIMARY KEY UNIQUE NOT NULL, `Position` REAL UNIQUE NOT NULL%s) WITHOUT ROWID;"), create_sql_columns.c_str());
+                create_sql = FormatText("CREATE TABLE `CSSort` (`Key` TEXT PRIMARY KEY UNIQUE NOT NULL, `Position` REAL UNIQUE NOT NULL%s) WITHOUT ROWID;", create_sql_columns.c_str());
             }
 
-            put_sql = FormatTextCS2WS(_T("INSERT INTO `CSSort` (`Key`, `Position`%s) VALUES ( ?, ?%s);"), put_sql_columns.c_str(), put_sql_values.c_str());
-            iterator_sql = FormatTextCS2WS(_T("SELECT `Position` FROM `CSSort` ORDER BY %s;"), iterator_sql_columns.c_str());
+            put_sql = FormatText("INSERT INTO `CSSort` (`Key`, `Position`%s) VALUES ( ?, ?%s);", put_sql_columns.c_str(), put_sql_values.c_str());
+            iterator_sql = FormatText("SELECT `Position` FROM `CSSort` ORDER BY %s;", iterator_sql_columns.c_str());
         }
 
         else
         {
-            create_sql = FormatTextCS2WS(_T("CREATE TABLE `CSSort` (`RecordIndex` INTEGER NOT NULL, `IdRecord` BLOB NOT NULL, `Record` BLOB NOT NULL%s);"), create_sql_columns.c_str());
-            put_sql = FormatTextCS2WS(_T("INSERT INTO `CSSort` (`RecordIndex`, `IdRecord`, `Record`%s) VALUES ( ?, ?, ?%s);"), put_sql_columns.c_str(), put_sql_values.c_str());
-            iterator_sql = FormatTextCS2WS(_T("SELECT `RecordIndex`, `IdRecord`, `Record` FROM `CSSort` ORDER BY %s;"), iterator_sql_columns.c_str());
+            create_sql = FormatText("CREATE TABLE `CSSort` (`RecordIndex` INTEGER NOT NULL, `IdRecord` BLOB NOT NULL, `Record` BLOB NOT NULL%s);", create_sql_columns.c_str());
+            put_sql = FormatText("INSERT INTO `CSSort` (`RecordIndex`, `IdRecord`, `Record`%s) VALUES ( ?, ?, ?%s);", put_sql_columns.c_str(), put_sql_values.c_str());
+            iterator_sql = FormatText("SELECT `RecordIndex`, `IdRecord`, `Record` FROM `CSSort` ORDER BY %s;", iterator_sql_columns.c_str());
         }
 
         // create the table
-        if( sqlite3_exec(m_db, ToUtf8(create_sql), nullptr, nullptr, nullptr) == SQLITE_OK )
+        if( sqlite3_exec(m_db, create_sql.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK )
         {
             // generate the prepared statements
-            if( sqlite3_prepare_v2(m_db, ToUtf8(put_sql), -1, &m_stmtPut, nullptr) == SQLITE_OK  )
+            if( sqlite3_prepare_v2(m_db, put_sql.c_str(), put_sql.length(), &m_stmtPut, nullptr) == SQLITE_OK  )
             {
                 if( m_sortType == SortType::RecordSort ||
                     sqlite3_prepare_v2(m_db, "SELECT 1 FROM `CSSort` WHERE `Key` = ? LIMIT 1;", -1, &m_stmtExists, nullptr) == SQLITE_OK  )
                 {
                     if( m_sortType == SortType::CaseOnly ||
-                        sqlite3_prepare_v2(m_db, ToUtf8(iterator_sql), -1, &m_stmtIterator, nullptr) == SQLITE_OK  )
+                        sqlite3_prepare_v2(m_db, iterator_sql.c_str(), iterator_sql.length(), &m_stmtIterator, nullptr) == SQLITE_OK  )
                     {
                         return true;
                     }
@@ -107,31 +107,31 @@ bool SortableKeyDatabase::Open()
 }
 
 
-bool SortableKeyDatabase::CaseExists(const wstring_view key_sv)
+bool SortableKeyDatabase::CaseExists(const std::string& key)
 {
     ASSERT(m_sortType != SortType::RecordSort);
 
     sqlite3_reset(m_stmtExists);
-    sqlite3_bind_text(m_stmtExists, 1, ToUtf8(key_sv), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtExists, 1, key.data(), key.length(), SQLITE_TRANSIENT);
 
     return ( sqlite3_step(m_stmtExists) == SQLITE_ROW );
 }
 
 
-void SortableKeyDatabase::InitCaseInfo(const double position_in_repository, const wstring_view key_sv/* = wstring_view()*/)
+void SortableKeyDatabase::InitCaseInfo(const double position_in_repository, const std::string& key/* = SO::Empty_string*/)
 {
     ASSERT(m_sortType != SortType::RecordSort);
 
     m_putArgumentCounter = 0;
     sqlite3_reset(m_stmtPut);
-    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, ToUtf8(key_sv), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, key.data(), key.length(), SQLITE_TRANSIENT);
     sqlite3_bind_double(m_stmtPut, ++m_putArgumentCounter, position_in_repository);
 }
 
 
 void SortableKeyDatabase::InitRecordInfo(const size_t record_index,
-                                         const void* id_record_buffer, const size_t id_buffer_size,
-                                         const void* record_buffer, const size_t buffer_size)
+                                         const void* const id_record_buffer, const size_t id_buffer_size,
+                                         const void* const record_buffer, const size_t buffer_size)
 {
     ASSERT(m_sortType == SortType::RecordSort);
 
@@ -149,25 +149,25 @@ void SortableKeyDatabase::AddCaseKeyValue(const double value)
 }
 
 
-void SortableKeyDatabase::AddCaseKeyValue(const wstring_view value_sv)
+void SortableKeyDatabase::AddCaseKeyValue(const std::string& value)
 {
-    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, ToUtf8(value_sv), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, value.data(), value.length(), SQLITE_TRANSIENT);
 }
 
 
 void SortableKeyDatabase::AddCaseKeyValue(const CaseItem& case_item, const CaseItemIndex& index)
 {
-    if( case_item.IsTypeNumeric() )
+    if( IsNumeric(case_item.GetDataType()) )
     {
         AddCaseKeyValue(assert_cast<const NumericCaseItem&>(case_item), index);
     }
 
-    else if( case_item.IsTypeString() )
+    else if( IsString(case_item.GetDataType()) )
     {
         AddCaseKeyValue(assert_cast<const StringCaseItem&>(case_item), index);
     }
 
-    else if( case_item.IsTypeBinary() )
+    else if( IsBinary(case_item.GetDataType()) )
     {
         AddCaseKeyValue(assert_cast<const BinaryCaseItem&>(case_item), index);
     }
@@ -204,7 +204,7 @@ bool SortableKeyDatabase::AddCase()
 }
 
 
-bool SortableKeyDatabase::NextPosition(double* position_in_repository)
+bool SortableKeyDatabase::NextPosition(double* const position_in_repository)
 {
     ASSERT(m_sortType == SortType::CaseSort);
 
@@ -218,7 +218,7 @@ bool SortableKeyDatabase::NextPosition(double* position_in_repository)
 }
 
 
-bool SortableKeyDatabase::NextRecord(size_t* record_index, std::vector<std::byte>* id_binary_buffer, std::vector<std::byte>* record_binary_buffer)
+bool SortableKeyDatabase::NextRecord(size_t* const record_index, std::vector<std::byte>* const id_binary_buffer, std::vector<std::byte>* const record_binary_buffer)
 {
     ASSERT(m_sortType == SortType::RecordSort);
 
@@ -229,7 +229,7 @@ bool SortableKeyDatabase::NextRecord(size_t* record_index, std::vector<std::byte
         for( int i = 1; i < 3; ++i )
         {
             std::vector<std::byte>* buffer = ( i == 1 ) ? id_binary_buffer : record_binary_buffer;
-            size_t buffer_size = sqlite3_column_bytes(m_stmtIterator, i);
+            const size_t buffer_size = sqlite3_column_bytes(m_stmtIterator, i);
             buffer->resize(buffer_size);
             memcpy(buffer->data(), sqlite3_column_blob(m_stmtIterator, i), buffer_size);
         }

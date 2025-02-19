@@ -13,54 +13,30 @@ CREATE_JSON_KEY(targetOrigin)
 CREATE_JSON_KEY(webViews)
 
 
-#ifdef WIN_DESKTOP
-
-namespace
+ActionInvoker::Result ActionInvoker::Runtime::UI_getMaxDisplayDimensions(const JsonNode& /*json_node*/, Caller& /*caller*/)
 {
-    template<>
-    struct JsonSerializer<ActionInvoker::Caller::WebViewTag>
-    {
-        static_assert(sizeof(ActionInvoker::Caller::WebViewTag) == sizeof(int));
-
-        static ActionInvoker::Caller::WebViewTag CreateFromJson(const JsonNode<wchar_t>& json_node)
-        {
-            return reinterpret_cast<ActionInvoker::Caller::WebViewTag>(json_node.Get<int>());
-        }
-
-        static void WriteJson(JsonWriter& json_writer, const ActionInvoker::Caller::WebViewTag& web_view_tag)
-        {
-            json_writer.Write(reinterpret_cast<int>(web_view_tag));
-        }
-    };
-}
-
-#endif // WIN_DESKTOP
-
-
-ActionInvoker::Result ActionInvoker::Runtime::UI_getMaxDisplayDimensions(const JsonNode<wchar_t>& /*json_node*/, Caller& /*caller*/)
-{
-    return Result::JsonText(AssertAndReturnValidJson(FormatTextCS2WS(LR"({"width":%d,"height":%d})",
-                                                                     Screen::GetMaxDisplayWidth(), Screen::GetMaxDisplayHeight())));
+    return Result::JsonText(AssertAndReturnValidJson(FormatText(R"({"width":%d,"height":%d})",
+                                                                Screen::GetMaxDisplayWidth(), Screen::GetMaxDisplayHeight())));
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_getDisplayOptions(const JsonNode<wchar_t>& /*json_node*/, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_getDisplayOptions(const JsonNode& /*json_node*/, Caller& caller)
 {
-    std::optional<std::wstring> display_options;
+    SharableString display_options;
 
     IterateOverListeners(
         [&](Listener& listener)
         {
             display_options = listener.OnGetDisplayOptions(caller);
-            return !display_options.has_value();
+            return !display_options.IsSet();
         });
 
-    return display_options.has_value() ? Result::JsonText(AssertAndReturnValidJson(*display_options)) :
-                                         Result::Undefined();
+    return display_options.IsSet() ? Result::JsonText(AssertAndReturnValidJson(std::move(display_options))) :
+                                     Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_setDisplayOptions(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_setDisplayOptions(const JsonNode& json_node, Caller& caller)
 {
     std::optional<bool> display_options_set;
 
@@ -75,9 +51,9 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_setDisplayOptions(const JsonNod
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_getInputData(const JsonNode<wchar_t>& /*json_node*/, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_getInputData(const JsonNode& /*json_node*/, Caller& caller)
 {
-    std::optional<std::wstring> input_data;
+    SharableString input_data;
 
     auto find_input_data = [&](const bool match_caller)
     {
@@ -85,7 +61,7 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_getInputData(const JsonNode<wch
             [&](Listener& listener)
             {
                 input_data = listener.OnGetInputData(caller, match_caller);
-                return !input_data.has_value();
+                return !input_data.IsSet();
             });
     };
 
@@ -93,129 +69,156 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_getInputData(const JsonNode<wch
     find_input_data(true);
 
     // if not found, find any input data
-    if( !input_data.has_value() )
+    if( !input_data.IsSet() )
         find_input_data(false);
 
-    return ( input_data.has_value() && !input_data->empty() ) ? Result::JsonText(AssertAndReturnValidJson(*input_data)) :
-                                                                Result::Undefined();
+    return ( input_data.IsSet() && !input_data->empty() ) ? Result::JsonText(AssertAndReturnValidJson(std::move(input_data))) :
+                                                            Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_closeDialog(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_close(const JsonNode& json_node, Caller& caller)
 {
-    const JsonNode<wchar_t> result_node = json_node.GetOrEmpty(JK::result);
-    std::optional<bool> dialog_closed;
+    Listener::CloseResult close_result;
+
+    if( json_node.Contains(JK::result) )
+    {
+        close_result.emplace<const JsonNode>(json_node.Get(JK::result));
+    }
+
+    else if( json_node.Contains(JK::exception) )
+    {
+        close_result = std::make_unique<ActionInvoker::Exception>(json_node.Get(JK::exception), false);
+    }
+
+    std::optional<bool> window_closed;
 
     IterateOverListeners(
         [&](Listener& listener)
         {
-            // make sure that the closeDialog request is applicable to the caller
-            dialog_closed = listener.OnCloseDialog(result_node, caller);
-            return !dialog_closed.has_value();
+            // make sure that the close request is applicable to the caller
+            window_closed = listener.OnClose(close_result, caller);
+            return !window_closed.has_value();
         });
 
-    return Result::Bool(dialog_closed.value_or(false));
-}
-
-
-std::wstring ActionInvoker::Runtime::GetHtmlDialogFilename(const std::wstring& base_filename)
-{
-    // check if the file exists in an overriden HTML dialog directory or in CSPro's html/dialogs directory
-    std::wstring filename;
-
-    auto create_filename = [&](const wstring_view directory_sv)
+    // if the exception was not handled, throw the exception in this execution context
+    if( std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) &&
+        std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr )
     {
-        filename = MakeFullPath(directory_sv, base_filename);
-        return PortableFunctions::FileIsRegular(filename);
-    };
-
-    const PFF* pff = GetPff(false);
-
-    if( ( pff != nullptr && create_filename(pff->GetHtmlDialogsDirectory()) ) ||
-        create_filename(Html::GetDirectory(Html::Subdirectory::Dialogs)) )
-    {
-        return filename;
+        throw *std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result);
     }
 
-    throw CSProException(_T("The dialog could not be shown because the dialog source could not be found: ") + base_filename);
+    return Result::Bool(window_closed.value_or(false));
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::ShowHtmlDialog(const std::wstring& dialog_path, std::wstring input_data, std::optional<std::wstring> display_options/* = std::nullopt*/)
+ActionInvoker::Result ActionInvoker::Runtime::UI_closeDialog(const JsonNode& json_node, Caller& caller)
 {
-    HtmlDialogFunctionRunner html_dialog_function_runner(NavigationAddress::CreateHtmlFilenameReference(dialog_path),
+    static_assert(Versioning::Number <= 8.1, "Start adding runtime warnings when using UI.closeDialog as opposed to UI.close");
+    return UI_close(json_node, caller);
+}
+
+
+std::string ActionInvoker::Runtime::GetHtmlDialogFilePath(const std::string& base_filename)
+{
+    // check if the file exists in an overridden HTML dialog directory or in CSPro's html/dialogs directory
+    std::string file_path;
+
+    auto create_file_path = [&](const std::string_view directory_sv)
+    {
+        file_path = MakeFullPath(directory_sv, base_filename);
+        return PortableFunctions::FileIsRegular(file_path);
+    };
+
+    const PFF* const pff = GetPff(false);
+
+    if( ( pff != nullptr && create_file_path(UTF8_TODO::GetUtf8(pff->GetHtmlDialogsDirectory())) ) ||
+        create_file_path(Html::GetDirectory(Html::Subdirectory::Dialogs)) )
+    {
+        return file_path;
+    }
+
+    throw CSProException("The dialog could not be shown because the dialog source could not be found: " + base_filename);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::ShowHtmlDialog(const std::string& dialog_file_path, SharableString input_data, SharableString display_options/* = SharableString()*/)
+{
+    HtmlDialogFunctionRunner html_dialog_function_runner(NavigationAddress::CreateHtmlFilePathReference(dialog_file_path),
                                                          std::move(input_data),
                                                          std::move(display_options));
 
     html_dialog_function_runner.DoModalOnUIThread();
 
-    const std::optional<std::wstring>& results = html_dialog_function_runner.GetResultsText();
+    html_dialog_function_runner.GetExceptionHolder().ThrowExceptions();
 
-    return results.has_value() ? Result::JsonText(*results) :
-                                 Result::Undefined();
+    SharableString results = html_dialog_function_runner.GetResultsText();
+
+    return results.IsSet() ? Result::JsonText(std::move(results)) :
+                             Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_showDialog(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_showDialog(const JsonNode& json_node, Caller& caller)
 {
-    const std::wstring base_dialog_filename = json_node.Get<std::wstring>(JK::path);
-    std::wstring evaluated_dialog_filename = caller.EvaluateAbsolutePath(base_dialog_filename);
+    const std::string base_dialog_filename_or_path = json_node.Get<std::string>(JK::path);
+    std::string evaluated_dialog_file_path = caller.EvaluateAbsolutePath(base_dialog_filename_or_path);
 
-    // if the HTML dialog does not exist, check if it exists in an overriden HTML dialog directory or in CSPro's html/dialogs directory
-    if( !PortableFunctions::FileIsRegular(evaluated_dialog_filename) )
+    // if the HTML dialog does not exist, check if it exists in an overridden HTML dialog directory or in CSPro's html/dialogs directory
+    if( !PortableFunctions::FileIsRegular(evaluated_dialog_file_path) )
     {
-        evaluated_dialog_filename = GetHtmlDialogFilename(base_dialog_filename);
-        ASSERT(PortableFunctions::FileIsRegular(evaluated_dialog_filename));
+        evaluated_dialog_file_path = GetHtmlDialogFilePath(base_dialog_filename_or_path);
+        ASSERT(PortableFunctions::FileIsRegular(evaluated_dialog_file_path));
     }
 
-    std::wstring input_data = json_node.Contains(JK::inputData) ? json_node.Get(JK::inputData).GetNodeAsString() :
-                                                                  std::wstring();
+    SharableString input_data = json_node.Contains(JK::inputData) ? json_node.Get(JK::inputData).GetNodeAsSharableString() :
+                                                                    SharableString();
 
-    std::optional<std::wstring> display_options = json_node.Contains(JK::displayOptions) ? std::make_optional(json_node.Get(JK::displayOptions).GetNodeAsString()) :
-                                                                                           std::nullopt;
+    SharableString display_options = json_node.Contains(JK::displayOptions) ? json_node.Get(JK::displayOptions).GetNodeAsSharableString() :
+                                                                              SharableString();
 
-    return ShowHtmlDialog(evaluated_dialog_filename, std::move(input_data), std::move(display_options));
+    return ShowHtmlDialog(evaluated_dialog_file_path, std::move(input_data), std::move(display_options));
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_alert(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::UI_alert(const JsonNode& json_node, Caller& /*caller*/)
 {
     // use the errmsg dialog
-    const std::wstring dialog_path = GetHtmlDialogFilename(PortableFunctions::PathAppendFileExtension<std::wstring>(ErrmsgDialogName, FileExtensions::HTML));
+    const std::string dialog_file_path = GetHtmlDialogFilePath(PortableFunctions::PathAppendFileExtension(std::string(ErrmsgDlg::DialogName), FileExtensions::HTML));
 
-    // create the input data 
-    auto json_writer = Json::CreateStringWriter();
+    // create the input data
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
-                .Write(JK::title, json_node.Contains(JK::title) ? json_node.Get<wstring_view>(JK::title) : _T("Alert"))
-                .Write(JK::message, json_node.Get<wstring_view>(JK::text))
+                .Write(JK::title, json_node.Contains(JK::title) ? json_node.Get<std::string_view>(JK::title) : "Alert")
+                .Write(JK::message, json_node.Get<std::string_view>(JK::text))
                 .EndObject();
 
-    ShowHtmlDialog(dialog_path, json_writer->GetString());
+    ShowHtmlDialog(dialog_file_path, json_writer->ReleaseSharableString());
 
     return Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_view(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_view(const JsonNode& json_node, Caller& caller)
 {
-    const TCHAR* const input_type = GetUniqueKeyFromChoices(json_node, JK::path, JK::url);
+    const char* const input_type = GetUniqueKeyFromChoices(json_node, JK::path, JK::url);
     Viewer viewer;
-    std::wstring url;
+    std::string url;
 
     // path
     if( input_type == JK::path )
     {
-        const std::wstring path = caller.EvaluateAbsolutePath(json_node.Get<std::wstring>(JK::path));
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
 
         if( !PortableFunctions::FileIsRegular(path) )
             throw FileIO::Exception::FileNotFound(path);
-        
+
         // register an access token if the file is in the html directory
         if( SO::StartsWithNoCase(path, Html::GetDirectory()) )
             viewer.SetAccessInvokerAccessTokenOverride(AccessToken::CreateAccessTokenForHtmlDirectoryFile(path));
 
-        url = PortableLocalhost::CreateFilenameUrl(path);        
+        url = PortableLocalhost::CreateFileUrl(path);
     }
 
     // url
@@ -223,94 +226,90 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_view(const JsonNode<wchar_t>& j
     {
         ASSERT(input_type == JK::url);
 
-        url = json_node.Get<std::wstring>(JK::url);
+        url = json_node.Get<std::string>(JK::url);
     }
 
     if( json_node.Contains(JK::inputData) )
-        viewer.GetOptions().action_invoker_ui_get_input_data = std::make_shared<std::wstring>(json_node.Get(JK::inputData).GetNodeAsString());
+        viewer.GetOptions().action_invoker_ui_get_input_data = json_node.Get(JK::inputData).GetNodeAsSharableString();
 
     if( json_node.Contains(JK::displayOptions) )
-        viewer.GetOptions().display_options_node = std::make_unique<const JsonNode<wchar_t>>(json_node.Get(JK::displayOptions));
+        viewer.GetOptions().display_options_node = std::make_unique<const JsonNode>(json_node.Get(JK::displayOptions));
+
+    auto exception_holder = std::make_shared<ExceptionHolder>();
 
     viewer.UseEmbeddedViewer()
           .UseSharedHtmlLocalFileServer()
+          .UseExceptionHolder(exception_holder)
           .ViewHtmlUrl(url);
+
+    exception_holder->ThrowExceptions();
 
     return Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_enumerateWebViews(const JsonNode<wchar_t>& /*json_node*/, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::UI_enumerateWebViews(const JsonNode& /*json_node*/, Caller& caller)
 {
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
-    json_writer->WriteIfHasValue<const TCHAR*, Caller::WebViewTag>(JK::webViewId, caller.GetWebViewTag());
+    if( caller.IsWebView() )
+        json_writer->Write(JK::webViewId, caller.GetCallerId());
 
     json_writer->BeginArray(JK::webViews);
 
     IterateOverListeners(
         [&](Listener& listener)
         {
-            std::optional<Caller::WebViewTag> web_view_tag = listener.OnGetAssociatedWebViewDetails();
+            const std::optional<int> web_view_caller_id = listener.OnGetAssociatedWebViewCallerId();
 
-            if( web_view_tag.has_value() )
+            if( web_view_caller_id.has_value() )
             {
                 json_writer->BeginObject()
-                            .Write(JK::webViewId, *web_view_tag)
+                            .Write(JK::webViewId, *web_view_caller_id)
                             .EndObject();
             }
 
             return true;
-        }); 
-    
+        });
+
     json_writer->EndArray();
 
     json_writer->EndObject();
 
-    return Result::JsonText(json_writer);
+    return Result::JsonText(*json_writer);
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::UI_postWebMessage(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::UI_postWebMessage(const JsonNode& json_node, Caller& /*caller*/)
 {
-    const std::wstring message = json_node.Get<std::wstring>(JK::message);
-    const std::optional<std::wstring> target_origin = json_node.GetOptional<std::wstring>(JK::targetOrigin);
-    const std::optional<Caller::WebViewTag> target_web_view_tag = json_node.GetOptional<Caller::WebViewTag>(JK::webViewId);
+    const std::string message = json_node.Get<std::string>(JK::message);
+    const std::optional<std::string> target_origin = json_node.GetOptional<std::string>(JK::targetOrigin);
+    const std::optional<int> target_web_view_caller_id = json_node.GetOptional<int>(JK::webViewId);
     Listener* applicable_listener = nullptr;
 
     IterateOverListeners(
         [&](Listener& listener)
         {
-            std::optional<Caller::WebViewTag> web_view_tag = listener.OnGetAssociatedWebViewDetails();
+            const std::optional<int> web_view_caller_id = listener.OnGetAssociatedWebViewCallerId();
 
-            if( ( web_view_tag.has_value() ) &&
-                ( !target_web_view_tag.has_value() || *web_view_tag == *target_web_view_tag ) )
+            if( ( web_view_caller_id.has_value() ) &&
+                ( !target_web_view_caller_id.has_value() || *web_view_caller_id == *target_web_view_caller_id ) )
             {
                 applicable_listener = &listener;
                 return false;
             }
 
             return true;
-        }); 
+        });
 
     if( applicable_listener == nullptr )
     {
-        if( target_web_view_tag.has_value() )
-        {
-#ifdef WIN_DESKTOP
-            const int id = reinterpret_cast<int>(*target_web_view_tag);
-#else
-            const int id = static_cast<int>(*target_web_view_tag);
-#endif
-            throw CSProException(_T("No web view exists with ID '%d'."), id);
-        }
+        if( target_web_view_caller_id.has_value() )
+            throw CSProException("No web view exists with ID '%d'.", *target_web_view_caller_id);
 
-        else
-        {
-            throw CSProException("No web view is currently showing.");
-        }
+        throw CSProException("No web view is currently showing.");
     }
 
     applicable_listener->OnPostWebMessage(message, target_origin);

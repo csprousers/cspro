@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{bb03b600-1ccf-4875-9300-26ad969e8d80}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zMapping</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -58,20 +54,16 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;ZMAPPING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)external/jsoncons;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;ZMAPPING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)external/jsoncons;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\pugixml\pugixml.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="CoordinateConverter.cpp" />
     <ClCompile Include="CurrentLocation.cpp" />
     <ClCompile Include="GeoJson.cpp" />
@@ -88,9 +80,9 @@
     <ClCompile Include="WindowsMapUISingleThread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CoordinateConverter.h" />
     <ClInclude Include="CurrentLocation.h" />
     <ClInclude Include="DefaultBaseMapEvaluator.h" />
-    <ClInclude Include="CoordinateConverter.h" />
     <ClInclude Include="GeoJson.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="GreatCircle.h" />
@@ -99,17 +91,17 @@
     <ClInclude Include="MBTilesReader.h" />
     <ClInclude Include="OfflineTileProvider.h" />
     <ClInclude Include="OfflineTileReader.h" />
-    <ClInclude Include="WindowsMapUISingleThread.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TPKReader.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="WindowsMapDlg.h" />
     <ClInclude Include="WindowsMapUI.h" />
+    <ClInclude Include="WindowsMapUISingleThread.h" />
     <ClInclude Include="WindowsMapUIThreadRunner.h" />
     <ClInclude Include="zMapping.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -143,6 +135,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zXml\zXml.vcxproj">
+      <Project>{095937e2-85ac-4565-9990-72e8b3a09c90}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zZipo\zZipo.vcxproj">

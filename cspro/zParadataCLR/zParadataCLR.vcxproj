@@ -12,10 +12,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{638EDDA7-FF30-4B33-9D6F-0A70D5E968CB}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>zUtilCLR</RootNamespace>
@@ -82,18 +78,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseQuery.h" />
     <ClInclude Include="Helper.h" />
-    <ClInclude Include="Database.h" />
     <ClInclude Include="MappingSharedHtmlLocalFileServer.h" />
     <ClInclude Include="Pre77ReportQuery.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseQuery.cpp" />
     <ClCompile Include="Helper.cpp" />
-    <ClCompile Include="Database.cpp" />
     <ClCompile Include="MappingSharedHtmlLocalFileServer.cpp" />
     <ClCompile Include="Pre77ReportQuery.cpp" />
     <ClCompile Include="Stdafx.cpp">
@@ -102,7 +98,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>

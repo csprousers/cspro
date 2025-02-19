@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zDataCLR/Excel2CSProSpec.h>
+#include <zNetwork/LoginAccessor.h>
 
 class CaseAccess;
 class DataRepository;
@@ -26,7 +27,7 @@ namespace CSPro
                 property int Converted { int get() { return Added + Modified + Skipped; } }
 
                 property System::Collections::Generic::SortedSet<System::String^>^ DuplicateKeys
-                { 
+                {
                     System::Collections::Generic::SortedSet<System::String^>^ get() { return m_duplicateKeys; }
                 }
 
@@ -69,7 +70,7 @@ namespace CSPro
                 RecordConversionInformation(CSPro::Dictionary::DictionaryRecord^ record, System::Object^ excel_worksheet);
 
                 !RecordConversionInformation();
-                ~RecordConversionInformation() { this->!RecordConversionInformation(); }                
+                ~RecordConversionInformation() { this->!RecordConversionInformation(); }
 
                 property System::Object^ ExcelWorksheet;
                 property int NextRow;
@@ -91,7 +92,7 @@ namespace CSPro
 
                 void Initialize(const CaseAccess& case_access);
 
-                CString ConstructKey();
+                std::string ConstructKey();
 
                 void CopyIdItems(CaseRecord& case_record);
 
@@ -111,8 +112,17 @@ namespace CSPro
                 CaseItemIndex* m_recordIndexForKeyConstruction;
                 size_t m_rowsToProcess;
                 size_t m_rowIndex;
-                bool m_keyHasBeenConstructed;                
+                bool m_keyHasBeenConstructed;
             };
+
+
+            public ref struct UsernamePassword
+            {
+                System::String^ username;
+                System::String^ password;
+            };
+
+            public delegate UsernamePassword^ OnQueryUsernamePassword(bool show_invalid_error);
 
 
             public ref class Worker sealed
@@ -125,7 +135,8 @@ namespace CSPro
 
                 property ConversionCounts^ Counts { ConversionCounts^ get() { return m_counts; } }
 
-                void Initialize(CSPro::Dictionary::DataDictionary^ dictionary,
+                void Initialize(OnQueryUsernamePassword^ on_query_username_password,
+                                CSPro::Dictionary::DataDictionary^ dictionary,
                                 System::Collections::Generic::List<RecordConversionInformation^>^ record_conversion_information_list,
                                 Spec^ spec);
 
@@ -134,18 +145,22 @@ namespace CSPro
                 void FinishConversion(System::ComponentModel::BackgroundWorker^ background_worker);
 
             private:
+                void ProcessOnQueryUsernamePassword(OnQueryUsernamePassword^ on_query_username_password);
+
+            private:
                 ConversionCounts^ m_counts;
                 System::Collections::Generic::List<RecordConversionInformation^>^ m_records;
                 std::shared_ptr<CaseAccess>* m_caseAccess;
                 DataRepository* m_repository;
                 std::unique_ptr<DataRepositoryTransaction>* m_transaction;
                 bool m_modifyCaseMode;
-                std::set<CString>* m_initialKeys;
+                std::set<std::string>* m_initialKeys;
                 std::unique_ptr<Case>* m_case;
-                CString* m_caseKey;
+                std::string* m_caseKey;
                 bool m_compareCaseBeforeWriting;
                 std::unique_ptr<Case>* m_initialCaseForModificationCheck;
                 size_t m_writesUntilNextNotification;
+                LoginAccessor::WinFormsQueryUsernamePassword* m_winFormsQueryUsernamePasswordCallback;
             };
         }
     }

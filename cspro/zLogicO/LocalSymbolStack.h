@@ -3,41 +3,40 @@
 #include <zLogicO/SymbolTable.h>
 #include <zToolsO/RaiiHelpers.h>
 
+namespace Logic { class LocalSymbolStack; }
 
-namespace Logic
+
+// --------------------------------------------------------------------------
+// LocalSymbolStack
+//
+// A RAII class for keeping track of scope changes and to remove
+// locally-declared symbols from the symbol table.
+// --------------------------------------------------------------------------
+
+class Logic::LocalSymbolStack
 {
-    // --------------------------------------------------------------------------
-    // LocalSymbolStack
-    //
-    // a RAII class for keeping track of scope changes and to remove
-    // locally-declared symbols from the symbol table
-    // --------------------------------------------------------------------------
+    friend SymbolTable;
 
-    class LocalSymbolStack
-    {
-        friend SymbolTable;
+private:
+    LocalSymbolStack(SymbolTable& symbol_table);
 
-    private:
-        LocalSymbolStack(SymbolTable& symbol_table);
+public:
+    LocalSymbolStack(const LocalSymbolStack&) = delete;
+    LocalSymbolStack(LocalSymbolStack&& rhs) noexcept;
+    ~LocalSymbolStack();
 
-    public:
-        LocalSymbolStack(const LocalSymbolStack&) = delete;
-        LocalSymbolStack(LocalSymbolStack&& rhs);
+    const std::vector<int>& GetLocalSymbolIndices() const { return m_localSymbolIndices; }
 
-        ~LocalSymbolStack();
+    // sets a listener that will receive information about all locally-scoped symbols added to this, or child, scopes
+    void SetAddSymbolListener(std::unique_ptr<std::function<void(int symbol_index)>> add_symbol_listener) { m_addSymbolListener = std::move(add_symbol_listener); }
 
-        const std::vector<int>& GetLocalSymbolIndices() const { return m_localSymbolIndices; }
+private:
+    SymbolTable& m_symbolTable;
+    RAII::PushOnVectorAndPopOnDestruction<LocalSymbolStack*> m_localSymbolStackHolder;
+    std::vector<int> m_localSymbolIndices;
+    std::unique_ptr<const std::function<void(int)>> m_addSymbolListener;
+};
 
-        // sets a listener that will receive information about all locally-scoped symbols added to this, or child, scopes
-        void SetAddSymbolListener(std::unique_ptr<std::function<void(int symbol_index)>> add_symbol_listener) { m_addSymbolListener = std::move(add_symbol_listener); }
-
-    private:
-        SymbolTable& m_symbolTable;
-        RAII::PushOnVectorAndPopOnDestruction<LocalSymbolStack*> m_localSymbolStackHolder;
-        std::vector<int> m_localSymbolIndices;
-        std::unique_ptr<const std::function<void(int)>> m_addSymbolListener;
-    };
-}
 
 
 // --------------------------------------------------------------------------
@@ -51,7 +50,7 @@ inline Logic::LocalSymbolStack::LocalSymbolStack(SymbolTable& symbol_table)
 }
 
 
-inline Logic::LocalSymbolStack::LocalSymbolStack(LocalSymbolStack&& rhs)
+inline Logic::LocalSymbolStack::LocalSymbolStack(LocalSymbolStack&& rhs) noexcept
     :   m_symbolTable(rhs.m_symbolTable),
         m_localSymbolStackHolder(std::move(rhs.m_localSymbolStackHolder)),
         m_localSymbolIndices(std::move(rhs.m_localSymbolIndices)),
@@ -63,6 +62,6 @@ inline Logic::LocalSymbolStack::LocalSymbolStack(LocalSymbolStack&& rhs)
 
 inline Logic::LocalSymbolStack::~LocalSymbolStack()
 {
-    for( int symbol_index : m_localSymbolIndices )
+    for( const int symbol_index : m_localSymbolIndices )
         m_symbolTable.RemoveSymbolFromNameMap(m_symbolTable.GetAt(symbol_index));
 }

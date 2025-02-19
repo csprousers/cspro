@@ -8,24 +8,24 @@ BEGIN_MESSAGE_MAP(LocalhostSettingsDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-LocalhostSettingsDlg::LocalhostSettingsDlg(CWnd* pParent/* = nullptr*/)
+LocalhostSettingsDlg::LocalhostSettingsDlg(CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_LOCALHOST, pParent),
         m_logicalDrives(GetLogicalDrivesVector())
 {
     m_initialSettings.start_automatically = ( WinSettings::Read<DWORD>(WinSettings::Type::LocalhostStartAutomatically, 0) != 0 );
 
-    std::optional<int> preferred_port = LocalhostSettings::GetPreferredPort();
+    const std::optional<int> preferred_port = LocalhostSettings::GetPreferredPort();
 
     if( preferred_port.has_value() )
-        m_initialSettings.preferred_port = std::to_wstring(*preferred_port);
+        m_initialSettings.preferred_port = IntToString(*preferred_port);
 
-    m_initialSettings.automatically_mapped_drives = WinSettings::Read<std::wstring>(WinSettings::Type::LocalhostAutomaticallyMappedDrives);
+    m_initialSettings.automatically_mapped_drives = WinSettings::Read<std::string>(WinSettings::Type::LocalhostAutomaticallyMappedDrives);
 
-    m_settings = m_initialSettings;    
+    m_settings = m_initialSettings;
 }
 
 
-void LocalhostSettingsDlg::DoDataExchange(CDataExchange* pDX)
+void LocalhostSettingsDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
@@ -40,14 +40,15 @@ BOOL LocalhostSettingsDlg::OnInitDialog()
     __super::OnInitDialog();
 
     // add the drives and make sure the vertical height appears correctly
-    CDC* pDC = m_automaticallyMappedDrivesCtrl.GetDC();
+    CDC* const pDC = m_automaticallyMappedDrivesCtrl.GetDC();
 
-    std::vector<std::wstring> drives_to_select = LocalhostSettings::GetDrivesToAutomaticallyMap(m_initialSettings.automatically_mapped_drives);
+    const std::vector<std::string> drives_to_select = LocalhostSettings::GetDrivesToAutomaticallyMap(m_initialSettings.automatically_mapped_drives);
 
-    for( const std::wstring& drive : m_logicalDrives )
+    for( const std::string& drive : m_logicalDrives )
     {
-        int index = m_automaticallyMappedDrivesCtrl.AddString(drive.c_str());
-        m_automaticallyMappedDrivesCtrl.SetItemHeight(index, pDC->GetTextExtent(drive.c_str()).cy);
+        const std::wstring wide_drive = TC::ToWide(drive);
+        const int index = m_automaticallyMappedDrivesCtrl.AddString(wide_drive.c_str());
+        m_automaticallyMappedDrivesCtrl.SetItemHeight(index, pDC->GetTextExtent(wide_drive.c_str()).cy);
 
         if( std::find(drives_to_select.cbegin(), drives_to_select.cend(), drive) != drives_to_select.cend() )
             m_automaticallyMappedDrivesCtrl.SetCheck(index, BST_CHECKED);
@@ -77,7 +78,7 @@ void LocalhostSettingsDlg::OnOK()
             catch(...) { }
 
             if( !preferred_port.has_value() || *preferred_port < LocalhostSettings::MinPort || *preferred_port > LocalhostSettings::MaxPort )
-                throw CSProException(_T("The preferred port must be between %d-%d"), LocalhostSettings::MinPort, LocalhostSettings::MaxPort);
+                throw CSProException("The preferred port must be between %d-%d", LocalhostSettings::MinPort, LocalhostSettings::MaxPort);
         }
 
         // add the automatic drive mappings
@@ -103,7 +104,7 @@ void LocalhostSettingsDlg::OnOK()
             if( m_initialSettings.automatically_mapped_drives != m_settings.automatically_mapped_drives )
                 WinSettings::Write(WinSettings::Type::LocalhostAutomaticallyMappedDrives, m_settings.automatically_mapped_drives);
 
-            AfxMessageBox(_T("The changes will not take effect until you restart this program."));
+            AfxMessageBox(L"The changes will not take effect until you restart this program.");
         }
 
         __super::OnOK();
@@ -118,17 +119,16 @@ void LocalhostSettingsDlg::OnOK()
 
 void LocalhostSettingsDlg::OnCreateMapping()
 {
-    CIMSAFileDialog file_dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY,
-                             _T("All Files (*.*)|*.*|||"), nullptr, CFD_NO_DIR);
+    OpenFileDlg open_file_dlg(0, nullptr, nullptr, L"All Files (*.*)|*.*||", this);
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
     SharedHtmlLocalFileServer& file_server = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetSharedHtmlLocalFileServer();
 
-    std::wstring url = file_server.GetFilenameUrl(file_dlg.GetPathName());
+    const std::string url = file_server.CreateFileUrl(open_file_dlg.GetFilePath());
 
     WinClipboard::PutText(this, url);
 
-    AfxMessageBox(_T("The mapping has been copied to the clipboard:\n\n") + url);
+    AfxMessageBox("The mapping has been copied to the clipboard:\n\n" + url);
 }

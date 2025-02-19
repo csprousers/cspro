@@ -6,7 +6,7 @@
 
 LogicImage* LogicCompiler::CompileLogicImageDeclaration()
 {
-    std::wstring image_name = CompileNewSymbolName();
+    std::string image_name = CompileNewSymbolName();
 
     auto logic_image = std::make_shared<LogicImage>(std::move(image_name));
 
@@ -137,7 +137,7 @@ int LogicCompiler::CompileLogicImageFunctions()
         if( function_code == FunctionCode::IMAGEFN_SAVE_CODE )
         {
             OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
-            optional_named_arguments_compiler.AddArgument(_T("quality"), symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
+            optional_named_arguments_compiler.AddArgument("quality", symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
             optional_named_arguments_compiler.Compile();
         }
     }
@@ -163,10 +163,10 @@ int LogicCompiler::CompileLogicImageFunctions()
     else if( function_code == FunctionCode::IMAGEFN_RESAMPLE_CODE )
     {
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
-        optional_named_arguments_compiler.AddArgument(_T("width"), symbol_va_with_subscript_node.arguments[0], DataType::Numeric);
-        optional_named_arguments_compiler.AddArgument(_T("height"), symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
-        optional_named_arguments_compiler.AddArgument(_T("maxWidth"), symbol_va_with_subscript_node.arguments[2], DataType::Numeric);
-        optional_named_arguments_compiler.AddArgument(_T("maxHeight"), symbol_va_with_subscript_node.arguments[3], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("width", symbol_va_with_subscript_node.arguments[0], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("height", symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("maxWidth", symbol_va_with_subscript_node.arguments[2], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("maxHeight", symbol_va_with_subscript_node.arguments[3], DataType::Numeric);
 
         // the named arguments version
         if( optional_named_arguments_compiler.Compile(true) > 0 )
@@ -206,7 +206,7 @@ int LogicCompiler::CompileLogicImageFunctions()
     if( is_captureSignature_takePhoto || is_captureSignature_takePhoto_with_only_named_arguments )
     {
         OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
-        optional_named_arguments_compiler.AddArgument(_T("showExisting"), symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("showExisting", symbol_va_with_subscript_node.arguments[1], DataType::Numeric);
         optional_named_arguments_compiler.Compile(is_captureSignature_takePhoto_with_only_named_arguments);
     }
 

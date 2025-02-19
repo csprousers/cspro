@@ -2,28 +2,28 @@
 #include "MappingTileProviderProperties.h"
 
 
-MappingTileProviderProperties::MappingTileProviderProperties(MappingTileProvider mapping_tile_provider)
+MappingTileProviderProperties::MappingTileProviderProperties(const MappingTileProvider mapping_tile_provider)
     :   m_mappingTileProvider(mapping_tile_provider)
 {
     if( m_mappingTileProvider == MappingTileProvider::Esri )
     {
-        m_tileLayers.try_emplace(BaseMap::Normal, _T("Streets"));
-        m_tileLayers.try_emplace(BaseMap::Hybrid, _T("NationalGeographic"));
-        m_tileLayers.try_emplace(BaseMap::Satellite, _T("Imagery"));
-        m_tileLayers.try_emplace(BaseMap::Terrain, _T("Topographic"));
+        m_tileLayers.try_emplace(BaseMap::Normal, "Streets");
+        m_tileLayers.try_emplace(BaseMap::Hybrid, "NationalGeographic");
+        m_tileLayers.try_emplace(BaseMap::Satellite, "Imagery");
+        m_tileLayers.try_emplace(BaseMap::Terrain, "Topographic");
     }
 
     else
     {
-        m_tileLayers.try_emplace(BaseMap::Normal, _T("mapbox/streets-v11"));
-        m_tileLayers.try_emplace(BaseMap::Hybrid, _T("mapbox/satellite-streets-v11"));
-        m_tileLayers.try_emplace(BaseMap::Satellite, _T("mapbox/satellite-v9"));
-        m_tileLayers.try_emplace(BaseMap::Terrain, _T("mapbox/outdoors-v11"));
+        m_tileLayers.try_emplace(BaseMap::Normal, "mapbox/streets-v11");
+        m_tileLayers.try_emplace(BaseMap::Hybrid, "mapbox/satellite-streets-v11");
+        m_tileLayers.try_emplace(BaseMap::Satellite, "mapbox/satellite-v9");
+        m_tileLayers.try_emplace(BaseMap::Terrain, "mapbox/outdoors-v11");
     }
 }
 
 
-MappingTileProviderProperties& MappingTileProviderProperties::operator=(MappingTileProviderProperties&& rhs)
+MappingTileProviderProperties& MappingTileProviderProperties::operator=(MappingTileProviderProperties&& rhs) noexcept
 {
     ASSERT(m_mappingTileProvider == rhs.m_mappingTileProvider);
 
@@ -42,7 +42,7 @@ bool MappingTileProviderProperties::operator==(const MappingTileProviderProperti
 }
 
 
-const std::wstring& MappingTileProviderProperties::GetTileLayer(BaseMap base_map) const
+const std::string& MappingTileProviderProperties::GetTileLayer(const BaseMap base_map) const
 {
     const auto& tile_layer_search = m_tileLayers.find(base_map);
     ASSERT(tile_layer_search != m_tileLayers.cend());
@@ -50,7 +50,7 @@ const std::wstring& MappingTileProviderProperties::GetTileLayer(BaseMap base_map
 }
 
 
-void MappingTileProviderProperties::SetTileLayer(BaseMap base_map, std::wstring tile_layer)
+void MappingTileProviderProperties::SetTileLayer(const BaseMap base_map, std::string tile_layer)
 {
     ASSERT(m_tileLayers.find(base_map) != m_tileLayers.cend());
     m_tileLayers[base_map] = std::move(tile_layer);
@@ -58,22 +58,22 @@ void MappingTileProviderProperties::SetTileLayer(BaseMap base_map, std::wstring 
 
 
 
-// -----------------------------------------------------
+// --------------------------------------------------------------------------
 // serialization
-// -----------------------------------------------------
+// --------------------------------------------------------------------------
 
-MappingTileProviderProperties MappingTileProviderProperties::CreateFromJson(const JsonNode<wchar_t>& json_node)
+MappingTileProviderProperties MappingTileProviderProperties::CreateFromJson(const JsonNode& json_node)
 {
     MappingTileProviderProperties mapping_properties(json_node.Get<MappingTileProvider>(JK::name));
 
-    mapping_properties.m_accessToken = json_node.GetOrDefault(JK::accessToken, SO::EmptyString);
+    mapping_properties.m_accessToken = json_node.GetOrConstruct<std::string>(JK::accessToken);
 
-    for( const auto& tile_layers_node : json_node.GetArrayOrEmpty(JK::tileLayers) )
+    for( const JsonNode& tile_layers_node : json_node.GetArrayOrEmpty(JK::tileLayers) )
     {
-        std::optional<BaseMap> base_map = tile_layers_node.GetOptional<BaseMap>(JK::name);
+        const std::optional<BaseMap> base_map = tile_layers_node.GetOptional<BaseMap>(JK::name);
 
         if( base_map.has_value() )
-            mapping_properties.m_tileLayers[*base_map] = tile_layers_node.Get<std::wstring>(JK::tileLayer);
+            mapping_properties.m_tileLayers[*base_map] = tile_layers_node.Get<std::string>(JK::tileLayer);
     }
 
     return mapping_properties;
@@ -110,7 +110,7 @@ void MappingTileProviderProperties::serialize(Serializer& ar)
     ar & m_accessToken;
 
     map_serialize(ar, m_tileLayers,
-        [&](BaseMap& key, std::wstring& value)
+        [&](BaseMap& key, std::string& value)
         {
             ar.SerializeEnum(key);
             ar & value;

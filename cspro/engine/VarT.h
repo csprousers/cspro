@@ -229,8 +229,6 @@ private:
     bool m_showExtendedControlTitle;
     POINT m_capturePos;
 
-    CString* m_pLogicString;            // 20140325 for variable length strings defined in logic
-
     // --- utilization in execution                     // RHF Mar 10, 2000
 private:
     bool    m_bIsUsed;                  // is used in execution (true/false)
@@ -251,7 +249,7 @@ public:
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction/initialization
 public:
-    CSymbolVar(std::wstring name, CEngineDriver* pEngineDriver);
+    CSymbolVar(std::string name, CEngineDriver* pEngineDriver);
     ~CSymbolVar(); // RHF Aug 28, 2002
 
     // --- related objects and miscellaneous relationship
@@ -443,11 +441,6 @@ public:
     const POINT& GetCapturePos() const           { return m_capturePos; }
     void SetCapturePos(const POINT& capture_pos) { m_capturePos = capture_pos; }
 
-
-    CString*        GetLogicStringPtr()         { return m_pLogicString; } // 20140325 these functions are for variable length strings
-    const CString*  GetLogicStringPtr() const   { return m_pLogicString; }
-    void            AllocateLogicStringMemory() { m_pLogicString = new CString(); }
-
     // --- utilization in execution
 public:
     bool    IsUsed() const              { return m_bIsUsed; }
@@ -472,7 +465,7 @@ public:
     bool NeedConvertSomeSubItem() const { return m_bNeedConvertSomeSubItem; }
 
 private:
-    std::vector<double> m_aVectorValue; 
+    std::vector<double> m_aVectorValue;
     std::vector<double> m_aVectorOcc;
     int m_iVectorIndex;
 public:
@@ -527,7 +520,7 @@ public:
     // Symbol overrides
     EngineItemAccessor* GetEngineItemAccessor() const override;
 
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
 
     void serialize_subclass(Serializer& ar) override;
 
@@ -541,6 +534,6 @@ private:
     int m_containerIndex = 0; // the container table index
 
 public:
-    int GetContainerIndex() const  			    { return m_containerIndex; }
+    int GetContainerIndex() const               { return m_containerIndex; }
     void SetContainerIndex(int container_index) { m_containerIndex = container_index; }
 };

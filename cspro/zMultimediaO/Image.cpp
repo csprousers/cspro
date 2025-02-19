@@ -1,7 +1,8 @@
 ﻿#include "stdafx.h"
 #include "Image.h"
-#include <zToolsO/FileIO.h>
-#include <zToolsO/Utf8Convert.h>
+#include "Icon.h"
+#include <zToolsO/PointerClasses.h>
+#include <zToolsO/Tools.h>
 #include <zUtilO/MimeType.h>
 #include <external/zlib/zlib.h>
 
@@ -34,11 +35,11 @@ unsigned char* zlib_compress(unsigned char* data, int data_len, int* out_len, in
 #include <external/stb/stb_image_resize.h>
 
 
-unsigned char* zlib_compress(unsigned char* data, int data_len, int* out_len, int quality)
+unsigned char* zlib_compress(unsigned char* const data, const int data_len, int* const out_len, const int quality)
 {
     // instead of using stb's default compression algorithm (when saving PNG files), use one from zlib
     uLong buffer_len = compressBound(data_len);
-    unsigned char* buffer = static_cast<unsigned char*>(malloc(buffer_len));
+    unsigned char* const buffer = static_cast<unsigned char*>(malloc(buffer_len));
 
     if( buffer == nullptr || compress2(buffer, &buffer_len, data, data_len, quality) != 0 )
     {
@@ -62,7 +63,7 @@ namespace
     class StbImage : public Multimedia::Image
     {
     public:
-        StbImage(stbi_uc* image_data, Multimedia::ImageDetails details)
+        StbImage(stbi_uc* const image_data, Multimedia::ImageDetails details)
             :   Image(std::move(details)),
                 m_imageData(image_data)
         {
@@ -114,7 +115,7 @@ namespace
     };
 
 
-    std::optional<ImageType> ToImageType(LoadedImageType loaded_image_type)
+    std::optional<ImageType> ToImageType(const LoadedImageType loaded_image_type)
     {
         if( loaded_image_type == LoadedImageType::Gif )
             return std::nullopt;
@@ -134,15 +135,15 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromImage(const Multimedia
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::FromFile(const std::wstring& filename)
+std::unique_ptr<Multimedia::Image> Multimedia::Image::FromFile(const cs::string_sz file_path)
 {
     ImageDetails details;
 
-    stbi_uc* image_data = stbi_load(UTF8Convert::WideToUTF8(filename).c_str(),
-                                    &details.width, &details.height, &details.channels, 0);
+    stbi_uc* const image_data = stbi_load(file_path.c_str(),
+                                          &details.width, &details.height, &details.channels, 0);
 
     if( image_data == nullptr )
-        throw ImageException(_T("Could not read the image file: %s"), filename.c_str());
+        throw ImageException("Could not read the image file: %s", file_path.c_str());
 
     return std::make_unique<StbImage>(image_data, std::move(details));
 }
@@ -153,8 +154,8 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<
     ImageDetails details;
     LoadedImageType loaded_image_type;
 
-    stbi_uc* image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), content.size(),
-                                                &details.width, &details.height, &details.channels, 0, &loaded_image_type);
+    stbi_uc* const image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), content.size(),
+                                                      &details.width, &details.height, &details.channels, 0, &loaded_image_type);
 
     if( image_data == nullptr )
         throw ImageException("Could not parse the image");
@@ -165,7 +166,7 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<
 }
 
 
-std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(cs::span<const std::byte> content)
+std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(const cs::span<const std::byte> content)
 {
     ImageDetails details;
     LoadedImageType loaded_image_type;
@@ -182,58 +183,61 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
 }
 
 
-void Multimedia::Image::ToFile(const std::wstring& filename, std::optional<int> jpeg_quality/* = std::nullopt*/) const
+void Multimedia::Image::ToFile(const std::string& file_path, const std::optional<int> jpeg_quality/* = std::nullopt*/) const
 {
     try
     {
-        FileIO::CreateDirectoriesForFile(filename);
+        FileIO::CreateDirectoriesForFile(file_path);
     }
 
     catch( const FileIO::Exception& exception )
     {
-        throw ImageException(exception.GetErrorMessage());
+        throw ImageException(exception.what());
     }
 
-    std::optional<ImageType> image_type = MimeType::GetSupportedImageTypeFromFileExtension(PortableFunctions::PathGetFileExtension(filename));
-    std::string utf8_filename = UTF8Convert::WideToUTF8(filename);
+    const std::optional<ImageType> image_type = MimeType::GetSupportedImageTypeFromFileExtension(PortableFunctions::PathGetFileExtension(file_path));
     int result;
 
     if( image_type == ImageType::Jpeg )
     {
-        result = stbi_write_jpg(utf8_filename.c_str(), m_details.width, m_details.height, m_details.channels,
+        result = stbi_write_jpg(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
                                 GetData(), jpeg_quality.value_or(DefaultJpegQuality));
     }
 
     else if( image_type == ImageType::Png )
     {
-        result = stbi_write_png(utf8_filename.c_str(), m_details.width, m_details.height, m_details.channels,
+        result = stbi_write_png(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
                                 GetData(), m_details.width * m_details.channels);
     }
 
     else if( image_type == ImageType::Bitmap )
     {
-        result = stbi_write_bmp(utf8_filename.c_str(), m_details.width, m_details.height, m_details.channels,
+        result = stbi_write_bmp(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
                                 GetData());
+    }
+
+    else if( Icon::IsExtensionIcon(file_path) )
+    {
+        result = ToIconFile(file_path);
     }
 
     else
     {
-        throw ImageException(_T("Unknown image file extension: %s"), PortableFunctions::PathGetFileExtension(filename).c_str());
+        throw ImageException("Unknown image file extension: " + PortableFunctions::PathGetFileExtension(file_path));
     }
 
-
     if( result == 0 )
-        throw ImageException(_T("Could not write to the image file %s"), filename.c_str());
+        throw ImageException("Could not write to the image file: " + file_path);
 }
 
 
 namespace
 {
-    void ToBufferCallback(void* context, void* data, int size)
+    void ToBufferCallback(void* const context, void* const data, const int size)
     {
         std::vector<std::byte>* image_buffer = static_cast<std::vector<std::byte>*>(context);
 
-        size_t current_size = image_buffer->size();
+        const size_t current_size = image_buffer->size();
         image_buffer->resize(current_size + size);
 
         memcpy(image_buffer->data() + current_size, data, size);
@@ -241,7 +245,7 @@ namespace
 }
 
 
-std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(ImageType image_type, std::optional<int> jpeg_quality/* = std::nullopt*/) const
+std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageType image_type, const std::optional<int> jpeg_quality/* = std::nullopt*/) const
 {
     auto image_buffer = std::make_unique<std::vector<std::byte>>();
 
@@ -280,22 +284,50 @@ std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(ImageType im
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(int new_width, int new_height) const
+std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(const int new_width, const int new_height) const
 {
     auto resized_image = std::make_unique<VectorImage>(ImageDetails { new_width, new_height, m_details.channels, m_details.image_type });
 
-	if( stbir_resize_uint8(reinterpret_cast<const unsigned char*>(GetData()), m_details.width, m_details.height, m_details.channels * m_details.width,
-		                   reinterpret_cast<unsigned char*>(resized_image->GetDataBuffer()), new_width, new_height, m_details.channels * new_width, m_details.channels) != 1 )
+    if( stbir_resize_uint8(reinterpret_cast<const unsigned char*>(GetData()), m_details.width, m_details.height, m_details.channels * m_details.width,
+                           reinterpret_cast<unsigned char*>(resized_image->GetDataBuffer()), new_width, new_height, m_details.channels * new_width, m_details.channels) != 1 )
     {
-        throw ImageException(_T("Could not resize the image file"));
+        throw ImageException("Could not resize the image file");
     }
 
     return resized_image;
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(double scale_percent) const
+std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(const double scale_percent) const
 {
     return GetResizedImage(static_cast<int>(m_details.width * scale_percent),
                            static_cast<int>(m_details.height * scale_percent));
+}
+
+
+int Multimedia::Image::ToIconFile(const std::string& file_path) const
+{
+    cs::non_null_shared_or_raw_ptr<const Image> image_to_convert(this);
+
+    // resize the image if needed
+    const int max_dimension = std::max(m_details.width, m_details.height);
+
+    if( max_dimension > Icon::MaxSize )
+    {
+        const double scale_percent = CreateProportion(Icon::MaxSize, max_dimension);
+        image_to_convert = GetResizedImage(std::min(Icon::MaxSize, static_cast<int>(m_details.width * scale_percent)),
+                                           std::min(Icon::MaxSize, static_cast<int>(m_details.height * scale_percent)));
+    }
+
+    ASSERT(image_to_convert->m_details.width <= Icon::MaxSize &&
+           image_to_convert->m_details.height <= Icon::MaxSize);
+
+    const std::unique_ptr<std::vector<std::byte>> png_data = image_to_convert->ToBuffer(ImageType::Png);
+
+    if( png_data == nullptr )
+        return 0;
+
+    Icon::SavePngAsIcon(file_path, *png_data, image_to_convert->m_details.width, image_to_convert->m_details.height);
+
+    return 1;
 }

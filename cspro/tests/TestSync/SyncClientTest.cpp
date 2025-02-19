@@ -1,187 +1,154 @@
 ﻿#include "stdafx.h"
-#include "CppUnitTest.h"
-#include <zSyncO/SyncClient.h>
-#include <zSyncO/ISyncServerConnectionFactory.h>
-#include <zSyncO/ISyncServerConnection.h>
-#include <zSyncO/DefaultChunk.h>
-#include <zDataO/ISyncableDataRepository.h>
-#include <zSyncO/SyncException.h>
-#include "FakeServer.h"
-#include "FakeServerFactory.h"
-#include <fstream>
-#include <zDictO/DDClass.h>
-#include "TestRepoBuilder.h"
-#include <zToolsO/Utf8Convert.h>
 #include "CaseTestHelpers.h"
-#include <zSyncO/CaseObservable.h>
-#include <zUtilO/TemporaryFile.h>
+#include "FakeSyncService.h"
+#include "FakeSyncServiceFactory.h"
+#include "TestRepoBuilder.h"
+#include <zDictO/DDClass.h>
+#include <zDataO/ISyncableDataRepository.h>
+#include <zSyncO/ISyncService.h>
+#include <fstream>
 
-
-namespace Microsoft {
-    namespace VisualStudio {
-        namespace CppUnitTestFramework
-        {
-            // ToString specialization is required for all types used in the AssertTrue macro
-            template<> inline std::wstring ToString<CString>(const CString& t) { return std::wstring(t); }
-            template<> inline std::wstring ToString<SyncClient::SyncResult>(const SyncClient::SyncResult& r)
-            {
-                switch (r) {
-                case SyncClient::SyncResult::SYNC_OK:
-                    return L"SyncResult::SYNC_OK";
-                case SyncClient::SyncResult::SYNC_ERROR:
-                    return L"SyncResult::SYNC_ERROR";
-                case SyncClient::SyncResult::SYNC_CANCELED:
-                    return L"SyncResult::SYNC_CANCELED";
-                }
-                return L"THIS SHOULD NEVER HAPPEN";
-            };
-        }
-    }
-}
-
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace fakeit;
+
 
 namespace SyncUnitTest
 {
-
     TEST_CLASS(SyncClientTest)
     {
-
     private:
         const DeviceId myDeviceId = "me";
         const DeviceId serverDeviceId = "myserver";
-        CString hostUrl = L"www.test.com";
-        CString username = L"user";
-        CString password = L"pass";
+        const std::string hostUrl = "http://www.test.com";
+        const std::string username = "user";
+        const std::string password = "pass";
 
-        std::unique_ptr<const CDataDict> dictionary = createTestDict();
-        std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*dictionary);
+        const std::shared_ptr<const CDataDict> dictionary = CreateTestDictionary();
+        const std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*dictionary);
 
     public:
+        TEST_METHOD(TestConnect)
+        {
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
 
-        TEST_METHOD(TestConnect) {
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
-
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
-
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
-            Assert::AreEqual(serverDeviceId, pClient->getServerDeviceId());
-            Verify(Method(mockServer, connect)).Exactly(1);
+            Assert::AreEqual(serverDeviceId, sync_client.GetServerDeviceId());
+            Verify(Method(mockServer, Connect)).Exactly(1);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
-            Verify(Method(mockServer, disconnect)).Exactly(1);
-            Verify(Method(mockServerConnectionFactory, destroy)).Exactly(1);
+            Verify(Method(mockServer, Disconnect)).Exactly(1);
 
-            When(Method(mockServer, connect)).Throw(SyncError(1, L"connect error"));
-            auto connectFailedResult = pClient->connectWeb(hostUrl, username, password);
+            When(Method(mockServer, Connect)).Throw(SyncError(1, "connect error"));
+            auto connectFailedResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, connectFailedResult);
-            Verify(Method(mockServer, connect)).Exactly(2);
-            Verify(Method(mockServerConnectionFactory, destroy)).Exactly(2);
+            Verify(Method(mockServer, Connect)).Exactly(2);
         }
 
-        TEST_METHOD(TestSyncToEmptyClient) {
 
+        TEST_METHOD(TestSyncToEmptyClient)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock clock;
             clock.increment(serverDeviceId);
-            auto serverCase1 = makeCase(*case_access, L"guid1", 1, { L"data11", L"data12" });
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guid1", 1, { "data11", "data12" });
             serverCase1->SetVectorClock(clock);
-            serverCases.push_back(serverCase1);
-            auto serverCase2 = makeCase(*case_access, L"guid2", 2, { L"data2" });
+            serverCases.emplace_back(serverCase1);
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guid2", 2, { "data2" });
             serverCase2->SetVectorClock(clock);
-            serverCases.push_back(serverCase2);
+            serverCases.emplace_back(serverCase2);
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysDo([=](CString h, CString u, CString p) -> ISyncServerConnection* {return new FakeServer(serverCases);});
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysDo([](ISyncServerConnection* pConn)->void {delete pConn;});
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::make_unique<FakeSyncService>(serverCases); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            pClient->connectWeb(hostUrl, username, password);
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*serverCase1);
             repoBuilder.verifyCaseInRepo(*serverCase2);
         }
 
-        TEST_METHOD(TestSyncServerMoreRecent) {
 
+        TEST_METHOD(TestSyncServiceMoreRecent)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
             serverCaseClock.increment(serverDeviceId);
-            auto serverCase1 = makeCase(*case_access, L"guid1", 1, { "serverdata1" });
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guid1", 1, { "serverdata1" });
             serverCase1->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase1);
-            std::shared_ptr<Case> serverCase2 = makeCase(*case_access, L"guid2", 2, { "serverdata2" });
+            serverCases.emplace_back(serverCase1);
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guid2", 2, { "serverdata2" });
             serverCase2->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase2);
+            serverCases.emplace_back(serverCase2);
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysDo([=](CString h, CString u, CString p) -> ISyncServerConnection* {return new FakeServer(serverCases);});
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysDo([](ISyncServerConnection* pConn)->void {delete pConn;});
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::make_unique<FakeSyncService>(serverCases); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
             VectorClock clientCaseClock;
             clientCaseClock.increment(serverDeviceId);
-            auto clientUpdate1 = makeCase(*case_access, L"guid1", 1, { L"clientdata1" });
+            std::shared_ptr<Case> clientUpdate1 = CreateCase(*case_access, "guid1", 1, { "clientdata1" });
             clientUpdate1->SetVectorClock(clientCaseClock);
-            auto clientUpdate2 = makeCase(*case_access, L"guid2", 2, { L"clientdata2" });
+            std::shared_ptr<Case> clientUpdate2 = CreateCase(*case_access, "guid2", 2, { "clientdata2" });
             clientUpdate2->SetVectorClock(clientCaseClock);
             repoBuilder.setInitialRepoCases({ clientUpdate1, clientUpdate2}, myDeviceId);
 
-            pClient->connectWeb(hostUrl, username, password);
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*serverCase1);
             repoBuilder.verifyCaseInRepo(*serverCase2);
         }
 
-        TEST_METHOD(TestSyncClientMoreRecent) {
 
+        TEST_METHOD(TestSyncClientMoreRecent)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
-            auto serverCase1 = makeCase(*case_access, L"guid1", 1, { L"serverdata1" });
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guid1", 1, { "serverdata1" });
             serverCase1->SetVectorClock(serverCaseClock);
-            auto serverCase2 = makeCase(*case_access, L"guid2", 1, { L"serverdata2" });
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guid2", 1, { "serverdata2" });
             serverCase2->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase1);
-            serverCases.push_back(serverCase2);
+            serverCases.emplace_back(serverCase1);
+            serverCases.emplace_back(serverCase2);
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysDo([=](CString h, CString u, CString p) -> ISyncServerConnection* {return new FakeServer(serverCases);});
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysDo([](ISyncServerConnection* pConn)->void {delete pConn;});
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::make_unique<FakeSyncService>(serverCases); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
@@ -189,41 +156,42 @@ namespace SyncUnitTest
             VectorClock clientCaseClock;
             clientCaseClock.increment(serverDeviceId);
             clientCaseClock.increment(myDeviceId);
-            auto clientCase1 = makeCase(*case_access, L"guid1", 1, { L"clientdata1" });
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guid1", 1, { "clientdata1" });
             clientCase1->SetVectorClock(clientCaseClock);
-            auto clientCase2 = makeCase(*case_access, L"guid2", 2, { L"clientdata2" });
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guid2", 2, { "clientdata2" });
             clientCase2->SetVectorClock(clientCaseClock);
             repoBuilder.setInitialRepoCases({ clientCase1, clientCase2 }, myDeviceId);
 
-            pClient->connectWeb(hostUrl, username, password);
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*clientCase1);
             repoBuilder.verifyCaseInRepo(*clientCase2);
         }
 
-        TEST_METHOD(TestSyncConflictClientWins) {
 
+        TEST_METHOD(TestSyncConflictClientWins)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
             serverCaseClock.increment(serverDeviceId);
             serverCaseClock.increment(myDeviceId);
-            auto serverCase1 = makeCase(*case_access, L"guid1", 1, { "serverdata1" });
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guid1", 1, { "serverdata1" });
             serverCase1->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase1);
-            auto serverCase2 = makeCase(*case_access, L"guid2", 2, { "serverdata2" });
+            serverCases.emplace_back(serverCase1);
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guid2", 2, { "serverdata2" });
             serverCase2->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase2);
+            serverCases.emplace_back(serverCase2);
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysDo([=](CString h, CString u, CString p) -> ISyncServerConnection* {return new FakeServer(serverCases);});
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysDo([](ISyncServerConnection* pConn)->void {delete pConn;});
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::make_unique<FakeSyncService>(serverCases); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
@@ -232,926 +200,859 @@ namespace SyncUnitTest
             clientCaseClock.increment(serverDeviceId);
             clientCaseClock.increment(myDeviceId);
             clientCaseClock.increment(myDeviceId);
-            auto clientCase1 = makeCase(*case_access, "guid1", 1, { "clientdata1" });
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guid1", 1, { "clientdata1" });
             clientCase1->SetVectorClock(clientCaseClock);
-            auto clientCase2 = makeCase(*case_access, "guid2", 2, { "clientdata2" });
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guid2", 2, { "clientdata2" });
             clientCase2->SetVectorClock(clientCaseClock);
             std::vector<std::shared_ptr<Case>> clientCases;
-            clientCases.push_back(clientCase1);
-            clientCases.push_back(clientCase2);
+            clientCases.emplace_back(clientCase1);
+            clientCases.emplace_back(clientCase2);
             repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
 
-            pClient->connectWeb(hostUrl, username, password);
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*clientCase1);
             repoBuilder.verifyCaseInRepo(*clientCase2);
         }
 
-        TEST_METHOD(TestSyncOnlyModifiedCases) {
 
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
+        TEST_METHOD(TestSyncOnlyModifiedCases)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
-            FakeServerFactory fakeServerFactory(serverCases);
-
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
-            ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
-
-            VectorClock clientCaseClock;
-            clientCaseClock.increment(myDeviceId);
-            auto clientCase1 = makeCase(*case_access, "guid1", 1, { "clientdata1" });
-            auto clientCase2 = makeCase(*case_access, "guid2", 2, { "clientdata2" });
-            std::vector<std::shared_ptr<Case>> clientCases;
-            clientCases.push_back(clientCase1);
-            clientCases.push_back(clientCase2);
-            repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
-
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &fakeServerFactory));
-
-            // First sync - should send both cases
-            pClient->connectWeb(hostUrl, username, password);
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(2, (int)fakeServerFactory.getServer()->getClientCasesFromLastRequest().size());
-
-            // Sync again - should send nothing since no mods
-            result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(0, (int)fakeServerFactory.getServer()->getClientCasesFromLastRequest().size());
-
-            // Modify a case and sync again - should send only modified case
-            clientCaseClock.increment(myDeviceId);
-            repoBuilder.updateRepoCase(clientCase1->GetUuid(), 1, L"newdata1");
-            result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(1, (int)fakeServerFactory.getServer()->getClientCasesFromLastRequest().size());
-        }
-
-        TEST_METHOD(TestSyncDataDirection) {
-
-            // Make some cases to test with
-            std::vector<std::shared_ptr<Case>> serverCases;
-            VectorClock serverCaseClock;
-            serverCaseClock.increment(serverDeviceId);
-            auto serverCase1 = makeCase(*case_access, "guids1", 1, { "serverdata1" });
-            serverCases.push_back(serverCase1);
-            auto serverCase2 = makeCase(*case_access, "guids2", 2, { "serverdata2" });
-            serverCases.push_back(serverCase2);
-
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
-            FakeServerFactory fakeServerFactory(serverCases);
+            auto fakeSyncServiceFactoryUniquePtr = std::make_unique<FakeSyncServiceFactory>(serverCases);
+            FakeSyncServiceFactory& fakeSyncServiceFactory = *fakeSyncServiceFactoryUniquePtr;
 
             TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
             VectorClock clientCaseClock;
             clientCaseClock.increment(myDeviceId);
-            auto clientCase1 = makeCase(*case_access, "guidc1", 1, { "11clientdata1" });
-            clientCase1->SetVectorClock(clientCaseClock);
-            auto clientCase2 = makeCase(*case_access, "guidc2", 2, { "12clientdata2" });
-            clientCase2->SetVectorClock(clientCaseClock);
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guid1", 1, { "clientdata1" });
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guid2", 2, { "clientdata2" });
             std::vector<std::shared_ptr<Case>> clientCases;
-            clientCases.push_back(clientCase1);
-            clientCases.push_back(clientCase2);
+            clientCases.emplace_back(clientCase1);
+            clientCases.emplace_back(clientCase2);
             repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &fakeServerFactory));
+            SyncClient sync_client(myDeviceId, std::move(fakeSyncServiceFactoryUniquePtr));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
-
-            // Sync with put - should add cases to server but none to client
-            auto result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            // First sync - should send both cases
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(2, (int)fakeServerFactory.getServer()->getClientCasesFromLastRequest().size());
-            Assert::AreEqual(2, (int) pRepo->GetNumberCases());
+            Assert::AreEqual(size_t(2), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
 
-            // Sync with get - should cause no change in server cases (despite new case3 added), add two cases to client
-            repoBuilder.addRepoCase("guidc3", 3, "clientdata3");
-            result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            // Sync again - should send nothing since no mods
+            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(5, (int) pRepo->GetNumberCases());
+            Assert::AreEqual(size_t(0), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
 
-            // Sync with put again - should now send only the modified case
-            result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            // Modify a case and sync again - should send only modified case
+            clientCaseClock.increment(myDeviceId);
+            repoBuilder.updateRepoCase(clientCase1->GetUuid(), 1, "newdata1");
+            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(1, (int)fakeServerFactory.getServer()->getClientCasesFromLastRequest().size());
-            Assert::AreEqual(5, (int) pRepo->GetNumberCases());
-
-            auto disconnectResult = pClient->disconnect();
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
+            Assert::AreEqual(size_t(1), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
         }
 
-        TEST_METHOD(TestSyncDataClientLosesRevisionHistoryOnGet)
-        {
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
 
+        TEST_METHOD(TestSyncDataDirection)
+        {
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
-            auto serverCase1 = makeCase(*case_access, "guids1", 1, { "serverdata1" });
-            serverCase1->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase1);
-            auto serverCase2 = makeCase(*case_access, "guids2", 2, { "serverdata2" });
-            serverCase2->SetVectorClock(serverCaseClock);
-            serverCases.push_back(serverCase2);
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guids1", 1, { "serverdata1" });
+            serverCases.emplace_back(serverCase1);
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guids2", 2, { "serverdata2" });
+            serverCases.emplace_back(serverCase2);
 
-            Mock<ISyncServerConnection> mockServer;
-            DefaultDataChunk dataChunk;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getChunk)).AlwaysReturn(dataChunk);
-            CString serverRev1 = "1";
-            CString serverRev2 = "2";
-            When(Method(mockServer, getData)).
-                Do([&serverCases, serverRev1](const SyncRequest& request) {
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), serverRev1);
-            }).Do([serverRev1](const SyncRequest& request) {
-                Assert::AreEqual(serverRev1, request.getLastServerRevision(), L"Second sync doesn't have revision from first sync");
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::RevisionNotFound);
-            }).Do([&serverCases, serverRev2](const SyncRequest& request) {
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"Sync after revision not found doesn't have empty server revision");
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), serverRev2);
-            });
+            auto fakeSyncServiceFactoryUniquePtr = std::make_unique<FakeSyncServiceFactory>(serverCases);
+            FakeSyncServiceFactory& fakeSyncServiceFactory = *fakeSyncServiceFactoryUniquePtr;
 
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            VectorClock clientCaseClock;
+            clientCaseClock.increment(myDeviceId);
+            std::shared_ptr<Case> clientCase1 = CreateCase(*case_access, "guidc1", 1, { "11clientdata1" });
+            clientCase1->SetVectorClock(clientCaseClock);
+            std::shared_ptr<Case> clientCase2 = CreateCase(*case_access, "guidc2", 2, { "12clientdata2" });
+            clientCase2->SetVectorClock(clientCaseClock);
+            std::vector<std::shared_ptr<Case>> clientCases;
+            clientCases.emplace_back(clientCase1);
+            clientCases.emplace_back(clientCase2);
+            repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::move(fakeSyncServiceFactoryUniquePtr));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
+
+            // Sync with put - should add cases to server but none to client
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
+            Assert::AreEqual(size_t(2), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
+            Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
+
+            // Sync with get - should cause no change in server cases (despite new case3 added), add two cases to client
+            repoBuilder.addRepoCase("guidc3", 3, "clientdata3");
+            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
+            Assert::AreEqual(5, (int) pRepo->GetNumberCases());
+
+            // Sync with put again - should now send only the modified case
+            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
+            Assert::AreEqual(size_t(1), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
+            Assert::AreEqual(size_t(5), pRepo->GetNumberCases());
+
+            auto disconnectResult = sync_client.Disconnect();
+            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
+        }
+
+
+        TEST_METHOD(TestSyncDataClientLosesRevisionHistoryOnGet)
+        {
+            // Make some cases to test with
+            std::vector<std::shared_ptr<Case>> serverCases;
+            VectorClock serverCaseClock;
+            serverCaseClock.increment(serverDeviceId);
+            std::shared_ptr<Case> serverCase1 = CreateCase(*case_access, "guids1", 1, { "serverdata1" });
+            serverCase1->SetVectorClock(serverCaseClock);
+            serverCases.emplace_back(serverCase1);
+            std::shared_ptr<Case> serverCase2 = CreateCase(*case_access, "guids2", 2, { "serverdata2" });
+            serverCase2->SetVectorClock(serverCaseClock);
+            serverCases.emplace_back(serverCase2);
+
+            Mock<ISyncService> mockServer;
+            NetworkDataChunk dataChunk;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetChunk)).AlwaysReturn(dataChunk);
+            const std::string serverRev1 = "1";
+            const std::string serverRev2 = "2";
+            When(Method(mockServer, GetCases)).
+                Do([&serverCases, serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                              const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                              const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), serverRev1);
+            }).Do([serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                               const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                Assert::AreEqual(serverRev1, last_server_revision, L"Second sync doesn't have revision from first sync");
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::RevisionNotFound);
+            }).Do([&serverCases, serverRev2](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                            const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                            const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                Assert::IsTrue(last_server_revision.empty(), L"Sync after revision not found doesn't have empty server revision");
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), serverRev2);
+            });
+
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
+            ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
+
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
+
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
+
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync, should get two cases back from server
-            auto result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
 
-            Verify(Method(mockServer, getData)).Exactly(3);
+            Verify(Method(mockServer, GetCases)).Exactly(3);
         }
+
 
         TEST_METHOD(TestSyncDataClientLosesRevisionHistoryOnPut)
         {
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
-            Mock<ISyncServerConnection> mockServer;
-            DefaultDataChunk dataChunk;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getChunk)).AlwaysReturn(dataChunk);
-            CString serverRev1 = "1";
-            CString serverRev2 = "2";
-            When(Method(mockServer, putData)).
-                Do([serverRev1](const SyncRequest& request) {
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
+            Mock<ISyncService> mockServer;
+            NetworkDataChunk dataChunk;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetChunk)).AlwaysReturn(dataChunk);
+            const std::string serverRev1 = "1";
+            const std::string serverRev2 = "2";
+            When(Method(mockServer, PutCases)).
+                Do([serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
+                Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev1);
-            }).Do([serverRev1](const SyncRequest& request) {
-                Assert::AreEqual(serverRev1, request.getLastServerRevision(), L"Second sync doesn't have revision from first sync");
+            }).Do([serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
+                Assert::AreEqual(serverRev1, last_server_revision, L"Second sync doesn't have revision from first sync");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::RevisionNotFound);
-            }).Do([serverRev2](const SyncRequest& request) {
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"Sync after revision not found doesn't have empty server revision");
+            }).Do([serverRev2](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
+                Assert::IsTrue(last_server_revision.empty(), L"Sync after revision not found doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev2);
             });
 
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync, should get two cases back from server
-            auto result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
 
-            Verify(Method(mockServer, putData)).Exactly(3);
+            Verify(Method(mockServer, PutCases)).Exactly(3);
         }
+
 
         TEST_METHOD(TestSyncDataChunkedGet)
         {
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
             for (int i = 0; i < 30; ++i) {
-                CString id;
-                id.Format(_T("guid%02d"), i);
-                auto serverCase = makeCase(*case_access, id, 1, { "data" });
+                std::shared_ptr<Case> serverCase = CreateCase(*case_access, FormatText("guid%02d", i), 1, { "data" });
                 serverCase->SetVectorClock(serverCaseClock);
-                serverCases.push_back(serverCase);
+                serverCases.emplace_back(serverCase);
             }
 
-            Mock<ISyncServerConnection> mockServer;
-            DefaultDataChunk dataChunk;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getChunk)).AlwaysReturn(dataChunk);
-            CString serverRev1 = "1";
-            CString serverRev2 = "2";
-            CString serverRev3 = "3";
-            When(Method(mockServer, getData)).
-                Do([&serverCases, serverRev1](const SyncRequest& request) -> SyncGetResponse {
+            Mock<ISyncService> mockServer;
+            NetworkDataChunk dataChunk;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetChunk)).AlwaysReturn(dataChunk);
+            const std::string serverRev1 = "1";
+            const std::string serverRev2 = "2";
+            const std::string serverRev3 = "3";
+            When(Method(mockServer, GetCases)).
+                Do([&serverCases, serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                              const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                              const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) -> SyncGetResponse {
                     // First sync, first chunk fails
-                    Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
-                    Assert::IsTrue(request.getLastCaseUuid().IsEmpty(), L"First sync doesn't have empty last uuid");
+                    Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
+                    Assert::IsTrue(last_case_uuid.empty(), L"First sync doesn't have empty last uuid");
                     throw SyncError(100111, "some network error");
-                }).Do([&serverCases, serverRev1](const SyncRequest& request) -> SyncGetResponse {
+                }).Do([&serverCases, serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                 const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                                 const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) {
                     // Second sync, first chunk
                     std::vector<std::shared_ptr<Case>> first10;
                     std::copy(serverCases.begin(), serverCases.begin() + 10, std::back_inserter(first10));
-                    Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
-                    Assert::IsTrue(request.getLastCaseUuid().IsEmpty(), L"First sync doesn't have empty last uuid");
-                    return SyncGetResponse(SyncGetResponse::SyncGetResult::MoreData, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(first10)), serverRev1);
-                }).Do([&serverCases, serverRev1](const SyncRequest& request) -> SyncGetResponse {
+                    Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
+                    Assert::IsTrue(last_case_uuid.empty(), L"First sync doesn't have empty last uuid");
+                    return SyncGetResponse(SyncGetResponse::SyncGetResult::MoreData, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(first10)), serverRev1);
+                }).Do([&serverCases, serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                 const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                                 const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) -> SyncGetResponse {
                     // Second sync, second chunk
-                    Assert::AreEqual(serverRev1, request.getLastServerRevision());
-                    Assert::AreEqual(serverCases[9]->GetUuid(), request.getLastCaseUuid());
+                    Assert::AreEqual(serverRev1, last_server_revision);
+                    Assert::AreEqual(serverCases[9]->GetUuid(), last_case_uuid);
                     throw SyncError(100111, "some network error");
-                }).Do([&serverCases, serverRev1, serverRev2](const SyncRequest& request) -> SyncGetResponse {
+                }).Do([&serverCases, serverRev1, serverRev2](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                             const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                                             const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) {
                     // Third sync, second chunk
-                    Assert::AreEqual(serverRev1, request.getLastServerRevision());
-                    Assert::AreEqual(serverCases[9]->GetUuid(), request.getLastCaseUuid());
+                    Assert::AreEqual(serverRev1, last_server_revision);
+                    Assert::AreEqual(serverCases[9]->GetUuid(), last_case_uuid);
                     std::vector<std::shared_ptr<Case>> second10;
                     std::copy(serverCases.begin() + 10, serverCases.begin() + 20, std::back_inserter(second10));
-                    return SyncGetResponse(SyncGetResponse::SyncGetResult::MoreData, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(second10)), serverRev2);
-                }).Do([&serverCases, serverRev2, serverRev3](const SyncRequest& request) -> SyncGetResponse {
+                    return SyncGetResponse(SyncGetResponse::SyncGetResult::MoreData, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(second10)), serverRev2);
+                }).Do([&serverCases, serverRev2, serverRev3](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                             const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                                             const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) -> SyncGetResponse {
                     // Third sync, third chunk
-                    Assert::AreEqual(serverRev2, request.getLastServerRevision());
-                    Assert::AreEqual(serverCases[19]->GetUuid(), request.getLastCaseUuid());
+                    Assert::AreEqual(serverRev2, last_server_revision);
+                    Assert::AreEqual(serverCases[19]->GetUuid(), last_case_uuid);
                     throw SyncError(100111, "some network error");
-                }).Do([&serverCases, serverRev2, serverRev3](const SyncRequest& request) -> SyncGetResponse {
+                }).Do([&serverCases, serverRev2, serverRev3](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                             const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision,
+                                                             const std::string& last_case_uuid, const std::vector<std::string>& /*excluded_revisions*/) {
                     // Fourth sync, third chunk
-                    Assert::AreEqual(serverRev2, request.getLastServerRevision());
-                    Assert::AreEqual(serverCases[19]->GetUuid(), request.getLastCaseUuid());
+                    Assert::AreEqual(serverRev2, last_server_revision);
+                    Assert::AreEqual(serverCases[19]->GetUuid(), last_case_uuid);
                     std::vector<std::shared_ptr<Case>> last10;
                     std::copy(serverCases.begin() + 20, serverCases.end(), std::back_inserter(last10));
-                    return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(last10)), serverRev3);
+                    return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(last10)), serverRev3);
                 });
 
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync gets nothing
-            auto result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(0, (int) pRepo->GetNumberCases());
 
             // Second sync should get 10 cases back from server with error
-            result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(10, (int) pRepo->GetNumberCases());
             for (int i = 0; i < 10; ++i)
                 repoBuilder.verifyCaseInRepo(*serverCases[i]);
 
             // Third should get 10 more cases back from server with error
-            result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(20, (int) pRepo->GetNumberCases());
             for (int i = 0; i < 20; ++i)
                 repoBuilder.verifyCaseInRepo(*serverCases[i]);
 
             // Fourth sync should get 10 more cases back from server with no error
-            result = pClient->syncData(SyncDirection::Get, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(30, (int) pRepo->GetNumberCases());
             for (size_t i = 0; i < serverCases.size(); ++i)
                 repoBuilder.verifyCaseInRepo(*serverCases[i]);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
 
-            Verify(Method(mockServer, getData)).Exactly(6);
+            Verify(Method(mockServer, GetCases)).Exactly(6);
         }
+
 
         TEST_METHOD(TestSyncDataChunkedPut)
         {
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
             const int numCases = 25;
-            const int lastChunkSize = 5;
+            const size_t lastChunkSize = 5;
 
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> clientCases;
             VectorClock clock;
             clock.increment(myDeviceId);
             for (int i = 0; i < numCases; ++i) {
-                CString id;
-                id.Format(_T("guid%02d"), i);
-                auto clientCase = makeCase(*case_access, id, i, { "data" });
+                std::shared_ptr<Case> clientCase = CreateCase(*case_access, FormatText("guid%02d", i), i, { "data" });
                 clientCase->SetVectorClock(clock);
-                clientCases.push_back(clientCase);
+                clientCases.emplace_back(clientCase);
             }
 
-            Mock<ISyncServerConnection> mockServer;
-            DefaultDataChunk dataChunk;
-            dataChunk.setSize(10);
-            const int chunkSize = dataChunk.getSize();
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getChunk)).AlwaysReturn(dataChunk);
-            CString serverRev1 = "1";
-            CString serverRev2 = "2";
-            CString serverRev3 = "3";
-            When(Method(mockServer, putData)).
-                Do([&clientCases, chunkSize, this](const SyncRequest& request) -> SyncPutResponse {
+            Mock<ISyncService> mockServer;
+            NetworkDataChunk dataChunk(10);
+            const size_t chunkSize = dataChunk.GetCaseSize();
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetChunk)).AlwaysReturn(dataChunk);
+            const std::string serverRev1 = "1";
+            const std::string serverRev2 = "2";
+            const std::string serverRev3 = "3";
+            When(Method(mockServer, PutCases)).
+                Do([&clientCases, chunkSize, this](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                   const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                   const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) -> SyncPutResponse {
                 // First sync first chunk
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
-                Assert::AreEqual(chunkSize, (int)request.getClientCases().size());
-                Assert::AreEqual(clientCases[0]->GetUuid(), request.getClientCases().front()->GetUuid());
+                Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
+                Assert::AreEqual(chunkSize, cases.size());
+                Assert::AreEqual(clientCases[0]->GetUuid(), cases.front()->GetUuid());
                 throw SyncError(100111, "some network error");
-            }).Do([&clientCases, this, serverRev1, chunkSize](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&clientCases, this, serverRev1, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                              const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                              const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Second sync first chunk retry
-                Assert::AreEqual(chunkSize, (int)request.getClientCases().size());
-                Assert::AreEqual(clientCases[0]->GetUuid(), request.getClientCases().front()->GetUuid());
-                Assert::IsTrue(request.getLastServerRevision().IsEmpty(), L"First sync doesn't have empty server revision");
+                Assert::AreEqual(chunkSize, cases.size());
+                Assert::AreEqual(clientCases[0]->GetUuid(), cases.front()->GetUuid());
+                Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev1);
-            }).Do([&clientCases, this, serverRev1, chunkSize](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&clientCases, this, serverRev1, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                              const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                              const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) -> SyncPutResponse {
                 // Second sync second chunk
-                Assert::AreEqual(serverRev1, request.getLastServerRevision());
-                Assert::AreEqual(chunkSize, (int)request.getClientCases().size());
-                Assert::AreEqual(clientCases[chunkSize]->GetUuid(), request.getClientCases().front()->GetUuid());
+                Assert::AreEqual(serverRev1, last_server_revision);
+                Assert::AreEqual(chunkSize, cases.size());
+                Assert::AreEqual(clientCases[chunkSize]->GetUuid(), cases.front()->GetUuid());
                 throw SyncError(100111, "some network error");
-            }).Do([&clientCases, this, serverRev1, serverRev2, chunkSize](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&clientCases, this, serverRev1, serverRev2, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                                          const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                                          const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Third sync second chunk retry
-                Assert::AreEqual(serverRev1, request.getLastServerRevision());
-                Assert::AreEqual(chunkSize, (int)request.getClientCases().size());
-                Assert::AreEqual(clientCases[chunkSize]->GetUuid(), request.getClientCases().front()->GetUuid());
+                Assert::AreEqual(serverRev1, last_server_revision);
+                Assert::AreEqual(chunkSize, cases.size());
+                Assert::AreEqual(clientCases[chunkSize]->GetUuid(), cases.front()->GetUuid());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev2);
-            }).Do([&clientCases, this, serverRev2, serverRev3, chunkSize, lastChunkSize](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&clientCases, this, serverRev2, serverRev3, chunkSize, lastChunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                                                         const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                                                         const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Third sync third chunk
-                Assert::AreEqual(serverRev2, request.getLastServerRevision());
-                Assert::AreEqual(lastChunkSize, (int)request.getClientCases().size());
-                Assert::AreEqual(clientCases[2 * chunkSize]->GetUuid(), request.getClientCases().front()->GetUuid());
+                Assert::AreEqual(serverRev2, last_server_revision);
+                Assert::AreEqual(lastChunkSize, cases.size());
+                Assert::AreEqual(clientCases[2 * chunkSize]->GetUuid(), cases.front()->GetUuid());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev3);
-            }).Do([&clientCases, this, serverRev3](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&clientCases, this, serverRev3](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                   const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                   const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Fourth sync
-                Assert::AreEqual(serverRev3, request.getLastServerRevision());
-                Assert::AreEqual(0, (int) request.getClientCases().size());
+                Assert::AreEqual(serverRev3, last_server_revision);
+                Assert::AreEqual(size_t(0), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev3);
             });
 
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
             repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync uploads nothing - gets error
-            auto result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Second sync should put 10 cases with error
-            result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Third sync should put the remaining 15 cases
-            result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Fourth sync should upload nothing since everything was already uploaded
-            result = pClient->syncData(SyncDirection::Put, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
 
-            Verify(Method(mockServer, putData)).Exactly(6);
+            Verify(Method(mockServer, PutCases)).Exactly(6);
         }
+
 
         TEST_METHOD(TestSyncDataDontUploadDownloadedCases)
         {
-            std::unique_ptr<const CDataDict> pDict = createTestDict();
-
             // Make some cases to test with
             std::vector<std::shared_ptr<Case>> serverCases;
             VectorClock serverCaseClock;
             serverCaseClock.increment(serverDeviceId);
             for (int i = 0; i < 10; ++i) {
-                auto serverCase = makeCase(*case_access, makeUuid(), 1, { "data" });
+                std::shared_ptr<Case> serverCase = CreateCase(*case_access, CreateUuid(), 1, { "data" });
                 serverCase->SetVectorClock(serverCaseClock);
-                serverCases.push_back(serverCase);
+                serverCases.emplace_back(serverCase);
             }
 
             std::vector<std::shared_ptr<Case>> updatedServerCases;
 
-            Mock<ISyncServerConnection> mockServer;
-            DefaultDataChunk dataChunk;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getChunk)).AlwaysReturn(dataChunk);
+            Mock<ISyncService> mockServer;
+            NetworkDataChunk dataChunk;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetChunk)).AlwaysReturn(dataChunk);
             int serverRev = 1;
-            When(Method(mockServer, getData)).
-            Do([&serverCases, &serverRev](const SyncRequest& ) -> SyncGetResponse {
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), IntToString(serverRev));
-            }).Do([&updatedServerCases, &serverRev](const SyncRequest&) -> SyncGetResponse {
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(updatedServerCases)), IntToString(serverRev));
-            }).Do([&serverRev](const SyncRequest&) -> SyncGetResponse {
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(std::vector<std::shared_ptr<Case>>())), IntToString(serverRev));
-            }).Do([](const SyncRequest& ) -> SyncGetResponse {
+            When(Method(mockServer, GetCases)).
+            Do([&serverCases, &serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                          const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/,
+                                          const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(serverCases)), IntToString(serverRev));
+            }).Do([&updatedServerCases, &serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                                    const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/,
+                                                    const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(updatedServerCases)), IntToString(serverRev));
+            }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/,
+                               const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(std::vector<std::shared_ptr<Case>>())), IntToString(serverRev));
+            }).Do([](std::shared_ptr<const CaseAccess> /*case_access*/,
+                     const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/,
+                     const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
                 return SyncGetResponse(SyncGetResponse::SyncGetResult::RevisionNotFound);
-            }).Do([&serverRev](const SyncRequest&) -> SyncGetResponse {
-                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_shared<CaseObservable>(rxcpp::observable<>::iterate(std::vector<std::shared_ptr<Case>>())), IntToString(serverRev));
+            }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/,
+                               const std::string& /*last_case_uuid*/, const std::vector<std::string>& /*excluded_revisions*/) {
+                return SyncGetResponse(SyncGetResponse::SyncGetResult::Complete, std::make_unique<CaseObservable>(rxcpp::observable<>::iterate(std::vector<std::shared_ptr<Case>>())), IntToString(serverRev));
             });
 
-            When(Method(mockServer, putData)).
-                Do([&serverRev, &pDict](const SyncRequest& request) -> SyncPutResponse {
+            When(Method(mockServer, PutCases)).
+                Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                                const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // First sync should put no cases
-                Assert::AreEqual(0, (int) request.getClientCases().size());
+                Assert::AreEqual(size_t(0), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
-            }).Do([&serverRev, &pDict](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Second sync should put 2 cases that were added/modified on client
-                Assert::AreEqual(2, (int)request.getClientCases().size());
+                Assert::AreEqual(size_t(2), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
-            }).Do([&serverRev, &pDict](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Third sync should put nothing
-                Assert::AreEqual(0, (int)request.getClientCases().size());
+                Assert::AreEqual(size_t(0), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
-            }).Do([](const SyncRequest& ) -> SyncPutResponse {
+            }).Do([](std::shared_ptr<const CaseAccess> /*case_access*/,
+                     const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                     const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::RevisionNotFound);
-            }).Do([&serverRev, &pDict](const SyncRequest& request) -> SyncPutResponse {
+            }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
+                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Third sync should upload everything
-                Assert::AreEqual(12, (int)request.getClientCases().size());
+                Assert::AreEqual(size_t(12), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
             });
 
-            TestRepoBuilder repoBuilder(myDeviceId, pDict.get());
+            TestRepoBuilder repoBuilder(myDeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId, &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            pClient->connectWeb(hostUrl, username, password);
+            sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync gets initial server cases, sends nothing to server
-            auto result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(10, (int) pRepo->GetNumberCases());
 
             // Modify/add case on server
-            auto updatedServerCase1 = makeCase(*case_access, makeUuid(), 1, { "servernew" });
+            std::shared_ptr<Case> updatedServerCase1 = CreateCase(*case_access, CreateUuid(), 1, { "servernew" });
             updatedServerCase1->SetVectorClock(serverCaseClock);
-            updatedServerCases.push_back(updatedServerCase1);
+            updatedServerCases.emplace_back(updatedServerCase1);
             serverCaseClock.increment(serverDeviceId);
-            auto updatedServerCase2 = makeCase(*case_access, serverCases[1]->GetUuid(), 1, { "servermod" });
+            std::shared_ptr<Case> updatedServerCase2 = CreateCase(*case_access, serverCases[1]->GetUuid(), 1, { "servermod" });
             updatedServerCase2->SetVectorClock(serverCaseClock);
-            updatedServerCases.push_back(updatedServerCase2);
+            updatedServerCases.emplace_back(updatedServerCase2);
 
             // Modify/add case on client
-            repoBuilder.addRepoCase(makeUuid(), 1, { "addedclient" });
+            repoBuilder.addRepoCase(CreateUuid(), 1, { "addedclient" });
             repoBuilder.updateRepoCase(serverCases[0]->GetUuid(), 1, { "data" });
 
             // Sync again, only 2 changed cases on server downloaded, only 2 changed on client uploaded
-            result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 
             // Next sync should put/get nothing
-            result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 
             // Simulate a server reset and make sure that all cases are uploaded on next sync
             serverRev = 1;
-            result = pClient->syncData(SyncDirection::Both, *pRepo, L"");
+            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
         }
 
-        TEST_METHOD(TestSyncGetFile) {
 
+        TEST_METHOD(TestSyncGetFile)
+        {
             const std::string fileContents("SOME DATA");
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getFile)).AlwaysDo([fileContents](CString rp, CString lp, CString, CString etag = CString()) -> bool {std::ofstream os(UTF8Convert::WideToUTF8(lp), std::ios::binary);os.write(fileContents.c_str(), fileContents.size()); return true;});
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetFile)).AlwaysDo([&fileContents](const std::string&, const std::string& local_file_path, const std::string&) -> bool {
+                FileIO::WriteText(local_file_path, fileContents, false);
+                return true;
+            });
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
-
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
 
             // Test absolute path with filename
-            CString destFilePath;
-            destFilePath.Format(L"%szsynco-get-file-test.txt", pszTempPath);
-            DeleteFile(destFilePath);
-            auto syncResult = pClient->syncFile(SyncDirection::Get, L"/some/file/on/server", destFilePath, pszTempPath);
+            const std::string destFilePath = Path::Combine(GetTempDirectory(), "zsynco-get-file-test.txt");
+            PortableFunctions::FileDelete(destFilePath);
+            SyncClient::SyncResult syncResult = sync_client.SyncFile(SyncDirection::Get, "/some/file/on/server", destFilePath);
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Assert::IsTrue(GetFileAttributes(destFilePath) != -1);
-            std::wifstream destFile(destFilePath);
-            std::string actualFileContents(std::istreambuf_iterator<wchar_t>(destFile), {});
-            destFile.close();
-            Assert::AreEqual(fileContents, actualFileContents);
-            DeleteFile(destFilePath);
+            Assert::IsTrue(PortableFunctions::FileIsRegular(destFilePath));
+            Assert::AreEqual(fileContents, FileIO::ReadText(destFilePath));
+            PortableFunctions::FileDeleteWithExceptions(destFilePath);
 
             // Absolute path with no filename - should use filename from source
-            destFilePath = pszTempPath;
-            CString expectedDestFilePath;
-            expectedDestFilePath.Format(L"%szsynco-get-file-test.txt", pszTempPath);
-            DeleteFile(expectedDestFilePath);
-            syncResult = pClient->syncFile(SyncDirection::Get,
-                L"/some/file/on/server/zsynco-get-file-test.txt",
-                destFilePath, pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Get, "/some/file/on/server/zsynco-get-file-test.txt", GetTempDirectory());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Assert::IsTrue(GetFileAttributes(expectedDestFilePath) != -1);
-            DeleteFile(expectedDestFilePath);
-
-            // Empty to path - should put file in file root with source name
-            expectedDestFilePath.Format(L"%szsynco-get-file-test.txt", pszTempPath);
-            DeleteFile(expectedDestFilePath);
-            syncResult = pClient->syncFile(SyncDirection::Get,
-                L"/some/path/zsynco-get-file-test.txt", CString(), pszTempPath);
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Assert::IsTrue(GetFileAttributes(expectedDestFilePath) != -1);
-            DeleteFile(expectedDestFilePath);
-
-            // To path is relative - should put file relative file root
-            destFilePath = "zsynco-get-file-test.txt";
-            expectedDestFilePath.Format(L"%szsynco-get-file-test.txt", pszTempPath);
-            DeleteFile(expectedDestFilePath);
-            syncResult = pClient->syncFile(SyncDirection::Get,
-                L"/some/path/somefile", destFilePath, pszTempPath);
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Assert::IsTrue(GetFileAttributes(expectedDestFilePath) != -1);
-            DeleteFile(expectedDestFilePath);
+            Assert::IsTrue(PortableFunctions::FileIsRegular(destFilePath));
+            PortableFunctions::FileDeleteWithExceptions(destFilePath);
 
             // To path has parent directories that don't exist - should create them
-            destFilePath = L"zsynco-get-file-test/directory/that/does/not/exist/zsynco-get-file-test.txt";
-            expectedDestFilePath.Format(L"%s%s", pszTempPath, (LPCTSTR)destFilePath);
-            deleteDirectoryAndContents(CString(pszTempPath) + L"zsynco-get-file-test");
-            syncResult = pClient->syncFile(SyncDirection::Get,
-                L"/some/path/somefile", destFilePath, pszTempPath);
+            const std::string subdirRoot = Path::Combine(GetTempDirectory(), "zsynco-get-file-test");
+            const std::string destFilePathWithSubdirs = Path::Combine(subdirRoot, "directory\\that\\does\\not\\exist\\zsynco-get-file-test.txt");
+            PortableFunctions::DirectoryDelete(subdirRoot, true);
+            syncResult = sync_client.SyncFile(SyncDirection::Get, "/some/path/somefile", destFilePathWithSubdirs);
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Assert::IsTrue(GetFileAttributes(expectedDestFilePath) != -1);
-            deleteDirectoryAndContents(CString(pszTempPath) + L"zsynco-get-file-test");
+            Assert::IsTrue(PortableFunctions::FileIsRegular(destFilePathWithSubdirs));
+            PortableFunctions::DirectoryDelete(subdirRoot, true);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
         }
 
-        TEST_METHOD(TestSyncGetFileError) {
 
+        TEST_METHOD(TestSyncGetFileError)
+        {
             const std::string fileContents("SOME DATA");
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getFile)).AlwaysThrow(SyncError(100110, "filename"));
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            When(Method(mockServer, GetFile)).AlwaysThrow(SyncError(100110, "filename"));
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            TemporaryFile temporary_file;
+            PortableFunctions::FileDeleteWithExceptions(temporary_file.GetPath());
 
-            CString destFilePath;
-            destFilePath.Format(L"%szsynco-get-file-test.txt", pszTempPath);
-            DeleteFile(destFilePath);
-
-            auto syncResult = pClient->syncFile(SyncDirection::Get,
-                L"/some/file/on/server", destFilePath, pszTempPath);
+            SyncClient::SyncResult syncResult = sync_client.SyncFile(SyncDirection::Get, "/some/file/on/server", temporary_file.GetPath());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, syncResult);
 
             // File does not exist
-            Assert::IsTrue(GetFileAttributes(destFilePath) == -1);
+            Assert::IsFalse(PortableFunctions::FileExists(temporary_file.GetPath()));
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
         }
 
-        TEST_METHOD(TestSyncGetFileWildcard) {
 
+        TEST_METHOD(TestSyncGetFileWildcard)
+        {
             const std::string fileContents("SOME DATA");
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, getFile)).AlwaysDo([fileContents](CString rp, CString lp, CString, CString etag = CString()) -> bool {std::ofstream os(UTF8Convert::WideToUTF8(lp), std::ios::binary);os.write(fileContents.c_str(), fileContents.size()); return true;});
-            std::vector<FileInfo> files;
-            files.push_back(FileInfo(FileInfo::FileType::File, L"foo1", L"/", 10, 0, L"123124124"));
-            files.push_back(FileInfo(FileInfo::FileType::File, L"foo2", L"/", 10, 0, L"123124124"));
-            files.push_back(FileInfo(FileInfo::FileType::File, L"fooa", L"/", 10, 0, L"123124124"));
-            files.push_back(FileInfo(FileInfo::FileType::File, L"bar", L"/", 10, 0, L"123124124"));
-            files.push_back(FileInfo(FileInfo::FileType::Directory, L"foodir", L"/"));
-            files.push_back(FileInfo(FileInfo::FileType::File, L"foothree", L"/", 10, 0, L"123124124"));
-            When(Method(mockServer, getDirectoryListing)).AlwaysDo([files](CString dir) -> std::vector<FileInfo>* {
-                return new std::vector<FileInfo>(files);
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            std::map<std::string, int> getFileCounts;
+            When(Method(mockServer, GetFile)).AlwaysDo([&](const std::string& rp, const std::string& lp, const std::string&) -> bool {
+                getFileCounts[rp] = getFileCounts[rp] + 1;
+                std::ofstream os(lp, std::ios::binary);
+                os.write(fileContents.c_str(), fileContents.size());
+                return true;
+            });
+            std::vector<FileInfo> directory_listing;
+            directory_listing.emplace_back(FileInfo::FileType::File, "foo1", "/", 10, 0, "123124124");
+            directory_listing.emplace_back(FileInfo::FileType::File, "foo2", "/", 10, 0, "123124124");
+            directory_listing.emplace_back(FileInfo::FileType::File, "fooa", "/", 10, 0, "123124124");
+            directory_listing.emplace_back(FileInfo::FileType::File, "bar", "/", 10, 0, "123124124");
+            directory_listing.emplace_back(FileInfo::FileType::Directory, "foodir", "/");
+            directory_listing.emplace_back(FileInfo::FileType::File, "foothree", "/", 10, 0, "123124124");
+            When(Method(mockServer, GetDirectoryListing)).AlwaysDo([directory_listing](const std::string&, bool) -> std::vector<FileInfo> {
+                return directory_listing;
             });
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
-
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
 
-            auto syncResult = pClient->syncFile(SyncDirection::Get, L"/*", CString(), pszTempPath);
+            SyncClient::SyncResult syncResult = sync_client.SyncFile(SyncDirection::Get, "/*", GetTempDirectory());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            syncResult = pClient->syncFile(SyncDirection::Get, L"/foo*", CString(), pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Get, "/foo*", GetTempDirectory());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            syncResult = pClient->syncFile(SyncDirection::Get, L"/foo?", CString(), pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Get, "/foo?", GetTempDirectory());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
             //# is not recognized as the wild card in the current implementation of regex. so foo1, foo2 will not be matched
-            syncResult = pClient->syncFile(SyncDirection::Get, L"/foo#", CString(), pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Get, "/foo#", GetTempDirectory());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            Verify(Method(mockServer, getFile).Using(files[0].getDirectory() + files[0].getName(), _, _, _)).Exactly(3);
-            Verify(Method(mockServer, getFile).Using(files[1].getDirectory() + files[1].getName(), _, _, _)).Exactly(3);
-            Verify(Method(mockServer, getFile).Using(files[2].getDirectory() + files[2].getName(), _, _, _)).Exactly(3);
-            Verify(Method(mockServer, getFile).Using(files[3].getDirectory() + files[3].getName(), _, _, _)).Once();
-            Verify(Method(mockServer, getFile).Using(files[4].getDirectory() + files[4].getName(), _, _, _)).Never();
-            Verify(Method(mockServer, getFile).Using(files[5].getDirectory() + files[5].getName(), _, _, _)).Twice();
+            Assert::AreEqual(getFileCounts[directory_listing[0].GetDirectory() + directory_listing[0].GetName()], 3);
+            Assert::AreEqual(getFileCounts[directory_listing[1].GetDirectory() + directory_listing[1].GetName()], 3);
+            Assert::AreEqual(getFileCounts[directory_listing[2].GetDirectory() + directory_listing[2].GetName()], 3);
+            Assert::AreEqual(getFileCounts[directory_listing[3].GetDirectory() + directory_listing[3].GetName()], 1);
+            Assert::AreEqual(getFileCounts[directory_listing[4].GetDirectory() + directory_listing[4].GetName()], 0);
+            Assert::AreEqual(getFileCounts[directory_listing[5].GetDirectory() + directory_listing[5].GetName()], 2);
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
         }
 
-        TEST_METHOD(TestSyncPutFile) {
 
+        TEST_METHOD(TestSyncPutFile)
+        {
             const std::string fileContents("SOME DATA");
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, putFile)).AlwaysDo([fileContents](CString l, CString r) ->
-                void {
-                std::string localPathUtf8 = UTF8Convert::WideToUTF8(l);
-                std::ifstream uploadStream(localPathUtf8.c_str(), std::ios::binary);
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            std::map<std::string, int> putFileCounts;
+            When(Method(mockServer, PutFile)).AlwaysDo([&](const std::string& local_file_path, const std::string& remote_path) -> void {
+                putFileCounts[remote_path] = putFileCounts[remote_path] + 1;
+                std::ifstream uploadStream(local_file_path.c_str(), std::ios::binary);
                 std::string s(std::istreambuf_iterator<char>(uploadStream), {});
                 Assert::AreEqual(fileContents, s);
             });
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            const std::string srcFileAbsPath = Path::Combine(GetTempDirectory(), "zsynco-put-file-test.txt");
+            FileIO::WriteText(srcFileAbsPath, fileContents, false);
 
-            CString srcFilename = L"zsynco-put-file-test.txt";
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            CString srcFileAbsPath;
-            srcFileAbsPath.Format(L"%s%s", pszTempPath, (LPCTSTR)srcFilename);
-            createTestFile(srcFileAbsPath, fileContents.c_str());
-
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
-
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
 
             // Test absolute dest path with filename
-            CString destFilePath = "/some/folder/";
-            CString fullDestFilePath = destFilePath + L"fileonserver.txt";
-            auto syncResult = pClient->syncFile(SyncDirection::Put, srcFileAbsPath, fullDestFilePath, pszTempPath);
+            const std::string destFilePath = "/some/folder";
+            std::string fullDestFilePath = PortableFunctions::PathAppendForwardSlashToPath(destFilePath, "fileonserver.txt");
+            SyncClient::SyncResult syncResult = sync_client.SyncFile(SyncDirection::Put, srcFileAbsPath, fullDestFilePath);
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Verify(Method(mockServer, putFile).Using(_, fullDestFilePath)).Once();
+            Assert::AreEqual(putFileCounts[fullDestFilePath], 1);
 
             // Absolute dest path with no filename - should use filename from source
-            fullDestFilePath = destFilePath + srcFilename;
-            syncResult = pClient->syncFile(SyncDirection::Put, srcFileAbsPath, destFilePath, pszTempPath);
+            fullDestFilePath = PortableFunctions::PathAppendForwardSlashToPath(destFilePath, PortableFunctions::PathGetFilename(srcFileAbsPath));
+            syncResult = sync_client.SyncFile(SyncDirection::Put, srcFileAbsPath, PortableFunctions::PathGetDirectory(fullDestFilePath));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Verify(Method(mockServer, putFile).Using(_, fullDestFilePath)).Once();
+            Assert::AreEqual(putFileCounts[fullDestFilePath], 1);
 
             // Empty to path - should put file in file root with source name
-            fullDestFilePath = _T("/") + srcFilename;
-            syncResult = pClient->syncFile(SyncDirection::Put, srcFileAbsPath, CString(), pszTempPath);
+            fullDestFilePath = PortableFunctions::PathAppendForwardSlashToPath("/", PortableFunctions::PathGetFilename(srcFileAbsPath));
+            syncResult = sync_client.SyncFile(SyncDirection::Put, srcFileAbsPath, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Verify(Method(mockServer, putFile).Using(_, fullDestFilePath)).Once();
+            Assert::AreEqual(putFileCounts[fullDestFilePath], 1);
 
-            // From path is relative - should find src file relative file root
-            CString srcFileRelativePath = srcFilename;
-            syncResult = pClient->syncFile(SyncDirection::Put, srcFileRelativePath, CString(), pszTempPath);
-            Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
-            Verify(Method(mockServer, putFile).Using(_, fullDestFilePath)).Twice();
-
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
         }
 
-        TEST_METHOD(TestSyncPutFileWildcard) {
 
+        TEST_METHOD(TestSyncPutFileWildcard)
+        {
             const std::string fileContents("SOME DATA");
-            Mock<ISyncServerConnection> mockServer;
-            When(Method(mockServer, connect)).Return(new ConnectResponse(serverDeviceId));
-            When(Method(mockServer, disconnect)).AlwaysReturn();
-            When(Method(mockServer, setListener)).AlwaysReturn();
-            When(Method(mockServer, putFile)).AlwaysReturn();
+            Mock<ISyncService> mockServer;
+            When(Method(mockServer, Connect)).Return(std::make_shared<ConnectResponse>(serverDeviceId));
+            When(Method(mockServer, Disconnect)).AlwaysReturn();
+            When(Method(mockServer, SetSyncListener)).AlwaysReturn();
+            When(Method(mockServer, GetSharedSyncListener)).AlwaysReturn(nullptr);
+            std::map<std::string, int> putFileCounts;
+            When(Method(mockServer, PutFile)).AlwaysDo([&](const std::string& /*local_file_path*/, const std::string& remote_path) -> void {
+                putFileCounts[remote_path] = putFileCounts[remote_path] + 1;
+            });
 
-            Mock<ISyncServerConnectionFactory> mockServerConnectionFactory;
-            When(OverloadedMethod(mockServerConnectionFactory, createCSWebConnection, ISyncServerConnection*(CString, CString, CString)))
-                .AlwaysReturn(&(mockServer.get()));
-            When(Method(mockServerConnectionFactory, destroy)).AlwaysReturn();
+            Mock<ISyncServiceFactory> mockSyncServiceFactory;
+            When(OverloadedMethod(mockSyncServiceFactory, CreateCSWebSyncService, std::unique_ptr<ISyncService>(SyncConnectionString, std::unique_ptr<LoginCredentials>)))
+                .AlwaysDo([&](const SyncConnectionString&, const std::unique_ptr<LoginCredentials>&) { return std::unique_ptr<ISyncService>(&(mockServer.get())); });
 
-            std::unique_ptr<SyncClient> pClient(new SyncClient(myDeviceId,
-                &mockServerConnectionFactory.get()));
+            SyncClient sync_client(myDeviceId, std::unique_ptr<ISyncServiceFactory>(&mockSyncServiceFactory.get()));
+            sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
-            std::vector<CString> filenames;
-            filenames.push_back(L"foo1");
-            filenames.push_back(L"foo2");
-            filenames.push_back(L"fooa");
-            filenames.push_back(L"bar");
-            filenames.push_back(L"foothree");
+            const std::vector<std::string> filenames =
+            {
+                "foo1",
+                "foo2",
+                "fooa",
+                "bar",
+                "foothree"
+            };
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
-            CString srcDir;
-            srcDir.Format(L"%s%s", pszTempPath, L"syncputtest\\");
-            deleteDirectoryAndContents(srcDir);
-            CreateDirectory(srcDir, NULL);
+            std::string srcDir = Path::Combine(GetTempDirectory(), "syncputtest");
+            PortableFunctions::DirectoryDelete(srcDir, true);
+            PortableFunctions::PathMakeDirectories(srcDir);
 
-            for (std::vector<CString>::iterator i = filenames.begin(); i != filenames.end(); ++i) {
-                CString srcFileAbsPath;
-                srcFileAbsPath.Format(L"%s%s", (LPCTSTR)srcDir, (LPCTSTR)*i);
-                createTestFile(srcFileAbsPath, fileContents.c_str());
-            }
+            for( const std::string& filename : filenames )
+                FileIO::WriteText(Path::Combine(srcDir, filename), fileContents, false);
 
-            CreateDirectory(srcDir + L"foodir", NULL);
+            PortableFunctions::PathMakeDirectories(Path::Combine(srcDir, "foodir"));
 
-            auto connectOkResult = pClient->connectWeb(hostUrl, username, password);
+            auto connectOkResult = sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, connectOkResult);
 
-            auto syncResult = pClient->syncFile(SyncDirection::Put, L"syncputtest/*", CString(), pszTempPath);
+            SyncClient::SyncResult syncResult = sync_client.SyncFile(SyncDirection::Put, Path::Combine(srcDir, "*"), "/");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            syncResult = pClient->syncFile(SyncDirection::Put, L"syncputtest/foo*", CString(), pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Put, Path::Combine(srcDir, "foo*"), "/");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            syncResult = pClient->syncFile(SyncDirection::Put, L"syncputtest/foo?", CString(), pszTempPath);
+            syncResult = sync_client.SyncFile(SyncDirection::Put, Path::Combine(srcDir, "foo?"), "/");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, syncResult);
 
-            Verify(Method(mockServer, putFile).Using(_, "/" + filenames[0])).Exactly(3);
-            Verify(Method(mockServer, putFile).Using(_, "/" + filenames[1])).Exactly(3);
-            Verify(Method(mockServer, putFile).Using(_, "/" + filenames[2])).Exactly(3);
-            Verify(Method(mockServer, putFile).Using(_, "/" + filenames[3])).Once();
-            Verify(Method(mockServer, putFile).Using(_, "/" + filenames[4])).Twice();
-            VerifyNoOtherInvocations(Method(mockServer, putFile));
+            Assert::AreEqual(putFileCounts["/" + filenames[0]], 3);
+            Assert::AreEqual(putFileCounts["/" + filenames[1]], 3);
+            Assert::AreEqual(putFileCounts["/" + filenames[2]], 3);
+            Assert::AreEqual(putFileCounts["/" + filenames[3]], 1);
+            Assert::AreEqual(putFileCounts["/" + filenames[4]], 2);
+            Assert::AreEqual(putFileCounts.size(), size_t(5));
 
-            auto disconnectResult = pClient->disconnect();
+            auto disconnectResult = sync_client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, disconnectResult);
 
-            deleteDirectoryAndContents(srcDir);
-        }
-
-        void createTestFile(const wchar_t* path, const char* content)
-        {
-            std::wofstream s(path, std::ios::binary);
-            s << content;
-            s.close();
-        }
-
-        int deleteDirectoryAndContents(CString dir,
-            bool              bDeleteSubdirectories = true)
-        {
-            bool            bSubdirectory = false;       // Flag, indicating whether
-                                                         // subdirectories have been found
-            HANDLE          hFile;                       // Handle to directory
-            CString     strFilePath;                 // Filepath
-            CString     strPattern;                  // Pattern
-            WIN32_FIND_DATA FileInformation;             // File information
-
-
-            strPattern = dir + L"\\*.*";
-            hFile = ::FindFirstFile(strPattern, &FileInformation);
-            if (hFile != INVALID_HANDLE_VALUE)
-            {
-                do
-                {
-                    if (FileInformation.cFileName[0] != '.')
-                    {
-                        strFilePath = dir + L"\\" + FileInformation.cFileName;
-
-                        if (FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                        {
-                            if (bDeleteSubdirectories)
-                            {
-                                // Delete subdirectory
-                                int iRC = deleteDirectoryAndContents(strFilePath, bDeleteSubdirectories);
-                                if (iRC)
-                                    return iRC;
-                            }
-                            else
-                                bSubdirectory = true;
-                        }
-                        else
-                        {
-                            // Set file attributes
-                            if (::SetFileAttributes(strFilePath,
-                                FILE_ATTRIBUTE_NORMAL) == FALSE)
-                                return ::GetLastError();
-
-                            // Delete file
-                            if (::DeleteFile(strFilePath) == FALSE)
-                                return ::GetLastError();
-                        }
-                    }
-                } while (::FindNextFile(hFile, &FileInformation) == TRUE);
-
-                // Close handle
-                ::FindClose(hFile);
-
-                unsigned long dwError = ::GetLastError();
-                if (dwError != ERROR_NO_MORE_FILES)
-                    return dwError;
-                else
-                {
-                    if (!bSubdirectory)
-                    {
-                        // Set directory attributes
-                        if (::SetFileAttributes(dir,
-                            FILE_ATTRIBUTE_NORMAL) == FALSE)
-                            return ::GetLastError();
-
-                        // Delete directory
-                        if (::RemoveDirectory(dir) == FALSE)
-                            return ::GetLastError();
-                    }
-                }
-            }
-
-            return 0;
+            PortableFunctions::DirectoryDelete(srcDir, true);
         }
     };
 }
-

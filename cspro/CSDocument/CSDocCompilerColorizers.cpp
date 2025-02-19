@@ -13,8 +13,8 @@
 
 namespace
 {
-    constexpr const TCHAR* AllSymbolsDomainText = _T("Symbol");
-    constexpr const TCHAR* CaseSymbolDomainText = _T("Case"); // ENGINECR_TODO remove because this should be part of Symbol::GetDeclarationTextMap
+    constexpr const char* AllSymbolsDomainText = "Symbol";
+    constexpr const char* CaseSymbolDomainText = "Case"; // ENGINECR_TODO remove because this should be part of Symbol::GetDeclarationTextMap
 }
 
 
@@ -31,25 +31,25 @@ public:
     HelpsHtmlProcessor(HelpsHtmlProcessorMode mode);
     HelpsHtmlProcessor(HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings, std::optional<Logic::FunctionDomain> logic_function_domain);
 
-    std::wstring PreprocessLogic(std::wstring text) const;
-    static void CheckLogicCase(wstring_view text_sv, const Logic::FunctionDomain& logic_function_domain = SymbolType::None);
+    std::string PreprocessLogic(std::string text) const;
+    static void CheckLogicCase(std::string_view text_sv, const Logic::FunctionDomain& logic_function_domain = SymbolType::None);
 
 protected:
     std::vector<ScintillaColorizer::ExtendedEntity> GetExtendedEntities(const std::vector<ScintillaColorizer::Entity>& entities) const override;
 
 private:
-    void WriteHtmlHeader(std::wstringstream& output) const override;
-    void WriteHtmlFooter(std::wstringstream& output) const override;
+    void WriteHtmlHeader(std::stringstream& output) const override;
+    void WriteHtmlFooter(std::stringstream& output) const override;
 
-    void CreateLink(ScintillaColorizer::ExtendedEntity& extended_entity, const TCHAR* help_topic_filename) const;
+    void CreateLink(ScintillaColorizer::ExtendedEntity& extended_entity, const char* help_topic_filename) const;
 
     std::optional<size_t> FindWordIndexBeforeDotNotation(const std::vector<ScintillaColorizer::Entity>& entities, size_t start_index, bool skip_over_subscripts) const;
 
-    static std::optional<std::tuple<SymbolType, char>> GetSymbolTypeAndStyleFromDeclarationText(const std::wstring& symbol_type_name);
+    static std::optional<std::tuple<SymbolType, char>> GetSymbolTypeAndStyleFromDeclarationText(const std::string& symbol_type_name);
 
     std::optional<SymbolType> FindSymbolTypeFromVariableDeclaration(const std::vector<ScintillaColorizer::Entity>& entities,
-                                                                    const std::map<std::wstring, size_t>& first_identifier_location_map,
-                                                                    const std::wstring& symbol_name) const;
+                                                                    const std::map<std::string, size_t>& first_identifier_location_map,
+                                                                    const std::string& symbol_name) const;
 
     void PostprocessExtendedEntities(std::vector<ScintillaColorizer::ExtendedEntity>& extended_entities) const;
 
@@ -58,27 +58,27 @@ private:
     CSDocCompilerSettings* m_settings;
     const std::optional<Logic::FunctionDomain> m_logicFunctionDomain;
 
-    static constexpr const TCHAR* ArgTagStart             = _T("<arg>");
-    static constexpr const TCHAR* ArgTagEnd               = _T("</arg>");
-    static constexpr TCHAR OptionalTagStart               = _T('『');
-    static constexpr TCHAR OptionalTagEnd                 = _T('』');
-    static constexpr TCHAR OptionalTagSeparator           = _T('‖');
+    static constexpr std::string_view ArgTagStart_sv              = "<arg>";
+    static constexpr std::string_view ArgTagEnd_sv                = "</arg>";
+    static constexpr std::string_view OptionalTagStart_sv         = u8"『";
+    static constexpr std::string_view OptionalTagEnd_sv           = u8"』";
+    static constexpr std::string_view OptionalTagSeparator_sv     = u8"‖";
 
-    static constexpr wstring_view ArgReplacementTextStart = _T("arg_start_");
-    static constexpr wstring_view ArgReplacementTextEnd   = _T("_end_arg");
-    static constexpr TCHAR OptionalReplacementStart       = _T('ʃ');
-    static constexpr TCHAR OptionalReplacementEnd         = _T('ʅ');
+    static constexpr std::string_view ArgReplacementTextStart_sv  = "arg_start_";
+    static constexpr std::string_view ArgReplacementTextEnd_sv    = "_end_arg";
+    static constexpr std::string_view OptionalReplacementStart_sv = u8"ʃ";
+    static constexpr std::string_view OptionalReplacementEnd_sv   = u8"ʅ";
 };
 
 
-HelpsHtmlProcessor::HelpsHtmlProcessor(HelpsHtmlProcessorMode mode)
+HelpsHtmlProcessor::HelpsHtmlProcessor(const HelpsHtmlProcessorMode mode)
     :   m_mode(mode),
         m_settings(nullptr)
 {
 }
 
 
-HelpsHtmlProcessor::HelpsHtmlProcessor(HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings, std::optional<Logic::FunctionDomain> logic_function_domain)
+HelpsHtmlProcessor::HelpsHtmlProcessor(const HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings, std::optional<Logic::FunctionDomain> logic_function_domain)
     :   m_mode(mode),
         m_settings(&settings),
         m_logicFunctionDomain(std::move(logic_function_domain))
@@ -86,23 +86,23 @@ HelpsHtmlProcessor::HelpsHtmlProcessor(HelpsHtmlProcessorMode mode, CSDocCompile
 }
 
 
-void HelpsHtmlProcessor::WriteHtmlHeader(std::wstringstream& output) const
+void HelpsHtmlProcessor::WriteHtmlHeader(std::stringstream& output) const
 {
-    output << ( ( m_mode == HelpsHtmlProcessorMode::Inline ) ? _T("<span class=\"code_colorization\">") :
-                                                               _T("<div class=\"code_colorization indent\">") );
+    output << ( ( m_mode == HelpsHtmlProcessorMode::Inline ) ? "<span class=\"code_colorization\">" :
+                                                               "<div class=\"code_colorization indent\">" );
 
 }
 
-void HelpsHtmlProcessor::WriteHtmlFooter(std::wstringstream& output) const
+void HelpsHtmlProcessor::WriteHtmlFooter(std::stringstream& output) const
 {
-    output << ( ( m_mode == HelpsHtmlProcessorMode::Inline ) ? _T("</span>") :
-                                                               _T("</div>") );
+    output << ( ( m_mode == HelpsHtmlProcessorMode::Inline ) ? "</span>" :
+                                                               "</div>" );
 }
 
 
 namespace
 {
-    constexpr bool IsStateAnyCommentOrStringLiteralType(int state)
+    constexpr bool IsStateAnyCommentOrStringLiteralType(const int state)
     {
         return ( state == SCE_CSPRO_COMMENT ||
                  state == SCE_CSPRO_COMMENTLINE ||
@@ -112,11 +112,11 @@ namespace
 }
 
 
-void HelpsHtmlProcessor::CreateLink(ScintillaColorizer::ExtendedEntity& extended_entity, const TCHAR* help_topic_filename) const
+void HelpsHtmlProcessor::CreateLink(ScintillaColorizer::ExtendedEntity& extended_entity, const char* const help_topic_filename) const
 {
     ASSERT(help_topic_filename != nullptr);
 
-    const std::wstring url = m_settings->CreateUrlForLogicTopic(help_topic_filename);
+    const std::string url = m_settings->CreateUrlForLogicTopic(help_topic_filename);
 
     if( url.empty() )
     {
@@ -125,10 +125,10 @@ void HelpsHtmlProcessor::CreateLink(ScintillaColorizer::ExtendedEntity& extended
 
     else
     {
-        const std::wstring a_tag_start = CSDocCompilerWorker::CreateHyperlinkStart(url, false, false);
+        const std::string a_tag_start = CSDocCompilerWorker::CreateHyperlinkStart(url, false, false);
 
-        extended_entity.entity_spanning_tags.emplace_back(a_tag_start + _T(" class=\"code_colorization_keyword_link\">"),
-                                                          _T("</a>"));
+        extended_entity.entity_spanning_tags.emplace_back(a_tag_start + " class=\"code_colorization_keyword_link\">",
+                                                          "</a>");
     }
 }
 
@@ -149,7 +149,7 @@ std::optional<size_t> HelpsHtmlProcessor::FindWordIndexBeforeDotNotation(const s
 
         if( next_entity_must_be_dot )
         {
-            if( entity.text != _T(".") )
+            if( entity.text != "." )
                 return std::nullopt;
 
             next_entity_must_be_dot = false;
@@ -160,7 +160,7 @@ std::optional<size_t> HelpsHtmlProcessor::FindWordIndexBeforeDotNotation(const s
         {
             bool processed_parenthesis = false;
 
-            for( const TCHAR ch : entity.text )
+            for( const char ch : entity.text )
             {
                 if( ch == ')' )
                 {
@@ -187,9 +187,9 @@ std::optional<size_t> HelpsHtmlProcessor::FindWordIndexBeforeDotNotation(const s
 }
 
 
-std::optional<std::tuple<SymbolType, char>> HelpsHtmlProcessor::GetSymbolTypeAndStyleFromDeclarationText(const std::wstring& symbol_type_name)
+std::optional<std::tuple<SymbolType, char>> HelpsHtmlProcessor::GetSymbolTypeAndStyleFromDeclarationText(const std::string& symbol_type_name)
 {
-    const std::map<std::wstring, SymbolType>& symbol_declaration_text_map = ::Symbol::GetDeclarationTextMap();
+    const std::map<std::string, SymbolType>& symbol_declaration_text_map = ::Symbol::GetDeclarationTextMap();
     const auto& symbol_type_lookup = std::find_if(symbol_declaration_text_map.cbegin(), symbol_declaration_text_map.cend(),
                                                   [&](const auto& name_and_symbol_type) { return SO::EqualsNoCase(symbol_type_name, name_and_symbol_type.first); });
 
@@ -207,8 +207,8 @@ std::optional<std::tuple<SymbolType, char>> HelpsHtmlProcessor::GetSymbolTypeAnd
 
 
 std::optional<SymbolType> HelpsHtmlProcessor::FindSymbolTypeFromVariableDeclaration(const std::vector<ScintillaColorizer::Entity>& entities,
-                                                                                    const std::map<std::wstring, size_t>& first_identifier_location_map,
-                                                                                    const std::wstring& symbol_name) const
+                                                                                    const std::map<std::string, size_t>& first_identifier_location_map,
+                                                                                    const std::string& symbol_name) const
 {
     // search for the first symbol declaration text appearing before the first location that the symbol was used,
     // which will, for example, properly locate 'Array' here: Array alpha (30) xxx;
@@ -241,7 +241,7 @@ std::optional<SymbolType> HelpsHtmlProcessor::FindSymbolTypeFromVariableDeclarat
             }
         }
 
-        else if( previous_entity.style == SCE_CSPRO_IDENTIFIER || _tcschr(_T(";,"), previous_entity.text.front()) != nullptr )
+        else if( previous_entity.style == SCE_CSPRO_IDENTIFIER || strchr(";,", previous_entity.text.front()) != nullptr )
         {
             break;
         }
@@ -257,7 +257,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
         return { };
 
     std::vector<ScintillaColorizer::ExtendedEntity> extended_entities;
-    std::map<std::wstring, size_t> first_identifier_location_map;
+    std::map<std::string, size_t> first_identifier_location_map;
 
     for( size_t i = 0; i < entities.size(); ++i )
     {
@@ -273,13 +273,13 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
         if( entity.style == SCE_CSPRO_IDENTIFIER )
         {
             // make sure that entries like the "codes" in valueset_name.codes are not added
-            if( i == 0 || entities[i - 1].text != _T(".") )
+            if( i == 0 || entities[i - 1].text != "." )
                 first_identifier_location_map.try_emplace(entity.text, i);
         }
 
         // links can come from a few different kinds of entities:
-        const TCHAR* help_topic_filename;
-        const Logic::FunctionDetails* function_details;
+        const char* help_topic_filename;
+        const Logic::FunctionDetails* function_details = nullptr;
 
         // 1. multiple word combinations...the word combination must be separated by whitespace (with optional comments in between);
         //    e.g.: skip case;
@@ -301,7 +301,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
                 }
 
                 else if( matches == 1 &&
-                            Logic::ContextSensitiveHelp::UpdateTopicFilenameForMultipleWordExpressions(previous_entity.text, entity.text, &help_topic_filename) )
+                         Logic::ContextSensitiveHelp::UpdateTopicFilenameForMultipleWordExpressions(previous_entity.text, entity.text, &help_topic_filename) )
                 {
                     CheckLogicCase(previous_entity.text);
                     CheckLogicCase(entity.text);
@@ -470,11 +470,11 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
                 else
                 {
-                    const TCHAR* const child_symbol_name = std::visit(
+                    const char* const child_symbol_name = std::visit(
                         overload
                         {
-                            [](Logic::AllSymbolsDomain)        { return static_cast<const TCHAR*>(nullptr); },
-                            [](const std::vector<SymbolType>&) { return ReturnProgrammingError(static_cast<const TCHAR*>(nullptr)); },
+                            [](Logic::AllSymbolsDomain)        { return static_cast<const char*>(nullptr); },
+                            [](const std::vector<SymbolType>&) { return ReturnProgrammingError(static_cast<const char*>(nullptr)); },
                             [&](const auto& object)            { return Logic::LookupChildSymbolName(entity.text, object); }
 
                         }, logic_function_domain);
@@ -483,21 +483,21 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
                     {
                         if( std::holds_alternative<SymbolType>(logic_function_domain) )
                         {
-                            throw CSProException(_T("The logic symbol '%s' does not have a function '%s'"),
+                            throw CSProException("The logic symbol '%s' does not have a function '%s'",
                                                  ToString(std::get<SymbolType>(logic_function_domain)),
                                                  entity.text.c_str());
                         }
 
                         else if( std::holds_alternative<Logic::FunctionNamespace>(logic_function_domain) )
                         {
-                            throw CSProException(_T("The function namespace '%s' does not have a function '%s'"),
+                            throw CSProException("The function namespace '%s' does not have a function '%s'",
                                                  Logic::FunctionTable::GetFunctionNamespaceName(std::get<Logic::FunctionNamespace>(logic_function_domain)),
                                                  entity.text.c_str());
                         }
 
                         else
                         {
-                            throw CSProException(_T("The logic function domain does not have a function '%s'"),
+                            throw CSProException("The logic function domain does not have a function '%s'",
                                                  entity.text.c_str());
                         }
                     }
@@ -522,9 +522,9 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
                 if( std::holds_alternative<const Logic::FunctionNamespaceDetails*>(previous_extended_entity.details) )
                 {
-                    throw CSProException(_T("The function namespace '%s' does not have a function '%s'"),
-                                            Logic::FunctionTable::GetFunctionNamespaceName(std::get<const Logic::FunctionNamespaceDetails*>(previous_extended_entity.details)->function_namespace),
-                                            entity.text.c_str());
+                    throw CSProException("The function namespace '%s' does not have a function '%s'",
+                                         Logic::FunctionTable::GetFunctionNamespaceName(std::get<const Logic::FunctionNamespaceDetails*>(previous_extended_entity.details)->function_namespace),
+                                         entity.text.c_str());
                 }
 
                 const std::optional<SymbolType> symbol_type = FindSymbolTypeFromVariableDeclaration(entities, first_identifier_location_map, previous_extended_entity.text);
@@ -539,7 +539,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
                     else
                     {
-                        throw CSProException(_T("The logic symbol '%s' does not have a function '%s'"), ToString(*symbol_type), entity.text.c_str());
+                        throw CSProException("The logic symbol '%s' does not have a function '%s'", ToString(*symbol_type), entity.text.c_str());
                     }
                 }
 
@@ -548,7 +548,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 #ifdef STRICT_CHECKING_FOR_DOT_NOTATION
                 if( m_mode != HelpsHtmlProcessorMode::Syntax )
                 {
-                    throw CSProException(_T("The construction '%s.%s' is not valid"),
+                    throw CSProException("The construction '%s.%s' is not valid",
                                          entities[*previous_word_index].text.c_str(), entity.text.c_str());
                 }
 #endif
@@ -567,11 +567,11 @@ void HelpsHtmlProcessor::PostprocessExtendedEntities(std::vector<ScintillaColori
     if( m_mode != HelpsHtmlProcessorMode::Syntax )
         return;
 
-    auto split_entity = [&](size_t index, size_t before_split_length, size_t entity_pos, size_t entity_length, size_t after_split_pos)
+    auto split_entity = [&](size_t index, const size_t before_split_length, const size_t entity_pos, const size_t entity_length, const size_t after_split_pos)
     {
         ASSERT(entity_length > 0);
 
-        std::wstring original_entity_text = extended_entities[index].text;
+        std::string original_entity_text = extended_entities[index].text;
 
         // add a new entity before the current entity
         if( before_split_length > 0 )
@@ -612,7 +612,7 @@ void HelpsHtmlProcessor::PostprocessExtendedEntities(std::vector<ScintillaColori
             for( auto tag_itr = extended_entities[index].entity_spanning_tags.begin();
                  tag_itr != extended_entities[index].entity_spanning_tags.end(); )
             {
-                extended_entities[index + 1].entity_spanning_tags.emplace_back(std::wstring(), std::get<1>(*tag_itr));
+                extended_entities[index + 1].entity_spanning_tags.emplace_back(std::string(), std::get<1>(*tag_itr));
 
                 if( std::get<0>(*tag_itr).empty() )
                 {
@@ -634,102 +634,123 @@ void HelpsHtmlProcessor::PostprocessExtendedEntities(std::vector<ScintillaColori
     // process the arguments
     for( size_t i = 0; i < extended_entities.size(); ++i )
     {
-        size_t arg_start_pos = extended_entities[i].text.find(ArgReplacementTextStart);
+        const size_t arg_start_pos = extended_entities[i].text.find(ArgReplacementTextStart_sv);
 
-        if( arg_start_pos == std::wstring::npos )
+        if( arg_start_pos == std::string::npos )
         {
-            ASSERT(extended_entities[i].text.find(ArgReplacementTextEnd) == std::wstring::npos);
+            ASSERT(extended_entities[i].text.find(ArgReplacementTextEnd_sv) == std::string::npos);
             continue;
         }
 
-        size_t arg_end_pos = extended_entities[i].text.find(ArgReplacementTextEnd);
+        const size_t arg_end_pos = extended_entities[i].text.find(ArgReplacementTextEnd_sv);
 
-        if( arg_end_pos == std::wstring::npos )
-            throw CSProException(_T("Malformed argument tag: ") + extended_entities[i].text);
+        if( arg_end_pos == std::string::npos )
+            throw CSProException("Malformed argument tag: %s", extended_entities[i].text.c_str());
 
-        size_t entity_start_pos = arg_start_pos + ArgReplacementTextStart.length();
+        const size_t entity_start_pos = arg_start_pos + ArgReplacementTextStart_sv.length();
 
         i = split_entity(i, arg_start_pos,
                             entity_start_pos, arg_end_pos - entity_start_pos,
-                            arg_end_pos + ArgReplacementTextEnd.length());
+                            arg_end_pos + ArgReplacementTextEnd_sv.length());
 
-        extended_entities[i].entity_specific_tags.emplace_back(_T("<span class=\"code_colorization_argument\">"), _T("</span>"));
+        extended_entities[i].entity_specific_tags.emplace_back("<span class=\"code_colorization_argument\">", "</span>");
     }
 
 
     // process the optional tags
     for( size_t i = 0; i < extended_entities.size(); ++i )
     {
-        constexpr TCHAR OptionalChars[] { OptionalTagStart, OptionalTagEnd, OptionalTagSeparator, '\0' };
+        static_assert(OptionalTagStart_sv.front() == OptionalTagEnd_sv.front());
+        static_assert(OptionalTagStart_sv.front() != OptionalTagSeparator_sv.front());
+        constexpr char OptionalTagStartChars[] { OptionalTagStart_sv.front(), OptionalTagSeparator_sv.front(), '\0' };
 
-        size_t optional_tag_pos = extended_entities[i].text.find_first_of(OptionalChars);
+        const size_t first_possible_optional_tag_start_pos = extended_entities[i].text.find_first_of(OptionalTagStartChars);
 
-        if( optional_tag_pos == std::wstring::npos )
+        if( first_possible_optional_tag_start_pos == std::string::npos )
             continue;
 
-        TCHAR tag = extended_entities[i].text[optional_tag_pos];
+        // find the first optional tag in case there are multiple ones in this entity
+        const std::string_view* optional_tag = nullptr;
+        size_t optional_tag_pos = std::string::npos;
 
-        i = split_entity(i, optional_tag_pos,
-                            optional_tag_pos, 1,
-                            optional_tag_pos + 1);
-
-        extended_entities[i].entity_specific_tags.emplace_back(_T("<span class=\"code_colorization_bracket\">"), _T("</span>"));
-
-        if( tag == OptionalTagStart )
+        for( const std::string_view* const tag : { &OptionalTagStart_sv, &OptionalTagEnd_sv, &OptionalTagSeparator_sv } )
         {
-            extended_entities[i].text = OptionalReplacementStart;
-            extended_entities[i].entity_spanning_tags.emplace_back(_T("<span class=\"code_colorization_optional_text\">"), std::wstring());
+            const size_t this_tag_pos = extended_entities[i].text.find(*tag);
+
+            if( this_tag_pos < optional_tag_pos )
+            {
+                optional_tag = tag;
+                optional_tag_pos = this_tag_pos;
+
+                if( optional_tag_pos == first_possible_optional_tag_start_pos )
+                    break;
+            }
         }
 
-        else if( tag == OptionalTagEnd )
+        if( optional_tag_pos == std::string::npos )
+            continue;
+
+        i = split_entity(i, optional_tag_pos,
+                            optional_tag_pos, optional_tag->length(),
+                            optional_tag_pos + optional_tag->length());
+
+        extended_entities[i].entity_specific_tags.emplace_back("<span class=\"code_colorization_bracket\">", "</span>");
+
+        if( optional_tag == &OptionalTagStart_sv )
         {
-            extended_entities[i].text = OptionalReplacementEnd;
-            extended_entities[i].entity_spanning_tags.emplace_back(std::wstring(), _T("</span>"));
+            extended_entities[i].text = OptionalReplacementStart_sv;
+            extended_entities[i].entity_spanning_tags.emplace_back("<span class=\"code_colorization_optional_text\">", std::string());
+        }
+
+        else if( optional_tag == &OptionalTagEnd_sv )
+        {
+            extended_entities[i].text = OptionalReplacementEnd_sv;
+            extended_entities[i].entity_spanning_tags.emplace_back(std::string(), "</span>");
         }
     }
 }
 
 
-std::wstring HelpsHtmlProcessor::PreprocessLogic(std::wstring text) const
+std::string HelpsHtmlProcessor::PreprocessLogic(std::string text) const
 {
     if( m_mode != HelpsHtmlProcessorMode::Syntax )
         return text;
 
     // preprocess the logic syntax tags
-    SO::Replace(text, ArgTagStart, ArgReplacementTextStart);
-    SO::Replace(text, ArgTagEnd, ArgReplacementTextEnd);
+    SO::Replace(text, ArgTagStart_sv, ArgReplacementTextStart_sv);
+    SO::Replace(text, ArgTagEnd_sv, ArgReplacementTextEnd_sv);
 
     return text;
 }
 
 
-void HelpsHtmlProcessor::CheckLogicCase(const wstring_view text_sv, const Logic::FunctionDomain& logic_function_domain/* = SymbolType::None*/)
+void HelpsHtmlProcessor::CheckLogicCase(const std::string_view text_sv, const Logic::FunctionDomain& logic_function_domain/* = SymbolType::None*/)
 {
     // first check if this is a word that can be written in multiple cases
-    static const std::vector<const TCHAR*> MultipleCaseWords =
+    static const std::vector<const char*> MultipleCaseWords =
     {
-        _T("array"),
-        _T("case"),
-        _T("ErrMsg"),
-        _T("image"),
-        _T("report"),
-        _T("setProperty"),
-        _T("valueset")
+        "array",
+        "case",
+        "ErrMsg",
+        "image",
+        "report",
+        "setProperty",
+        "valueset"
     };
 
     if( std::find_if(MultipleCaseWords.cbegin(), MultipleCaseWords.cend(),
-                     [&](const std::wstring& word) { return ( word == text_sv ); }) != MultipleCaseWords.cend() )
+                     [&](const char* const word) { return SO::Equals(text_sv, word); }) != MultipleCaseWords.cend() )
     {
         return;
     }
 
     // otherwise check the case
-    const TCHAR* const defined_case = Logic::ReservedWords::GetDefinedCase(text_sv, logic_function_domain);
+    const char* const defined_case = Logic::ReservedWords::GetDefinedCase(text_sv, logic_function_domain);
 
     if( defined_case != nullptr && !SO::Equals(text_sv, defined_case) )
     {
-        throw CSProException(_T("The reserved word '%s' must be used with the defined case: '%s'"),
-                             std::wstring(text_sv).c_str(), defined_case);
+        throw CSProException("The reserved word '%s' must be used with the defined case: '%s'",
+                             std::string(text_sv).c_str(), defined_case);
     }
 }
 
@@ -739,9 +760,9 @@ void HelpsHtmlProcessor::CheckLogicCase(const wstring_view text_sv, const Logic:
 // CSDocCompilerWorker
 // --------------------------------------------------------------------------
 
-std::wstring CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(const std::wstring& text)
+std::string CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(const std::string& text)
 {
-    ASSERT(text.find('\r') == std::wstring::npos);
+    ASSERT(text.find('\r') == std::string::npos);
 
     if( !text.empty() )
     {
@@ -756,13 +777,13 @@ std::wstring CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(const std::wstr
 }
 
 
-std::wstring CSDocCompilerWorker::LogicObjectStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::LogicObjectStartHandler(const cs::span<const std::string> tag_components)
 {
     ASSERT(!m_logicFunctionDomain.has_value());
 
     if( !tag_components.empty() )
     {
-        const std::wstring& logic_function_domain_text = tag_components.front();
+        const std::string& logic_function_domain_text = tag_components.front();
 
         for( const auto& [declaration_text, symbol_type] : Symbol::GetDeclarationTextMap() )
         {
@@ -787,34 +808,34 @@ std::wstring CSDocCompilerWorker::LogicObjectStartHandler(cs::span<const std::ws
 
             else
             {
-                throw CSProException(_T("The logic function domain '%s' is not a valid symbol type."), logic_function_domain_text.c_str());
+                throw CSProException("The logic function domain '%s' is not a valid symbol type.", logic_function_domain_text.c_str());
             }
         }
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::LogicEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::LogicEndHandler(const std::string& inner_text)
 {
     return LogicEndHandlerWorker(TrimOnlyOneNewlineFromBothEnds(inner_text), HelpsHtmlProcessorMode::Normal);
 }
 
 
-std::wstring CSDocCompilerWorker::LogicSyntaxEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::LogicSyntaxEndHandler(const std::string& inner_text)
 {
     return LogicEndHandlerWorker(TrimOnlyOneNewlineFromBothEnds(inner_text), HelpsHtmlProcessorMode::Syntax);
 }
 
 
-std::wstring CSDocCompilerWorker::LogicColorEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::LogicColorEndHandler(const std::string& inner_text)
 {
     return LogicEndHandlerWorker(Encoders::FromHtmlAmpersandEscapes(inner_text), HelpsHtmlProcessorMode::Inline);
 }
 
 
-std::wstring CSDocCompilerWorker::LogicEndHandlerWorker(std::wstring text, HelpsHtmlProcessorMode mode)
+std::string CSDocCompilerWorker::LogicEndHandlerWorker(std::string text, const HelpsHtmlProcessorMode mode)
 {
     HelpsHtmlProcessor html_processor(mode, m_settings, m_logicFunctionDomain);
     m_logicFunctionDomain.reset();
@@ -824,7 +845,7 @@ std::wstring CSDocCompilerWorker::LogicEndHandlerWorker(std::wstring text, Helps
 }
 
 
-std::wstring CSDocCompilerWorker::LogicTableStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::LogicTableStartHandler(const cs::span<const std::string> tag_components)
 {
     int columns = 0;
 
@@ -832,40 +853,40 @@ std::wstring CSDocCompilerWorker::LogicTableStartHandler(cs::span<const std::wst
         throw CSProException("The number of columns in a table must be a positive integer.");
 
     // sort the words
-    std::vector<std::wstring> reserved_words = Logic::ReservedWords::GetAllReservedWords();
+    std::vector<std::string> reserved_words = Logic::ReservedWords::GetAllReservedWords();
     std::sort(reserved_words.begin(), reserved_words.end(),
-              [&](const std::wstring& rw1, const std::wstring& rw2) { return ( SO::CompareNoCase(rw1, rw2) < 0 ); });
+              [&](const std::string& rw1, const std::string& rw2) { return ( SO::CompareNoCase(rw1, rw2) < 0 ); });
 
     const int rows = static_cast<int>(std::ceil(reserved_words.size() / static_cast<double>(columns)));
 
-    std::wstring text = _T("<div align=\"center\"><table class=\"bordered_table\">");
+    std::string text = "<div align=\"center\"><table class=\"bordered_table\">";
 
     for( int r = 0; r < rows; ++r )
     {
-        text.append(_T("<tr>"));
+        text.append("<tr>");
 
         for( int c = 0; c < columns; ++c )
         {
-            text.append(_T("<td class=\"bordered_table_cell\">"));
+            text.append("<td class=\"bordered_table_cell\">");
 
             const size_t index = ( c * rows ) + r;
 
             if( index < reserved_words.size() )
                 text.append(LogicEndHandlerWorker(reserved_words[index], HelpsHtmlProcessorMode::Inline));
 
-            text.append(_T("</td>"));
+            text.append("</td>");
         }
 
-        text.append(_T("</tr>"));
+        text.append("</tr>");
     }
 
-    text.append(_T("</table></div>"));
+    text.append("</table></div>");
 
     return text;
 }
 
 
-std::wstring CSDocCompilerWorker::ActionEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::ActionEndHandler(const std::string& inner_text)
 {
     // this subclass will remove the CS. from the output, and add the Async (as necessary)
     class ActionInvokerHelpsHtmlProcessor : public HelpsHtmlProcessor
@@ -884,8 +905,8 @@ std::wstring CSDocCompilerWorker::ActionEndHandler(const std::wstring& inner_tex
             std::vector<ScintillaColorizer::ExtendedEntity> extended_entities = __super::GetExtendedEntities(entities);
 
             if( extended_entities.size() < 2 ||
-                extended_entities[0].text != _T("CS") ||
-                extended_entities[1].text != _T(".") )
+                extended_entities[0].text != "CS" ||
+                extended_entities[1].text != "." )
             {
                 throw CSProException("Invalid 'action' tag");
             }
@@ -904,15 +925,15 @@ std::wstring CSDocCompilerWorker::ActionEndHandler(const std::wstring& inner_tex
         const bool m_asyncWasSpecified;
     };
 
-    std::wstring action_text = inner_text;
+    std::string action_text = inner_text;
 
-    const bool cs_was_specified = SO::StartsWith(inner_text, _T("CS."));
+    const bool cs_was_specified = SO::StartsWith(action_text, "CS.");
 
     if( !cs_was_specified )
-        action_text.insert(0, _T("CS."));
+        action_text.insert(0, "CS.");
 
     const bool async_was_specified = ( ActionInvoker::AsyncActionSuffix_sv.length() < action_text.length() &&
-                                       std::wstring_view(action_text).substr(action_text.length() - ActionInvoker::AsyncActionSuffix_sv.length()) == ActionInvoker::AsyncActionSuffix_sv );
+                                       std::string_view(action_text).substr(action_text.length() - ActionInvoker::AsyncActionSuffix_sv.length()) == ActionInvoker::AsyncActionSuffix_sv );
 
     if( async_was_specified )
         action_text.resize(action_text.length() - ActionInvoker::AsyncActionSuffix_sv.length());
@@ -923,7 +944,7 @@ std::wstring CSDocCompilerWorker::ActionEndHandler(const std::wstring& inner_tex
 }
 
 
-std::wstring CSDocCompilerWorker::MessageEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::MessageEndHandler(const std::string& inner_text)
 {
     HelpsHtmlProcessor html_processor(HelpsHtmlProcessorMode::Normal);
     ScintillaColorizer colorizer(SCLEX_CSPRO_MESSAGE_V8_0, TrimOnlyOneNewlineFromBothEnds(inner_text));
@@ -931,7 +952,7 @@ std::wstring CSDocCompilerWorker::MessageEndHandler(const std::wstring& inner_te
 }
 
 
-std::wstring CSDocCompilerWorker::ReportStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::ReportStartHandler(const cs::span<const std::string> tag_components)
 {
     ASSERT(!m_lexerLanguage.has_value());
 
@@ -940,21 +961,21 @@ std::wstring CSDocCompilerWorker::ReportStartHandler(cs::span<const std::wstring
         m_lexerLanguage = SCLEX_CSPRO_REPORT_V8_0;
     }
 
-    else if( tag_components.front() == _T("HTML") )
+    else if( tag_components.front() == "HTML" )
     {
         m_lexerLanguage = SCLEX_CSPRO_REPORT_HTML_V8_0;
     }
 
     else
     {
-        throw CSProException(_T("Invalid 'report' tag: ") + tag_components.front());
+        throw CSProException("Invalid 'report' tag: %s", tag_components.front().c_str());
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::ReportEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::ReportEndHandler(const std::string& inner_text)
 {
     ASSERT(m_lexerLanguage.has_value());
 
@@ -970,38 +991,38 @@ std::wstring CSDocCompilerWorker::ReportEndHandler(const std::wstring& inner_tex
 }
 
 
-std::wstring CSDocCompilerWorker::ColorStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::string> tag_components)
 {
     ASSERT(!m_lexerLanguage.has_value());
 
-    const std::wstring& language_name = tag_components.front();
+    const std::string& language_name = tag_components.front();
 
-    m_lexerLanguage = ( language_name == _T("C++") )        ? SCLEX_CPP : 
-                      ( language_name == _T("cspro_v0") )   ? SCLEX_CSPRO_LOGIC_V0 :
-                      ( language_name == _T("HTML") )       ? SCLEX_HTML :
-                      ( language_name == _T("JSON") )       ? SCLEX_JSON :
-                      ( language_name == _T("JavaScript") ) ? SCLEX_JAVASCRIPT :
-                      ( language_name == _T("message") )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
-                      ( language_name == _T("SQL") )        ? SCLEX_SQL :
-                                                              throw CSProException(_T("Coloring the language '%s' is not supported."), language_name.c_str());
+    m_lexerLanguage = ( language_name == "C++" )        ? SCLEX_CPP :
+                      ( language_name == "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
+                      ( language_name == "HTML" )       ? SCLEX_HTML :
+                      ( language_name == "JSON" )       ? SCLEX_JSON :
+                      ( language_name == "JavaScript" ) ? SCLEX_JAVASCRIPT :
+                      ( language_name == "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
+                      ( language_name == "SQL" )        ? SCLEX_SQL :
+                                                          throw CSProException("Coloring the language '%s' is not supported.", language_name.c_str());
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::ColorEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::ColorEndHandler(const std::string& inner_text)
 {
     return ColorEndHandlerWorker(inner_text, HelpsHtmlProcessorMode::Normal);
 }
 
 
-std::wstring CSDocCompilerWorker::ColorInlineEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::ColorInlineEndHandler(const std::string& inner_text)
 {
     return ColorEndHandlerWorker(inner_text, HelpsHtmlProcessorMode::Inline);
 }
 
 
-std::wstring CSDocCompilerWorker::ColorEndHandlerWorker(const std::wstring& inner_text, HelpsHtmlProcessorMode mode)
+std::string CSDocCompilerWorker::ColorEndHandlerWorker(const std::string& inner_text, const HelpsHtmlProcessorMode mode)
 {
     ASSERT(m_lexerLanguage.has_value());
 

@@ -1,7 +1,4 @@
-﻿// Compiler.cpp: implementation of the CCompiler class.
-//
-//////////////////////////////////////////////////////////////////////
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "Compiler.h"
 #include "DesignerApplicationLoader.h"
 #include "SrcCode.h"
@@ -28,13 +25,13 @@ CCompiler::CCompiler(Application* pApplication, CompilerCreator* compiler_creato
     m_bFullCompile = false;
     m_bOptimizeFlowTree = false;
     m_bInit = false;
-    m_csProcName.Empty();
+    m_procName.clear();
     m_iLineNumberOfCurrentCompile = 0;
 
     bRunning = true;
     pThis = this;
 
-    m_pApplication->SetApplicationLoader(std::make_shared<DesignerApplicationLoader>(m_pApplication, this));
+    m_pApplication->SetApplicationLoader(std::make_unique<DesignerApplicationLoader>(m_pApplication, this));
 }
 
 
@@ -141,7 +138,7 @@ CCompiler::Result CCompiler::FullCompile(CSourceCode* pSourceCode)
 
     m_bFullCompile = false;
 
-    m_CompIFaz.m_pEngineDriver->m_pEngineCompFunc->CheckUnusedFileNames();
+    m_CompIFaz.m_pEngineDriver->m_pEngineCompFunc->RunPostCompilationChecks();
 
     return eSomeErr;
 }
@@ -164,7 +161,7 @@ CCompiler::Result CCompiler::CompileExternalLogicOnly()
 }
 
 
-CCompiler::Result CCompiler::CompileReport(const NamedTextSource& report_named_text_source)
+CCompiler::Result CCompiler::CompileReport(const ReportFile& report_file)
 {
     CCompiler::Result eErr = Result::NoErrors;
 
@@ -172,7 +169,7 @@ CCompiler::Result CCompiler::CompileReport(const NamedTextSource& report_named_t
         return eErr;
 
     // compile the application procedure (which will compile the reports at the end)
-    CSourceCode* pSourceCode = m_pApplication->GetAppSrcCode();
+    CSourceCode* const pSourceCode = m_pApplication->GetAppSrcCode();
     CString csAppSymb = _T("GLOBAL");
     CStringArray csaProc;
     pSourceCode->GetProc(csaProc, csAppSymb);
@@ -207,12 +204,12 @@ CCompiler::Result CCompiler::Compile(const CString& csSymbName, const CStringArr
     CString buffer_text;
     CSourceCode::ArrayToString(&source_array, buffer_text, true);
 
-    m_csProcName = csSymbName;
+    m_procName = UTF8_TODO::GetUtf8(csSymbName);
 
-    if ( !m_CompIFaz.C_CompilerCompile(buffer_text) )
+    if ( !m_CompIFaz.C_CompilerCompile(std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(buffer_text))) )
         eErr = Result::SomeErrors;
 
-    m_csProcName.Empty();
+    m_procName.clear();
     m_iLineNumberOfCurrentCompile = 0;
 
     if( !m_bFullCompile )

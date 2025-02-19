@@ -10,7 +10,7 @@ private:
     WorkVariable(const WorkVariable& work_variable);
 
 public:
-    WorkVariable(std::wstring variable_name);
+    WorkVariable(std::string variable_name);
 
     double GetValue() const   { return m_value; }
     double* GetValueAddress() { return &m_value; }
@@ -23,7 +23,10 @@ public:
     void Reset() override;
 
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
+
+    JavaScript::Value GetJavaScriptValue(JavaScript::Executor& executor) const override;
+    void SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value) override;
 
 private:
     double m_value;

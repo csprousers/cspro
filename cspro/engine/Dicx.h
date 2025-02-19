@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: DicX.h
 //
@@ -12,12 +13,11 @@
 //
 //
 //---------------------------------------------------------------------------
+
 #include <engine/Tables.h>
-#include <zUtilO/ConnectionString.h>
-#include <zCaseO/CaseKey.h>
 #include <zCaseO/Note.h>
 #include <zDataO/CaseIterator.h>
-#include <zDataO/DataRepositoryDefines.h>
+#include <zDataO/DataRepository.h>
 
 class Case;
 class CaseLevel;
@@ -162,11 +162,11 @@ public:
 
     enum class CaseIteratorStyle { FromBoundary, FromNextKey, FromLastSearchedCaseKey, FromCurrentPosition };
     void CreateCaseIterator(CaseIteratorStyle case_iterator_style, std::optional<CaseKey> starting_key = std::nullopt,
-                            int dictionary_access = 0, std::optional<CString> key_prefix = std::nullopt,
+                            int dictionary_access = 0, std::optional<std::string> key_prefix = std::nullopt,
                             CaseIterationContent iteration_content = CaseIterationContent::Case);
 
     bool IsCaseIteratorActive() const           { return ( m_rd->m_caseIterator != nullptr ); }
-    bool StepCaseIterator()                     { ASSERT(IsCaseIteratorActive()); return m_rd->m_caseIterator->NextCasetainer(*m_rd->m_case); }
+    bool StepCaseIterator()                     { ASSERT(IsCaseIteratorActive()); return DataRepository::NextCasetainer(*m_rd->m_caseIterator, *m_rd->m_case); }
     bool StepCaseKeyIterator(CaseKey& case_key) { ASSERT(IsCaseIteratorActive()); return m_rd->m_caseIterator->NextCaseKey(case_key); }
     int GetCaseIteratorPercentRead() const      { ASSERT(IsCaseIteratorActive()); return m_rd->m_caseIterator->GetPercentRead(); }
     void StopCaseIterator();

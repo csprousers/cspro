@@ -93,7 +93,7 @@ void CDDGrid::EditChange(UINT uChar) {
             if (!csLabel.IsEmpty() && csName.IsEmpty())  {
                 csName = csLabel;
                 csName.MakeNameRestrictLength();
-                csName = pDoc->GetDict()->GetUniqueName(csName);
+                csName = UTF8_TODO::GetCString(pDoc->GetDict()->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
                 m_aEditControl[2]->SetWindowText(csName);
                 m_aEditControl[2]->Invalidate();
             }
@@ -104,7 +104,7 @@ void CDDGrid::EditChange(UINT uChar) {
                 m_aEditControl[4]->GetWindowText(csFrom);
                 m_aEditControl[6]->GetWindowText(csSpecial);
                 CDictItem* pItem = pDoc->GetDict()->GetLevel(pDoc->GetLevel()).GetRecord(pDoc->GetRec())->GetItem(pDoc->GetItem());
-                if (SO::IsBlank(csFrom) && csSpecial.IsEmpty() && pItem->GetContentType() == ContentType::Numeric) {
+                if (SO::IsBlank(wstring_view(csFrom)) && csSpecial.IsEmpty() && pItem->GetContentType() == ContentType::Numeric) {
                     csSpecial = _T("NotAppl");
                     assert_cast<CDDComboBox*>(m_aEditControl[6])->SetCurSel(3);
                     m_aEditControl[6]->Invalidate();
@@ -169,7 +169,7 @@ void CDDGrid::EditChange(UINT uChar) {
                     // 20111229 if the entered characters are all non-valid characters (like chinese or arabic), leave the name blank rather than fill it in with "name"
                     if( csName.CompareNoCase(_T("NAME")) || !csLabel.CompareNoCase(_T("NAME")) )
                     {
-                        csName = pDoc->GetDict()->GetUniqueName(csName);
+                        csName = UTF8_TODO::GetCString(pDoc->GetDict()->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
                         m_aEditControl[2]->SetWindowText(csName);
                         m_aEditControl[2]->Invalidate();
                     }
@@ -320,7 +320,7 @@ int CDDGrid::OnCanSizeCol(int col){
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDDGrid::OnColSizing(int, int* width) 
+void CDDGrid::OnColSizing(int, int* width)
 {
     if (*width < 30) {
         *width = 30;
@@ -377,7 +377,7 @@ void CDDGrid::OnRowChange(long /*oldrow*/, long newrow)
         size_t record_number = (size_t)( current_row - gridLevel.GetFirstRow() );
 
         if( record_number < (size_t)dict_level.GetNumRecords() )
-            dict_base = dict_level.GetRecord(record_number);  
+            dict_base = dict_level.GetRecord(record_number);
     }
 
     else if( pView->m_iGrid == DictionaryGrid::Record )

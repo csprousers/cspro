@@ -235,7 +235,7 @@ void CRelations::CalculateRelated( std::vector<std::shared_ptr<CItemData>>& aRel
         // item in m_aItemsRelations table. Use common name in CItemDescTable
         //
         std::shared_ptr<CItemDescTable> pItemOcc;
-        CString csName = cdi->GetName();
+        CString csName = UTF8_TODO::GetCString(cdi->GetName());
 
         for( const auto& idt : m_aItemsRelations )
         {

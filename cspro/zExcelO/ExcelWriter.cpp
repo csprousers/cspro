@@ -1,7 +1,8 @@
 ﻿#include "stdafx.h"
 #include "ExcelWriter.h"
 #include <zPlatformO/PlatformInterface.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/PortableFunctions.h>
+#include <zToolsO/NumberToString.h>
 #include <xlsxwriter.h>
 
 
@@ -18,14 +19,14 @@ ExcelWriter::~ExcelWriter()
 }
 
 
-void ExcelWriter::CreateWorkbook(const std::wstring& filename, const bool use_constant_memory_mode/* = true*/)
+void ExcelWriter::CreateWorkbook(const InterfaceString file_path, const bool use_constant_memory_mode/* = true*/)
 {
     ASSERT(m_workbook == nullptr);
 
-    if( PortableFunctions::FileExists(filename) && !PortableFunctions::FileDelete(filename) )
+    if( PortableFunctions::FileExists(file_path) && !PortableFunctions::FileDelete(file_path) )
     {
-        throw CSProException(_T("The Excel file '%s' could not be created. Make sure that it is not open in another application."),
-                             PortableFunctions::PathGetFilename(filename));
+        throw CSProException("The Excel file '%s' could not be created. Make sure that it is not open in another application.",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str());
     }
 
     lxw_workbook_options options
@@ -37,11 +38,11 @@ void ExcelWriter::CreateWorkbook(const std::wstring& filename, const bool use_co
 
 #ifdef ANDROID
     // on Android the temp directory must be specified
-    std::string temp_directory = UTF8Convert::WideToUTF8(PlatformInterface::GetInstance()->GetTempDirectory());
+    std::string temp_directory = PlatformInterface::GetInstance()->GetTempDirectory();
     options.tmpdir = temp_directory.data();
 #endif
 
-    m_workbook = workbook_new_opt(UTF8Convert::WideToUTF8(filename).c_str(), &options);
+    m_workbook = workbook_new_opt(file_path.c_str_utf8(), &options);
 
     if( m_workbook == nullptr )
         throw CSProException("Could not create an Excel workbook.");
@@ -50,23 +51,22 @@ void ExcelWriter::CreateWorkbook(const std::wstring& filename, const bool use_co
 
 void ExcelWriter::Close()
 {
-    if( m_workbook != nullptr )
-    {
-        const lxw_error close_result = workbook_close(m_workbook);
-        ASSERT(close_result == LXW_NO_ERROR);
+    if( m_workbook == nullptr )
+        return;
 
-        m_workbook = nullptr;
-    }
+    const lxw_error close_result = workbook_close(m_workbook);
+    ASSERT(close_result == LXW_NO_ERROR);
+
+    m_workbook = nullptr;
 }
 
 
-size_t ExcelWriter::AddWorksheet(const wstring_view worksheet_name_sv)
+size_t ExcelWriter::AddWorksheet(const cs::string_sz worksheet_name)
 {
-    ASSERT(m_workbook != nullptr);
-    ASSERT(workbook_validate_sheet_name(m_workbook, UTF8Convert::WideToUTF8(worksheet_name_sv).c_str()) == LXW_NO_ERROR);
+    ASSERT(m_workbook != nullptr && ValidateWorksheetName(worksheet_name));
 
-    lxw_worksheet* worksheet = worksheet_name_sv.empty() ? workbook_add_worksheet(m_workbook, nullptr) :
-                                                           workbook_add_worksheet(m_workbook, UTF8Convert::WideToUTF8(worksheet_name_sv).c_str());
+    lxw_worksheet* const worksheet = worksheet_name.empty() ? workbook_add_worksheet(m_workbook, nullptr) :
+                                                              workbook_add_worksheet(m_workbook, worksheet_name.c_str());
 
     if( worksheet == nullptr )
         throw CSProException("Could not create an Excel worksheet.");
@@ -84,30 +84,105 @@ void ExcelWriter::SetCurrentWorksheet(const size_t index)
 }
 
 
-size_t ExcelWriter::AddAndSetCurrentWorksheet(const wstring_view worksheet_name_sv)
+size_t ExcelWriter::AddAndSetCurrentWorksheet(const cs::string_sz worksheet_name)
 {
-    const size_t index = AddWorksheet(worksheet_name_sv);
+    const size_t index = AddWorksheet(worksheet_name);
     SetCurrentWorksheet(index);
     return index;
 }
 
 
-bool ExcelWriter::ValidateWorksheetName(const wstring_view worksheet_name_sv)
+bool ExcelWriter::ValidateWorksheetName(const cs::string_sz worksheet_name)
 {
     ASSERT(m_workbook != nullptr);
-    const lxw_error error_code = workbook_validate_sheet_name(m_workbook, UTF8Convert::WideToUTF8(worksheet_name_sv).c_str());
+    const lxw_error error_code = workbook_validate_sheet_name(m_workbook, worksheet_name.c_str());
     return ( error_code == LXW_NO_ERROR );
 }
 
 
-lxw_format* ExcelWriter::GetFormat(Format format, const std::optional<wstring_view>& numeric_format/* = std::nullopt*/)
+std::string ExcelWriter::CreateValidWorksheetName(std::string worksheet_name)
 {
     ASSERT(m_workbook != nullptr);
 
-    lxw_format* excel_format = workbook_add_format(m_workbook);
+    lxw_error error_code;
 
-    if( numeric_format.has_value() )
-        format_set_num_format(excel_format, UTF8Convert::WideToUTF8(*numeric_format).c_str());
+    while( true )
+    {
+        error_code = workbook_validate_sheet_name(m_workbook, worksheet_name.c_str());
+
+        if( error_code == LXW_NO_ERROR )
+            return worksheet_name;
+
+        // if the worksheet name is blank, use the default SheetN name
+        if( error_code == LXW_ERROR_PARAMETER_IS_EMPTY )
+        {
+            worksheet_name = FormatText("Sheet%d", m_workbook->num_sheets + 1);
+        }
+
+        // if the worksheet name is too long, truncate the name
+        else if( error_code == LXW_ERROR_SHEETNAME_LENGTH_EXCEEDED )
+        {
+            ASSERT(SO::WideLength(worksheet_name) > LXW_SHEETNAME_MAX);
+            SO::WideMakeExactLength(worksheet_name, LXW_SHEETNAME_MAX);
+        }
+
+        // if the worksheet contains invalid characters, remove them
+        else if( error_code == LXW_ERROR_INVALID_SHEETNAME_CHARACTER )
+        {
+            for( size_t ch_pos; ( ch_pos = worksheet_name.find_first_of("[]:*?/\\") ) != std::string::npos; )
+                worksheet_name.erase(ch_pos, 1);
+        }
+
+        // if the worksheet starts or ends with an apostrophe, remove them
+        else if( error_code == LXW_ERROR_SHEETNAME_START_END_APOSTROPHE )
+        {
+            SO::MakeTrim(worksheet_name, '\'');
+        }
+
+        // break if the worksheet name is already in use
+        else if( error_code == LXW_ERROR_SHEETNAME_ALREADY_USED )
+        {
+            break;
+        }
+    }
+
+    ASSERT(error_code == LXW_ERROR_SHEETNAME_ALREADY_USED);
+
+    // when the worksheet name is already in use, append numbers to the end until the name is unique, trying up to 99999
+    constexpr int MaxNumber = 99999;
+    constexpr size_t MaxNumberLength = IntToStringLength(MaxNumber) + 1; // + 1 is for the _
+
+    if( ( SO::WideLength(worksheet_name) + MaxNumberLength ) > LXW_SHEETNAME_MAX )
+        SO::WideMakeExactLength(worksheet_name, LXW_SHEETNAME_MAX - MaxNumberLength);
+
+    for( int i = 1; i <= MaxNumber; ++i )
+    {
+        std::string test_worksheet_name = FormatText("%s_%d", worksheet_name.c_str(), i);
+        ASSERT(SO::WideLength(test_worksheet_name) <= LXW_SHEETNAME_MAX);
+
+        error_code = workbook_validate_sheet_name(m_workbook, test_worksheet_name.c_str());
+
+        if( error_code == LXW_NO_ERROR )
+            return test_worksheet_name;
+
+        if( error_code != LXW_ERROR_SHEETNAME_ALREADY_USED )
+            break;
+    }
+
+    // unless there were 99999 versions of the worksheet name, we should not be here;
+    // in that case, return the default sheet name
+    return ReturnProgrammingError(CreateValidWorksheetName(""));
+}
+
+
+lxw_format* ExcelWriter::GetFormat(const Format format, const char* const numeric_format/* = nullptr*/)
+{
+    ASSERT(m_workbook != nullptr);
+
+    lxw_format* const excel_format = workbook_add_format(m_workbook);
+
+    if( numeric_format != nullptr )
+        format_set_num_format(excel_format, numeric_format);
 
     auto selected = [&](const Format check_format)
     {
@@ -151,14 +226,14 @@ lxw_format* ExcelWriter::GetFormat(Format format, const std::optional<wstring_vi
 }
 
 
-void ExcelWriter::Write(const uint32_t row, const uint16_t column, const wstring_view text_sv, lxw_format* format/* = nullptr*/)
+void ExcelWriter::Write(const uint32_t row, const uint16_t column, const cs::string_sz text, lxw_format* const format/* = nullptr*/)
 {
     ASSERT(m_currentWorksheet != nullptr);
-    worksheet_write_string(m_currentWorksheet, row, column, UTF8Convert::WideToUTF8(text_sv).c_str(), format);
+    worksheet_write_string(m_currentWorksheet, row, column, text.c_str(), format);
 }
 
 
-void ExcelWriter::Write(const uint32_t row, const uint16_t column, const double value, lxw_format* format/* = nullptr*/)
+void ExcelWriter::Write(const uint32_t row, const uint16_t column, const double value, lxw_format* const format/* = nullptr*/)
 {
     ASSERT(m_currentWorksheet != nullptr);
     worksheet_write_number(m_currentWorksheet, row, column, value, format);
@@ -166,21 +241,21 @@ void ExcelWriter::Write(const uint32_t row, const uint16_t column, const double 
 
 
 void ExcelWriter::WriteMerged(const uint32_t first_row, const uint16_t first_column, const uint32_t last_row, const uint16_t last_column,
-                              const wstring_view text_sv, lxw_format* format/* = nullptr*/)
+                              const cs::string_sz text, lxw_format* const format/* = nullptr*/)
 {
     ASSERT(m_currentWorksheet != nullptr);
-    worksheet_merge_range(m_currentWorksheet, first_row, first_column, last_row, last_column, UTF8Convert::WideToUTF8(text_sv).c_str(), format);
+    worksheet_merge_range(m_currentWorksheet, first_row, first_column, last_row, last_column, text.c_str(), format);
 }
 
 
-void ExcelWriter::WriteUrl(const uint32_t row, const uint16_t column, const wstring_view url_sv, lxw_format* format/* = nullptr*/)
+void ExcelWriter::WriteUrl(const uint32_t row, const uint16_t column, const cs::string_sz url, lxw_format* const format/* = nullptr*/)
 {
     ASSERT(m_currentWorksheet != nullptr);
-    worksheet_write_url(m_currentWorksheet, row, column, UTF8Convert::WideToUTF8(url_sv).c_str(), format);
+    worksheet_write_url(m_currentWorksheet, row, column, url.c_str(), format);
 }
 
 
-double ExcelWriter::GetWidthForText(const TextType text_type, const unsigned number_characters, lxw_format* format/* = nullptr*/)
+double ExcelWriter::GetWidthForText(const TextType text_type, const unsigned number_characters, lxw_format* const format/* = nullptr*/)
 {
     // these numbers come from tests in Excel using the default font size 11
     constexpr double DefaultFontSize = 11;
@@ -193,7 +268,7 @@ double ExcelWriter::GetWidthForText(const TextType text_type, const unsigned num
 }
 
 
-double ExcelWriter::GetHeightForText(const unsigned lines, lxw_format* format/* = nullptr*/)
+double ExcelWriter::GetHeightForText(const unsigned lines, lxw_format* const format/* = nullptr*/)
 {
     // this number matches with the row height 15 according to font size 11
     constexpr double DefaultFontSize = 11;

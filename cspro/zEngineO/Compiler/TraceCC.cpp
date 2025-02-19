@@ -19,7 +19,7 @@ void LogicCompiler::CompileSetTrace()
     {
         IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-        m_tracingLogic = ( NextKeywordOrError({ _T("on"), _T("off") }) == 1 );
+        m_tracingLogic = ( NextKeywordOrError({ "on", "off" }) == 1 );
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
@@ -40,7 +40,7 @@ int LogicCompiler::CompileTraceFunction()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    size_t trace_type = NextKeyword({ _T("on"), _T("off") });
+    const size_t trace_type = NextKeyword({ "on", "off" });
 
     if( trace_type != 0 )
     {
@@ -61,7 +61,7 @@ int LogicCompiler::CompileTraceFunction()
                 {
                     trace_node.action = Nodes::Trace::Action::FileOnClear;
 
-                    if( NextKeyword({ _T("clear") }) != 1 )
+                    if( NextKeyword({ "clear" }) != 1 )
                         IssueError(MGF::trace_filename_argument_error_7103);
 
                     NextToken();
@@ -92,15 +92,15 @@ int LogicCompiler::CompileTraceFunction()
 
 namespace
 {
-    std::wstring GetCompilerTextForTrace(TokenCode token_code, cs::span<const Logic::BasicToken> basic_tokens)
+    std::string GetCompilerTextForTrace(const TokenCode token_code, cs::span<const Logic::BasicToken> basic_tokens)
     {
         const Logic::BasicToken* basic_tokens_itr = basic_tokens.begin();
         const Logic::BasicToken* basic_tokens_end = basic_tokens.end();
 
         if( basic_tokens_itr == basic_tokens_end )
-            return ReturnProgrammingError(std::wstring());
+            return ReturnProgrammingError(std::string());
 
-        std::wstring trace_text = FormatTextCS2WS(_T("%-5d:  %s"), basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
+        std::string trace_text = FormatText("%-5d:  %s", basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
 
         bool process_one_line = false;
 
@@ -132,7 +132,7 @@ namespace
                     break;
 
                 // or format the trace text, adding the newline character and spacing the line out to match the line number formatting
-                trace_text.append(_T("\r\n        "));
+                trace_text.append("\r\n        ");
             }
 
             // add spacing to match the source spacing
@@ -145,7 +145,7 @@ namespace
             }
 
             // add the text
-            trace_text.append(basic_token.GetTextSV());
+            trace_text.append(basic_token.GetSV());
 
             // break on a semicolon
             if( basic_token.token_code == TokenCode::TOKSEMICOLON )
@@ -169,7 +169,7 @@ int LogicCompiler::CreateTraceStatement()
         return -1;
 
     // create the trace function node
-    std::wstring trace_text = GetCompilerTextForTrace(Tkn, GetBasicTokensSpanFromCurrentToken());
+    std::string trace_text = GetCompilerTextForTrace(Tkn, GetBasicTokensSpanFromCurrentToken());
 
     auto& trace_node = CreateNode<Nodes::Trace>(FunctionCode::FNTRACE_CODE);
 

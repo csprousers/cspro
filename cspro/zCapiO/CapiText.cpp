@@ -1,13 +1,13 @@
 ﻿#include "StdAfx.h"
 #include "CapiText.h"
-#include <sstream>
 #include <zToolsO/Encoders.h>
+#include <sstream>
 
 
 const std::vector<CapiText::Delimiter> CapiText::DefaultDelimiters =
 {
-    CapiText::Delimiter{_T("~~~"), false},
-    CapiText::Delimiter{_T("~~"), true}
+    CapiText::Delimiter { L"~~~", false },
+    CapiText::Delimiter { L"~~", true }
 };
 
 
@@ -84,10 +84,10 @@ CString CapiText::ReplaceFills(const std::vector<Delimiter>& delimiters, const s
     while (current < m_text.GetLength()) {
         std::optional<NextDelimeter> next_delim = FindNextDelimeter(m_text, current, delimiters);
         if (next_delim) {
-            ss << (LPCTSTR)m_text.Mid(current, next_delim->pos - current);
+            ss << m_text.Mid(current, next_delim->pos - current).GetString();
             int end = FindEndDelimiter(m_text, *next_delim);
             if (end < 0) {
-                ss << (LPCTSTR)m_text.Mid(next_delim->pos);
+                ss << m_text.Mid(next_delim->pos).GetString();
                 break;
             }
             else {
@@ -96,19 +96,19 @@ CString CapiText::ReplaceFills(const std::vector<Delimiter>& delimiters, const s
                 auto replacement = replacements.find(text_to_replace);
                 if (replacement != replacements.end()) {
                     if (next_delim->delimeter->escape_html) {
-                        ss << Encoders::ToHtml(SO::TrimRight(replacement->second)).c_str();
+                        ss << UTF8_TODO::GetWide(Encoders::ToHtml(UTF8_TODO::GetUtf8(SO::TrimRight(replacement->second)))).c_str();
                     }
                     else {
-                        ss << (LPCTSTR)replacement->second;
+                        ss << replacement->second.GetString();
                     }
                 } else {
-                    ss << (LPCTSTR)text_to_replace;
+                    ss << text_to_replace.GetString();
                 }
                 current = end + next_delim->delimeter->characters.GetLength();
             }
         }
         else {
-            ss << (LPCTSTR)m_text.Mid(current);
+            ss << m_text.Mid(current).GetString();
             break;
         }
     }

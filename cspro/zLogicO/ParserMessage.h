@@ -3,44 +3,46 @@
 #include <zToolsO/CSProException.h>
 #include <zCapiO/CapiLogicParameters.h>
 
+namespace Logic { struct ParserError; struct ParserMessage; }
 
-namespace Logic
+
+struct Logic::ParserMessage : public CSProException
 {
-    struct ParserMessage : public CSProException
+    enum class Type { Error, Warning, DeprecationMajor, DeprecationMinor };
+
+    struct LineNumberOverride { size_t line_number; };
+    struct MessageFile { };
+    using ExtendedLocation = std::variant<std::monostate, CapiLogicLocation, LineNumberOverride, MessageFile>;
+
+    ParserMessage(Type _type)
+        :   CSProException("Logic - Parser Message"),
+            type(_type),
+            message_number(INT_MAX),
+            line_number(0),
+            position_in_line(0)
     {
-        enum class Type { Error, Warning, DeprecationMajor, DeprecationMinor };
+    }
 
-        struct MessageFile { };
-        using ExtendedLocation = std::variant<std::monostate, CapiLogicLocation, MessageFile>;
+    virtual ~ParserMessage() { }
 
-        ParserMessage(Type _type)
-            :   CSProException("Logic - Parser Message"),
-                type(_type),
-                message_number(INT_MAX),
-                line_number(0),
-                position_in_line(0)
-        {
-        }
+    bool IsDeprecationWarning() const { return ( type == Type::DeprecationMajor || type == Type::DeprecationMinor ); }
 
-        virtual ~ParserMessage() { }
+    Type type;
+    int message_number;
+    std::string message_text;
+    size_t line_number;
+    size_t position_in_line;
+    std::string compilation_unit_name;
+    std::string proc_name;
+    ExtendedLocation extended_location;
+};
 
-        bool IsDeprecationWarning() const { return ( type == Type::DeprecationMajor || type == Type::DeprecationMinor ); }
 
-        Type type;
-        int message_number;
-        std::wstring message_text;
-        size_t line_number;
-        size_t position_in_line;
-        std::wstring compilation_unit_name;
-        std::wstring proc_name;
-        ExtendedLocation extended_location;
-    };
 
-    struct ParserError : public ParserMessage
+struct Logic::ParserError : public ParserMessage
+{
+    ParserError()
+        :   ParserMessage(ParserMessage::Type::Error)
     {
-        ParserError()
-            :   ParserMessage(ParserMessage::Type::Error)
-        {
-        }
-    };
-}
+    }
+};

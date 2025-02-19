@@ -46,7 +46,7 @@ inline std::shared_ptr<ActionInvoker::Runtime> CommonObjectTransporter::OnGetAct
 {
     if( m_actionInvokerRuntime == nullptr )
     {
-        m_actionInvokerRuntime = std::make_shared<ActionInvoker::Runtime>();
+        m_actionInvokerRuntime = std::make_unique<ActionInvoker::Runtime>();
 
         if( DisableAccessTokenCheckForExternalCallers() )
             m_actionInvokerRuntime->DisableAccessTokenCheckForExternalCallers();

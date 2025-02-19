@@ -7,7 +7,7 @@
 #include <zHtml/UWM.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Screen.h>
-#include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/PortableColor.h>
@@ -15,5 +15,5 @@
 
 #ifdef WIN_DESKTOP
 #include <zUtilO/WindowHelpers.h>
-#include <zUtilO/WindowsWS.h>
+#include <zUtilO/WindowsUtf8.h>
 #endif

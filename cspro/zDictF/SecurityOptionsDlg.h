@@ -3,37 +3,34 @@
 
 class SecurityOptionsDlg : public CDialog
 {
-    DECLARE_DYNAMIC(SecurityOptionsDlg)
-
 public:
-    SecurityOptionsDlg(const CDataDict& dictionary, CWnd* pParent = NULL); // standard constructor
+    SecurityOptionsDlg(const CDataDict& dictionary, CWnd* pParent = nullptr);
 
-    bool GetAllowDataViewerModifications() const { return ( m_allowDataViewerModifications != 0 ); }
-    bool GetAllowExport() const                  { return ( m_allowExport != 0 ); }
-    int GetCachedPasswordMinutes() const         { return m_cachedPasswordMinutes; }
-
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-    enum { IDD = IDD_SECURITY_OPTIONS };
-#endif
+    bool GetAllowDataManagerModifications() const { return m_allowDataManagerModifications; }
+    bool GetAllowExport() const                   { return m_allowExport; }
+    int GetCachedPasswordMinutes() const          { return m_cachedPasswordMinutes; }
 
 protected:
     DECLARE_MESSAGE_MAP()
 
     BOOL OnInitDialog() override;
     void DoDataExchange(CDataExchange* pDX) override;
+
     void OnOK() override;
 
-    afx_msg void OnMinutesComboChange();
-    afx_msg void OnMinutesTextChange();
-
-
-protected:
-    CComboBox m_minutesCombo;
-    CIMSAString m_minutesText;
+    void OnMinutesComboChange();
+    void OnMinutesTextChange();
 
 private:
-    BOOL m_allowDataViewerModifications;
-    BOOL m_allowExport;
+    static std::string MinutesToText(int minutes);
+    static int MinutesToComboBoxIndex(int minutes);
+
+
+private:
+    bool m_allowDataManagerModifications;
+    bool m_allowExport;
     int m_cachedPasswordMinutes;
+
+    std::string m_minutesText;
+    CComboBox m_minutesCombo;
 };

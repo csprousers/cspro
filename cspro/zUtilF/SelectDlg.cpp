@@ -1,12 +1,13 @@
 ﻿#include "StdAfx.h"
 #include "SelectDlg.h"
 
+
 CREATE_JSON_KEY(columns)
 CREATE_JSON_KEY(header)
 CREATE_JSON_KEY(rowIndices)
 
 
-SelectDlg::SelectDlg(bool single_selection, size_t number_columns)
+SelectDlg::SelectDlg(const bool single_selection, const size_t number_columns)
     :   m_singleSelection(single_selection),
         m_numberColumns(number_columns)
 {
@@ -14,18 +15,18 @@ SelectDlg::SelectDlg(bool single_selection, size_t number_columns)
 }
 
 
-const TCHAR* SelectDlg::GetDialogName()
+std::string SelectDlg::GetDialogName()
 {
-    return _T("select");
+    return "select";
 }
 
 
-std::wstring SelectDlg::GetJsonArgumentsText()
+SharableString SelectDlg::GetJsonArgumentsText()
 {
     ASSERT(!m_rows.empty());
     ASSERT(m_header.empty() || m_header.size() == m_rows.front().column_texts.size());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     // title + multiple
     json_writer->BeginObject()
@@ -38,7 +39,7 @@ std::wstring SelectDlg::GetJsonArgumentsText()
     for( size_t i = 0; i < m_numberColumns; ++i )
     {
         json_writer->BeginObject()
-                    .Write(JK::caption, !m_header.empty() ? m_header[i] : std::wstring())
+                    .Write(JK::caption, !m_header.empty() ? *m_header[i] : SO::Empty_string)
                     .EndObject();
     }
 
@@ -56,7 +57,7 @@ std::wstring SelectDlg::GetJsonArgumentsText()
 
             // columns
             json_writer->WriteObjects(JK::columns, row.column_texts,
-                [&](const std::wstring& column_text)
+                [&](const SharableString& column_text)
                 {
                     json_writer->Write(JK::text, column_text);
                 });
@@ -64,20 +65,20 @@ std::wstring SelectDlg::GetJsonArgumentsText()
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-void SelectDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void SelectDlg::ProcessJsonResults(const JsonNode& json_results)
 {
     m_selectedRows.emplace();
 
-    for( const auto& row_index_element : json_results.GetArray(JK::rowIndices) )
+    for( const JsonNode& row_index_element : json_results.GetArray(JK::rowIndices) )
     {
-        size_t row_index = row_index_element.Get<size_t>();
+        const size_t row_index = row_index_element.Get<size_t>();
 
         if( row_index >= m_rows.size() )
-            throw CSProException(_T("Invalid row index: %d"), static_cast<int>(row_index));
+            throw CSProException("Invalid row index: %d", static_cast<int>(row_index));
 
         m_selectedRows->insert(row_index);
     }

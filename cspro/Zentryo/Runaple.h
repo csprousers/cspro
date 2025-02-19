@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //////////////////////////////////////////////////////////////////////
 // RunAplE.h: interface for CRunAplEntry class.
 //////////////////////////////////////////////////////////////////////
@@ -12,7 +13,6 @@
 #include <zHtml/UseHtmlDialogs.h>
 #include <zCaseO/CaseDefines.h>
 
-struct AppSyncParameters;
 class CCapi;
 class CDEBlock;
 class CDEItemBase;
@@ -436,14 +436,15 @@ public:
     // Other methods
     CSettings* GetSettings() { return ( m_pEntryIFaz != nullptr ) ? m_pEntryIFaz->GetSettings() : nullptr; }
 
-    void SetStopAdvance(bool bFlag) { m_pEntryIFaz->GetEntryDriver()->SetStopAdvance(bFlag);} //SAVY
-    void SetStopOnOutOfRange(bool bFlag) { m_pEntryIFaz->GetEntryDriver()->SetStopOnOutOfRange(bFlag);} //SAVY
+    void SetStopAdvance(bool bFlag)      { GetEntryDriver()->SetStopAdvance(bFlag);} //SAVY
+    void SetStopOnOutOfRange(bool bFlag) { GetEntryDriver()->SetStopOnOutOfRange(bFlag);} //SAVY
 
-    void SetIgnoreWrite(bool bFlag) { m_pEntryIFaz->GetEntryDriver()->SetIgnoreWrite(bFlag);} //SAVY
+    void SetIgnoreWrite(bool bFlag)     { GetEntryDriver()->SetIgnoreWrite(bFlag);} //SAVY
     void SetInteractiveEdit(bool bFlag) { m_pEntryIFaz->GetSettings()->SetInteractiveEdit(bFlag);} // 20130711 modified where this is located
 
     // BMD  15 Feb 2005
-    CEntryDriver* GetEntryDriver() { return m_pEntryIFaz->GetEntryDriver();}
+    CEntryDriver* GetEntryDriver()             { return m_pEntryIFaz->GetEntryDriver(); }
+    const CEntryDriver* GetEntryDriver() const { return m_pEntryIFaz->GetEntryDriver(); }
     // --- for CsDriver only                    <begin> // victor Feb 20, 02
     void ResetDoorCondition( void );
     // --- for CsDriver only                    <end>   // victor Feb 20, 02
@@ -465,7 +466,7 @@ public:
     int              GetNumLevels( bool bPrimaryFlow ); // If not primary, current
     CString          GetCurrentKey( int iLevel );
 
-    bool SetCurrentLanguage(wstring_view language_name);
+    bool SetCurrentLanguage(std::string_view language_name_sv);
     std::vector<Language> GetLanguages(bool include_only_capi_languages = true) const;
     bool ChangeLanguage();
 
@@ -474,7 +475,7 @@ public:
 
 
     CDEField*       GetDeField( DEFLD* pFld );
-    void            RunGlobalOnFocus( int iVar );
+    void            RunGlobalOnFocus(int symbol_index);
 
     bool            QidReady( int iLevel );
 
@@ -494,7 +495,7 @@ public:
     CDEItemBase*    RunCsDriver( bool bCheckRange ); // RHF Nov 06, 2003
 //BUCEN_2003 Changes End
 
-    CNPifFile*  GetPifFile();  //FABN Oct 2005
+    CNPifFile* GetPifFile() { return m_pPifFile; }  //FABN Oct 2005
 
     //FABN Jan 03, 2006 : fast access to know which is the form that holds the given item.
     CDEForm*        GetForm( CDEItemBase* pItemBase, bool bPrimaryFlow );
@@ -505,12 +506,12 @@ public:
     //FABN Jan 04, 2006 : is just GetEntryObject for the current item
     CDEFormBase*    GetCurEntryObject( bool bPrimaryFlow );
 
-    bool RunSync(const AppSyncParameters& params);
+    int RunSync(const AppSyncParameters& sync_params);
 
     Userbar* GetUserbar();
     void PauseUserbar(bool pause);
 
-    void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& user_function_argument_evaluator);
+    void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator);
 
     void StopIfNecessary(); // 20121023 for stopping after OnKey and OnChar calls
     bool IsStopRequested(); // 20140131

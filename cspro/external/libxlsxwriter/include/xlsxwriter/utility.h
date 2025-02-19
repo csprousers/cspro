@@ -1,7 +1,8 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  */
 
 /**
@@ -9,7 +10,7 @@
  *
  * @brief Utility functions for libxlsxwriter.
  *
- * <!-- Copyright 2014-2022, John McNamara, jmcnamara@cpan.org -->
+ * <!-- Copyright 2014-2024, John McNamara, jmcnamara@cpan.org -->
  *
  */
 
@@ -220,10 +221,9 @@ double lxw_unixtime_to_excel_date_epoch(int64_t unixtime, uint8_t date_1904);
 
 char *lxw_strdup(const char *str);
 char *lxw_strdup_formula(const char *formula);
-
 size_t lxw_utf8_strlen(const char *str);
-
 void lxw_str_tolower(char *str);
+uint8_t lxw_str_is_empty(const char *str);
 
 /* Define a portable version of strcasecmp(). */
 #ifdef _MSC_VER
@@ -232,8 +232,8 @@ void lxw_str_tolower(char *str);
 #define lxw_strcasecmp strcasecmp
 #endif
 
-FILE *lxw_tmpfile(char *tmpdir);
-FILE *lxw_get_filehandle(char **buf, size_t *size, char *tmpdir);
+FILE *lxw_tmpfile(const char *tmpdir);
+FILE *lxw_get_filehandle(char **buf, size_t *size, const char *tmpdir);
 FILE *lxw_fopen(const char *filename, const char *mode);
 
 /* Use the third party dtoa function to avoid locale issues with sprintf

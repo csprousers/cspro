@@ -14,7 +14,7 @@ CDictRecord::CDictRecord(bool id_record/* = false*/)
 {
     if( m_idRecord )
     {
-        SetName(_T("_IDS"));
+        SetName("_IDS");
         SetLabel(_T("(Id Items)"));
     }
 
@@ -69,22 +69,23 @@ CDictRecord::~CDictRecord()
 
 
 
-const CDictItem* CDictRecord::FindItem(wstring_view item_name) const
+const CDictItem* CDictRecord::FindItem(const std::string_view item_name_sv) const
 {
     for( int i = 0; i < GetNumItems(); ++i )
     {
-        const CDictItem* pItem = GetItem(i);
+        const CDictItem* const dict_item = GetItem(i);
 
-        if( SO::EqualsNoCase(item_name, pItem->GetName()) )
-            return pItem;
+        if( SO::EqualsNoCase(item_name_sv, dict_item->GetName()) )
+            return dict_item;
     }
 
     return nullptr;
 }
 
-CDictItem* CDictRecord::FindItem(wstring_view item_name)
+
+CDictItem* CDictRecord::FindItem(const std::string_view item_name_sv)
 {
-    return const_cast<CDictItem*>(const_cast<const CDictRecord*>(this)->FindItem(item_name));
+    return const_cast<CDictItem*>(const_cast<const CDictRecord*>(this)->FindItem(item_name_sv));
 }
 
 
@@ -204,7 +205,7 @@ void CDictRecord::operator=(const CDictRecord& record)
 }
 
 
-CDictRecord CDictRecord::CreateFromJson(const JsonNode<wchar_t>& json_node, bool id_record/* = false*/)
+CDictRecord CDictRecord::CreateFromJson(const JsonNode& json_node, bool id_record/* = false*/)
 {
     CDictRecord dict_record(id_record);
 
@@ -219,7 +220,7 @@ CDictRecord CDictRecord::CreateFromJson(const JsonNode<wchar_t>& json_node, bool
     {
         dict_record.DictNamedBase::ParseJsonInput(json_node);
 
-        dict_record.m_csRecTypeVal = json_node.GetOrDefault(JK::recordType, SO::EmptyCString);
+        dict_record.m_csRecTypeVal = json_node.GetOrConstruct<CString>(JK::recordType);
 
         const auto& occurrences_node = json_node.Get(JK::occurrences);
 
@@ -240,7 +241,7 @@ CDictRecord CDictRecord::CreateFromJson(const JsonNode<wchar_t>& json_node, bool
     std::vector<CDictItem> dict_items = json_node.GetArrayOrEmpty(JK::items).GetVector<CDictItem>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("An item was not added to '%s' due to errors: %s"), (LPCTSTR)dict_record.GetName(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("An item was not added to '%s' due to errors: %s", dict_record.GetName().c_str(), exception.what());
         });
 
     for( const CDictItem& dict_item : dict_items )

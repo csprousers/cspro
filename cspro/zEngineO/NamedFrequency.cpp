@@ -7,7 +7,7 @@
 // NamedFrequency
 // --------------------------------------------------------------------------
 
-NamedFrequency::NamedFrequency(std::wstring frequency_name)
+NamedFrequency::NamedFrequency(std::string frequency_name)
     :   Symbol(std::move(frequency_name), SymbolType::NamedFrequency),
         m_frequencyDriver(nullptr)
 {

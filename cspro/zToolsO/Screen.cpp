@@ -5,7 +5,7 @@
 
 namespace
 {
-    const double MaxDisplaySize = 0.90;
+    constexpr double MaxDisplaySize = 0.90;
 }
 
 
@@ -46,27 +46,28 @@ const Screen& Screen::Instance()
 }
 
 
-LONG Screen::ParseDimensionText(const std::wstring& dimension_text, LONG max_display_size, std::function<void()> on_error_callback/* = { }*/)
+LONG Screen::ParseDimensionText(const std::string& dimension_text, const LONG max_display_size,
+                                const std::function<void()> on_error_callback/* = { }*/)
 {
     // if the text is not simply a number, the "px" or "%" suffixes are processed
-    constexpr wstring_view PixelText = _T("px");
-    constexpr wstring_view PercentText = _T("%");
+    constexpr std::string_view PixelText_sv = "px";
+    constexpr std::string_view PercentText_sv = "%";
 
     LONG dimension_value = 0;
 
     try
     {
         size_t post_value_pos;
-        double value = std::stod(dimension_text, &post_value_pos);        
+        const double value = std::stod(dimension_text, &post_value_pos);
 
-        wstring_view type_sv = SO::Trim(wstring_view(dimension_text).substr(post_value_pos));
+        const std::string_view type_sv = SO::Trim(std::string_view(dimension_text).substr(post_value_pos));
 
-        if( type_sv.empty() || type_sv == PixelText )
+        if( type_sv.empty() || SO::EqualsNoCase(type_sv, PixelText_sv) )
         {
             dimension_value = static_cast<LONG>(value);
         }
 
-        else if( SO::EqualsNoCase(type_sv, PercentText) )
+        else if( type_sv == PercentText_sv )
         {
             dimension_value = static_cast<LONG>(value / 100 * max_display_size);
         }

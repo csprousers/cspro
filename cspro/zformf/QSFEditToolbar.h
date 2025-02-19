@@ -9,10 +9,7 @@ class CMFCToolBarFontComboBox;
 
 class QSFEditToolbar : public CMFCToolBar
 {
-    DECLARE_DYNCREATE(QSFEditToolbar)
-
 public:
-
     QSFEditToolbar();
 
     void SetStyles(const std::vector<HtmlEditorCtrl::Style>& styles);
@@ -34,13 +31,13 @@ public:
 
     void SetLanguages(const std::vector<Language>& languages);
     void SetLanguage(const Language& language);
-    CString GetLanguageLabel() const;
+    std::string GetLanguageLabel() const;
 
     BOOL OnUserToolTip(CMFCToolBarButton* pButton, CString& strTTText) const override;
 
 protected:
     CPalette m_palColorPicker;
-    int	m_nNumColours;
+    int m_nNumColours;
     std::vector<HtmlEditorCtrl::Style> m_styles;
 
     int GetImageIndex(UINT command);
@@ -53,5 +50,5 @@ protected:
     afx_msg LRESULT OnIdleUpdateCmdUI(WPARAM wParam, LPARAM);
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
-   
+
 };

@@ -32,7 +32,7 @@ protected:
 
 private:
     template<typename CF>
-    void SendMessageToWebView2(const TCHAR* action, CF callback_function);
+    void SendMessageToWebView2(const char* action, CF callback_function);
 
 private:
     HtmlViewCtrl m_htmlViewCtrl;

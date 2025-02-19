@@ -29,7 +29,7 @@ namespace
             spaces -= 2;
         }
 
-        reference_text.AppendFormat(_T("%s%s%s\n"), SO::GetRepeatingCharacterString(' ', spaces), add_arrow ? _T("` ") : _T(""), text_to_add);
+        reference_text.AppendFormat(_T("%s%s%s\n"), UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? _T("` ") : _T(""), text_to_add);
     }
 
     void AddCommaSeparatedList(CString& reference_text, const std::vector<CString>& list)
@@ -54,10 +54,10 @@ namespace
 
         constexpr const TCHAR* ActionInvokerTitle = _T("Action Invoker Details");
         constexpr size_t ActionInvokerTitleLength = wstring_view(ActionInvokerTitle).length();
-        reference_text.AppendFormat(_T("\n%s\n%s\n"), ActionInvokerTitle, SO::GetRepeatingCharacterString(_T('‾'), ActionInvokerTitleLength));
+        reference_text.AppendFormat(_T("\n%s\n%s\n"), ActionInvokerTitle, UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', ActionInvokerTitleLength)).c_str());
 
         if( !function_definition->description.empty() )
-            reference_text.AppendFormat(_T("Description: %s\n"), function_definition->description.c_str());
+            reference_text.AppendFormat(_T("Description: %s\n"), UTF8_TODO::GetWide(function_definition->description).c_str());
 
         if( !function_definition->parameters.empty() )
         {
@@ -66,10 +66,10 @@ namespace
             for( const GF::Parameter& parameter : function_definition->parameters )
             {
                 reference_text.Append(_T("\n"));
-                AddTabbedText(reference_text, FormatText(_T("Name: %s"), parameter.variable.name.c_str()), 1, true);
+                AddTabbedText(reference_text, FormatText(_T("Name: %s"), UTF8_TODO::GetWide(parameter.variable.name).c_str()), 1, true);
 
                 if( !parameter.variable.description.empty() )
-                    AddTabbedText(reference_text, FormatText(_T("Description: %s"), parameter.variable.description.c_str()), 1, false);
+                    AddTabbedText(reference_text, FormatText(_T("Description: %s"), UTF8_TODO::GetWide(parameter.variable.description).c_str()), 1, false);
 
                 AddTabbedText(reference_text, FormatText(_T("Required: %s"), parameter.required ? _T("Yes") : _T("No")), 1, false);
             }
@@ -81,7 +81,7 @@ namespace
 
             if( function_definition->returns.size() == 1 && function_definition->returns.front().name.empty() )
             {
-                reference_text.AppendFormat(_T(" %s\n"), function_definition->returns.front().description.c_str());
+                reference_text.AppendFormat(_T(" %s\n"), UTF8_TODO::GetWide(function_definition->returns.front().description).c_str());
             }
 
             else
@@ -95,10 +95,10 @@ namespace
                     reference_text.Append(_T("\n"));
 
                     if( !variable.name.empty() )
-                        AddTabbedText(reference_text, FormatText(_T("Name: %s"), variable.name.c_str()), 1, true);
+                        AddTabbedText(reference_text, FormatText(_T("Name: %s"), UTF8_TODO::GetWide(variable.name).c_str()), 1, true);
 
                     if( !variable.description.empty() )
-                        AddTabbedText(reference_text, FormatText(_T("Description: %s"), variable.description.c_str()), 1, false);
+                        AddTabbedText(reference_text, FormatText(_T("Description: %s"), UTF8_TODO::GetWide(variable.description).c_str()), 1, false);
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace
 
     void AddEngineFunction(CString& reference_text, const Logic::FunctionDetails& function_details)
     {
-        reference_text.AppendFormat(_T("%s\n"), function_details.tooltip);
+        reference_text.AppendFormat(_T("%s\n"), UTF8_TODO::GetWide(function_details.tooltip).c_str());
 
         if( function_details.compilation_type == Logic::FunctionCompilationType::CS )
             AddActionInvokerFunction(reference_text, static_cast<ActionInvoker::Action>(function_details.number_arguments));
@@ -176,7 +176,7 @@ namespace
         {
             for( const DictLevel& dict_level : dictionary->GetLevels() )
             {
-                if( dict_level.GetName().CompareNoCase(level_name) == 0 )
+                if( SO::EqualsNoCase(dict_level.GetName(), level_name) )
                 {
                     *out_dictionary = dictionary;
                     *out_dict_level = &dict_level;
@@ -298,7 +298,7 @@ namespace
                                             first_pair ? dict_value.GetLabel().GetString() : _T(""),
                                             dict_value_pair.GetFrom().GetString(),
                                             dict_value_pair.GetTo().GetString(),
-                                            dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : _T(""));
+                                            dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : _T(""));
                 first_pair = false;
             }
         }
@@ -310,12 +310,12 @@ namespace
         // more than one record with names like _IDS0
         if( dict_level.GetIdItemsRec() == record )
         {
-            return FormatText(_T("%s.%s"), dictionary.GetName().GetString(), record->GetName().GetString());
+            return UTF8_TODO::GetCString(dictionary.MakeQualifiedName(record->GetName()));
         }
 
         else
         {
-            return record->GetName();
+            return UTF8_TODO::GetCString(record->GetName());
         }
     }
 
@@ -326,12 +326,12 @@ namespace
         if( levels_to_display >= 1 )
         {
             const CDataDict* dictionary = assert_cast<const CDataDict*>(hierarchy[0]);
-            AddTabbedText(reference_text, dictionary->GetName(), 0, false);
+            AddTabbedText(reference_text, UTF8_TODO::GetCString(dictionary->GetName()), 0, false);
 
             if( levels_to_display >= 2 )
             {
                 const DictLevel& dict_level = assert_cast<const DictLevel&>(*hierarchy[1]);
-                AddTabbedText(reference_text, dict_level.GetName(), 1, true);
+                AddTabbedText(reference_text, UTF8_TODO::GetCString(dict_level.GetName()), 1, true);
 
                 if( levels_to_display >= 3 )
                 {
@@ -340,10 +340,10 @@ namespace
 
                     if( levels_to_display >= 4 )
                     {
-                        AddTabbedText(reference_text, assert_cast<const CDictItem*>(hierarchy[3])->GetName(), 3, true);
+                        AddTabbedText(reference_text, UTF8_TODO::GetCString(assert_cast<const CDictItem*>(hierarchy[3])->GetName()), 3, true);
 
                         if( levels_to_display >= 5 )
-                            AddTabbedText(reference_text, assert_cast<const DictValueSet&>(*hierarchy[4]).GetName(), 4, true);
+                            AddTabbedText(reference_text, UTF8_TODO::GetCString(assert_cast<const DictValueSet&>(*hierarchy[4]).GetName()), 4, true);
                     }
                 }
             }
@@ -366,14 +366,14 @@ namespace
 
             else
             {
-                reference_text.AppendFormat(_T("Level %s's IDs: "), dict_level.GetName().GetString());
+                reference_text.AppendFormat(_T("Level %s's IDs: "), UTF8_TODO::GetWide(dict_level.GetName()).c_str());
             }
 
             const CDictRecord* record = dict_level.GetIdItemsRec();
             std::vector<CString> id_names;
 
             for( int i = 0; i < record->GetNumItems(); ++i )
-                id_names.emplace_back(record->GetItem(i)->GetName());
+                id_names.emplace_back(UTF8_TODO::GetCString(record->GetItem(i)->GetName()));
 
             AddCommaSeparatedList(reference_text, id_names);
         }
@@ -384,14 +384,14 @@ namespace
             reference_text.Append(_T("Dictionary Hierarchy:\n\n"));
 
         // add the dictionary tree with the levels and records expanded
-        AddTabbedText(reference_text, dictionary->GetName(), 0, false);
+        AddTabbedText(reference_text, UTF8_TODO::GetCString(dictionary->GetName()), 0, false);
 
         for( const DictLevel& dict_level : dictionary->GetLevels() )
         {
             if( desired_level != nullptr && &dict_level != desired_level )
                 continue;
 
-            AddTabbedText(reference_text, dict_level.GetName(), 1, true);
+            AddTabbedText(reference_text, UTF8_TODO::GetCString(dict_level.GetName()), 1, true);
 
             for( int r = -1; r < dict_level.GetNumRecords(); ++r )
             {
@@ -414,17 +414,17 @@ namespace
 
             if( engine_dictionary->IsDictionaryObject() )
             {
-                reference_text.AppendFormat(_T("Dictionary (%s)\n"), ToString(engine_dictionary->GetSubType()));
+                reference_text.AppendFormat(_T("Dictionary (%s)\n"), UTF8_TODO::GetWide(ToString(engine_dictionary->GetSubType())).c_str());
             }
 
             else if( engine_dictionary->IsCaseObject() )
             {
-                reference_text.AppendFormat(_T("Case (%s)\n"), dictionary->GetName().GetString());
+                reference_text.AppendFormat(_T("Case (%s)\n"), UTF8_TODO::GetWide(dictionary->GetName()).c_str());
             }
 
             else
             {
-                reference_text.AppendFormat(_T("DataSource (%s)\n"), dictionary->GetName().GetString());
+                reference_text.AppendFormat(_T("DataSource (%s)\n"), UTF8_TODO::GetWide(dictionary->GetName()).c_str());
             }
         }
 
@@ -473,7 +473,7 @@ namespace
                         add_arrow = ( dict_item->GetParentItem() == record.GetItem(i - 1) );
                     }
 
-                    AddTabbedText(reference_text, dict_item->GetName(), ( dict_item->GetItemType() == ItemType::Item ) ? 3 : 4, add_arrow);
+                    AddTabbedText(reference_text, UTF8_TODO::GetCString(dict_item->GetName()), ( dict_item->GetItemType() == ItemType::Item ) ? 3 : 4, add_arrow);
                 }
             };
 
@@ -486,7 +486,7 @@ namespace
 
         reference_text.Append(_T("Variable Type: Item\n"));
         reference_text.AppendFormat(_T("Label: %s\n"), dict_item.GetLabel().GetString());
-        reference_text.AppendFormat(_T("Data Type: %s\n"), ToString(dict_item.GetContentType()));
+        reference_text.AppendFormat(_T("Data Type: %s\n"), UTF8_TODO::GetWide(ToString(dict_item.GetContentType())).c_str());
 
         // length
         reference_text.AppendFormat(_T("Length: %d"), dict_item.GetLen());
@@ -511,7 +511,7 @@ namespace
         if( dict_item.GetItemType() == ItemType::Subitem )
         {
             parent_dict_item = dict_item.GetParentItem();
-            reference_text.AppendFormat(_T("Parent Item: %s\n"), parent_dict_item->GetName().GetString());
+            reference_text.AppendFormat(_T("Parent Item: %s\n"), UTF8_TODO::GetWide(parent_dict_item->GetName()).c_str());
         }
 
         // check it there are any subitems
@@ -522,7 +522,7 @@ namespace
             for( const VART* next_variable = variable;
                 ( next_variable = assert_nullable_cast<const VART*>(next_variable->next_symbol) ) != nullptr && next_variable->GetOwnerVarT() == variable; )
             {
-                subitem_names.emplace_back(WS2CS(next_variable->GetName()));
+                subitem_names.emplace_back(UTF8_TODO::GetCString(next_variable->GetName()));
             }
 
             if( !subitem_names.empty() )
@@ -553,13 +553,13 @@ namespace
                 int tabs = 3;
 
                 if( parent_dict_item != nullptr )
-                    AddTabbedText(reference_text, parent_dict_item->GetName(), tabs++, true);
+                    AddTabbedText(reference_text, UTF8_TODO::GetCString(parent_dict_item->GetName()), tabs++, true);
 
-                AddTabbedText(reference_text, dict_item.GetName(), tabs++, true);
+                AddTabbedText(reference_text, UTF8_TODO::GetCString(dict_item.GetName()), tabs++, true);
 
                 int v = 0;
                 for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
-                    AddTabbedText(reference_text, dict_value_set.GetName(), tabs, ( v++ == 0 ));
+                    AddTabbedText(reference_text, UTF8_TODO::GetCString(dict_value_set.GetName()), tabs, ( v++ == 0 ));
             };
 
         DictionaryLocator(variable->GetDataDict(), &dict_item, dictionary_locator_callback);
@@ -582,14 +582,14 @@ namespace
                         AddFormFileHierarchy(reference_text, hierarchy);
                     };
 
-                FormFileLocator(form_files, WS2CS(variable->GetName()), form_file_locator_callback);
+                FormFileLocator(form_files, UTF8_TODO::GetCString(variable->GetName()), form_file_locator_callback);
 
                 // field capture type (ideally we could call VART::GetEvaluatedCaptureInfo
                 // but it's not accessible so the code is somewhat duplicated here
                 CaptureInfo capture_info = variable->GetCaptureInfo().MakeValid(dict_item,
                     dict_item.GetFirstValueSetOrNull());
 
-                reference_text.AppendFormat(_T("\nField Capture Type: %s\n"), capture_info.GetDescription().GetString());
+                reference_text.AppendFormat(_T("\nField Capture Type: %s\n"), UTF8_TODO::GetWide(capture_info.GetDescription()).c_str());
             }
         }
 
@@ -616,7 +616,7 @@ namespace
 
         if( dict_item.GetNumValueSets() > 1 )
         {
-            reference_text.AppendFormat(_T("Other Value Sets of %s: "), dict_item.GetName().GetString());
+            reference_text.AppendFormat(_T("Other Value Sets of %s: "), UTF8_TODO::GetWide(dict_item.GetName()).c_str());
 
             bool add_comma = false;
 
@@ -624,7 +624,7 @@ namespace
             {
                 if( &this_dict_value_set != &dict_value_set )
                 {
-                    reference_text.AppendFormat(_T("%s%s"), add_comma ? _T(", ") : _T(""), this_dict_value_set.GetName().GetString());
+                    reference_text.AppendFormat(_T("%s%s"), add_comma ? _T(", ") : _T(""), UTF8_TODO::GetWide(this_dict_value_set.GetName()).c_str());
                     add_comma = true;
                 }
             }
@@ -651,7 +651,7 @@ namespace
     void AddRelation(CString& reference_text, const RELT& relation, const Logic::SymbolTable& symbol_table)
     {
         reference_text.Append(_T("Variable Type: Relation\n"));
-        reference_text.AppendFormat(_T("Base Object: %s\n"), symbol_table.GetAt(relation.GetBaseObjIndex()).GetName().c_str());
+        reference_text.AppendFormat(_T("Base Object: %s\n"), UTF8_TODO::GetWide(symbol_table.GetAt(relation.GetBaseObjIndex()).GetName()).c_str());
 
         for( size_t i = 1; i < relation.m_aTarget.size(); ++i )
         {
@@ -662,7 +662,7 @@ namespace
                 ( relation_type == USE_WHERE_RELATION_SINGLE ) ? _T("Where (single)") :
                 ( relation_type == USE_WHERE_RELATION_SINGLE ) ? _T("Where (multiple)") : _T("");
 
-            reference_text.AppendFormat(_T("Linkage to %s: %s\n"), symbol_table.GetAt(relation.m_aTarget[i].iTargetSymbolIndex).GetName().c_str(), relation_type_string);
+            reference_text.AppendFormat(_T("Linkage to %s: %s\n"), UTF8_TODO::GetWide(symbol_table.GetAt(relation.m_aTarget[i].iTargetSymbolIndex).GetName()).c_str(), relation_type_string);
         }
     }
 
@@ -690,7 +690,7 @@ namespace
             const CDataDict* dictionary = nullptr;
             const DictLevel* dict_level = nullptr;
 
-            if( LevelLocator(dictionaries, WS2CS(group.GetName()), &dictionary, &dict_level) )
+            if( LevelLocator(dictionaries, UTF8_TODO::GetCString(group.GetName()), &dictionary, &dict_level) )
                 AddLevel(reference_text, *dict_level, dictionary, true);
         }
 
@@ -752,7 +752,7 @@ namespace
             };
 
         if( form_files != nullptr )
-            FormFileLocator(form_files, WS2CS(engine_block.GetName()), form_file_locator_callback);
+            FormFileLocator(form_files, UTF8_TODO::GetCString(engine_block.GetName()), form_file_locator_callback);
     }
 
 
@@ -823,7 +823,7 @@ namespace
             {
                 if( symbol.GetSubType() == SymbolSubType::WorkAlpha )
                 {
-                    reference_text.AppendFormat(_T("Variable Type: Alpha\nLength: %d\n"), assert_cast<const WorkAlpha&>(symbol).GetLength());
+                    reference_text.AppendFormat(_T("Variable Type: Alpha\nLength: %d\n"), static_cast<int>(assert_cast<const WorkAlpha&>(symbol).GetWideLength()));
                 }
 
                 else
@@ -876,7 +876,7 @@ namespace
 
             if( deckarray_symbol != 0 )
             {
-                reference_text.AppendFormat(_T("%s"), symbol_table.GetAt(abs(deckarray_symbol)).GetName().c_str());
+                reference_text.AppendFormat(_T("%s"), UTF8_TODO::GetWide(symbol_table.GetAt(abs(deckarray_symbol)).GetName()).c_str());
 
                 if( deckarray_symbol < 0 )
                     reference_text.Append(_T("(+)"));
@@ -899,13 +899,13 @@ namespace
     {
         reference_text.Append(_T("Variable Type: HashMap\n"));
 
-        reference_text.AppendFormat(_T("Data Type: %s\n"), ToString(hashmap.GetValueType()));
+        reference_text.AppendFormat(_T("Data Type: %s\n"), UTF8_TODO::GetWide(ToString(hashmap.GetValueType())).c_str());
 
         if( hashmap.HasDefaultValue() )
         {
             reference_text.AppendFormat(_T("Default Value: %s\n"), hashmap.IsValueTypeNumeric() ?
-                                        DoubleToString(std::get<double>(*hashmap.GetDefaultValue())).c_str() :
-                                        std::get<std::wstring>(*hashmap.GetDefaultValue()).c_str());
+                                        UTF8_TODO::GetWide(DoubleToString(std::get<double>(*hashmap.GetDefaultValue()))).c_str() :
+                                        UTF8_TODO::GetWide(*std::get<SharableString>(*hashmap.GetDefaultValue())).c_str());
         }
 
         reference_text.AppendFormat(_T("Dimensions: %d\n"), (int)hashmap.GetNumberDimensions());
@@ -919,7 +919,7 @@ namespace
 
             if( hashmap.GetDimensionType(i).has_value() )
             {
-                reference_text.Append(ToString(*hashmap.GetDimensionType(i)));
+                reference_text.Append(UTF8_TODO::GetCString(ToString(*hashmap.GetDimensionType(i))));
             }
 
             else
@@ -962,7 +962,7 @@ namespace
                 if( !item_subitem_details.IsEmpty() )
                     occurrences.AppendFormat(occurrences.IsEmpty() ? _T("%s"): _T(", %s"), item_subitem_details.GetString());
 
-                reference_text.AppendFormat(occurrences.IsEmpty() ? _T("%s\n") : _T("%s(%s)\n"), symbol->GetName().c_str(), occurrences.GetString());
+                reference_text.AppendFormat(occurrences.IsEmpty() ? _T("%s\n") : _T("%s(%s)\n"), UTF8_TODO::GetWide(symbol->GetName()).c_str(), occurrences.GetString());
             };
 
             if( frequency_entry.occurrence_details.empty() )
@@ -996,7 +996,7 @@ namespace
 
                             else
                             {
-                                output_variable(record_details, IntToString(occurrence_details.min_item_subitem_occurrence + 1));
+                                output_variable(record_details, UTF8_TODO::GetCString(IntToString(occurrence_details.min_item_subitem_occurrence + 1)));
                             }
                         }
                     };
@@ -1017,7 +1017,7 @@ namespace
                             add_record_details(_T("disjoint"));
 
                         for( size_t occurrence : occurrence_details.record_occurrences_to_explicitly_display )
-                            add_record_details(IntToString(occurrence + 1));
+                            add_record_details(UTF8_TODO::GetCString(IntToString(occurrence + 1)));
                     }
                 }
             }
@@ -1035,7 +1035,7 @@ namespace
 
         else
         {
-            reference_text.AppendFormat(_T("Filename: %s\n"), GetRelativeFNameForDisplay(application.GetApplicationFilename(), report.GetFilename()).c_str());
+            reference_text.AppendFormat(_T("Path: %s\n"), UTF8_TODO::GetWide(GetRelativePathForDisplay(application.GetApplicationFilePath(), report.GetFilePath())).c_str());
         }
     }
 
@@ -1081,11 +1081,11 @@ namespace
                     ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? _T("Numeric") :
                     ( parameter_symbol.IsA(SymbolType::WorkString) )   ? _T("String") :
                     ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? _T("Function") :
-                                                                         ToString(parameter_symbol.GetType());
+                                                                         UTF8_TODO::GetCString(ToString(parameter_symbol.GetType()));
 
                 if( parameter_symbol.GetSubType() == SymbolSubType::WorkAlpha )
                 {
-                    parameter_type_string.Format(_T("Alpha (%d)"), assert_cast<const WorkAlpha&>(parameter_symbol).GetLength());
+                    parameter_type_string.Format(_T("Alpha (%d)"), static_cast<int>(assert_cast<const WorkAlpha&>(parameter_symbol).GetWideLength()));
                 }
 
                 else if( parameter_symbol.IsA(SymbolType::List) )
@@ -1098,7 +1098,7 @@ namespace
                     parameter_type_string.AppendFormat(_T(" (%s)"), assert_cast<const ValueSet&>(parameter_symbol).IsNumeric() ? _T("numeric") : _T("string"));
                 }
 
-                parameter_information.emplace_back(i + 1, parameter_type_string, WS2CS(parameter_symbol.GetName()), parameter_is_optional);
+                parameter_information.emplace_back(i + 1, parameter_type_string, UTF8_TODO::GetCString(parameter_symbol.GetName()), parameter_is_optional);
 
                 parameter_type_max_length = std::max(parameter_type_max_length, parameter_type_string.GetLength());
             }
@@ -1123,47 +1123,79 @@ namespace
     }
 
 
-    const std::vector<const TCHAR*> declaration_start_words = { _T("do"), _T("for") };
-
-    const std::vector<const TCHAR*> declaration_break_words = { _T("do"), _T("while"), _T("until"), _T("in") };
-
-    const std::vector<const TCHAR*> scope_change_words      = { _T("proc"), _T("function"), _T("if"), _T("elseif"),
-                                                                _T("else"), _T("do"),       _T("for") };
+    constexpr const char* declaration_start_words[] = { "do", "for" };
+    constexpr const char* declaration_break_words[] = { "do", "while", "until", "in" };
+    constexpr const char* scope_change_words[]      = { "proc", "function", "if", "elseif", "else", "do", "for" };
 
 
-    bool FindSymbolInBuffer(const Symbol* symbol, const Logic::SourceBuffer& source_buffer,
+    bool FindSymbolInBuffer(const Symbol* const symbol, const Logic::SourceBuffer& source_buffer,
                             const Logic::BasicToken** name_token, const Logic::BasicToken** declaration_token)
     {
         const std::vector<Logic::BasicToken>& basic_tokens = source_buffer.GetTokens();
         std::vector<std::tuple<const Logic::BasicToken*, const Logic::BasicToken*>> declaration_candidates;
 
         // because functions can't be scoped, simply search for the first use of this name
+        // that doesn't follow the "declare" token
         if( symbol->IsA(SymbolType::UserFunction) )
         {
-            const Logic::BasicToken* last_function_token = nullptr;
+            std::optional<std::tuple<const Logic::BasicToken*, size_t>> last_function_token_and_text_tokens_counter;
+            size_t i = 0;
 
             for( const Logic::BasicToken& basic_token : basic_tokens )
             {
                 if( basic_token.type == Logic::BasicToken::Type::Text )
                 {
-                    if( SO::EqualsNoCase(basic_token.GetTextSV(), _T("function")) )
+                    const std::string_view token_text_sv = basic_token.GetSV();
+
+                    if( SO::EqualsNoCase(token_text_sv, "function") )
                     {
-                        last_function_token = &basic_token;
+                        // only count function definitions, not declarations
+                        if( i == 0 || !SO::EqualsNoCase(basic_tokens[i - 1].GetSV(), "declare") )
+                            last_function_token_and_text_tokens_counter.emplace(&basic_token, 0);
                     }
 
-                    else if( last_function_token != nullptr && SO::EqualsNoCase(basic_token.GetTextSV(), symbol->GetName()) )
+                    else if( last_function_token_and_text_tokens_counter.has_value() )
                     {
-                        declaration_candidates.emplace_back(&basic_token, last_function_token);
-                        break;
+                        if( SO::EqualsNoCase(token_text_sv, "end") )
+                        {
+                            last_function_token_and_text_tokens_counter.reset();
+                        }
+
+                        else if( SO::EqualsNoCase(token_text_sv, symbol->GetName()) )
+                        {
+                            // the function name and the "function" token should only be separated by a few text tokens to account for
+                            // things like ("sql" or "string"), though this value 4 is imprecisely chosen as a good approximation;
+                            // this can fail for declared functions that are immediately used, but that can be fixed at a later point, e.g.:
+                            //     declare function AAA();
+                            //     function BBB() AAA(); end;
+                            //     function AAA() end;
+                            // this algorithm will report BBB's body when searching for AAA
+                            constexpr size_t FunctionTokenToNameMaxTokens = 4;
+
+                            if( std::get<1>(*last_function_token_and_text_tokens_counter) <= FunctionTokenToNameMaxTokens  )
+                            {
+                                declaration_candidates.emplace_back(&basic_token, std::get<0>(*last_function_token_and_text_tokens_counter));
+                                break;
+                            }
+
+                            last_function_token_and_text_tokens_counter.reset();
+                        }
+
+                        else
+                        {
+                            ++std::get<1>(*last_function_token_and_text_tokens_counter);
+                        }
                     }
                 }
+
+                ++i;
             }
         }
 
         // otherwise search the buffer from the end to the beginning, looking for the symbol name
         else
         {
-            std::vector<std::wstring> possible_declaration_text;
+            std::vector<std::string> possible_declaration_text;
 
             for( const auto& [declaration_text, symbol_type] : Symbol::GetDeclarationTextMap() )
             {
@@ -1173,7 +1205,7 @@ namespace
 
             // function included because of implicit declaration of numeric parameters
             if( symbol->IsA(SymbolType::WorkVariable) )
-                possible_declaration_text.emplace_back(_T("function"));
+                possible_declaration_text.emplace_back("function");
 
             const Logic::BasicToken* name_token_candidate = nullptr;
 
@@ -1190,9 +1222,9 @@ namespace
                     else if( token_itr->type == Logic::BasicToken::Type::Text )
                     {
                         // check if this word could begin the declaration
-                        for( const std::wstring& declaration_text : possible_declaration_text )
+                        for( const std::string& declaration_text : possible_declaration_text )
                         {
-                            if( SO::EqualsNoCase(token_itr->GetTextSV(), declaration_text) )
+                            if( SO::EqualsNoCase(token_itr->GetSV(), declaration_text) )
                             {
                                 declaration_candidates.emplace_back(name_token_candidate, &(*token_itr));
                                 break;
@@ -1200,9 +1232,9 @@ namespace
                         }
 
                         // check if this word ends any possible declaration
-                        for( const TCHAR* declaration_break_word : declaration_break_words )
+                        for( const char* const declaration_break_word : declaration_break_words )
                         {
-                            if( SO::EqualsNoCase(token_itr->GetTextSV(), declaration_break_word) )
+                            if( SO::EqualsNoCase(token_itr->GetSV(), declaration_break_word) )
                             {
                                 name_token_candidate = nullptr;
                                 break;
@@ -1213,7 +1245,7 @@ namespace
 
                 if( token_itr->type == Logic::BasicToken::Type::Text )
                 {
-                    if( SO::EqualsNoCase(token_itr->GetTextSV(), symbol->GetName()) )
+                    if( SO::EqualsNoCase(token_itr->GetSV(), symbol->GetName()) )
                     {
                         name_token_candidate = &(*token_itr);
                     }
@@ -1223,9 +1255,9 @@ namespace
                     {
                         bool break_processing = false;
 
-                        for( const TCHAR* scope_change_word : scope_change_words )
+                        for( const char* const scope_change_word : scope_change_words )
                         {
-                            if( SO::EqualsNoCase(token_itr->GetTextSV(), scope_change_word) )
+                            if( SO::EqualsNoCase(token_itr->GetSV(), scope_change_word) )
                             {
                                 break_processing = true;
                                 break;
@@ -1249,7 +1281,7 @@ namespace
         return false;
     }
 
-    std::optional<size_t> FindSymbolPositionInBuffer(const Symbol* symbol, const Logic::SourceBuffer& source_buffer)
+    std::optional<size_t> FindSymbolPositionInBuffer(const Symbol* const symbol, const Logic::SourceBuffer& source_buffer)
     {
         const Logic::BasicToken* name_token = nullptr;
         const Logic::BasicToken* declaration_token = nullptr;
@@ -1282,9 +1314,9 @@ namespace
             {
                 if( previous_token->type == Logic::BasicToken::Type::Text )
                 {
-                    for( const TCHAR* declaration_start_word : declaration_start_words )
+                    for( const char* const declaration_start_word : declaration_start_words )
                     {
-                        if( SO::EqualsNoCase(previous_token->GetTextSV(), declaration_start_word) )
+                        if( SO::EqualsNoCase(previous_token->GetSV(), declaration_start_word) )
                         {
                             symbol_is_declared_in_loop = true;
                             declaration_start_token = previous_token;
@@ -1310,12 +1342,12 @@ namespace
                 {
                     if( previous_token->type == Logic::BasicToken::Type::Text )
                     {
-                        if( SO::EqualsNoCase(previous_token->GetTextSV(), _T("function")) )
+                        if( SO::EqualsNoCase(previous_token->GetSV(), "function") )
                         {
                             first_function_token = previous_token;
                         }
 
-                        else if( SO::EqualsNoCase(previous_token->GetTextSV(), _T("end")) )
+                        else if( SO::EqualsNoCase(previous_token->GetSV(), "end") )
                         {
                             break;
                         }
@@ -1371,7 +1403,7 @@ namespace
         {
             if( symbol->IsA(SymbolType::UserFunction) )
             {
-                if( token_itr->type == Logic::BasicToken::Type::Text && SO::EqualsNoCase(token_itr->GetTextSV(), _T("end")) )
+                if( token_itr->type == Logic::BasicToken::Type::Text && SO::EqualsNoCase(token_itr->GetSV(), "end") )
                 {
                     declaration_end_token = &(*token_itr);
 
@@ -1390,9 +1422,9 @@ namespace
                 // end numeric variables declared as part of a loop
                 else if( symbol->IsA(SymbolType::WorkVariable) && token_itr->type == Logic::BasicToken::Type::Text )
                 {
-                    for( const TCHAR* declaration_break_word : declaration_break_words )
+                    for( const char* const declaration_break_word : declaration_break_words )
                     {
-                        if( SO::EqualsNoCase(token_itr->GetTextSV(), declaration_break_word) )
+                        if( SO::EqualsNoCase(token_itr->GetSV(), declaration_break_word) )
                         {
                             declaration_end_token = &(*token_itr) - 1;
                             break;
@@ -1537,16 +1569,16 @@ namespace
             }
         }
 
-        CString GetSelectedNodeName() const
+        std::string GetSelectedNodeName() const
         {
             ASSERT(!IsTabulationApplication() && GetSelectedNode() == SelectedNode::Proc);
 
-            HTREEITEM hItem = m_treeControl->GetSelectedItem();
+            const HTREEITEM hItem = m_treeControl->GetSelectedItem();
             const CDEFormBase* form_base = nullptr;
 
             if( IsEntryApplication() )
             {
-                CFormID* pFormID = reinterpret_cast<CFormID*>(m_treeControl->GetItemData(hItem));
+                CFormID* const pFormID = reinterpret_cast<CFormID*>(m_treeControl->GetItemData(hItem));
 
                 if( pFormID->GetItemType() == eFTT_GRIDFIELD )
                 {
@@ -1562,11 +1594,12 @@ namespace
 
             else if( IsBatchApplication() )
             {
-                AppTreeNode* app_tree_node = reinterpret_cast<AppTreeNode*>(m_treeControl->GetItemData(hItem));
+                AppTreeNode* const app_tree_node = reinterpret_cast<AppTreeNode*>(m_treeControl->GetItemData(hItem));
                 form_base = app_tree_node->GetFormBase();
             }
 
-            return ( form_base != nullptr ) ? form_base->GetName() : CString();
+            return ( form_base != nullptr ) ? UTF8_TODO::GetUtf8(form_base->GetName()) :
+                                              std::string();
         }
 
 
@@ -1596,11 +1629,11 @@ namespace
         }
 
 
-        void PrepareCurrentBufferText(CString& buffer_text)
+        void PrepareCurrentBufferText(std::string& buffer_text)
         {
             // add a dummy PROC GLOBAL to external code
             if( GetSelectedNode() == LogicReferenceWorker::SelectedNode::ExternalCode )
-                buffer_text.Insert(0, _T("PROC GLOBAL\r\n"));
+                buffer_text.insert(0, "PROC GLOBAL\r\n");
         }
 
 
@@ -1621,7 +1654,7 @@ namespace
                 source_code->GetProc(proc_global_lines, _T("GLOBAL"));
                 source_code->ArrayToString(&proc_global_lines, proc_global_buffer, true);
 
-                source_buffer = std::make_shared<Logic::SourceBuffer>(CS2WS(proc_global_buffer));
+                source_buffer = std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(proc_global_buffer));
 
                 background_compiler.Compile(source_buffer);
             }
@@ -1636,10 +1669,10 @@ namespace
             if( m_logicControl->GetParent()->IsKindOf(RUNTIME_CLASS(CLogicView)) )
             {
                 // instead of compiling the whole buffer, compile up to the semicolon following the selected word
-                CString buffer_text = WS2CS(m_logicControl->GetText());
+                std::string buffer_text = m_logicControl->GetText();
                 PrepareCurrentBufferText(buffer_text);
 
-                source_buffer = std::make_shared<Logic::SourceBuffer>(CS2WS(buffer_text));
+                source_buffer = std::make_unique<Logic::SourceBuffer>(std::move(buffer_text));
                 source_buffer->Tokenize(GetApplication().GetLogicSettings());
                 source_buffer->RemoveTokensAfterText(m_logicControl->GetCurrentPos(), TokenCode::TOKSEMICOLON);
 
@@ -1690,7 +1723,7 @@ namespace
         }
 
 
-        void ShowReferenceWindow(const std::vector<std::wstring>& selected_words, CString& reference_text, CString& logic_text,
+        void ShowReferenceWindow(const std::vector<std::string>& selected_words, CString& reference_text, CString& logic_text,
                                  const std::optional<std::variant<const TextSource*, CompilationLocation>>& external_logic_text_source_or_compilation_location,
                                  const Application& application)
         {
@@ -1704,15 +1737,15 @@ namespace
             if( !reference_text.IsEmpty() )
             {
                 // add the selected words as a title
-                CString title = WS2CS(SO::CreateSingleString(selected_words, _T(".")));
-                title.AppendFormat(_T("\n%s\n"), SO::GetRepeatingCharacterString(_T('‾'), title.GetLength()));
+                CString title = UTF8_TODO::GetCString(SO::CreateSingleString(selected_words, "."));
+                title.AppendFormat(_T("\n%s\n"), UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', title.GetLength())).c_str());
 
                 // if declared in external code (not currently being edited), indicate where to find this declaration
                 if( external_logic_text_source_or_compilation_location.has_value() &&
                     std::holds_alternative<const TextSource*>(*external_logic_text_source_or_compilation_location) )
                 {
-                    title.AppendFormat(_T("External Logic: %s\n"), PortableFunctions::PathGetFilename(
-                        std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilename()));
+                    title.AppendFormat(_T("External Logic: %s\n"),
+                                       UTF8_TODO::GetWide(PortableFunctions::PathGetFilename(std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilePath())).c_str());
                 }
 
                 reference_text.Insert(0, title);
@@ -1737,7 +1770,7 @@ namespace
                         logic_text.AppendChar('\n');
                 }
 
-                reference_control->SetReadOnlyText(reference_text);
+                reference_control->SetReadOnlyText(UTF8_TODO::GetUtf8(reference_text));
 
                 if( logic_text.IsEmpty() )
                 {
@@ -1750,7 +1783,7 @@ namespace
 
                     int length_before_logic_text = reference_control->GetLength();
 
-                    reference_control->AppendReadOnlyText(CS2WS(logic_text));
+                    reference_control->AppendReadOnlyText(UTF8_TODO::GetUtf8(logic_text));
 
                     reference_control->InitLogicControl(false, false);
 
@@ -1776,17 +1809,17 @@ namespace
 
 
 
-LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 {
-    CLogicCtrl* logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
-    bool activated_by_f1 = ( wParam == ZEDIT2O_LOGIC_REFERENCE_HELP );
-    bool goto_word = ( wParam == ZEDIT2O_LOGIC_REFERENCE_GOTO );
+    CLogicCtrl* const logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
+    const bool activated_by_f1 = ( wParam == ZEDIT2O_LOGIC_REFERENCE_HELP );
+    const bool goto_word = ( wParam == ZEDIT2O_LOGIC_REFERENCE_GOTO );
 
-    std::vector<std::wstring> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
+    const std::vector<std::string> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
 
     // for help requests, first check the function table, or bypass all checks if a name
     // wasn't selected, so that the help can be launched quickly
-    const TCHAR* help_topic_filename = nullptr;
+    const char* help_topic_filename = nullptr;
     const Logic::FunctionDetails* function_details = nullptr;
 
     if( selected_words.size() == 1 )
@@ -1797,7 +1830,7 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
     else if( selected_words.size() >= 2 )
     {
         // pass all but the last word as the dot notation entries
-        help_topic_filename = Logic::ContextSensitiveHelp::GetTopicFilename(cs::span<const std::wstring>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
+        help_topic_filename = Logic::ContextSensitiveHelp::GetTopicFilename(cs::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
                                                                             selected_words.back(), &function_details);
     }
 
@@ -1836,9 +1869,9 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
 
         // a function to determine what the word is
         std::function<bool(size_t, Symbol*)> process_selected_words =
-            [&](size_t selected_words_index, Symbol* parent_symbol) -> bool
+            [&](const size_t selected_words_index, Symbol* const parent_symbol) -> bool
             {
-                const std::wstring& search_word = selected_words[selected_words_index];
+                const std::string& search_word = selected_words[selected_words_index];
                 Symbol* symbol = nullptr;
 
                 if( selected_words_index == 0 )
@@ -1888,8 +1921,8 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
 
                             if( symbol == nullptr )
                             {
-                                reference_text.AppendFormat(_T("There are multiple symbols with the name %s.\n")
-                                                            _T("Please provide additional qualifiers to avoid ambiguity.\n"), search_word.c_str());
+                                reference_text.AppendFormat(L"There are multiple symbols with the name %s.\n"
+                                                            L"Please provide additional qualifiers to avoid ambiguity.\n", UTF8_TODO::GetWide(search_word).c_str());
                                 return true;
                             }
                         }
@@ -1964,13 +1997,13 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
                 {
                     // if using an alias, show the base name
                     if( symbol->GetName() != selected_words.back() )
-                        reference_text.AppendFormat(_T("Base Name: %s\n"), symbol->GetName().c_str());
+                        reference_text.AppendFormat(_T("Base Name: %s\n"), UTF8_TODO::GetWide(symbol->GetName()).c_str());
 
                     // show any aliases to the symbol
-                    std::vector<std::wstring> aliases = symbol_table.GetAliases(*symbol);
+                    const std::vector<std::string> aliases = symbol_table.GetAliases(*symbol);
 
                     if( !aliases.empty() )
-                        reference_text.AppendFormat(_T("Aliases: %s\n"), SO::CreateSingleString(aliases).c_str());
+                        reference_text.AppendFormat(_T("Aliases: %s\n"), UTF8_TODO::GetWide(SO::CreateSingleString(aliases)).c_str());
 
 
                     // add the symbol
@@ -1981,7 +2014,7 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
 
                     else if( symbol->IsA(SymbolType::Record) )
                     {
-                        AddRecord(reference_text, assert_cast<const EngineRecord&>(*symbol).GetDictionaryRecord());
+                        AddRecord(reference_text, assert_cast<const EngineRecord&>(*symbol).GetDictRecord());
                     }
 
                     else if( symbol->IsA(SymbolType::Section) )
@@ -2080,9 +2113,9 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
                         {
                             // when we go to the position in the PROC GLOBAL buffer, we have to account for the fact that
                             // \n characters will be translated into \r\n characters
-                            CString buffer_text = CString(source_buffer->GetTokens().front().token_text, *position_in_buffer);
-                            buffer_text.Replace(_T("\n"), _T("\r\n"));
-                            position_in_buffer = buffer_text.GetLength();
+                            std::string buffer_text = std::string(source_buffer->GetTokens().front().token_text, *position_in_buffer);
+                            SO::MakeNewlineCRLF(buffer_text);
+                            position_in_buffer = buffer_text.length();
                         }
 
                         return true;
@@ -2097,7 +2130,7 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
                             std::holds_alternative<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) &&
                             std::get<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) == LogicReferenceWorker::CompilationLocation::CurrentBuffer )
                         {
-                            source_buffer = std::make_shared<Logic::SourceBuffer>(logic_control->GetText());
+                            source_buffer = std::make_unique<Logic::SourceBuffer>(logic_control->GetText());
                             source_buffer->Tokenize(logic_reference_worker.GetApplication().GetLogicSettings());
                         }
 
@@ -2151,7 +2184,7 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
                 const CDataDict* dictionary = nullptr;
                 const DictLevel* dict_level = nullptr;
 
-                if( LevelLocator(dictionaries, WS2CS(selected_words.front()), &dictionary, &dict_level) )
+                if( LevelLocator(dictionaries, UTF8_TODO::GetCString(selected_words.front()), &dictionary, &dict_level) )
                     AddLevel(reference_text, *dict_level, dictionary, false);
             }
         }
@@ -2186,8 +2219,8 @@ LRESULT CMainFrame::OnLogicReference(WPARAM wParam, LPARAM lParam)
             {
                 ASSERT(std::holds_alternative<const TextSource*>(*external_logic_text_source_or_compilation_location));
                 GotoExternalLogicOrReportNode(logic_reference_worker.GetActiveDocument(), logic_control,
-                    std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilename(),
-                    false, (int)*position_in_buffer);
+                                              UTF8_TODO::GetWide(std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilePath()),
+                                              false, (int)*position_in_buffer);
             }
         }
 
@@ -2236,7 +2269,7 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     logic_reference_worker.CompileToCurrentLocation();
 
     // determine what words to work with
-    std::vector<std::wstring> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
+    std::vector<std::string> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
 
     // allow auto complete to work when a symbol_name/namespace. is entered
     if( selected_words.empty() )
@@ -2254,9 +2287,9 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     }
 
     ASSERT(!selected_words.empty());
-    const std::wstring& word_to_complete = selected_words.back();
+    const std::string& word_to_complete = selected_words.back();
 
-    std::wstring suggested_words;
+    std::string suggested_words;
     bool word_comes_from_fuzzy_matching;
 
     if( selected_words.size() == 1 )
@@ -2267,7 +2300,7 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     else
     {
         // pass all but the last word as the dot notation entries
-        suggested_words = LogicReferenceAutoCompleter.GetSuggestedWordString(cs::span<const std::wstring>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
+        suggested_words = LogicReferenceAutoCompleter.GetSuggestedWordString(cs::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
                                                                              word_to_complete);
         word_comes_from_fuzzy_matching = false;
     }
@@ -2297,9 +2330,9 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam)
 {
-    CLogicCtrl* logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
+    CLogicCtrl* const logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
 
     LogicReferenceWorker logic_reference_worker(this);
 
@@ -2308,7 +2341,7 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, LPARAM lParam)
         return 0;
 
 
-    CString proc_or_function_name;
+    std::string proc_or_function_name;
 
     // if on a PROC, insert the name of the currently selected node
     if( logic_reference_worker.GetSelectedNode() == LogicReferenceWorker::SelectedNode::Proc )
@@ -2319,27 +2352,27 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, LPARAM lParam)
     // if on a report, insert $ because best practice would be not to use report names in the report's logic
     else if( logic_reference_worker.GetSelectedNode() == LogicReferenceWorker::SelectedNode::Report )
     {
-        proc_or_function_name = _T("$");
+        proc_or_function_name = "$";
     }
 
     // otherwise (if on PROC GLOBAL or external code), get the logic buffer and search backwards for the last PROC or function name
     else
     {
-        CString buffer_text_up_to_cursor = WS2CS(logic_control->GetText()).Left(logic_control->GetCurrentPos());
+        std::string buffer_text_up_to_cursor = logic_control->GetText().substr(0, logic_control->GetCurrentPos());
         logic_reference_worker.PrepareCurrentBufferText(buffer_text_up_to_cursor);
 
-        std::shared_ptr<Logic::SourceBuffer> source_buffer = std::make_shared<Logic::SourceBuffer>(CS2WS(buffer_text_up_to_cursor));
+        auto source_buffer = std::make_shared<Logic::SourceBuffer>(std::move(buffer_text_up_to_cursor));
 
         auto background_compiler = logic_reference_worker.CreateCompiler();
         background_compiler->Compile(source_buffer);
         const std::vector<Logic::BasicToken>& basic_tokens = source_buffer->GetTokens();
 
-        for( size_t i = basic_tokens.size() - 1; proc_or_function_name.IsEmpty() && i < basic_tokens.size(); --i )
+        for( size_t i = basic_tokens.size() - 1; proc_or_function_name.empty() && i < basic_tokens.size(); --i )
         {
             if( basic_tokens[i].type == Logic::BasicToken::Type::Text )
             {
                 // if in a function, return the last function added to the symbol table
-                if( SO::EqualsNoCase(basic_tokens[i].GetTextSV(), _T("function")) )
+                if( SO::EqualsNoCase(basic_tokens[i].GetSV(), "function") )
                 {
                     const Logic::SymbolTable& symbol_table = background_compiler->GetCompiledSymbolTable();
 
@@ -2349,26 +2382,26 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, LPARAM lParam)
 
                         if( symbol.IsA(SymbolType::UserFunction) )
                         {
-                            proc_or_function_name = WS2CS(symbol.GetName());
+                            proc_or_function_name = symbol.GetName();
                             break;
                         }
                     }
                 }
 
                 // if in a proc, return its name (with dot notation)
-                else if( SO::EqualsNoCase(basic_tokens[i].GetTextSV(), _T("PROC")) )
+                else if( SO::EqualsNoCase(basic_tokens[i].GetSV(), "PROC") )
                 {
                     bool last_token_was_dot = false;
 
                     for( size_t j = i + 1; j < basic_tokens.size(); ++j )
                     {
-                        bool append_this_token = ( proc_or_function_name.IsEmpty() || last_token_was_dot );
+                        bool append_this_token = ( proc_or_function_name.empty() || last_token_was_dot );
                         last_token_was_dot = ( basic_tokens[j].type == Logic::BasicToken::Type::Operator && basic_tokens[j].token_code == TokenCode::TOKPERIOD );
                         append_this_token |= last_token_was_dot;
 
                         if( append_this_token )
                         {
-                            proc_or_function_name.Append(WS2CS(basic_tokens[j].GetText()));
+                            proc_or_function_name.append(basic_tokens[j].GetSV());
                         }
 
                         else
@@ -2378,15 +2411,15 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, LPARAM lParam)
                     }
 
                     // don't ever display PROC GLOBAL
-                    if( proc_or_function_name.CompareNoCase(_T("GLOBAL")) == 0 )
-                        proc_or_function_name.Empty();
+                    if( SO::EqualsNoCase(proc_or_function_name, "GLOBAL") )
+                        proc_or_function_name.clear();
                 }
             }
         }
     }
 
 
-    if( !proc_or_function_name.IsEmpty() )
+    if( !proc_or_function_name.empty() )
         logic_control->AddText(proc_or_function_name);
 
     return 0;

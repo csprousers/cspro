@@ -160,7 +160,7 @@ class CBufferBoundaryElement : public CObject  {
 
     public:
         CBufferBoundaryElement (long x, long y) { m_lBound = x;  m_lBeginningLineNumber = y; }
-        CBufferBoundaryElement (void)           { CBufferBoundaryElement ( NONE, NONE );  }
+        CBufferBoundaryElement (void) :         CBufferBoundaryElement(NONE, NONE) { }
         long GetBoundary (void)                 { return m_lBound;  }
         long GetBeginningLineNumber (void)      { return m_lBeginningLineNumber;  }
     };

@@ -45,4 +45,4 @@ namespace FormDefaults
 // ToString functions
 // --------------------------------------------------
 
-const TCHAR* ToString(RosterOrientation roster_orientation);
+const wchar_t* ToString(RosterOrientation roster_orientation);

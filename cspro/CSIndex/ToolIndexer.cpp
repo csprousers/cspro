@@ -10,7 +10,7 @@ bool ToolIndexer::SupportsInteractiveMode() const
 }
 
 
-void ToolIndexer::DisplayInteractiveModeMessage(const NullTerminatedString message) const
+void ToolIndexer::DisplayInteractiveModeMessage(const std::string& message) const
 {
     AfxMessageBox(message);
 }

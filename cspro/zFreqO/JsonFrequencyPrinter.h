@@ -5,16 +5,12 @@
 
 struct FrequencyRowStatistics;
 struct FrequencyTable;
-class JsonWriter;
 
 
 class ZFREQO_API JsonFrequencyPrinter : public FrequencyPrinter
 {
-protected:
-    JsonFrequencyPrinter();
-    
 public:
-    JsonFrequencyPrinter(JsonWriter& json_writer);
+    JsonFrequencyPrinter(cs::non_null_shared_or_raw_ptr<JsonWriter> json_writer);
 
     void StartFrequencyGroup() override { }
 
@@ -28,8 +24,8 @@ private:
     void PrintStatistics(const FrequencyTable& frequency_table);
 
     template<typename CF>
-    void PrintStatisticsCategories(size_t number_defined_categories, CF callback_function);
+    void PrintStatisticsCategories(size_t number_defined_categories, const CF& callback_function);
 
 protected:
-    JsonWriter* m_jsonWriter;
+    cs::non_null_shared_or_raw_ptr<JsonWriter> m_jsonWriter;
 };

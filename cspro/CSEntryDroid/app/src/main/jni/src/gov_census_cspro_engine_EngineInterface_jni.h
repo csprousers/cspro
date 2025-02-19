@@ -514,6 +514,8 @@ JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_GetBaseMa
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoordinates
         (JNIEnv* pEnv, jobject object, jlong applicationReference, jdouble latitude, jdouble longitude);
 
+JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetTpkMetadataAsJson(JNIEnv*, jobject, jstring);
+
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetApplicationDescription
     (JNIEnv *, jobject, jlong);
 

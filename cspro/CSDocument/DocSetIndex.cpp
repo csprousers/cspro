@@ -3,45 +3,6 @@
 #include "DocSetIndexTableOfContentsBase.h"
 
 
-namespace
-{
-    inline bool ChmIndexTextLess(const std::wstring& text1, const std::wstring& text2)
-    {
-        // the index appears to be sorted in a case insensitive way, with special handling for some characters
-        constexpr std::wstring_view SpecialChars_sv = _T("~-!$%&*./:[^|+<=>");
-
-        const TCHAR* text2_itr = text2.c_str();
-
-        for( const TCHAR text1_ch : text1 )
-        {
-            const TCHAR text2_ch = *text2_itr;
-
-            // if text2 is complete, is it less than text1
-            if( text2_ch == 0 )
-                return false;
-
-            // see if the text is a special character
-            const size_t text1_special_ch_pos = SpecialChars_sv.find(text1_ch);
-            const size_t text2_special_ch_pos = SpecialChars_sv.find(text2_ch);
-
-            if( text1_special_ch_pos != text2_special_ch_pos )
-                return ( text1_special_ch_pos < text2_special_ch_pos );
-
-            // compare the non-special character text
-            const auto ch_diff = std::towupper(text1_ch) - std::towupper(text2_ch);
-
-            if( ch_diff != 0 )
-                return ( ch_diff < 0 );
-
-            ++text2_itr;
-        }
-
-        // if text2 is not complete, it is not less than text1
-        return ( *text2_itr != 0 );
-    }
-}
-
-
 void DocSetIndex::SortByTitle(DocSetSpec& doc_set_spec)
 {
     DocSetIndexTableOfContentsBaseTitleLookupWorker title_lookup_worker(doc_set_spec);
@@ -51,8 +12,8 @@ void DocSetIndex::SortByTitle(DocSetSpec& doc_set_spec)
         std::sort(entries.begin(), entries.end(),
             [&](const Entry& entry1, const Entry& entry2)
             {
-                return ChmIndexTextLess(!entry1.title_override.empty() ? entry1.title_override : title_lookup_worker.GetTitle(entry1.document->filename),
-                                        !entry2.title_override.empty() ? entry2.title_override : title_lookup_worker.GetTitle(entry2.document->filename));
+                return ChmIndexTextLess(!entry1.title_override.empty() ? entry1.title_override : title_lookup_worker.GetTitle(entry1.document->file_path),
+                                        !entry2.title_override.empty() ? entry2.title_override : title_lookup_worker.GetTitle(entry2.document->file_path));
             });
     };
 
@@ -73,6 +34,43 @@ void DocSetIndex::SortByTitle(DocSetSpec& doc_set_spec)
 }
 
 
+bool DocSetIndex::ChmIndexTextLess(const std::string& text1, const std::string& text2)
+{
+    // the index appears to be sorted in a case insensitive way, with special handling for some characters
+    constexpr std::string_view SpecialChars_sv = "~-!$%&*./:[^|+<=>";
+
+    const char* text2_itr = text2.c_str();
+
+    for( const char text1_ch : text1 )
+    {
+        const char text2_ch = *text2_itr;
+
+        // if text2 is complete, is it less than text1
+        if( text2_ch == '\0' )
+            return false;
+
+        // see if the text is a special character
+        const size_t text1_special_ch_pos = SpecialChars_sv.find(text1_ch);
+        const size_t text2_special_ch_pos = SpecialChars_sv.find(text2_ch);
+
+        if( text1_special_ch_pos != text2_special_ch_pos )
+            return ( text1_special_ch_pos < text2_special_ch_pos );
+
+        // compare the non-special character text
+        const int ch_diff = std::toupper(text1_ch) - std::toupper(text2_ch);
+
+        if( ch_diff != 0 )
+            return ( ch_diff < 0 );
+
+        ++text2_itr;
+    }
+
+    // if text2 is not complete, it is not less than text1
+    return ( *text2_itr != '\0' );
+}
+
+
+
 // --------------------------------------------------------------------------
 // DocSetIndex::CompileWorker
 // --------------------------------------------------------------------------
@@ -82,17 +80,17 @@ class DocSetIndex::CompileWorker : public DocSetIndexTableOfContentsBaseCompileW
 public:
     using DocSetIndexTableOfContentsBaseCompileWorker::DocSetIndexTableOfContentsBaseCompileWorker;
 
-    std::optional<DocSetIndex> Compile(const JsonNode<wchar_t>& json_node);
+    std::optional<DocSetIndex> Compile(const JsonNode& json_node);
 
 private:
-    std::vector<DocSetIndex::Entry> CompileEntries(const JsonNode<wchar_t>& json_node, size_t entries_level);
+    std::vector<DocSetIndex::Entry> CompileEntries(const JsonNode& json_node, size_t entries_level);
 
 private:
     std::set<const DocSetComponent*> m_documentsInIndex;
 };
 
 
-std::optional<DocSetIndex> DocSetIndex::CompileWorker::Compile(const JsonNode<wchar_t>& json_node)
+std::optional<DocSetIndex> DocSetIndex::CompileWorker::Compile(const JsonNode& json_node)
 {
     DocSetIndex doc_set_index;
     doc_set_index.m_entries = CompileEntries(json_node, 0);
@@ -107,8 +105,8 @@ std::optional<DocSetIndex> DocSetIndex::CompileWorker::Compile(const JsonNode<wc
         {
             if( m_documentsInIndex.find(&doc_set_component) == m_documentsInIndex.cend() )
             {
-                m_docSetCompiler.AddError(FormatTextCS2WS(_T("The '%s' must contain an entry for: %s"),
-                                                          ToString(DocSetComponent::Type::Index), doc_set_component.filename.c_str()));
+                m_docSetCompiler.AddError("The '%s' must contain an entry for: %s",
+                                          ToString(DocSetComponent::Type::Index), doc_set_component.file_path.c_str());
             }
         }
     }
@@ -117,25 +115,25 @@ std::optional<DocSetIndex> DocSetIndex::CompileWorker::Compile(const JsonNode<wc
 }
 
 
-std::vector<DocSetIndex::Entry> DocSetIndex::CompileWorker::CompileEntries(const JsonNode<wchar_t>& json_node, size_t entries_level)
+std::vector<DocSetIndex::Entry> DocSetIndex::CompileWorker::CompileEntries(const JsonNode& json_node, const size_t entries_level)
 {
     std::vector<Entry> entries;
 
     if( entries_level >= 2 )
     {
-        m_docSetCompiler.AddError(FormatTextCS2WS(_T("An '%s' only supports one level of subindices per index entry."),
-                                                  ToString(DocSetComponent::Type::Index)));
+        m_docSetCompiler.AddError("An '%s' only supports one level of subindices per index entry.",
+                                  ToString(DocSetComponent::Type::Index));
         return entries;
     }
 
     if( !json_node.IsArray() )
     {
-        m_docSetCompiler.AddError(FormatTextCS2WS(_T("An '%s' must be specified using an array."),
-                                                  ToString(DocSetComponent::Type::Index)));
+        m_docSetCompiler.AddError("An '%s' must be specified using an array.",
+                                  ToString(DocSetComponent::Type::Index));
         return entries;
     }
 
-    for( const auto& entry_node : json_node.GetArray() )
+    for( const JsonNode& entry_node : json_node.GetArray() )
     {
         Entry entry;
 
@@ -145,7 +143,7 @@ std::vector<DocSetIndex::Entry> DocSetIndex::CompileWorker::CompileEntries(const
         if( entry.document == nullptr )
             continue;
 
-        ASSERT(PortableFunctions::FileIsRegular(entry.document->filename) && entry.document->type == DocSetComponent::Type::Document);
+        ASSERT(PortableFunctions::FileIsRegular(entry.document->file_path) && entry.document->type == DocSetComponent::Type::Document);
 
         if( entry_node.IsObject() )
         {
@@ -156,9 +154,9 @@ std::vector<DocSetIndex::Entry> DocSetIndex::CompileWorker::CompileEntries(const
                 entry.subentries = CompileEntries(entry_node.Get(JK::subindex), entries_level + 1);
         }
 
-        // make sure the document has a title if the title was not overriden
+        // make sure the document has a title if the title was not overridden
         if( entry.title_override.empty() )
-            EnsureTitleExists(entry.document->filename);
+            EnsureTitleExists(entry.document->file_path);
 
         m_documentsInIndex.emplace(entry.document.get());
         entries.emplace_back(std::move(entry));
@@ -168,7 +166,7 @@ std::vector<DocSetIndex::Entry> DocSetIndex::CompileWorker::CompileEntries(const
 }
 
 
-std::optional<DocSetIndex> DocSetIndex::Compile(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, const JsonNode<wchar_t>& json_node, bool validate_titles)
+std::optional<DocSetIndex> DocSetIndex::Compile(DocSetCompiler& doc_set_compiler, DocSetSpec& doc_set_spec, const JsonNode& json_node, const bool validate_titles)
 {
     CompileWorker compiler_worker(doc_set_compiler, doc_set_spec, validate_titles);
     return compiler_worker.Compile(json_node);
@@ -194,20 +192,20 @@ void DocSetIndex::Writer::WriteEntries(const std::vector<Entry>& entries)
 
     for( const Entry& entry : entries )
     {
-        const std::wstring* title_override = !entry.title_override.empty() ? &entry.title_override :
-                                                                             nullptr;
+        const std::string* const title_override = !entry.title_override.empty() ? &entry.title_override :
+                                                                                  nullptr;
 
-        const void* subentries_tag = !entry.subentries.empty() ? &entry.subentries :
-                                                                 nullptr;
+        const void* const subentries_tag = !entry.subentries.empty() ? &entry.subentries :
+                                                                       nullptr;
 
-        WriteEntry(entry.document->filename, title_override, subentries_tag);
+        WriteEntry(entry.document->file_path, title_override, subentries_tag);
     }
 
     FinishEntries();
 }
 
 
-void DocSetIndex::Writer::WriteSubentries(const void* subentries_tag)
+void DocSetIndex::Writer::WriteSubentries(const void* const subentries_tag)
 {
     ASSERT(subentries_tag != nullptr);
     WriteEntries(*reinterpret_cast<const std::vector<Entry>*>(subentries_tag));
@@ -222,21 +220,21 @@ void DocSetIndex::Writer::WriteSubentries(const void* subentries_tag)
 class DocSetIndex_JsonWriterWorker : public DocSetIndexTableOfContentsBaseJsonWriterWorker, public DocSetIndex::Writer
 {
 public:
-    DocSetIndex_JsonWriterWorker(JsonWriter& json_writer, DocSetSpec* doc_set_spec,
-                                 bool write_documents_with_filename_only_when_possible, bool write_evaluated_titles, bool detailed_format)
+    DocSetIndex_JsonWriterWorker(JsonWriter& json_writer, DocSetSpec* const doc_set_spec,
+                                 const bool write_documents_with_filename_only_when_possible, const bool write_evaluated_titles, const bool detailed_format)
         :   DocSetIndexTableOfContentsBaseJsonWriterWorker(json_writer, doc_set_spec, DocSetComponent::Type::Index, write_documents_with_filename_only_when_possible, write_evaluated_titles, detailed_format)
     {
     }
-    
+
 protected:
     void StartEntries() override
     {
         m_jsonWriter.BeginArray();
     }
 
-    void WriteEntry(const std::wstring& csdoc_filename, const std::wstring* title_override, const void* subentries_tag) override
+    void WriteEntry(const std::string& csdoc_file_path, const std::string* const title_override, const void* const subentries_tag) override
     {
-        const std::optional<std::wstring> title = GetTitleOrOptional(csdoc_filename, title_override);
+        const std::optional<std::string> title = GetTitleOrOptional(csdoc_file_path, title_override);
         bool write_as_object = ( title.has_value() || subentries_tag != nullptr );
 
         if( m_detailedFormat )
@@ -255,7 +253,7 @@ protected:
             m_jsonWriter.Key(JK::path);
         }
 
-        WritePath(csdoc_filename);
+        WritePath(csdoc_file_path);
 
         if( write_as_object )
         {
@@ -286,9 +284,9 @@ protected:
 };
 
 
-void DocSetIndex::WriteJson(JsonWriter& json_writer, DocSetSpec* doc_set_spec/* = nullptr*/,
-                            bool write_documents_with_filename_only_when_possible/* = false*/,
-                            bool write_evaluated_titles/* = false*/, bool detailed_format/* = false*/) const
+void DocSetIndex::WriteJson(JsonWriter& json_writer, DocSetSpec* const doc_set_spec/* = nullptr*/,
+                            const bool write_documents_with_filename_only_when_possible/* = false*/,
+                            const bool write_evaluated_titles/* = false*/, const bool detailed_format/* = false*/) const
 {
     DocSetIndex_JsonWriterWorker json_writer_worker(json_writer, doc_set_spec, write_documents_with_filename_only_when_possible, write_evaluated_titles, detailed_format);
     json_writer_worker.Write(*this);

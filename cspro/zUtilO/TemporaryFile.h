@@ -8,7 +8,7 @@
 class CLASS_DECL_ZUTILO TemporaryFile
 {
 private:
-    TemporaryFile(std::wstring path, bool delete_on_destruction);
+    TemporaryFile(std::string file_path, bool delete_on_destruction);
 
 public:
     // Creates a temporary file in the system temp directory.
@@ -19,12 +19,12 @@ public:
     // Creates a temporary file in the specified directory.
     // Depending on the platform this may create an empty file on the disk (to prevent another process from using the same name)
     // or may just generate a unique file name.
-    explicit TemporaryFile(NullTerminatedString directory);
+    explicit TemporaryFile(const std::string& directory_path);
 
     // Wraps the supplied path around a TemporaryFile object, so the file will be deleted on destruction.
-    static TemporaryFile FromPath(std::wstring path);
+    static TemporaryFile FromPath(std::string file_path);
 
-    TemporaryFile(const TemporaryFile& rhs) = delete;
+    TemporaryFile(const TemporaryFile&) = delete;
     TemporaryFile(TemporaryFile&& rhs) noexcept;
 
     ~TemporaryFile();
@@ -32,16 +32,17 @@ public:
     TemporaryFile& operator=(const TemporaryFile&) = delete;
     TemporaryFile& operator=(TemporaryFile&& rhs) noexcept;
 
-    /// <summary>Return full path of the file</summary>
-    const std::wstring& GetPath() const { return m_path; }
+    // Returns the full path of the file.
+    const std::string& GetPath() const { return m_filePath; }
 
     // Moves/renames the file. It will no longer be deleted on destruction.
-    bool Rename(std::wstring new_path);
+    void Rename(std::string new_file_path);
+    bool Rename_noexcept(std::string new_file_path);
 
     // Adds a file to a registry of files to be deleting upon program close.
-    static void RegisterFileForDeletion(std::wstring filename);
+    static void RegisterFileForDeletion(std::string file_path);
 
 private:
-    std::wstring m_path;
+    std::string m_filePath;
     bool m_deleteOnDestruction;
 };

@@ -10,34 +10,34 @@
 
 namespace
 {
-    template<typename CharType, typename JsonType, typename StringView>
-    void SetObjectValue(JsonType& json, StringView key, const Json::JsonObjectCreatorWrapper& value)
+    template<typename JsonType>
+    void SetObjectValue(JsonType& json, const std::string_view key_sv, const Json::JsonObjectCreatorWrapper& value)
     {
         std::visit(
             overload
             {
                 [&](const std::function<void(JsonWriter&)>& write_function)
                 {
-                    auto jsw = Json::CreateStringWriter();
+                    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(JsonFormattingOptions::Compact);
 
-                    write_function(*jsw);
+                    write_function(*json_writer);
 
-                    json.try_emplace(key, JsonNode<CharType>(jsw->GetString()).GetBasicJson());
+                    json.try_emplace(key_sv, JsonNode(json_writer->GetString()).GetBasicJson());
                 },
 
-                [&](std::string_view value)
+                [&](const std::string_view value_sv)
                 {
-                    json.try_emplace(key, UTF8Convert::UTF8ToWide(value).c_str());
+                    json.try_emplace(key_sv, value_sv);
                 },
 
-                [&](const JsonNode<wchar_t>& value)
+                [&](const JsonNode& value)
                 {
-                    json.try_emplace(key, value.GetBasicJson());
+                    json.try_emplace(key_sv, value.GetBasicJson());
                 },
 
-                [&](auto value)
+                [&](const auto& value)
                 {
-                    json.try_emplace(key, value);
+                    json.try_emplace(key_sv, value);
                 }
 
             }, value.data);
@@ -45,46 +45,46 @@ namespace
 }
 
 
-JsonNode<wchar_t> Json::CreateObject(std::initializer_list<std::tuple<wstring_view, JsonObjectCreatorWrapper>> keys_and_values)
+JsonNode Json::CreateObject(const std::initializer_list<std::tuple<std::string_view, JsonObjectCreatorWrapper>> keys_and_values)
 {
-    auto json = std::make_unique<jsoncons::basic_json<wchar_t, jsoncons::order_preserving_policy, std::allocator<char>>>();
+    auto json_node = std::make_unique<jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>>();
 
-    for( const auto& [key, value] : keys_and_values )
-        SetObjectValue<wchar_t>(*json, key, value);
+    for( const auto& [key_sv, value] : keys_and_values )
+        SetObjectValue(*json_node, key_sv, value);
 
-    return JsonNode<wchar_t>(std::move(json));
+    return JsonNode(std::move(json_node));
 }
 
 
-std::wstring Json::CreateObjectString(std::initializer_list<std::tuple<wstring_view, JsonObjectCreatorWrapper>> keys_and_values)
+std::string Json::CreateObjectString(const std::initializer_list<std::tuple<std::string_view, JsonObjectCreatorWrapper>> keys_and_values)
 {
-    auto jsw = CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(JsonFormattingOptions::Compact);
 
-    jsw->BeginObject();
+    json_writer->BeginObject();
 
-    for( const auto& [key, value] : keys_and_values )
+    for( const auto& [key_sv, value] : keys_and_values )
     {
-        jsw->Key(key);
+        json_writer->Key(key_sv);
 
         std::visit(
             overload
             {
                 [&](const std::function<void(JsonWriter&)>& write_function)
                 {
-                    write_function(*jsw);
+                    write_function(*json_writer);
                 },
 
                 [&](const auto& value)
                 {
-                    jsw->Write(value);
+                    json_writer->Write(value);
                 }
 
             }, value.data);
     }        
 
-    jsw->EndObject();
+    json_writer->EndObject();
 
-    return jsw->GetString();
+    return json_writer->ReleaseString();
 }
 
 
@@ -93,22 +93,18 @@ std::wstring Json::CreateObjectString(std::initializer_list<std::tuple<wstring_v
 // JsonObjectCreator
 // --------------------------------------------------------------------------
 
-template<typename CharType>
-JsonObjectCreator<CharType>::JsonObjectCreator()
+JsonObjectCreator::JsonObjectCreator()
     :   m_json(std::make_shared<BasicJson>())
 {
 }
 
 
-template<typename CharType>
-JsonObjectCreator<CharType>& JsonObjectCreator<CharType>::Set(StringView key, Json::JsonObjectCreatorWrapper value)
+JsonObjectCreator& JsonObjectCreator::Set(const std::string_view key_sv, const Json::JsonObjectCreatorWrapper value)
 {
-    SetObjectValue<CharType>(*m_json, key, value);
+    SetObjectValue(*m_json, key_sv, value);
 
     return *this;
 }
-
-template class JsonObjectCreator<wchar_t>;
 
 
 
@@ -116,41 +112,36 @@ template class JsonObjectCreator<wchar_t>;
 // JsonNodeCreator
 // --------------------------------------------------------------------------
 
-template<typename CharType>
-JsonNode<CharType> JsonNodeCreator<CharType>::Null()
+JsonNode JsonNodeCreator::Null()
 {
-    return JsonNode<CharType>(std::make_shared<BasicJson>(BasicJson::null()));
+    return JsonNode(std::make_unique<BasicJson>(BasicJson::null()));
 }
 
 
-template<typename CharType>
-JsonNode<CharType> JsonNodeCreator<CharType>::Value(Json::JsonObjectCreatorWrapper value)
+JsonNode JsonNodeCreator::Value(const Json::JsonObjectCreatorWrapper value)
 {
-    std::variant<std::unique_ptr<BasicJson>, std::basic_string<CharType>> json_or_string;
+    std::variant<std::monostate, std::unique_ptr<BasicJson>, std::string> json_or_string;
 
     std::visit(
         overload
         {
             [&](const std::function<void(JsonWriter&)>& write_function)
             {
-                auto jsw = Json::CreateStringWriter();
-
-                write_function(*jsw);
-
-                json_or_string = jsw->GetString();
+                const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(json_or_string.emplace<std::string>(), JsonFormattingOptions::Compact);
+                write_function(*json_writer);
             },
 
-            [&](std::string_view value)
+            [&](const std::string_view value_sv)
             {
-                json_or_string = std::make_unique<BasicJson>(UTF8Convert::UTF8ToWide(value).c_str());
+                json_or_string = std::make_unique<BasicJson>(value_sv);
             },
 
-            [&](const JsonNode<wchar_t>& value)
+            [&](const JsonNode& value)
             {
                 json_or_string = std::make_unique<BasicJson>(value.GetBasicJson());
             },
 
-            [&](auto value)
+            [&](const auto& value)
             {
                 json_or_string = std::make_unique<BasicJson>(value);
             }
@@ -159,13 +150,16 @@ JsonNode<CharType> JsonNodeCreator<CharType>::Value(Json::JsonObjectCreatorWrapp
 
     if( std::holds_alternative<std::unique_ptr<BasicJson>>(json_or_string) )
     {
-        return JsonNode<CharType>(std::move(std::get<std::unique_ptr<BasicJson>>(json_or_string)));
+        return JsonNode(std::move(std::get<std::unique_ptr<BasicJson>>(json_or_string)));
+    }
+
+    else if( std::holds_alternative<std::string>(json_or_string) )
+    {
+        return Json::Parse(std::get<std::string>(json_or_string));
     }
 
     else
     {
-        return Json::Parse(std::get<std::basic_string<CharType>>(json_or_string));
+        return ReturnProgrammingError(JsonNodeCreator::Null());
     }
 }
-
-template class JsonNodeCreator<wchar_t>;

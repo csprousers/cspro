@@ -1,20 +1,20 @@
 ﻿#include "stdafx.h"
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Clipboard_getText(const JsonNode<wchar_t>& /*json_node*/, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Clipboard_getText(const JsonNode& /*json_node*/, Caller& /*caller*/)
 {
-    std::optional<std::wstring> text = PortableRunner::ClipboardGetText();
+    SharableString text = PortableRunner::Clipboard_GetText();
 
-    if( text.has_value() )
-        return Result::String(std::move(*text));
+    if( text.IsSet() )
+        return Result::String(std::move(text));
 
     return Result::Undefined();
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Clipboard_putText(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Clipboard_putText(const JsonNode& json_node, Caller& /*caller*/)
 {
-    PortableRunner::ClipboardPutText(json_node.Get<std::wstring>(JK::text));
+    PortableRunner::Clipboard_PutText(json_node.Get<std::string_view>(JK::text));
 
     return Result::Undefined();
 }

@@ -6,11 +6,11 @@
 #include <Wcompile/Wcompile.h>
 
 
-BackgroundCompiler::BackgroundCompiler(Application& application, DesignerCompilerMessageProcessor* designer_compiler_message_processor/* = nullptr*/,
-                                       CompilerCreator* compiler_creator/* = nullptr*/)
+BackgroundCompiler::BackgroundCompiler(Application& application, DesignerCompilerMessageProcessor* const designer_compiler_message_processor/* = nullptr*/,
+                                       CompilerCreator* const compiler_creator/* = nullptr*/)
     :   m_compIFaz(std::make_unique<CCompIFaz>(&application, compiler_creator))
 {
-    application.SetApplicationLoader(std::make_shared<DesignerApplicationLoader>(&application, designer_compiler_message_processor));
+    application.SetApplicationLoader(std::make_unique<DesignerApplicationLoader>(&application, designer_compiler_message_processor));
     
     bool compiler_initialization_errors = false;
     m_compIFaz->C_CompilerInit(nullptr, compiler_initialization_errors);
@@ -29,15 +29,9 @@ const Logic::SymbolTable& BackgroundCompiler::GetSymbolTable() const
 }
 
 
-void BackgroundCompiler::Compile(const TCHAR* buffer_text)
-{
-    m_compIFaz->C_CompilerCompile(buffer_text);
-}
-
-
 void BackgroundCompiler::Compile(std::shared_ptr<Logic::SourceBuffer> source_buffer)
 {
-    m_compIFaz->C_CompilerCompile(source_buffer);
+    m_compIFaz->C_CompilerCompile(std::move(source_buffer));
 }
 
 

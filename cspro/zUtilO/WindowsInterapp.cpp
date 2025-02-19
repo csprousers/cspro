@@ -2,16 +2,16 @@
 #include "WindowsInterapp.h"
 
 
-void OpenContainingFolder(NullTerminatedString path)
+void OpenContainingFolder(const NullTerminatedString path)
 {
     if( PortableFunctions::FileIsDirectory(path) )
     {
-        ShellExecute(nullptr, _T("explore"), nullptr, nullptr, path.c_str(), SW_SHOW);
+        ShellExecute(nullptr, L"explore", L"", nullptr, path.c_str(), SW_SHOW);
     }
 
     else
     {
-        ITEMIDLIST* pidl = ILCreateFromPath(path.c_str());
+        ITEMIDLIST* const pidl = ILCreateFromPath(path.c_str());
 
         if( pidl != nullptr )
         {
@@ -19,6 +19,12 @@ void OpenContainingFolder(NullTerminatedString path)
             ILFree(pidl);
         }
     }
+}
+
+
+void OpenContainingFolder(const std::string_view path_sv)
+{
+    OpenContainingFolder(TC::ToWide(path_sv));
 }
 
 
@@ -31,7 +37,7 @@ int GetDesignerFontZoomLevel()
 {
     if( !DesignerFontZoomLevel.has_value() )
     {
-        DesignerFontZoomLevel = AfxGetApp()->GetProfileInt(_T("Settings"), _T("FontZoomLevel"), 100);
+        DesignerFontZoomLevel = AfxGetApp()->GetProfileInt(L"Settings", L"FontZoomLevel", 100);
 
         if( *DesignerFontZoomLevel < 100 || *DesignerFontZoomLevel > 200 )
             *DesignerFontZoomLevel = 100;
@@ -40,19 +46,21 @@ int GetDesignerFontZoomLevel()
     return *DesignerFontZoomLevel;
 }
 
-void SetDesignerFontZoomLevel(int iFontZoomLevel)
+
+void SetDesignerFontZoomLevel(const int zoom_level)
 {
-    AfxGetApp()->WriteProfileInt(_T("Settings"), _T("FontZoomLevel"), iFontZoomLevel);
+    AfxGetApp()->WriteProfileInt(L"Settings", L"FontZoomLevel", zoom_level);
     DesignerFontZoomLevel.reset();
 }
 
 
 CString GetDesignerFontName()
 {
-    return AfxGetApp()->GetProfileString(_T("Settings"), _T("FontName"));
+    return AfxGetApp()->GetProfileString(L"Settings", L"FontName");
 }
 
-void SetDesignerFontName(const TCHAR* font_name)
+
+void SetDesignerFontName(const NullTerminatedString font_name)
 {
-    AfxGetApp()->WriteProfileString(_T("Settings"), _T("FontName"), font_name);
+    AfxGetApp()->WriteProfileString(L"Settings", L"FontName", font_name.c_str());
 }

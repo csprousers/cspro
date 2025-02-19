@@ -4,10 +4,6 @@
 #include <zAppO/MappingDefines.h>
 #include <zAppO/Properties/MappingTileProviderProperties.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 enum class CoordinateDisplay : int
 {
@@ -43,8 +39,8 @@ public:
 
 
     // serialization
-    // -----------------------------------------------------
-    static MappingProperties CreateFromJson(const JsonNode<wchar_t>& json_node);
+    // --------------------------------------------------------------------------
+    static MappingProperties CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

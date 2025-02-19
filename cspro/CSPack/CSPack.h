@@ -13,7 +13,7 @@ protected:
     BOOL ProcessMessageFilter(int iCode, LPMSG lpMsg) override;
 
 private:
-    std::tuple<std::unique_ptr<PackSpec>, std::wstring> ProcessCommandLine(const std::wstring& filename, bool pack_flag);
+    std::tuple<std::unique_ptr<PackSpec>, std::string> ProcessCommandLine(const std::string& file_path, bool pack_flag);
 
 private:
     HACCEL m_hAccelerators;

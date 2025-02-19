@@ -10,12 +10,12 @@ CSPro::Dictionary::DictionaryItem::DictionaryItem(CDictItem* pNativeItem)
 
 System::String^ CSPro::Dictionary::DictionaryItem::Name::get()
 {
-    return gcnew System::String(m_pNativeItem->GetName());
+    return clr_helpers::to_SystemString(m_pNativeItem->GetName());
 }
 
 void CSPro::Dictionary::DictionaryItem::Name::set(System::String^ name)
 {
-    m_pNativeItem->SetName((CString)name);
+    m_pNativeItem->SetName(clr_helpers::to_string(name));
 }
 
 System::String^ CSPro::Dictionary::DictionaryItem::Label::get()

@@ -31,48 +31,48 @@ public:
     const std::vector<std::byte>& GetContent() const                       { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryData().GetContent(); }
     std::shared_ptr<const std::vector<std::byte>> GetSharedContent() const { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryData().GetSharedContent(); }
 
-    const BinaryDataMetadata& GetMetadata() const    { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryDataMetadata(); }
-    BinaryDataMetadata& GetMetadataForModification() { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryDataMetadataForModification(); }
+    const BinaryDataMetadata& GetMetadata() const { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryDataMetadata(); }
+    BinaryDataMetadata& GetMetadata()             { ASSERT(IsDefined()); return m_binaryDataAccessor->GetBinaryDataMetadata(); }
 
     template<typename T> void SetBinaryData(T&& content_or_callback, BinaryDataMetadata binary_data_metadata);
-    template<typename T> void SetBinaryData(T&& content_or_callback, std::wstring path_or_filename);
-    template<typename T> void SetBinaryData(T&& content_or_callback, std::wstring path_or_filename, std::wstring mime_type);
+    template<typename T> void SetBinaryData(T&& content_or_callback, std::string path_or_filename);
+    template<typename T> void SetBinaryData(T&& content_or_callback, std::string path_or_filename, std::string mime_type);
 
     // when setting the content without specifying any metadata, the current metadata (which must exist) is maintained
     template<typename T> void SetBinaryData(T&& content_or_callback);
 
     // the path is non-blank only if the binary data was loaded from / saved to the disk in the
     // current application's session, meaning that a persistent symbol's path will be initially blank
-    const std::wstring& GetPath() const { return m_path; }
-    void ClearPath()                    { m_path.clear(); }
-    void SetPath(std::wstring path);
+    const std::string& GetPath() const { return m_path; }
+    void ClearPath()                   { m_path.clear(); }
+    void SetPath(std::string path);
 
     // returns the filename (without directory information) from the binary data metadata; it can be blank
-    std::wstring GetFilenameOnly() const;
+    std::string GetFilenameOnly() const;
 
     // returns the filename, or if it is blank, creates a fake filename with an extension based on the MIME type (if applicable);
     // if a symbol is passed, the symbol's name will be used as the base filename
-    std::wstring CreateFilenameBasedOnMimeType() const                     { return CreateFilenameBasedOnMimeType(nullptr); }
-    std::wstring CreateFilenameBasedOnMimeType(const Symbol& symbol) const { return CreateFilenameBasedOnMimeType(&symbol); }
+    std::string CreateFilenameBasedOnMimeType() const                     { return CreateFilenameBasedOnMimeType(nullptr); }
+    std::string CreateFilenameBasedOnMimeType(const Symbol& symbol) const { return CreateFilenameBasedOnMimeType(&symbol); }
 
     // writes the content and metadata to JSON format
     void WriteSymbolValueToJson(const BinarySymbol& binary_symbol, JsonWriter& json_writer,
                                 const std::function<void()>* content_writer_override = nullptr) const;
 
     // updates the content and metadata from JSON format
-    void UpdateSymbolValueFromJson(BinarySymbol& binary_symbol, const JsonNode<wchar_t>& json_node, BinarySymbolDataContentValidator* content_validator = nullptr,
-                                   const std::function<BinaryData::ContentCallbackType(const JsonNode<wchar_t>&)>* non_url_content_reader = nullptr);
+    void SetSymbolValueFromJson(BinarySymbol& binary_symbol, const JsonNode& json_node, BinarySymbolDataContentValidator* content_validator = nullptr,
+                                const std::function<BinaryData::ContentCallbackType(const JsonNode&)>* non_url_content_reader = nullptr);
 
     // updates the content and metadata from a data URL, using binary_data_metadata as the base metadata
-    void UpdateSymbolValueFromDataUrl(BinarySymbol& binary_symbol, wstring_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata(),
-                                      BinarySymbolDataContentValidator* content_validator = nullptr);
+    void SetSymbolValueFromDataUrl(BinarySymbol& binary_symbol, std::string_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata(),
+                                   BinarySymbolDataContentValidator* content_validator = nullptr);
 
 private:
-    std::wstring CreateFilenameBasedOnMimeType(const Symbol* symbol) const;
+    std::string CreateFilenameBasedOnMimeType(const Symbol* symbol) const;
 
 private:
     cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> m_binaryDataAccessor;
-    std::wstring m_path;
+    std::string m_path;
 };
 
 
@@ -110,7 +110,7 @@ inline BinarySymbolData::BinarySymbolData(cs::non_null_shared_or_raw_ptr<BinaryD
 
 inline void BinarySymbolData::Reset()
 {
-    m_binaryDataAccessor->Reset();
+    m_binaryDataAccessor->Clear();
     m_path.clear();
 }
 
@@ -118,7 +118,7 @@ inline void BinarySymbolData::Reset()
 template<typename T>
 void BinarySymbolData::SetBinaryData(T&& content_or_callback, BinaryDataMetadata binary_data_metadata)
 {
-    m_binaryDataAccessor->SetBinaryData(std::forward<T>(content_or_callback), std::move(binary_data_metadata));
+    *m_binaryDataAccessor = BinaryDataAccessor(BinaryData(std::forward<T>(content_or_callback), std::move(binary_data_metadata)));
 }
 
 

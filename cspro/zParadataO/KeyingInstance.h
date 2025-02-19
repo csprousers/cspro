@@ -1,45 +1,44 @@
 ﻿#pragma once
-#include "zParadataO.h"
 
-namespace Paradata
+#include <zParadataO/zParadataO.h>
+
+namespace Paradata { class KeyingInstance; class Log; }
+
+
+class ZPARADATAO_API Paradata::KeyingInstance
 {
-    class Log;
+    friend class CaseEvent;
 
-    class ZPARADATAO_API KeyingInstance
-    {
-        friend class CaseEvent;
+protected:
+    static void SetupTables(Log& log);
+    long Save(Log& log) const;
 
-    private:
-        int m_pauseCount;
-        double m_pauseDuration;
-        std::optional<double> m_pauseTimestamp;
+public:
+    KeyingInstance();
 
-        int m_keystrokes;
-        int m_keyingErrors;
+    void Pause();
+    void UnPause();
 
-        int m_fieldsVerified;
-        int m_fieldsKeyerError;
-        int m_fieldsVerifierError;
+    void IncreaseKeystrokes()   { ++m_keystrokes; }
+    void IncreaseKeyingErrors() { ++m_keyingErrors; }
 
-        std::optional<int> m_recordsWritten;
+    void IncreaseFieldsVerified()      { ++m_fieldsVerified; }
+    void IncreaseFieldsKeyerError()    { ++m_fieldsKeyerError; }
+    void IncreaseFieldsVerifierError() { ++m_fieldsVerifierError; }
 
-    protected:
-        static void SetupTables(Log& log);
-        long Save(Log& log) const;
+    void SetRecordsWritten(int records_written) { m_recordsWritten = records_written; }
 
-    public:
-        KeyingInstance();
+private:
+    int m_pauseCount;
+    double m_pauseDuration;
+    std::optional<double> m_pauseTimestamp;
 
-        void Pause();
-        void UnPause();
+    int m_keystrokes;
+    int m_keyingErrors;
 
-        void IncreaseKeystrokes();
-        void IncreaseKeyingErrors();
+    int m_fieldsVerified;
+    int m_fieldsKeyerError;
+    int m_fieldsVerifierError;
 
-        void IncreaseFieldsVerified();
-        void IncreaseFieldsKeyerError();
-        void IncreaseFieldsVerifierError();
-
-        void SetRecordsWritten(int records_written);
-    };
-}
+    std::optional<int> m_recordsWritten;
+};

@@ -142,7 +142,7 @@
                 <div class="col withNewline">
                     {{title}}
                 </div>
-                <div class="btn-close my-close-button btn-sm" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div class="btn-close my-close-button btn-sm" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div class="row my-dialog-body" id="searchContainer" style="background: #343a40;padding-bottom: 12px;">
@@ -187,7 +187,7 @@
                     </button>
                 </div>
                 <div class="col-4">
-                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" tabindex="-1" onclick="CS.UI.closeDialog();">
+                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" tabindex="-1" onclick="CS.UI.close();">
                         <span class="bi bi-x-lg" style="color:#500;"></span>
                     </button>
                 </div>
@@ -352,7 +352,7 @@
             });
 
             if (selRowsIdx.length == 0) {
-                CS.UI.closeDialog();
+                CS.UI.close();
                 return;
             }
 
@@ -360,7 +360,7 @@
             selRowsIdx.sort(function (a, b) { return a - b });
 
             //building and returning JSON object
-            CS.UI.closeDialog({ result: { rowIndices: selRowsIdx } });
+            CS.UI.close({ result: { rowIndices: selRowsIdx } });
         }
 
         function setSelectAllCheckbox() {
@@ -604,7 +604,7 @@
                         $("#searchButton").click();
                         return false;
                     }
-                    CS.UI.closeDialog();
+                    CS.UI.close();
                 }
                 else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
                     focusNextVisibleRow(1);

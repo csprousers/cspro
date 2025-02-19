@@ -91,7 +91,7 @@ DocSetTreeView::DataForTree DocSetTreeView::GetInitialDataForTree()
 {
     // silently compile the spec, ignoring errors, in order to build the tree
     DocSetSpec& doc_set_spec = GetDocSetSpec();
-    
+
     try
     {
         assert_cast<CMainFrame*>(AfxGetMainWnd())->CompileDocSetSpecIfNecessary(doc_set_spec, DocSetCompiler::SpecCompilationType::DataForTree);
@@ -117,7 +117,7 @@ std::vector<std::tuple<DocSetTreeView::ExtendedDocSetComponentType, const DocSet
         documents_and_toc_indices->reserve(m_dataForCurrentTree.doc_set_components.size());
     }
 
-    for( const DocSetComponent* doc_set_component : VI_P(m_dataForCurrentTree.doc_set_components) )
+    for( const DocSetComponent* const doc_set_component : VI_P(m_dataForCurrentTree.doc_set_components) )
     {
         if( doc_set_component->type != DocSetComponent::Type::Document || !sort_by_toc )
         {
@@ -140,7 +140,7 @@ std::vector<std::tuple<DocSetTreeView::ExtendedDocSetComponentType, const DocSet
         });
 
     // add any special documents before the documents
-    auto add_special_document = [&](const TCHAR* type, const DocSetComponent* doc_set_component)
+    auto add_special_document = [&](const char* const type, const DocSetComponent* const doc_set_component)
     {
         if( doc_set_component != nullptr )
         {
@@ -154,8 +154,8 @@ std::vector<std::tuple<DocSetTreeView::ExtendedDocSetComponentType, const DocSet
         }
     };
 
-    add_special_document(_T("Cover Page"), m_dataForCurrentTree.cover_page_document.get());
-    add_special_document(_T("Default Document"), m_dataForCurrentTree.default_document.get());
+    add_special_document("Cover Page", m_dataForCurrentTree.cover_page_document.get());
+    add_special_document("Default Document", m_dataForCurrentTree.default_document.get());
 
     // sort the documents by the position in the table of contents and then add them to sorted contents
     if( sort_by_toc )
@@ -170,7 +170,7 @@ std::vector<std::tuple<DocSetTreeView::ExtendedDocSetComponentType, const DocSet
                 if( std::get<1>(lhs_doc_and_toc_index) > std::get<1>(rhs_doc_and_toc_index) )
                     return false;
 
-                return ( SO::CompareNoCase(std::get<0>(lhs_doc_and_toc_index)->filename, std::get<0>(rhs_doc_and_toc_index)->filename) < 0 );
+                return ( SO::CompareNoCase(std::get<0>(lhs_doc_and_toc_index)->file_path, std::get<0>(rhs_doc_and_toc_index)->file_path) < 0 );
             });
 
         std::for_each(documents_and_toc_indices->begin(), documents_and_toc_indices->end(),
@@ -181,7 +181,7 @@ std::vector<std::tuple<DocSetTreeView::ExtendedDocSetComponentType, const DocSet
     }
 
     ASSERT(sorted_doc_set_components.size() == ( m_dataForCurrentTree.doc_set_components.size() +
-                                                 ( ( m_dataForCurrentTree.cover_page_document != nullptr ) ? 1 : 0 ) + 
+                                                 ( ( m_dataForCurrentTree.cover_page_document != nullptr ) ? 1 : 0 ) +
                                                  ( ( m_dataForCurrentTree.default_document != nullptr ) ? 1 : 0 ) ));
 
     return sorted_doc_set_components;
@@ -193,7 +193,7 @@ void DocSetTreeView::BuildTree(DataForTree data_for_tree)
     CTreeCtrl& tree_ctrl = GetTreeCtrl();
 
     const DocSetSpec& doc_set_spec = GetDocSetSpec();
-    const std::wstring& doc_set_spec_filename = doc_set_spec.GetFilename();
+    const std::string& doc_set_spec_file_path = doc_set_spec.GetFilePath();
 
     SetRedraw(FALSE);
     tree_ctrl.DeleteAllItems();
@@ -206,12 +206,14 @@ void DocSetTreeView::BuildTree(DataForTree data_for_tree)
     tvi.hInsertAfter = TVI_LAST;
 
     auto insert_item = [&](HTREEITEM parent_tree_item, const ExtendedDocSetComponentType& extended_doc_set_component_type,
-                           const DocSetComponent* doc_set_component, std::wstring description)
+                           const DocSetComponent* const doc_set_component, const std::string_view description_sv)
     {
         ASSERT(( parent_tree_item == TVI_ROOT ) == ( tree_ctrl.GetCount() == 0 ));
 
+        std::wstring wide_description = TC::ToWide(description_sv);
+
         tvi.hParent = parent_tree_item;
-        tvi.item.pszText = description.data();
+        tvi.item.pszText = wide_description.data();
         tvi.item.lParam = reinterpret_cast<LPARAM>(doc_set_component);
         tvi.item.iImage = m_iconMapping[extended_doc_set_component_type];
         tvi.item.iSelectedImage = tvi.item.iImage;
@@ -224,7 +226,7 @@ void DocSetTreeView::BuildTree(DataForTree data_for_tree)
 
     // sort the components
     std::vector<std::tuple<ExtendedDocSetComponentType, const DocSetComponent*>> sorted_doc_set_components = GetSortedDocSetComponents();
-    
+
     for( const auto& [extended_doc_set_component_type, doc_set_component] : sorted_doc_set_components )
     {
         // the main spec goes at the root
@@ -232,12 +234,12 @@ void DocSetTreeView::BuildTree(DataForTree data_for_tree)
         {
             ASSERT(tree_ctrl.GetCount() == 0);
 
-            std::wstring description = ToString(std::get<DocSetComponent::Type>(extended_doc_set_component_type));
+            std::string description = ToString(std::get<DocSetComponent::Type>(extended_doc_set_component_type));
 
             if( m_dataForCurrentTree.title.has_value() )
-                SO::AppendFormat(description, _T(" (%s)"), m_dataForCurrentTree.title->c_str());
+                description.append(FormatText(" (%s)", m_dataForCurrentTree.title->c_str()));
 
-            spec_tree_item = insert_item(TVI_ROOT, extended_doc_set_component_type, doc_set_component, std::move(description));
+            spec_tree_item = insert_item(TVI_ROOT, extended_doc_set_component_type, doc_set_component, description);
         }
 
         // there will be only one table of contents and index, so add them directly
@@ -256,24 +258,25 @@ void DocSetTreeView::BuildTree(DataForTree data_for_tree)
             // add the group node when necessary
             if( grouped_components.empty() || extended_doc_set_component_type != std::get<0>(grouped_components.back()) )
             {
-                const TCHAR* description =
-                    ( std::holds_alternative<SpecialDocumentType>(extended_doc_set_component_type) )                        ? _T("Special Documents") :
-                    ( std::get<DocSetComponent::Type>(extended_doc_set_component_type) == DocSetComponent::Type::Document ) ? _T("Documents") :
+                const char* const description =
+                    ( std::holds_alternative<SpecialDocumentType>(extended_doc_set_component_type) )                        ? "Special Documents" :
+                    ( std::get<DocSetComponent::Type>(extended_doc_set_component_type) == DocSetComponent::Type::Document ) ? "Documents" :
                                                                                                                               ToString(std::get<DocSetComponent::Type>(extended_doc_set_component_type));
 
                 grouped_components.emplace_back(extended_doc_set_component_type, insert_item(spec_tree_item, extended_doc_set_component_type, nullptr, description));
             }
 
-            // show the filename using relative pathing (as long as it is within 2 directories of the spec)
-            const wstring_view PreviousDirectoryText_sv = _T("..\\");
+            // show the file path using relative pathing (as long as it is within 2 directories of the spec)
+            constexpr std::string_view PreviousDirectoryText_sv = "..\\";
             constexpr size_t MaxDirectoriesForRelativePath = 2;
 
-            const std::wstring relative_filename = GetRelativeFNameForDisplay(doc_set_spec_filename, doc_set_component->filename);
-            const size_t last_previous_directory_text = relative_filename.rfind(PreviousDirectoryText_sv);
-            const bool use_relative_filename = ( last_previous_directory_text == std::wstring::npos ||
+            const std::string relative_file_path = GetRelativePathForDisplay(doc_set_spec_file_path, doc_set_component->file_path);
+            const size_t last_previous_directory_text = relative_file_path.rfind(PreviousDirectoryText_sv);
+            const bool use_relative_filename = ( last_previous_directory_text == std::string::npos ||
                                                  last_previous_directory_text < ( MaxDirectoriesForRelativePath * PreviousDirectoryText_sv.length() ) );
 
-            std::wstring description = use_relative_filename ? relative_filename : doc_set_component->filename;
+            std::string description = use_relative_filename ? relative_file_path :
+                                                              doc_set_component->file_path;
 
             if( std::holds_alternative<SpecialDocumentType>(extended_doc_set_component_type) )
                 description = SO::CreateParentheticalExpression(std::get<SpecialDocumentType>(extended_doc_set_component_type).type, description);
@@ -316,16 +319,16 @@ DocSetComponent* DocSetTreeView::GetDocSetComponent(HTREEITEM tree_item)
 
 
 template<typename CF>
-void DocSetTreeView::DoWithSelectedDocSetComponent(CF callback_function)
+void DocSetTreeView::DoWithSelectedDocSetComponent(const CF callback_function)
 {
-    DocSetComponent* selected_doc_set_component = GetSelectedDocSetComponent();
+    DocSetComponent* const selected_doc_set_component = GetSelectedDocSetComponent();
 
     if( selected_doc_set_component != nullptr )
         callback_function(*selected_doc_set_component);
 }
 
 
-void DocSetTreeView::OnRButtonDown(UINT nFlags, CPoint point)
+void DocSetTreeView::OnRButtonDown(const UINT nFlags, CPoint point)
 {
     __super::OnRButtonDown(nFlags, point);
 
@@ -360,26 +363,26 @@ void DocSetTreeView::OnShiftF10()
 }
 
 
-void DocSetTreeView::ShowContextMenu(int x, int y)
+void DocSetTreeView::ShowContextMenu(const int x, const int y)
 {
     CMenu menu;
     menu.LoadMenu(IDR_DOCSET_TREE_CONTEXT);
     ASSERT(menu.GetMenuItemCount() == 1);
 
-    CMenu* submenu = menu.GetSubMenu(0);
+    CMenu* const submenu = menu.GetSubMenu(0);
 
-    CMFCPopupMenu* popup_menu = new CMFCPopupMenu;
+    CMFCPopupMenu* const popup_menu = new CMFCPopupMenu;
     popup_menu->SetAutoDestroy(FALSE);
 
     popup_menu->Create(this, x, y, submenu->GetSafeHmenu());
 }
 
 
-void DocSetTreeView::OnDoubleClickAndReturn(NMHDR* /*pNMHDR*/, LRESULT* pResult)
+void DocSetTreeView::OnDoubleClickAndReturn(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
 {
     CTreeCtrl& tree_ctrl = GetTreeCtrl();
     HTREEITEM selected_tree_item = tree_ctrl.GetSelectedItem();
-    const DocSetComponent* selected_doc_set_component = GetDocSetComponent(selected_tree_item);
+    const DocSetComponent* const selected_doc_set_component = GetDocSetComponent(selected_tree_item);
 
     // when a component is selected, edit it
     if( selected_doc_set_component != nullptr )
@@ -402,7 +405,7 @@ void DocSetTreeView::OnDoubleClickAndReturn(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 }
 
 
-void DocSetTreeView::OnUpdateComponentMustHavePath(CCmdUI* pCmdUI)
+void DocSetTreeView::OnUpdateComponentMustHavePath(CCmdUI* const pCmdUI)
 {
     BOOL enable = FALSE;
     DoWithSelectedDocSetComponent([&](const DocSetComponent& /*doc_set_component*/) { enable = TRUE; });
@@ -421,7 +424,7 @@ void DocSetTreeView::OnEditComponent()
         CSDocumentApp& csdoc_app = *assert_cast<CSDocumentApp*>(AfxGetApp());
 
         csdoc_app.SetDocSetParametersForNextOpen(doc_set_component, GetDocSetSpecDoc().GetSharedAssociatedDocSetSpec());
-        csdoc_app.OpenDocumentFile(doc_set_component.filename.c_str(), FALSE);
+        csdoc_app.OpenDocumentFile(TC::ToWide(doc_set_component.file_path).c_str(), FALSE);
     });
 }
 
@@ -430,7 +433,7 @@ void DocSetTreeView::OnCopyFullPath()
 {
     DoWithSelectedDocSetComponent([&](const DocSetComponent& doc_set_component)
     {
-        WinClipboard::PutText(this, doc_set_component.filename);
+        WinClipboard::PutText(this, doc_set_component.file_path);
     });
 }
 
@@ -439,7 +442,7 @@ void DocSetTreeView::OnCopyFilename()
 {
     DoWithSelectedDocSetComponent([&](const DocSetComponent& doc_set_component)
     {
-        WinClipboard::PutText(this, PortableFunctions::PathGetFilename(doc_set_component.filename));
+        WinClipboard::PutText(this, PortableFunctions::PathGetFilename(doc_set_component.file_path));
     });
 }
 
@@ -448,7 +451,7 @@ void DocSetTreeView::OnOpenContainingFolder()
 {
     DoWithSelectedDocSetComponent([&](const DocSetComponent& doc_set_component)
     {
-        OpenContainingFolder(doc_set_component.filename);
+        OpenContainingFolder(doc_set_component.file_path);
     });
 }
 

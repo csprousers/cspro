@@ -49,37 +49,28 @@ void CTbiFile::Init() {
 //-------------------------
 // Method: Open
 //-------------------------
-bool CTbiFile::Open(bool bCreate) {
+bool CTbiFile::Open(bool bCreate)
+{
     ASSERT( m_pTableIndex == NULL );
 
     if( !bCreate && !PortableFunctions::FileIsRegular(m_csFileName) )
         return false;
 
-    m_pTableIndex = new SimpleDbMap();
+    m_pTableIndex = std::make_unique<SimpleDbMap>();
 
-    if( m_pTableIndex->Open((LPCTSTR)m_csFileName, { { _T("TBI"), SimpleDbMap::ValueType::Long } }) )
+    if( m_pTableIndex->Open(UTF8_TODO::GetUtf8(m_csFileName), { { "TBI", SimpleDbMap::ValueType::Long } }) )
         return true;
 
-    else
-    {
-        delete m_pTableIndex;
-        m_pTableIndex = NULL;
-        return false;
-    }
+    m_pTableIndex.reset();
+    return false;
 }
 
 //-------------------------
 // Method: Close
 //-------------------------
-bool CTbiFile::Close() {
-    if( m_pTableIndex != NULL )
-    {
-        delete m_pTableIndex;
-        m_pTableIndex = NULL;
-        return true;
-    }
-    else
-        return false;
+void CTbiFile::Close()
+{
+    m_pTableIndex.reset();
 }
 
 
@@ -104,14 +95,22 @@ bool CTbiFile::Locate(CTbiFile_LocateMode eLocateMode, CString* pcsRefKeyPrefix,
 
     else if( eLocateMode == Next )
     {
-        return m_pTableIndex->NextLong(&m_csKey, &m_lValue);
+        std::string utf8_key;
+
+        if( m_pTableIndex->NextLong(&utf8_key, &m_lValue) )
+        {
+            m_csKey = UTF8_TODO::GetWide(utf8_key);
+            return true;
+        }
+
+        return false;
     }
 
     else if( eLocateMode == Exact )
     {
         ASSERT(pcsRefKeyPrefix != NULL);
 
-        std::optional<long> value = m_pTableIndex->GetLongUsingKeyPrefix(*pcsRefKeyPrefix);
+        const std::optional<long> value = m_pTableIndex->GetLongUsingKeyPrefix(UTF8_TODO::GetUtf8(*pcsRefKeyPrefix));
 
         if( value.has_value() )
             m_lValue = *value;

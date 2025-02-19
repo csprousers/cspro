@@ -14,10 +14,9 @@
 
 #include "StdAfx.h"
 #include "TextView.h"
-#include "OpenInDataViewerDlg.h"
+#include "OpenInDataManagerDlg.h"
 #include <zToolsO/RaiiHelpers.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
 
 
 BEGIN_MESSAGE_MAP(CTextViewApp, CWinApp)
@@ -69,7 +68,7 @@ BOOL CTextViewApp::InitInstance()
     // and then the listing report), the OpenFilesOnStartupManager will ensure that they are opened in the proper order
     RAII::ModifyValueOnDestruction reset_open_file_directly(OpenFilesOnStartupManager.open_file_directly, true);
     OpenFilesOnStartupManager.open_file_directly = false;
- 
+
     AfxOleInit();
     AfxEnableControlContainer();
 
@@ -155,7 +154,7 @@ BOOL CTextViewApp::InitInstance()
             std::lock_guard<std::mutex> lock(OpenFilesOnStartupManager.filenames_mutex);
             return OpenFilesOnStartupManager.filenames[i];
         };
-        
+
         OpenDocumentFile(get_filename());
     }
 
@@ -297,15 +296,15 @@ CTVDoc* CTextViewApp::FindFile(const CString& csFileName) const {
 CDocument* CTextViewApp::OpenDocumentFile(LPCTSTR lpszFileName)
 {
     // if the file is a CSPro DB file, make sure that they want to open it in Text Viewer
-    std::wstring extension = PortableFunctions::PathGetFileExtension(lpszFileName);
+    const std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(lpszFileName));
 
     if( SO::EqualsOneOfNoCase(extension, FileExtensions::Data::CSProDB, FileExtensions::Data::EncryptedCSProDB) )
     {
-        if( OpenInDataViewerQuery(lpszFileName) )
+        if( OpenInDataManagerQuery(lpszFileName) )
             return nullptr;
     }
 
-    // if not opened in Data Viewer, continue opening the document
+    // if not opened in Data Manager, continue opening the document
     CDocument* pDocument = CWinApp::OpenDocumentFile(lpszFileName);
     POSITION pos = GetFirstDocTemplatePosition();
     CDocTemplate* pTemplate = NULL;
@@ -323,29 +322,29 @@ CDocument* CTextViewApp::OpenDocumentFile(LPCTSTR lpszFileName)
 }
 
 
-bool CTextViewApp::OpenInDataViewerQuery(const CString& filename)
+bool CTextViewApp::OpenInDataManagerQuery(const wchar_t* const file_path)
 {
-    constexpr const TCHAR* RegistryOptions = _T("Options");
-    constexpr const TCHAR* RegistrySetting = _T("DataViewerAutoLaunch");
+    constexpr const wchar_t* RegistryOptions = L"Options";
+    constexpr const wchar_t* RegistrySetting = L"DataManagerAutoLaunch";
 
-    int iRegistrySetting = AfxGetApp()->GetProfileInt(RegistryOptions, RegistrySetting, -1);
+    const int registry_setting = AfxGetApp()->GetProfileInt(RegistryOptions, RegistrySetting, -1);
+    bool open_in_data_manager = ( registry_setting == 1 );
 
-    bool bOpenInDataViewer = ( iRegistrySetting == 1 );
-
-    if( iRegistrySetting == -1 ) // there is no registry setting so show the dialog
+    // if there is no registry setting, show the dialog
+    if( registry_setting == -1 )
     {
-        COpenInDataViewerDlg dlg;
+        OpenInDataManagerDlg dlg;
         dlg.DoModal();
 
-        bOpenInDataViewer = dlg.OpenInDataViewer();
+        open_in_data_manager = dlg.OpenInDataManager();
 
         if( dlg.RememberSetting() )
-            AfxGetApp()->WriteProfileInt(RegistryOptions, RegistrySetting, bOpenInDataViewer ? 1 : 0);
+            AfxGetApp()->WriteProfileInt(RegistryOptions, RegistrySetting, open_in_data_manager ? 1 : 0);
     }
 
-    if( bOpenInDataViewer )
+    if( open_in_data_manager )
     {
-        ((CMainFrame*)AfxGetMainWnd())->OpenInDataViewer(filename);
+        CMainFrame::OpenInDataManager(file_path);
         return true;
     }
 

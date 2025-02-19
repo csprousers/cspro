@@ -21,6 +21,6 @@ protected:
 
     void OnDraw(CDC* pDC) override;
 
-private:
+protected:
     HtmlViewCtrl m_htmlViewCtrl;
 };

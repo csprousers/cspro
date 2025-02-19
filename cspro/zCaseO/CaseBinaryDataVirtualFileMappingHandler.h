@@ -14,7 +14,7 @@ public:
         ASSERT(m_case != nullptr);
     }
 
-    bool ServeContent(void* response_object, const std::wstring& key) override
+    bool ServeContent(VirtualFileMappingResponse& response, const std::string& key) override
     {
         if( m_case == nullptr )
             return ReturnProgrammingError(false);
@@ -30,9 +30,8 @@ public:
 
             if( binary_data != nullptr )
             {
-                std::optional<std::wstring> mime_type = binary_data->GetMetadata().GetEvaluatedMimeType();
-
-                LocalFileServerSetResponse(response_object, binary_data->GetContent(), ValueOrDefault(std::move(mime_type)));
+                response.SetContent(binary_data->GetSharedContent(),
+                                    ValueOrDefault(binary_data->GetMetadata().GetEvaluatedMimeType()));
 
                 return true;
             }

@@ -1,6 +1,7 @@
-﻿// note CSPro additions marked with "CSPro"
+// note CSPro additions marked with "CSPro"
 // when updating, uses of options_., open_object_brace_str_., close_object_brace_str_., open_array_bracket_str_., and close_array_bracket_str_.
 // need to be changed to add () between the _ and .; e.g., options_.max_nesting_depth() options_().max_nesting_depth()
+// also look at "to support spacing out entities after a call to CreateJsonModifiableOptions"
 
 // Copyright 2013-2023 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
@@ -198,6 +199,7 @@ namespace detail {
     struct ModifiableOptions
     {
         const basic_json_encode_options<CharT> options_;
+        bool add_space_after_comma_before_next_entity = false;
         std::basic_string<CharT> open_object_brace_str_;
         std::basic_string<CharT> close_object_brace_str_;
         std::basic_string<CharT> open_array_bracket_str_;
@@ -327,7 +329,8 @@ namespace detail {
         using encoding_context_allocator_type = typename std::allocator_traits<allocator_type>:: template rebind_alloc<encoding_context>;
 
         Sink sink_;
-        // CSPro removed basic_json_encode_options<CharT> options_;
+        // basic_json_encode_options<CharT> options_; // CSPro removed 
+        size_t sink_length_after_newline = 0; // CSPro added
         jsoncons::detail::write_double fp_;
 
         std::vector<encoding_context,encoding_context_allocator_type> stack_;
@@ -347,10 +350,11 @@ namespace detail {
     public:
         ModifiableOptions<CharT> base_current_options_; 
         const ModifiableOptions<CharT>* current_options_; 
-        const basic_json_encode_options<CharT>& options_() const { return current_options_->options_; };
-        const std::basic_string<CharT>& open_object_brace_str_() const { return current_options_->open_object_brace_str_; }
-        const std::basic_string<CharT>& close_object_brace_str_() const { return current_options_->close_object_brace_str_; }
-        const std::basic_string<CharT>& open_array_bracket_str_() const { return current_options_->open_array_bracket_str_; }
+        const basic_json_encode_options<CharT>& options_() const         { return current_options_->options_; };
+        bool add_space_after_comma_before_next_entity() const            { return current_options_->add_space_after_comma_before_next_entity; }
+        const std::basic_string<CharT>& open_object_brace_str_() const   { return current_options_->open_object_brace_str_; }
+        const std::basic_string<CharT>& close_object_brace_str_() const  { return current_options_->close_object_brace_str_; }
+        const std::basic_string<CharT>& open_array_bracket_str_() const  { return current_options_->open_array_bracket_str_; }
         const std::basic_string<CharT>& close_array_bracket_str_() const { return current_options_->close_array_bracket_str_; }
 
         void ModifyOptions(const ModifiableOptions<CharT>* modifiable_options) 
@@ -480,7 +484,13 @@ namespace detail {
                 ec = json_errc::max_nesting_depth_exceeded;
                 return false;
             } 
+
+#ifdef CSPro_old_code_as_reference
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
+#else
+            const bool add_comma = (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0);
+            if (add_comma)
+#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -535,6 +545,10 @@ namespace detail {
                                     column_, column_+open_object_brace_str_().length());
             }
             indent();
+
+            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
+            if (add_comma && add_space_after_comma_before_next_entity() && sink_length_after_newline != sink_.length())
+                sink_.push_back(' ');
             
             sink_.append(open_object_brace_str_().data(), open_object_brace_str_().length());
             column_ += open_object_brace_str_().length();
@@ -566,7 +580,12 @@ namespace detail {
                 ec = json_errc::max_nesting_depth_exceeded;
                 return false;
             } 
+#ifdef CSPro_old_code_as_reference
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
+#else
+            const bool add_comma = (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0);
+            if (add_comma)
+#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -627,7 +646,13 @@ namespace detail {
                 stack_.emplace_back(container_type::array, line_split_kind::multi_line, false,
                                     column_, column_+open_array_bracket_str_().length());
             }
+
             indent();
+
+            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
+            if (add_comma && add_space_after_comma_before_next_entity() && sink_length_after_newline != sink_.length())
+                sink_.push_back(' ');
+
             sink_.append(open_array_bracket_str_().data(), open_array_bracket_str_().length());
             column_ += open_array_bracket_str_().length();
             return true;
@@ -653,7 +678,14 @@ namespace detail {
         bool visit_key(const string_view_type& name, const ser_context&, std::error_code&) override
         {
             JSONCONS_ASSERT(!stack_.empty());
+            
+#ifdef CSPro_old_code_as_reference
             if (stack_.back().count() > 0)
+#else
+            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
+            const bool stack_has_entries = ( stack_.back().count() > 0 );
+            if (stack_has_entries)
+#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -664,11 +696,26 @@ namespace detail {
                 stack_.back().new_line_after(true);
                 new_line();
             }
+#ifdef CSPro_old_code_as_reference
             else if (stack_.back().count() > 0 && column_ >= options_().line_length_limit())
             {
                 //stack_.back().new_line_after(true);
                 new_line(stack_.back().data_pos());
             }
+#else
+            else if (stack_has_entries)
+            {
+                if (column_ >= options_().line_length_limit()) 
+                {
+                    new_line(stack_.back().data_pos());
+                }
+                
+                else if (add_space_after_comma_before_next_entity()) 
+                {
+                    sink_.push_back(' ');
+                }
+            }
+#endif
 
             if (stack_.back().count() == 0)
             {
@@ -981,6 +1028,10 @@ namespace detail {
                 {
                     sink_.append(comma_str_.data(),comma_str_.length());
                     column_ += comma_str_.length();
+
+                    // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
+                    if (add_space_after_comma_before_next_entity()) 
+                        sink_.push_back(' ');
                 }
                 if (stack_.back().is_multi_line() || stack_.back().is_indent_once())
                 {
@@ -1083,6 +1134,7 @@ namespace detail {
                 sink_.push_back(' ');
             }
             column_ = indent_amount_;
+            sink_length_after_newline = sink_.length();
         }
 
         void new_line(std::size_t len)
@@ -1093,6 +1145,7 @@ namespace detail {
                 sink_.push_back(' ');
             }
             column_ = len;
+            sink_length_after_newline = sink_.length();
         }
 
         void break_line()

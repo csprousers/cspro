@@ -17,6 +17,7 @@
 #include <zDataO/ParadataWrapperRepository.h>
 #include <zParadataO/Logger.h>
 #include <ZBRIDGEO/npff.h>
+#include <zSyncO/AppSyncParamRunner.h>
 
 
 void CEngineDriver::InitializeData()
@@ -24,18 +25,18 @@ void CEngineDriver::InitializeData()
     // because multiple dictionaries may be using the same case access, determine the greatest status required
     std::set<CaseAccess*> case_accesses;
 
-    for( const EngineDictionary* engine_dictionary : m_engineData->engine_dictionaries )
+    for( EngineDictionary* const engine_dictionary : m_engineData->engine_dictionaries )
     {
         if( !engine_dictionary->HasEngineDataRepository() )
             continue;
 
-        const EngineDataRepository& engine_data_repository = engine_dictionary->GetEngineDataRepository();
+        EngineDataRepository& engine_data_repository = engine_dictionary->GetEngineDataRepository();
 
-        CaseAccess* case_access = engine_dictionary->GetCaseAccess();
+        CaseAccess* const case_access = engine_dictionary->GetCaseAccess();
         case_accesses.emplace(case_access);
 
         // full access is required of entry inputs, batch inputs when there is an output,
-    	// special outputs, and writeable external dictionaries
+        // special outputs, and writeable external dictionaries
         bool set_requires_full_access = false;
 
         switch( engine_dictionary->GetSubType() )
@@ -88,11 +89,11 @@ void CEngineDriver::InitializeData()
 
 
     // create a default case construction reporter
-    auto default_case_construction_reporter = std::make_shared<EngineCaseConstructionReporter>(
-        m_pEngineDriver->GetSharedSystemMessageIssuer(), nullptr);
+    const auto default_case_construction_reporter = std::make_shared<EngineCaseConstructionReporter>(m_pEngineDriver->GetSharedSystemMessageIssuer(),
+                                                                                                     nullptr);
 
     // initialize the case accesses
-    for( CaseAccess* case_access : case_accesses )
+    for( CaseAccess* const case_access : case_accesses )
     {
         ASSERT(false); // 20220810 note: when this code becomes active, make sure that this method is only called after
                        // the File Associations dialog is dismissed, otherwise the call to m_pPifFile->UsingOutputData()
@@ -107,9 +108,9 @@ void CEngineDriver::InitializeData()
 
 
     // initialize the dictionaries
-    for( EngineDictionary* engine_dictionary : m_engineData->engine_dictionaries )
+    for( EngineDictionary* const engine_dictionary : m_engineData->engine_dictionaries )
     {
-        std::shared_ptr<EngineCaseConstructionReporter> case_construction_reporter_override;
+        std::unique_ptr<EngineCaseConstructionReporter> case_construction_reporter_override;
 
 #ifdef WIN_DESKTOP
         // create the batch input case construction reporter
@@ -121,26 +122,28 @@ void CEngineDriver::InitializeData()
             };
 
             // we will only use a process summary for the batch input file so that record counts for external dictionaries don't get added in
-            case_construction_reporter_override = std::make_shared<EngineCaseConstructionReporter>(
-                m_pEngineDriver->GetSharedSystemMessageIssuer(), m_pEngineDriver->GetProcessSummary(), update_case_callback);
+            case_construction_reporter_override = std::make_unique<EngineCaseConstructionReporter>(m_pEngineDriver->GetSharedSystemMessageIssuer(),
+                                                                                                   m_pEngineDriver->GetProcessSummary(),
+                                                                                                   std::move(update_case_callback));
         }
 #endif
 
-        std::shared_ptr<std::function<void(EngineDataRepository&)>> reset_override;
+        std::function<void(EngineDataRepository&)> reset_override;
 
         if( engine_dictionary->IsDataRepositoryObject() )
         {
             // this reset override is handled this way because the EngineDictionary symbol
             // does not have access to CEngineDriver methods
-            reset_override = std::make_shared<std::function<void(EngineDataRepository&)>>(
+            reset_override =
                 [&](EngineDataRepository& engine_data_repository)
                 {
                     m_pEngineDriver->LoadAllBinaryDataFromRepository(engine_data_repository);
-                });
+                };
         }
 
         engine_dictionary->InitializeRuntime(m_pEngineDriver->GetSharedSystemMessageIssuer(),
-            case_construction_reporter_override, reset_override);
+                                             std::move(case_construction_reporter_override),
+                                             std::move(reset_override));
     }
 }
 
@@ -148,7 +151,7 @@ void CEngineDriver::InitializeData()
 
 // opens the repository using the characteristics of the dictionary; throws DataRepositoryException exceptions
 void CEngineDriver::OpenRepository(EngineDataRepository& engine_data_repository, const ConnectionString& connection_string,
-                                   DataRepositoryOpenFlag open_flag, bool load_binary_data_from_currently_open_repository_before_closing)
+                                   DataRepositoryOpenFlag open_flag, const bool load_binary_data_from_currently_open_repository_before_closing)
 {
     const EngineDictionary& engine_dictionary = engine_data_repository.GetEngineDictionary();
 
@@ -196,13 +199,14 @@ void CEngineDriver::OpenRepository(EngineDataRepository& engine_data_repository,
     // wrap the repository if using the paradata
     if( Paradata::Logger::IsOpen() )
     {
-        data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository), access_type,
-            *m_pIntDriver->m_pParadataDriver, m_pIntDriver->m_pParadataDriver->CreateObject(engine_dictionary));
+        data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository),
+                                                                      m_pIntDriver->m_paradataDriver.get(),
+                                                                      m_pIntDriver->m_paradataDriver->CreateObject(engine_dictionary));
     }
 
     // see if the cases should be cached
     if( connection_string.HasProperty(CSProperty::cache, CSValue::true_, true) )
-        data_repository = CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::move(data_repository), access_type);
+        data_repository = CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::move(data_repository));
 
     data_repository->Open(connection_string, open_flag);
 
@@ -230,9 +234,9 @@ void CEngineDriver::OpenRepository(EngineDataRepository& engine_data_repository,
 
 
 void CEngineDriver::OpenRepository(DICX* pDicX, const ConnectionString& connection_string,
-                                   DataRepositoryOpenFlag eOpenFlag, bool load_binary_data_from_currently_open_repository_before_closing)
+                                   const DataRepositoryOpenFlag open_flag, const bool load_binary_data_from_currently_open_repository_before_closing)
 {
-    DICT* pDicT = pDicX->GetDicT();
+    DICT* const pDicT = pDicX->GetDicT();
 
     // end any transactions (from operations in a loop) and then close the current repository
     if( pDicX->IsDataRepositoryOpen() )
@@ -248,7 +252,8 @@ void CEngineDriver::OpenRepository(DICX* pDicX, const ConnectionString& connecti
     // input dictionaries
     if( pDicT->GetSubType() == SymbolSubType::Input )
     {
-        access_type = ( Appl.ApplicationType == ModuleType::Entry ) ? DataRepositoryAccess::EntryInput : DataRepositoryAccess::BatchInput;
+        access_type = ( Appl.ApplicationType == ModuleType::Entry ) ? DataRepositoryAccess::EntryInput :
+                                                                      DataRepositoryAccess::BatchInput;
     }
 
     // external dictionaries
@@ -277,20 +282,21 @@ void CEngineDriver::OpenRepository(DICX* pDicX, const ConnectionString& connecti
     // wrap the repository if using the paradata
     if( Paradata::Logger::IsOpen() )
     {
-        data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository), access_type,
-            *m_pIntDriver->m_pParadataDriver, m_pIntDriver->m_pParadataDriver->CreateObject(*pDicT));
+        data_repository = std::make_unique<ParadataWrapperRepository>(std::move(data_repository),
+                                                                      m_pIntDriver->m_paradataDriver.get(),
+                                                                      m_pIntDriver->m_paradataDriver->CreateObject(*pDicT));
     }
 
     // see if the cases should be cached
     if( connection_string.HasProperty(CSProperty::cache, CSValue::true_, true) )
-        data_repository = CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::move(data_repository), access_type);
+        data_repository = CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::move(data_repository));
 
     pDicX->SetDataRepository(std::move(data_repository));
 
-    pDicX->GetDataRepository().Open(connection_string, eOpenFlag);
+    pDicX->GetDataRepository().Open(connection_string, open_flag);
 
     // set the iteration method
-    CaseIterationMethod iteration_method = ( access_type != DataRepositoryAccess::BatchInput || m_pPifFile->GetInputOrderIndexed() ) ?
+    const CaseIterationMethod iteration_method = ( access_type != DataRepositoryAccess::BatchInput || m_pPifFile->GetInputOrderIndexed() ) ?
         CaseIterationMethod::KeyOrder : CaseIterationMethod::SequentialOrder;
     pDicX->SetCaseIterationMethod(iteration_method);
 
@@ -309,7 +315,7 @@ void CEngineDriver::OpenRepository(DICX* pDicX, const ConnectionString& connecti
 }
 
 
-bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionString>& output_connection_strings, bool setoutput_mode)
+bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionString>& output_connection_strings, const bool setoutput_mode)
 {
     std::vector<ConnectionString> successfully_opened_connection_strings;
 
@@ -330,14 +336,15 @@ bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionStri
             {
                 const EngineDictionary& input_engine_dictionary = *m_engineData->engine_dictionaries.front();
 
-                std::shared_ptr<DataRepository> data_repository = DataRepository::Create(input_engine_dictionary.GetSharedCaseAccess(),
-                    output_connection_string, access_type);
+                std::unique_ptr<DataRepository> data_repository = DataRepository::Create(input_engine_dictionary.GetSharedCaseAccess(),
+                                                                                         output_connection_string,
+                                                                                         access_type);
 
                 if( Paradata::Logger::IsOpen() )
                 {
-                    data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository),
-                        DataRepositoryAccess::BatchOutput, *m_pIntDriver->m_pParadataDriver,
-                        m_pIntDriver->m_pParadataDriver->CreateObject(input_engine_dictionary));
+                    data_repository = std::make_unique<ParadataWrapperRepository>(std::move(data_repository),
+                                                                                  m_pIntDriver->m_paradataDriver.get(),
+                                                                                  m_pIntDriver->m_paradataDriver->CreateObject(input_engine_dictionary));
                 }
 
                 data_repository->Open(output_connection_string, setoutput_mode ? DataRepositoryOpenFlag::OpenOrCreate :
@@ -349,14 +356,15 @@ bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionStri
 
             else
             {
-                std::shared_ptr<DataRepository> data_repository = DataRepository::Create(DIP(0)->GetSharedCaseAccess(),
-                    output_connection_string, access_type);
+                std::unique_ptr<DataRepository> data_repository = DataRepository::Create(DIP(0)->GetSharedCaseAccess(),
+                                                                                         output_connection_string,
+                                                                                         access_type);
 
                 if( Paradata::Logger::IsOpen() )
                 {
-                    data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository),
-                        DataRepositoryAccess::BatchOutput, *m_pIntDriver->m_pParadataDriver,
-                        m_pIntDriver->m_pParadataDriver->CreateObject(*DIP(0)));
+                    data_repository = std::make_unique<ParadataWrapperRepository>(std::move(data_repository),
+                                                                                  m_pIntDriver->m_paradataDriver.get(),
+                                                                                  m_pIntDriver->m_paradataDriver->CreateObject(*DIP(0)));
                 }
 
                 data_repository->Open(output_connection_string, setoutput_mode ? DataRepositoryOpenFlag::OpenOrCreate :
@@ -370,21 +378,21 @@ bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionStri
         catch( const DataRepositoryException::Error& exception )
         {
             issaerror(MessageType::Error, setoutput_mode ? 29007 : 29005,
-                      PortableFunctions::PathGetFilename(output_connection_string.GetFilename()),
-                      exception.GetErrorMessage().c_str());
+                      output_connection_string.ToDisplayString().c_str(),
+                      exception.what());
         }
     }
 
     // update the PFF's output data to reflect what was opened
     if( successfully_opened_connection_strings.empty() )
     {
-        m_pEngineDriver->m_pPifFile->SetSingleOutputDataConnectionString(_T(""));
+        m_pEngineDriver->m_pPifFile->SetSingleOutputDataConnectionString(ConnectionString::CreateNullRepositoryConnectionString());
         return false;
     }
 
     else
     {
-        m_pEngineDriver->m_pPifFile->ClearAndAddOutputDataConnectionStrings(successfully_opened_connection_strings);
+        m_pEngineDriver->m_pPifFile->ClearAndAddOutputDataConnectionStrings(std::move(successfully_opened_connection_strings));
         return true;
     }
 }
@@ -392,16 +400,17 @@ bool CEngineDriver::OpenBatchOutputRepositories(const std::vector<ConnectionStri
 
 void CEngineDriver::CloseBatchOutputRepositories()
 {
-    for( const std::shared_ptr<DataRepository>& data_repository : m_batchOutputRepositories )
+    for( std::shared_ptr<DataRepository>& data_repository : m_batchOutputRepositories )
     {
         try
         {
             data_repository->Close();
+            data_repository.reset();
         }
 
         catch( const DataRepositoryException::Error& exception )
         {
-            issaerror(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+            issaerror(MessageType::Error, 10105, exception.what());
         }
     }
 
@@ -409,7 +418,7 @@ void CEngineDriver::CloseBatchOutputRepositories()
 }
 
 
-bool CEngineDriver::OpenRepositories(bool open_input_repository)
+bool CEngineDriver::OpenRepositories(const bool open_input_repository)
 {
     // open the repositories
     size_t iStartingSlot = open_input_repository ? 0 : 1;
@@ -418,14 +427,14 @@ bool CEngineDriver::OpenRepositories(bool open_input_repository)
     // open the special output and external files
     for( size_t iDicSlot = iStartingSlot; iDicSlot < m_engineData->dictionaries_pre80.size(); iDicSlot++ )
     {
-        DICT* pDicT = DIP(iDicSlot);
-        DICX* pDicX = pDicT->GetDicX();
+        DICT* const pDicT = DIP(iDicSlot);
+        DICX* const pDicX = pDicT->GetDicX();
 
         if( pDicT->GetSubType() == SymbolSubType::Work )
             continue;
 
         ConnectionString connection_string = ( iDicSlot == 0 ) ? m_pPifFile->GetSingleInputDataConnectionString() :
-                                                                 m_pPifFile->GetExternalDataConnectionString(WS2CS(pDicT->GetName()));
+                                                                 m_pPifFile->GetExternalDataConnectionString(UTF8_TODO::GetCString(pDicT->GetName()));
 
         // we are loading the null repository instead of whatever repository failed upon opening
         if( use_null_repository_override || !connection_string.IsDefined() )
@@ -451,7 +460,7 @@ bool CEngineDriver::OpenRepositories(bool open_input_repository)
             if( exception.ForceAbortOnStartup() )
                 issue_warning_not_error = false;
 
-            issaerror(issue_warning_not_error ? MessageType::Warning : MessageType::Error, 10102, pDicT->GetName().c_str(), exception.GetErrorMessage().c_str());
+            issaerror(issue_warning_not_error ? MessageType::Warning : MessageType::Error, 10102, pDicT->GetName().c_str(), exception.what());
 
             if( issue_warning_not_error )
             {
@@ -469,7 +478,7 @@ bool CEngineDriver::OpenRepositories(bool open_input_repository)
     }
 
 
-    for( EngineDictionary* engine_dictionary : m_engineData->engine_dictionaries )
+    for( EngineDictionary* const engine_dictionary : m_engineData->engine_dictionaries )
     {
         // don't process Case or DataSource objects
         if( !engine_dictionary->IsDictionaryObject() )
@@ -488,7 +497,7 @@ bool CEngineDriver::OpenRepositories(bool open_input_repository)
 
         ConnectionString connection_string = ( engine_dictionary->GetSubType() == SymbolSubType::Input ) ?
             m_pPifFile->GetSingleInputDataConnectionString() :
-            m_pPifFile->GetExternalDataConnectionString(WS2CS(engine_dictionary->GetName()));
+            m_pPifFile->GetExternalDataConnectionString(UTF8_TODO::GetCString(engine_dictionary->GetName()));
 
         enum class OpenAction { Success, TryAgainWithNullRepository, Abort };
         OpenAction open_action;
@@ -518,7 +527,7 @@ bool CEngineDriver::OpenRepositories(bool open_input_repository)
                     issue_warning_not_error = false;
 
                 issaerror(issue_warning_not_error ? MessageType::Warning : MessageType::Error, 10102,
-                          engine_dictionary->GetName().c_str(), exception.GetErrorMessage().c_str());
+                          engine_dictionary->GetName().c_str(), exception.what());
 
                 if( issue_warning_not_error && open_action != OpenAction::TryAgainWithNullRepository )
                 {
@@ -551,7 +560,7 @@ void CEngineDriver::LoadAllBinaryDataFromRepository(EngineDataRepository& engine
 {
     // because a case loaded from a data repository remains in memory after the repository has been
     // closed, we need to make sure that all binary data, which is lazy loaded, gets loaded
-    const CDataDict* this_dictionary = &engine_data_repository.GetEngineDictionary().GetDictionary();
+    const CDataDict* const this_dictionary = &engine_data_repository.GetEngineDictionary().GetDictionary();
 
     for( EngineDictionary* engine_dictionary : m_engineData->engine_dictionaries )
     {
@@ -572,7 +581,7 @@ void CEngineDriver::LoadAllBinaryDataFromRepository(EngineDataRepository& engine
 }
 
 
-void CEngineDriver::LoadAllBinaryDataFromRepository(DICX* pDicX)
+void CEngineDriver::LoadAllBinaryDataFromRepository(DICX* const pDicX)
 {
     for( const std::shared_ptr<BinaryStorageFor80>& binary_storage : pDicX->GetDicT()->m_binaryStorageFor80 )
     {
@@ -583,16 +592,16 @@ void CEngineDriver::LoadAllBinaryDataFromRepository(DICX* pDicX)
 }
 
 
-void CEngineDriver::CloseRepositories(bool close_input_repository)
+void CEngineDriver::CloseRepositories(const bool close_input_repository)
 {
     for( size_t iDicSlot = ( close_input_repository ? 0 : 1 ); iDicSlot < m_engineData->dictionaries_pre80.size(); iDicSlot++ )
     {
-        DICT* pDicT = DIP(iDicSlot);
-        DICX* pDicX = pDicT->GetDicX();
+        DICT* const pDicT = DIP(iDicSlot);
+        DICX* const pDicX = pDicT->GetDicX();
         pDicX->CloseDataRepository();
     }
 
-    for( EngineDictionary* engine_dictionary : m_engineData->engine_dictionaries )
+    for( EngineDictionary* const engine_dictionary : m_engineData->engine_dictionaries )
     {
         if( engine_dictionary->HasEngineDataRepository() &&
             ( close_input_repository || engine_dictionary->GetSubType() != SymbolSubType::Input ) )
@@ -605,7 +614,7 @@ void CEngineDriver::CloseRepositories(bool close_input_repository)
 
 DataRepository* CEngineDriver::GetInputRepository()
 {
-    DICX* pDicX = DIX(0);
+    DICX* const pDicX = DIX(0);
 
     return pDicX->IsDataRepositoryOpen() ? &pDicX->GetDataRepository() :
                                            nullptr;
@@ -621,4 +630,29 @@ Case& CEngineDriver::GetInputCase()
 int CEngineDriver::GetInputDictionaryKeyLength() const
 {
     return DIP(0)->qlen[0];
+}
+
+
+int CEngineDriver::RunSync(const AppSyncParameters& sync_params)
+{
+    ASSERT(m_pPifFile != nullptr && m_pPifFile->GetApplication() != nullptr);
+    const Application& application = *m_pPifFile->GetApplication();
+
+    std::vector<DataRepository*> data_repositories_to_sync;
+
+    for( DICT* const pDicT : m_engineData->dictionaries_pre80 )
+    {
+        DICX* const pDicX = pDicT->GetDicX();
+
+        if( pDicX->IsDataRepositoryOpen() )
+        {
+            ASSERT(pDicT->GetDataDict() != nullptr);
+            const DictionaryDescription* const dictionary_description = application.GetDictionaryDescription(*pDicT->GetDataDict());
+
+            if( dictionary_description != nullptr && dictionary_description->GetIncludeInSimpleSynchronization() )
+                data_repositories_to_sync.emplace_back(&pDicX->GetDataRepository());
+        }
+    }
+
+    return AppSyncParamRunner::Run(m_pIntDriver->GetSyncClient(), sync_params, data_repositories_to_sync);
 }

@@ -61,7 +61,7 @@ public:
     enum class CapiContentType { Question, Help, All };
     void GetCapiContent(CapiContent* capi_content, int symbol_index, CapiContentType capi_content_type) const;
     CapiContent GetFieldAndBlockCombinedCapiContent(int symbol_index, CapiContentType capi_content_type) const;
-    const std::wstring& GetRuntimeStylesCss();
+    const std::string& GetRuntimeStylesCss();
 
 private:
     void            Init();

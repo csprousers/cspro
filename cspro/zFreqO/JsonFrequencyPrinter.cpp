@@ -2,14 +2,8 @@
 #include "JsonFrequencyPrinter.h"
 
 
-JsonFrequencyPrinter::JsonFrequencyPrinter()
-    :   m_jsonWriter(nullptr)
-{
-}
-
-
-JsonFrequencyPrinter::JsonFrequencyPrinter(JsonWriter& json_writer)
-    :   m_jsonWriter(&json_writer)
+JsonFrequencyPrinter::JsonFrequencyPrinter(cs::non_null_shared_or_raw_ptr<JsonWriter> json_writer)
+    :   m_jsonWriter(std::move(json_writer))
 {
 }
 
@@ -81,7 +75,7 @@ void JsonFrequencyPrinter::PrintRowsAndTotal(const FrequencyTable& frequency_tab
         m_jsonWriter->WriteIfNotBlank(JK::label, frequency_row.display_label);
 
         m_jsonWriter->WriteArray(JK::values, frequency_row.values,
-            [&](const std::variant<double, std::wstring>& value)
+            [&](const std::variant<double, std::string>& value)
             {
                 m_jsonWriter->WriteEngineValue(value);
             });
@@ -205,7 +199,7 @@ void JsonFrequencyPrinter::PrintStatistics(const FrequencyTable& frequency_table
 
 
 template<typename CF>
-void JsonFrequencyPrinter::PrintStatisticsCategories(const size_t number_defined_categories, const CF callback_function)
+void JsonFrequencyPrinter::PrintStatisticsCategories(const size_t number_defined_categories, const CF& callback_function)
 {
     ASSERT(m_jsonWriter != nullptr);
 
@@ -220,6 +214,6 @@ void JsonFrequencyPrinter::PrintStatisticsCategories(const size_t number_defined
 // a routine to write the JSON for a single FrequencyTable
 void FrequencyTable::WriteJson(JsonWriter& json_writer) const
 {
-    JsonFrequencyPrinter json_frequency_printer(json_writer);
+    JsonFrequencyPrinter json_frequency_printer(&json_writer);
     json_frequency_printer.Print(*this);
 }

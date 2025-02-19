@@ -12,16 +12,34 @@ namespace
     public:
         bool HasErrors() const { return !m_errors.empty(); }
 
-        const std::wstring& GetErrors() const { return m_errors; }
+        const std::string& GetErrors() const { return m_errors; }
 
     protected:
-        void OnIssue(MessageType /*message_type*/, int /*message_number*/, const std::wstring& message_text) override
+        void OnIssue(MessageType /*message_type*/, int /*message_number*/, const std::string& message_text) override
         {
-            SO::AppendWithSeparator(m_errors, message_text, _T("\r\n\r\n"));
+            AddError(message_text);
+        }
+
+        void OnIssue(const Logic::ParserMessage& parser_message) override
+        {
+            ASSERT(false);
+            AddError(parser_message.message_text);
+        }
+
+        void OnAbort(const std::string& message_text) override
+        {
+            ASSERT(false);
+            AddError(message_text);
         }
 
     private:
-        std::wstring m_errors;
+        void AddError(const std::string& message_text)
+        {
+            SO::AppendWithSeparator(m_errors, message_text, "\r\n\r\n");
+        }
+
+    private:
+        std::string m_errors;
     };
 }
 
@@ -34,7 +52,7 @@ CSPro::Engine::SaveArrayFile::SaveArrayFile()
 
 CSPro::Engine::SaveArrayFile::!SaveArrayFile()
 {
-    for( LogicArray* logic_array : *m_logicArrays )
+    for( LogicArray* const logic_array : *m_logicArrays )
         delete logic_array;
 
     delete m_logicArrays;
@@ -48,16 +66,16 @@ void CSPro::Engine::SaveArrayFile::LoadOrSave(System::String^ filename, bool loa
 
     if( loading )
     {
-        save_array_file.ReadArrays(ToWS(filename), *m_logicArrays, save_array_file_clr_error_reporter, true);
+        save_array_file.ReadArrays(clr_helpers::to_wstring(filename), *m_logicArrays, save_array_file_clr_error_reporter, true);
     }
 
     else
     {
-        save_array_file.WriteArrays(ToWS(filename), *m_logicArrays, save_array_file_clr_error_reporter, 0, false);
+        save_array_file.WriteArrays(clr_helpers::to_wstring(filename), *m_logicArrays, save_array_file_clr_error_reporter, 0, false);
     }
 
     if( save_array_file_clr_error_reporter->HasErrors() )
-        throw gcnew System::Exception(gcnew System::String(save_array_file_clr_error_reporter->GetErrors().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(save_array_file_clr_error_reporter->GetErrors()));
 }
 
 
@@ -70,20 +88,20 @@ namespace
             :   m_saveArrayValues(save_array_values)
         {
         }
-        
-        std::tuple<std::wstring, size_t, size_t> GetValues(size_t index) const override
+
+        std::tuple<std::string, size_t, size_t> GetValues(const size_t index) const override
         {
             return
             {
-                ToWS(m_saveArrayValues->Values[index]),
+                clr_helpers::to_string(m_saveArrayValues->Values[index]),
                 static_cast<size_t>(m_saveArrayValues->Gets[index]),
                 static_cast<size_t>(m_saveArrayValues->Puts[index])
             };
         }
 
-        void SetValues(size_t index, const std::wstring& value, size_t gets, size_t puts) override
+        void SetValues(const size_t index, const std::string& value, const size_t gets, const size_t puts) override
         {
-            m_saveArrayValues->Values[index] = gcnew System::String(value.c_str());
+            m_saveArrayValues->Values[index] = clr_helpers::to_SystemString(value);
             m_saveArrayValues->Gets[index] = gets;
             m_saveArrayValues->Puts[index] = puts;
         }
@@ -102,7 +120,7 @@ System::Collections::Generic::List<CSPro::Engine::SaveArrayValues^>^ CSPro::Engi
     {
         auto save_array_values = gcnew CSPro::Engine::SaveArrayValues();
 
-        save_array_values->Name = gcnew System::String(logic_array.GetName().c_str());
+        save_array_values->Name = clr_helpers::to_SystemString(logic_array.GetName());
 
         size_t number_cells = 1;
 
@@ -115,7 +133,7 @@ System::Collections::Generic::List<CSPro::Engine::SaveArrayValues^>^ CSPro::Engi
         }
 
         save_array_values->Numeric = logic_array.IsNumeric();
-        save_array_values->PaddingStringLength = logic_array.GetPaddingStringLength();        
+        save_array_values->PaddingStringLength = logic_array.GetPaddingStringLength();
 
         const SaveArray* save_array = logic_array.GetSaveArray();
         save_array_values->Runs = save_array->GetNumberRuns();
@@ -154,7 +172,7 @@ void CSPro::Engine::SaveArrayFile::SetSaveArrayValues(System::Collections::Gener
         }
 
         // create a new logic array
-        LogicArray* logic_array = SaveArrayViewerHelpers::CreateLogicArray(ToWS(save_array_values->Name), std::move(dimensions));
+        LogicArray* logic_array = SaveArrayViewerHelpers::CreateLogicArray(clr_helpers::to_string(save_array_values->Name), std::move(dimensions));
 
         logic_array->SetNumeric(save_array_values->Numeric);
         logic_array->SetPaddingStringLength(save_array_values->PaddingStringLength);

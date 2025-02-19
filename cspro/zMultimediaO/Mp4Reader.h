@@ -3,7 +3,7 @@
 #include <zMultimediaO/zMultimediaO.h>
 
 
-CREATE_CSPRO_EXCEPTION(Mp4ReaderError)
+CREATE_CSPRO_EXCEPTION(Mp4ReaderError);
 
 
 class ZMULTIMEDIAO_API Mp4Reader
@@ -11,7 +11,7 @@ class ZMULTIMEDIAO_API Mp4Reader
     friend class Mp4Writer;
 
 public:
-    Mp4Reader(const std::wstring& filename);
+    Mp4Reader(cs::string_sz file_path);
     ~Mp4Reader();
 
     double GetDuration() const;

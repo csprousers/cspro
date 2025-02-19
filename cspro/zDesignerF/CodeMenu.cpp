@@ -18,14 +18,14 @@ void CodeMenu::ReplaceCodeMenuPopups(CMenu* pPopupMenu, int document_lexer_langu
 
 void CodeMenu::OnPasteStringLiteral(CLogicCtrl& logic_ctrl)
 {
-    std::wstring clipboard_text = WinClipboard::GetText();
+    std::string clipboard_text = WinClipboard::GetText<std::string>();
     SO::Remove(clipboard_text, '\r');
 
     if( clipboard_text.empty() )
         return;
 
     const int lexer_language = logic_ctrl.GetLexer();
-    std::wstring escaped_text;
+    std::string escaped_text;
 
     if( Lexers::UsesCSProLogic(lexer_language) || lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 )
     {
@@ -47,18 +47,18 @@ void CodeMenu::OnPasteStringLiteral(CLogicCtrl& logic_ctrl)
         escaped_text = Encoders::ToJsonString(clipboard_text, escape_forward_slashes);
     }
 
-    logic_ctrl.ReplaceSel(escaped_text);
+    logic_ctrl.ReplaceSel(escaped_text.c_str());
 }
 
 
-void CodeMenu::OnStringEncoder(const LogicSettings& logic_settings, std::wstring initial_text)
+void CodeMenu::OnStringEncoder(const LogicSettings& logic_settings, std::string initial_text)
 {
     StringEncoderDlg dlg(logic_settings, std::move(initial_text));
     dlg.DoModal();
 }
 
 
-void CodeMenu::OnPathAdjuster(int lexer_language, std::wstring initial_path)
+void CodeMenu::OnPathAdjuster(const int lexer_language, std::string initial_path)
 {
     PathAdjusterDlg dlg(lexer_language, std::move(initial_path));
     dlg.DoModal();

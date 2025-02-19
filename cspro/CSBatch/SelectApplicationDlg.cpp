@@ -1,34 +1,37 @@
 ﻿#include "StdAfx.h"
 #include "SelectApplicationDlg.h"
 #include <zToolsO/WinSettings.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/DataExchange.h>
+#include <zUtilO/FileDlg.h>
+#include <zUtilO/FileExtensions.h>
 #include <zUtilO/imsaDlg.H>
 #include <zUtilO/WindowHelpers.h>
 
 
 BEGIN_MESSAGE_MAP(SelectApplicationDlg, CDialog)
     ON_WM_SYSCOMMAND()
-    ON_BN_CLICKED(IDC_SELECT_APPLICATION_FILENAME, OnSelectApplicationFilename)
+    ON_BN_CLICKED(IDC_SELECT_APPLICATION_FILENAME, OnSelectApplicationFilePath)
 END_MESSAGE_MAP()
 
 
-SelectApplicationDlg::SelectApplicationDlg(CWnd* pParent/* = nullptr*/)
+SelectApplicationDlg::SelectApplicationDlg(CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_CSBATCH_DIALOG, pParent),
         m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME))
 {
 }
 
 
-void SelectApplicationDlg::DoDataExchange(CDataExchange* pDX)
+void SelectApplicationDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_APPLICATION_FILENAME, m_applicationFilename);
+    __super::DoDataExchange(pDX);
+
+    DDX_Text(pDX, IDC_APPLICATION_FILENAME, m_applicationFilePath);
 }
 
 
 BOOL SelectApplicationDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     WindowHelpers::SetDialogSystemIcon(*this, m_hIcon);
     WindowHelpers::AddDialogAboutMenuItem(*this, IDS_ABOUTBOX, IDM_ABOUTBOX);
@@ -37,52 +40,46 @@ BOOL SelectApplicationDlg::OnInitDialog()
 }
 
 
-void SelectApplicationDlg::OnSysCommand(UINT nID, LPARAM lParam)
+void SelectApplicationDlg::OnSysCommand(const UINT nID, const LPARAM lParam)
 {
     if( ( nID & 0xFFF0 ) == IDM_ABOUTBOX )
     {
-        CIMSAAboutDlg about_dlg;
-        about_dlg.m_hIcon = m_hIcon;
-        about_dlg.m_csModuleName = _T("CSBatch");
+        CIMSAAboutDlg about_dlg(L"CSBatch", m_hIcon);
         about_dlg.DoModal();
     }
 
     else
     {
-        CDialog::OnSysCommand(nID, lParam);
+        __super::OnSysCommand(nID, lParam);
     }
 }
 
 
-void SelectApplicationDlg::OnSelectApplicationFilename()
+void SelectApplicationDlg::OnSelectApplicationFilePath()
 {
-    const TCHAR* FileFilter = _T("Batch Application Files (*.bch)|*.bch|PFF Files (*.pff)|*.pff||");
-    CIMSAFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, FileFilter, this, CFD_NO_DIR, FALSE);
-
     UpdateData(TRUE);
 
-    CString initial_directory;
+    OpenFileDlg open_file_dlg(0, nullptr, m_applicationFilePath,
+                              L"Batch Application Files (*.bch)|*.bch|PFF Files (*.pff)|*.pff||", this);
 
     // if the file exists, start in its directory
-    if( PortableFunctions::FileIsRegular(m_applicationFilename) )
+    if( PortableFunctions::FileIsRegular(m_applicationFilePath) )
     {
-        initial_directory = PortableFunctions::PathGetDirectory<CString>(m_applicationFilename);
+        open_file_dlg.SetInitialDirectory(PortableFunctions::PathGetDirectory(m_applicationFilePath));
     }
 
     // otherwise use the last application directory
-    else if( CString directory = WinSettings::Read<CString>(WinSettings::Type::LastApplicationDirectory); !directory.IsEmpty() )
+    else
     {
-        initial_directory = directory;
+        open_file_dlg.SetInitialDirectory(WinSettings::Read<std::wstring>(WinSettings::Type::LastApplicationDirectory));
     }
 
-    file_dlg.m_ofn.lpstrInitialDir = initial_directory;
-
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    m_applicationFilename = file_dlg.GetPathName();
+    m_applicationFilePath = open_file_dlg.GetFilePath();
 
-    WinSettings::Write(WinSettings::Type::LastApplicationDirectory, PortableFunctions::PathGetDirectory<CString>(m_applicationFilename));
+    WinSettings::Write(WinSettings::Type::LastApplicationDirectory, PortableFunctions::PathGetDirectory(m_applicationFilePath));
 
     UpdateData(FALSE);
 }

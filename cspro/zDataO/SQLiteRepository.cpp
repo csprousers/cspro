@@ -1,27 +1,25 @@
 ﻿#include "stdafx.h"
 #include "SQLiteRepository.h"
-#include "SQLiteBinaryDataReader.h"
-#include "SQLiteBlobQuestionnaireSerializer.h"
 #include "SQLiteBlobQuestionnaireSerializer.h"
 #include "SQLiteDictionarySchemaGenerator.h"
 #include "SQLiteDictionarySchemaReconciler.h"
 #include "SQLiteErrorWithMessage.h"
 #include "SQLiteQuestionnaireSerializer.h"
 #include "SQLiteRepositoryIterators.h"
-#include "SyncJsonBinaryDataReader.h"
-#include <SQLite/SQLiteHelpers.h>
+#include "SyncBinaryDataUploadManager.h"
+#include <zSql/SQLiteHelpers.h>
 #include <zUtilO/Interapp.h>
-#include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/CaseItemReference.h>
 #include <sstream>
 
 
-namespace {
+namespace
+{
     // Version of data file database schema. To be used to handle loading
     // files loaded in older versions.
-    const int SCHEMA_VERSION = 3;
+    constexpr int SCHEMA_VERSION = 3;
 
-    const char* create_indices_sql =
+    constexpr const char* create_indices_sql =
         "CREATE UNIQUE INDEX `cases-id` ON cases(id);\n"
         "CREATE INDEX `cases-deleted-key-file-order` on cases(deleted, key, file_order);\n"
         "CREATE INDEX `cases-last-modified-revision-key` on cases(last_modified_revision, key);\n"
@@ -31,56 +29,62 @@ namespace {
 
     bool CreateIndices(sqlite3* pDB)
     {
-        return sqlite3_exec(pDB, create_indices_sql, NULL, NULL, NULL) == SQLITE_OK;
+        return ( sqlite3_exec(pDB, create_indices_sql, nullptr, nullptr, nullptr) == SQLITE_OK );
     }
 }
 
 
-SQLiteRepository::SQLiteRepository(DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type, DeviceId deviceId) :
-    ISyncableDataRepository(type, std::move(case_access), access_type),
-    m_db(nullptr),
-    m_deviceId(deviceId),
-    m_transaction_file_revision(-1),
-    m_transaction_start_count(0),
-    m_stmtInsertCase(nullptr),
-    m_stmtUpdateCase(nullptr),
-    m_stmtSelectCases(nullptr),
-    m_stmtCountCases(nullptr),
-    m_stmtGetCaseByKey(nullptr),
-    m_stmtGetCaseByFileOrder(nullptr),
-    m_stmtGetCaseById(nullptr),
-    m_stmtContainsCase(nullptr),
-    m_stmtModifyDeleteStatus(nullptr),
-    m_stmtInsertRevision(nullptr),
-    m_stmtInsertLocalRevision(nullptr),
-    m_stmtUpdateClock(nullptr),
-    m_stmtIncrementClock(nullptr),
-    m_stmtNewClock(nullptr),
-    m_stmtGetClock(nullptr),
-    m_stmtGetNotes(nullptr),
-    m_stmtClearNotes(nullptr),
-    m_stmtUpdateNote(nullptr),
-    m_stmtSyncCase(nullptr),
-    m_stmtInsertBinarySyncHistory(nullptr),
-    m_stmtDeleteBinarySyncHistory(nullptr),
-    m_stmtArchiveBinarySyncHistory(nullptr),
-    m_stmtRevisionByNumber(nullptr),
-    m_stmtIsPrevSync(nullptr),
-    m_stmtRevisionByDevice(nullptr),
-    m_stmtRevisionsByDeviceSince(nullptr),
-    m_stmtCaseIdentifiersFromKey(nullptr),
-    m_stmtCaseIdentifiersFromUuid(nullptr),
-    m_stmtCaseIdentifiersFromFileOrder(nullptr),
-    m_stmtCaseExists(nullptr),
-    m_stmtGetPrevFileOrder(nullptr),
-    m_stmtSetSyncRevLastId(nullptr),
-    m_stmtClearSyncRevLastId(nullptr),
-    m_questionnaireSerializer(nullptr),
-    m_stmtGetFileOrderFromUuid(nullptr),
-    m_stmtGetCaseRev(nullptr)
+SQLiteRepository::SQLiteRepository(const DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type, DeviceId device_id)
+    :   ISyncableDataRepository(type, std::move(case_access), access_type),
+        m_db(nullptr),
+        m_deviceId(std::move(device_id)),
+        m_transactionClientRevision(-1),
+        m_transactionStartCount(0),
+        m_stmtInsertCase(nullptr),
+        m_stmtUpdateCase(nullptr),
+        m_stmtSelectCases(nullptr),
+        m_stmtCountCases(nullptr),
+        m_stmtGetCaseByKey(nullptr),
+        m_stmtGetCaseByFileOrder(nullptr),
+        m_stmtGetCaseById(nullptr),
+        m_stmtContainsCase(nullptr),
+        m_stmtModifyDeleteStatus(nullptr),
+        m_stmtInsertRevision(nullptr),
+        m_stmtInsertLocalRevision(nullptr),
+        m_stmtUpdateClock(nullptr),
+        m_stmtIncrementClock(nullptr),
+        m_stmtNewClock(nullptr),
+        m_stmtGetClock(nullptr),
+        m_stmtGetNotes(nullptr),
+        m_stmtClearNotes(nullptr),
+        m_stmtUpdateNote(nullptr),
+        m_stmtSyncCase(nullptr),
+        m_stmtInsertBinarySyncHistory(nullptr),
+        m_stmtDeleteBinarySyncHistory(nullptr),
+        m_stmtArchiveBinarySyncHistory(nullptr),
+        m_stmtRevisionByNumber(nullptr),
+        m_stmtIsPrevSync(nullptr),
+        m_stmtRevisionByDevice(nullptr),
+        m_stmtRevisionsByDeviceSince(nullptr),
+        m_stmtCaseIdentifiersFromKey(nullptr),
+        m_stmtCaseIdentifiersFromUuid(nullptr),
+        m_stmtCaseIdentifiersFromFileOrder(nullptr),
+        m_stmtCaseExists(nullptr),
+        m_stmtGetPrevFileOrder(nullptr),
+        m_stmtSetSyncRevLastId(nullptr),
+        m_stmtClearSyncRevLastId(nullptr),
+        m_stmtGetFileOrderFromUuid(nullptr),
+        m_stmtGetCaseRev(nullptr)
 {
     ModifyCaseAccess(m_caseAccess);
 }
+
+
+SQLiteRepository::SQLiteRepository(std::shared_ptr<const CaseAccess> case_access, const DataRepositoryAccess access_type, DeviceId device_id)
+    :   SQLiteRepository(DataRepositoryType::SQLite, std::move(case_access), access_type, std::move(device_id))
+{
+}
+
 
 SQLiteRepository::~SQLiteRepository()
 {
@@ -94,62 +98,67 @@ SQLiteRepository::~SQLiteRepository()
     }
 }
 
+
 void SQLiteRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_access)
 {
     m_caseAccess = std::move(case_access);
-    if (m_questionnaireSerializer)
+
+    if( m_questionnaireSerializer != nullptr )
         m_questionnaireSerializer->SetCaseAccess(m_caseAccess, IsReadOnly());
-    if (m_db != nullptr) {
+
+    if( m_db != nullptr )
+    {
         ClearPreparedStatements();
         CreatePreparedStatements();
     }
 }
 
-void SQLiteRepository::Open(DataRepositoryOpenFlag open_flag)
-{
-    CString csDataFileName = WS2CS(m_connectionString.GetFilename());
 
-    if (!SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(csDataFileName), GetFileExtension())) {
-        CString csInvalidExtensionError;
-        csInvalidExtensionError.Format(_T("The filename %s does not have the correct file extension. Must be \"%s\"."),
-                                       PortableFunctions::PathGetDirectory(csDataFileName).c_str(), GetFileExtension());
-        throw DataRepositoryException::IOError(csInvalidExtensionError);
+void SQLiteRepository::Open(const DataRepositoryOpenFlag open_flag)
+{
+    const std::string& file_path = m_connectionString.GetFilePath();
+
+    if (!SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(file_path), GetFileExtension()))
+    {
+        throw DataRepositoryException::IOError("The filename %s does not have the correct file extension. Must be '%s'.",
+                                               PortableFunctions::PathGetFilename(file_path).c_str(), GetFileExtension());
     }
 
     bool bCanCreateFile = ( open_flag == DataRepositoryOpenFlag::CreateNew || open_flag == DataRepositoryOpenFlag::OpenOrCreate );
 
-    if( bCanCreateFile && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(csDataFileName)) )
+    if( bCanCreateFile && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(file_path)) )
     {
-        CString csInvalidDirectoryError;
-        csInvalidDirectoryError.Format(_T("The directory does not exist and could not be created: %s"),
-                                       PortableFunctions::PathGetDirectory(csDataFileName).c_str());
-        throw DataRepositoryException::IOError(csInvalidDirectoryError);
+        throw DataRepositoryException::IOError("The directory does not exist and could not be created: %s",
+                                               PortableFunctions::PathGetDirectory(file_path).c_str());
     }
 
-    bool bFileExists = PortableFunctions::FileIsRegular(csDataFileName);
+    bool bFileExists = PortableFunctions::FileIsRegular(file_path);
 
     if (!bFileExists && open_flag == DataRepositoryOpenFlag::OpenMustExist) {
-        CString csMissingFileError;
-        csMissingFileError.Format(_T("The data file does not exist: %s"), csDataFileName.GetString());
-        throw DataRepositoryException::IOError(csMissingFileError);
+        throw DataRepositoryException::IOError("The data file does not exist: %s", file_path.c_str());
     }
 
     // create a data file if one doesn't exist (or if clearing/opening in batch output mode, to overwrite what is already on the disk)
     if (!bFileExists || m_accessType == DataRepositoryAccess::BatchOutput || open_flag == DataRepositoryOpenFlag::CreateNew) {
         if (!CreateDatabaseFile()) {
-            throw DataRepositoryException::IOError(_T("Could not create a new data file."));
+            throw DataRepositoryException::IOError("Could not create a new data file.");
         }
     } else {
         // Open the database
         OpenDatabaseFile();
     }
 
-    if (GetSchemaVersion(m_db) <= 2)
+    if( GetSchemaVersion(m_db) <= 2 )
+    {
         // Use blobs for backwards compatability
-        m_questionnaireSerializer = new SQLiteBlobQuestionnaireSerializer(m_db);
+        m_questionnaireSerializer = std::make_unique<SQLiteBlobQuestionnaireSerializer>(m_db);
+    }
+
     else
+    {
         // Relational format
-        m_questionnaireSerializer = new SQLiteQuestionnaireSerializer(m_db);
+        m_questionnaireSerializer = std::make_unique<SQLiteQuestionnaireSerializer>(m_repositoryId, m_db);
+    }
 
     m_questionnaireSerializer->SetCaseAccess(m_caseAccess, IsReadOnly());
 
@@ -163,18 +172,32 @@ void SQLiteRepository::Open(DataRepositoryOpenFlag open_flag)
         StartTransaction();
     }
 
-    m_transaction_file_revision = -1;
+    m_transactionClientRevision = -1;
 }
+
+
+void SQLiteRepository::ToggleReadWriteMode()
+{
+    ASSERT(m_accessType == DataRepositoryAccess::ReadOnly || m_accessType == DataRepositoryAccess::ReadWrite);
+
+    // to resolve sqlite_busy issues when closing the file, add a handler that waits for max of 5 seconds before erroring on close
+    sqlite3_busy_timeout(m_db, 5000);
+    Close();
+
+    m_accessType = ( m_accessType == DataRepositoryAccess::ReadOnly ) ? DataRepositoryAccess::ReadWrite :
+                                                                        DataRepositoryAccess::ReadOnly;
+    Open(DataRepositoryOpenFlag::OpenMustExist);
+}
+
 
 void SQLiteRepository::Close()
 {
-    if (m_db == NULL) {
+    if( m_db == nullptr )
         return;
-    }
 
     ClearPreparedStatements();
 
-    delete m_questionnaireSerializer;
+    m_questionnaireSerializer.reset();
 
     // For batch output create the indices at the end
     // This is faster for bulk writes
@@ -185,33 +208,36 @@ void SQLiteRepository::Close()
 
     EndTransaction();
 
-    if (sqlite3_close(m_db) != SQLITE_OK) {
+    if( sqlite3_close(m_db) != SQLITE_OK )
         throw SQLiteErrorWithMessage(m_db);
-    } else {
-        m_db = NULL;
-    }
+
+    m_db = nullptr;
 }
 
-const TCHAR* SQLiteRepository::GetFileExtension() const
+
+const char* SQLiteRepository::GetFileExtension() const
 {
     return FileExtensions::Data::CSProDB;
 }
 
+
 int SQLiteRepository::OpenSQLiteDatabaseFile(const ConnectionString& connection_string, sqlite3** ppDb, int flags)
 {
-    return sqlite3_open_v2(UTF8Convert::WideToUTF8(connection_string.GetFilename()).c_str(), ppDb, flags, nullptr);
+    return sqlite3_open_v2(connection_string.GetFilePath().c_str(), ppDb, flags, nullptr);
 }
+
 
 int SQLiteRepository::OpenSQLiteDatabase(const ConnectionString& connection_string, sqlite3** ppDb, int flags)
 {
     return OpenSQLiteDatabaseFile(connection_string, ppDb, flags);
 }
 
+
 bool SQLiteRepository::CreateDatabaseFile()
 {
-    CString csFilename = WS2CS(m_connectionString.GetFilename());
+    const std::string& file_path = m_connectionString.GetFilePath();
 
-    if (PortableFunctions::FileExists(csFilename) && !PortableFunctions::FileDelete(csFilename))
+    if (PortableFunctions::FileExists(file_path) && !PortableFunctions::FileDelete(file_path))
         return false;
 
     sqlite3* pDB = NULL;
@@ -221,22 +247,22 @@ bool SQLiteRepository::CreateDatabaseFile()
 
     // Default page size of 4096 is small. This improves performance with
     // bulk writes.
-    sqlite3_exec(pDB, "PRAGMA page_size = 32768", NULL, NULL, NULL);
+    sqlite3_exec(pDB, "PRAGMA page_size = 32768", nullptr, nullptr, nullptr);
 
     if (m_accessType == DataRepositoryAccess::BatchOutput) {
         // These settings improve performance when doing lots of writes
         // to the database however if there is crash the database can become
         // corrupted. In batch output that is not a big deal since
         // we are creating the file from scratch each time.
-        sqlite3_exec(pDB, "PRAGMA synchronous = OFF", NULL, NULL, NULL);
-        sqlite3_exec(pDB, "PRAGMA journal_mode = OFF", NULL, NULL, NULL);
+        sqlite3_exec(pDB, "PRAGMA synchronous = OFF", nullptr, nullptr, nullptr);
+        sqlite3_exec(pDB, "PRAGMA journal_mode = OFF", nullptr, nullptr, nullptr);
 
         // Since we create indices at the end in batch and foreign keys rely on indexes
         // we turn off foreign keys until the end after indexes are created
-        sqlite3_exec(pDB, "PRAGMA foreign_keys = OFF;", NULL, NULL, NULL);
+        sqlite3_exec(pDB, "PRAGMA foreign_keys = OFF;", nullptr, nullptr, nullptr);
     }
     else {
-        sqlite3_exec(pDB, "PRAGMA foreign_keys = ON;", NULL, NULL, NULL);
+        sqlite3_exec(pDB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
     }
 
     const char* create_static_tables_sql =
@@ -302,9 +328,9 @@ bool SQLiteRepository::CreateDatabaseFile()
         ");\n"
         "CREATE INDEX `notes-case-id` ON notes(case_id);";
 
-    if (sqlite3_exec(pDB, create_static_tables_sql, NULL, NULL, NULL) != SQLITE_OK) {
+    if (sqlite3_exec(pDB, create_static_tables_sql, nullptr, nullptr, nullptr) != SQLITE_OK) {
         sqlite3_close(pDB);
-        PortableFunctions::FileDelete(csFilename);
+        PortableFunctions::FileDelete(file_path);
         return false;
     }
 
@@ -313,7 +339,7 @@ bool SQLiteRepository::CreateDatabaseFile()
     if (m_accessType != DataRepositoryAccess::BatchOutput) {
         if (!CreateIndices(pDB)) {
             sqlite3_close(pDB);
-            PortableFunctions::FileDelete(csFilename);
+            PortableFunctions::FileDelete(file_path);
             return false;
         }
     }
@@ -321,24 +347,23 @@ bool SQLiteRepository::CreateDatabaseFile()
     SQLiteDictionarySchemaGenerator schema_generator;
     std::ostringstream ss;
     ss << schema_generator.GenerateDictionary(m_caseAccess->GetDataDict());
-    auto create_data_tables_sql = ss.str();
+    std::string create_data_tables_sql = ss.str();
 
-    //#define DUMP_SCHEMA 1
-#if DUMP_SCHEMA
+// #define DUMP_SCHEMA
+#ifdef DUMP_SCHEMA
     std::ofstream schema_dump;
-    auto dump_file_name = UTF8Convert::WideToUTF8(PortableFunctions::PathGetDirectory(csFilename) + PortableFunctions::PathGetFilenameWithoutExtension(csFilename) + "_schema.sql");
+    const std::string dump_file_name = PortableFunctions::PathRemoveFileExtension(file_path) + "_schema.sql";
     schema_dump.open(dump_file_name);
-    schema_dump
-        << (create_static_tables_sql + strlen("BEGIN;"))
-        << create_data_tables_sql;
+    schema_dump << ( create_static_tables_sql + strlen("BEGIN;") )
+                << create_data_tables_sql;
     schema_dump.close();
 #endif
 
-    if (sqlite3_exec(pDB, create_data_tables_sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-        const CString error = UTF8Convert::UTF8ToWide<CString>(sqlite3_errmsg(pDB));
+    if (sqlite3_exec(pDB, create_data_tables_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
+        const std::string error = sqlite3_errmsg(pDB);
         sqlite3_close(pDB);
-        PortableFunctions::FileDelete(csFilename);
-        throw DataRepositoryException::SQLiteError(error);
+        PortableFunctions::FileDelete(file_path);
+        throw DataRepositoryException::SQLiteError(error.c_str());
     }
 
     const CDataDict& dictionary = m_caseAccess->GetDataDict();
@@ -348,25 +373,26 @@ bool SQLiteRepository::CreateDatabaseFile()
                                                   "values(?,?,?,?,?);";
     if (SQLiteStatement(pDB, insertVersions)
         .Bind(1, SCHEMA_VERSION)
-        .Bind(2, CSPRO_VERSION_NUMBER_DETAILED_TEXT)
+        .Bind(2, Versioning::NumberDetailedText)
         .Bind(3, dictionary.GetJson())
         .Bind(4, dictionary.GetStructureMd5())
         .Bind(5, dictionary.GetFileModifiedTime())
         .Step() != SQLITE_DONE) {
         sqlite3_close(pDB);
-        PortableFunctions::FileDelete(csFilename);
+        PortableFunctions::FileDelete(file_path);
         return false;
     }
 
-    if (sqlite3_exec(pDB, "COMMIT;", NULL, NULL, NULL) != SQLITE_OK) {
+    if (sqlite3_exec(pDB, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK) {
         sqlite3_close(pDB);
-        PortableFunctions::FileDelete(csFilename);
+        PortableFunctions::FileDelete(file_path);
         return false;
     }
 
     m_db = pDB;
     return true;
 }
+
 
 void SQLiteRepository::CreatePreparedStatements()
 {
@@ -435,6 +461,7 @@ void SQLiteRepository::CreatePreparedStatements()
     }
 }
 
+
 void SQLiteRepository::ClearPreparedStatements()
 {
     safe_sqlite3_finalize(m_stmtInsertCase);
@@ -474,6 +501,7 @@ void SQLiteRepository::ClearPreparedStatements()
     safe_sqlite3_finalize(m_stmtGetCaseRev);
 }
 
+
 double SQLiteRepository::GetInsertPosition(double insert_before_position_in_repository)
 {
     SQLiteStatement getPrevFileOrder(m_db, m_stmtGetPrevFileOrder, "SELECT file_order FROM cases WHERE file_order < ? ORDER BY file_order DESC LIMIT 1");
@@ -488,37 +516,44 @@ double SQLiteRepository::GetInsertPosition(double insert_before_position_in_repo
     return (insert_before_position_in_repository + prevPos)/2;
 }
 
-std::unique_ptr<CDataDict> SQLiteRepository::ReadDictFromDatabase(sqlite3* pDB)
+
+std::unique_ptr<CDataDict> SQLiteRepository::ReadDictionaryFromDatabase(sqlite3* const db)
 {
-    SQLiteStatement getDictStatement(pDB, "SELECT dictionary FROM meta");
-    if (getDictStatement.Step() != SQLITE_ROW) {
-        sqlite3_close(pDB);
-        throw DataRepositoryException::IOError(_T("Invalid file format. Missing dictionary."));
+    SQLiteStatement getDictStatement(db, "SELECT dictionary FROM meta");
+
+    if( getDictStatement.Step() != SQLITE_ROW )
+    {
+        sqlite3_close(db);
+        throw DataRepositoryException::IOError("Invalid file format. Missing dictionary.");
     }
 
-    std::string dictContents = getDictStatement.GetColumn<std::string>(0);
-    std::string_view dictContentsSV = dictContents;
-    if (HasUtf8BOM(dictContents.data(), dictContents.size())) {
-        dictContentsSV = dictContentsSV.substr(Utf8BOM_sv.length());
-    }
+    const std::string dict_contents = getDictStatement.GetColumn<std::string>(0);
+    std::string_view dict_contents_sv = dict_contents;
 
-    std::wstring dictContentsWide = UTF8Convert::UTF8ToWide(dictContentsSV);
+    const TextEncoding text_encoding(dict_contents_sv);
 
-    if (SO::IsWhitespace(dictContentsWide)) {
-        throw DataRepositoryException::IOError(_T("Invalid file format. Dictionary is blank."));
-    }
+    if( text_encoding.UsesBom() )
+        dict_contents_sv.remove_prefix(text_encoding.GetBomLength());
 
-    try {
+    if( SO::IsWhitespace(dict_contents_sv) )
+        throw DataRepositoryException::IOError("Invalid file format. Dictionary is blank.");
+
+    try
+    {
         auto dictionary = std::make_unique<CDataDict>();
-        dictionary->OpenFromText(dictContentsWide);
+        dictionary->OpenFromText(dict_contents_sv);
         return dictionary;
     }
-    catch (const CSProException& exception) {
-        throw DataRepositoryException::IOError(FormatText(_T("Data file could not be read by this version of CSPro. ")
-                                                          _T("It may have been created with a newer version of CSPro or it may be corrupt. ")
-                                                          _T("Try opening it in the latest version of CSPro. %s"), exception.GetErrorMessage().c_str()));
+
+    catch( const CSProException& exception )
+    {
+        throw DataRepositoryException::IOError("Data file could not be read by this version of CSPro. "
+                                               "It may have been created with a newer version of CSPro or it may be corrupt. "
+                                               "Try opening it in the latest version of CSPro. %s",
+                                               exception.what());
     }
 }
+
 
 std::unique_ptr<CDataDict> SQLiteRepository::GetEmbeddedDictionary(const ConnectionString& connection_string)
 {
@@ -527,7 +562,7 @@ std::unique_ptr<CDataDict> SQLiteRepository::GetEmbeddedDictionary(const Connect
 
     if( OpenSQLiteDatabaseFile(connection_string, &db, SQLITE_OPEN_READONLY) == SQLITE_OK )
     {
-        dictionary = ReadDictFromDatabase(db);
+        dictionary = ReadDictionaryFromDatabase(db);
         sqlite3_close(db);
     }
 
@@ -543,7 +578,7 @@ void SQLiteRepository::OpenDatabaseFile()
 
     int result = OpenSQLiteDatabase(m_connectionString, &pDB, flags);
     if (result != SQLITE_OK) {
-        throw DataRepositoryException::IOError(_T("Invalid file format. Not a valid database."));
+        throw DataRepositoryException::IOError("Invalid file format. Not a valid database.");
     }
 
     int iSchemaVersion;
@@ -557,7 +592,7 @@ void SQLiteRepository::OpenDatabaseFile()
 
     if (iSchemaVersion > SCHEMA_VERSION) {
         sqlite3_close(pDB);
-        throw DataRepositoryException::IOError(_T("Data file was created by a newer version of CSPro and is not compatible with this version."));
+        throw DataRepositoryException::IOError("Data file was created by a newer version of CSPro and is not compatible with this version.");
     }
 
     // Older versions of schema did not have device_name column. Add it in if it is not there.
@@ -606,18 +641,20 @@ void SQLiteRepository::OpenDatabaseFile()
     m_db = pDB;
 
     if (m_accessType != DataRepositoryAccess::BatchOutput)
-        sqlite3_exec(pDB, "PRAGMA foreign_keys = ON", NULL, NULL, NULL);
+        sqlite3_exec(pDB, "PRAGMA foreign_keys = ON", nullptr, nullptr, nullptr);
 }
+
 
 void SQLiteRepository::DeleteRepository()
 {
     Close();
 
-    if( !PortableFunctions::FileDelete(m_connectionString.GetFilename()) )
+    if( !PortableFunctions::FileDelete(m_connectionString.GetFilePath()) )
         throw DataRepositoryException::DeleteRepositoryError();
 }
 
-bool SQLiteRepository::ContainsCase(const CString& key) const
+
+bool SQLiteRepository::ContainsCase(const std::string& key)
 {
     const char* containsCaseSql = "SELECT 1 FROM cases WHERE deleted = 0 AND key=? LIMIT 1";
     return SQLiteStatement(m_db, m_stmtContainsCase, containsCaseSql).
@@ -625,7 +662,8 @@ bool SQLiteRepository::ContainsCase(const CString& key) const
         Step() == SQLITE_ROW;
 }
 
-void SQLiteRepository::PopulateCaseIdentifiers(CString& key, CString& uuid, double& position_in_repository) const
+
+void SQLiteRepository::PopulateCaseIdentifiers(std::string& key, std::string& uuid, double& position_in_repository)
 {
     auto bind_and_step = [](auto& statement, const auto& bind_value)
     {
@@ -635,32 +673,39 @@ void SQLiteRepository::PopulateCaseIdentifiers(CString& key, CString& uuid, doub
             throw DataRepositoryException::CaseNotFound();
     };
 
-    if (!key.IsEmpty()) {
+    if (!key.empty()) {
         SQLiteStatement getCaseIdentifiersFromKey(m_stmtCaseIdentifiersFromKey);
         bind_and_step(getCaseIdentifiersFromKey, key);
-        uuid = getCaseIdentifiersFromKey.GetColumn<CString>(0);
+        uuid = getCaseIdentifiersFromKey.GetColumn<std::string>(0);
         position_in_repository = getCaseIdentifiersFromKey.GetColumn<double>(1);
     }
 
-    else if (!uuid.IsEmpty()) {
+    else if (!uuid.empty()) {
         SQLiteStatement getCaseIdentifiersFromUuid(m_db, m_stmtCaseIdentifiersFromUuid, "SELECT key, file_order FROM cases WHERE id=? LIMIT 1");
         bind_and_step(getCaseIdentifiersFromUuid, uuid);
-        key = getCaseIdentifiersFromUuid.GetColumn<CString>(0);
+        key = getCaseIdentifiersFromUuid.GetColumn<std::string>(0);
         position_in_repository = getCaseIdentifiersFromUuid.GetColumn<double>(1);
     }
 
     else {
         SQLiteStatement getCaseIdentifiersFromFileOrder(m_db, m_stmtCaseIdentifiersFromFileOrder, "SELECT key, id FROM cases WHERE file_order=? LIMIT 1");
         bind_and_step(getCaseIdentifiersFromFileOrder, position_in_repository);
-        key = getCaseIdentifiersFromFileOrder.GetColumn<CString>(0);
-        uuid = getCaseIdentifiersFromFileOrder.GetColumn<CString>(1);
+        key = getCaseIdentifiersFromFileOrder.GetColumn<std::string>(0);
+        uuid = getCaseIdentifiersFromFileOrder.GetColumn<std::string>(1);
     }
 }
 
-std::optional<CaseKey> SQLiteRepository::FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
-    const CaseIteratorParameters* start_parameters/* = nullptr*/) const
+
+DataRepositoryUniqueCaseIdentifer SQLiteRepository::GetUniqueCaseIdentifer(const CaseKey& case_key)
 {
-    auto statement = GetKeySearchIteratorStatement(0, 1, CaseIterationCaseStatus::NotDeletedOnly,
+    return case_key.GetPositionInRepository();
+}
+
+
+std::optional<CaseKey> SQLiteRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
+                                                     const CaseIteratorParameters* const start_parameters/* = nullptr*/)
+{
+    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(0, 1, CaseIterationCaseStatus::NotDeletedOnly,
         iteration_method, iteration_order, start_parameters,
         _T("SELECT `cases`.`key`, `cases`.`file_order` "
            "FROM `cases` "
@@ -669,35 +714,64 @@ std::optional<CaseKey> SQLiteRepository::FindCaseKey(CaseIterationMethod iterati
     std::optional<CaseKey> case_key;
 
     if( statement->Step() == SQLITE_ROW )
-        case_key.emplace(statement->GetColumn<CString>(0), statement->GetColumn<double>(1));
+        case_key.emplace(statement->GetColumn<std::string>(0), statement->GetColumn<double>(1));
 
     return case_key;
 }
 
-void SQLiteRepository::ReadCase(Case& data_case, const CString& key)
+
+void SQLiteRepository::ReadCase(Case& data_case, const std::string& key)
 {
     SQLiteStatement getCaseByKey(m_stmtGetCaseByKey);
     getCaseByKey.Bind(1, key);
 
-    if( !ReadCaseFromDatabase(data_case, getCaseByKey) )
+    if( getCaseByKey.Step() != SQLITE_ROW )
         throw DataRepositoryException::CaseNotFound();
+
+    ReadCaseFromDatabase(data_case, getCaseByKey);
 }
 
-void SQLiteRepository::ReadCase(Case& data_case, double position_in_repository)
+
+void SQLiteRepository::ReadCase(Case& data_case, const double position_in_repository)
 {
     SQLiteStatement getCaseByFileOrder(m_stmtGetCaseByFileOrder);
     getCaseByFileOrder.Bind(1, position_in_repository);
 
-    if( !ReadCaseFromDatabase(data_case, getCaseByFileOrder) )
+    if( getCaseByFileOrder.Step() != SQLITE_ROW )
         throw DataRepositoryException::CaseNotFound();
+
+    ReadCaseFromDatabase(data_case, getCaseByFileOrder);
 }
 
-bool SQLiteRepository::ReadCaseFromUuid(Case& data_case, CString uuid)
+
+void SQLiteRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 {
     SQLiteStatement getCaseById(m_stmtGetCaseById);
     getCaseById.Bind(1, uuid);
-    return ReadCaseFromDatabase(data_case, getCaseById);
+
+    if( getCaseById.Step() != SQLITE_ROW )
+        throw DataRepositoryException::CaseNotFound();
+
+    ReadCaseFromDatabase(data_case, getCaseById);
 }
+
+
+bool SQLiteRepository::ReadCaseFromUuid(std::unique_ptr<Case>& data_case, const std::string& uuid)
+{
+    SQLiteStatement getCaseById(m_stmtGetCaseById);
+    getCaseById.Bind(1, uuid);
+
+    if( getCaseById.Step() != SQLITE_ROW )
+        return false;
+
+    if( data_case == nullptr )
+        data_case = m_caseAccess->CreateCase();
+
+    ReadCaseFromDatabase(*data_case, getCaseById);
+
+    return true;
+}
+
 
 void SQLiteRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/)
 {
@@ -761,7 +835,7 @@ void SQLiteRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case
         if (queryResult == SQLITE_ROW) {
             // There is already a case with this case id,
             // use the same uuid to overwrite it
-            data_case.SetUuid(getUuidPosFromKey.GetColumn<std::wstring>(0));
+            data_case.SetUuid(getUuidPosFromKey.GetColumn<std::string>(0));
             data_case.SetPositionInRepository(getUuidPosFromKey.GetColumn<double>(1));
             new_case = false;
         } else if (queryResult == SQLITE_DONE) {
@@ -783,14 +857,14 @@ void SQLiteRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case
 
     int64_t revision;
 
-    if (m_transaction_start_count > 0) {
+    if (m_transactionStartCount > 0) {
 
         // Only start a new revision if we haven't added
         // one since we opened the file.
-        if (m_transaction_file_revision == -1) {
-            m_transaction_file_revision = AddFileRevision();
+        if (m_transactionClientRevision == -1) {
+            m_transactionClientRevision = AddFileRevision();
         }
-        revision = m_transaction_file_revision;
+        revision = m_transactionClientRevision;
 
     } else {
 
@@ -836,15 +910,17 @@ void SQLiteRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case
     CommitTransactionIfTooBig();
 }
 
+
 void SQLiteRepository::CommitTransactionIfTooBig()
 {
     const int MaxNumberSqlInsertsInOneTransaction = 2500;
     if (++m_iInsertInTransactionCounter == MaxNumberSqlInsertsInOneTransaction) {
-        sqlite3_exec(m_db, "COMMIT", NULL, NULL, NULL);
-        sqlite3_exec(m_db, "BEGIN", NULL, NULL, NULL);
+        sqlite3_exec(m_db, "COMMIT", nullptr, nullptr, nullptr);
+        sqlite3_exec(m_db, "BEGIN", nullptr, nullptr, nullptr);
         m_iInsertInTransactionCounter = 0;
     }
 }
+
 
 void SQLiteRepository::ClearNotes(const Case& data_case)
 {
@@ -853,6 +929,7 @@ void SQLiteRepository::ClearNotes(const Case& data_case)
     if (clearOldNotesStatement.Step() != SQLITE_DONE)
         throw SQLiteErrorWithMessage(m_db);
 }
+
 
 void SQLiteRepository::WriteNotes(const Case& data_case)
 {
@@ -885,7 +962,8 @@ void SQLiteRepository::WriteNotes(const Case& data_case)
     }
 }
 
-void SQLiteRepository::IncrementVectorClock(CString uuid)
+
+void SQLiteRepository::IncrementVectorClock(const std::string& uuid)
 {
     SQLiteStatement updateClockStatement(m_db, m_stmtIncrementClock,
         "INSERT OR REPLACE INTO vector_clock(case_id, device, revision)"
@@ -899,14 +977,16 @@ void SQLiteRepository::IncrementVectorClock(CString uuid)
         throw SQLiteErrorWithMessage(m_db);
 }
 
+
 void SQLiteRepository::IncrementVectorClock(double position_in_repository)
 {
-    CString key;
-    CString uuid;
+    std::string key;
+    std::string uuid;
     PopulateCaseIdentifiers(key, uuid, position_in_repository);
 
     IncrementVectorClock(uuid);
 }
+
 
 void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* = true*/)
 {
@@ -914,14 +994,14 @@ void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* 
 
     int64_t revision;
 
-    if (m_transaction_start_count) {
+    if (m_transactionStartCount) {
 
         // Only start a new revision if we haven't added
         // one since we opened the file.
-        if (m_transaction_file_revision == -1) {
-            m_transaction_file_revision = AddFileRevision();
+        if (m_transactionClientRevision == -1) {
+            m_transactionClientRevision = AddFileRevision();
         }
-        revision = m_transaction_file_revision;
+        revision = m_transactionClientRevision;
 
     } else {
         // Start a new revision for each write (in batch we use a single revision)
@@ -945,7 +1025,8 @@ void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* 
     CommitTransactionIfTooBig();
 }
 
-size_t SQLiteRepository::GetNumberCases() const
+
+size_t SQLiteRepository::GetNumberCases()
 {
     SQLiteStatement statement(m_db, m_stmtCountCases, "SELECT COUNT(*) FROM cases WHERE deleted = 0");
 
@@ -955,12 +1036,13 @@ size_t SQLiteRepository::GetNumberCases() const
     throw DataRepositoryException::SQLiteError();
 }
 
-size_t SQLiteRepository::GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters/* = nullptr*/) const
+
+size_t SQLiteRepository::GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return GetNumberCases();
 
-    auto statement = GetKeySearchIteratorStatement(0, SIZE_MAX, case_status, std::nullopt, std::nullopt, start_parameters,
+    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(0, SIZE_MAX, case_status, std::nullopt, std::nullopt, start_parameters,
         _T("SELECT COUNT(*) "
            "FROM `cases` "
            "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order`"));
@@ -971,10 +1053,11 @@ size_t SQLiteRepository::GetNumberCases(CaseIterationCaseStatus case_status, con
     throw DataRepositoryException::SQLiteError();
 }
 
-void SQLiteRepository::WriteIteratorSelectFromSql(std::wstringstream& sql, CaseIterationContent iteration_content) const
+
+void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content) const
 {
-    bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
-                                            m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
+    const bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
+                                                  m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
 
     sql << "SELECT "
         << ( ( iteration_content == CaseIterationContent::Case ) ? "`cases`.`id`" : "`cases`.`key`" )
@@ -1008,27 +1091,29 @@ void SQLiteRepository::WriteIteratorSelectFromSql(std::wstringstream& sql, CaseI
     sql << " FROM `cases` ";
 }
 
+
 std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
     std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
     const CaseIteratorParameters* start_parameters/* = nullptr*/, size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
 {
-    bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
-                                            m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
+    const bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
+                                                  m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
 
-    std::wstringstream sql;
+    std::stringstream sql;
     WriteIteratorSelectFromSql(sql, iteration_content);
     sql << "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order` ";
 
     if( get_case_note_for_case_summary )
     {
         sql << "LEFT OUTER JOIN `notes` ON `cases`.`id` = `notes`.`case_id` AND "
-               "`notes`.`field_name` = '" << m_caseAccess->GetDataDict().GetName().GetString() << "' AND `notes`.`operator_id`='' ";
+               "`notes`.`field_name` = '" << m_caseAccess->GetDataDict().GetName().c_str() << "' AND `notes`.`operator_id`='' ";
     }
 
     return std::make_unique<SQLiteRepositoryCaseIterator>(*this, iteration_content,
-        GetKeySearchIteratorStatement(offset, limit, case_status, iteration_method, iteration_order, start_parameters, sql.str().c_str()),
+        GetKeySearchIteratorStatement(offset, limit, case_status, iteration_method, iteration_order, start_parameters, UTF8_TODO::GetWide(sql.str()).c_str()),
         case_status, start_parameters);
 }
+
 
 std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement(size_t offset, size_t limit,
     CaseIterationCaseStatus case_status, std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
@@ -1049,9 +1134,9 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
     CString where_text;
 
-    auto add_to_where_text = [&](const TCHAR* condition)
+    auto add_to_where_text = [&](const cs::string_sz condition)
     {
-        where_text.AppendFormat(_T("%s ( %s ) "), where_text.IsEmpty() ? _T("WHERE") : _T("AND"), condition);
+        where_text.AppendFormat(_T("%s ( %s ) "), where_text.IsEmpty() ? _T("WHERE") : _T("AND"), UTF8_TODO::GetWide(condition).c_str());
     };
 
     // process any filters
@@ -1060,14 +1145,14 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
     if( start_parameters != nullptr )
     {
-        // use the key prefix if it is set and and is not empty
-        if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->IsEmpty() )
+        // use the key prefix if it is set and is not empty
+        if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->empty() )
         {
             use_key_prefix = true;
-            where_text = _T("WHERE `cases`.`key` >= ? AND `cases`.`key` < ?");
+            where_text = _T("WHERE `cases`.`key` >= ? AND `cases`.`key` < ? ");
 
-            use_operators = std::holds_alternative<CString>(start_parameters->first_key_or_position) ?
-                !std::get<CString>(start_parameters->first_key_or_position).IsEmpty() :
+            use_operators = std::holds_alternative<std::string>(start_parameters->first_key_or_position) ?
+                !std::get<std::string>(start_parameters->first_key_or_position).empty() :
                 ( std::get<double>(start_parameters->first_key_or_position) != -1 );
         }
 
@@ -1078,30 +1163,25 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
         if( use_operators )
         {
-            const TCHAR* comparison_operator =
-                ( start_parameters->start_type == CaseIterationStartType::LessThan )          ?   _T("<") :
-                ( start_parameters->start_type == CaseIterationStartType::LessThanEquals )    ?   _T("<=") :
-                ( start_parameters->start_type == CaseIterationStartType::GreaterThanEquals ) ?   _T(">=") :
-              /*( start_parameters->start_type == CaseIterationStartType::GreaterThan )       ?*/ _T(">");
-
-            add_to_where_text(FormatText(_T("%s %s ?"), std::holds_alternative<CString>(start_parameters->first_key_or_position) ?
-                _T("`cases`.`key`") : _T("`cases`.`file_order`"), comparison_operator));
+            add_to_where_text(FormatText("%s %s ?",
+                                         std::holds_alternative<std::string>(start_parameters->first_key_or_position) ? "`cases`.`key`" : "`cases`.`file_order`",
+                                         ToString(start_parameters->start_type)));
         }
     }
 
     // filter on case properties
     if( case_status != CaseIterationCaseStatus::All )
     {
-        add_to_where_text(_T("`cases`.`deleted` = 0"));
+        add_to_where_text("`cases`.`deleted` = 0");
 
         if( case_status == CaseIterationCaseStatus::PartialsOnly )
         {
-            add_to_where_text(_T("`cases`.`partial_save_mode` IS NOT NULL"));
+            add_to_where_text("`cases`.`partial_save_mode` IS NOT NULL");
         }
 
         else if( case_status == CaseIterationCaseStatus::DuplicatesOnly )
         {
-            add_to_where_text(_T("`cases`.`key` IN ( SELECT `cases`.`key` FROM `cases` WHERE `cases`.`deleted` = 0 GROUP BY `cases`.`key` HAVING COUNT(*) > 1 )"));
+            add_to_where_text("`cases`.`key` IN ( SELECT `cases`.`key` FROM `cases` WHERE `cases`.`deleted` = 0 GROUP BY `cases`.`key` HAVING COUNT(*) > 1 )");
         }
     }
 
@@ -1116,18 +1196,17 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
     if( use_key_prefix )
     {
-        std::string key_prefix = ToUtf8(*start_parameters->key_prefix);
-        statement->Bind(1, key_prefix);
-        statement->Bind(2, SQLiteHelpers::GetTextPrefixBoundary(key_prefix));
+        statement->Bind(1, *start_parameters->key_prefix);
+        statement->Bind(2, SQLiteHelpers::GetTextPrefixBoundary(*start_parameters->key_prefix));
     }
 
     if( use_operators )
     {
         int operator_argument_index = use_key_prefix ? 3 : 1;
 
-        if( std::holds_alternative<CString>(start_parameters->first_key_or_position) )
+        if( std::holds_alternative<std::string>(start_parameters->first_key_or_position) )
         {
-            statement->Bind(operator_argument_index, std::get<CString>(start_parameters->first_key_or_position));
+            statement->Bind(operator_argument_index, std::get<std::string>(start_parameters->first_key_or_position));
         }
 
         else
@@ -1138,6 +1217,7 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
     return statement;
 }
+
 
 void SQLiteRepository::UpdateDictionary(sqlite3* pDB)
 {
@@ -1168,14 +1248,15 @@ void SQLiteRepository::UpdateDictionary(sqlite3* pDB)
     }
 }
 
+
 void SQLiteRepository::ReconcileDictionaries(sqlite3** pDB)
 {
     // only reconcile the dictionaries if the structure has been modified
-    std::wstring embedded_dict_sig = GetDictionaryStructureMd5(*pDB);
+    const std::string embedded_dict_sig = GetDictionaryStructureMd5(*pDB);
     if (!embedded_dict_sig.empty() && embedded_dict_sig == m_caseAccess->GetDataDict().GetStructureMd5())
         return;
 
-    std::unique_ptr<CDataDict> pOriginalDict = ReadDictFromDatabase(*pDB);
+    std::unique_ptr<CDataDict> pOriginalDict = ReadDictionaryFromDatabase(*pDB);
     SQLiteDictionarySchemaReconciler reconciler(*pDB, *pOriginalDict, m_caseAccess.get());
     if (reconciler.NeedsReconcile()) {
         MakeDatabaseTemporarilyWriteable(pDB);
@@ -1184,65 +1265,69 @@ void SQLiteRepository::ReconcileDictionaries(sqlite3** pDB)
     }
 }
 
-std::wstring SQLiteRepository::GetDictionaryStructureMd5(sqlite3* db)
+
+std::string SQLiteRepository::GetDictionaryStructureMd5(sqlite3* const db)
 {
     SQLiteStatement get_structure_statement(db, "SELECT dictionary_structure FROM meta");
 
     // this column only exists starting starting with CSPro 7.5
     if (get_structure_statement.Step() != SQLITE_ROW) {
-        return std::wstring();
+        return std::string();
     }
     else {
-        return get_structure_statement.GetColumn<std::wstring>(0);
+        return get_structure_statement.GetColumn<std::string>(0);
     }
 }
 
-int SQLiteRepository::GetSchemaVersion(sqlite3 * pDB) const
+
+int SQLiteRepository::GetSchemaVersion(sqlite3* const pDB) const
 {
     SQLiteStatement getMetaStatement(pDB, "SELECT schema_version FROM meta");
     if (getMetaStatement.Step() != SQLITE_ROW) {
         // The meta table could be missing if this isn't really a csdb file but also could be
         // if the file is currently open as output to batch edit program which has deleted
         // and recreated file but has not yet flushed transaction that creates the meta table.
-        throw DataRepositoryException::IOError(_T("Unable to read CSPro DB file. Could be an invalid file, a corrupt file or it could be in use by another program."));
+        throw DataRepositoryException::IOError("Unable to read CSPro DB file. Could be an invalid file, a corrupt file or it could be in use by another program.");
     }
 
     return getMetaStatement.GetColumn<int>(0);
 }
+
 
 void SQLiteRepository::MigrateFromSchemaVersion1(sqlite3* pDB)
 {
     const char *sql = "BEGIN TRANSACTION;"
         "ALTER TABLE file_revisions RENAME TO temp_file_revisions;"
         "CREATE TABLE file_revisions("
-        "	id INTEGER NOT NULL PRIMARY KEY,"
-        "	device_id TEXT NOT NULL,"
-        "	timestamp INTEGER NOT NULL default (strftime('%s', 'now')));"
+        "   id INTEGER NOT NULL PRIMARY KEY,"
+        "   device_id TEXT NOT NULL,"
+        "   timestamp INTEGER NOT NULL default (strftime('%s', 'now')));"
         "INSERT INTO file_revisions"
-        "	SELECT"
-        "	id, device_id, timestamp"
-        "	FROM"
-        "	temp_file_revisions;"
+        "   SELECT"
+        "   id, device_id, timestamp"
+        "   FROM"
+        "   temp_file_revisions;"
         "CREATE TABLE sync_history("
-        "	id INTEGER NOT NULL PRIMARY KEY,"
-        "	file_revision INTEGER NOT NULL,"
+        "   id INTEGER NOT NULL PRIMARY KEY,"
+        "   file_revision INTEGER NOT NULL,"
         "   device_id TEXT NOT NULL,"
         "   timestamp INTEGER NOT NULL default (strftime('%s','now')),"
-        "	universe TEXT NULL,"
-        "	direction INTEGER NULL,"
-        "	server_revision TEXT NULL,"
-        "	partial INTEGER default 0,"
-        "	last_id TEXT NULL default NULL,"
-        "	FOREIGN KEY(file_revision) REFERENCES file_revisions(id));"
+        "   universe TEXT NULL,"
+        "   direction INTEGER NULL,"
+        "   server_revision TEXT NULL,"
+        "   partial INTEGER default 0,"
+        "   last_id TEXT NULL default NULL,"
+        "   FOREIGN KEY(file_revision) REFERENCES file_revisions(id));"
         "DROP TABLE temp_file_revisions;"
         "UPDATE meta SET schema_version=2;"
         "COMMIT;";
 
-    int rc = sqlite3_exec(pDB, sql, NULL, NULL, NULL);
+    int rc = sqlite3_exec(pDB, sql, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 }
+
 
 void SQLiteRepository::AddDeviceNameUserNameColumnsToSyncHistory(sqlite3* pDB)
 {
@@ -1262,18 +1347,19 @@ void SQLiteRepository::AddDeviceNameUserNameColumnsToSyncHistory(sqlite3* pDB)
         "last_id TEXT NULL default NULL,"
         "FOREIGN KEY(file_revision) REFERENCES file_revisions(id));"
         "INSERT INTO sync_history"
-        "	SELECT"
-        "	id, file_revision, device_id, device_id, null, timestamp, universe, direction, server_revision, partial, last_id"
-        "	FROM"
-        "	temp_sync_history;"
+        "   SELECT"
+        "   id, file_revision, device_id, device_id, null, timestamp, universe, direction, server_revision, partial, last_id"
+        "   FROM"
+        "   temp_sync_history;"
         "DROP TABLE temp_sync_history;"
         "COMMIT;";
 
-    int rc = sqlite3_exec(pDB, sql, NULL, NULL, NULL);
+    int rc = sqlite3_exec(pDB, sql, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 }
+
 
 bool SQLiteRepository::MissingDeviceNameColumnInSyncHistory(sqlite3* pDB)
 {
@@ -1281,11 +1367,13 @@ bool SQLiteRepository::MissingDeviceNameColumnInSyncHistory(sqlite3* pDB)
     return check_device_name.Step() != SQLITE_ROW;
 }
 
+
 bool SQLiteRepository::MissingBinaryTable(sqlite3* pDB)
 {
     SQLiteStatement check_binary_table(pDB, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='binary-data';");
     return check_binary_table.Step() != SQLITE_ROW;
 }
+
 
 void SQLiteRepository::AddBinaryTable(sqlite3* pDB)
 {
@@ -1294,12 +1382,14 @@ void SQLiteRepository::AddBinaryTable(sqlite3* pDB)
     binary_table_schema.CreateDatabase(pDB);
 }
 
+
 bool SQLiteRepository::MissingBinarySyncHistoryTable(sqlite3* pDB)
 {
-    //if the binary-sync-history table is missing then the arhive table is also missing 
+    //if the binary-sync-history table is missing then the archive table is also missing
     SQLiteStatement check_binary_sync_history_table(pDB, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='binary-sync-history';");
     return check_binary_sync_history_table.Step() != SQLITE_ROW;
 }
+
 
 void SQLiteRepository::AddBinarySyncHistoryTables(sqlite3* pDB)
 {
@@ -1311,50 +1401,56 @@ void SQLiteRepository::AddBinarySyncHistoryTables(sqlite3* pDB)
     binary_table_sync_history_archive_schema.CreateDatabase(pDB);
 }
 
+
 void SQLiteRepository::MakeDatabaseTemporarilyWriteable(sqlite3** db)
 {
     if (IsReadOnly()) {
         sqlite3_close(*db);
         if (OpenSQLiteDatabase(m_connectionString, db, SQLITE_OPEN_READWRITE) != SQLITE_OK) {
-            throw DataRepositoryException::IOError(_T("Failed to reopen database as writeable."));
+            throw DataRepositoryException::IOError("Failed to reopen database as writeable.");
         }
     }
 }
+
 
 void SQLiteRepository::EndMakeDatabaseTemporarilyWriteable(sqlite3** db)
 {
     if (IsReadOnly()) {
         sqlite3_close(*db);
         if (OpenSQLiteDatabase(m_connectionString, db, SQLITE_OPEN_READWRITE) != SQLITE_OK) {
-            throw DataRepositoryException::IOError(_T("Failed to reopen database after making writeable."));
+            throw DataRepositoryException::IOError("Failed to reopen database after making writeable.");
         }
     }
 }
 
-void SQLiteRepository::StartSync(DeviceId remoteDeviceId, CString remoteDeviceName, CString userName, SyncDirection direction, CString universe, bool bUpdateOnConflict)
+
+void SQLiteRepository::StartSync(DeviceId server_device_id, std::string remote_device_name, std::string username, const SyncDirection direction,
+                                 std::string universe, const bool use_remote_case_on_conflict)
 {
-    if (m_accessType == DataRepositoryAccess::BatchInput) {
+    if( m_accessType == DataRepositoryAccess::BatchInput )
         throw DataRepositoryException::WriteAccessRequired();
-    }
 
-    if (m_accessType == DataRepositoryAccess::BatchOutput || m_accessType == DataRepositoryAccess::BatchOutputAppend) {
+    if( m_accessType == DataRepositoryAccess::BatchOutput || m_accessType == DataRepositoryAccess::BatchOutputAppend )
         throw DataRepositoryException::NotValidInBatchOutput();
-    }
 
-    if (m_accessType == DataRepositoryAccess::ReadOnly) {
-        //fix to allow readonly external file to be synced by reopening in read write mode
-
-        try {
-            //to resolve sqlite_busy issues when closing the file add a handler that waits for max of 5 seconds before erroring on close
+    if( m_accessType == DataRepositoryAccess::ReadOnly )
+    {
+        // fix to allow readonly external file to be synced by reopening in read write mode
+        try
+        {
+            // to resolve sqlite_busy issues when closing the file add a handler that waits for max of 5 seconds before erroring on close
             sqlite3_busy_timeout(m_db, 5000);
             Close();
-            //reopen the file in readwrite mode to allow sync writes
+
+            // reopen the file in readwrite mode to allow sync writes
             m_accessType = DataRepositoryAccess::ReadWrite;
             m_caseAccess = CaseAccess::CreateAndInitializeFullCaseAccess(m_caseAccess->GetDataDict());
             Open(DataRepositoryOpenFlag::OpenMustExist);
         }
-        catch (...) {
-            throw DataRepositoryException::IOError(_T("Unable to close and reopen file read-write to sync previously read-only file."));
+
+        catch(...)
+        {
+            throw DataRepositoryException::IOError("Unable to close and reopen file read-write to sync previously read-only file.");
         }
     }
 
@@ -1362,257 +1458,248 @@ void SQLiteRepository::StartSync(DeviceId remoteDeviceId, CString remoteDeviceNa
 
     // Save these here - they get written to DB when cases are received/sent that way
     // we don't record anything if we never contact the server.
-    m_currentSyncParams.m_currentSyncId = 0; // Gets set later when we write to DB
-    m_currentSyncParams.m_currentFileRevision = 0; // Gets set later when we write to DB
-    m_currentSyncParams.m_remoteDeviceId = remoteDeviceId;
-    m_currentSyncParams.m_remoteDeviceName = remoteDeviceName;
-    m_currentSyncParams.m_userName = userName;
-    m_currentSyncParams.m_direction = direction;
-    m_currentSyncParams.m_universe = universe;
-    m_currentSyncParams.m_currentSyncUpdateOnConflict = bUpdateOnConflict;
-    m_currentSyncParams.m_serverRevision.Empty();
+    m_currentSyncParams.current_sync_id = 0; // Gets set later when we write to DB
+    m_currentSyncParams.current_client_revision = 0; // Gets set later when we write to DB
+    m_currentSyncParams.remote_device_id = std::move(server_device_id);
+    m_currentSyncParams.remote_device_name = std::move(remote_device_name);
+    m_currentSyncParams.username = std::move(username);
+    m_currentSyncParams.direction = direction;
+    m_currentSyncParams.universe = std::move(universe);
+    m_currentSyncParams.use_remote_case_on_conflict = use_remote_case_on_conflict;
+    m_currentSyncParams.server_revision.clear();
 }
 
-int SQLiteRepository::SyncCasesFromRemote(const std::vector<std::shared_ptr<Case>>& cases_received, CString serverRevision)
-{
-    m_currentSyncParams.m_serverRevision = serverRevision;
 
-    if (m_currentSyncParams.m_currentSyncId == 0) {
-        // First cases received this sync, haven't added rev to database yet
-        if (m_transaction_start_count) {
-            if (m_transaction_file_revision == -1) {
-                m_transaction_file_revision = AddFileRevision();
-            }
-            m_currentSyncParams.m_currentFileRevision = m_transaction_file_revision;
+int SQLiteRepository::SyncCasesFromRemote(const std::vector<std::shared_ptr<Case>>& cases_received, const std::string& server_revision)
+{
+    m_currentSyncParams.server_revision = server_revision;
+
+    if( m_currentSyncParams.current_sync_id == 0 )
+    {
+        // First cases received this sync, haven't added revision to database yet
+        if( m_transactionStartCount != 0 )
+        {
+            if( m_transactionClientRevision == -1 )
+                m_transactionClientRevision = AddFileRevision();
+
+            m_currentSyncParams.current_client_revision = m_transactionClientRevision;
         }
-        else {
-            m_currentSyncParams.m_currentFileRevision = AddFileRevision();
+
+        else
+        {
+            m_currentSyncParams.current_client_revision = AddFileRevision();
         }
-        m_currentSyncParams.m_currentSyncId =
-            AddSyncHistoryEntry(m_currentSyncParams.m_currentFileRevision,
-                m_currentSyncParams.m_remoteDeviceId, m_currentSyncParams.m_remoteDeviceName,
-                m_currentSyncParams.m_userName,
-                m_currentSyncParams.m_direction, m_currentSyncParams.m_universe,
-                serverRevision, SyncHistoryEntry::SyncState::PartialGet,
-                CString());
+
+        m_currentSyncParams.current_sync_id = AddSyncHistoryEntry(SyncHistoryEntry::SyncState::PartialGet, SO::Empty_string);
     }
 
-    Case local_case(m_caseAccess->GetCaseMetadata());
+    std::unique_ptr<Case> local_case;
 
-    for( const std::shared_ptr<Case>& remote_case : cases_received ) {
+    for( const std::shared_ptr<Case>& remote_case : cases_received )
+    {
+        ++m_currentSyncStats.cases_received;
 
-        ++m_currentSyncStats.numReceived;
+        if( ReadCaseFromUuid(local_case, remote_case->GetUuid()) )
+        {
+            // if the case exists both locally and remotely, compare using vector clocks...
+            ASSERT(local_case != nullptr);
 
-        if (ReadCaseFromUuid(local_case, remote_case->GetUuid())) {
-            // Case exists both local and remote, compare using vector clocks
-            if (remote_case->GetVectorClock() < local_case.GetVectorClock()) {
-                // Local case is more recent, do not update
-                ++m_currentSyncStats.numCasesNewerInRepo;
-            } else if (local_case.GetVectorClock() < remote_case->GetVectorClock()) {
-                // Update is newer, replace the local case
-                const bool bNewCase = false;
-                SyncCase(*remote_case, m_currentSyncParams.m_currentFileRevision, bNewCase, m_currentSyncParams.m_currentSyncId);
-                ++m_currentSyncStats.numCasesNewerOnRemote;
-            } else if (local_case.GetVectorClock() != remote_case->GetVectorClock()) {
-                // Conflict - neither clock is greater
-                ++m_currentSyncStats.numConflicts;
+            // Local case is more recent, do not update
+            if( remote_case->GetVectorClock() < local_case->GetVectorClock() )
+            {
+                ++m_currentSyncStats.cases_newer_in_repository;
+            }
+
+            // Update is newer, replace the local case
+            else if( local_case->GetVectorClock() < remote_case->GetVectorClock() )
+            {
+                constexpr bool NewCase = false;
+                SyncCase(*remote_case, m_currentSyncParams.current_client_revision, NewCase);
+                ++m_currentSyncStats.cases_newer_on_remote;
+            }
+
+            // Conflict - neither clock is greater
+            else if( local_case->GetVectorClock() != remote_case->GetVectorClock() )
+            {
+                ++m_currentSyncStats.cases_with_conflicts;
 
                 // Make a new case with merged clocks
-                VectorClock mergedClock = local_case.GetVectorClock();
+                VectorClock mergedClock = local_case->GetVectorClock();
                 mergedClock.merge(remote_case->GetVectorClock());
 
-                // Use the data from the remote case if we update on conflict otherwise use data from local
-                // The updateOnConflict will be true on the server and false on the client so that the client
-                // always wins conflicts.
-                Case& baseCaseForResolve = m_currentSyncParams.m_currentSyncUpdateOnConflict ? *remote_case : local_case;
-                VectorClock baseCaseClock = baseCaseForResolve.GetVectorClock();
-                baseCaseForResolve.SetVectorClock(mergedClock);
-                const bool bNewCase = false;
-                SyncCase(baseCaseForResolve, m_currentSyncParams.m_currentFileRevision, bNewCase, m_currentSyncParams.m_currentSyncId);
-                baseCaseForResolve.SetVectorClock(baseCaseClock);
+                // The "use_remote_case_on_conflict" flag will be true on the server and
+                // false on the client so that the client always wins conflicts.
+                Case* const baseCaseForResolve = m_currentSyncParams.use_remote_case_on_conflict ? remote_case.get() : local_case.get();
+                VectorClock baseCaseClock = baseCaseForResolve->GetVectorClock();
+                baseCaseForResolve->SetVectorClock(std::move(mergedClock));
+
+                constexpr bool NewCase = false;
+                SyncCase(*baseCaseForResolve, m_currentSyncParams.current_client_revision, NewCase);
+                baseCaseForResolve->SetVectorClock(std::move(baseCaseClock));
             }
-        } else {
+        }
+
+        else
+        {
             // No local version of the case so it must be new, add it to repo
-            ++m_currentSyncStats.numNewCasesNotInRepo;
+            ++m_currentSyncStats.cases_not_in_repository;
 
-            const bool bNewCase = true;
-            SyncCase(*remote_case, m_currentSyncParams.m_currentFileRevision, bNewCase, m_currentSyncParams.m_currentSyncId);
+            constexpr bool NewCase = true;
+            SyncCase(*remote_case, m_currentSyncParams.current_client_revision, NewCase);
         }
     }
 
-    m_currentSyncParams.m_serverRevision = serverRevision;
-    SetSyncRevisionPartial(m_currentSyncParams.m_currentSyncId,
-        SyncHistoryEntry::SyncState::PartialGet,
-        serverRevision,
-        cases_received.empty() ? CString() : cases_received.back()->GetUuid(),
-        m_currentSyncParams.m_currentFileRevision);
+    if( m_caseAccess->GetCaseMetadata().UsesBinaryData() )
+        AddBinaryItemsSyncHistory(cases_received, m_currentSyncParams.current_sync_id);
 
-    return m_currentSyncParams.m_currentFileRevision;
-}
+    m_currentSyncParams.server_revision = server_revision;
 
-void SQLiteRepository::MarkCasesSentToRemote(const std::vector<std::shared_ptr<Case>>& cases_sent, std::vector<std::pair<const BinaryCaseItem*, CaseItemIndex>>& binaryCaseItems, CString serverRevision, int clientRevision)
-{
-    m_currentSyncParams.m_currentFileRevision = clientRevision;
-    m_currentSyncParams.m_serverRevision = serverRevision;
+    SetSyncRevisionPartial(m_currentSyncParams.current_sync_id, SyncHistoryEntry::SyncState::PartialGet,
+                           m_currentSyncParams.server_revision, cases_received.empty() ? SO::Empty_string : cases_received.back()->GetUuid(),
+                           m_currentSyncParams.current_client_revision);
 
-    if (m_currentSyncParams.m_currentSyncId == 0) {
-
-        // First cases received this sync, haven't added rev to database yet
-        m_currentSyncParams.m_currentSyncId =
-            AddSyncHistoryEntry(m_currentSyncParams.m_currentFileRevision,
-                m_currentSyncParams.m_remoteDeviceId, m_currentSyncParams.m_remoteDeviceName,
-                m_currentSyncParams.m_userName,
-                m_currentSyncParams.m_direction, m_currentSyncParams.m_universe,
-                m_currentSyncParams.m_serverRevision, SyncHistoryEntry::SyncState::PartialPut,
-                CString());
-    }
-
-    CString lastUuid = cases_sent.empty() ? CString() : cases_sent.back()->GetUuid();
-
-    SetSyncRevisionPartial(m_currentSyncParams.m_currentSyncId, SyncHistoryEntry::SyncState::PartialPut,
-        m_currentSyncParams.m_serverRevision, lastUuid, m_currentSyncParams.m_currentFileRevision);
-
-    m_currentSyncStats.numSent += cases_sent.size();
-
-    AddBinaryItemsSyncHistory(binaryCaseItems, m_currentSyncParams.m_currentSyncId);
+    ASSERT(m_currentSyncParams.current_client_revision == static_cast<int>(m_currentSyncParams.current_client_revision));
+    return static_cast<int>(m_currentSyncParams.current_client_revision);
 }
 
 
-namespace
+void SQLiteRepository::MarkCasesSentToRemote(const cs::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* const sync_binary_data_upload_manager,
+                                             const std::string& server_revision, const int client_revision)
 {
-    inline void AddBinaryItemsSyncHistoryWorker(std::set<std::wstring>& synced_signatures, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
+    m_currentSyncParams.current_client_revision = client_revision;
+    m_currentSyncParams.server_revision = server_revision;
+
+    if( m_currentSyncParams.current_sync_id == 0 )
     {
-        const BinaryDataMetadata* binary_data_metadata = binary_case_item.GetBinaryDataMetadata_noexcept(index);
+        // First cases received this sync, haven't added revision to database yet
+        m_currentSyncParams.current_sync_id = AddSyncHistoryEntry(SyncHistoryEntry::SyncState::PartialPut, SO::Empty_string);
+    }
 
-        if( binary_data_metadata == nullptr )
-        {
-            ASSERT(false);
-            return;
-        }
+    const std::string& last_case_uuid = cases_sent.empty() ? SO::Empty_string :
+                                                             cases_sent.back()->GetUuid();
 
-        const SyncJsonBinaryDataReader* sync_json_binary_data_reader = dynamic_cast<const SyncJsonBinaryDataReader*>(binary_case_item.GetBinaryDataAccessor(index).GetBinaryDataReader());
+    SetSyncRevisionPartial(m_currentSyncParams.current_sync_id, SyncHistoryEntry::SyncState::PartialPut,
+                           m_currentSyncParams.server_revision, last_case_uuid, m_currentSyncParams.current_client_revision);
 
-        // only add entries once per file per sync (so if multiple cases share the same file, the binary-sync-history table will only have one entry per sync)
-        if( sync_json_binary_data_reader != nullptr && !sync_json_binary_data_reader->HasSyncedContent() )
-            return;
+    m_currentSyncStats.cases_sent += cases_sent.size();
 
-        synced_signatures.insert(binary_data_metadata->GetBinaryDataKey());
+    if( sync_binary_data_upload_manager != nullptr )
+    {
+        sync_binary_data_upload_manager->ForeachBinaryCaseItemInChunk(
+            [&](const std::string& signature)
+            {
+                AddBinaryItemsSyncHistory(signature, m_currentSyncParams.current_sync_id);
+            });
     }
 }
 
 
-void SQLiteRepository::AddBinaryItemsSyncHistory(const Case& data_case, int syncHistoryId)
+void SQLiteRepository::AddBinaryItemsSyncHistory(const std::string& signature, const int sync_id)
 {
-    if( !data_case.GetCaseMetadata().UsesBinaryData() )
-        return;
-
-    std::set<std::wstring> synced_signatures;
-
-    data_case.ForeachDefinedBinaryCaseItem(
-        [&](const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
-        {
-            AddBinaryItemsSyncHistoryWorker(synced_signatures, binary_case_item, index);
-        });
-
-    AddBinaryItemsSyncHistory(synced_signatures, syncHistoryId);
-}
-
-
-void SQLiteRepository::AddBinaryItemsSyncHistory(const std::vector<std::pair<const BinaryCaseItem*, CaseItemIndex>>& binaryCaseItems, int syncHistoryId)
-{
-    if( binaryCaseItems.empty() )
-        return;
-
-    std::set<std::wstring> synced_signatures;
-
-    for( const auto& [binary_case_item, index] : binaryCaseItems )
-        AddBinaryItemsSyncHistoryWorker(synced_signatures, *binary_case_item, index);
-
-    AddBinaryItemsSyncHistory(synced_signatures, syncHistoryId);
-}
-
-
-void SQLiteRepository::AddBinaryItemsSyncHistory(const std::set<std::wstring>& synced_signatures, int syncHistoryId)
-{
-    if( synced_signatures.empty() )
-        return;
+    ASSERT(BinaryDataAccessor::IsValidSignature(signature));
 
     // Insert into binary-sync-history
     SQLiteStatement insertBinarySyncHistoryStatement(m_db, m_stmtInsertBinarySyncHistory,
         "INSERT INTO `binary-sync-history`(`binary-data-signature`,`sync-history-id`)"
-        "VALUES( @signature, @id)");
+        "VALUES(?,?)");
 
-     for( const std::wstring& signature : synced_signatures )
-     {
-         ASSERT(!signature.empty());
+    insertBinarySyncHistoryStatement.Bind(1, signature)
+                                    .Bind(2, sync_id);
 
-         insertBinarySyncHistoryStatement
-             .Bind("@signature", signature)
-             .Bind("@id", syncHistoryId);
+    if( insertBinarySyncHistoryStatement.Step() != SQLITE_DONE )
+        throw SQLiteErrorWithMessage(m_db);
+}
 
-         if( insertBinarySyncHistoryStatement.Step() != SQLITE_DONE )
-            throw SQLiteErrorWithMessage(m_db);
 
-         insertBinarySyncHistoryStatement.Reset();
+void SQLiteRepository::AddBinaryItemsSyncHistory(const std::vector<std::shared_ptr<Case>>& cases_received, const int sync_id)
+{
+    ASSERT(m_caseAccess->GetCaseMetadata().UsesBinaryData());
+
+    for( const std::shared_ptr<Case>& data_case : cases_received )
+    {
+        data_case->ForeachDefinedBinaryCaseItem(
+            [&](const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
+            {
+                const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+
+                // only add entries received during this sync that were loaded, which will only happen once per entry, when loaded
+                // in SQLiteBinaryItemSerializer::InsertContent, even if that entry appears multiple times in a case or cases
+                if( binary_data_accessor.IsDefinedAndContentLoaded() )
+                {
+                    AddBinaryItemsSyncHistory(binary_data_accessor.GetSignature(), sync_id);
+                }
+
+                else
+                {
+#ifdef _DEBUG
+                    SQLiteStatement stmt(m_db, "SELECT `sync-history-id` FROM `binary-sync-history` WHERE `binary-data-signature` = ? LIMIT 1;");
+                    stmt.Bind(1, binary_data_accessor.GetSignature());
+                    ASSERT(stmt.Step() == SQLITE_ROW && stmt.GetColumn<int>(0) <= sync_id);
+#endif
+                }
+            });
     }
 }
 
 
-void SQLiteRepository::ClearBinarySyncHistory(CString serverDeviceId, int fileRevision /* = -1*/)
+void SQLiteRepository::ClearBinarySyncHistory(const DeviceId& server_device_id, const int client_revision/* = -1*/)
 {
-    //This function is called when sync client cannot find a revision on the server and has to do a full sync 
+    //This function is called when sync client cannot find a revision on the server and has to do a full sync
     //This should be only for binary items that have been synced to this / from server
 
     //Archive the binary sync history when its a full resync by moving any syncs including the binary items associated to gets as well
     // as the server may have deleted all the binary items and we need to resend them
     //all our binaries in this case again as we cannot find the last revision on the server
-    std::ostringstream sql;
-    sql << "INSERT INTO `binary-sync-history-archive` (`binary-sync-history-id`, `binary-data-signature`, `sync-history-id`)"
-           " SELECT `binary-sync-history`.`id`, `binary-data-signature`,"
-           " `sync-history-id` FROM `binary-sync-history` JOIN `sync_history` ON `binary-sync-history`.`sync-history-id` = `sync_history`.`id`"
-           " WHERE `sync_history`.`device_id` = @serverDeviceId AND `sync_history`.`file_revision` >= @fileRevision" ;
+    SQLiteStatement archiveInvalidBinarySyncHistoryEntries(m_db, m_stmtArchiveBinarySyncHistory,
+        "INSERT INTO `binary-sync-history-archive` (`binary-sync-history-id`, `binary-data-signature`, `sync-history-id`)"
+        " SELECT `binary-sync-history`.`id`, `binary-data-signature`,"
+        " `sync-history-id` FROM `binary-sync-history` JOIN `sync_history` ON `binary-sync-history`.`sync-history-id` = `sync_history`.`id`"
+        " WHERE `sync_history`.`device_id` = ? AND `sync_history`.`file_revision` >= ?");
 
-    SQLiteStatement archiveInvalidBinarySyncHistoryEntries(m_db, m_stmtArchiveBinarySyncHistory, sql.str().c_str());
-    archiveInvalidBinarySyncHistoryEntries.Bind("@serverDeviceId", serverDeviceId);
-    archiveInvalidBinarySyncHistoryEntries.Bind("@fileRevision", fileRevision);
-    if (archiveInvalidBinarySyncHistoryEntries.Step() != SQLITE_DONE)
+    archiveInvalidBinarySyncHistoryEntries.Bind(1, server_device_id)
+                                          .Bind(2, client_revision);
+
+    if( archiveInvalidBinarySyncHistoryEntries.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
 
-    sql.clear();
-    sql.str("");
     //Clear the binary sync history when its a full resync by deleting any syncs as we need  to resend
     //all our binaries in this case again as we cannot find the last revision on the server
-    sql << "DELETE FROM `binary-sync-history` WHERE `binary-sync-history`.`id` IN(SELECT `binary-sync-history`.`id` FROM `binary-sync-history` JOIN `sync_history` ON `binary-sync-history`.`sync-history-id` = `sync_history`.`id`";
-    sql << " WHERE `sync_history`.`device_id` = @serverDeviceId AND `sync_history`.`file_revision` >= @fileRevision)";
-    SQLiteStatement deleteInvalidBinarySyncHistoryEntries(m_db, m_stmtDeleteBinarySyncHistory, sql.str().c_str());
-    deleteInvalidBinarySyncHistoryEntries.Bind("@serverDeviceId", serverDeviceId);
-    deleteInvalidBinarySyncHistoryEntries.Bind("@fileRevision", fileRevision);
-    if (deleteInvalidBinarySyncHistoryEntries.Step() != SQLITE_DONE)
+    SQLiteStatement deleteInvalidBinarySyncHistoryEntries(m_db, m_stmtDeleteBinarySyncHistory,
+        "DELETE FROM `binary-sync-history` WHERE `binary-sync-history`.`id` IN(SELECT `binary-sync-history`.`id` FROM `binary-sync-history` JOIN `sync_history` ON `binary-sync-history`.`sync-history-id` = `sync_history`.`id`"
+        " WHERE `sync_history`.`device_id` = ? AND `sync_history`.`file_revision` >= ?)");
+
+    deleteInvalidBinarySyncHistoryEntries.Bind(1, server_device_id)
+                                         .Bind(2, client_revision);
+
+    if( deleteInvalidBinarySyncHistoryEntries.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
 }
+
 
 void SQLiteRepository::EndSync()
 {
-    SetSyncRevisionComplete(m_currentSyncParams.m_currentSyncId);
+    SetSyncRevisionComplete(m_currentSyncParams.current_sync_id);
 }
+
 
 ISyncableDataRepository::SyncStats SQLiteRepository::GetLastSyncStats() const
 {
     return m_currentSyncStats;
 }
 
-void SQLiteRepository::SyncCase(Case& data_case, int fileRevision, bool bNewCase, int currentSyncId)
+
+void SQLiteRepository::SyncCase(Case& data_case, const int64_t client_revision, const bool bNewCase)
 {
     // Ensure that position is not copied from remote repo
     data_case.SetPositionInRepository(0);
 
     if (bNewCase) {
-        if (InsertCase(data_case, fileRevision) != SQLITE_DONE) {
+        if (InsertCase(data_case, client_revision) != SQLITE_DONE) {
             throw SQLiteErrorWithMessage(m_db);
         }
         InsertVectorClock(data_case);
     } else {
-        if (UpdateCase(data_case, fileRevision) != SQLITE_DONE) {
+        if (UpdateCase(data_case, client_revision) != SQLITE_DONE) {
             throw SQLiteErrorWithMessage(m_db);
         }
         UpdateVectorClock(data_case);
@@ -1620,40 +1707,42 @@ void SQLiteRepository::SyncCase(Case& data_case, int fileRevision, bool bNewCase
     }
 
     WriteNotes(data_case);
-    AddBinaryItemsSyncHistory(data_case, currentSyncId);
 }
+
 
 void SQLiteRepository::InsertVectorClock(const Case& data_case)
 {
-    for ( const CString& device : data_case.GetVectorClock().getAllDevices() ) {
+    for ( const DeviceId& deviceId : data_case.GetVectorClock().getAllDevices() ) {
         SQLiteStatement updateClockStatement(m_db, m_stmtNewClock,
             "INSERT INTO vector_clock(case_id, device, revision)"
             "VALUES(@id , @dev , @rev)");
         updateClockStatement
             .Bind("@id", data_case.GetUuid())
-            .Bind("@dev", device)
-            .Bind("@rev", data_case.GetVectorClock().getVersion(device));
+            .Bind("@dev", deviceId)
+            .Bind("@rev", data_case.GetVectorClock().getVersion(deviceId));
 
         if (updateClockStatement.Step() != SQLITE_DONE)
             throw SQLiteErrorWithMessage(m_db);
     }
 }
 
+
 void SQLiteRepository::UpdateVectorClock(const Case& data_case)
 {
-    for ( const CString& device : data_case.GetVectorClock().getAllDevices() ) {
+    for ( const DeviceId& deviceId : data_case.GetVectorClock().getAllDevices() ) {
         SQLiteStatement updateClockStatement(m_db, m_stmtUpdateClock,
             "INSERT OR REPLACE INTO vector_clock(case_id, device, revision)"
             "VALUES(@id , @dev , @rev)");
         updateClockStatement
             .Bind("@id", data_case.GetUuid())
-            .Bind("@dev", device)
-            .Bind("@rev", data_case.GetVectorClock().getVersion(device));
+            .Bind("@dev", deviceId)
+            .Bind("@rev", data_case.GetVectorClock().getVersion(deviceId));
 
         if (updateClockStatement.Step() != SQLITE_DONE)
             throw SQLiteErrorWithMessage(m_db);
     }
 }
+
 
 int SQLiteRepository::InsertOrUpdateCase(const Case& data_case, int64_t revision, sqlite3_stmt* pStmt)
 {
@@ -1676,7 +1765,7 @@ int SQLiteRepository::InsertOrUpdateCase(const Case& data_case, int64_t revision
 
     BindPartialSave(data_case, insertOrUpdateCase);
 
-    auto case_result = insertOrUpdateCase.Step();
+    int case_result = insertOrUpdateCase.Step();
     if (case_result != SQLITE_DONE) {
         return case_result;
     }
@@ -1686,15 +1775,18 @@ int SQLiteRepository::InsertOrUpdateCase(const Case& data_case, int64_t revision
     return case_result;
 }
 
+
 int SQLiteRepository::InsertCase(const Case& data_case, int64_t revision)
 {
     return InsertOrUpdateCase(data_case, revision, m_stmtInsertCase);
 }
 
+
 int SQLiteRepository::UpdateCase(const Case& data_case, int64_t revision)
 {
     return InsertOrUpdateCase(data_case, revision, m_stmtUpdateCase);
 }
+
 
 void SQLiteRepository::BindPartialSave(const Case& data_case, SQLiteStatement &insertCase)
 {
@@ -1725,362 +1817,357 @@ void SQLiteRepository::BindPartialSave(const Case& data_case, SQLiteStatement &i
     }
 }
 
-std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(int fileRevision, CString lastUuid,
-    CString universe, int limit /*=INT_MAX*/, int* pCaseCount /* = 0 */,
-    int *pLastFileRev /* = 0 */, CString ignoreGetsFromDeviceId /*= CString()*/,
-    const std::vector<std::wstring>& ignoreRevisions /*= std::vector<std::wstring>()*/)
+
+std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(const int client_revision, const std::string& last_case_uuid, const std::string& universe,
+                                                                                      const size_t limit/* = std::numeric_limits<size_t>::max()*/, size_t* const out_case_count/* = nullptr*/, int* const out_last_client_revision/* = nullptr*/,
+                                                                                      const cs::cref_optional<DeviceId> ignore_gets_from_device_id/* = std::nullopt*/,
+                                                                                      const cs::cref_optional<std::vector<std::string>> revisions_to_exclude/* = std::nullopt*/)
 {
-    std::wstringstream where_sql;
-    where_sql <<
-        "(last_modified_revision > @rev OR ( @lid IS NOT NULL AND @lid != '' AND last_modified_revision = @rev AND id > @lid )) ";
-    if (!universe.IsEmpty())
+    std::stringstream where_sql;
+    std::optional<std::string> universe_to_bind;
+    bool bind_ignore_gets_from_device_id = false;
+    std::optional<std::vector<std::string>> revision_parameters_to_bind;
+
+    where_sql << "(last_modified_revision > @rev OR ( @lid IS NOT NULL AND @lid != '' AND last_modified_revision = @rev AND id > @lid )) ";
+
+    if( !universe.empty() )
+    {
         where_sql << "AND key LIKE @uni ";
-    if (!ignoreGetsFromDeviceId.IsEmpty())
+        universe_to_bind = universe + "%";
+    }
+
+    if( ignore_gets_from_device_id.has_value() && !ignore_gets_from_device_id->empty() )
+    {
+        bind_ignore_gets_from_device_id = true;
         where_sql << "AND last_modified_revision NOT IN (SELECT file_revision FROM sync_history WHERE device_id=@dev AND direction = 2) ";
-    if (!ignoreRevisions.empty()) {
+    }
+
+    if( revisions_to_exclude.has_value() && !revisions_to_exclude->empty() )
+    {
+        revision_parameters_to_bind.emplace();
+
         where_sql << "AND last_modified_revision NOT IN (";
-        for (size_t i = 0; i < ignoreRevisions.size(); ++i) {
-            if (i != 0)
+
+        for( size_t i = 0; i < revisions_to_exclude->size(); ++i )
+        {
+            if( i != 0 )
                 where_sql << ',';
-            where_sql << "@ir" << i;
+
+            where_sql << revision_parameters_to_bind->emplace_back(FormatText("@ir%d", static_cast<int>(i)));
         }
+
         where_sql << ") ";
     }
 
-    if (pCaseCount) {
-        std::wstringstream sql;
-        sql << "SELECT COUNT(*) FROM cases WHERE "
-            << where_sql.str();
-        SQLiteStatement countStmt(m_db, sql.str().c_str());
-        countStmt.Bind("@rev", fileRevision).Bind("@lid", lastUuid);
-        if (!universe.IsEmpty())
-            countStmt.Bind("@uni", universe + _T("%"));
-        if (!ignoreGetsFromDeviceId.IsEmpty())
-            countStmt.Bind("@dev", ignoreGetsFromDeviceId);
-        if (!ignoreRevisions.empty()) {
-            for (size_t i = 0; i < ignoreRevisions.size(); ++i) {
-                std::ostringstream paramName;
-                paramName << "@ir" << i;
-                countStmt.Bind(paramName.str().c_str(), ignoreRevisions[i]);
-            }
+    const std::string evaluated_where_sql = where_sql.str();
+
+    auto bind_shared_options = [&](SQLiteStatement& statement, const bool add_limit)
+    {
+        statement.Bind("@rev", client_revision)
+                 .Bind("@lid", last_case_uuid);
+
+        if( add_limit )
+            statement.Bind("@lim", limit);
+
+        if( universe_to_bind.has_value() )
+            statement.Bind("@uni", *universe_to_bind);
+
+        if( bind_ignore_gets_from_device_id )
+            statement.Bind("@dev", *ignore_gets_from_device_id);
+
+        if( revision_parameters_to_bind.has_value() )
+        {
+            ASSERT(revision_parameters_to_bind->size() == revisions_to_exclude->size());
+
+            for( size_t i = 0; i < revisions_to_exclude->size(); ++i )
+                statement.Bind(revision_parameters_to_bind->at(i).c_str(), revisions_to_exclude->at(i));
         }
+    };
+
+    if( out_case_count != nullptr )
+    {
+        SQLiteStatement countStmt(m_db, SO::Concatenate("SELECT COUNT(*) FROM cases WHERE ", evaluated_where_sql));
+        bind_shared_options(countStmt, false);
+
         countStmt.Step();
-        *pCaseCount = countStmt.GetColumn<int>(0);
+        *out_case_count = countStmt.GetColumn<size_t>(0);
     }
 
-    if (pLastFileRev) {
-        std::wstringstream sql;
-        sql << "SELECT COALESCE(MAX(last_modified_revision), (SELECT MAX(last_modified_revision) FROM cases)) "
-            << "FROM (SELECT last_modified_revision FROM cases WHERE "
-            << where_sql.str()
-            << "ORDER BY last_modified_revision "
-            << "LIMIT @lim)";
+    if( out_last_client_revision != nullptr )
+    {
+        SQLiteStatement maxStmt(m_db, SO::Concatenate("SELECT COALESCE(MAX(last_modified_revision), (SELECT MAX(last_modified_revision) FROM cases)) "
+                                                      "FROM (SELECT last_modified_revision FROM cases "
+                                                      "WHERE ", evaluated_where_sql,
+                                                      "ORDER BY last_modified_revision "
+                                                      "LIMIT @lim)"));
+        bind_shared_options(maxStmt, true);
 
-        SQLiteStatement maxStmt(m_db, sql.str().c_str());
-        maxStmt.Bind("@rev", fileRevision).
-            Bind("@lid", lastUuid).
-            Bind("@lim", limit);
-        if (!universe.IsEmpty())
-            maxStmt.Bind("@uni", universe + _T("%"));
-        if (!ignoreGetsFromDeviceId.IsEmpty())
-            maxStmt.Bind("@dev", ignoreGetsFromDeviceId);
-        if (!ignoreRevisions.empty()) {
-            for (size_t i = 0; i < ignoreRevisions.size(); ++i) {
-                std::ostringstream paramName;
-                paramName << "@ir" << i;
-                maxStmt.Bind(paramName.str().c_str(), ignoreRevisions[i]);
-            }
-        }
         maxStmt.Step();
-        *pLastFileRev = maxStmt.GetColumn<int>(0);
+        *out_last_client_revision = maxStmt.GetColumn<int>(0);
     }
 
-    std::wstringstream sql;
+    std::stringstream sql;
     WriteIteratorSelectFromSql(sql, CaseIterationContent::Case);
-    sql << "WHERE " << where_sql.str().c_str()
-        << "ORDER BY last_modified_revision, id "
-           "LIMIT @lim";
 
-    auto statement = std::make_unique<SQLiteStatement>(m_db, sql.str().c_str());
-    statement->Bind("@rev", fileRevision)
-              .Bind("@lid", lastUuid)
-              .Bind("@lim", limit);
-    if (!universe.IsEmpty())
-        statement->Bind("@uni", universe + _T("%"));
-    if (!ignoreGetsFromDeviceId.IsEmpty())
-        statement->Bind("@dev", ignoreGetsFromDeviceId);
-    if (!ignoreRevisions.empty()) {
-        for (size_t i = 0; i < ignoreRevisions.size(); ++i) {
-            std::ostringstream paramName;
-            paramName << "@ir" << i;
-            statement->Bind(paramName.str().c_str(), ignoreRevisions[i]);
-        }
-    }
+    auto statement = std::make_unique<SQLiteStatement>(m_db, SO::Concatenate(sql.str(),
+                                                                             "WHERE ", evaluated_where_sql,
+                                                                             "ORDER BY last_modified_revision, id "
+                                                                             "LIMIT @lim"));
+    bind_shared_options(*statement, true);
 
     return std::make_unique<SQLiteRepositoryCaseIterator>(*this, CaseIterationContent::Case, std::move(statement));
 }
 
 
-std::set<std::wstring> SQLiteRepository::GetBinarySignaturesModifiedSinceRevision(const CString& caseUuid, std::set<std::string>& md5ExcludeKeys, DeviceId deviceId)
+void SQLiteRepository::AddBinarySignaturesNotSyncedWithRemote(const Case& data_case, const DeviceId& server_device_id, std::vector<std::string>& signatures_to_sync)
 {
-    /*determine which binary items need to be uploaded in the next sync upload we just need to find all the binary items that do NOT have a corresponding
-    entry in the binary-sync-history entry that matches or exceeds the last_modified_revision of the item. This means left joining cases, case-binary-data,
-    binary-data, binary-sync-history and file-revisions filtered by the universe and the server (to ignore syncs with other servers), and then grouping the
-    results by binary-data.id, taking the max(sync_history.file_revision) and filtering the results to keep only
-    those rows where max(sync_history.file_revision) is null or less than binary-data.file_revision. */
+    ASSERT(m_caseAccess->GetCaseMetadata().UsesBinaryData());
 
-    //Get all the binary signatures for this case that have not been synced to the given device since the last modified revision
-    //if the binary itemes have never been synced to the given device return all the md5s for the case
-    std::set<std::wstring> md5Signatures;
+    // To determine which binary items need to be uploaded in the next sync upload we just need to find all the binary items that do NOT have a corresponding
+    // entry in the binary-sync-history entry that matches or exceeds the last_modified_revision of the item. This means left joining cases, case-binary-data,
+    // binary-data, binary-sync-history and file-revisions filtered by the universe and the server (to ignore syncs with other servers), and then grouping the
+    // results by binary-data.id, taking the max(sync_history.file_revision) and filtering the results to keep only
+    // those rows where max(sync_history.file_revision) is null or less than binary-data.file_revision.
 
-    std::wstringstream whereClause;
-    if (!deviceId.IsEmpty()) {
-        //select binary items that have either never been sent or sent to this server and check if the max file revision sent is less than
-        //the current version of the binary item and ensure that it is sent
-        //To avoid sending binary items we got from this server - ignore binary items from this server where the file version have not changed since
-        whereClause << " WHERE last_modified_revision NOT IN (SELECT file_revision FROM sync_history WHERE device_id=@dev AND direction = 2) ";
-    }
-    
-    std::wstringstream sql;
-    sql << " SELECT signature, MAX(file_revision) AS max_synced_file_revision, last_modified_revision "
-        << " FROM  (SELECT `case-binary-data`.`binary-data-signature` AS `signature`,`last_modified_revision`,`last_modified_revision`,`file_revision`"
-        << " FROM   `case-binary-data` JOIN `binary-data` ON `binary-data`.signature = `case-binary-data`.`binary-data-signature` AND `case-id` = @caseID "
-        << " LEFT JOIN( `binary-sync-history` JOIN `sync_history`ON `sync_history`.`id` = `binary-sync-history`.`sync-history-id` AND `device_id` = @dev) " 
-        << " ON `case-binary-data`.`binary-data-signature` = `binary-sync-history`.`binary-data-signature`";
-    sql << whereClause.str().c_str() << ") AS T1";
-    sql << " WHERE  ( `file_revision` IS NULL OR `file_revision` < last_modified_revision ) GROUP BY `T1`.`signature`";
+    // Get all the binary signatures for this case that have not been synced to the given device since the last modified revision
+    // if the binary itemes have never been synced to the given device return all the md5s for the case
 
-    SQLiteStatement case_binary_signatures_statement(m_db, sql.str().c_str());
+    const char* join_where_sql = "";
 
-    case_binary_signatures_statement.Bind("@caseID", caseUuid);
-    case_binary_signatures_statement.Bind("@dev", deviceId);
-
-    int queryResult;
-    while ((queryResult = case_binary_signatures_statement.Step()) == SQLITE_ROW)
+    if( !server_device_id.empty() )
     {
-        std::string signature = case_binary_signatures_statement.GetColumn<std::string>(0);
-        //avoid inserting duplicate binary items from other cases by looking at the excludes and update the exclude list
-        if (md5ExcludeKeys.find(signature) == md5ExcludeKeys.cend()) {//if the key is not found in the excludes add it to md5Signatures
-            md5Signatures.insert(UTF8Convert::UTF8ToWide(signature)); 
-            md5ExcludeKeys.insert(std::move(signature));
-        }
+        // select binary items that have either never been sent or sent to this server and check if the max file revision sent is less than
+        // the current version of the binary item and ensure that it is sent;
+        // to avoid sending binary items we got from this server - ignore binary items from this server where the file version have not changed since
+        join_where_sql = " WHERE last_modified_revision NOT IN (SELECT file_revision FROM sync_history WHERE device_id=@dev AND direction = 2) ";
     }
 
-    if (queryResult != SQLITE_DONE)
+    const std::string sql = SO::Concatenate("SELECT signature"
+                                            " FROM (SELECT `case-binary-data`.`binary-data-signature` AS `signature`,`last_modified_revision`,`last_modified_revision`,`file_revision`"
+                                            " FROM `case-binary-data` JOIN `binary-data` ON `binary-data`.signature = `case-binary-data`.`binary-data-signature` AND `case-id` = @id"
+                                            " LEFT JOIN( `binary-sync-history` JOIN `sync_history` ON `sync_history`.`id` = `binary-sync-history`.`sync-history-id` AND `device_id` = @dev)"
+                                            " ON `case-binary-data`.`binary-data-signature` = `binary-sync-history`.`binary-data-signature`",
+                                            join_where_sql,
+                                            ") AS T1"
+                                            " WHERE ( `file_revision` IS NULL OR `file_revision` < last_modified_revision ) GROUP BY `T1`.`signature`");
+
+    SQLiteStatement case_binary_signatures_statement(m_db, sql);
+    case_binary_signatures_statement.Bind("@id", data_case.GetUuid())
+                                    .Bind("@dev", server_device_id);
+
+    int result;
+
+    while( ( result = case_binary_signatures_statement.Step() ) == SQLITE_ROW )
+        signatures_to_sync.emplace_back(case_binary_signatures_statement.GetColumn<std::string>(0));
+
+    if( result != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
-
-    return md5Signatures;
 }
 
 
-void SQLiteRepository::GetBinaryCaseItemsModifiedSinceRevision(const Case* data_case,
-    std::vector<std::pair<const BinaryCaseItem*, CaseItemIndex>>& caseBinaryItems, std::set<std::string>& md5ExcludeKeys,
-    uint64_t& totalBinaryItemsByteSize, DeviceId deviceId /*= CString()*/)
-{
-    if( data_case == nullptr || !data_case->GetCaseMetadata().UsesBinaryData() )
-        return;
-
-    //Get the list of binary data signatures for this case for items that have not been sent to the server
-    std::set<std::wstring> signatures_to_sync = GetBinarySignaturesModifiedSinceRevision(data_case->GetUuid(), md5ExcludeKeys, deviceId);
-
-    data_case->ForeachDefinedBinaryCaseItem(
-        [&](const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
-        {
-            try
-            {
-                const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
-                const std::wstring& signature = binary_data_accessor.GetBinaryDataMetadata().GetBinaryDataKey();
-
-                // only include data that has not already been processed
-                auto signatures_to_sync_lookup = signatures_to_sync.find(signature);
-
-                if( signatures_to_sync_lookup != signatures_to_sync.end() )
-                {
-                    totalBinaryItemsByteSize += binary_data_accessor.GetBinaryDataSize();
-                    caseBinaryItems.emplace_back(&binary_case_item, index);
-
-                    //  remove this item to avoid processing duplicates
-                    signatures_to_sync.erase(signatures_to_sync_lookup);
-                }
-            }
-            catch(...) { ASSERT(false); }
-        });
-
-    ASSERT(signatures_to_sync.empty());
-}
-
-
-SyncHistoryEntry SQLiteRepository::GetLastSyncForDevice(DeviceId deviceId, SyncDirection direction) const
+std::optional<SyncHistoryEntry> SQLiteRepository::GetLastSyncForDevice(const DeviceId& device_id, const SyncDirection direction) const
 {
     SQLiteStatement statement(m_db, m_stmtRevisionByDevice,
-        "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id FROM sync_history WHERE device_id=? AND direction=? ORDER BY id DESC LIMIT 1");
-    statement.Bind(1, deviceId).Bind(2, (int) direction);
-    int queryResult = statement.Step();
-    if (queryResult == SQLITE_DONE) {
-        return SyncHistoryEntry();
-    } else if (queryResult == SQLITE_ROW) {
+        "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id "
+        "FROM sync_history "
+        "WHERE device_id=? AND direction=? "
+        "ORDER BY id DESC "
+        "LIMIT 1");
+
+    statement.Bind(1, device_id)
+             .Bind(2, static_cast<int>(direction));
+
+    const int result = statement.Step();
+
+    if( result == SQLITE_DONE )
+    {
+        return std::nullopt;
+    }
+
+    else if( result == SQLITE_ROW )
+    {
         return SyncHistoryEntry(statement.GetColumn<int>(0),
-            statement.GetColumn<int>(1),
-            statement.GetColumn<CString>(2),
-            statement.GetColumn<CString>(3),
-            (SyncDirection) statement.GetColumn<int>(4),
-            statement.GetColumn<CString>(5),
-            (time_t) statement.GetColumn<int>(6),
-            statement.GetColumn<CString>(7),
-            (SyncHistoryEntry::SyncState) statement.GetColumn<int>(8),
-            statement.GetColumn<CString>(9));
-    } else {
+                                statement.GetColumn<int>(1),
+                                statement.GetColumn<DeviceId>(2),
+                                statement.GetColumn<std::string>(3),
+                                static_cast<SyncDirection>(statement.GetColumn<int>(4)),
+                                statement.GetColumn<std::string>(5),
+                                statement.GetColumn<int64_t>(6),
+                                statement.GetColumn<std::string>(7),
+                                static_cast<SyncHistoryEntry::SyncState>(statement.GetColumn<int>(8)),
+                                statement.GetColumn<std::string>(9));
+    }
+
+    else
+    {
         throw SQLiteErrorWithMessage(m_db);
     }
 }
 
-std::vector<SyncHistoryEntry> SQLiteRepository::GetSyncHistory(DeviceId deviceId /* = CString()*/, SyncDirection direction/* = SyncDirection::Both*/, int startSerialNumber/* = 0*/)
+
+std::vector<SyncHistoryEntry> SQLiteRepository::GetSyncHistory(const DeviceId& device_id/* = DeviceId()*/, const SyncDirection direction/* = SyncDirection::Both*/,
+                                                               const int start_serial_number/* = 0*/)
 {
     SQLiteStatement statement(m_db, m_stmtRevisionsByDeviceSince,
         "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id FROM sync_history "
         "WHERE id >= @id AND (@dev='' OR device_id=@dev) AND (@dir = 3 OR @dir = direction) ORDER BY id ASC");
-    statement.Bind("@id", startSerialNumber).Bind("@dev", deviceId).Bind("@dir", (int) direction);
+
+    statement.Bind("@id", start_serial_number)
+             .Bind("@dev", device_id)
+             .Bind("@dir", static_cast<int>(direction));
+
     std::vector<SyncHistoryEntry> entries;
-    int queryResult;
-    while ((queryResult = statement.Step()) == SQLITE_ROW) {
+    int result;
 
+    while( ( result = statement.Step() ) == SQLITE_ROW )
+    {
         // For legacy files with no device name use device id
-        CString historyDeviceId = statement.GetColumn<CString>(2);
-        CString historyDeviceName = statement.IsColumnNull(3) ? historyDeviceId : statement.GetColumn<CString>(3);
+        DeviceId this_device_id = statement.GetColumn<DeviceId>(2);
+        std::string this_device_name = statement.IsColumnNull(3) ? this_device_id : statement.GetColumn<std::string>(3);
 
-        entries.emplace_back(
-            statement.GetColumn<int>(0),
-            statement.GetColumn<int>(1),
-            historyDeviceId,
-            historyDeviceName,
-            (SyncDirection) statement.GetColumn<int>(4),
-            statement.GetColumn<CString>(5),
-            (time_t) statement.GetColumn<int>(6),
-            statement.GetColumn<CString>(7),
-            (SyncHistoryEntry::SyncState) statement.GetColumn<int>(8),
-            statement.GetColumn<CString>(9));
+        entries.emplace_back(statement.GetColumn<int>(0),
+                             statement.GetColumn<int>(1),
+                             std::move(this_device_id),
+                             std::move(this_device_name),
+                             static_cast<SyncDirection>(statement.GetColumn<int>(4)),
+                             statement.GetColumn<std::string>(5),
+                             statement.GetColumn<int>(6),
+                             statement.GetColumn<std::string>(7),
+                             static_cast<SyncHistoryEntry::SyncState>(statement.GetColumn<int>(8)),
+                             statement.GetColumn<std::string>(9));
     }
 
-    if (queryResult != SQLITE_DONE)
+    if( result != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
 
     return entries;
 }
 
-bool SQLiteRepository::IsValidFileRevision(int revisionNumber) const
+
+bool SQLiteRepository::IsValidClientRevision(const int client_revision) const
 {
-    SQLiteStatement statement(m_db, m_stmtRevisionByNumber,
-        "SELECT 1 FROM file_revisions WHERE id=?");
-    statement.Bind(1, revisionNumber);
-    int queryResult = statement.Step();
-    if (queryResult == SQLITE_DONE) {
-        return false;
-    } else if (queryResult == SQLITE_ROW) {
-        return true;
-    } else {
-        throw SQLiteErrorWithMessage(m_db);
-    }
+    SQLiteStatement statement(m_db, m_stmtRevisionByNumber, "SELECT 1 FROM file_revisions WHERE id=?");
+    statement.Bind(1, client_revision);
+
+    const int result = statement.Step();
+
+    return ( result == SQLITE_DONE ) ? false :
+           ( result == SQLITE_ROW )  ? true :
+                                       throw SQLiteErrorWithMessage(m_db);
 }
 
-bool SQLiteRepository::IsPreviousSync(int fileRevision, CString deviceId) const
+
+bool SQLiteRepository::IsPreviousSync(const int client_revision, const DeviceId& device_id) const
 {
-    SQLiteStatement statement(m_db, m_stmtIsPrevSync,
-        "SELECT 1 FROM sync_history WHERE file_revision=? AND device_id=?");
-    statement.Bind(1, fileRevision);
-    statement.Bind(2, deviceId);
-    int queryResult = statement.Step();
-    if (queryResult == SQLITE_DONE) {
-        return false;
-    }
-    else if (queryResult == SQLITE_ROW) {
-        return true;
-    }
-    else {
-        throw SQLiteErrorWithMessage(m_db);
-    }
+    SQLiteStatement statement(m_db, m_stmtIsPrevSync, "SELECT 1 FROM sync_history WHERE file_revision=? AND device_id=?");
+    statement.Bind(1, client_revision)
+             .Bind(2, device_id);
+
+    const int result = statement.Step();
+
+    return ( result == SQLITE_DONE ) ? false :
+           ( result == SQLITE_ROW )  ? true :
+                                       throw SQLiteErrorWithMessage(m_db);
 }
 
-int SQLiteRepository::AddSyncHistoryEntry(int fileRevision, DeviceId deviceId, CString deviceName, CString userName, SyncDirection direction,
-    CString universe, CString serverRevision, SyncHistoryEntry::SyncState state, CString lastUuid)
+
+int SQLiteRepository::AddSyncHistoryEntry(const SyncHistoryEntry::SyncState state, const std::string& last_case_uuid)
 {
     // reset any cached sync times
     m_syncTimeCache.reset();
 
     SQLiteStatement statement(m_db, m_stmtInsertRevision, "INSERT INTO sync_history (file_revision, device_id,device_name,user_name,universe,direction,server_revision,partial,last_id) "
-        "VALUES (?,?,?,?,?,?,?,?,?)");
-    statement.Bind(1, fileRevision)
-        .Bind(2, deviceId)
-        .Bind(3, deviceName)
-        .Bind(4, userName)
-        .Bind(5, universe)
-        .Bind(6, (int) direction)
-        .Bind(7, serverRevision)
-        .Bind(8, (int) state)
-        .Bind(9, lastUuid);
-    if (statement.Step() == SQLITE_DONE)
-        return (int) sqlite3_last_insert_rowid(m_db);
-    else
+                                                          "VALUES (?,?,?,?,?,?,?,?,?)");
+    statement.Bind(1, m_currentSyncParams.current_client_revision)
+             .Bind(2, m_currentSyncParams.remote_device_id)
+             .Bind(3, m_currentSyncParams.remote_device_name)
+             .Bind(4, m_currentSyncParams.username)
+             .Bind(5, m_currentSyncParams.universe)
+             .Bind(6, static_cast<int>(m_currentSyncParams.direction))
+             .Bind(7, m_currentSyncParams.server_revision)
+             .Bind(8, static_cast<int>(state))
+             .Bind(9, last_case_uuid);
+
+    if( statement.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
+
+    return static_cast<int>(sqlite3_last_insert_rowid(m_db));
 }
 
-int SQLiteRepository::AddFileRevision()
+
+int64_t SQLiteRepository::AddFileRevision()
 {
     SQLiteStatement statement(m_db, m_stmtInsertLocalRevision, "INSERT INTO file_revisions (device_id) VALUES (?)");
     statement.Bind(1, m_deviceId);
-    if (statement.Step() == SQLITE_DONE)
-        return (int) sqlite3_last_insert_rowid(m_db);
-    else
+
+    if( statement.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
+
+    return sqlite3_last_insert_rowid(m_db);
 }
 
-void SQLiteRepository::SetSyncRevisionPartial(int syncId, SyncHistoryEntry::SyncState state,
-    CString serverRevision, CString lastCaseUuid, int fileRevision)
+
+void SQLiteRepository::SetSyncRevisionPartial(const int sync_id, const SyncHistoryEntry::SyncState state, const std::string& server_revision,
+                                              const std::string& last_case_uuid, const int64_t client_revision)
 {
     SQLiteStatement statement(m_db, m_stmtSetSyncRevLastId, "UPDATE sync_history SET partial=?, last_id=?, server_revision=?, file_revision=? WHERE id=?");
-    statement.Bind(1, (int) state).Bind(2, lastCaseUuid).Bind(3, serverRevision).Bind(4, fileRevision).Bind(5, syncId);
-    if (statement.Step() != SQLITE_DONE) {
+    statement.Bind(1, static_cast<int>(state))
+             .Bind(2, last_case_uuid)
+             .Bind(3, server_revision)
+             .Bind(4, client_revision)
+             .Bind(5, sync_id);
+
+    if( statement.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
-    }
 }
 
-void SQLiteRepository::SetSyncRevisionComplete(int syncId)
+
+void SQLiteRepository::SetSyncRevisionComplete(const int sync_id)
 {
     SQLiteStatement statement(m_db, m_stmtClearSyncRevLastId, "UPDATE sync_history SET partial=0,last_id=NULL WHERE id=?");
-    statement.Bind(1, syncId);
-    if (statement.Step() != SQLITE_DONE) {
+    statement.Bind(1, sync_id);
+
+    if( statement.Step() != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);
-    }
 }
 
 
 void SQLiteRepository::StartTransaction()
 {
-    if (m_transaction_start_count == 0) {
-        if (sqlite3_exec(m_db, "BEGIN", NULL, NULL, NULL) != SQLITE_OK)
+    if( m_transactionStartCount == 0 )
+    {
+        if( sqlite3_exec(m_db, "BEGIN", nullptr, nullptr, nullptr) != SQLITE_OK )
             throw SQLiteErrorWithMessage(m_db);
+
         m_iInsertInTransactionCounter = 0;
     }
-    ++m_transaction_start_count;
+
+    ++m_transactionStartCount;
 }
+
 
 void SQLiteRepository::EndTransaction()
 {
-    --m_transaction_start_count;
-    if (m_transaction_start_count == 0) {
-        m_transaction_file_revision = -1;
-        if (sqlite3_exec(m_db, "COMMIT", NULL, NULL, NULL) != SQLITE_OK) {
+    --m_transactionStartCount;
+
+    if( m_transactionStartCount == 0 )
+    {
+        m_transactionClientRevision = -1;
+
+        if( sqlite3_exec(m_db, "COMMIT", nullptr, nullptr, nullptr) != SQLITE_OK )
             throw SQLiteErrorWithMessage(m_db);
-        }
     }
 }
+
 
 void SQLiteRepository::UpdateFilePosition(Case& data_case)
 {
     SQLiteStatement get_file_pos(m_stmtGetFileOrderFromUuid);
     get_file_pos.Bind(1, data_case.GetUuid());
-    if (get_file_pos.Step() != SQLITE_ROW) {
+
+    if( get_file_pos.Step() != SQLITE_ROW )
         throw SQLiteErrorWithMessage(m_db);
-    }
+
     data_case.SetPositionInRepository(get_file_pos.GetColumn<double>(0));
 }
 
@@ -2091,21 +2178,22 @@ struct SyncTimeCache
     struct SyncDetails
     {
         double timestamp;
-        std::wstring universe;
-        std::optional<std::wstring> last_uuid_of_partial_sync;
+        std::string universe;
+        std::optional<std::string> last_uuid_of_partial_sync;
     };
 
-    std::map<std::wstring, std::map<int, std::vector<SyncDetails>>> device_identifier_to_file_revision_to_sync_details_map;
+    std::map<std::string, std::map<int, std::vector<SyncDetails>>> device_identifier_to_file_revision_to_sync_details_map;
 };
 
-std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_identifier, const std::wstring& case_uuid) const
+
+std::optional<double> SQLiteRepository::GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) const
 {
     if( m_syncTimeCache == nullptr )
         m_syncTimeCache = std::make_unique<SyncTimeCache>();
 
     auto step_statement = [&](SQLiteStatement& statement) -> int
     {
-        int result = statement.Step();
+        const int result = statement.Step();
 
         if( result != SQLITE_ROW && result != SQLITE_DONE )
             throw SQLiteErrorWithMessage(m_db);
@@ -2129,8 +2217,8 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
         // lookup the device assuming the identifier is the name so that we can make sure that
         // we include all relevant sync history (for example, if a server is sometimes localhost and
         // other times the IP address, then this would ensure that all sync history is included)
-        std::wstring device_id = device_identifier;
-        std::wstring device_name;
+        std::string device_id = device_identifier;
+        std::string device_name;
 
         if( !device_identifier.empty() )
         {
@@ -2139,13 +2227,13 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
             // an entry like .../api/
             SQLiteStatement device_id_from_name_statement(m_db,
                 "SELECT `device_id` FROM `sync_history` "
-                "WHERE INSTR(LOWER(`device_name`), LOWER(@dn)) = 1 "
+                "WHERE INSTR(LOWER(`device_name`), LOWER(?)) = 1 "
                 "LIMIT 1;");
-            device_id_from_name_statement.Bind("@dn", device_identifier);
+            device_id_from_name_statement.Bind(1, device_identifier);
 
             if( step_statement(device_id_from_name_statement) == SQLITE_ROW )
             {
-                device_id = device_id_from_name_statement.GetColumn<std::wstring>(0);
+                device_id = device_id_from_name_statement.GetColumn<std::string>(0);
                 device_name = device_identifier;
             }
         }
@@ -2154,24 +2242,24 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
         // now get all of the sync times for this device
         std::map<int, std::vector<SyncTimeCache::SyncDetails>> new_file_revision_to_sync_details_map;
 
-        std::wstring sync_details_sql = _T("SELECT `file_revision`, `timestamp`, `universe`, `partial`, `last_id` ")
-                                        _T("FROM `sync_history` ");
-        std::map<const char*, const std::wstring*> strings_to_bind;
+        std::string sync_details_sql = "SELECT `file_revision`, `timestamp`, `universe`, `partial`, `last_id` "
+                                       "FROM `sync_history` ";
+        std::map<const char*, const std::string*> strings_to_bind;
 
         if( !device_id.empty() )
         {
-            sync_details_sql.append(_T("WHERE `device_id` = @di "));
+            sync_details_sql.append("WHERE `device_id` = @di ");
             strings_to_bind["@di"] = &device_id;
         }
 
         if( !device_name.empty() )
         {
-            sync_details_sql.append(device_id.empty() ? _T("WHERE ") : _T("OR "));
-            sync_details_sql.append(_T("INSTR(LOWER(`device_name`), LOWER(@dn)) = 1 "));
+            sync_details_sql.append(device_id.empty() ? "WHERE " : "OR ");
+            sync_details_sql.append("INSTR(LOWER(`device_name`), LOWER(@dn)) = 1 ");
             strings_to_bind["@dn"] = &device_name;
         }
 
-        sync_details_sql.append(_T("ORDER BY `id`;"));
+        sync_details_sql.append("ORDER BY `id`;");
 
         SQLiteStatement sync_details_statement(m_db, sync_details_sql);
 
@@ -2180,13 +2268,13 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
 
         while( step_statement(sync_details_statement) == SQLITE_ROW )
         {
-            int file_revision = sync_details_statement.GetColumn<int>(0);
-            auto& sync_details = new_file_revision_to_sync_details_map[file_revision].emplace_back();
+            const int file_revision = sync_details_statement.GetColumn<int>(0);
+            SyncTimeCache::SyncDetails& sync_details = new_file_revision_to_sync_details_map[file_revision].emplace_back();
 
             sync_details.timestamp = sync_details_statement.GetColumn<double>(1);
-            sync_details.universe = sync_details_statement.GetColumn<std::wstring>(2);
+            sync_details.universe = sync_details_statement.GetColumn<std::string>(2);
 
-            int partial = sync_details_statement.GetColumn<int>(3);
+            const int partial = sync_details_statement.GetColumn<int>(3);
 
             if( partial != static_cast<int>(SyncHistoryEntry::SyncState::Complete) )
             {
@@ -2197,7 +2285,7 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
 
                 else
                 {
-                    sync_details.last_uuid_of_partial_sync = sync_details_statement.GetColumn<std::wstring>(4);
+                    sync_details.last_uuid_of_partial_sync = sync_details_statement.GetColumn<std::string>(4);
                 }
             }
         }
@@ -2217,14 +2305,14 @@ std::optional<double> SQLiteRepository::GetSyncTime(const std::wstring& device_i
 
     // otherwise see what revision the case is currently at
     SQLiteStatement get_case_revision_statement(m_db, m_stmtGetCaseRev,
-        "SELECT `key`, `last_modified_revision` FROM `cases` WHERE `id` = @id LIMIT 1;");
-    get_case_revision_statement.Bind("@id", case_uuid);
+        "SELECT `key`, `last_modified_revision` FROM `cases` WHERE `id` = ? LIMIT 1;");
+    get_case_revision_statement.Bind(1, case_uuid);
 
     if( step_statement(get_case_revision_statement) == SQLITE_ROW )
     {
         // see if there was a sync with this device at or after the case's revision number
-        std::wstring case_key = get_case_revision_statement.GetColumn<std::wstring>(0);
-        int case_revision = get_case_revision_statement.GetColumn<int>(1);
+        const std::string case_key = get_case_revision_statement.GetColumn<std::string>(0);
+        const int case_revision = get_case_revision_statement.GetColumn<int>(1);
 
         for( auto sync_details_itr = file_revision_to_sync_details_map->lower_bound(case_revision);
              sync_details_itr != file_revision_to_sync_details_map->cend();

@@ -47,7 +47,7 @@
         <div id="mContainer" class="container-fluid my-dialog errmsg-dialog">
             <div id="mTitle" class="row my-dialog-header">
                 <div class="col withNewline" id="mmTitle" style="padding-right:32px;">{{title}}</div>
-                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div id="mCurDir" class="row" style="background-color:black;color:#ddd;">
@@ -92,7 +92,7 @@
                         </button>
                     </div>
                     <div class="col my-dialog-button-col">
-                        <button class="btn btn-light w-100 text-center" id="cancelButton" type="button" onclick="CS.UI.closeDialog();" tabindex="-1">
+                        <button class="btn btn-light w-100 text-center" id="cancelButton" type="button" onclick="CS.UI.close();" tabindex="-1">
                             <span class="bi bi-x-lg" style="color:#500;"></span>
                         </button>
                     </div>
@@ -374,7 +374,7 @@
                 } else if ($('#confirm-modal').is(":visible")) {
                     $('#confirm-modal').modal('hide');
                 } else {
-                    CS.UI.closeDialog();
+                    CS.UI.close();
                 }
             }
             else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
@@ -560,7 +560,7 @@
                     throw new Error(sprintf(message, filename));
                 }
 
-                CS.UI.closeDialog({ result: path });
+                CS.UI.close({ result: path });
             }
             catch (exception) {
                 alertModal(exception.message);
@@ -571,7 +571,7 @@
     </script>
 </head>
 <body>
-    <button onclick="CS.UI.closeDialog();">Exit</button>
+    <button onclick="CS.UI.close();">Exit</button>
     <!--Dialog container-->
     <div id="dialogDynamicContainer" style="position: fixed; top: 0;"></div>
     <div id="alert-modal" class="modal fade">

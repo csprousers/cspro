@@ -4,7 +4,7 @@
 #include "Engine.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/Imputation.h>
-#include <zEngineO/Versioning.h>
+#include <zEngineO/JavaScriptProcessor.h>
 #include <zToolsO/Serializer.h>
 #include <zAppO/Application.h>
 #include <zFreqO/Frequency.h>
@@ -23,7 +23,7 @@ size_t CEngineDriver::LoadBaseSymbols(Serializer& ar)
 
     for( size_t i = 1; i < symbol_table_size; ++i )
     {
-        std::wstring symbol_name = ar.Read<std::wstring>();
+        std::string symbol_name = ar.Read<std::string>();
 
         SymbolType symbol_type;
         ar.SerializeEnum(symbol_type);
@@ -65,7 +65,8 @@ void CEngineDriver::LoadCompiledBinary()
 {
     Serializer& ar = APP_LOAD_TODO_GetArchive();
 
-    Versioning::SetCompiledLogicVersion(ar.GetArchiveVersion());
+    ASSERT(ar.GetArchiveVersion() >= Serializer::GetEarliestSupportedVersion());
+    m_engineData->compiled_logic_version = ar.GetArchiveVersion();
 
     ar >> *this;
 
@@ -81,13 +82,20 @@ void CEngineDriver::LoadCompiledBinary()
         m_pIntDriver->AllocExecTables();
 
         // deserialize other engine data
-        ar >> m_engineData->numeric_constants;
-        ar >> m_engineData->string_literals;
+        ar >> m_engineData->numeric_constants
+           >> m_engineData->string_literals;
 
         ar >> m_engineData->frequencies;
         Imputation::serialize(ar, *m_engineData);
 
         ar >> m_engineData->logic_byte_code;
+
+        if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) &&
+            ar.Read<bool>() )
+        {
+            ar >> m_engineData->GetJavaScriptProcessor();
+        }
+
         ar >> m_engineData->runtime_events_processor;
     }
 
@@ -102,7 +110,6 @@ void CEngineDriver::LoadCompiledBinary()
 
                 if( symbol.IsA(symbol_type) )
                     symbol.serialize_subclass(ar);
-                    
             }
         };
 
@@ -116,22 +123,16 @@ void CEngineDriver::LoadCompiledBinary()
         deserialize_symbols(SymbolType::File);
         deserialize_symbols(SymbolType::Pre80Dictionary);
 
-        ar >> m_engineData->numeric_constants;
-        ar >> m_engineData->string_literals;
+        ar >> m_engineData->numeric_constants
+           >> m_engineData->string_literals
+           >> m_engineData->frequencies;
 
-        if( ar.MeetsVersionIteration(Serializer::Iteration_7_6_000_1) )
-        {
-            ar >> m_engineData->frequencies;
-            Imputation::serialize(ar, *m_engineData);
-        }
+        Imputation::serialize(ar, *m_engineData);
 
         m_pIntDriver->AllocExecTables();
 
-        ar >> m_engineData->logic_byte_code;
-
-        InitCompiledWorkDict();
-
-        ar >> m_engineData->runtime_events_processor;
+        ar >> m_engineData->logic_byte_code
+           >> m_engineData->runtime_events_processor;
 
         deserialize_symbols(SymbolType::List);
         deserialize_symbols(SymbolType::Block);
@@ -179,72 +180,18 @@ void CEngineDriver::SaveCompiledBinary()
         NPT_Ref(i).serialize_subclass(ar);
 
     // serialize other engine data
-    ar << m_engineData->numeric_constants;
-    ar << m_engineData->string_literals;
+    ar << m_engineData->numeric_constants
+       << m_engineData->string_literals;
 
     ar << m_engineData->frequencies;
     Imputation::serialize(ar, *m_engineData);
 
     ar << m_engineData->logic_byte_code;
 
+    const bool using_javascript_processor = ( m_engineData->javascript_processor != nullptr );
+    ar << using_javascript_processor;
+    if( using_javascript_processor )
+       ar & *m_engineData->javascript_processor;
+
     ar << m_engineData->runtime_events_processor;
-}
-
-
-void CEngineDriver::InitCompiledWorkDict()
-{
-    static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_7_6_000_1);
-    ASSERT(Workdict != nullptr);
-
-    // set up the working sections
-    std::vector<SECT*> working_sections;
-
-    for( SECT* pSecT : m_engineData->sections )
-    {
-        if( pSecT->SYMTowner == -1 )
-        {
-            ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1));
-            ASSERT(pSecT->GetSubType() == SymbolSubType::Work);
-            ASSERT(SO::StartsWith(pSecT->GetName(), _T("WRK_")));
-
-            working_sections.emplace_back(pSecT);
-
-            pSecT->SetMinOccs(1);
-            pSecT->SetMaxOccs(1);
-            pSecT->SetLevel(0);
-            pSecT->SetSpecialSection(true);
-            pSecT->SYMTowner = Workdict->GetSymbolIndex();
-        }
-    }
-
-    if( working_sections.empty() )
-        return;
-
-    // add the working variables to each working section
-    auto working_section_itr = working_sections.begin();
-
-    for( VART* pVarT : m_engineData->variables )
-    {
-        if( pVarT->SYMTowner == -1 )
-        {
-            ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1));
-            ASSERT(pVarT->GetSubType() == SymbolSubType::Work);
-
-            // potentially move to the next section
-            while( (*working_section_itr)->GetLastLoc() >= SECT::MAX_WORKSECLEN )
-            {
-                working_section_itr++;
-                ASSERT(working_section_itr != working_sections.end());
-            }
-
-            SECT* pSecT = *working_section_itr;
-            pVarT->SYMTowner = pSecT->GetSymbolIndex();
-            pVarT->SetSPT(pSecT);
-            pSecT->AddVariable(pVarT);
-        }
-    }
-
-    // chain the working sections
-    for( SECT* pSecT : working_sections )
-        m_pEngineArea->ChainSymbol(Workdict->SYMTlsec, pSecT);
 }

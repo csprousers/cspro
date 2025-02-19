@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{79F3CF06-E7F6-40E0-9C61-A861C4D68EEF}</ProjectGuid>
     <RootNamespace>CSIndex</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -80,9 +76,9 @@
     <ClInclude Include="CSIndex.h" />
     <ClInclude Include="DuplicateChooserDlg.h" />
     <ClInclude Include="IndexDlg.h" />
-    <ClInclude Include="ToolIndexer.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ToolIndexer.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
@@ -92,7 +88,7 @@
     <ResourceCompile Include="CSIndex.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>

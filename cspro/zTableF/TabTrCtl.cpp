@@ -3,7 +3,6 @@
 #include "TabDoc.h"
 #include "TabView.h"
 #include "TabChWnd.h"
-#include "TSPDlg.h"
 #include "TabPDlg.h"
 #include <zToolsO/SharedSettings.h>
 
@@ -100,7 +99,7 @@ HTREEITEM CTabTreeCtrl::InsertTableSpec(const CString& sTableFileName, CTabulate
     //Insert the table spec file in the table tree control
     //Use the table spec file name to insert it into the
     //structure later on to get the table spec file name
-    TableSpecTabTreeNode* table_spec_tab_tree_node = new TableSpecTabTreeNode(pDoc, CS2WS(sTableFileName));
+    TableSpecTabTreeNode* const table_spec_tab_tree_node = new TableSpecTabTreeNode(pDoc, UTF8_TODO::GetUtf8(sTableFileName));
     table_spec_tab_tree_node->AddRef();
 
     TVINSERTSTRUCT tvi;
@@ -135,41 +134,22 @@ bool CTabTreeCtrl::InsertTableDependencies(TableSpecTabTreeNode& table_spec_tab_
     //For Now NO MULTIPLE DICTS
     CSpecFile specFile(TRUE);
 
-    if( !specFile.Open(table_spec_tab_tree_node.GetPath().c_str(), CFile::modeRead) )
+    if( !specFile.Open(UTF8_TODO::GetCString(table_spec_tab_tree_node.GetPath()), CFile::modeRead) )
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), table_spec_tab_tree_node.GetPath().c_str()));
+        AfxMessageBox(FormatText("File %s Could not be opened", table_spec_tab_tree_node.GetPath().c_str()));
         return false;
     }
 
-    CString csLabel = ValFromHeader(specFile, CSPRO_CMD_LABEL);
-    std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+    const std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
     specFile.Close();
 
-    if( dictionary_filenames.empty() )
+    if( dictionary_file_paths.empty() )
     {
-        AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), table_spec_tab_tree_node.GetPath().c_str()));
+        AfxMessageBox(FormatText("No Dictionaries in Spec file %s", table_spec_tab_tree_node.GetPath().c_str()));
         return false;
     }
 
-    CString csDictPath = WS2CS(dictionary_filenames.front());
-
-    //  Get the handle to tree controls
-    CDDTreeCtrl* pDictTree = GetDDTreeCtrl();
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);
-
-    if( dictionary_dict_tree_node != nullptr )
-    {
-        dictionary_dict_tree_node->AddRef();
-    }
-
-    else
-    {
-        TVITEM pItem ;
-        pItem.hItem = pDictTree->InsertDictionary(csLabel, csDictPath, nullptr);
-        pItem.mask = TVIF_CHILDREN ;
-        pItem.cChildren = 1;
-        pDictTree->SetItem(&pItem);
-    }
+    GetDDTreeCtrl()->AddDictionary(dictionary_file_paths.front(), nullptr);
 
     return true;
 }
@@ -192,28 +172,28 @@ bool CTabTreeCtrl::ReleaseTableDependencies(TableSpecTabTreeNode& table_spec_tab
     }
     else {
         CSpecFile specFile(TRUE);
-        BOOL bOK = specFile.Open(table_spec_tab_tree_node.GetPath().c_str(), CFile::modeRead);
+        const BOOL bOK = specFile.Open(UTF8_TODO::GetCString(table_spec_tab_tree_node.GetPath()), CFile::modeRead);
         if(bOK) {
-            std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+            std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
             specFile.Close();
 
-            if(dictionary_filenames.empty())  {
-                AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), table_spec_tab_tree_node.GetPath().c_str()));
+            if(dictionary_file_paths.empty()) {
+                AfxMessageBox(FormatText("No Dictionaries in Spec file %s", table_spec_tab_tree_node.GetPath().c_str()));
                 return false;
             }
-            csDictPath = WS2CS(dictionary_filenames.front());
+            csDictPath = UTF8_TODO::GetCString(std::move(dictionary_file_paths.front()));
         }
         else {
-            AfxMessageBox(FormatText(_T("File %s Could not be opened"), table_spec_tab_tree_node.GetPath().c_str()));
+            AfxMessageBox(FormatText("File %s Could not be opened", table_spec_tab_tree_node.GetPath().c_str()));
             return false;
         }
     }
 
-    //  Get the handle to tree controls
-    CDDTreeCtrl* pDictTree = GetDDTreeCtrl();
+    // Get the handle to tree controls
+    CDDTreeCtrl* const pDictTree = GetDDTreeCtrl();
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPath);
-    ASSERT(dictionary_dict_tree_node!= nullptr);
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPath));
+    ASSERT(dictionary_dict_tree_node != nullptr);
 
     pDictTree->ReleaseDictionaryNode(*dictionary_dict_tree_node);
 
@@ -282,17 +262,17 @@ TableSpecTabTreeNode* CTabTreeCtrl::GetTableSpecTabTreeNode(CDocument& document)
 }
 
 
-TableSpecTabTreeNode* CTabTreeCtrl::GetTableSpecTabTreeNode(wstring_view filename) const
+TableSpecTabTreeNode* CTabTreeCtrl::GetTableSpecTabTreeNode(const std::string_view file_path) const
 {
     HTREEITEM hItem = GetRootItem();
 
     while( hItem != nullptr )
     {
-        TableElementTreeNode* table_element_tree_node = GetTreeNode(hItem);
+        TableElementTreeNode* const table_element_tree_node = GetTreeNode(hItem);
 
         if( table_element_tree_node != nullptr &&
             table_element_tree_node->GetTableElementType() == TableElementType::TableSpec &&
-            SO::EqualsNoCase(filename, table_element_tree_node->GetPath()) )
+            SO::EqualsNoCase(file_path, table_element_tree_node->GetPath()) )
         {
             return assert_cast<TableSpecTabTreeNode*>(table_element_tree_node);
         }
@@ -394,14 +374,15 @@ void CTabTreeCtrl::InitImageList()
 //                            CTabTreeCtrl::OpenTableFile
 //
 /////////////////////////////////////////////////////////////////////////////
-bool CTabTreeCtrl::OpenTableFile(const CString& sTableFile ,const std::shared_ptr<const CDataDict> pWorkDict/* = nullptr*/, bool bMakeVisible/* = true*/)
+bool CTabTreeCtrl::OpenTableFile(const std::string& table_spec_file_path, const std::shared_ptr<const CDataDict> pWorkDict/* = nullptr*/,
+                                 const bool bMakeVisible/* = true*/)
 {
-    TableSpecTabTreeNode * table_element_tree_node = GetTableSpecTabTreeNode(sTableFile);
+    TableSpecTabTreeNode* const table_element_tree_node = GetTableSpecTabTreeNode(table_spec_file_path);
 
-    if(table_element_tree_node->GetTabDoc())
+    if( table_element_tree_node->GetTabDoc() != nullptr )
         return TRUE;
 
-    CTabulateDoc* pDoc = (CTabulateDoc*)m_pDocTemplate->OpenDocumentFile(sTableFile, bMakeVisible);
+    CTabulateDoc* pDoc = (CTabulateDoc*)m_pDocTemplate->OpenDocumentFile(TC::ToWide(table_spec_file_path).c_str(), bMakeVisible);
     if(!pDoc)
         return FALSE;
 
@@ -417,7 +398,7 @@ bool CTabTreeCtrl::OpenTableFile(const CString& sTableFile ,const std::shared_pt
 
     }
 
-    if( !pDoc->LoadSpecFile(sTableFile, pWorkDict) )
+    if( !pDoc->LoadSpecFile(UTF8_TODO::GetCString(table_spec_file_path), pWorkDict) )
     {
         pDoc->OnCloseDocument();
         table_element_tree_node->SetDocument(nullptr);
@@ -443,7 +424,7 @@ void CTabTreeCtrl::ReBuildTree(bool bAll /*=false*/)
     SetRedraw(FALSE);               // Don't draw while changing
 
     // find node corresponding to this table
-    TableSpecTabTreeNode* table_spec_tab_tree_node = GetTableSpecTabTreeNode(*m_pDoc);
+    TableSpecTabTreeNode* const table_spec_tab_tree_node = GetTableSpecTabTreeNode(*m_pDoc);
 
     if(!bAll) {
         // delete all descendants of this node
@@ -754,7 +735,7 @@ bool CTabTreeCtrl::BuildRowColTreeItem(CTabVar* pTabVar, HTREEITEM hParentItem, 
     if(pTabVar->GetNumChildren()) {
         int iSize = pTabVar->GetNumChildren();
         for(int iIndex =0 ; iIndex < iSize; iIndex++) {
-            bool bBoth = pTabVar->GetChild(iIndex)->GetName().CompareNoCase(_T("TT_BOTH")) ==0;
+            bool bBoth = pTabVar->GetChild(iIndex)->GetName().CompareNoCase(L"TT_BOTH") ==0;
             bool bCustom = pTabVar->GetChild(iIndex)->GetType() == VT_CUSTOM ;
             if(bBoth && bCustom ){
                 continue;
@@ -919,7 +900,7 @@ void CTabTreeCtrl::OnGetdispinfo(NMHDR* pNMHDR, LRESULT* pResult)
         std::wstring label = table_element_tree_node->GetLabel();
 
         if( display_text != label )
-            SO::Append(display_text, _T(": "), label);
+            SO::Append(display_text, L": ", label);
     }
 
     lstrcpyn(pTVDispInfo->item.pszText, display_text.c_str(), pTVDispInfo->item.cchTextMax);
@@ -997,37 +978,37 @@ void CTabTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         if (!bViewer) {
             switch (table_element_tree_node->GetTableElementType()) {
                 case TableElementType::TableSpec:
-                    sQuoteStr = _T("Properties");
+                    sQuoteStr = L"Properties";
                     hMenu.AppendMenu(MF_STRING, ID_EDIT_TABSET_PROP,sQuoteStr);
                     AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
                     break;
                 case TableElementType::Table:
                     // BMD 23 Jan 2006
-                    sQuoteStr = _T("Properties");
+                    sQuoteStr = L"Properties";
                     hMenu.AppendMenu(MF_STRING, ID_EDIT_TABLE_PROP,sQuoteStr);
                     AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
 
-                    sQuoteStr = _T("Exclude From Run");
+                    sQuoteStr = L"Exclude From Run";
                     if(table_element_tree_node->GetTable()->IsTableExcluded4Run()){
                         hMenu.AppendMenu(MF_STRING|MF_CHECKED,ID_EDIT_TABLE_EXCLUDE,sQuoteStr);
                     }
                     else {
                         hMenu.AppendMenu(MF_STRING|MF_UNCHECKED,ID_EDIT_TABLE_EXCLUDE,sQuoteStr);
                     }
-                    sQuoteStr = _T("Exclude All But This");
+                    sQuoteStr = L"Exclude All But This";
                     hMenu.AppendMenu(MF_STRING|MF_UNCHECKED,ID_EDIT_EXCLUDEALLBUTTHIS,sQuoteStr);
 
-                    sQuoteStr = _T("Include All Tables");
+                    sQuoteStr = L"Include All Tables";
                     hMenu.AppendMenu(MF_STRING|MF_UNCHECKED,ID_EDIT_INCLUDEALL,sQuoteStr);
 
                     AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
                     if (table_element_tree_node->GetTable()->GetNumRows() > 0 || table_element_tree_node->GetTable()->GetNumCols() > 0) {
-                            sQuoteStr = _T("Tally Attributes (Table)");
+                            sQuoteStr = L"Tally Attributes (Table)";
                             hMenu.AppendMenu(MF_STRING, ID_EDIT_TBL_TALLYATTRIB,sQuoteStr);
                             AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
                     }
                     if(assert_cast<CTableChildWnd*>(pTabView->GetParentFrame())->IsLogicViewActive()){
-                        sQuoteStr = _T("Generate Logic(Table)");
+                        sQuoteStr = L"Generate Logic(Table)";
                         if(table_element_tree_node->GetTable()->GetGenerateLogic()){
                             hMenu.AppendMenu(MF_STRING|MF_CHECKED,ID_EDIT_GENERATELOGIC,sQuoteStr);
                         }
@@ -1040,12 +1021,12 @@ void CTabTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
                 case TableElementType::RowItem:
                     if(table_element_tree_node->GetTabVar() != table_element_tree_node->GetTable()->GetRowRoot()){
                         pTabView->SetCurVar(table_element_tree_node->GetTabVar());
-                        sQuoteStr = _T("Tally Attributes (") + table_element_tree_node->GetTabVar()->GetText() + _T(")");
+                        sQuoteStr = L"Tally Attributes (" + table_element_tree_node->GetTabVar()->GetText() + L")";
                         AppendMenu(hMenu, MF_STRING, ID_EDIT_VAR_TALLYATTRIB, sQuoteStr);
                     }
                     // BMD 23 Jan 2006
                     if (table_element_tree_node->GetTable()->GetNumRows() > 0 || table_element_tree_node->GetTable()->GetNumCols() > 0) {
-                        sQuoteStr = _T("Tally Attributes (Table)");
+                        sQuoteStr = L"Tally Attributes (Table)";
                         hMenu.AppendMenu(MF_STRING, ID_EDIT_TBL_TALLYATTRIB,sQuoteStr);
                         AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
                     }
@@ -1053,12 +1034,12 @@ void CTabTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
                 case TableElementType::ColItem:
                     if(table_element_tree_node->GetTabVar() != table_element_tree_node->GetTable()->GetColRoot()){
                         pTabView->SetCurVar(table_element_tree_node->GetTabVar());
-                        sQuoteStr = _T("Tally Attributes (") + table_element_tree_node->GetTabVar()->GetText() + _T(")");
+                        sQuoteStr = L"Tally Attributes (" + table_element_tree_node->GetTabVar()->GetText() + L")";
                         AppendMenu(hMenu, MF_STRING, ID_EDIT_VAR_TALLYATTRIB, sQuoteStr);
                     }
                     // BMD 23 Jan 2006
                     if (table_element_tree_node->GetTable()->GetNumRows() > 0 || table_element_tree_node->GetTable()->GetNumCols() > 0) {
-                        sQuoteStr = _T("Tally Attributes (Table)");
+                        sQuoteStr = L"Tally Attributes (Table)";
                         hMenu.AppendMenu(MF_STRING, ID_EDIT_TBL_TALLYATTRIB,sQuoteStr);
                         AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
                     }
@@ -1070,40 +1051,40 @@ void CTabTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
         //since no component on the grid is selected this is always grayed .
         //we cant say edit spanner/caption 'cos we wont know which panel is selected
-        sQuoteStr=_T("Format");
+        sQuoteStr = L"Format";
         hMenu.AppendMenu(MF_GRAYED, ID_EDIT_COMPONENT_FMT, sQuoteStr);
 
-        sQuoteStr = _T("Format (Table)");
+        sQuoteStr = L"Format (Table)";
         hMenu.AppendMenu(MF_STRING, ID_EDIT_TBL_FMT,sQuoteStr);
 
-        sQuoteStr = _T("Format (Application)");
+        sQuoteStr = L"Format (Application)";
         hMenu.AppendMenu(MF_STRING, ID_EDIT_APP_FMT,sQuoteStr);
 
         AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
-        sQuoteStr = _T("Format Print (Table)");
+        sQuoteStr = L"Format Print (Table)";
         hMenu.AppendMenu(MF_STRING, ID_EDIT_TBL_PRINTFMT,sQuoteStr);
         AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
 
         if (!bViewer) {
-            hMenu.AppendMenu(MF_STRING, ID_EDIT_COPYTABLESTRUCTURE, _T("Copy Table Spec"));
+            hMenu.AppendMenu(MF_STRING, ID_EDIT_COPYTABLESTRUCTURE, L"Copy Table Spec");
             CTabulateDoc* pDoc = table_element_tree_node->GetTabDoc();
             if (IsClipboardFormatAvailable(pDoc->GetClipBoardFormat(TD_TABLE_FORMAT))) {
-                hMenu.AppendMenu(MF_STRING, ID_EDIT_PASTETABLE, _T("Paste Table Spec"));
+                hMenu.AppendMenu(MF_STRING, ID_EDIT_PASTETABLE, L"Paste Table Spec");
             }
             else {
-                hMenu.AppendMenu(MF_GRAYED, ID_EDIT_PASTETABLE, _T("Paste Table Spec"));
+                hMenu.AppendMenu(MF_GRAYED, ID_EDIT_PASTETABLE, L"Paste Table Spec");
             }
 
             AppendMenu(hMenu, MF_SEPARATOR, NULL, nullptr);
             if (bAllowAIDs) {
-                hMenu.AppendMenu(MF_STRING, ID_ADD_TABLE, _T("Add Table"));
-                hMenu.AppendMenu(MF_STRING, ID_INSERT_TABLE, _T("Insert Table"));
-                hMenu.AppendMenu(MF_STRING, ID_DELETE_TABLE, _T("Delete Table"));
+                hMenu.AppendMenu(MF_STRING, ID_ADD_TABLE, L"Add Table");
+                hMenu.AppendMenu(MF_STRING, ID_INSERT_TABLE, L"Insert Table");
+                hMenu.AppendMenu(MF_STRING, ID_DELETE_TABLE, L"Delete Table");
             }
             else {
-                hMenu.AppendMenu(MF_GRAYED, ID_ADD_TABLE, _T("Add Table"));
-                hMenu.AppendMenu(MF_GRAYED, ID_INSERT_TABLE, _T("Insert Table"));
-                hMenu.AppendMenu(MF_GRAYED, ID_DELETE_TABLE, _T("Delete Table"));
+                hMenu.AppendMenu(MF_GRAYED, ID_ADD_TABLE, L"Add Table");
+                hMenu.AppendMenu(MF_GRAYED, ID_INSERT_TABLE, L"Insert Table");
+                hMenu.AppendMenu(MF_GRAYED, ID_DELETE_TABLE, L"Delete Table");
             }
         }
 
@@ -1337,8 +1318,7 @@ void CTabTreeCtrl::OnEditVarTallyAttributes()
 
     TableElementTreeNode* table_element_tree_node = GetTreeNode(origTI);
 
-    if (table_element_tree_node->GetTabVar()->GetName() == _T("")) {
-
+    if (table_element_tree_node->GetTabVar()->GetName().IsEmpty()) {
         // it's not a dict item, but just the row/col header in the tree
     }
     else {  // *this* is a dict item, process it!
@@ -1623,7 +1603,7 @@ void CTabTreeCtrl::BuildTVTree(CTabulateDoc* pDoc)
     //insert node for the document
     HTREEITEM hItem = InsertItem(pDoc->GetTableSpec()->GetLabel());
 
-    TableSpecTabTreeNode* table_spec_tab_tree_node = new TableSpecTabTreeNode(pDoc, _T(""));
+    TableSpecTabTreeNode* const table_spec_tab_tree_node = new TableSpecTabTreeNode(pDoc, std::string());
     table_spec_tab_tree_node->AddRef();
     table_spec_tab_tree_node->SetHItem(hItem);
     SetItemData(hItem, reinterpret_cast<DWORD_PTR>(table_spec_tab_tree_node));
@@ -1914,7 +1894,7 @@ void CTabTreeCtrl::SelectTable(CTable* pTable, bool bUpdatePrintView /*= true*/)
         return;
     }
 
-    TableSpecTabTreeNode* table_spec_tab_tree_node = GetTableSpecTabTreeNode(*pDoc);
+    TableSpecTabTreeNode* const table_spec_tab_tree_node = GetTableSpecTabTreeNode(*pDoc);
 
     if( table_spec_tab_tree_node == nullptr )
         return;
@@ -2006,7 +1986,7 @@ void CTabTreeCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
         rect.top =0;
         rect.bottom = 2;
         rect.right = 20;
-        m_pLineWnd->Create(nullptr,_T(""),WS_VISIBLE|WS_BORDER|WS_CHILD,rect,this->GetParent(),iID);
+        m_pLineWnd->Create(nullptr,L"",WS_VISIBLE|WS_BORDER|WS_CHILD,rect,this->GetParent(),iID);
     }
 
 }
@@ -2171,15 +2151,7 @@ BOOL CTabTreeCtrl::PreTranslateMessage(MSG* pMsg)
 
 void CTabTreeCtrl::OnEditTabSetProp()
 {
-    CTabSet* pTabSet = m_pDoc->GetTableSpec();
-    ASSERT (pTabSet != nullptr);
-    CTabSetPropDlg dlg (pTabSet, this);
-    if (dlg.DoModal() == IDOK) {
-        pTabSet->SetLabel(dlg.m_sTSLabel);
-        pTabSet->SetName(dlg.m_sTSName);
-        m_pDoc->SetModifiedFlag(true);
-        ReBuildTree();
-    }
+    WindowsDesktopMessage::PostObject(UWM::Designer::ShowFileProperties, TC::ToUtf8(m_pDoc->GetPathName()), m_pDoc);
 }
 
 

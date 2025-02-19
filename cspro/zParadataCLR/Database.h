@@ -12,7 +12,7 @@ namespace CSPro
         public ref class Database sealed
         {
         public:
-            Database(System::String^ filename);
+            Database(System::String^ file_path);
 
             ~Database() { this->!Database(); }
             !Database();
@@ -27,7 +27,7 @@ namespace CSPro
 
         private:
             sqlite3* m_db;
-            std::vector<sqlite3_stmt*>* m_paStmts;
+            std::vector<sqlite3_stmt*>* m_stmts;
         };
     }
 }

@@ -11,10 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zJson.cpp">
+    <ClCompile Include="IncrementalJsonObjectArrayParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Json.cpp">
@@ -35,27 +32,27 @@
     <ClCompile Include="JsonStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JsonWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zJson.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonStringWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonConsWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonStreamWriter.h">
+    <ClInclude Include="IncrementalJsonObjectArrayParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Json.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonConsExceptionRethrower.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonConsWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="JsonFileWriter.h">
@@ -64,28 +61,43 @@
     <ClInclude Include="JsonFormattingOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonNode.h">
+    <ClInclude Include="JsonKeys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonSerializer.h">
+    <ClInclude Include="JsonNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="JsonObjectCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonSpecFile.h">
+    <ClInclude Include="JsonParseException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonKeys.h">
+    <ClInclude Include="JsonSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSpecFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="JsonStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JsonConsExceptionRethrower.h">
+    <ClInclude Include="JsonStreamWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonStringWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValidJsonAsserter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zJson.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

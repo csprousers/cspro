@@ -4,7 +4,6 @@
 #include <zJson/JsonSerializer.h>
 
 namespace Nodes { struct FrequencyParameters; }
-class Serializer;
 
 
 class ZFREQO_API FrequencyPrinterOptions
@@ -14,8 +13,8 @@ public:
 
     FrequencyPrinterOptions();
 
-    const std::vector<std::wstring>& GetHeadings() const { return m_headings; }
-    void SetHeadings(std::vector<std::wstring> headings);
+    const std::vector<std::string>& GetHeadings() const { return m_headings; }
+    void SetHeadings(std::vector<std::string> headings);
 
     bool GetDistinct() const { return m_distinct; }
     void SetDistinct()       { m_distinct = true; }
@@ -63,7 +62,7 @@ public:
     void serialize(Serializer& ar);
 
 private:
-    std::vector<std::wstring> m_headings;
+    std::vector<std::string> m_headings;
     bool m_distinct;
     std::vector<int> m_valueSetSymbolIndices;
     bool m_prioritizeCurrentValueSet; // only set at runtime

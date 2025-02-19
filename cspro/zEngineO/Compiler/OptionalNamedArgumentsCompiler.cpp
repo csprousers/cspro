@@ -3,14 +3,14 @@
 #include "OptionalNamedArgumentsCompiler.h"
 
 
-OptionalNamedArgumentsCompiler::OptionalNamedArgumentsCompiler(LogicCompiler& logic_compiler, bool argument_names_are_case_sensitive/* = false*/)
+OptionalNamedArgumentsCompiler::OptionalNamedArgumentsCompiler(LogicCompiler& logic_compiler, const bool argument_names_are_case_sensitive/* = false*/)
     :   m_compiler(logic_compiler),
         m_argumentNamesAreCaseSensitive(argument_names_are_case_sensitive)
 {
 }
 
 
-void OptionalNamedArgumentsCompiler::AddArgument(std::wstring name, int& program_index, CompilationType type_or_compilation_function)
+void OptionalNamedArgumentsCompiler::AddArgument(std::string name, int& program_index, CompilationType type_or_compilation_function)
 {
     ASSERT(program_index == -1);
 
@@ -24,7 +24,7 @@ void OptionalNamedArgumentsCompiler::AddArgument(std::wstring name, int& program
 }
 
 
-void OptionalNamedArgumentsCompiler::AddArgumentInteger(std::wstring name, int& program_index, std::optional<int> min_value, std::optional<int> max_value)
+void OptionalNamedArgumentsCompiler::AddArgumentInteger(std::string name, int& program_index, std::optional<int> min_value, std::optional<int> max_value)
 {
     ASSERT(min_value.has_value() || max_value.has_value());
 
@@ -90,7 +90,7 @@ void OptionalNamedArgumentsCompiler::AddArgumentInteger(std::wstring name, int& 
 }
 
 
-void OptionalNamedArgumentsCompiler::AddArgumentWithStringLiteralCheck(std::wstring name, int& program_index, std::function<void(const std::wstring&)> string_literal_check_callback)
+void OptionalNamedArgumentsCompiler::AddArgumentWithStringLiteralCheck(std::string name, int& program_index, std::function<void(std::string)> string_literal_check_callback)
 {
     AddArgument(std::move(name), program_index,
         [this, check_callback = std::move(string_literal_check_callback)]()
@@ -101,8 +101,8 @@ void OptionalNamedArgumentsCompiler::AddArgumentWithStringLiteralCheck(std::wstr
 }
 
 
-void OptionalNamedArgumentsCompiler::AddArgumentJsonText(std::wstring name, int& program_index,
-                                                         std::function<void(const JsonNode<wchar_t>& json_node)> json_node_callback/* = { }*/)
+void OptionalNamedArgumentsCompiler::AddArgumentJsonText(std::string name, int& program_index,
+                                                         std::function<void(const JsonNode& json_node)> json_node_callback/* = { }*/)
 {
     AddArgument(std::move(name), program_index,
         [&, lambda_json_node_callback = std::move(json_node_callback)]()
@@ -113,7 +113,7 @@ void OptionalNamedArgumentsCompiler::AddArgumentJsonText(std::wstring name, int&
 }
 
 
-void OptionalNamedArgumentsCompiler::AddArgumentPortableColorText(std::wstring name, int& program_index)
+void OptionalNamedArgumentsCompiler::AddArgumentPortableColorText(std::string name, int& program_index)
 {
     AddArgument(std::move(name), program_index,
         [&]()
@@ -165,14 +165,14 @@ size_t OptionalNamedArgumentsCompiler::Compile(bool allow_left_parenthesis_start
         if( !m_compiler.IsNextTokenNamedArgument() )
             return arguments_read;
 
-        size_t argument_index = m_compiler.NextKeywordOrError(m_argumentNames) - 1;
+        const size_t argument_index = m_compiler.NextKeywordOrError(m_argumentNames) - 1;
 
         if( m_argumentNamesAreCaseSensitive )
         {
-            wstring_view argument_name_as_specified_sv = m_compiler.GetCurrentBasicToken()->GetTextSV();
+            const std::string_view argument_name_as_specified_sv = m_compiler.GetCurrentBasicToken()->GetSV();
 
-            if( !SO::Equals(argument_name_as_specified_sv, m_argumentNames[argument_index]) )
-                m_compiler.IssueError(MGF::argument_invalid_case_94700, std::wstring(argument_name_as_specified_sv).c_str(), m_argumentNames[argument_index].c_str());
+            if( argument_name_as_specified_sv != m_argumentNames[argument_index] )
+                m_compiler.IssueError(MGF::argument_invalid_case_94700, std::string(argument_name_as_specified_sv).c_str(), m_argumentNames[argument_index].c_str());
         }
 
         int& program_index = *m_programIndices[argument_index];
@@ -184,7 +184,7 @@ size_t OptionalNamedArgumentsCompiler::Compile(bool allow_left_parenthesis_start
         m_compiler.NextToken();
         ASSERT(Tkn == TokenCode::TOKNAMEDARGOP);
 
-        const auto& compilation_function = m_compilationFunctions[argument_index];
+        const CompilationType& compilation_function = m_compilationFunctions[argument_index];
 
         // compile generic numeric/string arguments
         if( std::holds_alternative<DataType>(compilation_function) )

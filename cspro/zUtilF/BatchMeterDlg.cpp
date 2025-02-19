@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "BatchMeterDlg.h"
+#include <zToolsO/CancelFlag.h>
 
 
 BEGIN_MESSAGE_MAP(BatchMeterDlg, CDialog)
@@ -11,21 +12,21 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    const WPARAM SetTitleAndInitialize = 1;
-    const WPARAM UpdateSourceAndProcessSummary = 2;
-    const WPARAM UpdateKeyAndProcessSummary = 3;
-    const WPARAM UpdateProcessSummaryOnly = 4;
+    constexpr WPARAM SetTitleAndInitialize         = 1;
+    constexpr WPARAM UpdateSourceAndProcessSummary = 2;
+    constexpr WPARAM UpdateKeyAndProcessSummary    = 3;
+    constexpr WPARAM UpdateProcessSummaryOnly      = 4;
 
     template<typename T>
     void SetWindowTextToNumber(CWnd* dlg_item, T value)
     {
-        dlg_item->SetWindowText(IntToString(value));
+        dlg_item->SetWindowText(UTF8_TODO::GetCString(IntToString(value)));
     }
 
     template<typename T>
     void SetWindowTextToTime(CWnd* dlg_item, const T& value)
     {
-        dlg_item->SetWindowText(value.Format(_T("%H:%M:%S")));
+        dlg_item->SetWindowText(value.Format(L"%H:%M:%S"));
     }
 }
 
@@ -33,7 +34,7 @@ namespace
 BatchMeterDlg::BatchMeterDlg(CWnd* pParent/* = nullptr*/)
     :   CDialog(IDD_BATCHMETER_DIALOG, pParent),
         m_initialized(false),
-        m_cancellationPending(false),
+        m_cancelationPending(false),
         m_cancelFlag(nullptr),
         m_completedFlag(false),
         m_showingDetails(true),
@@ -59,12 +60,12 @@ BatchMeterDlg::BatchMeterDlg(CWnd* pParent/* = nullptr*/)
 
 BOOL BatchMeterDlg::OnInitDialog()
 {
-    m_dlgItemDetailsButton = (CButton*)GetDlgItem(IDC_DETAILS);
+    m_dlgItemDetailsButton = static_cast<CButton*>(GetDlgItem(IDC_DETAILS));
 
     m_dlgItemSource = GetDlgItem(IDC_STATIC_DFNAME);
     m_dlgItemCaseKey = GetDlgItem(IDC_STATIC_CASEID);
 
-    m_dlgItemPercentBar = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
+    m_dlgItemPercentBar = static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS));
     m_dlgItemPercentRead = GetDlgItem(IDC_STATIC_PERC);
 
     m_dlgItemRecordsRead = GetDlgItem(IDC_STATIC_RECORDSREAD);
@@ -85,14 +86,14 @@ BOOL BatchMeterDlg::OnInitDialog()
     m_dlgItemAttibutesErased = GetDlgItem(IDC_STATIC_IGN_ERA);
     m_dlgItemAttibutesIgnored = GetDlgItem(IDC_STATIC_IGN_TOT);
 
-    m_levelDetails = (CListCtrl*)GetDlgItem(IDC_LIST_LEVEL);
+    m_levelDetails = static_cast<CListCtrl*>(GetDlgItem(IDC_LIST_LEVEL));
 
-    const static std::tuple<TCHAR*, size_t> ColumnDetails[]
+    constexpr std::tuple<TCHAR*, size_t> ColumnDetails[]
     {
-        { _T("Level"),      50 },
-        { _T("Input Case"), 87 },
-        { _T("Bad Struct"), 87 },
-        { _T("Level Post"), 87 }
+        { L"Level",      50 },
+        { L"Input Case", 87 },
+        { L"Bad Struct", 87 },
+        { L"Level Post", 87 }
     };
 
     LV_COLUMN lvc { };
@@ -114,38 +115,44 @@ BOOL BatchMeterDlg::OnInitDialog()
 }
 
 
-void BatchMeterDlg::Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary, bool* cancel_flag)
+void BatchMeterDlg::Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary, CancelFlag* const cancel_flag)
 {
-    m_processSummary = process_summary;
+    m_processSummary = std::move(process_summary);
     m_cancelFlag = cancel_flag;
 
-    if( m_cancellationPending )
+    ASSERT(m_processSummary != nullptr && m_cancelFlag != nullptr);
+
+    if( m_cancelationPending )
+    {
         *m_cancelFlag = true;
+    }
 
     else
     {
-        m_dialogTitle = title;
+        m_dialogTitle = title.Release();
         PostMessage(UWM::UtilF::UpdateBatchMeterDlg, SetTitleAndInitialize);
     }
 }
 
 
-void BatchMeterDlg::SetSource(const CString& source_text)
+void BatchMeterDlg::SetSource(InterfaceString source_text)
 {
-    UpdateText(m_sourceText, source_text, UpdateSourceAndProcessSummary);
+    UpdateText(m_sourceText, source_text.Release(), UpdateSourceAndProcessSummary);
 }
 
-void BatchMeterDlg::SetKey(const CString& case_key)
+
+void BatchMeterDlg::SetKey(const std::string& case_key)
 {
-    UpdateText(m_caseKey, case_key, UpdateKeyAndProcessSummary);
+    UpdateText(m_caseKey, TC::ToWide(case_key), UpdateKeyAndProcessSummary);
 }
 
-void BatchMeterDlg::UpdateText(CString& destination_text, const CString& source_text, WPARAM update_type)
+
+void BatchMeterDlg::UpdateText(std::wstring& destination_text, std::wstring source_text, const WPARAM update_type)
 {
     ASSERT(IsWindow(GetSafeHwnd()));
 
     std::scoped_lock<std::mutex> lock(m_memberAccessMutex);
-    destination_text = source_text;
+    destination_text = std::move(source_text);
 
     PostMessage(UWM::UtilF::UpdateBatchMeterDlg, update_type);
 }
@@ -154,16 +161,19 @@ void BatchMeterDlg::UpdateText(CString& destination_text, const CString& source_
 void BatchMeterDlg::OnCancel()
 {
     if( m_completedFlag )
+    {
         CDialog::OnCancel();
+    }
 
     else if( m_initialized && *m_cancelFlag )
     {
         // if the cancel flag is already set, wait until the completed flag is set before closing the dialog
     }
 
-    else if( !m_cancellationPending && MessageBox(_T("Are you sure you want to cancel the process?"), _T("Cancel Process?"), MB_YESNO | MB_DEFBUTTON2) == IDYES )
+    else if( !m_cancelationPending &&
+             MessageBox(L"Are you sure you want to cancel the process?", L"Cancel Process?", MB_YESNO | MB_DEFBUTTON2) == IDYES )
     {
-        m_cancellationPending = true;
+        m_cancelationPending = true;
 
         // don't set the cancel flag if the task has already completed running (while the message box was up)
         if( m_initialized && !m_completedFlag )
@@ -180,7 +190,7 @@ void BatchMeterDlg::OnDetails()
 }
 
 
-void BatchMeterDlg::ToggleDetails(bool show_details)
+void BatchMeterDlg::ToggleDetails(const bool show_details)
 {
     ASSERT(show_details != m_showingDetails);
 
@@ -191,41 +201,45 @@ void BatchMeterDlg::ToggleDetails(bool show_details)
 
         RECT full_dialog_rect;
         GetWindowRect(&full_dialog_rect);
-        int full_width = full_dialog_rect.right - full_dialog_rect.left;
-        int full_height = full_dialog_rect.bottom - full_dialog_rect.top;
+        const int full_width = full_dialog_rect.right - full_dialog_rect.left;
+        const int full_height = full_dialog_rect.bottom - full_dialog_rect.top;
 
         // see how much padding there is at the bottom of the dialog
         RECT level_details_rect;
         m_levelDetails->GetWindowRect(&level_details_rect);
-        int padding = full_dialog_rect.bottom - level_details_rect.bottom;
+        const int padding = full_dialog_rect.bottom - level_details_rect.bottom;
 
         // add the padding to the bottom of the progress bar
         RECT progress_bar_rect;
         m_dlgItemPercentBar->GetWindowRect(&progress_bar_rect);
 
-        int no_details_height = progress_bar_rect.bottom + padding - full_dialog_rect.top;
+        const int no_details_height = progress_bar_rect.bottom + padding - full_dialog_rect.top;
 
         m_dialogWidthAndHeightDetailsNoDetails = std::make_tuple(full_width, full_height, no_details_height);
     }
 
     m_showingDetails = show_details;
 
-    SetWindowPos(&wndTop, 0, 0, std::get<0>(*m_dialogWidthAndHeightDetailsNoDetails),
-        m_showingDetails ? std::get<1>(*m_dialogWidthAndHeightDetailsNoDetails) : std::get<2>(*m_dialogWidthAndHeightDetailsNoDetails), SWP_NOMOVE);
+    SetWindowPos(&wndTop, 0, 0,
+                 std::get<0>(*m_dialogWidthAndHeightDetailsNoDetails),
+                 m_showingDetails ? std::get<1>(*m_dialogWidthAndHeightDetailsNoDetails) : std::get<2>(*m_dialogWidthAndHeightDetailsNoDetails),
+                 SWP_NOMOVE);
 
-    m_dlgItemDetailsButton->SetWindowText(FormatText(_T("Details %s"), m_showingDetails ? _T("<<") : _T(">>")));
+    m_dlgItemDetailsButton->SetWindowText(FormatText(L"Details %s", m_showingDetails ? L"<<" : L">>"));
 }
 
 
-LRESULT BatchMeterDlg::OnUpdateDlg(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT BatchMeterDlg::OnUpdateDlg(const WPARAM wParam, LPARAM /*lParam*/)
 {
     if( wParam == SetTitleAndInitialize )
     {
-        SetWindowText(m_dialogTitle);
+        WindowsWS::SetWindowText(this, m_dialogTitle);
 
         // initialize the level details
         if( m_processSummary->GetNumberLevels() == 0 )
+        {
             m_levelDetails->ShowWindow(SW_HIDE);
+        }
 
         else
         {
@@ -233,7 +247,7 @@ LRESULT BatchMeterDlg::OnUpdateDlg(WPARAM wParam, LPARAM /*lParam*/)
             m_levelDetails->DeleteAllItems();
 
             for( size_t level_number = 0; level_number < m_processSummary->GetNumberLevels(); ++level_number )
-                m_levelDetails->InsertItem(level_number, IntToString(level_number + 1));
+                m_levelDetails->InsertItem(level_number, UTF8_TODO::GetCString(IntToString(level_number + 1)));
         }
 
         m_initialized = true;
@@ -246,10 +260,14 @@ LRESULT BatchMeterDlg::OnUpdateDlg(WPARAM wParam, LPARAM /*lParam*/)
             std::scoped_lock<std::mutex> lock(m_memberAccessMutex);
 
             if( wParam == UpdateKeyAndProcessSummary )
-                m_dlgItemCaseKey->SetWindowText(m_caseKey);
+            {
+                WindowsWS::SetWindowText(m_dlgItemCaseKey, m_caseKey);
+            }
 
             else if( wParam == UpdateSourceAndProcessSummary )
-                m_dlgItemSource->SetWindowText(m_sourceText);
+            {
+                WindowsWS::SetWindowText(m_dlgItemSource, m_sourceText);
+            }
         }
 
         UpdateProcessSummary();
@@ -264,7 +282,7 @@ void BatchMeterDlg::UpdateProcessSummary()
     if( !m_initialized )
         return;
 
-    int percent_read = (int)m_processSummary->GetPercentSourceRead();
+    const int percent_read = static_cast<int>(m_processSummary->GetPercentSourceRead());
 
     m_dlgItemPercentBar->SetPos(percent_read);
     SetWindowTextToNumber(m_dlgItemPercentRead, percent_read);
@@ -274,12 +292,12 @@ void BatchMeterDlg::UpdateProcessSummary()
     if( !m_showingDetails )
         return;
 
-    CTimeSpan elapsed_time = CTime::GetCurrentTime() - m_startTime;
+    const CTimeSpan elapsed_time = CTime::GetCurrentTime() - m_startTime;
     SetWindowTextToTime(m_dlgItemElapsedTime, elapsed_time);
 
     if( percent_read != 0 )
     {
-        CTimeSpan remaining_time = (__time64_t)( ( 100.0 - percent_read ) / percent_read * elapsed_time.GetTimeSpan() );
+        const CTimeSpan remaining_time = static_cast<__time64_t>(( 100.0 - percent_read ) / percent_read * elapsed_time.GetTimeSpan());
         SetWindowTextToTime(m_dlgItemRemainingTime, remaining_time);
     }
 
@@ -297,8 +315,8 @@ void BatchMeterDlg::UpdateProcessSummary()
 
     for( size_t level_number = 0; level_number < m_processSummary->GetNumberLevels(); ++level_number )
     {
-        m_levelDetails->SetItemText(level_number, 1, IntToString(m_processSummary->GetCaseLevelsRead(level_number)));
-        m_levelDetails->SetItemText(level_number, 2, IntToString(m_processSummary->GetBadCaseLevelStructures(level_number)));
-        m_levelDetails->SetItemText(level_number, 3, IntToString(m_processSummary->GetLevelPostProcsExecuted(level_number)));
+        m_levelDetails->SetItemText(level_number, 1, TC::ToWide(IntToString(m_processSummary->GetCaseLevelsRead(level_number))).c_str());
+        m_levelDetails->SetItemText(level_number, 2, TC::ToWide(IntToString(m_processSummary->GetBadCaseLevelStructures(level_number))).c_str());
+        m_levelDetails->SetItemText(level_number, 3, TC::ToWide(IntToString(m_processSummary->GetLevelPostProcsExecuted(level_number))).c_str());
     }
 }

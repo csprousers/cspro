@@ -33,7 +33,7 @@ int CEngineArea::inittables()
         CtNodebase = (int*) calloc( CtNodemxent, sizeof(int) );
 
         if (CtNodebase == NULL)
-            issaerror(MessageType::Abort, 1000, _T("CTAB"));
+            issaerror(MessageType::Abort, 1000, "CTAB");
     }
 
     // marks level-id list as empty
@@ -138,7 +138,7 @@ void CEngineArea::ChainSymbol(int previous_chained_symbol_index, ChainedSymbol* 
 }
 
 
-std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::wstring symbol_name, SymbolType symbol_type, SymbolSubType symbol_subtype)
+std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const SymbolType symbol_type, const SymbolSubType symbol_subtype)
 {
     auto create_symbol = [&]() -> std::unique_ptr<Symbol>
     {
@@ -186,10 +186,10 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::wstring symbol_name, Symb
                 return std::make_unique<RELT>(std::move(symbol_name), GetSymbolTable());
 
             case SymbolType::Report:
-                return std::make_unique<Report>(std::move(symbol_name), std::wstring());
+                return std::make_unique<Report>(std::move(symbol_name), ReportFile::EscapeType::None, std::string());
 
             case SymbolType::Section:
-                return std::make_unique<SECT>(std::move(symbol_name), m_pEngineDriver);
+                return std::make_unique<SECT>((std::move(symbol_name)), m_pEngineDriver);
 
             case SymbolType::SystemApp:
                 return std::make_unique<SystemApp>(std::move(symbol_name));
@@ -221,13 +221,13 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::wstring symbol_name, Symb
 }
 
 
-int CEngineArea::SymbolTableSearch(const StringNoCase& full_symbol_name, SymbolType preferred_symbol_type,
+int CEngineArea::SymbolTableSearch(const std::string_view full_symbol_name_sv, const SymbolType preferred_symbol_type,
                                    const std::vector<SymbolType>* allowable_symbol_types) const
 {
     // search for a symbol, allowing for dot notation
     try
     {
-        const Symbol& symbol = GetSymbolTable().FindSymbolWithDotNotation(full_symbol_name, preferred_symbol_type, allowable_symbol_types);
+        const Symbol& symbol = GetSymbolTable().FindSymbolWithDotNotation(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
         return symbol.GetSymbolIndex();
     }
 
@@ -238,12 +238,12 @@ int CEngineArea::SymbolTableSearch(const StringNoCase& full_symbol_name, SymbolT
 }
 
 
-std::vector<Symbol*> CEngineArea::SymbolTableSearchAllSymbols(const StringNoCase& full_symbol_name) const
+std::vector<Symbol*> CEngineArea::SymbolTableSearchAllSymbols(const std::string_view full_symbol_name_sv) const
 {
     // if using dot notation, use the general search function
-    if( full_symbol_name.find('.') != StringNoCase::npos )
+    if( full_symbol_name_sv.find('.') != std::string_view::npos )
     {
-        int symbol_index = SymbolTableSearch(full_symbol_name, SymbolType::None, nullptr);
+        const int symbol_index = SymbolTableSearch(full_symbol_name_sv, SymbolType::None, nullptr);
 
         if( symbol_index > 0 )
             return { NPT(symbol_index) };
@@ -254,7 +254,7 @@ std::vector<Symbol*> CEngineArea::SymbolTableSearchAllSymbols(const StringNoCase
     // otherwise return the full set of symbols
     else
     {
-        return GetSymbolTable().FindSymbols(full_symbol_name);
+        return GetSymbolTable().FindSymbols(full_symbol_name_sv);
     }
 
 }

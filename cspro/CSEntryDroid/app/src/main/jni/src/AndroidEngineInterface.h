@@ -28,15 +28,15 @@ public:
     bool            GetViewLockFlag();
     bool            GetCaseListingLockFlag();
 
-    void            SetAndroidEnvironmentVariables(const CString& email,
-                                                   const CString& tempFolder,
-                                                   const CString& applicationFolder,
-                                                   const CString& versionNumber,
-                                                   const CString& assetsDirectory,
-                                                   const CString& csEntryFolder,
-                                                   const CString& externalMemoryCardFolder,
-                                                   const CString& internalStorageDirectory,
-                                                   const CString& downloadsDirectory);
+    void            SetAndroidEnvironmentVariables(std::string email,
+                                                   std::string tempFolder,
+                                                   std::string applicationFolder,
+                                                   std::string versionNumber,
+                                                   std::string assetsDirectory,
+                                                   std::string csentryFolder,
+                                                   std::string externalMemoryCardFolder,
+                                                   std::string internalStorageDirectory,
+                                                   std::string downloadsDirectory);
 
     void            GetParadataCachedEvents();
 

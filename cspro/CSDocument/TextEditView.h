@@ -14,7 +14,7 @@ protected:
 public:
     TextEditDoc& GetTextEditDoc() { return assert_cast<TextEditDoc&>(*GetDocument()); }
 
-    void SetTextAndSetSavePoint(const std::wstring& text);
+    void SetTextAndSetSavePoint(cs::string_sz text);
 
 protected:
     DECLARE_MESSAGE_MAP()

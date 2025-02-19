@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <zToolsO/FileIO.h>
 #include <zToolsO/PointerClasses.h>
 #include <zUtilO/FileExtensions.h>
 #include <zAppO/PFF.h>
@@ -11,42 +12,47 @@
 class CSViewInputProcessor
 {
 public:
-    CSViewInputProcessor(const std::wstring& filename);
+    CSViewInputProcessor(const std::string& file_path);
     CSViewInputProcessor(const PFF& pff);
 
-    const PFF* GetPff() const                  { return m_pff.get(); }
-    const std::wstring& GetFilename() const    { return m_filename; }
-    const std::wstring& GetDescription() const { return m_description; }
+    const PFF* GetPff() const                 { return m_pff.get(); }
+    const std::string& GetFilePath() const    { return m_filePath; }
+    const std::string& GetDescription() const { return m_description; }
 
 private:
-    [[noreturn]] void IssueInvalidPffException(const std::wstring& filename);
+    [[noreturn]] void IssueInvalidPffException(const std::string& file_path);
 
     void ProcessInput();
 
 private:
     cs::shared_or_raw_ptr<const PFF> m_pff;
-    std::wstring m_filename;
-    std::wstring m_description;
+    std::string m_filePath;
+    std::string m_description;
 };
 
 
-inline CSViewInputProcessor::CSViewInputProcessor(const std::wstring& filename)
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline CSViewInputProcessor::CSViewInputProcessor(const std::string& file_path)
 {
-    const std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
     if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
     {
-        auto pff = std::make_shared<PFF>(filename.c_str());
+        auto pff = std::make_unique<PFF>(file_path.c_str());
 
         if( !pff->LoadPifFile(true) )
-            IssueInvalidPffException(filename);
+            IssueInvalidPffException(file_path);
 
         m_pff = std::move(pff);
     }
 
     else
     {
-        m_filename = filename;
+        m_filePath = file_path;
     }
 
     ProcessInput();
@@ -60,34 +66,38 @@ inline CSViewInputProcessor::CSViewInputProcessor(const PFF& pff)
 }
 
 
-inline void CSViewInputProcessor::IssueInvalidPffException(const std::wstring& filename)
+inline void CSViewInputProcessor::IssueInvalidPffException(const std::string& file_path)
 {
-    throw CSProException(_T("The PFF could not be read or was not a valid CSView PFF: %s"), filename.c_str());
+    throw CSProException("The PFF could not be read or was not a valid CSView PFF: " + file_path);
 }
 
 
 inline void CSViewInputProcessor::ProcessInput()
 {
-    ASSERT(( m_pff != nullptr ) == m_filename.empty());
+    ASSERT(( m_pff != nullptr ) == m_filePath.empty());
 
     if( m_pff != nullptr )
     {
         if( m_pff->GetAppType() != APPTYPE::VIEW_TYPE )
-            IssueInvalidPffException(CS2WS(m_pff->GetPifFileName()));
+            IssueInvalidPffException(UTF8_TODO::GetUtf8(m_pff->GetPifFileName()));
 
-        m_filename = CS2WS(m_pff->GetAppFName());
+        m_filePath = UTF8_TODO::GetUtf8(m_pff->GetAppFName());
 
-        if( !PortableFunctions::FileIsRegular(m_filename) )
+        if( !PortableFunctions::FileIsRegular(m_filePath) )
         {
-            throw CSProException(_T("The file to view, specified in the PFF '%s', could not be found: %s"),
-                                    PortableFunctions::PathGetFilename(m_pff->GetPifFileName()), m_filename.c_str());
+            throw CSProException("The file to view, specified in the PFF '%s', could not be found: %s",
+                                 PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(m_pff->GetPifFileName())).c_str(),
+                                 m_filePath.c_str());
         }
 
-        m_description = CS2WS(m_pff->GetAppDescription());
+        m_description = UTF8_TODO::GetUtf8(m_pff->GetAppDescription());
     }
 
-    ASSERT(PortableFunctions::FileIsRegular(m_filename));
+    else if( !PortableFunctions::FileIsRegular(m_filePath) )
+    {
+        throw FileIO::Exception::FileNotFound(m_filePath);
+    }
 
     if( m_description.empty() )
-        m_description = PortableFunctions::PathGetFilename(m_filename);
+        m_description = PortableFunctions::PathGetFilename(m_filePath);
 }

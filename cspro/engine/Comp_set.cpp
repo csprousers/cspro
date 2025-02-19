@@ -31,11 +31,11 @@ std::optional<int> CEngineCompFunc::ci_set()
     // some set commands are processed in other functions
     size_t keyword_type = NextKeyword(
         {
-            _T("access"),   // 1
-            _T("first"),    // 2
-            _T("last"),     // 3
-            _T("trace"),    // 4
-            _T("impute"),   // 5
+            "access",   // 1
+            "first",    // 2
+            "last",     // 3
+            "trace",    // 4
+            "impute",   // 5
         });
 
     switch( keyword_type )
@@ -90,18 +90,18 @@ std::optional<int> CEngineCompFunc::ci_set()
     pset_ot = (SETOTHER_NODE*) pset_ac;
     pset_at = (SET_ATTR_NODE*) pset_ac;
 
-    const std::vector<const TCHAR*> keyword_types =
+    constexpr const char* keyword_types[] =
     {
-        _T("OUTPUT"),       //  1 No supported!      
-        _T("HEADING"),      //  2 No supported!
-        _T("LINEPAGE"),     //  3 No supported!
-        _T("FORMAT"),       //  4
-        _T("ATTRIBUTES"),   //  5
-        _T("FILE"),         //  6
-        _T("PATH"),         //  7
-        _T("BEHAVIOR"),     //  8
-        _T("LANGUAGE"),     //  9 RHF Nov 08, 2002
-        _T("ERRMSG"),       // 10 20100518
+        "OUTPUT",       //  1 No supported!      
+        "HEADING",      //  2 No supported!
+        "LINEPAGE",     //  3 No supported!
+        "FORMAT",       //  4
+        "ATTRIBUTES",   //  5
+        "FILE",         //  6
+        "PATH",         //  7
+        "BEHAVIOR",     //  8
+        "LANGUAGE",     //  9 RHF Nov 08, 2002
+        "ERRMSG",       // 10 20100518
     };
 
     keyword_type = NextKeyword(keyword_types);
@@ -180,13 +180,13 @@ std::optional<int> CEngineCompFunc::ci_set()
             if( iAttrNumber < 1 )
                 IssueError(7064); // no symbol specified
 
-            size_t attribute_type = NextKeyword({
-                _T("NATIVE"),
-                _T("DISPLAY"),
-                _T("AUTOSKIP"), _T("RETURN"), _T("PROTECT"),
-                _T("HIDDEN"), _T("VISIBLE"),
-                _T("REFRESH"),
-                _T("ASSISTED")
+            const size_t attribute_type = NextKeyword({
+                "NATIVE",
+                "DISPLAY",
+                "AUTOSKIP", "RETURN",  "PROTECT",
+                "HIDDEN",   "VISIBLE",
+                "REFRESH",
+                "ASSISTED"
             });
 
             if( attribute_type == 0 )
@@ -195,7 +195,7 @@ std::optional<int> CEngineCompFunc::ci_set()
             switch( attribute_type )
             {
                 case 1:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95021, _T("false"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95021, "false");
                     iAttrType = SET_AT_NATIVE;
                     break;
 
@@ -204,17 +204,17 @@ std::optional<int> CEngineCompFunc::ci_set()
                     break;
 
                 case 3:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("UseEnterKey"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "UseEnterKey");
                     iAttrType = SET_AT_AUTOSKIP;
                     break;
 
                 case 4:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("UseEnterKey"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "UseEnterKey");
                     iAttrType = SET_AT_RETURN;
                     break;
 
                 case 5:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95021, _T("true"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95021, "true");
                     iAttrType = SET_AT_PROTECT;
                     break;
 
@@ -228,15 +228,14 @@ std::optional<int> CEngineCompFunc::ci_set()
 
                 case 8: // refresh ON/OFF
                 {
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, 95014, _T("attributes/refresh"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, 95014, "attributes/refresh");
 
-                    size_t refresh_type = NextKeyword({ _T("OFF"), _T("ON") });
+                    const size_t refresh_type = NextKeyword({ "OFF", "ON" });
 
                     if( refresh_type == 0 )
                         IssueError(7066);
 
-                    else
-                        iAttrType = ( refresh_type == 1 ) ? SET_AT_REF_OFF : SET_AT_REF_ON;
+                    iAttrType = ( refresh_type == 1 ) ? SET_AT_REF_OFF : SET_AT_REF_ON;
 
                     break;
                 }
@@ -245,7 +244,7 @@ std::optional<int> CEngineCompFunc::ci_set()
                 {
                     IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, 95002);
 
-                    size_t assisted_type = NextKeyword({ _T("OFF"), _T("ON"), _T("TOGGLE") });
+                    const size_t assisted_type = NextKeyword({ "OFF", "ON", "TOGGLE" });
 
                     if( assisted_type == 0 )
                         IssueError(7067);
@@ -263,15 +262,19 @@ std::optional<int> CEngineCompFunc::ci_set()
 
                         while( Tkn != TOKRPAREN && nopt < 2 )
                         {
-                            size_t capi_type = NextKeyword({ _T("QUESTION"), _T("VARIABLE"), _T("RESPONSES") });
+                            const size_t capi_type = NextKeyword({ "QUESTION", "VARIABLE", "RESPONSES" });
 
                             if( capi_type != 0 )
                             {
                                 if( capi_type == 1 )
+                                {
                                     iCapiMode |= DEPRECATED_CAPI_QUESTION_FLAG;
+                                }
 
                                 else
+                                {
                                     iCapiMode |= DEPRECATED_CAPI_VARIABLE_FLAG;
+                                }
 
                                 NextToken(); // For QUESTION: ),
                                              // For VARIABLE: ),(
@@ -283,7 +286,7 @@ std::optional<int> CEngineCompFunc::ci_set()
                                 {
                                     while( Tkn != TOKRPAREN )
                                     {
-                                        size_t window_type = NextKeyword({ _T("TITLE"), _T("LOCKED"), _T("TOP"), _T("CENTER"), _T("BOTTOM"), _T("LEFT"), _T("RIGHT"), _T("DYNAMIC") });
+                                        const size_t window_type = NextKeyword({ "TITLE", "LOCKED", "TOP", "CENTER", "BOTTOM", "LEFT", "RIGHT", "DYNAMIC" });
 
                                         if( window_type == 0 )
                                             IssueError(7069);
@@ -375,7 +378,7 @@ std::optional<int> CEngineCompFunc::ci_set()
             int errorMessageCode = 0;
             int keystrokeCode = 0;
 
-            size_t errmsg_type = NextKeyword({ _T("DEFAULT"), _T("SYSTEM"), _T("OPERATOR") });
+            const size_t errmsg_type = NextKeyword({ "DEFAULT", "SYSTEM", "OPERATOR" });
 
             if( errmsg_type == 0 )
                 IssueError(7100);
@@ -533,16 +536,16 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
     IssueErrorOnTokenMismatch(TOKRPAREN, ERROR_RIGHT_PAREN_EXPECTED);
 
     // looks for specific behavior item
-    size_t behavior_type = NextKeyword({
-        _T("PATH"), _T("CANENTER"), _T("MESSAGES"),
-        _T("MOUSE"), _T("PUSHMODE"), _T("CANENDGROUP"), _T("CANENDLEVEL"),
-        _T("MSGNUMBER"),                           // victor Jun 08, 00
-        _T("EXPORT"),                              // victor Dec 18, 00
-        _T("CHECKRANGES"),                         // victor Dec 07, 00
-        _T("SKIPSTRUC"),                           // victor Mar 14, 01
-        _T("SKIPSTRUCTURE"),                       // victor Mar 14, 01
-        _T("EXIT"),                                // RHF Aug 04, 2006
-        _T("SPECIALVALUES") });                    // 20090827
+    const size_t behavior_type = NextKeyword({
+        "PATH", "CANENTER", "MESSAGES",
+        "MOUSE", "PUSHMODE", "CANENDGROUP", "CANENDLEVEL",
+        "MSGNUMBER",        // victor Jun 08, 00
+        "EXPORT",           // victor Dec 18, 00
+        "CHECKRANGES",      // victor Dec 07, 00
+        "SKIPSTRUC",        // victor Mar 14, 01
+        "SKIPSTRUCTURE",    // victor Mar 14, 01
+        "EXIT",             // RHF Aug 04, 2006
+        "SPECIALVALUES" }); // 20090827
 
 
     if( behavior_type == 0 )
@@ -566,19 +569,19 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
 
         switch( behavior_type ) {
         case 2:                     // canEnter
-            switch( NextKeyword({ _T("NOTAPPL"), _T("OUTOFRANGE") }) )
+            switch( NextKeyword({ "NOTAPPL", "OUTOFRANGE" }) )
             {
                 case 0:
                     IssueError(91101);   // NotAppl, OutOfRange expected
                     break;
 
                 case 1:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("CanEnterNotAppl"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "CanEnterNotAppl");
                     iBehaviorItem = BEHAVIOR_CANENTER_NOTAPPL;
                     break;
 
                 case 2:
-                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("CanEnterOutOfRange"));
+                    IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "CanEnterOutOfRange");
                     iBehaviorItem = BEHAVIOR_CANENTER_OUTOFRANGE;
                     break;
             }
@@ -586,7 +589,7 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
             break;
 
         case 3:                     // Messages
-            switch( NextKeyword({ _T("DISPLAY"), _T("ERRMSG") }) )
+            switch( NextKeyword({ "DISPLAY", "ERRMSG" }) )
             {
                 case 0:
                     IssueError(91102); // Display, Errmsg expected
@@ -602,10 +605,10 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
             break;
 
         case 14:                    // SpecialValues
-            if( NextKeyword({ _T("ZERO") }) == 0 )
+            if( NextKeyword({ "ZERO" }) == 0 )
                 IssueError(91113);  // Zero expected
 
-            IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, _T("SpecialValuesZero"));
+            IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95015, "SpecialValuesZero");
             iBehaviorItem = BEHAVIOR_SPECIALVALUES;
             break;
         }
@@ -617,14 +620,14 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
     else if( behavior_type == 4 )               // Mouse
         iBehaviorItem = BEHAVIOR_MOUSE;
     else if( behavior_type == 5 ) {             // PushMode
-        IssueError(95012, _T("PUSHMODE"));
+        IssueError(95012, "PUSHMODE");
     }
     else if( behavior_type == 6 )               // EndGroup
         iBehaviorItem = BEHAVIOR_ENDGROUP;
     else if( behavior_type == 7 )               // EndLevel
         iBehaviorItem = BEHAVIOR_ENDLEVEL;
     else if( behavior_type == 8 ) {             // MsgNumber    // victor Jun 08, 00
-        switch( NextKeyword({ _T("DISPLAY"), _T("ERRMSG") }) )
+        switch( NextKeyword({ "DISPLAY", "ERRMSG" }) )
         {
             case 0:
                 IssueError(91105); // Display, Errmsg expected
@@ -642,8 +645,9 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
         if( Tkn != TOKLPAREN )
             IssueError(517);
 
-        const std::vector<const TCHAR*> export_types = { _T("DATA"), _T("SPSS"), _T("SAS"), _T("STATA"),
-            _T("ALL"), _T("CSPRO"), _T("TABDELIM"), _T("COMMADELIM"), _T("SEMICOLONDELIM"), _T("ALL4"), _T("R"), _T("ALL5") };
+        constexpr const char* export_types[] = { "DATA", "SPSS",  "SAS",      "STATA",
+                                                 "ALL",  "CSPRO", "TABDELIM", "COMMADELIM", "SEMICOLONDELIM",
+                                                 "ALL4", "R",     "ALL5" };
 
         switch( NextKeyword(export_types) )
         {
@@ -692,13 +696,10 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
 
         while( true )
         {
-            size_t optional_argument_type =
-                NextKeyword({
-                    _T("ITEMONLY"), _T("SUBITEMONLY"), _T("ITEMSUBITEM"),
-                    _T("ANSI"), _T("UNICODE"),
-                    _T("COMMADECIMAL"),
-                    _T("XMLDDI2"), _T("XMLDDI3"), _T("XMLCSPRO"), _T("WEIGHT"), _T("XMLFREQUENCIES"), _T("XMLFREQUNIVERSE"),
-                });
+            const size_t optional_argument_type = NextKeyword({ "ITEMONLY", "SUBITEMONLY", "ITEMSUBITEM",
+                                                                "ANSI", "UNICODE",
+                                                                "COMMADECIMAL",
+                                                                "XMLDDI2", "XMLDDI3", "XMLCSPRO", "WEIGHT", "XMLFREQUENCIES", "XMLFREQUNIVERSE" });
 
             if( optional_argument_type == 0 )
             {
@@ -788,7 +789,7 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
     }
     else {
         // looks for mandatory keywords ON/OFF
-        switch( NextKeyword({ _T("ON"), _T("OFF") }) )
+        switch( NextKeyword({ "ON", "OFF" }) )
         {
             case 0:
                 IssueError(91103);
@@ -903,7 +904,7 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
         if( Tkn != TOKLPAREN )
             IssueError(517);
 
-        switch( NextKeyword({ _T("CONFIRM"), _T("NOCONFIRM") }) )
+        switch( NextKeyword({ "CONFIRM", "NOCONFIRM" }) )
         {
             case 0:
                 IssueError(91104); // Confirm, noConfirm expected
@@ -927,7 +928,7 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
         // Allow OFF( NoConfirm )
         if( !bSetOn && ( iBehaviorItem == BEHAVIOR_CANENTER_NOTAPPL  || iBehaviorItem == BEHAVIOR_CANENTER_OUTOFRANGE ) && Tkn == TOKLPAREN )
         {
-            switch( NextKeyword({ _T("CONFIRM"), _T("NOCONFIRM") }) )
+            switch( NextKeyword({ "CONFIRM", "NOCONFIRM" }) )
             {
                 case 0:
                     IssueError(91104); // Confirm, noConfirm expected

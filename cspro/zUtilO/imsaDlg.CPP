@@ -11,6 +11,7 @@
 #include "StdAfx.h"
 #include "imsaDlg.H"
 #include "CustomFont.h"
+#include "WindowsUtf8.h"
 #include <afxpriv.h>
 
 
@@ -287,10 +288,13 @@ BOOL CIMSAAboutDlg::OnInitDialog()
 
     CString csVersion;
     GetDlgItem(IDC_VERSION)->GetWindowText(csVersion);
-    csVersion.Append(Versioning::GetVersionDetailedString());
+
+    const std::wstring detailed_version_text = TC::ToWide(Versioning::GetVersionDetailedString());
+    csVersion.Append(detailed_version_text.c_str(), detailed_version_text.length());
+
     GetDlgItem(IDC_VERSION)->SetWindowText(csVersion);
 
-    GetDlgItem(IDC_VERSION_DATE)->SetWindowText(Versioning::GetReleaseDateString());
+    WindowsUtf8::SetText(this, IDC_VERSION_DATE, Versioning::GetReleaseDateString());
 
     return TRUE;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE

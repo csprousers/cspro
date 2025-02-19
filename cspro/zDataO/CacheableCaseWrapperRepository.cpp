@@ -4,19 +4,26 @@
 #include <zToolsO/Hash.h>
 
 
-CacheableCaseWrapperRepository::CacheableCaseWrapperRepository(std::shared_ptr<DataRepository> repository, DataRepositoryAccess access_type)
-    :   WrapperRepository(std::move(repository), access_type),
+// --------------------------------------------------------------------------
+// CacheableCaseWrapperRepository
+// --------------------------------------------------------------------------
+
+CacheableCaseWrapperRepository::CacheableCaseWrapperRepository(std::shared_ptr<DataRepository> repository)
+    :   WrapperRepository(std::move(repository)),
         m_positionsInRepositoryChangeOnModification(!DataRepositoryHelpers::IsTypeSQLiteOrDerived(m_repository->GetRepositoryType()))
 {
 }
 
 
-std::shared_ptr<DataRepository> CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::shared_ptr<DataRepository> repository, DataRepositoryAccess access_type)
+std::shared_ptr<DataRepository> CacheableCaseWrapperRepository::CreateCacheableCaseWrapperRepository(std::shared_ptr<DataRepository> repository)
 {
+    ASSERT(repository != nullptr);
+
     // the CacheableCaseWrapperRepository can only be used in certain circumstances
-    if( access_type == DataRepositoryAccess::ReadOnly || access_type == DataRepositoryAccess::ReadWrite )
+    if( repository->GetRepositoryAccess() == DataRepositoryAccess::ReadOnly ||
+        repository->GetRepositoryAccess() == DataRepositoryAccess::ReadWrite )
     {
-        return std::shared_ptr<DataRepository>(new CacheableCaseWrapperRepository(std::move(repository), access_type));
+        return std::shared_ptr<DataRepository>(new CacheableCaseWrapperRepository(std::move(repository)));
     }
 
     else
@@ -32,15 +39,15 @@ void CacheableCaseWrapperRepository::ClearCachedIterations()
 }
 
 
-void CacheableCaseWrapperRepository::ClearCachedCases(bool reuse_cases/* = true*/)
+void CacheableCaseWrapperRepository::ClearCachedCases(const bool reuse_cases)
 {
     ClearCachedIterations();
 
     // save any cases to reuse at a future point
     if( reuse_cases )
     {
-        for( const auto& kv : m_casesByPosition )
-            m_unusedCasesPool.push_back(kv.second);
+        for( const auto& [position, data_case] : m_casesByPosition )
+            m_unusedCasesPool.emplace_back(data_case);
     }
 
     else
@@ -66,30 +73,30 @@ void CacheableCaseWrapperRepository::ClearCachedCase(const Case& data_case)
     // save the case for reuse at a future point
     if( case_lookup != m_casesByPosition.cend() && case_lookup->second.use_count() == 1 )
     {
-        m_unusedCasesPool.push_back(case_lookup->second);
+        m_unusedCasesPool.emplace_back(case_lookup->second);
         m_casesByPosition.erase(case_lookup);
     }
 }
 
 
-std::shared_ptr<Case> CacheableCaseWrapperRepository::CacheCase(Case& data_case, bool cache_using_key)
+std::shared_ptr<Case> CacheableCaseWrapperRepository::CacheCase(Case& data_case, const bool cache_using_key)
 {
     std::shared_ptr<Case> cached_data_case;
 
     if( m_unusedCasesPool.empty() )
     {
-        cached_data_case = GetCaseAccess()->CreateCase();
+        cached_data_case = GetCaseAccess().CreateCase();
     }
 
     else
     {
-        cached_data_case = m_unusedCasesPool.back();
+        cached_data_case = std::move(m_unusedCasesPool.back());
         m_unusedCasesPool.pop_back();
     }
 
     *cached_data_case = data_case;
 
-    // not everything is cached by key because a case retrieved by the position in repository
+    // not everything is cached by key because a case retrieved by the position in repository or UUID
     // may not be accessible by the key (e.g., the second [duplicate] case in the repository with a given key)
     if( cache_using_key )
         m_casesByKey.emplace(cached_data_case->GetKey(), cached_data_case);
@@ -100,7 +107,21 @@ std::shared_ptr<Case> CacheableCaseWrapperRepository::CacheCase(Case& data_case,
 }
 
 
-void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const CString& key)
+ISyncableDataRepository* CacheableCaseWrapperRepository::GetSyncableDataRepository()
+{
+    ClearCachedCases(true);
+    return WrapperRepository::GetSyncableDataRepository();
+}
+
+
+void CacheableCaseWrapperRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_access)
+{
+    ClearCachedCases(false);
+    WrapperRepository::ModifyCaseAccess(std::move(case_access));
+}
+
+
+void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const std::string& key)
 {
     const auto& case_lookup = m_casesByKey.find(key);
 
@@ -117,7 +138,7 @@ void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const CString& ke
 }
 
 
-void CacheableCaseWrapperRepository::ReadCase(Case& data_case, double position_in_repository)
+void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const double position_in_repository)
 {
     const auto& case_lookup = m_casesByPosition.find(position_in_repository);
 
@@ -134,7 +155,14 @@ void CacheableCaseWrapperRepository::ReadCase(Case& data_case, double position_i
 }
 
 
-void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/)
+void CacheableCaseWrapperRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
+{
+    WrapperRepository::ReadCaseByUuid(data_case, uuid);
+    CacheCase(data_case, false);
+}
+
+
+void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     // this should only be triggered by writecase calls, which means that we can cache by key as well
     ASSERT(write_case_parameter == nullptr && !data_case.GetDeleted());
@@ -143,7 +171,7 @@ void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParamet
 
     if( m_positionsInRepositoryChangeOnModification )
     {
-        ClearCachedCases();
+        ClearCachedCases(true);
     }
 
     else
@@ -156,49 +184,67 @@ void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParamet
 }
 
 
-void CacheableCaseWrapperRepository::DeleteCase(double position_in_repository, bool deleted/* = true*/)
+template<typename MapT, typename LookupT>
+void CacheableCaseWrapperRepository::DeleteCaseWorker(MapT& cases_map, const LookupT& lookup_value)
 {
     ClearCachedIterations();
 
     if( m_positionsInRepositoryChangeOnModification )
     {
-        ClearCachedCases();
+        ClearCachedCases(true);
     }
 
     // lookup the case so that we can delete it from both the key and position maps
-    else if( const auto& case_lookup = m_casesByPosition.find(position_in_repository); case_lookup != m_casesByPosition.cend() )
+    else
     {
-        ClearCachedCase(*case_lookup->second);
+        const auto& case_lookup = cases_map.find(lookup_value);
+
+        if( case_lookup != cases_map.cend() )
+            ClearCachedCase(*case_lookup->second);
     }
+}
+
+
+void CacheableCaseWrapperRepository::DeleteCase(const double position_in_repository, const bool deleted/* = true*/)
+{
+    DeleteCaseWorker(m_casesByPosition, position_in_repository);
 
     WrapperRepository::DeleteCase(position_in_repository, deleted);
 }
 
 
-std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-    std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-    const CaseIteratorParameters* start_parameters/* = nullptr*/, size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
+void CacheableCaseWrapperRepository::DeleteCase(const std::string& key)
+{
+    DeleteCaseWorker(m_casesByKey, key);
+
+    WrapperRepository::DeleteCase(key);
+}
+
+
+std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
+                                                                             const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
+                                                                             const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     // create a hash value representing the options (except for the iteration content);
     // this method could be smarter and, for example, reuse a past iteration if only the
     // iteration order has changed, but that is rare so it won't be implemented (for now)
     size_t iteration_hash_value = 0;
 
-    Hash::Combine(iteration_hash_value, (int)case_status);
+    Hash::Combine(iteration_hash_value, static_cast<int>(case_status));
 
     if( iteration_method.has_value() )
-        Hash::Combine(iteration_hash_value, (int)*iteration_method);
+        Hash::Combine(iteration_hash_value, static_cast<int>(*iteration_method));
 
     if( iteration_order.has_value() )
-        Hash::Combine(iteration_hash_value, (int)*iteration_order);
+        Hash::Combine(iteration_hash_value, static_cast<int>(*iteration_order));
 
     if( start_parameters != nullptr )
     {
-        Hash::Combine(iteration_hash_value, (int)start_parameters->start_type);
+        Hash::Combine(iteration_hash_value, static_cast<int>(start_parameters->start_type));
 
-        if( std::holds_alternative<CString>(start_parameters->first_key_or_position) )
+        if( std::holds_alternative<std::string>(start_parameters->first_key_or_position) )
         {
-            Hash::Combine(iteration_hash_value, wstring_view(std::get<CString>(start_parameters->first_key_or_position)));
+            Hash::Combine(iteration_hash_value, std::get<std::string>(start_parameters->first_key_or_position));
         }
 
         else
@@ -207,9 +253,9 @@ std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(Cas
         }
 
         if( start_parameters->key_prefix.has_value() )
-            Hash::Combine(iteration_hash_value, wstring_view(*start_parameters->key_prefix));
+            Hash::Combine(iteration_hash_value, *start_parameters->key_prefix);
     }
-    
+
     Hash::Combine(iteration_hash_value, offset);
     Hash::Combine(iteration_hash_value, limit);
 
@@ -218,22 +264,109 @@ std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(Cas
     // reuse a previous iteration if possible
     if( cached_iterations_lookup != m_cachedIterations.cend() )
     {
-        return std::make_unique<CacheableCaseWrapperRepositorySecondPassCaseIterator>(cached_iterations_lookup->second);
+        return std::make_unique<CCWR_SecondPassCaseIterator>(cached_iterations_lookup->second);
     }
 
     else
     {
-        auto iterator = m_repository->CreateIterator(iteration_content, case_status, iteration_method, iteration_order, start_parameters, offset, limit);
+        std::unique_ptr<CaseIterator> case_iterator = WrapperRepository::CreateIterator(iteration_content, case_status,
+                                                                                        iteration_method, iteration_order,
+                                                                                        start_parameters, offset, limit);
 
         // if not iterating cases, there is no need to wrap the iterator
         if( iteration_content != CaseIterationContent::Case )
         {
-            return iterator;
+            return case_iterator;
         }
 
         else
         {
-            return std::make_unique<CacheableCaseWrapperRepositoryFirstPassCaseIterator>(this, iteration_hash_value, std::move(iterator));
+            return std::make_unique<CCWR_FirstPassCaseIterator>(*this, iteration_hash_value, std::move(case_iterator));
         }
     }
+}
+
+
+
+// --------------------------------------------------------------------------
+// CCWR_FirstPassCaseIterator
+// --------------------------------------------------------------------------
+
+CCWR_FirstPassCaseIterator::CCWR_FirstPassCaseIterator(CacheableCaseWrapperRepository& cacheable_case_wrapper_repository,
+                                                       const size_t iteration_hash_value, std::unique_ptr<CaseIterator> case_iterator)
+    :   WrapperRepositoryCaseIterator(std::move(case_iterator)),
+        m_cacheableCaseWrapperRepository(cacheable_case_wrapper_repository),
+        m_iterationHashValue(iteration_hash_value)
+{
+}
+
+
+bool CCWR_FirstPassCaseIterator::NextCase(Case& data_case)
+{
+    const bool case_read = WrapperRepositoryCaseIterator::NextCase(data_case);
+
+    if( case_read )
+    {
+        m_cachedCases.emplace_back(m_cacheableCaseWrapperRepository.CacheCase(data_case, false));
+    }
+
+    // when all cases have been read, the iteration order can be saved for future use
+    else
+    {
+        m_cacheableCaseWrapperRepository.m_cachedIterations.emplace(m_iterationHashValue, m_cachedCases);
+    }
+
+    return case_read;
+}
+
+
+
+// --------------------------------------------------------------------------
+// CCWR_SecondPassCaseIterator
+// --------------------------------------------------------------------------
+
+CCWR_SecondPassCaseIterator::CCWR_SecondPassCaseIterator(const std::vector<std::shared_ptr<Case>>& cases)
+    :   m_cases(cases),
+        m_iterator(m_cases.cbegin()),
+        m_percentMultiplier(CreatePercentMultiplier(m_cases.size()))
+{
+}
+
+
+bool CCWR_SecondPassCaseIterator::NextCaseKey(CaseKey& case_key)
+{
+    return Next(case_key);
+}
+
+
+bool CCWR_SecondPassCaseIterator::NextCaseSummary(CaseSummary& case_summary)
+{
+    return Next(case_summary);
+}
+
+
+bool CCWR_SecondPassCaseIterator::NextCase(Case& data_case)
+{
+    return Next(data_case);
+}
+
+
+int CCWR_SecondPassCaseIterator::GetPercentRead() const
+{
+    const size_t cases_read = m_iterator - m_cases.cbegin();
+    return static_cast<int>(cases_read * m_percentMultiplier);
+}
+
+
+template<typename T>
+bool CCWR_SecondPassCaseIterator::CCWR_SecondPassCaseIterator::Next(T& case_object)
+{
+    if( m_iterator != m_cases.cend() )
+    {
+        case_object = *(*m_iterator);
+        ++m_iterator;
+        return true;
+    }
+
+    return false;
 }

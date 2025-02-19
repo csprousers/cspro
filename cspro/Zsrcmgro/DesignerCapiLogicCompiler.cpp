@@ -28,28 +28,28 @@ DesignerCapiLogicCompiler::CompileResult DesignerCapiLogicCompiler::Compile(cons
         ClearParserMessages();
 
         // compile the contents of PROC GLOBAL
-        m_procName = _T("GLOBAL");
+        m_procName = "GLOBAL";
 
         CStringArray proc_global_lines;
         CString proc_global_buffer;
 
         if( m_application.GetAppSrcCode() != nullptr )
-            m_application.GetAppSrcCode()->GetProc(proc_global_lines, m_procName);
+            m_application.GetAppSrcCode()->GetProc(proc_global_lines, UTF8_TODO::GetCString(m_procName));
 
         CSourceCode::ArrayToString(&proc_global_lines, proc_global_buffer, true);
 
-        BackgroundCompiler::Compile(proc_global_buffer);    
+        BackgroundCompiler::Compile(std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(proc_global_buffer)));
 
         // compile the CAPI logic
         if( std::holds_alternative<int>(capi_logic_parameters.symbol_index_or_name) )
         {
-            m_procName = WS2CS(NPT_Ref(std::get<int>(capi_logic_parameters.symbol_index_or_name)).GetName());
+            m_procName = NPT_Ref(std::get<int>(capi_logic_parameters.symbol_index_or_name)).GetName();
         }
 
         else
         {
             ASSERT(false);
-            m_procName = std::get<CString>(capi_logic_parameters.symbol_index_or_name);
+            m_procName = std::get<std::string>(capi_logic_parameters.symbol_index_or_name);
         }
 
         expression = m_compIFaz->m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
@@ -69,6 +69,6 @@ DesignerCapiLogicCompiler::CompileResult DesignerCapiLogicCompiler::Compile(cons
             break;
         }
     }
-        
+
     return result;
 }

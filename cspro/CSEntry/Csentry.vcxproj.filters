@@ -15,22 +15,31 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Zissalib\CsKernel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryCommandLineInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CaseView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSEntry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Zissalib\CsKernel.cpp">
+    <ClCompile Include="CustMsg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CustMsg.cpp">
+    <ClCompile Include="DEBaseEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DEEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DEGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DETextEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DiscDlg.cpp">
@@ -43,6 +52,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DisPMDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GoToDlg.cpp">
@@ -63,10 +75,19 @@
     <ClCompile Include="Opdlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OperatorStatistics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorStatisticsLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Page1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Page2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestionnaireSearchDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rundoc.cpp">
@@ -87,32 +108,11 @@
     <ClCompile Include="XSplWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DynamicMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DEBaseEdit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DETextEdit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProgressDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BinaryCommandLineInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorStatisticsLog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorStatistics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QuestionnaireSearchDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BinaryCommandLineInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CaseView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -122,10 +122,16 @@
     <ClInclude Include="CustMsg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DEBaseEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DEEdit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DEGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DETextEdit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DiscDlg.h">
@@ -138,6 +144,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DisPMDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GoToDlg.h">
@@ -155,13 +164,28 @@
     <ClInclude Include="MainFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MessageOverrides.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Opdlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorStatistics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorStatisticsLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Page1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Page2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestionnaireSearchDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rundoc.h">
@@ -179,57 +203,18 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XSplWnd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DynamicMenu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DEBaseEdit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DETextEdit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgressDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BinaryCommandLineInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorStatisticsLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorStatistics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuestionnaireSearchDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageOverrides.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
+    <ClInclude Include="XSplWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\apartial.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\complete.ico">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\CSEntry.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\empty.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\mpartial.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\node.ico">
@@ -238,21 +223,10 @@
     <None Include="res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\vpartial.ico">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CSEntry.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="res\vcomplete.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\deleted.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
   </ItemGroup>
 </Project>

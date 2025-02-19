@@ -29,10 +29,10 @@ BOOL SelectAppDlg::OnInitDialog()
         SetWindowText(m_dialogTitle);
 
     // populate the list and select the first application
-    CListBox* pList = (CListBox*)GetDlgItem(IDC_APPLIST);
+    CListBox* const pList = static_cast<CListBox*>(GetDlgItem(IDC_APPLIST));
 
-    for( const CAplDoc* pAplDoc : m_applicationDocs )
-        pList->AddString(pAplDoc->GetAppObject().GetLabel());
+    for( const CAplDoc* const pAplDoc : m_applicationDocs )
+        pList->AddString(TC::ToWide(pAplDoc->GetAppObject().GetLabel()).c_str());
 
     m_selectedIndex = 0;
 

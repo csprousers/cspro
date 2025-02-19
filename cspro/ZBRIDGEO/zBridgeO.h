@@ -21,3 +21,8 @@
 #else
 #define CLASS_DECL_ZBRIDGEO
 #endif
+
+
+#ifdef WIN_DESKTOP
+extern AFX_EXTENSION_MODULE zBridgeODLL;
+#endif

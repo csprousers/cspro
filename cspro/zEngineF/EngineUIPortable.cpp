@@ -47,9 +47,9 @@ long EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_a
 }
 
 
-long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::wstring& html_dialogs_directory)
+long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory)
 {
-    html_dialogs_directory = m_baseApplicationInterface.GetHtmlDialogsDirectory();
+    html_dialogs_directory = UTF8_TODO::GetUtf8(m_baseApplicationInterface.GetHtmlDialogsDirectory());
     return 1;
 }
 

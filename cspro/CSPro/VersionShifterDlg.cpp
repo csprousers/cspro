@@ -12,24 +12,24 @@ END_MESSAGE_MAP()
 VersionShifterDlg::VersionShifterDlg(CWnd* pParent/* = nullptr*/)
     :   CDialog(VersionShifterDlg::IDD, pParent)
 {
-    // search in the (32-bit) Program Files folder for CSPro installations
+    // search in the (32-bit) Program Files directory for CSPro installations
     m_versionPaths = DirectoryLister().SetRecursive(false)
                                       .SetIncludeFiles(false)
                                       .SetIncludeDirectories(true)
-                                      .SetNameFilter(_T("CSPro*"))
+                                      .SetNameFilter("CSPro*")
                                       .GetPaths(GetWindowsSpecialFolder(WindowsSpecialFolder::ProgramFiles32));
 
     // see what version is currently being used
     WinRegistry registry;
-    CString current_exe;
+    std::string current_exe;
 
-    if( registry.Open(HKEY_LOCAL_MACHINE,_T("Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\CSPro.exe")) )
-        registry.ReadString(nullptr, &current_exe);
+    if( registry.Open(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\CSPro.exe") )
+        registry.ReadString("", current_exe);
 
-    // make sure that each folder has CSPro.exe and get the index of the current selection
+    // make sure that each directory has CSPro.exe and get the index of the current selection
     for( auto version_path_itr = m_versionPaths.begin(); version_path_itr != m_versionPaths.end(); )
     {
-        if( !PortableFunctions::FileIsRegular(PortableFunctions::PathAppendToPath(*version_path_itr, _T("CSPro.exe"))) )
+        if( !PortableFunctions::FileIsRegular(Path::Combine(*version_path_itr, "CSPro.exe")) )
         {
             version_path_itr = m_versionPaths.erase(version_path_itr);
         }
@@ -49,12 +49,12 @@ BOOL VersionShifterDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_ELIGIBLE_VERSIONS);
+    CComboBox* const pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_ELIGIBLE_VERSIONS));
 
-    for( const std::wstring& version_path : m_versionPaths )
+    for( const std::string& version_path : m_versionPaths )
     {
-        // add just the folder name
-        pCombo->AddString(PortableFunctions::PathGetFilename(PortableFunctions::PathRemoveTrailingSlash(version_path)));
+        // add just the directory name
+        pCombo->AddString(TC::ToWide(PortableFunctions::PathGetFilename(PortableFunctions::PathRemoveTrailingSlash(version_path))).c_str());;
     }
 
     // if no version was found in the registry, select the last item in the list
@@ -62,7 +62,7 @@ BOOL VersionShifterDlg::OnInitDialog()
         m_currentIndex = m_versionPaths.size() - 1;
 
     if( m_currentIndex.has_value() )
-        pCombo->SetCurSel((int)*m_currentIndex);
+        pCombo->SetCurSel(static_cast<int>(*m_currentIndex));
 
     return TRUE;
 }
@@ -73,6 +73,7 @@ bool SetRegistryStringValue(HKEY hKey, TCHAR* value_name, NullTerminatedString v
     return RegSetValueEx(hKey, value_name, 0, REG_SZ, (BYTE*)value.c_str(), sizeof(TCHAR) * ( value.length() + 1 )) == ERROR_SUCCESS;
 }
 
+
 void SetRegistryFileAssociation(CString csDocumentName, bool* pbSuccess, const std::wstring* pcsOpenExe, int iIconIndex,
                                 const std::wstring* pcsRunExe = NULL, const std::wstring* pcsPackExe = NULL, const std::wstring* pcsPublishExe = NULL,
                                 const std::wstring* pcsEditExe = NULL, const std::wstring* pcsIconExe = NULL)
@@ -80,13 +81,13 @@ void SetRegistryFileAssociation(CString csDocumentName, bool* pbSuccess, const s
     if( !*pbSuccess )
         return;
 
-    csDocumentName.Format(_T("CSPro%s.Document"), (LPCTSTR)csDocumentName);
+    csDocumentName.Format(_T("CSPro%s.Document"), csDocumentName.GetString());
 
     HKEY hKey;
     CString csKeyName;
 
     // the icon
-    csKeyName.Format(_T("%s\\DefaultIcon"), (LPCTSTR)csDocumentName);
+    csKeyName.Format(_T("%s\\DefaultIcon"), csDocumentName.GetString());
     *pbSuccess = RegOpenKey(HKEY_CLASSES_ROOT,csKeyName,&hKey) == ERROR_SUCCESS;
 
     if( *pbSuccess )
@@ -108,7 +109,7 @@ void SetRegistryFileAssociation(CString csDocumentName, bool* pbSuccess, const s
         if( ( i == 1 && pcsRunExe == NULL ) || ( i == 2 && pcsPackExe == NULL ) || ( i == 3 && pcsPublishExe == NULL ) || ( i == 4 && pcsEditExe == NULL ) )
             continue;
 
-        csKeyName.Format(_T("%s\\shell\\%s\\command"), (LPCTSTR)csDocumentName, (LPCTSTR)aCommands[i]);
+        csKeyName.Format(_T("%s\\shell\\%s\\command"), csDocumentName.GetString(), aCommands[i]);
         *pbSuccess = RegOpenKey(HKEY_CLASSES_ROOT,csKeyName,&hKey) == ERROR_SUCCESS;
 
         if( *pbSuccess )
@@ -135,6 +136,7 @@ void SetRegistryFileAssociation(CString csDocumentName, bool* pbSuccess, const s
     }
 }
 
+
 void VersionShifterDlg::OnBnClickedOk()
 {
     CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_ELIGIBLE_VERSIONS);
@@ -158,33 +160,33 @@ void VersionShifterDlg::OnBnClickedOk()
         CSProExecutables::Program::ProductionRunner,
         CSProExecutables::Program::SaveArrayViewer,
         CSProExecutables::Program::PffEditor,
-        CSProExecutables::Program::DataViewer,
+        CSProExecutables::Program::DataManager,
         CSProExecutables::Program::Excel2CSPro,
         CSProExecutables::Program::ParadataViewer,
         CSProExecutables::Program::CSDeploy
     };
 
-    const size_t ExecutablesRequired = 11;
+    constexpr size_t ExecutablesRequired = 11;
 
     enum { cspro, csentry, csbatch, cstab, tblview, cssort, csfreq, csdiff, csexport, runpff,
-           cspack, productionRunner, saveArrayViewer, pffEditor, dataViewer, excel2CSPro,
-           paradataViewer, csdeploy };
+           cspack, productionRunner, saveArrayViewer, pffEditor, dataManager,
+           excel2CSPro, paradataViewer, csdeploy };
 
     std::vector<std::wstring> executables;
 
     // make sure that all of the required executables exist
     for( size_t i = 0; i < _countof(aeExecutables); ++i )
     {
-        std::wstring exe_filename = PortableFunctions::PathAppendToPath(m_versionPaths[iSelection], CSProExecutables::GetExecutableName(aeExecutables[i]));
+        const std::string exe_path = Path::Combine(m_versionPaths[iSelection], CSProExecutables::GetExecutableName(aeExecutables[i]));
 
-        if( i < ExecutablesRequired && !PortableFunctions::FileIsRegular(exe_filename) )
+        if( i < ExecutablesRequired && !PortableFunctions::FileIsRegular(exe_path) )
         {
-            AfxMessageBox(FormatText(_T("It was not possible to change the version because the file %s was missing."),
-                                     (LPCTSTR)CSProExecutables::GetExecutableName(aeExecutables[i])));
+            AfxMessageBox(FormatText("It was not possible to change the version because the file '%s' was missing.",
+                                     PortableFunctions::PathGetFilename(exe_path).c_str()));
             return;
         }
 
-        executables.emplace_back(std::move(exe_filename));
+        executables.emplace_back(TC::ToWide(exe_path));
     }
 
     bool bSuccess = true;
@@ -194,7 +196,7 @@ void VersionShifterDlg::OnBnClickedOk()
 
     if( bSuccess )
     {
-        bSuccess = SetRegistryStringValue(hKey, _T("Path"), m_versionPaths[iSelection]);
+        bSuccess = SetRegistryStringValue(hKey, _T("Path"), TC::ToWide(m_versionPaths[iSelection]));
 
         if( bSuccess )
             bSuccess = SetRegistryStringValue(hKey, NULL, executables[cspro]);
@@ -229,10 +231,10 @@ void VersionShifterDlg::OnBnClickedOk()
         if( PortableFunctions::FileIsRegular(executables[saveArrayViewer]) )
             SetRegistryFileAssociation(_T("SaveArray"),&bSuccess,&executables[saveArrayViewer],0); // .sva
 
-        if( PortableFunctions::FileIsRegular(executables[dataViewer]) )
+        if( PortableFunctions::FileIsRegular(executables[dataManager]) )
         {
-            SetRegistryFileAssociation(_T("DataFile"),&bSuccess,&executables[dataViewer],0); // .csdb
-            SetRegistryFileAssociation(_T("EncryptedDataFile"),&bSuccess,&executables[dataViewer],0); // .csdbe
+            SetRegistryFileAssociation(_T("DataFile"),&bSuccess,&executables[dataManager],1); // .csdb
+            SetRegistryFileAssociation(_T("EncryptedDataFile"),&bSuccess,&executables[dataManager],0); // .csdbe
         }
 
         if( PortableFunctions::FileIsRegular(executables[excel2CSPro]) )
@@ -247,7 +249,7 @@ void VersionShifterDlg::OnBnClickedOk()
 
     CString csMessage;
     pCombo->GetWindowText(csMessage);
-    csMessage.Format(_T("The version was %ssuccessfully set to %s.%s"),bSuccess ? _T("") : _T("un"), (LPCTSTR)csMessage, bSuccess ? _T("") : _T(" You may need to run CSPro as an administrator for this to work."));
+    csMessage.Format(_T("The version was %ssuccessfully set to %s.%s"),bSuccess ? _T("") : _T("un"), csMessage.GetString(), bSuccess ? _T("") : _T(" You may need to run CSPro as an administrator for this to work."));
     AfxMessageBox(csMessage);
 
     CDialog::OnOK();

@@ -26,6 +26,7 @@ add_library(${PROJECT_NAME}
     PropertyEvent.cpp
     SessionEvent.cpp
     Syncer.cpp
+    SyncEvents.cpp
     Table.cpp
     TableDefinitions.cpp
 )

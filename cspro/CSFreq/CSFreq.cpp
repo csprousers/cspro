@@ -1,13 +1,12 @@
-﻿// CSFreq.cpp : Defines the class behaviors for the application.
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "CSFreq.h"
 #include "FreqDoc.h"
 #include "FreqView.h"
 #include "MainFrm.h"
+#include <zUtilO/CommandLineParsers.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
+#include <zUtilF/CommonControls.h>
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CSFreqApp
@@ -22,8 +21,7 @@ END_MESSAGE_MAP()
 // CSFreqApp construction
 
 CSFreqApp::CSFreqApp()
-    :   m_hIcon(nullptr),
-        m_iReturnCode(0)
+    :   m_iReturnCode(0)
 {
     InitializeCSProEnvironment();
 
@@ -42,7 +40,9 @@ CSFreqApp theApp;
 
 BOOL CSFreqApp::InitInstance()
 {
-    CWinApp::InitInstance();
+    InitializeCommonControls();
+
+    __super::InitInstance();
 
     // Initialize OLE libraries
     if (!AfxOleInit())
@@ -58,12 +58,9 @@ BOOL CSFreqApp::InitInstance()
     // Change the registry key under which our settings are stored.
     // TODO: You should modify this string to be something appropriate
     // such as the name of your company or organization.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
-
-    m_csModuleName = _T("CSPro Tabulate Frequencies");
-    m_hIcon = LoadIcon(IDR_MAINFRAME);
 
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
@@ -81,11 +78,11 @@ BOOL CSFreqApp::InitInstance()
     RegisterShellFileTypes(TRUE);
 
     // Parse command line for standard shell commands, DDE, file open
-    CCommandLineInfo cmdInfo;
-    ParseCommandLine(cmdInfo);
+    ConnectionStringCommandLineParser command_line_parser(&m_connectionStringFileSimulator);
+    ParseCommandLine(command_line_parser);
 
     // Dispatch commands specified on the command line
-    if (!ProcessShellCommand(cmdInfo))
+    if (!ProcessShellCommand(command_line_parser))
         return FALSE;
 
     // size and center the window
@@ -93,18 +90,21 @@ BOOL CSFreqApp::InitInstance()
     m_pMainWnd->CenterWindow();
 
     // Dispatch commands specified on the command line
-    if( cmdInfo.m_nShellCommand == CCommandLineInfo::FileNew )
-        OnFileOpen();
-
-    else if( cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen )
+    if( command_line_parser.m_nShellCommand == CCommandLineInfo::FileNew )
     {
-        OpenDocumentFile(cmdInfo.m_strFileName);
+        OnFileOpen();
+    }
+
+    else if( command_line_parser.m_nShellCommand == CCommandLineInfo::FileOpen )
+    {
+        OpenDocumentFile(command_line_parser.m_strFileName);
         ManageLanguageDlgBar();
     }
 
-    else if( !ProcessShellCommand(cmdInfo) )
+    else if( !ProcessShellCommand(command_line_parser) )
+    {
         return FALSE;
-
+    }
 
     CMainFrame* pmainframe = (CMainFrame*)m_pMainWnd;
 
@@ -124,7 +124,9 @@ BOOL CSFreqApp::InitInstance()
     }
 
     else if( m_iReturnCode == 8 )
-        AfxMessageBox(_T("Failed to run CSFreq"));
+    {
+        AfxMessageBox(L"Failed to run CSFreq");
+    }
 
     // The one and only window has been initialized, so show and update it.
     m_pMainWnd->ShowWindow(SW_SHOW);
@@ -137,10 +139,8 @@ BOOL CSFreqApp::InitInstance()
 // App command to run the dialog
 void CSFreqApp::OnAppAbout()
 {
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = m_hIcon;
-    dlg.m_csModuleName = m_csModuleName;
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }
 
 
@@ -156,28 +156,30 @@ void CSFreqApp::OnAppAbout()
 /////////////////////////////////////////////////////////////////////////////////
 void CSFreqApp::OnFileOpen()
 {
-    CIMSAString csLastDict = AfxGetApp()->GetProfileString(_T("Settings"),_T("Last Open"),_T(""));
-    CIMSAString csFilter;
-    csFilter = _T("Frequency Specification, Data Dictionary, or CSPro DB Files|*.dcf;*.fqf;*.csdb;*.csdbe|All Files (*.*)|*.*||");
-    CIMSAFileDialog dlgFile(TRUE, _T("dcf, fqf, csdb, csdbe"), csLastDict, OFN_HIDEREADONLY, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Open Frequency, Dictionary, or Data File");
-    if (dlgFile.DoModal() == IDOK) {
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-        OpenDocumentFile(dlgFile.GetPathName());
+    OpenFileDlg open_file_dlg(0, L"dcf, fqf, csdb, csdbe", AfxGetApp()->GetProfileString(L"Settings", L"Last Open", L""),
+                              L"Frequency Specification, Data Dictionary, or CSPro DB Files|*.dcf;*.fqf;*.csdb;*.csdbe|All Files (*.*)|*.*||");
+    open_file_dlg.SetTitle(L"Open Frequency, Dictionary, or Data File");
 
-        ManageLanguageDlgBar();
-    }
+    if( open_file_dlg.DoModal() != IDOK )
+        return;
+
+    const std::wstring wide_file_path = TC::ToWide(open_file_dlg.GetFilePath());
+
+    AfxGetApp()->AddToRecentFileList(wide_file_path.c_str());
+
+    OpenDocumentFile(wide_file_path.c_str());
+    ManageLanguageDlgBar();
 }
 
 
 void CSFreqApp::ManageLanguageDlgBar()
 {
-    CMainFrame* pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
-    CSFreqDoc* pDocument = assert_cast<CSFreqDoc*>(pMainFrame->GetActiveDocument());
-    const CDataDict* dictionary = pDocument->GetDataDict();
+    CMainFrame* const pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
+    CSFreqDoc* const pDocument = assert_cast<CSFreqDoc*>(pMainFrame->GetActiveDocument());
+    const CDataDict* const dictionary = pDocument->GetDataDict();
     ASSERT(dictionary != nullptr);
 
-    bool show_language_bar = ( dictionary->GetLanguages().size() > 1 );
+    const bool show_language_bar = ( dictionary->GetLanguages().size() > 1 );
 
     if( show_language_bar )
         pMainFrame->GetLangDlgBar().UpdateLanguageList(*dictionary);

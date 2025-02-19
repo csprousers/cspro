@@ -30,6 +30,9 @@
     <ClCompile Include="HITEM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Icons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="IItemCnf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,13 +48,10 @@
     <ClCompile Include="TreeItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="xTCtrl.cpp">
+    <ClCompile Include="Xtctrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zCaseTreeF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Icons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -307,10 +307,16 @@
     <ClInclude Include="HITEM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Icons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="IItemCnf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MsgParam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
@@ -325,19 +331,13 @@
     <ClInclude Include="TreeItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="xTCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zCaseTreeF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Icons.h">
+    <ClInclude Include="Xtctrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zCaseTreeF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

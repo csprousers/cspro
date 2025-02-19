@@ -45,7 +45,7 @@ const Logic::SymbolTable& CSymbolVar::GetSymbolTable() const
 //
 /////////////////////////////////////////////////////////////////////////////
 
-CSymbolVar::CSymbolVar(std::wstring name, CEngineDriver* pEngineDriver)
+CSymbolVar::CSymbolVar(std::string name, CEngineDriver* pEngineDriver)
     :   ChainedSymbol(std::move(name), SymbolType::Variable),
         m_engineBlock(nullptr)
 {
@@ -123,23 +123,20 @@ CSymbolVar::CSymbolVar(std::wstring name, CEngineDriver* pEngineDriver)
     m_aSizeForThisType[CDimension::SubItem] = 1;
 
 #ifdef WIN_DESKTOP
-    SetHKL(NULL); // GHM 20120820
+    SetHKL(NULL); // 20120820
 #endif
 
-	m_showQuestionText = true;
+    m_showQuestionText = true;
     m_showExtendedControl = true;
     m_showExtendedControlTitle = true;
     m_capturePos = POINT { -1, -1 };
 
-    m_pLogicString = nullptr;
-
-    SetDummyPersistent(false); // GHM 20121120 for boost serialization all bools must be initialized
+    SetDummyPersistent(false); // 20121120 for boost serialization all bools must be initialized
 }
 
 CSymbolVar::~CSymbolVar()
 {
     DeleteCurrentValueSet();
-    delete m_pLogicString;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -847,9 +844,9 @@ void CSymbolVar::SetShowExtendedControl(bool flag)
 }
 
 
-Symbol* CSymbolVar::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* CSymbolVar::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
-    for( Symbol* symbol : GetSymbolTable().FindSymbols(symbol_name) )
+    for( Symbol* const symbol : GetSymbolTable().FindSymbols(symbol_name_sv) )
     {
         // only value sets can be children of the variable
         if( symbol->IsA(SymbolType::ValueSet) && assert_cast<const ValueSet*>(symbol)->GetVarT() == this )
@@ -961,9 +958,6 @@ void CSymbolVar::serialize_subclass(Serializer& ar)
 
         SetOwnerGroup(m_iSymGroup);
         SetSubItemOf(m_iOwnerSymItem);
-
-        if( m_cFmt == _T('A') && m_iLength == 0 ) // GHM 20140326 a variable length string, so initialize the memory
-            AllocateLogicStringMemory();
     }
 }
 
@@ -993,7 +987,7 @@ public:
 
     bool HasValue() override;
     bool IsValid() override;
-    std::wstring GetValueLabel(const std::optional<std::wstring>& language) override;
+    std::string GetValueLabel(const std::optional<std::string>& language) override;
 
 private:
     const VART& m_variable;
@@ -1020,9 +1014,9 @@ bool VART_EngineItemAccessor::IsValid()
 }
 
 
-std::wstring VART_EngineItemAccessor::GetValueLabel(const std::optional<std::wstring>& /*language*/)
+std::string VART_EngineItemAccessor::GetValueLabel(const std::optional<std::string>& /*language*/)
 {
-    return ReturnProgrammingError(std::wstring()); // ENGINECR_TODO
+    return ReturnProgrammingError(std::string()); // ENGINECR_TODO
 }
 
 

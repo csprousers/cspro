@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CScatDlg.h"
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/PathHelpers.h>
 #include <zConcatO/Concatenator.h>
 #include <ZBRIDGEO/DataFileDlg.h>
@@ -31,7 +31,7 @@ BEGIN_MESSAGE_MAP(CCSConcatDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-CCSConcatDlg::CCSConcatDlg(CWnd* pParent/* = nullptr*/)
+CCSConcatDlg::CCSConcatDlg(CWnd* const pParent/* = nullptr*/)
     :   CDialog(CCSConcatDlg::IDD, pParent),
         m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME))
 {
@@ -39,13 +39,13 @@ CCSConcatDlg::CCSConcatDlg(CWnd* pParent/* = nullptr*/)
 }
 
 
-void CCSConcatDlg::DoDataExchange(CDataExchange* pDX)
+void CCSConcatDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_FILELIST, m_fileList);
     DDX_Text(pDX, IDC_OUTPUT, m_outputConnectionString);
-    DDX_Text(pDX, IDC_DICTIONARY, m_dictionaryFilename);
+    DDX_Text(pDX, IDC_DICTIONARY, m_dictionaryFilePath);
 }
 
 
@@ -61,14 +61,14 @@ BOOL CCSConcatDlg::OnInitDialog()
     SetIcon(m_hIcon, TRUE);
     SetIcon(m_hIcon, FALSE);
 
-    m_fileList.SetExtendedStyle( LVS_EX_FULLROWSELECT );
-    m_fileList.SetHeadings(_T("Name,120;Directory,200;Type,120;Date,120;Size,90"));
+    m_fileList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+    m_fileList.SetHeadings(L"Name,120;Directory,200;Type,120;Date,120;Size,90");
     m_fileList.LoadColumnInfo();
     m_bDragging = FALSE;
 
     // set up the callback to allow the dragging of files onto the list of input data
     m_fileList.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::RecurseInto,
-        [&](const std::vector<std::wstring>& paths)
+        [&](const std::vector<std::string>& paths)
         {
             OnDropFiles(paths);
         });
@@ -99,23 +99,23 @@ void CCSConcatDlg::SetDefaultPffSettings()
 
 void CCSConcatDlg::OnFileOpen()
 {
-    CIMSAFileDialog file_dlg(TRUE, FileExtensions::Pff, nullptr, OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Input PFF");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff, this);
+    open_file_dlg.SetTitle(L"Select Input PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
     m_pff.ResetContents();
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(open_file_dlg.GetFilePath()));
 
     if( !m_pff.LoadPifFile() || m_pff.GetAppType() != CONCAT_TYPE )
     {
-        AfxMessageBox(_T("The PFF could not be read or was not a Concatenate Data PFF."));
+        AfxMessageBox(L"The PFF could not be read or was not a Concatenate Data PFF.");
         SetDefaultPffSettings();
     }
 
     m_outputConnectionString = m_pff.GetSingleOutputDataConnectionString();
-    m_dictionaryFilename = m_pff.GetInputDictFName();
+    m_dictionaryFilePath = UTF8_TODO::GetUtf8(m_pff.GetInputDictFName());
 
     m_fileList.DeleteAllItems();
     AddConnectionStrings(m_pff.GetInputDataConnectionStrings());
@@ -130,27 +130,36 @@ bool CCSConcatDlg::UIToPff(const bool show_errors)
     UpdateData(TRUE);
 
     m_pff.SetSingleOutputDataConnectionString(m_outputConnectionString);
-    m_pff.SetInputDictFName(WS2CS(m_dictionaryFilename));
+    m_pff.SetInputDictFName(UTF8_TODO::GetCString(m_dictionaryFilePath));
 
     m_pff.ClearInputDataConnectionStrings();
 
     for( int i = 0; i < m_fileList.GetItemCount(); ++i )
     {
-        ConnectionString connection_string(m_fileList.GetItemText(i, 0));
-        connection_string.AdjustRelativePath(CS2WS(m_fileList.GetItemText(i, 1)));
+        const size_t connection_string_index = m_fileList.GetItemData(i);
 
-        if( show_errors && m_pff.GetSingleOutputDataConnectionString().Equals(connection_string) )
+        if( connection_string_index >= m_fileListConnectionStrings.size() )
         {
-            const std::wstring message = FormatTextCS2WS(_T("Output file '%s' is also one of the files to concatenate.\n\n")
-                                                         _T("If you proceed, it will concatentate correctly ")
-                                                         _T("but the original copy will be lost.\n\nDo you want to do this?"),
-                                                         m_pff.GetSingleOutputDataConnectionString().GetFilename().c_str());
+            ASSERT(false);
+            continue;
+        }
+
+        const ConnectionString& connection_string = m_fileListConnectionStrings[connection_string_index];
+
+        if( show_errors &&
+            m_pff.GetSingleOutputDataConnectionString().SharesResource(connection_string) &&
+            m_pff.GetSingleOutputDataConnectionString().HasFilePath() )
+        {
+            const std::string message = FormatText("Output data source '%s' is also one of the data sources to concatenate.\n\n"
+                                                   "If you proceed, it will concatentate correctly but the original copy will be lost.\n\n"
+                                                   "Do you want to do this?",
+                                                   m_pff.GetSingleOutputDataConnectionString().ToDisplayString().c_str());
 
             if( AfxMessageBox(message, MB_YESNO | MB_DEFBUTTON2) == IDNO )
                 return false;
         }
 
-        m_pff.AddInputDataConnectionString(std::move(connection_string));
+        m_pff.AddInputDataConnectionString(connection_string);
     }
 
     return true;
@@ -159,19 +168,19 @@ bool CCSConcatDlg::UIToPff(const bool show_errors)
 
 void CCSConcatDlg::OnFileSaveAs()
 {
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::Pff, m_pff.GetPifFileName(), OFN_HIDEREADONLY, FileFilters::Pff);
-    file_dlg.m_ofn.lpstrTitle = _T("Select Output PFF");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Pff, m_pff.GetPifFileName(), FileFilters::Pff, this);
+    save_file_dlg.SetTitle(L"Select Output PFF");
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    m_pff.SetPifFileName(file_dlg.GetPathName());
+    m_pff.SetPifFileName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
 
     UIToPff(false);
 
     // base the listing filename on the PFF filename
     if( m_pff.GetListingFName().IsEmpty() )
-        m_pff.SetListingFName(WS2CS(PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::WithDot::Listing)));
+        m_pff.SetListingFName(WS2CS(PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), UTF8_TODO::GetCString(FileExtensions::Listing))));
 
     m_pff.Save();
 }
@@ -181,20 +190,37 @@ void CCSConcatDlg::AddConnectionStrings(const std::vector<ConnectionString>& con
 {
     for( const ConnectionString& connection_string : connection_strings )
     {
-        for( const ConnectionString& expanded_connection_string : PathHelpers::ExpandConnectionStringWildcards(connection_string) )
+        for( ConnectionString& expanded_connection_string : PathHelpers::ExpandConnectionStringWildcards(connection_string) )
         {
-            if( expanded_connection_string.IsFilenamePresent() )
+            auto add = [&](const std::string_view name_sv, const wchar_t* const directory,
+                           const wchar_t* const date, const wchar_t* const size)
+            {
+                const int pos = m_fileList.AddItem(TC::ToWide(name_sv).c_str(),
+                                                   directory,
+                                                   TC::ToWide(ToString(expanded_connection_string.GetType())).c_str(),
+                                                   date,
+                                                   size);
+
+                m_fileList.SetItemData(pos, m_fileListConnectionStrings.size());
+                m_fileListConnectionStrings.emplace_back(std::move(expanded_connection_string));
+            };
+
+            if( expanded_connection_string.HasFilePath() )
             {
                 CFileStatus file_status;
 
-                if( CFile::GetStatus(expanded_connection_string.GetFilename().c_str(), file_status) )
+                if( CFile::GetStatus(TC::ToWide(expanded_connection_string.GetFilePath()).c_str(), file_status) )
                 {
-                    m_fileList.AddItem(PortableFunctions::PathGetFilename(expanded_connection_string.GetFilename()),
-                                       PortableFunctions::PathGetDirectory(expanded_connection_string.GetFilename()).c_str(),
-                                       ToString(expanded_connection_string.GetType()),
-                                       file_status.m_mtime.Format(_T("%c")).GetString(),
-                                       PortableFunctions::FileSizeString(file_status.m_size).c_str());
+                    add(PortableFunctions::PathGetFilename(expanded_connection_string.GetFilePath()),
+                        TC::ToWide(PortableFunctions::PathGetDirectory(expanded_connection_string.GetFilePath())).c_str(),
+                        file_status.m_mtime.Format(L"%c").GetString(),
+                        TC::ToWide(PortableFunctions::FileSizeString(file_status.m_size)).c_str());
                 }
+            }
+
+            else if( expanded_connection_string.HasUrl() )
+            {
+                add(expanded_connection_string.ToDisplayString(), L"", L"", L"");
             }
         }
     }
@@ -204,11 +230,11 @@ void CCSConcatDlg::AddConnectionStrings(const std::vector<ConnectionString>& con
 void CCSConcatDlg::OnAddFiles()
 {
     DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, m_outputConnectionString);
-    data_file_dlg.SetTitle(_T("Select Files To Concatenate"))
+    data_file_dlg.SetTitle(L"Select Files To Concatenate")
                  .AllowMultipleSelections();
 
     if( m_pff.GetConcatenateMethod() == ConcatenateMethod::Case )
-        data_file_dlg.SetDictionaryFilename(WS2CS(m_dictionaryFilename));
+        data_file_dlg.SetDictionaryFilePath(m_dictionaryFilePath);
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
@@ -226,7 +252,7 @@ void CCSConcatDlg::OnOutputOpen()
     DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false, m_outputConnectionString);
 
     if( m_pff.GetConcatenateMethod() == ConcatenateMethod::Case )
-        data_file_dlg.SetDictionaryFilename(WS2CS(m_dictionaryFilename));
+        data_file_dlg.SetDictionaryFilePath(m_dictionaryFilePath);
 
     if( data_file_dlg.DoModal() != IDOK )
         return;
@@ -242,35 +268,34 @@ void CCSConcatDlg::OnRemove()
 {
     if( m_fileList.GetItemCount() == 0 )
     {
-        AfxMessageBox(_T("No files to remove."));
+        AfxMessageBox(L"No files to remove.");
         return;
     }
 
-    int iFirstSel = m_fileList.GetSelectionMark();
     POSITION pos = m_fileList.GetFirstSelectedItemPosition();
-    CArray<int,int> adellist;
-    if (pos == NULL)
-    {
-       AfxMessageBox(_T("No files selected."));
-    }
-    else
-    {
-       while (pos)
-       {
-          int nItem = m_fileList.GetNextSelectedItem(pos);
-          adellist.Add(nItem);
-//        m_fileList.DeleteItem(nItem-count);
-//        count++;
-          // you could do your own processing on nItem here
-       }
-    }
-    for (int i = adellist.GetSize()-1; i >= 0 ; i--)
-        m_fileList.DeleteItem(adellist[i]);
 
-    if (iFirstSel >= m_fileList.GetItemCount()) {
-        iFirstSel = m_fileList.GetItemCount() - 1;
+    if( pos == nullptr )
+    {
+       AfxMessageBox(L"No files selected.");
+       return;
     }
-    m_fileList.SetItemState(iFirstSel, LVIS_SELECTED | LVIS_FOCUSED , LVIS_SELECTED | LVIS_FOCUSED );
+
+    int selected_index = m_fileList.GetSelectionMark();
+    std::vector<int> indices_to_delete;
+
+    while( pos != nullptr )
+        indices_to_delete.emplace_back(m_fileList.GetNextSelectedItem(pos));
+
+    for( auto indices_to_delete_itr = indices_to_delete.crbegin();
+         indices_to_delete_itr != indices_to_delete.crend();
+         ++indices_to_delete_itr )
+    {
+        m_fileList.DeleteItem(*indices_to_delete_itr);
+    }
+
+    selected_index = std::min(selected_index, m_fileList.GetItemCount() - 1);
+
+    m_fileList.SetItemState(selected_index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     m_fileList.SetFocus();
     PostMessage(UWM::CSConcat::UpdateDialogUI);
 }
@@ -281,8 +306,8 @@ void CCSConcatDlg::OnClear()
     if( m_fileList.GetItemCount() == 0 )
         return;
 
-    const std::wstring prompt = FormatTextCS2WS(_T("Are you sure that you want to clear %d file%s?"),
-                                                m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount()));
+    const std::string prompt = FormatText("Are you sure that you want to clear %d file%s?",
+                                          m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount()));
 
     if( AfxMessageBox(prompt, MB_YESNOCANCEL) != IDYES )
         return;
@@ -371,8 +396,8 @@ void CCSConcatDlg::OnLButtonUp(UINT nFlags, CPoint point)
         // If window is CListCtrl, we perform the drop
         if (pDropWnd->IsKindOf (RUNTIME_CLASS (CListCtrl)))
         {
-//          m_pDropList = (CListCtrl*)pDropWnd; //Set pointer to the list we are dropping on
-            DropItemOnList((CListCtrl*)pDropWnd, (CListCtrl*)pDropWnd); //Call routine to perform the actual drop
+//          m_pDropList = static_cast<CListCtrl*>(pDropWnd); //Set pointer to the list we are dropping on
+            DropItemOnList(static_cast<CListCtrl*>(pDropWnd), static_cast<CListCtrl*>(pDropWnd)); //Call routine to perform the actual drop
         }
     }
 
@@ -407,8 +432,8 @@ void CCSConcatDlg::OnMouseMove(UINT nFlags, CPoint point)
         {
             if (m_nDropIndex != -1) //If we drag over the CListCtrl header, turn off the hover highlight
             {
-                TRACE(_T("m_nDropIndex is -1\n"));
-                CListCtrl* pList = (CListCtrl*)m_pDropWnd;
+                TRACE(L"m_nDropIndex is -1\n");
+                CListCtrl* pList = static_cast<CListCtrl*>(m_pDropWnd);
                 VERIFY (pList->SetItemState (m_nDropIndex, 0, LVIS_DROPHILITED));
                 // redraw item
                 VERIFY (pList->RedrawItems (m_nDropIndex, m_nDropIndex));
@@ -417,8 +442,8 @@ void CCSConcatDlg::OnMouseMove(UINT nFlags, CPoint point)
             }
             else //If we drag out of the CListCtrl altogether
             {
-                TRACE(_T("m_nDropIndex is not -1\n"));
-                CListCtrl* pList = (CListCtrl*)m_pDropWnd;
+                TRACE(L"m_nDropIndex is not -1\n");
+                CListCtrl* pList = static_cast<CListCtrl*>(m_pDropWnd);
                 int i = 0;
                 int nCount = pList->GetItemCount();
                 for(i = 0; i < nCount; i++)
@@ -437,12 +462,12 @@ void CCSConcatDlg::OnMouseMove(UINT nFlags, CPoint point)
         pDropWnd->ScreenToClient(&pt);
 
         //If we are hovering over a CListCtrl we need to adjust the highlights
-        if(pDropWnd->IsKindOf(RUNTIME_CLASS (CListCtrl)))
+        if(pDropWnd->IsKindOf(RUNTIME_CLASS(CListCtrl)))
         {
             //Note that we can drop here
             SetCursor(LoadCursor(NULL, IDC_ARROW));
             UINT uFlags;
-            CListCtrl* pList = (CListCtrl*)pDropWnd;
+            CListCtrl* pList = static_cast<CListCtrl*>(pDropWnd);
 
             // Turn off hilight for previous drop target
             pList->SetItemState (m_nDropIndex, 0, LVIS_DROPHILITED);
@@ -450,7 +475,7 @@ void CCSConcatDlg::OnMouseMove(UINT nFlags, CPoint point)
             pList->RedrawItems (m_nDropIndex, m_nDropIndex);
 
             // Get the item that is below cursor
-            m_nDropIndex = ((CListCtrl*)pDropWnd)->HitTest(pt, &uFlags);
+            m_nDropIndex = (static_cast<CListCtrl*>(pDropWnd))->HitTest(pt, &uFlags);
             // Highlight it
             pList->SetItemState(m_nDropIndex, LVIS_DROPHILITED, LVIS_DROPHILITED);
             // Redraw item
@@ -606,12 +631,12 @@ void CCSConcatDlg::OnEndDragFileList(NMHDR*, LRESULT* pResult)
 }
 
 
-void CCSConcatDlg::OnDropFiles(const std::vector<std::wstring>& filenames)
+void CCSConcatDlg::OnDropFiles(const std::vector<std::string>& paths)
 {
     std::vector<ConnectionString> connection_strings;
 
-    std::transform(filenames.cbegin(), filenames.cend(),
-                   std::back_inserter(connection_strings), [](const std::wstring& filename) { return ConnectionString(filename); });
+    std::transform(paths.cbegin(), paths.cend(),
+                   std::back_inserter(connection_strings), [](const std::string& path) { return ConnectionString(path); });
 
     AddConnectionStrings(connection_strings);
 
@@ -627,7 +652,7 @@ LRESULT CCSConcatDlg::OnUpdateDialogUI(WPARAM /*wParam*/, LPARAM /*lParam*/)
     const bool case_concat = ( m_pff.GetConcatenateMethod() == ConcatenateMethod::Case );
 
     if( case_concat )
-        enable_run &= !SO::IsBlank(m_dictionaryFilename);
+        enable_run &= !SO::IsBlank(m_dictionaryFilePath);
 
     GetDlgItem(IDOK)->EnableWindow(enable_run);
     m_menu.EnableMenuItem(ID_FILE_RUN, enable_run ? MF_ENABLED : MF_DISABLED);
@@ -639,8 +664,8 @@ LRESULT CCSConcatDlg::OnUpdateDialogUI(WPARAM /*wParam*/, LPARAM /*lParam*/)
     static_cast<CButton*>(GetDlgItem(IDC_CONCAT_METHOD_FILE))->SetCheck(case_concat ? BST_UNCHECKED : BST_CHECKED);
 
     // update the number of files
-    WindowsWS::SetDlgItemText(this, IDC_NUMFILES,
-                              FormatTextCS2WS(_T("%d file%s"), m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount())));
+    WindowsUtf8::SetText(this, IDC_NUMFILES,
+                         FormatText("%d file%s", m_fileList.GetItemCount(), PluralizeWord(m_fileList.GetItemCount())));
 
     return 0;
 }
@@ -657,13 +682,13 @@ void CCSConcatDlg::OnBnClickedDictBrowse()
 {
     UpdateData(TRUE);
 
-    CIMSAFileDialog dlg(FALSE, NULL, m_dictionaryFilename.c_str(), OFN_HIDEREADONLY, _T("Data Dictionary Files (*.dcf)|*.dcf||"));
-    dlg.m_ofn.lpstrTitle = _T("Choose Data Dictionary");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Dictionary, m_dictionaryFilePath, FileFilters::Dictionary, this);
+    open_file_dlg.SetTitle(L"Select Dictionary");
 
-    if( dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    m_dictionaryFilename = dlg.GetPathName();
+    m_dictionaryFilePath = open_file_dlg.GetFilePath();
 
     UpdateData(FALSE);
     PostMessage(UWM::CSConcat::UpdateDialogUI);
@@ -699,27 +724,27 @@ void CCSConcatDlg::OnOK()
     // if the listing file hasn't been defined, put it in the same folder as the PFF, or in the temporary folder if the PFF hasn't been saved
     if( m_pff.GetListingFName().IsEmpty() )
     {
-        m_pff.SetListingFName(WS2CS(m_pff.GetPifFileName().IsEmpty() ? PortableFunctions::PathAppendToPath(GetTempDirectory(), _T("CSConcat.lst")) :
-                                                                       PortableFunctions::PathReplaceFileExtension(m_pff.GetPifFileName(), FileExtensions::Listing)));
+        m_pff.SetListingFName(UTF8_TODO::GetCString(m_pff.GetPifFileName().IsEmpty() ? Path::Combine(GetTempDirectory(), "CSConcat.lst") :
+                                                                                       PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pff.GetPifFileName()), FileExtensions::Listing)));
     }
-    
+
     try
     {
         const Concatenator::RunSuccess run_success = Concatenator().Run(m_pff, false);
 
         if( run_success == Concatenator::RunSuccess::Success )
         {
-            AfxMessageBox(_T("Concatenate completed."));
+            AfxMessageBox(L"Concatenate completed.");
         }
 
         else if( run_success == Concatenator::RunSuccess::SuccessWithErrors )
         {
-            AfxMessageBox(_T("Concatenate completed with errors."));
+            AfxMessageBox(L"Concatenate completed with errors.");
         }
 
         else if( run_success == Concatenator::RunSuccess::Errors )
         {
-            AfxMessageBox(_T("Concatenate failed."));
+            AfxMessageBox(L"Concatenate failed.");
         }
     }
 
@@ -738,8 +763,8 @@ void CCSConcatDlg::RunBatch(const std::wstring& pff_filename)
 
         if( !m_pff.LoadPifFile(true) || m_pff.GetAppType() != CONCAT_TYPE )
         {
-            throw CSProException(_T("PFF file %s was not read correctly. Check the file for parameters invalid to CSConcat."),
-                                 m_pff.GetPifFileName().GetString());
+            throw CSProException("PFF file '%s' was not read correctly. Check the file for parameters invalid to CSConcat.",
+                                 UTF8_TODO::GetUtf8(m_pff.GetPifFileName()).c_str());
         }
 
         Concatenator().Run(m_pff, true);

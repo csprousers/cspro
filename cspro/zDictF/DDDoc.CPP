@@ -76,11 +76,11 @@ BOOL CDDDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
         if( m_dictionary->IsPosRelative() )
             GetDictionaryValidator()->AdjustStartPositions();
-        
+
         if( !GetDictionaryValidator()->IsValid(GetDict(), FALSE, TRUE) )
         {
             // Error found and corrected
-            SetModified();                                    
+            SetModified();
         }
 
         GetDictionaryValidator()->IsValidSave(*m_dictionary);
@@ -154,7 +154,7 @@ BOOL CDDDoc::OnSaveDocument(LPCTSTR lpszPathName)
     try
     {
         m_dictionary->UpdatePointers();
-        m_dictionary->Save(lpszPathName);
+        m_dictionary->Save(TC::ToUtf8(lpszPathName));
         SetModified(FALSE);
     }
 
@@ -195,7 +195,7 @@ void CDDDoc::PushUndo(const DictNamedBase& dict_element, int iCurLevel/* = NONE*
 DDUndoObject CDDDoc::DuplicateUndoObject(const DDUndoObject& undo_object)
 {
     std::unique_ptr<DictNamedBase> dict_element;
-        
+
     if( undo_object.m_pUndoObject->GetElementType() == DictElementType::Dictionary )
     {
         dict_element = m_dictionary->Clone();
@@ -550,13 +550,13 @@ std::vector<CString> CDDDoc::GetPrimSecNames() const
         for (int r = 0; r < dict_level.GetNumRecords(); r++) {
             const CDictRecord* pRecord = dict_level.GetRecord(r);
             if (pRecord->GetMaxRecs() > 1) {
-                prim_sec_names.emplace_back(pRecord->GetName());
+                prim_sec_names.emplace_back(UTF8_TODO::GetCString(pRecord->GetName()));
             }
             else {
                 for (int i = 0; i < pRecord->GetNumItems();i++) {
                     const CDictItem* pItem = pRecord->GetItem(i);
                     if (pItem->GetOccurs() > 1) {
-                        prim_sec_names.emplace_back(pRecord->GetName() + _T(".") + pItem->GetName());
+                        prim_sec_names.emplace_back(UTF8_TODO::GetCString(pRecord->GetName() + "." + pItem->GetName()));
                     }
                 }
             }
@@ -581,13 +581,13 @@ bool CDDDoc::GetRelLinksList(const CString& sRelObj, CStringArray& saLinksList)
     const CDictItem* dict_item;
 
     CString csname = sRelObj.Right(sRelObj.GetLength() - sRelObj.ReverseFind('.') - 1);
-    m_dictionary->LookupName(csname, nullptr, &dict_record, &dict_item);
+    m_dictionary->LookupName(UTF8_TODO::GetUtf8(csname), nullptr, &dict_record, &dict_item);
 
     if (dict_item != nullptr) {
         for (int i = 0; i < dict_record->GetNumItems(); i++) {
             const CDictItem* pTempItem = dict_record->GetItem(i);
             if (pTempItem->GetItemType() == ItemType::Subitem && pTempItem->GetParentItem() == dict_item) {
-                saLinksList.Add(pTempItem->GetName());
+                saLinksList.Add(UTF8_TODO::GetCString(pTempItem->GetName()));
             }
         }
     }
@@ -595,7 +595,7 @@ bool CDDDoc::GetRelLinksList(const CString& sRelObj, CStringArray& saLinksList)
         for (int i = 0; i < dict_record->GetNumItems(); i++) {
             const CDictItem* pTempItem = dict_record->GetItem(i);
             if (pTempItem->GetItemType() == ItemType::Item && pTempItem->GetOccurs() == 1) {
-                saLinksList.Add(pTempItem->GetName());
+                saLinksList.Add(UTF8_TODO::GetCString(pTempItem->GetName()));
             }
         }
     }
@@ -623,7 +623,7 @@ void CDDDoc::OnEditSecurityOptions()
     if( security_options_dlg.DoModal() != IDOK )
         return;
 
-    m_dictionary->SetAllowDataViewerModifications(security_options_dlg.GetAllowDataViewerModifications());
+    m_dictionary->SetAllowDataManagerModifications(security_options_dlg.GetAllowDataManagerModifications());
     m_dictionary->SetAllowExport(security_options_dlg.GetAllowExport());
     m_dictionary->SetCachedPasswordMinutes(security_options_dlg.GetCachedPasswordMinutes());
 
@@ -635,7 +635,7 @@ void CDDDoc::OnEnableBinaryItems()
 {
     if( m_dictionary->EnableBinaryItems() )
     {
-        std::vector<std::wstring> binary_items;
+        std::vector<std::string> binary_items;
 
         DictionaryIterator::Foreach<CDictItem>(*m_dictionary,
             [&](const CDictItem& dict_item)
@@ -646,8 +646,8 @@ void CDDDoc::OnEnableBinaryItems()
 
         if( !binary_items.empty() )
         {
-            ErrorMessage::Display(_T("You cannot disable binary items because the following items use binary data:\n\n") +
-                                  SO::CreateSingleString(binary_items, _T("\n")));
+            ErrorMessage::Display("You cannot disable binary items because the following items use binary data:\n\n" +
+                                  SO::CreateSingleString(binary_items, SO::Newline_lf_sv));
             return;
         }
     }

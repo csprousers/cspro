@@ -5,7 +5,7 @@
 
 LogicAudio* LogicCompiler::CompileLogicAudioDeclaration()
 {
-    std::wstring audio_name = CompileNewSymbolName();
+    std::string audio_name = CompileNewSymbolName();
 
     auto logic_audio = std::make_shared<LogicAudio>(std::move(audio_name));
 

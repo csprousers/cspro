@@ -61,8 +61,8 @@ const wchar_t* AnsiConverter::GetAnsiToWideMap()
         auto map = std::make_unique_for_overwrite<wchar_t[]>(256);
 
         // assign all of the default values
-        for( size_t i = 0; i < 256; ++i )
-            map[i] = static_cast<wchar_t>(i);
+        for( wchar_t i = 0; i < 256; ++i )
+            map[i] = i;
 
         // assign all of the specially mapped values
         for( const auto& [ansi_code, wide_code] : AnsiToWideMappingOutsideOfJointRange )
@@ -157,4 +157,76 @@ std::string TextConverter::WideToWindowsAnsiWorker(const wchar_t* non_null_wide_
     }
 
     return multi_byte_string;
+}
+
+
+std::string TextConverter::AnsiToUtf8(const std::string_view ansi_text_sv)
+{
+    const wchar_t* const ansi_to_wide_map = AnsiConverter::GetAnsiToWideMap();
+
+    std::string utf8_text;
+    utf8_text.reserve(ansi_text_sv.size());
+
+    for( const unsigned char ch : ansi_text_sv )
+    {
+        if( TC::IsUtf8SingleByte(ch) )
+        {
+            ASSERT(AnsiConverter::CharacterIsInJointRange(ch));
+            utf8_text.push_back(static_cast<char>(ch));
+        }
+
+        else
+        {
+            utf8_text.append(TC::GetUtf8ForWideChar(ansi_to_wide_map[ch]));
+        }
+    }
+
+    ASSERT81(ansi_text_sv == Utf8ToAnsi(utf8_text));
+
+    return utf8_text;
+}
+
+
+std::string TextConverter::Utf8ToAnsi(const std::string_view utf8_text_sv)
+{
+    const std::map<wchar_t, char>& wide_to_ansi_map = AnsiConverter::GetWideToAnsiMap();
+
+    std::string ansi_text;
+    ansi_text.reserve(utf8_text_sv.size());
+
+    const char* text_itr = utf8_text_sv.data();
+    const char* const text_end = text_itr + utf8_text_sv.length();
+
+    while( text_itr < text_end )
+    {
+        const unsigned char ch = *text_itr;
+        const size_t ch_length = TC::Utf8BytesFromFirstByte(ch);
+
+        if( ch_length == 1 )
+        {
+            ASSERT(AnsiConverter::CharacterIsInJointRange(ch));
+            ansi_text.push_back(static_cast<char>(ch));
+            ++text_itr;
+        }
+
+        else
+        {
+            const wchar_t wide_ch = TC::GetWideCharFromUtf8Sequence(text_itr, ch_length);
+            text_itr += ch_length;
+
+            if( AnsiConverter::CharacterIsInJointRange(wide_ch) )
+            {
+                ansi_text.push_back(static_cast<char>(wide_ch));
+            }
+
+            else
+            {
+                const auto& lookup = wide_to_ansi_map.find(wide_ch);
+                ansi_text.push_back(( lookup != wide_to_ansi_map.cend() ) ? lookup->second :
+                                                                            AnsiConverter::UnconvertableCharacter);
+            }
+        }
+    }
+
+    return ansi_text;
 }

@@ -77,7 +77,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_FILE_SAVE_AS
     SEPARATOR
-    BUTTON      ID_FILE_OPEN_IN_DATA_VIEWER
+    BUTTON      ID_FILE_OPEN_IN_DATA_MANAGER
     BUTTON      ID_FILE_PAGE_SETUP
     BUTTON      ID_FILE_PRINT_PREVIEW
     BUTTON      ID_FILE_PRINT
@@ -167,7 +167,7 @@ BEGIN
         BOTTOMMARGIN, 94
     END
 
-    IDD_DATA_VIEWER_QUERY, DIALOG
+    IDD_DATA_MANAGER_QUERY, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 296
@@ -206,7 +206,7 @@ BEGIN
     "J",            ID_WINDOW_CASCADE,      VIRTKEY, SHIFT, CONTROL, NOINVERT
     "K",            ID_WINDOW_TILE_HORZ,    VIRTKEY, SHIFT, CONTROL, NOINVERT
     "L",            ID_WINDOW_TILE_VERT,    VIRTKEY, SHIFT, CONTROL, NOINVERT
-    "D",            ID_FILE_OPEN_IN_DATA_VIEWER, VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_FILE_OPEN_IN_DATA_MANAGER, VIRTKEY, CONTROL, NOINVERT
 END
 
 IDR_VIEWTYPE ACCELERATORS
@@ -271,17 +271,17 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,45,30,40,14
 END
 
-IDD_DATA_VIEWER_QUERY DIALOGEX 0, 0, 303, 86
+IDD_DATA_MANAGER_QUERY DIALOGEX 0, 0, 303, 86
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
-CAPTION "Open in Data Viewer?"
+CAPTION "Open in Data Manager?"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Continue",IDOK,238,56,50,14
-    CONTROL         "Open in Data Viewer",IDC_OPEN_IN_DATA_VIEWER_RADIOBUTTON,
-                    "Button",BS_AUTORADIOBUTTON,18,23,81,10
-    CONTROL         "Continue Opening in Text Viewer",IDC_OPEN_IN_TEXT_VIEWER_RADIOBUTTON,
-                    "Button",BS_AUTORADIOBUTTON,18,38,121,10
-    CONTROL         "Remember this Setting?",IDC_REMEMBER_DATA_VIEWER_SETTING_CHECKBOX,
+    CONTROL         "Open in Data Manager",IDC_OPEN_IN_DATA_MANAGER_RADIOBUTTON,
+                    "Button",BS_AUTORADIOBUTTON,18,23,88,10
+    CONTROL         "Continue opening in Text Viewer",IDC_OPEN_IN_TEXT_VIEWER_RADIOBUTTON,
+                    "Button",BS_AUTORADIOBUTTON,18,38,119,10
+    CONTROL         "Remember this setting?",IDC_REMEMBER_DATA_MANAGER_SETTING_CHECKBOX,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,60,91,10
     LTEXT           "The file that you are opening is a CSPro DB file and does not display well in Text Viewer.",IDC_STATIC,7,7,282,8
 END
@@ -330,7 +330,7 @@ BEGIN
         MENUITEM "&Close\tCtrl+F4",             ID_FILE_CLOSE
         MENUITEM "Save &As...\tCtrl+S",         ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
-        MENUITEM "Open in &Data Viewer\tCtrl+D", ID_FILE_OPEN_IN_DATA_VIEWER
+        MENUITEM "Open in &Data Manager\tCtrl+D", ID_FILE_OPEN_IN_DATA_MANAGER
         MENUITEM SEPARATOR
         MENUITEM "Page Set&up...",              ID_FILE_PAGE_SETUP
         MENUITEM "Print S&etup...",             ID_FILE_PRINT_SETUP
@@ -436,7 +436,7 @@ BEGIN
     0
 END
 
-IDD_DATA_VIEWER_QUERY AFX_DIALOG_LAYOUT
+IDD_DATA_MANAGER_QUERY AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -631,8 +631,8 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_OPEN_IN_DATA_VIEWER 
-                            "Open the current file in Data Viewer\nOpen in Data Viewer"
+    ID_FILE_OPEN_IN_DATA_MANAGER 
+                            "Open the current file in Data Manager\nOpen in Data Manager"
 END
 
 #endif    // English (United States) resources

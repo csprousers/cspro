@@ -17,13 +17,13 @@ public:
     const CString& GetLabel(size_t occurrence) const
     {
         return ( occurrence < m_labels.size() ) ? m_labels[occurrence].GetLabel() :
-                                                  SO::EmptyCString;
+                                                  SO::Empty_CString;
     }
 
     const CString& GetLabel(size_t occurrence, size_t language_index) const
     {
         return ( occurrence < m_labels.size() ) ? m_labels[occurrence].GetLabel(language_index) :
-                                                  SO::EmptyCString;
+                                                  SO::Empty_CString;
     }
 
     const LabelSet& GetLabelSet(size_t occurrence) const;
@@ -48,7 +48,7 @@ public:
 
 
     // serialization
-    static OccurrenceLabels CreateFromJson(const JsonNode<wchar_t>& json_node, size_t max_occurrences = SIZE_MAX);
+    static OccurrenceLabels CreateFromJson(const JsonNode& json_node, size_t max_occurrences = SIZE_MAX);
     void WriteJson(JsonWriter& json_writer, size_t max_occurrences = SIZE_MAX) const;
 
     void serialize(Serializer& ar);

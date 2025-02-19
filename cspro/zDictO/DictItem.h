@@ -15,7 +15,7 @@ enum class ItemType { Item, Subitem };
 const int MAX_OCCURS = 9999;
 
 
-class CLASS_DECL_ZDICTO CDictItem : public DictNamedBase 
+class CLASS_DECL_ZDICTO CDictItem : public DictNamedBase
 {
 public:
     // Construction/destruction
@@ -27,10 +27,9 @@ public:
     DictElementType GetElementType() const override { return DictElementType::Item; }
 
     // Extraction
-    CString GetQualifiedName() const;
+    std::string GetQualifiedName() const;
+
     UINT                GetStart   () const { return m_uStart; }
-
-
     UINT                GetLen     () const { return m_uLen; }
     // GetLen does not consider the dot for number with decimal
     // places and explicit dot. GetCompleteLen() fixes this
@@ -132,7 +131,7 @@ public:
 
     // serialization
     // ------------------------------
-    static CDictItem CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static CDictItem CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

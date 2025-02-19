@@ -7,50 +7,58 @@
 #include <engine/Entdrv.h>
 
 
-namespace
+const std::string* CapiContentVirtualFileMapping::GetQuestionTextUrl() const
 {
-    std::unique_ptr<VirtualFileMapping> CreateCapiContentVirtualFileMapping(CEntryDriver& entry_driver, const std::wstring& directory, std::wstring content)
-    {
-        return std::make_unique<VirtualFileMapping>(PortableLocalhost::CreateVirtualHtmlFile(directory,
-            [&entry_driver, content = std::move(content)]() ->std::string
-            {
-                return "<!doctype html><html><head><meta charset=\"utf-8\">"
-                       "<style>"
-                            "body{background-color:#EFEFEF;margin:0;padding:0}"
-                            "table{width: 100%;border-collapse: collapse;}"
-                            "td,th{border: 1px solid #7B7B7B;padding: 5px 3px;}"
-                        "</style>"
-                       "<style>" + UTF8Convert::WideToUTF8(entry_driver.GetQuestMgr()->GetRuntimeStylesCss()) + "</style>"
-                       "</head><body>" + UTF8Convert::WideToUTF8(content) + "</body></html>";
-            }));
-    }
+    return ( m_questionTextVirtualFileMapping != nullptr ) ? &m_questionTextVirtualFileMapping->GetUrl() :
+                                                             nullptr;
 }
 
 
-std::optional<std::wstring> CapiContentVirtualFileMapping::GetQuestionTextUrl() const
+const std::string* CapiContentVirtualFileMapping::GetHelpTextUrl() const
 {
-    return ( m_questionTextVirtualFileMapping != nullptr ) ? std::make_optional(m_questionTextVirtualFileMapping->GetUrl()) :
-                                                             std::nullopt;
+    return ( m_helpTextVirtualFileMapping != nullptr ) ? &m_helpTextVirtualFileMapping->GetUrl() :
+                                                         nullptr;
 }
 
 
-std::optional<std::wstring> CapiContentVirtualFileMapping::GetHelpTextUrl() const
-{
-    return ( m_helpTextVirtualFileMapping != nullptr ) ? std::make_optional(m_helpTextVirtualFileMapping->GetUrl()) :
-                                                         std::nullopt;
-}
-
-
-void CapiContentVirtualFileMapping::SetCapiContent(CapiContent capi_content, CEntryDriver& entry_driver)
+void CapiContentVirtualFileMapping::SetCapiContent(const CapiContent& capi_content, CEntryDriver& entry_driver)
 {
     if( capi_content.question_text.IsEmpty() && capi_content.help_text.IsEmpty() )
         return;
 
-    std::wstring directory = PortableFunctions::PathGetDirectory(entry_driver.GetApplication()->GetQuestionTextFilename());
+    const std::string directory = PortableFunctions::PathGetDirectory(entry_driver.GetApplication()->GetQuestionTextFilePath());
 
     if( !capi_content.question_text.IsEmpty() )
-        m_questionTextVirtualFileMapping = CreateCapiContentVirtualFileMapping(entry_driver, directory, CS2WS(capi_content.question_text));
+        m_questionTextVirtualFileMapping = CreateVirtualFileMapping(entry_driver, directory, UTF8_TODO::GetUtf8(capi_content.question_text));
 
     if( !capi_content.help_text.IsEmpty() )
-        m_helpTextVirtualFileMapping = CreateCapiContentVirtualFileMapping(entry_driver, directory, CS2WS(capi_content.help_text));
+        m_helpTextVirtualFileMapping = CreateVirtualFileMapping(entry_driver, directory, UTF8_TODO::GetUtf8(capi_content.help_text));
 }
+
+
+std::unique_ptr<VirtualFileMapping> CapiContentVirtualFileMapping::CreateVirtualFileMapping(CEntryDriver& entry_driver, const std::string& directory, SharableString content)
+{
+    return std::make_unique<VirtualFileMapping>(PortableLocalhost::CreateVirtualHtmlFile(directory,
+        [&entry_driver, html = SharableString(), content_ = std::move(content)]() mutable
+        {
+            if( !html.IsSet() )
+            {
+                html = SO::Concatenate("<!doctype html><html><head><meta charset=\"utf-8\">"
+                                       "<style>"
+                                           "body{background-color:#EFEFEF;margin:0;padding:0}"
+                                           "table{width: 100%;border-collapse: collapse;}"
+                                           "td,th{border: 1px solid #7B7B7B;padding: 5px 3px;}"
+                                       "</style>"
+                                       "<style>",
+                                           entry_driver.GetQuestMgr()->GetRuntimeStylesCss(),
+                                       "</style>"
+                                       "</head><body>",
+                                           *content_,
+                                       "</body></html>");
+            }
+
+            return html;
+        }));
+}
+
+

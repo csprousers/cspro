@@ -17,11 +17,11 @@ class PFF;
 class FrequencyDriver
 {
 public:
-    FrequencyDriver(CIntDriver& int_driver);
+    FrequencyDriver(CIntDriver& interpreter);
     virtual ~FrequencyDriver();
 
-    static std::unique_ptr<FrequencyPrinter> CreateFrequencyPrinter(std::wstring filename, const PFF& pff);
-    std::unique_ptr<FrequencyPrinter> CreateFrequencyPrinter(std::wstring filename);
+    static std::unique_ptr<FrequencyPrinter> CreateFrequencyPrinter(const std::string& file_path, const PFF& pff);
+    std::unique_ptr<FrequencyPrinter> CreateFrequencyPrinter(const std::string& file_path);
 
     std::shared_ptr<FrequencyPrinter> GetDefaultFrequencyPrinter();
 
@@ -32,13 +32,13 @@ public:
     double TallyFrequency(size_t frequency_index, int weight_expression);
 
     void PrintFrequencies(size_t frequency_index, FrequencyPrinter& frequency_printer,
-                          std::wstring frequency_name, const FrequencyPrinterOptions& frequency_printer_options);
+                          const std::string& frequency_name, const FrequencyPrinterOptions& frequency_printer_options);
 
     double GetSingleFrequencyCounterCount(int var_node_index);
     void SetSingleFrequencyCounterCount(int var_node_index, double count);
     void ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function);
 
-    // these methods are marked virtual so that they are accessible from the zEngineO project, not because they will be overriden
+    // these methods are marked virtual so that they are accessible from the zEngineO project, not because they will be overridden
     virtual void CloneFrequencyInInitialState(NamedFrequency& cloned_named_frequency, size_t source_frequency_index);
 
     virtual void WriteJsonMetadata_subclass(const NamedFrequency& named_frequency, JsonWriter& json_writer) const;

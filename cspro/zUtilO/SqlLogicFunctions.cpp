@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "SqlLogicFunctions.h"
-#include <SQLite/SQLite.h>
-#include <SQLite/SQLiteHelpers.h>
+#include <zSql/SQLite.h>
+#include <zSql/SQLiteHelpers.h>
 
 
 void SqlLogicFunctions::RegisterCallbackFunctions(sqlite3* const db, std::function<void()> additional_function_registrar/* = std::function<void()>()*/)
@@ -46,8 +46,11 @@ void SqlLogicFunctions::cspro_timestring(sqlite3_context* const context, const i
     }
 
     // the formatting string comes first, defaulting to "%c"
-    const char* const formatter = ( iArgC > 0 ) ? reinterpret_cast<const char*>(sqlite3_value_text(ppArgV[0])) :
-                                                  "%c";                                                       
+    const char* formatter = ( iArgC > 0 ) ? reinterpret_cast<const char*>(sqlite3_value_text(ppArgV[0])) :
+                                            nullptr;
+
+    if( formatter == nullptr )
+        formatter = "%c";
 
     // followed by the timestamp
     const double timestamp = ( iArgC == 2 ) ? sqlite3_value_double(ppArgV[1]) :
@@ -55,5 +58,5 @@ void SqlLogicFunctions::cspro_timestring(sqlite3_context* const context, const i
 
     const std::string timestring = FormatTimestamp(timestamp, formatter);
 
-    sqlite3_result_text(context, timestring.c_str(), timestring.length(), SQLITE_TRANSIENT);
+    sqlite3_result_text(context, timestring.data(), timestring.length(), SQLITE_TRANSIENT);
 }

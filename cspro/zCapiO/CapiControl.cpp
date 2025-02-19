@@ -13,7 +13,7 @@ CCapiControl::CCapiControl()
 {
 }
 
-void CCapiControl::LaunchWindow(CExtendedControl * pParent)
+void CCapiControl::LaunchWindow(CExtendedControl* pParent)
 {
     m_pParent = pParent;
     m_filterString = CString();
@@ -121,7 +121,7 @@ void CCapiControl::CreateControls()
         // Now the images and colors
         for( INT_PTR i = 0; i < number_responses; i++ )
         {
-            CreateStaticControlWithImage(m_images[i], EXTENDED_CONTROL_RESOURCE_ID + 1 + i, responses[i]->GetImageFilename());
+            CreateStaticControlWithImage(m_images[i], EXTENDED_CONTROL_RESOURCE_ID + 1 + i, responses[i]->GetImageFilePath());
             m_textColors.emplace_back(responses[i]->GetTextColor());
         }
     }
@@ -183,7 +183,7 @@ void CCapiControl::CreateControls()
         // Now the images and colors
         for( INT_PTR i = 0; i < number_responses; i++ )
         {
-            CreateStaticControlWithImage(m_images[i], EXTENDED_CONTROL_RESOURCE_ID + 1 + i, responses[i]->GetImageFilename());
+            CreateStaticControlWithImage(m_images[i], EXTENDED_CONTROL_RESOURCE_ID + 1 + i, responses[i]->GetImageFilePath());
             m_textColors.emplace_back(responses[i]->GetTextColor());
         }
     }
@@ -211,7 +211,7 @@ void CCapiControl::CreateControls()
         {
             for( int y = 0; y < 3; y++ )
             {
-                CString text = IntToString(( 2 - y ) * 3 + x + 1);
+                CString text = UTF8_TODO::GetCString(IntToString(( 2 - y ) * 3 + x + 1));
 
                 rect.left = EXTENDED_CONTROL_BORDER_SIZE * ( x + 1 ) + buttonWidth * x;
                 rect.right = rect.left + buttonWidth;
@@ -255,7 +255,7 @@ void CCapiControl::CreateControls()
         buttonNumber++;
 
         // decimal point
-        TCHAR * decimalChar = m_pParent->m_bCommaDecimal ? _T(",") : _T("."); // GHM 20130704
+        const TCHAR* decimalChar = m_pParent->m_bCommaDecimal ? _T(",") : _T("."); // 20130704
 
         rect.left = EXTENDED_CONTROL_BORDER_SIZE * 2 + buttonWidth;
         rect.right = rect.left + buttonWidth;
@@ -674,7 +674,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
                     } else {
                         CString newFieldText;
                         newFieldText = TranslateCheckboxToString();
-                        AfxTrace(_T("Update text %s\n"), (LPCTSTR)newFieldText);
+                        AfxTrace(_T("Update text %s\n"), newFieldText.GetString());
                         m_pParent->m_pEdit->SendMessage(UWM::CSEntry::ControlsSetWindowText,(WPARAM)m_pParent->m_captureType,(LPARAM)&newFieldText);
                     }
                 }
@@ -697,14 +697,14 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
             }
         }
 
-        else if( m_pParent->m_captureType == CaptureType::NumberPad ) // GHM 20130418 for the number pad
+        else if( m_pParent->m_captureType == CaptureType::NumberPad ) // 20130418 for the number pad
         {
             const TCHAR characters[16] = { 55, 52, 49, 56, 53, 50, 57, 54, 51, 8, VK_OEM_MINUS, VK_DELETE, 48, VK_OEM_PERIOD, VK_LEFT, 13 };
 
             ASSERT(buttonClicked >= 0 && buttonClicked <= 16);
             TCHAR charPressed;
 
-            if( buttonClicked == 13 ) // GHM 20130704 . or , (the decimal point)
+            if( buttonClicked == 13 ) // 20130704 . or , (the decimal point)
                 charPressed = m_pParent->m_bCommaDecimal ? VK_OEM_COMMA : VK_OEM_PERIOD;
 
             else
@@ -727,7 +727,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
         return CFormView::WindowProc(message, wParam, lParam);
     }
 
-    else if (message == WM_VSCROLL || message == WM_HSCROLL) // GHM 20100622
+    else if (message == WM_VSCROLL || message == WM_HSCROLL) // 20100622
         return CScrollView::WindowProc(message, wParam, lParam);
 
     return DefWindowProc(message,wParam,lParam);
@@ -735,7 +735,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
 
 
 
-BOOL CCapiControl::PreTranslateMessage(MSG * pMsg)
+BOOL CCapiControl::PreTranslateMessage(MSG* pMsg)
 {
     // pass all keystrokes to the field
     if( pMsg->message == WM_KEYDOWN )
@@ -794,7 +794,7 @@ CString CCapiControl::TranslateCheckboxToString()
 
 COleDateTime CCapiControl::TranslateStringToDate(CString fieldDateString)
 {
-    const CString& csFormat = m_pParent->m_captureInfo.GetExtended<DateCaptureInfo>().GetFormat();
+    const CString& csFormat = UTF8_TODO::GetCString(m_pParent->m_captureInfo.GetExtended<DateCaptureInfo>().GetFormat());
 
     fieldDateString.TrimLeft();
 
@@ -879,16 +879,20 @@ COleDateTime CCapiControl::TranslateStringToDate(CString fieldDateString)
 }
 
 
-CString CCapiControl::TranslateDateToString() // GHM 20100615
+CString CCapiControl::TranslateDateToString() // 20100615
 {
     COleDateTime selectedDate;
     m_Calendar.GetCurSel(selectedDate);
 
-    int iDate = (int)FormatDateToDouble(m_pParent->m_captureInfo.GetExtended<DateCaptureInfo>().GetFormat(),
-        selectedDate.GetYear(),selectedDate.GetMonth(),selectedDate.GetDay());
+    const std::optional<uint64_t> date = FormatDate(m_pParent->m_captureInfo.GetExtended<DateCaptureInfo>().GetFormat(),
+                                                    selectedDate.GetYear(), selectedDate.GetMonth(), selectedDate.GetDay());
 
-    return FormatText(_T("%0*d"), m_pParent->m_pDictItem->GetLen(), iDate);
+    if( !date.has_value() )
+        return ReturnProgrammingError(CString());
+
+    return FormatText(_T("%0*d"), m_pParent->m_pDictItem->GetLen(), static_cast<int>(*date));
 }
+
 
 CSize CCapiControl::LayoutInGrid(const CArray< CArray<CWnd*>* > &columns, const CArray<UINT> &columnAlignments,
                                  int border, int colSpacingChars, int rowSpacingPx, const CArray<CWnd*> &rowBackgrounds,
@@ -975,20 +979,20 @@ CSize CCapiControl::LayoutInGrid(const CArray< CArray<CWnd*>* > &columns, const 
 }
 
 
-void CCapiControl::CreateStaticControlWithImage(CStatic& static_control, UINT controlId, const CString& imagePath)
+void CCapiControl::CreateStaticControlWithImage(CStatic& static_control, UINT controlId, const std::string& image_file_path)
 {
-    if( imagePath.IsEmpty() )
+    if( image_file_path.empty() )
         return;
 
-    std::shared_ptr<CImage> image = ImageManager::GetImage(imagePath);
+    const std::shared_ptr<const CImage> image = ImageManager::GetImage(image_file_path);
 
     if( image == nullptr )
         return;
 
     // Scale image to appropriate size
     constexpr int MaxImageDimension = 300;
-    int resized_image_size = std::min(std::max(image->GetWidth(), image->GetHeight()), MaxImageDimension);
-    std::unique_ptr<CImage> resized_image = ImageManager::GetResizedImageToSize(image, resized_image_size, m_backgroundBrush);
+    const int resized_image_size = std::min(std::max(image->GetWidth(), image->GetHeight()), MaxImageDimension);
+    const std::unique_ptr<CImage> resized_image = ImageManager::GetResizedImageToSize(*image, resized_image_size, m_backgroundBrush);
 
     // Create a static control and put scaled image in it
     CRect controlRect(0, 0, resized_image->GetWidth(), resized_image->GetHeight());
@@ -1015,8 +1019,8 @@ CSize CCapiControl::Filter(const wstring_view filter_sv)
 
     for( int i = 0; i < static_cast<int>(responses.size()); i++ )
     {
-        const bool filteredOut = ( useFiltering && 
-                                   SO::FindNoCase(responses[i]->GetLabel(), filter_sv) == wstring_view::npos );
+        const bool filteredOut = ( useFiltering &&
+                                   SO::FindNoCase(UTF8_TODO::GetUtf8(responses[i]->GetLabel()), UTF8_TODO::GetUtf8(filter_sv)) == std::string_view::npos );
         const int showOrHide = filteredOut ? SW_HIDE : SW_SHOW;
         m_labels[i].ShowWindow(showOrHide);
 
@@ -1041,6 +1045,7 @@ CSize CCapiControl::Filter(const wstring_view filter_sv)
                 rowBackgrounds.Add(&m_rowBackgrounds.GetAt(i));
         }
     }
+
     controls.Add(&buttonsOrValues);
     controls.Add(&labels);
     controls.Add(&images);
@@ -1057,6 +1062,7 @@ CSize CCapiControl::Filter(const wstring_view filter_sv)
     SetScrollSizes(MM_TEXT, filteredSize);
     return LayoutInGrid(controls, alignments, EXTENDED_CONTROL_BORDER_SIZE, EXTENDED_CONTROL_COL_SPACING, EXTENDED_CONTROL_ROW_SPACING, rowBackgrounds, false);
 }
+
 
 int CCapiControl::CharWidthInPixels()
 {

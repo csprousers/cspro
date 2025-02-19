@@ -4,7 +4,6 @@
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zUtilO/BCMenu.h>
-#include <zUtilO/Filedlg.h>
 #include <zUtilF/ImageFileDialog.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <zCapiO/CapiLogicParameters.h>
@@ -19,22 +18,22 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_WM_CREATE()
     ON_WM_DESTROY()
     ON_WM_SIZE()
-	ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
+    ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
     ON_COMMAND(ID_EDIT_PASTE_WITHOUT_FORMATTING, OnEditPasteWithoutFormatting)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE_WITHOUT_FORMATTING, OnUpdateEditPaste)
-	ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
-	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
-	ON_COMMAND(ID_EDIT_CUT, OnEditCut)
-	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCut)
-	ON_COMMAND(ID_EDIT_SELECT_ALL, OnEditSelectAll)
-	ON_WM_CONTEXTMENU()
+    ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
+    ON_COMMAND(ID_EDIT_CUT, OnEditCut)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCut)
+    ON_COMMAND(ID_EDIT_SELECT_ALL, OnEditSelectAll)
+    ON_WM_CONTEXTMENU()
     ON_EN_CHANGE(IDC_HTML_EDIT, OnChangeHtmlEdit)
     ON_EN_SETFOCUS(IDC_HTML_EDIT, OnSetfocusHtmlEdit)
-	ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
-	ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
-	ON_COMMAND(ID_VIEW_FORM, OnViewForm)
-	ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
+    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+    ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
+    ON_COMMAND(ID_VIEW_FORM, OnViewForm)
+    ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_VIEW_HIDE, OnViewHide)
 
     ON_CBN_SELENDOK(IDC_STYLE, OnFormatStyle)
@@ -82,7 +81,7 @@ END_MESSAGE_MAP()
 
 
 CQSFEView::CQSFEView(const CString& ent_path)
-	:   CFormView(IDD_QSF_EDIT_VIEW),
+    :   CFormView(IDD_QSF_EDIT_VIEW),
         m_ent_path(ent_path),
         m_text_type(CapiTextType::QuestionText),
         m_languageIndex(0)
@@ -93,6 +92,7 @@ CQSFEView::CQSFEView(const CString& ent_path)
     m_html_edit.SetUrl(m_questionTextVirtualFileMapping->GetUrl());
 }
 
+
 CQSFEView::~CQSFEView()
 {
 }
@@ -100,8 +100,8 @@ CQSFEView::~CQSFEView()
 
 void CQSFEView::DoDataExchange(CDataExchange* pDX)
 {
-	CFormView::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_HTML_EDIT, m_html_edit);
+    CFormView::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_HTML_EDIT, m_html_edit);
 }
 
 
@@ -113,17 +113,19 @@ void CQSFEView::SetLanguages(std::vector<Language> languages)
     SetLanguage(0);
 }
 
-void CQSFEView::SetLanguage(size_t language_index)
+
+void CQSFEView::SetLanguage(const size_t language_index)
 {
     ASSERT(language_index < m_languages.size());
     m_languageIndex = language_index;
     m_toolbar.SetLanguage(m_languages[m_languageIndex]);
 }
 
-void CQSFEView::SetLanguage(wstring_view language_label)
+
+void CQSFEView::SetLanguage(const std::string_view language_label_sv)
 {
     const auto& lookup = std::find_if(m_languages.cbegin(), m_languages.cend(),
-        [&](const auto& language) { return ( language.GetLabel() == language_label ); });
+        [&](const auto& language) { return ( language.GetLabel() == language_label_sv ); });
 
     if( lookup != m_languages.end() )
         SetLanguage(std::distance(m_languages.cbegin(), lookup));
@@ -166,6 +168,7 @@ int CQSFEView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     return 0;
 }
 
+
 void CQSFEView::OnDestroy()
 {
     StopIdleTimer();
@@ -178,16 +181,14 @@ void CQSFEView::SetupFileServer(const CString& application_filename)
     // to make relative paths in the question text work, the HTML editor must
     // appear as if it exists in the application directory; we will load the
     // editing HTML once and then issue it as a virtual file
-    static std::optional<std::string> editor_html;
+    static SharableString editor_html;
 
-    if( !editor_html.has_value() )
+    if( !editor_html.IsSet() )
     {
         try
         {
-            std::wstring editor_html_filename = PortableFunctions::PathAppendToPath(
-                Html::GetDirectory(Html::Subdirectory::HtmlEditor), _T("index.html"));
-
-            editor_html = FileIO::ReadText<std::string>(editor_html_filename);
+            const std::string editor_html_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::HtmlEditor), "index.html");
+            editor_html = FileIO::ReadText(editor_html_file_path);
         }
 
         catch( const FileIO::Exception& )
@@ -196,56 +197,64 @@ void CQSFEView::SetupFileServer(const CString& application_filename)
         }
     }
 
-
     m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
 
     m_questionTextVirtualFileMapping = std::make_unique<VirtualFileMapping>(
-        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(application_filename),
+        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(application_filename)),
         [&]()
         {
-            return *editor_html;
+            return editor_html;
         }));
 }
+
 
 void CQSFEView::OnEditCopy()
 {
     m_html_edit.Copy();
 }
 
+
 void CQSFEView::OnEditSelectAll()
 {
     m_html_edit.SelectAll();
 }
+
 
 void CQSFEView::OnUpdateEditCopy(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(m_html_edit.CanCopy());
 }
 
+
 void CQSFEView::OnEditCut()
 {
     m_html_edit.Cut();
 }
+
 
 void CQSFEView::OnUpdateEditCut(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(m_html_edit.CanCut());
 }
 
+
 void CQSFEView::OnEditPaste()
 {
     m_html_edit.Paste(true);
 }
+
 
 void CQSFEView::OnEditPasteWithoutFormatting()
 {
     m_html_edit.Paste(false);
 }
 
+
 void CQSFEView::OnUpdateEditPaste(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(m_html_edit.CanPaste());
+    pCmdUI->Enable(m_html_edit.CanPaste());
 }
+
 
 void CQSFEView::OnSize(UINT nType, int cx, int cy)
 {
@@ -268,22 +277,26 @@ void CQSFEView::OnSize(UINT nType, int cx, int cy)
     }
 }
 
+
 void CQSFEView::OnViewHide(void)
 {
-	CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
-	pParentFrame->m_bHideSecondLang = !pParentFrame->m_bHideSecondLang;
-	pParentFrame->DisplayActiveMode();
+    CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
+    pParentFrame->m_bHideSecondLang = !pParentFrame->m_bHideSecondLang;
+    pParentFrame->DisplayActiveMode();
 }
+
 
 void CQSFEView::OnQuestionTextTypeChanged()
 {
     UpdateDisplayText();
 }
 
+
 CapiEditorViewModel& CQSFEView::GetViewModel()
 {
     return GetFormDoc()->GetCapiEditorViewModel();
 }
+
 
 CFormDoc* CQSFEView::GetFormDoc()
 {
@@ -292,10 +305,12 @@ CFormDoc* CQSFEView::GetFormDoc()
     return doc;
 }
 
+
 void CQSFEView::StartIdleTimer()
 {
     m_idle_timer = SetTimer(idleTimerID, 1000, NULL);
 }
+
 
 void CQSFEView::StopIdleTimer()
 {
@@ -305,16 +320,20 @@ void CQSFEView::StopIdleTimer()
     }
 }
 
+
 void CQSFEView::UpdateFillErrorDisplay()
 {
-    std::map<std::wstring, std::wstring> errors;
-    for (const auto& [fill, result] : m_fill_syntax_check_results) {
-        if (std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result)) {
-            errors[fill] = std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message;
-        }
+    std::map<std::string, std::string> errors;
+
+    for( const auto& [fill, result] : m_fill_syntax_check_results )
+    {
+        if(std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result) )
+            errors.try_emplace(UTF8_TODO::GetUtf8(fill), std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
     }
+
     m_html_edit.SetSyntaxErrors(errors);
 }
+
 
 void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
@@ -329,22 +348,23 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     popMenu.AppendMenu(MF_STRING | (m_html_edit.GetText().empty() ? MF_GRAYED : 0x0L), ID_EDIT_SELECT_ALL, _T("Select &All"));
     popMenu.AppendMenu(MF_SEPARATOR);
 
-	CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
+    CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
-	if(pParentFrame->m_bHideSecondLang) {
-		popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Show Second View"));
-	}
-	else {
-		popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Hide Second View"));
-	}
+    if(pParentFrame->m_bHideSecondLang) {
+        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Show Second View"));
+    }
+    else {
+        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Hide Second View"));
+    }
 
-	popMenu.AppendMenu(MF_SEPARATOR);
-	popMenu.AppendMenu (MF_STRING, ID_VIEW_FORM, _T("View &Form"));
-	popMenu.AppendMenu (MF_STRING, ID_VIEW_LOGIC, _T("View &Logic"));
+    popMenu.AppendMenu(MF_SEPARATOR);
+    popMenu.AppendMenu (MF_STRING, ID_VIEW_FORM, _T("View &Form"));
+    popMenu.AppendMenu (MF_STRING, ID_VIEW_LOGIC, _T("View &Logic"));
 
     popMenu.LoadToolbar(IDR_FORM_FRAME);
     popMenu.TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
 }
+
 
 void CQSFEView::OnChangeHtmlEdit()
 {
@@ -357,6 +377,7 @@ void CQSFEView::OnChangeHtmlEdit()
 
     StartIdleTimer();
 }
+
 
 void CQSFEView::OnUpdate(CView* pSender, LPARAM lHint, CObject* /*pHint*/)
 {
@@ -375,15 +396,17 @@ void CQSFEView::OnUpdate(CView* pSender, LPARAM lHint, CObject* /*pHint*/)
     }
 }
 
+
 void CQSFEView::SetStyles(const std::vector<CapiStyle>& styles)
 {
     std::vector<HtmlEditorCtrl::Style> editorStyles;
     for (const CapiStyle& style : styles) {
-        editorStyles.emplace_back(HtmlEditorCtrl::Style{ _T("span"), style.m_name, style.m_class_name, style.m_css });
+        editorStyles.emplace_back(HtmlEditorCtrl::Style{ "span", style.name, style.class_name, style.css });
     }
     m_html_edit.SetStyles(editorStyles);
     m_toolbar.SetStyles(editorStyles);
 }
+
 
 void CQSFEView::OnSetfocusHtmlEdit()
 {
@@ -396,7 +419,7 @@ void CQSFEView::OnSetfocusHtmlEdit()
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//	void CQSFEView::UpdateDisplayText()
+//  void CQSFEView::UpdateDisplayText()
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CQSFEView::UpdateDisplayText()
@@ -404,7 +427,7 @@ void CQSFEView::UpdateDisplayText()
     CFormDoc* form_doc = GetFormDoc();
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
     if (view_model.CanHaveText()) {
-		EnableWindow(TRUE);
+        EnableWindow(TRUE);
         m_html_edit.EnableWindow(TRUE);
         const CString& text = view_model.GetText(m_languageIndex, m_text_type).GetText();
         if (text.IsEmpty()) {
@@ -418,41 +441,47 @@ void CQSFEView::UpdateDisplayText()
             StartIdleTimer();
         }
     }
-	else {
-		EnableWindow(FALSE);
+    else {
+        EnableWindow(FALSE);
         m_html_edit.EnableWindow(FALSE);
         m_html_edit.Clear();
     }
     UpdateToolbar();
 }
 
+
 void CQSFEView::OnEditUndo()
 {
     m_html_edit.Undo();
 }
+
 
 void CQSFEView::OnEditRedo()
 {
     m_html_edit.Redo();
 }
 
+
 void CQSFEView::OnViewForm()
 {
-	CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
-	pParentFrame->OnViewForm();
+    CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
+    pParentFrame->OnViewForm();
 }
+
 
 void CQSFEView::OnViewLogic()
 {
-	CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
-	pParentFrame->OnViewLogic();
+    CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
+    pParentFrame->OnViewLogic();
 }
+
 
 void CQSFEView::OnFormatStyle()
 {
     m_html_edit.ApplyStyle(m_toolbar.GetSelectedStyle());
     m_html_edit.MoveFocus();
 }
+
 
 void CQSFEView::OnUpdateFormatStyle(CCmdUI* pCmdUI)
 {
@@ -464,21 +493,25 @@ void CQSFEView::OnUpdateFormatStyle(CCmdUI* pCmdUI)
     }
 }
 
+
 void CQSFEView::OnFormatColor()
 {
     COLORREF color = m_toolbar.GetForeColor();
     m_html_edit.SetForeColor(color);
 }
 
+
 void CQSFEView::OnUpdateFormatColor(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
 
+
 void CQSFEView::OnFormatAlignLeft()
 {
     m_html_edit.AlignLeft();
 }
+
 
 void CQSFEView::OnUpdateFormatAlignLeft(CCmdUI* pCmdUI)
 {
@@ -487,10 +520,12 @@ void CQSFEView::OnUpdateFormatAlignLeft(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.GetTextAlignment() == HtmlEditorCtrl::TextAlign::Left);
 }
 
+
 void CQSFEView::OnFormatAlignCenter()
 {
     m_html_edit.AlignCenter();
 }
+
 
 void CQSFEView::OnUpdateFormatAlignCenter(CCmdUI* pCmdUI)
 {
@@ -499,10 +534,12 @@ void CQSFEView::OnUpdateFormatAlignCenter(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.GetTextAlignment() == HtmlEditorCtrl::TextAlign::Center);
 }
 
+
 void CQSFEView::OnFormatAlignRight()
 {
     m_html_edit.AlignRight();
 }
+
 
 void CQSFEView::OnUpdateFormatAlignRight(CCmdUI* pCmdUI)
 {
@@ -511,30 +548,36 @@ void CQSFEView::OnUpdateFormatAlignRight(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.GetTextAlignment() == HtmlEditorCtrl::TextAlign::Right);
 }
 
+
 void CQSFEView::OnChangeTextDirectionRightToLeft()
 {
     m_html_edit.RightToLeft();
 }
+
 
 void CQSFEView::OnUpdateChangeTextDirectionRightToLeft(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
 
+
 void CQSFEView::OnChangeTextDirectionLeftToRight()
 {
     m_html_edit.LeftToRight();
 }
+
 
 void CQSFEView::OnUpdateChangeTextDirectionLeftToRight(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
 
+
 void CQSFEView::OnEditFormatOutlineBullet()
 {
     m_html_edit.UnorderedList();
 }
+
 
 void CQSFEView::OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI)
 {
@@ -543,10 +586,12 @@ void CQSFEView::OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.GetListStyle() == HtmlEditorCtrl::ListStyle::Unordered);
 }
 
+
 void CQSFEView::OnEditFormatOutlineNumbering()
 {
     m_html_edit.OrderedList();
 }
+
 
 void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI)
 {
@@ -554,6 +599,7 @@ void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI)
     if (pCmdUI->m_pOther == &m_toolbar)
         pCmdUI->SetCheck(m_html_edit.GetListStyle() == HtmlEditorCtrl::ListStyle::Ordered);
 }
+
 
 void CQSFEView::OnEditInsertImage()
 {
@@ -566,20 +612,22 @@ void CQSFEView::OnEditInsertImage()
     if (image_path_on_disk.IsEmpty()) {
         return;
     }
-    if (PathGetVolume(image_path_on_disk) != PathGetVolume(m_ent_path)) {
+    if (PathGetVolume(UTF8_TODO::GetUtf8(image_path_on_disk)) != PathGetVolume(UTF8_TODO::GetUtf8(m_ent_path))) {
         AfxMessageBox(_T("Images must be on the same disk volume as your CSPro application. ")
                       _T("Try copying the file to the folder that contains your application."), MB_ICONEXCLAMATION);
         return;
     }
 
     std::wstring relative_path = GetRelativeFName(m_ent_path, image_path_on_disk);
-    m_html_edit.InsertImage(Encoders::ToUri(PortableFunctions::PathToForwardSlash(relative_path), false));
+    m_html_edit.InsertImage(Encoders::ToUri(UTF8_TODO::GetUtf8(PortableFunctions::PathToForwardSlash(relative_path)), false));
 }
+
 
 void CQSFEView::OnUpdateEditInsertImage(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
+
 
 void CQSFEView::OnInsertTable()
 {
@@ -587,25 +635,30 @@ void CQSFEView::OnInsertTable()
     m_html_edit.InsertTable(dimensions);
 }
 
+
 void CQSFEView::OnUpdateInsertTable(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
+
 
 void CQSFEView::OnInsertLink()
 {
     m_html_edit.ShowInsertLinkDialog();
 }
 
+
 void CQSFEView::OnUpdateInsertLink(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
 }
 
+
 void CQSFEView::OnToggleViewCode()
 {
     m_html_edit.ToggleCodeView();
 }
+
 
 void CQSFEView::OnUpdateToggleViewCode(CCmdUI* pCmdUI)
 {
@@ -614,11 +667,13 @@ void CQSFEView::OnUpdateToggleViewCode(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.GetCodeViewShowing());
 }
 
+
 void CQSFEView::OnLanguageChanged()
 {
     SetLanguage(m_toolbar.GetLanguageLabel());
     UpdateDisplayText();
 }
+
 
 void CQSFEView::OnUpdateToggleQuestionHelpText(CCmdUI* pCmdUI)
 {
@@ -627,11 +682,13 @@ void CQSFEView::OnUpdateToggleQuestionHelpText(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_text_type == CapiTextType::HelpText);
 }
 
+
 void CQSFEView::OnToggleQuestionHelpText()
 {
     m_text_type = m_text_type == CapiTextType::QuestionText ? CapiTextType::HelpText : CapiTextType::QuestionText;
     OnQuestionTextTypeChanged();
 }
+
 
 void CQSFEView::OnTimer(UINT nIDEvent)
 {
@@ -647,7 +704,7 @@ void CQSFEView::OnTimer(UINT nIDEvent)
                 std::wstring fill_text = CS2WS(fill.GetTextToEvaluate());
                 auto syntax_check_result = m_fill_syntax_check_results.find(fill_text);
                 if (syntax_check_result == m_fill_syntax_check_results.end()) {
-                    m_fill_syntax_check_results[fill_text] = view_model.CheckSyntax(CapiLogicParameters::Type::Fill, fill_text);
+                    m_fill_syntax_check_results[fill_text] = view_model.CheckSyntax(CapiLogicParameters::Type::Fill, UTF8_TODO::GetUtf8(fill_text));
                     updated = true;
                 }
             }
@@ -657,10 +714,12 @@ void CQSFEView::OnTimer(UINT nIDEvent)
     }
 }
 
+
 void CQSFEView::OnFormatBold()
 {
     m_html_edit.Bold();
 }
+
 
 void CQSFEView::OnUpdateFormatBold(CCmdUI* pCmdUI)
 {
@@ -669,10 +728,12 @@ void CQSFEView::OnUpdateFormatBold(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.IsBold());
 }
 
+
 void CQSFEView::OnFormatItalic()
 {
     m_html_edit.Italic();
 }
+
 
 void CQSFEView::OnUpdateFormatItalic(CCmdUI* pCmdUI)
 {
@@ -681,10 +742,12 @@ void CQSFEView::OnUpdateFormatItalic(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.IsItalic());
 }
 
+
 void CQSFEView::OnFormatUnderline()
 {
     m_html_edit.Underline();
 }
+
 
 void CQSFEView::OnUpdateFormatUnderline(CCmdUI* pCmdUI)
 {
@@ -693,18 +756,21 @@ void CQSFEView::OnUpdateFormatUnderline(CCmdUI* pCmdUI)
         pCmdUI->SetCheck(m_html_edit.IsUnderline());
 }
 
+
 void CQSFEView::OnFormatFontFace()
 {
-    m_html_edit.SetFont(m_toolbar.GetFontFace());
+    m_html_edit.SetFont(UTF8_TODO::GetUtf8(m_toolbar.GetFontFace()));
     m_html_edit.MoveFocus();
 }
+
 
 void CQSFEView::OnUpdateFormatFontFace(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
-        m_toolbar.SetFontFace(m_html_edit.GetFontName());
+        m_toolbar.SetFontFace(UTF8_TODO::GetWide(m_html_edit.GetFontName()));
 }
+
 
 void CQSFEView::OnFormatFontSize()
 {
@@ -712,12 +778,14 @@ void CQSFEView::OnFormatFontSize()
     m_html_edit.MoveFocus();
 }
 
+
 void CQSFEView::OnUpdateFormatFontSize(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_html_edit.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
         m_toolbar.SetFontSize(m_html_edit.GetFontSize());
 }
+
 
 void CQSFEView::UpdateToolbar()
 {
@@ -732,5 +800,4 @@ void CQSFEView::UpdateToolbar()
             buttonCmdUI.DoUpdate(this, FALSE);
         }
     }
-
 }

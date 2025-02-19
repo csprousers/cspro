@@ -9,12 +9,12 @@ namespace
     {
         constexpr unsigned MaxStringSize = 255;
 
-        ASSERT(case_item.IsTypeString());
+        ASSERT(IsString(case_item.GetDataType()));
 
-        if( case_item.IsTypeFixed() )
+        if( case_item.IsFixedWidth() )
         {
             // a character can be represented by as many as four UTF-8 characters
-            return std::min(case_item.GetDictionaryItem().GetLen() * 4, MaxStringSize);
+            return std::min(case_item.GetDictItem().GetLen() * static_cast<unsigned>(TC::MaxUtf8BytesNeededForWideChar()), MaxStringSize);
         }
 
         else
@@ -24,19 +24,20 @@ namespace
     }
 
     // routines for working with the ReadStat writer
-    ssize_t write_bytes(const void* bytes, const size_t len, void* ctx)
+    ssize_t write_bytes(const void* const bytes, const size_t len, void* const ctx)
     {
-        FILE* file = static_cast<FILE*>(ctx);
-        return fwrite(bytes, 1, len, file);
+        FileIO::File* file = static_cast<FileIO::File*>(ctx);
+        file->Write(bytes, len);
+        return len;
     }
 
-    void row_count_position_recorder(const size_t count_position, const size_t count_size, const char count_is_unsigned, void* object_holding_writer)
+    void row_count_position_recorder(const size_t count_position, const size_t count_size, const char count_is_unsigned, void* const object_holding_writer)
     {
         static_cast<ReadStatExportWriterBase*>(object_holding_writer)->RecordRowCountPosition(count_position, count_size, count_is_unsigned);
     }
 
     void emit_map_position_recorder(const size_t map_position, const size_t record_len, const uint64_t map10, const uint64_t map11,
-                                    const uint64_t map12, const uint64_t map13, void* object_holding_writer)
+                                    const uint64_t map12, const uint64_t map13, void* const object_holding_writer)
     {
         static_cast<ReadStatExportWriterBase*>(object_holding_writer)->RecordEmitMapVariables(map_position, record_len, map10, map11, map12, map13);
     }
@@ -46,7 +47,6 @@ namespace
 ReadStatExportWriterBase::ReadStatExportWriterBase(const DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access,
                                                    const ConnectionString& connection_string)
     :   SingleRecordExportWriterBase(type, std::move(case_access), connection_string),
-        m_file(nullptr),
         m_readStatWriter(nullptr),
         m_rowCount(0)
 {
@@ -65,21 +65,19 @@ void ReadStatExportWriterBase::Initialize()
 
 ReadStatExportWriterBase::~ReadStatExportWriterBase()
 {
-    Close();
+    try
+    {
+        Close();
+    }
+    catch(...) { }
 }
 
 
 void ReadStatExportWriterBase::Open()
 {
-    SetupEnvironmentToCreateFile(m_connectionString.GetFilename());
+    SetupEnvironmentToCreateFile(m_connectionString.GetFilePath());
 
-    m_file = PortableFunctions::FileOpen(m_connectionString.GetFilename(), _T("wb"));
-
-    if( m_file == nullptr )
-    {
-        throw CSProException(_T("Could not create the %s data file: %s"),
-                             ToString(m_type), m_connectionString.GetFilename().c_str());
-    }
+    m_file.OpenForWritingCreate(m_connectionString.GetFilePath());
 
     m_readStatWriter = readstat_writer_init();
     readstat_set_data_writer(m_readStatWriter, &write_bytes);
@@ -89,7 +87,7 @@ void ReadStatExportWriterBase::Open()
     m_readStatWriter->dta_emit_map_position_recorder = &emit_map_position_recorder;
 
     // use the dictionary name as the file label
-    readstat_writer_set_file_label(m_readStatWriter, UTF8Convert::WideToUTF8(m_caseAccess->GetDataDict().GetName()).c_str());
+    readstat_writer_set_file_label(m_readStatWriter, m_caseAccess->GetDataDict().GetName().c_str());
 }
 
 
@@ -106,12 +104,11 @@ void ReadStatExportWriterBase::Close()
         m_readStatWriter = nullptr;
     }
 
-    if( m_file != nullptr )
+    if( m_file.IsOpen() )
     {
         UpdateRowCounts();
 
-        fclose(m_file);
-        m_file = nullptr;
+        m_file.Close();
     }
 }
 
@@ -144,10 +141,10 @@ void ReadStatExportWriterBase::UpdateRowCounts()
 
     for( const RowCountPosition& row_count_position : m_rowCountPositions )
     {
-        auto write_row_count = [&](auto row_count)
+        auto write_row_count = [&](auto&& row_count)
         {
-            PortableFunctions::fseeki64(m_file, row_count_position.count_position, SEEK_SET);
-            fwrite(&row_count, sizeof(row_count), 1, m_file);
+            m_file.Seek(row_count_position.count_position, SEEK_SET);
+            m_file.Write(&row_count, sizeof(row_count));
         };
 
         if( row_count_position.count_size == sizeof(int) && row_count_position.count_is_unsigned == 0 )
@@ -177,8 +174,8 @@ void ReadStatExportWriterBase::UpdateRowCounts()
         for( size_t i = 0; i < _countof(m_emitMapVariables->map_values); ++i )
             m_emitMapVariables->map_values[i] += length_all_records;
 
-        PortableFunctions::fseeki64(m_file, m_emitMapVariables->position, SEEK_SET);
-        fwrite(m_emitMapVariables->map_values, sizeof(m_emitMapVariables->map_values), 1, m_file);
+        m_file.Seek(m_emitMapVariables->position, SEEK_SET);
+        m_file.Write(m_emitMapVariables->map_values, sizeof(m_emitMapVariables->map_values));
     }
 }
 
@@ -194,17 +191,17 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
         readstat_label_set_t*& label_set = label_sets.emplace_back();
         std::vector<double>& missing_values_set = missing_values.emplace_back();
 
-        const CDictItem& dict_item = export_item_mapping.case_item->GetDictionaryItem();
+        const CDictItem& dict_item = export_item_mapping.case_item->GetDictItem();
 
         if( !dict_item.HasValueSets() )
             continue;
 
         const DictValueSet& dict_value_set = dict_item.GetValueSet(0);
-        const std::string label_set_name = UTF8Convert::WideToUTF8(CreateUniqueName(dict_value_set.GetName()));
+        const std::string label_set_name = CreateUniqueName(dict_value_set.GetName());
 
-        std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(dict_item, &dict_value_set);
+        const std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(dict_item, &dict_value_set);
 
-        if( export_item_mapping.case_item->IsTypeNumeric() )
+        if( IsNumeric(export_item_mapping.case_item->GetDataType()) )
         {
             const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(*export_item_mapping.case_item);
 
@@ -234,25 +231,25 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
                 if( label_set == nullptr )
                     label_set = readstat_add_label_set(m_readStatWriter, READSTAT_TYPE_DOUBLE, label_set_name.c_str());
 
-                readstat_label_double_value(label_set, value_to_add, UTF8Convert::WideToUTF8(response->GetLabel()).c_str());
+                readstat_label_double_value(label_set, value_to_add, UTF8_TODO::GetUtf8(response->GetLabel()).c_str());
             }
         }
 
         else if( AddStringLabelSets() )
         {
-            ASSERT(export_item_mapping.case_item->IsTypeString());
+            ASSERT(IsString(export_item_mapping.case_item->GetDataType()));
 
             label_set = readstat_add_label_set(m_readStatWriter, READSTAT_TYPE_STRING, label_set_name.c_str());
 
             for( const auto& response : value_processor->GetResponses() )
             {
-                std::string value_to_add = UTF8Convert::WideToUTF8(response->GetCode());
+                std::string value_to_add = UTF8_TODO::GetUtf8(response->GetCode());
 
                 value_to_add.resize(GetStringWidth(*export_item_mapping.case_item), ' ');
 
                 readstat_label_string_value(label_set,
                                             value_to_add.c_str(),
-                                            UTF8Convert::WideToUTF8(response->GetLabel()).c_str());
+                                            UTF8_TODO::GetUtf8(response->GetLabel()).c_str());
             }
         }
     }
@@ -269,18 +266,18 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
         const std::vector<double> missing_values_set = missing_values[i];
 
         // setup the data type, width, decimals, and format
-        const CDictItem& dict_item = export_item_mapping.case_item->GetDictionaryItem();
+        const CDictItem& dict_item = export_item_mapping.case_item->GetDictItem();
 
         readstat_type_t data_type;
         unsigned width = 0;
         unsigned decimals = 0;
-        std::optional<std::wstring> format;
+        std::optional<std::string> format;
 
-        if( export_item_mapping.case_item->IsTypeNumeric() )
+        if( IsNumeric(export_item_mapping.case_item->GetDataType()) )
         {
             data_type = READSTAT_TYPE_DOUBLE;
 
-            if( export_item_mapping.case_item->IsTypeFixed() )
+            if( export_item_mapping.case_item->IsFixedWidth() )
             {
                 width = dict_item.GetLen();
                 decimals = dict_item.GetDecimal();
@@ -290,37 +287,37 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
 
         else
         {
-            ASSERT(export_item_mapping.case_item->IsTypeString());
+            ASSERT(IsString(export_item_mapping.case_item->GetDataType()));
 
             data_type = READSTAT_TYPE_STRING;
             width = GetStringWidth(*export_item_mapping.case_item);
             format = GetFixedWidthStringFormat(width);
         }
-        
+
         readstat_variable_t* variable = readstat_add_variable(m_readStatWriter,
-                                                              UTF8Convert::WideToUTF8(export_item_mapping.formatted_item_name).c_str(),
+                                                              export_item_mapping.formatted_item_name.c_str(),
                                                               data_type, width);
 
-        readstat_variable_set_label(variable, UTF8Convert::WideToUTF8(dict_item.GetLabel()).c_str());
+        readstat_variable_set_label(variable, UTF8_TODO::GetUtf8(dict_item.GetLabel()).c_str());
 
         readstat_variable_set_display_width(variable, static_cast<int>(width));
         variable->decimals = static_cast<int>(decimals);
 
         if( format.has_value() )
-            readstat_variable_set_format(variable, UTF8Convert::WideToUTF8(*format).c_str());
+            readstat_variable_set_format(variable, format->c_str());
 
         // add the label set and any missing values
         if( label_set != nullptr )
             readstat_variable_set_label_set(variable, label_set);
 
-        for( double missing_value : missing_values_set )
+        for( const double missing_value : missing_values_set )
             readstat_variable_add_missing_double_value(variable, missing_value);
 
         export_item_mapping.tag = variable;
     }
 
     // use -1 for the number of rows, but this will be updated when closing the file
-    StartReadStatWriter(m_readStatWriter, m_file, -1);
+    StartReadStatWriter(m_readStatWriter, &m_file, -1);
 }
 
 
@@ -359,7 +356,7 @@ void ReadStatExportWriterBase::WriteCaseItem(const ExportItemMapping& export_ite
 
 
     // numeric values
-    else if( export_item_mapping.case_item->IsTypeNumeric() )
+    else if( IsNumeric(export_item_mapping.case_item->GetDataType()) )
     {
         const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(*export_item_mapping.case_item);
 
@@ -379,16 +376,16 @@ void ReadStatExportWriterBase::WriteCaseItem(const ExportItemMapping& export_ite
 
 
     // string values
-    else if( export_item_mapping.case_item->IsTypeString() )
+    else if( IsString(export_item_mapping.case_item->GetDataType()) )
     {
-        ASSERT(export_item_mapping.case_item->IsTypeString());
+        ASSERT(IsString(export_item_mapping.case_item->GetDataType()));
         ASSERT(variable->display_width == static_cast<int>(GetStringWidth(*export_item_mapping.case_item)));
 
         const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(*export_item_mapping.case_item);
 
-        std::string text_utf8 = UTF8Convert::WideToUTF8(string_case_item.GetValue(index));
-        text_utf8.resize(variable->display_width, ' ');
+        std::string value = string_case_item.GetValue(index);
+        SO::MakeExactLength(value, variable->display_width);
 
-        readstat_insert_string_value(m_readStatWriter, variable, text_utf8.c_str());
+        readstat_insert_string_value(m_readStatWriter, variable, value.c_str());
     }
 }

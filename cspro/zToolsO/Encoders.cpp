@@ -2,146 +2,163 @@
 #include "Encoders.h"
 #include "base64.h"
 #include "TextConverter.h"
+#include <zHtml/HtmlWriter.h>
 #include <regex>
 
-using namespace Encoders;
 
-static_assert(std::wstring_view(HexChars).length() == 16);
-static_assert(std::wstring_view(EscapeRepresentations).length() == std::wstring_view(EscapeSequences).length());
-static_assert(std::wstring_view(JsonEscapeRepresentations).length() == std::wstring_view(JsonEscapeSequences).length());
+static_assert(std::string_view(Encoders::HexChars).length() == 16);
+static_assert(std::string_view(EncoderEscapes::Representations).length() == std::string_view(EncoderEscapes::Sequences).length());
+static_assert(std::string_view(Encoders::JsonEscapeRepresentations).length() == std::string_view(Encoders::JsonEscapeSequences).length());
 
 
 // --------------------------------------------------------------------------
 // HTML
 // --------------------------------------------------------------------------
 
-constexpr wstring_view HtmlTag_lt  = _T("&lt;");
-constexpr wstring_view HtmlTag_gt  = _T("&gt;");
-constexpr wstring_view HtmlTag_amp = _T("&amp;");
-constexpr wstring_view HtmlTag_br  = _T("<br />");
+constexpr std::string_view HtmlTag_lt_sv   = "&lt;";
+constexpr std::string_view HtmlTag_gt_sv   = "&gt;";
+constexpr std::string_view HtmlTag_amp_sv  = "&amp;";
+constexpr std::string_view HtmlTag_nbsp_sv = "&nbsp;";
+constexpr std::string_view HtmlTag_br_sv   = "<br>";
 
-#pragma warning(push)
-#pragma warning(disable:4701)
-#pragma warning(disable:4706)
-std::wstring Encoders::ToHtml(const wstring_view text_sv, const bool escape_spaces/* = true*/)
+std::unique_ptr<std::string> Encoders::ToHtmlWorker(const std::string_view text_sv, const bool escape_spaces/* = true*/)
 {
-    // add each character, escaping a few
-    std::wstring html;
+    constexpr const char* EscapeChars      = " \n\t<>&";
+    constexpr const char* IndexSpace       = EscapeChars + 0;
+    constexpr const char* IndexNewline     = EscapeChars + 1;
+    constexpr const char* IndexTab         = EscapeChars + 2;
+    constexpr const char* IndexLessThan    = EscapeChars + 3;
+    constexpr const char* IndexGreaterThan = EscapeChars + 4;
+    constexpr const char* IndexAmpersand   = EscapeChars + 5;
 
-    for( const TCHAR ch : text_sv )
+    const char* const chars_to_escape = escape_spaces ? IndexSpace :
+                                                        IndexLessThan;
+
+    const auto& text_sv_cbegin = text_sv.cbegin();
+    const auto& text_sv_cend = text_sv.cend();
+    auto text_sv_itr = text_sv_cbegin;
+
+    // the html object will only be created when characters must be escaped
+    std::unique_ptr<std::string> html;
+
+    auto is_previous_char_space = [&]()
     {
-        bool newline_read;
-        bool tab_read;
+        // force a non-breaking space on the first character, which will allow chained calls to be properly spaced
+        // e.g., "abc " " xyz" -> "abc &nbsp;xyz"
+        if( text_sv_itr == text_sv_cbegin )
+            return true;
 
-        if( ch == '<' )
+        const char prev_ch = ( html != nullptr ) ? html->back() :
+                                                   *( text_sv_itr - 1 );
+
+        // also treat end tags as space characters so that a string like "a\n b" is encoded
+        // with an escaped space following the newline
+        return ( prev_ch == ' ' || prev_ch == '>' );
+    };
+
+    // escape a few characters
+    for( ; text_sv_itr != text_sv_cend; ++text_sv_itr )
+    {
+        const char ch = *text_sv_itr;
+        const char* const escape_index = strchr(chars_to_escape, *text_sv_itr);
+
+        // space characters will be escaped only when preceeded by another space character
+        if( ( escape_index == nullptr ) ||
+            ( escape_index == IndexSpace ) && !is_previous_char_space() )
         {
-            html.append(HtmlTag_lt);
+            // the character should not be escaped, but if already escaping characters, add it to html
+            if( html != nullptr )
+                html->push_back(ch);
+
+            continue;
         }
 
-        else if( ch == '>' )
+        // at this point, all remaining characters to be processed are escaped
+        if( html == nullptr )
         {
-            html.append(HtmlTag_gt);
+            html = std::make_unique<std::string>(text_sv_cbegin, text_sv_itr);
+            html->reserve(text_sv.length());
         }
 
-        else if( ch == '&' )
+        // ' ' escaped to &nbsp;
+        if( escape_index == IndexSpace )
         {
-            html.append(HtmlTag_amp);
+            html->append(HtmlTag_nbsp_sv);
         }
 
-        else if( escape_spaces && ( ( newline_read = ( ch == '\n' ) ) ||
-                                    ( tab_read     = ( ch == '\t' ) ) ||
-                                                     ( ch == ' '  ) ) )
+        // \n escaped to <br>
+        else if( escape_index == IndexNewline )
         {
-            if( newline_read )
-            {
-                html.append(HtmlTag_br);
-            }
+            html->append(HtmlTag_br_sv);
+        }
 
-            else
-            {
-                size_t spaces_to_output = tab_read ? 4 : 1;
+        // < escaped to &lt;
+        else if( escape_index == IndexLessThan )
+        {
+            html->append(HtmlTag_lt_sv);
+        }
 
-                // force a non-breaking space on the first character
-                TCHAR prev_ch = html.empty() ? ' ' : html.back();
+        // > escaped to &gt;
+        else if( escape_index == IndexGreaterThan )
+        {
+            html->append(HtmlTag_gt_sv);
+        }
 
-                do
-                {
-                    // also check against end tag characters
-                    if( prev_ch == ' ' || prev_ch == '>' )
-                    {
-                        html.append(_T("&nbsp;"));
-                        prev_ch = ';';
-                    }
+        // & escaped to &amp;
+        else if( escape_index == IndexAmpersand )
+        {
+            html->append(HtmlTag_amp_sv);
+        }
 
-                    else
-                    {
-                        html.push_back(' ');
-                        prev_ch = ' ';
-                    }
+        // \t escaped to four spaces, to "&nbsp; &nbsp; " or " &nbsp; &nbsp;"
+        else if( escape_index == IndexTab )
+        {
+            constexpr std::string_view TabEscape = " &nbsp; &nbsp; ";
+            constexpr size_t TabEscapeLength = TabEscape.length() - 1;
 
-                } while( --spaces_to_output > 0 );
-            }
+            html->append(is_previous_char_space() ? ( TabEscape.data() + 1 ) : TabEscape.data(), TabEscapeLength);
         }
 
         else
         {
-            html.push_back(ch);
+            ASSERT(false);
         }
     }
 
     return html;
 }
-#pragma warning(pop)
 
 
-std::wstring Encoders::ToHtmlTagValue(const wstring_view text_sv)
+std::string Encoders::ToHtmlTagValue(const std::string_view text_sv)
 {
     // encodes to HTML and then escapes quotes and newlines
-    std::wstring html = ToHtml(text_sv);
-    SO::Replace(html, _T("\""), _T("&quot;"));
-    SO::Replace(html, HtmlTag_br, _T("&#013;"));
+    std::string html = ToHtml(text_sv);
+
+    SO::Replace(html, "\"", "&quot;");
+    SO::Replace(html, HtmlTag_br_sv, "&#013;");
+
     return html;
 }
 
 
-std::wstring Encoders::FromHtmlAmpersandEscapes(std::wstring text)
+std::string Encoders::FromHtmlAmpersandEscapes(std::string text)
 {
-    SO::Replace(text, HtmlTag_lt, _T("<"));
-    SO::Replace(text, HtmlTag_gt, _T(">"));
-    SO::Replace(text, HtmlTag_amp, _T("&"));
+    SO::Replace(text, HtmlTag_lt_sv, "<");
+    SO::Replace(text, HtmlTag_gt_sv, ">");
+    SO::Replace(text, HtmlTag_amp_sv, "&");
+
     return text;
 }
 
 
-std::wstring Encoders::ToPreformattedTextHtml(const wstring_view title_sv, const wstring_view body_sv)
+std::string Encoders::ToPreformattedTextHtml(const std::string_view title_sv, const std::string_view body_sv)
 {
-    std::wstring title_html = ToHtml(title_sv, false);
-    std::wstring body_html = ToHtml(body_sv, false);
-
-    const std::vector<wstring_view> element_svs =
-    {
-        _T("<html><head><title>"),
-        title_html,
-        _T("</title></head><body><pre>"),
-        body_html,
-        _T("</pre></body></html>")
-    };
-
-    size_t total_length = 0;
-
-    for( const wstring_view& element_sv : element_svs )
-        total_length += element_sv.length();
-
-    std::wstring html(total_length, '\0');
-    TCHAR* html_buffer = html.data();
-
-    for( const wstring_view& element_sv : element_svs )
-    {
-        _tmemcpy(html_buffer, element_sv.data(), element_sv.length());
-        html_buffer += element_sv.length();
-    };
-
-    return html;
+    return SO::Concatenate(HtmlWriter::DefaultHeader_sv,
+                           "<title>",
+                           ToHtml(title_sv, false),
+                           "</title>\n</head>\n<body>\n<pre>",
+                           ToHtml(body_sv, false),
+                           "</pre>\n</body>\n</html>");
 }
 
 
@@ -150,131 +167,142 @@ std::wstring Encoders::ToPreformattedTextHtml(const wstring_view title_sv, const
 // PERCENT-ENCODING + URI
 // --------------------------------------------------------------------------
 
-namespace
+std::unique_ptr<std::string> Encoders::ToPercentEncodingWorker(const std::string_view text_sv, const char* const additional_characters_allowed)
 {
-    inline std::wstring ToPercentEncodingWorker(const wstring_view text_sv, const char* const additional_characters_allowed)
+    const auto& text_sv_cbegin = text_sv.cbegin();
+    const auto& text_sv_cend = text_sv.cend();
+    auto text_sv_itr = text_sv_cbegin;
+
+    // the encoded_text object will only be created when characters must be escaped
+    std::unique_ptr<std::string> encoded_text;
+
+    for( ; text_sv_itr != text_sv_cend; ++text_sv_itr )
     {
-        const std::string utf_text = UTF8Convert::WideToUTF8(text_sv);
+        const char ch = *text_sv_itr;
 
-        // assume that all characters will be percent encoded
-        std::wstring encoded_text(utf_text.size() * 3 + 1, '\0');
-        TCHAR* encoded_text_ptr = encoded_text.data();
-
-        for( const char ch : utf_text )
+        if( Encoders::IsPercentEncodingUnreservedCharacter(ch) ||
+            ( additional_characters_allowed != nullptr && strchr(additional_characters_allowed, ch) != nullptr ) )
         {
-            if( IsPercentEncodingUnreservedCharacter(ch) ||
-                ( additional_characters_allowed != nullptr && strchr(additional_characters_allowed, ch) != nullptr ) )
-            {
-                *(encoded_text_ptr++) = ch;
-            }
-
-            else
-            {
-                *(encoded_text_ptr++) = '%';
-                *(encoded_text_ptr++) = HexChars[static_cast<byte>(ch) >> 4];
-                *(encoded_text_ptr++) = HexChars[static_cast<byte>(ch) & 0x0F];
-            }
+            // the character should not be escaped, but if already escaping characters, add it
+            if( encoded_text != nullptr )
+                encoded_text->push_back(ch);
         }
 
-        encoded_text.resize(encoded_text_ptr - encoded_text.data());
+        // handle a character that needs escaping
+        else
+        {
+            if( encoded_text == nullptr )
+            {
+                encoded_text = std::make_unique<std::string>(text_sv_cbegin, text_sv_itr);
+                encoded_text->reserve(text_sv.length());
+            }
 
-        return encoded_text;
+            encoded_text->push_back('%');
+            encoded_text->push_back(Encoders::HexChars[static_cast<byte>(ch) >> 4]);
+            encoded_text->push_back(Encoders::HexChars[static_cast<byte>(ch) & 0x0F]);
+        }
     }
+
+    return encoded_text;
 }
 
 
-std::wstring Encoders::ToPercentEncoding(const wstring_view text_sv)
+std::unique_ptr<std::string> Encoders::ToPercentEncodingWorker(const std::string_view text_sv)
 {
     return ToPercentEncodingWorker(text_sv, nullptr);
 }
 
 
-std::wstring Encoders::ToUri(const wstring_view text_sv, const bool allow_hash_to_specify_fragment/* = true*/)
+std::unique_ptr<std::string> Encoders::ToUriWorker(const std::string_view text_sv, const bool allow_hash_to_specify_fragment/* = true*/)
 {
     // list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
-    const char* EscapeCharacters = "#;,/?:@&=+$!*'()";
-    return ToPercentEncodingWorker(text_sv, allow_hash_to_specify_fragment ? ( EscapeCharacters ) :
-                                                                             ( EscapeCharacters + 1 ));
+    constexpr const char* AdditionalCharactersAllowed = "#;,/?:@&=+$!*'()";
+    return ToPercentEncodingWorker(text_sv, allow_hash_to_specify_fragment ? ( AdditionalCharactersAllowed ) :
+                                                                             ( AdditionalCharactersAllowed + 1 ));
 }
 
 
-std::wstring Encoders::ToUriComponent(const wstring_view text_sv)
+std::unique_ptr<std::string> Encoders::ToUriComponentWorker(const std::string_view text_sv)
 {
     // list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
     return ToPercentEncodingWorker(text_sv, "_!*'()");
 }
 
 
-std::wstring Encoders::FromPercentEncoding(const wstring_view text_sv, const bool assume_utf8_encoding/* = true*/)
+std::string Encoders::ToUriPath(const std::string_view text_sv)
 {
-    std::vector<std::tuple<const TCHAR*, std::string>> encoded_sections;
-    const TCHAR* last_percent_encoded_ptr = nullptr;
-    const TCHAR* encoded_text_ptr = text_sv.data();
+    // this list is modified from what ToUriWorker uses to remove:
+    //     - ? because that signifies the start of a query string
+    //     - # because that signifies a fragment
+    constexpr const char* AdditionalCharactersAllowed = ";,/:@&=+$!*'()";
+    const std::unique_ptr<std::string> encoded_text = ToPercentEncodingWorker(text_sv, AdditionalCharactersAllowed);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(text_sv);
+}
+
+
+template<typename T, bool ProcessPlusAsSpace>
+T Encoders::FromPercentEncodingWorker(const std::string_view text_sv)
+{
+    T decoded_text;
+    decoded_text.reserve(text_sv.size());
+
+    const char* encoded_text_ptr = text_sv.data();
+    size_t length_remaining = text_sv.length();
 
     // parse the string, decoding any percent encoded sections
-    for( size_t length_remaining = text_sv.length(); length_remaining > 0; --length_remaining, ++encoded_text_ptr )
+    while( length_remaining > 0 )
     {
-        const TCHAR* first_hex_char;
-        const TCHAR* second_hex_char;
+        const char* first_hex_char;
+        const char* second_hex_char;
 
-        if( length_remaining >= 3 && encoded_text_ptr[0] == '%' &&
-            ( first_hex_char = _tcschr(HexChars, std::towlower(encoded_text_ptr[1])) ) != nullptr &&
-            ( second_hex_char = _tcschr(HexChars, std::towlower(encoded_text_ptr[2])) ) != nullptr )
+        char ch = encoded_text_ptr[0];
+
+        if( ch == '%' && length_remaining >= 3 &&
+            ( first_hex_char = strchr(HexChars, std::tolower(encoded_text_ptr[1])) ) != nullptr &&
+            ( second_hex_char = strchr(HexChars, std::tolower(encoded_text_ptr[2])) ) != nullptr )
         {
-            const char decoded_char = static_cast<char>(( ( first_hex_char - HexChars ) << 4 ) | ( second_hex_char - HexChars ));
+            ch = static_cast<char>(( ( first_hex_char - HexChars ) << 4 ) | ( second_hex_char - HexChars ));
 
-            // if this follows an encoded section, combine it (which will allow for text
-            // that had non-Latin characters percent encoded as UTF-8 to be properly decoded)
-            if( last_percent_encoded_ptr == ( encoded_text_ptr - 3 ) )
-            {
-                std::get<1>(encoded_sections.back()).push_back(decoded_char);
-            }
-
-            else
-            {
-                encoded_sections.emplace_back(encoded_text_ptr, std::string(1, decoded_char));
-            }
-
-            last_percent_encoded_ptr = encoded_text_ptr;
+            length_remaining -= 3;
+            encoded_text_ptr += 3;
         }
+
+        else
+        {
+            if constexpr(ProcessPlusAsSpace)
+            {
+                if( ch == '+' )
+                    ch = ' ';
+            }
+
+            --length_remaining;
+            ++encoded_text_ptr;
+        }
+
+        decoded_text.push_back(static_cast<typename T::value_type>(ch));
     }
-
-    // if nothing was percent encoded, we can simply return the string
-    if( encoded_sections.empty() )
-        return text_sv;
-
-    // otherwise we have to remove the extra characters and convert the encoded sections
-    // from UTF-8 (or ANSI) to wide characters
-    const TCHAR* const encoded_text_end_ptr = encoded_text_ptr;
-
-    const size_t max_decoded_text_length = ( encoded_text_end_ptr - text_sv.data() ) - ( 2 * encoded_sections.size() );
-    std::wstring decoded_text(max_decoded_text_length, '\0');
-    TCHAR* decoded_text_ptr = decoded_text.data();
-
-    encoded_text_ptr = text_sv.data();
-
-    for( const auto& [encoded_section_start_ptr, decoded_chars] : encoded_sections )
-    {
-        // copy any unencoded text prior to this section
-        const size_t unencoded_chars = encoded_section_start_ptr - encoded_text_ptr;
-        _tmemcpy(decoded_text_ptr, encoded_text_ptr, unencoded_chars);
-        decoded_text_ptr += unencoded_chars;
-
-        // convert the decoded characters as if they were UTF-8 (or ANSI) encoded
-        const std::wstring wide_decoded_chars = assume_utf8_encoding ? UTF8Convert::UTF8ToWide(decoded_chars) :
-                                                                       TextConverter::WindowsAnsiToWide(decoded_chars);
-        _tmemcpy(decoded_text_ptr, wide_decoded_chars.data(), wide_decoded_chars.length());
-        decoded_text_ptr += wide_decoded_chars.length();
-
-        encoded_text_ptr = encoded_section_start_ptr + decoded_chars.length() * 3;
-    }
-
-    // copy any final unencoded text
-    _tmemcpy(decoded_text_ptr, encoded_text_ptr, encoded_text_end_ptr - encoded_text_ptr);
-
-    decoded_text.resize(_tcslen(decoded_text.data()));
 
     return decoded_text;
+}
+
+
+template<typename T/* = std::string*/>
+T Encoders::FromPercentEncoding(const std::string_view text_sv)
+{
+    return FromPercentEncodingWorker<T, false>(text_sv);
+}
+
+template CLASS_DECL_ZTOOLSO std::string Encoders::FromPercentEncoding(std::string_view text_sv);
+template CLASS_DECL_ZTOOLSO std::vector<std::byte> Encoders::FromPercentEncoding(std::string_view text_sv);
+
+
+std::string Encoders::FromUrlQueryString(const std::string_view text_sv)
+{
+    return FromPercentEncodingWorker<std::string, true>(text_sv);
 }
 
 
@@ -283,16 +311,16 @@ std::wstring Encoders::FromPercentEncoding(const wstring_view text_sv, const boo
 // CSV (comma) / semicolon
 // --------------------------------------------------------------------------
 
-std::unique_ptr<std::wstring> Encoders::ToCsvWorker(const wstring_view text_sv, const TCHAR separator/* = ','*/)
+std::unique_ptr<std::string> Encoders::ToCsvWorker(const std::string_view text_sv, char separator/* = ','*/)
 {
     // following RFC 4180: https://tools.ietf.org/html/rfc4180
 
     // characters that trigger the need to be in quotes: , " CR/LF
-    int number_double_quotes = 0;
+    size_t number_double_quotes = 0;
     bool need_to_delimit = false;
 
     // calculate the length of the delimited string
-    for( const TCHAR ch : text_sv )
+    for( const char ch : text_sv )
     {
         if( ch == '"' )
         {
@@ -312,13 +340,13 @@ std::unique_ptr<std::wstring> Encoders::ToCsvWorker(const wstring_view text_sv, 
 
     // delimit the string, surrounding the entire string in double quotes
     const size_t delimited_text_length = text_sv.length() + 2 + number_double_quotes;
-    auto delimited_text = std::make_unique<std::wstring>(delimited_text_length, '\0');
+    auto delimited_text = std::make_unique<std::string>(delimited_text_length, '\0');
 
-    TCHAR* delimited_text_buffer = delimited_text->data();
+    char* delimited_text_buffer = delimited_text->data();
 
     *(delimited_text_buffer++) = '"';
 
-    for( const TCHAR ch : text_sv )
+    for( const char ch : text_sv )
     {
         if( ch == '"' )
             *(delimited_text_buffer++) = '"';
@@ -332,30 +360,24 @@ std::unique_ptr<std::wstring> Encoders::ToCsvWorker(const wstring_view text_sv, 
 }
 
 
-std::wstring Encoders::ToCsv(std::wstring text, const TCHAR separator/* = ','*/)
-{
-    std::unique_ptr<std::wstring> delimited_string = ToCsvWorker(text, separator);
-    return ( delimited_string != nullptr ) ? *delimited_string : text;
-}
-
-
 
 // --------------------------------------------------------------------------
 // TSV (tab)
 // --------------------------------------------------------------------------
 
-std::unique_ptr<std::wstring> Encoders::ToTsvWorker(const wstring_view text_sv)
+std::unique_ptr<std::string> Encoders::ToTsvWorker(const std::string_view text_sv)
 {
     // following https://en.wikipedia.org/wiki/Tab-separated_values
-    constexpr const TCHAR* CharactersToEscape = _T("\t\r\n\\");
-    constexpr const TCHAR* EscapeCharacters   = _T("trn\\");
+    constexpr const char* CharactersToEscape = "\t\r\n\\";
+    constexpr const char* EscapeCharacters   = "trn\\";
+    static_assert(std::string_view(CharactersToEscape).length() == std::string_view(EscapeCharacters).length());
 
-    int number_characters_to_escape = 0;
+    size_t number_characters_to_escape = 0;
 
     // calculate the length of the delimited string
-    for( const TCHAR ch : text_sv )
+    for( const char ch : text_sv )
     {
-        if( _tcschr(CharactersToEscape, ch) != nullptr )
+        if( strchr(CharactersToEscape, ch) != nullptr )
             ++number_characters_to_escape;
     }
 
@@ -365,13 +387,13 @@ std::unique_ptr<std::wstring> Encoders::ToTsvWorker(const wstring_view text_sv)
 
     // add the escapes
     const size_t delimited_text_length = text_sv.length() + number_characters_to_escape;
-    auto delimited_text = std::make_unique<std::wstring>(delimited_text_length, '\0');
+    auto delimited_text = std::make_unique<std::string>(delimited_text_length, '\0');
 
-    TCHAR* delimited_text_buffer = delimited_text->data();
+    char* delimited_text_buffer = delimited_text->data();
 
-    for( const TCHAR ch : text_sv )
+    for( const char ch : text_sv )
     {
-        const TCHAR* character_to_escape = _tcschr(CharactersToEscape , ch);
+        const char* character_to_escape = strchr(CharactersToEscape , ch);
 
         if( character_to_escape != nullptr )
         {
@@ -389,13 +411,6 @@ std::unique_ptr<std::wstring> Encoders::ToTsvWorker(const wstring_view text_sv)
 }
 
 
-std::wstring Encoders::ToTsv(std::wstring text)
-{
-    std::unique_ptr<std::wstring> delimited_string = ToTsvWorker(text);
-    return ( delimited_string != nullptr ) ? *delimited_string : text;
-}
-
-
 
 // --------------------------------------------------------------------------
 // File URLs
@@ -404,38 +419,38 @@ std::wstring Encoders::ToTsv(std::wstring text)
 // although the UrlCreateFromPath and PathCreateFromUrl functions exist on Windows, they don't
 // support UTF-8 URLs (if building to support on Windows 7), so we will use our own implementations
 
-std::wstring Encoders::ToFileUrl(std::wstring filename)
+std::string Encoders::ToFileUrl(std::string file_path)
 {
-    return _T("file:///") + ToUri(PortableFunctions::PathToForwardSlash(std::move(filename)));
+    return SO::Concatenate(FileUrlPrefix_sv, ToUri(PortableFunctions::PathToForwardSlash(std::move(file_path))));
 }
 
 
-std::optional<std::wstring> Encoders::FromFileUrl(wstring_view file_url_sv)
+std::optional<std::string> Encoders::FromFileUrl(std::string_view file_url_sv)
 {
-    constexpr std::wstring_view FileUrlStart = _T("file:/");
+    constexpr std::string_view FileUrlStart_sv = "file:/";
 
     file_url_sv = SO::Trim(file_url_sv);
 
-    if( SO::StartsWithNoCase(file_url_sv, FileUrlStart) )
+    if( SO::StartsWithNoCase(file_url_sv, FileUrlStart_sv) )
     {
         // allow up to three slashes
-        wstring_view url_sv = file_url_sv.data() + FileUrlStart.length();
+        std::string_view url_sv = file_url_sv.data() + FileUrlStart_sv.length();
 
         for( int i = 0; i < 2 && !url_sv.empty() && url_sv.front() == '/'; ++i )
-            url_sv = url_sv.substr(1);
+            url_sv.remove_prefix(1);
 
-        std::wstring filename = PortableFunctions::PathToNativeSlash(FromPercentEncoding(url_sv));
+        std::string file_path = PortableFunctions::PathToNativeSlash(FromPercentEncoding(url_sv));
 
         // if the file or directory doesn't exist, see if it exists when using encoding using ANSI characters
-        if( !PortableFunctions::FileExists(filename) )
+        if( !PortableFunctions::FileExists(file_path) )
         {
-            std::wstring filename_from_ansi_encoding = PortableFunctions::PathToNativeSlash(FromPercentEncoding(url_sv, false));
+            std::string file_path_from_ansi_encoding = TextConverter::AnsiToUtf8(file_path);
 
-            if( PortableFunctions::FileExists(filename_from_ansi_encoding) )
-                return filename_from_ansi_encoding;
+            if( PortableFunctions::FileExists(file_path_from_ansi_encoding) )
+                return file_path_from_ansi_encoding;
         }
 
-        return filename;
+        return file_path;
     }
 
     return std::nullopt;
@@ -448,33 +463,33 @@ std::optional<std::wstring> Encoders::FromFileUrl(wstring_view file_url_sv)
 // --------------------------------------------------------------------------
 
 #ifdef _DEBUG
-std::wstring ToEscapedStringWorker(std::wstring text, const bool escape_single_quotes = true)
+std::string ToEscapedStringWorker(std::string text, const bool escape_single_quotes = true)
 #else
-std::wstring Encoders::ToEscapedString(std::wstring text, const bool escape_single_quotes/* = true*/)
+std::string Encoders::ToEscapedString(std::string text, const bool escape_single_quotes/* = true*/)
 #endif
 {
     if( text.empty() )
         return text;
 
-    const TCHAR* escape_representations_to_use = EscapeRepresentations;
-    const TCHAR* escape_sequences_to_use = EscapeSequences;
+    const char* escape_representations_to_use = EncoderEscapes::Representations;
+    const char* escape_sequences_to_use = EncoderEscapes::Sequences;
 
     if( !escape_single_quotes )
     {
-        static_assert(EscapeRepresentations[0] == '\'');
+        static_assert(EncoderEscapes::Representations[0] == '\'');
         ++escape_representations_to_use;
         ++escape_sequences_to_use;
     }
 
-    std::vector<std::tuple<const TCHAR*, TCHAR>> characters_needing_escaping;
+    std::vector<std::tuple<const char*, char>> characters_needing_escaping; // position / character
 
     // parse the text, finding any characters that need to be escaped
-    const TCHAR* const input_text_start_ptr = text.c_str();
-    const TCHAR* input_text_ptr = input_text_start_ptr;
+    const char* const input_text_start_ptr = text.c_str();
+    const char* input_text_ptr = input_text_start_ptr;
 
-    for( ; *input_text_ptr != 0; ++input_text_ptr )
+    for( ; *input_text_ptr != '\0'; ++input_text_ptr )
     {
-        const TCHAR* const escape_representation_pos = _tcschr(escape_representations_to_use, *input_text_ptr);
+        const char* const escape_representation_pos = strchr(escape_representations_to_use, *input_text_ptr);
 
         if( escape_representation_pos != nullptr )
             characters_needing_escaping.emplace_back(input_text_ptr, escape_sequences_to_use[escape_representation_pos - escape_representations_to_use]);
@@ -485,17 +500,17 @@ std::wstring Encoders::ToEscapedString(std::wstring text, const bool escape_sing
         return text;
 
     // otherwise escape the text
-    const TCHAR* const input_text_end_ptr = input_text_ptr;
+    const char* const input_text_end_ptr = input_text_ptr;
     input_text_ptr = input_text_start_ptr;
 
     const size_t escaped_text_length = text.length() + characters_needing_escaping.size();
-    std::wstring escaped_text(escaped_text_length, '\0');
-    TCHAR* escaped_text_ptr = escaped_text.data();
+    std::string escaped_text(escaped_text_length, '\0');
+    char* escaped_text_ptr = escaped_text.data();
 
-    auto copy_unescaped_text = [&](const TCHAR* copy_up_to_but_not_including_ptr)
+    auto copy_unescaped_text = [&](const char* const copy_up_to_but_not_including_ptr)
     {
-        size_t unescaped_chars = copy_up_to_but_not_including_ptr - input_text_ptr;
-        _tmemcpy(escaped_text_ptr, input_text_ptr, unescaped_chars);
+        const size_t unescaped_chars = copy_up_to_but_not_including_ptr - input_text_ptr;
+        memcpy(escaped_text_ptr, input_text_ptr, unescaped_chars);
         escaped_text_ptr += unescaped_chars;
     };
 
@@ -519,24 +534,24 @@ std::wstring Encoders::ToEscapedString(std::wstring text, const bool escape_sing
 
 
 #ifdef _DEBUG
-std::wstring FromEscapedStringWorker(std::wstring text)
+std::string FromEscapedStringWorker(std::string text)
 #else
-std::wstring Encoders::FromEscapedString(std::wstring text)
+std::string Encoders::FromEscapedString(std::string text)
 #endif
 {
     if( text.empty() )
         return text;
 
-    std::vector<std::tuple<TCHAR*, TCHAR>> characters_needing_unescaping;
+    std::vector<std::tuple<char*, char>> characters_needing_unescaping;
 
-    TCHAR* text_ptr = text.data();
+    char* text_ptr = text.data();
     bool last_character_was_an_escape = false;
 
-    for( ; *text_ptr != 0; ++text_ptr )
+    for( ; *text_ptr != '\0'; ++text_ptr )
     {
         if( last_character_was_an_escape )
         {
-            const TCHAR escaped_representation = Encoders::GetEscapedRepresentation(*text_ptr);
+            const char escaped_representation = Encoders::GetEscapedRepresentation(*text_ptr);
 
             if( escaped_representation != 0 )
                 characters_needing_unescaping.emplace_back(text_ptr - 1, escaped_representation);
@@ -557,7 +572,7 @@ std::wstring Encoders::FromEscapedString(std::wstring text)
     // otherwise unescape the text in place from the back to the front
     const size_t unescaped_text_length = text.length() - characters_needing_unescaping.size();
 
-    const TCHAR* current_text_end_ptr = text_ptr;
+    const char* current_text_end_ptr = text_ptr;
 
     for( auto characters_needing_unescaping_itr = characters_needing_unescaping.crbegin();
          characters_needing_unescaping_itr != characters_needing_unescaping.crend();
@@ -568,11 +583,11 @@ std::wstring Encoders::FromEscapedString(std::wstring text)
         *std::get<0>(*characters_needing_unescaping_itr) = std::get<1>(*characters_needing_unescaping_itr);
 
         // shift the text following this character
-        TCHAR* const text_following_character_ptr = std::get<0>(*characters_needing_unescaping_itr) + 2;
+        char* const text_following_character_ptr = std::get<0>(*characters_needing_unescaping_itr) + 2;
 
         memmove(std::get<0>(*characters_needing_unescaping_itr) + 1,
                 text_following_character_ptr,
-                sizeof(TCHAR) * ( current_text_end_ptr - text_following_character_ptr ));
+                current_text_end_ptr - text_following_character_ptr);
 
         --current_text_end_ptr;
     }
@@ -584,31 +599,31 @@ std::wstring Encoders::FromEscapedString(std::wstring text)
 
 
 #ifdef _DEBUG
-std::wstring Encoders::ToEscapedString(const std::wstring text, const bool escape_single_quotes/* = true*/)
+std::string Encoders::ToEscapedString(const std::string text, const bool escape_single_quotes/* = true*/)
 {
-    std::wstring escaped_text = ToEscapedStringWorker(text, escape_single_quotes);
+    std::string escaped_text = ToEscapedStringWorker(text, escape_single_quotes);
     ASSERT(FromEscapedStringWorker(escaped_text) == text);
     return escaped_text;
 }
 
 
-std::wstring Encoders::FromEscapedString(const std::wstring text)
+std::string Encoders::FromEscapedString(const std::string text)
 {
-    std::wstring unescaped_text = FromEscapedStringWorker(text);
+    std::string unescaped_text = FromEscapedStringWorker(text);
 
     // for these checks, also check against unescaped ' or " characters,
     // which don't necessary have to be escaped
-    const std::wstring expected_escaped_text = ToEscapedStringWorker(unescaped_text);
+    const std::string expected_escaped_text = ToEscapedStringWorker(unescaped_text);
 
     if( expected_escaped_text != text )
     {
-        std::wstring expected_escaped_text_in_double_quote_string = expected_escaped_text;
-        SO::Replace(expected_escaped_text_in_double_quote_string, _T("\\'"), _T("'"));
+        std::string expected_escaped_text_in_double_quote_string = expected_escaped_text;
+        SO::Replace(expected_escaped_text_in_double_quote_string, "\\'", "'");
 
         if( expected_escaped_text_in_double_quote_string != text )
         {
-            std::wstring expected_escaped_text_in_single_quote_string = expected_escaped_text;
-            SO::Replace(expected_escaped_text_in_single_quote_string, _T("\\\""), _T("\""));
+            std::string expected_escaped_text_in_single_quote_string = expected_escaped_text;
+            SO::Replace(expected_escaped_text_in_single_quote_string, "\\\"", "\"");
 
             ASSERT(expected_escaped_text_in_single_quote_string == text);
         }
@@ -619,9 +634,9 @@ std::wstring Encoders::FromEscapedString(const std::wstring text)
 #endif
 
 
-std::wstring Encoders::ToLogicString(std::wstring text)
+std::string Encoders::ToLogicString(std::string text)
 {
-     return _T('"') + ToEscapedString(std::move(text), false) + _T('"');
+    return '"' + ToEscapedString(std::move(text), false) + '"';
 }
 
 
@@ -630,12 +645,12 @@ std::wstring Encoders::ToLogicString(std::wstring text)
 // JSON
 // --------------------------------------------------------------------------
 
-std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escape_forward_slashes/* = true*/)
+std::string Encoders::ToJsonString(const std::string_view text_sv, const bool escape_forward_slashes/* = true*/)
 {
     // specification: https://datatracker.ietf.org/doc/html/rfc7159#section-7
 
-    const TCHAR* json_escape_representations_to_use = JsonEscapeRepresentations;
-    const TCHAR* json_escape_sequences_to_use = JsonEscapeSequences;
+    const char* json_escape_representations_to_use = JsonEscapeRepresentations;
+    const char* json_escape_sequences_to_use = JsonEscapeSequences;
 
     if( !escape_forward_slashes )
     {
@@ -644,16 +659,16 @@ std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escap
         ++json_escape_sequences_to_use;
     }
 
-    std::vector<std::tuple<const TCHAR*, TCHAR>> characters_needing_escaping;
+    std::vector<std::tuple<const char*, char>> characters_needing_escaping;
     size_t json_string_length = 2;
 
     // parse the text, finding any characters that need to be escaped and calculating the new string length
-    const TCHAR* input_text_ptr = text_sv.data();
-    const TCHAR* input_text_end_ptr = input_text_ptr + text_sv.length();
+    const char* input_text_ptr = text_sv.data();
+    const char* const input_text_end_ptr = input_text_ptr + text_sv.length();
 
     for( ; input_text_ptr != input_text_end_ptr; ++input_text_ptr )
     {
-        const TCHAR* const escape_representation_pos = _tcschr(json_escape_representations_to_use, *input_text_ptr);
+        const char* const escape_representation_pos = strchr(json_escape_representations_to_use, *input_text_ptr);
 
         if( escape_representation_pos != nullptr )
         {
@@ -661,7 +676,7 @@ std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escap
             json_string_length += 2;
         }
 
-        else if( *input_text_ptr <= LastControlCharacter )
+        else if( static_cast<unsigned char>(*input_text_ptr) <= LastControlCharacter )
         {
             characters_needing_escaping.emplace_back(input_text_ptr, '\0');
             json_string_length += 6;
@@ -674,17 +689,17 @@ std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escap
     }
 
     // escape the text
-    std::wstring escaped_text(json_string_length, '\0');
-    TCHAR* escaped_text_ptr = escaped_text.data();
+    std::string escaped_text(json_string_length, '\0');
+    char* escaped_text_ptr = escaped_text.data();
 
     *(escaped_text_ptr++) = '"';
 
     input_text_ptr = text_sv.data();
 
-    auto copy_unescaped_text = [&](const TCHAR* copy_up_to_but_not_including_ptr)
+    auto copy_unescaped_text = [&](const char* const copy_up_to_but_not_including_ptr)
     {
         const size_t unescaped_chars = ( copy_up_to_but_not_including_ptr - input_text_ptr );
-        _tmemcpy(escaped_text_ptr, input_text_ptr, unescaped_chars);
+        memcpy(escaped_text_ptr, input_text_ptr, unescaped_chars);
         escaped_text_ptr += unescaped_chars;
     };
 
@@ -704,8 +719,8 @@ std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escap
         // ...or a six-character sequence
         else
         {
-            const TCHAR ch = *character_needing_escaping_ptr;
-            ASSERT(ch <= LastControlCharacter);
+            const char ch = *character_needing_escaping_ptr;
+            ASSERT(static_cast<unsigned char>(ch) <= LastControlCharacter);
 
             *(escaped_text_ptr++) = 'u';
             *(escaped_text_ptr++) = '0';
@@ -732,10 +747,10 @@ std::wstring Encoders::ToJsonString(const wstring_view text_sv, const bool escap
 // RegEx
 // --------------------------------------------------------------------------
 
-std::wstring Encoders::ToRegex(const NullTerminatedString text)
+std::string Encoders::ToRegex(const cs::string_sz text)
 {
-    const std::wregex special_chars{ LR"([[\]{}()*+?.,\/\^$|])" };
-    return std::regex_replace(text.c_str(), special_chars, LR"(\$&)");
+    const std::regex special_chars{ R"([[\]{}()*+?.,\/\^$|])" };
+    return std::regex_replace(text.c_str(), special_chars, R"(\$&)");
 }
 
 
@@ -748,41 +763,41 @@ namespace DataUrl
 {
     // information about data URLs: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
     // data:[<mediatype>][;base64],<data>
-    constexpr std::wstring_view DataUrlPrefix         = _T("data:");
-    constexpr std::wstring_view DefaultMediaType      = _T("text/plain");
-    constexpr std::wstring_view Base64EncodingAndData = _T(";base64,");
-    constexpr std::wstring_view Base64Encoding        = Base64EncodingAndData.substr(1, Base64EncodingAndData.length() - 2);
-    constexpr wchar_t EncodingPrefix                  = Base64EncodingAndData.front();
-    constexpr wchar_t DataPrefix                      = Base64EncodingAndData.back();
+    constexpr std::string_view DataUrlPrefix_sv         = "data:";
+    constexpr std::string_view DefaultMediaType_sv      = "text/plain";
+    constexpr std::string_view Base64EncodingAndData_sv = ";base64,";
+    constexpr std::string_view Base64Encoding_sv        = Base64EncodingAndData_sv.substr(1, Base64EncodingAndData_sv.length() - 2);
+    constexpr char EncodingPrefix                       = Base64EncodingAndData_sv.front();
+    constexpr char DataPrefix                           = Base64EncodingAndData_sv.back();
 }
 
 
-bool Encoders::IsDataUrl(const wstring_view text_sv)
+bool Encoders::IsDataUrl(const std::string_view text_sv)
 {
-    return SO::StartsWithNoCase(text_sv, DataUrl::DataUrlPrefix);
+    return SO::StartsWithNoCase(text_sv, DataUrl::DataUrlPrefix_sv);
 }
 
 
-std::tuple<std::unique_ptr<std::vector<std::byte>>, std::wstring> Encoders::FromDataUrl(wstring_view data_url_sv)
+std::tuple<std::unique_ptr<std::vector<std::byte>>, std::string> Encoders::FromDataUrl(std::string_view data_url_sv)
 {
     if( !IsDataUrl(data_url_sv) )
         return { };
 
-    data_url_sv = data_url_sv.substr(DataUrl::DataUrlPrefix.length());
+    data_url_sv = data_url_sv.substr(DataUrl::DataUrlPrefix_sv.length());
 
     const size_t data_prefix_pos = data_url_sv.find(DataUrl::DataPrefix);
 
-    if( data_prefix_pos == wstring_view::npos )
+    if( data_prefix_pos == std::string_view::npos )
         return { };
 
-    wstring_view mediatype_sv = data_url_sv.substr(0, data_prefix_pos);
+    std::string_view mediatype_sv = data_url_sv.substr(0, data_prefix_pos);
 
     enum class EncodingType { PercentEncoding, Base64 };
     EncodingType encoding_type;
 
     const size_t encoding_prefix = mediatype_sv.find(DataUrl::EncodingPrefix);
 
-    if( encoding_prefix == wstring_view::npos )
+    if( encoding_prefix == std::string_view::npos )
     {
         encoding_type = EncodingType::PercentEncoding;
     }
@@ -790,7 +805,7 @@ std::tuple<std::unique_ptr<std::vector<std::byte>>, std::wstring> Encoders::From
     else
     {
         // return if an unknown encoding
-        if( !SO::StartsWithNoCase(DataUrl::Base64Encoding, mediatype_sv.substr(encoding_prefix + 1)) )
+        if( !SO::StartsWithNoCase(DataUrl::Base64Encoding_sv, mediatype_sv.substr(encoding_prefix + 1)) )
             return { };
 
         encoding_type = EncodingType::Base64;
@@ -799,32 +814,29 @@ std::tuple<std::unique_ptr<std::vector<std::byte>>, std::wstring> Encoders::From
 
     // if there is no media type, use the default one
     if( SO::IsWhitespace(mediatype_sv) )
-        mediatype_sv = DataUrl::DefaultMediaType;
+        mediatype_sv = DataUrl::DefaultMediaType_sv;
 
     // decode the data
-    const wstring_view data_sv = data_url_sv.substr(data_prefix_pos + 1);
-    auto data = std::make_unique<std::vector<std::byte>>();
+    const std::string_view data_sv = data_url_sv.substr(data_prefix_pos + 1);
+    std::optional<std::vector<std::byte>> data;
 
     if( encoding_type == EncodingType::PercentEncoding )
     {
-        const std::wstring data_string = FromPercentEncoding(data_sv);
-        *data = UTF8Convert::WideToUTF8Buffer(data_string);
+        data = FromPercentEncoding<std::vector<std::byte>>(data_sv);
     }
 
     else
     {
         ASSERT(encoding_type == EncodingType::Base64);
-        *data = Base64::Decode<wstring_view, std::vector<std::byte>>(data_sv);
+        data = Base64::DecodeToBuffer(data_sv);
     }
 
-    return std::make_tuple(std::move(data), mediatype_sv);
+    return std::make_tuple(std::make_unique<std::vector<std::byte>>(std::move(*data)), std::string(mediatype_sv));
 }
 
 
-std::wstring Encoders::ToDataUrl(const std::vector<std::byte>& content, const std::wstring& mediatype)
+std::string Encoders::ToDataUrl(const std::vector<std::byte>& content, const std::string_view mediatype_sv)
 {
-    return SO::Concatenate(std::wstring(DataUrl::DataUrlPrefix),
-                           mediatype,
-                           DataUrl::Base64EncodingAndData,
-                           Base64::Encode<std::wstring>(content));
+    return SO::Concatenate(DataUrl::DataUrlPrefix_sv, mediatype_sv, DataUrl::Base64EncodingAndData_sv) +
+           Base64::Encode(content);
 }

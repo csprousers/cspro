@@ -732,7 +732,7 @@ void CTVView::OnEditCopySS()  {
 void CTVView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)  {
     CBlockScrollView::OnKeyDown(nChar, nRepCnt, nFlags);
 
-    switch (this, nChar)  {
+    switch (nChar)  {
 
 //case VK_INSERT:
 //    AfxGetMainWnd()->SendMessage(WM_IMPS40_LOGOPEN);
@@ -1066,7 +1066,7 @@ LONG CTVView::OnSearch (UINT, LONG)  {
     }
 
     CString msg;                                     // BMD 05 Sep 2002
-    msg.Format(IDS_WAIT02, (LPCTSTR)m_dlgFind.m_csSearchText);
+    msg.Format(IDS_WAIT02, m_dlgFind.m_csSearchText.GetString());
     dlgProgress->SetStatus(msg);
     dlgProgress->SetStep(1);
 //    dlgProgress.SetRange(0, min(65535, pBuffMgr->GetCurrLine()+1));

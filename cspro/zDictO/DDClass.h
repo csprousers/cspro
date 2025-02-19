@@ -67,14 +67,16 @@ public:
 
 class CLASS_DECL_ZDICTO CDataDict : public DictNamedBase
 {
+    friend class DictionaryPre80SpecFileConverter;
+
 public:
-    bool UseNewSymbols() const { return ( m_note.Find(_T("UseNewSymbols")) == 0 ); } // ENGINECR_TODO remove 
+    bool UseNewSymbols() const { return ( m_note.Find(_T("UseNewSymbols")) == 0 ); } // ENGINECR_TODO remove
 
 
 // Methods
 public:
-    const CString& GetFullFileName() const        { return m_filename; }
-    void SetFullFileName(const CString& filename) { m_filename = filename; }
+    const std::string& GetFilePath() const  { return m_filePath; }
+    void SetFilePath(std::string file_path) { m_filePath = std::move(file_path); }
 
     int64_t GetFileModifiedTime() const;
 
@@ -99,19 +101,22 @@ public:
     // get the number records (not counting ID records)
     size_t GetNumRecords() const;
 
-    bool GetAllowDataViewerModifications() const { return m_allowDataViewerModifications; }
-    bool GetAllowExport() const                  { return m_allowExport; }
-    int GetCachedPasswordMinutes() const         { return m_cachedPasswordMinutes; }
+    bool GetAllowDataManagerModifications() const { return m_allowDataManagerModifications; }
+    bool GetAllowExport() const                   { return m_allowExport; }
+    int GetCachedPasswordMinutes() const          { return m_cachedPasswordMinutes; }
 
     bool GetReadOptimization() const                 { return m_readOptimization; }
     void SetReadOptimization(bool read_optimization) { m_readOptimization = read_optimization; }
 
-    std::wstring GetStructureMd5() const;
-    size_t GetIdStructureHashForKeyIndex(bool hash_name, bool hash_start) const;
+    std::string GetStructureMd5() const;
+    uint32_t GetIdStructureHashForKeyIndex(bool hash_name, bool hash_start) const;
+
+    const std::string& GetSyncableName(bool get_evaluated_name = true) const;
+    void SetSyncableName(std::string syncable_name);
 
     int GetSymbol() const { return m_iSymbol; }
 
-    CString MakeQualifiedName(const CString& name) const { return FormatText(L"%s.%s", (LPCTSTR)GetName(), (LPCTSTR)name); }
+    std::string MakeQualifiedName(const std::string& name) const;
 
 // Assignment
     void SetOldName         (const CString& csOldName) { m_csOldName = csOldName; }
@@ -124,16 +129,16 @@ public:
 
     void SetChangedObject   (const DictNamedBase* dict_element) { m_pChangedObject = dict_element;}
 
-    void SetAllowDataViewerModifications(bool allow) { m_allowDataViewerModifications = allow; }
-    void SetAllowExport(bool allow)                  { m_allowExport = allow; }
-    void SetCachedPasswordMinutes(int minutes)       { m_cachedPasswordMinutes = minutes; }
+    void SetAllowDataManagerModifications(bool allow) { m_allowDataManagerModifications = allow; }
+    void SetAllowExport(bool allow)                   { m_allowExport = allow; }
+    void SetCachedPasswordMinutes(int minutes)        { m_cachedPasswordMinutes = minutes; }
 
     void CopyDictionarySettings(const CDataDict& dictionary);
 
     std::unique_ptr<ProcessSummary> CreateProcessSummary() const;
 
     bool IsValid(CString& csError); // RHF Feb 03, 2005
-    std::vector<CString> GetUniqueNames(const TCHAR* prefix, int iNumDigits, int iNumNames) const;
+    std::vector<std::string> GetUniqueNames(const char* prefix, int iNumDigits, int iNumNames) const;
 
 // Operators
     void operator=(CDataDict& dict);
@@ -144,35 +149,32 @@ public:
     void UpdateNameList(int iLevel, int iRec);              // redo a record
 private:
     void RemoveFromNameList(int iLevel=NONE, int iRec=NONE, int iItem=NONE, int iVSet=NONE);
-    void AddToNameList(const CString& name, int iLevel=NONE, int iRec=NONE, int iItem=NONE, int iVSet=NONE);
+    void AddToNameList(const std::string& name, int iLevel=NONE, int iRec=NONE, int iItem=NONE, int iVSet=NONE);
 public:
     void AddToNameList(const DictNamedBase& dict_element, int iLevel=NONE, int iRec=NONE, int iItem=NONE, int iVSet=NONE);
 
     // lookup a name among levels, records, items, and value sets; any of the pointers can be null;
     // if the template value if set (and not void), then the function will only return true if a value of that type is found
     template<typename T = void>
-    bool LookupName(const CString& name, const DictLevel** dict_level, const CDictRecord** dict_record = nullptr, const CDictItem** dict_item = nullptr, const DictValueSet** dict_value_set = nullptr) const;
+    bool LookupName(const std::string& name, const DictLevel** dict_level, const CDictRecord** dict_record = nullptr, const CDictItem** dict_item = nullptr, const DictValueSet** dict_value_set = nullptr) const;
     template<typename T = void>
-    bool LookupName(const std::wstring& name, const DictLevel** dict_level, const CDictRecord** dict_record = nullptr, const CDictItem** dict_item = nullptr, const DictValueSet** dict_value_set = nullptr) const;
-    template<typename T = void>
-    bool LookupName(const CString& name, DictLevel** dict_level, CDictRecord** dict_record = nullptr, CDictItem** dict_item = nullptr, DictValueSet** dict_value_set = nullptr);
+    bool LookupName(const std::string& name, DictLevel** dict_level, CDictRecord** dict_record = nullptr, CDictItem** dict_item = nullptr, DictValueSet** dict_value_set = nullptr);
 
     // lookup a name of only a certain type
     template<typename T>
-    const T* LookupName(const CString& name) const;
+    const T* LookupName(const std::string& name) const;
 
-    bool LookupName(const CString& csName, int* iLevel, int* iRecord, int* iItem, int* iVSet) const;
-    bool LookupName(const std::wstring& name, int* iLevel, int* iRecord, int* iItem, int* iVSet) const;
+    bool LookupName(const std::string& name, int* iLevel, int* iRecord, int* iItem, int* iVSet) const;
 
-    const DictNamedBase* LookupName(const CString& name) const;
-    bool IsNameUnique(const CString& name, int iLevel = NONE, int iRecord = NONE, int iItem = NONE, int iVSet = NONE) const;
-    CString GetUniqueName(const CString& base_name, int iLevel = NONE, int iRecord = NONE, int iItem = NONE, int iVSet = NONE,
-                          const std::set<CString>* additional_names_in_use = nullptr) const;
+    const DictNamedBase* LookupName(const std::string& name) const;
+    bool IsNameUnique(const std::string& name, int iLevel = NONE, int iRecord = NONE, int iItem = NONE, int iVSet = NONE) const;
+    std::string GetUniqueName(const std::string& base_name, int iLevel = NONE, int iRecord = NONE, int iItem = NONE, int iVSet = NONE,
+                              const std::set<std::string>* additional_names_in_use = nullptr) const;
 
-    const CDictRecord* FindRecord(wstring_view record_name) const;
-    const CDictItem* FindItem(wstring_view item_name) const;
+    const CDictRecord* FindRecord(std::string_view record_name_sv) const;
+    const CDictItem* FindItem(std::string_view item_name_sv) const;
 
-    bool Find(bool bNext, bool bCaseSensitive, const CString& csFindText,
+    bool Find(bool bNext, bool bCaseSensitive, const std::string& find_text,
               int& iLevel, int& iRec, int& iItem, int& iVSet, int& iValue);
 
     int GetParentItemNum(int iLevel, int iRec, int iItem) const;
@@ -196,15 +198,15 @@ private:
     bool                                m_bZeroFill;        // ZeroFill default
     bool                                m_bDecChar;         // DecChar default
 
-    std::map<CString, CDictName>        m_mapNames;         // Map of all the names/aliases in the dictionary
+    std::map<std::string, CDictName>    m_mapNames;         // Map of all the names/aliases in the dictionary
 
-    bool                                m_allowDataViewerModifications;
+    bool                                m_allowDataManagerModifications;
     bool                                m_allowExport;
     int                                 m_cachedPasswordMinutes; // Length of time to cache passwords
 
     bool                                m_readOptimization; // if true, only items used in logic are read
 
-    CString m_filename;
+    std::string m_filePath;
     std::optional<int64_t> m_serializedFileModifiedTime;
 
     int                                 m_iSymbol;          // Use unknown
@@ -217,9 +219,9 @@ private:
 
 public:
     // languages
-    // --------------------------------------------------
+    // --------------------------------------------------------------------------
     const std::vector<Language>& GetLanguages() const { return m_languages; }
-    std::optional<size_t> IsLanguageDefined(wstring_view language_name) const;
+    std::optional<size_t> IsLanguageDefined(std::string_view language_name_sv) const;
 
     void AddLanguage(Language language);
     void ModifyLanguage(size_t language_index, Language language);
@@ -231,7 +233,7 @@ public:
 
 
     // levels
-    // --------------------------------------------------
+    // --------------------------------------------------------------------------
     size_t GetNumLevels() const { return m_dictLevels.size(); }
 
     const std::vector<DictLevel>& GetLevels() const { return m_dictLevels; }
@@ -246,7 +248,7 @@ public:
 
 
     // relations
-    // --------------------------------------------------
+    // --------------------------------------------------------------------------
     size_t GetNumRelations() const { return m_dictRelations.size(); }
 
     const std::vector<DictRelation>& GetRelations() const { return m_dictRelations; }
@@ -260,39 +262,45 @@ public:
 
 
     // linked value set management
-    // --------------------------------------------------
+    // --------------------------------------------------------------------------
     size_t CountValueSetLinks(const DictValueSet& dict_value_set) const;
 
     enum class SyncLinkedValueSetsAction { UpdateValuesFromLinks, OnPaste };
     void SyncLinkedValueSets(std::variant<SyncLinkedValueSetsAction, DictValueSet*> action_or_updated_dict_value_set = SyncLinkedValueSetsAction::UpdateValuesFromLinks,
-                             const std::vector<CString>* value_set_names_added_on_paste = nullptr);
+                             const std::vector<std::string>* value_set_names_added_on_paste = nullptr);
 
 
     // serialization
-    // --------------------------------------------------
+    // --------------------------------------------------------------------------
 
     // all serialization methods (with the exception of GetJson, WriteJson, and serialize) can throw exceptions
-    static std::unique_ptr<CDataDict> InstantiateAndOpen(NullTerminatedString filename, bool silent = false, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger = nullptr);
-    void Open(NullTerminatedString filename, bool silent = false, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger = nullptr);
-    void OpenFromText(wstring_view text);
+    static std::unique_ptr<CDataDict> InstantiateAndOpen(const InterfaceString& file_path, bool silent = false, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger = nullptr);
+    void Open(const InterfaceString& file_path, bool silent = false, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger = nullptr);
+    void OpenFromText(std::string_view text_sv);
 
-    void Save(NullTerminatedString filename, bool continue_using_filename = true) const;
-    std::wstring GetJson(bool spec_file_format = true) const;
+    void Save(std::string file_path, bool continue_using_file_path = true) const;
+    std::string GetJson(bool spec_file_format = true) const;
 
-    static CDataDict CreateFromJson(const JsonNode<wchar_t>& json_node);
+    template<typename T = CDataDict> // can also return std::unique_ptr<CDataDict>
+    static T CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
 
     void serialize(Serializer& ar);
 
-    static std::wstring ConvertPre80SpecFile(NullTerminatedString filename);
+    static std::string ConvertPre80SpecFile(InterfaceString file_path);
 
 private:
     void Open(JsonSpecFile::Reader& json_reader, bool silent);
 
-    void CreateFromJsonWorker(const JsonNode<wchar_t>& json_node);
+    void CreateFromJsonWorker(const JsonNode& json_node);
 
+    static std::string SerializeSecurityOptions(const std::string& dictionary_name, bool allow_data_manager_modifications,
+                                                bool allow_export, int cached_password_minutes);
+    static void DeserializeSecurityOptions(const std::string_view encrypted_security_options_sv, const std::string& dictionary_name,
+                                           bool& allow_data_manager_modifications, bool& allow_export, int& cached_password_minutes);
 
 private:
+    std::string m_syncableName;
     std::vector<Language> m_languages;
     std::vector<DictLevel> m_dictLevels;
     std::vector<DictRelation> m_dictRelations;
@@ -301,21 +309,3 @@ private:
 
 CLASS_DECL_ZDICTO UINT GetDictOccs(const CDictRecord* pRec, const CDictItem* pItem, int iItem);
 CLASS_DECL_ZDICTO const CDictItem* GetDictOccItem(const CDictRecord* pRecord, const CDictItem* pItem, int iRec, int iItem);
-
-
-template<typename T/* = void*/>
-bool CDataDict::LookupName(const std::wstring& name, const DictLevel** dict_level, const CDictRecord** dict_record/* = nullptr*/,
-                           const CDictItem** dict_item/* = nullptr*/, const DictValueSet** dict_value_set/* = nullptr*/) const
-{
-    return LookupName<T>(WS2CS(name), dict_level, dict_record, dict_item, dict_value_set);
-}
-
-template<typename T/* = void*/>
-bool CDataDict::LookupName(const CString& name, DictLevel** dict_level, CDictRecord** dict_record/* = nullptr*/,
-                           CDictItem** dict_item/* = nullptr*/, DictValueSet** dict_value_set/* = nullptr*/)
-{
-    return const_cast<const CDataDict*>(this)->LookupName<T>(name, const_cast<const DictLevel**>(dict_level),
-                                                                   const_cast<const CDictRecord**>(dict_record),
-                                                                   const_cast<const CDictItem**>(dict_item),
-                                                                   const_cast<const DictValueSet**>(dict_value_set));
-}

@@ -11,33 +11,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SortSpec.cpp">
+    <ClCompile Include="SortableKeyDatabase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sorter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SortableKeyDatabase.cpp">
+    <ClCompile Include="SortSpec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zSortO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SortSpec.h">
+    <ClInclude Include="SortableKeyDatabase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sorter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SortableKeyDatabase.h">
+    <ClInclude Include="SortSpec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zSortO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

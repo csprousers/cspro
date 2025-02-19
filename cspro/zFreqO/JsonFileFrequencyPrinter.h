@@ -7,9 +7,6 @@
 class ZFREQO_API JsonFileFrequencyPrinter : public JsonFrequencyPrinter
 {
 public:
-    JsonFileFrequencyPrinter(const std::wstring& filename);
+    JsonFileFrequencyPrinter(const std::string& file_path);
     ~JsonFileFrequencyPrinter();
-
-private:
-    std::unique_ptr<JsonWriter> m_ownedJsonWriter;
 };

@@ -54,7 +54,7 @@ protected:
     afx_msg void OnFilePageSetup();
 
 private:
-    bool OpenInDataViewerQuery(const CString& filename);
+    bool OpenInDataManagerQuery(const wchar_t* file_path);
 
 public:
     int     m_iNumColors;

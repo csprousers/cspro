@@ -3,19 +3,15 @@
 
 
 ItemIndexHelper::ItemIndexHelper(const CDictItem& dict_item)
+    :   m_maxRecordOccurrences(dict_item.GetRecord()->GetMaxRecs()),
+        m_hasRecordOccurrences(( m_maxRecordOccurrences > 1 )),
+        m_maxItemSubitemOccurrences(dict_item.GetItemSubitemOccurs()),
+        m_hasItemSubitemOccurrences(( m_maxItemSubitemOccurrences > 1 )),
+        m_isSubitem(( dict_item.GetItemType() == ItemType::Subitem )),
+        m_hasItemOccurrences(( !m_isSubitem && dict_item.GetOccurs() > 1 )),
+        m_hasSubitemOccurrences(( m_isSubitem && dict_item.GetOccurs() > 1 )),
+        m_numberMinimalOccurrences(( m_hasRecordOccurrences ? 1 : 0 ) + ( m_hasItemSubitemOccurrences ? 1 : 0 ))
 {
-    m_maxRecordOccurrences = dict_item.GetRecord()->GetMaxRecs();
-    m_hasRecordOccurrences = ( m_maxRecordOccurrences > 1 );
-
-    m_maxItemSubitemOccurrences = dict_item.GetItemSubitemOccurs();
-    m_hasItemSubitemOccurrences = ( m_maxItemSubitemOccurrences > 1 );
-
-    m_isSubitem = ( dict_item.GetItemType() == ItemType::Subitem );
-    m_hasItemOccurrences = ( !m_isSubitem && dict_item.GetOccurs() > 1 );
-    m_hasSubitemOccurrences = ( m_isSubitem && dict_item.GetOccurs() > 1 );
-
-    m_numberMinimalOccurrences = ( m_hasRecordOccurrences ? 1 : 0 ) +
-                                 ( m_hasItemSubitemOccurrences ? 1 : 0 );
 }
 
 
@@ -40,21 +36,21 @@ bool ItemIndexHelper::IsValid(const ItemIndex& item_index) const
 }
 
 
-CString ItemIndexHelper::GetFullOccurrencesText(const ItemIndex& item_index) const
+std::string ItemIndexHelper::GetFullOccurrencesText(const ItemIndex& item_index) const
 {
     const std::vector<size_t>& one_based_occurrences = GetOneBasedOccurrences(item_index);
-    return FormatText(_T("(%d,%d,%d)"), static_cast<int>(one_based_occurrences[0]),
-                                        static_cast<int>(one_based_occurrences[1]),
-                                        static_cast<int>(one_based_occurrences[2]));
+    return FormatText("(%d,%d,%d)", static_cast<int>(one_based_occurrences[0]),
+                                    static_cast<int>(one_based_occurrences[1]),
+                                    static_cast<int>(one_based_occurrences[2]));
 }
 
 
-CString ItemIndexHelper::GetMinimalOccurrencesText(const ItemIndex& item_index) const
+std::string ItemIndexHelper::GetMinimalOccurrencesText(const ItemIndex& item_index) const
 {
     if( m_numberMinimalOccurrences == 0 )
-        return CString();
+        return std::string();
 
-    const TCHAR* formatter = ( m_numberMinimalOccurrences == 1 ) ? _T("(%d)") : _T("(%d,%d)");
+    const char* const formatter = ( m_numberMinimalOccurrences == 1 ) ? "(%d)" : "(%d,%d)";
     int formatted_occurrences[2];
     int* formatted_occurrences_itr = formatted_occurrences;
 
@@ -70,7 +66,7 @@ CString ItemIndexHelper::GetMinimalOccurrencesText(const ItemIndex& item_index) 
 }
 
 
-unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text, size_t occurrences[ItemIndex::NumberDimensions]) const
+unsigned ItemIndexHelper::ParseOccurrencesFromText(const std::string_view occurrences_text_sv, size_t occurrences[ItemIndex::NumberDimensions]) const
 {
     memset(occurrences, 0, sizeof(occurrences[0]) * ItemIndex::NumberDimensions);
 
@@ -87,9 +83,19 @@ unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text
         ++current_occurrence;
     };
 
-    for( ; *occurrences_text != 0 && *occurrences_text != ')'; ++occurrences_text )
+    const char* occurrences_text_itr = occurrences_text_sv.data();
+    const char* const occurrences_text_end = occurrences_text_itr + occurrences_text_sv.length();
+    char ch = 0;
+
+    for( ; occurrences_text_itr != occurrences_text_end; ++occurrences_text_itr )
     {
-        TCHAR digit_value = ( *occurrences_text - '0' );
+        ch = *occurrences_text_itr;
+
+        // break on the right parenthesis
+        if( ch == ')' )
+            break;
+
+        const unsigned char digit_value = ( ch - '0' );
 
         if( digit_value <= 9 )
         {
@@ -97,13 +103,13 @@ unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text
         }
 
         // skip over spaces
-        else if( *occurrences_text == ' ' )
+        else if( ch == ' ' )
         {
             continue;
         }
 
         // if a comma, advance to the next occurrence
-        else if( *occurrences_text == ',' )
+        else if( ch == ',' )
         {
             finalize_occurrence();
 
@@ -113,7 +119,7 @@ unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text
         }
 
         // allow the string to start with a left parenthesis
-        else if( *occurrences_text == '(' && allow_left_parenthesis )
+        else if( ch == '(' && allow_left_parenthesis )
         {
             read_left_parenthesis = true;
         }
@@ -128,7 +134,7 @@ unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text
     }
 
     // match the left and right parenthesis
-    if( read_left_parenthesis && *occurrences_text != ')' )
+    if( read_left_parenthesis && ch != ')' )
         return 0;
 
     finalize_occurrence();
@@ -164,11 +170,11 @@ unsigned ItemIndexHelper::ParseOccurrencesFromText(const TCHAR* occurrences_text
 }
 
 
-bool ItemIndexHelper::SetOccurrencesFromText(ItemIndex& item_index, const TCHAR* occurrences_text) const
+bool ItemIndexHelper::SetOccurrencesFromText(ItemIndex& item_index, const std::string_view occurrences_text_sv) const
 {
     size_t occurrences[ItemIndex::NumberDimensions];
 
-    if( ParseOccurrencesFromText(occurrences_text, occurrences) == 0 )
+    if( ParseOccurrencesFromText(occurrences_text_sv, occurrences) == 0 )
         return false;
 
     // set the index and return whether it is valid
@@ -178,7 +184,7 @@ bool ItemIndexHelper::SetOccurrencesFromText(ItemIndex& item_index, const TCHAR*
 }
 
 
-void ItemIndexHelper::WriteJson(JsonWriter& json_writer, const ItemIndex& item_index, WriteJsonMode mode) const
+void ItemIndexHelper::WriteJson(JsonWriter& json_writer, const ItemIndex& item_index, const WriteJsonMode mode) const
 {
     json_writer.BeginObject();
 

@@ -29,7 +29,7 @@ DynamicValueSet* LogicCompiler::CompileDynamicValueSetDeclaration(const DynamicV
         is_numeric_value_set = value_set_to_copy_attributes->IsNumeric();
     }
 
-    std::wstring value_set_name = CompileNewSymbolName();
+    std::string value_set_name = CompileNewSymbolName();
 
     auto value_set = std::make_shared<DynamicValueSet>(std::move(value_set_name), *m_engineData);
     value_set->SetNumeric(is_numeric_value_set);
@@ -87,7 +87,7 @@ int LogicCompiler::CompileDynamicValueSetComputeInstruction(const DynamicValueSe
     IssueErrorOnTokenMismatch(TOKEQOP, MGF::equals_expected_in_assignment_5);
 
     if( !value_set->IsDynamic() )
-        IssueError(MGF::ValueSet_invalid_operation_for_dict_value_set_47170, _T("="), value_set->GetName().c_str());
+        IssueError(MGF::ValueSet_invalid_operation_for_dict_value_set_47170, "=", value_set->GetName().c_str());
 
     NextToken();
 
@@ -113,7 +113,7 @@ int LogicCompiler::CompileDynamicValueSetComputeInstruction(const DynamicValueSe
 int LogicCompiler::CompileValueSetFunctions()
 {
     // compiling valueset_name.add(valueset_name[, from_code][, to_code])
-    //           valueset_name.add(label, from_code[, to_code | special_code][, image := image_filename][, textColor := html_color_or_hex_code])"),
+    //           valueset_name.add(label, from_code[, to_code | special_code][, image := image_file_path][, textColor := html_color_or_hex_code])"),
     //           valueset_name.clear()
     //           valueset_name.length()
     //           valueset_name.remove(code)
@@ -130,7 +130,9 @@ int LogicCompiler::CompileValueSetFunctions()
                                     function_code == FunctionCode::VALUESETFN_CLEAR_CODE  ||
                                     function_code == FunctionCode::VALUESETFN_REMOVE_CODE ) )
     {
-        IssueError(MGF::ValueSet_invalid_operation_for_dict_value_set_47170, CurrentToken.function_details->name, value_set.GetName().c_str());
+        IssueError(MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                   CurrentToken.function_details->name,
+                   value_set.GetName().c_str());
     }
 
     NextToken();
@@ -148,7 +150,7 @@ int LogicCompiler::CompileValueSetFunctions()
     {
         int& valueset_symbol_index = symbol_va_node.arguments[0];
         int& label_expression = symbol_va_node.arguments[1];
-        int& image_filename_expression = symbol_va_node.arguments[2];
+        int& image_file_path_expression = symbol_va_node.arguments[2];
         int& from_code_expression = symbol_va_node.arguments[3];
         int& to_code_expression = symbol_va_node.arguments[4];
         int& text_color_expression = symbol_va_node.arguments[5];
@@ -190,27 +192,27 @@ int LogicCompiler::CompileValueSetFunctions()
         else
         {
             // this is not the ideal use of this class--though it's the first use of this class--because, to support
-            // the initial way of defining the optional image filename, we have to put compilation calls in
+            // the initial way of defining the optional image file path, we have to put compilation calls in
             // more than one location (rather than just after the required arguments)
             OptionalNamedArgumentsCompiler optional_named_arguments_compiler(*this);
 
-            optional_named_arguments_compiler.AddArgument(_T("image"), image_filename_expression, DataType::String);
-            optional_named_arguments_compiler.AddArgumentPortableColorText(_T("textColor"), text_color_expression);
+            optional_named_arguments_compiler.AddArgument("image", image_file_path_expression, DataType::String);
+            optional_named_arguments_compiler.AddArgumentPortableColorText("textColor", text_color_expression);
 
             // add the label
             label_expression = CompileStringExpression();
 
             IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-            // potentially add an image filename
-            bool image_filename_specified_using_deprecated_way = false;
+            // potentially add an image file path
+            bool image_file_path_specified_using_deprecated_way = false;
 
             NextToken();
 
             if( value_set.IsString() || IsCurrentTokenString() )
             {
-                image_filename_expression = CompileStringExpression();
-                image_filename_specified_using_deprecated_way = true;
+                image_file_path_expression = CompileStringExpression();
+                image_file_path_specified_using_deprecated_way = true;
 
                 if( value_set.IsNumeric() )
                 {
@@ -219,32 +221,32 @@ int LogicCompiler::CompileValueSetFunctions()
                 }
             }
 
-            // add the string from code, or use the image filename expression as the string from code
+            // add the string from code, or use the image file path expression as the string from code
             if( value_set.IsString() )
             {
                 if( Tkn == TOKRPAREN )
                 {
-                    from_code_expression = image_filename_expression;
-                    image_filename_specified_using_deprecated_way = false;
-                    image_filename_expression = -1;
+                    from_code_expression = image_file_path_expression;
+                    image_file_path_specified_using_deprecated_way = false;
+                    image_file_path_expression = -1;
                 }
 
                 else
                 {
                     IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-                    int saved_image_filename_expression = image_filename_expression;
-                    image_filename_expression = -1;
+                    int saved_image_file_path_expression = image_file_path_expression;
+                    image_file_path_expression = -1;
 
                     if( optional_named_arguments_compiler.Compile() > 0 )
                     {
-                        from_code_expression = saved_image_filename_expression;
-                        image_filename_specified_using_deprecated_way = false;
+                        from_code_expression = saved_image_file_path_expression;
+                        image_file_path_specified_using_deprecated_way = false;
                     }
 
                     else
                     {
-                        image_filename_expression = saved_image_filename_expression;
+                        image_file_path_expression = saved_image_file_path_expression;
 
                         NextToken();
                         from_code_expression = CompileStringExpression();
@@ -269,8 +271,8 @@ int LogicCompiler::CompileValueSetFunctions()
                 }
             }
 
-            if( image_filename_specified_using_deprecated_way )
-                IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, MGF::deprecation_ValueSet_image_filename_95028);
+            if( image_file_path_specified_using_deprecated_way )
+                IssueWarning(Logic::ParserMessage::Type::DeprecationMajor, MGF::deprecation_ValueSet_image_file_path_95028);
 
             optional_named_arguments_compiler.Compile();
         }
@@ -313,7 +315,7 @@ int LogicCompiler::CompileValueSetFunctions()
 
             else if( Tkn == TOKBY && !sort_by_label.has_value() )
             {
-                size_t by_type = NextKeywordOrError({ _T("code"), _T("label") });
+                const size_t by_type = NextKeywordOrError({ "code", "label" });
                 sort_by_label = ( by_type == 2 );
             }
 

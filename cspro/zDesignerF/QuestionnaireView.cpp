@@ -18,10 +18,10 @@ public:
     DesignerQuestionnaireViewer(DictionaryBasedDoc& document);
 
     // QuestionnaireViewer overrides
-    std::wstring GetDictionaryName() override;
-    std::wstring GetCurrentLanguageName() override;
+    std::string GetDictionaryName() override;
+    std::string GetCurrentLanguageName() override;
     bool ShowLanguageBar() override;
-    std::wstring GetDirectoryForUrl() override;
+    std::string GetDirectoryForUrl() override;
 
 private:
     DictionaryBasedDoc& m_document;
@@ -34,20 +34,20 @@ DesignerQuestionnaireViewer::DesignerQuestionnaireViewer(DictionaryBasedDoc& doc
 }
 
 
-std::wstring DesignerQuestionnaireViewer::GetDictionaryName()
+std::string DesignerQuestionnaireViewer::GetDictionaryName()
 {
-    const CDataDict* dictionary = m_document.GetSharedDictionary().get();
+    const CDataDict* const dictionary = m_document.GetSharedDictionary().get();
 
     if( dictionary != nullptr )
-        return CS2WS(dictionary->GetName());
+        return dictionary->GetName();
 
-    return ReturnProgrammingError(std::wstring());        
+    return ReturnProgrammingError(std::string());
 }
 
 
-std::wstring DesignerQuestionnaireViewer::GetCurrentLanguageName()
+std::string DesignerQuestionnaireViewer::GetCurrentLanguageName()
 {
-    std::wstring language_name;
+    std::string language_name;
     WindowsDesktopMessage::Send(UWM::Designer::GetCurrentLanguageName, &m_document, &language_name);
     return language_name;
 }
@@ -60,14 +60,14 @@ bool DesignerQuestionnaireViewer::ShowLanguageBar()
 }
 
 
-std::wstring DesignerQuestionnaireViewer::GetDirectoryForUrl()
+std::string DesignerQuestionnaireViewer::GetDirectoryForUrl()
 {
     Application* application;
 
     if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application, &m_document) == 1 )
-        return PortableFunctions::PathGetDirectory(CS2WS(application->GetApplicationFilename()));
+        return PortableFunctions::PathGetDirectory(application->GetApplicationFilePath());
 
-    return std::wstring();
+    return std::string();
 }
 
 
@@ -91,7 +91,7 @@ QuestionnaireView::QuestionnaireView(DictionaryBasedDoc& document)
 {
     // set up the Action Invoker to serve the questionnaire JSON
     ActionInvoker::WebController& web_controller = m_htmlViewCtrl.RegisterCSProHostObject();
-    web_controller.GetCaller().AddAccessTokenOverride(std::wstring(ActionInvoker::AccessToken::QuestionnaireView_Index_sv));
+    web_controller.GetCaller().AddAccessTokenOverride(std::string(ActionInvoker::AccessToken::QuestionnaireView_Index_sv));
 
     web_controller.GetListener().SetOnGetInputDataCallback([&]() { return m_questionnaireViewer->GetInputData(); });
 
@@ -114,9 +114,9 @@ BOOL QuestionnaireView::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DW
 
 void QuestionnaireView::DoDataExchange(CDataExchange* pDX)
 {
-	__super::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
-	DDX_Control(pDX, IDC_QUESTIONNAIRE_HTML, m_htmlViewCtrl);
+    DDX_Control(pDX, IDC_QUESTIONNAIRE_HTML, m_htmlViewCtrl);
 }
 
 
@@ -135,9 +135,9 @@ void QuestionnaireView::OnSize(UINT nType, int cx, int cy)
 
 
 template<typename CF>
-void QuestionnaireView::SendMessageToWebView2(const TCHAR* action, CF callback_function)
+void QuestionnaireView::SendMessageToWebView2(const char* const action, CF callback_function)
 {
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -146,17 +146,18 @@ void QuestionnaireView::SendMessageToWebView2(const TCHAR* action, CF callback_f
 
     json_writer->EndObject();
 
-    const std::wstring function_call = SO::Concatenate(_T("onMessage(\""),
-                                                       Encoders::ToEscapedString(json_writer->GetString()),
-                                                       _T("\");"));
-    m_htmlViewCtrl.ExecuteScript(function_call,
+    const std::string function_call = SO::Concatenate("onMessage(\"",
+                                                      Encoders::ToEscapedString(json_writer->ReleaseString()),
+                                                      "\");");
+
+    m_htmlViewCtrl.ExecuteScript(UTF8_TODO::GetWide(function_call),
         [&](const std::wstring& result)
         {
             // if the message was handled, the onMessage function should return true;
             // otherwise the page will be refreshed
             try
             {
-                if( Json::Parse(result).Get<bool>() )
+                if( Json::Parse(UTF8_TODO::GetUtf8(result)).Get<bool>() )
                     return;
             }
             catch( const JsonParseException& ) { }
@@ -177,7 +178,7 @@ void QuestionnaireView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 
     else if( lHint == Hint::LanguageChanged )
     {
-        SendMessageToWebView2(_T("languageChange"),
+        SendMessageToWebView2("languageChange",
             [&](JsonWriter& json_writer)
             {
                 json_writer.Write(JK::language, m_questionnaireViewer->GetCurrentLanguageName());
@@ -197,7 +198,7 @@ void QuestionnaireView::RefreshContent(const bool refresh_inputs)
         m_questionnaireViewer->ResetInputs();
     }
 
-    SendMessageToWebView2(_T("refreshContent"),
+    SendMessageToWebView2("refreshContent",
         [&](JsonWriter& json_writer)
         {
             json_writer.Write(JK::name, m_questionnaireViewer->GetDictionaryName());
@@ -207,13 +208,13 @@ void QuestionnaireView::RefreshContent(const bool refresh_inputs)
 
 LRESULT QuestionnaireView::OnTreeSelectionChanged(WPARAM wParam, LPARAM /*lParam*/)
 {
-    const TCHAR* name = reinterpret_cast<const TCHAR*>(wParam);
+    const wchar_t* const name = reinterpret_cast<const wchar_t*>(wParam);
     ASSERT(name != nullptr);
 
-    SendMessageToWebView2(_T("focusChange"),
+    SendMessageToWebView2("focusChange",
         [&](JsonWriter& json_writer)
         {
-            json_writer.Write(_T("focus"), name);
+            json_writer.Write("focus", UTF8_TODO::GetUtf8(name));
         });
 
     return 1;

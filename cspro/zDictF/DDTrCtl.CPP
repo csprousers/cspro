@@ -17,6 +17,7 @@
 #include <zToolsO/SharedSettings.h>
 #include <zUtilO/CSProExecutables.h>
 #include <zAppO/PFF.h>
+#include <zDataO/ConnectionStringProperties.h>
 #include <zInterfaceF/resource_shared.h>
 
 
@@ -244,11 +245,11 @@ void CDDTreeCtrl::OnDTreeDblclk(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 }
 
 
-bool CDDTreeCtrl::OpenDictionary(const CString& dictionary_filename, bool bMakeVisible /* =true*/)
+bool CDDTreeCtrl::OpenDictionary(const std::string& dictionary_file_path, const bool bMakeVisible/* = true*/)
 {
     //  Open and read the dictionary and build document
     ASSERT(m_pDocTemplate != nullptr);
-    CDDDoc* pDoc = assert_nullable_cast<CDDDoc*>(m_pDocTemplate->OpenDocumentFile(dictionary_filename, bMakeVisible));
+    CDDDoc* const pDoc = assert_nullable_cast<CDDDoc*>(m_pDocTemplate->OpenDocumentFile(TC::ToWide(dictionary_file_path).c_str(), bMakeVisible));
 
     if( pDoc == nullptr )
         return false;
@@ -256,7 +257,7 @@ bool CDDTreeCtrl::OpenDictionary(const CString& dictionary_filename, bool bMakeV
     pDoc->SetDictTreeCtrl(this);
 
      //  Fill in the tree entry for the dicitonary
-    DictionaryDictTreeNode* dictionary_dict_tree_node = GetDictionaryTreeNode(dictionary_filename);
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = GetDictionaryTreeNode(dictionary_file_path);
     ASSERT(dictionary_dict_tree_node != nullptr);
     dictionary_dict_tree_node->SetDDDoc(pDoc);
 
@@ -276,29 +277,68 @@ bool CDDTreeCtrl::OpenDictionary(const CString& dictionary_filename, bool bMakeV
 }
 
 
-HTREEITEM CDDTreeCtrl::InsertDictionary(const CString& sLabel, const CString& sDictFileName, CDDDoc* pDoc)
+HTREEITEM CDDTreeCtrl::AddDictionary(const std::string& dictionary_file_path, CDDDoc* const dictionary_doc)
 {
+    DictionaryDictTreeNode* dictionary_dict_tree_node = GetDictionaryTreeNode(dictionary_file_path);
+
+    // if already open, add a reference
+    if( dictionary_dict_tree_node != nullptr )
+    {
+        dictionary_dict_tree_node->AddRef();
+        return dictionary_dict_tree_node->GetHItem();
+    }
+
     m_bUpdateAllViews = true;
     //Insert the dictionary in the dict tree control
     //Use the dict file name to insert it into the
     //structure later on to get the dict file name
-    DictionaryDictTreeNode* dictionary_dict_tree_node = new DictionaryDictTreeNode(CS2WS(sDictFileName), CS2WS(sLabel));
-    dictionary_dict_tree_node->SetDDDoc(pDoc);
+    dictionary_dict_tree_node = new DictionaryDictTreeNode(dictionary_file_path);
+    dictionary_dict_tree_node->SetDDDoc(dictionary_doc);
     dictionary_dict_tree_node->AddRef();
 
     TV_INSERTSTRUCT tvi;
-    tvi.item.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-    tvi.item.pszText = (LPTSTR) LPSTR_TEXTCALLBACK;
+    tvi.item.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN;
+    tvi.item.pszText = (LPTSTR)LPSTR_TEXTCALLBACK;
     tvi.hParent = TVI_ROOT;
     tvi.hInsertAfter = TVI_LAST;
     tvi.item.lParam = reinterpret_cast<LPARAM>(dictionary_dict_tree_node);
     tvi.item.iImage = DictIcon::Root;
     tvi.item.iSelectedImage = DictIcon::Root;
+    tvi.item.cChildren = 1;
 
     HTREEITEM hItem = InsertItem(&tvi);
     dictionary_dict_tree_node->SetHItem(hItem);
 
     return hItem;
+}
+
+
+void CDDTreeCtrl::RemoveDictionary(const std::string& dictionary_file_path)
+{
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = GetDictionaryTreeNode(dictionary_file_path);
+
+    if( dictionary_dict_tree_node == nullptr )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    // if closing the dictionary releases all references, see if it should be saved
+    CDDDoc* dictionary_doc = dictionary_dict_tree_node->GetDDDoc();
+
+    if( dictionary_dict_tree_node->GetRefCount() == 1 &&
+        dictionary_doc != nullptr &&
+        dictionary_doc->IsModified() )
+    {
+        const std::string message = FormatText("Before closing '%s', do you want to save the modified dictionary?",
+                                               PortableFunctions::PathGetFilename(dictionary_file_path).c_str());
+
+        if( AfxMessageBox(message, MB_YESNO) == IDYES )
+            dictionary_doc->SaveModified();
+    }
+
+    // release the dictionary
+    ReleaseDictionaryNode(*dictionary_dict_tree_node);
 }
 
 
@@ -313,9 +353,9 @@ void CDDTreeCtrl::OnItemexpanding(NMHDR* pNMHDR, LRESULT* pResult)
     DictTreeNode* dict_tree_node = GetTreeNode(hItem);
 
     if(dict_tree_node->GetDictElementType() == DictElementType::Dictionary && dict_tree_node->GetDDDoc() == nullptr) {
-        const std::wstring& path = assert_cast<const DictionaryDictTreeNode*>(dict_tree_node)->GetPath();
+        const std::string& file_path = assert_cast<const DictionaryDictTreeNode*>(dict_tree_node)->GetPath();
         ASSERT(m_pDocTemplate != nullptr);
-        CDDDoc* pDoc = assert_cast<CDDDoc*>(m_pDocTemplate->OpenDocumentFile(path.c_str()));
+        CDDDoc* const pDoc = assert_cast<CDDDoc*>(m_pDocTemplate->OpenDocumentFile(TC::ToWide(file_path).c_str()));
         dict_tree_node->SetDDDoc(pDoc);
         pDoc->SetDictTreeCtrl(this);
         BuildTree(assert_cast<DictionaryDictTreeNode&>(*dict_tree_node));
@@ -853,7 +893,7 @@ DictionaryDictTreeNode* CDDTreeCtrl::GetDictionaryTreeNode(CDocument& document) 
 
     while( hItem != nullptr )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = reinterpret_cast<DictionaryDictTreeNode*>(GetItemData(hItem));
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = reinterpret_cast<DictionaryDictTreeNode*>(GetItemData(hItem));
 
         if( dictionary_dict_tree_node->GetDDDoc() == &document )
             return dictionary_dict_tree_node;
@@ -865,15 +905,15 @@ DictionaryDictTreeNode* CDDTreeCtrl::GetDictionaryTreeNode(CDocument& document) 
 }
 
 
-DictionaryDictTreeNode* CDDTreeCtrl::GetDictionaryTreeNode(wstring_view filename) const
+DictionaryDictTreeNode* CDDTreeCtrl::GetDictionaryTreeNode(const std::string_view file_path_sv) const
 {
     HTREEITEM hItem = GetRootItem();
 
     while( hItem != nullptr )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = reinterpret_cast<DictionaryDictTreeNode*>(GetItemData(hItem));
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = reinterpret_cast<DictionaryDictTreeNode*>(GetItemData(hItem));
 
-        if( SO::EqualsNoCase(filename, dictionary_dict_tree_node->GetPath()) )
+        if( SO::EqualsNoCase(file_path_sv, dictionary_dict_tree_node->GetPath()) )
             return dictionary_dict_tree_node;
 
         hItem = GetNextSiblingItem(hItem);
@@ -1297,41 +1337,41 @@ void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
             {
                 ASSERT(get_application_pff_parameters.pff != nullptr);
 
-                m_viewDataFilenames.clear();
+                m_viewDataFilePaths.clear();
 
-                auto add_view_data_menu_option = [&](const TCHAR* data_type, const ConnectionString& connection_string)
+                auto add_view_data_menu_option = [&](const char* const data_type, const ConnectionString& connection_string)
                 {
-                    UINT nID = ID_OPEN_DATA_FILE0 + m_viewDataFilenames.size();
+                    const UINT nID = ID_OPEN_DATA_FILE0 + m_viewDataFilePaths.size();
 
                     // only add up to 10 files (that exist)
-                    if( nID > ID_OPEN_DATA_FILE9 || !connection_string.IsFilenamePresent() ||
-                                                    !PortableFunctions::FileIsRegular(connection_string.GetFilename()) )
+                    if( nID > ID_OPEN_DATA_FILE9 || !connection_string.HasFilePath() ||
+                                                    !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
                     {
                         return;
                     }
 
-                    if( m_viewDataFilenames.empty() )
+                    if( m_viewDataFilePaths.empty() )
                         popup_menu.AppendMenu(MF_SEPARATOR);
 
-                    CString menu_text = FormatText(_T("View%s Data: %s"), data_type, PortableFunctions::PathGetFilename(connection_string.GetFilename()));
-                    popup_menu.AppendMenu(MF_STRING, nID, menu_text);
+                    const std::string menu_text = FormatText("View%s Data: %s", data_type, PortableFunctions::PathGetFilename(connection_string.GetFilePath()).c_str());
+                    popup_menu.AppendMenu(MF_STRING, nID, TC::ToWide(menu_text).c_str());
 
-                    m_viewDataFilenames.emplace_back(WS2CS(connection_string.GetFilename()));
+                    m_viewDataFilePaths.emplace_back(connection_string.GetFilePath());
                 };
 
                 if( get_application_pff_parameters.is_input_dictionary )
                 {
                     for( const ConnectionString& connection_string : get_application_pff_parameters.pff->GetInputDataConnectionStrings() )
-                        add_view_data_menu_option(_T(" Input"), connection_string);
+                        add_view_data_menu_option(" Input", connection_string);
 
                     for( const ConnectionString& connection_string : get_application_pff_parameters.pff->GetOutputDataConnectionStrings() )
-                        add_view_data_menu_option(_T(" Output"), connection_string);
+                        add_view_data_menu_option(" Output", connection_string);
                 }
 
                 // external dictionaries
                 else
                 {
-                    add_view_data_menu_option(_T(""), get_application_pff_parameters.pff->GetExternalDataConnectionString(selected_dictionary->GetName()));
+                    add_view_data_menu_option("", get_application_pff_parameters.pff->GetExternalDataConnectionString(UTF8_TODO::GetCString(selected_dictionary->GetName())));
                 }
             }
         }
@@ -1598,7 +1638,7 @@ void CDDTreeCtrl::OnDictionaryMacros() // 20101108
         DictTreeNode* dict_tree_node = reinterpret_cast<DictTreeNode*>(lParam);
         CDDDoc* dictionary_doc = dict_tree_node->GetDDDoc();
 
-        CDictionaryMacros dlg(dictionary_doc);
+        DictionaryMacrosDlg dlg(dictionary_doc);
         dlg.DoModal();
 
         ReBuildTree(*GetDictionaryTreeNode(*dictionary_doc));
@@ -1626,8 +1666,8 @@ void CDDTreeCtrl::OnEditLanguages()
     for( const Language& language : dictionary->GetLanguages() )
     {
         CLangInfo langInfo;
-        langInfo.m_sLangName = WS2CS(language.GetName());
-        langInfo.m_sLabel = WS2CS(language.GetLabel());
+        langInfo.m_sLangName = UTF8_TODO::GetCString(language.GetName());
+        langInfo.m_sLabel = UTF8_TODO::GetCString(language.GetLabel());
         dlg.m_Langgrid.m_aLangInfo.Add(langInfo);
     }
 
@@ -1641,7 +1681,7 @@ void CDDTreeCtrl::OnEditLanguages()
             CString sName = langInfo.m_sLangName;
             sName.Trim();
 
-            dictionary->ModifyLanguage(iLangInfo, Language(CS2WS(sName), CS2WS(langInfo.m_sLabel)));
+            dictionary->ModifyLanguage(iLangInfo, Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
             dictionary_doc->SetModified(true);
         }
     }
@@ -1653,7 +1693,7 @@ void CDDTreeCtrl::OnEditLanguages()
             CIMSAString sName = langInfo.m_sLangName;
             sName.Trim();
 
-            dictionary->AddLanguage(Language(CS2WS(sName), CS2WS(langInfo.m_sLabel)));
+            dictionary->AddLanguage(Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
             dictionary_doc->SetModifiedFlag(true);
         }
     }
@@ -1662,7 +1702,7 @@ void CDDTreeCtrl::OnEditLanguages()
     for(int iLangInfo=0; iLangInfo < dlg.m_Langgrid.m_aLangInfo.GetSize(); iLangInfo++) {
         CLangInfo langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
-            std::optional<size_t> language_index = dictionary->IsLanguageDefined(langInfo.m_sLangName);
+            const std::optional<size_t> language_index = dictionary->IsLanguageDefined(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
             ASSERT(language_index.has_value());
 
             dictionary->DeleteLanguage(*language_index);
@@ -1716,7 +1756,7 @@ void CDDTreeCtrl::OnOpenTool(const UINT nID)
           ( nID == ID_OPEN_WITH_CSINDEX )     ? CSProExecutables::Program::CSIndex :
         /*( nID == ID_OPEN_WITH_CSSORT ) ? */   CSProExecutables::Program::CSSort;
 
-    CSProExecutables::RunProgramOpeningFile(program, CS2WS(dictionary->GetFullFileName()));
+    CSProExecutables::RunProgramOpeningFile(program, dictionary->GetFilePath());
 }
 
 
@@ -1725,9 +1765,10 @@ void CDDTreeCtrl::OnOpenDataFile(const UINT nID)
     const CDataDict* const dictionary = GetSelectedDictionary();
     const size_t view_data_index = nID - ID_OPEN_DATA_FILE0;
 
-    if( dictionary != nullptr && view_data_index < m_viewDataFilenames.size() )
+    if( dictionary != nullptr && view_data_index < m_viewDataFilePaths.size() )
     {
-        const std::wstring argument = FormatTextCS2WS(_T("\"%s\" \"%s\""), m_viewDataFilenames[view_data_index].GetString(), dictionary->GetFullFileName().GetString());
-        CSProExecutables::RunProgram(CSProExecutables::Program::DataViewer, argument.c_str());
+        ConnectionString connection_string(m_viewDataFilePaths[view_data_index]);
+        connection_string.SetProperty(CSProperty::dictionaryPath, dictionary->GetFilePath());
+        CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::DataManager, connection_string.ToString());
     }
 }

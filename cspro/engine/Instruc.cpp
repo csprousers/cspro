@@ -45,9 +45,9 @@
 const int TSMAXIDLEN = 16;              // max. len for a break-id var
 
 
-bool ValidInstructionStartToken(TokenCode token_code)
+bool ValidInstructionStartToken(const TokenCode token_code)
 {
-    static std::set ValidInstructionStartTokens =
+    static const std::set ValidInstructionStartTokens =
     {
         TOKHASH,
         TOKIF,
@@ -111,6 +111,7 @@ bool ValidInstructionStartToken(TokenCode token_code)
         TOKDOCUMENT,
         TOKKWGEOMETRY,
         TOKGEOMETRY,
+        TOKDECLARE,
     };
 
     return ( ValidInstructionStartTokens.find(token_code) != ValidInstructionStartTokens.cend() );
@@ -193,7 +194,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
                 if( trace_program_index != -1 )
                 {
-                    // COMPILER_DLL_TODO ... the following code for adding trace statements is similar to the code at the end of this loop; eventually this should 
+                    // COMPILER_DLL_TODO ... the following code for adding trace statements is similar to the code at the end of this loop; eventually this should
                     // all be refactored to easily append statements to one another
 
                     // ...potentially set the first instruction
@@ -242,6 +243,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
             switch( Tkn )
             {
                 case TOKCONFIG:
+                case TOKDECLARE:
                 case TOKPERSISTENT:
                     last_added_node_address = CompileSymbolWithModifiers();
                     break;
@@ -630,7 +632,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                     code = Tkn;
 
                     if( SO::EqualsNoCase(Tokstr, _T("ENDSECT")) )
-                        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95001, _T("ENDSECT"), _T("ENDGROUP"));
+                        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, 95001, "ENDSECT", "ENDGROUP");
 
                     bIsSkipStatement = true; // RHF 27/7/94
 
@@ -959,7 +961,7 @@ int CEngineCompFunc::CompileForStatement(pCompileForInFunction pCompileFunction/
     // with for loops, the loop stack is only used (at the moment) to prevent
     // the enter statement from being made in a loop
     LoopStackEntry loop_stack_entry = GetLoopStack().PushOnLoopStack(LoopStackSource::For);
-    
+
     int iForNode = Prognext;
     int counter_variable_symbol_index = -1;
     size_t type_specifier = 0;
@@ -981,8 +983,8 @@ int CEngineCompFunc::CompileForStatement(pCompileForInFunction pCompileFunction/
     if( counter_variable_symbol_index != -1 )
     {
         // allow "in"
-        NextKeyword({ _T("IN") });
-        type_specifier = NextKeyword({ _T("RELATION"), _T("GROUP"), _T("RECORD"), _T("ITEM") });
+        NextKeyword({ "IN" });
+        type_specifier = NextKeyword({ "RELATION", "GROUP", "RECORD", "ITEM" });
         NextTokenWithPreference(type_specifier == 2 ? SymbolType::Group : SymbolType::Section);
     }
 
@@ -1877,21 +1879,20 @@ int CEngineCompFunc::VerifyTargetSymbol( int iSymb, bool bMustBeInForm )
 }
 
 
-int CEngineCompFunc::GetRelationSymbol(int symbol_index)
+int CEngineCompFunc::GetRelationSymbol(const int symbol_index)
 {
-    Symbol* symbol = NPT(symbol_index);
+    Symbol* const symbol = NPT(symbol_index);
     ASSERT(symbol->IsOneOf(SymbolType::Section, SymbolType::Variable));
 
     // look for the relation of this record or item (named _REL_symName)
-    CString relation_name;
-    relation_name.Format(_T("_REL_%s"), symbol->GetName().c_str());
+    std::string relation_name = "_REL_" + symbol->GetName();
 
     int relation_symbol_index = m_pEngineArea->SymbolTableSearch(relation_name, { SymbolType::Relation });
 
     // if the relation doesn't exist, create one
     if( relation_symbol_index == 0 )
     {
-        auto pRelT = std::make_unique<RELT>(CS2WS(relation_name), GetSymbolTable());
+        auto pRelT = std::make_unique<RELT>(std::move(relation_name), GetSymbolTable());
         pRelT->AddBaseSymbol(symbol, MakeRelationWorkVar());
         relation_symbol_index = m_engineData->AddSymbol(std::move(pRelT));
     }

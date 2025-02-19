@@ -43,7 +43,7 @@ namespace
         if( document != nullptr )
         {
             CAplDoc* pAplDoc = pMainFrame->ProcessFOForSrcCode(*document);
-            
+
             if( pAplDoc != nullptr )
                 application = &pAplDoc->GetAppObject();
         }
@@ -112,7 +112,7 @@ void CMainFrame::OnStringEncoder()
     std::tie(application, logic_ctrl) = GetActiveApplicationAndLogicCtrl(this);
 
     const LogicSettings* logic_settings = nullptr;
-    std::wstring initial_text;
+    std::string initial_text;
 
     if( application != nullptr )
     {
@@ -136,12 +136,12 @@ void CMainFrame::OnPathAdjuster()
 {
     Application* application;
     int lexer_language;
-    std::wstring initial_path;
+    std::string initial_path;
 
     if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application) == 1 )
     {
         lexer_language = Lexers::GetLexer_Logic(*application);
-        initial_path = CS2WS(application->GetApplicationFilename());
+        initial_path = application->GetApplicationFilePath();
     }
 
     else
@@ -153,7 +153,7 @@ void CMainFrame::OnPathAdjuster()
         std::tie(document, std::ignore) = GetActiveDocumentAndLogicCtrl(this);
 
         if( document != nullptr )
-            initial_path = CS2WS(document->GetPathName());
+            initial_path = TC::ToUtf8(document->GetPathName());
     }
 
     CodeMenu::OnPathAdjuster(lexer_language, std::move(initial_path));

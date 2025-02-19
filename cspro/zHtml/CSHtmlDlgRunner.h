@@ -19,13 +19,13 @@ protected:
 #ifdef WIN_DESKTOP
     std::unique_ptr<HtmlDlgBase> CreateHtmlDlg() override;
 #else
-    std::optional<std::wstring> RunHtmlDlg() override;
+    SharableString RunHtmlDlg() override;
 #endif
 
-    INT_PTR ProcessResults(const std::optional<std::wstring>& results_text) override;
+    INT_PTR ProcessResults(const SharableString& results_text) override;
 
     // methods that subclasses must override
-    virtual const TCHAR* GetDialogName() = 0;
-    virtual std::wstring GetJsonArgumentsText() = 0;
-    virtual void ProcessJsonResults(const JsonNode<wchar_t>& json_results) = 0;
+    virtual std::string GetDialogName() = 0;
+    virtual SharableString GetJsonArgumentsText() = 0;
+    virtual void ProcessJsonResults(const JsonNode& json_results) = 0;
 };

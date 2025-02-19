@@ -31,7 +31,6 @@ public:
 
     bool C_CompilerInit( CString* pcsLines, bool& bSomeError );// RHF Jun 12, 2003 Add pcsLines
     void C_CompilerEnd();
-    bool C_CompilerCompile(const TCHAR* buffer_text);
     bool C_CompilerCompile(std::shared_ptr<Logic::SourceBuffer> source_buffer);
 
 // SERPRO_CALC

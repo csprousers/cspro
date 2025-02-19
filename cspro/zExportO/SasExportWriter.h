@@ -12,13 +12,13 @@ public:
     SasExportWriter(std::shared_ptr<const CaseAccess> case_access, const ConnectionString& connection_string);
     ~SasExportWriter();
 
-    static std::wstring GetSyntaxPath(const ConnectionString& connection_string);
+    static std::string GetSyntaxPath(const ConnectionString& connection_string);
 
     void Close() override;
 
 protected:
-    bool SupportsBinaryData() override { return false; }
-    bool IsReservedName(const std::wstring& name, bool record_name) override;
+    bool SupportsBinaryData() const override { return false; }
+    bool IsReservedName(const std::string& name, bool record_name) override;
 
     void StartRecord(const ExportRecordMapping& export_record_mapping) override;
     void StartRow() override;
@@ -31,10 +31,10 @@ private:
 
     void InitializeDataSets();
 
-    std::string CreateSasName(const void* data_entity, const std::wstring& name, std::set<std::string> used_names[]);
-    std::string CreateSasLabel(const void* data_entity, const std::wstring& label);
+    std::string CreateSasName(const void* data_entity, const std::string& name, std::set<std::string> used_names[]);
+    std::string CreateSasLabel(const void* data_entity, std::string label);
 
-    static std::wstring EscapeSasLiteral(std::wstring text);
+    static std::string EscapeSasLiteral(std::string text);
 
     void WriteSyntaxFile();
     void CreateFormatsAndWriteSyntax();
@@ -51,7 +51,7 @@ private:
     std::set<std::string> m_usedDataSetNames[2]; // SAS/transport names
     std::map<const void*, std::string> m_renameMap;
     std::map<const void*, std::string> m_relabelMap;
-    std::map<const void*, std::wstring> m_formatMap;
+    std::map<const void*, std::string> m_formatMap;
 
     // options from the connection string
     bool m_useSasMissingCodes;

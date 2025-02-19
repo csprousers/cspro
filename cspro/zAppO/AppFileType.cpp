@@ -4,9 +4,9 @@
 
 namespace
 {
-    const std::map<AppFileType, std::wstring>& GetAppFileTypeExtensionMap()
+    const std::map<AppFileType, const char*>& GetAppFileTypeExtensionMap()
     {
-        static const std::map<AppFileType, std::wstring> extension_map =
+        static const std::map<AppFileType, const char*> extension_map =
         {
             { AppFileType::ApplicationBatch,      FileExtensions::BatchApplication      },
             { AppFileType::ApplicationEntry,      FileExtensions::EntryApplication      },
@@ -26,44 +26,65 @@ namespace
 }
 
 
-const TCHAR* ToString(AppFileType app_file_type)
+const char* ToString(const AppFileType app_file_type)
 {
     switch( app_file_type )
     {
-        case AppFileType::ApplicationBatch:      return _T("Batch Edit Application");
-        case AppFileType::ApplicationEntry:      return _T("Data Entry Application");
-        case AppFileType::ApplicationTabulation: return _T("Tabulation Application");
-        case AppFileType::Dictionary:            return _T("Dictionary");
-        case AppFileType::Form:                  return _T("Form");
-        case AppFileType::Code:                  return _T("Logic");
-        case AppFileType::Message:               return _T("Messages");
-        case AppFileType::Order:                 return _T("Order");
-        case AppFileType::QuestionText:          return _T("Question Text");
-        case AppFileType::Report:                return _T("Report");
-        case AppFileType::ResourceFolder:        return _T("Resource Folder");
-        case AppFileType::TableSpec:             return _T("Table Specification");
-        default:                                 return ReturnProgrammingError(_T(""));
+        case AppFileType::ApplicationBatch:      return "Batch Edit Application";
+        case AppFileType::ApplicationEntry:      return "Data Entry Application";
+        case AppFileType::ApplicationTabulation: return "Tabulation Application";
+        case AppFileType::Dictionary:            return "Dictionary";
+        case AppFileType::Form:                  return "Form";
+        case AppFileType::Code:                  return "Logic";
+        case AppFileType::Message:               return "Messages";
+        case AppFileType::Order:                 return "Order";
+        case AppFileType::QuestionText:          return "Question Text";
+        case AppFileType::Report:                return "Report";
+        case AppFileType::Resource:              return "Resource";
+        case AppFileType::TableSpec:             return "Table Specification";
+        default:                                 return ReturnProgrammingError("");
     }
 }
 
 
-const TCHAR* GetFileExtension(AppFileType app_file_type)
+const char* GetFileExtension(const AppFileType app_file_type)
 {
-    const std::map<AppFileType, std::wstring>& extension_map = GetAppFileTypeExtensionMap();
+    const std::map<AppFileType, const char*>& extension_map = GetAppFileTypeExtensionMap();
     const auto& lookup = extension_map.find(app_file_type);
 
-    return ( lookup != extension_map.cend() )               ? lookup->second.c_str() :
-           ( app_file_type == AppFileType::ResourceFolder ) ? _T("") :
-                                                              ReturnProgrammingError(_T(""));
+    return ( lookup != extension_map.cend() )         ? lookup->second :
+           ( app_file_type == AppFileType::Resource ) ? "" :
+                                                        ReturnProgrammingError("");
 }
 
 
-std::optional<AppFileType> GetAppFileTypeFromFileExtension(wstring_view extension)
+std::optional<AppFileType> GetAppFileTypeFromFileExtension(const std::string_view extension_sv)
 {
-    const std::map<AppFileType, std::wstring>& extension_map = GetAppFileTypeExtensionMap();
+    const std::map<AppFileType, const char*>& extension_map = GetAppFileTypeExtensionMap();
     const auto& lookup = std::find_if(extension_map.cbegin(), extension_map.cend(),
-                                      [&](const auto& kv) { return SO::EqualsNoCase(kv.second, extension); });
+                                      [&](const auto& kv) { return SO::EqualsNoCase(extension_sv, kv.second); });
 
     return ( lookup != extension_map.cend() ) ? std::make_optional(lookup->first) :
                                                 std::nullopt;
+}
+
+
+int GetTreeOrder(const AppFileType app_file_type)
+{
+    switch( app_file_type )
+    {
+        case AppFileType::ApplicationEntry:      return 0;
+        case AppFileType::ApplicationBatch:      return 1;
+        case AppFileType::ApplicationTabulation: return 2;
+        case AppFileType::Form:                  return 3;
+        case AppFileType::Order:                 return 4;
+        case AppFileType::TableSpec:             return 5;
+        case AppFileType::Dictionary:            return 6;
+        case AppFileType::QuestionText:          return 7;
+        case AppFileType::Code:                  return 8;
+        case AppFileType::Message:               return 9;
+        case AppFileType::Report:                return 10;
+        case AppFileType::Resource:              return 11;
+        default:                                 return ReturnProgrammingError(12);
+    }
 }

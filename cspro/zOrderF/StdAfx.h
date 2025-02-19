@@ -3,6 +3,7 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 
+#include <zToolsO/Utf8.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zEdit2O/zEdit2O.h>

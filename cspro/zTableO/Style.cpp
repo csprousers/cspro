@@ -150,7 +150,7 @@ public:
         // statistics stuff
         eNRow = TALLY_STATISTIC_DEFAULT;                //N Row 4 Trevor
         eMin = TALLY_STATISTIC_DEFAULT;                // show minimum value (default, yes, no)
-        eMax = TALLY_STATISTIC_DEFAULT;	               // show maximum value (default, yes, no)
+        eMax = TALLY_STATISTIC_DEFAULT;                // show maximum value (default, yes, no)
         eStdDev = TALLY_STATISTIC_DEFAULT;             // show standard deviation (default, yes, no)
         eVariance = TALLY_STATISTIC_DEFAULT;           // show variances (default, yes, no)
         eMean = TALLY_STATISTIC_DEFAULT;               // show mean value (default, yes, no)
@@ -167,17 +167,17 @@ public:
     PCT_POS                         ePercentPos;
     TALLY_STATISTIC                 eCounts;
     TALLY_STATISTIC                 eNRow;
-    TALLY_STATISTIC	                eMin;
-    TALLY_STATISTIC	                eMax;
-    TALLY_STATISTIC	                eStdDev;
-    TALLY_STATISTIC	                eVariance;
-    TALLY_STATISTIC	                eMean;
-    TALLY_STATISTIC	                eMode;
-    TALLY_STATISTIC	                eStdErr;
-    TALLY_STATISTIC	                eProportion;
-    TALLY_STATISTIC	                eNTiles;
+    TALLY_STATISTIC                 eMin;
+    TALLY_STATISTIC                 eMax;
+    TALLY_STATISTIC                 eStdDev;
+    TALLY_STATISTIC                 eVariance;
+    TALLY_STATISTIC                 eMean;
+    TALLY_STATISTIC                 eMode;
+    TALLY_STATISTIC                 eStdErr;
+    TALLY_STATISTIC                 eProportion;
+    TALLY_STATISTIC                 eNTiles;
     MEDIAN_TYPE                     eMedian;
-    int				                iTiles;
+    int                             iTiles;
 };
 
 // convert old (pre 3.2) PCT_TYPE from CTallyFmt to new CTallyVarStatFmt enum PctType
@@ -267,7 +267,7 @@ bool FOREIGN_KEYS::operator==(const FOREIGN_KEYS& f) const
     // make sure that all args in this are same is in f
     CString sDef, sAlt;
 
-	POSITION pos = m_keys.GetStartPosition();
+    POSITION pos = m_keys.GetStartPosition();
     while (pos != NULL)
     {
         m_keys.GetNextAssoc( pos, sDef, sAlt );
@@ -298,7 +298,7 @@ FOREIGN_KEYS& FOREIGN_KEYS::operator=(const FOREIGN_KEYS& f)
     m_keys.RemoveAll();
     CString sDef, sAlt;
 
-	POSITION pos = f.m_keys.GetStartPosition();
+    POSITION pos = f.m_keys.GetStartPosition();
     while (pos != NULL)
     {
         f.m_keys.GetNextAssoc( pos, sDef, sAlt );
@@ -317,7 +317,7 @@ void FOREIGN_KEYS::Save(CSpecFile& specFile) const
 {
     CString sDef, sAlt;
 
-	POSITION pos = m_keys.GetStartPosition();
+    POSITION pos = m_keys.GetStartPosition();
     while (pos != NULL)
     {
         m_keys.GetNextAssoc( pos, sDef, sAlt );
@@ -334,7 +334,7 @@ void FOREIGN_KEYS::GetAllKeys(CStringArray& aDefaults) const
 {
     CString sDef, sAlt;
 
-	POSITION pos = m_keys.GetStartPosition();
+    POSITION pos = m_keys.GetStartPosition();
     while (pos != NULL)
     {
         m_keys.GetNextAssoc( pos, sDef, sAlt );
@@ -373,10 +373,10 @@ CIMSAString FOREIGN_KEYS::MakeForeignKeyString(CIMSAString sDefaultString ,CIMSA
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CFmtFont::SetFont(LOGFONT* pLF)
+void CFmtFont::SetFont(LOGFONT* const pLF)
 {
     CFont* pFont=NULL;
-    CString sLF = PortableFont(*pLF).GetPre80String();
+    CString sLF = UTF8_TODO::GetCString(PortableFont(*pLF).GetPre80String());
     if (!m_mapFont.Lookup(sLF, (void*&)pFont)) {
         // font isn't yet in the map, so create it ...
         pFont=new CFont;
@@ -395,14 +395,14 @@ void CFmtFont::SetFont(LOGFONT* pLF)
 /////////////////////////////////////////////////////////////////////////////
 CFmtBase::CFmtBase(void)
 {
-	SetUsedFlag(true);
+    SetUsedFlag(true);
     Init();
 }
 
 CFmtBase::CFmtBase(const CFmtBase& f)
 {
-	SetUsedFlag(true);
-	*this=f;
+    SetUsedFlag(true);
+    *this=f;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -414,7 +414,7 @@ CFmtBase::CFmtBase(const CFmtBase& f)
 {
     SetID(FMT_ID_INVALID);
     SetIndex(0);
-	SetUsedFlag(true);
+    SetUsedFlag(true);
 }
 
 
@@ -536,7 +536,7 @@ bool CFmtBase::SetIndex(const CIMSAString& sIndex)
 /*V*/ bool CFmtBase::Build(CSpecFile& specFile, bool bSilent)  {
     UNREFERENCED_PARAMETER(bSilent);
 
-	CIMSAString sCmd;    // command (left side of =)
+    CIMSAString sCmd;    // command (left side of =)
     CIMSAString sArg;    // argument (right side of =)
     bool bLineOK;
 
@@ -614,10 +614,10 @@ bool CFmtBase::SetIndex(const CIMSAString& sIndex)
 
         if (!bLineOK)  {
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
             return false;
         }
     }
@@ -865,7 +865,7 @@ void CFmt::Init(void)
             }
             else {
                 PortableFont font;
-                font.BuildFromPre80String(sArg);
+                font.BuildFromPre80String(UTF8_TODO::GetUtf8(sArg));
                 LOGFONT lf = font;
                 // todo: add error checking here
 
@@ -1226,12 +1226,12 @@ void CFmt::Init(void)
                 return true;
             }
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
 
-			return false;
+            return false;
         }
     }
     return true;
@@ -1259,11 +1259,11 @@ void CFmt::Init(void)
         }
         else {
 //            lf.lfHeight=TwipsToPoints(lf.lfHeight);  // store it in points
-            specFile.PutLine(TFT_CMD_FONT, PortableFont(lf).GetPre80String());
+            specFile.PutLine(TFT_CMD_FONT, UTF8_TODO::GetWide(PortableFont(lf).GetPre80String()));
         }
     }
 
-	// horizontal alignment
+    // horizontal alignment
     switch (GetHorzAlign())  {
     case HALIGN_LEFT:
         specFile.PutLine(TFT_CMD_HORZALIGN, TFT_ARG_LEFT);
@@ -1593,14 +1593,14 @@ bool CFmt::operator!=(const CFmt& f) const
 //    ASSERT(GetID()==pDefault->GetID());
     const CFmt* pFmtDefault=DYNAMIC_DOWNCAST(CFmt,pDefault);
     CFmt* pFmtTarget=DYNAMIC_DOWNCAST(CFmt, pTarget);
-	*pFmtTarget=*this;
+    *pFmtTarget=*this;
 
-	// font
+    // font
     if (GetFont()==NULL) {
         pFmtTarget->SetFont(pFmtDefault->GetFont());
     }
 
-	// horz alignment
+    // horz alignment
     if (GetHorzAlign()==HALIGN_DEFAULT) {
         pFmtTarget->SetHorzAlign(pFmtDefault->GetHorzAlign());
     }
@@ -1684,7 +1684,7 @@ bool CFmt::operator!=(const CFmt& f) const
 /*V*/ bool CFmt::ContainsDefaultValues(void) const
 {
     if (
-    	GetFont()!=NULL &&
+        GetFont()!=NULL &&
         GetHorzAlign()!=HALIGN_DEFAULT &&
         GetVertAlign()!=VALIGN_DEFAULT &&
         IsTextColorCustom() &&
@@ -1731,9 +1731,9 @@ CDataCellFmt::CDataCellFmt(const CDataCellFmt& f)
     CFmt::Init();
     SetID(FMT_ID_DATACELL);    // csc 3/22/05
     m_eNumDecimals=NUM_DECIMALS_DEFAULT;
-	m_iNumJoinSpanners =0;
-	SetSpanCells(SPAN_CELLS_NOT_APPL);
-	SetZeroHidden(false);
+    m_iNumJoinSpanners =0;
+    SetSpanCells(SPAN_CELLS_NOT_APPL);
+    SetZeroHidden(false);
 }
 
 
@@ -1795,7 +1795,7 @@ CDataCellFmt::CDataCellFmt(const CDataCellFmt& f)
                 bLineOK=false;
             }
         }
-		if (!sCmd.CompareNoCase(TFT_CMD_HIDE_ZERO_ROW))  {
+        if (!sCmd.CompareNoCase(TFT_CMD_HIDE_ZERO_ROW))  {
             bLineOK=true;
             if (sArg.CompareNoCase(TFT_ARG_YES)==0)  {
                 SetZeroHidden(true);
@@ -1806,26 +1806,26 @@ CDataCellFmt::CDataCellFmt(const CDataCellFmt& f)
             else if (sArg.CompareNoCase(TFT_ARG_DEFAULT)==0)  {
                 SetZeroHidden(false);
             }
-			else if (sArg.CompareNoCase(TFT_ARG_NOTAPPL)==0)  {
+            else if (sArg.CompareNoCase(TFT_ARG_NOTAPPL)==0)  {
                 SetZeroHidden(false);
             }
             else {
                 bLineOK=false;
             }
         }
-		if (!sCmd.CompareNoCase(TFT_CMD_JOIN_SPANNERS))  {
-			bLineOK=true;
-			int iNumJoinSpanners = (int)sArg.Val();
-			if(iNumJoinSpanners >  0){
-				SetNumJoinSpanners(iNumJoinSpanners);
-			}
-		}
+        if (!sCmd.CompareNoCase(TFT_CMD_JOIN_SPANNERS))  {
+            bLineOK=true;
+            int iNumJoinSpanners = (int)sArg.Val();
+            if(iNumJoinSpanners >  0){
+                SetNumJoinSpanners(iNumJoinSpanners);
+            }
+        }
         if (!bLineOK)  {
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
         }
     }
     return true;
@@ -1871,7 +1871,7 @@ CDataCellFmt::CDataCellFmt(const CDataCellFmt& f)
         ASSERT(FALSE);
     }
 
-	 // hide zero row
+     // hide zero row
   if (GetZeroHidden()) {
         specFile.PutLine(TFT_CMD_HIDE_ZERO_ROW, TFT_ARG_YES);
   }
@@ -1909,8 +1909,8 @@ void CDataCellFmt::operator=(const CDataCellFmt& f)
 {
     CFmt::operator=(f);
     SetNumDecimals(f.GetNumDecimals());
-	SetZeroHidden(f.GetZeroHidden());
-	SetNumJoinSpanners(f.GetNumJoinSpanners());
+    SetZeroHidden(f.GetZeroHidden());
+    SetNumJoinSpanners(f.GetNumJoinSpanners());
 }
 
 
@@ -1992,9 +1992,9 @@ CTallyFmt::CTallyFmt(const CTallyFmt& v)
 /////////////////////////////////////////////////////////////////////////////
 CTallyFmt::~CTallyFmt()
 {
-	for (int i = 0; i < m_aStats.GetCount(); ++i) {
-		SAFE_DELETE(m_aStats[i]);
-	}
+    for (int i = 0; i < m_aStats.GetCount(); ++i) {
+        SAFE_DELETE(m_aStats[i]);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2012,10 +2012,10 @@ void CTallyFmt::Init(void)
     SetInclUndef(INCLUDE_UNDEF_DEFAULT);
     SetDumpUndef(DUMP_UNDEF_DEFAULT);
 
-	// by default only stats are counts and totals
-	ClearStats();
-	AddStat(new CTallyVarStatFmtTotal);
-	AddStat(new CTallyVarStatFmtCounts);
+    // by default only stats are counts and totals
+    ClearStats();
+    AddStat(new CTallyVarStatFmtTotal);
+    AddStat(new CTallyVarStatFmtCounts);
 
 }
 
@@ -2044,16 +2044,16 @@ void CTallyFmt::Init(void)
                 specFile.GetLine(sCmd, sArg);
                 StripQuotes(sArg);
                 if (sCmd.CompareNoCase(TFT_CMD_TALLY_STAT_TYPE) == 0) {
-			        CTallyVarStatFmt* pStat = CTallyVarStatFmtFactory::GetInstance()->Create(sArg);
+                    CTallyVarStatFmt* pStat = CTallyVarStatFmtFactory::GetInstance()->Create(sArg);
                     pStat->Build(specFile, bSilent);
                     AddStat(pStat);
                     continue;
                 }
                 else {
-			        CIMSAString sMsg;
+                    CIMSAString sMsg;
                     sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			        sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			        AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+                    sMsg += _T("\n") + sCmd + _T("=") + sArg;
+                    AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
                 }
             }
 
@@ -2103,10 +2103,10 @@ void CTallyFmt::Init(void)
 
         if (!bLineOK)  {
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
         }
     }
 
@@ -2480,10 +2480,10 @@ void CTallyFmt::Init(void)
 
         if (!bLineOK)  {
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
         }
     }
 
@@ -2743,7 +2743,7 @@ bool CTallyFmt::operator==(const CTallyFmt& f) const
     return CFmtBase::operator==(f) &&
         GetInclUndef()==f.GetInclUndef() &&
         GetDumpUndef() ==f.GetDumpUndef() &&
-		CompareStats(f.GetStats());
+        CompareStats(f.GetStats());
 }
 
 
@@ -2758,7 +2758,7 @@ void CTallyFmt::operator=(const CTallyFmt& f)
     CFmtBase::operator=(f);
     SetInclUndef(f.GetInclUndef());
     SetDumpUndef(f.GetDumpUndef());
-	CopyStats(f.GetStats());
+    CopyStats(f.GetStats());
 }
 
 
@@ -2785,7 +2785,7 @@ void CTallyFmt::operator=(const CTallyFmt& f)
     const CTallyFmt* pTallyFmtDefault=DYNAMIC_DOWNCAST(CTallyFmt,pDefault);
     CTallyFmt* pTallyFmtTarget=DYNAMIC_DOWNCAST(CTallyFmt, pTarget);
 
-	*pTallyFmtTarget=*this;
+    *pTallyFmtTarget=*this;
 
     // include undefined
     if (GetInclUndef()==INCLUDE_UNDEF_DEFAULT) {
@@ -2831,19 +2831,19 @@ void CTallyFmt::operator=(const CTallyFmt& f)
 /////////////////////////////////////////////////////////////////////////////
 bool CTallyFmt::CompareStats(const CArray<CTallyVarStatFmt*>& aStats) const
 {
-	// check # first
-	if (m_aStats.GetCount() != aStats.GetCount()) {
-		return false;
-	}
+    // check # first
+    if (m_aStats.GetCount() != aStats.GetCount()) {
+        return false;
+    }
 
-	// check individual stats
-	for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
-		if (*(m_aStats.GetAt(iStat)) != *(aStats.GetAt(iStat))) {
-			return false;
-		}
-	}
+    // check individual stats
+    for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
+        if (*(m_aStats.GetAt(iStat)) != *(aStats.GetAt(iStat))) {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2854,13 +2854,13 @@ bool CTallyFmt::CompareStats(const CArray<CTallyVarStatFmt*>& aStats) const
 /////////////////////////////////////////////////////////////////////////////
 void CTallyFmt::CopyStats(const CArray<CTallyVarStatFmt*>& aStats)
 {
-	// delete existing stats first
-	ClearStats();
+    // delete existing stats first
+    ClearStats();
 
-	// copy individual stats
-	for (int iStat = 0; iStat < aStats.GetCount(); ++iStat) {
-		m_aStats.Add(aStats.GetAt(iStat)->Clone());
-	}
+    // copy individual stats
+    for (int iStat = 0; iStat < aStats.GetCount(); ++iStat) {
+        m_aStats.Add(aStats.GetAt(iStat)->Clone());
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2871,11 +2871,11 @@ void CTallyFmt::CopyStats(const CArray<CTallyVarStatFmt*>& aStats)
 /////////////////////////////////////////////////////////////////////////////
 void CTallyFmt::ClearStats()
 {
-	// delete existing stats first
-	for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
-		SAFE_DELETE(m_aStats[iStat]);
-	}
-	m_aStats.RemoveAll();
+    // delete existing stats first
+    for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
+        SAFE_DELETE(m_aStats[iStat]);
+    }
+    m_aStats.RemoveAll();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2887,12 +2887,12 @@ void CTallyFmt::ClearStats()
 /////////////////////////////////////////////////////////////////////////////
 bool CTallyFmt::HasCounts() const
 {
-	for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
-		if (!_tcscmp(m_aStats.GetAt(iStat)->GetType(), _T("Counts"))) {
-			return true;
-		}
-	}
-	return false;
+    for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
+        if (!_tcscmp(m_aStats.GetAt(iStat)->GetType(), _T("Counts"))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2904,12 +2904,12 @@ bool CTallyFmt::HasCounts() const
 /////////////////////////////////////////////////////////////////////////////
 bool CTallyFmt::HasPercents() const
 {
-	for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
+    for (int iStat = 0; iStat < m_aStats.GetCount(); ++iStat) {
         if (!_tcscmp(m_aStats.GetAt(iStat)->GetType(), _T("Percents"))) {
-			return true;
-		}
-	}
-	return false;
+            return true;
+        }
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2924,10 +2924,10 @@ void CTallyFmt::GetInterleavedStats(CArray<InterleavedStatPair>& aInterleavedSta
 {
     InterleavedStatPair newPair;
 
-	const CArray<CTallyVarStatFmt*>& aStats = GetStats();
-	for (int iStat = 0; iStat < aStats.GetSize(); ++iStat) {
+    const CArray<CTallyVarStatFmt*>& aStats = GetStats();
+    for (int iStat = 0; iStat < aStats.GetSize(); ++iStat) {
 
-		CTallyVarStatFmt* pStat = aStats.GetAt(iStat);
+        CTallyVarStatFmt* pStat = aStats.GetAt(iStat);
         if (!_tcscmp(pStat->GetType(), _T("Percents"))) {
             CTallyVarStatFmtPercent* pPctStat = static_cast<CTallyVarStatFmtPercent*>(pStat);
             if (pPctStat->GetInterleaved()) {
@@ -2958,7 +2958,7 @@ bool CTallyFmt::Reconcile(const DictValueSet* pVSet)
 {
     bool bChanged = false;
     const CArray<CTallyVarStatFmt*>& aStats = GetStats();
-	for (int iStat = 0; iStat < aStats.GetSize(); ++iStat) {
+    for (int iStat = 0; iStat < aStats.GetSize(); ++iStat) {
         if (aStats.GetAt(iStat)->ReconcileStatRanges(pVSet)) {
             bChanged = true;
         }
@@ -2975,8 +2975,8 @@ bool CTallyFmt::Reconcile(const DictValueSet* pVSet)
 /////////////////////////////////////////////////////////////////////////////
 void CTallyFmt::AddStat(CTallyVarStatFmt* pStat)
 {
-	ASSERT(pStat);
-	m_aStats.Add(pStat);
+    ASSERT(pStat);
+    m_aStats.Add(pStat);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2987,11 +2987,11 @@ void CTallyFmt::AddStat(CTallyVarStatFmt* pStat)
 /////////////////////////////////////////////////////////////////////////////
 void CTallyFmt::MoveStatTo(int iOrigPos, int iNewPos)
 {
-	ASSERT(iOrigPos >= 0 && iOrigPos < m_aStats.GetCount());
-	ASSERT(iNewPos >= 0 && iOrigPos <= m_aStats.GetCount());
-	CTallyVarStatFmt* pStat = m_aStats.GetAt(iOrigPos);
-	m_aStats.RemoveAt(iOrigPos);
-	m_aStats.InsertAt(iNewPos, pStat);
+    ASSERT(iOrigPos >= 0 && iOrigPos < m_aStats.GetCount());
+    ASSERT(iNewPos >= 0 && iOrigPos <= m_aStats.GetCount());
+    CTallyVarStatFmt* pStat = m_aStats.GetAt(iOrigPos);
+    m_aStats.RemoveAt(iOrigPos);
+    m_aStats.InsertAt(iNewPos, pStat);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -3002,7 +3002,7 @@ void CTallyFmt::MoveStatTo(int iOrigPos, int iNewPos)
 /////////////////////////////////////////////////////////////////////////////
 void CTallyFmt::RemoveStatAt(int iPos)
 {
-	m_aStats.RemoveAt(iPos);
+    m_aStats.RemoveAt(iPos);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -3315,10 +3315,10 @@ void CTblFmt::Init(void)
         }
         if (!bLineOK)  {
             // signal unrecognized command
-			CIMSAString sMsg;
+            CIMSAString sMsg;
             sMsg.Format(_T("Unrecognized command at line %d:"), specFile.GetLineNumber());
-			sMsg += _T("\n") + sCmd + _T("=") + sArg;
-			AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
+            sMsg += _T("\n") + sCmd + _T("=") + sArg;
+            AfxMessageBox(sMsg,MB_ICONEXCLAMATION);
         }
     }
     return true;
@@ -3346,7 +3346,7 @@ void CTblFmt::Init(void)
         specFile.PutLine(TFT_CMD_BORDER_LEFT, TFT_ARG_THICK);
         break;
     case LINE_NONE:
-		specFile.PutLine(TFT_CMD_BORDER_LEFT, TFT_ARG_NONE);
+        specFile.PutLine(TFT_CMD_BORDER_LEFT, TFT_ARG_NONE);
         break;
     case LINE_DEFAULT:
         // do nothing
@@ -3364,7 +3364,7 @@ void CTblFmt::Init(void)
         specFile.PutLine(TFT_CMD_BORDER_TOP, TFT_ARG_THICK);
         break;
     case LINE_NONE:
-		specFile.PutLine(TFT_CMD_BORDER_TOP, TFT_ARG_NONE);
+        specFile.PutLine(TFT_CMD_BORDER_TOP, TFT_ARG_NONE);
         break;
     case LINE_DEFAULT:
         // do nothing
@@ -3382,7 +3382,7 @@ void CTblFmt::Init(void)
         specFile.PutLine(TFT_CMD_BORDER_RIGHT, TFT_ARG_THICK);
         break;
     case LINE_NONE:
-		specFile.PutLine(TFT_CMD_BORDER_RIGHT, TFT_ARG_NONE);
+        specFile.PutLine(TFT_CMD_BORDER_RIGHT, TFT_ARG_NONE);
         break;
     case LINE_DEFAULT:
         // do nothing
@@ -3400,7 +3400,7 @@ void CTblFmt::Init(void)
         specFile.PutLine(TFT_CMD_BORDER_BOTTOM, TFT_ARG_THICK);
         break;
     case LINE_NONE:
-		specFile.PutLine(TFT_CMD_BORDER_BOTTOM, TFT_ARG_NONE);
+        specFile.PutLine(TFT_CMD_BORDER_BOTTOM, TFT_ARG_NONE);
         break;
     case LINE_DEFAULT:
         // do nothing
@@ -5922,7 +5922,7 @@ bool CFmtReg::Build(const CIMSAString& sTFTFile)  {
     BOOL bHeaderOK = FALSE;
     if (specFile.IsHeaderOK(TFT_SECT_FORMAT_FILE))  {
         bHeaderOK = TRUE;
-        if (!specFile.IsVersionOK(sVersion))  {
+        if (!specFile.IsVersionOK_CS(sVersion))  {
             AfxMessageBox(_T("bad version"));
             return false;
         }
@@ -6001,7 +6001,7 @@ bool CFmtReg::Build(CSpecFile& specFile, const CIMSAString& sVersion, bool bSile
                 }
                 else {
                     // XTS gave a printer, but we couldn't find it...
-                    m_sErrorMsg.Format(_T("Printer %s not found, using default printer "), (LPCTSTR)pTblPrintFmt->GetPrinterDevice());
+                    m_sErrorMsg.Format(_T("Printer %s not found, using default printer "), pTblPrintFmt->GetPrinterDevice().GetString());
                 }
                 sPrinterDevice.ReleaseBuffer();
             }
@@ -6028,7 +6028,7 @@ bool CFmtReg::Build(CSpecFile& specFile, const CIMSAString& sVersion, bool bSile
                 }
                 else {
                     // XTS printer invalid, but system has no printer installed...
-                    m_sErrorMsg.Format(_T("Error: printer %s not found, no default printer found."), (LPCTSTR)pTblPrintFmt->GetPrinterDevice());
+                    m_sErrorMsg.Format(_T("Error: printer %s not found, no default printer found."), pTblPrintFmt->GetPrinterDevice().GetString());
                     pTblPrintFmt->SetPrinterDevice(_T(""));
                     pTblPrintFmt->SetPrinterDriver(_T(""));
                     pTblPrintFmt->SetPrinterOutput(_T(""));
@@ -6291,7 +6291,7 @@ bool CFmtReg::Save(const CIMSAString& sTFTFile, bool bDefaultOnly) const
 
     // save header
     specFile.PutLine(TFT_SECT_FORMAT_FILE);
-    specFile.PutLine(CMD_VERSION, CSPRO_VERSION);
+    specFile.PutLine(CMD_VERSION, WS2CS(UTF8_TODO::GetWide(Versioning::CSProVersionText)));
     specFile.PutLine(_T(""));
 
     return Save(specFile, bDefaultOnly);

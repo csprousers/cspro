@@ -19,7 +19,6 @@ CCompFmtDlg::CCompFmtDlg(CWnd* pParent /*=NULL*/)
     , m_bExtendTxtColor(FALSE)
     , m_bExtendFillColor(FALSE)
     , m_bExtendIndent(FALSE)
-    , m_sFontDesc(_T(""))
     , m_sUnitsR(_T(""))
     , m_sUnitsL(_T(""))
     , m_fIndentLeft(0)
@@ -116,7 +115,7 @@ void CCompFmtDlg::OnBnClickedChngfont()
             ASSERT(m_pDefFmt->GetFont());
             LOGFONT lf;
             m_pDefFmt->GetFont()->GetLogFont(&lf);
-            m_sFontDesc = PortableFont(lf).GetDescription();
+            m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
             GetDlgItem(IDC_FONT_DESC)->SetWindowText(m_sFontDesc);
         }
         else {
@@ -125,7 +124,7 @@ void CCompFmtDlg::OnBnClickedChngfont()
             ASSERT(m_pFmt->GetFont());
             LOGFONT lf;
             m_pFmt->GetFont()->GetLogFont(&lf);
-            m_sFontDesc = PortableFont(lf).GetDescription();
+            m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
             GetDlgItem(IDC_FONT_DESC)->SetWindowText(m_sFontDesc);
         }
     }
@@ -358,7 +357,7 @@ void CCompFmtDlg::OnBnClickedReset()
 
     LOGFONT lf;
     m_pDefFmt->GetFont()->GetLogFont(&lf);
-    m_sFontDesc = PortableFont(lf).GetDescription();
+    m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
     if(m_pArrTblBase){//on reset make sure the ok on fonts works
         CFont* pFont = NULL;
         m_pFmt->SetFont(pFont);
@@ -387,13 +386,13 @@ void CCompFmtDlg::UpdateFontDescription()
             ASSERT(m_pFmt->GetFont());
             LOGFONT lf;
             m_pFmt->GetFont()->GetLogFont(&lf);
-            m_sFontDesc = PortableFont(lf).GetDescription();
+            m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
         }
         else {
             ASSERT(m_pDefFmt->GetFont());
             LOGFONT lf;
             m_pDefFmt->GetFont()->GetLogFont(&lf);
-            m_sFontDesc = PortableFont(lf).GetDescription();
+            m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
         }
     }
     else {
@@ -406,12 +405,12 @@ void CCompFmtDlg::UpdateFontDescription()
                     ASSERT(pFmt->GetFont());
                     LOGFONT lf;
                     pFmt->GetFont()->GetLogFont(&lf);
-                    m_sFontDesc = PortableFont(lf).GetDescription();
+                    m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
                 }
                 else {
                     LOGFONT lf;
                     m_pDefFmt->GetFont()->GetLogFont(&lf);
-                    m_sFontDesc = PortableFont(lf).GetDescription();
+                    m_sFontDesc = UTF8_TODO::GetCString(PortableFont(lf).GetDescription());
                 }
                 continue;
             }
@@ -420,7 +419,7 @@ void CCompFmtDlg::UpdateFontDescription()
                     ASSERT(pFmt->GetFont());
                     LOGFONT lf;
                     pFmt->GetFont()->GetLogFont(&lf);
-                    if(m_sFontDesc.CompareNoCase(PortableFont(lf).GetDescription()) != 0){
+                    if(m_sFontDesc.CompareNoCase(UTF8_TODO::GetCString(PortableFont(lf).GetDescription())) != 0){
                         bIndeterminate = true;
                         break;
                     }
@@ -429,7 +428,7 @@ void CCompFmtDlg::UpdateFontDescription()
                     LOGFONT lf;
                     ASSERT(m_pDefFmt->GetFont());
                     m_pDefFmt->GetFont()->GetLogFont(&lf);
-                    if(m_sFontDesc .CompareNoCase(PortableFont(lf).GetDescription()) != 0){
+                    if(m_sFontDesc.CompareNoCase(UTF8_TODO::GetCString(PortableFont(lf).GetDescription())) != 0){
                         bIndeterminate = true;
                         break;
                     }

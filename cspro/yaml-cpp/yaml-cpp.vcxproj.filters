@@ -48,13 +48,13 @@
     <ClCompile Include="..\external\yaml-cpp\src\node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\yaml-cpp\src\node_data.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\yaml-cpp\src\nodebuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\external\yaml-cpp\src\nodeevents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\yaml-cpp\src\node_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\external\yaml-cpp\src\null.cpp">

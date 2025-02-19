@@ -11,7 +11,7 @@ DelimitedTextExportWriter::DelimitedTextExportWriter(const DataRepositoryType ty
     :   SingleRecordExportWriterBase(type, std::move(case_access), connection_string)
 {
     m_commaDecimalMark = ( m_connectionString.HasProperty(CSProperty::decimalMark, CSValue::comma) ||
-                           m_connectionString.HasProperty(_T("decimal-mark"), CSValue::comma) ); // pre-8.0
+                           m_connectionString.HasProperty("decimal-mark", CSValue::comma) ); // pre-8.0
 
     CreateExportRecordMappings();
     InitializeSingleExportRecordMapping();
@@ -29,11 +29,11 @@ DelimitedTextExportWriter::DelimitedTextExportWriter(const DataRepositoryType ty
     m_delimitedTextCreator = std::make_unique<DelimitedTextCreator>(delimited_text_creator_type, newline_type);
 
     // open the file
-    m_encodedTextWriter = std::make_unique<EncodedTextWriter>(type, *m_caseAccess, m_connectionString.GetFilename(), m_connectionString);
+    m_encodedTextWriter = std::make_unique<EncodedTextWriter>(m_connectionString.GetFilePath(), m_connectionString);
 
     // write the column headings
     if( !m_connectionString.HasProperty(CSProperty::header, CSValue::suppress) &&
-        !m_connectionString.HasProperty(CSProperty::header, _T("none")) ) // pre-8.0
+        !m_connectionString.HasProperty(CSProperty::header, "none") ) // pre-8.0
     {
         for( const ExportItemMapping& export_item_mapping : m_singleExportRecordMapping->item_mappings )
         {
@@ -41,7 +41,7 @@ DelimitedTextExportWriter::DelimitedTextExportWriter(const DataRepositoryType ty
 
             for( const ColumnMappingInfo& column_mapping_info : item_mapping_info->column_mapping_infos )
             {
-                m_delimitedTextCreator->AddText(column_mapping_info.use_label_for_header ? CS2WS(export_item_mapping.case_item->GetDictionaryItem().GetLabel()) :
+                m_delimitedTextCreator->AddText(column_mapping_info.use_label_for_header ? UTF8_TODO::GetUtf8(export_item_mapping.case_item->GetDictItem().GetLabel()) :
                                                                                            export_item_mapping.formatted_item_name);
             }
         }
@@ -53,7 +53,6 @@ DelimitedTextExportWriter::DelimitedTextExportWriter(const DataRepositoryType ty
 
 DelimitedTextExportWriter::~DelimitedTextExportWriter()
 {
-    Close();
 }
 
 
@@ -67,7 +66,7 @@ void DelimitedTextExportWriter::InitializeSingleExportRecordMapping()
         export_item_mapping.tag = item_mapping_info;
 
         // add columns for codes and/or labels
-        const CDictItem& dict_item = export_item_mapping.case_item->GetDictionaryItem();
+        const CDictItem& dict_item = export_item_mapping.case_item->GetDictItem();
 
         export_properties_values_processor.Process(dict_item,
             [&](std::shared_ptr<const ValueProcessor> value_processor, const bool use_label_for_header)
@@ -76,7 +75,7 @@ void DelimitedTextExportWriter::InitializeSingleExportRecordMapping()
             });
 
         // create the working space for fixed-width numeric values
-        if( export_item_mapping.case_item->IsTypeNumeric() && export_item_mapping.case_item->IsTypeFixed() )
+        if( IsNumeric(export_item_mapping.case_item->GetDataType()) && export_item_mapping.case_item->IsFixedWidth() )
         {
             item_mapping_info->fixed_width_numeric_working_space = std::make_unique<FixedWidthNumericWorkingSpace>(
                 FixedWidthNumericWorkingSpace
@@ -98,7 +97,7 @@ void DelimitedTextExportWriter::Close()
 
 void DelimitedTextExportWriter::WriteLine()
 {
-    m_encodedTextWriter->WriteLine(wstring_view(m_delimitedTextCreator->GetTextBuffer(), m_delimitedTextCreator->GetTextLength()));
+    m_encodedTextWriter->WriteLine(m_delimitedTextCreator->GetSV());
     m_delimitedTextCreator->ResetText();
 }
 
@@ -122,7 +121,7 @@ void DelimitedTextExportWriter::EndRow()
 void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_item_mapping, const CaseItemIndex& index)
 {
     const ItemMappingInfo* item_mapping_info = static_cast<const ItemMappingInfo*>(export_item_mapping.tag);
-    
+
     for( const ColumnMappingInfo& column_mapping_info : item_mapping_info->column_mapping_infos )
     {
         auto write_label_if_valid = [&](const auto& value)
@@ -133,7 +132,7 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
 
                 if( dict_value != nullptr && !dict_value->GetLabel().IsEmpty() )
                 {
-                    m_delimitedTextCreator->AddText(dict_value->GetLabel());
+                    m_delimitedTextCreator->AddText(UTF8_TODO::GetUtf8(dict_value->GetLabel()));
                     return true;
                 }
             }
@@ -145,7 +144,7 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
         // blank values
         auto write_blank_value = [&]()
         {
-            m_delimitedTextCreator->AddText(SO::EmptyString);
+            m_delimitedTextCreator->AddText(SO::Empty_string);
         };
 
         if( export_item_mapping.case_item->IsBlank(index) )
@@ -155,7 +154,7 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
 
 
         // numeric values
-        else if( export_item_mapping.case_item->IsTypeNumeric() )
+        else if( IsNumeric(export_item_mapping.case_item->GetDataType()) )
         {
             const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(*export_item_mapping.case_item);
             double value = numeric_case_item.GetValue(index);
@@ -164,7 +163,7 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
             {
                 ModifyValueForOutput(numeric_case_item, value);
 
-                std::wstring value_text;
+                std::string value_text;
                 bool process_decimal_mark;
 
                 // use the text for the special value
@@ -186,8 +185,7 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
                 {
                     const FixedWidthNumericWorkingSpace& fwnws = *item_mapping_info->fixed_width_numeric_working_space;
 
-                    value_text.resize(fwnws.text_length);
-                    NumberConverter::DoubleToText(value, value_text.data(), fwnws.text_length, fwnws.number_decimals, false, true);
+                    value_text = NumberConverter::DoubleToText(value, fwnws.text_length, fwnws.number_decimals, false, true);
                     SO::MakeTrim(value_text);
 
                     process_decimal_mark = fwnws.process_decimal_mark;
@@ -209,15 +207,15 @@ void DelimitedTextExportWriter::WriteCaseItem(const ExportItemMapping& export_it
 
 
         // string values
-        else if( export_item_mapping.case_item->IsTypeString() )
+        else if( IsString(export_item_mapping.case_item->GetDataType()) )
         {
             const StringCaseItem& string_case_item = assert_cast<const StringCaseItem&>(*export_item_mapping.case_item);
-            std::wstring text = CS2WS(string_case_item.GetValue(index));
+            std::string value = string_case_item.GetValue(index);
 
-            if( !write_label_if_valid(text) )
+            if( !write_label_if_valid(value) )
             {
-                ModifyValueForOutput(text);
-                m_delimitedTextCreator->AddText(text);
+                ModifyValueForOutput(value);
+                m_delimitedTextCreator->AddText(value);
             }
         }
 

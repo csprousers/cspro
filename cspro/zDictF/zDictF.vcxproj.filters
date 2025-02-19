@@ -21,6 +21,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BeforeAfterDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CapiLDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DDChWnd.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,22 +51,64 @@
     <ClCompile Include="DDTrCtl.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DICTGRID.CPP">
+    <ClCompile Include="DictClipboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictTreeNode.cpp">
+    <ClCompile Include="DictDialogBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Dictgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictionaryMacros.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictPropertyGridBaseManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridCtrl.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridDictionaryManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridItemManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridLevelManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridRecordManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridValueManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridValueSetManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictTreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DSplWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FindDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ITEMGRID.CPP">
+    <ClCompile Include="GenerateVSDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LEVGRID.CPP">
+    <ClCompile Include="Itemgrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="langedt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="langgrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Levgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OccDlg.cpp">
@@ -72,7 +120,7 @@
     <ClCompile Include="PrintDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RECGRID.CPP">
+    <ClCompile Include="Recgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RelDlg.cpp">
@@ -81,67 +129,19 @@
     <ClCompile Include="RelGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zDictF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="langedt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="langgrid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CapiLDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SecurityOptionsDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BeforeAfterDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VSLabelRenamerDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GenerateVSDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StartPositionDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictPropertyGridCtrl.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridBaseManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridDictionaryManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridLevelManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridValueSetManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridValueManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridRecordManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictPropertyGridItemManager.cpp">
-      <Filter>Source Files\PropertyGrid</Filter>
-    </ClCompile>
-    <ClCompile Include="DictDialogBar.cpp">
+    <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictClipboard.cpp">
+    <ClCompile Include="VSLabelRenamerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DSplWnd.cpp">
+    <ClCompile Include="zDictF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -202,10 +202,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BeforeAfterDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CapiLDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DDChWnd.H">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DDDOC.H">
+    <ClInclude Include="Dddoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DDDpTgt.H">
@@ -226,88 +232,28 @@
     <ClInclude Include="DDTrCtl.H">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DICTGRID.H">
+    <ClInclude Include="DictClipboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictTreeNode.h">
+    <ClInclude Include="DictDialogBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dictgrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryMacros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ITEMGRID.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LEVGRID.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OccDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OccGrid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PrintDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RECGRID.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RelDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RelGrid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zDictF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="langedt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="langgrid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CapiLDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SecurityOptionsDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BeforeAfterDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GenerateVSDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VSLabelRenamerDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FindDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StartPositionDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="DictPropertyGridBaseManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
     </ClInclude>
     <ClInclude Include="DictPropertyGridCtrl.h">
       <Filter>Header Files\PropertyGrid</Filter>
     </ClInclude>
-    <ClInclude Include="DictDialogBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DictPropertyGridBaseManager.h">
+    <ClInclude Include="DictPropertyGridDictionaryManager.h">
       <Filter>Header Files\PropertyGrid</Filter>
     </ClInclude>
-    <ClInclude Include="DictPropertyGridDictionaryManager.h">
+    <ClInclude Include="DictPropertyGridItemManager.h">
       <Filter>Header Files\PropertyGrid</Filter>
     </ClInclude>
     <ClInclude Include="DictPropertyGridLevelManager.h">
@@ -322,13 +268,67 @@
     <ClInclude Include="DictPropertyGridValueSetManager.h">
       <Filter>Header Files\PropertyGrid</Filter>
     </ClInclude>
-    <ClInclude Include="DictPropertyGridItemManager.h">
-      <Filter>Header Files\PropertyGrid</Filter>
-    </ClInclude>
-    <ClInclude Include="DictClipboard.h">
+    <ClInclude Include="DictTreeNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DSplWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FindDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateVSDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Itemgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="langedt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="langgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Levgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OccDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OccGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Recgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RelDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RelGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SecurityOptionsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartPositionDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VSLabelRenamerDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDictF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

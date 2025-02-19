@@ -46,18 +46,18 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
     if (pDict && (eCurrentProcess == ALL_STUFF || eCurrentProcess == CS_TAB)) {
         PIFINFO* pPifInfo = new PIFINFO;
         pPifInfo->eType = PIFDICT;
-        pPifInfo->sUName = pDict->GetName();
+        pPifInfo->sUName = UTF8_TODO::GetCString(pDict->GetName());
         pPifInfo->sDisplay = INPUTDATA;
         pPifInfo->uOptions = PIF_FILE_MUST_EXIST | PIF_MULTIPLE_FILES | PIF_READ_ONLY;
-        pPifInfo->dictionary_filename = pDict->GetFullFileName();
+        pPifInfo->dictionary_file_path = pDict->GetFilePath();
         if( bUseStateInfo )
             pPifInfo->SetConnectionStrings(oldPFFile.GetInputDataConnectionStringsSerializable());
         m_arrPifInfo.Add(pPifInfo);
 
         //Now do each of the external dicts
-        for( const CString& dictionary_filename : pApp->GetExternalDictionaryFilenames() )
+        for( const std::string& dictionary_file_path : pApp->GetExternalDictionaryFilePaths() )
         {
-            const DictionaryDescription* dictionary_description = pApp->GetDictionaryDescription(dictionary_filename);
+            const DictionaryDescription* const dictionary_description = pApp->GetDictionaryDescription(dictionary_file_path);
 
             if( dictionary_description != nullptr && dictionary_description->GetDictionaryType() == DictionaryType::Working )
                 continue;
@@ -66,7 +66,7 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
 
             try
             {
-                dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_filename);
+                dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_file_path);
             }
 
             catch( const CSProException& )
@@ -80,7 +80,7 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
             pPifInfo->sDisplay = _T("External File ");
             pPifInfo->sDisplay += _T("(") + dictionary_name + _T(")");
             pPifInfo->uOptions = 0;
-            pPifInfo->dictionary_filename = dictionary_filename;
+            pPifInfo->dictionary_file_path = dictionary_file_path;
 
             if( bUseStateInfo )
                 pPifInfo->SetConnectionString(oldPFFile.GetExternalDataConnectionString(dictionary_name));
@@ -121,7 +121,7 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
                     pPifInfo->sFileName = oldPFFile.GetPrepOutputFName();
                 }
                 else {
-                    pPifInfo->sFileName = m_pPifFile->GetAppFName() + FileExtensions::WithDot::Table;
+                    pPifInfo->sFileName = m_pPifFile->GetAppFName() + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Table));
                 }
                 pPifInfo->sDisplay = OUTPUTTBW;
                 pPifInfo->uOptions = 0;
@@ -237,7 +237,7 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
         if( bUseStateInfo )
             pPifInfo->sFileName = oldPFFile.GetPrepOutputFName();
         else
-            pPifInfo->sFileName = m_pPifFile->GetAppFName() += FileExtensions::WithDot::Table;
+            pPifInfo->sFileName = m_pPifFile->GetAppFName() + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Table));
 
         pPifInfo->sDisplay = OUTPUTTBW;
         pPifInfo->sDefaultFileExtension = FileExtensions::Table;
@@ -445,7 +445,7 @@ bool PifDlgBuilder::CheckFiles()
                 }
                 if (bAskOverWrite && CFile::GetStatus(pifInfo->sFileName, fStatus)) {
                     CIMSAString sMsg;
-                    sMsg.Format(_T("Output file %s already exists.\nDo you want to replace it?"), (LPCTSTR)pifInfo->sFileName);
+                    sMsg.Format(_T("Output file %s already exists.\nDo you want to replace it?"), pifInfo->sFileName.GetString());
                     if (AfxMessageBox(sMsg, MB_YESNO) == IDNO) {
                         return false;
                     }
@@ -465,7 +465,7 @@ bool PifDlgBuilder::CheckFiles()
                 }
                 if (bAskOverWrite && CFile::GetStatus(pifInfo->sFileName, fStatus)) {
                     CIMSAString sMsg;
-                    sMsg.Format(_T("Output file %s already exists.\nDo you want to replace it?"), (LPCTSTR)pifInfo->sFileName);
+                    sMsg.Format(_T("Output file %s already exists.\nDo you want to replace it?"), pifInfo->sFileName.GetString());
                     if (AfxMessageBox(sMsg, MB_YESNO) == IDNO) {
                         return false;
                     }
@@ -486,24 +486,24 @@ CString PifDlgBuilder::MakeOutputFileForProcess(PROCESS eCurrentProcess, const C
     CString sLstExt, sRet, sTabExt;
     //Strip the tab from the inputfile
     if (eCurrentProcess == CS_TAB) {
-        sLstExt = CString(FileExtensions::BinaryTable::WithDot::Tab) + FileExtensions::WithDot::Listing;
-        sTabExt = FileExtensions::BinaryTable::WithDot::Tab;
+        sLstExt = _T(".") + UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab) + _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing);
+        sTabExt = _T(".") + UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab);
     }
     else if (eCurrentProcess == CS_CON) {
-        sLstExt = CString(_T(".con")) + FileExtensions::WithDot::Listing;
+        sLstExt = CString(_T(".con")) + _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing);
         sTabExt = _T(".con.tab");
     }
     else if (eCurrentProcess == CS_CALC) {
-        sLstExt = CString(_T(".calc")) + FileExtensions::WithDot::Listing;
+        sLstExt = CString(_T(".calc")) + _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing);
         sTabExt = _T(".calc.tab");
     }
     else if (eCurrentProcess == CS_PREP) {
-        sLstExt = CString(_T(".fmt")) + FileExtensions::WithDot::Listing;
+        sLstExt = CString(_T(".fmt")) + _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing);
         //sTabExt=".fmt.tab";
     }
     else if (eCurrentProcess == ALL_STUFF) {
-        sLstExt = FileExtensions::WithDot::Listing;
-        sTabExt = FileExtensions::BinaryTable::WithDot::Tab;
+        sLstExt = _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing);
+        sTabExt = _T(".") + UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab);
     }
     CString sOutputFile(sInputFile);
     if (!sOutputFolder.IsEmpty()) {
@@ -513,7 +513,7 @@ CString PifDlgBuilder::MakeOutputFileForProcess(PROCESS eCurrentProcess, const C
         sOutputName.ReleaseBuffer();
         sOutputFile = sOutputFolder + _T("\\") + sOutputName;
     }
-    if (sType.CompareNoCase(FileExtensions::Listing) == 0) {
+    if (sType.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::Listing)) == 0) {
         sRet = sOutputFile; //Check if the extension is xtb?
                             /*PathRemoveExtension(sRet.GetBuffer(_MAX_PATH));
                             sRet.ReleaseBuffer();*/
@@ -533,7 +533,7 @@ CString PifDlgBuilder::MakeOutputFileForProcess(PROCESS eCurrentProcess, const C
             int iDot = sRet.ReverseFind('.');
             if (iDot > 0) {
                 sFileExt = sRet.Mid(iDot + 1);
-                if (sFileExt.CompareNoCase(FileExtensions::BinaryTable::Tab) == 0) {
+                if (sFileExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::BinaryTable::Tab)) == 0) {
                     PathRemoveExtension(sRet.GetBuffer(_MAX_PATH));
                     sRet.ReleaseBuffer();
                 }

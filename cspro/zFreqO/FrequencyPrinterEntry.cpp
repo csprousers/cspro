@@ -12,11 +12,11 @@ void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<
 
 template<typename ValueType, typename CountType>
 FrequencyPrinterEntry<ValueType, CountType>::FrequencyPrinterEntry(std::shared_ptr<const FrequencyCounter<ValueType, CountType>> frequency_counter,
-                                                                   std::wstring symbol_name)
+                                                                   std::string symbol_name)
     :   m_frequencyCounter(std::move(frequency_counter)),
         m_symbolName(std::move(symbol_name)),
         m_dictItem(nullptr),
-        m_currentDictValueSet(nullptr)        
+        m_currentDictValueSet(nullptr)
 {
 }
 
@@ -26,9 +26,9 @@ FrequencyPrinterEntry<ValueType, CountType>::FrequencyPrinterEntry(std::shared_p
                                                                    const CDictItem& dict_item, const DictValueSet* current_dict_value_set,
                                                                    std::optional<size_t> record_occurrence, std::optional<size_t> item_subitem_occurrence)
     :   m_frequencyCounter(std::move(frequency_counter)),
-        m_symbolName(CS2WS(dict_item.GetName())),
+        m_symbolName(dict_item.GetName()),
         m_dictItem(&dict_item),
-        m_currentDictValueSet(current_dict_value_set),        
+        m_currentDictValueSet(current_dict_value_set),
         m_recordOccurrence(std::move(record_occurrence)),
         m_itemSubitemOccurrence(std::move(item_subitem_occurrence))
 {
@@ -39,7 +39,9 @@ template<typename ValueType, typename CountType>
 bool FrequencyPrinterEntry<ValueType, CountType>::Compare(const FrequencyPrinterEntry& rhs) const
 {
     // this method should only be used for sorting occurrences
-    ASSERT(m_symbolName == rhs.m_symbolName && m_dictItem == rhs.m_dictItem && m_currentDictValueSet == rhs.m_currentDictValueSet);
+    ASSERT(m_symbolName == rhs.m_symbolName &&
+           m_dictItem == rhs.m_dictItem &&
+           m_currentDictValueSet == rhs.m_currentDictValueSet);
 
     return ( m_recordOccurrence == rhs.m_recordOccurrence ) ? ( m_itemSubitemOccurrence < rhs.m_itemSubitemOccurrence ) :
                                                               ( m_recordOccurrence < rhs.m_recordOccurrence );
@@ -47,10 +49,10 @@ bool FrequencyPrinterEntry<ValueType, CountType>::Compare(const FrequencyPrinter
 
 
 template<typename ValueType, typename CountType>
-void FrequencyPrinterEntry<ValueType, CountType>::Print(FrequencyPrinter& frequency_printer, std::wstring frequency_name,
+void FrequencyPrinterEntry<ValueType, CountType>::Print(FrequencyPrinter& frequency_printer, const std::string& frequency_name,
                                                         const FrequencyPrinterOptions& frequency_printer_options)
 {
-    auto create_and_print_frequency_table = [&](const DictValueSet* dict_value_set, bool distinct)
+    auto create_and_print_frequency_table = [&](const DictValueSet* dict_value_set, const bool distinct)
     {
         std::unique_ptr<FrequencyTable> frequency_table = CreateFrequencyTable(frequency_name, frequency_printer_options, dict_value_set, distinct);
         frequency_printer.Print(*frequency_table);
@@ -101,7 +103,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::Print(FrequencyPrinter& freque
 
 
     // otherwise print out a distinct table with the primary value set and then a table
-    // for each value set using the specified distinct setting (potentially using the 
+    // for each value set using the specified distinct setting (potentially using the
     // same value set twice, once distinct and later not distinct)
     create_and_print_frequency_table(primary_dict_value_set, true);
 
@@ -114,8 +116,10 @@ void FrequencyPrinterEntry<ValueType, CountType>::Print(FrequencyPrinter& freque
 
 
 template<typename ValueType, typename CountType>
-std::unique_ptr<FrequencyTable> FrequencyPrinterEntry<ValueType, CountType>::CreateFrequencyTable(std::wstring frequency_name,
-    const FrequencyPrinterOptions& frequency_printer_options, const DictValueSet* dict_value_set, bool distinct)
+std::unique_ptr<FrequencyTable> FrequencyPrinterEntry<ValueType, CountType>::CreateFrequencyTable(std::string frequency_name,
+                                                                                                  const FrequencyPrinterOptions& frequency_printer_options,
+                                                                                                  const DictValueSet* dict_value_set,
+                                                                                                  const bool distinct)
 {
     auto frequency_table = std::make_unique<FrequencyTable>(
         FrequencyTable
@@ -153,7 +157,7 @@ std::unique_ptr<FrequencyTable> FrequencyPrinterEntry<ValueType, CountType>::Cre
             non_zero_counts_for_statistics->emplace_back(value, count);
 
         // format the value for display
-        std::wstring formatted_value;
+        std::string formatted_value;
         bool value_is_blank;
 
         if constexpr(std::is_same_v<ValueType, double>)
@@ -173,7 +177,7 @@ std::unique_ptr<FrequencyTable> FrequencyPrinterEntry<ValueType, CountType>::Cre
                 if( value == NOTAPPL )
                     value_for_formatting = MASKBLK;
 
-                formatted_value = dvaltochar(value_for_formatting, m_dictItem->GetCompleteLen(), m_dictItem->GetDecimal(), false, true);
+                formatted_value = dvaltochar<std::string>(value_for_formatting, m_dictItem->GetCompleteLen(), m_dictItem->GetDecimal(), false, true);
             }
 
             value_is_blank = ( value == NOTAPPL );
@@ -270,7 +274,7 @@ std::unique_ptr<FrequencyTable> FrequencyPrinterEntry<ValueType, CountType>::Cre
     if( non_zero_counts_for_statistics.has_value() )
         GenerateStatistics(*frequency_table, *non_zero_counts_for_statistics);
 
-    return frequency_table;    
+    return frequency_table;
 }
 
 
@@ -309,7 +313,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::SortFrequencyRows(FrequencyTab
                 auto get_label = [](const FrequencyRow& fr)
                 {
                     // if no dictionary label exists, use the formatted value
-                    return ( fr.dict_value != nullptr ) ? CS2WS(fr.dict_value->GetLabel()) :
+                    return ( fr.dict_value != nullptr ) ? UTF8_TODO::GetUtf8(fr.dict_value->GetLabel()) :
                                                           fr.formatted_values.front();
                 };
 
@@ -344,7 +348,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::SortFrequencyRows(FrequencyTab
                             return static_cast<int>(std::distance(dict_values.cbegin(), lookup));
                     }
 
-                    return INT_MAX;
+                    return std::numeric_limits<int>::max();
                 };
 
                 const int difference = get_order(fr1) - get_order(fr2);
@@ -396,65 +400,72 @@ void FrequencyPrinterEntry<ValueType, CountType>::AddTitle(FrequencyTable& frequ
     else
     {
         // add the item details
-        frequency_table.titles.emplace_back(FormatTextCS2WS(_T("Item %s: %s"), m_dictItem->GetName().GetString(), m_dictItem->GetLabel().GetString()));
+        frequency_table.titles.emplace_back(FormatText("Item %s: %s",
+                                                       m_dictItem->GetName().c_str(),
+                                                       UTF8_TODO::GetUtf8(m_dictItem->GetLabel()).c_str()));
 
         // add the value set details
         if( frequency_table.dict_value_set != nullptr )
         {
-            std::wstring& value_set_title = frequency_table.titles.emplace_back(SO::Concatenate(_T("Value Set "), frequency_table.dict_value_set->GetName()));
+            std::string& value_set_title = frequency_table.titles.emplace_back("Value Set " + frequency_table.dict_value_set->GetName());
 
             if( !frequency_table.dict_value_set->GetLabel().IsEmpty() )
-                SO::Append(value_set_title, _T(": "), frequency_table.dict_value_set->GetLabel());
+                value_set_title.append(": ").append(UTF8_TODO::GetUtf8(frequency_table.dict_value_set->GetLabel()));
         }
 
         // add details on what occurrences were generated
-        auto add_occurrence_label = [&](std::wstring occurrence_type, auto dict_object, auto max_occurrences, auto specific_occurrence)
+        auto add_occurrence_label = [&](std::string occurrence_type, auto dict_object, auto max_occurrences, auto specific_occurrence)
         {
-            std::wstring& occurrence_text = frequency_table.titles.emplace_back(std::move(occurrence_type));
+            std::string& occurrence_text = frequency_table.titles.emplace_back(std::move(occurrence_type));
 
             if( specific_occurrence.has_value() )
             {
-                SO::AppendFormat(occurrence_text, _T(" occurrence: %d"), static_cast<int>(*specific_occurrence) + 1);
+                occurrence_text.append(FormatText(" occurrence: %d", static_cast<int>(*specific_occurrence) + 1));
 
                 const CString& occurrence_label = dict_object->GetOccurrenceLabels().GetLabel(*specific_occurrence);
 
                 if( !occurrence_label.IsEmpty() )
-                    SO::AppendFormat(occurrence_text, _T(" (%s)"), occurrence_label.GetString());
+                    occurrence_text.append(FormatText(" (%s)", UTF8_TODO::GetUtf8(occurrence_label).c_str()));
             }
 
             else
             {
-                SO::AppendFormat(occurrence_text, _T(" occurrences: all (1 - %d)"), static_cast<int>(max_occurrences));
+                occurrence_text.append(FormatText(" occurrences: all (1 - %d)", static_cast<int>(max_occurrences)));
             }
         };
 
         if( m_dictItem->GetRecord()->GetMaxRecs() > 1 )
-            add_occurrence_label(_T("Record"), m_dictItem->GetRecord(), m_dictItem->GetRecord()->GetMaxRecs(), m_recordOccurrence);
+            add_occurrence_label("Record", m_dictItem->GetRecord(), m_dictItem->GetRecord()->GetMaxRecs(), m_recordOccurrence);
 
         if( m_dictItem->GetItemSubitemOccurs() > 1 )
         {
-            const CDictItem* repeating_item = ( m_dictItem->GetOccurs() > 1 ) ? m_dictItem : m_dictItem->GetParentItem();
-            add_occurrence_label(( repeating_item == m_dictItem ) ? _T("Item") : _T("Subitem"), repeating_item,
+            const CDictItem* repeating_dict_item = ( m_dictItem->GetOccurs() > 1 ) ? m_dictItem :
+                                                                                     m_dictItem->GetParentItem();
+
+            add_occurrence_label(( repeating_dict_item == m_dictItem ) ? "Item" : "Subitem", repeating_dict_item,
                                  m_dictItem->GetItemSubitemOccurs(), m_itemSubitemOccurrence);
         }
     }
 
     // if run from CSFreq, add the universe and weight to the title
-    std::tuple<std::wstring, std::wstring> universe_and_weight;
+    std::unique_ptr<std::tuple<std::string, std::string>> universe_and_weight;
 
     if( WindowsDesktopMessage::Send(UWM::Freq::GetUniverseAndWeight, &universe_and_weight) == 1 )
     {
-        for( auto& [text_description, text] : std::initializer_list<std::tuple<std::wstring, std::wstring>>
-                                              { { _T("Universe: "), std::move(std::get<0>(universe_and_weight)) },
-                                                { _T("Weight: "),   std::move(std::get<1>(universe_and_weight)) } } )
+        ASSERT(universe_and_weight != nullptr);
+
+        auto add = [&](std::string_view text_description_sv, std::string&& text)
         {
             if( !text.empty() )
             {
-                frequency_table.titles.emplace_back(SO::Concatenate(text_description, text));
+                frequency_table.titles.emplace_back(SO::Concatenate(text_description_sv, text));
                 frequency_table.logic_based_titles.try_emplace(frequency_table.titles.size() - 1,
-                                                               std::make_tuple(std::move(text_description), std::move(text)));
+                                                               std::make_tuple(text_description_sv, std::move(text)));
             }
         };
+
+        add("Universe: ", std::move(std::get<0>(*universe_and_weight)));
+        add("Weight: ", std::move(std::get<1>(*universe_and_weight)));
     }
 }
 
@@ -469,7 +480,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::AddAdditionalDisplayInformatio
         // use the value label if possible
         if( frequency_row.dict_value != nullptr )
         {
-            frequency_row.display_label = frequency_row.dict_value->GetLabel();
+            frequency_row.display_label = UTF8_TODO::GetUtf8(frequency_row.dict_value->GetLabel());
         }
 
         // add friendly names for special values
@@ -488,7 +499,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::AddAdditionalDisplayInformatio
 
             else if( frequency_row.value_is_blank )
             {
-                frequency_row.display_label = _T("Blank");
+                frequency_row.display_label = "Blank";
                 frequency_row.mark_as_out_of_value_set = false;
             }
         }
@@ -532,7 +543,7 @@ void FrequencyPrinterEntry<ValueType, CountType>::AddFrequencyRowStatistics(Freq
 namespace
 {
     template<typename CountType>
-    std::tuple<double, double> CalculateMedian(const std::vector<std::tuple<double, CountType>>& non_zero_counts, double sum_count)
+    std::tuple<double, double> CalculateMedian(const std::vector<std::tuple<double, CountType>>& non_zero_counts, const double sum_count)
     {
         ASSERT(!non_zero_counts.empty());
 
@@ -583,7 +594,7 @@ namespace
 
     template<typename CountType>
     std::vector<FrequencyNumericStatistics::Percentile> CalculatePercentiles(const std::vector<std::tuple<double, CountType>>& non_zero_counts,
-                                                                             double sum_count, int ntiles)
+                                                                             const double sum_count, const int ntiles)
     {
         ASSERT(!non_zero_counts.empty() && ntiles > 1);
 
@@ -598,7 +609,7 @@ namespace
         auto non_zero_counts_itr = non_zero_counts.cbegin();
         double cumulative_percent = 0;
 
-        auto get_next_value = [&](double value)
+        auto get_next_value = [&](const double value)
         {
             // make sure that a special value isn't returned
             if( ( non_zero_counts_itr + 1 ) != non_zero_counts.cend() )
@@ -700,7 +711,7 @@ void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<
 
     // generate some helper values
     for( const auto& [value, count] : non_zero_counts )
-    {       
+    {
         // exclude special values from calculations
         if( IsSpecial(value) )
         {
@@ -734,7 +745,7 @@ void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<
 
         table_statistics.sum_count = sum_count;
         table_statistics.product_value_count = product_value_count;
-        table_statistics.product_value_value_count = product_value_value_count;        
+        table_statistics.product_value_value_count = product_value_value_count;
 
         if( sum_count > 0 )
         {
@@ -756,7 +767,7 @@ void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<
 
 
 template<typename CountType>
-void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<std::wstring, CountType>>& non_zero_counts)
+void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<std::string, CountType>>& non_zero_counts)
 {
     frequency_table.table_statistics = FrequencyAlphanumericStatistics();
     FrequencyAlphanumericStatistics& table_statistics = std::get<FrequencyAlphanumericStatistics>(*frequency_table.table_statistics);
@@ -771,5 +782,5 @@ void GenerateStatistics(FrequencyTable& frequency_table, std::vector<std::tuple<
 
 template class FrequencyPrinterEntry<double, double>;
 template class FrequencyPrinterEntry<double, size_t>;
-template class FrequencyPrinterEntry<std::wstring, double>;
-template class FrequencyPrinterEntry<std::wstring, size_t>;
+template class FrequencyPrinterEntry<std::string, double>;
+template class FrequencyPrinterEntry<std::string, size_t>;

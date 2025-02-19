@@ -184,7 +184,7 @@ CString CTbdSlice::GetBreakKey( bool bFullKey ) {
         ASSERT( iKeyLen >= GetBreakKeyLen() );
         CString csBreakKey;
 
-        csBreakKey.Format( _T("%-*ls"), iKeyLen, (LPCTSTR)m_csBreakKey );
+        csBreakKey.Format( _T("%-*ls"), iKeyLen, m_csBreakKey.GetString() );
 
         return csBreakKey;
     }
@@ -398,7 +398,7 @@ bool CTbdSlice::WriteBaseInfo(int iFileHandler) {
         _tmemset( pszKey, 0, m_iBreakKeyLen + 1 );
 
         int iLengthFromBreakKeyString = m_csBreakKey.GetLength();
-        _tmemcpy( pszKey, (csprochar *)(LPCTSTR)m_csBreakKey,
+        _tmemcpy( pszKey, m_csBreakKey.GetString(),
             std::min( m_iBreakKeyLen, m_csBreakKey.GetLength() ) );
 
         iLengthFromBreakKeyString = m_csBreakKey.GetLength();

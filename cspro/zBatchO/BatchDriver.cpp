@@ -46,7 +46,7 @@ void BatchDriver::Run()
     if( InitializeRun() )
     {
         // start the session and run the application preproc
-        m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
+        m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStart);
 
         ExecuteApplicationProc(ProcType::PreProc);
 
@@ -56,7 +56,7 @@ void BatchDriver::Run()
 
         ExecuteApplicationProc(ProcType::PostProc);
 
-        m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
+        m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::SessionStop);
     }
 
     FinalizeRun();
@@ -73,7 +73,7 @@ bool BatchDriver::InitializeRun()
     {
         OpenListerAndWriteFiles();
 
-        m_pEngineDriver->GetLister()->SetMessageSource(SO::Concatenate(m_lpszExecutorLabel, _T(" INITIALIZATION")));
+        m_pEngineDriver->GetLister()->SetMessageSource(SO::Concatenate(UTF8_TODO::GetUtf8(m_lpszExecutorLabel), " INITIALIZATION"));
 
         m_pIntDriver->StartApplication();
 
@@ -104,11 +104,11 @@ bool BatchDriver::InitializeRun()
         AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, (WPARAM)&m_processSummaryReporter);
         ASSERT(m_processSummaryReporter != nullptr);
 
-        CString dialog_title = FormatText(_T("Running %s application %s. Press ESC to interrupt..."),
-                                          m_lpszExecutorLabel,
-                                          PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+        std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
+                                                    m_lpszExecutorLabel,
+                                                    PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
 
-        m_processSummaryReporter->Initialize(dialog_title, m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
+        m_processSummaryReporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
     }
 
     catch( const CSProException& exception )
@@ -136,22 +136,22 @@ void BatchDriver::FinalizeRun()
 }
 
 
-void BatchDriver::ExecuteApplicationProc(ProcType proc_type)
+void BatchDriver::ExecuteApplicationProc(const ProcType proc_type)
 {
-    const TCHAR* proc_type_text;
+    const char* proc_type_text;
 
     if( proc_type == ProcType::PreProc )
     {
         ASSERT(!m_pIntDriver->m_bStopProc);
 
-        proc_type_text = _T("PREPROC");
+        proc_type_text = "PREPROC";
     }
 
     else
     {
         ASSERT(proc_type == ProcType::PostProc);
 
-        proc_type_text = _T("POSTPROC");
+        proc_type_text = "POSTPROC";
 
         // if processing was stopped using either stop without (1) or by hitting cancel on the
         // batch meter dialog, turn off the stop flag so that the application postproc runs
@@ -160,11 +160,11 @@ void BatchDriver::ExecuteApplicationProc(ProcType proc_type)
     }
 
 
-    CString proc_info = FormatText(_T("LEVEL 0 %s"), proc_type_text);
+    std::string proc_info = FormatText("LEVEL 0 %s", proc_type_text);
     m_processSummaryReporter->SetSource(proc_info);
-    m_pEngineDriver->GetLister()->SetMessageSource(CS2WS(proc_info));
+    m_pEngineDriver->GetLister()->SetMessageSource(std::move(proc_info));
 
-    m_pIntDriver->ExecuteProcLevel(0, proc_type);    
+    m_pIntDriver->ExecuteProcLevel(0, proc_type);
 }
 
 
@@ -174,13 +174,13 @@ void BatchDriver::RunBatchOnInputs()
     std::vector<std::tuple<ConnectionString, double>> input_connection_strings_and_file_sizes;
     double total_file_size = 0;
 
-    for( const auto& input_connection_string : m_pPifFile->GetInputDataConnectionStrings() )
+    for( const ConnectionString& input_connection_string : m_pPifFile->GetInputDataConnectionStrings() )
     {
         // use a dummy file size in instances when the file size cannot be calculated or when the file is empty/small
         double file_size = 100;
 
-        if( input_connection_string.IsFilenamePresent() )
-            file_size = std::max(file_size, (double)PortableFunctions::FileSize(input_connection_string.GetFilename()));
+        if( input_connection_string.HasFilePath() )
+            file_size = std::max(file_size, static_cast<double>(PortableFunctions::FileSize(input_connection_string.GetFilePath())));
 
         input_connection_strings_and_file_sizes.emplace_back(input_connection_string, file_size);
 
@@ -191,19 +191,19 @@ void BatchDriver::RunBatchOnInputs()
     // process each repository
     int multiple_repository_index = 0;
 
-    for( const auto& [ input_connection_string, file_size ] : input_connection_strings_and_file_sizes )
+    for( const auto& [input_connection_string, file_size] : input_connection_strings_and_file_sizes )
     {
-        CString source_text = _T("File");
+        std::string source_text = "Data Source";
 
         if( input_connection_strings_and_file_sizes.size() > 1 )
-            source_text.AppendFormat(_T(" %d of %d"), ++multiple_repository_index, (int)input_connection_strings_and_file_sizes.size());
+            source_text.append(FormatText(" %d of %d", ++multiple_repository_index, static_cast<int>(input_connection_strings_and_file_sizes.size())));
 
-        if( input_connection_string.IsFilenamePresent() )
-            source_text.AppendFormat(_T(": %s"), PortableFunctions::PathGetFilename(input_connection_string.GetFilename()));
+        source_text.append(": ")
+                    .append(input_connection_string.ToDisplayString(true));
 
-        m_processSummaryReporter->SetSource(source_text);
+        m_processSummaryReporter->SetSource(std::move(source_text));
 
-        RunBatchOnInput(input_connection_string, file_size / total_file_size);
+        RunBatchOnInput(input_connection_string, CreatePercent(file_size, total_file_size));
 
         if( m_pIntDriver->m_bStopProc )
             break;
@@ -212,14 +212,14 @@ void BatchDriver::RunBatchOnInputs()
 
     // if the user didn't cancel, set the percent read to 100%; otherwise, make sure that the percent does
     // not end up as 100% (because some repositories don't report percents accurately if they read cases in advance)
-    size_t final_percent = !m_pIntDriver->m_bStopProc ? 100 :
-                                                        std::min(GetProcessSummary()->GetPercentSourceRead(), (size_t)99);
+    const size_t final_percent = !m_pIntDriver->m_bStopProc ? 100 :
+                                                              std::min(GetProcessSummary()->GetPercentSourceRead(), (size_t)99);
 
     GetProcessSummary()->SetPercentSourceRead(final_percent);
 }
 
 
-void BatchDriver::RunBatchOnInput(const ConnectionString& input_connection_string, double repository_percent_fraction)
+void BatchDriver::RunBatchOnInput(const ConnectionString& input_connection_string, const double repository_percent_fraction)
 {
     size_t process_update_frequency = 10;
     size_t cases_until_progress_update = 1;
@@ -238,11 +238,11 @@ void BatchDriver::RunBatchOnInput(const ConnectionString& input_connection_strin
         // iterate over each case
         while( input_engine_data_repository.StepCaseIterator(*m_engineCase) )
         {
-            m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
+            m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStart);
 
             RunBatchOnCase();
 
-            m_pIntDriver->m_pParadataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
+            m_pIntDriver->m_paradataDriver->LogEngineEvent(ParadataEngineEvent::CaseStop);
 
             if( m_pIntDriver->m_bStopProc )
                 break;
@@ -251,15 +251,19 @@ void BatchDriver::RunBatchOnInput(const ConnectionString& input_connection_strin
             // update the progress bar
             if( --cases_until_progress_update == 0 )
             {
-                size_t percent_read = (size_t)( input_engine_data_repository.GetCaseIteratorPercentRead() * repository_percent_fraction );
+                const size_t percent_read = static_cast<size_t>(input_engine_data_repository.GetCaseIteratorPercentRead() * repository_percent_fraction);
                 process_summary->SetPercentSourceRead(percent_read);
 
                 // if processing a massive file, update the progress bar less frequently
                 if( percent_read == last_percent_read )
-                    process_update_frequency = (size_t)( process_update_frequency * 1.2 );
+                {
+                    process_update_frequency = static_cast<size_t>(process_update_frequency * 1.2);
+                }
 
                 else
+                {
                     last_percent_read = percent_read;
+                }
 
                 cases_until_progress_update = process_update_frequency;
 
@@ -274,7 +278,7 @@ void BatchDriver::RunBatchOnInput(const ConnectionString& input_connection_strin
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 10105, exception.what());
     }
 }
 
@@ -289,7 +293,7 @@ void BatchDriver::RunBatchOnCase()
         return;
 
     // write to the output repositories
-    for( const auto& output_data_repository : m_batchOutputRepositories )
+    for( const std::shared_ptr<DataRepository>& output_data_repository : m_batchOutputRepositories )
         output_data_repository->WriteCase(m_engineCase->GetCase());
 
     // BATCH_FLOW_TODO write to special outputs

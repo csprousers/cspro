@@ -18,13 +18,13 @@
     <ClCompile Include="CSIndex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="DuplicateChooserDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IndexDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DuplicateChooserDlg.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ToolIndexer.cpp">
@@ -35,19 +35,19 @@
     <ClInclude Include="CSIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="DuplicateChooserDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IndexDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DuplicateChooserDlg.h">
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ToolIndexer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UWM.h">

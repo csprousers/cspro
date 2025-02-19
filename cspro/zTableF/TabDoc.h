@@ -25,7 +25,7 @@ protected:
 public:
     ~CTabulateDoc();
 
-    static const TCHAR* GetExtensionWithDot() { return FileExtensions::WithDot::TableSpec; }
+    static constexpr const char* GetExtension() { return FileExtensions::TableSpec; }
 
     const CString& GetClipFile() const   { return m_csClipFile; }
     UINT GetClipBoardFormat(UINT format) { return m_auFormat[format]; }
@@ -100,12 +100,12 @@ public:
     bool CheckSyntax(CTable* pTable,int iSubtable, XTABSTMENT_TYPE eStatementType,CString& sError);
     //End Paste Table Checks
    // const CFmtBase*  GetFormat(CTblOb* pTblOb);
-    void SetErrorString(std::wstring error = std::wstring()) { m_sErrString = WS2CS(error); }
-    const CString& GetErrorString() const                    { return m_sErrString; }
+
+    const CString& GetErrorString() const  { return m_sErrString; }
+    void SetErrorString(std::string error) { m_sErrString = UTF8_TODO::GetCString(std::move(error)); }
+    void ClearErrorString()                { m_sErrString.Empty(); }
 
 private:
-    CString        m_sDictLabel;
-
     static CLIPFORMAT NEAR m_cfPrivate;     // savi
 
     UINT           m_auFormat[6]; // Array for clipboard formats

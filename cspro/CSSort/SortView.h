@@ -23,41 +23,33 @@ protected:
     CSortView(); // create from serialization only
 
 public:
-    enum { IDD = IDD_DATASORT_FORM };
-
-    virtual ~CSortView();
-
-    static CString CreateWindowTitle(const TCHAR* spec_filename, const TCHAR* dictionary_filename);
+    static std::string CreateWindowTitle(const std::string& spec_file_path, const std::string& dictionary_file_path);
 
     void OnInitialUpdate() override;
 
     void UpdateListViews();
     void UpdateForm();
 
-    CSortDoc* GetDocument()
-    {
-        ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CSortDoc)));
-        return static_cast<CSortDoc*>(m_pDocument);
-    }
+    CSortDoc* GetDocument() { return assert_cast<CSortDoc*>(m_pDocument); }
 
 protected:
     DECLARE_MESSAGE_MAP()
 
-    void DoDataExchange(CDataExchange* pDX)  override;
+    void DoDataExchange(CDataExchange* pDX) override;
 
-    afx_msg void OnInsert();
-    afx_msg void OnDelete();
-    afx_msg void OnAscending();
-    afx_msg void OnDescending();
-    afx_msg void OnDeleteAll();
-    afx_msg void OnInsertAll();
-    afx_msg void OnMoveUp();
-    afx_msg void OnMoveDown();
-    afx_msg void OnClickItemsToSort(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnClickSortKeys(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnUpdateFileRun(CCmdUI* pCmdUI);
-    afx_msg void OnDblclkItemsToSort(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnDblclkSortKeys(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnInsert();
+    void OnDelete();
+    void OnAscending();
+    void OnDescending();
+    void OnDeleteAll();
+    void OnInsertAll();
+    void OnMoveUp();
+    void OnMoveDown();
+    void OnClickItemsToSort(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnClickSortKeys(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnUpdateFileRun(CCmdUI* pCmdUI);
+    void OnDblclkItemsToSort(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnDblclkSortKeys(NMHDR* pNMHDR, LRESULT* pResult);
 
 private:
     CListCtrl m_SortKeys;

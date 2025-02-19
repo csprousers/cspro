@@ -9,7 +9,7 @@ namespace
     class TopWindowDisabler
     {
     public:
-        TopWindowDisabler(CDialog* dialog)
+        TopWindowDisabler(CDialog* const dialog)
             :   m_parentWindow(m_simulatedModalDialogStack.empty() ? AfxGetMainWnd() : m_simulatedModalDialogStack.top()),
                 m_dialog(dialog)
         {
@@ -38,7 +38,7 @@ namespace
 }
 
 
-void SimulateModalDialog(CDialog* dialog, std::function<void(CWnd*)> create_dialog_callback)
+void SimulateModalDialog(CDialog* const dialog, const std::function<void(CWnd*)> create_dialog_callback)
 {
     if( AfxGetMainWnd() == nullptr )
     {
@@ -49,7 +49,7 @@ void SimulateModalDialog(CDialog* dialog, std::function<void(CWnd*)> create_dial
     }
 
     // this should really be a modal dialog but there are intermittent failures
-    // with the web view when the dialog is modal; instead we make it modeless, 
+    // with the web view when the dialog is modal; instead we make it modeless,
     // disable the main window (or any other dialogs showing), and run our own
     // event loop to simulate a modal dialog
     auto top_window_disabler = std::make_unique<TopWindowDisabler>(dialog);

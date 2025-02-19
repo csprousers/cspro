@@ -11,8 +11,12 @@ namespace UWM::Ranges
     constexpr unsigned CaseTreeStart   = CapiLast + 1;
     constexpr unsigned CaseTreeLast    = CaseTreeStart + 20;
 
+    // zDataO
+    constexpr unsigned DataStart       = CaseTreeLast + 1;
+    constexpr unsigned DataLast        = DataStart + 20;
+
     // zDesignerF
-    constexpr unsigned DesignerStart   = CaseTreeLast + 1;
+    constexpr unsigned DesignerStart   = DataLast + 1;
     constexpr unsigned DesignerLast    = DesignerStart + 20;
 
     // zDictF
@@ -51,8 +55,12 @@ namespace UWM::Ranges
     constexpr unsigned OrderStart      = MappingLast + 1;
     constexpr unsigned OrderLast       = OrderStart + 10;
 
+    // zRuntimeO
+    constexpr unsigned RuntimeStart    = OrderLast + 1;
+    constexpr unsigned RuntimeLast     = RuntimeStart + 10;
+
     // zSyncF
-    constexpr unsigned SyncStart       = OrderLast + 1;
+    constexpr unsigned SyncStart       = RuntimeLast + 1;
     constexpr unsigned SyncLast        = SyncStart + 5;
 
     // zTableF

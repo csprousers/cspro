@@ -91,7 +91,7 @@ void CDEBlock::serialize(Serializer& ar)
 // BlockProperties
 // --------------------------------------------------------------------------
 
-BlockProperties JsonSerializer<BlockProperties>::CreateFromJson(const JsonNode<wchar_t>& json_node)
+BlockProperties JsonSerializer<BlockProperties>::CreateFromJson(const JsonNode& json_node)
 {
     return BlockProperties
     {

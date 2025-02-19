@@ -161,7 +161,7 @@ BEGIN
     PUSHBUTTON      "&Help",ID_HELP,124,73,50,14
     PUSHBUTTON      "Clear Credentials",IDC_BUTTON_CLEAR_CREDENTIALS,136,44,77,14
     GROUPBOX        "Saved Credentials",IDC_STATIC,7,7,215,59
-    LTEXT           "CSPro saves login credentials to synchronization servers as well as passwords to Encrypted CSPro DB files.",IDC_STATIC,17,19,196,18
+    LTEXT           "CSPro saves login credentials to synchronization services as well as passwords to Encrypted CSPro DB files.",IDC_STATIC,17,19,196,18
 END
 
 IDD_TEXT_REPORT DIALOGEX 0, 0, 449, 221

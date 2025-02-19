@@ -31,7 +31,7 @@ const DictNamedBase* DictionaryDifference::GetDefinedDictElement() const
 
 bool DictionaryDifference::IsLevelDifference() const
 {
-    const DictNamedBase* dict_element = GetDefinedDictElement();
+    const DictNamedBase* const dict_element = GetDefinedDictElement();
 
     return ( dict_element != nullptr &&
              dict_element->GetElementType() == DictElementType::Level );
@@ -40,7 +40,7 @@ bool DictionaryDifference::IsLevelDifference() const
 
 bool DictionaryDifference::IsRecordDifference() const
 {
-    const DictNamedBase* dict_element = GetDefinedDictElement();
+    const DictNamedBase* const dict_element = GetDefinedDictElement();
 
     return ( dict_element != nullptr &&
              dict_element->GetElementType() == DictElementType::Record );
@@ -49,31 +49,31 @@ bool DictionaryDifference::IsRecordDifference() const
 
 bool DictionaryDifference::IsItemDifference() const
 {
-    const DictNamedBase* dict_element = GetDefinedDictElement();
+    const DictNamedBase* const dict_element = GetDefinedDictElement();
 
     return ( dict_element != nullptr &&
              dict_element->GetElementType() == DictElementType::Item );
 }
 
 
-std::wstring DictionaryDifference::GetDisplayName(const DictNamedBase* dict_element,
-                                                  const bool show_names/* = true*/,
-                                                  const size_t display_name_length/* = SIZE_MAX*/)
+std::string DictionaryDifference::GetDisplayName(const DictNamedBase* const dict_element,
+                                                 const bool show_names/* = true*/,
+                                                 const size_t display_name_length/* = SIZE_MAX*/)
 {
     if( dict_element == nullptr )
-        return std::wstring();
+        return std::string();
 
-    std::wstring display_name = CS2WS(show_names ? dict_element->GetName() :
-                                                   dict_element->GetLabel());
+    std::string display_name = show_names ? dict_element->GetName() :
+                                            UTF8_TODO::GetUtf8(dict_element->GetLabel());
 
-    if( display_name.length() > display_name_length )
+    if( SO::WideLength(display_name) > display_name_length )
     {
-        constexpr wstring_view Ellipsis_sv = _T("...");
+        constexpr std::string_view Ellipsis_sv = "...";
 
         if( display_name_length < Ellipsis_sv.length() )
-            return Ellipsis_sv.substr(0, display_name_length);
+            return std::string(Ellipsis_sv.substr(0, display_name_length));
 
-        display_name.resize(display_name_length - Ellipsis_sv.length());
+        SO::WideMakeExactLength(display_name, display_name_length - Ellipsis_sv.length());
         display_name.append(Ellipsis_sv);
     }
 
@@ -81,7 +81,7 @@ std::wstring DictionaryDifference::GetDisplayName(const DictNamedBase* dict_elem
 }
 
 
-std::wstring DictionaryDifference::GetDisplayName(const bool show_names/* = true*/, const size_t display_name_length/* = SIZE_MAX*/) const
+std::string DictionaryDifference::GetDisplayName(const bool show_names/* = true*/, const size_t display_name_length/* = SIZE_MAX*/) const
 {
     return GetDisplayName(GetDefinedDictElement(), show_names, display_name_length);
 }
@@ -105,8 +105,8 @@ void DictionaryComparer::CompareDictionary()
 
     for( size_t level_number = 0; level_number < number_levels; ++level_number )
     {
-        const DictLevel* initial_dict_level = ( level_number < m_initialDictionary.GetNumLevels() ) ? &m_initialDictionary.GetLevel(level_number) : nullptr;
-        const DictLevel* final_dict_level = ( level_number < m_finalDictionary.GetNumLevels() ) ? &m_finalDictionary.GetLevel(level_number) : nullptr;
+        const DictLevel* const initial_dict_level = ( level_number < m_initialDictionary.GetNumLevels() ) ? &m_initialDictionary.GetLevel(level_number) : nullptr;
+        const DictLevel* const final_dict_level = ( level_number < m_finalDictionary.GetNumLevels() ) ? &m_finalDictionary.GetLevel(level_number) : nullptr;
 
         if( level_number == 0 || ( process_levels && initial_dict_level != nullptr && final_dict_level != nullptr &&
                                    SO::EqualsNoCase(initial_dict_level->GetName(), final_dict_level->GetName()) ) )
@@ -123,7 +123,7 @@ void DictionaryComparer::CompareDictionary()
                 AddDifference(DictionaryDifference::Type::LevelAdded, nullptr, final_dict_level);
 
             process_levels = false;
-        }            
+        }
     }
 }
 
@@ -134,11 +134,11 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
     CompareRecord(initial_dict_level.GetIdItemsRec(), final_dict_level.GetIdItemsRec());
 
     // compare the records
-    auto find_matching_record_by_name = [](const DictLevel& in_dict_level, const std::wstring& record_name) -> const CDictRecord*
+    auto find_matching_record_by_name = [](const DictLevel& in_dict_level, const std::string& record_name) -> const CDictRecord*
     {
         for( int record = 0; record < in_dict_level.GetNumRecords(); ++record )
         {
-            const CDictRecord* in_dict_record = in_dict_level.GetRecord(record);
+            const CDictRecord* const in_dict_record = in_dict_level.GetRecord(record);
 
             if( SO::EqualsNoCase(in_dict_record->GetName(), record_name) )
                 return in_dict_record;
@@ -149,8 +149,8 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
 
     for( int record = 0; record < initial_dict_level.GetNumRecords(); ++record )
     {
-        const CDictRecord* initial_dict_record = initial_dict_level.GetRecord(record);
-        const CDictRecord* final_dict_record = find_matching_record_by_name(final_dict_level, CS2WS(initial_dict_record->GetName()));
+        const CDictRecord* const initial_dict_record = initial_dict_level.GetRecord(record);
+        const CDictRecord* const final_dict_record = find_matching_record_by_name(final_dict_level, initial_dict_record->GetName());
 
         if( final_dict_record != nullptr )
         {
@@ -165,8 +165,8 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
 
     for( int record = 0; record < final_dict_level.GetNumRecords(); ++record )
     {
-        const CDictRecord* final_dict_record = final_dict_level.GetRecord(record);
-        const CDictRecord* initial_dict_record = find_matching_record_by_name(initial_dict_level, CS2WS(final_dict_record->GetName()));
+        const CDictRecord* const final_dict_record = final_dict_level.GetRecord(record);
+        const CDictRecord* const initial_dict_record = find_matching_record_by_name(initial_dict_level, final_dict_record->GetName());
 
         if( initial_dict_record == nullptr )
         {
@@ -186,18 +186,18 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
     // compare items (across records but on the same level)
 
     // first generate the list of all of the items
-    std::map<std::wstring, ItemPair> item_pairs;
+    std::map<std::string, ItemPair> item_pairs;
 
     for( int level_set = 0; level_set < 2; ++level_set )
     {
         const bool use_initial = ( level_set == 0 );
 
-        auto add_items_from_record = [&](const CDictRecord* dict_record, const bool processing_ids)
+        auto add_items_from_record = [&](const CDictRecord* const dict_record, const bool processing_ids)
         {
             for( int item = 0; item < dict_record->GetNumItems(); ++item )
             {
-                const CDictItem* dict_item = dict_record->GetItem(item);
-                std::wstring item_name = SO::ToUpper(dict_item->GetName());
+                const CDictItem* const dict_item = dict_record->GetItem(item);
+                std::string item_name = SO::ToUpper(dict_item->GetName());
 
                 auto item_pair_lookup = item_pairs.find(item_name);
 
@@ -250,7 +250,7 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
 }
 
 
-void DictionaryComparer::CompareRecord(const CDictRecord* initial_dict_record, const CDictRecord* final_dict_record)
+void DictionaryComparer::CompareRecord(const CDictRecord* const initial_dict_record, const CDictRecord* const final_dict_record)
 {
     if( initial_dict_record->GetRecTypeVal().Compare(final_dict_record->GetRecTypeVal()) != 0 )
         AddDifference(DictionaryDifference::Type::RecordTypeChanged, initial_dict_record, final_dict_record);
@@ -314,10 +314,10 @@ void DictionaryComparer::CompareItem(const ItemPair& item_pair)
 
 
     // check if the item has moved to a different record
-    const CDictRecord* initial_dict_record = item_pair.initial_dict_item->GetRecord();
-    const CDictRecord* final_dict_record = item_pair.final_dict_item->GetRecord();
+    const CDictRecord* const initial_dict_record = item_pair.initial_dict_item->GetRecord();
+    const CDictRecord* const final_dict_record = item_pair.final_dict_item->GetRecord();
 
-    if( initial_dict_record->GetName().CompareNoCase(final_dict_record->GetName()) != 0 )
+    if( !SO::EqualsNoCase(initial_dict_record->GetName(), final_dict_record->GetName()) )
     {
         AddDifference(DictionaryDifference::Type::ItemMovedToDifferentRecord, item_pair);
 
@@ -399,7 +399,7 @@ std::optional<DictionaryDifference::Type> DictionaryComparer::GetItemContentType
 }
 
 
-void DictionaryComparer::AddDifference(const DictionaryDifference::Type type, const DictNamedBase* initial_dict_element, const DictNamedBase* final_dict_element)
+void DictionaryComparer::AddDifference(const DictionaryDifference::Type type, const DictNamedBase* const initial_dict_element, const DictNamedBase* const final_dict_element)
 {
     m_differences.emplace_back(DictionaryDifference { type, initial_dict_element, final_dict_element, false });
 }
@@ -411,9 +411,9 @@ void DictionaryComparer::AddDifference(const DictionaryDifference::Type type, co
 }
 
 
-bool DictionaryComparer::RequiresReformat(const std::vector<DataStorageCharacteristic>* data_storage_characteristics) const
+bool DictionaryComparer::RequiresReformat(const std::vector<DataStorageCharacteristic>* const data_storage_characteristics) const
 {
-    auto check_data_storage_characteristic = [&](DataStorageCharacteristic characteristic)
+    auto check_data_storage_characteristic = [&](const DataStorageCharacteristic characteristic)
     {
         return ( data_storage_characteristics != nullptr && std::find(data_storage_characteristics->cbegin(),
                                                                       data_storage_characteristics->cend(), characteristic) != data_storage_characteristics->cend() );
@@ -483,7 +483,7 @@ bool DictionaryComparer::RequiresReformat(const std::vector<DataStorageCharacter
 
 std::vector<DictionaryDifference> DictionaryComparer::GetDataRepositorySpecificDifferences(const DataRepositoryType data_repository_type)
 {
-    // this is only used now when comparing embedded dictionaries 
+    // this is only used now when comparing embedded dictionaries
     ASSERT(data_repository_type == DataRepositoryType::SQLite || data_repository_type == DataRepositoryType::EncryptedSQLite);
 
     std::vector<DictionaryDifference> differences;
@@ -514,8 +514,8 @@ std::vector<DictionaryDifference> DictionaryComparer::GetDataRepositorySpecificD
             case DictionaryDifference::Type::ItemContentTypeChangedValidConversionNeeded:
             case DictionaryDifference::Type::ItemContentTypeChangedInvalidSometimes:
             {
-                const CDictItem* initial_dict_item = assert_cast<const CDictItem*>(difference.initial_dict_element);
-                const CDictItem* final_dict_item = assert_cast<const CDictItem*>(difference.final_dict_element);
+                const CDictItem* const initial_dict_item = assert_cast<const CDictItem*>(difference.initial_dict_element);
+                const CDictItem* const final_dict_item = assert_cast<const CDictItem*>(difference.final_dict_element);
 
                 if( difference.type == DictionaryDifference::Type::ItemContentTypeChangedValidConversionNeeded )
                 {

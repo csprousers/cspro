@@ -2,7 +2,7 @@
  *
  * CSEntry for Android
  *
- * Module:		ServiceTermsActivity.java
+ * Module:      ServiceTermsActivity.java
  *
  * Description: Activity UI class for displaying and confirming terms of service
  * to the user.

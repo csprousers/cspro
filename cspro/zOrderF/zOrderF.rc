@@ -110,8 +110,7 @@ BEGIN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_CSPRO_SAVE
         MENUITEM "Save &As...",                 ID_FILE_CSPRO_SAVE_AS
         MENUITEM SEPARATOR
-        MENUITEM "Add &Files...",               ID_FILE_ADD_FILE
-        MENUITEM "&Drop Files...",              ID_FILE_DROP_FILE
+        MENUITEM "Manage Application &Files...", ID_FILE_MANAGE_FILES
         MENUITEM SEPARATOR
         MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
         MENUITEM SEPARATOR
@@ -152,7 +151,7 @@ BEGIN
     END
     POPUP "&Options"
     BEGIN
-        MENUITEM "Application Properties",      ID_OPTIONS_PROPERTIES
+        MENUITEM "Application Properties",      ID_OPTIONS_APPLICATION_PROPERTIES
         MENUITEM SEPARATOR
         MENUITEM "&Custom Order",               ID_CUSTOMORDER
     END
@@ -187,7 +186,7 @@ BEGIN
     END
     POPUP "&Tools"
     BEGIN
-        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Data Manager",               ID_TOOLS_DATAMANAGER
         MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
         MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
         MENUITEM SEPARATOR
@@ -399,7 +398,12 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_CUSTOMORDER          "Custom order for editing fields\nCustom Order"
     ID_FIND_NEXT            "Find the next occurrence of the specified text\nFind Next"
+END
+
+STRINGTABLE
+BEGIN
     ID_FRM_EDIT_FIND        "Find"
     ID_ORD_COMPILE          "Compile the edit application\nCompile"
     ID_ORD_EDIT_FIND        "Find the specified text\nFind"
@@ -415,11 +419,6 @@ BEGIN
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the last action\nRedo"
-END
-
-STRINGTABLE
-BEGIN
-    ID_CUSTOMORDER          "Custom order for editing fields\nCustom Order"
 END
 
 #endif    // English (United States) resources

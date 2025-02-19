@@ -15,54 +15,34 @@
 #include "MainFrm.h"
 #include "SortDoc.h"
 #include "SortView.h"
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Interapp.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
-/////////////////////////////////////////////////////////////////////////////
-// CSortApp
+// The one and only CSortApp object
+CSortApp theApp;
+
 
 BEGIN_MESSAGE_MAP(CSortApp, CWinApp)
-    //{{AFX_MSG_MAP(CSortApp)
-    ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-        // NOTE - the ClassWizard will add and remove mapping macros here.
-        //    DO NOT EDIT what you see in these blocks of generated code!
-    //}}AFX_MSG_MAP
-    // Standard file based document commands
     ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+    ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 END_MESSAGE_MAP()
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CSortApp construction
 
 CSortApp::CSortApp()
+    :   m_iReturnCode(0)
 {
     InitializeCSProEnvironment();
 
     EnableHtmlHelp();
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// The one and only CSortApp object
-
-CSortApp theApp;
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortApp::InitInstance
-//
-/////////////////////////////////////////////////////////////////////////////
 
 BOOL CSortApp::InitInstance()
 {
-    CWinApp::InitInstance();
+    __super::InitInstance();
 
     // Initialize OLE libraries
     if (!AfxOleInit())
@@ -78,13 +58,9 @@ BOOL CSortApp::InitInstance()
     // Change the registry key under which our settings are stored.
     // TODO: You should modify this string to be something appropriate
     // such as the name of your company or organization.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
     LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
-
-    m_csModuleName = _T("CSPro Sort Data");
-    m_hIcon = LoadIcon(IDR_MAINFRAME);
-    m_iReturnCode = 0;
 
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
@@ -112,26 +88,26 @@ BOOL CSortApp::InitInstance()
     // Dispatch commands specified on the command line
     switch(cmdInfo.m_nShellCommand)
     {
-    case CCommandLineInfo::FileNew:
-        OnFileOpen();
-        break;
-    case CCommandLineInfo::FileOpen:
-        OpenDocumentFile(cmdInfo.m_strFileName);
-        break;
-    default:
-        if (!ProcessShellCommand(cmdInfo)) {
-            return FALSE;
-        }
+        case CCommandLineInfo::FileNew:
+            OnFileOpen();
+            break;
+        case CCommandLineInfo::FileOpen:
+            OpenDocumentFile(cmdInfo.m_strFileName);
+            break;
+        default:
+            if (!ProcessShellCommand(cmdInfo)) {
+                return FALSE;
+            }
     }
 
     // Add toolbar icons to menus
-    CMainFrame* pMainFrame = (CMainFrame*) m_pMainWnd;
-    static UINT toolbars[]={
-        IDR_MAINFRAME,
-    };
+    CMainFrame* const pMainFrame = static_cast<CMainFrame*>(m_pMainWnd);
+
     pMainFrame->m_menu.LoadMenu(IDR_MAINFRAME);
+
+    constexpr UINT toolbars[] = { IDR_MAINFRAME };
     pMainFrame->m_menu.LoadToolbars(toolbars,1);
-    //->SetMenu(&pMainFrame->m_menu);
+
     pMainFrame->m_hMenuDefault = pMainFrame->m_menu.Detach();
     pMainFrame->OnUpdateFrameMenu(pMainFrame->m_hMenuDefault);
 
@@ -143,50 +119,36 @@ BOOL CSortApp::InitInstance()
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                          CSortApp::OnFileOpen
-//
-/////////////////////////////////////////////////////////////////////////////
+void CSortApp::OnFileOpen()
+{
+    OpenFileDlg open_file_dlg(0, L"dcf, ssf", AfxGetApp()->GetProfileString(L"Settings", L"Last Open", L""),
+                              L"Sort Specification (*.ssf) or Data Dictionary (*.dcf) Files|*.dcf; *.ssf|"
+                              L"Sort Specification Files (*.ssf)|*.ssf|"
+                              L"Data Dictionary Files (*.dcf)|*.dcf|"
+                              L"All Files (*.*)|*.*||");
+    open_file_dlg.SetTitle(L"Open Sort Specification or Dictionary File");
 
-void CSortApp::OnFileOpen() {
+    if( open_file_dlg.DoModal() != IDOK )
+        return;
 
-    CString csLastDict = AfxGetApp()->GetProfileString(_T("Settings"),_T("Last Open"),_T(""));
-    CString csFilter;
-    csFilter = _T("Sort Specification (*.ssf) or Data Dictionary (*.dcf) Files|*.dcf; *.ssf|Sort Specification Files (*.ssf)|*.ssf|Data Dictionary Files (*.dcf)|*.dcf|All Files (*.*)|*.*||");
-    CIMSAFileDialog dlgFile(TRUE, _T("dcf, ssf"), csLastDict, OFN_HIDEREADONLY, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Open Data Sort or Dictionary File");
-    if (dlgFile.DoModal() == IDOK) {
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-        OpenDocumentFile(dlgFile.GetPathName());
-    }
+    const std::wstring wide_file_path = TC::ToWide(open_file_dlg.GetFilePath());
+
+    AfxGetApp()->AddToRecentFileList(wide_file_path.c_str());
+
+    OpenDocumentFile(wide_file_path.c_str());
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                             CSortApp::ExitInstance
-//
-/////////////////////////////////////////////////////////////////////////////
-
 int CSortApp::ExitInstance()
 {
-    // specify the return code here
-    CWinApp::ExitInstance();
+    __super::ExitInstance();
+
     return m_iReturnCode;
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                             CSortApp::OnAppAbout
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CSortApp::OnAppAbout() {
-
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = m_hIcon;
-    dlg.m_csModuleName = m_csModuleName;
-    dlg.DoModal();
+void CSortApp::OnAppAbout()
+{
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }

@@ -13,9 +13,9 @@ namespace DataRepositoryHelpers
 {
     constexpr bool IsTypeSQLiteOrDerived(DataRepositoryType data_repository_type);
 
-    constexpr bool DoesTypeContainEmbeddedDictionary(DataRepositoryType data_repository_type);
+    constexpr bool IsTypeFileBasedWithAnEmbeddedDictionary(DataRepositoryType data_repository_type);
 
-    constexpr bool DoesTypeUseIndexableText(DataRepositoryType data_repository_type);
+    constexpr bool TypeUsesIndexableText(DataRepositoryType data_repository_type);
 
     constexpr bool IsTypeExportWriter(DataRepositoryType data_repository_type);
 
@@ -31,17 +31,18 @@ namespace DataRepositoryHelpers
 
     constexpr bool TypeWritesToText(DataRepositoryType data_repository_type);
 
-    constexpr bool TypeDoesNotUseFilename(DataRepositoryType data_repository_type);
+    constexpr bool TypeUsesFileResource(DataRepositoryType data_repository_type);
+    constexpr bool TypeUsesUrlResource(DataRepositoryType data_repository_type);
+    constexpr bool TypeUsesResource(DataRepositoryType data_repository_type);
 
-    // Gets a repository's embedded dictionary, if available, returning null if not.
-    ZDATAO_API std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
+    constexpr bool AccessIsReadOnly(DataRepositoryAccess access_type);
 
     // Renames the repository, overwriting any existing repository with the new name.
     ZDATAO_API void RenameRepository(const ConnectionString& old_connection_string, const ConnectionString& new_connection_string);
 
     // Returns any files associated with the repository, including the data file. Only files that
     // cannot be recreated are returned (e.g., a text data file's index will not be returned).
-    ZDATAO_API std::vector<std::wstring> GetAssociatedFileList(const ConnectionString& connection_string, bool include_only_files_that_exist);
+    ZDATAO_API std::vector<std::string> GetAssociatedFileList(const ConnectionString& connection_string, bool include_only_files_that_exist);
 
     // Returns the SQLite database associated with a repository, or null if none exists.
     ZDATAO_API sqlite3* GetSqliteDatabase(DataRepository& data_repository);
@@ -58,21 +59,21 @@ constexpr bool DataRepositoryHelpers::IsTypeSQLiteOrDerived(const DataRepository
     return ( data_repository_type == DataRepositoryType::SQLite ||
              data_repository_type == DataRepositoryType::EncryptedSQLite );
 }
-    
 
-constexpr bool DataRepositoryHelpers::DoesTypeContainEmbeddedDictionary(const DataRepositoryType data_repository_type)
+
+constexpr bool DataRepositoryHelpers::IsTypeFileBasedWithAnEmbeddedDictionary(const DataRepositoryType data_repository_type)
 {
     return IsTypeSQLiteOrDerived(data_repository_type);
 }
 
-    
-constexpr bool DataRepositoryHelpers::DoesTypeUseIndexableText(const DataRepositoryType data_repository_type)
+
+constexpr bool DataRepositoryHelpers::TypeUsesIndexableText(const DataRepositoryType data_repository_type)
 {
     return ( data_repository_type == DataRepositoryType::Text ||
              data_repository_type == DataRepositoryType::Json );
 }
 
-    
+
 constexpr bool DataRepositoryHelpers::IsTypeExportWriter(const DataRepositoryType data_repository_type)
 {
     return ( data_repository_type == DataRepositoryType::CommaDelimited ||
@@ -85,13 +86,14 @@ constexpr bool DataRepositoryHelpers::IsTypeExportWriter(const DataRepositoryTyp
              data_repository_type == DataRepositoryType::SPSS ||
              data_repository_type == DataRepositoryType::Stata );
 }
-    
+
 
 constexpr bool DataRepositoryHelpers::TypeSupportsUndeletes(const DataRepositoryType data_repository_type)
 {
     return ( DataRepositoryHelpers::IsTypeSQLiteOrDerived(data_repository_type) ||
              data_repository_type == DataRepositoryType::Memory ||
-             data_repository_type == DataRepositoryType::Json );
+             data_repository_type == DataRepositoryType::Json ||
+             data_repository_type == DataRepositoryType::CSWeb );
 }
 
 
@@ -99,7 +101,8 @@ constexpr bool DataRepositoryHelpers::TypeSupportsDuplicates(const DataRepositor
 {
     return ( DataRepositoryHelpers::IsTypeSQLiteOrDerived(data_repository_type) ||
              data_repository_type == DataRepositoryType::Memory ||
-             data_repository_type == DataRepositoryType::Json  );
+             data_repository_type == DataRepositoryType::Json ||
+             data_repository_type == DataRepositoryType::CSWeb );
 }
 
 
@@ -134,8 +137,28 @@ constexpr bool DataRepositoryHelpers::TypeWritesToText(const DataRepositoryType 
 }
 
 
-constexpr bool DataRepositoryHelpers::TypeDoesNotUseFilename(const DataRepositoryType data_repository_type)
+constexpr bool DataRepositoryHelpers::TypeUsesFileResource(const DataRepositoryType data_repository_type)
 {
-    return ( data_repository_type == DataRepositoryType::Null ||
-             data_repository_type == DataRepositoryType::Memory );
+    return ( TypeUsesResource(data_repository_type) &&
+             !TypeUsesUrlResource(data_repository_type) );
+}
+
+
+constexpr bool DataRepositoryHelpers::TypeUsesUrlResource(const DataRepositoryType data_repository_type)
+{
+    return ( data_repository_type == DataRepositoryType::CSWeb );
+}
+
+
+constexpr bool DataRepositoryHelpers::TypeUsesResource(const DataRepositoryType data_repository_type)
+{
+    return ( data_repository_type != DataRepositoryType::Null &&
+             data_repository_type != DataRepositoryType::Memory );
+}
+
+
+constexpr bool DataRepositoryHelpers::AccessIsReadOnly(const DataRepositoryAccess access_type)
+{
+    return ( access_type == DataRepositoryAccess::BatchInput ||
+             access_type == DataRepositoryAccess::ReadOnly );
 }

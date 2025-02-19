@@ -2,7 +2,7 @@
  *
  * CSEntry for Android
  *
- * Module:		GenericWebViewActivity.kt
+ * Module:      GenericWebViewActivity.kt
  *
  * Description: UI class for displaying any old webpage.
  *

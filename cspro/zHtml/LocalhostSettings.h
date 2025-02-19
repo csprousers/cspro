@@ -14,7 +14,7 @@ namespace LocalhostSettings
 
     inline std::optional<int> GetPreferredPort()
     {
-        int port = static_cast<int>(WinSettings::Read<DWORD>(WinSettings::Type::LocalhostPreferredPort, static_cast<DWORD>(-1)));
+        const int port = static_cast<int>(WinSettings::Read<DWORD>(WinSettings::Type::LocalhostPreferredPort, static_cast<DWORD>(-1)));
 
         return ( port >= MinPort && port <= MaxPort ) ? std::make_optional(port) :
                                                         std::nullopt;
@@ -25,16 +25,16 @@ namespace LocalhostSettings
     // automatic drive mappings options
     // --------------------------------------------------------------------------
 
-    constexpr wchar_t AutomaticallyMappedDrivesSeparator = '|';
+    constexpr char AutomaticallyMappedDrivesSeparator = '|';
 
-    inline std::vector<std::wstring> GetDrivesToAutomaticallyMap(const std::wstring& automatically_mapped_drives_text)
+    inline std::vector<std::string> GetDrivesToAutomaticallyMap(const std::string& automatically_mapped_drives_text)
     {
         return SO::SplitString(automatically_mapped_drives_text, AutomaticallyMappedDrivesSeparator, true, false);
     }
 
-    inline std::vector<std::wstring> GetDrivesToAutomaticallyMap()
+    inline std::vector<std::string> GetDrivesToAutomaticallyMap()
     {
-        std::wstring automatically_mapped_drives_text = WinSettings::Read<std::wstring>(WinSettings::Type::LocalhostAutomaticallyMappedDrives, std::wstring());
+        const std::string automatically_mapped_drives_text = WinSettings::Read<std::string>(WinSettings::Type::LocalhostAutomaticallyMappedDrives, std::string());
 
         return GetDrivesToAutomaticallyMap(automatically_mapped_drives_text);
     }

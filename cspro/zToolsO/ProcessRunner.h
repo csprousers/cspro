@@ -8,16 +8,17 @@ class CLASS_DECL_ZTOOLSO ProcessRunner
 {
 public:
     HANDLE Start(std::wstring command_line);
+    HANDLE Start(std::string_view command_line_sv) { return Start(TC::ToWide(command_line_sv)); }
 
     void Kill();
 
     DWORD GetExitCode() const;
 
-    std::wstring ReadStdOut() { return ReadFromPipe(m_childStdOutRead); }
-    std::wstring ReadStdErr() { return ReadFromPipe(m_childStdErrRead); }
+    std::string ReadStdOut() { return ReadFromPipe(m_childStdOutRead); }
+    std::string ReadStdErr() { return ReadFromPipe(m_childStdErrRead); }
 
 private:
-    std::wstring ReadFromPipe(HANDLE pipe);
+    std::string ReadFromPipe(HANDLE pipe);
 
 private:
     HandleHolder m_processHandle;

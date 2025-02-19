@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{7aef3dcc-6117-4029-9bde-5ed800332e29}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zIndexO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -80,7 +76,7 @@
     <ClInclude Include="zIndexO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -98,10 +94,6 @@
     </ProjectReference>
     <ProjectReference Include="..\zDictO\zDictO.vcxproj">
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\zListingO\zListingO.vcxproj">
-      <Project>{15f84c2e-c943-4448-856d-641ac229e3c2}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

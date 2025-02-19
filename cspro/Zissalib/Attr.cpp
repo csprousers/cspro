@@ -128,13 +128,13 @@ bool CEngineArea::MakeApplChildren()
         CDEFormFile* pFormFile = pApp->GetRuntimeFormFiles()[iNumFlow].get();
 
         // ... insert the Flow name corresponding to this FormFile
-        if( GetSymbolTable().NameExists(pFormFile->GetName()) )
+        if( GetSymbolTable().NameExists(UTF8_TODO::GetUtf8(pFormFile->GetName())) )
         {
-            m_pEngineDriver->issaerror(MessageType::Error, 10051, pFormFile->GetName().GetString());
+            m_pEngineDriver->issaerror(MessageType::Error, 10051, UTF8_TODO::GetUtf8(pFormFile->GetName()).c_str());
             return false;
         }
 
-        auto pFlow = std::make_shared<FLOW>(CS2WS(pFormFile->GetName()), m_pEngineArea);
+        auto pFlow = std::make_shared<FLOW>(UTF8_TODO::GetUtf8(pFormFile->GetName()), m_pEngineArea);
         int iSymFlow = m_engineData->AddSymbol(pFlow);
 
         // set links to engine into flow-core object              // victor Jan 08, 00
@@ -162,7 +162,7 @@ bool CEngineArea::MakeApplChildren()
             iNumFlow >= 1 && ( dictionary_type != DictionaryType::External && dictionary_type != DictionaryType::Output && dictionary_type != DictionaryType::Working ) )// RHF Nov 07, 2002 Add dictionary_type != DictionaryType::Working  Allows WORKING with FLOW for using the FORMS in WRITEFORM
         {
             m_pEngineDriver->issaerror(bDesigner ? MessageType::Error : MessageType::Abort, 10059, ToString(dictionary_type),
-                                       pDataDict->GetName().GetString(), _T("in Primary Flow") );
+                                       pDataDict->GetName().c_str(), "in Primary Flow" );
 
             if( !bDesigner )
                 return false;
@@ -171,14 +171,14 @@ bool CEngineArea::MakeApplChildren()
         // make sure that there isn't a dictionary with the same name already inserted
         if( GetSymbolTable().NameExists(pDataDict->GetName()) )
         {
-            m_pEngineDriver->issaerror(MessageType::Error, 10055, pFlow->GetName().c_str(), pDataDict->GetName().GetString());
+            m_pEngineDriver->issaerror(MessageType::Error, 10055, pFlow->GetName().c_str(), pDataDict->GetName().c_str());
             return false;
         }
 
-        auto pDicT = std::make_shared<DICT>(CS2WS(pDataDict->GetName()), m_pEngineDriver); // ENGINECR_TODO need to handle loading non-external dictionaries
+        auto pDicT = std::make_shared<DICT>(pDataDict->GetName(), m_pEngineDriver); // ENGINECR_TODO need to handle loading non-external dictionaries
         int iSymDic = m_engineData->AddSymbol(pDicT);
 
-        for( const CString& alias : pDataDict->GetAliases() )
+        for( const std::string& alias : pDataDict->GetAliases() )
             GetSymbolTable().AddAlias(alias, *pDicT);
 
         // add to list of Dictionaries of this FLOW
@@ -212,7 +212,7 @@ bool CEngineArea::MakeApplChildren()
             CDEForm* pForm = pFormFile->GetForm(iNumForm);
 
             // ... insert the Form into symbol table
-            auto pFormT = std::make_shared<FORM>(CS2WS(pForm->GetName()), pForm);
+            auto pFormT = std::make_shared<FORM>(UTF8_TODO::GetUtf8(pForm->GetName()), pForm);
             int iSymForm = m_engineData->AddSymbol(pFormT);
 
             // add to list of Forms of this FLOW
@@ -244,7 +244,8 @@ bool CEngineArea::MakeApplChildren()
         // ... insert the Dictionary into symbol table
         if( dictionary_type != DictionaryType::Working && dictionary_type != DictionaryType::External && dictionary_type != DictionaryType::Output )
         {
-            m_pEngineDriver->issaerror( bDesigner ? MessageType::Error : MessageType::Abort, 10059, ToString(dictionary_type), pDataDict->GetName().GetString(), _T("") );
+            m_pEngineDriver->issaerror(bDesigner ? MessageType::Error : MessageType::Abort, 10059,
+                                       ToString(dictionary_type), pDataDict->GetName().c_str(), "");
 
             if( !bDesigner )
                 return false;
@@ -253,21 +254,18 @@ bool CEngineArea::MakeApplChildren()
         // make sure that there isn't a dictionary with the same name already inserted
         if( GetSymbolTable().NameExists(pDataDict->GetName()) )
         {
-            m_pEngineDriver->issaerror(MessageType::Error, 10057, ToString(dictionary_type), pDataDict->GetName().GetString());
+            m_pEngineDriver->issaerror(MessageType::Error, 10057, ToString(dictionary_type), pDataDict->GetName().c_str());
             return false;
         }
 
-        auto pDicT = std::make_shared<DICT>(CS2WS(pDataDict->GetName()), m_pEngineDriver);
+        auto pDicT = std::make_shared<DICT>(pDataDict->GetName(), m_pEngineDriver);
         int iSymDic = m_engineData->AddSymbol(pDicT);
 
-        for( const CString& alias : pDataDict->GetAliases() )
+        for( const std::string& alias : pDataDict->GetAliases() )
             GetSymbolTable().AddAlias(alias, *pDicT);
 
         // create a virtual CFlow for this External (hidden name given)
-        CString csExternalFlowName;
-        csExternalFlowName.Format( _T("__EFlow_%s"), pDataDict->GetName().GetString() );
-
-        auto pFlow = std::make_shared<FLOW>(CS2WS(csExternalFlowName), m_pEngineArea);
+        auto pFlow = std::make_shared<FLOW>("__EFlow_" + pDataDict->GetName(), m_pEngineArea);
         m_engineData->AddSymbol(pFlow);
 
         // create CFlow <begin>
@@ -303,25 +301,23 @@ bool CEngineArea::MakeApplChildren()
     } // ...for each Dict <end>
 
 
-    // (3) inserting WorkDict
-    auto work_dict = std::make_shared<DICT>(_T("_WORKDICT"), m_pEngineDriver);
-    Workdict = work_dict.get();
+    // (3) inserting WorkDict, which is no longer used, but .pen files still have references to it
+    auto work_dict = std::make_unique<DICT>("_WORKDICT", m_pEngineDriver);
     work_dict->SetSubType(SymbolSubType::Work);
-    m_engineData->AddSymbol(work_dict);
+    m_engineData->AddSymbol(std::move(work_dict));
 
 
     // (4) insert reports
-    for( const NamedTextSource& report_named_text_source : VI_V(pApp->GetReportNamedTextSources()) )
+    for( const ReportFile& report_file : pApp->GetReportFiles() )
     {
         // make sure that the report name is unique
-        if( GetSymbolTable().NameExists(report_named_text_source.name) )
+        if( GetSymbolTable().NameExists(report_file.GetName()) )
         {
-            m_pEngineDriver->issaerror(MessageType::Error, 10060, report_named_text_source.name.c_str());
+            m_pEngineDriver->issaerror(MessageType::Error, 10060, report_file.GetName().c_str());
             return false;
         }
 
-        auto report = std::make_unique<Report>(report_named_text_source.name, report_named_text_source.text_source->GetFilename());
-        m_engineData->AddSymbol(std::move(report));
+        m_engineData->AddSymbol(std::make_unique<Report>(report_file));
     }
 
 
@@ -335,6 +331,7 @@ void CEngineDriver::SetPifFile(CNPifFile* pPifFile)
 {
     ASSERT(pPifFile != nullptr && m_pApplication == pPifFile->GetApplication());
     m_pPifFile = pPifFile;
+    m_engineData->pff = m_pPifFile;
 
     ASSERT(m_executionStackEntry == nullptr && ExecutionStack::GetEntries().empty());
     m_executionStackEntry = std::make_unique<ExecutionStackEntry>(ExecutionStack::AddEntry(m_pPifFile));
@@ -351,9 +348,9 @@ void CEngineDriver::InitAppName()
     const CodeFile* logic_main_code_file = application->GetLogicMainCodeFile();
 
     if( logic_main_code_file != nullptr )
-        m_csAppFullName = WS2CS(logic_main_code_file->GetFilename());
+        m_csAppFullName = UTF8_TODO::GetCString(logic_main_code_file->GetFilePath());
 
-    CString csNodeName = PortableFunctions::PathGetFilenameWithoutExtension<CString>(m_csAppFullName);
+    CString csNodeName = UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(m_csAppFullName)));
     CString csLevelZeroName;
 
     // try to get the 1st FormFile (or Flow) name

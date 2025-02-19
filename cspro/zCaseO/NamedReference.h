@@ -1,64 +1,73 @@
 ﻿#pragma once
 
 
-// Reference to a generic named reference, potentially with occurrences
+// NamedReference is a generic reference to something with a name, potentially with occurrences.
+
 class NamedReference
 {
 public:
-    NamedReference(const CString& name, const CString& level_key)
-		:   m_name(name),
-			m_levelKey(level_key)
-    {
-    }
+    NamedReference(std::string name, std::string level_key);
 
     virtual ~NamedReference() { }
 
-    const CString& GetName() const
-	{
-		return m_name;
-	}
+    bool operator==(const NamedReference& rhs) const;
+    bool operator!=(const NamedReference& rhs) const { return !operator==(rhs); }
 
-    const CString& GetLevelKey() const
-	{
-		return m_levelKey;
-	}
+    static bool AreEqual(const NamedReference* lhs, const NamedReference* rhs);
 
-    void SetLevelKey(const CString& level_key)
-	{
-		m_levelKey = level_key;
-	}
+    const std::string& GetName() const { return m_name; }
 
-    virtual bool HasOccurrences() const
-	{
-		return false;
-	}
+    const std::string& GetLevelKey() const  { return m_levelKey; }
+    void SetLevelKey(std::string level_key) { m_levelKey = std::move(level_key); }
 
-    virtual CString GetMinimalOccurrencesText() const
-    {
-        return CString();
-    }
+    virtual bool HasOccurrences() const { return false; }
 
-    virtual const size_t* GetZeroBasedOccurrences() const
-    {
-        return nullptr;
-    }
+    virtual std::string GetMinimalOccurrencesText() const { return std::string(); }
 
-    virtual std::vector<size_t> GetOneBasedOccurrences() const
-	{
-		return std::vector<size_t>();
-	}
+    virtual const size_t* GetZeroBasedOccurrences() const      { return nullptr; }
+    virtual std::vector<size_t> GetOneBasedOccurrences() const { return std::vector<size_t>(); }
 
-    bool NameAndOccurrencesMatch(const NamedReference& rhs) const
-    {
-        return ( m_name.Compare(rhs.m_name) == 0 && OccurrencesMatch(rhs) );
-    }
+    bool NameAndOccurrencesMatch(const NamedReference& rhs) const;
 
 protected:
-    virtual bool OccurrencesMatch(const NamedReference& rhs) const
-    {
-        return !rhs.HasOccurrences();
-    }
+    virtual bool OccurrencesMatch(const NamedReference& rhs) const { return !rhs.HasOccurrences(); }
 
-	CString m_name;
-    CString m_levelKey;
+private:
+    std::string m_name;
+    std::string m_levelKey;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline NamedReference::NamedReference(std::string name, std::string level_key)
+    :   m_name(std::move(name)),
+        m_levelKey(std::move(level_key))
+{
+}
+
+
+inline bool NamedReference::operator==(const NamedReference& rhs) const
+{
+    return ( m_name == rhs.m_name &&
+             m_levelKey == rhs.m_levelKey &&
+             OccurrencesMatch(rhs) );
+}
+
+
+inline bool NamedReference::AreEqual(const NamedReference* const lhs, const NamedReference* const rhs)
+{
+    return ( lhs == nullptr ) ? ( rhs == nullptr ) :
+           ( rhs == nullptr ) ? false :
+                                ( *lhs == *rhs );
+}
+
+
+inline bool NamedReference::NameAndOccurrencesMatch(const NamedReference& rhs) const
+{
+    return ( m_name == rhs.m_name &&
+             OccurrencesMatch(rhs) );
+}

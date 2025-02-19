@@ -25,17 +25,16 @@ WindowsMapUI::~WindowsMapUI()
 
 void WindowsMapUI::WaitForShowThreadToTerminate()
 {
-    auto old_ui_thread_runner = m_uiThreadRunner;
-    m_uiThreadRunner.reset();
+    const std::shared_ptr<WindowsMapUIThreadRunner> old_ui_thread_runner = std::move(m_uiThreadRunner);
 
-    auto old_show_thread = std::move(m_showThread);
+    const std::unique_ptr<std::thread> old_show_thread = std::move(m_showThread);
 
     if( old_show_thread != nullptr && old_show_thread->joinable() )
         old_show_thread->join();
 }
 
 
-int WindowsMapUI::Show()
+bool WindowsMapUI::Show()
 {
     EnsureFileServerIsSetup();
 
@@ -43,11 +42,11 @@ int WindowsMapUI::Show()
 }
 
 
-int WindowsMapUI::WindowsShow()
+bool WindowsMapUI::WindowsShow()
 {
     // return if the map is already showing
     if( m_uiThreadRunner != nullptr )
-        return 0;
+        return false;
 
     ASSERT(m_showThread == nullptr);
 
@@ -56,21 +55,20 @@ int WindowsMapUI::WindowsShow()
         // if the map was hidden using map.hide(), there will be an
         // unprocessed map closing event posted by WindowsMapDlg's destructor
         std::lock_guard<std::mutex> lock(m_mapEventMutex);
-        ASSERT(m_mapEvent->code_ == IMapUI::EventCode::MapClosed);
+        ASSERT(m_mapEvent->code == IMapUI::EventCode::MapClosed);
         m_mapEvent.reset();
     }
 
     // after showing the map, we must return to the engine,
     // so the map dialog will be launched in a new thread
     m_uiThreadRunner = std::make_shared<WindowsMapUIThreadRunner>(*this);
-    auto ui_thread_runner = m_uiThreadRunner;
 
-    m_showThread = std::make_unique<std::thread>([ui_thread_runner]()
+    m_showThread = std::make_unique<std::thread>([ui_thread_runner = m_uiThreadRunner]()
     {
         ui_thread_runner->RunOnUIThread();
     });
 
-    return 1;
+    return true;
 }
 
 
@@ -81,19 +79,19 @@ WindowsMapDlg* WindowsMapUI::GetMapDlgForAction()
 
 
 template<typename Action>
-void WindowsMapUI::PerformMapDlgAction(Action action)
+void WindowsMapUI::PerformMapDlgAction(const Action action)
 {
-    WindowsMapDlg* map_dlg = GetMapDlgForAction();
+    WindowsMapDlg* const map_dlg = GetMapDlgForAction();
 
     if( map_dlg != nullptr )
         action(*map_dlg);
 }
 
 
-int WindowsMapUI::Hide()
+bool WindowsMapUI::Hide()
 {
     if( m_uiThreadRunner == nullptr )
-        return 0;
+        return false;
 
     // send a message to close the dialog
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
@@ -104,44 +102,45 @@ int WindowsMapUI::Hide()
     // wait for the dialog to fully close
     WaitForShowThreadToTerminate();
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SaveSnapshot(const std::wstring& filename)
+bool WindowsMapUI::SaveSnapshot(const std::string& image_file_path)
 {
-    int result = 0;
+    bool result = false;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SaveSnapshot(filename);
-        result = 1;
+        map_dlg.SaveSnapshot(image_file_path);
+        result = true;
     });
 
     return result;
 }
 
 
-int WindowsMapUI::AddMarker(double latitude, double longitude)
+int WindowsMapUI::AddMarker(const double latitude, const double longitude)
 {
-    const Marker& marker = m_markers.try_emplace(m_nextMapId,
-        Marker { latitude, longitude }).first->second;
+    const Marker& marker = m_markers.try_emplace(m_nextMapId, Marker { latitude,
+                                                                       longitude }).first->second;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
         map_dlg.AddMarker(marker, m_nextMapId);
-        map_dlg.FitPoints();
+        map_dlg.FitMarkers();
     });
 
     return m_nextMapId++;
 }
 
 
-int WindowsMapUI::RemoveMarker(int marker_id)
+bool WindowsMapUI::RemoveMarker(const int marker_id)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -150,7 +149,7 @@ int WindowsMapUI::RemoveMarker(int marker_id)
 
     m_markers.erase(marker_id);
 
-    return 1;
+    return true;
 }
 
 
@@ -165,28 +164,30 @@ void WindowsMapUI::ClearMarkers()
 }
 
 
-int WindowsMapUI::SetMarkerImage(int marker_id, std::wstring image_file_path)
+bool WindowsMapUI::SetMarkerImage(const int marker_id, const std::string& image_file_path)
 {
-    Marker* marker = GetMarker(marker_id);
-    if( marker == nullptr )
-        return 0;
+    Marker* const marker = GetMarker(marker_id);
 
-    marker->image_url = GetUrlForFilename(image_file_path);
+    if( marker == nullptr )
+        return false;
+
+    marker->image_url = GetUrlForFile(image_file_path);
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
         map_dlg.SetMarkerImage(*marker);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerText(int marker_id, std::wstring text, int background_color, int text_color)
+bool WindowsMapUI::SetMarkerText(const int marker_id, SharableString text, const int background_color, const int text_color)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->text = std::move(text);
     marker->background_color = PortableColor::FromColorInt(background_color);
@@ -194,112 +195,116 @@ int WindowsMapUI::SetMarkerText(int marker_id, std::wstring text, int background
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetText(*marker);
+        map_dlg.SetMarkerText(*marker);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerOnClick(int marker_id, int on_click_callback)
+bool WindowsMapUI::SetMarkerOnClick(const int marker_id, const int on_click_callback)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->on_click_callback = on_click_callback;
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback)
+bool WindowsMapUI::SetMarkerOnClickInfoWindow(const int marker_id, const int on_click_callback)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->on_info_window_click_callback = on_click_callback;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetDescription(*marker, marker_id);
+        map_dlg.SetMarkerDescription(*marker, marker_id);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerOnDrag(int marker_id, int on_drag_callback)
+bool WindowsMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callback)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->on_drag_callback = on_drag_callback;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetDraggable(marker->leaflet_id);
+        map_dlg.SetMarkerOnDrag(marker->leaflet_id);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerDescription(int marker_id, std::wstring description)
+bool WindowsMapUI::SetMarkerDescription(const int marker_id, SharableString description)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->description = std::move(description);
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetDescription(*marker, marker_id);
+        map_dlg.SetMarkerDescription(*marker, marker_id);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetMarkerLocation(int marker_id, double latitude, double longitude)
+bool WindowsMapUI::SetMarkerLocation(const int marker_id, const double latitude, const double longitude)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return false;
 
     marker->latitude = latitude;
     marker->longitude = longitude;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.MoveMarker(*marker);
-        map_dlg.FitPoints();
+        map_dlg.SetMarkerLocation(*marker);
+        map_dlg.FitMarkers();
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::GetMarkerLocation(int marker_id, double& latitude, double& longitude)
+std::optional<std::tuple<double, double>> WindowsMapUI::GetMarkerLocation(const int marker_id)
 {
-    Marker* marker = GetMarker(marker_id);
+    Marker* const marker = GetMarker(marker_id);
+
     if( marker == nullptr )
-        return 0;
+        return std::nullopt;
 
-    latitude = marker->latitude;
-    longitude = marker->longitude;
-
-    return 1;
+    return std::make_tuple(marker->latitude, marker->longitude);
 }
 
 
-int WindowsMapUI::AddImageButton(std::wstring image_path, int on_click_callback)
+int WindowsMapUI::AddImageButton(const std::string& image_file_path, const int on_click_callback)
 {
-    const Button& button = m_buttons.try_emplace(m_nextMapId,
-        Button { ButtonType::Image, on_click_callback, GetUrlForFilename(image_path) }).first->second;
+    const Button& button = m_buttons.try_emplace(m_nextMapId, Button { Button::Type::Image,
+                                                                       on_click_callback,
+                                                                       GetUrlForFile(image_file_path) }).first->second;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -310,10 +315,11 @@ int WindowsMapUI::AddImageButton(std::wstring image_path, int on_click_callback)
 }
 
 
-int WindowsMapUI::AddTextButton(std::wstring label, int on_click_callback)
+int WindowsMapUI::AddTextButton(SharableString label, const int on_click_callback)
 {
-    const Button& button = m_buttons.try_emplace(m_nextMapId,
-        Button { ButtonType::Text, on_click_callback, std::move(label) }).first->second;
+    const Button& button = m_buttons.try_emplace(m_nextMapId, Button { Button::Type::Text,
+                                                                       on_click_callback,
+                                                                       std::move(label) }).first->second;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -324,11 +330,12 @@ int WindowsMapUI::AddTextButton(std::wstring label, int on_click_callback)
 }
 
 
-int WindowsMapUI::RemoveButton(int button_id)
+bool WindowsMapUI::RemoveButton(const int button_id)
 {
-    Button* button = GetButton(button_id);
+    Button* const button = GetButton(button_id);
+
     if( button == nullptr )
-        return 0;
+        return false;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -337,7 +344,7 @@ int WindowsMapUI::RemoveButton(int button_id)
 
     m_buttons.erase(button_id);
 
-    return 1;
+    return true;
 }
 
 
@@ -354,7 +361,7 @@ void WindowsMapUI::ClearButtons()
 
 void WindowsMapUI::Clear()
 {
-    m_title.clear();
+    m_title.Reset();
     m_baseMapSelection.reset();
     m_zoom.reset();
     m_showCurrentLocation = true;
@@ -374,7 +381,7 @@ bool WindowsMapUI::IsBaseMapDefined() const
 }
 
 
-int WindowsMapUI::SetBaseMap(const BaseMapSelection& base_map_selection)
+bool WindowsMapUI::SetBaseMap(BaseMapSelection base_map_selection)
 {
     if( std::holds_alternative<BaseMap>(base_map_selection) )
     {
@@ -384,110 +391,109 @@ int WindowsMapUI::SetBaseMap(const BaseMapSelection& base_map_selection)
 
     else
     {
-        // open the mbtiles or tpk file
-        const std::wstring& filename = std::get<std::wstring>(base_map_selection);
-        std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
+        // open the MBTiles or TPK file
+        const std::string& file_path = std::get<std::string>(base_map_selection);
+        const std::string extension = Path::GetExtension(file_path);
 
-        if( SO::EqualsNoCase(extension, _T("mbtiles")) )
+        if( SO::EqualsNoCase(extension, "mbtiles") )
         {
-            m_tileReader = std::make_shared<MBTilesReader>(filename);
+            m_tileReader = std::make_unique<MBTilesReader>(file_path);
         }
 
-        else if( SO::EqualsNoCase(extension, _T("tpk")) )
+        else if( SO::EqualsOneOfNoCase(extension, "tpk", "tpkx") )
         {
-            m_tileReader = std::make_shared<TPKReader>(filename);
+            m_tileReader = std::make_unique<TPKReader>(file_path);
         }
 
         else
         {
-            throw CSProException(_T("unknown base map file with extension \"%s\""), extension.c_str());
+            throw CSProException("unknown base map file with extension '%s'", extension.c_str());
         }
 
         m_tileProvider = std::make_unique<OfflineTileProvider>(m_tileReader);
     }
 
-    m_baseMapSelection = base_map_selection;
+    m_baseMapSelection = std::move(base_map_selection);
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetupBaseMap();
+        map_dlg.SetUpBaseMap();
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetShowCurrentLocation(bool show)
+bool WindowsMapUI::SetShowCurrentLocation(const bool show)
 {
     m_showCurrentLocation = show;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetupCurrentLocation();
+        map_dlg.SetShowCurrentLocation();
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetTitle(std::wstring title)
+bool WindowsMapUI::SetTitle(SharableString title)
 {
     m_title = std::move(title);
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetTitle(m_title);
+        map_dlg.SetTitle(*m_title);
     });
 
-    return 1;
+    return true;
 }
 
 
-namespace
+constexpr bool WindowsMapUI::AreCoordinatesValid(const double latitude, const double longitude)
 {
-    constexpr bool AreCoordinatesValid(double latitude, double longitude)
-    {
-        return ( latitude >= -90 && latitude <= 90 &&
-                 longitude >= -180 && longitude <= 180 );
-    }
+    return ( latitude >= -90 && latitude <= 90 &&
+             longitude >= -180 && longitude <= 180 );
 }
 
 
-int WindowsMapUI::ZoomTo(double latitude, double longitude, double zoom/* = -1*/)
+bool WindowsMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
 {
     if( !AreCoordinatesValid(latitude, longitude) )
-        return 0;
+        return false;
 
-    m_zoom = Zoom { latitude, longitude, -91, -181, zoom };
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetZoom(latitude, longitude, zoom);
-    });
-
-    return 1;
-}
-
-
-int WindowsMapUI::ZoomTo(double minLat, double minLong, double maxLat, double maxLong, double paddingPercent/* = 0*/)
-{
-    if( !AreCoordinatesValid(minLat, minLong) || !AreCoordinatesValid(maxLat, maxLong) )
-        return 0;
-
-    m_zoom = Zoom { minLat, minLong, maxLat, maxLong, paddingPercent };
+    m_zoom.reset(new Zoom { latitude, longitude, -91, -181, zoom });
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
-        map_dlg.SetZoom(minLat, maxLat, minLong, maxLong, paddingPercent);
+        map_dlg.ZoomTo(latitude, longitude, zoom);
     });
 
-    return 1;
+    return true;
 }
 
 
-int WindowsMapUI::SetCamera(const MapCamera& camera)
+bool WindowsMapUI::ZoomTo(const double min_latitude, const double min_longitude,
+                          const double max_latitude, const double max_longitude,
+                          const double padding_percent/* = 0*/)
 {
-    return ZoomTo(camera.latitude_, camera.longitude_, camera.zoom_);
+    if( !AreCoordinatesValid(min_latitude, min_longitude) || !AreCoordinatesValid(max_latitude, max_longitude) )
+        return false;
+
+    m_zoom.reset(new Zoom { min_latitude, min_longitude, max_latitude, max_longitude, padding_percent });
+
+    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
+    {
+        map_dlg.ZoomTo(min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
+    });
+
+    return true;
+}
+
+
+bool WindowsMapUI::SetCamera(const MapCamera& camera)
+{
+    return ZoomTo(camera.latitude, camera.longitude, camera.zoom);
 }
 
 
@@ -495,8 +501,8 @@ int WindowsMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection>
 {
     ASSERT(geometry != nullptr && bounds != nullptr);
 
-    const MapGeometry& map_geometry = m_geometries.try_emplace(m_nextMapId,
-        MapGeometry { std::move(geometry), -1 }).first->second;
+    const MapGeometry& map_geometry = m_geometries.try_emplace(m_nextMapId, MapGeometry { std::move(geometry),
+                                                                                          -1 }).first->second;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -507,11 +513,12 @@ int WindowsMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection>
 }
 
 
-int WindowsMapUI::RemoveGeometry(int geometry_id)
+bool WindowsMapUI::RemoveGeometry(const int geometry_id)
 {
-    MapGeometry* geometry = GetGeometry(geometry_id);
+    MapGeometry* const geometry = GetGeometry(geometry_id);
+
     if( geometry == nullptr )
-        return 0;
+        return false;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -520,7 +527,7 @@ int WindowsMapUI::RemoveGeometry(int geometry_id)
 
     m_geometries.erase(geometry_id);
 
-    return 1;
+    return true;
 }
 
 
@@ -551,15 +558,16 @@ IMapUI::MapEvent WindowsMapUI::WaitForEvent()
 
     // if the dialog is closing, wait for the show thread to terminate
     // before returning the event to the engine
-    if( received_map_event->code_ == IMapUI::EventCode::MapClosed )
+    if( received_map_event->code == IMapUI::EventCode::MapClosed )
         WaitForShowThreadToTerminate();
 
     return *received_map_event;
 }
 
 
-void WindowsMapUI::NotifyEvent(EventCode code, int marker_id/* = -1*/, int callback_id/* = -1*/,
-        double latitude/* = 0*/, double longitude/* = 0*/, const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
+void WindowsMapUI::NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
+                               const double latitude/* = 0*/, const double longitude/* = 0*/,
+                               const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
 {
     // wait until any existing events have been processed by the engine
     while( m_mapEvent != nullptr )
@@ -567,34 +575,31 @@ void WindowsMapUI::NotifyEvent(EventCode code, int marker_id/* = -1*/, int callb
 
     std::lock_guard<std::mutex> lock(m_mapEventMutex);
 
-    m_mapEvent = std::make_unique<MapEvent>(MapEvent
-    {
-        code,
-        marker_id,
-        callback_id,
-        latitude,
-        longitude,
-        camera
-    });
+    m_mapEvent.reset(new MapEvent { code,
+                                    marker_id,
+                                    callback_id,
+                                    latitude,
+                                    longitude,
+                                    camera });
 }
 
 
 void WindowsMapUI::EnsureFileServerIsSetup()
 {
     if( m_fileServer == nullptr )
-        m_fileServer = std::make_unique<SharedHtmlLocalFileServer>(_T("mapping"));
+        m_fileServer = std::make_unique<SharedHtmlLocalFileServer>("mapping");
 }
 
 
-std::wstring WindowsMapUI::GetUrlOfMapHtml() const
+std::string WindowsMapUI::GetUrlOfMapHtml() const
 {
     ASSERT(m_fileServer != nullptr);
-    return m_fileServer->GetProjectUrl(_T("logic-map.html"));
+    return m_fileServer->CreateProjectUrl("logic-map.html");
 }
 
 
-std::wstring WindowsMapUI::GetUrlForFilename(NullTerminatedStringView filename)
+std::string WindowsMapUI::GetUrlForFile(const std::string& file_path)
 {
     EnsureFileServerIsSetup();
-    return m_fileServer->GetFilenameUrl(filename);
+    return m_fileServer->CreateFileUrl(file_path);
 }

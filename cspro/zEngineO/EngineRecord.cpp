@@ -3,13 +3,15 @@
 #include "EngineCase.h"
 #include "EngineDictionary.h"
 #include "EngineDictionaryFactory.h"
+#include "ValueSet.h"
+#include <engine/VarT.h>
 
 
-EngineRecord::EngineRecord(std::wstring record_name, EngineData& engine_data)
+EngineRecord::EngineRecord(std::string record_name, EngineData& engine_data)
     :   Symbol(std::move(record_name), SymbolType::Record),
         m_engineData(engine_data),
         m_engineCase(nullptr),
-        m_dictionaryRecord(nullptr),
+        m_dictRecord(nullptr),
         m_caseRecordMetadata(nullptr),
         m_levelNumber(SIZE_MAX),
         m_recordIndex(SIZE_MAX),
@@ -18,11 +20,11 @@ EngineRecord::EngineRecord(std::wstring record_name, EngineData& engine_data)
 }
 
 
-EngineRecord::EngineRecord(EngineCase& engine_case, const CDictRecord& dictionary_record, EngineData& engine_data)
-    :   EngineRecord(EngineDictionaryFactory::GetSymbolName(engine_case, dictionary_record), engine_data)
+EngineRecord::EngineRecord(EngineCase& engine_case, const CDictRecord& dict_record, EngineData& engine_data)
+    :   EngineRecord(EngineDictionaryFactory::GetSymbolName(engine_case, dict_record), engine_data)
 {
     m_engineCase = &engine_case;
-    m_dictionaryRecord = &dictionary_record;
+    m_dictRecord = &dict_record;
 }
 
 
@@ -42,20 +44,20 @@ const EngineDictionary& EngineRecord::GetEngineDictionary() const
 }
 
 
-Symbol* EngineRecord::FindChildSymbol(const std::wstring& /*symbol_name*/) const
+Symbol* EngineRecord::FindChildSymbol(const std::string_view /*symbol_name_sv*/) const
 {
 #ifdef ENGINECR_TODO // hook this up when the EngineItems are stored
-    for( Symbol* symbol : m_symbolTable.FindSymbols(symbol_name) )
+    for( Symbol* const symbol : m_engineData.symbol_table.FindSymbols(symbol_name_sv) )
     {
         // only items and value sets can be children of the record
         if( symbol->IsOneOf(SymbolType::Variable, SymbolType::ValueSet) )
         {
-            const VART* pVarT = symbol->IsA(SymbolType::Variable) ? assert_cast<const VART*>(symbol) :
-                                                                    assert_cast<const ValueSet*>(symbol)->GetVarT());
+            const VART* const pVarT = symbol->IsA(SymbolType::Variable) ? assert_cast<const VART*>(symbol) :
+                                                                          assert_cast<const ValueSet*>(symbol)->GetVarT();
 
             if( pVarT != nullptr &&
                 pVarT->GetDictItem() != nullptr &&
-                pVarT->GetDictItem()->GetRecord() == &m_dictionaryRecord )
+                pVarT->GetDictItem()->GetRecord() == m_dictRecord )
             {
                 return symbol;
             }
@@ -77,7 +79,7 @@ void EngineRecord::serialize_subclass(Serializer& ar)
     if( ar.IsSaving() )
     {
         ar.Write<int>(m_engineCase->GetEngineDictionary().GetSymbolIndex());
-        ar.Write<int>(m_dictionaryRecord->GetSymbol());
+        ar.Write<int>(m_dictRecord->GetSymbol());
     }
 
     else
@@ -86,18 +88,18 @@ void EngineRecord::serialize_subclass(Serializer& ar)
         m_engineCase->RegisterEngineRecord(this);
 
         // the dictionary record's symbol is from the EngineRecord of the dictionary object
-        m_dictionaryRecord = assert_cast<EngineRecord&>(m_engineData.symbol_table.GetAt(ar.Read<int>())).m_dictionaryRecord;
+        m_dictRecord = assert_cast<EngineRecord&>(m_engineData.symbol_table.GetAt(ar.Read<int>())).m_dictRecord;
     }
 }
 
 
 void EngineRecord::InitializeRuntime()
 {
-    ASSERT(m_engineCase != nullptr && m_dictionaryRecord != nullptr);
+    ASSERT(m_engineCase != nullptr && m_dictRecord != nullptr);
 
-    m_caseRecordMetadata = m_engineCase->GetCase().GetCaseMetadata().FindCaseRecordMetadata(m_dictionaryRecord->GetName());
+    m_caseRecordMetadata = m_engineCase->GetCase().GetCaseMetadata().FindCaseRecordMetadata(m_dictRecord->GetName());
 
-    ASSERT(m_caseRecordMetadata != nullptr && m_dictionaryRecord == &m_caseRecordMetadata->GetDictionaryRecord());
+    ASSERT(m_caseRecordMetadata != nullptr && m_dictRecord == &m_caseRecordMetadata->GetDictRecord());
 
     m_levelNumber = m_caseRecordMetadata->GetCaseLevelMetadata().GetDictLevel().GetLevelNumber();
     m_recordIndex = m_caseRecordMetadata->GetRecordIndex();
@@ -153,7 +155,7 @@ void EngineRecord::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 {
     ASSERT(m_engineCase != nullptr);
 
-    json_writer.Write(JK::record, *m_dictionaryRecord);
+    json_writer.Write(JK::record, *m_dictRecord);
 }
 
 

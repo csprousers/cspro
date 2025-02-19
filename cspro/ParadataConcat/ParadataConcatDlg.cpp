@@ -1,49 +1,49 @@
 ﻿#include "stdafx.h"
 #include "ParadataConcatDlg.h"
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/WindowsWS.h>
 #include <zParadataO/GuiConcatenator.h>
 
 
-BEGIN_MESSAGE_MAP(CParadataConcatDlg,CDialog)
-    ON_COMMAND(ID_FILE_OPEN,OnFileOpen)
-    ON_COMMAND(ID_FILE_SAVE_AS,OnFileSaveAs)
-    ON_COMMAND(ID_FILE_RUN,OnFileRun)
-    ON_COMMAND(ID_HELP,OnHelp)
-    ON_COMMAND(ID_APP_ABOUT,OnAppAbout)
-    ON_COMMAND(IDC_BROWSE_OUTPUT,OnBrowseOutput)
-    ON_BN_CLICKED(IDC_ADD_LOGS,OnAddLogs)
-    ON_BN_CLICKED(IDC_REMOVE_LOGS,OnRemoveLogs)
-    ON_BN_CLICKED(IDC_CLEAR_LOGS,OnClearLogs)
-    ON_BN_CLICKED(IDC_RUN,OnFileRun)
+BEGIN_MESSAGE_MAP(ParadataConcatDlg, CDialog)
+    ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+    ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
+    ON_COMMAND(ID_FILE_RUN, OnFileRun)
+    ON_COMMAND(ID_HELP, OnHelp)
+    ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+    ON_COMMAND(IDC_BROWSE_OUTPUT, OnBrowseOutput)
+    ON_BN_CLICKED(IDC_ADD_LOGS, OnAddLogs)
+    ON_BN_CLICKED(IDC_REMOVE_LOGS, OnRemoveLogs)
+    ON_BN_CLICKED(IDC_CLEAR_LOGS, OnClearLogs)
+    ON_BN_CLICKED(IDC_RUN, OnFileRun)
 END_MESSAGE_MAP()
 
 
 namespace
 {
-    constexpr const TCHAR* RegistryKey       = _T("Settings");
-    constexpr const TCHAR* RegistryValueName = _T("Last Data Folder");
+    constexpr const wchar_t* RegistryKey       = L"Settings";
+    constexpr const wchar_t* RegistryValueName = L"Last Data Folder";
 }
 
 
-CParadataConcatDlg::CParadataConcatDlg(CWnd* pParent /*= nullptr*/)
-    :   CDialog(CParadataConcatDlg::IDD, pParent)
+ParadataConcatDlg::ParadataConcatDlg(CWnd* const pParent /*= nullptr*/)
+    :   CDialog(ParadataConcatDlg::IDD, pParent),
+        m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME))
 {
-    m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 
-void CParadataConcatDlg::DoDataExchange(CDataExchange* pDX)
+void ParadataConcatDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_OUTPUT_FILENAME, m_outputFilename, true);
-    DDX_Control(pDX, IDC_LIST_LOGS, m_ParadataLogList);
+    DDX_Text(pDX, IDC_OUTPUT_FILENAME, m_outputFilePath, true);
+    DDX_Control(pDX, IDC_LIST_LOGS, m_paradataLogList);
 }
 
 
-BOOL CParadataConcatDlg::OnInitDialog()
+BOOL ParadataConcatDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
@@ -53,313 +53,292 @@ BOOL CParadataConcatDlg::OnInitDialog()
     SetMenu(&menu);
 
     // set the icons
-    SetIcon(m_hIcon,TRUE);
-    SetIcon(m_hIcon,FALSE);
+    SetIcon(m_hIcon, TRUE);
+    SetIcon(m_hIcon, FALSE);
 
     // set up the list control
-    m_ParadataLogList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_ParadataLogList.SetHeadings(_T("Name,180;Path,220;Date,120;Events,90;Size,90"));
-    m_ParadataLogList.LoadColumnInfo();
+    m_paradataLogList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+    m_paradataLogList.SetHeadings(L"Name,180;Directory,220;Date,120;Events,90;Size,90");
+    m_paradataLogList.LoadColumnInfo();
 
     // set up the callback to allow the dragging of files onto the list of logs
-    m_ParadataLogList.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::RecurseInto, FileExtensions::Wildcard::Paradata,
-        [&](std::vector<std::wstring> paths)
+    m_paradataLogList.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::RecurseInto, FileExtensions::CreateWildcard(FileExtensions::Paradata),
+        [&](std::vector<std::string> paths)
         {
-            OnDropFiles(paths);
+            OnDropFiles(std::move(paths));
         });
 
     return TRUE;
 }
 
 
-void CParadataConcatDlg::OnAppAbout()
+void ParadataConcatDlg::OnAppAbout()
 {
-    CString csWindowTitle;
-    GetWindowText(csWindowTitle);
-
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = m_hIcon;
-    dlg.m_csModuleName = csWindowTitle;
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), m_hIcon);
+    about_dlg.DoModal();
 }
 
 
-void CParadataConcatDlg::OnBrowseOutput()
+void ParadataConcatDlg::OnBrowseOutput()
 {
     UpdateData(TRUE);
 
-    CString csSingleParadataLogFilter;
-    csSingleParadataLogFilter.Format(_T("Paradata Log (%s)|%s||"), FileExtensions::Wildcard::Paradata, FileExtensions::Wildcard::Paradata);
+    const std::string paradata_log_wildcard = FileExtensions::CreateWildcard(FileExtensions::Paradata);
+    const std::string single_paradata_log_filter = FormatText("Paradata Log (%s)|%s||", paradata_log_wildcard.c_str(), paradata_log_wildcard.c_str());
 
-    CIMSAFileDialog saveDlg(FALSE, FileExtensions::Paradata, m_outputFilename.c_str(), OFN_HIDEREADONLY, csSingleParadataLogFilter);
-    saveDlg.m_ofn.lpstrTitle = _T("Select Output Paradata Log");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Paradata, m_outputFilePath, single_paradata_log_filter, this);
+    save_file_dlg.SetTitle(L"Select Output Paradata Log");
 
-    if( saveDlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    std::wstring output_filename = saveDlg.GetPathName();
-    bool bUpdateFilename = true;
+    std::string output_file_path = save_file_dlg.GetFilePath();
+    bool update_file_path = true;
 
-    if( m_paradataLogFilenames.find(output_filename) == m_paradataLogFilenames.end()  &&
-        Paradata::GuiConcatenator::GetNumberEvents(output_filename) > 0 )
+    if( m_paradataLogFilePaths.find(output_file_path) == m_paradataLogFilePaths.end() &&
+        Paradata::GuiConcatenator::GetNumberEvents(output_file_path) > 0 )
     {
-        int result = MessageBox(_T("The output file has events in it. Do you want to include these as inputs?"),
-                                _T("Include events?"), MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+        const int result = MessageBox(L"The output file has events in it. Do you want to include these as inputs?",
+                                      L"Include events?", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
 
         if( result == IDYES )
         {
-            AddLogs({ output_filename });
+            AddLogs({ output_file_path });
         }
 
         else if( result == IDCANCEL )
         {
-            bUpdateFilename = false;
+            update_file_path = false;
         }
     }
 
-    if( bUpdateFilename )
+    if( update_file_path )
     {
-        m_outputFilename = WS2CS(output_filename);
+        m_outputFilePath = std::move(output_file_path);
         UpdateData(FALSE);
     }
 }
 
 
-void CParadataConcatDlg::UpdateNumberLogsText()
+void ParadataConcatDlg::UpdateNumberLogsText()
 {
-    GetDlgItem(IDC_NUMBER_LOGS)->SetWindowText(FormatText(_T("%d log%s"),
-                                                          (int)m_paradataLogFilenames.size(),
-                                                          PluralizeWord(m_paradataLogFilenames.size())));
+    WindowsUtf8::SetText(this, IDC_NUMBER_LOGS, FormatText("%d log%s", static_cast<int>(m_paradataLogFilePaths.size()),
+                                                                       PluralizeWord(m_paradataLogFilePaths.size())));
 }
 
 
-void CParadataConcatDlg::AddLogs(const std::vector<std::wstring>& filenames)
+void ParadataConcatDlg::AddLogs(std::vector<std::string> file_paths)
 {
-    for( const std::wstring& filename : filenames )
+    for( std::string& file_path : file_paths )
     {
-        CFileStatus fStatus;
-        CFile::GetStatus(filename.c_str(), fStatus);
-
-        if( m_paradataLogFilenames.find(fStatus.m_szFullName) != m_paradataLogFilenames.end() )
+        if( m_paradataLogFilePaths.find(file_path) != m_paradataLogFilePaths.end() )
             continue; // no reason to include the same paradata log file twice
 
-        int64_t iEvents = Paradata::GuiConcatenator::GetNumberEvents(filename);
+        const int64_t events = Paradata::GuiConcatenator::GetNumberEvents(file_path);
 
-        if( iEvents < 0 )
-            continue; // this was not a valid paradata log file
+        // this was not a valid paradata log file
+        if( events < 0 )
+            continue;
 
-        CString csEvents = IntToString(iEvents);
-        CString csDate = fStatus.m_mtime.Format(_T("%c"));
-        const std::wstring size = PortableFunctions::FileSizeString(fStatus.m_size);
+        const auto [file_size, modified_time] = PortableFunctions::FileSizeAndModifiedTime(file_path);
 
-        m_ParadataLogList.AddItem(PortableFunctions::PathGetFilename(fStatus.m_szFullName),
-                                  PortableFunctions::PathGetDirectory(fStatus.m_szFullName).c_str(),
-                                  csDate.GetString(),
-                                  csEvents.GetString(),
-                                  size.c_str());
+        m_paradataLogList.AddItem(TC::ToWide(PortableFunctions::PathGetFilename(file_path)).c_str(),
+                                  TC::ToWide(PortableFunctions::PathGetDirectory(file_path)).c_str(),
+                                  TC::ToWide(FormatTimestamp(static_cast<double>(modified_time))).c_str(),
+                                  TC::ToWide(IntToString(events)).c_str(),
+                                  TC::ToWide(IntToString(file_size)).c_str());
 
-        m_paradataLogFilenames.insert(fStatus.m_szFullName);
+        m_paradataLogFilePaths.insert(std::move(file_path));
     }
 
     UpdateNumberLogsText();
 }
 
 
-void CParadataConcatDlg::OnAddLogs()
+void ParadataConcatDlg::OnAddLogs()
 {
-    CString csMultipleParadataLogsFilter;
-    csMultipleParadataLogsFilter.Format(_T("Paradata Log Files (%s)|%s|All Files (*.*)|*.*||"), FileExtensions::Wildcard::Paradata, FileExtensions::Wildcard::Paradata);
+    const std::string paradata_log_wildcard = FileExtensions::CreateWildcard(FileExtensions::Paradata);
+    const std::string multiple_paradata_logs_filter = FormatText("Paradata Log Files (%s)|%s|All Files (*.*)|*.*||", paradata_log_wildcard.c_str(), paradata_log_wildcard.c_str());
 
-    CString csInitialDirectory = AfxGetApp()->GetProfileString(RegistryKey,RegistryValueName);
+    const CString initial_directory = AfxGetApp()->GetProfileString(RegistryKey, RegistryValueName);
 
-    CIMSAFileDialog openDlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, csMultipleParadataLogsFilter, AfxGetApp()->GetMainWnd(), CFD_NO_DIR);
-    openDlg.m_ofn.lpstrInitialDir = csInitialDirectory;
-    openDlg.m_ofn.lpstrTitle = _T("Select Paradata Logs to Concatenate");
-    openDlg.SetMultiSelectBuffer();
+    OpenFileDlg open_file_dlg(0, nullptr, initial_directory.GetString(), multiple_paradata_logs_filter, this);
+    open_file_dlg.SetTitle(L"Select Paradata Logs to Concatenate")
+                 .SetMultiSelectBuffer();
 
-    if( openDlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    std::vector<std::wstring> filenames;
+    std::vector<std::string> file_paths = open_file_dlg.GetFilePaths();
+    ASSERT(!file_paths.empty());
 
-    for( int i = 0; i < openDlg.m_aFileName.GetSize(); ++i )
-    {
-        filenames.emplace_back(openDlg.m_aFileName[i]);
+    AfxGetApp()->WriteProfileString(RegistryKey, RegistryValueName, TC::ToWide(PortableFunctions::PathGetDirectory(file_paths.front())).c_str());
 
-        if( i == 0 )
-            AfxGetApp()->WriteProfileString(RegistryKey, RegistryValueName, PortableFunctions::PathGetDirectory(openDlg.m_aFileName[0]).c_str());
-    }
-
-    AddLogs(filenames);
+    AddLogs(std::move(file_paths));
 }
 
 
-void CParadataConcatDlg::OnDropFiles(const std::vector<std::wstring>& filenames)
+void ParadataConcatDlg::OnDropFiles(std::vector<std::string> file_paths)
 {
-    int iStartingNumberLogs = m_ParadataLogList.GetItemCount();
+    const int starting_number_logs = m_paradataLogList.GetItemCount();
 
-    AddLogs(filenames);
+    AddLogs(std::move(file_paths));
 
-    m_ParadataLogList.EnsureVisible(iStartingNumberLogs - 1, FALSE);
+    m_paradataLogList.EnsureVisible(starting_number_logs - 1, FALSE);
 }
 
 
-void CParadataConcatDlg::OnRemoveLogs()
+void ParadataConcatDlg::OnRemoveLogs()
 {
-    if( m_paradataLogFilenames.empty() )
+    if( m_paradataLogFilePaths.empty() )
     {
-        AfxMessageBox(_T("There are no paradata logs to remove."));
+        AfxMessageBox(L"There are no paradata logs to remove.");
         return;
     }
 
-    int iFirstSelection = m_ParadataLogList.GetSelectionMark();
-    POSITION pos = m_ParadataLogList.GetFirstSelectedItemPosition();
-    std::vector<int> aPositionsToRemove;
+    int first_selection = m_paradataLogList.GetSelectionMark();
+    POSITION pos = m_paradataLogList.GetFirstSelectedItemPosition();
+    std::vector<int> positions_to_rmeove;
 
     while( pos != nullptr )
-        aPositionsToRemove.emplace_back(m_ParadataLogList.GetNextSelectedItem(pos));
+        positions_to_rmeove.emplace_back(m_paradataLogList.GetNextSelectedItem(pos));
 
-    for( auto itr = aPositionsToRemove.rbegin(); itr != aPositionsToRemove.rend(); itr++ )
+    for( auto itr = positions_to_rmeove.rbegin(); itr != positions_to_rmeove.rend(); ++itr )
     {
-        CString csFilenameOnly = m_ParadataLogList.GetItemText(*itr,0);
-        CString csDirectory = m_ParadataLogList.GetItemText(*itr,1);
-        std::wstring filename = CS2WS(PortableFunctions::PathAppendToPath(csDirectory, csFilenameOnly));
+        const std::string file_path = Path::Combine(TC::ToUtf8(m_paradataLogList.GetItemText(*itr, 1)),
+                                                    TC::ToUtf8(m_paradataLogList.GetItemText(*itr, 0)));
+        ASSERT(m_paradataLogFilePaths.find(file_path) != m_paradataLogFilePaths.end());
 
-        ASSERT(m_paradataLogFilenames.find(filename) != m_paradataLogFilenames.end());
+        m_paradataLogFilePaths.erase(file_path);
 
-        m_paradataLogFilenames.erase(filename);
-
-        m_ParadataLogList.DeleteItem(*itr);
+        m_paradataLogList.DeleteItem(*itr);
     }
 
-    if( iFirstSelection >= m_ParadataLogList.GetItemCount() )
-        iFirstSelection = m_ParadataLogList.GetItemCount() - 1;
+    if( first_selection >= m_paradataLogList.GetItemCount() )
+        first_selection = m_paradataLogList.GetItemCount() - 1;
 
-    m_ParadataLogList.SetItemState(iFirstSelection,LVIS_SELECTED | LVIS_FOCUSED,LVIS_SELECTED | LVIS_FOCUSED);
-    m_ParadataLogList.SetFocus();
+    m_paradataLogList.SetItemState(first_selection, LVIS_SELECTED | LVIS_FOCUSED,LVIS_SELECTED | LVIS_FOCUSED);
+    m_paradataLogList.SetFocus();
 
     UpdateNumberLogsText();
 }
 
 
-void CParadataConcatDlg::OnClearLogs()
+void ParadataConcatDlg::OnClearLogs()
 {
-    if( m_ParadataLogList.GetItemCount() == 0 )
+    if( m_paradataLogList.GetItemCount() == 0 )
         return;
 
-    const std::wstring prompt = FormatTextCS2WS(_T("Are you sure that you want to clear %d log%s?"),
-                                                m_ParadataLogList.GetItemCount(), PluralizeWord(m_ParadataLogList.GetItemCount()));
+    const std::string prompt = FormatText("Are you sure that you want to clear %d log%s?",
+                                          m_paradataLogList.GetItemCount(), PluralizeWord(m_paradataLogList.GetItemCount()));
 
     if( AfxMessageBox(prompt, MB_YESNOCANCEL) != IDYES )
         return;
 
-    m_ParadataLogList.DeleteAllItems();
-    m_paradataLogFilenames.clear();
+    m_paradataLogList.DeleteAllItems();
+    m_paradataLogFilePaths.clear();
 
     UpdateNumberLogsText();
 }
 
 
-void CParadataConcatDlg::OnFileOpen()
+void ParadataConcatDlg::OnFileOpen()
 {
-    CIMSAFileDialog openDlg(TRUE,FileExtensions::Pff,nullptr,OFN_HIDEREADONLY,FileFilters::Pff);
-    openDlg.m_ofn.lpstrTitle = _T("Select Input PFF");
+    OpenFileDlg open_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff, this);
+    open_file_dlg.SetTitle(L"Select Input PFF");
 
-    if( openDlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    PFF pff(openDlg.GetPathName());
+    PFF pff(UTF8_TODO::GetCString(open_file_dlg.GetFilePath()));
 
     if( !pff.LoadPifFile() || pff.GetAppType() != PARADATA_CONCAT_TYPE )
     {
-        AfxMessageBox(_T("The PFF could not be read or was not a Paradata Concatenator PFF"));
+        AfxMessageBox(L"The PFF could not be read or was not a Paradata Concatenator PFF");
         return;
     }
 
-    m_outputFilename = pff.GetOutputParadataFilename();
+    m_outputFilePath = UTF8_TODO::GetUtf8(pff.GetOutputParadataFilename());
 
     OnClearLogs();
 
-    std::vector<std::wstring> filenames;
+    std::vector<std::string> file_paths;
 
-    for( const CString& filename : pff.GetInputParadataFilenames() )
-        filenames.emplace_back(filename);
+    for( const CString& file_path : pff.GetInputParadataFilenames() )
+        file_paths.emplace_back(UTF8_TODO::GetUtf8(file_path));
 
-    AddLogs(filenames);
+    AddLogs(std::move(file_paths));
 
     UpdateData(FALSE);
 }
 
 
-bool CParadataConcatDlg::ValidateGuiParameters()
+bool ParadataConcatDlg::ValidateGuiParameters()
 {
-    bool bValidated = false;
-
     UpdateData(TRUE);
 
-    if( SO::IsBlank(m_outputFilename) )
+    try
     {
-        AfxMessageBox(_T("You must specify an output filename"));
+        if( SO::IsBlank(m_outputFilePath) )
+            throw CSProException("You must specify an output filename");
+
+        if( m_paradataLogFilePaths.empty() )
+            throw CSProException("You must specify at least one input paradata log");
+
+        return true;
     }
 
-    else if( m_paradataLogFilenames.empty() )
+    catch( const CSProException& exception )
     {
-        AfxMessageBox(_T("You must specify at least one input paradata log"));
+        ErrorMessage::Display(exception);
+        return false;
     }
-
-    else
-    {
-        bValidated = true;
-    }
-
-    return bValidated;
 }
 
 
-std::unique_ptr<PFF> CParadataConcatDlg::CreatePffFromGuiParameters(NullTerminatedString pff_filename)
+std::unique_ptr<PFF> ParadataConcatDlg::CreatePffFromGuiParameters(const std::string& pff_file_path)
 {
     auto pff = std::make_unique<PFF>();
 
     pff->SetAppType(PARADATA_CONCAT_TYPE);
-    pff->SetPifFileName(pff_filename.c_str());
-    pff->SetOutputParadataFilename(WS2CS(m_outputFilename));
+    pff->SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
+    pff->SetOutputParadataFilename(UTF8_TODO::GetCString(m_outputFilePath));
 
-    for( const std::wstring& filename : m_paradataLogFilenames )
-        pff->AddInputParadataFilenames(filename.c_str());
+    for( const std::string& file_path : m_paradataLogFilePaths )
+        pff->AddInputParadataFilenames(UTF8_TODO::GetCString(file_path));
 
-    pff->SetListingFName(PortableFunctions::PathRemoveFileExtension<CString>(pff_filename) + FileExtensions::WithDot::Listing);
+    pff->SetListingFName(UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(pff_file_path, FileExtensions::Listing)));
 
     return pff;
 }
 
 
-void CParadataConcatDlg::OnFileSaveAs()
+void ParadataConcatDlg::OnFileSaveAs()
 {
     if( !ValidateGuiParameters() )
         return;
 
-    CIMSAFileDialog saveDlg(FALSE,FileExtensions::Pff,nullptr,OFN_HIDEREADONLY,FileFilters::Pff);
-    saveDlg.m_ofn.lpstrTitle = _T("Select Output PFF");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Pff, nullptr, FileFilters::Pff, this);
+    save_file_dlg.SetTitle(L"Select Output PFF");
 
-    if( saveDlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    std::unique_ptr<PFF> pff = CreatePffFromGuiParameters(saveDlg.GetPathName());
+    std::unique_ptr<PFF> pff = CreatePffFromGuiParameters(save_file_dlg.GetFilePath());
     pff->Save();
 }
 
 
-void CParadataConcatDlg::OnFileRun()
+void ParadataConcatDlg::OnFileRun()
 {
     if( !ValidateGuiParameters() )
         return;
 
-    std::unique_ptr<PFF> pff = CreatePffFromGuiParameters(GetTempDirectory() + _T("ParadataConcat.pff"));
+    const std::unique_ptr<const PFF> pff = CreatePffFromGuiParameters(Path::Combine(GetTempDirectory(), "ParadataConcat.pff"));
 
     try
     {
-        Paradata::GuiConcatenatorPffWrapper pff_wrapper(*pff);
-        Paradata::GuiConcatenator::Run(pff_wrapper);
+        Paradata::GuiConcatenator::Run(*pff);
     }
 
     catch( const CSProException& exception )

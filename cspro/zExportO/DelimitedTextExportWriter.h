@@ -15,8 +15,8 @@ public:
     void Close() override;
 
 protected:
-    bool SupportsBinaryData() override                                               { return false; }
-    bool IsReservedName(const std::wstring& /*name*/, bool /*record_name*/) override { return false; }
+    bool SupportsBinaryData() const override                                        { return false; }
+    bool IsReservedName(const std::string& /*name*/, bool /*record_name*/) override { return false; }
 
 private:
     void InitializeSingleExportRecordMapping();

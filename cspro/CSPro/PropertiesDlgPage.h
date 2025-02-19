@@ -25,41 +25,60 @@ protected:
     // some helper classes for setting/retrieving data from the form
     struct ToForm
     {
-        static constexpr int Check(bool value)
-        {
-            return value ? BST_CHECKED : BST_UNCHECKED;
-        }
-
-        static CString Text(int value)
-        {
-            return IntToString(value);
-        }
+        static constexpr int Check(bool value);
+        static std::string Text(int value);
     };
 
 
     struct FromForm
     {
-        static constexpr bool Check(int value)
-        {
-            return ( value == BST_CHECKED );
-        }
+        static constexpr bool Check(int value);
 
-        template<typename T> static T Text(NullTerminatedString text_value, const TCHAR* description, std::optional<T> value_if_text_is_blank = std::nullopt);
+        template<typename T>
+        static T Text(const std::string& text_value, const char* description, std::optional<T> value_if_text_is_blank = std::nullopt);
 
-        template<> static int Text<int>(NullTerminatedString text_value, const TCHAR* description, std::optional<int> value_if_text_is_blank/* = std::nullopt*/)
-        {
-            if( SO::IsBlank(text_value) )
-            {
-                if( value_if_text_is_blank.has_value() )
-                    return *value_if_text_is_blank;
-
-                throw CSProException(_T("You cannot leave the field blank: %s"), description);
-            }
-
-            if( !CIMSAString::IsInteger(text_value) )
-                throw CSProException(_T("You must enter an integer for the field: %s"), description);
-
-            return _ttoi(text_value.c_str());
-        }
+        template<>
+        static int Text<int>(const std::string& text_value, const char* description, std::optional<int> value_if_text_is_blank/* = std::nullopt*/);
     };
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+constexpr int PropertiesDlgPage::ToForm::Check(const bool value)
+{
+    return value ? BST_CHECKED : BST_UNCHECKED;
+}
+
+
+inline std::string PropertiesDlgPage::ToForm::Text(const int value)
+{
+    return IntToString(value);
+}
+
+
+constexpr bool PropertiesDlgPage::FromForm::Check(const int value)
+{
+    return ( value == BST_CHECKED );
+}
+
+
+template<>
+int PropertiesDlgPage::FromForm::Text<int>(const std::string& text_value, const char* const description, const std::optional<int> value_if_text_is_blank/* = std::nullopt*/)
+{
+    if( SO::IsBlank(text_value) )
+    {
+        if( value_if_text_is_blank.has_value() )
+            return *value_if_text_is_blank;
+
+        throw CSProException("You cannot leave the field blank: %s", description);
+    }
+
+    if( !CIMSAString::IsInteger(text_value) )
+        throw CSProException("You must enter an integer for the field: %s", description);
+
+    return atoi(text_value.c_str());
+}

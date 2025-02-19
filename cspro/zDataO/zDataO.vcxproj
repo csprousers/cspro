@@ -12,10 +12,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DDE177B0-A6AE-4D1F-B707-8FB50D1B5644}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>zDataO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -57,95 +53,118 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;ZDATAO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;ZDATAO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CacheableCaseWrapperRepository.h" />
     <ClInclude Include="CacheableCaseWrapperRepositoryCaseIterators.h" />
+    <ClInclude Include="CaseAccessSaver.h" />
+    <ClInclude Include="CaseIterator.h" />
+    <ClInclude Include="CaseIteratorSettings.h" />
+    <ClInclude Include="CaseListingCtrl.h" />
     <ClInclude Include="ConnectionStringProperties.h" />
+    <ClInclude Include="CSWebBinaryContentReader.h" />
+    <ClInclude Include="CSWebRepository.h" />
+    <ClInclude Include="CSWebRepositoryIterators.h" />
+    <ClInclude Include="CSWebRepositoryJsonKeys.h" />
+    <ClInclude Include="DataRepository.h" />
+    <ClInclude Include="DataRepositoryDefines.h" />
+    <ClInclude Include="DataRepositoryException.h" />
+    <ClInclude Include="DataRepositoryHelpers.h" />
+    <ClInclude Include="DataRepositoryTransaction.h" />
+    <ClInclude Include="DataRepositoryUniqueCaseIdentifer.h" />
+    <ClInclude Include="DictionarySource.h" />
+    <ClInclude Include="EncryptedSQLiteRepository.h" />
+    <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h" />
     <ClInclude Include="ExportWriterRepository.h" />
     <ClInclude Include="IndexableTextRepository.h" />
+    <ClInclude Include="ISQLiteQuestionnaireSerializer.h" />
+    <ClInclude Include="ISyncableDataRepository.h" />
     <ClInclude Include="JsonRepository.h" />
     <ClInclude Include="JsonRepositoryBinaryDataIO.h" />
     <ClInclude Include="JsonRepositoryIndexCreator.h" />
     <ClInclude Include="JsonRepositoryIterators.h" />
-    <ClInclude Include="SQLiteBinaryDataReader.h" />
-    <ClInclude Include="SQLiteBinaryItemSerializer.h" />
-    <ClInclude Include="SyncJsonBinaryDataReader.h" />
-    <ClInclude Include="WrapperRepository.h" />
     <ClInclude Include="MemoryRepository.h" />
     <ClInclude Include="MemoryRepositoryIterators.h" />
-    <ClInclude Include="CaseAccessSaver.h" />
-    <ClInclude Include="DataRepositoryTransaction.h" />
-    <ClInclude Include="WrapperRepositoryIterators.h" />
-    <ClInclude Include="ISQLiteQuestionnaireSerializer.h" />
-    <ClInclude Include="DataRepositoryHelpers.h" />
-    <ClInclude Include="NullRepositoryIterators.h" />
-    <ClInclude Include="ParadataWrapperRepositoryIterators.h" />
-    <ClInclude Include="SQLiteDictionarySchemaGenerator.h" />
-    <ClInclude Include="SQLiteBlobQuestionnaireSerializer.h" />
-    <ClInclude Include="SQLiteErrorWithMessage.h" />
-    <ClInclude Include="SQLiteDictionarySchemaReconciler.h" />
-    <ClInclude Include="SQLiteSchemaHelpers.h" />
-    <ClInclude Include="TextRepositoryIndexCreator.h" />
-    <ClInclude Include="TextRepositoryIterators.h" />
-    <ClInclude Include="DataRepositoryDefines.h" />
-    <ClInclude Include="EncryptedSQLiteRepository.h" />
-    <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h" />
-    <ClInclude Include="ParadataWrapperRepository.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="TextRepositoryNotesFile.h" />
-    <ClInclude Include="TextRepositoryStatusFile.h" />
-    <ClInclude Include="DataRepositoryException.h" />
-    <ClInclude Include="DataRepository.h" />
-    <ClInclude Include="CaseIterator.h" />
-    <ClInclude Include="ISyncableDataRepository.h" />
     <ClInclude Include="NullRepository.h" />
-    <ClInclude Include="SyncHistoryEntry.h" />
+    <ClInclude Include="NullRepositoryIterators.h" />
+    <ClInclude Include="ParadataWrapperRepository.h" />
+    <ClInclude Include="ParadataWrapperRepositoryIterators.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SQLiteBinaryContentReader.h" />
+    <ClInclude Include="SQLiteBinaryItemSerializer.h" />
+    <ClInclude Include="SQLiteBlobQuestionnaireSerializer.h" />
+    <ClInclude Include="SQLiteDictionarySchemaGenerator.h" />
+    <ClInclude Include="SQLiteDictionarySchemaReconciler.h" />
+    <ClInclude Include="SQLiteErrorWithMessage.h" />
     <ClInclude Include="SQLiteRepository.h" />
     <ClInclude Include="SQLiteRepositoryIterators.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SyncBinaryContentReader.h" />
+    <ClInclude Include="SyncBinaryDataUploadManager.h" />
+    <ClInclude Include="SyncCaseIncrementalParser.h" />
+    <ClInclude Include="SyncCaseJsonSerializer.h" />
+    <ClInclude Include="SyncCaseSerializer.h" />
+    <ClInclude Include="SyncHistoryEntry.h" />
+    <ClInclude Include="SyncWithDataBinaryContentReader.h" />
     <ClInclude Include="TextRepository.h" />
+    <ClInclude Include="TextRepositoryIndexCreator.h" />
+    <ClInclude Include="TextRepositoryIterators.h" />
+    <ClInclude Include="TextRepositoryNotesFile.h" />
+    <ClInclude Include="TextRepositoryStatusFile.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="WrapperRepository.h" />
+    <ClInclude Include="WrapperRepositoryIterators.h" />
     <ClInclude Include="zDataO.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CacheableCaseWrapperRepository.cpp" />
-    <ClCompile Include="JsonRepository.cpp" />
-    <ClCompile Include="MemoryRepository.cpp" />
+    <ClCompile Include="CaseIteratorSettings.cpp" />
+    <ClCompile Include="CaseListingCtrl.cpp" />
+    <ClCompile Include="CSWebBinaryContentReader.cpp" />
+    <ClCompile Include="CSWebRepository.cpp" />
     <ClCompile Include="DataRepository.cpp" />
+    <ClCompile Include="DataRepositoryDefines.cpp" />
     <ClCompile Include="DataRepositoryHelpers.cpp" />
-    <ClCompile Include="ExportWriterRepository.cpp" />
-    <ClCompile Include="IndexableTextRepository.cpp" />
-    <ClCompile Include="SQLiteBinaryItemSerializer.cpp" />
-    <ClCompile Include="SQLiteDictionarySchemaReconciler.cpp" />
-    <ClCompile Include="SQLiteDictionarySchemaGenerator.cpp" />
-    <ClCompile Include="SQLiteBlobQuestionnaireSerializer.cpp" />
-    <ClCompile Include="SQLiteQuestionnaireSerializer.cpp" />
+    <ClCompile Include="DictionarySource.cpp" />
     <ClCompile Include="EncryptedSQLiteRepository.cpp" />
     <ClCompile Include="EncryptedSQLiteRepositoryPasswordManager.cpp" />
+    <ClCompile Include="ExportWriterRepository.cpp" />
+    <ClCompile Include="IndexableTextRepository.cpp" />
+    <ClCompile Include="JsonRepository.cpp" />
+    <ClCompile Include="MemoryRepository.cpp" />
     <ClCompile Include="NullRepository.cpp" />
     <ClCompile Include="ParadataWrapperRepository.cpp" />
-    <ClCompile Include="SQLiteRepositoryCaseLoader.cpp" />
+    <ClCompile Include="SQLiteBinaryItemSerializer.cpp" />
+    <ClCompile Include="SQLiteBlobQuestionnaireSerializer.cpp" />
+    <ClCompile Include="SQLiteDictionarySchemaGenerator.cpp" />
+    <ClCompile Include="SQLiteDictionarySchemaReconciler.cpp" />
+    <ClCompile Include="SQLiteQuestionnaireSerializer.cpp" />
     <ClCompile Include="SQLiteRepository.cpp" />
+    <ClCompile Include="SQLiteRepositoryCaseLoader.cpp" />
     <ClCompile Include="SQLiteRepositoryIterators.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SyncBinaryDataUploadManager.cpp" />
+    <ClCompile Include="SyncCaseJsonSerializer.cpp" />
+    <ClCompile Include="SyncCaseSerializer.cpp" />
     <ClCompile Include="TextRepository.cpp" />
     <ClCompile Include="TextRepositoryNotesFile.cpp" />
     <ClCompile Include="TextRepositoryStatusFile.cpp" />
+    <ClCompile Include="WrapperRepository.cpp" />
     <ClCompile Include="zDataO.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -173,6 +192,10 @@
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
       <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
       <Private>false</Private>
@@ -192,6 +215,14 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zDataO.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\CaseComplete.ico" />
+    <Image Include="res\CaseCompleteVerified.ico" />
+    <Image Include="res\CaseDeleted.ico" />
+    <Image Include="res\CasePartialAdd.ico" />
+    <Image Include="res\CasePartialModify.ico" />
+    <Image Include="res\CasePartialVerify.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

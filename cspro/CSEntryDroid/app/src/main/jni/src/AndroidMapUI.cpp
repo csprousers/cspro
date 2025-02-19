@@ -7,223 +7,208 @@
 
 #define JNI_VERSION JNI_VERSION_1_6
 
+
 AndroidMapUI::AndroidMapUI()
     :   m_baseMapDefined(false)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     jobject impl = pEnv->NewObject(JNIReferences::classAndroidMapUI, JNIReferences::methodAndroidMapUIConstructor);
-    java_impl_ = pEnv->NewGlobalRef(impl);
+    m_javaImpl = pEnv->NewGlobalRef(impl);
 }
 
 
 AndroidMapUI::~AndroidMapUI()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    // Release ref to java implementation
-    pEnv->DeleteGlobalRef(java_impl_);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    // Release ref to Java implementation
+    pEnv->DeleteGlobalRef(m_javaImpl);
 }
 
 
-int AndroidMapUI::Show()
+bool AndroidMapUI::Show()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIShow);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIShow);
 }
 
 
-int AndroidMapUI::Hide()
+bool AndroidMapUI::Hide()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIHide);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIHide);
 }
 
 
-int AndroidMapUI::SaveSnapshot(const std::wstring& filename)
+bool AndroidMapUI::SaveSnapshot(const std::string& image_file_path)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jFilename(pEnv, WideToJava(pEnv, filename));
+    JNIReferences::scoped_local_ref<jstring> jFilename(pEnv, JavaString::ToJava(*pEnv, image_file_path));
 
     JNIReferences::scoped_local_ref<jstring> jResult(pEnv,
-        (jstring)pEnv->CallObjectMethod(java_impl_, JNIReferences::methodAndroidMapUISaveSnapshot, jFilename.get()));
+        (jstring)pEnv->CallObjectMethod(m_javaImpl, JNIReferences::methodAndroidMapUISaveSnapshot, jFilename.get()));
 
     if( jResult.get() == nullptr )
     {
-        return 1;
+        return true;
     }
 
     else
     {
-        throw CSProException(JavaToWSZ(pEnv, jResult.get()));
+        throw CSProException(JavaString::ToUtf8(*pEnv, jResult.get()));
     }
 }
 
 
-int AndroidMapUI::AddMarker(double latitude, double longitude)
+int AndroidMapUI::AddMarker(const double latitude, const double longitude)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIAddMarker,
-        latitude, longitude);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddMarker,
+                               latitude, longitude);
 }
 
 
-int AndroidMapUI::RemoveMarker(int marker_id)
+bool AndroidMapUI::RemoveMarker(const int marker_id)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIRemoveMarker,
-        marker_id);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIRemoveMarker,
+                               marker_id);
 }
 
 
 void AndroidMapUI::ClearMarkers()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return pEnv->CallVoidMethod(java_impl_, JNIReferences::methodAndroidMapUIClearMarkers);
+    return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearMarkers);
 }
 
 
-int AndroidMapUI::SetMarkerImage(int marker_id, std::wstring image_file_path)
+bool AndroidMapUI::SetMarkerImage(const int marker_id, const std::string& image_file_path)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_image_file_path = WideToJava(pEnv, image_file_path);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jImageFilePath(pEnv, JavaString::ToJava(*pEnv, image_file_path));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerImage,
-        marker_id, j_image_file_path);
-
-    pEnv->DeleteLocalRef(j_image_file_path);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerImage,
+                               marker_id, jImageFilePath.get());
 }
 
 
-int AndroidMapUI::SetMarkerText(int marker_id, std::wstring text, int background_color, int text_color)
+bool AndroidMapUI::SetMarkerText(const int marker_id, const SharableString text, const int background_color, const int text_color)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_text = WideToJava(pEnv, text);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jText(pEnv, JavaString::ToJava(*pEnv, *text));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerText,
-        marker_id, j_text, background_color, text_color);
-
-    pEnv->DeleteLocalRef(j_text);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerText,
+                               marker_id, jText.get(), background_color, text_color);
 }
 
 
-int AndroidMapUI::SetMarkerOnClick(int marker_id, int on_click_callback)
+bool AndroidMapUI::SetMarkerOnClick(const int marker_id, const int on_click_callback)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerOnClick,
-        marker_id, on_click_callback);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerOnClick,
+                               marker_id, on_click_callback);
 }
 
 
-int AndroidMapUI::SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback)
+bool AndroidMapUI::SetMarkerOnClickInfoWindow(const int marker_id, const int on_click_callback)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerOnClickInfoWindow,
-        marker_id, on_click_callback);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerOnClickInfoWindow,
+                               marker_id, on_click_callback);
 }
 
 
-int AndroidMapUI::SetMarkerOnDrag(int marker_id, int on_drag_callback)
+bool AndroidMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callback)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerOnDrag,
-        marker_id, on_drag_callback);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerOnDrag,
+                               marker_id, on_drag_callback);
 }
 
 
-int AndroidMapUI::SetMarkerDescription(int marker_id, std::wstring description)
+bool AndroidMapUI::SetMarkerDescription(const int marker_id, const SharableString description)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_description = WideToJava(pEnv, description);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jDescription(pEnv, JavaString::ToJava(*pEnv, *description));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerDescription,
-        marker_id, j_description);
-
-    pEnv->DeleteLocalRef(j_description);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerDescription,
+                               marker_id, jDescription.get());
 }
 
 
-int AndroidMapUI::SetMarkerLocation(int marker_id, double latitude, double longitude)
+bool AndroidMapUI::SetMarkerLocation(const int marker_id, const double latitude, const double longitude)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetMarkerLocation,
-        marker_id, latitude, longitude);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerLocation,
+                               marker_id, latitude, longitude);
 }
 
 
-int AndroidMapUI::GetMarkerLocation(int marker_id, double& latitude, double& longitude)
+std::optional<std::tuple<double, double>> AndroidMapUI::GetMarkerLocation(const int marker_id)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    jdoubleArray j_location = pEnv->NewDoubleArray(2);
+    jdoubleArray jLocation = pEnv->NewDoubleArray(2);
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIGetMarkerLocation,
-            marker_id, j_location);
+    std::optional<std::tuple<double, double>> marker_location;
 
-    jdouble *location = pEnv->GetDoubleArrayElements(j_location, nullptr);
-    latitude = location[0];
-    longitude = location[1];
-    pEnv->ReleaseDoubleArrayElements(j_location, location, JNI_ABORT);
-    pEnv->DeleteLocalRef(j_location);
+    if( pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIGetMarkerLocation,
+                            marker_id, jLocation) == 1 )
+    {
+        jdouble* const location = pEnv->GetDoubleArrayElements(jLocation, nullptr);
+        marker_location.emplace(location[0], location[1]);
+        pEnv->ReleaseDoubleArrayElements(jLocation, location, JNI_ABORT);
+    }
 
-    return return_code;
+    pEnv->DeleteLocalRef(jLocation);
+
+    return marker_location;
 }
 
 
-int AndroidMapUI::AddImageButton(std::wstring image_path, int on_click_callback)
+int AndroidMapUI::AddImageButton(const std::string& image_file_path, const int on_click_callback)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_image_path = WideToJava(pEnv, image_path);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jImageFilePath(pEnv, JavaString::ToJava(*pEnv, image_file_path));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIAddImageButton,
-        j_image_path, on_click_callback);
-
-    pEnv->DeleteLocalRef(j_image_path);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddImageButton,
+                               jImageFilePath.get(), on_click_callback);
 }
 
 
-int AndroidMapUI::AddTextButton(std::wstring label, int on_click_callback)
+int AndroidMapUI::AddTextButton(const SharableString label, const int on_click_callback)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_label = WideToJava(pEnv, label);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jLabel(pEnv, JavaString::ToJava(*pEnv, *label));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIAddTextButton,
-        j_label, on_click_callback);
-
-    pEnv->DeleteLocalRef(j_label);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddTextButton,
+                               jLabel.get(), on_click_callback);
 }
 
 
-int AndroidMapUI::RemoveButton(int button_id)
+bool AndroidMapUI::RemoveButton(const int button_id)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIRemoveButton,
-        button_id);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIRemoveButton,
+                               button_id);
 }
 
 
 void AndroidMapUI::ClearButtons()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return pEnv->CallVoidMethod(java_impl_, JNIReferences::methodAndroidMapUIClearButtons);
+    return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearButtons);
 }
 
 
@@ -233,28 +218,26 @@ bool AndroidMapUI::IsBaseMapDefined() const
 }
 
 
-int AndroidMapUI::SetBaseMap(const BaseMapSelection& base_map_selection)
+bool AndroidMapUI::SetBaseMap(const BaseMapSelection base_map_selection)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetBaseMap,
-        CreateJavaBaseMapSelection(pEnv, base_map_selection));
+    m_baseMapDefined = ( pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetBaseMap,
+                                             CreateJavaBaseMapSelection(pEnv, base_map_selection)) == 1 );
 
-    m_baseMapDefined = ( return_code == 1 );
-
-    return return_code;
+    return m_baseMapDefined;
 }
 
 
-jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* pEnv, const BaseMapSelection& base_map_selection)
+jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* const pEnv, const BaseMapSelection& base_map_selection)
 {
     jint jType;
-    JNIReferences::scoped_local_ref<jstring> jFilename(pEnv);
+    JNIReferences::scoped_local_ref<jstring> jFilePath(pEnv);
 
-    if( std::holds_alternative<std::wstring>(base_map_selection) )
+    if( std::holds_alternative<std::string>(base_map_selection) )
     {
         jType = 0;
-        jFilename.reset(WideToJava(pEnv, std::get<std::wstring>(base_map_selection)));
+        jFilePath.reset(JavaString::ToJava(*pEnv, std::get<std::string>(base_map_selection)));
     }
 
     else
@@ -264,62 +247,61 @@ jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* pEnv, const BaseMapSele
 
     return pEnv->NewObject(JNIReferences::classBaseMapSelection,
                            JNIReferences::methodBaseMapSelectionConstructor,
-                           jType, jFilename.get());
+                           jType, jFilePath.get());
 }
 
 
-int AndroidMapUI::SetShowCurrentLocation(bool show)
+bool AndroidMapUI::SetShowCurrentLocation(const bool show)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetShowCurrentLocation, show);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetShowCurrentLocation,
+                               show);
 }
 
 
-int AndroidMapUI::SetTitle(std::wstring title)
+bool AndroidMapUI::SetTitle(SharableString title)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    jstring j_title = WideToJava(pEnv, title);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, *title));
 
-    jint return_code = (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetTitle,
-        j_title);
-
-    pEnv->DeleteLocalRef(j_title);
-
-    return return_code;
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetTitle,
+                               jTitle.get());
 }
 
 
-int AndroidMapUI::ZoomTo(double latitude, double longitude, double zoom/* = -1*/)
+bool AndroidMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIZoomToPoint,
-        latitude, longitude, zoom);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToPoint,
+                              latitude, longitude, zoom);
 }
 
 
-int AndroidMapUI::ZoomTo(double minLat, double minLong, double maxLat, double maxLong, double paddingPercent/* = 0*/)
+bool AndroidMapUI::ZoomTo(const double min_latitude, const double min_longitude,
+                          const double max_latitude, const double max_longitude,
+                          const double padding_percent/* = 0*/)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIZoomToBounds,
-        minLat, minLong, maxLat, maxLong, paddingPercent);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToBounds,
+                               min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
 }
 
 
 void AndroidMapUI::Clear()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    pEnv->CallVoidMethod(java_impl_, JNIReferences::methodAndroidMapUIClear);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClear);
     m_baseMapDefined = false;
 }
 
 
 IMapUI::MapEvent AndroidMapUI::WaitForEvent()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    auto jevent = (jobject) pEnv->CallObjectMethod(java_impl_, JNIReferences::methodAndroidMapUIWaitForEvent);
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    jobject jevent = (jobject)pEnv->CallObjectMethod(m_javaImpl, JNIReferences::methodAndroidMapUIWaitForEvent);
 
     jint event_code = pEnv->GetIntField(jevent, JNIReferences::fieldMapEventEventCode);
     jint event_marker_id = pEnv->CallIntMethod(jevent, JNIReferences::methodMapEventGetMarkerId);
@@ -333,7 +315,12 @@ IMapUI::MapEvent AndroidMapUI::WaitForEvent()
     jfloat cameraZoom = pEnv->GetFloatField(jcamera, JNIReferences::fieldMapCameraPositionZoom);
     jfloat cameraBearing = pEnv->GetFloatField(jcamera, JNIReferences::fieldMapCameraPositionBearing);
 
-    IMapUI::MapEvent event{(IMapUI::EventCode) event_code, event_marker_id, callback, latitude, longitude, MapCamera{cameraLatitude, cameraLongitude, cameraZoom, cameraBearing}};
+    MapEvent event { static_cast<EventCode>(event_code),
+                     event_marker_id,
+                     callback,
+                     latitude,
+                     longitude,
+                     MapCamera { cameraLatitude, cameraLongitude, cameraZoom, cameraBearing } };
 
     pEnv->DeleteLocalRef(jevent);
     pEnv->DeleteLocalRef(jcamera);
@@ -342,12 +329,13 @@ IMapUI::MapEvent AndroidMapUI::WaitForEvent()
 }
 
 
-int AndroidMapUI::SetCamera(const IMapUI::MapCamera &camera) {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+bool AndroidMapUI::SetCamera(const MapCamera& camera)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     JNIReferences::scoped_local_ref<jobject> jCamera(pEnv, pEnv->NewObject(JNIReferences::classMapCameraPosition, JNIReferences::methodMapCameraPositionConstructor,
-                                                                            camera.latitude_, camera.longitude_, camera.zoom_, camera.bearing_));
-    return (jint)pEnv->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUISetCamera, jCamera.get());
+                                                                           camera.latitude, camera.longitude, camera.zoom, camera.bearing));
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetCamera, jCamera.get());
 }
 
 
@@ -355,26 +343,26 @@ int AndroidMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection>
 {
     ASSERT(geometry != nullptr && bounds != nullptr);
 
-    JNIEnv* env = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    auto jfeature_collection = GeometryJni::featureCollectionToJava(env, *geometry, *bounds);
+    auto jFeatureCollection = GeometryJni::featureCollectionToJava(pEnv, *geometry, *bounds);
 
-    return (jint)env->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIAddGeometry, jfeature_collection.get());
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddGeometry, jFeatureCollection.get());
 }
 
 
-int AndroidMapUI::RemoveGeometry(int geometry_id)
+bool AndroidMapUI::RemoveGeometry(const int geometry_id)
 {
-    JNIEnv* env = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return (jint)env->CallIntMethod(java_impl_, JNIReferences::methodAndroidMapUIRemoveGeometry,
-        geometry_id);
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIRemoveGeometry,
+                               geometry_id);
 }
 
 
 void AndroidMapUI::ClearGeometry()
 {
-    JNIEnv* env = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    return env->CallVoidMethod(java_impl_, JNIReferences::methodAndroidMapUIClearGeometry);
+    return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearGeometry);
 }

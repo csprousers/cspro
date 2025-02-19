@@ -1,57 +1,57 @@
 ﻿#include "stdafx.h"
 #include "TextConverterDlg.h"
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/WindowsWS.h>
 
 
 // 20120123 utility to convert text files from ANSI->UTF8 or from UTF8->ANSI; borrowed liberally from CSConcat
 
 
-BEGIN_MESSAGE_MAP(CTextConverterDlg, CDialog)
+BEGIN_MESSAGE_MAP(TextConverterDlg, CDialog)
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
-    ON_BN_CLICKED(IDC_ADD, &CTextConverterDlg::OnBnClickedAdd)
-    ON_BN_CLICKED(IDC_REMOVE, &CTextConverterDlg::OnBnClickedRemove)
-    ON_BN_CLICKED(IDC_CLEAR, &CTextConverterDlg::OnBnClickedClear)
-    ON_BN_CLICKED(IDOK, &CTextConverterDlg::OnBnClickedOk)
-    ON_BN_CLICKED(IDC_UTF8, &CTextConverterDlg::OnBnClickedUtf8)
+    ON_BN_CLICKED(IDC_ADD, OnBnClickedAdd)
+    ON_BN_CLICKED(IDC_REMOVE, OnBnClickedRemove)
+    ON_BN_CLICKED(IDC_CLEAR, OnBnClickedClear)
+    ON_BN_CLICKED(IDOK, OnBnClickedOk)
+    ON_BN_CLICKED(IDC_UTF8, OnBnClickedUtf8)
 END_MESSAGE_MAP()
 
 
-CTextConverterDlg::CTextConverterDlg(CWnd* pParent /* = nullptr*/)
-    :   CDialog(CTextConverterDlg::IDD, pParent)
+TextConverterDlg::TextConverterDlg(CWnd* const pParent/* = nullptr*/)
+    :   CDialog(IDD_TEXTCONVERTER, pParent),
+        m_hIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME))
 {
-    m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 
-void CTextConverterDlg::DoDataExchange(CDataExchange* pDX)
+void TextConverterDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_FILELIST, m_fileList);
 }
 
 
-BOOL CTextConverterDlg::OnInitDialog()
+BOOL TextConverterDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     // Set the icon for this dialog.  The framework does this automatically
     //  when the application's main window is not a dialog
     SetIcon(m_hIcon, TRUE);         // Set big icon
     SetIcon(m_hIcon, FALSE);        // Set small icon
 
-    CheckRadioButton(IDC_ANSI,IDC_UTF8,IDC_ANSI); // default to convert to ansi
+    CheckRadioButton(IDC_ANSI, IDC_UTF8, IDC_ANSI); // default to convert to ansi
     UpdateRunButton();
 
     m_fileList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_fileList.SetHeadings(_T("Name,500;Encoding,100"));
+    m_fileList.SetHeadings(L"Name,500;Encoding,100");
     m_fileList.LoadColumnInfo();
 
     // set up the callback to allow the dragging of files onto the list of files to convert
     m_fileList.InitializeDropFiles(DropFilesListCtrl::DirectoryHandling::RecurseInto,
-        [&](const std::vector<std::wstring>& paths)
+        [&](const std::vector<std::string>& paths)
         {
             OnDropFiles(paths);
         });
@@ -60,12 +60,11 @@ BOOL CTextConverterDlg::OnInitDialog()
 }
 
 
-// If you add a minimize button to your dialog, you will need the code below
-//  to draw the icon.  For MFC applications using the document/view model,
-//  this is automatically done for you by the framework.
-
-void CTextConverterDlg::OnPaint()
+void TextConverterDlg::OnPaint()
 {
+    // If you add a minimize button to your dialog, you will need the code below
+    //  to draw the icon.  For MFC applications using the document/view model,
+    //  this is automatically done for you by the framework.
     if( IsIconic() )
     {
         CPaintDC dc(this); // device context for painting
@@ -86,42 +85,41 @@ void CTextConverterDlg::OnPaint()
 
     else
     {
-        CDialog::OnPaint();
+        __super::OnPaint();
     }
 }
 
 
-// The system calls this function to obtain the cursor to display while the user drags
-//  the minimized window.
-HCURSOR CTextConverterDlg::OnQueryDragIcon()
+HCURSOR TextConverterDlg::OnQueryDragIcon()
 {
+    // The system calls this function to obtain the cursor to display while the user drags
+    //  the minimized window.
     return static_cast<HCURSOR>(m_hIcon);
 }
 
 
-void CTextConverterDlg::OnBnClickedAdd()
+void TextConverterDlg::OnBnClickedAdd()
 {
-    SetCurrentDirectory(AfxGetApp()->GetProfileString(_T("Settings"), _T("Last Data Folder")));
+    SetCurrentDirectory(AfxGetApp()->GetProfileString(L"Settings", L"Last Data Folder"));
 
-    CIMSAFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT,
-                        _T("Files To Convert (*.*)|*.*|"), AfxGetApp()->GetMainWnd(), CFD_NO_DIR);
-    dlg.m_ofn.lpstrTitle = _T("Select Files To Convert");
-    dlg.SetMultiSelectBuffer();
+    OpenFileDlg open_file_dlg(0, nullptr, nullptr, L"Files To Convert (*.*)|*.*||", this);
+    open_file_dlg.SetTitle(L"Select Files To Convert")
+                 .SetMultiSelectBuffer();
 
-    if( dlg.DoModal() != IDOK )
+    if( open_file_dlg.DoModal() != IDOK )
         return;
 
-    for( int i = 0; i < dlg.m_aFileName.GetSize(); ++i )
-        AddFile(dlg.m_aFileName[i]);
+    for( const std::string& file_path : open_file_dlg.GetFilePaths() )
+        AddFile(file_path);
 
-    AfxGetApp()->WriteProfileString(_T("Settings"), _T("Last Data Folder"),
-                                    PortableFunctions::PathGetDirectory(dlg.m_aFileName.GetAt(0)).c_str());
+    AfxGetApp()->WriteProfileString(L"Settings", L"Last Data Folder",
+                                    TC::ToWide(PortableFunctions::PathGetDirectory(open_file_dlg.GetFilePaths().front())).c_str());
 
     UpdateRunButton();
 }
 
 
-void CTextConverterDlg::OnBnClickedRemove()
+void TextConverterDlg::OnBnClickedRemove()
 {
     int first_selected_index = m_fileList.GetSelectionMark();
     std::vector<int> deleted_indices;
@@ -143,14 +141,14 @@ void CTextConverterDlg::OnBnClickedRemove()
 }
 
 
-void CTextConverterDlg::OnBnClickedClear()
+void TextConverterDlg::OnBnClickedClear()
 {
     m_fileList.DeleteAllItems();
     UpdateRunButton();
 }
 
 
-void CTextConverterDlg::OnBnClickedOk()
+void TextConverterDlg::OnBnClickedOk()
 {
     CWaitCursor waitCursor;
 
@@ -172,7 +170,7 @@ void CTextConverterDlg::OnBnClickedOk()
 
         else
         {
-            std::wstring filename = m_fileList.GetItemText(i, 0);
+            const std::string file_path = TC::ToUtf8(m_fileList.GetItemText(i, 0));
 
             if( convert_to_ansi )
             {
@@ -183,8 +181,8 @@ void CTextConverterDlg::OnBnClickedOk()
 
                 else
                 {
-                    CStdioFileUnicode::ConvertUTF8ToAnsi(filename) ? ++converted_files :
-                                                                     ++failed_conversions;
+                    CStdioFileUnicode::ConvertUTF8ToAnsi(file_path) ? ++converted_files :
+                                                                      ++failed_conversions;
                 }
             }
 
@@ -192,13 +190,13 @@ void CTextConverterDlg::OnBnClickedOk()
             {
                 if( encoding == Encoding::Utf8 )
                 {
-                    not_necessary_files++;
+                    ++not_necessary_files;
                 }
 
                 else
                 {
-                    CStdioFileUnicode::ConvertAnsiToUTF8(filename) ? ++converted_files :
-                                                                     ++failed_conversions;
+                    CStdioFileUnicode::ConvertAnsiToUTF8(file_path) ? ++converted_files :
+                                                                      ++failed_conversions;
                 }
             }
         }
@@ -206,28 +204,28 @@ void CTextConverterDlg::OnBnClickedOk()
 
     RefreshEncodings();
 
-    std::vector<std::wstring> messages;
+    std::vector<std::string> messages;
 
     if( converted_files )
-        messages.emplace_back(FormatTextCS2WS(_T("%d files converted to %s successfully."), converted_files, convert_to_ansi ? _T("ANSI") : _T("UTF-8")));
+        messages.emplace_back(FormatText("%d files converted to %s successfully.", converted_files, convert_to_ansi ? "ANSI" : "UTF-8"));
 
     if( failed_conversions )
-        messages.emplace_back(FormatTextCS2WS(_T("%d files failed during the conversion process."), failed_conversions));
+        messages.emplace_back(FormatText("%d files failed during the conversion process.", failed_conversions));
 
     if( skipped_files )
-        messages.emplace_back(FormatTextCS2WS(_T("%d files were skipped to due incompatible encodings."), skipped_files));
+        messages.emplace_back(FormatText("%d files were skipped to due incompatible encodings.", skipped_files));
 
     if( not_necessary_files )
-        messages.emplace_back(FormatTextCS2WS(_T("%d files were not converted as they were already in the correct encoding."), not_necessary_files));
+        messages.emplace_back(FormatText("%d files were not converted as they were already in the correct encoding.", not_necessary_files));
 
     if( converted_files && convert_to_ansi )
-        messages.emplace_back(_T("A loss of data may have occurred during the UTF-8 -> ANSI conversion."));
+        messages.emplace_back("A loss of data may have occurred during the UTF-8 -> ANSI conversion.");
 
-    AfxMessageBox(SO::CreateSingleString(messages, _T("\n")), MB_ICONINFORMATION);
+    AfxMessageBox(SO::CreateSingleString(messages, SO::Newline_lf_sv), MB_ICONINFORMATION);
 }
 
 
-void CTextConverterDlg::UpdateRunButton()
+void TextConverterDlg::UpdateRunButton()
 {
     GetDlgItem(IDOK)->EnableWindow(m_fileList.GetItemCount());
     GetDlgItem(IDC_REMOVE)->EnableWindow(m_fileList.GetItemCount());
@@ -235,25 +233,25 @@ void CTextConverterDlg::UpdateRunButton()
 }
 
 
-void CTextConverterDlg::RefreshEncodings()
+void TextConverterDlg::RefreshEncodings()
 {
     for( int i = 0; i < m_fileList.GetItemCount(); ++i )
     {
         Encoding encoding;
         GetFileBOM(m_fileList.GetItemText(i, 0), encoding);
 
-        m_fileList.SetItemText(i, 1, ToString(encoding));
+        m_fileList.SetItemText(i, 1, TC::ToWide(ToString(encoding)).c_str());
         m_fileList.SetItemData(i, static_cast<DWORD>(encoding));
     }
 }
 
 
-void CTextConverterDlg::OnDropFiles(const std::vector<std::wstring>& filenames)
+void TextConverterDlg::OnDropFiles(const std::vector<std::string>& paths)
 {
     const int nIndex = m_fileList.GetItemCount();
 
-    for( const std::wstring& filename : filenames )
-        AddFile(filename);
+    for( const std::string& path : paths )
+        AddFile(path);
 
     m_fileList.EnsureVisible(nIndex - 1, FALSE);
 
@@ -261,30 +259,32 @@ void CTextConverterDlg::OnDropFiles(const std::vector<std::wstring>& filenames)
 }
 
 
-void CTextConverterDlg::OnBnClickedUtf8() // 20120620
+void TextConverterDlg::OnBnClickedUtf8() // 20120620
 {
     static bool shown_message = false;
 
     if( !shown_message )
     {
-        AfxMessageBox(_T("CSPro applications automatically upconvert files to UTF-8 if necessary, so this functionality may not be necessary for you.\n")
-                      _T("Converting non-text files to UTF-8 is destructive and can ruin the file."));
+        AfxMessageBox(L"CSPro applications automatically upconvert files to UTF-8 if necessary, so this functionality may not be necessary for you.\n"
+                      L"Converting non-text files to UTF-8 is destructive and can ruin the file.");
 
         shown_message = true;
     }
 }
 
 
-void CTextConverterDlg::AddFile(NullTerminatedString filename) // 20120620
+void TextConverterDlg::AddFile(const std::string& file_path) // 20120620
 {
-    LVFINDINFO rlvFind = { LVFI_STRING, filename.c_str() };
+    const std::wstring wide_file_path = TC::ToWide(file_path);
+
+    LVFINDINFO rlvFind = { LVFI_STRING, wide_file_path.c_str() };
 
     if( m_fileList.FindItem(&rlvFind) == -1 ) // it's not already in the list
     {
         Encoding encoding;
-        GetFileBOM(filename, encoding);
+        GetFileBOM(file_path, encoding);
 
-        const int item = m_fileList.AddItem(filename.c_str(), ToString(encoding));
+        const int item = m_fileList.AddItem(wide_file_path.c_str(), TC::ToWide(ToString(encoding)).c_str());
         m_fileList.SetItemData(item, static_cast<DWORD>(encoding));
     }
 }

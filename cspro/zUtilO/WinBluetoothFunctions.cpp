@@ -1,9 +1,11 @@
 ﻿#include "StdAfx.h"
 #include "WinBluetoothFunctions.h"
 
+
 WinBluetoothFunctions::WinBluetoothFunctions()
 {
 }
+
 
 std::shared_ptr<WinBluetoothFunctions> WinBluetoothFunctions::instance()
 {
@@ -11,9 +13,10 @@ std::shared_ptr<WinBluetoothFunctions> WinBluetoothFunctions::instance()
     return pInstance;
 }
 
+
 WinBluetoothFunctions* WinBluetoothFunctions::create()
 {
-    auto dll = ::LoadLibraryW(L"bthprops.cpl");
+    HMODULE dll = ::LoadLibraryW(L"bthprops.cpl");
     if (!dll)
         return nullptr;
 

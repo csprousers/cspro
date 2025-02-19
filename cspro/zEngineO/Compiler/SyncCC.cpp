@@ -2,6 +2,7 @@
 #include "IncludesCC.h"
 #include "EngineDictionary.h"
 #include "Nodes/Dictionaries.h"
+#include <zLogicO/BaseCompilerSettings.h>
 #include <engine/Dict.h>
 
 
@@ -44,10 +45,10 @@ int LogicCompiler::CompileSyncFunctions()
         return symbol.GetSymbolIndex();
     };
 
-    auto read_direction = [&](bool allow_both)
+    auto read_direction = [&](const bool allow_both)
     {
-        const TCHAR* const directions[] = { _T("put"), _T("get"), _T("both") };
-        const std::vector<const TCHAR*> valid_directions(directions, directions + _countof(directions) + ( allow_both ? 0 : -1 ));
+        constexpr const char* directions[] = { "put", "get", "both" };
+        const cs::span<const char* const> valid_directions(directions, directions + _countof(directions) + ( allow_both ? 0 : -1 ));
 
         int direction = static_cast<int>(NextKeyword(valid_directions));
         NextToken();
@@ -62,10 +63,10 @@ int LogicCompiler::CompileSyncFunctions()
                 std::optional<int> direction_override;
 
                 direction = -1 * CompileStringExpressionWithStringLiteralCheck(
-                    [&](const std::wstring& text)
+                    [&](const std::string& text)
                     {
                         const auto& lookup = std::find_if(valid_directions.cbegin(), valid_directions.cend(),
-                                                          [&](const std::wstring& direction_text) { return SO::EqualsNoCase(direction_text, text); });
+                                                          [&](const char* const direction_text) { return SO::EqualsNoCase(direction_text, text); });
 
                         if( lookup == valid_directions.cend() )
                             issue_error();
@@ -86,7 +87,7 @@ int LogicCompiler::CompileSyncFunctions()
         return direction;
     };
 
-    auto finalize_compilation = [&](cs::span<const int> arguments)
+    auto finalize_compilation = [&](const cs::span<const int> arguments)
     {
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
@@ -101,66 +102,95 @@ int LogicCompiler::CompileSyncFunctions()
     // --------------------------------------------------------------------------
     if( function_code == FunctionCode::FNSYNC_CONNECT_CODE )
     {
-        size_t connection_type = NextKeywordOrError({ _T("CSWeb"), _T("Bluetooth"), _T("Dropbox"), _T("FTP"),
-                                                      _T("LocalDropbox"), _T("LocalFiles") });
-
-        NextToken();
-
+        constexpr const char* service_types[] = { "CSWeb", "Bluetooth", "Dropbox", "FTP", "LocalDropbox", "LocalFiles" };
+        size_t connection_type = NextKeyword(service_types);
         int host_or_server_device_name = -1;
         int username = -1;
         int password = -1;
 
-        switch( connection_type )
+        // allow the sync service to be specified using a sync connection string
+        if( connection_type == 0 )
         {
-            // CSWeb/FTP - require host, optional username and password
-            case 1:
-            case 4:
+            bool sync_connection_string_specified;
+
+            // suppress error reporting while getting the next token so that invalid
+            // keywords like "Dropbox2" can be processed properly
+            try
             {
-                IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
+                Logic::BaseCompilerSettings compiler_settings_modifier = ModifyCompilerSettings();
+                compiler_settings_modifier.SuppressErrorReporting();
 
                 NextToken();
-                host_or_server_device_name = CompileStringExpression();
+                sync_connection_string_specified = IsCurrentTokenString();
+            }
 
-                if( Tkn == TOKCOMMA )
+            catch( const Logic::ParserError& )
+            {
+                sync_connection_string_specified = false;
+            }
+
+            if( !sync_connection_string_specified )
+                IssueError(94001, SO::CreateSingleString(tcb::make_span(service_types)).c_str());
+
+            host_or_server_device_name = CompileStringExpression();
+        }
+
+        else
+        {
+            NextToken();
+
+            switch( connection_type )
+            {
+                // CSWeb/FTP - require host, optional username and password
+                case 1:
+                case 4:
                 {
-                    NextToken();
-                    username = CompileStringExpression();
-
                     IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
                     NextToken();
-                    password = CompileStringExpression();
+                    host_or_server_device_name = CompileStringExpression();
+
+                    if( Tkn == TOKCOMMA )
+                    {
+                        NextToken();
+                        username = CompileStringExpression();
+
+                        IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
+
+                        NextToken();
+                        password = CompileStringExpression();
+                    }
+
+                    break;
                 }
 
-                break;
-            }
-
-            // Bluetooth - optional serverDeviceName
-            case 2:
-            {
-                if( Tkn == TOKCOMMA )
+                // Bluetooth - optional serverDeviceName
+                case 2:
                 {
+                    if( Tkn == TOKCOMMA )
+                    {
+                        NextToken();
+                        host_or_server_device_name = CompileStringExpression();
+                    }
+
+                    break;
+                }
+
+                // Dropbox - no additional parameters
+                case 3:
+                case 5:
+                    break;
+
+                // LocalFiles - directory path
+                case 6:
+                {
+                    IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
+
                     NextToken();
                     host_or_server_device_name = CompileStringExpression();
+
+                    break;
                 }
-
-                break;
-            }
-
-            // Dropbox - no additional parameters
-            case 3:
-            case 5:
-                break;
-
-            // Local filesystem - path
-            case 6:
-            {
-                IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
-
-                NextToken();
-                host_or_server_device_name = CompileStringExpression();
-
-                break;
             }
         }
 
@@ -226,7 +256,7 @@ int LogicCompiler::CompileSyncFunctions()
     {
         constexpr int BluetoothCode = 2;
 
-        NextKeywordOrError({ _T("Bluetooth") });
+        NextKeywordOrError({ "Bluetooth" });
 
         NextToken();
 
@@ -251,14 +281,18 @@ int LogicCompiler::CompileSyncFunctions()
 
         NextToken();
 
-        int key_expression = CompileStringExpression();
-
-        int value_expression = -1;
+        const int key_expression = CompileStringExpression();
+        int value_expression;
 
         if( Tkn == TOKCOMMA )
         {
             NextToken();
             value_expression = CompileStringExpression();
+        }
+
+        else
+        {
+             value_expression = -1;
         }
 
         return finalize_compilation({ MessageType, key_expression, value_expression });

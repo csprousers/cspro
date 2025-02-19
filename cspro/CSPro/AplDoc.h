@@ -21,19 +21,32 @@ class CAplDoc : public CDocument
 {
     friend class CCSProApp;
 
-protected:
-    CAplDoc();           // protected constructor used by dynamic creation
     DECLARE_DYNCREATE(CAplDoc)
 
-// Attributes
+protected:
+    CAplDoc();           // protected constructor used by dynamic creation
+
 public:
+    ~CAplDoc();
+
+    // Attributes
     const Application& GetAppObject() const           { return *m_application; }
     Application& GetAppObject()                       { return *m_application; }
     std::shared_ptr<Application> GetSharedAppObject() { return m_application; }
 
+    void ReplaceAppObject(std::unique_ptr<Application> application);
+
     HTREEITEM BuildAllTrees();
+
     EngineAppType GetEngineAppType() const { return m_application->GetEngineAppType(); }
+
+    std::vector<std::tuple<std::string, std::shared_ptr<CDataDict>>> GetAllDictionaries(); // path / dictionary
     std::vector<const CDataDict*> GetAllDictsInApp();
+
+    std::vector<std::tuple<std::string, std::shared_ptr<CDEFormFile>>> GetAllFormFiles(); // path / form file
+
+    std::vector<std::tuple<std::string, std::shared_ptr<CTabSet>>> GetAllTableSpecs(); // path / table spec
+
     void SetAppObjects(void);
     BOOL OpenAllDocuments();
     bool IsAppModified();
@@ -46,14 +59,9 @@ public:
 
     void RefreshExternalLogicAndReportNodes();
 
-public:
-    static void AddDefaultCodeFile(Application& application, std::optional<CString> base_filename = std::nullopt);
     std::shared_ptr<TextSourceEditable> GetLogicMainCodeFileTextSource();
-
-    static void AddDefaultMessageFile(Application& application, std::optional<CString> base_filename = std::nullopt);
     std::shared_ptr<TextSourceEditable> GetMessageTextSource();
 
-public:
     BOOL AreAplDictsOK(void);
     bool m_bIsClosing;
     std::shared_ptr<CapiQuestionManager> m_pQuestMgr;
@@ -79,12 +87,14 @@ private:
     void SaveOrderDicts();
     void SaveTableDicts();
 
-    BOOL ProcessForms(const CString& name) const;
-    BOOL ProcessFormDicts(const CString& name) const;
-    BOOL ProcessEDicts(const CString& name) const;
+    bool IsNameUniqueInForms(const CString& name) const;
+    bool IsNameUniqueInFormDictionaries(const CString& name) const;
+    bool IsNameUniqueInExternalDictionaries(const CString& name) const;
 
-    BOOL ProcessOrders(const CString& name) const;
-    BOOL ProcessOrderDicts(const CString& name) const;
+    bool IsNameUniqueInOrders(const CString& name) const;
+    bool IsNameUniqueInOrderDictionaries(const CString& name) const;
+
+    static CString GetCapiItemName(const CDEItemBase* pBase);
 
 public:
     bool IsNameUnique(const CDocument* pDoc, const CString& name) const;
@@ -92,43 +102,21 @@ public:
     BOOL Reconcile(BOOL bSilent = FALSE);
     std::vector<CString> GetOrder() const;
     void ReconcileDictTypes();
-    bool FindDictName(const std::wstring& sDictName, const std::wstring& sFormName);
+    bool FindDictName(const std::string& dictionary_file_path, const std::wstring& sFormName);
     void BuildQuestMgr();
-    CString GetCapiTextForFirstCondition(CDEItemBase* pBase, wstring_view language_name = wstring_view());
-    void SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, wstring_view language_name = wstring_view());
+    std::string GetCapiTextForFirstCondition(CDEItemBase* pBase, cs::cref_optional<std::string> language_name = std::nullopt);
+    void SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, const std::string& language_name = SO::Empty_string);
     bool IsQHAvailable(const CDEItemBase* pBase);
     bool GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo);
     void ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo);
     void ChangeCapiName(const CDEItemBase* pItem, const CString& old_name);
     void ChangeCapiDictName(const CDataDict& dictionary);
 
-// Operations
-public:
+    BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
+    void OnCloseDocument() override;
+    BOOL OnSaveDocument(LPCTSTR lpszPathName) override;
 
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CAplDoc)
-    public:
-    virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
-    virtual void OnCloseDocument();
-    virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
-    protected:
-    virtual BOOL OnNewDocument();
-    //}}AFX_VIRTUAL
-
-// Implementation
-public:
-    virtual ~CAplDoc();
-#ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
-#endif
-
-    // Generated message map functions
 protected:
-    //{{AFX_MSG(CAplDoc)
-    afx_msg void OnFileClose();
-    //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };
 

@@ -11,37 +11,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CaptureInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DDClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zDictO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ValueProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ValueSetResponse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictionaryComparer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ItemIndexHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictionaryValidator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CaptureInfo.cpp">
+    <ClCompile Include="Definitions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictionaryComparer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictionaryValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictLevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DictNamedBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictRecord.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictRelation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictValue.cpp">
@@ -53,75 +53,69 @@
     <ClCompile Include="DictValueSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Definitions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictRecord.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictLevel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictRelation.cpp">
+    <ClCompile Include="ItemIndexHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Pre80SpecFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ValueSetFixer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueSetResponse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zDictO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CaptureInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DDClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zDictO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueSetResponse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DictionaryComparer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ItemIndex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ItemIndexHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DictionaryIterator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DictionaryCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rules.h">
+    <ClInclude Include="DictBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryComparer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryIterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionarySerializerHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryValidator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CaptureInfo.h">
+    <ClInclude Include="DictItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictBase.h">
+    <ClInclude Include="DictLevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictNamedBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictRecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictRelation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictValue.h">
@@ -133,22 +127,28 @@
     <ClInclude Include="DictValueSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictItem.h">
+    <ClInclude Include="ItemIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictRecord.h">
+    <ClInclude Include="ItemIndexHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictLevel.h">
+    <ClInclude Include="Rules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictRelation.h">
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictionarySerializerHelper.h">
+    <ClInclude Include="ValueProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValueSetFixer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueSetResponse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDictO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

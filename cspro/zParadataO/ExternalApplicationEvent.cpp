@@ -7,19 +7,19 @@ using namespace Paradata;
 void ExternalApplicationEvent::SetupTables(Log& log)
 {
     log.CreateTable(ParadataTable::ExternalApplicationEvent)
-            .AddColumn(_T("source"), Table::ColumnType::Integer)
-                    .AddCode((int)Source::ExecPff, _T("execpff"))
-                    .AddCode((int)Source::ExecSystem, _T("execsystem"))
-                    .AddCode((int)Source::SystemAppExec, _T("SystemApp.exec"))
-            .AddColumn(_T("action"), Table::ColumnType::Text)
-            .AddColumn(_T("stop"), Table::ColumnType::Boolean)
-            .AddColumn(_T("success"), Table::ColumnType::Boolean)
-            .AddColumn(_T("wait_duration"), Table::ColumnType::Double, true)
+            .AddColumn("source", Table::ColumnType::Integer)
+                    .AddCode(Source::ExecPff, "execpff")
+                    .AddCode(Source::ExecSystem, "execsystem")
+                    .AddCode(Source::SystemAppExec, "SystemApp.exec")
+            .AddColumn("action", Table::ColumnType::Text)
+            .AddColumn("stop", Table::ColumnType::Boolean)
+            .AddColumn("success", Table::ColumnType::Boolean)
+            .AddColumn("wait_duration", Table::ColumnType::Double, true)
         ;
 }
 
 
-ExternalApplicationEvent::ExternalApplicationEvent(Source source, std::wstring action, bool stop)
+ExternalApplicationEvent::ExternalApplicationEvent(const Source source, std::string action, const bool stop)
     :   m_source(source),
         m_action(std::move(action)),
         m_stop(stop),
@@ -28,7 +28,7 @@ ExternalApplicationEvent::ExternalApplicationEvent(Source source, std::wstring a
 }
 
 
-void ExternalApplicationEvent::SetPostExecutionValues(bool success, bool wait)
+void ExternalApplicationEvent::SetPostExecutionValues(const bool success, const bool wait)
 {
     m_success = success;
 

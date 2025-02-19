@@ -11,36 +11,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zPackO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PackSpec.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PackEntry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Packer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PackSpec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zPackO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zPackO.h">
+    <ClInclude Include="PackEntry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="Packer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PackSpec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PackEntry.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Packer.h">
+    <ClInclude Include="zPackO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -13,10 +13,10 @@ public:
         Note note;
         bool can_goto = false;
         int group_symbol_index = -1;
-        std::wstring group_label;
-        std::wstring label;
-        std::wstring content;
-        std::wstring sort_index;
+        std::string group_label;
+        std::string label;
+        SharableString content;
+        std::string sort_index;
     };
 
     ReviewNotesDlg();
@@ -28,9 +28,9 @@ public:
     const Note* GetGotoNote() const { return m_gotoNote; }
 
 protected:
-    const TCHAR* GetDialogName() override;
-    std::wstring GetJsonArgumentsText() override;
-    void ProcessJsonResults(const JsonNode<wchar_t>& json_results) override;
+    std::string GetDialogName() override;
+    SharableString GetJsonArgumentsText() override;
+    void ProcessJsonResults(const JsonNode& json_results) override;
 
 private:
     std::vector<std::vector<const ReviewNote*>> m_groupedReviewNotes;

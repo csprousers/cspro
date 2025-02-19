@@ -1,8 +1,8 @@
 ﻿#include "stdafx.h"
 #include "ObexHeader.h"
-#include <assert.h>
 #include <iterator>
 #include <sstream>
+
 
 namespace {
 
@@ -74,7 +74,7 @@ size_t ObexHeader::getTotalSizeBytes() const
     case HeaderFormat::FOUR_BYTE:
         return baseSize + 4;
     }
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 
@@ -89,7 +89,7 @@ size_t ObexHeader::getBaseSize(ObexHeaderCode code)
     case HeaderFormat::FOUR_BYTE:
         return HEADER_CODE_SIZE;
     }
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 

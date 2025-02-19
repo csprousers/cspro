@@ -7,111 +7,120 @@
 using namespace Paradata;
 
 
+struct ApplicationEvent::StartEventData
+{
+    std::string file_path;
+    std::string app_type;
+    std::string name;
+    double version;
+    std::string pff_file_path;
+    int serializer;
+
+    DeviceInfo device_info;
+    double device_boot_time;
+};
+
+
 void ApplicationEvent::SetupTables(Log& log)
 {
     log.CreateTable(ParadataTable::ApplicationInfo)
-            .AddColumn(_T("filename"), Table::ColumnType::Text)
-            .AddColumn(_T("type"), Table::ColumnType::Text)
-            .AddColumn(_T("name"), Table::ColumnType::Text)
-            .AddColumn(_T("cspro_version"), Table::ColumnType::Double)
-            .AddColumn(_T("pff_filename"), Table::ColumnType::Text)
-            .AddColumn(_T("serializer"), Table::ColumnType::Integer)
+            .AddColumn("filename", Table::ColumnType::Text)
+            .AddColumn("type", Table::ColumnType::Text)
+            .AddColumn("name", Table::ColumnType::Text)
+            .AddColumn("cspro_version", Table::ColumnType::Double)
+            .AddColumn("pff_filename", Table::ColumnType::Text)
+            .AddColumn("serializer", Table::ColumnType::Integer)
         ;
 
     log.CreateTable(ParadataTable::DiagnosticsInfo)
-            .AddColumn(_T("version"), Table::ColumnType::Double)
-            .AddColumn(_T("version_detailed"), Table::ColumnType::Text)
-            .AddColumn(_T("releasedate"), Table::ColumnType::Integer)
-            .AddColumn(_T("beta"), Table::ColumnType::Integer)
-            .AddColumn(_T("serializer"), Table::ColumnType::Integer)
+            .AddColumn("version", Table::ColumnType::Double)
+            .AddColumn("version_detailed", Table::ColumnType::Text)
+            .AddColumn("releasedate", Table::ColumnType::Integer)
+            .AddColumn("beta", Table::ColumnType::Integer)
+            .AddColumn("serializer", Table::ColumnType::Integer)
         ;
 
     log.CreateTable(ParadataTable::DeviceInfo)
-            .AddColumn(_T("username"), Table::ColumnType::Text)
-            .AddColumn(_T("deviceid"), Table::ColumnType::Text)
-            .AddColumn(_T("os"), Table::ColumnType::Text)
-            .AddColumn(_T("os_detailed"), Table::ColumnType::Text)
-            .AddColumn(_T("screen_width"), Table::ColumnType::Text)
-            .AddColumn(_T("screen_height"), Table::ColumnType::Text)
-            .AddColumn(_T("screen_inches"), Table::ColumnType::Text)
-            .AddColumn(_T("memory_ram"), Table::ColumnType::Text)
-            .AddColumn(_T("battery_capacity"), Table::ColumnType::Text)
-            .AddColumn(_T("device_brand"), Table::ColumnType::Text)
-            .AddColumn(_T("device_device"), Table::ColumnType::Text)
-            .AddColumn(_T("device_hardware"), Table::ColumnType::Text)
-            .AddColumn(_T("device_manufacturer"), Table::ColumnType::Text)
-            .AddColumn(_T("device_model"), Table::ColumnType::Text)
-            .AddColumn(_T("device_processor"), Table::ColumnType::Text)
-            .AddColumn(_T("device_product"), Table::ColumnType::Text)
+            .AddColumn("username", Table::ColumnType::Text)
+            .AddColumn("deviceid", Table::ColumnType::Text)
+            .AddColumn("os", Table::ColumnType::Text)
+            .AddColumn("os_detailed", Table::ColumnType::Text)
+            .AddColumn("screen_width", Table::ColumnType::Text)
+            .AddColumn("screen_height", Table::ColumnType::Text)
+            .AddColumn("screen_inches", Table::ColumnType::Text)
+            .AddColumn("memory_ram", Table::ColumnType::Text)
+            .AddColumn("battery_capacity", Table::ColumnType::Text)
+            .AddColumn("device_brand", Table::ColumnType::Text)
+            .AddColumn("device_device", Table::ColumnType::Text)
+            .AddColumn("device_hardware", Table::ColumnType::Text)
+            .AddColumn("device_manufacturer", Table::ColumnType::Text)
+            .AddColumn("device_model", Table::ColumnType::Text)
+            .AddColumn("device_processor", Table::ColumnType::Text)
+            .AddColumn("device_product", Table::ColumnType::Text)
         ;
 
     log.CreateTable(ParadataTable::ApplicationInstance)
-            .AddColumn(_T("application_info"), Table::ColumnType::Long)
-            .AddColumn(_T("diagnostics_info"), Table::ColumnType::Long)
-            .AddColumn(_T("device_info"), Table::ColumnType::Long)
-            .AddColumn(_T("device_boot_time"), Table::ColumnType::Double)
-            .AddColumn(_T("time_offset"), Table::ColumnType::Long)
-            .AddColumn(_T("system_locale"), Table::ColumnType::Text)
-            .AddColumn(_T("uuid"), Table::ColumnType::Text)
+            .AddColumn("application_info", Table::ColumnType::Long)
+            .AddColumn("diagnostics_info", Table::ColumnType::Long)
+            .AddColumn("device_info", Table::ColumnType::Long)
+            .AddColumn("device_boot_time", Table::ColumnType::Double)
+            .AddColumn("time_offset", Table::ColumnType::Long)
+            .AddColumn("system_locale", Table::ColumnType::Text)
+            .AddColumn("uuid", Table::ColumnType::Text)
         ;
 
     log.CreateTable(ParadataTable::ApplicationEvent)
-            .AddColumn(_T("action"), Table::ColumnType::Boolean)
-                    .AddCode(0, _T("stop"))
-                    .AddCode(1, _T("start"))
+            .AddColumn("action", Table::ColumnType::Boolean)
+                    .AddCode(0, "stop")
+                    .AddCode(1, "start")
         ;
 }
 
 
-ApplicationEvent::ApplicationEvent(bool start)
-    :   m_start(start),
-        m_version(0),
-        m_serializer(0),
-        m_deviceBootTime(0)
+ApplicationEvent::ApplicationEvent(std::unique_ptr<StartEventData> start_event_data)
+    :   m_startEventData(std::move(start_event_data))
 {
 }
 
 
-std::shared_ptr<ApplicationEvent> ApplicationEvent::CreateStartEvent(const CString& filename, const CString& app_type,
-                                                                     const CString& name, double version,
-                                                                     const CString& pff_filename, int serializer)
+std::unique_ptr<ApplicationEvent> ApplicationEvent::CreateStartEvent(std::string file_path, std::string app_type,
+                                                                     std::string name, const double version,
+                                                                     std::string pff_file_path, const int serializer)
 {
-    std::shared_ptr<ApplicationEvent> application_event(new ApplicationEvent(true));
-
-    application_event->m_filename = filename;
-
-    application_event->m_appType = app_type;
-    application_event->m_name = name;
-    application_event->m_version = version;
-    application_event->m_pffFilename = pff_filename;
-    application_event->m_serializer = serializer;
-
-    application_event->GetDeviceInfo();
-
-    return application_event;
+    return std::unique_ptr<ApplicationEvent>(new ApplicationEvent(std::make_unique<ApplicationEvent::StartEventData>(ApplicationEvent::StartEventData
+    {
+        std::move(file_path),
+        std::move(app_type),
+        std::move(name),
+        version,
+        std::move(pff_file_path),
+        serializer,
+        GetDeviceInfo(),
+        GetDeviceBootTime()
+    })));
 }
 
 
-std::shared_ptr<ApplicationEvent> ApplicationEvent::CreateStopEvent()
+std::unique_ptr<ApplicationEvent> ApplicationEvent::CreateStopEvent()
 {
-    return std::shared_ptr<ApplicationEvent>(new ApplicationEvent(false));
+    return std::unique_ptr<ApplicationEvent>(new ApplicationEvent(nullptr));
 }
 
 
 bool ApplicationEvent::PreSave(Log& log) const
 {
-    if( m_start )
+    if( m_startEventData != nullptr )
     {
         // fill the application info table
         Table& application_info_table = log.GetTable(ParadataTable::ApplicationInfo);
         long application_info_id = 0;
         application_info_table.Insert(&application_info_id,
-            m_filename.GetString(),
-            m_appType.GetString(),
-            m_name.GetString(),
-            m_version,
-            m_pffFilename.GetString(),
-            m_serializer
+            m_startEventData->file_path.c_str(),
+            m_startEventData->app_type.c_str(),
+            m_startEventData->name.c_str(),
+            m_startEventData->version,
+            m_startEventData->pff_file_path.c_str(),
+            m_startEventData->serializer
         );
 
 
@@ -119,10 +128,10 @@ bool ApplicationEvent::PreSave(Log& log) const
         Table& diagnostics_info_table = log.GetTable(ParadataTable::DiagnosticsInfo);
         long diagnostics_info_id = 0;
         diagnostics_info_table.Insert(&diagnostics_info_id,
-            CSPRO_VERSION_NUMBER,
-            CSPRO_VERSION_NUMBER_DETAILED_TEXT,
+            Versioning::Number,
+            Versioning::NumberDetailedText,
             Versioning::GetReleaseDate(),
-            IsBetaBuild() ? 1 : 0,
+            Versioning::IsBeta ? 1 : 0,
             Serializer::GetCurrentVersion()
         );
 
@@ -131,22 +140,22 @@ bool ApplicationEvent::PreSave(Log& log) const
         Table& device_info_table = log.GetTable(ParadataTable::DeviceInfo);
         long device_info_id = 0;
         device_info_table.Insert(&device_info_id,
-            m_deviceInfo.user_name.GetString(),
-            m_deviceInfo.device_id.GetString(),
-            m_deviceInfo.operating_system.c_str(),
-            m_deviceInfo.operating_system_detailed.c_str(),
-            m_deviceInfo.screen_width.GetString(),
-            m_deviceInfo.screen_height.GetString(),
-            m_deviceInfo.screen_inches.GetString(),
-            m_deviceInfo.memory_ram.GetString(),
-            m_deviceInfo.battery_capacity.GetString(),
-            m_deviceInfo.device_brand.GetString(),
-            m_deviceInfo.device_device.GetString(),
-            m_deviceInfo.device_hardware.GetString(),
-            m_deviceInfo.device_manufacturer.GetString(),
-            m_deviceInfo.device_model.GetString(),
-            m_deviceInfo.device_processor.GetString(),
-            m_deviceInfo.device_product.GetString()
+            m_startEventData->device_info.user_name.c_str(),
+            m_startEventData->device_info.device_id.c_str(),
+            m_startEventData->device_info.operating_system.c_str(),
+            m_startEventData->device_info.operating_system_detailed.c_str(),
+            m_startEventData->device_info.screen_width.c_str(),
+            m_startEventData->device_info.screen_height.c_str(),
+            m_startEventData->device_info.screen_inches.c_str(),
+            m_startEventData->device_info.memory_ram.c_str(),
+            m_startEventData->device_info.battery_capacity.c_str(),
+            m_startEventData->device_info.device_brand.c_str(),
+            m_startEventData->device_info.device_device.c_str(),
+            m_startEventData->device_info.device_hardware.c_str(),
+            m_startEventData->device_info.device_manufacturer.c_str(),
+            m_startEventData->device_info.device_model.c_str(),
+            m_startEventData->device_info.device_processor.c_str(),
+            m_startEventData->device_info.device_product.c_str()
         );
 
 
@@ -158,9 +167,9 @@ bool ApplicationEvent::PreSave(Log& log) const
             application_info_id,
             diagnostics_info_id,
             device_info_id,
-            m_deviceBootTime,
+            m_startEventData->device_boot_time,
             GetUtcOffset(),
-            GetLocaleLanguage().GetString(),
+            GetLocaleLanguage().c_str(),
             CreateUuid().c_str()
         );
 
@@ -173,68 +182,77 @@ bool ApplicationEvent::PreSave(Log& log) const
 
 void ApplicationEvent::Save(Log& log, long base_event_id) const
 {
+    const bool start_event = ( m_startEventData != nullptr );
+
     Table& application_event_table = log.GetTable(ParadataTable::ApplicationEvent);
     application_event_table.Insert(&base_event_id,
-        m_start
+        start_event
     );
 
-    if( !m_start )
+    if( !start_event )
         log.StopInstance(Log::Instance::Application);
 }
 
 
-void ApplicationEvent::GetDeviceInfo()
+ApplicationEvent::DeviceInfo ApplicationEvent::GetDeviceInfo()
 {
-    // fill in the attributes common to all platforms
-    m_deviceInfo.device_id = GetDeviceId();
-
-    m_deviceInfo.user_name = GetDeviceUserName();
-
     const OperatingSystemDetails& operating_system_details = GetOperatingSystemDetails();
-    m_deviceInfo.operating_system = operating_system_details.operating_system;
-    m_deviceInfo.operating_system_detailed = operating_system_details.version_number;
 
+    // fill in the attributes common to all platforms
+    DeviceInfo device_info
+    {
+        GetDeviceId(),
+        GetDeviceUserName(),
+        operating_system_details.operating_system,
+        operating_system_details.version_number
+    };
 
     // fill in the platform-specific values
 #ifdef WIN_DESKTOP
-    m_deviceInfo.screen_width = IntToString(GetSystemMetrics(SM_CXVIRTUALSCREEN));
+    device_info.screen_width = IntToString(GetSystemMetrics(SM_CXVIRTUALSCREEN));
 
-    m_deviceInfo.screen_height = IntToString(GetSystemMetrics(SM_CYVIRTUALSCREEN));
+    device_info.screen_height = IntToString(GetSystemMetrics(SM_CYVIRTUALSCREEN));
 
-    // m_deviceInfo.screen_inches will not be assigned
+    // device_info.screen_inches will not be assigned
 
     ULONGLONG physically_installed_system_memory;
     GetPhysicallyInstalledSystemMemory(&physically_installed_system_memory);
     // the value is reported in kilobytes so convert it to bytes
-    physically_installed_system_memory *= 1024; 
-    m_deviceInfo.memory_ram = IntToString(physically_installed_system_memory);
+    physically_installed_system_memory *= 1024;
+    device_info.memory_ram = IntToString(physically_installed_system_memory);
 
-    // m_deviceInfo.battery_capacity will not be assigned
-    // m_deviceInfo.device_brand will not be assigned
-    // m_deviceInfo.device_device will not be assigned
-    // m_deviceInfo.device_hardware will not be assigned
+    // device_info.battery_capacity will not be assigned
+    // device_info.device_brand will not be assigned
+    // device_info.device_device will not be assigned
+    // device_info.device_hardware will not be assigned
 
     WinRegistry registry;
-    registry.Open(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\BIOS"));
-    registry.ReadString(_T("SystemManufacturer"), &m_deviceInfo.device_manufacturer);
-    registry.ReadString(_T("SystemProductName"), &m_deviceInfo.device_model);
+    registry.Open(HKEY_LOCAL_MACHINE, "Hardware\\Description\\System\\BIOS");
+    registry.ReadString("SystemManufacturer", device_info.device_manufacturer);
+    registry.ReadString("SystemProductName", device_info.device_model);
 
-    registry.Open(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0"));
-    registry.ReadString(_T("ProcessorNameString"), &m_deviceInfo.device_processor);
+    registry.Open(HKEY_LOCAL_MACHINE, "Hardware\\Description\\System\\CentralProcessor\\0");
+    registry.ReadString("ProcessorNameString", device_info.device_processor);
 
-    // pDeviceInfo->device_product will not be assigned
+    // device_info.device_product will not be assigned
 
 #else
-    PlatformInterface::GetInstance()->GetApplicationInterface()->ParadataDeviceInfoQuery(m_deviceInfo);
+    PlatformInterface::GetInstance()->GetApplicationInterface()->ParadataDeviceInfoQuery(device_info);
+
 #endif
 
+    return device_info;
+}
 
+
+double ApplicationEvent::GetDeviceBootTime()
+{
     // calculate the device boot time
-    double up_time =
+    const double up_time =
 #ifdef WIN_DESKTOP
         GetTickCount64() / 1000.0;
 #else
         PlatformInterface::GetInstance()->GetApplicationInterface()->GetUpTime();
 #endif
-    m_deviceBootTime = ::GetTimestamp() - up_time;
+    return ::GetTimestamp() - up_time;
 }

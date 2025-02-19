@@ -24,15 +24,19 @@ double CIntDriver::exuniverse(int iExpr)
     const auto& statement_node = GetNode<STN_NODE>(iExpr);
 
     // if the condition is false...
-    if( ConditionalValueIsFalse(evalexpr(statement_node.arguments[0])) )
+    if( !EvaluateConditional(statement_node.arguments[0]) )
     {
         // ... endcase
         if( statement_node.arguments[1] == 1 )
+        {
             return exendcase(iExpr);
+        }
 
         // ... or exit the procedure
         else
+        {
             throw ExitProgramControlException();
+        }
     }
 
     return 0;
@@ -45,7 +49,7 @@ double CIntDriver::exskipcase(int /*iExpr*/)
 
     if( m_iExLevel == 0 )
     {
-        issaerror(MessageType::Error, 822, _T("SKIP CASE"));
+        issaerror(MessageType::Error, 822, "SKIP CASE");
         return DEFAULT;
     }
 
@@ -53,15 +57,15 @@ double CIntDriver::exskipcase(int /*iExpr*/)
 }
 
 
-double CIntDriver::exexit(int iExpr)
+double CIntDriver::ex_exit(const int program_index)
 {
-    const auto& statement_node = GetNode<STN_NODE>(iExpr);
+    const auto& statement_node = GetNode<STN_NODE>(program_index);
 
     if( statement_node.arguments[0] != -1 )
     {
         // set the user function's return value
         UserFunction& user_function = GetSymbolUserFunction(statement_node.arguments[0]);
-        user_function.SetReturnValue(EvaluateVariantExpression(user_function.GetReturnDataType(), statement_node.arguments[1]));
+        user_function.SetReturnValue(EvaluateVariant(user_function.GetReturnDataType(), statement_node.arguments[1]));
     }
 
     throw ExitProgramControlException();

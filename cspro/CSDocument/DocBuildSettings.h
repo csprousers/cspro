@@ -23,15 +23,15 @@ public:
     // output directory:
     // the root directory for outputs
     // --------------------------------------------------------------------------
-    const std::wstring& GetOutputDirectory() const  { return m_outputDirectory; }
-    void SetOutputDirectory(std::wstring directory) { m_outputDirectory = std::move(directory); }
+    const std::string& GetOutputDirectory() const  { return m_outputDirectory; }
+    void SetOutputDirectory(std::string directory) { m_outputDirectory = std::move(directory); }
 
     // output name:
     // the name to override the default name
     // (which is based on the Document Set filename)
     // --------------------------------------------------------------------------
-    const std::wstring& GetOutputName() const { return m_outputName; }
-    std::wstring GetEvaluatedOutputName(const DocSetSpec& doc_set_spec) const;
+    const std::string& GetOutputName() const { return m_outputName; }
+    std::string GetEvaluatedOutputName(const DocSetSpec& doc_set_spec) const;
 
     // build type:
     // the way to build Document Sets
@@ -47,7 +47,7 @@ public:
     // path based on the location of the build settings
     // the longest matching directory is used for the adjustment
     // --------------------------------------------------------------------------
-    const std::vector<std::tuple<std::wstring, std::wstring, bool>>& GetPathAdjustments() const { return m_pathAdjustments; }
+    const std::vector<std::tuple<std::string, std::string, bool>>& GetPathAdjustments() const { return m_pathAdjustments; }
 
     // build documents using relative paths:
     // if false, all documents will be built into the same directory;
@@ -61,8 +61,8 @@ public:
     // --------------------------------------------------------------------------
     enum class StylesheetAction { Embed, SourceAbsolute, SourceRelative, Directory };
 
-    StylesheetAction GetStylesheetAction() const       { return m_stylesheetAction.value_or(StylesheetAction::Embed); }
-    const std::wstring& GetStylesheetDirectory() const { ASSERT(m_stylesheetAction == StylesheetAction::Directory); return m_stylesheetDirectory; }
+    StylesheetAction GetStylesheetAction() const      { return m_stylesheetAction.value_or(StylesheetAction::Embed); }
+    const std::string& GetStylesheetDirectory() const { ASSERT(m_stylesheetAction == StylesheetAction::Directory); return m_stylesheetDirectory; }
 
     // title links:
     // how to create links around titles
@@ -70,7 +70,7 @@ public:
     enum class TitleLinkageAction { Suppress, Prefix, OutputNamePrefix };
 
     TitleLinkageAction GetTitleLinkageAction() const { return m_titleLinkageAction.value_or(TitleLinkageAction::Suppress); }
-    const std::wstring& GetTitleLinkPrefix() const   { ASSERT(m_titleLinkageAction != TitleLinkageAction::Suppress); return m_titleLinkPrefix; }
+    const std::string& GetTitleLinkPrefix() const    { ASSERT(m_titleLinkageAction != TitleLinkageAction::Suppress); return m_titleLinkPrefix; }
 
     // Document Set links:
     // how to link to other documents in the same Document Set
@@ -93,7 +93,7 @@ public:
     enum class ExternalLinkageAction { Suppress, Forbid, SourceAbsolute, SourceRelative, RelativeToOutput, Directory };
 
     ExternalLinkageAction GetExternalLinkageAction() const { return m_externalLinkageAction.value_or(ExternalLinkageAction::Suppress); }
-    const std::wstring& GetExternalLinkDirectory() const { ASSERT(m_externalLinkageAction == ExternalLinkageAction::Directory); return m_externalLinkDirectory; }
+    const std::string& GetExternalLinkDirectory() const    { ASSERT(m_externalLinkageAction == ExternalLinkageAction::Directory); return m_externalLinkDirectory; }
 
     // logic links:
     // how to link to documents related to CSPro logic
@@ -108,63 +108,63 @@ public:
     // --------------------------------------------------------------------------
     enum class ImageAction { DataUrl, SourceAbsolute, SourceRelative, RelativeToOutput, Directory };
 
-    ImageAction GetImageAction() const            { return m_imageAction.value_or(ImageAction::DataUrl); }
-    const std::wstring& GetImageDirectory() const { ASSERT(m_imageAction == ImageAction::Directory); return m_imageDirectory; }
+    ImageAction GetImageAction() const           { return m_imageAction.value_or(ImageAction::DataUrl); }
+    const std::string& GetImageDirectory() const { ASSERT(m_imageAction == ImageAction::Directory); return m_imageDirectory; }
 
     // CHM flags
-	// --------------------------------------------------------------------------
-    const std::vector<std::tuple<std::wstring, std::wstring>>& GetChmButtons() const { return m_chmButtons; }
-	
-	// PDF flags
-	// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
+    const std::vector<std::tuple<std::string, std::string>>& GetChmButtons() const { return m_chmButtons; }
+
+    // PDF flags
+    // --------------------------------------------------------------------------
     enum class WkhtmltopdfFlagType { Global, Cover, TableOfContents, Page };
 
-	const std::vector<std::tuple<WkhtmltopdfFlagType, std::wstring, std::wstring>>& GetWkhtmltopdfFlags() const { return m_wkhtmltopdfFlags; }
+    const std::vector<std::tuple<WkhtmltopdfFlagType, std::string, std::string>>& GetWkhtmltopdfFlags() const { return m_wkhtmltopdfFlags; }
 
     // serialization
     // --------------------------------------------------------------------------
-    void Compile(DocSetCompiler& doc_set_compiler, const JsonNode<wchar_t>& json_node);
+    void Compile(DocSetCompiler& doc_set_compiler, const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
 
 private:
-    std::tuple<std::wstring, std::wstring, bool>* FindPathAdjustment(const std::wstring& path);
+    std::tuple<std::string, std::string, bool>* FindPathAdjustment(const std::string& path);
 
-    bool ContainsChmButton(const std::tuple<std::wstring, std::wstring>& link_and_text) const;
+    bool ContainsChmButton(const std::tuple<std::string, std::string>& link_and_text) const;
 
-    std::tuple<WkhtmltopdfFlagType, std::wstring, std::wstring>* FindWkhtmltopdfFlag(WkhtmltopdfFlagType type, const std::wstring& flag);
+    std::tuple<WkhtmltopdfFlagType, std::string, std::string>* FindWkhtmltopdfFlag(WkhtmltopdfFlagType type, const std::string& flag);
 
 private:
-    std::wstring m_outputDirectory;
-    std::wstring m_outputName;
+    std::string m_outputDirectory;
+    std::string m_outputName;
 
     std::optional<BuildType> m_buildType;
 
-    std::vector<std::tuple<std::wstring, std::wstring, bool>> m_pathAdjustments; // directory / adjustment / "relative to path" flag
+    std::vector<std::tuple<std::string, std::string, bool>> m_pathAdjustments; // directory / adjustment / "relative to path" flag
 
     std::optional<bool> m_buildDocumentsUsingRelativePaths;
 
     std::optional<StylesheetAction> m_stylesheetAction;
-    std::wstring m_stylesheetDirectory;
+    std::string m_stylesheetDirectory;
 
     std::optional<TitleLinkageAction> m_titleLinkageAction;
-    std::wstring m_titleLinkPrefix;
+    std::string m_titleLinkPrefix;
 
     std::optional<DocSetLinkageAction> m_docSetLinkageAction;
 
     std::optional<ProjectLinkageAction> m_projectLinkageAction;
 
     std::optional<ExternalLinkageAction> m_externalLinkageAction;
-    std::wstring m_externalLinkDirectory;
+    std::string m_externalLinkDirectory;
 
     std::optional<LogicLinkageAction> m_logicLinkageAction;
 
     std::optional<ImageAction> m_imageAction;
-    std::wstring m_imageDirectory;
+    std::string m_imageDirectory;
 
-    std::vector<std::tuple<std::wstring, std::wstring>> m_chmButtons; // link / text
-	
-	std::vector<std::tuple<WkhtmltopdfFlagType, std::wstring, std::wstring>> m_wkhtmltopdfFlags; // type / flag / value
+    std::vector<std::tuple<std::string, std::string>> m_chmButtons; // link / text
+
+    std::vector<std::tuple<WkhtmltopdfFlagType, std::string, std::string>> m_wkhtmltopdfFlags; // type / flag / value
 };
 
 
-template<> std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(wstring_view text_sv);
+template<> std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(std::string_view text_sv);

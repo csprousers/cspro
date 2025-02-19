@@ -23,7 +23,7 @@ public:
     TextEditView* GetTextEditView() { return m_textEditView; }
 
     // returns the initial text and sets up the SourceModifier
-    std::wstring OnViewInitialUpdate(TextEditView& text_edit_view);
+    std::string OnViewInitialUpdate(TextEditView& text_edit_view);
 
     void OnViewDeactivate();
 

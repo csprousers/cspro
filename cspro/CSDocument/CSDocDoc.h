@@ -21,7 +21,7 @@ protected:
     void OnCloseDocument() override;
 
 private:
-    void AutomaticallyAssociateWithDocSet(const std::wstring& csdoc_filename);
+    void AutomaticallyAssociateWithDocSet(const std::string& csdoc_file_path);
 
 private:
     SettingsDb m_settingsDb;

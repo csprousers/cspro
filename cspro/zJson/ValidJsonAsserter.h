@@ -5,7 +5,7 @@
 
 #ifdef _DEBUG
 
-inline void AssertValidJson(const wstring_view json_text_sv)
+inline void AssertValidJson(const std::string_view json_text_sv)
 {
     try
     {
@@ -29,6 +29,15 @@ inline void AssertValidJson(const wstring_view json_text_sv)
 template<typename T>
 T AssertAndReturnValidJson(T&& json_text)
 {
-    AssertValidJson(json_text);
+    if constexpr(std::is_same_v<std::remove_cvref_t<T>, SharableString>)
+    {
+        AssertValidJson(*json_text);
+    }
+
+    else
+    {
+        AssertValidJson(json_text);
+    }
+
     return std::forward<T>(json_text);
 }

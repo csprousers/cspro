@@ -58,7 +58,7 @@ private:
                        const CArray<CWnd*> &rowBackgrounds, // optional row backgrounds (empty CStatics) used for highlighting
                        bool sizeOnly); // only compute size, don't move controls
 
-    void CreateStaticControlWithImage(CStatic& pControl, UINT controlId, const CString& imagePath);
+    void CreateStaticControlWithImage(CStatic& pControl, UINT controlId, const std::string& image_file_path);
 
     int CharWidthInPixels();
 

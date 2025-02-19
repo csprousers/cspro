@@ -2,7 +2,7 @@
 #include "TextToCaseConverter.h"
 #include "FixedWidthNumericCaseItem.h"
 #include "FixedWidthStringCaseItem.h"
-#include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/Utf8Convert.h>
 
 
 namespace
@@ -73,163 +73,159 @@ void TextToCaseConverter::CalculateConstructionVariables()
     }
 
     // process each case level
-    for( const CaseLevelMetadata* case_level_metadata : m_caseMetadata.GetCaseLevelsMetadata() )
+    for( const CaseLevelMetadata& case_level_metadata : m_caseMetadata.GetCaseLevelsMetadata() )
     {
-        auto process_case_record_metadata = [&](const CaseRecordMetadata* case_record_metadata, bool processing_key) -> void
-        {
-            if( processing_key )
-                m_textBasedKeyMetadata.emplace_back();
-
-            TextBasedCaseRecordMetadata& text_record_metadata = m_textBasedCaseRecordsMetadata.emplace_back();
-
-            text_record_metadata.case_record_metadata = case_record_metadata;
-            text_record_metadata.max_records = case_record_metadata->GetDictionaryRecord().GetMaxRecs();
-            text_record_metadata.record_length = record_type_and_key_length;
-            text_record_metadata.key_and_spaces_length = record_type_and_key_length;
-
-            size_t next_expected_dictionary_item_start = 0;
-
-            auto add_space_span = [&](size_t start)
+        // process the ID record and then each record
+        case_level_metadata.ForeachCaseRecordMetadata(
+            [&](const CaseRecordMetadata& case_record_metadata)
             {
-                TextSpan* space_span = nullptr;
+                if( case_record_metadata.IsIdRecord() )
+                    m_textBasedKeyMetadata.emplace_back();
 
-                // calculate the gaps in the record (where spaces will have to be copied)
-                while( start > next_expected_dictionary_item_start )
+                TextBasedCaseRecordMetadata& text_record_metadata = m_textBasedCaseRecordsMetadata.emplace_back();
+
+                text_record_metadata.case_record_metadata = &case_record_metadata;
+                text_record_metadata.max_records = case_record_metadata.GetDictRecord().GetMaxRecs();
+                text_record_metadata.record_length = record_type_and_key_length;
+                text_record_metadata.key_and_spaces_length = record_type_and_key_length;
+
+                size_t next_expected_dict_item_start = 0;
+
+                auto add_space_span = [&](size_t start)
                 {
-                    const size_t original_next_expected_dictionary_item_start = next_expected_dictionary_item_start;
+                    TextSpan* space_span = nullptr;
 
-                    // make sure that the expected start position isn't used by the record type
-                    if( m_recordTypeLength > 0 && next_expected_dictionary_item_start == m_recordTypeStart )
-                        next_expected_dictionary_item_start += m_recordTypeLength;
-
-                    // make sure that the expected start position isn't used by an ID item
-                    for( const TextBasedKeyMetadata& key_metadata : m_textBasedKeyMetadata )
+                    // calculate the gaps in the record (where spaces will have to be copied)
+                    while( start > next_expected_dict_item_start )
                     {
-                        const auto& key_span_search = std::find_if(key_metadata.key_spans.cbegin(), key_metadata.key_spans.cend(),
-                            [next_expected_dictionary_item_start](const TextSpan& key_span)
+                        const size_t original_next_expected_dict_item_start = next_expected_dict_item_start;
+
+                        // make sure that the expected start position isn't used by the record type
+                        if( m_recordTypeLength > 0 && next_expected_dict_item_start == m_recordTypeStart )
+                            next_expected_dict_item_start += m_recordTypeLength;
+
+                        // make sure that the expected start position isn't used by an ID item
+                        for( const TextBasedKeyMetadata& key_metadata : m_textBasedKeyMetadata )
+                        {
+                            const auto& key_span_search = std::find_if(key_metadata.key_spans.cbegin(), key_metadata.key_spans.cend(),
+                                [next_expected_dict_item_start](const TextSpan& key_span)
+                                {
+                                    // although it would seem that we would just need to check if next_expected_dict_item_start equals
+                                    // key_span.start, because second level IDs can overlap with first level IDs, we need to check if the
+                                    // expect start position is anywhere in the range of the key span
+                                    return ( ( next_expected_dict_item_start >= key_span.start ) &&
+                                             ( next_expected_dict_item_start < ( key_span.start + key_span.length ) ) );
+                                });
+
+                            if( key_span_search != key_metadata.key_spans.cend() )
                             {
-                                // although it would seem that we would just need to check if next_expected_dictionary_item_start equals
-                                // key_span.start, because second level IDs can overlap with first level IDs, we need to check if the
-                                // expect start position is anywhere in the range of the key span
-                                return ( ( next_expected_dictionary_item_start >= key_span.start ) &&
-                                         ( next_expected_dictionary_item_start < ( key_span.start + key_span.length ) ) );
-                            });
-
-                        if( key_span_search != key_metadata.key_spans.cend() )
-                        {
-                            next_expected_dictionary_item_start = key_span_search->start + key_span_search->length;
-                            break;
-                        }
-                    }
-
-                    // if nothing was adjusted, add the space span, incrementing it one by one
-                    // as an easy way to account for gaps while processing an absolute positioning dictionary
-                    if( original_next_expected_dictionary_item_start == next_expected_dictionary_item_start )
-                    {
-                        if( space_span == nullptr )
-                        {
-                            text_record_metadata.space_spans.emplace_back(TextSpan { next_expected_dictionary_item_start, 0 });
-                            space_span = &text_record_metadata.space_spans.back();
+                                next_expected_dict_item_start = key_span_search->start + key_span_search->length;
+                                break;
+                            }
                         }
 
-                        ++space_span->length;
-                        ++next_expected_dictionary_item_start;
-                        text_record_metadata.key_and_spaces_length = std::max(text_record_metadata.key_and_spaces_length, next_expected_dictionary_item_start);
+                        // if nothing was adjusted, add the space span, incrementing it one by one
+                        // as an easy way to account for gaps while processing an absolute positioning dictionary
+                        if( original_next_expected_dict_item_start == next_expected_dict_item_start )
+                        {
+                            if( space_span == nullptr )
+                            {
+                                text_record_metadata.space_spans.emplace_back(TextSpan { next_expected_dict_item_start, 0 });
+                                space_span = &text_record_metadata.space_spans.back();
+                            }
+
+                            ++space_span->length;
+                            ++next_expected_dict_item_start;
+                            text_record_metadata.key_and_spaces_length = std::max(text_record_metadata.key_and_spaces_length, next_expected_dict_item_start);
+                        }
+
+                        else
+                        {
+                            space_span = nullptr;
+                        }
                     }
+                };
 
-                    else
-                    {
-                        space_span = nullptr;
-                    }
-                }
-            };
-
-            for( const CaseItem* case_item : case_record_metadata->GetCaseItems() )
-            {
-                // skip over case items that are not of fixed width
-                if( !case_item->IsTypeFixed() )
-                    continue;
-
-                ASSERT(( case_item->GetType() == CaseItem::Type::FixedWidthString ) ||
-                       ( case_item->GetType() == CaseItem::Type::FixedWidthNumeric ) ||
-                       ( case_item->GetType() == CaseItem::Type::FixedWidthNumericWithStringBuffer ));
-
-                const CDictItem& dictionary_item = case_item->GetDictionaryItem();
-
-                // no need to add subitems as the parent item will cover any processing needed for its children
-                if( dictionary_item.GetItemType() == ItemType::Subitem )
-                    continue;
-
-                text_record_metadata.case_items_metadata.emplace_back(TextBasedCaseItemMetadata
-                    {
-                        case_item,
-                        case_item->IsTypeNumeric(),
-                        dictionary_item.GetStart() - 1,
-                        dictionary_item.GetStart() - 1 + ( dictionary_item.GetLen() * dictionary_item.GetOccurs() ),
-                        dictionary_item.GetLen(),
-                        dictionary_item.GetOccurs()
-                    });
-
-                const size_t dictionary_item_start = dictionary_item.GetStart() - 1;
-                ASSERT(dictionary_item_start >= next_expected_dictionary_item_start);
-
-                if( processing_key )
+                for( const CaseItem* const case_item : case_record_metadata.GetCaseItems() )
                 {
-                    // update text spans where the key is located
-                    TextBasedKeyMetadata& key_metadata = m_textBasedKeyMetadata.back();
-                    std::vector<TextSpan>& key_spans = key_metadata.key_spans;
+                    // skip over case items that are not of fixed width
+                    if( !case_item->IsFixedWidth() )
+                        continue;
 
-                    // if this is an ID that follows the previous ID, join the spans
-                    if( !key_spans.empty() && dictionary_item_start == next_expected_dictionary_item_start )
+                    ASSERT(( case_item->GetType() == CaseItem::Type::FixedWidthString ) ||
+                           ( case_item->GetType() == CaseItem::Type::FixedWidthNumeric ) ||
+                           ( case_item->GetType() == CaseItem::Type::FixedWidthNumericWithStringBuffer ));
+
+                    const CDictItem& dict_item = case_item->GetDictItem();
+
+                    // no need to add subitems as the parent item will cover any processing needed for its children
+                    if( dict_item.GetItemType() == ItemType::Subitem )
+                        continue;
+
+                    text_record_metadata.case_items_metadata.emplace_back(TextBasedCaseItemMetadata
+                        {
+                            case_item,
+                            IsNumeric(case_item->GetDataType()),
+                            dict_item.GetStart() - 1,
+                            dict_item.GetStart() - 1 + ( dict_item.GetLen() * dict_item.GetOccurs() ),
+                            dict_item.GetLen(),
+                            dict_item.GetOccurs()
+                        });
+
+                    const size_t dict_item_start = dict_item.GetStart() - 1;
+                    ASSERT(dict_item_start >= next_expected_dict_item_start);
+
+                    if( case_record_metadata.IsIdRecord() )
                     {
-                        key_spans.back().length += dictionary_item.GetLen();
+                        // update text spans where the key is located
+                        TextBasedKeyMetadata& key_metadata = m_textBasedKeyMetadata.back();
+                        std::vector<TextSpan>& key_spans = key_metadata.key_spans;
+
+                        // if this is an ID that follows the previous ID, join the spans
+                        if( !key_spans.empty() && dict_item_start == next_expected_dict_item_start )
+                        {
+                            key_spans.back().length += dict_item.GetLen();
+                        }
+
+                        else
+                        {
+                            key_spans.emplace_back(TextSpan { dict_item_start, dict_item.GetLen() });
+                        }
+
+                        key_metadata.key_length += dict_item.GetLen();
+                        last_id_start = dict_item_start;
                     }
 
                     else
                     {
-                        key_spans.emplace_back(TextSpan { dictionary_item_start, dictionary_item.GetLen() });
+                        add_space_span(dict_item_start);
                     }
 
-                    key_metadata.key_length += dictionary_item.GetLen();
-                    last_id_start = dictionary_item_start;
+                    next_expected_dict_item_start = dict_item_start + dict_item.GetLen() * dict_item.GetOccurs();
+                    text_record_metadata.record_length = std::max(text_record_metadata.record_length, next_expected_dict_item_start);
+                }
+
+                if( case_record_metadata.IsIdRecord() )
+                {
+                    record_type_and_key_length = text_record_metadata.record_length;
                 }
 
                 else
                 {
-                    add_space_span(dictionary_item_start);
+                    // create a fully spaced out copy of the record type
+                    if( m_recordTypeLength > 0 )
+                    {
+                        text_record_metadata.record_type = CIMSAString::MakeExactLength(case_record_metadata.GetDictRecord().GetRecTypeVal(), m_recordTypeLength);
+                        _tmemcpy(m_recordTypeLookup + case_record_metadata.GetTotalRecordIndex() * m_recordTypeLength, text_record_metadata.record_type, m_recordTypeLength);
+                    }
+
+                    // add a space span if there is a record type or ID item after the record
+                    const size_t last_record_type_or_key_start = std::max(m_recordTypeStart, last_id_start);
+                    add_space_span(last_record_type_or_key_start);
                 }
 
-                next_expected_dictionary_item_start = dictionary_item_start + dictionary_item.GetLen() * dictionary_item.GetOccurs();
-                text_record_metadata.record_length = std::max(text_record_metadata.record_length, next_expected_dictionary_item_start);
-            }
-
-            if( processing_key )
-            {
-                record_type_and_key_length = text_record_metadata.record_length;
-            }
-
-            else
-            {
-                // create a fully spaced out copy of the record type
-                if( m_recordTypeLength > 0 )
-                {
-                    text_record_metadata.record_type = CIMSAString::MakeExactLength(case_record_metadata->GetDictionaryRecord().GetRecTypeVal(), m_recordTypeLength);
-                    _tmemcpy(m_recordTypeLookup + case_record_metadata->GetTotalRecordIndex() * m_recordTypeLength, text_record_metadata.record_type, m_recordTypeLength);
-                }
-
-                // add a space span if there is a record type or ID item after the record
-                const size_t last_record_type_or_key_start = std::max(m_recordTypeStart, last_id_start);
-                add_space_span(last_record_type_or_key_start);
-            }
-
-            text_record_metadata.key_length = record_type_and_key_length;
-        };
-
-        // process the ID record and then each record
-        process_case_record_metadata(case_level_metadata->GetIdCaseRecordMetadata(), true);
-
-        for( const CaseRecordMetadata* case_record_metadata : case_level_metadata->GetCaseRecordsMetadata() )
-            process_case_record_metadata(case_record_metadata, false);
+                text_record_metadata.key_length = record_type_and_key_length;
+        });
     }
 
     // setup the level map for multiple level applications
@@ -255,7 +251,7 @@ void TextToCaseConverter::IncreaseWideBufferSize(size_t minimum_buffer_size_need
 
     if( m_lastRecordOutputPosition != nullptr )
         m_lastRecordOutputPosition += ( new_wide_buffer - m_wideBuffer );
-    
+
     if( m_wideBuffer != nullptr )
     {
         _tmemcpy(new_wide_buffer, m_wideBuffer, current_position);
@@ -325,7 +321,7 @@ void TextToCaseConverter::CaseRecordToText(const CaseRecord& case_record, bool o
     ASSERT(case_record.HasOccurrences());
 
     const TextBasedCaseRecordMetadata& text_record_metadata = m_textBasedCaseRecordsMetadata[case_record.GetCaseRecordMetadata().GetTotalRecordIndex()];
-   
+
     // if the key has already been generated (on a previous record), copy it to the current buffer
     if( m_lastRecordOutputPosition != m_currentWideBufferPosition && m_lastRecordOutputPosition != nullptr )
         _tmemcpy(m_currentWideBufferPosition, m_lastRecordOutputPosition, text_record_metadata.key_length);
@@ -392,7 +388,7 @@ void TextToCaseConverter::CaseRecordToText(const CaseRecord& case_record, bool o
 
         // because this record's length may no longer be complete, we need to potentially add the record type and
         // spaces for any subsequent records because this record can no longer be fully copied
-        if( ( m_currentWideBufferPosition - this_record_last_output_position ) < (int)text_record_metadata.key_and_spaces_length )
+        if( ( m_currentWideBufferPosition - this_record_last_output_position ) < static_cast<int>(text_record_metadata.key_and_spaces_length) )
             need_to_add_record_type_and_spaces = true;
 
         // add the newline and advance the position
@@ -501,7 +497,8 @@ void TextToCaseConverter::TextWideToCase(Case& output_case, const TCHAR* text_bu
                 output_case.GetCaseConstructionReporter()->IncrementBadRecordCount();
 
                 output_case.GetCaseConstructionReporter()->BadRecordType(output_case,
-                    CString(record_type_position, m_recordTypeLength), CString(m_currentRecordLine, m_currentRecordLineLength));
+                                                                         UTF8_TODO::GetUtf8(std::wstring_view(record_type_position, m_recordTypeLength)),
+                                                                         UTF8_TODO::GetUtf8(std::wstring_view(m_currentRecordLine, m_currentRecordLineLength)));
             }
 
             goto end_record_line_processing;
@@ -530,7 +527,7 @@ record_type_found:
         {
             CaseRecord& new_case_record = current_case_level->GetCaseRecord(text_record_metadata->case_record_metadata->GetRecordIndex());
 
-            // check if there are too too many of this record
+            // check if there are too many of this record
             const size_t new_record_occurrence = new_case_record.GetNumberOccurrences();
 
             if( new_record_occurrence == text_record_metadata->max_records )
@@ -539,7 +536,8 @@ record_type_found:
                 if( using_case_construction_reporter )
                 {
                     output_case.GetCaseConstructionReporter()->TooManyRecordOccurrences(output_case,
-                        text_record_metadata->case_record_metadata->GetDictionaryRecord().GetName(), text_record_metadata->max_records);
+                                                                                        text_record_metadata->case_record_metadata->GetDictRecord().GetName(),
+                                                                                        text_record_metadata->max_records);
                 }
 
                 goto end_record_line_processing;
@@ -596,7 +594,7 @@ void TextToCaseConverter::TextWideToCase(Case& output_case, const TCHAR* text_bu
                 // mark erased lines as having length 0
                 m_bufferLines[buffer_line_index].length = ( *start_line_position == DataFileErasedRecordCharacter ) ? 0 :
                                                                                                                       line_length;
-                    
+
                 m_bufferLines[buffer_line_index].offset = start_line_position - text_buffer;
 
                 ++buffer_line_index;
@@ -742,7 +740,7 @@ const char* TextToCaseConverter::CaseToTextUtf8(const Case& input_case, size_t* 
 
     // one wide character can map to four UTF-8 characters, so ensure that the buffer is
     // large enough for this (plus the null terminator)
-    const size_t utf8_buffer_size_needed = ( wide_output_text_length * 4 ) + 1;
+    const size_t utf8_buffer_size_needed = ( wide_output_text_length * TC::MaxUtf8BytesNeededForWideChar() ) + 1;
 
     if( m_utf8BufferSize < utf8_buffer_size_needed )
     {

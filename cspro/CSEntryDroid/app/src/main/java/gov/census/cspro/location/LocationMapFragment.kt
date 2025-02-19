@@ -261,10 +261,10 @@ class LocationMapFragment : Fragment(R.layout.fragment_location_map), OnMapReady
             try {
                 reader = if (m_baseMapSelection!!.filename!!.toLowerCase().endsWith("mbtiles")) {
                     MBTilesReader(m_baseMapSelection!!.filename!!)
-                } else if (m_baseMapSelection!!.filename!!.toLowerCase().endsWith("tpk")) {
+                } else if (m_baseMapSelection!!.filename!!.toLowerCase().endsWith("tpk") || m_baseMapSelection!!.filename!!.toLowerCase().endsWith("tpkx")) {
                     TpkTilesReader(m_baseMapSelection!!.filename!!)
                 } else {
-                    showErrorText("Invalid tile file format. Only mbtiles and tpk are supported.")
+                    showErrorText("Invalid tile file format. Only MBTiles and ArcGIS tile packages (tpk/tpkx) are supported.")
                     return false
                 }
             } catch (e: Exception) {

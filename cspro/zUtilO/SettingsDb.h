@@ -7,23 +7,23 @@
 
 // --------------------------------------------------------------------------
 // SettingsDb
-// 
+//
 // a simple way to store settings that persist across application runs:
-// 
+//
 // - the settings are stored in a SQLite database in %AppData%/CSPro
-// 
+//
 // - settings are queried on demand, and potentially cached to minimize
 //   hits to the database
 //
 // - settings can be set to expire at some point
-// 
+//
 // - modifications are only written to the database on application close
 //   unless otherwise specified
 //
 // - the keys used to store settings can be obfuscated
-// 
+//
 // - no exceptions are thrown at any point
-// 
+//
 // - look at SimpleDbMap and WinRegistry for similar functionality
 // --------------------------------------------------------------------------
 
@@ -32,48 +32,51 @@ class CLASS_DECL_ZUTILO SettingsDb
 public:
     enum class KeyObfuscator { Hash };
 
-    SettingsDb(const std::wstring& filename_only, std::wstring settings_name = _T("settings"),
+    SettingsDb(std::string_view filename_only_sv, std::string settings_name = "settings",
                std::optional<int64_t> expiration_seconds = std::nullopt, std::optional<KeyObfuscator> key_obfuscator = std::nullopt);
 
-    SettingsDb(CSProExecutables::Program program, std::wstring settings_name = _T("settings"),
+    SettingsDb(CSProExecutables::Program program, std::string settings_name = "settings",
                std::optional<int64_t> expiration_seconds = std::nullopt, std::optional<KeyObfuscator> key_obfuscator = std::nullopt);
 
     // the Read and Write methods are defined for most basic types;
     // if not a basic type and a JSON serializer exists, the object is serialized to JSON;
-    // if neither of the above are true, the object interpreted as a std::wstring
+    // if neither of the above are true, the object interpreted as a std::string
     template<typename T>
     constexpr static bool IsBasicType()
     {
-        return constexpr(std::is_same_v<T, bool> ||
-                         std::is_same_v<T, int> ||
-                         std::is_same_v<T, unsigned int> ||
-                         std::is_same_v<T, int64_t> ||
-                         std::is_same_v<T, size_t> ||
-                         std::is_same_v<T, float> ||
-                         std::is_same_v<T, double> ||
-                         std::is_same_v<T, std::wstring>);
+        return ( std::is_same_v<T, bool> ||
+                 std::is_same_v<T, int> ||
+                 std::is_same_v<T, unsigned int> ||
+                 std::is_same_v<T, int64_t> ||
+                 std::is_same_v<T, size_t> ||
+                 std::is_same_v<T, float> ||
+                 std::is_same_v<T, double> ||
+                 std::is_same_v<T, std::string> );
     }
 
     // if T is a pointer, the return type will be const T* and the type must be cachable;
     // otherwise the return type will be std::optional<T>
-    template<typename T> 
-    [[nodiscard]] auto Read(wstring_view key, bool cache_value = true);
+    template<typename T>
+    [[nodiscard]] auto Read(std::string_view key_sv, bool cache_value = true);
 
     template<typename T, class = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type>
-    [[nodiscard]] T ReadOrDefault(wstring_view key, T&& default_value = T(), bool cache_value = true);
+    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, T&& default_value = T(), bool cache_value = true);
 
     template<typename T>
-    [[nodiscard]] T ReadOrDefault(wstring_view key, const T& default_value, bool cache_value = true);
+    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, const T& default_value, bool cache_value = true);
 
     template<typename T>
-    void Write(wstring_view key, const T& value, bool cache_value = true);
+    void Write(std::string_view key_sv, const T& value, bool cache_value = true);
 
 private:
     template<typename T>
-    std::optional<T> ReadWorker(wstring_view key, bool cache_value);
+    [[nodiscard]] const T* ReadPointer(std::string_view key_sv);
 
     template<typename T>
-    void WriteWorker(wstring_view key, const T& value, bool cache_value);
+    std::optional<T> ReadWorker(std::string_view key_sv, bool cache_value);
+
+    template<typename T>
+    void WriteWorker(std::string_view key_sv, const T& value, bool cache_value);
 
 public:
     class ImplDb;
@@ -94,7 +97,15 @@ private:
 // --------------------------------------------------------------------------
 
 template<typename T>
-auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
+const T* SettingsDb::ReadPointer(const std::string_view key_sv)
+{
+    const std::optional<const T*> value_ptr = ReadWorker<const T*>(key_sv, true);
+    return value_ptr.value_or(nullptr);
+}
+
+
+template<typename T>
+auto SettingsDb::Read(const std::string_view key_sv, const bool cache_value/* = true*/)
 {
     if constexpr(std::is_pointer_v<T>)
     {
@@ -102,8 +113,7 @@ auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
         static_assert(IsBasicType<RealType>());
         ASSERT(cache_value);
 
-        std::optional<const RealType*> value_ptr = ReadWorker<const RealType*>(key, cache_value);
-        return value_ptr.value_or(nullptr);
+        return ReadPointer<RealType>(key_sv);
     }
 
     else
@@ -112,11 +122,11 @@ auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
         {
             std::optional<T> value;
 
-            auto parse_json_text = [&](const std::wstring& json_text)
+            auto parse_json_text = [&](const std::string& json_text)
             {
                 try
                 {
-                    auto json_node = Json::Parse(json_text);
+                    const JsonNode json_node = Json::Parse(json_text);
                     value = json_node.Get<T>();
                 }
                 catch(...) { }
@@ -124,7 +134,7 @@ auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
 
             if( cache_value )
             {
-                const std::wstring* json_text = Read<const std::wstring*>(key, cache_value);
+                const std::string* const json_text = ReadPointer<std::string>(key_sv);
 
                 if( json_text != nullptr )
                     parse_json_text(*json_text);
@@ -132,7 +142,7 @@ auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
 
             else
             {
-                std::optional<std::wstring> json_text = Read<std::wstring>(key, cache_value);
+                const std::optional<std::string> json_text = ReadWorker<std::string>(key_sv, cache_value);
 
                 if( json_text.has_value() )
                     parse_json_text(*json_text);
@@ -143,18 +153,18 @@ auto SettingsDb::Read(wstring_view key, bool cache_value/* = true*/)
 
         else
         {
-            return ReadWorker<T>(key, cache_value);
+            return ReadWorker<T>(key_sv, cache_value);
         }
     }
 }
 
 
 template<typename T, class/* = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type*/>
-T SettingsDb::ReadOrDefault(wstring_view key, T&& default_value/* = T()*/, bool cache_value/* = true*/)
+T SettingsDb::ReadOrDefault(const std::string_view key_sv, T&& default_value/* = T()*/, const bool cache_value/* = true*/)
 {
     static_assert(!std::is_pointer_v<T>);
 
-    std::optional<T> value = Read<T>(key, cache_value);
+    std::optional<T> value = Read<T>(key_sv, cache_value);
 
     if( value.has_value() )
         return std::move(*value);
@@ -164,11 +174,11 @@ T SettingsDb::ReadOrDefault(wstring_view key, T&& default_value/* = T()*/, bool 
 
 
 template<typename T>
-T SettingsDb::ReadOrDefault(wstring_view key, const T& default_value, bool cache_value/* = true*/)
+T SettingsDb::ReadOrDefault(const std::string_view key_sv, const T& default_value, const bool cache_value/* = true*/)
 {
     static_assert(!std::is_pointer_v<T>);
 
-    std::optional<T> value = Read<T>(key, cache_value);
+    std::optional<T> value = Read<T>(key_sv, cache_value);
 
     if( value.has_value() )
         return std::move(*value);
@@ -178,26 +188,24 @@ T SettingsDb::ReadOrDefault(wstring_view key, const T& default_value, bool cache
 
 
 template<typename T>
-void SettingsDb::Write(wstring_view key, const T& value, bool cache_value/* = true*/)
+void SettingsDb::Write(const std::string_view key_sv, const T& value, const bool cache_value/* = true*/)
 {
     if constexpr(IsBasicType<T>())
     {
-        WriteWorker(key, value, cache_value);
+        WriteWorker(key_sv, value, cache_value);
     }
 
     else if constexpr(JsonSerializerTester<T>::HasWriteJson())
     {
         try
         {
-            auto json_writer = Json::CreateStringWriter();
-            json_writer->Write(value);
-            WriteWorker(key, json_writer->GetString(), cache_value);
+            WriteWorker(key_sv, Json::ToJson(value), cache_value);
         }
         catch(...) { }
     }
 
     else
     {
-        WriteWorker(key, std::wstring(static_cast<wstring_view>(value)), cache_value);
+        WriteWorker(key_sv, std::string(static_cast<std::string_view>(value)), cache_value);
     }
 }

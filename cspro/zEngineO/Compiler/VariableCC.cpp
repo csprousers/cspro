@@ -3,7 +3,7 @@
 #include "AllSymbols.h"
 
 
-int LogicCompiler::CompileDestinationVariable(std::variant<DataType, const Symbol*> data_type_or_symbol)
+int LogicCompiler::CompileDestinationVariable(const std::variant<DataType, std::reference_wrapper<const Symbol>> data_type_or_symbol)
 {
     // returns a node that can be used for assignments to: variables, objects (Array, HashMap, List), named frequencies, and user-defined functions
     DataType data_type;
@@ -27,8 +27,7 @@ int LogicCompiler::CompileDestinationVariable(std::variant<DataType, const Symbo
 
     else
     {
-        symbol = std::get<const Symbol*>(data_type_or_symbol);
-        ASSERT(symbol != nullptr);
+        symbol = &std::get<std::reference_wrapper<const Symbol>>(data_type_or_symbol).get();
         data_type = SymbolCalculator::GetDataType(*symbol);
     }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,11 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{263E1E29-23A3-4EE4-A584-4C7388CA2CFF}</ProjectGuid>
     <RootNamespace>zFormF</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zFormF</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -70,20 +66,24 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BlockPropertiesDlg.cpp" />
+    <ClCompile Include="BoxToolBar.cpp" />
     <ClCompile Include="CapiEditorViewModel.cpp" />
     <ClCompile Include="ColumnPropertiesDlg.cpp" />
     <ClCompile Include="ConditionEdit.cpp" />
     <ClCompile Include="ConditionGrid.cpp" />
+    <ClCompile Include="DataSourceOptionsDlg.cpp" />
     <ClCompile Include="DragOptionsDlg.cpp" />
     <ClCompile Include="DropRule.cpp" />
-    <ClCompile Include="FormFilePropertiesDlg.cpp" />
     <ClCompile Include="FieldColorsDlg.cpp" />
-    <ClCompile Include="FieldPropertiesDlg.cpp" />
     <ClCompile Include="FieldFontDlg.cpp" />
+    <ClCompile Include="FieldPropertiesDlg.cpp" />
     <ClCompile Include="FormDoc.cpp" />
+    <ClCompile Include="FormFileOptionsDlg.cpp" />
+    <ClCompile Include="FormFilePropertiesDlg.cpp" />
     <ClCompile Include="FormGrid.cpp" />
     <ClCompile Include="FormID.CPP" />
-    <ClCompile Include="BoxToolBar.cpp" />
+    <ClCompile Include="FormPropertiesDlg.cpp" />
     <ClCompile Include="FormView.cpp" />
     <ClCompile Include="FrmChWnd.cpp" />
     <ClCompile Include="FrmTrCtl.CPP" />
@@ -91,22 +91,18 @@
     <ClCompile Include="GlobalFontDlg.cpp" />
     <ClCompile Include="GridDlgs.cpp" />
     <ClCompile Include="GridPropertiesDlg.cpp" />
-    <ClCompile Include="BlockPropertiesDlg.cpp" />
     <ClCompile Include="KeyboardInputDlg.cpp" />
     <ClCompile Include="LevelPropertiesDlg.cpp" />
     <ClCompile Include="MappingOptionsDlg.cpp" />
+    <ClCompile Include="MultipleFieldPropertiesDlg.cpp" />
+    <ClCompile Include="QSFCndVw.cpp" />
     <ClCompile Include="QSFEditNumericSortToolBarComboBoxButton.cpp" />
     <ClCompile Include="QSFEditStyleDlg.cpp" />
-    <ClCompile Include="QSFEditToolBarComboBoxButton.cpp" />
-    <ClCompile Include="MultipleFieldPropertiesDlg.cpp" />
-    <ClCompile Include="FormFileOptionsDlg.cpp" />
-    <ClCompile Include="FormPropertiesDlg.cpp" />
-    <ClCompile Include="QSFCndVw.cpp" />
     <ClCompile Include="QSFEditToolbar.cpp" />
+    <ClCompile Include="QSFEditToolBarComboBoxButton.cpp" />
     <ClCompile Include="QSFEditToolBarStyledComboBoxButton.cpp" />
     <ClCompile Include="QSFEView.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
-    <ClCompile Include="DataSourceOptionsDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -116,8 +112,8 @@
     <ClCompile Include="TableToolbarButton.cpp" />
     <ClCompile Include="TableToolbarDropdown.cpp" />
     <ClCompile Include="TextFontDlg.cpp" />
-    <ClCompile Include="tracker.cpp" />
     <ClCompile Include="TextPropertiesDlg.cpp" />
+    <ClCompile Include="tracker.cpp" />
     <ClCompile Include="zFormF.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,21 +146,24 @@
     <ResourceCompile Include="zFormF.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BlockPropertiesDlg.h" />
+    <ClInclude Include="BoxToolBar.h" />
     <ClInclude Include="CapiEditorViewModel.h" />
     <ClInclude Include="ColumnPropertiesDlg.h" />
     <ClInclude Include="ConditionEdit.h" />
     <ClInclude Include="ConditionGrid.h" />
+    <ClInclude Include="DataSourceOptionsDlg.h" />
     <ClInclude Include="DragOptionsDlg.h" />
     <ClInclude Include="DropRule.h" />
-    <ClInclude Include="FormFilePropertiesDlg.h" />
     <ClInclude Include="FieldColorsDlg.h" />
-    <ClInclude Include="FieldPropertiesDlg.h" />
     <ClInclude Include="FieldFontDlg.h" />
+    <ClInclude Include="FieldPropertiesDlg.h" />
     <ClInclude Include="FormDoc.h" />
+    <ClInclude Include="FormFileOptionsDlg.h" />
+    <ClInclude Include="FormFilePropertiesDlg.h" />
     <ClInclude Include="FormGrid.h" />
     <ClInclude Include="FormID.H" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="BoxToolBar.h" />
+    <ClInclude Include="FormPropertiesDlg.h" />
     <ClInclude Include="FormView.h" />
     <ClInclude Include="FrmChWnd.h" />
     <ClInclude Include="FrmTrCtl.H" />
@@ -172,30 +171,27 @@
     <ClInclude Include="GlobalFontDlg.h" />
     <ClInclude Include="GridDlgs.h" />
     <ClInclude Include="GridPropertiesDlg.h" />
-    <ClInclude Include="BlockPropertiesDlg.h" />
     <ClInclude Include="KeyboardInputDlg.h" />
     <ClInclude Include="LevelPropertiesDlg.h" />
     <ClInclude Include="MappingOptionsDlg.h" />
+    <ClInclude Include="MultipleFieldPropertiesDlg.h" />
+    <ClInclude Include="QSFCndVw.h" />
     <ClInclude Include="QSFEditNumericSortToolBarComboBoxButton.h" />
     <ClInclude Include="QSFEditStyleDlg.h" />
-    <ClInclude Include="QSFEditToolBarComboBoxButton.h" />
-    <ClInclude Include="MultipleFieldPropertiesDlg.h" />
-    <ClInclude Include="FormFileOptionsDlg.h" />
-    <ClInclude Include="FormPropertiesDlg.h" />
-    <ClInclude Include="QSFCndVw.h" />
     <ClInclude Include="QSFEditToolbar.h" />
+    <ClInclude Include="QSFEditToolBarComboBoxButton.h" />
     <ClInclude Include="QSFEditToolBarStyledComboBoxButton.h" />
     <ClInclude Include="QSFEView.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
-    <ClInclude Include="DataSourceOptionsDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="SView.H" />
     <ClInclude Include="SyncParamsDlg.h" />
     <ClInclude Include="TableToolbarButton.h" />
     <ClInclude Include="TableToolbarDropdown.h" />
     <ClInclude Include="TextFontDlg.h" />
-    <ClInclude Include="Tracker.h" />
     <ClInclude Include="TextPropertiesDlg.h" />
+    <ClInclude Include="Tracker.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zFormF.h" />
   </ItemGroup>
@@ -246,6 +242,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">

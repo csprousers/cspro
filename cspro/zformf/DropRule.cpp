@@ -60,7 +60,7 @@ void CFormDropRules::ResetFlags()
 void CFormDropRules::DetermineDropNameNLabel(const DictTreeNode* dict_tree_node, const CDictItem& dict_item)
 {
     ASSERT(dict_tree_node->GetDictElementType() == DictElementType::Item);
-    m_sDropName = dict_item.GetName();
+    m_sDropName = UTF8_TODO::GetCString(dict_item.GetName());
     m_sDropLabel = dict_item.GetLabel();
 }
 
@@ -72,9 +72,9 @@ bool CFormDropRules::AnalyzeDrop(DictTreeNode* dict_tree_node, CPoint dropPoint,
     if( pDoc->GetSharedDictionary() != pDD )  // user trying to drop from diff dict
     {
         m_bIllegalDrop = true;
-        m_sErrMsg = FormatText(_T("A form file cannot use more than one dictionary. You are attempting to drop an item/record ")
-                               _T("from a dictionary (%s) different from what is in use now (%s)."),
-                               pDD->GetName().GetString(), pDoc->GetSharedDictionary()->GetName().GetString());
+        m_sErrMsg = UTF8_TODO::GetCString(FormatText("A form file cannot use more than one dictionary. You are attempting to drop an item/record "
+                                                     "from a dictionary (%s) different from what is in use now (%s).",
+                                                     pDD->GetName().c_str(), pDoc->GetSharedDictionary()->GetName().c_str()));
         return false;
     }
 
@@ -90,7 +90,7 @@ bool CFormDropRules::AnalyzeDrop(DictTreeNode* dict_tree_node, CPoint dropPoint,
     if (dict_element_type == DictElementType::Dictionary)         // invoke CFormDoc::GenerateFormFile ()
     {
         m_eDropOp = DropFile;
-        m_sDropName = pDD->GetName();
+        m_sDropName = UTF8_TODO::GetCString(pDD->GetName());
         m_sDropLabel = pDD->GetLabel();
 
         return true;
@@ -102,7 +102,7 @@ bool CFormDropRules::AnalyzeDrop(DictTreeNode* dict_tree_node, CPoint dropPoint,
     else if (dict_element_type == DictElementType::Level)   // dragging a level, deal w/later
     {
         m_eDropOp = DropLevel;
-        m_sDropName = pDD->GetLevel(m_iLevel).GetName();
+        m_sDropName = UTF8_TODO::GetCString(pDD->GetLevel(m_iLevel).GetName());
         m_sDropLabel = pDD->GetLevel(m_iLevel).GetLabel();
 
         return true;
@@ -161,7 +161,7 @@ bool CFormDropRules::AnalyzeDrop(DictTreeNode* dict_tree_node, CPoint dropPoint,
                     return  DragSingleItemFromMultipleRecord(dict_tree_node, dropPoint, pForm);
             }
         }
-        
+
         else
         {
             ASSERT(false);
@@ -186,7 +186,7 @@ bool UnkeyedItemsLeftInRecord(const CFormDoc* pDoc, const CDictRecord& dict_reco
         const CDictItem* dict_item = dict_record.GetItem(i);
 
         // don't consider subitems, only items
-        if( dict_item->GetItemType() == ItemType::Item && !pFF->FindItem(dict_item->GetName()) )
+        if( dict_item->GetItemType() == ItemType::Item && !pFF->FindItem(UTF8_TODO::GetCString(dict_item->GetName())) )
         {
             if( dict_item->AddToTreeFor80() )
                 return true;
@@ -204,7 +204,7 @@ bool CFormDropRules::DragSingleRecord(DictTreeNode* dict_tree_node, CDEForm* pFo
 {
     const CDictRecord* pRec = m_pFormDoc->GetSharedDictionary()->GetLevel(m_iLevel).GetRecord(m_iRec);
 
-    m_sDropName = pRec->GetName();
+    m_sDropName = UTF8_TODO::GetCString(pRec->GetName());
     m_sDropLabel = pRec->GetLabel();
 
     // if the record doesn't have the same level as the form, then illegal
@@ -300,7 +300,7 @@ bool CFormDropRules::DragMultipleRecord(CPoint dropPoint, CDEForm* pForm)
 {
     const CDictRecord* pRec = m_pFormDoc->GetSharedDictionary()->GetLevel(m_iLevel).GetRecord(m_iRec);
 
-    m_sDropName = pRec->GetName();
+    m_sDropName = UTF8_TODO::GetCString(pRec->GetName());
     m_sDropLabel = pRec->GetLabel();
 
     // if the record doesn't have the same level as the form, then illegal
@@ -329,7 +329,7 @@ bool CFormDropRules::DragMultipleRecord(CPoint dropPoint, CDEForm* pForm)
 
         // the form loops, see if it's the same as the record i'm dropping
 
-        if (pForm->GetRecordRepeatName() == pDD->GetLevel(m_iLevel).GetRecord(m_iRec)->GetName())
+        if (pForm->GetRecordRepeatName() == UTF8_TODO::GetCString(pDD->GetLevel(m_iLevel).GetRecord(m_iRec)->GetName()))
         {
             m_eDropOp = DropMultipleRec;
 
@@ -421,7 +421,7 @@ bool CFormDropRules::CheckItemVsSubItemFromSingle(const CDataDict* pDD, const CD
         {
             pSubItems = pDR->GetItem(i);
 
-            bKeyedElsewhere = pFF->FindItem(pSubItems->GetName());
+            bKeyedElsewhere = pFF->FindItem(UTF8_TODO::GetCString(pSubItems->GetName()));
         }
         if (bKeyedElsewhere)
         {
@@ -436,7 +436,7 @@ bool CFormDropRules::CheckItemVsSubItemFromSingle(const CDataDict* pDD, const CD
 
         const CDictItem* pParent = pDR->GetItem(iParent);
 
-        bKeyedElsewhere = pFF->FindItem(pParent->GetName());
+        bKeyedElsewhere = pFF->FindItem(UTF8_TODO::GetCString(pParent->GetName()));
 
         if (bKeyedElsewhere)
         {
@@ -477,7 +477,7 @@ bool CFormDropRules::CheckItemVsSubItemFromMultiple(const CDataDict* pDD, const 
         {
             pSubItems = pDR->GetItem(i);
 
-            bKeyedElsewhere = pFF->FindItem(pSubItems->GetName());
+            bKeyedElsewhere = pFF->FindItem(UTF8_TODO::GetCString(pSubItems->GetName()));
         }
 
         if (bKeyedElsewhere)
@@ -495,7 +495,7 @@ bool CFormDropRules::CheckItemVsSubItemFromMultiple(const CDataDict* pDD, const 
 
         const CDictItem* pParent = pDR->GetItem(iParent);
 
-        bKeyedElsewhere = pFF->FindItem(pParent->GetName());
+        bKeyedElsewhere = pFF->FindItem(UTF8_TODO::GetCString(pParent->GetName()));
 
         // if the parent's already being used, disallow the drop; can't do display
         // field, as usual prob, which occurrence to display?
@@ -551,7 +551,7 @@ bool CFormDropRules::CheckForSubitemOverlap(const CDataDict* pDD, const CDictIte
         {
             if (pSubItem->GetStart() + (pSubItem->GetLen()*pSubItem->GetOccurs()) > pDI->GetStart())    // items overlap
             {
-                if (pFF->FindItem(pSubItem->GetName()) )   // overlapping item is being keyed
+                if (pFF->FindItem(UTF8_TODO::GetCString(pSubItem->GetName())) )   // overlapping item is being keyed
                 {
                     bKeyedOverlap = true;
                 }
@@ -561,7 +561,7 @@ bool CFormDropRules::CheckForSubitemOverlap(const CDataDict* pDD, const CDictIte
         {
             if (pDI->GetStart() + (pDI->GetLen()*pDI->GetOccurs()) > pSubItem->GetStart())  // items overlap
             {
-                if (pFF->FindItem(pSubItem->GetName()) )   // overlapping item is being keyed
+                if (pFF->FindItem(UTF8_TODO::GetCString(pSubItem->GetName())) )   // overlapping item is being keyed
                 {
                     bKeyedOverlap = true;
                 }
@@ -593,7 +593,7 @@ bool CFormDropRules::DragSingleItemFromSingleRecord(DictTreeNode* dict_tree_node
 
     if (m_iLevel < pForm->GetLevel())       // i.e., item from level 1 and form is level 2
     {
-        bool bItemAlreadyKeyed = m_pFormDoc->GetFormFile().FindItem(pDI->GetName());
+        bool bItemAlreadyKeyed = m_pFormDoc->GetFormFile().FindItem(UTF8_TODO::GetCString(pDI->GetName()));
 
         if (bItemAlreadyKeyed)  // then ok to drop as display
         {
@@ -634,7 +634,7 @@ bool CFormDropRules::DragSingleItemFromSingleRecord(DictTreeNode* dict_tree_node
         }
         else
         {
-            bool bItemAlreadyKeyed = m_pFormDoc->GetFormFile().FindItem(pDI->GetName());
+            bool bItemAlreadyKeyed = m_pFormDoc->GetFormFile().FindItem(UTF8_TODO::GetCString(pDI->GetName()));
 
             if (bItemAlreadyKeyed)  // then ok to drop as display
             {
@@ -823,7 +823,7 @@ bool CFormDropRules::DragMultipleItemFromSingleRecord(DictTreeNode* dict_tree_no
 
         if (!dict_tree_node->IsSubitem())    // then test against record
         {
-            if (pGrid->GetTypeName() == pDR->GetName())
+            if (pGrid->GetTypeName() == UTF8_TODO::GetCString(pDR->GetName()))
             {
                 m_eDropOp = DropSI_FromMR;
                 m_eDropResult = DropOnRoster;
@@ -836,7 +836,7 @@ bool CFormDropRules::DragMultipleItemFromSingleRecord(DictTreeNode* dict_tree_no
         {
             const CDictItem* pParent = pDD->GetParentItem (m_iLevel, m_iRec, m_iItem);
 
-            if (pGrid->GetTypeName() == pParent->GetName())
+            if (pGrid->GetTypeName() == UTF8_TODO::GetCString(pParent->GetName()))
             {
                 m_eDropOp = DropSI_FromMR;
                 m_eDropResult = DropOnRoster;
@@ -871,7 +871,7 @@ bool CFormDropRules::DragSingleItemFromMultipleRecord(DictTreeNode* dict_tree_no
 
     if( !pDI->AddToTreeFor80() )
     {
-        ErrorMessage::Display(_T("Adding binary dictionary items to forms is not supported in this release."));
+        ErrorMessage::Display("Adding binary dictionary items to forms is not supported in this release.");
         return false;
     }
 
@@ -922,7 +922,7 @@ bool CFormDropRules::DragSingleItemFromMultipleRecord(DictTreeNode* dict_tree_no
 
     if (pForm->isFormMultiple())
     {
-        if (pForm->GetRecordRepeatName() == pDR->GetName())
+        if (pForm->GetRecordRepeatName() == UTF8_TODO::GetCString(pDR->GetName()))
         {
             m_eDropOp = DropSI_FromMR;
             m_eDropResult = DropAsKeyed;
@@ -951,7 +951,7 @@ bool CFormDropRules::DragSingleItemFromMultipleRecord(DictTreeNode* dict_tree_no
         // if the record controlling the roster is the same as the
         // one to which the item belongs, then ok to drop the item (step #5)
 
-        if (pGrid->GetTypeName() == pDR->GetName())
+        if (pGrid->GetTypeName() == UTF8_TODO::GetCString(pDR->GetName()))
         {
             m_eDropOp = DropSI_FromMR;
             m_eDropResult = DropOnRoster;
@@ -1042,7 +1042,7 @@ bool CFormDropRules::DragMultipleItemFromMultipleRecord(DictTreeNode* dict_tree_
 
     if (pForm->isFormMultiple())    // then looping better be on this rec or bail
     {
-        if (pForm->GetRecordRepeatName() != pDR->GetName())
+        if (pForm->GetRecordRepeatName() != UTF8_TODO::GetCString(pDR->GetName()))
         {
             m_bIllegalDrop = true;
             m_sErrMsg = ErrMsg20;

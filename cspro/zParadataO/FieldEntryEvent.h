@@ -1,25 +1,30 @@
 ﻿#pragma once
-#include "Event.h"
-#include "FieldInfo.h"
-#include "FieldMovementEvent.h"
 
-namespace Paradata
+#include <zParadataO/Event.h>
+#include <zParadataO/FieldInfo.h>
+#include <zParadataO/FieldMovementEvent.h>
+
+namespace Paradata { class FieldEntryEvent; class Table; }
+
+
+class ZPARADATAO_API Paradata::FieldEntryEvent : public Event
 {
-    class ZPARADATAO_API FieldEntryEvent : public Event
-    {
-        DECLARE_PARADATA_EVENT(FieldEntryEvent)
+    DECLARE_PARADATA_EVENT(FieldEntryEvent)
 
-    private:
-        std::shared_ptr<FieldMovementInstance> m_arrivalFieldMovementInstance;
-        std::shared_ptr<FieldValidationInfo> m_fieldValidationInfo;
-        int m_requestedCaptureType;
-        int m_actualCaptureType;
-        double m_displayDuration;
+public:
+    FieldEntryEvent(std::shared_ptr<FieldMovementInstance> arrival_field_movement_instance,
+                    std::shared_ptr<FieldValidationInfo> field_validation_info,
+                    int requested_capture_type, int actual_capture_type);
 
-    public:
-        FieldEntryEvent(std::shared_ptr<FieldMovementInstance> arrival_field_movement_instance,
-            std::shared_ptr<FieldValidationInfo> field_validation_info, int requested_capture_type, int actual_capture_type);
+    void SetPostEntryValues();
 
-        void SetPostEntryValues();
-    };
-}
+private:
+    static Table& AddCaptureType(const char* column_name, Table& table);
+
+private:
+    std::shared_ptr<FieldMovementInstance> m_arrivalFieldMovementInstance;
+    std::shared_ptr<FieldValidationInfo> m_fieldValidationInfo;
+    int m_requestedCaptureType;
+    int m_actualCaptureType;
+    double m_displayDuration;
+};

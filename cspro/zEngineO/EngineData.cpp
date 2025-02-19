@@ -1,13 +1,16 @@
 ﻿#include "stdafx.h"
 #include "EngineData.h"
 #include "AllSymbols.h"
+#include "JavaScriptProcessor.h"
 #include <engine/Ctab.h>
+#include <zUtilO/CommonStore.h>
 
 
 EngineData::EngineData(std::shared_ptr<EngineAccessor> engine_accessor_)
     :   engine_accessor(std::move(engine_accessor_)),
         application(nullptr),
-        runtime_events_processor(*this)
+        runtime_events_processor(*this),
+        compiled_logic_version(Serializer::GetCurrentVersion())
 {
     ASSERT(engine_accessor != nullptr);
 }
@@ -15,10 +18,11 @@ EngineData::EngineData(std::shared_ptr<EngineAccessor> engine_accessor_)
 
 EngineData::~EngineData()
 {
+    Clear();
 }
 
 
-int EngineData::AddSymbol(std::shared_ptr<Symbol> symbol, Logic::SymbolTable::NameMapAddition name_map_addition/* = Logic::SymbolTable::NameMapAddition::ToCurrentScope*/)
+int EngineData::AddSymbol(std::shared_ptr<Symbol> symbol, const Logic::SymbolTable::NameMapAddition name_map_addition/* = Logic::SymbolTable::NameMapAddition::ToCurrentScope*/)
 {
     ASSERT(symbol != nullptr);
 
@@ -124,6 +128,14 @@ void EngineData::Clear()
     frequencies.clear();
     imputations.clear();
 
+    for( std::shared_ptr<std::unique_ptr<SymbolReference<std::shared_ptr<Symbol>>>>& evaluated_symbol_reference : evaluated_symbol_references )
+    {
+        ASSERT(evaluated_symbol_reference != nullptr && *evaluated_symbol_reference != nullptr);
+        (*evaluated_symbol_reference).reset();
+    }
+
+    evaluated_symbol_references.clear();
+
     symbol_table.Clear();
 
     arrays.clear();
@@ -138,4 +150,33 @@ void EngineData::Clear()
     groups.clear();
     sections.clear();
     variables.clear();
+}
+
+
+const std::shared_ptr<CommonStore>& EngineData::GetCommonStore()
+{
+    if( common_store == nullptr )
+    {
+        auto new_common_store = std::make_unique<CommonStore>();
+
+        std::string common_store_file_path = ( pff != nullptr ) ? UTF8_TODO::GetUtf8(pff->GetCommonStoreFName()) :
+                                                                  std::string();
+
+        if( new_common_store->Open({ CommonStore::TableType::UserSettings, CommonStore::TableType::PersistentVariables },
+                                   std::move(common_store_file_path)) )
+        {
+            common_store = std::move(new_common_store);
+        }
+    }
+
+    return common_store;
+}
+
+
+EngineJavaScriptProcessor& EngineData::GetJavaScriptProcessor()
+{
+    if( javascript_processor == nullptr )
+        javascript_processor = std::make_unique<EngineJavaScriptProcessor>(*this);
+
+    return *javascript_processor;
 }

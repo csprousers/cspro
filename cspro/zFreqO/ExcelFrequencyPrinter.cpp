@@ -10,17 +10,15 @@
 class ExcelFrequencyPrinterWorker
 {
 public:
-    ExcelFrequencyPrinterWorker(const std::wstring& filename);
+    ExcelFrequencyPrinterWorker(InterfaceString file_path);
     ~ExcelFrequencyPrinterWorker();
 
     void Print(const FrequencyTable& frequency_table);
 
 private:
-    lxw_format* CreateFormat(ExcelWriter::Format format, const std::optional<std::wstring>& numeric_format = std::nullopt);
+    lxw_format* CreateFormat(ExcelWriter::Format format, const std::optional<std::string>& numeric_format = std::nullopt);
 
-    static std::wstring CreateNumericFormatString(int decimals, bool add_percent_sign);
-
-    void AddWorksheet();
+    static std::string CreateNumericFormatString(int decimals, bool add_percent_sign);
 
     void SetupTitle();
     void SetupColumns();
@@ -29,14 +27,13 @@ private:
     void AddStatistics();
     void AddPercentiles();
 
-    void LogColumnTextForAdjustingColumnWidths(uint16_t column, wstring_view text);
+    void LogColumnTextForAdjustingColumnWidths(uint16_t column, std::string_view text_sv);
     void AdjustColumnWidths();
 
 private:
     ExcelWriter m_excelWriter;
-    std::map<std::wstring, int> m_worksheetNameCounter;
 
-    using FormatOptions = std::tuple<ExcelWriter::Format, std::optional<std::wstring>>;
+    using FormatOptions = std::tuple<ExcelWriter::Format, std::optional<std::string>>;
     std::map<FormatOptions, lxw_format*> m_formats;
     lxw_format* m_numericItemFormatter;
 
@@ -49,7 +46,7 @@ private:
 };
 
 
-ExcelFrequencyPrinterWorker::ExcelFrequencyPrinterWorker(const std::wstring& filename)
+ExcelFrequencyPrinterWorker::ExcelFrequencyPrinterWorker(InterfaceString file_path)
     :   m_frequencyTable(nullptr),
         m_numericItemFormatter(nullptr),
         m_showNetPercents(false),
@@ -57,7 +54,7 @@ ExcelFrequencyPrinterWorker::ExcelFrequencyPrinterWorker(const std::wstring& fil
         m_totalColumns(0),
         m_row(0)
 {
-    m_excelWriter.CreateWorkbook(filename, false);
+    m_excelWriter.CreateWorkbook(std::move(file_path), false);
 }
 
 
@@ -85,15 +82,17 @@ void ExcelFrequencyPrinterWorker::Print(const FrequencyTable& frequency_table)
     m_showNetPercents = FPH::ShowFrequencyTableNetPercents(*m_frequencyTable);
     m_valueLabelColumnsCombined = ( m_frequencyTable->dict_item == nullptr );
     m_totalColumns = ( ( !m_valueLabelColumnsCombined && m_frequencyTable->distinct ) ?  2 : 1 ) +
-                        4 +
-                        ( m_showNetPercents ? 2 : 0 );
+                     4 +
+                     ( m_showNetPercents ? 2 : 0 );
     m_row = 0;
     m_columnStringLengths.resize(m_valueLabelColumnsCombined ? 1 : 2, 0);
 
-    AddWorksheet();
+    // add the worksheet
+    const std::string worksheet_name = m_excelWriter.CreateValidWorksheetName(FPH::GetFrequencyTableName(*m_frequencyTable));
+    m_excelWriter.AddAndSetCurrentWorksheet(worksheet_name);
 
     SetupTitle();
-        
+
     SetupColumns();
 
     AddTotalAndRows();
@@ -108,7 +107,7 @@ void ExcelFrequencyPrinterWorker::Print(const FrequencyTable& frequency_table)
 }
 
 
-lxw_format* ExcelFrequencyPrinterWorker::CreateFormat(const ExcelWriter::Format format, const std::optional<std::wstring>& numeric_format/* = std::nullopt*/)
+lxw_format* ExcelFrequencyPrinterWorker::CreateFormat(const ExcelWriter::Format format, const std::optional<std::string>& numeric_format/* = std::nullopt*/)
 {
     FormatOptions options(format, numeric_format);
     const auto& format_lookup = m_formats.find(options);
@@ -120,17 +119,18 @@ lxw_format* ExcelFrequencyPrinterWorker::CreateFormat(const ExcelWriter::Format 
 
     else
     {
-        return m_formats.try_emplace(std::move(options), m_excelWriter.GetFormat(format, numeric_format)).first->second;
+        lxw_format* const created_format = m_excelWriter.GetFormat(format, numeric_format.has_value() ? numeric_format->c_str() : nullptr);
+        return m_formats.try_emplace(std::move(options), created_format).first->second;
     }
 }
 
 
-std::wstring ExcelFrequencyPrinterWorker::CreateNumericFormatString(const int decimals, const bool add_percent_sign)
+std::string ExcelFrequencyPrinterWorker::CreateNumericFormatString(const int decimals, const bool add_percent_sign)
 {
-    std::wstring numeric_format = _T("0");
+    std::string numeric_format = "0";
 
     if( decimals > 0 )
-        SO::AppendFormat(numeric_format, _T(".%0*d"), decimals, 0);
+        numeric_format.append(FormatText(".%0*d", decimals, 0));
 
     if( add_percent_sign )
         numeric_format.push_back('%');
@@ -139,32 +139,11 @@ std::wstring ExcelFrequencyPrinterWorker::CreateNumericFormatString(const int de
 }
 
 
-void ExcelFrequencyPrinterWorker::AddWorksheet()
-{
-    // because worksheets must have unique names, we may have to add a suffix to the worksheet name
-    std::wstring worksheet_name = FPH::GetFrequencyTableName(*m_frequencyTable);
-    auto worksheet_name_lookup = m_worksheetNameCounter.find(worksheet_name);
-
-    if( worksheet_name_lookup == m_worksheetNameCounter.end() )
-    {
-        m_worksheetNameCounter.try_emplace(worksheet_name, 1);
-    }
-
-    else
-    {
-        worksheet_name_lookup->second = worksheet_name_lookup->second + 1;
-        SO::AppendFormat(worksheet_name, _T("_%d"), worksheet_name_lookup->second);
-    }
-
-    m_excelWriter.AddAndSetCurrentWorksheet(worksheet_name);        
-}
-
-
 void ExcelFrequencyPrinterWorker::SetupTitle()
 {
-    const std::wstring title_text = SO::CreateSingleString<false>(m_frequencyTable->titles, _T("\n"));
+    const std::string title_text = SO::CreateSingleString<false>(m_frequencyTable->titles, "\n");
 
-    lxw_format* format = CreateFormat(ExcelWriter::Format::TitleFont | ExcelWriter::Format::TextWrap | ExcelWriter::Format::Top);
+    lxw_format* const format = CreateFormat(ExcelWriter::Format::TitleFont | ExcelWriter::Format::TextWrap | ExcelWriter::Format::Top);
 
     m_excelWriter.WriteMerged(m_row, 0, m_row, m_totalColumns - 1, title_text, format);
 
@@ -179,18 +158,23 @@ void ExcelFrequencyPrinterWorker::SetupColumns()
 {
     uint16_t column = 0;
 
-    lxw_format* centered_line_on_left_bold_format = CreateFormat(ExcelWriter::Format::Center |
-                                                                 ExcelWriter::Format::LineOnLeft |
-                                                                 ExcelWriter::Format::Bold);
-    lxw_format* right_justified_line_on_left_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right |
-                                                                                   ExcelWriter::Format::LineOnLeft |
-                                                                                   ExcelWriter::Format::Bold);
-    lxw_format* right_justified_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right | ExcelWriter::Format::Bold);
-    lxw_format* bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Bold);
+    lxw_format* const centered_line_on_left_bold_format = CreateFormat(ExcelWriter::Format::Center |
+                                                                       ExcelWriter::Format::LineOnLeft |
+                                                                       ExcelWriter::Format::Bold);
+
+    lxw_format* const right_justified_line_on_left_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right |
+                                                                                         ExcelWriter::Format::LineOnLeft |
+                                                                                         ExcelWriter::Format::Bold);
+
+    lxw_format* const right_justified_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right |
+                                                                            ExcelWriter::Format::Bold);
+
+    lxw_format* const bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Bold);
 
     if( m_valueLabelColumnsCombined || m_frequencyTable->distinct )
     {
-        lxw_format* format = FPH::FrequencyTableValuesAreNumeric(*m_frequencyTable) ? right_justified_bold_format : bold_format;
+        lxw_format* const format = FPH::FrequencyTableValuesAreNumeric(*m_frequencyTable) ? right_justified_bold_format :
+                                                                                            bold_format;
         m_excelWriter.WriteMerged(m_row, column, m_row + 1, column, FPH::ValueLabel, format);
         ++column;
     }
@@ -201,7 +185,7 @@ void ExcelFrequencyPrinterWorker::SetupColumns()
         ++column;
     }
 
-    auto write_column_set = [&](const TCHAR* type)
+    auto write_column_set = [&](const char* const type)
     {
         m_excelWriter.WriteMerged(m_row, column, m_row, column + ( m_showNetPercents ? 2 : 1 ), type, centered_line_on_left_bold_format);
 
@@ -224,8 +208,8 @@ void ExcelFrequencyPrinterWorker::SetupColumns()
 void ExcelFrequencyPrinterWorker::AddTotalAndRows()
 {
     // set the formats
-    const std::optional<std::wstring> percent_numeric_format = CreateNumericFormatString(1, true);
-    std::optional<std::wstring> count_numeric_format;
+    const std::optional<std::string> percent_numeric_format = CreateNumericFormatString(1, true);
+    std::optional<std::string> count_numeric_format;
 
     if( m_frequencyTable->frequency_printer_options.GetUsingDecimals() )
         count_numeric_format = CreateNumericFormatString(m_frequencyTable->frequency_printer_options.GetDecimals(), false);
@@ -233,8 +217,8 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
     // write the rows
     const uint32_t starting_row = m_row;
 
-    auto fill_row = [&](const std::variant<double, std::wstring>& value, wstring_view label,//
-                        double count, const FrequencyRowStatistics& frequency_row_statistics)
+    auto fill_row = [&](const std::variant<double, std::string>& value, const cs::string_view_sz label_sv,
+                        const double count, const FrequencyRowStatistics& frequency_row_statistics)
     {
         uint16_t column = 0;
 
@@ -251,7 +235,7 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
 
             else
             {
-                const std::wstring& text = std::get<std::wstring>(value);
+                const std::string& text = std::get<std::string>(value);
 
                 if( value_written = !text.empty(); value_written )
                 {
@@ -263,8 +247,8 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
             // when combining values and labels, if no value is written, write the label
             if( !value_written && m_valueLabelColumnsCombined )
             {
-                LogColumnTextForAdjustingColumnWidths(column, label);
-                m_excelWriter.Write(m_row, column, label);
+                LogColumnTextForAdjustingColumnWidths(column, label_sv);
+                m_excelWriter.Write(m_row, column, label_sv.c_str());
             }
 
             ++column;
@@ -272,8 +256,8 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
 
         if( !m_valueLabelColumnsCombined )
         {
-            LogColumnTextForAdjustingColumnWidths(column, label);
-            m_excelWriter.Write(m_row, column++, label);
+            LogColumnTextForAdjustingColumnWidths(column, label_sv);
+            m_excelWriter.Write(m_row, column++, label_sv.c_str());
         }
 
         // write the counts and percents
@@ -296,7 +280,7 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
             {
                 // if there is no number, make sure that the line is still drawn if necessary
                 if( count_cell )
-                    m_excelWriter.Write(m_row, column, _T(""), CreateFormat(ExcelWriter::Format::LineOnLeft));
+                    m_excelWriter.Write(m_row, column, "", CreateFormat(ExcelWriter::Format::LineOnLeft));
 
                 ++column;
             }
@@ -318,19 +302,19 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
     };
 
     // add the total row
-    fill_row(std::wstring(), FPH::TotalLabel, m_frequencyTable->total_count, FPH::CreateTotalFrequencyRowStatistics(*m_frequencyTable, false));
+    fill_row(std::string(), FPH::TotalLabel, m_frequencyTable->total_count, FPH::CreateTotalFrequencyRowStatistics(*m_frequencyTable, false));
 
     // add each frequency row
     for( size_t i = 0; i < m_frequencyTable->frequency_rows.size(); ++i )
     {
         const FrequencyRow& frequency_row = m_frequencyTable->frequency_rows[i];
 
-        std::wstring display_label = frequency_row.display_label;
+        std::string display_label = frequency_row.display_label;
 
         // modify the default label for notappl
         if( frequency_row.value_is_blank && display_label == SpecialValues::ValueToString(NOTAPPL, false) )
         {
-            display_label = _T("Not Applicable");
+            display_label = "Not Applicable";
         }
 
         // if not printing values but there is no label, then use the value as the label
@@ -345,8 +329,8 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
     // if necessary, indicate why the cumulative columns are not filled
     if( m_frequencyTable->has_multiple_labels_per_value )
     {
-        lxw_format* warning_format = CreateFormat(ExcelWriter::Format::Italics | ExcelWriter::Format::LineOnLeft |
-                                                  ExcelWriter::Format::Center | ExcelWriter::Format::Middle | ExcelWriter::Format::TextWrap);
+        lxw_format* const warning_format = CreateFormat(ExcelWriter::Format::Italics | ExcelWriter::Format::LineOnLeft |
+                                                        ExcelWriter::Format::Center | ExcelWriter::Format::Middle | ExcelWriter::Format::TextWrap);
         const uint16_t cumulative_start_column = m_totalColumns - 1 - ( m_showNetPercents ? 2 : 1 );
         m_excelWriter.WriteMerged(starting_row, cumulative_start_column, m_row - 1, m_totalColumns - 1, FPH::NoCumulativeColumnsWarning, warning_format);
     }
@@ -357,23 +341,23 @@ void ExcelFrequencyPrinterWorker::AddStatistics()
 {
     ASSERT(m_frequencyTable->table_statistics.has_value());
 
-    lxw_format* bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Bold);
+    lxw_format* const bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Bold);
 
     m_row += 2;
     m_excelWriter.Write(m_row++, 0, FPH::StatisticsLabel, bold_format);
 
-    auto write_statistic = [&](const TCHAR* label, const auto& number_or_text, lxw_format* format = nullptr)
+    auto write_statistic = [&](const cs::string_view_sz label_sv, const auto& number_or_text, lxw_format* const format = nullptr)
     {
-        LogColumnTextForAdjustingColumnWidths(0, label);
-        m_excelWriter.Write(m_row, 0, label);
+        LogColumnTextForAdjustingColumnWidths(0, label_sv);
+        m_excelWriter.Write(m_row, 0, label_sv.c_str());
 
         m_excelWriter.Write(m_row++, 1, number_or_text, format);
     };
 
-    auto write_optional_statistic = [&](const TCHAR* label, const auto& optional_number, lxw_format* format = nullptr)
+    auto write_optional_statistic = [&](const cs::string_view_sz label_sv, const auto& optional_number, lxw_format* const format = nullptr)
     {
         if( optional_number.has_value() )
-            write_statistic(label, *optional_number, format);
+            write_statistic(label_sv, *optional_number, format);
     };
 
     // alphanumeric statistics
@@ -391,10 +375,10 @@ void ExcelFrequencyPrinterWorker::AddStatistics()
         // categories
         write_statistic(FPH::CategoriesLabel, table_statistics.number_defined_categories);
 
-        std::wstring special_value_categories;
+        std::string special_value_categories;
 
         for( const double value : table_statistics.non_blank_special_values_used )
-            SO::AppendWithSeparator(special_value_categories, SpecialValues::ValueToString(value, false), _T(", "));
+            SO::AppendWithSeparator(special_value_categories, SpecialValues::ValueToString(value, false), ", ");
 
         if( !special_value_categories.empty() )
             write_statistic(FPH::SpecialValuesLabel, special_value_categories, CreateFormat(ExcelWriter::Format::Right));
@@ -428,7 +412,8 @@ void ExcelFrequencyPrinterWorker::AddPercentiles()
     if( !table_statistics.percentiles.has_value() )
         return;
 
-    lxw_format* right_justified_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right | ExcelWriter::Format::Bold);
+    lxw_format* const right_justified_bold_format = m_excelWriter.GetFormat(ExcelWriter::Format::Right |
+                                                                            ExcelWriter::Format::Bold);
 
     m_row += 2;
     LogColumnTextForAdjustingColumnWidths(0, FPH::PercentilesLabel);
@@ -436,7 +421,7 @@ void ExcelFrequencyPrinterWorker::AddPercentiles()
     m_excelWriter.Write(m_row, 1, FPH::DiscontinuousLabel, right_justified_bold_format);
     m_excelWriter.Write(m_row++, 2, FPH::ContinuousTextLabel, right_justified_bold_format);
 
-    lxw_format* percent_format = CreateFormat(ExcelWriter::Format::None, CreateNumericFormatString(0, true));
+    lxw_format* const percent_format = CreateFormat(ExcelWriter::Format::None, CreateNumericFormatString(0, true));
 
     for( const FrequencyNumericStatistics::Percentile& percentile : *table_statistics.percentiles )
     {
@@ -447,10 +432,10 @@ void ExcelFrequencyPrinterWorker::AddPercentiles()
 }
 
 
-void ExcelFrequencyPrinterWorker::LogColumnTextForAdjustingColumnWidths(uint16_t column, wstring_view text)
+void ExcelFrequencyPrinterWorker::LogColumnTextForAdjustingColumnWidths(const uint16_t column, const std::string_view text_sv)
 {
     ASSERT(column < m_columnStringLengths.size());
-    m_columnStringLengths[column] = std::max(text.length(), m_columnStringLengths[column]);
+    m_columnStringLengths[column] = std::max(SO::WideLength(text_sv), m_columnStringLengths[column]);
 }
 
 
@@ -477,7 +462,7 @@ void ExcelFrequencyPrinterWorker::AdjustColumnWidths()
 
     // if the value and labels columns are combined, the first total column needs to fit the
     // percentile text, so use a larger width in that case
-    if( m_valueLabelColumnsCombined && m_frequencyTable->table_statistics.has_value() &&            
+    if( m_valueLabelColumnsCombined && m_frequencyTable->table_statistics.has_value() &&
         std::holds_alternative<FrequencyNumericStatistics>(*m_frequencyTable->table_statistics) &&
         std::get<FrequencyNumericStatistics>(*m_frequencyTable->table_statistics).percentiles.has_value() )
     {
@@ -490,19 +475,18 @@ void ExcelFrequencyPrinterWorker::AdjustColumnWidths()
 
 
 
-
 // --------------------------------------------------------------------------
 // ExcelFrequencyPrinter
 // --------------------------------------------------------------------------
 
-ExcelFrequencyPrinter::ExcelFrequencyPrinter(NullTerminatedString filename)
-    :   m_worker(std::make_unique<ExcelFrequencyPrinterWorker>(filename))
-{    
+ExcelFrequencyPrinter::ExcelFrequencyPrinter(InterfaceString file_path)
+    :   m_worker(std::make_unique<ExcelFrequencyPrinterWorker>(std::move(file_path)))
+{
 }
 
 
 ExcelFrequencyPrinter::~ExcelFrequencyPrinter()
-{        
+{
 }
 
 

@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "File.h"
+#include <zToolsO/TextEncoding.h>
 #include <zUtilO/StdioFileUnicode.h>
 
 
@@ -7,7 +8,7 @@
 // LogicFile
 // --------------------------------------------------------------------------
 
-LogicFile::LogicFile(std::wstring file_name)
+LogicFile::LogicFile(std::string file_name)
     :   Symbol(std::move(file_name), SymbolType::File),
         m_isUsed(false),
         m_hasGlobalVisibility(false),
@@ -33,17 +34,26 @@ LogicFile::~LogicFile()
 }
 
 
+void LogicFile::CopyCompileTimeAttributes(const Symbol& symbol)
+{
+    const LogicFile& logic_file = assert_cast<const LogicFile&>(symbol);
+
+    m_isUsed |= logic_file.m_isUsed;
+    m_isWrittenTo |= logic_file.m_isWrittenTo;
+}
+
+
 std::unique_ptr<Symbol> LogicFile::CloneInInitialState() const
 {
     return std::unique_ptr<LogicFile>(new LogicFile(*this));
 }
 
 
-bool LogicFile::Open(bool create_new, bool append, bool truncate)
+bool LogicFile::Open(const bool create_new, const bool append, const bool truncate)
 {
     bool success = false;
 
-    if( !IsOpen() && !m_filename.empty() )
+    if( !IsOpen() && !m_filePath.empty() )
     {
         UINT open_flags = CFile::modeReadWrite | CFile::shareExclusive;
 
@@ -57,13 +67,13 @@ bool LogicFile::Open(bool create_new, bool append, bool truncate)
 
         Encoding file_encoding = Encoding::Invalid;
 
-        bool file_exists = GetFileBOM(m_filename, file_encoding);
+        const bool file_exists = GetFileBOM(m_filePath, file_encoding);
 
         // if only reading, ANSI is fine, but if writing, convert to UTF-8
         if( file_exists && file_encoding == Encoding::Ansi && IsWrittenTo() )
         {
             // if can't convert to UTF-8, return false
-            if( !CStdioFileUnicode::ConvertAnsiToUTF8(m_filename) )
+            if( !CStdioFileUnicode::ConvertAnsiToUTF8(m_filePath) )
                 return false;
 
             file_encoding = Encoding::Utf8;
@@ -86,20 +96,20 @@ bool LogicFile::Open(bool create_new, bool append, bool truncate)
         }
 
         // open the file
-        if( m_file.Open(m_filename.c_str(), open_flags) )
+        if( m_file.Open(UTF8_TODO::GetWide(m_filePath).c_str(), open_flags) )
         {
             success = true;
 
             if( m_encoding == Encoding::Utf8 )
             {
-                if( IsWrittenTo() && m_file.GetLength() < Utf8BOM_sv.length() ) // write out the UTF-8 BOM
+                if( IsWrittenTo() && m_file.GetLength() < TextEncoding::Utf8Bom_sv.length() ) // write out the UTF-8 BOM
                 {
-                    m_file.Write(Utf8BOM_sv.data(), Utf8BOM_sv.length());
+                    m_file.Write(TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length());
                 }
 
                 else // skip past the BOM
                 {
-                    m_file.Seek(Utf8BOM_sv.length(), CFile::begin);
+                    m_file.Seek(TextEncoding::Utf8Bom_sv.length(), CFile::begin);
                 }
             }
 
@@ -158,17 +168,17 @@ void LogicFile::WriteValueToJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    if( m_filename.empty() )
+    if( m_filePath.empty() )
     {
         json_writer.WriteNull(JK::path);
     }
 
     else
     {
-        const std::wstring name = PortableFunctions::PathGetFilename(m_filename);
-        const std::wstring extension = PortableFunctions::PathGetFileExtension(name);
+        const std::string name = PortableFunctions::PathGetFilename(m_filePath);
+        const std::string extension = PortableFunctions::PathGetFileExtension(name);
 
-        json_writer.WritePath(JK::path, m_filename)
+        json_writer.WritePath(JK::path, m_filePath)
                    .Write(JK::name, name)
                    .Write(JK::extension, extension)
                    .WriteIfHasValue(JK::contentType, MimeType::GetTypeFromFileExtension(extension));

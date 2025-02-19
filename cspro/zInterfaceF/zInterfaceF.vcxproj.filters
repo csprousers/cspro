@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zInterfaceF.cpp">
+    <ClCompile Include="BatchLogicViewerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
+    <ClCompile Include="ClickableDictionaryTreeCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UniverseDlg.cpp">
+    <ClCompile Include="DictionaryReconcileDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictionaryTreeCtrl.cpp">
@@ -30,30 +30,36 @@
     <ClCompile Include="DictionaryTreeNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClickableDictionaryTreeCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BatchLogicViewerDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LangDlgBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LogicSettingsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UniverseDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zInterfaceF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zInterfaceF.h">
+    <ClInclude Include="BatchLogicViewerDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StdAfx.h">
+    <ClInclude Include="ClickableDictionaryTreeCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UniverseDlg.h">
+    <ClInclude Include="DictionaryReconcileDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryTreeActionResponder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryTreeCtrl.h">
@@ -62,31 +68,31 @@
     <ClInclude Include="DictionaryTreeNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictionaryTreeActionResponder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ClickableDictionaryTreeCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource_shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UWM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BatchLogicViewerDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LangDlgBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogicSettingsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="TreeNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UniverseDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zInterfaceF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

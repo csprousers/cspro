@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zToolsO/CaseInsensitiveComparer.h>
+
 
 class LexerProperties
 {
@@ -8,7 +10,7 @@ public:
     {
         std::map<char, COLORREF> colors;
         std::vector<std::string> keywords;
-        std::unique_ptr<std::map<StringNoCase, const TCHAR*>> logic_tooltips;
+        std::unique_ptr<std::map<std::string, const char*, cs::case_insensitive_less>> logic_tooltips;
     };
 
     static const Properties& GetProperties(int lexer_language);
@@ -23,7 +25,7 @@ public:
         return GetProperties(lexer_language).keywords;
     }
 
-    static const std::map<StringNoCase, const TCHAR*>* GetLogicTooltips(int lexer_language)
+    static const std::map<std::string, const char*, cs::case_insensitive_less>* GetLogicTooltips(int lexer_language)
     {
         return GetProperties(lexer_language).logic_tooltips.get();
     }

@@ -14,7 +14,7 @@ protected:
     BOOL InitInstance() override;
 
     // implementing BatchExecutorCallback
-    bool QueryForFilename(CString& pff_or_batch_filename) override;
+    bool QueryForFilePath(std::string& pff_or_batch_file_path) override;
 
     bool QueryForFileAssociations(CNPifFile& pff, const EngineData& engine_data) override;
 };

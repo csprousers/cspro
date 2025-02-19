@@ -7,8 +7,6 @@
 #include <zCapiO/CapiStyle.h>
 
 
-IMPLEMENT_DYNCREATE(QSFEditToolbar, CMFCToolBar)
-
 BEGIN_MESSAGE_MAP(QSFEditToolbar, CMFCToolBar)
     ON_MESSAGE(WM_IDLEUPDATECMDUI, OnIdleUpdateCmdUI)
 END_MESSAGE_MAP()
@@ -39,6 +37,7 @@ QSFEditToolbar::QSFEditToolbar()
 {
 }
 
+
 void QSFEditToolbar::SetStyles(const std::vector<HtmlEditorCtrl::Style>& styles)
 {
     auto style_combo = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_STYLE)));
@@ -47,10 +46,10 @@ void QSFEditToolbar::SetStyles(const std::vector<HtmlEditorCtrl::Style>& styles)
         m_styles = styles;
         style_combo->RemoveAllItems();
         for (const HtmlEditorCtrl::Style& style : m_styles) {
-            std::optional<COLORREF> color = CssStyleParser::TextColor(style.css);
-            style_combo->AddItem(style.name.c_str(), CssStyleParser::ToLogfont(style.css), color.value_or(GetSysColor(COLOR_WINDOWTEXT)));
+            const std::optional<COLORREF> color = CssStyleParser::TextColor(style.css);
+            style_combo->AddItem(TC::ToWide(style.name).c_str(), CssStyleParser::ToLogfont(style.css), color.value_or(GetSysColor(COLOR_WINDOWTEXT)));
         }
-        auto new_selection = std::find_if(m_styles.begin(), m_styles.end(), [&current_selection](const HtmlEditorCtrl::Style& s) { return s.className == current_selection.className; });
+        auto new_selection = std::find_if(m_styles.begin(), m_styles.end(), [&](const HtmlEditorCtrl::Style& s) { return ( s.class_name == current_selection.class_name ); });
         if (new_selection != m_styles.end()) {
             style_combo->SelectItem(std::distance(new_selection, m_styles.begin()), false);
         }
@@ -63,18 +62,21 @@ void QSFEditToolbar::SetStyles(const std::vector<HtmlEditorCtrl::Style>& styles)
     }
 }
 
+
 const HtmlEditorCtrl::Style& QSFEditToolbar::GetSelectedStyle() const
 {
     auto button = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_STYLE)));
     return m_styles[button->GetCurSel()];
 }
 
+
 void QSFEditToolbar::SetSelectedStyle(const HtmlEditorCtrl::Style& style)
 {
     auto button = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_STYLE)));
-    int num_items = button->GetCount();
+    const std::wstring wide_name = TC::ToWide(style.name);
+    const int num_items = button->GetCount();
     for (int i = 0; i < num_items; ++i) {
-        if (button->GetItem(i) == style.name) {
+        if (button->GetItem(i) == wide_name) {
             if (button->GetCurSel() != i) {
                 button->SelectItem(i, TRUE);
             }
@@ -82,6 +84,7 @@ void QSFEditToolbar::SetSelectedStyle(const HtmlEditorCtrl::Style& style)
         }
     }
 }
+
 
 void QSFEditToolbar::SetButtonVisible(UINT id, BOOL visible)
 {
@@ -92,10 +95,11 @@ void QSFEditToolbar::SetButtonVisible(UINT id, BOOL visible)
 }
 
 // To hold the colours and their names
-typedef struct {
+struct ColourTableEntry
+{
     COLORREF crColour;
-    TCHAR* szName;
-} ColourTableEntry;
+    wchar_t* szName;
+};
 
 #define MAX_COLOURS      100
 
@@ -167,11 +171,12 @@ static ColourTableEntry crColours[] =
      { RGB(0x4A, 0x10, 0x31), _T("Loulou")}
 };
 
+
 CMFCColorMenuButton* QSFEditToolbar::CreateColorButton()
 {
     if (m_palColorPicker.GetSafeHandle() == NULL)
     {
-        m_nNumColours = sizeof(crColours) / sizeof(ColourTableEntry);
+        m_nNumColours = _countof(crColours);
         ASSERT(m_nNumColours <= MAX_COLOURS);
         if (m_nNumColours > MAX_COLOURS)
             m_nNumColours = MAX_COLOURS;
@@ -211,6 +216,7 @@ CMFCColorMenuButton* QSFEditToolbar::CreateColorButton()
     return pColorButton;
 }
 
+
 void QSFEditToolbar::SetFontFace(NullTerminatedString font_name)
 {
     QSFEditToolBarStyledComboBoxButton* button = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_FONTFACE)));
@@ -232,11 +238,13 @@ void QSFEditToolbar::SetFontFace(NullTerminatedString font_name)
     button->SelectItem(num_items, TRUE);
 }
 
+
 CString QSFEditToolbar::GetFontFace() const
 {
     auto button = DYNAMIC_DOWNCAST(CMFCToolBarComboBoxButton, GetButton(CommandToIndex(IDC_FONTFACE)));
     return button->GetItem(button->GetCurSel());
 }
+
 
 void QSFEditToolbar::SetFontSize(int font_size)
 {
@@ -260,11 +268,13 @@ void QSFEditToolbar::SetFontSize(int font_size)
     button->Invalidate(); // for some reason need to force redraw of combo box here or it doesn't update
 }
 
+
 int QSFEditToolbar::GetFontSize() const
 {
     auto button = DYNAMIC_DOWNCAST(QSFEditNumericSortToolBarComboBoxButton, GetButton(CommandToIndex(IDC_FONTSIZE)));
     return _ttoi(button->GetItem(button->GetCurSel()));
 }
+
 
 COLORREF QSFEditToolbar::GetForeColor() const
 {
@@ -272,26 +282,29 @@ COLORREF QSFEditToolbar::GetForeColor() const
     return button->GetColor();
 }
 
+
 CSize QSFEditToolbar::GetTableDimensions() const
 {
     auto button = DYNAMIC_DOWNCAST(TableToolbarButton, GetButton(CommandToIndex(ID_INSERT_TABLE)));
     return button->GetDimensions();
 }
 
+
 void QSFEditToolbar::SetLanguages(const std::vector<Language>& languages)
 {
     auto button = DYNAMIC_DOWNCAST(CMFCToolBarComboBoxButton, GetButton(CommandToIndex(IDC_EDIT_LANG)));
     button->RemoveAllItems();
-    for (const auto& language : languages)
-        button->AddItem(language.GetLabel().c_str());
+    for (const Language& language : languages)
+        button->AddItem(TC::ToWide(language.GetLabel()).c_str());
 }
+
 
 void QSFEditToolbar::SetLanguage(const Language& language)
 {
     auto button = DYNAMIC_DOWNCAST(CMFCToolBarComboBoxButton, GetButton(CommandToIndex(IDC_EDIT_LANG)));
     int num_items = button->GetCount();
     for (int i = 0; i < num_items; ++i) {
-        if (button->GetItem(i) == language.GetLabel()) {
+        if (SO::Equals(language.GetLabel(), button->GetItem(i))) {
             if (button->GetCurSel() != i) {
                 button->SelectItem(i, TRUE);
             }
@@ -300,28 +313,32 @@ void QSFEditToolbar::SetLanguage(const Language& language)
     }
 }
 
-CString QSFEditToolbar::GetLanguageLabel() const
+
+std::string QSFEditToolbar::GetLanguageLabel() const
 {
-    auto button = DYNAMIC_DOWNCAST(CMFCToolBarComboBoxButton, GetButton(CommandToIndex(IDC_EDIT_LANG)));
-    return button->GetItem(button->GetCurSel());
+    CMFCToolBarComboBoxButton* const button = DYNAMIC_DOWNCAST(CMFCToolBarComboBoxButton, GetButton(CommandToIndex(IDC_EDIT_LANG)));
+    return TC::ToUtf8(button->GetItem(button->GetCurSel()));
 }
+
 
 BOOL QSFEditToolbar::OnUserToolTip(CMFCToolBarButton* pButton, CString& strTTText) const
 {
     if (pButton->m_nID == ID_TOGGLE_QN) {
         if (pButton->m_nStyle & TBBS_CHECKED)
             strTTText = "Help Text";
-        else 
+        else
             strTTText = "Question Text";
         return TRUE;
     }
     return CMFCToolBar::OnUserToolTip(pButton, strTTText);
 }
 
+
 int QSFEditToolbar::GetImageIndex(UINT /*command*/)
 {
     return GetButton(CommandToIndex(ID_INSERT_TABLE))->GetImage();
 }
+
 
 void QSFEditToolbar::OnReset()
 {
@@ -332,7 +349,7 @@ void QSFEditToolbar::OnReset()
     QSFEditToolBarStyledComboBoxButton style_combo(IDC_STYLE, GetImageIndex(IDC_STYLE), CBS_DROPDOWN);
     for (const HtmlEditorCtrl::Style& style : m_styles) {
         std::optional<COLORREF> color = CssStyleParser::TextColor(style.css);
-        style_combo.AddItem(style.name.c_str(), CssStyleParser::ToLogfont(style.css), color.value_or(GetSysColor(COLOR_WINDOWTEXT)));
+        style_combo.AddItem(TC::ToWide(style.name).c_str(), CssStyleParser::ToLogfont(style.css), color.value_or(GetSysColor(COLOR_WINDOWTEXT)));
     }
     ReplaceButton(IDC_STYLE, style_combo);
 
@@ -340,7 +357,7 @@ void QSFEditToolbar::OnReset()
         CBS_DROPDOWNLIST, (2 * LF_FACESIZE * base_units.cx) / 2);
     LOGFONT logfont;
     memset(&logfont, 0, sizeof(LOGFONT));
-    for (auto font_name : CapiStyle::DefaultFontNames) {
+    for (const wchar_t* const font_name : CapiStyle::DefaultFontNames) {
         _tcscpy(logfont.lfFaceName, font_name);
         font_name_combo.AddItem(font_name, logfont);
     }
@@ -349,7 +366,7 @@ void QSFEditToolbar::OnReset()
     QSFEditNumericSortToolBarComboBoxButton font_size_combo(IDC_FONTSIZE, GetImageIndex(IDC_FONTSIZE),
         CBS_DROPDOWNLIST, 10 * base_units.cx + 10);
     for (auto font_size : CapiStyle::DefaultFontSizes)
-        font_size_combo.AddSortedItem(IntToString(font_size));
+        font_size_combo.AddSortedItem(UTF8_TODO::GetCString(IntToString(font_size)));
     font_size_combo.SelectItem(0);
     ReplaceButton(IDC_FONTSIZE, font_size_combo);
 

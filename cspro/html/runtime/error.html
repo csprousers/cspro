@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Error - CSPro Runtime</title>
+
+    <style>
+        body {
+            background-color: #0b304a;
+            color: white;
+        }
+
+        a {
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+
+    <script src="runtime.js"></script>
+</head>
+
+<body>
+
+    <h1>CSPro Runtime Error</h1>
+
+    <table>
+        <tr>
+            <td><img src="runtime.png" width="50%" /></td>
+            <td><p>There was an error:<br><br><b><span id="error"></b></p></td>
+        </tr>
+    </table>
+
+    <script>
+        const errorSpan = document.getElementById("error");
+        let CSRT;
+
+        CSProRT.getWindow().addEventListener("message", event => {
+            try {
+                const message = JSON.parse(event.data);
+
+                if( message.action == "CSProRT.activate" ) {
+                    CSRT = new CSProRT(message.data.accessToken);
+
+                    CSRT.postMessageForResult("getError")
+                    .then(result => {
+                        errorSpan.textContent = result.error;
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    });
+                }
+            }
+            catch(e) {
+                errorSpan.textContent = e.message;
+            }
+        });
+    </script>
+
+</body>
+
+</html>

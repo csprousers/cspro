@@ -2,10 +2,8 @@
 #include "SQLiteDictionarySchemaReconciler.h"
 #include "SQLiteDictionarySchemaGenerator.h"
 #include "SQLiteErrorWithMessage.h"
-#include "SQLiteSchemaHelpers.h"
 #include <zToolsO/NumberConverter.h>
 #include <zUtilO/SQLiteSchema.h>
-#include <zUtilO/SQLiteTransaction.h>
 #include <zDictO/DictionaryComparer.h>
 #include <zDictO/Rules.h>
 #include <sstream>
@@ -27,7 +25,6 @@ SQLiteDictionarySchemaReconciler::SQLiteDictionarySchemaReconciler(sqlite3* data
 
 void SQLiteDictionarySchemaReconciler::Reconcile(sqlite3* database)
 {
-    SQLiteTransaction transaction(database);
     if (!m_schema_diffs.Empty()) {
         m_schema_diffs.Migrate(database);
     }
@@ -54,18 +51,18 @@ bool SQLiteDictionarySchemaReconciler::KeysChanged(const CDataDict& original_dic
 
 void SQLiteDictionarySchemaReconciler::UpdateKeys(sqlite3* database, const CaseAccess& case_access)
 {
-    auto first_level = case_access.GetCaseMetadata().GetCaseLevelsMetadata().front();
-    auto id_items_record = first_level->GetIdCaseRecordMetadata();
-    auto id_items = id_items_record->GetCaseItems();
-    const auto key_length = first_level->GetLevelKeyLength();
+    const CaseLevelMetadata& first_level = case_access.GetCaseMetadata().GetCaseLevelsMetadata().front();
+    const CaseRecordMetadata& id_items_record = first_level.GetIdCaseRecordMetadata();
+    const std::vector<const CaseItem*>& id_items = id_items_record.GetCaseItems();
+    const size_t key_length = first_level.GetLevelKeyLength();
 
     std::ostringstream ss;
     ss << "SELECT cases.id";
-    for (auto id_item : id_items)
-        ss << ",`level-1`.`" << ToLowerUtf8(id_item->GetDictionaryItem().GetName()) << '`';
+    for (const CaseItem* const id_item : id_items)
+        ss << ",`level-1`.`" << SO::ToLower(id_item->GetDictItem().GetName()) << '`';
     ss << " FROM cases JOIN `level-1` ON cases.id = `level-1`.`case-id`";
 
-    SQLiteStatement list_ids(database, ss.str().c_str());
+    SQLiteStatement list_ids(database, ss.str());
 
     SQLiteStatement update_key(database, "UPDATE cases SET `key`=? WHERE id=?");
 
@@ -79,18 +76,18 @@ void SQLiteDictionarySchemaReconciler::UpdateKeys(sqlite3* database, const CaseA
         for (size_t i = 0; i < id_items.size(); ++i)
         {
             const int column_index = i + 1;
-            const auto& item = id_items[i]->GetDictionaryItem();
+            const CDictItem& item = id_items[i]->GetDictItem();
             ASSERT(DictionaryRules::CanBeIdItem(item));
 
             if (item.GetContentType() == ContentType::Alpha) {
                 CString val = list_ids.GetColumn<CString>(column_index);
-                _tcsncpy(key_buffer, (LPCTSTR) val, std::min((size_t)val.GetLength(), (size_t)item.GetLen()));
+                _tcsncpy(key_buffer, val.GetString(), std::min((size_t)val.GetLength(), (size_t)item.GetLen()));
             }
 
             else {
                 ASSERT(item.GetContentType() == ContentType::Numeric);
                 double val;
-                auto column_type = list_ids.GetColumnType(column_index);
+                int column_type = list_ids.GetColumnType(column_index);
                 if (column_type == SQLITE_NULL) {
                     val = NOTAPPL;
                 } else if (column_type == SQLITE_FLOAT || column_type == SQLITE_INTEGER) {
@@ -98,7 +95,7 @@ void SQLiteDictionarySchemaReconciler::UpdateKeys(sqlite3* database, const CaseA
                 } else {
                     val = DEFAULT;
                 }
-                NumberConverter::DoubleToText(val, key_buffer, item.GetLen(), item.GetDecimal(), item.GetZeroFill(), item.GetDecChar());
+                NumberConverter::DoubleToText(key_buffer, val, item.GetLen(), item.GetDecimal(), item.GetZeroFill(), item.GetDecChar());
             }
             key_buffer += item.GetLen();
         }

@@ -1,13 +1,13 @@
 ﻿#include "stdafx.h"
 #include "CSProExportWriter.h"
-#include <zDataO/DataRepositoryHelpers.h>
+#include <zDataO/DictionarySource.h>
 
 
 CSProExportWriter::CSProExportWriter(std::shared_ptr<const CaseAccess> case_access, const ConnectionString& connection_string)
     :   m_caseAccess(std::move(case_access))
 {
     // if only writing a single record, create a special dictionary and case access for that record
-    const std::wstring* single_record_to_export_name = connection_string.GetProperty(CSProperty::record);
+    const std::string* const single_record_to_export_name = connection_string.GetProperty(CSProperty::record);
 
     if( single_record_to_export_name != nullptr )
         SetupSingleRecordCaseAccess(*single_record_to_export_name);
@@ -23,9 +23,9 @@ CSProExportWriter::CSProExportWriter(std::shared_ptr<const CaseAccess> case_acce
                                                      DataRepositoryAccess::BatchOutput, DataRepositoryOpenFlag::CreateNew);
 
 
-    // store the dictionary path (to be written in Close)
-    m_dictionaryPath = GetDictionaryPath(modified_connection_string);
-    ASSERT(m_dictionaryPath == GetDictionaryPath(connection_string));
+    // store the dictionary file path (to be written in Close)
+    m_dictionaryFilePath = GetDictionaryFilePath(modified_connection_string);
+    ASSERT(m_dictionaryFilePath == GetDictionaryFilePath(connection_string));
 }
 
 
@@ -38,7 +38,7 @@ CSProExportWriter::~CSProExportWriter()
 ConnectionString CSProExportWriter::GetDataConnectionString(const ConnectionString& connection_string)
 {
     // construct a connection string with the CSProExport type property removed
-    ConnectionString modified_connection_string(connection_string.GetFilename());
+    ConnectionString modified_connection_string(connection_string.GetFilePath());
 
     // add any properties from the original connection string
     for( const auto& [attribute, value] : connection_string.GetProperties() )
@@ -48,15 +48,19 @@ ConnectionString CSProExportWriter::GetDataConnectionString(const ConnectionStri
 }
 
 
-std::wstring CSProExportWriter::GetDictionaryPath(const ConnectionString& connection_string)
+std::string CSProExportWriter::GetDictionaryFilePath(const ConnectionString& connection_string)
 {
-    const std::wstring* dictionary_path_override = connection_string.GetProperty(CSProperty::dictionaryPath);
+    std::string dictionary_file_path = DictionarySource::GetDictionaryPathOverride(connection_string);
 
-    if( dictionary_path_override == nullptr )
-        dictionary_path_override = connection_string.GetProperty(_T("dictionary")); // pre-8.0
+    if( !dictionary_file_path.empty() )
+        return dictionary_file_path;
 
-    return ( dictionary_path_override != nullptr ) ? MakeFullPath(GetWorkingFolder(connection_string.GetFilename()), *dictionary_path_override) :
-                                                     PortableFunctions::PathAppendFileExtension(connection_string.GetFilename(), FileExtensions::WithDot::Dictionary);
+    const std::string* const pre80_dictionary_path_override = connection_string.GetProperty("dictionary");
+
+    if( pre80_dictionary_path_override != nullptr )
+        return MakeFullPath(GetWorkingDirectory(connection_string.GetFilePath()), *pre80_dictionary_path_override);
+
+    return PortableFunctions::PathAppendFileExtension(connection_string.GetFilePath(), FileExtensions::Dictionary);
 }
 
 
@@ -70,13 +74,13 @@ void CSProExportWriter::Close()
         m_dataRepository->Close();
 
         // save a copy of the dictionary
-        m_caseAccess->GetDataDict().Save(m_dictionaryPath, false);
+        m_caseAccess->GetDataDict().Save(m_dictionaryFilePath, false);
     }
 
     catch( const CSProException& exception )
     {
         if( m_caseAccess->GetCaseConstructionReporter() != nullptr )
-            m_caseAccess->GetCaseConstructionReporter()->IssueMessage(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+            m_caseAccess->GetCaseConstructionReporter()->IssueMessage(MessageType::Error, 10105, exception.what());
     }
 
     m_dataRepository.reset();
@@ -97,7 +101,7 @@ void CSProExportWriter::WriteCase(const Case& data_case)
 }
 
 
-void CSProExportWriter::SetupSingleRecordCaseAccess(const std::wstring& record_name)
+void CSProExportWriter::SetupSingleRecordCaseAccess(const std::string& record_name)
 {
     // if only writing a single record, find it and then create dictionary/CaseAccess objects for only that record
     const CaseMetadata& source_case_metadata = m_caseAccess->GetCaseMetadata();
@@ -107,14 +111,14 @@ void CSProExportWriter::SetupSingleRecordCaseAccess(const std::wstring& record_n
 
     if( source_case_record_metadata == nullptr )
     {
-        throw CSProException(_T("'%s' is not a record in the dictionary '%s'"),
-                             record_name.c_str(), source_dictionary.GetName().GetString());
+        throw CSProException("'%s' is not a record in the dictionary '%s'",
+                             record_name.c_str(), source_dictionary.GetName().c_str());
     }
 
-    if( source_case_record_metadata->GetCaseLevelMetadata().GetDictLevel().GetLevelNumber() > 0 )
+    if( !MultipleLevelExportSupported && source_case_record_metadata->GetCaseLevelMetadata().GetDictLevel().GetLevelNumber() > 0 )
     {
         // this exporter certainly could be setup to export records from levels 2+, but it just has not been implemented
-        throw CSProException(_T("The CSPro Export format cannot export only '%s' because it is not on the dictionary's first level"),
+        throw CSProException("The CSPro Export format cannot export only '%s' because it is not on the dictionary's first level",
                              record_name.c_str());
     }
 
@@ -160,7 +164,7 @@ void CSProExportWriter::SetupSingleRecordCaseAccess(const std::wstring& record_n
     m_singleRecordCaseDetails->id_case_record = &m_singleRecordCaseDetails->data_case->GetRootCaseLevel().GetIdCaseRecord();
     m_singleRecordCaseDetails->single_record_case_record = &m_singleRecordCaseDetails->data_case->GetRootCaseLevel().GetCaseRecord(0);
 
-    ASSERT(SO::EqualsNoCase(record_name, m_singleRecordCaseDetails->single_record_case_record->GetCaseRecordMetadata().GetDictionaryRecord().GetName()));
+    ASSERT(SO::EqualsNoCase(record_name, m_singleRecordCaseDetails->single_record_case_record->GetCaseRecordMetadata().GetDictRecord().GetName()));
 }
 
 

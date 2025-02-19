@@ -2,17 +2,14 @@
 
 #include <zCapiO/zCapiO.h>
 
-class JsonWriter;
-class Serializer;
-
 
 struct CLASS_DECL_ZCAPIO CapiStyle
 {
-    CString m_name;
-    CString m_class_name;
-    CString m_css;
+    std::string name;
+    std::string class_name;
+    std::string css;
 
-    static const std::vector<CString> DefaultFontNames;
+    static const std::vector<const wchar_t*> DefaultFontNames;
     static const std::vector<int> DefaultFontSizes;
 
 

@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <zToolsO/zToolsO.h>
-#include <zToolsO/StringView.h>
 #include <zToolsO/TextFormatter.h>
 #include <stdexcept>
 
@@ -10,7 +8,7 @@
 // CSProException
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZTOOLSO CSProException : public std::runtime_error
+class CSProException : public std::runtime_error
 {
 public:
     typedef std::runtime_error std_runtime_error;
@@ -21,58 +19,38 @@ public:
     {
     }
 
-    explicit CSProException(const wchar_t* message)
-        :   std::runtime_error(CreateUtf8Message(message))
-    {
-    }
-
-    explicit CSProException(const CString& message)
-        :   std::runtime_error(CreateUtf8Message(message))
-    {
-    }
-
-    explicit CSProException(const std::wstring& message)
-        :   std::runtime_error(CreateUtf8Message(message))
+    explicit CSProException(const std::string& message)
+        :   std::runtime_error(message.c_str())
     {
     }
 
     template<typename... Args>
-    explicit CSProException(const TCHAR* formatter, Args const&... args)
-        :   std::runtime_error(CreateUtf8Message(FormatText(formatter, args...)))
+    explicit CSProException(const char* formatter, Args const&... args)
+        :   std::runtime_error(FormatText(formatter, args...))
     {
     }
-
-    std::wstring GetErrorMessage() const
-    {
-        return GetErrorMessage(*this);
-    }
-
-    static std::wstring GetErrorMessage(const std::exception& exception);
-
-private:
-    static std::string CreateUtf8Message(wstring_view message);
 };
 
 
 
 // --------------------------------------------------------------------------
-// CSProExceptionWithFilename: holds a filename where the error occurred
+// CSProExceptionWithFilePath: holds a file path where the error occurred
 // --------------------------------------------------------------------------
 
-class CSProExceptionWithFilename : public CSProException
+class CSProExceptionWithFilePath : public CSProException
 {
 public:
     template<typename... Args>
-    CSProExceptionWithFilename(std::wstring filename, Args const&... args)
+    CSProExceptionWithFilePath(std::string file_path, Args const&... args)
         :   CSProException(args...),
-            m_filename(std::move(filename))
+            m_filePath(std::move(file_path))
     {
     }
 
-    const std::wstring& GetFilename() const { return m_filename; }
+    const std::string& GetFilePath() const { return m_filePath; }
 
 private:
-    std::wstring m_filename;
+    std::string m_filePath;
 };
 
 
@@ -85,17 +63,17 @@ private:
     struct class_name : public CSProException \
     {                                         \
         using CSProException::CSProException; \
-    };
+    }
 
 
 #define CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(class_name, message) \
     struct class_name : public CSProException                    \
     {                                                            \
         explicit class_name() : CSProException(message) { }      \
-    };
+    }
 
 
-CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(UserCanceledException, "Operation canceled by user")
+CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(UserCanceledException, "Operation canceled by user.");
 
 
 
@@ -103,7 +81,7 @@ CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(UserCanceledException, "Operation canceled b
 // ProgrammingErrorException + ReturnProgrammingError
 // --------------------------------------------------------------------------
 
-CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(ProgrammingErrorException, "Programming error: please report what was happening when you saw this to cspro@lists.census.gov")
+CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(ProgrammingErrorException, "Programming error: please report what was happening when you saw this to cspro@lists.census.gov");
 
 template<typename T>
 T ReturnProgrammingError(T&& value)

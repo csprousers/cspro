@@ -119,7 +119,7 @@ class CSProJavaScriptInterface(private val actionInvoker: ActionInvoker) {
     fun returnData(jsonText: String) {
         val argumentsJson = JSONObject()
         argumentsJson.put("result", jsonText)
-        val message = createActionInvokerMessage("UI.closeDialog", argumentsJson)
+        val message = createActionInvokerMessage("UI.close", argumentsJson)
         actionInvoker.run(message)
     }
 
@@ -135,7 +135,7 @@ class CSProJavaScriptInterface(private val actionInvoker: ActionInvoker) {
     @JavascriptInterface
     fun `do`(action: String): String? {
         return if( action == "close" ) {
-            val message = createActionInvokerMessage("UI.closeDialog", null)
+            val message = createActionInvokerMessage("UI.close", null)
             actionInvoker.run(message)
         } else {
              null

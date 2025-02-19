@@ -41,7 +41,7 @@ const std::wstring& CSEntryBinaryCommandLineInfo::GetPenFilename()
 {
     // if no name was specified, use the .ent filename but replace the extension with .pen
     if( m_penFilename.empty() )
-        m_penFilename = PortableFunctions::PathRemoveFileExtension<CString>(m_strFileName) + FileExtensions::WithDot::BinaryEntryPen;
+        m_penFilename = UTF8_TODO::GetWide(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_strFileName), FileExtensions::BinaryEntryPen));
 
     return m_penFilename;
 }

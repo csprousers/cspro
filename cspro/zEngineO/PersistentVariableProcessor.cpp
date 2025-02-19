@@ -58,7 +58,7 @@ void PersistentVariableProcessor::serialize(Serializer& ar)
 
 void PersistentVariableProcessor::OnStart()
 {
-    m_commonStore = m_engineData.engine_accessor->ea_CommonStore();
+    m_commonStore = m_engineData.GetCommonStore();
 
     if( m_commonStore == nullptr )
     {
@@ -79,14 +79,14 @@ void PersistentVariableProcessor::OnStart()
 
         if( m_commonStore != nullptr )
         {
-            std::optional<std::wstring> value = m_commonStore->GetString(symbol.GetName());
+            const std::optional<std::string> value = m_commonStore->GetString(symbol.GetName());
 
             if( value.has_value() )
             {
                 try
                 {
-                    const JsonNode<wchar_t> json_node = Json::Parse(*value);
-                    symbol.UpdateValueFromJson(json_node);
+                    const JsonNode json_node = Json::Parse(*value);
+                    symbol.SetValueFromJson(json_node);
                     symbol_set = true;
                 }
 
@@ -94,7 +94,7 @@ void PersistentVariableProcessor::OnStart()
                 {
                     m_engineData.engine_accessor->ea_GetSystemMessageIssuer().Issue(MessageType::Error, 94108,
                                                                                     symbol.GetName().c_str(),
-                                                                                    exception.GetErrorMessage().c_str(),
+                                                                                    exception.what(),
                                                                                     value->c_str());
                 }
             }
@@ -149,9 +149,9 @@ void PersistentVariableProcessor::SaveSymbols()
 
         try
         {
-            auto json_writer = Json::CreateStringWriter();
+            const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
-            auto symbol_serializer_holder = json_writer->GetSerializerHelper().Register(std::make_shared<SymbolSerializerHelper>(json_properties_for_complete_serialization));
+            const auto symbol_serializer_holder = json_writer->GetSerializerHelper().Register(std::make_unique<SymbolSerializerHelper>(json_properties_for_complete_serialization));
 
             symbol.WriteValueToJson(*json_writer);
 

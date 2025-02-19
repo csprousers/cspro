@@ -16,8 +16,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_form_CDEField_setNote
     if(reference != 0)
     {
         auto* pField = (CoreEntryPageField *)reference;
-        std::wstring sNote = JavaToWSZ(pEnv, note);
-        pField->SetNote(CString(sNote));
+        pField->SetNote(JavaString::ToUtf8(*pEnv, note));
     }
 }
 
@@ -32,12 +31,12 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_form_CDEField_setBlankValue
     if (reference != 0)
     {
         auto* pField = reinterpret_cast<CoreEntryPageField*>(reference);
-		
+
 		if( pField->IsNumeric() )
 			pField->SetNumericValue(NOTAPPL);
-		
+
 		else
-			pField->SetAlphaValue(SO::EmptyCString);
+			pField->SetAlphaValue(SO::Empty_CString);
     }
 }
 

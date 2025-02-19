@@ -1,11 +1,10 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
 #include "Engine.h"
-#include "SelectDlgHelper.h"
 #include "VariableWorker.h"
 #include <zEngineO/Array.h>
 #include <zEngineO/ValueSet.h>
-#include <zEngineO/Versioning.h>
+#include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/Definitions.h>
@@ -68,7 +67,7 @@ double CIntDriver::exinvalueset(int iExpr)
 
     else
     {
-        CString value = EvalAlphaExpr<CString>(function_node.m_iExpr);
+        CString value = EvalAlphaExprCS(function_node.m_iExpr);
         in_value_set = value_processor->IsValid(value);
     }
 
@@ -104,18 +103,18 @@ double CIntDriver::exgetimage(int iExpr)
 
     else
     {
-        CString value = EvalAlphaExpr<CString>(function_node.m_iExpr);
+        CString value = EvalAlphaExprCS(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(value);
     }
 
-    return ( dict_value != nullptr ) ? AssignAlphaValue(dict_value->GetImageFilename()) :
-                                       AssignBlankAlphaValue();
+    return ( dict_value != nullptr ) ? AssignString(dict_value->GetImageFilePath()) :
+                                       AssignStringNull();
 }
 
 
 double CIntDriver::exsetvalueset(int iExpr)
 {
-    if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
         return exsetvalueset_pre80(iExpr);
 
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
@@ -125,12 +124,12 @@ double CIntDriver::exsetvalueset(int iExpr)
         // lookup the symbol by name
         if( symbol_index < 0 )
         {
-            std::wstring symbol_name = EvalAlphaExpr(-1 * symbol_index);
-            symbol_index = m_pEngineArea->SymbolTableSearchWithPreference(SO::Trim(symbol_name), symbol_type);
+            const SharableString symbol_name = EvaluateSharableString(-1 * symbol_index);
+            symbol_index = m_pEngineArea->SymbolTableSearchWithPreference(SO::Trim(*symbol_name), symbol_type);
 
             if( symbol_index <= 0 )
             {
-                issaerror(MessageType::Error, 47165, symbol_name.c_str());
+                issaerror(MessageType::Error, 47165, symbol_name->c_str());
                 return nullptr;
             }
         }
@@ -187,7 +186,7 @@ double CIntDriver::exsetvalueset(int iExpr)
 
 double CIntDriver::exsetvalueset_pre80(int iExpr)
 {
-    ASSERT(Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
+    ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
     struct FNSETVALUESET_NODE
     {
@@ -215,11 +214,11 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         // the variable name is supplied as an alpha expression
         if( pFunc->m_iIsAtAlpha == 1 )
         {
-            CString csVarName = EvalAlphaExpr<CString>(-iSymbol + 1);
+            CString csVarName = EvalAlphaExprCS(-iSymbol + 1);
             csVarName.TrimRight();
 
             if( csVarName.GetLength() > 0  )
-                iSymbol = m_pEngineArea->SymbolTableSearch(csVarName, { SymbolType::Variable });
+                iSymbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csVarName), { SymbolType::Variable });
         }
 
         // the variable's symbol number is supplied
@@ -249,14 +248,14 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     // value set is an alpha expression
     if( pFunc->m_iSymbolValues[1] == -1 )
     {
-        CString csValueSetName = EvalAlphaExpr<CString>(pFunc->m_iSymbolValues[0]);
+        CString csValueSetName = EvalAlphaExprCS(pFunc->m_iSymbolValues[0]);
         csValueSetName.MakeUpper();
 
-        int value_set_symbol = m_pEngineArea->SymbolTableSearch(csValueSetName, { SymbolType::ValueSet });
+        int value_set_symbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csValueSetName), { SymbolType::ValueSet });
 
         if( value_set_symbol == 0 )
         {
-            issaerror(MessageType::Error, 47164, csValueSetName.GetString(), ToString(SymbolType::ValueSet));
+            issaerror(MessageType::Error, 47164, UTF8_TODO::GetUtf8(csValueSetName).c_str(), ToString(SymbolType::ValueSet));
             return dRet;
         }
 
@@ -306,59 +305,61 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
 
             // create a dynamic value set
             std::vector<double> numeric_codes;
-            std::vector<std::wstring> string_codes;
+            std::vector<SharableString> string_codes;
             size_t number_codes = 0;
             size_t start_processing_row = LogicArray::CalculateProcessingStartingRow(std::vector<const LogicArray*> { &codes_array, &labels_array });
 
             // process the codes
             if( codes_array.IsNumeric() )
             {
-                numeric_codes = codes_array.GetNumericFilledCells(start_processing_row);
+                numeric_codes = codes_array.GetFilledCells<double>(start_processing_row);
                 number_codes = numeric_codes.size();
             }
 
             else
             {
-                string_codes = codes_array.GetStringFilledCells(start_processing_row);
+                string_codes = codes_array.GetFilledCells<SharableString>(start_processing_row);
                 number_codes = string_codes.size();
             }
 
             size_t end_processing_row = start_processing_row + number_codes;
 
             // process the labels
-            std::vector<std::wstring> labels = labels_array.GetStringFilledCells(start_processing_row, end_processing_row);
+            const std::vector<SharableString> labels = labels_array.GetFilledCells<SharableString>(start_processing_row, end_processing_row);
 
-            // process the image filenames
-            std::vector<std::wstring> image_filenames = ( images_array != nullptr ) ? images_array->GetStringFilledCells(start_processing_row, end_processing_row) :
-                                                                                      std::vector<std::wstring>();
+            // process the image file paths
+            const std::vector<SharableString> image_file_paths =
+                ( images_array != nullptr ) ? images_array->GetFilledCells<SharableString>(start_processing_row, end_processing_row) :
+                                              std::vector<SharableString>();
 
             // create a temporary dynamic value set object and add all the values from the arrays
-            DynamicValueSet dynamic_value_set(std::wstring(), *m_engineData);
+            DynamicValueSet dynamic_value_set(std::string(), *m_engineData);
             dynamic_value_set.SetNumeric(codes_array.IsNumeric());
 
             for( size_t i = 0; i < number_codes; ++i )
             {
-                std::wstring label = ( i < labels.size() ) ? labels[i] :
-                                                             std::wstring();
-                std::wstring image_filename;
+                SharableString label = ( i < labels.size() ) ? labels[i] :
+                                                               SharableString();
+                std::string image_file_path;
 
-                if( i < image_filenames.size() )
+                if( i < image_file_paths.size() )
                 {
-                    image_filename = image_filenames[i];
+                    image_file_path = image_file_paths[i].GetString();
 
                     // convert the image paths to absolute paths
-                    if( !image_filename.empty() )
-                        MakeFullPathFileName(image_filename);
+                    if( !image_file_path.empty() )
+                        MakeAbsolutePath(image_file_path);
                 }
-
+                std::wstring wide_label = UTF8_TODO::GetWide(*label); // UTF8_TODO replace wide_label below with label
                 if( codes_array.IsNumeric() )
                 {
-                    dynamic_value_set.AddValue(std::move(label), std::move(image_filename), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
+                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
                 }
 
                 else
                 {
-                    dynamic_value_set.AddValue(std::move(label), std::move(image_filename), DictionaryDefaults::ValueLabelTextColor, std::move(string_codes[i]));
+                    std::wstring wide_value = UTF8_TODO::GetWide(*string_codes[i]); // UTF8_TODO replace wide_value below with string_codes[i]
+                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, std::move(wide_value));
                 }
             }
 
@@ -402,14 +403,14 @@ double CIntDriver::exsetvaluesets(int iExpr)
 {
     // for changing the value sets of all items to those matching the string passed
     const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    std::wstring value_set_pattern = EvalAlphaExpr(fnn_node.fn_expr[0]);
+    const SharableString value_set_pattern = EvaluateSharableString(fnn_node.fn_expr[0]);
     size_t num_value_sets_changed = 0;
 
     // process each of the value sets
-    for( const ValueSet* value_set : m_engineData->value_sets_not_dynamic )
+    for( const ValueSet* const value_set : m_engineData->value_sets_not_dynamic )
     {
         // change the value set if the search pattern was found
-        if( value_set->GetName().find(value_set_pattern) != std::wstring::npos )
+        if( value_set->GetName().find(*value_set_pattern) != std::string::npos )
         {
             VART* pVarT = value_set->GetVarT();
             pVarT->SetCurrentValueSet(std::dynamic_pointer_cast<const ValueSet, const Symbol>(GetSharedSymbol(value_set->GetSymbolIndex())));
@@ -433,7 +434,7 @@ double CIntDriver::exrandomizevs(int iExpr)
     std::vector<double> numeric_exclusions;
     std::vector<CString> string_exclusions;
 
-    int exclusion_end_index = Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ?
+    int exclusion_end_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ?
         va_with_size_node.number_arguments : ( va_with_size_node.number_arguments + 1 );
 
     for( int i = 1; i < exclusion_end_index; ++i )
@@ -446,7 +447,7 @@ double CIntDriver::exrandomizevs(int iExpr)
 
         else
         {
-            CString exclusion_value = EvalAlphaExpr<CString>(va_with_size_node.arguments[i]);
+            CString exclusion_value = EvalAlphaExprCS(va_with_size_node.arguments[i]);
             exclusion_value.TrimRight();
             string_exclusions.emplace_back(exclusion_value);
         }
@@ -491,7 +492,7 @@ double CIntDriver::exvaluesetcompute(int iExpr)
 
     if( !lhs_value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, _T("="), lhs_value_set.GetName().c_str());
+        issaerror(MessageType::Error, 47170, "=", lhs_value_set.GetName().c_str());
     }
 
     // only do the assignment if they're not assigning a value set to itself
@@ -514,7 +515,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, _T("add"), value_set.GetName().c_str());
+        issaerror(MessageType::Error, 47170, "add", value_set.GetName().c_str());
         return DEFAULT;
     }
 
@@ -522,10 +523,10 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
     const int& valueset_symbol_index = symbol_va_node.arguments[0];
     const int& label_expression = symbol_va_node.arguments[1];
-    const int& image_filename_expression = symbol_va_node.arguments[2];
+    const int& image_file_path_expression = symbol_va_node.arguments[2];
     const int& from_code_expression = symbol_va_node.arguments[3];
     const int& to_code_expression = symbol_va_node.arguments[4];
-    int text_color_expression = Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_1) ? symbol_va_node.arguments[5] : -1;
+    const int& text_color_expression = symbol_va_node.arguments[5];
 
     if( valueset_symbol_index != -1 )
     {
@@ -579,7 +580,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
                         if( add_value )
                         {
-                            dynamic_value_set.AddValue(CS2WS(info.label), CS2WS(info.image_filename), info.text_color, low_value_to_add, std::move(high_value_to_add));
+                            dynamic_value_set.AddValue(CS2WS(info.label), info.image_file_path, info.text_color, low_value_to_add, std::move(high_value_to_add));
                             ++number_values_added;
                         }
                     }
@@ -589,12 +590,12 @@ double CIntDriver::exvaluesetadd(int iExpr)
         // or add a single string value
         else
         {
-            CString value = EvalAlphaExpr<CString>(from_code_expression);
+            CString value = EvalAlphaExprCS(from_code_expression);
             const DictValue* dict_value = rhs_value_set.GetValueProcessor().GetDictValue(value);
 
             if( dict_value != nullptr )
             {
-                dynamic_value_set.AddValue(CS2WS(dict_value->GetLabel()), CS2WS(dict_value->GetImageFilename()), dict_value->GetTextColor(),
+                dynamic_value_set.AddValue(CS2WS(dict_value->GetLabel()), dict_value->GetImageFilePath(), dict_value->GetTextColor(),
                                            CS2WS(dict_value->GetValuePair(0).GetFrom()));
                 ++number_values_added;
             }
@@ -604,17 +605,17 @@ double CIntDriver::exvaluesetadd(int iExpr)
     else
     {
         std::wstring label = EvalAlphaExpr(label_expression);
-        std::wstring image_filename = ( image_filename_expression != -1 ) ? EvalFullPathFileName(image_filename_expression) :
-                                                                            std::wstring();
+        std::string image_file_path = ( image_file_path_expression != -1 ) ? EvaluatePath(image_file_path_expression) :
+                                                                             std::string();
         std::optional<PortableColor> text_color;
 
         if( text_color_expression != -1 )
         {
-            std::wstring text_color_text = EvalAlphaExpr(text_color_expression);
-            text_color = PortableColor::FromString(text_color_text);
+            const SharableString text_color_text = EvaluateSharableString(text_color_expression);
+            text_color = PortableColor::FromString(*text_color_text);
 
             if( !text_color.has_value() )
-                issaerror(MessageType::Error, 2036, text_color_text.c_str());
+                issaerror(MessageType::Error, 2036, text_color_text->c_str());
         }
 
         if( !text_color.has_value() )
@@ -623,13 +624,13 @@ double CIntDriver::exvaluesetadd(int iExpr)
         if( dynamic_value_set.IsString() )
         {
             std::wstring value = EvalAlphaExpr(from_code_expression);
-            dynamic_value_set.AddValue(std::move(label), std::move(image_filename), std::move(*text_color), std::move(value));
+            dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), std::move(*text_color), std::move(value));
         }
 
         else
         {
             double from_value = evalexpr(from_code_expression);
-            std::optional<double> to_value = EvaluateOptionalNumericExpression(to_code_expression);
+            std::optional<double> to_value = EvaluateOptional(to_code_expression);
 
             try
             {
@@ -642,7 +643,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
                 return 0;
             }
 
-            dynamic_value_set.AddValue(std::move(label), std::move(image_filename), std::move(*text_color), from_value, std::move(to_value));
+            dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), std::move(*text_color), from_value, std::move(to_value));
         }
 
         number_values_added = 1;
@@ -659,7 +660,7 @@ double CIntDriver::exvaluesetclear(int iExpr)
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, _T("clear"), value_set.GetName().c_str());
+        issaerror(MessageType::Error, 47170, "clear", value_set.GetName().c_str());
         return DEFAULT;
     }
 
@@ -685,14 +686,14 @@ double CIntDriver::exvaluesetremove(int iExpr)
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, _T("remove"), value_set.GetName().c_str());
+        issaerror(MessageType::Error, 47170, "remove", value_set.GetName().c_str());
         return DEFAULT;
     }
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
     return dynamic_value_set.IsNumeric() ? dynamic_value_set.RemoveValue(evalexpr(symbol_va_node.arguments[0])) :
-                                           dynamic_value_set.RemoveValue(EvalAlphaExpr<CString>(symbol_va_node.arguments[0]));
+                                           dynamic_value_set.RemoveValue(EvalAlphaExprCS(symbol_va_node.arguments[0]));
 }
 
 
@@ -707,7 +708,7 @@ double CIntDriver::exvaluesetshow(int iExpr)
     SelectDlg select_dlg(true, 1);
 
     if( symbol_va_node.arguments[0] != -1 )
-        select_dlg.SetTitle(EvalAlphaExpr(symbol_va_node.arguments[0]));
+        select_dlg.SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
 
     // numeric value sets will return the code;
     // string value sets will return the label index (not code)
@@ -718,11 +719,11 @@ double CIntDriver::exvaluesetshow(int iExpr)
         codes = std::make_unique<std::vector<double>>();
 
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
+            [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
             {
                 // use the from code, unless the to code is special, in which case that will be used
                 codes->emplace_back(( high_value.has_value() && IsSpecial(*high_value) ) ? *high_value : low_value);
-                select_dlg.AddRow(CS2WS(info.label), info.text_color);
+                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
             });
     }
 
@@ -731,11 +732,12 @@ double CIntDriver::exvaluesetshow(int iExpr)
         value_set.ForeachValue(
             [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
             {
-                select_dlg.AddRow(CS2WS(info.label), info.text_color);
+                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
             });
     }
 
-    int selected_row_base_one = SelectDlgHelper(*this, select_dlg, Paradata::OperatorSelectionEvent::Source::ValueSetShow).GetSingleSelection();
+    SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ValueSetShow);
+    const int selected_row_base_one = select_dlg_helper.GetSingleSelection();
 
     if( value_set.IsNumeric() && selected_row_base_one > 0 )
     {
@@ -754,7 +756,7 @@ double CIntDriver::exvaluesetshow_pre77(int iExpr)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
-    CString heading = ( symbol_va_node.arguments[0] != -1 ) ? EvalAlphaExpr<CString>(symbol_va_node.arguments[0]) :
+    CString heading = ( symbol_va_node.arguments[0] != -1 ) ? EvalAlphaExprCS(symbol_va_node.arguments[0]) :
                                                               CString();
 
     std::vector<double> codes;

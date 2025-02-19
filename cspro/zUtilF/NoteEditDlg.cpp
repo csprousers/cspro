@@ -2,20 +2,20 @@
 #include "NoteEditDlg.h"
 
 
-NoteEditDlg::NoteEditDlg(std::wstring title, std::wstring note)
+NoteEditDlg::NoteEditDlg(std::string title, SharableString note)
     :   m_title(std::move(title)),
         m_note(std::move(note))
 {
 }
 
 
-const TCHAR* NoteEditDlg::GetDialogName()
+std::string NoteEditDlg::GetDialogName()
 {
-    return _T("note-edit");
+    return "note-edit";
 }
 
 
-std::wstring NoteEditDlg::GetJsonArgumentsText()
+SharableString NoteEditDlg::GetJsonArgumentsText()
 {
     return Json::CreateObjectString(
         {
@@ -25,7 +25,7 @@ std::wstring NoteEditDlg::GetJsonArgumentsText()
 }
 
 
-void NoteEditDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void NoteEditDlg::ProcessJsonResults(const JsonNode& json_results)
 {
-    m_note = json_results.Get<std::wstring>(JK::note);
+    m_note = json_results.Get<std::string>(JK::note);
 }

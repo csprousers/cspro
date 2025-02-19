@@ -3,12 +3,12 @@
 class CCSProFile;
 class CCSProStdioFile;
 
-#include <zPlatformO/zPlatformO.h>
+#include <zToolsO/zToolsO.h>
 #include <zPlatformO/PortableMFC.h>
 #include <string>
 
 
-class CLASS_DECL_ZPLATFORMO_IMPL CCSProFile : public CObject
+class CLASS_DECL_ZTOOLSO CCSProFile : public CObject
 {
 public:
     enum OpenFlags {
@@ -89,7 +89,7 @@ protected:
 };
 
 
-class CLASS_DECL_ZPLATFORMO_IMPL CCSProStdioFile : public CCSProFile
+class CLASS_DECL_ZTOOLSO CCSProStdioFile : public CCSProFile
 {
 public:
     BOOL Open(LPCTSTR lpszFileName, UINT nOpenFlags);//, CFileException* pError = NULL);

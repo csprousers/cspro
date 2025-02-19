@@ -592,7 +592,6 @@ Language=EN
 47513  You must specify an index for this dimension
 
 /* --- Question Text */
-48010  Starting in CSPro 7.6, you must specify the () after a function call in CAPI text; please change this from %s to %s as this will not work in a future version of CSPro.
 48011  The question text condition must consist of a single numeric expression
 48012  The question text fill must consist of a single numeric or string expression, or an object with binary data
 
@@ -609,6 +608,11 @@ Language=EN
 50003  Once you specify that a function is using optional parameters (starting with '%s'), every subsequent parameter must be optional
 50004  An object of type '%s' cannot be used as an optional parameter
 50005  User-defined functions must terminate with 'end'
+50006  The definition of a user-defined function '%s' must match the declaration: %s
+50007  Function declarations cannot contain a body and the declaration must end in a semicolon ';'
+50008  Function optional parameters cannot be specified once previously defined
+50009  The declared function '%s' was never defined
+50010  JavaScript functions must be declared by preceeding 'function' with 'declare'
 
 51102  The Prompt function commands Password and Multiline cannot be used together.
 
@@ -735,6 +739,9 @@ Language=EN
 90004  Data type of '%%' argument #%d (%s) does not match fill value (%s).
 90005  Message number %d is not defined in the application's message file.
 
+/* --- sync */
+94001  Specify the sync service using a string expression or one of the following options: %s
+
 /* --- Symbol Modifiers */
 94100  You cannot use the '%s' modifier more than once
 94101  The '%s' modifier cannot be used with a symbol of type '%s'
@@ -742,6 +749,7 @@ Language=EN
 94103  The setting %s was not found in the Common Store settings file
 94104  The setting %s was found in the Common Store settings file but '%s' is not a valid numeric value
 94105  You cannot create multiple persistent variables with the same name ('%s') even if in different scopes
+94106  You can only use the 'declare' variable modifier in PROC GLOBAL
 
 /* --- Mapping */
 94200  The argument to '%s' must be a user-defined function
@@ -806,7 +814,7 @@ Language=EN
 95025  Use parentheses after the frequency command '%s' as this will be required in a future version of CSPro.
 95026  Use the command 'WEIGHT' as 'WEIGHTED' may not be supported in a future version of CSPro.
 95027  The ability to export to DDI 2.0 or CSPro XML is no longer supported in CSPro.
-95028  Look at the valueset.add helps to see how to used named arguments to specify an image filename. This way of specifying it will be removed in a future version of CSPro.
+95028  Look at the ValueSet.add helps to see how to used named arguments to specify a value set image. This way of specifying it will be removed in a future version of CSPro.
 95029  The reporting functions report and setreportdata are no longer supported in CSPro. Use the new reporting system introduced in CSPro 7.7 to generate reports.
 95030  Starting with CSPro 8.0, you must specify the variable type when using configuration variables. Change this to: 'config string'
 95031  The itemlist function is no longer supported in CSPro

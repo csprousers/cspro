@@ -13,11 +13,11 @@
 #include <zEngineO/Userbar.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zUtilO/AppLdr.h>
-#include <zUtilO/CommonStore.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zUtilO/TraceMsg.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <ZBRIDGEO/npff.h>
+#include <zListingO/ErrorLister.h>
 #include <zListingO/WriteFile.h>
 
 
@@ -49,7 +49,7 @@ CEngineDriver::CEngineDriver(Application* pApplication, bool bDoInterpreter, Com
     m_engineData = &m_pEngineArea->GetEngineData();
 
 #ifdef WIN_DESKTOP
-    m_pEngineCompFunc = ( compiler_creator != nullptr ) ? compiler_creator->CreateCompiler(this) : 
+    m_pEngineCompFunc = ( compiler_creator != nullptr ) ? compiler_creator->CreateCompiler(this) :
                                                           std::make_unique<CEngineCompFunc>(this);
 #endif
 
@@ -136,8 +136,8 @@ void CEngineDriver::BuildMessageManagers()
         catch( const ApplicationLoadException& APP_LOAD_TODO_exception )
         {
             // APP_LOAD_TODO when the application loader is complete, these exceptions should be caught elsewhere
-            ErrorMessage::Display(APP_LOAD_TODO_exception.GetErrorMessage());
-        }        
+            ErrorMessage::Display(APP_LOAD_TODO_exception);
+        }
     }
 
     else
@@ -150,23 +150,6 @@ void CEngineDriver::BuildMessageManagers()
 void CEngineDriver::SetUserbar(std::unique_ptr<Userbar> userbar)
 {
     m_userbar = std::move(userbar);
-}
-
-
-std::shared_ptr<CommonStore> CEngineDriver::GetCommonStore()
-{
-    if( m_commonStore == nullptr )
-    {
-        m_commonStore = std::make_shared<CommonStore>();
-
-        if( !m_commonStore->Open({ CommonStore::TableType::UserSettings, CommonStore::TableType::PersistentVariables },
-                                 CS2WS(m_pPifFile->GetCommonStoreFName())) )
-        {
-            m_commonStore.reset();
-        }
-    }
-
-    return m_commonStore;
 }
 
 

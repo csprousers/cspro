@@ -4,23 +4,20 @@
 #include <zCaseO/CaseConstructionHelpers.h>
 
 
-bool SQLiteRepository::ReadCaseFromDatabase(Case& data_case, SQLiteStatement& get_case_statement)
+void SQLiteRepository::ReadCaseFromDatabase(Case& data_case, SQLiteStatement& get_case_statement)
 {
-    if( get_case_statement.Step() != SQLITE_ROW )
-        return false;
-
     data_case.Reset();
 
     int column = 0;
 
-    data_case.SetUuid(get_case_statement.GetColumn<std::wstring>(column++));
+    data_case.SetUuid(get_case_statement.GetColumn<std::string>(column++));
 
     data_case.SetPositionInRepository(get_case_statement.GetColumn<double>(column++));
 
     data_case.SetDeleted(get_case_statement.GetColumn<int>(column++) != 0);
 
     if( m_caseAccess->GetUsesCaseLabels() )
-        data_case.SetCaseLabel(get_case_statement.GetColumn<CString>(column++));
+        data_case.SetCaseLabel(get_case_statement.GetColumn<std::string>(column++));
 
     if( m_caseAccess->GetUsesStatuses() )
     {
@@ -54,10 +51,10 @@ bool SQLiteRepository::ReadCaseFromDatabase(Case& data_case, SQLiteStatement& ge
                 for( size_t i = 0; i < _countof(occurrences); ++i )
                     occurrences[i] = std::max(get_case_statement.GetColumn<int>(column++) - 1, 0);
 
-                partial_save_case_item_reference = CaseConstructionHelpers::CreateCaseItemReference(*m_caseAccess, level_key, field_name, occurrences);
+                partial_save_case_item_reference = CaseConstructionHelpers::CreateCaseItemReference(*m_caseAccess, UTF8_TODO::GetUtf8(level_key), UTF8_TODO::GetUtf8(field_name), occurrences);
             }
 
-            data_case.SetPartialSaveStatus((PartialSaveMode)partial_save_mode_int, std::move(partial_save_case_item_reference));
+            data_case.SetPartialSaveStatus(static_cast<PartialSaveMode>(partial_save_mode_int), std::move(partial_save_case_item_reference));
         }
     }
 
@@ -79,13 +76,13 @@ bool SQLiteRepository::ReadCaseFromDatabase(Case& data_case, SQLiteStatement& ge
             for( size_t i = 0; i < _countof(occurrences); ++i )
                 occurrences[i] = std::max(get_notes_statement.GetColumn<int>(i + 2) - 1, 0);
 
-            CString content = get_notes_statement.GetColumn<CString>(5);
-            CString operator_id = get_notes_statement.GetColumn<CString>(6);
-            time_t modified_date_time = (time_t)get_notes_statement.GetColumn<int64_t>(7);
+            std::string content = get_notes_statement.GetColumn<std::string>(5);
+            std::string operator_id = get_notes_statement.GetColumn<std::string>(6);
+            const int64_t modified_date_time = get_notes_statement.GetColumn<int64_t>(7);
 
-            std::shared_ptr<NamedReference> named_reference = CaseConstructionHelpers::CreateNamedReference(*m_caseAccess, level_key, field_name, occurrences);
+            std::shared_ptr<NamedReference> named_reference = CaseConstructionHelpers::CreateNamedReference(*m_caseAccess, UTF8_TODO::GetUtf8(level_key), UTF8_TODO::GetUtf8(field_name), occurrences);
 
-            notes.emplace_back(content, std::move(named_reference), operator_id, modified_date_time);
+            notes.emplace_back(std::move(content), std::move(named_reference), std::move(operator_id), modified_date_time);
         }
     }
 
@@ -100,11 +97,9 @@ bool SQLiteRepository::ReadCaseFromDatabase(Case& data_case, SQLiteStatement& ge
 
         // read the device and revision
         while( get_clock_statement.Step() == SQLITE_ROW )
-            vector_clock.setVersion(get_clock_statement.GetColumn<CString>(0), get_clock_statement.GetColumn<int>(1));
+            vector_clock.setVersion(get_clock_statement.GetColumn<DeviceId>(0), get_clock_statement.GetColumn<int>(1));
     }
 
     // Read the questionnaire
     m_questionnaireSerializer->ReadQuestionnaire(data_case);
-
-    return true;
 }

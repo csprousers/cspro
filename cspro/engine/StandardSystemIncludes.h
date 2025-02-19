@@ -48,7 +48,7 @@
 #define _AFX_ALL_WARNINGS
 
 #include <afxext.h>         // MFC extensions
-#include <afxdtctl.h>           // MFC support for Internet Explorer 4 Common Controls
+#include <afxdtctl.h>       // MFC support for Internet Explorer 4 Common Controls
 #include <afxdialogex.h>
 #include <afxshellmanager.h>
 
@@ -159,6 +159,7 @@
 
 // assert definitions that can be disabled in future versions
 #define ASSERT80(f) ASSERT(f)
+#define ASSERT81(f) ASSERT(f)
 
 
 // for more serious warning checking, make some warnings errors
@@ -194,9 +195,18 @@ constexpr bool DebugMode()
 }
 
 
+// forward declarations of commonly used classes
+class JsonNode;
+class JsonWriter;
+class Serializer;
+
+
 #include <zToolsO/assert_cast.h>
+#include <zToolsO/BinaryBlock.h>
 #include <zToolsO/CSProException.h>
 #include <zToolsO/ErrorMessageDisplayer.h>
+#include <zToolsO/InterfaceString.h>
 #include <zToolsO/OperatingSystem.h>
 #include <zToolsO/StandardTemplates.h>
 #include <zToolsO/StringOperations.h>
+#include <zToolsO/SharableString.h>

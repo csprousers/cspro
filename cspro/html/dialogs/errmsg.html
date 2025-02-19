@@ -51,7 +51,7 @@
                 <div class="col withNewline">
                     {{title}}
                 </div>
-                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div class="row my-dialog-body" style="padding-top:12px;">
@@ -116,7 +116,7 @@
         }
 
         function dialogReturn(idx) {
-            CS.UI.closeDialog({ result: { index: idx } });
+            CS.UI.close({ result: { index: idx } });
         }
 
         function adjustButtonsHeight() {
@@ -166,7 +166,7 @@
 
         $(document).keydown(function (e) {
             if (e.keyCode === 27) { //ESC
-                CS.UI.closeDialog();
+                CS.UI.close();
             } else if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 9) { //down arrow, right arrow, tab
                 focusedIndex++;
                 if (focusedIndex > input.buttons.length) {

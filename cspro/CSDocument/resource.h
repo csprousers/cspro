@@ -16,10 +16,9 @@
 #define IDR_TAB_CONTEXT                 112
 #define IDR_TOOLBAR_DOC                 113
 #define IDR_TOOLBAR_EXTRA               114
-#define IDD_ABOUTBOX                    115
-#define IDD_EXPORT_CSDOC                116
-#define IDD_GENERATE                    117
-#define IDD_GLOBAL_SETTINGS             118
+#define IDD_EXPORT_CSDOC                115
+#define IDD_GENERATE                    116
+#define IDD_GLOBAL_SETTINGS             117
 #define IDC_AUTOMATIC_COMPILATION_SECONDS 1000
 #define IDC_AUTOMATICALLY_ASSOCIATE_DOCUMENTS_WITH_DOCSETS 1001
 #define IDC_BUILD_DOCUMENTS_ON_OPEN     1002
@@ -88,9 +87,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        119
+#define _APS_NEXT_RESOURCE_VALUE        118
 #define _APS_NEXT_COMMAND_VALUE         40040
 #define _APS_NEXT_CONTROL_VALUE         1024
-#define _APS_NEXT_SYMED_VALUE           119
+#define _APS_NEXT_SYMED_VALUE           118
 #endif
 #endif

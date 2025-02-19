@@ -6,74 +6,73 @@
 
 // Utility class for converting between character encodings
 
-namespace UTF8Convert
+class UTF8Convert
 {
+public:
     /// <summary>
     /// Convert from UTF-8 encoded string to wide character (2 bytes per char) string.
     /// Only need to provide stringLen if pUTF8String is not null-terminated.
     /// </summary>
     template<typename T = std::wstring>
-    CLASS_DECL_ZTOOLSO T UTF8ToWide(const char* utf_string, int utf8_length = -1);
-
-    template<typename T = std::wstring>
-    T UTF8ToWide(const unsigned char* utf_string, int utf8_length = -1)
+    static T UTF8ToWide(const char* utf8_text, int utf8_length = -1)
     {
-        return UTF8ToWide<T>(reinterpret_cast<const char*>(utf_string), utf8_length);
+        return UTF8ToWideWorker<T>(utf8_text, utf8_length);
     }
 
-    template<typename T = std::wstring>
-    T UTF8ToWide(std::string_view str)
+    static std::wstring UTF8ToWide(const unsigned char* utf8_text, int utf8_length = -1)
     {
-        return UTF8ToWide<T>(str.data(), static_cast<int>(str.length()));
+        return UTF8ToWideWorker<std::wstring>(reinterpret_cast<const char*>(utf8_text), utf8_length);
     }
+
+    template<typename T = std::wstring, typename ST>
+    static T UTF8ToWide(const ST& utf8_text)
+    {
+        return UTF8ToWideWorker<T>(utf8_text.data(), static_cast<int>(utf8_text.length()));
+    }
+
 
     /// <summary>
     /// Convert wide character (2 bytes per char) string to UTF-8 encoded string.
     /// Only need to provide wide_length if wide_string is not null-terminated.
     /// </summary>
-    CLASS_DECL_ZTOOLSO std::string WideToUTF8(const wchar_t* wide_string, int wide_length = -1);
+    CLASS_DECL_ZTOOLSO static std::string WideToUTF8(const wchar_t* wide_string, int wide_length = -1);
 
-    inline std::string WideToUTF8(std::wstring_view str)
+    static std::string WideToUTF8(std::wstring_view str)
     {
         return WideToUTF8(str.data(), static_cast<int>(str.length()));
     }
-
-    /// <summary>
-    /// Convert wide character (2 bytes per char) string to UTF-8 encoded text buffer.
-    /// </summary>
-    CLASS_DECL_ZTOOLSO std::vector<std::byte> WideToUTF8Buffer(std::wstring_view str);
 
 
 #ifdef WIN32
     /// <summary>
     /// Convert multibyte character (ANSI or UTF-8) buffer to a wide character buffer.
     /// </summary>
-    inline int EncodedCharsBufferToWideBuffer(Encoding eEncoding, const char* paBuffer, size_t iaLength, TCHAR* pwBuffer, size_t iwBufferSize)
+    static int EncodedCharsBufferToWideBuffer(Encoding eEncoding, const char* paBuffer, size_t iaLength, TCHAR* pwBuffer, size_t iwBufferSize)
     {
-        return MultiByteToWideChar(( eEncoding == Encoding::Utf8 ) ? CP_UTF8 : CP_ACP, 0, paBuffer, iaLength, pwBuffer, iwBufferSize);
+        return MultiByteToWideChar(( eEncoding == Encoding::Utf8 ) ? CP_UTF8 : CP_ACP, 0, paBuffer, static_cast<int>(iaLength), pwBuffer, static_cast<int>(iwBufferSize));
     }
 
     /// <summary>
     /// Convert wide character buffer to a UTF-8 buffer.
     /// </summary>
-    inline int WideBufferToUTF8Buffer(const TCHAR* pwBuffer, size_t iwLength, char* paBuffer, size_t iaBufferSize)
+    static int WideBufferToUTF8Buffer(const TCHAR* pwBuffer, size_t iwLength, char* paBuffer, size_t iaBufferSize)
     {
-        return WideCharToMultiByte(CP_UTF8, 0, pwBuffer, iwLength, paBuffer, iaBufferSize, NULL, NULL);
+        return WideCharToMultiByte(CP_UTF8, 0, pwBuffer, static_cast<int>(iwLength), paBuffer, static_cast<int>(iaBufferSize), NULL, NULL);
     }
 
     /// <summary>
     /// Convert UTF-8 character buffer to a wide character buffer.
     /// </summary>
-    inline int UTF8BufferToWideBuffer(const char* paBuffer, size_t iaBufferSize, TCHAR* pwBuffer, size_t iwLength)
+    static int UTF8BufferToWideBuffer(const char* paBuffer, size_t iaBufferSize, TCHAR* pwBuffer, size_t iwLength)
     {
-        return MultiByteToWideChar(CP_UTF8, 0, paBuffer, iaBufferSize, pwBuffer, iwLength);
+        return MultiByteToWideChar(CP_UTF8, 0, paBuffer, static_cast<int>(iaBufferSize), pwBuffer, static_cast<int>(iwLength));
     }
 
 #else
     // CR_TODO ... improve Android performance for these methods
-    CLASS_DECL_ZTOOLSO int EncodedCharsBufferToWideBuffer(Encoding eEncoding, const char* paBuffer, size_t iaLength, TCHAR* pwBuffer, size_t iwBufferSize);
-    CLASS_DECL_ZTOOLSO int WideBufferToUTF8Buffer(const TCHAR* pwBuffer, size_t iwLength, char* paBuffer, size_t iaBufferSize);
-    CLASS_DECL_ZTOOLSO int UTF8BufferToWideBuffer(const char* paBuffer, size_t iaBufferSize, TCHAR* pwBuffer, size_t iwLength);
+    CLASS_DECL_ZTOOLSO static int EncodedCharsBufferToWideBuffer(Encoding eEncoding, const char* paBuffer, size_t iaLength, TCHAR* pwBuffer, size_t iwBufferSize);
+    CLASS_DECL_ZTOOLSO static int WideBufferToUTF8Buffer(const TCHAR* pwBuffer, size_t iwLength, char* paBuffer, size_t iaBufferSize);
+    CLASS_DECL_ZTOOLSO static int UTF8BufferToWideBuffer(const char* paBuffer, size_t iaBufferSize, TCHAR* pwBuffer, size_t iwLength);
 
 #endif
 
@@ -81,7 +80,7 @@ namespace UTF8Convert
     /// Template helper to get a string of a certain type.
     /// </summary>
     template<typename RT, typename ST>
-    RT GetString(ST&& str)
+    static RT GetString(ST&& str)
     {
         static_assert(std::is_same_v<RT, std::string> ||
                       std::is_same_v<RT, std::wstring>);
@@ -91,8 +90,8 @@ namespace UTF8Convert
             return std::forward<ST>(str);
         }
 
-        else if constexpr(( std::is_same_v<RT, std::string> && std::is_same_v<std::remove_cv_t<std::remove_reference_t<ST>>, std::string_view> ) ||
-                          ( std::is_same_v<RT, std::wstring> && std::is_same_v<std::remove_cv_t<std::remove_reference_t<ST>>, wstring_view> ))
+        else if constexpr(( std::is_same_v<RT, std::string> && std::is_same_v<std::remove_cvref_t<ST>, std::string_view> ) ||
+                          ( std::is_same_v<RT, std::wstring> && std::is_same_v<std::remove_cvref_t<ST>, wstring_view> ))
         {
             return RT(str);
         }
@@ -107,4 +106,8 @@ namespace UTF8Convert
             return WideToUTF8(str.data(), static_cast<int>(str.length()));
         }
     }
+
+private:
+    template<typename T>
+    CLASS_DECL_ZTOOLSO static T UTF8ToWideWorker(const char* utf8_text, int utf8_length);
 };

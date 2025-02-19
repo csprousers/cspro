@@ -1,5 +1,7 @@
 ﻿#include "Stdafx.h"
 #include "Excel2CSProWorker.h"
+#include <zToolsO/Special.h>
+#include <zNetwork/UsernamePassword.h>
 #include <zCaseO/NumericCaseItem.h>
 #include <zCaseO/StringCaseItem.h>
 #include <zDataO/CaseIterator.h>
@@ -11,7 +13,7 @@ namespace
 {
     constexpr int MaxDuplicateKeysToDisplay = 50;
     constexpr size_t WritesPerProgressBarUpdate = 50;
-    constexpr const TCHAR* InvalidCellMessage = _T("Excel cell type unknown.");
+    constexpr const char* InvalidCellMessage = "Excel cell type unknown.";
 }
 
 
@@ -59,15 +61,15 @@ const CDictRecord* CSPro::Data::Excel2CSPro::ItemConversionInformation::Initiali
     ASSERT(m_caseItem != nullptr &&
            m_occurrence < m_caseItem->GetTotalNumberItemSubitemOccurrences());
 
-    if( m_caseItem->IsTypeBinary() )
+    if( IsBinary(m_caseItem->GetDataType()) )
     {
-        throw CSProException(_T("Converting to binary dictionary items ('%s') is not supported."),
-                             m_caseItem->GetDictionaryItem().GetName().GetString());
+        throw CSProException("Converting to binary dictionary items ('%s') is not supported.",
+                             m_caseItem->GetDictItem().GetName().c_str());
     }
 
-    ASSERT(m_caseItem->IsTypeFixed());
+    ASSERT(m_caseItem->IsFixedWidth());
 
-    return m_caseItem->GetDictionaryItem().GetRecord();
+    return m_caseItem->GetDictItem().GetRecord();
 }
 
 
@@ -115,7 +117,7 @@ bool CSPro::Data::Excel2CSPro::ItemConversionInformation::ConvertCell(CaseItemIn
     index.SetItemSubitemOccurrence(*m_caseItem, m_occurrence);
 
     // convert cells to numbers
-    if( m_caseItem->IsTypeNumeric() )
+    if( IsNumeric(m_caseItem->GetDataType()) )
     {
         double value = NOTAPPL;
 
@@ -152,7 +154,7 @@ bool CSPro::Data::Excel2CSPro::ItemConversionInformation::ConvertCell(CaseItemIn
     // convert cells to strings
     else
     {
-        ASSERT(m_caseItem->IsTypeString());
+        ASSERT(IsString(m_caseItem->GetDataType()));
         CString value;
 
         if( !cell_is_blank )
@@ -178,7 +180,7 @@ bool CSPro::Data::Excel2CSPro::ItemConversionInformation::ConvertCell(CaseItemIn
             value = string_value;
         }
 
-        static_cast<const StringCaseItem*>(m_caseItem)->SetValue(index, value);
+        static_cast<const StringCaseItem*>(m_caseItem)->SetValue(index, UTF8_TODO::GetUtf8(value));
     }
 
     return !cell_is_blank;
@@ -230,11 +232,11 @@ void CSPro::Data::Excel2CSPro::RecordConversionInformation::SetRowsRead(int rows
 void CSPro::Data::Excel2CSPro::RecordConversionInformation::Initialize(const CaseAccess& case_access)
 {
     // link the record
-    for( const CaseRecordMetadata* case_record_metadata : case_access.GetCaseMetadata().GetCaseLevelsMetadata()[0]->GetCaseRecordsMetadata() )
+    for( const CaseRecordMetadata& case_record_metadata : case_access.GetCaseMetadata().GetCaseLevelsMetadata().front().GetCaseRecordsMetadata() )
     {
-        if( &case_record_metadata->GetDictionaryRecord() == m_record->GetNativePointer() )
+        if( &case_record_metadata.GetDictRecord() == m_record->GetNativePointer() )
         {
-            m_caseRecordMetadata = case_record_metadata;
+            m_caseRecordMetadata = &case_record_metadata;
             break;
         }
     }
@@ -253,7 +255,7 @@ void CSPro::Data::Excel2CSPro::RecordConversionInformation::Initialize(const Cas
 
         else
         {
-            ASSERT(&m_caseRecordMetadata->GetCaseLevelMetadata().GetIdCaseRecordMetadata()->GetDictionaryRecord() == parent_record);
+            ASSERT(&m_caseRecordMetadata->GetCaseLevelMetadata().GetIdCaseRecordMetadata().GetDictRecord() == parent_record);
             m_itemsOnIdRecord->Add(item);
         }
     }
@@ -272,7 +274,7 @@ void CSPro::Data::Excel2CSPro::RecordConversionInformation::Initialize(const Cas
 }
 
 
-CString CSPro::Data::Excel2CSPro::RecordConversionInformation::ConstructKey()
+std::string CSPro::Data::Excel2CSPro::RecordConversionInformation::ConstructKey()
 {
     // use a previously constructed key if this record wasn't already added to a case
     if( m_keyHasBeenConstructed )
@@ -307,7 +309,7 @@ CString CSPro::Data::Excel2CSPro::RecordConversionInformation::ConstructKey()
     }
 
     // no more rows to process
-    return CString();
+    return std::string();
 }
 
 
@@ -325,7 +327,7 @@ void CSPro::Data::Excel2CSPro::RecordConversionInformation::ConstructRecord(Case
     CaseRecord& case_record = case_level.GetCaseRecord(m_caseRecordMetadata->GetRecordIndex());
     size_t occurrence = case_record.GetNumberOccurrences();
 
-    if( occurrence < m_caseRecordMetadata->GetDictionaryRecord().GetMaxRecs() )
+    if( occurrence < m_caseRecordMetadata->GetDictRecord().GetMaxRecs() )
     {
         case_record.SetNumberOccurrences(occurrence + 1);
         CaseItemIndex index = case_record.GetCaseItemIndex(occurrence);
@@ -354,16 +356,18 @@ CSPro::Data::Excel2CSPro::Worker::Worker()
         m_modifyCaseMode(true),
         m_initialKeys(nullptr),
         m_case(new std::unique_ptr<Case>),
-        m_caseKey(new CString),
+        m_caseKey(new std::string),
         m_compareCaseBeforeWriting(false),
         m_initialCaseForModificationCheck(new std::unique_ptr<Case>),
-        m_writesUntilNextNotification(WritesPerProgressBarUpdate)
+        m_writesUntilNextNotification(WritesPerProgressBarUpdate),
+        m_winFormsQueryUsernamePasswordCallback(nullptr)
 {
 }
 
 
 CSPro::Data::Excel2CSPro::Worker::!Worker()
 {
+    delete m_winFormsQueryUsernamePasswordCallback;
     delete m_initialCaseForModificationCheck;
     delete m_caseKey;
     delete m_case;
@@ -374,12 +378,15 @@ CSPro::Data::Excel2CSPro::Worker::!Worker()
 }
 
 
-void CSPro::Data::Excel2CSPro::Worker::Initialize(CSPro::Dictionary::DataDictionary^ dictionary,
-                                                 System::Collections::Generic::List<RecordConversionInformation^>^ record_conversion_information_list,
-                                                 Spec^ spec)
+void CSPro::Data::Excel2CSPro::Worker::Initialize(OnQueryUsernamePassword^ on_query_username_password,
+                                                  CSPro::Dictionary::DataDictionary^ dictionary,
+                                                  System::Collections::Generic::List<RecordConversionInformation^>^ record_conversion_information_list,
+                                                  Spec^ spec)
 {
     try
     {
+        ProcessOnQueryUsernamePassword(on_query_username_password);
+
         // create the case access
         CDataDict* native_dictionary = dictionary->GetNativePointer();
 
@@ -403,8 +410,8 @@ void CSPro::Data::Excel2CSPro::Worker::Initialize(CSPro::Dictionary::DataDiction
         CaseManagement case_management = spec->CaseManagement;
 
         if( case_management != CaseManagement::CreateNewFile &&
-            native_connection_string.IsFilenamePresent() &&
-            !PortableFunctions::FileIsRegular(native_connection_string.GetFilename()) )
+            native_connection_string.HasFilePath() &&
+            !PortableFunctions::FileIsRegular(native_connection_string.GetFilePath()) )
         {
             case_management = CaseManagement::CreateNewFile;
         }
@@ -425,10 +432,10 @@ void CSPro::Data::Excel2CSPro::Worker::Initialize(CSPro::Dictionary::DataDiction
         // if deleting cases, keep track of the cases that were initially in the file
         if( case_management == CaseManagement::ModifyAddDeleteCases )
         {
-            m_initialKeys = new std::set<CString>;
+            m_initialKeys = new std::set<std::string>;
 
             CaseKey case_key;
-            auto case_key_iterator = m_repository->CreateCaseKeyIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+            std::unique_ptr<CaseIterator> case_key_iterator = m_repository->CreateCaseKeyIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
 
             while( case_key_iterator->NextCaseKey(case_key) )
                 m_initialKeys->insert(case_key.GetKey());
@@ -437,7 +444,7 @@ void CSPro::Data::Excel2CSPro::Worker::Initialize(CSPro::Dictionary::DataDiction
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 
@@ -454,15 +461,15 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
         while( !background_worker->CancellationPending )
         {
             // potentially use the key from records that were part of the last read
-            const bool use_existing_key = !m_caseKey->IsEmpty();
+            const bool use_existing_key = !m_caseKey->empty();
             size_t last_record_to_use_index = SIZE_MAX;
 
             for( size_t i = 0; i < include_record.size(); ++i )
             {
-                CString key = m_records[i]->ConstructKey();
+                const std::string key = m_records[i]->ConstructKey();
                 bool include_this_record = true;
 
-                if( key.IsEmpty() )
+                if( key.empty() )
                 {
                     // if more data exists, read it before continuing the processing
                     if( m_records[i]->MoreDataExistsToRead )
@@ -473,11 +480,11 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
 
                 else if( use_existing_key )
                 {
-                    include_this_record = ( key.Compare(*m_caseKey) == 0 );
+                    include_this_record = ( key == *m_caseKey );
                 }
 
                 // if the first record with a key, use it
-                else if( m_caseKey->IsEmpty() )
+                else if( m_caseKey->empty() )
                 {
                     *m_caseKey = key;
                 }
@@ -485,7 +492,7 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                 // otherwise see if this record's key comes first
                 else
                 {
-                    const int key_comparison = key.Compare(*m_caseKey);
+                    const int key_comparison = key.compare(*m_caseKey);
 
                     // if less than, use this key
                     if( key_comparison < 0 )
@@ -514,11 +521,11 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                 // if no data remains, quit out
                 if( last_record_to_use_index == SIZE_MAX )
                 {
-                    ASSERT(m_caseKey->IsEmpty());
+                    ASSERT(m_caseKey->empty());
                     goto stop_processing;
                 }
 
-                ASSERT(!m_caseKey->IsEmpty());
+                ASSERT(!m_caseKey->empty());
 
                 // load the existing case while in modify mode so that the UUID, notes, and other attributes are maintained
                 if( m_modifyCaseMode && m_repository->ContainsCase(*m_caseKey) )
@@ -563,13 +570,13 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                     if( !m_modifyCaseMode && m_repository->ContainsCase(*m_caseKey) )
                     {
                         if( Counts->DuplicateKeys->Count < MaxDuplicateKeysToDisplay )
-                            Counts->DuplicateKeys->Add(gcnew System::String(*m_caseKey));
+                            Counts->DuplicateKeys->Add(clr_helpers::to_SystemString(*m_caseKey));
                     }
 
                     else
                     {
                         // add any required records
-                        data_case.AddRequiredRecords();
+                        data_case.AddRequiredRecords(false);
 
                         // check if the case has changed from what was initially in the file
                         if( m_compareCaseBeforeWriting && data_case.GetRootCaseLevel() == (*m_initialCaseForModificationCheck)->GetRootCaseLevel() )
@@ -595,7 +602,7 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                     }
                 }
 
-                m_caseKey->Empty();
+                m_caseKey->clear();
                 data_case.Reset();
 
                 // update the progress bar
@@ -616,7 +623,7 @@ stop_processing:
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
 }
 
@@ -628,7 +635,7 @@ void CSPro::Data::Excel2CSPro::Worker::FinishConversion(System::ComponentModel::
         // delete cases that weren't in the Excel file (if applicable)
         if( m_initialKeys != nullptr )
         {
-            for( const CString& key : *m_initialKeys )
+            for( const std::string& key : *m_initialKeys )
             {
                 if( background_worker->CancellationPending )
                     return;
@@ -651,6 +658,35 @@ void CSPro::Data::Excel2CSPro::Worker::FinishConversion(System::ComponentModel::
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(gcnew System::String(exception.GetErrorMessage().c_str()));
+        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
     }
+}
+
+
+struct Excel2CSProWinFormsQueryUsernamePassword : public LoginAccessor::WinFormsQueryUsernamePassword
+{
+    std::optional<::UsernamePassword> QueryUsernamePassword(const bool show_invalid_error) override
+    {
+        CSPro::Data::Excel2CSPro::UsernamePassword^ username_password = on_query_username_password->Invoke(show_invalid_error);
+
+        if( username_password == nullptr )
+            return std::nullopt;
+
+        return ::UsernamePassword { clr_helpers::to_string(username_password->username), clr_helpers::to_string(username_password->password) };
+    }
+
+    gcroot<CSPro::Data::Excel2CSPro::OnQueryUsernamePassword^> on_query_username_password;
+};
+
+
+void CSPro::Data::Excel2CSPro::Worker::ProcessOnQueryUsernamePassword(OnQueryUsernamePassword^ on_query_username_password)
+{
+    // in case data is being written to CSWeb, set up the infrastructure to show a username/password dialog
+    if( m_winFormsQueryUsernamePasswordCallback == nullptr )
+    {
+        m_winFormsQueryUsernamePasswordCallback = new Excel2CSProWinFormsQueryUsernamePassword();
+        LoginAccessor::SetWinFormsQueryUsernamePasswordCallback(m_winFormsQueryUsernamePasswordCallback);
+    }
+
+    assert_cast<Excel2CSProWinFormsQueryUsernamePassword&>(*m_winFormsQueryUsernamePasswordCallback).on_query_username_password = on_query_username_password;
 }

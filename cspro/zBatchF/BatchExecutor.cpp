@@ -6,54 +6,54 @@
 #include <zFormO/FormFile.h> // BATCH_FLOW_TODO remove, also may not need references to zDictO+zFormO
 
 
-BatchExecutor::BatchExecutor(BatchExecutorCallback* batch_executor_callback/* = nullptr*/)
+BatchExecutor::BatchExecutor(BatchExecutorCallback* const batch_executor_callback/* = nullptr*/)
     :   m_batchExecutorCallback(batch_executor_callback)
 {
 }
 
 
-void BatchExecutor::AddUWMCallback(unsigned message, std::shared_ptr<UWMCallback> uwm_callback)
+void BatchExecutor::AddUWMCallback(const unsigned message, std::shared_ptr<UWMCallback> uwm_callback)
 {
-    m_uwmCallbacks[message] = uwm_callback;
+    m_uwmCallbacks[message] = std::move(uwm_callback);
 }
 
 
-void BatchExecutor::Run(const CString& pff_or_batch_filename)
+void BatchExecutor::Run(const std::string& pff_or_batch_file_path)
 {
-    CString batch_filename;
-    CString pff_filename;
+    std::string batch_file_path;
+    std::string pff_file_path;
     bool user_specified_pff = false;
     bool pff_launched_from_command_line = false;
 
-    auto set_filenames_from_input_filename = [&](const CString& filename)
+    auto set_filenames_from_input_file_path = [&](std::string file_path)
     {
-        if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(filename), FileExtensions::Pff) )
+        if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(file_path), FileExtensions::Pff) )
         {
-            pff_filename = filename;
+            pff_file_path = std::move(file_path);
             user_specified_pff = true;
         }
 
         else
         {
-            batch_filename = filename;
+            batch_file_path = std::move(file_path);
         }
     };
 
-    // if the filename was provided, then we do not have to query for one
-    if( PortableFunctions::FileIsRegular(pff_or_batch_filename) )
+    // if the file path was provided, then we do not have to query for one
+    if( PortableFunctions::FileIsRegular(pff_or_batch_file_path) )
     {
-        set_filenames_from_input_filename(pff_or_batch_filename);
+        set_filenames_from_input_file_path(pff_or_batch_file_path);
         pff_launched_from_command_line = user_specified_pff;
     }
 
     else
     {
-        CString queried_filename;
+        std::string queried_file_path;
 
-        if( m_batchExecutorCallback == nullptr || !m_batchExecutorCallback->QueryForFilename(queried_filename) )
+        if( m_batchExecutorCallback == nullptr || !m_batchExecutorCallback->QueryForFilePath(queried_file_path) )
             return;
 
-        set_filenames_from_input_filename(queried_filename);
+        set_filenames_from_input_file_path(std::move(queried_file_path));
     }
 
 
@@ -62,43 +62,43 @@ void BatchExecutor::Run(const CString& pff_or_batch_filename)
 
     auto load_pff = [&]
     {
-        pff.SetPifFileName(pff_filename);
+        pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
 
         if( !pff.LoadPifFile() )
-            throw CSProException(_T("The was an error loading: %s"), pff_filename.GetString());
+            throw CSProException("The was an error loading: %s", pff_file_path.c_str());
     };
 
-    // if we have a PFF filename, then we need to get the batch filename for the PFF
+    // if we have a PFF file path, then we need to get the batch file path for the PFF
     if( user_specified_pff )
     {
         load_pff();
-        batch_filename = pff.GetAppFName();
+        batch_file_path = UTF8_TODO::GetUtf8(pff.GetAppFName());
     }
 
     // otherwise see if there is an existing PFF for this batch application
     else
     {
-        pff_filename = PortableFunctions::PathRemoveFileExtension<CString>(batch_filename) + FileExtensions::WithDot::Pff;
+        pff_file_path = PortableFunctions::PathReplaceFileExtension(batch_file_path, FileExtensions::Pff);
 
-        if( PortableFunctions::FileIsRegular(pff_filename) )
+        if( PortableFunctions::FileIsRegular(pff_file_path) )
         {
             load_pff();
 
-            if( batch_filename.CompareNoCase(pff.GetAppFName()) != 0 )
+            if( !SO::EqualsNoCase(batch_file_path, pff.GetAppFName()) )
             {
-                throw CSProException(_T("The default PFF for this application (%s) is associated with a different application (%s). ")
-                                     _T("Delete it or specify a PFF to run."),
-                                     PortableFunctions::PathGetFilename(batch_filename),
-                                     PortableFunctions::PathGetFilename(pff.GetAppFName()));
+                throw CSProException("The default PFF for this application (%s) is associated with a different application (%s). "
+                                     "Delete it or specify a PFF to run.",
+                                     PortableFunctions::PathGetFilename(batch_file_path).c_str(),
+                                     PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(pff.GetAppFName())).c_str());
             }
         }
 
         // otherwise create a new batch PFF
         else
         {
-            pff.SetPifFileName(pff_filename);
+            pff.SetPifFileName(UTF8_TODO::GetCString(pff_file_path));
             pff.SetAppType(BATCH_TYPE);
-            pff.SetAppFName(batch_filename);
+            pff.SetAppFName(UTF8_TODO::GetCString(batch_file_path));
             pff.SetViewListing(ALWAYS);
             pff.SetViewResultsFlag(true);
         }
@@ -106,16 +106,16 @@ void BatchExecutor::Run(const CString& pff_or_batch_filename)
 
 
     // set the current directory to the location of the batch file
-    SetCurrentDirectory(PortableFunctions::PathGetDirectory(batch_filename).c_str());
+    SetCurrentDirectory(TC::ToWide(PortableFunctions::PathGetDirectory(batch_file_path)).c_str());
 
 
     // build the application and then pass control of it to the PFF object
     auto application = std::make_shared<Application>();
     pff.SetApplication(application);
 
-    BuildApplication(std::make_shared<FileApplicationLoader>(application.get(), batch_filename), EngineAppType::Batch);
+    BuildApplication(std::make_unique<FileApplicationLoader>(application.get(), batch_file_path), EngineAppType::Batch);
 
-    bool BATCH_FLOW_TODO_use_new_batch_driver =
+    const bool BATCH_FLOW_TODO_use_new_batch_driver =
         !application->GetRuntimeFormFiles().empty() &&
         application->GetRuntimeFormFiles().front()->GetDictionary() != nullptr &&
         application->GetRuntimeFormFiles().front()->GetDictionary()->UseNewSymbols();
@@ -162,10 +162,10 @@ void BatchExecutor::Run(const CString& pff_or_batch_filename)
 
 
     // close and delete several auxiliary files
-    for( const auto& output_data_connection_string : pff.GetOutputDataConnectionStrings() )
+    for( const ConnectionString& output_data_connection_string : pff.GetOutputDataConnectionStrings() )
     {
-        if( output_data_connection_string.IsFilenamePresent() )
-            CloseFileInTextViewer(output_data_connection_string.GetFilename(), true);
+        if( output_data_connection_string.HasFilePath() )
+            CloseFileInTextViewer(output_data_connection_string.GetFilePath(), true);
     }
 
     CloseFileInTextViewer(pff.GetListingFName(), true);
@@ -199,8 +199,8 @@ void BatchExecutor::Run(const CString& pff_or_batch_filename)
     // view the results and the listing
     if( pff.GetViewResultsFlag() )
     {
-        pff.ViewResults(pff.GetFrequenciesFilename());
-        pff.ViewResults(pff.GetImputeFrequenciesFilename());
+        pff.ViewResults(UTF8_TODO::GetUtf8(pff.GetFrequenciesFilename()));
+        pff.ViewResults(UTF8_TODO::GetUtf8(pff.GetImputeFrequenciesFilename()));
         ViewFileInTextViewer(pff.GetWriteFName());
     }
 
@@ -212,12 +212,12 @@ void BatchExecutor::Run(const CString& pff_or_batch_filename)
 
         if( pff.GetViewListing() == ONERROR )
         {
-            auto process_summary = batch_execution_dlg->GetProcessSummary();
+            const std::shared_ptr<const ProcessSummary> process_summary = batch_execution_dlg->GetProcessSummary();
             show_listing = ( process_summary != nullptr && process_summary->GetTotalMessages() != 0 );
         }
 
         if( show_listing )
-            Listing::Lister::View(pff.GetListingFName());
+            Listing::Lister::View(UTF8_TODO::GetUtf8(pff.GetListingFName()));
     }
 
 

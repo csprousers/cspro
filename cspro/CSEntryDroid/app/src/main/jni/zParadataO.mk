@@ -29,12 +29,13 @@ LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/OperatorSelectionEvent.cpp
 LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/PropertyEvent.cpp
 LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/SessionEvent.cpp
 LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/Syncer.cpp
+LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/SyncEvents.cpp
 LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/Table.cpp
 LOCAL_SRC_FILES         += $(ZPARADATAO_SRC_PATH)/TableDefinitions.cpp
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_STATIC_LIBRARIES  := zAppO zUtilF zUtilO zToolsO zPlatformO SQLite
+LOCAL_STATIC_LIBRARIES  := zPlatformO zSql zToolsO zJson zUtilO zUtilF zAppO
 
 include $(BUILD_STATIC_LIBRARY)

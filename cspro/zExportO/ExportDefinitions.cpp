@@ -4,7 +4,7 @@
 #include "SasExportWriter.h"
 
 
-const TCHAR* ExportTypeDefaultExtension(const DataRepositoryType type)
+const char* ExportTypeDefaultExtension(const DataRepositoryType type)
 {
     switch( type )
     {
@@ -41,29 +41,28 @@ const TCHAR* ExportTypeDefaultExtension(const DataRepositoryType type)
 }
 
 
-std::vector<std::wstring> GetExportFilenames(const ConnectionString& connection_string)
+std::vector<std::string> GetExportFilePaths(const ConnectionString& connection_string)
 {
     ASSERT(DataRepositoryHelpers::IsTypeExportWriter(connection_string.GetType()));
 
-    std::vector<std::wstring> filenames;
+    std::vector<std::string> file_paths;
 
     switch( connection_string.GetType() )
     {
         case DataRepositoryType::CSProExport:
-            filenames.emplace_back(CSProExportWriter::GetDataConnectionString(connection_string).GetFilename());
-            filenames.emplace_back(CSProExportWriter::GetDictionaryPath(connection_string));
+            file_paths.emplace_back(CSProExportWriter::GetDataConnectionString(connection_string).GetFilePath());
+            file_paths.emplace_back(CSProExportWriter::GetDictionaryFilePath(connection_string));
             break;
 
         case DataRepositoryType::SAS:
-            filenames.emplace_back(connection_string.GetFilename());
-            filenames.emplace_back(SasExportWriter::GetSyntaxPath(connection_string));
+            file_paths.emplace_back(connection_string.GetFilePath());
+            file_paths.emplace_back(SasExportWriter::GetSyntaxPath(connection_string));
             break;
 
         default:
-            filenames.emplace_back(connection_string.GetFilename());
+            file_paths.emplace_back(connection_string.GetFilePath());
             break;
-
     }
 
-    return filenames;
+    return file_paths;
 }

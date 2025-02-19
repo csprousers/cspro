@@ -18,13 +18,13 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_smartsync_SyncListenerWrapper_onPro
 
 /*
  * Class:     gov_census_cspro_smartsync_SyncListenerWrapper
- * Method:    isCancelled
+ * Method:    isCanceled
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_gov_census_cspro_smartsync_SyncListenerWrapper_isCancelled
+JNIEXPORT jboolean JNICALL Java_gov_census_cspro_smartsync_SyncListenerWrapper_isCanceled
   (JNIEnv *, jobject);
 
-JNIEXPORT jboolean JNICALL Java_gov_census_cspro_smartsync_SyncListenerWrapper_isCancelled
+JNIEXPORT jboolean JNICALL Java_gov_census_cspro_smartsync_SyncListenerWrapper_isCanceled
     (JNIEnv*, jobject );
 
 JNIEXPORT void JNICALL

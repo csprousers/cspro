@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{EA52B4FA-021B-4F0C-8209-EF54AA538476}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>zMultimediaO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -93,10 +89,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BmpFile.h" />
+    <ClInclude Include="Icon.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Mp4Reader.h" />
     <ClInclude Include="Mp4Writer.h" />
     <ClInclude Include="QRCode.h" />
+    <ClInclude Include="Screenshot.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="zMultimediaO.h" />
   </ItemGroup>
@@ -106,10 +104,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="BmpFile.cpp" />
+    <ClCompile Include="Icon.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Mp4Reader.cpp" />
     <ClCompile Include="Mp4Writer.cpp" />
     <ClCompile Include="QRCode.cpp" />
+    <ClCompile Include="Screenshot.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

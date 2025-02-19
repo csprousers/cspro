@@ -21,15 +21,12 @@ static char THIS_FILE[]= __FILE__;
 #endif
 
 
-bool CTbd::breakinit( const TCHAR* pszTbdName ) {
+bool CTbd::breakinit( const TCHAR* pszTbdName )
+{
     if( !m_pBatchDriverBase->GetNumCtabToWrite() )
         return true;
 
-    if( m_pTableIndex != NULL )
-        delete m_pTableIndex;
-    m_pTableIndex = NULL;
-
-    m_pTableIndex = new SimpleDbMap();
+    m_pTableIndex = std::make_unique<SimpleDbMap>();
 
     m_csTbdFileName = pszTbdName;
 
@@ -48,10 +45,10 @@ bool CTbd::breakinit( const TCHAR* pszTbdName ) {
     m_pBreakidcurr = m_pBreakidnext + iBreakIdLen;
     *m_pBreakidcurr = *m_pBreakidnext = 0;
 
-    CString csTbiName = PortableFunctions::PathRemoveFileExtension<CString>(pszTbdName) + _T(".") + GetTbiExtension();
+    CString csTbiName = PortableFunctions::PathRemoveFileExtensionCS(pszTbdName) + _T(".") + GetTbiExtension();
     PortableFunctions::FileDelete( csTbiName );
 
-    return m_pTableIndex->Open(CS2WS(csTbiName), { { _T("TBI"), SimpleDbMap::ValueType::Long } });
+    return m_pTableIndex->Open(UTF8_TODO::GetUtf8(csTbiName), { { "TBI", SimpleDbMap::ValueType::Long } });
 }
 
 // RHF INIC Oct 22, 2002
@@ -103,10 +100,9 @@ void CTbd::breakend( void ) {
     breakclose();
 }
 
-void CTbd::breakclose() {
-    if( m_pTableIndex != NULL )
-        delete m_pTableIndex;
-    m_pTableIndex = NULL;
+void CTbd::breakclose()
+{
+    m_pTableIndex.reset();
 
     tbd_MakeFinalTbd();
 
@@ -245,7 +241,7 @@ void CTbd::breakload( csprochar* pszBreakId, CTAB* pCtab ) {
 
             ASSERT(iTbdFile >= 0 );
             if( !pTbdSlice->Load( iTbdFile, lFilePos ) )
-                issaerror( MessageType::Warning, MGF::OpenMessage, _T("Can't load the slice") );
+                issaerror( MessageType::Warning, MGF::OpenMessage, "Can't load the slice" );
         }
         else {
             _lseek( m_iTbdFile, lFilePos + sizeof( BREAK_ID ), 0 );
@@ -279,7 +275,7 @@ void CTbd::breaksave( const TCHAR* pszBreakId, CTAB* pCtab ) {
     if( IsNewTbd() )
         BreakId.ctnum = pCtab->GetTableNumber() + 1;
     else
-        BreakId.ctnum = tbd_tabindex( WS2CS(pCtab->GetName()) ) + 1;
+        BreakId.ctnum = tbd_tabindex( UTF8_TODO::GetCString(pCtab->GetName()) ) + 1;
 
     for( i = 0; i < MAXBREAKVARS; i++ )
         BreakId.breakid[i] = -1l;
@@ -350,7 +346,7 @@ void CTbd::breaksave( const TCHAR* pszBreakId, CTAB* pCtab ) {
         ASSERT(iTbdFile >= 0 );
 
         if( !pTbdSlice->Save( iTbdFile, lFilePos ) )
-            issaerror( MessageType::Warning, MGF::OpenMessage, _T("Can't save the slice") );
+            issaerror( MessageType::Warning, MGF::OpenMessage, "Can't save the slice" );
 
     }
     else {
@@ -368,15 +364,20 @@ void CTbd::breaksave( const TCHAR* pszBreakId, CTAB* pCtab ) {
             issaerror( MessageType::Abort, 14010 );
     }
 
-    if( bNewBreak ) {
-        if( m_pTableIndex->Exists(pszKey) || !m_pTableIndex->PutLong(pszKey,lFilePos + 1) )
-            issaerror( MessageType::Abort, 4003, m_pTableIndex->GetDbFilename().c_str(), pszKey );
-    }
+    if( bNewBreak )
+    {
+        const std::string key = UTF8_TODO::GetUtf8(pszKey);
 
+        if( m_pTableIndex->Exists(key) || !m_pTableIndex->PutLong(key, lFilePos + 1) )
+            issaerror(MessageType::Abort, 4003, m_pTableIndex->GetDbFilePath().c_str(), key.c_str());
+    }
 }
 
 
-long CTbd::breakfpos( csprochar* pszKey ) {
-    long    lFilePos = m_pTableIndex->GetLong(pszKey).value_or(0);
-    return( lFilePos - 1 );
+long CTbd::breakfpos( const csprochar* pszKey )
+{
+    const std::string key = UTF8_TODO::GetUtf8(pszKey);
+    long lFilePos = m_pTableIndex->GetLong(key).value_or(0);
+
+    return lFilePos - 1;
 }

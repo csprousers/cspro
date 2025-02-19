@@ -35,7 +35,7 @@ bool CEngineCompFunc::compobjOk(Symbol* objp)
     if( isym < 0 )
         return true; // RHF Jan 27, 2000
 
-    CString csObjName = WS2CS(NPT(isym)->GetName()); // RHF 03/12/99
+    CString csObjName = UTF8_TODO::GetCString(NPT(isym)->GetName()); // RHF 03/12/99
 
     if( is_digit(csObjName[0]) )
         return true;                    // skip VIEW symbols

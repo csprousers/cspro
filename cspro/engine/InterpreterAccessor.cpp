@@ -1,7 +1,9 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
 #include "InterpreterAccessor.h"
+#include "EngineExecutor.h"
 #include <zEngineO/BinarySymbol.h>
+#include <zEngineO/UserFunction.h>
 #include <zMessageO/MessageManager.h>
 #include <zCaseO/Case.h>
 #include <zDataO/DataRepositoryHelpers.h>
@@ -17,31 +19,35 @@ class EngineInterpreterAccessor : public InterpreterAccessor
 public:
     EngineInterpreterAccessor(CIntDriver& interpreter);
 
+    LogicInterpreter& GetInterpreter() override;
+
     const PFF& GetPff() override;
 
     const MessageFile& GetUserMessageFile() override;
 
-    std::unique_ptr<Case> GetCase(const std::wstring& dictionary_name, const std::optional<std::wstring>& case_uuid, const std::optional<std::wstring>& case_key) override;
-    std::unique_ptr<Case> GetCurrentCase(const std::wstring& dictionary_name) override;
+    std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) override;
+    std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) override;
 
     std::unique_ptr<FieldStatusRetriever> CreateFieldStatusRetriever() override;
 
-    InterpreterExecuteResult RunEvaluateLogic(const std::wstring& logic, bool& cancel_flag) override;
-    InterpreterExecuteResult RunInvoke(const StringNoCase& function_name, const JsonNode<wchar_t>& json_arguments, bool& cancel_flag) override;
+    InterpreterExecuteResult RunEvaluateLogic(SharableString logic, CancelFlag& cancel_flag) override;
+    InterpreterExecuteResult RunInvoke(std::string_view function_name_sv, const JsonNode& json_arguments, CancelFlag& cancel_flag) override;
 
-    std::wstring GetSymbolJson(const std::wstring& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode<wchar_t>* serialization_options_node) override;
-    void UpdateSymbolValueFromJson(const std::wstring& symbol_name_and_potential_subscript, const JsonNode<wchar_t>& json_node) override;
+    InterpreterExecuteResult CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) override;
 
-    std::wstring LocalhostCreateMappingForBinarySymbol(const std::wstring& symbol_name_and_potential_subscript, std::optional<std::wstring> content_type_override, bool evaluate_immediately) override;
+    std::string GetSymbolJson(const std::string& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node) override;
+    void SetSymbolValueFromJson(const std::string& symbol_name_and_potential_subscript, const JsonNode& json_node) override;
 
-    sqlite3& GetSqliteDbForDictionary(const std::wstring& dictionary_name) override;
+    std::string LocalhostCreateMappingForBinarySymbol(const std::string& symbol_name_and_potential_subscript, std::optional<std::string> content_type_override, bool evaluate_immediately) override;
+
+    sqlite3& GetSqliteDbForDictionary(std::string_view dictionary_name_sv) override;
 
     void RegisterSqlCallbackFunctions(sqlite3* db) override;
 
 private:
-    Symbol& GetEvaluatedSymbolFromSymbolName(const std::wstring& symbol_name_and_potential_subscript);
+    Symbol& GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript);
 
-    DICT& GetDictionary(const std::wstring& dictionary_name, bool check_level_is_valid_for_data_access);
+    DICT& GetDictionary(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access);
 
 private:
     CIntDriver& m_interpreter;
@@ -54,6 +60,12 @@ EngineInterpreterAccessor::EngineInterpreterAccessor(CIntDriver& interpreter)
         m_pEngineDriver(m_interpreter.m_pEngineDriver)
 {
     ASSERT(m_pEngineDriver != nullptr);
+}
+
+
+LogicInterpreter& EngineInterpreterAccessor::GetInterpreter()
+{
+    return m_interpreter;
 }
 
 
@@ -70,42 +82,39 @@ const MessageFile& EngineInterpreterAccessor::GetUserMessageFile()
 }
 
 
-std::unique_ptr<Case> EngineInterpreterAccessor::GetCase(const std::wstring& dictionary_name, const std::optional<std::wstring>& case_uuid, const std::optional<std::wstring>& case_key)
+std::unique_ptr<Case> EngineInterpreterAccessor::GetCase(const std::string_view dictionary_name_sv,
+                                                         const std::optional<std::string>& case_uuid,
+                                                         const std::optional<std::string>& case_key)
 {
     ASSERT(case_uuid.has_value() || case_key.has_value());
 
-    DICT& dictionary = GetDictionary(dictionary_name, false);
+    DICT& dictionary = GetDictionary(dictionary_name_sv, false);
 
-    std::unique_ptr<Case> data_case = dictionary.GetCaseAccess()->CreateCase();
+    std::unique_ptr<Case> data_case = dictionary.GetCaseAccess()->CreateCase(true);
 
     DataRepository& data_repository = dictionary.GetDicX()->GetDataRepository();
 
     // load the case by UUID...
     if( case_uuid.has_value() )
     {
-        CString key;
-        CString uuid = WS2CS(*case_uuid);
-        double position_in_repository;
-        data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
-
-        data_repository.ReadCase(*data_case, position_in_repository);
+        data_repository.ReadCaseByUuid(*data_case, *case_uuid);
     }
 
     // ...or by key
     else
     {
-        data_repository.ReadCase(*data_case, WS2CS(*case_key));
+        data_repository.ReadCase(*data_case, *case_key);
     }
 
     return data_case;
 }
 
 
-std::unique_ptr<Case> EngineInterpreterAccessor::GetCurrentCase(const std::wstring& dictionary_name)
+std::unique_ptr<Case> EngineInterpreterAccessor::GetCurrentCase(const std::string_view dictionary_name_sv)
 {
-    DICT& dictionary = GetDictionary(dictionary_name, true);
+    DICT& dictionary = GetDictionary(dictionary_name_sv, true);
 
-    std::unique_ptr<Case> data_case = dictionary.GetCaseAccess()->CreateCase();
+    std::unique_ptr<Case> data_case = dictionary.GetCaseAccess()->CreateCase(true);
 
     m_pEngineDriver->PrepareCaseFromEngineForQuestionnaireViewer(&dictionary, *data_case);
 
@@ -126,46 +135,57 @@ std::unique_ptr<FieldStatusRetriever> EngineInterpreterAccessor::CreateFieldStat
 }
 
 
-InterpreterExecuteResult EngineInterpreterAccessor::RunEvaluateLogic(const std::wstring& logic, bool& /*cancel_flag*/) // CS_TODO what to do about cancel_flag? should it somehow hook into CIntDriver::m_bStopProc?
+InterpreterExecuteResult EngineInterpreterAccessor::RunEvaluateLogic(SharableString logic, CancelFlag& cancel_flag)
 {
-    return m_interpreter.EvaluateLogic(logic); 
+    return m_interpreter.EvaluateLogic(std::move(logic), cancel_flag);
 }
 
 
-InterpreterExecuteResult EngineInterpreterAccessor::RunInvoke(const StringNoCase& function_name, const JsonNode<wchar_t>& json_arguments, bool& /*cancel_flag*/) // CS_TODO see above cancel_flag message?
+InterpreterExecuteResult EngineInterpreterAccessor::RunInvoke(const std::string_view function_name_sv, const JsonNode& json_arguments, CancelFlag& cancel_flag)
 {
-    return m_interpreter.RunInvoke(function_name, json_arguments);
+    return m_interpreter.RunInvoke(function_name_sv, json_arguments, &cancel_flag);
 }
 
 
-std::wstring EngineInterpreterAccessor::GetSymbolJson(const std::wstring& symbol_name_and_potential_subscript, const Symbol::SymbolJsonOutput symbol_json_output, const JsonNode<wchar_t>* serialization_options_node)
+InterpreterExecuteResult EngineInterpreterAccessor::CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator)
+{
+    return m_interpreter.Execute(user_function.GetReturnDataType(),
+        [&]()
+        {
+            return m_interpreter.CallUserFunction(user_function, argument_evaluator);
+        });
+}
+
+
+std::string EngineInterpreterAccessor::GetSymbolJson(const std::string& symbol_name_and_potential_subscript, const Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* const serialization_options_node)
 {
     const Symbol& symbol = GetEvaluatedSymbolFromSymbolName(symbol_name_and_potential_subscript);
     return m_interpreter.GetSymbolJson(symbol, symbol_json_output, serialization_options_node);
 }
 
 
-void EngineInterpreterAccessor::UpdateSymbolValueFromJson(const std::wstring& symbol_name_and_potential_subscript, const JsonNode<wchar_t>& json_node)
+void EngineInterpreterAccessor::SetSymbolValueFromJson(const std::string& symbol_name_and_potential_subscript, const JsonNode& json_node)
 {
     Symbol& symbol = GetEvaluatedSymbolFromSymbolName(symbol_name_and_potential_subscript);
-    m_interpreter.UpdateSymbolValueFromJson(symbol, json_node);
+    m_interpreter.SetSymbolValueFromJson(symbol, json_node);
 }
 
 
-std::wstring EngineInterpreterAccessor::LocalhostCreateMappingForBinarySymbol(const std::wstring& symbol_name_and_potential_subscript, std::optional<std::wstring> content_type_override, bool evaluate_immediately)
+std::string EngineInterpreterAccessor::LocalhostCreateMappingForBinarySymbol(const std::string& symbol_name_and_potential_subscript,
+                                                                             std::optional<std::string> content_type_override, const bool evaluate_immediately)
 {
     const Symbol& symbol = GetEvaluatedSymbolFromSymbolName(symbol_name_and_potential_subscript);
 
     if( !BinarySymbol::IsBinarySymbol(symbol) )
-        throw CSProException(_T("The symbol '%s' is not a binary symbol that can be mapped."), symbol.GetName().c_str());
+        throw CSProException("The symbol '%s' is not a binary symbol that can be mapped.", symbol.GetName().c_str());
 
     return m_interpreter.LocalhostCreateMappingForBinarySymbol(assert_cast<const BinarySymbol&>(symbol), std::move(content_type_override), evaluate_immediately);
 }
 
 
-sqlite3& EngineInterpreterAccessor::GetSqliteDbForDictionary(const std::wstring& dictionary_name)
+sqlite3& EngineInterpreterAccessor::GetSqliteDbForDictionary(const std::string_view dictionary_name_sv)
 {
-    DICT& dictionary = GetDictionary(dictionary_name, false);
+    DICT& dictionary = GetDictionary(dictionary_name_sv, false);
     DICX* pDicX = dictionary.GetDicX();
     sqlite3* db = DataRepositoryHelpers::GetSqliteDatabase(pDicX->GetDataRepository());
 
@@ -175,17 +195,17 @@ sqlite3& EngineInterpreterAccessor::GetSqliteDbForDictionary(const std::wstring&
     if( pDicX->GetDataRepository().GetRepositoryType() == DataRepositoryType::Text )
         throw CSProException("Only text files that use an index have an associated SQLite database.");
 
-    throw CSProException(_T("There is no SQLite database associated with the dictionary '%s'."), dictionary_name.c_str());
+    throw CSProException("There is no SQLite database associated with the dictionary '%s'.", std::string(dictionary_name_sv).c_str());
 }
 
 
-void EngineInterpreterAccessor::RegisterSqlCallbackFunctions(sqlite3* db)
+void EngineInterpreterAccessor::RegisterSqlCallbackFunctions(sqlite3* const db)
 {
     m_interpreter.RegisterSqlCallbackFunctions(db);
 }
 
 
-Symbol& EngineInterpreterAccessor::GetEvaluatedSymbolFromSymbolName(const std::wstring& symbol_name_and_potential_subscript)
+Symbol& EngineInterpreterAccessor::GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript)
 {
     auto [base_symbol, wrapped_symbol] = m_interpreter.GetEvaluatedSymbolFromSymbolName(symbol_name_and_potential_subscript);
 
@@ -194,13 +214,13 @@ Symbol& EngineInterpreterAccessor::GetEvaluatedSymbolFromSymbolName(const std::w
 }
 
 
-DICT& EngineInterpreterAccessor::GetDictionary(const std::wstring& dictionary_name, const bool check_level_is_valid_for_data_access)
+DICT& EngineInterpreterAccessor::GetDictionary(const std::string_view dictionary_name_sv, const bool check_level_is_valid_for_data_access)
 {
     DICT* pDicT = nullptr;
 
     try
     {
-        Symbol& symbol = m_interpreter.GetSymbolFromSymbolName(dictionary_name, SymbolType::Pre80Dictionary);
+        Symbol& symbol = m_interpreter.GetSymbolFromSymbolName(dictionary_name_sv, SymbolType::Pre80Dictionary);
         ASSERT(!symbol.IsA(SymbolType::Dictionary)); // ENGINECR_TODO implement for non-DICT
 
         if( symbol.IsA(SymbolType::Pre80Dictionary) )
@@ -209,7 +229,7 @@ DICT& EngineInterpreterAccessor::GetDictionary(const std::wstring& dictionary_na
     catch(...) { }
 
     if( pDicT == nullptr )
-        throw CSProException(_T("No dictionary named '%s' exists."), dictionary_name.c_str());
+        throw CSProException("No dictionary named '%s' exists.", std::string(dictionary_name_sv).c_str());
 
     // make sure the case is currently available
     if( check_level_is_valid_for_data_access )
@@ -224,8 +244,8 @@ DICT& EngineInterpreterAccessor::GetDictionary(const std::wstring& dictionary_na
 // CEngineDriver::CreateInterpreterAccessor
 // --------------------------------------------------------------------------
 
-std::shared_ptr<InterpreterAccessor> CEngineDriver::CreateInterpreterAccessor()
+std::unique_ptr<InterpreterAccessor> CEngineDriver::CreateInterpreterAccessor()
 {
-    return ( m_pIntDriver != nullptr ) ? std::make_shared<EngineInterpreterAccessor>(*m_pIntDriver) :
+    return ( m_pIntDriver != nullptr ) ? std::make_unique<EngineInterpreterAccessor>(*m_pIntDriver) :
                                          nullptr;
 }

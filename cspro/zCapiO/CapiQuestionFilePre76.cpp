@@ -363,7 +363,7 @@ bool CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAString* csLe
                     csLocalRight = csRightAux;
                 }
             }
-            else if (csLocalRight.IsNumeric() || SpecialValues::StringIsSpecial(csLocalRight)) {
+            else if (csLocalRight.IsNumeric() || SpecialValues::StringIsSpecial(UTF8_TODO::GetUtf8(csLocalRight))) {
                 if (eCondType) *eCondType = CNewCapiQuestionHelp::Numeric;
             }
             else {
@@ -387,7 +387,7 @@ bool CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAString* csLe
 bool CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, int& iOccMin, int& iOccMax) {
     CIMSAString csOccMin;
     CIMSAString csOccMax;
-    std::vector<std::wstring> aParts = SO::SplitString(csOccurrences, ':', false);;
+    std::vector<std::wstring> aParts = SO::SplitString(csOccurrences, ':', false);
 
     bool    bRet = true;
     if (aParts.size() == 2) {
@@ -442,10 +442,6 @@ bool CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, int& iOccMin
 
 
     CIMSAString  csLeft;
-
-    // RHF COM Oct 28, 2003 bool bRet = CNewCapiQuestionHelp::SplitCondition( csCondition, &csLeft );
-
-
     CIMSAString  csRight;
     int          iCond;
     eCapiNewConditionType  eCondType;
@@ -563,8 +559,8 @@ void CNewCapiQuestionFile::AddLanguage(CNewCapiLanguage& rNewCapiLanguage) {
     m_aLangs.emplace_back(rNewCapiLanguage);
 }
 
-CNewCapiLanguage* CNewCapiQuestionFile::GetLanguage(int iLangNum) {
-    return &m_aLangs[iLangNum];
+const CNewCapiLanguage& CNewCapiQuestionFile::GetLanguage(int iLangNum) {
+    return m_aLangs[iLangNum];
 }
 
 CNewCapiLanguage* CNewCapiQuestionFile::GetLanguage(CString csLangName, bool bCaseSensitive /*=true*/) {
@@ -711,7 +707,7 @@ bool CNewCapiQuestionFile::Open(const CString& csFileName, bool bSilent)
         if (!PortableFunctions::FileIsRegular(csFileName)) {
             if (!bSilent) {
                 CString csMsg;
-                csMsg.Format(_T("%s %s does not exist"), FILE_TYPE2, (LPCTSTR)csFileName);
+                csMsg.Format(_T("%s %s does not exist"), FILE_TYPE2, csFileName.GetString());
 
                 // RHF COM Nov 22, 2002 Uncommented soon! ErrorMessage::Display(csMsg);
             }
@@ -795,12 +791,12 @@ bool CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shared_ptr<Prog
                 }
 
                 if (csCmd.CompareNoCase(HEAD_STAT) == 0) { // [CAPI QUESTIONS]
-                    CIMSAString csVersion = CSPRO_VERSION;
-                    if (!cCapiQuestFile.IsVersionOK(csVersion)) {
-                        if (!IsValidCSProVersion(csVersion, 2.5)) {
+                    CString csVersion = Versioning::CSProVersionText;
+                    if (!cCapiQuestFile.IsVersionOK_CS(csVersion)) {
+                        if (!IsValidCSProVersion(UTF8_TODO::GetUtf8(csVersion), 2.5)) {
                             if (!bSilent) {
-                                csError.Format(_T("%s is not %s"), FILE_TYPE2, CSPRO_VERSION); // 20100601 added CSPro version to stop crashes
-                                ErrorMessage::Display(csError);
+                                const std::string message = FormatText("%s is not %s", UTF8_TODO::GetUtf8(FILE_TYPE2).c_str(), Versioning::CSProVersionText); // 20100601 added CSPro version to stop crashes
+                                ErrorMessage::Display(message);
                             }
                             return false;
                         }

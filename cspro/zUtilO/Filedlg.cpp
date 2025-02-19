@@ -1,52 +1,102 @@
 ﻿#include "StdAfx.h"
-#include "Filedlg.h"
-#include "FileUtil.h"
+#include "FileDlg.h"
 
 
-CIMSAFileDialog::CIMSAFileDialog(BOOL bOpenFileDialog,
-                                 LPCTSTR lpszDefExt,
-                                 LPCTSTR lpszFileName,
-                                 DWORD dwFlags,
-                                 LPCTSTR lpszFilter,
-                                 CWnd* pParentWnd,
-                                 UINT uDirType,
-                                 BOOL bNewFile)
-    :   CFileDialog(bOpenFileDialog, nullptr, lpszFileName, dwFlags, lpszFilter, pParentWnd)
+FileDlg::FileDlg(const bool open_dialog,
+                 const DWORD flags/* = 0*/,
+                 const StringType default_extension/* = std::monostate()*/,
+                 const StringType filename/* = std::monostate()*/,
+                 const StringType filter/* = std::monostate()*/,
+                 CWnd* const pParentWnd/* = nullptr*/,
+                 std::vector<std::unique_ptr<std::wstring>> wide_strings/* = std::vector<std::unique_ptr<std::wstring>>()*/)
+    :   CFileDialog(open_dialog,
+                    ConvertString(wide_strings, default_extension),
+                    ConvertConstructorFilename(wide_strings, filename),
+                    ( flags != 0 ) ? flags : open_dialog ? DefaultOpenFlags : DefaultSaveFlags,
+                    ConvertString(wide_strings, filter),
+                    pParentWnd),
+        m_wideStrings(std::move(wide_strings)),
+        m_checkExtensions(m_ofn.lpstrDefExt != nullptr)
 {
-    m_ofn.lpstrFileTitle = m_pszFileTitle;
-    m_ofn.nMaxFileTitle = _MAX_PATH;
+    // the CFileDialog constructor makes copies of the filename and filter, so the only
+    // string that we needed to keep a copy of is technically the default extension
+}
 
-    m_bOpenFileDialog = bOpenFileDialog;
-    m_bNewFile = bNewFile;
-    m_uDirType = uDirType;
 
-    if (uDirType == CFD_PROJ_DIR) {
-        IMSAGetProjectDir();
-    }
-    else if (uDirType == CFD_DATA_DIR) {
-        IMSAGetDataDir();
+const wchar_t* FileDlg::ConvertString(std::vector<std::unique_ptr<std::wstring>>& wide_strings, const StringType& optional_string)
+{
+    if( std::holds_alternative<std::monostate>(optional_string) )
+    {
+        return nullptr;
     }
 
-    if (lpszDefExt == NULL) {
-        _tcscpy(m_pszDefExt,_T(""));
+    else if( std::holds_alternative<const wchar_t*>(optional_string) )
+    {
+        return std::get<const wchar_t*>(optional_string);
     }
-    else {
-        _tcscpy(m_pszDefExt, lpszDefExt);
-        TCHAR pszDefExt[64];
-        TCHAR* pszExt;
-        _tcscpy(pszDefExt, lpszDefExt);
-        pszExt = _tcstok(pszDefExt,_T(", "));
-        while (pszExt != NULL) {
-            m_aDefExt.Add(pszExt);
-            pszExt = _tcstok(NULL,_T(", "));
-        }
+
+    else
+    {
+        ASSERT(std::holds_alternative<std::string_view>(optional_string));
+        return ConvertString(wide_strings, TC::ToWide(std::get<std::string_view>(optional_string)));
     }
 }
 
 
-CIMSAFileDialog& CIMSAFileDialog::UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* const pMDIFrameWnd)
+const wchar_t* FileDlg::ConvertString(std::vector<std::unique_ptr<std::wstring>>& wide_strings, std::wstring text)
 {
-    ASSERT(m_initialDirectory == nullptr);
+    return wide_strings.emplace_back(std::make_unique<std::wstring>(std::move(text)))->c_str();
+}
+
+
+const wchar_t* FileDlg::ConvertConstructorFilename(std::vector<std::unique_ptr<std::wstring>>& wide_strings, const StringType& filename)
+{
+    const wchar_t* const converted_filename = ConvertString(wide_strings, filename);
+
+    if( converted_filename != nullptr && *converted_filename != '\0' )
+    {
+        const std::wstring_view directory_check_sv = converted_filename;
+
+        if( directory_check_sv.back() != Path::NativeSlashChar &&
+            PortableFunctions::FileIsDirectory(converted_filename) )
+        {
+            constexpr wchar_t SlashString[] = { Path::NativeSlashChar, '\0' };
+            return ConvertString(wide_strings, std::wstring(directory_check_sv) + SlashString);
+        }
+    }
+
+    return converted_filename;
+}
+
+
+FileDlg& FileDlg::SetTitle(const StringType title)
+{
+    m_ofn.lpstrTitle = ConvertString(m_wideStrings, title);
+    return *this;
+}
+
+
+FileDlg& FileDlg::DisableExtensionCheck()
+{
+    m_checkExtensions = false;
+    return *this;
+}
+
+
+FileDlg& FileDlg::SetInitialDirectory(std::wstring directory)
+{
+    ASSERT(m_ofn.lpstrInitialDir == nullptr);
+
+    if( !directory.empty() )
+        m_ofn.lpstrInitialDir = StoreString(std::move(directory));
+
+    return *this;
+}
+
+
+FileDlg& FileDlg::UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* const pMDIFrameWnd)
+{
+    ASSERT(m_ofn.lpstrInitialDir == nullptr);
 
     if( pMDIFrameWnd != nullptr )
     {
@@ -57,12 +107,7 @@ CIMSAFileDialog& CIMSAFileDialog::UseInitialDirectoryOfActiveDocument(CMDIFrameW
             const CDocument* const pDoc = pActiveWnd->GetActiveDocument();
 
             if( pDoc != nullptr )
-            {
-                m_initialDirectory = std::make_unique<std::wstring>(PortableFunctions::PathGetDirectory(pDoc->GetPathName()));
-
-                if( !m_initialDirectory->empty() )
-                    m_ofn.lpstrInitialDir = m_initialDirectory->c_str();
-            }
+                SetInitialDirectory(PortableFunctions::PathGetDirectory(pDoc->GetPathName()));
         }
     }
 
@@ -70,10 +115,13 @@ CIMSAFileDialog& CIMSAFileDialog::UseInitialDirectoryOfActiveDocument(CMDIFrameW
 }
 
 
-CIMSAFileDialog& CIMSAFileDialog::SetMultiSelectBuffer(const size_t MaxFiles/* = 250*/)
+FileDlg& FileDlg::SetMultiSelectBuffer(const size_t max_files/* = 250*/)
 {
-    const size_t buffer_size = MaxFiles * ( _MAX_PATH + 1 ) + 1;
-    m_multiSelectBuffer = std::make_unique<TCHAR[]>(buffer_size);
+    m_ofn.Flags |= OFN_ALLOWMULTISELECT;
+
+    const size_t buffer_size = max_files * ( _MAX_PATH + 1 ) + 1;
+    m_multiSelectBuffer = std::make_unique_for_overwrite<wchar_t[]>(buffer_size);
+    m_multiSelectBuffer[0] = '\0';
 
     m_ofn.lpstrFile = m_multiSelectBuffer.get();
     m_ofn.nMaxFile = buffer_size;
@@ -82,199 +130,74 @@ CIMSAFileDialog& CIMSAFileDialog::SetMultiSelectBuffer(const size_t MaxFiles/* =
 }
 
 
-BOOL CIMSAFileDialog::OnFileNameOK()
+BOOL FileDlg::OnFileNameOK()
 {
-    BOOL bReturn = FALSE;
-    CString csFullFileName, csDir, csFileExt, csMessage, csTemp;
+    constexpr BOOL Valid = FALSE;
+    constexpr BOOL NotValid = TRUE;
 
-    //  Get file names
-    m_aFileName.RemoveAll();
+    if( __super::OnFileNameOK() == NotValid )
+        return NotValid;
 
-    POSITION p = GetStartPosition();
-    while (p != NULL) {
-        CString cs = GetNextPathName(p);
-        int x = cs.Find(_T(':'), 2);
-        if (x != NONE) {
-            cs = cs.Mid(x - 1);
-        }
-        m_aFileName.Add(cs);
-    }
-//  Check file names
-    for (int iIndex = 0 ; iIndex < m_aFileName.GetSize() ; iIndex++) {
-        if (m_bOpenFileDialog && m_aFileName.GetSize() > 100) {
-            break;
-        }
-        csFullFileName = m_aFileName[iIndex];
-//  Check the file extension
-        int nBackSlash = csFullFileName.ReverseFind(PATH_CHAR);
-        int nFileExtension = csFullFileName.ReverseFind('.');
-        if (nFileExtension == -1) {
-            nFileExtension = csFullFileName.GetLength();
-        }
-        else if (nBackSlash > nFileExtension) {
-            nFileExtension = csFullFileName.GetLength();
-        }
-        else {
-            nFileExtension++;
-        }
-        csFileExt = csFullFileName.Mid(nFileExtension);
-        // if needs an extension and a default extension is present
-        if (csFileExt.IsEmpty()) {
-            if (_tcslen(m_pszDefExt) > 0) {
-                if (csFullFileName[csFullFileName.GetLength() - 1] != '.') {
-                    // find extension in filter list
-                    int iTimes = m_ofn.nFilterIndex * 2;
-                    TCHAR* pszExt =(LPTSTR) m_ofn.lpstrFilter;
-                    for (int i = 1 ; i < iTimes ; i++) {
-                        pszExt = (LPTSTR)_tmemchr(pszExt, _T('\0'), 255);
-                        pszExt++;
-                    }
-                    int iLen = _tcslen(pszExt);
-                    if (_tmemchr(pszExt, _T(';'), iLen) == NULL) {
-                        pszExt = (LPTSTR)_tmemchr(pszExt, _T('.'), iLen);
-                        if (*(pszExt + 1) != '*') {
-                            csFileExt = pszExt;
-                            csFileExt = csFileExt.Mid(1);
-                            csFullFileName += pszExt;
-                            m_aFileName[iIndex] = csFullFileName;
-                        }
-                    }
-                }
-            }
-        }
-        if (m_aDefExt.GetSize() > 0) {
-            BOOL bFound = FALSE;
-            for (int i = 0 ; i < m_aDefExt.GetSize() ; i++) {
-                if (csFileExt.CompareNoCase(m_aDefExt[i]) == 0) {
-                    bFound = TRUE;
-                    break;
-                }
-                if (m_aDefExt[i].CompareNoCase(_T("*")) == 0) {
-                    bFound = TRUE;
-                    break;
-                }
-            }
-            if (!bFound) {
-                if (m_aDefExt.GetSize() > 1) {
-                    CString csLoad;
-                    csLoad.LoadString(IDS_ONEEXTENSION);
-                    csMessage.Format(csLoad, m_pszDefExt);
-                    csMessage = csFullFileName + csMessage;
-                }
-                else {
-                    CString csLoad;
-                    csLoad.LoadString(IDS_THEEXTENSION);
-                    csMessage.Format(csLoad, m_pszDefExt);
-                    csMessage = csFullFileName + csMessage;
-                }
-                AfxMessageBox(csMessage,MB_OK | MB_ICONEXCLAMATION);
-                bReturn = TRUE;
-                continue;
-            }
-        }
+    // store the selected paths and do any additional checks
+    m_filePaths.clear();
 
-//  Check the file existence
+    try
+    {
+        POSITION pos = GetStartPosition();
 
-        CFileStatus status;
-        BYTE mask = CFile::hidden | CFile::system | CFile::volume | CFile::directory;
-        if (m_bOpenFileDialog) {
-            if (m_bNewFile) {
-                if (CFile::GetStatus(csFullFileName, status)) {
-                    CString csLoad;
-                    csLoad.LoadString(IDS_ALREADYEXISTS);
-                    csMessage = csFullFileName + csLoad;
-                    AfxMessageBox(csMessage,MB_OK | MB_ICONEXCLAMATION);
-                    bReturn = TRUE;
-                    continue;
-                }
-                CheckNewFile(csFullFileName, bReturn);
-            }
-            else {
-                if (!CFile::GetStatus(csFullFileName, status)) {
-                    CString csLoad;
-                    csLoad.FormatMessage(_T("\n\n%1  file not found."), (LPCTSTR)csFullFileName);
-                    csMessage = csLoad;
-                    AfxMessageBox(csMessage,MB_OK | MB_ICONEXCLAMATION);
-                    bReturn = TRUE;
-                    continue;
-                }
-                if ((status.m_attribute & mask) != 0) {
-                    CString csLoad;
-                    csLoad.LoadString(IDS_NOTAFILE);
-                    csMessage = csFullFileName + csLoad;
-                    AfxMessageBox(csMessage,MB_OK | MB_ICONEXCLAMATION);
-                    bReturn = TRUE;
-                    continue;
-                }
-            }
-        }
-        else {
-            if (CFile::GetStatus(csFullFileName, status)) {
-                if ((status.m_attribute & mask) != 0) {
-                    CString csLoad;
-                    csLoad.LoadString(IDS_NOTAFILE);
-                    csMessage = csFullFileName + csLoad;
-                    AfxMessageBox(csMessage,MB_OK | MB_ICONEXCLAMATION);
-                    bReturn = TRUE;
-                    continue;
-                }
-            }
-            else {
-                CheckNewFile(csFullFileName, bReturn);
-            }
+        while( pos != nullptr )
+        {
+            const std::string& file_path = m_filePaths.emplace_back(TC::ToUtf8(GetNextPathName(pos)));
+
+            if( m_checkExtensions )
+                CheckExtension(file_path);
         }
     }
 
-//  Save file directory as IMSA Project Directory
-
-    if (bReturn) {
-        return bReturn;
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+        return NotValid;
     }
 
-    TCHAR* pszFullFileName = csFullFileName.GetBuffer(_MAX_PATH);
-    TCHAR* pszName;
+    ASSERT(!m_filePaths.empty());
+    ASSERT(m_filePaths.size() == 1 || ( m_ofn.Flags & OFN_ALLOWMULTISELECT ) != 0);
 
-    GetFullPathName(m_aFileName[0], _MAX_PATH, pszFullFileName, &pszName);
-    *(pszName - 1) = _T('\0');
-
-    csFullFileName.ReleaseBuffer();
-
-    if (m_uDirType == CFD_PROJ_DIR) {
-        IMSASetProjectDir(csFullFileName);
-    }
-    else if (m_uDirType == CFD_DATA_DIR) {
-        IMSASetDataDir(csFullFileName);
-    }
-
-    _tcscpy(m_ofn.lpstrFile, m_aFileName[0]);
-
-    int i = m_aFileName[0].ReverseFind(PATH_CHAR);
-
-    _tcscpy(m_ofn.lpstrFileTitle, m_aFileName[0].Mid(i+1));
-
-    return bReturn;
+    return Valid;
 }
 
 
-void CIMSAFileDialog::CheckNewFile(const CString& csFullFileName, BOOL& bReturn)
+void FileDlg::CheckExtension(const std::string& file_path)
 {
-    CFile f;
-    CFileException e;
-    if(!f.Open(csFullFileName, CFile::modeCreate | CFile::modeWrite, &e)) {
-        if (e.m_cause == CFileException::badPath) {
-            CString csLoad;
-            csLoad.LoadString(IDS_BADPATH);
-            ErrorMessage::Display(csFullFileName + csLoad);
-        }
-        else {
-            CString csLoad;
-            csLoad.LoadString(IDS_CANTOPEN);
-            ErrorMessage::Display(csFullFileName + csLoad);
-        }
-        bReturn = TRUE;
-        return;
+    ASSERT(m_checkExtensions);
+
+    // lazily calculate the valid extensions
+    if( !m_validExtensions.has_value() )
+    {
+        m_validExtensions = SO::SplitString(TC::ToUtf8(m_ofn.lpstrDefExt), ", ", true, false);
+
+        ASSERT(!m_validExtensions->empty());
+        ASSERT(std::find_if(m_validExtensions->cbegin(), m_validExtensions->cend(),
+                            [&](const std::string& valid_extension) { return ( valid_extension == "*" ); }) == m_validExtensions->cend());
     }
-    f.Close();
-    f.Remove(csFullFileName);
-    bReturn = FALSE;
+
+    const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
+
+    const auto& lookup = std::find_if(m_validExtensions->cbegin(), m_validExtensions->cend(),
+                                      [&](const std::string& valid_extension) { return SO::EqualsNoCase(extension, valid_extension); });
+
+    if( lookup != m_validExtensions->cend() )
+        return;
+
+    const std::string message =
+        ( m_validExtensions->size() == 1 ) ? ( "The file must have the extension: " + m_validExtensions->front() ) :
+                                             ( "The file must have one of the extensions: " + SO::CreateSingleString(*m_validExtensions) );
+    throw CSProException(message);
+}
+
+
+const std::string& FileDlg::GetFilePath() const
+{
+    return !m_filePaths.empty() ? m_filePaths.front() :
+                                  ReturnProgrammingError(SO::Empty_string);
 }

@@ -8,8 +8,8 @@ import java.util.ArrayList
 
 class Media {
     companion object {
-        fun getMediaFilenames(mediaType: Int, activity: Activity?): ArrayList<String> {
-            val mediaFilenames = ArrayList<String>()
+        fun getMediaFilePaths(mediaType: Int, activity: Activity?): ArrayList<String> {
+            val mediaFilePaths = ArrayList<String>()
 
             try {
                 val collection =
@@ -48,7 +48,7 @@ class Media {
 
                 query?.use { cursor ->
                     while (cursor.moveToNext()) {
-                        mediaFilenames.add(cursor.getString(0))
+                        mediaFilePaths.add(cursor.getString(0))
                     }
                 }
 
@@ -56,7 +56,7 @@ class Media {
                 Timber.e(e)
             }
 
-            return mediaFilenames
+            return mediaFilePaths
         }
 
         // values defined in MediaStore.h

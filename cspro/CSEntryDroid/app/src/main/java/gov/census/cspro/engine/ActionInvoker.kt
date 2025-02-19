@@ -17,14 +17,14 @@ open class ActionInvokerListener(private val webView: WebView) {
         return null
     }
 
-    open fun onCloseDialog(resultsText: String?, webControllerKey: Int): Boolean? {
+    open fun onClose(resultsText: String?, webControllerKey: Int): Boolean? {
         return null
     }
 
     open fun onEngineProgramControlExecuted(): Boolean {
         return false
     }
-    
+
     @RequiresApi(Build.VERSION_CODES.M)
     fun onPostWebMessage(message: String, targetOrigin: String?) {
         val webMessage = WebMessage(message)

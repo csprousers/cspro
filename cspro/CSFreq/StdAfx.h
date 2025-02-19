@@ -4,8 +4,12 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/SharedSettings.h>
+#include <zToolsO/Utf8.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/WindowsWS.h>
+#include <zUtilO/WindowsUtf8.h>
 #include <zEdit2O/UWM.h>
 #include <zDictO/DDClass.h>
 #include <ZBRIDGEO/npff.h>

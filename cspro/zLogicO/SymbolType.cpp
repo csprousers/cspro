@@ -10,53 +10,54 @@ namespace
 {
     struct SymbolString
     {
-        const TCHAR* const for_to_string;
-        const TCHAR* const for_json;
+        const char* for_to_string;
+        const char* for_json;
 
-        SymbolString(const TCHAR* text_for_to_string, const TCHAR* text_for_json = nullptr)
+        SymbolString(const char* const text_for_to_string, const char* const text_for_json = nullptr)
             :   for_to_string(text_for_to_string),
                 for_json(( text_for_json != nullptr ) ? text_for_json : text_for_to_string)
         {
             ASSERT(for_to_string != nullptr && for_json != nullptr);
-        }                
+        }
     };
+
 
     const std::map<SymbolType, SymbolString>& GetSymbolStrings()
     {
         static const std::map<SymbolType, SymbolString> symbol_strings =
         {
-            { SymbolType::Pre80Dictionary, { _T("Dictionary")                     } },
-            { SymbolType::Pre80Flow,       { _T("Flow")                           } },
-            { SymbolType::Section,         { _T("Section")                        } },
-            { SymbolType::Variable,        { _T("Variable")                       } },
-            { SymbolType::WorkVariable,    { _T("WorkVariable"),  _T("numeric")   } },
-            { SymbolType::Form,            { _T("Form")                           } },
-            { SymbolType::Application,     { _T("Application")                    } },
-            { SymbolType::UserFunction,    { _T("UserFunction"),  _T("function")  } },
-            { SymbolType::Array,           { _T("Array")                          } },
-            { SymbolType::Group,           { _T("Group")                          } },
-            { SymbolType::ValueSet,        { _T("ValueSet")                       } },
-            { SymbolType::Relation,        { _T("Relation")                       } },
-            { SymbolType::File,            { _T("File")                           } },
-            { SymbolType::List,            { _T("List")                           } },
-            { SymbolType::Block,           { _T("Block")                          } },
-            { SymbolType::Crosstab,        { _T("Crosstab")                       } },
-            { SymbolType::Map,             { _T("Map")                            } },
-            { SymbolType::Pff,             { _T("Pff")                            } },
-            { SymbolType::SystemApp,       { _T("SystemApp")                      } },
-            { SymbolType::Audio,           { _T("Audio")                          } },
-            { SymbolType::HashMap,         { _T("HashMap")                        } },
-            { SymbolType::NamedFrequency,  { _T("Freq")                           } },
-            { SymbolType::WorkString,      { _T("String"),        _T("string")    } },
-            { SymbolType::Dictionary,      { _T("Dictionary")                     } },
-            { SymbolType::Record,          { _T("Record")                         } },
-            { SymbolType::Image,           { _T("Image")                          } },
-            { SymbolType::Document,        { _T("Document")                       } },
-            { SymbolType::Geometry,        { _T("Geometry")                       } },
-            { SymbolType::Flow,            { _T("Flow")                           } },
-            { SymbolType::Report,          { _T("Report")                         } },
-            { SymbolType::Item,            { _T("Item")                           } },
-            { SymbolType::None,            { _T("None")                           } },
+            { SymbolType::Pre80Dictionary,  { "Dictionary"                  } },
+            { SymbolType::Pre80Flow,        { "Flow"                        } },
+            { SymbolType::Section,          { "Section"                     } },
+            { SymbolType::Variable,         { "Variable"                    } },
+            { SymbolType::WorkVariable,     { "WorkVariable",   "numeric"   } },
+            { SymbolType::Form,             { "Form"                        } },
+            { SymbolType::Application,      { "Application"                 } },
+            { SymbolType::UserFunction,     { "UserFunction",   "function"  } },
+            { SymbolType::Array,            { "Array"                       } },
+            { SymbolType::Group,            { "Group"                       } },
+            { SymbolType::ValueSet,         { "ValueSet"                    } },
+            { SymbolType::Relation,         { "Relation"                    } },
+            { SymbolType::File,             { "File"                        } },
+            { SymbolType::List,             { "List"                        } },
+            { SymbolType::Block,            { "Block"                       } },
+            { SymbolType::Crosstab,         { "Crosstab"                    } },
+            { SymbolType::Map,              { "Map"                         } },
+            { SymbolType::Pff,              { "Pff"                         } },
+            { SymbolType::SystemApp,        { "SystemApp"                   } },
+            { SymbolType::Audio,            { "Audio"                       } },
+            { SymbolType::HashMap,          { "HashMap"                     } },
+            { SymbolType::NamedFrequency,   { "Freq"                        } },
+            { SymbolType::WorkString,       { "String",         "string"    } },
+            { SymbolType::Dictionary,       { "Dictionary"                  } },
+            { SymbolType::Record,           { "Record"                      } },
+            { SymbolType::Image,            { "Image"                       } },
+            { SymbolType::Document,         { "Document"                    } },
+            { SymbolType::Geometry,         { "Geometry"                    } },
+            { SymbolType::Flow,             { "Flow"                        } },
+            { SymbolType::Report,           { "Report"                      } },
+            { SymbolType::Item,             { "Item"                        } },
+            { SymbolType::None,             { "None"                        } },
         };
 
         return symbol_strings;
@@ -64,17 +65,29 @@ namespace
 }
 
 
-const TCHAR* ToString(SymbolType symbol_type)
+const char* ToString(const SymbolType symbol_type, const char* SymbolString::* const string_value)
 {
     const std::map<SymbolType, SymbolString>& symbol_strings = GetSymbolStrings();
     const auto& lookup = symbol_strings.find(symbol_type);
 
-    return ( lookup != symbol_strings.cend() ) ? lookup->second.for_to_string :
-                                                 _T("Unknown");
+    return ( lookup != symbol_strings.cend() ) ? (lookup->second).*string_value :
+                                                 "Unknown";
 }
 
 
-void JsonSerializer<SymbolType>::WriteJson(JsonWriter& json_writer, SymbolType value)
+const char* ToString(const SymbolType symbol_type)
+{
+    return ToString(symbol_type, &SymbolString::for_to_string);
+}
+
+
+const char* ToDisplayString(const SymbolType symbol_type)
+{
+    return ToString(symbol_type, &SymbolString::for_json);
+}
+
+
+void JsonSerializer<SymbolType>::WriteJson(JsonWriter& json_writer, const SymbolType value)
 {
     const std::map<SymbolType, SymbolString>& symbol_strings = GetSymbolStrings();
     const auto& lookup = symbol_strings.find(value);
@@ -97,24 +110,31 @@ void JsonSerializer<SymbolType>::WriteJson(JsonWriter& json_writer, SymbolType v
 // SymbolSubType
 // --------------------------------------------------------------------------
 
-const TCHAR* ToString(SymbolSubType symbol_subtype)
+const char* ToString(const SymbolSubType symbol_subtype)
 {
-    return ( symbol_subtype == SymbolSubType::NoType )              ? _T("NoType")              :
-           ( symbol_subtype == SymbolSubType::Input )               ? _T("Input")               :
-           ( symbol_subtype == SymbolSubType::Output )              ? _T("Output")              :
-           ( symbol_subtype == SymbolSubType::Work )                ? _T("Work")                :
-           ( symbol_subtype == SymbolSubType::External )            ? _T("External")            :
-           ( symbol_subtype == SymbolSubType::Primary )             ? _T("Primary")             :
-           ( symbol_subtype == SymbolSubType::Secondary )           ? _T("Secondary")           :
-           ( symbol_subtype == SymbolSubType::DynamicValueSet )     ? _T("DynamicValueSet")     :
-           ( symbol_subtype == SymbolSubType::ValueSetListWrapper ) ? _T("ValueSetListWrapper") :
-           ( symbol_subtype == SymbolSubType::WorkAlpha )           ? _T("WorkAlpha")           :
-                                                                      _T("Unknown");
+    return ( symbol_subtype == SymbolSubType::NoType )              ? "NoType"              :
+           ( symbol_subtype == SymbolSubType::Input )               ? "Input"               :
+           ( symbol_subtype == SymbolSubType::Output )              ? "Output"              :
+           ( symbol_subtype == SymbolSubType::Work )                ? "Work"                :
+           ( symbol_subtype == SymbolSubType::External )            ? "External"            :
+           ( symbol_subtype == SymbolSubType::Primary )             ? "Primary"             :
+           ( symbol_subtype == SymbolSubType::Secondary )           ? "Secondary"           :
+           ( symbol_subtype == SymbolSubType::DynamicValueSet )     ? "DynamicValueSet"     :
+           ( symbol_subtype == SymbolSubType::ValueSetListWrapper ) ? "ValueSetListWrapper" :
+           ( symbol_subtype == SymbolSubType::WorkAlpha )           ? "WorkAlpha"           :
+                                                                      "Unknown";
 }
 
 
-void JsonSerializer<SymbolSubType>::WriteJson(JsonWriter& json_writer, SymbolSubType value)
+void JsonSerializer<SymbolSubType>::WriteJson(JsonWriter& json_writer, const SymbolSubType value)
 {
-    json_writer.Write(( value == SymbolSubType::WorkAlpha ) ? _T("alpha") :
-                                                              SO::TitleToCamelCase(ToString(value)).c_str());
+    if( value == SymbolSubType::WorkAlpha )
+    {
+        json_writer.Write("alpha");
+    }
+
+    else
+    {
+        json_writer.Write(SO::TitleToCamelCase(ToString(value)));
+    }
 }

@@ -31,7 +31,7 @@ public:
     ~CDefaultStylesDlg();
 
     // called when page changes for extra handling
-    virtual void OnPageChange(CDialog* pOldPage, CDialog* pNewPage);
+    virtual bool OnPageChange(CDialog* pOldPage, CDialog* pNewPage);
 
     // called when dialog dismissed with OK
     virtual void OnOK();

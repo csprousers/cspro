@@ -4,7 +4,7 @@
 #include <zEngineF/EngineUINodes.h>
 #include <zPlatformO/PlatformInterface.h>
 
-struct IMapUI;
+class IMapUI;
 class Userbar;
 class Viewer;
 
@@ -25,7 +25,7 @@ private:
     long CreateUserbar(std::unique_ptr<Userbar>& userbar);
     long EditNote(EngineUI::EditNoteNode& edit_note_node);
     long ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node);
-    long HtmlDialogsDirectoryQuery(std::wstring& html_dialogs_directory);
+    long HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory);
     long Prompt(EngineUI::PromptNode& prompt_node);
     long RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node);
     long View(const Viewer& viewer);

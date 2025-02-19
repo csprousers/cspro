@@ -9,11 +9,11 @@
 // integer -> string
 // --------------------------------------------------------------------------
 
-#define Formatter_int64_t  _T("%") PRId64
-#define Formatter_uint64_t _T("%") PRIu64
+#define Formatter_int64_t  "%" PRId64
+#define Formatter_uint64_t "%" PRIu64
 
 template<bool UseCache = true, typename T>
-CString IntToString(T value);
+std::string IntToString(T value);
 
 constexpr int IntToStringLength(int value);
 
@@ -22,8 +22,8 @@ constexpr int IntToStringLength(int value);
 // double -> string
 // --------------------------------------------------------------------------
 
-CLASS_DECL_ZTOOLSO std::wstring DoubleToString(double value);
-CLASS_DECL_ZTOOLSO std::wstring DoubleToString(double value, const std::optional<size_t>& min_decimals, const std::optional<size_t>& max_decimals);
+CLASS_DECL_ZTOOLSO std::string DoubleToString(double value);
+CLASS_DECL_ZTOOLSO std::string DoubleToString(double value, const std::optional<size_t>& min_decimals, const std::optional<size_t>& max_decimals);
 
 
 
@@ -32,11 +32,11 @@ CLASS_DECL_ZTOOLSO std::wstring DoubleToString(double value, const std::optional
 // --------------------------------------------------------------------------
 
 constexpr size_t IntToStringCacheSize = 100;
-CLASS_DECL_ZTOOLSO const CString& GetIntToStringCache(size_t value);
+CLASS_DECL_ZTOOLSO const std::string& GetIntToStringCache(size_t value);
 
 
 template<bool UseCache/* = true*/, typename T>
-CString IntToString(T value)
+std::string IntToString(T value)
 {
     if constexpr(UseCache)
     {
@@ -58,10 +58,10 @@ CString IntToString(T value)
                  ( std::is_same_v<T, int16_t> || std::is_same_v<T, uint16_t> ) ||
                  ( std::is_same_v<T, int32_t> ))
     {
-        return FormatText(_T("%") PRId32, static_cast<int32_t>(value));
+        return FormatText("%" PRId32, static_cast<int32_t>(value));
     }
 
-    // 32-bit unsigneds
+    // 32-bit unsigned ints
 #ifdef WASM
     else if constexpr(std::is_same_v<T, uint32_t> ||
                       std::is_same_v<T, unsigned long>)
@@ -70,16 +70,16 @@ CString IntToString(T value)
 #endif    
     {
         static_assert(sizeof(T) == sizeof(uint32_t));
-        return FormatText(_T("%") PRIu32, static_cast<uint32_t>(value));
+        return FormatText("%" PRIu32, static_cast<uint32_t>(value));
     }
 
-    // 64-bit ints
+    // 64-bit int
     else if constexpr(std::is_same_v<T, int64_t>)
     {
         return FormatText(Formatter_int64_t, value);
     }
 
-    // 64-bit unsigned
+    // 64-bit unsigned int
     else if constexpr(!std::is_same_v<T, bool>)
     {
         if constexpr(std::is_same_v<T, uint64_t>)
@@ -95,7 +95,7 @@ CString IntToString(T value)
 }
 
 
-constexpr int IntToStringLength(int value)
+constexpr int IntToStringLength(const int value)
 {
     if( value < 0 ) return 1 + IntToStringLength(( value == INT_MIN ) ? INT_MAX : -value);
     if( value < 10 ) return 1;

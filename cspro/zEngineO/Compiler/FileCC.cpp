@@ -9,9 +9,9 @@
 #include <engine/Dict.h>
 
 
-LogicFile* LogicCompiler::CompileLogicFileDeclaration(bool compiling_function_parameter/* = false*/)
+LogicFile* LogicCompiler::CompileLogicFileDeclaration(const bool compiling_function_parameter/* = false*/)
 {
-    std::wstring file_name = CompileNewSymbolName();
+    std::string file_name = CompileNewSymbolName();
 
     auto logic_file = std::make_shared<LogicFile>(std::move(file_name));
 
@@ -225,7 +225,7 @@ int LogicCompiler::CompileLogicFileFunctions()
             if( function_code == FunctionCode::FNFILE_COPY_CODE || function_code == FunctionCode::FNFILE_RENAME_CODE )
             {
                 // don't allow wildcard characters in the target of these functions
-                if( next_token_helper_result == NextTokenHelperResult::StringLiteral && PathHasWildcardCharacters(Tokstr) )
+                if( next_token_helper_result == NextTokenHelperResult::StringLiteral && Path::HasWildcardCharacters(Tokstr) )
                     IssueError(MGF_TODO::m_33056);
 
                 if( IsCurrentTokenString() )
@@ -351,7 +351,7 @@ int LogicCompiler::CompileSetFileFunction()
 
     if( Tkn == TOKCOMMA )
     {
-        switch( NextKeywordOrError({ _T("update"), _T("create"), _T("append") }) )
+        switch( NextKeywordOrError({ "update", "create", "append" }) )
         {
             case 1:
             {

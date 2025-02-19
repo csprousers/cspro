@@ -15,7 +15,6 @@ public:
 private:
     const NumericCaseItem& m_inputNumericCaseItem;
     const CaseItemIndex& m_inputIndex;
-    const double m_value;
 };
 
 
@@ -26,29 +25,28 @@ private:
 
 inline NumericCaseItemConverter::NumericCaseItemConverter(const NumericCaseItem& input_numeric_case_item, const CaseItemIndex& input_index)
     :   m_inputNumericCaseItem(input_numeric_case_item),
-        m_inputIndex(input_index),
-        m_value(m_inputNumericCaseItem.GetValue(m_inputIndex))
-{    
+        m_inputIndex(input_index)
+{
 }
 
 
 inline bool NumericCaseItemConverter::ToNumber(const NumericCaseItem& output_numeric_case_item, CaseItemIndex& output_index)
 {
-    output_numeric_case_item.SetValue(output_index, m_value);
+    output_numeric_case_item.SetValue(output_index, m_inputNumericCaseItem.GetValue(m_inputIndex));
     return true;
 }
 
 
 inline bool NumericCaseItemConverter::ToString(const StringCaseItem& output_string_case_item, CaseItemIndex& output_index)
 {
-    ASSERT(m_inputNumericCaseItem.IsTypeFixed());
+    ASSERT(m_inputNumericCaseItem.IsFixedWidth());
+    const FixedWidthNumericCaseItem& fixed_width_numeric_case_item = assert_cast<const FixedWidthNumericCaseItem&>(m_inputNumericCaseItem);
 
-    const size_t item_length = m_inputNumericCaseItem.GetDictionaryItem().GetLen();
-    auto string_value_buffer = std::make_unique_for_overwrite<TCHAR[]>(item_length);
+    std::string string_value(fixed_width_numeric_case_item.GetMaxUtf8FixedValueWidth(), '\0');
+    const size_t string_length = fixed_width_numeric_case_item.OutputFixedValue(m_inputIndex, string_value.data());
+    string_value.resize(string_length);
 
-    assert_cast<const FixedWidthNumericCaseItem&>(m_inputNumericCaseItem).OutputFixedValue(m_inputIndex, string_value_buffer.get());
-
-    output_string_case_item.SetValue(output_index, wstring_view(string_value_buffer.get(), item_length));
+    output_string_case_item.SetValue(output_index, std::move(string_value));
 
     return true;
 }

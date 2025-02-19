@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 // Compiler.h: interface for the CCompiler class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -133,12 +134,12 @@
 #include <Wcompile/Wcompile.h>
 
 class Application;
+struct CapiLogicParameters;
+class CapiQuestionManager;
 class CIntDriver;
 class CLinkTable;
 class CSourceCode;
-struct CapiLogicParameters;
-class CapiQuestionManager;
-struct NamedTextSource;
+class ReportFile;
 
 
 class CLASS_DECL_ZSRCMGR CCompiler : public DesignerCompilerMessageProcessor
@@ -164,12 +165,12 @@ public:
 
     Result CompileExternalLogicOnly();
 
-    Result CompileReport(const NamedTextSource& report_named_text_source);
+    Result CompileReport(const ReportFile& report_file);
 
     Result Compile(CapiQuestionManager& capi_questions);
 
     //Gets the name of the Proc being compiled
-    CString GetProcName() const override { return m_bInit ? m_csProcName : _T(""); }
+    std::string GetProcName() const override { return m_bInit ? m_procName : std::string(); }
 
     int GetLineNumberOfCurrentCompile() const override { return m_iLineNumberOfCurrentCompile; }
 
@@ -200,7 +201,7 @@ private:
 private:
     CCompIFaz m_CompIFaz;
     Application* m_pApplication;
-    CString m_csProcName;
+    std::string m_procName;
     bool m_bInit;
     bool m_bFullCompile; // Flag indicating full-compile.
     bool m_bOptimizeFlowTree; //optimize occ in designer  compile

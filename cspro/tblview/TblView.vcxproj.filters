@@ -15,10 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ChartManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FrequencyTableCreatorFromTableGridExporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MainFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TableChartWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TblDoc.cpp">
@@ -30,21 +39,24 @@
     <ClCompile Include="TVDlgBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TableChartWnd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChartManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FrequencyTableCreatorFromTableGridExporter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChartManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FrequencyTableCreatorFromTableGridExporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MainFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TableChartWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TblDoc.h">
@@ -54,18 +66,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TVDlgBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TableChartWnd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChartManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FrequencyTableCreatorFromTableGridExporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

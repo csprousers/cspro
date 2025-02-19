@@ -2,7 +2,7 @@
 #include "CSProHostObject.h"
 #include "HtmlViewCtrl.h"
 #include "UseHtmlDialogs.h" // temporarily for OldCSProJavaScriptInterface::GetAccessToken
-#include <zToolsO/Serializer.h>
+#include <zToolsO/UniqueId.h>
 
 
 // for whatever reason, passing CCmdTarget::GetIDispatch to WebView2 does not
@@ -18,9 +18,9 @@ BEGIN_DISPATCH_MAP(CSProHostObject, CCmdTarget)
 END_DISPATCH_MAP()
 
 
-CSProHostObject::CSProHostObject(HtmlViewCtrl* source_window)
+CSProHostObject::CSProHostObject(HtmlViewCtrl* const source_window)
     :   m_sourceWindow(source_window),
-        m_actionInvokerWebController(m_sourceWindow),
+        m_actionInvokerWebController(UniqueId::CreateInt(), m_sourceWindow),
         m_actionInvokerSyncMessageId(0),
         m_actionInvokerOldCSProAsyncMessageId(0)
 {
@@ -36,12 +36,12 @@ CSProHostObject::~CSProHostObject()
 }
 
 
-std::wstring CSProHostObject::GetJavaScriptClassText()
+std::string CSProHostObject::GetJavaScriptClassText()
 {
-    static_assert(Serializer::GetCurrentVersion() / 10000 == 80, "Start adding deprecation warnings when this is used");
+    static_assert(Versioning::Number == 8.0, "Start adding deprecation warnings when this is used");
     static_assert(static_cast<int>(ActionInvoker::Action::execute) == 11276); // this value is also used in CSProJavaScriptInterface.kt
 
-    return FormatTextCS2WS(LR"!(
+    return FormatText(R"!(
 
     class CSPro {
 
@@ -64,12 +64,12 @@ std::wstring CSProHostObject::GetJavaScriptClassText()
             return JSON.parse(responseJson).value;
         }
 
-	    static $sendMessage(action, args) {
+        static $sendMessage(action, args) {
             CSPro.$hostSync.setHostProperty("ActionInvoker", CSPro.$createMessage(action, args));
             return CSPro.$processResponse(CSPro.$hostSync.getHostProperty("ActionInvoker"));
         }
 
-	    static $postMessage(action, args, callback) {
+        static $postMessage(action, args, callback) {
             CSPro.$hostSync.setHostProperty("ActionInvokerAsyncCSPro", CSPro.$createMessage(action, args));
             const requestId = CSPro.$hostSync.getHostProperty("ActionInvokerAsyncCSPro");
             if( callback != undefined ) {
@@ -84,51 +84,51 @@ std::wstring CSProHostObject::GetJavaScriptClassText()
             eval(callback);
         }
 
-	    static getMaxDisplayWidth() {
+        static getMaxDisplayWidth() {
             return CSPro.$sendMessage("UI.getMaxDisplayDimensions").width;
-	    }
+        }
 
-	    static getMaxDisplayHeight() {
+        static getMaxDisplayHeight() {
             return CSPro.$sendMessage("UI.getMaxDisplayDimensions").height;
-	    }
-	
-	    static getInputData() {
-            return JSON.stringify(CSPro.$sendMessage("UI.getInputData"));
-	    }
-	
-	    static setDisplayOptions(t) {
-            CSPro.$postMessage("UI.setDisplayOptions", JSON.parse(t));
-	    }
-	
-	    static returnData(t) {
-            CSPro.$postMessage("UI.closeDialog", { result: t });
-	    }
+        }
 
-	    static getAsyncResult() {
+        static getInputData() {
+            return JSON.stringify(CSPro.$sendMessage("UI.getInputData"));
+        }
+
+        static setDisplayOptions(t) {
+            CSPro.$postMessage("UI.setDisplayOptions", JSON.parse(t));
+        }
+
+        static returnData(t) {
+            CSPro.$postMessage("UI.close", { result: t });
+        }
+
+        static getAsyncResult() {
             return CSPro.$lastAsyncResult;
         }
-	
-	    static do(a, t) {
+
+        static do(a, t) {
             if( a == "close" ) {
                 CSPro.returnData();
             }
-	    }
-	
-	    static runLogic(t) {
-            return CSPro.$sendMessage("Logic.eval", { logic: t });
-	    }
+        }
 
-	    static runLogicAsync(t, c) {
+        static runLogic(t) {
+            return CSPro.$sendMessage("Logic.eval", { logic: t });
+        }
+
+        static runLogicAsync(t, c) {
             CSPro.$postMessage("Logic.eval", { logic: t }, c);
         }
 
-	    static invoke(f, a) {
+        static invoke(f, a) {
             return CSPro.$sendMessage("Logic.invoke", { function: f, arguments: ( a == undefined ) ? undefined : JSON.parse(a) });
         }
 
-	    static invokeAsync(f, a, c) {
+        static invokeAsync(f, a, c) {
             CSPro.$postMessage("Logic.invoke", { function: f, arguments: ( a == undefined ) ? undefined : JSON.parse(a) }, c);
-	    }
+        }
     }
 
     )!", static_cast<int>(ActionInvoker::Action::execute),
@@ -136,24 +136,24 @@ std::wstring CSProHostObject::GetJavaScriptClassText()
 }
 
 
-void CSProHostObject::ActionInvokerSyncSetMessageSync(BSTR message)
+void CSProHostObject::ActionInvokerSyncSetMessageSync(const BSTR message)
 {
-    m_actionInvokerSyncMessageId = m_actionInvokerWebController.PushMessage(message);
+    m_actionInvokerSyncMessageId = m_actionInvokerWebController.PushMessage(WindowsTC::FromBSTR(message));
 }
 
 
 BSTR CSProHostObject::ActionInvokerSyncGetProcessedMessage()
 {
-    const std::shared_ptr<const std::wstring> response = m_actionInvokerWebController.ProcessMessage(m_actionInvokerSyncMessageId, false);
+    const SharableString response = m_actionInvokerWebController.ProcessMessage(m_actionInvokerSyncMessageId, false);
 
-    return ( response != nullptr ) ? SysAllocString(response->c_str()) :
-                                     nullptr;
+    return response.IsSet() ? WindowsTC::ToBSTR(*response) :
+                              nullptr;
 }
 
 
-void CSProHostObject::ActionInvokerAsyncSetMessage(BSTR message)
+void CSProHostObject::ActionInvokerAsyncSetMessage(const BSTR message)
 {
-    int message_id = m_actionInvokerWebController.PushMessage(message);
+    const int message_id = m_actionInvokerWebController.PushMessage(WindowsTC::FromBSTR(message));
 
     ASSERT(m_sourceWindow != nullptr);
     m_sourceWindow->PostMessage(UWM::Html::ActionInvokerProcessAsyncMessage, message_id);
@@ -167,9 +167,9 @@ BSTR CSProHostObject::ActionInvokerAsyncGetUnused()
 }
 
 
-void CSProHostObject::ActionInvokerOldCSProClassSetMessage(BSTR message)
+void CSProHostObject::ActionInvokerOldCSProClassSetMessage(const BSTR message)
 {
-    m_actionInvokerOldCSProAsyncMessageId = m_actionInvokerWebController.PushMessage(message, true);
+    m_actionInvokerOldCSProAsyncMessageId = m_actionInvokerWebController.PushMessage(WindowsTC::FromBSTR(message), true);
 }
 
 
@@ -178,5 +178,5 @@ BSTR CSProHostObject::ActionInvokerOldCSProClassGetRequestId()
     ASSERT(m_sourceWindow != nullptr);
     m_sourceWindow->PostMessage(UWM::Html::ActionInvokerProcessAsyncMessage, m_actionInvokerOldCSProAsyncMessageId);
 
-    return SysAllocString(IntToString(m_actionInvokerOldCSProAsyncMessageId));
+    return WindowsTC::ToBSTR(IntToString(m_actionInvokerOldCSProAsyncMessageId));
 }

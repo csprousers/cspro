@@ -11,10 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Stdafx.h">
+    <ClInclude Include="DataDictionary.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataDictionary.h">
+    <ClInclude Include="DictionaryDescription.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryItem.h">
@@ -26,22 +26,22 @@
     <ClInclude Include="DictionaryRecord.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DictionaryValue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Rules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SimpleDictionaryCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ValueSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DictionaryValue.h">
+    <ClInclude Include="Stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValuePair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DictionaryDescription.h">
+    <ClInclude Include="ValueSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,19 +49,22 @@
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Stdafx.cpp">
+    <ClCompile Include="DataDictionary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataDictionary.cpp">
+    <ClCompile Include="DictionaryDescription.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictionaryItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictionaryLevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DictionaryRecord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictionaryLevel.cpp">
+    <ClCompile Include="DictionaryValue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rules.cpp">
@@ -70,16 +73,13 @@
     <ClCompile Include="SimpleDictionaryCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValueSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DictionaryValue.cpp">
+    <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ValuePair.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DictionaryDescription.cpp">
+    <ClCompile Include="ValueSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

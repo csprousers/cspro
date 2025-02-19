@@ -32,11 +32,11 @@ bool DataTypeIsOneOf(DataType data_type, DataType first_data_type_to_match, Argu
     return false;
 }
 
-CLASS_DECL_ZUTILO const TCHAR* ToString(DataType data_type);
+CLASS_DECL_ZUTILO const char* ToString(DataType data_type);
 
 template<> struct CLASS_DECL_ZUTILO JsonSerializer<DataType>
 {
-    static DataType CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DataType CreateFromJson(const JsonNode& json_node);
     static void WriteJson(JsonWriter& json_writer, DataType value);
 };
 
@@ -68,13 +68,14 @@ constexpr bool IsBinary(ContentType content_type)  { return ( content_type == Co
                                                               content_type == ContentType::Image ||
                                                               content_type == ContentType::Geometry ); }
 
-CLASS_DECL_ZUTILO const TCHAR* ToString(ContentType content_type);
+CLASS_DECL_ZUTILO const char* ToString(ContentType content_type);
+CLASS_DECL_ZUTILO std::string ToString(ContentType content_type, bool json_format);
 
-template<> CLASS_DECL_ZUTILO std::optional<ContentType> FromString<ContentType>(wstring_view text_sv);
+template<> CLASS_DECL_ZUTILO std::optional<ContentType> FromString<ContentType>(std::string_view text_sv);
 
 template<> struct CLASS_DECL_ZUTILO JsonSerializer<ContentType>
 {
-    static ContentType CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static ContentType CreateFromJson(const JsonNode& json_node);
     static void WriteJson(JsonWriter& json_writer, ContentType value);
 };
 

@@ -17,6 +17,7 @@ namespace
     const double two16m = 1.0 / ( (uint64_t)1 << N );
 }
 
+
 struct Randomizer::State
 {
     uint32_t x[3] = { X0, X1, X2 };
@@ -24,48 +25,49 @@ struct Randomizer::State
     uint32_t c = C;
 };
 
+
 namespace
 {
     Randomizer::State CurrentState;
 
     template<typename T1>
-    inline uint32_t LOW(T1 x)
+    inline uint32_t LOW(const T1 x)
     {
-        return (uint32_t)( x & MASK );
+        return static_cast<uint32_t>(x & MASK);
     }
 
-    inline uint32_t HIGH(uint32_t x)
+    inline uint32_t HIGH(const uint32_t x)
     {
         return LOW(x >> N);
     }
 
-    inline void MUL(uint32_t x, uint32_t y, uint32_t z[])
+    inline void MUL(const uint32_t x, const uint32_t y, uint32_t z[])
     {
-        uint32_t l = (uint32_t)( (int64_t)x * (int64_t)y );
+        const uint32_t l = static_cast<uint32_t>(static_cast<int64_t>(x) * static_cast<int64_t>(y));
         z[0] = LOW(l);
         z[1] = HIGH(l);
     }
 
     template<typename T1, typename T2>
-    inline bool CARRY(T1 x, T2 y)
+    inline bool CARRY(const T1 x, const T2 y)
     {
-        return ( ( (int64_t)x + (int64_t)y ) > MASK );
+        return ( ( static_cast<int64_t>(x) + static_cast<int64_t>(y) ) > MASK );
     }
 
-    inline void ADDEQU(uint32_t& x, int64_t y, uint32_t& z)
+    inline void ADDEQU(uint32_t& x, const int64_t y, uint32_t& z)
     {
         z = CARRY(x, y);
         x = LOW(x + y);
     }
 
-    inline void SET3(uint32_t x[], uint32_t x0, uint32_t x1, uint32_t x2)
+    inline void SET3(uint32_t x[], const uint32_t x0, const uint32_t x1, const uint32_t x2)
     {
         x[0] = x0;
         x[1] = x1;
         x[2] = x2;
     }
 
-    inline void SEED(uint32_t x0, uint32_t x1, uint32_t x2)
+    inline void SEED(const uint32_t x0, const uint32_t x1, const uint32_t x2)
     {
         SET3(CurrentState.x, x0, x1, x2);
         SET3(CurrentState.a, A0, A1, A2);
@@ -96,35 +98,35 @@ namespace
 }
 
 
-namespace Randomizer
+void Randomizer::Seed(const uint32_t seed)
 {
-    void Seed(uint32_t seed)
-    {
-        SEED(X0, LOW(seed), HIGH(seed));
-    }
-
-    double Next()
-    {
-        DoNext();
-        return ( two16m * ( two16m * ( two16m * CurrentState.x[0] + CurrentState.x[1] ) + CurrentState.x[2] ) );
-    }
-
-    uint32_t NextSeed()
-    {
-        DoNext();
-        return CurrentState.x[2];
-    }
+    SEED(X0, LOW(seed), HIGH(seed));
+}
 
 
-    StateSaver::StateSaver(bool reset_to_default_state)
-        :   m_state(std::make_unique<State>(CurrentState))
-    {
-        if( reset_to_default_state )
-            CurrentState = State();
-    }
+double Randomizer::Next()
+{
+    DoNext();
+    return ( two16m * ( two16m * ( two16m * CurrentState.x[0] + CurrentState.x[1] ) + CurrentState.x[2] ) );
+}
 
-    StateSaver::~StateSaver()
-    {
-        CurrentState = *m_state;
-    }
+
+uint32_t Randomizer::NextSeed()
+{
+    DoNext();
+    return CurrentState.x[2];
+}
+
+
+Randomizer::StateSaver::StateSaver(const bool reset_to_default_state)
+    :   m_state(std::make_unique<State>(CurrentState))
+{
+    if( reset_to_default_state )
+        CurrentState = State();
+}
+
+
+Randomizer::StateSaver::~StateSaver()
+{
+    CurrentState = *m_state;
 }

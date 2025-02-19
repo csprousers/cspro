@@ -1,44 +1,39 @@
 ﻿#pragma once
-#include <zSyncF/zSyncF.h>
-#include <zSyncO/SyncException.h>
-#include <zSyncO/BluetoothDeviceInfo.h>
-#include <zSyncO/WinBluetoothScanner.h>
-#include <zSyncO/IBluetoothAdapter.h>
-#include <zSyncO/IChooseBluetoothDeviceDialog.h>
 
+#include <zSyncO/BluetoothDeviceInfo.h>
+#include <zSyncO/WinBluetoothAdapter.h>
+#include <zSyncO/WinBluetoothScanner.h>
+
+class SyncError;
 class WinBluetoothAdapter;
 
-// ChooseBluetoothDeviceDialog dialog
 
-class ZSYNCF_API ChooseBluetoothDeviceDialog : public CDialog, public IChooseBluetoothDeviceDialog
+class ChooseBluetoothDeviceDialog : public CDialog
 {
     DECLARE_DYNAMIC(ChooseBluetoothDeviceDialog)
 
 public:
-    ChooseBluetoothDeviceDialog(IBluetoothAdapter* pAdapter,
-        CWnd* pParent = NULL);   // standard constructor
-    virtual ~ChooseBluetoothDeviceDialog();
+    ChooseBluetoothDeviceDialog(WinBluetoothAdapter* pAdapter, CWnd* pParent = nullptr);   // standard constructor
+    ~ChooseBluetoothDeviceDialog();
 
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-    enum { IDD = IDD_CHOOSE_BLUETOOTH_DEVICE };
-#endif
+    // throws an exception on scanning error
+    std::optional<BluetoothDeviceInfo> ChooseBluetoothDevice();
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
     DECLARE_MESSAGE_MAP()
+
+    void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+    BOOL OnInitDialog() override;
+
+private:
+    void OnLbnSelchangeDevices();
+    LRESULT OnUpdateDeviceList(WPARAM wParam, LPARAM lParam);
+    LRESULT OnScanError(WPARAM wParam, LPARAM lParam);
 
     void SetUpFont();
     void LayoutControls();
 
-public:
-    virtual BOOL OnInitDialog();
-
-    virtual bool Show(BluetoothDeviceInfo& deviceInfo);
-
 private:
-
     WinBluetoothAdapter* m_pAdapter;
     CFont m_defaultFont;
     CFont* m_pFont;
@@ -46,10 +41,6 @@ private:
     WinBluetoothScanner::DeviceList m_lastScanResult;
     std::unique_ptr<SyncError> m_pScanError;
 
-public:
     CListBox m_deviceList;
     CStatic m_promptStatic;
-    afx_msg void OnLbnSelchangeDevices();
-    afx_msg LRESULT OnUpdateDeviceList(WPARAM wParam, LPARAM lParam);
-    afx_msg LRESULT OnScanError(WPARAM wParam, LPARAM lParam);
 };

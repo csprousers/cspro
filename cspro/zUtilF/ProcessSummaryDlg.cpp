@@ -10,11 +10,11 @@ BEGIN_MESSAGE_MAP(ProcessSummaryDlg, BatchMeterDlg)
 END_MESSAGE_MAP()
 
 
-ProcessSummaryDlg::ProcessSummaryDlg(CWnd* pParent/* = nullptr*/)
-    :   BatchMeterDlg(pParent),
-        m_canceled(false)
+ProcessSummaryDlg::ProcessSummaryDlg(CWnd* const pParent/* = nullptr*/)
+    :   BatchMeterDlg(pParent)
 {
 }
+
 
 ProcessSummaryDlg::~ProcessSummaryDlg()
 {
@@ -32,9 +32,9 @@ BOOL ProcessSummaryDlg::OnInitDialog()
 }
 
 
-void ProcessSummaryDlg::Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary)
+void ProcessSummaryDlg::Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary)
 {
-    BatchMeterDlg::Initialize(title, std::move(process_summary), &m_canceled);
+    BatchMeterDlg::Initialize(std::move(title), std::move(process_summary), &m_canceled);
 }
 
 
@@ -66,12 +66,6 @@ LRESULT ProcessSummaryDlg::OnStartTask(WPARAM /*wParam*/, LPARAM /*lParam*/)
 
 #else
 
-ProcessSummaryDlg::ProcessSummaryDlg()
-    :   m_canceled(false)
-{
-}
-
-
 ProcessSummaryDlg::~ProcessSummaryDlg()
 {
     RunSharedDestructor();
@@ -81,13 +75,13 @@ ProcessSummaryDlg::~ProcessSummaryDlg()
 }
 
 
-void ProcessSummaryDlg::Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary, bool* /*cancel_flag*/)
+void ProcessSummaryDlg::Initialize(const InterfaceString title, std::shared_ptr<ProcessSummary> process_summary, CancelFlag* /*cancel_flag*/)
 {
     // close the old dialog if one was open
     if( m_processSummary != nullptr )
         PlatformInterface::GetInstance()->GetApplicationInterface()->HideProgressDialog();
 
-    PlatformInterface::GetInstance()->GetApplicationInterface()->ShowProgressDialog(title);
+    PlatformInterface::GetInstance()->GetApplicationInterface()->ShowProgressDialog(title.GetString<std::string>());
 
     m_processSummary = std::move(process_summary);
 
@@ -95,21 +89,22 @@ void ProcessSummaryDlg::Initialize(const CString& title, std::shared_ptr<Process
 }
 
 
-void ProcessSummaryDlg::Initialize(const CString& title, std::shared_ptr<ProcessSummary> process_summary)
+void ProcessSummaryDlg::Initialize(InterfaceString title, std::shared_ptr<ProcessSummary> process_summary)
 {
-    Initialize(title, std::move(process_summary), &m_canceled);
+    Initialize(std::move(title), std::move(process_summary), &m_canceled);
 }
 
 
-void ProcessSummaryDlg::SetSource(const CString& source_text)
+void ProcessSummaryDlg::SetSource(const InterfaceString source_text)
 {
     ASSERT(m_processSummary != nullptr);
 
-    m_canceled = PlatformInterface::GetInstance()->GetApplicationInterface()->UpdateProgressDialog(100 * m_processSummary->GetPercentSourceRead(), &source_text);
+    const std::string& message = source_text.GetString<std::string>();
+    m_canceled = PlatformInterface::GetInstance()->GetApplicationInterface()->UpdateProgressDialog(100 * m_processSummary->GetPercentSourceRead(), &message);
 }
 
 
-void ProcessSummaryDlg::SetKey(const CString& /*case_key*/)
+void ProcessSummaryDlg::SetKey(const std::string& /*case_key*/)
 {
     ASSERT(m_processSummary != nullptr);
 

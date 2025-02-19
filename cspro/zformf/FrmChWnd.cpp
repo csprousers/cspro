@@ -23,7 +23,6 @@
 #include "QSFEView.h"
 #include "RunAsBatchDlg.h"
 #include "SyncParamsDlg.h"
-#include <zToolsO/WinRegistry.h>
 #include <zAppO/Application.h>
 #include <zDictF/CapiLDlg.h>
 #include <zDictF/UWM.h>
@@ -214,7 +213,7 @@ BOOL CFormChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD 
     if( !m_logicDlgBar.CreateAndDock(this) )
         return FALSE;
 
-    m_logicDlgBar.ShowWindow(SW_HIDE);    
+    m_logicDlgBar.ShowWindow(SW_HIDE);
 
     // create the reference window
     if( !m_logicReferenceWnd.CreateAndDock(this) )
@@ -1418,13 +1417,13 @@ void CFormChildWnd::DisplayEditorMode()
     // check if there are multiple lanuages
     m_bMultiLangMode = false;
 
-	Application* pApplication = nullptr;
-	AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pFormDoc);
+    Application* pApplication = nullptr;
+    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pFormDoc);
 
     if( pApplication != nullptr && pApplication->GetUseQuestionText() )
     {
         CArray<CLangInfo, CLangInfo&> aLangInfo;
-	    AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&aLangInfo, (LPARAM)pFormDoc);
+        AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&aLangInfo, (LPARAM)pFormDoc);
 
         if( aLangInfo.GetSize() > 1 )
             m_bMultiLangMode = true;
@@ -1534,14 +1533,16 @@ void CFormChildWnd::OnUpdateQsfEditor(CCmdUI* pCmdUI)
 
 }
 
-void CFormChildWnd::ShowCapiLanguage(wstring_view language_label)
+
+void CFormChildWnd::ShowCapiLanguage(const std::string& language_name)
 {
-    if( ( m_pQSFEditView1->GetCurrentLanguage().GetLabel() != language_label ) &&
-        ( m_pQSFEditView2->GetCurrentLanguage().GetLabel() != language_label || !m_bMultiLangMode || m_bHideSecondLang ) )
+    if( ( m_pQSFEditView1->GetCurrentLanguage().GetLabel() != language_name ) &&
+        ( m_pQSFEditView2->GetCurrentLanguage().GetLabel() != language_name || !m_bMultiLangMode || m_bHideSecondLang ) )
     {
-        m_pQSFEditView1->SetLanguage(language_label);
+        m_pQSFEditView1->SetLanguage(language_name);
     }
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -1903,26 +1904,26 @@ BOOL CFormChildWnd::DestroyWindow()
 
 void CFormChildWnd::OnAddcapiLang()
 {
-	//Get the lang info from the mainframe
-	//Now instantiate the dialog
-	if(m_eViewMode == QSFEditorViewMode) {
-		m_eViewMode = FormViewMode;
-		DisplayActiveMode();
-	}
-	CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
-	CCapilangDlg dlg;
+    //Get the lang info from the mainframe
+    //Now instantiate the dialog
+    if(m_eViewMode == QSFEditorViewMode) {
+        m_eViewMode = FormViewMode;
+        DisplayActiveMode();
+    }
+    CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
+    CCapilangDlg dlg;
 
-	AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
+    AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
 
-	if(dlg.DoModal() == IDOK && dlg.m_Langgrid.m_bChanged){
-		//process the onok
-		AfxGetMainWnd()->SendMessage(UWM::Form::UpdateCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
+    if(dlg.DoModal() == IDOK && dlg.m_Langgrid.m_bChanged){
+        //process the onok
+        AfxGetMainWnd()->SendMessage(UWM::Form::UpdateCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
         pFormDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateLanguages);
 
-		if(this->m_eViewMode == QSFEditorViewMode){
-			DisplayEditorMode();
-		}
-	}
+        if(this->m_eViewMode == QSFEditorViewMode){
+            DisplayEditorMode();
+        }
+    }
 }
 
 void CFormChildWnd::OnUpdateIfUsingQuestionText(CCmdUI* pCmdUI)
@@ -1938,50 +1939,50 @@ void CFormChildWnd::OnCapiMacros()
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//	void CFormChildWnd::OnRunasBch()
+//  void CFormChildWnd::OnRunasBch()
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CFormChildWnd::OnRunasBch()
 {
-	CRunBOpDlg optDlg;
-	if(optDlg.DoModal() != IDOK) {
-		return;
-	}
-	CFormDoc* pFormDoc = PreRunPublish();
-	AfxGetMainWnd()->SendMessage(UWM::Form::RunActiveApplicationAsBatch, 0, (LPARAM)pFormDoc);
+    CRunBOpDlg optDlg;
+    if(optDlg.DoModal() != IDOK) {
+        return;
+    }
+    CFormDoc* pFormDoc = PreRunPublish();
+    AfxGetMainWnd()->SendMessage(UWM::Form::RunActiveApplicationAsBatch, 0, (LPARAM)pFormDoc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//	void CFormChildWnd::OnUpdateRunasBch(CCmdUI* pCmdUI)
+//  void CFormChildWnd::OnUpdateRunasBch(CCmdUI* pCmdUI)
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CFormChildWnd::OnUpdateRunasBch(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(TRUE);
+    pCmdUI->Enable(TRUE);
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//	void CFormChildWnd::OnGenerateBinary()
+//  void CFormChildWnd::OnGenerateBinary()
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CFormChildWnd::OnGenerateBinary()
 {
-	CFormDoc* pFormDoc = PreRunPublish();
-	AfxGetMainWnd()->SendMessage(UWM::Form::PublishApplication, 0, (LPARAM)pFormDoc);
+    CFormDoc* pFormDoc = PreRunPublish();
+    AfxGetMainWnd()->SendMessage(UWM::Form::PublishApplication, 0, (LPARAM)pFormDoc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//	void CFormChildWnd::OnPublishAndDeploy()
+//  void CFormChildWnd::OnPublishAndDeploy()
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CFormChildWnd::OnPublishAndDeploy()
 {
-	CFormDoc* pFormDoc = PreRunPublish();
-	AfxGetMainWnd()->SendMessage(UWM::Form::PublishAndDeployApplication, 0, (LPARAM)pFormDoc);
+    CFormDoc* pFormDoc = PreRunPublish();
+    AfxGetMainWnd()->SendMessage(UWM::Form::PublishAndDeployApplication, 0, (LPARAM)pFormDoc);
 }
 
 void CFormChildWnd::OnEditStyles()
@@ -1998,47 +1999,29 @@ void CFormChildWnd::OnEditStyles()
 
 void CFormChildWnd::OnUpdateIfApplicationIsAvailable(CCmdUI* pCmdUI)
 {
-	CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
-	Application* pApplication = nullptr;
-	AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pDoc);
-	pCmdUI->Enable(( pApplication == nullptr ) ? FALSE : TRUE);
+    CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    Application* pApplication = nullptr;
+    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pDoc);
+    pCmdUI->Enable(( pApplication == nullptr ) ? FALSE : TRUE);
 }
 
 
 void CFormChildWnd::OnOptionsSynchronization()
 {
-	CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
-	Application* pApplication = nullptr;
-	AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pDoc);
+    CFormDoc* const pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    Application* application = nullptr;
+    WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application, pDoc);
 
-	if( pApplication == nullptr )
-		return;
-
-	AppSyncParameters syncParams = pApplication->GetSyncParameters();
-
-	CSyncParamsDlg dlg;
-	bool bNewSync = syncParams.server.empty();
-	if (bNewSync) {
-        dlg.m_csServerUrl = GetServerUrlFromRegistry();
-        if (dlg.m_csServerUrl.IsEmpty())
-            dlg.m_csServerUrl = _T("http://www.myserver.com/api");
-		dlg.m_iSyncDirection = 0; // put
-        dlg.m_bEnabled = FALSE;
-	} else {
-		dlg.m_csServerUrl = WS2CS(syncParams.server);
-		dlg.m_iSyncDirection = (int)syncParams.sync_direction - 1;
-        dlg.m_bEnabled = TRUE;
-    }
-
-    if( dlg.DoModal() != IDOK )
+    if( application == nullptr )
         return;
 
-    syncParams.server = dlg.m_bEnabled ? CS2WS(dlg.m_csServerUrl) : std::wstring();
-	syncParams.sync_direction = (SyncDirection) (dlg.m_iSyncDirection + 1);
-	pApplication->SetSyncParameters(std::move(syncParams));
-	pDoc->SetModifiedFlag();
-    if (dlg.m_bEnabled)
-        SaveServerUrlToRegistry(dlg.m_csServerUrl);
+    SyncParamsDlg sync_params_dlg(application->GetSyncParameters(), this);
+
+    if( sync_params_dlg.DoModal() != IDOK )
+        return;
+
+    application->SetSyncParameters(sync_params_dlg.GetSyncParameters());
+    pDoc->SetModifiedFlag();
 }
 
 
@@ -2067,61 +2050,61 @@ void CFormChildWnd::OnOptionsMapping()
 
 void CFormChildWnd::OnOptionsDataSources()
 {
-	CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
-	Application* pApplication = nullptr;
-	AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pDoc);
+    CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    Application* pApplication = nullptr;
+    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pDoc);
 
-	if( pApplication == nullptr )
-		return;
+    if( pApplication == nullptr )
+        return;
 
-	CDataSourceOptionsDlg dlg(pApplication);
+    CDataSourceOptionsDlg dlg(pApplication);
 
-	if( dlg.DoModal() == IDOK )
-	{
-		pApplication->SetAutoPartialSaveMinutes(dlg.GetAutoPartialSaveMinutes());
-		pApplication->SetCreateListingFile(dlg.GetCreateListingFileFlag());
-		pApplication->SetCreateLogFile(dlg.GetCreateLogFileFlag());
-		pApplication->SetEditNotePermissions(EditNotePermissions::DeleteOtherOperators,dlg.GetNoteDeleteOtherOperatorsFlag());
-		pApplication->SetEditNotePermissions(EditNotePermissions::EditOtherOperators,dlg.GetNoteEditOtherOperatorsFlag());
-		pDoc->SetModifiedFlag();
-	}
+    if( dlg.DoModal() == IDOK )
+    {
+        pApplication->SetAutoPartialSaveMinutes(dlg.GetAutoPartialSaveMinutes());
+        pApplication->SetCreateListingFile(dlg.GetCreateListingFileFlag());
+        pApplication->SetCreateLogFile(dlg.GetCreateLogFileFlag());
+        pApplication->SetEditNotePermissions(EditNotePermissions::DeleteOtherOperators,dlg.GetNoteDeleteOtherOperatorsFlag());
+        pApplication->SetEditNotePermissions(EditNotePermissions::EditOtherOperators,dlg.GetNoteEditOtherOperatorsFlag());
+        pDoc->SetModifiedFlag();
+    }
 }
 
 
 CFormDoc* CFormChildWnd::PreRunPublish()
 {
-	CFormDoc* pFormDoc = assert_cast<CFormDoc*>(GetActiveDocument());
-	if (!pFormDoc)
-		return NULL;
+    CFormDoc* pFormDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    if (!pFormDoc)
+        return NULL;
 
     pFormDoc->GetFormFile().RenumberAllForms();
 
-	CView* pView = GetActiveView();
-	if (!pView)
-		return NULL;
+    CView* pView = GetActiveView();
+    if (!pView)
+        return NULL;
 
-	if (pView->IsKindOf(RUNTIME_CLASS(CFormScrollView))) {
-		return pFormDoc;
-	}
+    if (pView->IsKindOf(RUNTIME_CLASS(CFormScrollView))) {
+        return pFormDoc;
+    }
 
-	else if (pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))) {
-		HTREEITEM hItem = pFormDoc->GetFormTreeCtrl()->GetSelectedItem();
-		CFormID* pID = (CFormID*)pFormDoc->GetFormTreeCtrl()->GetItemData(hItem);
+    else if (pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))) {
+        HTREEITEM hItem = pFormDoc->GetFormTreeCtrl()->GetSelectedItem();
+        CFormID* pID = (CFormID*)pFormDoc->GetFormTreeCtrl()->GetItemData(hItem);
 
-		if (pID && pID->GetFormDoc() == pFormDoc) {
-			if (AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, 0, (LPARAM)pID) == -1)
-				return NULL;
-		}
+        if (pID && pID->GetFormDoc() == pFormDoc) {
+            if (AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, 0, (LPARAM)pID) == -1)
+                return NULL;
+        }
 
-		return pFormDoc;
-	}
+        return pFormDoc;
+    }
 
-	else if (m_eViewMode == QSFEditorViewMode || m_eViewMode == QuestionnaireViewMode) {
-		return pFormDoc;
-	}
-	else {
-		return NULL;
-	}
+    else if (m_eViewMode == QSFEditorViewMode || m_eViewMode == QuestionnaireViewMode) {
+        return pFormDoc;
+    }
+    else {
+        return NULL;
+    }
 }
 
 
@@ -2137,66 +2120,66 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
 
     bool apply_to_all_fields_only = ( selected_fields == nullptr );
 
-	CMultipleFieldPropertiesDlg dlg(apply_to_all_fields_only ? all_fields_getter() : *selected_fields,
+    CMultipleFieldPropertiesDlg dlg(apply_to_all_fields_only ? all_fields_getter() : *selected_fields,
                                     apply_to_all_fields_only ? nullptr : &all_fields_getter);
 
-	if( dlg.DoModal() != IDOK )
+    if( dlg.DoModal() != IDOK )
         return;
 
     std::optional<FormUndoStack> form_undo_stack = ( pCurGroup != nullptr ) ? std::make_optional<FormUndoStack>() : std::nullopt;
 
-	for( CDEField* pField : dlg.GetFields() )
-	{
-		// add to undo stack
+    for( CDEField* pField : dlg.GetFields() )
+    {
+        // add to undo stack
         if( form_undo_stack.has_value() )
         {
-			int iFieldIndex = pCurGroup->FindItem(pField->GetName());
+            int iFieldIndex = pCurGroup->FindItem(pField->GetName());
 
-			if( iFieldIndex >= 0 ) // it's on the form
+            if( iFieldIndex >= 0 ) // it's on the form
             {
-				form_undo_stack->PushUndoObj(CFormUndoObj::Action::UR_modify, pField, iFieldIndex, form_name);
+                form_undo_stack->PushUndoObj(CFormUndoObj::Action::UR_modify, pField, iFieldIndex, form_name);
             }
 
-			else // it's on a roster
-			{
-				// the undo process can't handle undos for now
-				form_undo_stack.reset();
+            else // it's on a roster
+            {
+                // the undo process can't handle undos for now
+                form_undo_stack.reset();
             }
-		}
+        }
 
-		// make the changes, if applicable
+        // make the changes, if applicable
         CONTENT_TYPE_REFACTOR::LOOK_AT("what to do about non-numeric + non-alpha fields?");
-		bool bIsAlpha = pField->GetDictItem()->GetContentType() == ContentType::Alpha;
+        bool bIsAlpha = pField->GetDictItem()->GetContentType() == ContentType::Alpha;
 
-		if( !pField->IsMirror() )
-		{
-			if( dlg.ApplyProtected() )
-				pField->IsProtected(dlg.GetProtected());
+        if( !pField->IsMirror() )
+        {
+            if( dlg.ApplyProtected() )
+                pField->IsProtected(dlg.GetProtected());
 
-			if( dlg.ApplyUpperCase() && bIsAlpha )
-				pField->IsUpperCase(dlg.GetUpperCase());
+            if( dlg.ApplyUpperCase() && bIsAlpha )
+                pField->IsUpperCase(dlg.GetUpperCase());
 
-			if( dlg.ApplyEnterKey() )
-				pField->IsEnterKeyRequired(dlg.GetEnterKey());
+            if( dlg.ApplyEnterKey() )
+                pField->IsEnterKeyRequired(dlg.GetEnterKey());
 
             if( dlg.ApplyVerify() )
-				pField->SetVerifyFlag(dlg.GetVerify());
+                pField->SetVerifyFlag(dlg.GetVerify());
 
             if( dlg.ApplyValidationMethod() )
                 pField->SetValidationMethod(dlg.GetValidationMethod());
 
-			if( dlg.ApplyKLID() )
-				pField->SetKLID(dlg.GetKLID());
-		}
+            if( dlg.ApplyKLID() )
+                pField->SetKLID(dlg.GetKLID());
+        }
 
-		if( dlg.ApplyHideInCaseTree() )
-			pField->IsHiddenInCaseTree(dlg.GetHideInCaseTree());
+        if( dlg.ApplyHideInCaseTree() )
+            pField->IsHiddenInCaseTree(dlg.GetHideInCaseTree());
 
-		if( dlg.ApplyAlwaysVisualValue() )
-			pField->SetAlwaysVisualValue(dlg.GetAlwaysVisualValue());
+        if( dlg.ApplyAlwaysVisualValue() )
+            pField->SetAlwaysVisualValue(dlg.GetAlwaysVisualValue());
 
-		if( dlg.ApplyCaptureType() && !pField->IsMirror() )
-		{
+        if( dlg.ApplyCaptureType() && !pField->IsMirror() )
+        {
             if( dlg.LinkToDictionaryCaptureTypeWhenPossible() )
             {
                 const auto& dictionary_capture_info = pField->GetDictItem()->GetCaptureInfo();
@@ -2208,13 +2191,13 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
             else
             {
                 if( dlg.GetUseUnicodeTextBox() || dlg.GetMultiLineOption() )
-				{
-    				if( bIsAlpha )
-					{
+                {
+                    if( bIsAlpha )
+                    {
                         pField->SetCaptureInfo(CaptureType::TextBox);
-						pField->SetUseUnicodeTextBox(true);
-						pField->SetMultiLineOption(dlg.GetMultiLineOption());
-					}
+                        pField->SetUseUnicodeTextBox(true);
+                        pField->SetMultiLineOption(dlg.GetMultiLineOption());
+                    }
                 }
 
                 else
@@ -2230,25 +2213,25 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
                         if( pField->GetCaptureInfo().GetCaptureType() != capture_info.GetCaptureType() )
                             pField->SetCaptureInfo(capture_info);
 
-    					pField->SetUseUnicodeTextBox(false);
-	    				pField->SetMultiLineOption(false);
-					}
-				}
-			}
-		}
+                        pField->SetUseUnicodeTextBox(false);
+                        pField->SetMultiLineOption(false);
+                    }
+                }
+            }
+        }
 
-		if( dlg.ApplyFieldLabelType() )
-			pField->SetFieldLabelType(dlg.GetFieldLabelType());
-	}
+        if( dlg.ApplyFieldLabelType() )
+            pField->SetFieldLabelType(dlg.GetFieldLabelType());
+    }
 
-	if( form_undo_stack.has_value() )
-		pDoc->PushUndo(std::move(*form_undo_stack));
+    if( form_undo_stack.has_value() )
+        pDoc->PushUndo(std::move(*form_undo_stack));
 
-	if( dlg.ApplyFieldLabelType() )
-		pFF->RefreshAssociatedFieldText();
+    if( dlg.ApplyFieldLabelType() )
+        pFF->RefreshAssociatedFieldText();
 
-	RedrawWindow();
-	pDoc->SetModifiedFlag(true);
+    RedrawWindow();
+    pDoc->SetModifiedFlag(true);
 }
 
 
@@ -2258,30 +2241,6 @@ void CFormChildWnd::OnOptionsFieldProperties()
     if (m_eViewMode == QuestionnaireViewMode)
         DisplayActiveMode();
 }
-
-
-namespace
-{
-    LPCTSTR KEY_NAME_INTERAPP = _T("Software\\U.S. Census Bureau\\InterApp");
-    LPCTSTR KEY_LAST_SYNC_URL = _T("Last Sync URL");    
-}
-
-void CFormChildWnd::SaveServerUrlToRegistry(const CString& server_url) const
-{
-    WinRegistry registry;
-    registry.Open(HKEY_CURRENT_USER, KEY_NAME_INTERAPP, true);
-    registry.WriteString(KEY_LAST_SYNC_URL, server_url);
-}
-
-CString CFormChildWnd::GetServerUrlFromRegistry() const
-{
-    WinRegistry registry;
-    registry.Open(HKEY_CURRENT_USER, KEY_NAME_INTERAPP, false);
-    CString val;
-    registry.ReadString(KEY_LAST_SYNC_URL, &val);
-    return val;
-}
-
 
 
 LRESULT CFormChildWnd::OnSwitchView(WPARAM wParam, LPARAM /*lParam*/)
@@ -2294,7 +2253,7 @@ LRESULT CFormChildWnd::OnSwitchView(WPARAM wParam, LPARAM /*lParam*/)
     else if( view_type == ViewType::Logic )
         OnViewLogic();
 
-    else 
+    else
         ASSERT(false);
 
     return 0;

@@ -11,10 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\zCapiO\Capi.cpp">
+    <ClCompile Include="..\zCapiO\capi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeploymentPackageDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EntDrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelNodeProcessing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Runaple.cpp">
@@ -29,18 +35,15 @@
     <ClCompile Include="zEntryO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LevelNodeProcessing.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ZBRIDGEO\runapl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\zCapiO\capi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hreplace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ZBRIDGEO\runapl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Runaple.h">

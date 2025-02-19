@@ -1,7 +1,8 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  * drawing - A libxlsxwriter library for creating Excel XLSX drawing files.
  *
@@ -45,8 +46,8 @@ typedef struct lxw_drawing_object {
     uint8_t anchor;
     struct lxw_drawing_coords from;
     struct lxw_drawing_coords to;
-    uint32_t col_absolute;
-    uint32_t row_absolute;
+    uint64_t col_absolute;
+    uint64_t row_absolute;
     uint32_t width;
     uint32_t height;
     uint8_t shape;

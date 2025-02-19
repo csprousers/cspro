@@ -1,19 +1,18 @@
 ﻿#pragma once
 
-#include <zSyncO/zSyncO.h>
 #include <zSyncO/ObexConstants.h>
 #include <zSyncO/ObexHeader.h>
 
-/**
-* Data packet as defined by the OBEX protocol.
-* All OBEX communication is via request and response packets. A standard packet
-* has a one byte opcode that determines the packet type, 2 bytes that gives the total packet
-* length, and and optional list of headers. Certain packet types such as connect and
-* setPath are special and contain additional fields.
-*/
-class ObexPacket {
-public:
 
+// Data packet as defined by the OBEX protocol.
+// All OBEX communication is via request and response packets. A standard packet
+// has a one byte opcode that determines the packet type, 2 bytes that gives the total packet
+// length, and and optional list of headers. Certain packet types such as connect and
+// setPath are special and contain additional fields.
+
+class ObexPacket
+{
+public:
     ObexPacket();
 
     // Regular packet
@@ -30,7 +29,7 @@ public:
 
     const ObexHeaderList& getHeaders() const;
     void setHeaders(const ObexHeaderList& headers);
-    void addHeader(const ObexHeader& header);
+    void addHeader(ObexHeader header);
 
     // Parameters only found in connect packet
     unsigned char getObexVersion() const;
@@ -41,7 +40,6 @@ public:
     void setMaxPacketSize(size_t size);
 
 private:
-
     unsigned char m_code;
     unsigned char m_version;
     unsigned char m_flags;

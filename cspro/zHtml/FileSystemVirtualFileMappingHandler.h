@@ -24,20 +24,20 @@ class ZHTML_API FileSystemVirtualFileMappingHandler : public KeyBasedVirtualFile
 {
 public:
     FileSystemVirtualFileMappingHandler() { }
-    FileSystemVirtualFileMappingHandler(std::wstring file_path, std::shared_ptr<VirtualFileMappingHandler> virtual_file_mapping_handler);
+    FileSystemVirtualFileMappingHandler(std::string file_path, std::shared_ptr<VirtualFileMappingHandler> virtual_file_mapping_handler);
 
-    void RegisterSpecialHandler(std::wstring file_path, std::shared_ptr<VirtualFileMappingHandler> virtual_file_mapping_handler);
+    void RegisterSpecialHandler(std::string file_path, std::shared_ptr<VirtualFileMappingHandler> virtual_file_mapping_handler);
 
-    std::wstring CreateUrlForPath(const std::wstring& file_path) const;
-
-private:
-    VirtualFileMappingHandler* GetSpecialHandler(const std::wstring& file_path);
-
-    bool ServeContent(void* response_object, const std::wstring& key) override;
-
-    bool ServeFileSystemContent(void* response_object, const std::wstring& file_path) const;
+    std::string CreateUrlForPath(const std::string& file_path) const;
 
 private:
-    std::map<std::wstring, std::shared_ptr<VirtualFileMappingHandler>> m_specialHandlers;
+    VirtualFileMappingHandler* GetSpecialHandler(const std::string& file_path);
+
+    bool ServeContent(VirtualFileMappingResponse& response, const std::string& key) override;
+
+    bool ServeFileSystemContent(VirtualFileMappingResponse& response, const std::string& file_path) const;
+
+private:
+    std::map<std::string, std::shared_ptr<VirtualFileMappingHandler>> m_specialHandlers;
 };
 

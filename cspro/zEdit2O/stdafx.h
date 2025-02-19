@@ -3,7 +3,7 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/Interapp.h>
 #include <zEdit2O/resource.h>

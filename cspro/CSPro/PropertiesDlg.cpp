@@ -2,6 +2,7 @@
 #include "PropertiesDlg.h"
 #include "PropertiesDlgAdvancedFeaturesPage.h"
 #include "PropertiesDlgApplicationPropertiesFilePage.h"
+#include "PropertiesDlgJavaScriptPage.h"
 #include "PropertiesDlgJsonPage.h"
 #include "PropertiesDlgLogicSettingsPage.h"
 #include "PropertiesDlgMappingPage.h"
@@ -15,42 +16,45 @@ END_MESSAGE_MAP()
 
 
 PropertiesDlg::PropertiesDlg(const Application& application, CWnd* pParent/* = nullptr*/)
-    :   CTreePropertiesDlg(_T("Application Properties"), IDD_PROPERTIES, pParent),
+    :   CTreePropertiesDlg(L"Application Properties", IDD_PROPERTIES, true, pParent),
         m_applicationProperties(application.GetApplicationProperties())
 {
     // paradata
-    AddPage(_T("Paradata"), std::make_shared<PropertiesDlgParadataPage>(application, m_applicationProperties.GetParadataProperties()));
+    AddPage(L"Paradata", std::make_shared<PropertiesDlgParadataPage>(application, m_applicationProperties.GetParadataProperties()));
 
     // mapping
-    auto mapping_page = AddPage(_T("Mapping"), std::make_shared<PropertiesDlgMappingPage>(m_applicationProperties.GetMappingProperties()));
+    auto mapping_page = AddPage(L"Mapping", std::make_shared<PropertiesDlgMappingPage>(m_applicationProperties.GetMappingProperties()));
 
-    AddPage(_T("Esri Tile Provider"), std::make_shared<PropertiesDlgMappingTileProviderPage>(
+    AddPage(L"Esri Tile Provider", std::make_shared<PropertiesDlgMappingTileProviderPage>(
         m_applicationProperties.GetMappingProperties(),
         m_applicationProperties.GetMappingProperties().GetEsriMappingTileProviderProperties()), mapping_page.get());
 
-    AddPage(_T("Mapbox Tile Provider"), std::make_shared<PropertiesDlgMappingTileProviderPage>(
+    AddPage(L"Mapbox Tile Provider", std::make_shared<PropertiesDlgMappingTileProviderPage>(
         m_applicationProperties.GetMappingProperties(),
         m_applicationProperties.GetMappingProperties().GetMapboxMappingTileProviderProperties()), mapping_page.get());
 
     // logic
-    m_propertiesDlgLogicSettingsPage = AddPage(_T("Logic Settings"),
+    m_propertiesDlgLogicSettingsPage = AddPage(L"Logic Settings",
                                                std::make_shared<PropertiesDlgLogicSettingsPage>(application));
 
+    // JavaScript
+    AddPage(L"JavaScript", std::make_shared<PropertiesDlgJavaScriptPage>(m_applicationProperties.GetJavaScriptProperties()));
+
     // JSON Serialization
-    AddPage(_T("JSON Serialization"), std::make_shared<PropertiesDlgJsonPage>(m_applicationProperties.GetJsonProperties()));
+    AddPage(L"JSON Serialization", std::make_shared<PropertiesDlgJsonPage>(m_applicationProperties.GetJsonProperties()));
 
     // advanced features
-    AddPage(_T("Advanced Features"), std::make_shared<PropertiesDlgAdvancedFeaturesPage>(m_applicationProperties));
+    AddPage(L"Advanced Features", std::make_shared<PropertiesDlgAdvancedFeaturesPage>(m_applicationProperties));
 
     // application properties file
-    m_propertiesDlgApplicationPropertiesFilePage = AddPage(_T("Application Properties File"),
+    m_propertiesDlgApplicationPropertiesFilePage = AddPage(L"Application Properties File",
                                                            std::make_shared<PropertiesDlgApplicationPropertiesFilePage>(application));
 }
 
 
-const std::wstring& PropertiesDlg::GetApplicationPropertiesFilename() const
+const std::string& PropertiesDlg::GetApplicationPropertiesFilePath() const
 {
-    return m_propertiesDlgApplicationPropertiesFilePage->GetApplicationPropertiesFilename();
+    return m_propertiesDlgApplicationPropertiesFilePage->GetApplicationPropertiesFilePath();
 }
 
 
@@ -60,16 +64,16 @@ const LogicSettings& PropertiesDlg::GetLogicSettings() const
 }
 
 
-void PropertiesDlg::ResizeDlg(const CRect& /*new_page_rect*/) 
+void PropertiesDlg::ResizeDlg(const CRect& /*new_page_rect*/)
 {
     // the properties dialog's size should be modified in the resource editor
 }
 
 
 template<typename T>
-std::shared_ptr<T> PropertiesDlg::AddPage(const TCHAR* caption, std::shared_ptr<T> page, CDialog* parent_page/* = nullptr*/)
+std::shared_ptr<T> PropertiesDlg::AddPage(const TCHAR* const caption, std::shared_ptr<T> page, CDialog* const parent_page/* = nullptr*/)
 {
-    CDialog* dialog = std::dynamic_pointer_cast<T, CDialog>(page).get();
+    CDialog* const dialog = std::dynamic_pointer_cast<T, CDialog>(page).get();
     ASSERT(dialog != nullptr);
 
     dialog->Create(T::IDD, this);
@@ -81,10 +85,10 @@ std::shared_ptr<T> PropertiesDlg::AddPage(const TCHAR* caption, std::shared_ptr<
 }
 
 
-void PropertiesDlg::OnPageChange(CDialog* old_page, CDialog* /*new_page*/)
+bool PropertiesDlg::OnPageChange(CDialog* const old_page, CDialog* /*new_page*/)
 {
     if( old_page == nullptr )
-        return;
+        return false;
 
     // when a new page is shown, update the application properties subobjects with any changed properties
     auto page_lookup = m_propertiesDlgPagesMap.find(old_page);
@@ -97,17 +101,19 @@ void PropertiesDlg::OnPageChange(CDialog* old_page, CDialog* /*new_page*/)
 
     // ignore validation errors (since they will be handled in OnOK)
     catch( const CSProException& ) { }
+
+    return false;
 }
 
 
 namespace
 {
     // override CTreePropertiesDlg's typical OnOK handling to allow for validations
-    bool OnOKTreeItemPage(CTreeCtrl& tree_ctrl, HTREEITEM hItem, void* data)
+    bool OnOKTreeItemPage(CTreeCtrl& tree_ctrl, HTREEITEM hItem, void* const data)
     {
-        CDialog* page = (CDialog*)tree_ctrl.GetItemData(hItem);
+        CDialog* const page = reinterpret_cast<CDialog*>(tree_ctrl.GetItemData(hItem));
 
-        CDialog** last_page_visited = (CDialog**)data;
+        CDialog** const last_page_visited = reinterpret_cast<CDialog**>(data);
         *last_page_visited = page;
 
         if( page != nullptr )

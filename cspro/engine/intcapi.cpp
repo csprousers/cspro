@@ -11,12 +11,12 @@
 #include "INTERPRE.H"
 #include "Engine.h"
 #include "Entdrv.h"
-#include "DefaultParametersOnlyUserFunctionArgumentEvaluator.h"
 #include "ProgramControl.h"
 #include <zEngineO/Block.h>
-#include <zEngineO/UserFunction.h>
+#include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineO/WorkString.h>
 #include <zToolsO/Encoders.h>
+#include <zToolsO/RaiiHelpers.h>
 #include <zToolsO/Tools.h>
 #include <zUtilO/AppLdr.h>
 #include <zAppO/Application.h>
@@ -35,23 +35,18 @@ CString CIntDriver::EvaluateCapiText(const std::wstring& language_name, bool bQu
 
     if (symbol->IsA(SymbolType::Variable)) {
         const VART* pVarT = assert_cast<const VART*>(symbol);
-        item_name = pVarT->GetDictItem()->GetQualifiedName();
+        item_name = UTF8_TODO::GetCString(pVarT->GetDictItem()->GetQualifiedName());
     } else {
-        item_name = WS2CS(symbol->GetName());
+        item_name = UTF8_TODO::GetCString(symbol->GetName());
     }
 
     CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEngineDriver;
-    auto question = pEntryDriver->GetQuestMgr()->GetQuestion(item_name);
-    if (!question)
-        return CString();
+    const std::optional<CapiQuestion> question = pEntryDriver->GetQuestMgr()->GetQuestion(item_name);
 
-    if (pEntryDriver->GetQuestMgr()->UsePre76ConditionsAndFills()) {
-        return EvaluateCapiTextPre76(*question, language_name, bQuestion, symbol_index, iOcc);
-    }
-    else {
-        return EvaluateCapiText(*question, symbol, language_name, bQuestion);
-    }
+    return question.has_value() ? EvaluateCapiText(*question, symbol, language_name, bQuestion) :
+                                  CString();
 }
+
 
 CString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol* symbol, const std::wstring& language_name, bool bQuestion)
 {
@@ -70,8 +65,8 @@ CString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol*
     auto text_type = bQuestion ? CapiTextType::QuestionText : CapiTextType::HelpText;
     CapiText questionHelpCapiText = pBest->GetText(language_name, text_type);
     if (questionHelpCapiText.GetText().IsEmpty()) {
-        const auto& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
-        questionHelpCapiText = pBest->GetText(default_language.GetName(), text_type);
+        const Language& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
+        questionHelpCapiText = pBest->GetText(UTF8_TODO::GetWide(default_language.GetName()), text_type);
     }
 
     CString csQuestionHelpCapiText = questionHelpCapiText.GetText();
@@ -91,85 +86,6 @@ CString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol*
     return csQuestionHelpCapiText;
 }
 
-CString CIntDriver::EvaluateCapiTextPre76(const CapiQuestion& question, const std::wstring& language_name, bool bQuestion, int symbol_index, int iOcc)
-{
-    int iBestScore = 0;
-    int iScore = 0;
-    const CapiCondition* pBest = nullptr;
-
-    for (const CapiCondition& condition : question.GetConditions()) {
-        iScore = GetCapiConditionScorePre76(condition, symbol_index, iOcc);
-
-        // Full match with occurrence and expresion: 8 points
-        if (iScore == 8) {
-            pBest = &condition;
-            break;
-        }
-        else if (iBestScore < iScore) { // Refresh best score
-            iBestScore = iScore;
-            pBest = &condition;
-        }
-    }
-
-    if (pBest == nullptr)
-        return CString();
-
-    auto text_type = bQuestion ? CapiTextType::QuestionText : CapiTextType::HelpText;
-    CapiText questionHelpCapiText = pBest->GetText(language_name, text_type);
-    if (questionHelpCapiText.GetText().IsEmpty()) {
-        const auto& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
-        questionHelpCapiText = pBest->GetText(default_language.GetName(), text_type);
-    }
-
-    CString csQuestionHelpCapiText = questionHelpCapiText.GetText();
-
-    std::vector<CapiText::Delimiter> delimiters = { CapiText::Delimiter{ _T("%"), true } };
-
-    const std::vector<CapiFill>& fills_to_replace = questionHelpCapiText.GetFills(delimiters);
-    if (fills_to_replace.empty())
-        return csQuestionHelpCapiText;
-
-    const std::vector<ParsedCapiParam>* params = m_question_text_param_cache.Get(questionHelpCapiText);
-    if (params == nullptr) {
-        std::vector<ParsedCapiParam> parsed_params;
-        ExpandText(questionHelpCapiText.GetText(), false, nullptr, &parsed_params);
-        m_question_text_param_cache.Put(questionHelpCapiText, std::move(parsed_params));
-        params = m_question_text_param_cache.Get(questionHelpCapiText);
-    }
-
-    for (const ParsedCapiParam& param : *params) {
-
-        CString csEvaluatedText;
-
-        // %getocclabel% will translate to the current occurrence label, if available
-        if( param.m_eParamType == ParsedCapiParam::ParamType::GetOccLabel ) {
-            // see if a symbol with occurrences exists for this symbol
-            const Symbol* symbol_with_occs = SymbolCalculator::GetFirstSymbolWithOccurrences(NPT_Ref(symbol_index));
-            if( symbol_with_occs != nullptr )
-                csEvaluatedText = EvaluateOccurrenceLabel(symbol_with_occs, std::nullopt);
-        }
-
-        // getvaluelabel
-        else if (param.m_eParamType == ParsedCapiParam::ParamType::GetValueLabel) {
-            ASSERT(NPT(param.m_iSymbolVar)->IsA(SymbolType::Variable));
-            VART* pVarT = VPT(param.m_iSymbolVar);
-            csEvaluatedText = WS2CS(GetValueLabel(symbol_index, pVarT));
-        }
-
-        // a variable value or user-defined function call
-        else {
-            Evaluate(symbol_index, &param, csEvaluatedText);
-        }
-
-        // pre 7.6 CAPI text allowed <br/> to add newlines, don't let this get escaped in html
-        std::wregex line_break(LR"(<br\s*\/?>)");
-        csEvaluatedText = std::regex_replace(csEvaluatedText.GetString(), line_break, L"\n").c_str();
-
-        csQuestionHelpCapiText.Replace(param.m_csTextToReplace, Encoders::ToHtml(csEvaluatedText).c_str());
-    }
-
-    return csQuestionHelpCapiText;
-}
 
 CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bSomeErr, std::vector<ParsedCapiParam>* capi_params)
 {
@@ -252,9 +168,9 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
         // Check for valid varname
         int iSymVar = 0;
 
-        if (csVarName.GetLength() == 0 || (iSymVar = m_pEngineArea->SymbolTableSearch(csVarName, allowable_symbol_types)) == 0)
+        if (csVarName.GetLength() == 0 || (iSymVar = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csVarName), allowable_symbol_types)) == 0)
         {
-            if (csVarName.Compare(_T("GETOCCLABEL")) == 0) // GHM 20140312 display the occurrence label
+            if (csVarName.Compare(_T("GETOCCLABEL")) == 0) // 20140312 display the occurrence label
             {
                 ParsedCapiParam cCapiParam(ParsedCapiParam::ParamType::GetOccLabel);
                 cCapiParam.m_csTextToReplace.Format(_T("%lc%ls%lc"), HELP_OPENVARCHAR, csVarNameOcc.GetString(), HELP_CLOSEVARCHAR);
@@ -263,10 +179,10 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
 
             else if (csVarName.Compare(_T("GETVALUELABEL")) == 0)
             {
-                if (csOcc.GetLength() == 0 || (iSymVar = m_pEngineArea->SymbolTableSearch(csOcc, { SymbolType::Variable })) == 0)
+                if (csOcc.GetLength() == 0 || (iSymVar = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csOcc), { SymbolType::Variable })) == 0)
                 {
                     if (bShowErrors)
-                        issaerror(MessageType::Error, 48003, csOcc.GetString());
+                        issaerror(MessageType::Error, 48003, UTF8_TODO::GetUtf8(csOcc).c_str());
 
                     bError = true;
                 }
@@ -283,7 +199,7 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
             else if (csVarName.GetLength() > 0)
             {
                 if (bShowErrors)
-                    issaerror(MessageType::Error, 48000, csVarName.GetString()); // Invalid expresion in QSF File
+                    issaerror(MessageType::Error, 48000, UTF8_TODO::GetUtf8(csVarName).c_str()); // Invalid expresion in QSF File
                 bError = true;
             }
 
@@ -322,9 +238,9 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
                 int     iOccVar;
                 int     iCurOcc = 0;
 
-                if ((iOccVar = m_pEngineArea->SymbolTableSearch(csOcc, { SymbolType::Variable })) == 0) {
+                if ((iOccVar = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csOcc), { SymbolType::Variable })) == 0) {
                     if (bShowErrors)
-                        issaerror(MessageType::Error, 48000, csOcc.GetString()); // Invalid expresion in QSF File
+                        issaerror(MessageType::Error, 48000, UTF8_TODO::GetUtf8(csOcc).c_str()); // Invalid expresion in QSF File
                     bError = true;
                     continue; // ignore
                 }
@@ -452,6 +368,7 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
     return csExpandedText;
 }
 
+
 bool CIntDriver::EvaluateQuestionTextCondition(const Symbol* symbol, int iExpr)
 {
     ASSERT(symbol->IsOneOf(SymbolType::Block, SymbolType::Variable));
@@ -462,13 +379,13 @@ bool CIntDriver::EvaluateQuestionTextCondition(const Symbol* symbol, int iExpr)
     m_iExLevel = SymbolCalculator::GetLevelNumber_base1(*symbol);
 
     // these statements clear any preexisting stuff that might have been going on
-    m_iSkipStmt = FALSE;
-    m_iStopExec = m_bStopProc;
+    m_bSkipStmt = false;
+    m_bStopExec = m_bStopProc;
     SetRequestIssued(false);
 
     try
     {
-        return ConditionalValueIsTrue(evalexpr(iExpr));
+        return EvaluateConditional(iExpr);
     }
 
     // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
@@ -476,6 +393,7 @@ bool CIntDriver::EvaluateQuestionTextCondition(const Symbol* symbol, int iExpr)
 
     return false;
 }
+
 
 CString CIntDriver::EvaluateQuestionTextFill(const Symbol* symbol, int iExpr)
 {
@@ -487,13 +405,13 @@ CString CIntDriver::EvaluateQuestionTextFill(const Symbol* symbol, int iExpr)
     m_iExLevel = SymbolCalculator::GetLevelNumber_base1(*symbol);
 
     // these statements clear any preexisting stuff that might have been going on
-    m_iSkipStmt = FALSE;
-    m_iStopExec = m_bStopProc;
+    m_bSkipStmt = false;
+    m_bStopExec = m_bStopProc;
     SetRequestIssued(false);
 
     try
     {
-        return WS2CS(EvaluateTextFill(iExpr));
+        return UTF8_TODO::GetCString(*EvaluateTextFill(iExpr));
     }
 
     // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
@@ -502,211 +420,57 @@ CString CIntDriver::EvaluateQuestionTextFill(const Symbol* symbol, int iExpr)
     return CString();
 }
 
-int CIntDriver::GetCapiConditionScorePre76(const CapiCondition& condition, int iSym, int iOcc)
+
+std::string CIntDriver::EvaluateCapiText(const int current_symbol_index, const ParsedCapiParam& parsed_capi_param)
 {
-    bool    bFitVar = true;
-    bool    bFitOcc = (condition.GetMinOcc() <= iOcc && iOcc <= condition.GetMaxOcc());
-    bool    bFitCond = EvaluateCapiConditionPre76(condition, iSym);
-    int     iScore = 0;
+    Symbol& symbol = NPT_Ref(parsed_capi_param.m_iSymbolVar);
 
-    bool bFit = (
-        //( /*pQuestOrHelp->GetSymVar() <= 0 ||*/ bFitVar ) && // Symbol
-        (condition.GetMinOcc() < 1 || bFitOcc) && //Occ
-        (condition.GetLogic() || bFitCond) // Condition
-        );
-
-    if (bFit) {
-        // There are 8 options. Each one has a "weight"
-        // DIC.VAR & Occurrence & Condition         8 points
-        // DIC.VAR &.Occurrence                     7 points
-        // DIC.VAR & Condition                      6 points
-        // DIC.VAR                                  5 points
-
-        // Not longer used. Only exact field is allowed!
-        // Occurrence & Condition                   4 points
-        // Occurrence                               3 points
-        // Condition                                2 points
-        //                                          1 points
-
-        if (bFitOcc) {
-            if (bFitCond) {
-                iScore = bFitVar ? 8 : 4;
-            }
-            else {
-                iScore = bFitVar ? 7 : 3;
-            }
-        }
-        else if (bFitCond) {
-            iScore = bFitVar ? 6 : 2;
-        }
-        else {
-            iScore = bFitVar ? 5 : 1;
-        }
-    }
-
-    return iScore;
-}
-
-
-bool CIntDriver::EvaluateCapiConditionPre76(const CapiCondition& condition, int iSym)
-{
-    bool        bMatchCondition = false;
-    CIMSAString csLeft;
-    int         iCond;
-    CIMSAString csRight;
-    CapiPre76::CNewCapiQuestionHelp::eCapiNewConditionType  eCondType;
-
-    CapiPre76::CNewCapiQuestionHelp::SplitCondition(condition.GetLogic(), &csLeft, &iCond, &csRight, &eCondType);
-
-    if (iCond >= 0 && iCond <= 5) {
-        CIMSAString csLeftEvaluated = "%" + csLeft + "%";
-        CIMSAString csRightEvaluated = csRight;
-
-        csLeftEvaluated = ExpandText(csLeftEvaluated, iSym);
-
-        csLeftEvaluated.TrimRight();
-
-        double  dLeft = 0, dRight = 0;
-
-        if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-            if (csRight.IsNumeric()) {
-                dRight = (double)csRight.fVal();
-            }
-            else {
-                ASSERT(SpecialValues::StringIsSpecial(csRight));
-                dRight = SpecialValues::StringToValue(csRight);
-            }
-
-            if (csLeftEvaluated.IsNumeric()) {
-                dLeft = (double)csLeftEvaluated.fVal();
-            }
-            else if (SpecialValues::StringIsSpecial(csLeftEvaluated)) {
-                dLeft = SpecialValues::StringToValue(csLeftEvaluated);
-            }
-            else {
-                ASSERT(0);
-                dLeft = NOTAPPL;
-            }
-        }
-        else if (eCondType == CapiPre76::CNewCapiQuestionHelp::Other) {
-            csRightEvaluated = "%" + csRight + "%";
-
-            csRightEvaluated = ExpandText(csRightEvaluated, iSym);
-
-            csRightEvaluated.TrimRight();
-        }
-
-        if (iCond == 0) { // '='
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft == dRight);
-            }
-            else {
-                bMatchCondition = (csLeftEvaluated == csRightEvaluated);
-            }
-        }
-        else if (iCond == 1) { // '!=' or <>
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft != dRight);
-            }
-            else {
-                bMatchCondition = (csLeftEvaluated != csRightEvaluated);
-            }
-        }
-        else if (iCond == 2) { // '>'
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft > dRight);
-            }
-            else {
-                bMatchCondition = ((CString)csLeftEvaluated > csRightEvaluated);
-            }
-        }
-        else if (iCond == 3) { // '<'
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft < dRight);
-            }
-            else {
-                bMatchCondition = ((CString)csLeftEvaluated < csRightEvaluated);
-            }
-        }
-        else if (iCond == 4) { // '>='
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft >= dRight);
-            }
-            else {
-                bMatchCondition = ((CString)csLeftEvaluated >= csRightEvaluated);
-            }
-        }
-        else if (iCond == 5) { // '<='
-            if (eCondType == CapiPre76::CNewCapiQuestionHelp::Numeric) {
-                bMatchCondition = (dLeft <= dRight);
-            }
-            else {
-                bMatchCondition = ((CString)csLeftEvaluated <= csRightEvaluated);
-            }
-        }
-    }
-
-    return bMatchCondition;
-}
-
-
-void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CString& csEvaluatedText)
-{
-    int iSymVar = pCapiParam->m_iSymbolVar;
-    Symbol* pSymbol = NPT(iSymVar);
-
-    if (pSymbol->GetType() == SymbolType::UserFunction) // replacement text comes from a user-defined function
+    // replacement text coming from a user-defined function
+    if( symbol.IsA(SymbolType::UserFunction) )
     {
-        UserFunction& user_function = assert_cast<UserFunction&>(*pSymbol);
+        UserFunction& user_function = assert_cast<UserFunction&>(symbol);
 
         // functions cannot have required parameters
-        if (user_function.GetNumberRequiredParameters() > 0)
+        if( user_function.GetNumberRequiredParameters() > 0 )
+            return FormatText(MGF::GetMessageText(48001)->c_str(), user_function.GetName().c_str());
+
+        // setting m_iExSymbol to the current symbol will allow functions like curocc to work
+        const RAII::SetValueAndRestoreOnDestruction symbol_modifier(m_iExSymbol, current_symbol_index);
+
+        // these statements clear any preexisting stuff that might have been going on
+        m_bSkipStmt = false;
+        m_bStopExec = m_bStopProc;
+        SetRequestIssued(false);
+
+        DefaultParametersOnlyUserFunctionArgumentEvaluator argument_evaluator;
+        const double return_value = CallUserFunction(user_function, argument_evaluator);
+
+        if( user_function.GetReturnType() == SymbolType::WorkVariable )
         {
-            csEvaluatedText = FormatText(MGF::GetMessageText(48001).c_str(), user_function.GetName().c_str());
+            return DoubleToString(return_value);
         }
 
         else
         {
-            // setting m_iExSymbol to the current symbol will allow functions like curocc to work
-            int iSavedExSymbol = m_iExSymbol;
-            m_iExSymbol = iCurVar;
-
-            // these statements clear any preexisting stuff that might have been going on
-            m_iSkipStmt = FALSE;
-            m_iStopExec = m_bStopProc;
-            SetRequestIssued(false);
-
-            DefaultParametersOnlyUserFunctionArgumentEvaluator argument_evaluator(this, user_function);
-            double dRetValue = CallUserFunction(user_function, argument_evaluator);
-
-            m_iExSymbol = iSavedExSymbol;
-
-            if (user_function.GetReturnType() == SymbolType::WorkVariable)
-            {
-                csEvaluatedText = WS2CS(DoubleToString(dRetValue));
-            }
-
-            else
-            {
-                csEvaluatedText = CharacterObjectToString<CString>(dRetValue);
-            }
+            ASSERT(user_function.GetReturnType() == SymbolType::WorkString);
+            return GetWorkingString(static_cast<size_t>(return_value));
         }
     }
 
-    else if (pSymbol->IsA(SymbolType::WorkString))
+    else if( symbol.IsA(SymbolType::WorkString) )
     {
-        const WorkString* work_string = assert_cast<const WorkString*>(pSymbol);
-        csEvaluatedText = WS2CS(work_string->GetString());
+        const WorkString& work_string = assert_cast<const WorkString&>(symbol);
+        return work_string.GetString();
     }
 
     else
     {
-        int iSymVarOcc = pCapiParam->m_iOccSymbolVarOrCte;
+        int iSymVarOcc = parsed_capi_param.m_iOccSymbolVarOrCte;
         int iOcc = 0;
-        VART* pVarT = pSymbol->IsA(SymbolType::Variable) ? (VART*)pSymbol : NULL;
+        VART* pVarT = symbol.IsA(SymbolType::Variable) ? (VART*)&symbol: NULL;
 
         // Calculate the contents of the occurrence
-        if (pCapiParam->m_bIsOccSymbol && iSymVarOcc > 0) // Occurrence symbol used
+        if (parsed_capi_param.m_bIsOccSymbol && iSymVarOcc > 0) // Occurrence symbol used
         {
             ASSERT(NPT(iSymVarOcc)->IsA(SymbolType::Variable));
 
@@ -722,7 +486,7 @@ void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CStrin
 
                 // similar to below, if the occurrence variable is on a different group but the same record as the current field, use the current field's
                 // occurrence, not the occurrence variable's occurrence, for the evaluation
-                VART* pCurrentFieldVarT = VPT(iCurVar);
+                VART* pCurrentFieldVarT = VPT(current_symbol_index);
                 GROUPT* pCurrentFieldGroupT = pCurrentFieldVarT->GetOwnerGPT();
 
                 if (pOccGroupT != pCurrentFieldGroupT && pOccVarT->GetOwnerSec() == pCurrentFieldVarT->GetOwnerSec()
@@ -741,7 +505,7 @@ void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CStrin
 
         else if (iSymVarOcc == -1) // No occurrence defined
         {
-            iOcc = EvaluateCapiVariableCurrentOccurrence(iCurVar, pVarT);
+            iOcc = EvaluateCapiVariableCurrentOccurrence(current_symbol_index, pVarT);
         }
 
         else // Occurrence defined as constant
@@ -752,6 +516,7 @@ void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CStrin
 
         // Evaluate
         // Get Variable buffer
+        CString csEvaluatedText;
         csprochar* pAux;
 
         if (pVarT != NULL && pVarT->IsNumeric() && !pVarT->IsUsed())
@@ -761,11 +526,7 @@ void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CStrin
 
         else
         {
-            if (pVarT && pVarT->GetLogicStringPtr()) // GHM 20140326 a variable length string
-                pAux = pVarT->GetLogicStringPtr()->GetBuffer();
-
-            else
-                pAux = GetVarAsciiValue(iSymVar, iOcc);
+            pAux = GetVarAsciiValue(parsed_capi_param.m_iSymbolVar, iOcc);
         }
 
 
@@ -780,8 +541,11 @@ void CIntDriver::Evaluate(int iCurVar, const ParsedCapiParam* pCapiParam, CStrin
         {
             csEvaluatedText.Empty();
         }
+
+        return UTF8_TODO::GetUtf8(csEvaluatedText);
     }
 }
+
 
 int CIntDriver::EvaluateCapiVariableCurrentOccurrence(int iCurVar, VART* pVarT)
 {

@@ -27,7 +27,7 @@ BOOL CSFreqView::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwS
     // TODO: Add your specialized code here and/or call the base class
     dwStyle &=~WS_HSCROLL;
     dwStyle &=~WS_VSCROLL;
-    return CFormView::Create(lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, pContext);
+    return __super::Create(lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, pContext);
 }
 
 
@@ -35,14 +35,14 @@ int CSFreqView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     lpCreateStruct->style &= ~( WS_HSCROLL | WS_VSCROLL );
 
-    return CFormView::OnCreate(lpCreateStruct);
+    return __super::OnCreate(lpCreateStruct);
 }
 
 
 // Resizing of the views
 void CSFreqView::OnSize(UINT nType, int cx, int cy)
 {
-    CFormView::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     if( m_dicttree.m_hWnd != NULL )
     {
@@ -55,7 +55,8 @@ void CSFreqView::OnSize(UINT nType, int cx, int cy)
 
 void CSFreqView::DoDataExchange(CDataExchange* pDX)
 {
-    CFormView::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_DATADICT_TREE, m_dicttree);
 }
 
@@ -63,7 +64,7 @@ void CSFreqView::DoDataExchange(CDataExchange* pDX)
 //  Initializing of all the form
 void CSFreqView::OnInitialUpdate()
 {
-    CFormView::OnInitialUpdate();
+    __super::OnInitialUpdate();
 
     ASSERT (GetDocument() != NULL);
     ASSERT (GetDocument()->GetDataDict() != NULL);
@@ -109,7 +110,8 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
     tvistrItem.item.mask = TVIF_PARAM | TVIF_TEXT;
     tvistrVSet.item.mask = TVIF_PARAM | TVIF_TEXT;
 
-    CString cs = SharedSettings::ViewNamesInTree () ? pRecord->GetName() : pRecord->GetLabel();
+    CString cs = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(pRecord->GetName()) :
+                                                     pRecord->GetLabel();
     tvistrRecord.item.pszText = cs.GetBuffer(0);
     tvistrRecord.item.cchTextMax = cs.GetLength();
     tvistrRecord.item.lParam = (LPARAM) -1;//s.GetId();
@@ -138,7 +140,8 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
         if (pItem->GetParentItem() != NULL)
             totocc = pItem->GetParentItem()->GetOccurs()*totocc;
 
-        CString csItem = SharedSettings::ViewNamesInTree () ? pItem->GetName() : pItem->GetLabel();
+        CString csItem = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(pItem->GetName()) :
+                                                             pItem->GetLabel();
         int occurrence = -1;
         if (totocc > 1)
             occurrence = 0;
@@ -150,11 +153,11 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
 
         if (pItem->HasValueSets())
         {
-            tvistrItem.item.lParam = GetDocument()->GetPositionInList(pItem->GetValueSet(0).GetName(),occurrence);
+            tvistrItem.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName()), occurrence);
         }
         else
         {
-            tvistrItem.item.lParam = GetDocument()->GetPositionInList(pItem->GetName(),occurrence);
+            tvistrItem.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(pItem->GetName()), occurrence);
         }
 
         hParentItem = m_dicttree.InsertItem(&tvistrItem);
@@ -177,14 +180,15 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
         {
             for( const auto& dict_value_set : pItem->GetValueSets() )
             {
-                csItem = SharedSettings::ViewNamesInTree () ? dict_value_set.GetName() : dict_value_set.GetLabel();
+                csItem = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(dict_value_set.GetName()) :
+                                                             dict_value_set.GetLabel();
                 tvistrVSet.item.pszText = csItem.GetBuffer(0);
                 tvistrVSet.item.cchTextMax = csItem.GetLength();
                 int vSetoccurrence = -1;
                 if (totocc > 1)
                     vSetoccurrence = 0;
 
-                tvistrVSet.item.lParam = GetDocument()->GetPositionInList(dict_value_set.GetName(),vSetoccurrence,true); // GHM 20111228 true (reverse search) added due to issues with selections on items that have multiple value sets
+                tvistrVSet.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(dict_value_set.GetName()), vSetoccurrence, true); // 20111228 true (reverse search) added due to issues with selections on items that have multiple value sets
 //              tvistrVSet.item.lParam = (LPARAM) -2;
                 tvistrVSet.hParent = hParentItem;
                 tvistrVSet.hInsertAfter = 0;
@@ -201,7 +205,8 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
             BOOL bParentCheck = m_dicttree.GetCheck(hParentItem);
             for(int occ = 0; occ < totocc;occ++)
             {
-                CString csTree = SharedSettings::ViewNamesInTree () ? pItem->GetName() : pItem->GetLabel();
+                CString csTree = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(pItem->GetName()) :
+                                                                     pItem->GetLabel();
                 CString csoccLabel;
                 csoccLabel.Format(_T("(%d)"),occ+1);
                 int itemOccurence = 0;
@@ -220,11 +225,11 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
 
                 if (pItem->HasValueSets())
                 {
-                    tvistrItem.item.lParam = GetDocument()->GetPositionInList(pItem->GetValueSet(0).GetName(),itemOccurence);
+                    tvistrItem.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(pItem->GetValueSet(0).GetName()), itemOccurence);
                 }
                 else
                 {
-                    tvistrItem.item.lParam = GetDocument()->GetPositionInList(pItem->GetName(),itemOccurence);
+                    tvistrItem.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(pItem->GetName()),itemOccurence);
                 }
 
                 hItem = m_dicttree.InsertItem(&tvistrItem);
@@ -246,7 +251,8 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
                 {
                     for( const auto& dict_value_set : pItem->GetValueSets() )
                     {
-                        csTree = SharedSettings::ViewNamesInTree () ? dict_value_set.GetName() : dict_value_set.GetLabel();
+                        csTree = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(dict_value_set.GetName()) :
+                                                                     dict_value_set.GetLabel();
                         tvistrVSet.item.pszText = csTree.GetBuffer(0);
                         tvistrVSet.item.cchTextMax = csTree.GetLength();
                         int vSetoccurence = 0;
@@ -257,7 +263,7 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
                         //tvistrVSet.item.lParam = (LPARAM) -2;
                         tvistrVSet.hParent = hItem;
                         tvistrVSet.hInsertAfter = 0;
-                        tvistrVSet.item.lParam = GetDocument()->GetPositionInList(dict_value_set.GetName(),vSetoccurence,true);  // GHM 20111228 true (reverse search) added due to issues with selections on items that have multiple value sets
+                        tvistrVSet.item.lParam = GetDocument()->GetPositionInList(UTF8_TODO::GetCString(dict_value_set.GetName()), vSetoccurence, true);  // 20111228 true (reverse search) added due to issues with selections on items that have multiple value sets
                         htreeVSet = m_dicttree.InsertItem(&tvistrVSet);
                         m_dicttree.SetCheck(htreeVSet,GetDocument()->IsChecked(tvistrVSet.item.lParam));
                         m_dicttree.SetItemImage( htreeVSet, 5, 5);
@@ -289,7 +295,8 @@ void CSFreqView::InitializeView()
     tvistrLabel.item.mask = TVIF_PARAM | TVIF_TEXT;
     tvistrRoot.item.mask = TVIF_PARAM | TVIF_TEXT;
     CString cs;
-    cs = SharedSettings::ViewNamesInTree () ? pDataDict->GetName() : pDataDict->GetLabel();
+    cs = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(pDataDict->GetName()) :
+                                             pDataDict->GetLabel();
     tvistrRoot.item.pszText = cs.GetBuffer(0);
     tvistrRoot.item.cchTextMax = cs.GetLength();
     tvistrRoot.item.lParam = (LPARAM) -1;//s.GetId();
@@ -301,7 +308,8 @@ void CSFreqView::InitializeView()
 
     for( const DictLevel& dict_level : pDataDict->GetLevels() )
     {
-        CString csLevel = SharedSettings::ViewNamesInTree () ? dict_level.GetName() : dict_level.GetLabel();
+        CString csLevel = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(dict_level.GetName()) :
+                                                              dict_level.GetLabel();
         tvistrLabel.item.pszText = csLevel.GetBuffer(0);
         tvistrLabel.item.cchTextMax = csLevel.GetLength();
         tvistrLabel.item.lParam = (LPARAM) -1;//s.GetId();
@@ -639,7 +647,7 @@ void CSFreqView::SetParentStates(HTREEITEM hItem)
             }
         }
 
-        else // GHM 20120516 the state of repeating items was being ignored and then, even when the values were all checked, was leading to partially-selected checks on parent nodes
+        else // 20120516 the state of repeating items was being ignored and then, even when the values were all checked, was leading to partially-selected checks on parent nodes
         {
             int checkState = m_dicttree.GetCheck(hItem);
 
@@ -671,7 +679,7 @@ void CSFreqView::OnKeydownDatadictTree(NMHDR* pNMHDR, LRESULT* pResult)
   if (it != NULL ) {
       //short keystate = GetAsyncKeyState(VK_SPACE);
       //if (keystate != 0 )
-      if( pTVKeyDown->wVKey == VK_SPACE ) // GHM 20120516 changed
+      if( pTVKeyDown->wVKey == VK_SPACE ) // 20120516 changed
       {
         HTREEITEM hitem = (HTREEITEM) it;
         int checked = (m_dicttree.GetItemState(hitem, TVIS_STATEIMAGEMASK) >> 12) - 1;
@@ -690,37 +698,6 @@ void CSFreqView::OnKeydownDatadictTree(NMHDR* pNMHDR, LRESULT* pResult)
 }
 
 
-void CSFreqView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
-{
-    if (bActivate)
-    {
-        CString csDictFname = GetDocument()->GetDictFileName();
-        if (!csDictFname.IsEmpty())
-        {
-            CFileStatus fStatus;
-            bool flg = CFile::GetStatus(csDictFname,fStatus);
-
-            if( !flg ) // they deleted or moved the dictionary
-            {
-                GetDocument()->CloseUponFileNonExistance();
-                InitializeView();
-
-                AfxMessageBox(FormatText(_T("The dictionary file %s no longer exists"), (LPCTSTR)csDictFname));
-            }
-
-            else if( fStatus.m_mtime != GetDocument()->m_tDCFTime )
-            {
-                GetDocument()->OpenDictFile(true);
-                GetDocument()->CheckValueSetChanges();
-                InitializeView();
-            }
-        }
-    }
-
-    CFormView::OnActivateView(bActivate, pActivateView, pDeactiveView);
-}
-
-
 void CSFreqView::RefreshTree()
 {
     int iImage;
@@ -731,37 +708,37 @@ void CSFreqView::RefreshTree()
         HTREEITEM htempRoot = m_dicttree.GetRootItem();
         int level = 0, record = 0, item = 0, iocc = 0, iVS = 0;
         if (htempRoot == NULL)  return ;
-        m_dicttree.SetItemText(htempRoot,GetDocument()->GetDataDict()->GetName());
+        m_dicttree.SetItemText(htempRoot, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetName()));
         for (HTREEITEM htemplevel = m_dicttree.GetChildItem(htempRoot); htemplevel != NULL;
         htemplevel = m_dicttree.GetNextItem(htemplevel,TVGN_NEXT))
         {
-            m_dicttree.SetItemText(htemplevel,GetDocument()->GetDataDict()->GetLevel(level).GetName());
+            m_dicttree.SetItemText(htemplevel, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetName()));
             record = -1;
             for (HTREEITEM htempRecord = m_dicttree.GetChildItem(htemplevel); htempRecord != NULL;
             htempRecord = m_dicttree.GetNextItem(htempRecord,TVGN_NEXT))
             {
                 item = 0;
                 if (record == -1)
-                    m_dicttree.SetItemText(htempRecord,GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetName());
+                    m_dicttree.SetItemText(htempRecord, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetName()));
                 else
-                    m_dicttree.SetItemText(htempRecord,GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetName());
+                    m_dicttree.SetItemText(htempRecord, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetName()));
                 for (HTREEITEM htempItem = m_dicttree.GetChildItem(htempRecord); htempItem != NULL;
                         htempItem = m_dicttree.GetNextItem(htempItem,TVGN_NEXT)) {
                     iocc = 0;
                     iVS = 0;
                     if (record == -1)
-                        m_dicttree.SetItemText(htempItem,GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetName());
+                        m_dicttree.SetItemText(htempItem, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetName()));
                     else
-                        m_dicttree.SetItemText(htempItem,GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetName());
+                        m_dicttree.SetItemText(htempItem, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetName()));
 
                     for (HTREEITEM htempOcc = m_dicttree.GetChildItem(htempItem); htempOcc != NULL;
                             htempOcc = m_dicttree.GetNextItem(htempOcc,TVGN_NEXT)) {
                         m_dicttree.GetItemImage(htempOcc,iImage,iSelImage);
                         if (iImage == 5) {
                             if (record == -1)
-                                m_dicttree.SetItemText(htempOcc,GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetValueSet(iVS).GetName());
+                                m_dicttree.SetItemText(htempOcc, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetValueSet(iVS).GetName()));
                             else {
-                                m_dicttree.SetItemText(htempOcc,GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetValueSet(iVS).GetName());
+                                m_dicttree.SetItemText(htempOcc, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetValueSet(iVS).GetName()));
                             }
                             iVS++;
                         }
@@ -769,17 +746,17 @@ void CSFreqView::RefreshTree()
                             CString csoccLabel;
                             csoccLabel.Format(_T("(%d)"),iocc+1);
                             if (record == -1)
-                                m_dicttree.SetItemText(htempOcc,GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetName()+csoccLabel);
+                                m_dicttree.SetItemText(htempOcc, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetName()) + csoccLabel);
                             else {
-                                m_dicttree.SetItemText(htempOcc,GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetName()+csoccLabel);
+                                m_dicttree.SetItemText(htempOcc, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetName()) + csoccLabel);
                             }
                             int nVS = 0;
                             for (HTREEITEM htempVS = m_dicttree.GetChildItem(htempOcc); htempVS != NULL;
                                     htempVS = m_dicttree.GetNextItem(htempVS,TVGN_NEXT)) {
                                 if (record == -1)
-                                    m_dicttree.SetItemText(htempVS,GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetValueSet(nVS).GetName());
+                                    m_dicttree.SetItemText(htempVS, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetIdItemsRec()->GetItem(item)->GetValueSet(nVS).GetName()));
                                 else {
-                                    m_dicttree.SetItemText(htempVS,GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetValueSet(nVS).GetName());
+                                    m_dicttree.SetItemText(htempVS, UTF8_TODO::GetCString(GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record)->GetItem(item)->GetValueSet(nVS).GetName()));
                                 }
                                 nVS++;
                             }
@@ -834,15 +811,19 @@ void CSFreqView::RefreshTree()
                             iVS++;
                         }
                         else {
-                            // GHM 20140226 rewritten slightly to properly support occurrence labels
+                            // 20140226 rewritten slightly to properly support occurrence labels
                             const CDictItem* pItem = GetDocument()->GetDataDict()->GetLevel(level).GetRecord(record == -1 ? COMMON : record)->GetItem(item);
                             CString csItemLabel;
 
                             if( pItem->GetOccurs() == 1 || pItem->GetOccurrenceLabels().GetLabel(iocc).IsEmpty() )
-                                csItemLabel.Format(_T("%s(%d)"), (LPCTSTR)pItem->GetLabel(), iocc + 1);
+                            {
+                                csItemLabel.Format(_T("%s(%d)"), pItem->GetLabel().GetString(), iocc + 1);
+                            }
 
                             else
+                            {
                                 csItemLabel = pItem->GetOccurrenceLabels().GetLabel(iocc);
+                            }
 
                             m_dicttree.SetItemText(htempOcc,csItemLabel);
 

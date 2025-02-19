@@ -713,10 +713,6 @@ static CString alpha_value( double dValue ) {
 }
 // RHF END Oct 24, 2001
 
-// To make below code VC++ 6.0 and 7.0 fully compatible
-#ifndef _CSTR_
- #define _CSTR_ (csprochar*) (LPCTSTR)
-#endif
 
 // --------------------------------
 // Method: ShowInfo
@@ -732,13 +728,13 @@ void CTbdFile::ShowInfo() {
     int                iValue3;
 
     std::wcout << _T("BEGIN TBD FILE INFO\n------------\n");
-    std::wcout << _T("File Name ") << _CSTR_ m_csFileName << _T("\n\n");
+    std::wcout << _T("File Name ") << m_csFileName.GetString() << _T("\n\n");
 
     std::wcout << _T("Breaks Info\n");
     std::wcout << _T("Num breaks: ") << m_aBreakItem.GetSize() <<_T("\n\n");
     for ( int i = 0; i < m_aBreakItem.GetSize(); i++ ) {
         cbItem = *m_aBreakItem.GetAt(i);
-        std::wcout << _T("Break Name: ") << _CSTR_ cbItem.GetName() << _T(" ");
+        std::wcout << _T("Break Name: ") << cbItem.GetName().GetString() << _T(" ");
         std::wcout << _T("Break Len : ") << cbItem.GetLen() << _T("\n");
     }
 
@@ -759,7 +755,7 @@ void CTbdFile::ShowInfo() {
             pTable->GetNumDims() >= 3 ? pTable->GetDimSize(2) : 0,
             pTable->GetNumBreak() );
 
-        std::wcout << _CSTR_ csOut << _T("\n");
+        std::wcout << csOut.GetString() << _T("\n");
     }
 
     std::wcout << _T("       BEGIN SHOW SLICE\n");
@@ -780,12 +776,12 @@ void CTbdFile::ShowInfo() {
         if( pTable->GetNumBreak() >= 1 ) {
             CString  csKey;
 
-            csKey = _CSTR_ pSlice->GetBreakKey()+ sizeof(short);
+            csKey = pSlice->GetBreakKey().GetString() + sizeof(short);
 
             csMsg = csMsg + _T(" Break = ") + _T("(") + csKey + _T(")");
         }
 
-        std::wcout << _CSTR_ csMsg << _T("\n");
+        std::wcout << csMsg.GetString() << _T("\n");
 
         pAcum = pSlice->GetAcum();
         byte*   pDefaultValue = pAcum->GetDefaultValue();
@@ -798,7 +794,7 @@ void CTbdFile::ShowInfo() {
         pAcum->Dump( aLines, csTitle, iNumDec, true );
 
         for( int i=0; i < aLines.GetSize(); i++ ) {
-            std::wcout << _CSTR_ aLines.ElementAt(i);
+            std::wcout << aLines.ElementAt(i).GetString();
         }
         if( false )
 // RHF END Jan 31, 2003
@@ -806,7 +802,7 @@ void CTbdFile::ShowInfo() {
         for( int iLayer=0; iLayer < pAcum->GetNumLayers(); iLayer++ ) {
             if( pAcum->GetNumLayers() > 1 ) {
                 csMsg.Format( _T("---> Layer %d"), iLayer );
-                std::wcout << _CSTR_ csMsg << _T("\n");
+                std::wcout << csMsg.GetString() << _T("\n");
             }
 
             for( int iRow=0; iRow < pAcum->GetNumRows(); iRow++ ) {
@@ -842,14 +838,14 @@ void CTbdFile::ShowInfo() {
 
                             csMsg.Format( _T("(%3d) %02d, %3d, %d, %8ls, %8ls, %8ls, %8ls, %8ls, %8ls, (%ls)"), iRow, iVSetNum,
                                 cKind, cFlag,
-                                (LPCTSTR)alpha_value(aCounter[0]),
-                                (LPCTSTR)alpha_value(aCounter[1]),
-                                (LPCTSTR)alpha_value(aCounter[2]),
-                                (LPCTSTR)alpha_value(aCounter[3]),
-                                (LPCTSTR)alpha_value(aCounter[4]),
-                                (LPCTSTR)alpha_value(aCounter[5]),
+                                alpha_value(aCounter[0]).GetString(),
+                                alpha_value(aCounter[1]).GetString(),
+                                alpha_value(aCounter[2]).GetString(),
+                                alpha_value(aCounter[3]).GetString(),
+                                alpha_value(aCounter[4]).GetString(),
+                                alpha_value(aCounter[5]).GetString(),
                                 pszCode );
-                            std::wcout << _CSTR_ csMsg << _T("\n");
+                            std::wcout << csMsg.GetString() << _T("\n");
                             // RHF END Oct 24, 2001
 #endif
                         }
@@ -859,7 +855,7 @@ void CTbdFile::ShowInfo() {
                         memcpy((char*)&dValue, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 1), sizeof(double));
                         memcpy((char*)&iValue1, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 1) + sizeof(double), sizeof(int));
 
-                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << _CSTR_ csValue << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(">\n");
+                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << csValue.GetString() << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(">\n");
 
                         break;
                         break;
@@ -869,7 +865,7 @@ void CTbdFile::ShowInfo() {
                         memcpy((char*)&iValue1, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 2) + sizeof(double), sizeof(int));
                         memcpy((char*)&iValue2, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 2) + sizeof(double) + sizeof(int), sizeof(int));
 
-                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << _CSTR_ csValue << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(",") << iValue2 << _T(">\n");
+                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << csValue.GetString() << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(",") << iValue2 << _T(">\n");
 
                         break;
                         break;
@@ -880,7 +876,7 @@ void CTbdFile::ShowInfo() {
                         memcpy((char*)&iValue2, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 3) + sizeof(double) + sizeof(int), sizeof(int));
                         memcpy((char*)&iValue3, pValue + CTableAcum::GetCodeSize(pTable->GetCellSize(), 3) + sizeof(double) + sizeof(int)*2, sizeof(int));
 
-                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << _CSTR_ csValue << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(",") << iValue2 << _T(",") << iValue3 << _T(">\n");
+                        std::wcout << _T("<") << iRow << _T(",") << iCol << _T(",") << iLayer << _T("> <") << csValue.GetString() << _T("> = ") << dValue << _T(" Dims <") << iValue1 << _T(",") << iValue2 << _T(",") << iValue3 << _T(">\n");
 
                         break;
                         // OTHER DOUBLE
@@ -902,7 +898,7 @@ void CTbdFile::ShowInfo() {
                             csValue = _T("******");
 
                         csMsg = csMsg + ( (iCol==0) ? _T("") : _T("  ") ) + csValue;
-                        std::wcout << _T("<") << iCol << _T(",") << iRow << _T(",") << iLayer << _T("> = ") << _CSTR_ csValue << _T("\n"); // rcl, Nov 2004
+                        std::wcout << _T("<") << iCol << _T(",") << iRow << _T(",") << iLayer << _T("> = ") << csValue.GetString() << _T("\n"); // rcl, Nov 2004
                         break;
                     }
                     //std::wcout << csMsg <<  _T("\n");
@@ -926,13 +922,13 @@ void CTbdFile::ShowSMeanOrSTbl() {
     CTbdTable* pTable;
 
     std::wcout << _T("BEGIN TBD FILE INFO\n------------\n");
-    std::wcout << _T("File Name ") << _CSTR_ m_csFileName << _T("\n\n");
+    std::wcout << _T("File Name ") << m_csFileName.GetString() << _T("\n\n");
 
     std::wcout << _T("Breaks Info\n");
     std::wcout << _T("Num breaks: ") << m_aBreakItem.GetSize() <<_T("\n\n");
     for ( int i = 0; i < m_aBreakItem.GetSize(); i++ ) {
         cbItem = *m_aBreakItem.GetAt(i);
-        std::wcout << _T("Break Name: ") << _CSTR_ cbItem.GetName() << _T(" ");
+        std::wcout << _T("Break Name: ") << cbItem.GetName().GetString() << _T(" ");
         std::wcout << _T("Break Len : ") << cbItem.GetLen() << _T("\n");
     }
 
@@ -953,7 +949,7 @@ void CTbdFile::ShowSMeanOrSTbl() {
             pTable->GetNumDims() >= 3 ? pTable->GetDimSize(2) : 0,
             pTable->GetNumBreak() );
 
-        std::wcout << _CSTR_ csOut << _T("\n");
+        std::wcout << csOut.GetString() << _T("\n");
     }
 
     std::wcout << _T("       BEGIN SHOW SLICE\n");
@@ -974,12 +970,12 @@ void CTbdFile::ShowSMeanOrSTbl() {
         if( pTable->GetNumBreak() >= 1 ) {
             CString  csKey;
 
-            csKey = _CSTR_ pSlice->GetBreakKey()+ sizeof(short);
+            csKey = pSlice->GetBreakKey().GetString() + sizeof(short);
 
             csMsg = csMsg + _T(" Break = ") + _T("(") + csKey + _T(")");
         }
 
-        std::wcout << _CSTR_ csMsg << _T("\n");
+        std::wcout << csMsg.GetString() << _T("\n");
         //continue; // First Get the break keys . Remove this continue once yoy are done checking this
         pAcum = pSlice->GetAcum();
         byte*   pDefaultValue = pAcum->GetDefaultValue();
@@ -994,7 +990,7 @@ void CTbdFile::ShowSMeanOrSTbl() {
         pAcum->Dump( aLines, csTitle, iNumDec, true );
 #endif
         for( int i=0; i < aLines.GetSize(); i++ ) {
-            std::wcout << _CSTR_ aLines.ElementAt(i);
+            std::wcout << aLines.ElementAt(i).GetString();
         }
         if( false )
 // RHF END Jan 31, 2003
@@ -1002,7 +998,7 @@ void CTbdFile::ShowSMeanOrSTbl() {
         for( int iLayer=0; iLayer < pAcum->GetNumLayers(); iLayer++ ) {
             if( pAcum->GetNumLayers() > 1 ) {
                 csMsg.Format( _T("---> Layer %d"), iLayer );
-                std::wcout << _CSTR_ csMsg << _T("\n");
+                std::wcout << csMsg.GetString() << _T("\n");
             }
 
             for( int iRow=0; iRow < pAcum->GetNumRows(); iRow++ ) {

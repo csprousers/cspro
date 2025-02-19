@@ -79,7 +79,7 @@ class AndroidHttpConnection {
         var read: Int
         var totalRead: Long = 0
         while (inputStream.read(buffer).also { read = it } != -1) {
-            if (listener?.isCancelled == true) throw SyncCancelException()
+            if (listener?.isCanceled == true) throw SyncCancelException()
             totalRead += read.toLong()
             listener?.onProgress(totalRead)
             outputStream.write(buffer, 0, read)

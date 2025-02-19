@@ -2,7 +2,7 @@
  *
  * CSEntry for Android
  *
- * Module:		SelectStyleActivity.java
+ * Module:      SelectStyleActivity.java
  *
  * Description: GUI used for selecting Case Tree styles.
  *

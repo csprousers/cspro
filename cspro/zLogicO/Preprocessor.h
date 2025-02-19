@@ -3,64 +3,63 @@
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/BasicTokenCompiler.h>
 
+namespace Logic { class Preprocessor; }
 
-namespace Logic
+
+class ZLOGICO_API Logic::Preprocessor
 {
-    class ZLOGICO_API Preprocessor
-    {
-        friend class StringLiteralParser;
+    friend class StringLiteralParser;
 
-    public:
-        Preprocessor(BasicTokenCompiler& compiler);
-        virtual ~Preprocessor() { }
+public:
+    Preprocessor(BasicTokenCompiler& compiler);
+    virtual ~Preprocessor() { }
 
-        // for preprocessing the entire source buffer prior to compilation
-        void ProcessBuffer();
+    // for preprocessing the entire source buffer prior to compilation
+    void ProcessBuffer();
 
-        // for handling a preprocessor line not handed prior to compilation
-        void ProcessLineDuringCompilation();
+    // for handling a preprocessor line not handed prior to compilation
+    void ProcessLineDuringCompilation();
 
-        enum class FunctionCode { AppType, Exists };
-        using ParsedToken = std::variant<TokenCode, FunctionCode, double, std::wstring>;
+    enum class FunctionCode { AppType, Exists };
+    using ParsedToken = std::variant<TokenCode, FunctionCode, double, SharableString>;
 
-        // methods for subclasses to implement
-    protected:
-        // returns the application type
-        virtual const TCHAR* GetAppType() = 0;
+    // methods for subclasses to implement
+protected:
+    // returns the application type
+    virtual const char* GetAppType() = 0;
 
-        // returns null if no symbol exists
-        virtual Symbol* FindSymbol(const std::wstring& name, bool search_only_base_symbols) = 0;
+    // returns null if no symbol exists
+    virtual Symbol* FindSymbol(std::string_view symbol_name_sv, bool search_only_base_symbols) = 0;
 
-        // can throw exceptions if the attribute/value is invalid
-        virtual void SetProperty(Symbol* symbol, const std::wstring& attribute, const std::variant<double, std::wstring>& value) = 0;
+    // can throw exceptions if the attribute/value is invalid
+    virtual void SetProperty(Symbol* symbol, const std::string& attribute, const std::variant<double, SharableString>& value) = 0;
 
-    protected:
-        template<typename... Args>
-        [[noreturn]] void IssueError(int message_number, Args const&... args);
+protected:
+    template<typename... Args>
+    [[noreturn]] void IssueError(int message_number, Args const&... args);
 
-    private:
-        const LogicSettings& GetLogicSettings() const { return m_compiler.GetLogicSettings(); }
+private:
+    const LogicSettings& GetLogicSettings() const { return m_compiler.GetLogicSettings(); }
 
-        std::tuple<const TCHAR*, std::vector<BasicToken>::const_iterator, std::vector<BasicToken>::const_iterator> GetCommandAndLineTokens(const std::vector<BasicToken>::const_iterator& hash_token_position);
+    std::tuple<const std::string_view*, std::vector<BasicToken>::const_iterator, std::vector<BasicToken>::const_iterator> GetCommandAndLineTokens(const std::vector<BasicToken>::const_iterator& hash_token_position);
 
-        std::vector<ParsedToken> ParseTokens(const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
+    std::vector<ParsedToken> ParseTokens(const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
 
-        using FunctionArgument = std::variant<double, std::wstring, Symbol*>;
-        std::vector<FunctionArgument> ParseFunctionArguments(std::vector<BasicToken>::const_iterator token_itr, std::vector<BasicToken>::const_iterator token_itr_end);
+    using FunctionArgument = std::variant<double, SharableString, Symbol*>;
+    std::vector<FunctionArgument> ParseFunctionArguments(std::vector<BasicToken>::const_iterator token_itr, std::vector<BasicToken>::const_iterator token_itr_end);
 
-        bool EvaluateCondition(const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
+    bool EvaluateCondition(const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
 
-        // returns true if the property was evaluated; returns false if the property should be evaluated as part of normal compilation
-        bool ProcessSetProperty(bool currently_preprocessing, const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
+    // returns true if the property was evaluated; returns false if the property should be evaluated as part of normal compilation
+    bool ProcessSetProperty(bool currently_preprocessing, const std::vector<BasicToken>::const_iterator& token_itr_begin, const std::vector<BasicToken>::const_iterator& token_itr_end);
 
-    private:
-        struct PreprocessorException { };
+private:
+    struct PreprocessorException { };
 
-        BasicTokenCompiler& m_compiler;
-        std::optional<std::vector<BasicToken>::const_iterator> m_lastHashTokenPosition;
-        size_t m_nextBasicTokenIndexOnError;
-    };
-}
+    BasicTokenCompiler& m_compiler;
+    std::optional<std::vector<BasicToken>::const_iterator> m_lastHashTokenPosition;
+    size_t m_nextBasicTokenIndexOnError;
+};
 
 
 

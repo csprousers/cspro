@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "ViewHtmlDlg.h"
 #include <zHtml/UWM.h>
+#include <zToolsO/ExceptionHolder.h>
 #include <zAction/Listener.h>
 #include <zAction/WebController.h>
 
@@ -17,7 +18,7 @@ ViewHtmlDlg::ViewHtmlDlg(const Viewer& viewer, CWnd* pParent/* = nullptr*/)
     // set up the Action Invoker
     SetUpActionInvoker();
 
-    // set the viewer options 
+    // set the viewer options
     SetViewerOptions(viewer.GetOptions());
 }
 
@@ -55,7 +56,7 @@ public:
     ViewHtmlDlgActionInvokerListener(ViewHtmlDlg& dlg);
 
     // Listener overrides
-    std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnClose(CloseResult& close_result, ActionInvoker::Caller& caller) override;
     bool OnEngineProgramControlExecuted() override;
 
 private:
@@ -69,8 +70,18 @@ ViewHtmlDlgActionInvokerListener::ViewHtmlDlgActionInvokerListener(ViewHtmlDlg& 
 }
 
 
-std::optional<bool> ViewHtmlDlgActionInvokerListener::OnCloseDialog(const JsonNode<wchar_t>& /*result_node*/, ActionInvoker::Caller& /*caller*/)
+std::optional<bool> ViewHtmlDlgActionInvokerListener::OnClose(CloseResult& close_result, ActionInvoker::Caller& /*caller*/)
 {
+    if( std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) )
+    {
+        ASSERT(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr);
+
+        ExceptionHolder* const exception_holder = m_dlg.m_viewer.GetData().exception_holder.get();
+
+        if( exception_holder != nullptr )
+            exception_holder->AddActionInvokerException(std::move(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result)));
+    }
+
     m_dlg.PostMessage(UWM::Html::CloseDialog, IDOK);
     return true;
 }

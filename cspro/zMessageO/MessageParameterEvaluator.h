@@ -20,7 +20,7 @@ struct MessageFormat
     };
 
     Type type;
-    std::optional<std::wstring> evaluated_formatter;
+    std::optional<std::string> evaluated_formatter;
     size_t formatter_start_position;
     size_t formatter_end_position;
 };
@@ -33,16 +33,16 @@ public:
     virtual ~MessageParameterEvaluator() { }
 
     virtual MessageFormat::Type GetMessageFormatType(const MessageFormat& message_format) const { return message_format.type; }
-    
+
     virtual bool ReplaceSpecialValuesWithSpaces() const { return false; }
 
     virtual int GetInteger() = 0;
     virtual double GetDouble() = 0;
-    virtual std::wstring GetString() = 0;
-    virtual wchar_t GetChar() = 0;
-    virtual std::wstring GetProc() = 0;
-    virtual std::wstring GetVariable() = 0;
-    virtual std::wstring GetVariableLabel() = 0;
+    virtual SharableString GetString() = 0;
+    virtual std::variant<int, SharableString> GetChar() = 0;
+    virtual SharableString GetProc() = 0;
+    virtual SharableString GetVariable() = 0;
+    virtual SharableString GetVariableLabel() = 0;
 
-    CREATE_CSPRO_EXCEPTION(EvaluationException)
+    CREATE_CSPRO_EXCEPTION(EvaluationException);
 };

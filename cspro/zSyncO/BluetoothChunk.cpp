@@ -1,89 +1,98 @@
 ﻿#include "stdafx.h"
 #include "BluetoothChunk.h"
-#include "assert.h"
+
+
+namespace
+{
+    constexpr size_t DefaultSize = 100;
+}
+
 
 BluetoothDataChunk::BluetoothDataChunk()
-: m_defaultSize(100)
-, m_size(m_defaultSize)
-, m_binaryContentSize(BluetoothFileChunk::size)
-, m_resize(Resize::Default)
-, m_enabled(false)
-, m_init(false)
-{}
-
-int BluetoothDataChunk::getSize() const
+    :   m_caseSize(DefaultSize),
+        m_optimizationEnabled(false)
 {
-    return m_size;
 }
 
-void BluetoothDataChunk::setSize(int size)
+
+size_t BluetoothDataChunk::GetCaseSize() const
 {
-    m_size = size;
+    return m_caseSize;
 }
 
-void BluetoothDataChunk::enableOptimization()
+
+uint64_t BluetoothDataChunk::GetBinaryContentSize() const
 {
-    m_enabled = true;
+    return FileChunkSize;
 }
 
-void BluetoothDataChunk::optimize(std::uint64_t dataSize, std::size_t packetSize)
+
+void BluetoothDataChunk::EnableOptimization()
 {
+    m_optimizationEnabled = true;
+}
+
+
+void BluetoothDataChunk::Optimize(uint64_t dataSize, const size_t packetSize)
+{
+    if( !m_optimizationEnabled )
+        return;
+
     // The larger the chunk size the more efficient the packets are filled. However, don't make
     // the chunk size so large that the user has to send all the data to realize there was an
     // error receiving the data.
 
     // The packet size is a rough estimate of the data that fits in a packet
-    if (m_enabled) {
-        init(dataSize, packetSize);
+    if( !m_resize.has_value() )
+    {
+        m_resize = ( dataSize <= packetSize ) ? Resize::Grow :
+                                                Resize::Shrink;
+    }
 
-        switch (m_resize) {
+    switch( *m_resize )
+    {
         case Resize::Grow:
+        {
             // The data size will be 2 to 4 times larger than the packet size
-            while (dataSize <= packetSize) {
+            while( dataSize <= packetSize )
+            {
                 dataSize *= 2;
-                m_size *= 2;
+                m_caseSize *= 2;
             }
-            m_enabled = false;
-            m_size *= 2;
+
+            m_optimizationEnabled = false;
+            m_caseSize *= 2;
             break;
+        }
+
         case Resize::Shrink:
         {
             // The data size will be 2 to 4 times larger than the packet size
-            double size = m_size;
-            while (dataSize > packetSize) {
+            double new_size = m_caseSize;
+
+            while( dataSize > packetSize )
+            {
                 dataSize /= 2;
-                size /= 2;
+                new_size /= 2;
             }
-            m_enabled = false;
+
+            m_optimizationEnabled = false;
             // Avoid quotient of 0
-            m_size = size >= 1 ? static_cast<int>(size) : 1;
-            m_size *= 4;
+            m_caseSize = 4 * ( ( new_size >= 1 ) ? static_cast<size_t>(new_size) : 1 );
             break;
         }
+
         default:
-            assert(false);
+        {
+            ASSERT(false);
         }
     }
 }
 
-void BluetoothDataChunk::resetOptimization()
-{
-    m_size = m_defaultSize;
-    m_resize = Resize::Default;
-    m_enabled = false;
-    m_init = false;
-}
 
-void BluetoothDataChunk::init(std::uint64_t dataSize, std::size_t packetSize)
+void BluetoothDataChunk::ResetOptimization()
 {
-    if (!m_init) {
-        if (dataSize <= packetSize) {
-            m_resize = Resize::Grow;
-        }
-        else {
-            m_resize = Resize::Shrink;
-        }
-
-        m_init = true;
-    }
+    m_caseSize = DefaultSize;
+    m_optimizationEnabled = false;
+    m_resize.reset();
 }

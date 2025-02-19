@@ -8,15 +8,15 @@
 // SymbolCalculator (functions to centralize some common symbol calculations)
 // --------------------------------------------------------------------------
 
-std::wstring SymbolCalculator::GetBaseName(const Symbol& symbol)
+const std::string& SymbolCalculator::GetBaseName(const Symbol& symbol)
 {
     switch( symbol.GetType() )
     {
         case SymbolType::Dictionary:
-            return CS2WS(assert_cast<const EngineDictionary&>(symbol).GetDictionary().GetName());
+            return assert_cast<const EngineDictionary&>(symbol).GetDictionary().GetName();
 
         case SymbolType::Record:
-            return CS2WS(assert_cast<const EngineRecord&>(symbol).GetDictionaryRecord().GetName());
+            return assert_cast<const EngineRecord&>(symbol).GetDictRecord().GetName();
 
         default:
             return symbol.GetName();
@@ -24,57 +24,57 @@ std::wstring SymbolCalculator::GetBaseName(const Symbol& symbol)
 }
 
 
-std::wstring SymbolCalculator::GetLabel(const Symbol& symbol)
+std::string SymbolCalculator::GetLabel(const Symbol& symbol)
 {
     switch( symbol.GetType() )
     {
         case SymbolType::Dictionary:
         {
             const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(symbol);
-            return engine_dictionary.IsDictionaryObject() ? CS2WS(engine_dictionary.GetDictionary().GetLabel()) :
+            return engine_dictionary.IsDictionaryObject() ? UTF8_TODO::GetUtf8(engine_dictionary.GetDictionary().GetLabel()) :
                                                             engine_dictionary.GetName();
         }
 
         case SymbolType::Pre80Dictionary:
         {
-            return CS2WS(assert_cast<const DICT&>(symbol).GetDataDict()->GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const DICT&>(symbol).GetDataDict()->GetLabel());
         }
 
         case SymbolType::Record:
         {
-            return CS2WS(assert_cast<const EngineRecord&>(symbol).GetDictionaryRecord().GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const EngineRecord&>(symbol).GetDictRecord().GetLabel());
         }
 
         case SymbolType::Section:
         {
-            return CS2WS(assert_cast<const SECT&>(symbol).GetDictRecord()->GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const SECT&>(symbol).GetDictRecord()->GetLabel());
         }
 
         case SymbolType::Variable:
         {
-            return CS2WS(assert_cast<const VART&>(symbol).GetDictItem()->GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const VART&>(symbol).GetDictItem()->GetLabel());
         }
 
         case SymbolType::Item:
         {
-            return CS2WS(assert_cast<const EngineItem&>(symbol).GetDictItem().GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const EngineItem&>(symbol).GetDictItem().GetLabel());
         }
 
         case SymbolType::ValueSet:
         {
-            return CS2WS(assert_cast<const ValueSet&>(symbol).GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const ValueSet&>(symbol).GetLabel());
         }
 
         case SymbolType::Block:
         {
-            return CS2WS(assert_cast<const EngineBlock&>(symbol).GetFormBlock().GetLabel());
+            return UTF8_TODO::GetUtf8(assert_cast<const EngineBlock&>(symbol).GetFormBlock().GetLabel());
         }
 
         default:
         {
-            const EngineItemAccessor* engine_item_accessor = symbol.GetEngineItemAccessor();
+            const EngineItemAccessor* const engine_item_accessor = symbol.GetEngineItemAccessor();
 
-            return ( engine_item_accessor != nullptr ) ? CS2WS(engine_item_accessor->GetDictItem().GetLabel()) :
+            return ( engine_item_accessor != nullptr ) ? UTF8_TODO::GetUtf8(engine_item_accessor->GetDictItem().GetLabel()) :
                                                          symbol.GetName();
         }
     }
@@ -100,7 +100,7 @@ const DictBase* SymbolCalculator::GetDictBase(const Symbol& symbol)
 
         case SymbolType::Record:
         {
-            return &assert_cast<const EngineRecord&>(symbol).GetDictionaryRecord();
+            return &assert_cast<const EngineRecord&>(symbol).GetDictRecord();
         }
 
         case SymbolType::Section:
@@ -254,7 +254,7 @@ unsigned SymbolCalculator::GetMaximumOccurrences(const Symbol& symbol)
     switch( symbol.GetType() )
     {
         case SymbolType::Record:
-            return assert_cast<const EngineRecord&>(symbol).GetDictionaryRecord().GetMaxRecs();
+            return assert_cast<const EngineRecord&>(symbol).GetDictRecord().GetMaxRecs();
 
         case SymbolType::Section:
             return assert_cast<const SECT&>(symbol).GetMaxOccs();
@@ -313,7 +313,7 @@ const Symbol* SymbolCalculator::GetFirstSymbolWithOccurrences(const Symbol& symb
     {
         const EngineRecord* engine_record = assert_cast<const EngineRecord*>(symbol);
 
-        if( engine_record->GetDictionaryRecord().GetMaxRecs() > 1 )
+        if( engine_record->GetDictRecord().GetMaxRecs() > 1 )
             return engine_record;
     }
 
@@ -365,7 +365,7 @@ int SymbolCalculator::GetLevelNumber_base1(const Symbol& symbol)
             return 1;
 
         case SymbolType::Record:
-            return assert_cast<const EngineRecord&>(symbol).GetDictionaryRecord().GetLevel()->GetLevelNumber() + 1;
+            return assert_cast<const EngineRecord&>(symbol).GetDictRecord().GetLevel()->GetLevelNumber() + 1;
 
         case SymbolType::Section:
             return assert_cast<const SECT&>(symbol).GetLevel();

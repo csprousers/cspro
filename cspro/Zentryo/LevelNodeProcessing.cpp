@@ -141,7 +141,7 @@ void CEntryDriver::GetNextLevelNode(int iSearchedLevel)
             {
                 if( &case_level->GetCaseLevelMetadata().GetDictLevel() == &pLevelToLoad->GetDictLevel() )
                 {
-                    const CString full_key_CaseLevel = data_case.GetKey() + case_level->GetLevelIdentifier();
+                    const CString full_key_CaseLevel = UTF8_TODO::GetCString(data_case.GetKey()) + case_level->GetLevelIdentifier();
                     const CString full_key_Pre74_CaseLevel = pLevelToLoad->GetKey();
 
                     if( full_key_CaseLevel == full_key_Pre74_CaseLevel )

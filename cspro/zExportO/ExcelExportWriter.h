@@ -13,8 +13,8 @@ public:
     void Close() override;
 
 protected:
-    bool SupportsBinaryData() override { return false; }
-    bool IsReservedName(const std::wstring& name, bool record_name) override;
+    bool SupportsBinaryData() const override { return false; }
+    bool IsReservedName(const std::string& name, bool record_name) override;
 
     void StartRecord(const ExportRecordMapping& export_record_mapping) override;
     void StartRow() override;

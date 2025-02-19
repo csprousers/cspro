@@ -9,18 +9,18 @@ class CLASS_DECL_ZUTILF ImageCaptureDlg : public CSHtmlDlgRunner
 public:
     enum class ImageCaptureType { Signature, Photo };
 
-    ImageCaptureDlg(ImageCaptureType image_capture_type, const std::optional<std::wstring>& message, const std::optional<std::wstring>& image_localhost_url);
+    ImageCaptureDlg(ImageCaptureType image_capture_type, const SharableString& message, const SharableString& image_localhost_url);
 
-    const std::wstring& GetImageDataUrl() const { return m_imageDataUrl; }
+    const std::string& GetImageDataUrl() const { return m_imageDataUrl; }
 
 protected:
-    const TCHAR* GetDialogName() override;
-    std::wstring GetJsonArgumentsText() override;
-    void ProcessJsonResults(const JsonNode<wchar_t>& json_results) override;
+    std::string GetDialogName() override;
+    SharableString GetJsonArgumentsText() override;
+    void ProcessJsonResults(const JsonNode& json_results) override;
 
 private:
-    const TCHAR* const m_dialogName;
-    std::wstring m_jsonArgumentsText;
+    const char* const m_dialogName;
+    SharableString m_jsonArgumentsText;
 
-    std::wstring m_imageDataUrl;
+    std::string m_imageDataUrl;
 };

@@ -5,8 +5,6 @@
 
 class MappingOptionsDlg : public CDialog
 {
-    DECLARE_DYNAMIC(MappingOptionsDlg)
-
 public:
     MappingOptionsDlg(AppMappingOptions& mapping_options, const CDataDict& dictionary, CWnd* pParent = nullptr);
 

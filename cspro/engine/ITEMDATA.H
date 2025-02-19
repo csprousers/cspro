@@ -52,7 +52,6 @@ public:
     const CDictItem* GetDictItem() const { return m_Item; }
     int GetOcc() const                   { return m_iOcc; }
     int GetLen() const                   { return GetTo() - GetFrom() + 1; }
-    const CString& GetName() const       { return m_Item->GetName(); }
 
 private:
     const CDictItem* m_Item;

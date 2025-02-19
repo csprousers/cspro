@@ -1,205 +1,132 @@
 ﻿#include "stdafx.h"
-#include "CppUnitTest.h"
+#include "SyncTestCredentials.h"
+#include <zUtilO/TemporaryFile.h>
 #include <zNetwork/CurlFtpConnection.h>
-#include <zSyncO/SyncException.h>
-#include <fstream>
 
-namespace Microsoft {
-    namespace VisualStudio {
-        namespace CppUnitTestFramework
-        {
-            // ToString specialization is required for all types used in the AssertTrue macro
-            template<> inline std::wstring ToString<CString>(const CString& t) { return std::wstring(t); }
-        }
-    }
-}
-
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace SyncUnitTest
 {
-    CString m_serverUrl = L"ftp://localhost/";
-    CString m_username = L"test";
-    CString m_password = L"";
-
-/*  CString m_serverUrl = L"ftp://127.0.0.1/";
-    CString m_username = L"anonymous";
-    CString m_password = L"thing@chose.com"; */
-
-    CString makeGuid()
-    {
-        UUID uuid;
-        UuidCreate(&uuid);
-        WCHAR *str;
-        UuidToStringW(&uuid, (RPC_WSTR*) &str);
-        CString guid(str);
-        RpcStringFreeW((RPC_WSTR*) &str);
-        return guid;
-    }
-
-    CString createTempFile(CString name, CString data)
-    {
-        wchar_t pszTempPath[MAX_PATH];
-        GetTempPath(MAX_PATH, pszTempPath);
-
-        CString srcFilePath;
-        srcFilePath.Format(L"%s%s", (LPCTSTR)pszTempPath, (LPCTSTR)name);
-        DeleteFile(srcFilePath);
-
-        std::wofstream srcWriteStream(srcFilePath);
-        srcWriteStream << (LPCWSTR) data;
-        srcWriteStream.close();
-
-        return srcFilePath;
-    }
-
     TEST_CLASS(CurlFtpConnectionTest)
     {
+    private:
+        const SyncTestCredentials::Credentials credentials = SyncTestCredentials().GetCredentialsFtp();
+
     public:
+        static TemporaryFile CreateTempFile()
+        {
+            TemporaryFile temp_file;
+            FileIO::WriteText(temp_file.GetPath(), CreateUuid(), false);
+            return temp_file;
+        }
+
+
         TEST_METHOD(TestConnect)
         {
             CurlFtpConnection connection;
+            connection.Connect(credentials.sync_connection_string, credentials.username_password);
 
-            connection.connect(m_serverUrl, m_username, m_password);
-
-            connection.disconnect();
+            connection.Disconnect();
         }
+
 
         TEST_METHOD(TestUploadFile)
         {
             CurlFtpConnection connection;
+            connection.Connect(credentials.sync_connection_string, credentials.username_password);
 
-            connection.connect(m_serverUrl, m_username, m_password);
+            const TemporaryFile upload_temp_file = CreateTempFile();
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            connection.Upload(upload_temp_file.GetPath(), "/foo/bar/test-file.txt");
 
-            CString data = makeGuid();
-            CString srcFilePath = createTempFile(L"zsynco-ftp-upload-test.txt", data);
-
-            CString serverPath(L"/foo/bar/test-file.txt");
-
-            connection.upload(srcFilePath, serverPath);
-
-            DeleteFile(srcFilePath);
-
-            connection.disconnect();
+            connection.Disconnect();
         }
+
 
         TEST_METHOD(TestDownloadFile)
         {
             CurlFtpConnection connection;
+            connection.Connect(credentials.sync_connection_string, credentials.username_password);
 
-            connection.connect(m_serverUrl, m_username, m_password);
+            const std::string remote_file_path = "/foo/bar/test-file.txt";
 
-            wchar_t pszTempPath[MAX_PATH];
-            GetTempPath(MAX_PATH, pszTempPath);
+            const TemporaryFile upload_temp_file = CreateTempFile();
+            connection.Upload(upload_temp_file.GetPath(), remote_file_path);
 
-            CString data = makeGuid();
-            CString srcFilePath = createTempFile(L"zsynco-ftp-upload-test.txt", data);
+            const TemporaryFile download_temp_file;
+            connection.Download(remote_file_path, download_temp_file.GetPath());
+            Assert::AreEqual(PortableFunctions::FileMd5(upload_temp_file.GetPath()), PortableFunctions::FileMd5(download_temp_file.GetPath()));
 
-            CString serverPath(L"/foo/bar/test-file.txt");
-
-            connection.upload(srcFilePath, serverPath);
-
-            DeleteFile(srcFilePath);
-
-            connection.download(L"/foo/bar/test-file.txt", srcFilePath);
-
-            Assert::IsTrue(GetFileAttributes(srcFilePath) != -1);
-
-            std::wifstream srcReadStream(srcFilePath);
-            std::wstring actualContents(std::istreambuf_iterator<wchar_t>(srcReadStream), {});
-            srcReadStream.close();
-
-            Assert::AreEqual((LPCWSTR) data, actualContents.c_str());
-
-            DeleteFile(srcFilePath);
-
-            connection.disconnect();
+            connection.Disconnect();
         }
+
 
         TEST_METHOD(TestDirectoryListing)
         {
             CurlFtpConnection connection;
-
-            connection.connect(m_serverUrl, m_username, m_password);
+            connection.Connect(credentials.sync_connection_string, credentials.username_password);
 
             // Create a temp directory on server
-            CString serverPath = CString(L"/test/") + makeGuid() + L"/";
+            const std::string server_path = "/test/" + CreateUuid() + "/";
 
             // Upload some files
-            for (int i = 0; i < 5; ++i) {
-
-                CString fileName;
-                fileName.Format(_T("file%d"), i);
-                CString data = makeGuid();
-                CString srcFilePath = createTempFile(fileName, data);
-                CString remoteFilePath;
-                remoteFilePath.Format(_T("%sfile%d"), (LPCTSTR)serverPath, i);
-
-                connection.upload(srcFilePath, remoteFilePath);
-
-                DeleteFile(srcFilePath);
+            for( int i = 0; i < 5; ++i )
+            {
+                connection.Upload(CreateTempFile().GetPath(), server_path + FormatText("file%d", i));
             }
 
             // Create a subdirectory by uploading a file
-            CString data = makeGuid();
-            CString srcFilePath = createTempFile(L"subdirfile.txt", data);
-            connection.upload(srcFilePath, serverPath + L"subdir/subdirfile.txt");
+            connection.Upload(CreateTempFile().GetPath(), server_path + "subdir/subdirfile.txt");
 
-            std::unique_ptr<std::vector<FileInfo>> pFiles(connection.getDirectoryListing(serverPath));
-            for (int i = 0; i < 5; ++i) {
-                CString expectedName;
-                expectedName.Format(_T("file%d"), i);
-                auto match = std::find_if(pFiles->begin(), pFiles->end(), [&expectedName](const FileInfo& i) {
-                    return i.getName() == expectedName;
-                });
-                Assert::IsFalse(match == pFiles->end(), expectedName + L" missing from directory listing");
-                Assert::IsTrue(match->getType() == FileInfo::FileType::File, expectedName + L" not file in directory listing");
-                Assert::AreEqual(data.GetLength(), (int) match->getSize());
-                Assert::AreEqual(serverPath, match->getDirectory());
+            const std::vector<FileInfo> directory_listing = connection.GetDirectoryListing(server_path, false);
+
+            for( int i = 0; i < 5; ++i )
+            {
+                const std::string expected_name = FormatText("file%d", i);
+                const auto& match = std::find_if(directory_listing.cbegin(), directory_listing.cend(),
+                                                 [&](const FileInfo& i) { return i.GetName() == expected_name; });
+                Assert::IsFalse(match == directory_listing.cend(), TC::ToWide(expected_name + " missing from directory listing").c_str());
+                Assert::IsTrue(match->GetType() == FileInfo::FileType::File, TC::ToWide(expected_name + " not file in directory listing").c_str());
+                Assert::AreEqual(int64_t(36), match->GetSize());
+                Assert::AreEqual(server_path, match->GetDirectory());
             }
 
-            auto match = std::find_if(pFiles->begin(), pFiles->end(), [](const FileInfo& i) {
-                return i.getName() == L"subdir";
-            });
-            Assert::IsFalse(match == pFiles->end(), L"subdir missing from directory listing");
-            Assert::IsTrue(match->getType() == FileInfo::FileType::Directory, L"subdir not directory in directory listing");
+            const auto& match = std::find_if(directory_listing.cbegin(), directory_listing.cend(),
+                                             [](const FileInfo& i) { return i.GetName() == "subdir"; });
+            Assert::IsFalse(match == directory_listing.cend(), L"subdir missing from directory listing");
+            Assert::IsTrue(match->GetType() == FileInfo::FileType::Directory, L"subdir not directory in directory listing");
 
-            connection.disconnect();
-
+            connection.Disconnect();
         }
+
 
         TEST_METHOD(TestFtps)
         {
             CurlFtpConnection connection;
+            connection.Connect(std::string_view("ftps://test.rebex.net"), LoginCredentials("demo", "password"));
 
-            connection.connect(L"ftps://test.rebex.net", L"demo", L"password");
-
-            std::unique_ptr<std::vector<FileInfo>> pFiles(connection.getDirectoryListing(L"/"));
+            const std::vector<FileInfo> directory_listing = connection.GetDirectoryListing("/", false);
 
             std::ostringstream oss;
-            connection.download(L"/readme.txt", oss);
-            auto s = oss.str();
+            connection.Download("/readme.txt", oss);
+            const std::string readme = oss.str();
 
-            connection.disconnect();
+            connection.Disconnect();
         }
+
 
         TEST_METHOD(TestFtpes)
         {
             CurlFtpConnection connection;
 
-            connection.connect(L"ftpes://test.rebex.net", L"demo", L"password");
+            connection.Connect(std::string_view("ftpes://test.rebex.net"), LoginCredentials("demo", "password"));
 
-            std::unique_ptr<std::vector<FileInfo>> pFiles(connection.getDirectoryListing(L"/"));
+            const std::vector<FileInfo> directory_listing = connection.GetDirectoryListing("/", false);
 
             std::ostringstream oss;
-            connection.download(L"/readme.txt", oss);
-            auto s = oss.str();
+            connection.Download("/readme.txt", oss);
+            const std::string readme = oss.str();
 
-            connection.disconnect();
+            connection.Disconnect();
         }
-
     };
 }

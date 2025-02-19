@@ -16,8 +16,8 @@ CDataSourceOptionsDlg::CDataSourceOptionsDlg(Application* pApplication, CWnd* pP
 {
     m_iAutomaticPartialSaveMinutes = pApplication->GetAutoPartialSaveMinutes();
     m_iAutomaticPartialSave = pApplication->GetAutoPartialSave() ? BST_CHECKED : BST_UNCHECKED;
-    m_csAutomaticPartialSaveMinutes = IntToString(pApplication->GetAutoPartialSave() ?
-        pApplication->GetAutoPartialSaveMinutes() : 5); // five minutes by default
+    m_csAutomaticPartialSaveMinutes = UTF8_TODO::GetCString(IntToString(pApplication->GetAutoPartialSave() ?
+        pApplication->GetAutoPartialSaveMinutes() : 5)); // five minutes by default
 
     m_iCreateListingFile = pApplication->GetCreateListingFile() ? BST_CHECKED : BST_UNCHECKED;
     m_iCreateLogFile = pApplication->GetCreateLogFile() ? BST_CHECKED : BST_UNCHECKED;

@@ -14,7 +14,7 @@ public:
 
     ApplicationProperties ReleaseApplicationProperties() { return std::move(m_applicationProperties); }
 
-    const std::wstring& GetApplicationPropertiesFilename() const;
+    const std::string& GetApplicationPropertiesFilePath() const;
 
     const LogicSettings& GetLogicSettings() const;
 
@@ -23,7 +23,7 @@ protected:
 
     void ResizeDlg(const CRect& new_page_rect) override;
 
-    void OnPageChange(CDialog* old_page, CDialog* new_page) override;
+    bool OnPageChange(CDialog* old_page, CDialog* new_page) override;
 
     void OnOK() override;
 

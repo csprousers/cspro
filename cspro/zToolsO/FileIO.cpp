@@ -1,63 +1,96 @@
 ﻿#include "StdAfx.h"
 #include "FileIO.h"
+#include "TextEncoding.h"
 #include "Utf8FileStream.h"
 #include <fstream>
 
 
-FileIO::Exception FileIO::Exception::DirectoryNotFound(const NullTerminatedString path)
+FileIO::Exception FileIO::Exception::DirectoryNotFound(const InterfaceString directory_path)
 {
-    ASSERT(!PortableFunctions::FileExists(path));
-    return Exception(_T("The directory does not exist: %s"), path.c_str());
+    ASSERT(!PortableFunctions::FileExists(directory_path));
+    return Exception("The directory does not exist: %s", directory_path.c_str_utf8());
 }
 
 
-FileIO::Exception FileIO::Exception::FileNotFound(const NullTerminatedString filename)
+FileIO::Exception FileIO::Exception::FileNotFound(const InterfaceString file_path)
 {
-    return Exception(_T("The file does not exist: %s"), filename.c_str());
+    return Exception("The file does not exist: %s", file_path.c_str_utf8());
 }
 
 
-FileIO::Exception FileIO::Exception::FileOpenError(const NullTerminatedString filename)
+FileIO::Exception FileIO::Exception::FileOpenError(const InterfaceString file_path)
 {
-    return Exception(_T("The file could not be opened: %s"), filename.c_str());
+    return Exception("The file could not be opened: %s", file_path.c_str_utf8());
 }
 
 
-FileIO::Exception FileIO::Exception::FileNotFullyWritten(const NullTerminatedString filename, const bool delete_file_from_disk)
+FileIO::Exception FileIO::Exception::FileCreateError(const InterfaceString file_path)
+{
+    return Exception("The file could not be created: %s", file_path.c_str_utf8());
+}
+
+
+FileIO::Exception FileIO::Exception::FileReadError(const InterfaceString file_path)
+{
+    return Exception("The file '%s' could not be fully read.",
+                     PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str());
+}
+
+
+FileIO::Exception FileIO::Exception::FileNotFullyWritten(const InterfaceString file_path, const bool delete_file_from_disk)
 {
     if( delete_file_from_disk )
-        PortableFunctions::FileDelete(filename);
+        PortableFunctions::FileDelete(file_path);
 
-    return Exception(_T("The file '%s' could not be fully written."), PortableFunctions::PathGetFilename(filename));
+    return Exception("The file '%s' could not be fully written.",
+                     PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str());
 }
 
 
-FileIO::Exception FileIO::Exception::FileCopyFail(const NullTerminatedString source_path, const NullTerminatedString destination_path)
+FileIO::Exception FileIO::Exception::FileCopyFail(const InterfaceString source_path, const InterfaceString destination_path)
 {
-    return Exception(_T("There was an error copying '%s' to: %s"), source_path.c_str(), destination_path.c_str());
+    return Exception("There was an error copying '%s' to: %s",
+                     source_path.c_str_utf8(), destination_path.c_str_utf8());
 }
 
 
-FileIO::Exception FileIO::Exception::FileCopyFailDestinationExists(const NullTerminatedString source_path, const NullTerminatedString destination_path)
+FileIO::Exception FileIO::Exception::FileCopyFailDestinationExists(const InterfaceString source_path, const InterfaceString destination_path)
 {
-    return Exception(_T("There was an error copying '%s' to '%s' because the destination file already exists."), source_path.c_str(), destination_path.c_str());
+    return Exception("There was an error copying '%s' to '%s' because the destination file already exists.",
+                     source_path.c_str_utf8(), destination_path.c_str_utf8());
 }
 
 
-inline FileIO::FileAndSize FileIO::OpenFile(NullTerminatedString filename)
+FileIO::Exception FileIO::Exception::FileMoveFail(const InterfaceString source_path, const InterfaceString destination_path)
 {
-    if( !PortableFunctions::FileIsRegular(filename) )
-        throw Exception::FileNotFound(filename);
+    return Exception("There was an error moving '%s' to: %s",
+                     source_path.c_str_utf8(), destination_path.c_str_utf8());
+}
 
-    const int64_t file_size = PortableFunctions::FileSize(filename);
+
+FileIO::Exception FileIO::Exception::FileDeleteFail(const InterfaceString file_path)
+{
+    return Exception("There was an error deleting '%s'", file_path.c_str_utf8());
+}
+
+
+FileIO::FileAndSize FileIO::OpenFile(const InterfaceString file_path)
+{
+    if( !PortableFunctions::FileIsRegular(file_path) )
+        throw Exception::FileNotFound(file_path);
+
+    const int64_t file_size = PortableFunctions::FileSize(file_path);
 
     if( file_size < 0 )
-        throw Exception(_T("The file '%s' has an invalid size."), PortableFunctions::PathGetFilename(filename));
+    {
+        throw Exception("The file '%s' has an invalid size.",
+                        PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str());
+    }
 
-    FILE* file = PortableFunctions::FileOpen(filename, _T("rb"));
+    FILE* const file = PortableFunctions::FileOpen(file_path, "rb");
 
     if( file == nullptr )
-        throw Exception::FileOpenError(filename);
+        throw Exception::FileOpenError(file_path);
 
     return FileAndSize { file, file_size };
 }
@@ -66,27 +99,27 @@ inline FileIO::FileAndSize FileIO::OpenFile(NullTerminatedString filename)
 namespace
 {
     template<typename GDSC>
-    void ReadWorker(NullTerminatedString filename, GDSC get_data_and_size_callback)
+    void ReadWorker(const InterfaceString file_path, const GDSC& get_data_and_size_callback)
     {
-        FileIO::FileAndSize file_and_size = FileIO::OpenFile(filename);
+        FileIO::FileAndSize file_and_size = FileIO::OpenFile(file_path);
 
         void* data = get_data_and_size_callback(file_and_size.size);
 
-        bool read_success = ( fread(data, 1, static_cast<size_t>(file_and_size.size), file_and_size.file) == file_and_size.size );
+        const bool read_success = ( fread(data, 1, static_cast<size_t>(file_and_size.size), file_and_size.file) == file_and_size.size );
 
         fclose(file_and_size.file);
 
         if( !read_success )
-            throw FileIO::Exception(_T("The file '%s' could not be fully read."), PortableFunctions::PathGetFilename(filename));
+            throw FileIO::Exception::FileReadError(file_path);
     }
 }
 
 
-std::unique_ptr<std::vector<std::byte>> FileIO::Read(NullTerminatedString filename)
+std::unique_ptr<std::vector<std::byte>> FileIO::Read(InterfaceString file_path)
 {
     std::unique_ptr<std::vector<std::byte>> file_content;
 
-    ReadWorker(filename,
+    ReadWorker(std::move(file_path),
         [&](int64_t& file_size)
         {
             file_content = std::make_unique<std::vector<std::byte>>(static_cast<size_t>(file_size));
@@ -97,58 +130,65 @@ std::unique_ptr<std::vector<std::byte>> FileIO::Read(NullTerminatedString filena
 }
 
 
-template<>
-CLASS_DECL_ZTOOLSO std::string FileIO::ReadText(NullTerminatedString filename)
+BinaryBlock FileIO::ReadBinary(InterfaceString file_path)
+{
+    std::optional<BinaryBlock> file_content;
+
+    ReadWorker(std::move(file_path),
+        [&](int64_t& file_size)
+        {
+            file_content.emplace(static_cast<size_t>(file_size));
+            return file_content->data();
+        });
+
+    return std::move(*file_content);
+}
+
+
+std::string FileIO::ReadText(InterfaceString file_path, TextEncoding text_encoding/* = TextEncoding::Type::Utf8*/)
 {
     std::string text;
 
-    ReadWorker(filename,
+    ReadWorker(std::move(file_path),
         [&](int64_t& file_size)
         {
             text.resize(static_cast<size_t>(file_size));
             return text.data();
         });
 
-    if( HasUtf8BOM(text.data(), text.size()) )
-        return text.substr(Utf8BOM_sv.length());
+    // process a potential BOM
+    text_encoding.UpdateEncoding(text);
 
-    return text;
-}
-
-
-template<>
-CLASS_DECL_ZTOOLSO std::wstring FileIO::ReadText(NullTerminatedString filename)
-{
-    std::unique_ptr<char[]> buffer;
-    size_t buffer_size;
-
-    ReadWorker(filename,
-        [&](int64_t& file_size)
-        {
-            buffer_size = static_cast<size_t>(file_size);
-            buffer = std::make_unique<char[]>(buffer_size);
-            return buffer.get();
-        });
-
-    const char* buffer_start = buffer.get();
-
-    if( HasUtf8BOM(buffer_start, buffer_size) )
+    // if UTF-8 without a BOM, we can return the text directly
+    if( text_encoding.GetType() == TextEncoding::Type::Utf8 )
     {
-        buffer_start += Utf8BOM_sv.length();
-        buffer_size -= Utf8BOM_sv.length();
+        return text;
     }
 
-    return UTF8Convert::UTF8ToWide(buffer_start, buffer_size);
+    // if UTF-8 with a BOM, we can remove the BOM and then return the text directly
+    else if( text_encoding.GetType() == TextEncoding::Type::Utf8Bom )
+    {
+        ASSERT81(SO::StartsWith(text, TextEncoding::Utf8Bom_sv));
+        return text.erase(0, TextEncoding::Utf8Bom_sv.length());
+    }
+
+    // otherwise we have to potentially remove the BOM and then convert the text
+    else
+    {
+        const std::unique_ptr<TextEncoding::Converter> text_converter = text_encoding.CreateConverter();
+        ASSERT(text_converter != nullptr);    
+
+        return text_converter->ToUtf8(std::string_view(text).substr(text_encoding.GetBomLength()));
+    }
 }
 
 
-CString FileIO::ReadText(NullTerminatedString filename, int64_t max_bytes_to_read, const TCHAR* message/* = nullptr*/)
+std::string FileIO::ReadText(InterfaceString file_path, const int64_t max_bytes_to_read, const char* const message/* = nullptr*/)
 {
     bool file_is_larger_than_max_bytes;
-    std::unique_ptr<char[]> buffer;
-    size_t buffer_size;
+    std::string text;
 
-    ReadWorker(filename,
+    ReadWorker(std::move(file_path),
         [&](int64_t& file_size)
         {
             file_is_larger_than_max_bytes = ( file_size > max_bytes_to_read );
@@ -156,113 +196,118 @@ CString FileIO::ReadText(NullTerminatedString filename, int64_t max_bytes_to_rea
             if( file_is_larger_than_max_bytes )
                 file_size = max_bytes_to_read;
 
-            buffer_size = static_cast<size_t>(file_size);
-            buffer = std::make_unique<char[]>(buffer_size);
-            return buffer.get();
+            text.resize(static_cast<size_t>(file_size), '\0');
+
+            return text.data();
         });
 
-    const char* buffer_start = buffer.get();
-
-    if( HasUtf8BOM(buffer_start, buffer_size) )
-    {
-        buffer_start += Utf8BOM_sv.length();
-        buffer_size -= Utf8BOM_sv.length();
-    }
-
-    // make sure that the data doesn't end in the middle of a UTF-8 sequence (if the whole file wasn't read in)
-    if( file_is_larger_than_max_bytes && buffer_size > 0 )
-    {
-        const char* buffer_end_itr = buffer_start + buffer_size;
-
-        if( ( *( buffer_end_itr - 1 ) & 0x80 ) == 0x80 )
-        {
-            do
-            {
-                --buffer_size;
-                --buffer_end_itr;
-
-            } while( buffer_size > 0 && ( *buffer_end_itr & 0xC0 ) != 0xC0 );
-        }
-    }
-
-    CString text = UTF8Convert::UTF8ToWide<CString>(buffer_start, buffer_size);
+    // potentially remove the BOM
+    if( SO::StartsWith(text, TextEncoding::Utf8Bom_sv) )
+        text.erase(0, TextEncoding::Utf8Bom_sv.length());
 
     if( file_is_larger_than_max_bytes )
-        text.Append(message);
+    {
+        // make sure that the text doesn't end in the middle of a UTF-8 sequence (if the whole file wasn't read in)
+        TC::EnsureValidEndingUtf8Sequence(text);
+
+        // add a custom message
+        if( message != nullptr )
+            text.append(message);
+    }
 
     return text;
 }
 
 
-std::unique_ptr<std::wistream> FileIO::OpenWideTextInputFileStream(NullTerminatedString filename)
+std::unique_ptr<std::wistream> FileIO::OpenWideTextInputFileStream(InterfaceString file_path)
 {
-    return std::make_unique<Utf8InputFileStream>(filename);
+    return std::make_unique<Utf8InputFileStream>(std::move(file_path));
 }
 
 
-std::unique_ptr<std::ifstream> FileIO::OpenTextInputFileStream(NullTerminatedString filename)
+std::unique_ptr<std::ifstream> FileIO::OpenTextInputFileStream(const InterfaceString file_path, std::streampos* const file_size/* = nullptr*/)
 {
-    if( !PortableFunctions::FileIsRegular(filename) )
-        throw Exception::FileNotFound(filename);
+    if( !PortableFunctions::FileIsRegular(file_path) )
+        throw Exception::FileNotFound(file_path);
 
     auto stream = std::make_unique<std::ifstream>();
 
-    stream->open(filename.c_str(), std::ifstream::in);
+    stream->open(file_path.GetString<std::wstring>().c_str(), std::ifstream::in);
 
     if( !stream )
-        throw Exception::FileOpenError(filename);
+        throw Exception::FileOpenError(file_path);
 
     // potentially skip past the BOM
-    char bom[Utf8BOM_sv.length()];
-    stream->read(bom, Utf8BOM_sv.length());
+    char bom[TextEncoding::Utf8Bom_sv.length()];
+    stream->read(bom, TextEncoding::Utf8Bom_sv.length());
 
-    if( !HasUtf8BOM(bom, static_cast<size_t>(stream->gcount())) )
-        stream->seekg(0, std::ios::beg);
+    const TextEncoding text_encoding(bom, static_cast<size_t>(stream->gcount()));
+    bool need_to_reset_stream;
+
+    if( file_size != nullptr )
+    {
+        stream->seekg(0, std::ios::end);
+        *file_size = stream->tellg();
+
+        need_to_reset_stream = true;
+    }
+
+    else
+    {
+        need_to_reset_stream = ( text_encoding.GetType() != TextEncoding::Type::Utf8Bom );
+    }
+
+    if( need_to_reset_stream )
+    {
+        const size_t reset_stream_pos = ( text_encoding.GetType() == TextEncoding::Type::Utf8Bom ) ? TextEncoding::GetBomLength(TextEncoding::Type::Utf8Bom) :
+                                                                                                     0;
+        stream->seekg(reset_stream_pos, std::ios::beg);
+    }
 
     return stream;
 }
 
 
-void FileIO::CreateDirectories(const std::wstring& directory)
+void FileIO::CreateDirectories(const InterfaceString directory_path)
 {
-    if( !PortableFunctions::PathMakeDirectories(directory) )
-        throw Exception(_T("The directory '%s' could not be created."), directory.c_str());
+    if( !PortableFunctions::PathMakeDirectories(directory_path) )
+        throw Exception("The directory '%s' could not be created.", directory_path.c_str_utf8());
 }
 
 
-void FileIO::CreateDirectoriesForFile(NullTerminatedString filename)
+void FileIO::CreateDirectoriesForFile(const InterfaceString file_path)
 {
-    const std::wstring directory = PortableFunctions::PathGetDirectory(filename);
+    const std::string directory_path = PortableFunctions::PathGetDirectory(file_path.GetString<std::string>());
 
-    if( !PortableFunctions::PathMakeDirectories(directory) )
+    if( !PortableFunctions::PathMakeDirectories(directory_path) )
     {
-        throw Exception(_T("The directory '%s' could not be created to create '%s'."),
-                        directory.c_str(), PortableFunctions::PathGetFilename(filename));
+        throw Exception("The directory '%s' could not be created to create '%s'.",
+                        directory_path.c_str(), PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str());
     }
 }
 
 
-std::unique_ptr<std::ofstream> FileIO::OpenOutputFileStream(NullTerminatedString filename)
+std::unique_ptr<std::ofstream> FileIO::OpenOutputFileStream(const InterfaceString file_path)
 {
-    CreateDirectoriesForFile(filename);
+    CreateDirectoriesForFile(file_path);
 
-    auto file_stream = std::make_unique<std::ofstream>(filename.c_str(), std::ios::out | std::ios::binary);
+    auto file_stream = std::make_unique<std::ofstream>(file_path.GetString<std::wstring>().c_str(), std::ios::out | std::ios::binary);
 
     if( file_stream->fail() )
-        throw Exception(_T("The file '%s' could not be created."), PortableFunctions::PathGetFilename(filename));
+        throw Exception::FileCreateError(file_path);
 
     return file_stream;
 }
 
 
-FILE* FileIO::OpenFileForOutput(NullTerminatedString filename)
+FILE* FileIO::OpenFileForOutput(const InterfaceString file_path)
 {
-    CreateDirectoriesForFile(filename);
+    CreateDirectoriesForFile(file_path);
 
-    FILE* file = PortableFunctions::FileOpen(filename, _T("wb"));
+    FILE* const file = PortableFunctions::FileOpen(file_path, "wb");
 
     if( file == nullptr )
-        throw Exception(_T("The file '%s' could not be created."), PortableFunctions::PathGetFilename(filename));
+        throw Exception::FileCreateError(file_path);
 
     return file;
 }
@@ -271,42 +316,36 @@ FILE* FileIO::OpenFileForOutput(NullTerminatedString filename)
 namespace
 {
     template<typename WC>
-    void WriteWorker(NullTerminatedString filename, WC write_callback)
+    void WriteWorker(const InterfaceString file_path, const WC& write_callback)
     {
-        FILE* file = FileIO::OpenFileForOutput(filename);
+        FILE* const file = FileIO::OpenFileForOutput(file_path);
 
         const bool write_success = write_callback(file);
 
         fclose(file);
 
         if( !write_success )
-            throw FileIO::Exception::FileNotFullyWritten(filename, true);
+            throw FileIO::Exception::FileNotFullyWritten(file_path, true);
     }
 }
 
 
-void FileIO::Write(NullTerminatedString filename, const std::byte* content, size_t content_size)
+void FileIO::Write(InterfaceString file_path, const std::byte* const content, const size_t content_size)
 {
-    WriteWorker(filename,
-        [&](FILE* file)
+    WriteWorker(std::move(file_path),
+        [&](FILE* const file)
         {
             return ( fwrite(content, 1, content_size, file) == content_size );
         });
 }
 
 
-void FileIO::WriteText(NullTerminatedString filename, std::string_view text_content, bool write_utf8_bom)
+void FileIO::WriteText(InterfaceString file_path, const std::string_view text_content_sv, const bool write_utf8_bom)
 {
-    WriteWorker(filename,
-        [&](FILE* file)
+    WriteWorker(std::move(file_path),
+        [&](FILE* const file)
         {
-            return ( ( !write_utf8_bom || fwrite(Utf8BOM_sv.data(), 1, Utf8BOM_sv.length(), file) == Utf8BOM_sv.length() ) &&
-                     ( fwrite(text_content.data(), 1, text_content.size(), file) == text_content.size() ) );
+            return ( ( !write_utf8_bom || fwrite(TextEncoding::Utf8Bom_sv.data(), 1, TextEncoding::Utf8Bom_sv.length(), file) == TextEncoding::Utf8Bom_sv.length() ) &&
+                     ( fwrite(text_content_sv.data(), 1, text_content_sv.size(), file) == text_content_sv.size() ) );
         });
-}
-
-
-void FileIO::WriteText(NullTerminatedString filename, wstring_view text_content, bool write_utf8_bom)
-{
-    WriteText(filename, UTF8Convert::WideToUTF8(text_content), write_utf8_bom);
 }

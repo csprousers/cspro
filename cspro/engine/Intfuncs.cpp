@@ -12,10 +12,10 @@
 #include "StandardSystemIncludes.h"
 #include "INTERPRE.H"
 #include "Engine.h"
-#include "SelectDlgHelper.h"
 #include "VariableWorker.h"
 #include <zEngineO/AllSymbols.h>
-#include <zEngineO/Versioning.h>
+#include <zEngineO/Interpreter/SelectDlgHelper.h>
+#include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/File.h>
 #include <zEngineO/Nodes/Switch.h>
 #include <zEngineO/Nodes/Trace.h>
@@ -25,12 +25,11 @@
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextEncoding.h>
 #include <zToolsO/Tools.h>
-#include <zToolsO/Utf8Convert.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/PortableFileSystem.h>
-#include <zUtilO/Randomizer.h>
 #include <zUtilO/TraceMsg.h>
 #include <zMessageO/MessageFile.h>
 #include <zDictO/ValueProcessor.h>
@@ -46,10 +45,6 @@
 #include <zParadataO/Logger.h>
 #include <zEngineO/EngineCaseConstructionReporter.h>
 #include <CSEntry/UWM.h>
-
-#ifdef WIN_DESKTOP
-#include <Wininet.h>
-#endif
 
 
 #ifdef WIN_DESKTOP
@@ -212,14 +207,14 @@ double CIntDriver::excount( int icount ) {
 
                 iSymGroup = pVarT->GetParentGroup();
                 pGroupT   = GPT(iSymGroup);
-                RTRACE( _T("Counting VAR: [%d, %s]\n"), -iSym, pVarT->GetName().c_str() );
+                RTRACE("Counting VAR: [%d, %s]\n", -iSym, pVarT->GetName().c_str());
             }
             else
             {
                 // could be considered directly as a group
                 iSymGroup = iSym;
                 pGroupT   = GPT(iSymGroup);
-                RTRACE( _T("Counting GROUP (VAR was specified in program) [%d,%s]\n"), iSym, pGroupT->GetName().c_str() );
+                RTRACE("Counting GROUP (VAR was specified in program) [%d,%s]\n", iSym, pGroupT->GetName().c_str());
             }
             iLimit = GetTrueGroupOccs( iSymGroup );
             m_iExDim  = pGroupT->GetNumDim()-1;
@@ -248,7 +243,7 @@ double CIntDriver::excount( int icount ) {
                 dValueX = evalexpr( pcount->fn_exp ); // RHF Apr 23, 2002
                 RTRACE( _T("  [m_iExOccur:%d] - %d\n"), m_iExOccur, (int) dValueX );
             }
-            if( pcount->fn_exp < 0 || ConditionalValueIsTrue( dValueX ) ) { // RHF Apr 23, 2002 Fix bug in count where ff()
+            if( pcount->fn_exp < 0 || IsTrue( dValueX ) ) { // RHF Apr 23, 2002 Fix bug in count where ff()
                 iCount++;
                 RTRACE( _T("  [m_iExOccur:%d] - count++ %d %s\n"),
                     m_iExOccur, iCount, pcount->fn_exp < 0 ? _T("*") : _T("") );
@@ -317,7 +312,7 @@ double CIntDriver::exsum( int isum ) {
         //       >= 0: 'where' expression has to be evaluated
 
         if( psum->fn_exp >= 0 ) dValueX = evalexpr( psum->fn_exp );// RHF Apr 23, 2002
-        if( psum->fn_exp < 0 || ConditionalValueIsTrue( dValueX ) ) {
+        if( psum->fn_exp < 0 || IsTrue( dValueX ) ) {
 
             SPECIFY_LAST_DIMENSION( pMVAR );
 
@@ -349,7 +344,7 @@ double CIntDriver::exmin( int imin ) {              // rebuilt      // victor Ju
         //       >= 0: 'where' expression has to be evaluated
 
         if( pmin->fn_exp >= 0 ) dValueX = evalexpr( pmin->fn_exp ); // RHF Apr 23, 2002
-        if( pmin->fn_exp < 0 || ConditionalValueIsTrue( dValueX ) ) {
+        if( pmin->fn_exp < 0 || IsTrue( dValueX ) ) {
 
             SPECIFY_LAST_DIMENSION( pMVAR );
             double  dValue = exmvar( pMVAR ); // mvarvalue( pVarX, (double) m_iExOccur );
@@ -379,7 +374,7 @@ double CIntDriver::exmax( int imax ) {              // rebuilt      // victor Ju
         //       >= 0: 'where' expression has to be evaluated
 
         if( pmax->fn_exp >= 0 ) dValueX = evalexpr( pmax->fn_exp );// RHF Apr 23, 2002
-        if( pmax->fn_exp < 0 || ConditionalValueIsTrue( dValueX ) ) {
+        if( pmax->fn_exp < 0 || IsTrue( dValueX ) ) {
 
             SPECIFY_LAST_DIMENSION( pMVAR );
             double  dValue = exmvar( pMVAR ); // mvarvalue( pVarX, (double) m_iExOccur );
@@ -415,7 +410,7 @@ double CIntDriver::exavrge( int iavrge ) {          // rebuilt      // victor Ju
         //       >= 0: 'where' expression has to be evaluated
 
         if( pavrge->fn_exp >= 0 ) dValueX = evalexpr( pavrge->fn_exp ); // RHF Apr 23, 2002
-        if( pavrge->fn_exp < 0 || ConditionalValueIsTrue( dValueX ) ) {
+        if( pavrge->fn_exp < 0 || IsTrue( dValueX ) ) {
 
             SPECIFY_LAST_DIMENSION( pMVAR );
             double  dValue = exmvar(pMVAR); // mvarvalue( pVarX, (double) m_iExOccur );
@@ -470,7 +465,7 @@ double CIntDriver::exseek(int iseek) // 20100602
 
     for( ; m_iExOccur <= iLimit; m_iExOccur++ )
     {
-        if( ConditionalValueIsTrue(evalexpr(pSeek->fn_exp)) )
+        if( EvaluateConditional(pSeek->fn_exp) )
         {
             if( --desiredCase == 0 )
             {
@@ -516,7 +511,7 @@ double CIntDriver::exseekMinMax(int iseek) // 20130119
 
     for( ; m_iExOccur <= iLimit; m_iExOccur++ )
     {
-        if( ConditionalValueIsTrue(evalexpr(pSeek->fn_exp)) )
+        if( EvaluateConditional(pSeek->fn_exp) )
         {
             SPECIFY_LAST_DIMENSION(pMVAR);
             double thisVal = exmvar(pMVAR);
@@ -656,156 +651,6 @@ int CIntDriver::GetTrueGroupOccs( int iSymGroup, bool use_rules_for_binary_dict_
 }
 
 
-double CIntDriver::exseed(int iExpr)
-{
-    const auto& function_node = GetNode<FNN_NODE>(iExpr);
-    double seed_value = evalexpr(function_node.fn_expr[0]);
-
-    if( IsSpecial(seed_value) )
-        return 0;
-
-    Randomizer::Seed((uint32_t)seed_value);
-
-    return 1;
-}
-
-double CIntDriver::exrandom(int iExpr)
-{
-    const auto& function_node = GetNode<FNN_NODE>(iExpr);
-    double low_value = evalexpr(function_node.fn_expr[0]);
-    double high_value = evalexpr(function_node.fn_expr[1]);
-
-    if( low_value > high_value || IsSpecial(low_value) || IsSpecial(high_value) )
-        return DEFAULT;
-
-    int64_t int_low_value = (int64_t)low_value;
-    int64_t difference = (int64_t)high_value - int_low_value;
-
-    if( difference != 0 )
-        int_low_value += (int64_t)( Randomizer::Next() * ( difference + 1 ) );
-
-    return (double)int_low_value;
-}
-
-
-double CIntDriver::exrandomin(int iExpr)
-{
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    const Nodes::In::Entry* in_node_entry = &GetNode<Nodes::In::Entry>(fnn_node.fn_expr[0]);
-
-    struct RandomInRange
-    {
-        RandomInRange(double low_value_)
-            :   low_value(low_value_),
-                values_in_range(1)
-        {
-        }
-
-        RandomInRange(int low_value_, int high_value_)
-            :   low_value(low_value_),
-                values_in_range(high_value_ - low_value_ + 1)
-        {
-        }
-
-        double low_value;
-        int values_in_range;
-    };
-
-    std::vector<RandomInRange> ranges;
-    int total_number_values = 0;
-
-    while( in_node_entry != nullptr )
-    {
-        // using a list or a value set
-        if( in_node_entry->expression_low < 0 )
-        {
-            const Symbol& symbol = NPT_Ref(-1 * in_node_entry->expression_low);
-
-            if( symbol.IsA(SymbolType::List) )
-            {
-                const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-                const size_t list_count = logic_list.GetCount();
-
-                for( size_t i = 1; i <= list_count; ++i )
-                {
-                    ranges.emplace_back(logic_list.GetValue(i));
-                    ++total_number_values;
-                }
-            }
-
-            else
-            {
-                const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
-
-                value_set.ForeachValue(
-                    [&](const ValueSet::ForeachValueInfo& /*info*/, double low_value, const std::optional<double>& high_value)
-                    {
-                        if( !IsSpecial(low_value) )
-                        {
-                            if( !high_value.has_value() )
-                            {
-                                ranges.emplace_back(low_value);
-                                ++total_number_values;
-                            }
-
-                            else if( !IsSpecial(*high_value) )
-                            {
-                                ASSERT(low_value <= *high_value);
-                                ranges.emplace_back(static_cast<int>(low_value), static_cast<int>(*high_value));
-                                total_number_values += ranges.back().values_in_range;
-                            }
-                        }
-                    });
-            }
-        }
-
-        // or a range
-        else
-        {
-            const double low_value = evalexpr(in_node_entry->expression_low);
-
-            if( in_node_entry->expression_high < 0 )
-            {
-                ranges.emplace_back(low_value);
-                ++total_number_values;
-            }
-
-            else
-            {
-                const double high_value = evalexpr(in_node_entry->expression_high);
-
-                if( low_value <= high_value && !IsSpecial(high_value) )
-                {
-                    ranges.emplace_back(static_cast<int>(low_value), static_cast<int>(high_value));
-                    total_number_values += ranges.back().values_in_range;
-                }
-            }
-        }
-
-        in_node_entry = ( in_node_entry->next_entry_index != -1 ) ? &GetNode<Nodes::In::Entry>(in_node_entry->next_entry_index) :
-                                                                    nullptr;
-    }
-
-    // get a random value within the ranges
-    if( !ranges.empty() )
-    {
-        const int random_index = 1 + static_cast<int>(Randomizer::Next() * total_number_values);
-        int number_values_passed_through = 0;
-
-        // now find where the index is
-        for( const RandomInRange& range : ranges )
-        {
-            if( ( number_values_passed_through + range.values_in_range ) >= random_index )
-                return range.low_value - 1 + ( random_index - number_values_passed_through );
-
-            number_values_passed_through += range.values_in_range;
-        }
-    }
-
-    return DEFAULT;
-}
-
-
 double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 {
     const DECK_ARRAY_NODE* deck_array_node = (DECK_ARRAY_NODE*)PPT(iExpr);
@@ -822,7 +667,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
         // if the dimension isn't based on a value set, then the index must be supplied
         if( deck_array_symbols[i] == 0 )
         {
-            index = evalexpr<int>(deck_array_node->index_expressions[i]);
+            index = Evaluate<int>(deck_array_node->index_expressions[i]);
         }
 
         else
@@ -966,7 +811,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
     else // putdeck
     {
         // update the main cell
-        double putdeck_value = evalexpr(deck_array_node->putdeck_value_expression);
+        const double putdeck_value = Evaluate(deck_array_node->putdeck_value_expression);
         logic_array.SetValue(indices, putdeck_value);
 
         // potentially update the spillover rows
@@ -1077,7 +922,7 @@ double CIntDriver::exhighlight(int iExpr)
 
         if( pFun->occ_exp >= 0 )
         {
-            iOccur = evalexpr<int>(pFun->occ_exp);
+            iOccur = Evaluate<int>(pFun->occ_exp);
 
             if( iOccur < 1 || iOccur > pVarT->GetFullNumOccs(true) )
                 return 0;
@@ -1514,12 +1359,12 @@ double CIntDriver::exsavepartial(int iExpr)
 }
 
 
-double CIntDriver::exsetfile(int program_index)
+double CIntDriver::ex_setfile(const int program_index)
 {
     const auto& setfile_node = GetNode<Nodes::SetFile>(program_index);
     Symbol& symbol = NPT_Ref(setfile_node.symbol_index);
     bool create = ( setfile_node.mode == Nodes::SetFile::Mode::Create );
-    bool append = ( setfile_node.mode == Nodes::SetFile::Mode::Append );
+    const bool append = ( setfile_node.mode == Nodes::SetFile::Mode::Append );
 
     if( symbol.IsA(SymbolType::File) )
     {
@@ -1528,10 +1373,10 @@ double CIntDriver::exsetfile(int program_index)
         // close any existing file
         logic_file.Close();
 
-        std::wstring filename = EvalFullPathFileName(setfile_node.filename_expression);
+        std::string file_path = EvaluatePath(setfile_node.filename_expression);
 
         // create the directory if necessary
-        if( ( create || append ) && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(filename)) )
+        if( ( create || append ) && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(file_path)) )
             return 0;
 
         bool truncate = true;
@@ -1542,9 +1387,9 @@ double CIntDriver::exsetfile(int program_index)
             truncate = false;
         }
 
-        logic_file.SetFilename(std::move(filename));
+        logic_file.SetFilePath(std::move(file_path));
 
-        if( !logic_file.GetFilename().empty() )
+        if( !logic_file.GetFilePath().empty() )
         {
             if( logic_file.Open(create, append, truncate) )
                 return 1;
@@ -1553,18 +1398,14 @@ double CIntDriver::exsetfile(int program_index)
 
     else if( symbol.IsA(SymbolType::Dictionary) )
     {
-        ConnectionString connection_string(EvalAlphaExpr(setfile_node.filename_expression));
-        MakeFullPathFileName(connection_string);
-
-        return exsetfile_dictionary(assert_cast<EngineDictionary&>(symbol), connection_string, create, append);
+        const ConnectionString connection_string = EvaluateConnectionString(setfile_node.filename_expression);
+        return ex_setfile_dictionary(assert_cast<EngineDictionary&>(symbol), connection_string, create, append);
     }
 
     else if( symbol.IsA(SymbolType::Pre80Dictionary) )
     {
-        ConnectionString connection_string(EvalAlphaExpr(setfile_node.filename_expression));
-        MakeFullPathFileName(connection_string);
-
-        return exsetfile_dictionary(assert_cast<DICT*>(&symbol), connection_string, create, append);
+        const ConnectionString connection_string = EvaluateConnectionString(setfile_node.filename_expression);
+        return ex_setfile_dictionary(assert_cast<DICT*>(&symbol), connection_string, create, append);
     }
 
     else
@@ -1584,20 +1425,14 @@ void CIntDriver::MakeFullPathFileName(T& filename) const
         filename = WS2CS(MakeFullPath(GetWorkingFolder(m_pEngineDriver->m_pPifFile->GetAppFName()), SO::TrimRight(filename)));
     }
 
-    else
+    else if constexpr(std::is_same_v<T, std::wstring>)
     {
         filename = MakeFullPath(GetWorkingFolder(m_pEngineDriver->m_pPifFile->GetAppFName()), SO::TrimRight(filename));
     }
 }
 
-template void CIntDriver::MakeFullPathFileName(std::wstring& filename) const;
 template void CIntDriver::MakeFullPathFileName(CString& filename) const;
-
-
-void CIntDriver::MakeFullPathFileName(ConnectionString& connection_string) const
-{
-    connection_string.AdjustRelativePath(GetWorkingFolder(m_pEngineDriver->m_pPifFile->GetAppFName()));
-}
+template void CIntDriver::MakeFullPathFileName(std::wstring& filename) const;
 
 
 std::wstring CIntDriver::EvalFullPathFileName(int iExpr)
@@ -1620,7 +1455,7 @@ std::optional<std::wstring> CIntDriver::ExGetFileName(int iFileOrAlphaExpr)
     else
     {
         const LogicFile& logic_file = GetSymbolLogicFile(-iFileOrAlphaExpr);
-        filename = logic_file.GetFilename();
+        filename = UTF8_TODO::GetWide(logic_file.GetFilePath());
     }
 
     MakeFullPathFileName(filename);
@@ -1647,16 +1482,16 @@ std::vector<std::wstring> CIntDriver::ExGetFileNames(int iExpr)
 
         if( symbol.IsA(SymbolType::File) )
         {
-            filenames.emplace_back(assert_cast<const LogicFile&>(symbol).GetFilename());
+            filenames.emplace_back(UTF8_TODO::GetWide(assert_cast<const LogicFile&>(symbol).GetFilePath()));
         }
 
         else
         {
             const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-            size_t list_count = logic_list.GetCount();
+            const size_t list_count = logic_list.GetCount();
 
             for( size_t i = 1; i <= list_count; i++ )
-                filenames.emplace_back(logic_list.GetString(i));
+                filenames.emplace_back(UTF8_TODO::GetWide(*logic_list.GetValue<SharableString>(i)));
         }
     }
 
@@ -1689,7 +1524,7 @@ double CIntDriver::exfilecreate(int iExpr)
     {
         try
         {
-            FileIO::WriteText(*filename, _T(""), true);
+            FileIO::WriteText(*filename, std::string_view(), true);
             return 1;
         }
 
@@ -1708,7 +1543,7 @@ double CIntDriver::exfileexist(int iExpr)
     std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
 
     return ( filename.has_value() &&
-             !DirectoryLister::GetFilenamesWithPossibleWildcard(*filename, false).empty() ) ? 1 : 0;
+             !DirectoryLister::GetFilePathsWithPossibleWildcard(UTF8_TODO::GetUtf8(*filename), false).empty() ) ? 1 : 0;
 }
 
 
@@ -1741,17 +1576,17 @@ double CIntDriver::exfiledelete(int iExpr)
 
 
 template<typename CF>
-double CIntDriver::ExFileCopyRenameProcessor(const int program_index, CF callback_function)
+double CIntDriver::ExFileCopyRenameProcessor(const int program_index, const CF callback_function)
 {
     const auto& file_node = GetNode<Nodes::File>(program_index);
     const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
 
-    const std::optional<std::wstring> output_path = ExGetFileName(elements_list.elements[0]);
+    const std::optional<std::string> output_path = UTF8_TODO::GetOptionalUtf8(ExGetFileName(elements_list.elements[0]));
 
     if( !output_path.has_value() )
         return DEFAULT;
 
-    if( PathHasWildcardCharacters(*output_path) )
+    if( Path::HasWildcardCharacters(*output_path) )
     {
         issaerror(MessageType::Error, 33056);
         return DEFAULT;
@@ -1759,13 +1594,13 @@ double CIntDriver::ExFileCopyRenameProcessor(const int program_index, CF callbac
 
     const bool output_is_folder = PortableFunctions::FileIsDirectory(*output_path);
 
-    std::vector<std::wstring> input_filenames;
+    std::vector<std::string> input_file_paths;
 
-    for( const std::wstring& input_filename : ExGetFileNames(file_node.symbol_index_or_string_expression) )
+    for( const std::string& input_file_path : UTF8_TODO::GetUtf8(ExGetFileNames(file_node.symbol_index_or_string_expression)) )
     {
-        DirectoryLister::AddFilenamesWithPossibleWildcard(input_filenames, input_filename, true);
+        DirectoryLister::AddFilePathsWithPossibleWildcard(input_file_paths, input_file_path, true);
 
-        if( !output_is_folder && PathHasWildcardCharacters(input_filename) )
+        if( !output_is_folder && Path::HasWildcardCharacters(input_file_path) )
         {
             // if a wildcard is used in the Input, then the Output must be an existent folder
             issaerror(MessageType::Error, 33057, output_path->c_str());
@@ -1775,29 +1610,28 @@ double CIntDriver::ExFileCopyRenameProcessor(const int program_index, CF callbac
 
     size_t files_processed = 0;
 
-    for( const std::wstring& input_filename : input_filenames )
+    for( const std::string& input_file_path : input_file_paths )
     {
-        const std::wstring output_filename =
-            !output_is_folder ? *output_path :
-                                PortableFunctions::PathAppendToPath(*output_path, PortableFunctions::PathGetFilename(input_filename));
+        const std::string output_file_path = !output_is_folder ? *output_path :
+                                                                 Path::Combine(*output_path, PortableFunctions::PathGetFilename(input_file_path));
 
-        if( callback_function(input_filename, output_filename) )
+        if( callback_function(input_file_path, output_file_path) )
             ++files_processed;
     }
 
-    return ( files_processed == input_filenames.size() ) ? files_processed :
-                                                           DEFAULT;
+    return ( files_processed == input_file_paths.size() ) ? files_processed :
+                                                            DEFAULT;
 }
 
 
-double CIntDriver::exfilecopy(const int program_index)
+double CIntDriver::ex_filecopy(const int program_index)
 {
     return ExFileCopyRenameProcessor(program_index,
-        [](const NullTerminatedString input_filename, const NullTerminatedString output_filename)
+        [](const std::string& input_file_path, const std::string& output_file_path)
         {
             try
             {
-                PortableFileSystem::FileCopy(input_filename, output_filename, true);
+                PortableFileSystem::FileCopy(input_file_path, output_file_path, FileOverwriteFlag::Different);
                 return true;
             }
 
@@ -1809,12 +1643,12 @@ double CIntDriver::exfilecopy(const int program_index)
 }
 
 
-double CIntDriver::exfilerename(int iExpr)
+double CIntDriver::ex_filerename(const int program_index)
 {
-    return ExFileCopyRenameProcessor(iExpr,
-        [](NullTerminatedString input_filename, NullTerminatedString output_filename)
+    return ExFileCopyRenameProcessor(program_index,
+        [](const std::string& input_file_path, const std::string& output_file_path)
         {
-            return PortableFunctions::FileRename(input_filename, output_filename);
+            return PortableFunctions::FileRename(input_file_path, output_file_path);
         });
 }
 
@@ -1850,17 +1684,17 @@ double CIntDriver::exfileempty(int iExpr)
                 return 1;
             }
 
-            else if( file.GetLength() == Utf8BOM_sv.length() )
+            else if( file.GetLength() == TextEncoding::Utf8Bom_sv.length() )
             {
                 auto position = file.GetPosition();
                 file.SeekToBegin();
 
-                std::vector<char> bytes_read(Utf8BOM_sv.length());
-                file.Read(bytes_read.data(), Utf8BOM_sv.length());
+                std::vector<char> bytes_read(TextEncoding::Utf8Bom_sv.length());
+                file.Read(bytes_read.data(), TextEncoding::Utf8Bom_sv.length());
 
                 file.Seek(position, CFile::begin);
 
-                return ( memcmp(bytes_read.data(), Utf8BOM_sv.data(), Utf8BOM_sv.length()) == 0 );
+                return ( memcmp(bytes_read.data(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 );
             }
 
             else
@@ -1878,12 +1712,12 @@ double CIntDriver::exfileempty(int iExpr)
         int64_t size = PortableFunctions::FileSize(*filename);
         bool empty = ( size == 0 );
 
-        if( !empty && size == Utf8BOM_sv.length() ) // see if it's just the BOM
+        if( !empty && size == TextEncoding::Utf8Bom_sv.length() ) // see if it's just the BOM
         {
             try
             {
                 std::unique_ptr<std::vector<std::byte>> content = FileIO::Read(*filename);
-                empty = ( memcmp(content->data(), Utf8BOM_sv.data(), Utf8BOM_sv.length()) == 0 );
+                empty = ( memcmp(content->data(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 );
             }
 
             catch( const FileIO::Exception& )
@@ -1915,45 +1749,50 @@ namespace
     class EngineConcatenatorReporter : public ConcatenatorReporter
     {
     public:
-        EngineConcatenatorReporter(CIntDriver* pIntDriver, const CDataDict* dictionary)
+        EngineConcatenatorReporter(CIntDriver& interpreter, const CDataDict* dictionary)
             :   ConcatenatorReporter(( dictionary != nullptr ) ? dictionary->CreateProcessSummary() : std::make_unique<ProcessSummary>()),
-                m_pEngineDriver(pIntDriver->m_pEngineDriver),
-                m_pIntDriver(pIntDriver)
+                m_interpreter(interpreter),
+                m_pEngineDriver(m_interpreter.m_pEngineDriver)
         {
         }
 
         bool IsCanceled() const override
         {
-            return m_pIntDriver->m_bStopProc;
+            return m_interpreter.m_bStopProc;
         }
 
         // progress reporting does not exist when invoked from fileconcat
-        void SetSource(NullTerminatedString /*source*/) override { }
-        void SetKey(NullTerminatedString /*key*/) override { }
+        void SetSource(const std::string& /*source_text*/) override { }
+        void SetKey(const std::string& /*key*/) override { }
 
-        void ErrorFileOpenFailed(const ConnectionString& connection_string) override
+        void ErrorFileOpenFailed(const std::string& file_path) override
         {
-            issaerror(MessageType::Error, 2001, connection_string.GetFilename().c_str());
+            issaerror(MessageType::Error, 2001, file_path.c_str());
         }
 
-        void ErrorInvalidEncoding(const ConnectionString& connection_string) override
+        void ErrorDataSourceOpenFailed(const ConnectionString& connection_string, const std::string& error_message) override
         {
-            issaerror(MessageType::Error, 14012, connection_string.GetFilename().c_str());
+            issaerror(MessageType::Error, 2001, SO::CreateParentheticalExpression(connection_string.ToDisplayString(), error_message).c_str());
         }
 
-        void ErrorDuplicateCase(NullTerminatedString /*key*/, const ConnectionString& /*connection_string*/, const ConnectionString& /*previous_connection_string*/) override
+        void ErrorInvalidEncoding(const std::string& file_path) override
+        {
+            issaerror(MessageType::Error, 14012, file_path.c_str());
+        }
+
+        void ErrorDuplicateCase(const std::string& /*key*/, const ConnectionString& /*connection_string*/, const ConnectionString& /*previous_connection_string*/) override
         {
             // ignore duplicate cases as it would be very annoying to show a message for each one
         }
 
-        void ErrorOther(const ConnectionString& connection_string, const NullTerminatedString error_message) override
+        void ErrorOther(const ConnectionString& connection_string, const std::string& error_message) override
         {
-            issaerror(MessageType::Error, 14013, connection_string.GetFilename().c_str(), error_message.c_str());
+            issaerror(MessageType::Error, 14013, connection_string.ToDisplayString().c_str(), error_message.c_str());
         }
 
     private:
+        CIntDriver& m_interpreter;
         CEngineDriver* m_pEngineDriver;
-        CIntDriver* m_pIntDriver;
     };
 }
 
@@ -1999,8 +1838,7 @@ double CIntDriver::exfileconcat(int iExpr)
         input_file_start_position = 0;
     }
 
-    ConnectionString output_connection_string(EvalAlphaExpr(output_file_expression));
-    MakeFullPathFileName(output_connection_string);
+    const ConnectionString output_connection_string = EvaluateConnectionString(output_file_expression);
 
     std::vector<ConnectionString> input_connection_strings;
 
@@ -2008,8 +1846,8 @@ double CIntDriver::exfileconcat(int iExpr)
     {
         for( const std::wstring& filename : ExGetFileNames(elements_list.elements[i]) )
         {
-            ConnectionString connection_string(filename);
-            MakeFullPathFileName(connection_string);
+            ConnectionString connection_string(UTF8_TODO::GetUtf8(filename));
+            MakeAbsolutePath(connection_string);
             PathHelpers::ExpandConnectionStringWildcards(input_connection_strings, connection_string);
         }
     }
@@ -2019,7 +1857,7 @@ double CIntDriver::exfileconcat(int iExpr)
 
     try
     {
-        EngineConcatenatorReporter engine_concatenator_reporter(this, dictionary.get());
+        EngineConcatenatorReporter engine_concatenator_reporter(*this, dictionary.get());
 
         Concatenator().Run(engine_concatenator_reporter,
                            input_connection_strings, output_connection_string,
@@ -2030,7 +1868,7 @@ double CIntDriver::exfileconcat(int iExpr)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 14011, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 14011, exception.what());
         return 0;
     }
 }
@@ -2041,7 +1879,6 @@ double CIntDriver::exfileread(int iExpr)
 {
     const auto& file_node = GetNode<Nodes::File>(iExpr);
     const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
-    ASSERT(elements_list.number_elements == ( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_6_000_1) ? 2 : 1));
 
     LogicFile& logic_file = GetSymbolLogicFile(-1 * file_node.symbol_index_or_string_expression);
 
@@ -2067,26 +1904,15 @@ double CIntDriver::exfileread(int iExpr)
     LogicList* logic_list = nullptr;
     int destination_expression = 0;
 
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
+    if( elements_list.elements[0] == -1 )
     {
-        if( elements_list.elements[0] == -1 )
-        {
-            destination_expression = elements_list.elements[1];
-        }
-
-        else
-        {
-            ASSERT(elements_list.elements[0] == (int)SymbolType::List);
-            logic_list = &GetSymbolLogicList(elements_list.elements[1]);
-        }
+        destination_expression = elements_list.elements[1];
     }
 
     else
     {
-        if( NPT(elements_list.elements[0])->IsA(SymbolType::List) )
-            logic_list = &GetSymbolLogicList(elements_list.elements[0]);
-
-        destination_expression = elements_list.elements[0];
+        ASSERT(elements_list.elements[0] == (int)SymbolType::List);
+        logic_list = &GetSymbolLogicList(elements_list.elements[1]);
     }
 
     // read all lines into a string list...
@@ -2094,44 +1920,20 @@ double CIntDriver::exfileread(int iExpr)
     {
         if( logic_list->IsReadOnly() )
         {
-            issaerror(MessageType::Error, 965, logic_list->GetName().c_str());
+            issaerror(MessageType::Error, MGF::List_read_only_cannot_be_modified_965, logic_list->GetName().c_str());
             return DEFAULT;
         }
 
         logic_list->Reset();
 
         while( read_line() )
-            logic_list->AddString(CS2WS(line));
+            logic_list->AddValue<SharableString>(UTF8_TODO::GetUtf8(line));
     }
 
     // ...or read a single line
     else if( read_line() )
     {
-        if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_7_6_000_1) )
-        {
-            AssignValueToSymbol(GetNode<Nodes::SymbolValue>(destination_expression), CS2WS(line));
-        }
-
-        else
-        {
-            VART* pVarT = VPT(destination_expression);
-
-            // a variable length string
-            if( pVarT->GetLogicStringPtr() != nullptr )
-            {
-                *pVarT->GetLogicStringPtr() = line;
-            }
-
-            // a fixed length variable (alpha)
-            else
-            {
-                VARX* pVarX = pVarT->GetVarX();
-                TCHAR* pBuff = (TCHAR*)svaraddr(pVarX);
-                size_t characters_copied = std::min(line.GetLength(), pVarT->GetLength());
-                _tcsncpy(pBuff, line, characters_copied);
-                _tmemset(pBuff + characters_copied, _T(' '), pVarT->GetLength() - characters_copied);
-            }
-        }
+        AssignValueToSymbol(GetNode<Nodes::SymbolValue>(destination_expression), SharableString(UTF8_TODO::GetUtf8(line)));
     }
 
     return line_read ? 1 : 0;
@@ -2170,7 +1972,7 @@ double CIntDriver::exfilewrite(int iExpr)
 
         ASSERT(logic_file.GetEncoding() == Encoding::Utf8);
 
-        const std::string utf_buffer = UTF8Convert::WideToUTF8(line_sv);
+        const std::string utf_buffer = UTF8_TODO::GetUtf8(line_sv);
         cFile2.Write(utf_buffer.c_str(), utf_buffer.length());
 
         constexpr char NewlineChar = '\n';
@@ -2186,13 +1988,13 @@ double CIntDriver::exfilewrite(int iExpr)
             const size_t line_count = logic_list.GetCount();
 
             for( size_t i = 1; i <= line_count; ++i )
-                write_line(logic_list.GetString(i));
+                write_line(UTF8_TODO::GetWide(logic_list.GetValue<SharableString>(i).GetString()));
         }
 
         // ...or write formatted text
         else
         {
-            write_line(EvaluateUserMessage(elements_list.elements[0], FunctionCode::FNFILE_WRITE_CODE));
+            write_line(UTF8_TODO::GetWide(*EvaluateUserMessage(elements_list.elements[0], FunctionCode::FNFILE_WRITE_CODE)));
         }
     }
 
@@ -2224,30 +2026,28 @@ double CIntDriver::exdircreate(int iExpr)
 }
 
 
-double CIntDriver::exdirdelete(int iExpr)
+double CIntDriver::exdirdelete(const int program_index)
 {
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
-    std::wstring path = PortableFunctions::PathRemoveTrailingSlash(EvalAlphaExpr(fnn_node.fn_expr[0]));
-    MakeFullPathFileName(path);
+    std::string directory = PortableFunctions::PathRemoveTrailingSlash(EvaluatePath(fnn_node.fn_expr[0]));
+    std::string parent_directory = PortableFunctions::PathGetDirectory(directory);
+    std::string directory_name = PortableFunctions::PathGetFilename(directory);
 
-    std::wstring parent_directory = PortableFunctions::PathGetDirectory(path);
-    std::wstring directory_name = PortableFunctions::PathGetFilename(path);
-
-    std::vector<std::wstring> directories = DirectoryLister().SetIncludeFiles(false)
-                                                             .SetIncludeDirectories(true)
-                                                             .SetNameFilter(directory_name)
-                                                             .GetPaths(parent_directory);
+    const std::vector<std::string> directories = DirectoryLister().SetIncludeFiles(false)
+                                                                  .SetIncludeDirectories(true)
+                                                                  .SetNameFilter(directory_name)
+                                                                  .GetPaths(parent_directory);
 
     // indicate that the directory was not valid if no directories matched when not using wildcards
-    if( directories.empty() && !PathHasWildcardCharacters(directory_name) )
+    if( directories.empty() && !Path::Path::HasWildcardCharacters(directory_name) )
         return DEFAULT;
 
     size_t directories_deleted = 0;
 
-    for( const std::wstring& directory : directories )
+    for( const std::string& this_directory : directories )
     {
-        if( PortableFunctions::DirectoryDelete(directory) )
+        if( PortableFunctions::DirectoryDelete(this_directory) )
             ++directories_deleted;
     }
 
@@ -2307,7 +2107,7 @@ double CIntDriver::exshow(int iExpr)
     ASSERT(m_aShowLines.size() % iNumCols == 0);
 
     // fill in the titles array
-    std::vector<std::wstring> column_headings;
+    std::vector<SharableString> column_headings;
 
     if( show_node.m_iTitleList > 0 )
     {
@@ -2316,7 +2116,7 @@ double CIntDriver::exshow(int iExpr)
         int iNumTitles = std::min(iNumCols, pTitleList->iNumElems);
 
         for( int i = 0; i < iNumTitles; ++i )
-            column_headings.emplace_back(EvalAlphaExpr(pTitleList->iSym[i]));
+            column_headings.emplace_back(EvaluateSharableString(pTitleList->iSym[i]));
     }
 
     // complete any missing titles
@@ -2337,8 +2137,8 @@ double CIntDriver::exshow(int iExpr)
                 column_symbol = NPT(pSVarNode->m_iVarIndex);
         }
 
-        column_headings.emplace_back(( column_symbol != nullptr ) ? column_symbol->GetName() :
-                                                                    std::wstring());
+        column_headings.emplace_back(( column_symbol != nullptr ) ? SharableString(column_symbol->GetName()) :
+                                                                    SharableString());
     }
 
     // initialize the dialog
@@ -2346,19 +2146,19 @@ double CIntDriver::exshow(int iExpr)
     SelectDlg select_dlg(true, number_columns);
 
     if( show_node.m_iHeading >= 0 )
-        select_dlg.SetTitle(EvalAlphaExpr(show_node.m_iHeading));
+        select_dlg.SetTitle(EvaluateSharableString(show_node.m_iHeading));
 
     select_dlg.SetHeader(std::move(column_headings));
 
     // reformat m_aShowLines for the dialog
     for( size_t i = 0; i < m_aShowLines.size(); )
     {
-        std::vector<std::wstring> row_data;
+        std::vector<SharableString> row_data;
 
         for( size_t j = 0; j < number_columns; ++j, ++i )
         {
             ASSERT(i < m_aShowLines.size());
-            row_data.emplace_back(CS2WS(m_aShowLines[i]));
+            row_data.emplace_back(UTF8_TODO::GetUtf8(m_aShowLines[i]));
         }
 
         select_dlg.AddRow(std::move(row_data));
@@ -2366,7 +2166,8 @@ double CIntDriver::exshow(int iExpr)
 
     m_aShowLines.clear();
 
-    return SelectDlgHelper(*this, select_dlg, Paradata::OperatorSelectionEvent::Source::Show).GetSingleSelection();
+    SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::Show);
+    return select_dlg_helper.GetSingleSelection();
 }
 
 
@@ -2420,7 +2221,7 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
         int iNumTitles = std::min(iNumCols,pTitleList->iNumElems);
 
         for( int i = 0; i < iNumTitles; i++ )
-            aColumnTitles.push_back(EvalAlphaExpr<CString>(pTitleList->iSym[i]));
+            aColumnTitles.emplace_back(EvalAlphaExprCS(pTitleList->iSym[i]));
     }
 
     // complete any missing titles
@@ -2429,17 +2230,19 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
         CString csVarName;
 
         if( pVarList->iSym[i] < 0 )
-            csVarName = WS2CS(NPT(-1 * pVarList->iSym[i])->GetName());
+        {
+            csVarName = UTF8_TODO::GetCString(NPT(-1 * pVarList->iSym[i])->GetName());
+        }
 
         else
         {
             SVAR_NODE *pSVarNode = (SVAR_NODE*)PPT(pVarList->iSym[i]);
 
             if( pSVarNode->m_iVarType == SVAR_CODE || pSVarNode->m_iVarType == MVAR_CODE )
-                csVarName = WS2CS(NPT(pSVarNode->m_iVarIndex)->GetName());
+                csVarName = UTF8_TODO::GetCString(NPT(pSVarNode->m_iVarIndex)->GetName());
         }
 
-        aColumnTitles.push_back(csVarName);
+        aColumnTitles.emplace_back(csVarName);
     }
 
 
@@ -2452,10 +2255,10 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
         if( ( i % iNumCols ) == 0 )
         {
             paRowData = new std::vector<CString>;
-            aData.push_back(paRowData);
+            aData.emplace_back(paRowData);
         }
 
-        paRowData->push_back(m_aShowLines[i]);
+        paRowData->emplace_back(m_aShowLines[i]);
     }
 
 
@@ -2463,7 +2266,7 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
     CString csHeading;
 
     if( pShowNode->m_iHeading >= 0 )
-        csHeading = EvalAlphaExpr<CString>(pShowNode->m_iHeading);
+        csHeading = EvalAlphaExprCS(pShowNode->m_iHeading);
 
     int iRet = SelectDlgHelper_pre77(pShowNode->fn_code, &csHeading, &aData, &aColumnTitles, nullptr, nullptr);
 
@@ -2489,7 +2292,7 @@ double CIntDriver::exshowlist(int iExpr)
         if( iExprSymVar < 0 )
         {
             ASSERT(NPT(-1 * iExprSymVar)->IsA(SymbolType::WorkString));
-            csValue = WS2CS(GetSymbolWorkString(-1 * iExprSymVar).GetString());
+            csValue = UTF8_TODO::GetCString(GetSymbolWorkString(-1 * iExprSymVar).GetString());
         }
 
         else
@@ -2510,7 +2313,7 @@ double CIntDriver::exshowlist(int iExpr)
 
             if( bAlphaVar )
             {
-                csValue = CharacterObjectToString<CString>(exavar(iExprSymVar));
+                csValue = UTF8_TODO::GetCString(*GetWorkingSharableString(static_cast<size_t>(exavar(iExprSymVar))));
             }
 
             else
@@ -2543,10 +2346,10 @@ double CIntDriver::exshowarray(int iExpr)
     const int& row_count_expression = fnn_node.fn_expr[1];
     const int& column_count_expression = fnn_node.fn_expr[2];
     const int& title_expression = fnn_node.fn_expr[3];
-    std::vector<std::wstring> column_headings;
+    std::vector<SharableString> column_headings;
 
     for( int i = 4; i < fnn_node.fn_nargs; ++i )
-        column_headings.emplace_back(EvalAlphaExpr(fnn_node.fn_expr[i]));
+        column_headings.emplace_back(EvaluateSharableString(fnn_node.fn_expr[i]));
 
     // calculate the number of columns
     size_t start_column = 0;
@@ -2566,7 +2369,7 @@ double CIntDriver::exshowarray(int iExpr)
 
         else if( column_count_expression >= 0 )
         {
-            end_column = evalexpr<size_t>(column_count_expression);
+            end_column = Evaluate<size_t>(column_count_expression);
 
             if( end_column < 1 || end_column >= show_array.GetDimension(1) )
                 return 0;
@@ -2576,7 +2379,7 @@ double CIntDriver::exshowarray(int iExpr)
         {
             for( std::vector<size_t> indices({ 1, 1 }); indices[1] < show_array.GetDimension(1); ++indices[1] )
             {
-                if( SO::IsBlank(show_array.GetValue<std::wstring>(indices)) )
+                if( SO::IsBlank(show_array.GetValue<SharableString>(indices).GetString()) )
                     break;
 
                 ++end_column;
@@ -2596,7 +2399,7 @@ double CIntDriver::exshowarray(int iExpr)
 
     if( row_count_expression >= 0 )
     {
-        end_row = evalexpr<size_t>(row_count_expression);
+        end_row = Evaluate<size_t>(row_count_expression);
 
         if( end_row < 1 || end_row >= show_array.GetDimension(0) )
             return 0;
@@ -2609,7 +2412,7 @@ double CIntDriver::exshowarray(int iExpr)
 
         for( indices[0] = 1; indices[0] < show_array.GetDimension(0); ++indices[0] )
         {
-            if( SO::IsBlank(show_array.GetValue<std::wstring>(indices)) )
+            if( SO::IsBlank(show_array.GetValue<SharableString>(indices).GetString()) )
                 break;
 
             ++end_row;
@@ -2628,7 +2431,8 @@ double CIntDriver::exshowarray(int iExpr)
 
         for( indices[0] = 0; show_array.GetNumberDimensions() == 1 || indices[1] <= end_column; ++indices[1] )
         {
-            column_headings.emplace_back(SO::TrimRight(show_array.GetValue<std::wstring>(indices)));
+            SharableString& column_heading = column_headings.emplace_back(show_array.GetValue<SharableString>(indices));
+            column_heading.MakeTrimRight();
 
             if( show_array.GetNumberDimensions() == 1 )
                 break;
@@ -2642,7 +2446,7 @@ double CIntDriver::exshowarray(int iExpr)
     SelectDlg select_dlg(true, column_headings.size());
 
     if( title_expression >= 0 )
-        select_dlg.SetTitle(EvalAlphaExpr(title_expression));
+        select_dlg.SetTitle(EvaluateSharableString(title_expression));
 
     select_dlg.SetHeader(std::move(column_headings));
 
@@ -2650,14 +2454,15 @@ double CIntDriver::exshowarray(int iExpr)
     // fill the table of cells
     for( indices[0] = start_row; indices[0] <= end_row; ++indices[0] )
     {
-        std::vector<std::wstring> row_data;
+        std::vector<SharableString> row_data;
 
         if( show_array.GetNumberDimensions() == 2 )
             indices[1] = start_column;
 
         for( ; show_array.GetNumberDimensions() == 1 || indices[1] <= end_column; ++indices[1] )
         {
-            row_data.emplace_back(SO::TrimRight(show_array.GetValue<std::wstring>(indices)));
+            SharableString& row = row_data.emplace_back(show_array.GetValue<SharableString>(indices));
+            row.MakeTrimRight();
 
             if( show_array.GetNumberDimensions() == 1 )
                 break;
@@ -2666,7 +2471,8 @@ double CIntDriver::exshowarray(int iExpr)
         select_dlg.AddRow(std::move(row_data));
     }
 
-    return SelectDlgHelper(*this, select_dlg, Paradata::OperatorSelectionEvent::Source::ShowArray).GetSingleSelection();
+    SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ShowArray);
+    return select_dlg_helper.GetSingleSelection();
 }
 
 
@@ -2679,12 +2485,12 @@ double CIntDriver::exshowarray_pre77(int iExpr)
     CString csHeading;
 
     if( ptrfunc->fn_expr[3] >= 0 )
-        csHeading = EvalAlphaExpr<CString>(ptrfunc->fn_expr[3]);
+        csHeading = EvalAlphaExprCS(ptrfunc->fn_expr[3]);
 
     std::vector<CString> aColumnTitles;
 
     for( int i = 4; i < ptrfunc->fn_nargs; i++ )
-        aColumnTitles.push_back(EvalAlphaExpr<CString>(ptrfunc->fn_expr[i]));
+        aColumnTitles.emplace_back(EvalAlphaExprCS(ptrfunc->fn_expr[i]));
 
 
     // calculate the number of columns
@@ -2705,7 +2511,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
 
         else if( iColCountExpr >= 0 )
         {
-            iEndCol = evalexpr<int>(iColCountExpr);
+            iEndCol = Evaluate<int>(iColCountExpr);
 
             if( iEndCol < 1 || iEndCol >= show_array->GetDimension(1) )
                 return 0;
@@ -2715,10 +2521,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
         {
             for( std::vector<size_t> indices({ 1, 1 }); indices[1] < show_array->GetDimension(1); ++indices[1] )
             {
-                CString value = WS2CS(show_array->GetValue<std::wstring>(indices));
-                value.TrimRight();
-
-                if( value.IsEmpty() )
+                if( SO::IsWhitespace(show_array->GetValue<SharableString>(indices).GetString()) )
                     break;
 
                 ++iEndCol;
@@ -2738,7 +2541,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
 
     if( iRowCountExpr >= 0 )
     {
-        iEndRow = evalexpr<int>(iRowCountExpr);
+        iEndRow = Evaluate<int>(iRowCountExpr);
 
         if( iEndRow < 1 || iEndRow >= show_array->GetDimension(0) )
             return 0;
@@ -2751,10 +2554,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
 
         for( indices[0] = 1; indices[0] < show_array->GetDimension(0); ++indices[0] )
         {
-            CString value = WS2CS(show_array->GetValue<std::wstring>(indices));
-            value.TrimRight();
-
-            if( value.IsEmpty() )
+            if( SO::IsWhitespace(show_array->GetValue<SharableString>(indices).GetString()) )
                 break;
 
             ++iEndRow;
@@ -2775,12 +2575,12 @@ double CIntDriver::exshowarray_pre77(int iExpr)
 
         for( indices[0] = 0; ( show_array->GetNumberDimensions() == 1 ) || ( indices[1] <= iEndCol ); ++indices[1] )
         {
-            CString csLabel = WS2CS(show_array->GetValue<std::wstring>(indices));
-            csLabel.TrimRight();
+            SharableString column_title = show_array->GetValue<SharableString>(indices);
+            column_title.MakeTrimRight();
 
-            aColumnTitles.push_back(csLabel);
+            aColumnTitles.emplace_back(UTF8_TODO::GetCString(*column_title));
 
-            if( csLabel.GetLength() > 0 )
+            if( !column_title->empty() )
                 bLabelsDefined = true;
 
             if( show_array->GetNumberDimensions() == 1 )
@@ -2795,16 +2595,17 @@ double CIntDriver::exshowarray_pre77(int iExpr)
     for( indices[0] = iStartRow; indices[0] <= iEndRow; indices[0]++ )
     {
         std::vector<CString>* paRowData = new std::vector<CString>;
-        aData.push_back(paRowData);
+        aData.emplace_back(paRowData);
 
         if( show_array->GetNumberDimensions() == 2 )
             indices[1] = iStartCol;
 
         for( ; ( show_array->GetNumberDimensions() == 1 ) || ( indices[1] <= iEndCol ); ++indices[1] )
         {
-            CString csStr = WS2CS(show_array->GetValue<std::wstring>(indices));
-            csStr.TrimRight();
-            paRowData->push_back(csStr);
+            SharableString row = show_array->GetValue<SharableString>(indices);
+            row.MakeTrimRight();
+
+            paRowData->emplace_back(UTF8_TODO::GetCString(*row));
 
             if( show_array->GetNumberDimensions() == 1 )
                 break;
@@ -2998,9 +2799,9 @@ double CIntDriver::excountvalid(int iExpr) // 20091203 count the number non-spec
 }
 
 
-double CIntDriver::extrace(int iExpr)
+double CIntDriver::ex_trace(const int program_index)
 {
-    const auto& trace_node = GetNode<Nodes::Trace>(iExpr);
+    const auto& trace_node = GetNode<Nodes::Trace>(program_index);
 
     auto get_trace_hander = [&]() -> TraceHandler&
     {
@@ -3025,23 +2826,23 @@ double CIntDriver::extrace(int iExpr)
     }
 
     // trace with a file
-    else if( bool append = ( trace_node.action == Nodes::Trace::Action::FileOn ); append || trace_node.action == Nodes::Trace::Action::FileOnClear )
+    else if( const bool append = ( trace_node.action == Nodes::Trace::Action::FileOn ); append || trace_node.action == Nodes::Trace::Action::FileOnClear )
     {
-        std::wstring filename = EvalFullPathFileName(trace_node.argument);
-        return get_trace_hander().TurnOnFileTrace(filename, append);
+        const std::string file_path = EvaluatePath(trace_node.argument);
+        return get_trace_hander().TurnOnFileTrace(file_path, append);
     }
 
     // trace some text
     else if( m_traceHandler != nullptr )
     {
-        ASSERT(( trace_node.action == Nodes::Trace::Action::UserText ) ||
-               ( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) || trace_node.action == Nodes::Trace::Action::LogicText));
+        ASSERT(trace_node.action == Nodes::Trace::Action::UserText ||
+               trace_node.action == Nodes::Trace::Action::LogicText);
 
-        TraceHandler::OutputType output_type =
+        const TraceHandler::OutputType output_type =
             ( trace_node.action == Nodes::Trace::Action::UserText ) ? TraceHandler::OutputType::UserText :
                                                                       TraceHandler::OutputType::LogicText;
 
-        m_traceHandler->Output(EvalAlphaExpr(trace_node.argument), output_type);
+        m_traceHandler->Output(EvaluateSharableString(trace_node.argument), output_type);
     }
 
     return 1;
@@ -3082,7 +2883,7 @@ double CIntDriver::exsetcapturetype(int iExpr)
     const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
     Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
 
-    int int_capture_type = evalexpr<int>(pFunc->fn_expr[1]);
+    int int_capture_type = Evaluate<int>(pFunc->fn_expr[1]);
 
     if( int_capture_type < (int)CaptureType::FirstDefined || int_capture_type > (int)CaptureType::LastDefined )
         return DEFAULT;
@@ -3092,7 +2893,7 @@ double CIntDriver::exsetcapturetype(int iExpr)
 
     if( pFunc->fn_nargs == 3 && new_capture_type == CaptureType::Date )
     {
-        date_format = EvalAlphaExpr<CString>(pFunc->fn_expr[2]);
+        date_format = EvalAlphaExprCS(pFunc->fn_expr[2]);
         date_format.Trim();
     }
 
@@ -3105,12 +2906,12 @@ double CIntDriver::exsetcapturetype(int iExpr)
         if( new_capture_type == CaptureType::Date )
         {
             // if the date format is specified, use it; if not, use an existing date format when possible
-            CString date_format_to_use = date_format;
+            std::string date_format_to_use = UTF8_TODO::GetUtf8(date_format);
 
-            if( date_format_to_use.IsEmpty() && pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
+            if( date_format_to_use.empty() && pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
                 date_format_to_use = pVarT->GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
 
-            if( !date_format_to_use.IsEmpty() )
+            if( !date_format_to_use.empty() )
             {
                 new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(date_format_to_use);
 
@@ -3142,8 +2943,8 @@ double CIntDriver::exsetcapturepos(int iExpr)
 
     POINT point =
     {
-        evalexpr<LONG>(pFunc->fn_expr[1]),
-        evalexpr<LONG>(pFunc->fn_expr[2])
+        Evaluate<LONG>(pFunc->fn_expr[1]),
+        Evaluate<LONG>(pFunc->fn_expr[2])
     };
 
     auto setcapturepos_processor = [&](VART* pVarT) -> bool
@@ -3177,7 +2978,7 @@ double CIntDriver::exchangekeyboard(int iExpr)
     // ...or the keyboard ID is being changed
     else
     {
-        unsigned keyboard_id = evalexpr<unsigned>(va_node.arguments[0]);
+        unsigned keyboard_id = Evaluate<unsigned>(va_node.arguments[0]);
         HKL hKL = m_pEngineDriver->LoadKLID(keyboard_id);
 
         auto changekeyboard_processor = [hKL](VART* pVarT) -> bool
@@ -3205,7 +3006,7 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 #ifdef WIN_DESKTOP
     FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
     bool isSetting = pfun->fn_nargs == 1;
-    DWORD setMode = isSetting ? evalexpr<DWORD>(pfun->fn_expr[0]) : 0;
+    DWORD setMode = isSetting ? Evaluate<DWORD>(pfun->fn_expr[0]) : 0;
 
 
     // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
@@ -3263,20 +3064,17 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 }
 
 
-double CIntDriver::exgetrecord(int iExpr)
+double CIntDriver::exgetrecord(const int iExpr)
 {
     const FNN_NODE* func_node = (FNN_NODE*)PPT(iExpr);
-    CString item_name = EvalAlphaExpr<CString>(func_node->fn_expr[0]);
+    const SharableString item_name = EvaluateSharableString(func_node->fn_expr[0]);
 
-    int symbol_index = m_pEngineArea->SymbolTableSearch(item_name, { SymbolType::Variable });
+    const int symbol_index = m_pEngineArea->SymbolTableSearch(*item_name, { SymbolType::Variable });
 
     if( symbol_index != 0 )
-    {
-        VART* pVarT = VPT(symbol_index);
-        return AssignAlphaValue(NPT(pVarT->GetOwnerSec())->GetName());
-    }
+        return AssignString(NPT_Ref(symbol_index).GetName());
 
-    return AssignBlankAlphaValue();
+    return AssignStringNull();
 }
 
 
@@ -3288,7 +3086,7 @@ std::vector<int> CIntDriver::EvaluateValidIndices(int iSymGroup, int iSymItem, i
     MVAR_NODE* pMVAR = &MVAR;
     memset(pMVAR, 0, sizeof(MVAR_NODE));
     MVAR.m_iVarType = MVAR_GROUP;
-    MVAR.m_iVarIndex = iSymItem;    
+    MVAR.m_iVarIndex = iSymItem;
 
     CALCULATE_LIMITS(iLimit, pMVAR, iSymGroup);
 
@@ -3296,7 +3094,7 @@ std::vector<int> CIntDriver::EvaluateValidIndices(int iSymGroup, int iSymItem, i
 
     for( m_iExOccur = 1; m_iExOccur <= iLimit; m_iExOccur++ )
     {
-        if( ConditionalValueIsTrue(evalexpr(iWhere)) )
+        if( EvaluateConditional(iWhere) )
             validIndices.emplace_back(m_iExOccur);
     }
 
@@ -3306,27 +3104,15 @@ std::vector<int> CIntDriver::EvaluateValidIndices(int iSymGroup, int iSymItem, i
 }
 
 
-namespace
-{
-    inline const FNVARIOUS_NODE& PreprocessOccNode(const FNVARIOUS_NODE& various_node)
-    {
-        // adjust the occurrence for pre-7.6 .pen files
-        if( Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_6_000_1) && various_node.fn_expr[1] == 0 )
-            const_cast<FNVARIOUS_NODE&>(various_node).fn_expr[1] = -1;
-
-        return various_node;
-    }
-}
-
 double CIntDriver::exgetocclabel(int iExpr)
 {
-    const auto& various_node = PreprocessOccNode(GetNode<FNVARIOUS_NODE>(iExpr));
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
     const Symbol* symbol = NPT(various_node.fn_expr[0]);
     int occurrence_expression = various_node.fn_expr[1];
     std::optional<int> zero_based_occurrence;
 
     if( occurrence_expression != -1 )
-        zero_based_occurrence = evalexpr<int>(occurrence_expression) - 1;
+        zero_based_occurrence = Evaluate<int>(occurrence_expression) - 1;
 
     return AssignAlphaValue(EvaluateOccurrenceLabel(symbol, zero_based_occurrence));
 }
@@ -3362,8 +3148,8 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             // iSpecifiedOcc = (int)GetCurOccFromChildrenGroups(engine_record, bUseBatchLogic) - 1;
         }
 
-        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record->GetDictionaryRecord().GetMaxRecs() )
-            label = engine_record->GetDictionaryRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
+        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record->GetDictRecord().GetMaxRecs() )
+            label = engine_record->GetDictRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
     else if( symbol->IsA(SymbolType::Section) ) // record
@@ -3402,7 +3188,7 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
 
                 else if( pGroup->GetRIType() == CDEFormBase::Item || pGroup->GetRIType() == CDEFormBase::SubItem )
                 {
-                    int iSymItem = m_pEngineArea->SymbolTableSearch(pGroup->GetRepeatName(), { SymbolType::Variable });
+                    const int iSymItem = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(pGroup->GetRepeatName()), { SymbolType::Variable });
 
                     if( iSymItem > 0 )
                     {
@@ -3425,11 +3211,11 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
 
 double CIntDriver::exsetocclabel(int iExpr)
 {
-    const auto& various_node = PreprocessOccNode(GetNode<FNVARIOUS_NODE>(iExpr));
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
     ASSERT(NPT(various_node.fn_expr[0])->IsA(SymbolType::Group));
     GROUPT* pGroupT = GPT(various_node.fn_expr[0]);
     bool bUseCurrentOcc = ( various_node.fn_expr[1] == -1 );
-    int iSpecifiedOcc = bUseCurrentOcc ? -1 : ( evalexpr<int>(various_node.fn_expr[1]) - 1 );
+    int iSpecifiedOcc = bUseCurrentOcc ? -1 : ( Evaluate<int>(various_node.fn_expr[1]) - 1 );
     bool bUseBatchLogic = Issamod != ModuleType::Entry;
 
     if( bUseCurrentOcc )
@@ -3437,7 +3223,7 @@ double CIntDriver::exsetocclabel(int iExpr)
 
     if( iSpecifiedOcc >= 0 && iSpecifiedOcc < pGroupT->GetMaxOccs() )
     {
-        CString new_label = EvalAlphaExpr<CString>(various_node.fn_expr[2]);
+        CString new_label = EvalAlphaExprCS(various_node.fn_expr[2]);
 
         CDEGroup* pGroup = pGroupT->GetCDEGroup();
 
@@ -3463,7 +3249,7 @@ double CIntDriver::exsetocclabel(int iExpr)
 
             else if( pGroup->GetRIType() == CDEFormBase::Item || pGroup->GetRIType() == CDEFormBase::SubItem )
             {
-                int iSymItem = m_pEngineArea->SymbolTableSearch(pGroup->GetRepeatName(), { SymbolType::Variable });
+                const int iSymItem = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(pGroup->GetRepeatName()), { SymbolType::Variable });
 
                 if( iSymItem > 0 )
                 {
@@ -3489,16 +3275,16 @@ double CIntDriver::exsetocclabel(int iExpr)
 double CIntDriver::exshowocc(int iExpr)
 {
     // this is used for both showocc and hideocc
-    const auto& various_node = PreprocessOccNode(GetNode<FNVARIOUS_NODE>(iExpr));
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
     ASSERT(NPT(various_node.fn_expr[0])->IsA(SymbolType::Group));
     GROUPT* pGroupT = GPT(various_node.fn_expr[0]);
     bool bUseCurrentOcc = ( various_node.fn_expr[1] == -1 );
-    int iSpecifiedOcc = bUseCurrentOcc ? -1 : ( evalexpr<int>(various_node.fn_expr[1]) - 1 );
+    int iSpecifiedOcc = bUseCurrentOcc ? -1 : ( Evaluate<int>(various_node.fn_expr[1]) - 1 );
     bool bUseBatchLogic = Issamod != ModuleType::Entry;
     bool bVisible = various_node.fn_code == FNSHOWOCC_CODE;
 
     if( bVisible && various_node.fn_expr[2] != -1 )
-        bVisible = EvaluateConditionalExpression(various_node.fn_expr[2]);
+        bVisible = EvaluateConditional(various_node.fn_expr[2]);
 
     if( bUseCurrentOcc )
         iSpecifiedOcc = GetCurOccFromGroup(pGroupT, bUseBatchLogic) - 1;
@@ -3526,7 +3312,7 @@ VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
     int iVariable = va_with_size_node.arguments[0];
 
-    CString assignVar = EvalAlphaExpr<CString>(iVariable);
+    CString assignVar = EvalAlphaExprCS(iVariable);
 
     // parse the text of the item that we are assigning to
     CString fieldName;
@@ -3579,12 +3365,12 @@ VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
     if( declaredOccs.empty() && va_with_size_node.number_arguments > 2 )
     {
         if( va_with_size_node.number_arguments > 3 )
-            declaredOccs.emplace_back(evalexpr<unsigned>(va_with_size_node.arguments[3]) - 1);
+            declaredOccs.emplace_back(Evaluate<unsigned>(va_with_size_node.arguments[3]) - 1);
 
-        declaredOccs.emplace_back(evalexpr<unsigned>(va_with_size_node.arguments[2]) - 1);
+        declaredOccs.emplace_back(Evaluate<unsigned>(va_with_size_node.arguments[2]) - 1);
     }
 
-    int symbol_index = m_pEngineArea->SymbolTableSearch(fieldName, { SymbolType::Variable });
+    const int symbol_index = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(fieldName), { SymbolType::Variable });
 
     if( symbol_index == 0 ) // the item wasn't found
         return NULL;
@@ -3697,7 +3483,7 @@ double CIntDriver::exsetvalue(int iExpr) // 20140228
 
         else
         {
-            CString value = EvalAlphaExpr<CString>(-1 * iValue);
+            CString value = EvalAlphaExprCS(-1 * iValue);
 
             int iCopyLen = std::min(pVarT->GetLength(),value.GetLength());
             int iBlanksLen = pVarT->GetLength() - iCopyLen;
@@ -3761,28 +3547,27 @@ double CIntDriver::exgetvaluealpha(int iExpr) // 20140422
 }
 
 
-std::wstring CIntDriver::GetValueLabel(int iCurVar, VART* pVarT)
+SharableString CIntDriver::GetValueLabel(const int iCurVar, VART* const pVarT)
 {
-    int occurrence_number = EvaluateCapiVariableCurrentOccurrence(iCurVar, pVarT);
+    const int occurrence_number = EvaluateCapiVariableCurrentOccurrence(iCurVar, pVarT);
 
     if( pVarT->IsNumeric() )
     {
-        double value = GetVarValue(pVarT->GetSymbolIndex(), occurrence_number, false); // don't use the visual value
+        const double value = GetVarValue(pVarT->GetSymbolIndex(), occurrence_number, false); // don't use the visual value
         return GetValueLabel(pVarT, value);
     }
 
     else
     {
-        ASSERT(pVarT->GetLogicStringPtr() == nullptr);
-        std::wstring value = GetVarAsciiValue(pVarT->GetSymbolIndex(), occurrence_number);
+        const SharableString value = UTF8_TODO::GetUtf8(GetVarAsciiValue(pVarT->GetSymbolIndex(), occurrence_number));
         return GetValueLabel(pVarT, value);
     }
 }
 
 
-std::wstring CIntDriver::GetValueLabel(const VART* pVarT, const std::variant<double, std::wstring>& value)
+SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::variant<double, SharableString>& value)
 {
-    ASSERT(pVarT->IsAlpha() == std::holds_alternative<std::wstring>(value));
+    ASSERT(pVarT->IsAlpha() == std::holds_alternative<SharableString>(value));
 
     // three passes to evaluate the label:
     // 1) look at the current value set
@@ -3794,7 +3579,8 @@ std::wstring CIntDriver::GetValueLabel(const VART* pVarT, const std::variant<dou
         if( pass == 1 )
         {
             const ValueSet* base_value_set = pVarT->GetBaseValueSet();
-            value_set = ( base_value_set != value_set ) ? base_value_set : nullptr;
+            value_set = ( base_value_set != value_set ) ? base_value_set :
+                                                          nullptr;
         }
 
         if( value_set == nullptr )
@@ -3802,17 +3588,17 @@ std::wstring CIntDriver::GetValueLabel(const VART* pVarT, const std::variant<dou
 
         const ValueProcessor& value_processor = value_set->GetValueProcessor();
 
-        const DictValue* dict_value = pVarT->IsAlpha() ? value_processor.GetDictValue(WS2CS(std::get<std::wstring>(value))) :
-                                                         value_processor.GetDictValue(std::get<double>(value));
+        const DictValue* const dict_value = pVarT->IsAlpha() ? value_processor.GetDictValue(UTF8_TODO::GetCString(*std::get<SharableString>(value))) :
+                                                               value_processor.GetDictValue(std::get<double>(value));
 
         if( dict_value != nullptr )
-            return CS2WS(dict_value->GetLabel());
+            return UTF8_TODO::GetUtf8(dict_value->GetLabel());
     }
 
     // 3) format the code nicely
     if( pVarT->IsAlpha() )
     {
-        return SO::Trim(std::get<std::wstring>(value));
+        return SharableString(std::get<SharableString>(value)).MakeTrim();
     }
 
     else
@@ -3827,23 +3613,7 @@ double CIntDriver::exgetvaluelabel(int iExpr)
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
     const VART* pVarT = VPT(va_node.arguments[0]);
 
-    return AssignAlphaValue(GetValueLabel(pVarT, EvaluateVariantExpression(pVarT->GetDataType(), va_node.arguments[1])));
-}
-
-
-double CIntDriver::exconnection(int iExpr)  // 20150421
-{
-#ifdef WIN_DESKTOP
-    UNREFERENCED_PARAMETER(iExpr);
-
-    DWORD flags;
-    return ( InternetGetConnectedState(&flags, 0) == TRUE );
-
-#else
-    const auto& connection_node = GetNode<Nodes::Connection>(iExpr);
-    return PlatformInterface::GetInstance()->GetApplicationInterface()->IsNetworkConnected(connection_node.connection_type);
-
-#endif
+    return AssignString(GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1])));
 }
 
 
@@ -4032,10 +3802,10 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
 
     if( operator_selection_event != nullptr )
     {
-        std::optional<std::wstring> selected_text = ( iRet == 0 ) ? std::nullopt :
-                                                                    std::make_optional(CS2WS(paData->at(iRet - 1)->at(0)));
+        SharableString selected_text = ( iRet == 0 ) ? SharableString() :
+                                                       UTF8_TODO::GetUtf8(paData->at(iRet - 1)->at(0));
         operator_selection_event->SetPostSelectionValues(iRet, std::move(selected_text), true);
-        m_pParadataDriver->RegisterAndLogEvent(operator_selection_event);
+        m_paradataDriver->RegisterAndLogEvent(operator_selection_event);
     }
 
     return iRet;

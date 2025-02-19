@@ -1,15 +1,16 @@
 ﻿#include "stdafx.h"
 #include "List.h"
 #include <zToolsO/VectorHelpers.h>
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
 // LogicList
 // --------------------------------------------------------------------------
 
-LogicList::LogicList(std::wstring list_name)
+LogicList::LogicList(std::string list_name)
     :   Symbol(std::move(list_name), SymbolType::List),
-        m_numeric(true),
+        m_values(std::vector<double>()),
         m_consecutiveIndexOfCalls(0)
 {
 }
@@ -17,9 +18,21 @@ LogicList::LogicList(std::wstring list_name)
 
 LogicList::LogicList(const LogicList& logic_list)
     :   Symbol(logic_list),
-        m_numeric(logic_list.m_numeric),
         m_consecutiveIndexOfCalls(0)
 {
+    SetNumeric(logic_list.IsNumeric());
+}
+
+
+void LogicList::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
+
+    if( IsNumeric() != logic_list.IsNumeric() )
+    {
+        throw CompareDeclarationAttributesException("data type: %s vs. %s", ToString(GetDataType()),
+                                                                            ToString(logic_list.GetDataType()));
+    }
 }
 
 
@@ -32,17 +45,48 @@ std::unique_ptr<Symbol> LogicList::CloneInInitialState() const
 }
 
 
-void LogicList::Reset()
+void LogicList::SetNumeric(const bool numeric)
 {
-    if( m_numeric )
+    if( numeric )
     {
-        m_doubleValues.clear();
+        if( !IsNumeric() )
+            m_values.emplace<std::vector<double>>();
     }
 
-    else
+    else if( !IsString() )
     {
-        m_stringValues.clear();
+        m_values.emplace<std::vector<SharableString>>();
     }
+}
+
+
+double LogicList::GetValueNumeric(const size_t index) const
+{
+    ASSERT(IsValidIndex(index));
+
+    return GetValues<double>()[index - 1];
+}
+
+
+const SharableString& LogicList::GetValueString(const size_t index) const
+{
+    ASSERT(IsValidIndex(index));
+
+    return GetValues<SharableString>()[index - 1];
+}
+
+
+size_t LogicList::GetCount() const
+{
+    return IsNumeric() ? GetValues<double>().size() :
+                         GetValues<SharableString>().size();
+}
+
+
+void LogicList::Reset()
+{
+    IsNumeric() ? GetValues<double>().clear() :
+                  GetValues<SharableString>().clear();
 
     SetModified();
 }
@@ -52,63 +96,57 @@ void LogicList::Remove(const size_t index)
 {
     ASSERT(IsValidIndex(index));
 
-    if( m_numeric )
-    {
-        m_doubleValues.erase(m_doubleValues.begin() + ( index - 1 ));
-    }
-
-    else
-    {
-        m_stringValues.erase(m_stringValues.begin() + ( index - 1 ));
-    }
+    std::visit([&](auto& values) { values.erase(values.begin() + ( index - 1 )); },
+               m_values);
 
     SetModified();
 }
 
 
-void LogicList::AddStrings(std::vector<std::wstring> string_values)
+template<typename T>
+void LogicList::AddValues(std::vector<T> values)
 {
-    VectorHelpers::Append(m_stringValues, std::move(string_values));
+    auto& list_values = GetValues<T>();
+
+    list_values.insert(list_values.end(), std::make_move_iterator(values.begin()),
+                                          std::make_move_iterator(values.end()));
 
     SetModified();
 }
+
+template ZENGINEO_API void LogicList::AddValues<SharableString>(std::vector<SharableString> values);
+template ZENGINEO_API void LogicList::AddValues<std::string>(std::vector<std::string> values);
 
 
 void LogicList::InsertList(const size_t index, const LogicList& logic_list_to_insert)
+{
+    IsNumeric() ? InsertListWorker<double>(index, logic_list_to_insert) :
+                  InsertListWorker<SharableString>(index, logic_list_to_insert);
+}
+
+
+template<typename T>
+void LogicList::InsertListWorker(const size_t index, const LogicList& logic_list_to_insert)
 {
     // using one-based array indices
     ASSERT(IsValidIndex(index) || index == ( GetCount() + 1 ));
     ASSERT(GetDataType() == logic_list_to_insert.GetDataType());
     ASSERT(this != &logic_list_to_insert);
 
+    auto& values = GetValues<T>();
+
     if( logic_list_to_insert.GetSubType() == SymbolSubType::ValueSetListWrapper )
     {
-        size_t insert_count = logic_list_to_insert.GetCount();
+        const size_t insert_count = logic_list_to_insert.GetCount();
 
-        if( m_numeric )
-        {
-            for( size_t i = 1; i <= insert_count; ++i )
-                m_doubleValues.insert(m_doubleValues.begin() + ( index + i - 2 ), logic_list_to_insert.GetValue(i));
-        }
-
-        else
-        {
-            for( size_t i = 1; i <= insert_count; ++i )
-                m_stringValues.insert(m_stringValues.begin() + ( index + i - 2 ), logic_list_to_insert.GetString(i));
-        }
+        for( size_t i = 1; i <= insert_count; ++i )
+            values.insert(values.begin() + ( index + i - 2 ), logic_list_to_insert.GetValue<T>(i));
     }
 
     else
     {
-        if( m_numeric )
-        {
-            m_doubleValues.insert(m_doubleValues.begin() + ( index - 1 ), logic_list_to_insert.m_doubleValues.begin(), logic_list_to_insert.m_doubleValues.end());
-        }
-
-        else
-        {
-            m_stringValues.insert(m_stringValues.begin() + ( index - 1 ), logic_list_to_insert.m_stringValues.begin(), logic_list_to_insert.m_stringValues.end());
-        }
+        const auto& insertion_values = logic_list_to_insert.GetValues<T>();
+        values.insert(values.begin() + ( index - 1 ), insertion_values.begin(), insertion_values.end());
     }
 
     SetModified();
@@ -117,15 +155,18 @@ void LogicList::InsertList(const size_t index, const LogicList& logic_list_to_in
 
 void LogicList::Sort(const bool ascending)
 {
-    auto do_sort = [](auto& values, auto&& sorter)
-    {
-        std::sort(values.begin(), values.end(), std::move(sorter));
-    };
+    IsNumeric() ? SortWorker<double>(ascending) :
+                  SortWorker<SharableString>(ascending);
+}
 
-    m_numeric ? ascending ? do_sort(m_doubleValues, std::less<double>()) :
-                            do_sort(m_doubleValues, std::greater<double>()) :
-                ascending ? do_sort(m_stringValues, std::less<std::wstring>()) :
-                            do_sort(m_stringValues, std::greater<std::wstring>());
+
+template<typename T>
+void LogicList::SortWorker(const bool ascending)
+{
+    auto& values = GetValues<T>();
+
+    ascending ? std::sort(values.begin(), values.end(), std::less<T>()) :
+                std::sort(values.begin(), values.end(), std::greater<T>());
 
     SetModified();
 }
@@ -135,23 +176,22 @@ size_t LogicList::RemoveDuplicates()
 {
     size_t duplicates_removed = 0;
 
-    auto do_removal = [&](auto& values)
-    {
-        if( values.size() < 2 )
-            return;
-
-        for( auto itr = values.end() - 1; itr > values.begin(); --itr )
+    std::visit(
+        [&](auto& values)
         {
-            if( std::find(values.begin(), itr, *itr) < itr )
-            {
-                itr = values.erase(itr);
-                ++duplicates_removed;
-            }
-        }
-    };
+            if( values.size() < 2 )
+                return;
 
-    m_numeric ? do_removal(m_doubleValues) :
-                do_removal(m_stringValues);
+            for( auto itr = values.end() - 1; itr > values.begin(); --itr )
+            {
+                if( std::find(values.begin(), itr, *itr) < itr )
+                {
+                    itr = values.erase(itr);
+                    ++duplicates_removed;
+                }
+            }
+
+        }, m_values);
 
     if( duplicates_removed > 0 )
         SetModified();
@@ -162,32 +202,23 @@ size_t LogicList::RemoveDuplicates()
 
 namespace
 {
-    inline size_t HashValue(const std::wstring& value) { return std::hash<std::wstring>{}(std::wstring(value)); }
-    inline size_t HashValue(const double& value)  { return std::hash<double>{}(value); }
+    inline size_t HashValue(double value)                { return std::hash<double>{}(value); }
+    inline size_t HashValue(const SharableString& value) { return std::hash<std::string>{}(*value); }
 }
 
 
 template<typename T>
-size_t LogicList::IndexOfWorker(const std::vector<T>& values, const T& value) const
+size_t LogicList::IndexOf(const T& value) const
 {
     // if not using the values vectors, search using GetValue
     if( GetSubType() == SymbolSubType::ValueSetListWrapper )
     {
-        size_t list_count = GetCount();
+        const size_t list_count = GetCount();
 
         for( size_t i = 1; i <= list_count; ++i )
         {
-            if constexpr(std::is_same_v<T, std::wstring>)
-            {
-                if( value == GetString(i) )
-                    return i;
-            }
-
-            else
-            {
-                if( value == GetValue(i) )
-                    return i;
-            }
+            if( GetValue<T>(i) == value )
+                return i;
         }
 
         return 0;
@@ -196,6 +227,8 @@ size_t LogicList::IndexOfWorker(const std::vector<T>& values, const T& value) co
     // otherwise we can search using std::find; however, if the list is being frequently
     // searched, we will convert the values into a map that can speed up lookups
     constexpr size_t NumberConsecutiveCallsToCreateIndexOfMap = 10;
+
+    const auto& values = GetValues<T>();
 
     if( ++m_consecutiveIndexOfCalls < NumberConsecutiveCallsToCreateIndexOfMap )
     {
@@ -224,22 +257,22 @@ size_t LogicList::IndexOfWorker(const std::vector<T>& values, const T& value) co
     }
 }
 
-
-size_t LogicList::IndexOf(const double double_value) const
-{
-    return IndexOfWorker(m_doubleValues, double_value);
-}
-
-
-size_t LogicList::IndexOf(const std::wstring& string_value) const
-{
-    return IndexOfWorker(m_stringValues, string_value);
-}
+template ZENGINEO_API size_t LogicList::IndexOf<double>(const double& value) const;
+template ZENGINEO_API size_t LogicList::IndexOf<std::string>(const std::string& value) const;
+template ZENGINEO_API size_t LogicList::IndexOf<SharableString>(const SharableString& value) const;
 
 
 void LogicList::serialize_subclass(Serializer& ar)
 {
-    ar & m_numeric;
+    if( ar.IsSaving() )
+    {
+        ar.Write<bool>(IsNumeric());
+    }
+
+    else
+    {
+        SetNumeric(ar.Read<bool>());
+    }
 }
 
 
@@ -251,40 +284,32 @@ void LogicList::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 
 void LogicList::WriteValueToJson(JsonWriter& json_writer) const
 {
-    m_numeric ? WriteValueToJsonWorker(json_writer, m_doubleValues) :
-                WriteValueToJsonWorker(json_writer, m_stringValues);
+    std::visit(
+        [&](const auto& values)
+        {
+            json_writer.BeginArray();
+
+            for( const auto& value : values )
+                json_writer.WriteEngineValue(value);
+
+            json_writer.EndArray();
+
+        }, m_values);
+}
+
+
+void LogicList::SetValueFromJson(const JsonNode& json_node)
+{
+    IsNumeric() ? SetValueFromJsonWorker<double>(json_node) :
+                  SetValueFromJsonWorker<SharableString>(json_node);
 }
 
 
 template<typename T>
-void LogicList::WriteValueToJsonWorker(JsonWriter& json_writer, const std::vector<T>& values)
+void LogicList::SetValueFromJsonWorker(const JsonNode& json_node)
 {
-    json_writer.BeginArray();
+    ASSERT(!IsReadOnly());
 
-    for( const T& value : values )
-        json_writer.WriteEngineValue(value);
-
-    json_writer.EndArray();
-}
-
-
-void LogicList::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
-{
-    if( m_numeric )
-    {
-        m_doubleValues = UpdateValueFromJsonWorker<double>(json_node);
-    }
-
-    else
-    {
-        m_stringValues = UpdateValueFromJsonWorker<std::wstring>(json_node);
-    }
-}
-
-
-template<typename T>
-std::vector<T> LogicList::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& json_node)
-{
     if( !json_node.IsArray() )
         throw CSProException("A List must be specified as an array.");
 
@@ -292,16 +317,16 @@ std::vector<T> LogicList::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& jso
     // - [ 1, 2, 3 ]
     // - [ [1], [2], [3] ]
 
-    const JsonNodeArray<wchar_t> array_node = json_node.GetArray();
+    const JsonNodeArray array_node = json_node.GetArray();
 
     std::vector<T> values;
     values.reserve(array_node.size());
 
-    for( const auto& value_node : array_node )
+    for( const JsonNode& value_node : array_node )
     {
         if( value_node.IsArray() )
         {
-            const JsonNodeArray<wchar_t> value_as_array_node = value_node.GetArray();
+            const JsonNodeArray value_as_array_node = value_node.GetArray();
 
             if( value_as_array_node.size() != 1 )
                 throw CSProException("A List cannot be created from a multi-dimensional array.");
@@ -315,5 +340,71 @@ std::vector<T> LogicList::UpdateValueFromJsonWorker(const JsonNode<wchar_t>& jso
         }
     }
 
-    return values;
+    m_values = std::move(values);
+
+    SetModified();
+}
+
+
+JavaScript::Value LogicList::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    return std::visit(
+        [&](const auto& values)
+        {
+            auto js_array_values = std::make_unique_for_overwrite<JavaScript::Value[]>(values.size());
+            JavaScript::Value* js_array_values_itr = js_array_values.get();
+
+            for( const auto& value : values )
+            {
+                new (js_array_values_itr) JavaScript::Value(executor.CreateEngineValue(value));
+                ++js_array_values_itr;
+            }
+
+            return executor.CreateArray(values.size(), js_array_values.get());
+
+        }, m_values);
+}
+
+
+void LogicList::SetValueFromJavaScript(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    IsNumeric() ? SetValueFromJavaScriptWorker<double>(executor, js_value) :
+                  SetValueFromJavaScriptWorker<SharableString>(executor, js_value);
+}
+
+
+template<typename T>
+void LogicList::SetValueFromJavaScriptWorker(JavaScript::Executor& executor, const JavaScript::Value& js_value)
+{
+    ASSERT(!IsReadOnly());
+
+    if( !js_value.IsArray() )
+        throw CSProException("A List must be specified as an array.");
+
+    const uint32_t array_size = executor.GetArrayLength(js_value);
+
+    std::vector<T> values;
+    values.reserve(array_size);
+
+    for( uint32_t i = 0; i < array_size; ++i )
+    {
+        const JavaScript::Value js_element = executor.GetArrayElement(js_value, i);
+
+        if( js_element.IsArray() )
+        {
+            if( executor.GetArrayLength(js_element) != 1 )
+                throw CSProException("A List cannot be created from a multi-dimensional array.");
+
+            values.emplace_back(executor.ConvertEngineValue<T>(executor.GetArrayElement(js_element, 0)));
+        }
+
+        else
+        {
+            values.emplace_back(executor.ConvertEngineValue<T>(js_element));
+        }
+    }
+
+    m_values = std::move(values);
+
+    SetModified();
 }

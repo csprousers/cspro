@@ -32,7 +32,7 @@ private:
     std::vector<DuplicateInfo>& m_caseDuplicates;
     CaseToHtmlConverter m_caseToHtmlConverter;
 
-    std::wstring m_duplicateIndexText;
+    std::string m_duplicateIndexText;
     CTreeCtrl m_caseList;
     HtmlViewCtrl m_caseContentsHtml;
 };

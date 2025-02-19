@@ -4,18 +4,17 @@
 // the definitions here are not in zToolsO/Encoders.h or zLogicO/SourceBuffer.cpp
 // so as to make them accessible to the Scintilla lexers
 
-
-namespace Encoders
+namespace EncoderEscapes
 {
-    constexpr const wchar_t* EscapeRepresentations = L"\'\"\\\a\b\f\n\r\t\v";
-    constexpr const wchar_t* EscapeSequences       = L"\'\"\\abfnrtv";
+    constexpr const char* Representations = "\'\"\\\a\b\f\n\r\t\v";
+    constexpr const char* Sequences       = "\'\"\\abfnrtv";
 }
 
 
 namespace Logic
 {
-    constexpr const wchar_t* OperatorCharacters = L"+*/%^()[]&|!,;@.#$:=<>-";
+    constexpr const char* OperatorCharacters = "+*/%^()[]&|!,;@.#$:=<>-";
 
-    static constexpr wchar_t VerbatimStringLiteralStartCh1 = '@';
-    static constexpr wchar_t VerbatimStringLiteralStartCh2 = '"';
+    static constexpr char VerbatimStringLiteralStartCh1 = '@';
+    static constexpr char VerbatimStringLiteralStartCh2 = '"';
 }

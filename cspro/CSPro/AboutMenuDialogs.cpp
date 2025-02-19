@@ -94,7 +94,7 @@ CAboutDialog::CAboutDialog(CWnd* pParent /*=NULL*/)
         m_pLargeFont(CreateCustomFont(32, true)),
         m_pMediumFont(CreateCustomFont(14, true)),
         m_pSmallFont(CreateCustomFont(12, false))
-{    
+{
 }
 
 
@@ -126,8 +126,9 @@ BOOL CAboutDialog::OnInitDialog() // 20120523
     if( m_pLargeFont != nullptr )
         m_title.SetFont(m_pLargeFont.get());
 
-    m_version.Create(FormatText(_T("Version %s\n%s"), Versioning::GetVersionDetailedString().GetString(), Versioning::GetReleaseDateString().GetString()),
-                     WS_CHILD | WS_VISIBLE, CRect(10, 100, 300, 150), this);
+    const std::string version_text = FormatText("Version %s\n%s", Versioning::GetVersionDetailedString().c_str(),
+                                                                  Versioning::GetReleaseDateString().c_str());
+    m_version.Create(TC::ToWide(version_text).c_str(), WS_CHILD | WS_VISIBLE, CRect(10, 100, 300, 150), this);
 
     if( m_pMediumFont != nullptr )
         m_version.SetFont(m_pMediumFont.get());
@@ -140,9 +141,9 @@ BOOL CAboutDialog::OnInitDialog() // 20120523
         m_developers.SetFont(m_pSmallFont.get());
 
     // show the licenses only if the file exists
-    std::wstring licenses_filename = PortableFunctions::PathAppendToPath(CSProExecutables::GetApplicationDirectory(), _T("Licenses.html"));
+    const std::string licenses_file_path = Path::Combine(CSProExecutables::GetApplicationDirectory(), "Licenses.html");
 
-    if( PortableFunctions::FileIsRegular(licenses_filename) )
+    if( PortableFunctions::FileIsRegular(licenses_file_path) )
     {
         m_licenses.Create(NULL, WS_CHILD | WS_VISIBLE | SS_NOTIFY, CRect(10, 218, 440, 233), this);
         m_licenses.SetText(_T("View licenses for CSPro and the open-source software that it uses."));
@@ -151,12 +152,12 @@ BOOL CAboutDialog::OnInitDialog() // 20120523
             m_licenses.SetFont(m_pSmallFont.get());
 
         m_licenses.SetAction(
-            [licenses_filename]()
+            [licenses_file_path]()
             {
                 Viewer viewer;
                 viewer.UseEmbeddedViewer()
-                      .SetTitle(_T("CSPro Licenses"))
-                      .ViewFile(licenses_filename);
+                      .SetTitle("CSPro Licenses")
+                      .ViewFile(licenses_file_path);
             });
     }
 

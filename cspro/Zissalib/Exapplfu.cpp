@@ -284,7 +284,7 @@ bool CEngineDriver::sectadd(SECT* pSecT, const CaseRecord* case_record_with_bina
                     if( binary_data_accessor.IsDefined() )
                     {
                         theIndex.setIndexValue(CDimension::VDimType::Item, index.GetItemOccurrence());
-                        
+
                         // set the value of the fake VART to be the index of this binary data
                         m_pIntDriver->SetVarFloatValue(pVarTItem->GetDPT()->m_binaryStorageFor80.size(), pVarXItem, theIndex);
 
@@ -555,7 +555,7 @@ void CEngineDriver::ShowOutOfRange( VART* pVarT, CNDIndexes* pTheIndex, TCHAR* p
             csOcc = pTheIndex->toString(pVarT->GetNumDim()).c_str();
     }
 
-    issaerror( MessageType::Warning, 88870, csLocalBuf.GetString(), pVarT->GetName().c_str(), csOcc.GetString() );
+    issaerror( MessageType::Warning, 88870, UTF8_TODO::GetUtf8(csLocalBuf).c_str(), pVarT->GetName().c_str(), UTF8_TODO::GetUtf8(csOcc).c_str() );
 }
 
 void CEngineDriver::varatof( VARX* pVarX ) { // similar to varatof( p, NULL )
@@ -1531,7 +1531,7 @@ void CEngineDriver::PrepareCaseFromEngineForQuestionnaireViewer(DICT* pDicT, Cas
 
     try
     {
-        // ...and finalize it        
+        // ...and finalize it
         pCase->FinalizeLevel(pRootLevel, true, true, nullptr);
     }
 

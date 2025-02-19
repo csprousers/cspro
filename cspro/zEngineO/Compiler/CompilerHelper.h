@@ -13,7 +13,7 @@ class CompilerHelper
 
 protected:
     CompilerHelper(LogicCompiler& logic_compiler)
-        : m_compiler(&logic_compiler)
+        :   m_compiler(&logic_compiler)
     {
     }
 
@@ -25,5 +25,5 @@ protected:
     virtual bool IsCacheable() const = 0;
 
 protected:
-    LogicCompiler* m_compiler;
+    LogicCompiler* m_compiler; // non-null
 };

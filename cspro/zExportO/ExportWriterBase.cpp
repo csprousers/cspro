@@ -9,7 +9,7 @@ ExportWriterBase::ExportWriterBase(const DataRepositoryType type, std::shared_pt
         m_connectionString(connection_string)
 {
     m_suppressMappedSpecialValues = ( m_connectionString.HasProperty(CSProperty::mappedSpecialValues, CSValue::suppress) ||
-                                      m_connectionString.HasProperty(_T("mapped-special-values"), _T("notappl")) ); // pre-8.0
+                                      m_connectionString.HasProperty("mapped-special-values", "notappl") ); // pre-8.0
 }
 
 
@@ -29,27 +29,27 @@ void ExportWriterBase::CreateExportRecordMappings()
     if( SupportsBinaryData() )
         m_supportedCaseItemTypes.emplace(CaseItem::Type::Binary);
 
-    const std::wstring* single_record_to_export_name = m_connectionString.GetProperty(CSProperty::record);
+    const std::string* const single_record_to_export_name = m_connectionString.GetProperty(CSProperty::record);
     bool found_single_record = false;
 
     // create the mappings
     std::vector<const CaseRecordMetadata*> id_case_records;
     bool has_record_mappings = false;
 
-    for( const CaseLevelMetadata* case_level_metadata : case_metadata.GetCaseLevelsMetadata() )
+    for( const CaseLevelMetadata& case_level_metadata : case_metadata.GetCaseLevelsMetadata() )
     {
         // create a mapping entry for this level
         std::vector<ExportRecordMapping>& export_record_mapping_for_level = m_exportRecordMappingByLevel.emplace_back();
 
         // add this level's ID case record
-        id_case_records.emplace_back(case_level_metadata->GetIdCaseRecordMetadata());
+        id_case_records.emplace_back(&case_level_metadata.GetIdCaseRecordMetadata());
 
-        for( const CaseRecordMetadata* case_record_metadata : case_level_metadata->GetCaseRecordsMetadata() )
+        for( const CaseRecordMetadata& case_record_metadata : case_level_metadata.GetCaseRecordsMetadata() )
         {
             // if only exporting a specific record, potentially ignore this record
             if( single_record_to_export_name != nullptr )
             {
-                if( !SO::EqualsNoCase(*single_record_to_export_name, case_record_metadata->GetDictionaryRecord().GetName()) )
+                if( !SO::EqualsNoCase(*single_record_to_export_name, case_record_metadata.GetDictRecord().GetName()) )
                     continue;
 
                 found_single_record = true;
@@ -72,9 +72,9 @@ void ExportWriterBase::CreateExportRecordMappings()
     {
         if( single_record_to_export_name != nullptr && !found_single_record )
         {
-            throw CSProException(_T("'%s' is not a record in the dictionary '%s'"),
+            throw CSProException("'%s' is not a record in the dictionary '%s'",
                                  single_record_to_export_name->c_str(),
-                                 case_metadata.GetDictionary().GetName().GetString());
+                                 case_metadata.GetDictionary().GetName().c_str());
         }
 
         else
@@ -86,25 +86,24 @@ void ExportWriterBase::CreateExportRecordMappings()
 
 
 ExportRecordMapping ExportWriterBase::CreateExportRecordMapping(const std::vector<const CaseRecordMetadata*>& id_case_records,
-                                                                const CaseRecordMetadata* case_record_metadata)
+                                                                const CaseRecordMetadata& case_record_metadata)
 {
     ExportRecordMapping export_record_mapping
     {
-        case_record_metadata,
-        CreateFormattedName(m_formattedRecordNames, case_record_metadata->GetDictionaryRecord().GetName(), true),
-        case_record_metadata->GetCaseLevelMetadata().GetDictLevel().GetLevelNumber(),
-        case_record_metadata->GetRecordIndex(),
+        &case_record_metadata,
+        CreateFormattedName(m_formattedRecordNames, case_record_metadata.GetDictRecord().GetName(), true),
+        case_record_metadata.GetCaseLevelMetadata().GetDictLevel().GetLevelNumber(),
+        case_record_metadata.GetRecordIndex(),
         { },
         nullptr
     };
 
-    std::set<std::wstring> formatted_names;
-    formatted_names.insert(export_record_mapping.formatted_record_name);
+    std::set<std::string> formatted_names = { export_record_mapping.formatted_record_name };
 
     // map the case items
-    auto map_case_items = [&](const CaseRecordMetadata* case_record_metadata, const std::optional<size_t> id_level_number)
+    auto map_case_items = [&](const CaseRecordMetadata& case_record_metadata, const std::optional<size_t> id_level_number)
     {
-        for( const CaseItem* case_item : case_record_metadata->GetCaseItems() )
+        for( const CaseItem* const case_item : case_record_metadata.GetCaseItems() )
         {
             // ignore unsupported case items
             if( m_supportedCaseItemTypes.find(case_item->GetType()) == m_supportedCaseItemTypes.cend() )
@@ -113,7 +112,7 @@ ExportRecordMapping ExportWriterBase::CreateExportRecordMapping(const std::vecto
                 {
                     m_caseAccess->GetCaseConstructionReporter()->IssueMessage(MessageType::Warning, 31101,
                                                                               ToString(m_type),
-                                                                              ToString(case_item->GetDictionaryItem().GetContentType()));
+                                                                              ToString(case_item->GetDictItem().GetContentType()));
                 }
 
                 continue;
@@ -123,10 +122,10 @@ ExportRecordMapping ExportWriterBase::CreateExportRecordMapping(const std::vecto
             for( size_t occurrence = 0; occurrence < case_item->GetTotalNumberItemSubitemOccurrences(); ++occurrence )
             {
                 // when necessary, the occurrence will be appended to the item name
-                std::wstring item_name = CS2WS(case_item->GetDictionaryItem().GetName());
+                std::string item_name = case_item->GetDictItem().GetName();
 
                 if( case_item->GetTotalNumberItemSubitemOccurrences() > 1 )
-                    SO::AppendFormat(item_name, _T("_%d"), static_cast<int>(occurrence) + 1);
+                    item_name.append(FormatText("_%d", static_cast<int>(occurrence) + 1));
 
                 export_record_mapping.item_mappings.emplace_back(ExportItemMapping
                     {
@@ -142,7 +141,7 @@ ExportRecordMapping ExportWriterBase::CreateExportRecordMapping(const std::vecto
 
     // add the ID case records
     for( size_t id_level_number = 0; id_level_number < id_case_records.size(); ++id_level_number )
-        map_case_items(id_case_records[id_level_number], id_level_number);
+        map_case_items(*id_case_records[id_level_number], id_level_number);
 
     // add the non-ID case record
     map_case_items(case_record_metadata, std::nullopt);
@@ -151,15 +150,15 @@ ExportRecordMapping ExportWriterBase::CreateExportRecordMapping(const std::vecto
 }
 
 
-std::wstring ExportWriterBase::CreateFormattedName(std::set<std::wstring>& used_names, const wstring_view name_sv,
+std::string ExportWriterBase::CreateFormattedName(std::set<std::string>& used_names, const std::string_view name_sv,
                                                    const bool record_name, const bool ensure_unique/* = false*/)
 {
     for( int i = 0; ; ++i )
     {
-        std::wstring formatted_name = name_sv;
+        std::string formatted_name(name_sv);
 
         if( i > 0 )
-            SO::AppendFormat(formatted_name, _T("_%d"), i);
+            formatted_name.append(FormatText("_%d", i));
 
         if( used_names.find(formatted_name) == used_names.cend() &&
             ( !ensure_unique || m_allUsedNames.find(formatted_name) == m_allUsedNames.cend() ) &&
@@ -173,7 +172,7 @@ std::wstring ExportWriterBase::CreateFormattedName(std::set<std::wstring>& used_
 }
 
 
-std::wstring ExportWriterBase::CreateUniqueName(const wstring_view name_sv)
+std::string ExportWriterBase::CreateUniqueName(const std::string_view name_sv)
 {
     return CreateFormattedName(m_allUsedNames, name_sv, false, true);
 }

@@ -10,9 +10,9 @@ class CaseLevel;
 class CDataDict;
 class CDictRecord;
 class ConnectionString;
-class CStdioFileUnicode;
 class DiffSpec;
 class PFF;
+namespace FileIO { class TextFile; }
 
 
 class ZDIFFO_API Differ
@@ -38,7 +38,7 @@ private:
 private:
     std::shared_ptr<DiffSpec> m_diffSpec;
 
-    std::unique_ptr<CStdioFileUnicode> m_log;
+    std::unique_ptr<FileIO::TextFile> m_log;
 
     std::unique_ptr<CaseItemPrinter> m_caseItemPrinter;
     std::shared_ptr<CaseAccess> m_caseAccess;

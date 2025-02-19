@@ -844,7 +844,9 @@ void CDETextEdit::SetWindowText(const CString& sString)
 
     // if a multiline field, turn newlines into \r\n
     if( m_pField->AllowMultiLine() ) {
-        SO::MakeNewlineCRLF(sTempString);
+        std::string sTempStringUTf8 = UTF8_TODO::GetUtf8(sTempString);
+        SO::MakeNewlineCRLF(sTempStringUTf8);
+        sTempString = UTF8_TODO::GetWide(sTempStringUTf8);
     }
     // otherwise, turn newlines into spaces
     else {

@@ -8,8 +8,31 @@
 #include <map>
 #include <wchar.h>
 
+class CSProException;
+class SharableString;
 
 #define WCHAR_SIZE  4
+
+
+class JavaString
+{
+public:
+    static std::string ToUtf8(JNIEnv& env, const jstring jsText);
+    static std::optional<std::string> ToOptionalUtf8(JNIEnv& env, const jstring jsText);
+    static SharableString ToSharableString(JNIEnv& env, const jstring jsText);
+
+    // can be called with:
+    //     - std::string
+    //     - const std::string*         (null returned if nullptr)
+    //     - std::optional<std::string> (null returned if no value)
+    //     - SharableString             (null returned if not set)
+    template<typename T>
+    static jstring ToJava(JNIEnv& env, const T& text_or_sharable_string);
+
+private:
+    template<typename T>
+    static T ToUtf8Worker(JNIEnv& env, const jstring jsText);
+};
 
 
 jstring WideToJava(JNIEnv* pEnv, const wchar_t* text, size_t length);
@@ -38,11 +61,11 @@ inline jstring WideToJava<const wchar_t*>(JNIEnv* pEnv, const wchar_t* const& te
 
 std::wstring JavaToWSZ(JNIEnv* pEnv, const jstring jStr);
 std::optional<std::wstring> JavaToOptionalWSZ(JNIEnv* pEnv, const jstring jStr);
-std::wstring exceptionToString(JNIEnv* pEnv, jthrowable exception, bool include_class_name = true);
+std::string exceptionToString(JNIEnv* pEnv, jthrowable exception, bool include_class_name = true);
 std::string getStackTrace(JNIEnv* pEnv, jthrowable exception);
 void logException(JNIEnv* pEnv, int priority, const char* tag, jthrowable exception);
 JNIEnv* GetJNIEnvForCurrentThread();
-std::map<std::wstring, std::wstring> JavaBundleToMap(JNIEnv* env, jobject bundle);
+std::map<std::string, std::string> JavaBundleToMap(JNIEnv* env, jobject bundle);
 
 
 template<typename T>
@@ -53,7 +76,6 @@ jstring OptionalWideToJava(JNIEnv* pEnv, const std::optional<T>& optional_text)
 }
 
 
-class CSProException;
 template<typename CSProExceptionT = CSProException>
 void ThrowJavaExceptionAsCSProException(JNIEnv* pEnv)
 {
@@ -64,6 +86,12 @@ void ThrowJavaExceptionAsCSProException(JNIEnv* pEnv)
         pEnv->ExceptionClear();
         throw CSProExceptionT(exceptionToString(pEnv, jException, false));
     }
+}
+
+
+inline void ThrowJavaException(JNIEnv* pEnv, const std::exception& exception)
+{
+    pEnv->ThrowNew(pEnv->FindClass("java/io/IOException"), exception.what());
 }
 
 
@@ -130,7 +158,7 @@ namespace JNIReferences
     extern jclass classActionInvokerListener;
     extern jmethodID methodActionInvokerListener_onGetDisplayOptions;
     extern jmethodID methodActionInvokerListener_onSetDisplayOptions;
-    extern jmethodID methodActionInvokerListener_onCloseDialog;
+    extern jmethodID methodActionInvokerListener_onClose;
     extern jmethodID methodActionInvokerListener_onEngineProgramControlExecuted;
     extern jmethodID methodActionInvokerListener_onPostWebMessage;
 
@@ -210,7 +238,7 @@ namespace JNIReferences
     extern jmethodID methodApplicationInterfaceExecPFF;
     extern jmethodID methodApplicationInterfaceGetDeviceID;
     extern jmethodID methodApplicationInterfaceGetMaxDisplaySize;
-    extern jmethodID methodApplicationInterfaceGetMediaFilenames;
+    extern jmethodID methodApplicationInterfaceGetMediaFilePaths;
     extern jmethodID methodApplicationInterfaceIsNetworkConnected;
     extern jmethodID methodApplicationInterfacePrompt;
     extern jmethodID methodApplicationInterfaceGetProperty;
@@ -220,6 +248,7 @@ namespace JNIReferences
     extern jmethodID methodApplicationInterfaceUpdateProgressDialog;
     extern jmethodID methodApplicationInterfaceChooseBluetoothDevice;
     extern jmethodID methodApplicationInterfaceAuthorizeDropbox;
+    extern jmethodID methodApplicationInterfaceAuthorizeGoogleDrive;
     extern jmethodID methodApplicationInterfaceLoginDialog;
     extern jmethodID methodApplicationInterfaceStoreCredential;
     extern jmethodID methodApplicationInterfaceRetrieveCredential;
@@ -244,6 +273,7 @@ namespace JNIReferences
     extern jmethodID methodApplicationInterfaceGeometryWalkPolygon;
     extern jmethodID methodApplicationInterfaceClipboardGetText;
     extern jmethodID methodApplicationInterfaceClipboardPutText;
+    extern jmethodID methodApplicationInterfaceCreatePinShortcut;
     extern jmethodID methodApplicationInterfaceShowSelectDocumentDialog;
 
     extern jclass classValuePair;

@@ -42,13 +42,13 @@ void CapiQuestion::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    wstring_view item_name_sv = m_itemName;
-    size_t dot_pos = item_name_sv.find('.');
+    const wstring_view item_name_sv = m_itemName;
+    const size_t dot_pos = item_name_sv.find('.');
 
-    json_writer.Write(JK::name, item_name_sv.substr(dot_pos + 1));
+    json_writer.Write(JK::name, UTF8_TODO::GetUtf8(item_name_sv.substr(dot_pos + 1)));
 
     if( dot_pos != std::wstring_view::npos )
-        json_writer.Write(JK::dictionary, item_name_sv.substr(0, dot_pos));
+        json_writer.Write(JK::dictionary, UTF8_TODO::GetUtf8(item_name_sv.substr(0, dot_pos)));
 
     json_writer.Write(JK::conditions, m_conditions);
 

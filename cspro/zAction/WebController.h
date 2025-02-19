@@ -11,82 +11,82 @@
 #include <mutex>
 #include <thread>
 
+namespace ActionInvoker { class WebController; }
 
-namespace ActionInvoker
+
+class ActionInvoker::WebController
 {
-    class WebController
+public:
+    struct Message
+    {
+        int message_id = -1;
+        std::string message;
+        bool called_by_old_CSPro_object = false;
+    };
+
+    class PreProcessMessageWorker
     {
     public:
-        struct Message
-        {
-            int message_id = -1;
-            std::wstring message;
-            bool called_by_old_CSPro_object = false;
-        };
-
-        class PreProcessMessageWorker
-        {
-        public:
-            virtual ~PreProcessMessageWorker() { }
-            virtual std::shared_ptr<Listener> GetListener() = 0;
-        };
-
-
-        WebController(Caller::WebViewTag web_view_tag);
-
-        WebListener& GetListener() { return *m_actionInvokerWebListener; }
-        WebCaller& GetCaller()     { return m_actionInvokerCaller; }
-
-        // adds a message for processing, returning the message's unique ID
-        int PushMessage(std::wstring message, bool called_by_old_CSPro_object = false);
-
-        // cancels any operations in progress and waits for them to complete
-        void CancelAndWaitOnActionsInProgress();
-
-        // sets an object that will be called prior to a message being processed
-        void SetPreProcessMessageWorker(std::unique_ptr<PreProcessMessageWorker> pre_process_message_worker);
-
-        // processes a message:
-        // - if synchronous, the result is returned;
-        // - if asynchronous, the JavaScript call to update the Promise is returned
-        std::shared_ptr<const std::wstring> ProcessMessage(int message_id, bool async_call);
-
-    private:
-        // returns the message associated with the unique ID
-        Message PopMessage(int message_id);
-
-    private:
-        std::mutex m_messagesMutex;
-        int m_nextMessageId;
-        std::vector<Message> m_messages;
-
-        std::mutex m_processActionMutex;
-        bool m_webControllerShutdownFlag;
-
-        std::shared_ptr<WebListener> m_actionInvokerWebListener;
-        std::unique_ptr<ListenerHolder> m_actionInvokerListenerHolder;
-        WebCaller m_actionInvokerCaller;
-        std::shared_ptr<Runtime> m_actionInvokerRuntime;
-        std::unique_ptr<PreProcessMessageWorker> m_preProcessMessageWorker;
+        virtual ~PreProcessMessageWorker() { }
+        virtual std::shared_ptr<Listener> GetListener() = 0;
     };
-}
+
+
+    WebController(int caller_id, void* web_view_tag);
+
+    WebListener& GetListener() { return *m_actionInvokerWebListener; }
+    WebCaller& GetCaller()     { return m_actionInvokerCaller; }
+
+    // adds a message for processing, returning the message's unique ID
+    int PushMessage(std::string message, bool called_by_old_CSPro_object = false);
+
+    // cancels any operations in progress and waits for them to complete
+    void CancelAndWaitOnActionsInProgress();
+
+    // sets an object that will be called prior to a message being processed
+    void SetPreProcessMessageWorker(std::unique_ptr<PreProcessMessageWorker> pre_process_message_worker);
+
+    // processes a message:
+    // - if synchronous, the result is returned;
+    // - if asynchronous, the JavaScript call to update the Promise is returned
+    SharableString ProcessMessage(int message_id, bool async_call);
+
+private:
+    // returns the message associated with the unique ID
+    Message PopMessage(int message_id);
+
+private:
+    std::mutex m_messagesMutex;
+    int m_nextMessageId;
+    std::vector<Message> m_messages;
+
+    std::mutex m_processActionMutex;
+    bool m_webControllerShutdownFlag;
+
+    std::shared_ptr<WebListener> m_actionInvokerWebListener;
+    std::unique_ptr<ListenerHolder> m_actionInvokerListenerHolder;
+    WebCaller m_actionInvokerCaller;
+    std::shared_ptr<Runtime> m_actionInvokerRuntime;
+    std::unique_ptr<PreProcessMessageWorker> m_preProcessMessageWorker;
+};
+
 
 
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline ActionInvoker::WebController::WebController(const Caller::WebViewTag web_view_tag)
+inline ActionInvoker::WebController::WebController(const int caller_id, void* const web_view_tag)
     :   m_nextMessageId(1),
         m_webControllerShutdownFlag(false),
-        m_actionInvokerWebListener(std::make_shared<WebListener>(web_view_tag)),
+        m_actionInvokerWebListener(std::make_unique<WebListener>(caller_id, web_view_tag)),
         m_actionInvokerListenerHolder(ListenerHolder::Register(m_actionInvokerWebListener)),
-        m_actionInvokerCaller(web_view_tag)
+        m_actionInvokerCaller(caller_id)
 {
 }
 
 
-inline int ActionInvoker::WebController::PushMessage(std::wstring message, const bool called_by_old_CSPro_object/* = false*/)
+inline int ActionInvoker::WebController::PushMessage(std::string message, const bool called_by_old_CSPro_object/* = false*/)
 {
     std::lock_guard<std::mutex> messages_lock(m_messagesMutex);
 
@@ -118,7 +118,7 @@ inline void ActionInvoker::WebController::CancelAndWaitOnActionsInProgress()
 {
     // cancel any actions...
     m_webControllerShutdownFlag = true;
-    m_actionInvokerCaller.SetCancelFlag(true);
+    m_actionInvokerCaller.GetCancelFlag() = true;
 
     // ...and make sure that the actions are finished
     std::lock_guard<std::mutex> async_operation_lock(m_processActionMutex);
@@ -132,52 +132,57 @@ inline void ActionInvoker::WebController::SetPreProcessMessageWorker(std::unique
 }
 
 
-inline std::shared_ptr<const std::wstring> ActionInvoker::WebController::ProcessMessage(const int message_id, const bool async_call)
+inline SharableString ActionInvoker::WebController::ProcessMessage(const int message_id, const bool async_call)
 {
     Message message = PopMessage(message_id);
     std::optional<int> request_id;
 
-    auto generate_response = [&](const JsonResponse& json_response) -> std::shared_ptr<const std::wstring>
+    auto generate_response = [&](JsonResponse&& json_response) -> SharableString
     {
         // if no request ID was provided, the asynchronous call is invalid
         if( async_call && !request_id.has_value() && !message.called_by_old_CSPro_object )
-            return ReturnProgrammingError(nullptr);
+            return ReturnProgrammingError(SharableString());
 
-        if( async_call )
+        SharableString response_text = json_response.GetResponseText();
+
+        if( !async_call )
         {
-            if( !message.called_by_old_CSPro_object )
-            {
-                return std::make_shared<std::wstring>(std::wstring(_T("CSProActionInvoker.$Impl.processAsyncResponse(")) +
-                                                      CS2WS(IntToString(*request_id)) + _T(",") + Encoders::ToJsonString(json_response.GetResponseText()) + _T(");"));
-            }
+            return response_text;
+        }
 
-            else
-            {
-#ifdef WIN_DESKTOP
-                return std::make_shared<std::wstring>(std::wstring(_T("CSPro.$processPostedMessageResponse(")) +
-                                                      CS2WS(IntToString(message_id)) + _T(",") + Encoders::ToJsonString(json_response.GetResponseText()) + _T(");"));
-#else
-                return json_response.GetSharedResponseText();
-#endif
-            }
+        else if( !message.called_by_old_CSPro_object )
+        {
+            return SO::Concatenate("CSProActionInvoker.$Impl.processAsyncResponse(",
+                                   IntToString(*request_id),
+                                   ",",
+                                   Encoders::ToJsonString(*response_text),
+                                   ");");
         }
 
         else
         {
-            return json_response.GetSharedResponseText();
+#ifdef WIN_DESKTOP
+            return SO::Concatenate("CSPro.$processPostedMessageResponse(",
+                                   IntToString(message_id),
+                                   ",",
+                                   Encoders::ToJsonString(*response_text),
+                                   ");");
+#else
+            return response_text;
+#endif
         }
     };
 
     try
     {
-        auto json_node = std::make_shared<JsonNode<wchar_t>>(Json::Parse(message.message));
+        auto json_node = std::make_shared<const JsonNode>(Json::Parse(message.message));
 
         if( async_call && !message.called_by_old_CSPro_object )
             request_id = json_node->Get<int>(JK::requestId);
 
         const Action action = static_cast<Action>(json_node->Get<int>(JK::action));
-        const std::optional<std::wstring> access_token = json_node->GetOptional<std::wstring>(JK::accessToken);
-        const std::optional<std::wstring> json_arguments = json_node->GetOptional<std::wstring>(JK::arguments);
+        const std::optional<std::string> access_token = json_node->GetOptional<std::string>(JK::accessToken);
+        const SharableString json_arguments = json_node->GetOrConstruct<SharableString>(JK::arguments);
 
         if( m_actionInvokerRuntime == nullptr )
         {
@@ -213,7 +218,7 @@ inline std::shared_ptr<const std::wstring> ActionInvoker::WebController::Process
         }
 
         if( m_webControllerShutdownFlag )
-            return nullptr;
+            return SharableString();
 
         // the question text web view will register a listener prior to the processing of the message
         std::unique_ptr<ListenerHolder> listener_holder;
@@ -235,10 +240,10 @@ inline std::shared_ptr<const std::wstring> ActionInvoker::WebController::Process
                                                                                                   WebViewSyncOperationMarker::MarkInProgress();
 
         // process the action
-        m_actionInvokerCaller.SetCancelFlag(false);
+        m_actionInvokerCaller.GetCancelFlag() = false;
         m_actionInvokerCaller.SetCurrentMessageJsonNode(json_node);
 
-        ActionInvoker::Result result = m_actionInvokerRuntime->ProcessAction(action, json_arguments, m_actionInvokerCaller);
+        const ActionInvoker::Result result = m_actionInvokerRuntime->ProcessAction(action, json_arguments, m_actionInvokerCaller);
 
         web_view_sync_operation_marker.reset();
 

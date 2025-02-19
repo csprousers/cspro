@@ -13,17 +13,17 @@ ErrmsgDlg::ErrmsgDlg()
 }
 
 
-const TCHAR* ErrmsgDlg::GetDialogName()
+std::string ErrmsgDlg::GetDialogName()
 {
-    return ErrmsgDialogName;
+    return DialogName;
 }
 
 
-std::wstring ErrmsgDlg::GetJsonArgumentsText()
+SharableString ErrmsgDlg::GetJsonArgumentsText()
 {
     ASSERT(!m_buttons.empty());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
                 .Write(JK::title, m_title)
@@ -33,7 +33,7 @@ std::wstring ErrmsgDlg::GetJsonArgumentsText()
     int button_index = 1;
 
     json_writer->WriteObjects(JK::buttons, m_buttons,
-        [&](const std::wstring& button)
+        [&](const SharableString& button)
         {
             json_writer->Write(JK::caption, button)
                         .Write(JK::index, button_index++);
@@ -41,14 +41,14 @@ std::wstring ErrmsgDlg::GetJsonArgumentsText()
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-void ErrmsgDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void ErrmsgDlg::ProcessJsonResults(const JsonNode& json_results)
 {
     m_selectedButtonIndex = json_results.Get<int>(JK::index);
 
     if( m_selectedButtonIndex < 1 || m_selectedButtonIndex > static_cast<int>(m_buttons.size()) )
-        throw CSProException(_T("Invalid index: %d"), m_selectedButtonIndex);
+        throw CSProException("Invalid index: %d", m_selectedButtonIndex);
 }

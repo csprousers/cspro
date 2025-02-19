@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zCaseO/zCaseO.h>
+#include <zAppO/SyncTypes.h>
 
 
 /* Timestamp for use in a distributed system.
@@ -14,14 +15,13 @@
 class ZCASEO_API VectorClock
 {
 public:
-
     // Get version for specific device
-    int getVersion(const CString& device) const;
+    int getVersion(const DeviceId& device_id) const;
 
     // Compare clocks - clock A is = B iff all versions are == corresponding
     // version in B
     bool operator==(const VectorClock& rhs) const;
-    bool operator!=(const VectorClock& rhs) const;
+    bool operator!=(const VectorClock& rhs) const { return !operator==(rhs); }
 
     // Compare clocks - clock A is < B iff all versions are <= corresponding
     // version in B and at least one is strictly <
@@ -31,17 +31,21 @@ public:
     void merge(const VectorClock& rhs);
 
     // Increment version number for specific device
-    void increment(const CString& device);
+    void increment(const DeviceId& device_id);
 
     // Get all devices in the clock
-    std::vector<CString> getAllDevices() const;
+    std::vector<DeviceId> getAllDevices() const;
 
     // Set specific revision
-    void setVersion(const CString& device, int version);
+    void setVersion(const DeviceId& device_id, int version);
 
     void clear();
 
+    // serialization
+    static VectorClock CreateFromJson(const JsonNode& json_node);
+    void WriteJson(JsonWriter& json_writer) const;
+
 private:
-    typedef std::map<CString, int> DeviceRevMap;
+    using DeviceRevMap = std::map<DeviceId, int>;
     DeviceRevMap m_vector;
 };

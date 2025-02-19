@@ -12,8 +12,8 @@ public:
 
     void SetViewerOptions(const ViewerOptions& viewer_options);
 
-    void SetInitialHtml(std::wstring html);
-    void SetInitialUrl(std::wstring url);
+    void SetInitialHtml(std::string html);
+    void SetInitialUrl(std::string url);
 
     INT_PTR DoModal() override;
 
@@ -37,5 +37,5 @@ private:
     CWnd* m_closeButton;
     int m_closeButtonBorder;
     int m_htmlViewCtrlBorder;
-    std::optional<std::tuple<bool, std::wstring>> m_initialContents;
+    std::optional<std::tuple<bool, std::string>> m_initialContents;
 };

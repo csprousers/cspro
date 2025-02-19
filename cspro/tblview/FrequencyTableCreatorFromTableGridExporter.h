@@ -13,7 +13,7 @@ public:
     ~FrequencyTableCreatorFromTableGridExporter();
 
     // creates the frequency JSON for a table; throws CreationException on error
-    std::wstring CreateFrequencyJson(CTblGrid& table_grid);
+    std::string CreateFrequencyJson(CTblGrid& table_grid);
 
     // CTableGridExporter overrides
 protected:
@@ -41,6 +41,6 @@ protected:
 
 private:
     std::unique_ptr<FrequencyTable> m_frequencyTable;
-    std::unique_ptr<std::vector<std::wstring>> m_titles;
+    std::unique_ptr<std::vector<std::string>> m_titles;
     FrequencyRow* m_currentFrequencyRow;
 };

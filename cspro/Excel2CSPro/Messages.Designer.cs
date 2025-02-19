@@ -124,16 +124,7 @@ namespace Excel2CSPro {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CSPro DB Files (*.csdb)|*.csdb|Encrypted CSPro DB Files (*.csdbe)|*.csdbe|Text Data Files (*.dat)|*.dat|All Files (*.*)|*.*.
-        /// </summary>
-        internal static string DataFileFilter {
-            get {
-                return ResourceManager.GetString("DataFileFilter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Output data file: {0}.
+        ///   Looks up a localized string similar to Output data source: {0}.
         /// </summary>
         internal static string DataLabelFilter {
             get {
@@ -142,16 +133,7 @@ namespace Excel2CSPro {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Save CSPro Data File.
-        /// </summary>
-        internal static string DataSaveTitle {
-            get {
-                return ResourceManager.GetString("DataSaveTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There was an error writing the data file..
+        ///   Looks up a localized string similar to There was an error writing the data source..
         /// </summary>
         internal static string DataWriteError {
             get {
@@ -412,11 +394,11 @@ namespace Excel2CSPro {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must specify a CSPro output data file..
+        ///   Looks up a localized string similar to You must specify a CSPro output data source..
         /// </summary>
-        internal static string PrerunCheckNoDataFile {
+        internal static string PrerunCheckNoDataSource {
             get {
-                return ResourceManager.GetString("PrerunCheckNoDataFile", resourceCulture);
+                return ResourceManager.GetString("PrerunCheckNoDataSource", resourceCulture);
             }
         }
         

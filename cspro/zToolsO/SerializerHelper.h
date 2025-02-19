@@ -1,11 +1,10 @@
 ﻿#pragma once
 
-#include <zToolsO/zToolsO.h>
 #include <zToolsO/PointerClasses.h>
 #include <zToolsO/RaiiHelpers.h>
 
 
-class CLASS_DECL_ZTOOLSO SerializerHelper
+class SerializerHelper
 {
 public:
     struct Helper

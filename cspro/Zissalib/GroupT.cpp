@@ -61,7 +61,7 @@ void TRACE( csprochar* pszFormat, ... ) {
 // --- construction/destruction/initialization
 //
 //////////////////////////////////////////////////////////////////////////
-CSymbolGroup::CSymbolGroup(std::wstring name, CEngineDriver* pEngineDriver)
+CSymbolGroup::CSymbolGroup(std::string name, CEngineDriver* pEngineDriver)
     :   ChainedSymbol(std::move(name), SymbolType::Group),
         m_pEngineDriver(pEngineDriver),
         m_pEngineArea(pEngineDriver->m_pEngineArea),
@@ -234,7 +234,7 @@ void GROUPT::SetDimAndParentGPT( void ) {
                     //TODO pGroup->GetFormFile()->GetDictName();
                     //TODO csFullName.Format( "%s.%s", csDictName, csItemName );
 
-                    int iSymItem = m_pEngineArea->SymbolTableSearch(csFullName, { SymbolType::Variable });
+                    int iSymItem = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csFullName), { SymbolType::Variable });
 
                     if( iSymItem <= 0 ) {
                         ASSERT( 0 );            // can't be: if mult-occs, must refer to an axis
@@ -312,7 +312,7 @@ void GROUPT::SetCurrentOccurrences( int iOccur ) {
 
 #ifdef _DEBUG
     CString csMsg;
-    csMsg.Format(_T("%s.setCurrentOcc(%d)"), this->GetName().c_str(), iOccur );
+    csMsg.Format(_T("%s.setCurrentOcc(%d)"), UTF8_TODO::GetWide(this->GetName()).c_str(), iOccur );
     DebugMsg( 0, (csprochar*)(const csprochar*) csMsg );
 #endif
 
@@ -486,7 +486,7 @@ int GROUPT::GetNextExOccurrence( void ) {
 
 #ifdef _DEBUG
     CString csMsg;
-    csMsg.Format( _T("  %s::GetNextExOccurrence = %d"), this->GetName().c_str(), m_iExOccur );
+    csMsg.Format( _T("  %s::GetNextExOccurrence = %d"), UTF8_TODO::GetWide(this->GetName()).c_str(), m_iExOccur );
     DebugMsg( 0, csMsg.GetString() );
 #endif
 
@@ -570,7 +570,7 @@ void GROUPT::SaveOccLabel(int iOcc)
 
     else if( pGroup->GetRIType() == CDEFormBase::Item || pGroup->GetRIType() == CDEFormBase::SubItem )
     {
-        int iSymItem = m_pEngineArea->SymbolTableSearch(pGroup->GetRepeatName(), { SymbolType::Variable });
+        int iSymItem = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(pGroup->GetRepeatName()), { SymbolType::Variable });
 
         if( iSymItem > 0 )
         {
@@ -599,7 +599,7 @@ void GROUPT::ResetOccLabels()
         else if( pGroup->GetRIType() == CDEFormBase::Item || pGroup->GetRIType() == CDEFormBase::SubItem )
         {
             //Item Or SubItem with occurrences
-            int iSymItem = m_pEngineArea->SymbolTableSearch(pGroup->GetRepeatName(), { SymbolType::Variable });
+            int iSymItem = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(pGroup->GetRepeatName()), { SymbolType::Variable });
 
             if( iSymItem > 0 )
             {
@@ -1497,7 +1497,7 @@ CString CEngineArea::DumpGroupTName( int iSymbol )
     CString csName;
 
     if( iSymbol > 0 )
-        csName = WS2CS(NPT(iSymbol)->GetName());
+        csName = UTF8_TODO::GetCString(NPT(iSymbol)->GetName());
     else
         csName = ( iSymbol < 0 ) ? _T("unknown") : _T("none");
 
@@ -1510,19 +1510,19 @@ CString CEngineArea::DumpGroupTName( int iSymbol )
 
         if( pFlow != NULL ) {
             int iSymFlow = pFlow->GetSymbolIndex();
-            csFlow.Format(_T("of Flow %s{%d})"), NPT(iSymFlow)->GetName().c_str(), iSymFlow );
+            csFlow.Format(_T("of Flow %s{%d})"), UTF8_TODO::GetWide(NPT(iSymFlow)->GetName()).c_str(), iSymFlow );
         }
         else
             csFlow = _T("without Flow");
 
         csDetail.Format(_T(" (%d, %s::%s %s)"),
                         iSymbol,
-                        pFlow == nullptr ? _T("unknown") : ToString(pFlow->GetType()),
-                        pFlow == nullptr ? _T("unknown") : ToString(pFlow->GetSubType()),
+                        pFlow == nullptr ? _T("unknown") : UTF8_TODO::GetWide(ToString(pFlow->GetType())).c_str(),
+                        pFlow == nullptr ? _T("unknown") : UTF8_TODO::GetWide(ToString(pFlow->GetSubType())).c_str(),
                         csFlow.GetString());
     }
     else if( iSymbol > 0 )
-        csDetail.Format( _T(" (%d, %s::%s)"), iSymbol, ToString(NPT(iSymbol)->GetType()), ToString(NPT(iSymbol)->GetSubType()) );
+        csDetail.Format( _T(" (%d, %s::%s)"), iSymbol, UTF8_TODO::GetWide(ToString(NPT(iSymbol)->GetType())).c_str(), UTF8_TODO::GetWide(ToString(NPT(iSymbol)->GetSubType())).c_str() );
     else
         csDetail.Format( _T(" (%d)"), iSymbol );
 
@@ -1563,11 +1563,11 @@ void GROUPT::SetDimType( CDimension::VDimType xType )
         // deduce what to do according to the group's dimension number
         {
             GROUPT* pOwner = this->GetOwnerGPT();
-            CString csGroupName = WS2CS(this->GetName());
+            CString csGroupName = UTF8_TODO::GetCString(this->GetName());
 
             int iNumDim = GetNumDim();
             CString csNumDim;
-            csNumDim.Format( _T("SetDimType subitem [%s] with %d dimensions\n"), GetName().c_str(), iNumDim );
+            csNumDim.Format( _T("SetDimType subitem [%s] with %d dimensions\n"), UTF8_TODO::GetWide(GetName()).c_str(), iNumDim );
             RTRACE2( _T("%s"), csNumDim.GetString() );
             switch( iNumDim )
             {
@@ -1602,7 +1602,7 @@ void GROUPT::SetDimType( CDimension::VDimType xType )
                 {
                     #ifdef _DEBUG
                     // cannot use usual TRACE macro, because of TRACE function defined above.
-                    RTRACE2( _T("LEAK Trace: Building occ tree for group %s\n"), GetName().c_str() );
+                    RTRACE2(_T("LEAK Trace: Building occ tree for group %s\n"), UTF8_TODO::GetWide(GetName()).c_str());
                     #endif
                     m_pOccTree =
                         new SubItemOccurrenceInfoSet( MAXocc(pOwnerOwner),
@@ -1949,7 +1949,7 @@ void GROUPT::CalcCurrent3DObject_internal(bool bUseEx) /*throw(C3DException)*/
         if( pOwner->GetDimType() == CDimension::Record )
             m_curr3dObject.setIndexValue( CDimension::Record, CURROCC_METHOD(pOwner) );
         else
-            tryToSetRecordDimension_local( m_curr3dObject, pOwner, bUseEx, WS2CS(GetName()) );
+            tryToSetRecordDimension_local( m_curr3dObject, pOwner, bUseEx, UTF8_TODO::GetCString(GetName()) );
         break;
 
     case CDimension::SubItem:
@@ -1965,7 +1965,7 @@ void GROUPT::CalcCurrent3DObject_internal(bool bUseEx) /*throw(C3DException)*/
         if( pOwner->GetDimType() == CDimension::Record )
             m_curr3dObject.setIndexValue( CDimension::Record, CURROCC_METHOD(pOwner) );
         else
-            tryToSetRecordDimension_local( m_curr3dObject, pOwner, bUseEx, WS2CS(GetName()) );
+            tryToSetRecordDimension_local( m_curr3dObject, pOwner, bUseEx, UTF8_TODO::GetCString(GetName()) );
         break;
     }
 

@@ -9,7 +9,7 @@ class ExcelFrequencyPrinterWorker;
 class ZFREQO_API ExcelFrequencyPrinter : public FrequencyPrinter
 {
 public:
-    ExcelFrequencyPrinter(NullTerminatedString filename);
+    ExcelFrequencyPrinter(InterfaceString file_path);
     ~ExcelFrequencyPrinter();
     
     void StartFrequencyGroup() override { }

@@ -48,15 +48,15 @@ CodeView::~CodeView()
 }
 
 
-std::variant<const CDocument*, std::wstring> CodeView::GetDocumentOrTitleForBuildWnd() const
+std::variant<const CDocument*, std::string> CodeView::GetDocumentOrTitleForBuildWnd() const
 {
     return GetDocument();
 }
 
 
-void CodeView::SetTextAndSetSavePoint(const std::wstring& text)
+void CodeView::SetTextAndSetSavePoint(const cs::string_sz text)
 {
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     logic_ctrl->SetText(text);
     logic_ctrl->SetSavePoint();
@@ -66,7 +66,7 @@ void CodeView::SetTextAndSetSavePoint(const std::wstring& text)
 void CodeView::RefreshLogicControlLexer()
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     // set the proper lexer
     logic_ctrl->InitLogicControl(true, view_language_settings.CanCompileOrValidateCode(), view_language_settings.GetLexerLanguage());
@@ -94,7 +94,7 @@ void CodeView::OnInitialUpdate()
 }
 
 
-void CodeView::OnInitialUpdateWorker(const std::wstring& initial_text)
+void CodeView::OnInitialUpdateWorker(const cs::string_sz initial_text)
 {
     __super::OnInitialUpdate();
 
@@ -142,33 +142,34 @@ void CodeView::OnPasteStringLiteral()
 }
 
 
-void CodeView::OnUpdatePasteStringLiteral(CCmdUI* pCmdUI)
+void CodeView::OnUpdatePasteStringLiteral(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
 
-    pCmdUI->Enable(WinClipboard::HasText() && CodeMenu::CanPasteStringLiteral(view_language_settings.GetLexerLanguage()));
+    pCmdUI->Enable(WinClipboard::HasText() &&
+                   CodeMenu::CanPasteStringLiteral(view_language_settings.GetLexerLanguage()));
 }
 
 
-void CodeView::OnCodeFoldingLevel(UINT nID)
+void CodeView::OnCodeFoldingLevel(const UINT nID)
 {
     CodeMenu::CodeFolding::OnCodeFoldingLevel(nID, GetLogicCtrl());
 }
 
 
-void CodeView::OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI)
+void CodeView::OnUpdateCodeFoldingLevel(CCmdUI* const pCmdUI)
 {
     CodeMenu::CodeFolding::OnUpdateCodeFoldingLevel(pCmdUI);
 }
 
 
-void CodeView::OnCodeFoldingAction(UINT nID)
+void CodeView::OnCodeFoldingAction(const UINT nID)
 {
     CodeMenu::CodeFolding::OnCodeFoldingAction(nID, GetLogicCtrl());
 }
 
 
-void CodeView::OnUpdateCodeFoldingAction(CCmdUI* pCmdUI)
+void CodeView::OnUpdateCodeFoldingAction(CCmdUI* const pCmdUI)
 {
     CodeMenu::CodeFolding::OnUpdateCodeFoldingAction(pCmdUI, GetLogicCtrl());
 }
@@ -177,7 +178,7 @@ void CodeView::OnUpdateCodeFoldingAction(CCmdUI* pCmdUI)
 void CodeView::OnRunCompileOrValidate()
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
-    LanguageType view_language_type = view_language_settings.GetLanguageType();
+    const LanguageType view_language_type = view_language_settings.GetLanguageType();
 
     if( view_language_type == LanguageType::JavaScript )
     {
@@ -213,7 +214,7 @@ void CodeView::OnRunCompileOrValidate()
 }
 
 
-void CodeView::OnUpdateRunCompileOrValidate(CCmdUI* pCmdUI)
+void CodeView::OnUpdateRunCompileOrValidate(CCmdUI* const pCmdUI)
 {
     const CodeDoc& code_doc = GetCodeDoc();
     const LanguageSettings& view_language_settings = GetLanguageSettings();
@@ -229,7 +230,7 @@ void CodeView::OnRunValidateJsonOnly()
 }
 
 
-void CodeView::OnUpdateRunValidateJsonOnly(CCmdUI* pCmdUI)
+void CodeView::OnUpdateRunValidateJsonOnly(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
 
@@ -237,15 +238,15 @@ void CodeView::OnUpdateRunValidateJsonOnly(CCmdUI* pCmdUI)
 }
 
 
-void CodeView::OnRunFormatJson(UINT nID)
+void CodeView::OnRunFormatJson(const UINT nID)
 {
-    bool compress_mode = ( nID == ID_RUN_COMPRESS_JSON );
+    const bool compress_mode = ( nID == ID_RUN_COMPRESS_JSON );
 
     ProcessorJson::FormatJson(*this, compress_mode);
 }
 
 
-void CodeView::OnUpdateRunFormatJson(CCmdUI* pCmdUI)
+void CodeView::OnUpdateRunFormatJson(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
 
@@ -259,7 +260,7 @@ void CodeView::OnRunSpecFileDowngrade()
 }
 
 
-void CodeView::OnUpdateRunSpecFileDowngrade(CCmdUI* pCmdUI)
+void CodeView::OnUpdateRunSpecFileDowngrade(CCmdUI* const pCmdUI)
 {
     const std::optional<unsigned>& json_spec_file_index = GetLanguageSettings().GetJsonSpecFileIndex();
     ASSERT(json_spec_file_index.has_value());

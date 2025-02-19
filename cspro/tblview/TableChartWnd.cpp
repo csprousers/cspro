@@ -57,7 +57,7 @@ void TableChartWnd::OnViewChart()
         HtmlViewCtrl& html_view_ctrl = m_htmlViewerView->GetHtmlViewCtrl();
 
         ActionInvoker::WebController& web_controller = html_view_ctrl.RegisterCSProHostObject();
-        web_controller.GetCaller().AddAccessTokenOverride(std::wstring(ActionInvoker::AccessToken::Charting_FrequencyView_sv));
+        web_controller.GetCaller().AddAccessTokenOverride(std::string(ActionInvoker::AccessToken::Charting_FrequencyView_sv));
 
         web_controller.GetListener().SetOnGetInputDataCallback(
             [&]()

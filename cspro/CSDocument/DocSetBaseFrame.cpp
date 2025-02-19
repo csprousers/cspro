@@ -7,15 +7,15 @@
 
 namespace
 {
-    constexpr const TCHAR* InvalidJsonMessage    = _T("The JSON is not valid and cannot be formatted. Fix any errors before formatting it.");
-    constexpr const TCHAR* InvalidContentMessage = _T("The content is not valid and cannot be formatted. Fix any errors before formatting it.");
+    constexpr const char* InvalidJsonMessage    = "The JSON is not valid and cannot be formatted. Fix any errors before formatting it.";
+    constexpr const char* InvalidContentMessage = "The content is not valid and cannot be formatted. Fix any errors before formatting it.";
 
-    constexpr bool DocSetComponentUseJson(DocSetComponent::Type doc_set_component_type)
+    constexpr bool DocSetComponentUseJson(const DocSetComponent::Type doc_set_component_type)
     {
         return ( doc_set_component_type != DocSetComponent::Type::ContextIds );
     }
 
-    constexpr bool DocSetComponentSupportsDetailedFormatting(DocSetComponent::Type doc_set_component_type)
+    constexpr bool DocSetComponentSupportsDetailedFormatting(const DocSetComponent::Type doc_set_component_type)
     {
         return ( doc_set_component_type == DocSetComponent::Type::Spec ||
                  doc_set_component_type == DocSetComponent::Type::TableOfContents ||
@@ -34,19 +34,19 @@ END_MESSAGE_MAP()
 void DocSetBaseFrame::AddFrameSpecificItemsToBuildMenu(DynamicMenuBuilder& dynamic_menu_builder)
 {
     const DocSetComponent::Type doc_set_component_type = GetDocSetComponentType();
-    const TCHAR* doc_set_component_text;
+    const char* doc_set_component_text;
 
     if( doc_set_component_type == DocSetComponent::Type::Spec )
     {
-        doc_set_component_text = _T("Specification");
-        dynamic_menu_builder.AddOption(ID_COMPILE_DOCSET_SPEC_ONLY, _T("Compile Specification Only"));
-        dynamic_menu_builder.AddOption(ID_COMPILE, _T("Co&mpile Specification and Components\tCtrl+K"));
+        doc_set_component_text = "Specification";
+        dynamic_menu_builder.AddOption(ID_COMPILE_DOCSET_SPEC_ONLY, L"Compile Specification Only");
+        dynamic_menu_builder.AddOption(ID_COMPILE, L"Co&mpile Specification and Components\tCtrl+K");
     }
 
     else
     {
         doc_set_component_text = ToString(doc_set_component_type);
-        dynamic_menu_builder.AddOption(ID_COMPILE, FormatTextCS2WS(_T("Co&mpile %s\tCtrl+K"), doc_set_component_text));
+        dynamic_menu_builder.AddOption(ID_COMPILE, FormatTextCS2WS(L"Co&mpile %s\tCtrl+K", TC::ToWide(doc_set_component_text).c_str()));
     }
 
     ASSERT(DocSetComponentUseJson(doc_set_component_type) == ( GetTextEditDoc().GetLexerLanguage() == SCLEX_JSON ));
@@ -54,26 +54,26 @@ void DocSetBaseFrame::AddFrameSpecificItemsToBuildMenu(DynamicMenuBuilder& dynam
     if( DocSetComponentUseJson(doc_set_component_type) )
     {
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddOption(ID_FORMAT_JSON, _T("Format JSON"));
-        dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT, FormatTextCS2WS(_T("Format %s\tCtrl+M"), doc_set_component_text));
+        dynamic_menu_builder.AddOption(ID_FORMAT_JSON, L"Format JSON");
+        dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT, FormatTextCS2WS(L"Format %s\tCtrl+M", TC::ToWide(doc_set_component_text).c_str()));
 
         if( DocSetComponentSupportsDetailedFormatting(doc_set_component_type) )
-            dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT_DETAILED, FormatTextCS2WS(_T("Format %s (Detailed)\tCtrl+Shift+M"), doc_set_component_text));
+            dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT_DETAILED, FormatTextCS2WS(L"Format %s (Detailed)\tCtrl+Shift+M", TC::ToWide(doc_set_component_text).c_str()));
     }
 }
 
 
-void DocSetBaseFrame::CompileWrapper(std::wstring action, bool input_is_json, std::function<void(DocSetCompiler&, std::variant<JsonNode<wchar_t>, std::wstring>)> compilation_function)
+void DocSetBaseFrame::CompileWrapper(std::string action, const bool input_is_json, const std::function<void(DocSetCompiler&, std::variant<JsonNode, std::string>)> compilation_function)
 {
     CMainFrame& main_frame = GetMainFrame();
-    CSDocumentBuildWnd* build_wnd = main_frame.GetBuildWnd();
-    HtmlOutputWnd* html_output_wnd = main_frame.GetHtmlOutputWnd();
+    CSDocumentBuildWnd* const build_wnd = main_frame.GetBuildWnd();
+    HtmlOutputWnd* const html_output_wnd = main_frame.GetHtmlOutputWnd();
 
     if( build_wnd == nullptr || html_output_wnd == nullptr )
         return;
 
     CDocument& doc = *assert_cast<CDocument*>(GetActiveDocument());
-    CLogicCtrl* logic_ctrl = GetTextEditView().GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     build_wnd->Initialize(logic_ctrl, &doc, std::move(action));
 
@@ -86,7 +86,7 @@ void DocSetBaseFrame::CompileWrapper(std::wstring action, bool input_is_json, st
         if( input_is_json )
         {
             BuildWndJsonReaderInterface json_reader_interface(doc, *build_wnd);
-            const auto json_node = Json::Parse(logic_ctrl->GetText(), &json_reader_interface);
+            const JsonNode json_node = Json::Parse(logic_ctrl->GetText(), &json_reader_interface);
 
             compilation_function(doc_set_compiler, json_node);
         }
@@ -104,15 +104,15 @@ void DocSetBaseFrame::CompileWrapper(std::wstring action, bool input_is_json, st
 
     build_wnd->Finalize();
 
-    std::wstring result_url;
+    std::string result_url;
 
     // show the result...
     if( build_wnd->GetErrors().empty() )
     {
         if( m_docSetPreviewUrl.empty() )
         {
-            const std::wstring doc_set_preview_html_filename = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Document), _T("docset-preview.html"));
-            m_docSetPreviewUrl = main_frame.GetSharedHtmlLocalFileServer().GetFilenameUrl(doc_set_preview_html_filename);
+            const std::string doc_set_preview_html_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Document), "docset-preview.html");
+            m_docSetPreviewUrl = main_frame.GetSharedHtmlLocalFileServer().CreateFileUrl(doc_set_preview_html_file_path);
         }
 
         result_url = m_docSetPreviewUrl;
@@ -132,24 +132,28 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
 {
     CWaitCursor wait_cursor;
 
-    HtmlOutputWnd* html_output_wnd = GetMainFrame().GetHtmlOutputWnd();
+    HtmlOutputWnd* const html_output_wnd = GetMainFrame().GetHtmlOutputWnd();
     DocSetSpec& doc_set_spec = GetDocSetSpec();
     const DocSetComponent::Type doc_set_component_type = GetDocSetComponentType();
     const bool is_spec_file = ( doc_set_component_type == DocSetComponent::Type::Spec );
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
     json_writer->Write(JK::docSet, reinterpret_cast<int64_t>(&doc_set_spec));
 
     // write a title describing what is being output
-    std::wstring title = ToString(doc_set_component_type);
-    const std::wstring subtitle = is_spec_file ? ValueOrDefault(doc_set_spec.GetTitle()) :
-                                                 PortableFunctions::PathGetFilename(GetActiveDocument()->GetPathName());
+    std::string title = ToString(doc_set_component_type);
+    const std::string subtitle = is_spec_file ? ValueOrDefault(doc_set_spec.GetTitle()) :
+                                                PortableFunctions::PathGetFilename(TC::ToUtf8(GetActiveDocument()->GetPathName()));
 
     if( !subtitle.empty() )
-        title.append(_T(" (") + subtitle + _T(")"));
+    {
+        title.append(" (")
+             .append(subtitle)
+             .append(")");
+    }
 
     json_writer->Write(JK::title, title);
 
@@ -165,11 +169,11 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
             if( doc_set_component.type == DocSetComponent::Type::Document )
             {
                 json_writer->BeginObject();
-                json_writer->Write(JK::path, doc_set_component.filename);
+                json_writer->Write(JK::path, doc_set_component.file_path);
 
                 try
                 {
-                    json_writer->Write(JK::title, title_manager.GetTitle(doc_set_component.filename));
+                    json_writer->Write(JK::title, title_manager.GetTitle(doc_set_component.file_path));
                 }
                 catch(...) { }
 
@@ -216,7 +220,7 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
     // write definitions when editing a spec or definitions file
     if( is_spec_file || doc_set_component_type == DocSetComponent::Type::Definitions )
     {
-        const std::vector<std::tuple<std::wstring, std::wstring>>& definitions = GetLastCompiledDefinitions();
+        const std::vector<std::tuple<std::string, std::string>>& definitions = GetLastCompiledDefinitions();
 
         if( !definitions.empty() || !is_spec_file )
         {
@@ -228,7 +232,7 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
     // write context IDs when editing a spec or context ID file
     if( is_spec_file || doc_set_component_type == DocSetComponent::Type::ContextIds )
     {
-        const std::map<std::wstring, unsigned>& context_ids = GetLastCompiledContextIds();
+        const std::map<std::string, unsigned>& context_ids = GetLastCompiledContextIds();
 
         if( !context_ids.empty() || !is_spec_file )
         {
@@ -239,7 +243,7 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
 
     // write the scrollbar state to restore
     json_writer->Write(JK::scrollY, std::get<1>(m_currentUrlAndScrollbarStateToRestore));
-    
+
     json_writer->EndObject();
 
     html_output_wnd->GetHtmlViewCtrl().PostWebMessageAsJson(json_writer->GetString());
@@ -248,12 +252,12 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
 
 void DocSetBaseFrame::OnFormatJson()
 {
-    CLogicCtrl* logic_ctrl = GetTextEditView().GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
     logic_ctrl->ClearErrorAndWarningMarkers();
 
     try
     {
-        const auto json_node = Json::Parse(logic_ctrl->GetText());
+        const JsonNode json_node = Json::Parse(logic_ctrl->GetText());
 
         SetLogicCtrlTextWithFormattedText(*logic_ctrl, json_node.GetNodeAsString(DefaultJsonFileWriterFormattingOptions));
     }
@@ -265,30 +269,30 @@ void DocSetBaseFrame::OnFormatJson()
 }
 
 
-void DocSetBaseFrame::OnFormatComponent(UINT nID)
+void DocSetBaseFrame::OnFormatComponent(const UINT nID)
 {
     CDocument& doc = *assert_cast<CDocument*>(GetActiveDocument());
 
-    CLogicCtrl* logic_ctrl = GetTextEditView().GetLogicCtrl();
+    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
     logic_ctrl->ClearErrorAndWarningMarkers();
 
-    const std::wstring doc_filename = CS2WS(doc.GetPathName());
+    std::string doc_file_path = TC::ToUtf8(doc.GetPathName());
     const bool detailed_format = ( nID == ID_FORMAT_COMPONENT_DETAILED );
 
     try
     {
         CWaitCursor wait_cursor;
 
-        JsonReaderInterface json_reader_interface(PortableFunctions::PathGetDirectory(doc_filename));
-        const auto json_node = Json::Parse(logic_ctrl->GetText(), &json_reader_interface);
+        JsonReaderInterface json_reader_interface(PortableFunctions::PathGetDirectory(doc_file_path));
+        const JsonNode json_node = Json::Parse(logic_ctrl->GetText(), &json_reader_interface);
 
         DocSetCompiler doc_set_compiler(GetMainFrame().GetGlobalSettings(), DocSetCompiler::ThrowErrors { });
 
-        auto json_writer = Json::CreateStringWriterWithRelativePaths(doc_filename);
+        const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriterWithRelativePaths(std::move(doc_file_path));
 
         WriteFormattedComponent(*json_writer, doc_set_compiler, json_node, detailed_format);
 
-        SetLogicCtrlTextWithFormattedText(*logic_ctrl, json_writer->GetString());
+        SetLogicCtrlTextWithFormattedText(*logic_ctrl, json_writer->ReleaseString());
     }
 
     catch( const JsonParseException& )
@@ -298,28 +302,28 @@ void DocSetBaseFrame::OnFormatComponent(UINT nID)
 
     catch(...)
     {
-        ErrorMessage::Display(InvalidContentMessage);        
+        ErrorMessage::Display(InvalidContentMessage);
     }
 }
 
 
-void DocSetBaseFrame::OnUpdateFormatComponent(CCmdUI* pCmdUI)
+void DocSetBaseFrame::OnUpdateFormatComponent(CCmdUI* const pCmdUI)
 {
     const DocSetComponent::Type doc_set_component_type = GetDocSetComponentType();
     const bool detailed_format = ( pCmdUI->m_nID == ID_FORMAT_COMPONENT_DETAILED );
 
     pCmdUI->Enable(detailed_format ? DocSetComponentSupportsDetailedFormatting(doc_set_component_type) :
-                                     DocSetComponentUseJson(doc_set_component_type));                                     
+                                     DocSetComponentUseJson(doc_set_component_type));
 }
 
 
-void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::wstring formatted_text)
+void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text)
 {
     ASSERT(!formatted_text.empty());
 
     // make sure that the text ends in a newline
     if( formatted_text.back() != '\n' )
         formatted_text.push_back('\n');
-        
+
     logic_ctrl.SetText(formatted_text);
 }

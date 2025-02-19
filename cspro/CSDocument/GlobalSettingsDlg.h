@@ -20,13 +20,13 @@ protected:
     void OnBrowseCSProCode();
 
 private:
-    void OnBrowseFile(std::wstring& path, const TCHAR* path_type);
+    void OnBrowseFile(std::string& path, const char* path_type);
 
 private:
     GlobalSettings m_globalSettings;
     int m_automaticallyAssociateDocumentsWithDocSets;
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81 
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
     int m_buildDocumentsOnOpen;
-    std::wstring m_automaticCompilationSeconds;
+    std::string m_automaticCompilationSeconds;
 #endif
 };

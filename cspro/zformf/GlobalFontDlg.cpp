@@ -10,56 +10,35 @@ BEGIN_MESSAGE_MAP(CGlobalFDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-CGlobalFDlg::CGlobalFDlg(CWnd* pParent /*=NULL*/)
-    :   CDialog(CGlobalFDlg::IDD, pParent)
+CGlobalFDlg::CGlobalFDlg(CWnd* pParent/* = nullptr*/)
+    :   CDialog(IDD_GLOBALFONTDLG, pParent),
+        m_iFont(-1),
+        m_pFormView(nullptr)
 {
-    //{{AFX_DATA_INIT(CGlobalFDlg)
-    m_iFont = -1;
-    //}}AFX_DATA_INIT
-    m_pFormView=NULL;
 }
 
 
 void CGlobalFDlg::DoDataExchange(CDataExchange* pDX)
 {
-    CDialog::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CGlobalFDlg)
+    __super::DoDataExchange(pDX);
+
     DDX_Radio(pDX, IDC_FONTRADIO1, m_iFont);
     DDX_Text(pDX, IDC_FONTDESC, m_sCurFontDesc);
-    //}}AFX_DATA_MAP
 }
 
 
-
-/////////////////////////////////////////////////////////////////////////////
-// CGlobalFDlg message handlers
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CGlobalFDlg::OnRadio1()
-//
-/////////////////////////////////////////////////////////////////////////////////
 void CGlobalFDlg::OnRadio1()
 {
     GetDlgItem(IDC_FONT)->EnableWindow(FALSE);
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CGlobalFDlg::OnRadio2()
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 void CGlobalFDlg::OnRadio2()
 {
     GetDlgItem(IDC_FONT)->EnableWindow();
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CGlobalFDlg::OnFont()
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 void CGlobalFDlg::OnFont()
 {
     LOGFONT lfFont;
@@ -87,11 +66,15 @@ void CGlobalFDlg::OnFont()
     }
 }
 
+
 void CGlobalFDlg::OnApply()
 {
-    if(AfxMessageBox(_T("Are you sure you want to apply the font to all items?"),MB_ICONEXCLAMATION|MB_YESNO|MB_DEFBUTTON2) == IDNO){
+    if( AfxMessageBox(L"Are you sure you want to apply the font to all items?",
+                      MB_ICONEXCLAMATION | MB_YESNO | MB_DEFBUTTON2 ) == IDNO )
+    {
         return;
     }
+
     ASSERT_VALID (m_pFormView);
     UpdateData(TRUE);
     if(m_iFont ==0){
@@ -100,21 +83,20 @@ void CGlobalFDlg::OnApply()
     else {
         m_pFormView->ChangeFont(m_lfSelectedFont);
     }
-
 }
+
 
 BOOL CGlobalFDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     m_sCurFontDesc = PortableFont(m_lfCurrentFont).GetDescription();
     UpdateData(FALSE);
 
-    CString cs;
-    cs.Format(IDS_SYSTEMFONT, PortableFont(m_lfDefault).GetDescription().GetString());
-    GetDlgItem(IDC_FONTRADIO1)->SetWindowText(cs);
+    WindowsUtf8::SetText(this, IDC_FONTRADIO1, FormatText("&Reset to system default font (%s)",
+                                                          PortableFont(m_lfDefault).GetDescription().c_str()));
 
-    GetDlgItem(IDC_FONT)->EnableWindow(m_iFont==0?false:true);
+    GetDlgItem(IDC_FONT)->EnableWindow(( m_iFont != 0 ));
 
     return TRUE;
 }

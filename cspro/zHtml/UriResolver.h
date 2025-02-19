@@ -17,13 +17,13 @@ protected:
 public:
     virtual ~UriResolver() { }
 
-    ZHTML_API static std::unique_ptr<UriResolver> CreateFromUserUri(std::wstring uri);
-    ZHTML_API static std::unique_ptr<UriResolver> CreateUriDomain(std::wstring uri, std::wstring uri_prefix, std::wstring source_text_override);
+    ZHTML_API static std::unique_ptr<UriResolver> CreateFromUserUri(std::string uri);
+    ZHTML_API static std::unique_ptr<UriResolver> CreateUriDomain(std::string uri, std::string uri_prefix, std::string source_text_override);
 
     virtual bool HasDomain() const = 0;
-    virtual bool DomainMatches(const std::wstring& uri) const = 0;
-    virtual std::wstring GetSourceText(const std::wstring& uri) const = 0;
+    virtual bool DomainMatches(const std::string& uri) const = 0;
+    virtual std::string GetSourceText(const std::string& uri) const = 0;
 
 private:
-    virtual void Navigate(HtmlViewCtrl& sender, const std::function<HRESULT(const wchar_t*)>& navigate_function) = 0;
+    virtual void Navigate(HtmlViewCtrl& sender, const std::function<HRESULT(const std::string&)>& navigate_function) = 0;
 };

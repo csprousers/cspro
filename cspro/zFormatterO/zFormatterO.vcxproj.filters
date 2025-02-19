@@ -11,30 +11,30 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="QuestionnaireContentCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QuestionnaireViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuestionnaireContentCreator.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zFormatterO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="QuestionnaireContentCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QuestionnaireViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="TempFormFileSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuestionnaireContentCreator.h">
+    <ClInclude Include="zFormatterO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

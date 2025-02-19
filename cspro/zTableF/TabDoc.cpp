@@ -4,7 +4,6 @@
 #include "TabChWnd.h"
 #include "FlashMsg.h"
 #include <zToolsO/Tools.h>
-#include <zJson/JsonStream.h>
 
 
 #ifdef _DEBUG
@@ -72,7 +71,7 @@ void CTabulateDoc::FileToClip(UINT uFormat)
     }
     CATCH(CFileException, e) {
         CString cs;
-        cs.Format(_T("Warning:  Clipboard scratch file %s cannot be removed."), (LPCTSTR)csClipFile);
+        cs.Format(_T("Warning:  Clipboard scratch file %s cannot be removed."), csClipFile.GetString());
         AfxMessageBox(cs,MB_OK | MB_ICONINFORMATION);
     }
     END_CATCH
@@ -156,10 +155,10 @@ bool CTabulateDoc::LoadSpecFile(const CString& csFileName, std::shared_ptr<const
 
     if(!bViewer) { //if it is not Viewer then do the dict stuff
         bool bDict = true;
-        CDDTreeCtrl* pDictTree = GetTabTreeCtrl()->GetDDTreeCtrl();
-        dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictPathName);
+        CDDTreeCtrl* const pDictTree = GetTabTreeCtrl()->GetDDTreeCtrl();
+        dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(csDictPathName));
         if(dictionary_dict_tree_node->GetDDDoc() == nullptr) {
-            bDict = pDictTree->OpenDictionary(csDictPathName, FALSE);
+            bDict = pDictTree->OpenDictionary(UTF8_TODO::GetUtf8(csDictPathName), FALSE);
         }
         if (!bDict) {
             return false;
@@ -217,34 +216,18 @@ HTREEITEM CTabulateDoc::BuildAllTrees()
 {
     HTREEITEM hItem = nullptr;
 
-//  Get the handle to tree controls
+    // Get the handle to tree controls
     CTabTreeCtrl* pTabTree = GetTabTreeCtrl();
-    CDDTreeCtrl* pDictTree = pTabTree->GetDDTreeCtrl();
+    CDDTreeCtrl* const pDictTree = pTabTree->GetDDTreeCtrl();
 
-//  add node to dict tree, or add reference
-
+    //  add node to dict tree, or add reference
     CString csDictFile = m_TableSpec->GetDictFile();
-    CString csDictLabel = m_sDictLabel;
+    pDictTree->AddDictionary(UTF8_TODO::GetUtf8(csDictFile), nullptr);
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(csDictFile);
-    if(dictionary_dict_tree_node != nullptr) {
-        dictionary_dict_tree_node->AddRef();
-    }
-    else {
-        hItem = pDictTree->InsertDictionary(csDictLabel,csDictFile,nullptr);
-
-        TVITEM pItem;
-        pItem.hItem = hItem;
-        pItem.mask  = TVIF_CHILDREN ;
-        pItem.cChildren = 1;
-        pDictTree->SetItem(&pItem);
-    }
-
-//  add node to table tree, or add reference
-
+    //  add node to table tree, or add reference
     CString csTabPath = GetPathName();
 
-    TableSpecTabTreeNode* table_spec_tab_tree_node = pTabTree->GetTableSpecTabTreeNode(csTabPath);
+    TableSpecTabTreeNode* const table_spec_tab_tree_node = pTabTree->GetTableSpecTabTreeNode(UTF8_TODO::GetUtf8(csTabPath));
     if(table_spec_tab_tree_node != nullptr) {
         table_spec_tab_tree_node->AddRef();
         hItem = table_spec_tab_tree_node->GetHItem();
@@ -260,7 +243,6 @@ HTREEITEM CTabulateDoc::BuildAllTrees()
     }
 
     return hItem;
-
 }
 
 
@@ -336,20 +318,20 @@ BOOL CTabulateDoc::OnOpenDocument(LPCTSTR lpszPathName)
     CString sCmd, sArg;                // BMD 11 Jul 2006
     specFile.GetLine(sCmd, sArg);
     if (specFile.GetState() == SF_EOF) {
-        AfxMessageBox (_T("Empty tabulation spec file"));
+        AfxMessageBox(L"Empty tabulation spec file");
         return FALSE;
     }
     else {
-        CString sVersion = CSPRO_VERSION;
-        if (!specFile.IsVersionOK(sVersion)) {
-            if (!IsValidCSProVersion(sVersion, 3.0)) {
+        CString sVersion = Versioning::CSProVersionText;
+        if (!specFile.IsVersionOK_CS(sVersion)) {
+            if (!IsValidCSProVersion(UTF8_TODO::GetUtf8(sVersion), 3.0)) {
                 CString sFile = lpszPathName;
                 CString sExt = sFile.Right(3);
-                if (sExt.CompareNoCase(FileExtensions::Table) == 0) {
-                    AfxMessageBox (_T("Incorrect TBW file version"));
+                if (sExt.CompareNoCase(UTF8_TODO::GetCString(FileExtensions::Table)) == 0) {
+                    AfxMessageBox(L"Incorrect TBW file version");
                 }
                 else {
-                    AfxMessageBox (_T("Incorrect XTB file version"));
+                    AfxMessageBox(L"Incorrect XTB file version");
                 }
                 return FALSE;
             }
@@ -366,31 +348,19 @@ BOOL CTabulateDoc::OnOpenDocument(LPCTSTR lpszPathName)
     }
 
     else {
-        std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+        std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
         specFile.Close();
 
-        if (dictionary_filenames.empty()) {
+        if (dictionary_file_paths.empty()) {
             // &&& no dictionary name in spec file; ask for it?
-            AfxMessageBox (_T("No data dictionary specified in spec file"));
+            AfxMessageBox(L"No data dictionary specified in spec file");
             return FALSE;
         }
 
-        CString csDictPathName = WS2CS(dictionary_filenames.front());
+        CString csDictPathName = UTF8_TODO::GetCString(std::move(dictionary_file_paths.front()));
         SetDictFileName(csDictPathName);
 
         m_TableSpec->SetDictFile(csDictPathName);
-
-        //  open dictionary file to get label
-        try
-        {
-            LabelSet dictionary_label_set = JsonStream::GetValueFromSpecFile<LabelSet, CDataDict>(JK::labels, m_TableSpec->GetDictFile());
-            m_sDictLabel = dictionary_label_set.GetLabel();
-        }
-
-        catch( const CSProException& exception )
-        {
-		    ErrorMessage::Display(exception);
-        }
 
         if (bOK) {
             SetPathName(lpszPathName);
@@ -487,18 +457,19 @@ BOOL CTabulateDoc::OnSaveDocument(LPCTSTR lpszPathName)
 /////////////////////////////////////////////////////////////////////////////////
 void CTabulateDoc::SaveAllDictionaries()
 {
-    CTabTreeCtrl*   pTabTree  = GetTabTreeCtrl();
+    CTabTreeCtrl* const pTabTree = GetTabTreeCtrl();
 
-    if (pTabTree == nullptr)
+    if( pTabTree == nullptr )
         return;
 
-    CDDTreeCtrl* pDictTree = pTabTree->GetDDTreeCtrl();
+    CDDTreeCtrl* const pDictTree = pTabTree->GetDDTreeCtrl();
+    DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(UTF8_TODO::GetUtf8(this->GetDictFileName()));
 
-    DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(this->GetDictFileName());
-    if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr ) {
-        if(dictionary_dict_tree_node->GetDDDoc()->IsModified()){
-            dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(dictionary_dict_tree_node->GetDDDoc()->GetPathName());
-        }
+    if( dictionary_dict_tree_node != nullptr &&
+        dictionary_dict_tree_node->GetDDDoc() != nullptr &&
+        dictionary_dict_tree_node->GetDDDoc()->IsModified() )
+    {
+        dictionary_dict_tree_node->GetDDDoc()->OnSaveDocument(dictionary_dict_tree_node->GetDDDoc()->GetPathName());
     }
 }
 
@@ -519,7 +490,7 @@ void CTabulateDoc::OnCloseDocument()
         bool bViewer = ((CTableChildWnd*)pView->GetParentFrame())->IsViewer();
 
         if(bViewer && m_pTabTreeCtrl) {
-            TableSpecTabTreeNode* table_spec_tab_tree_node = m_pTabTreeCtrl->GetTableSpecTabTreeNode(*this);
+            TableSpecTabTreeNode* const table_spec_tab_tree_node = m_pTabTreeCtrl->GetTableSpecTabTreeNode(*this);
             ASSERT(table_spec_tab_tree_node != nullptr);
             m_pTabTreeCtrl->ReleaseDoc(*table_spec_tab_tree_node);
         }
@@ -585,7 +556,7 @@ bool CTabulateDoc::ReconcileLinkTables(CArray<CLinkTable*,CLinkTable*>& arrLinkT
             }
 
             CString sMsg;
-            sMsg.Format(_T("App logic missing for spec table %s .Will generate the code for the spec") , (LPCTSTR)pTable->GetName());
+            sMsg.Format(_T("App logic missing for spec table %s .Will generate the code for the spec") , pTable->GetName().GetString());
             AfxMessageBox(sMsg);
 
             POSITION pos = GetFirstViewPosition();
@@ -870,8 +841,7 @@ bool CTabulateDoc::GetUnitStatement(CTable* pTable,CString& sUnitStatement)
 /////////////////////////////////////////////////////////////////////////////////
 CString CTabulateDoc::MakeVarList4DummyVSet(const CDictItem* pDictItem)
 {
-    CString sVarList;
-    sVarList = pDictItem->GetName() ;
+    CString sVarList = UTF8_TODO::GetCString(pDictItem->GetName());
     // It's an item with no value sets
     int len = pDictItem->GetLen();
     int iVals = (len > 1 ? 11 : 10);
@@ -967,7 +937,7 @@ void CTabulateDoc::MakeNameMap(CTabVar* pTabVar, CMapStringToString& arrNames)
         int iVal = -1;
         if(arrNames.Lookup(sName,sKeyVal)){
             iVal = (int)sKeyVal.Val();
-            CString sVal = IntToString(iVal+1);
+            CString sVal = UTF8_TODO::GetCString(IntToString(iVal+1));
             CString sNewName;
             sNewName = sName+_T("(")+sVal+_T(")");
             m_varNameMap[pTabVar]=sNewName;
@@ -1281,7 +1251,7 @@ bool CTabulateDoc::CheckSyntax(CTable* pTable,int iSubtable, XTABSTMENT_TYPE eSt
 {
     bool bRet = false;
     CTabulateDoc* pDoc = this;
-    pDoc->SetErrorString();
+    pDoc->ClearErrorString();
     //Store current table units in temp
     CArray<CUnitSpec, CUnitSpec&>  arrTempUnitSpec;
     arrTempUnitSpec.Append(pTable->GetUnitSpecArr());

@@ -11,7 +11,7 @@ class CLASS_DECL_ZINTERFACEF BatchLogicViewerDlg : public CDialog
     DECLARE_DYNAMIC(BatchLogicViewerDlg)
 
 public:
-    BatchLogicViewerDlg(const CDataDict& dictionary, const LogicSettings& logic_settings, std::wstring logic_text, CWnd* pParent = nullptr);
+    BatchLogicViewerDlg(const CDataDict& dictionary, const LogicSettings& logic_settings, std::string logic_text, CWnd* pParent = nullptr);
     ~BatchLogicViewerDlg();
 
 protected:
@@ -26,7 +26,7 @@ protected:
 private:
     const CDataDict& m_dictionary;
     const LogicSettings& m_logicSettings;
-    std::wstring m_logicText;
+    std::string m_logicText;
 
     std::unique_ptr<CLogicCtrl> m_logicCtrl;
 };

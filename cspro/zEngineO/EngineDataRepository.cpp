@@ -26,7 +26,7 @@ std::unique_ptr<EngineDataRepository> EngineDataRepository::CloneInInitialState(
 {
     ASSERT(m_engineDictionary.IsDataRepositoryObject());
 
-    auto engine_data_repository = std::unique_ptr<EngineDataRepository>(new EngineDataRepository(m_engineDictionary));
+    std::unique_ptr<EngineDataRepository> engine_data_repository(new EngineDataRepository(m_engineDictionary));
 
     engine_data_repository->m_needsIndex = m_needsIndex;
     engine_data_repository->m_cannotHaveIndex = m_cannotHaveIndex;
@@ -63,7 +63,7 @@ void EngineDataRepository::serialize(Serializer& ar)
 void EngineDataRepository::InitializeRuntime(std::shared_ptr<SystemMessageIssuer> system_message_issuer)
 {
     ASSERT(system_message_issuer != nullptr);
-    m_systemMessageIssuer = system_message_issuer;
+    m_systemMessageIssuer = std::move(system_message_issuer);
 }
 
 
@@ -72,10 +72,10 @@ DataRepository& EngineDataRepository::GetDataRepository()
     if( m_dataRepository == nullptr )
     {
         // make sure that a data repository always exists
-        SetDataRepository(DataRepository::CreateAndOpen(
-            m_engineDictionary.GetSharedCaseAccess(),
-            ConnectionString::CreateNullRepositoryConnectionString(),
-            DataRepositoryAccess::ReadWrite, DataRepositoryOpenFlag::CreateNew));
+        SetDataRepository(DataRepository::CreateAndOpen(m_engineDictionary.GetSharedCaseAccess(),
+                                                        ConnectionString::CreateNullRepositoryConnectionString(),
+                                                        DataRepositoryAccess::ReadWrite,
+                                                        DataRepositoryOpenFlag::CreateNew));
     }
 
     return *m_dataRepository;
@@ -114,44 +114,44 @@ void EngineDataRepository::CloseDataRepository()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        m_systemMessageIssuer->Issue(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        m_systemMessageIssuer->Issue(MessageType::Error, 10105, exception.what());
     }
 }
 
 
-void EngineDataRepository::ReadCase(EngineCase& engine_case, const CString& key)
+void EngineDataRepository::ReadCase(EngineCase& engine_case, const std::string& key)
 {
     m_dataRepository->ReadCase(engine_case.GetCase(), key);
     m_lastLoadedCaseKey = engine_case.CalculateInitialCaseKey();
 }
 
 
-void EngineDataRepository::ReadCase(EngineCase& engine_case, double position_in_repository)
+void EngineDataRepository::ReadCase(EngineCase& engine_case, const double position_in_repository)
 {
     m_dataRepository->ReadCase(engine_case.GetCase(), position_in_repository);
     m_lastLoadedCaseKey = engine_case.CalculateInitialCaseKey();
 }
 
 
-DictionaryAccessParameters EngineDataRepository::GetDictionaryAccessParameters(int dictionary_access) const
+DictionaryAccessParameters EngineDataRepository::GetDictionaryAccessParameters(const int dictionary_access) const
 {
     // the first bit of a byte indicates if the value is set; bytes by order: method || order || status
     DictionaryAccessParameters dictionary_access_parameters = m_dictionaryAccessParameters;
 
     if( ( dictionary_access & 0x800000 ) != 0 )
-        dictionary_access_parameters.case_iteration_method = (CaseIterationMethod)( ( dictionary_access >> 16 ) & 0x7F );
+        dictionary_access_parameters.case_iteration_method = static_cast<CaseIterationMethod>(( dictionary_access >> 16 ) & 0x7F);
 
     if( ( dictionary_access & 0x8000 ) != 0 )
-        dictionary_access_parameters.case_iteration_order = (CaseIterationOrder)( ( dictionary_access >> 8 ) & 0x7F );
+        dictionary_access_parameters.case_iteration_order = static_cast<CaseIterationOrder>(( dictionary_access >> 8 ) & 0x7F);
 
     if( ( dictionary_access & 0x80 ) != 0 )
-        dictionary_access_parameters.case_iteration_status = (CaseIterationCaseStatus)( dictionary_access & 0x7F );
+        dictionary_access_parameters.case_iteration_status = static_cast<CaseIterationCaseStatus>(dictionary_access & 0x7F);
 
     return dictionary_access_parameters;
 }
 
 
-void EngineDataRepository::SetDictionaryAccessParameters(std::variant<int, DictionaryAccessParameters> dictionary_access_or_parameters)
+void EngineDataRepository::SetDictionaryAccessParameters(const std::variant<int, DictionaryAccessParameters> dictionary_access_or_parameters)
 {
     m_dictionaryAccessParameters = std::holds_alternative<int>(dictionary_access_or_parameters) ?
         GetDictionaryAccessParameters(std::get<int>(dictionary_access_or_parameters)) :
@@ -159,9 +159,9 @@ void EngineDataRepository::SetDictionaryAccessParameters(std::variant<int, Dicti
 }
 
 
-void EngineDataRepository::CreateCaseIterator(CaseIteratorStyle case_iterator_style, const std::optional<CaseKey>& starting_key/* = std::nullopt*/,
-                                              int dictionary_access/* = 0*/, std::optional<CString> key_prefix/* = std::nullopt*/,
-                                              CaseIterationContent iteration_content/* = CaseIterationContent::Case*/)
+void EngineDataRepository::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const std::optional<CaseKey>& starting_key/* = std::nullopt*/,
+                                              const int dictionary_access/* = 0*/, std::optional<std::string> key_prefix/* = std::nullopt*/,
+                                              const CaseIterationContent iteration_content/* = CaseIterationContent::Case*/)
 {
     StopCaseIterator();
 
@@ -189,7 +189,7 @@ void EngineDataRepository::CreateCaseIterator(CaseIteratorStyle case_iterator_st
         case_key = &(*starting_key);
     }
 
-    DictionaryAccessParameters dictionary_access_parameters = GetDictionaryAccessParameters(dictionary_access);
+    const DictionaryAccessParameters dictionary_access_parameters = GetDictionaryAccessParameters(dictionary_access);
     std::unique_ptr<CaseIteratorParameters> start_parameters;
     
     if( case_key != nullptr || key_prefix.has_value() )
@@ -210,7 +210,7 @@ void EngineDataRepository::CreateCaseIterator(CaseIteratorStyle case_iterator_st
 
         if( dictionary_access_parameters.case_iteration_method == CaseIterationMethod::KeyOrder )
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : CString(), key_prefix);
+            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix);
         }
 
         else
@@ -219,8 +219,11 @@ void EngineDataRepository::CreateCaseIterator(CaseIteratorStyle case_iterator_st
         }
     }
 
-    m_caseIterator = GetDataRepository().CreateIterator(iteration_content, dictionary_access_parameters.case_iteration_status,
-        dictionary_access_parameters.case_iteration_method, dictionary_access_parameters.case_iteration_order, start_parameters.get());
+    m_caseIterator = GetDataRepository().CreateIterator(iteration_content,
+                                                        dictionary_access_parameters.case_iteration_status,
+                                                        dictionary_access_parameters.case_iteration_method,
+                                                        dictionary_access_parameters.case_iteration_order,
+                                                        start_parameters.get());
 }
 
 
@@ -247,6 +250,6 @@ void EngineDataRepository::StopCaseIterator()
 
     catch( const DataRepositoryException::Error& exception )
     {
-        m_systemMessageIssuer->Issue(MessageType::Error, 10105, exception.GetErrorMessage().c_str());
+        m_systemMessageIssuer->Issue(MessageType::Error, 10105, exception.what());
     }
 }

@@ -4,46 +4,39 @@
 #include <zSyncO/IBluetoothAdapter.h>
 
 struct IObexTransport;
-struct ISyncListener;
+class SyncListener;
 class WinBluetoothFunctions;
 class WinBluetoothScanner;
 
 
 // Bluetooth adapter for Windows that uses Win32 Winsock Bluetooth APIs
+
 class SYNC_API WinBluetoothAdapter : public IBluetoothAdapter
 {
 private:
     WinBluetoothAdapter(std::shared_ptr<WinBluetoothFunctions> pBtFuncs);
 
 public:
-    static WinBluetoothAdapter* create();
-
     ~WinBluetoothAdapter();
 
-    WinBluetoothAdapter(WinBluetoothAdapter const&) = delete;
+    static std::unique_ptr<WinBluetoothAdapter> Create();
+
+    WinBluetoothAdapter(const WinBluetoothAdapter &) = delete;
     WinBluetoothAdapter(WinBluetoothAdapter&&) = delete;
-    WinBluetoothAdapter& operator=(WinBluetoothAdapter const&) = delete;
+    WinBluetoothAdapter& operator=(const WinBluetoothAdapter&) = delete;
     WinBluetoothAdapter& operator=(WinBluetoothAdapter &&)= delete;
 
-    IObexTransport* connectToRemoteDevice(CString remoteDeviceName,
-        CString remoteDeviceAddress,
-        GUID service, ISyncListener* pListener = NULL) override;
+    WinBluetoothScanner* GetScanner() { return m_pScanner; }
 
-    IObexTransport* acceptConnection(
-        GUID service,
-        ISyncListener* pListener = NULL) override;
-
-    void enable() override;
-
-    void disable() override;
-
-    bool isEnabled() const override;
-
-    WinBluetoothScanner* scanner();
-
-    std::wstring getName() const override;
-
-    void setName(const CString& bluetooth_name) override;
+    // IBluetoothAdapter overrides
+    std::unique_ptr<IObexTransport> ConnectToRemoteDevice(const std::string& remoteDeviceName, const std::string& remoteDeviceAddress,
+                                                          GUID serviceUuid, SyncListener* sync_listener= nullptr) override;
+    std::unique_ptr<IObexTransport> AcceptConnection(GUID serviceUuid, SyncListener* sync_listener = nullptr) override;
+    void Enable() override;
+    void Disable() override;
+    bool IsEnabled() const override;
+    std::string GetName() const override;
+    void SetName(const std::string& bluetooth_name) override;
 
 private:
     WinBluetoothScanner* m_pScanner;

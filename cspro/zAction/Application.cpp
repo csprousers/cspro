@@ -10,16 +10,16 @@
 
 namespace
 {
-    constexpr const char* NoApplicationMessage                            = "No application exists in the current environment.";
-    constexpr const TCHAR* NoApplicationComponentMessageWithNameFormatter = _T("No application component named '%s' exists.");
-    constexpr const char* NoApplicationComponentMessage                   = "No applicable application component exists.";
-    constexpr const char* NoPffMessage                                    = "No PFF exists in the current environment.";
+    constexpr const char* NoApplicationMessage                           = "No application exists in the current environment.";
+    constexpr const char* NoApplicationComponentMessageWithNameFormatter = "No application component named '%s' exists.";
+    constexpr const char* NoApplicationComponentMessage                  = "No applicable application component exists.";
+    constexpr const char* NoPffMessage                                   = "No PFF exists in the current environment.";
 }
 
 
 const Application* ActionInvoker::Runtime::GetApplication(const bool throw_exception_if_does_not_exist)
 {
-    const PFF* pff = GetPff(false);
+    const PFF* const pff = GetPff(false);
     const Application* application = ( pff != nullptr ) ? pff->GetApplication() :
                                                           nullptr;
 
@@ -56,9 +56,9 @@ const PFF* ActionInvoker::Runtime::GetPff(const bool throw_exception_if_does_not
 template<typename RequiredComponentType>
 std::tuple<const Application*,
            std::shared_ptr<const CDEFormFile>,
-           std::shared_ptr<const CDataDict>> ActionInvoker::Runtime::GetApplicationComponents(const std::optional<wstring_view>& name_sv)
+           std::shared_ptr<const CDataDict>> ActionInvoker::Runtime::GetApplicationComponents(const std::optional<std::string_view> name_sv)
 {
-    const Application* application = GetApplication(false);
+    const Application* const application = GetApplication(false);
     std::shared_ptr<const CDEFormFile> matched_form_file;
     std::shared_ptr<const CDataDict> matched_dictionary;
     bool matched_by_name = false;
@@ -80,7 +80,7 @@ std::tuple<const Application*,
             matched_by_name = name_sv.has_value();
 
             if( !application->GetRuntimeFormFiles().empty() )
-                matched_form_file = application->GetRuntimeFormFiles().front();            
+                matched_form_file = application->GetRuntimeFormFiles().front();
         }
 
         // ...or search by form file or dictionary name
@@ -157,7 +157,7 @@ std::tuple<const Application*,
 
     else if( name_sv.has_value() )
     {
-        throw CSProException(NoApplicationComponentMessageWithNameFormatter, std::wstring(*name_sv).c_str());
+        throw CSProException(NoApplicationComponentMessageWithNameFormatter, std::string(*name_sv).c_str());
     }
 
     else
@@ -168,27 +168,27 @@ std::tuple<const Application*,
 
 template std::tuple<const Application*,
                     std::shared_ptr<const CDEFormFile>,
-                    std::shared_ptr<const CDataDict>> ActionInvoker::Runtime::GetApplicationComponents<std::shared_ptr<const CDataDict>>(const std::optional<wstring_view>& name_sv);
+                    std::shared_ptr<const CDataDict>> ActionInvoker::Runtime::GetApplicationComponents<std::shared_ptr<const CDataDict>>(std::optional<std::string_view> name_sv);
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Application_getFormFile(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::Application_getFormFile(const JsonNode& json_node, Caller& caller)
 {
     std::shared_ptr<const CDEFormFile> form_file;
 
     if( json_node.Contains(JK::path) )
     {
-        const std::wstring path = caller.EvaluateAbsolutePath(json_node.Get<std::wstring>(JK::path));
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
 
         auto form_file_on_disk = std::make_unique<CDEFormFile>();
 
-        if( !form_file_on_disk->Open(WS2CS(path), true) )
-            throw CSProException(_T("The form file could not be opened: %s"), path.c_str());
+        if( !form_file_on_disk->Open(path, true) )
+            throw CSProException("The form file could not be opened: %s", path.c_str());
 
         // connect the form file with its dictionary, first seeing if it is part of the application
         ASSERT(form_file_on_disk->GetDictionary() == nullptr);
 
         std::shared_ptr<const CDataDict> dictionary;
-        const Application* application = GetApplication(false);
+        const Application* const application = GetApplication(false);
 
         if( application != nullptr )
         {
@@ -205,7 +205,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getFormFile(const Json
             {
                 for( const std::shared_ptr<const CDataDict>& application_dictionary : application->GetRuntimeExternalDictionaries() )
                 {
-                    if( SO::EqualsNoCase(form_file_on_disk->GetDictionaryFilename(), application_dictionary->GetFullFileName()) )
+                    if( SO::EqualsNoCase(form_file_on_disk->GetDictionaryFilename(), application_dictionary->GetFilePath()) )
                     {
                         dictionary = application_dictionary;
                         break;
@@ -227,27 +227,27 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getFormFile(const Json
 
     else
     {
-        form_file = std::get<1>(GetApplicationComponents<std::shared_ptr<const CDEFormFile>>(json_node.GetOptional<wstring_view>(JK::name)));
+        form_file = std::get<1>(GetApplicationComponents<std::shared_ptr<const CDEFormFile>>(json_node.GetOptional<std::string_view>(JK::name)));
     }
 
     ASSERT(form_file != nullptr);
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->SetVerbose();
 
     json_writer->Write(*form_file);
 
-    return Result::JsonText(json_writer);
+    return Result::JsonText(*json_writer);
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionText(const JsonNode<wchar_t>& json_node, Caller& caller)
+ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionText(const JsonNode& json_node, Caller& caller)
 {
     std::shared_ptr<const CapiQuestionManager> question_manager;
 
     if( json_node.Contains(JK::path) )
     {
-        const std::wstring path = caller.EvaluateAbsolutePath(json_node.Get<std::wstring>(JK::path));
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
 
         auto question_manager_on_disk = std::make_unique<CapiQuestionManager>();
         question_manager_on_disk->Load(path);
@@ -256,7 +256,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionText(const 
 
     else
     {
-        const Application* application = std::get<0>(GetApplicationComponents<const Application*>(json_node.GetOptional<wstring_view>(JK::name)));
+        const Application* const application = std::get<0>(GetApplicationComponents<const Application*>(json_node.GetOptional<std::string_view>(JK::name)));
         ASSERT(application != nullptr);
 
         if( !application->GetUseQuestionText() || ( question_manager = application->GetCapiQuestionManager() ) == nullptr )
@@ -265,22 +265,22 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionText(const 
 
     ASSERT(question_manager != nullptr);
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->SetVerbose();
 
     json_writer->Write(*question_manager);
 
-    return Result::JsonText(json_writer);
+    return Result::JsonText(*json_writer);
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireContent(const JsonNode<wchar_t>& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireContent(const JsonNode& json_node, Caller& /*caller*/)
 {
     const Application* application;
     std::shared_ptr<const CDEFormFile> form_file;
     std::shared_ptr<const CDataDict> dictionary;
 
-    std::tie(application, form_file, dictionary) = GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<wstring_view>(JK::name));
+    std::tie(application, form_file, dictionary) = GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<std::string_view>(JK::name));
     ASSERT(dictionary != nullptr);
 
     QuestionnaireContentCreator questionnaire_content_creator;
@@ -298,9 +298,9 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireConten
     // return content with a case, either directly specified...
     if( json_node.Contains(JK::key) || json_node.Contains(JK::uuid) )
     {
-        data_case = GetInterpreterAccessor().GetCase(CS2WS(dictionary->GetName()),
-                                                     json_node.GetOptional<std::wstring>(JK::uuid),
-                                                     json_node.GetOptional<std::wstring>(JK::key));
+        data_case = GetInterpreterAccessor().GetCase(dictionary->GetName(),
+                                                     json_node.GetOptional<std::string>(JK::uuid),
+                                                     json_node.GetOptional<std::string>(JK::key));
         case_content_is_from_current_case = false;
     }
 
@@ -309,14 +309,14 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireConten
     {
         try
         {
-            data_case = GetInterpreterAccessor().GetCurrentCase(CS2WS(dictionary->GetName()));
+            data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
             case_content_is_from_current_case = true;
         }
 
         catch(...)
         {
             // if no case is available, return content without a case
-            return Result::JsonText(questionnaire_content_creator.GetContent()); 
+            return Result::JsonText(questionnaire_content_creator.GetContent());
         }
     }
 

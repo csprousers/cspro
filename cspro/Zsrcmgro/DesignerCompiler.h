@@ -5,6 +5,7 @@
 
 class CAplDoc;
 class CodeFile;
+class ReportFile;
 
 
 class CLASS_DECL_ZSRCMGR DesignerCompiler
@@ -14,7 +15,7 @@ public:
 
     bool CompileAll();
     bool CompileExternalCode(const CodeFile& code_file);
-    bool CompileReport(const NamedTextSource& report_named_text_source);
+    bool CompileReport(const ReportFile& report_file);
     bool CompileProc(const CString& proc_name, const CStringArray& proc_lines);
 
 private:

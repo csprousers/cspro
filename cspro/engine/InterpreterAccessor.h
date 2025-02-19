@@ -4,14 +4,17 @@
 #include <zAppO/FieldStatus.h>
 
 class Case;
+class LogicInterpreter;
 class MessageFile;
 class PFF;
 struct sqlite3;
+class UserFunction;
+class UserFunctionArgumentEvaluator;
 
 
 struct InterpreterExecuteResult
 {
-    std::variant<double, std::wstring> result;
+    std::variant<double, SharableString> result;
     bool program_control_executed;
 };
 
@@ -24,33 +27,38 @@ class InterpreterAccessor
 public:
     virtual ~InterpreterAccessor() { }
 
+    virtual LogicInterpreter& GetInterpreter() = 0;
+
     virtual const PFF& GetPff() = 0;
 
     virtual const MessageFile& GetUserMessageFile() = 0;
 
-    // throws exceptions from the data repository, otherwise returns a non-null pointer
-    virtual std::unique_ptr<Case> GetCase(const std::wstring& dictionary_name, const std::optional<std::wstring>& case_uuid, const std::optional<std::wstring>& case_key) = 0;
+    // Throws exceptions from the data repository, otherwise returns a non-null pointer.
+    virtual std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) = 0;
 
-    // throws an exception if no current case exists, otherwise returns a non-null pointer
-    virtual std::unique_ptr<Case> GetCurrentCase(const std::wstring& dictionary_name) = 0;
+    // Throws an exception if no current case exists, otherwise returns a non-null pointer.
+    virtual std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) = 0;
 
-    // returns null when one cannot be created (e.g., for a non-entry application)
+    // Returns null when one cannot be created (e.g., for a non-entry application).
     virtual std::unique_ptr<FieldStatusRetriever> CreateFieldStatusRetriever() = 0;
 
-    // throws exceptions on compilation errors
-    virtual InterpreterExecuteResult RunEvaluateLogic(const std::wstring& logic, bool& cancel_flag) = 0;
-    virtual InterpreterExecuteResult RunInvoke(const StringNoCase& function_name, const JsonNode<wchar_t>& json_arguments, bool& cancel_flag) = 0;
+    // Throws exceptions on compilation errors.
+    virtual InterpreterExecuteResult RunEvaluateLogic(SharableString logic, CancelFlag& cancel_flag) = 0;
+    virtual InterpreterExecuteResult RunInvoke(std::string_view function_name_sv, const JsonNode& json_arguments, CancelFlag& cancel_flag) = 0;
 
-    // throws exceptions
-    virtual std::wstring GetSymbolJson(const std::wstring& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode<wchar_t>* serialization_options_node) = 0;
-    virtual void UpdateSymbolValueFromJson(const std::wstring& symbol_name_and_potential_subscript, const JsonNode<wchar_t>& json_node) = 0;
+    // Executes the user-defined function with the provided arguments.
+    virtual InterpreterExecuteResult CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) = 0;
 
-    // throws exceptions
-    virtual std::wstring LocalhostCreateMappingForBinarySymbol(const std::wstring& symbol_name_and_potential_subscript, std::optional<std::wstring> content_type_override, bool evaluate_immediately) = 0;
+    // Throws exceptions.
+    virtual std::string GetSymbolJson(const std::string& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node) = 0;
+    virtual void SetSymbolValueFromJson(const std::string& symbol_name_and_potential_subscript, const JsonNode& json_node) = 0;
 
-    // throws an exception if the dictionary does not exist, or if it does not have a SQLite database associated with it
-    virtual sqlite3& GetSqliteDbForDictionary(const std::wstring& dictionary_name) = 0;
+    // Throws exceptions.
+    virtual std::string LocalhostCreateMappingForBinarySymbol(const std::string& symbol_name_and_potential_subscript, std::optional<std::string> content_type_override, bool evaluate_immediately) = 0;
 
-    // throws an exception on error
+    // Throws an exception if the dictionary does not exist, or if it does not have a SQLite database associated with it.
+    virtual sqlite3& GetSqliteDbForDictionary(std::string_view dictionary_name_sv) = 0;
+
+    // Throws an exception on error.
     virtual void RegisterSqlCallbackFunctions(sqlite3* db) = 0;
 };

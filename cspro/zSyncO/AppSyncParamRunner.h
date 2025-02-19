@@ -1,26 +1,16 @@
 ﻿#pragma once
 
 #include <zSyncO/zSyncO.h>
-#include <zSyncO/SyncClient.h>
 #include <zAppO/AppSyncParameters.h>
-#include <zDataO/DataRepository.h>
 
-struct ILoginDialog;
-struct ICredentialStore;
-struct IDropboxAuthDialog;
+class DataRepository;
+class SyncClient;
 
 
-///<summary>
-/// Execute synchronization from app sync parameter block.
-///</summary>
+// Execute synchronization from app sync parameter block.
+
 class SYNC_API AppSyncParamRunner
 {
 public:
-    AppSyncParamRunner(SyncClient* pSyncClient);
-
-    bool Run(const AppSyncParameters& params, DataRepository& mainDataFileRepo, ILoginDialog* pLoginDlg,
-             IDropboxAuthDialog* pDropboxAuthDialog, ICredentialStore* pCredentialStore);
-
-private:
-    SyncClient* m_pClient;
+    static int Run(SyncClient& sync_client, const AppSyncParameters& sync_params, const std::vector<DataRepository*>& data_repositories_to_sync);
 };

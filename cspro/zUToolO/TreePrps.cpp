@@ -24,11 +24,12 @@ static char THIS_FILE[] = __FILE__;
 //                      CTreePropertiesDlg::CTreePropertiesDlg
 // Constructor
 /////////////////////////////////////////////////////////////////////////////////
-CTreePropertiesDlg::CTreePropertiesDlg(const CString& sTitle,
-    std::optional<unsigned> dialog_id_override/* = std::nullopt*/, CWnd* pParent /*=NULL*/)
-    : m_pCurrDlg(NULL),
-      m_sDlgTitle(sTitle),
-      CDialog(dialog_id_override.value_or(IDD_TREE_PROP_DLG), pParent)
+CTreePropertiesDlg::CTreePropertiesDlg(std::wstring title, const std::optional<unsigned> dialog_id_override/* = std::nullopt*/,
+                                       const bool use_caption/* = true*/, CWnd* const pParent/* = nullptr*/)
+    :   CDialog(dialog_id_override.value_or(IDD_TREE_PROP_DLG), pParent),
+        m_pCurrDlg(nullptr),
+        m_sDlgTitle(std::move(title)),
+        m_captionCtrl(use_caption ? std::make_unique<CGradientLabel>() : nullptr)
 {
 }
 
@@ -38,8 +39,11 @@ CTreePropertiesDlg::CTreePropertiesDlg(const CString& sTitle,
 void CTreePropertiesDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_PROP_TREE, m_treeCtrl);
-    DDX_Control(pDX, IDC_PAGE_CAPTION, m_captionCtrl);
+
+    if( m_captionCtrl != nullptr )
+        DDX_Control(pDX, IDC_PAGE_CAPTION, *m_captionCtrl);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +63,7 @@ BOOL CTreePropertiesDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    SetWindowText(m_sDlgTitle);
+    SetWindowText(m_sDlgTitle.c_str());
 
     // get rect in which to place pages (rect of placeholder static item in dlg template)
     CWnd* pPlaceholder = GetDlgItem(IDC_PAGE_PLACEHOLDER);
@@ -71,7 +75,7 @@ BOOL CTreePropertiesDlg::OnInitDialog()
     // pages added before dlg window was created need to be added for real
     for (int i = 0; i < m_deferAddPages.GetSize(); ++i) {
         const DeferAddStruct& as = m_deferAddPages[i];
-        AddPage(as.pPage, as.sCaption, as.pParent, as.pInsertAfter);
+        AddPage(as.pPage, as.sCaption, as.pParent, as.pInsertAfter, as.page_validator);
     }
 
     // set the initial page
@@ -115,9 +119,10 @@ void CTreePropertiesDlg::OnSelchangedTree(NMHDR* pNMHDR, LRESULT* pResult)
 // Add new page.
 /////////////////////////////////////////////////////////////////////////////////
 void CTreePropertiesDlg::AddPage(CDialog* pDlg,
-             LPCTSTR sCaption,
-             CDialog* pParent /* = NULL */,
-             CDialog* pInsertAfter /* = NULL */)
+                                 LPCTSTR sCaption,
+                                 CDialog* pParent /* = NULL */,
+                                 CDialog* pInsertAfter /* = NULL */,
+                                 TreePropertiesPageValidator* const page_validator/* = nullptr*/)
 {
     if (IsInitialized()) {
 
@@ -138,7 +143,14 @@ void CTreePropertiesDlg::AddPage(CDialog* pDlg,
         item.item.pszText = const_cast<LPTSTR>(sCaption);
         item.item.cchTextMax = _tcslen(sCaption);
         item.item.lParam = (DWORD) pDlg; // store page pointer in tree node (see SetPage)
+
+        OnModifyTreeItemBeforeInsert(pDlg, item.item);
+
         m_treeCtrl.InsertItem(&item);
+
+        // store the validator for later use
+        if( page_validator != nullptr )
+            m_pageValidators.try_emplace(pDlg, page_validator);
 
         // turn regular modal dialog into child window so that it can be displayed
         // as page
@@ -206,6 +218,7 @@ void CTreePropertiesDlg::AddPage(CDialog* pDlg,
         as.pParent = pParent;
         as.pInsertAfter = pInsertAfter;
         as.sCaption = sCaption;
+        as.page_validator = page_validator;
         m_deferAddPages.Add(as);
     }
 }
@@ -225,14 +238,16 @@ void CTreePropertiesDlg::SetPage(CDialog* pPage)
 
     m_pCurrDlg = pPage;
 
-    OnPageChange(pOldPage, m_pCurrDlg);
+    const bool set_focus_to_page = OnPageChange(pOldPage, m_pCurrDlg);
 
     if (IsInitialized() && m_pCurrDlg != NULL) {
         ASSERT_VALID(m_pCurrDlg);
 
         // show the new one
         m_pCurrDlg->ShowWindow(SW_SHOW);
-        m_pCurrDlg->SetFocus();
+
+        if( set_focus_to_page )
+            m_pCurrDlg->SetFocus();
 
         // select the appropriate tree node to keep tree in synch w. curr page
         HTREEITEM hItem = FindItemByPage(pPage);
@@ -240,9 +255,8 @@ void CTreePropertiesDlg::SetPage(CDialog* pPage)
         m_treeCtrl.SelectItem(hItem);
 
         // set text of the caption to the caption for the new current page
-        CWnd* pCaption = GetDlgItem(IDC_PAGE_CAPTION);
-        ASSERT_VALID(pCaption);
-        pCaption->SetWindowText(m_treeCtrl.GetItemText(hItem));
+        if( m_captionCtrl != nullptr )
+            m_captionCtrl->SetWindowText(m_treeCtrl.GetItemText(hItem));
     }
 }
 
@@ -259,18 +273,60 @@ bool CheckTreeItemMatchesPage(CTreeCtrl& treeCtrl, HTREEITEM hItem, void* pPage)
 //                      CTreePropertiesDlg::FindItemByPage
 // Find node in tree for a page given pointer to page.
 /////////////////////////////////////////////////////////////////////////////////
-HTREEITEM CTreePropertiesDlg::FindItemByPage(CDialog* pPage)
+HTREEITEM CTreePropertiesDlg::FindItemByPage(const CDialog* pPage)
 {
-    return ForEachTreeItem(&CheckTreeItemMatchesPage, pPage);
+    return ForEachTreeItem(&CheckTreeItemMatchesPage, const_cast<CDialog*>(pPage));
 }
 
-bool OnOKTreeItemPage(CTreeCtrl& treeCtrl, HTREEITEM hItem, void*)
+
+struct OnOKData
 {
-    CDialog* pPage = (CDialog*) treeCtrl.GetItemData(hItem);
-    if (pPage != NULL) {
+    const std::map<CDialog*, TreePropertiesPageValidator*>& page_validators;
+    CDialog* lage_page_visited = nullptr;
+    std::optional<std::string> exception_message;
+};
+
+
+bool OnOKTreeItemPage(CTreeCtrl& treeCtrl, HTREEITEM hItem, void* data)
+{
+    CDialog* pPage = reinterpret_cast<CDialog*>(treeCtrl.GetItemData(hItem));
+    OnOKData* const on_ok_data = static_cast<OnOKData*>(data);
+
+    if( pPage != nullptr )
+    {
         ASSERT_VALID(pPage);
+
+        if( on_ok_data != nullptr )
+        {
+            ASSERT(!on_ok_data->exception_message.has_value());
+
+            on_ok_data->lage_page_visited = pPage;
+
+            // use the page validator when possible
+            const auto& page_validator_lookup = on_ok_data->page_validators.find(pPage);
+
+            if( page_validator_lookup != on_ok_data->page_validators.cend() )
+            {
+                ASSERT(page_validator_lookup->second != nullptr);
+
+                try
+                {
+                    page_validator_lookup->second->OnValidatePage();
+                    return true;
+                }
+
+                catch( const std::exception& exception )
+                {
+                    on_ok_data->exception_message = exception.what();
+                    return false;
+                }
+            }
+        }
+
+        // use the OnOK validator
         pPage->SendMessage(WM_COMMAND, IDOK, 0);
     }
+
     return true; // continue search
 }
 
@@ -278,19 +334,37 @@ bool OnOKTreeItemPage(CTreeCtrl& treeCtrl, HTREEITEM hItem, void*)
 /////////////////////////////////////////////////////////////////////////////////
 //                      CTreePropertiesDlg::OnOK
 // Called when user hits ok button on main dlg.
-// Override to pass the OK onto all the pages so that data exchange is performed.
+// Override OnOK to pass the OK onto all the pages so that data exchange is performed.
 /////////////////////////////////////////////////////////////////////////////////
+
 void CTreePropertiesDlg::OnOK()
+{
+    if( ValidatePages() )
+        CDialog::OnOK();
+}
+
+
+bool CTreePropertiesDlg::ValidatePages()
 {
     CDialog* pCurrPage = m_pCurrDlg;
     SetPage(NULL); // trigger page change
     m_pCurrDlg = pCurrPage;
 
-    ForEachTreeItem(&OnOKTreeItemPage, NULL);
+    OnOKData on_ok_data { m_pageValidators };
 
-    CDialog::OnOK();
+    ForEachTreeItem(&OnOKTreeItemPage, &on_ok_data);
 
+    if( on_ok_data.exception_message.has_value() )
+    {
+        // set the page to the page with an error before showing the error message
+        SetPage(on_ok_data.lage_page_visited);
+        ErrorMessage::Display(on_ok_data.exception_message->c_str());
+        return false;
+    }
+
+    return true;
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //                      CTreePropertiesDlg::ForEachTreeItem
@@ -344,7 +418,15 @@ bool CTreePropertiesDlg::IsInitialized()
 //                      CTreePropertiesDlg::OnPageChange
 // override to do updates when user changes page
 /////////////////////////////////////////////////////////////////////////////////
-void CTreePropertiesDlg::OnPageChange(CDialog* , CDialog* )
+bool CTreePropertiesDlg::OnPageChange(CDialog* , CDialog* )
+{
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+//                      CTreePropertiesDlg::OnModifyTreeItemBeforeInsert
+/////////////////////////////////////////////////////////////////////////////////
+void CTreePropertiesDlg::OnModifyTreeItemBeforeInsert(CDialog* /*dlg*/, TVITEMW& /*item*/)
 {
 }
 
@@ -365,10 +447,13 @@ void CTreePropertiesDlg::ResizeDlg(const CRect& newPageRect)
     rectCtrl.bottom += dy;
     m_treeCtrl.MoveWindow(&rectCtrl, FALSE);
 
-    m_captionCtrl.GetWindowRect(&rectCtrl);
-    ScreenToClient(&rectCtrl);
-    rectCtrl.right += dx;
-    m_captionCtrl.MoveWindow(&rectCtrl, FALSE);
+    if( m_captionCtrl != nullptr )
+    {
+        m_captionCtrl->GetWindowRect(&rectCtrl);
+        ScreenToClient(&rectCtrl);
+        rectCtrl.right += dx;
+        m_captionCtrl->MoveWindow(&rectCtrl, FALSE);
+    }
 
     pCtrl = GetDlgItem(IDOK);
     pCtrl->GetWindowRect(&rectCtrl);
@@ -396,4 +481,3 @@ void CTreePropertiesDlg::ResizeDlg(const CRect& newPageRect)
 
     m_pageRect = newPageRect;
 }
-

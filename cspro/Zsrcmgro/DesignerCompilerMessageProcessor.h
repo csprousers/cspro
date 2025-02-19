@@ -12,7 +12,7 @@ public:
     virtual ~DesignerCompilerMessageProcessor() { }
 
     virtual CEngineDriver* GetEngineDriver() = 0;    
-    virtual CString GetProcName() const = 0;
+    virtual std::string GetProcName() const = 0;
     virtual int GetLineNumberOfCurrentCompile() const = 0;
 
     const std::vector<Logic::ParserMessage>& GetParserMessages() const { return m_parserMessages; }

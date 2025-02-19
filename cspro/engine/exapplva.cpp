@@ -398,7 +398,7 @@ TCHAR* CIntDriver::GetVarAsciiValue( double dValue, TCHAR* pAsciiVal/* = nullptr
 
     if( IsSpecial(dValue) )
     {
-        _tcscpy(pAsciiVal, SpecialValues::ValueToString(dValue));
+        _tcscpy(pAsciiVal, UTF8_TODO::GetWide(SpecialValues::ValueToString(dValue)).c_str());
     }
 
     else
@@ -613,7 +613,7 @@ FieldStatus CIntDriver::GetFieldStatus(const CaseItem& case_item, const CaseItem
 {
     ASSERT(assert_cast<CEntryDriver*>(m_pEngineDriver) != nullptr);
 
-    const CDictItem& dict_item = case_item.GetDictionaryItem();
+    const CDictItem& dict_item = case_item.GetDictItem();
 
     int aIndex[3] =  { static_cast<int>(index.GetRecordOccurrence()),
                        static_cast<int>(index.GetItemOccurrence()),
@@ -1078,7 +1078,7 @@ csprochar* CIntDriver::GetVarFlagsAddr( VART* pVarT ) const   // rcl, Jun 27, 04
 
 //////////////////////////////////////////////////////////////////////////
 
-double CIntDriver::GetSingVarFloatValue( VART* pVarT ) const {    // victor Jul 10, 00
+double CIntDriver::GetSingVarFloatValue( const VART* pVarT ) const {    // victor Jul 10, 00
     return GetSingVarFloatValue( pVarT->GetVarX() );
 }
 
@@ -1389,7 +1389,7 @@ bool CIntDriver::CheckIndexArray( const VART* pVarT, const CNDIndexes& theIndex 
 
 std::unique_ptr<C3DObject> CIntDriver::ConvertIndex(const CaseItem& case_item, const ItemIndex& item_index)
 {
-    const CDictItem& dict_item = case_item.GetDictionaryItem();
+    const CDictItem& dict_item = case_item.GetDictItem();
 
     auto the3dObject = std::make_unique<C3DObject>();
     the3dObject->SetSymbol(dict_item.GetSymbol());

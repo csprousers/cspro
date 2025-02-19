@@ -3,6 +3,7 @@
 #include "ViewDoc.h"
 #include "ViewView.h"
 #include <zUtilO/imsaDlg.H>
+#include <zUtilF/CommonControls.h>
 
 
 namespace
@@ -13,7 +14,7 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(CSViewApp, CWinAppEx)
-	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+    ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
     ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
     ON_COMMAND(ID_HELP_FINDER, OnHelpFinder)
     ON_COMMAND(ID_HELP, OnHelp)
@@ -30,17 +31,9 @@ CSViewApp::CSViewApp()
 
 BOOL CSViewApp::InitInstance()
 {
-	// InitCommonControlsEx() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
-	INITCOMMONCONTROLSEX InitCtrls;
-	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
-	InitCtrls.dwICC = ICC_WIN95_CLASSES;
-	InitCommonControlsEx(&InitCtrls);
+    InitializeCommonControls();
 
-	__super::InitInstance();
+    __super::InitInstance();
 
     // Initialize OLE libraries
     if( !AfxOleInit() )
@@ -59,7 +52,7 @@ BOOL CSViewApp::InitInstance()
     LoadStdProfileSettings(_AFX_MRU_MAX_COUNT);  // Load standard INI file options (including MRU)
 
     InitContextMenuManager();
-    
+
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
     CSingleDocTemplate* pDocTemplate = new CSingleDocTemplate(
@@ -83,8 +76,8 @@ BOOL CSViewApp::InitInstance()
     CMainFrame* pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
 
     // The main window has been initialized, so show and update it
-	pMainFrame->ShowWindow(m_nCmdShow);
-	pMainFrame->UpdateWindow();
+    pMainFrame->ShowWindow(m_nCmdShow);
+    pMainFrame->UpdateWindow();
 
     return TRUE;
 }

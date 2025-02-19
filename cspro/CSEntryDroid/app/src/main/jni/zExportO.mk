@@ -8,7 +8,6 @@ ZEXPORTO_SRC_PATH         := ../../../../../zExportO
 
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/CSProExportWriter.cpp
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/DelimitedTextExportWriter.cpp
-LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/EncodedTextWriter.cpp
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/ExcelExportWriter.cpp
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/ExportDefinitions.cpp
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/ExportWriterBase.cpp
@@ -44,7 +43,7 @@ LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/../external/ReadStat/spss/readst
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/../external/ReadStat/stata/readstat_dta.c
 LOCAL_SRC_FILES         += $(ZEXPORTO_SRC_PATH)/../external/ReadStat/stata/readstat_dta_write.c
 
-LOCAL_CFLAGS            += -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 

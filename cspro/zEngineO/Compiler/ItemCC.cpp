@@ -126,7 +126,7 @@ int LogicCompiler::ValidateItemSubscriptAndCreateNode(const EngineItem& engine_i
     const ItemIndexHelper& item_index_helper = engine_item.GetItemIndexHelper();
 
     // validate constant integer subscripts
-    auto validate_constant_integer_subscript = [&](const TCHAR* subscript_type, int specified_value, size_t max_value)
+    auto validate_constant_integer_subscript = [&](const char* const subscript_type, const int specified_value, const size_t max_value)
     {
         if( specified_value < 1 || specified_value > static_cast<int>(max_value) )
         {
@@ -144,14 +144,14 @@ int LogicCompiler::ValidateItemSubscriptAndCreateNode(const EngineItem& engine_i
 
     if( std::get<0>(subscripts[RecordSubscriptIndex]) == SubscriptValueType::ConstantInteger )
     {
-        validate_constant_integer_subscript(_T("record"),
+        validate_constant_integer_subscript("record",
                                             std::get<1>(subscripts[RecordSubscriptIndex]),
                                             item_index_helper.GetMaxRecordOccurrences());
     }
 
     if( std::get<0>(subscripts[ItemSubitemSubscriptIndex]) == SubscriptValueType::ConstantInteger )
     {
-        validate_constant_integer_subscript(item_index_helper.IsSubitem() ? _T("subitem") : _T("item"),
+        validate_constant_integer_subscript(item_index_helper.IsSubitem() ? "subitem" : "item",
                                             std::get<1>(subscripts[ItemSubitemSubscriptIndex]),
                                             item_index_helper.GetMaxItemSubitemOccurrences());
     }
@@ -204,7 +204,7 @@ int LogicCompiler::ValidateItemSubscriptAndCreateNode(const EngineItem& engine_i
 
                     else
                     {
-                        IssueError(MGF::Item_subscript_implicit_cannot_be_calculated_100406, _T("record"), engine_item.GetName().c_str());
+                        IssueError(MGF::Item_subscript_implicit_cannot_be_calculated_100406, "record", engine_item.GetName().c_str());
                     }
                 }
             }
@@ -231,7 +231,8 @@ int LogicCompiler::ValidateItemSubscriptAndCreateNode(const EngineItem& engine_i
 
                     else
                     {
-                        IssueError(MGF::Item_subscript_implicit_cannot_be_calculated_100406, item_index_helper.IsSubitem() ? _T("subitem") : _T("item"), engine_item.GetName().c_str());
+                        IssueError(MGF::Item_subscript_implicit_cannot_be_calculated_100406,
+                                   item_index_helper.IsSubitem() ? "subitem" : "item", engine_item.GetName().c_str());
                     }
                 }
             }
@@ -292,13 +293,13 @@ int LogicCompiler::CompileItemFunctions()
         function_details->code == FunctionCode::ITEMFN_HASVALUE_CODE ||
         function_details->code == FunctionCode::ITEMFN_ISVALID_CODE )
     {
-        optional_named_arguments_compiler.AddArgument(_T("visualValue"), symbol_va_with_subscript_node.arguments[named_argument_index++], DataType::Numeric);
+        optional_named_arguments_compiler.AddArgument("visualValue", symbol_va_with_subscript_node.arguments[named_argument_index++], DataType::Numeric);
     }
 
     // "language" (getValueLabel)
     if( function_details->code == FunctionCode::ITEMFN_GETVALUELABEL_CODE )
     {
-        optional_named_arguments_compiler.AddArgument(_T("language"), symbol_va_with_subscript_node.arguments[named_argument_index++], DataType::String);
+        optional_named_arguments_compiler.AddArgument("language", symbol_va_with_subscript_node.arguments[named_argument_index++], DataType::String);
     }
 
     ASSERT(named_argument_index == function_details->number_arguments);

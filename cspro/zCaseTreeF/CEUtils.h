@@ -12,7 +12,7 @@ public:
     static CString  ToString( csprochar* pszText, int iMaxBuff );
     static bool     InArray( CArray<CString,CString>* pArray, CString csStr );
 
-    static CString StripValue    ( CIMSAString CSValue, bool bNumericClean );
+    static CString StripValue    ( CString CSValue, bool bNumericClean );
 
     static bool IsNumeric        ( TCHAR c );
     static bool IsNumeric        ( CString S, int iDecimalKeyAscii, bool bStripString);

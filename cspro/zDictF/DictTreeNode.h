@@ -53,10 +53,10 @@ private:
     DictElementType m_dictElementType;
 
     int m_relationIndex;
-    int m_levelIndex;   
-    int m_recordIndex;     
-    int m_itemIndex;    
-    int m_valueSetIndex; 
+    int m_levelIndex;
+    int m_recordIndex;
+    int m_itemIndex;
+    int m_valueSetIndex;
     int m_itemOccurs;    // the item occurrence number can be NONE
 };
 
@@ -69,9 +69,9 @@ private:
 class CLASS_DECL_ZDICTF DictionaryDictTreeNode : public DictTreeNode
 {
 public:
-    DictionaryDictTreeNode(std::wstring dictionary_filename, std::wstring label);
+    DictionaryDictTreeNode(std::string dictionary_file_path);
 
-    void SetPath(std::wstring dictionary_filename) { m_dictionaryFilename = std::move(dictionary_filename); }
+    void SetPath(std::string dictionary_file_path) { m_dictionaryFilePath = std::move(dictionary_file_path); }
 
     //Add ref and decrement ref
     void AddRef()  { ++m_refCount; }
@@ -81,12 +81,11 @@ public:
     int GetRefCount() const { return m_refCount; }
 
     // TreeNode overrides
-    std::wstring GetName() const override        { return ( GetDocument() != nullptr ) ? DictTreeNode::GetName() : m_label; }
-    std::wstring GetLabel() const override       { return ( GetDocument() != nullptr ) ? DictTreeNode::GetLabel() : m_label; }
-    const std::wstring& GetPath() const override { return m_dictionaryFilename; }
+    std::wstring GetName() const override;
+    std::wstring GetLabel() const override;
+    const std::string& GetPath() const override { return m_dictionaryFilePath; }
 
 private:
-    std::wstring m_dictionaryFilename;
-    std::wstring m_label;
+    std::string m_dictionaryFilePath;
     int m_refCount;
 };

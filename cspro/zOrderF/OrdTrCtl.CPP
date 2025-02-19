@@ -16,7 +16,6 @@
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilO/Specfile.h>
-#include <zJson/JsonStream.h>
 #include <zAppO/Application.h>
 #include <zInterfaceF/resource_shared.h>
 
@@ -156,12 +155,12 @@ void COrderTreeCtrl::OnDTreeDblclk(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 }
 
 
-HTREEITEM COrderTreeCtrl::InsertOrderFile(const CString& sLabel, const CString& sOrderFileName, COrderDoc* pDoc)
+HTREEITEM COrderTreeCtrl::InsertOrderFile(const CString& sOrderFileName, COrderDoc* const pDoc)
 {
     // Insert the Order in the Order tree control
     // Use the Order file name to insert it into the
     // structure later on to get the Order file name
-    FormOrderAppTreeNode* form_order_app_tree_node = new FormOrderAppTreeNode(pDoc, AppFileType::Order, CS2WS(sOrderFileName), CS2WS(sLabel));
+    FormOrderAppTreeNode* const form_order_app_tree_node = new FormOrderAppTreeNode(pDoc, AppFileType::Order, UTF8_TODO::GetUtf8(sOrderFileName));
     form_order_app_tree_node->AddRef();
 
     TVINSERTSTRUCT tvi;
@@ -197,10 +196,10 @@ void COrderTreeCtrl::OnItemexpanding(NMHDR* pNMHDR, LRESULT* pResult)
     {
         if(app_tree_node->GetDocument() == nullptr)  // this may not be occurring for a while yet
         {
-            const std::wstring& filename = app_tree_node->GetPath();
+            const std::string& file_path = app_tree_node->GetPath();
 
             ASSERT(m_pDocTemplate != nullptr);
-            COrderDoc* pDoc = (COrderDoc*)m_pDocTemplate->OpenDocumentFile(filename.c_str());
+            COrderDoc* pDoc = (COrderDoc*)m_pDocTemplate->OpenDocumentFile(TC::ToWide(file_path).c_str());
 
             app_tree_node->SetDocument(pDoc);
 
@@ -208,7 +207,7 @@ void COrderTreeCtrl::OnItemexpanding(NMHDR* pNMHDR, LRESULT* pResult)
 
             SetOrderDoc(pDoc); // set the tree ctrl's ptr to the doc
 
-            if (!pDoc->LoadOrderSpecFile(WS2CS(filename)) )
+            if (!pDoc->LoadOrderSpecFile(UTF8_TODO::GetCString(file_path)) )
             {
                 pDoc->OnCloseDocument();
                 // issue return stmt if later code prevents this from happening
@@ -281,7 +280,7 @@ void COrderTreeCtrl::ReBuildTree(int iOrderNum, CDEFormBase* pItem ,bool bSendMs
     // & delete all its descendants
     m_bSendMsg = FALSE;
 
-    FormOrderAppTreeNode* form_order_app_tree_node = GetFormOrderAppTreeNode(*m_pOrderDoc);
+    FormOrderAppTreeNode* const form_order_app_tree_node = GetFormOrderAppTreeNode(*m_pOrderDoc);
 
     HTREEITEM h = GetChildItem(form_order_app_tree_node->GetHItem());
 
@@ -593,11 +592,11 @@ void COrderTreeCtrl::InsertExternalCodeAndReportNodes(FormOrderAppTreeNode* form
     }
 
     // get the current application
-    Application* pApplication = nullptr;
-    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, reinterpret_cast<WPARAM>(&pApplication),
+    Application* application = nullptr;
+    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, reinterpret_cast<WPARAM>(&application),
                                                                 reinterpret_cast<LPARAM>(form_order_app_tree_node->GetOrderDocument()));
 
-    if( pApplication == nullptr )
+    if( application == nullptr )
         return;
 
     HTREEITEM hLastAddedHeaderItem = nullptr;
@@ -652,7 +651,7 @@ void COrderTreeCtrl::InsertExternalCodeAndReportNodes(FormOrderAppTreeNode* form
     {
         std::vector<AppTreeNode*> app_tree_nodes;
 
-        for( const CodeFile& code_file : pApplication->GetCodeFiles() )
+        for( const CodeFile& code_file : application->GetCodeFiles() )
         {
             if( code_file.IsLogicMain() )
                 continue;
@@ -669,14 +668,14 @@ void COrderTreeCtrl::InsertExternalCodeAndReportNodes(FormOrderAppTreeNode* form
 
 
     // add reports
-    const auto& report_named_text_sources = pApplication->GetReportNamedTextSources();
+    const std::vector<ReportFile>& report_files = application->GetReportFiles();
 
-    if( !report_named_text_sources.empty() )
+    if( !report_files.empty() )
     {
-        std::vector<AppTreeNode*> app_tree_nodes = { new HeadingAppTreeNode(form_order_app_tree_node->GetDocument(), AppFileType::Report) };
+        std::vector<AppTreeNode*> app_tree_nodes = { new HeadingAppTreeNode(form_order_app_tree_node->GetDocument(), AppFileType::Report, L"Reports") };
 
-        for( const auto& report_named_text_source : report_named_text_sources )
-            app_tree_nodes.emplace_back(new ReportAppTreeNode(form_order_app_tree_node->GetDocument(), report_named_text_source));
+        for( const ReportFile& report_file : application->GetReportFiles() )
+            app_tree_nodes.emplace_back(new ReportAppTreeNode(form_order_app_tree_node->GetDocument(), report_file));
 
         add_nodes(app_tree_nodes);
     }
@@ -703,18 +702,18 @@ FormOrderAppTreeNode* COrderTreeCtrl::GetFormOrderAppTreeNode(CDocument& documen
 // ***************************************************************************
 
 
-FormOrderAppTreeNode* COrderTreeCtrl::GetFormOrderAppTreeNode(wstring_view filename) const
+FormOrderAppTreeNode* COrderTreeCtrl::GetFormOrderAppTreeNode(const std::string_view file_path) const
 {
     HTREEITEM hItem = GetRootItem();
 
     while( hItem != nullptr )
     {
-        AppTreeNode* app_tree_node = GetTreeNode(hItem);
+        AppTreeNode* const app_tree_node = GetTreeNode(hItem);
         ASSERT(app_tree_node == nullptr || app_tree_node->IsFormFileElement());
 
-        FormOrderAppTreeNode* form_order_app_tree_node = assert_nullable_cast<FormOrderAppTreeNode*>(app_tree_node);
+        FormOrderAppTreeNode* const form_order_app_tree_node = assert_nullable_cast<FormOrderAppTreeNode*>(app_tree_node);
 
-        if( form_order_app_tree_node != nullptr && SO::EqualsNoCase(filename, form_order_app_tree_node->GetPath()) )
+        if( form_order_app_tree_node != nullptr && SO::EqualsNoCase(file_path, form_order_app_tree_node->GetPath()) )
             return form_order_app_tree_node;
 
         hItem = GetNextSiblingItem(hItem);
@@ -974,53 +973,27 @@ bool COrderTreeCtrl::InsertOrderDependencies(FormOrderAppTreeNode& form_order_ap
 {
     CSpecFile specFile(true);
 
-    if( !specFile.Open(form_order_app_tree_node.GetPath().c_str(), CFile::modeRead) )
+    if( !specFile.Open(UTF8_TODO::GetCString(form_order_app_tree_node.GetPath()), CFile::modeRead) )
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), form_order_app_tree_node.GetPath().c_str()));
+        AfxMessageBox(FormatText("File %s Could not be opened", form_order_app_tree_node.GetPath().c_str()));
         return false;
     }
 
-    std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+    const std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
     specFile.Close();
 
-    if( dictionary_filenames.empty() )
+    if( dictionary_file_paths.empty() )
     {
-        AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), form_order_app_tree_node.GetPath().c_str()));
+        AfxMessageBox("No Dictionaries in Spec file " + form_order_app_tree_node.GetPath());
         return false;
     }
 
-    CDDTreeCtrl* pDictTree = GetDDTreeCtrl();    //  Get the handle to tree controls
+    CDDTreeCtrl* const pDictTree = GetDDTreeCtrl(); // Get the handle to tree controls
 
-    for( const std::wstring& dictionary_filename : dictionary_filenames )
-    {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_filename);
+    for( const std::string& dictionary_file_path : dictionary_file_paths )
+        pDictTree->AddDictionary(dictionary_file_path, nullptr);
 
-        if( dictionary_dict_tree_node != nullptr )
-        {
-            dictionary_dict_tree_node->AddRef();
-        }
-
-        else
-        {
-            try
-            {
-                LabelSet dictionary_label_set = JsonStream::GetValueFromSpecFile<LabelSet, CDataDict>(JK::labels, dictionary_filename);
-
-                TVITEM pItem;
-                pItem.hItem = pDictTree->InsertDictionary(dictionary_label_set.GetLabel(), WS2CS(dictionary_filename), nullptr);
-                pItem.mask = TVIF_CHILDREN;
-                pItem.cChildren = 1;
-                pDictTree->SetItem(&pItem);
-            }
-
-            catch( const CSProException& exception )
-            {
-		        ErrorMessage::Display(exception);
-            }
-        }
-    }
-
-    return  true;
+    return true;
 }
 
 
@@ -1034,29 +1007,29 @@ bool COrderTreeCtrl::ReleaseOrderDependencies(FormOrderAppTreeNode& form_order_a
     //      added a dictionary but not yet serialized that modification
     // [2]  otherwise, if no Order doc is loaded, then grab the list of dicts from the .fmf file
     CSpecFile specFile(true);
-    std::vector<std::wstring> dictionary_filenames;
+    std::vector<std::string> dictionary_file_paths;
 
     if (form_order_app_tree_node.GetDocument() != nullptr) // [1]
     {
-        CDEFormFile* pFF = &form_order_app_tree_node.GetOrderDocument()->GetFormFile();
-        dictionary_filenames.emplace_back(CS2WS(pFF->GetDictionaryFilename()));
+        CDEFormFile* const pFF = &form_order_app_tree_node.GetOrderDocument()->GetFormFile();
+        dictionary_file_paths.emplace_back(UTF8_TODO::GetUtf8(pFF->GetDictionaryFilename()));
     }
 
-    else if (specFile.Open(form_order_app_tree_node.GetPath().c_str(), CFile::modeRead))  // [2]
+    else if (specFile.Open(UTF8_TODO::GetCString(form_order_app_tree_node.GetPath()), CFile::modeRead))  // [2]
     {
-        dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+        dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
         specFile.Close();
 
-        if( dictionary_filenames.empty() )
+        if( dictionary_file_paths.empty() )
         {
-            AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), form_order_app_tree_node.GetPath().c_str()));
+            AfxMessageBox("No Dictionaries in Spec file " + form_order_app_tree_node.GetPath());
             return false;
         }
     }
 
     else    // associated err msg not particularly accurate...
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), form_order_app_tree_node.GetPath().c_str()));
+        AfxMessageBox(FormatText("File %s Could not be opened", form_order_app_tree_node.GetPath().c_str()));
         return false;
     }
 
@@ -1065,9 +1038,9 @@ bool COrderTreeCtrl::ReleaseOrderDependencies(FormOrderAppTreeNode& form_order_a
     if (pDictTree == nullptr)
         return false;
 
-    for( const std::wstring& dictionary_filename : dictionary_filenames )
+    for( const std::string& dictionary_file_path : dictionary_file_paths )
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_filename);
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = pDictTree->GetDictionaryTreeNode(dictionary_file_path);
 
         if( dictionary_dict_tree_node != nullptr )
             pDictTree->ReleaseDictionaryNode(*dictionary_dict_tree_node);
@@ -1077,18 +1050,18 @@ bool COrderTreeCtrl::ReleaseOrderDependencies(FormOrderAppTreeNode& form_order_a
 }
 
 
-BOOL COrderTreeCtrl::OpenOrderFile(const CString &sOrderFile)
+BOOL COrderTreeCtrl::OpenOrderFile(const std::string& order_file_path)
 {
-    FormOrderAppTreeNode* form_order_app_tree_node = GetFormOrderAppTreeNode(sOrderFile);
+    FormOrderAppTreeNode* const form_order_app_tree_node = GetFormOrderAppTreeNode(order_file_path);
 
-    if(form_order_app_tree_node->GetDocument() != nullptr)
+    if( form_order_app_tree_node->GetDocument() != nullptr )
         return TRUE;
 
-    COrderDoc* pDoc = (COrderDoc*)m_pDocTemplate->OpenDocumentFile(sOrderFile);
+    COrderDoc* pDoc = (COrderDoc*)m_pDocTemplate->OpenDocumentFile(TC::ToWide(order_file_path).c_str());
 
     SetOrderDoc(pDoc); // set the tree ctrl's ptr to the doc
 
-    if (!pDoc->LoadOrderSpecFile(sOrderFile) )
+    if (!pDoc->LoadOrderSpecFile(order_file_path) )
     {
         pDoc->OnCloseDocument();
         return FALSE;
@@ -1497,18 +1470,16 @@ void COrderTreeCtrl::RestoreItemSelection()
 
 void COrderTreeCtrl::OnEditReportProperties()
 {
-    AppTreeNode* app_tree_node = GetTreeNode(GetSelectedItem());
+    const AppTreeNode* const app_tree_node = GetTreeNode(GetSelectedItem());
 
     if( app_tree_node == nullptr || app_tree_node->GetAppFileType() != AppFileType::Report )
         return;
 
-    if( AfxGetMainWnd()->SendMessage(UWM::Designer::EditReportProperties, reinterpret_cast<WPARAM>(&assert_cast<ReportAppTreeNode*>(app_tree_node)->GetNamedTextSource()),
-                                                                          reinterpret_cast<LPARAM>(app_tree_node->GetOrderDocument())) == 1 )
-    {
-        // on success, redraw the tree
-        Invalidate();
-    }
+    WindowsDesktopMessage::PostObject(UWM::Designer::ShowFileProperties, app_tree_node->GetPath(),
+                                                                         app_tree_node->GetOrderDocument());
 }
+
+
 void COrderTreeCtrl::OnViewQuestionnaire()
 {
     CMDIChildWnd* pActiveWnd = assert_cast<CMDIFrameWnd*>(AfxGetMainWnd())->MDIGetActive();

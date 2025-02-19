@@ -37,15 +37,15 @@ HANDLE ProcessRunner::Start(std::wstring command_line)
     siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
     BOOL success = CreateProcess(nullptr,
-                                 command_line.data(), // command line 
-                                 nullptr,             // process security attributes 
-                                 nullptr,             // primary thread security attributes 
-                                 TRUE,                // handles are inherited 
-                                 CREATE_NO_WINDOW,    // creation flags 
-                                 nullptr,             // use parent's environment 
-                                 nullptr,             // use parent's current directory 
-                                 &siStartInfo,        // STARTUPINFO pointer 
-                                 &piProcInfo);        // receives PROCESS_INFORMATION 
+                                 command_line.data(), // command line
+                                 nullptr,             // process security attributes
+                                 nullptr,             // primary thread security attributes
+                                 TRUE,                // handles are inherited
+                                 CREATE_NO_WINDOW,    // creation flags
+                                 nullptr,             // use parent's environment
+                                 nullptr,             // use parent's current directory
+                                 &siStartInfo,        // STARTUPINFO pointer
+                                 &piProcInfo);        // receives PROCESS_INFORMATION
 
     if( !success )
         return nullptr;
@@ -75,10 +75,11 @@ DWORD ProcessRunner::GetExitCode() const
 }
 
 
-std::wstring ProcessRunner::ReadFromPipe(HANDLE pipe)
+std::string ProcessRunner::ReadFromPipe(HANDLE pipe)
 {
     constexpr size_t BufferIncrementSize = 2048;
-    std::vector<char> buffer(BufferIncrementSize);
+
+    std::string buffer(BufferIncrementSize, '\0');
     size_t current_buffer_index = 0;
     DWORD bytes_read;
 
@@ -88,5 +89,7 @@ std::wstring ProcessRunner::ReadFromPipe(HANDLE pipe)
         buffer.resize(buffer.size() + BufferIncrementSize);
     }
 
-    return UTF8Convert::UTF8ToWide(buffer.data(), current_buffer_index);
+    buffer.resize(current_buffer_index);
+
+    return buffer;
 }

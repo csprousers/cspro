@@ -28,31 +28,31 @@ bool CNPifFile::BuildAllObjects()
 
     //Open the object
     if(m_sAppFName.IsEmpty()){
-        ErrorMessage::Display(FormatText(_T("%s does not have the application name. Cannot open the file"), this->GetPifFileName().GetString()));
+        ErrorMessage::Display(FormatText("'%s' does not have the application name. Cannot open the file.", UTF8_TODO::GetUtf8(GetPifFileName()).c_str()));
         return false;
     }
     ASSERT(!m_sAppFName.IsEmpty());
 
     // check for binary load vs regular load
-    CString sAppExt = PathFindExtension(m_sAppFName);
+    std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_sAppFName));
 
     // use .pen file if .ent file is not there
     // this facilitates deployment since you can use same .pff file for .ent and .pen
     CString sAppFNameBin = m_sAppFName;
 
 #ifdef WIN_DESKTOP
-    if( sAppExt.CompareNoCase(FileExtensions::WithDot::EntryApplication) == 0 && !PortableFunctions::FileIsRegular(m_sAppFName) )
+    if( SO::EqualsNoCase(extension, FileExtensions::EntryApplication) && !PortableFunctions::FileIsRegular(m_sAppFName) )
 #endif
     {
-        sAppFNameBin = PortableFunctions::PathRemoveFileExtension<CString>(sAppFNameBin) + FileExtensions::WithDot::BinaryEntryPen;
+        sAppFNameBin = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(sAppFNameBin), FileExtensions::BinaryEntryPen));
 
         if( PortableFunctions::FileIsRegular(sAppFNameBin) )
-            sAppExt = FileExtensions::WithDot::BinaryEntryPen;
+            extension = FileExtensions::BinaryEntryPen;
     }
 
     bool bOpenOK = false;
 
-    if( sAppExt.CompareNoCase(FileExtensions::WithDot::BinaryEntryPen) == 0 || GetBinaryLoad() )
+    if( SO::EqualsNoCase(extension, FileExtensions::BinaryEntryPen) || GetBinaryLoad() )
     {
         // binary load
         SetBinaryLoad(true);
@@ -60,11 +60,12 @@ bool CNPifFile::BuildAllObjects()
 
         m_application->GetAppLoader()->SetArchiveName(CS2WS(sAppFNameBin));
 
-        if (sAppExt.CompareNoCase(FileExtensions::WithDot::BinaryEntryPen) == 0) {
+        if( SO::EqualsNoCase(extension, FileExtensions::BinaryEntryPen) )
+        {
             // if file extension is binary, set back to regular so that pff always writes out .ent
             PathRemoveExtension(m_sAppFName.GetBuffer());
             m_sAppFName.ReleaseBuffer();
-            m_sAppFName += FileExtensions::WithDot::EntryApplication;
+            m_sAppFName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::EntryApplication));
         }
 
         auto serializer = std::make_shared<Serializer>();
@@ -72,10 +73,10 @@ bool CNPifFile::BuildAllObjects()
 
         try
         {
-            serializer->OpenInputArchive(m_application->GetAppLoader()->GetArchiveName());
+            serializer->OpenInputArchive(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName()));
             *serializer & *m_application;
 
-            m_application->SetApplicationFilename(WS2CS(m_application->GetAppLoader()->GetArchiveName())); // 20131202
+            m_application->SetApplicationFilePath(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())); // 20131202
 
             bOpenOK = true;
         }
@@ -83,20 +84,20 @@ bool CNPifFile::BuildAllObjects()
         catch( const CSProException& exception ) // 20140814 display a message if one is thrown
         {
 #ifndef WIN_DESKTOP
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T("Application Load Error"), exception.GetErrorMessage(), MB_OK);
+            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("Application Load Error", exception.what(), MB_OK);
 #else
             ErrorMessage::Display(exception);
 #endif
         }
         catch(...)
         {
-            CString sErr = FormatText(_T("Error reading file %s. Verify that the file exists and that it is a ")
-                                      _T("valid CSPro .pen file and that it is located in the the correct folder."),
-                                      m_application->GetAppLoader()->GetArchiveName().c_str());
+            const std::string message = FormatText("Error reading file %s. Verify that the file exists and that it is a "
+                                                   "valid CSPro .pen file and that it is located in the the correct folder.",
+                                                    UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName()).c_str());
 #ifndef WIN_DESKTOP
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(_T("Application Load Error"), sErr, MB_OK);
+            PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("Application Load Error", message, MB_OK);
 #else
-            ErrorMessage::Display(sErr);
+            ErrorMessage::Display(message);
 #endif
         }
 
@@ -145,7 +146,7 @@ bool CNPifFile::BuildAllObjects()
     //Do the form files
     if(m_application->GetEngineAppType() == EngineAppType::Tabulation ) {//TO Do // delete this on exit
 #ifdef WIN_DESKTOP
-        CString sTabFile = m_application->GetTabSpecFilenames().front();
+        CString sTabFile = UTF8_TODO::GetCString(m_application->GetTableSpecFilePaths().front());
 
         BOOL bOK = TRUE;
         CSpecFile specFile(TRUE);
@@ -155,10 +156,10 @@ bool CNPifFile::BuildAllObjects()
             return false;
         }
 
-        std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
+        std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specFile, CSPRO_DICTS);
         specFile.Close();
 
-        if (dictionary_filenames.empty()) {
+        if (dictionary_file_paths.empty()) {
             // &&& no dictionary name in spec file; ask for it?
             AfxMessageBox(_T("No data dictionary specified in spec file"));
             return false;
@@ -166,7 +167,7 @@ bool CNPifFile::BuildAllObjects()
 
         auto pTabSet = std::make_shared<CTabSet>();
         pTabSet->Open(sTabFile);
-        pTabSet->SetDictFile(WS2CS(dictionary_filenames.front()));
+        pTabSet->SetDictFile(UTF8_TODO::GetCString(dictionary_file_paths.front()));
         CString sDictFile = pTabSet->GetDictFile();
 #ifdef USE_BINARY
         ASSERT(0);
@@ -181,12 +182,12 @@ bool CNPifFile::BuildAllObjects()
             m_application->SetTabSpec(pTabSet);
 
             //Set Working storage dict
-            for( const CString& dictionary_filename : m_application->GetExternalDictionaryFilenames() ) {
-                const DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(dictionary_filename);
+            for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() ) {
+                const DictionaryDescription* const dictionary_description = m_application->GetDictionaryDescription(dictionary_file_path);
                 if( dictionary_description != nullptr && dictionary_description->GetDictionaryType() == DictionaryType::Working ) {
                      auto pWDict = std::make_shared<CDataDict>();
                      if(!sDictFile.IsEmpty()) {
-                         pWDict->Open(dictionary_filename);
+                         pWDict->Open(dictionary_file_path);
                          pTabSet->SetWorkDict(pWDict);
                      }
                     break;
@@ -226,7 +227,7 @@ bool CNPifFile::SaveEDicts(const std::wstring& archive_name)
     ASSERT( BinaryGen::isGeneratingBinary() );
     bool bOk = true;
 
-    for( const auto& dictionary : m_application->GetRuntimeExternalDictionaries() )
+    for( const std::shared_ptr<CDataDict>& dictionary : m_application->GetRuntimeExternalDictionaries() )
     {
         try // 20121109 for the portable environment
         {
@@ -251,7 +252,7 @@ bool CNPifFile::SaveEDicts(const std::wstring& archive_name)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNPifFile::LoadEDicts()
 {
-    for( const CString& dictionary_filename : m_application->GetExternalDictionaryFilenames() )
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() )
     {
         auto dictionary = std::make_shared<CDataDict>();
         m_application->AddRuntimeExternalDictionary(dictionary);
@@ -266,9 +267,11 @@ bool CNPifFile::LoadEDicts()
                 dictionary->UpdatePointers();
             }
 
-            catch(...)
+            catch( const std::exception& exception )
             {
-                ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen).c_str(), m_application->GetAppLoader()->GetArchiveName().c_str()));
+                ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
+                                                 Path::GetFilename(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())).c_str(),
+                                                 exception.what()));
                 return false;
             }
         }
@@ -277,20 +280,20 @@ bool CNPifFile::LoadEDicts()
         {
             try
             {
-                dictionary->Open(dictionary_filename, true);
+                dictionary->Open(dictionary_file_path, true);
             }
 
             catch( const CSProException& exception )
             {
-		        ErrorMessage::Display(exception);
+                ErrorMessage::Display(exception);
                 return false;
             }
         }
 
-        DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(dictionary_filename);
+        DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(dictionary_file_path);
 
         if( dictionary_description == nullptr )
-            dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(CS2WS(dictionary_filename), DictionaryType::External));
+            dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(dictionary_file_path, DictionaryType::External));
 
         dictionary_description->SetDictionary(dictionary.get());
     }
@@ -334,7 +337,7 @@ bool CNPifFile::SaveFormObjects(const std::wstring& archive_name)
 BOOL CNPifFile::LoadFormObjects(void)
 {
     //Add the runtime dicts again
-    int iCount = (int)m_application->GetFormFilenames().size();
+    const int iCount = static_cast<int>(m_application->GetFormFilePaths().size());
 
     if(iCount == 0)
         return FALSE;
@@ -353,8 +356,8 @@ BOOL CNPifFile::LoadFormObjects(void)
             pFormFile = m_application->GetRuntimeFormFiles()[iIndex];
         }
 
-        CString sFFName = m_application->GetFormFilenames()[iIndex];
-        pFormFile->SetFileName( sFFName ); // RHF Nov 13,
+        const std::string& form_file_path = m_application->GetFormFilePaths()[iIndex];
+        pFormFile->SetFilePath(form_file_path); // RHF Nov 13,
 
         bool bFileOpenError = false;
         if (m_application->GetAppLoader()->GetBinaryFileLoad())
@@ -376,15 +379,17 @@ BOOL CNPifFile::LoadFormObjects(void)
                 bFileOpenError = false;
             }
 
-            catch(...)
+            catch( const std::exception& exception )
             {
-                ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen).c_str(), m_application->GetAppLoader()->GetArchiveName().c_str()));
+                ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
+                                                 Path::GetFilename(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())).c_str(),
+                                                 exception.what()));
                 return false;
             }
         }
         else {
 #ifndef USE_BINARY
-           bFileOpenError = (pFormFile->Open(sFFName,TRUE) == false);
+           bFileOpenError = (pFormFile->Open(form_file_path, TRUE) == false);
 #else
            ASSERT(!_T("No non-binary file load in this build"));
            bFileOpenError = false;
@@ -392,11 +397,7 @@ BOOL CNPifFile::LoadFormObjects(void)
         }
 
        if(bFileOpenError) {
-#ifdef WIN_DESKTOP
-            CString sMsg;
-            sMsg.FormatMessage(IDS_FLDDLD, sFFName.GetString());
-            AfxMessageBox(sMsg);
-#endif
+           ErrorMessage::Display("Form load failed: " + form_file_path);
            return false;
        }
 
@@ -411,20 +412,20 @@ BOOL CNPifFile::LoadFormObjects(void)
         pFormFile->UpdatePointers();
 
         //Set the dict desc
-        DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(pFormFile->GetDictionaryFilename(), sFFName);
+        DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(UTF8_TODO::GetUtf8(pFormFile->GetDictionaryFilename()), form_file_path);
 
         if( dictionary_description == nullptr )
         {
             dictionary_description = m_application->AddDictionaryDescription(
-                DictionaryDescription(CS2WS(pFormFile->GetDictionaryFilename()),
-                                      CS2WS(sFFName),
+                DictionaryDescription(UTF8_TODO::GetUtf8(pFormFile->GetDictionaryFilename()),
+                                      form_file_path,
                                       ( iIndex == 0 ) ? DictionaryType::Input : DictionaryType::External));
         }
 
         dictionary_description->SetDictionary(pFormFile->GetDictionary());
 
         if( m_application->GetAppLoader()->GetBinaryFileLoad() )
-            const_cast<CDataDict*>(pFormFile->GetDictionary())->SetFullFileName(pFormFile->GetDictionaryFilename());
+            const_cast<CDataDict*>(pFormFile->GetDictionary())->SetFilePath(UTF8_TODO::GetUtf8(pFormFile->GetDictionaryFilename()));
     }
 
     return TRUE;
@@ -443,7 +444,7 @@ void CNPifFile::SetFormFileNumber(Application& application)
     for( const auto& pFormFile : application.GetRuntimeFormFiles() )
     {
         //For each level
-        for (int iLevel =0; iLevel < pFormFile->GetNumLevels() ; iLevel++) 
+        for (int iLevel =0; iLevel < pFormFile->GetNumLevels() ; iLevel++)
             SetFormFileNumber(pFormFile->GetLevel(iLevel), iIndex);
 
         ++iIndex;

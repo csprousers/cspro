@@ -24,27 +24,27 @@ std::vector<HtmlDialogTemplate> HtmlDialogTemplateFile::ReadTemplates()
 {
     std::vector<HtmlDialogTemplate> html_dialog_templates;
 
-    std::wstring template_filename = PortableFunctions::PathAppendToPath(Html::GetDirectory(Html::Subdirectory::Dialogs),
-                                                                         _T("sample-inputs.json"));
+    const std::string template_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Dialogs),
+                                                         "sample-inputs.json");
 
-    JsonNode<wchar_t> json_node = Json::ParseFile<wchar_t>(template_filename);
+    const JsonNode json_node = Json::ParseFile(template_file_path);
 
-    for( const auto& dialog_node : json_node.GetArrayOrEmpty() )
+    for( const JsonNode& dialog_node : json_node.GetArrayOrEmpty() )
     {
         HtmlDialogTemplate& dialog_template = html_dialog_templates.emplace_back(HtmlDialogTemplate
             {
-                dialog_node.Get<std::wstring>(JK::filename),
-                dialog_node.GetOrDefault<std::wstring>(JK::description, SO::EmptyString),
-                dialog_node.GetOrDefault<std::wstring>(JK::subdescription, SO::EmptyString)
+                dialog_node.Get<std::string>(JK::filename),
+                dialog_node.GetOrConstruct<std::string>(JK::description),
+                dialog_node.GetOrConstruct<std::string>(JK::subdescription)
             });
 
-        for( const auto& sample_node : dialog_node.GetArrayOrEmpty(JK::samples) )
+        for( const JsonNode& sample_node : dialog_node.GetArrayOrEmpty(JK::samples) )
         {
-                dialog_template.samples.emplace_back(HtmlDialogTemplate::Sample
-                {
-                    sample_node.GetOrDefault<std::wstring>(JK::description, SO::EmptyString),
-                    sample_node.Get(JK::input).GetNodeAsString(JsonFormattingOptions::PrettySpacing)
-                });
+            dialog_template.samples.emplace_back(HtmlDialogTemplate::Sample
+            {
+                sample_node.GetOrConstruct<std::string>(JK::description),
+                sample_node.Get(JK::input).GetNodeAsString(JsonFormattingOptions::PrettySpacing)
+            });
         }
     }
 
@@ -52,9 +52,9 @@ std::vector<HtmlDialogTemplate> HtmlDialogTemplateFile::ReadTemplates()
 }
 
 
-std::optional<std::wstring> HtmlDialogTemplateFile::GetDefaultInputText(const std::wstring& filename) const
+SharableString HtmlDialogTemplateFile::GetDefaultInputText(const std::string& file_path) const
 {
-    std::wstring filename_only = PortableFunctions::PathGetFilename(filename);
+    const std::string filename_only = PortableFunctions::PathGetFilename(file_path);
 
     const auto& lookup = std::find_if(m_htmlDialogTemplates.cbegin(), m_htmlDialogTemplates.cend(),
         [&](const HtmlDialogTemplate& dialog_template)
@@ -66,5 +66,5 @@ std::optional<std::wstring> HtmlDialogTemplateFile::GetDefaultInputText(const st
     if( lookup != m_htmlDialogTemplates.cend() )
         return lookup->samples.front().input;
 
-    return std::nullopt;
+    return SharableString();
 }

@@ -25,7 +25,7 @@ CSettings::CSettings()
     m_bPathOn             = false;
 
     // related settings
-    m_bCanEnterNotappl    = true; 
+    m_bCanEnterNotappl    = true;
     m_bAskWhenNotappl     = true;
     m_bCanEnterOutOfRange = true;
     m_bAskWhenOutOfRange  = true;
@@ -43,8 +43,6 @@ CSettings::CSettings()
     m_bAutoSkipStrucImpute= false;                 // RHF Nov 09, 2001
 
     m_bExitWhenFinish = false;
-
-    m_treatSpecialValuesAsZero = false; // GHM 20090827
 
     // --- Export options                           // victor Dec 18, 00
     SetExportData(true);                            // victor Dec 18, 00
@@ -68,8 +66,6 @@ CSettings::CSettings()
 
     // ---------------------------- other members ----------------------------
     // --- Miscellaneous
-    m_Workdict = NULL;              // internal workDict
-
     memset( m_QidVars, 0, MaxNumberLevels * MAXQIDVARS * sizeof(int) );
     m_QidLength = 0;
 

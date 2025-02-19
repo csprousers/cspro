@@ -66,18 +66,28 @@ inline void AppendUnique(CStringArray& dst, const std::vector<CString>& src)
 #endif
 
 
-template<typename T>
-typename std::vector<T>::const_iterator FindStringInVectorNoCase(const std::vector<T>& strings, wstring_view search_string)
+template<typename VT, typename ST>
+typename std::vector<VT>::const_iterator FindStringInVectorNoCase(const std::vector<VT>& strings, const ST& search_string)
 {
     return std::find_if(strings.cbegin(), strings.cend(),
-                        [&search_string](const T& string) { return SO::EqualsNoCase(string, search_string); });
+                        [&search_string](const VT& string) { return SO::EqualsNoCase(string, search_string); });
 }
 
 
-template<typename T>
-bool ContainsStringInVectorNoCase(const std::vector<T>& strings, wstring_view search_string)
+template<typename VT, typename ST>
+bool ContainsStringInVectorNoCase(const std::vector<VT>& strings, const ST& search_string)
 {
     return ( FindStringInVectorNoCase(strings, search_string) != strings.cend() );
+}
+
+
+template<typename T, typename ST>
+void RemoveStringInVectorNoCase(std::vector<T>& strings, const ST& search_string)
+{
+    const auto& string_search = FindStringInVectorNoCase(strings, search_string);
+
+    if( string_search != strings.end() )
+        strings.erase(string_search);
 }
 
 
@@ -99,11 +109,20 @@ void RemoveDuplicateStringsInVectorNoCase(std::vector<T>& strings)
 
 
 template<typename T>
-bool IsFilenameInUse(const std::vector<T>& objects_with_filenames, wstring_view filename)
+bool IsFilePathInUse(const std::vector<T>& objects_with_file_paths, const wstring_view file_path_sv)
 {
-    const auto& lookup = std::find_if(objects_with_filenames.cbegin(), objects_with_filenames.cend(),
-                                     [&](const auto& object) { return SO::EqualsNoCase(GetUnderlyingValue(object).GetFilename(), filename); });
-    return ( lookup != objects_with_filenames.cend() );
+    const auto& lookup = std::find_if(objects_with_file_paths.cbegin(), objects_with_file_paths.cend(),
+                                     [&](const T& object) { return SO::EqualsNoCase(GetUnderlyingValue(object).GetFilename(), file_path_sv); });
+    return ( lookup != objects_with_file_paths.cend() );
+}
+
+
+template<typename T>
+bool IsFilePathInUse(const std::vector<T>& objects_with_file_paths, const std::string_view file_path_sv)
+{
+    const auto& lookup = std::find_if(objects_with_file_paths.cbegin(), objects_with_file_paths.cend(),
+                                     [&](const T& object) { return SO::EqualsNoCase(GetUnderlyingValue(object).GetFilePath(), file_path_sv); });
+    return ( lookup != objects_with_file_paths.cend() );
 }
 
 

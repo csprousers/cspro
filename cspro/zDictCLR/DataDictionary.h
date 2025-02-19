@@ -18,14 +18,14 @@ namespace CSPro {
             static property System::String^ Extension { System::String^ get(); }
 
             DataDictionary();
-            DataDictionary(System::String^ filename);
+            DataDictionary(System::String^ file_path);
             DataDictionary(CDataDict* pNativeDict, bool owns_dictionary);
             DataDictionary(CDataDict* pNativeDict);
 
             ~DataDictionary() { this->!DataDictionary(); }
             !DataDictionary();
 
-            void Save(System::String^ filename);
+            void Save(System::String^ file_path);
 
             property System::String^ Name {
                 System::String^ get();
@@ -37,7 +37,6 @@ namespace CSPro {
                 void set(System::String^);
             }
 
-            property bool AllowDataViewerModifications { bool get(); }
             property bool AllowExport { bool get(); }
 
             property System::String^ Note {

@@ -4,18 +4,18 @@ class CFormScrollView;
 
 
 // single and multiple field properties
-#define CAPTURETYPE_TEXTBOX_NO_TICKMARKS             ( (int)CaptureType::Unspecified - 1 )
-#define CAPTURETYPE_TEXTBOX_NO_TICKMARKS_DESCRIPTION _T("Text Box (No Tickmarks)")
+constexpr int CAPTURETYPE_TEXTBOX_NO_TICKMARKS                     = static_cast<int>(CaptureType::Unspecified) - 1;
+constexpr const char* CAPTURETYPE_TEXTBOX_NO_TICKMARKS_DESCRIPTION = "Text Box (No Tickmarks)";
 
-#define CAPTURETYPE_TEXTBOX_MULTILINE                ( (int)CaptureType::Unspecified - 2 )
-#define CAPTURETYPE_TEXTBOX_MULTILINE_DESCRIPTION    _T("Text Box (Multiline)")
+constexpr int CAPTURETYPE_TEXTBOX_MULTILINE                        = static_cast<int>(CaptureType::Unspecified) - 2;
+constexpr const char* CAPTURETYPE_TEXTBOX_MULTILINE_DESCRIPTION    = "Text Box (Multiline)";
                                               
-#define CAPTURETYPE_UNASSIGNED_DESCRIPTION           _T("<linked to dictionary item>")
+constexpr const char* CAPTURETYPE_UNASSIGNED_DESCRIPTION           = "<linked to dictionary item>";
                                               
 // multiple field properties                  
-#define CAPTURETYPE_NO_CHANGE                        ( (int)CaptureType::Unspecified - 3 )
-#define CAPTURETYPE_DEFAULT                          ( (int)CaptureType::Unspecified - 4 )
-#define CAPTURETYPE_LINK_TO_DICT_IF_DEFINED          ( (int)CaptureType::Unspecified - 5 )
+constexpr int CAPTURETYPE_NO_CHANGE                                = static_cast<int>(CaptureType::Unspecified) - 3;
+constexpr int CAPTURETYPE_DEFAULT                                  = static_cast<int>(CaptureType::Unspecified) - 4;
+constexpr int CAPTURETYPE_LINK_TO_DICT_IF_DEFINED                  = static_cast<int>(CaptureType::Unspecified) - 5;
 
 
 class CFieldPropDlg : public CDialog

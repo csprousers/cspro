@@ -15,7 +15,7 @@ class ZFREQO_API FrequencyPrinterEntry
 {
 public:
     FrequencyPrinterEntry(std::shared_ptr<const FrequencyCounter<ValueType, CountType>> frequency_counter,
-                          std::wstring symbol_name);
+                          std::string symbol_name);
 
     FrequencyPrinterEntry(std::shared_ptr<const FrequencyCounter<ValueType, CountType>> frequency_counter,
                           const CDictItem& dict_item, const DictValueSet* current_dict_value_set, std::optional<size_t> record_occurrence,
@@ -23,9 +23,9 @@ public:
 
     bool Compare(const FrequencyPrinterEntry& rhs) const;
 
-    void Print(FrequencyPrinter& frequency_printer, std::wstring frequency_name, const FrequencyPrinterOptions& frequency_printer_options);
+    void Print(FrequencyPrinter& frequency_printer, const std::string& frequency_name, const FrequencyPrinterOptions& frequency_printer_options);
 
-    std::unique_ptr<FrequencyTable> CreateFrequencyTable(std::wstring frequency_name, const FrequencyPrinterOptions& frequency_printer_options,
+    std::unique_ptr<FrequencyTable> CreateFrequencyTable(std::string frequency_name, const FrequencyPrinterOptions& frequency_printer_options,
                                                          const DictValueSet* dict_value_set, bool distinct);
 
 private:
@@ -39,7 +39,7 @@ private:
 
 private:
     std::shared_ptr<const FrequencyCounter<ValueType, CountType>> m_frequencyCounter;
-    std::wstring m_symbolName;
+    std::string m_symbolName;
     const CDictItem* m_dictItem;
     const DictValueSet* m_currentDictValueSet;
     std::optional<size_t> m_recordOccurrence;

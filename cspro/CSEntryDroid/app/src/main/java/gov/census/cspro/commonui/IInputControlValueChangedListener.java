@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.census.cspro.commonui;
 
@@ -7,7 +7,7 @@ package gov.census.cspro.commonui;
  * @author wmapp
  *
  */
-public interface IInputControlValueChangedListener 
+public interface IInputControlValueChangedListener
 {
-	public void onValueChanged(Object sender, Object value);
+    public void onValueChanged(Object sender, Object value);
 }

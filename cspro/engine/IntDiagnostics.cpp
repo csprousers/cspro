@@ -2,7 +2,6 @@
 #include "INTERPRE.H"
 #include "Engine.h"
 #include "ParameterManager.h"
-#include <zEngineO/Versioning.h>
 #include <zToolsO/Serializer.h>
 
 
@@ -24,15 +23,15 @@ double CIntDriver::exdiagnostics(int iExpr)
 
             if( *parameter == ParameterManager::Parameter::Invalid )
             {
-                issaerror(MessageType::Error, 1100, parameter_text.c_str());
-                return AssignBlankAlphaValue();
+                issaerror(MessageType::Error, 1100, UTF8_TODO::GetUtf8(parameter_text).c_str());
+                return AssignStringNull();
             }
 
             // check if the number of arguments is valid
             if( provided_arguments < min_arguments || provided_arguments > max_arguments )
             {
-                issaerror(MessageType::Error, 1101, parameter_text.c_str(), provided_arguments);
-                return AssignBlankAlphaValue();
+                issaerror(MessageType::Error, 1101, UTF8_TODO::GetUtf8(parameter_text).c_str(), provided_arguments);
+                return AssignStringNull();
             }
         }
 
@@ -46,7 +45,7 @@ double CIntDriver::exdiagnostics(int iExpr)
             if( show_all_parameters )
             {
                 SO::AppendWithSeparator(diagnostics_text,
-                                        SO::Concatenate(ParameterManager::GetDisplayName(parameter), _T(": "), value),
+                                        SO::ConcatenateWS(ParameterManager::GetDisplayName(parameter), _T(": "), value),
                                         _T(", "));
             }
 
@@ -57,30 +56,30 @@ double CIntDriver::exdiagnostics(int iExpr)
         };
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Version )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Version, CSPRO_VERSION_NUMBER_TEXT);
+            assign_parameter(ParameterManager::Parameter::Diagnostics_Version, UTF8_TODO::GetWide(Versioning::NumberText));
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_VersionDetailed )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_VersionDetailed, CSPRO_VERSION_NUMBER_DETAILED_TEXT);
+            assign_parameter(ParameterManager::Parameter::Diagnostics_VersionDetailed, UTF8_TODO::GetWide(Versioning::NumberDetailedText));
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_ReleaseDate )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_ReleaseDate, IntToString(Versioning::GetReleaseDate()));
+            assign_parameter(ParameterManager::Parameter::Diagnostics_ReleaseDate, UTF8_TODO::GetCString(IntToString(Versioning::GetReleaseDate())));
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Beta )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, IsBetaBuild() ? _T("1") : _T("0"));
+            assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, Versioning::IsBeta ? _T("1") : _T("0"));
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Serializer )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Serializer, IntToString(Serializer::GetCurrentVersion()));
+            assign_parameter(ParameterManager::Parameter::Diagnostics_Serializer, UTF8_TODO::GetCString(IntToString(Serializer::GetCurrentVersion())));
 
         if( parameter.has_value() && *parameter == ParameterManager::Parameter::Diagnostics_Md5 )
         {
             std::wstring filename = EvalFullPathFileName(arguments[1]);
-            diagnostics_text = PortableFunctions::FileMd5(filename);
+            diagnostics_text = UTF8_TODO::GetWide(PortableFunctions::FileMd5(filename));
         }
 
         return AssignAlphaValue(std::move(diagnostics_text));
     };
 
-    if( Versioning::MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
         const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
         return run(fnn_node.fn_nargs, fnn_node.fn_expr);

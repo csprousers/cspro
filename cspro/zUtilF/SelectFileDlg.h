@@ -11,29 +11,29 @@ public:
     SelectFileDlg();
 
     // inputs
-    void SetTitle(std::wstring title) { m_title = std::move(title); }
+    void SetTitle(SharableString title) { m_title = std::move(title); }
 
     void SetShowDirectories(bool show_directories) { m_showDirectories = show_directories; }
 
-    void SetFilter(std::wstring filter) { m_filter = std::move(filter); }
+    void SetFilter(SharableString filter) { m_filter = std::move(filter); }
 
     void SetStartDirectory(SpecialDirectoryLister::SpecialDirectory directory) { m_startDirectory = std::move(directory); }
     void SetRootDirectory(SpecialDirectoryLister::SpecialDirectory directory)  { m_rootDirectory = std::move(directory); }
 
     // results
-    const std::wstring& GetSelectedPath() const { return m_selectedPath; }
+    const SharableString& GetSelectedPath() const { return m_selectedPath; }
 
 protected:
-    const TCHAR* GetDialogName() override;
-    std::wstring GetJsonArgumentsText() override;
-    void ProcessJsonResults(const JsonNode<wchar_t>& json_results) override;
+    std::string GetDialogName() override;
+    SharableString GetJsonArgumentsText() override;
+    void ProcessJsonResults(const JsonNode& json_results) override;
 
 private:
-    std::optional<std::wstring> m_title;
+    SharableString m_title;
     bool m_showDirectories;
-    std::optional<std::wstring> m_filter;
+    SharableString m_filter;
     SpecialDirectoryLister::SpecialDirectory m_startDirectory;
     std::optional<SpecialDirectoryLister::SpecialDirectory> m_rootDirectory;
 
-    std::wstring m_selectedPath;
+    SharableString m_selectedPath;
 };

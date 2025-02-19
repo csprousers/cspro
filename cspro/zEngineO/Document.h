@@ -15,17 +15,17 @@ private:
     LogicDocument(const LogicDocument& logic_document);
 
 public:
-    LogicDocument(std::wstring document_name);
+    LogicDocument(std::string document_name);
     LogicDocument(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
 
     LogicDocument& operator=(const LogicDocument& logic_document);
     LogicDocument& operator=(const LogicAudio& logic_audio);
     LogicDocument& operator=(const LogicGeometry& logic_geometry);
     LogicDocument& operator=(const LogicImage& logic_image);
-    LogicDocument& operator=(const std::wstring& document_text);
+    LogicDocument& operator=(std::string document_text);
 
-    void Load(std::wstring filename);
-    void Save(std::wstring filename);
+    void Load(std::string file_path);
+    void Save(std::string file_path);
 
     bool View(const ViewerOptions* viewer_options) const;
 

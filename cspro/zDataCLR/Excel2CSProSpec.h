@@ -51,7 +51,7 @@ namespace CSPro::Data::Excel2CSPro
         property System::Collections::Generic::List<RecordMapping^>^ Mappings;
 
         // Load and Save throw exceptions
-        void Load(System::String^ filename);
-        void Save(System::String^ filename);
+        void Load(System::String^ file_path);
+        void Save(System::String^ file_path);
     };
 }

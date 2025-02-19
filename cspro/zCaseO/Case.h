@@ -1,20 +1,23 @@
 ﻿#pragma once
 
 #include <zCaseO/zCaseO.h>
-#include <zCaseO/CaseLevel.h>
-#include <zCaseO/CaseRecord.h>
-#include <zCaseO/CaseSummary.h>
 #include <zCaseO/CaseAccess.h>
-#include <zCaseO/CaseItem.h>
+#include <zCaseO/CaseLevel.h>
+#include <zCaseO/CaseSummary.h>
 #include <zCaseO/Note.h>
-#include <zCaseO/VectorClock.h>
-#include <zDictO/DDClass.h>
 #include <zCaseO/Pre74_Case.h>
+#include <zCaseO/VectorClock.h>
+#include <zToolsO/CallbackFunctionProcessor.h>
+#include <zDictO/DDClass.h>
 
 class BinaryCaseItem;
 class CaseConstructionReporter;
 class CaseItemReference;
 
+
+// --------------------------------------------------------------------------
+// CaseMetadata
+// --------------------------------------------------------------------------
 
 class ZCASEO_API CaseMetadata
 {
@@ -23,15 +26,15 @@ class ZCASEO_API CaseMetadata
 public:
     CaseMetadata(const CDataDict& dictionary, const CaseAccess& case_access);
     CaseMetadata(const CaseMetadata&) = delete;
-    ~CaseMetadata();
+    CaseMetadata(CaseMetadata&&) = delete;
 
     const CDataDict& GetDictionary() const { return m_dictionary; }
 
-    const std::vector<const CaseLevelMetadata*>& GetCaseLevelsMetadata() const { return m_caseLevelsMetadata; }
+    const std::vector<CaseLevelMetadata>& GetCaseLevelsMetadata() const { return m_caseLevelsMetadata; }
 
-    const CaseLevelMetadata* FindCaseLevelMetadata(wstring_view level_name) const;
-    const CaseRecordMetadata* FindCaseRecordMetadata(wstring_view record_name) const;
-    const CaseItem* FindCaseItem(wstring_view item_name) const;
+    const CaseLevelMetadata* FindCaseLevelMetadata(std::string_view level_name_sv) const;
+    const CaseRecordMetadata* FindCaseRecordMetadata(std::string_view record_name_sv) const;
+    const CaseItem* FindCaseItem(std::string_view item_name_sv) const;
 
     size_t GetTotalNumberRecords() const         { return m_totalNumberRecords; }
     size_t GetTotalNumberCaseItems() const       { return m_totalNumberCaseItems; }
@@ -41,12 +44,16 @@ public:
 
 private:
     const CDataDict& m_dictionary;
-    std::vector<const CaseLevelMetadata*> m_caseLevelsMetadata;
+    std::vector<CaseLevelMetadata> m_caseLevelsMetadata;
     size_t m_totalNumberRecords;
     size_t m_totalNumberCaseItems;
     size_t m_totalNumberBinaryCaseItems;
 };
 
+
+// --------------------------------------------------------------------------
+// Case
+// --------------------------------------------------------------------------
 
 class ZCASEO_API Case : public CaseSummary
 {
@@ -57,36 +64,41 @@ public:
 
     Case& operator=(const Case& rhs);
 
+    // the position in the repository is not part of the comparison
+    bool Equals(const Case& rhs, bool compare_vector_clock = true) const;
+    bool operator==(const Case& rhs) const { return Equals(rhs); }
+    bool operator!=(const Case& rhs) const { return !Equals(rhs); }
+
     const CaseMetadata& GetCaseMetadata() const { return m_caseMetadata; }
 
     void Reset();
 
-    const CaseLevel& GetRootCaseLevel() const { return *m_rootCaseLevel; }
-    CaseLevel& GetRootCaseLevel()             { return *m_rootCaseLevel; }
+    const CaseLevel& GetRootCaseLevel() const { return m_rootCaseLevel; }
+    CaseLevel& GetRootCaseLevel()             { return m_rootCaseLevel; }
 
-    const CString& GetKey() const override    { return m_rootCaseLevel->GetLevelIdentifier(); }
+    const std::string& GetKey() const override { return UTF8_TODO::Create_Reference(m_rootCaseLevel.GetLevelIdentifier()); }
 
 private:
-    void SetKey(CString key) override;
+    void SetKey(std::string key) override;
 
 public:
     // Iterates over each of the case's levels.
     template<typename CF>
-    void ForeachCaseLevel(const CF& callback_function) const { return ForeachCaseLevelWorker<const CaseLevel>(callback_function, *m_rootCaseLevel); }
+    void ForeachCaseLevel(const CF& callback_function) const { ForeachCaseLevelWorker<const CaseLevel>(callback_function, m_rootCaseLevel); }
     template<typename CF>
-    void ForeachCaseLevel(const CF& callback_function)       { return ForeachCaseLevelWorker<CaseLevel>(callback_function, *m_rootCaseLevel); }
+    void ForeachCaseLevel(const CF& callback_function)       { ForeachCaseLevelWorker<CaseLevel>(callback_function, m_rootCaseLevel); }
 
     // Gets all of the case's levels.
     std::vector<const CaseLevel*> GetAllCaseLevels() const;
     std::vector<CaseLevel*> GetAllCaseLevels();
 
     // Adds a record occurrence to any record that is required but has no occurrences.
-    void AddRequiredRecords(bool report_additions_using_case_construction_reporter = false);
+    void AddRequiredRecords(bool report_additions_using_case_construction_reporter);
 
     // case UUID
-    const CString& GetUuid() const  { return m_uuid; }
-    void SetUuid(std::wstring uuid) { m_uuid = WS2CS(uuid); }
-    const CString& GetOrCreateUuid();
+    const std::string& GetUuid() const { return m_uuid; }
+    void SetUuid(std::string uuid)     { m_uuid = std::move(uuid); }
+    const std::string& GetOrCreateUuid();
 
     // partial save status
     std::shared_ptr<CaseItemReference> GetSharedPartialSaveCaseItemReference() { return m_partialSaveCaseItemReference; }
@@ -100,17 +112,18 @@ public:
     std::vector<Note>& GetNotes()             { return m_notes; }
     void SetNotes(std::vector<Note> notes)    { m_notes = std::move(notes); }
 
-    const CString& GetCaseNote() const override;
+    const std::string& GetCaseNote() const override;
 
 private:
-    void SetCaseNote(CString case_note) override;
+    void SetCaseNote(std::string case_note) override;
+    void ResetCaseNote() override;
 
 public:
     // Returns the vector clock for the case, which is only available for cases
     // in repositories that can synced (like the SQLite repository).
-    const VectorClock& GetVectorClock() const            { return m_vectorClock; }
-    VectorClock& GetVectorClock()                        { return m_vectorClock; }
-    void SetVectorClock(const VectorClock& vector_clock) { m_vectorClock = vector_clock; }
+    const VectorClock& GetVectorClock() const     { return m_vectorClock; }
+    VectorClock& GetVectorClock()                 { return m_vectorClock; }
+    void SetVectorClock(VectorClock vector_clock) { m_vectorClock = std::move(vector_clock); }
 
     // Sets an object that can optionally receive reports issued by case construction operations.
     // Cases constructed using CaseAccess will be initialized with CaseAccess' case construction
@@ -124,6 +137,9 @@ public:
     void ForeachDefinedBinaryCaseItem(const std::function<void(const BinaryCaseItem&, const CaseItemIndex&)>& callback_function) const;
     void ForeachDefinedBinaryCaseItem(const std::function<void(const BinaryCaseItem&, CaseItemIndex&)>& callback_function);
 
+    // Indicates if binary data is defined in the case.
+    bool HasDefinedBinaryData() const;
+
     // Loads all binary data that is part of the case rather than relying on lazy loading.
     void LoadAllBinaryData();
 
@@ -131,11 +147,11 @@ public:
     void WriteJson(JsonWriter& json_writer) const;
 
     // Parses the JSON, replacing the current case with the contents of the JSON node.
-    void ParseJson(const JsonNode<wchar_t>& json_node);
+    void ParseJson(const JsonNode& json_node);
 
 private:
     template<typename T, typename CF>
-    void ForeachCaseLevelWorker(const CF& callback_function, T& case_level) const;
+    bool ForeachCaseLevelWorker(const CF& callback_function, T& case_level) const;
 
     template<typename T>
     void GetAllCaseLevelsWorker(std::vector<T*>& case_levels, T& case_level) const;
@@ -145,9 +161,9 @@ private:
 
 private:
     const CaseMetadata& m_caseMetadata;
-    CaseLevel* m_rootCaseLevel;
+    CaseLevel m_rootCaseLevel;
 
-    CString m_uuid;
+    std::string m_uuid;
     std::shared_ptr<CaseItemReference> m_partialSaveCaseItemReference;
     std::vector<Note> m_notes;
     VectorClock m_vectorClock;
@@ -168,63 +184,82 @@ public:
 
 
 // --------------------------------------------------------------------------
-// inline implementations
+// inline implementations, including CaseKey and CaseSummary copy and move
+// constructors and assignment operators, which need to call the virtual
+// methods to get they key and case note
 // --------------------------------------------------------------------------
 
-inline void Case::SetKey(CString key)
+inline CaseKey::CaseKey(const Case& data_case)
+    :   CaseKey(data_case.GetKey(), data_case.GetPositionInRepository())
 {
-    // the key must be set by modifying case items directly
-    throw ProgrammingErrorException();
 }
 
 
-inline void Case::SetPartialSaveStatus(PartialSaveMode mode, std::shared_ptr<CaseItemReference> case_item_reference/* = nullptr*/)
+inline CaseKey::CaseKey(Case&& data_case)
+    :   CaseKey(static_cast<const Case&>(data_case))
 {
-    ASSERT(( mode != PartialSaveMode::None ) == ( case_item_reference != nullptr ));
-
-    SetPartialSaveMode(mode);
-    m_partialSaveCaseItemReference = std::move(case_item_reference);
 }
 
 
-inline void Case::SetCaseNote(CString case_note)
+inline CaseKey& CaseKey::operator=(const Case& data_case)
 {
-    // the case note must be set by modifying the notes directly
-    throw ProgrammingErrorException();
+    m_key = data_case.GetKey();
+    m_positionInRepository = data_case.GetPositionInRepository();
+    return *this;
+}
+
+
+inline CaseKey& CaseKey::operator=(Case&& data_case)
+{
+    return operator=(static_cast<const Case&>(data_case));
+}
+
+
+inline CaseSummary::CaseSummary(const Case& data_case)
+    :   CaseSummary(static_cast<const CaseSummary&>(data_case))
+{
+    m_key = data_case.GetKey();
+    m_caseNote = data_case.GetCaseNote();
+}
+
+
+inline CaseSummary::CaseSummary(Case&& data_case)
+    :   CaseSummary(static_cast<CaseSummary&&>(std::move(data_case)))
+{
+    m_key = data_case.GetKey();
+    m_caseNote = data_case.GetCaseNote();
+}
+
+
+inline CaseSummary& CaseSummary::operator=(const Case& data_case)
+{
+    operator=(static_cast<const CaseSummary&>(data_case));
+    m_key = data_case.GetKey();
+    m_caseNote = data_case.GetCaseNote();
+    return *this;
+}
+
+
+inline CaseSummary& CaseSummary::operator=(Case&& data_case)
+{
+    operator=(static_cast<CaseSummary&&>(std::move(data_case)));
+    m_key = data_case.GetKey();
+    m_caseNote = data_case.GetCaseNote();
+    return *this;
 }
 
 
 template<typename T, typename CF>
-void Case::ForeachCaseLevelWorker(const CF& callback_function, T& case_level) const
+bool Case::ForeachCaseLevelWorker(const CF& callback_function, T& case_level) const
 {
-    callback_function(case_level);
+    if( !CallbackFunctionProcessor::KeepProcessing(callback_function, case_level) )
+        return false;
 
     for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )
-        ForeachCaseLevelWorker(callback_function, case_level.GetChildCaseLevel(level_index));
-}
+    {
+        if( !ForeachCaseLevelWorker(callback_function, case_level.GetChildCaseLevel(level_index)) )
+            return false;
+    }
 
-
-template<typename T>
-void Case::GetAllCaseLevelsWorker(std::vector<T*>& case_levels, T& case_level) const
-{
-    case_levels.emplace_back(&case_level);
-
-    for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )
-        GetAllCaseLevelsWorker(case_levels, case_level.GetChildCaseLevel(level_index));
-}
-
-
-inline std::vector<const CaseLevel*> Case::GetAllCaseLevels() const
-{
-    std::vector<const CaseLevel*> case_levels;
-    GetAllCaseLevelsWorker<const CaseLevel>(case_levels, *m_rootCaseLevel);
-    return case_levels;
-}
-
-
-inline std::vector<CaseLevel*> Case::GetAllCaseLevels()
-{
-    std::vector<CaseLevel*> case_levels;
-    GetAllCaseLevelsWorker<CaseLevel>(case_levels, *m_rootCaseLevel);
-    return case_levels;
+    return true;
 }

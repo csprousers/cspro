@@ -1,6 +1,6 @@
 ﻿#pragma once
 
 
-constexpr const TCHAR* CSEntryLanguageOverrideFile = _T("CSEntry.menu");
+constexpr const char* CSEntryLanguageOverrideFilename = "CSEntry.menu";
 
-void ActivateDynamicMenus(const CString& override_filename, BCMenu& menu); // 20111125
+void ActivateDynamicMenus(const std::string& override_file_path, BCMenu& menu); // 20111125

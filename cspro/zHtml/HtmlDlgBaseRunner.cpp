@@ -5,22 +5,28 @@
 #include <zAction/AccessToken.h>
 
 
-INT_PTR HtmlDlgBaseRunner::DoModal(bool on_ui_thread)
+HtmlDlgBaseRunner::HtmlDlgBaseRunner()
+    :   m_actionInvokerAccessTokenOverride(nullptr)
+{
+}
+
+
+INT_PTR HtmlDlgBaseRunner::DoModal(const bool on_ui_thread)
 {
     const NavigationAddress navigation_address = GetNavigationAddress();
 
-    if( navigation_address.IsHtmlFilename() )
+    if( navigation_address.IsHtmlFilePath() )
     {
-        if( !PortableFunctions::FileIsRegular(navigation_address.GetHtmlFilename()) )
+        if( !PortableFunctions::FileIsRegular(navigation_address.GetHtmlFilePath()) )
         {
             MessageBoxSystemMessageIssuer().Issue(MessageType::Error, 2031,
                                                   navigation_address.GetName().c_str(),
-                                                  navigation_address.GetHtmlFilename().c_str());
+                                                  navigation_address.GetHtmlFilePath().c_str());
 
             return IDCANCEL;
         }
 
-        RegisterActionInvokerAccessTokenOverride(navigation_address.GetHtmlFilename());
+        RegisterActionInvokerAccessTokenOverride(navigation_address.GetHtmlFilePath());
     }
 
     try
@@ -29,7 +35,7 @@ INT_PTR HtmlDlgBaseRunner::DoModal(bool on_ui_thread)
         // refresh the screen so that if logic changed any of the fields on the form, they will appear correctly
         WindowsDesktopMessage::Send(WM_IMSA_CSENTRY_REFRESH_DATA);
 
-        std::unique_ptr<HtmlDlgBase> html_dlg = CreateHtmlDlg();
+        const std::unique_ptr<HtmlDlgBase> html_dlg = CreateHtmlDlg();
         ASSERT(html_dlg != nullptr);
 
         if( m_actionInvokerAccessTokenOverride != nullptr )
@@ -55,26 +61,26 @@ INT_PTR HtmlDlgBaseRunner::DoModal(bool on_ui_thread)
     {
         MessageBoxSystemMessageIssuer().Issue(MessageType::Error, 2032,
                                               navigation_address.GetName().c_str(),
-                                              exception.GetErrorMessage().c_str());
+                                              exception.what());
 
         return IDCANCEL;
     }
 }
 
 
-const std::wstring* HtmlDlgBaseRunner::RegisterActionInvokerAccessTokenOverride(const std::wstring& path)
+const std::string* HtmlDlgBaseRunner::RegisterActionInvokerAccessTokenOverride(const std::string& path)
 {
-    static std::map<std::wstring, std::unique_ptr<std::wstring>> cached_access_tokens;
+    static std::map<std::string, std::unique_ptr<std::string>> cached_access_tokens;
 
     auto access_token_lookup = cached_access_tokens.find(path);
 
     if( access_token_lookup == cached_access_tokens.cend() )
     {
-        std::unique_ptr<std::wstring> access_token;
+        std::unique_ptr<std::string> access_token;
 
         // only register an access token if the file is in the html directory
         if( SO::StartsWithNoCase(path, Html::GetDirectory()) )
-            access_token = std::make_unique<std::wstring>(ActionInvoker::AccessToken::CreateAccessTokenForHtmlDirectoryFile(path));
+            access_token = std::make_unique<std::string>(ActionInvoker::AccessToken::CreateAccessTokenForHtmlDirectoryFile(path));
 
         access_token_lookup = cached_access_tokens.try_emplace(path, std::move(access_token)).first;
     }

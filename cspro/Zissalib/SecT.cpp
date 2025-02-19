@@ -30,7 +30,7 @@ const Logic::SymbolTable& CSymbolSection::GetSymbolTable() const
 //
 /////////////////////////////////////////////////////////////////////////////
 
-CSymbolSection::CSymbolSection(std::wstring name, CEngineDriver* pEngineDriver)
+CSymbolSection::CSymbolSection(std::string name, CEngineDriver* pEngineDriver)
     :   ChainedSymbol(std::move(name), SymbolType::Section)
 {
     m_pEngineArea = pEngineDriver->getEngineAreaPtr();
@@ -52,7 +52,6 @@ CSymbolSection::CSymbolSection(std::wstring name, CEngineDriver* pEngineDriver)
     // --- other record' data
     m_bOccGenerator   = false;
     m_bIsCommon       = false;                          // RHF Jul 04, 2000
-    m_bSpecialSection = false;
     m_iLastLoc        =  0;
 
     // --- linked IMSA Item
@@ -133,10 +132,10 @@ void CSymbolSection::accept( GroupVisitor* visitor ) // rcl, Sept 2005
 }
 
 
-Symbol* CSymbolSection::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* CSymbolSection::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
     // use the dictionary's method
-    return GetDicT()->FindChildSymbol(symbol_name);
+    return GetDicT()->FindChildSymbol(symbol_name_sv);
 }
 
 

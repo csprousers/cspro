@@ -218,7 +218,7 @@ private:
 
     // General rules
 public:
-    bool CheckAliases(DictNamedBase& dict_element, bool throw_error = false, const std::set<CString>* new_aliases_to_check = nullptr);
+    bool CheckAliases(DictNamedBase& dict_element, bool throw_error = false, const std::set<std::string>* new_aliases_to_check = nullptr);
     bool CheckNote(DictBase& dict_base);
 
 // Item processing
@@ -238,7 +238,7 @@ public:
 // Generate default values
 public:
     int  GetDefaultItemStart(int iLevelNum, int iRecordNum, int iItemNum);
-    CString GetDefaultName(const CString& label);
+    std::string GetDefaultName(const CString& label) const;
 
     static bool MakeRecordTypeUnique(const CDataDict& dictionary, CString& record_type, const std::set<CString>& additional_record_types);
     CString GetDefaultRecTypeVal() const;

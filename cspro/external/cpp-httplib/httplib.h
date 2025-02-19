@@ -2102,7 +2102,7 @@ inline bool is_file(const std::string &path) {
   return stat(path.c_str(), &st) >= 0 && S_ISREG(st.st_mode);
 #endif
 #endif
-  return PortableFunctions::FileIsRegular(UTF8Convert::UTF8ToWide(path)); 
+  return PortableFunctions::FileIsRegular(path);
 }
 
 inline bool is_dir(const std::string &path) {
@@ -2110,7 +2110,7 @@ inline bool is_dir(const std::string &path) {
   struct stat st;
   return stat(path.c_str(), &st) >= 0 && S_ISDIR(st.st_mode);
 #endif
-  return PortableFunctions::FileIsDirectory(UTF8Convert::UTF8ToWide(path)); 
+  return PortableFunctions::FileIsDirectory(path);
 }
 
 inline bool is_valid_path(const std::string &path) {
@@ -2249,9 +2249,8 @@ inline void read_file(const std::string &path, std::string &out) {
   out.resize(static_cast<size_t>(size));
   fs.read(&out[0], static_cast<std::streamsize>(size));
 #endif
-  const std::wstring filename = UTF8Convert::UTF8ToWide(path);
-  const int64_t size = PortableFunctions::FileSize(filename);
-  FILE* file = PortableFunctions::FileOpen(filename, _T("rb"));
+  const int64_t size = PortableFunctions::FileSize(path);
+  FILE* const file = PortableFunctions::FileOpen(path, L"rb");
 
   if( file != nullptr )
   {

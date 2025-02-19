@@ -5,7 +5,7 @@
 
 namespace
 {
-    constexpr int BytesPerPixel                 = 3;
+    constexpr int BytesPerPixel24Bit            = 3;
     constexpr int PixelPaddingPerRowRowMultiple = 4;
 
 
@@ -47,13 +47,62 @@ namespace
 }
 
 
-Multimedia::BmpFile::BmpFile(const std::byte* content, size_t content_size, int width, int height)
+Multimedia::BmpFile::BmpFile(const cs::span<const std::byte> content, const int width, const int height)
     :   m_width(width),
         m_height(height)
 {
-    ASSERT(content_size == static_cast<size_t>(m_width * m_height * BytesPerPixel));
+    ParseContent(content, BytesPerPixel24Bit, { 0, 1, 2 });
+}
 
-    m_bytesPerRow = m_width * BytesPerPixel;
+
+#ifdef WIN_DESKTOP
+
+Multimedia::BmpFile::BmpFile(HBITMAP hBitmap)
+{
+    ASSERT(hBitmap != nullptr);
+
+    // get the pixel data for the bitmap, from https://stackoverflow.com/questions/22050413/c-get-raw-pixel-data-from-hbitmap
+
+    HDC hDC = CreateCompatibleDC(nullptr);
+    HBITMAP hOldBitmap = static_cast<HBITMAP>(SelectObject(hDC, hBitmap));
+
+    BITMAP bmp;
+    GetObject(hBitmap, sizeof(bmp), &bmp);
+
+    BITMAPINFO bmp_info = { 0 };
+    bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmp_info.bmiHeader.biWidth = bmp.bmWidth;
+    bmp_info.bmiHeader.biHeight = bmp.bmHeight;
+    bmp_info.bmiHeader.biPlanes = 1;
+    bmp_info.bmiHeader.biBitCount = bmp.bmBitsPixel;
+    bmp_info.bmiHeader.biCompression = BI_RGB;
+    bmp_info.bmiHeader.biSizeImage = ( ( bmp.bmWidth * bmp.bmBitsPixel + 31 ) / 32 ) * 4 * bmp.bmHeight;
+
+    auto pixels = std::make_unique_for_overwrite<std::byte[]>(bmp_info.bmiHeader.biSizeImage);
+
+    GetDIBits(hDC, hBitmap, 0, bmp.bmHeight, pixels.get(), &bmp_info, DIB_RGB_COLORS);
+    SelectObject(hDC, hOldBitmap);
+
+    DeleteDC(hDC);
+
+    m_width = bmp_info.bmiHeader.biWidth;
+    m_height = std::abs(bmp_info.bmiHeader.biHeight);
+
+    const int content_bytes_per_pixel = bmp_info.bmiHeader.biBitCount / 8;
+    ASSERT(content_bytes_per_pixel == 4);
+
+    ParseContent(cs::span<const std::byte>(pixels.get(), bmp_info.bmiHeader.biSizeImage), content_bytes_per_pixel, { 2, 1, 0 });
+}
+
+#endif // WIN_DESKTOP
+
+
+void Multimedia::BmpFile::ParseContent(const cs::span<const std::byte> content, const int content_bytes_per_pixel, const std::tuple<int, int, int> rgb_index)
+{
+    ASSERT(content_bytes_per_pixel >= BytesPerPixel24Bit);
+    ASSERT(content.size() == static_cast<size_t>(m_width * m_height * content_bytes_per_pixel));
+
+    m_bytesPerRow = m_width * BytesPerPixel24Bit;
     int padding_bytes_per_row = m_bytesPerRow % PixelPaddingPerRowRowMultiple;
 
     if( padding_bytes_per_row != 0 )
@@ -87,18 +136,20 @@ Multimedia::BmpFile::BmpFile(const std::byte* content, size_t content_size, int 
     bitmap_core_header->width = static_cast<uint16_t>(m_width);
     bitmap_core_header->height = static_cast<uint16_t>(m_height);
     bitmap_core_header->color_planes = 1;
-    bitmap_core_header->bits_per_pixel = BytesPerPixel * 8;
+    bitmap_core_header->bits_per_pixel = BytesPerPixel24Bit * 8;
 
     // copy the pixels (which in BMP format are stored as BGR, not RGB)
+    const std::byte* content_itr = content.data();
+
     for( int h = m_height; h > 0; --h )
     {
         for( int w = m_width; w > 0; --w )
         {
-            *(bmp_file_itr++) = static_cast<std::byte>(content[2]);
-            *(bmp_file_itr++) = static_cast<std::byte>(content[1]);
-            *(bmp_file_itr++) = static_cast<std::byte>(content[0]);
+            *(bmp_file_itr++) = content_itr[std::get<2>(rgb_index)];
+            *(bmp_file_itr++) = content_itr[std::get<1>(rgb_index)];
+            *(bmp_file_itr++) = content_itr[std::get<0>(rgb_index)];
 
-            content += 3;
+            content_itr += content_bytes_per_pixel;
         }
 
         // pad each row
@@ -110,9 +161,15 @@ Multimedia::BmpFile::BmpFile(const std::byte* content, size_t content_size, int 
 
 const std::byte* Multimedia::BmpFile::GetPixelData() const
 {
-    const BitmapFileHeader* bitmap_file_header = reinterpret_cast<const BitmapFileHeader*>(m_bmpData.get());
+    const BitmapFileHeader* const bitmap_file_header = reinterpret_cast<const BitmapFileHeader*>(m_bmpData.get());
 
     return m_bmpData.get() + bitmap_file_header->pixel_array_offset;
+}
+
+
+void Multimedia::BmpFile::Save(const std::string& file_path)
+{
+    FileIO::Write(file_path, cs::span<const std::byte>(m_bmpData.get(), m_bmpDataLength));
 }
 
 

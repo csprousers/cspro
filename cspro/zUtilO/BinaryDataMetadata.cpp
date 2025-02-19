@@ -5,21 +5,15 @@
 
 namespace MetadataKey
 {
-    constexpr wstring_view Filename_sv = _T("filename");
-    constexpr wstring_view Label_sv    = _T("label");
-    constexpr wstring_view MimeType_sv = _T("mime");
+    constexpr std::string_view Filename_sv = "filename";
+    constexpr std::string_view Label_sv    = "label";
+    constexpr std::string_view MimeType_sv = "mime";
 }
 
 
-BinaryDataMetadata::BinaryDataMetadata(wstring_view binary_data_metadata_text_sv)
+std::optional<std::string> BinaryDataMetadata::GetFilename() const
 {
-    InitializeFromString(binary_data_metadata_text_sv);
-}
-
-
-std::optional<std::wstring> BinaryDataMetadata::GetFilename() const
-{
-    const std::wstring* filename = GetProperty(MetadataKey::Filename_sv);
+    const std::string* const filename = GetProperty(MetadataKey::Filename_sv);
 
     if( filename != nullptr )
         return PortableFunctions::PathGetFilename(*filename);
@@ -28,12 +22,12 @@ std::optional<std::wstring> BinaryDataMetadata::GetFilename() const
 }
 
 
-void BinaryDataMetadata::SetFilename(NullTerminatedString filename)
+void BinaryDataMetadata::SetFilename(const std::string_view path_or_filename_sv)
 {
-    SetOrClearProperty(MetadataKey::Filename_sv, PortableFunctions::PathGetFilename(filename));
+    SetOrClearProperty(MetadataKey::Filename_sv, PortableFunctions::PathGetFilename(path_or_filename_sv));
 
-    std::wstring extension = PortableFunctions::PathGetFileExtension(filename);
-    std::optional<std::wstring> mime_type = MimeType::GetTypeFromFileExtension(extension);
+    const std::string extension = PortableFunctions::PathGetFileExtension(path_or_filename_sv);
+    std::optional<std::string> mime_type = MimeType::GetTypeFromFileExtension(extension);
 
     if( mime_type.has_value() )
     {
@@ -47,35 +41,35 @@ void BinaryDataMetadata::SetFilename(NullTerminatedString filename)
 }
 
 
-std::optional<std::wstring> BinaryDataMetadata::GetMimeType() const
+std::optional<std::string> BinaryDataMetadata::GetMimeType() const
 {
-    const std::wstring* mime_type = GetProperty(MetadataKey::MimeType_sv);
+    const std::string* const mime_type = GetProperty(MetadataKey::MimeType_sv);
 
     return ( mime_type != nullptr ) ? std::make_optional(*mime_type) :
                                       std::nullopt;
 }
 
 
-void BinaryDataMetadata::SetMimeType(std::wstring mime_type)
+void BinaryDataMetadata::SetMimeType(std::string mime_type)
 {
     SetOrClearProperty(MetadataKey::MimeType_sv, std::move(mime_type));
 }
 
 
-std::optional<std::wstring> BinaryDataMetadata::GetEvaluatedExtension() const
+std::optional<std::string> BinaryDataMetadata::GetEvaluatedExtension() const
 {
     // try to get the extension from the filename
-    std::optional<std::wstring> filename = GetFilename();
+    const std::optional<std::string> filename = GetFilename();
 
     if( filename.has_value() )
         return PortableFunctions::PathGetFileExtension(*filename);
 
     // if not available, try to get the extension from the MIME type
-    std::optional<std::wstring> mime_type = GetMimeType();
+    const std::optional<std::string> mime_type = GetMimeType();
 
     if( mime_type.has_value() )
     {
-        const TCHAR* const extension = MimeType::GetFileExtensionFromType(*mime_type);
+        const char* const extension = MimeType::GetFileExtensionFromType(*mime_type);
 
         if( extension != nullptr )
             return extension;
@@ -85,55 +79,60 @@ std::optional<std::wstring> BinaryDataMetadata::GetEvaluatedExtension() const
 }
 
 
-std::optional<std::wstring> BinaryDataMetadata::GetEvaluatedMimeType() const
+std::optional<std::string> BinaryDataMetadata::GetEvaluatedMimeType() const
 {
-    std::optional<std::wstring> mime_type = GetMimeType();
+    std::optional<std::string> mime_type = GetMimeType();
 
     if( mime_type.has_value() )
         return mime_type;
 
     // if the MIME type is not explicity set, try to get it from the filename
-    std::optional<std::wstring> filename = GetFilename();
+    const std::optional<std::string> filename = GetFilename();
 
     return filename.has_value() ? MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(*filename)) :
                                   std::nullopt;
 }
 
 
-std::wstring BinaryDataMetadata::GetEvaluatedLabel() const
+std::string BinaryDataMetadata::GetEvaluatedMimeType(const char* const default_mime_type) const
 {
-    const std::wstring* label = GetProperty(MetadataKey::Label_sv);
+    ASSERT(default_mime_type != nullptr);
+
+    std::optional<std::string> mime_type = GetEvaluatedMimeType();
+
+    return mime_type.has_value() ? std::move(*mime_type) :
+                                   std::string(default_mime_type);
+}
+
+
+std::string BinaryDataMetadata::GetEvaluatedLabel() const
+{
+    const std::string* const label = GetProperty(MetadataKey::Label_sv);
 
     if( label != nullptr )
         return *label;
 
-    std::optional<std::wstring> filename = GetFilename();
+    std::optional<std::string> filename = GetFilename();
 
     if( filename.has_value() )
         return *filename;
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring BinaryDataMetadata::ToString() const
-{
-    return PropertyString::ToString(m_binaryDataKey, m_properties);
-}
-
-
-BinaryDataMetadata BinaryDataMetadata::CreateFromJson(const JsonNode<wchar_t>& json_node)
+BinaryDataMetadata BinaryDataMetadata::CreateFromJson(const JsonNode& json_node)
 {
     BinaryDataMetadata binary_data_metadata;
 
     json_node.ForeachNode(
-        [&](std::wstring_view key, const JsonNode<wchar_t>& attribute_value_node)
+        [&](const std::string_view key_sv, const JsonNode& attribute_value_node)
         {
             // only add metadata that can be represented as a string
-            std::optional<std::wstring> attribute = attribute_value_node.GetOptional<std::wstring>();
+            std::optional<std::string> attribute = attribute_value_node.GetOptional<std::string>();
 
             if( attribute.has_value() )
-                binary_data_metadata.SetProperty(key, *attribute);
+                binary_data_metadata.SetProperty(key_sv, std::move(*attribute));
         });
 
     return binary_data_metadata;

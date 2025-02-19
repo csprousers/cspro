@@ -13,28 +13,28 @@ namespace ActionInvoker
     class OnGetInputDataListener : public Listener
     {
     public:
-        OnGetInputDataListener(std::function<std::wstring()> on_get_input_data_callback);
+        OnGetInputDataListener(std::function<SharableString()> on_get_input_data_callback);
 
         // Listener overrides
-        std::optional<std::wstring> OnGetInputData(Caller& caller, bool match_caller) override;
+        SharableString OnGetInputData(Caller& caller, bool match_caller) override;
 
     private:
-        std::function<std::wstring()> m_onGetInputDataCallback;
+        std::function<SharableString()> m_onGetInputDataCallback;
     };
 }
 
 
-inline ActionInvoker::OnGetInputDataListener::OnGetInputDataListener(std::function<std::wstring()> on_get_input_data_callback)
+inline ActionInvoker::OnGetInputDataListener::OnGetInputDataListener(std::function<SharableString()> on_get_input_data_callback)
     :   m_onGetInputDataCallback(std::move(on_get_input_data_callback))
 {
     ASSERT(m_onGetInputDataCallback);
 }
 
 
-inline std::optional<std::wstring> ActionInvoker::OnGetInputDataListener::OnGetInputData(Caller& /*caller*/, bool match_caller)
+inline SharableString ActionInvoker::OnGetInputDataListener::OnGetInputData(Caller& /*caller*/, const bool match_caller)
 {
     if( !match_caller )
         return m_onGetInputDataCallback();
 
-    return std::nullopt;
+    return SharableString();
 }

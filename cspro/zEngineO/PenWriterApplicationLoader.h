@@ -4,29 +4,36 @@
 #include <zEngineO/FileApplicationLoader.h>
 #include <zAppO/Application.h>
 
-class Serializer;
-
 
 class ZENGINEO_API PenWriterApplicationLoader : public FileApplicationLoader
 {
 public:
-    PenWriterApplicationLoader(Application* application, std::wstring pen_filename, std::optional<CString> application_filename = std::nullopt);
+    PenWriterApplicationLoader(Application* application, std::string pen_file_path, std::optional<std::string> application_file_path = std::nullopt);
     ~PenWriterApplicationLoader();
 
     Application* GetApplication() override;
 
-    std::shared_ptr<CDataDict> GetDictionary(NullTerminatedString dictionary_filename) override;
+    std::shared_ptr<CDataDict> GetDictionary(const std::string& dictionary_file_path) override;
 
-    std::shared_ptr<CDEFormFile> GetFormFile(const CString& form_filename) override;
+    std::shared_ptr<CDEFormFile> GetFormFile(const std::string& form_file_path) override;
+
+    std::shared_ptr<CTabSet> GetTableSpec(const std::string& table_spec_file_path) override;
 
     std::shared_ptr<MessageManager> GetSystemMessages() override;
     std::shared_ptr<MessageManager> GetUserMessages() override;
 
     void ProcessUserMessagesPostCompile(MessageManager& user_message_manager) override;
 
+    void ProcessDictionaryValueSetImages(const CDataDict& dictionary);
     void ProcessResources() override;
+
+private:
+    void AddResource(std::string path);
 
 private:
     std::unique_ptr<Serializer> m_serializer;
     Serializer* m_serializer_APP_LOAD_TODO;
+
+    std::vector<std::string> m_resourceDirectories;
+    std::vector<std::string> m_resourceFilePaths;
 };

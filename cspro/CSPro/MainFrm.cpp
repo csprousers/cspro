@@ -1,12 +1,11 @@
 ﻿#include "StdAfx.h"
 #include "MainFrm.h"
 #include "CapiMacrosDlg.h"
-#include "Dtypedlg.h"
 #include "PropertiesDlg.h"
 #include "SelectAppDlg.h"
+#include <zToolsO/FileIO.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/UWM.h>
-#include <zUtilO/ConnectionString.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zUtilO/UWM.h>
 #include <zUtilF/UIThreadRunner.h>
@@ -72,7 +71,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_ABOUT1, OnAbout1)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvr)
     ON_WM_ENDSESSION()
-    ON_COMMAND(ID_DICTTYPE, OnDictType)
     ON_WM_DROPFILES()
 
     // Global help commands
@@ -96,6 +94,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Designer::GetMessageTextSource, OnGetMessageTextSource)
     ON_MESSAGE(UWM::Designer::GetApplication, OnGetApplication)
     ON_MESSAGE(UWM::Designer::GetFormFileOrDictionary, OnGetFormFileOrDictionary)
+
+    ON_MESSAGE(UWM::Designer::CanCodeFileCompilationBeSkipped, OnCanCodeFileCompilationBeSkipped)
+    ON_MESSAGE(UWM::Designer::SetCodeFileSuccessfullyCompiled, OnSetCodeFileSuccessfullyCompiled)
 
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
@@ -151,16 +152,17 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_AREA_COMBO, OnUpdateAreaComboBox)
     ON_UPDATE_COMMAND_UI(ID_TAB_ZOOM_COMBO, OnUpdateZoomComboBox)
 
-    ON_UPDATE_COMMAND_UI(ID_OPTIONS_PROPERTIES, OnUpdateIfApplicationIsAvailable)
-    ON_COMMAND(ID_OPTIONS_PROPERTIES, OnOptionsProperties)
+    ON_UPDATE_COMMAND_UI(ID_OPTIONS_APPLICATION_PROPERTIES, OnUpdateIfApplicationIsAvailable)
+    ON_COMMAND(ID_OPTIONS_APPLICATION_PROPERTIES, OnOptionsProperties)
     ON_MESSAGE(UWM::CSPro::SetExternalApplicationProperties, OnSetExternalApplicationProperties)
 
-    ON_MESSAGE(UWM::UtilO::IsReservedWord, IsReservedWord)
+    ON_MESSAGE(UWM::Designer::ShowFileProperties, OnShowFileProperties)
 
-    ON_MESSAGE(UWM::UtilF::CanAddResourceFolder, OnCanAddResourceFolder)
-    ON_MESSAGE(UWM::UtilF::CreateResourceFolder, OnCreateResourceFolder)
+    ON_MESSAGE(UWM::UtilO::IsReservedWord, OnIsReservedWord)
 
-    ON_MESSAGE(UWM::CSPro::CreateUniqueName, OnCreateUniqueName)
+    ON_MESSAGE(UWM::UtilF::CanAddResources, OnCanAddResources)
+    ON_MESSAGE(UWM::UtilF::CopyToResourceDirectory, OnCopyToResourceDirectory)
+
     ON_MESSAGE(UWM::CSPro::UpdateApplicationExternalities, OnUpdateApplicationExternalities)
     ON_MESSAGE(UWM::Designer::FindOpenTextSourceEditable, OnFindOpenTextSourceEditable)
 
@@ -168,7 +170,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_MESSAGE(UWM::Edit::GetLexerLanguage, OnGetLexerLanguage)
 
-    ON_MESSAGE(UWM::Designer::EditReportProperties, OnEditReportProperties)
     ON_COMMAND(ID_VIEW_REPORT_PREVIEW, OnViewReportPreview)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REPORT_PREVIEW, OnUpdateViewReportPreview)
 
@@ -180,7 +181,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_MESSAGE(UWM::Interface::SelectLanguage, OnSelectLanguage)
     ON_MESSAGE(UWM::Designer::GetCurrentLanguageName, OnGetCurrentLanguageName)
-    ON_COMMAND(ID_CHANGE_LANGUAGE, OnChangeDictionaryLanguage)    
+    ON_COMMAND(ID_CHANGE_LANGUAGE, OnChangeDictionaryLanguage)
 
     // Code Menu
     ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
@@ -264,7 +265,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     Load24BitColorToolbarImages(m_pWndToolBar, IDR_MAINFRAME, m_pWndToolBarImages);
 
-    for( unsigned tools_id = ID_TOOLS_DATAVIEWER; tools_id <= ID_TOOLS_TEXTCONVERTER; ++tools_id )
+    for( unsigned tools_id = ID_TOOLS_DATAMANAGER; tools_id <= ID_TOOLS_TEXTCONVERTER; ++tools_id )
         m_pWndToolBar->GetToolBarCtrl().HideButton(tools_id);
 
     // Create Dictionary tool bar
@@ -464,7 +465,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         ShowWindow(SW_MAXIMIZE);
 
 
-    m_csWindowText = Versioning::GetVersionString(true);
+    m_csWindowText = UTF8_TODO::GetCString(Versioning::GetVersionString(true));
     SetWindowText(m_csWindowText);
 
     return 0;
@@ -525,28 +526,28 @@ void CMainFrame::OnClose()
     //Get the project template and close
 
     //Get the applications and close
-    pTemplate = GetDocTemplate(_T(".ent;.xtb;.bch"));
+    pTemplate = GetDocTemplate(L".ent;.xtb;.bch");
     if (pTemplate)
         pTemplate->CloseAllDocuments(FALSE);
 
 
     //Get the forms and close
-    pTemplate = GetDocTemplate(FileExtensions::WithDot::Form);
+    pTemplate = GetDocTemplate(UTF8_TODO::GetWide(FileExtensions::WithDot(FileExtensions::Form)));
     if(pTemplate)
         pTemplate->CloseAllDocuments(FALSE);
 
     //Get the orders and close
-    pTemplate = GetDocTemplate(FileExtensions::WithDot::Order);
+    pTemplate = GetDocTemplate(UTF8_TODO::GetWide(FileExtensions::WithDot(FileExtensions::Order)));
     if(pTemplate)
         pTemplate->CloseAllDocuments(FALSE);
 
     //Get the tables and close
-    pTemplate = GetDocTemplate(FileExtensions::WithDot::TableSpec);
+    pTemplate = GetDocTemplate(UTF8_TODO::GetWide(FileExtensions::WithDot(FileExtensions::TableSpec)));
     if(pTemplate)
         pTemplate->CloseAllDocuments(FALSE);
 
     //Get the dictionaries and close
-    pTemplate = GetDocTemplate(FileExtensions::WithDot::Dictionary);
+    pTemplate = GetDocTemplate(UTF8_TODO::GetWide(FileExtensions::WithDot(FileExtensions::Dictionary)));
     if(pTemplate)
         pTemplate->CloseAllDocuments(FALSE);
 
@@ -598,19 +599,19 @@ void CMainFrame::OnDropFiles(HDROP hDropInfo)
 }
 
 
-CDocTemplate* CMainFrame::GetDocTemplate(wstring_view extension)
+CDocTemplate* CMainFrame::GetDocTemplate(const std::wstring_view extension_sv)
 {
-    const CCSProApp* cspro_app = assert_cast<const CCSProApp*>(AfxGetApp());
+    const CCSProApp* const cspro_app = assert_cast<const CCSProApp*>(AfxGetApp());
     POSITION pos = cspro_app->GetFirstDocTemplatePosition();
 
     while( pos != nullptr )
     {
-        CDocTemplate* doc_template = cspro_app->GetNextDocTemplate(pos);
+        CDocTemplate* const doc_template = cspro_app->GetNextDocTemplate(pos);
         CString doc_extension;
 
         doc_template->GetDocString(doc_extension, CDocTemplate::filterExt);
 
-        if( SO::EqualsNoCase(doc_extension, extension) )
+        if( SO::EqualsNoCase(doc_extension, extension_sv) )
             return doc_template;
     }
 
@@ -619,19 +620,19 @@ CDocTemplate* CMainFrame::GetDocTemplate(wstring_view extension)
 
 
 template<typename DocumentType, typename CF>
-void CMainFrame::ForeachDocument(CF callback_function)
+void CMainFrame::ForeachDocument(const CF& callback_function)
 {
     const CDocTemplate* doc_template;
 
     if constexpr(std::is_same_v<DocumentType, CAplDoc>)
     {
-        const CCSProApp* cspro_app = assert_cast<const CCSProApp*>(AfxGetApp());
+        const CCSProApp* const cspro_app = assert_cast<const CCSProApp*>(AfxGetApp());
         doc_template = cspro_app->GetAppTemplate();
     }
 
     else
     {
-        doc_template = GetDocTemplate(DocumentType::GetExtensionWithDot());
+        doc_template = GetDocTemplate(TC::ToWide(FileExtensions::WithDot(DocumentType::GetExtension())));
 
         if( doc_template == nullptr )
         {
@@ -644,7 +645,7 @@ void CMainFrame::ForeachDocument(CF callback_function)
 
     while( pos != nullptr )
     {
-        DocumentType* document = assert_cast<DocumentType*>(doc_template->GetNextDoc(pos));
+        DocumentType* const document = assert_cast<DocumentType*>(doc_template->GetNextDoc(pos));
 
         if( !callback_function(*document) )
             return;
@@ -653,7 +654,7 @@ void CMainFrame::ForeachDocument(CF callback_function)
 
 
 template<typename DocumentType, typename CF>
-void CMainFrame::ForeachDocumentUsingDictionary(const CDataDict& dictionary, CF callback_function)
+void CMainFrame::ForeachDocumentUsingDictionary(const CDataDict& dictionary, const CF& callback_function)
 {
     ForeachDocument<DocumentType>(
         [&](DocumentType& document)
@@ -667,7 +668,7 @@ void CMainFrame::ForeachDocumentUsingDictionary(const CDataDict& dictionary, CF 
 
 
 template<typename CF>
-void CMainFrame::ForeachApplicationDocumentUsingFormFile(const CDEFormFile& form_file, CF callback_function)
+void CMainFrame::ForeachApplicationDocumentUsingFormFile(const CDEFormFile& form_file, const CF& callback_function)
 {
     ForeachDocument<CAplDoc>(
         [&](CAplDoc& application_doc)
@@ -684,14 +685,14 @@ void CMainFrame::ForeachApplicationDocumentUsingFormFile(const CDEFormFile& form
 
 
 template<typename CF>
-void CMainFrame::ForeachLogicAndReportTextSource(CF callback_function)
+void CMainFrame::ForeachLogicAndReportTextSource(const CF& callback_function)
 {
     ForeachDocument<CAplDoc>(
         [&](CAplDoc& application_doc)
         {
             Application& application = application_doc.GetAppObject();
 
-            auto process_text_source = [&](auto text_source, bool main_logic_file)
+            auto process_text_source = [&](auto text_source, const bool main_logic_file)
             {
                 auto editable_text_source = std::dynamic_pointer_cast<TextSourceEditable, TextSource>(text_source);
                 return ( editable_text_source != nullptr && !callback_function(editable_text_source, main_logic_file) );
@@ -705,9 +706,9 @@ void CMainFrame::ForeachLogicAndReportTextSource(CF callback_function)
             }
 
             // reports
-            for( auto& report_named_text_source : application.GetReportNamedTextSources() )
+            for( ReportFile& report_file : application.GetReportFilesIterator() )
             {
-                if( process_text_source(report_named_text_source->text_source, false) )
+                if( process_text_source(report_file.GetSharedTextSource(), false) )
                     return false;
             }
 
@@ -810,9 +811,9 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
     dictionary_based_doc->UpdateAllViews(nullptr, Hint::LanguageChanged);
 
     // for orders and forms, the dictionary must also be updated
-    auto update_dictionary_view = [&](const CString& dictionary_filename)
+    auto update_dictionary_view = [&](const std::string& dictionary_file_path)
     {
-        DictionaryDictTreeNode* dictionary_dict_tree_node = m_SizeDlgBar.m_DictTree.GetDictionaryTreeNode(dictionary_filename);
+        DictionaryDictTreeNode* const dictionary_dict_tree_node = m_SizeDlgBar.m_DictTree.GetDictionaryTreeNode(dictionary_file_path);
 
         if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDocument() != nullptr )
             dictionary_dict_tree_node->GetDocument()->UpdateAllViews(nullptr, Hint::LanguageChanged);
@@ -824,7 +825,7 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
         COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(dictionary_based_doc);
         CDEFormFile& order_file = pOrderDoc->GetFormFile();
 
-        update_dictionary_view(order_file.GetDictionaryFilename());
+        update_dictionary_view(UTF8_TODO::GetUtf8(order_file.GetDictionaryFilename()));
     }
 
     // forms
@@ -833,7 +834,7 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
         CFormDoc* pFormDoc = assert_cast<CFormDoc*>(dictionary_based_doc);
         CDEFormFile& form_file = pFormDoc->GetFormFile();
 
-        update_dictionary_view(form_file.GetDictionaryFilename());
+        update_dictionary_view(UTF8_TODO::GetUtf8(form_file.GetDictionaryFilename()));
 
         // update the form itself (code copied from an old implementation)
         CFormScrollView* pFormScrollView = dynamic_cast<CFormScrollView*>(pWnd->GetActiveView());
@@ -860,10 +861,10 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-LRESULT CMainFrame::OnGetCurrentLanguageName(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnGetCurrentLanguageName(const WPARAM wParam, const LPARAM lParam)
 {
     const CDocument& document = *reinterpret_cast<CDocument*>(wParam);
-    std::wstring& language_name = *reinterpret_cast<std::wstring*>(lParam);
+    std::string& language_name = *reinterpret_cast<std::string*>(lParam);
 
     ASSERT(document.IsKindOf(RUNTIME_CLASS(DictionaryBasedDoc)));
 
@@ -944,7 +945,7 @@ LRESULT CMainFrame::OnLaunchActiveApp(WPARAM /*wParam*/, LPARAM lParam)
         return 0;
     }
 
-    CAplDoc* pDoc = GetApplicationUsingFormFile(pForm->GetPathName());
+    CAplDoc* const pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pForm->GetPathName()));
 
     if(pDoc) {
         if (pDoc->AreAplDictsOK()) {            // BMD  28 Jun 00
@@ -968,7 +969,7 @@ LRESULT CMainFrame::OnLaunchActiveApp(WPARAM /*wParam*/, LPARAM lParam)
 
             if( bShiftPressed )
             {
-                CString pff_filename = PortableFunctions::PathRemoveFileExtension<CString>(filename_to_run) + FileExtensions::WithDot::Pff;
+                CString pff_filename = PortableFunctions::PathRemoveFileExtensionCS(filename_to_run) + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
 
                 if( PortableFunctions::FileIsRegular(pff_filename) )
                     filename_to_run = pff_filename;
@@ -991,7 +992,7 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
 {
     CFormDoc* pForm = (CFormDoc*)lParam;
 
-    CAplDoc* pDoc = GetApplicationUsingFormFile(pForm->GetPathName());
+    CAplDoc* const pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pForm->GetPathName()));
 
     if(pDoc) {
         if (pDoc->AreAplDictsOK()) {            // BMD  28 Jun 00
@@ -1006,10 +1007,7 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
                     pDoc->OnSaveDocument(pDoc->GetPathName());
                     //Added by Savy (R) 20090618
                     //To delete the existing .enc file
-                    CString sBinFileName = pDoc->GetPathName();
-                    PathRemoveExtension(sBinFileName.GetBuffer());
-                    sBinFileName.ReleaseBuffer();
-                    sBinFileName += FileExtensions::WithDot::BinaryEntryPen;
+                    const CString sBinFileName = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(pDoc->GetPathName()), FileExtensions::BinaryEntryPen));
                     if (PortableFunctions::FileExists(sBinFileName)) {
                         DeleteFile(sBinFileName); // 20140311 deleting the file instead of recycling it
                     }
@@ -1020,10 +1018,10 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
                 return 0;
             }
 
-            CString sBinName = PortableFunctions::PathRemoveFileExtension<CString>(pDoc->GetPathName()) + FileExtensions::WithDot::BinaryEntryPen;
+            CString sBinName = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(pDoc->GetPathName()), FileExtensions::BinaryEntryPen));
 
             CFileDialog dlgFile(FALSE,
-                                FileExtensions::WithDot::BinaryEntryPen,
+                                UTF8_TODO::GetWide(FileExtensions::BinaryEntryPen).c_str(),
                                 sBinName,
                                 OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
                                 _T("Portable CSPro Applications (*.pen)|*.pen||"),
@@ -1038,12 +1036,12 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
             // delete existing .pen file first if it exists
             PortableFunctions::FileDelete(sBinName);
 
-            const std::optional<std::wstring> csentry_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::CSEntry);
+            const std::optional<std::string> csentry_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::CSEntry);
 
             if( !csentry_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\" /pen /binaryName \"%s\""), csentry_exe->c_str(), pDoc->GetPathName().GetString(), sBinName.GetString());
+            CString command_line = FormatText(_T("\"%s\" \"%s\" /pen /binaryName \"%s\""), UTF8_TODO::GetWide(*csentry_exe).c_str(), pDoc->GetPathName().GetString(), sBinName.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -1051,7 +1049,7 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
             si.cb = sizeof(si);
             ZeroMemory( &pi, sizeof(pi) );
 
-            BOOL bRes = ::CreateProcess(csentry_exe->c_str(),     // app name
+            BOOL bRes = ::CreateProcess(UTF8_TODO::GetWide(*csentry_exe).c_str(),     // app name
                                         command_line.GetBuffer(), // command line
                                         nullptr,                  // Process handle not inheritable
                                         nullptr,                  // Thread handle not inheritable
@@ -1092,10 +1090,10 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
 {
     CFormDoc* pForm = (CFormDoc*)lParam;
 
-    CAplDoc* pDoc = GetApplicationUsingFormFile(pForm->GetPathName());
+    CAplDoc* const pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pForm->GetPathName()));
 
     if (pDoc) {
-        CString pffPath = PortableFunctions::PathRemoveFileExtension<CString>(pDoc->GetPathName()) + FileExtensions::WithDot::Pff;
+        CString pffPath = PortableFunctions::PathRemoveFileExtensionCS(pDoc->GetPathName()) + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         if (!PortableFunctions::FileExists(pffPath)) {
             AfxMessageBox(_T("Cannot deploy application without a program information file (.pff) file. Please run the application once to create the program information file."));
             return 0;
@@ -1113,10 +1111,7 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
                     pDoc->OnSaveDocument(pDoc->GetPathName());
                     //Added by Savy (R) 20090618
                     //To delete the existing .enc file
-                    CString sBinFileName = pDoc->GetPathName();
-                    PathRemoveExtension(sBinFileName.GetBuffer());
-                    sBinFileName.ReleaseBuffer();
-                    sBinFileName += FileExtensions::WithDot::BinaryEntryPen;
+                    const CString sBinFileName = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(pDoc->GetPathName()), FileExtensions::BinaryEntryPen));
                     if (PortableFunctions::FileExists(sBinFileName)) {
                         DeleteFile(sBinFileName); // 20140311 deleting the file instead of recycling it
                     }
@@ -1136,12 +1131,12 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
                 return 0;
             }
 
-            const std::optional<std::wstring> csdeploy_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::CSDeploy);
+            const std::optional<std::string> csdeploy_exe = CSProExecutables::GetExecutablePath(CSProExecutables::Program::CSDeploy);
 
             if( !csdeploy_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\""), csdeploy_exe->c_str(), pffPath.GetString());
+            CString command_line = FormatText(_T("\"%s\" \"%s\""), UTF8_TODO::GetWide(*csdeploy_exe).c_str(), pffPath.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -1149,7 +1144,7 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
             si.cb = sizeof(si);
             ZeroMemory(&pi, sizeof(pi));
 
-            BOOL bRes = ::CreateProcess(csdeploy_exe->c_str(), // app name
+            BOOL bRes = ::CreateProcess(UTF8_TODO::GetWide(*csdeploy_exe).c_str(), // app name
                 command_line.GetBuffer(),                      // command line
                 nullptr,                                       // Process handle not inheritable
                 nullptr,                                       // Thread handle not inheritable
@@ -1206,10 +1201,10 @@ BOOL CMainFrame::IsOKToClose(){
     HTREEITEM hItem = ObjTree.GetRootItem();
 
     while(hItem) {
-        FileTreeNode* file_tree_node = ObjTree.GetFileTreeNode(hItem);
+        FileTreeNode* const file_tree_node = ObjTree.GetFileTreeNode(hItem);
         ASSERT(file_tree_node);
         bool bProcess = false;
-        CDocument* pDoc = file_tree_node->GetDocument();
+        CDocument* const pDoc = file_tree_node->GetDocument();
         if(pDoc && pDoc->IsKindOf(RUNTIME_CLASS(CAplDoc))) {
             CAplDoc* pApl = (CAplDoc*)pDoc;
             if(pApl->IsAppModified()) {
@@ -1267,16 +1262,16 @@ BOOL CMainFrame::IsOKToClose(){
 }
 
 
-CAplDoc* CMainFrame::GetApplicationUsingFormFile(wstring_view form_filename, bool silent/* = false*/)
+CAplDoc* CMainFrame::GetApplicationUsingFormFile(const std::string& form_file_path, const bool silent/* = false*/)
 {
     std::vector<CAplDoc*> application_docs;
 
     ForeachDocument<CAplDoc>(
         [&](CAplDoc& application_doc)
         {
-            for( const CString& this_form_filename : application_doc.GetAppObject().GetFormFilenames() )
+            for( const std::string& this_form_file_path : application_doc.GetAppObject().GetFormFilePaths() )
             {
-                if( SO::EqualsNoCase(form_filename, this_form_filename) )
+                if( SO::EqualsNoCase(form_file_path, this_form_file_path) )
                 {
                     application_docs.emplace_back(&application_doc);
                     break;
@@ -1289,7 +1284,7 @@ CAplDoc* CMainFrame::GetApplicationUsingFormFile(wstring_view form_filename, boo
     if( application_docs.empty() )
     {
         if( !silent )
-            AfxMessageBox(FormatText(_T("The file %s does not belong to any application."), std::wstring(form_filename).c_str()));
+            ErrorMessage::Display("The file does not belong to any application: " + form_file_path);
     }
 
     else if( application_docs.size() == 1 )
@@ -1420,9 +1415,9 @@ CAplDoc* CMainFrame::ProcessFOForSrcCode(CDocument& document)
         ForeachDocument<CAplDoc>(
             [&](CAplDoc& application_document)
             {
-                for( const CString& tab_spec_filename : application_document.GetAppObject().GetTabSpecFilenames() )
+                for( const std::string& table_spec_file_path : application_document.GetAppObject().GetTableSpecFilePaths() )
                 {
-                    if( SO::EqualsNoCase(tab_doc.GetPathName(), tab_spec_filename) )
+                    if( SO::EqualsNoCase(tab_doc.GetPathName(), table_spec_file_path) )
                     {
                         //&&& SAVY fix this later for multiple apps using the same .xts file ?? is it possible?
                         found_application_document = &application_document;
@@ -1507,6 +1502,60 @@ T* CMainFrame::GetNodeIdForSourceCode(T* pNodeId/* = nullptr*/)
 }
 
 
+template<typename T>
+int CMainFrame::GetLexerLanguageForSourceCode(const Application& application, const T& app_tree_node) const
+{
+    if constexpr(std::is_same_v<T, AppTreeNode>)
+    {
+        const std::optional<AppFileType> app_type_type = app_tree_node.GetAppFileType();
+
+        if( app_type_type.has_value() )
+        {
+            if( *app_type_type == AppFileType::Code )
+            {
+                const ExternalCodeAppTreeNode& external_code_app_tree_node = assert_cast<const ExternalCodeAppTreeNode&>(app_tree_node);
+
+                if( external_code_app_tree_node.GetCodeFile().IsJavaScript() )
+                    return SCLEX_JAVASCRIPT;
+            }
+
+            else if( *app_type_type == AppFileType::Message )
+            {
+                return Lexers::GetLexer_Message(application);
+            }
+
+            else if( *app_type_type == AppFileType::Report )
+            {
+                const ReportAppTreeNode& report_app_tree_node = assert_cast<const ReportAppTreeNode&>(app_tree_node);
+                const bool is_report_html_type = FileExtensions::IsFileHtml(report_app_tree_node.GetReportFile().GetFilePath());
+                return Lexers::GetLexer_Report(application, is_report_html_type);
+            }
+        }
+    }
+
+    else
+    {
+        if( app_tree_node.GetItemType() == eFFT_EXTERNALCODE )
+        {
+            const FormExternalCodeID& form_external_code_id = assert_cast<const FormExternalCodeID&>(app_tree_node);
+            ASSERT(form_external_code_id.GetCodeFile().has_value());
+
+            if( form_external_code_id.GetCodeFile()->IsJavaScript() )
+                return SCLEX_JAVASCRIPT;
+        }
+
+        else if( app_tree_node.GetItemType() == eFFT_REPORT )
+        {
+            const FormReportID& form_report_id = assert_cast<const FormReportID&>(app_tree_node);
+            const bool is_report_html_type = FileExtensions::IsFileHtml(form_report_id.GetReportFile().GetFilePath());
+            return Lexers::GetLexer_Report(application, is_report_html_type);
+        }
+    }
+
+    return Lexers::GetLexer_Logic(application);
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
@@ -1517,8 +1566,8 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
     if( pAplDoc == nullptr )
         return;
 
-    Application* pApplication = &pAplDoc->GetAppObject();
-    ASSERT(pApplication->GetEngineAppType() == EngineAppType::Entry);
+    Application* const pApplication = &pAplDoc->GetAppObject();
+    ASSERT(pApplication != nullptr && pApplication->GetEngineAppType() == EngineAppType::Entry);
 
     CFormID* pFormID = GetNodeIdForSourceCode<CFormID>();
 
@@ -1533,23 +1582,22 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
 
     eNodeType nType = pFormID->GetItemType();
 
-    std::wstring source_code_ws;
+    SharableString source_code;
     bool bAppSrcCode = false;
-    int lexer_language = Lexers::GetLexer_Logic(*pApplication);
+    const int lexer_language = GetLexerLanguageForSourceCode(*pApplication, *pFormID);
 
     // external code
     if( nType == eFFT_EXTERNALCODE )
     {
         ASSERT(pFormID->GetTextSource() != nullptr);
-        source_code_ws = pFormID->GetTextSource()->GetText();
+        source_code = pFormID->GetTextSource()->GetTextAsSharableString();
     }
 
     // report
     else if( nType == eFFT_REPORT )
     {
         ASSERT(pFormID->GetTextSource() != nullptr);
-        source_code_ws = pFormID->GetTextSource()->GetText();
-        lexer_language = Lexers::GetLexer_Report(*pApplication, FileExtensions::IsFilenameHtml(pFormID->GetTextSource()->GetFilename()));
+        source_code = pFormID->GetTextSource()->GetTextAsSharableString();
     }
 
     // logic from the main file
@@ -1602,7 +1650,7 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
                 }
                 if(!pSourceCode->IsProcAvailable(pFormDoc->GetFormFile().GetName())){
                     //if the form file is the primary form file
-                    CString sFormFName = pApplication->GetFormFilenames().front();//get primary form file
+                    CString sFormFName = UTF8_TODO::GetCString(pApplication->GetFormFilePaths().front());//get primary form file
                     if(pFormDoc->GetPathName().CompareNoCase(sFormFName) ==0 ){
                         sText += _T("PROC ")+ pFormDoc->GetFormFile().GetName() + _T("\r\n\r\n");
                     }
@@ -1619,8 +1667,8 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
             uAlloc++; //for the "\0" @ the end
 
             uAlloc += sText.GetLength(); //U need to allocate this extra length for the text that is to be appended;
-            CString source_code;
-            LPTSTR pString = source_code.GetBufferSetLength(uAlloc);
+            CString main_source_code;
+            LPTSTR pString = main_source_code.GetBufferSetLength(uAlloc);
             _tmemset(pString ,_T('\0'),uAlloc);
 
             for (int iIndex = 0 ; iIndex < iNumLines ; iIndex++) {
@@ -1644,31 +1692,32 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
                 _tmemcpy(pString,_T("\r\n"),2);
                 pString += 2;
             }
-            source_code.ReleaseBuffer();
+            main_source_code.ReleaseBuffer();
 
-            if(source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
-                source_code = _T("PROC ") + sSymbolName;
-                source_code += _T("\r\n");
+            if(main_source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
+                main_source_code = _T("PROC ") + sSymbolName;
+                main_source_code += _T("\r\n");
             }
             if(!sText.IsEmpty()){
-                source_code += sText;
+                main_source_code += sText;
             }
 
-            source_code_ws = CS2WS(source_code);
+            source_code = UTF8_TODO::GetUtf8(main_source_code);
         }
     }
 
+    ASSERT(source_code.IsSet());
+
     bool prevModifiedState = pView->GetEditCtrl()->IsModified(); // 20100708 trying to get rid of superfluous modified statements
-    pView->GetEditCtrl()->SetText(source_code_ws);
+    pView->GetEditCtrl()->SetText(source_code.GetString());
     pView->GetEditCtrl()->SetModified(prevModifiedState);
 
-    pView->GetEditCtrl()->ToggleLexer(lexer_language);
+    if( lexer_language != pView->GetEditCtrl()->GetLexer() )
+        pView->GetEditCtrl()->InitLogicControl(true, true, lexer_language);
 
+    // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-    {
-        // fold procs only when viewing PROC GLOBAL
         pView->GetEditCtrl()->SetFolding(bAppSrcCode);
-    }
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }
@@ -1685,9 +1734,10 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
         return;
 
     Application* pApplication = &pAplDoc->GetAppObject();
-    ASSERT(pApplication->GetEngineAppType() == EngineAppType::Batch);
+    ASSERT(pApplication != nullptr && pApplication->GetEngineAppType() == EngineAppType::Batch);
 
-    AppTreeNode* app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
+    AppTreeNode* const app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
+    ASSERT(app_tree_node != nullptr);
 
     COrderDoc* pOrderDoc = app_tree_node->GetOrderDocument();
     POSITION pos = pOrderDoc->GetFirstViewPosition();
@@ -1697,23 +1747,22 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
     COrderChildWnd* pWnd = (COrderChildWnd*)pOrderView->GetParentFrame();
     COSourceEditView* pView = pWnd->GetOSourceView();
 
-    std::wstring source_code_ws;
+    SharableString source_code;
     bool bAppSrcCode = false;
-    int lexer_language = Lexers::GetLexer_Logic(*pApplication);
+    const int lexer_language = GetLexerLanguageForSourceCode(*pApplication, *app_tree_node);
 
     // external code
     if( app_tree_node->GetAppFileType() == AppFileType::Code )
     {
         ASSERT(app_tree_node->GetTextSource() != nullptr);
-        source_code_ws = app_tree_node->GetTextSource()->GetText();
+        source_code = app_tree_node->GetTextSource()->GetTextAsSharableString();
     }
 
     // report
     else if( app_tree_node->GetAppFileType() == AppFileType::Report )
     {
         ASSERT(app_tree_node->GetTextSource() != nullptr);
-        source_code_ws = app_tree_node->GetTextSource()->GetText();
-        lexer_language = Lexers::GetLexer_Report(*pApplication, FileExtensions::IsFilenameHtml(app_tree_node->GetTextSource()->GetFilename()));
+        source_code = app_tree_node->GetTextSource()->GetTextAsSharableString();
     }
 
     // logic from the main file
@@ -1754,7 +1803,7 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
                 }
                 if(!pSourceCode->IsProcAvailable(pOrderDoc->GetFormFile().GetName())){
                     //if the order file is not the primary order file
-                    CString sOrderFName = pApplication->GetFormFilenames().front();//get primary order file
+                    CString sOrderFName = UTF8_TODO::GetCString(pApplication->GetFormFilePaths().front());//get primary order file
                     if(pOrderDoc->GetPathName().CompareNoCase(sOrderFName) ==0 ){
                         sText += _T("PROC ")+ pOrderDoc->GetFormFile().GetName() + _T("\r\n\r\n");
                     }
@@ -1771,8 +1820,8 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
             uAlloc++; //for the "\0" @ the end
 
             uAlloc += sText.GetLength(); //U need to allocate this extra length for the text that is to be appended;
-            CString source_code;
-            LPTSTR pString = source_code.GetBufferSetLength(uAlloc);
+            CString main_source_code;
+            LPTSTR pString = main_source_code.GetBufferSetLength(uAlloc);
             _tmemset(pString ,_T('\0'),uAlloc);
 
             for (int iIndex = 0 ; iIndex < iNumLines ; iIndex++) {
@@ -1796,36 +1845,37 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
                 _tmemcpy(pString,_T("\r\n"),2);
                 pString += 2;
             }
-            source_code.ReleaseBuffer();
+            main_source_code.ReleaseBuffer();
 
-            if(source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
-                source_code = _T("PROC ") + sSymbolName;
-                source_code += _T("\r\n");
+            if(main_source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
+                main_source_code = _T("PROC ") + sSymbolName;
+                main_source_code += _T("\r\n");
             }
             if(!sText.IsEmpty()){
-                source_code += sText;
+                main_source_code += sText;
             }
 
-            source_code_ws = CS2WS(source_code);
+            source_code = UTF8_TODO::GetUtf8(main_source_code);
         }
     }
+
+    ASSERT(source_code.IsSet());
 
     // 20100316 nothing is changed by just loading or changing what proc is displayed
     bool modFlag1 = pOrderDoc->IsModified();
     bool modFlag2 = pView->GetEditCtrl()->IsModified();
 
-    pView->GetEditCtrl()->SetText(source_code_ws);
+    pView->GetEditCtrl()->SetText(source_code.GetString());
 
     pOrderDoc->SetModifiedFlag(modFlag1); // 20100316
     pView->GetEditCtrl()->SetModified(modFlag2);
 
-    pView->GetEditCtrl()->ToggleLexer(lexer_language);
+    if( lexer_language != pView->GetEditCtrl()->GetLexer() )
+        pView->GetEditCtrl()->InitLogicControl(true, true, lexer_language);
 
-    if( Lexers::IsCSProLogic(lexer_language) )
-    {
-        // fold procs only when viewing PROC GLOBAL
+    // fold procs only when viewing PROC GLOBAL
+    if( Lexers::CanFoldCode(lexer_language) )
         pView->GetEditCtrl()->SetFolding(bAppSrcCode);
-    }
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }
@@ -1869,13 +1919,13 @@ LRESULT CMainFrame::UpdateSrcCode(WPARAM wParam, LPARAM lParam)
 namespace
 {
     template<typename view_type>
-    void ProcessParserMessages(CAplDoc* pAplDoc, CSourceCode* pSourceCode, view_type* pView, LogicDialogBar& logic_dialog_bar,
+    bool ProcessParserMessages(CAplDoc* pAplDoc, CSourceCode* pSourceCode, view_type* pView, LogicDialogBar& logic_dialog_bar,
                                TextSource* external_logic_or_report_text_source = nullptr)
     {
-        std::wstring all_messages;
+        std::string all_messages;
         bool processed_first_error = false;
         bool has_errors = false;
-        std::optional<std::map<std::wstring, int>> proc_line_number_map;
+        std::optional<std::map<std::string, int>> proc_line_number_map;
 
         CompilerOutputTabViewPage* compiler_output_tab_view_page = logic_dialog_bar.GetCompilerOutputTabViewPage();
 
@@ -1894,7 +1944,7 @@ namespace
             // editing the file where the message occurred
             if( external_logic_or_report_text_source != nullptr )
             {
-                if( SO::EqualsNoCase(parser_message.compilation_unit_name, external_logic_or_report_text_source->GetFilename()) )
+                if( SO::EqualsNoCase(parser_message.compilation_unit_name, external_logic_or_report_text_source->GetFilePath()) )
                     use_line_number_for_display_for_bookmark = true;
             }
 
@@ -1904,7 +1954,7 @@ namespace
                 if( !proc_line_number_map.has_value() )
                     proc_line_number_map = pSourceCode->GetProcLineNumberMap();
 
-                auto adjust_line_number_from_proc_lookup = [&](const std::wstring& proc_name)
+                auto adjust_line_number_from_proc_lookup = [&](const std::string& proc_name)
                 {
                     const auto& line_number_lookup = proc_line_number_map->find(proc_name);
 
@@ -1922,7 +1972,7 @@ namespace
                     // when compiling user-defined functions, the proc_name is the function name,
                     // so two lookups may be necessary in that case
                     if( pSourceCode->IsCompilingGlobal() )
-                        adjust_line_number_from_proc_lookup(_T("GLOBAL"));
+                        adjust_line_number_from_proc_lookup("GLOBAL");
                 }
 
                 use_line_number_for_display_for_bookmark = true;
@@ -1941,11 +1991,11 @@ namespace
                 processed_first_error = true;
             }
 
-            const TCHAR* message_type = ( parser_message.type == Logic::ParserMessage::Type::Error )   ? _T("ERROR") :
-                                        ( parser_message.type == Logic::ParserMessage::Type::Warning ) ? _T("WARNING") :
-                                                                                                         _T("DEPRECATION");
+            const char* const message_type = ( parser_message.type == Logic::ParserMessage::Type::Error )   ? "ERROR" :
+                                             ( parser_message.type == Logic::ParserMessage::Type::Warning ) ? "WARNING" :
+                                                                                                              "DEPRECATION";
 
-            std::wstring error_location_and_line_number;
+            std::string error_location_and_line_number;
 
             if( pSourceCode->IsCompilingGlobal() )
             {
@@ -1953,18 +2003,18 @@ namespace
                 {
                     const CapiLogicLocation& capi_logic_location = std::get<CapiLogicLocation>(parser_message.extended_location);
 
-                    error_location_and_line_number = FormatTextCS2WS(_T("CAPI Text, %s"), parser_message.proc_name.c_str());
+                    error_location_and_line_number = "CAPI Text, " + parser_message.proc_name;
 
                     if( capi_logic_location.language_label.has_value() )
                     {
-                        SO::Append(error_location_and_line_number, _T(", "),
-                                   *capi_logic_location.language_label);
+                        error_location_and_line_number.append(", ")
+                                                      .append(*capi_logic_location.language_label);
                     }
 
                     if( capi_logic_location.condition_index > 0 )
                     {
-                        SO::Append(error_location_and_line_number, _T(", condition #"),
-                                   IntToString(capi_logic_location.condition_index + 1));
+                        error_location_and_line_number.append(", condition #")
+                                                      .append(IntToString(capi_logic_location.condition_index + 1));
                     }
                 }
 
@@ -1978,23 +2028,23 @@ namespace
                     }
 
                     // use the name for reports
-                    else if( const NamedTextSource* report_named_text_source = pAplDoc->GetAppObject().GetReportNamedTextSource(parser_message.compilation_unit_name, false);
-                             report_named_text_source != nullptr )
+                    else if( const ReportFile* const report_file = pAplDoc->GetAppObject().GetReportFile(parser_message.compilation_unit_name, false);
+                             report_file != nullptr )
                     {
-                        error_location_and_line_number = report_named_text_source->name;
+                        error_location_and_line_number = report_file->GetName();
                     }
 
                     // use the filename (without extension) for external code files
                     else
                     {
-                        error_location_and_line_number = PortableFunctions::PathGetFilenameWithoutExtension(parser_message.compilation_unit_name);
+                        error_location_and_line_number = Path::GetFilenameWithoutExtension(parser_message.compilation_unit_name);
                     }
                 }
 
                 // don't include GLOBAL when there is a non-line related error (e.g., the external code file couldn't be opened)
                 else if( line_number_for_display == 0 )
                 {
-                    ASSERT(SO::EqualsNoCase(parser_message.proc_name, _T("GLOBAL")));
+                    ASSERT(SO::EqualsNoCase(parser_message.proc_name, "GLOBAL") || parser_message.proc_name.empty());
                 }
 
                 else
@@ -2004,19 +2054,23 @@ namespace
             }
 
             if( line_number_for_display > 0 )
-                SO::AppendWithSeparator(error_location_and_line_number, IntToString(line_number_for_display), _T(", "));
+                SO::AppendWithSeparator(error_location_and_line_number, IntToString(line_number_for_display), ", ");
 
-            std::wstring formatted_message = message_type;
+            all_messages.append(message_type);
 
             if( !error_location_and_line_number.empty() )
-                SO::AppendFormat(formatted_message, _T("(%s)"), error_location_and_line_number.c_str());
+            {
+                all_messages.append("(")
+                            .append(error_location_and_line_number)
+                            .append(")");
+            }
 
-            SO::AppendFormat(formatted_message, _T(": %s\r\n"), parser_message.message_text.c_str());
-
-            all_messages.append(formatted_message);
+            all_messages.append(": ")
+                        .append(parser_message.message_text)
+                        .append("\r\n");
 
             // show on the logic editor where the error or warning is located
-            auto add_error_or_warning = [&](int line_number)
+            auto add_error_or_warning = [&](const int line_number)
             {
                 const bool error = ( parser_message.type == Logic::ParserMessage::Type::Error );
                 pView->GetEditCtrl()->AddErrorOrWarningMarker(error, line_number);
@@ -2025,7 +2079,7 @@ namespace
             if( external_logic_or_report_text_source != nullptr )
             {
                 // when editing external code or reports, mark only errors/warnings in that file
-                if( SO::EqualsNoCase(parser_message.compilation_unit_name, external_logic_or_report_text_source->GetFilename()) )
+                if( SO::EqualsNoCase(parser_message.compilation_unit_name, external_logic_or_report_text_source->GetFilePath()) )
                 {
                     // - 1 because the line numbers are 1-based
                     add_error_or_warning(parser_message.line_number - 1);
@@ -2044,7 +2098,7 @@ namespace
         }
 
         if( all_messages.empty() )
-            all_messages = FormatTextCS2WS(_T("Compile Successful at %s"), CTime::GetCurrentTime().Format(_T("%X")).GetString());
+            all_messages = "Compile Successful at " + UTF8_TODO::GetUtf8(CTime::GetCurrentTime().Format(_T("%X")));
 
         compiler_output_tab_view_page->SetReadOnlyText(all_messages);
 
@@ -2055,7 +2109,12 @@ namespace
         compiler_output_tab_view_page->UpdateWindow();
 
         if( has_errors )
-            AfxMessageBox(_T("Compile Failed!"));
+        {
+            AfxMessageBox(L"Compile Failed!");
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -2102,8 +2161,8 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
 
         if( pView->GetEditCtrl()->IsModified() )
         {
-            std::wstring source_code = pView->GetLogicCtrl()->GetText();
-            external_logic_or_report_text_source->SetText(std::move(source_code));
+            std::wstring source_code = UTF8_TODO::GetWide(pView->GetLogicCtrl()->GetText());
+            external_logic_or_report_text_source->SetText(UTF8_TODO::GetUtf8(std::move(source_code)));
 
             pView->GetEditCtrl()->SetModified(FALSE);
         }
@@ -2149,7 +2208,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
         if(sSymbolName.IsEmpty() && !bAppSrcCode)
             return bRet;
 
-        CIMSAString sString = WS2CS(pView->GetLogicCtrl()->GetText());
+        CIMSAString sString = UTF8_TODO::GetCString(pView->GetLogicCtrl()->GetText());
         CString sLine;
 
         // gsf 23-mar-00: make sure GetToken does not strip off leading quote marks
@@ -2222,7 +2281,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
 
         else if( pFormID->GetItemType() == eFFT_REPORT )
         {
-            bRet = designer_compiler.CompileReport(*assert_cast<FormReportID&>(*pFormID).GetNamedTextSource());
+            bRet = designer_compiler.CompileReport(assert_cast<FormReportID&>(*pFormID).GetReportFile());
         }
 
         else
@@ -2230,16 +2289,17 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
             ASSERT(false);
         }
 
-        ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source);
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source) )
+            return false;
+
+        return bRet;
     }
 
     catch( const CSProException& exception )
     {
         ErrorMessage::Display(exception);
-        bRet = false;
+        return false;
     }
-
-    return bRet;
 }
 
 
@@ -2353,8 +2413,8 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
 
         if( pView->GetEditCtrl()->IsModified() )
         {
-            std::wstring source_code = pView->GetLogicCtrl()->GetText();
-            external_logic_or_report_text_source->SetText(std::move(source_code));
+            std::wstring source_code = UTF8_TODO::GetWide(pView->GetLogicCtrl()->GetText());
+            external_logic_or_report_text_source->SetText(UTF8_TODO::GetUtf8(std::move(source_code)));
 
             pView->GetEditCtrl()->SetModified(FALSE);
         }
@@ -2389,7 +2449,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
         if(sSymbolName.IsEmpty() && !bAppSrcCode)
             return bRet;
 
-        CIMSAString sString = WS2CS(pView->GetLogicCtrl()->GetText());
+        CIMSAString sString = UTF8_TODO::GetCString(pView->GetLogicCtrl()->GetText());
         CString sLine;
 
         // gsf 23-mar-00: make sure GetToken does not strip off leading quote marks
@@ -2411,7 +2471,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             if( !m_bRemovingPossibleDuplicateProcs && !pSourceCode->IsOnlyThisProcPresent(arrProcLines,sSymbolName) ) // 20120613
             {
                 COrderTreeCtrl* pOTC = pOrderDoc->GetOrderTreeCtrl();
-                const FormOrderAppTreeNode* form_order_app_tree_node = pOTC->GetFormOrderAppTreeNode(*pOrderDoc);
+                const FormOrderAppTreeNode* const form_order_app_tree_node = pOTC->GetFormOrderAppTreeNode(*pOrderDoc);
 
                 m_bRemovingPossibleDuplicateProcs = true;
                 pOTC->SelectItem(form_order_app_tree_node->GetHItem());
@@ -2461,7 +2521,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
 
         else if( app_tree_node->GetAppFileType() == AppFileType::Report )
         {
-            bRet = designer_compiler.CompileReport(assert_cast<ReportAppTreeNode&>(*app_tree_node).GetNamedTextSource());
+            bRet = designer_compiler.CompileReport(assert_cast<ReportAppTreeNode&>(*app_tree_node).GetReportFile());
         }
 
         else
@@ -2469,25 +2529,26 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             ASSERT(false);
         }
 
-        ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source);
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source) )
+            return false;
+
+        return bRet;
     }
 
     catch( const CSProException& exception )
     {
         ErrorMessage::Display(exception);
-        bRet = false;
+        return false;
     }
-
-    return bRet;
 }
 
 
-LRESULT CMainFrame::OnGetMessageTextSource(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnGetMessageTextSource(const WPARAM wParam, const LPARAM lParam)
 {
-    CDocument* pDoc = reinterpret_cast<CDocument*>(wParam);
+    CDocument* const pDoc = reinterpret_cast<CDocument*>(wParam);
     std::shared_ptr<TextSourceEditable>& message_text_source = *reinterpret_cast<std::shared_ptr<TextSourceEditable>*>(lParam);
 
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
+    CAplDoc* const pAplDoc = ProcessFOForSrcCode(*pDoc);
 
     if( pAplDoc == nullptr )
         return 0;
@@ -2515,7 +2576,7 @@ LRESULT CMainFrame::OnRunBatch(WPARAM /*wParam*/, LPARAM lParam)
     //Check Applications which has this form as the main one if
     //there are more than one ask the user for which application to
     //run. If there is only one proceed with it.
-    CAplDoc* pDoc = GetApplicationUsingFormFile(pOrder->GetPathName());
+    CAplDoc* const pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pOrder->GetPathName()));
 
     if(pDoc) {
         if(pDoc->IsAppModified()) {
@@ -2530,7 +2591,7 @@ LRESULT CMainFrame::OnRunBatch(WPARAM /*wParam*/, LPARAM lParam)
             }
         }
 
-        FormOrderAppTreeNode* form_order_app_tree_node = pOrder->GetOrderTreeCtrl()->GetFormOrderAppTreeNode(*pOrder);
+        FormOrderAppTreeNode* const form_order_app_tree_node = pOrder->GetOrderTreeCtrl()->GetFormOrderAppTreeNode(*pOrder);
         BOOL bRun = FALSE;
         if(form_order_app_tree_node != nullptr) {
 
@@ -2550,7 +2611,7 @@ LRESULT CMainFrame::OnRunBatch(WPARAM /*wParam*/, LPARAM lParam)
 
         if( bShiftPressed )
         {
-            CString pff_filename = PortableFunctions::PathRemoveFileExtension<CString>(filename_to_run) + FileExtensions::WithDot::Pff;
+            CString pff_filename = PortableFunctions::PathRemoveFileExtensionCS(filename_to_run) + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
 
             if( PortableFunctions::FileIsRegular(pff_filename) )
                 filename_to_run = pff_filename;
@@ -2571,7 +2632,7 @@ LRESULT CMainFrame::IsNameUnique(WPARAM wParam, LPARAM lParam)
     //Check Applications which has this form as the main one if
     //there are more than one ask the user for which application to
     //run. If there is only one proceed with it.
-    const CAplDoc* pDoc = GetApplicationUsingFormFile(pForm->GetPathName(), true);
+    const CAplDoc* pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pForm->GetPathName()), true);
     bool name_is_unique;
 
     if( pDoc != nullptr )
@@ -2586,12 +2647,12 @@ LRESULT CMainFrame::IsNameUnique(WPARAM wParam, LPARAM lParam)
 
         if( name_is_unique )
         {
-            DictionaryDictTreeNode* dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(pForm->GetFormFile().GetDictionaryFilename());
+            DictionaryDictTreeNode* const dictionary_dict_tree_node = dictTree.GetDictionaryTreeNode(UTF8_TODO::GetUtf8(pForm->GetFormFile().GetDictionaryFilename()));
 
             if( dictionary_dict_tree_node != nullptr && dictionary_dict_tree_node->GetDDDoc() != nullptr )
             {
                 int iL, iR, iI, iVS;
-                name_is_unique = !dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(name, &iL, &iR, &iI, &iVS);
+                name_is_unique = !dictionary_dict_tree_node->GetDDDoc()->GetDict()->LookupName(UTF8_TODO::GetUtf8(name), &iL, &iR, &iI, &iVS);
             }
         }
     }
@@ -2821,110 +2882,6 @@ void CMainFrame::OnEndSession(BOOL bEnding)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      void CMainFrame::OnDictType()
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CMainFrame::OnDictType()
-{
-    //Get the objtreectrl
-    CObjTreeCtrl& ObjTree = m_SizeDlgBar.m_ObjTree;
-
-    //Get the application file name
-    //Get the parent form file
-    //Get the dictionary file name
-    CString sAplFileName;
-    CString sDictFName;
-    CString sParentFName;
-
-    if(!ObjTree.GetDictTypeArgs(sAplFileName,sDictFName,sParentFName))
-        return;
-    FileTreeNode* file_tree_node = ObjTree.FindNode(sAplFileName);
-    ASSERT(file_tree_node && file_tree_node->GetDocument());
-    //Get the DictionaryDescription
-    CAplDoc* pAplDoc = DYNAMIC_DOWNCAST(CAplDoc, file_tree_node->GetDocument());
-    ASSERT(pAplDoc);
-    Application& application = pAplDoc->GetAppObject();
-
-    if(pAplDoc->GetEngineAppType() == EngineAppType::Entry || pAplDoc->GetEngineAppType() == EngineAppType::Batch || pAplDoc->GetEngineAppType() == EngineAppType::Tabulation ) {
-        CDictTypeDlg dictTypeDlg;
-
-        BOOL bSpecialOutPut = FALSE;
-        BOOL bMain = FALSE;
-
-        DictionaryDescription* dictionary_description = application.GetDictionaryDescription(sDictFName, sParentFName);
-
-        if( dictionary_description == nullptr )
-        {
-            dictionary_description = application.AddDictionaryDescription(DictionaryDescription(CS2WS(sDictFName), CS2WS(sParentFName),
-                ( pAplDoc->GetEngineAppType() == EngineAppType::Tabulation ) ? DictionaryType::Working : DictionaryType::External));
-
-            pAplDoc->SetModifiedFlag(TRUE);
-        }
-
-        if(pAplDoc->GetEngineAppType() == EngineAppType::Batch){
-            bSpecialOutPut = TRUE;
-        }
-        //check if this dict is the main dict
-        if(!sParentFName.IsEmpty()){
-            if(application.GetFormFilenames().front().CompareNoCase(sParentFName)==0){
-                //Check if the the first dictionary
-                //For now since we know that .fmf / .ord contain only one dict we can go  through
-                //later change it to support multiple dicts if it comes to that
-                //SAVY&&&
-                bMain =TRUE;
-                dictionary_description->SetDictionaryType(DictionaryType::Input);
-            }
-        }
-
-        dictTypeDlg.m_bMain = bMain;
-        dictTypeDlg.m_bSpecialOutPut = bSpecialOutPut;
-        switch(dictionary_description->GetDictionaryType()){
-        case DictionaryType::Input:
-            dictTypeDlg.m_iDType = 0;
-            break;
-        case DictionaryType::External:
-            dictTypeDlg.m_iDType = 1;
-            break;
-        case DictionaryType::Working:
-            dictTypeDlg.m_iDType = 2;
-            break;
-        case DictionaryType::Output:
-            dictTypeDlg.m_iDType = 3;
-            break;
-        default:
-            break;
-        }
-
-        int iOldDictType = dictTypeDlg.m_iDType;
-
-        if( dictTypeDlg.DoModal() != IDOK || iOldDictType == dictTypeDlg.m_iDType )
-            return;
-
-        switch(dictTypeDlg.m_iDType)
-        {
-        case 0:
-            dictionary_description->SetDictionaryType(DictionaryType::Input);
-            break;
-        case 1:
-            dictionary_description->SetDictionaryType(DictionaryType::External);
-            break;
-        case 2:
-            dictionary_description->SetDictionaryType(DictionaryType::Working);
-            break;
-        case 3:
-            dictionary_description->SetDictionaryType(DictionaryType::Output);
-            break;
-        default:
-            break;
-        }
-
-        pAplDoc->SetModifiedFlag(TRUE);
-    }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
 //      LRESULT CMainFrame::OnIsCode(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
@@ -3055,7 +3012,7 @@ LRESULT CMainFrame::OnFIsCode(WPARAM /*wParam*/, LPARAM lParam)
 /////////////////////////////////////////////////////////////////////////////////
 LRESULT CMainFrame::OnUpdateSymbolTblFlag(WPARAM wParam, LPARAM /*lParam*/)
 {
-    CDocument* pDoc = reinterpret_cast<CDocument*>(wParam);
+    CDocument* const pDoc = reinterpret_cast<CDocument*>(wParam);
     ASSERT(pDoc != nullptr);
 
     ForeachDocument<CAplDoc>(
@@ -3309,13 +3266,13 @@ LRESULT CMainFrame::OnDictNameChange(WPARAM wParam, LPARAM /*lParam*/)
                 {
                     CDEForm* pForm = nullptr;
                     CDEItemBase* pBase = nullptr;
-                    form_file->FindField(dict_element->GetName(), &pForm, &pBase);
+                    form_file->FindField(UTF8_TODO::GetCString(dict_element->GetName()), &pForm, &pBase);
 
                     CDEField* pField = DYNAMIC_DOWNCAST(CDEField, pBase);
 
                     if( pField != nullptr )
                     {
-                        std::tuple<CDEItemBase*, CString> update(pField, dictionary.MakeQualifiedName(dictionary.GetOldName()));
+                        std::tuple<CDEItemBase*, CString> update(pField, UTF8_TODO::GetCString(dictionary.MakeQualifiedName(UTF8_TODO::GetUtf8(dictionary.GetOldName()))));
                         SendMessage(WM_IMSA_RECONCILE_QSF_FIELD_NAME, reinterpret_cast<WPARAM>(form_file), reinterpret_cast<LPARAM>(&update));
                     }
                 }
@@ -3376,7 +3333,6 @@ LRESULT CMainFrame::OnDictValueLabelChange(WPARAM wParam, LPARAM /*lParam*/)
 
     return 0;
 }
-
 
 
 void CMainFrame::OnAbout1()
@@ -3468,39 +3424,131 @@ LRESULT CMainFrame::OnGetApplication(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnGetFormFileOrDictionary(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnGetFormFileOrDictionary(const WPARAM wParam, LPARAM lParam)
 {
     std::variant<std::monostate, std::shared_ptr<const CDEFormFile>, std::shared_ptr<const CDataDict>>& form_file_or_dictionary =
         *reinterpret_cast<std::variant<std::monostate, std::shared_ptr<const CDEFormFile>, std::shared_ptr<const CDataDict>>*>(wParam);
+    ASSERT(std::holds_alternative<std::monostate>(form_file_or_dictionary));
 
-    CMDIChildWnd* pWnd = MDIGetActive();
-    CDocument* pDoc = ( pWnd != nullptr && pWnd->GetSafeHwnd() != nullptr ) ? pWnd->GetActiveDocument() : nullptr;
+    const std::string* const file_path_to_match = reinterpret_cast<const std::string*>(lParam);
 
-    const FormFileBasedDoc* form_file_based_doc = dynamic_cast<const FormFileBasedDoc*>(pDoc);
-
-    if( form_file_based_doc != nullptr )
+    // if not matching a specific file path, return the active form file or dictionary
+    if( file_path_to_match == nullptr )
     {
-        form_file_or_dictionary = form_file_based_doc->GetSharedFormFile();
-        ASSERT(std::get<std::shared_ptr<const CDEFormFile>>(form_file_or_dictionary) != nullptr);
-        return 1;
+        CMDIChildWnd* const pWnd = MDIGetActive();
+        CDocument* const pDoc = ( pWnd != nullptr && pWnd->GetSafeHwnd() != nullptr ) ? pWnd->GetActiveDocument() :
+                                                                                        nullptr;
+
+        const FormFileBasedDoc* form_file_based_doc = dynamic_cast<const FormFileBasedDoc*>(pDoc);
+
+        if( form_file_based_doc != nullptr )
+        {
+            form_file_or_dictionary = form_file_based_doc->GetSharedFormFile();
+            ASSERT(std::get<std::shared_ptr<const CDEFormFile>>(form_file_or_dictionary) != nullptr);
+            return 1;
+        }
+
+        const DictionaryBasedDoc* dictionary_based_doc = dynamic_cast<const DictionaryBasedDoc*>(pDoc);
+
+        if( dictionary_based_doc != nullptr )
+        {
+            form_file_or_dictionary = dictionary_based_doc->GetSharedDictionary();
+            ASSERT(std::get<std::shared_ptr<const CDataDict>>(form_file_or_dictionary) != nullptr);
+            return 1;
+        }
+
+        return 0;
     }
 
-    const DictionaryBasedDoc* dictionary_based_doc = dynamic_cast<const DictionaryBasedDoc*>(pDoc);
-
-    if( dictionary_based_doc != nullptr )
+    // otherwise search all documents for the form file or dictionary
+    else
     {
-        form_file_or_dictionary = dictionary_based_doc->GetSharedDictionary();
-        ASSERT(std::get<std::shared_ptr<const CDataDict>>(form_file_or_dictionary) != nullptr);        
-        return 1;
-    }
+        const std::string extension = PortableFunctions::PathGetFileExtension(*file_path_to_match);
 
-    return 0;    
+        if( SO::EqualsNoCase(extension, FileExtensions::Dictionary) )
+        {
+            ForeachDocument<CDDDoc>(
+                [&](const CDDDoc& dictionary_doc)
+                {
+                    if( SO::EqualsNoCase(*file_path_to_match, dictionary_doc.GetPathName()) )
+                    {
+                        form_file_or_dictionary = dictionary_doc.GetSharedDictionary();
+                        return false;
+                    }
+
+                    return true;
+                });
+        }
+
+        else if( SO::EqualsNoCase(extension, FileExtensions::Form) )
+        {
+            ForeachDocument<CFormDoc>(
+                [&](const CFormDoc& form_doc)
+                {
+                    if( SO::EqualsNoCase(*file_path_to_match, form_doc.GetPathName()) )
+                    {
+                        form_file_or_dictionary = form_doc.GetSharedFormFile();
+                        return false;
+                    }
+
+                    return true;
+                });
+        }
+
+        else
+        {
+            ASSERT(false);
+        }
+
+        return std::holds_alternative<std::monostate>(form_file_or_dictionary) ? 0 : 1;
+    }
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnCanCodeFileCompilationBeSkipped(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    UIThreadRunner* ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    const CodeFile* const code_file = reinterpret_cast<const CodeFile*>(wParam);
+    ASSERT(code_file != nullptr && code_file->GetFilePath() == code_file->GetTextSource().GetFilePath());
+
+    // as of now, only JavaScript code can be skipped
+    if( code_file->IsJavaScript() )
+    {
+        const TextSource& text_source = code_file->GetTextSource();
+
+        // if the text source is unsaved, always consider that it may not be successfully compiled because
+        // the implementation of GetModifiedIteration may not be accurate for unsaved text sources
+        if( !text_source.RequiresSave() )
+        {
+            const auto& lookup = m_codeFileSuccessfulCompilations.find(code_file->GetFilePath());
+
+            if( lookup != m_codeFileSuccessfulCompilations.cend() &&
+                std::get<0>(lookup->second) == code_file->GetCodeType() &&
+                std::get<1>(lookup->second) == text_source.GetModifiedIteration() )
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+LRESULT CMainFrame::OnSetCodeFileSuccessfullyCompiled(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    const CodeFile* const code_file = reinterpret_cast<const CodeFile*>(wParam);
+    ASSERT(code_file != nullptr);
+
+    m_codeFileSuccessfulCompilations[code_file->GetFilePath()] = std::make_tuple(code_file->GetCodeType(),
+                                                                                 code_file->GetTextSource().GetModifiedIteration());
+
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
     ui_thread_runner->Execute();
     return 1;
 }
@@ -3512,25 +3560,6 @@ LRESULT CMainFrame::OnGetApplicationShutdownRunner(WPARAM /*wParam*/, LPARAM /*l
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-
-LRESULT CMainFrame::OnCreateUniqueName(WPARAM wParam, LPARAM lParam)
-{
-    // creates a name that is unique to the application
-    CString& name = *(CString*)wParam;
-    const CAplDoc* pAplDoc = (const CAplDoc*)lParam;
-
-    CMDIChildWnd* pWnd = MDIGetActive();
-    const CDocument* pDoc = ( pWnd != nullptr && pWnd->GetSafeHwnd() != nullptr ) ? pWnd->GetActiveDocument() : nullptr;
-
-    name = WS2CS(CIMSAString::CreateUnreservedName(name,
-            [&](const std::wstring& name_candidate)
-            {
-                return pAplDoc->IsNameUnique(pDoc, WS2CS(name_candidate));
-            }));
-
-    return 0;
-}
-
 
 std::tuple<CAplDoc*, CDEItemBase*> CMainFrame::GetCapiItemDetails(CFormDoc* pFormDoc, CFormID* form_id /* = nullptr*/)
 {
@@ -3587,7 +3616,7 @@ LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
         CDEItemBase* pBase;
         std::tie(pAplDoc, pBase) = GetCapiItemDetails(pFormDoc);
 
-        CString csQuestionText;
+        std::string question_text;
 
         if( pBase != nullptr )
         {
@@ -3595,13 +3624,13 @@ LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
             const auto& pDataDict = pFormDoc->GetFormFile().GetDictionary();
 
             if( pDataDict->GetLanguages().size() > 1 )
-                csQuestionText = pAplDoc->GetCapiTextForFirstCondition(pBase, pDataDict->GetCurrentLanguage().GetName());
+                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase, pDataDict->GetCurrentLanguage().GetName());
 
             else
-                csQuestionText = pAplDoc->GetCapiTextForFirstCondition(pBase);
+                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase);
         }
 
-        pQTView->SetText(csQuestionText);
+        pQTView->SetText(std::move(question_text));
     }
 
     return 0;
@@ -3691,7 +3720,7 @@ LRESULT CMainFrame::OnLaunchActiveAppAsBch(WPARAM /*wParam*/, LPARAM lParam)
     }
 
 
-    CAplDoc* pDoc = GetApplicationUsingFormFile(pForm->GetPathName());
+    CAplDoc* const pDoc = GetApplicationUsingFormFile(TC::ToUtf8(pForm->GetPathName()));
 
     if(pDoc) {
         if (pDoc->AreAplDictsOK()) {            // BMD  28 Jun 00
@@ -3737,8 +3766,8 @@ LRESULT CMainFrame::OnLaunchActiveAppAsBch(WPARAM /*wParam*/, LPARAM lParam)
 
             CopyEnt2Bch(pDoc);
 
-            CString sAppFName = PortableFunctions::PathAppendToPath(PortableFunctions::PathGetDirectory<CString>(pDoc->GetPathName()), _T("CSPro_Test.bch"));
-            CString sPffFName = PortableFunctions::PathRemoveFileExtension<CString>(sAppFName) + FileExtensions::WithDot::Pff;
+            CString sAppFName = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFilename(UTF8_TODO::GetUtf8(pDoc->GetPathName()), "CSPro_Test.bch"));
+            CString sPffFName = PortableFunctions::PathRemoveFileExtensionCS(sAppFName) + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
 
             CNPifFile pifFile(sPffFName);
 
@@ -3783,24 +3812,24 @@ bool CMainFrame::CopyEnt2Bch(CAplDoc* pAplDoc)
         application.AddCodeFile(code_file);
 
     // add any message files
-    for( const auto& message_text_source : pAplDoc->GetAppObject().GetMessageTextSources() )
-        application.AddMessageFile(std::make_shared<TextSource>(message_text_source->GetFilename()));
+    for( const AppMessageFile& app_message_file : pAplDoc->GetAppObject().GetMessageFiles() )
+        application.AddMessageFile(app_message_file);
 
     // add any reports
-    for( const auto& report_named_text_source : pAplDoc->GetAppObject().GetReportNamedTextSources() )
-        application.AddReport(report_named_text_source->name, std::make_shared<TextSource>(report_named_text_source->text_source->GetFilename()));
+    for( const ReportFile& report_file : pAplDoc->GetAppObject().GetReportFiles() )
+        application.AddReport(report_file);
 
     //Add External dictionary names
-    for( const auto& dictionary_filename : pAplDoc->GetAppObject().GetExternalDictionaryFilenames() )
-        application.AddExternalDictionaryFilename(dictionary_filename);
+    for( const std::string& dictionary_file_path : pAplDoc->GetAppObject().GetExternalDictionaryFilePaths() )
+        application.AddExternalDictionary(dictionary_file_path);
 
     //Copy array of dict desc
     application.SetDictionaryDescriptions(pAplDoc->GetAppObject().GetDictionaryDescriptions());
 
     //copy the fmf file to ord .
     //set form files to dictionary order as false to have the order files open the spec without reordering
-    for( const auto& sFormFName : pAplDoc->GetAppObject().GetFormFilenames() ) {
-        CFormNodeID* pID = m_SizeDlgBar.m_FormTree.GetFormNode(sFormFName);
+    for( const std::string& form_file_path : pAplDoc->GetAppObject().GetFormFilePaths() ) {
+        CFormNodeID* const pID = m_SizeDlgBar.m_FormTree.GetFormNode(form_file_path);
         if (pID != nullptr && pID->GetFormDoc()) {
             pID->GetFormDoc()->GetFormFile().SetDictOrder(false);
             pID->GetFormDoc()->SetModifiedFlag(true);
@@ -3810,14 +3839,14 @@ bool CMainFrame::CopyEnt2Bch(CAplDoc* pAplDoc)
 
     bool bRet = true;
 
-    for(int iIndex = 0; iIndex < (int)pAplDoc->GetAppObject().GetFormFilenames().size(); iIndex++) {
-        CString sFormFName = pAplDoc->GetAppObject().GetFormFilenames()[iIndex];
+    for(int iIndex = 0; iIndex < static_cast<int>(pAplDoc->GetAppObject().GetFormFilePaths().size()); iIndex++) {
+        CString sFormFName = UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetFormFilePaths()[iIndex]);
         CString sOrderFName = sFormFName;
 
         PathRemoveFileSpec(sOrderFName.GetBuffer(MAX_PATH));
         sOrderFName.ReleaseBuffer();
         CString csPath = sOrderFName;
-        if(pAplDoc->GetAppObject().GetFormFilenames().size() > 1 ) {
+        if(pAplDoc->GetAppObject().GetFormFilePaths().size() > 1 ) {
             CString sGenName;
             sGenName.Format(_T("CSPro_Test%d.ord"),iIndex);
             sOrderFName = csPath +_T("\\")+ sGenName;
@@ -3828,15 +3857,15 @@ bool CMainFrame::CopyEnt2Bch(CAplDoc* pAplDoc)
 
         for( DictionaryDescription& dictionary_description : application.GetDictionaryDescriptions() )
         {
-            if( SO::EqualsNoCase(dictionary_description.GetParentFilename(), sFormFName) )
-                dictionary_description.SetParentFilename(CS2WS(sOrderFName));
+            if( SO::EqualsNoCase(dictionary_description.GetParentFilePath(), sFormFName) )
+                dictionary_description.SetParentFilePath(UTF8_TODO::GetUtf8(sOrderFName));
         }
 
         //copy the  .fmf to .ord
         if(!CopyFile(sFormFName,sOrderFName,FALSE)){
             bRet =false;
         }
-        application.AddFormFilename(sOrderFName);
+        application.AddForm(UTF8_TODO::GetUtf8(sOrderFName));
     }
 
     //Copy the .ent to .bch
@@ -3855,8 +3884,8 @@ bool CMainFrame::CopyEnt2Bch(CAplDoc* pAplDoc)
     }
 
     //reset the form files to dictionary order as true
-    for( const auto& sFormFName : pAplDoc->GetAppObject().GetFormFilenames() ) {
-        CFormNodeID* pID = m_SizeDlgBar.m_FormTree.GetFormNode(sFormFName);
+    for( const std::string& form_file_path : pAplDoc->GetAppObject().GetFormFilePaths() ) {
+        CFormNodeID* const pID = m_SizeDlgBar.m_FormTree.GetFormNode(form_file_path);
         if (pID != nullptr && pID->GetFormDoc()) {
             pID->GetFormDoc()->GetFormFile().SetDictOrder(true);
             pID->GetFormDoc()->SetModifiedFlag(true);
@@ -3961,16 +3990,16 @@ LRESULT CMainFrame::OnRunTab(WPARAM wParam, LPARAM lParam)
     CString sAplFName = pAplDoc->GetPathName();
     PathRemoveExtension(sAplFName.GetBuffer(_MAX_PATH));
     sAplFName.ReleaseBuffer();
-    CString sAplFile = sAplFName + FileExtensions::WithDot::TabulationApplication;
-    CString sPFFName = sAplFile + FileExtensions::WithDot::Pff;
-    CString sListFile = sAplFile + FileExtensions::WithDot::Listing;
+    CString sAplFile = sAplFName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::TabulationApplication));
+    CString sPFFName = sAplFile + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
+    CString sListFile = UTF8_TODO::GetCString(PortableFunctions::PathAppendFileExtension(UTF8_TODO::GetUtf8(sAplFile), FileExtensions::Listing));
 
     CStringArray arrOldProc;
     bool bReplaceTblCode = false;
     CSourceCode* pSourceCode = pAplDoc->GetAppObject().GetAppSrcCode();
 
     if (pTabDoc/*->AreAplDictsOK()*/) {            // BMD  28 Jun 00
-        TableSpecTabTreeNode* table_spec_tab_tree_node = pTabDoc->GetTabTreeCtrl()->GetTableSpecTabTreeNode(*pTabDoc);
+        TableSpecTabTreeNode* const table_spec_tab_tree_node = pTabDoc->GetTabTreeCtrl()->GetTableSpecTabTreeNode(*pTabDoc);
         BOOL bRun = FALSE;
         if(table_spec_tab_tree_node != nullptr) {
             if(pTabDoc->GetTabTreeCtrl()->Select(table_spec_tab_tree_node->GetHItem(),TVGN_CARET)){
@@ -4097,11 +4126,11 @@ LRESULT CMainFrame::OnRunTab(WPARAM wParam, LPARAM lParam)
             CString csAplFName = pAplDoc->GetPathName();
             PathRemoveExtension(csAplFName.GetBuffer(_MAX_PATH));
             csAplFName.ReleaseBuffer();
-            sTabOutPutFName = csAplFName+ FileExtensions::BinaryTable::WithDot::Tab;
-            sTabTai = csAplFName + FileExtensions::BinaryTable::WithDot::TabIndex;
+            sTabOutPutFName = csAplFName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab));
+            sTabTai = csAplFName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
             pifFile.SetTabOutputFName(sTabOutPutFName);
-            sTempTab = csAplFName + _T("_precalc") +  FileExtensions::BinaryTable::WithDot::Tab; // Engine is not looking at the piffile ags
-            sTempTai = csAplFName + _T("_precalc") +  FileExtensions::BinaryTable::WithDot::TabIndex;
+            sTempTab = csAplFName + _T("_precalc") +  UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::Tab)); // Engine is not looking at the piffile ags
+            sTempTai = csAplFName + _T("_precalc") +  UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BinaryTable::TabIndex));
 
         }
         if(pifFile.GetCalcInputFNamesArr().empty()) {
@@ -4168,9 +4197,9 @@ LRESULT CMainFrame::OnRunTab(WPARAM wParam, LPARAM lParam)
             CFileStatus fStatus;
             BOOL bTBWExists = CFile::GetStatus(sTbwFileName,fStatus);
             if(bTBWExists){
-                const std::optional<std::wstring> tblview_exe =  CSProExecutables::GetExecutablePath(CSProExecutables::Program::TblView);
+                const std::optional<std::string> tblview_exe =  CSProExecutables::GetExecutablePath(CSProExecutables::Program::TblView);
                 if(tblview_exe.has_value()) {
-                    IMSASpawnApp(*tblview_exe, IMSA_WNDCLASS_TABLEVIEW, sTbwFileName, TRUE);
+                    IMSASpawnApp(UTF8_TODO::GetWide(*tblview_exe), IMSA_WNDCLASS_TABLEVIEW, sTbwFileName, TRUE);
                 }
             }
         }
@@ -4284,7 +4313,7 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
             sSymbolName = ((CTable*)pBase)->GetName(); // savy && check if this is correct
         }
         else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CTabLevel))) {
-            sSymbolName = pTabDoc->GetTableSpec()->GetDict()->GetLevel(iLevelNum).GetName();
+            sSymbolName = UTF8_TODO::GetCString(pTabDoc->GetTableSpec()->GetDict()->GetLevel(iLevelNum).GetName());
         }
 
         if(sSymbolName.IsEmpty() && !bAppSrcCode)
@@ -4293,7 +4322,7 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
         pSourceCode->SetOrder(pAplDoc->GetOrder());
         CStringArray arrProcLines;
 
-        CIMSAString sString = WS2CS(pView->GetLogicCtrl()->GetText());
+        CIMSAString sString = UTF8_TODO::GetCString(pView->GetLogicCtrl()->GetText());
         CString sLine;
 
         // gsf 23-mar-00: make sure GetToken does not strip off leading quote marks
@@ -4397,7 +4426,8 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
             return false;
         }
 
-        ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar());
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar()) )
+            err = CCompiler::Result::SomeErrors;
 
         UndoEmulateBCHApp(&pAplDoc->GetAppObject());
 
@@ -4426,7 +4456,7 @@ LONG CMainFrame::ReplaceLvlProc4Area (UINT /*wParam*/, LPARAM lParam)
     Application* pApplication = &pAplDoc->GetAppObject();
     CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
     if(pTabSet->GetDict()){
-        CString sLevelName = pTabSet->GetDict()->GetLevel(0).GetName();
+        CString sLevelName = UTF8_TODO::GetCString(pTabSet->GetDict()->GetLevel(0).GetName());
         pSourceCode->RemoveProc(sLevelName,CSourceCode_AllEvents);
         CConsolidate* pConsolidate = pTabSet->GetConsolidate();
         CStringArray arrProcLines;
@@ -4436,7 +4466,7 @@ LONG CMainFrame::ReplaceLvlProc4Area (UINT /*wParam*/, LPARAM lParam)
             if(!pSourceCode->IsProcAvailable(sLevelName)){
                 //If not Level proc add one
                 CStringArray sarrProcLines;
-                sarrProcLines.Add(WS2CS(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
+                sarrProcLines.Add(UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
                 //Putproc puts the "PROC QUEST"
                 pSourceCode->PutProc(sarrProcLines,sLevelName,CSourceCode_AllEvents);
             }
@@ -4570,7 +4600,7 @@ void CMainFrame::SetTblSourceCode(CAplDoc* pAplDoc)
             sSymbolName = ((CTable*)pBase)->GetName(); // savy && check if this is correct
         }
         else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CTabLevel))) {
-            sSymbolName = pTabDoc->GetTableSpec()->GetDict()->GetLevel(iLevelNum).GetName();
+            sSymbolName = UTF8_TODO::GetCString(pTabDoc->GetTableSpec()->GetDict()->GetLevel(iLevelNum).GetName());
         }
 
         CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
@@ -4637,7 +4667,7 @@ void CMainFrame::SetTblSourceCode(CAplDoc* pAplDoc)
         // 20100316 nothing is changed by just loading or changing what proc is displayed
         bool modFlag1 = pTabDoc->IsModified();
         bool modFlag2 = pView->GetEditCtrl()->IsModified();
-        pView->GetEditCtrl()->SetText(sWindowText);
+        pView->GetEditCtrl()->SetText(UTF8_TODO::GetUtf8(sWindowText));
 
         pTabDoc->SetModifiedFlag(modFlag1); // 20100316
         pView->GetEditCtrl()->SetModified(modFlag2);
@@ -4669,7 +4699,7 @@ bool CMainFrame::DoEmulateBCHApp(Application* pApp)
     pApp->AddRuntimeFormFile(pOrder);
     pOrder->UpdatePointers();
 
-    DictionaryDescription dictionary_description(CS2WS(pApp->GetTabSpec()->GetDict()->GetName()), CS2WS(pOrder->GetName()), DictionaryType::Input);
+    DictionaryDescription dictionary_description(pApp->GetTabSpec()->GetDict()->GetFilePath(), pOrder->GetFilePath(), DictionaryType::Input);
     dictionary_description.SetDictionary(pApp->GetTabSpec()->GetDict());
     pApp->GetDictionaryDescriptions().insert(pApp->GetDictionaryDescriptions().cbegin(), std::move(dictionary_description));
 
@@ -4695,7 +4725,7 @@ bool CMainFrame::UndoEmulateBCHApp(Application* pApp)
 
     //Delete Temporary files
 #ifndef _PROCESSTHIS
-    CString sPathName = pApp->GetApplicationFilename();
+    CString sPathName = UTF8_TODO::GetCString(pApp->GetApplicationFilePath());
 
     sPathName.ReleaseBuffer();
     PathRemoveFileSpec(sPathName.GetBuffer(MAX_PATH));
@@ -4704,7 +4734,7 @@ bool CMainFrame::UndoEmulateBCHApp(Application* pApp)
 
     CString sFile = sPathName + _T("\\CSTab.ord") ; //delete ord
     DeleteFile(sFile);
-    sFile = sPathName + _T("\\CSTab") + FileExtensions::WithDot::Logic; //delete app
+    sFile = sPathName + _T("\\CSTab") + L"." + UTF8_TODO::GetCString(FileExtensions::Logic); //delete app
     DeleteFile(sFile);
     sFile = sPathName + _T("\\CSTab.pff") ; //delete pff
     DeleteFile(sFile);
@@ -4839,7 +4869,7 @@ bool CMainFrame::ForceLogicUpdate4Tab(CTabulateDoc* pTabDoc)
         //Put the break by statement in the preproc of level1 . With out this
         // the breaks dont come out right
         if(pTabSet->GetDict() && pTabSet->GetDict()->GetNumLevels() > 0 ){
-            CString sLevelName = pTabSet->GetDict()->GetLevel(0).GetName();
+            CString sLevelName = UTF8_TODO::GetCString(pTabSet->GetDict()->GetLevel(0).GetName());
 
             CConsolidate* pConsolidate = pTabSet->GetConsolidate();
             if(pConsolidate &&  pConsolidate->GetNumAreas() > 0){
@@ -4848,7 +4878,7 @@ bool CMainFrame::ForceLogicUpdate4Tab(CTabulateDoc* pTabDoc)
                 if(!pSourceCode->IsProcAvailable(sLevelName)){
                     //If not Level proc add one
                     CStringArray arrProcLines;
-                    arrProcLines.Add(WS2CS(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
+                    arrProcLines.Add(UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
                     //Putproc puts the "PROC QUEST"
                     pSourceCode->PutProc(arrProcLines,sLevelName,CSourceCode_AllEvents);
                 }
@@ -4879,7 +4909,7 @@ bool CMainFrame::ForceLogicUpdate4Tab(CTabulateDoc* pTabDoc)
 
             if(!sCrossTabStmt.IsEmpty()){
                 CStringArray arrProcLines;
-                arrProcLines.Add(WS2CS(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
+                arrProcLines.Add(UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
                 pSourceCode->PutProc(arrProcLines,pTable->GetName(),CSourceCode_AllEvents);
 
                 arrProcLines.RemoveAll();
@@ -4954,7 +4984,7 @@ bool CMainFrame::CheckSyntax4TableLogic(const TableElementTreeNode& table_elemen
         else if (bGenLogic){
             CStringArray arrTempProcLines;
             pSourceCode->RemoveProc(sSymbolName,CSourceCode_AllEvents);
-            arrTempProcLines.Add(WS2CS(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
+            arrTempProcLines.Add(UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
 
             pSourceCode->PutProc(arrTempProcLines,sSymbolName,CSourceCode_AllEvents);
             pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_Tally); //Get all events for now
@@ -4984,7 +5014,7 @@ bool CMainFrame::CheckSyntax4TableLogic(const TableElementTreeNode& table_elemen
             pSourceCode->GetProc( arrProcLinesApp, csAppSymb);
             if(!pSourceCode->IsProcAvailable (csAppSymb)){
                 arrProcLinesApp.Add(_T("PROC GLOBAL"));//add a blank line to force the engine to build the symbol table
-                arrProcLinesApp.Add(WS2CS(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
+                arrProcLinesApp.Add(UTF8_TODO::GetCString(pAplDoc->GetAppObject().GetLogicSettings().GetGeneratedCodeTextForTextSource()));
             }
             //Generate CROSSTAB table declaration for all other tables
             for(int iTable =0 ; iTable < pTabDoc->GetTableSpec()->GetNumTables(); iTable++){
@@ -5044,12 +5074,12 @@ bool CMainFrame::CheckSyntax4TableLogic(const TableElementTreeNode& table_elemen
 
         if( err != CCompiler::Result::NoErrors )
         {
-            std::wstring all_error_messages;
+            std::string all_error_messages;
 
             for( const Logic::ParserMessage& parser_message : CCompiler::GetCurrentSession()->GetParserMessages() )
             {
                 if( parser_message.type == Logic::ParserMessage::Type::Error )
-                    SO::AppendWithSeparator(all_error_messages, parser_message.message_text, _T("\r\n"));
+                    SO::AppendWithSeparator(all_error_messages, parser_message.message_text, "\r\n");
             }
 
             ASSERT(!all_error_messages.empty());
@@ -5221,7 +5251,7 @@ LRESULT CMainFrame::OnGetApplicationPff(WPARAM wParam, LPARAM /*lParam*/)
         [&](CAplDoc& application_doc)
         {
             // check that a PFF exists for the application
-            CString pff_filename = PortableFunctions::PathRemoveFileExtension<CString>(application_doc.GetPathName()) + FileExtensions::WithDot::Pff;
+            CString pff_filename = PortableFunctions::PathRemoveFileExtensionCS(application_doc.GetPathName()) + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
 
             if( PortableFunctions::FileIsRegular(pff_filename) )
             {
@@ -5244,7 +5274,7 @@ LRESULT CMainFrame::OnGetApplicationPff(WPARAM wParam, LPARAM /*lParam*/)
 void CMainFrame::OnUpdateIfApplicationIsAvailable(CCmdUI* pCmdUI)
 {
     CMDIChildWnd* pWnd = this->MDIGetActive();
-    CDocument* pDoc = pWnd->GetActiveDocument();
+    CDocument* const pDoc = pWnd->GetActiveDocument();
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
     pCmdUI->Enable(( pAplDoc == nullptr ) ? FALSE : TRUE);
 }
@@ -5253,7 +5283,7 @@ void CMainFrame::OnUpdateIfApplicationIsAvailable(CCmdUI* pCmdUI)
 void CMainFrame::OnOptionsProperties()
 {
     CMDIChildWnd* pWnd = this->MDIGetActive();
-    CDocument* pDoc = pWnd->GetActiveDocument();
+    CDocument* const pDoc = pWnd->GetActiveDocument();
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
     Application& application = pAplDoc->GetAppObject();
 
@@ -5263,11 +5293,11 @@ void CMainFrame::OnOptionsProperties()
         return;
 
     ApplicationProperties new_application_properties = properties_dlg.ReleaseApplicationProperties();
-    std::wstring new_application_properties_filename = properties_dlg.GetApplicationPropertiesFilename();
+    std::string new_application_properties_file_path = properties_dlg.GetApplicationPropertiesFilePath();
 
     const bool application_properties_changed = ( application.GetApplicationProperties() != new_application_properties );
-    bool application_properties_filename_changed = !SO::EqualsNoCase(application.GetApplicationPropertiesFilename(), new_application_properties_filename);
-    const bool using_external_properties_file = !new_application_properties_filename.empty();
+    bool application_properties_filename_changed = !SO::EqualsNoCase(application.GetApplicationPropertiesFilePath(), new_application_properties_file_path);
+    const bool using_external_properties_file = !new_application_properties_file_path.empty();
 
     if( application_properties_changed )
         application.SetApplicationProperties(std::move(new_application_properties));
@@ -5277,17 +5307,17 @@ void CMainFrame::OnOptionsProperties()
     {
         try
         {
-            application.GetApplicationProperties().Save(new_application_properties_filename);
+            application.GetApplicationProperties().Save(new_application_properties_file_path);
         }
 
         catch( const CSProException& exception )
         {
-            ErrorMessage::Display(FormatText(_T("There was an error saving the application properties to '%s' so they will instead be saved to the application '%s':\n\n%s"),
-                                  PortableFunctions::PathGetFilename(new_application_properties_filename),
-                                  PortableFunctions::PathGetFilename(application.GetApplicationFilename()),
-                                  exception.GetErrorMessage().c_str()));
+            ErrorMessage::Display(FormatText("There was an error saving the application properties to '%s' so they will instead be saved to the application '%s':\n\n%s",
+                                             PortableFunctions::PathGetFilename(new_application_properties_file_path).c_str(),
+                                             PortableFunctions::PathGetFilename(application.GetApplicationFilePath()).c_str(),
+                                             exception.what()));
 
-            new_application_properties_filename.clear();
+            new_application_properties_file_path.clear();
             application_properties_filename_changed = true;
         }
     }
@@ -5295,7 +5325,7 @@ void CMainFrame::OnOptionsProperties()
     if( application_properties_filename_changed || ( !using_external_properties_file && application_properties_changed ) )
     {
         if( application_properties_filename_changed )
-            application.SetApplicationPropertiesFilename(std::move(new_application_properties_filename));
+            application.SetApplicationPropertiesFilePath(std::move(new_application_properties_file_path));
 
         pAplDoc->SetModifiedFlag();
     }
@@ -5307,7 +5337,7 @@ void CMainFrame::OnOptionsProperties()
         pAplDoc->SetModifiedFlag();
 
         // refresh the Scintilla lexers in case the logic version changed
-        auto refresh_lexer = [&](CLogicCtrl* logic_ctrl)
+        auto refresh_lexer = [&](CLogicCtrl* const logic_ctrl)
         {
             if( logic_ctrl != nullptr )
                 logic_ctrl->PostMessage(UWM::Edit::RefreshLexer);
@@ -5323,19 +5353,19 @@ void CMainFrame::OnOptionsProperties()
 }
 
 
-LRESULT CMainFrame::OnSetExternalApplicationProperties(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnSetExternalApplicationProperties(const WPARAM wParam, const LPARAM lParam)
 {
-    const std::wstring* application_properties_filename = reinterpret_cast<const std::wstring*>(wParam);
-    ApplicationProperties* application_properties = reinterpret_cast<ApplicationProperties*>(lParam);
-    ASSERT(application_properties_filename != nullptr && application_properties != nullptr);
-    ASSERT(PortableFunctions::FileIsRegular(*application_properties_filename));
+    const std::string* const application_properties_file_path = reinterpret_cast<const std::string*>(wParam);
+    ApplicationProperties* const application_properties = reinterpret_cast<ApplicationProperties*>(lParam);
+    ASSERT(application_properties_file_path != nullptr && application_properties != nullptr);
+    ASSERT(PortableFunctions::FileIsRegular(*application_properties_file_path));
 
-    CMDIChildWnd* pWnd = this->MDIGetActive();
-    CDocument* pDoc = pWnd->GetActiveDocument();
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
+    CMDIChildWnd* const pWnd = this->MDIGetActive();
+    CDocument* const pDoc = pWnd->GetActiveDocument();
+    CAplDoc* const pAplDoc = ProcessFOForSrcCode(*pDoc);
     Application& application = pAplDoc->GetAppObject();
 
-    application.SetApplicationPropertiesFilename(*application_properties_filename);
+    application.SetApplicationPropertiesFilePath(*application_properties_file_path);
     application.SetApplicationProperties(std::move(*application_properties));
 
     pAplDoc->SetModifiedFlag();
@@ -5344,17 +5374,64 @@ LRESULT CMainFrame::OnSetExternalApplicationProperties(WPARAM wParam, LPARAM lPa
 }
 
 
-LRESULT CMainFrame::IsReservedWord(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnShowFileProperties(const WPARAM wParam, const LPARAM lParam)
 {
-    wstring_view* text = reinterpret_cast<wstring_view*>(wParam);
-    return Logic::ReservedWords::IsReservedWord(*text) ? 1 : 0;
+    const SharableString path = WindowsDesktopMessage::GetPostedObject<SharableString>(wParam);
+    CDocument* const document = reinterpret_cast<CDocument*>(lParam);
+
+    CMDIChildWnd* const active_wnd = MDIGetActive();
+    CDocument* const active_document = ( active_wnd != nullptr ) ? active_wnd->GetActiveDocument() :
+                                                                   nullptr;
+
+    if( !path.IsSet() || document == nullptr || active_document == nullptr )
+        return ReturnProgrammingError(0);
+
+    // only show the Manage Files dialog when the selected path is part of the current application
+    const CAplDoc* application_doc;
+    bool path_is_part_of_active_application;
+
+    if( document->IsKindOf(RUNTIME_CLASS(CAplDoc)) )
+    {
+        application_doc = ProcessFOForSrcCode(*active_document);
+        path_is_part_of_active_application = ( document == application_doc );
+    }
+
+    else
+    {
+        application_doc = nullptr;
+        path_is_part_of_active_application = ( document == active_document );
+
+        if( !path_is_part_of_active_application )
+            application_doc = ProcessFOForSrcCode(*active_document);
+    }
+
+    if( !path_is_part_of_active_application )
+    {
+        ErrorMessage::Display(FormatText("'%s' is not part of the active application '%s'. "
+                                         "Switch the active application before trying to modify the properties.",
+                                         PortableFunctions::PathGetFilename(*path).c_str(),
+                                         ( application_doc != nullptr ) ? application_doc->GetAppObject().GetName().c_str() : ""));
+        return 0;
+    }
+
+    CCSProApp* const cspro_app = assert_cast<CCSProApp*>(AfxGetApp());
+    cspro_app->ManageFiles(*path);
+
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnIsReservedWord(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    const std::string_view text_sv = *reinterpret_cast<const std::string_view*>(wParam);
+    return Logic::ReservedWords::IsReservedWord(text_sv) ? 1 : 0;
 }
 
 
 LRESULT CMainFrame::OnCapiMacros(WPARAM /*wParam*/,LPARAM /*lParam*/)
 {
     CMDIChildWnd* pWnd = this->MDIGetActive();
-    CDocument* pDoc = pWnd->GetActiveDocument();
+    CDocument* const pDoc = pWnd->GetActiveDocument();
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
 
     CapiMacrosDlg capi_macros_dialog(pAplDoc);
@@ -5364,32 +5441,54 @@ LRESULT CMainFrame::OnCapiMacros(WPARAM /*wParam*/,LPARAM /*lParam*/)
 }
 
 
-LRESULT CMainFrame::OnCanAddResourceFolder(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnCanAddResources(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    CCSProApp* cspro_app = assert_cast<CCSProApp*>(AfxGetApp());
+    CCSProApp* const cspro_app = assert_cast<CCSProApp*>(AfxGetApp());
     return cspro_app->IsApplicationOpen();
 }
 
-LRESULT CMainFrame::OnCreateResourceFolder(WPARAM wParam, LPARAM lParam)
+
+LRESULT CMainFrame::OnCopyToResourceDirectory(WPARAM wParam, LPARAM lParam)
 {
-    auto resource_folder_name = reinterpret_cast<const CString*>(wParam);
-    auto resource_folder_directory = reinterpret_cast<CString*>(lParam);
+    const std::string& source_file_path = *reinterpret_cast<const std::string*>(wParam);
+    std::string* const destination_file_path = reinterpret_cast<std::string*>(lParam);
 
-    CCSProApp* cspro_app = assert_cast<CCSProApp*>(AfxGetApp());
-    std::optional<CAplDoc*> pAplDoc = cspro_app->GetActiveApplication(nullptr, _T("Select Application to Add Image To"));
+    CCSProApp* const cspro_app = assert_cast<CCSProApp*>(AfxGetApp());
+    const std::optional<CAplDoc*> active_application_doc = cspro_app->GetActiveApplication(nullptr, L"Select Application to Add Image To");
 
-    if( !pAplDoc.has_value() || pAplDoc == nullptr )
+    if( !active_application_doc.has_value() || *active_application_doc == nullptr )
     {
-        ASSERT(!pAplDoc.has_value());
+        ASSERT(!active_application_doc.has_value());
         return 0;
     }
 
-    CString application_directory = PortableFunctions::PathGetDirectory<CString>((*pAplDoc)->GetAppObject().GetApplicationFilename());
-    *resource_folder_directory = PortableFunctions::PathAppendToPath<CString>(application_directory, *resource_folder_name);
+    Application& application = (*active_application_doc)->GetAppObject();
 
-    cspro_app->AddResourceFolderToApp(*pAplDoc, *resource_folder_directory);
+    try
+    {
+        std::string resources_directory = PortableFunctions::PathReplaceFilename(application.GetApplicationFilePath(), "Resources");
+        std::string file_path_in_resources_directory = Path::Combine(resources_directory, PortableFunctions::PathGetFilename(source_file_path));
 
-    return 1;
+        FileIO::CreateDirectories(resources_directory);
+
+        // if not already added, add the Resources directory as a resource
+        if( application.GetResource(resources_directory) == nullptr )
+            cspro_app->AddResourceToApplication(*(*active_application_doc), AppResource(std::move(resources_directory)));
+
+        // copy the file into the Resources directory
+        PortableFunctions::FileCopyWithExceptions(source_file_path, file_path_in_resources_directory, FileOverwriteFlag::Different);
+
+        if( destination_file_path != nullptr )
+            *destination_file_path = std::move(file_path_in_resources_directory);
+
+        return 1;
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+        return 0;
+    }
 }
 
 
@@ -5413,38 +5512,38 @@ LRESULT CMainFrame::OnUpdateApplicationExternalities(WPARAM /*wParam*/, LPARAM /
     if( !text_sources.empty() )
     {
         std::set<TextSourceEditable*> modified_text_sources;
-        CString reload_message;
+        std::string reload_message;
 
         for( const auto& text_source : text_sources )
         {
-            int64_t file_modified_time = PortableFunctions::FileModifiedTime(text_source->GetFilename());
+            const int64_t file_modified_time = PortableFunctions::FileModifiedTime(text_source->GetFilePath());
 
             if( file_modified_time > last_check_timestamp && text_source->GetModifiedIteration() < file_modified_time )
             {
                 modified_text_sources.insert(text_source);
-                reload_message.AppendFormat(_T("\"%s\"\n"), text_source->GetFilename().c_str());
+                reload_message.append(FormatText("\"%s\"\n", text_source->GetFilePath().c_str()));
             }
         }
 
         if( !modified_text_sources.empty() )
         {
-            bool pluralize = ( modified_text_sources.size() > 1 );
+            const bool pluralize = ( modified_text_sources.size() > 1 );
 
-            reload_message.AppendFormat(_T("\nThe file%s been modified by another program.\nDo you want to reload %s?"),
-                pluralize ? _T("s have") : _T(" has"),
-                pluralize ? _T("them") : _T("it"));
+            reload_message.append(FormatText("\nThe file%s been modified by another program.\nDo you want to reload %s?",
+                                             pluralize ? "s have" : " has",
+                                             pluralize ? "them" : "it"));
 
             if( AfxMessageBox(reload_message, MB_YESNO) == IDYES )
             {
                 // reload any text sources modified outside of the application, ignoring any exceptions
-                for( TextSourceEditable* modified_text_source : modified_text_sources )
+                for( TextSourceEditable* const modified_text_source : modified_text_sources )
                 {
                     try
                     {
                         modified_text_source->ReloadFromDisk();
                     }
 
-                    catch( const CSProException& ) { }
+                    catch( const CSProException& ) { ASSERT(false); }
                 }
 
                 // if currently viewing external code or reports, refresh the view
@@ -5452,7 +5551,7 @@ LRESULT CMainFrame::OnUpdateApplicationExternalities(WPARAM /*wParam*/, LPARAM /
 
                 if( pWnd != nullptr )
                 {
-                    CDocument* pDoc = pWnd->GetActiveDocument();
+                    CDocument* const pDoc = pWnd->GetActiveDocument();
 
                     if( pDoc != nullptr )
                     {
@@ -5501,18 +5600,18 @@ LRESULT CMainFrame::OnUpdateApplicationExternalities(WPARAM /*wParam*/, LPARAM /
 }
 
 
-LRESULT CMainFrame::OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnFindOpenTextSourceEditable(const WPARAM wParam, const LPARAM lParam)
 {
     // when using an editable text source, if it is open in another application, use the existing object
     // (for now this used only for logic and report files, not message files)
-    const std::wstring& filename = *reinterpret_cast<const std::wstring*>(wParam);
+    const std::string& file_path = *reinterpret_cast<const std::string*>(wParam);
     std::shared_ptr<TextSourceEditable>& out_text_source = *reinterpret_cast<std::shared_ptr<TextSourceEditable>*>(lParam);
     ASSERT(out_text_source == nullptr);
 
     ForeachLogicAndReportTextSource(
         [&](const std::shared_ptr<TextSourceEditable>& text_source, bool /*main_logic_file*/)
         {
-            if( SO::EqualsNoCase(text_source->GetFilename(), filename) )
+            if( SO::EqualsNoCase(text_source->GetFilePath(), file_path) )
             {
                 out_text_source = text_source;
                 return false;
@@ -5532,12 +5631,12 @@ namespace
     {
         HTREEITEM hItemToSelect = nullptr;
 
-        TreeCtrlHelpers::FindInTree(*pTreeCtrl, pTreeCtrl->GetRootItem(),
-            [&](HTREEITEM hItem)
+        TreeCtrlHelpers::FindInTree(*pTreeCtrl, pTreeCtrl->GetRootItem(), true,
+            [&](const HTREEITEM hItem)
             {
-                const item_data_type* item_data = reinterpret_cast<const item_data_type*>(pTreeCtrl->GetItemData(hItem));
+                const item_data_type* const item_data = reinterpret_cast<const item_data_type*>(pTreeCtrl->GetItemData(hItem));
 
-                if( item_data->GetTextSource() != nullptr && SO::EqualsNoCase(item_data->GetTextSource()->GetFilename(), filename) )
+                if( item_data->GetTextSource() != nullptr && SO::EqualsNoCase(item_data->GetTextSource()->GetFilePath(), filename) )
                 {
                     hItemToSelect = hItem;
                     return true;
@@ -5597,7 +5696,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
     ApplicationChildWnd* application_child_wnd = assert_cast<ApplicationChildWnd*>(reinterpret_cast<CWnd*>(wParam));
     const CompilerOutputTabViewPage::LogicErrorLocation& logic_error_location = *reinterpret_cast<const CompilerOutputTabViewPage::LogicErrorLocation*>(lParam);
 
-    CDocument* pDoc = assert_cast<CDocument*>(application_child_wnd->GetActiveDocument());
+    CDocument* const pDoc = assert_cast<CDocument*>(application_child_wnd->GetActiveDocument());
 
     // if not in an external code file or a report, go to that line number
     if( logic_error_location.parser_message.compilation_unit_name.empty() )
@@ -5621,7 +5720,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
         CDEItemBase* item_base;
         CDEForm* form;
 
-        if( !pFormDoc->GetFormFile().FindField(WS2CS(logic_error_location.parser_message.proc_name), &form, &item_base) )
+        if( !pFormDoc->GetFormFile().FindField(UTF8_TODO::GetCString(logic_error_location.parser_message.proc_name), &form, &item_base) )
             return 0;
 
         pFormDoc->GetFormTreeCtrl()->SelectFTCNode(pFormDoc->GetFormTreeCtrl()->GetFormNode(pFormDoc), item_base->GetFormNum(), item_base);
@@ -5637,7 +5736,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 
         if( capi_logic_location.language_label.has_value() )
             child_frame->ShowCapiLanguage(*capi_logic_location.language_label);
-        
+
         pFormDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateQuestion);
     }
 
@@ -5651,15 +5750,15 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 
         if( pAplDoc != nullptr )
         {
-            const std::vector<std::shared_ptr<TextSource>>& message_text_sources = pAplDoc->GetAppObject().GetMessageTextSources();
+            const std::vector<AppMessageFile>& app_message_files = pAplDoc->GetAppObject().GetMessageFiles();
 
-            if( !message_text_sources.empty() &&
-                SO::EqualsNoCase(message_text_sources.front()->GetFilename(), logic_error_location.parser_message.compilation_unit_name) )
+            if( !app_message_files.empty() &&
+                SO::EqualsNoCase(app_message_files.front().GetFilePath(), logic_error_location.parser_message.compilation_unit_name) )
             {
                 LogicDialogBar& logic_dialog_bar = application_child_wnd->GetLogicDialogBar();
                 logic_dialog_bar.SelectMessageEditTab();
 
-                MessageEditCtrl* message_edit_ctrl = logic_dialog_bar.GetMessageEditCtrl();
+                MessageEditCtrl* const message_edit_ctrl = logic_dialog_bar.GetMessageEditCtrl();
                 ASSERT(message_edit_ctrl != nullptr);
                 ASSERT(logic_error_location.parser_message.line_number > 0);
 
@@ -5680,7 +5779,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
     {
         // go to the line number, which is 1-based
         GotoExternalLogicOrReportNode(pDoc, application_child_wnd->GetSourceLogicCtrl(),
-                                      logic_error_location.parser_message.compilation_unit_name,
+                                      UTF8_TODO::GetWide(logic_error_location.parser_message.compilation_unit_name),
                                       true, static_cast<int>(logic_error_location.parser_message.line_number) - 1);
     }
 
@@ -5689,56 +5788,50 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnGetLexerLanguage(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
 {
-    const CLogicCtrl* logic_ctrl = reinterpret_cast<const CLogicCtrl*>(wParam);
-    int& logic_language = *reinterpret_cast<int*>(lParam);
+    const CLogicCtrl* const logic_ctrl = reinterpret_cast<const CLogicCtrl*>(wParam);
+    int& lexer_language = *reinterpret_cast<int*>(lParam);
 
-    CMDIChildWnd* pWnd = this->MDIGetActive();
+    CMDIChildWnd* const pWnd = this->MDIGetActive();
     CAplDoc* pAplDoc;
 
     if( pWnd == nullptr || ( pAplDoc = ProcessFOForSrcCode(*pWnd->GetActiveDocument()) ) == nullptr )
         return 0;
 
-    // check if this is a message file
-    ApplicationChildWnd* application_child_wnd = dynamic_cast<ApplicationChildWnd*>(pWnd);
+    // check if this is the message editor
+    std::optional<AppFileType> app_file_type;
+
+    ApplicationChildWnd* const application_child_wnd = dynamic_cast<ApplicationChildWnd*>(pWnd);
 
     if( application_child_wnd != nullptr &&
-        application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl() != nullptr &&
         logic_ctrl == application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl() )
     {
-        logic_language = Lexers::GetLexer_Message(pAplDoc->GetAppObject());
-        return 1;
+        lexer_language = Lexers::GetLexer_Message(pAplDoc->GetAppObject());
     }
 
-    // otherwise check if this is a report
-    bool is_report = false;
-    bool is_report_html_type = false;
-
-    auto set_report_flags = [&](const TextSource* text_source)
+    // otherwise use the GetLexerLanguageForSourceCode routine
+    else if( pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CFormDoc)) )
     {
-        is_report = true;
-        is_report_html_type = FileExtensions::IsFilenameHtml(text_source->GetFilename());
-    };
+        CFormID* const pFormID = GetNodeIdForSourceCode<CFormID>();
+        ASSERT(pFormID != nullptr);
 
-    if( pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CFormDoc)) )
-    {
-        CFormID* pFormID = GetNodeIdForSourceCode<CFormID>();
-
-        if( pFormID->GetItemType() == eFFT_REPORT )
-            set_report_flags(pFormID->GetTextSource());
+        lexer_language = GetLexerLanguageForSourceCode(pAplDoc->GetAppObject(), *pFormID);
     }
 
     else if( pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(COrderDoc)) )
     {
-        const AppTreeNode* app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
+        const AppTreeNode* const app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
+        ASSERT(app_tree_node != nullptr);
 
-        if( app_tree_node->GetAppFileType() == AppFileType::Report )
-            set_report_flags(app_tree_node->GetTextSource());
+        lexer_language = GetLexerLanguageForSourceCode(pAplDoc->GetAppObject(), *app_tree_node);
     }
 
-    logic_language = is_report ? Lexers::GetLexer_Report(pAplDoc->GetAppObject(), is_report_html_type) :
-                                 Lexers::GetLexer_Logic(pAplDoc->GetAppObject());
+    else
+    {
+        ASSERT(false);
+        lexer_language = Lexers::GetLexer_Logic(pAplDoc->GetAppObject());
+    }
 
     return 1;
 }

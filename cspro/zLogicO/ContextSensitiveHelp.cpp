@@ -10,31 +10,31 @@ namespace
 {
     struct MultipleWordExpressionDetails
     {
-        const TCHAR* const name;
-        const StringNoCase second_name;
-        const TCHAR* const help_filename;
+        const char* const name;
+        const char* const second_name;
+        const char* const help_filename;
     };
 
     const MultipleWordExpressionDetails MultipleWordExpressions[] =
     {
-        { _T("Array"),    _T("alpha"),      _T("Array_statement.html") },
-        { _T("Array"),    _T("numeric"),    _T("Array_statement.html") },
-        { _T("Array"),    _T("string"),     _T("Array_statement.html") },
-        { _T("ask"),      _T("if"),         _T("ask_statement.html") },
-        { _T("HashMap"),  _T("numeric"),    _T("HashMap_statement.html") },
-        { _T("HashMap"),  _T("string"),     _T("HashMap_statement.html") },
-        { _T("List"),     _T("numeric"),    _T("List_statement.html") },
-        { _T("List"),     _T("string"),     _T("List_statement.html") },
-        { _T("PROC"),     _T("GLOBAL"),     _T("cspro_program_structure.html") },
-        { _T("set"),      _T("access"),     _T("set_access_statement.html") },
-        { _T("set"),      _T("attributes"), _T("set_attributes_statement.html") },
-        { _T("set"),      _T("behavior"),   _T("set_behavior_export_statement.html") },
-        { _T("set"),      _T("errmsg"),     _T("set_errmsg_function.html") },
-        { _T("set"),      _T("first"),      _T("set_first_statement.html") },
-        { _T("set"),      _T("last"),       _T("set_last_statement.html") },
-        { _T("skip"),     _T("case"),       _T("skip_case_statement.html") },
-        { _T("ValueSet"), _T("numeric"),    _T("ValueSet_statement.html") },
-        { _T("ValueSet"), _T("string"),     _T("ValueSet_statement.html") },
+        { "Array",      "alpha",        "Array_statement.html" },
+        { "Array",      "numeric",      "Array_statement.html" },
+        { "Array",      "string",       "Array_statement.html" },
+        { "ask",        "if",           "ask_statement.html" },
+        { "HashMap",    "numeric",      "HashMap_statement.html" },
+        { "HashMap",    "string",       "HashMap_statement.html" },
+        { "List",       "numeric",      "List_statement.html" },
+        { "List",       "string",       "List_statement.html" },
+        { "PROC",       "GLOBAL",       "cspro_program_structure.html" },
+        { "set",        "access",       "set_access_statement.html" },
+        { "set",        "attributes",   "set_attributes_statement.html" },
+        { "set",        "behavior",     "set_behavior_export_statement.html" },
+        { "set",        "errmsg",       "set_errmsg_function.html" },
+        { "set",        "first",        "set_first_statement.html" },
+        { "set",        "last",         "set_last_statement.html" },
+        { "skip",       "case",         "skip_case_statement.html" },
+        { "ValueSet",   "numeric",      "ValueSet_statement.html" },
+        { "ValueSet",   "string",       "ValueSet_statement.html" },
     };
 
     const MultipleReservedWordsTable<MultipleWordExpressionDetails>& GetMultipleWordExpressions()
@@ -46,7 +46,7 @@ namespace
 }
 
 
-const TCHAR* const ContextSensitiveHelp::GetTopicFilename(wstring_view text, const FunctionDetails** function_details/* = nullptr*/)
+const char* const ContextSensitiveHelp::GetTopicFilename(const std::string_view text_sv, const FunctionDetails** function_details/* = nullptr*/)
 {
     const KeywordDetails* keyword_details;
     const FunctionNamespaceDetails* function_namespace_details;
@@ -54,16 +54,16 @@ const TCHAR* const ContextSensitiveHelp::GetTopicFilename(wstring_view text, con
     const FunctionDetails** function_details_to_use = ( function_details != nullptr ) ? function_details : &local_function_details;
     const AdditionalReservedWordDetails* additional_reserved_word_details;
 
-    return KeywordTable::IsKeyword(text, &keyword_details)                                              ? keyword_details->help_filename :
-           FunctionTable::IsFunctionNamespace(text, SymbolType::None, &function_namespace_details)      ? function_namespace_details->help_filename :
-           FunctionTable::IsFunction(text, SymbolType::None, function_details_to_use)                   ? (*function_details_to_use)->help_filename :
-           ReservedWords::GetAdditionalReservedWords().IsEntry(text, &additional_reserved_word_details) ? additional_reserved_word_details->help_filename :
-           ReservedWords::GetSpecialFunctions().IsEntry(text, &additional_reserved_word_details)        ? additional_reserved_word_details->help_filename :
-                                                                                                          nullptr;
+    return KeywordTable::IsKeyword(text_sv, &keyword_details)                                              ? keyword_details->help_filename :
+           FunctionTable::IsFunctionNamespace(text_sv, SymbolType::None, &function_namespace_details)      ? function_namespace_details->help_filename :
+           FunctionTable::IsFunction(text_sv, SymbolType::None, function_details_to_use)                   ? (*function_details_to_use)->help_filename :
+           ReservedWords::GetAdditionalReservedWords().IsEntry(text_sv, &additional_reserved_word_details) ? additional_reserved_word_details->help_filename :
+           ReservedWords::GetSpecialFunctions().IsEntry(text_sv, &additional_reserved_word_details)        ? additional_reserved_word_details->help_filename :
+                                                                                                             nullptr;
 }
 
 
-const TCHAR* const ContextSensitiveHelp::GetTopicFilename(cs::span<const std::wstring> dot_notation_entries, wstring_view text, const FunctionDetails** function_details)
+const char* const ContextSensitiveHelp::GetTopicFilename(const cs::span<const std::string> dot_notation_entries, const std::string_view text_sv, const FunctionDetails** function_details)
 {
     // a routine for dot notation words
     ASSERT(!dot_notation_entries.empty());
@@ -72,7 +72,7 @@ const TCHAR* const ContextSensitiveHelp::GetTopicFilename(cs::span<const std::ws
     std::variant<SymbolType, FunctionNamespace> symbol_type_or_function_namespace = SymbolType::None;
     const FunctionNamespaceDetails* function_namespace_details;
 
-    for( const std::wstring& dot_notation_entry : dot_notation_entries )
+    for( const std::string& dot_notation_entry : dot_notation_entries )
     {
         // return if this is not a function namespace
         if( !FunctionTable::IsFunctionNamespace(dot_notation_entry, symbol_type_or_function_namespace, &function_namespace_details) )
@@ -84,29 +84,30 @@ const TCHAR* const ContextSensitiveHelp::GetTopicFilename(cs::span<const std::ws
     ASSERT(symbol_type_or_function_namespace != SymbolType::None);
 
     // check if this is a function
-    if( FunctionTable::IsFunction(text, symbol_type_or_function_namespace, function_details) )
+    if( FunctionTable::IsFunction(text_sv, symbol_type_or_function_namespace, function_details) )
         return (*function_details)->help_filename;
 
     // check if this is a function namespace
-    if( FunctionTable::IsFunctionNamespace(text, symbol_type_or_function_namespace, &function_namespace_details) )
+    if( FunctionTable::IsFunctionNamespace(text_sv, symbol_type_or_function_namespace, &function_namespace_details) )
         return function_namespace_details->help_filename;
 
     return nullptr;        
 }
 
 
-const TCHAR* const ContextSensitiveHelp::GetIntroductionTopicFilename()
+const char* const ContextSensitiveHelp::GetIntroductionTopicFilename()
 {
-    return _T("introduction_to_cspro_language.html");
+    return "introduction_to_cspro_language.html";
 }
 
 
-bool ContextSensitiveHelp::UpdateTopicFilenameForMultipleWordExpressions(wstring_view text, wstring_view second_text, const TCHAR** help_topic_filename)
+bool ContextSensitiveHelp::UpdateTopicFilenameForMultipleWordExpressions(const std::string_view text_sv, const std::string_view second_text_sv, const char** help_topic_filename)
 {
     ASSERT(help_topic_filename != nullptr);
     const MultipleWordExpressionDetails* multiple_word_expression_details = nullptr;
 
-    if( GetMultipleWordExpressions().IsEntry(text, &MultipleWordExpressionDetails::second_name, StringNoCase(second_text), &multiple_word_expression_details) )
+    if( GetMultipleWordExpressions().IsEntry(text_sv, &multiple_word_expression_details,
+                                             [&](const MultipleWordExpressionDetails& details) { return SO::EqualsNoCase(second_text_sv, details.second_name); }) )
     {
         *help_topic_filename = multiple_word_expression_details->help_filename;
         return true;

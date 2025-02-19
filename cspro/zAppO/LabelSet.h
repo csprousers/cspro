@@ -2,10 +2,6 @@
 
 #include <zAppO/zAppO.h>
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-class Serializer;
-
 
 // a class for maintaining a set of labels (to support multiple languages)
 
@@ -75,13 +71,13 @@ public:
     }
 
     // serialization
-    static LabelSet CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static LabelSet CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
 
 private:
-    static std::vector<CString> Pre80SerializableLabelToLabels(wstring_view serializable_label);
+    static std::vector<CString> Pre80SerializableLabelToLabels(std::string_view serializable_label_sv);
 
 private:
     std::vector<CString> m_labels;

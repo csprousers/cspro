@@ -13,7 +13,7 @@ private:
     LogicAudio(const LogicAudio& logic_audio);
 
 public:
-    LogicAudio(std::wstring audio_name);
+    LogicAudio(std::string audio_name);
     LogicAudio(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
     LogicAudio(LogicAudio&& logic_audio) = delete;
     ~LogicAudio();
@@ -21,17 +21,17 @@ public:
     LogicAudio& operator=(const LogicAudio& logic_audio);
     LogicAudio& operator=(const LogicDocument& logic_document);
 
-    void Load(std::wstring filename);
-    void Save(const std::wstring& filename, std::wstring application_name);
+    void Load(std::string file_path);
+    void Save(const std::string& file_path, std::string application_name);
 
     void Record(std::optional<double> seconds);
     double Stop();
-    double RecordInteractive(const std::wstring& message = std::wstring());
+    double RecordInteractive(const std::string& message = std::string());
 
-    void Play(const std::wstring& message = std::wstring());
+    void Play(const std::string& message = std::string());
 
     void Concat(const LogicAudio& logic_audio);
-    void Concat(std::wstring filename);    
+    void Concat(std::string file_path);
 
     double GetLength() const;
 
@@ -40,13 +40,13 @@ public:
 
     void Reset() override;
 
-    void UpdateValueFromJson(const JsonNode<wchar_t>& json_node) override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // BinarySymbol overrides
     bool HasValidContent() const override;
 
 private:
-    using AudioStorage = std::variant<std::wstring, std::shared_ptr<TemporaryFile>>;
+    using AudioStorage = std::variant<std::string, std::shared_ptr<TemporaryFile>>;
 
     struct Data
     {
@@ -57,7 +57,7 @@ private:
     };
 
 private:
-    static const std::wstring& GetPath(const AudioStorage& audio_storage);
+    static const std::string& GetPath(const AudioStorage& audio_storage);
 
     // returns a Data object, reading the sampling rate, duration, and type when possible
     static std::unique_ptr<Data> CreateData(AudioStorage audio_storage) noexcept;
@@ -72,7 +72,7 @@ private:
 
     double StopCurrentRecording();
 
-    void Concat(AudioStorage audio_storage, const TCHAR* label, const TCHAR* source);
+    void Concat(AudioStorage audio_storage, const char* label, const char* source);
 
 private:
     std::unique_ptr<Data> m_data;

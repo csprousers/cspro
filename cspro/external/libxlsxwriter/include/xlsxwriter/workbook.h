@@ -1,7 +1,8 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  */
 
 /**
@@ -182,34 +183,34 @@ typedef struct lxw_defined_name {
  */
 typedef struct lxw_doc_properties {
     /** The title of the Excel Document. */
-    char *title;
+    const char *title;
 
     /** The subject of the Excel Document. */
-    char *subject;
+    const char *subject;
 
     /** The author of the Excel Document. */
-    char *author;
+    const char *author;
 
     /** The manager field of the Excel Document. */
-    char *manager;
+    const char *manager;
 
     /** The company field of the Excel Document. */
-    char *company;
+    const char *company;
 
     /** The category of the Excel Document. */
-    char *category;
+    const char *category;
 
     /** The keywords of the Excel Document. */
-    char *keywords;
+    const char *keywords;
 
     /** The comment field of the Excel Document. */
-    char *comments;
+    const char *comments;
 
     /** The status of the Excel Document. */
-    char *status;
+    const char *status;
 
     /** The hyperlink base URL of the Excel Document. */
-    char *hyperlink_base;
+    const char *hyperlink_base;
 
     /** The file creation date/time shown in Excel. This defaults to the
      * current time and date if set to 0. If you wish to create files that are
@@ -270,13 +271,13 @@ typedef struct lxw_workbook_options {
     uint8_t constant_memory;
 
     /** Directory to use for the temporary files created by libxlsxwriter. */
-    char *tmpdir;
+    const char *tmpdir;
 
     /** Allow ZIP64 extensions when creating the xlsx file zip container. */
     uint8_t use_zip64;
 
     /** Output buffer to use instead of writing to a file */
-    char **output_buffer;
+    const char **output_buffer;
 
     /** Used with output_buffer to get the size of the created buffer */
     size_t *output_buffer_size;
@@ -298,6 +299,7 @@ typedef struct lxw_workbook {
     struct lxw_worksheet_names *worksheet_names;
     struct lxw_chartsheet_names *chartsheet_names;
     struct lxw_image_md5s *image_md5s;
+    struct lxw_image_md5s *embedded_image_md5s;
     struct lxw_image_md5s *header_image_md5s;
     struct lxw_image_md5s *background_md5s;
     struct lxw_charts *charts;
@@ -321,6 +323,7 @@ typedef struct lxw_workbook {
     uint16_t num_format_count;
     uint16_t drawing_count;
     uint16_t comment_count;
+    uint32_t num_embedded_images;
 
     uint16_t font_count;
     uint16_t border_count;
@@ -336,11 +339,15 @@ typedef struct lxw_workbook {
     uint8_t has_vml;
     uint8_t has_comments;
     uint8_t has_metadata;
+    uint8_t has_embedded_images;
+    uint8_t has_dynamic_functions;
+    uint8_t has_embedded_image_descriptions;
 
     lxw_hash_table *used_xf_formats;
     lxw_hash_table *used_dxf_formats;
 
     char *vba_project;
+    char *vba_project_signature;
     char *vba_codename;
 
     lxw_format *default_url_format;
@@ -467,6 +474,7 @@ lxw_workbook *workbook_new_opt(const char *filename,
  *
  * The worksheet name must be a valid Excel worksheet name, i.e:
  *
+ * - The name cannot be blank.
  * - The name is less than or equal to 31 UTF-8 characters.
  * - The name doesn't contain any of the characters: ` [ ] : * ? / \ `
  * - The name doesn't start or end with an apostrophe.
@@ -509,6 +517,7 @@ lxw_worksheet *workbook_add_worksheet(lxw_workbook *workbook,
  *
  * The chartsheet name must be a valid Excel worksheet name, i.e.:
  *
+ * - The name cannot be blank.
  * - The name is less than or equal to 31 UTF-8 characters.
  * - The name doesn't contain any of the characters: ` [ ] : * ? / \ `
  * - The name doesn't start or end with an apostrophe.
@@ -852,7 +861,7 @@ lxw_error workbook_set_custom_property_datetime(lxw_workbook *workbook,
  * @endcode
  *
  * The rules for names in Excel are explained in the
- * [Microsoft Office documentation](http://office.microsoft.com/en-001/excel-help/define-and-use-names-in-formulas-HA010147120.aspx).
+ * [Microsoft Office documentation](https://support.microsoft.com/en-us/office/define-and-use-names-in-formulas-4d0f13ac-53b7-422e-afd2-abd7ff379c64).
  *
  */
 lxw_error workbook_define_name(lxw_workbook *workbook, const char *name,
@@ -925,6 +934,7 @@ lxw_chartsheet *workbook_get_chartsheet_by_name(lxw_workbook *workbook,
  * This function is used to validate a worksheet or chartsheet name according
  * to the rules used by Excel:
  *
+ * - The name cannot be blank.
  * - The name is less than or equal to 31 UTF-8 characters.
  * - The name doesn't contain any of the characters: ` [ ] : * ? / \ `
  * - The name doesn't start or end with an apostrophe.
@@ -966,7 +976,7 @@ lxw_error workbook_validate_sheet_name(lxw_workbook *workbook,
  *     workbook_add_vba_project(workbook, "vbaProject.bin");
  * @endcode
  *
- * Only one `vbaProject.bin file` can be added per workbook. The name doesn't
+ * Only one `vbaProject.bin` file can be added per workbook. The name doesn't
  * have to be `vbaProject.bin`. Any suitable path/name for an existing VBA bin
  * file will do.
  *
@@ -984,6 +994,35 @@ lxw_error workbook_validate_sheet_name(lxw_workbook *workbook,
  */
 lxw_error workbook_add_vba_project(lxw_workbook *workbook,
                                    const char *filename);
+
+/**
+ * @brief Add a vbaProject binary and a vbaProjectSignature binary to the Excel
+ * workbook.
+ *
+ * @param workbook    Pointer to a lxw_workbook instance.
+ * @param vba_project The path/filename of the vbaProject.bin file.
+ * @param signature   The path/filename of the vbaProjectSignature.bin file.
+ *
+ * The `%workbook_add_signed_vba_project()` function can be used to add digitally
+ * signed macros or functions to a workbook. The function adds a binary VBA project
+ * file and a binary VBA project signature file that have been extracted from an
+ * existing Excel xlsm file with digitally signed macros:
+ *
+ * @code
+ *     workbook_add_signed_vba_project(workbook, "vbaProject.bin", "vbaProjectSignature.bin");
+ * @endcode
+ *
+ * Only one `vbaProject.bin` file can be added per workbook. The name doesn't
+ * have to be `vbaProject.bin`. Any suitable path/name for an existing VBA bin
+ * file will do. The same applies for `vbaProjectSignature.bin`.
+ *
+ * See also @ref working_with_macros
+ *
+ * @return A #lxw_error.
+ */
+lxw_error workbook_add_signed_vba_project(lxw_workbook *workbook,
+                                          const char *vba_project,
+                                          const char *signature);
 
 /**
  * @brief Set the VBA name for the workbook.

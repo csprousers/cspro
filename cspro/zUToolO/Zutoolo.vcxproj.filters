@@ -90,7 +90,7 @@
     <ClInclude Include="oxghdr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OXGLRES.H">
+    <ClInclude Include="Oxglres.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="oxMDkFW.h">
@@ -117,22 +117,25 @@
     <ClInclude Include="oxtbvw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TreePropertiesPageValidator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TreePrps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zUtoolO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource_shared.h">
+    <ClInclude Include="zUtoolO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

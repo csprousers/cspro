@@ -14,7 +14,7 @@ protected:
 public:
     const LanguageSettings& GetLanguageSettings() const override { return m_languageSettings; }
 
-    std::variant<const CDocument*, std::wstring> GetDocumentOrTitleForBuildWnd() const override;
+    std::variant<const CDocument*, std::string> GetDocumentOrTitleForBuildWnd() const override;
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -24,7 +24,7 @@ protected:
     void OnDestroy();
 
 private:
-    std::wstring GetInitialText();
+    std::string GetInitialText();
 
 private:
     LanguageSettings m_languageSettings;

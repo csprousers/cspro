@@ -9,9 +9,9 @@ ActionInvoker::JsonExecutor::JsonExecutor(const bool is_parser_only)
 }
 
 
-void ActionInvoker::JsonExecutor::ParseActions(const std::wstring& text)
+void ActionInvoker::JsonExecutor::ParseActions(const std::string_view text_sv)
 {
-    const JsonNode<wchar_t> json_node = Json::Parse(text);
+    const JsonNode json_node = Json::Parse(text_sv);
 
     if( json_node.IsObject() )
     {
@@ -23,7 +23,7 @@ void ActionInvoker::JsonExecutor::ParseActions(const std::wstring& text)
         if( m_runtimeData != nullptr )
             m_runtimeData->write_results_as_array = true;
 
-        for( const auto& action_node : json_node.GetArray() )
+        for( const JsonNode& action_node : json_node.GetArray() )
             ParseActionNode(action_node);
     }
 
@@ -34,10 +34,10 @@ void ActionInvoker::JsonExecutor::ParseActions(const std::wstring& text)
 }
 
 
-void ActionInvoker::JsonExecutor::ParseActionNode(const JsonNode<wchar_t>& action_node)
+void ActionInvoker::JsonExecutor::ParseActionNode(const JsonNode& action_node)
 {
     if( !action_node.IsObject() || !action_node.Contains(JK::action) )
-        throw CSProException(_T("Each Action Invoker entry must contain an \"%s\" key."), JK::action);
+        throw CSProException("Each Action Invoker entry must contain an '%s' key.", JK::action);
 
     if( m_runtimeData != nullptr )
         m_runtimeData->action_node_jsons.emplace_back(action_node.GetNodeAsString());
@@ -67,7 +67,7 @@ void ActionInvoker::JsonExecutor::RunActions(Caller& caller)
     }
     
     // process each action
-    for( const std::wstring& json_arguments : m_runtimeData->action_node_jsons )
+    for( const std::string& json_arguments : m_runtimeData->action_node_jsons )
     {
         try
         {
@@ -93,27 +93,27 @@ void ActionInvoker::JsonExecutor::ProcessActionResult(const JsonResponse& json_r
     ASSERT(m_runtimeData != nullptr);
 
     if( m_runtimeData->results_json == nullptr )
-        m_runtimeData->results_json = std::make_shared<std::wstring>();
+        m_runtimeData->results_json = std::make_unique<std::string>();
 
     if( m_runtimeData->write_results_as_array )
         m_runtimeData->results_json->push_back(m_runtimeData->results_json->empty() ? '[' : ',');
 
-    m_runtimeData->results_json->append(json_response.GetResponseText());
+    m_runtimeData->results_json->append(json_response.GetResponseText().GetString());
 }
 
 
-std::shared_ptr<const std::wstring> ActionInvoker::JsonExecutor::GetResultsJson() const
+SharableString ActionInvoker::JsonExecutor::ReleaseResultsJson()
 {
     ASSERT(m_runtimeData != nullptr);
 
-    std::shared_ptr<const std::wstring> results_json = m_runtimeData->results_json;
+    std::shared_ptr<std::string> results_json = std::move(m_runtimeData->results_json);
 
     // if there were no actions (and no exceptions), return an empty array
     if( results_json == nullptr )
     {
         ASSERT(m_runtimeData->action_node_jsons.empty());
 
-        results_json = std::make_shared<std::wstring>(Json::Text::EmptyArray);
+        return Json::Text::EmptyArray_sv;
     }
 
     // otherwise end the array (if necessary)
@@ -121,7 +121,7 @@ std::shared_ptr<const std::wstring> ActionInvoker::JsonExecutor::GetResultsJson(
     {
         ASSERT(results_json->front() == '[');
 
-        results_json = std::make_shared<std::wstring>(*results_json + _T("]"));
+        results_json->push_back(']');
     }
 
     else

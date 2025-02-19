@@ -4,29 +4,22 @@
 //
 #define IDR_CASE_MENU                   101
 #define IDR_MAINFRAME                   102
-#define IDI_PARTIAL_MOD                 103
-#define IDI_EMPTY                       104
-#define IDI_PARTIAL_ADD                 105
-#define IDI_PARTIAL_VER                 106
-#define IDI_COMPLETE                    107
-#define IDI_NODE                        108
-#define IDI_COMPLETE_VER                109
-#define IDI_DELETED                     110
-#define IDD_DLG_DISCARD                 111
-#define IDD_DLG_DISCARD_MOD             112
-#define IDD_DLG_GPS                     113
-#define IDD_DLG_PARTIAL                 114
-#define IDD_DLG_PARTIAL_MOD             115
-#define IDD_GOTO                        116
-#define IDD_INTEDTDLG                   117
-#define IDD_LEFTVIEW                    118
-#define IDD_OPID                        119
-#define IDD_PROGRESS_DIALOG             120
-#define IDD_PROPPAGE1                   121
-#define IDD_PROPPAGE2                   122
-#define IDD_QSRCHDLG                    123
-#define IDD_STATDLG                     124
-#define IDS_INVLDFTYPE                  125
+#define IDI_EMPTY                       103
+#define IDI_NODE                        104
+#define IDD_DLG_DISCARD                 105
+#define IDD_DLG_DISCARD_MOD             106
+#define IDD_DLG_GPS                     107
+#define IDD_DLG_PARTIAL                 108
+#define IDD_DLG_PARTIAL_MOD             109
+#define IDD_GOTO                        110
+#define IDD_INTEDTDLG                   111
+#define IDD_LEFTVIEW                    112
+#define IDD_OPID                        113
+#define IDD_PROPPAGE1                   114
+#define IDD_PROPPAGE2                   115
+#define IDD_QSRCHDLG                    116
+#define IDD_STATDLG                     117
+#define IDS_INVLDFTYPE                  118
 #define IDC_ADD                         1000
 #define IDC_BOTH                        1001
 #define IDC_DICARD                      1002
@@ -41,13 +34,11 @@
 #define IDC_OPID                        1011
 #define IDC_OUTOFRANGE                  1012
 #define IDC_PAUSE                       1013
-#define IDC_PROGRESS_BAR                1014
-#define IDC_PROGRESS_MESSAGE            1015
-#define IDC_SAVEPARTIAL                 1016
-#define IDC_STATGRID                    1017
-#define IDC_SUSPEND                     1018
-#define IDC_VERFIEDCASES                1019
-#define IDC_VERIFIED                    1020
+#define IDC_SAVEPARTIAL                 1014
+#define IDC_STATGRID                    1015
+#define IDC_SUSPEND                     1016
+#define IDC_VERFIEDCASES                1017
+#define IDC_VERIFIED                    1018
 #define ID_ADD                          40001
 #define ID_ADD_CASE                     40002
 #define ID_ADD_NODE                     40003
@@ -122,9 +113,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        126
+#define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40070
-#define _APS_NEXT_CONTROL_VALUE         1021
-#define _APS_NEXT_SYMED_VALUE           126
+#define _APS_NEXT_CONTROL_VALUE         1019
+#define _APS_NEXT_SYMED_VALUE           119
 #endif
 #endif

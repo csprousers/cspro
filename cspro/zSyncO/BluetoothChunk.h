@@ -1,41 +1,29 @@
 ﻿#pragma once
-#include "IDataChunk.h"
-#include <cstddef>
-#include <cstdint>
 
-namespace BluetoothFileChunk {
-    const int size = 5 * 1024 * 1024; // 5 MB
-}
+#include <zSyncO/IDataChunk.h>
 
-/// <summary>Bluetooth implementation for a data chunk</summary>
+
+// Bluetooth implementation for a data chunk
+
 class BluetoothDataChunk : public IDataChunk
 {
 public:
+    static constexpr int FileChunkSize = 5 * 1024 * 1024; // 5 MB
+
     BluetoothDataChunk();
 
-    virtual int getSize() const override;
-    virtual int getBinaryContentSize() const override { return m_binaryContentSize; }
-    void setSize(int size);
+    size_t GetCaseSize() const override;
+    uint64_t GetBinaryContentSize() const override;
 
-    virtual void enableOptimization() override;
-    virtual void resetOptimization() override;
+    void EnableOptimization() override;
+    void ResetOptimization() override;
 
-    void optimize(std::uint64_t dataSize, std::size_t packetSize);
+    void Optimize(uint64_t dataSize, size_t packetSize);
 
 private:
-    enum class Resize
-    {
-        Default,
-        Shrink,
-        Grow
-    };
+    size_t m_caseSize;
+    bool m_optimizationEnabled;
 
-    void init(std::uint64_t dataSize, std::size_t packetSize);
-
-    const int m_defaultSize;
-    const int m_binaryContentSize;
-    int m_size;
-    Resize m_resize;
-    bool m_enabled;
-    bool m_init;
+    enum class Resize { Shrink, Grow };
+    std::optional<Resize> m_resize;
 };

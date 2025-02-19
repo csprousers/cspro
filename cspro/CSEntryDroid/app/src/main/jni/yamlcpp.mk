@@ -36,7 +36,7 @@ LOCAL_SRC_FILES         += $(CPPYAML_SRC_PATH)/singledocparser.cpp
 LOCAL_SRC_FILES         += $(CPPYAML_SRC_PATH)/stream.cpp
 LOCAL_SRC_FILES         += $(CPPYAML_SRC_PATH)/tag.cpp
 
-LOCAL_CFLAGS    		+= -DANDROID=1
+include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS    		+= -DUNICODE=1
 LOCAL_CFLAGS    		+= -D_UNICODE=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/yaml-cpp/include

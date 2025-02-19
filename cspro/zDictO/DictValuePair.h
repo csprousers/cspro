@@ -2,13 +2,12 @@
 
 #include <zDictO/zDictO.h>
 
-class Serializer;
-
 
 class CLASS_DECL_ZDICTO DictValuePair
 {
 public:
     DictValuePair(const CString& from = CString(), const CString& to = CString());
+    DictValuePair(std::string from, std::string to = std::string());
 
     const CString& GetFrom() const    { return m_from; }
     void SetFrom(const CString& from) { m_from = from; }
@@ -18,7 +17,7 @@ public:
 
 
     // serialization
-    static DictValuePair CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictValuePair CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);

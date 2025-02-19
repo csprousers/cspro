@@ -33,38 +33,37 @@ The formatting rules:
 */
 
 
-CaseItemPrinter::CaseItemPrinter(Format format)
+CaseItemPrinter::CaseItemPrinter(const Format format)
     :   m_format(format)
 {
 }
 
 
 template<typename T>
-std::wstring CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value) const
+std::string CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value) const
 {
     // get the value processor
-    std::shared_ptr<const ValueProcessor> value_processor;
+    const ValueProcessor* value_processor;
     const auto& value_processor_lookup = m_valueProcessors.find(&case_item);
 
     if( value_processor_lookup != m_valueProcessors.end() )
     {
-        value_processor = value_processor_lookup->second;
+        value_processor = value_processor_lookup->second.get();
     }
 
     else
     {
         // create the value processor for this item
         // CR_TODO this is not thread safe
-        const CDictItem& dict_item = case_item.GetDictionaryItem();
-        value_processor = ValueProcessor::CreateValueProcessor(dict_item, dict_item.GetFirstValueSetOrNull());
-        m_valueProcessors.emplace(&case_item, value_processor);
+        const CDictItem& dict_item = case_item.GetDictItem();
+        value_processor = m_valueProcessors.emplace(&case_item, ValueProcessor::CreateValueProcessor(dict_item, dict_item.GetFirstValueSetOrNull())).first->second.get();
     }
 
     // when using checkboxes, process each component separately
-    if constexpr(std::is_same_v<T, CString>)
+    if constexpr(std::is_same_v<T, std::string>)
     {
-        if( case_item.GetDictionaryItem().GetCaptureInfo().GetCaptureType() == CaptureType::CheckBox )
-            return CS2WS(CheckBoxCaptureInfo::GetResponseLabel(value, *value_processor));
+        if( case_item.GetDictItem().GetCaptureInfo().GetCaptureType() == CaptureType::CheckBox )
+            return UTF8_TODO::GetUtf8(CheckBoxCaptureInfo::GetResponseLabel(UTF8_TODO::GetCString(value), *value_processor));
     }
 
     // otherwise search for the label
@@ -76,118 +75,36 @@ std::wstring CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value
         if( ( m_format != Format::CaseTree ) ||
             ( dict_value->HasValuePairs() && dict_value->GetValuePair(0).GetTo().IsEmpty() ) )
         {
-            return CS2WS(dict_value->GetLabel());
+            return UTF8_TODO::GetUtf8(dict_value->GetLabel());
         }
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CaseItemPrinter::GetText(const CaseItem& case_item, const CaseItemIndex& index) const
+std::string CaseItemPrinter::GetText(const CaseItem& case_item, const CaseItemIndex& index) const
 {
-    std::wstring label;
-    std::wstring code;
-    const bool use_label = ( m_format != Format::Code );
-    bool use_code = ( m_format != Format::Label );
+    std::string label;
+    std::string code;
 
-    // format numerics
-    if( case_item.IsTypeNumeric() )
+    switch( case_item.GetDataType() )
     {
-        const NumericCaseItem& numeric_case_item = assert_cast<const NumericCaseItem&>(case_item);
+        case DataType::Numeric:
+            GetText(assert_cast<const NumericCaseItem&>(case_item), index, label, code);
+            break;
 
-        // GetValue, not GetValueForOutput, is used for the label because the non-serializable value is needed
-        if( use_label )
-        {
-            label = GetLabel(numeric_case_item, numeric_case_item.GetValue(index));
-            use_code |= label.empty();
-        }
+        case DataType::String:
+            GetText(assert_cast<const StringCaseItem&>(case_item), index, label, code);
+            break;
 
-        if( use_code )
-            code = FormatNumber(numeric_case_item, numeric_case_item.GetValueForOutput(index));
+        case DataType::Binary:
+            GetText(assert_cast<const BinaryCaseItem&>(case_item), index, label, code);
+            break;
+
+        default:
+            ASSERT(false);
     }
-
-
-    // format strings
-    else if( case_item.IsTypeString() )
-    {
-        code = CS2WS(assert_cast<const StringCaseItem&>(case_item).GetValue(index));
-
-        if( use_label )
-        {
-            label = GetLabel(case_item, WS2CS(code));
-            use_code |= label.empty();
-        }
-
-        if( use_code )
-        {
-            // right-trim spaces from the text
-            SO::MakeTrimRightSpace(code);
-        }
-
-        else
-        {
-            code.clear();
-        }
-    }
-
-
-    // format binary data
-    else if( case_item.IsTypeBinary() )
-    {
-        const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(case_item);
-        const BinaryDataMetadata* binary_data_metadata = binary_case_item.GetBinaryDataMetadata_noexcept(index);
-
-        if( binary_data_metadata != nullptr )
-        {
-            code = binary_data_metadata->GetEvaluatedLabel();
-
-            // if the evaluated label is not blank, add the filename (if different)
-            if( !code.empty() )
-            {
-                const std::optional<std::wstring> filename = binary_data_metadata->GetFilename();
-
-                if( filename.has_value() && code != *filename )
-                {
-                    code.append(_T("\n\n"));
-                    code.append(*filename);
-                }
-            }
-
-            // if the evaluated label is blank, try to use the MIME type
-            else
-            {
-                const std::optional<std::wstring> mime_type = binary_data_metadata->GetMimeType();
-
-                if( mime_type.has_value() )
-                {
-                    code = WS2CS(*mime_type);
-                }
-
-                // otherwise add whatever metadata exists
-                else
-                {
-                    for( const auto& [attribute, value] : binary_data_metadata->GetProperties() )
-                    {
-                        SO::Append(code, code.empty() ? _T("") : _T("\n"),
-                                         attribute.c_str(),
-                                         value.empty() ? _T("") : _T(": "),
-                                         value.c_str());
-                    }
-                }
-            }
-
-            if( code.empty() )
-                code = _T("Binary Data");
-        }
-    }
-
-
-    else
-    {
-        ASSERT(false);
-    }
-
 
     // join the label and the code, avoiding identical labels and codes
     if( !label.empty() && !code.empty() && code != label )
@@ -197,24 +114,107 @@ std::wstring CaseItemPrinter::GetText(const CaseItem& case_item, const CaseItemI
         if( m_format == Format::CodeLabel )
             std::swap(code, label);
 
-        label.append(_T(": "));
+        label.append(": ");
         label.append(code);
     }
 
-    return label.empty() ? code : label;
+    return label.empty() ? code :
+                           label;
 }
 
 
-std::wstring CaseItemPrinter::FormatNumber(const CaseItem& case_item, double value) const
+void CaseItemPrinter::GetText(const NumericCaseItem& numeric_case_item, const CaseItemIndex& index, std::string& label, std::string& code) const
 {
+    // GetValue, not GetValueForOutput, is used for the label because the non-serializable value is needed
+    if( UseLabel() )
+        label = GetLabel(numeric_case_item, numeric_case_item.GetValue(index));
+
+    if( UseCode() || label.empty() )
+        code = FormatNumber(numeric_case_item, numeric_case_item.GetValueForOutput(index));
+}
+
+
+void CaseItemPrinter::GetText(const StringCaseItem& string_case_item, const CaseItemIndex& index, std::string& label, std::string& code) const
+{
+    code = string_case_item.GetValue(index);
+
+    if( UseLabel() )
+        label = GetLabel(string_case_item, code);
+
+    if( UseCode() || label.empty() )
+    {
+        // right-trim spaces from the text
+        SO::MakeTrimRightSpace(code);
+    }
+
+    else
+    {
+        code.clear();
+    }
+}
+
+
+void CaseItemPrinter::GetText(const BinaryCaseItem& binary_case_item, const CaseItemIndex& index, std::string& /*label*/, std::string& code) const
+{
+    const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+
+    if( !binary_data_accessor.IsDefined() )
+        return;
+
+    const BinaryDataMetadata& binary_data_metadata = binary_data_accessor.GetBinaryDataMetadata();
+
+    code = binary_data_metadata.GetEvaluatedLabel();
+
+    // if the evaluated label is not blank, add the filename (if different)
+    if( !code.empty() )
+    {
+        const std::optional<std::string> filename = binary_data_metadata.GetFilename();
+
+        if( filename.has_value() && code != *filename )
+        {
+            code.append("\n\n");
+            code.append(*filename);
+        }
+    }
+
+    // if the evaluated label is blank, try to use the MIME type
+    else
+    {
+        std::optional<std::string> mime_type = binary_data_metadata.GetMimeType();
+
+        if( mime_type.has_value() )
+        {
+            code = std::move(*mime_type);
+        }
+
+        // otherwise add whatever metadata exists
+        else
+        {
+            for( const auto& [attribute, value] : binary_data_metadata.GetProperties() )
+            {
+                SO::AppendWithSeparator(code, attribute, "\n");
+
+                if( !value.empty() )
+                {
+                    code.append(": ");
+                    code.append(value);
+                }
+            }
+        }
+    }
+
+    if( code.empty() )
+        code = "Binary Data";
+}
+
+
+std::string CaseItemPrinter::FormatNumber(const CDictItem& dict_item, const double value, const bool case_tree_format)
+{
+    ASSERT(IsNumeric(dict_item));
+
     if( !IsSpecial(value) )
     {
-        ASSERT(case_item.IsTypeFixed());
-        const CDictItem& dict_item = case_item.GetDictionaryItem();
-        const size_t numeric_length = dict_item.GetCompleteLen();
-
-        std::wstring value_text(numeric_length, '\0');
-        NumberConverter::DoubleToText(value, value_text.data(), numeric_length, dict_item.GetDecimal(), false, true);
+        std::string value_text = NumberConverter::DoubleToText(value, dict_item.GetCompleteLen(), dict_item.GetDecimal(), false, true);
 
         // left-trim any spaces
         SO::MakeTrimLeft(value_text);
@@ -222,7 +222,7 @@ std::wstring CaseItemPrinter::FormatNumber(const CaseItem& case_item, double val
         if( dict_item.GetDecimal() > 0 )
         {
             // for the case tree, remove any excess decimal zeros
-            if( m_format == Format::CaseTree )
+            if( case_tree_format )
             {
                 SO::MakeTrimRight(value_text, '0');
 
@@ -238,7 +238,7 @@ std::wstring CaseItemPrinter::FormatNumber(const CaseItem& case_item, double val
                 value_text.insert(0, 1, '0');
             }
 
-            else if( SO::StartsWith(value_text, _T("-.")) )
+            else if( SO::StartsWith(value_text, "-.") )
             {
                 ASSERT(false);
                 value_text.insert(1, 1, '0');
@@ -251,11 +251,18 @@ std::wstring CaseItemPrinter::FormatNumber(const CaseItem& case_item, double val
     // return blanks for notappl but other special values will use their string values
     else if( value == NOTAPPL )
     {
-        return std::wstring();
+        return std::string();
     }
 
     else
     {
         return SpecialValues::ValueToString(value);
     }
+}
+
+
+std::string CaseItemPrinter::FormatNumber(const CaseItem& case_item, const double value) const
+{
+    ASSERT(case_item.IsFixedWidth());
+    return FormatNumber(case_item.GetDictItem(), value, ( m_format == Format::CaseTree ));
 }

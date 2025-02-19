@@ -23,7 +23,6 @@ class CValueSetView;
 class CLeftView;
 class CCaseTree;
 class ObjectTransporter;
-class ProgressDialog;
 class QSFView;
 
 class CMainFrame : public CFrameWnd
@@ -137,7 +136,7 @@ protected:  // control bar embedded members
     LONG OnUserbarUpdate(WPARAM wParam, LPARAM lParam);
     LONG OnSetMessageOverrides(WPARAM wParam, LPARAM lParam); // 20100518
     LONG OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam);
-    LONG OnGetUserFonts(WPARAM wParam, LPARAM lParam); // 20100621
+    LRESULT OnGetUserFonts(WPARAM wParam, LPARAM lParam); // 20100621
     LRESULT OnShowGPSDialog(WPARAM wParam, LPARAM lParam); // 20110524
     LRESULT OnEngineUI(WPARAM wParam, LPARAM lParam);
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
@@ -145,10 +144,6 @@ protected:  // control bar embedded members
     LRESULT OnActionInvokerEngineProgramControlExecuted(WPARAM wParam, LPARAM lParam);
 
     bool SelectNextCaseForVerification();
-
-    LONG OnShowProgressDialog(WPARAM wParam, LPARAM lParam);
-    LONG OnHideProgressDialog(WPARAM wParam, LPARAM lParam);
-    LONG OnUpdateProgressDialog(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnControlParadataKeyingInstance(WPARAM wParam,LPARAM lParam);
 
@@ -162,8 +157,8 @@ protected:
     afx_msg void OnUpdateStats(CCmdUI* pCmdUI);
     afx_msg void OnPartialSaveCase();
     afx_msg void OnUpdatePartialSaveCase(CCmdUI* pCmdUI);
-    afx_msg void OnSynchronize();
-    afx_msg void OnUpdateSynchronize(CCmdUI* pCmdUI);
+    afx_msg void OnSimpleSynchronization();
+    afx_msg void OnUpdateSimpleSynchronization(CCmdUI* pCmdUI);
     afx_msg void OnCSProSettings();
     afx_msg void OnClose();
     afx_msg void OnAddCase();
@@ -349,14 +344,12 @@ private:
 
     bool    m_bOnStop;
 
-    ProgressDialog* m_pProgressDlg;
-
     std::vector<CaseSummary> m_caseSummaries;
     std::vector<CaseSummary> m_duplicateCaseSummaries;
 
     bool m_bCaseTreeSortedOrder;
 
-    std::shared_ptr<Paradata::KeyingInstance> m_keyingInstance;
+    std::unique_ptr<Paradata::KeyingInstance> m_keyingInstance;
 
     std::unique_ptr<ObjectTransporter> m_objectTransporter;
     std::unique_ptr<EngineUIProcessor> m_engineUIProcessor;

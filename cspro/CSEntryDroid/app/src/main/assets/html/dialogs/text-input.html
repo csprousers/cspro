@@ -30,7 +30,7 @@
                 <div class="col withNewline" style="padding-right:32px;">
                     {{title}}
                 </div>
-                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.close();">
                 </div>
             </div>
             <div class="row my-dialog-body">
@@ -82,7 +82,7 @@
                 res = res.toUpperCase();
             }
 
-            CS.UI.closeDialog({ result: { textInput: res } });
+            CS.UI.close({ result: { textInput: res } });
         }
 
         function buildDialog(input) {
@@ -210,7 +210,7 @@
             }
 
             if ( e.keyCode === 27 ) { //ESC
-                CS.UI.closeDialog();
+                CS.UI.close();
             } else if (e.keyCode === 9) {
                 cycleTab(isShift);
                 e.preventDefault();

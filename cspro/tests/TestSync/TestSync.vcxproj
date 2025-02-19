@@ -12,10 +12,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AEDF1E07-2EA8-4A0B-871B-56557B81B397}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TestSync</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -39,8 +35,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(SolutionDir)Properties.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -50,45 +44,47 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(SolutionDir)/tests/include;$(SolutionDir)external/rapidjson/include;$(SolutionDir)external/jsoncons;$(SolutionDir)external;$(SolutionDir)/external/geometry.hpp/include;$(SolutionDir)/external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(SolutionDir)tests/include;$(SolutionDir)external;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(SolutionDir)/tests/include;$(SolutionDir)external/rapidjson/include;$(SolutionDir)external/jsoncons;$(SolutionDir)external;$(SolutionDir)/external/geometry.hpp/include;$(SolutionDir)/external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(SolutionDir)tests/include;$(SolutionDir)external;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ApplicationsTester.h" />
     <ClInclude Include="CaseTestHelpers.h" />
+    <ClInclude Include="CSWebSyncServiceWithModifiableApi.h" />
     <ClInclude Include="FailableHttpConnection.h" />
-    <ClInclude Include="FakeServer.h" />
-    <ClInclude Include="FakeServerFactory.h" />
+    <ClInclude Include="FakeSyncService.h" />
+    <ClInclude Include="FakeSyncServiceFactory.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SyncTestCredentials.h" />
     <ClInclude Include="TestRepoBuilder.h" />
+    <ClInclude Include="ToString.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ApplicationsTester.cpp" />
     <ClCompile Include="CaseJsonWriterTest.cpp" />
-    <ClCompile Include="CSWebSyncServerConnectionTest.cpp" />
+    <ClCompile Include="CaseTestHelpers.cpp" />
+    <ClCompile Include="CSWebApiTest.cpp" />
+    <ClCompile Include="CSWebSyncServiceTest.cpp" />
     <ClCompile Include="CurlFtpConnectionTest.cpp" />
     <ClCompile Include="CurlHttpConnectionTest.cpp" />
-    <ClCompile Include="DropboxSyncServerConnectionTest.cpp" />
-    <ClCompile Include="FTPSyncServerConnectionTest.cpp" />
+    <ClCompile Include="DropboxSyncServiceTest.cpp" />
+    <ClCompile Include="FileBasedSyncServiceTest.cpp" />
+    <ClCompile Include="FtpSyncServiceTest.cpp" />
     <ClCompile Include="GeoJsonParserTest.cpp" />
     <ClCompile Include="IntegrationTest.cpp" />
     <ClCompile Include="JsonConverterTest.cpp" />
@@ -99,6 +95,7 @@
     </ClCompile>
     <ClCompile Include="SyncClientTest.cpp" />
     <ClCompile Include="SyncObexHandlerTest.cpp" />
+    <ClCompile Include="SyncTestCredentials.cpp" />
     <ClCompile Include="VectorClockTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +111,10 @@
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\zMapping\zMapping.vcxproj">
       <Project>{bb03b600-1ccf-4875-9300-26ad969e8d80}</Project>
       <Private>false</Private>
@@ -124,6 +125,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\zNetwork\zNetwork.vcxproj">
       <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zSyncF\zSyncF.vcxproj">
+      <Project>{f937df04-b0cb-4b04-8671-d7cfb13cae56}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\zSyncO\zSyncO.vcxproj">
@@ -144,29 +149,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="TestFiles\TestDict.dcf">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TargetDir)\TestDict.dcf</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(TargetDir)\TestDict.dcf</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="TestFiles\ThreeLevelTest.csdb">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TargetDir)\ThreeLevelTest.csdb</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-	<CustomBuild Include="TestFiles\cspro-logo.png" >
-		<FileType>Document</FileType>
-		<Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
-		<Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
-		<Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TargetDir)\cspro-logo.png</Outputs>
-		<Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(TargetDir)\cspro-logo.png</Outputs>
-	</CustomBuild>
+    <None Include="Test Files\TestDict.dcf" />
+    <None Include="Test Files\ThreeLevelTest.csdb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

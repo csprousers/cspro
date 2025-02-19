@@ -23,7 +23,7 @@ private:
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction/initialization
 public:
-    CSymbolForm(std::wstring name, CDEForm* pCDEForm);
+    CSymbolForm(std::string name, CDEForm* pCDEForm);
 
     // --- associated CDEForm
 public:

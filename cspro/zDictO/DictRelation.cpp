@@ -39,24 +39,24 @@
 
 namespace
 {
-    constexpr wstring_view OccurrenceText = _T("(occurrence)");
+    constexpr std::string_view OccurrenceText_sv = "(occurrence)";
 }
 
 
-DictRelationPart DictRelationPart::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictRelationPart DictRelationPart::CreateFromJson(const JsonNode& json_node)
 {
     DictRelationPart dict_relation_part;
 
-    auto set_link = [&](std::wstring& link, const TCHAR* key)
+    auto set_link = [&](std::string& link, const char* const key)
     {
-        link = json_node.GetOrDefault(key, SO::EmptyString);
+        link = json_node.GetOrConstruct<std::string>(key);
 
-        if( link == OccurrenceText )
+        if( link == OccurrenceText_sv )
             link.clear();
     };
 
     set_link(dict_relation_part.m_primaryLink, JK::primaryLink);
-    dict_relation_part.m_secondaryName = json_node.Get<std::wstring>(JK::secondary);
+    dict_relation_part.m_secondaryName = json_node.Get<std::string>(JK::secondary);
     set_link(dict_relation_part.m_secondaryLink, JK::secondaryLink);
 
     return dict_relation_part;
@@ -66,9 +66,9 @@ DictRelationPart DictRelationPart::CreateFromJson(const JsonNode<wchar_t>& json_
 void DictRelationPart::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject()
-               .Write(JK::primaryLink, m_primaryLink.empty() ? OccurrenceText : wstring_view(m_primaryLink))
+               .Write(JK::primaryLink, m_primaryLink.empty() ? OccurrenceText_sv : std::string_view(m_primaryLink))
                .Write(JK::secondary, m_secondaryName)
-               .Write(JK::secondaryLink, m_secondaryLink.empty() ? OccurrenceText : wstring_view(m_secondaryLink))
+               .Write(JK::secondaryLink, m_secondaryLink.empty() ? OccurrenceText_sv : std::string_view(m_secondaryLink))
                .EndObject();
 }
 
@@ -103,7 +103,7 @@ void DictRelation::RemoveRelationPart(size_t index)
 }
 
 
-std::wstring DictRelation::GenerateCode(const std::wstring& dictionary_name) const
+std::string DictRelation::GenerateCode(const std::string& dictionary_name) const
 {
     // Relation RelName MultVar/Sec [  TO  MultVar/Sec  PARALLEL
     //                                                  LINKED BY exprlog
@@ -120,32 +120,32 @@ std::wstring DictRelation::GenerateCode(const std::wstring& dictionary_name) con
     // 20140308 a relation wouldn't compile in a tabulation application because of the problem with the
     // infamous "ambiguous symbol" problem mixing dictionary records with _EDT groups; so we'll use
     // dictionary dot notation to make things extra clear
-    std::wstring code = FormatTextCS2WS(_T("RELATION %s %s.%s"), GetName().GetString(), dictionary_name.c_str(), m_primaryName.c_str());
+    std::string code = FormatText("RELATION %s %s.%s", GetName().c_str(), dictionary_name.c_str(), m_primaryName.c_str());
 
     for( const DictRelationPart& dict_relation_part : m_dictRelationParts )
     {
-        SO::AppendFormat(code, _T(" TO %s.%s "), dictionary_name.c_str(), dict_relation_part.GetSecondaryName().c_str());
+        code.append(FormatText(" TO %s.%s ", dictionary_name.c_str(), dict_relation_part.GetSecondaryName().c_str()));
 
         // one link
         if( dict_relation_part.IsPrimaryLinkedByOccurrence() != dict_relation_part.IsSecondaryLinkedByOccurrence() )
         {
-            SO::AppendFormat(code, _T("LINKED BY %s.%s"), dictionary_name.c_str(),
+            code.append(FormatText("LINKED BY %s.%s", dictionary_name.c_str(),
                                     dict_relation_part.IsPrimaryLinkedByOccurrence() ? dict_relation_part.GetSecondaryLink().c_str() :
-                                                                                       dict_relation_part.GetPrimaryLink().c_str());
+                                                                                       dict_relation_part.GetPrimaryLink().c_str()));
         }
 
         // both links
         else if( !dict_relation_part.IsPrimaryLinkedByOccurrence() )
         {
-            SO::AppendFormat(code, _T("WHERE %s.%s = %s.%s"),
+            code.append(FormatText("WHERE %s.%s = %s.%s",
                                    dictionary_name.c_str(), dict_relation_part.GetPrimaryLink().c_str(),
-                                   dictionary_name.c_str(), dict_relation_part.GetSecondaryLink().c_str());
+                                   dictionary_name.c_str(), dict_relation_part.GetSecondaryLink().c_str()));
         }
 
         // no links (both by occurrence)
         else
         {
-            code.append(_T("PARALLEL"));
+            code.append("PARALLEL");
         }
     }
 
@@ -155,19 +155,19 @@ std::wstring DictRelation::GenerateCode(const std::wstring& dictionary_name) con
 }
 
 
-DictRelation DictRelation::CreateFromJson(const JsonNode<wchar_t>& json_node)
+DictRelation DictRelation::CreateFromJson(const JsonNode& json_node)
 {
     DictRelation dict_relation;
 
     dict_relation.DictNamedBase::ParseJsonInput(json_node, false);
 
-    dict_relation.m_primaryName = json_node.Get<std::wstring>(JK::primary);
+    dict_relation.m_primaryName = json_node.Get<std::string>(JK::primary);
 
     dict_relation.m_dictRelationParts = json_node.GetArrayOrEmpty(JK::links).GetVector<DictRelationPart>(
         [&](const JsonParseException& exception)
         {
-            json_node.LogWarning(_T("A relation link was not added to '%s' due to errors: %s"),
-                                 dict_relation.GetName().GetString(), exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A relation link was not added to '%s' due to errors: %s",
+                                 dict_relation.GetName().c_str(), exception.what());
         });
 
     return dict_relation;
@@ -191,7 +191,7 @@ void DictRelation::serialize(Serializer& ar)
 {
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
-        SetName(ar.Read<CString>());
+        SetName(ar.Read<std::string>());
     }
 
     else

@@ -4,8 +4,6 @@
 #include <zMessageO/MessageType.h>
 #include <zDictO/DDClass.h>
 
-class JsonWriter;
-
 
 class ProcessSummary
 {
@@ -20,7 +18,7 @@ private:
 public:
     enum class AttributesType { Records, Slices };
 
-    size_t GetPercentSourceRead() const       { return m_percentSourceRead; }
+    size_t GetPercentSourceRead() const { return m_percentSourceRead; }
 
     template<typename T>
     void SetPercentSourceRead(T&& percent) { m_percentSourceRead = static_cast<size_t>(std::forward<T>(percent)); }
@@ -38,17 +36,17 @@ public:
 
     AttributesType GetAttributesType() const    { return m_attributesType; }
     void SetAttributesType(AttributesType type) { m_attributesType = type; }
-                                                                
+
     size_t GetAttributesRead() const    { return m_attributesRead; }
     size_t GetAttributesUnknown() const { return m_attributesUnknown; }
     size_t GetAttributesErased() const  { return m_attributesErased; }
     size_t GetAttributesIgnored() const { return m_attributesIgnored; }
-                                                                
+
     void IncrementAttributesRead()                  { ++m_attributesRead; }
     void IncrementAttributesRead(size_t attributes) { m_attributesRead += attributes; }
     void IncrementAttributesUnknown()               { ++m_attributesUnknown; ++m_attributesIgnored; }
     void IncrementAttributesErased()                { ++m_attributesErased;  ++m_attributesIgnored; }
-                                                                
+
     size_t GetErrorMessages() const   { return m_errorMessages; }
     size_t GetWarningMessages() const { return m_warningMessages; }
     size_t GetUserMessages() const    { return m_userMessages; }
@@ -61,7 +59,7 @@ public:
     std::map<int, size_t>& GetSystemMessagesCountMap()             { return m_systemMessageCounts; }
 
     // serialization
-    CLASS_DECL_ZUTILO void WriteJson(JsonWriter& json_writer, const std::vector<std::wstring>* level_names = nullptr) const;
+    CLASS_DECL_ZUTILO void WriteJson(JsonWriter& json_writer, const std::vector<std::string>* level_names = nullptr) const;
 
 private:
     size_t LS_Check(size_t level_number) const;

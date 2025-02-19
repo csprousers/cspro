@@ -4,8 +4,6 @@
 #include <zFreqO/FrequencyEntry.h>
 #include <zFreqO/FrequencyPrinterOptions.h>
 
-class Serializer;
-
 
 class ZFREQO_API Frequency
 {

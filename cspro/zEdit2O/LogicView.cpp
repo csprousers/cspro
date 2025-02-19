@@ -116,7 +116,7 @@ BOOL CLogicView::PreTranslateMessage(MSG* pMsg)
                     return TRUE;
                 }
 
-                else if( pMsg->wParam == _T('4') ) // $ is on the 4 key on a U.S. keyboard
+                else if( pMsg->wParam == '4' ) // $ is on the 4 key on a U.S. keyboard
                 {
                     AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)pLogicCtrl);
                     return TRUE;
@@ -136,12 +136,12 @@ BOOL CLogicView::PreTranslateMessage(MSG* pMsg)
 
                 switch (pMsg->wParam)
                 {
-                    case _T('A'): nID = 16; break;
-                    case _T('V'): nID = 14; break;
-                    case _T('C'): nID = 13; break;
-                    case _T('X'): nID = 12; break;
-                    case _T('Y'): nID = 11; break;
-                    case _T('Z'): nID = 10; break;
+                    case 'A': nID = 16; break;
+                    case 'V': nID = 14; break;
+                    case 'C': nID = 13; break;
+                    case 'X': nID = 12; break;
+                    case 'Y': nID = 11; break;
+                    case 'Z': nID = 10; break;
                 }
 
                 if( nID != 0 )

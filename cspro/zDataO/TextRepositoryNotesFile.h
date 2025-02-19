@@ -13,45 +13,53 @@ class TextRepositoryNotesFile
 {
     friend TextRepository;
 
+public:
+    static constexpr size_t FieldLength        = 32;
+    static constexpr size_t OperatorIdLength   = 32;
+    static constexpr size_t ModifiedDateLength = 8;
+    static constexpr size_t ModifiedTimeLength = 6;
+    static constexpr size_t OccurrenceLength   = 5;
+
 private:
     TextRepositoryNotesFile(const TextRepository& repository, DataRepositoryOpenFlag open_flag);
 
-    static std::wstring GetNotesFilename(const ConnectionString& connection_string);
+    static std::string GetNotesFilePath(const ConnectionString& connection_string);
 
 public:
     ~TextRepositoryNotesFile();
 
     void CommitTransactions();
 
-    void SetupCase(Case& data_case) const;
-    void SetupCaseNote(CaseSummary& case_summary) const;
+    void SetUpCase(Case& data_case) const;
+    void SetUpCaseNote(CaseSummary& case_summary) const;
 
     void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter);
 
-    void DeleteCase(const CString& key);
+    void DeleteCase(const std::string& key);
 
 private:
-    void Load(const TextRepository& repository);
-    void LoadOldFormat(const TextRepository& repository, NullTerminatedString filename);
+    void Load();
+    void LoadOldFormat(std::string file_path);
+    std::string LoadAdjustLevelKey(std::string level_key) const;
 
-    Note& AddNote(const CString& first_level_key, std::shared_ptr<NamedReference> named_reference, const CString& operator_id,
-                  const time_t& modified_date_time, const CString& content);
+    Note& AddNote(std::string first_level_key, std::shared_ptr<NamedReference> named_reference, std::string operator_id,
+                  int64_t modified_date_time, SharableString content);
 
     void Save(bool force_write_to_disk = false);
 
-    const std::vector<Note>* LookupNotes(const CString& key) const;
+    const std::vector<Note>* LookupNotes(const std::string& key) const;
 
-    bool RemoveEntry(const CString& key);
+    bool RemoveEntry(const std::string& key);
 
 private:
-    const std::wstring m_filename;
-    const CString m_dictionaryName;
+    const TextRepository& m_repository;
+    const std::string m_filePath;
+    const std::string m_dictionaryName;
     size_t m_firstLevelKeyLength;
     size_t m_allLevelsKeyLength;
-	std::vector<size_t> m_secondaryLevelKeyLengths;
-    std::unique_ptr<std::map<CString, std::vector<Note>>> m_notesMap;
+    std::vector<size_t> m_secondaryLevelKeyLengths;
+    std::unique_ptr<std::map<std::string, std::vector<Note>>> m_notesMap;
 
-    bool m_useTransactionManager;
     bool m_hasTransactionsToWrite;
 };
 
@@ -61,9 +69,9 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline void TextRepositoryNotesFile::SetupCase(Case& data_case) const
+inline void TextRepositoryNotesFile::SetUpCase(Case& data_case) const
 {
-    const std::vector<Note>* notes = LookupNotes(data_case.GetKey());
+    const std::vector<Note>* const notes = LookupNotes(data_case.GetKey());
 
     if( notes != nullptr )
     {
@@ -77,14 +85,23 @@ inline void TextRepositoryNotesFile::SetupCase(Case& data_case) const
 }
 
 
-inline void TextRepositoryNotesFile::SetupCaseNote(CaseSummary& case_summary) const
+inline void TextRepositoryNotesFile::SetUpCaseNote(CaseSummary& case_summary) const
 {
-    const std::vector<Note>* notes = LookupNotes(case_summary.GetKey());
-    case_summary.SetCaseNote(( notes != nullptr ) ? CaseConstructionHelpers::LookupCaseNote(m_dictionaryName, *notes) : CString());
+    const std::string* const case_note = CaseConstructionHelpers::LookupCaseNote(m_dictionaryName, LookupNotes(case_summary.GetKey()));
+
+    if( case_note == nullptr )
+    {
+        case_summary.ResetCaseNote();
+    }
+
+    else
+    {
+        case_summary.SetCaseNote(*case_note);
+    }
 }
 
 
-inline const std::vector<Note>* TextRepositoryNotesFile::LookupNotes(const CString& key) const
+inline const std::vector<Note>* TextRepositoryNotesFile::LookupNotes(const std::string& key) const
 {
     if( m_notesMap != nullptr )
     {

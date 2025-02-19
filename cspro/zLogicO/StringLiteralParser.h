@@ -2,40 +2,42 @@
 
 #include <zToolsO/Encoders.h>
 
+namespace Logic { class StringLiteralParser; }
 
-namespace Logic
+
+class Logic::StringLiteralParser
 {
-    class StringLiteralParser
-    {
-    public:
-        // this function indicates whether the text begins as a string literal (or verbatim string literal)
-        template<typename CF>
-        static bool IsStringLiteralStart(TCHAR first_ch, CF get_second_ch_callback_function);
+public:
+    // this function indicates whether the text begins as a string literal (or verbatim string literal)
+    template<typename CF>
+    static bool IsStringLiteralStart(char first_ch, CF get_second_ch_callback_function);
 
-        static bool IsStringLiteralStart(wstring_view text_sv);
+    static bool IsStringLiteralStart(std::string_view text_sv);
 
-        // this function processes a string literal (or verbatim string literal);
-        // if EndQuotemarkMayExistBeforeTextEnd is true, the function returns the index of the character following the end quotemark
-        template<bool UseLogicSettings = true,
-                 bool IfNotUseLogicSettingsIsV8Plus = true,
-                 bool EndQuotemarkMayExistBeforeTextEnd = false,
-                 typename Compiler>
-        static auto Parse(Compiler& compiler, std::wstring& parsed_text, wstring_view text_sv);
-    };
-}
+    // this function processes a string literal (or verbatim string literal);
+    // if EndQuotemarkMayExistBeforeTextEnd is true, the function returns the index of the character following the end quotemark
+    template<bool UseLogicSettings = true,
+             bool IfNotUseLogicSettingsIsV8Plus = true,
+             bool EndQuotemarkMayExistBeforeTextEnd = false,
+             typename Compiler>
+    static auto Parse(Compiler& compiler, std::string& parsed_text, std::string_view text_sv);
+};
 
 
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 template<typename CF>
-bool Logic::StringLiteralParser::IsStringLiteralStart(TCHAR first_ch, CF get_second_ch_callback_function)
+bool Logic::StringLiteralParser::IsStringLiteralStart(const char first_ch, const CF get_second_ch_callback_function)
 {
     return ( is_quotemark(first_ch) ||
              first_ch == VerbatimStringLiteralStartCh1 && get_second_ch_callback_function() == VerbatimStringLiteralStartCh2 );
-
 }
 
 
-inline bool Logic::StringLiteralParser::IsStringLiteralStart(wstring_view text_sv)
+inline bool Logic::StringLiteralParser::IsStringLiteralStart(const std::string_view text_sv)
 {
     return ( !text_sv.empty() &&
              IsStringLiteralStart(text_sv.front(), [&]() { return ( text_sv.length() > 1 ) ? text_sv[1] : 0; }) );
@@ -46,17 +48,17 @@ template<bool UseLogicSettings/* = true*/,
          bool IfNotUseLogicSettingsIsV8Plus/* = true*/,
          bool EndQuotemarkMayExistBeforeTextEnd/* = false*/,
          typename Compiler>
-auto Logic::StringLiteralParser::Parse(Compiler& compiler, std::wstring& parsed_text, wstring_view text_sv)
+auto Logic::StringLiteralParser::Parse(Compiler& compiler, std::string& parsed_text, const std::string_view text_sv)
 {
-    const TCHAR* text_itr = text_sv.data();
-    const TCHAR* const text_last_character_ptr = text_itr + text_sv.length() - 1;
+    const char* text_itr = text_sv.data();
+    const char* const text_last_character_ptr = text_itr + text_sv.length() - 1;
     ASSERT(text_itr <= text_last_character_ptr);
 
-    constexpr TCHAR VerbatimStringLiteralEscapeSequence = VerbatimStringLiteralStartCh2;
+    constexpr char VerbatimStringLiteralEscapeSequence = VerbatimStringLiteralStartCh2;
 
     bool last_character_was_an_escape = false;
-    TCHAR quotemark;
-    TCHAR string_literal_escape_sequence;
+    char quotemark;
+    char string_literal_escape_sequence;
 
     // for verbatim string literals, the quotemark (double quote) is the second character
     if( *text_itr == VerbatimStringLiteralStartCh1 )
@@ -105,7 +107,7 @@ auto Logic::StringLiteralParser::Parse(Compiler& compiler, std::wstring& parsed_
     // iterate from the first non-quotemark character to the second-from-last character
     for( ; text_itr < text_last_character_ptr; ++text_itr )
     {
-        const TCHAR ch = *text_itr;
+        const char ch = *text_itr;
 
         if( last_character_was_an_escape )
         {
@@ -130,7 +132,7 @@ auto Logic::StringLiteralParser::Parse(Compiler& compiler, std::wstring& parsed_
                     ASSERT(string_literal_escape_sequence != VerbatimStringLiteralEscapeSequence);
                 }
 
-                const TCHAR escaped_representation = Encoders::GetEscapedRepresentation(ch);
+                const char escaped_representation = Encoders::GetEscapedRepresentation(ch);
 
                 // invalid escape sequence
                 if( escaped_representation == 0 )

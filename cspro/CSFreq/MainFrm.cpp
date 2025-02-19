@@ -182,12 +182,11 @@ void CMainFrame::OnUpdateFrameTitle(BOOL /*bAddToTitle*/)
     csAppName.Format(AFX_IDS_APP_TITLE);
 
     CSFreqDoc* pDoc = (CSFreqDoc*)GetActiveDocument();
-    CString csDocumentTitle = pDoc->GetDocumentWindowTitle();
 
-    CString csTitle;
-    csTitle.Format(_T("%s%s%s"), (LPCTSTR)csDocumentTitle, csDocumentTitle.IsEmpty() ? _T("") : _T(" - "), (LPCTSTR)csAppName);
+    std::string title = pDoc->GetDocumentWindowTitle();
+    SO::AppendWithSeparator(title, UTF8_TODO::GetUtf8(csAppName.GetString()), " - ");
 
-    SetWindowText(csTitle);
+    WindowsUtf8::SetText(this, title);
 }
 
 

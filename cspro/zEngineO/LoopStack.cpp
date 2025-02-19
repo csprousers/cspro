@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "LoopStack.h"
-#include "Messages/EngineMessages.h"
 #include "Messages/MessageIssuer.h"
 #include <zDataO/DataRepositoryTransaction.h>
 
@@ -55,10 +54,10 @@ LoopStackEntry LoopStack::PushOnLoopStack(LoopStackSource source, const Symbol* 
         // don't allow nested loops using the same symbol
         else if( loop_stack_entry.m_symbol == symbol && symbol != nullptr )
         {
-            const TCHAR* const function_name = ( source == LoopStackSource::ForDictionary ) ? _T("for") :
-                                               ( source == LoopStackSource::ForCase )       ? _T("forcase") :
-                                               ( source == LoopStackSource::CountCases )    ? _T("countcases") :
-                                                                                              ReturnProgrammingError(_T(""));
+            const char* const function_name = ( source == LoopStackSource::ForDictionary ) ? "for" :
+                                              ( source == LoopStackSource::ForCase )       ? "forcase" :
+                                              ( source == LoopStackSource::CountCases )    ? "countcases" :
+                                                                                             ReturnProgrammingError("");
 
             GetMessageIssuer().IssueError(MGF::LoopStack_nested_dictionary_loop_753, function_name, symbol->GetName().c_str());
             valid = false;

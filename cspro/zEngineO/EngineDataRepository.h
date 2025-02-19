@@ -8,7 +8,6 @@
 class DataRepository;
 class EngineCase;
 class EngineDictionary;
-class Serializer;
 class SystemMessageIssuer;
 
 
@@ -42,16 +41,16 @@ public:
 
     bool GetNeedsIndex() const { return m_needsIndex; }
     void SetNeedsIndex()       { m_needsIndex = true; }
-         
+
     bool GetCannotHaveIndex() const { return m_cannotHaveIndex; }
     void SetCannotHaveIndex()       { m_cannotHaveIndex = true; }
-         
+
     bool GetIsWriteable() const { return m_isWriteable; }
     void SetIsWriteable()       { m_isWriteable = true ;}
-         
+
     bool GetHasDynamicFileManagement() const { return m_hasDynamicFileManagement; }
     void SetHasDynamicFileManagement()       { m_hasDynamicFileManagement = true; }
-         
+
     bool GetUsesSync() const { return m_usesSync; }
     void SetUsesSync()       { m_usesSync = true; }
 
@@ -69,15 +68,15 @@ public:
 
     const ConnectionString& GetLastClosedConnectionString() const { return m_lastClosedConnectionString; }
 
-    const std::optional<CaseKey>& GetLastLoadedCaseKey() const                   { return m_lastLoadedCaseKey; }
+    const std::optional<CaseKey>& GetLastLoadedCaseKey() const { return m_lastLoadedCaseKey; }
 
-    void ReadCase(EngineCase& engine_case, const CString& key);
+    void ReadCase(EngineCase& engine_case, const std::string& key);
     void ReadCase(EngineCase& engine_case, double position_in_repository);
 
-    bool IsLastSearchedCaseKeyDefined() const                                    { return m_lastSearchedCaseKey.has_value(); }
-    const std::optional<CaseKey>& GetLastSearchedCaseKey() const                 { return m_lastSearchedCaseKey; }
-    void ClearLastSearchedKey()                                                  { m_lastSearchedCaseKey.reset(); }
-    void SetLastSearchedCaseKey(const std::optional<CaseKey>& optional_case_key) { m_lastSearchedCaseKey = optional_case_key; }
+    bool IsLastSearchedCaseKeyDefined() const                             { return m_lastSearchedCaseKey.has_value(); }
+    const std::optional<CaseKey>& GetLastSearchedCaseKey() const          { return m_lastSearchedCaseKey; }
+    void ClearLastSearchedKey()                                           { m_lastSearchedCaseKey.reset(); }
+    void SetLastSearchedCaseKey(std::optional<CaseKey> optional_case_key) { m_lastSearchedCaseKey = std::move(optional_case_key); }
 
     const DictionaryAccessParameters& GetDictionaryAccessParameters()            { return m_dictionaryAccessParameters; }
     DictionaryAccessParameters GetDictionaryAccessParameters(int dictionary_access) const;
@@ -85,7 +84,7 @@ public:
 
     enum class CaseIteratorStyle { FromBoundary, FromNextKey, FromLastSearchedCaseKey, FromCurrentPosition };
     void CreateCaseIterator(CaseIteratorStyle case_iterator_style, const std::optional<CaseKey>& starting_key = std::nullopt,
-                            int dictionary_access = 0, std::optional<CString> key_prefix = std::nullopt,
+                            int dictionary_access = 0, std::optional<std::string> key_prefix = std::nullopt,
                             CaseIterationContent iteration_content = CaseIterationContent::Case);
 
     bool IsCaseIteratorActive() const           { return ( m_caseIterator != nullptr ); }
@@ -116,7 +115,7 @@ private:
     // the last key found by the find / locate functions
     std::optional<CaseKey> m_lastSearchedCaseKey;
 
-	// case iterators
+    // case iterators
     DictionaryAccessParameters m_dictionaryAccessParameters;
     std::unique_ptr<CaseIterator> m_caseIterator;
 

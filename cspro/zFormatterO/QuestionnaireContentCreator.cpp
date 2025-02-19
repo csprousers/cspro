@@ -13,7 +13,8 @@ CREATE_JSON_KEY(writeFieldStatuses)
 
 
 QuestionnaireContentCreator::QuestionnaireContentCreator()
-    :   m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl)
+    :   m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl),
+        m_bypassDictionaryMatchesCheck(false)
 {
 }
 
@@ -34,12 +35,15 @@ void QuestionnaireContentCreator::ResetInputs()
 
 bool QuestionnaireContentCreator::DictionaryMatches(const CDataDict* const compare_dictionary) const
 {
-    ASSERT(m_dictionary != nullptr && !m_dictionary->GetFullFileName().IsEmpty());
+    if( m_bypassDictionaryMatchesCheck )
+        return true;
+
+    ASSERT(m_dictionary != nullptr && !m_dictionary->GetFilePath().empty());
 
     if( compare_dictionary != nullptr )
     {
         if( m_dictionary.get() == compare_dictionary ||
-            SO::EqualsNoCase(m_dictionary->GetFullFileName(), compare_dictionary->GetFullFileName()) ||
+            SO::EqualsNoCase(m_dictionary->GetFilePath(), compare_dictionary->GetFilePath()) ||
             m_dictionary->GetStructureMd5() == compare_dictionary->GetStructureMd5() )
         {
             return true;
@@ -50,7 +54,7 @@ bool QuestionnaireContentCreator::DictionaryMatches(const CDataDict* const compa
 }
 
 
-std::wstring QuestionnaireContentCreator::GetContent()
+std::string QuestionnaireContentCreator::GetContent()
 {
     if( m_dictionary == nullptr )
         throw CSProException("A dictionary must be specified to generate content.");
@@ -62,9 +66,9 @@ std::wstring QuestionnaireContentCreator::GetContent()
     {
         if( !DictionaryMatches(form_file->GetDictionary()) )
         {
-            throw CSProException(_T("The form file dictionary, '%s', does not match the dictionary '%s'."),
-                                 ( form_file->GetDictionary() != nullptr ) ? form_file->GetDictionary()->GetName().GetString() : _T(""),
-                                 m_dictionary->GetName().GetString());
+            throw CSProException("The form file dictionary, '%s', does not match the dictionary '%s'.",
+                                 ( form_file->GetDictionary() != nullptr ) ? form_file->GetDictionary()->GetName().c_str() : "",
+                                 m_dictionary->GetName().c_str());
         }
     }
 
@@ -77,14 +81,14 @@ std::wstring QuestionnaireContentCreator::GetContent()
     // make sure the case matches the dictionary
     if( m_case != nullptr && !DictionaryMatches(&m_case->GetCaseMetadata().GetDictionary()) )
     {
-        throw CSProException(_T("The case dictionary, '%s', does not match the dictionary '%s'."),
-                             m_case->GetCaseMetadata().GetDictionary().GetName().GetString(),
-                             m_dictionary->GetName().GetString());
+        throw CSProException("The case dictionary, '%s', does not match the dictionary '%s'.",
+                             m_case->GetCaseMetadata().GetDictionary().GetName().c_str(),
+                             m_dictionary->GetName().c_str());
     }
 
 
     // create the JSON content
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->SetVerbose();
 
     // create access URLs for things like value set images
@@ -113,11 +117,11 @@ std::wstring QuestionnaireContentCreator::GetContent()
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }
 
 
-std::wstring QuestionnaireContentCreator::GetCaseContent()
+std::string QuestionnaireContentCreator::GetCaseContent()
 {
     if( m_dictionary == nullptr || m_case == nullptr )
         throw CSProException("A dictionary and case must be specified to generate content.");
@@ -125,14 +129,14 @@ std::wstring QuestionnaireContentCreator::GetCaseContent()
     ASSERT(DictionaryMatches(&m_case->GetCaseMetadata().GetDictionary()));
 
     // create the JSON content
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
     json_writer->SetVerbose();
 
     auto case_json_writer_serializer_holder = json_writer->GetSerializerHelper().Register(GetCaseJsonWriterSerializerHelper());
 
     m_case->WriteJson(*json_writer);
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }
 
 
@@ -151,7 +155,7 @@ std::unique_ptr<CDEFormFile> QuestionnaireContentCreator::CreateDummyFormFile() 
 
     // VQ_TODO: use this method, or create a new version that allows items and subitems on a roster?
     form_file->CreateFormFile(m_dictionary.get(), single_character_text_extent, drag_options, DropSpacing, true);
-    form_file->SetName(m_dictionary->GetName());
+    form_file->SetName(UTF8_TODO::GetCString(m_dictionary->GetName()));
     form_file->SetLabel(m_dictionary->GetLabel());
     form_file->UpdatePointers();
 
@@ -159,7 +163,7 @@ std::unique_ptr<CDEFormFile> QuestionnaireContentCreator::CreateDummyFormFile() 
 }
 
 
-void QuestionnaireContentCreator::SetSerializationOptions(const JsonNode<wchar_t>& serialization_options_node)
+void QuestionnaireContentCreator::SetSerializationOptions(const JsonNode& serialization_options_node)
 {
     m_caseJsonWriterSerializerHelper.reset();
 
@@ -185,7 +189,7 @@ std::shared_ptr<CaseJsonWriterSerializerHelper> QuestionnaireContentCreator::Get
 
     if( m_caseJsonWriterSerializerHelper == nullptr )
     {
-        m_caseJsonWriterSerializerHelper = std::make_shared<CaseJsonWriterSerializerHelper>();
+        m_caseJsonWriterSerializerHelper = std::make_unique<CaseJsonWriterSerializerHelper>();
 
         if( m_writeLabels.has_value() )
             m_caseJsonWriterSerializerHelper->SetWriteLabels(*m_writeLabels);
@@ -209,7 +213,7 @@ std::shared_ptr<CaseJsonWriterSerializerHelper> QuestionnaireContentCreator::Get
             m_caseJsonWriterSerializerHelper->SetBinaryDataWriter(
                 [&](JsonWriter& json_writer, const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
                 {
-                    const std::wstring access_key = index.GetSerializableText(binary_case_item);
+                    const std::string access_key = index.GetSerializableText(binary_case_item);
                     json_writer.Write(JK::url, m_caseBinaryDataVirtualFileMappingHandler->CreateUrl(access_key));
                 });
         }

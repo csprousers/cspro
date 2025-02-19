@@ -15,7 +15,7 @@ public:
 protected:
     LRESULT OnUpdateStatusPaneCaretPos(WPARAM /*wParam*/, LPARAM /*lParam*/) override
     {
-        int line_number = LineFromPosition(GetCurrentPos());
+        const int line_number = LineFromPosition(GetCurrentPos());
         m_symbolAnalysisDlg.OnSymbolUsesLineChanged(line_number);
 
         return 0;
@@ -31,7 +31,7 @@ BEGIN_MESSAGE_MAP(SymbolAnalysisDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-SymbolAnalysisDlg::SymbolAnalysisDlg(Application& application, const SymbolAnalysisCompiler& symbol_analysis_compiler, CWnd* pParent/* = nullptr*/)
+SymbolAnalysisDlg::SymbolAnalysisDlg(Application& application, const SymbolAnalysisCompiler& symbol_analysis_compiler, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_SYMBOL_ANALYSIS, pParent),
         m_application(application),
         m_symbolAnalysisCompiler(symbol_analysis_compiler),
@@ -40,7 +40,7 @@ SymbolAnalysisDlg::SymbolAnalysisDlg(Application& application, const SymbolAnaly
 }
 
 
-void SymbolAnalysisDlg::DoDataExchange(CDataExchange* pDX)
+void SymbolAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -56,15 +56,15 @@ BOOL SymbolAnalysisDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    m_symbolsLabelCtrl.SetWindowText(FormatText(_T("Symbols (%d)"), (int)m_symbolAnalysisCompiler.GetSymbolUseMap().size()));
+    m_symbolsLabelCtrl.SetWindowText(FormatText(_T("Symbols (%d)"), static_cast<int>(m_symbolAnalysisCompiler.GetSymbolUseMap().size())));
 
     m_usesLogicCtrl->ReplaceCEdit(this, false, false);
-    m_contextLogicCtrl.ReplaceCEdit(this, false, true);    
+    m_contextLogicCtrl.ReplaceCEdit(this, false, true);
 
     // build the tree and select the first symbol
     BuildTree();
 
-    HTREEITEM hItem = m_symbolsTreeCtrl.GetChildItem(TVI_ROOT);
+    const HTREEITEM hItem = m_symbolsTreeCtrl.GetChildItem(TVI_ROOT);
     ASSERT(hItem != nullptr);
 
     m_symbolsTreeCtrl.SelectItem(hItem);
@@ -77,7 +77,7 @@ BOOL SymbolAnalysisDlg::OnInitDialog()
 void SymbolAnalysisDlg::BuildTree()
 {
     // add each symbol to the tree in sorted order
-    std::map<std::wstring, const Symbol*> symbol_name_map;
+    std::map<std::string, const Symbol*> symbol_name_map;
 
     for( const auto& [symbol, symbol_uses] : m_symbolAnalysisCompiler.GetSymbolUseMap() )
         symbol_name_map.try_emplace(SO::ToUpper(symbol->GetName()), symbol);
@@ -89,64 +89,65 @@ void SymbolAnalysisDlg::BuildTree()
 
     for( const auto& [symbol_name, symbol] : symbol_name_map )
     {
-        tvi.item.pszText = const_cast<TCHAR*>(symbol_name.c_str());
+        std::wstring wide_symbol_name = TC::ToWide(symbol_name);
+        tvi.item.pszText = wide_symbol_name.data();
         tvi.item.cchTextMax = symbol_name.length();
-        tvi.item.lParam = (LPARAM)symbol;
-        
+        tvi.item.lParam = reinterpret_cast<LPARAM>(symbol);
+
         m_symbolsTreeCtrl.InsertItem(&tvi);
     }
 }
 
 
-void SymbolAnalysisDlg::OnSymbolsTreeSelectionChanged(NMHDR* pNMHDR, LRESULT* /*pResult*/)
+void SymbolAnalysisDlg::OnSymbolsTreeSelectionChanged(NMHDR* const pNMHDR, LRESULT* /*pResult*/)
 {
-    auto pnmtv = (const NMTREEVIEWW*)pNMHDR;
-    auto symbol = (const Symbol*)pnmtv->itemNew.lParam;
+    const NMTREEVIEWW* pnmtv = reinterpret_cast<const NMTREEVIEWW*>(pNMHDR);
+    const Symbol* symbol = reinterpret_cast<const Symbol*>(pnmtv->itemNew.lParam);
 
     if( symbol == nullptr )
         return;
 
-    m_usesLabelCtrl.SetWindowText(FormatText(_T("Uses of %s"), symbol->GetName().c_str()));
+    m_usesLabelCtrl.SetWindowText(TC::ToWide("Uses of " + symbol->GetName()).c_str());
 
     const auto& symbol_uses = m_symbolAnalysisCompiler.GetSymbolUseMap().at(symbol);
 
     // format the compilation unit names, proc names, and line numbers
-    std::vector<std::wstring> use_locations;
-    size_t max_use_location_length = 0;
+    std::vector<std::string> use_locations;
+    size_t max_use_location_wide_length = 0;
 
     for( const auto& symbol_use : symbol_uses )
     {
-        std::wstring& use_location = use_locations.emplace_back();
+        std::string& use_location = use_locations.emplace_back();
 
         if( !symbol_use.compilation_unit_name.empty() )
         {
             // only show the compilation unit name for external code (because reports are named)
-            if( m_application.GetReportNamedTextSource(symbol_use.proc_name, true) == nullptr )
-                use_location = PortableFunctions::PathGetFilenameWithoutExtension(symbol_use.compilation_unit_name);
+            if( m_application.GetReportFile(symbol_use.proc_name, true) == nullptr )
+                use_location = Path::GetFilenameWithoutExtension(symbol_use.compilation_unit_name);
         }
 
         if( !symbol_use.proc_name.empty() )
             SO::AppendWithSeparator(use_location, symbol_use.proc_name, '/');
 
-        SO::AppendFormat(use_location, _T("(%d)"), symbol_use.adjusted_line_number);
+        use_location.append(FormatText("(%d)", symbol_use.adjusted_line_number));
 
-        max_use_location_length = std::max(max_use_location_length, use_location.length());
+        max_use_location_wide_length = std::max(max_use_location_wide_length, SO::WideLength(use_location));
     }
 
     // set the uses text
-    std::wstring symbol_uses_text;
+    std::string symbol_uses_text;
 
     for( size_t i = 0; i < symbol_uses.size(); ++i )
     {
-        std::wstring tabs_to_spaces_line = symbol_uses[i].logic_line;
-        SO::Replace(tabs_to_spaces_line, _T("\t"), _T("    "));
+        std::string tabs_to_spaces_line = symbol_uses[i].logic_line;
+        SO::ConvertTabsToSpaces(tabs_to_spaces_line);
 
         SO::AppendWithSeparator(symbol_uses_text,
-                                FormatText(_T("%s %-*s %s  %s"), m_application.GetLogicSettings().GetMultilineCommentStart().c_str(),
-                                                                 (int)max_use_location_length, use_locations[i].c_str(),
-                                                                 m_application.GetLogicSettings().GetMultilineCommentEnd().c_str(),
-                                                                 tabs_to_spaces_line.c_str()),
-                                _T("\r\n"));
+                                FormatText("%s %-*s %s  %s", m_application.GetLogicSettings().GetMultilineCommentStart().c_str(),
+                                                             static_cast<int>(max_use_location_wide_length), use_locations[i].c_str(),
+                                                             m_application.GetLogicSettings().GetMultilineCommentEnd().c_str(),
+                                                             tabs_to_spaces_line.c_str()),
+                                "\r\n");
     }
 
     m_usesLogicCtrl->SetReadOnly(FALSE);
@@ -157,7 +158,7 @@ void SymbolAnalysisDlg::OnSymbolsTreeSelectionChanged(NMHDR* pNMHDR, LRESULT* /*
 }
 
 
-void SymbolAnalysisDlg::OnSymbolUsesLineChanged(int uses_line_number, const Symbol* symbol/* = nullptr*/)
+void SymbolAnalysisDlg::OnSymbolUsesLineChanged(const int uses_line_number, const Symbol* const symbol/* = nullptr*/)
 {
     bool need_to_refresh_bookmarks = false;
 
@@ -168,12 +169,14 @@ void SymbolAnalysisDlg::OnSymbolUsesLineChanged(int uses_line_number, const Symb
     }
 
     else if( !m_lastShownSymbol.has_value() )
+    {
         return;
+    }
 
     // quit if the uses line number is not valid
-    const auto& symbol_uses = m_symbolAnalysisCompiler.GetSymbolUseMap().at(*m_lastShownSymbol);
+    const std::vector<SymbolAnalysisCompiler::SymbolUse>& symbol_uses = m_symbolAnalysisCompiler.GetSymbolUseMap().at(*m_lastShownSymbol);
 
-    if( uses_line_number < 0 || uses_line_number >= (int)symbol_uses.size() )
+    if( uses_line_number < 0 || uses_line_number >= static_cast<int>(symbol_uses.size()) )
         return;
 
     const auto& selected_symbol_use = symbol_uses[uses_line_number];
@@ -184,7 +187,7 @@ void SymbolAnalysisDlg::OnSymbolUsesLineChanged(int uses_line_number, const Symb
         m_lastShownCompilationUnit = selected_symbol_use.compilation_unit_name;
 
         // update the logic
-        const TextSource* text_source = GetTextSource(selected_symbol_use.compilation_unit_name);
+        const TextSource* const text_source = GetTextSource(selected_symbol_use.compilation_unit_name);
 
         if( text_source != nullptr )
         {
@@ -199,7 +202,7 @@ void SymbolAnalysisDlg::OnSymbolUsesLineChanged(int uses_line_number, const Symb
     {
         m_contextLogicCtrl.ClearErrorAndWarningMarkers();
 
-        for( const auto& symbol_use : symbol_uses )
+        for( const SymbolAnalysisCompiler::SymbolUse& symbol_use : symbol_uses )
         {
             // Scintilla uses zero-based line numbers
             if( symbol_use.compilation_unit_name == selected_symbol_use.compilation_unit_name )
@@ -211,7 +214,7 @@ void SymbolAnalysisDlg::OnSymbolUsesLineChanged(int uses_line_number, const Symb
 }
 
 
-const TextSource* SymbolAnalysisDlg::GetTextSource(const std::wstring& compilation_unit_name)
+const TextSource* SymbolAnalysisDlg::GetTextSource(const std::string& compilation_unit_name)
 {
     // search for the proper text source only once (per compilation unit)
     const auto& lookup = m_textSources.find(compilation_unit_name);
@@ -236,7 +239,7 @@ const TextSource* SymbolAnalysisDlg::GetTextSource(const std::wstring& compilati
         else
         {
             matches = ( !code_file.IsLogicMain() &&
-                        SO::EqualsNoCase(code_file.GetFilename(), compilation_unit_name) );
+                        SO::EqualsNoCase(code_file.GetFilePath(), compilation_unit_name) );
         }
 
         if( matches )
@@ -249,10 +252,10 @@ const TextSource* SymbolAnalysisDlg::GetTextSource(const std::wstring& compilati
     // if not found, check the reports
     if( text_source == nullptr )
     {
-        const NamedTextSource* report_named_text_source = m_application.GetReportNamedTextSource(compilation_unit_name, false);
+        const ReportFile* const report_file = m_application.GetReportFile(compilation_unit_name, false);
 
-        if( report_named_text_source != nullptr )
-            text_source = report_named_text_source->text_source.get();
+        if( report_file != nullptr )
+            text_source = &report_file->GetTextSource();
     }
 
     ASSERT(text_source != nullptr);

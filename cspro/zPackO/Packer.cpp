@@ -1,15 +1,13 @@
 ﻿#include "stdafx.h"
 #include "Packer.h"
 #include "PackSpec.h"
-#include <zToolsO/PointerClasses.h>
-#include <zToolsO/Utf8Convert.h>
-#include <zUtilO/StdioFileUnicode.h>
-#include <zZipo/IZip.h>
+#include <zToolsO/File.h>
+#include <zZipo/ZipFile.h>
 
 
 namespace
 {
-    constexpr const TCHAR* ListingDivider = _T("--------------------------------------------------------------------------------");
+    constexpr const char* ListingDivider = "--------------------------------------------------------------------------------";
 }
 
 
@@ -27,9 +25,6 @@ public:
     void Run();
 
 private:
-    void PackFiles();
-    std::vector<std::wstring> GetRelativeFilenamesForZip() const;
-
     void WriteLogHeader();
     void WriteLogFilesToPack();
     void CloseLog(bool run_success);
@@ -38,34 +33,32 @@ private:
     const PFF* m_pff;
     const PackSpec& m_packSpec;
 
-    std::wstring m_zipFilename;
-    std::vector<std::wstring> m_extraFilenames;
-    std::vector<std::wstring> m_allFiles;
+    std::string m_zipFilePath;
+    std::vector<std::string> m_extraFilePaths;
+    std::vector<std::string> m_allFilePaths;
 
-    std::unique_ptr<CStdioFileUnicode> m_log;
+    std::unique_ptr<FileIO::TextFile> m_log;
 };
 
 
-PackerImpl::PackerImpl(const PFF* pff, const PackSpec& pack_spec)
+PackerImpl::PackerImpl(const PFF* const pff, const PackSpec& pack_spec)
     :   m_pff(pff),
         m_packSpec(pack_spec),
-        m_zipFilename(m_packSpec.GetZipFilename())
+        m_zipFilePath(m_packSpec.GetZipFilePath())
 {
     if( m_pff != nullptr )
     {
         ASSERT(m_pff->GetAppType() == APPTYPE::PACK_TYPE);
 
-        // the output filename can be overriden in the PFF
+        // the output filename can be overridden in the PFF
         if( !m_pff->GetPackOutputFName().IsEmpty() )
-            m_zipFilename = CS2WS(m_pff->GetPackOutputFName());
+            m_zipFilePath = UTF8_TODO::GetUtf8(m_pff->GetPackOutputFName());
 
         // open the optional log file
         if( !m_pff->GetListingFName().IsEmpty() )
         {
-            m_log = std::make_unique<CStdioFileUnicode>();
-
-            if( !m_log->Open(m_pff->GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-                throw CSProException(_T("There was an error creating the listing file:\n\n%s"), m_pff->GetListingFName().GetString());
+            m_log = std::make_unique<FileIO::TextFile>();
+            m_log->OpenForTextWritingCreate(m_pff->GetListingFName());
         }
     }
 }
@@ -79,27 +72,27 @@ void PackerImpl::Run()
         if( m_log != nullptr )
             WriteLogHeader();
 
-        if( m_zipFilename.empty() )
+        if( m_zipFilePath.empty() )
             throw CSProException("You must specify a ZIP filename for the packed files.");
 
-        if( !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(m_zipFilename), _T("zip")) )
+        if( !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(m_zipFilePath), FileExtensions::Zip) )
         {
-            throw CSProException(_T("Files can only be packed to ZIP format, so the output file must end in .zip, not '%s'."),
-                                 PortableFunctions::PathGetFileExtension(m_zipFilename, true).c_str());
+            throw CSProException("Files can only be packed to ZIP format, so the output file must end in .zip, not '%s'.",
+                                 PortableFunctions::PathGetFileExtension(m_zipFilePath, true).c_str());
         }
 
         // get the extra files specified in the PFF
         if( m_pff != nullptr )
         {
-            for( const CString& filename : m_pff->GetPackExtraFiles() )
-                m_extraFilenames.emplace_back(CS2WS(filename));
+            for( const CString& file_path : m_pff->GetPackExtraFiles() )
+                m_extraFilePaths.emplace_back(UTF8_TODO::GetUtf8(file_path));
 
-            VectorHelpers::RemoveDuplicateStringsNoCase(m_extraFilenames);
-        }        
+            VectorHelpers::RemoveDuplicateStringsNoCase(m_extraFilePaths);
+        }
 
         // get all the files
-        m_allFiles = VectorHelpers::Concatenate(m_packSpec.GetFilenamesForPack(), m_extraFilenames);
-        VectorHelpers::RemoveDuplicateStringsNoCase(m_allFiles);
+        m_allFilePaths = VectorHelpers::Concatenate(m_packSpec.GetFilePathsForPack(), m_extraFilePaths);
+        VectorHelpers::RemoveDuplicateStringsNoCase(m_allFilePaths);
 
         // write out the expected files to pack
         if( m_log != nullptr )
@@ -111,28 +104,31 @@ void PackerImpl::Run()
         // make sure all files exist
         int64_t total_input_size = 0;
 
-        for( const std::wstring& filename : m_allFiles )
+        for( const std::string& file_path : m_allFilePaths )
         {
-            const int64_t file_size = PortableFunctions::FileSize(filename.c_str());
+            const int64_t file_size = PortableFunctions::FileSize(file_path);
 
             if( file_size < 0 )
-                throw FileIO::Exception::FileNotFound(filename.c_str());
+                throw FileIO::Exception::FileNotFound(file_path);
 
             total_input_size += file_size;
         }
 
         // create the zip file
-        PackFiles();
+        {
+            ZipCreator zip_creator(m_zipFilePath);
+            zip_creator.AddFiles(m_allFilePaths);
+        }
 
         // write out the listing footer
         if( m_log != nullptr )
         {
-            const int64_t compressed_size = PortableFunctions::FileSize(m_zipFilename.c_str());
+            const int64_t compressed_size = PortableFunctions::FileSize(m_zipFilePath);
             ASSERT(compressed_size > 0);
 
-            m_log->WriteFormattedLine(_T("ZIP file created successfully (%d file%s compressed with a space saving of %d%%)."),
-                                      static_cast<int>(m_allFiles.size()), PluralizeWord(m_allFiles.size()),
-                                      100 - CreatePercent(compressed_size, total_input_size));
+            m_log->WriteFormattedLine("ZIP file created successfully (%d file%s compressed with a space saving of %d%%).",
+                                      static_cast<int>(m_allFilePaths.size()), PluralizeWord(m_allFilePaths.size()),
+                                      std::max(0, 100 - CreatePercent<int>(compressed_size, total_input_size)));
 
             CloseLog(true);
         }
@@ -142,9 +138,9 @@ void PackerImpl::Run()
     {
         if( m_log != nullptr )
         {
-            m_log->WriteFormattedLine(_T("*** There was an error packing the files to '%s':"), PortableFunctions::PathGetFilename(m_zipFilename.c_str()));
-            m_log->WriteLine(_T("***"));
-            m_log->WriteFormattedLine(_T("*** %s"), exception.GetErrorMessage().c_str());
+            m_log->WriteFormattedLine("*** There was an error packing the files to '%s':", PortableFunctions::PathGetFilename(m_zipFilePath).c_str());
+            m_log->WriteLine("***");
+            m_log->WriteFormattedLine("*** %s", exception.what());
 
             CloseLog(false);
         }
@@ -154,96 +150,24 @@ void PackerImpl::Run()
 }
 
 
-void PackerImpl::PackFiles()
-{
-    const std::vector<std::wstring> filenames_in_zip = GetRelativeFilenamesForZip();
-    ASSERT(!filenames_in_zip.empty() && filenames_in_zip.size() == m_allFiles.size());
-
-    // delete the zip file if it already exists
-    if( PortableFunctions::FileIsRegular(m_zipFilename.c_str()) && !PortableFunctions::FileDelete(m_zipFilename.c_str()) )
-        throw CSProException(_T("There was an error deleting the ZIP file: %s"), m_zipFilename.c_str());
-
-    // if the filename has Unicode characters we have to zip to a temporary filename without those characters
-    cs::non_null_shared_or_raw_ptr<const std::wstring> zip_filename_for_creation = &m_zipFilename;
-
-    if( m_zipFilename.size() != UTF8Convert::WideToUTF8(m_zipFilename).size() )
-        zip_filename_for_creation = std::make_unique<std::wstring>(GetUniqueTempFilename(_T("CSPack.zip")));
-
-    // zip the files
-    try
-    {
-        std::unique_ptr<IZip> zip(IZip::Create());
-
-        zip->AddFiles(*zip_filename_for_creation, m_allFiles, filenames_in_zip, true);
-    }
-
-    catch( CZipError& exception )
-    {
-        PortableFunctions::FileDelete(zip_filename_for_creation->c_str());
-        throw CSProException(exception.GetDetailedErrorMessage());
-    }
-
-    // if a non-Unicode filename was used, move the file
-    if( zip_filename_for_creation.get() != &m_zipFilename )
-    {
-        if( !PortableFunctions::FileRename(zip_filename_for_creation->c_str(), m_zipFilename.c_str()) )
-            throw CSProException(_T("There was an error renaming the temporary ZIP file: %s"), zip_filename_for_creation->c_str());
-    }
-}
-
-
-std::vector<std::wstring> PackerImpl::GetRelativeFilenamesForZip() const
-{
-    // calculate the common root directory for all files
-    std::wstring root_directory;
-
-    for( const std::wstring& filename : m_allFiles )
-    {
-        const std::wstring directory = PortableFunctions::PathGetDirectory(filename);
-
-        root_directory = root_directory.empty() ? directory :
-                                                  PortableFunctions::PathGetCommonRoot(root_directory, directory);
-
-        if( root_directory.empty() )
-            throw CSProException("It is not possible to create a ZIP file when the files exist on two or more drives.");
-    }
-
-    // make sure that the root directory ends with a slash
-    root_directory = PortableFunctions::PathEnsureTrailingSlash(root_directory);
-
-    // create the relative filenames for the zip file
-    std::vector<std::wstring> filenames_in_zip;
-
-    for( const std::wstring& filename : m_allFiles )
-    {
-        filenames_in_zip.emplace_back(filename.substr(root_directory.size()));
-
-        ASSERT(filenames_in_zip.back().find(_T(":\\")) == std::wstring::npos &&
-               filenames_in_zip.back().find(_T("\\\\")) == std::wstring::npos);
-    }
-
-    return filenames_in_zip;
-}
-
-
 void PackerImpl::WriteLogHeader()
 {
     ASSERT(m_log != nullptr && m_pff != nullptr);
-    bool filename_written = false;
+    bool file_path_written = false;
 
-    auto write_header_filename = [&](const TCHAR* file_type, const TCHAR* filename)
+    auto write_header_file_path = [&](const char* file_type, const cs::string_sz file_path)
     {
-        m_log->WriteFormattedLine(_T("%-20s%s"), file_type, filename);
-        filename_written = true;
+        m_log->WriteFormattedLine("%-20s%s", file_type, file_path.c_str());
+        file_path_written = true;
     };
 
     if( !m_pff->GetAppFName().IsEmpty() )
-        write_header_filename(PackSpec::IsPffUsingPackSpec(*m_pff) ? _T("Pack Specification:") : _T("Application:"), m_pff->GetAppFName());
+        write_header_file_path(PackSpec::IsPffUsingPackSpec(*m_pff) ? "Pack Specification:" : "Application:", UTF8_TODO::GetUtf8(m_pff->GetAppFName()));
 
-    if( !m_zipFilename.empty() )
-        write_header_filename(_T("ZIP File:"), m_zipFilename.c_str());
+    if( !m_zipFilePath.empty() )
+        write_header_file_path("ZIP File:", m_zipFilePath);
 
-    if( filename_written )
+    if( file_path_written )
     {
         m_log->WriteLine();
         m_log->WriteLine(ListingDivider);
@@ -255,11 +179,11 @@ void PackerImpl::WriteLogFilesToPack()
 {
     ASSERT(m_log != nullptr);
 
-    constexpr const TCHAR* FormatterLevel1 = _T("    • %s");
-    constexpr const TCHAR* FormatterLevel2 = _T("        • %s");
+    constexpr const char* FormatterLevel1 = u8"    • %s";
+    constexpr const char* FormatterLevel2 = u8"        • %s";
 
     m_log->WriteLine();
-    m_log->WriteLine(_T("The following inputs are included, along with any dependent files:"));
+    m_log->WriteLine("The following inputs are included, along with any dependent files:");
 
     for( const PackEntry& pack_entry : m_packSpec.GetEntries() )
     {
@@ -267,7 +191,7 @@ void PackerImpl::WriteLogFilesToPack()
         m_log->WriteFormattedLine(FormatterLevel1, pack_entry.GetPath().c_str());
 
         // see what files come as part of this pack entry
-        std::vector<std::tuple<std::wstring, std::wstring>> filenames_for_display = pack_entry.GetFilenamesForDisplay();
+        const std::vector<std::tuple<std::string, std::string>> filenames_for_display = pack_entry.GetFilenamesForDisplay();
 
         if( !filenames_for_display.empty() )
         {
@@ -278,14 +202,14 @@ void PackerImpl::WriteLogFilesToPack()
         }
     }
 
-    if( !m_extraFilenames.empty() )
+    if( !m_extraFilePaths.empty() )
     {
         m_log->WriteLine();
-        m_log->WriteLine(_T("The following additional files are included:"));
+        m_log->WriteLine("The following additional files are included:");
         m_log->WriteLine();
 
-        for( const std::wstring& filename : m_extraFilenames )
-            m_log->WriteFormattedLine(FormatterLevel1, filename.c_str());
+        for( const std::string& file_path : m_extraFilePaths )
+            m_log->WriteFormattedLine(FormatterLevel1, file_path.c_str());
     }
 
     m_log->WriteLine();
@@ -312,7 +236,7 @@ void PackerImpl::CloseLog(const bool run_success)
 //
 // --------------------------------------------------------------------------
 
-void Packer::Run(const PFF* pff, const PackSpec& pack_spec)
+void Packer::Run(const PFF* const pff, const PackSpec& pack_spec)
 {
     PackerImpl(pff, pack_spec).Run();
 }

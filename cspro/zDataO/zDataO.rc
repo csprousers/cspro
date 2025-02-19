@@ -132,6 +132,38 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CASE_COMPLETE       ICON                    "res\\CaseComplete.ico"
+
+IDI_CASE_COMPLETE_VERIFIED ICON                    "res\\CaseCompleteVerified.ico"
+
+IDI_CASE_DELETED        ICON                    "res\\CaseDeleted.ico"
+
+IDI_CASE_PARTIAL_ADD    ICON                    "res\\CasePartialAdd.ico"
+
+IDI_CASE_PARTIAL_MODIFY ICON                    "res\\CasePartialModify.ico"
+
+IDI_CASE_PARTIAL_VERIFY ICON                    "res\\CasePartialVerify.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_CASE_LISTING ACCELERATORS
+BEGIN
+    VK_APPS,        ID_CONTEXT_MENU,        VIRTKEY, NOINVERT
+    VK_F10,         ID_CONTEXT_MENU,        VIRTKEY, SHIFT, NOINVERT
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

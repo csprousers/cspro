@@ -1,18 +1,19 @@
 ﻿#include "stdafx.h"
 #include "ValueSet.h"
 #include "ResponseProcessor.h"
+#include <engine/VarT.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zUtilO/Randomizer.h>
 #include <zDictO/ValueProcessor.h>
 #include <zLogicO/ChildSymbolNames.h>
-#include <engine/VarT.h>
+#include <zJavaScript/Executor.h>
 
 
 // --------------------------------------------------------------------------
 // ValueSet
 // --------------------------------------------------------------------------
 
-ValueSet::ValueSet(std::wstring value_set_name, VART* pVarT, const DictValueSet* dict_value_set, EngineData& engine_data)
+ValueSet::ValueSet(std::string value_set_name, VART* pVarT, const DictValueSet* const dict_value_set, EngineData& engine_data)
     :   Symbol(std::move(value_set_name), SymbolType::ValueSet),
         m_engineData(engine_data),
         m_pVarT(pVarT),
@@ -21,8 +22,8 @@ ValueSet::ValueSet(std::wstring value_set_name, VART* pVarT, const DictValueSet*
 }
 
 
-ValueSet::ValueSet(const DictValueSet& dict_value_set, CSymbolVar* pVarT, EngineData& engine_data)
-    :   ValueSet(CS2WS(dict_value_set.GetName()), pVarT, &dict_value_set, engine_data)
+ValueSet::ValueSet(const DictValueSet& dict_value_set, CSymbolVar* const pVarT, EngineData& engine_data)
+    :   ValueSet(dict_value_set.GetName(), pVarT, &dict_value_set, engine_data)
 {
 }
 
@@ -104,7 +105,7 @@ void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, do
         if( !response.IsDiscrete() )
             to_value = response.GetMaximumValue();
 
-        numeric_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilename(), response.GetTextColor() },
+        numeric_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilePath(), response.GetTextColor() },
                                   response.GetMinimumValue(), to_value);
     }
 }
@@ -116,7 +117,7 @@ void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, co
 
     for( const ValueSetResponse& response : VI_V(GetResponseProcessor()->GetUnfilteredResponses()) )
     {
-        string_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilename(), response.GetTextColor() },
+        string_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilePath(), response.GetTextColor() },
                                  response.GetCode());
     }
 }
@@ -161,13 +162,13 @@ void ValueSet::Sort(bool ascending, bool sort_by_label)
 }
 
 
-Symbol* ValueSet::FindChildSymbol(const std::wstring& symbol_name) const
+Symbol* ValueSet::FindChildSymbol(const std::string_view symbol_name_sv) const
 {
-    constexpr const TCHAR* ListNames[] = { Logic::ValueSetCodes, Logic::ValueSetLabels };
+    constexpr const char* ListNames[] = { Logic::ValueSetCodes, Logic::ValueSetLabels };
 
     size_t list_index = 0;
 
-    while( !SO::EqualsNoCase(symbol_name, ListNames[list_index]) )
+    while( !SO::EqualsNoCase(symbol_name_sv, ListNames[list_index]) )
     {
         if( ++list_index == _countof(ListNames) )
             return nullptr;
@@ -186,14 +187,26 @@ Symbol* ValueSet::FindChildSymbol(const std::wstring& symbol_name) const
     else
     {
         // if the list doesn't exist yet, create one
-        std::wstring value_set_list_wrapper_name = SO::Concatenate(GetName(), _T("."), ListNames[list_index]);
-        
+        std::string value_set_list_wrapper_name = SO::Concatenate(GetName(), ".", ListNames[list_index]);
+
         std::shared_ptr<ValueSetListWrapper> new_wrapper_list(new ValueSetListWrapper(std::move(value_set_list_wrapper_name),
                                                                                       GetSymbolIndex(), ( list_index == 0 ), m_engineData));
 
         value_set_list_wrapper_index = m_engineData.AddSymbol(new_wrapper_list, Logic::SymbolTable::NameMapAddition::DoNotAdd);
 
         return new_wrapper_list.get();
+    }
+}
+
+
+void ValueSet::CompareDeclarationAttributes(const Symbol& symbol) const
+{
+    const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+
+    if( GetDataType() != value_set.GetDataType() )
+    {
+        throw CompareDeclarationAttributesException("data type: %s vs. %s", ToString(GetDataType()),
+                                                                            ToString(value_set.GetDataType()));
     }
 }
 
@@ -213,12 +226,12 @@ void ValueSet::serialize_subclass(Serializer& ar)
 struct DynamicValueSetEntry
 {
     CString label;
-    CString image_filename;
+    std::string image_file_path;
     PortableColor text_color;
 
-    DynamicValueSetEntry(const CString& label_, const CString& image_filename_, PortableColor text_color_)
+    DynamicValueSetEntry(const CString& label_, std::string image_file_path_, PortableColor text_color_)
         :   label(label_),
-            image_filename(image_filename_),
+            image_file_path(std::move(image_file_path_)),
             text_color(std::move(text_color_))
     {
         label.TrimRight();
@@ -233,9 +246,9 @@ struct NumericDynamicValueSetEntry : public DynamicValueSetEntry
     double from_value;
     std::optional<double> to_value;
 
-    NumericDynamicValueSetEntry(const CString& label_, const CString& image_filename_,
+    NumericDynamicValueSetEntry(const CString& label_, std::string image_file_path_,
                                 PortableColor text_color_, double from_value_, std::optional<double> to_value_)
-        :   DynamicValueSetEntry(label_, image_filename_, std::move(text_color_)),
+        :   DynamicValueSetEntry(label_, std::move(image_file_path_), std::move(text_color_)),
             from_value(from_value_),
             to_value(std::move(to_value_))
     {
@@ -247,9 +260,9 @@ struct StringDynamicValueSetEntry : public DynamicValueSetEntry
 {
     std::wstring value;
 
-    StringDynamicValueSetEntry(const CString& label, const CString& image_filename_,
+    StringDynamicValueSetEntry(const CString& label, std::string image_file_path_,
                                PortableColor text_color_, std::wstring value_)
-        :   DynamicValueSetEntry(label, image_filename_, std::move(text_color_)),
+        :   DynamicValueSetEntry(label, std::move(image_file_path_), std::move(text_color_)),
             value(std::move(value_))
     {
         SO::MakeTrimRight(value);
@@ -257,7 +270,7 @@ struct StringDynamicValueSetEntry : public DynamicValueSetEntry
 };
 
 
-DynamicValueSet::DynamicValueSet(std::wstring value_set_name, EngineData& engine_data)
+DynamicValueSet::DynamicValueSet(std::string value_set_name, EngineData& engine_data)
     :   ValueSet(std::move(value_set_name), nullptr, nullptr, engine_data),
         m_numeric(true)
 {
@@ -301,8 +314,8 @@ void DynamicValueSet::ValidateNumericFromTo(double from_value, std::optional<dou
     // make sure an invalid special value isn't being added as the from value
     if( IsSpecial(from_value) && ( from_value == MISSING || from_value == REFUSED || from_value == DEFAULT ) )
     {
-        throw CSProException(_T("You cannot add '%s' to the value set '%s' without specifying a code that it maps to"),
-                                SpecialValues::ValueToString(from_value), GetName().c_str());
+        throw CSProException("You cannot add '%s' to the value set '%s' without specifying a code that it maps to",
+                             SpecialValues::ValueToString(from_value), GetName().c_str());
     }
 
     // range checks
@@ -317,24 +330,24 @@ void DynamicValueSet::ValidateNumericFromTo(double from_value, std::optional<dou
         // the from value must be less than the to value
         else if( !IsSpecial(*to_value) && *to_value < from_value )
         {
-            throw CSProException(_T("You cannot add a range to the value set '%s' where the from value is greater than the to value (%f > %f)"),
+            throw CSProException("You cannot add a range to the value set '%s' where the from value is greater than the to value (%f > %f)",
                                  GetName().c_str(), from_value, *to_value);
         }
     }
 }
 
 
-void DynamicValueSet::AddValue(std::wstring label, std::wstring image_filename, PortableColor text_color, double from_value, std::optional<double> to_value)
+void DynamicValueSet::AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, const double from_value, std::optional<double> to_value)
 {
     ASSERT(IsNumeric());
-    m_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(WS2CS(label), WS2CS(image_filename), std::move(text_color), from_value, std::move(to_value)));
+    m_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(WS2CS(label), std::move(image_file_path), std::move(text_color), from_value, std::move(to_value)));
 }
 
 
-void DynamicValueSet::AddValue(std::wstring label, std::wstring image_filename, PortableColor text_color, std::wstring value)
+void DynamicValueSet::AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, std::wstring value)
 {
     ASSERT(IsString());
-    m_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(WS2CS(label), WS2CS(image_filename), std::move(text_color), std::move(value)));
+    m_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(WS2CS(label), std::move(image_file_path), std::move(text_color), std::move(value)));
 }
 
 
@@ -347,7 +360,7 @@ size_t DynamicValueSet::AddValues(const ValueSet& value_set)
         value_set.ForeachValue(
             [&](const ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
             {
-                AddValue(CS2WS(info.label), CS2WS(info.image_filename), info.text_color, low_value, high_value);
+                AddValue(CS2WS(info.label), info.image_file_path, info.text_color, low_value, high_value);
                 ++number_values_added;
             });
     }
@@ -357,7 +370,7 @@ size_t DynamicValueSet::AddValues(const ValueSet& value_set)
         value_set.ForeachValue(
             [&](const ForeachValueInfo& info, const CString& value)
             {
-                AddValue(CS2WS(info.label), CS2WS(info.image_filename), info.text_color, CS2WS(value));
+                AddValue(CS2WS(info.label), info.image_file_path, info.text_color, CS2WS(value));
                 ++number_values_added;
             });
     }
@@ -418,7 +431,7 @@ void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueIn
     {
         const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
 
-        numeric_callback_function(ForeachValueInfo { entry.label, entry.image_filename, entry.text_color },
+        numeric_callback_function(ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
                                   numeric_entry.from_value, numeric_entry.to_value);
     }
 }
@@ -432,7 +445,7 @@ void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueIn
     {
         const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
 
-        string_callback_function(ForeachValueInfo { entry.label, entry.image_filename, entry.text_color },
+        string_callback_function(ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
                                  WS2CS(string_entry.value));
     }
 }
@@ -545,8 +558,8 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
     bool value_does_not_fit_in_value_set_warning = false;
 
     auto dict_value_set = std::make_unique<DictValueSet>();
-    dict_value_set->SetName(WS2CS(GetName()));
-    dict_value_set->SetLabel(WS2CS(GetName()));
+    dict_value_set->SetName(GetName());
+    dict_value_set->SetLabel(UTF8_TODO::GetCString(GetName()));
 
     for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
     {
@@ -554,7 +567,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
         DictValuePair dict_value_pair;
 
         dict_value.SetLabel(entry.label);
-        dict_value.SetImageFilename(entry.image_filename);
+        dict_value.SetImageFilePath(entry.image_file_path);
         dict_value.SetTextColor(entry.text_color);
 
         if( m_numeric )
@@ -634,7 +647,7 @@ namespace
         static DictValue dict_value;
 
         dict_value.SetLabel(entry.label);
-        dict_value.SetImageFilename(entry.image_filename);
+        dict_value.SetImageFilePath(entry.image_file_path);
         dict_value.SetTextColor(entry.text_color);
 
         if( !dict_value.HasValuePairs() )
@@ -839,7 +852,7 @@ void DynamicValueSet::CreateValueProcessor() const
 // ValueSetListWrapper (list wrapper of the value set codes/labels)
 // --------------------------------------------------------------------------
 
-ValueSetListWrapper::ValueSetListWrapper(std::wstring value_set_list_wrapper_name, int value_set_symbol_index,
+ValueSetListWrapper::ValueSetListWrapper(std::string value_set_list_wrapper_name, int value_set_symbol_index,
                                          bool codes_wrapper, const EngineData& engine_data)
     :   LogicList(std::move(value_set_list_wrapper_name)),
         m_engineData(engine_data),
@@ -853,7 +866,7 @@ ValueSetListWrapper::ValueSetListWrapper(std::wstring value_set_list_wrapper_nam
 }
 
 
-ValueSetListWrapper::ValueSetListWrapper(std::wstring value_set_list_wrapper_name, const EngineData& engine_data)
+ValueSetListWrapper::ValueSetListWrapper(std::string value_set_list_wrapper_name, const EngineData& engine_data)
     :   ValueSetListWrapper(std::move(value_set_list_wrapper_name), 0, false, engine_data)
 {
 }
@@ -875,7 +888,7 @@ size_t ValueSetListWrapper::GetCount() const
 }
 
 
-double ValueSetListWrapper::GetValue(size_t index) const
+double ValueSetListWrapper::GetValueNumeric(const size_t index) const
 {
     ASSERT(IsValidIndex(index) && m_codesWrapper);
     const ValueSet& value_set = GetSymbolValueSet(m_valueSetSymbolIndex);
@@ -894,7 +907,7 @@ double ValueSetListWrapper::GetValue(size_t index) const
 }
 
 
-const std::wstring& ValueSetListWrapper::GetString(size_t index) const
+const SharableString& ValueSetListWrapper::GetValueString(const size_t index) const
 {
     ASSERT(IsValidIndex(index));
     const ValueSet& value_set = GetSymbolValueSet(m_valueSetSymbolIndex);
@@ -905,12 +918,12 @@ const std::wstring& ValueSetListWrapper::GetString(size_t index) const
 
         if( m_codesWrapper )
         {
-            return dynamic_value_set.GetEntry<StringDynamicValueSetEntry>(index - 1).value;
+            return UTF8_TODO::Create_SharableStringReference(dynamic_value_set.GetEntry<StringDynamicValueSetEntry>(index - 1).value);
         }
 
         else
         {
-            return CS2WS_Reference(dynamic_value_set.m_entries[index - 1]->label);
+            return UTF8_TODO::Create_SharableStringReference(dynamic_value_set.m_entries[index - 1]->label);
         }
     }
 
@@ -920,12 +933,12 @@ const std::wstring& ValueSetListWrapper::GetString(size_t index) const
 
         if( m_codesWrapper )
         {
-            return CS2WS_Reference(CString(responses[index - 1]->GetCode()).TrimRight());
+            return UTF8_TODO::Create_SharableStringReference(CString(responses[index - 1]->GetCode()).TrimRight());
         }
 
         else
         {
-            return CS2WS_Reference(responses[index - 1]->GetLabel());
+            return UTF8_TODO::Create_SharableStringReference(responses[index - 1]->GetLabel());
         }
     }
 }
@@ -973,7 +986,7 @@ void DynamicValueSet::WriteValueToJson(JsonWriter& json_writer) const
             {
                 if( !IsSpecial(value) )
                 {
-                    const std::wstring text_value = DoubleToString(value);
+                    const std::wstring text_value = UTF8_TODO::GetWide(DoubleToString(value));
 
                     const size_t dot_pos = text_value.find('.');
 
@@ -1035,12 +1048,12 @@ void DynamicValueSet::WriteValueToJson(JsonWriter& json_writer) const
 }
 
 
-void DynamicValueSet::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
+void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
 {
     // create entries from the value set
     std::vector<std::unique_ptr<const DynamicValueSetEntry>> new_entries;
 
-    for( const JsonNode<wchar_t>& dict_value_node : json_node.GetArray(JK::values) )
+    for( const JsonNode& dict_value_node : json_node.GetArray(JK::values) )
     {
         DictValue dict_value = dict_value_node.Get<DictValue>();
 
@@ -1051,7 +1064,7 @@ void DynamicValueSet::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
                 auto get_value = [](const CString& text_value)
                 {
                     // the value may be special...
-                    const double* special_value = SpecialValues::StringIsSpecial<const double*>(text_value);
+                    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(UTF8_TODO::GetUtf8(text_value));
 
                     if( special_value != nullptr )
                         return *special_value;
@@ -1060,7 +1073,7 @@ void DynamicValueSet::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
                     double value = atod(text_value);
 
                     if( value == IMSA_BAD_DOUBLE )
-                        throw CSProException(_T("A numeric value set cannot store the code '%s'"), text_value.GetString());
+                        throw CSProException("A numeric value set cannot store the code '%s'", UTF8_TODO::GetUtf8(text_value).c_str());
 
                     return value;
                 };
@@ -1074,13 +1087,13 @@ void DynamicValueSet::UpdateValueFromJson(const JsonNode<wchar_t>& json_node)
 
                 ValidateNumericFromTo(from_value, to_value);
 
-                new_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilename(),
+                new_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilePath(),
                                                                                        dict_value.GetTextColor(), from_value, std::move(to_value)));
             }
 
             else
             {
-                new_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilename(),
+                new_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilePath(),
                                                                                       dict_value.GetTextColor(), CS2WS(dict_value_pair.GetFrom())));
             }
         }
@@ -1099,20 +1112,49 @@ void ValueSetListWrapper::WriteValueToJson(JsonWriter& json_writer) const
     if( IsNumeric() )
     {
         for( size_t i = 1; i <= count; ++i )
-            json_writer.WriteEngineValue(GetValue(i));
+            json_writer.WriteEngineValue(GetValueNumeric(i));
     }
 
     else
     {
         for( size_t i = 1; i <= count; ++i )
-            json_writer.Write(GetString(i));
+            json_writer.Write(GetValueString(i));
     }
 
     json_writer.EndArray();
 }
 
 
-void ValueSetListWrapper::UpdateValueFromJson(const JsonNode<wchar_t>& /*json_node*/)
+void ValueSetListWrapper::SetValueFromJson(const JsonNode& /*json_node*/)
 {
-    throw NoUpdateValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; deserialize the ValueSet instead");
+    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; deserialize the ValueSet instead");
+}
+
+
+
+// --------------------------------------------------------------------------
+// JavaScript serialization
+// --------------------------------------------------------------------------
+
+JavaScript::Value ValueSetListWrapper::GetJavaScriptValue(JavaScript::Executor& executor) const
+{
+    const size_t count = GetCount();
+
+    auto js_array_values = std::make_unique_for_overwrite<JavaScript::Value[]>(count);
+    JavaScript::Value* js_array_values_itr = js_array_values.get();
+
+    for( size_t i = 1; i <= count; ++i )
+    {
+        new (js_array_values_itr) JavaScript::Value(IsNumeric() ? executor.CreateEngineValue(GetValueNumeric(i)) :
+                                                                  executor.CreateEngineValue(GetValueString(i)));
+        ++js_array_values_itr;
+    }
+
+    return executor.CreateArray(count, js_array_values.get());
+}
+
+
+void ValueSetListWrapper::SetValueFromJavaScript(JavaScript::Executor& /*executor*/, const JavaScript::Value& /*js_value*/)
+{
+    throw CSProException("The List '%s' is read-only and cannot be modified", GetName().c_str());
 }

@@ -14,27 +14,69 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FakeServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FakeServerFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TestRepoBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FailableHttpConnection.h">
+    <ClInclude Include="ApplicationsTester.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CaseTestHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSWebSyncServiceWithModifiableApi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FailableHttpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FakeSyncService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FakeSyncServiceFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncTestCredentials.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestRepoBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ToString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="ApplicationsTester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaseJsonWriterTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaseTestHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSWebApiTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSWebSyncServiceTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CurlFtpConnectionTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CurlHttpConnectionTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DropboxSyncServiceTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBasedSyncServiceTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FtpSyncServiceTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeoJsonParserTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IntegrationTest.cpp">
@@ -43,7 +85,10 @@
     <ClCompile Include="JsonConverterTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VectorClockTest.cpp">
+    <ClCompile Include="JsonStreamParserTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SyncClientTest.cpp">
@@ -52,42 +97,19 @@
     <ClCompile Include="SyncObexHandlerTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CurlHttpConnectionTest.cpp">
+    <ClCompile Include="SyncTestCredentials.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSWebSyncServerConnectionTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DropboxSyncServerConnectionTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CurlFtpConnectionTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FTPSyncServerConnectionTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonStreamParserTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CaseJsonWriterTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeoJsonParserTest.cpp">
+    <ClCompile Include="VectorClockTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="TestFiles\TestDict.dcf">
+    <None Include="Test Files\TestDict.dcf">
       <Filter>Test Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="TestFiles\ThreeLevelTest.csdb">
+    </None>
+    <None Include="Test Files\ThreeLevelTest.csdb">
       <Filter>Test Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="TestFiles\cspro-logo.png">
-      <Filter>Test Files</Filter>
-    </Image>
+    </None>
   </ItemGroup>
 </Project>

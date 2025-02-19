@@ -23,12 +23,13 @@ namespace VectorHelpers
     std::vector<T> Concatenate(std::vector<T> source1, Args... sourceN);
 
 
-    // removes duplicates, keeping the first instance of the duplicate
+    // removes duplicates, keeping the first instance of the duplicate;
+    // the number of duplicates removed is returned
     template<typename T, typename Predicate>
-    void RemoveDuplicates(std::vector<T>& values, Predicate predicate);
+    size_t RemoveDuplicates(std::vector<T>& values, Predicate predicate);
 
     template<typename T>
-    void RemoveDuplicates(std::vector<T>& values);
+    size_t RemoveDuplicates(std::vector<T>& values);
 
     template<typename T>
     void RemoveDuplicateStringsNoCase(std::vector<T>& values);
@@ -39,6 +40,10 @@ namespace VectorHelpers
 }
 
 
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 template<typename T>
 bool VectorHelpers::ValueOfSharedPointersIsEqual(const std::vector<std::shared_ptr<T>>& lhs, const std::vector<std::shared_ptr<T>>& rhs)
@@ -98,33 +103,38 @@ std::vector<T> VectorHelpers::Concatenate(std::vector<T> source1, Args... source
 
 
 template<typename T, typename Predicate>
-void VectorHelpers::RemoveDuplicates(std::vector<T>& values, Predicate predicate)
+size_t VectorHelpers::RemoveDuplicates(std::vector<T>& values, const Predicate predicate)
 {
-    if( values.size() < 2 )
-        return;
+    size_t duplicates_removed = 0;
 
-    for( auto values_itr = values.end() - 1; values_itr > values.begin(); --values_itr )
+    if( values.size() >= 2 )
     {
-        if( values_itr != std::find_if(values.begin(), values_itr,
-                                       [&](const auto& value) { return predicate(value, *values_itr); }) )
+        for( auto values_itr = values.end() - 1; values_itr > values.begin(); --values_itr )
         {
-            values_itr = values.erase(values_itr);
+            if( values_itr != std::find_if(values.begin(), values_itr,
+                                           [&](const auto& value) { return predicate(value, *values_itr); }) )
+            {
+                values_itr = values.erase(values_itr);
+                ++duplicates_removed;
+            }
         }
     }
+
+    return duplicates_removed;
 }
 
 
 template<typename T>
-void VectorHelpers::RemoveDuplicates(std::vector<T>& values)
+size_t VectorHelpers::RemoveDuplicates(std::vector<T>& values)
 {
-    RemoveDuplicates(values, [](const auto& value1, const auto& value2) { return ( value1 == value2 ); });
+    return RemoveDuplicates(values, [](const auto& value1, const auto& value2) { return ( value1 == value2 ); });
 }
 
 
 template<typename T>
 void VectorHelpers::RemoveDuplicateStringsNoCase(std::vector<T>& values)
 {
-    RemoveDuplicates(values, [&](wstring_view value1, wstring_view value2) { return SO::EqualsNoCase(value1, value2); });
+    RemoveDuplicates(values, [&](const auto& value1, const auto& value2) { return SO::EqualsNoCase(value1, value2); });
 }
 
 

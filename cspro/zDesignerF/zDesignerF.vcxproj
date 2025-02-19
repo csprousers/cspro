@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{5A7C4B2C-3C72-4C23-994F-BC647AB0A882}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zDesignerF</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -69,65 +65,89 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApplicationDoc.cpp" />
+    <ClCompile Include="ApplicationPropertiesPageDlg.cpp" />
+    <ClCompile Include="AppMessageFilePropertiesPageDlg.cpp" />
     <ClCompile Include="AppTreeNode.cpp" />
     <ClCompile Include="BuildWnd.cpp" />
+    <ClCompile Include="CodeFilePropertiesPageDlg.cpp" />
     <ClCompile Include="CodeMenu.cpp" />
     <ClCompile Include="CompilerOutputTabViewPage.cpp" />
     <ClCompile Include="DictionaryBasedDoc.cpp" />
+    <ClCompile Include="DictionaryPropertiesPageDlg.cpp" />
     <ClCompile Include="FormFileBasedDoc.cpp" />
+    <ClCompile Include="FormFilePropertiesPageDlg.cpp" />
     <ClCompile Include="LogicDialogBar.cpp" />
     <ClCompile Include="LogicReferenceWnd.cpp" />
+    <ClCompile Include="ManageFilesDlg.cpp" />
     <ClCompile Include="MessageEditTabViewPage.cpp" />
+    <ClCompile Include="NewFileCreator.cpp" />
     <ClCompile Include="PathAdjusterDlg.cpp" />
     <ClCompile Include="PropertyGrid\BoolProperty.cpp" />
-    <ClCompile Include="PropertyGrid\FilenameProperty.cpp" />
-    <ClCompile Include="PropertyGrid\ImageFilenameProperty.cpp" />
-    <ClCompile Include="PropertyGrid\PortableColorProperty.cpp" />
+    <ClCompile Include="PropertyGrid\CStringProperty.cpp" />
     <ClCompile Include="PropertyGrid\CustomProperties.cpp" />
+    <ClCompile Include="PropertyGrid\FilenameProperty.cpp" />
+    <ClCompile Include="PropertyGrid\ImageFilePathProperty.cpp" />
+    <ClCompile Include="PropertyGrid\PortableColorProperty.cpp" />
     <ClCompile Include="PropertyGrid\PropertyManager.cpp" />
     <ClCompile Include="PropertyGrid\StringProperty.cpp" />
     <ClCompile Include="QuestionnaireView.cpp" />
     <ClCompile Include="ReportPreviewer.cpp" />
+    <ClCompile Include="ReportPropertiesPageDlg.cpp" />
+    <ClCompile Include="ResourcePropertiesPageDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StringEncoderDlg.cpp" />
+    <ClCompile Include="TableSpecPropertiesPageDlg.cpp" />
     <ClCompile Include="TabViewContainer.cpp" />
+    <ClCompile Include="TextDisplayPageDlg.cpp" />
     <ClCompile Include="UnfloatableDialogBar.cpp" />
     <ClCompile Include="zDesignerF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ApplicationDoc.h" />
+    <ClInclude Include="AppFileTypeImageList.h" />
     <ClInclude Include="ApplicationChildWnd.h" />
+    <ClInclude Include="ApplicationDoc.h" />
+    <ClInclude Include="ApplicationPropertiesPageDlg.h" />
+    <ClInclude Include="AppMessageFilePropertiesPageDlg.h" />
     <ClInclude Include="AppTreeNode.h" />
     <ClInclude Include="BuildWnd.h" />
     <ClInclude Include="BuildWndJsonReaderInterface.h" />
+    <ClInclude Include="CodeFilePropertiesPageDlg.h" />
     <ClInclude Include="CodeMenu.h" />
     <ClInclude Include="CompilerOutputTabViewPage.h" />
     <ClInclude Include="DesignerObjectTransporter.h" />
     <ClInclude Include="DictionaryBasedDoc.h" />
+    <ClInclude Include="DictionaryPropertiesPageDlg.h" />
     <ClInclude Include="FormFileBasedDoc.h" />
-    <ClInclude Include="LogicReferenceWnd.h" />
+    <ClInclude Include="FormFilePropertiesPageDlg.h" />
+    <ClInclude Include="FrameType.h" />
     <ClInclude Include="LogicDialogBar.h" />
+    <ClInclude Include="LogicReferenceWnd.h" />
+    <ClInclude Include="ManageFilesDlg.h" />
     <ClInclude Include="MessageEditTabViewPage.h" />
+    <ClInclude Include="NewFileCreator.h" />
     <ClInclude Include="OnUpdateHints.h" />
     <ClInclude Include="PathAdjusterDlg.h" />
     <ClInclude Include="PropertyGrid\CustomProperties.h" />
     <ClInclude Include="PropertyGrid\FilenamePropertyBase.h" />
     <ClInclude Include="PropertyGrid\ListPropertyBuilder.h" />
     <ClInclude Include="PropertyGrid\Property.h" />
-    <ClInclude Include="PropertyGrid\PropertyManager.h" />
     <ClInclude Include="PropertyGrid\PropertyBuilder.h" />
+    <ClInclude Include="PropertyGrid\PropertyManager.h" />
     <ClInclude Include="PropertyGrid\PropertyValidationException.h" />
     <ClInclude Include="QuestionnaireView.h" />
     <ClInclude Include="ReportPreviewer.h" />
+    <ClInclude Include="ReportPropertiesPageDlg.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="ResourcePropertiesPageDlg.h" />
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="FrameType.h" />
     <ClInclude Include="StringEncoderDlg.h" />
+    <ClInclude Include="TableSpecPropertiesPageDlg.h" />
     <ClInclude Include="TabViewContainer.h" />
+    <ClInclude Include="TextDisplayPageDlg.h" />
     <ClInclude Include="UnfloatableDialogBar.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="ViewType.h" />
@@ -139,6 +159,10 @@
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCapiO\zCapiO.vcxproj">
+      <Project>{9cff378d-0d09-4800-866d-5fab8df44fbf}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zDictO\zDictO.vcxproj">
@@ -179,6 +203,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zTableO\zTableO.vcxproj">
+      <Project>{192cbdce-78bc-4c95-9c9e-9bee530d677c}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

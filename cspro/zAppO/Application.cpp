@@ -7,12 +7,12 @@
 #include <zUtilO/TextSourceExternal.h>
 
 
-const TCHAR* const ToString(EngineAppType engine_app_type)
+const char* ToString(const EngineAppType engine_app_type)
 {
-    return ( engine_app_type == EngineAppType::Entry )      ? _T("entry") :
-           ( engine_app_type == EngineAppType::Tabulation ) ? _T("tabulation") :
-           ( engine_app_type == EngineAppType::Batch )      ? _T("batch") :
-                                                              _T("invalid");
+    return ( engine_app_type == EngineAppType::Entry )      ? "entry" :
+           ( engine_app_type == EngineAppType::Tabulation ) ? "tabulation" :
+           ( engine_app_type == EngineAppType::Batch )      ? "batch" :
+                                                              "invalid";
 }
 
 
@@ -21,7 +21,7 @@ const TCHAR* const ToString(EngineAppType engine_app_type)
 // --------------------------------------------------------------------------
 
 Application::Application()
-    :   m_version(CSPRO_VERSION_NUMBER),
+    :   m_version(Versioning::Number),
         m_serializerArchiveVersion(Serializer::GetCurrentVersion()),
         m_engineAppType(EngineAppType::Invalid),
         m_applicationProperties(std::make_unique<ApplicationProperties>()),
@@ -61,8 +61,71 @@ Application::Application()
 Application::Application(Application&& rhs) noexcept = default;
 
 
+Application::Application(const Application& rhs)
+    :   m_version(rhs.m_version),
+        m_serializerArchiveVersion(rhs.m_serializerArchiveVersion),
+        m_engineAppType(rhs.m_engineAppType),
+        m_name(rhs.m_name),
+        m_label(rhs.m_label),
+        m_applicationFilePath(rhs.m_applicationFilePath),
+        m_applicationPropertiesFilePath(rhs.m_applicationPropertiesFilePath),
+        m_applicationProperties(std::make_unique<ApplicationProperties>(*rhs.m_applicationProperties)),
+        m_questionTextFilePath(rhs.m_questionTextFilePath),
+        m_formFilePaths(rhs.m_formFilePaths),
+        m_tableSpecFilePaths(rhs.m_tableSpecFilePaths),
+        m_externalDictionaryFilePaths(rhs.m_externalDictionaryFilePaths),
+        m_codeFiles(rhs.m_codeFiles),
+        m_messageFiles(rhs.m_messageFiles),
+        m_reportFiles(rhs.m_reportFiles),
+        m_resources(rhs.m_resources),
+        m_dictionaryDescriptions(rhs.m_dictionaryDescriptions),
+        m_askOperatorId(rhs.m_askOperatorId),
+        m_partialSave(rhs.m_partialSave),
+        m_autoPartialSaveMinutes(rhs.m_autoPartialSaveMinutes),
+        m_caseTreeType(rhs.m_caseTreeType),
+        m_useQuestionText(rhs.m_useQuestionText),
+        m_showEndCaseMessage(rhs.m_showEndCaseMessage),
+        m_centerForms(rhs.m_centerForms),
+        m_decimalMarkIsComma(rhs.m_decimalMarkIsComma),
+        m_createListingFile(rhs.m_createListingFile),
+        m_createLogFile(rhs.m_createLogFile),
+        m_editNotePermissions(rhs.m_editNotePermissions),
+        m_autoAdvanceOnSelection(rhs.m_autoAdvanceOnSelection),
+        m_displayCodesAlongsideLabels(rhs.m_displayCodesAlongsideLabels),
+        m_showFieldLabels(rhs.m_showFieldLabels),
+        m_showErrorMessageNumbers(rhs.m_showErrorMessageNumbers),
+        m_comboBoxShowOnlyDiscreteValues(rhs.m_comboBoxShowOnlyDiscreteValues),
+        m_showRefusals(rhs.m_showRefusals),
+        m_verifyFrequency(rhs.m_verifyFrequency),
+        m_verifyStart(rhs.m_verifyStart),
+        m_syncParameters(rhs.m_syncParameters),
+        m_logicSettings(rhs.m_logicSettings),
+        m_mappingOptions(rhs.m_mappingOptions),
+        m_hasWriteStatements(rhs.m_hasWriteStatements),
+        m_hasSaveableFrequencyStatements(rhs.m_hasSaveableFrequencyStatements),
+        m_hasImputeStatements(rhs.m_hasImputeStatements),
+        m_hasImputeStatStatements(rhs.m_hasImputeStatStatements),
+        m_hasSaveArrays(rhs.m_hasSaveArrays),
+        m_updateSaveArrayFile(rhs.m_updateSaveArrayFile),
+        m_pAppSrcCode(nullptr),
+        m_compiled(false),
+        m_optimizeFlowTree(false),
+        m_pAppLoader(std::make_unique<CAppLoader>())
+{
+}
+
+
 Application::~Application()
 {
+}
+
+
+AppFileType Application::GetApplicationAppFileType() const
+{
+    return ( m_engineAppType == EngineAppType::Entry )      ? AppFileType::ApplicationEntry :
+           ( m_engineAppType == EngineAppType::Batch )      ? AppFileType::ApplicationBatch :
+           ( m_engineAppType == EngineAppType::Tabulation ) ? AppFileType::ApplicationTabulation :
+                                                              ReturnProgrammingError(AppFileType::ApplicationBatch);
 }
 
 
@@ -73,127 +136,168 @@ void Application::SetApplicationProperties(ApplicationProperties application_pro
 
 
 // --------------------------------------------------------------------------
+// miscellaneous functionality
+// --------------------------------------------------------------------------
+
+void Application::ClearApplicationFiles()
+{
+    m_questionTextFilePath.clear();
+
+    m_formFilePaths.clear();
+    m_tableSpecFilePaths.clear();
+
+    m_externalDictionaryFilePaths.clear();
+    m_dictionaryDescriptions.clear();
+
+    m_codeFiles.clear();
+    m_messageFiles.clear();
+    m_reportFiles.clear();
+    m_resources.clear();
+}
+
+
+// --------------------------------------------------------------------------
 // form files
 // --------------------------------------------------------------------------
 
-void Application::AddFormFilename(const CString& form_filename)
+const std::string* Application::GetForm(const std::string& form_file_path)
+{
+    const auto& lookup = std::find_if(m_formFilePaths.cbegin(), m_formFilePaths.cend(),
+                                      [&](const std::string& this_form_file_path) { return SO::EqualsNoCase(form_file_path, this_form_file_path); });
+
+    return ( lookup != m_formFilePaths.cend() ) ? &(*lookup) :
+                                                  nullptr;
+
+}
+
+void Application::AddForm(std::string form_file_path)
 {
     ASSERT(GetEngineAppType() == EngineAppType::Entry || GetEngineAppType() == EngineAppType::Batch);
-    m_formFilenames.emplace_back(form_filename);
+    ASSERT(GetForm(form_file_path) == nullptr);
+
+    m_formFilePaths.emplace_back(std::move(form_file_path));
 }
 
 
-void Application::AddFormFilename(std::wstring form_filename)
+void Application::DropForm(const std::string& form_file_path)
 {
-    AddFormFilename(WS2CS(form_filename));
+    const auto& lookup = std::find_if(m_formFilePaths.cbegin(), m_formFilePaths.cend(),
+                                      [&](const std::string& this_form_file_path) { return SO::EqualsNoCase(form_file_path, this_form_file_path); });
+    ASSERT(lookup != m_formFilePaths.cend());
+
+    if( lookup != m_formFilePaths.cend() )
+        m_formFilePaths.erase(lookup);
 }
 
 
-void Application::DropFormFilename(wstring_view form_filename)
+void Application::RenameFormFilePath(const std::string& original_form_file_path, std::string new_form_file_path)
 {
-    for( auto itr = m_formFilenames.cbegin(); itr != m_formFilenames.cend(); ++itr )
+    for( std::string& form_file_path: m_formFilePaths )
     {
-        if( SO::EqualsNoCase(form_filename, *itr) )
+        if( SO::EqualsNoCase(original_form_file_path, form_file_path) )
         {
-            m_formFilenames.erase(itr);
+            form_file_path = std::move(new_form_file_path);
             return;
         }
     }
 }
 
 
-void Application::RenameFormFilename(wstring_view original_form_filename, const CString& new_form_filename)
-{
-    for( CString& form_filename : m_formFilenames )
-    {
-        if( SO::EqualsNoCase(original_form_filename, form_filename) )
-        {
-            form_filename = new_form_filename;
-            return;
-        }
-    }
-}
-
 
 // --------------------------------------------------------------------------
-// tab specs
+// table specs
 // --------------------------------------------------------------------------
 
-void Application::AddTabSpecFilename(const CString& tab_spec_filename)
+void Application::AddTableSpec(std::string table_spec_file_path)
 {
     ASSERT(GetEngineAppType() == EngineAppType::Tabulation);
-    m_tabSpecFilenames.emplace_back(tab_spec_filename);
+    ASSERT(m_tableSpecFilePaths.empty());
+
+    m_tableSpecFilePaths.emplace_back(std::move(table_spec_file_path));
 }
 
 
-void Application::RenameTabSpecFilename(wstring_view original_tab_spec_filename, const CString& new_tab_spec_filename)
+void Application::RenameTableSpecFilePath(const std::string& original_table_spec_file_path, std::string new_table_spec_file_path)
 {
-   for( CString& tab_spec_filename : m_tabSpecFilenames )
+   for( std::string& table_spec_file_path : m_tableSpecFilePaths )
     {
-        if( SO::EqualsNoCase(original_tab_spec_filename, tab_spec_filename) )
+        if( SO::EqualsNoCase(original_table_spec_file_path, table_spec_file_path) )
         {
-            tab_spec_filename = new_tab_spec_filename;
+            table_spec_file_path = std::move(new_table_spec_file_path);
             return;
         }
     }
 }
+
 
 
 // --------------------------------------------------------------------------
 // external dictionaries
 // --------------------------------------------------------------------------
 
-void Application::AddExternalDictionaryFilename(const CString& dictionary_filename)
+void Application::AddExternalDictionary(std::string dictionary_file_path)
 {
-    m_externalDictionaryFilenames.emplace_back(dictionary_filename);
+    m_externalDictionaryFilePaths.emplace_back(std::move(dictionary_file_path));
 }
 
 
-void Application::DropExternalDictionaryFilename(wstring_view dictionary_filename)
+void Application::DropExternalDictionary(const std::string& dictionary_file_path)
 {
-    for( auto itr = m_externalDictionaryFilenames.cbegin(); itr != m_externalDictionaryFilenames.cend(); ++itr )
+    for( auto itr = m_externalDictionaryFilePaths.cbegin(); itr != m_externalDictionaryFilePaths.cend(); ++itr )
     {
-        if( SO::EqualsNoCase(dictionary_filename, *itr) )
+        if( SO::EqualsNoCase(dictionary_file_path, *itr) )
         {
-            m_externalDictionaryFilenames.erase(itr);
+            m_externalDictionaryFilePaths.erase(itr);
             return;
         }
     }
 }
 
 
-void Application::RenameExternalDictionaryFilename(wstring_view original_dictionary_filename, std::wstring new_dictionary_filename)
+void Application::RenameExternalDictionaryFilePath(const std::string& original_dictionary_file_path, std::string new_dictionary_file_path)
 {
-    for( CString& dictionary_filename : m_externalDictionaryFilenames )
+    for( std::string& dictionary_file_path : m_externalDictionaryFilePaths )
     {
-        if( SO::EqualsNoCase(original_dictionary_filename, dictionary_filename) )
+        if( SO::EqualsNoCase(original_dictionary_file_path, dictionary_file_path) )
         {
-            dictionary_filename = WS2CS(new_dictionary_filename);
+            dictionary_file_path = new_dictionary_file_path;
             break;
         }
     }
 
     for( DictionaryDescription& dictionary_description : m_dictionaryDescriptions )
     {
-        if( SO::EqualsNoCase(original_dictionary_filename, dictionary_description.GetDictionaryFilename()) )
+        if( SO::EqualsNoCase(original_dictionary_file_path, dictionary_description.GetDictionaryFilePath()) )
         {
-            dictionary_description.SetDictionaryFilename(std::move(new_dictionary_filename));
+            dictionary_description.SetDictionaryFilePath(std::move(new_dictionary_file_path));
             return;
         }
     }
 }
 
 
+
 // --------------------------------------------------------------------------
 // code files
 // --------------------------------------------------------------------------
 
+const CodeFile* Application::GetCodeFile(const std::string& file_path) const
+{
+    const auto& lookup = std::find_if(m_codeFiles.cbegin(), m_codeFiles.cend(),
+                                      [&](const CodeFile& code_file) { return SO::EqualsNoCase(file_path, code_file.GetFilePath()); });
+
+    return ( lookup != m_codeFiles.cend() ) ? &(*lookup) :
+                                              nullptr;
+}
+
+
 const CodeFile* Application::GetLogicMainCodeFile() const
 {
-    const auto& search = std::find_if(m_codeFiles.cbegin(), m_codeFiles.cend(),
+    const auto& lookup = std::find_if(m_codeFiles.cbegin(), m_codeFiles.cend(),
                                       [&](const CodeFile& code_file) { return code_file.IsLogicMain(); });
 
-    return ( search != m_codeFiles.cend() ) ? &*search : nullptr;
+    return ( lookup != m_codeFiles.cend() ) ? &(*lookup) :
+                                              nullptr;
 }
 
 
@@ -205,17 +309,21 @@ CodeFile* Application::GetLogicMainCodeFile()
 
 void Application::AddCodeFile(CodeFile code_file)
 {
-    ASSERT(!IsFilenameInUse(m_codeFiles, code_file.GetFilename()));
+    ASSERT(!IsFilePathInUse(m_codeFiles, code_file.GetFilePath()));
     ASSERT(!code_file.IsLogicMain() || GetLogicMainCodeFile() == nullptr);
 
     m_codeFiles.emplace_back(std::move(code_file));
 }
 
 
-void Application::DropCodeFile(size_t index)
+void Application::DropCodeFile(const std::string& file_path)
 {
-    ASSERT(index < m_codeFiles.size());
-    m_codeFiles.erase(m_codeFiles.begin() + index);
+    const auto& lookup = std::find_if(m_codeFiles.cbegin(), m_codeFiles.cend(),
+                                      [&](const CodeFile& code_file) { return SO::EqualsNoCase(file_path, code_file.GetFilePath()); });
+    ASSERT(lookup != m_codeFiles.cend());
+
+    if( lookup != m_codeFiles.cend() )
+        m_codeFiles.erase(lookup);
 }
 
 
@@ -224,17 +332,21 @@ void Application::DropCodeFile(size_t index)
 // message files
 // --------------------------------------------------------------------------
 
-void Application::AddMessageFile(std::shared_ptr<TextSource> message_text_source)
+void Application::AddMessageFile(AppMessageFile app_message_file)
 {
-    ASSERT(message_text_source != nullptr && !IsFilenameInUse(m_messageTextSources, message_text_source->GetFilename()));
-    m_messageTextSources.emplace_back(std::move(message_text_source));
+    ASSERT(!IsFilePathInUse(m_messageFiles, app_message_file.GetFilePath()));
+    m_messageFiles.emplace_back(std::move(app_message_file));
 }
 
 
-void Application::DropMessageFile(size_t index)
+void Application::DropMessageFile(const std::string& file_path)
 {
-    ASSERT(index < m_messageTextSources.size());
-    m_messageTextSources.erase(m_messageTextSources.begin() + index);
+    const auto& lookup = std::find_if(m_messageFiles.cbegin(), m_messageFiles.cend(),
+                                      [&](const AppMessageFile& app_message_file) { return SO::EqualsNoCase(file_path, app_message_file.GetFilePath()); });
+    ASSERT(lookup != m_messageFiles.cend());
+
+    if( lookup != m_messageFiles.cend() )
+        m_messageFiles.erase(lookup);
 }
 
 
@@ -243,55 +355,70 @@ void Application::DropMessageFile(size_t index)
 // reports
 // --------------------------------------------------------------------------
 
-const NamedTextSource* Application::GetReportNamedTextSource(wstring_view name_or_filename, bool search_by_name) const
+const ReportFile* Application::GetReportFile(const std::string_view name_or_file_path_sv, const bool search_by_name) const
 {
-    const auto& search = std::find_if(m_reportNamedTextSources.cbegin(), m_reportNamedTextSources.cend(),
-        [&](const auto& rnts)
+    const auto& lookup = std::find_if(m_reportFiles.cbegin(), m_reportFiles.cend(),
+        [&](const ReportFile& report_file)
         {
-            return search_by_name ? SO::EqualsNoCase(name_or_filename, rnts->name) :
-                                    SO::EqualsNoCase(name_or_filename, rnts->text_source->GetFilename());
+            return SO::EqualsNoCase(name_or_file_path_sv, search_by_name ? report_file.GetName() :
+                                                                           report_file.GetFilePath());
         });
 
-    return ( search != m_reportNamedTextSources.cend() ) ? search->get() : nullptr;
+    return ( lookup != m_reportFiles.cend() ) ? &(*lookup) :
+                                                nullptr;
 }
 
 
-void Application::AddReport(std::wstring name, std::shared_ptr<TextSource> report_text_source)
+void Application::AddReport(ReportFile report_file)
 {
-    ASSERT(report_text_source != nullptr && GetReportNamedTextSource(name, true) == nullptr);
-    m_reportNamedTextSources.emplace_back(std::make_shared<NamedTextSource>(NamedTextSource { std::move(name), std::move(report_text_source) }));
+    ASSERT(GetReportFile(report_file.GetName(), true) == nullptr);
+    m_reportFiles.emplace_back(std::move(report_file));
 }
 
 
-void Application::AddReport(std::wstring name, std::wstring filename)
+void Application::DropReport(const std::string& file_path)
 {
-    AddReport(std::move(name), TextSourceEditable::FindOpenOrCreate(std::move(filename)));
+    const auto& lookup = std::find_if(m_reportFiles.cbegin(), m_reportFiles.cend(),
+                                      [&](const ReportFile& report_file) { return SO::EqualsNoCase(file_path, report_file.GetFilePath()); });
+    ASSERT(lookup != m_reportFiles.cend());
+
+    if( lookup != m_reportFiles.cend() )
+        m_reportFiles.erase(lookup);
 }
 
-
-void Application::DropReport(size_t index)
-{
-    ASSERT(index < m_reportNamedTextSources.size());
-    m_reportNamedTextSources.erase(m_reportNamedTextSources.begin() + index);
-}
 
 
 // --------------------------------------------------------------------------
-// resource folders
+// resources
 // --------------------------------------------------------------------------
 
-void Application::AddResourceFolder(const CString& folder)
+const AppResource* Application::GetResource(const std::string& path) const
 {
-    if( !ContainsStringInVectorNoCase(m_resourceFolders, folder) )
-        m_resourceFolders.emplace_back(folder);
+    const auto& lookup = std::find_if(m_resources.cbegin(), m_resources.cend(),
+                                      [&](const AppResource& resource) { return SO::EqualsNoCase(path, resource.GetPath()); });
+
+    return ( lookup != m_resources.cend() ) ? &(*lookup) :
+                                              nullptr;
 }
 
 
-void Application::DropResourceFolder(size_t index)
+const AppResource& Application::AddResource(AppResource resource)
 {
-    ASSERT(index < m_resourceFolders.size());
-    m_resourceFolders.erase(m_resourceFolders.begin() + index);
+    ASSERT(GetResource(resource.GetPath()) == nullptr);
+    return m_resources.emplace_back(std::move(resource));
 }
+
+
+void Application::DropResource(const std::string& path)
+{
+    const auto& lookup = std::find_if(m_resources.cbegin(), m_resources.cend(),
+                                      [&](const AppResource& resource) { return SO::EqualsNoCase(path, resource.GetPath()); });
+    ASSERT(lookup != m_resources.cend());
+
+    if( lookup != m_resources.cend() )
+        m_resources.erase(lookup);
+}
+
 
 
 // --------------------------------------------------------------------------
@@ -300,48 +427,78 @@ void Application::DropResourceFolder(size_t index)
 
 DictionaryType Application::GetDictionaryType(const CDataDict& dictionary) const
 {
-    const auto& dictionary_description_search = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
+    const DictionaryDescription* const dictionary_description = GetDictionaryDescription(dictionary);
+
+    return ( dictionary_description == nullptr ) ? DictionaryType::Unknown :
+                                                   dictionary_description->GetDictionaryType();
+}
+
+
+const DictionaryDescription* Application::GetDictionaryDescription(const CDataDict& dictionary) const
+{
+    const auto& lookup = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
         [&](const DictionaryDescription& dictionary_description)
         {
             return ( dictionary_description.GetDictionary() == &dictionary );
         });
 
-    return ( dictionary_description_search == m_dictionaryDescriptions.cend() ) ? DictionaryType::Unknown :
-                                                                                  (*dictionary_description_search).GetDictionaryType();
+    return ( lookup == m_dictionaryDescriptions.cend() ) ? nullptr :
+                                                           &(*lookup);
 }
 
 
-const DictionaryDescription* Application::GetDictionaryDescription(wstring_view dictionary_filename, wstring_view parent_filename/* = wstring_view()*/) const
+const DictionaryDescription* Application::GetDictionaryDescription(const std::string& dictionary_file_path,
+                                                                   const std::string& parent_file_path/* = SO::Empty_string*/,
+                                                                   const bool ignore_parent/* = false*/) const
 {
-    const auto& dictionary_description_search = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
+    const auto& lookup = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
         [&](const DictionaryDescription& dictionary_description)
         {
-            return ( SO::EqualsNoCase(dictionary_description.GetDictionaryFilename(), dictionary_filename) &&
-                     SO::EqualsNoCase(dictionary_description.GetParentFilename(), parent_filename) );
+            return ( ( SO::EqualsNoCase(dictionary_description.GetDictionaryFilePath(), dictionary_file_path) ) &&
+                     ( ignore_parent || SO::EqualsNoCase(dictionary_description.GetParentFilePath(), parent_file_path) ) );
         });
 
-    return ( dictionary_description_search == m_dictionaryDescriptions.cend() ) ? nullptr :
-                                                                                  &(*dictionary_description_search);
+    return ( lookup == m_dictionaryDescriptions.cend() ) ? nullptr :
+                                                           &(*lookup);
 }
 
 
-DictionaryDescription* Application::GetDictionaryDescription(wstring_view dictionary_filename, wstring_view parent_filename/* = wstring_view()*/)
+DictionaryDescription* Application::GetDictionaryDescription(const std::string& dictionary_file_path,
+                                                             const std::string& parent_file_path/* = SO::Empty_string*/,
+                                                             const bool ignore_parent/* = false*/)
 {
-    return const_cast<DictionaryDescription*>(const_cast<const Application*>(this)->GetDictionaryDescription(dictionary_filename, parent_filename));
+    return const_cast<DictionaryDescription*>(const_cast<const Application*>(this)->GetDictionaryDescription(dictionary_file_path, parent_file_path, ignore_parent));
 }
 
 
-const std::wstring& Application::GetFirstDictionaryFilenameOfType(DictionaryType dictionary_type) const
+const std::string& Application::GetFirstDictionaryFilePathOfType(const DictionaryType dictionary_type) const
 {
-    const auto& dictionary_description_search = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
+    const auto& lookup = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
         [&](const DictionaryDescription& dictionary_description)
         {
             return ( dictionary_description.GetDictionaryType() == dictionary_type );
         });
 
-    return ( dictionary_description_search == m_dictionaryDescriptions.cend() ) ? SO::EmptyString :
-                                                                                  dictionary_description_search->GetDictionaryFilename();
+    return ( lookup == m_dictionaryDescriptions.cend() ) ? SO::Empty_string :
+                                                           lookup->GetDictionaryFilePath();
 }
+
+
+void Application::DropDictionaryDescription(const std::string& file_path, const bool file_path_is_parent)
+{
+    const auto& lookup = std::find_if(m_dictionaryDescriptions.cbegin(), m_dictionaryDescriptions.cend(),
+        [&](const DictionaryDescription& dictionary_description)
+        {
+            return SO::EqualsNoCase(file_path, file_path_is_parent ? dictionary_description.GetParentFilePath() :
+                                                                     dictionary_description.GetDictionaryFilePath());
+        });
+
+    ASSERT(lookup != m_dictionaryDescriptions.cend());
+
+    if( lookup != m_dictionaryDescriptions.cend() )
+        m_dictionaryDescriptions.erase(lookup);
+}
+
 
 
 // --------------------------------------------------------------------------
@@ -375,25 +532,20 @@ void Application::SetEditNotePermissions(int permission, bool flag)
 }
 
 
+
 //--------------------------------------------------------------------------
 // other methods
 // --------------------------------------------------------------------------
 
-bool Application::IsNameUnique(const std::wstring& name) const
+bool Application::IsNameUnique(const std::string_view name_sv) const
 {
     // search reports
-    if( GetReportNamedTextSource(name, true) != nullptr )
+    if( GetReportFile(name_sv, true) != nullptr )
         return false;
-
-    // search code namespaces
-    for( const CodeFile& code_file : m_codeFiles )
-    {
-        if( SO::EqualsNoCase(name, code_file.GetNamespaceName()) )
-            return false;
-    }
 
     return true;
 }
+
 
 
 // --------------------------------------------------------------------------
@@ -410,10 +562,10 @@ CREATE_ENUM_JSON_SERIALIZER(EngineAppType,
     { EngineAppType::Batch,      ToString(EngineAppType::Batch) })
 
 CREATE_ENUM_JSON_SERIALIZER(CaseTreeType,
-    { CaseTreeType::Never,       _T("off") },
-    { CaseTreeType::MobileOnly,  _T("mobileOnly") },
-    { CaseTreeType::DesktopOnly, _T("desktopOnly") },
-    { CaseTreeType::Always,      _T("on") })
+    { CaseTreeType::Never,       "off" },
+    { CaseTreeType::MobileOnly,  "mobileOnly" },
+    { CaseTreeType::DesktopOnly, "desktopOnly" },
+    { CaseTreeType::Always,      "on" })
 
 // ideally these enums would be used by the class instead of bools, but
 // that refactoring can be done at a later point
@@ -421,17 +573,17 @@ enum class DecimalMark { Dot, Comma };
 enum class NotePermission { Operator, All };
 
 CREATE_ENUM_JSON_SERIALIZER(DecimalMark,
-    { DecimalMark::Dot,   _T("dot") },
-    { DecimalMark::Comma, _T("comma") })
+    { DecimalMark::Dot,   "dot" },
+    { DecimalMark::Comma, "comma" })
 
 CREATE_ENUM_JSON_SERIALIZER(NotePermission,
-    { NotePermission::Operator, _T("operator") },
-    { NotePermission::All,      _T("all") })
+    { NotePermission::Operator, "operator" },
+    { NotePermission::All,      "all" })
 
 
-void Application::Open(NullTerminatedString filename, bool silent/* = false*/, bool load_text_sources_and_external_application_properties/* = true*/)
+void Application::Open(const InterfaceString file_path, const bool silent/* = false*/, const bool load_text_sources_and_external_application_properties/* = true*/)
 {
-    auto json_reader = JsonSpecFile::CreateReader(filename, nullptr, [&]() { return ConvertPre80SpecFile(filename); });
+    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path, nullptr, [&]() { return ConvertPre80SpecFile(file_path); });
 
     try
     {
@@ -440,12 +592,12 @@ void Application::Open(NullTerminatedString filename, bool silent/* = false*/, b
 
         CreateFromJsonWorker(*json_reader, load_text_sources_and_external_application_properties, silent, json_reader->GetSharedMessageLogger());
 
-        m_applicationFilename = CString(filename.c_str());
+        m_applicationFilePath = file_path.GetString<std::string>();
     }
 
     catch( const CSProException& exception )
     {
-        json_reader->GetMessageLogger().RethrowException(filename, exception);
+        json_reader->GetMessageLogger().RethrowException(file_path, exception);
     }
 
     // report any warnings
@@ -453,9 +605,9 @@ void Application::Open(NullTerminatedString filename, bool silent/* = false*/, b
 }
 
 
-void Application::Save(NullTerminatedString filename, bool continue_using_filename/* = true*/) const
+void Application::Save(InterfaceString file_path, const bool continue_using_file_path/* = true*/) const
 {
-    auto json_writer = JsonSpecFile::CreateWriter(filename, JV::application);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JV::application);
 
     WriteJson(*json_writer, false);
 
@@ -463,12 +615,12 @@ void Application::Save(NullTerminatedString filename, bool continue_using_filena
 
     json_writer->Close();
 
-    if( continue_using_filename )
-        const_cast<Application*>(this)->m_applicationFilename = CString(filename.c_str());
+    if( continue_using_file_path )
+        const_cast<Application*>(this)->m_applicationFilePath = file_path.Release<std::string>();
 }
 
 
-Application Application::CreateFromJson(const JsonNode<wchar_t>& json_node)
+Application Application::CreateFromJson(const JsonNode& json_node)
 {
     Application application;
     application.CreateFromJsonWorker(json_node, false, true, nullptr);
@@ -476,73 +628,77 @@ Application Application::CreateFromJson(const JsonNode<wchar_t>& json_node)
 }
 
 
-void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool load_text_sources_and_external_application_properties,
-                                       bool silent, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger)
+void Application::CreateFromJsonWorker(const JsonNode& json_node, const bool load_text_sources_and_external_application_properties,
+                                       const bool silent, std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger)
 {
     m_engineAppType = json_node.Get<EngineAppType>(JK::type);
-    bool entry_app = ( m_engineAppType == EngineAppType::Entry );
+    const bool entry_app = ( m_engineAppType == EngineAppType::Entry );
 
-    m_name = json_node.Get<CString>(JK::name);
-    m_name.MakeUpper();
-
-    m_label = json_node.GetOrDefault(JK::label, SO::EmptyCString);
+    m_name = SO::ToUpper(json_node.Get<std::string>(JK::name));
+    m_label = json_node.GetOrConstruct<std::string>(JK::label);
 
     // reading routines
     // --------------------------------------------------------------------------
-    auto read_path = [&](const auto& path_node, bool throw_exception_if_file_is_not_regular)
+    auto read_path = [&](const JsonNode& path_node, const bool throw_exception_if_file_is_not_regular)
     {
-        std::wstring path = path_node.GetAbsolutePath();
+        std::string path = path_node.GetAbsolutePath();
 
         if( throw_exception_if_file_is_not_regular && !PortableFunctions::FileIsRegular(path) )
             throw ApplicationFileNotFoundException(path);
 
-        return WS2CS(path);
+        return path;
     };
 
-    auto check_file_is_regular_and_warn_if_not_exist = [&](const TCHAR* file_type, NullTerminatedString filename)
+    auto read_paths = [&](const JsonNodeArray& paths_array_node, const bool throw_exception_if_file_is_not_regular)
     {
-        if( PortableFunctions::FileIsRegular(filename) )
+        std::vector<std::string> paths;
+
+        for( const JsonNode& path_node : paths_array_node )
+            paths.emplace_back(read_path(path_node, throw_exception_if_file_is_not_regular));
+
+        return paths;
+    };
+
+    auto check_file_is_regular_and_warn_if_not_exist = [&](const char* const file_type, const std::string& file_path)
+    {
+        if( PortableFunctions::FileIsRegular(file_path) )
             return true;
 
-        json_node.LogWarning(_T("The %s file was not found and will be dropped: %s"), file_type, filename.c_str());
+        json_node.LogWarning("The %s file was not found and will be dropped: %s",
+                             file_type, file_path.c_str());
         return false;
     };
 
-    auto read_filename_array = [&](const auto& filenames_array_node, std::vector<CString>& filenames, bool throw_exception_if_file_is_not_regular)
-    {
-        for( const auto& filename_node : filenames_array_node )
-            filenames.emplace_back(read_path(filename_node, throw_exception_if_file_is_not_regular));
-    };
-
-    auto load_text_source = [&](std::wstring filename, bool text_source_is_editable)
+    auto load_text_source = [&](std::string file_path, const bool text_source_is_editable)
     {
         std::shared_ptr<TextSource> text_source;
 
         if( text_source_is_editable && load_text_sources_and_external_application_properties )
         {
-            text_source = TextSourceEditable::FindOpenOrCreate(std::move(filename));
+            text_source = TextSourceEditable::FindOpenOrCreate(std::move(file_path));
         }
 
         else
         {
-            text_source = std::make_shared<TextSourceExternal>(std::move(filename));
+            text_source = std::make_unique<TextSourceExternal>(std::move(file_path));
         }
 
         return text_source;
     };
 
-    auto check_name = [&](const TCHAR* file_type, const std::wstring& name, const std::wstring& filename)
+    auto check_name = [&](const char* const file_type, const std::string& name, const std::string& file_path)
     {
         if( !CIMSAString::IsName(name) || CIMSAString::IsReservedWord(name) )
         {
-            json_node.LogWarning(_T("The %s name '%s' is not valid and the %s will not be loaded."), file_type, name.c_str(), file_type);
+            json_node.LogWarning("The %s name '%s' is not valid and the %s will not be loaded.",
+                                 file_type, name.c_str(), file_type);
             return false;
         }
 
         if( !IsNameUnique(name) )
         {
-            json_node.LogWarning(_T("The %s name '%s' is already in use so the %s '%s' will not be loaded."),
-                                 file_type, name.c_str(), file_type, PortableFunctions::PathGetFilename(filename));
+            json_node.LogWarning("The %s name '%s' is already in use so the %s '%s' will not be loaded.",
+                                 file_type, name.c_str(), file_type, PortableFunctions::PathGetFilename(file_path).c_str());
             return false;
         }
 
@@ -550,51 +706,52 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
     };
 
 
-    // forms/orders/tab specs
+    // forms / orders / table specs
     // --------------------------------------------------------------------------
     if( entry_app || m_engineAppType == EngineAppType::Batch )
     {
-        read_filename_array(json_node.GetArrayOrEmpty(entry_app ? JK::forms : JK::order), m_formFilenames, true);
+        m_formFilePaths = read_paths(json_node.GetArrayOrEmpty(entry_app ? JK::forms : JK::order), true);
     }
 
     else if( m_engineAppType == EngineAppType::Tabulation )
     {
-        read_filename_array(json_node.GetArrayOrEmpty(JK::tableSpecs), m_tabSpecFilenames, true);
+        m_tableSpecFilePaths = read_paths(json_node.GetArrayOrEmpty(JK::tableSpecs), true);
     }
 
-    const std::vector<CString>& form_or_tab_spec_filenames = ( m_engineAppType == EngineAppType::Tabulation ) ? m_tabSpecFilenames :
-                                                                                                                m_formFilenames;
+    const std::vector<std::string>& form_or_table_spec_file_paths = ( m_engineAppType == EngineAppType::Tabulation ) ? m_tableSpecFilePaths :
+                                                                                                                       m_formFilePaths;
 
-    if( form_or_tab_spec_filenames.empty() )
+    if( form_or_table_spec_file_paths.empty() )
     {
-        throw CSProException(_T("A '%s' application must have at least one %s"), ToString(m_engineAppType),
-                             entry_app                                        ? _T("form") :
-                             ( m_engineAppType == EngineAppType::Tabulation ) ? _T("tab spec") :
-                                                                                _T("order"));
+        throw CSProException("A '%s' application must have at least one %s",    ToString(m_engineAppType),
+                             entry_app                                        ? "form" :
+                             ( m_engineAppType == EngineAppType::Tabulation ) ? "tab spec" :
+                                                                                "order");
     }
 
 
     // dictionaries
     // --------------------------------------------------------------------------
-    for( const auto& dictionary_node : json_node.GetArrayOrEmpty(JK::dictionaries) )
+    for( const JsonNode& dictionary_node : json_node.GetArrayOrEmpty(JK::dictionaries) )
     {
         DictionaryDescription dictionary_description = dictionary_node.Get<DictionaryDescription>();
 
-        if( !check_file_is_regular_and_warn_if_not_exist(_T("dictionary"), dictionary_description.GetDictionaryFilename()) )
+        if( !check_file_is_regular_and_warn_if_not_exist("dictionary", dictionary_description.GetDictionaryFilePath()) )
             continue;
 
-        if( !dictionary_description.GetParentFilename().empty() && !ContainsStringInVectorNoCase(form_or_tab_spec_filenames, dictionary_description.GetParentFilename()) )
+        if( !dictionary_description.GetParentFilePath().empty() &&
+            !ContainsStringInVectorNoCase(form_or_table_spec_file_paths, dictionary_description.GetParentFilePath()) )
         {
-            json_node.LogWarning(_T("The dictionary's parent '%s' was not valid and will be reset: %s"),
-                                 GetRelativeFNameForDisplay(dictionary_description.GetDictionaryFilename(), dictionary_description.GetParentFilename()).c_str(),
-                                 dictionary_description.GetDictionaryFilename().c_str());
+            json_node.LogWarning("The dictionary's parent '%s' was not valid and will be reset: %s",
+                                 GetRelativePathForDisplay(dictionary_description.GetDictionaryFilePath(), dictionary_description.GetParentFilePath()).c_str(),
+                                 dictionary_description.GetDictionaryFilePath().c_str());
 
-            dictionary_description.SetParentFilename(std::wstring());
+            dictionary_description.SetParentFilePath(std::string());
         }
 
         // if this dictionary description does not have a parent, add it as an external dictionary
-        if( dictionary_description.GetParentFilename().empty() )
-            m_externalDictionaryFilenames.emplace_back(WS2CS(dictionary_description.GetDictionaryFilename()));
+        if( dictionary_description.GetParentFilePath().empty() )
+            m_externalDictionaryFilePaths.emplace_back(dictionary_description.GetDictionaryFilePath());
 
         m_dictionaryDescriptions.emplace_back(std::move(dictionary_description));
     }
@@ -604,117 +761,123 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
     // --------------------------------------------------------------------------
     if( entry_app )
     {
-        std::vector<CString> question_text_filenames;
-        read_filename_array(json_node.GetArrayOrEmpty(JK::questionText), question_text_filenames, true);
+        std::vector<std::string> question_text_file_paths = read_paths(json_node.GetArrayOrEmpty(JK::questionText), true);
 
-        if( question_text_filenames.size() != 1 )
-            throw CSProException(_T("A '%s' application must have one question text file"), ToString(m_engineAppType));
+        if( question_text_file_paths.size() != 1 )
+            throw CSProException("A '%s' application must have one question text file", ToString(m_engineAppType));
 
-        m_questionTextFilename = question_text_filenames.front();
+        m_questionTextFilePath = std::move(question_text_file_paths.front());
     }
 
 
     // code files
     // --------------------------------------------------------------------------
-    for( const auto& code_file_node : json_node.GetArrayOrEmpty(JK::code) )
+    for( const JsonNode& code_file_node : json_node.GetArrayOrEmpty(JK::code) )
     {
         try
         {
             CodeFile code_file = CodeFile::CreateFromJson(code_file_node,
-                [&](const std::wstring& filename)
+                [&](const std::string& file_path)
                 {
                     // all code files are editable
-                    return load_text_source(filename, true);
+                    return load_text_source(file_path, true);
                 });
 
-            // make sure the namespace name is valid and unique (is defined)
-            if( !code_file.GetNamespaceName().empty() && !check_name(_T("logic"), code_file.GetNamespaceName(), code_file.GetFilename()) )
+            // don't add duplicate code files
+            if( IsFilePathInUse(m_codeFiles, code_file.GetFilePath()) )
                 continue;
 
-            // don't add duplicate code files (even if the namespace name differs)
-            if( IsFilenameInUse(m_codeFiles, code_file.GetFilename()) )
-                continue;
-
-            m_codeFiles.emplace_back(std::move(code_file));
+            AddCodeFile(std::move(code_file));
         }
 
         catch( const CSProException& exception )
         {
             // don't abort on errors reading code files
-            json_node.LogWarning(exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A code file could not be loaded and will be dropped: %s",
+                                 exception.what());
         }
     }
-        
+
 
     // message files
     // --------------------------------------------------------------------------
-    for( const auto& filename_node : json_node.GetArrayOrEmpty(JK::messages) )
+    for( const JsonNode& app_message_node : json_node.GetArrayOrEmpty(JK::messages) )
     {
-        // only require that the first message file exists
-        bool main_message_file = m_messageTextSources.empty();
-        std::wstring filename = CS2WS(read_path(filename_node, main_message_file));
-
-        // don't add duplicate message files
-        if( IsFilenameInUse(m_messageTextSources, filename) )
-            continue;
-
-        if( !main_message_file && !check_file_is_regular_and_warn_if_not_exist(_T("message"), filename) )
-            continue;
-
         try
         {
-            // only the first message file is editable
-            m_messageTextSources.emplace_back(load_text_source(std::move(filename), main_message_file));
+            AppMessageFile app_message_file = AppMessageFile::CreateFromJson(app_message_node,
+                [&](const std::string& file_path)
+                {
+                    // only the main message file is editable
+                    const bool main_message_file = m_messageFiles.empty();
+                    return load_text_source(file_path, main_message_file);
+                });
+
+            // don't add duplicate message files
+            if( IsFilePathInUse(m_messageFiles, app_message_file.GetFilePath()) )
+                continue;
+
+            AddMessageFile(std::move(app_message_file));
         }
 
         catch( const CSProException& exception )
         {
             // don't abort on errors reading message files
-            json_node.LogWarning(exception.GetErrorMessage().c_str());
+            json_node.LogWarning("A message file could not be loaded and will be dropped: %s",
+                                 exception.what());
         }
     }
 
 
     // reports
     // --------------------------------------------------------------------------
-    for( const auto& report_node : json_node.GetArrayOrEmpty(JK::reports) )
+    for( const JsonNode& report_node : json_node.GetArrayOrEmpty(JK::reports) )
     {
-        const std::wstring name = SO::ToUpper(report_node.Get<wstring_view>(JK::name));
-        std::wstring filename = CS2WS(read_path(report_node.Get(report_node.Contains(JK::filename) ? JK::filename : JK::path), false));
-
-        // make sure the report name is valid and unique
-        if( !check_name(_T("report"), name, filename) )
-            continue;
-
         try
         {
-            AddReport(name, load_text_source(std::move(filename), true));
+            ReportFile report_file = ReportFile::CreateFromJson(report_node,
+                [&](const std::string& file_path)
+                {
+                    // all reports are editable
+                    return load_text_source(file_path, true);
+                });
+
+            // make sure the report name is valid and unique
+            if( !check_name("report", report_file.GetName(), report_file.GetFilePath()) )
+                continue;
+
+            AddReport(std::move(report_file));
         }
 
         catch( const CSProException& exception )
         {
-            json_node.LogWarning(_T("The report '%s' could not be loaded and will be dropped: %s"),
-                                 name.c_str(), exception.GetErrorMessage().c_str());
+            // don't abort on errors reading report files
+            json_node.LogWarning("A report file could not be loaded and will be dropped: %s",
+                                 exception.what());
         }
     }
 
 
-    // resource folders
+    // resources
     // --------------------------------------------------------------------------
-    for( const auto& resource_node : json_node.GetArrayOrEmpty(JK::resources) )
+    for( const JsonNode& resource_node : json_node.GetArrayOrEmpty(JK::resources) )
     {
-        CString resource_folder = read_path(resource_node, false);
-        resource_folder.TrimRight(PATH_CHAR);
+        AppResource resource = resource_node.Get<AppResource>();
 
-        if( PortableFunctions::FileIsDirectory(resource_folder) )
+        // don't add duplicate resources
+        if( GetResource(resource.GetPath()) != nullptr )
+            continue;
+
+        if( PortableFunctions::FileExists(resource.GetPath()) )
         {
-            AddResourceFolder(resource_folder);
+            AddResource(std::move(resource));
         }
 
         else
         {
-            // don't fail if the resource folder is not present, just don't add it
-            json_node.LogWarning(_T("The resource folder was not found and will be dropped: %s"), resource_folder.GetString());
+            // don't fail if the resource is not present, just don't add it
+            json_node.LogWarning("The resource path was not found and will be dropped: %s",
+                                 resource.GetPath().c_str());
         }
     }
 
@@ -727,7 +890,7 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 
     // the properties node
     // --------------------------------------------------------------------------
-    const auto& properties_node = json_node.Get(JK::properties);
+    const JsonNode& properties_node = json_node.Get(JK::properties);
 
     if( entry_app )
     {
@@ -737,16 +900,16 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
         ASSERT(!m_mappingOptions.IsDefined());
         if( properties_node.Contains(JK::caseListing) )
         {
-            const auto& case_listing_node = properties_node.Get(JK::caseListing);
+            const JsonNode& case_listing_node = properties_node.Get(JK::caseListing);
 
-            if( case_listing_node.Get<std::wstring_view>(JK::type) == JV::map )
+            if( case_listing_node.Get<std::string_view>(JK::type) == JV::map )
             {
                 m_mappingOptions = case_listing_node.Get<AppMappingOptions>();
             }
 
             else
             {
-                case_listing_node.LogWarning(_T("Case listings of type '%s' are not supported"), case_listing_node.Get<std::wstring>(JK::type).c_str());
+                case_listing_node.LogWarning("Case listings of type '%s' are not supported", case_listing_node.Get<std::string>(JK::type).c_str());
             }
         }
 
@@ -759,7 +922,7 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 
         // notes
         {
-            const auto& notes_node = properties_node.GetOrEmpty(JK::notes);
+            const JsonNode& notes_node = properties_node.GetOrEmpty(JK::notes);
             // the edit permission is evaluated before delete because when delete is false, edit must be false
             SetEditNotePermissions(EditNotePermissions::EditOtherOperators, ( notes_node.GetOrDefault(JK::edit, NotePermission::All) == NotePermission::All ));
             SetEditNotePermissions(EditNotePermissions::DeleteOtherOperators, ( notes_node.GetOrDefault(JK::delete_, NotePermission::All) == NotePermission::All ));
@@ -767,7 +930,7 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 
         // partialSave
         {
-            const auto& partial_save_node = properties_node.GetOrEmpty(JK::partialSave);
+            const JsonNode& partial_save_node = properties_node.GetOrEmpty(JK::partialSave);
             m_partialSave = partial_save_node.GetOrDefault(JK::operatorEnabled, m_partialSave);
             SetAutoPartialSaveMinutes(partial_save_node.GetOrDefault(JK::autoSaveMinutes, m_autoPartialSaveMinutes));
         }
@@ -784,20 +947,20 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 
         // verify
         {
-            const auto& verify_node = properties_node.GetOrEmpty(JK::verify);
+            const JsonNode& verify_node = properties_node.GetOrEmpty(JK::verify);
             m_verifyFrequency = verify_node.GetOrDefault(JK::frequency, m_verifyFrequency);
 
             if( m_verifyFrequency < 1 || m_verifyFrequency > GetVerifyFreqMax() )
             {
-                verify_node.LogWarning(_T("Verification frequencies must be between 1 and %d so '%d' is invalid"), GetVerifyFreqMax(), m_verifyFrequency);
+                verify_node.LogWarning("Verification frequencies must be between 1 and %d so '%d' is invalid", GetVerifyFreqMax(), m_verifyFrequency);
                 m_verifyFrequency = 1;
             }
 
-            const auto& verify_start_node = verify_node.GetOrEmpty(JK::start);
+            const JsonNode& verify_start_node = verify_node.GetOrEmpty(JK::start);
 
             if( !verify_start_node.IsEmpty() )
             {
-                if( verify_start_node.IsString() && verify_start_node.Get<std::wstring_view>() == JV::random )
+                if( verify_start_node.IsString() && verify_start_node.Get<std::string_view>() == JV::random )
                 {
                     m_verifyStart = -1;
                 }
@@ -808,7 +971,7 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 
                     if( m_verifyStart < 1 )
                     {
-                        verify_start_node.LogWarning(_T("The verification start position must be 1 or greater so '%d' is invalid"), m_verifyFrequency);
+                        verify_start_node.LogWarning("The verification start position must be 1 or greater so '%d' is invalid", m_verifyFrequency);
                         m_verifyStart = 1;
                     }
                 }
@@ -821,25 +984,24 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
     // --------------------------------------------------------------------------
     if( properties_node.Contains(JK::import) )
     {
-        std::vector<CString> application_properties_filenames;
-        read_filename_array(properties_node.GetArrayOrEmpty(JK::import), application_properties_filenames, false);
+        std::vector<std::string> application_properties_file_paths = read_paths(properties_node.GetArrayOrEmpty(JK::import), false);
 
-        for( const CString& application_properties_filename : application_properties_filenames )
+        for( std::string& application_properties_file_path : application_properties_file_paths )
         {
-            if( !m_applicationPropertiesFilename.empty() )
+            if( !m_applicationPropertiesFilePath.empty() )
             {
-                properties_node.LogWarning(_T("Defining multiple application property files is not currently supported and these properties will be dropped: %s"),
-                                           application_properties_filename.GetString());
+                properties_node.LogWarning("Defining multiple application property files is not currently supported and these properties will be dropped: %s",
+                                           application_properties_file_path.c_str());
                 continue;
             }
 
-            if( !check_file_is_regular_and_warn_if_not_exist(_T("application properties"), application_properties_filename) )
+            if( !check_file_is_regular_and_warn_if_not_exist("application properties", application_properties_file_path) )
                 continue;
 
-            m_applicationPropertiesFilename = CS2WS(application_properties_filename);
+            m_applicationPropertiesFilePath = std::move(application_properties_file_path);
 
             if( load_text_sources_and_external_application_properties )
-                m_applicationProperties->Open(m_applicationPropertiesFilename, silent, message_logger);
+                m_applicationProperties->Open(m_applicationPropertiesFilePath, silent, message_logger);
         }
     }
 
@@ -848,7 +1010,7 @@ void Application::CreateFromJsonWorker(const JsonNode<wchar_t>& json_node, bool 
 }
 
 
-void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_object/* = true*/) const
+void Application::WriteJson(JsonWriter& json_writer, const bool write_to_new_json_object/* = true*/) const
 {
     if( write_to_new_json_object )
         json_writer.BeginObject();
@@ -858,30 +1020,30 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
                .Write(JK::label, m_label);
 
     // writing routines
-    bool entry_app = ( m_engineAppType == EngineAppType::Entry );
+    const bool entry_app = ( m_engineAppType == EngineAppType::Entry );
 
-    auto write_filename_array = [&](const TCHAR* key, const std::vector<CString>& filenames)
+    auto write_paths = [&](const char* const key, const std::vector<std::string>& paths)
     {
-        if( !json_writer.Verbose() && filenames.empty() )
+        if( !json_writer.Verbose() && paths.empty() )
             return;
 
         json_writer.BeginArray(key);
 
-        for( const CString& filename : filenames )
-            json_writer.WriteRelativePath(CS2WS(filename));
+        for( const std::string& path : paths )
+            json_writer.WriteRelativePath(path);
 
         json_writer.EndArray();
     };
 
-    auto write_filename_as_array = [&](const TCHAR* key, const CString& filename)
+    auto write_path_as_array = [&](const char* const key, const std::string& path)
     {
-        if( !json_writer.Verbose() && filename.IsEmpty() )
+        if( !json_writer.Verbose() && path.empty() )
             return;
 
         json_writer.BeginArray(key);
 
-        if( !filename.IsEmpty() )
-            json_writer.WriteRelativePath(CS2WS(filename));
+        if( !path.empty() )
+            json_writer.WriteRelativePath(path);
 
         json_writer.EndArray();
     };
@@ -898,9 +1060,10 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
     {
         for( const DictionaryDescription& dictionary_description : m_dictionaryDescriptions )
         {
-            bool process = ( i == 0 ) ? ( dictionary_description.GetDictionaryType() == DictionaryType::Input ) :
-                           ( i == 1 ) ? ( dictionary_description.GetDictionaryType() != DictionaryType::Input && !dictionary_description.GetParentFilename().empty() ) :
-                                        ( dictionary_description.GetDictionaryType() != DictionaryType::Input && dictionary_description.GetParentFilename().empty() );
+            const bool process =
+                ( i == 0 ) ? ( dictionary_description.GetDictionaryType() == DictionaryType::Input ) :
+                ( i == 1 ) ? ( dictionary_description.GetDictionaryType() != DictionaryType::Input && !dictionary_description.GetParentFilePath().empty() ) :
+                             ( dictionary_description.GetDictionaryType() != DictionaryType::Input && dictionary_description.GetParentFilePath().empty() );
 
             if( process )
             {
@@ -912,26 +1075,26 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
         }
     }
 
-    ASSERT(dictionaries_written == ( ( ( m_engineAppType == EngineAppType::Tabulation ) ? m_tabSpecFilenames.size() : m_formFilenames.size() ) + m_externalDictionaryFilenames.size() ));
+    ASSERT(dictionaries_written == ( ( ( m_engineAppType == EngineAppType::Tabulation ) ? m_tableSpecFilePaths.size() : m_formFilePaths.size() ) + m_externalDictionaryFilePaths.size() ));
 
     json_writer.EndArray();
 
 
-    // forms/orders/tab specs
+    // forms / orders / table specs
     if( entry_app || m_engineAppType == EngineAppType::Batch )
     {
-        write_filename_array(entry_app ? JK::forms : JK::order, m_formFilenames);
+        write_paths(entry_app ? JK::forms : JK::order, m_formFilePaths);
     }
 
     else if( m_engineAppType == EngineAppType::Tabulation )
     {
-        write_filename_array(JK::tableSpecs, m_tabSpecFilenames);
+        write_paths(JK::tableSpecs, m_tableSpecFilePaths);
     }
 
 
-    // write the question text filename as an array to match how other filenames are written
+    // write the question text file path as an array to match how other file paths are written
     if( entry_app )
-        write_filename_as_array(JK::questionText, m_questionTextFilename);
+        write_path_as_array(JK::questionText, m_questionTextFilePath);
 
 
     // code files
@@ -940,31 +1103,43 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
 
 
     // message files
-    if( json_writer.Verbose() || !m_messageTextSources.empty() )
+    if( json_writer.Verbose() || !m_messageFiles.empty() )
     {
-        json_writer.BeginArray(JK::messages);
+        static_assert(Versioning::Number <= 8.1, "remove the conditional way of writing out message files in CSPro 8.2+");
 
-        for( const TextSource& text_source : VI_V(m_messageTextSources) )
-            json_writer.WriteRelativePath(text_source.GetFilename());
+        // CSPro 8.0 will choke on 8.1+ files with messages written as objects instead of strings,
+        // so to prevent 8.1 files from being unreadable in 8.0, we'll temporarily write out messages
+        // in the 8.0 format unless the user is using 8.1+ only features
+        const auto& system_messages_lookup = std::find_if(m_messageFiles.cbegin(), m_messageFiles.cend(),
+            [&](const AppMessageFile& app_message_file) { return ( app_message_file.GetType() == AppMessageFile::Type::System ); });
 
-        json_writer.EndArray();
+        if( system_messages_lookup == m_messageFiles.cend() )
+        {
+            // 8.0 format
+            json_writer.BeginArray(JK::messages);
+
+            for( const AppMessageFile& app_message_file : m_messageFiles )
+                json_writer.WriteRelativePath(app_message_file.GetFilePath());
+
+            json_writer.EndArray();
+        }
+
+        else
+        {
+            // 8.1+ format
+            json_writer.Write(JK::messages, m_messageFiles);
+        }
     }
 
 
     // reports
-    if( json_writer.Verbose() || !m_reportNamedTextSources.empty() )
-    {
-        json_writer.WriteObjects(JK::reports, m_reportNamedTextSources,
-            [&](const auto& report_named_text_source)
-            {
-                json_writer.Write(JK::name, report_named_text_source->name)
-                           .WriteRelativePath(JK::path, report_named_text_source->text_source->GetFilename());
-            });
-    }
+    if( json_writer.Verbose() || !m_reportFiles.empty() )
+        json_writer.Write(JK::reports, m_reportFiles);
 
 
-    // resource folders
-    write_filename_array(JK::resources, m_resourceFolders);
+    // resources
+    if( json_writer.Verbose() || !m_resources.empty() )
+        json_writer.Write(JK::resources, m_resources);
 
 
     // logic settings
@@ -1020,7 +1195,7 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
             json_writer.Write(JK::showQuestionText, m_useQuestionText);
             json_writer.Write(JK::showRefusals, m_showRefusals);
 
-            if( !m_syncParameters.server.empty() )
+            if( json_writer.Verbose() || m_syncParameters.sync_connection_string.IsDefined() )
                 json_writer.Write(JK::sync, m_syncParameters);
 
             json_writer.Key(JK::verify).WriteObject(
@@ -1035,16 +1210,16 @@ void Application::WriteJson(JsonWriter& json_writer, bool write_to_new_json_obje
 
 
         // additional properties
-        // if no application properties filename is specified, write the properties directly
-        if( m_applicationPropertiesFilename.empty() )
+        // if no application properties file is specified, write the properties directly
+        if( m_applicationPropertiesFilePath.empty() )
         {
             m_applicationProperties->WriteJson(json_writer, false, json_writer.Verbose());
         }
 
-        // otherwise write the properties filename as an array (to support a future scenario where multiple property files can be associated with an application)
+        // otherwise write the properties file as an array (to support a future scenario where multiple property files can be associated with an application)
         else
         {
-            write_filename_as_array(JK::import, WS2CS(m_applicationPropertiesFilename));
+            write_path_as_array(JK::import, m_applicationPropertiesFilePath);
         }
     }
     json_writer.EndObject();
@@ -1065,23 +1240,23 @@ void Application::serialize(Serializer& ar)
 
     if( ar.IsSaving() )
     {
-        ar.Write(CSPRO_VERSION_NUMBER);
+        ar.Write(Versioning::Number);
     }
 
     else
     {
         m_version = ar.Read<double>();
 
-        if( m_version > CSPRO_VERSION_NUMBER )
-            throw CSProException(_T("This application was created using version %0.1f. You cannot run this file on this older version of CSPro (%0.1f)."), m_version, CSPRO_VERSION_NUMBER);
+        if( m_version > Versioning::Number )
+            throw CSProException("This application was created using version %0.1f. You cannot run this file on this older version of CSPro (%0.1f).", m_version, Versioning::Number);
 
         if( ar.GetArchiveVersion() < Serializer::GetEarliestSupportedVersion() )
-            throw CSProException(_T("CSEntry %0.1f can no longer run applications created using old versions of CSPro (%0.1f)."), CSPRO_VERSION_NUMBER, m_version);
+            throw CSProException("CSEntry %0.1f can no longer run applications created using old versions of CSPro (%0.1f).", Versioning::Number, m_version);
 
         m_serializerArchiveVersion = ar.GetArchiveVersion();
     }
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csVersion
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csVersion
 
     ar & m_label
        & m_name;
@@ -1093,8 +1268,8 @@ void Application::serialize(Serializer& ar)
 
     else
     {
-        CString app_type_string = ar.Read<CString>();
-        ASSERT(app_type_string == _T("DataEntry"));
+        const std::string app_type_string = ar.Read<std::string>();
+        ASSERT(app_type_string == "DataEntry");
         m_engineAppType = EngineAppType::Entry;
     }
 
@@ -1105,112 +1280,53 @@ void Application::serialize(Serializer& ar)
        & m_autoPartialSaveMinutes
        & m_useQuestionText;
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_7_6_000_1); // Capi fonts
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_7_6_000_1);
-    ar.IgnoreUnusedVariable<COLORREF>(Serializer::Iteration_7_6_000_1);
-    ar.IgnoreUnusedVariable<COLORREF>(Serializer::Iteration_7_6_000_1);
-
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-    {
-        ar.SerializeEnum(m_caseTreeType);
-    }
-
-    else
-    {
-        m_caseTreeType = (CaseTreeType)ar.Read<char>();
-    }
+    ar.SerializeEnum(m_caseTreeType);
 
     ar & m_verifyStart
        & m_verifyFrequency;
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_sNote;
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_sNote;
 
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_1) )
-    {
-        ar & m_applicationProperties->UseHtmlDialogs;
-        ar & *m_applicationProperties;
-    }
+    ar & m_applicationProperties->UseHtmlDialogs
+       & *m_applicationProperties;
 
-    else
-    {
-        m_applicationProperties->UseHtmlDialogs = false;
-    }
+    ar.SerializePaths(m_externalDictionaryFilePaths);
 
-    ar.SerializeFilenameArray(m_externalDictionaryFilenames);
-
-    if( ar.PredatesVersionIteration(Serializer::Iteration_7_6_000_1) )
-    {
-        std::wstring filename;
-
-        ar.SerializeFilename(filename);
-        m_codeFiles.emplace_back(CodeType::LogicMain, std::make_shared<TextSource>(filename));
-
-        ar.SerializeFilename(filename);
-        m_messageTextSources.emplace_back(std::make_shared<TextSource>(filename));
-    }
-
-    else
-    {
-        ar & m_codeFiles
-           & m_messageTextSources;
-    }
+    ar & m_codeFiles
+       & m_messageFiles;
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_7_7_000_2) )
-        ar & m_reportNamedTextSources;
+        ar & m_reportFiles;
 
-    ar.SerializeFilename(m_questionTextFilename)
-      .SerializeFilenameArray(m_formFilenames);
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+        ar & m_resources;
+
+    ar.SerializePath(m_questionTextFilePath)
+      .SerializePaths(m_formFilePaths);
 
     ar & m_dictionaryDescriptions
        & m_centerForms
        & m_decimalMarkIsComma
-
        & m_createListingFile
        & m_createLogFile
-       & m_editNotePermissions;
-
-    ar & m_syncParameters;
-
-    ar & m_autoAdvanceOnSelection
+       & m_editNotePermissions
+       & m_syncParameters
+       & m_autoAdvanceOnSelection
        & m_displayCodesAlongsideLabels
-
        & m_showFieldLabels
-       & m_showErrorMessageNumbers;
+       & m_showErrorMessageNumbers
+       & m_hasWriteStatements
+       & m_comboBoxShowOnlyDiscreteValues
+       & m_showRefusals
+       & m_mappingOptions;
 
-    if( ar.PredatesVersionIteration(Serializer::Iteration_7_7_000_1) )
-    {
-        auto& paradata_properties = m_applicationProperties->GetParadataProperties();
-
-        ParadataProperties::CollectionType collection_type;
-        ar.SerializeEnum(collection_type);
-        paradata_properties.SetCollectionType(collection_type);
-
-        paradata_properties.SetRecordIteratorLoadCases(ar.Read<bool>());
-        paradata_properties.SetRecordValues(ar.Read<bool>());
-        paradata_properties.SetDeviceStateIntervalMinutes(ar.Read<int>());
-        paradata_properties.SetEventNames(ar.Read<std::set<std::wstring>>());
-        paradata_properties.SetRecordCoordinates(ar.Read<bool>());
-        paradata_properties.SetGpsLocationIntervalMinutes(ar.Read<int>());
-        paradata_properties.SetRecordInitialPropertyValues(ar.Read<bool>());
-    }
-
-    ar & m_hasWriteStatements
-       & m_comboBoxShowOnlyDiscreteValues;
-
-    ar & m_showRefusals;
-
-    ar & m_mappingOptions;
-
-    if( ar.MeetsVersionIteration(Serializer::Iteration_7_6_000_1) )
-    {
-        // APP_LOAD_TODO ... this value (as well as m_hasWriteStatements above) isn't
-        // known until after the code is compiled, so this should only be serialized
-        // after the whole application has been processed
-        ar & m_hasSaveableFrequencyStatements
-           & m_hasImputeStatements
-           & m_hasImputeStatStatements
-           & m_hasSaveArrays;
-    }
+    // APP_LOAD_TODO ... this value (as well as m_hasWriteStatements above) isn't
+    // known until after the code is compiled, so this should only be serialized
+    // after the whole application has been processed
+    ar & m_hasSaveableFrequencyStatements
+       & m_hasImputeStatements
+       & m_hasImputeStatStatements
+       & m_hasSaveArrays;
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
         ar & m_logicSettings;

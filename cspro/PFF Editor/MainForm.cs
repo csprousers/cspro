@@ -26,7 +26,7 @@ namespace PFF_Editor
         private Dictionary<TextBox,RepositoryUserControl> textboxRepositoryUserControls;
 
         private string runpffExecutable;
-        
+
         private string logicContents;
         private MethodInfo colorizerMethod;
 
@@ -384,7 +384,7 @@ namespace PFF_Editor
         private void ShowLogicContentsAsHtml()
         {
             string html = null;
-            
+
             // see if the zLogicCLR DLL exists, and if so colorizize the logic
             try
             {
@@ -532,18 +532,18 @@ namespace PFF_Editor
             DrawPFF(true);
         }
 
-		private void menuAddParadata_Click(object sender,EventArgs e)
-		{
+        private void menuAddParadata_Click(object sender,EventArgs e)
+        {
             pff.m_paradata = " ";
             DrawPFF(true);
-		}
+        }
 
         private void menuAddWriteFile_Click(object sender,EventArgs e)
         {
             pff.m_writeData = " ";
             DrawPFF(true);
         }
-        
+
         private void menuAddSaveArrayFile_Click(object sender, EventArgs e)
         {
             pff.m_saveArrayFilename = " ";
@@ -631,8 +631,8 @@ namespace PFF_Editor
                   pff.m_appType == PFF.AppType.Frequencies || pff.m_appType == PFF.AppType.Index || pff.m_appType == PFF.AppType.Tabulation );
             menuAddOutputDataFile.Enabled = ( pff.m_appType == PFF.AppType.Batch ) ||
                 ( ( pff.m_appType == PFF.AppType.Excel2CSPro || pff.m_appType == PFF.AppType.Index ) && pff.m_outputData.Count == 0 );
-			menuAddInputParadataFile.Enabled = pff.m_appType == PFF.AppType.ParadataConcatenate;
-			menuAddParadata.Enabled = pff.IsEngineRunningApp() && pff.m_paradata.Length == 0;
+            menuAddInputParadataFile.Enabled = pff.m_appType == PFF.AppType.ParadataConcatenate;
+            menuAddParadata.Enabled = pff.IsEngineRunningApp() && pff.m_paradata.Length == 0;
             menuAddWriteFile.Enabled = pff.IsEngineRunningApp() && pff.m_writeData.Length == 0;
             menuAddSaveArrayFile.Enabled = pff.IsEngineRunningApp() && pff.m_saveArrayFilename.Length == 0;
             menuAddCommonStore.Enabled = pff.IsEngineRunningApp() && pff.m_commonStore.Length == 0;
@@ -734,18 +734,18 @@ namespace PFF_Editor
             StartGroupBox(PFF.Sections.Parameters);
 
             if( pff.IsEngineRunningApp() )
-			{
+            {
                 AddTextBox(ParameterModifier,"Parameter",pff.m_parameter);
-				
-				if( menuExpertMode.Checked )
-					AddTextBox(LanguageModifier,"Starting Language",pff.m_language);
-			}
+
+                if( menuExpertMode.Checked )
+                    AddTextBox(LanguageModifier,"Starting Language",pff.m_language);
+            }
 
             foreach( var kp in pff.m_customParameters )
                 AddMapping(CustomParametersModifier,CustomParametersDeleter,kp.Key,kp.Value,MappingType.Text);
 
-            if( pff.m_appType != PFF.AppType.Compare && pff.m_appType != PFF.AppType.Deploy && pff.m_appType != PFF.AppType.Entry && 
-                pff.m_appType != PFF.AppType.Excel2CSPro && pff.m_appType != PFF.AppType.Index && pff.m_appType != PFF.AppType.Pack && 
+            if( pff.m_appType != PFF.AppType.Compare && pff.m_appType != PFF.AppType.Deploy && pff.m_appType != PFF.AppType.Entry &&
+                pff.m_appType != PFF.AppType.Excel2CSPro && pff.m_appType != PFF.AppType.Index && pff.m_appType != PFF.AppType.Pack &&
                 pff.m_appType != PFF.AppType.ParadataConcatenate && pff.m_appType != PFF.AppType.Sync && pff.m_appType != PFF.AppType.View )
             {
                 AddBinaryChoice(ViewResultsModifier,"View Run Results",pff.m_viewResults);
@@ -783,22 +783,14 @@ namespace PFF_Editor
             if( pff.m_appType == PFF.AppType.Concatenate )
                 AddRadioButtons(ConcatMethodModifier,"Concatenation Method",new string[] { "Case","Text" },pff.m_concatMethodCase ? 0 : 1);
 
-            if( pff.m_appType == PFF.AppType.Sync )
-            {
-                AddRadioButtons(SyncTypeModifier,"Sync Type",new string[] { PFF.Commands.CSWeb, PFF.Commands.Dropbox, PFF.Commands.FTP, PFF.Commands.LocalDropbox, PFF.Commands.LocalFiles },(int)pff.m_syncType);
-                AddRadioButtons(SyncDirectionModifier,"Sync Direction",new string[] { PFF.Commands.Get,PFF.Commands.Put,PFF.Commands.Both },(int)pff.m_syncDirection);
-            }
+            if( pff.m_appType == PFF.AppType.Sync || pff.m_appType == PFF.AppType.Deploy )
+                AddMapping(SyncServiceModifier, null, "Sync Service", pff.m_syncService, MappingType.Text);
 
-            if( ( pff.m_appType == PFF.AppType.Sync && pff.m_syncType != PFF.SyncType.Dropbox && pff.m_syncType != PFF.SyncType.LocalDropbox ) ||
-                ( pff.m_appType == PFF.AppType.Deploy ) )
-            {
-                AddMapping(SyncUrlModifier,null,"Sync URL",pff.m_syncUrl,MappingType.Text);
-            }
+            if( pff.m_appType == PFF.AppType.Sync )
+                AddRadioButtons(SyncDirectionModifier, "Sync Direction", new string[] { PFF.Commands.Get, PFF.Commands.Put, PFF.Commands.Both }, (int)pff.m_syncDirection);
 
             if ( pff.m_appType == PFF.AppType.Deploy )
-            {
                 AddRadioButtons(DeployToOverrideModifier, "Deploy to Override", Enum.GetValues(typeof(PFF.DeployToOverride)).Cast<PFF.DeployToOverride>().Select(v => v.ToString()).ToArray(), (int)pff.m_deployToOverride);
-            }
 
             if ( menuExpertMode.Checked && pff.m_appType == PFF.AppType.Sync )
                 AddBinaryChoice(SilentModifier,"Run Silently",pff.m_silent);
@@ -887,12 +879,12 @@ namespace PFF_Editor
 
 
             // output data
-            bool outputDataRequired = pff.m_appType == PFF.AppType.Concatenate || 
+            bool outputDataRequired = pff.m_appType == PFF.AppType.Concatenate ||
                                       pff.m_appType == PFF.AppType.Reformat ||
                                       pff.m_appType == PFF.AppType.Sort;
 
-            if( outputDataRequired || pff.m_appType == PFF.AppType.Batch || 
-                                      pff.m_appType == PFF.AppType.Excel2CSPro || 
+            if( outputDataRequired || pff.m_appType == PFF.AppType.Batch ||
+                                      pff.m_appType == PFF.AppType.Excel2CSPro ||
                                       pff.m_appType == PFF.AppType.Index )
             {
                 if( outputDataRequired && pff.m_outputData.Count == 0 )
@@ -912,9 +904,9 @@ namespace PFF_Editor
                         if( !outputDataRequired || i > 0 )
                             deleter = OutputDataDeleter;
 
-                        AddMapping(OutputDataModifier, deleter, 
+                        AddMapping(OutputDataModifier, deleter,
                             ( onlyOneAllowed || pff.m_outputData.Count == 1 ) ? "Output Data File" : String.Format("Output Data File ({0})", i + 1),
-                            ( i < pff.m_outputData.Count ) ? pff.m_outputData[i] : "", 
+                            ( i < pff.m_outputData.Count ) ? pff.m_outputData[i] : "",
                             MappingType.Repository);
                     }
                 }
@@ -1008,7 +1000,7 @@ namespace PFF_Editor
                         String.Format("Input Paradata File ({0})", i + 1),
                         ( pff.m_inputParadata.Count == 0 ) ? "" : pff.m_inputParadata[i], MappingType.File, ParadataFilter);
                 }
-                
+
                 AddMapping(OutputParadataModifier, null, "Output Paradata Log", pff.m_outputParadata, MappingType.File, ParadataFilter);
             }
 
@@ -1044,8 +1036,8 @@ namespace PFF_Editor
 
             if( pff.IsEngineRunningApp() && pff.m_baseMap.Length > 0 )
             {
-                AddMapping(BaseMapModifier,BaseMapDeleter,"Base Map",pff.m_baseMap,MappingType.File, 
-                    "All map files (*.mbtiles,*.tpk)|*.mbtiles;*.tpk|Mapbox mbtiles files (*.mbtiles)|*.mbtiles|ArcGIS tile packages (*.tpk)|*.tpk");
+                AddMapping(BaseMapModifier,BaseMapDeleter,"Base Map",pff.m_baseMap,MappingType.File,
+                    "All map files (*.mbtiles,*.tpk,*.tpkx)|*.mbtiles;*.tpk;*.tpkx|Mapbox MBTiles files (*.mbtiles)|*.mbtiles|ArcGIS tile packages (*.tpk,*.tpkx)|*.tpk;*.tpkx");
             }
 
             EndGroupBox();
@@ -1139,7 +1131,7 @@ namespace PFF_Editor
 
             ComboBox comboBox = new ComboBox();
             comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-			comboBox.Width = (int)( comboBox.Width * 1.2 );
+            comboBox.Width = (int)( comboBox.Width * 1.2 );
             comboBox.Location = new Point(startControlX,groupPosY + controlMarginDiffY);
 
             PFF.AppType appType = PFF.AppType.Batch;
@@ -1288,11 +1280,9 @@ namespace PFF_Editor
                 button.Image = PFF_Editor.Properties.Resources.OpenButton;
                 button.Tag = textBox;
 
-                if( mappingType == MappingType.Directory )
-                    button.Click += new EventHandler(browseDirectory);
-
-                else
-                    button.Click += new EventHandler(browseFile);
+                button.Click += ( mappingType == MappingType.Directory ) ? new EventHandler(browseDirectory) :
+                                ( mappingType == MappingType.File )      ? new EventHandler(browseFile) :
+                                                                           new EventHandler(browseRepository);
 
                 groupBox.Controls.Add(button);
                 filenameTextBoxes.Add(textBox);
@@ -1379,7 +1369,7 @@ namespace PFF_Editor
         }
 
         void browseDirectory(object sender, EventArgs e)
-        { 
+        {
             Control control = (Control)sender;
             TextBox textBox = (TextBox)control.Tag;
 
@@ -1400,7 +1390,7 @@ namespace PFF_Editor
 
             if( dlg.ShowDialog() != CommonFileDialogResult.Ok )
                 return;
-            
+
             textBox.Text = pathWasRelative ? PathHelper.GetRelativePath(pffFilename, dlg.FileName) : dlg.FileName;
             DrawPFF();
         }
@@ -1445,7 +1435,9 @@ namespace PFF_Editor
             if( ofd.ShowDialog() == DialogResult.OK )
             {
                 if( ofd.FileNames.Length == 1 )
+                {
                     textBox.Text = pathWasRelative ? PathHelper.GetRelativePath(pffFilename,ofd.FileName) : ofd.FileName;
+                }
 
                 else
                 {
@@ -1458,6 +1450,40 @@ namespace PFF_Editor
                     DrawPFF();
                 }
             }
+        }
+
+
+        void browseRepository(object sender, EventArgs e)
+        {
+            Control control = (Control)sender;
+            TextBox textBox = (TextBox)control.Tag;
+
+            var connectionString = new CSPro.Util.ConnectionString(textBox.Text);
+            bool useRelativePath = true;
+
+            if( connectionString.HasFilePath )
+            {
+                if( PathHelper.IsRelative(connectionString.FilePath) )
+                {
+                    connectionString.AdjustRelativePath(Path.GetDirectoryName(pffFilename));
+                }
+
+                else
+                {
+                    useRelativePath = false;
+                }
+            }
+
+            connectionString = CSPro.Util.ConnectionString.ShowDataFileDlg(this.Handle, CSPro.Util.DataFileDlgType.OpenOrCreate,
+                                                                           false, connectionString);
+
+            if( connectionString == null )
+                return;
+
+            textBox.Text = useRelativePath ? PathHelper.GetRelativePath(pffFilename, connectionString.ToString()) :
+                                             connectionString.ToString();
+
+            DrawPFF();
         }
 
 
@@ -1574,7 +1600,7 @@ namespace PFF_Editor
         {
             pff.m_caseListingFilter = ( (TextBox)sender ).Text;
         }
-        
+
         private void ShowInApplicationListingModifier(object sender,AttributeTag tag)
         {
             pff.m_showInApplicationListing = (PFF.ShowInApplicationListing)tag.Value;
@@ -1653,20 +1679,14 @@ namespace PFF_Editor
             DrawPFF(true);
         }
 
-        private void SyncTypeModifier(object sender,AttributeTag tag)
+        private void SyncServiceModifier(object sender,AttributeTag tag)
         {
-            pff.m_syncType = (PFF.SyncType)tag.Value;
-            DrawPFF(true);
+            pff.m_syncService = ( (TextBox)sender ).Text;
         }
 
         private void SyncDirectionModifier(object sender,AttributeTag tag)
         {
             pff.m_syncDirection = (PFF.SyncDirection)tag.Value;
-        }
-
-        private void SyncUrlModifier(object sender,AttributeTag tag)
-        {
-            pff.m_syncUrl = ( (TextBox)sender ).Text;
         }
 
         private void DeployToOverrideModifier(object sender, AttributeTag tag)
@@ -1927,7 +1947,7 @@ namespace PFF_Editor
 
             pff.m_inputParadata[GetIndexFromLabel((string)tag.Value)] = ( (TextBox)sender ).Text;
         }
-        
+
         private void InputParadataDeleter(object sender,EventArgs e)
         {
             pff.m_inputParadata.RemoveAt(GetIndexFromLabel(deleteMappingBase(sender)));
@@ -1949,8 +1969,8 @@ namespace PFF_Editor
             pff.m_paradata = "";
             DrawPFF(true);
         }
- 
-		private void ListingModifier(object sender,AttributeTag tag)
+
+        private void ListingModifier(object sender,AttributeTag tag)
         {
             pff.m_listing = ( (TextBox)sender ).Text;
         }
@@ -2076,17 +2096,17 @@ namespace PFF_Editor
                                                 "CSPro.chm",
                                                 "CSDiff.chm",
                                                 "CSConcat.chm",
-												"CSDeploy.chm",
+                                                "CSDeploy.chm",
                                                 "CSPro.chm",
-												"Excel2CSPro.chm",
+                                                "Excel2CSPro.chm",
                                                 "CSExport.chm",
                                                 "CSFreq.chm",
                                                 "CSIndex.chm",
                                                 "CSPack.chm",
-												"ParadataConcat.chm",
-                                                "CSRefmt.chm",
+                                                "ParadataConcat.chm",
+                                                "CSReFmt.chm",
                                                 "CSSort.chm",
-                                                "DataViewer.chm",
+                                                "DataManager.chm",
                                                 "CSPro.chm",
                                                 "CSView.chm",
                                             };
@@ -2095,17 +2115,17 @@ namespace PFF_Editor
                                                 "run_production_batch_edits.html",
                                                 "run_production_compares.html",
                                                 "run_production_concatenates.html",
-												"run_production_deployments.html",
+                                                "run_production_deployments.html",
                                                 "run_production_data_entry.html",
-												"running_conversions_from_the_command_line.html",
+                                                "running_conversions_from_the_command_line.html",
                                                 "run_production_exports.html",
                                                 "run_production_frequencies.html",
                                                 "run_csindex_in_production_mode.html",
                                                 "run_production_pack.html",
-												"run_production_paradata_concatenates.html",
+                                                "run_production_paradata_concatenates.html",
                                                 "run_production_reformats.html",
                                                 "run_production_sorts.html",
-                                                "run_production_synchronizations.html",
+                                                "run_production_synchronizations.html", // DATA_TODO modify accordingly
                                                 "run_tabulate_in_batch.html",
                                                 "run_production_views.html",
                                             };

@@ -27,10 +27,10 @@ void HtmlViewDlg::SetViewerOptions(const ViewerOptions& viewer_options)
     if( m_viewerOptions.display_options_node != nullptr )
     {
         ASSERT(!m_viewerOptions.requested_size.has_value() &&
-               !m_viewerOptions.title.has_value() &&
+               !m_viewerOptions.title.IsSet() &&
                !m_viewerOptions.show_close_button.has_value());
 
-        const JsonNode<wchar_t>& display_options_node = *m_viewerOptions.display_options_node;
+        const JsonNode& display_options_node = *m_viewerOptions.display_options_node;
 
         try
         {
@@ -46,7 +46,7 @@ void HtmlViewDlg::SetViewerOptions(const ViewerOptions& viewer_options)
         try
         {
             if( display_options_node.Contains(JK::title) )
-                m_viewerOptions.title.emplace(display_options_node.Get<std::wstring>(JK::title));
+                m_viewerOptions.title = display_options_node.Get<std::string>(JK::title);
         }
         catch(...) { }
 
@@ -60,12 +60,12 @@ void HtmlViewDlg::SetViewerOptions(const ViewerOptions& viewer_options)
 }
 
 
-void HtmlViewDlg::SetInitialHtml(std::wstring html)
+void HtmlViewDlg::SetInitialHtml(std::string html)
 {
     m_initialContents.emplace(true, std::move(html));
 }
 
-void HtmlViewDlg::SetInitialUrl(std::wstring url)
+void HtmlViewDlg::SetInitialUrl(std::string url)
 {
     m_initialContents.emplace(false, std::move(url));
 }
@@ -103,20 +103,20 @@ BOOL HtmlViewDlg::OnInitDialog()
     WindowHelpers::RemoveDialogSystemIcon(*this);
 
     // potentially modify the title
-    if( m_viewerOptions.title.has_value() )
-        SetWindowText(m_viewerOptions.title->c_str());
+    if( m_viewerOptions.title.IsSet() )
+        WindowsUtf8::SetText(this, *m_viewerOptions.title);
 
     // when defined, load the initial contents
     if( m_initialContents.has_value() )
     {
         if( std::get<0>(*m_initialContents) )
         {
-            m_htmlViewCtrl.SetHtml(std::move(std::get<1>(*m_initialContents)));
+            m_htmlViewCtrl.SetHtml(std::get<1>(*m_initialContents));
         }
 
         else
         {
-            m_htmlViewCtrl.NavigateTo(std::move(std::get<1>(*m_initialContents)));
+            m_htmlViewCtrl.NavigateTo(std::get<1>(*m_initialContents));
         }
     }
 

@@ -11,7 +11,7 @@ int LogicCompiler::CompileUserbarFunction()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    switch( NextKeywordOrError({ _T("hide"), _T("show"), _T("clear"), _T("remove"), _T("modify"), _T("get"), _T("add"), _T("set") }) )
+    switch( NextKeywordOrError({ "hide", "show", "clear", "remove", "modify", "get", "add", "set" }) )
     {
         case 1:
             userbar_command = Userbar::Command::Hide;
@@ -39,7 +39,7 @@ int LogicCompiler::CompileUserbarFunction()
 
         case 7:
         {
-            switch( NextKeywordOrError({ _T("text"), _T("button"), _T("field"), _T("spacing") }) )
+            switch( NextKeywordOrError({ "text", "button", "field", "spacing" }) )
             {
                 case 1:
                     userbar_command = Userbar::Command::AddText;
@@ -66,7 +66,7 @@ int LogicCompiler::CompileUserbarFunction()
 
         case 8:
         {
-            NextKeywordOrError({ _T("color") });
+            NextKeywordOrError({ "color" });
 
             userbar_command = Userbar::Command::SetColor;
             break;

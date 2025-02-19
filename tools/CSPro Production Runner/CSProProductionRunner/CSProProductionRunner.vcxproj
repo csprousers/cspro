@@ -14,10 +14,6 @@
     <ProjectGuid>{2F30DC96-AC6B-450F-AA10-914EB4DC2A11}</ProjectGuid>
     <RootNamespace>CSProProductionRunner</RootNamespace>
     <Keyword>ManagedCProj</Keyword>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

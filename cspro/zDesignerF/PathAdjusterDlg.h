@@ -9,7 +9,7 @@ class PathAdjusterDlg : public CDialog
 public:
     enum { IDD = IDD_PATH_ADJUSTER };
 
-    PathAdjusterDlg(int lexer_language, std::wstring initial_path, CWnd* pParent = nullptr);
+    PathAdjusterDlg(int lexer_language, std::string initial_path, CWnd* pParent = nullptr);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -24,15 +24,15 @@ protected:
     void OnCopy(UINT nID);
 
 private:
-    std::wstring AdjustPathSlashes(std::wstring path) const;
+    std::string AdjustPathSlashes(std::string path) const;
     void UpdatePaths();
 
 private:
     Logic::StringEscaper m_logicStringEscaper;
     int m_csproLexerLanguage;
 
-    std::wstring m_path;
-    std::wstring m_relativeToFilename;
+    std::string m_path;
+    std::string m_relativeToFilename;
     bool m_useForwardSlashes;
 
     CEditWithSelectAll m_pathEdit;

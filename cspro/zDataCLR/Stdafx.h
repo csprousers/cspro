@@ -3,11 +3,7 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 
-#include <zToolsO/NewlineSubstitutor.h>
-#include <zToolsO/PortableFunctions.h>
+#include <zToolsO/Tools.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
-#include <zDataO/CaseIterator.h>
-#include <zDataO/DataRepository.h>
-#include <zDataO/DataRepositoryHelpers.h>
-#include <zUtilCLR/ToWS.h>
+#include <zUtilCLR/clr_helpers.h>

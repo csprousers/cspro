@@ -7,7 +7,7 @@
 class PackDlg : public CDialog
 {
 public:
-    PackDlg(std::unique_ptr<PackSpec> pack_spec, std::wstring filename, CWnd* pParent = nullptr);
+    PackDlg(std::unique_ptr<PackSpec> pack_spec, std::string file_path, CWnd* pParent = nullptr);
 
     enum { IDD = IDD_PACK };
 
@@ -47,23 +47,23 @@ private:
 
     bool ContinueWithClosePackSpecOperation();
 
-    void SavePackSpec(std::wstring filename, bool create_pff);
+    void SavePackSpec(std::string file_path, bool create_pff);
 
-    void AddInputs(const std::vector<std::wstring>& paths);
+    void AddInputs(const std::vector<std::string>& paths);
 
     void DisplayInputDetailsReport();
 
 private:
     HICON m_hIcon;
     CMenu m_menu;
-    std::wstring m_moduleName;
+    std::string m_moduleName;
 
     DropFilesListCtrl m_inputsListCtrl;
     SystemIcon::ImageList m_systemIconImageList;
     std::optional<size_t> m_selectedInputIndex;
-    std::optional<std::tuple<std::optional<std::wstring>, bool>> m_lastWindowTitleInputs;
+    std::optional<std::tuple<std::optional<std::string>, bool>> m_lastWindowTitleInputs;
 
     std::unique_ptr<PackSpec> m_packSpec;
-    std::optional<std::wstring> m_packSpecFilename;
+    std::optional<std::string> m_packSpecFilePath;
     bool m_modified;
 };

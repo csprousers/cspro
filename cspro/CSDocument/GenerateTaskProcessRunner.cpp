@@ -2,22 +2,23 @@
 #include "GenerateTaskProcessRunner.h"
 
 
-GenerateTaskProcessRunner::GenerateTaskProcessRunner(GenerateTask& generate_task, std::wstring process_name, const std::wstring& log_prefix, std::wstring (ProcessRunner::*output_read_function)())
+GenerateTaskProcessRunner::GenerateTaskProcessRunner(GenerateTask& generate_task, std::string process_name, const std::string& log_prefix,
+                                                     std::string (ProcessRunner::*output_read_function)())
     :   m_generateTask(generate_task),
         m_processName(std::move(process_name)),
-        m_logPrefix(log_prefix + _T(": ")),
+        m_logPrefix(log_prefix + ": "),
         m_outputReadFunction(output_read_function),
         m_addSpacingBeforeNextLoggedLine(true)
 {
 }
 
 
-void GenerateTaskProcessRunner::Run(std::wstring command_line)
+void GenerateTaskProcessRunner::Run(const std::string& command_line)
 {
-    HANDLE process_handle = m_processRunner.Start(std::move(command_line));
+    HANDLE process_handle = m_processRunner.Start(command_line);
 
     if( process_handle == nullptr )
-        throw CSProException(_T("There was a problem running %s."), m_processName.c_str());
+        throw CSProException("There was a problem running %s.", m_processName.c_str());
 
     constexpr DWORD UpdateCheckMilliseconds = 50;
 
@@ -38,7 +39,7 @@ void GenerateTaskProcessRunner::Run(std::wstring command_line)
 
 void GenerateTaskProcessRunner::AddOutputToLog()
 {
-    std::wstring output = (m_processRunner.*m_outputReadFunction)();
+    std::string output = (m_processRunner.*m_outputReadFunction)();
 
     if( output.empty() )
         return;
@@ -47,15 +48,14 @@ void GenerateTaskProcessRunner::AddOutputToLog()
         m_outputPreprocessor(output);
 
     SO::ForeachLine(output, true,
-        [&](const std::wstring& line)
+        [&](const std::string_view line_sv)
         {
             if( m_addSpacingBeforeNextLoggedLine )
             {
-                m_generateTask.GetInterface().LogText(std::wstring());
+                m_generateTask.GetInterface().LogText(SharableString::CreateBlankString());
                 m_addSpacingBeforeNextLoggedLine = false;
             }
 
-            m_generateTask.GetInterface().LogText(m_logPrefix + line);
-            return true;
+            m_generateTask.GetInterface().LogText(SO::Concatenate(m_logPrefix, line_sv));
         });
 }

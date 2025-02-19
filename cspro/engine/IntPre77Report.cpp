@@ -48,7 +48,7 @@ public:
         // search for a dictionary with the data source name
         else
         {
-            int dictionary_symbol_index = m_pEngineArea->SymbolTableSearch(csDataSourceName, { SymbolType::Pre80Dictionary });
+            int dictionary_symbol_index = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csDataSourceName), { SymbolType::Pre80Dictionary });
 
             if( dictionary_symbol_index != 0 )
             {
@@ -111,11 +111,11 @@ double CIntDriver::expre77_setreportdata(int iExpr)
     else
     {
         // check that the attribute is a valid name
-        CString csAttribute = ( iAttributeName >= 0 ) ? EvalAlphaExpr<CString>(iAttributeName) : WS2CS(NPT(iSourceSymbol)->GetName());
+        CString csAttribute = ( iAttributeName >= 0 ) ? EvalAlphaExprCS(iAttributeName) : UTF8_TODO::GetCString(NPT(iSourceSymbol)->GetName());
 
         if( !CIMSAString::IsName(csAttribute) )
         {
-            issaerror(MessageType::Error, 8293, csAttribute.GetString());
+            issaerror(MessageType::Error, 8293, UTF8_TODO::GetUtf8(csAttribute).c_str());
             return 0;
         }
 
@@ -135,7 +135,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
 
                     catch( const CSProException& exception )
                     {
-                        issaerror(MessageType::Error, 8294, exception.GetErrorMessage().c_str());
+                        issaerror(MessageType::Error, 8294, exception.what());
                         return DEFAULT;
                     }
                 };
@@ -147,16 +147,16 @@ double CIntDriver::expre77_setreportdata(int iExpr)
         // otherwise, create the JSON string in this method
         else
         {
-            auto jsw = Json::CreateStringWriter<char>();
+            const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
-            jsw->BeginObject();
+            json_writer->BeginObject();
 
-            jsw->Key(csAttribute);
+            json_writer->Key(UTF8_TODO::GetUtf8(csAttribute));
 
             // process string expressions
             if( iSourceType == PRE77_SETREPORTDATA_SOURCE_STRING_EXPRESSION )
             {
-                jsw->Write(EvalAlphaExpr<CString>(iSourceSymbol));
+                json_writer->Write(EvaluateString(iSourceSymbol));
             }
 
 
@@ -187,23 +187,23 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                                 {
                                     if( logic_array->IsNumeric() )
                                     {
-                                        double value = logic_array->GetValue<double>(indices);
-                                        JsonWriterOutput(*jsw, value);
+                                        const double value = logic_array->GetValue<double>(indices);
+                                        JsonWriterOutput(*json_writer, value);
                                     }
 
                                     else
                                     {
-                                        const std::wstring& value = logic_array->GetValue<std::wstring>(indices);
-                                        jsw->Write(SO::TrimRight(value));
+                                        const SharableString& value = logic_array->GetValue<SharableString>(indices);
+                                        json_writer->Write(SO::TrimRight(*value));
                                     }
                                 }
 
                                 // otherwise iterate on the next dimension
                                 else
                                 {
-                                    jsw->BeginArray();
+                                    json_writer->BeginArray();
                                     array_writer(dimension_updating + 1);
-                                    jsw->EndArray();
+                                    json_writer->EndArray();
                                 }
 
                                 ++indices[dimension_updating];
@@ -213,30 +213,34 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                             indices[dimension_updating] = 1;
                         };
 
-                    jsw->BeginArray();
+                    json_writer->BeginArray();
                     array_writer(0);
-                    jsw->EndArray();
+                    json_writer->EndArray();
                 }
 
 
                 // process a list
                 else if( pSymbol->GetType() == SymbolType::List )
                 {
-                    const LogicList* pList = assert_cast<const LogicList*>(pSymbol);
+                    const LogicList* const pList = assert_cast<const LogicList*>(pSymbol);
 
-                    jsw->BeginArray();
+                    json_writer->BeginArray();
 
                     for( size_t i = 0; i < pList->GetCount(); i++ )
                     {
-                        if( pList->IsNumeric( ) )
-                            JsonWriterOutput(*jsw,pList->GetValue(i + 1));
+                        if( pList->IsNumeric() )
+                        {
+                            JsonWriterOutput(*json_writer, pList->GetValue<double>(i + 1));
+                        }
 
                         else
-                            jsw->Write(pList->GetString(i + 1));
+                        {
+                            json_writer->Write(pList->GetValue<SharableString>(i + 1));
+                        }
 
                     }
 
-                    jsw->EndArray();
+                    json_writer->EndArray();
                 }
 
 
@@ -246,11 +250,11 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                     SECT* pSecT = (SECT*)pSymbol;
                     int iCurrentRecordOccurrences = exsoccurs(pSecT);
 
-                    jsw->BeginArray();
+                    json_writer->BeginArray();
 
                     for( int iRecordOcc = 0; iRecordOcc < iCurrentRecordOccurrences; iRecordOcc++ )
                     {
-                        jsw->BeginObject();
+                        json_writer->BeginObject();
 
                         int iSymVar = pSecT->SYMTfvar;
 
@@ -260,10 +264,10 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                             VARX* pVarX = pVarT->GetVarX();
                             bool bItemHasOccurrences = ( pVarT->GetMaxOccs() > 1 );
 
-                            jsw->Key(WS2CS(pVarT->GetName()));
+                            json_writer->Key(pVarT->GetName());
 
                             if( bItemHasOccurrences )
-                                jsw->BeginArray();
+                                json_writer->BeginArray();
 
                             for( int iItemOcc = 0; iItemOcc < pVarT->GetMaxOccs(); iItemOcc++ )
                             {
@@ -316,33 +320,33 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                                         *pdValue /= Power10[pVarT->GetDecimals()];
                                     }
 
-                                    JsonWriterOutput(*jsw, *pdValue);
+                                    JsonWriterOutput(*json_writer, *pdValue);
                                 }
 
                                 else
                                 {
-                                    jsw->Write(CString(lpszValue,pVarT->GetLength()).TrimRight());
+                                    json_writer->Write(CString(lpszValue, pVarT->GetLength()).TrimRight());
                                 }
                             }
 
                             if( bItemHasOccurrences )
-                                jsw->EndArray();
+                                json_writer->EndArray();
 
                             iSymVar = pVarT->SYMTfwd;
                         }
 
-                        jsw->EndObject();
+                        json_writer->EndObject();
                     }
 
-                    jsw->EndArray();
+                    json_writer->EndArray();
                 }
             }
 
 
             // set the report data
-            jsw->EndObject();
+            json_writer->EndObject();
 
-            m_pre77reportManager->SetReportData(csAttribute, jsw->GetString());
+            m_pre77reportManager->SetReportData(csAttribute, json_writer->ReleaseString());
         }
     }
 
@@ -375,13 +379,13 @@ double CIntDriver::expre77_report(int iExpr)
         {
             Viewer viewer;
             viewer.UseEmbeddedViewer()
-                  .ViewFile(CS2WS(csOutputFilename));
+                  .ViewFile(UTF8_TODO::GetUtf8(csOutputFilename));
         }
     }
 
     catch( const Pre77Report::Exception& exception )
     {
-        issaerror(MessageType::Error, 8294, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Error, 8294, exception.what());
         dRetVal = 0;
     }
 

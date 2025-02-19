@@ -19,9 +19,9 @@ public:
     bool automatically_associate_documents_with_doc_sets;
     bool build_documents_on_open;
     unsigned automatic_compilation_seconds;
-    std::wstring html_help_compiler_path;
-    std::wstring wkhtmltopdf_path;
-    std::wstring cspro_code_path;
+    std::string html_help_compiler_path;
+    std::string wkhtmltopdf_path;
+    std::string cspro_code_path;
 
     // modifiable by the user in other areas
     bool close_generate_dialog_on_completion;

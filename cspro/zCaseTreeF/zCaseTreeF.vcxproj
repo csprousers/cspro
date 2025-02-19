@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{61281559-2451-450E-B6F6-E855B69E870A}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <ProjectName>zCaseTreeF</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -81,7 +77,7 @@
     </ClCompile>
     <ClCompile Include="TItmInfo.cpp" />
     <ClCompile Include="TreeItem.cpp" />
-    <ClCompile Include="xTCtrl.cpp" />
+    <ClCompile Include="Xtctrl.cpp" />
     <ClCompile Include="zCaseTreeF.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,13 +164,12 @@
     <ResourceCompile Include="zCaseTreeF.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Icons.h" />
-    <ClInclude Include="UWM.h" />
     <ClInclude Include="CaseTree.h" />
     <ClInclude Include="CEUtils.h" />
     <ClInclude Include="CRunAplE.h" />
     <ClInclude Include="GTCtrl.h" />
     <ClInclude Include="HITEM.h" />
+    <ClInclude Include="Icons.h" />
     <ClInclude Include="IItemCnf.h" />
     <ClInclude Include="MsgParam.h" />
     <ClInclude Include="resource.h" />
@@ -182,7 +177,8 @@
     <ClInclude Include="TItmInfo.h" />
     <ClInclude Include="TreeCnst.h" />
     <ClInclude Include="TreeItem.h" />
-    <ClInclude Include="xTCtrl.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="Xtctrl.h" />
     <ClInclude Include="zCaseTreeF.h" />
   </ItemGroup>
   <ItemGroup>

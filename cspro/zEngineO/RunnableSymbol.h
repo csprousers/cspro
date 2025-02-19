@@ -3,8 +3,6 @@
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/ProcType.h>
 
-class Serializer;
-
 
 class ZENGINEO_API RunnableSymbol
 {

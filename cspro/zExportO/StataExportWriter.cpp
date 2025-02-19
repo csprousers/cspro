@@ -9,7 +9,7 @@ StataExportWriter::StataExportWriter(std::shared_ptr<const CaseAccess> case_acce
 }
 
 
-bool StataExportWriter::IsReservedName(const std::wstring& /*name*/, bool /*record_name*/)
+bool StataExportWriter::IsReservedName(const std::string& /*name*/, bool /*record_name*/)
 {
     // Stata reserved names are all lowercase (https://www.stata.com/manuals/u11.pdf),
     // so they will not clash with CSPro names
@@ -23,20 +23,20 @@ bool StataExportWriter::AddStringLabelSets()
 }
 
 
-std::wstring StataExportWriter::GetFixedWidthNumericFormat(const CDictItem& dict_item)
+std::string StataExportWriter::GetFixedWidthNumericFormat(const CDictItem& dict_item)
 {
-    return FormatTextCS2WS(_T("%%%d.%df"), static_cast<int>(dict_item.GetCompleteLen()),
-                                           static_cast<int>(dict_item.GetDecimal()));
+    return FormatText("%%%d.%df", static_cast<int>(dict_item.GetCompleteLen()),
+                                  static_cast<int>(dict_item.GetDecimal()));
 }
 
 
-std::optional<std::wstring> StataExportWriter::GetFixedWidthStringFormat(unsigned /*width*/)
+std::optional<std::string> StataExportWriter::GetFixedWidthStringFormat(unsigned /*width*/)
 {
     return std::nullopt;
 }
 
 
-readstat_error_t StataExportWriter::StartReadStatWriter(readstat_writer_t* writer, void* user_ctx, const long row_count)
+readstat_error_t StataExportWriter::StartReadStatWriter(readstat_writer_t* const writer, void* const user_ctx, const long row_count)
 {
     return readstat_begin_writing_dta(writer, user_ctx, row_count);
 }

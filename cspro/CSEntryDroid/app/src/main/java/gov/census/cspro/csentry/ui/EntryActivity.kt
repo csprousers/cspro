@@ -85,12 +85,19 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
         EngineInterface.CreateEngineInterfaceInstance(application)
 
         // set the screen orientation
-        if (resources.getBoolean(R.bool.portrait_only)) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        if (resources.getBoolean(R.bool.portrait_only)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         m_iconNoNote = resources.getDrawable(R.drawable.ic_menu_edit_note)
         m_iconNoteFilled = resources.getDrawable(R.drawable.ic_menu_edit_note_filled)
         if (!EngineInterface.getInstance().isApplicationOpen) {
-            val appLoadingDialog = AppLoadingFragment.newInstance(intent)
-            appLoadingDialog.show(supportFragmentManager, "AppLoadingDialog")
+            val appLoadingDialog = AppLoadingFragment.newInstance(this, intent)
+            if( appLoadingDialog != null ) {
+                appLoadingDialog.show(supportFragmentManager, "AppLoadingDialog")
+            }
+            else {
+                finish()
+            }
         } else {
             applicationLoaded()
         }
@@ -593,13 +600,23 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
             return false
         }
 
-        override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+        override fun onScroll(
+            e1: MotionEvent?,
+            e2: MotionEvent,
+            distanceX: Float,
+            distanceY: Float
+        ): Boolean {
             // we need to pass this event along so that additional touches
             // are detected down the line for the fling
             return false
         }
 
-        override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(
+            e1: MotionEvent?,
+            e2: MotionEvent,
+            velocityX: Float,
+            velocityY: Float
+        ): Boolean {
             // this should really be automatic but android makes us implement this
             // ourselves
             // compute the delta from the current point and use the velocity to
@@ -616,21 +633,27 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
                 parentView = findViewById(R.id.activity_entry_application_with_drawer)
                 // check to make sure the user isn't swiping too close to the left edge
                 // we don't want them to accidentally activate the nav drawer
-                if (e1.x < (SWIPE_MIN_DISTANCE / 2) || e1.x > (parentView.width - 60)) {
-                    return false
+                if (e1 != null) {
+                    if (e1.x < (SWIPE_MIN_DISTANCE / 2) || e1.x > (parentView.width - 60)) {
+                        return false
+                    }
                 }
             }
 
             // if the user swiped vertically all around the place, do nothing
-            if (abs(e1.y - e2.y) > SWIPE_MAX_OFF_PATH) return false
+            if (e1 != null) {
+                if (abs(e1.y - e2.y) > SWIPE_MAX_OFF_PATH) return false
+            }
 
             // right to left swipe
-            if (e1.x - e2.x > SWIPE_MIN_DISTANCE && abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                val runnable = Runnable { onNavigationNextButtonClicked() }
-                runOnUiThread(runnable)
-            } else if (e2.x - e1.x > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                val runnable = Runnable { onNavigationPreviousButtonClicked() }
-                runOnUiThread(runnable)
+            if (e1 != null) {
+                if (e1.x - e2.x > SWIPE_MIN_DISTANCE && abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    val runnable = Runnable { onNavigationNextButtonClicked() }
+                    runOnUiThread(runnable)
+                } else if (e2.x - e1.x > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    val runnable = Runnable { onNavigationPreviousButtonClicked() }
+                    runOnUiThread(runnable)
+                }
             }
             return false
         }

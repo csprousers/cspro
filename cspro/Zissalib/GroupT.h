@@ -258,10 +258,10 @@ public:
     // --- construction/destruction/initialization
     // RHF INIC Aug 16, 2000
 public:
-    CSymbolGroup(std::wstring name, CEngineDriver* pEngineDriver);
+    CSymbolGroup(std::string name, CEngineDriver* pEngineDriver);
     ~CSymbolGroup()
     {
-        // TRACE( "LEAK: Destroying occ tree for group %s\n", (LPCTSTR)GetName() );
+        // TRACE( "LEAK: Destroying occ tree for group %s\n", GetName().c_str() );
         OccTreeFree();
     }
     // RHF END Aug 16, 2000

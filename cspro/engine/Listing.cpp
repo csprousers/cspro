@@ -5,6 +5,7 @@
 #include <zEngineO/AllSymbols.h>
 #include <ZBRIDGEO/npff.h>
 #include <zMessageO/MessageManager.h>
+#include <zListingO/ErrorLister.h>
 #include <zListingO/HeaderAttribute.h>
 #include <zListingO/ListerWriteFile.h>
 #include <zListingO/TextWriteFile.h>
@@ -15,7 +16,7 @@ void CEngineDriver::OpenListerAndWriteFiles()
     ASSERT(m_lister == nullptr && m_writeFile == nullptr);
 
     if( !m_pPifFile->GetWriteFName().IsEmpty() )
-        m_writeFile = std::make_unique<Listing::TextWriteFile>(CS2WS(m_pPifFile->GetWriteFName()));
+        m_writeFile = std::make_unique<Listing::TextWriteFile>(UTF8_TODO::GetUtf8(m_pPifFile->GetWriteFName()));
 
     StartLister();
 }
@@ -35,7 +36,7 @@ void CEngineDriver::StartLister()
 
     bool append = false;
 
-    std::wstring application_type = CS2WS(Appl.ApplicationTypeText);
+    std::string application_type = UTF8_TODO::GetUtf8(Appl.ApplicationTypeText);
     bool cstab = false;
     bool cscalc = false;
 
@@ -47,18 +48,18 @@ void CEngineDriver::StartLister()
 
     else if( m_pPifFile->GetAppType() == APPTYPE::TAB_TYPE )
     {
-        if( SO::EqualsNoCase(application_type, _T("CSTab")) )
+        if( application_type == "CSTab" )
         {
             cstab = true;
-            application_type = _T("Tab");
+            application_type = "Tab";
         }
 
         else
         {
-            if( SO::EqualsNoCase(application_type, _T("PostCalc")) )
+            if( application_type == "PostCalc" )
             {
                 cscalc = true;
-                application_type = _T("Format");
+                application_type = "Format";
             }
 
             // append mode will also be used if not on the first operation of a multi-step tabulation
@@ -83,32 +84,32 @@ void CEngineDriver::StartLister()
 
     // if no write filename is defined, hookup the write function with the lister
     if( m_pPifFile->GetWriteFName().IsEmpty() )
-        m_writeFile = std::make_unique<Listing::ListerWriteFile<std::shared_ptr<Listing::Lister>>>(m_lister);
+        m_writeFile = std::make_unique<Listing::ListerWriteFile>(m_lister);
 
 
     // initialize the listing by writing out a header of various attributes
     std::vector<Listing::HeaderAttribute> header_attributes;
 
-    header_attributes.emplace_back(_T("Application"), CS2WS(m_pPifFile->GetAppFName()));
-    header_attributes.emplace_back(_T("Type"), application_type);
+    header_attributes.emplace_back("Application", UTF8_TODO::GetUtf8(m_pPifFile->GetAppFName()));
+    header_attributes.emplace_back("Type", application_type);
 
     if( cscalc )
     {
 #if defined(WIN_DESKTOP) && !defined(USE_BINARY)
-        CCalcDriver* pCalcDriver = (CCalcDriver*)m_pEngineDriver;
-        header_attributes.emplace_back(_T("Input Data"), CS2WS(pCalcDriver->GetInputTbd()->GetFileName()));
-        header_attributes.emplace_back(_T("Output"), CS2WS(m_pPifFile->GetPrepOutputFName()));
+        CCalcDriver* const pCalcDriver = assert_cast<CCalcDriver*>(m_pEngineDriver);
+        header_attributes.emplace_back("Input Data", UTF8_TODO::GetUtf8(pCalcDriver->GetInputTbd()->GetFileName()));
+        header_attributes.emplace_back("Output", UTF8_TODO::GetUtf8(m_pPifFile->GetPrepOutputFName()));
 #endif
     }
 
     // add the dictionaries
     else
     {
-        for( const EngineDictionary* engine_dictionary : VI_P(m_EngineArea.m_engineData->engine_dictionaries) )
+        for( const EngineDictionary* const engine_dictionary : VI_P(m_EngineArea.m_engineData->engine_dictionaries) )
         {
             if( engine_dictionary->GetSubType() == SymbolSubType::Input )
             {
-                auto add_connection_strings = [&](const TCHAR* type, const std::vector<ConnectionString>& connection_strings)
+                auto add_connection_strings = [&](const char* const type, const std::vector<ConnectionString>& connection_strings)
                 {
                     for( const ConnectionString& connection_string : connection_strings )
                     {
@@ -119,13 +120,13 @@ void CEngineDriver::StartLister()
                     }
                 };
 
-                add_connection_strings(_T("Input Data"), m_pPifFile->GetInputDataConnectionStrings());
-                add_connection_strings(_T("Output Data"), m_pPifFile->GetOutputDataConnectionStrings());
+                add_connection_strings("Input Data", m_pPifFile->GetInputDataConnectionStrings());
+                add_connection_strings("Output Data", m_pPifFile->GetOutputDataConnectionStrings());
             }
 
             else if( engine_dictionary->IsDictionaryObject() && engine_dictionary->GetSubType() != SymbolSubType::Work )
             {
-                const ConnectionString& connection_string = m_pPifFile->GetExternalDataConnectionString(WS2CS(engine_dictionary->GetName()));
+                const ConnectionString& connection_string = m_pPifFile->GetExternalDataConnectionString(UTF8_TODO::GetCString(engine_dictionary->GetName()));
 
                 if( connection_string.IsDefined() )
                 {
@@ -137,11 +138,11 @@ void CEngineDriver::StartLister()
             }
         }
 
-        for( const DICT* pDicT : m_engineData->dictionaries_pre80 )
+        for( const DICT* const pDicT : m_engineData->dictionaries_pre80 )
         {
             if( pDicT->GetSubType() == SymbolSubType::Input )
             {
-                auto add_connection_strings = [&](const TCHAR* type, const std::vector<ConnectionString>& connection_strings)
+                auto add_connection_strings = [&](const char* const type, const std::vector<ConnectionString>& connection_strings)
                 {
                     for( const ConnectionString& connection_string : connection_strings )
                     {
@@ -152,17 +153,17 @@ void CEngineDriver::StartLister()
                     }
                 };
 
-                add_connection_strings(_T("Input Data"), m_pPifFile->GetInputDataConnectionStrings());
-                add_connection_strings(_T("Output Data"), m_pPifFile->GetOutputDataConnectionStrings());
+                add_connection_strings("Input Data", m_pPifFile->GetInputDataConnectionStrings());
+                add_connection_strings("Output Data", m_pPifFile->GetOutputDataConnectionStrings());
             }
 
-            else if( bool external = ( pDicT->GetSubType() == SymbolSubType::External ); external || pDicT->GetSubType() == SymbolSubType::Output )
+            else if( const bool external = ( pDicT->GetSubType() == SymbolSubType::External ); external || pDicT->GetSubType() == SymbolSubType::Output )
             {
-                const ConnectionString& connection_string = m_pPifFile->GetExternalDataConnectionString(WS2CS(pDicT->GetName()));
+                const ConnectionString& connection_string = m_pPifFile->GetExternalDataConnectionString(UTF8_TODO::GetCString(pDicT->GetName()));
 
                 if( connection_string.IsDefined() )
                 {
-                    header_attributes.emplace_back(external ? _T("External") : _T("Output"),
+                    header_attributes.emplace_back(external ? "External" : "Output",
                                                    pDicT->GetName(),
                                                    connection_string,
                                                    pDicT->GetDataDict());
@@ -174,33 +175,33 @@ void CEngineDriver::StartLister()
     if( cstab )
     {
         m_lister->SetUpdateProcessSummaryWithMessageNumbers(true);
-        header_attributes.emplace_back(_T("Output"), CS2WS(m_pPifFile->GetTabOutputFName()));
+        header_attributes.emplace_back("Output", UTF8_TODO::GetUtf8(m_pPifFile->GetTabOutputFName()));
     }
 
 
-    auto add_non_empty_value = [&](const TCHAR* description, const std::wstring& value)
+    auto add_non_empty_value = [&](const char* const description, const std::string& value)
     {
         if( !value.empty() )
             header_attributes.emplace_back(description, value);
     };
 
-    add_non_empty_value(_T("<Write>"), CS2WS(m_pPifFile->GetWriteFName()));
+    add_non_empty_value("<Write>", UTF8_TODO::GetUtf8(m_pPifFile->GetWriteFName()));
 
-    add_non_empty_value(_T("<Impute Freq>"), CS2WS(m_pPifFile->GetImputeFrequenciesFilename()));
+    add_non_empty_value("<Impute Freq>", UTF8_TODO::GetUtf8(m_pPifFile->GetImputeFrequenciesFilename()));
 
     if( m_pPifFile->GetImputeStatConnectionString().IsDefined() )
-        header_attributes.emplace_back(_T("<Impute Stat>"), m_pPifFile->GetImputeStatConnectionString().GetName(DataRepositoryNameType::ForListing));
+        header_attributes.emplace_back("<Impute Stat>", m_pPifFile->GetImputeStatConnectionString().GetName(DataRepositoryNameType::ForListing));
 
-    add_non_empty_value(_T("<Paradata Log>"), CS2WS(m_pPifFile->GetParadataFilename()));
+    add_non_empty_value("<Paradata Log>", UTF8_TODO::GetUtf8(m_pPifFile->GetParadataFilename()));
 
     // add external files
-    for( const LogicFile* logic_file : m_EngineArea.m_engineData->files_global_visibility )
+    for( const LogicFile* const logic_file : m_EngineArea.m_engineData->files_global_visibility )
     {
         if( logic_file->IsUsed() )
         {
-            header_attributes.emplace_back(_T("<File>"),
+            header_attributes.emplace_back("<File>",
                                            logic_file->GetName(),
-                                           CS2WS(m_pPifFile->LookUpUsrDatFile(WS2CS(logic_file->GetName()))));
+                                           UTF8_TODO::GetUtf8(m_pPifFile->LookUpUsrDatFile(UTF8_TODO::GetCString(logic_file->GetName()))));
         }
     }
 
@@ -242,22 +243,16 @@ void CEngineDriver::StopLister()
 
     // write out the listing summary, which will include message summaries
 
-    std::function<double(int)> denominator_calculator = [&](int denominator_symbol_index) -> double
-    {
-        Symbol* symbol = NPT(denominator_symbol_index);
-
-        if( symbol->IsA(SymbolType::WorkVariable) )
+    const std::function<double(int)> denominator_calculator =
+        [&](const int denominator_symbol_index)
         {
-            return assert_cast<WorkVariable*>(symbol)->GetValue();
-        }
+            const Symbol& symbol = NPT_Ref(denominator_symbol_index);
 
-        else
-        {
-            return m_pIntDriver->GetSingVarFloatValue(assert_cast<VART*>(symbol));
-        }
-    };
+            return symbol.IsA(SymbolType::WorkVariable) ? assert_cast<const WorkVariable&>(symbol).GetValue() :
+                                                          m_pIntDriver->GetSingVarFloatValue(assert_cast<const VART*>(&symbol));
+        };
 
-    std::vector<std::vector<MessageSummary>> message_summary_sets =
+    const std::vector<std::vector<MessageSummary>> message_summary_sets =
     {
         m_systemMessageManager->GenerateMessageSummaries(MessageSummary::Type::System, denominator_calculator),
         m_userMessageManager->GenerateMessageSummaries(MessageSummary::Type::UserNumbered, denominator_calculator),

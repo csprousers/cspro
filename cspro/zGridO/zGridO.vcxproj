@@ -12,11 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7179E255-3DE3-45FD-939B-CBD0A7F41761}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCProj</Keyword>
-    <SccAuxPath>SAK</SccAuxPath>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,71 +66,71 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="UGCBTYPE.CPP" />
-    <ClCompile Include="UGCELL.CPP" />
-    <ClCompile Include="UGCELTYP.CPP" />
-    <ClCompile Include="UGCNRBTN.CPP" />
-    <ClCompile Include="UGCTARRW.CPP" />
+    <ClCompile Include="Ugcbtype.cpp" />
+    <ClCompile Include="Ugcell.cpp" />
+    <ClCompile Include="Ugceltyp.cpp" />
+    <ClCompile Include="Ugcnrbtn.cpp" />
+    <ClCompile Include="Ugctarrw.cpp" />
     <ClCompile Include="UGCTbutn.cpp" />
     <ClCompile Include="Ugctelps.cpp" />
-    <ClCompile Include="UGCTRL.CPP" />
+    <ClCompile Include="Ugctrl.cpp" />
     <ClCompile Include="UGCTsarw.cpp" />
-    <ClCompile Include="UGDLTYPE.CPP" />
-    <ClCompile Include="UGDRGDRP.CPP" />
-    <ClCompile Include="UGDRWHNT.CPP" />
-    <ClCompile Include="UGDTASRC.CPP" />
-    <ClCompile Include="UGEDIT.CPP" />
-    <ClCompile Include="UGEXCEL.CPP" />
-    <ClCompile Include="UGFORMAT.CPP" />
-    <ClCompile Include="UGGDINFO.CPP" />
-    <ClCompile Include="UGGRID.CPP" />
-    <ClCompile Include="UGHINT.CPP" />
-    <ClCompile Include="UGHSCROL.CPP" />
-    <ClCompile Include="UGLSTBOX.CPP" />
+    <ClCompile Include="Ugdltype.cpp" />
+    <ClCompile Include="Ugdrgdrp.cpp" />
+    <ClCompile Include="Ugdrwhnt.cpp" />
+    <ClCompile Include="Ugdtasrc.cpp" />
+    <ClCompile Include="Ugedit.cpp" />
+    <ClCompile Include="Ugexcel.cpp" />
+    <ClCompile Include="Ugformat.cpp" />
+    <ClCompile Include="Uggdinfo.cpp" />
+    <ClCompile Include="Uggrid.cpp" />
+    <ClCompile Include="Ughint.cpp" />
+    <ClCompile Include="Ughscrol.cpp" />
+    <ClCompile Include="Uglstbox.cpp" />
     <ClCompile Include="Ugmedit.cpp" />
-    <ClCompile Include="UGMEMMAN.CPP" />
-    <ClCompile Include="UGMULTIS.CPP" />
-    <ClCompile Include="UGPRINT.CPP" />
-    <ClCompile Include="UGPTRLST.CPP" />
-    <ClCompile Include="UGSIDEHD.CPP" />
-    <ClCompile Include="UGTAB.CPP" />
-    <ClCompile Include="UGTOPHDG.CPP" />
-    <ClCompile Include="UGVSCROL.CPP" />
+    <ClCompile Include="Ugmemman.cpp" />
+    <ClCompile Include="Ugmultis.cpp" />
+    <ClCompile Include="Ugprint.cpp" />
+    <ClCompile Include="Ugptrlst.cpp" />
+    <ClCompile Include="Ugsidehd.cpp" />
+    <ClCompile Include="Ugtab.cpp" />
+    <ClCompile Include="Ugtophdg.cpp" />
+    <ClCompile Include="Ugvscrol.cpp" />
     <ClCompile Include="zGridO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="UGCBTYPE.H" />
-    <ClInclude Include="UGCELL.H" />
-    <ClInclude Include="UGCELTYP.H" />
-    <ClInclude Include="UGCNRBTN.H" />
-    <ClInclude Include="UGCTARRW.H" />
+    <ClInclude Include="Ugcbtype.h" />
+    <ClInclude Include="Ugcell.h" />
+    <ClInclude Include="Ugceltyp.h" />
+    <ClInclude Include="Ugcnrbtn.h" />
+    <ClInclude Include="Ugctarrw.h" />
     <ClInclude Include="UGCTbutn.h" />
     <ClInclude Include="Ugctelps.h" />
-    <ClInclude Include="UGCTRL.H" />
+    <ClInclude Include="Ugctrl.h" />
     <ClInclude Include="UGCTsarw.h" />
-    <ClInclude Include="UGDEFINE.H" />
-    <ClInclude Include="UGDLTYPE.H" />
-    <ClInclude Include="UGDRGDRP.H" />
-    <ClInclude Include="UGDRWHNT.H" />
-    <ClInclude Include="UGDTASRC.H" />
-    <ClInclude Include="UGEDIT.H" />
-    <ClInclude Include="UGEXCEL.H" />
-    <ClInclude Include="UGFORMAT.H" />
-    <ClInclude Include="UGGDINFO.H" />
-    <ClInclude Include="UGGRID.H" />
-    <ClInclude Include="UGHINT.H" />
-    <ClInclude Include="UGHSCROL.H" />
-    <ClInclude Include="UGLSTBOX.H" />
+    <ClInclude Include="Ugdefine.h" />
+    <ClInclude Include="Ugdltype.h" />
+    <ClInclude Include="Ugdrgdrp.h" />
+    <ClInclude Include="Ugdrwhnt.h" />
+    <ClInclude Include="Ugdtasrc.h" />
+    <ClInclude Include="Ugedit.h" />
+    <ClInclude Include="Ugexcel.h" />
+    <ClInclude Include="Ugformat.h" />
+    <ClInclude Include="Uggdinfo.h" />
+    <ClInclude Include="Uggrid.h" />
+    <ClInclude Include="Ughint.h" />
+    <ClInclude Include="Ughscrol.h" />
+    <ClInclude Include="Uglstbox.h" />
     <ClInclude Include="Ugmedit.h" />
-    <ClInclude Include="UGMEMMAN.H" />
-    <ClInclude Include="UGMULTIS.H" />
-    <ClInclude Include="UGPRINT.H" />
-    <ClInclude Include="UGPTRLST.H" />
-    <ClInclude Include="UGSIDEHD.H" />
-    <ClInclude Include="UGTAB.H" />
-    <ClInclude Include="UGTOPHDG.H" />
-    <ClInclude Include="UGVSCROL.H" />
+    <ClInclude Include="Ugmemman.h" />
+    <ClInclude Include="Ugmultis.h" />
+    <ClInclude Include="Ugprint.h" />
+    <ClInclude Include="Ugptrlst.h" />
+    <ClInclude Include="Ugsidehd.h" />
+    <ClInclude Include="Ugtab.h" />
+    <ClInclude Include="Ugtophdg.h" />
+    <ClInclude Include="Ugvscrol.h" />
     <ClInclude Include="zGridO.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

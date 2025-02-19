@@ -3,8 +3,8 @@
 #include "CaseConcatenator.h"
 #include "CSConcatReporter.h"
 #include "TextConcatenator.h"
+#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 
@@ -13,26 +13,23 @@ Concatenator::RunSuccess Concatenator::Run(const PFF& pff, const bool silent, st
 {
     //  open the log file
     if( pff.GetListingFName().IsEmpty() )
-        throw CSProException("You must specify a listing filename.");
+        throw CSProException("You must specify a listing file.");
 
-    CStdioFileUnicode log;
+    FileIO::TextFile log;
+    log.OpenForTextWritingCreate(pff.GetListingFName());
 
-    if( !log.Open(pff.GetListingFName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText) )
-    {
-        throw CSProException(_T("There was an error creating the listing file:\n\n%s"),
-                             pff.GetListingFName().GetString());
-    }
-
+    const char* const concatenation_target = ( pff.GetConcatenateMethod() == ConcatenateMethod::Text ) ? "file" :
+                                                                                                         "data source";
     RunSuccess run_success = RunSuccess::Errors;
 
     try
     {
         // check that all of the file associations are properly set
         if( !pff.UsingOutputData() )
-            throw CSProException("You must specify an output filename.");
+            throw CSProException("You must specify an output %s.", concatenation_target);
 
         if( pff.GetInputDataConnectionStrings().empty() )
-            throw CSProException("You must specify at least one file to concatenate.");
+            throw CSProException("You must specify at least one %s to concatenate.", concatenation_target);
 
         // load the dictionary (if necessary)
         if( pff.GetConcatenateMethod() == ConcatenateMethod::Case && dictionary == nullptr )
@@ -45,8 +42,9 @@ Concatenator::RunSuccess Concatenator::Run(const PFF& pff, const bool silent, st
 
 
         // write the header
-        log.WriteFormattedString(_T("Number of files requested to concatenate:  %d\n\n"),
-                                 static_cast<int>(pff.GetInputDataConnectionStrings().size()));
+        log.WriteFormattedLine("Number of %ss requested to concatenate:  %d\n",
+                               concatenation_target,
+                               static_cast<int>(pff.GetInputDataConnectionStrings().size()));
 
 
         // run the concatenation
@@ -62,40 +60,41 @@ Concatenator::RunSuccess Concatenator::Run(const PFF& pff, const bool silent, st
             std::shared_ptr<ProcessSummary> process_summary = ( dictionary != nullptr ) ? dictionary->CreateProcessSummary() :
                                                                                           std::make_shared<ProcessSummary>();
             auto csconcat_reporter = std::make_shared<CSConcatReporter>(process_summary_dlg, process_summary);
-            process_summary_dlg.Initialize(_T("Concatenating Files..."), process_summary);
+
+            process_summary_dlg.Initialize(FormatText("Concatenating %ss...", SO::ToProperCase(concatenation_target).c_str()) ,
+                                           process_summary);
 
             Run(*csconcat_reporter, pff.GetInputDataConnectionStrings(), pff.GetSingleOutputDataConnectionString(), dictionary, csconcat_reporter);
 
             // write the summary information
-            for( const ConnectionString& connection_string : csconcat_reporter->GetSuccessfullyProcessedFiles() )
-                log.WriteFormattedString(_T("  %s\n"), connection_string.GetFilename().c_str());
+            for( const ConnectionString& connection_string : csconcat_reporter->GetSuccessfullyProcessedTargets() )
+                log.WriteLine("  " + connection_string.ToDisplayString());
 
-            log.WriteFormattedString(_T("\nNumber of files concatenated:  %d\n\n"),
-                                     static_cast<int>(csconcat_reporter->GetSuccessfullyProcessedFiles().size()));
+            log.WriteFormattedLine("\nNumber of %ss concatenated:  %d\n",
+                                   concatenation_target,
+                                   static_cast<int>(csconcat_reporter->GetSuccessfullyProcessedTargets().size()));
 
-            log.WriteFormattedString(_T("Output file:\n  %s\n"),
-                                     pff.GetSingleOutputDataConnectionString().GetFilename().c_str());
+            log.WriteFormattedLine("Output %s:\n  %s",
+                                   concatenation_target,
+                                   pff.GetSingleOutputDataConnectionString().ToDisplayString().c_str());
 
             if( csconcat_reporter->GetErrors().empty() )
             {
                 run_success = RunSuccess::Success;
-                log.WriteString(_T("\n\nConcatenation successful.\n"));
+                log.WriteLine("\n\nConcatenation successful.");
             }
 
             else
             {
                 run_success = RunSuccess::SuccessWithErrors;
-                log.WriteString(_T("\n\nConcatenation done with the following errors:\n\n"));
+                log.WriteLine("\n\nConcatenation done with the following errors:\n");
 
                 for( const auto& [key, message] : csconcat_reporter->GetErrors() )
                 {
                     if( key != nullptr )
-                    {
-                        log.WriteFormattedString(_T("*** [%s]\n"),
-                                                 NewlineSubstitutor::NewlineToUnicodeNL(*key).c_str());
-                    }
+                        log.WriteFormattedLine("*** [%s]", NewlineSubstitutor::NewlineToUnicodeNL(*key).c_str());
 
-                    log.WriteFormattedString(_T("*** %s\n\n"), message.c_str());
+                    log.WriteFormattedLine("*** %s\n", message.c_str());
                 }
             }
         });
@@ -110,8 +109,8 @@ Concatenator::RunSuccess Concatenator::Run(const PFF& pff, const bool silent, st
         if( dynamic_cast<const UserCanceledException*>(&exception) != nullptr )
             run_success = RunSuccess::UserCanceled;
 
-        log.WriteFormattedString(_T("*** %s"), exception.GetErrorMessage().c_str());
-        log.WriteString(_T("\n\nConcatenation failed.\n"));
+        log.WriteFormattedString("*** %s", exception.what());
+        log.WriteLine("\n\nConcatenation failed.");
     }
 
     // close the log and potentially view the listing and results

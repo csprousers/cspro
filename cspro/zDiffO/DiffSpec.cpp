@@ -22,12 +22,12 @@ CREATE_ENUM_JSON_SERIALIZER(DiffSpec::DiffOrder,
     { DiffSpec::DiffOrder::Sequential, JV::sequential })
 
 CREATE_ENUM_JSON_SERIALIZER(DiffSpec::ItemDisplay,
-    { DiffSpec::ItemDisplay::Labels, _T("labels") },
-    { DiffSpec::ItemDisplay::Names,  _T("names") })
+    { DiffSpec::ItemDisplay::Labels, "labels" },
+    { DiffSpec::ItemDisplay::Names,  "names" })
 
 CREATE_ENUM_JSON_SERIALIZER(DiffSpec::ItemSerialization,
-    { DiffSpec::ItemSerialization::Included, _T("included") },
-    { DiffSpec::ItemSerialization::Excluded, _T("excluded") })
+    { DiffSpec::ItemSerialization::Included, "included" },
+    { DiffSpec::ItemSerialization::Excluded, "excluded" })
 
 
 
@@ -85,9 +85,9 @@ std::vector<std::tuple<const CDictItem*, std::optional<size_t>>> DiffSpec::GetSo
 }
 
 
-void DiffSpec::Load(const std::wstring& filename, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/)
+void DiffSpec::Load(const InterfaceString file_path, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/)
 {
-    std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(filename, nullptr, [&]() { return ConvertPre80SpecFile(filename); });
+    std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(file_path, nullptr, [&]() { return ConvertPre80SpecFile(file_path); });
 
     try
     {
@@ -99,7 +99,7 @@ void DiffSpec::Load(const std::wstring& filename, const bool silent, std::shared
 
     catch( const CSProException& exception )
     {
-        json_reader->GetMessageLogger().RethrowException(filename, exception);
+        json_reader->GetMessageLogger().RethrowException(file_path, exception);
     }
 
     // report any warnings
@@ -107,7 +107,7 @@ void DiffSpec::Load(const std::wstring& filename, const bool silent, std::shared
 }
 
 
-void DiffSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/,
+void DiffSpec::Load(const JsonNode& json_node, const bool silent, std::shared_ptr<const CDataDict> embedded_dictionary/* = nullptr*/,
                     std::shared_ptr<JsonSpecFile::ReaderMessageLogger> message_logger/* = nullptr*/)
 {
     m_selectedItemsAndOccurrences.clear();
@@ -120,16 +120,16 @@ void DiffSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 
     else
     {
-        const std::wstring dictionary_filename = json_node.GetAbsolutePath(JK::dictionary);
+        const std::string dictionary_file_path = json_node.GetAbsolutePath(JK::dictionary);
 
-        if( WindowsDesktopMessage::Send(UWM::UtilO::GetSharedDictionaryConst, &dictionary_filename, &m_dictionary) == 1 )
+        if( WindowsDesktopMessage::Send(UWM::UtilO::GetSharedDictionaryConst, &dictionary_file_path, &m_dictionary) == 1 )
         {
             ASSERT(m_dictionary != nullptr);
         }
 
         else
         {
-            m_dictionary = CDataDict::InstantiateAndOpen(dictionary_filename, silent, std::move(message_logger));
+            m_dictionary = CDataDict::InstantiateAndOpen(dictionary_file_path, silent, std::move(message_logger));
         }
     }
 
@@ -142,16 +142,16 @@ void DiffSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
     m_itemSerialization = json_node.GetOrDefault(JK::itemSerialization, m_itemSerialization);
 
     // read the items
-    for( const auto& item_node : json_node.GetArrayOrEmpty(JK::items) )
+    for( const JsonNode& item_node : json_node.GetArrayOrEmpty(JK::items) )
     {
-        const std::wstring item_name = item_node.Get<std::wstring>(JK::name);
-        const CDictItem* dict_item = m_dictionary->FindItem(item_name);
+        const std::string item_name = item_node.Get<std::string>(JK::name);
+        const CDictItem* const dict_item = m_dictionary->FindItem(item_name);
 
         // ignore unknown items
         if( dict_item == nullptr )
         {
-            json_node.LogWarning(_T("The item '%s' is not in the dictionary '%s'."),
-                                 item_name.c_str(), m_dictionary->GetName().GetString());
+            json_node.LogWarning("The item '%s' is not in the dictionary '%s'.",
+                                 item_name.c_str(), m_dictionary->GetName().c_str());
             continue;
         }
 
@@ -164,7 +164,7 @@ void DiffSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
             // ignore items with invalid occurrences
             if( !occurrence.has_value() || *occurrence > dict_item->GetItemSubitemOccurs() )
             {
-                json_node.LogWarning(_T("The item '%s' is missing an occurrence number."), item_name.c_str());
+                json_node.LogWarning("The item '%s' is missing an occurrence number.", item_name.c_str());
                 continue;
             }
 
@@ -181,13 +181,13 @@ void DiffSpec::Load(const JsonNode<wchar_t>& json_node, const bool silent, std::
 }
 
 
-void DiffSpec::Save(const std::wstring& filename) const
+void DiffSpec::Save(const InterfaceString file_path) const
 {
     ASSERT(m_dictionary != nullptr);
 
-    std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(filename, JV::compare);
+    const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(file_path, JV::compare);
 
-    json_writer->WriteRelativePath(JK::dictionary, CS2WS(m_dictionary->GetFullFileName()));
+    json_writer->WriteRelativePath(JK::dictionary, m_dictionary->GetFilePath());
 
     json_writer->BeginObject(JK::comparison)
                 .Write(JK::method, m_diffMethod)
@@ -238,7 +238,7 @@ void DiffSpec::SetItemSelection(const std::tuple<const CDictItem*, std::optional
                 m_selectedItemsAndOccurrences.erase(itr);
 
             return;
-        }            
+        }
     }
 
     // if a new entry, add it to the end (the list will be sorted in dictionary order before saving)
@@ -247,14 +247,14 @@ void DiffSpec::SetItemSelection(const std::tuple<const CDictItem*, std::optional
 }
 
 
-std::wstring DiffSpec::ConvertPre80SpecFile(const std::wstring& filename)
+std::string DiffSpec::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
 
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the Compare Data specification file: %s"), filename.c_str());
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the Compare Data specification file: %s", file_path.c_str_utf8());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -269,7 +269,7 @@ std::wstring DiffSpec::ConvertPre80SpecFile(const std::wstring& filename)
         auto read_header = [&](const TCHAR* header)
         {
             if( !specfile.IsHeaderOK(header) )
-                throw CSProException(_T("The heading or section '%s' was missing"), header);
+                throw CSProException("The heading or section '%s' was missing", UTF8_TODO::GetUtf8(header).c_str());
         };
 
         auto read_line = [&](const TCHAR* command_required = nullptr, const bool allow_end_of_file = false)
@@ -284,7 +284,7 @@ std::wstring DiffSpec::ConvertPre80SpecFile(const std::wstring& filename)
 
             else if( command_required != nullptr && command.CompareNoCase(command_required) != 0 )
             {
-                throw CSProException(_T("The command '%s' was not found"), command_required);
+                throw CSProException("The command '%s' was not found", UTF8_TODO::GetUtf8(command_required).c_str());
             }
 
             return true;
@@ -311,7 +311,7 @@ std::wstring DiffSpec::ConvertPre80SpecFile(const std::wstring& filename)
         read_header(_T("[CSDiff]"));
 
         // read the version number (ignoring errors)
-        specfile.IsVersionOK(CSPRO_VERSION);
+        specfile.IsVersionOK(Versioning::CSProVersionText);
 
 
         // get the dictionary filename
@@ -370,11 +370,11 @@ std::wstring DiffSpec::ConvertPre80SpecFile(const std::wstring& filename)
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the Compare Data specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the Compare Data specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
     }
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }

@@ -11,7 +11,7 @@ namespace
 {
     SelcaseQueryType ReadSelcaseQueryType(LogicCompiler& logic_compiler)
     {
-        switch( logic_compiler.NextKeywordOrError({ _T("all"), _T("marked"), _T("unmarked") }) )
+        switch( logic_compiler.NextKeywordOrError({ "all", "marked", "unmarked" }) )
         {
             case 1: return SelcaseQueryType::All;
             case 2: return SelcaseQueryType::Marked;
@@ -380,7 +380,7 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
     {
         if( function_code == FNWRITECASE_CODE )
         {
-            NextKeywordOrError({ _T("NOINDEX") });
+            NextKeywordOrError({ "NOINDEX" });
 
             needs_index = false;
 
@@ -402,7 +402,7 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
 
     // process each argument
     std::vector<int> key_arguments;
-    std::wstring key_argument_types;
+    std::string key_argument_types;
     bool key_length_can_be_calculated = true;
 
     while( Tkn != TOKRPAREN )
@@ -430,15 +430,15 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
             break;
         }
 
-        std::optional<std::tuple<TCHAR, int>> argument_type_and_length;
+        std::optional<std::tuple<char, size_t>> argument_type_and_wide_length;
 
         // give priority to reading dictionary items as their settings can be checked against the case IDs;
         // the check against DictionaryRelatedSymbol ensures that this is not an expression like MY_ALPHA_VAR[1:18]
         if( IsCurrentTokenVART(*this) )
         {
-            VART* pVarT = VPT(Tokstindex);
-            TCHAR argument_type = pVarT->IsAlpha() ? ' ' : ( pVarT->GetZeroFill() ? 'Z' : '9' );
-            argument_type_and_length.emplace(argument_type, pVarT->GetLength());
+            VART* const pVarT = VPT(Tokstindex);
+            const char argument_type = pVarT->IsAlpha() ? ' ' : ( pVarT->GetZeroFill() ? 'Z' : '9' );
+            argument_type_and_wide_length.emplace(argument_type, pVarT->GetLength());
             key_arguments.emplace_back(varsanal_COMPILER_DLL_TODO(pVarT->GetFmt()));
         }
 
@@ -449,20 +449,20 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
                 const WorkString& work_string = GetSymbolWorkString(Tokstindex);
 
                 if( work_string.GetSubType() == SymbolSubType::WorkAlpha )
-                    argument_type_and_length.emplace(' ', assert_cast<const WorkAlpha&>(work_string).GetLength());
+                    argument_type_and_wide_length.emplace(' ', assert_cast<const WorkAlpha&>(work_string).GetWideLength());
             }
 
             else if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
             {
-                argument_type_and_length.emplace(' ', Tokstr.length());
+                argument_type_and_wide_length.emplace(' ', SO::WideLength(Tokstr));
             }
 
             key_arguments.emplace_back(-1 * CompileStringExpression());
         }
 
-        if( argument_type_and_length.has_value() )
+        if( argument_type_and_wide_length.has_value() )
         {
-            key_argument_types.append(SO::GetRepeatingCharacterString(std::get<0>(*argument_type_and_length), std::get<1>(*argument_type_and_length)));
+            key_argument_types.append(SO::GetRepeatingCharacterString(std::get<0>(*argument_type_and_wide_length), std::get<1>(*argument_type_and_wide_length)));
         }
 
         else
@@ -483,9 +483,9 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
         const CDataDict& dictionary = engine_dictionary.GetDictionary();
 
         if( function_code == FunctionCode::FNWRITECASE_CODE )
-            IssueError(MGF::deprecation_writecase_with_ids_95011, dictionary.GetName().GetString());
+            IssueError(MGF::deprecation_writecase_with_ids_95011, dictionary.GetName().c_str());
 
-        size_t key_length = dictionary.GetKeyLength();
+        const size_t key_length = dictionary.GetKeyLength();
 
         if( ( key_argument_types.length() > key_length ) ||
             ( key_length_can_be_calculated && key_argument_types.length() != key_length ) )
@@ -496,26 +496,26 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
         if( key_length_can_be_calculated )
         {
             const CDictRecord* pIdRec = dictionary.GetLevel(0).GetIdItemsRec();
-            const TCHAR* key_argument_type = key_argument_types.c_str();
+            const char* key_argument_type = key_argument_types.c_str();
             bool keep_processing = true;
 
             for( int i = 0; keep_processing && i < pIdRec->GetNumItems(); ++i )
             {
-                const CDictItem* dict_item = pIdRec->GetItem(i);
-                TCHAR argument_type = ( dict_item->GetContentType() == ContentType::Alpha ) ? ' ' :
-                                      ( dict_item->GetZeroFill() )                          ? 'Z' :
-                                                                                              '9';
+                const CDictItem& dict_item = *pIdRec->GetItem(i);
+                const char argument_type = ( dict_item.GetContentType() == ContentType::Alpha ) ? ' ' :
+                                           ( dict_item.GetZeroFill() )                          ? 'Z' :
+                                                                                                  '9';
 
-                for( UINT j = 0; keep_processing && j < dict_item->GetLen(); ++j )
+                for( UINT j = 0; keep_processing && j < dict_item.GetLen(); ++j )
                 {
-                    bool key_is_zero_filled_dictionary_is_not = ( *key_argument_type == 'Z' && argument_type == '9' );
+                    const bool key_is_zero_filled_dictionary_is_not = ( *key_argument_type == 'Z' && argument_type == '9' );
 
                     if( key_is_zero_filled_dictionary_is_not || ( *key_argument_type == '9' && argument_type == 'Z' ) )
                     {
                         IssueWarning(MGF::dictionary_specified_key_zero_fill_mismatch_548,
                                      static_cast<int>(key_argument_type - key_argument_types.c_str() + 1),
-                                     key_is_zero_filled_dictionary_is_not ? _T("") : _T("not "),
-                                     dict_item->GetName().GetString());
+                                     key_is_zero_filled_dictionary_is_not ? "" : "not ",
+                                     dict_item.GetName().c_str());
 
                         keep_processing = false;
                     }
@@ -536,11 +536,11 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO()
 }
 
 
-int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_code)
+int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(const FunctionCode function_code)
 {
     ASSERT(Tkn == TOKDICT_PRE80);
 
-    DICT* pDicT = DPT(Tokstindex);
+    DICT* const pDicT = DPT(Tokstindex);
     VerifyDictionary(pDicT, VerifyDictionaryFlag::External_OneLevel);
 
     if( function_code != FNLOADCASE_CODE )
@@ -554,7 +554,7 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
     {
         if( function_code == FNWRITECASE_CODE )
         {
-            NextKeywordOrError({ _T("NOINDEX") });
+            NextKeywordOrError({ "NOINDEX" });
 
             needs_index = false;
 
@@ -574,8 +574,8 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
     VerifyDictionary(pDicT, needs_index ? VerifyDictionaryFlag::NeedsIndex : VerifyDictionaryFlag::CannotHaveIndex);
 
     // process each argument
-    std::vector<int> arguments;
-    std::wstring key_argument_types;
+    std::vector<int> key_arguments;
+    std::string key_argument_types;
     bool key_length_can_be_calculated = true;
 
     while( Tkn != TOKRPAREN )
@@ -585,16 +585,16 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
         NextTokenHelperResult next_token_helper_result = CheckNextTokenHelper();
         NextToken();
 
-        std::optional<std::tuple<TCHAR, int>> argument_type_and_length;
+        std::optional<std::tuple<char, size_t>> argument_type_and_wide_length;
 
         // give priority to reading dictionary items as their settings can be checked against the case IDs;
         // the check against DictionaryRelatedSymbol ensures that this is not an expression like MY_ALPHA_VAR[1:18]
         if( IsCurrentTokenVART(*this) )
         {
-            VART* pVarT = VPT(Tokstindex);
-            TCHAR argument_type = pVarT->IsAlpha() ? ' ' : ( pVarT->GetZeroFill() ? 'Z' : '9' );
-            argument_type_and_length.emplace(argument_type, pVarT->GetLength());
-            arguments.emplace_back(varsanal_COMPILER_DLL_TODO(pVarT->GetFmt()));
+            VART* const pVarT = VPT(Tokstindex);
+            const char argument_type = pVarT->IsAlpha() ? ' ' : ( pVarT->GetZeroFill() ? 'Z' : '9' );
+            argument_type_and_wide_length.emplace(argument_type, pVarT->GetLength());
+            key_arguments.emplace_back(varsanal_COMPILER_DLL_TODO(pVarT->GetFmt()));
         }
 
         else
@@ -604,20 +604,20 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
                 const WorkString& work_string = GetSymbolWorkString(Tokstindex);
 
                 if( work_string.GetSubType() == SymbolSubType::WorkAlpha )
-                    argument_type_and_length.emplace(' ', assert_cast<const WorkAlpha&>(work_string).GetLength());
+                    argument_type_and_wide_length.emplace(' ', assert_cast<const WorkAlpha&>(work_string).GetWideLength());
             }
 
             else if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
             {
-                argument_type_and_length.emplace(' ', Tokstr.length());
+                argument_type_and_wide_length.emplace(' ', SO::WideLength(Tokstr));
             }
 
-            arguments.emplace_back(-1 * CompileStringExpression());
+            key_arguments.emplace_back(-1 * CompileStringExpression());
         }
 
-        if( argument_type_and_length.has_value() )
+        if( argument_type_and_wide_length.has_value() )
         {
-            key_argument_types.append(SO::GetRepeatingCharacterString(std::get<0>(*argument_type_and_length), std::get<1>(*argument_type_and_length)));
+            key_argument_types.append(SO::GetRepeatingCharacterString(std::get<0>(*argument_type_and_wide_length), std::get<1>(*argument_type_and_wide_length)));
         }
 
         else
@@ -626,12 +626,12 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
         }
     }
 
-    if( !arguments.empty() )
+    if( !key_arguments.empty() )
     {
         if( function_code == FunctionCode::FNWRITECASE_CODE )
             IssueError(MGF::deprecation_writecase_with_ids_95011, pDicT->GetName().c_str());
 
-        size_t key_length = pDicT->GetLevelsIdLen();
+        const size_t key_length = pDicT->GetLevelsIdLen();
 
         if( ( key_argument_types.length() > key_length ) ||
             ( key_length_can_be_calculated && key_argument_types.length() != key_length ) )
@@ -642,26 +642,26 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
         if( key_length_can_be_calculated )
         {
             const CDictRecord* pIdRec = pDicT->GetDataDict()->GetLevel(0).GetIdItemsRec();
-            const TCHAR* key_argument_type = key_argument_types.c_str();
+            const char* key_argument_type = key_argument_types.c_str();
             bool keep_processing = true;
 
             for( int i = 0; keep_processing && i < pIdRec->GetNumItems(); ++i )
             {
-                const CDictItem* dict_item = pIdRec->GetItem(i);
-                TCHAR argument_type = ( dict_item->GetContentType() == ContentType::Alpha ) ? ' ' :
-                                      ( dict_item->GetZeroFill() )                          ? 'Z' :
-                                                                                              '9';
+                const CDictItem& dict_item = *pIdRec->GetItem(i);
+                const char argument_type = ( dict_item.GetContentType() == ContentType::Alpha ) ? ' ' :
+                                           ( dict_item.GetZeroFill() )                          ? 'Z' :
+                                                                                                  '9';
 
-                for( UINT j = 0; keep_processing && j < dict_item->GetLen(); ++j )
+                for( UINT j = 0; keep_processing && j < dict_item.GetLen(); ++j )
                 {
-                    bool key_is_zero_filled_dictionary_is_not = ( *key_argument_type == 'Z' && argument_type == '9' );
+                    const bool key_is_zero_filled_dictionary_is_not = ( *key_argument_type == 'Z' && argument_type == '9' );
 
                     if( key_is_zero_filled_dictionary_is_not || ( *key_argument_type == '9' && argument_type == 'Z' ) )
                     {
                         IssueWarning(MGF::dictionary_specified_key_zero_fill_mismatch_548,
                                      static_cast<int>(key_argument_type - key_argument_types.c_str() + 1),
-                                     key_is_zero_filled_dictionary_is_not ? _T("") : _T("not "),
-                                     dict_item->GetName().GetString());
+                                     key_is_zero_filled_dictionary_is_not ? "" : "not ",
+                                     dict_item.GetName().c_str());
 
                         keep_processing = false;
                     }
@@ -676,13 +676,13 @@ int LogicCompiler::CompileDictionaryFunctionsCaseIO_pre80(FunctionCode function_
 
     NextToken();
 
-    arguments.insert(arguments.begin(), pDicT->GetSymbolIndex());
+    key_arguments.insert(key_arguments.begin(), pDicT->GetSymbolIndex());
 
-    return CreateVariableArgumentsWithSizeNode(function_code, arguments);
+    return CreateVariableArgumentsWithSizeNode(function_code, key_arguments);
 }
 
 
-int LogicCompiler::CompileForDictionaryLoop(TokenCode token_code)
+int LogicCompiler::CompileForDictionaryLoop(const TokenCode token_code)
 {
     // forcase DICT_NAME [where condition] do
     // for DICT_NAME [(query_type)] do
@@ -897,7 +897,7 @@ int LogicCompiler::CompileSetAccessFirstLast(SetAction set_action)
 }
 
 
-int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, int* starts_with_expression/* = nullptr*/)
+int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, int* const starts_with_expression/* = nullptr*/)
 {
     bool allow_starts_with = ( starts_with_expression != nullptr );
 
@@ -910,7 +910,7 @@ int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, 
 
     do
     {
-        if( allow_starts_with && NextKeyword({ _T("startswith") }) == 1 )
+        if( allow_starts_with && NextKeyword({ "startswith" }) == 1 )
         {
             if( starts_with.has_value() )
                 IssueError(MGF::option_defined_more_than_once_7017);
@@ -924,9 +924,9 @@ int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, 
 
         else
         {
-            size_t keyword_type = NextKeywordOrError({ _T("OrderType"), _T("Order"), _T("CaseStatus") });
+            const size_t keyword_type = NextKeywordOrError({ "OrderType", "Order", "CaseStatus" });
 
-            auto read_next_keyword = [&](auto& value, const std::vector<const TCHAR*>& keywords)
+            auto read_next_keyword = [&](auto& value, const std::initializer_list<const char*> keywords)
             {
                 // can't define the same type more than once
                 if( value.has_value() )
@@ -940,17 +940,17 @@ int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, 
 
             if( keyword_type == 1 )
             {
-                read_next_keyword(iteration_method, { _T("Indexed"), _T("Sequential") });
+                read_next_keyword(iteration_method, { "Indexed", "Sequential" });
             }
 
             else if( keyword_type == 2 )
             {
-                read_next_keyword(iteration_order, { _T("Ascending"), _T("Descending") });
+                read_next_keyword(iteration_order, { "Ascending", "Descending" });
             }
 
             else
             {
-                read_next_keyword(iteration_status, { _T("All"), _T("NotDeleted"), _T("Partial"), _T("Duplicate") });
+                read_next_keyword(iteration_status, { "All", "NotDeleted", "Partial", "Duplicate" });
 
                 if( *iteration_status == CaseIterationCaseStatus::PartialsOnly )
                     engine_dictionary.GetCaseAccess()->SetUsesStatuses();
@@ -980,7 +980,7 @@ int LogicCompiler::CompileDictionaryAccess(EngineDictionary& engine_dictionary, 
 }
 
 
-int LogicCompiler::CompileDictionaryAccess(DICT* pDicT, int* starts_with_expression/* = nullptr*/)
+int LogicCompiler::CompileDictionaryAccess(DICT* pDicT, int* const starts_with_expression/* = nullptr*/)
 {
     bool allow_starts_with = ( starts_with_expression != nullptr );
 
@@ -991,7 +991,7 @@ int LogicCompiler::CompileDictionaryAccess(DICT* pDicT, int* starts_with_express
 
     do
     {
-        if( allow_starts_with && NextKeyword({ _T("startswith") }) == 1 )
+        if( allow_starts_with && NextKeyword({ "startswith" }) == 1 )
         {
             if( starts_with.has_value() )
                 IssueError(MGF::option_defined_more_than_once_7017);
@@ -1005,9 +1005,9 @@ int LogicCompiler::CompileDictionaryAccess(DICT* pDicT, int* starts_with_express
 
         else
         {
-            size_t keyword_type = NextKeywordOrError({ _T("OrderType"), _T("Order"), _T("CaseStatus") });
+            const size_t keyword_type = NextKeywordOrError({ "OrderType", "Order", "CaseStatus" });
 
-            auto read_next_keyword = [&](auto& value, const std::vector<const TCHAR*>& keywords)
+            auto read_next_keyword = [&](auto& value, const std::initializer_list<const char*> keywords)
             {
                 // can't define the same type more than once
                 if( value.has_value() )
@@ -1021,17 +1021,17 @@ int LogicCompiler::CompileDictionaryAccess(DICT* pDicT, int* starts_with_express
 
             if( keyword_type == 1 )
             {
-                read_next_keyword(iteration_method, { _T("Indexed"), _T("Sequential") });
+                read_next_keyword(iteration_method, { "Indexed", "Sequential" });
             }
 
             else if( keyword_type == 2 )
             {
-                read_next_keyword(iteration_order, { _T("Ascending"), _T("Descending") });
+                read_next_keyword(iteration_order, { "Ascending", "Descending" });
             }
 
             else
             {
-                read_next_keyword(iteration_status, { _T("All"), _T("NotDeleted"), _T("Partial"), _T("Duplicate") });
+                read_next_keyword(iteration_status, { "All", "NotDeleted", "Partial", "Duplicate" });
 
                 if( *iteration_status == CaseIterationCaseStatus::PartialsOnly )
                     pDicT->GetCaseAccess()->SetUsesStatuses();
@@ -1072,7 +1072,10 @@ void LogicCompiler::VerifyDictionaryObject(const EngineDictionary* engine_dictio
     }
 
     if( !engine_dictionary->IsDictionaryObject() )
-        IssueError(MGF::dictionary_expected_not_Case_or_DataSource_name_47302, engine_dictionary->GetDictionary().GetName().GetString());
+    {
+        IssueError(MGF::dictionary_expected_not_Case_or_DataSource_name_47302,
+                   engine_dictionary->GetDictionary().GetName().c_str());
+    }
 }
 
 
@@ -1087,11 +1090,14 @@ void LogicCompiler::VerifyEngineCase(const EngineDictionary* engine_dictionary/*
     }
 
     if( !engine_dictionary->HasEngineCase() )
-        IssueError(MGF::dictionary_or_Case_not_DataSource_expected_47304, engine_dictionary->GetName().c_str());
+    {
+        IssueError(MGF::dictionary_or_Case_not_DataSource_expected_47304,
+                   engine_dictionary->GetDictionary().GetName().c_str());
+    }
 }
 
 
-void LogicCompiler::VerifyEngineDataRepository(EngineDictionary* engine_dictionary/* = nullptr*/, int flags/* = 0*/)
+void LogicCompiler::VerifyEngineDataRepository(EngineDictionary* engine_dictionary/* = nullptr*/, const int flags/* = 0*/)
 {
     if( engine_dictionary == nullptr )
     {
@@ -1156,12 +1162,12 @@ void LogicCompiler::VerifyEngineDataRepositoryWithEngineCase(const EngineDiction
         IssueError(MGF::dictionary_Case_dictionary_does_not_match_47307,
                    case_engine_dictionary.GetName().c_str(),
                    data_repository_engine_dictionary.GetName().c_str(),
-                   data_repository_engine_dictionary.GetDictionary().GetName().GetString());
+                   data_repository_engine_dictionary.GetDictionary().GetName().c_str());
     }
 }
 
 
-void LogicCompiler::VerifyDictionary(DICT* pDicT, int iFlags)
+void LogicCompiler::VerifyDictionary(DICT* const pDicT, const int iFlags)
 {
     if( iFlags & VerifyDictionaryFlag::External )
     {

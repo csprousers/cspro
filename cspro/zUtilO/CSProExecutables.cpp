@@ -8,23 +8,17 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #endif
 
 
-const std::wstring& CSProExecutables::GetApplicationDirectory()
+const std::string& CSProExecutables::GetApplicationDirectory()
 {
 #ifdef WIN_DESKTOP
-    static const std::wstring cached_application_directory = []()
+    static const std::string cached_application_directory = []()
     {
-        std::wstring application_directory(MAX_PATH + 1, '\0'); // + 1 to add the path character
-        TCHAR* pf = application_directory.data();
+        wchar_t application_directory[MAX_PATH];
 
-        GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), pf, MAX_PATH);
-        PathRemoveFileSpec(pf);
+        GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), application_directory, MAX_PATH);
+        PathRemoveFileSpec(application_directory);
 
-        const size_t path_len = _tcslen(pf);
-        pf[path_len] = PATH_CHAR;
-
-        application_directory.resize(path_len + 1);
-
-        return application_directory;
+        return PortableFunctions::PathEnsureTrailingSlash(TC::ToUtf8(application_directory));
     }();
 
     return cached_application_directory;
@@ -35,7 +29,7 @@ const std::wstring& CSProExecutables::GetApplicationDirectory()
 }
 
 
-const std::wstring& CSProExecutables::GetApplicationOrAssetsDirectory()
+const std::string& CSProExecutables::GetApplicationOrAssetsDirectory()
 {
 #ifdef WIN_DESKTOP
     return CSProExecutables::GetApplicationDirectory();
@@ -47,101 +41,97 @@ const std::wstring& CSProExecutables::GetApplicationOrAssetsDirectory()
 
 #ifdef WIN_DESKTOP
 
-const std::wstring& CSProExecutables::GetModuleFilename()
+const std::string& CSProExecutables::GetModuleFilePath()
 {
-    auto get_module_filename = []()
-    {
-        auto exe_name = std::make_unique_for_overwrite<TCHAR[]>(_MAX_PATH);
+    static const std::string module_file_path =
+        []()
+        {
+            wchar_t exe_name[MAX_PATH];
 
-        if( AfxGetApp() != nullptr && GetModuleFileName(AfxGetApp()->m_hInstance, exe_name.get(), _MAX_PATH) )
-            return std::wstring(exe_name.get());
+            // the second call, with null, works for the C# programs
+            if( ( AfxGetApp() != nullptr && GetModuleFileName(AfxGetApp()->m_hInstance, exe_name, MAX_PATH) ) ||
+                ( GetModuleFileName(nullptr, exe_name, MAX_PATH) ) )
+            {
+                return TC::ToUtf8(exe_name);
+            }
 
-        return std::wstring();
-    };
+            return std::string();
+        }();
 
-    static const std::wstring module_filename = get_module_filename();
-    return module_filename;
+    return module_file_path;
 }
 
 
-const std::wstring& CSProExecutables::GetModuleDirectory()
+const std::string& CSProExecutables::GetModuleDirectory()
 {
-    auto get_module_directory = []()
-    {
-        std::wstring module_filename = GetModuleFilename();
-
-        if( module_filename.empty() )
+    static const std::string module_directory =
+        []()
         {
-            // this code was used prior to GetModuleFilename existing
-            const std::wstring& (&this_function)() = GetModuleDirectory;
-            HMODULE hm = nullptr;
+            std::string module_file_path = GetModuleFilePath();
 
-            module_filename.resize(_MAX_PATH);
+            if( module_file_path.empty() )
+            {
+                // this code was used prior to GetModuleFilePath existing
+                const std::string& (&this_function)() = GetModuleDirectory;
+                HMODULE hm = nullptr;
 
-            if( GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCTSTR>(this_function), &hm) )
-                GetModuleFileName(hm, module_filename.data(), _MAX_PATH);
-        }
+                wchar_t exe_name[MAX_PATH];
 
-        ASSERT(!module_filename.empty());
-        return PortableFunctions::PathGetDirectory(module_filename);
-    };
+                if( GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCTSTR>(this_function), &hm) )
+                {
+                    if( GetModuleFileName(hm, exe_name, MAX_PATH) )
+                        module_file_path = TC::ToUtf8(exe_name);
+                }
+            }
 
-    static const std::wstring module_directory = get_module_directory();
+            ASSERT(!module_file_path.empty());
+            return PortableFunctions::PathGetDirectory(module_file_path);
+        }();
+
     return module_directory;
 }
 
 
-std::wstring CSProExecutables::GetSolutionDirectory()
+int64_t CSProExecutables::GetModuleModifiedTime()
 {
-    std::wstring module_directory = GetModuleDirectory();
-
-    // search directories, moving up to the root, to find the solution file
-    while( PortableFunctions::FileIsDirectory(module_directory) )
-    {
-        const std::wstring solution_filename = PortableFunctions::PathAppendToPath(module_directory, _T("cspro.sln"));
-
-        if( PortableFunctions::FileIsRegular(solution_filename) )
-            return module_directory;
-
-        module_directory = PortableFunctions::PathGetDirectory(PortableFunctions::PathRemoveTrailingSlash(module_directory));
-    }
-
-    throw CSProException("Could not find the CSPro solution file.");
+    return PortableFunctions::FileModifiedTime(GetModuleFilePath());
 }
 
+#endif // WIN_DESKTOP
 
-const TCHAR* CSProExecutables::GetExecutableName(const CSProExecutables::Program program)
+
+const char* CSProExecutables::GetExecutableName(const CSProExecutables::Program program)
 {
-    constexpr const TCHAR* ExecutableNames[] =
+    constexpr const char* ExecutableNames[] =
     {
-        _T("CSBatch.exe"),
-        _T("CSCode.exe"),
-        _T("CSConcat.exe"),
-        _T("CSDeploy.exe"),
-        _T("CSDiff.exe"),
-        _T("CSDocument.exe"),
-        _T("CSEntry.exe"),
-        _T("CSExport.exe"),
-        _T("CSFreq.exe"),
-        _T("CSIndex.exe"),
-        _T("CSPack.exe"),
-        _T("CSPro.exe"),
-        _T("CSReFmt.exe"),
-        _T("CSSort.exe"),
-        _T("CSTab.exe"),
-        _T("CSView.exe"),
-        _T("DataViewer.exe"),
-        _T("Excel2CSPro.exe"),
-        _T("Operator Statistics Viewer.exe"),
-        _T("ParadataConcat.exe"),
-        _T("ParadataViewer.exe"),
-        _T("PFF Editor.exe"),
-        _T("CSProProductionRunner.exe"),
-        _T("RunPff.exe"),
-        _T("Save Array Viewer.exe"),
-        _T("TblView.exe"),
-        _T("TextConverter.exe"),
-        _T("TextView.exe"),
+        "CSBatch.exe",
+        "CSCode.exe",
+        "CSConcat.exe",
+        "CSDeploy.exe",
+        "CSDiff.exe",
+        "CSDocument.exe",
+        "CSEntry.exe",
+        "CSExport.exe",
+        "CSFreq.exe",
+        "CSIndex.exe",
+        "CSPack.exe",
+        "CSPro.exe",
+        "CSReFmt.exe",
+        "CSSort.exe",
+        "CSTab.exe",
+        "CSView.exe",
+        "DataManager.exe",
+        "Excel2CSPro.exe",
+        "Operator Statistics Viewer.exe",
+        "ParadataConcat.exe",
+        "ParadataViewer.exe",
+        "PFF Editor.exe",
+        "CSProProductionRunner.exe",
+        "RunPff.exe",
+        "Save Array Viewer.exe",
+        "TblView.exe",
+        "TextConverter.exe",
+        "TextView.exe",
     };
 
     static_assert(_countof(ExecutableNames) == ( static_cast<size_t>(CSProExecutables::Program::TextView) + 1 ));
@@ -150,57 +140,78 @@ const TCHAR* CSProExecutables::GetExecutableName(const CSProExecutables::Program
 }
 
 
-std::optional<std::wstring> CSProExecutables::GetExecutablePath(const CSProExecutables::Program program)
+#ifdef WIN_DESKTOP
+
+std::optional<std::string> CSProExecutables::GetExecutablePath(const CSProExecutables::Program program)
 {
-    const std::wstring& module_directory = GetModuleDirectory();
+    const std::string& module_directory = GetModuleDirectory();
 
     if( !module_directory.empty() )
     {
-        std::wstring module_filename = PortableFunctions::PathAppendToPath(module_directory, GetExecutableName(program));
+        std::string module_file_path = Path::Combine(module_directory, GetExecutableName(program));
 
-        if( PortableFunctions::FileIsRegular(module_filename) )
-            return module_filename;
+        if( PortableFunctions::FileIsRegular(module_file_path) )
+            return module_file_path;
     }
 
     return std::nullopt;
 }
 
 
-std::optional<std::wstring> CSProExecutables::GetExecutableHelpPath(const CSProExecutables::Program program)
+std::optional<std::string> CSProExecutables::GetExecutableHelpPath(const CSProExecutables::Program program)
 {
-    std::optional<std::wstring> module_filename = GetExecutablePath(program);
+    const std::optional<std::string> module_file_path = GetExecutablePath(program);
 
-    if( module_filename.has_value() )
+    if( module_file_path.has_value() )
     {
-        std::wstring help_filename = PortableFunctions::PathRemoveFileExtension(*module_filename) + FileExtensions::WithDot::CHM;
+        std::string help_file_path = PortableFunctions::PathReplaceFileExtension(*module_file_path, FileExtensions::CHM);
 
-        if( PortableFunctions::FileIsRegular(help_filename) )
-            return help_filename;
+        if( PortableFunctions::FileIsRegular(help_file_path) )
+            return help_file_path;
     }
 
     return std::nullopt;
 }
 
 
-void CSProExecutables::RunProgram(const CSProExecutables::Program program, const TCHAR* const argument/* = nullptr*/)
+void CSProExecutables::RunProgram(const CSProExecutables::Program program, const wchar_t* const argument/* = nullptr*/,
+                                  const bool throw_exception_on_error/* = false*/)
 {
-    const std::optional<std::wstring> module_filename = GetExecutablePath(program);
-
-    if( module_filename.has_value() )
+    try
     {
-        ShellExecute(nullptr, nullptr, module_filename->c_str(), argument, nullptr, SW_SHOW);
+        const std::optional<std::wstring> module_file_path = UTF8_TODO::GetOptionalWide(GetExecutablePath(program));
+
+        if( !module_file_path.has_value() )
+        {
+            throw CSProException("The CSPro program '%s' could not be found. Your CSPro installation may not be complete.",
+                                 GetExecutableName(program));
+        }
+
+        ShellExecute(nullptr, nullptr, module_file_path->c_str(), argument, nullptr, SW_SHOW);
     }
 
-    else
+    catch( const CSProException& exception )
     {
-        ErrorMessage::Display(FormatText(_T("The CSPro program '%s' could not be found"), GetExecutableName(program)));
+        if( throw_exception_on_error )
+            throw exception;
+
+        ErrorMessage::Display(exception);
     }
 }
 
 
-void CSProExecutables::RunProgramOpeningFile(const CSProExecutables::Program program, const std::wstring& filename)
+void CSProExecutables::RunProgramOpeningFile(const CSProExecutables::Program program, std::wstring file_path,
+                                             const bool throw_exception_on_error/* = false*/)
 {
-    RunProgram(program, FormatText(_T("\"%s\""), filename.c_str()));
+    RunProgram(program, EscapeCommandLineArgument(std::move(file_path)).c_str(), throw_exception_on_error);
 }
+
+
+void CSProExecutables::RunProgramOpeningFile(const CSProExecutables::Program program, std::string file_path,
+                                             const bool throw_exception_on_error/* = false*/)
+{
+    RunProgram(program, TC::ToWide(EscapeCommandLineArgument(std::move(file_path))).c_str(), throw_exception_on_error);
+}
+
 
 #endif // WIN_DESKTOP

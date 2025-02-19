@@ -410,7 +410,7 @@ CIMSAString CTableGridExporterHTML::HeadersToString(const CDWordArray& aHeaders)
     CIMSAString sHeaderString;
     for (int i = 0; i < aHeaders.GetCount(); ++i) {
         sHeaderString += _T("r");
-        sHeaderString += IntToString((int)aHeaders.GetAt(i));
+        sHeaderString += UTF8_TODO::GetCString(IntToString((int)aHeaders.GetAt(i)));
         if (i < aHeaders.GetCount() - 1) {
             sHeaderString += _T(" ");
         }
@@ -423,9 +423,9 @@ CIMSAString CTableGridExporterHTML::HeadersToString(const CArray<CJoinRegion>& a
     CIMSAString sHeaderString;
     for (int i = 0; i < aHeaders.GetCount(); ++i) {
         sHeaderString += _T("c");
-        sHeaderString += IntToString(static_cast<int>(aHeaders.GetAt(i).iStartRow));
+        sHeaderString += UTF8_TODO::GetCString(IntToString(static_cast<int>(aHeaders.GetAt(i).iStartRow)));
         sHeaderString += _T(".");
-        sHeaderString += IntToString(aHeaders.GetAt(i).iStartCol);
+        sHeaderString += UTF8_TODO::GetCString(IntToString(aHeaders.GetAt(i).iStartCol));
         if (i < aHeaders.GetCount() - 1) {
             sHeaderString += _T(" ");
         }
@@ -502,11 +502,11 @@ void CTableGridExporterHTML::WriteCell(_tostream& os,
 
     // add headers
     const CIMSAString sColHeaderString(HeadersToString(aColHeaders));
-    if (!SO::IsBlank(m_sRowHeaderString) || !SO::IsBlank(sColHeaderString)) {
+    if (!SO::IsBlank(wstring_view(m_sRowHeaderString)) || !SO::IsBlank(wstring_view(sColHeaderString))) {
         os << (LPCTSTR) _T("headers=\"");
-        if (!SO::IsBlank(sColHeaderString)) {
+        if (!SO::IsBlank(wstring_view(sColHeaderString))) {
             os << (LPCTSTR) sColHeaderString;
-            if (!SO::IsBlank(m_sRowHeaderString)) {
+            if (!SO::IsBlank(wstring_view(m_sRowHeaderString))) {
                 os << (LPCTSTR) _T(" ");
             }
         }

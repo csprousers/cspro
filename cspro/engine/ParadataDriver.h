@@ -1,19 +1,14 @@
 ﻿#pragma once
 
-#include <zParadataO/IParadataDriver.h>
+#include <engine/DEFLD.H>
 #include <zParadataO/NamedObject.h>
+#include <zParadataO/ParadataDriver.h>
 
 class CDataDict;
 class CEngineArea;
 class CIntDriver;
-
-namespace Paradata
-{
-    class Event;
-    class FieldInfo;
-    class FieldValueInfo;
-    class FieldValidationInfo;
-};
+class ItemIndex;
+namespace Paradata { class Event; class FieldInfo; class FieldValueInfo; class FieldValidationInfo; }
 
 
 enum class ParadataEngineEvent
@@ -27,47 +22,47 @@ enum class ParadataEngineEvent
 };
 
 
-class ParadataDriver : public Paradata::IParadataDriver
+class EngineParadataDriver : public Paradata::ParadataDriver
 {
 public:
-    ParadataDriver(CIntDriver* pIntDriver);
+    EngineParadataDriver(CIntDriver& interpreter);
 
     void ClearCachedObjects();
 
     bool GetRecordIteratorLoadCases() const override;
 
     std::shared_ptr<Paradata::NamedObject> CreateObject(const Symbol& symbol);
-    std::shared_ptr<Paradata::NamedObject> CreateObject(Paradata::NamedObject::Type type, wstring_view name) override;
+    std::shared_ptr<Paradata::NamedObject> CreateObject(Paradata::NamedObject::Type type, std::string_view name_sv) override;
 
-    std::shared_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const CNDIndexes& theIndex);
-    std::shared_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const double* pdIndices);
-    std::shared_ptr<Paradata::FieldInfo> CreateFieldInfo(const DEFLD3* pDeFld);
-    std::shared_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const ItemIndex& item_index);
+    std::unique_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const CNDIndexes& theIndex);
+    std::unique_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const double* pdIndices);
+    std::unique_ptr<Paradata::FieldInfo> CreateFieldInfo(const DEFLD3* pDeFld);
+    std::unique_ptr<Paradata::FieldInfo> CreateFieldInfo(const VART* pVarT, const ItemIndex& item_index);
 
-    std::shared_ptr<Paradata::FieldValueInfo> CreateFieldValueInfo(const VART* pVarT, const CNDIndexes& theIndex);
-    std::shared_ptr<Paradata::FieldValidationInfo> CreateFieldValidationInfo(const VART* pVarT);
+    std::unique_ptr<Paradata::FieldValueInfo> CreateFieldValueInfo(const VART* pVarT, const CNDIndexes& theIndex);
+    std::unique_ptr<Paradata::FieldValidationInfo> CreateFieldValidationInfo(const VART* pVarT);
 
     std::unique_ptr<Paradata::MessageEvent> CreateMessageEvent(std::variant<MessageType, FunctionCode> message_type_or_function_code,
-                                                               int message_number, std::wstring message_text) override;
+                                                               int message_number, SharableString message_text) override;
 
-    void RegisterAndLogEvent(std::shared_ptr<Paradata::Event> event, void* instance_object = nullptr) override;
+    void RegisterAndLogEvent(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
 
     void LogEngineEvent(ParadataEngineEvent engine_event);
 
     void LogProperties();
 
-    void ProcessCachedEvents(const std::vector<CString>& event_strings);
+    void ProcessCachedEvents(const std::vector<std::string>& event_strings);
 
 private:
     const Logic::SymbolTable& GetSymbolTable() const;
 
-    std::shared_ptr<Paradata::NamedObject> CreateObjectWorker(const Symbol& symbol);
+    std::unique_ptr<Paradata::NamedObject> CreateObjectWorker(const Symbol& symbol);
     std::shared_ptr<Paradata::NamedObject> GetPrimaryFlowObject();
 
 private:
-    CIntDriver* m_pIntDriver;
-    CEngineArea* m_pEngineArea;
-    CEngineDriver* m_pEngineDriver;
+    CIntDriver* const m_pIntDriver;
+    CEngineArea* const m_pEngineArea;
+    CEngineDriver* const m_pEngineDriver;
 
     std::vector<std::shared_ptr<Paradata::NamedObject>> m_cachedSymbolObjects;
     std::vector<std::shared_ptr<Paradata::NamedObject>> m_cachedNonSymbolObjects;

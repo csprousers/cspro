@@ -3,8 +3,8 @@
 #include <zToolsO/PortableFunctions.h>
 
 
-TemporaryFile::TemporaryFile(std::wstring path, bool delete_on_destruction)
-    :   m_path(std::move(path)),
+TemporaryFile::TemporaryFile(std::string file_path, const bool delete_on_destruction)
+    :   m_filePath(std::move(file_path)),
         m_deleteOnDestruction(delete_on_destruction)
 {
 }
@@ -16,21 +16,21 @@ TemporaryFile::TemporaryFile()
 }
 
 
-TemporaryFile::TemporaryFile(NullTerminatedString directory)
-    :   TemporaryFile(CS2WS(PortableFunctions::FileTempName(directory)), true)
+TemporaryFile::TemporaryFile(const std::string& directory_path)
+    :   TemporaryFile(PortableFunctions::FileTempPath(directory_path), true)
 {
 }
 
 
-TemporaryFile TemporaryFile::FromPath(std::wstring path)
+TemporaryFile TemporaryFile::FromPath(std::string file_path)
 {
-    ASSERT(!PortableFunctions::FileExists(path) && PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(path)));
-    return TemporaryFile(std::move(path), true);
+    ASSERT(!PortableFunctions::FileExists(file_path) && PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)));
+    return TemporaryFile(std::move(file_path), true);
 }
 
 
 TemporaryFile::TemporaryFile(TemporaryFile&& rhs) noexcept
-    :   m_path(std::move(rhs.m_path)),
+    :   m_filePath(std::move(rhs.m_filePath)),
         m_deleteOnDestruction(rhs.m_deleteOnDestruction)
 {
     rhs.m_deleteOnDestruction = false;
@@ -40,7 +40,7 @@ TemporaryFile::TemporaryFile(TemporaryFile&& rhs) noexcept
 TemporaryFile::~TemporaryFile()
 {
     if( m_deleteOnDestruction )
-        PortableFunctions::FileDelete(m_path);
+        PortableFunctions::FileDelete(m_filePath);
 }
 
 
@@ -48,7 +48,7 @@ TemporaryFile& TemporaryFile::operator=(TemporaryFile&& rhs) noexcept
 {
     if( this != &rhs )
     {
-        std::swap(m_path, rhs.m_path);
+        std::swap(m_filePath, rhs.m_filePath);
         std::swap(m_deleteOnDestruction, rhs.m_deleteOnDestruction);
     }
 
@@ -56,41 +56,53 @@ TemporaryFile& TemporaryFile::operator=(TemporaryFile&& rhs) noexcept
 }
 
 
-bool TemporaryFile::Rename(std::wstring new_path)
+void TemporaryFile::Rename(std::string new_file_path)
 {
-    if( !PortableFunctions::FileRename(m_path, new_path) )
-        return false;
+    PortableFunctions::FileRenameWithExceptions(m_filePath, new_file_path);
 
-    m_path = std::move(new_path);
+    m_filePath = std::move(new_file_path);
     m_deleteOnDestruction = false;
-
-    return true;
 }
 
 
-void TemporaryFile::RegisterFileForDeletion(std::wstring filename)
+bool TemporaryFile::Rename_noexcept(std::string new_file_path)
+{
+    try
+    {
+        Rename(std::move(new_file_path));
+        return true;
+    }
+
+    catch(...)
+    {
+        return false;
+    }
+}
+
+
+void TemporaryFile::RegisterFileForDeletion(std::string file_path)
 {
     struct FileForDeletionRegistry
     {
+        std::set<std::string> file_paths;
+
         ~FileForDeletionRegistry()
         {
-            for( const std::wstring& filename : filenames )
+            for( const std::string& file_path : file_paths )
             {
-                if( !PortableFunctions::FileDelete(filename) )
+                if( !PortableFunctions::FileDelete(file_path) )
                 {
 #ifdef WIN32
                     // if the file cannot be deleted but it does exist, it may be read-only,
                     // so toggle that attribute and try to delete the file again
-                    if( SetFileAttributes(filename.c_str(), FILE_ATTRIBUTE_NORMAL) != 0 )
-                        PortableFunctions::FileDelete(filename);
+                    if( SetFileAttributes(TC::ToWide(file_path).c_str(), FILE_ATTRIBUTE_NORMAL) != 0 )
+                        PortableFunctions::FileDelete(file_path);
 #endif
                 }
             }
         }
-
-        std::set<std::wstring> filenames;
     };
 
     static FileForDeletionRegistry registry;
-    registry.filenames.insert(std::move(filename));
+    registry.file_paths.insert(std::move(file_path));
 }

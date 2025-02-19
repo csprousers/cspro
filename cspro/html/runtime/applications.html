@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Application Listing - CSPro Runtime</title>
+
+    <script src="runtime.js"></script>
+</head>
+
+<body>
+
+    <h1>Application Listing</h1>
+
+    <div id="applications"></div>
+
+    <script>
+        let CSRT;
+
+        CSProRT.getWindow().addEventListener("message", event => {
+            try {
+                const message = JSON.parse(event.data);
+
+                if( message.action == "CSProRT.activate" ) {
+                    CSRT = new CSProRT(message.data.accessToken);
+
+                    CSRT.postMessageForResult("getApplications")
+                    .then(result => {
+                        updateApplicationListing(result.applications);
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    });
+                }
+            }
+            catch(e) {
+                console.log(e);
+            }
+        });
+
+        function updateApplicationListing(applications) {
+            const applicationsDiv = document.getElementById("applications");
+
+            // RT_TODO filter based on application.showInApplicationListing ?
+
+            if( applications.length == 0 ) {
+                applicationsDiv.replaceChildren(document.createTextNode("No Applications")); // RT_TODO get text from MGF? should the other values on the page also reflect that? should there be an option to change languages from this screen
+                return;
+            }
+
+            const ul = document.createElement("ul");
+
+            // RT_TODO sort the listing?
+            applications.forEach(application => {
+                const li = document.createElement("li");
+
+                const a = document.createElement("a");
+                a.setAttribute("href", "#");
+                a.onclick = function() {
+                    CSRT.postMessage("runApplication", {
+                        path: application.path
+                    });
+                    return false;
+                }
+
+                const img = document.createElement("img");
+                img.setAttribute("src", ( application.iconUrl !== undefined ) ? application.iconUrl : "/images/pff-icon.png");
+
+                a.appendChild(img);
+
+                a.appendChild(document.createTextNode(application.description));
+
+                li.appendChild(a);
+                ul.appendChild(li);
+            });
+
+            applicationsDiv.replaceChildren(ul);
+        }
+    </script>
+
+</body>
+
+</html>

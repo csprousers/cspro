@@ -16,7 +16,7 @@ size_t CaseItemIndex::GetItemSubitemOccurrence(const CaseItem& case_item) const
 }
 
 
-void CaseItemIndex::SetItemSubitemOccurrence(const CaseItem& case_item, size_t item_subitem_occurrence)
+void CaseItemIndex::SetItemSubitemOccurrence(const CaseItem& case_item, const size_t item_subitem_occurrence)
 {
     SetItemSubitemOccurrenceWorker(case_item.GetItemIndexHelper().HasSubitemOccurrences(), item_subitem_occurrence);
 }
@@ -56,68 +56,63 @@ bool CaseItemIndex::IsValid(const CaseItem& case_item) const
 }
 
 
-CString CaseItemIndex::GetFullOccurrencesText(const CaseItem& case_item) const
+std::string CaseItemIndex::GetFullOccurrencesText(const CaseItem& case_item) const
 {
     return case_item.GetItemIndexHelper().GetFullOccurrencesText(*this);
 }
 
 
-CString CaseItemIndex::GetMinimalOccurrencesText(const CaseItem& case_item) const
+std::string CaseItemIndex::GetMinimalOccurrencesText(const CaseItem& case_item) const
 {
     return case_item.GetItemIndexHelper().GetMinimalOccurrencesText(*this);
 }
 
 
-bool CaseItemIndex::SetOccurrencesFromText(const CaseItem& case_item, const TCHAR* occurrences_text)
+bool CaseItemIndex::SetOccurrencesFromText(const CaseItem& case_item, const std::string_view occurrences_text_sv)
 {
-    return case_item.GetItemIndexHelper().SetOccurrencesFromText(*this, occurrences_text);
+    return case_item.GetItemIndexHelper().SetOccurrencesFromText(*this, occurrences_text_sv);
 }
 
 
-std::wstring CaseItemIndex::GetSerializableText(const CaseItem& case_item) const
+std::string CaseItemIndex::GetSerializableText(const CaseItem& case_item) const
 {
     // the string is a representation of the item name, the occurrences, and the level key
-    return FormatTextCS2WS(_T("%s%s%s"), case_item.GetDictionaryItem().GetName().GetString(),
-                                         GetFullOccurrencesText(case_item).GetString(),
-                                         m_caseRecord.GetCaseLevel().GetLevelKey().GetString());
+    return SO::Concatenate(case_item.GetDictItem().GetName(),
+                           GetFullOccurrencesText(case_item),
+                           UTF8_TODO::GetUtf8(m_caseRecord.GetCaseLevel().GetLevelKey()));
 }
 
 
-std::tuple<const CaseItem*, std::unique_ptr<CaseItemIndex>> CaseItemIndex::FromSerializableText(const Case& data_case, wstring_view serializable_text_sv)
+std::tuple<const CaseItem*, std::unique_ptr<CaseItemIndex>> CaseItemIndex::FromSerializableText(const Case& data_case, const std::string_view serializable_text_sv)
 {
-    const size_t left_parenthesis = serializable_text_sv.find('(');
+    const auto [left_parenthesis_pos, right_parenthesis_pos] = SO::FindCharacters(serializable_text_sv, '(', ')');
 
-    if( left_parenthesis != wstring_view::npos )
+    if( right_parenthesis_pos != std::string_view::npos )
     {
-        const size_t right_parenthesis = serializable_text_sv.find(')', left_parenthesis + 1);
+        // find the case item, which comes before the left parenthesis
+        const std::string_view item_name_sv = serializable_text_sv.substr(0, left_parenthesis_pos);
+        const CaseItem* const case_item = data_case.GetCaseMetadata().FindCaseItem(item_name_sv);
 
-        if( right_parenthesis != wstring_view::npos )
+        if( case_item != nullptr )
         {
-            // find the case item, which comes before the left parenthesis
-            const wstring_view item_name_sv = serializable_text_sv.substr(0, left_parenthesis);
-            const CaseItem* case_item = data_case.GetCaseMetadata().FindCaseItem(item_name_sv);
+            const CaseRecordMetadata* const case_record_metadata = data_case.GetCaseMetadata().FindCaseRecordMetadata(case_item->GetDictItem().GetRecord()->GetName());
+            ASSERT(case_record_metadata != nullptr);
 
-            if( case_item != nullptr )
+            // find the matching case level
+            const std::string_view level_key_sv = serializable_text_sv.substr(right_parenthesis_pos + 1);
+
+            for( const CaseLevel* const case_level : data_case.GetAllCaseLevels() )
             {
-                const CaseRecordMetadata* case_record_metadata = data_case.GetCaseMetadata().FindCaseRecordMetadata(case_item->GetDictionaryItem().GetRecord()->GetName());
-                ASSERT(case_record_metadata != nullptr);
-                
-                // find the matching case level
-                const wstring_view level_key_sv = serializable_text_sv.substr(right_parenthesis + 1);
-
-                for( const CaseLevel* case_level : data_case.GetAllCaseLevels() )
+                if( UTF8_TODO::GetUtf8(case_level->GetLevelKey()) == level_key_sv )
                 {
-                    if( SO::Equals(level_key_sv, case_level->GetLevelKey()) )
-                    {
-                        const CaseRecord& case_record = case_level->GetCaseRecord(case_record_metadata->GetRecordIndex());
+                    const CaseRecord& case_record = case_level->GetCaseRecord(case_record_metadata->GetRecordIndex());
 
-                        // create the index and return it if it is valid
-                        auto index = std::unique_ptr<CaseItemIndex>(new CaseItemIndex(case_record, 0));
-                        wstring_view occurrences_text_sv = serializable_text_sv.substr(left_parenthesis, right_parenthesis - left_parenthesis + 1);
+                    // create the index and return it if it is valid
+                    std::unique_ptr<CaseItemIndex> index(new CaseItemIndex(case_record, 0));
+                    const std::string_view occurrences_text_sv = serializable_text_sv.substr(left_parenthesis_pos, right_parenthesis_pos - left_parenthesis_pos + 1);
 
-                        if( index->SetOccurrencesFromText(*case_item, CString(occurrences_text_sv)) )
-                            return std::make_tuple(case_item, std::move(index));
-                    }
+                    if( index->SetOccurrencesFromText(*case_item, occurrences_text_sv) )
+                        return std::make_tuple(case_item, std::move(index));
                 }
             }
         }

@@ -113,7 +113,7 @@ void CEngineCompFunc::CompileRelation()
         int relation_type = 0;
         int relation_expression = 1;
 
-        switch( NextKeyword({ _T("PARALLEL"), _T("LINKED"), _T("WHERE") }) )
+        switch( NextKeyword({ "PARALLEL", "LINKED", "WHERE" }) )
         {
             case 0:
             {
@@ -172,7 +172,7 @@ bool CEngineCompFunc::CompileDeclarations()
     {
         try
         {
-            if( Tkn == TOKCONFIG || Tkn == TOKPERSISTENT )
+            if( Tkn == TOKCONFIG || Tkn == TOKDECLARE || Tkn == TOKPERSISTENT )
             {
                 CompileSymbolWithModifiers();
             }
@@ -185,11 +185,6 @@ bool CEngineCompFunc::CompileDeclarations()
             else if( Tkn == TOKENSURE )
             {
                 CompileEnsure();
-            }
-
-            else if( Tkn == TOKKWFUNCTION )
-            {
-                CompileUserFunction();
             }
 
             else if( Tkn == TOKKWRELATION )
@@ -261,7 +256,7 @@ bool CEngineCompFunc::CompileDeclarations()
 
 void CEngineCompFunc::CompileSetDeclarations()
 {
-    size_t set_type = NextKeyword({ _T("EXPLICIT"), _T("IMPLICIT"), _T("TRACE"), _T("ARRAY"), _T("IMPUTE") });
+    const size_t set_type = NextKeyword({ "EXPLICIT", "IMPLICIT", "TRACE", "ARRAY", "IMPUTE" });
 
     // invalid option
     if( set_type == 0 )
@@ -306,29 +301,30 @@ void CEngineCompFunc::CompileDictRelations()
 {
     clearSyntaxErrorStatus();
 
-    for( const DICT* pDicT : m_engineData->dictionaries_pre80 )
+    for( const DICT* const pDicT : m_engineData->dictionaries_pre80 )
     {
         if( pDicT->GetSubType() == SymbolSubType::Work )
             continue;
 
-        const CDataDict* dictionary = pDicT->GetDataDict();
+        const CDataDict* const dictionary = pDicT->GetDataDict();
 
         for( const DictRelation& dict_relation : dictionary->GetRelations() )
         {
-            std::wstring relation_code = dict_relation.GenerateCode(pDicT->GetName());
-            SetSourceBuffer(std::make_shared<Logic::SourceBuffer>(std::move(relation_code)));
-
-            CString csExtraMsg = FormatText(_T(" (check relation '%s' declared in the dictionary)"), dict_relation.GetName().GetString());
+            std::string relation_code = dict_relation.GenerateCode(pDicT->GetName());
+            SetSourceBuffer(std::make_unique<Logic::SourceBuffer>(std::move(relation_code)));
 
             try
             {
                 if( rutasync(Appl.GetSymbolIndex()) )
-                    ReportError(GetSyntErr(), csExtraMsg.GetString());
+                {
+                    const std::string message = FormatText(" (check relation '%s' declared in the dictionary)", dict_relation.GetName().c_str());
+                    ReportError(GetSyntErr(), message.c_str());
+                }
             }
             catch(...) { ASSERT(false); }
 
             ClearSourceBuffer();
-            
+
             if( GetSyntErr() != 0 || ( m_pEngineDriver->GetCompilerErrorLister() != nullptr && m_pEngineDriver->GetCompilerErrorLister()->HasErrors() ) )
             {
                 incrementErrors();

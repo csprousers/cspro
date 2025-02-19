@@ -19,7 +19,7 @@ namespace
 }
 
 
-PathAdjusterDlg::PathAdjusterDlg(int lexer_language, std::wstring initial_path, CWnd* pParent/* = nullptr*/)
+PathAdjusterDlg::PathAdjusterDlg(const int lexer_language, std::string initial_path, CWnd* pParent/* = nullptr*/)
     :   CDialog(PathAdjusterDlg::IDD, pParent),
         m_logicStringEscaper(Lexers::IsNotV0(lexer_language)),
         m_csproLexerLanguage(lexer_language),
@@ -36,7 +36,7 @@ PathAdjusterDlg::PathAdjusterDlg(int lexer_language, std::wstring initial_path, 
 }
 
 
-void PathAdjusterDlg::DoDataExchange(CDataExchange* pDX)
+void PathAdjusterDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -51,11 +51,11 @@ BOOL PathAdjusterDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    m_relativePathHWnd= GetDlgItem(IDC_RELATIVE_PATH)->GetSafeHwnd();
+    m_relativePathHWnd = GetDlgItem(IDC_RELATIVE_PATH)->GetSafeHwnd();
     m_useForwardSlashesHWnd = GetDlgItem(IDC_USE_FORWARD_SLASHES)->GetSafeHwnd();
 
     // set up the logic controls, overriding the font size and zoom, and turning off the horizontal scrollbar
-    for( CLogicCtrl* logic_ctrl : { &m_pathLogicCtrl, &m_relativePathLogicCtrl } )
+    for( CLogicCtrl* const logic_ctrl : { &m_pathLogicCtrl, &m_relativePathLogicCtrl } )
     {
         logic_ctrl->ReplaceCEdit(this, false, false, m_csproLexerLanguage);
 
@@ -66,8 +66,8 @@ BOOL PathAdjusterDlg::OnInitDialog()
     };
 
     // set the initial values
-    WindowsWS::SetWindowText(m_pathEdit, m_path);
-    WindowsWS::SetWindowText(m_relativeToEdit, PortableFunctions::PathGetDirectory(m_path));
+    WindowsUtf8::SetText(m_pathEdit, m_path);
+    WindowsUtf8::SetText(m_relativeToEdit, PortableFunctions::PathGetDirectory(m_path));
     Button_SetCheck(m_useForwardSlashesHWnd, m_useForwardSlashes ? BST_CHECKED : BST_UNCHECKED);
 
     m_initialized = true;
@@ -77,9 +77,10 @@ BOOL PathAdjusterDlg::OnInitDialog()
 }
 
 
-std::wstring PathAdjusterDlg::AdjustPathSlashes(std::wstring path) const
+std::string PathAdjusterDlg::AdjustPathSlashes(std::string path) const
 {
-    return m_useForwardSlashes ? PortableFunctions::PathToForwardSlash(std::move(path)) : path;
+    return m_useForwardSlashes ? PortableFunctions::PathToForwardSlash(std::move(path)) :
+                                 path;
 }
 
 
@@ -88,30 +89,32 @@ void PathAdjusterDlg::UpdatePaths()
     if( !m_initialized )
         return;
 
-    auto get_cspro_logic = [&](std::wstring path)
+    auto get_cspro_logic = [&](std::string path)
     {
-        return !path.empty() ? m_logicStringEscaper.EscapeString(AdjustPathSlashes(std::move(path))) :
-                               std::wstring();
+        if( !path.empty() )
+            return m_logicStringEscaper.EscapeString(AdjustPathSlashes(std::move(path)));
+
+        return path;
     };
 
     m_pathLogicCtrl.SetReadOnlyText(get_cspro_logic(m_path));
 
-    std::wstring relative_path;
+    std::string relative_path;
 
     if( !m_relativeToFilename.empty() )
     {
         ASSERT80(m_relativeToFilename == PortableFunctions::PathToNativeSlash(m_relativeToFilename));
-        relative_path = AdjustPathSlashes(GetRelativeFNameForDisplay(m_relativeToFilename, PortableFunctions::PathToNativeSlash(m_path)));
+        relative_path = AdjustPathSlashes(GetRelativePathForDisplay(m_relativeToFilename, PortableFunctions::PathToNativeSlash(m_path)));
     }
-                                                            
-    WindowsWS::SetWindowText(m_relativePathHWnd, relative_path);
+
+    WindowsUtf8::SetText(m_relativePathHWnd, relative_path);
     m_relativePathLogicCtrl.SetReadOnlyText(get_cspro_logic(std::move(relative_path)));
 }
 
 
 void PathAdjusterDlg::OnPathChange()
 {
-    m_path = WindowsWS::GetWindowText(m_pathEdit);
+    m_path = WindowsUtf8::GetText(m_pathEdit);
 
     UpdatePaths();
 }
@@ -119,15 +122,15 @@ void PathAdjusterDlg::OnPathChange()
 
 void PathAdjusterDlg::OnRelativeToChange()
 {
-    m_relativeToFilename = PortableFunctions::PathToNativeSlash(WindowsWS::GetWindowText(m_relativeToEdit));
+    m_relativeToFilename = PortableFunctions::PathToNativeSlash(WindowsUtf8::GetText(m_relativeToEdit));
     SO::MakeTrim(m_relativeToFilename);
 
     // if this is a directory, create a fake filename in the directory, as that is needed for GetRelativeFNameForDisplay
     if( !m_relativeToFilename.empty() &&
-        ( PortableFunctions::IsPathCharacter(m_relativeToFilename.back()) || PortableFunctions::FileIsDirectory(m_relativeToFilename) ) )
+        ( Path::IsSlashChar(m_relativeToFilename.back()) || PortableFunctions::FileIsDirectory(m_relativeToFilename) ) )
     {
-        m_relativeToFilename = PortableFunctions::PathAppendToPath(m_relativeToFilename, _T("g"));        
-    }  
+        m_relativeToFilename = Path::Combine(m_relativeToFilename, "g");
+    }
 
     UpdatePaths();
 }
@@ -142,24 +145,24 @@ void PathAdjusterDlg::OnUseForwardSlahes()
 }
 
 
-void PathAdjusterDlg::OnPathSelect(UINT nID)
+void PathAdjusterDlg::OnPathSelect(const UINT nID)
 {
     auto [current_path, hWnd] = ( nID == IDC_PATH_SELECT ) ? std::make_tuple(m_path, m_pathEdit.m_hWnd) :
-                                                             std::make_tuple(WindowsWS::GetWindowText(m_relativeToEdit), m_relativeToEdit.m_hWnd);
+                                                             std::make_tuple(WindowsUtf8::GetText(m_relativeToEdit), m_relativeToEdit.m_hWnd);
 
-    std::optional<std::wstring> new_path = SelectFileOrFolderDialog(m_hWnd, _T("Select a File or Folder"),
-                                                                    PortableFunctions::FileExists(current_path) ? current_path.c_str() : nullptr);
+    std::optional<std::string> new_path = SelectFileOrFolderDialog(m_hWnd, "Select a File or Folder",
+                                                                   PortableFunctions::FileExists(current_path) ? current_path : SO::Empty_string);
 
     if( new_path.has_value() )
-        WindowsWS::SetWindowText(hWnd, AdjustPathSlashes(*new_path));
+        WindowsUtf8::SetText(hWnd, AdjustPathSlashes(std::move(*new_path)));
 }
 
 
-void PathAdjusterDlg::OnCopy(UINT nID)
+void PathAdjusterDlg::OnCopy(const UINT nID)
 {
-    std::wstring text = ( nID == IDC_PATH_LOGIC_COPY )           ? m_pathLogicCtrl.GetText() : 
-                        ( nID == IDC_RELATIVE_PATH_COPY )        ? WindowsWS::GetWindowText(m_relativePathHWnd) : 
-                      /*( nID == IDC_RELATIVE_PATH_LOGIC_COPY )*/  m_relativePathLogicCtrl.GetText();
+    const std::string text = ( nID == IDC_PATH_LOGIC_COPY )           ? m_pathLogicCtrl.GetText() :
+                             ( nID == IDC_RELATIVE_PATH_COPY )        ? WindowsUtf8::GetText(m_relativePathHWnd) :
+                           /*( nID == IDC_RELATIVE_PATH_LOGIC_COPY )*/  m_relativePathLogicCtrl.GetText();
 
     WinClipboard::PutText(this, text);
 }

@@ -2,63 +2,75 @@
 
 #include <zAction/ActionInvoker.h>
 
+namespace ActionInvoker { class JsonResponse; }
 
-namespace ActionInvoker
+
+class ActionInvoker::JsonResponse
 {
-    class JsonResponse
-    {
-    public:
-        JsonResponse(const Result& result);
-        JsonResponse(const CSProException& exception);
+public:
+    JsonResponse(const Result& result);
+    JsonResponse(const CSProException& exception);
 
-        const std::wstring& GetResponseText() const                       { return *m_responseText; }
-        std::shared_ptr<const std::wstring> GetSharedResponseText() const { return m_responseText; }
+    SharableString GetResponseText() const { return m_responseText; }
 
-        template<bool parse_json_text_for_type>
-        static const TCHAR* GetResultTypeText(const Result& result);
+    template<bool parse_json_text_for_type>
+    static const char* GetResultTypeText(const Result& result);
 
-        static std::wstring GetExceptionText(const CSProException& exception);
+private:
+    static SharableString CreateResponseText(const Result& result);
+    static constexpr const char* GetResultTypeText(Result::Type result_type);
 
-    private:
-        static constexpr const TCHAR* GetResultTypeText(Result::Type result_type);
+    static std::string GetExceptionJson(const CSProException& exception);
 
-    private:
-        std::shared_ptr<std::wstring> m_responseText;
-    };
-}
+private:
+    SharableString m_responseText;
+};
 
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
 
 inline ActionInvoker::JsonResponse::JsonResponse(const Result& result)
+    :   m_responseText(CreateResponseText(result))
 {
-    switch( result.GetType() )
-    {
-        case Result::Type::JsonText:
-            m_responseText = std::make_shared<std::wstring>(std::wstring(_T("{\"type\":\"json\",\"value\":")) +
-                                                            result.GetStringResult() +
-                                                            _T("}"));
-            break;
-
-        case Result::Type::Undefined:
-            m_responseText = std::make_shared<std::wstring>(_T("{\"type\":\"undefined\"}"));
-            break;
-
-        default:
-            ASSERT(result.GetType() == Result::Type::Bool ||
-                   result.GetType() == Result::Type::Number ||
-                   result.GetType() == Result::Type::String);
-
-            m_responseText = std::make_shared<std::wstring>(FormatTextCS2WS(_T("{\"type\":\"%s\",\"value\":"), GetResultTypeText(result.GetType())) +
-                                                            result.GetResultAsJsonText<false>() +
-                                                            _T("}"));
-            break;
-    }
-
     AssertValidJson(*m_responseText);
 }
 
 
+inline SharableString ActionInvoker::JsonResponse::CreateResponseText(const Result& result)
+{
+    if( result.GetType() == Result::Type::JsonText )
+    {
+        return SO::Concatenate("{\"type\":\"json\",\"value\":",
+                               result.GetStringResult().GetString(),
+                               "}");
+    }
+
+    else if( result.GetType() == Result::Type::Undefined )
+    {
+        const std::string_view UndefinedResponse_sv = "{\"type\":\"undefined\"}";
+        return UndefinedResponse_sv;
+    }
+
+    else
+    {
+        ASSERT(result.GetType() == Result::Type::Bool ||
+               result.GetType() == Result::Type::Number ||
+               result.GetType() == Result::Type::String);
+
+        return SO::Concatenate("{\"type\":\"",
+                               GetResultTypeText(result.GetType()),
+                               "\",\"value\":",
+                               result.GetResultAsJsonText<false>().GetString(),
+                               "}");
+    }
+}
+
+
 template<bool parse_json_text_for_type>
-const TCHAR* ActionInvoker::JsonResponse::GetResultTypeText(const Result& result)
+const char* ActionInvoker::JsonResponse::GetResultTypeText(const Result& result)
 {
     if constexpr(parse_json_text_for_type)
     {
@@ -66,15 +78,15 @@ const TCHAR* ActionInvoker::JsonResponse::GetResultTypeText(const Result& result
         {
             try
             {
-                const JsonNode<wchar_t> json_node = Json::Parse(result.GetResultAsString<false>());
+                const JsonNode json_node = Json::Parse(result.GetResultAsString<false>().GetString());
 
                 // listed in order of likely occurrence
-                return json_node.IsObject()  ? _T("object") :
-                       json_node.IsArray()   ? _T("array") :
+                return json_node.IsObject()  ? "object" :
+                       json_node.IsArray()   ? "array" :
                        json_node.IsString()  ? GetResultTypeText(Result::Type::String) :
                        json_node.IsNumber()  ? GetResultTypeText(Result::Type::Number) :
                        json_node.IsBoolean() ? GetResultTypeText(Result::Type::Bool) :
-                       json_node.IsNull()    ? _T("null") :
+                       json_node.IsNull()    ? "null" :
                                                ReturnProgrammingError(GetResultTypeText(Result::Type::Undefined));
             }
             catch(...) { ASSERT(false); }
@@ -85,9 +97,9 @@ const TCHAR* ActionInvoker::JsonResponse::GetResultTypeText(const Result& result
 }
 
 
-inline constexpr const TCHAR* ActionInvoker::JsonResponse::GetResultTypeText(const Result::Type result_type)
+inline constexpr const char* ActionInvoker::JsonResponse::GetResultTypeText(const Result::Type result_type)
 {
-    constexpr const TCHAR* ResultTypes[] = { _T("undefined"), _T("boolean"), _T("number"), _T("string"), _T("json") };
+    constexpr const char* ResultTypes[] = { "undefined", "boolean", "number", "string", "json" };
 
     ASSERT(static_cast<size_t>(result_type) < _countof(ResultTypes));
     ASSERT(static_cast<size_t>(Result::Type::JsonText) == ( _countof(ResultTypes) - 1 ));
@@ -97,19 +109,31 @@ inline constexpr const TCHAR* ActionInvoker::JsonResponse::GetResultTypeText(con
 
 
 inline ActionInvoker::JsonResponse::JsonResponse(const CSProException& exception)
+    :   m_responseText(SO::Concatenate("{\"type\":\"exception\",\"value\":", GetExceptionJson(exception), "}"))
 {
-    m_responseText = std::make_shared<std::wstring>(
-        std::wstring(_T("{\"type\":\"exception\",\"value\":")) + Encoders::ToJsonString(GetExceptionText(exception)) + _T("}")
-    );
-
     AssertValidJson(*m_responseText);
 }
 
 
-inline std::wstring ActionInvoker::JsonResponse::GetExceptionText(const CSProException& exception)
+inline std::string ActionInvoker::JsonResponse::GetExceptionJson(const CSProException& exception)
 {
-    const ExceptionWithActionName* exception_with_action_name = dynamic_cast<const ExceptionWithActionName*>(&exception);
+    const ActionInvoker::Exception* const action_invoker_exception = dynamic_cast<const ActionInvoker::Exception*>(&exception);
 
-    return ( exception_with_action_name != nullptr ) ? exception_with_action_name->GetErrorMessageWithActionName() :
-                                                       ExceptionWithActionName::GetErrorMessageFromCSProException(exception);
+    if( action_invoker_exception == nullptr )
+        return ReturnProgrammingError(Encoders::ToJsonString(exception.what()));
+
+    std::string json_text = SO::Concatenate("{\"name\":", Encoders::ToJsonString(action_invoker_exception->GetName()),
+                                            ",\"message\":", Encoders::ToJsonString(action_invoker_exception->what()));
+
+    if( !action_invoker_exception->GetCause().empty() )
+    {
+        AssertValidJson(action_invoker_exception->GetCause());
+
+        json_text.append(",\"cause\":")
+                 .append(action_invoker_exception->GetCause());
+    }
+
+    json_text.push_back('}');
+
+    return json_text;
 }

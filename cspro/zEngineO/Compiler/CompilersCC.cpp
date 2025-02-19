@@ -1,0 +1,79 @@
+﻿#include "stdafx.h"
+#include "IncludesCC.h"
+#include "File.h"
+
+
+void LogicCompiler::SetCompilationSymbol(const Symbol& symbol)
+{
+    m_compilationSymbol = &symbol;
+}
+
+
+int LogicCompiler::GetCompilationLevelNumber_base1() const
+{
+    return SymbolCalculator::GetLevelNumber_base1(*m_compilationSymbol);
+}
+
+
+bool LogicCompiler::IsNoLevelCompilation() const
+{
+    return m_compilationSymbol->IsOneOf(SymbolType::Application,
+                                        SymbolType::Report,
+                                        SymbolType::UserFunction);
+}
+
+
+EngineAppType LogicCompiler::GetEngineAppType() const
+{
+    return ( m_engineData->application != nullptr ) ? m_engineData->application->GetEngineAppType() :
+                                                      EngineAppType::Invalid;
+}
+
+
+void LogicCompiler::CompileExternalCode()
+{
+    ASSERT(m_engineData->application != nullptr);
+
+    for( const CodeFile& code_file : m_engineData->application->GetCodeFiles() )
+    {
+        if( code_file.GetCodeType() != CodeType::LogicMain )
+            CompileExternalCode(code_file);
+    }
+}
+
+
+void LogicCompiler::CompileExternalCode(const CodeFile& code_file)
+{
+    if( code_file.GetCodeType() == CodeType::LogicExternal )
+    {
+        CompileExternalCodeLogic(code_file);
+    }
+
+    else
+    {
+        ASSERT(code_file.IsJavaScript());
+        CompileExternalCodeJavaScript(code_file);
+    }
+}
+
+
+void LogicCompiler::RunPostCompilationChecks()
+{
+    // report errors for any function declarations that were never defined;
+    // TODO: ReportError is used instead of IssueError because this is called in places where the
+    //       IssueError infrastructure is no longer in place, but this should eventually be changed
+    for( const int symbol_index : m_declaredSymbolIndices )
+    {
+        const Symbol& symbol = NPT_Ref(symbol_index);
+        ASSERT(symbol.IsA(SymbolType::UserFunction));
+
+        ReportError(MGF::UserFunction_declared_but_never_defined_50009, symbol.GetName().c_str());
+    }
+
+    // issue warnings for File handlers that are not used
+    for( const LogicFile* const logic_file : m_engineData->files_global_visibility )
+    {
+        if( !logic_file->IsUsed() )
+            IssueWarning(MGF::File_handler_not_used_505, logic_file->GetName().c_str());
+    }
+}

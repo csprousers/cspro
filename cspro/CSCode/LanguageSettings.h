@@ -33,7 +33,7 @@ template<> constexpr LanguageType FirstInEnum<LanguageType>() { return LanguageT
 template<> constexpr LanguageType LastInEnum<LanguageType>()  { return LanguageType::Text;       }
 
 
-constexpr LanguageType GetLanguageTypeFromId(UINT nID)
+constexpr LanguageType GetLanguageTypeFromId(const UINT nID)
 {
     static_assert(( ID_LANGUAGE_NONE - ID_LANGUAGE_CSPRO_LOGIC ) == static_cast<unsigned>(LastInEnum<LanguageType>()));
 
@@ -49,14 +49,14 @@ constexpr LanguageType GetLanguageTypeFromId(UINT nID)
 class LanguageJsonSpecFile
 {
 public:
-    static const std::vector<std::tuple<unsigned, std::wstring>>& GetSubmenuOptions() { return m_submenuOptions; }
+    static const std::vector<std::tuple<unsigned, std::string>>& GetSubmenuOptions() { return m_submenuOptions; }
 
-    static std::optional<unsigned> GetIndexFromFilename(const std::wstring& filename);
+    static std::optional<unsigned> GetIndexFromExtension(const std::string& filename);
 
-    static const std::wstring& GetDescriptionFromIndex(unsigned index);
+    static const std::string& GetDescriptionFromIndex(unsigned index);
 
 private:
-    static const std::vector<std::tuple<unsigned, std::wstring>> m_submenuOptions;
+    static const std::vector<std::tuple<unsigned, std::string>> m_submenuOptions;
 };
 
 
@@ -68,7 +68,7 @@ private:
 class LanguageSettings
 {
 public:
-    LanguageSettings(const std::wstring& filename = std::wstring());
+    LanguageSettings(const std::string& file_path = std::string());
     LanguageSettings(LanguageType language_type);
 
     // getters
@@ -85,19 +85,19 @@ public:
 
     const std::optional<unsigned>& GetJavaScriptModuleType() const { return m_javascriptModuleType; }
 
-    std::wstring GetFileTypeDescription() const;
+    std::string GetFileTypeDescription() const;
 
     // setters
-    void SetLanguageType(LanguageType language_type, const std::wstring& filename);
+    void SetLanguageType(LanguageType language_type, const std::string& file_path);
 
-    void SetActionInvokerDisplayResultsAsJson(bool display_results_as_json, const std::wstring& filename);
-    void SetActionInvokerAbortOnException(bool abort_on_exception, const std::wstring& filename);
+    void SetActionInvokerDisplayResultsAsJson(bool display_results_as_json, const std::string& file_path);
+    void SetActionInvokerAbortOnException(bool abort_on_exception, const std::string& file_path);
 
-    void SetLogicVersion(LogicSettings::Version version, const std::wstring& filename);
+    void SetLogicVersion(LogicSettings::Version version, const std::string& file_path);
 
     void SetJsonSpecFileIndex(unsigned index);
 
-    void SetJavaScriptModuleType(unsigned index, const std::wstring& filename);
+    void SetJavaScriptModuleType(unsigned index, const std::string& file_path);
 
     // menu helpers
     bool CanCompileCode() const;
@@ -111,11 +111,11 @@ public:
     bool UsesTwoCodeViews() const;
 
 private:
-    void SyncPropertiesFollowingLanguageChange(const std::wstring& filename);
+    void SyncPropertiesFollowingLanguageChange(const std::string& file_path);
 
-    static std::tuple<int, std::optional<LogicSettings>> GetLexerLanguageAndLogicSettings(LanguageType language_type, const std::wstring& filename);
+    static std::tuple<int, std::optional<LogicSettings>> GetLexerLanguageAndLogicSettings(LanguageType language_type, const std::string& file_path);
 
-    static std::optional<LogicSettings> SearchApplicationsForLogicSettings(const std::wstring& filename);
+    static std::optional<LogicSettings> SearchApplicationsForLogicSettings(const std::string& file_path);
 
 private:
     LanguageType m_languageType;
@@ -130,7 +130,7 @@ private:
 inline bool LanguageSettings::CanCompileCode() const
 {
     return ( // CODE_TODO restore when CSPro logic can be compiled Lexers::UsesCSProLogic(m_lexerLanguage) ||
-             m_lexerLanguage == SCLEX_CSPRO_MESSAGE_V8_0 || 
+             m_lexerLanguage == SCLEX_CSPRO_MESSAGE_V8_0 ||
              m_lexerLanguage == SCLEX_JAVASCRIPT );
 }
 

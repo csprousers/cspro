@@ -17,7 +17,7 @@ DuplicateChooserDlg::DuplicateChooserDlg(std::vector<DuplicateInfo>& case_duplic
     :   m_caseDuplicates(case_duplicates),
         CDialog(IDD, pParent)
 {
-    m_duplicateIndexText = FormatTextCS2WS(_T("Duplicate %d / %d"), static_cast<int>(duplicate_index), static_cast<int>(number_duplicates));
+    m_duplicateIndexText = FormatText("Duplicate %d / %d", static_cast<int>(duplicate_index), static_cast<int>(number_duplicates));
 }
 
 
@@ -34,9 +34,9 @@ BOOL DuplicateChooserDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    WindowsWS::SetDlgItemText(this, IDC_CASE_KEY, _T("Case Key: ") + CS2WS(m_caseDuplicates.front().data_case->GetKey()));
-    WindowsWS::SetDlgItemText(this, IDC_DUPLICATE_NUMBER, m_duplicateIndexText);
-    
+    WindowsUtf8::SetText(this, IDC_CASE_KEY, "Case Key: " + m_caseDuplicates.front().data_case->GetKey());
+    WindowsUtf8::SetText(this, IDC_DUPLICATE_NUMBER, m_duplicateIndexText);
+
     // setup the tree control
 
     // to allow the default selections to show up this is for some reason necessary
@@ -51,10 +51,10 @@ BOOL DuplicateChooserDlg::OnInitDialog()
     HTREEITEM current_connection_string_node = nullptr;
     HTREEITEM first_case_node = nullptr;
 
-    auto add_tree_node = [&](HTREEITEM parent_node, const std::wstring& text, LPARAM lParam) -> HTREEITEM
+    auto add_tree_node = [&](HTREEITEM parent_node, std::wstring text, LPARAM lParam) -> HTREEITEM
     {
         tv_insert_struct.hParent = parent_node;
-        tv_insert_struct.item.pszText = const_cast<TCHAR*>(text.data());
+        tv_insert_struct.item.pszText = text.data();
         tv_insert_struct.item.cchTextMax = text.length();
         tv_insert_struct.item.lParam = lParam;
 
@@ -71,15 +71,15 @@ BOOL DuplicateChooserDlg::OnInitDialog()
         // add the connection string
         if( duplicate.index_result != previous_index_result )
         {
-            current_connection_string_node = add_tree_node(TVI_ROOT, duplicate.index_result->repository_name, -1);
+            current_connection_string_node = add_tree_node(TVI_ROOT, TC::ToWide(duplicate.index_result->repository_name), -1);
             previous_index_result = duplicate.index_result;
         }
 
-        const std::wstring index_text = FormatTextCS2WS(( duplicate.line_number == 0 ) ? _T("Case #%d") : _T("Case #%d  |  Line #%d"),
-                                                        static_cast<int>(duplicate.case_index),
-                                                        static_cast<int>(duplicate.line_number));
+        const std::string index_text = FormatText(( duplicate.line_number == 0 ) ? "Case #%d" : "Case #%d  |  Line #%d",
+                                                  static_cast<int>(duplicate.case_index),
+                                                  static_cast<int>(duplicate.line_number));
 
-        HTREEITEM case_node = add_tree_node(current_connection_string_node, index_text, i);
+        HTREEITEM case_node = add_tree_node(current_connection_string_node, TC::ToWide(index_text), i);
 
         if( i == 0 )
             first_case_node = case_node;
@@ -128,9 +128,9 @@ void DuplicateChooserDlg::OnOK()
 }
 
 
-void DuplicateChooserDlg::OnCaseListSelectionChange(NMHDR* /*pNMHDR*/, LRESULT* pResult)
+void DuplicateChooserDlg::OnCaseListSelectionChange(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
 {
-    std::wstring case_contents_html;
+    std::optional<std::string> case_contents_html;
 
     const HTREEITEM selected_node = m_caseList.GetSelectedItem();
 
@@ -145,10 +145,8 @@ void DuplicateChooserDlg::OnCaseListSelectionChange(NMHDR* /*pNMHDR*/, LRESULT* 
         }
     }
 
-    if( case_contents_html.empty() )
-        case_contents_html = _T("<html></html>");
-
-    m_caseContentsHtml.SetHtml(std::move(case_contents_html));
+    m_caseContentsHtml.SetHtml(case_contents_html.has_value() ? *case_contents_html :
+                                                                "<html></html>");
 
     *pResult = 0;
 }
@@ -173,7 +171,7 @@ void DuplicateChooserDlg::ProcessCaseListClick()
 
     // otherwise they clicked on a node, so see if the parent node should have a
     // binary full selection check (partial selections would be too much to work out)
-    else 
+    else
     {
         HTREEITEM parent_node = m_caseList.GetParentItem(selected_node);
         bool all_checked = new_state;
@@ -191,7 +189,7 @@ void DuplicateChooserDlg::ProcessCaseListClick()
 }
 
 
-void DuplicateChooserDlg::OnCaseListClick(NMHDR* /*pNMHDR*/, LRESULT* pResult)
+void DuplicateChooserDlg::OnCaseListClick(NMHDR* /*pNMHDR*/, LRESULT* const pResult)
 {
     const DWORD dw = GetMessagePos();
     CPoint point = CPoint(MAKEPOINTS(dw).x, MAKEPOINTS(dw).y);
@@ -210,9 +208,9 @@ void DuplicateChooserDlg::OnCaseListClick(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 }
 
 
-void DuplicateChooserDlg::OnCaseListKeydown(NMHDR* pNMHDR, LRESULT* pResult)
+void DuplicateChooserDlg::OnCaseListKeydown(NMHDR* const pNMHDR, LRESULT* const pResult)
 {
-    const TV_KEYDOWN* keydown = reinterpret_cast<TV_KEYDOWN*>(pNMHDR);
+    const TV_KEYDOWN* const keydown = reinterpret_cast<const TV_KEYDOWN*>(pNMHDR);
 
     if( keydown->wVKey == VK_SPACE )
         ProcessCaseListClick();

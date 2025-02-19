@@ -5,7 +5,7 @@
 
 
 EngineBlock::EngineBlock(const CDEBlock& form_block, const Logic::SymbolTable& symbol_table)
-    :   Symbol(CS2WS(form_block.GetName()), SymbolType::Block),
+    :   Symbol(UTF8_TODO::GetUtf8(form_block.GetName()), SymbolType::Block),
         m_formBlock(form_block),
         m_symbolTable(symbol_table)
 {
@@ -85,7 +85,7 @@ void EngineBlock::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
         [&](const CDEField* form_field)
         {
             json_writer.BeginObject()
-                       .WriteIfNotBlank(JK::dictionary, form_field->GetItemDict())
+                       .WriteIfNotBlank(JK::dictionary, UTF8_TODO::GetUtf8(form_field->GetItemDict()))
                        .Write(JK::name, form_field->GetName())
                        .EndObject();
         });

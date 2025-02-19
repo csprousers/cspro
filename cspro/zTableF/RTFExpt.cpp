@@ -358,16 +358,16 @@ void CTableGridExporterRTF::WriteTitle(_tostream& os, const CFmt& fmt, const CSt
     os << (LPCTSTR)_T("{");
 
     // horizontal alignment
-    os << (LPCTSTR)GetRTFHorzAlignInfo(fmt);
+    os << GetRTFHorzAlignInfo(fmt).GetString();
 
     // text color info
     int iColorText=FindRTFColorInfo(fmt.GetTextColor().m_rgb, m_aColorInfo);
-    os <<(LPCTSTR) GetRTFTextColorInfo(iColorText);
+    os << GetRTFTextColorInfo(iColorText).GetString();
 
     // fill color info
     CString sHighlight;
     sHighlight.Format(_T("\\highlight%d "), FindRTFColorInfo(fmt.GetFillColor().m_rgb, m_aColorInfo));
-    os << (LPCTSTR)sHighlight;
+    os << sHighlight.GetString();
 
     // font info (see CRTFFontInfo for more info)
     LOGFONT lf;
@@ -375,7 +375,7 @@ void CTableGridExporterRTF::WriteTitle(_tostream& os, const CFmt& fmt, const CSt
     ASSERT(pFont);
     pFont->GetLogFont(&lf);
     int iFontInfo=FindRTFFontInfo(lf.lfFaceName, m_aFontInfo);
-    os << (LPCTSTR)GetRTFFontInfo(iFontInfo, lf, m_iLogPixelsY);
+    os << GetRTFFontInfo(iFontInfo, lf, m_iLogPixelsY).GetString();
 
     // title text
     CString sRTFTitleText;
@@ -385,7 +385,7 @@ void CTableGridExporterRTF::WriteTitle(_tostream& os, const CFmt& fmt, const CSt
         sRTFTitleText.Append(rtfChar);
     }
 
-    os << (LPCTSTR)_T("\r\n") << (LPCTSTR)sRTFTitleText << (LPCTSTR)_T("\r\n\\par \\pard\r\n");
+    os << (LPCTSTR)_T("\r\n") << sRTFTitleText.GetString() << (LPCTSTR)_T("\r\n\\par \\pard\r\n");
 
     os << (LPCTSTR)_T("}\r\n");
 }
@@ -395,16 +395,16 @@ void CTableGridExporterRTF::WriteSubTitle(_tostream& os, const CFmt& fmt, const 
     os << (LPCTSTR)_T("{");
 
     // horizontal alignment
-    os << (LPCTSTR)GetRTFHorzAlignInfo(fmt);
+    os << GetRTFHorzAlignInfo(fmt).GetString();
 
     // text color info
     int iColorText=FindRTFColorInfo(fmt.GetTextColor().m_rgb, m_aColorInfo);
-    os << (LPCTSTR)GetRTFTextColorInfo(iColorText);
+    os << GetRTFTextColorInfo(iColorText).GetString();
 
     // fill color info
     CString sHighlight;
     sHighlight.Format(_T("\\highlight%d"), FindRTFColorInfo(fmt.GetFillColor().m_rgb, m_aColorInfo));
-    os << (LPCTSTR)sHighlight;
+    os << sHighlight.GetString();
 
     // font info (see CRTFFontInfo for more info)
     LOGFONT lf;
@@ -412,7 +412,7 @@ void CTableGridExporterRTF::WriteSubTitle(_tostream& os, const CFmt& fmt, const 
     ASSERT(pFont);
     pFont->GetLogFont(&lf);
     int iFontInfo=FindRTFFontInfo(lf.lfFaceName, m_aFontInfo);
-    os << (LPCTSTR)GetRTFFontInfo(iFontInfo, lf, m_iLogPixelsY);
+    os << GetRTFFontInfo(iFontInfo, lf, m_iLogPixelsY).GetString();
 
     // title text
      // title text
@@ -473,14 +473,14 @@ void CTableGridExporterRTF::EndRow(_tostream& os)
 
         if (!bHorzMerge) {
 
-            os << (LPCTSTR)GetRTFLineInfo(cellInfo.fmt);
+            os << GetRTFLineInfo(cellInfo.fmt).GetString();
 
             // cell vertical alignment
-            os << (LPCTSTR)GetRTFVertAlignInfo(cellInfo.fmt);
+            os << GetRTFVertAlignInfo(cellInfo.fmt).GetString();
 
             // cell fill color ...
             int iColorFill=FindRTFColorInfo(cellInfo.fmt.GetFillColor().m_rgb, m_aColorInfo);
-            os << (LPCTSTR)GetRTFFillColorInfo(iColorFill);
+            os << GetRTFFillColorInfo(iColorFill).GetString();
         }
 
         if (cellInfo.iCol == iColStart) {
@@ -504,7 +504,7 @@ void CTableGridExporterRTF::EndRow(_tostream& os)
         const CRTFCellInfo& cellInfo = m_currRowCells.GetAt(iCell);
 
             // horz alignment ...
-            os << (LPCTSTR)GetRTFHorzAlignInfo(cellInfo.fmt);
+            os << GetRTFHorzAlignInfo(cellInfo.fmt).GetString();
 
             // cell data (leave blank if part of a merge)
             bool bMerge = (cellInfo.iRow != cellInfo.join.iStartRow || cellInfo.iCol != cellInfo.join.iStartCol);
@@ -516,7 +516,7 @@ void CTableGridExporterRTF::EndRow(_tostream& os)
 
                 // color info
                 int iColorText=FindRTFColorInfo(cellInfo.fmt.GetTextColor().m_rgb, m_aColorInfo);
-                os << (LPCTSTR)GetRTFTextColorInfo(iColorText);
+                os << GetRTFTextColorInfo(iColorText).GetString();
 
                 // figure out which font table entry we should use (see CRTFFontInfo for more info)
                 LOGFONT lf;
@@ -527,7 +527,7 @@ void CTableGridExporterRTF::EndRow(_tostream& os)
                 int iHalfPoints=abs(MulDiv(lf.lfHeight,72,m_iLogPixelsY)*2);
                 sFontInfo=GetRTFFontInfo(iFontInfo, lf, m_iLogPixelsY)+_T("\r\n");
             }
-            os << (LPCTSTR)sFontInfo << (LPCTSTR)cellInfo.sCellData;
+            os << sFontInfo.GetString() << cellInfo.sCellData.GetString();
 
             // end this cell
             os << (LPCTSTR)_T("\\cell\r\n");

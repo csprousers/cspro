@@ -7,7 +7,6 @@
 struct EngineData;
 class EngineDictionary;
 class EngineRecord;
-class Serializer;
 
 
 class ZENGINEO_API EngineCase
@@ -21,7 +20,7 @@ private:
 
     std::unique_ptr<EngineCase> CloneInInitialState() const;
 
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const;
 
     // register an EngineRecord as belonging to this EngineCase
     void RegisterEngineRecord(EngineRecord* engine_record) { m_engineRecords.emplace(engine_record); }

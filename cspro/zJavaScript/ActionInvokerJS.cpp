@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "ActionInvokerJS.h"
+#include "ValueInternal.h"
 #include <zToolsO/ObjectTransporter.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zLogicO/FunctionTable.h>
@@ -9,7 +10,9 @@
 // JavaScript::Executor
 // --------------------------------------------------------------------------
 
-void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::FunctionDetails*>& functions, const std::map<Logic::FunctionNamespace, const TCHAR*>& namespace_names)
+void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::FunctionDetails*>& functions,
+                                            const std::map<Logic::FunctionNamespace, const char*>& namespace_names,
+                                            const char* const object_name_override/* = nullptr*/)
 {
     // return if it has already been set up
     if( m_actionInvokerJS != nullptr )
@@ -29,19 +32,29 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
         // a routine to create a class
         std::map<Logic::FunctionNamespace, JSClassID> function_namespace_to_class_id_map;
 
-        auto create_class = [&](const Logic::FunctionNamespace function_namespace)
+        auto create_class = [&](const Logic::FunctionNamespace function_namespace, const char* const class_name_override)
         {
             ASSERT(function_namespace_to_class_id_map.find(function_namespace) == function_namespace_to_class_id_map.cend());
 
             JSClassID class_id = 0;
             JS_NewClassID(&class_id);
 
-            const auto& name_lookup = namespace_names.find(function_namespace);
+            const char* class_name;
 
-            if( name_lookup == namespace_names.cend() )
-                throw ActionInvokerSetUpError();
+            if( class_name_override != nullptr )
+            {
+                class_name = m_actionInvokerJS->AddToQuickJSTextCache(class_name_override);
+            }
 
-            const char* const class_name = m_actionInvokerJS->AddToQuickJSTextCache(name_lookup->second);
+            else
+            {
+                const auto& name_lookup = namespace_names.find(function_namespace);
+
+                if( name_lookup == namespace_names.cend() )
+                    throw ActionInvokerSetUpError();
+
+                class_name = m_actionInvokerJS->AddToQuickJSTextCache(name_lookup->second);
+            }
 
             const JSClassDef class_definition = { class_name };
 
@@ -56,7 +69,7 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
         };
 
         // set up the CS class
-        m_actionInvokerJS->CS_class_id = create_class(Logic::FunctionNamespace::CS);
+        m_actionInvokerJS->CS_class_id = create_class(Logic::FunctionNamespace::CS, object_name_override);
 
         // set up classes for the namespaces and associate functions with their classes
         for( const Logic::FunctionDetails& function_details : VI_V(functions) )
@@ -68,7 +81,7 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
             const auto& function_namespace_lookup = function_namespace_to_class_id_map.find(function_namespace);
 
             const JSClassID class_id = ( function_namespace_lookup != function_namespace_to_class_id_map.cend() ) ? function_namespace_lookup->second :
-                                                                                                                    create_class(function_namespace);
+                                                                                                                    create_class(function_namespace, nullptr);
 
             // the function's magic code will correspond to the action's index in the actions vector
             const size_t action_index = m_actionInvokerJS->actions.size();
@@ -79,11 +92,11 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
             ASSERT(class_lookup != m_actionInvokerJS->class_details.end());
 
             // create synchronous and asynchronous versions of the function
-            auto create_function = [&](const wstring_view action_name_sv, const auto& execution_function)
+            auto create_function = [&](std::string action_name, const auto& execution_function)
             {
                 JSCFunctionListEntry& function = class_lookup->functions.emplace_back();
 
-                function.name = m_actionInvokerJS->AddToQuickJSTextCache(action_name_sv);
+                function.name = m_actionInvokerJS->AddToQuickJSTextCache(std::move(action_name));
 
                 function.prop_flags = JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE;
                 function.def_type = JS_DEF_CFUNC;
@@ -96,13 +109,12 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
             };
 
             create_function(function_details.name, ActionInvokerJS::RunActionInvoker);
-            create_function(std::wstring(function_details.name).append(ActionInvoker::AsyncActionSuffix_sv), ActionInvokerJS::RunActionInvokerAsync);
+            create_function(std::string(function_details.name).append(ActionInvoker::AsyncActionSuffix_sv), ActionInvokerJS::RunActionInvokerAsync);
         }
 
         // now instantiate each class in the global object
-        const JSValue js_global_obj = JS_GetGlobalObject(m_qjs->ctx);
-        m_actionInvokerJS->AddToGlobalObject(m_qjs->ctx, js_global_obj);
-        JS_FreeValue(m_qjs->ctx, js_global_obj);
+        const GlobalObjectValue js_global_obj(m_qjs);
+        m_actionInvokerJS->AddToGlobalObject(m_qjs->ctx, *js_global_obj);
     }
 
     catch( const ActionInvokerSetUpError& )
@@ -126,36 +138,32 @@ public:
     {
     }
 
-    bool& GetCancelFlag() override;
+    int GetCallerId() const override { return m_executor.m_actionInvokerCallerId; }
 
-    std::wstring GetRootDirectory() override { return m_executor.m_rootDirectory; }
+    CancelFlag& GetCancelFlag() override;
+
+    std::string GetRootDirectory() override { return m_executor.m_rootDirectory; }
 
 private:
-    struct CancelFlagData
-    {
-        std::shared_ptr<bool> cancel_flag;
-        RAII::SetValueAndRestoreOnDestruction<std::shared_ptr<bool>> cancel_flag_holder;
-    };
-
     Executor& m_executor;
-    std::unique_ptr<CancelFlagData> m_cancelFlagData;
+    std::unique_ptr<CancelFlag> m_cancelFlag;
 };
 
 
-bool& JavaScript::Executor::ActionInvokerJSCaller::GetCancelFlag()
+CancelFlag& JavaScript::Executor::ActionInvokerJSCaller::GetCancelFlag()
 {
-    // only create a cancelation flag on demand
-    if( m_cancelFlagData == nullptr )
+    // the flag should have been already set (by the logic interpreter or CSCode)
+    CancelFlag* cancel_flag = m_executor.GetCancelFlag();
+
+    // but if not, create one (without hooking it up to cancel evaluation)
+    if( cancel_flag == nullptr )
     {
-        auto cancel_flag = std::make_shared<bool>(false);
-        m_cancelFlagData = std::make_unique<CancelFlagData>(CancelFlagData
-            {
-                cancel_flag,
-                RAII::SetValueAndRestoreOnDestruction<std::shared_ptr<bool>>(m_executor.m_currentCancelationFlag, cancel_flag)
-            });
+        ASSERT(false);
+        m_cancelFlag = std::make_unique<CancelFlag>();
+        cancel_flag = m_cancelFlag.get();
     }
 
-    return *m_cancelFlagData->cancel_flag;
+    return *cancel_flag;
 }
 
 
@@ -164,13 +172,13 @@ bool& JavaScript::Executor::ActionInvokerJSCaller::GetCancelFlag()
 // JavaScript::Executor::ActionInvokerJS
 // --------------------------------------------------------------------------
 
-const char* JavaScript::Executor::ActionInvokerJS::AddToQuickJSTextCache(const wstring_view text_sv)
+const char* JavaScript::Executor::ActionInvokerJS::AddToQuickJSTextCache(std::string text)
 {
-    return cached_text_used_for_QuickJS_pointers.emplace_back(std::make_unique<std::string>(UTF8Convert::WideToUTF8(text_sv)))->c_str();
+    return cached_text_used_for_QuickJS_pointers.emplace_back(std::make_unique<std::string>(std::move(text)))->c_str();
 }
 
 
-void JavaScript::Executor::ActionInvokerJS::AddToGlobalObject(JSContext* ctx, const JSValue js_global_obj)
+void JavaScript::Executor::ActionInvokerJS::AddToGlobalObject(JSContext* const ctx, const JSValue js_global_obj)
 {
     auto create_object = [&](const ClassDetails& class_details, const JSValue js_parent_object)
     {
@@ -199,7 +207,7 @@ void JavaScript::Executor::ActionInvokerJS::AddToGlobalObject(JSContext* ctx, co
 }
 
 
-JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvoker(JSContext* ctx, const JSValueConst /*this_val*/, const int argc, JSValueConst* argv, const int magic)
+JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvoker(JSContext* const ctx, const JSValueConst /*this_val*/, const int argc, JSValueConst* const argv, const int magic)
 {
     Executor& executor = QuickJSAccess::GetExecutorFromContext(ctx);
     ASSERT(executor.m_actionInvokerJS != nullptr && static_cast<size_t>(magic) < executor.m_actionInvokerJS->actions.size());
@@ -209,18 +217,18 @@ JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvoker(JSContext* ctx, 
 
     try
     {
-        std::optional<std::wstring> json_arguments;
+        SharableString json_arguments;
 
         // CS[.namespace].actionName({ arguments_object })
         if( argc > 0 )
         {
             // allow the arguments to be specified as an object that will be stringified...
-            const JSValue js_stringified_argument = JS_JSONStringify(executor.m_qjs->ctx, argv[0], JS_NULL, JS_NULL);
+            const JSValue js_stringified_argument = JS_JSONStringify(executor.m_qjs->ctx, argv[0], JS_UNDEFINED, JS_UNDEFINED);
 
             if( JS_IsException(js_stringified_argument) )
                 throw js_stringified_argument;
 
-            json_arguments = executor.m_qjs->GetString<std::wstring>(js_stringified_argument);
+            json_arguments = executor.m_qjs->GetString(js_stringified_argument);
 
             JS_FreeValue(executor.m_qjs->ctx, js_stringified_argument);
         }
@@ -248,15 +256,15 @@ JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvoker(JSContext* ctx, 
 
             case ActionInvoker::Result::Type::String:
             {
-                return executor.m_qjs->NewString(result.GetStringResult());
+                return executor.m_qjs->NewString(result.GetStringResult().GetString());
             }
 
             default:
             {
                 ASSERT(result.GetType() == ActionInvoker::Result::Type::JsonText);
-                const std::string result_utf8 = UTF8Convert::WideToUTF8(result.GetStringResult());
-            
-                return JS_ParseJSON(executor.m_qjs->ctx, result_utf8.c_str(), result_utf8.length(), nullptr);
+                const SharableString json_result = result.GetStringResult();
+
+                return JS_ParseJSON(executor.m_qjs->ctx, json_result->c_str(), json_result->length(), "");
             }
         }
     }
@@ -267,19 +275,20 @@ JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvoker(JSContext* ctx, 
         return js_value_exception;
     }
 
-    catch( const ActionInvoker::ExceptionWithActionName& exception )
+    catch( const ActionInvoker::Exception& exception )
     {
-        return JS_Throw(ctx, executor.m_qjs->NewString(exception.GetErrorMessageWithActionName()));
+        return JS_Throw(ctx, executor.m_qjs->NewError(exception, exception.GetName(), exception.GetCause()));
     }
 
-    catch( const CSProException& exception )
+    catch( const std::exception& exception )
     {
-        return JS_Throw(ctx, executor.m_qjs->NewString(ActionInvoker::ExceptionWithActionName::GetErrorMessageFromCSProException(exception)));
+        ASSERT(false);
+        return JS_Throw(ctx, executor.m_qjs->NewError(exception, std::nullopt, std::nullopt));
     }
 }
 
 
-JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvokerAsync(JSContext* ctx, const JSValueConst this_val, const int argc, JSValueConst* argv, const int magic)
+JSValue JavaScript::Executor::ActionInvokerJS::RunActionInvokerAsync(JSContext* const ctx, const JSValueConst this_val, const int argc, JSValueConst* const argv, const int magic)
 {
     JSValue js_resolve_reject_functions[2];
     JSValue js_promise = JS_NewPromiseCapability(ctx, js_resolve_reject_functions);

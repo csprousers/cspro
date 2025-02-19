@@ -3,7 +3,6 @@
 #include "Engine.h"
 #include "ParameterManager.h"
 #include "VariableWorker.h"
-#include <zEngineO/Versioning.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Screen.h>
 #include <zAppO/Application.h>
@@ -31,36 +30,22 @@ namespace
 
     CString ValueToString(const std::variant<double, CString>& value)
     {
-        return std::holds_alternative<double>(value) ? WS2CS(DoubleToString(std::get<double>(value))) :
+        return std::holds_alternative<double>(value) ? UTF8_TODO::GetCString(DoubleToString(std::get<double>(value))) :
                                                        std::get<CString>(value);
     }
 }
 
 
 ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set<int>* symbol_set,
-    std::variant<double, CString>* out_value/* = nullptr*/)
+                                                             std::variant<double, CString>* out_value/* = nullptr*/)
 {
     const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
-    bool set_function = ( various_node.fn_code == FunctionCode::FNSETPROPERTY_CODE );
-    const int* arguments = various_node.fn_expr;
-    std::unique_ptr<std::vector<int>> pre80_arguments;
-
-    if( set_function && Versioning::PredatesCompiledLogicVersion(Serializer::Iteration_7_7_000_1) )
-    {
-        pre80_arguments = std::make_unique<std::vector<int>>();
-        *pre80_arguments = { various_node.fn_expr[0], various_node.fn_expr[1], various_node.fn_expr[2] };
-
-        bool symbol_used = ( various_node.fn_expr[2] != -1 );
-        pre80_arguments->insert(pre80_arguments->begin() + ( symbol_used ? 2 : 1 ), (int)DataType::String);
-
-        arguments = pre80_arguments->data();
-    }
-
+    const bool set_function = ( various_node.fn_code == FunctionCode::FNSETPROPERTY_CODE );
+    const int* const arguments = various_node.fn_expr;
     size_t argument_counter = set_function ? 3 : 1;
 
     if( arguments[argument_counter] == -1 )
         --argument_counter;
-
 
     // process the value
     if( set_function )
@@ -69,7 +54,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
         if( arguments[argument_counter - 1] == (int)DataType::String )
         {
-            *out_value = EvalAlphaExpr<CString>(arguments[argument_counter]);
+            *out_value = EvalAlphaExprCS(arguments[argument_counter]);
             std::get<CString>(*out_value).Trim();
         }
 
@@ -84,19 +69,19 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
 
     // process the property
-    CString property = EvalAlphaExpr<CString>(arguments[argument_counter--]);
+    CString property = EvalAlphaExprCS(arguments[argument_counter--]);
 
     ParameterManager::Parameter parameter = ParameterManager::Parse(FNGETPROPERTY_CODE, property);
 
     if( parameter == ParameterManager::Parameter::Invalid )
     {
-        issaerror(MessageType::Error, 1100, property.GetString());
+        issaerror(MessageType::Error, 1100, UTF8_TODO::GetUtf8(property).c_str());
         throw std::exception();
     }
 
     if( set_function && ParameterManager::Parse(FNSETPROPERTY_CODE, property) == ParameterManager::Parameter::Invalid )
     {
-        issaerror(MessageType::Error, 1102, property.GetString());
+        issaerror(MessageType::Error, 1102, UTF8_TODO::GetUtf8(property).c_str());
         throw std::exception();
     }
 
@@ -114,17 +99,17 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
     {
         if( symbol != nullptr )
         {
-            issaerror(MessageType::Error, 1106, application_property ? _T("application") : _T("system"), property.GetString());
+            issaerror(MessageType::Error, 1106, application_property ? "application" : "system", UTF8_TODO::GetUtf8(property).c_str());
             throw std::exception();
         }
     }
 
     // an item or field property
-    else 
+    else
     {
         if( symbol == nullptr )
         {
-            issaerror(MessageType::Error, 1105, property.GetString());
+            issaerror(MessageType::Error, 1105, UTF8_TODO::GetUtf8(property).c_str());
             throw std::exception();
         }
 
@@ -148,7 +133,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
         if( !set_function && symbol_set->size() != 1 )
         {
-            issaerror(MessageType::Error, item_property ? 1103 : 1104, property.GetString());
+            issaerror(MessageType::Error, item_property ? 1103 : 1104, UTF8_TODO::GetUtf8(property).c_str());
             throw std::exception();
         }
     }
@@ -189,7 +174,7 @@ bool StringToPropertyValueBool(const std::variant<double, CString>& value)
 
 CString PropertyValueToString(int value)
 {
-    return IntToString(value);
+    return UTF8_TODO::GetCString(IntToString(value));
 }
 
 int StringToPropertyValueInt(const std::variant<double, CString>& value)
@@ -304,7 +289,7 @@ CString PropertyValueToString(CaptureType capture_type)
 
 CaptureType StringToPropertyValueCaptureType(const CString& value)
 {
-    std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(value);
+    std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(UTF8_TODO::GetUtf8(value));
 
     if( capture_type.has_value() )
     {
@@ -419,7 +404,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_SpecialValuesZero:
-                property = PropertyValueToString(m_pEngineSettings->GetTreatSpecialValuesAsZero());
+                property = PropertyValueToString(m_engineData->engine_settings.GetTreatSpecialValuesAsZero());
                 break;
 
             case ParameterManager::Parameter::Property_UpdateSaveArrayFile:
@@ -439,7 +424,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
 
                 else
                 {
-                    property = ToString(application->GetEngineAppType());
+                    property = UTF8_TODO::GetCString(ToString(application->GetEngineAppType()));
                     property.SetAt(0, std::towupper(property[0]));
                 }
 
@@ -558,7 +543,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
             {
                 // use the evaluated capture info
                 if( pVarT->GetEvaluatedCaptureInfo().GetCaptureType() == CaptureType::Date )
-                    property = pVarT->GetEvaluatedCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
+                    property = UTF8_TODO::GetCString(pVarT->GetEvaluatedCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat());
 
                 break;
             }
@@ -793,7 +778,7 @@ double CIntDriver::exsetproperty(int iExpr)
                     break;
 
                 case ParameterManager::Parameter::Property_SpecialValuesZero:
-                    m_pEngineSettings->SetTreatSpecialValuesAsZero(StringToPropertyValueBool(value));
+                    m_engineData->engine_settings.SetTreatSpecialValuesAsZero(StringToPropertyValueBool(value));
                     break;
 
                 case ParameterManager::Parameter::Property_UpdateSaveArrayFile:
@@ -838,8 +823,7 @@ double CIntDriver::exsetproperty(int iExpr)
 
             if( properties_modified == 1 && Paradata::Logger::IsOpen() )
             {
-                m_pParadataDriver->RegisterAndLogEvent(std::make_shared<Paradata::PropertyEvent>(
-                    parameter_name, ValueToString(value), true));
+                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(parameter_name), UTF8_TODO::GetUtf8(ValueToString(value)), true));
             }
         }
 
@@ -913,7 +897,7 @@ double CIntDriver::exsetproperty(int iExpr)
                         if( pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
                         {
                             CaptureInfo new_capture_info = pVarT->GetCaptureInfo();
-                            new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(get_string_value());
+                            new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(UTF8_TODO::GetUtf8(get_string_value()));
 
                             CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pVarT->GetDictItem(), pVarT->GetCurrentDictValueSet());
 
@@ -1012,8 +996,8 @@ double CIntDriver::exsetproperty(int iExpr)
 
                     if( Paradata::Logger::IsOpen() )
                     {
-                        m_pParadataDriver->RegisterAndLogEvent(std::make_shared<Paradata::PropertyEvent>(
-                            parameter_name, ValueToString(value), true, m_pParadataDriver->CreateObject(*pVarT)));
+                        m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(parameter_name), UTF8_TODO::GetUtf8(ValueToString(value)), true,
+                                                                                                        m_paradataDriver->CreateObject(*pVarT)));
                     }
                 }
             }
@@ -1030,7 +1014,7 @@ double CIntDriver::exsetproperty(int iExpr)
 
     catch( const InvalidValueException& exception ) // an invalid value
     {
-        issaerror(MessageType::Error, exception.error_number, parameter_name.GetString(), ValueToString(exception.value).GetString());
+        issaerror(MessageType::Error, exception.error_number, UTF8_TODO::GetUtf8(parameter_name).c_str(), UTF8_TODO::GetUtf8(ValueToString(exception.value)).c_str());
         properties_modified = DEFAULT;
     }
 
@@ -1046,17 +1030,14 @@ double CIntDriver::exsetproperty(int iExpr)
 }
 
 
-void ParadataDriver::LogProperties()
+void EngineParadataDriver::LogProperties()
 {
-    for( const auto& parameter : ParameterManager::GetParametersOfArgument(ParameterManager::ParameterArgument::ApplicationProperty) )
+    for( const ParameterManager::Parameter& parameter : ParameterManager::GetParametersOfArgument(ParameterManager::ParameterArgument::ApplicationProperty) )
     {
-        CString value = m_pIntDriver->GetProperty(parameter);
+        std::string value = UTF8_TODO::GetUtf8(m_pIntDriver->GetProperty(parameter));
 
-        if( !value.IsEmpty() )
-        {
-            RegisterAndLogEvent(std::make_shared<Paradata::PropertyEvent>(
-                ParameterManager::GetDisplayName(parameter), value, false));
-        }
+        if( !value.empty() )
+            RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(ParameterManager::GetDisplayName(parameter)), std::move(value), false));
     }
 }
 
@@ -1065,7 +1046,7 @@ double CIntDriver::exprotect(int iExpr)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
     Symbol& symbol = NPT_Ref(va_node.arguments[0]);
-    bool protect = ConditionalValueIsTrue(evalexpr(va_node.arguments[1]));
+    const bool protect = EvaluateConditional(va_node.arguments[1]);
 
     auto variable_protect_setter = [&](VART* pVarT) -> bool
     {
@@ -1078,9 +1059,8 @@ double CIntDriver::exprotect(int iExpr)
 
             if( Paradata::Logger::IsOpen() )
             {
-                m_pParadataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
-                    ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected),
-                    PropertyValueToString(protect), true, m_pParadataDriver->CreateObject(*pVarT)));
+                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected)),
+                                                                                                UTF8_TODO::GetUtf8(PropertyValueToString(protect)), true, m_paradataDriver->CreateObject(*pVarT)));
             }
 
             return true;

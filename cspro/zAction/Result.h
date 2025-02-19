@@ -5,80 +5,70 @@
 #include <zToolsO/Special.h>
 #include <zJson/ValidJsonAsserter.h>
 
+namespace ActionInvoker { class Result; }
 
-namespace ActionInvoker
+
+class ActionInvoker::Result
 {
-    class Result
-    {
-    public:
-        enum class Type { Undefined, Bool, Number, String, JsonText };
+public:
+    enum class Type { Undefined, Bool, Number, String, JsonText };
 
-    private:
-        Result(Type type, std::variant<double, std::wstring> result);
+private:
+    Result(Type type, std::variant<double, SharableString> result);
 
-    public:
-        // creation
-        static Result Undefined();
+public:
+    // creation
+    static Result Undefined();
 
-        static Result Bool(bool result);
+    static Result Bool(bool result);
 
-        template<typename T>
-        static Result Number(T result);
+    template<typename T>
+    static Result Number(T result);
 
-        static Result String(std::wstring result);
+    static Result String(SharableString result);
 
-        static Result NumberOrString(std::variant<double, std::wstring> result);
+    static Result NumberOrString(std::variant<double, SharableString> result);
 
-        static Result JsonText(std::wstring result);
+    static Result JsonText(SharableString result);
 
-        template<typename JW>
-        static Result JsonText(JW& json_writer);
+    static Result JsonText(JsonStringWriter& json_writer);
 
-        // creates a result based on the type of the result
-        static Result FromJsonNode(const JsonNode<wchar_t>& json_node);
-        static Result FromJsonNode(std::wstring result);
+    // creates a result based on the type of the result
+    static Result FromJsonNode(const JsonNode& json_node);
+    static Result FromJsonNode(SharableString result);
 
-        // access
-        Type GetType() const { return m_type; }
+    // access
+    Type GetType() const { return m_type; }
 
-        const std::variant<double, std::wstring>& GetResult() const { return m_result; }
+    const std::variant<double, SharableString>& GetResult() const { return m_result; }
 
-        // returns only bool/numeric results
-        double GetNumericResult() const;
+    // returns only bool/numeric results
+    double GetNumericResult() const;
 
-        // returns only string/JSON results
-        const std::wstring& GetStringResult() const;
+    // returns only string/JSON results
+    SharableString GetStringResult() const;
 
-        std::wstring ReleaseStringResult();
+    // returns all but undefined results;
+    // bools are converted to 1/0 or true/false;
+    // numerics are converted using DoubleToString
+    template<bool use_1_0_for_bools>
+    SharableString GetResultAsString() const;
 
-        // returns all but undefined results;
-        // bools are converted to 1/0 or true/false;
-        // numerics are converted using DoubleToString
-        template<bool use_1_0_for_bools>
-        std::wstring GetResultAsString() const;
+    // returns all but undefined results;
+    // bools are converted to 1/0 or true/false;
+    // numerics are converted using DoubleToString (with special values encoded using Encoders::ToJsonString)
+    // strings are converted using Encoders::ToJsonString
+    template<bool use_1_0_for_bools>
+    SharableString GetResultAsJsonText() const;
 
-        template<bool use_1_0_for_bools>
-        std::wstring ReleaseResultAsString();
+private:
+    template<bool use_1_0_for_bools>
+    const char* GetBoolText() const;
 
-        // returns all but undefined results;
-        // bools are converted to 1/0 or true/false;
-        // numerics are converted using DoubleToString (with special values encoded using Encoders::ToJsonString)
-        // strings are converted using Encoders::ToJsonString
-        template<bool use_1_0_for_bools>
-        std::wstring GetResultAsJsonText() const;
-
-        template<bool use_1_0_for_bools>
-        std::wstring ReleaseResultAsJsonText();
-
-    private:
-        template<bool use_1_0_for_bools>
-        const TCHAR* GetBoolText() const;
-
-    private:
-        const Type m_type;
-        std::variant<double, std::wstring> m_result;
-    };
-}
+private:
+    const Type m_type;
+    std::variant<double, SharableString> m_result;
+};
 
 
 
@@ -86,7 +76,7 @@ namespace ActionInvoker
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline ActionInvoker::Result::Result(const Type type, std::variant<double, std::wstring> result)
+inline ActionInvoker::Result::Result(const Type type, std::variant<double, SharableString> result)
     :   m_type(type),
         m_result(std::move(result))
 {
@@ -116,48 +106,49 @@ inline ActionInvoker::Result ActionInvoker::Result::Number(const T result)
 }
 
 
-inline ActionInvoker::Result ActionInvoker::Result::String(std::wstring result)
+inline ActionInvoker::Result ActionInvoker::Result::String(SharableString result)
 {
     return Result(Type::String, std::move(result));
 }
 
 
-inline ActionInvoker::Result ActionInvoker::Result::NumberOrString(std::variant<double, std::wstring> result)
+inline ActionInvoker::Result ActionInvoker::Result::NumberOrString(std::variant<double, SharableString> result)
 {
-    const Type type = std::holds_alternative<double>(result) ? Type::Number : Type::String;
+    const Type type = std::holds_alternative<double>(result) ? Type::Number :
+                                                               Type::String;
+
     return Result(type, std::move(result));
 }
 
 
-inline ActionInvoker::Result ActionInvoker::Result::JsonText(std::wstring result)
+inline ActionInvoker::Result ActionInvoker::Result::JsonText(SharableString result)
 {
+    AssertValidJson(*result);
     return Result(Type::JsonText, std::move(result));
 }
 
 
-template<typename JW>
-inline ActionInvoker::Result ActionInvoker::Result::JsonText(JW& json_writer)
+inline ActionInvoker::Result ActionInvoker::Result::JsonText(JsonStringWriter& json_writer)
 {
-    ASSERT(json_writer != nullptr);
-    return Result(Type::JsonText, json_writer->GetString());
+    return Result(Type::JsonText, json_writer.ReleaseSharableString());
 }
 
 
-inline ActionInvoker::Result ActionInvoker::Result::FromJsonNode(const JsonNode<wchar_t>& json_node)
+inline ActionInvoker::Result ActionInvoker::Result::FromJsonNode(const JsonNode& json_node)
 {
-    return json_node.IsString()  ? String(json_node.Get<std::wstring>()) :
+    return json_node.IsString()  ? String(json_node.Get<SharableString>()) :
            json_node.IsNumber()  ? Number(json_node.GetDouble()) :
            json_node.IsBoolean() ? Bool(json_node.Get<bool>()) :
-                                   JsonText(json_node.GetNodeAsString());
+                                   JsonText(json_node.GetNodeAsSharableString());
 }
 
 
-inline ActionInvoker::Result ActionInvoker::Result::FromJsonNode(std::wstring result)
+inline ActionInvoker::Result ActionInvoker::Result::FromJsonNode(SharableString result)
 {
-    if( !result.empty() )
+    if( !result->empty() )
     {
         // don't bother parsing the result if the first character indicates that it is an object or array
-        switch( result.front() )
+        switch( result->front() )
         {
             case '{':
             case '[':
@@ -167,7 +158,7 @@ inline ActionInvoker::Result ActionInvoker::Result::FromJsonNode(std::wstring re
 
     try
     {
-        return FromJsonNode(Json::Parse(result));
+        return FromJsonNode(Json::Parse(*result));
     }
 
     catch(...)
@@ -186,33 +177,24 @@ inline double ActionInvoker::Result::GetNumericResult() const
 }
 
 
-inline const std::wstring& ActionInvoker::Result::GetStringResult() const
+inline SharableString ActionInvoker::Result::GetStringResult() const
 {
-    ASSERT(std::holds_alternative<std::wstring>(m_result) && ( m_type == Type::String ||
-                                                               m_type == Type::JsonText ));
+    ASSERT(std::holds_alternative<SharableString>(m_result) && ( m_type == Type::String ||
+                                                                 m_type == Type::JsonText ));
 
-    return std::get<std::wstring>(m_result);
-}
-
-
-inline std::wstring ActionInvoker::Result::ReleaseStringResult()
-{
-    ASSERT(std::holds_alternative<std::wstring>(m_result) && ( m_type == Type::String ||
-                                                               m_type == Type::JsonText ));
-
-    return std::move(std::get<std::wstring>(m_result));
+    return std::get<SharableString>(m_result);
 }
 
 
 template<bool use_1_0_for_bools>
-const TCHAR* ActionInvoker::Result::GetBoolText() const
+const char* ActionInvoker::Result::GetBoolText() const
 {
     ASSERT(m_type == Type::Bool);
     const bool is_true = ( std::get<double>(m_result) != 0 );
 
     if constexpr(use_1_0_for_bools)
     {
-        return is_true ? _T("1") : _T("0");
+        return is_true ? "1" : "0";
     }
 
     else
@@ -223,7 +205,7 @@ const TCHAR* ActionInvoker::Result::GetBoolText() const
 
 
 template<bool use_1_0_for_bools>
-std::wstring ActionInvoker::Result::GetResultAsString() const
+SharableString ActionInvoker::Result::GetResultAsString() const
 {
     ASSERT(m_type != Type::Undefined);
 
@@ -233,24 +215,12 @@ std::wstring ActionInvoker::Result::GetResultAsString() const
                                             GetBoolText<use_1_0_for_bools>();
     }
 
-    return std::get<std::wstring>(m_result);
+    return std::get<SharableString>(m_result);
 }
 
 
 template<bool use_1_0_for_bools>
-std::wstring ActionInvoker::Result::ReleaseResultAsString()
-{
-    ASSERT(m_type != Type::Undefined);
-
-    if( std::holds_alternative<double>(m_result) )
-        return GetResultAsString<use_1_0_for_bools>();
-
-    return ReleaseStringResult();
-}
-
-
-template<bool use_1_0_for_bools>
-std::wstring ActionInvoker::Result::GetResultAsJsonText() const
+SharableString ActionInvoker::Result::GetResultAsJsonText() const
 {
     ASSERT(m_type != Type::Undefined);
 
@@ -264,22 +234,12 @@ std::wstring ActionInvoker::Result::GetResultAsJsonText() const
                                                            AssertAndReturnValidJson(DoubleToString(std::get<double>(m_result)));
 
         case Type::String:
-            return Encoders::ToJsonString(std::get<std::wstring>(m_result));
+            return Encoders::ToJsonString(std::get<SharableString>(m_result).GetString());
 
         case Type::JsonText:
-            return AssertAndReturnValidJson(std::get<std::wstring>(m_result));
+            return AssertAndReturnValidJson(std::get<SharableString>(m_result));
 
         default:
-            return ReturnProgrammingError(std::wstring());
+            return ReturnProgrammingError(SharableString());
     }
-}
-
-
-template<bool use_1_0_for_bools>
-std::wstring ActionInvoker::Result::ReleaseResultAsJsonText()
-{
-    ASSERT(m_type != Type::Undefined);
-
-    return ( m_type == Type::JsonText ) ? ReleaseStringResult() :
-                                          GetResultAsJsonText<use_1_0_for_bools>();
 }

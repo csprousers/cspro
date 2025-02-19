@@ -2,45 +2,45 @@
 #include "Numberer.h"
 
 
-int wmain(int argc, wchar_t* argv[])
+int wmain(const int argc, const wchar_t* const argv[])
 {
     try
     {
-        std::wstring definitions_filename;
+        std::string definitions_file_path;
         bool only_process_recent_changes = false;
 
         for( int i = 1; i < argc; ++i )
         {
             if( i > 2 )
-            {
                 throw CSProException("More than 2 arguments are not allowed");
-            }
 
-            else if( !only_process_recent_changes && SO::Equals(argv[i], "/recent") )
+            std::string argument = TC::ToUtf8(argv[i]);
+
+            if( !only_process_recent_changes && argument == "/recent" )
             {
                 only_process_recent_changes = true;
             }
 
-            else if( definitions_filename.empty() )
+            else if( definitions_file_path.empty() )
             {
-                definitions_filename = MakeFullPath(GetWorkingFolder(), argv[i]);
+                definitions_file_path = MakeFullPath(UTF8_TODO::GetUtf8(GetWorkingFolder()), std::move(argument));
             }
 
             else
             {
-                throw CSProException(L"Unknown argument #%d: %s", i, argv[i]);
+                throw CSProException("Unknown argument #%d: %s", i, argument.c_str());
             }
         }
 
-        if( definitions_filename.empty() )
+        if( definitions_file_path.empty() )
             throw CSProException("Specify the name of the file with the resource ID definitions.");
 
-        Numberer numberer(definitions_filename, only_process_recent_changes);
+        Numberer numberer(definitions_file_path, only_process_recent_changes);
         numberer.Run();
     }
 
     catch( const CSProException& exception )
     {
-        MessageBoxW(nullptr, exception.GetErrorMessage().c_str(), L"Resource ID Numberer", MB_OK | MB_ICONEXCLAMATION);
+        MessageBoxW(nullptr, TC::ToWide(exception.what()).c_str(), L"Resource ID Numberer", MB_OK | MB_ICONEXCLAMATION);
     }
 }

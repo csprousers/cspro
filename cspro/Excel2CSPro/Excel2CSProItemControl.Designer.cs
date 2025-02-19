@@ -81,7 +81,7 @@
             this.comboBoxCaseManagement.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxCaseManagement.FormattingEnabled = true;
             this.comboBoxCaseManagement.Items.AddRange(new object[] {
-            "Create new file",
+            "Create new data source",
             "Modify, add cases",
             "Modify, add, delete cases"});
             this.comboBoxCaseManagement.Location = new System.Drawing.Point(110, 48);
@@ -97,7 +97,7 @@
             this.checkBoxRunOnlyIfNewer.Name = "checkBoxRunOnlyIfNewer";
             this.checkBoxRunOnlyIfNewer.Size = new System.Drawing.Size(259, 34);
             this.checkBoxRunOnlyIfNewer.TabIndex = 2;
-            this.checkBoxRunOnlyIfNewer.Text = "Skip processing if the CSPro output data file is newer than the Excel file";
+            this.checkBoxRunOnlyIfNewer.Text = "Skip processing if the CSPro output data source is newer than the Excel file";
             this.checkBoxRunOnlyIfNewer.UseVisualStyleBackColor = true;
             // 
             // label3
@@ -121,11 +121,11 @@
             // 
             this.buttonCreateDataFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCreateDataFile.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.buttonCreateDataFile.Location = new System.Drawing.Point(802, 122);
+            this.buttonCreateDataFile.Location = new System.Drawing.Point(784, 122);
             this.buttonCreateDataFile.Name = "buttonCreateDataFile";
-            this.buttonCreateDataFile.Size = new System.Drawing.Size(130, 23);
+            this.buttonCreateDataFile.Size = new System.Drawing.Size(148, 23);
             this.buttonCreateDataFile.TabIndex = 2;
-            this.buttonCreateDataFile.Text = "Create CSPro Data File";
+            this.buttonCreateDataFile.Text = "Create CSPro Data Source";
             this.buttonCreateDataFile.UseVisualStyleBackColor = true;
             this.buttonCreateDataFile.Click += new System.EventHandler(this.buttonCreateDataFile_Click);
             // 
@@ -154,9 +154,9 @@
             this.labelDataFile.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.labelDataFile.Location = new System.Drawing.Point(12, 81);
             this.labelDataFile.Name = "labelDataFile";
-            this.labelDataFile.Size = new System.Drawing.Size(480, 13);
+            this.labelDataFile.Size = new System.Drawing.Size(461, 13);
             this.labelDataFile.TabIndex = 12;
-            this.labelDataFile.Text = "Select a CSPro output data file...";
+            this.labelDataFile.Text = "Select a CSPro output data source...";
             // 
             // labelCSProDictionary
             // 
@@ -166,7 +166,7 @@
             this.labelCSProDictionary.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.labelCSProDictionary.Location = new System.Drawing.Point(12, 51);
             this.labelCSProDictionary.Name = "labelCSProDictionary";
-            this.labelCSProDictionary.Size = new System.Drawing.Size(480, 13);
+            this.labelCSProDictionary.Size = new System.Drawing.Size(461, 13);
             this.labelCSProDictionary.TabIndex = 11;
             this.labelCSProDictionary.Text = "Select a CSPro dictionary...";
             // 
@@ -178,7 +178,7 @@
             this.labelExcelFile.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.labelExcelFile.Location = new System.Drawing.Point(12, 21);
             this.labelExcelFile.Name = "labelExcelFile";
-            this.labelExcelFile.Size = new System.Drawing.Size(480, 13);
+            this.labelExcelFile.Size = new System.Drawing.Size(461, 13);
             this.labelExcelFile.TabIndex = 10;
             this.labelExcelFile.Text = "Select an Excel file...";
             // 
@@ -186,11 +186,11 @@
             // 
             this.buttonSelectOutputFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSelectOutputFile.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.buttonSelectOutputFile.Location = new System.Drawing.Point(498, 76);
+            this.buttonSelectOutputFile.Location = new System.Drawing.Point(480, 76);
             this.buttonSelectOutputFile.Name = "buttonSelectOutputFile";
-            this.buttonSelectOutputFile.Size = new System.Drawing.Size(130, 23);
+            this.buttonSelectOutputFile.Size = new System.Drawing.Size(148, 23);
             this.buttonSelectOutputFile.TabIndex = 2;
-            this.buttonSelectOutputFile.Text = "Select Output Data File";
+            this.buttonSelectOutputFile.Text = "Select Output Data Source";
             this.buttonSelectOutputFile.UseVisualStyleBackColor = true;
             this.buttonSelectOutputFile.Click += new System.EventHandler(this.buttonSelectOutputFile_Click);
             // 
@@ -198,9 +198,9 @@
             // 
             this.buttonSelectDictionary.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSelectDictionary.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.buttonSelectDictionary.Location = new System.Drawing.Point(498, 46);
+            this.buttonSelectDictionary.Location = new System.Drawing.Point(480, 46);
             this.buttonSelectDictionary.Name = "buttonSelectDictionary";
-            this.buttonSelectDictionary.Size = new System.Drawing.Size(130, 23);
+            this.buttonSelectDictionary.Size = new System.Drawing.Size(148, 23);
             this.buttonSelectDictionary.TabIndex = 1;
             this.buttonSelectDictionary.Text = "Select CSPro Dictionary";
             this.buttonSelectDictionary.UseVisualStyleBackColor = true;
@@ -210,9 +210,9 @@
             // 
             this.buttonSelectExcelFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSelectExcelFile.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.buttonSelectExcelFile.Location = new System.Drawing.Point(498, 16);
+            this.buttonSelectExcelFile.Location = new System.Drawing.Point(480, 16);
             this.buttonSelectExcelFile.Name = "buttonSelectExcelFile";
-            this.buttonSelectExcelFile.Size = new System.Drawing.Size(130, 23);
+            this.buttonSelectExcelFile.Size = new System.Drawing.Size(148, 23);
             this.buttonSelectExcelFile.TabIndex = 0;
             this.buttonSelectExcelFile.Text = "Select Excel File";
             this.buttonSelectExcelFile.UseVisualStyleBackColor = true;

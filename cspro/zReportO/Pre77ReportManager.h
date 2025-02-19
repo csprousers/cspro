@@ -28,7 +28,7 @@ namespace Pre77Report
 
         void ClearReportData();
 
-        void SetReportData(CString csAttribute,const std::string& sValue);
+        void SetReportData(const CString& attribute, std::string value);
 
         void SetReportData(CString csAttribute, sqlite3* db, const std::string& sql_query);
 
@@ -43,7 +43,7 @@ namespace Pre77Report
         const ReportQueryNode* FindReportQueryNode(const std::string& sQueryName);
         void ExecuteQueryIfNecessary(const ReportQueryNode* pReportQueryNode);
 
-        void LoadQueries(CString csWorkingDirectory,std::vector<ReportQueryNode*>& aQueries);
+        std::vector<ReportQueryNode*> LoadQueries(const std::string& working_directory);
 
     private:
         std::string CreateReport(const std::string& sTemplate);
@@ -55,7 +55,7 @@ namespace Pre77Report
         static void WriteUtf8File(NullTerminatedString filename, const std::string& sText);
 
         std::unique_ptr<IReportManagerAssistant> m_pReportManagerAssistant;
-        std::map<CString,std::string> m_mapData;
+        std::map<CString, std::string> m_mapData;
 
         CString m_csOutputDirectory;
         std::vector<CString> m_aTemporaryFilenames;

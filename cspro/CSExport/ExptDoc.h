@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <ZBRIDGEO/npff.h>
-#include <zUtilO/TemporaryFile.h>
+#include <zDataO/DictionarySource.h>
 
 class CExportOptionsView;
 class CExportView;
@@ -37,9 +37,8 @@ protected: // create from serialization only
     DECLARE_DYNCREATE(CExportDoc)
 
 public:
-    CString                     m_csDictFileName;
-    std::unique_ptr<std::tuple<std::unique_ptr<TemporaryFile>, ConnectionString>> m_embeddedDictionaryInformation;
-    std::shared_ptr<const CDataDict> m_pDataDict;
+    DictionarySource            m_dictionarySource;
+    std::shared_ptr<const CDataDict> m_dictionary;
     CIMSAString                 m_csErrorMessage;
     CIMSAString                 m_csProgTitle;
 
@@ -68,9 +67,8 @@ public:
 
 // Attributes
 public:
-    std::shared_ptr<const CDataDict> GetSharedDictionary() const { return m_pDataDict; }
-    const CDataDict* GetDataDict() const                         { return m_pDataDict.get(); }
-    CIMSAString GetDictFileName() const                          { return m_csDictFileName;}
+    std::shared_ptr<const CDataDict> GetSharedDictionary() const { return m_dictionary; }
+    const CDataDict* GetDataDict() const                         { return m_dictionary.get(); }
     CIMSAString GetSpecFileName() const                          { return m_PifFile.GetAppFName();}
     const LogicSettings& GetLogicSettings() const                { return m_logicSettings; }
 
@@ -84,20 +82,20 @@ public:
 // Overrides
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CExportDoc)
-    public:
-    virtual BOOL OnNewDocument();
-    virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
-    virtual void OnCloseDocument();
-    protected:
-    virtual BOOL SaveModified();
+    BOOL OnNewDocument() override;
+    BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
+    void OnCloseDocument() override;
+
+protected:
+    BOOL SaveModified() override;
     //}}AFX_VIRTUAL
 
 // Implementation
 public:
     CString GetRecordItemStr();
     int GetNumItemsSelected();
-    int GetPositionInList(wstring_view name_sv, int occurrence) const;
-    int GetPositionInList(int relation_index, wstring_view name_sv, int occurrence) const;
+    int GetPositionInList(std::string_view name_sv, int occurrence) const;
+    int GetPositionInList(int relation_index, std::string_view name_sv, int occurrence) const;
     void AddAllItems();
     void SetItemCheck(int i, bool sel) { m_aItems[i].selected = sel;}
     int GetItemOcc (int i)
@@ -122,7 +120,6 @@ public:
     CIMSAString m_csRDescFile;
     CStringArray m_rectypes;
     int GetNumExpRecTypes();
-    bool OpenDictFile(const TCHAR* filename, bool silent);
     bool GenerateApplogic(CSpecFile& appFile);
     bool GenerateBatchApp4MultiModel();
     bool WriteDefaultFiles4MultiModel(Application* pApplication, const CString &sAppFName);
@@ -133,11 +130,7 @@ public:
     bool DeleteOutPutFiles();
     bool IsRecordSingle(const CString& sRecTypeVal);
 
-    virtual ~CExportDoc();
-#ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
-#endif
+    ~CExportDoc();
 
     void    SyncBuff_app();
 
@@ -175,7 +168,7 @@ protected:
     afx_msg void OnUpdateFileSave(CCmdUI* pCmdUI);
     afx_msg void OnOptionsExcluded();
     afx_msg void OnUpdateOptionsExcluded(CCmdUI* pCmdUI);
-    afx_msg void OnOptionsLogicSettings();    
+    afx_msg void OnOptionsLogicSettings();
     afx_msg void OnViewBatchLogic();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
@@ -394,19 +387,18 @@ public:
     CString             m_csMultItemLoopIdx;
     CString             m_csMultSubItemLoopIdx;
 
-    CString GetDocumentWindowTitle() const;
+    std::string GetDocumentWindowTitle() const;
     CString GetDirectoryForOutputs() const;
-    bool GetInputDataFilenames();
-    bool CheckInInputOutputFilenamesAreDifferent() const;
+    bool GetInputDataSources();
+    bool CheckIfInputOutputDataSourcesAreDifferent() const;
 
 private:
-    bool ProcessDictionarySource(wstring_view filename_sv);
-    CString GetDictionarySourceFilename() const;
+    void ProcessDictionarySource(DictionarySource dictionary_source);
 
-    bool OpenSpecFile(const TCHAR* filename, bool silent);
+    bool OpenSpecFile(const std::string& spec_file_path, bool silent);
     void SaveSpecFile() const;
 
-    static std::wstring ConvertPre80SpecFile(NullTerminatedString filename);
+    static std::string ConvertPre80SpecFile(InterfaceString file_path);
 };
 
 /////////////////////////////////////////////////////////////////////////////

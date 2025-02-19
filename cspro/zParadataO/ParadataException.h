@@ -1,42 +1,43 @@
 ﻿#pragma once
+
 #include <zToolsO/CSProException.h>
 
-namespace Paradata
+namespace Paradata { class Exception; }
+
+
+class Paradata::Exception : public CSProException
 {
-    class Exception : public CSProException
+public:
+    enum class Type
     {
-    public:
-        enum class Type
-        {
-            OpenDatabase,
-            BeginTransaction,
-            EndTransaction,
-            CreateTable,
-            UpdateTable,
-            CreateIndex,
-            CreatePreparedStatement,
-            Insert,
-            Version
-        };
-
-        Exception(Type type)
-            :   CSProException(_T("Paradata problem: %s"), TypeToString(type))
-        {
-        }
-
-    private:
-        static const TCHAR* TypeToString(Type type)
-        {
-            return ( type == Type::OpenDatabase )            ? _T("Could not open SQLite file") :
-                   ( type == Type::BeginTransaction )        ? _T("Could not begin a transaction") :
-                   ( type == Type::EndTransaction )          ? _T("Could not end a transaction") :
-                   ( type == Type::CreateTable )             ? _T("Could not create a table") :
-                   ( type == Type::UpdateTable )             ? _T("Could not update the table's columns") :
-                   ( type == Type::CreateIndex )             ? _T("Could not create an index") :
-                   ( type == Type::CreatePreparedStatement ) ? _T("Could not create a prepared statement") :
-                   ( type == Type::Insert )                  ? _T("Could not insert a row") :
-                   ( type == Type::Version )                 ? _T("Could not read or set the version") :
-                                                               _T("");
-        }
+        OpenDatabase,
+        BeginTransaction,
+        EndTransaction,
+        CreateTable,
+        UpdateTable,
+        CreateIndex,
+        CreatePreparedStatement,
+        Insert,
+        Version
     };
-}
+
+    Exception(Type type)
+        :   CSProException("Paradata problem: %s", TypeToString(type))
+    {
+    }
+
+private:
+    static const char* TypeToString(Type type)
+    {
+        return ( type == Type::OpenDatabase )            ? "Could not open SQLite file" :
+               ( type == Type::BeginTransaction )        ? "Could not begin a transaction" :
+               ( type == Type::EndTransaction )          ? "Could not end a transaction" :
+               ( type == Type::CreateTable )             ? "Could not create a table" :
+               ( type == Type::UpdateTable )             ? "Could not update the table's columns" :
+               ( type == Type::CreateIndex )             ? "Could not create an index" :
+               ( type == Type::CreatePreparedStatement ) ? "Could not create a prepared statement" :
+               ( type == Type::Insert )                  ? "Could not insert a row" :
+               ( type == Type::Version )                 ? "Could not read or set the version" :
+                                                           "";
+    }
+};

@@ -2,11 +2,11 @@
 #include "ImageCaptureDlg.h"
 
 
-ImageCaptureDlg::ImageCaptureDlg(const ImageCaptureType image_capture_type, const std::optional<std::wstring>& message, const std::optional<std::wstring>& image_localhost_url)
-    :   m_dialogName(( image_capture_type == ImageCaptureType::Signature ) ? _T("Image-captureSignature") : _T("Image-takePhoto"))
+ImageCaptureDlg::ImageCaptureDlg(const ImageCaptureType image_capture_type, const SharableString& message, const SharableString& image_localhost_url)
+    :   m_dialogName(( image_capture_type == ImageCaptureType::Signature ) ? "Image-captureSignature" : "Image-takePhoto")
 {
     // create the JSON arguments text
-    auto json_writer = Json::CreateStringWriter(m_jsonArgumentsText);
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(m_jsonArgumentsText.MakeModifiable());
 
     json_writer->BeginObject();
 
@@ -17,19 +17,19 @@ ImageCaptureDlg::ImageCaptureDlg(const ImageCaptureType image_capture_type, cons
 }
 
 
-const TCHAR* ImageCaptureDlg::GetDialogName()
+std::string ImageCaptureDlg::GetDialogName()
 {
     return m_dialogName;
 }
 
 
-std::wstring ImageCaptureDlg::GetJsonArgumentsText()
+SharableString ImageCaptureDlg::GetJsonArgumentsText()
 {
     return m_jsonArgumentsText;
 }
 
 
-void ImageCaptureDlg::ProcessJsonResults(const JsonNode<wchar_t>& json_results)
+void ImageCaptureDlg::ProcessJsonResults(const JsonNode& json_results)
 {
-    m_imageDataUrl = json_results.Get<std::wstring>(JK::url);
+    m_imageDataUrl = json_results.Get<std::string>(JK::url);
 }

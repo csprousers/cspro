@@ -76,7 +76,7 @@ namespace PFF_Editor
         public List<String> m_extraFiles;
         public List<String> m_inputParadata;
         public string m_outputParadata;
-		public string m_paradata;
+        public string m_paradata;
         public string m_listing;
         public string m_freqs;
         public string m_imputeFreqs;
@@ -115,11 +115,9 @@ namespace PFF_Editor
         public bool m_displayNames;
         public bool m_inputOrderIndexed;
         public bool m_concatMethodCase;
-        public enum SyncType { CSWeb, Dropbox, FTP, LocalDropbox, LocalFiles };
-        public SyncType m_syncType;
+        public string m_syncService;
         public enum SyncDirection { Get, Put, Both };
         public SyncDirection m_syncDirection;
-        public string m_syncUrl;
         public enum DeployToOverride { None, CSWeb, Dropbox, FTP, LocalFile, LocalFolder };
         public DeployToOverride m_deployToOverride;
         public bool m_silent;
@@ -182,7 +180,7 @@ namespace PFF_Editor
             m_extraFiles = new List<String>();
             m_inputParadata = new List<String>();
             m_outputParadata = "";
-			m_paradata = "";
+            m_paradata = "";
             m_listing = "";
             m_freqs = "";
             m_imputeFreqs = "";
@@ -215,9 +213,8 @@ namespace PFF_Editor
             m_displayNames = false;
             m_inputOrderIndexed = false;
             m_concatMethodCase = false;
-            m_syncType = SyncType.CSWeb;
+            m_syncService = "";
             m_syncDirection = SyncDirection.Get;
-            m_syncUrl = "";
             m_deployToOverride = DeployToOverride.None;
             m_silent = false;
             m_onExit = "";
@@ -397,10 +394,10 @@ namespace PFF_Editor
             {
                 m_appType = (AppType)ParseEnum(argument,Commands.Batch,AppType.Batch,Commands.Compare,AppType.Compare,
                     Commands.Concatenate,AppType.Concatenate,Commands.Deploy,AppType.Deploy,Commands.Entry,AppType.Entry,
-					Commands.Excel2CSPro,AppType.Excel2CSPro,Commands.Export,AppType.Export,Commands.Frequencies,AppType.Frequencies,
-					Commands.Index,AppType.Index,Commands.Pack,AppType.Pack,Commands.ParadataConcatenate,AppType.ParadataConcatenate,
-					Commands.Reformat,AppType.Reformat,Commands.Sort,AppType.Sort,Commands.Sync,AppType.Sync,
-					Commands.Tabulation,AppType.Tabulation,Commands.View,AppType.View);
+                    Commands.Excel2CSPro,AppType.Excel2CSPro,Commands.Export,AppType.Export,Commands.Frequencies,AppType.Frequencies,
+                    Commands.Index,AppType.Index,Commands.Pack,AppType.Pack,Commands.ParadataConcatenate,AppType.ParadataConcatenate,
+                    Commands.Reformat,AppType.Reformat,Commands.Sort,AppType.Sort,Commands.Sync,AppType.Sync,
+                    Commands.Tabulation,AppType.Tabulation,Commands.View,AppType.View);
             }
 
             else if( command.Equals(RunInformation.Description,StringComparison.CurrentCultureIgnoreCase) )
@@ -565,7 +562,7 @@ namespace PFF_Editor
             else if( command.Equals(DataEntryInit.AutoAdd,StringComparison.CurrentCultureIgnoreCase) )
                 m_autoAdd = ParseBinary(argument);
 
-			// language is now in the parameters section but used to be here
+            // language is now in the parameters section but used to be here
             else if( command.Equals(DataEntryInit.Language,StringComparison.CurrentCultureIgnoreCase) )
                 m_language = argument;
 
@@ -650,8 +647,8 @@ namespace PFF_Editor
 
             else if( command.Equals(Files.Paradata,StringComparison.CurrentCultureIgnoreCase) )
                 m_paradata = argument;
-            
-			else if( command.Equals(Files.Listing,StringComparison.CurrentCultureIgnoreCase) )
+
+            else if( command.Equals(Files.Listing,StringComparison.CurrentCultureIgnoreCase) )
                 m_listing = argument;
 
             else if( command.Equals(Files.Freqs,StringComparison.CurrentCultureIgnoreCase) )
@@ -670,13 +667,13 @@ namespace PFF_Editor
                 m_saveArrayFilename = argument;
 
             else if( command.Equals(Files.CommonStore,StringComparison.CurrentCultureIgnoreCase) )
-                m_commonStore = argument;                
+                m_commonStore = argument;
 
             else if( command.Equals(Files.HtmlDialogs,StringComparison.CurrentCultureIgnoreCase) )
-                m_htmlDialogsDirectory = argument;                
+                m_htmlDialogsDirectory = argument;
 
             else if( command.Equals(Files.BaseMap,StringComparison.CurrentCultureIgnoreCase) )
-                m_baseMap = argument;                
+                m_baseMap = argument;
 
             else
                 throw new Exception();
@@ -781,16 +778,28 @@ namespace PFF_Editor
             else if( command.Equals(Parameters.ConcatMethod,StringComparison.CurrentCultureIgnoreCase) )
                 m_concatMethodCase = argument.Equals(Commands.Case,StringComparison.CurrentCultureIgnoreCase);
 
-            else if( command.Equals(Parameters.SyncType,StringComparison.CurrentCultureIgnoreCase) )
-                m_syncType = (SyncType)ParseEnum(argument, Commands.CSWeb, SyncType.CSWeb,
-                    Commands.Dropbox, SyncType.Dropbox, Commands.FTP, SyncType.FTP, Commands.LocalDropbox, SyncType.LocalDropbox, Commands.LocalFiles, SyncType.LocalFiles);
-            
+            else if( command.Equals(Parameters.SyncService, StringComparison.CurrentCultureIgnoreCase) ||
+                     command.Equals("SyncUrl", StringComparison.CurrentCultureIgnoreCase) )
+            {
+                m_syncService = argument;
+            }
+
+            else if( command.Equals("SyncType", StringComparison.CurrentCultureIgnoreCase) )
+            {
+                if( argument.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase) )
+                {
+                    m_syncService = "Dropbox";
+                }
+
+                else if( argument.Equals("LocalDropbox", StringComparison.CurrentCultureIgnoreCase) )
+                {
+                    m_syncService = "Dropbox|useLocal=true";
+                }
+            }
+
             else if( command.Equals(Parameters.SyncDirection,StringComparison.CurrentCultureIgnoreCase) )
                 m_syncDirection = (SyncDirection)ParseEnum(argument,Commands.Get,SyncDirection.Get,
                     Commands.Put,SyncDirection.Put,Commands.Both,SyncDirection.Both);
-            
-            else if( command.Equals(Parameters.SyncUrl,StringComparison.CurrentCultureIgnoreCase) )
-                m_syncUrl = argument;
 
             else if( command.Equals(Parameters.DeployToOverride, StringComparison.CurrentCultureIgnoreCase) )
                 m_deployToOverride = (DeployToOverride)Enum.Parse(typeof(DeployToOverride), argument, true);
@@ -799,8 +808,8 @@ namespace PFF_Editor
                 m_silent = ParseBinary(argument);
 
             else if( command.Equals(Parameters.OnExit,StringComparison.CurrentCultureIgnoreCase) )
-                m_onExit = argument;				
-				
+                m_onExit = argument;
+
             else
             {
                 if( !m_customParameters.ContainsKey(command) )
@@ -816,28 +825,13 @@ namespace PFF_Editor
                 if( argument.Equals((string)parameters[i],StringComparison.CurrentCultureIgnoreCase) )
                     return parameters[i + 1];
             }
-            
+
             throw new Exception();
         }
 
         private static string ParseConnectionString(string argument)
         {
-            int pipe_pos = argument.IndexOf('|');
-            string filename = argument;
-
-            if( pipe_pos >= 0 )
-            {
-                filename = argument.Substring(0, pipe_pos).Trim();
-                string type = argument.Substring(pipe_pos + 1).Trim();
-
-                if( type.Equals("type=None", StringComparison.InvariantCultureIgnoreCase) ||
-                    type.Equals("None", StringComparison.InvariantCultureIgnoreCase) )
-                {
-                    return " ";
-                }
-            }
-
-            return filename;
+            return new CSPro.Util.ConnectionString(argument).ToString();
         }
 
 
@@ -894,7 +888,7 @@ namespace PFF_Editor
                     if( filename.Length >= 3 && filename[0] == '.' && ( filename[1] == '\\' || filename[1] == '/' ) )
                         filename = filename.Substring(2);
                 }
-                
+
                 else
                 {
                     filename = filename.Replace('\\','/');
@@ -932,7 +926,7 @@ namespace PFF_Editor
                     separatorText = "\", \"";
                     separatorParametersText = separatorText;
                 }
-                
+
                 else if( options.m_separateParameters )
                     separatorParametersText = "=%v\", \"";
 
@@ -957,7 +951,7 @@ namespace PFF_Editor
                     sb.AppendFormat("\tfile {0};\r\n",objectName);
                     sb.AppendFormat("\tsetfile({0}, pff_filename, create);\r\n\r\n",objectName);
 
-                    preText = String.Format("\tfilewrite({0}, \"",objectName);                    
+                    preText = String.Format("\tfilewrite({0}, \"",objectName);
                 }
 
                 postText = "\");\r\n";
@@ -1005,7 +999,7 @@ namespace PFF_Editor
                         {
                             if( options.m_usingPffObject )
                                 formatter = "{0}{1}{5}{2};{4}{3}";
-                            
+
                             else
                             {
                                 formatter = "{0}{1}{6}{2};{5}{4}{3}";
@@ -1013,7 +1007,7 @@ namespace PFF_Editor
                             }
                         }
                     }
-                    
+
                     sb.AppendFormat(formatter,preText,DataEntryInit.StartMode,m_startMode.ToString(),postText,m_startCase,thisSeparatorParametersText,separatorText);
                 }
 
@@ -1206,10 +1200,10 @@ namespace PFF_Editor
 
                 if( IsEngineRunningApp() && m_commonStore.Length > 0 )
                     sb.AppendFormat("{0}{1}{4}{2}{3}",preText,Files.CommonStore,GenerateFilename(options,m_commonStore),postText,separatorParametersText);
-                
+
                 if( IsEngineRunningApp() && m_htmlDialogsDirectory.Length > 0 )
                     sb.AppendFormat("{0}{1}{4}{2}{3}",preText,Files.HtmlDialogs,GenerateFilename(options,m_htmlDialogsDirectory),postText,separatorParametersText);
-                
+
                 if( IsEngineRunningApp() && m_baseMap.Length > 0 )
                     sb.AppendFormat("{0}{1}{4}{2}{3}",preText,Files.BaseMap,GenerateFilename(options,m_baseMap),postText,separatorParametersText);
             }
@@ -1244,7 +1238,7 @@ namespace PFF_Editor
 
 
             // [Parameters]
-			StringBuilder sbParameters = new StringBuilder();
+            StringBuilder sbParameters = new StringBuilder();
 
             if( IsEngineRunningApp() )
             {
@@ -1253,10 +1247,10 @@ namespace PFF_Editor
 
                 if( m_parameter.Length > 0 || m_verbose )
                     sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.Parameter,m_parameter,postText,separatorParametersText);
-			}
+            }
 
-			if( IsEngineRunningApp() || m_appType == AppType.Excel2CSPro || m_appType == AppType.View )
-			{
+            if( IsEngineRunningApp() || m_appType == AppType.Excel2CSPro || m_appType == AppType.View )
+            {
                 string headerPrefix = GetHeaderPrefix(options, Sections.Parameters);
 
                 foreach( var kp in m_customParameters )
@@ -1276,10 +1270,10 @@ namespace PFF_Editor
             }
 
             if( m_appType != AppType.Compare && m_appType != AppType.Deploy && m_appType != AppType.Entry && m_appType != AppType.Excel2CSPro &&
-				m_appType != AppType.Index && m_appType != AppType.Pack && m_appType != AppType.ParadataConcatenate && m_appType != AppType.Sync && m_appType != AppType.View )
-			{
+                m_appType != AppType.Index && m_appType != AppType.Pack && m_appType != AppType.ParadataConcatenate && m_appType != AppType.Sync && m_appType != AppType.View )
+            {
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.ViewResults,m_viewResults ? Commands.Yes : Commands.No,postText,separatorText);
-			}
+            }
 
             if( m_appType == AppType.Pack )
             {
@@ -1325,26 +1319,21 @@ namespace PFF_Editor
 
             if( IsEngineRunningApp() && m_appType != AppType.Entry )
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.InputOrder,m_inputOrderIndexed ? Commands.Indexed : Commands.Sequential,postText,separatorText);
-            
+
             if( m_appType == AppType.Concatenate )
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.ConcatMethod,m_concatMethodCase ? Commands.Case : Commands.Text,postText,separatorText);
 
-            if( m_appType == AppType.Sync )
+            if( ( m_appType == PFF.AppType.Sync ) ||
+                ( m_appType == AppType.Deploy && ( m_verbose || !string.IsNullOrWhiteSpace(m_syncService) ) ) )
             {
-                sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.SyncType,m_syncType.ToString(),postText,separatorText);
-                sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.SyncDirection,m_syncDirection.ToString(),postText,separatorText);
+                sbParameters.AppendFormat("{0}{1}{4}{2}{3}", preText, Parameters.SyncService, m_syncService, postText, separatorParametersText);
             }
 
-            if( ( m_appType == PFF.AppType.Sync && m_syncType != PFF.SyncType.Dropbox && m_syncType != PFF.SyncType.LocalDropbox ) ||
-                ( m_appType == AppType.Deploy && ( m_verbose || !string.IsNullOrWhiteSpace(m_syncUrl) ) ) )
-            {
-                sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.SyncUrl,m_syncUrl,postText,separatorParametersText);
-            }
+            if( m_appType == AppType.Sync )
+                sbParameters.AppendFormat("{0}{1}{4}{2}{3}", preText, Parameters.SyncDirection, m_syncDirection.ToString(), postText, separatorText);
 
             if( m_appType == AppType.Deploy )
-            {
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}", preText, Parameters.DeployToOverride, m_deployToOverride.ToString(), postText, separatorText);
-            }
 
             if( m_appType == AppType.Pack || ( m_silent && m_appType == AppType.Sync ) )
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.Silent,m_silent ? Commands.Yes : Commands.No,postText,separatorText);
@@ -1352,13 +1341,13 @@ namespace PFF_Editor
             if( m_onExit.Length > 0 )
                 sbParameters.AppendFormat("{0}{1}{4}{2}{3}",preText,Parameters.OnExit,GenerateFilename(options,m_onExit),postText,separatorParametersText);
 
-			if( m_verbose || sbParameters.Length > 0 )
-			{
+            if( m_verbose || sbParameters.Length > 0 )
+            {
                 sb.AppendLine();
                 if( writeHeaders)
                     sb.AppendFormat("{0}{1}{2}",preText,Sections.Parameters,postText);
-				sb.Append(sbParameters);
-			}
+                sb.Append(sbParameters);
+            }
 
 
             // [DataEntryIds]
@@ -1406,7 +1395,7 @@ namespace PFF_Editor
 
                 contents = new_contents;
             }
-            
+
             return contents;
         }
 
@@ -1502,9 +1491,8 @@ namespace PFF_Editor
             public const string InputOrder = "InputOrder";
             public const string ConcatMethod = "ConcatMethod";
             public const string OnExit = "OnExit";
-            public const string SyncType = "SyncType";
+            public const string SyncService = "SyncService";
             public const string SyncDirection = "SyncDirection";
-            public const string SyncUrl = "SyncUrl";
             public const string DeployToOverride = "DeployToOverride";
         }
 
@@ -1521,18 +1509,15 @@ namespace PFF_Editor
             public const string Compare = "Compare";
             public const string Con = "Con";
             public const string Concatenate = "Concatenate";
-            public const string CSWeb = "CSWeb";
             public const string Delete = "Delete";
-			public const string Deploy = "Deploy";
-            public const string Dropbox = "Dropbox";
+            public const string Deploy = "Deploy";
             public const string Entry = "Entry";
             public const string ErrMsg = "ErrMsg";
-			public const string Excel2CSPro = "Excel2CSPro";
+            public const string Excel2CSPro = "Excel2CSPro";
             public const string Export = "Export";
             public const string ExternalFiles = "ExternalFiles";
             public const string Format = "Format";
             public const string Frequencies = "Frequencies";
-            public const string FTP = "FTP";
             public const string Get = "Get";
             public const string Hidden = "Hidden";
             public const string Index = "Index";
@@ -1541,8 +1526,6 @@ namespace PFF_Editor
             public const string InputFiles = "InputFiles";
             public const string KeepFirst = "KeepFirst";
             public const string List = "List";
-            public const string LocalDropbox = "LocalDropbox";
-            public const string LocalFiles = "LocalFiles";
             public const string Lock = "Lock";
             public const string Modify = "Modify";
             public const string Never = "Never";
@@ -1551,7 +1534,7 @@ namespace PFF_Editor
             public const string Off = "Off";
             public const string OnError = "OnError";
             public const string Pack = "Pack";
-			public const string ParadataConcatenate = "ParadataConcatenate";
+            public const string ParadataConcatenate = "ParadataConcatenate";
             public const string Prompt = "Prompt";
             public const string PromptIfDifferent = "PromptIfDifferent";
             public const string Put = "Put";

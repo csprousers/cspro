@@ -15,7 +15,6 @@
 
 
 CREATE_JSON_KEY(arrays)
-CREATE_JSON_KEY(cases)
 CREATE_JSON_KEY(gets)
 CREATE_JSON_KEY(puts)
 CREATE_JSON_KEY(runs)
@@ -45,15 +44,15 @@ namespace
     constexpr const TCHAR* sCmdCell         = _T("Cell");
 
 
-    std::wstring GetFileExceptionMessage(const CSpecFile& spec_file)
+    std::string GetFileExceptionMessage(const CSpecFile& spec_file)
     {
 #ifdef WIN_DESKTOP
-        std::wstring cause(255, '\0');
-        spec_file.GetFileException()->GetErrorMessage(cause.data(), cause.length());
-        cause.resize(_tcslen(cause.data()));
-        return cause;
+        constexpr size_t MaxLength = 256;
+        auto cause = std::make_unique_for_overwrite<wchar_t[]>(MaxLength);
+        spec_file.GetFileException()->GetErrorMessage(cause.get(), MaxLength);
+        return TC::ToUtf8(cause.get());
 #else
-        return _T("Save Array File I/O");
+        return "Save Array File I/O";
 #endif
     }
 
@@ -61,7 +60,9 @@ namespace
     class SaveArrayFileNullErrorReporter : public SystemMessageIssuer
     {
     protected:
-        void OnIssue(MessageType /*message_type*/, int /*message_number*/, const std::wstring& /*message_text*/) override { }
+        void OnIssue(MessageType /*message_type*/, int /*message_number*/, const std::string& /*message_text*/) override { }
+        void OnIssue(const Logic::ParserMessage& /*parser_message*/) override { }
+        void OnAbort(const std::string& /*message_text*/) override { }
     };
 };
 
@@ -100,7 +101,7 @@ std::wstring SaveArrayFile::MakeArrayFileName(const std::variant<std::wstring, c
 
         else
         {
-            return PortableFunctions::PathAppendFileExtension(CS2WS(pff->GetAppFName()), FileExtensions::WithDot::SaveArray);
+            return UTF8_TODO::GetWide(PortableFunctions::PathAppendFileExtension(UTF8_TODO::GetUtf8(pff->GetAppFName()), FileExtensions::SaveArray));
         }
     }
 }
@@ -188,7 +189,7 @@ void SaveArrayFile::WriteArrays(std::variant<std::wstring, const PFF*> filename_
         {
             // write the array to the file if it is marked as a save array (compiler
             // sets this flag if the "save" keyword follows the array declaration).
-            const SaveArray* save_array = logic_array.GetSaveArray();
+            const SaveArray* const save_array = logic_array.GetSaveArray();
 
             if( save_array != nullptr )
             {
@@ -202,7 +203,7 @@ void SaveArrayFile::WriteArrays(std::variant<std::wstring, const PFF*> filename_
                 {
                     ASSERT(logic_array.IsString());
 
-                    SaveArraySparseArrayWriter<std::wstring> sparse_array_writer(*json_writer, logic_array, *save_array);
+                    SaveArraySparseArrayWriter<SharableString> sparse_array_writer(*json_writer, logic_array, *save_array);
                     sparse_array_writer.Write(cases_read, increment_runs);
                 }
             }
@@ -216,8 +217,8 @@ void SaveArrayFile::WriteArrays(std::variant<std::wstring, const PFF*> filename_
     catch( const CSProException& exception )
     {
         m_systemMessageIssuer->Issue(MessageType::Error, 19001,
-                                     PortableFunctions::PathGetFilename(sva_filename),
-                                     exception.GetErrorMessage().c_str());
+                                     PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(sva_filename)).c_str(),
+                                     exception.what());
     }
 }
 
@@ -236,8 +237,8 @@ void SaveArrayFile::ReadArrays(std::variant<std::wstring, const PFF*> filename_o
     if( !PortableFunctions::FileIsRegular(sva_filename) )
     {
         m_systemMessageIssuer->Issue(MessageType::Warning, 19002,
-                                     sva_filename.c_str(),
-                                     FileIO::Exception::FileNotFound(sva_filename).GetErrorMessage().c_str());
+                                     UTF8_TODO::GetUtf8(sva_filename).c_str(),
+                                     FileIO::Exception::FileNotFound(sva_filename).what());
     }
 
     else if( JsonSpecFile::IsPre80SpecFile(sva_filename) )
@@ -251,9 +252,9 @@ void SaveArrayFile::ReadArrays(std::variant<std::wstring, const PFF*> filename_o
     }
 
     // warn about save arrays in the program that are not in the file
-    for( LogicArray* logic_array : logic_arrays )
+    for( LogicArray* const logic_array : logic_arrays )
     {
-        SaveArray* save_array = logic_array->GetSaveArray();
+        SaveArray* const save_array = logic_array->GetSaveArray();
 
         if( save_array != nullptr )
         {
@@ -282,11 +283,11 @@ std::set<const LogicArray*> SaveArrayFile::ReadArrays(const std::wstring& sva_fi
         json_reader->CheckVersion();
         json_reader->CheckFileType(JV::savedArrays);
 
-        for( const JsonNode<wchar_t>& array_node : json_reader->GetArrayOrEmpty(JK::arrays) )
+        for( const JsonNode& array_node : json_reader->GetArrayOrEmpty(JK::arrays) )
         {
             try
             {
-                const LogicArray* read_array = ReadArray(array_node, logic_arrays, loading_for_save_array_viewer);
+                const LogicArray* const read_array = ReadArray(array_node, logic_arrays, loading_for_save_array_viewer);
 
                 if( read_array != nullptr )
                     successfully_read_arrays.insert(read_array);
@@ -294,7 +295,7 @@ std::set<const LogicArray*> SaveArrayFile::ReadArrays(const std::wstring& sva_fi
 
             catch( const CSProException& exception )
             {
-                m_systemMessageIssuer->Issue(MessageType::Error, 19005, exception.GetErrorMessage().c_str());
+                m_systemMessageIssuer->Issue(MessageType::Error, 19005, exception.what());
             }
         }
     }
@@ -302,8 +303,8 @@ std::set<const LogicArray*> SaveArrayFile::ReadArrays(const std::wstring& sva_fi
     catch( const CSProException& exception )
     {
         m_systemMessageIssuer->Issue(MessageType::Error, 19003,
-                                     PortableFunctions::PathGetFilename(sva_filename),
-                                     exception.GetErrorMessage().c_str());
+                                     PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(sva_filename)).c_str(),
+                                     exception.what());
     }
 
     // report any warnings
@@ -322,7 +323,7 @@ public:
     {
     }
 
-    JsonNode<wchar_t> ProcessNodeAndGetValueNode(const std::vector<size_t>& indices, const JsonNode<wchar_t>& json_node) override
+    JsonNode ProcessNodeAndGetValueNode(const std::vector<size_t>& indices, const JsonNode& json_node) override
     {
         m_saveArray.SetNumberGets(indices, json_node.GetOrDefault(JK::gets, 0));
         m_saveArray.SetNumberPuts(indices, json_node.GetOrDefault(JK::puts, 0));
@@ -335,12 +336,12 @@ private:
 };
 
 
-const LogicArray* SaveArrayFile::ReadArray(const JsonNode<wchar_t>& json_node, std::vector<LogicArray*>& logic_arrays, const bool loading_for_save_array_viewer)
+const LogicArray* SaveArrayFile::ReadArray(const JsonNode& json_node, std::vector<LogicArray*>& logic_arrays, const bool loading_for_save_array_viewer)
 {
-    const std::wstring array_name = json_node.Get<wstring_view>(JK::name);
+    std::string array_name = json_node.Get<std::string>(JK::name);
 
-    if( !CIMSAString::IsName(array_name) )
-        throw CSProException(_T("The Array name '%s' is invalid."), array_name.c_str());
+    if( !CIMSAString::IsName(UTF8_TODO::GetWide(array_name)) )
+        throw CSProException("The Array name '%s' is invalid.", array_name.c_str());
 
     // find the save array
     bool creating_missing_array = false;
@@ -348,7 +349,7 @@ const LogicArray* SaveArrayFile::ReadArray(const JsonNode<wchar_t>& json_node, s
     std::unique_ptr<LogicArray> created_logic_array;
 
     auto array_lookup = std::find_if(logic_arrays.begin(), logic_arrays.end(),
-                                     [&](const LogicArray* logic_array) { return SO::EqualsNoCase(array_name, logic_array->GetName()); });
+                                     [&](const LogicArray* const logic_array) { return SO::EqualsNoCase(array_name, logic_array->GetName()); });
 
     if( array_lookup == logic_arrays.end() )
     {
@@ -414,7 +415,7 @@ const LogicArray* SaveArrayFile::ReadArray(const JsonNode<wchar_t>& json_node, s
     if( creating_missing_array )
     {
         if( dimensions.empty() )
-            throw CSProException(_T("The Array '%s' cannot have 0 dimensions."), array_name.c_str());
+            throw CSProException("The Array '%s' cannot have 0 dimensions.", array_name.c_str());
 
         // the Save Array Viewer doesn't support Arrays with more than three dimensions
         if( dimensions.size() > 3 )
@@ -448,13 +449,13 @@ const LogicArray* SaveArrayFile::ReadArray(const JsonNode<wchar_t>& json_node, s
 
 
     // read the runs/cases
-    SaveArray* save_array = logic_array->GetSaveArray();
+    SaveArray* const save_array = logic_array->GetSaveArray();
     save_array->SetNumberRuns(json_node.GetOrDefault<size_t>(JK::runs, 0));
     save_array->SetNumberCases(json_node.GetOrDefault<size_t>(JK::cases, 0));
 
     // read the array values, gets, and puts
     SaveArraySparseArrayReader sparse_array_reader(*save_array);
-    logic_array->UpdateValueFromJson(json_node.Get(JK::value), &sparse_array_reader);
+    logic_array->SetValueFromJson(json_node.Get(JK::value), &sparse_array_reader);
 
     // on success, add arrays created for the Save Array Viewer
     if( created_logic_array != nullptr )
@@ -478,7 +479,7 @@ std::set<const LogicArray*> SaveArrayFile::ReadArraysPre80SpecFile(const std::ws
     // open the file for reading
     if (m_specFile.Open(sva_filename.c_str(), CFile::modeRead) != TRUE) {
         // error opening array file, report i/o error using text from windows msg
-        m_systemMessageIssuer->Issue(MessageType::Warning, 19002, sva_filename.c_str(), GetFileExceptionMessage(m_specFile).c_str());
+        m_systemMessageIssuer->Issue(MessageType::Warning, 19002, UTF8_TODO::GetUtf8(sva_filename).c_str(), GetFileExceptionMessage(m_specFile).c_str());
         bNoErr = false;
     }
 
@@ -523,7 +524,7 @@ std::set<const LogicArray*> SaveArrayFile::ReadArraysPre80SpecFile(const std::ws
         if (m_specFile.GetState() == SF_ABORT) {
             // hit a file i/o error somewhere along the way, report it
             // using windows generated text
-            m_systemMessageIssuer->Issue(MessageType::Error, 19003, sva_filename.c_str(), GetFileExceptionMessage(m_specFile).c_str());
+            m_systemMessageIssuer->Issue(MessageType::Error, 19003, UTF8_TODO::GetUtf8(sva_filename).c_str(), GetFileExceptionMessage(m_specFile).c_str());
         }
     }
 
@@ -546,14 +547,14 @@ std::tuple<bool, SaveArrayFile::ReadVersionNumber> SaveArrayFile::ReadHeader()
     std::tuple<bool, ReadVersionNumber> result(false, ReadVersionNumber::Version80Beta);
 
     if (!m_specFile.IsHeaderOK(sSectSavedArrays)) {
-        m_systemMessageIssuer->Issue(MessageType::Error, 19007, m_specFile.GetFilePath().GetString(), m_specFile.GetLineNumber());
+        m_systemMessageIssuer->Issue(MessageType::Error, 19007, UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), m_specFile.GetLineNumber());
         return result;
     }
 
     double version_number = 0;
 
-    if (!m_specFile.IsVersionOK(CSPRO_VERSION, &version_number)) {
-        m_systemMessageIssuer->Issue(MessageType::Error, 19008, m_specFile.GetFilePath().GetString(), m_specFile.GetLineNumber());
+    if (!m_specFile.IsVersionOK(Versioning::CSProVersionText, &version_number)) {
+        m_systemMessageIssuer->Issue(MessageType::Error, 19008, UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), m_specFile.GetLineNumber());
         return result;
     }
 
@@ -578,7 +579,7 @@ std::tuple<bool, SaveArrayFile::ReadVersionNumber> SaveArrayFile::ReadHeader()
     }
 
     // failed to find [Arrays] section
-    m_systemMessageIssuer->Issue(MessageType::Error, 19010, m_specFile.GetFilePath().GetString());
+    m_systemMessageIssuer->Issue(MessageType::Error, 19010, UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str());
     return result;
 }
 
@@ -600,7 +601,7 @@ LogicArray* SaveArrayFile::ReadArrayHeader(std::vector<LogicArray*>& logic_array
 
     if (sCmd.CompareNoCase(sSectArray) != 0) {
         // error, expected [Array]
-        m_systemMessageIssuer->Issue(MessageType::Error, 19006, m_specFile.GetFilePath().GetString(), m_specFile.GetLineNumber());
+        m_systemMessageIssuer->Issue(MessageType::Error, 19006, UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), m_specFile.GetLineNumber());
         return nullptr;
     }
 
@@ -610,7 +611,7 @@ LogicArray* SaveArrayFile::ReadArrayHeader(std::vector<LogicArray*>& logic_array
     while (m_specFile.GetLine(sCmd, sArg) == SF_OK) {
 
         if (sCmd.CompareNoCase(sCmdArrayName) == 0) {
-            if (SO::IsBlank(sArg)) {
+            if (SO::IsBlank(wstring_view(sArg))) {
                 // invalid array name
                 m_systemMessageIssuer->Issue(MessageType::Error, 19012, m_specFile.GetLineNumber());
                 return nullptr;
@@ -628,14 +629,14 @@ LogicArray* SaveArrayFile::ReadArrayHeader(std::vector<LogicArray*>& logic_array
                 {
                     // add the array (for the Save Array Viewer)
                     creating_missing_array = true;
-                    logic_array = logic_arrays.emplace_back(new LogicArray(CS2WS(sArg)));
+                    logic_array = logic_arrays.emplace_back(new LogicArray(UTF8_TODO::GetUtf8(sArg)));
                     logic_array->SetUsingSaveArray();
                 }
 
                 else
                 {
                     // warning array in file, but not declared in program
-                    m_systemMessageIssuer->Issue(MessageType::Warning, 19011, sArg.GetString());
+                    m_systemMessageIssuer->Issue(MessageType::Warning, 19011, UTF8_TODO::GetUtf8(sArg).c_str());
                     return nullptr;
                 }
             }
@@ -647,7 +648,7 @@ LogicArray* SaveArrayFile::ReadArrayHeader(std::vector<LogicArray*>& logic_array
                 if( logic_array->GetSaveArray() == nullptr )
                 {
                     // the array is no longer a save array
-                    m_systemMessageIssuer->Issue(MessageType::Warning, 19013, sArg.GetString());
+                    m_systemMessageIssuer->Issue(MessageType::Warning, 19013, UTF8_TODO::GetUtf8(sArg).c_str());
                     return nullptr;
                 }
             }
@@ -776,7 +777,7 @@ void SaveArrayFile::SkipToNextArray()
 
 namespace
 {
-    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(SaveArrayFileReadException, _T("Save Array Read Error"))
+    CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(SaveArrayFileReadException, "Save Array Read Error");
 }
 
 
@@ -785,7 +786,7 @@ bool SaveArrayFile::ReadArrayData(LogicArray& logic_array, ReadVersionNumber rea
     if( read_version_number == ReadVersionNumber::VersionPre72 )
         return ReadOldFormatArrayData(logic_array);
 
-    SaveArray* save_array = logic_array.GetSaveArray();
+    SaveArray* const save_array = logic_array.GetSaveArray();
 
     CString sCmd;
     CIMSAString sArg;
@@ -812,7 +813,7 @@ bool SaveArrayFile::ReadArrayData(LogicArray& logic_array, ReadVersionNumber rea
 
             // Format: Cell= dim1, dim2, ...; gets, puts; value
             std::vector<size_t> numeric_components;
-            std::wstring cell_value;
+            std::string cell_value;
 
             while( numeric_components.size() < numeric_components_expected || cell_value.empty() )
             {
@@ -839,29 +840,29 @@ bool SaveArrayFile::ReadArrayData(LogicArray& logic_array, ReadVersionNumber rea
                 {
                     if( read_version_number == ReadVersionNumber::Version80Beta )
                     {
-                        cell_value = Encoders::FromEscapedString(wstring_view(component).substr(1));
+                        cell_value = Encoders::FromEscapedString(UTF8_TODO::GetUtf8(wstring_view(component).substr(1)));
 
                         // if semicolons appeared in the cell text, we must read the tokens until exhausted
                         while( true )
                         {
                             component = sArg.GetToken(_T(",;"));
 
-                            if( SO::IsBlank(component) )
+                            if( SO::IsBlank(wstring_view(component)) )
                                 break;
 
-                            SO::AppendWithSeparator(cell_value, Encoders::FromEscapedString(CS2WS(component)), ';');
+                            SO::AppendWithSeparator(cell_value, Encoders::FromEscapedString(UTF8_TODO::GetUtf8(component)), ';');
                         }
                     }
 
                     else
                     {
-                        cell_value = wstring_view(component).substr(1);
+                        cell_value = UTF8_TODO::GetUtf8(wstring_view(component).substr(1));
                     }
 
                     SO::MakeTrimRightSpace(cell_value);
                 }
 
-                if( SO::IsBlank(component) )
+                if( SO::IsBlank(wstring_view(component)) )
                     break;
             }
 
@@ -882,7 +883,7 @@ bool SaveArrayFile::ReadArrayData(LogicArray& logic_array, ReadVersionNumber rea
             if( save_array != nullptr )
             {
                 save_array->SetNumberGets(indices, numeric_components[numeric_components_index]);
-                numeric_components_index++;
+                ++numeric_components_index;
                 save_array->SetNumberPuts(indices, numeric_components[numeric_components_index]);
             }
 
@@ -893,7 +894,7 @@ bool SaveArrayFile::ReadArrayData(LogicArray& logic_array, ReadVersionNumber rea
 
             else
             {
-                logic_array.SetValue(indices, std::move(cell_value));
+                logic_array.SetValue<SharableString>(indices, std::move(cell_value));
             }
         }
     }
@@ -933,6 +934,7 @@ namespace
         return indices;
     }
 }
+
 
 bool SaveArrayFile::ReadOldFormatArrayData(LogicArray& logic_array)
 {
@@ -1101,7 +1103,7 @@ bool SaveArrayFile::ReadCellAlpha(LogicArray& logic_array, const std::vector<siz
 
     if( iCol == 0 ) {
         if (sLine.GetLength() < 1 || sLine.GetAt(0) != '|') {
-            m_systemMessageIssuer->Issue(MessageType::Error, 19022, m_specFile.GetLineNumber(), m_specFile.GetFilePath().GetString(), iCol);
+            m_systemMessageIssuer->Issue(MessageType::Error, 19022, m_specFile.GetLineNumber(), UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), iCol);
             return false; // need leading "|" bf first item in row
         }
         sLine = sLine.Right(sLine.GetLength() - 1);
@@ -1109,16 +1111,16 @@ bool SaveArrayFile::ReadCellAlpha(LogicArray& logic_array, const std::vector<siz
 
     UINT iCellSize = logic_array.GetPaddingStringLength();
     if ((UINT) sLine.GetLength() < iCellSize) {
-        m_systemMessageIssuer->Issue(MessageType::Error, 19021, m_specFile.GetLineNumber(), m_specFile.GetFilePath().GetString(), iCol, iCellSize);
+        m_systemMessageIssuer->Issue(MessageType::Error, 19021, m_specFile.GetLineNumber(), UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), iCol, iCellSize);
         return false;
     }
 
     if (sLine.GetAt(iCellSize) != '|') {
-        m_systemMessageIssuer->Issue(MessageType::Error, 19022, m_specFile.GetLineNumber(), m_specFile.GetFilePath().GetString(), iCol);
+        m_systemMessageIssuer->Issue(MessageType::Error, 19022, m_specFile.GetLineNumber(), UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), iCol);
         return false;
     }
 
-    logic_array.SetValue(indices, CS2WS(sLine));
+    logic_array.SetValue<SharableString>(indices, UTF8_TODO::GetUtf8(sLine));
 
     sLine = sLine.Right(sLine.GetLength() - iCellSize -1);
 
@@ -1160,7 +1162,7 @@ bool SaveArrayFile::ReadCellNumeric(LogicArray& logic_array, const std::vector<s
     }
     else {
         // error, not numeric
-        m_systemMessageIssuer->Issue(MessageType::Error, 19020, m_specFile.GetLineNumber(), m_specFile.GetFilePath().GetString(), iCol);
+        m_systemMessageIssuer->Issue(MessageType::Error, 19020, m_specFile.GetLineNumber(), UTF8_TODO::GetUtf8(m_specFile.GetFilePath()).c_str(), iCol);
         return false;
     }
 
@@ -1173,7 +1175,7 @@ bool SaveArrayFile::ReadCellNumeric(LogicArray& logic_array, const std::vector<s
 
 bool SaveArrayFile::ReadStatistics(CString sMatchCmd, CIMSAString sArg, LogicArray& logic_array, int nRows, int nCols, int iLayer)
 {
-    SaveArray* save_array = logic_array.GetSaveArray();
+    SaveArray* const save_array = logic_array.GetSaveArray();
     bool gets = ( sMatchCmd.CompareNoCase(sCmdGet) == 0 );
 
     int iRows = 0;
@@ -1252,7 +1254,7 @@ bool SaveArrayFile::ReadStatistics(CString sMatchCmd, CIMSAString sArg, LogicArr
 // SaveArrayViewerHelpers
 // --------------------------------------------------------------------------
 
-LogicArray* SaveArrayViewerHelpers::CreateLogicArray(std::wstring array_name, std::vector<size_t> dimensions)
+LogicArray* SaveArrayViewerHelpers::CreateLogicArray(std::string array_name, std::vector<size_t> dimensions)
 {
     LogicArray* logic_array = new LogicArray(std::move(array_name));
     logic_array->SetUsingSaveArray();
@@ -1263,7 +1265,7 @@ LogicArray* SaveArrayViewerHelpers::CreateLogicArray(std::wstring array_name, st
 
 void SaveArrayViewerHelpers::CopyValues(LogicArray& logic_array, ValueCopier& value_copier, bool clr_receiving_values)
 {
-    SaveArray* save_array = logic_array.GetSaveArray();
+    SaveArray* const save_array = logic_array.GetSaveArray();
     ASSERT(save_array != nullptr);
 
     int rows = logic_array.GetDimension(0);
@@ -1280,10 +1282,10 @@ void SaveArrayViewerHelpers::CopyValues(LogicArray& logic_array, ValueCopier& va
 
             if( clr_receiving_values )
             {
-                const std::wstring& cell_value = logic_array.IsNumeric() ? CS2WS(NumberToString(logic_array.GetValue<double>(indices))) :
-                                                                           logic_array.GetValue<std::wstring>(indices);
+                const SharableString cell_value = logic_array.IsNumeric() ? DoubleToString(logic_array.GetValue<double>(indices)) :
+                                                                            logic_array.GetValue<SharableString>(indices);
 
-                value_copier.SetValues(index, cell_value, save_array->GetNumberGets(indices), save_array->GetNumberPuts(indices));
+                value_copier.SetValues(index, cell_value.GetString(), save_array->GetNumberGets(indices), save_array->GetNumberPuts(indices));
             }
 
             else
@@ -1297,7 +1299,7 @@ void SaveArrayViewerHelpers::CopyValues(LogicArray& logic_array, ValueCopier& va
 
                 else
                 {
-                    logic_array.SetValue(indices, cell_value);
+                    logic_array.SetValue<SharableString>(indices, std::move(cell_value));
                 }
 
                 save_array->SetNumberGets(indices, gets);

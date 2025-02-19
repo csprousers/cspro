@@ -19,24 +19,23 @@ class CEntryrunApp : public CWinApp
 {
 public:
     CEntryrunApp();
-    virtual ~CEntryrunApp();
+    ~CEntryrunApp();
 
-    CString m_csCurrentDocumentName;
     CNPifFile* m_pPifFile;
     CRunAplEntry* m_pRunAplEntry;
 
 private:
-    void CreatePenFile(const TCHAR* filename);
-    void OpenApplicationHelper(CString csFilename,bool bForceShowPifDlg = false);
-    bool LoadApplication(CString csFilename,bool bForceShowPifDlg = false);
+    void CreatePenFile(const std::string& application_file_path);
+    void OpenApplicationHelper(std::string application_file_path, bool force_show_file_associations = false);
+    bool LoadApplication(const std::string& file_path, bool force_show_file_associations = false);
     void PostLoadApplicationOperations();
     void ProcessStartMode();
 
     bool InitNCompileApp();
 
-    bool ShowPifDlg(bool bSavePif);
+    bool ShowPifDlg(bool save_pff);
 
-    void ApplicationShutdown(bool bCSEntryClosing = false);
+    void ApplicationShutdown(bool csentry_closing = false);
 
 // Overrides
     // ClassWizard generated virtual function overrides
@@ -59,7 +58,8 @@ public:
     DECLARE_MESSAGE_MAP()
 
 private:
-    CSEntryBinaryCommandLineInfo m_cmdInfo;
-    bool m_bPffLaunchedFromCommandLine;
     CWindowFocusMgr* m_pWindowFocusMgr;
+    CSEntryBinaryCommandLineInfo m_cmdInfo;
+    bool m_pffLaunchedFromCommandLine;
+    std::string m_currentApplicationFilePath;
 };

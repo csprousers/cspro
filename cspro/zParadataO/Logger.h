@@ -3,61 +3,56 @@
 #include <zParadataO/zParadataO.h>
 #include <zParadataO/TableDefinitions.h>
 
-struct sqlite3;
 class Application;
+struct sqlite3;
+namespace Paradata { class Event; class Log; class Logger; enum class PortableMessage; class Syncer; }
 
-
-namespace Paradata
+enum class Paradata::PortableMessage
 {
-    enum class PortableMessage
-    {
-        StopLogger,
-        StartLogger,
-        QueryCachedEvents,
-        UpdateBackgroundCollectionParameters
-    };
-
-    class Log;
-    class Event;
-    class Syncer;
+    StopLogger,
+    StartLogger,
+    QueryCachedEvents,
+    UpdateBackgroundCollectionParameters
+};
 
 
-    // this is the publicly accessible logger
-    class ZPARADATAO_API Logger
-    {
-    public:
-        Logger();
-        ~Logger();
 
-        static void SendPortableMessage(PortableMessage message, const Application* application = nullptr);
+// this is the publicly accessible logger
+class ZPARADATAO_API Paradata::Logger
+{
+public:
+    Logger();
+    ~Logger();
 
-        static bool IsOpen() { return ( _logger.m_log != nullptr ); }
+    static void SendPortableMessage(PortableMessage message, const Application* application = nullptr);
 
-        static const std::wstring& GetFilename();
+    static bool IsOpen() { return ( _logger.m_log != nullptr ); }
 
-        static bool Start(std::wstring filename, const Application* application = nullptr);
+    static const std::string& GetFilePath();
 
-        static bool Flush();
+    static bool Start(std::string file_path, const Application* application = nullptr);
 
-        static void Stop();
+    static bool Flush();
 
-        static void UpdateBackgroundCollectionParameters(const Application* application);
+    static void Stop();
 
-        static sqlite3* GetSqlite();
+    static void UpdateBackgroundCollectionParameters(const Application* application);
 
-        static void LogEvent(std::shared_ptr<Event> event, const void* instance_object = nullptr);
+    static sqlite3* GetSqlite();
 
-        static std::unique_ptr<Syncer> GetSyncer();
+    static void LogEvent(std::shared_ptr<Event> event, const void* instance_object = nullptr);
 
-    private:
-        std::unique_ptr<Log> m_log;
-        std::wstring m_filename;
-        std::vector<bool> m_includedEvents;
+    static std::unique_ptr<Syncer> GetSyncer();
 
-        // the logger singleton
-        static Logger _logger;
-    };
-}
+private:
+    std::unique_ptr<Log> m_log;
+    std::string m_filePath;
+    std::vector<bool> m_includedEvents;
+
+    // the logger singleton
+    static Logger _logger;
+};
+
 
 
 // include the event header files (so only this file has to be included from other parts of the code)

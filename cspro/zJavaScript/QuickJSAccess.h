@@ -11,7 +11,7 @@
 
 struct JavaScript::QuickJSAccess
 {
-    static constexpr std::string_view UnnamedScriptFilename = "<script>";
+    static constexpr std::string_view UnnamedScriptFilename_sv = "<script>";
 
     // variables
     Executor* executor;
@@ -25,20 +25,25 @@ struct JavaScript::QuickJSAccess
     static std::set<JSRuntime*> runtime_interrupt_requests;
 
     // methods
-    [[noreturn]] void ThrowException();
+    Exception CreateException();
+    [[noreturn]] void ThrowException() { throw CreateException(); }
+
+    JSValue NewError(const std::exception& exception, cs::cref_optional<std::string> name, cs::cref_optional<std::string> cause);
 
     static JSValue NewBoolean(bool value) { return value ? JS_TRUE: JS_FALSE; }
 
     JSValue NewDouble(double value) { return JS_NewFloat64(ctx, value); }
 
-    JSValue NewString(std::string_view text_sv) { return JS_NewStringLen(ctx, text_sv.data(), text_sv.length()); }
-    JSValue NewString(wstring_view text_sv)     { return NewString(UTF8Convert::WideToUTF8(text_sv)); }
+    JSValue NewString(std::string_view text_sv)                         { return JS_NewStringLen(ctx, text_sv.data(), text_sv.length()); }
+    static JSValue NewString(JSContext* ctx_, std::string_view text_sv) { return JS_NewStringLen(ctx_, text_sv.data(), text_sv.length()); }
 
-    template<typename T = std::string>
-    T GetString(JSValue js_value, bool trim_string = false);
+    JSAtom NewAtom(std::string_view text_sv) { return JS_NewAtomLen(ctx, text_sv.data(), text_sv.size()); }
 
-    ByteCode ObjectToByteCode(JSValue js_object);
-    JSValue ByteCodeToObject(const ByteCode& byte_code);
+    std::string GetString(JSValue js_value, bool trim_string = false);
+    std::string GetString(JSAtom js_atom);
+
+    Bytecode ObjectToBytecode(JSValue js_object);
+    JSValue BytecodeToObject(const Bytecode& bytecode);
 
     // static methods
     static Executor& GetExecutorFromContext(JSContext* ctx);

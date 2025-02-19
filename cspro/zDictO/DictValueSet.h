@@ -38,18 +38,21 @@ public:
     void RemoveValue(size_t index);
     void RemoveAllValues();
 
+    // Reverses the order of the values.
+    void ReverseValues();
+
 
     // linked value set management
     // --------------------------------------------------------------------------
-    bool IsLinkedValueSet() const                     { return !m_linkedValueSetCode.empty(); }
-    const std::wstring& GetLinkedValueSetCode() const { return m_linkedValueSetCode; }
+    bool IsLinkedValueSet() const                    { return !m_linkedValueSetCode.empty(); }
+    const std::string& GetLinkedValueSetCode() const { return m_linkedValueSetCode; }
 
     // links both the source value set and this value set to each other
     void LinkValueSet(DictValueSet& source_dict_value_set);
 
     // sets the linked value set code, creating a serialized link to other
     // value sets that also have their code set to this value
-    void LinkValueSetByCode(std::wstring code);
+    void LinkValueSetByCode(std::string code);
 
     void UnlinkValueSet();
 
@@ -72,7 +75,7 @@ public:
 
     // serialization
     // --------------------------------------------------------------------------
-    static DictValueSet CreateFromJson(const JsonNode<wchar_t>& json_node);
+    static DictValueSet CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
     void serialize(Serializer& ar);
@@ -80,7 +83,7 @@ public:
 private:
     std::vector<DictValue> m_dictValues;
 
-    std::wstring m_linkedValueSetCode;
+    std::string m_linkedValueSetCode;
 
     int m_symbolIndex; // the symbol table index to the ValueSet class
 

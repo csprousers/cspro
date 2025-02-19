@@ -1,7 +1,4 @@
-﻿// ExptDoc.cpp : implementation of the CExportDoc class
-//
-
-/************************************
+﻿/************************************
   REVISION LOG ENTRY
   Revision By: Chirag
   Revised on 2/26/2002 4:11:15 PM
@@ -14,7 +11,6 @@
 #include "ExportOptionsView.h"
 #include "ExptView.h"
 #include "MainFrm.h"
-#include <zUtilO/Filedlg.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/Specfile.h>
 #include <zJson/JsonObjectCreator.h>
@@ -162,7 +158,7 @@ CExportDoc::CExportDoc()
 
     m_bJOIN_SingleMultiple_UseSingleAfterMultiple   = true;
 
-    m_sBaseFilename.Format(_T("%sCSExpRun%d"), GetTempDirectory().c_str(), GetCurrentProcessId()); // 20140312
+    m_sBaseFilename.Format(_T("%sCSExpRun%d"), UTF8_TODO::GetWide(GetTempDirectory()).c_str(), GetCurrentProcessId()); // 20140312
 }
 
 CExportDoc::~CExportDoc()
@@ -182,67 +178,60 @@ BOOL CExportDoc::OnNewDocument()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CExportDoc diagnostics
-
-#ifdef _DEBUG
-void CExportDoc::AssertValid() const
-{
-    CDocument::AssertValid();
-}
-
-void CExportDoc::Dump(CDumpContext& dc) const
-{
-    CDocument::Dump(dc);
-}
-#endif //_DEBUG
-
-/////////////////////////////////////////////////////////////////////////////
 // CExportDoc commands
 
 BOOL CExportDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
+    CExportApp* const csexport_app = assert_cast<CExportApp*>(AfxGetApp());
+
     DeleteContents();
     SetModifiedFlag(FALSE);
     m_PifFile.ResetContents();
-    m_embeddedDictionaryInformation.reset();
+    m_dictionarySource.Reset();
     m_csUniverse.Empty();
 
     // 20130703 see if a document is already open (if so, don't mess with the registry settings)
     bool bFileAlreadyOpen = IsWindow(m_pTreeView->m_dicttree) && m_pTreeView->m_dicttree.GetRootItem() != NULL;
 
-    CString extension = PortableFunctions::PathGetFileExtension<CString>(lpszPathName);
+    const ConnectionString connection_string = csexport_app->GetConnectionStringFileSimulator().GetConnectionString(lpszPathName);
+    const std::string extension = connection_string.HasFilePath() ? PortableFunctions::PathGetFileExtension(connection_string.GetFilePath()) :
+                                                                    std::string();
 
-    if (extension.CompareNoCase(FileExtensions::Pff) == 0) {
-        m_bPostRunSave = false;
-        m_sPFFName = lpszPathName;
-        m_PifFile.SetPifFileName(lpszPathName);
-        if (m_PifFile.LoadPifFile()) {
-            if (OpenSpecFile(m_PifFile.GetAppFName(), true)) {
-                m_batchmode = true;
-                if(m_pOptionsView){
-                    m_pOptionsView->FromDoc(this);
+    try
+    {
+        if( SO::EqualsNoCase(extension, FileExtensions::Pff) )
+        {
+            m_bPostRunSave = false;
+            m_sPFFName = UTF8_TODO::GetCString(connection_string.GetFilePath());
+            m_PifFile.SetPifFileName(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+            if (m_PifFile.LoadPifFile()) {
+                if (OpenSpecFile(UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), true)) {
+                    m_batchmode = true;
+                    if(m_pOptionsView){
+                        m_pOptionsView->FromDoc(this);
+                    }
+
+                    return TRUE;
                 }
-
-                return TRUE;
             }
+            return FALSE;
         }
-        return FALSE;
-    }
 
-    else if (extension.CompareNoCase(FileExtensions::ExportSpec) == 0) {
-        if (OpenSpecFile(lpszPathName, false)) {
+        else if( SO::EqualsNoCase(extension, FileExtensions::ExportSpec) )
+        {
+            if( !OpenSpecFile(connection_string.GetFilePath(), false) )
+                return FALSE;
+
             AfxGetApp()->WriteProfileString(EXPORT_CMD_Settings, _T("Last Open"), lpszPathName);
-            m_PifFile.SetAppFName(lpszPathName);
-            CString csFileName = lpszPathName;
-            m_PifFile.SetListingFName(csFileName + FileExtensions::WithDot::Listing);
-            CString csPFF = csFileName + FileExtensions::WithDot::Pff;
-            CFileStatus status;
-            if (CFile::GetStatus(csPFF, status)) {
+            m_PifFile.SetAppFName(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+            CString csFileName = UTF8_TODO::GetCString(connection_string.GetFilePath());
+            m_PifFile.SetListingFName(csFileName + _T(".") + UTF8_TODO::GetCString(FileExtensions::Listing));
+            CString csPFF = csFileName + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
+            if (PortableFunctions::FileIsRegular(csPFF)) {
                 m_PifFile.SetPifFileName(csPFF);
                 if (m_PifFile.LoadPifFile()) {
-                    if (csFileName.CompareNoCase(lpszPathName) != 0) {
-                        AfxMessageBox(FormatText(_T("Spec files in %s\ndoes not match %s"), csPFF.GetString(), lpszPathName));
-                        return FALSE;
+                    if (csFileName.CompareNoCase(UTF8_TODO::GetCString(connection_string.GetFilePath())) != 0) {
+                        throw CSProException("Spec files in %s\ndoes not match %s", UTF8_TODO::GetUtf8(csPFF).c_str(), connection_string.GetFilePath().c_str());
                     }
                 }
             }
@@ -250,95 +239,58 @@ BOOL CExportDoc::OnOpenDocument(LPCTSTR lpszPathName)
                 m_pOptionsView->FromDoc(this);
             }
         }
-        else {
-            return FALSE;
+
+        else
+        {
+            ProcessDictionarySource(DictionarySource(connection_string));
+
+            m_PifFile.SetAppFName(CString());
+
+            if( !bFileAlreadyOpen ) // 20130703 load some settings in the registry: export format, unicode output, and comma as a decimal
+            {
+                CString sExportMethod = AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_ExportMethod,EXPORT_CMD_ExportMethod_TABS);
+
+                if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_TABS) )            m_convmethod = METHOD::TABS;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_COMMADEL) )   m_convmethod = METHOD::COMMADEL;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SEMI_COLON) ) m_convmethod = METHOD::SEMI_COLON;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_CSPRO) )      m_convmethod = METHOD::CSPRO;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SPSS) )       m_convmethod = METHOD::SPSS;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SAS) )        m_convmethod = METHOD::SAS;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_STATA) )      m_convmethod = METHOD::STATA;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_R) )          m_convmethod = METHOD::R;
+                else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_ALLTYPES) )   m_convmethod = METHOD::ALLTYPES;
+
+                CString sYes = EXPORT_CMD_Yes;
+
+                m_bForceANSI = sYes.CompareNoCase(AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_UnicodeOutput,EXPORT_CMD_No)) != 0;
+                m_bCommaDecimal = !sYes.CompareNoCase(AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_DecimalComma,EXPORT_CMD_No));
+            }
+
+            if(m_pOptionsView)
+                m_pOptionsView->FromDoc(this);
+
+            AddAllItems();
+
+            if( connection_string.HasFilePath() )
+                AfxGetApp()->WriteProfileString(EXPORT_CMD_Settings,_T("Last Open"), lpszPathName);
         }
     }
 
-    else if( extension.CompareNoCase(FileExtensions::Dictionary) == 0 ||
-             extension.CompareNoCase(FileExtensions::Data::CSProDB) == 0 ||
-             extension.CompareNoCase(FileExtensions::Data::EncryptedCSProDB) == 0 )
+    catch( const CSProException& exception )
     {
-        if( !ProcessDictionarySource(lpszPathName) )
-            return FALSE;
-
-        m_PifFile.SetAppFName(_T(""));
-        if (!OpenDictFile(m_csDictFileName, false)) {
-            return FALSE;
-        }
-
-        if( !bFileAlreadyOpen ) // 20130703 load some settings in the registry: export format, unicode output, and comma as a decimal
-        {
-            CString sExportMethod = AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_ExportMethod,EXPORT_CMD_ExportMethod_TABS);
-
-            if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_TABS) )            m_convmethod = METHOD::TABS;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_COMMADEL) )   m_convmethod = METHOD::COMMADEL;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SEMI_COLON) ) m_convmethod = METHOD::SEMI_COLON;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_CSPRO) )      m_convmethod = METHOD::CSPRO;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SPSS) )       m_convmethod = METHOD::SPSS;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_SAS) )        m_convmethod = METHOD::SAS;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_STATA) )      m_convmethod = METHOD::STATA;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_R) )          m_convmethod = METHOD::R;
-            else if( !sExportMethod.CompareNoCase(EXPORT_CMD_ExportMethod_ALLTYPES) )   m_convmethod = METHOD::ALLTYPES;
-
-            CString sYes = EXPORT_CMD_Yes;
-
-            m_bForceANSI = sYes.CompareNoCase(AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_UnicodeOutput,EXPORT_CMD_No)) != 0;
-            m_bCommaDecimal = !sYes.CompareNoCase(AfxGetApp()->GetProfileString(EXPORT_CMD_Settings,EXPORT_CMD_DecimalComma,EXPORT_CMD_No));
-        }
-
-        if(m_pOptionsView)
-            m_pOptionsView->FromDoc(this);
-
-        AddAllItems();
-        AfxGetApp()->WriteProfileString(EXPORT_CMD_Settings,_T("Last Open"), lpszPathName);
+        ErrorMessage::Display(exception);
+        return FALSE;
     }
 
     return TRUE;
 }
 
-bool CExportDoc::OpenDictFile(const TCHAR* filename, bool silent)
-{
-    //  Open data dictionary
-    CFileStatus fStatus;
-
-    // csc 5/21/04 ... give a more useful message if the DCF does not exist
-    if (!CFile::GetStatus(filename,fStatus)) {
-        CString csMsg;
-        csMsg.Format(_T("The dictionary file %s does not exist. Unable to continue export."), filename);
-        AfxMessageBox(csMsg,MB_ICONSTOP);
-        return false;
-    }
-
-    // Clear All memory of previous Dictionary
-    m_aItems.RemoveAll();
-
-    try
-    {
-        m_pDataDict = CDataDict::InstantiateAndOpen(filename, silent);
-
-        if( m_pDataDict->GetAllowExport() )
-            return true;
-
-        AfxMessageBox(_T("The dictionary's settings prohibit its use to export data"));
-    }
-
-    catch( const CSProException& exception )
-    {
-#ifdef _DEBUG
-        ErrorMessage::Display(exception);
-#endif        
-    }
-
-    m_pDataDict = std::make_shared<CDataDict>();
-    m_csDictFileName.Empty();
-    return false;
-}
 
 void CExportDoc::OnFileRun()
 {
     ProcessRun();
 }
+
 
 bool CExportDoc::IsChecked(int position) const
 {
@@ -356,8 +308,8 @@ CString CExportDoc::GetNameat(int level, int record, int item, int vset)
     ASSERT (level >= 0);
     ASSERT (item >= 0);
     ASSERT (vset >= 0);
-    const CDictItem* pItem = m_pDataDict->GetLevel(level).GetRecord(( record == -1 ) ? COMMON : record)->GetItem(item);
-    return pItem->GetName();
+    const CDictItem* pItem = m_dictionary->GetLevel(level).GetRecord(( record == -1 ) ? COMMON : record)->GetItem(item);
+    return UTF8_TODO::GetCString(pItem->GetName());
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -405,7 +357,7 @@ int CExportDoc::GetNumExpRecTypes()
             {
                 m_rectypes.Add(m_aItems[i].pItem->GetRecord()->GetRecTypeVal());
                 if (SharedSettings::ViewNamesInTree())
-                    m_records.Add(m_aItems[i].pItem->GetRecord()->GetName());
+                    m_records.Add(UTF8_TODO::GetCString(m_aItems[i].pItem->GetRecord()->GetName()));
                 else
                     m_records.Add(m_aItems[i].pItem->GetRecord()->GetLabel());
             }
@@ -424,8 +376,8 @@ void CExportDoc::OnUpdateFileRun(CCmdUI* pCmdUI)    // BMD 24 Mar 2005
 {
     bool bRelSelected = false;
 
-    if( m_pDataDict != nullptr ) {
-        for( const DictRelation& dict_relation : m_pDataDict->GetRelations() ) {
+    if( m_dictionary != nullptr ) {
+        for( const DictRelation& dict_relation : m_dictionary->GetRelations() ) {
             if (m_pTreeView->IsRelationSelected(dict_relation)) {
                 bRelSelected = true;
                 break;
@@ -502,23 +454,24 @@ void CExportDoc::OnFileSave()
 
 void CExportDoc::OnFileSaveAs()
 {
-    CString csPath = m_PifFile.GetAppFName();         // BMD 14 Mar 2002
-    if (SO::IsBlank(csPath)) {
-        CString csDictionarySourceFilename = GetDictionarySourceFilename();
-        csPath = csDictionarySourceFilename.Left(csDictionarySourceFilename.ReverseFind('\\')) + _T("\\*.exf");
-    }
-    CString csFilter = _T("Export Specification Files (*.exf)|*.exf|All Files (*.*)|*.*||");
+    std::string file_path = UTF8_TODO::GetUtf8(m_PifFile.GetAppFName());         // BMD 14 Mar 2002
 
-    CIMSAFileDialog dlgFile(FALSE, FileExtensions::ExportSpec, csPath, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, csFilter);
-    dlgFile.m_ofn.lpstrTitle = _T("Save Export Specification File");
-    if (dlgFile.DoModal() == IDOK) {
-        m_PifFile.SetAppFName(dlgFile.GetPathName());
-        m_PifFile.SetListingFName(dlgFile.GetPathName() + FileExtensions::WithDot::Listing);
-        SaveSpecFile();
-        AfxGetApp()->AddToRecentFileList(dlgFile.GetPathName());
-        SetPathName( m_PifFile.GetAppFName(),TRUE);
-        SetModifiedFlag(FALSE);
-    }
+    // if no spec file path exists, base it on the dictionary's source path
+    if( file_path.empty() )
+        file_path = Path::ReplaceExtension(m_dictionarySource.GetSourceFilePath(), FileExtensions::FrequencySpec);
+
+    SaveFileDlg save_file_dlg(0, FileExtensions::ExportSpec, file_path, L"Export Specification Files (*.exf)|*.exf|All Files (*.*)|*.*||");
+    save_file_dlg.SetTitle(L"Save Export Specification File");
+
+    if( save_file_dlg.DoModal() != IDOK )
+        return;
+
+    m_PifFile.SetAppFName(UTF8_TODO::GetCString(save_file_dlg.GetFilePath()));
+    m_PifFile.SetListingFName(UTF8_TODO::GetCString(Path::AppendExtension(save_file_dlg.GetFilePath(), FileExtensions::Listing)));
+    SaveSpecFile();
+    AfxGetApp()->AddToRecentFileList(TC::ToWide(save_file_dlg.GetFilePath()).c_str());
+    SetPathName(m_PifFile.GetAppFName(), TRUE);
+    SetModifiedFlag(FALSE);
 }
 
 
@@ -559,11 +512,12 @@ void CExportDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
 
 void CExportDoc::OnCloseDocument()
 {
-    m_pDataDict.reset();
+    m_dictionary.reset();
     SAFE_DELETE(m_pLogFile);
 
     CDocument::OnCloseDocument();
 }
+
 
 bool CExportDoc::GenerateBatchApp()
 {
@@ -571,19 +525,18 @@ bool CExportDoc::GenerateBatchApp()
     batchApp.SetEngineAppType(EngineAppType::Batch);
     batchApp.SetLogicSettings(m_logicSettings);
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
 
-    //make the order spec name ;
-    CString sFullFileName = sPath+_T("\\") + _T("CSExpRun.bch");
-    CString sOrderFile = sPath+_T("\\")+_T("CSExpRun.ord");
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
+
+    //make the order spec name
+    CString sFullFileName = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.bch"));
+    CString sOrderFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.ord"));
 
 
-    batchApp.AddFormFilename(sOrderFile);
+    batchApp.AddForm(UTF8_TODO::GetUtf8(sOrderFile));
     //Create the .ord file and save it
     CFileStatus fStatus;
     BOOL bOrderExists = CFile::GetStatus(sOrderFile,fStatus);
@@ -599,17 +552,26 @@ bool CExportDoc::GenerateBatchApp()
             bOrderExists  =false;
         }
     }
-    if(!bOrderExists) {
 
-        ASSERT(!m_csDictFileName.IsEmpty());
-        CDEFormFile Order(sOrderFile,m_csDictFileName);
+    if( !bOrderExists )
+    {
+        try
+        {
+            CDEFormFile Order(sOrderFile, UTF8_TODO::GetCString(m_dictionarySource.GetFileBasedDictionaryFilePath()));
 
-        //Create the .ord file and save it
-        Order.CreateOrderFile(*m_pDataDict, true);
-        Order.Save(sOrderFile);
+            //Create the .ord file and save it
+            Order.CreateOrderFile(*m_dictionary, true);
+            Order.Save(sOrderFile);
+        }
+
+        catch( const CSProException& exception )
+        {
+            ErrorMessage::Display(exception);
+            return false;
+        }
     }
 
-    batchApp.SetLabel(PortableFunctions::PathGetFilenameWithoutExtension<CString>(sFullFileName));
+    batchApp.SetLabel(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(sFullFileName)));
 
     if(!WriteDefaultFiles(&batchApp,sFullFileName)){
         return false;
@@ -624,9 +586,10 @@ bool CExportDoc::GenerateBatchApp()
     {
         return false;
     }
-    
+
     return true;
 }
+
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -641,7 +604,7 @@ bool CExportDoc::WriteDefaultFiles(Application* pApplication, const CString &sAp
     CString sAppSCodeFName(sAppFName);
     PathRemoveExtension(sAppSCodeFName.GetBuffer(_MAX_PATH));
     sAppSCodeFName.ReleaseBuffer();
-    sAppSCodeFName += FileExtensions::WithDot::Logic;
+    sAppSCodeFName += L"." + UTF8_TODO::GetCString(FileExtensions::Logic);
 
     CFileStatus fStatus;
     BOOL bRet = CFile::GetStatus(sAppSCodeFName,fStatus);
@@ -661,10 +624,10 @@ bool CExportDoc::WriteDefaultFiles(Application* pApplication, const CString &sAp
         //Create the .app file
         CSpecFile appFile(TRUE);
         appFile.Open(sAppSCodeFName,CFile::modeWrite);
-        appFile.WriteString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code));
+        appFile.WriteString(UTF8_TODO::GetCString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code)));
         //Now write logic into the file with the freq command
         appFile.WriteString(_T("\r\nPROC GLOBAL\r\n\n"));
-        CString sExptProc =  _T("PROC ") + m_pDataDict->GetLevel(m_iLowestLevel).GetName() +_T("\r\n");
+        CString sExptProc =  UTF8_TODO::GetCString("PROC " + m_dictionary->GetLevel(m_iLowestLevel).GetName() + "\r\n");
 
         appFile.WriteString(sExptProc);
         CString csmethod;
@@ -709,7 +672,7 @@ bool CExportDoc::WriteDefaultFiles(Application* pApplication, const CString &sAp
                 sExptProc += str.Left(pos+1) + _T("\n");
                 str = str.Right(str.GetLength() - (pos+1));
                 appFile.WriteString(sExptProc);
-                sExptProc = _T("");
+                sExptProc.Empty();
                 pos = 0;
             }
             else
@@ -723,7 +686,7 @@ bool CExportDoc::WriteDefaultFiles(Application* pApplication, const CString &sAp
         }
     }
 
-    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_shared<TextSource>(CS2WS(sAppSCodeFName))));
+    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(UTF8_TODO::GetUtf8(sAppSCodeFName))));
 
     return true;
 }
@@ -746,7 +709,7 @@ bool CExportDoc::LaunchBatchApp()
     try
     {
         BatchExecutor batch_executor;
-        batch_executor.Run(m_sBCHPFFName);
+        batch_executor.Run(UTF8_TODO::GetUtf8(m_sBCHPFFName));
 
         AfxGetMainWnd()->PostMessage(WM_IMSA_EXPORTDONE);
     }
@@ -779,7 +742,7 @@ void CExportDoc::AddAllItems()
 {
     CWaitCursor wait;
 
-    for( const DictLevel& dict_level : m_pDataDict->GetLevels() )
+    for( const DictLevel& dict_level : m_dictionary->GetLevels() )
     {
         const CDictRecord* pIdRecord = dict_level.GetIdItemsRec(); // Common Record for the level
 
@@ -851,17 +814,17 @@ void CExportDoc::AddAllItems()
     }
 
     int iRel = -1;
-    for( const DictRelation& dict_relation : m_pDataDict->GetRelations() ) {
+    for( const DictRelation& dict_relation : m_dictionary->GetRelations() ) {
         ++iRel;
         int iLevel;
         int iRecord;
         int iItem;
         int iVSet;
         // Primary
-        m_pDataDict->LookupName(dict_relation.GetPrimaryName(),&iLevel,&iRecord,&iItem,&iVSet);
+        m_dictionary->LookupName(dict_relation.GetPrimaryName(),&iLevel,&iRecord,&iItem,&iVSet);
         if (iItem == NONE) {
             // Repeating Records
-            const CDictRecord* pRec = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord);
+            const CDictRecord* pRec = m_dictionary->GetLevel(iLevel).GetRecord(iRecord);
             for (int k = 0; k < pRec->GetNumItems(); k++) {
                 const CDictItem* pItem = pRec->GetItem(k);
                 ITEMS a;
@@ -874,7 +837,7 @@ void CExportDoc::AddAllItems()
         }
         else {
             // Repeating Items or Subitems
-            const CDictItem* pDictItem = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
+            const CDictItem* pDictItem = m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
             ITEMS a;
             a.rel = NONE;
             a.pItem = pDictItem;
@@ -882,8 +845,8 @@ void CExportDoc::AddAllItems()
             a.selected = m_bSaveExcluded;
             m_aItems.Add(a);
             if (pDictItem->GetItemType() == ItemType::Item) {
-                for (int i = iItem + 1 ; i < m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems() ; i++) {
-                    pDictItem = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
+                for (int i = iItem + 1 ; i < m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems() ; i++) {
+                    pDictItem = m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
                     if (pDictItem->GetItemType() == ItemType::Item) {
                         break;
                     }
@@ -898,10 +861,10 @@ void CExportDoc::AddAllItems()
         }
 
         for( const DictRelationPart& dict_relation_part : dict_relation.GetRelationParts() ) {
-            m_pDataDict->LookupName(dict_relation_part.GetSecondaryName(),&iLevel,&iRecord,&iItem,&iVSet);
+            m_dictionary->LookupName(dict_relation_part.GetSecondaryName(),&iLevel,&iRecord,&iItem,&iVSet);
             if (iItem == NONE) {
                 // Repeating Records
-                const CDictRecord* pRec = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord);
+                const CDictRecord* pRec = m_dictionary->GetLevel(iLevel).GetRecord(iRecord);
                 for (int k = 0; k < pRec->GetNumItems(); k++) {
                     const CDictItem* pItem = pRec->GetItem(k);
                     ITEMS a;
@@ -914,7 +877,7 @@ void CExportDoc::AddAllItems()
             }
             else {
                 // Repeating Items or Subitems
-                const CDictItem* pDictItem = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
+                const CDictItem* pDictItem = m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetItem(iItem);
                 ITEMS a;
                 a.rel = iRel;
                 a.pItem = pDictItem;
@@ -922,8 +885,8 @@ void CExportDoc::AddAllItems()
                 a.selected = m_bSaveExcluded;
                 m_aItems.Add(a);
                 if (pDictItem->GetItemType() == ItemType::Item) {
-                    for (int i = iItem + 1 ; i < m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems() ; i++) {
-                        pDictItem = m_pDataDict->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
+                    for (int i = iItem + 1 ; i < m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetNumItems() ; i++) {
+                        pDictItem = m_dictionary->GetLevel(iLevel).GetRecord(iRecord)->GetItem(i);
                         if (pDictItem->GetItemType() == ItemType::Item) {
                             break;
                         }
@@ -940,23 +903,27 @@ void CExportDoc::AddAllItems()
     }
 }
 
-int CExportDoc::GetPositionInList(const wstring_view name_sv, const int occurrence) const
+
+int CExportDoc::GetPositionInList(const std::string_view name_sv, const int occurrence) const
 {
-    for (int i = 0; i < m_aItems.GetSize(); i++)
+    for( int i = 0; i < m_aItems.GetSize(); ++i )
     {
-        if (SO::EqualsNoCase(name_sv, m_aItems[i].pItem->GetName()) && occurrence == m_aItems[i].occ)
+        if( SO::EqualsNoCase(name_sv, m_aItems[i].pItem->GetName()) && occurrence == m_aItems[i].occ )
             return i;
     }
+
     return -1;
 }
 
-int CExportDoc::GetPositionInList(const int relation_index, const wstring_view name_sv, const int occurrence) const
+
+int CExportDoc::GetPositionInList(const int relation_index, const std::string_view name_sv, const int occurrence) const
 {
-    for (int i = 0; i < m_aItems.GetSize(); i++)
+    for( int i = 0; i < m_aItems.GetSize(); ++i )
     {
-        if (relation_index == m_aItems[i].rel && SO::EqualsNoCase(name_sv, m_aItems[i].pItem->GetName()) && occurrence == m_aItems[i].occ)
+        if( relation_index == m_aItems[i].rel && SO::EqualsNoCase(name_sv, m_aItems[i].pItem->GetName()) && occurrence == m_aItems[i].occ )
             return i;
     }
+
     return -1;
 }
 
@@ -979,7 +946,7 @@ CString CExportDoc::GetRecordItemStr()
 {
     CString RetStr;
 
-    for( const DictLevel& dict_level : m_pDataDict->GetLevels() )
+    for( const DictLevel& dict_level : m_dictionary->GetLevels() )
     {
         const CDictRecord* pRecord = dict_level.GetIdItemsRec();
         {
@@ -992,14 +959,14 @@ CString CExportDoc::GetRecordItemStr()
                 {
                     for (int o = 0; o < (int)pItem->GetOccurs(); o++)
                     {
-                        pos = GetPositionInList(pItem->GetName(),o+1);
-                        if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                        pos = GetPositionInList(pItem->GetName(), o + 1);
+                        if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                     }
                 }
                 else
                 {
-                    pos = GetPositionInList(pItem->GetName(),-1);
-                    if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                    pos = GetPositionInList(pItem->GetName(), -1);
+                    if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                 }
             }
         }
@@ -1019,7 +986,7 @@ CString CExportDoc::GetRecordItemStr()
                 {
                     for (int o = 0; o < occ; o++)
                     {
-                        int pos = GetPositionInList(pItem->GetName(),o+1);
+                        int pos = GetPositionInList(pItem->GetName(), o + 1);
                         if (!(pos >= 0 && m_aItems[pos].selected ))
                         {
                             flagrec = false;
@@ -1029,7 +996,7 @@ CString CExportDoc::GetRecordItemStr()
                 }
                 else
                 {
-                    int pos = GetPositionInList(pItem->GetName(),-1);
+                    int pos = GetPositionInList(pItem->GetName(), -1);
                     if (!(pos >= 0 && m_aItems[pos].selected ))
                     {
                         flagrec = false;
@@ -1039,7 +1006,7 @@ CString CExportDoc::GetRecordItemStr()
             }
             if (flagrec )
             {
-                RetStr += pRec->GetName() + _T(", ");
+                RetStr += UTF8_TODO::GetCString(pRec->GetName()) + _T(", ");
             }
             else
             {
@@ -1055,16 +1022,16 @@ CString CExportDoc::GetRecordItemStr()
                     {
                         for (int o = 0; o < occ; o++)
                         {
-                            int pos = GetPositionInList(pItem->GetName(),o+1);
+                            int pos = GetPositionInList(pItem->GetName(), o + 1);
                             CString str;
                             str.Format(_T("(%d)"),o+1);
-                            if (m_aItems[pos].selected) RetStr += pItem->GetName() + str + _T(", ");
+                            if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + str + _T(", ");
                         }
                     }
                     else
                     {
-                        int pos = GetPositionInList(pItem->GetName(),-1);
-                        if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                        int pos = GetPositionInList(pItem->GetName(), -1);
+                        if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                     }
                 }
             }
@@ -1084,19 +1051,18 @@ bool CExportDoc::GenerateBatchApp4MultiModel()
     batchApp.SetEngineAppType(EngineAppType::Batch);
     batchApp.SetLogicSettings(m_logicSettings);
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
 
     //make the order spec name ;
-    CString sFullFileName = sPath+_T("\\") + _T("CSExpRun.bch");
-    CString sOrderFile = sPath+_T("\\")+_T("CSExpRun.ord");
+    CString sFullFileName = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.bch"));
+    CString sOrderFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.ord"));
 
 
-    batchApp.AddFormFilename(sOrderFile);
+    batchApp.AddForm(UTF8_TODO::GetUtf8(sOrderFile));
     //Create the .ord file and save it
     CFileStatus fStatus;
     BOOL bOrderExists = CFile::GetStatus(sOrderFile,fStatus);
@@ -1112,17 +1078,26 @@ bool CExportDoc::GenerateBatchApp4MultiModel()
             bOrderExists  =false;
         }
     }
-    if(!bOrderExists) {
 
-        ASSERT(!m_csDictFileName.IsEmpty());
-        CDEFormFile Order(sOrderFile,m_csDictFileName);
+    if( !bOrderExists )
+    {
+        try
+        {
+            CDEFormFile Order(sOrderFile, UTF8_TODO::GetCString(m_dictionarySource.GetFileBasedDictionaryFilePath()));
 
-        //Create the .ord file and save it
-        Order.CreateOrderFile(*m_pDataDict, true);
-        Order.Save(sOrderFile);
+            //Create the .ord file and save it
+            Order.CreateOrderFile(*m_dictionary, true);
+            Order.Save(sOrderFile);
+        }
+
+        catch( const CSProException& exception )
+        {
+            ErrorMessage::Display(exception);
+            return false;
+        }
     }
 
-    batchApp.SetLabel(PortableFunctions::PathGetFilenameWithoutExtension<CString>(sFullFileName));
+    batchApp.SetLabel(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(sFullFileName)));
 
     if(!WriteDefaultFiles4MultiModel(&batchApp,sFullFileName)){
         return false;
@@ -1152,7 +1127,7 @@ bool CExportDoc::WriteDefaultFiles4MultiModel(Application* pApplication, const C
     CString sAppSCodeFName(sAppFName);
     PathRemoveExtension(sAppSCodeFName.GetBuffer(_MAX_PATH));
     sAppSCodeFName.ReleaseBuffer();
-    sAppSCodeFName += FileExtensions::WithDot::Logic;
+    sAppSCodeFName += L"." + UTF8_TODO::GetCString(FileExtensions::Logic);
 
     CFileStatus fStatus;
     BOOL bRet = CFile::GetStatus(sAppSCodeFName,fStatus);
@@ -1172,11 +1147,11 @@ bool CExportDoc::WriteDefaultFiles4MultiModel(Application* pApplication, const C
         //Create the .app file
         CSpecFile appFile(TRUE);
         appFile.Open(sAppSCodeFName,CFile::modeWrite);
-        appFile.WriteString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code));
+        appFile.WriteString(UTF8_TODO::GetCString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code)));
         //Now write logic into the file with the freq command
         appFile.WriteString(_T("\r\nPROC GLOBAL\r\n"));
         appFile.WriteString(_T("numeric i;\r\n"));
-        CString sExptProc =  _T("PROC ") + m_pDataDict->GetLevel(m_iLowestLevel).GetName() +_T("\r\n");
+        CString sExptProc = UTF8_TODO::GetCString("PROC " + m_dictionary->GetLevel(m_iLowestLevel).GetName() + "\r\n");
 
         appFile.WriteString(sExptProc);
 
@@ -1206,7 +1181,7 @@ bool CExportDoc::WriteDefaultFiles4MultiModel(Application* pApplication, const C
 
     }
 
-    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_shared<TextSource>(CS2WS(sAppSCodeFName))));
+    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(UTF8_TODO::GetUtf8(sAppSCodeFName))));
 
     return true;
 }
@@ -1223,7 +1198,7 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
     CString sExptProc, sCaseID;
     sExptProc = _T("Export  MultipleFiles\n");
 
-    for( const DictLevel& dict_level : m_pDataDict->GetLevels() )
+    for( const DictLevel& dict_level : m_dictionary->GetLevels() )
     {
         const CDictRecord* pRecord = dict_level.GetIdItemsRec();
         bool flagrec = true;
@@ -1237,7 +1212,7 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     occ = pItem->GetParentItem()->GetOccurs();
                 if (occ > 1){
                     for (int o = 0; o < occ; o++){
-                        int pos = GetPositionInList(pItem->GetName(),o+1);
+                        int pos = GetPositionInList(pItem->GetName(), o + 1);
                         if (!(pos >= 0 && m_aItems[pos].selected )){
                             flagrec = false;
                             if(bRecSelected){
@@ -1248,7 +1223,7 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     }
                 }
                 else{
-                    int pos = GetPositionInList(pItem->GetName(),-1);
+                    int pos = GetPositionInList(pItem->GetName(), -1);
                     if (!(pos >= 0 && m_aItems[pos].selected )){
                         flagrec = false;
                         if(bRecSelected){
@@ -1272,14 +1247,14 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     {
                         for (int o = 0; o < (int)pItem->GetOccurs(); o++)
                         {
-                            pos = GetPositionInList(pItem->GetName(),o+1);
-                            if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                            pos = GetPositionInList(pItem->GetName(), o + 1);
+                            if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                         }
                     }
                     else
                     {
-                        pos = GetPositionInList(pItem->GetName(),-1);
-                        if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                        pos = GetPositionInList(pItem->GetName(), -1);
+                        if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                     }
                 }
                 RetStr.TrimRight(_T(", "));
@@ -1294,14 +1269,14 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
             RetStr.Empty();
             CString sForLoop;
             const CDictRecord* pRec = dict_level.GetRecord(r);
-            /*int pos = GetPositionInList(pItem->GetName(),-1);
+            /*int pos = GetPositionInList(pItem->GetName(), -1);
             if (!(pos >= 0 && m_aItems[pos].selected )){
                 flagrec = false;
                 break;
             }*/
 
             if(pRec->GetMaxRecs() > 1) {
-                CString sEdtName = pRec->GetName() + _T("_EDT");  // BMD 25 Jul 2006
+            //  CString sEdtName = pRec->GetName() + _T("_EDT");  // BMD 25 Jul 2006
             //  sForLoop = "for i in " + sEdtName+ " do\r\n";
             }
             bool flagrecord = true;
@@ -1314,7 +1289,7 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     occ = pItem->GetParentItem()->GetOccurs();
                 if (occ > 1){
                     for (int o = 0; o < occ; o++){
-                        int pos = GetPositionInList(pItem->GetName(),o+1);
+                        int pos = GetPositionInList(pItem->GetName(), o + 1);
                         if (!(pos >= 0 && m_aItems[pos].selected )){
                             flagrecord = false;
                             if(bRecordSelected) {
@@ -1325,7 +1300,7 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     }
                 }
                 else{
-                    int pos = GetPositionInList(pItem->GetName(),-1);
+                    int pos = GetPositionInList(pItem->GetName(), -1);
                     if (!(pos >= 0 && m_aItems[pos].selected )){
                         flagrecord = false;
                         if(bRecordSelected) {
@@ -1347,18 +1322,18 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
             }
             if (flagrecord && bRecordSelected) {
                 if(sForLoop.IsEmpty()){
-                    RetStr = _T("Record (") + pRec->GetName() + _T(");\r\n");
+                    RetStr = UTF8_TODO::GetCString("Record (" + pRec->GetName() + ");\r\n");
                     sExptProc += RetStr;
                     appFile.WriteString(sExptProc);
-                    sExptProc =_T("");
+                    sExptProc.Empty();
                 }
                 else{
-                    RetStr = _T("Record (") + pRec->GetName() + _T(");\r\n");
+                    RetStr = UTF8_TODO::GetCString("Record (" + pRec->GetName() + ");\r\n");
                 //  RetStr += "enddo; \r\n";
                 //  appFile.WriteString(sForLoop);
                     sExptProc += RetStr;
                     appFile.WriteString(sExptProc);
-                    sExptProc=_T("");
+                    sExptProc.Empty();
 
                 }
             }
@@ -1374,32 +1349,32 @@ bool CExportDoc::GenerateApplogic(CSpecFile& appFile)
                     if (occ > 1){
                         for (int o = 0; o < occ; o++)
                         {
-                            int pos = GetPositionInList(pItem->GetName(),o+1);
+                            int pos = GetPositionInList(pItem->GetName(), o + 1);
                             CString str;
                             str.Format(_T("(%d)"),o+1);
-                            if (m_aItems[pos].selected) RetStr += pItem->GetName() + str + _T(", ");
+                            if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + str + _T(", ");
                         }
                     }
                     else{
-                        int pos = GetPositionInList(pItem->GetName(),-1);
-                        if (m_aItems[pos].selected) RetStr += pItem->GetName() + _T(", ");
+                        int pos = GetPositionInList(pItem->GetName(), -1);
+                        if (m_aItems[pos].selected) RetStr += UTF8_TODO::GetCString(pItem->GetName()) + _T(", ");
                     }
                 }
                 CString sInclude = GenerateInclude(RetStr);
                 sInclude.Trim();
                 if(sForLoop.IsEmpty() && !sInclude.IsEmpty()){
-                    RetStr = _T("Record (") + pRec->GetName()+ _T(" ") + sInclude + _T(" ") +_T(");\r\n");
+                    RetStr = _T("Record (") + UTF8_TODO::GetCString(pRec->GetName()) + _T(" ") + sInclude + _T(" ") +_T(");\r\n");
                     sExptProc += RetStr;
                     appFile.WriteString(sExptProc);
-                    sExptProc=_T("");
+                    sExptProc.Empty();
                 }
                 else if(!sInclude.IsEmpty()) {
-                    RetStr = _T("Record (") + pRec->GetName() + _T(" ") + sInclude + _T(" ") + _T(");\r\n");
+                    RetStr = _T("Record (") + UTF8_TODO::GetCString(pRec->GetName()) + _T(" ") + sInclude + _T(" ") + _T(");\r\n");
                 //  RetStr += "enddo; \r\n";
                 //  appFile.WriteString(sForLoop);
                     sExptProc += RetStr;
                     appFile.WriteString(sExptProc);
-                    sExptProc=_T("");
+                    sExptProc.Empty();
 
                 }
 
@@ -1487,7 +1462,7 @@ void CExportDoc::DoPostRunSave()
     if(m_bPostRunSave && !m_PifFile.GetAppFName().IsEmpty()){
         int iSize = sArray.GetSize();
         if(m_sPFFName.IsEmpty() ){
-            m_sPFFName = m_PifFile.GetAppFName() + FileExtensions::WithDot::Pff;
+            m_sPFFName = m_PifFile.GetAppFName() + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         }
         if(iSize > 0) {
             for(int iIndex =0; iIndex < iSize;iIndex++) {
@@ -1503,15 +1478,16 @@ void CExportDoc::DoPostRunSave()
 
 void CExportDoc::DoPostRunCleanUp()
 {
-    //delete the .pff and other files
-    if( !m_sBCHPFFName.IsEmpty() ) {
 #ifndef _DEBUG
+    // delete the .pff and other files
+    if( !m_sBCHPFFName.IsEmpty() )
+    {
         DeleteFile(m_sBCHPFFName);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::BatchApplication);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::Order);
-        DeleteFile(m_sBaseFilename + FileExtensions::WithDot::Logic);
-#endif
+        DeleteFile(m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication)));
+        DeleteFile(m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Order)));
+        DeleteFile(m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Logic)));
     }
+#endif
 }
 
 
@@ -1545,7 +1521,7 @@ int CExportDoc::GetSelectedItems(   CArray<const CDictItem*,const CDictItem*>*  
                                     CArray<const CDictRecord*,const CDictRecord*>*                                                              paSelRecords,
                                     CArray<const DictRelation*, const DictRelation*>*                                               paSelRelations){
 
-    if(!m_pDataDict)
+    if( m_dictionary == nullptr )
         return -1;
 
     if( paSelItems )
@@ -1565,10 +1541,10 @@ int CExportDoc::GetSelectedItems(   CArray<const CDictItem*,const CDictItem*>*  
     //needed to know the level of each selected item (excluding ids)
     CMap<const CDictItem*,const CDictItem*,int,int> aMapLevelByItem;
 
-    
+
     std::vector<int> aAcumItemsByLevelIdx;
     std::vector<const CDictRecord*> aDictIdRecs;
-    std::vector<const CDictItem*> aIdItems = m_pDataDict->GetIdItems(&aAcumItemsByLevelIdx, &aDictIdRecs);
+    std::vector<const CDictItem*> aIdItems = m_dictionary->GetIdItems(&aAcumItemsByLevelIdx, &aDictIdRecs);
     int iNumLevels = (int)aAcumItemsByLevelIdx.size();
     int i=0;
     int iLevelIdx;
@@ -1588,11 +1564,11 @@ int CExportDoc::GetSelectedItems(   CArray<const CDictItem*,const CDictItem*>*  
         }
 
         //NON ID Items
-        int iNumRecs = m_pDataDict->GetLevel( iLevelIdx ).GetNumRecords();
+        int iNumRecs = m_dictionary->GetLevel( iLevelIdx ).GetNumRecords();
         for(int iRecIdx=0; iRecIdx<iNumRecs; iRecIdx++){
-            int iNumItems = m_pDataDict->GetLevel( iLevelIdx ).GetRecord( iRecIdx )->GetNumItems();
+            int iNumItems = m_dictionary->GetLevel( iLevelIdx ).GetRecord( iRecIdx )->GetNumItems();
             for(int iItemIdx=0; iItemIdx<iNumItems; iItemIdx++){
-                const CDictItem* pDictItem = m_pDataDict->GetLevel( iLevelIdx ).GetRecord( iRecIdx )->GetItem( iItemIdx );
+                const CDictItem* pDictItem = m_dictionary->GetLevel( iLevelIdx ).GetRecord( iRecIdx )->GetItem( iItemIdx );
                 if( !pDictItem->AddToTreeFor80() )
                     continue;
                 aMapLevelByItem.SetAt( pDictItem, iLevelIdx );
@@ -1755,8 +1731,8 @@ int CExportDoc::GetSelectedItems(   CArray<const CDictItem*,const CDictItem*>*  
     }
 
     //retrieve selected relations
-    if( paSelRelations && m_pDataDict ){
-        for( const DictRelation& dict_relation : m_pDataDict->GetRelations() ) {
+    if( paSelRelations && m_dictionary != nullptr ){
+        for( const DictRelation& dict_relation : m_dictionary->GetRelations() ) {
             if( m_pTreeView->IsRelationSelected(dict_relation) ) {
                 paSelRelations->Add(&dict_relation);
             }
@@ -1882,53 +1858,53 @@ CString GetDefaultExportFileExt( METHOD method, CString* pcsExportFileType, CArr
 
         case METHOD::COMMADEL:{
             csExportFileType = _T("Comma delimited");
-            aExt.Add(FileExtensions::WithDot::CSV);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::CSV));
         } break;
 
         case METHOD::SEMI_COLON:{
             csExportFileType = _T("Semicolon delimited");
-            aExt.Add(FileExtensions::WithDot::CSV);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::CSV));
         } break;
 
         case METHOD::CSPRO:{
             csExportFileType = _T("CSPro");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::Dictionary);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Dictionary)));
         } break;
 
         case METHOD::SPSS:{
             csExportFileType = _T("SPSS");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::SpssSyntax);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax));
         } break;
 
         case METHOD::SAS:{
             csExportFileType = _T("SAS");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::SasSyntax);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax));
         } break;
 
         case METHOD::STATA:{
             csExportFileType = _T("Stata");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::StataDictionary);
-            aExt.Add(FileExtensions::WithDot::StataDo);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo));
         }break;
 
         case METHOD::R:{
             csExportFileType = _T("R");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::RSyntax);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::RSyntax));
         }break;
 
         case METHOD::ALLTYPES:{
             csExportFileType = _T("SPSS, SAS, Stata, and R");
-            aExt.Add(FileExtensions::Data::WithDot::TextDataDefault);
-            aExt.Add(FileExtensions::WithDot::SpssSyntax);
-            aExt.Add(FileExtensions::WithDot::SasSyntax);
-            aExt.Add(FileExtensions::WithDot::StataDictionary);
-            aExt.Add(FileExtensions::WithDot::StataDo);
-            aExt.Add(FileExtensions::WithDot::RSyntax);
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::Data::TextDataDefault));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo));
+            aExt.Add(_T(".") + UTF8_TODO::GetCString(FileExtensions::RSyntax));
         }break;
 
         default :{
@@ -1956,7 +1932,7 @@ void CExportDoc::CheckFileExtension() {
     if( m_csExportFileName.IsEmpty() )
         return;
 
-    CString csExt = _T(".") + PortableFunctions::PathGetFileExtension<CString>(m_csExportFileName);
+    CString csExt = _T(".") + WS2CS(PortableFunctions::PathGetFileExtension(m_csExportFileName));
 
     CArray<CString,CString> aValidExts;
     CString csDefExt = GetDefaultExportFileExt( m_convmethod, NULL, &aValidExts );
@@ -1969,17 +1945,20 @@ void CExportDoc::CheckFileExtension() {
 
     // invalid extension
     CString csOldExportFileName = m_csExportFileName;
-    m_csExportFileName = PortableFunctions::PathRemoveFileExtension<CString>(m_csExportFileName) + csDefExt;
+    m_csExportFileName = PortableFunctions::PathRemoveFileExtensionCS(m_csExportFileName) + csDefExt;
 
     if( csOldExportFileName.Compare( m_csExportFileName ) !=0 ) {
         m_csExportApp.Replace( csOldExportFileName, m_csExportFileName );
     }
 }
 
-void CExportDoc::CheckUniqueName(CString& rcsName ){
-
+void CExportDoc::CheckUniqueName(CString& rcsName)
+{
     CString csOldName(rcsName);
-    while( !m_aMapUsedUniqueNames[rcsName].IsEmpty() || !m_pDataDict->IsNameUnique(rcsName) || Logic::ReservedWords::IsReservedWord(rcsName) )
+
+    while( !m_aMapUsedUniqueNames[rcsName].IsEmpty() ||
+           !m_dictionary->IsNameUnique(UTF8_TODO::GetUtf8(rcsName)) ||
+           Logic::ReservedWords::IsReservedWord(UTF8_TODO::GetUtf8(rcsName)) )
     {
         int iLen = rcsName.GetLength();
         TCHAR c = rcsName[iLen - 1];
@@ -2036,7 +2015,7 @@ int CExportDoc::FillExportFiles(/*input*/ const CDataDict* pDataDict, CMap<const
             csExportFileName = *pcsExportFileName;
 
         } else {
-            csExportFileName = csCurFolder + _T("\\") + csPrefix + pDataDict->GetName() + csExt;
+            csExportFileName = csCurFolder + _T("\\") + csPrefix + UTF8_TODO::GetCString(pDataDict->GetName()) + csExt;
         }
         aExportFiles.Add( csExportFileName );
 
@@ -2062,13 +2041,13 @@ int CExportDoc::FillExportFiles(/*input*/ const CDataDict* pDataDict, CMap<const
         for(int iSelRecordIdx=0; iSelRecordIdx<iNumSelectedRecords; iSelRecordIdx++){
             const CDictRecord* pDictRecord = aSelRecords.GetAt(iSelRecordIdx);
 
-            CString csExportFileName = csExportFilesFolder + _T("\\") + csPrefix + pDictRecord->GetName() + csExt;
+            CString csExportFileName = csExportFilesFolder + _T("\\") + csPrefix + UTF8_TODO::GetCString(pDictRecord->GetName()) + csExt;
             aExportFiles.Add( csExportFileName );
         }
 
         //we are assuming that each relation is "like" a new record
         for(int iSelRelationIdx=0; iSelRelationIdx<aSelRelations.GetSize(); iSelRelationIdx++)
-            aExportFiles.Add( csExportFilesFolder + _T("\\") + csPrefix + aSelRelations.GetAt( iSelRelationIdx )->GetName() + csExt );
+            aExportFiles.Add(csExportFilesFolder + _T("\\") + csPrefix + UTF8_TODO::GetCString(aSelRelations.GetAt( iSelRelationIdx )->GetName()) + csExt);
 
     }
 
@@ -2097,7 +2076,7 @@ int CExportDoc::FillExportFiles(/*input*/ const CDataDict* pDataDict, CMap<const
     } else {
         ASSERT( aExportFiles.GetSize() == (aSelRecords.GetSize() + aSelRelations.GetSize()) );
         for(int i=0; i<n; i++){
-            CString csFileVar = _T("file_") + aSelRecords.GetAt(i)->GetName();
+            CString csFileVar = _T("file_") + UTF8_TODO::GetCString(aSelRecords.GetAt(i)->GetName());
             CheckUniqueName(csFileVar);
 
             raExportFileVars.Add( csFileVar );
@@ -2106,7 +2085,7 @@ int CExportDoc::FillExportFiles(/*input*/ const CDataDict* pDataDict, CMap<const
 
         //RELATIONS
         for( int i=0; i<aSelRelations.GetSize(); i++){
-            CString csFileVar = _T("file_") + aSelRelations.GetAt(i)->GetName();
+            CString csFileVar = _T("file_") + UTF8_TODO::GetCString(aSelRelations.GetAt(i)->GetName());
             CheckUniqueName(csFileVar);
 
             raExportFileVars.Add( csFileVar );
@@ -2199,7 +2178,7 @@ void FillCaseIds(   //input
         for(int iSelItemIdx=0; iSelItemIdx<iNumSelItems; iSelItemIdx++){
             if( !csCaseIds.IsEmpty() )
                 csCaseIds += _T(", ");
-            csCaseIds += pSelItems->GetAt(iSelItemIdx)->GetName();
+            csCaseIds += UTF8_TODO::GetCString(pSelItems->GetAt(iSelItemIdx)->GetName());
         }
 
         aMapCaseIdsByLevel.SetAt( iLevelIdx, csCaseIds );
@@ -2282,7 +2261,7 @@ void CExportDoc::FillProcs( /*input*/
     } else {
 
         //getexportproc will perform the filter of wich levels has some proc
-        int iNumLevels = m_pDataDict ? (int)m_pDataDict->GetNumLevels() : -1;
+        int iNumLevels = ( m_dictionary != nullptr ) ? static_cast<int>(m_dictionary->GetNumLevels()) : -1;
         for(int l=0; l<iNumLevels; l++){
             aLevelsWithExportProc.Add( l );
             aMapAddedProcs.SetAt( l, l);
@@ -2320,7 +2299,7 @@ void CExportDoc::Append( const CString& rcsLines, CString* pcsAppBuff ){
 
 void CExportDoc::PROC_LEVEL(const DictLevel& dict_level)
 {
-    Append( _T("PROC ") + dict_level.GetName() );
+    Append(_T("PROC ") + UTF8_TODO::GetCString(dict_level.GetName()));
 }
 
 
@@ -2423,17 +2402,17 @@ void InitIf( CString& rcsExportApp, const CString& rcsIdx, CArray<int,int>* pOcc
         if( !csOccs.IsEmpty() )
             csOccs += _T(", ");
 
-        csOccs += IntToString(pOccs->GetAt(i));
+        csOccs += UTF8_TODO::GetCString(IntToString(pOccs->GetAt(i)));
         if (i != n - 1) {
             if (pOccs->GetAt(i) + 1 == pOccs->GetAt(i+1)) {
                 for(int j=i+1; j<n; j++){
                     if (pOccs->GetAt(j-1) + 1 != pOccs->GetAt(j)) {
-                        csOccs += _T(":") + IntToString(pOccs->GetAt(j-1));
+                        csOccs += _T(":") + UTF8_TODO::GetCString(IntToString(pOccs->GetAt(j-1)));
                         i = j - 1;
                         break;
                    }
                     else if (j == n-1) {
-                        csOccs += _T(":") + IntToString(pOccs->GetAt(j));
+                        csOccs += _T(":") + UTF8_TODO::GetCString(IntToString(pOccs->GetAt(j)));
                         i = n - 1;
                         break;
                     }
@@ -2481,18 +2460,18 @@ void InitFor( CString& rcsExportApp, const CString& rcsIdx, const CDictItem* pDi
         CString csName;
         if( pDictItem->GetOccurs()>1 ){
             csMask = pDictItem->GetItemType() == ItemType::Subitem ? _T("SUBITEM") : _T("ITEM");
-            csName = pDictItem->GetName();
+            csName = UTF8_TODO::GetCString(pDictItem->GetName());
 
         } else {
 
             if( pDictItem->GetItemType() == ItemType::Subitem && pDictItem->GetParentItem()->GetOccurs()>1){
                 csMask = _T("ITEM");
-                csName = pDictItem->GetParentItem()->GetName();
+                csName = UTF8_TODO::GetCString(pDictItem->GetParentItem()->GetName());
 
             } else {
 
                 csMask = _T("ITEM");
-                csName = pDictItem->GetName();
+                csName = UTF8_TODO::GetCString(pDictItem->GetName());
             }
         }
 
@@ -2505,7 +2484,7 @@ void InitFor( CString& rcsExportApp, const CString& rcsIdx, const CDictItem* pDi
 void InitFor( CString& rcsExportApp, const CString& rcsIdx, const CDictRecord* pDictRecord,
               int& tabs, CMapStringToString& rUsedVars ){
     if( pDictRecord->GetMaxRecs()>1 )
-        InitFor( rcsExportApp, rcsIdx, _T("RECORD"), pDictRecord->GetName(), tabs, rUsedVars );
+        InitFor( rcsExportApp, rcsIdx, _T("RECORD"), UTF8_TODO::GetCString(pDictRecord->GetName()), tabs, rUsedVars );
 }
 
 void EndFor( CString& rcsExportApp, int& tabs ){
@@ -2873,13 +2852,13 @@ void CExportDoc::FillExportList(//input
                                 nLineLength = 0;
                             }
                         }
-                        rcsExportList += pDictItem->GetName();
-                        nLineLength += pDictItem->GetName().GetLength();
+                        rcsExportList += UTF8_TODO::GetCString(pDictItem->GetName());
+                        nLineLength += UTF8_TODO::GetCString(pDictItem->GetName()).GetLength();
 
                         //specify the occurrence
                         int iOcc = pOccs->GetAt(iSelOccIdx);
                         if( iOcc!=-1 ){
-                            CString csOcc = IntToString(iOcc);
+                            CString csOcc = UTF8_TODO::GetCString(IntToString(iOcc));
                             rcsExportList += _T("(") + csOcc + _T(")");
                             nLineLength += 2 + csOcc.GetLength();
                         }
@@ -2888,19 +2867,19 @@ void CExportDoc::FillExportList(//input
                 } else {
 
                     //all occurs selected => include the item
-                    rcsExportList += pDictItem->GetName();
-                    nLineLength += pDictItem->GetName().GetLength();
+                    rcsExportList += UTF8_TODO::GetCString(pDictItem->GetName());
+                    nLineLength += UTF8_TODO::GetCString(pDictItem->GetName()).GetLength();
                 }
             } else {
 
                 //there are no occurrences for the given item
-                rcsExportList += pDictItem->GetName();
-                nLineLength += pDictItem->GetName().GetLength();
+                rcsExportList += UTF8_TODO::GetCString(pDictItem->GetName());
+                nLineLength += UTF8_TODO::GetCString(pDictItem->GetName()).GetLength();
             }
 
         } else if( pObj->GetElementType() == DictElementType::Record ){
-            rcsExportList += ((const CDictRecord*)pObj)->GetName();
-            nLineLength += ((const CDictRecord*)pObj)->GetName().GetLength();
+            rcsExportList += UTF8_TODO::GetCString(((const CDictRecord*)pObj)->GetName());
+            nLineLength += UTF8_TODO::GetCString(((const CDictRecord*)pObj)->GetName()).GetLength();
 
         } else {
             ASSERT(0);
@@ -3203,7 +3182,7 @@ CString CExportDoc::ExportCmd(  CString&            rcsExportProc,
                     const CString*      pcsRecType){
 
     if( rcsExportList.IsEmpty() )
-        return _T("");
+        return CString();
 
     CString csExportCmd;
     InitUniverse(csExportCmd, rcsUniverse, tabs);
@@ -3258,7 +3237,7 @@ void CExportDoc::Relation(  const DictRelation& dict_relation,
 
     FillExportList( aSelItems, aMapSelOccsByItem, rMapDictIdItems, true, true, true, NULL, NULL, NULL, bFlatExport, csExportList );
 
-    InitFor( rcsExportProc, _T("cspro_export_loop_var_i"), _T("RELATION"), dict_relation.GetName(), tabs, rMapUsedVars );
+    InitFor( rcsExportProc, _T("cspro_export_loop_var_i"), _T("RELATION"), UTF8_TODO::GetCString(dict_relation.GetName()), tabs, rMapUsedVars );
     {
         ExportCmd( rcsExportProc, m_csUniverse, rcsExportFileVar, rcsCaseIdItems, csExportList, tabs, rMapUsedFiles, m_exportRecordType, &rcsRecType );
     }
@@ -3522,7 +3501,7 @@ CString CExportDoc::GetExportProc(  int                                         
 
                     if(!csExportList.IsEmpty())
                         csExportList +=_T(", ");
-                    csExportList += pSelItem->GetName();
+                    csExportList += UTF8_TODO::GetCString(pSelItem->GetName());
 
                     CString csItemIdx = pSelItem->GetItemType() == ItemType::Subitem && pSelItem->GetOccurs()>1 ? m_csMultSubItemLoopIdx : m_csMultItemLoopIdx;
 
@@ -3692,7 +3671,7 @@ bool CExportDoc::FillRecTypeByRelation( /*input*/CMapStringToString& rMapUsedRec
 
     if( m_exportRecordType != ExportRecordType::None ){
 
-        int iRecTypeLen     =  m_pDataDict ? m_pDataDict->GetRecTypeLen() : 0;
+        int iRecTypeLen = ( m_dictionary != nullptr ) ? m_dictionary->GetRecTypeLen() : 0;
 
         CString csMaxNum;
         for(int i=0; i<iRecTypeLen-1; i++)
@@ -3706,8 +3685,8 @@ bool CExportDoc::FillRecTypeByRelation( /*input*/CMapStringToString& rMapUsedRec
         CArray<CString,CString> aDuplicatedRecTypes;
         CArray<const DictRelation*,const DictRelation*> aDictRelationsWithDupRecTypes;
 
-        if (m_pDataDict) {
-            for( const DictRelation& dict_relation : m_pDataDict->GetRelations() ) {
+        if (m_dictionary != nullptr) {
+            for( const DictRelation& dict_relation : m_dictionary->GetRelations() ) {
                 csRecType   = NextDictRelationRecType( csRecType, iRecTypeLen, bCanContinue, iMaxNum );
 
                 //generated rec type for the given dict relation can't be inside rMapUsedRecTypes
@@ -3737,7 +3716,7 @@ bool CExportDoc::FillRecTypeByRelation( /*input*/CMapStringToString& rMapUsedRec
 
                 if(!csDictRels.IsEmpty())
                     csDictRels += _T(", ");
-                csDictRels += aDictRelationsWithDupRecTypes.GetAt(i)->GetName() + _T(" (") + aDuplicatedRecTypes.GetAt(i) + _T(")");
+                csDictRels += UTF8_TODO::GetCString(aDictRelationsWithDupRecTypes.GetAt(i)->GetName()) + _T(" (") + aDuplicatedRecTypes.GetAt(i) + _T(")");
             }
 
             CString csMsg;
@@ -3846,11 +3825,11 @@ void FillUsedRecTypes(CArray<const CDictRecord*,const CDictRecord*>& rSelRecords
 
 
 
-void CExportDoc::SyncBuff_app(){
-
+void CExportDoc::SyncBuff_app()
+{
     m_arrFileVars4Pff.RemoveAll();
     m_aMapUsedUniqueNames.RemoveAll();
-    if( m_pDataDict ){
+    if( m_dictionary != nullptr ){
 
         m_csRecLoopIdx          = _T("rec_occ");
         m_csMultItemLoopIdx     = _T("item_occ");
@@ -3918,7 +3897,7 @@ void CExportDoc::SyncBuff_app(){
     //RELATIONS
     CMap<const DictRelation*,const DictRelation*,CString,LPCTSTR> aMapExportFileVarByRelation;
 
-    FillExportFiles( /*input*/  m_pDataDict.get(), aMapIsIdBySelRec, aSelItems, aSelRecords, aSelRelations, m_bmerge, pcsExportFileName, pcsExportFilesFolder, pcsExportFilesPrefix, m_convmethod,
+    FillExportFiles( /*input*/  m_dictionary.get(), aMapIsIdBySelRec, aSelItems, aSelRecords, aSelRelations, m_bmerge, pcsExportFileName, pcsExportFilesFolder, pcsExportFilesPrefix, m_convmethod,
                      /*output*/ aExportFiles, aExportFileVars, aMapExportFileVarByRecord, aMapExportFileVarByRelation );
 
     CMap<const DictRelation*, const DictRelation*, CString, LPCTSTR> aMapRecTypeByRelation;
@@ -3945,7 +3924,7 @@ void CExportDoc::SyncBuff_app(){
     //Pre scan to know wich levels can have an export proc
     CArray<int,int> aLevelsWithExportProc;
 
-    FillProcs( m_pDataDict.get(), m_bmerge, aMap_SelectedIdItems_by_LevelIdx, aMap_SelectedNonIdItems_by_LevelIdx, aSelRelations,aMapLevelIdxByRecord, aSingleItemsPrefix,
+    FillProcs( m_dictionary.get(), m_bmerge, aMap_SelectedIdItems_by_LevelIdx, aMap_SelectedNonIdItems_by_LevelIdx, aSelRelations,aMapLevelIdxByRecord, aSingleItemsPrefix,
                aLevelsWithExportProc );
 
 
@@ -4050,7 +4029,7 @@ void CExportDoc::SyncBuff_app(){
 
             if(!csProcLevel.IsEmpty() ){
                 m_csExportApp += _T("\n");
-                PROC_LEVEL( m_pDataDict->GetLevel( iProcLevelIdx ));
+                PROC_LEVEL( m_dictionary->GetLevel( iProcLevelIdx ));
                 Append( csProcLevel );
                 iNumWritedProcs++;
             }
@@ -4234,12 +4213,12 @@ void CExportDoc::Checks(){
         for (i = 0 ; i < aSelRecords.GetSize() ; i++) {
             const CDictRecord* pRec = aSelRecords.GetAt(i);
             if (m_bJoinSingleWithMultipleRecords) {
-                if (pRec->GetName().GetAt(0) != _T('_') && pRec->GetMaxRecs() > 1) {
+                if (pRec->GetName().front() != '_' && pRec->GetMaxRecs() > 1) {
                     n++;
                 }
             }
             else {
-                if (pRec->GetName().GetAt(0) != '_') {
+                if (pRec->GetName().front() != '_') {
                     n++;
                 }
             }
@@ -4282,12 +4261,12 @@ void CExportDoc::Checks(){
         for (i = 0 ; i < aSelRecords.GetSize() ; i++) {
             const CDictRecord* pRec = aSelRecords.GetAt(i);
             if (m_bJoinSingleWithMultipleRecords) {
-                if (pRec->GetName().GetAt(0) != _T('_') && pRec->GetMaxRecs() > 1) {
+                if (pRec->GetName().front() != '_' && pRec->GetMaxRecs() > 1) {
                     n++;
                 }
             }
             else {
-                if (pRec->GetName().GetAt(0) != '_') {
+                if (pRec->GetName().front() != '_') {
                     n++;
                 }
             }
@@ -4322,7 +4301,7 @@ void CExportDoc::Checks(){
             int i = 0;
             for (i = 0 ; i < aSelRecords.GetSize() ; i++) {
                 const CDictRecord* pRec = aSelRecords.GetAt(i);
-                if (pRec->GetName().GetAt(0) == '_') {
+                if (pRec->GetName().front() == '_') {
                     bCaseIds = true;
                     break;
                 }
@@ -4388,14 +4367,15 @@ void CExportDoc::ProcessRun()
         bSPSSorSASorStata =false;
         // log file creation
         SAFE_DELETE(m_pLogFile);
-        if (m_PifFile.GetListingFName().IsEmpty()){
-            CString sPath;
-            sPath = m_csDictFileName;
-            PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-            sPath.ReleaseBuffer();
-            sPath.TrimRight('\\');
 
-            m_PifFile.SetListingFName(sPath + _T("\\CSExpRun.lst"));
+        if( m_PifFile.GetListingFName().IsEmpty() )
+        {
+            std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+            if( directory_for_files.empty() )
+                directory_for_files = GetTempDirectory();
+
+            m_PifFile.SetListingFName(UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.lst")));
         }
 
         m_csLogFile = m_PifFile.GetListingFName();
@@ -4453,19 +4433,13 @@ void CExportDoc::ProcessRun()
 void CExportDoc::MFilesModel2()
 {
     //Start Preparing the data files
-    CString sPath;
-    sPath = m_csDictFileName;
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
-
     if(!ExecuteFileInfo2()){
         if(m_pLogFile) {
             m_pLogFile->Close();
             SAFE_DELETE(m_pLogFile);
         }
         m_PifFile.SetAppFName(sOldAppName);
-        sOldAppName =_T("");
+        sOldAppName.Empty();
         return;
     }
     //End Preparing the data files
@@ -4476,21 +4450,20 @@ void CExportDoc::MFilesModel2()
     else {//launch the stuff after piff file gen
 
         //make the order spec name ;
-        // m_sBCHPFFName =sPath+_T("\\") + _T("CSExpRun.pff");
-        m_sBCHPFFName =m_sBaseFilename + FileExtensions::WithDot::Pff;
+        m_sBCHPFFName = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         sArray.RemoveAll();
         for( auto filename : m_PifFile.GetExportFilenames() )
             sArray.Add(filename);
         m_PifFile.ClearExportFilenames();
-        m_csSPSSOutFile=_T("");
-        m_csSPSSDescFile = _T("");
-        m_csCSProDCFFile =_T("");
-        m_PifFile.SetCSPROSyntaxFName(_T(""));
+        m_csSPSSOutFile.Empty();
+        m_csSPSSDescFile.Empty();
+        m_csCSProDCFFile.Empty();
+        m_PifFile.SetCSPROSyntaxFName(CString());
         SaveBatchPffAdjustingOnExit(&m_PifFile);
         LaunchBatchApp();
     }
     m_PifFile.SetAppFName(sOldAppName);
-    sOldAppName =_T("");
+    sOldAppName.Empty();
 }
 
 bool CExportDoc::ExecuteFileInfo2()
@@ -4500,22 +4473,19 @@ bool CExportDoc::ExecuteFileInfo2()
     SyncBuff_app();
 
     //Start Preparing the data files
-    CString sPath;
-    // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
-    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
-    CString sAplFile = m_sBaseFilename +FileExtensions::WithDot::BatchApplication;
 
-    CString sListFile;
-    if (m_PifFile.GetListingFName().IsEmpty()){
-        sListFile = sPath+_T("\\")+_T("CSExpRun.lst");
-    }
-    else{
-        sListFile = m_PifFile.GetListingFName();
-    }
+    // 20131220 base the export files off the pff location, if available
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
+
+    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
+    CString sAplFile = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication));
+
+    CString sListFile = m_PifFile.GetListingFName();
+    if (sListFile.IsEmpty())
+        sListFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.lst"));
 
     sOldAppName = m_PifFile.GetAppFName();
     m_PifFile.SetAppFName(sAplFile); //Now set the bch file name
@@ -4524,7 +4494,7 @@ bool CExportDoc::ExecuteFileInfo2()
 
     ((CExportApp *)AfxGetApp())->DeletePifInfos();
 
-    if( !GetInputDataFilenames() )
+    if( !GetInputDataSources() )
         return false;
 
     CString pzTempdir = GetDirectoryForOutputs();
@@ -4586,10 +4556,10 @@ bool CExportDoc::ExecuteFileInfo2()
 
         // 20100625 bug trevor reported on 6/18; PFF file shouldn't have this specified if using
         // multiple files, but it would be specified if they previously did a single file export
-        m_PifFile.SetSPSSSyntaxFName(_T(""));
-        m_PifFile.SetSTATADOFName(_T(""));
-        m_PifFile.SetSTATASyntaxFName(_T(""));
-        m_PifFile.SetRSyntaxFName(_T(""));
+        m_PifFile.SetSPSSSyntaxFName(CString());
+        m_PifFile.SetSTATADOFName(CString());
+        m_PifFile.SetSTATASyntaxFName(CString());
+        m_PifFile.SetRSyntaxFName(CString());
 
         m_PifFile.ClearExportFilenames();
         m_PifFile.ClearUserFilesMap();
@@ -4611,14 +4581,14 @@ bool CExportDoc::ExecuteFileInfo2()
     }
 
     for( const ConnectionString& connection_string : m_PifFile.GetInputDataConnectionStrings() )
-        m_pLogFile->WriteString(FormatText(_T("   Input File: %s\n"), connection_string.GetFilename().c_str()));
+        m_pLogFile->WriteString(FormatText(L"   Input Data Source: %s\n", UTF8_TODO::GetWide(connection_string.GetName(DataRepositoryNameType::ForListing)).c_str()));
 
     m_pLogFile->Close();
     SAFE_DELETE(m_pLogFile);
 
     //End File Collection
 
-    //Begin Serpo code update
+    //Begin Serpro code update
     //Fill the items properly from  the output file names array
 
     // JH 11/17/06 Fixed multi-file export crash, use mapFileVarToPifIndex instead of
@@ -4636,7 +4606,7 @@ bool CExportDoc::ExecuteFileInfo2()
         }
     }
 
-    if( !CheckInInputOutputFilenamesAreDifferent() )
+    if( !CheckIfInputOutputDataSourcesAreDifferent() )
         return false;
 
     //End  Serpro code update
@@ -4655,21 +4625,20 @@ bool CExportDoc::GenerateBatchApp4MultiModel2()
     batchApp.SetEngineAppType(EngineAppType::Batch);
     batchApp.SetLogicSettings(m_logicSettings);
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
 
     //make the order spec name ;
-    /*CString sFullFileName = sPath+_T("\\") + _T("CSExpRun.bch");
-    CString sOrderFile = sPath+_T("\\")+_T("CSExpRun.ord");*/
-    CString sFullFileName = m_sBaseFilename + FileExtensions::WithDot::BatchApplication;
-    CString sOrderFile = m_sBaseFilename + FileExtensions::WithDot::Order;
+    /*CString sFullFileName = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.bch"));
+    CString sOrderFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.ord"));*/
+    CString sFullFileName = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication));
+    CString sOrderFile = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Order));
 
 
-    batchApp.AddFormFilename(sOrderFile);
+    batchApp.AddForm(UTF8_TODO::GetUtf8(sOrderFile));
     //Create the .ord file and save it
     CFileStatus fStatus;
     BOOL bOrderExists = CFile::GetStatus(sOrderFile,fStatus);
@@ -4685,19 +4654,28 @@ bool CExportDoc::GenerateBatchApp4MultiModel2()
             bOrderExists  =false;
         }
     }
-    if(!bOrderExists) {
 
-        ASSERT(!m_csDictFileName.IsEmpty());
-        CDEFormFile Order(sOrderFile,m_csDictFileName);
+    if( !bOrderExists )
+    {
+        try
+        {
+            CDEFormFile Order(sOrderFile, UTF8_TODO::GetCString(m_dictionarySource.GetFileBasedDictionaryFilePath()));
 
-        //Create the .ord file and save it
-        Order.CreateOrderFile(*m_pDataDict, true);
-        Order.Save(sOrderFile);
+            //Create the .ord file and save it
+            Order.CreateOrderFile(*m_dictionary, true);
+            Order.Save(sOrderFile);
+        }
+
+        catch( const CSProException& exception )
+        {
+            ErrorMessage::Display(exception);
+            return false;
+        }
     }
 
-    batchApp.SetLabel(PortableFunctions::PathGetFilenameWithoutExtension<CString>(sFullFileName));
+    batchApp.SetLabel(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(sFullFileName)));
 
-//Update Serpo App Code
+    //Update Serpro App Code
 
     if(!WriteDefaultFiles4MultiModel2(&batchApp,sFullFileName)){
         return false;
@@ -4727,7 +4705,7 @@ bool CExportDoc::WriteDefaultFiles4MultiModel2(Application* pApplication, const 
     CString sAppSCodeFName(sAppFName);
     PathRemoveExtension(sAppSCodeFName.GetBuffer(_MAX_PATH));
     sAppSCodeFName.ReleaseBuffer();
-    sAppSCodeFName += FileExtensions::WithDot::Logic;
+    sAppSCodeFName += L"." + UTF8_TODO::GetCString(FileExtensions::Logic);
 
     CFileStatus fStatus;
     BOOL bRet = CFile::GetStatus(sAppSCodeFName,fStatus);
@@ -4747,7 +4725,7 @@ bool CExportDoc::WriteDefaultFiles4MultiModel2(Application* pApplication, const 
         //Create the .app file
         CSpecFile appFile(TRUE);
         appFile.Open(sAppSCodeFName,CFile::modeWrite);
-        appFile.WriteString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code));
+        appFile.WriteString(UTF8_TODO::GetCString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code)));
 
         //Start Serpro App code generation
         SyncBuff_app();
@@ -4762,24 +4740,24 @@ bool CExportDoc::WriteDefaultFiles4MultiModel2(Application* pApplication, const 
 
     }
 
-    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_shared<TextSource>(CS2WS(sAppSCodeFName))));
+    pApplication->AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(UTF8_TODO::GetUtf8(sAppSCodeFName))));
 
     //Help File
     if(pApplication->GetEngineAppType() != EngineAppType::Batch) {
         CString sHelpFName(sAppFName);
         PathRemoveExtension(sHelpFName.GetBuffer(_MAX_PATH));
         sHelpFName.ReleaseBuffer();
-        sHelpFName += FileExtensions::WithDot::QuestionText;
+        sHelpFName += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::QuestionText));
 
         bRet = CFile::GetStatus(sHelpFName,fStatus);
         if(!bRet){
             //Create the .qsf file
             CSpecFile appFile(TRUE);
             appFile.Open(sHelpFName,CFile::modeWrite);
-            appFile.WriteString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code));
+            appFile.WriteString(UTF8_TODO::GetCString(m_logicSettings.GetDefaultFirstLineForTextSource(pApplication->GetLabel(), AppFileType::Code)));
             appFile.Close();
         }
-        pApplication->SetQuestionTextFilename(sHelpFName);
+        pApplication->SetQuestionTextFilePath(UTF8_TODO::GetUtf8(sHelpFName));
     }
     return true;
 }
@@ -4800,72 +4778,70 @@ void CExportDoc::SingleFileModel()
     // 2 Run Batch Application
     // 3 open the listing file
     // 4 Do Not run Export Viewer
-    m_csSPSSDescFile = _T("");
-    m_csSTATADescFile = _T("");
-    m_csSTATALabelFile = _T("");
-    m_csSASDescFile = _T("");
-    m_csCSProDCFFile =_T("");
-    m_csRDescFile =_T("");
+    m_csSPSSDescFile.Empty();
+    m_csSTATADescFile.Empty();
+    m_csSTATALabelFile.Empty();
+    m_csSASDescFile.Empty();
+    m_csCSProDCFFile.Empty();
+    m_csRDescFile.Empty();
 
     // the output description filenames are saved and retrieved from one run to the next, so do the same with the output
     // data filename (by loading NPFF::m_exportFiles with the filename, which will be picked up later)
     if( m_PifFile.GetExportFilenames().empty() && !m_csSPSSOutFile.IsEmpty() )
         m_PifFile.AddExportFilenames(m_csSPSSOutFile);
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? GetDirectoryForOutputs() : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
-    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
-    CString sAplFile = m_sBaseFilename +FileExtensions::WithDot::BatchApplication;
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
 
-    CString sListFile;
-    if (m_PifFile.GetListingFName().IsEmpty())
-        sListFile = sPath+_T("\\")+_T("CSExpRun.lst");
-    else
-        sListFile = m_PifFile.GetListingFName();
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
+
+    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
+    CString sAplFile = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication));
+
+    CString sListFile = m_PifFile.GetListingFName();
+    if (sListFile.IsEmpty())
+        sListFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.lst"));
 
     CString csDataFile;
-    m_csSTATALabelFile = _T("");
+    m_csSTATALabelFile.Empty();
     switch (m_convmethod)
     {
         case METHOD::TABS:
         case METHOD::SEMI_COLON:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.txt");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.txt"));
             break;
         case METHOD::COMMADEL:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.csv");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.csv"));
             break;
         case METHOD::SPSS :
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csSPSSDescFile = sPath + _T("\\") + _T("Exported.sps");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csSPSSDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.sps"));
             break;
         case METHOD::SAS:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csSASDescFile = sPath + _T("\\") + _T("Exported.sas");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csSASDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.sas"));
             break;
         case METHOD::CSPRO:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csCSProDCFFile = sPath + _T("\\") + _T("Exported.dcf");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csCSProDCFFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dcf"));
             break;
         case METHOD::STATA:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csSTATADescFile = sPath + _T("\\") + _T("Exported.dct");
-            m_csSTATALabelFile = sPath + _T("\\") + _T("Exported.do");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csSTATADescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dct"));
+            m_csSTATALabelFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.do"));
             break;
         case METHOD::R:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csRDescFile = sPath + _T("\\") + _T("Exported.R");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csRDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.R"));
             break;
         case METHOD::ALLTYPES:
-            m_csSPSSOutFile = sPath + _T("\\") + _T("Exported.dat");
-            m_csSPSSDescFile = sPath + _T("\\") + _T("Exported.sps");
-            m_csSASDescFile = sPath + _T("\\") + _T("Exported.sas");
-            m_csSTATADescFile = sPath + _T("\\") + _T("Exported.dct");
-            m_csSTATALabelFile = sPath + _T("\\") + _T("Exported.do");
-            m_csRDescFile = sPath + _T("\\") + _T("Exported.R");
+            m_csSPSSOutFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dat"));
+            m_csSPSSDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.sps"));
+            m_csSASDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.sas"));
+            m_csSTATADescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.dct"));
+            m_csSTATALabelFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.do"));
+            m_csRDescFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "Exported.R"));
             break;
     }
 
@@ -4912,7 +4888,7 @@ void CExportDoc::SingleFileModel()
         break;
     }
 
-    if( !GetInputDataFilenames() )
+    if( !GetInputDataSources() )
         return;
 
     ((CExportApp *)AfxGetApp())->DeletePifInfos();
@@ -5009,9 +4985,9 @@ void CExportDoc::SingleFileModel()
         case METHOD::STATA:{
                 m_csSTATADescFile = arrPifInfo[1]->sFileName;
                 m_csSTATALabelFile = arrPifInfo[2]->sFileName;
-                CString sExt = PortableFunctions::PathGetFileExtension<CString>(m_csSTATADescFile);
-                if(sExt.CompareNoCase(FileExtensions::StataDictionary) != 0){
-                    m_csSTATADescFile += FileExtensions::WithDot::StataDictionary;
+                const std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_csSTATADescFile));
+                if( !SO::EqualsNoCase(extension, FileExtensions::StataDictionary) ) {
+                    m_csSTATADescFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
                 }
                 m_PifFile.SetSTATASyntaxFName(m_csSTATADescFile);
                 m_PifFile.SetSTATADOFName(m_csSTATALabelFile);
@@ -5026,9 +5002,9 @@ void CExportDoc::SingleFileModel()
             m_csSPSSDescFile = arrPifInfo[1]->sFileName;
             m_csSASDescFile = arrPifInfo[2]->sFileName;
             m_csSTATADescFile = arrPifInfo[3]->sFileName;
-            CString sExt = PortableFunctions::PathGetFileExtension<CString>(m_csSTATADescFile);
-            if(sExt.CompareNoCase(FileExtensions::StataDictionary) != 0){
-                m_csSTATADescFile += FileExtensions::WithDot::StataDictionary;
+            const std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_csSTATADescFile));
+            if( !SO::EqualsNoCase(extension, FileExtensions::StataDictionary) ) {
+                m_csSTATADescFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
             }
             m_PifFile.SetSPSSSyntaxFName(m_csSPSSDescFile);
             m_PifFile.SetSASSyntaxFName(m_csSASDescFile);
@@ -5109,7 +5085,7 @@ void CExportDoc::SingleFileModel()
 
         //make the order spec name ;
         //m_sBCHPFFName =sPath+_T("\\") + _T("CSExpRun.pff");
-        m_sBCHPFFName =m_sBaseFilename + FileExtensions::WithDot::Pff;
+        m_sBCHPFFName = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
 
         DeleteFile(sListFile);
     //    CNPifFile pifFile(m_sBCHPFFName);
@@ -5121,9 +5097,9 @@ void CExportDoc::SingleFileModel()
         pifFile.SetSPSSSyntaxFName(m_csSPSSDescFile);
         pifFile.SetSASSyntaxFName(m_csSASDescFile);
         if(!m_csSTATADescFile.IsEmpty()){
-            CString sExt = PortableFunctions::PathGetFileExtension<CString>(m_csSTATADescFile);
-            if(sExt.CompareNoCase(FileExtensions::StataDictionary) != 0){
-                m_csSTATADescFile += FileExtensions::WithDot::StataDictionary;
+            const std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_csSTATADescFile));
+            if( !SO::EqualsNoCase(extension, FileExtensions::StataDictionary) ) {
+                m_csSTATADescFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
             }
         }
         pifFile.SetSTATASyntaxFName(m_csSTATADescFile);
@@ -5135,7 +5111,7 @@ void CExportDoc::SingleFileModel()
         pifFile.SetAppFName(sOldAppName);
     }
     if (!m_PifFile.GetAppFName().IsEmpty()) {
-        m_sPFFName = m_PifFile.GetAppFName() + FileExtensions::WithDot::Pff;
+        m_sPFFName = m_PifFile.GetAppFName() + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         if (m_bPostRunSave)
         {
             m_PifFile.SetPifFileName(m_sPFFName);
@@ -5160,13 +5136,13 @@ void CExportDoc::SingleFileModel4NoDataDef()
     // 2 Run Batch Application
     // 3 open the listing file
     // 4 Do Not run Export Viewer
-    m_csSPSSDescFile = _T("");
-    m_csSTATADescFile = _T("");
-    m_csSTATALabelFile = _T("");
-    m_csSASDescFile = _T("");
-    m_csCSProDCFFile =_T("");
+    m_csSPSSDescFile.Empty();
+    m_csSTATADescFile.Empty();
+    m_csSTATALabelFile.Empty();
+    m_csSASDescFile.Empty();
+    m_csCSProDCFFile.Empty();
 
-    if( !GetInputDataFilenames() )
+    if( !GetInputDataSources() )
         return;
 
     CString csExt;
@@ -5200,23 +5176,21 @@ void CExportDoc::SingleFileModel4NoDataDef()
         Pff_SetFirstExportFilename(&m_PifFile, filename);
     }
 
-    if( !CheckInInputOutputFilenamesAreDifferent() )
+    if( !CheckIfInputOutputDataSourcesAreDifferent() )
         return;
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
-    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
-    CString sAplFile = m_sBaseFilename + FileExtensions::WithDot::BatchApplication;
-    CString sListFile ;
-    if (m_PifFile.GetListingFName().IsEmpty())
-        sListFile = sPath+_T("\\")+_T("CSExpRun.lst");
-    else
-        sListFile = m_PifFile.GetListingFName();
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
 
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
+
+    //CString sAplFile = sPath+_T("\\")+_T("CSExpRun.bch");
+    CString sAplFile = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication));
+
+    CString sListFile = m_PifFile.GetListingFName();
+    if (sListFile.IsEmpty())
+        sListFile = UTF8_TODO::GetCString(Path::Combine(directory_for_files, "CSExpRun.lst"));
 
     CString csDataFile;
 
@@ -5287,7 +5261,7 @@ void CExportDoc::SingleFileModel4NoDataDef()
 
         //make the order spec name ;
         //m_sBCHPFFName =sPath+_T("\\") + _T("CSExpRun.pff");
-        m_sBCHPFFName = m_sBaseFilename + FileExtensions::WithDot::Pff;
+        m_sBCHPFFName = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         DeleteFile(sListFile);
     //    CNPifFile pifFile(m_sBCHPFFName);
         CNPifFile& pifFile = m_PifFile;
@@ -5300,7 +5274,7 @@ void CExportDoc::SingleFileModel4NoDataDef()
         pifFile.SetAppFName(sOldAppName);
     }
     if( !m_PifFile.GetAppFName().IsEmpty() ) {
-        m_sPFFName = m_PifFile.GetAppFName() + FileExtensions::WithDot::Pff;
+        m_sPFFName = m_PifFile.GetAppFName() + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
         if (m_bPostRunSave) {
             m_PifFile.SetPifFileName(m_sPFFName);
             m_PifFile.Save();
@@ -5326,7 +5300,7 @@ bool  CExportDoc::DeleteOutPutFiles()
             CString sDCFFile = m_csSPSSOutFile;
             PathRemoveExtension(sDCFFile.GetBuffer(_MAX_PATH));
             sDCFFile.ReleaseBuffer();
-            sDCFFile += FileExtensions::WithDot::Dictionary;
+            sDCFFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Dictionary));
             if(!CheckNDeleteFile(sDCFFile)){
                 return bRet;
             }
@@ -5365,7 +5339,7 @@ bool  CExportDoc::DeleteOutPutFiles()
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SpssSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax);
 
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
@@ -5377,7 +5351,7 @@ bool  CExportDoc::DeleteOutPutFiles()
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SasSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
@@ -5388,14 +5362,14 @@ bool  CExportDoc::DeleteOutPutFiles()
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDictionary;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDo;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
@@ -5406,7 +5380,7 @@ bool  CExportDoc::DeleteOutPutFiles()
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::Dictionary;
+                    csDataFile += UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Dictionary));
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
@@ -5418,28 +5392,28 @@ bool  CExportDoc::DeleteOutPutFiles()
                 {
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SpssSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SpssSyntax);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::SasSyntax;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::SasSyntax);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDictionary;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDictionary);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
 
                     PathRemoveExtension(csDataFile.GetBuffer(_MAX_PATH));
                     csDataFile.ReleaseBuffer();
-                    csDataFile += FileExtensions::WithDot::StataDo;
+                    csDataFile += _T(".") + UTF8_TODO::GetCString(FileExtensions::StataDo);
                     if(!CheckNDeleteFile(csDataFile)){
                         return bRet;
                     }
@@ -5465,22 +5439,21 @@ bool CExportDoc::CompileApp()
         return false;
     }
 
-    CString sPath;
     // 20131220 base the export files off the pff location, if available
-    sPath = m_PifFile.GetAppFName().IsEmpty() ? m_csDictFileName : m_PifFile.GetAppFName();
-    PathRemoveFileSpec(sPath.GetBuffer(MAX_PATH));
-    sPath.ReleaseBuffer();
-    sPath.TrimRight('\\');
+    std::string directory_for_files = PathHelpers::GetDirectoryName({ UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()), m_dictionarySource.GetSourceFilePath() });
+
+    if( directory_for_files.empty() )
+        directory_for_files = GetTempDirectory();
 
     //m_sBCHPFFName =sPath+_T("\\") + _T("CSExpRun.pff");
-    m_sBCHPFFName = m_sBaseFilename + FileExtensions::WithDot::Pff;
+    m_sBCHPFFName = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::Pff));
     CNPifFile pifFile(m_sBCHPFFName);
     pifFile.SetAppType(BATCH_TYPE);
 
     //CString   csExport_bch = sPath + _T("\\CSExpRun.bch");
-    CString csExport_bch = m_sBaseFilename + FileExtensions::WithDot::BatchApplication;
+    CString csExport_bch = m_sBaseFilename + UTF8_TODO::GetCString(FileExtensions::WithDot(FileExtensions::BatchApplication));
 
-    // pifFile.SetCSPROSyntaxFName(_T("")); (20140520 it's not clear why this code was here ... it prevented the .dcf from being created when running the .pff)
+    // pifFile.SetCSPROSyntaxFName(CString()); (20140520 it's not clear why this code was here ... it prevented the .dcf from being created when running the .pff)
 
     pifFile.SetAppFName(csExport_bch);
     pifFile.Save();
@@ -5574,10 +5547,9 @@ void CExportDoc::OnViewBatchLogic()
     // rather than having to click run and use the temporary files created
     SyncBuff_app();
 
-    BatchLogicViewerDlg dlg(*m_pDataDict, m_logicSettings, CS2WS(m_csExportApp));
+    BatchLogicViewerDlg dlg(*m_dictionary, m_logicSettings, UTF8_TODO::GetUtf8(m_csExportApp));
     dlg.DoModal();
 }
-
 
 
 void CExportDoc::SaveSettingsToRegistry() // 20130703
@@ -5638,12 +5610,12 @@ void CExportDoc::SaveBatchPffAdjustingOnExit(CNPifFile* pPifFile)
 
     // OnExit should only be executed if CSExport was run with a PFF as a command line argument
     if( !m_batchmode )
-        pPifFile->SetOnExitFilename(_T(""));
+        pPifFile->SetOnExitFilename(CString());
 
     if (m_batchmode && !m_PifFile.GetStartLanguageString().IsEmpty())
         pPifFile->SetStartLanguageString(m_PifFile.GetStartLanguageString());
     else
-        pPifFile->SetStartLanguageString(WS2CS(m_pDataDict->GetCurrentLanguage().GetName()));
+        pPifFile->SetStartLanguageString(UTF8_TODO::GetCString(m_dictionary->GetCurrentLanguage().GetName()));
 
     pPifFile->Save();
 
@@ -5652,83 +5624,67 @@ void CExportDoc::SaveBatchPffAdjustingOnExit(CNPifFile* pPifFile)
 }
 
 
-bool CExportDoc::ProcessDictionarySource(const wstring_view filename_sv)
+void CExportDoc::ProcessDictionarySource(DictionarySource dictionary_source)
 {
-    m_embeddedDictionaryInformation = std::make_unique<std::tuple<std::unique_ptr<TemporaryFile>, ConnectionString>>(nullptr, filename_sv);
+    m_dictionarySource = std::move(dictionary_source);
 
-    std::unique_ptr<CDataDict> embedded_dictionary = DataRepositoryHelpers::GetEmbeddedDictionary(std::get<1>(*m_embeddedDictionaryInformation));
-
-    if( embedded_dictionary != nullptr )
+    try
     {
-        // for now, save the embedded dictionary; ideally this would not need to be saved to the disk
-        try
-        {
-            std::get<0>(*m_embeddedDictionaryInformation) = std::make_unique<TemporaryFile>();
-            embedded_dictionary->Save(std::get<0>(*m_embeddedDictionaryInformation)->GetPath());
-        }
+        m_dictionary = m_dictionarySource.GetDictionary();
 
-        catch( const CSProException& exception )
-        {
-            ErrorMessage::Display(exception);
-            return false;
-        }
-
-        m_csDictFileName = WS2CS(std::get<0>(*m_embeddedDictionaryInformation)->GetPath());
+        if( !m_dictionary->GetAllowExport() )
+            throw CSProException("The dictionary's settings prohibit its use to export data.");
     }
 
-    else
+    catch(...)
     {
-        m_embeddedDictionaryInformation.reset();
-        m_csDictFileName = filename_sv;
+        m_dictionarySource.Reset();
+        m_dictionary = std::make_unique<CDataDict>();
+        throw;
     }
-
-    return true;
 }
 
 
-CString CExportDoc::GetDictionarySourceFilename() const
+std::string CExportDoc::GetDocumentWindowTitle() const
 {
-    return ( m_embeddedDictionaryInformation != nullptr ) ? WS2CS(std::get<1>(*m_embeddedDictionaryInformation).GetFilename()) :
-                                                            m_csDictFileName;
+    std::string document_title = !m_PifFile.GetAppFName().IsEmpty() ? Path::GetFilename(UTF8_TODO::GetUtf8(m_PifFile.GetAppFName())) :
+                                 m_dictionarySource.IsDefined()     ? m_dictionarySource.GetConnectionString().ToDisplayString(true) :
+                                                                      std::string();
+
+    // add the dictionary name when possible
+    if( !document_title.empty() && m_dictionary != nullptr )
+        return SO::CreateParentheticalExpression(std::move(document_title), m_dictionary->GetName());
+
+    return document_title;
 }
 
-CString CExportDoc::GetDocumentWindowTitle() const
-{
-    CString csMainFilename = m_PifFile.GetAppFName();
-
-    if( csMainFilename.IsEmpty() )
-        csMainFilename = GetDictionarySourceFilename();
-
-    CString csDocumentTitle = GetFileName(csMainFilename);
-
-    // add the dictionary name
-    if( !csDocumentTitle.IsEmpty() && ( m_pDataDict != nullptr ) )
-        csDocumentTitle.AppendFormat(_T(" (%s)"), m_pDataDict->GetName().GetString());
-
-    return csDocumentTitle;
-}
 
 CString CExportDoc::GetDirectoryForOutputs() const
 {
-    CString filename =
-        ( m_embeddedDictionaryInformation != nullptr )                     ? WS2CS(std::get<1>(*m_embeddedDictionaryInformation).GetFilename()) :
-        m_PifFile.GetSingleInputDataConnectionString().IsFilenamePresent() ? WS2CS(m_PifFile.GetSingleInputDataConnectionString().GetFilename()) :
-        !m_PifFile.GetAppFName().IsEmpty()                                 ? m_PifFile.GetAppFName() :
-                                                                             m_csDictFileName;
+    const std::string file_path =
+        ( m_dictionarySource.UsingEmbeddedDictionary() &&
+          m_dictionarySource.GetConnectionString().HasFilePath() )   ? m_dictionarySource.GetSourceFilePath() :
+        m_PifFile.GetSingleInputDataConnectionString().HasFilePath() ? m_PifFile.GetSingleInputDataConnectionString().GetFilePath() :
+        !m_PifFile.GetAppFName().IsEmpty()                           ? UTF8_TODO::GetUtf8(m_PifFile.GetAppFName()) :
+        m_dictionarySource.GetConnectionString().HasFilePath()       ? m_dictionarySource.GetSourceFilePath() :
+                                                                       std::string();
 
-    return PortableFunctions::PathGetDirectory<CString>(filename);
+    return !file_path.empty() ? UTF8_TODO::GetCString(PortableFunctions::PathGetDirectory(file_path)) :
+                                UTF8_TODO::GetCString(GetTempDirectory());
 }
 
 
-bool CExportDoc::GetInputDataFilenames()
+bool CExportDoc::GetInputDataSources()
 {
-    if( m_embeddedDictionaryInformation != nullptr )
-        m_PifFile.SetSingleInputDataConnectionString(std::get<1>(*m_embeddedDictionaryInformation));
+    if( m_dictionarySource.UsingEmbeddedDictionary() )
+    {
+        m_PifFile.SetSingleInputDataConnectionString(m_dictionarySource.GetConnectionString());
+    }
 
     else if( !m_batchmode )
     {
         DataFileDlg data_file_dlg(DataFileDlg::Type::OpenExisting, true, m_PifFile.GetInputDataConnectionStringsSerializable());
-        data_file_dlg.SetDictionaryFilename(m_csDictFileName)
+        data_file_dlg.SetDictionaryFilePath(m_dictionarySource.GetDictionaryFilePath())
                      .AllowMultipleSelections();
 
         if ( data_file_dlg.DoModal() != IDOK )
@@ -5740,16 +5696,16 @@ bool CExportDoc::GetInputDataFilenames()
     return true;
 }
 
-bool CExportDoc::CheckInInputOutputFilenamesAreDifferent() const
+bool CExportDoc::CheckIfInputOutputDataSourcesAreDifferent() const
 {
-    // check to make sure that input and output data files are different
-    for( const auto& exportFilename : m_PifFile.GetExportFilenames() )
+    // check to make sure that input data sources are different from the output export file paths
+    for( const CString& exportFilename : m_PifFile.GetExportFilenames() )
     {
         for( const ConnectionString& connection_string : m_PifFile.GetInputDataConnectionStrings() )
         {
-            if( connection_string.FilenameMatches(exportFilename) )
+            if( connection_string.FilePathMatches(UTF8_TODO::GetUtf8(exportFilename)) )
             {
-                AfxMessageBox(FormatText(_T("Input file: %s is the same as output file. Please use different names for input and ouput files and try again."), exportFilename.GetString()));
+                AfxMessageBox(FormatText(_T("Input data source: %s is the same as output file. Please use different names for input and ouput files and try again."), exportFilename.GetString()));
                 return false;
             }
         }
@@ -5769,25 +5725,25 @@ bool CExportDoc::CheckInInputOutputFilenamesAreDifferent() const
 CREATE_JSON_VALUE_TEXT_OVERRIDE(export_, export)
 
 CREATE_ENUM_JSON_SERIALIZER(METHOD,
-    { METHOD::TABS,       _T("tab") },
-    { METHOD::COMMADEL,   _T("CSV") },
-    { METHOD::SPSS,       _T("SPSS") },
-    { METHOD::SAS,        _T("SAS") },
-    { METHOD::STATA,      _T("Stata") },
-    { METHOD::ALLTYPES,   _T("all") },
-    { METHOD::SEMI_COLON, _T("semicolon") },
-    { METHOD::CSPRO,      _T("CSPro") },
-    { METHOD::R,          _T("R") })
+    { METHOD::TABS,       "tab" },
+    { METHOD::COMMADEL,   "CSV" },
+    { METHOD::SPSS,       "SPSS" },
+    { METHOD::SAS,        "SAS" },
+    { METHOD::STATA,      "Stata" },
+    { METHOD::ALLTYPES,   "all" },
+    { METHOD::SEMI_COLON, "semicolon" },
+    { METHOD::CSPRO,      "CSPro" },
+    { METHOD::R,          "R" })
 
 CREATE_ENUM_JSON_SERIALIZER(ExportRecordType,
-    { ExportRecordType::None,      _T("none") },
-    { ExportRecordType::BeforeIds, _T("beforeIds") },
-    { ExportRecordType::AfterIds,  _T("afterIds") })
+    { ExportRecordType::None,      "none" },
+    { ExportRecordType::BeforeIds, "beforeIds" },
+    { ExportRecordType::AfterIds,  "afterIds" })
 
 CREATE_ENUM_JSON_SERIALIZER(ExportItemsSubitems,
-    { ExportItemsSubitems::ItemsOnly,    _T("itemsOnly") },
-    { ExportItemsSubitems::SubitemsOnly, _T("subitemsOnly") },
-    { ExportItemsSubitems::Both,         _T("both") })
+    { ExportItemsSubitems::ItemsOnly,    "itemsOnly" },
+    { ExportItemsSubitems::SubitemsOnly, "subitemsOnly" },
+    { ExportItemsSubitems::Both,         "both" })
 
 // ideally these enums would be used by the class instead of bools, but
 // that refactoring can be done at a later point
@@ -5806,23 +5762,23 @@ CREATE_ENUM_JSON_SERIALIZER(ExportEncoding,
     { ExportEncoding::Utf8Bom, CSValue::UTF_8_BOM })
 
 CREATE_ENUM_JSON_SERIALIZER(ExportStructure,
-    { ExportStructure::Flat,        _T("flat") },
-    { ExportStructure::Rectangular, _T("rectangular") })
+    { ExportStructure::Flat,        "flat" },
+    { ExportStructure::Rectangular, "rectangular" })
 
 CREATE_ENUM_JSON_SERIALIZER(ItemDisplay,
-    { ItemDisplay::Labels, _T("labels") },
-    { ItemDisplay::Names,  _T("names") })
+    { ItemDisplay::Labels, "labels" },
+    { ItemDisplay::Names,  "names" })
 
 CREATE_ENUM_JSON_SERIALIZER(ItemSerialization,
-    { ItemSerialization::Included, _T("included") },
-    { ItemSerialization::Excluded, _T("excluded") })
+    { ItemSerialization::Included, "included" },
+    { ItemSerialization::Excluded, "excluded" })
 
 
-bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
+bool CExportDoc::OpenSpecFile(const std::string& spec_file_path, const bool silent)
 {
     try
     {
-        auto json_reader = JsonSpecFile::CreateReader(filename, nullptr, [&]() { return ConvertPre80SpecFile(filename); });
+        const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(spec_file_path, nullptr, [&]() { return ConvertPre80SpecFile(spec_file_path); });
 
         try
         {
@@ -5830,36 +5786,33 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
             json_reader->CheckFileType(JV::export_);
 
             // open the dictionary
-            std::wstring dictionary_filename = json_reader->GetAbsolutePath(JK::dictionary);
-
-            if( !ProcessDictionarySource(dictionary_filename) || !OpenDictFile(m_csDictFileName, silent) )
-                throw CSProException(_T("The dictionary could not be read: %s"), dictionary_filename.c_str());
+            ProcessDictionarySource(json_reader->Get<DictionarySource>(JK::dictionary));
 
             // reestablish the dictionary language
-            const std::optional<wstring_view> language_name_sv = json_reader->GetOptional<wstring_view>(JK::language);
+            const std::optional<std::string_view> language_name_sv = json_reader->GetOptional<std::string_view>(JK::language);
 
             if( language_name_sv.has_value() )
             {
-                const std::optional<size_t> language_index = m_pDataDict->IsLanguageDefined(*language_name_sv);
+                const std::optional<size_t> language_index = m_dictionary->IsLanguageDefined(*language_name_sv);
 
                 if( language_index.has_value() )
                 {
-                    m_pDataDict->SetCurrentLanguage(*language_index);
+                    m_dictionary->SetCurrentLanguage(*language_index);
                 }
 
                 else
                 {
-                    json_reader->LogWarning(_T("The dictionary language '%s' is not in the dictionary '%s'"),
-                                            std::wstring(*language_name_sv).c_str(), m_pDataDict->GetName().GetString());
+                    json_reader->LogWarning("The dictionary language '%s' is not in the dictionary '%s'",
+                                            std::string(*language_name_sv).c_str(), m_dictionary->GetName().c_str());
                 }
             }
 
-            const auto& output_node = json_reader->GetOrEmpty(JK::output);
+            const JsonNode output_node = json_reader->GetOrEmpty(JK::output);
             m_convmethod = output_node.GetOrDefault<METHOD>(JK::format, METHOD::TABS);
             m_bForceANSI = ( output_node.GetOrDefault(JK::encoding, ExportEncoding::Ansi) == ExportEncoding::Ansi );
             m_bCommaDecimal = ( output_node.GetOrDefault(JK::decimalMark, DecimalMark::Period) == DecimalMark::Comma );
 
-            const auto& model_node = json_reader->GetOrEmpty(JK::model);
+            const JsonNode model_node = json_reader->GetOrEmpty(JK::model);
             m_bmerge = !model_node.GetOrDefault(JK::separateRecords, false);
             m_bAllInOneRecord = ( model_node.GetOrDefault(JK::structure, ExportStructure::Flat) == ExportStructure::Flat );
             m_bJoinSingleWithMultipleRecords = ( !m_bAllInOneRecord && model_node.GetOrDefault(JK::joinSingleRecord, false) );
@@ -5868,7 +5821,7 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
             m_logicSettings = json_reader->GetOrDefault(JK::logicSettings, m_logicSettings);
 
-            m_csUniverse = json_reader->GetOrDefault(JK::universe, SO::EmptyCString);
+            m_csUniverse = json_reader->GetOrConstruct<CString>(JK::universe);
 
             const std::optional<ItemDisplay> item_display = json_reader->GetOptional<ItemDisplay>(JK::itemDisplay);
 
@@ -5881,14 +5834,14 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
             AddAllItems();
 
             // read the items
-            for( const auto& item_node : json_reader->GetArrayOrEmpty(JK::items) )
+            for( const JsonNode& item_node : json_reader->GetArrayOrEmpty(JK::items) )
             {
-                const std::optional<wstring_view> item_name_sv = item_node.GetOptional<wstring_view>(JK::name);
+                const std::optional<std::string_view> item_name_sv = item_node.GetOptional<std::string_view>(JK::name);
 
                 if( !item_name_sv.has_value() )
                     continue;
 
-                const std::optional<wstring_view> relation_name_sv = item_node.GetOptional<wstring_view>(JK::relation);
+                const std::optional<std::string_view> relation_name_sv = item_node.GetOptional<std::string_view>(JK::relation);
                 const int occurrence = item_node.GetOrDefault(JK::occurrence, -1);
                 int position_in_list;
 
@@ -5899,14 +5852,14 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
                 else
                 {
-                    const std::vector<DictRelation>& dict_relations = m_pDataDict->GetRelations();
+                    const std::vector<DictRelation>& dict_relations = m_dictionary->GetRelations();
                     const auto& dict_relations_lookup = std::find_if(dict_relations.cbegin(), dict_relations.cend(),
                         [&](const DictRelation& dict_relation) { return SO::EqualsNoCase(*relation_name_sv, dict_relation.GetName()); });
 
                     if( dict_relations_lookup == dict_relations.cend() )
                     {
-                        json_reader->LogWarning(_T("'%s' is not a valid relation in the dictionary '%s'"),
-                                                std::wstring(*relation_name_sv).c_str(), m_pDataDict->GetName().GetString());
+                        json_reader->LogWarning("'%s' is not a valid relation in the dictionary '%s'",
+                                                std::string(*relation_name_sv).c_str(), m_dictionary->GetName().c_str());
                         continue;
                     }
 
@@ -5915,10 +5868,10 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
                 if( position_in_list < 0 )
                 {
-                    json_reader->LogWarning(_T("'%s%s' is not a valid item in the dictionary '%s'"),
-                                            std::wstring(*item_name_sv).c_str(),
-                                            ( occurrence != -1 ) ? FormatText(_T("(%d)"), occurrence).GetString() : _T(""),
-                                            m_pDataDict->GetName().GetString());
+                    json_reader->LogWarning("'%s%s' is not a valid item in the dictionary '%s'",
+                                            std::string(*item_name_sv).c_str(),
+                                            ( occurrence != -1 ) ? FormatText("(%d)", occurrence).c_str() : "",
+                                            m_dictionary->GetName().c_str());
                 }
 
                 else
@@ -5930,7 +5883,7 @@ bool CExportDoc::OpenSpecFile(const TCHAR* filename, bool silent)
 
         catch( const CSProException& exception )
         {
-            json_reader->GetMessageLogger().RethrowException(filename, exception);
+            json_reader->GetMessageLogger().RethrowException(spec_file_path, exception);
         }
 
         // report any warnings
@@ -5951,11 +5904,10 @@ void CExportDoc::SaveSpecFile() const
 {
     try
     {
-        auto json_writer = JsonSpecFile::CreateWriter(m_PifFile.GetAppFName(), JV::export_);
+        const std::unique_ptr<JsonFileWriter> json_writer = JsonSpecFile::CreateWriter(m_PifFile.GetAppFName(), JV::export_);
 
-        json_writer->WriteRelativePath(JK::dictionary, CS2WS(GetDictionarySourceFilename()));
-
-        json_writer->Write(JK::language, m_pDataDict->GetCurrentLanguage().GetName());
+        json_writer->Write(JK::dictionary, m_dictionarySource)
+                    .Write(JK::language, m_dictionary->GetCurrentLanguage().GetName());
 
         json_writer->Key(JK::output).WriteObject(
             [&]()
@@ -5980,7 +5932,7 @@ void CExportDoc::SaveSpecFile() const
 
         json_writer->Write(JK::logicSettings, m_logicSettings);
 
-        json_writer->WriteIfNotBlank(JK::universe, m_csUniverse);
+        json_writer->WriteIfNotBlank(JK::universe, UTF8_TODO::GetUtf8(m_csUniverse));
 
         json_writer->Write(JK::itemDisplay, SharedSettings::ViewNamesInTree() ? ItemDisplay::Names : ItemDisplay::Labels)
                     .Write(JK::itemSerialization, m_bSaveExcluded ? ItemSerialization::Excluded : ItemSerialization::Included);
@@ -5998,7 +5950,7 @@ void CExportDoc::SaveSpecFile() const
                 [&]()
                 {
                     if( export_item.rel >= 0 )
-                        json_writer->Write(JK::relation, m_pDataDict->GetRelation(export_item.rel).GetName());
+                        json_writer->Write(JK::relation, m_dictionary->GetRelation(export_item.rel).GetName());
 
                     json_writer->Write(JK::name, export_item.pItem->GetName());
 
@@ -6019,14 +5971,14 @@ void CExportDoc::SaveSpecFile() const
 }
 
 
-std::wstring CExportDoc::ConvertPre80SpecFile(NullTerminatedString filename)
+std::string CExportDoc::ConvertPre80SpecFile(const InterfaceString file_path)
 {
     CSpecFile specfile;
 
-    if( !specfile.Open(filename.c_str(), CFile::modeRead) )
-        throw CSProException(_T("Failed to open the Export Data specification file: %s"), filename.c_str());
+    if( !specfile.Open(file_path.GetString<std::wstring>().c_str(), CFile::modeRead) )
+        throw CSProException("Failed to open the Export Data specification file: %s", file_path.c_str_utf8());
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -6039,10 +5991,10 @@ std::wstring CExportDoc::ConvertPre80SpecFile(NullTerminatedString filename)
     {
         // Is correct spec file?
         if( !specfile.IsHeaderOK(_T("[CSExport]")) )
-            throw CSProException(_T("Spec File does not begin with\n\n    [CSExport]"));
+            throw CSProException("Spec File does not begin with\n\n    [CSExport]");
 
         // Ignore version errors
-        specfile.IsVersionOK(CSPRO_VERSION);
+        specfile.IsVersionOK(Versioning::CSProVersionText);
 
         CString command;
         CString argument;
@@ -6175,7 +6127,7 @@ std::wstring CExportDoc::ConvertPre80SpecFile(NullTerminatedString filename)
                      command.CompareNoCase(_T("[ExportXMLMetadataIncludeFrequencies]")) != 0 &&
                      command.CompareNoCase(_T("[Items]")) != 0 )
             {
-                throw CSProException(_T("Spec File: Invalid command: %s"), command.GetString());
+                throw CSProException("Spec File: Invalid command: %s", UTF8_TODO::GetUtf8(command).c_str());
             }
         }
 
@@ -6204,11 +6156,11 @@ std::wstring CExportDoc::ConvertPre80SpecFile(NullTerminatedString filename)
     {
         specfile.Close();
 
-        throw CSProException(_T("There was an error reading the Export Data specification file %s:\n\n%s"),
-                             PortableFunctions::PathGetFilename(filename), exception.GetErrorMessage().c_str());
+        throw CSProException("There was an error reading the Export Data specification file %s:\n\n%s",
+                             PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
     }
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseString();
 }

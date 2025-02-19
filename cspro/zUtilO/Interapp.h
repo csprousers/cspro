@@ -86,27 +86,24 @@ class CSpecFile;
 
 #define WM_IMSA_PORTABLE_ENGINEUI                   WM_IMSA_INTERAPP+38
 
-#define WM_IMSA_PROGRESS_DIALOG_SHOW                WM_IMSA_INTERAPP+39
-#define WM_IMSA_PROGRESS_DIALOG_UPDATE              WM_IMSA_INTERAPP+40
-#define WM_IMSA_PROGRESS_DIALOG_HIDE                WM_IMSA_INTERAPP+41
+#define WM_IMSA_START_ENGINE                        WM_IMSA_INTERAPP+39
+#define WM_IMSA_GET_PROCESS_SUMMARY_REPORTER        WM_IMSA_INTERAPP+40
 
-#define WM_IMSA_START_ENGINE                        WM_IMSA_INTERAPP+42
-#define WM_IMSA_GET_PROCESS_SUMMARY_REPORTER        WM_IMSA_INTERAPP+43
+#define WM_IMSA_RECONCILE_QSF_DICT_NAME             WM_IMSA_INTERAPP+41
 
-#define WM_IMSA_RECONCILE_QSF_DICT_NAME             WM_IMSA_INTERAPP+44
-
-#define WM_IMSA_CSENTRY_REFRESH_DATA                WM_IMSA_INTERAPP+45
+#define WM_IMSA_CSENTRY_REFRESH_DATA                WM_IMSA_INTERAPP+42
 
 
 //--- shared memory file name ---//
 #define IMSA_SHARED_MEMFILE     _T("IMSA10")
 
 //--- registered windows class names (see CMainFrame::Create)  ---//
-#define IMSA_WNDCLASS_CSPRO      _T("IMSACSPro")
-#define IMSA_WNDCLASS_CSDOCUMENT _T("IMSACSDocument")
-#define IMSA_WNDCLASS_TABLEFRM   _T("IMSATableFrame")
-#define IMSA_WNDCLASS_TABLEVIEW  _T("IMSATableView")
-#define IMSA_WNDCLASS_TEXTVIEW   _T("IMSATextView")
+#define IMSA_WNDCLASS_CSPRO       _T("IMSACSPro")
+#define IMSA_WNDCLASS_CSDOCUMENT  _T("IMSACSDocument")
+#define IMSA_WNDCLASS_DATAMANAGER _T("IMSADataManager")
+#define IMSA_WNDCLASS_TABLEFRM    _T("IMSATableFrame")
+#define IMSA_WNDCLASS_TABLEVIEW   _T("IMSATableView")
+#define IMSA_WNDCLASS_TEXTVIEW    _T("IMSATextView")
 
 //--- IMSA ini stuff  ---//
 #define IMSA_INI                    _T("MEASURE.INI")
@@ -189,7 +186,12 @@ public:
     void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
 };
 
-CLASS_DECL_ZUTILO std::vector<std::wstring> GetFilenamesFromCommandLine();
+// Returns the absolute path of non-flag command line arguments.
+CLASS_DECL_ZUTILO std::vector<std::wstring> GetPathsFromCommandLine();
+
+// Returns non-flag command line arguments. CSPro URIs are not modified,
+// but other arguments are treated as paths and the absolute path is returned.
+CLASS_DECL_ZUTILO std::vector<std::string> GetArgumentsFromCommandLineWithCSProUriSupport();
 
 
 // non-class prototypes
@@ -204,20 +206,22 @@ CLASS_DECL_ZUTILO void IMSASetDataDir(const CString& csPath);
 CLASS_DECL_ZUTILO void IMSASetDataDir(const CString& csPath);
 CLASS_DECL_ZUTILO HWND GetThreadMainWindow(DWORD threadId);
 
-CLASS_DECL_ZUTILO void CloseFileInTextViewer(NullTerminatedString filename, bool delete_file);
-CLASS_DECL_ZUTILO void ViewFileInTextViewer(NullTerminatedString filename);
+CLASS_DECL_ZUTILO void CloseFileInTextViewer(InterfaceString file_path, bool delete_file);
+CLASS_DECL_ZUTILO void ViewFileInTextViewer(InterfaceString file_path);
 
 #endif
 
-CLASS_DECL_ZUTILO void SetupEnvironmentToCreateFile(NullTerminatedString filename);
+// Creates any directories needed to write the file, and closes the file if it is open in Text Viewer.
+// This function throws FileIO::Exception exceptions.
+CLASS_DECL_ZUTILO void SetupEnvironmentToCreateFile(InterfaceString file_path);
 
 
-// returns the temporary directory (with a trailing slash)
-CLASS_DECL_ZUTILO const std::wstring& GetTempDirectory();
+// Returns the temporary directory (with a trailing slash).
+CLASS_DECL_ZUTILO const std::string& GetTempDirectory();
 
-CLASS_DECL_ZUTILO std::wstring GetUniqueTempFilename(NullTerminatedString base_filename, bool overwrite_hour_old_files = false);
+CLASS_DECL_ZUTILO std::string GetUniqueTempFilePath(std::string_view base_filename_sv, bool overwrite_hour_old_files = false);
 
-CLASS_DECL_ZUTILO const std::wstring& GetAppDataPath();
+CLASS_DECL_ZUTILO const std::string& GetAppDataPath();
 
 CLASS_DECL_ZUTILO CString GetFilePath(CString csFileName);
 CLASS_DECL_ZUTILO CString GetFileName(CString csFileName);
@@ -226,31 +230,34 @@ CLASS_DECL_ZUTILO CString GetFileName(CString csFileName);
 CLASS_DECL_ZUTILO CString ValFromHeader(const CSpecFile& specFile, const CString& csAttribute);
 #endif
 
-CLASS_DECL_ZUTILO std::vector<std::wstring> GetFileNameArrayFromSpecFile(CSpecFile& specFile, wstring_view section_name);
+CLASS_DECL_ZUTILO std::vector<std::string> GetFileNameArrayFromSpecFile(CSpecFile& specFile, std::wstring_view section_name_sv);
 
 
 namespace Html
 {
-    enum class Subdirectory { Charting, CSS, Dialogs, Document, HtmlEditor, Images, Mustache, QuestionnaireView, Templates, Utilities };
-    CLASS_DECL_ZUTILO const std::wstring& GetDirectory();
-    CLASS_DECL_ZUTILO std::wstring GetDirectory(Subdirectory html_subdirectory);
+    enum class Subdirectory { Charting, CSS, Dialogs, Document, HtmlEditor, Images, Mustache,
+                              QuestionnaireView, Runtime, Templates, Utilities, Visualizations };
+
+    CLASS_DECL_ZUTILO const std::string& GetDirectory();
+    CLASS_DECL_ZUTILO std::string GetDirectory(Subdirectory html_subdirectory);
 
     enum class CSS { CaseView, Common };
-    CLASS_DECL_ZUTILO const std::wstring& GetCSS(CSS css);
+    CLASS_DECL_ZUTILO std::string GetCSSFilePath(CSS css);
+    CLASS_DECL_ZUTILO const std::string& GetCSS(CSS css);
 
-    constexpr const TCHAR* CSProUsersForumUrl = _T("https://www.csprousers.org/forum");
+    constexpr const char* CSProUsersForumUrl = "https://www.csprousers.org/forum";
 }
 
 
 // extract version number of CSPro version string (i.e. the 3.3 of "CSPro 3.3")
 // returns -1 if unable to extract a valid number or string doesn't start w. CSPro
-CLASS_DECL_ZUTILO double GetCSProVersionNumeric(wstring_view version_text);
+CLASS_DECL_ZUTILO double GetCSProVersionNumeric(std::string_view version_text_sv);
 
 // return true if version string is valid CSPro version.
 // Must be well formed, i.e. "CSPro X.X" and the version number must be
 // greater than or equal to minVersion and less than or equal to the current version
-// as defined by CSPRO_VERSION.
-CLASS_DECL_ZUTILO bool IsValidCSProVersion(wstring_view version_text, double min_version = 2.0);
+// as defined by Versioning::CSProVersionText.
+CLASS_DECL_ZUTILO bool IsValidCSProVersion(std::string_view version_text_sv, double min_version = 2.0);
 
 
 #ifdef WIN_DESKTOP

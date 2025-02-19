@@ -158,7 +158,7 @@ bool CDECol::Build(CSpecFile& frmFile, CDEGroup* pParentGroup, bool bSilent/* = 
         else
         {                      // Incorrect attribute
             if (!bSilent)
-                ErrorMessage::Display(FormatText(_T("Incorrect [Column] attribute\n\n%s"), (LPCTSTR)csCmd));
+                ErrorMessage::Display(FormatText(_T("Incorrect [Column] attribute\n\n%s"), csCmd.GetString()));
 
             rtnVal = false;
         }

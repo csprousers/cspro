@@ -47,7 +47,7 @@ inline bool BinaryCaseItemConverter::ToString(const StringCaseItem& /*output_str
 
 inline bool BinaryCaseItemConverter::ToBinary(const BinaryCaseItem& output_binary_case_item, CaseItemIndex& output_index)
 {
-    const ContentType output_content_type = output_binary_case_item.GetDictionaryItem().GetContentType();
+    const ContentType output_content_type = output_binary_case_item.GetDictItem().GetContentType();
     ASSERT(output_content_type == ContentType::Audio ||
            output_content_type == ContentType::Document ||
            output_content_type == ContentType::Geometry ||
@@ -65,7 +65,7 @@ inline bool BinaryCaseItemConverter::ToBinary(const BinaryCaseItem& output_binar
 
     if( !can_convert )
     {
-        const std::optional<std::wstring> mime_type = binary_data->GetMetadata().GetEvaluatedMimeType();
+        const std::optional<std::string> mime_type = binary_data->GetMetadata().GetEvaluatedMimeType();
 
         if( mime_type.has_value() )
         {
@@ -87,7 +87,7 @@ inline bool BinaryCaseItemConverter::ToBinary(const BinaryCaseItem& output_binar
     }
 
     if( can_convert )
-        output_binary_case_item.GetBinaryDataAccessor(output_index).SetBinaryData(*binary_data);
+        output_binary_case_item.SetValue(output_index, *binary_data);
 
     return can_convert;
 }

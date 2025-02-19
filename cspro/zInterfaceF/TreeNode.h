@@ -36,7 +36,7 @@ public:
 
     virtual std::wstring GetName() const;
     virtual std::wstring GetLabel() const;
-    virtual const std::wstring& GetPath() const;
+    virtual const std::string& GetPath() const;
 
 
 private:

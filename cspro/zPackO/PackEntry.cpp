@@ -12,10 +12,11 @@
 
 namespace
 {
-    inline void AddPotentiallyBlankFilename(std::vector<std::wstring>& filenames, const wstring_view filename_sv)
+    template<typename T>
+    void AddPotentiallyBlankFilePath(std::vector<std::string>& file_paths, T&& file_path)
     {
-        if( !filename_sv.empty() )
-            filenames.emplace_back(filename_sv);
+        if( !file_path.empty() )
+            file_paths.emplace_back(std::forward<T>(file_path));
     }
 
     template<typename T>
@@ -24,7 +25,7 @@ namespace
         if( extras == nullptr )
             extras = std::make_shared<T>();
 
-        return extras;                                       ;
+        return extras;
     }
 }
 
@@ -35,30 +36,30 @@ namespace
 //
 // --------------------------------------------------------------------------
 
-PackEntry::PackEntry(std::wstring path, const bool entry_is_file)
+PackEntry::PackEntry(std::string path, const bool entry_is_file)
     :   m_path(std::move(path))
 {
     if( entry_is_file )
     {
-        if( !PortableFunctions::FileIsRegular(m_path.c_str()) )
-            throw FileIO::Exception::FileNotFound(m_path.c_str());
+        if( !PortableFunctions::FileIsRegular(m_path) )
+            throw FileIO::Exception::FileNotFound(m_path);
     }
 
-    else if( !PortableFunctions::FileIsDirectory(m_path.c_str()) )
+    else if( !PortableFunctions::FileIsDirectory(m_path) )
     {
-        throw CSProException(_T("The directory '%s' does not exist."), PortableFunctions::PathGetFilename(m_path.c_str()));
+        throw CSProException("The directory '%s' does not exist.", PortableFunctions::PathGetFilename(m_path).c_str());
     }
 }
 
 
-std::unique_ptr<PackEntry> PackEntry::Create(std::wstring path)
+std::unique_ptr<PackEntry> PackEntry::Create(std::string path)
 {
-    if( PortableFunctions::FileIsDirectory(path.c_str()) )
+    if( PortableFunctions::FileIsDirectory(path) )
         return std::make_unique<DirectoryPackEntry>(std::move(path));
 
     auto matches = [extension = PortableFunctions::PathGetFileExtension(path)](const auto& test_extension)
     {
-        return SO::EqualsNoCase(extension, test_extension);
+        return SO::EqualsNoCase(extension, UTF8_TODO::EnsureUtf8(test_extension));
     };
 
     if( matches(FileExtensions::EntryApplication) ||
@@ -96,37 +97,37 @@ std::unique_ptr<PackEntry> PackEntry::Create(std::wstring path)
 }
 
 
-std::vector<std::tuple<std::wstring, std::wstring>> PackEntry::GetFilenamesForDisplay() const
+std::vector<std::tuple<std::string, std::string>> PackEntry::GetFilenamesForDisplay() const
 {
-    std::vector<std::wstring> filenames = GetAssociatedFilenames();
-    VectorHelpers::RemoveDuplicates(filenames);
+    std::vector<std::string> file_paths = GetAssociatedFilePaths();
+    VectorHelpers::RemoveDuplicates(file_paths);
 
-    // if the pack entry only consists of this file, then there are no additional filenames to display
-    if( filenames.empty() || ( filenames.size() == 1 && SO::EqualsNoCase(filenames.front(), m_path) ) )
+    // if the pack entry only consists of this file path, then there are no additional filenames to display
+    if( file_paths.empty() || ( file_paths.size() == 1 && SO::EqualsNoCase(file_paths.front(), m_path) ) )
         return { };
 
     // GetRelativeFNameForDisplay requires a filename, so create a fake one for directories
-    std::wstring relative_to_filename = m_path;
+    std::string relative_to_file_path = m_path;
 
     if( dynamic_cast<const DirectoryPackEntry*>(this) != nullptr )
-        relative_to_filename = PortableFunctions::PathAppendToPath(WS2CS(relative_to_filename), _T("a"));
+        relative_to_file_path = Path::Combine(relative_to_file_path, "a");
 
-    //  turn the filenames into relative paths and then sort by filename
-    std::vector<std::tuple<std::wstring, std::wstring>> filenames_for_display;
+    //  turn the paths into relative paths and then sort by filename
+    std::vector<std::tuple<std::string, std::string>> filenames_for_display;
 
-    for( const std::wstring& filename : filenames )
-        filenames_for_display.emplace_back(filename, GetRelativeFNameForDisplay(relative_to_filename.c_str(), filename.c_str()));
+    for( const std::string& file_path : file_paths )
+        filenames_for_display.emplace_back(file_path, GetRelativePathForDisplay(relative_to_file_path, file_path));
 
     std::sort(filenames_for_display.begin(), filenames_for_display.end(),
         [&](const auto& ffd1, const auto& ffd2)
         {
             // sort order: files in the directory (1), files in subdirectories (2), files in other directories or drives (3)
-            auto get_sort_order = [](wstring_view filename_sv) -> int
+            auto get_sort_order = [](const std::string& filename) -> int
             {
-                return ( !filename_sv.empty() && filename_sv.front() == '.' )                                      ? 3 :
-                       ( filename_sv.find_first_of(_T(":")) != std::wstring_view::npos )                           ? 3 :
-                       ( filename_sv.find_first_of(PortableFunctions::PathSlashChars) != std::wstring_view::npos ) ? 2 :
-                                                                                                                     1;
+                return ( !filename.empty() && filename.front() == '.' )                     ? 3 :
+                       ( filename.find_first_of(":") != std::string::npos )                 ? 3 :
+                       ( filename.find_first_of(Path::SlashChars_sv) != std::string::npos ) ? 2 :
+                                                                                              1;
             };
 
             const int sort1 = get_sort_order(std::get<1>(ffd1));
@@ -147,7 +148,7 @@ std::vector<std::tuple<std::wstring, std::wstring>> PackEntry::GetFilenamesForDi
 //
 // --------------------------------------------------------------------------
 
-DirectoryPackEntry::DirectoryPackEntry(std::wstring path)
+DirectoryPackEntry::DirectoryPackEntry(std::string path)
     :   PackEntry(std::move(path), false)
 {
 }
@@ -159,18 +160,18 @@ DirectoryPackEntryExtras* DirectoryPackEntry::GetDirectoryExtras()
 }
 
 
-std::vector<std::wstring> DirectoryPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> DirectoryPackEntry::GetAssociatedFilePaths() const
 {
-    const auto& filenames_lookup = m_directoryFilenames.find(m_directoryExtras.recursive);
+    const auto& file_paths_lookup = m_directoryFilePaths.find(m_directoryExtras.recursive);
 
-    if( filenames_lookup != m_directoryFilenames.cend() )
-        return filenames_lookup->second;
+    if( file_paths_lookup != m_directoryFilePaths.cend() )
+        return file_paths_lookup->second;
 
-    std::vector<std::wstring>& directory_filenames = m_directoryFilenames[m_directoryExtras.recursive];
+    std::vector<std::string>& directory_file_paths = m_directoryFilePaths[m_directoryExtras.recursive];
 
-    DirectoryLister(m_directoryExtras.recursive, true, false).AddPaths(directory_filenames, m_path);
+    directory_file_paths = DirectoryLister(m_directoryExtras.recursive, true, false).GetPaths(m_path);
 
-    return directory_filenames;
+    return directory_file_paths;
 }
 
 
@@ -181,7 +182,7 @@ std::vector<std::wstring> DirectoryPackEntry::GetAssociatedFilenames() const
 //
 // --------------------------------------------------------------------------
 
-DictionaryPackEntry::DictionaryPackEntry(std::wstring path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
+DictionaryPackEntry::DictionaryPackEntry(std::string path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
     :   PackEntry(std::move(path), true),
         m_dictionaryExtras(GetNonNullExtras(std::move(dictionary_extras)))
 {
@@ -194,29 +195,29 @@ DictionaryPackEntryExtras* DictionaryPackEntry::GetDictionaryExtras()
 }
 
 
-std::vector<std::wstring> DictionaryPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> DictionaryPackEntry::GetAssociatedFilePaths() const
 {
-    std::vector<std::wstring> filenames = PackEntry::GetAssociatedFilenames();
+    std::vector<std::string> file_paths = PackEntry::GetAssociatedFilePaths();
 
     if( m_dictionaryExtras->value_set_images )
     {
-        if( m_valueSetImageFilenames == nullptr )
+        if( m_valueSetImageFilePaths == nullptr )
         {
-            std::unique_ptr<const CDataDict> dictionary = CDataDict::InstantiateAndOpen(m_path.c_str(), true);
+            const std::unique_ptr<const CDataDict> dictionary = CDataDict::InstantiateAndOpen(m_path, true);
 
-            m_valueSetImageFilenames = std::make_unique<std::vector<std::wstring>>();
+            m_valueSetImageFilePaths = std::make_unique<std::vector<std::string>>();
 
             DictionaryIterator::Foreach<DictValue>(*dictionary,
                 [&](const DictValue& dict_value)
                 {
-                    AddPotentiallyBlankFilename(*m_valueSetImageFilenames, dict_value.GetImageFilename());
+                    AddPotentiallyBlankFilePath(*m_valueSetImageFilePaths, dict_value.GetImageFilePath());
                 });
         }
 
-        VectorHelpers::Append(filenames, *m_valueSetImageFilenames);
+        VectorHelpers::Append(file_paths, *m_valueSetImageFilePaths);
     }
 
-    return filenames;
+    return file_paths;
 }
 
 
@@ -227,15 +228,15 @@ std::vector<std::wstring> DictionaryPackEntry::GetAssociatedFilenames() const
 //
 // --------------------------------------------------------------------------
 
-FormPackEntry::FormPackEntry(std::wstring path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
+FormPackEntry::FormPackEntry(std::string path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
     :   PackEntry(std::move(path), true)
 {
     CDEFormFile form_file;
 
-    if( !form_file.Open(m_path.c_str(), true) )
-        throw ApplicationFileLoadException(m_path.c_str());
+    if( !form_file.Open(UTF8_TODO::GetCString(m_path), true) )
+        throw ApplicationFileLoadException(m_path);
 
-    m_dictionaryPackEntry = std::make_unique<DictionaryPackEntry>(CS2WS(form_file.GetDictionaryFilename()), std::move(dictionary_extras));
+    m_dictionaryPackEntry = std::make_unique<DictionaryPackEntry>(UTF8_TODO::GetUtf8(form_file.GetDictionaryFilename()), std::move(dictionary_extras));
 }
 
 
@@ -245,9 +246,9 @@ DictionaryPackEntryExtras* FormPackEntry::GetDictionaryExtras()
 }
 
 
-std::vector<std::wstring> FormPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> FormPackEntry::GetAssociatedFilePaths() const
 {
-    return VectorHelpers::Concatenate(PackEntry::GetAssociatedFilenames(), m_dictionaryPackEntry->GetAssociatedFilenames());
+    return VectorHelpers::Concatenate(PackEntry::GetAssociatedFilePaths(), m_dictionaryPackEntry->GetAssociatedFilePaths());
 }
 
 
@@ -258,24 +259,24 @@ std::vector<std::wstring> FormPackEntry::GetAssociatedFilenames() const
 //
 // --------------------------------------------------------------------------
 
-TabSpecPackEntry::TabSpecPackEntry(std::wstring path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
+TabSpecPackEntry::TabSpecPackEntry(std::string path, std::shared_ptr<DictionaryPackEntryExtras> dictionary_extras)
     :   PackEntry(std::move(path), true)
 {
     CSpecFile specfile;
 
-    if( specfile.Open(m_path.c_str(), CFile::modeRead) )
+    if( specfile.Open(UTF8_TODO::GetCString(m_path), CFile::modeRead) )
     {
-        std::vector<std::wstring> dictionary_filenames = GetFileNameArrayFromSpecFile(specfile, CSPRO_DICTS);
+        std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(specfile, CSPRO_DICTS);
         specfile.Close();
 
-        if( dictionary_filenames.size() == 1 )
+        if( dictionary_file_paths.size() == 1 )
         {
-            m_dictionaryPackEntry = std::make_unique<DictionaryPackEntry>(std::move(dictionary_filenames.front()), std::move(dictionary_extras));
+            m_dictionaryPackEntry = std::make_unique<DictionaryPackEntry>(std::move(dictionary_file_paths.front()), std::move(dictionary_extras));
             return;
         }
     }
 
-    throw ApplicationFileLoadException(m_path.c_str());
+    throw ApplicationFileLoadException(m_path);
 }
 
 
@@ -285,9 +286,9 @@ DictionaryPackEntryExtras* TabSpecPackEntry::GetDictionaryExtras()
 }
 
 
-std::vector<std::wstring> TabSpecPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> TabSpecPackEntry::GetAssociatedFilePaths() const
 {
-    return VectorHelpers::Concatenate(PackEntry::GetAssociatedFilenames(), m_dictionaryPackEntry->GetAssociatedFilenames());
+    return VectorHelpers::Concatenate(PackEntry::GetAssociatedFilePaths(), m_dictionaryPackEntry->GetAssociatedFilePaths());
 }
 
 
@@ -298,7 +299,7 @@ std::vector<std::wstring> TabSpecPackEntry::GetAssociatedFilenames() const
 //
 // --------------------------------------------------------------------------
 
-PffPackEntry::PffPackEntry(std::wstring path, std::shared_ptr<PffPackEntryExtras> pff_extras)
+PffPackEntry::PffPackEntry(std::string path, std::shared_ptr<PffPackEntryExtras> pff_extras)
     :   PackEntry(std::move(path), true),
         m_pffExtras(GetNonNullExtras(std::move(pff_extras)))
 {
@@ -316,18 +317,18 @@ PffPackEntryExtras* PffPackEntry::GetPffExtras()
 }
 
 
-std::vector<std::wstring> PffPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> PffPackEntry::GetAssociatedFilePaths() const
 {
-    std::vector<std::wstring> filenames = PackEntry::GetAssociatedFilenames();
+    std::vector<std::string> file_paths = PackEntry::GetAssociatedFilePaths();
 
     auto get_pff = [&]() -> PFF&
     {
         if( m_pff == nullptr )
         {
-            auto pff = std::make_unique<PFF>(WS2CS(m_path));
+            auto pff = std::make_unique<PFF>(UTF8_TODO::GetCString(m_path));
 
             if( !pff->LoadPifFile(true) )
-                throw ApplicationFileLoadException(m_path.c_str());
+                throw ApplicationFileLoadException(m_path);
 
             m_pff = std::move(pff);
         }
@@ -335,63 +336,63 @@ std::vector<std::wstring> PffPackEntry::GetAssociatedFilenames() const
         return *m_pff;
     };
 
-    auto add_connection_string_data = [&](std::vector<std::wstring>& destination_filenames, const ConnectionString& connection_string)
+    auto add_connection_string_data = [&](std::vector<std::string>& destination_file_paths, const ConnectionString& connection_string)
     {
-        VectorHelpers::Append(destination_filenames, DataRepositoryHelpers::GetAssociatedFileList(connection_string, true));
+        VectorHelpers::Append(destination_file_paths, DataRepositoryHelpers::GetAssociatedFileList(connection_string, true));
     };
 
 
     if( m_pffExtras->input_data )
     {
-        if( m_inputDataFilenames == nullptr )
+        if( m_inputDataFilePaths == nullptr )
         {
-            auto input_data_filenames = std::make_unique<std::vector<std::wstring>>();
+            auto input_data_file_paths = std::make_unique<std::vector<std::string>>();
 
             for( const ConnectionString& input_connection_string : get_pff().GetInputDataConnectionStrings() )
-                add_connection_string_data(*input_data_filenames, input_connection_string);
+                add_connection_string_data(*input_data_file_paths, input_connection_string);
 
-            m_inputDataFilenames = std::move(input_data_filenames);
+            m_inputDataFilePaths = std::move(input_data_file_paths);
         }
 
-        VectorHelpers::Append(filenames, *m_inputDataFilenames);
+        VectorHelpers::Append(file_paths, *m_inputDataFilePaths);
     }
 
 
     if( m_pffExtras->external_dictionary_data )
     {
-        if( m_externalDictionaryDataFilenames == nullptr )
+        if( m_externalDictionaryDataFilePaths == nullptr )
         {
-            auto external_dictionary_data_filenames = std::make_unique<std::vector<std::wstring>>();
+            auto external_dictionary_data_file_paths = std::make_unique<std::vector<std::string>>();
 
             for( const auto& [dictionary_name, connection_string] : get_pff().GetExternalDataConnectionStrings() )
-                add_connection_string_data(*external_dictionary_data_filenames, connection_string);
+                add_connection_string_data(*external_dictionary_data_file_paths, connection_string);
 
-            m_externalDictionaryDataFilenames = std::move(external_dictionary_data_filenames);
+            m_externalDictionaryDataFilePaths = std::move(external_dictionary_data_file_paths);
         }
 
-        VectorHelpers::Append(filenames, *m_externalDictionaryDataFilenames);
+        VectorHelpers::Append(file_paths, *m_externalDictionaryDataFilePaths);
     }
 
 
     if( m_pffExtras->user_files )
     {
-        if( m_userFilenames == nullptr )
+        if( m_userFilePaths == nullptr )
         {
-            auto user_filenames = std::make_unique<std::vector<std::wstring>>();
+            auto user_file_paths = std::make_unique<std::vector<std::string>>();
 
-            for( const CString& filename : get_pff().GetUserFiles() )
+            for( const CString& file_path : get_pff().GetUserFiles() )
             {
-                if( PortableFunctions::FileIsRegular(filename) )
-                    user_filenames->emplace_back(filename);
+                if( PortableFunctions::FileIsRegular(file_path) )
+                    user_file_paths->emplace_back(UTF8_TODO::GetUtf8(file_path));
             }
 
-            m_userFilenames = std::move(user_filenames);
+            m_userFilePaths = std::move(user_file_paths);
         }
 
-        VectorHelpers::Append(filenames, *m_userFilenames);
+        VectorHelpers::Append(file_paths, *m_userFilePaths);
     }
 
-    return filenames;    
+    return file_paths;
 }
 
 
@@ -401,7 +402,7 @@ std::vector<std::wstring> PffPackEntry::GetAssociatedFilenames() const
 //
 // --------------------------------------------------------------------------
 
-ApplicationPackEntry::ApplicationPackEntry(std::wstring path)
+ApplicationPackEntry::ApplicationPackEntry(std::string path)
     :   PackEntry(std::move(path), true)
 {
     auto get_dictionary_extras = [&]()
@@ -414,48 +415,48 @@ ApplicationPackEntry::ApplicationPackEntry(std::wstring path)
 
     // load the application and add the application files
     Application application;
-    application.Open(m_path.c_str(), true, false);
+    application.Open(UTF8_TODO::GetWide(m_path), true, false);
 
     // application properties
-    AddPotentiallyBlankFilename(m_applicationFilenames, application.GetApplicationPropertiesFilename());
+    AddPotentiallyBlankFilePath(m_applicationFilePaths, application.GetApplicationPropertiesFilePath());
 
     // form files
-    for( const CString& form_filename : application.GetFormFilenames() )
-        m_formPackEntries.emplace_back(CS2WS(form_filename), get_dictionary_extras());
+    for( const std::string& form_file_path : application.GetFormFilePaths() )
+        m_formPackEntries.emplace_back(form_file_path, get_dictionary_extras());
 
     // tab specs
-    for( const CString& tab_spec_filename : application.GetTabSpecFilenames() )
-        m_tabSpecPackEntries.emplace_back(CS2WS(tab_spec_filename), get_dictionary_extras());
+    for( const std::string& table_spec_file_path : application.GetTableSpecFilePaths() )
+        m_tabSpecPackEntries.emplace_back(table_spec_file_path, get_dictionary_extras());
 
     // external dictionaries
-    for( const CString& dictionary_filename : application.GetExternalDictionaryFilenames() )
-        m_externalDictionaryPackEntries.emplace_back(CS2WS(dictionary_filename), get_dictionary_extras());
+    for( const std::string& dictionary_file_path : application.GetExternalDictionaryFilePaths() )
+        m_externalDictionaryPackEntries.emplace_back(dictionary_file_path, get_dictionary_extras());
 
     // code files
     for( const CodeFile& code_file : application.GetCodeFiles() )
-        m_applicationFilenames.emplace_back(code_file.GetFilename());
+        m_applicationFilePaths.emplace_back(code_file.GetFilePath());
 
     // message files
-    for( const std::shared_ptr<TextSource>& message_text_source : application.GetMessageTextSources() )
-        m_applicationFilenames.emplace_back(message_text_source->GetFilename());
+    for( const AppMessageFile& app_message_file : application.GetMessageFiles() )
+        m_applicationFilePaths.emplace_back(app_message_file.GetFilePath());
 
     // reports
-    for( const std::shared_ptr<NamedTextSource>& report_named_text_sources : application.GetReportNamedTextSources() )
-        m_applicationFilenames.emplace_back(report_named_text_sources->text_source->GetFilename());
+    for( const ReportFile& report_file : application.GetReportFiles() )
+        m_applicationFilePaths.emplace_back(report_file.GetFilePath());
 
     // question text
-    AddPotentiallyBlankFilename(m_applicationFilenames, application.GetQuestionTextFilename());
+    AddPotentiallyBlankFilePath(m_applicationFilePaths, application.GetQuestionTextFilePath());
 
-    // resource folders
-    for( const CString& resource_folder : application.GetResourceFolders() )
-        m_resourceFolderFilenames.try_emplace(CS2WS(resource_folder), nullptr);
+    // resources
+    for( const AppResource& resource : application.GetResources() )
+        m_resourcesAndEvaluatedFilePaths.emplace_back(resource, nullptr);
 
     // PFF
-    std::wstring expected_pff_filename = ( !m_tabSpecPackEntries.empty() ? m_path : PortableFunctions::PathRemoveFileExtension(m_path) ) +
-                                         FileExtensions::WithDot::Pff;
+    std::string expected_pff_file_path = PortableFunctions::PathAppendFileExtension(!m_tabSpecPackEntries.empty() ? m_path : PortableFunctions::PathRemoveFileExtension(m_path),
+                                                                                    FileExtensions::Pff);
 
-    if( PortableFunctions::FileIsRegular(expected_pff_filename.c_str()) )
-        m_pffPackEntry = std::make_unique<PffPackEntry>(std::move(expected_pff_filename), nullptr);
+    if( PortableFunctions::FileIsRegular(expected_pff_file_path) )
+        m_pffPackEntry = std::make_unique<PffPackEntry>(std::move(expected_pff_file_path), nullptr);
 }
 
 
@@ -478,40 +479,45 @@ ApplicationPackEntryExtras* ApplicationPackEntry::GetApplicationExtras()
 }
 
 
-std::vector<std::wstring> ApplicationPackEntry::GetAssociatedFilenames() const
+std::vector<std::string> ApplicationPackEntry::GetAssociatedFilePaths() const
 {
-    std::vector<std::wstring> filenames = PackEntry::GetAssociatedFilenames();
+    std::vector<std::string> file_paths = PackEntry::GetAssociatedFilePaths();
 
     // form files
     for( const FormPackEntry& form_pack_entry : m_formPackEntries )
-        VectorHelpers::Append(filenames, form_pack_entry.GetAssociatedFilenames());
+        VectorHelpers::Append(file_paths, form_pack_entry.GetAssociatedFilePaths());
 
     // tab specs
     for( const TabSpecPackEntry& tab_spec_pack_entry : m_tabSpecPackEntries )
-        VectorHelpers::Append(filenames, tab_spec_pack_entry.GetAssociatedFilenames());
-    
+        VectorHelpers::Append(file_paths, tab_spec_pack_entry.GetAssociatedFilePaths());
+
     // external dictionaries
     for( const DictionaryPackEntry& dictionary_pack_entry : m_externalDictionaryPackEntries )
-        VectorHelpers::Append(filenames, dictionary_pack_entry.GetAssociatedFilenames());
+        VectorHelpers::Append(file_paths, dictionary_pack_entry.GetAssociatedFilePaths());
 
     // application files
-    VectorHelpers::Append(filenames, m_applicationFilenames);
+    VectorHelpers::Append(file_paths, m_applicationFilePaths);
 
-    // resource folders
-    if( m_applicationExtras.resource_folders )
+    // resources
+    if( m_applicationExtras.resources )
     {
-        for( auto& [resource_folder, resource_filenames] : m_resourceFolderFilenames )
+        for( auto& [resource, evaluated_file_paths] : m_resourcesAndEvaluatedFilePaths )
         {
-            if( resource_filenames == nullptr )
-                resource_filenames = std::make_unique<std::vector<std::wstring>>(DirectoryLister(true, true, false).GetPaths(resource_folder));
-
-            VectorHelpers::Append(filenames, *resource_filenames);
+            if( evaluated_file_paths == nullptr )
+            {
+                try
+                {
+                    evaluated_file_paths = std::make_unique<std::vector<std::string>>(resource.GetEvaluatedPaths(false));
+                    VectorHelpers::Append(file_paths, *evaluated_file_paths);
+                }
+                catch(...) { ASSERT(false); } // an exception would be thrown if the resource's filename filter was invalid
+            }
         }
     }
 
     // PFF
     if( m_applicationExtras.pff && m_pffPackEntry != nullptr )
-        VectorHelpers::Append(filenames, m_pffPackEntry->GetAssociatedFilenames());
+        VectorHelpers::Append(file_paths, m_pffPackEntry->GetAssociatedFilePaths());
 
-    return filenames;
+    return file_paths;
 }

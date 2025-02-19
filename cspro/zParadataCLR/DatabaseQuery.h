@@ -2,6 +2,7 @@
 
 struct sqlite3_stmt;
 
+
 namespace CSPro
 {
     namespace ParadataViewer
@@ -18,15 +19,15 @@ namespace CSPro
 
             property array<System::String^>^ ColumnNames { array<System::String^>^ get(); }
 
-            System::Collections::Generic::List<array<System::Object^>^>^ GetResults(int iMaxNumberResults);
+            System::Collections::Generic::List<array<System::Object^>^>^ GetResults(int max_number_results);
 
             property System::Nullable<bool> AdditionalResultsAvailable { System::Nullable<bool> get(); }
 
         private:
             sqlite3_stmt* m_stmt;
-            int m_iNumberColumns;
-            bool m_bGetResultsExecutedAtLeastOnce;
-            bool m_bNextRowAlreadyStepped;
+            int m_numberColumns;
+            bool m_getResultsExecutedAtLeastOnce;
+            bool m_nextRowAlreadyStepped;
         };
     }
 }

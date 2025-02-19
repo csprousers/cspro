@@ -3,9 +3,9 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 
+#include <ParadataConcat/Resource.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/WindowsWS.h>
+#include <zUtilO/WindowsUtf8.h>
 #include <zAppO/PFF.h>
 #include <zParadataO/GuiConcatenator.h>
-#include <zParadataO/GuiConcatenatorPffWrapper.h>
-#include <ParadataConcat/Resource.h>

@@ -7,56 +7,56 @@
 
 namespace
 {
-    constexpr wstring_view TitleTag_sv                  = _T("title");
-    constexpr wstring_view ContextTag_sv                = _T("context");
-    constexpr wstring_view IndentTag_sv                 = _T("indent");
-    constexpr wstring_view CenterTag_sv                 = _T("center");
-    constexpr wstring_view BoldTag_sv                   = _T("b");
-    constexpr wstring_view ItalicsTag_sv                = _T("i");
-    constexpr wstring_view SuperscriptTag_sv            = _T("sup");
-    constexpr wstring_view FontTag_sv                   = _T("font");
-    constexpr wstring_view ListTag_sv                   = _T("list");
-    constexpr wstring_view ListItemTag_sv               = _T("li");
-    constexpr wstring_view SubheaderTag_sv              = _T("subheader");
-    constexpr wstring_view ImageTag_sv                  = _T("image");
-    constexpr wstring_view BarcodeTag_sv                = _T("barcode");
-    constexpr wstring_view TopicTag_sv                  = _T("topic");
-    constexpr wstring_view LinkTag_sv                   = _T("link");
-    constexpr wstring_view SeeAlsoTag_sv                = _T("seealso");
-    constexpr wstring_view TableTag_sv                  = _T("table");
-    constexpr wstring_view TableCellTag_sv              = _T("cell");
-    constexpr wstring_view LogicTag_sv                  = _T("logic");
-    constexpr wstring_view LogicSyntaxTag_sv            = _T("logicsyntax");
-    constexpr wstring_view LogicColorTag_sv             = _T("logiccolor");
-    constexpr wstring_view LogicArgumentTag_sv          = _T("arg");
-    constexpr wstring_view LogicTableTag_sv             = _T("logictable");
-    constexpr wstring_view ActionTag_sv                 = _T("action");
-    constexpr wstring_view MessageTag_sv                = _T("message");
-    constexpr wstring_view ReportTag_sv                 = _T("report");
-    constexpr wstring_view ColorTag_sv                  = _T("color");
-    constexpr wstring_view ColorInlineTag_sv            = _T("colorinline");
-    constexpr wstring_view PffTag_sv                    = _T("pff");
-    constexpr wstring_view PffColorTag_sv               = _T("pffcolor");
-    constexpr wstring_view HtmlTag_sv                   = _T("html");
-    constexpr wstring_view NoteTag_sv                   = _T("note");
-    constexpr wstring_view DefinitionTag_sv             = _T("definition");
-    constexpr wstring_view IncludeTag_sv                = _T("include");
-    constexpr wstring_view CalloutTag_sv                = _T("callout");
-    constexpr wstring_view PageBreakTag_sv              = _T("pagebreak");
-    constexpr wstring_view BuildExtraTag_sv             = _T("build-extra");
+    constexpr std::string_view TitleTag_sv                  = "title";
+    constexpr std::string_view ContextTag_sv                = "context";
+    constexpr std::string_view IndentTag_sv                 = "indent";
+    constexpr std::string_view CenterTag_sv                 = "center";
+    constexpr std::string_view BoldTag_sv                   = "b";
+    constexpr std::string_view ItalicsTag_sv                = "i";
+    constexpr std::string_view SuperscriptTag_sv            = "sup";
+    constexpr std::string_view FontTag_sv                   = "font";
+    constexpr std::string_view ListTag_sv                   = "list";
+    constexpr std::string_view ListItemTag_sv               = "li";
+    constexpr std::string_view SubheaderTag_sv              = "subheader";
+    constexpr std::string_view ImageTag_sv                  = "image";
+    constexpr std::string_view BarcodeTag_sv                = "barcode";
+    constexpr std::string_view TopicTag_sv                  = "topic";
+    constexpr std::string_view LinkTag_sv                   = "link";
+    constexpr std::string_view SeeAlsoTag_sv                = "seealso";
+    constexpr std::string_view TableTag_sv                  = "table";
+    constexpr std::string_view TableCellTag_sv              = "cell";
+    constexpr std::string_view LogicTag_sv                  = "logic";
+    constexpr std::string_view LogicSyntaxTag_sv            = "logicsyntax";
+    constexpr std::string_view LogicColorTag_sv             = "logiccolor";
+    constexpr std::string_view LogicArgumentTag_sv          = "arg";
+    constexpr std::string_view LogicTableTag_sv             = "logictable";
+    constexpr std::string_view ActionTag_sv                 = "action";
+    constexpr std::string_view MessageTag_sv                = "message";
+    constexpr std::string_view ReportTag_sv                 = "report";
+    constexpr std::string_view ColorTag_sv                  = "color";
+    constexpr std::string_view ColorInlineTag_sv            = "colorinline";
+    constexpr std::string_view PffTag_sv                    = "pff";
+    constexpr std::string_view PffColorTag_sv               = "pffcolor";
+    constexpr std::string_view HtmlTag_sv                   = "html";
+    constexpr std::string_view NoteTag_sv                   = "note";
+    constexpr std::string_view DefinitionTag_sv             = "definition";
+    constexpr std::string_view IncludeTag_sv                = "include";
+    constexpr std::string_view CalloutTag_sv                = "callout";
+    constexpr std::string_view PageBreakTag_sv              = "pagebreak";
+    constexpr std::string_view BuildExtraTag_sv             = "build-extra";
 
-    constexpr wstring_view TextAttribute_sv             = _T("text");
-    constexpr wstring_view HeaderAttribute_sv           = _T("header");
-    constexpr wstring_view NoHeaderAttribute_sv         = _T("noheader");
-    constexpr wstring_view FontMonospaceAttribute_sv    = _T("monospace");
-    constexpr wstring_view ImageNoChmAttribute_sv       = _T("nochm");
-    constexpr wstring_view ImageWidthAttribute_sv       = _T("width");
-    constexpr wstring_view ImageHeightAttribute_sv      = _T("height");
-    constexpr wstring_view OrderedAttribute_sv          = _T("ordered");
-    constexpr wstring_view NoWrapAttribute_sv           = _T("nowrap");
-    constexpr wstring_view BorderAttribute_sv           = _T("border");
+    constexpr std::string_view TextAttribute_sv             = "text";
+    constexpr std::string_view HeaderAttribute_sv           = "header";
+    constexpr std::string_view NoHeaderAttribute_sv         = "noheader";
+    constexpr std::string_view FontMonospaceAttribute_sv    = "monospace";
+    constexpr std::string_view ImageNoChmAttribute_sv       = "nochm";
+    constexpr std::string_view ImageWidthAttribute_sv       = "width";
+    constexpr std::string_view ImageHeightAttribute_sv      = "height";
+    constexpr std::string_view OrderedAttribute_sv          = "ordered";
+    constexpr std::string_view NoWrapAttribute_sv           = "nowrap";
+    constexpr std::string_view BorderAttribute_sv           = "border";
 
-    constexpr wstring_view NewLineMarker_sv             = _T("~!~");
+    constexpr std::string_view NewLineMarker_sv             = "~!~";
 }
 
 
@@ -65,30 +65,30 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
     static const SD sd = []()
     {
         // set up the tag definitions
-        std::map<std::wstring, TagDefinition> tag_definitions =
+        std::map<std::string_view, TagDefinition> tag_definitions =
         {
             { TitleTag_sv,         TagDefinition { true,   &TitleStartHandler, &TitleEndHandler, 0, 1 } },
             { ContextTag_sv,       TagDefinition { false,  &ContextStartHandler, { }, 1, SIZE_MAX } },
             { IndentTag_sv,        TagDefinition { true,   &IndentStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
-            { CenterTag_sv,        TagDefinition { true,   _T("<div align=\"center\">"), _T("</div>") } },
-            { BoldTag_sv,          TagDefinition { true,   _T("<b>"), _T("</b>") } },
-            { ItalicsTag_sv,       TagDefinition { true,   _T("<i>"), _T("</i>") } },
-            { SuperscriptTag_sv,   TagDefinition { true,   _T("<sup>"), _T("</sup>") } },
-            { FontTag_sv,          TagDefinition { true,   &FontStartHandler, _T("</span>"), 1, 3 } },
+            { CenterTag_sv,        TagDefinition { true,   "<div align=\"center\">", "</div>" } },
+            { BoldTag_sv,          TagDefinition { true,   "<b>", "</b>" } },
+            { ItalicsTag_sv,       TagDefinition { true,   "<i>", "</i>" } },
+            { SuperscriptTag_sv,   TagDefinition { true,   "<sup>", "</sup>" } },
+            { FontTag_sv,          TagDefinition { true,   &FontStartHandler, "</span>", 1, 3 } },
             { ListTag_sv,          TagDefinition { true,   &ListStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
-            { ListItemTag_sv,      TagDefinition { true,   _T("<li>"), _T("</li>") } },
-            { SubheaderTag_sv,     TagDefinition { true,   _T("<div class=\"subheader_size subheader\">"), _T("</div>") } },
+            { ListItemTag_sv,      TagDefinition { true,   "<li>", "</li>" } },
+            { SubheaderTag_sv,     TagDefinition { true,   "<div class=\"subheader_size subheader\">", "</div>" } },
             { ImageTag_sv,         TagDefinition { false,  &ImageStartHandler, { }, 1, 6 } },
             { BarcodeTag_sv,       TagDefinition { false,  &BarcodeStartHandler, { }, 1, 8 } },
             { TopicTag_sv,         TagDefinition { false,  &TopicStartHandler, { }, 1, 1 } },
-            { LinkTag_sv,          TagDefinition { true,   &LinkStartHandler, _T("</a>"), 1, 1 } },
+            { LinkTag_sv,          TagDefinition { true,   &LinkStartHandler, "</a>", 1, 1 } },
             { SeeAlsoTag_sv,       TagDefinition { false,  &SeeAlsoStartHandler, { }, 1, SIZE_MAX } },
             { TableTag_sv,         TagDefinition { true,   &TableStartHandler, &TableEndHandler, 1, 4 } },
             { TableCellTag_sv,     TagDefinition { true,   &TableCellStartHandler, &TableCellEndHandler, 0, 2 } },
             { LogicTag_sv,         TagDefinition { true,   { }, &LogicEndHandler } },
             { LogicSyntaxTag_sv,   TagDefinition { true,   &LogicObjectStartHandler, &LogicSyntaxEndHandler, 0, 1 } },
             { LogicColorTag_sv,    TagDefinition { true,   &LogicObjectStartHandler, &LogicColorEndHandler, 0, 1 } },
-            { LogicArgumentTag_sv, TagDefinition { true,   _T("<span class=\"code_colorization_argument\">"), _T("</span>") } },
+            { LogicArgumentTag_sv, TagDefinition { true,   "<span class=\"code_colorization_argument\">", "</span>" } },
             { LogicTableTag_sv,    TagDefinition { false,  &LogicTableStartHandler, { }, 1, 1 } },
             { ActionTag_sv,        TagDefinition { true,   { }, &ActionEndHandler } },
             { MessageTag_sv,       TagDefinition { true,   { }, &MessageEndHandler } },
@@ -99,37 +99,37 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { PffColorTag_sv,      TagDefinition { true,   { }, &PffColorEndHandler} },
             { HtmlTag_sv,          TagDefinition { true,   { }, { } } },
             { NoteTag_sv,          TagDefinition { false,  &NoteStartHandler, { }, 1, 2 } },
-            { CalloutTag_sv,       TagDefinition { true,   _T("<div style=\"background-color: lightgrey;border:1px solid black;margin:10px;padding:10px\">"), _T("</div>") } },
-            { PageBreakTag_sv,     TagDefinition { false,  _T("<div class=\"new-page\" />") } },
+            { CalloutTag_sv,       TagDefinition { true,   "<div style=\"background-color: lightgrey;border:1px solid black;margin:10px;padding:10px\">", "</div>" } },
+            { PageBreakTag_sv,     TagDefinition { false,  "<div class=\"new-page\" />" } },
             { BuildExtraTag_sv,    TagDefinition { false,  &BuildExtraStartHandler, { }, 1, SIZE_MAX } },
         };
 
 
         // set up the block tags
-        std::set<std::wstring> block_tags;
-        std::wstring block_tag_match_regex_text;
+        std::set<std::string> block_tags;
+        std::string block_tag_match_regex_text;
 
-        for( std::wstring tag : { LogicTag_sv,
-                                  LogicSyntaxTag_sv,
-                                  MessageTag_sv,
-                                  ReportTag_sv,
-                                  ColorTag_sv,
-                                  PffTag_sv,
-                                  HtmlTag_sv } )
+        for( const std::string_view& tag_sv : { LogicTag_sv,
+                                                LogicSyntaxTag_sv,
+                                                MessageTag_sv,
+                                                ReportTag_sv,
+                                                ColorTag_sv,
+                                                PffTag_sv,
+                                                HtmlTag_sv } )
         {
-            block_tag_match_regex_text.append(block_tag_match_regex_text.empty() ? _T(".*<(") : _T("|"));
-            block_tag_match_regex_text.append(Encoders::ToRegex(tag));
+            const std::string& tag = *block_tags.insert(std::string(tag_sv)).first;
 
-            block_tags.insert(std::move(tag));
+            block_tag_match_regex_text.append(block_tag_match_regex_text.empty() ? ".*<(" : "|");
+            block_tag_match_regex_text.append(Encoders::ToRegex(tag));
         }
 
-        block_tag_match_regex_text.append(_T(")(?:\\s.*|)>.*"));
+        block_tag_match_regex_text.append(")(?:\\s.*|)>.*");
 
         return SD
         {
             std::move(tag_definitions),
             std::move(block_tags),
-            std::wregex(block_tag_match_regex_text)
+            std::regex(block_tag_match_regex_text)
         };
     }();
 
@@ -137,18 +137,18 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
 }
 
 
-CSDocCompilerWorker::CSDocCompilerWorker(CSDocCompilerSettings& settings, const wstring_view text_sv)
+CSDocCompilerWorker::CSDocCompilerWorker(CSDocCompilerSettings& settings, const std::string_view text_sv)
     :   m_sd(GetStaticData()),
         m_settings(settings),
         m_inBlockTag(false)
 {
-    const std::wstring preprocessed_text = PreprocessTextForDefinitionsAndIncludes(text_sv);
+    const std::string preprocessed_text = PreprocessTextForDefinitionsAndIncludes(text_sv);
 
     CreateParagraphsFromPreprocessedText(preprocessed_text);
 }
 
 
-std::wstring CSDocCompilerWorker::CreateHtml()
+std::string CSDocCompilerWorker::CreateHtml()
 {
     ASSERT(m_html.empty());
 
@@ -156,38 +156,38 @@ std::wstring CSDocCompilerWorker::CreateHtml()
 
     if( m_settings.AddHtmlHeader() )
     {
-        m_html.append(DEFAULT_HTML_HEADER);
+        m_html.append(HtmlWriter::DefaultHeader_sv);
 
-        m_html.append(_T("<title>"));
-        title_pos = m_html.size();
-        m_html.append(_T("</title>\n"));
+        m_html.append("<title>");
+        title_pos = m_html.length();
+        m_html.append("</title>\n");
 
         m_html.append(m_settings.GetStylesheetsHtml());
 
-        m_html.append(_T("</head>\n<body>\n"));
+        m_html.append("</head>\n<body>\n");
     }
 
     const auto [start_document_html, end_document_html] = m_settings.GetHtmlToWrapDocument();
     m_html.append(start_document_html);
 
-    for( const std::wstring& paragraph : m_paragraphs )
+    for( const std::string& paragraph : m_paragraphs )
         ProcessParagraph(paragraph);
 
     // by now the title has been processed
     if( !m_title.has_value() )
     {
-        m_settings.ClearTitleForCompilationFilename();
+        m_settings.ClearTitleForCompilationFilePath();
 
         if( m_settings.TitleIsRequired() )
             throw CSProException("A title must be specified for the document.");
     }
 
-    if( title_pos.has_value() && !m_settings.GetCompilationFilename().empty() )
+    if( title_pos.has_value() && !m_settings.GetCompilationFilePath().empty() )
     {
         // only insert the title when defined, suppressing errors getting a title if the title is not required
         try
         {
-            m_html.insert(*title_pos, Encoders::ToHtml(m_settings.GetHtmlHeaderTitle(m_settings.GetCompilationFilename())));
+            m_html.insert(*title_pos, Encoders::ToHtml(m_settings.GetHtmlHeaderTitle(m_settings.GetCompilationFilePath())));
         }
 
         catch(...)
@@ -200,19 +200,19 @@ std::wstring CSDocCompilerWorker::CreateHtml()
     m_html.append(end_document_html);
 
     if( m_settings.AddHtmlFooter() )
-        m_html.append(_T("</body>\n</html>\n"));
+        m_html.append("</body>\n</html>\n");
 
     return m_html;
 }
 
 
-CSDocCompilerWorker::TagPosition CSDocCompilerWorker::GetTagPosition(const wstring_view text_sv, const size_t start_pos/* = 0*/)
+CSDocCompilerWorker::TagPosition CSDocCompilerWorker::GetTagPosition(const std::string_view text_sv, const size_t start_pos/* = 0*/)
 {
-    TagPosition tag_position { text_sv.find('<', start_pos), wstring_view::npos };
+    TagPosition tag_position { text_sv.find('<', start_pos), std::string_view::npos };
 
     while( true )
     {
-        if( tag_position.start == wstring_view::npos )
+        if( tag_position.start == std::string_view::npos )
             return tag_position;
 
         // tags must be followed by a letter or by the end tag character
@@ -221,7 +221,7 @@ CSDocCompilerWorker::TagPosition CSDocCompilerWorker::GetTagPosition(const wstri
         if( next_pos == text_sv.length() )
             return tag_position;
 
-        const TCHAR next_ch = text_sv[next_pos];
+        const char next_ch = text_sv[next_pos];
 
         if( next_ch == '/' || std::isalpha(next_ch) )
             break;
@@ -229,11 +229,11 @@ CSDocCompilerWorker::TagPosition CSDocCompilerWorker::GetTagPosition(const wstri
         tag_position.start = text_sv.find('<', next_pos);
     }
 
-    ASSERT(tag_position.start != wstring_view::npos);
+    ASSERT(tag_position.start != std::string_view::npos);
 
     for( size_t pos = tag_position.start + 1; pos < text_sv.length(); ++pos )
     {
-        const TCHAR ch = text_sv[pos];
+        const char ch = text_sv[pos];
 
         if( ch == '>' )
         {
@@ -262,20 +262,20 @@ CSDocCompilerWorker::TagPosition CSDocCompilerWorker::GetTagPosition(const wstri
 }
 
 
-std::vector<std::wstring> CSDocCompilerWorker::GetTagComponents(const wstring_view text_sv, const TagPosition& tag_position) const
+std::vector<std::string> CSDocCompilerWorker::GetTagComponents(const std::string_view text_sv, const TagPosition& tag_position) const
 {
     ASSERT(text_sv[tag_position.start] == '<' && text_sv[tag_position.end] == '>');
 
-    const wstring_view tag_sv = text_sv.substr(tag_position.start + 1, tag_position.end - tag_position.start - 1);
+    const std::string_view tag_sv = text_sv.substr(tag_position.start + 1, tag_position.end - tag_position.start - 1);
 
     // see if this is a version 8 tag
     const auto& first_whitespace_pos = std::find_if(tag_sv.cbegin(), tag_sv.cend(),
-                                                    [](TCHAR ch) { return std::iswspace(ch); });
+                                                    [](const char ch) { return std::isspace(ch); });
 
     if( first_whitespace_pos != tag_sv.cend() )
     {
         const size_t first_whitespace_index = std::distance(tag_sv.cbegin(), first_whitespace_pos);
-        const wstring_view tag_name_sv = tag_sv.substr(0, first_whitespace_index);
+        const std::string_view tag_name_sv = tag_sv.substr(0, first_whitespace_index);
         const auto& tag_definition_lookup = m_sd.tag_definitions.find(tag_name_sv);
 
         if( tag_definition_lookup != m_sd.tag_definitions.cend() &&
@@ -289,20 +289,20 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponents(const wstring_vi
 }
 
 
-std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV0(const wstring_view tag_sv)
+std::vector<std::string> CSDocCompilerWorker::GetTagComponentsV0(const std::string_view tag_sv)
 {
-    const size_t quotemark_pos = tag_sv.find_first_of(_T("\"'"));
+    const size_t quotemark_pos = tag_sv.find_first_of("\"'");
 
     // when the tag components do not use quotes, we do not have to process the tag in any special fashion
-    if( quotemark_pos == wstring_view::npos )
+    if( quotemark_pos == std::string_view::npos )
         return SO::SplitString(tag_sv, ' ', true, false);
 
-    std::vector<std::wstring> tag_components;
+    std::vector<std::string> tag_components;
     bool add_new_tag_component_with_next_ch = true;
 
     for( size_t pos = 0; pos < tag_sv.length(); ++pos )
     {
-        const TCHAR ch = tag_sv[pos];
+        const char ch = tag_sv[pos];
 
         if( ch == '"' || ch == '\'' )
         {
@@ -310,7 +310,7 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV0(const wstring_
             add_new_tag_component_with_next_ch = true;
         }
 
-        else if( std::iswspace(ch) )
+        else if( std::isspace(ch) )
         {
             add_new_tag_component_with_next_ch = true;
         }
@@ -331,9 +331,9 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV0(const wstring_
 }
 
 
-std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_view tag_name_sv, const wstring_view rest_of_tag_sv)
+std::vector<std::string> CSDocCompilerWorker::GetTagComponentsV8(const std::string_view tag_name_sv, const std::string_view rest_of_tag_sv)
 {
-    std::vector<std::wstring> tag_components = { tag_name_sv };
+    std::vector<std::string> tag_components = { std::string(tag_name_sv) };
 
     enum class ExpectedEntity { NameStart, NameContinue, Equals, Value, NothingAsTagIsEnded };
     ExpectedEntity expected_entity = ExpectedEntity::NameStart;
@@ -347,14 +347,14 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
 
     for( size_t pos = 0; pos < rest_of_tag_sv.length(); ++pos )
     {
-        const TCHAR ch = rest_of_tag_sv[pos];
+        const char ch = rest_of_tag_sv[pos];
 
         if( expected_entity == ExpectedEntity::NothingAsTagIsEnded )
         {
             throw CSProException("No additional text can appear after the tag closing character '/'.");
         }
 
-        else if( std::iswspace(ch) )
+        else if( std::isspace(ch) )
         {
             if( expected_entity == ExpectedEntity::NameContinue )
                 expected_entity = ExpectedEntity::Equals;
@@ -363,7 +363,7 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
         else if( ch == '/' )
         {
             ensure_attribute_has_value();
-            tag_components.emplace_back(_T("/"));
+            tag_components.emplace_back("/");
             expected_entity = ExpectedEntity::NothingAsTagIsEnded;
         }
 
@@ -387,7 +387,7 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
             expected_entity = ExpectedEntity::NameStart;
         }
 
-        else 
+        else
         {
             ASSERT(expected_entity == ExpectedEntity::NameStart ||
                    expected_entity == ExpectedEntity::NameContinue ||
@@ -398,7 +398,7 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
                 ensure_attribute_has_value();
 
             if( !is_tokch(ch) )
-                throw CSProException(_T("A tag attribute cannot contain the character '%c'."), ch);
+                throw CSProException("A tag attribute cannot contain the character '%c'.", ch);
 
             if( expected_entity == ExpectedEntity::NameContinue )
             {
@@ -409,7 +409,7 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
             {
                 tag_components.emplace_back(1, ch);
                 expected_entity = ExpectedEntity::NameContinue;
-            }            
+            }
         }
     }
 
@@ -421,20 +421,24 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
 
     else if( expected_entity == ExpectedEntity::Value )
     {
-        throw CSProException(_T("A tag value must be specified after the '=' following the tag attribute '%s'."), tag_components.back().c_str());
+        throw CSProException("A tag value must be specified after the '=' following the tag attribute '%s'.",
+                             tag_components.back().c_str());
     }
 
-    ASSERT(tag_components.size() % 2 == 1 || tag_components.back() == _T("/"));
+    ASSERT(tag_components.size() % 2 == 1 || tag_components.back() == "/");
 
     // make sure each attribute name is unique
     for( size_t i = 3; i < tag_components.size(); i += 2 )
     {
-        const std::wstring& this_tag_component = tag_components[i];
+        const std::string& this_tag_component = tag_components[i];
 
         for( size_t j = 1; j < i; j += 2 )
         {
             if( SO::EqualsNoCase(this_tag_component, tag_components[j]) )
-                throw CSProException(_T("More than one tag attribute with the name '%s' cannot be specified."), this_tag_component.c_str());
+            {
+                throw CSProException("More than one tag attribute with the name '%s' cannot be specified.",
+                                     this_tag_component.c_str());
+            }
         }
     }
 
@@ -442,9 +446,9 @@ std::vector<std::wstring> CSDocCompilerWorker::GetTagComponentsV8(const wstring_
 }
 
 
-std::map<wstring_view, wstring_view> CSDocCompilerWorker::ProcessTagComponentsV8(const cs::span<const std::wstring> tag_components)
+std::map<std::string_view, std::string_view> CSDocCompilerWorker::ProcessTagComponentsV8(const cs::span<const std::string> tag_components)
 {
-    std::map<wstring_view, wstring_view> mapped_tag_components;
+    std::map<std::string_view, std::string_view> mapped_tag_components;
 
     ASSERT(tag_components.size() % 2 == 0);
     const auto& tag_components_end = tag_components.end();
@@ -459,16 +463,16 @@ std::map<wstring_view, wstring_view> CSDocCompilerWorker::ProcessTagComponentsV8
 }
 
 
-void CSDocCompilerWorker::ValidateTagComponentsV8(const std::wstring& start_tag, const std::map<wstring_view, wstring_view>& tag_components,
-                                                  const cs::span<const wstring_view> required_attribute_names,
-                                                  const cs::span<const wstring_view> optional_attribute_names/* = cs::span<const wstring_view>()*/,
-                                                  const cs::span<const wstring_view> attribute_names_where_value_can_be_blank/* = cs::span<const wstring_view>()*/)
+void CSDocCompilerWorker::ValidateTagComponentsV8(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components,
+                                                  const cs::span<const std::string_view> required_attribute_names,
+                                                  const cs::span<const std::string_view> optional_attribute_names/* = cs::span<const std::string_view>()*/,
+                                                  const cs::span<const std::string_view> attribute_names_where_value_can_be_blank/* = cs::span<const std::string_view>()*/)
 {
-    auto index_in_span = [](const wstring_view& name_sv, const cs::span<const wstring_view>& attribute_names)
+    auto index_in_span = [](const std::string_view& name_sv, const cs::span<const std::string_view>& attribute_names)
     {
         size_t index = 0;
 
-        for( const wstring_view& attribute_name_sv : attribute_names )
+        for( const std::string_view& attribute_name_sv : attribute_names )
         {
             if( name_sv == attribute_name_sv )
                 return index;
@@ -492,14 +496,16 @@ void CSDocCompilerWorker::ValidateTagComponentsV8(const std::wstring& start_tag,
 
         else if( index_in_span(name_sv, optional_attribute_names) == SIZE_MAX )
         {
-            throw CSProException(_T("The '%s' tag contains an unrecognized attribute '%s'."),
-                                 start_tag.c_str(), std::wstring(name_sv).c_str());
+            throw CSProException("The '%s' tag contains an unrecognized attribute '%s'.",
+                                 start_tag.c_str(),
+                                 std::string(name_sv).c_str());
         }
 
         if( SO::IsWhitespace(value_sv) && index_in_span(name_sv, attribute_names_where_value_can_be_blank) == SIZE_MAX )
         {
-            throw CSProException(_T("The '%s' tag contains an attribute '%s' with a blank value. The value must be non-blank."),
-                                 start_tag.c_str(), std::wstring(name_sv).c_str());
+            throw CSProException("The '%s' tag contains an attribute '%s' with a blank value. The value must be non-blank.",
+                                 start_tag.c_str(),
+                                 std::string(name_sv).c_str());
         }
     }
 
@@ -509,15 +515,15 @@ void CSDocCompilerWorker::ValidateTagComponentsV8(const std::wstring& start_tag,
     {
         const size_t index = std::distance(required_attributes_present.cbegin(), missing_required_attribute_lookup);
 
-        throw CSProException(_T("The '%s' tag requires the specification of the attribute '%s'."),
-                                start_tag.c_str(), std::wstring(required_attribute_names[index]).c_str());
+        throw CSProException("The '%s' tag requires the specification of the attribute '%s'.",
+                             start_tag.c_str(), std::string(required_attribute_names[index]).c_str());
     }
 }
 
 
 template<typename CF>
-void CSDocCompilerWorker::ExecuteWithTagValue(const std::map<wstring_view, wstring_view>& tag_components,
-                                              const wstring_view attribute_name_sv, const CF callback_function)
+void CSDocCompilerWorker::ExecuteWithTagValue(const std::map<std::string_view, std::string_view>& tag_components,
+                                              const std::string_view attribute_name_sv, const CF callback_function)
 {
     const auto& lookup = tag_components.find(attribute_name_sv);
 
@@ -526,7 +532,7 @@ void CSDocCompilerWorker::ExecuteWithTagValue(const std::map<wstring_view, wstri
 }
 
 
-std::wstring CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const wstring_view text_sv)
+std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const std::string_view text_sv)
 {
     std::optional<size_t> next_tag_offset = 0;
 
@@ -535,11 +541,11 @@ std::wstring CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const 
         const size_t start_tag_position = text_sv.find('<', *next_tag_offset);
         next_tag_offset.reset();
 
-        if( start_tag_position == wstring_view::npos )
-            return text_sv;
+        if( start_tag_position == std::string_view::npos )
+            return std::string(text_sv);
 
         // see if this is an actual preprocessor tag
-        const wstring_view start_tag_sv = SO::TrimLeft(text_sv.substr(start_tag_position + 1));
+        const std::string_view start_tag_sv = SO::TrimLeft(text_sv.substr(start_tag_position + 1));
 
         if( !SO::StartsWith(start_tag_sv, DefinitionTag_sv) &&
             !SO::StartsWith(start_tag_sv, IncludeTag_sv) )
@@ -551,40 +557,40 @@ std::wstring CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const 
 
         const TagPosition tag_position = GetTagPosition(text_sv, start_tag_position);
 
-        if( tag_position.end == wstring_view::npos )
-            return text_sv;
+        if( tag_position.end == std::string_view::npos )
+            return std::string(text_sv);
 
-        const std::vector<std::wstring> tag_components = GetTagComponents(text_sv, tag_position);
+        const std::vector<std::string> tag_components = GetTagComponents(text_sv, tag_position);
 
-        std::optional<std::wstring> preprocessed_text;
+        std::optional<std::string> preprocessed_text;
 
-        if( tag_components.size() == 3 && tag_components.back() == _T("/") )
+        if( tag_components.size() == 3 && tag_components.back() == "/" )
         {
-            const std::wstring& tag_name = tag_components.front();
-            const std::wstring& tag_value = tag_components[1];
+            const std::string& tag_name = tag_components.front();
+            const std::string& tag_value = tag_components[1];
 
             try
             {
                 if( tag_name == DefinitionTag_sv )
                 {
-                    constexpr std::wstring_view SpecialDefinitionIndicator = _T("::");
-                    const size_t double_colon_pos = tag_value.find(SpecialDefinitionIndicator);
+                    constexpr std::string_view SpecialDefinitionIndicator_sv = "::";
+                    const size_t double_colon_pos = tag_value.find(SpecialDefinitionIndicator_sv);
 
-                    if( double_colon_pos != std::wstring::npos )
+                    if( double_colon_pos != std::string::npos )
                     {
                         preprocessed_text = m_settings.GetSpecialDefinition(tag_value.substr(0, double_colon_pos),
-                                                                            tag_value.substr(double_colon_pos + SpecialDefinitionIndicator.length()));
+                                                                            tag_value.substr(double_colon_pos + SpecialDefinitionIndicator_sv.length()));
                     }
 
                     else
                     {
                         preprocessed_text = m_settings.GetDefinition(tag_value);
-                    }                    
+                    }
                 }
 
                 else if( tag_name == IncludeTag_sv )
                 {
-                    const std::wstring include_path = m_settings.EvaluatePath(tag_value);
+                    const std::string include_path = m_settings.EvaluatePath(tag_value);
                     preprocessed_text = PreprocessTextForDefinitionsAndIncludes(FileIO::ReadText(include_path));
                 }
             }
@@ -604,21 +610,21 @@ std::wstring CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const 
         }
 
         // otherwise include the text prior to the start tag, the preprocessed text, and then preprocess all text following the end tag
-        return std::wstring(text_sv.substr(0, tag_position.start)) +
-                *preprocessed_text +
-                PreprocessTextForDefinitionsAndIncludes(text_sv.substr(tag_position.end + 1));
+        return SO::Concatenate(text_sv.substr(0, tag_position.start),
+                               *preprocessed_text +
+                               PreprocessTextForDefinitionsAndIncludes(text_sv.substr(tag_position.end + 1)));
     }
 
-    return ReturnProgrammingError(std::wstring());
+    return ReturnProgrammingError(std::string());
 }
 
 
-void CSDocCompilerWorker::CreateParagraphsFromPreprocessedText(const std::wstring& preprocessed_text)
+void CSDocCompilerWorker::CreateParagraphsFromPreprocessedText(const std::string& preprocessed_text)
 {
     ASSERT(m_paragraphs.empty());
 
-    std::wstring paragraph;
-    std::optional<std::wstring> in_block_end_tag;
+    std::string paragraph;
+    std::optional<std::string> in_block_end_tag;
 
     auto end_paragraph = [&]()
     {
@@ -629,8 +635,8 @@ void CSDocCompilerWorker::CreateParagraphsFromPreprocessedText(const std::wstrin
         }
     };
 
-    SO::ForeachLine(preprocessed_text, true,
-        [&](std::wstring line)
+    SO::ForeachLine<std::string>(preprocessed_text, true,
+        [&](std::string line)
         {
             SO::MakeTrimRight(line);
 
@@ -653,38 +659,36 @@ void CSDocCompilerWorker::CreateParagraphsFromPreprocessedText(const std::wstrin
                 SO::AppendWithSeparator(paragraph, SO::TrimLeft(line), NewLineMarker_sv);
 
                 // ...and check if there is a new block tag specifier
-                std::wsmatch matches;
+                std::smatch matches;
 
                 if( std::regex_match(line, matches, m_sd.block_tag_match_regex) )
                 {
                     ASSERT(matches.size() == 2);
-                    in_block_end_tag = _T("</") + matches.str(1) + _T(">");
+                    in_block_end_tag = "</" + matches.str(1) + ">";
                 }
             }
 
             // if in a block, check if it has ended
-            if( in_block_end_tag.has_value() && line.find(*in_block_end_tag) != wstring_view::npos )
+            if( in_block_end_tag.has_value() && line.find(*in_block_end_tag) != std::string_view::npos )
                 in_block_end_tag.reset();
-
-            return true;
         });
 
     // end the last paragraph
     end_paragraph();
 
     if( in_block_end_tag.has_value() )
-        throw CSProException(_T("The block ending tag '%s' was not found."), in_block_end_tag->c_str());
+        throw CSProException("The block ending tag '%s' was not found.", in_block_end_tag->c_str());
 }
 
 
-void CSDocCompilerWorker::ProcessParagraph(std::wstring paragraph)
+void CSDocCompilerWorker::ProcessParagraph(std::string paragraph)
 {
     ASSERT(m_tagStack.empty());
     ASSERT(!m_inBlockTag);
     ASSERT(m_endTagTextStack.empty());
     ASSERT(m_tableStack.empty());
 
-    std::wstring text;
+    std::string text;
 
     try
     {
@@ -692,12 +696,12 @@ void CSDocCompilerWorker::ProcessParagraph(std::wstring paragraph)
             text.append(ProcessText(paragraph));
 
         if( !m_tagStack.empty() )
-            throw CSProException(_T("Missing end tag '%s' at the end of the paragraph."), m_tagStack.top().c_str());
+            throw CSProException("Missing end tag '%s' at the end of the paragraph.", m_tagStack.top().c_str());
     }
 
     catch( const CSProException& exception )
     {
-        throw CSProException(_T("Error '%s' processing:\n\n%s"), exception.GetErrorMessage().c_str(), paragraph.c_str());
+        throw CSProException("Error '%s' processing:\n\n%s", exception.what(), paragraph.c_str());
     }
 
     if( text.empty() )
@@ -708,30 +712,30 @@ void CSDocCompilerWorker::ProcessParagraph(std::wstring paragraph)
     // these should not be processed
     if( text.length() % NewLineMarker_sv.length() == 0 )
     {
-        for( wstring_view text_check_sv = text; SO::StartsWith(text_check_sv, NewLineMarker_sv); )
+        for( std::string_view text_check_sv = text; SO::StartsWith(text_check_sv, NewLineMarker_sv); )
         {
-            text_check_sv = text_check_sv.substr(NewLineMarker_sv.length());
+            text_check_sv.remove_prefix(NewLineMarker_sv.length());
 
             if( text_check_sv.empty() )
                 return;
         }
-    }        
+    }
 
     // replace newlines with breaks and wrap the paragraph's HTML in a div
-    m_html.append(_T("<div class=\"paragraph\">"));
-    m_html.append(ReplaceNewlinesWithBreaks(std::move(text)));
-    m_html.append(_T("</div>\n"));
+    m_html.append("<div class=\"paragraph\">");
+    m_html.append(ReplaceNewlinesWithBreaks(text));
+    m_html.append("</div>\n");
 }
 
 
-std::wstring CSDocCompilerWorker::ReplaceNewlinesWithBreaks(std::wstring text)
+std::string& CSDocCompilerWorker::ReplaceNewlinesWithBreaks(std::string& text)
 {
-    static_assert(std::wstring::npos + 1 == 0);
-    size_t newline_pos = std::wstring::npos;
+    static_assert(std::string::npos + 1 == 0);
+    size_t newline_pos = std::string::npos;
 
     // if a newline immediately follows or preceeds a tag, it won't be considered a break
     while( ( ( newline_pos + 1 ) < text.size() ) &&
-           ( ( newline_pos = text.find(NewLineMarker_sv, newline_pos + 1) ) != std::wstring::npos ) )
+           ( ( newline_pos = text.find(NewLineMarker_sv, newline_pos + 1) ) != std::string::npos ) )
     {
         if( ( newline_pos > 0 && text[newline_pos - 1] == '>' ) ||
             ( ( newline_pos + NewLineMarker_sv.length() ) < text.length() && text[newline_pos + NewLineMarker_sv.length()] == '<' ) )
@@ -740,13 +744,11 @@ std::wstring CSDocCompilerWorker::ReplaceNewlinesWithBreaks(std::wstring text)
         }
     }
 
-    SO::Replace(text, NewLineMarker_sv, _T("<br />\n"));
-
-    return text;
+    return SO::Replace(text, NewLineMarker_sv, "<br>\n");
 }
 
 
-std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
+std::string CSDocCompilerWorker::ProcessText(std::string& text)
 {
     std::optional<size_t> next_tag_offset = 0;
 
@@ -756,26 +758,26 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
         next_tag_offset.reset();
 
         // return if there are no more tags
-        if( tag_position.start == wstring_view::npos )
-            return std::exchange(text, std::wstring());
+        if( tag_position.start == std::string_view::npos )
+            return std::exchange(text, std::string());
 
-        if( tag_position.end == wstring_view::npos )
-            throw CSProException(_T("Invalid tag construction around: ") + text.substr(tag_position.start));
+        if( tag_position.end == std::string_view::npos )
+            throw CSProException("Invalid tag construction around: %s", text.substr(tag_position.start).c_str());
 
-        const std::vector<std::wstring> tag_components = GetTagComponents(text, tag_position);
+        const std::vector<std::string> tag_components = GetTagComponents(text, tag_position);
 
         if( tag_components.empty() && !m_inBlockTag )
-            throw CSProException(_T("Empty tag around: ") + text.substr(tag_position.start));
+            throw CSProException("Empty tag around: %s", text.substr(tag_position.start).c_str());
 
-        std::wstring before_tag_text = text.substr(0, tag_position.start);
+        std::string before_tag_text = text.substr(0, tag_position.start);
 
         // process end tags...
-        if( !tag_components.empty() && SO::StartsWith(tag_components.front(), _T("/"))  )
+        if( !tag_components.empty() && SO::StartsWith(tag_components.front(), "/")  )
         {
             if( m_tagStack.empty() )
-                throw CSProException(_T("End tag without a start tag around: ") + text.substr(tag_position.start));
+                throw CSProException("End tag without a start tag around: %s", text.substr(tag_position.start).c_str());
 
-            wstring_view end_tag_sv = wstring_view(tag_components.front()).substr(1);
+            const std::string_view end_tag_sv = std::string_view(tag_components.front()).substr(1);
 
             // if in a block, ignore end tags unless they are ending the block tag
             if( m_inBlockTag && end_tag_sv != m_tagStack.top() )
@@ -786,8 +788,8 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
 
             if( end_tag_sv != m_tagStack.top() )
             {
-                throw CSProException(_T("End tag </%s> does not match the last start tag <%s> around: %s"),
-                                     std::wstring(end_tag_sv).c_str(), m_tagStack.top().c_str(), text.substr(tag_position.start).c_str());
+                throw CSProException("End tag </%s> does not match the last start tag <%s> around: %s",
+                                     std::string(end_tag_sv).c_str(), m_tagStack.top().c_str(), text.substr(tag_position.start).c_str());
             }
 
             m_tagStack.pop();
@@ -810,11 +812,11 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
 
         ASSERT(!tag_components.empty());
 
-        const std::wstring& start_tag = tag_components.front();
+        const std::string& start_tag = tag_components.front();
         const auto& tag_definition_lookup = m_sd.tag_definitions.find(start_tag);
 
         if( tag_definition_lookup == m_sd.tag_definitions.cend() )
-            throw CSProException(_T("Invalid tag around: ") + text.substr(tag_position.start));
+            throw CSProException("Invalid tag around: %s", text.substr(tag_position.start).c_str());
 
         // see if this is a block tag
         if( m_sd.block_tags.find(start_tag) != m_sd.block_tags.cend() )
@@ -825,43 +827,43 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
         // check that the tag ends correctly
         if( !tag_definition.paired )
         {
-            if( tag_components.size() == 1 || tag_components.back() != _T("/") )
+            if( tag_components.size() == 1 || tag_components.back() != "/" )
             {
-                throw CSProException(_T("The tag '%s' is not paired and must end with / around: %s"),
-                                     start_tag.c_str() ,text.substr(tag_position.start).c_str());
+                throw CSProException("The tag '%s' is not paired and must end with / around: %s",
+                                     start_tag.c_str(), text.substr(tag_position.start).c_str());
             }
         }
 
         // get only the real tag components
-        const std::wstring* first_real_tag_component = tag_components.data() + 1;
-        const std::wstring* last_real_tag_component = first_real_tag_component + tag_components.size() - 1 - ( tag_definition.paired ? 0 : 1 );
+        const std::string* const first_real_tag_component = tag_components.data() + 1;
+        const std::string* const last_real_tag_component = first_real_tag_component + tag_components.size() - 1 - ( tag_definition.paired ? 0 : 1 );
 
-        const cs::span<const std::wstring> real_tag_components(first_real_tag_component, last_real_tag_component - first_real_tag_component);
+        const cs::span<const std::string> real_tag_components(first_real_tag_component, last_real_tag_component - first_real_tag_component);
 
         // a routine to confirm that the number of tag components is valid
-        auto check_num_tag_components = [&](size_t num_tag_components)
+        auto check_num_tag_components = [&](const size_t num_tag_components)
         {
             if( num_tag_components < tag_definition.min_components )
             {
-                throw CSProException(_T("The tag '%s' must have at least %d argument%s around: %s"),
+                throw CSProException("The tag '%s' must have at least %d argument%s around: %s",
                                      start_tag.c_str(), static_cast<int>(tag_definition.min_components),
                                      PluralizeWord(tag_definition.min_components), text.substr(tag_position.start).c_str());
             }
 
             if( num_tag_components > tag_definition.max_components )
             {
-                throw CSProException(_T("The tag '%s' must have at most %d argument%s around: %s"),
+                throw CSProException("The tag '%s' must have at most %d argument%s around: %s",
                                      start_tag.c_str(), static_cast<int>(tag_definition.max_components),
                                      PluralizeWord(tag_definition.max_components), text.substr(tag_position.start).c_str());
             }
         };
 
         // process the start tag (using version 0 or 8 processing)
-        std::wstring output;
+        std::string output;
 
         if( std::holds_alternative<TagDefinition::StartHandlerFunctionV8>(tag_definition.start_handler) )
         {
-            const std::map<wstring_view, wstring_view> mapped_tag_components = ProcessTagComponentsV8(real_tag_components);
+            const std::map<std::string_view, std::string_view> mapped_tag_components = ProcessTagComponentsV8(real_tag_components);
             check_num_tag_components(mapped_tag_components.size());
 
             output = (this->*std::get<TagDefinition::StartHandlerFunctionV8>(tag_definition.start_handler))(start_tag, mapped_tag_components);
@@ -873,13 +875,13 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
             output = StartTagV0(tag_definition, real_tag_components);
         }
 
-        std::wstring after_tag_text = text.substr(tag_position.end + 1);
+        std::string after_tag_text = text.substr(tag_position.end + 1);
 
         if( tag_definition.paired )
         {
             m_tagStack.push(start_tag);
 
-            const std::wstring inner_text = ProcessText(after_tag_text);
+            const std::string inner_text = ProcessText(after_tag_text);
             output.append(EndTag(tag_definition, inner_text));
         }
 
@@ -890,20 +892,20 @@ std::wstring CSDocCompilerWorker::ProcessText(std::wstring& text)
         return output;
     }
 
-    return ReturnProgrammingError(std::wstring());
+    return ReturnProgrammingError(std::string());
 }
 
 
-std::wstring CSDocCompilerWorker::StartTagV0(const TagDefinition& tag_definition, cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::StartTagV0(const TagDefinition& tag_definition, const cs::span<const std::string> tag_components)
 {
     if( std::holds_alternative<std::monostate>(tag_definition.start_handler) )
     {
-        return std::wstring();
+        return std::string();
     }
 
-    else if( std::holds_alternative<std::wstring>(tag_definition.start_handler) )
+    else if( std::holds_alternative<std::string>(tag_definition.start_handler) )
     {
-        return std::get<std::wstring>(tag_definition.start_handler);
+        return std::get<std::string>(tag_definition.start_handler);
     }
 
     else
@@ -914,16 +916,16 @@ std::wstring CSDocCompilerWorker::StartTagV0(const TagDefinition& tag_definition
 }
 
 
-std::wstring CSDocCompilerWorker::EndTag(const TagDefinition& tag_definition, const std::wstring& inner_text)
+std::string CSDocCompilerWorker::EndTag(const TagDefinition& tag_definition, const std::string& inner_text)
 {
     if( std::holds_alternative<std::monostate>(tag_definition.end_handler) )
     {
         return inner_text;
     }
 
-    else if( std::holds_alternative<std::wstring>(tag_definition.end_handler) )
+    else if( std::holds_alternative<std::string>(tag_definition.end_handler) )
     {
-        return inner_text + std::get<std::wstring>(tag_definition.end_handler);
+        return inner_text + std::get<std::string>(tag_definition.end_handler);
     }
 
     else
@@ -934,25 +936,25 @@ std::wstring CSDocCompilerWorker::EndTag(const TagDefinition& tag_definition, co
 }
 
 
-std::wstring CSDocCompilerWorker::ParseStringLiteral(const wstring_view text_sv, size_t& pos)
+std::string CSDocCompilerWorker::ParseStringLiteral(const std::string_view text_sv, size_t& pos)
 {
-    const TCHAR quotemark = text_sv[pos];
+    const char quotemark = text_sv[pos];
     ASSERT(quotemark == '"' || quotemark == '\'');
 
-    std::wstring string_literal;
+    std::string string_literal;
     bool last_character_was_an_escape = false;
 
     for( ++pos; pos < text_sv.length(); ++pos )
     {
-        const TCHAR ch = text_sv[pos];
+        const char ch = text_sv[pos];
 
         if( last_character_was_an_escape )
         {
-            const TCHAR escaped_representation = Encoders::GetEscapedRepresentation(ch);
+            const char escaped_representation = Encoders::GetEscapedRepresentation(ch);
 
             // invalid escape sequence
             if( escaped_representation == 0 )
-                throw CSProException(_T("Invalid escape sequence, \\%c, in the string literal."), ch);
+                throw CSProException("Invalid escape sequence, \\%c, in the string literal.", ch);
 
             string_literal.push_back(escaped_representation);
             last_character_was_an_escape = false;
@@ -974,56 +976,56 @@ std::wstring CSDocCompilerWorker::ParseStringLiteral(const wstring_view text_sv,
         }
     }
 
-    throw CSProException(_T("Missing end quote (%c) in the string literal."), quotemark);
+    throw CSProException("Missing end quote (%c) in the string literal.", quotemark);
 }
 
 
-PortableColor CSDocCompilerWorker::ParsePortableColor(const wstring_view tag_or_attribute_name_sv, const bool first_argument_is_tag, const std::wstring& text)
+PortableColor CSDocCompilerWorker::ParsePortableColor(const std::string_view tag_or_attribute_name_sv, const bool first_argument_is_tag, const std::string& text)
 {
     std::optional<PortableColor> color = PortableColor::FromString(text);
 
     if( !color.has_value() )
     {
-        throw CSProException(_T("The '%s' %s contains an invalid color value: %s"),
-                             std::wstring(tag_or_attribute_name_sv).c_str(),
-                             first_argument_is_tag ? _T("tag") : _T("attribute"),
+        throw CSProException("The '%s' %s contains an invalid color value: %s",
+                             std::string(tag_or_attribute_name_sv).c_str(),
+                             first_argument_is_tag ? "tag" : "attribute",
                              text.c_str());
     }
 
-    return *color;
+    return std::move(*color);
 }
 
 
-int CSDocCompilerWorker::ParseInt(const wstring_view attribute_name_sv, const wstring_view text_sv)
+int CSDocCompilerWorker::ParseInt(const std::string_view attribute_name_sv, const std::string_view text_sv)
 {
     if( !CIMSAString::IsInteger(text_sv) )
     {
-        throw CSProException(_T("The '%s' attribute contains an invalid integer: %s"),
-                             std::wstring(attribute_name_sv).c_str(),
-                             std::wstring(text_sv).c_str());
+        throw CSProException("The '%s' attribute contains an invalid integer: %s",
+                             std::string(attribute_name_sv).c_str(),
+                             std::string(text_sv).c_str());
     }
 
     return static_cast<int>(CIMSAString::Val(text_sv));
 }
 
 
-int CSDocCompilerWorker::ParseInt(const wstring_view attribute_name_sv, const wstring_view text_sv, const int min_value)
+int CSDocCompilerWorker::ParseInt(const std::string_view attribute_name_sv, const std::string_view text_sv, const int min_value)
 {
     const int value = ParseInt(attribute_name_sv, text_sv);
 
     if( value < min_value )
     {
-        throw CSProException(_T("The '%s' attribute must contain an integer greater than or equal to %d, not: %s"),
-                             std::wstring(attribute_name_sv).c_str(),
+        throw CSProException("The '%s' attribute must contain an integer greater than or equal to %d, not: %s",
+                             std::string(attribute_name_sv).c_str(),
                              min_value,
-                             std::wstring(text_sv).c_str());
+                             std::string(text_sv).c_str());
     }
 
     return value;
 }
 
 
-bool CSDocCompilerWorker::TryParseInt(const wstring_view text_sv, int& value)
+bool CSDocCompilerWorker::TryParseInt(const std::string_view text_sv, int& value)
 {
     if( CIMSAString::IsInteger(text_sv) )
     {
@@ -1035,7 +1037,7 @@ bool CSDocCompilerWorker::TryParseInt(const wstring_view text_sv, int& value)
 }
 
 
-bool CSDocCompilerWorker::TryParseDouble(const wstring_view text_sv, double& value)
+bool CSDocCompilerWorker::TryParseDouble(const std::string_view text_sv, double& value)
 {
     if( CIMSAString::IsNumeric(text_sv) )
     {
@@ -1047,29 +1049,29 @@ bool CSDocCompilerWorker::TryParseDouble(const wstring_view text_sv, double& val
 }
 
 
-void CSDocCompilerWorker::AppendImageWidthHeight(std::wstring& html, const std::optional<int> width, const std::optional<int> height, const bool close_tag)
+void CSDocCompilerWorker::AppendImageWidthHeight(std::string& html, const std::optional<int> width, const std::optional<int> height, const bool close_tag)
 {
     if( width.has_value() )
-        SO::AppendFormat(html, _T(" \" width=\"%d\""), *width);
+        html.append(FormatText(" \" width=\"%d\"", *width));
 
     if( height.has_value() )
-        SO::AppendFormat(html, _T("\" height=\"%d\""), *height);
+        html.append(FormatText("\" height=\"%d\"", *height));
 
     if( close_tag )
-        html.append(_T(" />"));
+        html.append(" />");
 }
 
 
-std::wstring CSDocCompilerWorker::EndTagWithContentsOfTextStack(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::EndTagWithContentsOfTextStack(const std::string& inner_text)
 {
     ASSERT(!m_endTagTextStack.empty());
-    std::wstring result = inner_text + m_endTagTextStack.top();
+    std::string result = inner_text + m_endTagTextStack.top();
     m_endTagTextStack.pop();
     return result;
 }
 
 
-std::wstring CSDocCompilerWorker::TitleStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::TitleStartHandler(const cs::span<const std::string> tag_components)
 {
     if( m_title.has_value() )
         throw CSProException("Only one title can be defined.");
@@ -1086,72 +1088,71 @@ std::wstring CSDocCompilerWorker::TitleStartHandler(cs::span<const std::wstring>
 
     else
     {
-        throw CSProException(_T("Unknown 'title' tag: ") + tag_components.front());
+        throw CSProException("Unknown 'title' tag: %s", tag_components.front().c_str());
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::ContextStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::ContextStartHandler(const cs::span<const std::string> tag_components)
 {
-    for( const std::wstring& tag_component : tag_components )
+    for( cs::cref_optional<std::string> tag_component : tag_components )
     {
-        wstring_view context_sv = tag_component;
-        const bool use_if_exists = ( context_sv.front() == '!' );
+        const bool use_if_exists = ( tag_component->front() == '!' );
 
         if( use_if_exists )
-            context_sv = context_sv.substr(1);
+            tag_component = tag_component->substr(1);
 
-        m_settings.GetContextId(context_sv, use_if_exists);
+        m_settings.GetContextId(*tag_component, use_if_exists);
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::TitleEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::TitleEndHandler(const std::string& inner_text)
 {
     ASSERT(m_title->empty() || *m_title == NoHeaderAttribute_sv);
 
-    std::wstring header;
+    std::string header;
 
     if( *m_title != NoHeaderAttribute_sv )
     {
-        header = _T("<h2><span class=\"header_size header\">") + Encoders::ToHtml(inner_text) + _T("</span></h2>");
+        header = "<h2><span class=\"header_size header\">" + Encoders::ToHtml(inner_text) + "</span></h2>";
 
-        const std::wstring url = m_settings.CreateUrlForTitle(m_settings.GetCompilationFilename());
+        const std::string url = m_settings.CreateUrlForTitle(m_settings.GetCompilationFilePath());
 
         if( !url.empty() )
         {
-            const std::wstring a_tag_start = CreateHyperlinkStart(url, true, false);
-            header = a_tag_start + _T(" style=\"text-decoration: none;\">") + header + _T("</a>");
+            const std::string a_tag_start = CreateHyperlinkStart(url, true, false);
+            header = a_tag_start + " style=\"text-decoration: none;\">" + header + "</a>";
         }
     }
 
     m_title = inner_text;
 
     // update the database of titles
-    m_settings.SetTitleForCompilationFilename(*m_title);
+    m_settings.SetTitleForCompilationFilePath(*m_title);
 
     return header;
 }
 
 
-std::wstring CSDocCompilerWorker::IndentStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::IndentStartHandler(const cs::span<const std::string> tag_components)
 {
     int indents = 1;
 
     if( !tag_components.empty() && ( !TryParseInt(tag_components.front(), indents) || indents < 1 ) )
-        throw CSProException(_T("The 'indent' tag has an invalid attribute: ") + tag_components.front());
+        throw CSProException("The 'indent' tag has an invalid attribute: %s", tag_components.front().c_str());
 
-    std::wstring text;
-    std::wstring end_text;
+    std::string text;
+    std::string end_text;
 
     while( indents-- != 0 )
     {
-        text.append(_T("<div class=\"indent\">"));
-        end_text.append(_T("</div>"));
+        text.append("<div class=\"indent\">");
+        end_text.append("</div>");
     }
 
     m_endTagTextStack.push(end_text);
@@ -1160,43 +1161,45 @@ std::wstring CSDocCompilerWorker::IndentStartHandler(const cs::span<const std::w
 }
 
 
-std::wstring CSDocCompilerWorker::FontStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::FontStartHandler(const cs::span<const std::string> tag_components)
 {
-    std::wstring classes;
-    std::wstring styles;
+    std::string classes;
+    std::string styles;
     int types = 0;
     int sizes = 0;
     int colors = 0;
 
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
     {
         double em;
 
         // check for the font type
         if( tag_component == FontMonospaceAttribute_sv )
         {
-            classes.append(_T("monospace "));
+            classes.append("monospace ");
             ++types;
         }
 
         // check for the font size
         else if( tag_component == HeaderAttribute_sv || tag_component == SubheaderTag_sv )
         {
-            classes.append(tag_component + _T("_size "));
+            classes.append(tag_component + "_size ");
             ++sizes;
         }
 
         else if( TryParseDouble(tag_component, em) )
         {
-            styles.append(_T("font-size: ") + DoubleToString(em) + _T("em; "));
+            styles.append("font-size: " + DoubleToString(em) + "em; ");
             ++sizes;
         }
 
         // check for font color
         else
         {
-            const PortableColor color = ParsePortableColor(_T("font"), true, tag_component);
-            styles.append(_T("color: ") + color.ToString() + _T("; "));
+            const PortableColor color = ParsePortableColor("font", true, tag_component);
+            styles.append("color: ")
+                  .append(color.ToString())
+                  .append("; ");
             ++colors;
         }
 
@@ -1204,13 +1207,21 @@ std::wstring CSDocCompilerWorker::FontStartHandler(const cs::span<const std::wst
             throw CSProException("The 'font' tag cannot have more than one type, size, or color attribute.");
     }
 
-    std::wstring result = _T("<span");
+    std::string result = "<span";
 
     if( !classes.empty() )
-        result.append(_T(" class=\"") + classes + _T("\""));
+    {
+        result.append(" class=\"")
+              .append(classes)
+              .append("\"");
+    }
 
     if( !styles.empty() )
-        result.append(_T(" style=\"") + styles + _T("\""));
+    {
+        result.append(" style=\"")
+              .append(styles)
+              .append("\"");
+    }
 
     result.push_back('>');
 
@@ -1218,38 +1229,38 @@ std::wstring CSDocCompilerWorker::FontStartHandler(const cs::span<const std::wst
 }
 
 
-std::wstring CSDocCompilerWorker::ListStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::ListStartHandler(const cs::span<const std::string> tag_components)
 {
     bool unordered_list = true;
 
     if( !tag_components.empty() )
     {
         if( tag_components.front() != OrderedAttribute_sv )
-            throw CSProException(_T("The 'list' tag has an invalid attribute: ") + tag_components.front());
+            throw CSProException("The 'list' tag has an invalid attribute: %s", tag_components.front().c_str());
 
         unordered_list = false;
     }
 
-    m_endTagTextStack.push(unordered_list ? _T("</ul>") : _T("</ol>"));
+    m_endTagTextStack.push(unordered_list ? "</ul>" : "</ol>");
 
-    return unordered_list ? _T("<ul>") : _T("<ol>");
+    return unordered_list ? "<ul>" : "<ol>";
 }
 
 
-std::wstring CSDocCompilerWorker::ImageStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::ImageStartHandler(const cs::span<const std::string> tag_components)
 {
     std::optional<int> width;
     std::optional<int> height;
     std::optional<int>* dimension_specifying = nullptr;
-    std::wstring image_path;
+    std::string image_path;
     bool nochm = false;
 
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
     {
         if( dimension_specifying != nullptr )
         {
             if( !TryParseInt(tag_component, dimension_specifying->emplace()) || *dimension_specifying <= 0 )
-                throw CSProException(_T("The image width and height must be positive integers (not '%s')."), tag_component.c_str());
+                throw CSProException("The image width and height must be positive integers (not '%s').", tag_component.c_str());
 
             dimension_specifying = nullptr;
         }
@@ -1276,7 +1287,7 @@ std::wstring CSDocCompilerWorker::ImageStartHandler(cs::span<const std::wstring>
 
         else
         {
-            throw CSProException(_T("The 'image' tag has an invalid or duplicated attribute: ") + tag_component);
+            throw CSProException("The 'image' tag has an invalid or duplicated attribute: %s", tag_component.c_str());
         }
     }
 
@@ -1287,19 +1298,19 @@ std::wstring CSDocCompilerWorker::ImageStartHandler(cs::span<const std::wstring>
         throw CSProException("The image location must be specified.");
 
     if( nochm && m_settings.CompilingForCompiledHtmlHelp() )
-        return std::wstring();
+        return std::string();
 
     image_path = m_settings.EvaluateImagePath(image_path);
 
     if( !PortableFunctions::FileIsRegular(image_path) )
-        throw CSProException(_T("The image could not be located: ") + image_path);
+        throw CSProException("The image could not be located: %s", image_path.c_str());
 
     // for accessibility, set the title to the name of the image, replacing underscores with spaces
-    std::wstring title = PortableFunctions::PathGetFilenameWithoutExtension(image_path);
+    std::string title = Path::GetFilenameWithoutExtension(image_path);
     SO::Replace(title, '_', ' ');
 
-    std::wstring html = _T("<img src=\"") + Encoders::ToHtmlTagValue(m_settings.CreateUrlForImageFile(image_path)) +
-                        _T("\" title=\"") + Encoders::ToHtmlTagValue(title) + _T("\"");
+    std::string html = SO::Concatenate("<img src=\"", Encoders::ToHtmlTagValue(m_settings.CreateUrlForImageFile(image_path)),
+                                       "\" title=\"", Encoders::ToHtmlTagValue(title), "\"");
 
     AppendImageWidthHeight(html, width, height, true);
 
@@ -1307,13 +1318,13 @@ std::wstring CSDocCompilerWorker::ImageStartHandler(cs::span<const std::wstring>
 }
 
 
-std::wstring CSDocCompilerWorker::BarcodeStartHandler(const std::wstring& start_tag, const std::map<wstring_view, wstring_view>& tag_components)
+std::string CSDocCompilerWorker::BarcodeStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components)
 {
-    constexpr wstring_view ErrorCorrectionAttribute_sv = _T("errorCorrection");
-    constexpr wstring_view ScaleAttribute_sv           = _T("scale");
-    constexpr wstring_view QuietZoneAttribute_sv       = _T("quietZone");
-    constexpr wstring_view DarkColorAttribute_sv       = _T("darkColor");
-    constexpr wstring_view LightColorAttribute_sv      = _T("lightColor");
+    constexpr std::string_view ErrorCorrectionAttribute_sv = "errorCorrection";
+    constexpr std::string_view ScaleAttribute_sv           = "scale";
+    constexpr std::string_view QuietZoneAttribute_sv       = "quietZone";
+    constexpr std::string_view DarkColorAttribute_sv       = "darkColor";
+    constexpr std::string_view LightColorAttribute_sv      = "lightColor";
 
     ValidateTagComponentsV8(start_tag, tag_components,
                             { TextAttribute_sv },
@@ -1321,44 +1332,44 @@ std::wstring CSDocCompilerWorker::BarcodeStartHandler(const std::wstring& start_
                             { TextAttribute_sv });
 
     Multimedia::QRCode qr_code;
-    const wstring_view text_sv = tag_components.at(TextAttribute_sv);
+    const std::string text(tag_components.at(TextAttribute_sv));
     std::optional<int> width;
     std::optional<int> height;
 
     ExecuteWithTagValue(tag_components, ErrorCorrectionAttribute_sv,
-                        [&](const wstring_view value_sv) { qr_code.SetErrorCorrectionLevel(value_sv); });
+                        [&](const std::string_view value_sv) { qr_code.SetErrorCorrectionLevel(value_sv); });
 
     ExecuteWithTagValue(tag_components, ScaleAttribute_sv,
-                        [&](const wstring_view value_sv) { qr_code.SetScale(ParseInt(ScaleAttribute_sv, value_sv)); });
+                        [&](const std::string_view value_sv) { qr_code.SetScale(ParseInt(ScaleAttribute_sv, value_sv)); });
 
     ExecuteWithTagValue(tag_components, QuietZoneAttribute_sv,
-                        [&](const wstring_view value_sv) { qr_code.SetQuietZone(ParseInt(QuietZoneAttribute_sv, value_sv)); });
+                        [&](const std::string_view value_sv) { qr_code.SetQuietZone(ParseInt(QuietZoneAttribute_sv, value_sv)); });
 
     ExecuteWithTagValue(tag_components, DarkColorAttribute_sv,
-                        [&](const wstring_view value_sv) { qr_code.SetDarkColor(ParsePortableColor(DarkColorAttribute_sv, false, value_sv)); });
+                        [&](const std::string_view value_sv) { qr_code.SetDarkColor(ParsePortableColor(DarkColorAttribute_sv, false, std::string(value_sv))); });
 
     ExecuteWithTagValue(tag_components, LightColorAttribute_sv,
-                        [&](const wstring_view value_sv) { qr_code.SetLightColor(ParsePortableColor(LightColorAttribute_sv, false, value_sv)); });
+                        [&](const std::string_view value_sv) { qr_code.SetLightColor(ParsePortableColor(LightColorAttribute_sv, false, std::string(value_sv))); });
 
     ExecuteWithTagValue(tag_components, ImageWidthAttribute_sv,
-                        [&](const wstring_view value_sv) { width = ParseInt(ImageWidthAttribute_sv, value_sv, 1); });
+                        [&](const std::string_view value_sv) { width = ParseInt(ImageWidthAttribute_sv, value_sv, 1); });
 
     ExecuteWithTagValue(tag_components, ImageHeightAttribute_sv,
-                        [&](const wstring_view value_sv) { height = ParseInt(ImageHeightAttribute_sv, value_sv, 1); });
+                        [&](const std::string_view value_sv) { height = ParseInt(ImageHeightAttribute_sv, value_sv, 1); });
 
-    qr_code.Create(UTF8Convert::WideToUTF8(text_sv));
+    qr_code.Create(text);
 
-    std::unique_ptr<Multimedia::Image> qr_code_bitmap = qr_code.GetImage();
-    std::unique_ptr<std::vector<std::byte>> qr_code_png = qr_code_bitmap->ToBuffer(ImageType::Png);
+    const std::unique_ptr<Multimedia::Image> qr_code_bitmap = qr_code.GetImage();
+    const std::unique_ptr<std::vector<std::byte>> qr_code_png = qr_code_bitmap->ToBuffer(ImageType::Png);
 
     if( qr_code_png == nullptr )
-        throw CSProException(_T("There was an error generating a QR code for text: ") + std::wstring(text_sv));
+        throw CSProException("There was an error generating a QR code for text: %s", text.c_str());
 
-    const std::wstring data_url = Encoders::ToDataUrl(*qr_code_png, MimeType::Type::ImagePng);
+    const std::string data_url = Encoders::ToDataUrl(*qr_code_png, MimeType::Type::ImagePng);
     ASSERT(data_url == Encoders::ToHtmlTagValue(data_url));
 
-    std::wstring html = _T("<img src=\"") + data_url +
-                        _T("\" title=\"") + Encoders::ToHtmlTagValue(text_sv) + _T("\"");
+    std::string html = SO::Concatenate("<img src=\"", data_url,
+                                       "\" title=\"", Encoders::ToHtmlTagValue(text), "\"");
 
     AppendImageWidthHeight(html, width, height, true);
 
@@ -1366,21 +1377,21 @@ std::wstring CSDocCompilerWorker::BarcodeStartHandler(const std::wstring& start_
 }
 
 
-CSDocCompilerWorker::PathAndProject CSDocCompilerWorker::GetPathAndProjectForTopicComponent(CSDocCompilerSettings& settings, const std::wstring& topic_component)
+CSDocCompilerWorker::PathAndProject CSDocCompilerWorker::GetPathAndProjectForTopicComponent(CSDocCompilerSettings& settings, const std::string& topic_component)
 {
     if( !SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(topic_component), FileExtensions::CSDocument) )
-        throw CSProException(_T("The file cannot be linked as it is not a CSPro Document: ") + topic_component);
+        throw CSProException("The file cannot be linked as it is not a CSPro Document: %s", topic_component.c_str());
 
     PathAndProject path_and_project;
 
-    constexpr std::wstring_view ProjectIndicator = _T("::");
-    const size_t double_colon_pos = topic_component.find(ProjectIndicator);
+    constexpr std::string_view ProjectIndicator_sv = "::";
+    const size_t double_colon_pos = topic_component.find(ProjectIndicator_sv);
 
-    if( double_colon_pos != std::wstring::npos )
+    if( double_colon_pos != std::string::npos )
     {
         path_and_project.project = topic_component.substr(0, double_colon_pos);
         path_and_project.path = settings.EvaluateTopicPath(path_and_project.project,
-                                                           topic_component.substr(double_colon_pos + ProjectIndicator.length()));
+                                                           topic_component.substr(double_colon_pos + ProjectIndicator_sv.length()));
     }
 
     else
@@ -1389,28 +1400,28 @@ CSDocCompilerWorker::PathAndProject CSDocCompilerWorker::GetPathAndProjectForTop
     }
 
     if( !PortableFunctions::FileIsRegular(path_and_project.path) )
-        throw CSProException(_T("The document could not be located: ") + topic_component);
+        throw CSProException("The document could not be located: %s", topic_component.c_str());
 
     return path_and_project;
 }
 
 
-std::wstring CSDocCompilerWorker::EvaluateAndCreateUrlForTopicComponent(CSDocCompilerSettings& settings, const std::wstring& topic_component)
+std::string CSDocCompilerWorker::EvaluateAndCreateUrlForTopicComponent(CSDocCompilerSettings& settings, const std::string& topic_component)
 {
     const PathAndProject path_and_project = GetPathAndProjectForTopicComponent(settings, topic_component);
-    return settings.CreateUrlForTopic(path_and_project.project, path_and_project.path);;
+    return settings.CreateUrlForTopic(path_and_project.project, path_and_project.path);
 }
 
 
-std::wstring CSDocCompilerWorker::CreateHyperlinkStart(wstring_view CreateUrlForFile_result_sv,
-                                                       const bool target_blank/* = false*/, const bool end_tag/* = true*/)
+std::string CSDocCompilerWorker::CreateHyperlinkStart(std::string_view CreateUrlForFile_result_sv,
+                                                      const bool target_blank/* = false*/, const bool end_tag/* = true*/)
 {
-    constexpr TCHAR OnClickIndicator = '!';
+    constexpr char OnClickIndicator = '!';
 
     if( CreateUrlForFile_result_sv.empty() )
-        return _T("<a>");
+        return "<a>";
 
-    std::wstring html = _T("<a href=\"");
+    std::string html = "<a href=\"";
 
     if( CreateUrlForFile_result_sv.front() == OnClickIndicator )
     {
@@ -1418,39 +1429,40 @@ std::wstring CSDocCompilerWorker::CreateHyperlinkStart(wstring_view CreateUrlFor
 
         if( !CreateUrlForFile_result_sv.empty() )
         {
-            html.append(_T("\" onclick=\""));
-            CreateUrlForFile_result_sv = CreateUrlForFile_result_sv.substr(1);
+            html.append("\" onclick=\"");
+            CreateUrlForFile_result_sv.remove_prefix(1);
         }
     }
 
     html.append(Encoders::ToHtmlTagValue(CreateUrlForFile_result_sv));
 
     if( target_blank )
-        html.append(_T("\" target=\"_blank"));
+        html.append("\" target=\"_blank");
 
-    html.append(end_tag ? _T("\">") :
-                          _T("\""));
+    html.append(end_tag ? "\">" :
+                          "\"");
 
     return html;
 }
 
 
-std::wstring CSDocCompilerWorker::TopicStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::TopicStartHandler(const cs::span<const std::string> tag_components)
 {
     const PathAndProject path_and_project = GetPathAndProjectForTopicComponent(tag_components.front());
-    const std::wstring title = m_settings.GetTitle(path_and_project.path);
+    std::string title = m_settings.GetTitle(path_and_project.path);
 
-    std::wstring html = CreateHyperlinkStart(m_settings.CreateUrlForTopic(path_and_project.project, path_and_project.path));
-    return html + Encoders::ToHtml(title) + _T("</a>");
+    return SO::Concatenate(CreateHyperlinkStart(m_settings.CreateUrlForTopic(path_and_project.project, path_and_project.path)),
+                           Encoders::ToHtml(std::move(title)),
+                           "</a>");
 }
 
 
-std::wstring CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::string> tag_components)
 {
-    std::wstring url = tag_components.front();
+    std::string url = tag_components.front();
     bool target_blank = false;
 
-    if( SO::StartsWith(url, _T("http")) || SO::StartsWith(url, _T("mailto")) )
+    if( SO::StartsWith(url, "http") || SO::StartsWith(url, "mailto") )
     {
         target_blank = m_settings.OpenExternalLinksInSeparateWindow();
     }
@@ -1465,12 +1477,12 @@ std::wstring CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::wst
 }
 
 
-std::wstring CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::string> tag_components)
 {
-    std::vector<std::tuple<std::wstring, std::wstring>> urls_and_titles;
+    std::vector<std::tuple<std::string, std::string>> urls_and_titles;
     bool ordered_list = false;
 
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
     {
         if( tag_component == OrderedAttribute_sv )
         {
@@ -1498,12 +1510,14 @@ std::wstring CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::
                  [&](const auto& pt1, const auto& pt2) { return ( SO::CompareNoCase(std::get<1>(pt1), std::get<1>(pt2)) < 0 ); });
     }
 
-    std::wstring html;
+    std::string html;
 
     for( const auto& [url, title] : urls_and_titles )
     {
-        html.append(html.empty() ? _T("<b>See also</b>: ") : _T(", "));
-        html.append(CreateHyperlinkStart(url) + Encoders::ToHtml(title) + _T("</a>"));
+        html.append(html.empty() ? "<b>See also</b>: " : ", ")
+            .append(CreateHyperlinkStart(url))
+            .append(Encoders::ToHtml(title))
+            .append("</a>");
     }
 
     return html;
@@ -1530,11 +1544,11 @@ CSDocCompilerWorker::TableSettings& CSDocCompilerWorker::GetCurrentTable()
 }
 
 
-std::wstring CSDocCompilerWorker::TableStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::TableStartHandler(const cs::span<const std::string> tag_components)
 {
     auto table_settings = std::make_shared<TableSettings>();
 
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
     {
         if( !table_settings->header && tag_component == HeaderAttribute_sv )
         {
@@ -1564,7 +1578,7 @@ std::wstring CSDocCompilerWorker::TableStartHandler(const cs::span<const std::ws
 
         else
         {
-            throw CSProException(_T("The 'table' tag has an invalid attribute: ") + tag_component);
+            throw CSProException("The 'table' tag has an invalid attribute: %s", tag_component.c_str());
         }
     }
 
@@ -1573,25 +1587,26 @@ std::wstring CSDocCompilerWorker::TableStartHandler(const cs::span<const std::ws
 
     m_tableStack.push(table_settings);
 
-    return table_settings->border ? _T("<table class=\"bordered_table\">") : _T("<table>");
+    return table_settings->border ? "<table class=\"bordered_table\">" :
+                                    "<table>";
 }
 
 
-std::wstring CSDocCompilerWorker::TableEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::TableEndHandler(const std::string& inner_text)
 {
     const TableSettings& table_settings = GetCurrentTable();
     const int cell_index = table_settings.cells % table_settings.columns;
 
     if( cell_index != 0 )
-        throw CSProException(_T("You cannot end the table without specifying an additional '%d' cells."), table_settings.columns - cell_index);
+        throw CSProException("You cannot end the table without specifying an additional '%d' cells.", table_settings.columns - cell_index);
 
     m_tableStack.pop();
 
-    return inner_text + _T("</table>");
+    return inner_text + "</table>";
 }
 
 
-std::wstring CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std::string> tag_components)
 {
     TableSettings& table_settings = GetCurrentTable();
     const int cell_index = table_settings.cells % table_settings.columns;
@@ -1600,7 +1615,7 @@ std::wstring CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std
     bool nowrap = ( table_settings.nowrap && is_first_cell_in_row );
     int columns = 1;
 
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
     {
         if( tag_component == NoWrapAttribute_sv )
         {
@@ -1618,68 +1633,68 @@ std::wstring CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std
 
     table_settings.cells += columns;
 
-    const std::wstring row_prefix = is_first_cell_in_row ? _T("<tr>") : std::wstring();
-    const std::wstring cell_type = is_header_row ? _T("th") : _T("td");
-    const std::wstring span = ( columns > 1 ) ? FormatTextCS2WS(_T(" colspan=\"%d\""), columns) : std::wstring();
+    const std::string row_prefix = is_first_cell_in_row ? "<tr>" : std::string();
+    const std::string cell_type = is_header_row ? "th" : "td";
+    const std::string span = ( columns > 1 ) ? FormatText(" colspan=\"%d\"", columns) : std::string();
 
-    std::wstring style;
+    std::string style;
 
     if( nowrap )
-        style.append(_T("white-space: nowrap; "));
+        style.append("white-space: nowrap; ");
 
     if( table_settings.center )
-        style.append(_T("text-align: center;"));
+        style.append("text-align: center;");
 
-    const std::wstring class_str = table_settings.border ? _T(" class=\"bordered_table_cell\"") : std::wstring();
+    const std::string class_str = table_settings.border ? " class=\"bordered_table_cell\"" : std::string();
 
     if( !style.empty() )
     {
         SO::MakeTrim(style);
-        style = _T(" style=\"") + style + _T("\"");
+        style = SO::Concatenate(" style=\"", style, "\"");
     }
 
-    return row_prefix + _T("<") + cell_type + style + span + class_str + _T(">");
+    return SO::Concatenate(row_prefix, "<", cell_type, style, span, class_str, ">");
 }
 
 
-std::wstring CSDocCompilerWorker::TableCellEndHandler(const std::wstring& inner_text)
+std::string CSDocCompilerWorker::TableCellEndHandler(const std::string& inner_text)
 {
     const TableSettings& table_settings = GetCurrentTable();
     const int cell_index = table_settings.cells % table_settings.columns;
     const bool is_header_row = ( table_settings.header && table_settings.cells <= table_settings.columns );
     const bool is_last_cell_in_row = ( cell_index == 0 );
 
-    return inner_text + ( is_header_row       ? _T("</th>")   : _T("</td>") ) +
-                        ( is_last_cell_in_row ? _T("</tr>\n") : _T("") );
+    return inner_text + ( is_header_row       ? "</th>"   : "</td>" ) +
+                        ( is_last_cell_in_row ? "</tr>\n" : "" );
 }
 
 
-std::wstring CSDocCompilerWorker::NoteStartHandler(const std::wstring& start_tag, const std::map<wstring_view, wstring_view>& tag_components)
+std::string CSDocCompilerWorker::NoteStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components)
 {
-    constexpr wstring_view TypeAttribute_sv    = _T("type");
-    constexpr wstring_view TypeErrorValue_sv   = _T("error");
-    constexpr wstring_view TypeWarningValue_sv = _T("warning");
-    constexpr wstring_view TypeTodoValue_sv    = _T("todo");
-    constexpr wstring_view TypeCommentValue_sv = _T("comment");
+    constexpr std::string_view TypeAttribute_sv    = "type";
+    constexpr std::string_view TypeErrorValue_sv   = "error";
+    constexpr std::string_view TypeWarningValue_sv = "warning";
+    constexpr std::string_view TypeTodoValue_sv    = "todo";
+    constexpr std::string_view TypeCommentValue_sv = "comment";
 
     ValidateTagComponentsV8(start_tag, tag_components,
                             { TextAttribute_sv },
                             { TypeAttribute_sv });
 
-    std::wstring text;
+    std::string text;
     ExecuteWithTagValue(tag_components, TextAttribute_sv,
-                        [&](const wstring_view value_sv) { text = value_sv; });
+                        [&](const std::string_view value_sv) { text = value_sv; });
 
     enum class NoteType { Error, Warning, Todo, Comment };
     NoteType note_type = NoteType::Comment;
     ExecuteWithTagValue(tag_components, TypeAttribute_sv,
-        [&](const wstring_view value_sv)
+        [&](const std::string_view value_sv)
         {
             note_type = ( value_sv == TypeErrorValue_sv )   ? NoteType::Error :
                         ( value_sv == TypeWarningValue_sv ) ? NoteType::Warning :
                         ( value_sv == TypeTodoValue_sv )    ? NoteType::Todo:
                         ( value_sv == TypeCommentValue_sv ) ? NoteType::Comment :
-                                                              throw CSProException(_T("Invalid note type: '%s'"), std::wstring(value_sv).c_str());
+                                                              throw CSProException("Invalid note type: '%s'", std::string(value_sv).c_str());
         });
 
     switch( note_type )
@@ -1692,7 +1707,7 @@ std::wstring CSDocCompilerWorker::NoteStartHandler(const std::wstring& start_tag
             break;
 
         case NoteType::Todo:
-            m_settings.AddCompilerMessage(CompilerMessageType::Info, _T("TODO: ") + text);
+            m_settings.AddCompilerMessage(CompilerMessageType::Info, "TODO: " + text);
             break;
 
         default:
@@ -1700,14 +1715,14 @@ std::wstring CSDocCompilerWorker::NoteStartHandler(const std::wstring& start_tag
             break;
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
-std::wstring CSDocCompilerWorker::BuildExtraStartHandler(cs::span<const std::wstring> tag_components)
+std::string CSDocCompilerWorker::BuildExtraStartHandler(const cs::span<const std::string> tag_components)
 {
-    for( const std::wstring& tag_component : tag_components )
+    for( const std::string& tag_component : tag_components )
         m_settings.EvaluateBuildExtra(tag_component);
 
-    return std::wstring();
+    return std::string();
 }

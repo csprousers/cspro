@@ -1,8 +1,6 @@
 ﻿#include "stdafx.h"
-#include "CppUnitTest.h"
 #include <zCaseO/VectorClock.h>
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace SyncUnitTest
 {

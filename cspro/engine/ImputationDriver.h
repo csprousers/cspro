@@ -12,8 +12,10 @@ struct EngineData;
 template<typename T>
 struct ImputationFrequency
 {
+    using FrequencyCounterT = typename std::conditional<std::is_same_v<T, std::wstring>, std::string, T>::type; // UTF8_TODO remove
+
     std::shared_ptr<Imputation> imputation;
-    std::shared_ptr<FrequencyCounter<T, size_t>> frequency_counter;
+    std::shared_ptr<FrequencyCounter<FrequencyCounterT, size_t>> frequency_counter;
 };
 
 
@@ -32,11 +34,11 @@ struct StatRecord
 class ImputationDriver
 {
 public:
-    ImputationDriver(CIntDriver& int_driver);
+    ImputationDriver(CIntDriver& interpreter);
     virtual ~ImputationDriver();
 
     template<typename T>
-    ImputationFrequency<T>& GetImputationFrequency(size_t index)
+    auto& GetImputationFrequency(size_t index)
     {
         if constexpr(std::is_same_v<T, double>)
         {
@@ -54,32 +56,32 @@ public:
 
 private:
     template<typename T>
-    void SetupImputationFrequency(std::vector<ImputationFrequency<T>>& imputation_frequencies, std::shared_ptr<Imputation> imputation);
+    void SetUpImputationFrequency(std::vector<ImputationFrequency<T>>& imputation_frequencies, std::shared_ptr<Imputation> imputation);
 
     void WriteFrequencies();
 
-    void SetupStatDataFile();
+    void SetUpStatDataFile();
 
     void WriteStatCase();
 
 private:
-    CIntDriver* m_pIntDriver;
+    CIntDriver* m_interpreter;
     EngineData* m_engineData;
     CEngineDriver* m_pEngineDriver;
 
     // frequencies
     std::vector<ImputationFrequency<double>> m_numericImputationFrequencies;
-    std::vector<ImputationFrequency<std::wstring>> m_stringImputationFrequencies;
+    std::vector<ImputationFrequency<std::string>> m_stringImputationFrequencies;
     std::vector<bool> m_imputationFrequenciesPrintingOrder; // true = numeric
 
     // stat data
-    std::shared_ptr<CDataDict> m_statDictionary;
-    std::shared_ptr<CaseAccess> m_statCaseAccess;
+    std::shared_ptr<const CDataDict> m_statDictionary;
+    std::shared_ptr<const CaseAccess> m_statCaseAccess;
     std::unique_ptr<DataRepository> m_statDataRepository;
 
     std::unique_ptr<Case> m_statCase;
     CaseRecord* m_statCaseIdRecord;
     std::vector<StatRecord> m_statRecords;
-    std::wstring m_statCaseUuid;
+    std::string m_statCaseUuid;
     double m_statCaseKeyIncrementer;
 };

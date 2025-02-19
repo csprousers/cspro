@@ -3,7 +3,8 @@
  *
  * Used in conjunction with the libxlsxwriter library.
  *
- * Copyright 2014-2022, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -85,7 +86,7 @@ lxw_styles_free(lxw_styles *styles)
  * Write the <t> element for rich strings.
  */
 void
-lxw_styles_write_string_fragment(lxw_styles *self, char *string)
+lxw_styles_write_string_fragment(lxw_styles *self, const char *string)
 {
     struct xml_attribute_list attributes;
     struct xml_attribute *attribute;
@@ -1045,13 +1046,16 @@ _write_alignment(lxw_styles *self, lxw_format *format)
 
     LXW_INIT_ATTRIBUTES();
 
-    /* Indent is only allowed for horizontal left, right and distributed. */
+    /* Indent is only allowed for some alignment properties. */
     /* If it is defined for any other alignment or no alignment has been  */
     /* set then default to left alignment. */
     if (format->indent
         && format->text_h_align != LXW_ALIGN_LEFT
         && format->text_h_align != LXW_ALIGN_RIGHT
-        && format->text_h_align != LXW_ALIGN_DISTRIBUTED) {
+        && format->text_h_align != LXW_ALIGN_DISTRIBUTED
+        && format->text_v_align != LXW_ALIGN_VERTICAL_TOP
+        && format->text_v_align != LXW_ALIGN_VERTICAL_BOTTOM
+        && format->text_v_align != LXW_ALIGN_VERTICAL_DISTRIBUTED) {
         format->text_h_align = LXW_ALIGN_LEFT;
     }
 
@@ -1110,9 +1114,6 @@ _write_alignment(lxw_styles *self, lxw_format *format)
     if (format->text_v_align == LXW_ALIGN_VERTICAL_DISTRIBUTED)
         LXW_PUSH_ATTRIBUTES_STR("vertical", "distributed");
 
-    if (format->indent)
-        LXW_PUSH_ATTRIBUTES_INT("indent", format->indent);
-
     /* Map rotation to Excel values. */
     if (rotation) {
         if (rotation == 270)
@@ -1122,6 +1123,9 @@ _write_alignment(lxw_styles *self, lxw_format *format)
 
         LXW_PUSH_ATTRIBUTES_INT("textRotation", rotation);
     }
+
+    if (format->indent)
+        LXW_PUSH_ATTRIBUTES_INT("indent", format->indent);
 
     if (format->text_wrap)
         LXW_PUSH_ATTRIBUTES_STR("wrapText", "1");
@@ -1181,6 +1185,9 @@ _write_xf(lxw_styles *self, lxw_format *format)
     LXW_PUSH_ATTRIBUTES_INT("fillId", format->fill_index);
     LXW_PUSH_ATTRIBUTES_INT("borderId", format->border_index);
     LXW_PUSH_ATTRIBUTES_INT("xfId", format->xf_id);
+
+    if (format->quote_prefix)
+        LXW_PUSH_ATTRIBUTES_STR("quotePrefix", "1");
 
     if (format->num_format_index > 0)
         LXW_PUSH_ATTRIBUTES_STR("applyNumberFormat", "1");

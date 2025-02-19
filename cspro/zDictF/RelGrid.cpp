@@ -38,7 +38,7 @@ CRelGrid::CRelGrid()
         m_pNameEdit(nullptr),
         m_iRel(-1),
         m_iRelPart(-1)
-{        
+{
 }
 
 
@@ -64,12 +64,12 @@ void CRelGrid::OnSetup()
 
     int column_width = (int)( 170 * (GetDesignerFontZoomLevel() / 100.0) );
 
-	auto set_header = [&](int column, const TCHAR* text)
-	{
-		QuickSetText(column, HEADER_ROW, text);
-		QuickSetAlignment(column, HEADER_ROW, UG_ALIGNLEFT);
+    auto set_header = [&](int column, const TCHAR* text)
+    {
+        QuickSetText(column, HEADER_ROW, text);
+        QuickSetAlignment(column, HEADER_ROW, UG_ALIGNLEFT);
         SetColWidth(column, column_width);
-	};
+    };
 
     set_header(REL_NAME,      _T("Relation Name"));
     set_header(REL_PRIM,      _T("Primary"));
@@ -86,7 +86,7 @@ void CRelGrid::OnSetup()
 
     size_t actrows = 0;
 
-    for( const auto& dict_relation : m_dictRelations )
+    for( const DictRelation& dict_relation : m_dictRelations )
         actrows += dict_relation.GetRelationParts().size();
 
     SetNumberRows((long)actrows, FALSE);
@@ -326,16 +326,16 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
             m_iEditCol = 0;
             return false;
         }
-        if (m_pDict->LookupName(sName, nullptr)) {
+        if (m_pDict->LookupName(UTF8_TODO::GetUtf8(sName), nullptr)) {
             AfxMessageBox(_T("Relation name not unique in dictionary."));
             m_iEditCol = 0;
             return false;
         }
         else {
             int iRel = -1;
-            for( const auto& dict_relation : m_pDict->GetRelations() ) {
+            for( const DictRelation& dict_relation : m_pDict->GetRelations() ) {
                 ++iRel;
-                if (dict_relation.GetName() == sName) {
+                if (dict_relation.GetName() == UTF8_TODO::GetUtf8(sName)) {
                     if (m_bAdding || m_bInserting) {
                         AfxMessageBox(_T("Duplicate relation name."));
                         m_iEditCol = 0;
@@ -448,7 +448,7 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
             }
 
     if (sLink1 != REL_OCC && sLink2 == REL_OCC) {
-        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(sLink1);
+        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(sLink1));
         ASSERT(pPrimItem != NULL);
         if (pPrimItem->GetContentType() != ContentType::Numeric) {
             AfxMessageBox(_T("Primary link must be numeric."));
@@ -457,7 +457,7 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         }
     }
     else if  (sLink1 == REL_OCC && sLink2 != REL_OCC) {
-        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(sLink2);
+        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(sLink2));
         ASSERT(pSecItem != NULL);
         if (pSecItem->GetContentType() != ContentType::Numeric) {
             AfxMessageBox(_T("Secondary link must be numeric."));
@@ -466,9 +466,9 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         }
     }
     else if  (sLink1 != REL_OCC && sLink2 != REL_OCC) {
-        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(sLink1);
+        const CDictItem* pPrimItem = m_pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(sLink1));
         ASSERT(pPrimItem != NULL);
-        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(sLink2);
+        const CDictItem* pSecItem = m_pDict->LookupName<CDictItem>(UTF8_TODO::GetUtf8(sLink2));
         ASSERT(pSecItem != NULL);
         if (pPrimItem->GetContentType() != pSecItem->GetContentType()) {
             AfxMessageBox(_T("Primary and Secondary links must have the same data type."));
@@ -481,15 +481,15 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         if (!sName.IsEmpty()) {
             // New relation and first part
             DictRelation dict_relation;
-            dict_relation.SetName(sName);
-            dict_relation.SetPrimaryName(CS2WS(sObject1.Right(sObject1.GetLength() - sObject1.ReverseFind('.') - 1)));
+            dict_relation.SetName(UTF8_TODO::GetUtf8(sName));
+            dict_relation.SetPrimaryName(UTF8_TODO::GetUtf8(sObject1.Right(sObject1.GetLength() - sObject1.ReverseFind('.') - 1)));
             DictRelationPart dict_relation_part;
             if (sLink1.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetPrimaryLink(CS2WS(sLink1));
+                dict_relation_part.SetPrimaryLink(UTF8_TODO::GetUtf8(sLink1));
             }
-            dict_relation_part.SetSecondaryName(CS2WS(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
+            dict_relation_part.SetSecondaryName(UTF8_TODO::GetUtf8(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
             if (sLink2.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetSecondaryLink(CS2WS(sLink2));
+                dict_relation_part.SetSecondaryLink(UTF8_TODO::GetUtf8(sLink2));
             }
             dict_relation.AddRelationPart(std::move(dict_relation_part));
             m_dictRelations.emplace_back(std::move(dict_relation));
@@ -499,11 +499,11 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
             DictRelation& dict_relation = m_dictRelations.back();
             DictRelationPart dict_relation_part;
             if (sLink1.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetPrimaryLink(CS2WS(sLink1));
+                dict_relation_part.SetPrimaryLink(UTF8_TODO::GetUtf8(sLink1));
             }
-            dict_relation_part.SetSecondaryName(CS2WS(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
+            dict_relation_part.SetSecondaryName(UTF8_TODO::GetUtf8(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
             if (sLink2.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetSecondaryLink(CS2WS(sLink2));
+                dict_relation_part.SetSecondaryLink(UTF8_TODO::GetUtf8(sLink2));
             }
             dict_relation.AddRelationPart(std::move(dict_relation_part));
         }
@@ -512,15 +512,15 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         if (!sName.IsEmpty()) {
             // New relation and first part
             DictRelation dict_relation;
-            dict_relation.SetName(sName);
-            dict_relation.SetPrimaryName(CS2WS(sObject1.Right(sObject1.GetLength() - sObject1.ReverseFind('.') - 1)));
+            dict_relation.SetName(UTF8_TODO::GetUtf8(sName));
+            dict_relation.SetPrimaryName(UTF8_TODO::GetUtf8(sObject1.Right(sObject1.GetLength() - sObject1.ReverseFind('.') - 1)));
             DictRelationPart dict_relation_part;
             if (sLink1.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetPrimaryLink(CS2WS(sLink1));
+                dict_relation_part.SetPrimaryLink(UTF8_TODO::GetUtf8(sLink1));
             }
-            dict_relation_part.SetSecondaryName(CS2WS(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
+            dict_relation_part.SetSecondaryName(UTF8_TODO::GetUtf8(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
             if (sLink2.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetSecondaryLink(CS2WS(sLink2));
+                dict_relation_part.SetSecondaryLink(UTF8_TODO::GetUtf8(sLink2));
             }
             dict_relation.AddRelationPart(std::move(dict_relation_part));
             GetCurrentRelation(GetCurrentRow() - 1);
@@ -532,11 +532,11 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
             DictRelation& dict_relation = m_dictRelations[m_iRel];
             DictRelationPart dict_relation_part;
             if (sLink1.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetPrimaryLink(CS2WS(sLink1));
+                dict_relation_part.SetPrimaryLink(UTF8_TODO::GetUtf8(sLink1));
             }
-            dict_relation_part.SetSecondaryName(CS2WS(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
+            dict_relation_part.SetSecondaryName(UTF8_TODO::GetUtf8(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
             if (sLink2.CompareNoCase(REL_OCC) != 0) {
-                dict_relation_part.SetSecondaryLink(CS2WS(sLink2));
+                dict_relation_part.SetSecondaryLink(UTF8_TODO::GetUtf8(sLink2));
             }
             dict_relation.InsertRelationPart(m_iRelPart + 1, std::move(dict_relation_part));
         }
@@ -545,22 +545,22 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         GetCurrentRelation(m_editRow);
         DictRelation& dict_relation = m_dictRelations[m_iRel];
         if (m_iRelPart == 0) {
-            dict_relation.SetName(sName);
+            dict_relation.SetName(UTF8_TODO::GetUtf8(sName));
         }
-        dict_relation.SetPrimaryName(CS2WS(sObject1));
+        dict_relation.SetPrimaryName(UTF8_TODO::GetUtf8(sObject1));
         DictRelationPart& dict_relation_part = dict_relation.GetRelationPart(m_iRelPart);
         if (sLink1.CompareNoCase(REL_OCC) == 0) {
-            dict_relation_part.SetPrimaryLink(_T(""));
+            dict_relation_part.SetPrimaryLink(std::string());
         }
         else {
-            dict_relation_part.SetPrimaryLink(CS2WS(sLink1));
+            dict_relation_part.SetPrimaryLink(UTF8_TODO::GetUtf8(sLink1));
         }
-        dict_relation_part.SetSecondaryName(CS2WS(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
+        dict_relation_part.SetSecondaryName(UTF8_TODO::GetUtf8(sObject2.Right(sObject2.GetLength() - sObject2.ReverseFind('.') - 1)));
         if (sLink2.CompareNoCase(REL_OCC) == 0) {
-            dict_relation_part.SetSecondaryLink(_T(""));
+            dict_relation_part.SetSecondaryLink(std::string());
         }
         else {
-            dict_relation_part.SetSecondaryLink(CS2WS(sLink2));
+            dict_relation_part.SetSecondaryLink(UTF8_TODO::GetUtf8(sLink2));
         }
     }
 
@@ -695,34 +695,34 @@ void CRelGrid::Update()
     const CDictRecord* pRec;
     const CDictItem* pItem;
     int row = 0;
-    for( const auto& dict_relation : m_dictRelations ) {
-        QuickSetText (REL_NAME, row, dict_relation.GetName());
-        for( const auto& dict_relation_part : dict_relation.GetRelationParts() ) {
+    for( const DictRelation& dict_relation : m_dictRelations ) {
+        QuickSetText(REL_NAME, row, UTF8_TODO::GetCString(dict_relation.GetName()));
+        for( const DictRelationPart& dict_relation_part : dict_relation.GetRelationParts() ) {
             m_pDict->LookupName(dict_relation.GetPrimaryName(), nullptr, &pRec, &pItem);
             if (pItem == NULL) {
-                QuickSetText (REL_PRIM, row, dict_relation.GetPrimaryName().c_str());
+                QuickSetText(REL_PRIM, row, UTF8_TODO::GetCString(dict_relation.GetPrimaryName()));
             }
             else {
-                QuickSetText (REL_PRIM, row, pRec->GetName() + _T(".") + dict_relation.GetPrimaryName().c_str());
+                QuickSetText(REL_PRIM, row, UTF8_TODO::GetCString(pRec->GetName() + "." + dict_relation.GetPrimaryName()));
             }
             if (dict_relation_part.IsPrimaryLinkedByOccurrence()) {
-                QuickSetText (REL_PRIM_LINK, row, REL_OCC);
+                QuickSetText(REL_PRIM_LINK, row, REL_OCC);
             }
             else {
-                QuickSetText (REL_PRIM_LINK, row, dict_relation_part.GetPrimaryLink().c_str());
+                QuickSetText(REL_PRIM_LINK, row, UTF8_TODO::GetCString(dict_relation_part.GetPrimaryLink()));
             }
             m_pDict->LookupName(dict_relation_part.GetSecondaryName(), nullptr, &pRec, &pItem);
             if (pItem == NULL) {
-                QuickSetText (REL_SEC      , row, dict_relation_part.GetSecondaryName().c_str());
+                QuickSetText(REL_SEC      , row, UTF8_TODO::GetCString(dict_relation_part.GetSecondaryName()));
             }
             else {
-                QuickSetText (REL_SEC      , row, pRec->GetName() + _T(".") + dict_relation_part.GetSecondaryName().c_str());
+                QuickSetText(REL_SEC      , row, UTF8_TODO::GetCString(pRec->GetName() + "." + dict_relation_part.GetSecondaryName()));
             }
             if (dict_relation_part.IsSecondaryLinkedByOccurrence()) {
-                QuickSetText (REL_SEC_LINK, row, REL_OCC);
+                QuickSetText(REL_SEC_LINK, row, REL_OCC);
             }
             else {
-                QuickSetText (REL_SEC_LINK , row, dict_relation_part.GetSecondaryLink().c_str());
+                QuickSetText(REL_SEC_LINK , row, UTF8_TODO::GetCString(dict_relation_part.GetSecondaryLink()));
             }
             row++;
         }

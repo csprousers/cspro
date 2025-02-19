@@ -4,12 +4,13 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <afxcontrolbars.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
-#include <zToolsO/PointerClasses.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zToolsO/WinClipboard.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/TextSourceEditable.h>

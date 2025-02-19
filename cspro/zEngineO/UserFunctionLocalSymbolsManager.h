@@ -3,11 +3,12 @@
 #include <zEngineO/zEngineO.h>
 #include <zLogicO/Symbol.h>
 
+struct EngineData;
 class UserFunction;
 
 
-// a RAII class for managing the symbols of a user-defined function's parameters and
-// locally defined variables (to allow for recursive function calls)
+// A RAII class for managing the symbols of a user-defined function's parameters
+// and locally defined variables (to allow for recursive function calls).
 
 class ZENGINEO_API UserFunctionLocalSymbolsManager
 {

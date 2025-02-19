@@ -48,7 +48,7 @@ void CIntDriver::AllocExecBase()
         CheckMem( DIXBASE, _T("DICX") );                    // RCH March 27, 2000
     }
     catch( CMemoryError& e ) {
-        issaerror( MessageType::Abort, 1000, e.Where().GetBuffer() );
+        issaerror( MessageType::Abort, 1000, UTF8_TODO::GetUtf8(e.Where()).c_str() );
     }
 }
 
@@ -110,7 +110,7 @@ void CIntDriver::AllocExecTables()
         m_pEngineArea->VarxStart();
     }
     catch( CMemoryError& e ) {
-        issaerror( MessageType::Abort, 1000, e.Where().GetBuffer() );
+        issaerror( MessageType::Abort, 1000, UTF8_TODO::GetUtf8(e.Where()).c_str() );
     }
 }
 
@@ -257,38 +257,3 @@ void CIntDriver::BuildRecordsMap( void ) {              // victor Jul 10, 00
         }
     }
 }
-
-// RHF INIC Nov 08, 2000
-//Add hidden groups for special section. The new ones create in compiling time
-bool CIntDriver::CompleteHiddenGroup()
-{
-    bool bRet = true;
-
-    for( DICT* pDicT : m_engineData->dictionaries_pre80 )
-    {
-        int iSymSec = pDicT->SYMTfsec;
-
-        while( bRet && iSymSec > 0 ) {
-            SECT*   pSecT = SPT(iSymSec);
-
-            if( pSecT->IsSpecialSection() ) {
-                FLOW*      pOldFlow=m_pEngineDriver->GetFlowInProcess();
-
-                m_pEngineDriver->SetFlowInProcess( Appl.GetFlowAt( 0 ) );
-                if( !m_pEngineDriver->AddGroupTForOneSec( iSymSec ) ) {
-                    bRet = false;
-                    continue;
-                }
-                pSecT->SetSpecialSection( false );
-                m_pEngineDriver->SetFlowInProcess( pOldFlow );
-            }
-
-            // next section
-            iSymSec = pSecT->SYMTfwd;
-        }
-    }
-
-    return bRet;
-}
-
-// RHF END Nov 08, 2000

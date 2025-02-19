@@ -2,6 +2,7 @@
 #include "HtmlDlgBase.h"
 #include "ModalDialogSimulator.h"
 #include "SharedHtmlLocalFileServer.h"
+#include <zToolsO/ExceptionHolder.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zMessageO/Messages.h>
 #include <zAction/WebController.h>
@@ -42,11 +43,13 @@ BEGIN_MESSAGE_MAP(HtmlDlgBase, CDialog)
 END_MESSAGE_MAP()
 
 
-HtmlDlgBase::HtmlDlgBase(CWnd* pParent/* = nullptr*/)
+HtmlDlgBase::HtmlDlgBase(ExceptionHolder* const exception_holder, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_CSHTML, pParent),
-        m_resizable(false)
+        m_resizable(false),
+        m_exceptionHolder(exception_holder)
 {
 }
+
 
 HtmlDlgBase::~HtmlDlgBase()
 {
@@ -56,7 +59,7 @@ HtmlDlgBase::~HtmlDlgBase()
 INT_PTR HtmlDlgBase::DoModal()
 {
     SimulateModalDialog(this,
-        [&](CWnd* parent_window)
+        [&](CWnd* const parent_window)
         {
             Create(IDD_CSHTML, parent_window);
 
@@ -67,13 +70,14 @@ INT_PTR HtmlDlgBase::DoModal()
     return m_nModalResult;
 }
 
+
 INT_PTR HtmlDlgBase::DoModalOnUIThread()
 {
     return DialogUIThreadRunner(this).DoModal();
 }
 
 
-void HtmlDlgBase::DoDataExchange(CDataExchange* pDX)
+void HtmlDlgBase::DoDataExchange(CDataExchange* const pDX)
 {
     DDX_Control(pDX, IDC_SIMULATED_TITLE_BAR, m_simulatedTitleBar);
     DDX_Control(pDX, IDC_HTML_VIEW, m_htmlViewCtrl);
@@ -104,7 +108,7 @@ BOOL HtmlDlgBase::OnInitDialog()
     m_htmlViewCtrl.UseWebView2AcceleratorKeyHandler();
 
     // navigate to the HTML either via a URI or a HTML filename
-    NavigationAddress navigation_address = GetNavigationAddress();
+    const NavigationAddress navigation_address = GetNavigationAddress();
 
     if( navigation_address.IsUri() )
     {
@@ -113,22 +117,22 @@ BOOL HtmlDlgBase::OnInitDialog()
 
     else
     {
-        ASSERT(navigation_address.IsHtmlFilename());
+        ASSERT(navigation_address.IsHtmlFilePath());
 
         m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
 
-        m_htmlViewCtrl.NavigateTo(m_fileServer->GetFilenameUrl(navigation_address.GetHtmlFilename()));
+        m_htmlViewCtrl.NavigateTo(m_fileServer->CreateFileUrl(navigation_address.GetHtmlFilePath()));
     }
 
     // set a timer so that if the displayed HTML doesn't call CSPro.setDisplayOptions
     // to set the dialog size, we will eventually modify the dialog size (making it visible)
     m_forceUpdateSizeTimerId = SetTimer(ForceUpdateSize::TimerId, ForceUpdateSize::ElapseTime, nullptr);
-                     
+
     return TRUE;
 }
 
 
-LRESULT HtmlDlgBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT HtmlDlgBase::WindowProc(const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
     if( message == WM_CTLCOLORDLG && m_borderDetails.has_value() )
     {
@@ -145,12 +149,12 @@ LRESULT HtmlDlgBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
         RECT rect;
         GetWindowRect(&rect);
 
-        POINT mouse_point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        const POINT mouse_point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
-        bool on_left_border = ( mouse_point.x < ( rect.left + m_borderDetails->border_thickness ) );
-        bool on_right_border = ( !on_left_border && mouse_point.x > ( rect.right - m_borderDetails->border_thickness ) );
+        const bool on_left_border = ( mouse_point.x < ( rect.left + m_borderDetails->border_thickness ) );
+        const bool on_right_border = ( !on_left_border && mouse_point.x > ( rect.right - m_borderDetails->border_thickness ) );
 
-        bool on_top_border = ( mouse_point.y < ( rect.top + m_borderDetails->border_thickness ) );
+        const bool on_top_border = ( mouse_point.y < ( rect.top + m_borderDetails->border_thickness ) );
 
         LRESULT result;
 
@@ -193,7 +197,7 @@ LRESULT HtmlDlgBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-HBRUSH HtmlDlgBase::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+HBRUSH HtmlDlgBase::OnCtlColor(CDC* const pDC, CWnd* const pWnd, const UINT nCtlColor)
 {
     HBRUSH brush = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
 
@@ -205,7 +209,7 @@ HBRUSH HtmlDlgBase::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 }
 
 
-void HtmlDlgBase::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+void HtmlDlgBase::OnGetMinMaxInfo(MINMAXINFO* const lpMMI)
 {
     CDialog::OnGetMinMaxInfo(lpMMI);
 
@@ -217,7 +221,7 @@ void HtmlDlgBase::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 }
 
 
-void HtmlDlgBase::OnSize(UINT nType, int cx, int cy)
+void HtmlDlgBase::OnSize(const UINT nType, const int cx, const int cy)
 {
     CDialog::OnSize(nType, cx, cy);
 
@@ -243,19 +247,19 @@ void HtmlDlgBase::OnSize(UINT nType, int cx, int cy)
 }
 
 
-void HtmlDlgBase::OnTimer(UINT nIDEvent)
+void HtmlDlgBase::OnTimer(const UINT nIDEvent)
 {
     ASSERT(m_forceUpdateSizeTimerId == nIDEvent);
 
     // force an update of the dialog size
-    CSize forced_update_size = Screen::GetScaledDisplaySize(SizingFactors::ForcedUpdate);
+    const CSize forced_update_size = Screen::GetScaledDisplaySize(SizingFactors::ForcedUpdate);
     UpdateSize(forced_update_size.cx, forced_update_size.cy);
 
     ASSERT(!m_forceUpdateSizeTimerId.has_value());
 }
 
 
-LRESULT HtmlDlgBase::OnCloseDialog(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT HtmlDlgBase::OnCloseDialog(const WPARAM wParam, LPARAM /*lParam*/)
 {
     if( wParam == IDOK )
     {
@@ -272,22 +276,22 @@ LRESULT HtmlDlgBase::OnCloseDialog(WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-HtmlDlgDisplayOptions HtmlDlgBase::ParseDisplayOptions(const JsonNode<wchar_t>& json_node)
+HtmlDlgDisplayOptions HtmlDlgBase::ParseDisplayOptions(const JsonNode& json_node)
 {
     HtmlDlgDisplayOptions display_options;
 
     // width + height
-    auto parse_dimension = [&](std::optional<int>& width_or_height, const TCHAR* key, LONG max_display_size)
+    auto parse_dimension = [&](std::optional<int>& width_or_height, const char* const key, const LONG max_display_size)
     {
         if( !json_node.Contains(key) )
             return;
 
-        std::wstring dimension_text = json_node.Get<std::wstring>(key);
+        const std::string dimension_text = json_node.Get<std::string>(key);
 
-        width_or_height = static_cast<int>(Screen::ParseDimensionText(dimension_text, max_display_size, 
+        width_or_height = static_cast<int>(Screen::ParseDimensionText(dimension_text, max_display_size,
             [&]()
             {
-                throw CSProException(MGF::GetMessageText(2037).c_str(), key, dimension_text.c_str());
+                throw CSProException(MGF::GetMessageText(2037)->c_str(), key, dimension_text.c_str());
             }));
     };
 
@@ -296,23 +300,23 @@ HtmlDlgDisplayOptions HtmlDlgBase::ParseDisplayOptions(const JsonNode<wchar_t>& 
 
     // if width or height are specified, both must be specified
     if( display_options.width.has_value() != display_options.height.has_value() )
-        throw CSProException(MGF::GetMessageText(2033));
+        throw CSProException(MGF::GetMessageText(2033).GetString());
 
     // resizable
     if( json_node.Contains(JK::resizable) )
         display_options.resizable = json_node.Get<bool>(JK::resizable);
 
     // borderColor + titleBarColor
-    auto parse_color = [&](std::optional<PortableColor>& portable_color, const TCHAR* key)
+    auto parse_color = [&](std::optional<PortableColor>& portable_color, const char* const key)
     {
         if( !json_node.Contains(key) )
             return;
 
-        std::wstring color_text = json_node.Get<std::wstring>(key);
+        const std::string color_text = json_node.Get<std::string>(key);
         portable_color = PortableColor::FromString(color_text);
 
         if( !portable_color.has_value() )
-            throw CSProException(MGF::GetMessageText(2036).c_str(), color_text.c_str());
+            throw CSProException(MGF::GetMessageText(2036)->c_str(), color_text.c_str());
     };
 
     parse_color(display_options.border_color, JK::borderColor);
@@ -331,7 +335,7 @@ HtmlDlgDisplayOptions HtmlDlgBase::ParseDisplayOptions(const JsonNode<wchar_t>& 
 }
 
 
-LRESULT HtmlDlgBase::OnProcessDisplayOptions(WPARAM wParam, LPARAM lParam)
+LRESULT HtmlDlgBase::OnProcessDisplayOptions(const WPARAM wParam, const LPARAM lParam)
 {
     ASSERT(m_borderDetails.has_value());
 
@@ -339,7 +343,7 @@ LRESULT HtmlDlgBase::OnProcessDisplayOptions(WPARAM wParam, LPARAM lParam)
     {
         auto get_display_options = [&]() -> HtmlDlgDisplayOptions
         {
-            const HtmlDlgDisplayOptions* display_options = reinterpret_cast<const HtmlDlgDisplayOptions*>(lParam);
+            const HtmlDlgDisplayOptions* const display_options = reinterpret_cast<const HtmlDlgDisplayOptions*>(lParam);
 
             if( display_options != nullptr )
             {
@@ -348,13 +352,13 @@ LRESULT HtmlDlgBase::OnProcessDisplayOptions(WPARAM wParam, LPARAM lParam)
 
             else
             {
-                const std::wstring* display_options_json = reinterpret_cast<const std::wstring*>(wParam);
+                const std::string* const display_options_json = reinterpret_cast<const std::string*>(wParam);
                 ASSERT(display_options_json != nullptr);
                 return ParseDisplayOptions(Json::Parse(*display_options_json));
             }
         };
-        
-        HtmlDlgDisplayOptions display_options = get_display_options();
+
+        const HtmlDlgDisplayOptions display_options = get_display_options();
 
         // modify the color of the border / title bar
         if( display_options.border_color.has_value() )
@@ -377,7 +381,7 @@ LRESULT HtmlDlgBase::OnProcessDisplayOptions(WPARAM wParam, LPARAM lParam)
             ASSERT(display_options.height.has_value());
 
             if( !UpdateSize(*display_options.width, *display_options.height) )
-                throw CSProException(MGF::GetMessageText(2035).c_str(), *display_options.width, *display_options.height);
+                throw CSProException(MGF::GetMessageText(2035)->c_str(), *display_options.width, *display_options.height);
         }
     }
 
@@ -402,9 +406,9 @@ bool HtmlDlgBase::UpdateSize(int width, int height)
     // make sure that the width and height are valid
     bool valid_dimensions = true;
 
-    auto make_valid_size = [&](int& size, int max_size)
+    auto make_valid_size = [&](int& size, const int max_size)
     {
-        int initial_size = size;
+        const int initial_size = size;
         size = std::max(1, std::min(size, max_size));
         valid_dimensions &= ( initial_size == size );
     };
@@ -426,7 +430,7 @@ bool HtmlDlgBase::UpdateSize(int width, int height)
 }
 
 
-LRESULT HtmlDlgBase::OnExecuteSizeUpdate(WPARAM wParam, LPARAM lParam)
+LRESULT HtmlDlgBase::OnExecuteSizeUpdate(const WPARAM wParam, const LPARAM lParam)
 {
     ASSERT(m_borderDetails.has_value());
 
@@ -451,10 +455,10 @@ public:
     HtmlDlgBaseActionInvokerListener(HtmlDlgBase& dlg, ActionInvoker::Caller& caller);
 
     // Listener overrides
-    std::optional<std::wstring> OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
-    std::optional<bool> OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller) override;
+    SharableString OnGetDisplayOptions(ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller) override;
 
-    std::optional<bool> OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& caller) override;
+    std::optional<bool> OnClose(CloseResult& close_result, ActionInvoker::Caller& caller) override;
 
     bool OnEngineProgramControlExecuted() override;
 
@@ -471,12 +475,12 @@ HtmlDlgBaseActionInvokerListener::HtmlDlgBaseActionInvokerListener(HtmlDlgBase& 
 }
 
 
-std::optional<std::wstring> HtmlDlgBaseActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
+SharableString HtmlDlgBaseActionInvokerListener::OnGetDisplayOptions(ActionInvoker::Caller& caller)
 {
-    if( !caller.IsFromWebView(m_actionInvokerCaller) )
-        return std::nullopt;
+    if( &caller != &m_actionInvokerCaller )
+        return SharableString();
 
-    auto json_writer = Json::CreateStringWriter();
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject();
 
@@ -490,7 +494,7 @@ std::optional<std::wstring> HtmlDlgBaseActionInvokerListener::OnGetDisplayOption
 
     if( m_dlg.m_borderDetails.has_value() )
     {
-        auto write_brush_color = [&](const TCHAR* key, const std::shared_ptr<CBrush>& brush)
+        auto write_brush_color = [&](const char* const key, const std::shared_ptr<CBrush>& brush)
         {
             LOGBRUSH lb;
 
@@ -506,26 +510,36 @@ std::optional<std::wstring> HtmlDlgBaseActionInvokerListener::OnGetDisplayOption
 
     json_writer->EndObject();
 
-    return json_writer->GetString();
+    return json_writer->ReleaseSharableString();
 }
 
 
-std::optional<bool> HtmlDlgBaseActionInvokerListener::OnSetDisplayOptions(const JsonNode<wchar_t>& json_node, ActionInvoker::Caller& caller)
+std::optional<bool> HtmlDlgBaseActionInvokerListener::OnSetDisplayOptions(const JsonNode& json_node, ActionInvoker::Caller& caller)
 {
-    if( !caller.IsFromWebView(m_actionInvokerCaller) )
+    if( &caller != &m_actionInvokerCaller )
         return std::nullopt;
 
-    HtmlDlgDisplayOptions display_options = m_dlg.ParseDisplayOptions(json_node);
+    const HtmlDlgDisplayOptions display_options = m_dlg.ParseDisplayOptions(json_node);
 
     m_dlg.SendMessage(UWM::Html::ProcessDisplayOptions, 0, reinterpret_cast<LPARAM>(&display_options));
     return true;
 }
 
 
-std::optional<bool> HtmlDlgBaseActionInvokerListener::OnCloseDialog(const JsonNode<wchar_t>& result_node, ActionInvoker::Caller& /*caller*/)
+std::optional<bool> HtmlDlgBaseActionInvokerListener::OnClose(CloseResult& close_result, ActionInvoker::Caller& /*caller*/)
 {
-    if( !result_node.IsEmpty() )
-        m_dlg.m_resultsText = result_node.GetNodeAsString();
+    if( std::holds_alternative<const JsonNode>(close_result) )
+    {
+        m_dlg.m_resultsText = std::get<const JsonNode>(close_result).GetNodeAsSharableString();
+    }
+
+    else if( std::holds_alternative<std::unique_ptr<const ActionInvoker::Exception>>(close_result) )
+    {
+        ASSERT(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result) != nullptr);
+
+        if( m_dlg.m_exceptionHolder != nullptr )
+            m_dlg.m_exceptionHolder->AddActionInvokerException(std::move(std::get<std::unique_ptr<const ActionInvoker::Exception>>(close_result)));
+    }
 
     m_dlg.PostMessage(UWM::Html::CloseDialog, IDOK);
     return true;

@@ -20,13 +20,13 @@ public:
     }
 
     const CDataDict& GetDictionary() const                      { return m_dictionary; }
-                                                                
+
     const DictLevel* GetCurrentLevel() const                    { return m_currentLevel; }
     void SetCurrentLevel(const DictLevel& dict_level)           { m_currentLevel = &dict_level; }
-                                                                
+
     const CDictRecord* GetCurrentRecord() const                 { return m_currentRecord; }
     void SetCurrentRecord(const CDictRecord& dict_record)       { m_currentRecord = &dict_record; }
-                                                                
+
     const CDictItem* GetCurrentItem() const                     { return m_currentItem; }
     void SetCurrentItem(const CDictItem& dict_item)             { m_currentItem = &dict_item; }
 
@@ -54,12 +54,12 @@ public:
 
     // linked value set helpers
     // --------------------------------------------------------------------------
-    bool HasValueSetBeenSerialized(const std::wstring& serialized_link) const
+    bool HasValueSetBeenSerialized(const std::string& serialized_link) const
     {
         return ( m_alreadySerializedValueSetLinks.find(serialized_link) != m_alreadySerializedValueSetLinks.cend() );
     }
 
-    void MarkValueSetAsSerialized(std::wstring serialized_link)
+    void MarkValueSetAsSerialized(std::string serialized_link)
     {
         ASSERT(!HasValueSetBeenSerialized(serialized_link));
         m_alreadySerializedValueSetLinks.insert(std::move(serialized_link));
@@ -76,7 +76,7 @@ private:
     unsigned m_itemStart;
     unsigned m_lastParentItemStart;
 
-    std::set<std::wstring> m_alreadySerializedValueSetLinks;
+    std::set<std::string> m_alreadySerializedValueSetLinks;
 
     bool m_usesBinaryItems;
 };

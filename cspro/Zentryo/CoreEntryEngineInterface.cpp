@@ -7,13 +7,13 @@
 #include <zPlatformO/PortableMFC.h>
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Tools.h>
-#include <zToolsO/Utf8Convert.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/CommonStore.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zAppO/Application.h>
+#include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zCaseO/NumericCaseItem.h>
 #include <zDataO/CaseAccessSaver.h>
@@ -117,7 +117,7 @@ bool CoreEntryEngineInterface::InitApplication(const CString& pff_filename)
     CString workingFolder = pff_filename;
     PathRemoveFileSpec(workingFolder.GetBuffer());
     workingFolder.ReleaseBuffer();
-    PlatformInterface::GetInstance()->SetWorkingDirectory(CS2WS(workingFolder));
+    PlatformInterface::GetInstance()->SetWorkingDirectory(UTF8_TODO::GetUtf8(workingFolder));
 
     m_pPifFile = new CNPifFile(pff_filename);
     m_pPifFile->LoadPifFile();
@@ -481,7 +481,7 @@ bool CoreEntryEngineInterface::ModifyCase(double position_in_repository)
     }
 
     if( !m_pRunAplEntry->ModifyStart() ) {
-        ShowModalDialog(MGF::GetMessageText(MGF::SystemErrorTitle), MGF::GetMessageText(MGF::ErrorStartModify), MB_OK);
+        ShowModalDialog(MGF::GetMessageText(MGF::SystemErrorTitle).GetString(), MGF::GetMessageText(MGF::ErrorStartModify).GetString(), MB_OK);
         return false;
     }
 
@@ -523,18 +523,18 @@ public:
     {
         const auto& case_item = case_access.LookupCaseItem(item);
         // make sure that this is valid dictionary name, and numeric
-        if (case_item == nullptr || !case_item->IsTypeNumeric())
+        if (case_item == nullptr || !IsNumeric(case_item->GetDataType()))
             throw std::invalid_argument("Not a valid item");
 
         m_case_item = static_cast<const NumericCaseItem*>(case_item);
 
-        const auto& dict_record = case_item->GetDictionaryItem().GetRecord();
+        const CDictRecord* dict_record = case_item->GetDictItem().GetRecord();
 
         // make sure that it is on the root level
         if( dict_record->GetLevel()->GetLevelNumber() != 0 )
             throw std::invalid_argument("Not a valid item");
 
-        m_record_index = case_item->GetDictionaryItem().GetRecord()->GetSonNumber();
+        m_record_index = case_item->GetDictItem().GetRecord()->GetSonNumber();
     }
 
     double Get(const Case& data_case) const
@@ -585,10 +585,10 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
     if (!csFilterRegex.IsEmpty()) {
         try {
             caseFilterRegex = std::unique_ptr<std::regex>(new std::regex(UTF8Convert::WideToUTF8(csFilterRegex)));
-            key_filter = [&caseFilterRegex](const CaseSummary &case_summary) { return std::regex_search(UTF8Convert::WideToUTF8(case_summary.GetKey()), *caseFilterRegex); };
+            key_filter = [&caseFilterRegex](const CaseSummary &case_summary) { return std::regex_search(case_summary.GetKey(), *caseFilterRegex); };
         }
         catch (const std::regex_error&) {
-            ShowModalDialog(_T(""), FormatText(_T("CaseListingFilter is an invalid ECMAScript regular expression: %s"), csFilterRegex.GetString()), MB_OK);
+            ShowModalDialog("", FormatText("CaseListingFilter is an invalid ECMAScript regular expression: %s", UTF8_TODO::GetUtf8(csFilterRegex).c_str()), MB_OK);
         }
     }
 
@@ -599,20 +599,20 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
 
         std::optional<LatLonGetter> lat_lon_getter;
         if (lat_item_name && lon_item_name) {
-            auto case_item_case_access = std::make_shared<CaseAccess>(pInputRepo->GetCaseAccess()->GetDataDict());
+            auto case_item_case_access = std::make_shared<CaseAccess>(pInputRepo->GetCaseAccess().GetDataDict());
             case_item_case_access->SetUsesAllCaseAttributes();
-            auto lat_dict_item = case_item_case_access->GetDataDict().FindItem(*lat_item_name);
-            auto lon_dict_item = case_item_case_access->GetDataDict().FindItem(*lon_item_name);
+            const CDictItem* lat_dict_item = case_item_case_access->GetDataDict().FindItem(UTF8_TODO::GetUtf8(*lat_item_name));
+            const CDictItem* lon_dict_item = case_item_case_access->GetDataDict().FindItem(UTF8_TODO::GetUtf8(*lon_item_name));
             if (lat_dict_item && lon_dict_item) {
                 case_item_case_access->SetUseDictionaryItem(*lat_dict_item);
                 case_item_case_access->SetUseDictionaryItem(*lon_dict_item);
                 case_item_case_access->Initialize();
                 pInputRepo->ModifyCaseAccess(case_item_case_access);
                 try {
-                    lat_lon_getter = LatLonGetter(*pInputRepo->GetCaseAccess(),
+                    lat_lon_getter = LatLonGetter(pInputRepo->GetCaseAccess(),
                                                   *lat_dict_item,
                                                   *lon_dict_item);
-                } catch (std::exception &) {
+                } catch (const std::exception&) {
                     // if there is an error just use lat/long default vals of zero
                 }
             }
@@ -622,7 +622,7 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
             CaseIterationCaseStatus::NotDeletedOnly, CaseIterationMethod::SequentialOrder, sort_ascending ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending);
 
         if (lat_lon_getter) {
-            Case data_case(pInputRepo->GetCaseAccess()->GetCaseMetadata());
+            Case data_case(pInputRepo->GetCaseAccess().GetCaseMetadata());
             while (case_summary_iterator->NextCase(data_case)) {
                 if (key_filter(data_case)) {
                     double latitude = 0;
@@ -654,7 +654,7 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
 
     catch( const DataRepositoryException::Error& exception )
     {
-        ShowModalDialog(_T(""), exception.GetErrorMessage(), MB_OK);
+        ShowModalDialog("", exception.what(), MB_OK);
     }
 
     return case_summaries;
@@ -673,7 +673,7 @@ bool CoreEntryEngineInterface::DeleteCase(double position_in_repository)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        ShowModalDialog(_T(""), exception.GetErrorMessage(), MB_OK);
+        ShowModalDialog("", exception.what(), MB_OK);
     }
 
     return false;
@@ -752,9 +752,9 @@ void CoreEntryEngineInterface::RunUserTriggedStop()
             {
                 aActions.push_back(eAction);
 
-                CString csButtonText = MGF::GetMessageText(iMessageNumber);
+                const SharableString button_text = MGF::GetMessageText(iMessageNumber);
                 std::vector<CString>* paStopButtonText = new std::vector<CString>();
-                paStopButtonText->push_back(csButtonText);
+                paStopButtonText->push_back(UTF8_TODO::GetCString(*button_text));
                 aStopButtonTexts.push_back(paStopButtonText);
             }
         };
@@ -776,10 +776,10 @@ void CoreEntryEngineInterface::RunUserTriggedStop()
         stopOptions.Add(StopOptions::Action::Discard, MGF::DiscardChanges);
         stopOptions.Add(StopOptions::Action::Cancel, MGF::Cancel);
 
-        CString csDialogTitle = MGF::GetMessageText(m_pRunAplEntry->InAddMode() ?
-            MGF::StopAddingTitle : MGF::StopModifyingTitle);
+        const SharableString dialog_title = MGF::GetMessageText(m_pRunAplEntry->InAddMode() ? MGF::StopAddingTitle :
+                                                                                              MGF::StopModifyingTitle);
 
-        int iStopChoice = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(csDialogTitle, stopOptions.aStopButtonTexts);
+        int iStopChoice = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(UTF8_TODO::GetCString(*dialog_title), stopOptions.aStopButtonTexts);
 
         StopOptions::Action eAction = ( iStopChoice == 0 ) ? StopOptions::Action::Cancel :
             (StopOptions::Action)stopOptions.aActions[iStopChoice - 1];
@@ -824,7 +824,7 @@ void CoreEntryEngineInterface::ChangeLanguage()
     if (languages.size() < 2)
     {
         // there are not multiple languages
-        ShowModalDialog(_T(""), MGF::GetMessageText(MGF::SelectLanguageOnlyOneDefined), MB_OK);
+        ShowModalDialog("", MGF::GetMessageText(MGF::SelectLanguageOnlyOneDefined).GetString(), MB_OK);
         return;
     }
 
@@ -833,14 +833,14 @@ void CoreEntryEngineInterface::ChangeLanguage()
     for( const Language& language : languages )
     {
         std::vector<CString>* paThisLanguageLabel = new std::vector<CString>;
-        paThisLanguageLabel->emplace_back(WS2CS(language.GetLabel()));
+        paThisLanguageLabel->emplace_back(UTF8_TODO::GetCString(language.GetLabel()));
         aLanguageLabels.emplace_back(paThisLanguageLabel);
     }
 
     // display the language labels
-    CString csDialogTitle = MGF::GetMessageText(MGF::SelectLanguageTitle);
+    const SharableString dialog_title = MGF::GetMessageText(MGF::SelectLanguageTitle);
 
-    int iLanguageChoice = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(csDialogTitle, aLanguageLabels);
+    int iLanguageChoice = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(UTF8_TODO::GetCString(*dialog_title), aLanguageLabels);
 
     safe_delete_vector_contents(aLanguageLabels);
 
@@ -928,7 +928,7 @@ const std::vector<CoreEntryFieldNote>& CoreEntryEngineInterface::GetAllNotes()
         const auto& named_reference = note.GetNamedReference();
 
         // only show notes on the first level
-        if( !named_reference.GetLevelKey().IsEmpty() )
+        if( !named_reference.GetLevelKey().empty() )
             continue;
 
         CoreEntryFieldNote& field_note = m_fieldNotes.emplace_back();
@@ -943,7 +943,7 @@ const std::vector<CoreEntryFieldNote>& CoreEntryEngineInterface::GetAllNotes()
             field_note.is_field_note = false;
             field_note.group_symbol_index = -1;
 
-            if( SO::Equals(named_reference.GetName(), pDicT->GetName()) )
+            if( named_reference.GetName() == pDicT->GetName() )
             {
                 field_note.label = _T("Case Note");
                 field_note.sort_index = _T("!");
@@ -952,13 +952,13 @@ const std::vector<CoreEntryFieldNote>& CoreEntryEngineInterface::GetAllNotes()
             else
             {
                 field_note.label = named_reference.GetName();
-                field_note.sort_index.Format(_T("#%s"), named_reference.GetName().GetString());
+                field_note.sort_index.Format(_T("#%s"), UTF8_TODO::GetWide(named_reference.GetName()).c_str());
             }
         }
 
         else
         {
-            const VART* field_vart = VPT(case_item_reference->GetCaseItem().GetDictionaryItem().GetSymbol());
+            const VART* field_vart = VPT(case_item_reference->GetCaseItem().GetDictItem().GetSymbol());
             const GROUPT* record_group = field_vart->GetOwnerGPT();
 
             field_note.is_field_note = true;
@@ -982,7 +982,7 @@ const std::vector<CoreEntryFieldNote>& CoreEntryEngineInterface::GetAllNotes()
             // add the item occurrence numbers if there is no occurrence label
             else
             {
-                field_note.label.Append(case_item_reference->GetMinimalOccurrencesText());
+                field_note.label.Append(UTF8_TODO::GetCString(case_item_reference->GetMinimalOccurrencesText()));
             }
 
 
@@ -1084,9 +1084,9 @@ CoreEntryPage* CoreEntryEngineInterface::GoToNoteField(size_t index)
 }
 
 
-int CoreEntryEngineInterface::ShowModalDialog(CString sTitle, CString sMessage, int mbType)
+int CoreEntryEngineInterface::ShowModalDialog(const cs::string_view_sz title_sv, const cs::string_view_sz message_sv, const int mbType)
 {
-    return PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(sTitle, sMessage, mbType);
+    return PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(title_sv, message_sv, mbType);
 }
 
 
@@ -1117,7 +1117,7 @@ bool CoreEntryEngineInterface::PartialSave(bool bClearSkipped/* = false*/, bool 
     {
         // display a message regarding the success
         int iMessageNumber = bSaved ? MGF::PartialSaveSuccess : MGF::PartialSaveFailure;
-        ShowModalDialog(MGF::GetMessageText(MGF::PartialSaveTitle), MGF::GetMessageText(iMessageNumber), MB_OK);
+        ShowModalDialog(MGF::GetMessageText(MGF::PartialSaveTitle).GetString(), MGF::GetMessageText(iMessageNumber).GetString(), MB_OK);
     }
 
     return bSaved;
@@ -1139,27 +1139,22 @@ bool CoreEntryEngineInterface::ShowRefusedValues()
 
 bool CoreEntryEngineInterface::HasSync() const
 {
-    const AppSyncParameters& syncParams = m_pPifFile->GetApplication()->GetSyncParameters();
-    return !syncParams.server.empty();
+    const AppSyncParameters& sync_params = m_pPifFile->GetApplication()->GetSyncParameters();
+    return sync_params.sync_connection_string.IsDefined();
 }
+
 
 bool CoreEntryEngineInterface::SyncApp()
 {
-    const AppSyncParameters& syncParams = m_pPifFile->GetApplication()->GetSyncParameters();
-    return m_pRunAplEntry->RunSync(syncParams);
+    const AppSyncParameters& sync_params = m_pPifFile->GetApplication()->GetSyncParameters();
+    return ( m_pRunAplEntry->RunSync(sync_params) >= 1 );
 }
 
 
-DeploymentPackageDownloader* CoreEntryEngineInterface::CreateDeploymentPackageDownloader()
+void CoreEntryEngineInterface::ProcessParadataCachedEvents(const std::vector<std::string>& event_strings)
 {
-    return new DeploymentPackageDownloader();
-}
-
-
-void CoreEntryEngineInterface::ProcessParadataCachedEvents(const std::vector<CString>& event_strings)
-{
-    if (m_pIntDriver && m_pIntDriver->m_pParadataDriver)
-        m_pIntDriver->m_pParadataDriver->ProcessCachedEvents(event_strings);
+    if( m_pIntDriver != nullptr && m_pIntDriver->m_paradataDriver != nullptr )
+        m_pIntDriver->m_paradataDriver->ProcessCachedEvents(event_strings);
 }
 
 
@@ -1170,29 +1165,33 @@ CoreEntryEngineInterface::PffStartModeParameter CoreEntryEngineInterface::QueryP
 
     enum class KeyToOpenMode { None, Key, StartModeAdd, StartModeModify };
     KeyToOpenMode key_to_open_mode = KeyToOpenMode::None;
-    CString key_to_open;
+    std::string key_to_open;
 
     // StartMode will take precedence over Key
     if( m_pPifFile->GetStartMode() != StartMode::None )
     {
         if( m_pPifFile->GetStartMode() == StartMode::Add )
+        {
             key_to_open_mode = KeyToOpenMode::StartModeAdd;
+        }
 
         else if( m_pPifFile->GetStartMode() == StartMode::Modify )
+        {
             key_to_open_mode = KeyToOpenMode::StartModeModify;
+        }
 
         if( key_to_open_mode != KeyToOpenMode::None )
         {
-            key_to_open = m_pPifFile->GetStartKeyString();
-            key_to_open.Trim();
+            key_to_open = UTF8_TODO::GetUtf8(m_pPifFile->GetStartKeyString());
+            SO::MakeTrim(key_to_open);
         }
     }
 
     else
     {
-        key_to_open = GetStartPffKey();
+        key_to_open = UTF8_TODO::GetUtf8(GetStartPffKey());
 
-        if( !key_to_open.IsEmpty() )
+        if( !key_to_open.empty() )
             key_to_open_mode = KeyToOpenMode::Key;
     }
 
@@ -1201,8 +1200,10 @@ CoreEntryEngineInterface::PffStartModeParameter CoreEntryEngineInterface::QueryP
     {
         // add is fine regardless of whether or not a key is provided and found but
         // not supplying a key is not okay in modify mode
-        if( key_to_open_mode == KeyToOpenMode::StartModeModify && key_to_open.IsEmpty() )
+        if( key_to_open_mode == KeyToOpenMode::StartModeModify && key_to_open.empty() )
+        {
             parameter.action = PffStartModeParameter::Action::ModifyError;
+        }
 
         // lookup the key to get the file position
         else
@@ -1211,7 +1212,7 @@ CoreEntryEngineInterface::PffStartModeParameter CoreEntryEngineInterface::QueryP
 
             try
             {
-                CString uuid;
+                std::string uuid;
                 double position_in_repository;
 
                 pInputRepo->PopulateCaseIdentifiers(key_to_open, uuid, position_in_repository);
@@ -1225,10 +1226,12 @@ CoreEntryEngineInterface::PffStartModeParameter CoreEntryEngineInterface::QueryP
             if( parameter.action != PffStartModeParameter::Action::ModifyCase )
             {
                 if( key_to_open_mode == KeyToOpenMode::StartModeModify )
+                {
                     parameter.action = PffStartModeParameter::Action::ModifyError;
+                }
 
                 else if( ( key_to_open_mode == KeyToOpenMode::StartModeAdd ) ||
-                         ( key_to_open_mode == KeyToOpenMode::Key && key_to_open.GetLength() >= m_pRunAplEntry->GetInputDictionaryKeyLength() ) )
+                         ( key_to_open_mode == KeyToOpenMode::Key && SO::WideLength(key_to_open) >= m_pRunAplEntry->GetInputDictionaryKeyLength() ) )
                 {
                     parameter.action = PffStartModeParameter::Action::AddNewCase;
                 }
@@ -1269,21 +1272,29 @@ std::vector<CaseTreeUpdate> CoreEntryEngineInterface::UpdateCaseTree()
 // methods for dealing with system settings
 CommonStore* CoreEntryEngineInterface::GetCommonStore()
 {
-    return ( m_pEngineDriver != nullptr ) ? m_pEngineDriver->GetCommonStore().get() : nullptr;
+    return ( m_pEngineDriver != nullptr ) ? m_pEngineDriver->m_engineData->GetCommonStore().get() : nullptr;
 }
 
 
-CString CoreEntryEngineInterface::GetSystemSetting(wstring_view setting_name, wstring_view default_value)
+std::string CoreEntryEngineInterface::GetSystemSetting(const wstring_view setting_name_sv, const wstring_view default_value_sv)
 {
-    CString setting_value = CommonStore::GetSystemSetting(setting_name);
-    return setting_value.IsEmpty() ? CString(default_value) : setting_value;
+    std::string setting_value = CommonStore::GetSystemSetting(UTF8_TODO::GetUtf8(setting_name_sv));
+
+    if( setting_value.empty() )
+        return UTF8_TODO::GetUtf8(default_value_sv);
+
+    return setting_value;
 }
 
 
-bool CoreEntryEngineInterface::GetSystemSetting(wstring_view setting_name, bool default_value)
+bool CoreEntryEngineInterface::GetSystemSetting(const wstring_view setting_name_sv, const bool default_value)
 {
-    CString setting_value = CommonStore::GetSystemSetting(setting_name);
-    return setting_value.IsEmpty() ? default_value : ( setting_value.CompareNoCase(_T("Yes")) == 0 );
+    const std::string setting_value = CommonStore::GetSystemSetting(UTF8_TODO::GetUtf8(setting_name_sv));
+
+    if( setting_value.empty() )
+        return default_value;
+
+    return SO::EqualsNoCase(setting_value, static_cast<const char*>("Yes")); // UTF8_TODO remove the cast
 }
 
 

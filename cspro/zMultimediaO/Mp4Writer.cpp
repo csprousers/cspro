@@ -1,8 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Mp4Writer.h"
 #include "Mp4Reader.h"
-#include <zToolsO/FileIO.h>
-#include <zToolsO/Utf8Convert.h>
 #include <mp4v2/mp4v2.h>
 #include <iostream>
 
@@ -81,16 +79,16 @@ namespace
 }
 
 
-Mp4Writer::Mp4Writer(const std::wstring& filename, bool create_new)
+Mp4Writer::Mp4Writer(const cs::string_sz file_path, const bool create_new)
 {
     if (create_new) {
-        m_file_handle = MP4Create(UTF8Convert::WideToUTF8(filename).c_str());
+        m_file_handle = MP4Create(file_path.c_str());
         if (m_file_handle == MP4_INVALID_FILE_HANDLE) {
             throw Mp4WriterError("Failed to create new mp4 file");
         }
     }
     else {
-        m_file_handle = MP4Modify(UTF8Convert::WideToUTF8(filename).c_str());
+        m_file_handle = MP4Modify(file_path.c_str());
         if (m_file_handle == MP4_INVALID_FILE_HANDLE) {
             throw Mp4WriterError("Failed to open mp4 file for modification");
         }
@@ -104,9 +102,9 @@ Mp4Writer::~Mp4Writer()
 }
 
 
-void Mp4Writer::AppendAudioTracks(const std::wstring& other_file)
+void Mp4Writer::AppendAudioTracks(const cs::string_sz other_file_path)
 {
-    Mp4Reader reader(other_file);
+    Mp4Reader reader(other_file_path);
     MP4FileHandle other_handle = reader.m_file_handle;
 
     std::vector<MP4TrackId> existing_tracks = GetAudioTracks(m_file_handle);
@@ -137,7 +135,7 @@ void Mp4Writer::SetTags(const Mp4Metadata& metadata)
         {
             std::unique_ptr<std::vector<std::byte>> artwork_image = FileIO::Read(metadata.artwork_image_path);
 
-            ASSERT(PortableFunctions::PathGetFileExtension(metadata.artwork_image_path) == _T("png"));
+            ASSERT(PortableFunctions::PathGetFileExtension(metadata.artwork_image_path) == "png");
             artwork.type = MP4_ART_PNG;
 
             artwork.size = artwork_image->size();
@@ -148,9 +146,9 @@ void Mp4Writer::SetTags(const Mp4Metadata& metadata)
         catch(...) { ASSERT(false); }
     }
 
-    MP4TagsSetAlbumArtist(mdata, UTF8Convert::WideToUTF8(metadata.artist).c_str());
-    MP4TagsSetName(mdata, UTF8Convert::WideToUTF8(metadata.name).c_str());
-    MP4TagsSetAlbum(mdata, UTF8Convert::WideToUTF8(metadata.album).c_str());
+    MP4TagsSetAlbumArtist(mdata, metadata.artist.c_str());
+    MP4TagsSetName(mdata, metadata.name.c_str());
+    MP4TagsSetAlbum(mdata, metadata.album.c_str());
     MP4TagsSetEncodingTool(mdata, "CSPro");
     MP4TagsStore(mdata, m_file_handle);
     MP4TagsFree(mdata);

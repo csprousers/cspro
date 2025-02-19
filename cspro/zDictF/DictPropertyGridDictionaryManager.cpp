@@ -3,10 +3,11 @@
 
 
 DictPropertyGridDictionaryManager::DictPropertyGridDictionaryManager(CDDDoc* pDDDoc, CDataDict& dictionary)
-    :   DictPropertyGridBaseManager(pDDDoc, dictionary, _T("Dictionary")),
+    :   DictPropertyGridBaseManager(pDDDoc, dictionary, L"Dictionary"),
         m_dictionary(dictionary)
 {
 }
+
 
 void DictPropertyGridDictionaryManager::PushUndo()
 {
@@ -18,14 +19,44 @@ void DictPropertyGridDictionaryManager::SetupProperties(CMFCPropertyGridCtrl& pr
 {
     AddGeneralSection<CDataDict>(property_grid_ctrl);
 
+    // Synchronization heading
+    auto synchronization_heading_property = new PropertyGrid::HeadingProperty(L"Synchronization");
+    property_grid_ctrl.AddProperty(synchronization_heading_property);
+
+    // Syncable Name Override property
+    synchronization_heading_property->AddSubItem(
+        PropertyGrid::PropertyBuilder<std::string>(L"Syncable Name Override",
+                                                   L"When defined, data will be sent to synchronization services using the provided name rather than the dictionary name.",
+                                                   m_dictionary.GetSyncableName(false))
+        .SetOnFormat([&](const std::string& syncable_name)
+            {
+                return TC::ToWide<CString>(SO::ToUpper(SO::Trim(syncable_name)));
+            })
+        .SetOnValidate([&](const std::string& syncable_name)
+            {
+                const std::string_view trimmed_syncable_name_sv = SO::Trim(syncable_name);
+
+                if( !trimmed_syncable_name_sv.empty() && !CIMSAString::IsName(trimmed_syncable_name_sv) )
+                {
+                    throw PropertyGrid::PropertyValidationException(std::string(), "'%s' is not a valid CSPro name",
+                                                                                   std::string(trimmed_syncable_name_sv).c_str());
+                }
+            })
+        .SetOnUpdate([&](const std::string& syncable_name)
+            {
+                m_dictionary.SetSyncableName(SO::ToUpper(SO::Trim(syncable_name)));
+            })
+        .Create());
+
+
     // Advanced heading
-    auto advanced_heading_property = new PropertyGrid::HeadingProperty(_T("Advanced"));
+    auto advanced_heading_property = new PropertyGrid::HeadingProperty(L"Advanced");
     property_grid_ctrl.AddProperty(advanced_heading_property);
 
     // Read Optimization property
     advanced_heading_property->AddSubItem(
-        PropertyGrid::PropertyBuilder<bool>(_T("Read Optimization"),
-                                            _T("If enabled, only items used in logic are read, resulting in the faster reading of data files."),
+        PropertyGrid::PropertyBuilder<bool>(L"Read Optimization",
+                                            L"If enabled, only items used in logic are read, resulting in the faster reading of data files.",
                                             m_dictionary.GetReadOptimization())
         .SetOnUpdate([&](const bool& read_optimization)
             {

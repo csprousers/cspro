@@ -44,10 +44,10 @@ public:
     void SetItem(CDEItemBase* item);
 
     struct SyntaxCheckOk    { };
-    struct SyntaxCheckError { std::wstring error_message; };
+    struct SyntaxCheckError { std::string error_message; };
     using SyntaxCheckResult = std::variant<SyntaxCheckOk, SyntaxCheckError>;
 
-    SyntaxCheckResult CheckSyntax(CapiLogicParameters::Type type, std::wstring logic);
+    SyntaxCheckResult CheckSyntax(CapiLogicParameters::Type type, SharableString logic);
 
 private:
     std::shared_ptr<CapiQuestionManager> m_question_manager;

@@ -4,18 +4,7 @@
 #include <regex>
 
 
-CLASS_DECL_ZTOOLSO bool PathHasWildcardCharacters(wstring_view path_sv);
-
-CLASS_DECL_ZTOOLSO std::wstring CreateRegularExpressionFromFileSpec(wstring_view file_spec_sv);
-
-#ifdef WIN32
-typedef std::wregex FileSpecRegex;
-#else
-typedef std::regex FileSpecRegex;
-#endif
-
-// CreateRegexFromFileSpec can throw a regex_error
-CLASS_DECL_ZTOOLSO FileSpecRegex CreateRegexFromFileSpec(wstring_view file_spec_sv);
+CLASS_DECL_ZTOOLSO std::string CreateRegularExpressionFromFileSpec(std::string_view file_spec_sv);
 
 
 
@@ -40,21 +29,27 @@ public:
     DirectoryLister& SetIncludeFiles(bool include_files = true);
     DirectoryLister& SetIncludeDirectories(bool include_directories = true);
     DirectoryLister& SetIncludeHiddenSystemPaths(bool include_hidden_system_paths = true);
-    DirectoryLister& SetNameFilter(wstring_view file_spec_sv);
+    DirectoryLister& SetNameFilter(std::string_view file_spec_sv);
+    DirectoryLister& SetNameFilter(wstring_view file_spec_sv) { return SetNameFilter(UTF8_TODO::GetUtf8(file_spec_sv)); }
 
     bool UsingNameFilter() const { return m_nameFilter.has_value(); }
-    bool MatchesNameFilter(NullTerminatedString path) const;
+    bool MatchesNameFilter(const std::string& path) const;
 
     std::vector<std::wstring> GetPaths(NullTerminatedString directory);
+    std::vector<std::string> GetPaths(cs::string_sz directory) { return UTF8_TODO::GetUtf8(GetPaths(UTF8_TODO::GetWide(directory))); }
 
-    void AddPaths(std::vector<std::wstring>& paths, NullTerminatedString directory);
+    void AddPaths(std::vector<std::string>& paths, const std::string& directory_path);
+    void AddPaths(std::vector<std::wstring>& paths, InterfaceString directory_path);
 
-    // adds the filenames that exist on the disk that match the provided filename, which can include wildcards
+    // adds the file paths that exist on the disk that match the provided file path, which can include wildcards
     static void AddFilenamesWithPossibleWildcard(std::vector<std::wstring>& filenames, NullTerminatedString filename,
                                                  bool include_non_existant_file_when_filename_does_not_use_wildcards);
 
-    static std::vector<std::wstring> GetFilenamesWithPossibleWildcard(NullTerminatedString filename,
-                                                                      bool include_non_existant_file_when_filename_does_not_use_wildcards);
+    static void AddFilePathsWithPossibleWildcard(std::vector<std::string>& file_paths, const std::string& file_path,
+                                                 bool include_non_existant_file_when_file_path_does_not_use_wildcards);
+
+    static std::vector<std::string> GetFilePathsWithPossibleWildcard(const std::string& file_path,
+                                                                     bool include_non_existant_file_when_filename_does_not_use_wildcards);
 
 protected:
     bool FilterFiles() const       { return m_nameFilter.has_value(); }
@@ -69,7 +64,7 @@ protected:
     bool m_filterDirectories;
 
 private:
-    std::optional<FileSpecRegex> m_nameFilter;
+    std::optional<std::regex> m_nameFilter;
 };
 
 
@@ -123,13 +118,4 @@ inline std::vector<std::wstring> DirectoryLister::GetPaths(const NullTerminatedS
     std::vector<std::wstring> paths;
     AddPaths(paths, directory);
     return paths;
-}
-
-
-inline std::vector<std::wstring> DirectoryLister::GetFilenamesWithPossibleWildcard(const NullTerminatedString filename,
-                                                                                   const bool include_non_existant_file_when_filename_does_not_use_wildcards)
-{
-    std::vector<std::wstring> filenames;
-    AddFilenamesWithPossibleWildcard(filenames, filename, include_non_existant_file_when_filename_does_not_use_wildcards);
-    return filenames;
 }

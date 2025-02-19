@@ -14,8 +14,8 @@ class Encryptor::Impl
 public:
     virtual ~Impl() { }
 
-    virtual std::wstring Encrypt(wstring_view text_sv) = 0;
-    virtual std::wstring Decrypt(wstring_view encrypted_text_sv) = 0;
+    virtual std::string Encrypt(cs::string_view_sz text_sv) = 0;
+    virtual std::string Decrypt(std::string_view encrypted_text_sv) = 0;
 
     virtual std::vector<std::byte> Encrypt(cs::span<const std::byte> buffer) = 0;
     virtual std::vector<std::byte> Decrypt(cs::span<const std::byte> encrypted_buffer) = 0;
@@ -29,10 +29,10 @@ public:
 class RijndaelEncryptor : public Encryptor::Impl
 {
 public:
-    RijndaelEncryptor(wstring_view key_sv, bool use_base64);
+    RijndaelEncryptor(std::string_view key_sv, bool use_base64);
 
-    std::wstring Encrypt(wstring_view text_sv) override;
-    std::wstring Decrypt(wstring_view encrypted_text_sv) override;
+    std::string Encrypt(cs::string_view_sz text_sv) override;
+    std::string Decrypt(std::string_view encrypted_text_sv) override;
 
     std::vector<std::byte> Encrypt(cs::span<const std::byte> buffer) override;
     std::vector<std::byte> Decrypt(cs::span<const std::byte> encrypted_buffer) override;
@@ -45,7 +45,7 @@ private:
 
     std::vector<std::byte> DecryptWorker(cs::span<const std::byte> buffer);
 
-    static bool HexStringLengthIsValid(const std::wstring& hex_string)
+    static bool HexStringLengthIsValid(const std::string_view hex_string)
     {
         return ( hex_string.length() % ( BlockSize * 2 ) == 0 );
     }
@@ -61,13 +61,12 @@ private:
 
 
 
-RijndaelEncryptor::RijndaelEncryptor(const wstring_view key_sv, const bool use_base64)
+RijndaelEncryptor::RijndaelEncryptor(const std::string_view key_sv, const bool use_base64)
     :   m_useBase64(use_base64)
 {
     // generate a 256-bit hash from the key
     constexpr size_t HashSizeBits = 256;
-    const std::string utf8_key = UTF8Convert::WideToUTF8(key_sv);
-    const std::vector<std::byte> key_hash = Hash::Hash(reinterpret_cast<const std::byte*>(utf8_key.data()), utf8_key.length(),
+    const std::vector<std::byte> key_hash = Hash::Hash(reinterpret_cast<const std::byte*>(key_sv.data()), key_sv.length(),
                                                        nullptr, 0, HashSizeBits / 8);
     ASSERT(key_hash.size() == 32);
 
@@ -80,56 +79,54 @@ RijndaelEncryptor::RijndaelEncryptor(const wstring_view key_sv, const bool use_b
 }
 
 
-std::wstring RijndaelEncryptor::Encrypt(const wstring_view text_sv)
+std::string RijndaelEncryptor::Encrypt(const cs::string_view_sz text_sv)
 {
-    // get the text as UTF-8 and add a null terminator
-    std::vector<std::byte> utf8_buffer = UTF8Convert::WideToUTF8Buffer(text_sv);
-    utf8_buffer.emplace_back(static_cast<std::byte>(0));
-
-    const std::vector<std::byte> encrypted_buffer = EncryptWorker<false>(utf8_buffer);
+    // the text is encoded including the null terminator
+    const cs::span<const std::byte> buffer(reinterpret_cast<const std::byte*>(text_sv.c_str()), text_sv.length() + 1);
+    const std::vector<std::byte> encrypted_buffer = EncryptWorker<false>(buffer);
 
     // Base64
     if( m_useBase64 )
     {
-        return Base64::Encode<std::wstring>(encrypted_buffer);
+        return Base64::Encode(encrypted_buffer);
     }
 
     // hex
     else
     {
-        std::wstring encrypted_text = Hash::BytesToHexString(encrypted_buffer.data(), encrypted_buffer.size());
+        std::string encrypted_text = Hash::BytesToHexString(encrypted_buffer.data(), encrypted_buffer.size());
         ASSERT(HexStringLengthIsValid(encrypted_text));
         return encrypted_text;
     }
 }
 
 
-std::wstring RijndaelEncryptor::Decrypt(const wstring_view encrypted_text_sv)
+std::string RijndaelEncryptor::Decrypt(const std::string_view encrypted_text_sv)
 {
-    std::optional<std::vector<std::byte>> utf8_buffer;
+    std::optional<std::vector<std::byte>> buffer;
 
     // Base64
     if( m_useBase64 )
     {
-        utf8_buffer.emplace(Base64::Decode<wstring_view, std::vector<std::byte>>(encrypted_text_sv));
+        buffer = Base64::DecodeToBuffer(encrypted_text_sv);
     }
 
     // hex (which must be of the correct length)
     else if( HexStringLengthIsValid(encrypted_text_sv) )
     {
-        utf8_buffer.emplace(Hash::HexStringToBytes(encrypted_text_sv, false));
+        buffer = Hash::HexStringToBytes(encrypted_text_sv, false);
     }
 
-    if( utf8_buffer.has_value() )
+    if( buffer.has_value() )
     {
-        const std::vector<std::byte> decrypted_buffer = DecryptWorker(*utf8_buffer);
+        const std::vector<std::byte> decrypted_buffer = DecryptWorker(*buffer);
 
         // a correctly decrypted string will be null terminated
         if( !decrypted_buffer.empty() && decrypted_buffer.back() == static_cast<std::byte>(0) )
-            return UTF8Convert::UTF8ToWide(reinterpret_cast<const char*>(decrypted_buffer.data()));
+            return reinterpret_cast<const char*>(decrypted_buffer.data());
     }
 
-    return std::wstring();
+    return std::string();
 }
 
 
@@ -190,7 +187,7 @@ std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const cs::span<const std
 
     // process the full blocks in the input buffer
     const std::byte* buffer_itr = buffer.data();
-    const std::byte* buffer_full_block_end = buffer_itr + ( buffer.size() / BlockSize ) * BlockSize;
+    const std::byte* const buffer_full_block_end = buffer_itr + ( buffer.size() / BlockSize ) * BlockSize;
 
     while( buffer_itr != buffer_full_block_end )
     {
@@ -273,7 +270,7 @@ std::vector<std::byte> RijndaelEncryptor::DecryptWorker(const cs::span<const std
 // Encryptor
 // --------------------------------------------------------------------------
 
-Encryptor::Encryptor(const Type type, const wstring_view key_sv/* = wstring_view()*/)
+Encryptor::Encryptor(const Type type, const std::string_view key_sv/* = std::string_view()*/)
 {
     switch( type )
     {
@@ -296,13 +293,13 @@ Encryptor::~Encryptor()
 }
 
 
-std::wstring Encryptor::Encrypt(const wstring_view text_sv)
+std::string Encryptor::Encrypt(const cs::string_view_sz text_sv)
 {
     return m_encryptor->Encrypt(text_sv);
 }
 
 
-std::wstring Encryptor::Decrypt(const wstring_view encrypted_text_sv)
+std::string Encryptor::Decrypt(const std::string_view encrypted_text_sv)
 {
     return m_encryptor->Decrypt(encrypted_text_sv);
 }

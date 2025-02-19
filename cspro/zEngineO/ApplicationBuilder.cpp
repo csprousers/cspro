@@ -1,13 +1,14 @@
 ﻿#include "stdafx.h"
 #include "ApplicationBuilder.h"
 #include "ApplicationLoader.h"
+#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zUtilF/ProgressDlg.h>
 #include <ZBRIDGEO/npff.h>
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // ApplicationBuilder
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 class ApplicationBuilder
 {
@@ -17,9 +18,9 @@ public:
     void Build(const std::optional<EngineAppType>& required_application_type);
 
 private:
-    void CheckUniqueName(const CString& filename, const CString& name);
+    void CheckUniqueName(const std::string& file_path, const std::string& name);
 
-    std::shared_ptr<CDataDict> LoadDictionary(std::wstring filename, std::wstring parent_filename, DictionaryType dictionary_type);
+    std::shared_ptr<CDataDict> LoadDictionary(const std::string& dictionary_file_path, const std::string& parent_file_path, DictionaryType dictionary_type);
 
     void LoadExternalDictionaries();
 
@@ -27,7 +28,7 @@ private:
 
 private:
     std::shared_ptr<ApplicationLoader> m_applicationLoader;
-    std::map<CString, CString> m_usedNames;
+    std::map<std::string, std::string, cs::case_insensitive_less> m_usedNames;
 
     // APP_LOAD_TODO eventually all of these objects should be shared pointers
     Application* m_application; // (owned by the ApplicationLoader)
@@ -53,7 +54,7 @@ void ApplicationBuilder::Build(const std::optional<EngineAppType>& required_appl
         throw ApplicationLoadException("The application was of an invalid type.");
 
     if( required_application_type.has_value() && required_application_type != m_application->GetEngineAppType() )
-        throw ApplicationLoadException(_T("This program can only load %s applications."), ToString(*required_application_type));
+        throw ApplicationLoadException("This program can only load %s applications.", ToString(*required_application_type));
 
     // for now this is only used by entry and batch applications
     if( m_application->GetEngineAppType() != EngineAppType::Batch && m_application->GetEngineAppType() != EngineAppType::Entry )
@@ -67,32 +68,35 @@ void ApplicationBuilder::Build(const std::optional<EngineAppType>& required_appl
 }
 
 
-void ApplicationBuilder::CheckUniqueName(const CString& filename, const CString& name)
+void ApplicationBuilder::CheckUniqueName(const std::string& file_path, const std::string& name)
 {
     ASSERT(SO::IsUpper(name));
     const auto& used_name_lookup = m_usedNames.find(name);
 
     if( used_name_lookup != m_usedNames.cend() )
     {
-        throw ApplicationLoadException(_T("An application cannot contain multiple objects with the same name. %s is used in both %s and %s."),
-                                       name.GetString(), PortableFunctions::PathGetFilename(filename), PortableFunctions::PathGetFilename(used_name_lookup->second));
+        throw ApplicationLoadException("An application cannot contain multiple objects with the same name. '%s' is used in both '%s' and '%s'.",
+                                       name.c_str(),
+                                       PortableFunctions::PathGetFilename(file_path).c_str(),
+                                       PortableFunctions::PathGetFilename(used_name_lookup->second).c_str());
     }
 
-    m_usedNames.try_emplace(name, filename);
+    m_usedNames.try_emplace(name, file_path);
 }
 
 
-std::shared_ptr<CDataDict> ApplicationBuilder::LoadDictionary(std::wstring filename, std::wstring parent_filename, DictionaryType dictionary_type)
+std::shared_ptr<CDataDict> ApplicationBuilder::LoadDictionary(const std::string& dictionary_file_path, const std::string& parent_file_path,
+                                                              const DictionaryType dictionary_type)
 {
-    std::shared_ptr<CDataDict> dictionary = m_applicationLoader->GetDictionary(filename);
+    std::shared_ptr<CDataDict> dictionary = m_applicationLoader->GetDictionary(dictionary_file_path);
 
-    CheckUniqueName(WS2CS(filename), dictionary->GetName());
+    CheckUniqueName(dictionary_file_path, dictionary->GetName());
 
-    DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(filename);
+    DictionaryDescription* dictionary_description = m_application->GetDictionaryDescription(dictionary_file_path);
 
     // if there is no dictionary description, create one
     if( dictionary_description == nullptr )
-        dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(std::move(filename), std::move(parent_filename), dictionary_type));
+        dictionary_description = m_application->AddDictionaryDescription(DictionaryDescription(dictionary_file_path, parent_file_path, dictionary_type));
 
     dictionary_description->SetDictionary(dictionary.get());
 
@@ -102,9 +106,9 @@ std::shared_ptr<CDataDict> ApplicationBuilder::LoadDictionary(std::wstring filen
 
 void ApplicationBuilder::LoadExternalDictionaries()
 {
-    for( const CString& dictionary_filename : m_application->GetExternalDictionaryFilenames() )
+    for( const std::string& dictionary_file_path : m_application->GetExternalDictionaryFilePaths() )
     {
-        std::shared_ptr<CDataDict> dictionary = LoadDictionary(CS2WS(dictionary_filename), std::wstring(), DictionaryType::External);
+        std::shared_ptr<CDataDict> dictionary = LoadDictionary(dictionary_file_path, SO::Empty_string, DictionaryType::External);
         m_application->AddRuntimeExternalDictionary(std::move(dictionary));
     }
 }
@@ -112,19 +116,19 @@ void ApplicationBuilder::LoadExternalDictionaries()
 
 void ApplicationBuilder::LoadFormFiles()
 {
-    if( m_application->GetFormFilenames().empty() )
+    if( m_application->GetFormFilePaths().empty() )
         throw ApplicationLoadException("An application must have at least one form.");
 
     DictionaryType dictionary_type = DictionaryType::Input;
 
-    for( const CString& form_filename : m_application->GetFormFilenames() )
+    for( const std::string& form_file_path : m_application->GetFormFilePaths() )
     {
-        std::shared_ptr<CDEFormFile> form_file = m_applicationLoader->GetFormFile(form_filename);
+        std::shared_ptr<CDEFormFile> form_file = m_applicationLoader->GetFormFile(form_file_path);
 
-        CheckUniqueName(form_filename, form_file->GetName());
+        CheckUniqueName(form_file_path, UTF8_TODO::GetUtf8(form_file->GetName()));
 
         // load the form file's dictionary
-        std::shared_ptr<CDataDict> dictionary = LoadDictionary(CS2WS(form_file->GetDictionaryFilename()), CS2WS(form_filename), dictionary_type);
+        std::shared_ptr<CDataDict> dictionary = LoadDictionary(UTF8_TODO::GetUtf8(form_file->GetDictionaryFilename()), form_file_path, dictionary_type);
 
         form_file->SetDictionary(std::move(dictionary));
         form_file->UpdatePointers();
@@ -138,14 +142,15 @@ void ApplicationBuilder::LoadFormFiles()
 
 
 
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 // BuildApplication
-// --------------------------------------------------
+// --------------------------------------------------------------------------
 
 void BuildApplication(std::shared_ptr<ApplicationLoader> application_loader,
                       std::optional<EngineAppType> required_application_type/* = std::nullopt*/)
 {
     ProgressDlgSharing share_progress_dialog;
 
-    ApplicationBuilder(std::move(application_loader)).Build(required_application_type);
+    ApplicationBuilder application_builder(std::move(application_loader));
+    application_builder.Build(required_application_type);
 }

@@ -7,12 +7,13 @@
 #include <zEngineO/EngineData.h>
 #include <zEngineO/SymbolCalculator.h>
 #include <zEngineO/SymbolSerializerHelper.h>
+#include <zEngineO/Messages/EngineMessages.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Special.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/Viewers.h>

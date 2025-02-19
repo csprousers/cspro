@@ -1,11 +1,12 @@
 ﻿#pragma once
 
+
 class SelectApplicationDlg : public CDialog
 {
 public:
     SelectApplicationDlg(CWnd* pParent = nullptr);
 
-    const CString& GetApplicationFilename() const { return m_applicationFilename; }
+    const std::string& GetApplicationFilePath() const { return m_applicationFilePath; }
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -15,9 +16,9 @@ protected:
 
     void OnSysCommand(UINT nID, LPARAM lParam);
 
-    void OnSelectApplicationFilename();    
+    void OnSelectApplicationFilePath();
 
 private:
     HICON m_hIcon;
-    CString m_applicationFilename;
+    std::string m_applicationFilePath;
 };

@@ -16,18 +16,18 @@ class ZENGINEO_API EngineRecord : public Symbol
     friend class EngineDictionaryFactory;
 
 private:
-    EngineRecord(std::wstring record_name, EngineData& engine_data);
+    EngineRecord(std::string record_name, EngineData& engine_data);
 
 public:
-    EngineRecord(EngineCase& engine_case, const CDictRecord& dictionary_record, EngineData& engine_data);
+    EngineRecord(EngineCase& engine_case, const CDictRecord& dict_record, EngineData& engine_data);
 
-    const CDictRecord& GetDictionaryRecord() const { return *m_dictionaryRecord; }
+    const CDictRecord& GetDictRecord() const { return *m_dictRecord; }
 
     const EngineDictionary& GetEngineDictionary() const;
 
 
     // symbol overrides
-    Symbol* FindChildSymbol(const std::wstring& symbol_name) const override;
+    Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
 
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
@@ -38,7 +38,7 @@ protected:
 
 public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
-    // ENGINECR_TODO allow updating of the record with UpdateValueFromJson?
+    // ENGINECR_TODO allow updating of the record with SetValueFromJson?
 
 
     // runtime methods
@@ -57,7 +57,7 @@ public:
 private:
     EngineData& m_engineData;
     EngineCase* m_engineCase;
-    const CDictRecord* m_dictionaryRecord;
+    const CDictRecord* m_dictRecord;
 
 
     // runtime variables

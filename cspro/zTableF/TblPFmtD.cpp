@@ -485,7 +485,7 @@ void CTblPrintFmtDlg::OnDeltaposStartpgSpin(NMHDR* pNMHDR, LRESULT* pResult)
         sStartPage = AUTO_STR;
     }
     else  {
-        sStartPage = IntToString(m_iStartPage);
+        sStartPage = UTF8_TODO::GetCString(IntToString(m_iStartPage));
     }
 
     GetDlgItem(IDC_START_PAGE)->SetWindowText(sStartPage);

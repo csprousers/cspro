@@ -59,8 +59,8 @@ int LogicCompiler::CompileImputeFunction()
     IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
     // compile the additional options
-    std::vector<const TCHAR*> impute_keywords { _T("TITLE"), _T("SPECIFIC"), _T("VALUESET"), _T("STAT"), _T("VSET") };
-    std::vector<bool> keyword_used(impute_keywords.size() + 1, 0);
+    constexpr const char* impute_keywords[] = { "TITLE", "SPECIFIC", "VALUESET", "STAT", "VSET" };
+    std::vector<bool> keyword_used(_countof(impute_keywords) + 1, 0);
 
     while( true )
     {
@@ -200,7 +200,7 @@ int LogicCompiler::CompileImputeFunction()
 
             IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
-            // only add the runtime aspects of stat if it is not being overriden to 'off'
+            // only add the runtime aspects of stat if it is not being overridden to 'off'
             if( GetCompilerHelper<ImputeAutomaticStatCompilerHelper>().GetAutomaticStatFlag() != false )
             {
                 imputation.SetUsingStat();
@@ -215,7 +215,7 @@ int LogicCompiler::CompileImputeFunction()
     IssueErrorOnTokenMismatch(TOKSEMICOLON, MGF::expecting_semicolon_30);
 
 
-    // set using stat if it was overriden to 'on'
+    // set using stat if it was overridden to 'on'
     if( GetCompilerHelper<ImputeAutomaticStatCompilerHelper>().GetAutomaticStatFlag() == true )
         imputation.SetUsingStat();
 
@@ -239,12 +239,12 @@ void LogicCompiler::CompileSetImpute()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    NextKeywordOrError({ _T("STAT") });
+    NextKeywordOrError({ "STAT" });
 
     NextToken();
     IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-    size_t stat_type = NextKeywordOrError({ _T("ON"), _T("OFF"), _T("DEFAULT") });
+    const size_t stat_type = NextKeywordOrError({ "ON", "OFF", "DEFAULT" });
 
     std::optional<bool> automatic_stat_flag = ( stat_type != 3 ) ? std::make_optional<bool>(stat_type == 1) :
                                                                    std::nullopt;

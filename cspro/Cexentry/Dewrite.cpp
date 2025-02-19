@@ -83,7 +83,7 @@ bool CEntryDriver::CheckBeforeWriteEndingNode( int iSymDic, int iMaxLevel, int i
         const TCHAR*     pszNodeType = ( iEndingLevel <= 1 ) ? _T("case") : _T("node");
         const CDataDict* pDataDict   = pDicT->GetDataDict();
         const DictLevel& dict_level  = pDataDict->GetLevel( iEndingLevel - 1 );
-        csNodeText.Format( _T("'%s/%s' %s"), dict_level.GetName().GetString(), dict_level.GetLabel().GetString(), pszNodeType );
+        csNodeText.Format( _T("'%s/%s' %s"), UTF8_TODO::GetWide(dict_level.GetName()).c_str(), dict_level.GetLabel().GetString(), pszNodeType );
     }
 
     if( !bIgnoreWrite ) {
@@ -106,17 +106,17 @@ bool CEntryDriver::CheckBeforeWriteEndingNode( int iSymDic, int iMaxLevel, int i
         if( bIsReady && iEndingLevel >= iMaxLevel ) {
 
             // 20140814 don't display all the level information unless there are multiple levels
-            const std::wstring prompt_message = ( iMaxLevel == 1 ) ? MGF::GetMessageText(89254) :
-                                                                     FormatTextCS2WS(MGF::GetMessageText(89255).c_str(), csNodeText.GetString());
+            const SharableString prompt_message = ( iMaxLevel == 1 ) ? MGF::GetMessageText(89254) :
+                                                                       FormatText(MGF::GetMessageText(89255)->c_str(), UTF8_TODO::GetUtf8(csNodeText).c_str());
 
             if( m_pPifFile->GetApplication()->GetShowEndCaseMessage() )
             {
 #ifdef WIN_DESKTOP
-                if( AfxMessageBox(prompt_message.c_str(), MB_YESNO | MB_APPLMODAL | MB_DEFBUTTON1 ) == IDNO )
+                if( AfxMessageBox(*prompt_message, MB_YESNO | MB_APPLMODAL | MB_DEFBUTTON1 ) == IDNO )
 #else
-                const std::wstring accept_case_title = MGF::GetMessageText(89256, _T("Accept Case"));
-                
-                if( PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(accept_case_title, prompt_message, MB_YESNO) == IDNO )
+                const SharableString accept_case_title = MGF::GetMessageText(89256, "Accept Case");
+
+                if( PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog(*accept_case_title, *prompt_message, MB_YESNO) == IDNO )
 #endif
                 {
                     // RHF INIC Feb 07, 2001
@@ -213,25 +213,25 @@ long CEntryDriver::WriteData()
     // write out the case
     try
     {
-        pDicX->GetDataRepository().WriteCasetainer(&data_case, GetWriteCaseParameter());
+        pDicX->GetDataRepository().WriteCasetainer(data_case, GetWriteCaseParameter());
 
         ClearWriteCaseParameter();
 
-        _tcscpy(pDicX->current_key, data_case.GetKey()); // update the current key
+        _tcscpy(pDicX->current_key, UTF8_TODO::GetCString(data_case.GetKey())); // update the current key
         lWriteFilePos = 0;
     }
 
     catch( const DataRepositoryException::Error& exception )
     {
         lWriteFilePos = -1;
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
 
     bRet = ( lWriteFilePos >= 0 );
 
     if( !bRet )
-        issaerror( MessageType::Abort, 4017, pDicX->GetDataRepository().GetName(DataRepositoryNameType::Full).GetString());
+        issaerror( MessageType::Abort, 4017, pDicX->GetDataRepository().GetName(DataRepositoryNameType::Full).c_str());
 
     if( bRet )
     {
@@ -323,7 +323,7 @@ bool CEntryDriver::PartialSaveCase(bool bClearSkipped/* = false*/)
 
         if( partial_save_mode != PartialSaveMode::None )
         {
-            partial_save_case_item_reference = std::make_shared<CaseItemReference>(*pVarT->GetCaseItem(), pCase->GetLevelKey(pCaseLevel));
+            partial_save_case_item_reference = std::make_shared<CaseItemReference>(*pVarT->GetCaseItem(), UTF8_TODO::GetUtf8(pCase->GetLevelKey(pCaseLevel)));
             m_pIntDriver->ConvertIndex(*pField, *partial_save_case_item_reference);
         }
     }
@@ -333,7 +333,7 @@ bool CEntryDriver::PartialSaveCase(bool bClearSkipped/* = false*/)
     // write out the case
     try
     {
-        pDicX->GetDataRepository().WriteCasetainer(&data_case, GetWriteCaseParameter());
+        pDicX->GetDataRepository().WriteCasetainer(data_case, GetWriteCaseParameter());
 
         // update the parameter so that it is refreshed for the next partial or complete save
         SetWriteCaseParameter(WriteCaseParameter::CreateModifyParameter(data_case));
@@ -343,7 +343,7 @@ bool CEntryDriver::PartialSaveCase(bool bClearSkipped/* = false*/)
 
     catch( const DataRepositoryException::Error& exception )
     {
-        issaerror(MessageType::Warning, 10104, exception.GetErrorMessage().c_str());
+        issaerror(MessageType::Warning, 10104, exception.what());
     }
 
     if( bRet && bKeyChanged )

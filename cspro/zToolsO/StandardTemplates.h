@@ -5,13 +5,16 @@
 // some other useful templates
 // --------------------------------------------------------------------------
 
+#include <zToolsO/ConstReferenceOptional.h>
 #include <zToolsO/PointerType.h>
+#include <zToolsO/StandardTemplatesCpp20.h>
 #include <zToolsO/VectorIterators.h>
+#include <optional>
 
 
 
 // --------------------------------------------------------------------------
-// a way to access the underlying value of a value, raw pointer, or a 
+// a way to access the underlying value of a value, raw pointer, or a
 // shared pointer
 // --------------------------------------------------------------------------
 
@@ -45,24 +48,9 @@ T ValueOrDefault(std::optional<T>&& value)
 }
 
 
-
-// --------------------------------------------------------------------------
-// C++20 functionality to be removed once we move on from C++17
-// --------------------------------------------------------------------------
-
-namespace std
+namespace cs
 {
-    template<typename T>
-    std::unique_ptr<T> make_unique_for_overwrite(const std::size_t size)
-    {
-        // from https://stackoverflow.com/questions/45703152/recommended-way-to-make-stdunique-ptr-of-array-type-without-value-initializati
-        return unique_ptr<T>(new typename std::remove_extent<T>::type[size]);
-    }
-}
-
-
-template<bool flag = false>
-void static_assert_false()
-{
-    static_assert(flag);
+    // cs::is_optional
+    template<typename T> struct is_optional                   : std::false_type {};
+    template<typename T> struct is_optional<std::optional<T>> : std::true_type  {};
 }

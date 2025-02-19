@@ -5,39 +5,42 @@
 namespace
 {
     const HKEY BaseKey = HKEY_CURRENT_USER;
-    constexpr const TCHAR* SettingsKey = _T("Software\\U.S. Census Bureau\\CSPro Settings");
+    constexpr const TCHAR* SettingsKey = L"Software\\U.S. Census Bureau\\CSPro Settings";
 
     constexpr const TCHAR* TypeNames[] =
     {
-        _T("View Names in Tree"),
-        _T("Append Labels to Names"),
+        L"View Names in Tree",
+        L"Append Labels to Names",
 
-        _T("Last Application Directory"),
+        L"Last Application Directory",
 
-        _T("Listing Filename Extension"),
-        _T("Frequency Filename Extension"),
+        L"Listing Filename Extension",
+        L"Frequency Filename Extension",
 
-        _T("Add Image to Resource Folder"),
+        L"Add Image to Resource Folder",
 
-        _T("Trace Window: Always on Top"),
+        L"Trace Window: Always on Top",
 
-        _T("Logic Settings"),
-        _T("Logic Editor Zoom Level"),
+        L"Logic Settings",
+        L"Logic Editor Zoom Level",
 
-        _T("Code Folding"),
-        _T("Deprecation Warnings"),
-        _T("Word Wrap"),
+        L"Code Folding",
+        L"Deprecation Warnings",
+        L"Word Wrap",
 
-        _T("String Encoder: Split Newlines"),
-        _T("String Encoder: Use Verbatim String Literals"),
-        _T("String Encoder: Escape JSON Forward Slashes"),
+        L"String Encoder: Split Newlines",
+        L"String Encoder: Use Verbatim String Literals",
+        L"String Encoder: Escape JSON Forward Slashes",
 
-        _T("Localhost: Start Automatically"),
-        _T("Localhost: Preferred Port"),
-        _T("Localhost: Automatically Mapped Drives"),
+        L"Localhost: Start Automatically",
+        L"Localhost: Preferred Port",
+        L"Localhost: Automatically Mapped Drives",
+
+        L"Last Sync Connection String",
+        L"Last CSWeb URL",
     };
 
-    static_assert(_countof(TypeNames) == ( static_cast<size_t>(WinSettings::Type::LocalhostAutomaticallyMappedDrives) + 1 ));
+    static_assert(_countof(TypeNames) == ( static_cast<size_t>(WinSettings::Type::LastCSWebUrl) + 1 ));
 }
 
 
@@ -99,6 +102,11 @@ T WinSettings::ReadWorker(KeyType key, T* default_value)
             return WS2CS(std::get<std::wstring>(loaded_settings_lookup->second));
         }
 
+        else if constexpr(std::is_same_v<T, std::string>)
+        {
+            return UTF8_TODO::GetUtf8(std::get<std::wstring>(loaded_settings_lookup->second));
+        }
+
         else
         {
             return std::get<T>(loaded_settings_lookup->second);
@@ -122,6 +130,11 @@ T WinSettings::ReadWorker(KeyType key, T* default_value)
         value_found = instance.m_winRegistry.ReadString(key_text, &value);
     }
 
+    else if constexpr(std::is_same_v<T, std::string>)
+    {
+        value_found = instance.m_winRegistry.ReadString(UTF8_TODO::GetUtf8(key_text), value);
+    }
+
     else
     {
         value_found = instance.m_winRegistry.ReadDWord(key_text, &value);
@@ -132,6 +145,11 @@ T WinSettings::ReadWorker(KeyType key, T* default_value)
         if constexpr(std::is_same_v<T, CString>)
         {
             instance.m_loadedSettings.try_emplace(std::move(key), CS2WS(value));
+        }
+
+        else if constexpr(std::is_same_v<T, std::string>)
+        {
+            instance.m_loadedSettings.try_emplace(std::move(key), UTF8_TODO::GetWide(value));
         }
 
         else
@@ -163,6 +181,12 @@ void WinSettings::Write(KeyType key, const T& value)
             return;
     }
 
+    else if constexpr(std::is_same_v<T, std::string>)
+    {
+        if( loaded_settings_lookup != instance.m_loadedSettings.cend() && std::get<std::wstring>(loaded_settings_lookup->second) == UTF8_TODO::GetWide(value) )
+            return;
+    }
+
     else
     {
         if( loaded_settings_lookup != instance.m_loadedSettings.cend() && std::get<T>(loaded_settings_lookup->second) == value )
@@ -176,6 +200,11 @@ void WinSettings::Write(KeyType key, const T& value)
         instance.m_loadedSettings[key] = CS2WS(value);
     }
 
+    else if constexpr(std::is_same_v<T, std::string>)
+    {
+        instance.m_loadedSettings[key] = UTF8_TODO::GetWide(value);
+    }
+
     else
     {
         instance.m_loadedSettings[key] = value;
@@ -185,7 +214,9 @@ void WinSettings::Write(KeyType key, const T& value)
 
 template CLASS_DECL_ZTOOLSO std::wstring WinSettings::ReadWorker<std::wstring>(KeyType key, std::wstring* default_value);
 template CLASS_DECL_ZTOOLSO CString WinSettings::ReadWorker<CString>(KeyType key, CString* default_value);
+template CLASS_DECL_ZTOOLSO std::string WinSettings::ReadWorker<std::string>(KeyType key, std::string* default_value);
 template CLASS_DECL_ZTOOLSO DWORD WinSettings::ReadWorker<DWORD>(KeyType key, DWORD* default_value);
 template CLASS_DECL_ZTOOLSO void WinSettings::Write<std::wstring>(KeyType key, const std::wstring& value);
 template CLASS_DECL_ZTOOLSO void WinSettings::Write<CString>(KeyType key, const CString& value);
+template CLASS_DECL_ZTOOLSO void WinSettings::Write<std::string>(KeyType key, const std::string& value);
 template CLASS_DECL_ZTOOLSO void WinSettings::Write<DWORD>(KeyType key, const DWORD& value);

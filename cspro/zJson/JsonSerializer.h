@@ -1,12 +1,9 @@
 ﻿#pragma once
 
-template<typename CharType> class JsonNode;
-class JsonWriter;
-
 
 // to add JSON serialization to an object, add these methods to a class:
-// 
-// - static <ValueType> CreateFromJson(const JsonNode<CharType>& json_node);
+//
+// - static <ValueType> CreateFromJson(const JsonNode& json_node);
 // - void WriteJson(JsonWriter& json_writer) const;
 //
 // or add the methods to a JsonSerializer object:
@@ -14,7 +11,7 @@ class JsonWriter;
 template<typename ValueType>
 struct JsonSerializer
 {
-    // static ValueType CreateFromJson(const JsonNode<CharType>& json_node);
+    // static ValueType CreateFromJson(const JsonNode& json_node);
     // static void WriteJson(JsonWriter& json_writer, const ValueType& value);
 };
 
@@ -46,18 +43,18 @@ class API JsonSerializer<EnumType>                                              
     static_assert(std::is_enum<EnumType>::value, #EnumType " must be an enum"); \
                                                                                 \
 private:                                                                        \
-    static const std::vector<std::tuple<EnumType, std::wstring>>& GetMapping(); \
+    static const std::vector<std::tuple<EnumType, std::string>>& GetMapping();  \
                                                                                 \
 public:                                                                         \
-    static EnumType CreateFromJson(const JsonNode<wchar_t>& json_node);         \
+    static EnumType CreateFromJson(const JsonNode& json_node);                  \
     static void WriteJson(JsonWriter& json_writer, EnumType value);             \
 };
 
 
 #define DEFINE_ENUM_JSON_SERIALIZER_CLASS(EnumType, ...)                                             \
-const std::vector<std::tuple<EnumType, std::wstring>>& JsonSerializer<EnumType>::GetMapping()        \
+const std::vector<std::tuple<EnumType, std::string>>& JsonSerializer<EnumType>::GetMapping()         \
 {                                                                                                    \
-    static const std::vector<std::tuple<EnumType, std::wstring>> mapping =                           \
+    static const std::vector<std::tuple<EnumType, std::string>> mapping =                            \
     {                                                                                                \
         __VA_ARGS__                                                                                  \
     };                                                                                               \
@@ -65,25 +62,25 @@ const std::vector<std::tuple<EnumType, std::wstring>>& JsonSerializer<EnumType>:
     return mapping;                                                                                  \
 }                                                                                                    \
                                                                                                      \
-EnumType JsonSerializer<EnumType>::CreateFromJson(const JsonNode<wchar_t>& json_node)                \
+EnumType JsonSerializer<EnumType>::CreateFromJson(const JsonNode& json_node)                         \
 {                                                                                                    \
-    auto text = json_node.Get<wstring_view>();                                                       \
+    const std::string_view text_sv = json_node.Get<std::string_view>();                              \
                                                                                                      \
     const auto& mapping = GetMapping();                                                              \
     const auto& lookup = std::find_if(mapping.cbegin(), mapping.cend(),                              \
-                                      [&](const auto& m) { return ( text == std::get<1>(m) ); });    \
+                                      [&](const auto& m) { return ( text_sv == std::get<1>(m) ); }); \
                                                                                                      \
     if( lookup != mapping.cend() )                                                                   \
         return std::get<0>(*lookup);                                                                 \
                                                                                                      \
-    throw JsonParseException(_T("'%s' is not a valid ") _T(#EnumType), std::wstring(text).c_str());  \
+    throw JsonParseException("'%s' is not a valid " #EnumType, std::string(text_sv).c_str());        \
 }                                                                                                    \
                                                                                                      \
 void JsonSerializer<EnumType>::WriteJson(JsonWriter& json_writer, EnumType value)                    \
 {                                                                                                    \
     const auto& mapping = GetMapping();                                                              \
     const auto& lookup = std::find_if(mapping.cbegin(), mapping.cend(),                              \
-                                        [&](const auto& m) { return ( value == std::get<0>(m) ); }); \
+                                      [&](const auto& m) { return ( value == std::get<0>(m) ); });   \
                                                                                                      \
     if( lookup != mapping.cend() )                                                                   \
     {                                                                                                \
@@ -95,7 +92,7 @@ void JsonSerializer<EnumType>::WriteJson(JsonWriter& json_writer, EnumType value
         ASSERT(false);                                                                               \
         json_writer.WriteNull();                                                                     \
     }                                                                                                \
-}               
+}
 
 
 #define CREATE_ENUM_JSON_SERIALIZER(EnumType, ...)           \

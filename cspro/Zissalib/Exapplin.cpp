@@ -12,7 +12,7 @@
 #include <engine/Engine.h>
 #include <engine/COMMONIN.H>
 #include <engine/Comp.h>
-#include <zEngineO/ApplicationLoader.h>
+#include <zEngineO/PenWriterApplicationLoader.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ConnectionString.h>
@@ -58,16 +58,16 @@ bool CEngineDriver::exapplinit()
         ExMode = _totupper( m_pPifFile->GetStartModeString()[0] );
 
 
-    if(!pApp->IsCompiled() ) {  //SAVY March 2002
-
-        // load the messages
-        BuildMessageManagers();
-
+    if( !pApp->IsCompiled() ) //SAVY March 2002
+    {
         // potentially produce an error file with application errors (when not running in the portable environment)
 #ifdef WIN_DESKTOP
         if( Issamod == ModuleType::Batch || Issamod == ModuleType::Entry )
             m_compilerErrorLister = std::make_unique<Listing::ErrorLister>(*m_pPifFile);
 #endif
+
+        // load the messages
+        BuildMessageManagers();
 
         m_pEngineArea->inittables();
 
@@ -83,7 +83,7 @@ bool CEngineDriver::exapplinit()
             if( !attrload() || io_Err )
             {
 #ifdef WIN_DESKTOP
-                issaerror( abort_type, 10004, ApplName.GetString(), Failmsg.GetString() );
+                issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
 #endif
                 return false;
             }
@@ -93,7 +93,7 @@ bool CEngineDriver::exapplinit()
             if( !LoadApplChildren(NULL) ) // RHF Jun 12, 2003 Add Null
             {
 #ifdef WIN_DESKTOP
-                issaerror( abort_type, 10004, ApplName.GetString(), Failmsg.GetString() );
+                issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
 #endif
                 return false;
             }
@@ -103,7 +103,7 @@ bool CEngineDriver::exapplinit()
         if( GetApplication()->GetAppLoader()->GetBinaryFileLoad() && !m_bBinaryLoaded )
         {
 #ifdef WIN_DESKTOP
-            issaerror( abort_type, 10004, ApplName.GetString(), Failmsg.GetString() );
+            issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
 #endif
             return false;
         }
@@ -125,7 +125,7 @@ bool CEngineDriver::exapplinit()
                 ErrorMessage::Display(exception);
                 return false;
             }
-            
+
             question_text_manager = pEntryDriver->GetQuestMgr();
         }
 
@@ -156,7 +156,7 @@ bool CEngineDriver::exapplinit()
 
                 if( m_pEngineCompFunc->getErrors() > 0 )
                 {
-                    issaerror(MessageType::Abort, 10010, PortableFunctions::PathGetFilename(m_pApplication->GetApplicationFilename()), m_pEngineCompFunc->getErrors());
+                    issaerror(MessageType::Abort, 10010, PortableFunctions::PathGetFilename(m_pApplication->GetApplicationFilePath()).c_str(), m_pEngineCompFunc->getErrors());
                     return false;
                 }
             }
@@ -211,8 +211,15 @@ bool CEngineDriver::exapplinit()
 
 
 #ifndef USE_BINARY
-        if (!GetApplication()->GetAppLoader()->GetBinaryFileLoad()) {
-            m_pEngineCompFunc->CheckUnusedFileNames();
+        if( !GetApplication()->GetAppLoader()->GetBinaryFileLoad() )
+        {
+            m_pEngineCompFunc->RunPostCompilationChecks();
+
+            if( !Failmsg.IsEmpty() )
+            {
+                issaerror(MessageType::Abort, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str());
+                return false;
+            }
         }
 #endif
 
@@ -290,7 +297,6 @@ bool CEngineDriver::exapplinit()
                 }
             }
 
-            m_pIntDriver->CompleteHiddenGroup();// RHF Nov 09, 2000
             m_pIntDriver->BuildRecordsMap();    // was 'levassign'
         }
 
@@ -319,7 +325,26 @@ bool CEngineDriver::exapplinit()
         try
         {
             if( pApp->GetApplicationLoader() != nullptr )
+            {
+#ifdef WIN_DESKTOP
+                // dictionaries aren't written using PenWriterApplicationLoader (yet), so this code is here temporarily
+                PenWriterApplicationLoader* const pen_writer_application_loader = dynamic_cast<PenWriterApplicationLoader*>(pApp->GetApplicationLoader());
+
+                if( pen_writer_application_loader != nullptr )
+                {
+                    for( const std::shared_ptr<CDEFormFile>& form_file : pApp->GetRuntimeFormFiles() )
+                    {
+                        ASSERT(form_file->GetSharedDictionary() != nullptr);
+                        pen_writer_application_loader->ProcessDictionaryValueSetImages(*form_file->GetSharedDictionary());
+                    }
+
+                    for( const std::shared_ptr<CDataDict>& dictionary : pApp->GetRuntimeExternalDictionaries() )
+                        pen_writer_application_loader->ProcessDictionaryValueSetImages(*dictionary);
+                }
+#endif
+
                 pApp->GetApplicationLoader()->ProcessResources();
+            }
         }
 
         catch( const ApplicationLoadException& exception ) // APP_LOAD_TODO centralize exception handling

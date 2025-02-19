@@ -43,7 +43,7 @@ BOOL CommonStoreDlg::OnInitDialog()
     else
     {
         // set up the list control columns and allow full row selection
-        m_pListCtrl = (CListCtrl*)GetDlgItem(IDC_LIST_COMMON_STORE);
+        m_pListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_LIST_COMMON_STORE));
         m_pListCtrl->InsertColumn(0, _T("Attribute"));
         m_pListCtrl->SetColumnWidth(0, 160);
         m_pListCtrl->InsertColumn(1, _T("Value"));
@@ -68,31 +68,31 @@ void CommonStoreDlg::OnCbnSelchangeComboCommonStoreType()
     m_commonStore.SwitchTable(( m_pComboBoxType->GetCurSel() == 0 ) ? CommonStore::TableType::UserSettings :
                                                                       CommonStore::TableType::ConfigVariables);
 
-    std::wstring attribute;
-    std::wstring value;
+    std::string attribute;
+    std::string value;
 
     while( m_commonStore.NextString(&attribute, &value) )
-        AddSetting(attribute.c_str(), value.c_str());
+        AddSetting(UTF8_TODO::GetWide(attribute), UTF8_TODO::GetWide(value));
 
     // start in Add mode
     OnBnClickedRadioCommonStoreAdd();
 }
 
 
-int CommonStoreDlg::AddSetting(const TCHAR* attribute, const TCHAR* value)
+int CommonStoreDlg::AddSetting(const std::wstring& attribute, const std::wstring& value)
 {
-    int item = m_pListCtrl->InsertItem(0, attribute);
-    m_pListCtrl->SetItemText(item, 1, value);
+    const int item = m_pListCtrl->InsertItem(0, attribute.c_str());
+    m_pListCtrl->SetItemText(item, 1, value.c_str());
     return item;
 }
 
 
 void CommonStoreDlg::UpdateSelections()
 {
-    bool adding_setting = ( m_selectedItem < 0 );
+    const bool adding_setting = ( m_selectedItem < 0 );
 
-    CheckRadioButton(IDC_RADIO_COMMON_STORE_ADD,IDC_RADIO_COMMON_STORE_MODIFY,
-        adding_setting ? IDC_RADIO_COMMON_STORE_ADD : IDC_RADIO_COMMON_STORE_MODIFY);
+    CheckRadioButton(IDC_RADIO_COMMON_STORE_ADD,IDC_RADIO_COMMON_STORE_MODIFY, adding_setting ? IDC_RADIO_COMMON_STORE_ADD :
+                                                                                                IDC_RADIO_COMMON_STORE_MODIFY);
 
     GetDlgItem(IDC_BUTTON_COMMON_STORE_MODIFY)->SetWindowText(adding_setting ? _T("Add") : _T("Modify"));
     GetDlgItem(IDC_RADIO_COMMON_STORE_MODIFY)->EnableWindow(!adding_setting);
@@ -104,7 +104,7 @@ void CommonStoreDlg::UpdateSelections()
 
         while( pos != nullptr )
         {
-            int item = m_pListCtrl->GetNextSelectedItem(pos);
+            const int item = m_pListCtrl->GetNextSelectedItem(pos);
             m_pListCtrl->SetItemState(item, 0, LVIS_SELECTED);
         }
     }
@@ -125,7 +125,7 @@ void CommonStoreDlg::OnBnClickedRadioCommonStoreAdd()
 }
 
 
-void CommonStoreDlg::OnLvnItemchangedListCommonStore(NMHDR *pNMHDR,LRESULT *pResult)
+void CommonStoreDlg::OnLvnItemchangedListCommonStore(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
@@ -146,15 +146,16 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
     try
     {
-        if( m_attribute.IsEmpty() || m_value.IsEmpty() )
+        if( m_attribute.empty() || m_value.empty() )
             throw CSProException("You must specify both an attribute and a value.");
 
-        bool adding_setting = ( m_selectedItem < 0 );
-        bool modify_setting_changing_attribute = !adding_setting && ( m_attribute.Compare(m_pListCtrl->GetItemText(m_selectedItem, 0)) != 0 );
+        const bool adding_setting = ( m_selectedItem < 0 );
+        const bool modify_setting_changing_attribute = ( !adding_setting &&
+                                                         !SO::Equals(m_attribute, m_pListCtrl->GetItemText(m_selectedItem, 0)) );
 
         if( adding_setting || modify_setting_changing_attribute )
         {
-            if( m_commonStore.Exists(m_attribute) )
+            if( m_commonStore.Exists(UTF8_TODO::GetUtf8(m_attribute)) )
                 throw CSProException("A setting with the specified attribute already exists.");
         }
 
@@ -162,14 +163,14 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
         // delete the existing setting
         if( !adding_setting ) 
-            success = m_commonStore.Delete(m_pListCtrl->GetItemText(m_selectedItem, 0));
+            success = m_commonStore.Delete(UTF8_TODO::GetUtf8(m_pListCtrl->GetItemText(m_selectedItem, 0)));
 
         // add the setting
         if( success )
-            success = m_commonStore.PutString(m_attribute, m_value);
+            success = m_commonStore.PutString(UTF8_TODO::GetUtf8(m_attribute), UTF8_TODO::GetUtf8(m_value));
 
         if( !success )
-            throw CSProException(_T("There was an error %s the setting."), adding_setting ? _T("adding") : _T("modifying"));
+            throw CSProException("There was an error %s the setting.", adding_setting ? "adding" : "modifying");
 
         if( adding_setting )
         {
@@ -186,7 +187,7 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
         else
         {
-            m_pListCtrl->SetItemText(m_selectedItem, 1, m_value);
+            m_pListCtrl->SetItemText(m_selectedItem, 1, m_value.c_str());
         }
     }
 
@@ -199,18 +200,22 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
 void CommonStoreDlg::OnBnClickedButtonCommonStoreDelete()
 {
-    CString attribute = m_pListCtrl->GetItemText(m_selectedItem, 0);
+    const std::wstring attribute = m_pListCtrl->GetItemText(m_selectedItem, 0);
 
-    if( m_commonStore.Delete(attribute) )
+    if( m_commonStore.Delete(UTF8_TODO::GetUtf8(attribute)) )
     {
         m_pListCtrl->DeleteItem(m_selectedItem);
         --m_selectedItem;
 
         if( m_selectedItem >= 0 )
+        {
             m_pListCtrl->SetItemState(m_selectedItem, LVIS_SELECTED, LVIS_SELECTED);
+        }
 
         else
+        {
             UpdateSelections();
+        }
     }
 
     else

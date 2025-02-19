@@ -166,9 +166,9 @@ BOOL Dbg_Dump_Tree(CRowColPgOb* pRCPgOb, int iIndent=0, bool bIncludeHidden=fals
         }
 
         TRACE(_T("%s%d  (%d %d %d %d, w=%d, h=%d) ==> %s (%s %s, HORZPG=%d vertpg=%d)  (extra=%d %d, %s)  %p %s\n"),
-            (LPCTSTR)sPad, pRCPgOb->GetLevel(), rc.left, rc.top, rc.right, rc.bottom, rc.Width(), rc.Height(),
-            (LPCTSTR)sText, (LPCTSTR)Dbg_Get_Type(pRCPgOb->GetType()), (LPCTSTR)sFmt, pRCPgOb->GetHPage(), pRCPgOb->GetVPage(),
-            pRCPgOb->GetExtraLP().cx, pRCPgOb->GetExtraLP().cy, (pRCPgOb->IsCustom()?_T("Yes"):_T("No")), pRCPgOb, (LPCTSTR)sHidden);
+            sPad.GetString(), pRCPgOb->GetLevel(), rc.left, rc.top, rc.right, rc.bottom, rc.Width(), rc.Height(),
+            sText.GetString(), Dbg_Get_Type(pRCPgOb->GetType()).GetString(), sFmt.GetString(), pRCPgOb->GetHPage(), pRCPgOb->GetVPage(),
+            pRCPgOb->GetExtraLP().cx, pRCPgOb->GetExtraLP().cy, (pRCPgOb->IsCustom()?_T("Yes"):_T("No")), pRCPgOb, sHidden.GetString());
     }
 
     for (int i=0 ; i<pRCPgOb->GetNumChildren() ; i++) {
@@ -181,7 +181,7 @@ void Dbg_Dump_Page(const CPgLayout& pl)
 {
     for (int iPgOb=0 ; iPgOb<pl.GetNumPgObs() ; iPgOb++) {
         const CPgOb& pgob=pl.GetPgOb(iPgOb);
-        TRACE(_T("%d: %s\n"),iPgOb, (LPCTSTR)Dbg_Get_Type(pgob.GetType()));
+        TRACE(_T("%d: %s\n"),iPgOb, Dbg_Get_Type(pgob.GetType()).GetString());
     }
 }
 
@@ -246,19 +246,19 @@ float CTabPrtView::GetZoomScaleFactor() const
 
 CPrtViewNavigationBar& CTabPrtView::GetNavBar()
 {
-	if(GetParentFrame()->IsKindOf(RUNTIME_CLASS(CTableChildWnd))){
-		return ((CTableChildWnd*)GetParentFrame())->m_wndNavDlgBar;
-	}
-	else if(this->m_pNavBar){
-		return *(this->m_pNavBar);
-	}
-	else // we should not end up here
-	{
+    if(GetParentFrame()->IsKindOf(RUNTIME_CLASS(CTableChildWnd))){
+        return ((CTableChildWnd*)GetParentFrame())->m_wndNavDlgBar;
+    }
+    else if(this->m_pNavBar){
+        return *(this->m_pNavBar);
+    }
+    else // we should not end up here
+    {
 #ifdef _DEBUG
-		abort();
+        abort();
 #endif
-		return *(this->m_pNavBar);
-	}
+        return *(this->m_pNavBar);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ CPrtViewNavigationBar& CTabPrtView::GetNavBar()
 /////////////////////////////////////////////////////////////////////////////
 CTabPrtView::CTabPrtView() : m_szPagesToView(1,1), m_szSavePagesToView(1,1)
 {
-	m_pNavBar = NULL;				//Savy (R) sampling app 20081230
+    m_pNavBar = NULL;               //Savy (R) sampling app 20081230
     m_iCurrPrintPg = NONE;         // uninitialized
     m_aiViewPg.Add(0);             // start off showing the first page
     m_pgMgr.RemoveAllPages();
@@ -286,13 +286,13 @@ CTabPrtView::CTabPrtView() : m_szPagesToView(1,1), m_szSavePagesToView(1,1)
     m_pPrtDC=NULL;
     m_iLogPixelsY=NONE;
     m_bForceRemeasure=false;
-	m_pTabSet = NULL;
+    m_pTabSet = NULL;
 }
 
 CTabPrtView::CTabPrtView(CTabSet* pTabSet): m_szPagesToView(1,1), m_szSavePagesToView(1,1)
 {
-	m_pNavBar = NULL;				//Savy (R) sampling app 20081230
-	 m_iCurrPrintPg = NONE;         // uninitialized
+    m_pNavBar = NULL;               //Savy (R) sampling app 20081230
+     m_iCurrPrintPg = NONE;         // uninitialized
     m_aiViewPg.Add(0);             // start off showing the first page
     m_pgMgr.RemoveAllPages();
     m_pHSBar = new CScrollBar();
@@ -309,7 +309,7 @@ CTabPrtView::CTabPrtView(CTabSet* pTabSet): m_szPagesToView(1,1), m_szSavePagesT
     m_pPrtDC=NULL;
     m_iLogPixelsY=NONE;
     m_bForceRemeasure=false;
-	m_pTabSet = pTabSet;
+    m_pTabSet = pTabSet;
 }//Today SAvy changes 20081224
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -527,16 +527,16 @@ bool CTabPrtView::PreparePrinterDC()
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
 
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
 
     const CFmtReg& fmtReg=pSet->GetFmtReg();
     CTblPrintFmt* pTblPrintFmt=DYNAMIC_DOWNCAST(CTblPrintFmt,fmtReg.GetFmt(FMT_ID_TBLPRINT,0));
@@ -862,14 +862,14 @@ void CTabPrtView::DrawPage(CDC* pDC, int iPage)
         CPgOb& pgob = pl.GetPgOb(iPgOb);
         CRect rcOb = pgob.GetClientRectLP();
 
-		/*TODO Get the "spanned" width for the joined cells
-		//If it is the begnning of the join spanner add all the widths of the
-		//subsequent spanners to this spanner rcOb
+        /*TODO Get the "spanned" width for the joined cells
+        //If it is the begnning of the join spanner add all the widths of the
+        //subsequent spanners to this spanner rcOb
 
-		if(pgob.GetFmt()->GetHidden() == HIDDEN_NO && pgob.GetFmt()->GetID() == FMT_ID_SPANNER){
-			((CTabVar*)pgob.GetTblBase() )->GetF
-			rcOb.right =rcOb.right +  (0.5)* rcOb.Width();
-		}*/
+        if(pgob.GetFmt()->GetHidden() == HIDDEN_NO && pgob.GetFmt()->GetID() == FMT_ID_SPANNER){
+            ((CTabVar*)pgob.GetTblBase() )->GetF
+            rcOb.right =rcOb.right +  (0.5)* rcOb.Width();
+        }*/
         CFmt* pFmt=pgob.GetFmt();
 
         // store this object's client rect (in device units), for use with hit testing later
@@ -928,7 +928,7 @@ void CTabPrtView::DrawPage(CDC* pDC, int iPage)
 
         // prep colors
         COLORREF rgbText, rgbFill;
-		byte* pBits = NULL;
+        byte* pBits = NULL;
         if (bMono) {
 
             // note that setting a different text color doesn't work well with scaling, but we do it anyway
@@ -1001,52 +1001,52 @@ void CTabPrtView::DrawPage(CDC* pDC, int iPage)
             CBrush brush(rgbFill);
             pDC->FillRect(rcOb,&brush);  // expensive operation
 
-			//Converting DDB to DIB
-			//http://win32-framework.sourceforge.net/Tutorials/tutorial9.htm
-			// Fill the BITMAPINFOHEADER structure
-			BITMAPINFOHEADER bi = {0};
-			bi.biSize = sizeof(BITMAPINFOHEADER);
-			bi.biHeight =szScaledOb.cy;
-			bi.biWidth =  szScaledOb.cx;
-			bi.biPlanes = 1;
-			bi.biBitCount =  24;
-			bi.biCompression = BI_RGB;
+            //Converting DDB to DIB
+            //http://win32-framework.sourceforge.net/Tutorials/tutorial9.htm
+            // Fill the BITMAPINFOHEADER structure
+            BITMAPINFOHEADER bi = {0};
+            bi.biSize = sizeof(BITMAPINFOHEADER);
+            bi.biHeight =szScaledOb.cy;
+            bi.biWidth =  szScaledOb.cx;
+            bi.biPlanes = 1;
+            bi.biBitCount =  24;
+            bi.biCompression = BI_RGB;
 
-			// Note: BITMAPINFO and BITMAPINFOHEADER are the same for 24 bit bitmaps
-			// Get the size of the image data
-			GetDIBits(dcMem, bmp, 0, szScaledOb.cy, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+            // Note: BITMAPINFO and BITMAPINFOHEADER are the same for 24 bit bitmaps
+            // Get the size of the image data
+            GetDIBits(dcMem, bmp, 0, szScaledOb.cy, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
-			// Retrieve the image data
-			pBits = new byte[bi.biSizeImage];
-			GetDIBits(dcMem, bmp, 0, szScaledOb.cy, pBits, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+            // Retrieve the image data
+            pBits = new byte[bi.biSizeImage];
+            GetDIBits(dcMem, bmp, 0, szScaledOb.cy, pBits, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
-			// Use StretchDIBits to scale the bitmap and maintain its original proportions
-			StretchDIBits(pDC->m_hDC, ptTopLeft.x, ptTopLeft.y,rcOb.Width(), rcOb.Height(), 0, 0,  szScaledOb.cx, szScaledOb.cy, pBits,
-				(BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCAND);
+            // Use StretchDIBits to scale the bitmap and maintain its original proportions
+            StretchDIBits(pDC->m_hDC, ptTopLeft.x, ptTopLeft.y,rcOb.Width(), rcOb.Height(), 0, 0,  szScaledOb.cx, szScaledOb.cy, pBits,
+                (BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCAND);
         }
         else {
-			//Converting DDB to DIB
-			//http://win32-framework.sourceforge.net/Tutorials/tutorial9.htm
-			// Fill the BITMAPINFOHEADER structure
-			BITMAPINFOHEADER bi = {0};
-			bi.biSize = sizeof(BITMAPINFOHEADER);
-			bi.biHeight =szScaledOb.cy;
-			bi.biWidth =  szScaledOb.cx;
-			bi.biPlanes = 1;
-			bi.biBitCount =  24;
-			bi.biCompression = BI_RGB;
+            //Converting DDB to DIB
+            //http://win32-framework.sourceforge.net/Tutorials/tutorial9.htm
+            // Fill the BITMAPINFOHEADER structure
+            BITMAPINFOHEADER bi = {0};
+            bi.biSize = sizeof(BITMAPINFOHEADER);
+            bi.biHeight =szScaledOb.cy;
+            bi.biWidth =  szScaledOb.cx;
+            bi.biPlanes = 1;
+            bi.biBitCount =  24;
+            bi.biCompression = BI_RGB;
 
-			// Note: BITMAPINFO and BITMAPINFOHEADER are the same for 24 bit bitmaps
-			// Get the size of the image data
-			GetDIBits(dcMem, bmp, 0, szScaledOb.cy, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+            // Note: BITMAPINFO and BITMAPINFOHEADER are the same for 24 bit bitmaps
+            // Get the size of the image data
+            GetDIBits(dcMem, bmp, 0, szScaledOb.cy, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
-			// Retrieve the image data
-			pBits = new byte[bi.biSizeImage];
-			GetDIBits(dcMem, bmp, 0, szScaledOb.cy, pBits, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+            // Retrieve the image data
+            pBits = new byte[bi.biSizeImage];
+            GetDIBits(dcMem, bmp, 0, szScaledOb.cy, pBits, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
-			// Use StretchDIBits to scale the bitmap and maintain its original proportions
-			StretchDIBits(pDC->m_hDC, ptTopLeft.x, ptTopLeft.y,rcOb.Width(), rcOb.Height(), 0, 0,  szScaledOb.cx, szScaledOb.cy, pBits,
-				(BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCCOPY);
+            // Use StretchDIBits to scale the bitmap and maintain its original proportions
+            StretchDIBits(pDC->m_hDC, ptTopLeft.x, ptTopLeft.y,rcOb.Width(), rcOb.Height(), 0, 0,  szScaledOb.cx, szScaledOb.cy, pBits,
+                (BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCCOPY);
         }
 
         // put borders directly onto the screen DC, to avoid scaling inconsistencies
@@ -1058,9 +1058,9 @@ void CTabPrtView::DrawPage(CDC* pDC, int iPage)
         // unload bitmap
         dcMem.SelectObject(pOldBmp);
         bmp.DeleteObject();
-		if(pBits){
-			delete []pBits;
-		}
+        if(pBits){
+            delete []pBits;
+        }
     }
 
     // store the page's rect (user area) in device units, for use with hit testing later
@@ -1203,16 +1203,16 @@ void CTabPrtView::PutLeadering(CDC* pDC, const CPgOb& pgob, const CIMSAString& /
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
    // CTabSet* pSet = pDoc->GetTableSpec();
-	//SAvy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //SAvy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(pgob.GetTbl());
     const CFmtReg& fmtReg=pSet->GetFmtReg();
 
@@ -1457,16 +1457,16 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
     pInfo->SetMaxPage(1);
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl = pSet->GetTable(0);
     const CFmtReg& fmtReg=pSet->GetFmtReg();
 
@@ -1483,13 +1483,13 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
     // prep the print setup dialog ...
 
     // setup custom print dialog that adds our own radio buttons
-	delete pInfo->m_pPD;
+    delete pInfo->m_pPD;
     CTablePrintDlg* pPrintDlg = new CTablePrintDlg(FALSE, pSet);
     const int iCurrTbl = m_pgMgr.GetPgLayout(GetCurrFirstViewPg()).GetPgOb(0).GetTbl();
     pPrintDlg->m_aSelectedTables.Add(iCurrTbl);
-	pInfo->m_pPD = pPrintDlg;
-	pInfo->m_pPD->m_pd.nMinPage = 1;
-	pInfo->m_pPD->m_pd.nMaxPage = 1;
+    pInfo->m_pPD = pPrintDlg;
+    pInfo->m_pPD->m_pd.nMinPage = 1;
+    pInfo->m_pPD->m_pd.nMaxPage = 1;
 
     CPrintDialog dlg(TRUE);
     CString sPrinterDevice=fmtTblPrint.GetPrinterDevice();
@@ -1549,7 +1549,7 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
     // clear out selected tables page range
     m_aSelTblsPages.RemoveAll();
 
-	::GlobalUnlock(dlg.m_pd.hDevNames);
+    ::GlobalUnlock(dlg.m_pd.hDevNames);
     ::GlobalUnlock(dlg.m_pd.hDevMode);
 
     BOOL bRet = DoPreparePrinting(pInfo);
@@ -1606,10 +1606,10 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
         bool bPrintSettingsChanged=false;
 
         // retrieve printer device info ...
-		//this call return after DoPreparePrinting will return invalid handle error in VS 2010 /MFC
+        //this call return after DoPreparePrinting will return invalid handle error in VS 2010 /MFC
         /*DEVNAMES FAR *pDevNames=(DEVNAMES FAR *)::GlobalLock(dlg.m_pd.hDevNames);*/
-		DEVNAMES FAR *pDevNames = (DEVNAMES FAR *)::GlobalLock(pInfo->m_pPD->m_pd.hDevNames); // this should be the correct call anyway
-		//DWORD dWordError = GetLastError(); //uncomment this to check the if anyerror in global lock
+        DEVNAMES FAR *pDevNames = (DEVNAMES FAR *)::GlobalLock(pInfo->m_pPD->m_pd.hDevNames); // this should be the correct call anyway
+        //DWORD dWordError = GetLastError(); //uncomment this to check the if anyerror in global lock
         CString sDriver((LPTSTR)pDevNames + pDevNames->wDriverOffset);
         CString sDevice((LPTSTR)pDevNames + pDevNames->wDeviceOffset);
         CString sOutput((LPTSTR)pDevNames + pDevNames->wOutputOffset);
@@ -1624,9 +1624,9 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
         pDefaultTblPrintFmt->SetPrinterOutput(sOutput);
 
         // retrieve page orientation and paper type ...
-		//this call return after DoPreparePrinting will return invalid handle error in VS 2010 /MFC
+        //this call return after DoPreparePrinting will return invalid handle error in VS 2010 /MFC
        /* DEVMODE FAR* pDevMode=(DEVMODE FAR*)::GlobalLock(dlg.m_pd.hDevMode);*/  //this does not work in VS2010 /MFC
-		DEVMODE FAR* pDevMode=(DEVMODE FAR*)::GlobalLock(pInfo->m_pPD->m_pd.hDevMode);
+        DEVMODE FAR* pDevMode=(DEVMODE FAR*)::GlobalLock(pInfo->m_pPD->m_pd.hDevMode);
         switch(pDevMode->dmPaperSize) {
         case DMPAPER_A4:
             pTblPrintFmt->SetPaperType(PAPER_TYPE_A4);
@@ -1666,7 +1666,7 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
                 ASSERT(FALSE);
                 break;
             }
-            sMsg.Format(_T("Sorry, paper type [%s] is not supported.  Using [%s] instead."), (LPCTSTR)pDevMode->dmFormName, (LPCTSTR)sCurrPaperType);
+            sMsg.Format(_T("Sorry, paper type [%s] is not supported.  Using [%s] instead."), (LPCTSTR)pDevMode->dmFormName, sCurrPaperType.GetString());
             AfxMessageBox(sMsg,MB_ICONINFORMATION);
             break;
         }
@@ -1693,7 +1693,7 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
                 ASSERT(FALSE);
                 break;
             }
-            sMsg.Format(_T("Sorry, that page orientation is not supported.  Using %s instead."), (LPCTSTR)sCurrPageOrientation);
+            sMsg.Format(_T("Sorry, that page orientation is not supported.  Using %s instead."), sCurrPageOrientation.GetString());
             AfxMessageBox(sMsg,MB_ICONINFORMATION);
             break;
         }
@@ -1705,7 +1705,7 @@ BOOL CTabPrtView::OnPreparePrinting(CPrintInfo* pInfo)
 
 
 
-		::GlobalUnlock(pInfo->m_pPD->m_pd.hDevNames);
+        ::GlobalUnlock(pInfo->m_pPD->m_pd.hDevNames);
         ::GlobalUnlock(pInfo->m_pPD->m_pd.hDevMode);
 
 
@@ -2944,16 +2944,16 @@ void CTabPrtView::BuildHeaders(CPgLayout& pl, int iTbl, CDC& dc)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     CTable* pTbl = pSet->GetTable(iTbl);
 
@@ -3048,16 +3048,16 @@ void CTabPrtView::BuildHeaders(CPgLayout& pl, int iTbl, CDC& dc)
 
         // set text
         if (obHdr[iHdr].GetFmt()->IsTextCustom()) {
-			// 20090915 GHM added functionality for the &I command
-			CIMSAString headerText;
-			headerText = obHdr[iHdr].GetFmt()->GetCustom().m_sCustomText;
+            // 20090915 added functionality for the &I command
+            CIMSAString headerText;
+            headerText = obHdr[iHdr].GetFmt()->GetCustom().m_sCustomText;
 
-			int strPos;
-			while ((strPos = headerText.Find(_T("&I"))) != -1) {;
-			        headerText = headerText.Left(strPos) + pSet->GetInputDataFilename() + headerText.Mid(strPos + 2);
-				}
+            int strPos;
+            while ((strPos = headerText.Find(_T("&I"))) != -1) {;
+                    headerText = headerText.Left(strPos) + UTF8_TODO::GetCString(pSet->GetInputDataFilename()) + headerText.Mid(strPos + 2);
+                }
 
-			obHdr[iHdr].SetText(headerText);
+            obHdr[iHdr].SetText(headerText);
         }
         else {
             obHdr[iHdr].SetText(pHdrOb->GetText());
@@ -3119,16 +3119,16 @@ void CTabPrtView::BuildFooters(CPgLayout& pl, int iTbl, CDC& dc)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     CTable* pTbl = pSet->GetTable(iTbl);
 
@@ -3224,18 +3224,18 @@ void CTabPrtView::BuildFooters(CPgLayout& pl, int iTbl, CDC& dc)
 
         // set text
         if (obFtr[iFtr].GetFmt()->IsTextCustom()) {
-			// 20090915 GHM added functionality for the &I command
-			CIMSAString footerText;
-			footerText = obFtr[iFtr].GetFmt()->GetCustom().m_sCustomText;
+            // 20090915 added functionality for the &I command
+            CIMSAString footerText;
+            footerText = obFtr[iFtr].GetFmt()->GetCustom().m_sCustomText;
 
-			int strPos;
-			while ((strPos = footerText.Find(_T("&I"))) != -1) {;
-			        footerText = footerText.Left(strPos) + pSet->GetInputDataFilename() + footerText.Mid(strPos + 2);
-				}
+            int strPos;
+            while ((strPos = footerText.Find(_T("&I"))) != -1) {;
+                    footerText = footerText.Left(strPos) + UTF8_TODO::GetCString(pSet->GetInputDataFilename()) + footerText.Mid(strPos + 2);
+                }
 
-			obFtr[iFtr].SetText(footerText);
+            obFtr[iFtr].SetText(footerText);
 
-		}
+        }
         else {
             obFtr[iFtr].SetText(pFtrOb->GetText());
         }
@@ -3301,16 +3301,16 @@ void CTabPrtView::BuildTitles(CPgLayout& pl, int iTbl, CDC& dc, int iPage /*=1*/
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     CTable* pTbl = pSet->GetTable(iTbl);
     CTblOb* pTitleOb = pTbl->GetTitle();
@@ -3799,16 +3799,16 @@ void CTabPrtView::BuildNotes(CPgLayout& pl, int iTbl, CDC& dc, int iPage /*=1*/)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     CTable* pTbl = pSet->GetTable(iTbl);
     CTblOb* pPageNoteOb = DYNAMIC_DOWNCAST(CTblOb,pTbl->GetPageNote());
@@ -4212,34 +4212,34 @@ void CTabPrtView::BuildRowColTree(CTabVar* pTabVar, CRowColPgOb* pRCParent, cons
                 pFmt->SetHidden(HIDDEN_YES);
             }
         }
-		//if the current tabVar is part of the a join then set the fmt of the tabvar as hiddden
-		CTabVar* pParentTabVar = pTabVar->GetParent();
-		int iJoinPos = 0;
-		int iNumJoinSpanners =0;
-		bool bHideJoinSpanner = false;
-		for(int iChildVar =0 ; iChildVar < pParentTabVar->GetNumChildren(); iChildVar++){
-			CTabVar* pCurrTabVar = pParentTabVar->GetChild(iChildVar);
-			if(pCurrTabVar->GetFmt()){
-				iJoinPos = 0;
-				iNumJoinSpanners = ((CDataCellFmt*)pCurrTabVar->GetFmt())->GetNumJoinSpanners();
-				//the current var is the start of a join. We can skip this
-				continue;
-			}
-			if(iNumJoinSpanners > 0){
-				iJoinPos++;
-			}
-			if(pTabVar == pCurrTabVar){
+        //if the current tabVar is part of the a join then set the fmt of the tabvar as hiddden
+        CTabVar* pParentTabVar = pTabVar->GetParent();
+        int iJoinPos = 0;
+        int iNumJoinSpanners =0;
+        bool bHideJoinSpanner = false;
+        for(int iChildVar =0 ; iChildVar < pParentTabVar->GetNumChildren(); iChildVar++){
+            CTabVar* pCurrTabVar = pParentTabVar->GetChild(iChildVar);
+            if(pCurrTabVar->GetFmt()){
+                iJoinPos = 0;
+                iNumJoinSpanners = ((CDataCellFmt*)pCurrTabVar->GetFmt())->GetNumJoinSpanners();
+                //the current var is the start of a join. We can skip this
+                continue;
+            }
+            if(iNumJoinSpanners > 0){
+                iJoinPos++;
+            }
+            if(pTabVar == pCurrTabVar){
 
-				//if we are part of a join spanner enable hide
-				(iJoinPos > 0 && iJoinPos <= iNumJoinSpanners) && iNumJoinSpanners > 0  ? bHideJoinSpanner = true : bHideJoinSpanner = false;
-				//we are done !
-				break;
-			}
+                //if we are part of a join spanner enable hide
+                (iJoinPos > 0 && iJoinPos <= iNumJoinSpanners) && iNumJoinSpanners > 0  ? bHideJoinSpanner = true : bHideJoinSpanner = false;
+                //we are done !
+                break;
+            }
 
-		}
-		if(bHideJoinSpanner){
-			pFmt->SetHidden(HIDDEN_YES);
-		}
+        }
+        if(bHideJoinSpanner){
+            pFmt->SetHidden(HIDDEN_YES);
+        }
 
         ASSERT_VALID(pFmt);
         if (pFmt->IsTextCustom()) {
@@ -4349,17 +4349,17 @@ void CTabPrtView::BuildRowColTree(CTabVar* pTabVar, CRowColPgOb* pRCParent, cons
         //Now for each TabVar do the same
         if(!bColumn && pTabVar->IsRoot() ){
             CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
-			//CTabSet* pSet = pDoc->GetTableSpec();
-			//Savy (R) sampling app 20081224
-			CTabSet* pSet = NULL;
+            //CTabSet* pSet = pDoc->GetTableSpec();
+            //Savy (R) sampling app 20081224
+            CTabSet* pSet = NULL;
 
-			if(!pDoc){
-				ASSERT(m_pTabSet);
-				pSet = m_pTabSet;
-			}
-			else{
-				pSet = pDoc->GetTableSpec();
-			}
+            if(!pDoc){
+                ASSERT(m_pTabSet);
+                pSet = m_pTabSet;
+            }
+            else{
+                pSet = pDoc->GetTableSpec();
+            }
             CTable* pTbl = pSet->GetTable(pRCParent->GetTbl());
             ASSERT(pTbl);
             bool bHasAreaCaption = false;
@@ -4431,9 +4431,9 @@ void CTabPrtView::ProcessAreaTokensinRows(CTable* pTbl, CArray<CRowColPgOb*, CRo
     CMapStringToString& areaLabelLookup = pDoc->GetAreaLabelLookup();
 
     int iNumSlices=aTabData.GetSize();
-	if(iNumSlices == 0){
-		return;
-	}
+    if(iNumSlices == 0){
+        return;
+    }
     ASSERT(iNumSlices>0);
     int iStubsPerSlice=aStub.GetSize() / iNumSlices;
 
@@ -4510,16 +4510,16 @@ void CTabPrtView::SetDrawFormatFlags(CRowColPgOb* pOb)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
    // CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
 
     if (pOb->GetType()!=PGOB_ROOT) {
@@ -4563,16 +4563,16 @@ bool CTabPrtView::BuildRowsAndCols(const CPgLayout& plTemplate, CPgMgr& pgMgr, i
 
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     CTable* pTbl = pSet->GetTable(iTbl);
     CTblOb* pTitleOb = DYNAMIC_DOWNCAST(CTblOb,pTbl->GetTitle());
@@ -4750,9 +4750,9 @@ bool CTabPrtView::BuildRowsAndCols(const CPgLayout& plTemplate, CPgMgr& pgMgr, i
 
 
     // embed area names into stubs if we're doing area processing ...
-	bool bHasAreaCaption = pSet->GetConsolidate()->GetNumAreas() > 0?bHasAreaCaption = true:bHasAreaCaption=false;
+    bool bHasAreaCaption = pSet->GetConsolidate()->GetNumAreas() > 0?bHasAreaCaption = true:bHasAreaCaption=false;
    // if (bAreaProcessing) {// savy Feb 07 changed this as the number of slices in the tabdata is only one when the con is Total
-	if(bHasAreaCaption){
+    if(bHasAreaCaption){
         ProcessAreaTokensinRows(pTbl, aStub);
     }
 
@@ -5981,16 +5981,16 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
    // CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl = pSet->GetTable(iTbl);
     const CFmtReg& fmtReg=pSet->GetFmtReg();
     double dAbs = PRT_VIEW_MISSING;
@@ -6047,9 +6047,9 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
                         }
                     }*/
                     CRowColPgOb* pColHead = aColHead[iColHead];
-					if(pStub->GetType()==PGOB_READER_BREAK){
-						pFmt = NULL;
-					}
+                    if(pStub->GetType()==PGOB_READER_BREAK){
+                        pFmt = NULL;
+                    }
                     else if(pStub->GetTblBase() == pTbl->GetAreaCaption()){
                         pFmt = new CFmt(*DYNAMIC_DOWNCAST(CFmt,fmtReg.GetFmt(FMT_ID_AREA_CAPTION,0)));
                     }
@@ -6058,16 +6058,16 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
                     }
                     int iPanel=GetRowPanel(aStub, iStub);
                     CPgOb pgobCell;
-					if(pStub->GetType()==PGOB_READER_BREAK){
-						pgobCell.SetType(PGOB_READER_BREAK);
-						CDataCellFmt* pDataCellFmt = new CDataCellFmt(*DYNAMIC_DOWNCAST(CDataCellFmt,fmtReg.GetFmt(FMT_ID_STUB,0)));
-			            GetDataCellFormat(pColHead, pStub, pDataCellFmt, iColHead, iPanel);
-						pFmt = pDataCellFmt;
+                    if(pStub->GetType()==PGOB_READER_BREAK){
+                        pgobCell.SetType(PGOB_READER_BREAK);
+                        CDataCellFmt* pDataCellFmt = new CDataCellFmt(*DYNAMIC_DOWNCAST(CDataCellFmt,fmtReg.GetFmt(FMT_ID_STUB,0)));
+                        GetDataCellFormat(pColHead, pStub, pDataCellFmt, iColHead, iPanel);
+                        pFmt = pDataCellFmt;
 
-					}else {
-						pgobCell.SetType(PGOB_CAPTION);
-	                    GetCellFormat4Captions(pColHead, pStub, pFmt, iColHead, iPanel);
-					}
+                    }else {
+                        pgobCell.SetType(PGOB_CAPTION);
+                        GetCellFormat4Captions(pColHead, pStub, pFmt, iColHead, iPanel);
+                    }
 
                     pgobCell.SetTblBase(pTbl->GetAreaCaption());
                     LPToPoints(pFmt, GetLogPixelsY());
@@ -6104,11 +6104,11 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
 
             // check for custom text
             double dData = PRT_VIEW_MISSING;  // cell value
-			// don't get data for cells that are not in stub rows (captions & reader breaks)
-			if(bDataAvailable && pStub->GetType()==PGOB_STUB) {
-				dData=pTbl->GetTabDataArray()[iSlice]->GetCellArray()[iDataCellIndex++];
+            // don't get data for cells that are not in stub rows (captions & reader breaks)
+            if(bDataAvailable && pStub->GetType()==PGOB_STUB) {
+                dData=pTbl->GetTabDataArray()[iSlice]->GetCellArray()[iDataCellIndex++];
                 // update slice if area processing
-				if (bAreaProcessing && iDataCellIndex>=iDataCellsPerSlice) {
+                if (bAreaProcessing && iDataCellIndex>=iDataCellsPerSlice) {
                     iDataCellIndex=0;
                     iSlice++;
                 }
@@ -6208,7 +6208,7 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
                 continue;
             }
 
-			pPgOb->SetIsZeroCell(false); // assume it isn't zero, set to true if it is later
+            pPgOb->SetIsZeroCell(false); // assume it isn't zero, set to true if it is later
 
             double dData=x.GetData();
             CDataCellFmt* pDataCellFmt=DYNAMIC_DOWNCAST(CDataCellFmt,pPgOb->GetFmt());
@@ -6233,8 +6233,8 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
 
                 }
 
-				if(dData ==0  || dData >= 1.0e50 ) {
-					pPgOb->SetIsZeroCell(true);
+                if(dData ==0  || dData >= 1.0e50 ) {
+                    pPgOb->SetIsZeroCell(true);
                 }
             }
         }
@@ -6285,20 +6285,20 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
 
             if (pStub->GetType()!=PGOB_STUB) {
                 // skip captions
-				if(pStub->GetType()==PGOB_CAPTION || pStub->GetType()==PGOB_READER_BREAK){
+                if(pStub->GetType()==PGOB_CAPTION || pStub->GetType()==PGOB_READER_BREAK){
                     bool bFieldSpanner=(pStub->GetFmt()->GetSpanCells()==SPAN_CELLS_YES);
                     if(bFieldSpanner){//No additional cells /pgobs if field spanner is yes
                         //This is done to display the spanned text correctly
                         continue;
                     }
-				}
+                }
 
-				// for all others, skip over the cells
-				iDataCellIndex += aColHead.GetSize();
+                // for all others, skip over the cells
+                iDataCellIndex += aColHead.GetSize();
                 continue;
             }
 
-			bool bWholeRowZero = true;
+            bool bWholeRowZero = true;
             for (iColHead=0 ; iColHead<aColHead.GetSize() ; iColHead++) {
                 CRowColPgOb* pColHead = aColHead[iColHead];
 
@@ -6316,43 +6316,43 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
                     pStub->GetMinResize().cy = pgobCell.GetMinResize().cy;
                 }
 
-				// check zero row
-				if (!pgobCell.GetHiddenFlag() && !pgobCell.GetIsZeroCell()) {
-					bWholeRowZero = false;
-				}
-			}
+                // check zero row
+                if (!pgobCell.GetHiddenFlag() && !pgobCell.GetIsZeroCell()) {
+                    bWholeRowZero = false;
+                }
+            }
 
-			if (bWholeRowZero) {
-				CDataCellFmt* pStubFmt=DYNAMIC_DOWNCAST(CDataCellFmt,pStub->GetFmt());
-				if (pStubFmt->GetZeroHidden()) {
-					pStub->SetHideRowForAllZeroCells(true);
-				}
-				else {
-					pStub->SetHideRowForAllZeroCells(false);
-				}
-			}
-			else {
-				pStub->SetHideRowForAllZeroCells(false);
-			}
+            if (bWholeRowZero) {
+                CDataCellFmt* pStubFmt=DYNAMIC_DOWNCAST(CDataCellFmt,pStub->GetFmt());
+                if (pStubFmt->GetZeroHidden()) {
+                    pStub->SetHideRowForAllZeroCells(true);
+                }
+                else {
+                    pStub->SetHideRowForAllZeroCells(false);
+                }
+            }
+            else {
+                pStub->SetHideRowForAllZeroCells(false);
+            }
         }
 
-		// second pass to hide cells from all zero rows
-	    iDataCellIndex=0;
+        // second pass to hide cells from all zero rows
+        iDataCellIndex=0;
         for (iStub=0 ; iStub<aStub.GetSize() ; iStub++) {
             CRowColPgOb* pStub = aStub[iStub];
 
             if (pStub->GetType()!=PGOB_STUB) {
                 // skip captions
-				if(pStub->GetType()==PGOB_CAPTION || pStub->GetType()==PGOB_READER_BREAK){
+                if(pStub->GetType()==PGOB_CAPTION || pStub->GetType()==PGOB_READER_BREAK){
                     bool bFieldSpanner=(pStub->GetFmt()->GetSpanCells()==SPAN_CELLS_YES);
                     if(bFieldSpanner){//No additional cells /pgobs if field spanner is yes
                         //This is done to display the spanned text correctly
                         continue;
                     }
-				}
+                }
 
-				// for all others, skip over the cells
-				iDataCellIndex += aColHead.GetSize();
+                // for all others, skip over the cells
+                iDataCellIndex += aColHead.GetSize();
                 continue;
             }
 
@@ -6362,12 +6362,12 @@ void CTabPrtView::BuildAndMeasureCells(int iTbl, CDC& dc, CArray<CRowColPgOb*, C
                 // get the cell for this stub/column head combination...
                 CPgOb& pgobCell = aCell[iDataCellIndex++];
 
-				if (pStub->GetHideRowForAllZeroCells()) {
-					pgobCell.SetHiddenFlag(true);
-				}
-			}
+                if (pStub->GetHideRowForAllZeroCells()) {
+                    pgobCell.SetHiddenFlag(true);
+                }
+            }
         }
-	}
+    }
 
     //Remove "Hidden" PgOb
     for(int iIndex = aCell.GetSize()-1 ; iIndex >=0 ; iIndex--){
@@ -6411,16 +6411,16 @@ void CTabPrtView::DoRowTransformation(CArray<CRowColPgOb*, CRowColPgOb*>& aColHe
     //Get the percent position
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
  //   CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg=pSet->GetFmtReg();
 
     CTallyFmt* pTallyFmt = pTabVar->GetTallyFmt();
@@ -6555,16 +6555,16 @@ void CTabPrtView::ApplyTransformation(CArray<CRowColPgOb*, CRowColPgOb*>& aColHe
     int iTbl = 0; //for now ../later  on pass it as a parameter
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
 
     CTable* pTbl = pSet->GetTable(iTbl);
     if(pTbl->GetRowRoot()->GetNumChildren() == 1 &&pTbl->GetRowRoot()->GetChild(0)->GetNumChildren() ==0) {
@@ -7460,18 +7460,18 @@ void CTabPrtView::SplitSpanner(CRowColPgOb& rcpgobColRoot, int iColHead)
     //Print the oldTree
     CRowColPgOb* pSaveSubTree = pNewSubTree;
     pNewSubTree = pNewSubTree->GetChild(0);
-    TRACE(_T("printing new tree %s \n") , (LPCTSTR)pNewSubTree->GetText());
+    TRACE(_T("printing new tree %s \n") , pNewSubTree->GetText().GetString());
 
     for(int iIndex = 0; iIndex<pNewSubTree->GetNumChildren() ;iIndex++){
         CRowColPgOb* pChildVal = pNewSubTree->GetChild(iIndex);
-        TRACE(_T("\t child --> %s\n") , (LPCTSTR)pNewSubTree->GetChild(iIndex)->GetText());
+        TRACE(_T("\t child --> %s\n") , pNewSubTree->GetChild(iIndex)->GetText().GetString());
         if(pChildVal->GetNumChildren() > 0 ){
             for(int iChildVal = 0; iChildVal<pChildVal->GetNumChildren() ;iChildVal++){
                 CRowColPgOb* pSubChildVal = pChildVal->GetChild(iChildVal);
-                TRACE(_T("\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetText());
+                TRACE(_T("\t\t child --> %s\n ") , pSubChildVal->GetText().GetString());
                 if(pSubChildVal->GetNumChildren() > 0 ){
                     for(int iChildVal = 0; iChildVal<pSubChildVal->GetNumChildren() ;iChildVal++){
-                        TRACE(_T("\t\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetChild(iChildVal)->GetText());
+                        TRACE(_T("\t\t\t child --> %s\n ") , pSubChildVal->GetChild(iChildVal)->GetText().GetString());
                     }
                 }
             }
@@ -7481,18 +7481,18 @@ void CTabPrtView::SplitSpanner(CRowColPgOb& rcpgobColRoot, int iColHead)
     pNewSubTree = pSaveSubTree;
     //Print before merge
     pNewSubTree = pSubTree->GetChild(pSubTree->GetNumChildren()-1);
-    TRACE(_T("printing old tree before merge %s \n") , (LPCTSTR)pNewSubTree->GetText());
+    TRACE(_T("printing old tree before merge %s \n") , pNewSubTree->GetText().GetString());
 
     for(int iIndex = 0; iIndex<pNewSubTree->GetNumChildren() ;iIndex++){
         CRowColPgOb* pChildVal = pNewSubTree->GetChild(iIndex);
-        TRACE(_T("\t child --> %s\n") , (LPCTSTR)pNewSubTree->GetChild(iIndex)->GetText());
+        TRACE(_T("\t child --> %s\n") , pNewSubTree->GetChild(iIndex)->GetText().GetString());
         if(pChildVal->GetNumChildren() > 0 ){
             for(int iChildVal = 0; iChildVal<pChildVal->GetNumChildren() ;iChildVal++){
                 CRowColPgOb* pSubChildVal = pChildVal->GetChild(iChildVal);
-                TRACE(_T("\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetText());
+                TRACE(_T("\t\t child --> %s\n ") , pSubChildVal->GetText().GetString());
                 if(pSubChildVal->GetNumChildren() > 0 ){
                     for(int iChildVal = 0; iChildVal<pSubChildVal->GetNumChildren() ;iChildVal++){
-                        TRACE(_T("\t\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetChild(iChildVal)->GetText());
+                        TRACE(_T("\t\t\t child --> %s\n ") , pSubChildVal->GetChild(iChildVal)->GetText().GetString());
                     }
                 }
             }
@@ -7518,18 +7518,18 @@ void CTabPrtView::SplitSpanner(CRowColPgOb& rcpgobColRoot, int iColHead)
         rcpgobColRoot.AddChild(pChild);
     }
 #ifdef _DEBUG
-    TRACE(_T("printing old tree %s \n") , (LPCTSTR)pSaveSubTree->GetText());
+    TRACE(_T("printing old tree %s \n") , pSaveSubTree->GetText().GetString());
 
     for(int iIndex = 0; iIndex<pSaveSubTree->GetNumChildren() ;iIndex++){
         CRowColPgOb* pChildVal = pSaveSubTree->GetChild(iIndex);
-        TRACE(_T("\t child --> %s\n") , (LPCTSTR)pSaveSubTree->GetChild(iIndex)->GetText());
+        TRACE(_T("\t child --> %s\n") , pSaveSubTree->GetChild(iIndex)->GetText().GetString());
         if(pChildVal->GetNumChildren() > 0 ){
             for(int iChildVal = 0; iChildVal<pChildVal->GetNumChildren() ;iChildVal++){
                 CRowColPgOb* pSubChildVal = pChildVal->GetChild(iChildVal);
-                TRACE(_T("\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetText());
+                TRACE(_T("\t\t child --> %s\n ") , pSubChildVal->GetText().GetString());
                 if(pSubChildVal->GetNumChildren() > 0 ){
                     for(int iChildVal = 0; iChildVal<pSubChildVal->GetNumChildren() ;iChildVal++){
-                        TRACE(_T("\t\t\t child --> %s\n ") , (LPCTSTR)pSubChildVal->GetChild(iChildVal)->GetText());
+                        TRACE(_T("\t\t\t child --> %s\n ") , pSubChildVal->GetChild(iChildVal)->GetText().GetString());
                     }
                 }
             }
@@ -7650,16 +7650,16 @@ void CTabPrtView::EquallyDivideColHeads(int iTbl, int iHPage, int iHorzColArea, 
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl = pSet->GetTable(iTbl);
 
     int iWidth;  // column head width, including border
@@ -7848,17 +7848,17 @@ void CTabPrtView::Build(bool bPreserveCurrentPgViewInfo /*=false*/)
     CWaitCursor wait;
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
-	 ASSERT_VALID(pDoc);
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
+     ASSERT_VALID(pDoc);
      pSet = pDoc->GetTableSpec();
-	}
+    }
     const CFmtReg& fmtReg = pSet->GetFmtReg();
 
     // init
@@ -8152,25 +8152,25 @@ void CTabPrtView::OnSelChangeZoomComboBox()
 
 CComboBox* CTabPrtView::GetZoomComboBox()
 {
-	// get the combo box from the toolbar
-	CWnd* pTabToolbar = AfxGetMainWnd()->GetDescendantWindow(TABTOOLBAR);
-	CWnd* pSTabToolbar = AfxGetMainWnd()->GetDescendantWindow(SAMPTOOLBAR);//Savy (R) sampling app 20081231
-	if (pTabToolbar == NULL && pSTabToolbar == NULL) {
-		return NULL;
-	}
-	//Savy (R) sampling app 20081231
-	if(!m_pTabSet){
-		ASSERT_VALID(pTabToolbar);
-		CComboBox* pCombo = (CComboBox*) pTabToolbar->GetDlgItem(ID_TAB_ZOOM_COMBO);
-		ASSERT_VALID(pCombo);
-		return pCombo;
-	}
-	else{
-		ASSERT_VALID(pSTabToolbar);
-		CComboBox* pCombo = (CComboBox*) pSTabToolbar->GetDlgItem(ID_TAB_ZOOM_COMBO);
-		ASSERT_VALID(pCombo);
-		return pCombo;
-	}
+    // get the combo box from the toolbar
+    CWnd* pTabToolbar = AfxGetMainWnd()->GetDescendantWindow(TABTOOLBAR);
+    CWnd* pSTabToolbar = AfxGetMainWnd()->GetDescendantWindow(SAMPTOOLBAR);//Savy (R) sampling app 20081231
+    if (pTabToolbar == NULL && pSTabToolbar == NULL) {
+        return NULL;
+    }
+    //Savy (R) sampling app 20081231
+    if(!m_pTabSet){
+        ASSERT_VALID(pTabToolbar);
+        CComboBox* pCombo = (CComboBox*) pTabToolbar->GetDlgItem(ID_TAB_ZOOM_COMBO);
+        ASSERT_VALID(pCombo);
+        return pCombo;
+    }
+    else{
+        ASSERT_VALID(pSTabToolbar);
+        CComboBox* pCombo = (CComboBox*) pSTabToolbar->GetDlgItem(ID_TAB_ZOOM_COMBO);
+        ASSERT_VALID(pCombo);
+        return pCombo;
+    }
 }
 
 void CTabPrtView::InitZoomCombo()
@@ -8967,16 +8967,16 @@ void CTabPrtView::OnGoto()
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     ASSERT(pSet->GetNumTables()>0);
 
     CPrtViewGotoAreaDlg dlgArea(pSet, pDoc->GetAreaLabelLookup());
@@ -9253,16 +9253,16 @@ void CTabPrtView::DoResize(const CSize& szAmount)
     CPgOb pgobResize=m_pgMgr.GetPgLayout(GetResizeHitOb().GetPg()).GetPgOb(GetResizeHitOb().GetPgOb());
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl = pSet->GetTable(pgobResize.GetTbl());
     int iPrtViewInfoOcc=NONE; // occurrence number within the CTblOb's prtviewinfo array (0-->1st panel, 1-->2nd panel, etc.)
 
@@ -9381,16 +9381,16 @@ void CTabPrtView::OnEditTablePrintFmt()
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     int iTbl = NONE;
     if (m_aSelected.GetSize()==0) {
         // if you pick from menu, this will not be set, instead use current page
@@ -9875,19 +9875,19 @@ void CTabPrtView::OnEditAutoFitColumns()
 
     // if user has turned ON autofit, then rebuild the layout to show the effect
     //if (m_bAutoFitColumns) {
-	if(true){//rebuild all the time
+    if(true){//rebuild all the time
         CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
         //CTabSet* pSet = pDoc->GetTableSpec();
-		//Savy (R) sampling app 20081224
-		CTabSet* pSet = NULL;
+        //Savy (R) sampling app 20081224
+        CTabSet* pSet = NULL;
 
-		if(!pDoc){
-			ASSERT(m_pTabSet);
-			pSet = m_pTabSet;
-		}
-		else{
-			pSet = pDoc->GetTableSpec();
-		}
+        if(!pDoc){
+            ASSERT(m_pTabSet);
+            pSet = m_pTabSet;
+        }
+        else{
+            pSet = pDoc->GetTableSpec();
+        }
         for (int iTbl=0 ; iTbl<pSet->GetNumTables() ; iTbl++) {
             PushBoxheadResizeForUndo(iTbl);
         }
@@ -9972,16 +9972,16 @@ void CTabPrtView::GotoTbl(int iTbl, bool bRedraw /* = true */)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
 
     // sanity checks
     ASSERT(iTbl>=0 && iTbl<pSet->GetNumTables());
@@ -10145,10 +10145,10 @@ void CTabPrtView::GotoPage(int iPage, bool bRedraw /* = true */)
     // update the tree
     if (bScrolled) {
         CTabulateDoc* pDoc = (CTabulateDoc*)GetDocument();
-		if(pDoc){//Savy&&& take care of this
+        if(pDoc){//Savy&&& take care of this
         CTabTreeCtrl* pTreeCtrl = pDoc->GetTabTreeCtrl();
-	    const int iTbl = m_pgMgr.GetPgLayout(GetCurrFirstViewPg()).GetPgOb(0).GetTbl();
-	    CTabSet* pSet = pDoc->GetTableSpec();
+        const int iTbl = m_pgMgr.GetPgLayout(GetCurrFirstViewPg()).GetPgOb(0).GetTbl();
+        CTabSet* pSet = pDoc->GetTableSpec();
         CTable* pTbl = pSet->GetTable(iTbl);
         CWnd* pOldFocus = GetFocus();
         pTreeCtrl->SelectTable(pTbl, false); // update tree, but tell it not to update page
@@ -10156,7 +10156,7 @@ void CTabPrtView::GotoPage(int iPage, bool bRedraw /* = true */)
         if (GetFocus() != pOldFocus) {
             pOldFocus->SetFocus();  // SelectTable moves focus over to tree ctrl,
                                     // want to keep it on CTabPrtView so key shortcuts still work
-			}
+            }
         }
     }
 
@@ -10181,16 +10181,16 @@ void CTabPrtView::GotoArea(int iTbl, const CString& sArea, bool bRedraw /* = tru
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
 
     // sanity checks
     ASSERT(iTbl>=0 && iTbl<pSet->GetNumTables());
@@ -10236,16 +10236,16 @@ CString CTabPrtView::GetFirstAreaOnPage(int iPg)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
 
     // sanity checks
     ASSERT(iPg>=0 && iPg<m_pgMgr.GetNumPages());
@@ -10406,16 +10406,16 @@ void CTabPrtView::UndoBoxheadResize(CArray<CResizeCmdInfo, CResizeCmdInfo&>& aRe
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     int iColHead;
@@ -10459,16 +10459,16 @@ void CTabPrtView::UndoStubResize(CArray<CResizeCmdInfo, CResizeCmdInfo&>& aResiz
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
     const CFmtReg& fmtReg = pSet->GetFmtReg();
     int iStub;
@@ -10513,16 +10513,16 @@ void CTabPrtView::UndoStubHeadResize(CArray<CResizeCmdInfo, CResizeCmdInfo&>& aR
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
 
     for (int iStubHead=0 ; iStubHead<2 ; iStubHead++) {
@@ -10556,16 +10556,16 @@ void CTabPrtView::UndoFormatPrint(CPrintFormatCmdInfo& formatInfo, int iTbl)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
 
     CTblPrintFmt* pTblPrintFmt=pTbl->GetTblPrintFmt();
@@ -10592,16 +10592,16 @@ void CTabPrtView::PushBoxheadResizeForUndo(int iTbl, bool bUndo /*=true*/)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
     const CFmtReg& fmtReg = pSet->GetFmtReg();
 
@@ -10654,18 +10654,18 @@ void CTabPrtView::PushBoxheadResizeForUndo(int iTbl, bool bUndo /*=true*/)
 /////////////////////////////////////////////////////////////////////////////
 void CTabPrtView::PushStubResizeForUndo(int iTbl, bool bUndo /*=true*/)
 {
-	//Today SAvy changes 20081224
+    //Today SAvy changes 20081224
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
     const CFmtReg& fmtReg = pSet->GetFmtReg();
 
@@ -10714,16 +10714,16 @@ void CTabPrtView::PushRestoreDefaultsForUndo(int iTbl, bool bUndo /*=true*/)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
     const CFmtReg& fmtReg = pSet->GetFmtReg();
 
@@ -10809,16 +10809,16 @@ void CTabPrtView::PushFormatPrintCommand(int iTbl, bool bUndo /*=true*/)
 {
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     CTable* pTbl=pSet->GetTable(iTbl);
 
     CTblPrintFmt* pTblPrintFmt=pTbl->GetTblPrintFmt();
@@ -11135,7 +11135,7 @@ CRowColPgOb::CRowColPgOb() : CPgOb()
     m_aChildren.RemoveAll();
     m_pParent=NULL;
     m_iLevel=0;
-	m_bHideRowIfAllZero = false;
+    m_bHideRowIfAllZero = false;
 }
 
 CRowColPgOb::CRowColPgOb(const CRowColPgOb& rcp)
@@ -11177,7 +11177,7 @@ CRowColPgOb& CRowColPgOb::operator=(const CRowColPgOb& rcp)
     SetLevel(rcp.GetLevel());
     m_aChildren.RemoveAll();
     m_pParent = rcp.m_pParent;
-	m_bHideRowIfAllZero = rcp.m_bHideRowIfAllZero;
+    m_bHideRowIfAllZero = rcp.m_bHideRowIfAllZero;
 
     for (int i=0 ; i<rcp.GetNumChildren() ; i++)  {
         CRowColPgOb* pChild = new CRowColPgOb(*rcp.GetChild(i));
@@ -11482,8 +11482,8 @@ void CRowColPgOb::GetLeavesAndNodes(CArray<CRowColPgOb*, CRowColPgOb*>& aLeaves 
 {
     if(!bIncludeHidden){
         if (GetType()!=PGOB_ROOT && GetType()!=PGOB_NOTINCLUDED &&
-			GetFmt()->GetHidden()!=HIDDEN_YES &&
-			!GetHideRowForAllZeroCells()) {
+            GetFmt()->GetHidden()!=HIDDEN_YES &&
+            !GetHideRowForAllZeroCells()) {
             aLeaves.Add(this);
         }
     }
@@ -12083,8 +12083,8 @@ void CRowColPgOb::CalcStubWidth(int& iInitRowWidth, int iFieldSpannerWidth, CDC&
                 // pad the left of each data stub by 0.25" for each level of indentation
                 rcDraw.right += (GetLevel()-1) * STUB_INDENT;
 
-				// JH 5/16/06 - not getting padding here after change to stub font
-				rcDraw.bottom += CELL_PADDING_TOP + CELL_PADDING_BOTTOM;
+                // JH 5/16/06 - not getting padding here after change to stub font
+                rcDraw.bottom += CELL_PADDING_TOP + CELL_PADDING_BOTTOM;
 
             }
 
@@ -12212,12 +12212,12 @@ void CRowColPgOb::DebugCol()
 
 void CRowColPgOb::SetHideRowForAllZeroCells(bool b)
 {
-	m_bHideRowIfAllZero = b;
+    m_bHideRowIfAllZero = b;
 }
 
 bool CRowColPgOb::GetHideRowForAllZeroCells() const
 {
-	return m_bHideRowIfAllZero;
+    return m_bHideRowIfAllZero;
 }
 
 
@@ -12503,16 +12503,16 @@ bool CTabPrtView::ForceHideAreaCaptionInOneRowTable(CTable* pTbl)
 
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
     //CTabSet* pSet = pDoc->GetTableSpec();
-	//Savy (R) sampling app 20081224
-	CTabSet* pSet = NULL;
+    //Savy (R) sampling app 20081224
+    CTabSet* pSet = NULL;
 
-	if(!pDoc){
-		ASSERT(m_pTabSet);
-		pSet = m_pTabSet;
-	}
-	else{
+    if(!pDoc){
+        ASSERT(m_pTabSet);
+        pSet = m_pTabSet;
+    }
+    else{
      pSet = pDoc->GetTableSpec();
-	}
+    }
     bool bHasAreaCaption = false;
     bHasAreaCaption = pSet->GetConsolidate()->GetNumAreas() > 0?bHasAreaCaption = true:bHasAreaCaption=false;
 
@@ -12552,16 +12552,16 @@ void CTabPrtView::GetCellFormat4Captions(CRowColPgOb* pColHead,CRowColPgOb* pStu
     CFmt* pFmt = NULL;
     // init
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
-	//Savy (R) sampling app 20081229
-	 CTabSet* pTabSet = NULL;
-	if(pDoc){
-		pTabSet = pDoc->GetTableSpec();
-	}
-	else{
-		ASSERT(m_pTabSet); //this is set in the constructor from zSampF
-		pTabSet = m_pTabSet;
-	}
-	//
+    //Savy (R) sampling app 20081229
+     CTabSet* pTabSet = NULL;
+    if(pDoc){
+        pTabSet = pDoc->GetTableSpec();
+    }
+    else{
+        ASSERT(m_pTabSet); //this is set in the constructor from zSampF
+        pTabSet = m_pTabSet;
+    }
+    //
 
     const CFmtReg& fmtReg = pTabSet->GetFmtReg();
 
@@ -13019,15 +13019,15 @@ void CTabPrtView::GetDataCellFormat(CRowColPgOb* pColHead,CRowColPgOb* pStub, CD
 
     // init
     CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
-	//Savy (R) sampling app 20081229
-	CTabSet* pTabSet = NULL;
-	if(pDoc){
-		pTabSet = pDoc->GetTableSpec();
-	}
-	else{
-		ASSERT(m_pTabSet); //this is set in the constructor from zSampF
-		pTabSet = m_pTabSet;
-	}
+    //Savy (R) sampling app 20081229
+    CTabSet* pTabSet = NULL;
+    if(pDoc){
+        pTabSet = pDoc->GetTableSpec();
+    }
+    else{
+        ASSERT(m_pTabSet); //this is set in the constructor from zSampF
+        pTabSet = m_pTabSet;
+    }
     const CFmtReg& fmtReg = pTabSet->GetFmtReg();
 
     // captions only have to worry about lines, and we handle those separately (got to, since captions have CFmt formats, stubs have CDataCellFmt formats)
@@ -13548,17 +13548,17 @@ void CTabPrtView::GetLineFmt4NonDataCell(CRowColPgOb* pRCPgOb , const CFmtReg& f
             pFmtSource = pTabVal->GetDerFmt();
         }
         CTabulateDoc* pDoc = DYNAMIC_DOWNCAST(CTabulateDoc, GetDocument());
-		//CTabSet* pSet = pDoc->GetTableSpec();
-		//Savy (R) sampling app 20081224
-		CTabSet* pSet = NULL;
+        //CTabSet* pSet = pDoc->GetTableSpec();
+        //Savy (R) sampling app 20081224
+        CTabSet* pSet = NULL;
 
-		if(!pDoc){
-			ASSERT(m_pTabSet);
-			pSet = m_pTabSet;
-		}
-		else{
-			pSet = pDoc->GetTableSpec();
-		}
+        if(!pDoc){
+            ASSERT(m_pTabSet);
+            pSet = m_pTabSet;
+        }
+        else{
+            pSet = pDoc->GetTableSpec();
+        }
         CTable* pTbl = pSet->GetTable(pRCPgOb->GetTbl());
         if (NULL!=pTbl->GetStubhead(0)->GetDerFmt()) {
             const CFmt* pFmtStubHead = NULL;
@@ -13708,7 +13708,7 @@ void CTabPrtView::FixLineFmt(CRowColPgOb* pRCPgOb , const CFmtReg& fmtReg, bool 
                 eGridComp = FMT_ID_CAPTION;
                 break;
             case PGOB_STUB:
-			case PGOB_READER_BREAK:
+            case PGOB_READER_BREAK:
                 eGridComp = FMT_ID_STUB;
                 break;
             case PGOB_COLHEAD:

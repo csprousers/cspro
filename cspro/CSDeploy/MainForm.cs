@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using CSPro.Util;
-using System.Threading.Tasks;
 using System.IO.Compression;
-using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using Community.Windows.Forms;
+using CSPro.Util;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using WinFormsShared;
 
 namespace CSDeploy
@@ -70,7 +70,6 @@ namespace CSDeploy
         {
             DeploymentSpecFile spec = DeploymentSpecFile.Load(specFilename);
 
-
             textBoxPackageName.Text = spec.Name;
             textBoxDescription.Text = spec.Description;
             var specFilePath = Path.GetDirectoryName(specFilename);
@@ -80,10 +79,8 @@ namespace CSDeploy
             {
                 foreach (var dict in spec.Dictionaries)
                 {
-                    var dictRef = new CSPro.Dictionary.DictionaryDescription { Path = Path.GetFullPath(Path.Combine(specFilePath, dict.Path)) };
-                    checkedListBoxDictionaries.Items.Add(dictRef);
-                    checkedListBoxDictionaries.SetItemChecked(checkedListBoxDictionaries.Items.IndexOf(dictRef),
-                        dict.UploadForSync);
+                    var dictRef = new CSPro.Dictionary.DictionaryDescription(Path.GetFullPath(Path.Combine(specFilePath, dict.Path)), false);
+                    checkedListBoxDictionaries.Items.Add(dictRef, dict.UploadForSync);
                 }
             }
 
@@ -174,11 +171,18 @@ namespace CSDeploy
             sfd.Title = Messages.SpecFileSaveTitle;
             sfd.Filter = Messages.SpecFileFilter;
 
-            if (sfd.ShowDialog() == DialogResult.OK)
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
             {
                 SaveSpecFile(sfd.FileName);
                 m_specFilename = sfd.FileName;
                 ModifyTitle();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error saving file: " + ex.Message);
             }
         }
 
@@ -460,10 +464,8 @@ namespace CSDeploy
             PackageUploader.ServerType serverType = (Deployment == DeploymentType.CSWeb) ?
                 PackageUploader.ServerType.CSWeb : (Deployment == DeploymentType.Dropbox) ?
                 PackageUploader.ServerType.Dropbox : PackageUploader.ServerType.FTP;
-            var dictionariesToUpload = checkedListBoxDictionaries.CheckedItems.Cast<CSPro.Dictionary.DictionaryDescription>().Select(r => r.Path);
             var url = Deployment == DeploymentType.CSWeb ? textBoxCSWebURL.Text.Trim() : textBoxFtpServerUrl.Text.Trim();
-            bool ok = await uploader.UploadPackage(tempFilePath, textBoxPackageName.Text, specFile.SaveToString(),
-                                serverType, url, dictionariesToUpload, this);
+            bool ok = await uploader.UploadPackage(tempFilePath, textBoxPackageName.Text, specFile.SaveToString(), fileTreeControl.RootPath, serverType, url, this);
             progressDialog.Hide();
 
             if (ok && !RunningPff)
@@ -760,12 +762,12 @@ namespace CSDeploy
                                 }
 
                                 // overriding the server URL
-                                if (!string.IsNullOrWhiteSpace(pff.SyncUrl))
+                                if (!string.IsNullOrWhiteSpace(pff.SyncService))
                                 {
                                     if (radioButtonDeployCSWeb.Checked)
-                                        textBoxCSWebURL.Text = pff.SyncUrl;
+                                        textBoxCSWebURL.Text = pff.SyncService;
                                     else if (radioButtonDeployFTP.Checked)
-                                        textBoxFtpServerUrl.Text = pff.SyncUrl;
+                                        textBoxFtpServerUrl.Text = pff.SyncService;
                                 }
 
                                 await DeployPackage();
@@ -815,19 +817,18 @@ namespace CSDeploy
             // Get all dictionaries referenced in ent files, excluding working storage
             var allRefs = fileTreeControl.Files
                 .Where(f => Path.GetExtension(f.Path).ToLower() == ".ent")
-                .SelectMany(f => CSPro.Dictionary.DictionaryDescription.GetFromApplication(f.Path).Where(r => r.Type != "Working")).ToList();
+                .SelectMany(f => CSPro.Dictionary.DictionaryDescription.GetFromApplication(f.Path)).ToList();
 
             // Add any dictionaries explicitly added
             allRefs.AddRange(fileTreeControl.Files
                 .Where(f => Path.GetExtension(f.Path).ToLower() == ".dcf")
-                .Select(x => new CSPro.Dictionary.DictionaryDescription() { Path = x.Path, Type = "External" }));
+                .Select(x => new CSPro.Dictionary.DictionaryDescription(x.Path, false)));
 
             // Remove any duplicates (if two ent files reference same dictionary)
             // and determine if any of dictionaries are used as a main (input) dictionary
             var uniqueRefs = allRefs
                 .GroupBy(r => r.Path)
-                .Select(g => new CSPro.Dictionary.DictionaryDescription { Path = g.Key,
-                                                                          Type = g.Any(r => r.Type == "Input") ? "Input" : "External" });
+                .Select(g => new CSPro.Dictionary.DictionaryDescription(g.Key, g.Any(r => r.IsInputDictionary)));
 
             // Add each of the dictionaries found to list control
             foreach (var dict in uniqueRefs)
@@ -847,10 +848,8 @@ namespace CSDeploy
                 else
                 {
                     // New entry - by default main dicts are checked
-                    if (dict.Type == "Input")
-                    {
+                    if (dict.IsInputDictionary)
                         checkedListBoxDictionaries.SetItemChecked(checkedListBoxDictionaries.Items.IndexOf(dict), true);
-                    }
                 }
             }
         }
@@ -885,4 +884,3 @@ namespace CSDeploy
         }
     }
 }
-

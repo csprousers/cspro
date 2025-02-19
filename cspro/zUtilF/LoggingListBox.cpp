@@ -1,9 +1,14 @@
 ﻿#include "StdAfx.h"
 #include "LoggingListBox.h"
-#include <zToolsO/FileIO.h>
-#include <zUtilO/Filedlg.h>
+#include <zToolsO/File.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/WindowHelpers.h>
 
+
+namespace
+{
+    constexpr size_t MaxLineLength = 8 * 1024;
+}
 
 namespace Action
 {
@@ -13,7 +18,7 @@ namespace Action
 }
 
 namespace Scroll
-{ 
+{
     constexpr UINT_PTR TimerCode          = 1;
     constexpr UINT ElapseTimeMilliseconds = 3;
 }
@@ -52,28 +57,21 @@ LoggingListBox::LoggingListBox()
         m_pendingMouseWheelActions(0),
         m_userScrolledManually(false)
 {
+    // create a fixed-width font
     m_logfont.lfHeight = 18;
-    lstrcpyn(m_logfont.lfFaceName, _T("Consolas"), LF_FACESIZE);
+    lstrcpyn(m_logfont.lfFaceName, L"Consolas", LF_FACESIZE);
+    m_font.CreateFontIndirect(&m_logfont);
 
     SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &m_scrollLinesDelta, 0);
 }
 
 
-BOOL LoggingListBox::Create(DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID)
+BOOL LoggingListBox::Create(DWORD dwStyle, const RECT& rect, CWnd* const pParentWnd, const UINT nID)
 {
     dwStyle |= WS_HSCROLL | WS_VSCROLL |
                LBS_EXTENDEDSEL | LBS_OWNERDRAWFIXED | LBS_NODATA | LBS_NOINTEGRALHEIGHT;
 
     return __super::Create(dwStyle, rect, pParentWnd, nID);
-}
-
-
-void LoggingListBox::PreSubclassWindow()
-{
-    __super::PreSubclassWindow();
-
-    if( m_font.CreateFontIndirect(&m_logfont) )
-        SetFont(&m_font, FALSE); 
 }
 
 
@@ -83,10 +81,39 @@ void LoggingListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 }
 
 
+const std::wstring* LoggingListBox::GetWideLine(const size_t index, const bool line_is_for_displaying)
+{
+    if( index >= m_lines.size() )
+        return ReturnProgrammingError(&SO::Empty_wstring);
+
+    Line& line = m_lines[index];
+
+    if( line.wide_line == nullptr )
+        line.wide_line = std::make_unique<std::wstring>(TC::ToWide(line.utf8_line.GetString()));
+
+    if( !line_is_for_displaying || line.wide_line->length() <= MaxLineLength )
+        return line.wide_line.get();
+
+    if( line.wide_line_for_display == nullptr )
+    {
+        line.wide_line_for_display = std::make_unique<std::wstring>(line.wide_line->substr(0, MaxLineLength));
+        line.wide_line_for_display->append(L"...[line not fully displayed due to its length]");
+    }
+
+    return line.wide_line_for_display.get();
+}
+
+
 void LoggingListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
     if( lpDrawItemStruct->itemAction != ODA_SELECT && lpDrawItemStruct->itemAction != ODA_DRAWENTIRE )
         return;
+
+    CDC dc;
+    dc.Attach(lpDrawItemStruct->hDC);
+
+    // use our fixed-width font
+    const HGDIOBJ old_font = dc.SelectObject(m_font);
 
     // draw the background and set the text colors
     int background_color_index;
@@ -104,32 +131,24 @@ void LoggingListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
         text_color_index = COLOR_WINDOWTEXT;
     }
 
-    ::FillRect(lpDrawItemStruct->hDC, &lpDrawItemStruct->rcItem, reinterpret_cast<HBRUSH>(background_color_index + 1));
-    ::SetBkColor(lpDrawItemStruct->hDC, ::GetSysColor(background_color_index));
-    ::SetTextColor(lpDrawItemStruct->hDC, ::GetSysColor(text_color_index));
+    dc.FillRect(&lpDrawItemStruct->rcItem, CBrush::FromHandle(reinterpret_cast<HBRUSH>(background_color_index + 1)));
+    dc.SetBkColor(::GetSysColor(background_color_index));
+    dc.SetTextColor(::GetSysColor(text_color_index));
 
     // draw the text
-    const std::wstring* text;
+    const std::wstring* wide_text;
 
-    if( static_cast<size_t>(lpDrawItemStruct->itemID) < m_lines.size() )
     {
         std::lock_guard<std::mutex> lock(m_linesMutex);
-        text = m_lines[lpDrawItemStruct->itemID].get();
-    }
-
-    else
-    {
-        ASSERT(false);
-        return;
+        wide_text = GetWideLine(static_cast<size_t>(lpDrawItemStruct->itemID), true);
     }
 
     // if the text is longer than the longest measured text, modify the horizonal extent
-    if( std::get<0>(m_maxLineLengthAndHorizontalExtent) < text->length() )
+    if( std::get<0>(m_maxLineLengthAndHorizontalExtent) < wide_text->length() )
     {
-        std::get<0>(m_maxLineLengthAndHorizontalExtent) = text->length();
+        std::get<0>(m_maxLineLengthAndHorizontalExtent) = wide_text->length();
 
-        SIZE size;
-        ::GetTextExtentPoint32(lpDrawItemStruct->hDC, text->c_str(), text->length(), &size);
+        const CSize size = dc.GetTextExtent(wide_text->c_str(), wide_text->length());
 
         if( size.cx > std::get<1>(m_maxLineLengthAndHorizontalExtent) )
         {
@@ -139,12 +158,17 @@ void LoggingListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     }
 
     // draw the text
-    ::DrawText(lpDrawItemStruct->hDC, text->c_str(), text->length(), &lpDrawItemStruct->rcItem,
-               DT_LEFT | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP);
+    dc.DrawText(wide_text->c_str(), wide_text->length(), &lpDrawItemStruct->rcItem,
+                DT_LEFT | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP);
+
+    // restore the original font
+    dc.SelectObject(old_font);
+
+    dc.Detach();
 }
 
 
-void LoggingListBox::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void LoggingListBox::OnVScroll(const UINT nSBCode, const UINT nPos, CScrollBar* const pScrollBar)
 {
     m_userScrolledManually = true;
 
@@ -152,7 +176,7 @@ void LoggingListBox::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 }
 
 
-BOOL LoggingListBox::OnMouseWheel(UINT /*nFlags*/, short zDelta, CPoint /*pt*/)
+BOOL LoggingListBox::OnMouseWheel(UINT /*nFlags*/, const short zDelta, CPoint /*pt*/)
 {
     m_userScrolledManually = true;
 
@@ -177,7 +201,7 @@ BOOL LoggingListBox::OnMouseWheel(UINT /*nFlags*/, short zDelta, CPoint /*pt*/)
 }
 
 
-void LoggingListBox::OnTimer(UINT_PTR nIDEvent)
+void LoggingListBox::OnTimer(const UINT_PTR nIDEvent)
 {
     if( nIDEvent == Scroll::TimerCode )
     {
@@ -204,11 +228,11 @@ void LoggingListBox::OnTimer(UINT_PTR nIDEvent)
         else if( m_pendingMouseWheelActions > 0 )
         {
             int new_index = GetTopIndex() + m_scrollLinesDelta;
-            int max_index = GetCount() - 1;
+            const int max_index = GetCount() - 1;
 
             if( new_index >= max_index )
             {
-                max_index = max_index;
+                new_index = max_index;
                 m_pendingMouseWheelActions = 0;
             }
 
@@ -231,9 +255,9 @@ void LoggingListBox::OnTimer(UINT_PTR nIDEvent)
 }
 
 
-void LoggingListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+void LoggingListBox::OnKeyDown(const UINT nChar, const UINT nRepCnt, const UINT nFlags)
 {
-    bool c_pressed = ( nChar == 'C' );
+    const bool c_pressed = ( nChar == 'C' );
 
     // Ctrl+C: copy selected items to the clipboard
     // Ctrl+A: select all lines
@@ -250,7 +274,7 @@ void LoggingListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
-void LoggingListBox::OnContextMenu(CWnd* pWnd, CPoint pos)
+void LoggingListBox::OnContextMenu(CWnd* const pWnd, CPoint pos)
 {
     // if invoked using the keyboard, determine where to show the menu
     if( pos.x < 0 )
@@ -262,13 +286,13 @@ void LoggingListBox::OnContextMenu(CWnd* pWnd, CPoint pos)
 
         // if an item is selected and it is visible, display the menu (y-pos) by the selection;
         // otherwise display it in the center of the window
-        int selected_index = GetCurSel();
+        const int selected_index = GetCurSel();
         std::optional<LONG> y_pos;
 
         if( selected_index != LB_ERR )
         {
             CRect selected_rect;
-            
+
             if( GetItemRect(selected_index, selected_rect) != LB_ERR &&
                 selected_rect.left >= rect.left && selected_rect.right <= rect.right &&
                 selected_rect.top >= rect.top && selected_rect.bottom <= rect.bottom )
@@ -292,7 +316,7 @@ void LoggingListBox::OnContextMenu(CWnd* pWnd, CPoint pos)
     menu.LoadMenu(IDR_LOGGING_LIST_BOX);
     ASSERT(menu.GetMenuItemCount() == 1);
 
-    CMenu* popup_menu = menu.GetSubMenu(0);
+    CMenu* const popup_menu = menu.GetSubMenu(0);
 
     AddAdditionalContextMenuItems(*popup_menu);
 
@@ -307,7 +331,7 @@ void LoggingListBox::AddAdditionalContextMenuItems(CMenu& /*popup_menu*/)
 }
 
 
-LRESULT LoggingListBox::OnLoggingListBoxUpdate(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT LoggingListBox::OnLoggingListBoxUpdate(const WPARAM wParam, LPARAM /*lParam*/)
 {
     // these actions are handled using messages so that a thread using logging
     // can continue without waiting for any list box UI thread to end
@@ -373,25 +397,26 @@ void LoggingListBox::Clear()
 }
 
 
-void LoggingListBox::AddText(std::wstring text)
+void LoggingListBox::AddText(SharableString text)
 {
-    // make sure text with newlines are displayed on separate lines
-    if( text.find_last_of(_T("\r\n")) != std::wstring::npos )
-    {
-        SO::ForeachLine(text, true,
-            [&](wstring_view line)
-            {
-                AddText(line);
-                return true;
-            });
-
-        return;
-    }
-
     // add the line
     {
         std::lock_guard<std::mutex> lock(m_linesMutex);
-        m_lines.emplace_back(std::make_unique<std::wstring>(std::move(text)));
+
+        // make sure text with newlines are displayed on separate lines
+        if( SO::ContainsNewlineCharacter(*text) )
+        {
+            SO::ForeachLine(*text, true,
+                [&](const std::string_view line_sv)
+                {
+                    m_lines.emplace_back(Line { line_sv, nullptr, nullptr });
+                });
+        }
+
+        else
+        {
+            m_lines.emplace_back(Line { std::move(text), nullptr, nullptr });
+        }
     }
 
     PostMessage(UWM::UtilF::UpdateLoggingListBox, Action::AddText);
@@ -400,8 +425,8 @@ void LoggingListBox::AddText(std::wstring text)
 
 void LoggingListBox::OnCopySelectedLinesToClipboard()
 {
-    size_t selected_count = GetSelCount();
-    auto selected_indices = std::make_unique<int[]>(selected_count);
+    const size_t selected_count = GetSelCount();
+    auto selected_indices = std::make_unique_for_overwrite<int[]>(selected_count);
     GetSelItems(selected_count, selected_indices.get());
 
     std::wstring clipboard_text;
@@ -412,13 +437,10 @@ void LoggingListBox::OnCopySelectedLinesToClipboard()
 
         for( size_t i = 0; i < selected_count; ++i )
         {
-            size_t index = selected_indices[i];
+            const std::wstring* const wide_line = GetWideLine(selected_indices[i], false);
 
-            if( index < m_lines.size() )
-            {
-                clipboard_text.append(*m_lines[index]);
-                clipboard_text.push_back('\n');
-            }
+            clipboard_text.append(*wide_line);
+            clipboard_text.push_back('\n');
         }
     }
 
@@ -426,7 +448,7 @@ void LoggingListBox::OnCopySelectedLinesToClipboard()
 }
 
 
-void LoggingListBox::OnUpdateCopySelectedLinesToClipboard(CCmdUI* pCmdUI)
+void LoggingListBox::OnUpdateCopySelectedLinesToClipboard(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(GetSelCount() > 0);
 }
@@ -437,7 +459,8 @@ void LoggingListBox::OnClearLines()
     Clear();
 }
 
-void LoggingListBox::OnUpdateClearLines(CCmdUI* pCmdUI)
+
+void LoggingListBox::OnUpdateClearLines(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(GetCount() > 0);
 }
@@ -449,38 +472,47 @@ void LoggingListBox::OnSelectAllLines()
 }
 
 
-void LoggingListBox::OnUpdateSelectAllLines(CCmdUI* pCmdUI)
+void LoggingListBox::OnUpdateSelectAllLines(CCmdUI* const pCmdUI)
 {
-    int count = GetCount();
+    const int count = GetCount();
     pCmdUI->Enable(count > 0 && count != GetSelCount());
 }
 
 
 void LoggingListBox::OnSaveLines()
 {
-    CIMSAFileDialog file_dlg(FALSE, _T("txt, *"), nullptr, OFN_HIDEREADONLY, _T("Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"));
-    file_dlg.m_ofn.lpstrTitle = _T("Save Log Lines");
+    SaveFileDlg save_file_dlg(0, FileExtensions::Text, nullptr, FileFilters::Text, this);
+    save_file_dlg.SetTitle(L"Save Log Lines")
+                 .DisableExtensionCheck();
 
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
-    std::wstring text;
+    // only lock the mutex to get pointers to all the lines
+    std::unique_ptr<const std::string*[]> line_pointers;
+    const std::string** line_pointers_end;
 
-    // combine the lines into a single line
     {
         std::lock_guard<std::mutex> lock(m_linesMutex);
 
-        for( const std::unique_ptr<std::wstring>& line : m_lines )
+        line_pointers = std::make_unique_for_overwrite<const std::string*[]>(m_lines.size());
+        line_pointers_end = line_pointers.get();
+
+        for( const Line& line : m_lines )
         {
-            text.append(*line);
-            text.push_back('\n');
+            *line_pointers_end = &line.utf8_line.GetString();
+            ++line_pointers_end;
         }
     }
 
-    // save the text
+    // write the lines
     try
     {
-        FileIO::WriteText(file_dlg.GetPathName(), text, true);
+        FileIO::TextFile text_file;
+        text_file.OpenForWritingCreate(save_file_dlg.GetFilePath());
+
+        for( const std::string** line_pointers_itr = line_pointers.get(); line_pointers_itr != line_pointers_end; ++line_pointers_itr )
+            text_file.WriteLine(**line_pointers_itr);
     }
 
     catch( const CSProException& exception )
@@ -490,7 +522,7 @@ void LoggingListBox::OnSaveLines()
 }
 
 
-void LoggingListBox::OnUpdateSaveLines(CCmdUI* pCmdUI)
+void LoggingListBox::OnUpdateSaveLines(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(GetCount() != 0);
 }

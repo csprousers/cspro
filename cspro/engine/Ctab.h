@@ -347,7 +347,7 @@ public:
     int  GetRunTimeVersion()                            { return m_iRunTimeVersion; }
 
 public:
-    CSymbolCtab(std::wstring name);
+    CSymbolCtab(std::string name);
     virtual ~CSymbolCtab();
 
     CCrossTable* MakeSubExpresions(); // RHF Aug 09, 2001
@@ -474,7 +474,7 @@ private:
     int m_containerIndex = 0; // the container table index
 
 public:
-    int GetContainerIndex() const  			    { return m_containerIndex; }
+    int GetContainerIndex() const               { return m_containerIndex; }
     void SetContainerIndex(int container_index) { m_containerIndex = container_index; }
 };
 
@@ -501,7 +501,7 @@ public:
 class CSymbolCtab : public Symbol, public RunnableSymbol
 {
 public:
-    CSymbolCtab(std::wstring name)
+    CSymbolCtab(std::string name)
         :   Symbol(std::move(name), SymbolType::Crosstab)
     {
     }

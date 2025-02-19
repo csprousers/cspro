@@ -46,9 +46,9 @@ void ObexPacket::setHeaders(const ObexHeaderList& headers)
     m_headers = headers;
 }
 
-void ObexPacket::addHeader(const ObexHeader& header)
+void ObexPacket::addHeader(ObexHeader header)
 {
-    m_headers.add(header);
+    m_headers.add(std::move(header));
 }
 
 unsigned char ObexPacket::getObexVersion() const

@@ -4,7 +4,7 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/Serializer.h>
-#include <zToolsO/Utf8Convert.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zJson/JsonSpecFile.h>
 #include <zDictO/DDClass.h>

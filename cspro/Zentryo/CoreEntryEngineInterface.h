@@ -5,7 +5,7 @@
 #include <Zentryo/Runaple.h>
 #include <Zentryo/CaseTreeNode.h>
 #include <Zentryo/CaseTreeUpdate.h>
-#include <Zentryo/DeploymentPackageDownloader.h>
+#include <zCaseO/CaseSummary.h>
 #include <zFormO/FormFile.h>
 
 class ApplicationInterface;
@@ -124,9 +124,7 @@ public:
     bool HasSync() const;
     bool SyncApp();
 
-    DeploymentPackageDownloader* CreateDeploymentPackageDownloader();
-
-    void ProcessParadataCachedEvents(const std::vector<CString>& event_strings);
+    void ProcessParadataCachedEvents(const std::vector<std::string>& event_strings);
 
     struct PffStartModeParameter
     {
@@ -140,8 +138,8 @@ public:
     bool DoNotShowCaseListing() const;
 
     CommonStore* GetCommonStore();
-    static CString GetSystemSetting(wstring_view setting_name, wstring_view default_value);
-    static bool GetSystemSetting(wstring_view setting_name, bool default_value);
+    static std::string GetSystemSetting(wstring_view setting_name_sv, wstring_view default_value_sv);
+    static bool GetSystemSetting(wstring_view setting_name_sv, bool default_value);
 
     CRunAplEntry* GetRunAplEntry() { return m_pRunAplEntry; }
 
@@ -155,7 +153,7 @@ private:
     CoreEntryPage* ProcessFieldPostMovement(CDEField* pField);
     bool ProcessOccurrenceModification(CDEItemBase* (CRunAplEntry::*pOccurrenceModificationFunction)(bool& bRet));
 
-    int ShowModalDialog(CString sTitle, CString sMessage, int mbType);
+    int ShowModalDialog(cs::string_view_sz title_sv, cs::string_view_sz message_sv, int mbType);
 
 private:
     std::optional<std::tuple<const CEntryDriver*, std::unique_ptr<ObjectTransporter>>> m_objectTransporter;

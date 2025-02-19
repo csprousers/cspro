@@ -65,7 +65,7 @@ inline void TempFormFileSerializer::WriteFormFile()
 
     m_jsonWriter.BeginObject(JK::dictionary)
                 .Write(JK::name, m_formFile.GetDictionary()->GetName())
-                .WriteRelativePath(JK::path, CS2WS(m_formFile.GetDictionaryFilename()))
+                .WriteRelativePath(JK::path, UTF8_TODO::GetUtf8(m_formFile.GetDictionaryFilename()))
                 .EndObject();
 
 
@@ -90,7 +90,7 @@ inline void TempFormFileSerializer::WriteFormLevel(const CDELevel& form_level)
     m_jsonWriter.Write(JK::name, form_level.GetName());
     m_jsonWriter.Write(JK::label, form_level.GetLabel());
 
-    m_jsonWriter.BeginArray(_T("items"));
+    m_jsonWriter.BeginArray("items");
 
     for( int group = 0; group < form_level.GetNumGroups(); ++group )
     {
@@ -140,10 +140,10 @@ inline void TempFormFileSerializer::WriteFormGroup(const CDEGroup& form_group, b
 
         m_jsonWriter.Write(JK::name, form_group.GetName());
         m_jsonWriter.Write(JK::label, form_group.GetLabel());
-        m_jsonWriter.Write(JK::type, _T("group"));
+        m_jsonWriter.Write(JK::type, "group");
     }
 
-    WriteRestructuredGroupItems(RestructureGroup(form_group));   
+    WriteRestructuredGroupItems(RestructureGroup(form_group));
 
     if( wrap_in_object_with_name_label_type )
     {
@@ -194,8 +194,8 @@ inline void TempFormFileSerializer::WriteFormRoster(const CDERoster& form_roster
 
     m_jsonWriter.Write(JK::name, form_roster.GetName());
     m_jsonWriter.Write(JK::label, form_roster.GetLabel());
-    m_jsonWriter.Write(JK::type, _T("roster"));
-    m_jsonWriter.Write(_T("orientation"), ( form_roster.GetOrientation() == RosterOrientation::Horizontal ) ? _T("horizontal") : _T("vertical"));
+    m_jsonWriter.Write(JK::type, "roster");
+    m_jsonWriter.Write("orientation", ( form_roster.GetOrientation() == RosterOrientation::Horizontal ) ? "horizontal" : "vertical");
 
     WriteFormGroup(form_roster, false);
 
@@ -209,7 +209,7 @@ inline void TempFormFileSerializer::WriteFormBlock(const CDEBlock& form_block, c
 
     m_jsonWriter.Write(JK::name, form_block.GetName());
     m_jsonWriter.Write(JK::label, form_block.GetLabel());
-    m_jsonWriter.Write(JK::type, _T("block"));
+    m_jsonWriter.Write(JK::type, "block");
 
     if( m_jsonWriter.Verbose() || !items.empty() )
         WriteRestructuredGroupItems(items);
@@ -228,16 +228,16 @@ inline void TempFormFileSerializer::WriteFormField(const CDEField& form_field)
     CString label =
         ( form_field.GetDictItem() == nullptr || form_field.GetFieldLabelType() == FieldLabelType::Custom ) ? form_field.GetLabel() :
         ( form_field.GetFieldLabelType() == FieldLabelType::DictionaryName )                                ? form_field.GetDictItem()->GetLabel() :
-                                                                                                              form_field.GetDictItem()->GetName();
+                                                                                                              UTF8_TODO::GetCString(form_field.GetDictItem()->GetName());
 
     if( label.IsEmpty() && form_field.GetDictItem() != nullptr ) // investigate why
         label = form_field.GetDictItem()->GetLabel();
 
-    m_jsonWriter.Write(JK::type, _T("field"));
+    m_jsonWriter.Write(JK::type, "field");
 
-    m_jsonWriter.Write(_T("protected"), form_field.IsProtected());
-    m_jsonWriter.Write(_T("hideInCaseTree"), form_field.IsHiddenInCaseTree());
-    m_jsonWriter.Write(_T("mirror"), form_field.IsMirror());
+    m_jsonWriter.Write("protected", form_field.IsProtected());
+    m_jsonWriter.Write("hideInCaseTree", form_field.IsHiddenInCaseTree());
+    m_jsonWriter.Write("mirror", form_field.IsMirror());
 
     m_jsonWriter.Write(JK::capture, form_field.GetEvaluatedCaptureInfo());
 
@@ -248,8 +248,8 @@ inline void TempFormFileSerializer::WriteFormField(const CDEField& form_field)
 
     else if( form_field.GetDictItem()->GetContentType() == ContentType::Alpha )
     {
-        m_jsonWriter.Write(_T("tickmarks"), !form_field.UseUnicodeTextBox());
-        m_jsonWriter.Write(_T("multiline"), form_field.AllowMultiLine());
+        m_jsonWriter.Write("tickmarks", !form_field.UseUnicodeTextBox());
+        m_jsonWriter.Write("multiline", form_field.AllowMultiLine());
     }
 
     m_jsonWriter.EndObject();

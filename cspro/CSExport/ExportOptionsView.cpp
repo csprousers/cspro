@@ -22,9 +22,9 @@ namespace
         {
         }
 
-        bool CheckSyntax(const std::wstring& universe) override
+        bool CheckSyntax(const std::string& universe) override
         {
-            return m_view.CheckUniverseSyntax(WS2CS(universe));
+            return m_view.CheckUniverseSyntax(UTF8_TODO::GetCString(universe));
         }
 
         void ToggleNamesInTree() override
@@ -142,11 +142,11 @@ void CExportOptionsView::OnEditUniverseButton()
 
     ExportUniverseDlgActionResponder universe_dlg_action_responder(*this, m_csUniverse);
 
-    UniverseDlg universe_dlg(pDoc->GetSharedDictionary(), CS2WS(m_csUniverse), universe_dlg_action_responder);
+    UniverseDlg universe_dlg(pDoc->GetSharedDictionary(), UTF8_TODO::GetUtf8(m_csUniverse), universe_dlg_action_responder);
 
     if( universe_dlg.DoModal() == IDOK )
     {
-        m_csUniverse = WS2CS(universe_dlg.GetUniverse());
+        m_csUniverse = UTF8_TODO::GetCString(universe_dlg.GetUniverse());
         Data2Gui();
         ToDoc(GetDoc());
     }
@@ -209,7 +209,7 @@ void CExportOptionsView::UpdateEnabledDisabledCtrlsStatus(bool* pbJoinValue /*NU
 void CExportOptionsView::Gui2Data()
 {
     //From GUI to Data
-    m_csUniverse = WS2CS(m_cEditUniverse.GetText());
+    m_csUniverse = UTF8_TODO::GetCString(m_cEditUniverse.GetText());
 
     m_bSingleFile     = ((CButton*)GetDlgItem(IDC_FILES_ONE))->GetCheck() ==  1;
     m_bAllInOneRecord = ((CButton*)GetDlgItem(IDC_OCCS_ONE))->GetCheck()  ==  1;
@@ -300,7 +300,7 @@ void CExportOptionsView::Data2Gui()
 
     bLockEditUniverse = true;
     {
-        m_cEditUniverse.SetText(m_csUniverse);
+        m_cEditUniverse.SetText(UTF8_TODO::GetUtf8(m_csUniverse));
     }
     bLockEditUniverse = false;
 

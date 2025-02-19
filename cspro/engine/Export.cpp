@@ -887,7 +887,7 @@ int CExport::StataDescr( int iNumRecords ) {
 
         // RHF INIC Apr 30, 2002
         if( HasDefaultName() ){
-            CIMSAString sInfixDict = PortableFunctions::PathRemoveFileExtension<CString>(GetExpoName()) + FileExtensions::WithDot::StataDictionary;
+            CIMSAString sInfixDict = WS2CS(PortableFunctions::PathReplaceFileExtension(GetExpoName(), UTF8_TODO::GetWide(FileExtensions::StataDictionary)));
             if(!m_pEngineDriver->GetPifFile()->GetSTATASyntaxFName().IsEmpty()){
                 sInfixDict =m_pEngineDriver->GetPifFile()->GetSTATASyntaxFName();
             }
@@ -1200,10 +1200,10 @@ void CExport::GenVarName( CString& csVarName, VART* pVarT, int aIndex[DIM_MAXDIM
     if( pVarT->IsArray() ) {
         CString csOccName;
         GenOccName( csOccName, m_cNameSeparator, true, pVarT, aIndex, aDimFlag );
-        csVarName.Format( _T("%s%s"), pVarT->GetName().c_str(), csOccName.GetString() );
+        csVarName.Format( _T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), csOccName.GetString() );
     }
     else {
-        csVarName = WS2CS(pVarT->GetName());
+        csVarName = UTF8_TODO::GetCString(pVarT->GetName());
     }
 }
 
@@ -1233,7 +1233,7 @@ void CExport::GenOccName( CString& csOccName, csprochar cSeparator, bool bUseFir
                                         if( bUseFirstSeparator )
                                                 csThisOcc.Format( _T("%0*d"), iDigitForOccs, aIndex[iDim]+1 );
                                         else
-                                                csThisOcc = IntToString(aIndex[iDim]+1);
+                                                csThisOcc = UTF8_TODO::GetCString(IntToString(aIndex[iDim]+1));
                                         bFirst = false;
                                 }
                                 else {
@@ -1299,7 +1299,7 @@ int CExport::BuildVarCategories( VART* pVarT ) {
 
         if( bIsCategory ) {
             // normalizes delimiters on value' text
-            if( !csFrom.IsNumeric() || ( SO::IsBlank(csFrom) && csFrom.GetLength() > 0 ) ) {
+            if( !csFrom.IsNumeric() || ( SO::IsBlank(wstring_view(csFrom)) && csFrom.GetLength() > 0 ) ) {
                 csFrom.QuoteDelimit();
             }
 
@@ -1352,7 +1352,7 @@ int CExport::SASBuildVarCategories( VART* pVarT ) {
 
         if( bIsCategory ) {
             // normalizes delimiters on value' text
-            if( !csFrom.IsNumeric() || ( SO::IsBlank(csFrom) && csFrom.GetLength() > 0 ) ) {
+            if( !csFrom.IsNumeric() || ( SO::IsBlank(wstring_view(csFrom)) && csFrom.GetLength() > 0 ) ) {
                 csFrom.QuoteDelimit();
             }
 

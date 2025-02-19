@@ -11,7 +11,7 @@
 // LogicDocument
 // --------------------------------------------------------------------------
 
-LogicDocument::LogicDocument(std::wstring document_name)
+LogicDocument::LogicDocument(std::string document_name)
     :   BinarySymbol(std::move(document_name), SymbolType::Document)
 {
 }
@@ -66,37 +66,37 @@ LogicDocument& LogicDocument::operator=(const LogicImage& logic_image)
 }
 
 
-LogicDocument& LogicDocument::operator=(const std::wstring& document_text)
+LogicDocument& LogicDocument::operator=(std::string document_text)
 {
-    m_binarySymbolData.SetBinaryData(UTF8Convert::WideToUTF8Buffer(document_text), std::wstring(), MimeType::Type::Text);
+    m_binarySymbolData.SetBinaryData(SO::CreateByteVector(document_text), std::string(), MimeType::Type::Text);
 
-    BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadataForModification();
-    binary_data_metadata.SetProperty(_T("label"), document_text);
-    binary_data_metadata.SetProperty(_T("source"), _T("Document=string"));
-    binary_data_metadata.SetProperty(_T("timestamp"), GetTimestamp());
+    BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadata();
+    binary_data_metadata.SetProperty("label", std::move(document_text));
+    binary_data_metadata.SetProperty("source", "Document=string");
+    binary_data_metadata.SetProperty("timestamp", GetTimestamp());
 
     return *this;
 }
 
 
-void LogicDocument::Load(std::wstring filename)
+void LogicDocument::Load(std::string file_path)
 {
-    std::unique_ptr<std::vector<std::byte>> content = FileIO::Read(filename);
-    m_binarySymbolData.SetBinaryData(std::move(content), std::move(filename));
+    std::unique_ptr<std::vector<std::byte>> content = FileIO::Read(file_path);
+    m_binarySymbolData.SetBinaryData(std::move(content), std::move(file_path));
 }
 
 
-void LogicDocument::Save(std::wstring filename)
+void LogicDocument::Save(std::string file_path)
 {
     ASSERT(HasContent());
 
-    FileIO::Write(filename, m_binarySymbolData.GetContent());
+    FileIO::Write(file_path, m_binarySymbolData.GetContent());
 
-    m_binarySymbolData.SetPath(std::move(filename));
+    m_binarySymbolData.SetPath(std::move(file_path));
 }
 
 
-bool LogicDocument::View(const ViewerOptions* viewer_options) const
+bool LogicDocument::View(const ViewerOptions* const viewer_options) const
 {
     ASSERT(HasContent());
 
@@ -116,21 +116,21 @@ bool LogicDocument::View(const ViewerOptions* viewer_options) const
     else
     {
         // if the file exists on the disk, use it
-        std::wstring filename_to_view = m_binarySymbolData.GetPath();
+        std::string file_path_to_view = m_binarySymbolData.GetPath();
 
         // otherwise save the file to a temporary file
-        if( filename_to_view.empty() || !PortableFunctions::FileIsRegular(filename_to_view) )
+        if( file_path_to_view.empty() || !PortableFunctions::FileIsRegular(file_path_to_view) )
         {
-            filename_to_view = m_binarySymbolData.CreateFilenameBasedOnMimeType(*this);
+            file_path_to_view = m_binarySymbolData.CreateFilenameBasedOnMimeType(*this);
 
-            if( filename_to_view.empty() )
+            if( file_path_to_view.empty() )
                 return false;
 
-            filename_to_view = GetUniqueTempFilename(filename_to_view);
+            file_path_to_view = GetUniqueTempFilePath(file_path_to_view);
 
             try
             {
-                FileIO::Write(filename_to_view, m_binarySymbolData.GetContent());
+                FileIO::Write(file_path_to_view, m_binarySymbolData.GetContent());
             }
 
             catch(...)
@@ -138,14 +138,14 @@ bool LogicDocument::View(const ViewerOptions* viewer_options) const
                 return false;
             }
 
-            TemporaryFile::RegisterFileForDeletion(filename_to_view);
+            TemporaryFile::RegisterFileForDeletion(file_path_to_view);
         }
 
-        ASSERT(PortableFunctions::FileIsRegular(filename_to_view));
+        ASSERT(PortableFunctions::FileIsRegular(file_path_to_view));
 
         Viewer viewer;
         return viewer.UseEmbeddedViewer()
                      .SetOptions(viewer_options)
-                     .ViewFile(filename_to_view);
+                     .ViewFile(file_path_to_view);
     }
 }

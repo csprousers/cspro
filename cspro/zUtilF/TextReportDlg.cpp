@@ -2,17 +2,15 @@
 #include "TextReportDlg.h"
 
 
-IMPLEMENT_DYNAMIC(TextReportDlg, CDialog)
-
 BEGIN_MESSAGE_MAP(TextReportDlg, CDialog)
-    ON_BN_CLICKED(IDC_COPY_TEXT_TO_CLIPBOARD, &OnBnClickedCopyToClipboard)
+    ON_BN_CLICKED(IDC_COPY_TEXT_TO_CLIPBOARD, OnBnClickedCopyToClipboard)
 END_MESSAGE_MAP()
 
 
-TextReportDlg::TextReportDlg(const CString& heading, const CString& content, CWnd* pParent /*=NULL*/)
+TextReportDlg::TextReportDlg(std::string heading, std::string content, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_TEXT_REPORT, pParent),
-        m_heading(heading),
-        m_content(content)
+        m_heading(std::move(heading)),
+        m_content(std::move(content))
 {
 }
 
@@ -24,9 +22,9 @@ void TextReportDlg::UseFixedWidthFont()
 }
 
 
-void TextReportDlg::DoDataExchange(CDataExchange* pDX)
+void TextReportDlg::DoDataExchange(CDataExchange* const pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_TEXT_REPORT_HEADING, m_heading);
     DDX_Text(pDX, IDC_TEXT_REPORT_CONTENT, m_content);
@@ -35,17 +33,17 @@ void TextReportDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL TextReportDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
     // use a fixed width font if necessary
     if( m_fixedWidthFont != nullptr )
     {
-        CWnd* content_window = GetDlgItem(IDC_TEXT_REPORT_CONTENT);
+        CWnd* const content_window = GetDlgItem(IDC_TEXT_REPORT_CONTENT);
 
         LOGFONT lf;
         content_window->GetFont()->GetLogFont(&lf);
 
-        lstrcpy(lf.lfFaceName, _T("Courier New"));
+        lstrcpy(lf.lfFaceName, L"Courier New");
         m_fixedWidthFont->CreateFontIndirect(&lf);
 
         content_window->SetFont(m_fixedWidthFont.get());

@@ -1,9 +1,8 @@
 ﻿#include "StdAfx.h"
 #include "BatchLogicViewerDlg.h"
 #include <zToolsO/FileIO.h>
-#include <zToolsO/PortableFunctions.h>
 #include <zUtilO/CSProExecutables.h>
-#include <zUtilO/Filedlg.h>
+#include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zAppO/Application.h>
 #include <zFormO/FormFile.h>
@@ -19,14 +18,14 @@ END_MESSAGE_MAP()
 
 
 BatchLogicViewerDlg::BatchLogicViewerDlg(const CDataDict& dictionary, const LogicSettings& logic_settings,
-                                         std::wstring logic_text, CWnd* pParent/* = nullptr*/)
+                                         std::string logic_text, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_BATCH_LOGIC_VIEWER, pParent),
         m_dictionary(dictionary),
         m_logicSettings(logic_settings),
         m_logicText(std::move(logic_text)),
         m_logicCtrl(std::make_unique<CLogicCtrl>())
 {
-    ASSERT(PortableFunctions::FileIsRegular(m_dictionary.GetFullFileName()));
+    ASSERT(PortableFunctions::FileIsRegular(m_dictionary.GetFilePath()));
 }
 
 
@@ -35,7 +34,7 @@ BatchLogicViewerDlg::~BatchLogicViewerDlg()
 }
 
 
-void BatchLogicViewerDlg::DoDataExchange(CDataExchange* pDX)
+void BatchLogicViewerDlg::DoDataExchange(CDataExchange* const pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -53,7 +52,7 @@ BOOL BatchLogicViewerDlg::OnInitDialog()
 
     // disable the Create Batch Application option if the dictionary is in the temp directory (which means
     // this is being run from a tool that opened a CSPro DB file directly instead of using the dictionary)
-    if( SO::StartsWithNoCase(m_dictionary.GetFullFileName(), GetTempDirectory()) )
+    if( SO::StartsWithNoCase(m_dictionary.GetFilePath(), GetTempDirectory()) )
         GetDlgItem(IDC_CREATE_BATCH_APPLICATION)->EnableWindow(FALSE);
 
     return TRUE;
@@ -68,18 +67,16 @@ void BatchLogicViewerDlg::OnCopyToClipboard()
 
 void BatchLogicViewerDlg::OnCreateBatchApplication()
 {
-    CIMSAFileDialog file_dlg(FALSE, FileExtensions::BatchApplication, nullptr, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
-                             _T("Batch Application Files (*.bch)|*.bch||"));
+    SaveFileDlg save_file_dlg(0, FileExtensions::BatchApplication, nullptr, L"Batch Application Files (*.bch)|*.bch||", this);
+    save_file_dlg.SetTitle(L"New Batch Application Name");
 
-    file_dlg.m_ofn.lpstrTitle = _T("New Batch Application Name");
-
-    if( file_dlg.DoModal() != IDOK )
+    if( save_file_dlg.DoModal() != IDOK )
         return;
 
     try
     {
         // create the batch application and associated files
-        const std::wstring application_filename = file_dlg.GetPathName();
+        const std::string& application_file_path = save_file_dlg.GetFilePath();
 
         Application batch_application;
         batch_application.SetEngineAppType(EngineAppType::Batch);
@@ -87,7 +84,7 @@ void BatchLogicViewerDlg::OnCreateBatchApplication()
 
         // set the name / label
         {
-            std::wstring application_label = PortableFunctions::PathGetFilenameWithoutExtension(application_filename);
+            std::string application_label = Path::GetFilenameWithoutExtension(application_file_path);
             batch_application.SetName(CIMSAString::MakeName(application_label));
             batch_application.SetLabel(std::move(application_label));
         }
@@ -95,34 +92,36 @@ void BatchLogicViewerDlg::OnCreateBatchApplication()
 
         // create and save the order file
         {
-            std::wstring order_filename = PortableFunctions::PathRemoveFileExtension(application_filename) + FileExtensions::WithDot::Order;
-            CDEFormFile order(WS2CS(order_filename), m_dictionary.GetFullFileName());
+            std::string order_file_path = PortableFunctions::PathReplaceFileExtension(application_file_path, FileExtensions::Order);
+            CDEFormFile order(UTF8_TODO::GetCString(order_file_path), UTF8_TODO::GetCString(m_dictionary.GetFilePath()));
 
             order.CreateOrderFile(m_dictionary, true);
 
-            if( !order.Save(WS2CS(order_filename)) )
+            if( !order.Save(order_file_path) )
                 return;
 
-            batch_application.AddFormFilename(std::move(order_filename));
+            batch_application.AddForm(std::move(order_file_path));
         }
 
 
         // save the logic
         {
-            std::wstring logic_filename = application_filename + FileExtensions::WithDot::Logic;
-            FileIO::WriteText(logic_filename, m_logicText, true);
+            std::string logic_file_path = PortableFunctions::PathAppendFileExtension(application_file_path, FileExtensions::Logic);
+            FileIO::WriteText(logic_file_path, m_logicText, true);
 
-            batch_application.AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(std::move(logic_filename))));
+            batch_application.AddCodeFile(CodeFile(CodeType::LogicMain, std::make_unique<TextSource>(std::move(logic_file_path))));
         }
 
 
         // save the application and see if the user wants to open it
-        batch_application.Save(application_filename);
+        batch_application.Save(application_file_path);
 
-        if( AfxMessageBox(FormatText(_T("Would you like to open \"%s\" now?"),
-                          PortableFunctions::PathGetFilename(application_filename)), MB_YESNO) == IDYES )
+        const std::string message = FormatText("Would you like to open '%s' now?",
+                                               PortableFunctions::PathGetFilename(application_file_path).c_str());
+
+        if( AfxMessageBox(message, MB_YESNO) == IDYES )
         {
-            CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::CSPro, application_filename);
+            CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::CSPro, application_file_path);
             OnCancel();
         }
     }

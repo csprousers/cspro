@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -13,10 +13,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>MFCDLLProj</Keyword>
     <RootNamespace>zHtml</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -80,20 +76,23 @@
     <ClCompile Include="CssStyleParser.cpp" />
     <ClCompile Include="DocumentVirtualFileMappingHandler.cpp" />
     <ClCompile Include="FileSystemVirtualFileMappingHandler.cpp" />
+    <ClCompile Include="HtmlBrowserView.cpp" />
     <ClCompile Include="HtmlDlgBase.cpp" />
     <ClCompile Include="HtmlDlgBaseRunner.cpp" />
     <ClCompile Include="HtmlEditorCtrl.cpp" />
+    <ClCompile Include="HtmlTemplates.cpp" />
+    <ClCompile Include="HtmlTextConverter.cpp" />
     <ClCompile Include="HtmlViewCtrl.cpp" />
     <ClCompile Include="HtmlViewDlg.cpp" />
-    <ClCompile Include="HtmlTextConverter.cpp" />
-    <ClCompile Include="HtmlBrowserView.cpp" />
     <ClCompile Include="HtmlViewerView.cpp" />
     <ClCompile Include="InsertLinkDlg.cpp" />
     <ClCompile Include="LocalFileServer.cpp" />
     <ClCompile Include="LocalhostUrl.cpp" />
     <ClCompile Include="ModalDialogSimulator.cpp" />
-    <ClCompile Include="PortableLocalhostWindows.cpp" />
+    <ClCompile Include="PortableLocalFileServer.cpp" />
+    <ClCompile Include="PortableLocalhost.cpp" />
     <ClCompile Include="SharedHtmlLocalFileServer.cpp" />
+    <ClCompile Include="SimpleServer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -109,24 +108,27 @@
     <ClInclude Include="CSProHostObject.h" />
     <ClInclude Include="DocumentVirtualFileMappingHandler.h" />
     <ClInclude Include="FileSystemVirtualFileMappingHandler.h" />
+    <ClInclude Include="HtmlBrowserView.h" />
     <ClInclude Include="HtmlDlgBase.h" />
     <ClInclude Include="HtmlDlgBaseRunner.h" />
     <ClInclude Include="HtmlEditorCtrl.h" />
+    <ClInclude Include="HtmlTemplates.h" />
+    <ClInclude Include="HtmlTextConverter.h" />
     <ClInclude Include="HtmlViewCtrl.h" />
     <ClInclude Include="HtmlViewDlg.h" />
-    <ClInclude Include="HtmlBrowserView.h" />
     <ClInclude Include="HtmlViewerView.h" />
     <ClInclude Include="HtmlWriter.h" />
-    <ClInclude Include="HtmlTextConverter.h" />
     <ClInclude Include="InsertLinkDlg.h" />
     <ClInclude Include="LocalFileServer.h" />
     <ClInclude Include="LocalhostSettings.h" />
     <ClInclude Include="LocalhostUrl.h" />
     <ClInclude Include="ModalDialogSimulator.h" />
     <ClInclude Include="NavigationAddress.h" />
+    <ClInclude Include="PortableLocalFileServer.h" />
     <ClInclude Include="PortableLocalhost.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHtmlLocalFileServer.h" />
+    <ClInclude Include="SimpleServer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UriResolver.h" />
     <ClInclude Include="UseHtmlDialogs.h" />
@@ -161,14 +163,14 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets')" />
-    <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.2792.45\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.2792.45\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.2792.45\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.2792.45\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
   </Target>
 </Project>

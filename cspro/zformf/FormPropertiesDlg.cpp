@@ -228,8 +228,8 @@ bool CFormPropDlg::ValidateSetCapturePos()
     }
 
     // in case the number entered was an alpha or a decimal, set it to the integer it was set to by _wtoi
-    GetDlgItem(IDC_SETCAPTUREPOS_X)->SetWindowText(IntToString(xval));
-    GetDlgItem(IDC_SETCAPTUREPOS_Y)->SetWindowText(IntToString(yval));
+    GetDlgItem(IDC_SETCAPTUREPOS_X)->SetWindowText(UTF8_TODO::GetCString(IntToString(xval)));
+    GetDlgItem(IDC_SETCAPTUREPOS_Y)->SetWindowText(UTF8_TODO::GetCString(IntToString(yval)));
 
     return true;
 }

@@ -275,7 +275,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
                     assert(sc.chPrev == ( string_is_verbatim ? '"' : '\\' ));
 
                     // if an escape (for a normal string literal) is not valid, color it as a normal string
-                    if( !string_is_verbatim && wcschr(Encoders::EscapeSequences, sc.ch) == nullptr )
+                    if( !string_is_verbatim && strchr(EncoderEscapes::Sequences, sc.ch) == nullptr )
                         sc.ChangeState(SCE_CSPRO_STRING);
 
                     sc.ForwardSetState(SCE_CSPRO_STRING);
@@ -370,7 +370,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
             }
 
             // operators
-            else if( wcschr(Logic::OperatorCharacters, sc.ch) != nullptr )
+            else if( strchr(Logic::OperatorCharacters, sc.ch) != nullptr )
             {
                 // the operators exclude $ and . because those should be counted as identifiers
                 sc.SetState(SCE_CSPRO_OPERATOR);
