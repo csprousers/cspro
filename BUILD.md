@@ -1,7 +1,14 @@
-
 # CSPro Build Documentation
 
-The files committed to this repository allow CSPro to be built without any dependencies. There are scripts in [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries) that build external libraries, such as cURL or zlib, but the built .lib and .dll files are committed to the repository so there is no need to build any dependencies unless you want to update the version.
+The files committed to this repository do not include prebuilt external libraries, and other binary files,
+upon which the CSPro build process depends. To successfully build CSPro, or the CSEntry Android application, 
+you can build these libraries yourself, using scripts in [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries),
+or you can use prebuilt libraries that are hosted in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
+The prebuilt libraries used at this point in CSPro development are marked with the tag: **v2025-02-19-64c8e57**.
+
+To use these libraries, download [v2025-02-19-64c8e57.zip](https://github.com/csprousers/cspro-libraries/archive/refs/tags/v2025-02-19-64c8e57.zip)
+and decompress it into this repository's directory. This includes files such as the built .dll and .lib
+files used on Windows, and the .a static libraries used on Android.
 
 
 ## Windows

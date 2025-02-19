@@ -4,8 +4,14 @@
 *.ap_
 *.aab
 
+# Static libraries
+*.a
+
 # Files for the ART/Dalvik VM
 *.dex
+
+# Java archives
+*.jar
 
 # Java class files
 *.class
