@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zUtilF/zUtilF.h>
-#include <zUtilF/resource_shared.h>
 
 
 class CLASS_DECL_ZUTILF WindowsMenuManager

@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;02&#8209;25 | [manage-credentials](https://github.com/CSProDevelopment/cspro/commit/727efdb557f4bff850680d7a16fb79f0708bc12d) | added the Manage Credentials dialog, allowing the granular deletion of sync / data / location credentials |
 | 2025&#8209;02&#8209;19 | [open-source-creator](https://github.com/CSProDevelopment/cspro/commit/2d079ba2f9fa83ad9f6a74404ec63c5360a11cc9) | added the Open Source Release Creator tool to automate creating open source releases |
 | 2025&#8209;02&#8209;18 | [small-work-2025-02](https://github.com/CSProDevelopment/cspro/commit/57570ab425e13c7ae03c45aa38f6929f2bbe7b00) | added a CSEntry deep link handler for running applications + reworked Leaflet mapping communication to use JSON + removed old serialization routines + implemented some interpreter functionality within zEngineO |
 | 2025&#8209;01&#8209;30 | [JavaScript-integration](https://github.com/CSProDevelopment/cspro/commit/0375490139a79ab3ec47c1a7d75f554a9606df77) | implemented calling into JavaScript from CSPro logic |

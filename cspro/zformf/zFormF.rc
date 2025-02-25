@@ -7,6 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#include "../zUtilF/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "afxres.h"
 
@@ -33,6 +34,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
+    "#include ""../zUtilF/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -112,7 +114,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Manage Application &Files...", ID_FILE_MANAGE_FILES
         MENUITEM SEPARATOR
-        MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
         MENUITEM "Co&mpile\tCtrl+K",            ID_COMPILE
         MENUITEM "&Run...\tCtrl+R",             ID_GO

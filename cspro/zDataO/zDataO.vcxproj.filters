@@ -144,6 +144,9 @@
     <ClInclude Include="EncryptedSQLiteRepository.h">
       <Filter>Header Files\EncryptedSQLiteRepository</Filter>
     </ClInclude>
+    <ClInclude Include="EncryptedSQLiteRepositoryCredential.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h">
       <Filter>Header Files\EncryptedSQLiteRepository</Filter>
     </ClInclude>

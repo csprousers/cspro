@@ -119,7 +119,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "S&ynchronize\tCtrl+Shift+S",  ID_FILE_SYNCHRONIZE
         MENUITEM SEPARATOR
-        MENUITEM "CSPro Settings...",           ID_FILE_SETTINGS
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
         MENUITEM "&Recent File",                ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
@@ -783,7 +783,7 @@ BEGIN
     ID_EDIT_REVIEW_NOTES    "Review notes"
     ID_ENDGRP               "Go To Next Group"
     ID_FILE_OPEN_DATORAPL   "Open an existing document\nOpen"
-    ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
+    ID_FILE_MANAGE_CREDENTIALS "Manage saved credentials\nManage Credentials"
     ID_FIND_CASE            "Find Case\nFind Case"
     ID_FINDCASE             "Find case with the specified case ids"
     ID_FIRST_CASE           "Move to the first case in the data file\nFirst Case"

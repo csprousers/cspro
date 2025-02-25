@@ -9,6 +9,8 @@
 #include <zToolsO/CommonObjectTransporter.h>
 #include <zToolsO/UWM.h>
 #include <zUtilO/TemporaryFile.h>
+#include <zUtilF/ManageCredentialsDlg.h>
+#include <zUtilF/resource_shared.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/WindowsMenuManager.h>
 
@@ -24,6 +26,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_COMMAND(ID_FILE_OPEN_CSWEB_DATA, OnFileOpenCSWebData)
     ON_COMMAND(ID_FILE_CLOSE_ALL, OnFileCloseAll)
     ON_COMMAND(ID_FILE_DOWNLOAD_DATA_SOURCE, OnFileDownloadDataSource)
+    ON_COMMAND(ID_FILE_MANAGE_CREDENTIALS, OnFileManageCredentials)
 
     // Windows menu
     ON_COMMAND(ID_WINDOWS_WINDOWS, OnWindowWindows)
@@ -298,6 +301,13 @@ void CMainFrame::OnFileDownloadDataSource()
         return;
 
     OpenDataSource(download_data_source_dlg.GetConnectionString());
+}
+
+
+void CMainFrame::OnFileManageCredentials()
+{
+    ManageCredentialsDlg manage_credentials_dlg;
+    manage_credentials_dlg.DoModal();
 }
 
 

@@ -47,6 +47,7 @@ protected:
     void OnFileOpenCSWebData();
     void OnFileCloseAll();
     void OnFileDownloadDataSource();
+    void OnFileManageCredentials();
 
     // Windows menu
     void OnWindowWindows();

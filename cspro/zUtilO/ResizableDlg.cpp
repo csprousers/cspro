@@ -23,6 +23,7 @@ void ResizableDlgBase<DialogT>::SerializeDialogSize(std::string serialize_key)
 }
 
 template CLASS_DECL_ZUTILO void ResizableDlgBase<CDialog>::SerializeDialogSize(std::string serialize_key);
+template CLASS_DECL_ZUTILO void ResizableDlgBase<CDialogEx>::SerializeDialogSize(std::string serialize_key);
 
 
 template<typename DialogT>
@@ -88,6 +89,17 @@ void ResizableDlgBase<DialogT>::OnDestroy()
 // --------------------------------------------------------------------------
 
 BEGIN_MESSAGE_MAP(ResizableDlg, CDialog)
+    ON_WM_GETMINMAXINFO()
+    ON_WM_DESTROY()
+END_MESSAGE_MAP()
+
+
+
+// --------------------------------------------------------------------------
+// ResizableDlgEx
+// --------------------------------------------------------------------------
+
+BEGIN_MESSAGE_MAP(ResizableDlgEx, CDialogEx)
     ON_WM_GETMINMAXINFO()
     ON_WM_DESTROY()
 END_MESSAGE_MAP()

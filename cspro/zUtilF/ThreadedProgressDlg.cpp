@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "ThreadedProgressDlg.h"
-#include <zUtilO/WindowHelpers.h>
 #include <mutex>
 
 

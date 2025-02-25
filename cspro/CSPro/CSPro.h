@@ -104,7 +104,7 @@ protected:
     afx_msg void OnFileClose();
     afx_msg void OnFileSave();
 
-    afx_msg void OnCSProSettings();
+    afx_msg void OnManageCredentials();
 
     // Save As
 private:

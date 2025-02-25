@@ -3,6 +3,7 @@
 #include "CSDocFrame.h"
 #include "DocSetSpecDoc.h"
 #include "GlobalSettingsDlg.h"
+#include <zUtilF/resource_shared.h>
 #include <zUtilF/WindowsMenuManager.h>
 
 

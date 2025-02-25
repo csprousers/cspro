@@ -1,15 +1,14 @@
 ﻿#include "stdafx.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
-#include "EncryptedSQLiteRepository.h"
+#include "EncryptedSQLiteRepositoryCredential.h"
 #include "resource.h"
-#include <zToolsO/Hash.h>
 #include <zUtilO/CredentialStore.h>
 
 
 std::map<std::string, std::string> EncryptedSQLiteRepositoryPasswordManager::m_previouslyUsedPasswordHashes;
 
 
-EncryptedSQLiteRepositoryPasswordManager::EncryptedSQLiteRepositoryPasswordManager(const CDataDict* dictionary, std::string file_path,
+EncryptedSQLiteRepositoryPasswordManager::EncryptedSQLiteRepositoryPasswordManager(const CDataDict* const dictionary, std::string file_path,
                                                                                    const OpenByPasswordCallback& file_open_by_password_callback,
                                                                                    const OpenByPasswordHashCallback& file_open_by_password_hash_callback)
     :   m_dictionary(dictionary),
@@ -32,76 +31,12 @@ void EncryptedSQLiteRepositoryPasswordManager::GetPassword()
 
 namespace
 {
-    class EncryptedSQLiteRepositoryCredential
-    {
-    private:
-        struct Header
-        {
-            char _version;
-            double _storage_timestamp;
-        };
-
-        std::vector<std::byte> _bytes; // this will store the version number, the expiration timestamp, and the password hash
-        static const char CurrentVersion = 1;
-
-        EncryptedSQLiteRepositoryCredential()
-            :   _bytes(sizeof(Header) + EncryptedSQLiteRepository::PasswordHashSize)
-        {
-        }
-
-        char GetVersion() const
-        {
-            return reinterpret_cast<const Header*>(_bytes.data())->_version;
-        }
-
-    public:
-        double GetStorageTimestamp() const
-        {
-            return reinterpret_cast<const Header*>(_bytes.data())->_storage_timestamp;
-        }
-
-        const std::byte* GetPasswordHash() const
-        {
-            return _bytes.data() + sizeof(Header);
-        }
-
-        EncryptedSQLiteRepositoryCredential(const std::byte* const password_hash)
-            :   EncryptedSQLiteRepositoryCredential()
-        {
-            reinterpret_cast<Header*>(_bytes.data())->_version = CurrentVersion;
-            reinterpret_cast<Header*>(_bytes.data())->_storage_timestamp = GetTimestamp();
-            memcpy(_bytes.data() + sizeof(Header), password_hash, EncryptedSQLiteRepository::PasswordHashSize);
-        }
-
-        std::string ToString() const
-        {
-            return Hash::BytesToHexString(_bytes.data(), _bytes.size());
-        }
-
-        static std::unique_ptr<EncryptedSQLiteRepositoryCredential> FromString(const std::string_view credential_string_sv)
-        {
-            std::unique_ptr<EncryptedSQLiteRepositoryCredential> credential(new EncryptedSQLiteRepositoryCredential);
-
-            // the credential will be considered valid if the length is correct and if the version matches
-            if( credential_string_sv.length() == ( credential->_bytes.size() * 2 ) )
-            {
-                Hash::HexStringToBytesBuffer(credential_string_sv, credential->_bytes.data(), false);
-
-                if( credential->GetVersion() == CurrentVersion )
-                    return credential;
-            }
-
-            return nullptr;
-        }
-    };
-
-
     class EncryptedSQLiteRepositoryCredentialStore : public CredentialStore
     {
     protected:
         std::string PrefixAttribute(const std::string& attribute) override
         {
-            // instead of storing the full filename in the credentials, store a hash of it
+            // instead of storing the full file path in the credentials, store a hash of it
             return "CSPro_data_" + Hash::Hash(attribute, 16);
         }
     };
@@ -118,10 +53,14 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
 
     if( previously_used_password_hash_lookup != m_previouslyUsedPasswordHashes.cend() )
     {
-        std::unique_ptr<const EncryptedSQLiteRepositoryCredential> credential = EncryptedSQLiteRepositoryCredential::FromString(previously_used_password_hash_lookup->second);
+        try
+        {
+            const EncryptedSQLiteRepositoryCredential credential(previously_used_password_hash_lookup->second);
 
-        if( m_fileOpenByPasswordHashCallback(credential->GetPasswordHash()) )
-            return true;
+            if( m_fileOpenByPasswordHashCallback(credential.GetPasswordHash()) )
+                return true;
+        }
+        catch(...) { }
     }
 
     // on the second pass, see if the password hash is in the credential manager
@@ -132,16 +71,17 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
 
     if( !credential_string.empty() )
     {
-        std::unique_ptr<const EncryptedSQLiteRepositoryCredential> credential = EncryptedSQLiteRepositoryCredential::FromString(credential_string);
-
-        if( credential != nullptr )
+        try
         {
-            if( m_dictionary == nullptr || ( GetTimestamp() < ( credential->GetStorageTimestamp() + 60.0 * m_dictionary->GetCachedPasswordMinutes() ) ) )
+            const EncryptedSQLiteRepositoryCredential credential(credential_string);
+
+            if( m_dictionary == nullptr || ( GetTimestamp() < ( credential.GetStorageTimestamp() + 60.0 * m_dictionary->GetCachedPasswordMinutes() ) ) )
             {
-                if( m_fileOpenByPasswordHashCallback(credential->GetPasswordHash()) )
+                if( m_fileOpenByPasswordHashCallback(credential.GetPasswordHash()) )
                     return true;
             }
         }
+        catch(...) { }
     }
 
     return false;
@@ -150,8 +90,7 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
 
 void EncryptedSQLiteRepositoryPasswordManager::UpdatePasswordHashInCredentialManager(const CDataDict* const dictionary, const std::byte* const password_hash)
 {
-    EncryptedSQLiteRepositoryCredential credential(password_hash);
-    const std::string credential_string = credential.ToString();
+    const std::string credential_string = EncryptedSQLiteRepositoryCredential::Create(dictionary, m_filePath, password_hash);
 
     m_previouslyUsedPasswordHashes[m_filePath] = credential_string;
 
