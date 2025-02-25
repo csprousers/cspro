@@ -152,16 +152,19 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
 END
 
-IDD_CSPRO_SETTINGS DIALOGEX 0, 0, 229, 94
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "CSPro Settings"
+IDD_MANAGE_CREDENTIALS DIALOGEX 0, 0, 481, 307
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Manage CSPro Credentials"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Close",IDOK,56,73,50,14
-    PUSHBUTTON      "&Help",ID_HELP,124,73,50,14
-    PUSHBUTTON      "Clear Credentials",IDC_BUTTON_CLEAR_CREDENTIALS,136,44,77,14
-    GROUPBOX        "Saved Credentials",IDC_STATIC,7,7,215,59
-    LTEXT           "CSPro saves login credentials to synchronization services as well as passwords to Encrypted CSPro DB files.",IDC_STATIC,17,19,196,18
+    DEFPUSHBUTTON   "Close",IDOK,176,286,50,14
+    PUSHBUTTON      "&Help",ID_HELP,254,286,50,14
+    PUSHBUTTON      "Clear",IDC_CLEAR,409,257,58,14
+    GROUPBOX        "Saved Credentials",IDC_STATIC,7,20,467,260
+    LTEXT           "CSPro stores credentials including synchronization service login credentials and Encrypted CSPro DB passwords.",IDC_STATIC,7,7,358,8
+    CONTROL         "Clear All",IDC_CLEAR_ALL,"MfcMenuButton",WS_TABSTOP,409,286,58,14
+    CONTROL         "",IDC_CREDENTIALS,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,15,34,216,237
+    LTEXT           "...",IDC_DETAILS,244,34,223,217,WS_BORDER
 END
 
 IDD_TEXT_REPORT DIALOGEX 0, 0, 449, 221
@@ -243,12 +246,12 @@ BEGIN
         BOTTOMMARGIN, 119
     END
 
-    IDD_CSPRO_SETTINGS, DIALOG
+    IDD_MANAGE_CREDENTIALS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 222
+        RIGHTMARGIN, 474
         TOPMARGIN, 7
-        BOTTOMMARGIN, 87
+        BOTTOMMARGIN, 300
     END
 
     IDD_TEXT_REPORT, DIALOG
@@ -296,9 +299,17 @@ BEGIN
     0
 END
 
-IDD_CSPRO_SETTINGS AFX_DIALOG_LAYOUT
+IDD_MANAGE_CREDENTIALS AFX_DIALOG_LAYOUT
 BEGIN
-    0
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    100, 100, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    100, 100, 0, 0,
+    0, 0, 50, 100,
+    50, 0, 50, 100
 END
 
 IDD_BATCHMETER_DIALOG AFX_DIALOG_LAYOUT
@@ -338,6 +349,43 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save to File",               ID_FILE_SAVE
     END
+END
+
+IDR_CLEAR_CREDENTIALS MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Sync Credentials",            ID_CREDENTIALS_CLEAR_SYNC
+        MENUITEM "Data Credentials",            ID_CREDENTIALS_CLEAR_DATA
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_MANAGE_CREDENTIALS DLGINIT
+BEGIN
+    IDC_CLEAR_ALL, 0x37c, 283, 0
+0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x4f5f, 0x4d53, 
+0x6e65, 0x3e75, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 
+0x7542, 0x7474, 0x6e6f, 0x4f5f, 0x4d53, 0x6e65, 0x3e75, 0x4d3c, 0x4346, 
+0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x525f, 0x6769, 0x7468, 0x7241, 
+0x6f72, 0x3e77, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x654d, 0x756e, 
+0x7542, 0x7474, 0x6e6f, 0x525f, 0x6769, 0x7468, 0x7241, 0x6f72, 0x3e77, 
+0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 0x6e6f, 0x535f, 0x6174, 
+0x5079, 0x6572, 0x7373, 0x6465, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 
+0x4d43, 0x6e65, 0x4275, 0x7475, 0x6f74, 0x5f6e, 0x7453, 0x7961, 0x7250, 
+0x7365, 0x6573, 0x3e64, 0x4d3c, 0x4346, 0x654d, 0x756e, 0x7542, 0x7474, 
+0x6e6f, 0x445f, 0x6665, 0x7561, 0x746c, 0x6c43, 0x6369, 0x3e6b, 0x5254, 
+0x4555, 0x2f3c, 0x464d, 0x4d43, 0x6e65, 0x4275, 0x7475, 0x6f74, 0x5f6e, 
+0x6544, 0x6166, 0x6c75, 0x4374, 0x696c, 0x6b63, 0x3c3e, 0x464d, 0x4d43, 
+0x6e65, 0x4275, 0x7475, 0x6f74, 0x5f6e, 0x7541, 0x6f74, 0x6973, 0x657a, 
+0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4d43, 0x6e65, 0x4275, 0x7475, 
+0x6f74, 0x5f6e, 0x7541, 0x6f74, 0x6973, 0x657a, "\076" 
+    0
 END
 
 

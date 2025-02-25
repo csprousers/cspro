@@ -24,10 +24,6 @@ public:
     template<typename T>
     std::optional<T> RetrieveOptionalFromJson(const std::string& attribute) noexcept;
 
-#ifdef WIN32
-    static void ClearAll(const std::function<bool(size_t)>* confirmation_callback = nullptr, const std::string& attribute_prefix = "CSPro");
-#endif
-
 protected:
     virtual std::string PrefixAttribute(const std::string& attribute) = 0;
 };

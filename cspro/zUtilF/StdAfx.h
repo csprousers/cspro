@@ -13,5 +13,6 @@
 
 #ifdef WIN_DESKTOP
 #include <zToolsO/WinClipboard.h>
+#include <zUtilO/WindowHelpers.h>
 #include <zUtilO/WindowsWS.h>
 #endif

@@ -42,23 +42,6 @@ std::string CredentialStore::Retrieve(const std::string& attribute)
 }
 
 
-void CredentialStore::ClearAll(const std::function<bool(size_t)>* confirmation_callback/* = nullptr*/, const std::string& attribute_prefix/* = "CSPro"*/)
-{
-    DWORD number_credentials = 0;
-    PCREDENTIAL* credentials = nullptr;
-
-    CredEnumerate(std::wstring(TC::ToWide(attribute_prefix) + L"*").c_str(), 0, &number_credentials, &credentials);
-
-    if( confirmation_callback == nullptr || (*confirmation_callback)(static_cast<size_t>(number_credentials)) )
-    {
-        for( DWORD i = 0; i < number_credentials; ++i )
-            CredDelete(credentials[i]->TargetName, CRED_TYPE_GENERIC, 0);
-    }
-
-    CredFree(credentials);
-}
-
-
 #else
 
 void CredentialStore::Store(const std::string& attribute, const std::string& secret_value)

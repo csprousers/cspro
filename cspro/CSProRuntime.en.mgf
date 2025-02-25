@@ -77,7 +77,7 @@ Language=EN
 94307  The password is invalid
 
 /* --- Saved Credentials */
-94331  There are no saved credentials
+94331  There are no saved credentials.
 94332  Are you sure that you want to delete %d credential(s)?
 
 /* --- Frequency */

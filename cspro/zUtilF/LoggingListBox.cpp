@@ -2,7 +2,6 @@
 #include "LoggingListBox.h"
 #include <zToolsO/File.h>
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/WindowHelpers.h>
 
 
 namespace

@@ -8,7 +8,8 @@ enum class SizingDirection;
 
 
 // --------------------------------------------------------------------------
-// ResizableDlg is a subclass of CDialog that:
+// ResizableDlg and ResizableDlgEx are subclasses of CDialog and CDialogEx
+// that:
 //
 // - Prevents the sizing of a dialog to be smaller than its size
 //   as constructed in the resource editor.
@@ -45,6 +46,17 @@ class CLASS_DECL_ZUTILO ResizableDlg : public ResizableDlgBase<CDialog>
 {
 public:
     using ParentType = ResizableDlgBase<CDialog>;
+    using ParentType::ParentType;
+
+protected:
+    DECLARE_MESSAGE_MAP()
+};
+
+
+class CLASS_DECL_ZUTILO ResizableDlgEx : public ResizableDlgBase<CDialogEx>
+{
+public:
+    using ParentType = ResizableDlgBase<CDialogEx>;
     using ParentType::ParentType;
 
 protected:

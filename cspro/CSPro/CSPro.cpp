@@ -3300,8 +3300,8 @@ void CCSProApp::OnCommonStore()
 
 void CCSProApp::OnManageCredentials()
 {
-    SettingsDlg settings_dlg;
-    settings_dlg.DoModal();
+    ManageCredentialsDlg manage_credentials_dlg;
+    manage_credentials_dlg.DoModal();
 }
 
 
