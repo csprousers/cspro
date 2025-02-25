@@ -2,6 +2,7 @@
 
 #include <zDataO/DataRepository.h>
 #include <zToolsO/span.h>
+#include <zAppO/SyncTypes.h>
 
 class SyncBinaryDataUploadManager;
 class SyncHistoryEntry;

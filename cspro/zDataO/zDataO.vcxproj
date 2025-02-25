@@ -82,6 +82,7 @@
     <ClInclude Include="DataRepositoryUniqueCaseIdentifer.h" />
     <ClInclude Include="DictionarySource.h" />
     <ClInclude Include="EncryptedSQLiteRepository.h" />
+    <ClInclude Include="EncryptedSQLiteRepositoryCredential.h" />
     <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h" />
     <ClInclude Include="ExportWriterRepository.h" />
     <ClInclude Include="IndexableTextRepository.h" />

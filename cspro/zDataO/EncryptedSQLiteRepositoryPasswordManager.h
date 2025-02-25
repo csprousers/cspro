@@ -33,8 +33,8 @@ private:
     static EncryptedSQLiteRepositoryPasswordManager* m_instance;
 #endif
 
-    const CDataDict* const m_dictionary;
-    const std::string m_filePath;
+    const CDataDict* m_dictionary;
+    std::string m_filePath;
     const OpenByPasswordCallback& m_fileOpenByPasswordCallback;
     const OpenByPasswordHashCallback& m_fileOpenByPasswordHashCallback;
 
