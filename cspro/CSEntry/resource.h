@@ -56,8 +56,8 @@
 #define ID_EDIT_FIELD_NOTE              40015
 #define ID_EDIT_REVIEW_NOTES            40016
 #define ID_ENDGRP                       40017
-#define ID_FILE_OPEN_DATORAPL           40018
-#define ID_FILE_SETTINGS                40019
+#define ID_FILE_MANAGE_CREDENTIALS      40018
+#define ID_FILE_OPEN_DATORAPL           40019
 #define ID_FILE_SYNCHRONIZE             40020
 #define ID_FIND_CASE                    40021
 #define ID_FINDCASE                     40022

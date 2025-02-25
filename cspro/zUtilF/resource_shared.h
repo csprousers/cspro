@@ -1,2 +1,3 @@
 //{{NO_DEPENDENCIES}}
-#define ID_WINDOWS_WINDOWS              41501
+#define ID_FILE_MANAGE_CREDENTIALS      41501
+#define ID_WINDOWS_WINDOWS              41502

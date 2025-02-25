@@ -94,6 +94,8 @@ BEGIN
             MENUITEM "CS&Web Data...",              ID_FILE_OPEN_CSWEB_DATA
         END
         MENUITEM SEPARATOR
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
+        MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
@@ -137,6 +139,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save View...\tCtrl+S",       ID_FILE_SAVE_VIEW
         MENUITEM "&Print View...\tCtrl+P",      ID_FILE_PRINT_VIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
@@ -226,6 +230,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save View...\tCtrl+S",       ID_FILE_SAVE_VIEW
         MENUITEM "&Print View...\tCtrl+P",      ID_FILE_PRINT_VIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
@@ -1078,6 +1084,11 @@ STRINGTABLE
 BEGIN
     AFX_IDS_SCRESTORE       "Restore the window to normal size"
     AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MANAGE_CREDENTIALS "Manage saved credentials\nManage Credentials"
 END
 
 #endif    // English (United States) resources

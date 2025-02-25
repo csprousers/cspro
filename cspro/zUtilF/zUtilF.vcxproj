@@ -80,6 +80,7 @@
     <ClCompile Include="ImageViewDlg.cpp" />
     <ClCompile Include="LinkCtrls.cpp" />
     <ClCompile Include="LoggingListBox.cpp" />
+    <ClCompile Include="ManageCredentialsDlg.cpp" />
     <ClCompile Include="MDIFrameWndHelpers.cpp" />
     <ClCompile Include="MsgDial.cpp" />
     <ClCompile Include="NoteEditDlg.cpp" />
@@ -90,7 +91,6 @@
     <ClCompile Include="RectExt.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
     <ClCompile Include="SelectFileDlg.cpp" />
-    <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="SrtHdrCt.cpp" />
     <ClCompile Include="SrtLstCt.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -131,6 +131,7 @@
     <ClInclude Include="ImageViewDlg.h" />
     <ClInclude Include="LinkCtrls.h" />
     <ClInclude Include="LoggingListBox.h" />
+    <ClInclude Include="ManageCredentialsDlg.h" />
     <ClInclude Include="MDIFrameWndHelpers.h" />
     <ClInclude Include="MFCMenuBarWithoutSerializableState.h" />
     <ClInclude Include="MsgDial.h" />
@@ -146,7 +147,6 @@
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="SelectDlg.h" />
     <ClInclude Include="SelectFileDlg.h" />
-    <ClInclude Include="SettingsDlg.h" />
     <ClInclude Include="SplitterWndTwoColumnProportionalResize.h" />
     <ClInclude Include="SplitterWndWithDifferingViews.h" />
     <ClInclude Include="SrtHdrCt.h" />

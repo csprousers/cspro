@@ -15,7 +15,7 @@ BEGIN
     ID_FILE_CSPRO_SAVE      "Save the active document\nSave"
     ID_FILE_CSPRO_SAVE_AS   "Save the active document with a new name\nSave As"
     ID_FILE_CSPRO_CLOSE     "Close the active document\nClose"
-    ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
+    ID_FILE_MANAGE_CREDENTIALS "Manage saved credentials\nManage Credentials"
 END
 
 STRINGTABLE

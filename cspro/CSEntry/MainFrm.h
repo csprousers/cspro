@@ -159,7 +159,7 @@ protected:
     afx_msg void OnUpdatePartialSaveCase(CCmdUI* pCmdUI);
     afx_msg void OnSimpleSynchronization();
     afx_msg void OnUpdateSimpleSynchronization(CCmdUI* pCmdUI);
-    afx_msg void OnCSProSettings();
+    afx_msg void OnManageCredentials();
     afx_msg void OnClose();
     afx_msg void OnAddCase();
     afx_msg void OnModifyCase();

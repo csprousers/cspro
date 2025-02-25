@@ -22,8 +22,8 @@
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/imsaDlg.H>
+#include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/MsgDial.h>
-#include <zUtilF/SettingsDlg.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zHtml/UWM.h>
 #include <zCaseO/Case.h>
@@ -69,7 +69,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_SAVE, OnUpdatePartialSaveCase)
     ON_COMMAND(ID_FILE_SYNCHRONIZE, OnSimpleSynchronization)
     ON_UPDATE_COMMAND_UI(ID_FILE_SYNCHRONIZE, OnUpdateSimpleSynchronization)
-    ON_COMMAND(ID_FILE_SETTINGS, OnCSProSettings)
+    ON_COMMAND(ID_FILE_MANAGE_CREDENTIALS, OnManageCredentials)
     ON_WM_CLOSE()
     ON_COMMAND(ID_ADD, OnAddCase)
     ON_COMMAND(ID_MODIFY, OnModifyCase)
@@ -4926,7 +4926,7 @@ Paradata::KeyingInstance* CMainFrame::GetParadataKeyingInstance()
 }
 
 
-void CMainFrame::OnCSProSettings()
+void CMainFrame::OnManageCredentials()
 {
     SettingsDlg settings_dlg;
     settings_dlg.DoModal();

@@ -18,7 +18,8 @@
 #include <zUtilO/WinFocSw.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/DocViewIterators.h>
-#include <zUtilF/SettingsDlg.h>
+#include <zUtilF/ManageCredentialsDlg.h>
+#include <zUtilF/resource_shared.h>
 #include <zListingO/Lister.h>
 #include <zDesignerF/ManageFilesDlg.h>
 #include <zDictF/Ddgview.h>
@@ -52,7 +53,7 @@ BEGIN_MESSAGE_MAP(CCSProApp, CWinApp)
     ON_UPDATE_COMMAND_UI(ID_FILE_CSPRO_SAVE_AS, OnUpdateIsDocumentOpen)
     ON_COMMAND(ID_FILE_MANAGE_FILES, OnManageFiles)
     ON_UPDATE_COMMAND_UI(ID_FILE_MANAGE_FILES, OnUpdateIsApplicationOpen)
-    ON_COMMAND(ID_FILE_SETTINGS, OnCSProSettings)
+    ON_COMMAND(ID_FILE_MANAGE_CREDENTIALS, OnManageCredentials)
     ON_COMMAND(ID_VIEW_ONKEY_CHAR_MAP, OnOnKeyCharacterMap)
     ON_COMMAND(ID_VIEW_COMMONSTORE, OnCommonStore)
     ON_COMMAND(ID_CHANGE_TAB, OnChangeTab) // 20100406
@@ -3297,7 +3298,7 @@ void CCSProApp::OnCommonStore()
 }
 
 
-void CCSProApp::OnCSProSettings()
+void CCSProApp::OnManageCredentials()
 {
     SettingsDlg settings_dlg;
     settings_dlg.DoModal();

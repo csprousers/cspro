@@ -7,6 +7,7 @@
 #include <zToolsO/UWM.h>
 #include <zUtilO/UWM.h>
 #include <zUtilF/DocViewIterators.h>
+#include <zUtilF/resource_shared.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/WindowsMenuManager.h>
 #include <zEdit2O/UWM.h>

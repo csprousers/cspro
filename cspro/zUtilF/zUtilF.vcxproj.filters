@@ -56,6 +56,9 @@
     <ClCompile Include="LoggingListBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ManageCredentialsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MDIFrameWndHelpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -84,9 +87,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SelectFileDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SettingsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SrtHdrCt.cpp">
@@ -187,6 +187,9 @@
     <ClInclude Include="LoggingListBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ManageCredentialsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MDIFrameWndHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -233,9 +236,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SelectFileDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SettingsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SplitterWndTwoColumnProportionalResize.h">

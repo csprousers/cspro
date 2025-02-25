@@ -7,6 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#include "../zUtilF/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "../zTableF/resource_shared.h"
 #include "../zUToolO/resource_shared.h"
@@ -35,6 +36,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
+    "#include ""../zUtilF/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""../zTableF/resource_shared.h""\r\n"
     "#include ""../zUToolO/resource_shared.h""\r\n"
@@ -179,7 +181,7 @@ BEGIN
         MENUITEM "&New...\tCtrl+N",             ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM SEPARATOR
-        MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
+        MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
@@ -613,8 +615,8 @@ BEGIN
     LTEXT           "Action Invoker name:",IDC_STATIC,16,90,70,8
     EDITTEXT        IDC_JAVASCRIPT_ACTION_INVOKER_NAME,96,87,77,14,ES_AUTOHSCROLL
     GROUPBOX        "Compiled Application Serialization",IDC_STATIC,0,118,282,64
-    CONTROL         "Scripts and bytecode ",IDC_JAVASCRIPT_SCRIPTS_AND_BYTECODE,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,16,133,85,10
+    CONTROL         "Scripts and bytecode",IDC_JAVASCRIPT_SCRIPTS_AND_BYTECODE,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,16,133,83,10
     CONTROL         "Scripts only",IDC_JAVASCRIPT_SCRIPTS_ONLY,"Button",BS_AUTORADIOBUTTON,16,149,53,10
     CONTROL         "Bytecode only (will not run on x64 devices)",IDC_JAVASCRIPT_BYTECODE_ONLY,
                     "Button",BS_AUTORADIOBUTTON,16,165,153,10

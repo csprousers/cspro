@@ -1,5 +1,5 @@
 ﻿#include "StdAfx.h"
-#include "SettingsDlg.h"
+#include "ManageCredentialsDlg.h"
 #include <zUtilO/CredentialStore.h>
 #include <zMessageO/Messages.h>
 
