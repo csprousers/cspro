@@ -350,7 +350,7 @@ LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wP
     {
         wchar_t* buffer = nullptr;
         m_currentDataFileDlg->GetIFileDialog()->GetFileName(&buffer);
-        std::string current_filename = TC::ToUtf8(buffer);
+        std::string current_filename = Path::ToNativeSlash(TC::ToUtf8(buffer));
         CoTaskMemFree(buffer);
         return current_filename;
     };
@@ -389,6 +389,14 @@ LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wP
                 if( connection_string.HasFilePath() )
                 {
                     connection_string.AdjustRelativePath(TC::ToUtf8(m_currentDataFileDlg->GetFolderPath()));
+
+                    // if the user specifies a directory, let the default processing continue
+                    // so that the user can enter text like ".." to navigate directories
+                    if( PortableFunctions::FileIsDirectory(connection_string.GetFilePath()) &&
+                        connection_strings.size() == 1 )
+                    {
+                        return DefSubclassProc(hWnd, msg, wParam, lParam);
+                    }
 
                     // issue an error if the directory does not exist
                     if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
