@@ -23,6 +23,8 @@ BEGIN_MESSAGE_MAP(DataSourceFrame, CaseHoldingFrame)
 
     ON_COMMAND(ID_FILE_SYNCHRONIZE, OnFileSynchronize)
 
+    ON_COMMAND(ID_FILE_SAVE_DATA, OnFileSaveData)
+
     // Listing menu
     ON_COMMAND_RANGE(ID_LISTING_SEQUENTIAL, ID_LISTING_INDEXED, OnListingMethod)
     ON_UPDATE_COMMAND_UI_RANGE(ID_LISTING_SEQUENTIAL, ID_LISTING_INDEXED, OnUpdateListingMethod)
@@ -486,6 +488,10 @@ LRESULT DataSourceFrame::OnRunTaskFromCaseListing(const WPARAM wParam, LPARAM /*
 
     switch( wParam )
     {
+        case ID_FILE_SAVE_CASES:
+            OnFileSaveCases(std::move(case_provider));
+            return 1;
+
         case ID_FILE_EXTRACT_NOTES:
             OnFileExtractNotes(std::move(case_provider));
             return 1;

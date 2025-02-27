@@ -221,6 +221,7 @@ BEGIN
         MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
         MENUITEM SEPARATOR
+        MENUITEM "S&ave Case...",               ID_FILE_SAVE_CASES
         POPUP "Extract"
         BEGIN
             MENUITEM "Dictionary...",               ID_FILE_EXTRACT_DICTIONARY
@@ -862,6 +863,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FILE_SYNCHRONIZE     "Synchronize cases to the data source\nSynchronize Data"
     ID_LISTING_ASCENDING    "View cases in ascending order\nAscending"
     ID_LISTING_DESCENDING   "View cases in descending order\nDescending"
     ID_LISTING_CASE_LABEL   "Show case labels in the case listing\nCase Label"
@@ -897,12 +899,12 @@ BEGIN
     ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES "Display dictionary names\nNames"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES_AND_LABELS 
                             "Display dictionary names and labels\nNames and Labels"
-    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS 
-                            "Display both item and subitems\nItems and Subitems"
 END
 
 STRINGTABLE
 BEGIN
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS 
+                            "Display both item and subitems\nItems and Subitems"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS 
                             "Display only items and not subitems\nItems Only"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_SUBITEMS 
@@ -931,12 +933,12 @@ BEGIN
                             "Display non-default information about cases\nDefault Display"
     ID_VIEW_OPTIONS_HTML_CASE_ALL_DETAILS 
                             "Display all information about cases\nShow All Details"
-    ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS 
-                            "Show case errors and inconsistencies\nShow Case Errors"
 END
 
 STRINGTABLE
 BEGIN
+    ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS 
+                            "Show case errors and inconsistencies\nShow Case Errors"
     ID_VIEW_OPTIONS_HTML_CASE_HIDE_ERRORS 
                             "Hide case errors and inconsistencies\nHide Case Errors"
     ID_VIEW_OPTIONS_JSON_COMPACT_JSON 
@@ -977,9 +979,9 @@ BEGIN
     ID_FILE_OPEN_DATA_SOURCE "Open an existing data source\nOpen Data Source"
     ID_FILE_PRINT_VIEW      "Print the active view\nPrint View"
     ID_FILE_REFRESH         "Refresh the case listing and view\nRefresh Data"
+    ID_FILE_SAVE_CASES      "Save the case to a new data source\nSave Case"
     ID_FILE_SAVE_DATA       "Save the cases to a new data source\nSave Data"
     ID_FILE_SAVE_VIEW       "Save the active view\nSave View"
-    ID_FILE_SYNCHRONIZE     "Synchronize cases to the data source\nSynchronize Data"
 END
 
 STRINGTABLE
