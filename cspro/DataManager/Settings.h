@@ -7,6 +7,7 @@ struct CaseJsonContentCreatorSettings;
 class CaseQuestionnaireContentCreatorSettings;
 struct CaseTextContentCreatorSettings;
 class DataSourceSettings;
+struct ExportDataSettings;
 struct ExtractBinaryDataSettings;
 struct ExtractNotesSettings;
 class SettingsDb;

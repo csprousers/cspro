@@ -59,7 +59,7 @@ BOOL ExtractBinaryDataDlg::OnInitDialog()
     try
     {
         const size_t number_cases = m_caseProvider->GetNumberCases();
-        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to save the binary data contained in %d cases%s:",
+        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to extract the binary data contained in %d case%s:",
                                                            static_cast<int>(number_cases), PluralizeWord(number_cases)));
     }
     catch(...) { ASSERT(false); }

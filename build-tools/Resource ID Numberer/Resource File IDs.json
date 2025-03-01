@@ -307,6 +307,15 @@
         "ID_TOGGLE_VALUE_DISPLAY"
       ],
       [
+        "IDC_EXPORT_CSV",
+        "IDC_EXPORT_EXCEL",
+        "IDC_EXPORT_JSON",
+        "IDC_EXPORT_R",
+        "IDC_EXPORT_SAS",
+        "IDC_EXPORT_SPSS",
+        "IDC_EXPORT_STATA"
+      ],
+      [
         "IDC_BINARY_DATA_FORMAT_FILENAME",
         "IDC_BINARY_DATA_FORMAT_KEY_FILENAME",
         "IDC_BINARY_DATA_FORMAT_SIGNATURE",

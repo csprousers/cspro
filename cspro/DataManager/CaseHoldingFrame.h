@@ -35,6 +35,9 @@ protected:
     void OnFileSaveCases();
     void OnFileSaveCases(std::shared_ptr<CaseProvider> case_provider);
 
+    void OnFileExportCases();
+    void OnFileExportCases(std::shared_ptr<CaseProvider> case_provider);
+
     void OnFileExtractDictionary();
 
     void OnFileExtractNotes();

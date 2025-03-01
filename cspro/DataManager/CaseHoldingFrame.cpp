@@ -6,6 +6,8 @@
 #include "CaseTextContentCreator.h"
 #include "DataSourceFrame.h"
 #include "DataSummaryContentCreator.h"
+#include "ExportDataDlg.h"
+#include "ExportDataTask.h"
 #include "ExtractCasesTask.h"
 #include "ExtractNotesDlg.h"
 #include "ExtractNotesTask.h"
@@ -21,6 +23,7 @@ BEGIN_MESSAGE_MAP(CaseHoldingFrame, CMDIChildWndEx)
 
     // File menu
     ON_COMMAND(ID_FILE_SAVE_CASES, OnFileSaveCases)
+    ON_COMMAND(ID_FILE_EXPORT_CASES, OnFileExportCases)
 
     ON_COMMAND(ID_FILE_EXTRACT_DICTIONARY, OnFileExtractDictionary)
 
@@ -116,6 +119,35 @@ void CaseHoldingFrame::OnFileSaveCases(std::shared_ptr<CaseProvider> case_provid
 
     RunCaseTask(std::move(case_provider),
                 std::make_unique<ExtractCasesTask>(data_file_dlg.GetConnectionString()));
+}
+
+
+void CaseHoldingFrame::OnFileExportCases()
+{
+    OnFileExportCases(CreateCaseProvider());
+}
+
+
+void CaseHoldingFrame::OnFileExportCases(std::shared_ptr<CaseProvider> case_provider)
+{
+    ASSERT(case_provider != nullptr);
+
+    CaseHoldingDoc& case_holding_doc = GetCaseHoldingDoc();
+
+    if( !case_holding_doc.DictionaryAllowsExport("exporting cases") )
+        return;
+
+    const std::shared_ptr<ExportDataSettings> settings = case_holding_doc.GetSettings<ExportDataSettings>();
+
+    ExportDataDlg dlg(case_holding_doc, *settings, case_provider);
+
+    if( dlg.DoModal() != IDOK )
+        return;
+
+    *settings = dlg.GetSettings();
+
+    RunCaseTask(std::move(case_provider),
+                std::make_unique<ExportDataTask>(dlg.ReleaseExportConnectionStrings()));
 }
 
 

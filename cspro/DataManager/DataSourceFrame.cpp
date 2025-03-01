@@ -492,6 +492,10 @@ LRESULT DataSourceFrame::OnRunTaskFromCaseListing(const WPARAM wParam, LPARAM /*
             OnFileSaveCases(std::move(case_provider));
             return 1;
 
+        case ID_FILE_EXPORT_CASES:
+            OnFileExportCases(std::move(case_provider));
+            return 1;
+
         case ID_FILE_EXTRACT_NOTES:
             OnFileExtractNotes(std::move(case_provider));
             return 1;
@@ -549,6 +553,7 @@ void DataSourceFrame::OnFileSynchronize()
 {
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
     bool need_to_restore_read_only_mode = false;
+    bool need_to_refresh_cases = false;
 
     try
     {
@@ -568,6 +573,8 @@ void DataSourceFrame::OnFileSynchronize()
             need_to_restore_read_only_mode = true;
         }
 
+        need_to_refresh_cases = true;
+
         TaskRunnerDlg task_runner_dlg(synchronize_dlg.ReleaseSyncTask(), this);
         task_runner_dlg.SetCloseDialogOnSuccess();
 
@@ -585,13 +592,17 @@ void DataSourceFrame::OnFileSynchronize()
 
     // because cases may have changed, refresh the case tree and then show
     // show the data summary, which will contain information on the last sync time
-    Refresh(true);
+    if( need_to_refresh_cases )
+        Refresh(true);
 }
 
 
 void DataSourceFrame::OnFileSaveData()
 {
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
+
+    if( !data_source_doc.DictionaryAllowsExport("saving data") )
+        return;
 
     DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false);
     data_file_dlg.SetTitle(FormatText("Save '%s' Data As", data_source_doc.GetDictionary().GetName().c_str()))

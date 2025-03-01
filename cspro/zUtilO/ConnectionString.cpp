@@ -26,6 +26,25 @@ const char* const DataRepositoryTypeNames[] =
 };
 
 
+DEFINE_ENUM_JSON_SERIALIZER_CLASS(DataRepositoryType,
+    { DataRepositoryType::Null, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Null)] },
+    { DataRepositoryType::Text, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Text)] },
+    { DataRepositoryType::SQLite, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::SQLite)] },
+    { DataRepositoryType::EncryptedSQLite, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::EncryptedSQLite)] },
+    { DataRepositoryType::Memory, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Memory)] },
+    { DataRepositoryType::Json, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Json)] },
+    { DataRepositoryType::CSWeb, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::CSWeb)] },
+    { DataRepositoryType::CommaDelimited, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::CommaDelimited)] },
+    { DataRepositoryType::SemicolonDelimited, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::SemicolonDelimited)] },
+    { DataRepositoryType::TabDelimited, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::TabDelimited)] },
+    { DataRepositoryType::Excel, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Excel)] },
+    { DataRepositoryType::CSProExport, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::CSProExport)] },
+    { DataRepositoryType::R, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::R)] },
+    { DataRepositoryType::SAS, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::SAS)] },
+    { DataRepositoryType::SPSS, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::SPSS)] },
+    { DataRepositoryType::Stata, DataRepositoryTypeNames[static_cast<size_t>(DataRepositoryType::Stata)] })
+
+
 const char* const DataRepositoryTypeDefaultExtensions[] =
 {
     "", // Null
@@ -525,7 +544,7 @@ void ConnectionString::WriteJson(JsonWriter& json_writer, const bool write_relat
             json_writer.Write(JK::url, m_resource);
         }
 
-        json_writer.Write(JK::type, DataRepositoryTypeNames[static_cast<size_t>(m_dataRepositoryType)]);
+        json_writer.Write(JK::type, m_dataRepositoryType);
 
         PropertyString::WriteJson(json_writer, false);
     }

@@ -9,6 +9,7 @@ BEGIN_MESSAGE_MAP(DataSourceCaseListingCtrl, CaseListingCtrl)
     ON_COMMAND(ID_COPY_KEY, OnCopyKey)
     ON_COMMAND(ID_VIEW_CASES, OnViewCases)
     ON_COMMAND_RANGE(ID_FILE_SAVE_CASES, ID_FILE_SAVE_CASES, OnRunTaskFromCaseListing)
+    ON_COMMAND_RANGE(ID_FILE_EXPORT_CASES, ID_FILE_EXPORT_CASES, OnRunTaskFromCaseListing)
     ON_COMMAND_RANGE(ID_FILE_EXTRACT_NOTES, ID_FILE_EXTRACT_NOTES, OnRunTaskFromCaseListing)
     ON_COMMAND_RANGE(ID_FILE_EXTRACT_BINARY_DATA, ID_FILE_EXTRACT_BINARY_DATA, OnRunTaskFromCaseListing)
     ON_COMMAND_RANGE(ID_DATA_DELETE_CASE, ID_DATA_DELETE_CASE, OnPostCommand)
@@ -51,12 +52,14 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
     auto build_and_show_menu = [&](const wchar_t* const copy_key_text,
                                    const wchar_t* const view_case_text,
                                    const wchar_t* const save_case_text,
+                                   const wchar_t* const export_case_text,
                                    const wchar_t* const extract_notes_text,
                                    const wchar_t* const extract_binary_data_text,
                                    const wchar_t* const delete_case_text)
     {
         ASSERT(( copy_key_text != nullptr ) == ( view_case_text != nullptr ));
         ASSERT(save_case_text != nullptr);
+        ASSERT(export_case_text != nullptr);
         ASSERT(extract_notes_text != nullptr);
         ASSERT(extract_binary_data_text != nullptr);
 
@@ -79,6 +82,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
         }
 
         popup_menu.AppendMenu(MF_STRING, ID_FILE_SAVE_CASES, save_case_text);
+        popup_menu.AppendMenu(MF_STRING, ID_FILE_EXPORT_CASES, export_case_text);
 
         popup_menu.AppendMenu(MF_SEPARATOR);
         popup_menu.AppendMenu(MF_STRING, ID_FILE_EXTRACT_NOTES, extract_notes_text);
@@ -107,6 +111,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
         build_and_show_menu(( L"Copy Key: " + TC::ToWide(case_summary.GetSingleLineKey()) ).c_str(),
                             L"View Case in New Window",
                             L"Save Case",
+                            L"Export Case",
                             L"Extract Notes from Case",
                             L"Extract Binary Data from Case",
                             case_summary.GetDeleted() ? L"Undelete Case" : L"Delete Case");
@@ -117,6 +122,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
         build_and_show_menu(FormatText(L"Copy Keys of Selected Cases (%d)", static_cast<int>(selected_case_summaries.size())).GetString(),
                             L"View Selected Cases in New Windows",
                             L"Save Selected Cases",
+                            L"Export Selected Cases",
                             L"Extract Notes from Selected Cases",
                             L"Extract Binary Data from Selected Cases",
                             L"Delete Cases");
@@ -127,6 +133,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
         build_and_show_menu(nullptr,
                             nullptr,
                             FormatText(L"Save Filtered Cases (%d)", static_cast<int>(*GetNumberCases())).GetString(),
+                            L"Export Filtered Cases",
                             L"Extract Notes from Filtered Cases",
                             L"Extract Binary Data from Filtered Cases",
                             nullptr);
