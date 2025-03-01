@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "TaskRunnerDlg.h"
-#include <zToolsO/NewlineSubstitutor.h>
+#include "WindowsMessageCaseConstructionReporter.h"
 #include <zUtilO/WindowHelpers.h>
 
 
@@ -15,6 +15,7 @@ namespace
 BEGIN_MESSAGE_MAP(TaskRunnerDlg, ResizableDlg)
     ON_WM_DESTROY()
     ON_MESSAGE(UWM::DataManager::TaskEvent, OnTaskEvent)
+    ON_MESSAGE(UWM::DataManager::CaseConstructionReporterMessage, OnCaseConstructionReporterMessage)
 END_MESSAGE_MAP()
 
 
@@ -63,42 +64,9 @@ void TaskRunnerDlg::OnDestroy()
 }
 
 
-class TaskRunnerDlg::LoggingCaseConstructionReporter : public StringBasedCaseConstructionReporter
-{
-public:
-    LoggingCaseConstructionReporter(TaskRunnerDlg& task_runner_dlg, const std::string& dictionary_name)
-        :   m_taskRunnerDlg(task_runner_dlg),
-            m_messagePrefixes{ dictionary_name + ": ",
-                               dictionary_name + "(%s): " }
-    {
-    }
-
-protected:
-    void WriteString(const std::string& key, const std::string message) override
-    {
-        if( key.empty() )
-        {
-            m_taskRunnerDlg.LogText(m_messagePrefixes[0] + message);
-        }
-
-        else
-        {
-            // turn \n -> ␤
-            const std::string prefix = FormatText(m_messagePrefixes[1].c_str(), NewlineSubstitutor::NewlineToUnicodeNL(key).c_str());
-
-            m_taskRunnerDlg.LogText(prefix + message);
-        }
-    }
-
-private:
-    TaskRunnerDlg& m_taskRunnerDlg;
-    std::string m_messagePrefixes[2];
-};
-
-
 std::shared_ptr<CaseConstructionReporter> TaskRunnerDlg::GetCaseConstructionReporter(const CaseAccess& case_access)
 {
-    return std::make_unique<LoggingCaseConstructionReporter>(*this, case_access.GetDataDict().GetName());
+    return std::make_unique<WindowsMessageCaseConstructionReporter>(this, case_access.GetDataDict().GetName());
 }
 
 
@@ -170,6 +138,19 @@ LRESULT TaskRunnerDlg::OnTaskEvent(const WPARAM wParam, const LPARAM lParam)
         default:
             return ReturnProgrammingError(0);
     }
+}
+
+
+LRESULT TaskRunnerDlg::OnCaseConstructionReporterMessage(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    const std::string* const message = reinterpret_cast<const std::string*>(wParam);
+    ASSERT(message != nullptr);
+
+    LogText();
+    LogText(u8"⚠ " + *message);
+    LogText();
+
+    return 1;
 }
 
 

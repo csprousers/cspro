@@ -8,8 +8,6 @@
 
 class TaskRunnerDlg : public ResizableDlg, public TaskRunner
 {
-    class LoggingCaseConstructionReporter;
-
 public:
     TaskRunnerDlg(std::unique_ptr<Task> task, CWnd* pParent = nullptr);
 
@@ -27,6 +25,7 @@ protected:
     void OnCancel() override;
 
     LRESULT OnTaskEvent(WPARAM wParam, LPARAM lParam);
+    LRESULT OnCaseConstructionReporterMessage(WPARAM wParam, LPARAM lParam);
 
     // TaskRunner overrides
     std::shared_ptr<CaseConstructionReporter> GetCaseConstructionReporter(const CaseAccess& case_access) override;

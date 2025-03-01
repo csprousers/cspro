@@ -3,6 +3,7 @@
 #include "CaseListingView.h"
 #include "DataSourceFrame.h"
 #include "DataSourceSettings.h"
+#include "WindowsMessageCaseConstructionReporter.h"
 #include <zInterfaceF/DictionaryReconcileDlg.h>
 
 
@@ -96,7 +97,9 @@ BOOL DataSourceDoc::OnOpenDocument(LPCTSTR lpszPathName)
             m_dictionary->SetCurrentLanguage(*language_index);
 
         // set the case access and open the data repository
-        m_caseAccess = CaseAccess::CreateAndInitializeFullCaseAccess(*m_dictionary);
+        std::unique_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*m_dictionary);
+        case_access->SetCaseConstructionReporter(std::make_unique<WindowsMessageCaseConstructionReporter>(nullptr, m_dictionary->GetName()));
+        m_caseAccess = std::move(case_access);
 
         m_dataRepository = DataRepository::CreateAndOpen(m_caseAccess, m_connectionString, DataRepositoryAccess::ReadOnly,
                                                                                            DataRepositoryOpenFlag::OpenMustExist);

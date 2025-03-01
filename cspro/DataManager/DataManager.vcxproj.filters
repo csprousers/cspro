@@ -168,6 +168,9 @@
     <ClInclude Include="ViewOptionsHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WindowsMessageCaseConstructionReporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CaseContentCreatorBase.cpp">

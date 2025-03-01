@@ -19,6 +19,7 @@ namespace UWM::DataManager
     const unsigned ProcessWebViewMessage                      = UWM::Ranges::ExeStart + 10;
     const unsigned TaskEvent                                  = UWM::Ranges::ExeStart + 11;
     const unsigned RunTaskFromCaseListing                     = UWM::Ranges::ExeStart + 12;
+    const unsigned CaseConstructionReporterMessage            = UWM::Ranges::ExeStart + 13;
 
     CHECK_MESSAGE_NUMBERING(RunTaskFromCaseListing, UWM::Ranges::ExeLast)
 }

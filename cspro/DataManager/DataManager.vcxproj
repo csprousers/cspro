@@ -116,6 +116,7 @@
     <ClInclude Include="TaskRunnerSyncListener.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="ViewOptionsHelper.h" />
+    <ClInclude Include="WindowsMessageCaseConstructionReporter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CaseContentCreatorBase.cpp" />
