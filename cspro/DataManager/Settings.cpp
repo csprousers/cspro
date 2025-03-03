@@ -157,21 +157,7 @@ void Settings::EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_sourc
         per_data_source_data.*settings = std::make_unique<T>(*(last_per_data_source_data.*settings));
 
         // handle partially copyable settings
-        if constexpr(std::is_same_v<T, ExportDataSettings>)
-        {
-            (per_data_source_data.*settings)->base_file_path.clear();
-        }
-
-        else if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
-        {
-            (per_data_source_data.*settings)->output_directory.clear();
-        }
-
-        else if constexpr(std::is_same_v<T, ExtractNotesSettings>)
-        {
-            (per_data_source_data.*settings)->notes_connection_string.Clear();
-            (per_data_source_data.*settings)->notes_dictionary_file_path.clear();
-        }
+        ResetUniqueToDataSourceSettings(*(per_data_source_data.*settings));
 
         return;
     }
@@ -183,6 +169,27 @@ void Settings::EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_sourc
     {
         // default to key order
         (per_data_source_data.*settings)->SetMethod(CaseIterationMethod::KeyOrder);
+    }
+}
+
+
+template<typename T>
+void Settings::ResetUniqueToDataSourceSettings(T& settings)
+{
+    if constexpr(std::is_same_v<T, ExportDataSettings>)
+    {
+        settings.base_file_path.clear();
+    }
+
+    else if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
+    {
+        settings.output_directory.clear();
+    }
+
+    else if constexpr(std::is_same_v<T, ExtractNotesSettings>)
+    {
+        settings.notes_connection_string.Clear();
+        settings.notes_dictionary_file_path.clear();
     }
 }
 
@@ -247,7 +254,10 @@ std::shared_ptr<T> Settings::GetSettings(const ConnectionString& connection_stri
     ASSERT(settings != nullptr);
 
     if( create_unique_copy_of_settings )
-        return std::make_unique<T>(*settings);
+    {
+        settings = std::make_unique<T>(*settings);
+        ResetUniqueToDataSourceSettings(*settings);
+    }
 
     return settings;
 }

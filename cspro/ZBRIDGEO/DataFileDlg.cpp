@@ -350,7 +350,7 @@ LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wP
     {
         wchar_t* buffer = nullptr;
         m_currentDataFileDlg->GetIFileDialog()->GetFileName(&buffer);
-        std::string current_filename = Path::ToNativeSlash(TC::ToUtf8(buffer));
+        std::string current_filename = TC::ToUtf8(buffer);
         CoTaskMemFree(buffer);
         return current_filename;
     };

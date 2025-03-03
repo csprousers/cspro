@@ -23,6 +23,7 @@ public:
     HtmlViewCtrl(HtmlViewCtrl&&) = delete;
     ~HtmlViewCtrl();
 
+    void SetAllowExternalDrop(bool enabled);
     void SetContextMenuEnabled(bool enabled);
     void SetZoomControlEnabled(bool enabled);
     void SetOpenNonLocalhostLinksInBrowser(bool open_in_browser);
@@ -108,6 +109,7 @@ private:
 
     std::function<bool(UINT message, UINT key, INT lParam)> m_acceleratorKeyHandler;
 
+    bool m_allowExternalDrop;
     bool m_contextMenuEnabled;
     bool m_zoomControlEnabled;
     bool m_openNonLocalhostLinksInBrowser;

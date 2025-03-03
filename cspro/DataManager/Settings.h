@@ -42,6 +42,9 @@ private:
     template<typename T>
     void EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_source_data, std::shared_ptr<T> (PerDataSourceData::*settings));
 
+    template<typename T>
+    static void ResetUniqueToDataSourceSettings(T& settings);
+
     void Save();
 
     static std::string ToJson(PerDataSourceData& per_data_source_data);

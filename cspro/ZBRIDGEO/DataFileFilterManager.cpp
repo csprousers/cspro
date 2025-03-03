@@ -57,7 +57,6 @@ DataFileFilterManager::DataFileFilterManager(const UseType use_type, const bool 
     add_type(DataRepositoryType::EncryptedSQLite);
     add_type(DataRepositoryType::Text, true, false);
     add_type(DataRepositoryType::Json);
-    add_type(DataRepositoryType::CSWeb, true, false);
 
     if( m_useType == UseType::FileAssociationsDlg )
     {
