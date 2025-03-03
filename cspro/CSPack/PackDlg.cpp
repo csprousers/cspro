@@ -452,10 +452,10 @@ void PackDlg::OnInputsAddFile()
 
 void PackDlg::OnInputsAddFolder()
 {
-    std::optional<std::string> folder = SelectFolderDialog(m_hWnd, "Select Folder");
+    std::string folder = SelectFolderDialog();
 
-    if( folder.has_value() )
-        AddInputs({ std::move(*folder) });
+    if( !folder.empty() )
+        AddInputs({ std::move(folder) });
 }
 
 

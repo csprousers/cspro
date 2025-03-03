@@ -132,12 +132,12 @@ void SyncServiceSelectorDlg::OnDirectorySelect()
           sync_connection_string.GetType() == SyncServiceType::LocalFiles ) ? sync_connection_string.GetEvaluatedDirectoryPath() :
                                                                               SO::Empty_string;
 
-    std::optional<std::string> directory = SelectFolderDialog(GetSafeHwnd(), "Select Directory for Local Files", current_directory);
+    std::string directory = SelectFolderDialog(L"Select Directory for Local Files", TC::ToWide(current_directory).c_str());
 
-    if( !directory.has_value() )
+    if( directory.empty() )
         return;
 
-    ToForm(SyncConnectionString::CreateLocalFilesSyncConnectionString(std::move(*directory)), std::nullopt);
+    ToForm(SyncConnectionString::CreateLocalFilesSyncConnectionString(std::move(directory)), std::nullopt);
 
     UpdateData(FALSE);
 }

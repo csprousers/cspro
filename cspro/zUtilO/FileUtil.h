@@ -31,14 +31,20 @@ CLASS_DECL_ZUTILO CString GenUniqueFileName(NullTerminatedString sFullPath);
 // a wrapper around the SHBrowseForFolder method
 CLASS_DECL_ZUTILO std::optional<std::string> RunSHBrowseForFolder(HWND hWnd, UINT flags, std::string_view title_sv, const std::string& initial_path);
 
-// display a "select folder" dialog
-inline std::optional<std::string> SelectFolderDialog(HWND hWnd, std::string_view title_sv, const std::string& initial_path = std::string())
+// Displays a "select folder" dialog.
+inline std::optional<std::string> SelectFolderDialogOld(HWND hWnd, std::string_view title_sv, const std::string& initial_path = std::string())
 {
     return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE, title_sv, initial_path);
 }
 
-// display a "select file or folder" dialog
+// Displays a "select file or folder" dialog.
 inline std::optional<std::string> SelectFileOrFolderDialog(HWND hWnd, std::string_view title_sv, const std::string& initial_path = std::string())
 {
     return RunSHBrowseForFolder(hWnd, BIF_USENEWUI | BIF_SHAREABLE | BIF_NONEWFOLDERBUTTON | BIF_BROWSEINCLUDEFILES, title_sv, initial_path);
 }
+
+
+// Displays a "select folder" dialog using the more modern Common Item Dialog.
+// If the user does not select a folder, a blank string is returned.
+CLASS_DECL_ZUTILO std::string SelectFolderDialog(const wchar_t* title = L"Select Folder", const wchar_t* initial_directory = nullptr);
+CLASS_DECL_ZUTILO std::string SelectFolderDialog(std::string_view title_sv, std::string_view initial_directory_sv = std::string_view());

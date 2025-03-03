@@ -133,12 +133,12 @@ void CMainFrame::OnFileOpenDirectory()
 {
     ASSERT(m_runtimeHost != nullptr);
 
-    std::optional<std::string> directory = SelectFolderDialog(m_hWnd, "Select a directory containing CSPro applications:");
+    std::string directory = SelectFolderDialog(L"Select a directory containing CSPro applications:");
 
-    if( !directory.has_value() )
+    if( directory.empty() )
         return;
 
-    m_runtimeHost->StartRuntimeAsync(std::make_unique<WindowsApplicationListingRuntime>(std::move(*directory)));
+    m_runtimeHost->StartRuntimeAsync(std::make_unique<WindowsApplicationListingRuntime>(std::move(directory)));
 }
 
 

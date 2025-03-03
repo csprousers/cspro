@@ -1138,18 +1138,18 @@ bool ManageFilesDlg::CreateDefaultHtmlReport(const std::string& report_file_path
 
 void ManageFilesDlg::OnAddResourceDirectory()
 {
-    std::optional<std::string> directory = SelectFolderDialog(GetSafeHwnd(), "Select Resource Folder");
+    std::string directory = SelectFolderDialog(L"Select Resource Folder");
 
-    if( !directory.has_value() )
+    if( directory.empty() )
         return;
 
-    ASSERT(*directory == PortableFunctions::PathRemoveTrailingSlash(*directory));
+    ASSERT(directory == PortableFunctions::PathRemoveTrailingSlash(directory));
 
     // only add resource directories that aren't already added
-    if( m_application.GetResource(*directory) != nullptr )
+    if( m_application.GetResource(directory) != nullptr )
         return;
 
-    const AppResource& resource = m_application.AddResource(AppResource(std::move(*directory)));
+    const AppResource& resource = m_application.AddResource(AppResource(std::move(directory)));
 
     CDialog* const added_dialog = BuildTreeResource(AppFileType::Resource, resource);
 
