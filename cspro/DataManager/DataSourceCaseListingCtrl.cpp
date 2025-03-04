@@ -142,6 +142,13 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
 }
 
 
+bool DataSourceCaseListingCtrl::OnCaseListingDeleteKey()
+{
+    GetParentFrame()->PostMessage(WM_COMMAND, ID_DATA_DELETE_CASE);
+    return true;
+}
+
+
 void DataSourceCaseListingCtrl::OnCopyKey()
 {
     const std::string keys = SO::CreateSingleStringUsingCallback(GetSelectedCaseSummaries(),

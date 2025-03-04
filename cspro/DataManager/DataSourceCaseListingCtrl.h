@@ -10,6 +10,7 @@ protected:
     void OnCaseListingSelectionsChanged() override;
     void OnCaseListingDoubleClickAndReturn() override;
     void OnCaseListingContextMenu(CPoint point) override;
+    bool OnCaseListingDeleteKey() override;
 
 protected:
     DECLARE_MESSAGE_MAP()

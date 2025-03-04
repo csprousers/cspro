@@ -152,11 +152,24 @@ BOOL CaseListingCtrl::PreTranslateMessage(MSG* const pMsg)
         return TRUE;
     }
 
-    // make sure the user isn't pressing Enter while on a menu
-    else if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && !IsMenuShowing() )
+    else if( pMsg->message == WM_KEYDOWN )
     {
-        OnCaseListingDoubleClickAndReturn();
-        return TRUE;
+        // potentially allow the Delete key to be used to delete cases
+        if( pMsg->wParam == VK_DELETE )
+        {
+            if( OnCaseListingDeleteKey() )
+                return TRUE;
+        }
+
+        // make sure the user isn't pressing Enter while on a menu
+        else if( pMsg->wParam == VK_RETURN )
+        {
+            if( !IsMenuShowing() )
+            {
+                OnCaseListingDoubleClickAndReturn();
+                return TRUE;
+            }
+        }
     }
 
     return __super::PreTranslateMessage(pMsg);
@@ -317,7 +330,7 @@ void CaseListingCtrl::OnContextMenu()
     const int x = std::min(rect.Width() * 2 / 3, GetCurrentColumnWidth());
     int y;
 
-    // when an item is selected, the y position of the will be that of the first selected item
+    // when an item is selected, the y position will be that of the first selected item
     POSITION pos = GetFirstSelectedItemPosition();
 
     if( pos != nullptr )
@@ -535,4 +548,10 @@ void CaseListingCtrl::OnCaseListingDoubleClickAndReturn()
 
 void CaseListingCtrl::OnCaseListingContextMenu(CPoint /*point*/)
 {
+}
+
+
+bool CaseListingCtrl::OnCaseListingDeleteKey()
+{
+    return false;
 }

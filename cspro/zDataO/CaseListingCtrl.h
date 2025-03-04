@@ -26,6 +26,7 @@ protected:
     virtual void OnCaseListingSelectionsChanged();
     virtual void OnCaseListingDoubleClickAndReturn();
     virtual void OnCaseListingContextMenu(CPoint point);
+    virtual bool OnCaseListingDeleteKey();
 
 protected:
     DECLARE_MESSAGE_MAP()
