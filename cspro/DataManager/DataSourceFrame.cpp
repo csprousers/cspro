@@ -865,32 +865,41 @@ void DataSourceFrame::OnDataDeleteCase()
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
     const DataRepositoryType data_repository_type = data_source_doc.GetConnectionString().GetType();
 
-    // confirm the operation
-    std::string delete_prompt;
+    // confirm the operation unless everything is being undeleted
+    const size_t number_deletions = std::count_if(selected_case_summaries.cbegin(), selected_case_summaries.cend(),
+                                                  [](const std::shared_ptr<const CaseSummary>& case_summary) { return !case_summary->GetDeleted(); });
 
-    if( single_case_deletion )
+    if( number_deletions > 0 )
     {
-        const CaseSummary& case_summary = *selected_case_summaries.front();
+        const char* const delete_verb = ( number_deletions == selected_case_summaries.size() ) ? "delete" :
+                                                                                                 "delete and undelete";
+        std::string delete_prompt;
 
-        delete_prompt = FormatText("Are you sure you want to %sdelete the case with key '%s'?",
-                                   case_summary.GetDeleted() ? "un" : "",
-                                   case_summary.GetSingleLineKey().c_str());
+        if( single_case_deletion )
+        {
+            const CaseSummary& case_summary = *selected_case_summaries.front();
+
+            delete_prompt = FormatText("Are you sure you want to %s the case with key '%s'?",
+                                       delete_verb,
+                                       case_summary.GetSingleLineKey().c_str());
+        }
+
+        else
+        {
+            delete_prompt = FormatText("Are you sure you want to %s %d cases?",
+                                       delete_verb,
+                                       static_cast<int>(selected_case_summaries.size()));
+        }
+
+        if( !DataRepositoryHelpers::TypeSupportsUndeletes(data_repository_type) )
+        {
+            delete_prompt.append(FormatText("\n\nCases in a '%s' data source cannot be undeleted so this operation is permanent.",
+                                            ToString(data_repository_type)));
+        }
+
+        if( AfxMessageBox(delete_prompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
+            return;
     }
-
-    else
-    {
-        delete_prompt = FormatText("Are you sure you want to delete %d cases?",
-                                   static_cast<int>(selected_case_summaries.size()));
-    }
-
-    if( !DataRepositoryHelpers::TypeSupportsUndeletes(data_repository_type) )
-    {
-        delete_prompt.append(FormatText("\n\nCases in a '%s' data source cannot be undeleted so this operation is permanent.",
-                                        ToString(data_repository_type)));
-    }
-
-    if( AfxMessageBox(delete_prompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
-        return;
 
     // for text-based repositories, sort by reverse file position to minimize the amount of data that to be rewritten
     if( !single_case_deletion && DataRepositoryHelpers::TypeWritesToText(data_repository_type) )
@@ -906,7 +915,8 @@ void DataSourceFrame::OnDataDeleteCase()
         // delete a single case...
         if( single_case_deletion )
         {
-            data_repository.DeleteCase(selected_case_summaries.front()->GetPositionInRepository());
+            const CaseSummary& case_summary = *selected_case_summaries.front();
+            data_repository.DeleteCase(case_summary.GetPositionInRepository(), !case_summary.GetDeleted());
         }
 
         // ...or multiple cases
@@ -914,12 +924,22 @@ void DataSourceFrame::OnDataDeleteCase()
         {
             // the positions may change, so store unique identifiers to use while deleting
             const std::vector<DataRepositoryUniqueCaseIdentifer> unique_case_identifiers = GetUniqueCaseIdentifiers(selected_case_summaries, true);
+            ASSERT(unique_case_identifiers.size() == selected_case_summaries.size());
 
             // wrap the deletes in a transaction
             const DataRepositoryTransaction data_repository_transaction(data_repository);
 
+            auto selected_case_summaries_itr = selected_case_summaries.cbegin();
+
             for( const DataRepositoryUniqueCaseIdentifer& unique_case_identifier : unique_case_identifiers )
-                data_repository.DeleteCase(unique_case_identifier.GetPosition(data_repository));
+            {
+                ASSERT(selected_case_summaries_itr != selected_case_summaries.cend());
+
+                data_repository.DeleteCase(unique_case_identifier.GetPosition(data_repository),
+                                           !(*selected_case_summaries_itr)->GetDeleted());
+
+                ++selected_case_summaries_itr;
+            }
         }
     }
 

@@ -154,21 +154,18 @@ BOOL CaseListingCtrl::PreTranslateMessage(MSG* const pMsg)
 
     else if( pMsg->message == WM_KEYDOWN )
     {
+        // allow case selection using the Enter key
+        if( pMsg->wParam == VK_RETURN )
+        {
+            OnCaseListingDoubleClickAndReturn();
+            return TRUE;
+        }
+
         // potentially allow the Delete key to be used to delete cases
-        if( pMsg->wParam == VK_DELETE )
+        else if( pMsg->wParam == VK_DELETE )
         {
             if( OnCaseListingDeleteKey() )
                 return TRUE;
-        }
-
-        // make sure the user isn't pressing Enter while on a menu
-        else if( pMsg->wParam == VK_RETURN )
-        {
-            if( !IsMenuShowing() )
-            {
-                OnCaseListingDoubleClickAndReturn();
-                return TRUE;
-            }
         }
     }
 
@@ -484,50 +481,6 @@ CaseListingCtrl::CaseSummaryWithMeasuredText& CaseListingCtrl::GetCaseSummaryWit
 
     ASSERT(false);
     throw CSProException("The case summary at position '%d' could not be found.", index);
-}
-
-
-struct CaseListingCtrl::IsMenuShowingCallbackData
-{
-    wchar_t test_class_name[100];
-    std::unique_ptr<std::wstring> first_afx_class_name;
-    bool multiple_afx_classes_exist = false;
-};
-
-
-bool CaseListingCtrl::IsMenuShowing()
-{
-    // this is incredibly hacky but no other technique seemed to return whether the menu was open
-    IsMenuShowingCallbackData data;
-    EnumThreadWindows(GetCurrentThreadId(), IsMenuShowingEnumThreadWindowsCallback, reinterpret_cast<LPARAM>(&data));
-    return data.multiple_afx_classes_exist;
-}
-
-
-BOOL CALLBACK CaseListingCtrl::IsMenuShowingEnumThreadWindowsCallback(const HWND hWnd, const LPARAM lParam)
-{
-    IsMenuShowingCallbackData* const data = reinterpret_cast<IsMenuShowingCallbackData*>(lParam);
-    ASSERT(hWnd != nullptr && data != nullptr);
-
-    GetClassName(hWnd, data->test_class_name, _countof(data->test_class_name));
-
-    // the main window, and the menu window, have class names that begin with Afx
-    if( wcsncmp(data->test_class_name, L"Afx", 3) == 0 )
-    {
-        if( data->first_afx_class_name == nullptr )
-        {
-            data->first_afx_class_name = std::make_unique<std::wstring>(data->test_class_name);
-        }
-
-        else if( wcscmp(data->test_class_name, data->first_afx_class_name->c_str()) != 0 )
-        {
-            data->multiple_afx_classes_exist = true;
-            return FALSE;
-        }
-    }
-
-    // keep enumerating
-    return TRUE;
 }
 
 

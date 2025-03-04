@@ -113,8 +113,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
 
-    // prevent the menu bar from taking the focus on activation
-    CMFCPopupMenu::SetForceMenuFocus(FALSE);
+    // ensure that keystrokes will be handled by the menu (while it is open)
+    ASSERT(CMFCPopupMenu::GetForceMenuFocus());
 
 
     // add the status bar

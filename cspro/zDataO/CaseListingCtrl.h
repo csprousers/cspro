@@ -58,10 +58,6 @@ private:
     struct CaseSummaryWithMeasuredText;
     CaseSummaryWithMeasuredText& GetCaseSummaryWithMeasuredText(int index);
 
-    struct IsMenuShowingCallbackData;
-    static bool IsMenuShowing();
-    static BOOL CALLBACK IsMenuShowingEnumThreadWindowsCallback(HWND hWnd, LPARAM lParam);
-
 private:
     CImageList m_imageList;
     DWORD m_textColors[2];       // selected = index 1
