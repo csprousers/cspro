@@ -2,7 +2,6 @@
 
 #include <DataManager/SyncTask.h>
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilF/DialogValidators.h>
 #include <zSyncF/SyncServiceSelectorDlg.h>
 
 

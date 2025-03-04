@@ -688,6 +688,10 @@ void DataSourceFrame::OnListingToggleMethod()
 void DataSourceFrame::OnListingStatus(const UINT nID)
 {
     GetSettings<ViewableCaseIteratorSettings>().SetStatus(FromCaseIterationCaseStatusId(nID));
+
+    // make sure the case status is properly updated (when filters are showing)
+    m_caseListingView->UpdateCaseStatusComboBox();
+
     UpdateCaseListing(false);
 }
 

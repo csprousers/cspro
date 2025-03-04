@@ -13,12 +13,12 @@ SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& rep
 }
 
 
-SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
+SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, const CaseIterationContent iteration_content,
                                                            std::unique_ptr<SQLiteStatement> statement,
-                                                           CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters)
+                                                           const CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters)
     :   SQLiteRepositoryCaseIterator(repository, iteration_content, std::move(statement))
 {
-    m_progressBarParameters.emplace(case_status, ( start_parameters != nullptr ) ? std::make_unique<CaseIteratorParameters>(*start_parameters) : nullptr);
+    m_progressBarParameters.emplace(case_status, CreateCopyOfPointerValue(start_parameters));
 }
 
 

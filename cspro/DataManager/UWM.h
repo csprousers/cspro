@@ -10,7 +10,7 @@ namespace UWM::DataManager
     const unsigned UpdateDialogControls                       = UWM::Ranges::ExeStart +  1;
     const unsigned UpdateStatusBarCaseCount                   = UWM::Ranges::ExeStart +  2;
     const unsigned UpdateStatusBarSelectedCaseKeyPosition     = UWM::Ranges::ExeStart +  3;
-    const unsigned ToggleFilters                              = UWM::Ranges::ExeStart +  4;
+    const unsigned ToggleFiltersVisibility                    = UWM::Ranges::ExeStart +  4;
     const unsigned ShowDefaultPage                            = UWM::Ranges::ExeStart +  5;
     const unsigned ProcessConnectionStringParameters          = UWM::Ranges::ExeStart +  6;
     const unsigned ShowSelectedCases                          = UWM::Ranges::ExeStart +  7;

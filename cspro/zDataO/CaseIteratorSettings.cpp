@@ -3,6 +3,7 @@
 #include "CSWebRepositoryJsonKeys.h"
 
 
+CREATE_JSON_KEY(viewFilters)
 CREATE_JSON_VALUE(startswith)
 
 
@@ -59,7 +60,7 @@ CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_n
         if( sort_json_node.Contains(JK::ascending) )
         {
             settings.m_order = sort_json_node.Get<bool>(JK::ascending) ? CaseIterationOrder::Ascending :
-                                                                                 CaseIterationOrder::Descending;
+                                                                         CaseIterationOrder::Descending;
         }
     }
 
@@ -78,11 +79,7 @@ CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_n
         if( operator_index > static_cast<size_t>(CaseIterationStartType::GreaterThan) )
         {
             ASSERT(filter_json_node.GetOrConstruct<std::string>(JK::type) == JK::key);
-
-            // the start type is not used for startswith filters
-            settings.m_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::LessThan,
-                                                                             0.0,
-                                                                             filter_json_node.Get<std::string>(JK::value));
+            settings.m_parameters = CaseIteratorParameters::CreateForKeyPrefix(filter_json_node.Get<std::string>(JK::value));
         }
 
         // operators
@@ -92,9 +89,8 @@ CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_n
                 std::variant<std::string, double>(filter_json_node.Get<std::string>(JK::value)) :
                 std::variant<std::string, double>(filter_json_node.Get<double>(JK::value));
 
-            settings.m_parameters = std::make_unique<CaseIteratorParameters>(static_cast<CaseIterationStartType>(operator_index),
-                                                                             std::move(first_key_or_position),
-                                                                             std::nullopt);
+            settings.m_parameters = CaseIteratorParameters::CreateForKey(static_cast<CaseIterationStartType>(operator_index),
+                                                                         std::move(first_key_or_position));
         }
     }
 
@@ -153,14 +149,16 @@ void CaseIteratorSettings::WriteJson(JsonWriter& json_writer, const bool write_t
 // --------------------------------------------------------------------------
 
 ViewableCaseIteratorSettings::ViewableCaseIteratorSettings()
-    :   m_viewCaseLabel(true)
+    :   m_viewCaseLabel(true),
+        m_viewFilters(false)
 {
 }
 
 
 ViewableCaseIteratorSettings::ViewableCaseIteratorSettings(CaseIteratorSettings settings)
     :   CaseIteratorSettings(std::move(settings)),
-        m_viewCaseLabel(false)
+        m_viewCaseLabel(false),
+        m_viewFilters(false)
 {
 }
 
@@ -172,6 +170,8 @@ ViewableCaseIteratorSettings ViewableCaseIteratorSettings::CreateFromJson(const 
     if( json_node.Contains(JK::view) )
         settings.m_viewCaseLabel = ( json_node.GetFromStringOptions(JK::view, { JK::label, JK::key }) == 0 );
 
+    settings.m_viewFilters = json_node.GetOrDefault(JK::viewFilters, settings.m_viewFilters);
+
     return settings;
 }
 
@@ -182,7 +182,8 @@ void ViewableCaseIteratorSettings::WriteJson(JsonWriter& json_writer) const
 
     CaseIteratorSettings::WriteJson(json_writer, false);
 
-    json_writer.Write(JK::view, m_viewCaseLabel ? JK::label : JK::key);
+    json_writer.Write(JK::view, m_viewCaseLabel ? JK::label : JK::key)
+               .Write(JK::viewFilters, m_viewFilters);
 
     json_writer.EndObject();
 }

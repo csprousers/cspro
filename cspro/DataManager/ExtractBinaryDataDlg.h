@@ -2,7 +2,6 @@
 
 #include <DataManager/ExtractBinaryDataSettings.h>
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilF/DialogValidators.h>
 
 
 class ExtractBinaryDataDlg : public ResizableDlg

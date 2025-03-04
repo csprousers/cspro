@@ -18,6 +18,7 @@
 #include <zUtilO/MimeType.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
+#include <zUtilF/DialogValidators.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <ZBRIDGEO/DataFileDlg.h>
