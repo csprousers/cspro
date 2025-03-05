@@ -3,6 +3,8 @@
 #include <zUtilF/LinkCtrls.h>
 #include <DataManager/DataSourceCaseListingCtrl.h>
 
+class DynamicLayoutControlResizer;
+
 
 class CaseListingView : public CFormView
 {
@@ -28,6 +30,8 @@ protected:
     void DoDataExchange(CDataExchange* pDX) override;
 
     void OnDestroy();
+
+    void OnSize(UINT nType, int cx, int cy);
 
     void OnKeyFilterChange();
     void OnCaseStatusChange();
@@ -55,6 +59,8 @@ private:
     RadioEnumHelper<CaseIterationStartTypeExtended> m_keyFilterTypeRadioEnumHelper;
 
     RadioEnumHelper<CaseIterationCaseStatus> m_caseStatusRadioEnumHelper;
+
+    std::unique_ptr<DynamicLayoutControlResizer> m_dynamicLayoutControlResizer;
 
     std::shared_ptr<ViewableCaseIteratorSettings> m_settings;
 

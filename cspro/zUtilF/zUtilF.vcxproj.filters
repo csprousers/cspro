@@ -151,9 +151,6 @@
     <ClInclude Include="DropFilesListCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicLayoutControlResizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DynamicMenuBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "ResizableDlg.h"
+#include "DynamicLayoutControlResizer.h"
 #include "SettingsDb.h"
-#include <zUtilF/DynamicLayoutControlResizer.h>
 
 
 // --------------------------------------------------------------------------

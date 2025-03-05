@@ -1,12 +1,14 @@
 ﻿#include "StdAfx.h"
 #include "CaseListingView.h"
 #include "DataSourceSettings.h"
+#include <zUtilO/DynamicLayoutControlResizer.h>
 
 
 IMPLEMENT_DYNCREATE(CaseListingView, CFormView)
 
 BEGIN_MESSAGE_MAP(CaseListingView, CFormView)
     ON_WM_DESTROY()
+    ON_WM_SIZE()
     ON_EN_CHANGE(IDC_KEY_FILTER, OnKeyFilterChange)
     ON_CBN_SELCHANGE(IDC_KEY_FILTER_TYPE, OnKeyFilterChange)
     ON_CBN_SELCHANGE(IDC_CASE_STATUS, OnCaseStatusChange)
@@ -78,6 +80,26 @@ void CaseListingView::OnDestroy()
     data_source_settings->SetCaseListingWidth(rect.Width());
 
     __super::OnDestroy();
+}
+
+
+void CaseListingView::OnSize(const UINT nType, const int cx, const int cy)
+{
+    if( m_dynamicLayoutControlResizer == nullptr )
+    {
+        m_dynamicLayoutControlResizer = std::make_unique<DynamicLayoutControlResizer>(*this);
+
+        m_dynamicLayoutControlResizer->Add(IDC_CASE_FILTERS, SizingDirection::X)
+                                      .Add(&m_keyFilterEdit, SizingDirection::X)
+                                      .Add(&m_keyFilterComboBox, SizingDirection::X)
+                                      .Add(&m_caseStatusComboBox, SizingDirection::X)
+                                      .Add(&m_toggleFiltersLinkCtrl, MovingDirection::X)
+                                      .Add(&m_caseListingCtrl, SizingDirection::XY);
+    }
+
+    __super::OnSize(nType, cx, cy);
+
+    m_dynamicLayoutControlResizer->OnSize(cx, cy);
 }
 
 
@@ -261,6 +283,7 @@ void CaseListingView::CalculateFilterData()
 void CaseListingView::SetFiltersVisibility()
 {
     ASSERT(m_settings != nullptr);
+    ASSERT(m_dynamicLayoutControlResizer != nullptr);
 
     if( m_filterData == nullptr )
         CalculateFilterData();
@@ -308,7 +331,7 @@ void CaseListingView::SetFiltersVisibility()
         if( !size_control )
             rect.bottom += non_filter_controls_height_adjustment;
 
-        ::SetWindowPos(hWnd, nullptr, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOACTIVATE | SWP_NOZORDER);
+        m_dynamicLayoutControlResizer->SetWindowPos(hWnd, rect);
     }
 }
 
