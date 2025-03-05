@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include <DataManager/CaseHoldingFrame.h>
+#include <DataManager/CaseListingView.h>
 #include <DataManager/DataSourceDoc.h>
 #include <zUtilO/CSProExecutables.h>
 
-class CaseListingView;
 class DataSourceView;
 
 
@@ -90,16 +90,17 @@ private:
     std::shared_ptr<const Case> LoadCase(double position_in_repository);
     std::shared_ptr<const Case> LoadCaseByKey(const std::string& key);
     std::shared_ptr<const Case> LoadCaseByUuid(const std::string& uuid);
-    std::shared_ptr<const Case> LoadCaseByUuidOrKey(const std::string& uuid, const std::string& key);
 
-    void ShowCase(std::shared_ptr<const Case> data_case, bool select_in_case_listing);
+    void SelectAndShowCase(std::shared_ptr<const Case> data_case);
+    void ShowCase(std::shared_ptr<const Case> data_case);
 
-    void Refresh(bool show_data_summary);
+    // Refresh clears the case cache and then calls UpdateCaseListingAsync.
+    void Refresh(CaseListingReselection reselect_strategy = CaseListingReselection::SelectedCases);
 
     template<typename T>
     T& GetSettings();
 
-    void UpdateCaseListing(bool change_is_only_visual);
+    void UpdateCaseListingAsync(CaseListingReselection reselect_strategy = CaseListingReselection::SelectedCases);
 
     bool ToggleReadOnly();
 

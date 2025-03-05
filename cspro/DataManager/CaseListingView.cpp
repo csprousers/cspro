@@ -178,7 +178,7 @@ void CaseListingView::OnKeyFilterChange()
     if( m_applyFilterChanges )
     {
         UpdateSettingsFromKeyFilter();
-        m_caseListingCtrl.UpdateCaseListing();
+        m_caseListingCtrl.UpdateCaseListingAsync();
     }
 }
 
@@ -190,7 +190,7 @@ void CaseListingView::OnCaseStatusChange()
     if( m_applyFilterChanges )
     {
         m_settings->SetStatus(m_caseStatusRadioEnumHelper.FromForm(m_caseStatusComboBox.GetCurSel()));
-        m_caseListingCtrl.UpdateCaseListing();
+        m_caseListingCtrl.UpdateCaseListingAsync();
     }
 }
 
@@ -277,7 +277,7 @@ void CaseListingView::SetFiltersVisibility()
         m_toggleFiltersLinkCtrl.SetWindowText(L"Hide Filters");
 
         UpdateSettingsFromKeyFilter();
-        m_caseListingCtrl.UpdateCaseListing();
+        m_caseListingCtrl.UpdateCaseListingAsync();
     }
 
     else
@@ -291,7 +291,7 @@ void CaseListingView::SetFiltersVisibility()
         if( m_settings->GetParameters() != nullptr )
         {
             m_settings->SetParameters(nullptr);
-            m_caseListingCtrl.UpdateCaseListing();
+            m_caseListingCtrl.UpdateCaseListingAsync();
         }
     }
 
