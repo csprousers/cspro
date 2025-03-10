@@ -290,6 +290,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "What's &New in CSPro?",       ID_HELP_WHAT_IS_NEW
         MENUITEM "&Examples Folder",            ID_HELP_EXAMPLES
+        MENUITEM "Feature Showcases",           ID_HELP_FEATURE_SHOWCASES
         MENUITEM SEPARATOR
         POPUP "CSPro Users"
         BEGIN

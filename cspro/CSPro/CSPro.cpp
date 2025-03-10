@@ -81,6 +81,7 @@ BEGIN_MESSAGE_MAP(CCSProApp, CWinApp)
 
     ON_COMMAND(ID_HELP_WHAT_IS_NEW, OnHelpWhatIsNew)
     ON_COMMAND(ID_HELP_EXAMPLES, OnHelpExamples)
+    ON_COMMAND(ID_HELP_FEATURE_SHOWCASES, OnHelpFeatureShowcases)
     ON_COMMAND(ID_HELP_TROUBLESHOOTING, OnHelpTroubleshooting)
     ON_COMMAND(ID_HELP_MAILING_LIST, OnHelpMailingList)
     ON_COMMAND(ID_HELP_GOOGLEPLAY, OnHelpAndroidApp)
@@ -3185,6 +3186,12 @@ void CCSProApp::OnHelpExamples()
     {
         AfxMessageBox(FormatText("The Examples folder could not be located. It is generally found here: %s", examples_directory.c_str()));
     }
+}
+
+
+void CCSProApp::OnHelpFeatureShowcases()
+{
+    Viewer().ViewHtmlUrl("https://github.com/csprousers/feature-showcase");
 }
 
 
