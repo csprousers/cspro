@@ -2125,7 +2125,7 @@ namespace PFF_Editor
                                                 "run_production_paradata_concatenates.html",
                                                 "run_production_reformats.html",
                                                 "run_production_sorts.html",
-                                                "run_production_synchronizations.html", // DATA_TODO modify accordingly
+                                                "run_production_synchronizations.html",
                                                 "run_tabulate_in_batch.html",
                                                 "run_production_views.html",
                                             };

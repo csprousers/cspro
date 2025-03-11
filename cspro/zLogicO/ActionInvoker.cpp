@@ -349,7 +349,7 @@ namespace
         {
             "updateSymbolValue",
             "CS.Logic.updateSymbolValue(name := string, value := string | number | array | object)",
-            "CS_Logic_updateSymbolValue.html",
+            "CS_Logic_setSymbolValue.html",
             FunctionCode::CSFN_ACTIONINVOKER_CODE,
             FunctionNamespace::CS_Logic,
             DataType::String,

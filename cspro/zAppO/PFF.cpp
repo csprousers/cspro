@@ -627,6 +627,7 @@ void PFF::SetAppFName(const TCHAR* filename)
             matches(FileExtensions::ExportSpec)            ? APPTYPE::EXPORT_TYPE :
             matches(FileExtensions::CompareSpec)           ? APPTYPE::COMPARE_TYPE :
             matches(FileExtensions::PackSpec)              ? APPTYPE::PACK_TYPE :
+            matches(FileExtensions::ExcelToCSProSpec)      ? APPTYPE::EXCEL2CSPRO_TYPE :
                                                              GetAppType();
         SetAppType(new_app_type);
     }
