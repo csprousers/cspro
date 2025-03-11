@@ -105,17 +105,17 @@ std::vector<TemporaryFile> FileBasedParadataSyncer::GetParadata()
     // download and decompress the logs
     std::vector<TemporaryFile> received_temporary_files;
 
-    for( const std::string& compressed_log_file_path : compressed_logs_to_download )
+    for( const std::string& compressed_log_filename : compressed_logs_to_download )
     {
         const TemporaryFile compressed_log_temporary_file;
 
-        m_syncService.GetFile(Path::Combine(m_paradataDirectory, compressed_log_file_path),
+        m_syncService.GetFile(Path::Combine(m_paradataDirectory, compressed_log_filename),
                              compressed_log_temporary_file.GetPath(), std::string());
 
         try
         {
             ZipReader zip_reader(compressed_log_temporary_file.GetPath());
-            zip_reader.Extract(GetParadataLogFilenameFromZipFilename(compressed_log_file_path), received_temporary_files.emplace_back().GetPath());
+            zip_reader.Extract(GetParadataLogFilenameFromZipFilename(compressed_log_filename), received_temporary_files.emplace_back().GetPath());
         }
 
         catch( const ZipException& exception )
@@ -171,5 +171,7 @@ void FileBasedParadataSyncer::WriteTextOnSyncService(const std::string& path,con
 
 std::string FileBasedParadataSyncer::GetParadataLogFilenameFromZipFilename(const std::string& zip_filename)
 {
+    ASSERT(PortableFunctions::PathGetDirectory(zip_filename).empty());
+
     return Path::ReplaceExtension(zip_filename, FileExtensions::Paradata);
 }
