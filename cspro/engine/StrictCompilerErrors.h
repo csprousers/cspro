@@ -13,7 +13,6 @@
 #pragma warning(error:4297) // 'function' : function assumed not to throw an exception but does
 #pragma warning(error:4456) // declaration of 'identifier' hides previous local declaration
 #pragma warning(error:4552) // 'operator': result of expression not used
-#pragma warning(error:4702) // unreachable code
 #pragma warning(error:4715) // 'function': not all control paths return a value
 #pragma warning(error:4717) // 'function' : recursive on all control paths, function will cause runtime stack overflow
 #pragma warning(error:4834) // discarding return value of function with 'nodiscard' attribute
@@ -24,6 +23,7 @@
 #pragma warning(error:4100) // 'identifier': unreferenced formal parameter
 #pragma warning(error:4101) // 'identifier': unreferenced local variable
 #pragma warning(error:4189) // local variable is initialized but not referenced
+#pragma warning(error:4702) // unreachable code
 #endif
 
 #endif

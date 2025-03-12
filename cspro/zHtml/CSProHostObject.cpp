@@ -38,7 +38,7 @@ CSProHostObject::~CSProHostObject()
 
 std::string CSProHostObject::GetJavaScriptClassText()
 {
-    static_assert(Versioning::Number == 8.0, "Start adding deprecation warnings when this is used");
+    static_assert(Versioning::Number <= 8.1, "Start adding deprecation warnings when this is used");
     static_assert(static_cast<int>(ActionInvoker::Action::execute) == 11276); // this value is also used in CSProJavaScriptInterface.kt
 
     return FormatText(R"!(
