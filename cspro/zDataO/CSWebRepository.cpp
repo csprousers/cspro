@@ -815,7 +815,7 @@ typename std::conditional<requires_metadata, std::optional<std::tuple<JsonNode, 
     // ...potentially query content again if all content was not previously received...
     else if( m_query->iterator_case_pos == m_query->case_count )
     {
-        if( m_query->limit_satisfied )
+        if( m_query->limit_satisfied || m_casesRead == m_limit )
             return std::nullopt;
 
         query_next_set = true;
