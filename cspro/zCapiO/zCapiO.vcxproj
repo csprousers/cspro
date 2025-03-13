@@ -120,7 +120,7 @@
       <Project>{f5702efd-6d1c-4591-bc10-184babf8c4e1}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\yaml-cpp\yaml-cpp.vcxproj">
+    <ProjectReference Include="..\zYaml\zYaml.vcxproj">
       <Project>{0476f3bc-79cc-4653-ba60-31bb8dead056}</Project>
       <Private>false</Private>
     </ProjectReference>

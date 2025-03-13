@@ -66,7 +66,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{0476F3BC-79CC-4653-BA60-31BB8DEAD056}</ProjectGuid>
     <Keyword>MFCDLLProj</Keyword>
-    <RootNamespace>yaml-cpp</RootNamespace>
+    <RootNamespace>zYaml</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

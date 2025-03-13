@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
 # add_subdirectory(../rtf2html_dll rtf2html_dll)
-# add_subdirectory(../yaml-cpp yaml-cpp)
 # add_subdirectory(zlib)
 # add_subdirectory(../engine engine)
 # add_subdirectory(../zAction zAction)
@@ -41,6 +40,7 @@ add_subdirectory(../zSql zSql)
 add_subdirectory(../zToolsO zToolsO)
 # add_subdirectory(../zUtilF zUtilF)
 add_subdirectory(../zUtilO zUtilO)
+# add_subdirectory(../zYaml zYaml)
 # add_subdirectory(../zZipO zZipO)
 
 
@@ -77,7 +77,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
 
 target_link_libraries(${PROJECT_NAME}
     # rtf2html_dll
-    # yaml-cpp
     # zlib
     # engine
     # zAction
@@ -117,6 +116,7 @@ target_link_libraries(${PROJECT_NAME}
     zToolsO
     # zUtilF
     zUtilO
+    # zYaml
     # zZipO
 )
 

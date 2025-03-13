@@ -189,7 +189,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zDiffO", "zDiffO\zDiffO.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zExcelO", "zExcelO\zExcelO.vcxproj", "{95F42A46-C902-46A3-9D04-24B20F9854C6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp", "yaml-cpp\yaml-cpp.vcxproj", "{0476F3BC-79CC-4653-BA60-31BB8DEAD056}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zYaml", "zYaml\zYaml.vcxproj", "{0476F3BC-79CC-4653-BA60-31BB8DEAD056}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zInterfaceF", "zInterfaceF\zInterfaceF.vcxproj", "{A777B4A3-A0B4-4F0E-86C4-7077630E0B54}"
 EndProject
