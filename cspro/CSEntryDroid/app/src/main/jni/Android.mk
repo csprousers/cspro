@@ -8,7 +8,6 @@ endif
 
 include $(LOCAL_PATH)/Engine.mk
 include $(LOCAL_PATH)/mp4v2.mk
-include $(LOCAL_PATH)/rtf2html.mk
 include $(LOCAL_PATH)/zAction.mk
 include $(LOCAL_PATH)/zAppO.mk
 include $(LOCAL_PATH)/zBridgeO.mk

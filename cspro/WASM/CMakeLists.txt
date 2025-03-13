@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
 
-# add_subdirectory(../rtf2html_dll rtf2html_dll)
 # add_subdirectory(zlib)
 # add_subdirectory(../engine engine)
 # add_subdirectory(../zAction zAction)
@@ -76,7 +75,6 @@ target_link_options(${PROJECT_NAME} PUBLIC --preload-file ${CMAKE_CURRENT_SOURCE
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_CURRENT_SOURCE_DIR}/html ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(${PROJECT_NAME}
-    # rtf2html_dll
     # zlib
     # engine
     # zAction
