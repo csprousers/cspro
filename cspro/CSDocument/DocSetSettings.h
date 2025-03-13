@@ -10,6 +10,8 @@ public:
 
     bool HasCustomSettings() const;
 
+    const std::string& GetProjectRootDirectory() const { return m_projectRootDirectory; }
+
     bool IsDocSetPartOfProject() const { return !m_projectRootDirectory.empty(); }
 
     // throws an exception if not found

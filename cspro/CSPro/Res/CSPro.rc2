@@ -71,14 +71,15 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_HELP_WHAT_IS_NEW     "Learn about what is new in this version of CSPro\nWhat's New in CSPro?"
-    ID_HELP_EXAMPLES        "Open the CSPro Examples folder\nExamples Folder"
-    ID_HELP_MAILING_LIST    "Sign up for the CSPro mailing list\nMailing List Signup"
-    ID_HELP_TROUBLESHOOTING "Learn about how to receive technical support\nTechnical Support"
-    ID_HELP_SHOW_SYNC_LOG   "Show where the sync.log file is located\nSync.log File"
-    ID_HELP_GOOGLEPLAY      "Download the Android application on Google Play\nGoogle Play"
     ID_HELP_CSPROUSERS_FORUM "View the CSPro Users Forum\nCSPro Users Forum"
     ID_HELP_CSPROUSERS_GITHUB "View the CSPro source code on GitHub\nCSPro Users GitHub"
+    ID_HELP_EXAMPLES        "Open the CSPro Examples folder\nExamples Folder"
+    ID_HELP_FEATURE_SHOWCASES "View CSPro applications that demonstrate new features\nFeature Showcases"
+    ID_HELP_GOOGLEPLAY      "Download the Android application on Google Play\nGoogle Play"
+    ID_HELP_MAILING_LIST    "Sign up for the CSPro mailing list\nMailing List Signup"
+    ID_HELP_SHOW_SYNC_LOG   "Show where the sync.log file is located\nSync.log File"
+    ID_HELP_TROUBLESHOOTING "Learn about how to receive technical support\nTechnical Support"
+    ID_HELP_WHAT_IS_NEW     "Learn about what is new in this version of CSPro\nWhat's New in CSPro?"
 END
 
 /////////////////////////////////////////////////////////////////////////////

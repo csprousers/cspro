@@ -586,12 +586,12 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,228,310,50,14
     PUSHBUTTON      "&Help",ID_HELP,300,310,50,14
     LTEXT           "You can create a new data source by downloading data from a synchronization service. Provide the details of the service and click Show Available Data to get a list of downloadable data.",IDC_STATIC,7,7,493,21
-    GROUPBOX        "Synchronization Service",IDC_STATIC,0,28,500,129
+    GROUPBOX        "Synchronization Service",IDC_STATIC,7,28,493,129
     LTEXT           "SyncServiceSelectorDlg",IDC_SYNC_SERVICE,12,40,483,92,WS_BORDER
     PUSHBUTTON      "Show Available Data",IDC_SHOW_AVAILABLE_DATA,412,137,83,14
     GROUPBOX        "Data on Synchronization Service",IDC_STATIC,7,164,493,89
     CONTROL         "",IDC_DATA_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,12,177,483,69,WS_EX_ACCEPTFILES
-    GROUPBOX        "Local Data Source",IDC_STATIC,0,261,500,34
+    GROUPBOX        "Local Data Source",IDC_STATIC,7,261,493,34
     EDITTEXT        IDC_DATA_SOURCE,12,273,450,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_DATA_SOURCE_SELECT,472,273,23,14
 END
@@ -605,7 +605,7 @@ BEGIN
     DEFPUSHBUTTON   "&Synchronize",IDOK,147,187,62,14
     PUSHBUTTON      "Cancel",IDCANCEL,227,187,62,14
     PUSHBUTTON      "&Help",ID_HELP,299,187,62,14
-    GROUPBOX        "Synchronization Service",IDC_STATIC,0,28,500,111
+    GROUPBOX        "Synchronization Service",IDC_STATIC,7,28,493,111
     LTEXT           "SyncServiceSelectorDlg",IDC_SYNC_SERVICE,12,40,483,92,WS_BORDER
     GROUPBOX        "Synchronization Parameters",IDC_STATIC,7,145,493,34
     COMBOBOX        IDC_COMBO_DIRECTION,57,158,151,70,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP

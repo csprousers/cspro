@@ -156,7 +156,7 @@ std::string CSDocCompilerSettingsForBuilding::CreateHtmlOutputFilePath(const std
 
 std::string CSDocCompilerSettingsForBuilding::GetBuiltHtmlFilename(const std::string& path)
 {
-    return Path::ReplaceExtension(path, FileExtensions::HTML);
+    return Path::AppendExtension(Path::GetFilenameWithoutExtension(path), FileExtensions::HTML);
 }
 
 

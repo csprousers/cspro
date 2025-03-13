@@ -249,7 +249,7 @@ double LogicInterpreter::ex_htmldialog(const int program_index)
 
         catch(...)
         {
-            static_assert(Versioning::Number == 8.0, "Start adding runtime warnings when the input data is not JSON");
+            static_assert(Versioning::Number <= 8.1, "Start adding runtime warnings when the input data is not JSON");
             input_data = Encoders::ToJsonString(*input_data);
         }
     }

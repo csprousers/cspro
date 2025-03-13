@@ -1462,7 +1462,7 @@ std::string CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::stri
     std::string url = tag_components.front();
     bool target_blank = false;
 
-    if( SO::StartsWith(url, "http") || SO::StartsWith(url, "mailto") )
+    if( SO::StartsWith(url, "http") || SO::StartsWith(url, "mailto") || Encoders::IsDataUrl(url) )
     {
         target_blank = m_settings.OpenExternalLinksInSeparateWindow();
     }

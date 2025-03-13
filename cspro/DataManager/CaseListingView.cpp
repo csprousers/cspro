@@ -120,7 +120,8 @@ void CaseListingView::SetUpInitialWidth()
         case_listing_width = Margin + GetDC()->GetOutputTextExtent(L"A", 1).cx * data_source_doc.GetDictionary().GetKeyLength();
     }
 
-    constexpr int MinCalculatedWidth = 120;
+    // a width of 190 is sufficient to show a case key of length 1 along with the filters
+    constexpr int MinCalculatedWidth = 190;
     splitter_wnd.SetColumnInfo(0, std::max(*case_listing_width, MinCalculatedWidth), 0);
 
     splitter_wnd.RecalcLayout();

@@ -216,11 +216,13 @@ std::string ActionInfo::GetFunctionNamespaceEnumClassId(const char separator) co
 
 std::string ActionInfo::GetHelpFilename() const
 {
-    const char* name_to_use = name.c_str();
-
-    // map UI.closeDialog -> UI.close
-    if( namespace_name == "UI" && name == "closeDialog" )
-        name_to_use = "close";
+    // modify some mappings:
+    //     - UI.closeDialog -> UI.close
+    //     - Logic.updateSymbolValue -> Logic.setSymbolValue
+    const char* const name_to_use =
+        ( namespace_name == "UI" && name == "closeDialog" )          ? "close" :
+        ( namespace_name == "Logic" && name == "updateSymbolValue" ) ? "setSymbolValue" :
+                                                                       name.c_str();
 
     return FormatText("%s_%s.html", GetFunctionNamespaceEnumClassId('_').c_str(), name_to_use);
 }

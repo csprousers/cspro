@@ -114,9 +114,24 @@ std::string CSDocCompilerSettings::GetStylesheetsHtml()
 
 std::string CSDocCompilerSettings::EvaluatePath(std::string path) const
 {
-    // evaluate the path based on the document's directory
-    if( !m_compilationFilePaths.empty() )
-        return CheckPathCase(MakeFullPath(PortableFunctions::PathGetDirectory(m_compilationFilePaths.back()), std::move(path)));
+    // if the path starts with a slash, evaluate it based on the project root
+    if( !path.empty() && Path::IsSlashChar(path.front()) )
+    {
+        const std::string& project_root_directory = m_docSetSpec->GetSettings().GetProjectRootDirectory();
+
+        if( project_root_directory.empty() )
+            throw CSProException("No project root directory has been set so a path cannot be evaluated from the root: " + path);
+
+        path.erase(0, 1);
+
+        path = MakeFullPath(project_root_directory, std::move(path));
+    }
+
+    // otherwise evaluate the path based on the current document's directory
+    else if( !m_compilationFilePaths.empty() )
+    {
+        path = MakeFullPath(PortableFunctions::PathGetDirectory(m_compilationFilePaths.back()), std::move(path));
+    }
 
     return CheckPathCase(std::move(path));
 }

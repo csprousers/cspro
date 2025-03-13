@@ -1,5 +1,14 @@
-﻿#include <zNetwork/zNetwork.h> // included to use this in a DLL
+﻿// --------------------------------------------------------------------------
+// CSPro additions
+// --------------------------------------------------------------------------
+
+#include <zNetwork/zNetwork.h> // included to use this in a DLL
+
 #pragma warning(disable:4101) // turn off 'identifier': unreferenced local variable
+
+#define ELPP_NO_DEFAULT_LOG_FILE // disable the default log
+
+// --------------------------------------------------------------------------
 
 
 //

@@ -156,6 +156,7 @@ protected:
 
     afx_msg void OnHelpWhatIsNew();
     afx_msg void OnHelpExamples();
+    afx_msg void OnHelpFeatureShowcases();
     afx_msg void OnHelpTroubleshooting();
     afx_msg void OnHelpMailingList();
     afx_msg void OnHelpAndroidApp();
