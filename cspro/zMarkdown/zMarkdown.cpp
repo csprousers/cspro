@@ -1,8 +1,8 @@
 ﻿#include "StdAfx.h"
-#include "zXml.h"
+#include "zMarkdown.h"
 
 
-AFX_EXTENSION_MODULE zXmlDLL = { NULL, NULL };
+AFX_EXTENSION_MODULE zMarkdownDLL = { NULL, NULL };
 
 
 extern "C" int APIENTRY
@@ -10,10 +10,10 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
     if( dwReason == DLL_PROCESS_ATTACH )
     {
-        TRACE0("zXml.DLL Initializing!\n");
+        TRACE0("zMarkdown.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
-        if (!AfxInitExtensionModule(zXmlDLL, hInstance) )
+        if (!AfxInitExtensionModule(zMarkdownDLL, hInstance) )
             return 0;
 
         // Insert this DLL into the resource chain
@@ -28,14 +28,14 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
         //  Regular DLL's resource chain, and serious problems will
         //  result.
 
-        new CDynLinkLibrary(zXmlDLL);
+        new CDynLinkLibrary(zMarkdownDLL);
     }
 
     else if( dwReason == DLL_PROCESS_DETACH )
     {
-        TRACE0("zXml.DLL Terminating!\n");
+        TRACE0("zMarkdown.DLL Terminating!\n");
         // Terminate the library before destructors are called
-        AfxTermExtensionModule(zXmlDLL);
+        AfxTermExtensionModule(zMarkdownDLL);
     }
 
     return 1;   // ok

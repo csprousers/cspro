@@ -237,6 +237,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zXml", "zXml\zXml.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataManager", "DataManager\DataManager.vcxproj", "{4CD74CD1-E966-4425-B90E-9D32FF5F71F1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zMarkdown", "zMarkdown\zMarkdown.vcxproj", "{4C225EE5-CEA1-4516-BFA4-4BB49940AF51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -687,6 +689,10 @@ Global
 		{4CD74CD1-E966-4425-B90E-9D32FF5F71F1}.Debug|Win32.Build.0 = Debug|Win32
 		{4CD74CD1-E966-4425-B90E-9D32FF5F71F1}.Release|Win32.ActiveCfg = Release|Win32
 		{4CD74CD1-E966-4425-B90E-9D32FF5F71F1}.Release|Win32.Build.0 = Release|Win32
+		{4C225EE5-CEA1-4516-BFA4-4BB49940AF51}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4C225EE5-CEA1-4516-BFA4-4BB49940AF51}.Debug|Win32.Build.0 = Debug|Win32
+		{4C225EE5-CEA1-4516-BFA4-4BB49940AF51}.Release|Win32.ActiveCfg = Release|Win32
+		{4C225EE5-CEA1-4516-BFA4-4BB49940AF51}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

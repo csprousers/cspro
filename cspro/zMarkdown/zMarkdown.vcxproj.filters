@@ -9,32 +9,38 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="pugixml">
-      <UniqueIdentifier>{1395685d-cb03-4cfc-89fe-d958a778ac55}</UniqueIdentifier>
+    <Filter Include="md4c">
+      <UniqueIdentifier>{4fe0d5eb-7ddc-495d-9350-373bbf0ff4d4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\pugixml\pugixml.cpp">
-      <Filter>pugixml</Filter>
+    <ClCompile Include="..\external\md4c\entity.c">
+      <Filter>md4c</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleXml.cpp">
+    <ClCompile Include="..\external\md4c\md4c-html.c">
+      <Filter>md4c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\md4c\md4c.c">
+      <Filter>md4c</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkdownToHtml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zXml.cpp">
+    <ClCompile Include="zMarkdown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SimpleXml.h">
+    <ClInclude Include="MarkdownToHtml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zXml.h">
+    <ClInclude Include="zMarkdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
