@@ -507,7 +507,7 @@ void PathRelativePathTo(LPTSTR pszPath, LPCTSTR pszFrom, DWORD dwAttrFrom, LPCTS
 
 bool RecycleFile(const InterfaceString file_path)
 {
-#ifdef WIN32
+#ifdef WIN_DESKTOP
     SHFILEOPSTRUCT info = { nullptr };
     auto complete_file_path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
 

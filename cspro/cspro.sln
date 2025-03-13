@@ -94,7 +94,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zZipo", "zZipo\zZipo.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSExport", "CSExport\CSExport.vcxproj", "{10EF8458-6B7F-46D6-9CC6-F0549EB4283A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtf2html_dll", "rtf2html_dll\rtf2html_dll.vcxproj", "{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "zRtf\zRtf.vcxproj", "{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSIndex", "CSIndex\CSIndex.vcxproj", "{79F3CF06-E7F6-40E0-9C61-A861C4D68EEF}"
 EndProject

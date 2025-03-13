@@ -27,9 +27,6 @@
     <ClCompile Include="CapiQuestion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CapiQuestionFilePre76.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CapiQuestionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -43,6 +40,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExtendedControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pre76CapiQuestionFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pre76CapiQuestionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QSFView.cpp">
@@ -97,9 +100,6 @@
     <ClInclude Include="CapiQuestion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CapiQuestionFilePre76.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CapiQuestionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -113,6 +113,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtendedControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pre76CapiQuestionFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QSFView.h">

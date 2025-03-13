@@ -82,8 +82,7 @@ private:
     bool ShouldConvertPre76ConditionOccs(const std::vector<CapiCondition>& conditions) const;
     void ConvertPre76Fills();
     CString ConvertPre76Fills(const CString& question_text);
-    static CString ConvertFromRtf(const CString& rtf_text);
-
+    static std::string ConvertFromRtf(const std::string& rtf_text);
 
 private:
     std::vector<Language> m_languages;
