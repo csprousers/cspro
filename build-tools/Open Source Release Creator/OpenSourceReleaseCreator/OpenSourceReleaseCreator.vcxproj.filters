@@ -18,6 +18,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
+      <Filter>Overrides</Filter>
+    </ClInclude>
     <ClInclude Include="Creator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,9 +44,6 @@
     </ClInclude>
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
-      <Filter>Overrides</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

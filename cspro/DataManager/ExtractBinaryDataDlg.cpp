@@ -59,7 +59,7 @@ BOOL ExtractBinaryDataDlg::OnInitDialog()
     try
     {
         const size_t number_cases = m_caseProvider->GetNumberCases();
-        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to save the binary data contained in %d cases%s:",
+        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to extract the binary data contained in %d case%s:",
                                                            static_cast<int>(number_cases), PluralizeWord(number_cases)));
     }
     catch(...) { ASSERT(false); }
@@ -135,14 +135,13 @@ void ExtractBinaryDataDlg::OnSelectOutputDirectory()
     if( suggested_directory.empty() )
         suggested_directory = m_caseHoldingDoc.GetDataDirectory();
 
-    std::optional<std::string> directory = SelectFolderDialog(m_hWnd,
-                                                              FormatText("Save '%s' Binary Data in Directory", m_caseHoldingDoc.GetDictionary().GetName().c_str()),
-                                                              suggested_directory);
+    std::string directory = SelectFolderDialog(FormatText("Save '%s' Binary Data in Directory", m_caseHoldingDoc.GetDictionary().GetName().c_str()),
+                                               suggested_directory);
 
-    if( !directory.has_value() )
+    if( directory.empty() )
         return;
 
-    m_settings.output_directory = std::move(*directory);
+    m_settings.output_directory = std::move(directory);
 
     UpdateData(FALSE);
 }

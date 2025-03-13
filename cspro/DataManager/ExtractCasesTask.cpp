@@ -45,6 +45,7 @@ void ExtractCasesTask::Finalize(const Result result)
 
     else if( m_outputDataRepository != nullptr )
     {
+        m_taskRunner->LogText();
         m_taskRunner->LogText("Deleting the data source: " + m_outputDataRepository->GetName(DataRepositoryNameType::Full));
         m_outputDataRepository->DeleteRepository();
     }

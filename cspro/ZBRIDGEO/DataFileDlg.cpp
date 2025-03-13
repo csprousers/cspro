@@ -390,6 +390,14 @@ LRESULT CALLBACK DataFileDlg::DataFileDlgSubclass(HWND hWnd, UINT msg, WPARAM wP
                 {
                     connection_string.AdjustRelativePath(TC::ToUtf8(m_currentDataFileDlg->GetFolderPath()));
 
+                    // if the user specifies a directory, let the default processing continue
+                    // so that the user can enter text like ".." to navigate directories
+                    if( PortableFunctions::FileIsDirectory(connection_string.GetFilePath()) &&
+                        connection_strings.size() == 1 )
+                    {
+                        return DefSubclassProc(hWnd, msg, wParam, lParam);
+                    }
+
                     // issue an error if the directory does not exist
                     if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
                         throw CSProException("%s\nPath does not exist.\nCheck the path and try again.", connection_string.GetFilePath().c_str());

@@ -6,6 +6,9 @@
 #include "CaseTextContentCreator.h"
 #include "DataSourceFrame.h"
 #include "DataSummaryContentCreator.h"
+#include "ExportDataDlg.h"
+#include "ExportDataTask.h"
+#include "ExtractCasesTask.h"
 #include "ExtractNotesDlg.h"
 #include "ExtractNotesTask.h"
 #include "ExtractBinaryDataDlg.h"
@@ -19,6 +22,9 @@
 BEGIN_MESSAGE_MAP(CaseHoldingFrame, CMDIChildWndEx)
 
     // File menu
+    ON_COMMAND(ID_FILE_SAVE_CASES, OnFileSaveCases)
+    ON_COMMAND(ID_FILE_EXPORT_CASES, OnFileExportCases)
+
     ON_COMMAND(ID_FILE_EXTRACT_DICTIONARY, OnFileExtractDictionary)
 
     ON_COMMAND(ID_FILE_EXTRACT_NOTES, OnFileExtractNotes)
@@ -66,6 +72,82 @@ CaseHoldingFrame::CaseHoldingFrame()
 
 CaseHoldingFrame::~CaseHoldingFrame()
 {
+}
+
+
+void CaseHoldingFrame::OnFileSaveCases()
+{
+    OnFileSaveCases(CreateCaseProvider());
+}
+
+
+void CaseHoldingFrame::OnFileSaveCases(std::shared_ptr<CaseProvider> case_provider)
+{
+    ASSERT(case_provider != nullptr);
+
+    CaseHoldingDoc& case_holding_doc = GetCaseHoldingDoc();
+
+    if( !case_holding_doc.DictionaryAllowsExport("saving cases") )
+        return;
+
+    std::string number_cases_text;
+
+    try
+    {
+        const size_t number_cases = case_provider->GetNumberCases();
+
+        if( number_cases == 0 )
+        {
+            const int result = AfxMessageBox(L"No cases are selected. Do you want to create a data source with 0 cases?",
+                                             MB_YESNOCANCEL | MB_DEFBUTTON2);
+            if( result != IDYES )
+                return;
+        }
+
+        number_cases_text = ( number_cases == 1 ) ? "Case" :
+                                                    FormatText("Cases (%d)", static_cast<int>(number_cases));
+    }
+    catch(...) { }
+
+    DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false);
+    data_file_dlg.SetTitle(FormatText("Save '%s' %s As", case_holding_doc.GetDictionary().GetName().c_str(),
+                                                         number_cases_text.empty() ? "Cases" : number_cases_text.c_str()))
+                 .SuggestMatchingDataRepositoryType(case_holding_doc.GetConnectionString());
+
+    if( data_file_dlg.DoModal() != IDOK )
+        return;
+
+    RunCaseTask(std::move(case_provider),
+                std::make_unique<ExtractCasesTask>(data_file_dlg.GetConnectionString()));
+}
+
+
+void CaseHoldingFrame::OnFileExportCases()
+{
+    OnFileExportCases(CreateCaseProvider());
+}
+
+
+void CaseHoldingFrame::OnFileExportCases(std::shared_ptr<CaseProvider> case_provider)
+{
+    ASSERT(case_provider != nullptr);
+
+    CaseHoldingDoc& case_holding_doc = GetCaseHoldingDoc();
+
+    if( !case_holding_doc.DictionaryAllowsExport("exporting cases") )
+        return;
+
+    const std::shared_ptr<ExportDataSettings> settings = case_holding_doc.GetSettings<ExportDataSettings>();
+
+    ExportDataDlg dlg(case_holding_doc, *settings, case_provider);
+
+    if( dlg.DoModal() != IDOK )
+        return;
+
+    *settings = dlg.GetSettings();
+
+    RunCaseTask(std::move(case_provider),
+                std::make_unique<ExportDataTask>(dlg.ReleaseExportConnectionStrings()));
 }
 
 

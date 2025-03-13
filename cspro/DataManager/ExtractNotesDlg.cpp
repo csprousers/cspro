@@ -74,7 +74,7 @@ BOOL ExtractNotesDlg::OnInitDialog()
     try
     {
         const size_t number_cases = m_caseProvider->GetNumberCases();
-        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to save the notes from %d case%s:",
+        WindowsUtf8::SetText(this, IDC_HEADING, FormatText("Specify how to extract the notes from %d case%s:",
                                                            static_cast<int>(number_cases), PluralizeWord(number_cases)));
     }
     catch(...) { ASSERT(false); }

@@ -31,3 +31,17 @@ CaseIteratorParameters::CaseIteratorParameters(CaseIterationStartType start_type
         key_prefix(std::move(key_prefix_))
 {
 }
+
+
+std::unique_ptr<CaseIteratorParameters> CaseIteratorParameters::CreateForKey(const CaseIterationStartType start_type,
+                                                                             std::variant<std::string, double> first_key_or_position)
+{
+    return std::make_unique<CaseIteratorParameters>(start_type, std::move(first_key_or_position), std::nullopt);
+}
+
+
+std::unique_ptr<CaseIteratorParameters> CaseIteratorParameters::CreateForKeyPrefix(std::string key_prefix)
+{
+    // the start type is not used for startswith filters
+    return std::make_unique<CaseIteratorParameters>(CaseIterationStartType::LessThan, -1.0, std::move(key_prefix));
+}

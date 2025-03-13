@@ -56,6 +56,9 @@
     <ClCompile Include="DataTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicLayoutControlResizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ExecutionStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -259,6 +262,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicLayoutControlResizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExecutionStack.h">

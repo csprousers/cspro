@@ -114,6 +114,7 @@ void ExtractNotesTask::Finalize(const Result result)
 
     else if( m_notesDataRepository != nullptr )
     {
+        m_taskRunner->LogText();
         m_taskRunner->LogText("Deleting the data source: " + m_notesDataRepository->GetName(DataRepositoryNameType::Full));
         m_notesDataRepository->DeleteRepository();
     }

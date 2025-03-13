@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "HtmlDialogTemplatesDlg.h"
 #include <zToolsO/FileIO.h>
-#include <zUtilF/DynamicLayoutControlResizer.h>
+#include <zUtilO/DynamicLayoutControlResizer.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 
 

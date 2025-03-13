@@ -90,6 +90,9 @@
     <ClInclude Include="DataSourceSettings.h" />
     <ClInclude Include="DataSummaryContentCreator.h" />
     <ClInclude Include="DownloadDataSourceDlg.h" />
+    <ClInclude Include="ExportDataDlg.h" />
+    <ClInclude Include="ExportDataSettings.h" />
+    <ClInclude Include="ExportDataTask.h" />
     <ClInclude Include="ExtractBinaryDataDlg.h" />
     <ClInclude Include="ExtractBinaryDataSettings.h" />
     <ClInclude Include="ExtractBinaryDataTask.h" />
@@ -116,6 +119,7 @@
     <ClInclude Include="TaskRunnerSyncListener.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="ViewOptionsHelper.h" />
+    <ClInclude Include="WindowsMessageCaseConstructionReporter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CaseContentCreatorBase.cpp" />
@@ -138,6 +142,8 @@
     <ClCompile Include="DataSourceSettings.cpp" />
     <ClCompile Include="DataSummaryContentCreator.cpp" />
     <ClCompile Include="DownloadDataSourceDlg.cpp" />
+    <ClCompile Include="ExportDataDlg.cpp" />
+    <ClCompile Include="ExportDataTask.cpp" />
     <ClCompile Include="ExtractBinaryDataDlg.cpp" />
     <ClCompile Include="ExtractBinaryDataTask.cpp" />
     <ClCompile Include="ExtractCasesTask.cpp" />

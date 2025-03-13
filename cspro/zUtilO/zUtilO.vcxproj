@@ -81,6 +81,7 @@
     <ClCompile Include="CustomUri.cpp" />
     <ClCompile Include="DataExchange.cpp" />
     <ClCompile Include="DataTypes.cpp" />
+    <ClCompile Include="DynamicLayoutControlResizer.cpp" />
     <ClCompile Include="ExecutionStack.cpp" />
     <ClCompile Include="ExpansiveMap.cpp" />
     <ClCompile Include="FileDlg.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="CustomUri.h" />
     <ClInclude Include="DataExchange.h" />
     <ClInclude Include="DataTypes.h" />
+    <ClInclude Include="DynamicLayoutControlResizer.h" />
     <ClInclude Include="ExecutionStack.h" />
     <ClInclude Include="ExpansiveList.h" />
     <ClInclude Include="ExpansiveMap.h" />

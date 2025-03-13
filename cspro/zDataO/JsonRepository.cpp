@@ -1906,7 +1906,7 @@ JsonRepositoryCaseIterator::JsonRepositoryCaseIterator(JsonRepository& json_repo
     :   m_jsonRepository(json_repository),
         m_iterationContent(iteration_content),
         m_stmtQueryKeys(std::move(stmt_query_keys)),
-        m_progressBarParameters({ case_status, ( start_parameters != nullptr ) ? std::make_unique<CaseIteratorParameters>(*start_parameters) : nullptr }),
+        m_progressBarParameters(case_status, CreateCopyOfPointerValue(start_parameters)),
         m_casesRead(0)
 {
 }

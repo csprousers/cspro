@@ -31,6 +31,7 @@ struct HtmlViewCtrl::Impl
 HtmlViewCtrl::HtmlViewCtrl(bool initialize_webview_in_pre_subclass_window/* = true*/)
     :   m_impl(std::make_unique<HtmlViewCtrl::Impl>()),
         m_initializeWebviewInPreSubclassWindow(initialize_webview_in_pre_subclass_window),
+        m_allowExternalDrop(false),
         m_contextMenuEnabled(true),
         m_zoomControlEnabled(false),
         m_openNonLocalhostLinksInBrowser(false),
@@ -42,6 +43,32 @@ HtmlViewCtrl::HtmlViewCtrl(bool initialize_webview_in_pre_subclass_window/* = tr
 
 HtmlViewCtrl::~HtmlViewCtrl()
 {
+}
+
+
+HtmlViewCtrl::Impl::~Impl()
+{
+    if( controller != nullptr )
+    {
+        controller->Close();
+        controller.reset();
+        view.reset();
+    }
+}
+
+
+void HtmlViewCtrl::SetAllowExternalDrop(const bool enabled)
+{
+    m_allowExternalDrop = enabled;
+
+    if( m_impl->controller != nullptr )
+    {
+        wil::com_ptr<ICoreWebView2Controller4> controller4 = m_impl->controller.query<ICoreWebView2Controller4>();
+        ASSERT(controller4 != nullptr);
+
+        if( controller4 != nullptr )
+            controller4->put_AllowExternalDrop(enabled);
+    }
 }
 
 
@@ -488,6 +515,8 @@ void HtmlViewCtrl::ConfigureSettings()
     settings->put_IsStatusBarEnabled(FALSE);
     settings->put_IsZoomControlEnabled(m_zoomControlEnabled);
     settings->put_AreDefaultContextMenusEnabled(m_contextMenuEnabled);
+
+    SetAllowExternalDrop(m_allowExternalDrop);
 }
 
 
@@ -860,15 +889,5 @@ void HtmlViewCtrl::SaveScreenshot(const std::string& file_path)
     catch(...)
     {
         throw CSProException("There was an error saving the screenshot: " + PortableFunctions::PathGetFilename(file_path));
-    }
-}
-
-
-HtmlViewCtrl::Impl::~Impl()
-{
-    if (controller) {
-        controller->Close();
-        controller.reset();
-        view.reset();
     }
 }

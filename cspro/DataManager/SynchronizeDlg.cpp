@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "SynchronizeDlg.h"
 #include "SyncHelpers.h"
-#include <zUtilF/DynamicLayoutControlResizer.h>
+#include <zUtilO/DynamicLayoutControlResizer.h>
 #include <zDataO/SyncHistoryEntry.h>
 
 

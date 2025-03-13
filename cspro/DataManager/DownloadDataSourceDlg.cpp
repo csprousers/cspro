@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "DownloadDataSourceDlg.h"
 #include "SyncHelpers.h"
-#include <zUtilF/DynamicLayoutControlResizer.h>
+#include <zUtilO/DynamicLayoutControlResizer.h>
 
 
 BEGIN_MESSAGE_MAP(DownloadDataSourceDlg, DynamicLayoutResizableDlg)

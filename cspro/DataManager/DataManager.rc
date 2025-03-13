@@ -130,6 +130,7 @@ BEGIN
         MENUITEM "Synchroni&ze Data...\tCtrl+Shift+S", ID_FILE_SYNCHRONIZE
         MENUITEM SEPARATOR
         MENUITEM "S&ave Data...",               ID_FILE_SAVE_DATA
+        MENUITEM "Export Data...",              ID_FILE_EXPORT_CASES
         POPUP "Extract"
         BEGIN
             MENUITEM "Dictionary...",               ID_FILE_EXTRACT_DICTIONARY
@@ -221,6 +222,8 @@ BEGIN
         MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
         MENUITEM SEPARATOR
+        MENUITEM "S&ave Case...",               ID_FILE_SAVE_CASES
+        MENUITEM "Export Case...",              ID_FILE_EXPORT_CASES
         POPUP "Extract"
         BEGIN
             MENUITEM "Dictionary...",               ID_FILE_EXTRACT_DICTIONARY
@@ -365,7 +368,6 @@ BEGIN
     "L",            ID_TOGGLE_CASE_KEY_LABEL, VIRTKEY, CONTROL, NOINVERT
     "T",            ID_TOGGLE_DICTIONARY_DISPLAY, VIRTKEY, CONTROL, NOINVERT
     "T",            ID_TOGGLE_VALUE_DISPLAY, VIRTKEY, SHIFT, CONTROL, NOINVERT
-    VK_DELETE,      ID_DATA_DELETE_CASE,    VIRTKEY, NOINVERT
 END
 
 
@@ -412,13 +414,20 @@ END
 // Dialog
 //
 
-IDD_CASE_LISTING DIALOGEX 0, 0, 80, 138
+IDD_CASE_LISTING DIALOGEX 0, 0, 122, 116
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    CONTROL         "",IDC_CASES,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,2,14,76,122
-    LTEXT           "Cases",IDC_STATIC,2,3,20,8
-    CONTROL         "Show Filters",IDC_TOGGLE_FILTERS,"MfcLink",WS_TABSTOP,36,1,42,11
+    CONTROL         "",IDC_CASES,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,2,78,118,33
+    GROUPBOX        "Filters",IDC_CASE_FILTERS,2,1,118,61
+    LTEXT           "Key filter:",IDC_STATIC,6,14,32,8
+    EDITTEXT        IDC_KEY_FILTER,62,12,54,12,ES_AUTOHSCROLL
+    LTEXT           "Key filter type:",IDC_STATIC,6,30,49,8
+    COMBOBOX        IDC_KEY_FILTER_TYPE,62,28,54,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Case status:",IDC_STATIC,6,46,42,8
+    COMBOBOX        IDC_CASE_STATUS,62,44,54,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Cases",IDC_CASES_LABEL,6,67,20,8
+    CONTROL         "Hide Filters",IDC_TOGGLE_FILTERS,"MfcLink",WS_TABSTOP,80,66,42,11
 END
 
 IDD_QUESTIONNAIRE_CONTENT DIALOGEX 0, 0, 415, 128
@@ -444,10 +453,10 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
 CAPTION "Extract Notes"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "&Save",IDOK,141,102,50,14
+    DEFPUSHBUTTON   "&Extract",IDOK,141,102,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,211,102,50,14
     PUSHBUTTON      "&Help",ID_HELP,281,102,50,14
-    LTEXT           "Specify how to save the notes from cases:",IDC_HEADING,7,7,459,8
+    LTEXT           "Specify how to extract the notes from cases:",IDC_HEADING,7,7,459,8
     GROUPBOX        "Format",IDC_STATIC,7,26,70,67
     CONTROL         "CSPro Data",IDC_NOTES_FORMAT_CSPRO,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,53,10
     CONTROL         "CSV",IDC_NOTES_FORMAT_CSV,"Button",BS_AUTORADIOBUTTON,18,57,29,10
@@ -478,10 +487,10 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
 CAPTION "Extract Binary Data"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "&Save",IDOK,167,160,50,14
+    DEFPUSHBUTTON   "&Extract",IDOK,167,160,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,237,160,50,14
     PUSHBUTTON      "&Help",ID_HELP,307,160,50,14
-    LTEXT           "Specify how to save the binary data contained in cases:",IDC_HEADING,7,7,459,8
+    LTEXT           "Specify how to extract the binary data contained in cases:",IDC_HEADING,7,7,509,8
     GROUPBOX        "Filename Format",IDC_STATIC,7,26,145,125
     CONTROL         "Binary Data Filename",IDC_BINARY_DATA_FORMAT_FILENAME,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,83,10
@@ -522,6 +531,34 @@ BEGIN
     DEFPUSHBUTTON   "&Open",IDOK,94,77,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,166,77,50,14
     PUSHBUTTON      "&Help",ID_HELP,238,77,50,14
+END
+
+IDD_EXPORT_DATA DIALOGEX 0, 0, 473, 209
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Export Data"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Export",IDOK,142,188,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,212,188,50,14
+    PUSHBUTTON      "&Help",ID_HELP,282,188,50,14
+    LTEXT           "Data Manager can save CSPro case-based data to a variety of formats. Each record will be output, but if the export format does not allow multiple records in one data, multiple files will be output, one for each record.",IDC_STATIC,7,7,459,20
+    CONTROL         "Specify how to export cases. For more options, use the Export Data tool, available from the Tools menu.",IDC_HEADING,
+                    "Static",SS_LEFTNOWORDWRAP | WS_GROUP,7,31,459,8
+    GROUPBOX        "Export Formats",IDC_STATIC,7,48,64,131
+    CONTROL         "CSV",IDC_EXPORT_CSV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,65,29,10
+    CONTROL         "Excel",IDC_EXPORT_EXCEL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,81,33,10
+    CONTROL         "JSON",IDC_EXPORT_JSON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,97,33,10
+    CONTROL         "R",IDC_EXPORT_R,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,113,21,10
+    CONTROL         "SAS",IDC_EXPORT_SAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,129,29,10
+    CONTROL         "SPSS",IDC_EXPORT_SPSS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,145,32,10
+    CONTROL         "Stata",IDC_EXPORT_STATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,161,33,10
+    GROUPBOX        "Export Outputs",IDC_STATIC,81,48,385,131
+    LTEXT           "Base filename:",IDC_STATIC,88,67,48,8
+    EDITTEXT        IDC_EXPORT_BASE_FILE_PATH,141,64,286,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_EXPORT_BASE_FILE_PATH_SELECT,436,64,23,14
+    LISTBOX         IDC_EXPORT_FILE_PATHS,88,87,371,67,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Output one file for each record regardless of export format",IDC_EXPORT_ONE_FILE_PER_RECORD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,88,161,206,10
 END
 
 IDD_OPEN_CSWEB_DATA DIALOGEX 0, 0, 401, 169
@@ -589,9 +626,9 @@ BEGIN
     IDD_CASE_LISTING, DIALOG
     BEGIN
         LEFTMARGIN, 2
-        RIGHTMARGIN, 78
+        VERTGUIDE, 120
         TOPMARGIN, 2
-        BOTTOMMARGIN, 136
+        BOTTOMMARGIN, 114
     END
 
     IDD_QUESTIONNAIRE_CONTENT, DIALOG
@@ -635,6 +672,15 @@ BEGIN
         BOTTOMMARGIN, 91
     END
 
+    IDD_EXPORT_DATA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 466
+        VERTGUIDE, 459
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 202
+    END
+
     IDD_OPEN_CSWEB_DATA, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -669,10 +715,7 @@ END
 
 IDD_CASE_LISTING AFX_DIALOG_LAYOUT
 BEGIN
-    0,
-    0, 0, 100, 100,
-    0, 0, 0, 0,
-    100, 0, 0, 0
+    0
 END
 
 IDD_QUESTIONNAIRE_CONTENT AFX_DIALOG_LAYOUT
@@ -764,6 +807,30 @@ BEGIN
     50, 100, 0, 0
 END
 
+IDD_EXPORT_DATA AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 100, 0, 0
+END
+
 IDD_OPEN_CSWEB_DATA AFX_DIALOG_LAYOUT
 BEGIN
     0,
@@ -819,6 +886,24 @@ END
 
 IDD_CASE_LISTING DLGINIT
 BEGIN
+    IDC_KEY_FILTER_TYPE, 0x403, 2, 0
+0x003c, 
+    IDC_KEY_FILTER_TYPE, 0x403, 3, 0
+0x3d3c, "\000" 
+    IDC_KEY_FILTER_TYPE, 0x403, 12, 0
+0x7473, 0x7261, 0x7374, 0x7720, 0x7469, 0x0068, 
+    IDC_KEY_FILTER_TYPE, 0x403, 3, 0
+0x3d3e, "\000" 
+    IDC_KEY_FILTER_TYPE, 0x403, 2, 0
+0x003e, 
+    IDC_CASE_STATUS, 0x403, 4, 0
+0x6c41, 0x006c, 
+    IDC_CASE_STATUS, 0x403, 12, 0
+0x6f4e, 0x2074, 0x6544, 0x656c, 0x6574, 0x0064, 
+    IDC_CASE_STATUS, 0x403, 8, 0
+0x6150, 0x7472, 0x6169, 0x006c, 
+    IDC_CASE_STATUS, 0x403, 10, 0
+0x7544, 0x6c70, 0x6369, 0x7461, 0x0065, 
     IDC_TOGGLE_FILTERS, 0x37c, 157, 0
 0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x3c3e, 0x4d2f, 0x4346, 
 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x3c3e, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
@@ -862,6 +947,8 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FILE_SAVE_VIEW       "Save the active view\nSave View"
+    ID_FILE_SYNCHRONIZE     "Synchronize cases to the data source\nSynchronize Data"
     ID_LISTING_ASCENDING    "View cases in ascending order\nAscending"
     ID_LISTING_DESCENDING   "View cases in descending order\nDescending"
     ID_LISTING_CASE_LABEL   "Show case labels in the case listing\nCase Label"
@@ -895,14 +982,14 @@ BEGIN
                             "View the case data as using the Questionnaire View\nCase (Questionnaire View)"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_LABELS "Display dictionary labels\nLabels"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES "Display dictionary names\nNames"
-    ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES_AND_LABELS 
-                            "Display dictionary names and labels\nNames and Labels"
-    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS 
-                            "Display both item and subitems\nItems and Subitems"
 END
 
 STRINGTABLE
 BEGIN
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_NAMES_AND_LABELS 
+                            "Display dictionary names and labels\nNames and Labels"
+    ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS_AND_SUBITEMS 
+                            "Display both item and subitems\nItems and Subitems"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_ITEMS 
                             "Display only items and not subitems\nItems Only"
     ID_VIEW_OPTIONS_HTML_DICTIONARY_SUBITEMS 
@@ -929,14 +1016,14 @@ BEGIN
                             "Hide items with blank values\nHide Blank Values"
     ID_VIEW_OPTIONS_HTML_CASE_DEFAULT_DETAILS 
                             "Display non-default information about cases\nDefault Display"
-    ID_VIEW_OPTIONS_HTML_CASE_ALL_DETAILS 
-                            "Display all information about cases\nShow All Details"
-    ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS 
-                            "Show case errors and inconsistencies\nShow Case Errors"
 END
 
 STRINGTABLE
 BEGIN
+    ID_VIEW_OPTIONS_HTML_CASE_ALL_DETAILS 
+                            "Display all information about cases\nShow All Details"
+    ID_VIEW_OPTIONS_HTML_CASE_SHOW_ERRORS 
+                            "Show case errors and inconsistencies\nShow Case Errors"
     ID_VIEW_OPTIONS_HTML_CASE_HIDE_ERRORS 
                             "Hide case errors and inconsistencies\nHide Case Errors"
     ID_VIEW_OPTIONS_JSON_COMPACT_JSON 
@@ -969,6 +1056,7 @@ BEGIN
     ID_FILE_CLOSE_ALL       "Close all documents\nClose All"
     ID_FILE_DOWNLOAD_DATA_SOURCE 
                             "Create a new data source by downloading data from a synchronization service\nDownload Data"
+    ID_FILE_EXPORT_CASES    "Export cases to other file formats\nExport Data"
     ID_FILE_EXTRACT_BINARY_DATA 
                             "Extract the binary data from cases\nExtract Binary Data"
     ID_FILE_EXTRACT_DICTIONARY "Extract the dictionary\nExtract Dictionary"
@@ -977,9 +1065,8 @@ BEGIN
     ID_FILE_OPEN_DATA_SOURCE "Open an existing data source\nOpen Data Source"
     ID_FILE_PRINT_VIEW      "Print the active view\nPrint View"
     ID_FILE_REFRESH         "Refresh the case listing and view\nRefresh Data"
-    ID_FILE_SAVE_DATA       "Save the cases to a new data source\nSave Data"
-    ID_FILE_SAVE_VIEW       "Save the active view\nSave View"
-    ID_FILE_SYNCHRONIZE     "Synchronize cases to the data source\nSynchronize Data"
+    ID_FILE_SAVE_CASES      "Save cases to a new data source\nSave Case"
+    ID_FILE_SAVE_DATA       "Save all cases to a new data source\nSave Data"
 END
 
 STRINGTABLE

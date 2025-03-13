@@ -8,12 +8,13 @@
 
 namespace
 {
-    constexpr int IconWidth = 16;
+    constexpr int IconWidth      = 16;
     constexpr int IconTextMargin = 2;
 
     constexpr int InitialColumnWidth = 10;
 
     constexpr size_t CaseSummariesQueryLimit = 1000;
+    constexpr size_t CaseSummariesFindLimit  = 25000;
 }
 
 
@@ -22,13 +23,14 @@ BEGIN_MESSAGE_MAP(CaseListingCtrl, CListCtrl)
 #ifdef _DEBUG
     ON_NOTIFY_REFLECT(LVN_ODCACHEHINT, OnCacheHint)
 #endif
+    ON_NOTIFY_REFLECT(LVN_ODFINDITEM, OnFindItem)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnDoubleClick)
     ON_NOTIFY_REFLECT(NM_RCLICK, OnRightClick)
     ON_COMMAND(ID_CONTEXT_MENU, OnContextMenu)
     ON_MESSAGE(UWM::Data::AdjustColumnWidthAndInvalidate, OnAdjustColumnWidthAndInvalidate)
     ON_MESSAGE(UWM::Data::SelectionsChanged, OnSelectionsChanged)
-    ON_MESSAGE(UWM::Data::RequeryCaseSummaries, OnRequeryCaseSummaries)
+    ON_MESSAGE(UWM::Data::UpdateCaseListing, OnUpdateCaseListing)
 END_MESSAGE_MAP()
 
 
@@ -124,24 +126,24 @@ void CaseListingCtrl::Initialize(std::shared_ptr<DataRepository> data_depository
     m_viewableCaseIteratorSettings = std::move(viewable_case_iterator_setting);
     ASSERT(m_dataRepository != nullptr && m_viewableCaseIteratorSettings != nullptr);
 
-    UpdateCaseListing();
+    UpdateCaseListingAsync(CaseListingReselection::None);
 }
 
 
-void CaseListingCtrl::UpdateCaseListing(const bool change_is_only_visual/* = false*/)
+void CaseListingCtrl::InvalidateCaseListingAsync()
 {
     if( !m_adjustColumnWidthAndInvalidateMessagePosted )
     {
         PostMessage(UWM::Data::AdjustColumnWidthAndInvalidate);
         m_adjustColumnWidthAndInvalidateMessagePosted = true;
     }
+}
 
-    if( !change_is_only_visual )
-    {
-        m_refreshSelectedCaseSummaries = true;
 
-        PostMessage(UWM::Data::RequeryCaseSummaries);
-    }
+void CaseListingCtrl::UpdateCaseListingAsync(const CaseListingReselection reselect_strategy/* = CaseListingReselection::SelectedCases*/)
+{
+    InvalidateCaseListingAsync();
+    PostMessage(UWM::Data::UpdateCaseListing, static_cast<WPARAM>(reselect_strategy));
 }
 
 
@@ -152,11 +154,21 @@ BOOL CaseListingCtrl::PreTranslateMessage(MSG* const pMsg)
         return TRUE;
     }
 
-    // make sure the user isn't pressing Enter while on a menu
-    else if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && !IsMenuShowing() )
+    else if( pMsg->message == WM_KEYDOWN )
     {
-        OnCaseListingDoubleClickAndReturn();
-        return TRUE;
+        // allow case selection using the Enter key
+        if( pMsg->wParam == VK_RETURN )
+        {
+            OnCaseListingDoubleClickAndReturn();
+            return TRUE;
+        }
+
+        // potentially allow the Delete key to be used to delete cases
+        else if( pMsg->wParam == VK_DELETE )
+        {
+            if( OnCaseListingDeleteKey() )
+                return TRUE;
+        }
     }
 
     return __super::PreTranslateMessage(pMsg);
@@ -221,12 +233,11 @@ void CaseListingCtrl::OnCustomDraw(NMHDR* const pNMHDR, LRESULT* const pResult)
             {
                 current_column_width = std::get<2>(*case_summary_with_measured_text.last_displayed_text);
 
-                PostMessage(UWM::Data::AdjustColumnWidthAndInvalidate);
-                m_adjustColumnWidthAndInvalidateMessagePosted = true;
-
                 // when adjusting column widths, skip the drawing stage because the
                 // entire control will be redrawn upon invalidation
                 *pResult = CDRF_SKIPDEFAULT;
+
+                InvalidateCaseListingAsync();
 
                 return;
             }
@@ -278,6 +289,28 @@ void CaseListingCtrl::OnCacheHint(NMHDR* const pNMHDR, LRESULT* const pResult)
 }
 
 
+void CaseListingCtrl::OnFindItem(NMHDR* const pNMHDR, LRESULT* const pResult)
+{
+    const NMLVFINDITEM* const find_item = reinterpret_cast<const NMLVFINDITEM*>(pNMHDR);
+
+    if( ( find_item->lvfi.flags & LVFI_STRING ) == 0 )
+    {
+        *pResult = ReturnProgrammingError(-1);
+    }
+
+    else
+    {
+        ASSERT(( find_item->lvfi.flags & LVFI_SUBSTRING ) != 0);
+        ASSERT(( find_item->lvfi.flags & LVFI_WRAP ) != 0);
+
+        const std::string text = TC::ToUtf8(find_item->lvfi.psz);
+
+        *pResult = m_viewableCaseIteratorSettings->GetViewCaseKey() ? FindIndexByCaseKey(text, find_item->iStart) :
+                                                                      FindIndexByCaseLabel(text, find_item->iStart);
+    }
+}
+
+
 void CaseListingCtrl::OnItemChanged(NMHDR* const pNMHDR, LRESULT* const pResult)
 {
     NMLISTVIEW* const pNMLV = reinterpret_cast<NMLISTVIEW*>(pNMHDR);
@@ -317,7 +350,7 @@ void CaseListingCtrl::OnContextMenu()
     const int x = std::min(rect.Width() * 2 / 3, GetCurrentColumnWidth());
     int y;
 
-    // when an item is selected, the y position of the will be that of the first selected item
+    // when an item is selected, the y position will be that of the first selected item
     POSITION pos = GetFirstSelectedItemPosition();
 
     if( pos != nullptr )
@@ -344,6 +377,7 @@ const std::vector<std::shared_ptr<const CaseSummary>>& CaseListingCtrl::GetSelec
     if( m_refreshSelectedCaseSummaries )
     {
         m_selectedCaseSummaries.clear();
+        m_selectedCaseSummaryIndices.clear();
 
         POSITION pos = GetFirstSelectedItemPosition();
 
@@ -354,12 +388,15 @@ const std::vector<std::shared_ptr<const CaseSummary>>& CaseListingCtrl::GetSelec
             try
             {
                 m_selectedCaseSummaries.emplace_back(GetCaseSummaryWithMeasuredText(item_index).case_summary);
+                m_selectedCaseSummaryIndices.emplace_back(item_index);
             }
             catch(...) { ASSERT(false); }
         }
 
         m_refreshSelectedCaseSummaries = false;
     }
+
+    ASSERT(m_selectedCaseSummaries.size() == m_selectedCaseSummaryIndices.size());
 
     return m_selectedCaseSummaries;
 }
@@ -397,8 +434,24 @@ LRESULT CaseListingCtrl::OnSelectionsChanged(WPARAM /*wParam*/, LPARAM /*lParam*
 }
 
 
-LRESULT CaseListingCtrl::OnRequeryCaseSummaries(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CaseListingCtrl::OnUpdateCaseListing(const WPARAM wParam, LPARAM /*lParam*/)
 {
+    const CaseListingReselection reselect_strategy = static_cast<CaseListingReselection>(wParam);
+    std::optional<std::tuple<std::vector<std::shared_ptr<const CaseSummary>>, int>> reselect_values;
+
+    if( reselect_strategy != CaseListingReselection::None && !GetSelectedCaseSummaries().empty() )
+    {
+        ASSERT(!m_selectedCaseSummaries.empty() && !m_selectedCaseSummaryIndices.empty());
+
+        // we'll use the last selected index for SelectedCasesOrClosestIndex
+        const int index = ( reselect_strategy == CaseListingReselection::SelectedCasesOrClosestIndex ) ? m_selectedCaseSummaryIndices.back() : -1;
+
+        reselect_values.emplace(m_selectedCaseSummaries, index);
+    }
+
+    m_refreshSelectedCaseSummaries = true;
+
+    // calculate the number of cases
     m_numberCases.reset();
     m_caseSummariesWithMeasuredTexts.clear();
 
@@ -415,7 +468,53 @@ LRESULT CaseListingCtrl::OnRequeryCaseSummaries(WPARAM /*wParam*/, LPARAM /*lPar
         OnCaseListingCaseSummariesQueried(exception.what());
     }
 
-    SetItemCountEx(m_numberCases.value_or(0), 0);
+    const int number_cases_to_report = m_numberCases.value_or(0);
+    SetItemCountEx(number_cases_to_report);
+
+    // clear all selections
+    SetItemState(-1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+
+    // reselect values
+    if( reselect_values.has_value() && number_cases_to_report > 0 )
+    {
+        std::optional<int> first_selected_index;
+        int last_selected_index = -1;
+
+        for( const std::shared_ptr<const CaseSummary>& case_summary : std::get<0>(*reselect_values) )
+        {
+            const int matched_index = FindIndexByCaseKey(case_summary->GetKey());
+
+            if( matched_index != -1 )
+            {
+                first_selected_index = first_selected_index.has_value() ? std::min(*first_selected_index, matched_index) :
+                                                                          matched_index;
+                last_selected_index = std::max(last_selected_index, matched_index);
+
+                SetItemState(matched_index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+            }
+        }
+
+        // it nothing was selected, try to select by index, defaulting to the last item
+        if( !first_selected_index.has_value() && std::get<1>(*reselect_values) != -1 )
+        {
+            first_selected_index = std::get<1>(*reselect_values);
+
+            if( static_cast<size_t>(*first_selected_index) >= *m_numberCases )
+                first_selected_index = *m_numberCases - 1;
+
+            SetItemState(*first_selected_index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        }
+
+        if( first_selected_index.has_value() )
+        {
+            // call EnsureVisible with both the first and last selected indices to ensure
+            // that, when different, the odds of seeing all selections is maximized
+            EnsureVisible(*first_selected_index, FALSE);
+
+            if( first_selected_index < last_selected_index )
+                EnsureVisible(last_selected_index, FALSE);
+        }
+    }
 
     return 1;
 }
@@ -474,47 +573,109 @@ CaseListingCtrl::CaseSummaryWithMeasuredText& CaseListingCtrl::GetCaseSummaryWit
 }
 
 
-struct CaseListingCtrl::IsMenuShowingCallbackData
+template<typename CF>
+int CaseListingCtrl::FindIndexWorker(size_t start_index, const size_t end_index, const CF& callback_function)
 {
-    wchar_t test_class_name[100];
-    std::unique_ptr<std::wstring> first_afx_class_name;
-    bool multiple_afx_classes_exist = false;
-};
+    ASSERT(m_numberCases.has_value() && start_index <= end_index && end_index < *m_numberCases);
+    size_t& index = start_index;
 
+    for( ; index <= end_index; ++index )
+    {
+        const CaseSummaryWithMeasuredText& case_summary_with_measured_text = GetCaseSummaryWithMeasuredText(index);
+        ASSERT(case_summary_with_measured_text.case_summary != nullptr);
 
-bool CaseListingCtrl::IsMenuShowing()
-{
-    // this is incredibly hacky but no other technique seemed to return whether the menu was open
-    IsMenuShowingCallbackData data;
-    EnumThreadWindows(GetCurrentThreadId(), IsMenuShowingEnumThreadWindowsCallback, reinterpret_cast<LPARAM>(&data));
-    return data.multiple_afx_classes_exist;
+        if( callback_function(*case_summary_with_measured_text.case_summary) )
+            return index;
+    }
+
+    return -1;
 }
 
 
-BOOL CALLBACK CaseListingCtrl::IsMenuShowingEnumThreadWindowsCallback(const HWND hWnd, const LPARAM lParam)
+template<typename CF>
+int CaseListingCtrl::FindIndexWorker(size_t start_index, const CF& callback_function)
 {
-    IsMenuShowingCallbackData* const data = reinterpret_cast<IsMenuShowingCallbackData*>(lParam);
-    ASSERT(hWnd != nullptr && data != nullptr);
+    if( !m_numberCases.has_value() )
+        return -1;
 
-    GetClassName(hWnd, data->test_class_name, _countof(data->test_class_name));
-
-    // the main window, and the menu window, have class names that begin with Afx
-    if( wcsncmp(data->test_class_name, L"Afx", 3) == 0 )
+    try
     {
-        if( data->first_afx_class_name == nullptr )
+        if( start_index >= *m_numberCases )
+            start_index = 0;
+
+        // search forwards
+        size_t end_index = start_index + CaseSummariesFindLimit;
+
+        if( end_index >= *m_numberCases )
+            end_index = *m_numberCases - 1;
+
+        int matched_index = FindIndexWorker(start_index, end_index, callback_function);
+
+        // search backwards
+        if( matched_index == -1 && start_index != 0 )
         {
-            data->first_afx_class_name = std::make_unique<std::wstring>(data->test_class_name);
+            end_index = start_index - 1;
+            start_index = ( start_index <= CaseSummariesFindLimit ) ? 0 :
+                                                                      ( start_index - CaseSummariesFindLimit );
+            matched_index = FindIndexWorker(start_index, end_index, callback_function);
         }
 
-        else if( wcscmp(data->test_class_name, data->first_afx_class_name->c_str()) != 0 )
-        {
-            data->multiple_afx_classes_exist = true;
-            return FALSE;
-        }
+        return matched_index;
     }
 
-    // keep enumerating
-    return TRUE;
+    catch(...)
+    {
+        // if there are any errors retrieving cases, stop the search
+        ASSERT(false);
+        return -1;
+    }
+}
+
+
+int CaseListingCtrl::FindIndexByCaseKey(const std::string_view key_sv, const size_t start_index/* = 0*/)
+{
+    return FindIndexWorker(start_index,
+        [&](const CaseSummary& case_summary)
+        {
+            return SO::StartsWithNoCase(case_summary.GetKey(), key_sv);
+        });
+}
+
+
+int CaseListingCtrl::FindIndexByCasePosition(const double position_in_repository, const size_t start_index/* = 0*/)
+{
+    return FindIndexWorker(start_index,
+        [&](const CaseSummary& case_summary)
+        {
+            return ( case_summary.GetPositionInRepository() == position_in_repository );
+        });
+}
+
+
+int CaseListingCtrl::FindIndexByCaseLabel(const std::string_view text_sv, const size_t start_index/* = 0*/)
+{
+    return FindIndexWorker(start_index,
+        [&](const CaseSummary& case_summary)
+        {
+            return SO::StartsWithNoCase(case_summary.GetCaseLabelOrKey(), text_sv);
+        });
+}
+
+
+bool CaseListingCtrl::SelectByCasePosition(const double position_in_repository)
+{
+    // clear all current selections...
+    SetItemState(-1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+
+    const int matched_index = FindIndexByCasePosition(position_in_repository);
+
+    if( matched_index == -1 )
+        return false;
+
+    // ...and select the case summary (if found)
+    SetItemState(matched_index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+
+    return true;
 }
 
 
@@ -535,4 +696,10 @@ void CaseListingCtrl::OnCaseListingDoubleClickAndReturn()
 
 void CaseListingCtrl::OnCaseListingContextMenu(CPoint /*point*/)
 {
+}
+
+
+bool CaseListingCtrl::OnCaseListingDeleteKey()
+{
+    return false;
 }

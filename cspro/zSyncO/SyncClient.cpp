@@ -755,8 +755,11 @@ void SyncClient::SyncDataPut(ISyncableDataRepository& repository, const std::str
                     m_syncListener->ShowProgressUpdates(true);
                     m_syncListener->Progress(cases_sent);
 
-                    if( !cases_pool.empty() )
-                        m_syncListener->SetLastCaseSynced(*cases_pool.back(), false);
+                    if( num_cases_in_chunk != 0 )
+                    {
+                        ASSERT(num_cases_in_chunk <= cases_pool.size());
+                        m_syncListener->SetLastCaseSynced(*cases_pool[num_cases_in_chunk - 1], false);
+                    }
                 }
 
                 // Since a single sync on client can correspond to multiple server revisions we store

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <zUtilO/zUtilO.h>
 #include <zDataO/zDataO.h>
 #include <zJson/JsonSerializer.h>
 
@@ -36,6 +37,7 @@ enum class DataRepositoryOpenFlag  { CreateNew, OpenOrCreate, OpenMustExist };
 enum class DataRepositoryAccess    { BatchInput, BatchOutput, BatchOutputAppend, ReadOnly, ReadWrite, EntryInput };
 
 
+
 // --------------------------------------------------------------------------
 // Case iteration definitions
 // --------------------------------------------------------------------------
@@ -60,12 +62,21 @@ struct CaseIteratorParameters
     ZDATAO_API CaseIteratorParameters(CaseIterationStartType start_type_,
                                       std::variant<std::string, double> first_key_or_position_,
                                       std::optional<std::string> key_prefix_);
+
+    ZDATAO_API static std::unique_ptr<CaseIteratorParameters> CreateForKey(CaseIterationStartType start_type,
+                                                                           std::variant<std::string, double> first_key_or_position);
+
+    ZDATAO_API static std::unique_ptr<CaseIteratorParameters> CreateForKeyPrefix(std::string key_prefix);
 };
+
 
 
 // --------------------------------------------------------------------------
 // serialization
 // --------------------------------------------------------------------------
+
+// defined in zUtilO/ConnectionString.cpp
+DECLARE_ENUM_JSON_SERIALIZER_CLASS(DataRepositoryType, CLASS_DECL_ZUTILO)
 
 DECLARE_ENUM_JSON_SERIALIZER_CLASS(CaseIterationCaseStatus, ZDATAO_API)
 DECLARE_ENUM_JSON_SERIALIZER_CLASS(CaseIterationMethod, ZDATAO_API)

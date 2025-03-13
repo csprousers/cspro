@@ -119,7 +119,6 @@
     <ClInclude Include="DialogValidators.h" />
     <ClInclude Include="DocViewIterators.h" />
     <ClInclude Include="DropFilesListCtrl.h" />
-    <ClInclude Include="DynamicLayoutControlResizer.h" />
     <ClInclude Include="DynamicMenuBuilder.h" />
     <ClInclude Include="EditControls.h" />
     <ClInclude Include="HtmlDialogFunctionRunner.h" />

@@ -30,7 +30,8 @@ public:
     CaseIterationOrder GetEvaluatedOrder() const       { return m_order.value_or(CaseIterationOrder::Ascending); }
     void SetOrder(CaseIterationOrder order)            { m_order = order; }
 
-    const CaseIteratorParameters* GetParameters() const { return m_parameters.get(); }
+    const CaseIteratorParameters* GetParameters() const                    { return m_parameters.get(); }
+    void SetParameters(std::unique_ptr<CaseIteratorParameters> parameters) { m_parameters = std::move(parameters); }
 
     static CaseIteratorSettings CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
@@ -59,9 +60,13 @@ public:
     void SetViewCaseKeyLabel(bool view_case_label) { m_viewCaseLabel = view_case_label; }
     void ToggleViewCaseKeyLabel()                  { m_viewCaseLabel = !m_viewCaseLabel; }
 
+    bool GetViewFilters() const            { return m_viewFilters; }
+    void SetViewFilters(bool view_filters) { m_viewFilters = view_filters; }
+
     static ViewableCaseIteratorSettings CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer) const;
 
 private:
     bool m_viewCaseLabel;
+    bool m_viewFilters;
 };

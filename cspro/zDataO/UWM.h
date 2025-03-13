@@ -8,7 +8,7 @@ namespace UWM::Data
     // the following messages are only used within the project
     const unsigned AdjustColumnWidthAndInvalidate = UWM::Ranges::DataStart + 0;
     const unsigned SelectionsChanged              = UWM::Ranges::DataStart + 1;
-    const unsigned RequeryCaseSummaries           = UWM::Ranges::DataStart + 2;
+    const unsigned UpdateCaseListing              = UWM::Ranges::DataStart + 2;
 
-    CHECK_MESSAGE_NUMBERING(RequeryCaseSummaries, UWM::Ranges::DataLast)
+    CHECK_MESSAGE_NUMBERING(UpdateCaseListing, UWM::Ranges::DataLast)
 }

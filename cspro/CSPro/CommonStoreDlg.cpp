@@ -36,7 +36,7 @@ BOOL CommonStoreDlg::OnInitDialog()
     if( !m_commonStore.Open({ CommonStore::TableType::UserSettings,
                               CommonStore::TableType::ConfigVariables }) )
     {
-        AfxMessageBox(_T("There was a problem opening the Common Store settings file."));
+        AfxMessageBox(L"There was a problem opening the Common Store settings file.");
         PostMessage(WM_CLOSE);
     }
 
@@ -44,9 +44,9 @@ BOOL CommonStoreDlg::OnInitDialog()
     {
         // set up the list control columns and allow full row selection
         m_pListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_LIST_COMMON_STORE));
-        m_pListCtrl->InsertColumn(0, _T("Attribute"));
+        m_pListCtrl->InsertColumn(0, L"Attribute");
         m_pListCtrl->SetColumnWidth(0, 160);
-        m_pListCtrl->InsertColumn(1, _T("Value"));
+        m_pListCtrl->InsertColumn(1, L"Value");
         m_pListCtrl->SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
 
         m_pListCtrl->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
@@ -94,23 +94,16 @@ void CommonStoreDlg::UpdateSelections()
     CheckRadioButton(IDC_RADIO_COMMON_STORE_ADD,IDC_RADIO_COMMON_STORE_MODIFY, adding_setting ? IDC_RADIO_COMMON_STORE_ADD :
                                                                                                 IDC_RADIO_COMMON_STORE_MODIFY);
 
-    GetDlgItem(IDC_BUTTON_COMMON_STORE_MODIFY)->SetWindowText(adding_setting ? _T("Add") : _T("Modify"));
+    GetDlgItem(IDC_BUTTON_COMMON_STORE_MODIFY)->SetWindowText(adding_setting ? L"Add" : L"Modify");
     GetDlgItem(IDC_RADIO_COMMON_STORE_MODIFY)->EnableWindow(!adding_setting);
     GetDlgItem(IDC_BUTTON_COMMON_STORE_DELETE)->EnableWindow(!adding_setting);
 
+    // when adding a setting, clear all selections
     if( adding_setting )
-    {
-        POSITION pos = m_pListCtrl->GetFirstSelectedItemPosition();
+        m_pListCtrl->SetItemState(-1, 0, LVIS_SELECTED);
 
-        while( pos != nullptr )
-        {
-            const int item = m_pListCtrl->GetNextSelectedItem(pos);
-            m_pListCtrl->SetItemState(item, 0, LVIS_SELECTED);
-        }
-    }
-
-    m_attribute = adding_setting ? _T("") : m_pListCtrl->GetItemText(m_selectedItem, 0);
-    m_value = adding_setting ? _T("") : m_pListCtrl->GetItemText(m_selectedItem, 1);
+    m_attribute = adding_setting ? L"" : m_pListCtrl->GetItemText(m_selectedItem, 0);
+    m_value = adding_setting ? L"" : m_pListCtrl->GetItemText(m_selectedItem, 1);
 
     UpdateData(FALSE);
 
@@ -162,7 +155,7 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
         bool success = true;
 
         // delete the existing setting
-        if( !adding_setting ) 
+        if( !adding_setting )
             success = m_commonStore.Delete(UTF8_TODO::GetUtf8(m_pListCtrl->GetItemText(m_selectedItem, 0)));
 
         // add the setting
@@ -220,6 +213,6 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreDelete()
 
     else
     {
-        AfxMessageBox(_T("There was an error deleting the setting."));
+        AfxMessageBox(L"There was an error deleting the setting.");
     }
 }

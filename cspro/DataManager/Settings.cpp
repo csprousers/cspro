@@ -5,6 +5,7 @@
 #include "CaseQuestionnaireContentCreatorSettings.h"
 #include "CaseTextContentCreatorSettings.h"
 #include "DataSourceSettings.h"
+#include "ExportDataSettings.h"
 #include "ExtractBinaryDataSettings.h"
 #include "ExtractNotesSettings.h"
 #include <zDataO/CaseIteratorSettings.h>
@@ -14,6 +15,7 @@ CREATE_JSON_KEY(caseViewHtml)
 CREATE_JSON_KEY(caseViewJson)
 CREATE_JSON_KEY(caseViewQuestionnaire)
 CREATE_JSON_KEY(caseViewText)
+CREATE_JSON_KEY(exportData)
 CREATE_JSON_KEY(extractBinaryData)
 CREATE_JSON_KEY(extractNotes)
 
@@ -40,6 +42,8 @@ struct Settings::PerDataSourceData
     std::shared_ptr<CaseJsonContentCreatorSettings> case_json_content_creator_settings;
     std::shared_ptr<CaseQuestionnaireContentCreatorSettings> case_questionnaire_content_creator_settings;
     std::shared_ptr<CaseTextContentCreatorSettings> case_text_content_creator_settings;
+
+    std::shared_ptr<ExportDataSettings> export_data_settings;
 
     std::shared_ptr<ExtractBinaryDataSettings> extract_binary_data_settings;
     std::shared_ptr<ExtractNotesSettings> extract_notes_settings;
@@ -102,6 +106,8 @@ Settings::PerDataSourceData* Settings::GetPerDataSourceData(const std::string& s
             per_data_source_data->case_questionnaire_content_creator_settings = std::make_unique<CaseQuestionnaireContentCreatorSettings>(json_node.Get<CaseQuestionnaireContentCreatorSettings>(JK::caseViewQuestionnaire));
             per_data_source_data->case_text_content_creator_settings = std::make_unique<CaseTextContentCreatorSettings>(json_node.Get<CaseTextContentCreatorSettings>(JK::caseViewText));
 
+            per_data_source_data->export_data_settings = std::make_unique<ExportDataSettings>(json_node.Get<ExportDataSettings>(JK::exportData));
+
             per_data_source_data->extract_binary_data_settings = std::make_unique<ExtractBinaryDataSettings>(json_node.Get<ExtractBinaryDataSettings>(JK::extractBinaryData));
             per_data_source_data->extract_notes_settings = std::make_unique<ExtractNotesSettings>(json_node.Get<ExtractNotesSettings>(JK::extractNotes));
         }
@@ -121,6 +127,8 @@ Settings::PerDataSourceData* Settings::GetPerDataSourceData(const std::string& s
     EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::case_json_content_creator_settings);
     EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::case_questionnaire_content_creator_settings);
     EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::case_text_content_creator_settings);
+
+    EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::export_data_settings);
 
     EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::extract_binary_data_settings);
     EnsurePerDataSourceDataSettings(*per_data_source_data, &PerDataSourceData::extract_notes_settings);
@@ -149,16 +157,7 @@ void Settings::EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_sourc
         per_data_source_data.*settings = std::make_unique<T>(*(last_per_data_source_data.*settings));
 
         // handle partially copyable settings
-        if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
-        {
-            (per_data_source_data.*settings)->output_directory.clear();
-        }
-
-        else if constexpr(std::is_same_v<T, ExtractNotesSettings>)
-        {
-            (per_data_source_data.*settings)->notes_connection_string.Clear();
-            (per_data_source_data.*settings)->notes_dictionary_file_path.clear();
-        }
+        ResetUniqueToDataSourceSettings(*(per_data_source_data.*settings));
 
         return;
     }
@@ -170,6 +169,27 @@ void Settings::EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_sourc
     {
         // default to key order
         (per_data_source_data.*settings)->SetMethod(CaseIterationMethod::KeyOrder);
+    }
+}
+
+
+template<typename T>
+void Settings::ResetUniqueToDataSourceSettings(T& settings)
+{
+    if constexpr(std::is_same_v<T, ExportDataSettings>)
+    {
+        settings.base_file_path.clear();
+    }
+
+    else if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
+    {
+        settings.output_directory.clear();
+    }
+
+    else if constexpr(std::is_same_v<T, ExtractNotesSettings>)
+    {
+        settings.notes_connection_string.Clear();
+        settings.notes_dictionary_file_path.clear();
     }
 }
 
@@ -211,6 +231,11 @@ std::shared_ptr<T> Settings::GetSettings(const ConnectionString& connection_stri
         settings = per_data_source_data->case_text_content_creator_settings;
     }
 
+    else if constexpr(std::is_same_v<T, ExportDataSettings>)
+    {
+        settings = per_data_source_data->export_data_settings;
+    }
+
     else if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
     {
         settings = per_data_source_data->extract_binary_data_settings;
@@ -229,7 +254,10 @@ std::shared_ptr<T> Settings::GetSettings(const ConnectionString& connection_stri
     ASSERT(settings != nullptr);
 
     if( create_unique_copy_of_settings )
-        return std::make_unique<T>(*settings);
+    {
+        settings = std::make_unique<T>(*settings);
+        ResetUniqueToDataSourceSettings(*settings);
+    }
 
     return settings;
 }
@@ -240,6 +268,7 @@ template std::shared_ptr<CaseHtmlContentCreatorSettings> Settings::GetSettings(c
 template std::shared_ptr<CaseJsonContentCreatorSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
 template std::shared_ptr<CaseQuestionnaireContentCreatorSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
 template std::shared_ptr<CaseTextContentCreatorSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
+template std::shared_ptr<ExportDataSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
 template std::shared_ptr<ExtractBinaryDataSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
 template std::shared_ptr<ExtractNotesSettings> Settings::GetSettings(const ConnectionString& connection_string, bool create_unique_copy_of_settings);
 
@@ -283,6 +312,7 @@ std::string Settings::ToJson(PerDataSourceData& per_data_source_data)
                 .Write(JK::caseViewJson, *per_data_source_data.case_json_content_creator_settings)
                 .Write(JK::caseViewQuestionnaire, *per_data_source_data.case_questionnaire_content_creator_settings)
                 .Write(JK::caseViewText, *per_data_source_data.case_text_content_creator_settings)
+                .Write(JK::exportData, *per_data_source_data.export_data_settings)
                 .Write(JK::extractBinaryData, *per_data_source_data.extract_binary_data_settings)
                 .Write(JK::extractNotes, *per_data_source_data.extract_notes_settings)
                 .EndObject();

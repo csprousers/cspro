@@ -106,3 +106,52 @@ std::optional<std::string> RunSHBrowseForFolder(HWND hWnd, const UINT flags, con
 
     return TC::ToUtf8(path.get());
 }
+
+
+std::string SelectFolderDialog(const wchar_t* const title/* = L"Select Folder"*/, const wchar_t* const initial_directory/* = nullptr*/)
+{
+    std::string directory_path;
+    CComPtr<IFileDialog> file_dialog;
+
+    if( SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&file_dialog))) )
+    {
+        CComPtr<IShellItem> directory;
+        DWORD options;
+
+        file_dialog->SetTitle(title);
+
+        if( initial_directory != nullptr &&
+            SUCCEEDED(SHCreateItemFromParsingName(initial_directory, nullptr, IID_PPV_ARGS(&directory))) )
+        {
+            file_dialog->SetFolder(directory);
+        }
+
+        if( SUCCEEDED(file_dialog->GetOptions(&options)) )
+            file_dialog->SetOptions(options | FOS_PICKFOLDERS);
+
+        if( SUCCEEDED(file_dialog->Show(nullptr)) )
+        {
+            CComPtr<IShellItem> shell_item;
+
+            if( SUCCEEDED(file_dialog->GetResult(&shell_item)) )
+            {
+                LPWSTR path;
+
+                if( SUCCEEDED(shell_item->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &path)) )
+                {
+                    directory_path = TC::ToUtf8(path);
+                    CoTaskMemFree(path);
+                }
+            }
+        }
+    }
+
+    return directory_path;
+}
+
+
+std::string SelectFolderDialog(const std::string_view title_sv, const std::string_view initial_directory_sv/* = std::string_view()*/)
+{
+    return SelectFolderDialog(TC::ToWide(title_sv).c_str(),
+                              initial_directory_sv.empty() ? nullptr : TC::ToWide(initial_directory_sv).c_str());
+}

@@ -123,12 +123,13 @@ void GlobalSettingsDlg::OnBrowseCSProCode()
 {
     UpdateData(TRUE);
 
-    std::optional<std::string> folder = SelectFolderDialog(m_hWnd, "Select the CSPro Code Folder", m_globalSettings.cspro_code_path);
+    std::string folder = SelectFolderDialog(L"Select the CSPro Code Folder",
+                                            TC::ToWide(m_globalSettings.cspro_code_path).c_str());
 
-    if( !folder.has_value() )
+    if( folder.empty() )
         return;
 
-    m_globalSettings.cspro_code_path = std::move(*folder);
+    m_globalSettings.cspro_code_path = std::move(folder);
 
     UpdateData(FALSE);
 }

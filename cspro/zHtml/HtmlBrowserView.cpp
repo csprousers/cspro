@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "HtmlBrowserView.h"
-#include <zUtilF/DynamicLayoutControlResizer.h>
+#include <zUtilO/DynamicLayoutControlResizer.h>
 
 
 // --------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class ReturnProcessingEdit : public CEdit
 // --------------------------------------------------------------------------
 
 BEGIN_MESSAGE_MAP(HtmlBrowserView, CFormView)
-	ON_WM_SIZE()
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 

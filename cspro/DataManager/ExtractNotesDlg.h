@@ -2,7 +2,6 @@
 
 #include <DataManager/ExtractNotesSettings.h>
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilF/DialogValidators.h>
 
 
 class ExtractNotesDlg : public ResizableDlg

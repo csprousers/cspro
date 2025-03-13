@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "DataSourceFrame.h"
-#include "CaseListingView.h"
 #include "DataManager.h"
 #include "DataSourceSettings.h"
 #include "ExtractCasesTask.h"
@@ -22,6 +21,8 @@ BEGIN_MESSAGE_MAP(DataSourceFrame, CaseHoldingFrame)
     ON_COMMAND(ID_FILE_REFRESH, OnFileRefresh)
 
     ON_COMMAND(ID_FILE_SYNCHRONIZE, OnFileSynchronize)
+
+    ON_COMMAND(ID_FILE_SAVE_DATA, OnFileSaveData)
 
     // Listing menu
     ON_COMMAND_RANGE(ID_LISTING_SEQUENTIAL, ID_LISTING_INDEXED, OnListingMethod)
@@ -307,27 +308,23 @@ std::shared_ptr<const Case> DataSourceFrame::LoadCaseByUuid(const std::string& u
 }
 
 
-std::shared_ptr<const Case> DataSourceFrame::LoadCaseByUuidOrKey(const std::string& uuid, const std::string& key)
+void DataSourceFrame::SelectAndShowCase(std::shared_ptr<const Case> data_case)
 {
-    DataSourceDoc& data_source_doc = GetDataSourceDoc();
-    std::shared_ptr<Case> data_case = GetCaseForReading();
+    ASSERT(data_case != nullptr);
 
-    if( !uuid.empty() )
-    {
-        try
-        {
-            data_source_doc.GetDataRepository().ReadCaseByUuid(*data_case, uuid);
-            return data_case;
-        }
-        catch( const DataRepositoryException::CaseNotFound& ) { }
-    }
+    DataSourceCaseListingCtrl& case_listing_ctrl = m_caseListingView->GetCaseListingCtrl();
 
-    data_source_doc.GetDataRepository().ReadCase(*data_case, key);
-    return data_case;
+    // if the case can be found in the case listing, select it,
+    // which will result in ShowCase being called via OnShowSelectedCases
+    if( case_listing_ctrl.SelectByCasePosition(data_case->GetPositionInRepository()) )
+        return;
+
+    // otherwise show the case without if being selected in the case listing
+    ShowCase(std::move(data_case));
 }
 
 
-void DataSourceFrame::ShowCase(std::shared_ptr<const Case> data_case, const bool select_in_case_listing)
+void DataSourceFrame::ShowCase(std::shared_ptr<const Case> data_case)
 {
     ASSERT(data_case != nullptr);
 
@@ -344,10 +341,6 @@ void DataSourceFrame::ShowCase(std::shared_ptr<const Case> data_case, const bool
     else
     {
         PostMessage(UWM::DataManager::UpdateContentOnCaseListingSelectionsChange);
-    }
-
-    if( select_in_case_listing ) // DATA_TODO highlight case in case listing?
-    {
     }
 }
 
@@ -412,7 +405,7 @@ LRESULT DataSourceFrame::OnProcessConnectionStringParameters(const WPARAM wParam
             data_case = LoadCaseByKey(*uuid_or_key_property);
         }
 
-        ShowCase(std::move(data_case), true);
+        SelectAndShowCase(std::move(data_case));
 
         return 1;
     }
@@ -463,7 +456,7 @@ LRESULT DataSourceFrame::OnShowSelectedCases(const WPARAM wParam, LPARAM /*lPara
 
             else
             {
-                ShowCase(std::move(data_case), false);
+                ShowCase(std::move(data_case));
             }
         }
 
@@ -486,6 +479,14 @@ LRESULT DataSourceFrame::OnRunTaskFromCaseListing(const WPARAM wParam, LPARAM /*
 
     switch( wParam )
     {
+        case ID_FILE_SAVE_CASES:
+            OnFileSaveCases(std::move(case_provider));
+            return 1;
+
+        case ID_FILE_EXPORT_CASES:
+            OnFileExportCases(std::move(case_provider));
+            return 1;
+
         case ID_FILE_EXTRACT_NOTES:
             OnFileExtractNotes(std::move(case_provider));
             return 1;
@@ -502,40 +503,17 @@ LRESULT DataSourceFrame::OnRunTaskFromCaseListing(const WPARAM wParam, LPARAM /*
 
 void DataSourceFrame::OnFileRefresh()
 {
-    Refresh(false);
+    Refresh();
 }
 
 
-void DataSourceFrame::Refresh(const bool show_data_summary)
+void DataSourceFrame::Refresh(const CaseListingReselection reselect_strategy/* = CaseListingReselection::SelectedCases*/)
 {
-    DataSourceDoc& data_source_doc = GetDataSourceDoc();
-    const std::shared_ptr<const Case> current_case = !show_data_summary ? data_source_doc.GetSharedCurrentCase() :
-                                                                          nullptr;
-
     // clear the cached cases because any of the cases may have changed
     m_cachedCases.clear();
 
     // update the case listing
-    UpdateCaseListing(false);
-
-    // if necessary, reload the currently shown case and refresh the page,
-    // falling back to showing the data summary if the case no longer exists
-    if( current_case != nullptr  )
-    {
-        try
-        {
-            ShowCase(LoadCaseByUuidOrKey(current_case->GetUuid(), current_case->GetKey()), true);
-            return;
-        }
-
-        catch(...)
-        {
-            ErrorMessage::PostMessageForDisplay(FormatText("The previously shown case with key '%s' no longer exists.",
-                                                           current_case->GetKey().c_str()));
-        }
-    }
-
-    OnViewDataSummaryPage();
+    UpdateCaseListingAsync(reselect_strategy);
 }
 
 
@@ -543,6 +521,7 @@ void DataSourceFrame::OnFileSynchronize()
 {
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
     bool need_to_restore_read_only_mode = false;
+    bool need_to_refresh_cases = false;
 
     try
     {
@@ -562,6 +541,13 @@ void DataSourceFrame::OnFileSynchronize()
             need_to_restore_read_only_mode = true;
         }
 
+        // show the data summary so that, post-sync, information about the last sync time will be available;
+        // this also eliminates the need to handle refreshing the currently-shown case
+        data_source_doc.SetCurrentCase(nullptr);
+        OnViewDataSummaryPage();
+
+        need_to_refresh_cases = true;
+
         TaskRunnerDlg task_runner_dlg(synchronize_dlg.ReleaseSyncTask(), this);
         task_runner_dlg.SetCloseDialogOnSuccess();
 
@@ -577,15 +563,18 @@ void DataSourceFrame::OnFileSynchronize()
     if( need_to_restore_read_only_mode && !ToggleReadOnly() )
         return;
 
-    // because cases may have changed, refresh the case tree and then show
-    // show the data summary, which will contain information on the last sync time
-    Refresh(true);
+    // because cases may have changed, refresh the case listing
+    if( need_to_refresh_cases )
+        Refresh(CaseListingReselection::None);
 }
 
 
 void DataSourceFrame::OnFileSaveData()
 {
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
+
+    if( !data_source_doc.DictionaryAllowsExport("saving data") )
+        return;
 
     DataFileDlg data_file_dlg(DataFileDlg::Type::CreateNew, false);
     data_file_dlg.SetTitle(FormatText("Save '%s' Data As", data_source_doc.GetDictionary().GetName().c_str()))
@@ -651,7 +640,7 @@ T& DataSourceFrame::GetSettings()
 void DataSourceFrame::OnListingMethod(const UINT nID)
 {
     GetSettings<ViewableCaseIteratorSettings>().SetMethod(FromCaseIterationMethodId(nID));
-    UpdateCaseListing(false);
+    UpdateCaseListingAsync();
 }
 
 
@@ -664,14 +653,18 @@ void DataSourceFrame::OnUpdateListingMethod(CCmdUI* const pCmdUI)
 void DataSourceFrame::OnListingToggleMethod()
 {
     GetSettings<ViewableCaseIteratorSettings>().ToggleMethod();
-    UpdateCaseListing(false);
+    UpdateCaseListingAsync();
 }
 
 
 void DataSourceFrame::OnListingStatus(const UINT nID)
 {
     GetSettings<ViewableCaseIteratorSettings>().SetStatus(FromCaseIterationCaseStatusId(nID));
-    UpdateCaseListing(false);
+
+    // make sure the case status combo box is properly updated (in the case listing's filters)
+    m_caseListingView->UpdateCaseStatusComboBox();
+
+    UpdateCaseListingAsync();
 }
 
 
@@ -684,7 +677,7 @@ void DataSourceFrame::OnUpdateListingStatus(CCmdUI* const pCmdUI)
 void DataSourceFrame::OnListingOrder(const UINT nID)
 {
     GetSettings<ViewableCaseIteratorSettings>().SetOrder(FromCaseIterationOrderId(nID));
-    UpdateCaseListing(false);
+    UpdateCaseListingAsync();
 }
 
 
@@ -697,7 +690,7 @@ void DataSourceFrame::OnUpdateListingOrder(CCmdUI* const pCmdUI)
 void DataSourceFrame::OnListingCaseKeyLabel(const UINT nID)
 {
     GetSettings<ViewableCaseIteratorSettings>().SetViewCaseKeyLabel(IsViewCaseLabelId(nID));
-    UpdateCaseListing(true);
+    m_caseListingView->GetCaseListingCtrl().InvalidateCaseListingAsync();
 }
 
 
@@ -710,16 +703,15 @@ void DataSourceFrame::OnUpdateListingCaseKeyLabel(CCmdUI* const pCmdUI)
 void DataSourceFrame::OnListingToggleCaseKeyLabel()
 {
     GetSettings<ViewableCaseIteratorSettings>().ToggleViewCaseKeyLabel();
-    UpdateCaseListing(true);
+    m_caseListingView->GetCaseListingCtrl().InvalidateCaseListingAsync();
 }
 
 
-void DataSourceFrame::UpdateCaseListing(const bool change_is_only_visual)
+void DataSourceFrame::UpdateCaseListingAsync(const CaseListingReselection reselect_strategy/* = CaseListingReselection::SelectedCases*/)
 {
-    m_caseListingView->GetCaseListingCtrl().UpdateCaseListing(change_is_only_visual);
+    m_caseListingView->GetCaseListingCtrl().UpdateCaseListingAsync(reselect_strategy);
 
-    if( !change_is_only_visual )
-        PostMessage(UWM::DataManager::UpdateContentOnCaseListingSettingsChange);
+    PostMessage(UWM::DataManager::UpdateContentOnCaseListingSettingsChange);
 }
 
 
@@ -844,32 +836,41 @@ void DataSourceFrame::OnDataDeleteCase()
     DataSourceDoc& data_source_doc = GetDataSourceDoc();
     const DataRepositoryType data_repository_type = data_source_doc.GetConnectionString().GetType();
 
-    // confirm the operation
-    std::string delete_prompt;
+    // confirm the operation unless everything is being undeleted
+    const size_t number_deletions = std::count_if(selected_case_summaries.cbegin(), selected_case_summaries.cend(),
+                                                  [](const std::shared_ptr<const CaseSummary>& case_summary) { return !case_summary->GetDeleted(); });
 
-    if( single_case_deletion )
+    if( number_deletions > 0 )
     {
-        const CaseSummary& case_summary = *selected_case_summaries.front();
+        const char* const delete_verb = ( number_deletions == selected_case_summaries.size() ) ? "delete" :
+                                                                                                 "delete and undelete";
+        std::string delete_prompt;
 
-        delete_prompt = FormatText("Are you sure you want to %sdelete the case with key '%s'?",
-                                   case_summary.GetDeleted() ? "un" : "",
-                                   case_summary.GetSingleLineKey().c_str());
+        if( single_case_deletion )
+        {
+            const CaseSummary& case_summary = *selected_case_summaries.front();
+
+            delete_prompt = FormatText("Are you sure you want to %s the case with key '%s'?",
+                                       delete_verb,
+                                       case_summary.GetSingleLineKey().c_str());
+        }
+
+        else
+        {
+            delete_prompt = FormatText("Are you sure you want to %s %d cases?",
+                                       delete_verb,
+                                       static_cast<int>(selected_case_summaries.size()));
+        }
+
+        if( !DataRepositoryHelpers::TypeSupportsUndeletes(data_repository_type) )
+        {
+            delete_prompt.append(FormatText("\n\nCases in a '%s' data source cannot be undeleted so this operation is permanent.",
+                                            ToString(data_repository_type)));
+        }
+
+        if( AfxMessageBox(delete_prompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
+            return;
     }
-
-    else
-    {
-        delete_prompt = FormatText("Are you sure you want to delete %d cases?",
-                                   static_cast<int>(selected_case_summaries.size()));
-    }
-
-    if( !DataRepositoryHelpers::TypeSupportsUndeletes(data_repository_type) )
-    {
-        delete_prompt.append(FormatText("\n\nCases in a '%s' data source cannot be undeleted so this operation is permanent.",
-                                        ToString(data_repository_type)));
-    }
-
-    if( AfxMessageBox(delete_prompt, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDNO )
-        return;
 
     // for text-based repositories, sort by reverse file position to minimize the amount of data that to be rewritten
     if( !single_case_deletion && DataRepositoryHelpers::TypeWritesToText(data_repository_type) )
@@ -885,7 +886,8 @@ void DataSourceFrame::OnDataDeleteCase()
         // delete a single case...
         if( single_case_deletion )
         {
-            data_repository.DeleteCase(selected_case_summaries.front()->GetPositionInRepository());
+            const CaseSummary& case_summary = *selected_case_summaries.front();
+            data_repository.DeleteCase(case_summary.GetPositionInRepository(), !case_summary.GetDeleted());
         }
 
         // ...or multiple cases
@@ -893,12 +895,22 @@ void DataSourceFrame::OnDataDeleteCase()
         {
             // the positions may change, so store unique identifiers to use while deleting
             const std::vector<DataRepositoryUniqueCaseIdentifer> unique_case_identifiers = GetUniqueCaseIdentifiers(selected_case_summaries, true);
+            ASSERT(unique_case_identifiers.size() == selected_case_summaries.size());
 
             // wrap the deletes in a transaction
             const DataRepositoryTransaction data_repository_transaction(data_repository);
 
+            auto selected_case_summaries_itr = selected_case_summaries.cbegin();
+
             for( const DataRepositoryUniqueCaseIdentifer& unique_case_identifier : unique_case_identifiers )
-                data_repository.DeleteCase(unique_case_identifier.GetPosition(data_repository));
+            {
+                ASSERT(selected_case_summaries_itr != selected_case_summaries.cend());
+
+                data_repository.DeleteCase(unique_case_identifier.GetPosition(data_repository),
+                                           !(*selected_case_summaries_itr)->GetDeleted());
+
+                ++selected_case_summaries_itr;
+            }
         }
     }
 
@@ -907,7 +919,7 @@ void DataSourceFrame::OnDataDeleteCase()
         ErrorMessage::Display(SO::Concatenate("There was an error deleting cases:\n\n", exception.what()));
     }
 
-    // TODO need to refresh with case following the deleted one if the deleted one is no longer shown
+    Refresh(CaseListingReselection::SelectedCasesOrClosestIndex);
 }
 
 

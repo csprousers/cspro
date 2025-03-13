@@ -791,7 +791,7 @@ CSWebRepositoryIterator::CSWebRepositoryIterator(CSWebRepository& csweb_reposito
         m_caseStatus(case_status),
         m_iterationMethod(iteration_method),
         m_iterationOrder(iteration_order),
-        m_startParameters(( start_parameters != nullptr ) ? std::make_unique<CaseIteratorParameters>(*start_parameters) : nullptr),
+        m_startParameters(CreateCopyOfPointerValue(start_parameters)),
         m_offset(offset),
         m_limit(limit),
         m_casesRead(0)

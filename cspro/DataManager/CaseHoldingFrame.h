@@ -32,6 +32,12 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     // File menu
+    void OnFileSaveCases();
+    void OnFileSaveCases(std::shared_ptr<CaseProvider> case_provider);
+
+    void OnFileExportCases();
+    void OnFileExportCases(std::shared_ptr<CaseProvider> case_provider);
+
     void OnFileExtractDictionary();
 
     void OnFileExtractNotes();
