@@ -188,6 +188,12 @@
     "licenseFilename": "md5.c"
   },
   {
+    "projectName": "md4c",
+    "projectUrl": "https://github.com/mity/md4c",
+    "licenseFilename": "LICENSE.md",
+    "licenseUrl": "https://raw.githubusercontent.com/mity/md4c/refs/heads/master/LICENSE.md"
+  },
+  {
     "projectName": "miniz",
     "projectUrl": "https://github.com/richgel999/miniz",
     "licenseFilename": "LICENSE",
