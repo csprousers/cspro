@@ -51,6 +51,9 @@
     <ClCompile Include="..\lexers\LexJSON.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexers\LexMarkdown.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexNull.cxx">
       <Filter>lexers</Filter>
     </ClCompile>

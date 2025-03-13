@@ -70,8 +70,8 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetColorsWorker(const in
                  { SCE_CSPRO_FUNCTION_NAMESPACE_PARENT,  RGB(0, 175, 200) },
                  { SCE_CSPRO_FUNCTION_NAMESPACE_CHILD,   RGB(0, 175, 200) },
                  { SCE_CSPRO_NAMED_ARGUMENT,             LexerColor::JY_PropertyName },
-                                                         
-                 // report colors                        
+
+                 // report colors
                  { SCE_CSPRO_REPORT_DEFAULT,             LexerColor::HtmlDefault },
                  { SCE_CSPRO_REPORT_MUSTACHE,            RGB(161, 126, 0) },
                  { SCE_CSPRO_REPORT_TRIP_MUSTACHE,       RGB(210, 82, 22) },
@@ -145,6 +145,41 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
                  { SCE_JSON_OPERATOR,     LexerColor::Operator },
                  { SCE_JSON_URI,          UriColor },
                  { SCE_JSON_ERROR,        LexerColor::JY_Number } };
+    }
+
+    else if( lexer_language == SCLEX_MARKDOWN )
+    {
+        constexpr COLORREF BoldColor           = RGB(70, 130, 180);
+        constexpr COLORREF ItalicsColor        = RGB(185, 135, 10);
+        constexpr COLORREF HeaderColor         = RGB(0, 135, 50);
+        constexpr COLORREF BulletsColor        = RGB(30, 0, 150);
+        constexpr COLORREF LinkColor           = RGB(30, 145, 255);
+        constexpr COLORREF BlockquoteColor     = RGB(75, 75, 150);
+        constexpr COLORREF StrikeoutColor      = RGB(128, 128, 128);
+        constexpr COLORREF HorizontalRuleColor = RGB(30, 30, 255);
+        constexpr COLORREF CodeColor           = RGB(90, 110, 100);
+
+        return { { SCE_MARKDOWN_DEFAULT,    LexerColor::Default },
+                 { SCE_MARKDOWN_STRONG1,    BoldColor },
+                 { SCE_MARKDOWN_STRONG2,    BoldColor },
+                 { SCE_MARKDOWN_EM1,        ItalicsColor },
+                 { SCE_MARKDOWN_EM2,        ItalicsColor },
+                 { SCE_MARKDOWN_HEADER1,    HeaderColor },
+                 { SCE_MARKDOWN_HEADER2,    HeaderColor },
+                 { SCE_MARKDOWN_HEADER3,    HeaderColor },
+                 { SCE_MARKDOWN_HEADER4,    HeaderColor },
+                 { SCE_MARKDOWN_HEADER5,    HeaderColor },
+                 { SCE_MARKDOWN_HEADER6,    HeaderColor },
+                 { SCE_MARKDOWN_PRECHAR,    LexerColor::Default },
+                 { SCE_MARKDOWN_ULIST_ITEM, BulletsColor },
+                 { SCE_MARKDOWN_OLIST_ITEM, BulletsColor },
+                 { SCE_MARKDOWN_BLOCKQUOTE, BlockquoteColor },
+                 { SCE_MARKDOWN_STRIKEOUT,  StrikeoutColor },
+                 { SCE_MARKDOWN_HRULE,      HorizontalRuleColor },
+                 { SCE_MARKDOWN_LINK,       LinkColor },
+                 { SCE_MARKDOWN_CODE,       CodeColor },
+                 { SCE_MARKDOWN_CODE2,      CodeColor },
+                 { SCE_MARKDOWN_CODEBK,     CodeColor } };
     }
 
     else if( lexer_language == SCLEX_PERCENT_ENCODING )
@@ -295,7 +330,8 @@ void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, 
     {
         ASSERT(lexer_language == SCLEX_CSPRO_MESSAGE_V0      || lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 ||
                lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE || lexer_language == SCLEX_HTML               ||
-               lexer_language == SCLEX_JSON                  || lexer_language == SCLEX_PERCENT_ENCODING   ||
-               lexer_language == SCLEX_YAML                  || lexer_language == SCLEX_NULL);
+               lexer_language == SCLEX_JSON                  || lexer_language == SCLEX_MARKDOWN           ||
+               lexer_language == SCLEX_PERCENT_ENCODING      || lexer_language == SCLEX_YAML               ||
+               lexer_language == SCLEX_NULL);
     }
 }

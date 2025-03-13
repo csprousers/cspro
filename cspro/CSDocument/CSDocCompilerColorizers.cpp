@@ -1000,9 +1000,10 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
     m_lexerLanguage = ( language_name == "C++" )        ? SCLEX_CPP :
                       ( language_name == "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
                       ( language_name == "HTML" )       ? SCLEX_HTML :
-                      ( language_name == "JSON" )       ? SCLEX_JSON :
                       ( language_name == "JavaScript" ) ? SCLEX_JAVASCRIPT :
+                      ( language_name == "JSON" )       ? SCLEX_JSON :
                       ( language_name == "Kotlin" )     ? SCLEX_JAVASCRIPT : // TODO: replace with a Kotlin lexer when available
+                      ( language_name == "Markdown" )   ? SCLEX_MARKDOWN :
                       ( language_name == "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
                       ( language_name == "SQL" )        ? SCLEX_SQL :
                                                           throw CSProException("Coloring the language '%s' is not supported.", language_name.c_str());

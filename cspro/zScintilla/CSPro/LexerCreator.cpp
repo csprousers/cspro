@@ -22,6 +22,7 @@ extern Lexilla::LexerModule lmCPP;
 extern Lexilla::LexerModule lmHTML;
 extern Lexilla::LexerModule lmJavaScript;
 extern Lexilla::LexerModule lmJSON;
+extern Lexilla::LexerModule lmMarkdown;
 extern Lexilla::LexerModule lmPercentEncoding;
 extern Lexilla::LexerModule lmSQL;
 extern Lexilla::LexerModule lmYAML;
@@ -45,6 +46,7 @@ Scintilla::ILexer5* CSProScintilla::CreateLexer(int lexer_language)
         ( lexer_language == SCLEX_HTML )                   ? lmHTML :
         ( lexer_language == SCLEX_JAVASCRIPT )             ? lmJavaScript :
         ( lexer_language == SCLEX_JSON )                   ? lmJSON :
+        ( lexer_language == SCLEX_MARKDOWN )               ? lmMarkdown :
         ( lexer_language == SCLEX_PERCENT_ENCODING )       ? lmPercentEncoding :
         ( lexer_language == SCLEX_SQL )                    ? lmSQL :
         ( lexer_language == SCLEX_YAML )                   ? lmYAML :

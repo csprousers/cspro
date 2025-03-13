@@ -30,9 +30,10 @@
 #define SCLEX_HTML 13
 #define SCLEX_JAVASCRIPT 14
 #define SCLEX_JSON 15
-#define SCLEX_PERCENT_ENCODING 16
-#define SCLEX_SQL 17
-#define SCLEX_YAML 18
+#define SCLEX_MARKDOWN 16
+#define SCLEX_PERCENT_ENCODING 17
+#define SCLEX_SQL 18
+#define SCLEX_YAML 19
 #define SCLEX_AUTOMATIC 1000
 
 // --------------------------------------------------------------------------
@@ -234,6 +235,32 @@
 #define SCE_JSON_KEYWORD 11
 #define SCE_JSON_LDKEYWORD 12
 #define SCE_JSON_ERROR 13
+
+// --------------------------------------------------------------------------
+// Markdown
+// --------------------------------------------------------------------------
+#define SCE_MARKDOWN_DEFAULT 0
+#define SCE_MARKDOWN_LINE_BEGIN 1
+#define SCE_MARKDOWN_STRONG1 2
+#define SCE_MARKDOWN_STRONG2 3
+#define SCE_MARKDOWN_EM1 4
+#define SCE_MARKDOWN_EM2 5
+#define SCE_MARKDOWN_HEADER1 6
+#define SCE_MARKDOWN_HEADER2 7
+#define SCE_MARKDOWN_HEADER3 8
+#define SCE_MARKDOWN_HEADER4 9
+#define SCE_MARKDOWN_HEADER5 10
+#define SCE_MARKDOWN_HEADER6 11
+#define SCE_MARKDOWN_PRECHAR 12
+#define SCE_MARKDOWN_ULIST_ITEM 13
+#define SCE_MARKDOWN_OLIST_ITEM 14
+#define SCE_MARKDOWN_BLOCKQUOTE 15
+#define SCE_MARKDOWN_STRIKEOUT 16
+#define SCE_MARKDOWN_HRULE 17
+#define SCE_MARKDOWN_LINK 18
+#define SCE_MARKDOWN_CODE 19
+#define SCE_MARKDOWN_CODE2 20
+#define SCE_MARKDOWN_CODEBK 21
 
 // --------------------------------------------------------------------------
 // Percent Encoding

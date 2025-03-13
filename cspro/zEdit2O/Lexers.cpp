@@ -22,6 +22,7 @@ namespace
             { SCLEX_HTML,               "HTML",              { FileExtensions::HTML, FileExtensions::HTM, FileExtensions::CSHTML } },
             { SCLEX_JAVASCRIPT,         "JavaScript",        { FileExtensions::JavaScript, FileExtensions::JavaScriptModule      } },
             { SCLEX_JSON,               "JSON",              { FileExtensions::Json, "geojson"                                   } },
+            { SCLEX_MARKDOWN,           "Markdown",          { FileExtensions::Markdown                                          } },
             { SCLEX_SQL,                "SQL",               { "sql"                                                             } },
             { SCLEX_YAML,               "YAML",              { FileExtensions::QuestionText                                      } },
         };

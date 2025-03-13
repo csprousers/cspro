@@ -40,7 +40,7 @@ public:
 
     static constexpr bool IsCSProReport(int lexer_language)
     {
-        return ( IsCSProReportHtml(lexer_language) || 
+        return ( IsCSProReportHtml(lexer_language) ||
                  lexer_language == SCLEX_CSPRO_REPORT_V0 ||
                  lexer_language == SCLEX_CSPRO_REPORT_V8_0 );
     }
@@ -69,6 +69,7 @@ public:
             case SCLEX_HTML:
             case SCLEX_JAVASCRIPT:
             case SCLEX_JSON:
+            case SCLEX_MARKDOWN:
             case SCLEX_PERCENT_ENCODING:
             case SCLEX_SQL:
             case SCLEX_YAML:
