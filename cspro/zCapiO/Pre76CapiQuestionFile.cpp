@@ -1,5 +1,5 @@
 ﻿#include "StdAfx.h"
-#include "CapiQuestionFilePre76.h"
+#include "Pre76CapiQuestionFile.h"
 #include <zToolsO/Special.h>
 #include <zUtilO/Specfile.h>
 #include <zUtilF/ProgressDlg.h>

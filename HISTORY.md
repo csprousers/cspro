@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;03&#8209;13 | [rtf+yaml-dll-rename](https://github.com/CSProDevelopment/cspro/commit/e61c529330f7636db0e7f2776b9bdd5f065037f1) | standardized the naming of external code-related DLLs + removed RTF-related code from the portable builds |
 | 2025&#8209;03&#8209;13 | [documentation-fixes](https://github.com/CSProDevelopment/cspro/commit/790f7f0b2859c4477be7164f2984201c8b990d63) | fixed some issues discovered while documenting CSPro 8.1 features |
 | 2025&#8209;03&#8209;13 | [data-manager-finalization](https://github.com/CSProDevelopment/cspro/commit/02b3263bae9572bdf7e1d988f050bcc2126e7b3a) | finalized Data Manager and the virtual case listing control |
 | 2025&#8209;02&#8209;25 | [manage-credentials](https://github.com/CSProDevelopment/cspro/commit/727efdb557f4bff850680d7a16fb79f0708bc12d) | added the Manage Credentials dialog, allowing the granular deletion of sync / data / location credentials |

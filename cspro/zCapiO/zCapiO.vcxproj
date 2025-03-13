@@ -69,12 +69,13 @@
     <ClCompile Include="CapiControl.cpp" />
     <ClCompile Include="CapiFill.cpp" />
     <ClCompile Include="CapiQuestion.cpp" />
-    <ClCompile Include="CapiQuestionFilePre76.cpp" />
     <ClCompile Include="CapiQuestionManager.cpp" />
     <ClCompile Include="CapiQuestionYaml.cpp" />
     <ClCompile Include="CapiStyle.cpp" />
     <ClCompile Include="CapiText.cpp" />
     <ClCompile Include="ExtendedControl.cpp" />
+    <ClCompile Include="Pre76CapiQuestionFile.cpp" />
+    <ClCompile Include="Pre76CapiQuestionManager.cpp" />
     <ClCompile Include="QSFView.cpp" />
     <ClCompile Include="SelectCtrl.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
@@ -101,12 +102,12 @@
     <ClInclude Include="CapiFill.h" />
     <ClInclude Include="CapiLogicParameters.h" />
     <ClInclude Include="CapiQuestion.h" />
-    <ClInclude Include="CapiQuestionFilePre76.h" />
     <ClInclude Include="CapiQuestionManager.h" />
     <ClInclude Include="CapiQuestionYaml.h" />
     <ClInclude Include="CapiStyle.h" />
     <ClInclude Include="CapiText.h" />
     <ClInclude Include="ExtendedControl.h" />
+    <ClInclude Include="Pre76CapiQuestionFile.h" />
     <ClInclude Include="QSFView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SelectCtrl.h" />
@@ -116,11 +117,11 @@
     <ClInclude Include="zCapiO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\rtf2html_dll\rtf2html_dll.vcxproj">
+    <ProjectReference Include="..\zRtf\zRtf.vcxproj">
       <Project>{f5702efd-6d1c-4591-bc10-184babf8c4e1}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\yaml-cpp\yaml-cpp.vcxproj">
+    <ProjectReference Include="..\zYaml\zYaml.vcxproj">
       <Project>{0476f3bc-79cc-4653-ba60-31bb8dead056}</Project>
       <Private>false</Private>
     </ProjectReference>

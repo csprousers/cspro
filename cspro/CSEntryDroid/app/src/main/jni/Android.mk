@@ -8,8 +8,6 @@ endif
 
 include $(LOCAL_PATH)/Engine.mk
 include $(LOCAL_PATH)/mp4v2.mk
-include $(LOCAL_PATH)/rtf2html.mk
-include $(LOCAL_PATH)/yamlcpp.mk
 include $(LOCAL_PATH)/zAction.mk
 include $(LOCAL_PATH)/zAppO.mk
 include $(LOCAL_PATH)/zBridgeO.mk
@@ -49,6 +47,7 @@ include $(LOCAL_PATH)/zToolsO.mk
 include $(LOCAL_PATH)/zUtilF.mk
 include $(LOCAL_PATH)/zUtilO.mk
 include $(LOCAL_PATH)/zXml.mk
+include $(LOCAL_PATH)/zYaml.mk
 include $(LOCAL_PATH)/zZipO.mk
 
 

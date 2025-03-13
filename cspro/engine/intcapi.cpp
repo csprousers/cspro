@@ -23,7 +23,6 @@
 #include <zMessageO/Messages.h>
 #include <Zissalib/CsDriver.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <zCapiO/CapiQuestionFilePre76.h>
 #include <Zentryo/hreplace.h>
 #include <regex>
 

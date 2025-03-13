@@ -80,7 +80,6 @@ LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/Capi.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiCondition.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiFill.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestion.cpp
-LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionFilePre76.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionManager.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionYaml.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiStyle.cpp
@@ -137,6 +136,6 @@ LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/yaml-cpp/include
-LOCAL_STATIC_LIBRARIES  := zEngineF zEngineO zAction zLogicO zFormatterO zFormO zSyncF zSyncO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zCaseO zMultimediaO zMapping zMessageO zReportO zFreqO zParadataO zZipO zDictO zAppO zUtilO zUtilF zHtml zListingO zJson zToolsO zPlatformO zSql rtf2html yamlcpp
+LOCAL_STATIC_LIBRARIES  := zEngineF zEngineO zAction zLogicO zFormatterO zFormO zSyncF zSyncO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zCaseO zMultimediaO zMapping zMessageO zReportO zFreqO zParadataO zZipO zDictO zAppO zUtilO zUtilF zHtml zListingO zJson zToolsO zPlatformO zSql zYaml
 
 include $(BUILD_STATIC_LIBRARY)

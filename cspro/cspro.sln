@@ -94,7 +94,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zZipo", "zZipo\zZipo.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSExport", "CSExport\CSExport.vcxproj", "{10EF8458-6B7F-46D6-9CC6-F0549EB4283A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtf2html_dll", "rtf2html_dll\rtf2html_dll.vcxproj", "{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "zRtf\zRtf.vcxproj", "{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSIndex", "CSIndex\CSIndex.vcxproj", "{79F3CF06-E7F6-40E0-9C61-A861C4D68EEF}"
 EndProject
@@ -189,7 +189,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zDiffO", "zDiffO\zDiffO.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zExcelO", "zExcelO\zExcelO.vcxproj", "{95F42A46-C902-46A3-9D04-24B20F9854C6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp", "yaml-cpp\yaml-cpp.vcxproj", "{0476F3BC-79CC-4653-BA60-31BB8DEAD056}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zYaml", "zYaml\zYaml.vcxproj", "{0476F3BC-79CC-4653-BA60-31BB8DEAD056}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zInterfaceF", "zInterfaceF\zInterfaceF.vcxproj", "{A777B4A3-A0B4-4F0E-86C4-7077630E0B54}"
 EndProject

@@ -3,7 +3,7 @@ JNI_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    		:= yamlcpp
+LOCAL_MODULE    		:= zYaml
 CPPYAML_SRC_PATH       := ../../../../../external/yaml-cpp/src
 
 LOCAL_SRC_FILES         += $(CPPYAML_SRC_PATH)/binary.cpp
