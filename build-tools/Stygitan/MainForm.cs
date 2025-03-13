@@ -158,7 +158,8 @@ namespace Stygitan
 
             bool process_and_write_utf8_bom =
                 ( extension == ".h" || extension == ".cpp" ||
-                  extension == ".cs" );
+                  extension == ".cs" ||
+                  extension == ".csdocset" || extension == ".csdoc" || extension == ".hgi" || extension == ".index" || extension == ".toc" );
 
             bool process =
                 ( process_and_write_utf8_bom ||
