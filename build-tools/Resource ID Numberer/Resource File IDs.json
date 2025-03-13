@@ -134,6 +134,7 @@
         "ID_LANGUAGE_HTML",
         "ID_LANGUAGE_JAVASCRIPT",
         "ID_LANGUAGE_JSON",
+        "ID_LANGUAGE_MARKDOWN",
         "ID_LANGUAGE_SQL",
         "ID_LANGUAGE_YAML",
         "ID_LANGUAGE_NONE"

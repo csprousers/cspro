@@ -218,6 +218,8 @@ BEGIN
         MENUITEM "Java&Script",                 ID_LANGUAGE_JAVASCRIPT
         MENUITEM "&JSON",                       ID_LANGUAGE_JSON
         MENUITEM SEPARATOR
+        MENUITEM "Markdown",                    ID_LANGUAGE_MARKDOWN
+        MENUITEM SEPARATOR
         MENUITEM "S&QL",                        ID_LANGUAGE_SQL
         MENUITEM SEPARATOR
         MENUITEM "&YAML",                       ID_LANGUAGE_YAML
@@ -604,6 +606,7 @@ BEGIN
     ID_LANGUAGE_HTML        "Interpret file as HTML\nHTML"
     ID_LANGUAGE_JAVASCRIPT  "Interpret file as JavaScript\nJavaScript"
     ID_LANGUAGE_JSON        "Interpret file as JSON\nJSON"
+    ID_LANGUAGE_MARKDOWN    "Interpret file as Markdown\nMarkdown"
     ID_LANGUAGE_SQL         "Interpret file as SQL\nSQL"
     ID_LANGUAGE_YAML        "Interpret file as YAML\nYAML"
     ID_LANGUAGE_NONE        "Interpret file as Text\nNone (Text)"
@@ -621,11 +624,11 @@ BEGIN
                             "Compile or validate the code\nCompile or Validate"
     ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 
                             "Convert specification file to CSPro 7.7-compatible file\nConvert to CSPro 7.7 Format"
-    ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
 END
 
 STRINGTABLE
 BEGIN
+    ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
     ID_RUN_CSPRO_LOGIC_V8   "Change logic version to CSPro 8.0+\nCSPro 8.0+"
     ID_RUN_CSPRO_SPEC_FILE_APP 
                             "Modify specification file type to Application\nApplication"
@@ -653,12 +656,12 @@ BEGIN
     ID_RUN_COMPRESS_JSON    "Compress the JSON using a format with minimal whitespace\n&Compress JSON"
     ID_RUN_HTML_DIALOG_TEMPLATES 
                             "Use code or data from HTML dialog templates\nHTML Dialog Templates"
-    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
-                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
 END
 
 STRINGTABLE
 BEGIN
+    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
+                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
     ID_RUN_JAVASCRIPT_MODULE_GLOBAL 
                             "Treat the JavaScript file as part of the global object (not a module)\nGlobal"
     ID_RUN_JAVASCRIPT_MODULE_MODULE 

@@ -118,6 +118,7 @@ LanguageSettings::LanguageSettings(const std::string& file_path/* = std::string(
                                 ( lexer_language == SCLEX_CSPRO_DOCUMENT )         ? std::make_optional(LanguageType::CSProDocument) :
                                 ( lexer_language == SCLEX_JAVASCRIPT )             ? std::make_optional(LanguageType::JavaScript) :
                                 ( lexer_language == SCLEX_JSON )                   ? std::make_optional(LanguageType::Json) :
+                                ( lexer_language == SCLEX_MARKDOWN )               ? std::make_optional(LanguageType::Markdown) :
                                 ( lexer_language == SCLEX_SQL )                    ? std::make_optional(LanguageType::Sql) :
                                 ( lexer_language == SCLEX_YAML )                   ? std::make_optional(LanguageType::Yaml) :
                                 ( lexer_language == SCLEX_NULL )                   ? std::nullopt :
@@ -240,6 +241,7 @@ std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguage
         ( language_type == LanguageType::Html )               ? SCLEX_HTML :
         ( language_type == LanguageType::JavaScript )         ? SCLEX_JAVASCRIPT :
         ( language_type == LanguageType::Json )               ? SCLEX_JSON :
+        ( language_type == LanguageType::Markdown )           ? SCLEX_MARKDOWN :
         ( language_type == LanguageType::Sql )                ? SCLEX_SQL :
         ( language_type == LanguageType::Yaml )               ? SCLEX_YAML :
         ( language_type == LanguageType::Text )               ? SCLEX_NULL :

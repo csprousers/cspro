@@ -24,6 +24,7 @@ enum class LanguageType
     Html,
     JavaScript,
     Json,
+    Markdown,
     Sql,
     Yaml,
     Text
@@ -152,7 +153,8 @@ inline bool LanguageSettings::CanRunCode() const
     return ( // CODE_TODO restore when CSPro logic can be compiled Lexers::UsesCSProLogic(m_lexerLanguage) ||
              m_languageType == LanguageType::CSProActionInvoker ||
              m_lexerLanguage == SCLEX_HTML ||
-             m_lexerLanguage == SCLEX_JAVASCRIPT );
+             m_lexerLanguage == SCLEX_JAVASCRIPT ||
+             m_lexerLanguage == SCLEX_MARKDOWN );
 }
 
 

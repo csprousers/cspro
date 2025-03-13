@@ -2,6 +2,7 @@
 #include "CodeFrame.h"
 #include "HtmlDialogCodeView.h"
 #include "ProcessorActionInvoker.h"
+#include "ProcessorMarkdown.h"
 #include <zUtilF/DynamicMenuBuilder.h>
 #include <zDesignerF/ReportPreviewer.h>
 
@@ -397,6 +398,11 @@ void CodeFrame::OnRunRun()
     else if( language_type == LanguageType::JavaScript )
     {
         code_doc.GetJavaScriptProcessor().Run();
+    }
+
+    else if( language_type == LanguageType::Markdown )
+    {
+        ProcessorMarkdown::Run(code_doc);
     }
 
     else

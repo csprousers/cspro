@@ -237,6 +237,17 @@ std::string CodeDoc::GetActualOrTempFilePath(const char* const extension) const
 }
 
 
+std::string CodeDoc::GetActualOrTempDirectory() const
+{
+    const std::string path = GetFilePath();
+
+    if( !path.empty() )
+        return PortableFunctions::PathGetDirectory(path);
+
+    return GetTempDirectory();
+}
+
+
 std::tuple<bool, int64_t> CodeDoc::GetFileModificationTimeParameters() const
 {
     if( m_textSource != nullptr )

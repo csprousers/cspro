@@ -35,8 +35,9 @@ public:
 
     const std::string& GetFilePath() const;
 
-    // if the document is not saved, a temporary file path is returned
+    // if the document is not saved, a temporary file path, or directory, is returned
     std::string GetActualOrTempFilePath(const char* extension) const;
+    std::string GetActualOrTempDirectory() const;
 
     std::tuple<bool, int64_t> GetFileModificationTimeParameters() const;
 

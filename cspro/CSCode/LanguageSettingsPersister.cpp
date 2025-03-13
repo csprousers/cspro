@@ -46,6 +46,7 @@ CREATE_ENUM_JSON_SERIALIZER(LanguageType,
     { LanguageType::Html,               "HTML" },
     { LanguageType::JavaScript,         "JavaScript" },
     { LanguageType::Json,               "JSON" },
+    { LanguageType::Markdown,           "Markdown" },
     { LanguageType::Sql,                "SQL" },
     { LanguageType::Yaml,               "YAML" },
     { LanguageType::Text,               "text" })

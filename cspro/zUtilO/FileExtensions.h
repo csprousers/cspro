@@ -39,6 +39,7 @@ namespace FileExtensions
     C_EXT(JavaScript,       "js")
     C_EXT(JavaScriptModule, "mjs")
     C_EXT(Json,             "json")
+    C_EXT(Markdown,         "md")
     C_EXT(PDF,              "pdf")
     C_EXT(Pre77Report,      "csrs")
     C_EXT(SaveArray,        "sva")
