@@ -179,6 +179,9 @@
     <ClCompile Include="CSDocCompilerColorizers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CSDocCompilerMarkdownCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CSDocCompilerPffColorizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

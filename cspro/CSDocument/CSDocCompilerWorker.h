@@ -143,6 +143,8 @@ private:
     std::string PffEndHandler(const std::string& inner_text);
     std::string PffColorEndHandler(const std::string& inner_text);
 
+    std::string MarkdownEndHandler(const std::string& inner_text);
+
 private:
     const SD& m_sd;
     CSDocCompilerSettings& m_settings;

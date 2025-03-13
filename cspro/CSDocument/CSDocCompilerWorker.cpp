@@ -38,6 +38,7 @@ namespace
     constexpr std::string_view PffTag_sv                    = "pff";
     constexpr std::string_view PffColorTag_sv               = "pffcolor";
     constexpr std::string_view HtmlTag_sv                   = "html";
+    constexpr std::string_view MdTag_sv                     = "md";
     constexpr std::string_view NoteTag_sv                   = "note";
     constexpr std::string_view DefinitionTag_sv             = "definition";
     constexpr std::string_view IncludeTag_sv                = "include";
@@ -96,8 +97,9 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { ColorTag_sv,         TagDefinition { true,   &ColorStartHandler, &ColorEndHandler, 1, 1 } },
             { ColorInlineTag_sv,   TagDefinition { true,   &ColorStartHandler, &ColorInlineEndHandler, 1, 1 } },
             { PffTag_sv,           TagDefinition { true,   { }, &PffEndHandler } },
-            { PffColorTag_sv,      TagDefinition { true,   { }, &PffColorEndHandler} },
+            { PffColorTag_sv,      TagDefinition { true,   { }, &PffColorEndHandler } },
             { HtmlTag_sv,          TagDefinition { true,   { }, { } } },
+            { MdTag_sv,            TagDefinition { true,   { }, &MarkdownEndHandler } },
             { NoteTag_sv,          TagDefinition { false,  &NoteStartHandler, { }, 1, 2 } },
             { CalloutTag_sv,       TagDefinition { true,   "<div style=\"background-color: lightgrey;border:1px solid black;margin:10px;padding:10px\">", "</div>" } },
             { PageBreakTag_sv,     TagDefinition { false,  "<div class=\"new-page\" />" } },
@@ -115,7 +117,8 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
                                                 ReportTag_sv,
                                                 ColorTag_sv,
                                                 PffTag_sv,
-                                                HtmlTag_sv } )
+                                                HtmlTag_sv,
+                                                MdTag_sv } )
         {
             const std::string& tag = *block_tags.insert(std::string(tag_sv)).first;
 

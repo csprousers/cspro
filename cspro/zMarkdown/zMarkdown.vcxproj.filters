@@ -23,7 +23,7 @@
     <ClCompile Include="..\external\md4c\md4c.c">
       <Filter>md4c</Filter>
     </ClCompile>
-    <ClCompile Include="MarkdownToHtml.cpp">
+    <ClCompile Include="Markdown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -34,7 +34,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MarkdownToHtml.h">
+    <ClInclude Include="Markdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">

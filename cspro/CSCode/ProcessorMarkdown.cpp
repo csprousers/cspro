@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "ProcessorMarkdown.h"
-#include <zMarkdown/MarkdownToHtml.h>
+#include <zMarkdown/Markdown.h>
 
 
 void ProcessorMarkdown::Run(CodeDoc& code_doc)
