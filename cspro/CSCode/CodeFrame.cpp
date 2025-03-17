@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CodeFrame.h"
 #include "HtmlDialogCodeView.h"
+#include "LanguageSettingsPersister.h"
 #include "ProcessorActionInvoker.h"
 #include "ProcessorMarkdown.h"
 #include <zUtilF/DynamicMenuBuilder.h>
@@ -203,7 +204,7 @@ void CodeFrame::OnLanguageType(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
-    LanguageType language_type = GetLanguageTypeFromId(nID);
+    const LanguageType language_type = GetLanguageTypeFromId(nID);
 
     doc_language_settings.SetLanguageType(language_type, code_doc.GetFilePath());
 
@@ -215,6 +216,10 @@ void CodeFrame::OnLanguageType(const UINT nID)
 
     // update the file type in the status bar
     AfxGetMainWnd()->PostMessage(UWM::CSCode::SetStatusBarFileType);
+
+    // if this is a new file, save this type to use for the next new file
+    if( code_doc.GetPathName().IsEmpty() )
+        assert_cast<CMainFrame*>(AfxGetMainWnd())->GetLanguageSettingsPersister().SetDefaultLanguageType(language_type);
 }
 
 

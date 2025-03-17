@@ -7,6 +7,7 @@ namespace
     // language settings will be persisted for a quarter of a year
     constexpr const char* LanguageSettingsTableName     = "language_settings";
     constexpr int64_t LanguageSettingsExpirationSeconds = DateHelper::SecondsInWeek(52 / 4);
+    constexpr std::string_view DefaultLanguageKey_sv    = "<default-language>";
 
 
     constexpr std::optional<unsigned> JavaScriptModuleTypeToJson(const std::optional<unsigned>& index)
@@ -87,6 +88,29 @@ LanguageSettingsPersister::~LanguageSettingsPersister()
         }
         catch(...) { ASSERT(false); }
     }
+}
+
+
+LanguageType LanguageSettingsPersister::GetDefaultLanguageType()
+{
+    const std::string* const json_text = m_settingsDb.Read<std::string*>(DefaultLanguageKey_sv);
+
+    if( json_text != nullptr )
+    {
+        try
+        {
+            return Json::Parse(*json_text).Get<LanguageType>();
+        }
+        catch(...) { ASSERT(false); }
+    }
+
+    return LanguageType::Text;
+}
+
+
+void LanguageSettingsPersister::SetDefaultLanguageType(const LanguageType language_type)
+{
+    m_settingsDb.Write(DefaultLanguageKey_sv, Json::ToJson(language_type));
 }
 
 

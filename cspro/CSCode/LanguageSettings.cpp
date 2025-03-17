@@ -93,8 +93,14 @@ LanguageSettings::LanguageSettings(const std::string& file_path/* = std::string(
 {
     std::optional<LanguageType> language_type;
 
-    // if a file path is specified...
-    if( !file_path.empty() )
+    // if this is a brand new file, use the language type used for the last new file
+    if( file_path.empty() )
+    {
+        language_type = GetLanguageSettingsPersister().GetDefaultLanguageType();
+    }
+
+    // otherwise, when a file path is specified...
+    else
     {
         // ...see if the type has been manually specified at some point
         language_type = GetLanguageSettingsPersister().GetLanguageType(file_path);
