@@ -129,6 +129,9 @@
     <ClInclude Include="HtmlOutputWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HtmlTags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MainFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>

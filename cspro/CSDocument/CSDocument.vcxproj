@@ -101,6 +101,7 @@
     <ClInclude Include="GlobalSettings.h" />
     <ClInclude Include="GlobalSettingsDlg.h" />
     <ClInclude Include="HtmlOutputWnd.h" />
+    <ClInclude Include="HtmlTags.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PdfCreator.h" />
     <ClInclude Include="resource.h" />

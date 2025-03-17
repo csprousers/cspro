@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CSDocCompilerWorker.h"
+#include "HtmlTags.h"
 #include <zUtilO/PortableColor.h>
 #include <zMultimediaO/Image.h>
 #include <zMultimediaO/QRCode.h>
@@ -72,13 +73,13 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { ContextTag_sv,       TagDefinition { false,  &ContextStartHandler, { }, 1, SIZE_MAX } },
             { IndentTag_sv,        TagDefinition { true,   &IndentStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { CenterTag_sv,        TagDefinition { true,   "<div align=\"center\">", "</div>" } },
-            { BoldTag_sv,          TagDefinition { true,   "<b>", "</b>" } },
-            { ItalicsTag_sv,       TagDefinition { true,   "<i>", "</i>" } },
+            { BoldTag_sv,          TagDefinition { true,   HT::Bold[0], HT::Bold[1] } },
+            { ItalicsTag_sv,       TagDefinition { true,   HT::Italics[0], HT::Italics[1] } },
             { SuperscriptTag_sv,   TagDefinition { true,   "<sup>", "</sup>" } },
             { FontTag_sv,          TagDefinition { true,   &FontStartHandler, "</span>", 1, 3 } },
             { ListTag_sv,          TagDefinition { true,   &ListStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { ListItemTag_sv,      TagDefinition { true,   "<li>", "</li>" } },
-            { SubheaderTag_sv,     TagDefinition { true,   "<div class=\"subheader_size subheader\">", "</div>" } },
+            { SubheaderTag_sv,     TagDefinition { true,   HT::Subheader[0], HT::Subheader[1] } },
             { ImageTag_sv,         TagDefinition { false,  &ImageStartHandler, { }, 1, 6 } },
             { BarcodeTag_sv,       TagDefinition { false,  &BarcodeStartHandler, { }, 1, 8 } },
             { TopicTag_sv,         TagDefinition { false,  &TopicStartHandler, { }, 1, 1 } },
@@ -725,9 +726,9 @@ void CSDocCompilerWorker::ProcessParagraph(std::string paragraph)
     }
 
     // replace newlines with breaks and wrap the paragraph's HTML in a div
-    m_html.append("<div class=\"paragraph\">");
+    m_html.append(HT::ParagraphDiv_sv[0]);
     m_html.append(ReplaceNewlinesWithBreaks(text));
-    m_html.append("</div>\n");
+    m_html.append(HT::ParagraphDiv_sv[1]);
 }
 
 
@@ -1116,13 +1117,19 @@ std::string CSDocCompilerWorker::ContextStartHandler(const cs::span<const std::s
 
 std::string CSDocCompilerWorker::TitleEndHandler(const std::string& inner_text)
 {
+    return CreateTitleHtml(inner_text, Encoders::ToHtml(inner_text));
+}
+
+
+std::string CSDocCompilerWorker::CreateTitleHtml(std::string raw_title, const std::string& title_html)
+{
     ASSERT(m_title->empty() || *m_title == NoHeaderAttribute_sv);
 
     std::string header;
 
     if( *m_title != NoHeaderAttribute_sv )
     {
-        header = "<h2><span class=\"header_size header\">" + Encoders::ToHtml(inner_text) + "</span></h2>";
+        header = "<h2><span class=\"header_size header\">" + title_html + "</span></h2>";
 
         const std::string url = m_settings.CreateUrlForTitle(m_settings.GetCompilationFilePath());
 
@@ -1133,7 +1140,7 @@ std::string CSDocCompilerWorker::TitleEndHandler(const std::string& inner_text)
         }
     }
 
-    m_title = inner_text;
+    m_title = std::move(raw_title);
 
     // update the database of titles
     m_settings.SetTitleForCompilationFilePath(*m_title);
@@ -1297,27 +1304,35 @@ std::string CSDocCompilerWorker::ImageStartHandler(const cs::span<const std::str
     if( dimension_specifying != nullptr )
         throw CSProException("The image width or height were not specified.");
 
-    if( image_path.empty() )
-        throw CSProException("The image location must be specified.");
-
     if( nochm && m_settings.CompilingForCompiledHtmlHelp() )
         return std::string();
 
-    image_path = m_settings.EvaluateImagePath(image_path);
+    std::string html = CreateImageStartHtml(image_path);
 
-    if( !PortableFunctions::FileIsRegular(image_path) )
-        throw CSProException("The image could not be located: %s", image_path.c_str());
-
-    // for accessibility, set the title to the name of the image, replacing underscores with spaces
-    std::string title = Path::GetFilenameWithoutExtension(image_path);
-    SO::Replace(title, '_', ' ');
-
-    std::string html = SO::Concatenate("<img src=\"", Encoders::ToHtmlTagValue(m_settings.CreateUrlForImageFile(image_path)),
-                                       "\" title=\"", Encoders::ToHtmlTagValue(title), "\"");
+    // for accessibility, use the name of the image, replacing underscores with spaces
+    std::string alt = Path::GetFilenameWithoutExtension(image_path);
+    SO::Replace(alt, '_', ' ');
+    html.append(Encoders::ToHtmlTagValue(alt)).append("\"");
 
     AppendImageWidthHeight(html, width, height, true);
 
     return html;
+}
+
+
+std::string CSDocCompilerWorker::CreateImageStartHtml(const std::string& image_path)
+{
+    if( image_path.empty() )
+        throw CSProException("The image location must be specified.");
+
+    const std::string& evaluated_image_path = m_settings.EvaluateImagePath(image_path);
+
+    if( !PortableFunctions::FileIsRegular(evaluated_image_path) )
+        throw CSProException("The image could not be located: %s", evaluated_image_path.c_str());
+
+    return SO::Concatenate("<img src=\"",
+                           Encoders::ToHtmlTagValue(m_settings.CreateUrlForImageFile(evaluated_image_path)),
+                           "\" alt=\"");
 }
 
 
@@ -1462,7 +1477,12 @@ std::string CSDocCompilerWorker::TopicStartHandler(const cs::span<const std::str
 
 std::string CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::string> tag_components)
 {
-    std::string url = tag_components.front();
+    return CreateLinkStartHtml(tag_components.front(), true);
+}
+
+
+std::string CSDocCompilerWorker::CreateLinkStartHtml(std::string url, const bool end_tag)
+{
     bool target_blank = false;
 
     if( SO::StartsWith(url, "http") || SO::StartsWith(url, "mailto") || Encoders::IsDataUrl(url) )
@@ -1476,7 +1496,7 @@ std::string CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::stri
         url = m_settings.CreateUrlForTopic(path_and_project.project, path_and_project.path);
     }
 
-    return CreateHyperlinkStart(url, target_blank);
+    return CreateHyperlinkStart(url, target_blank, end_tag);
 }
 
 
@@ -1645,8 +1665,8 @@ std::string CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std:
     if( nowrap )
         style.append("white-space: nowrap; ");
 
-    if( table_settings.center )
-        style.append("text-align: center;");
+    style.append("text-align: ")
+         .append(table_settings.center ? "center;" : "left;");
 
     const std::string class_str = table_settings.border ? " class=\"bordered_table_cell\"" : std::string();
 

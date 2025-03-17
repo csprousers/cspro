@@ -45,14 +45,17 @@ protected:
     void LeaveSpan(MD_SPANTYPE type, void* detail) override final;
     virtual void LeaveSpanWorker(MD_SPANTYPE type, void* detail);
 
-    void ProcessOutput(MD_TEXTTYPE type, std::string_view text_sv) override;
+    void ProcessOutput(MD_TEXTTYPE type, std::string_view text_sv) override final;
+    virtual void ProcessOutputCode(std::string_view text_sv);
 
-private:
-    enum class EscapeType { Verbatim, ForHtml, ForUrl };
+protected:
+    enum class EscapeType { Verbatim, ForHtmlOrTag, ForUrl };
     void render(std::string_view text_sv, EscapeType escape_type);
     void render_utf8_codepoint(unsigned codepoint, EscapeType escape_type);
     void render_entity(std::string_view text_sv, EscapeType escape_type);
     void render_attribute(const MD_ATTRIBUTE* attr, EscapeType escape_type);
+
+private:
     void render_open_ol_block(const MD_BLOCK_OL_DETAIL* det);
     void render_open_li_block(const MD_BLOCK_LI_DETAIL* det);
     void render_open_code_block(const MD_BLOCK_CODE_DETAIL* det);
@@ -62,7 +65,9 @@ private:
     void render_close_img_span(const MD_SPAN_IMG_DETAIL* det);
     void render_open_wikilink_span(const MD_SPAN_WIKILINK_DETAIL* det);
 
-private:
+protected:
     std::string m_html;
+
+private:
     int m_imageNestingLevel;
 };

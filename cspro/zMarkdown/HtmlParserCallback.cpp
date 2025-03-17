@@ -5,6 +5,14 @@
 #include <external/md4c/entity.h>
 
 
+namespace
+{
+    // CSPro's encoders are a bit different from MD4C's, so if you
+    // want to compare the output between the two, set this to true.
+    constexpr bool MatchMd4cOutput = false;
+}
+
+
 Markdown::HtmlParserCallback::HtmlParserCallback()
     :   m_imageNestingLevel(0)
 {
@@ -289,18 +297,28 @@ void Markdown::HtmlParserCallback::ProcessOutput(const MD_TEXTTYPE type, const s
             m_html.append(( m_imageNestingLevel == 0 ) ? "\n" : " ");
             break;
 
+        case MD_TEXT_ENTITY:
+            render_entity(text_sv, EscapeType::ForHtmlOrTag);
+            break;
+
+        case MD_TEXT_CODE:
+            ProcessOutputCode(text_sv);
+            break;
+
         case MD_TEXT_HTML:
             m_html.append(text_sv);
             break;
 
-        case MD_TEXT_ENTITY:
-            render_entity(text_sv, EscapeType::ForHtml);
-            break;
-
         default:
-            m_html.append(Encoders::ToHtml(text_sv, false));
+            render(text_sv, EscapeType::ForHtmlOrTag);
             break;
     }
+}
+
+
+void Markdown::HtmlParserCallback::ProcessOutputCode(const std::string_view text_sv)
+{
+    render(text_sv, EscapeType::ForHtmlOrTag);
 }
 
 
@@ -309,16 +327,33 @@ void Markdown::HtmlParserCallback::render(const std::string_view text_sv, const 
     switch( escape_type )
     {
         case EscapeType::Verbatim:
+        {
             m_html.append(text_sv);
             break;
+        }
 
-        case EscapeType::ForHtml:
-            m_html.append(Encoders::ToHtml(text_sv));
+        case EscapeType::ForHtmlOrTag:
+        {
+            m_html.append(Encoders::ToHtmlTagValue(text_sv));
             break;
+        }
 
         default:
+        {
             ASSERT(escape_type == EscapeType::ForUrl);
-            m_html.append(Encoders::ToUri(text_sv));
+            std::string html = Encoders::ToUri(text_sv);
+
+            if( MatchMd4cOutput )
+            {
+                SO::Replace(html, "&", "&amp;");
+
+                // percent-encoded characters are rendered in uppercase
+                for( size_t percent_pos = 0; ( percent_pos = html.find('%', percent_pos) ) != std::string::npos; percent_pos += 3 )
+                    html.replace(percent_pos, 3, SO::ToUpper(html.substr(percent_pos, 3)));
+            }
+
+            m_html.append(html);
+        }
     }
 }
 
@@ -395,8 +430,8 @@ void Markdown::HtmlParserCallback::render_attribute(const MD_ATTRIBUTE* const at
     {
         const MD_TEXTTYPE type = attr->substr_types[i];
         const MD_OFFSET off = attr->substr_offsets[i];
-        const MD_SIZE size = attr->substr_offsets[i + 1] - off;
-        const std::string_view text_sv(attr->text + off, size);
+        const std::string_view text_sv(attr->text + off,
+                                       attr->substr_offsets[i + 1] - off);
 
         switch( type )
         {
@@ -450,7 +485,7 @@ void Markdown::HtmlParserCallback::render_open_code_block(const MD_BLOCK_CODE_DE
     if( det->lang.text != nullptr )
     {
         m_html.append(" class=\"language-");
-        render_attribute(&det->lang, EscapeType::ForHtml);
+        render_attribute(&det->lang, EscapeType::ForHtmlOrTag);
         m_html.append("\"");
     }
 
@@ -492,7 +527,7 @@ void Markdown::HtmlParserCallback::render_open_a_span(const MD_SPAN_A_DETAIL* co
     if( det->title.text != nullptr )
     {
         m_html.append("\" title=\"");
-        render_attribute(&det->title, EscapeType::ForHtml);
+        render_attribute(&det->title, EscapeType::ForHtmlOrTag);
     }
 
     m_html.append("\">");
@@ -513,7 +548,7 @@ void Markdown::HtmlParserCallback::render_close_img_span(const MD_SPAN_IMG_DETAI
     if( det->title.text != nullptr )
     {
         m_html.append("\" title=\"");
-        render_attribute(&det->title, EscapeType::ForHtml);
+        render_attribute(&det->title, EscapeType::ForHtmlOrTag);
     }
 
     m_html.append("\">");
@@ -523,6 +558,6 @@ void Markdown::HtmlParserCallback::render_close_img_span(const MD_SPAN_IMG_DETAI
 void Markdown::HtmlParserCallback::render_open_wikilink_span(const MD_SPAN_WIKILINK_DETAIL* const det)
 {
     m_html.append("<x-wikilink data-target=\"");
-    render_attribute(&det->target, EscapeType::ForHtml);
+    render_attribute(&det->target, EscapeType::ForHtmlOrTag);
     m_html.append("\">");
 }

@@ -7,8 +7,8 @@
 
 namespace
 {
-    static constexpr unsigned ParserFlags       = 0; // MD_FLAG_... combinations
-    static constexpr unsigned HtmlRendererFlags = 0; // MD_HTML_FLAG_... combinations
+    static constexpr unsigned ParserFlags = MD_DIALECT_GITHUB; // MD_FLAG_... combinations
+    static constexpr unsigned HtmlRendererFlags = 0;           // MD_HTML_FLAG_... combinations
 }
 
 
