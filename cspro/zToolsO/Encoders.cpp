@@ -308,6 +308,31 @@ std::string Encoders::FromUrlQueryString(const std::string_view text_sv)
 
 
 // --------------------------------------------------------------------------
+// HEX
+// --------------------------------------------------------------------------
+
+template<typename T>
+T Encoders::ToHexValue(const std::string_view text_sv)
+{
+    T value = 0;
+
+    for( const char ch : text_sv )
+    {
+        value *= 16;
+
+        value += ( ch >= '0' && ch <= '9' ) ? ( ch - '0' ) :
+                 ( ch >= 'A' && ch <= 'Z' ) ? ( ch - 'A' + 10 ) :
+                                              ( ch - 'a' + 10 );
+    }
+
+    return value;
+}
+
+template CLASS_DECL_ZTOOLSO unsigned Encoders::ToHexValue(std::string_view text_sv);
+
+
+
+// --------------------------------------------------------------------------
 // CSV (comma) / semicolon
 // --------------------------------------------------------------------------
 

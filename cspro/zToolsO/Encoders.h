@@ -53,6 +53,12 @@ public:
     CLASS_DECL_ZTOOLSO static std::string FromUrlQueryString(std::string_view text_sv);
 
 
+    // --- HEX ------------------------------------------------------------------
+
+    template<typename T>
+    CLASS_DECL_ZTOOLSO static T ToHexValue(std::string_view text_sv);
+
+
     // --- COMMA + SEMICOLON + TAB DELIMITED ------------------------------------
 
     CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToCsvWorker(std::string_view text_sv, char separator = ',');

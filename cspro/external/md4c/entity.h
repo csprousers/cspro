@@ -1,3 +1,5 @@
+// CSPro additions noted with "CSPro"
+
 /*
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
@@ -37,7 +39,16 @@ struct ENTITY_tag {
     unsigned codepoints[2];
 };
 
+
+#ifdef __cplusplus // CSPro
+    extern "C" {
+#endif
+
 const ENTITY* entity_lookup(const char* name, size_t name_size);
+
+#ifdef __cplusplus // CSPro
+    }  /* extern "C" { */
+#endif
 
 
 #endif  /* MD4C_ENTITY_H */
