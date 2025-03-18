@@ -28,7 +28,7 @@ BOOL ViewDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
     try
     {
-        auto new_input_processor = std::make_unique<CSViewInputProcessor>(TC::ToUtf8(lpszPathName));
+        auto new_input_processor = std::make_unique<ViewInputProcessor>(TC::ToUtf8(lpszPathName));
 
         ProcessCloseDocument();
 
@@ -102,7 +102,7 @@ std::string ViewDoc::GetDocumentUrlForNoDocument(SharedHtmlLocalFileServer& file
             html_writer << "\" alt=\"CSView Logo\" /></p>";
         }
 
-        html_writer << "<p>Select <b>File</b> -> <b>Open</b> to choose a file to view.</p>"
+        html_writer << "<p>Select <b>File</b> -> <b>Open</b> and choose a file to view.</p>"
                        "</center></body></html>";
 
         doc_virtual_file_mapping_handler = std::make_unique<TextVirtualFileMappingHandler>(html_writer.str(), MimeType::Type::Html);

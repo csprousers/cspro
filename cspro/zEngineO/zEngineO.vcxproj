@@ -409,6 +409,10 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zViewO\zViewO.vcxproj">
+      <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zZipo\zZipo.vcxproj">
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>

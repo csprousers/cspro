@@ -11,3 +11,4 @@
 #include <zToolsO/Tools.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>
+#include <zUtilO/WindowsWS.h>

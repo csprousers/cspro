@@ -18,9 +18,6 @@
     <ClInclude Include="CSView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InputProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MainFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>

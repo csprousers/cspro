@@ -85,6 +85,8 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP
+        MENUITEM SEPARATOR
         MENUITEM "&About CSView...",            ID_APP_ABOUT
     END
 END

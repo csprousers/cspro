@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <CSView/InputProcessor.h>
+#include <zViewO/InputProcessor.h>
 
 
 class ViewDoc : public CDocument
@@ -26,6 +26,6 @@ private:
     void ProcessCloseDocument();
 
 private:
-    std::unique_ptr<CSViewInputProcessor> m_inputProcessor;
+    std::unique_ptr<ViewInputProcessor> m_inputProcessor;
     std::unique_ptr<VirtualFileMappingHandler> m_noDocumentVirtualFileMappingHandlers[2];
 };

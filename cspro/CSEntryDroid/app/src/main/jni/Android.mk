@@ -47,6 +47,7 @@ include $(LOCAL_PATH)/zSyncO.mk
 include $(LOCAL_PATH)/zToolsO.mk
 include $(LOCAL_PATH)/zUtilF.mk
 include $(LOCAL_PATH)/zUtilO.mk
+include $(LOCAL_PATH)/zViewO.mk
 include $(LOCAL_PATH)/zXml.mk
 include $(LOCAL_PATH)/zYaml.mk
 include $(LOCAL_PATH)/zZipO.mk
@@ -91,6 +92,6 @@ LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/rxcpp
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
-LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncF zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZipO zMapping zMarkdown zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zJavaScript zXml zJson zSql zToolsO zPlatformO mp4v2 zlib
+LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncF zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZipO zMapping zMarkdown zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zViewO zJavaScript zXml zJson zSql zToolsO zPlatformO mp4v2 zlib
 
 include $(BUILD_SHARED_LIBRARY)

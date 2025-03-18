@@ -40,6 +40,7 @@ add_subdirectory(../zSql zSql)
 add_subdirectory(../zToolsO zToolsO)
 # add_subdirectory(../zUtilF zUtilF)
 add_subdirectory(../zUtilO zUtilO)
+# add_subdirectory(../zViewO zViewO)
 # add_subdirectory(../zYaml zYaml)
 # add_subdirectory(../zZipO zZipO)
 
@@ -115,6 +116,7 @@ target_link_libraries(${PROJECT_NAME}
     # zSyncO
     zToolsO
     # zUtilF
+    # zViewO
     zUtilO
     # zYaml
     # zZipO

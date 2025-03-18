@@ -1,7 +1,6 @@
 ﻿#include "stdafx.h"
 #include "PffExecutor.h"
 #include <zUtilO/ExecutionStack.h>
-#include <CSView/InputProcessor.h>
 #include <zConcatO/Concatenator.h>
 #include <zDiffO/Differ.h>
 #include <zIndexO/Indexer.h>
@@ -9,6 +8,7 @@
 #include <zPackO/Packer.h>
 #include <zReformatO/ToolReformatter.h>
 #include <zSortO/Sorter.h>
+#include <zViewO/InputProcessor.h>
 
 
 bool PffExecutor::SetEmbeddedDictionary(const std::wstring& property_name, std::shared_ptr<const CDataDict> dictionary)
@@ -180,7 +180,7 @@ bool PffExecutor::ExecuteCSPack(const PFF& pff)
 
 bool PffExecutor::ExecuteCSView(const PFF& pff)
 {
-    CSViewInputProcessor input_processor(pff);
+    ViewInputProcessor input_processor(pff);
 
     Viewer viewer;
     viewer.UseEmbeddedViewer()

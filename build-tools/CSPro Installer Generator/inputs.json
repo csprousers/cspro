@@ -1,4 +1,4 @@
-﻿{
+{
   "assets": [
     {
       "domain": "build-tools",
@@ -236,6 +236,7 @@
     "zUtilF.dll",
     "zUtilO.dll",
     "zUtoolO.dll",
+    "zViewO.dll",
     "zXml.dll",
     "zYaml.dll",
     "zZipo.dll",
