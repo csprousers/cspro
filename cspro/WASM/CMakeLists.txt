@@ -24,6 +24,7 @@ add_subdirectory(../zJson zJson)
 # add_subdirectory(../zListingO zListingO)
 # add_subdirectory(../zLogicO zLogicO)
 # add_subdirectory(../zMapping zMapping)
+# add_subdirectory(../zMarkdown zMarkdown)
 # add_subdirectory(../zMessageO zMessageO)
 # add_subdirectory(../zMultimediaO zMultimediaO)
 # add_subdirectory(../zNetwork zNetwork)
@@ -99,6 +100,7 @@ target_link_libraries(${PROJECT_NAME}
     # zListingO
     # zLogicO
     # zMapping
+    # zMarkdown
     # zMessageO
     # zMultimediaO
     # zNetwork

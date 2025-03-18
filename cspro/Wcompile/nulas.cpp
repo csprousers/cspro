@@ -48,6 +48,8 @@ EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO()
 bool CIntDriver::ExecuteProgramStatements(int program_index) { return ReturnProgrammingError(false); }
 void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) { ASSERT(false); }
 std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
+double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) { return ReturnProgrammingError(0); }
+double CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) { return ReturnProgrammingError(0); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

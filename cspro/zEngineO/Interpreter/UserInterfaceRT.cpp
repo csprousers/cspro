@@ -1,7 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IncludesRT.h"
-#include "Array.h"
-#include "List.h"
+#include "AllSymbols.h"
 #include "Nodes/UserInterface.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Screen.h>
@@ -64,6 +63,88 @@ std::unique_ptr<ViewerOptions> LogicInterpreter::EvaluateViewerOptions(const int
         viewer_options->show_close_button = EvaluateConditional(viewer_options_node.show_close_button_expression);
 
     return viewer_options;
+}
+
+
+double LogicInterpreter::ex_view(const int program_index)
+{
+    const auto& view_node = GetNode<Nodes::View>(program_index);
+
+    const int subscript_compilation = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.subscript_compilation :
+                                                                                                                 -1;
+
+    const int viewer_options_node_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.viewer_options_node_index :
+                                          m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_2) ? view_node.subscript_compilation :
+                                                                                                                     -1;
+    std::unique_ptr<const ViewerOptions> viewer_options = EvaluateViewerOptions(viewer_options_node_index);
+
+    // viewing files or URLs
+    if( view_node.symbol_index_or_source_expression >= 0 )
+    {
+        SharableString file_path_or_url = EvaluateString(view_node.symbol_index_or_source_expression);
+        bool success = false;
+
+        Viewer viewer;
+        viewer.UseEmbeddedViewer()
+              .UseSharedHtmlLocalFileServer()
+              .UseExceptionHolder(nullptr)
+              .SetOptions(viewer_options.get());
+
+        if( file_path_or_url->find("://") != std::string::npos )
+        {
+            success = viewer.ViewHtmlUrl(*file_path_or_url);
+        }
+
+        else
+        {
+            MakeAbsolutePath(file_path_or_url.MakeModifiable());
+            success = viewer.ViewFile(*file_path_or_url);
+        }
+
+        // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic
+        RethrowProgramControlExceptions();
+
+        return success ? 1 : 0;
+    }
+
+    // viewing objects
+    else
+    {
+        Symbol* const symbol = GetFromSymbolOrEngineItem(-1 * view_node.symbol_index_or_source_expression, subscript_compilation);
+
+        if( symbol == nullptr )
+            return 0;
+
+        if( symbol->IsA(SymbolType::Pre80Dictionary) )
+        {
+            return exCase_view(assert_cast<DICT&>(*symbol), viewer_options.get());
+        }
+
+        else if( symbol->IsA(SymbolType::Document) )
+        {
+            return ex_Document_view(assert_cast<const LogicDocument&>(*symbol), viewer_options.get());
+        }
+
+        else if( symbol->IsA(SymbolType::Image) )
+        {
+            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get());
+        }
+
+        else if( symbol->IsA(SymbolType::NamedFrequency) )
+        {
+            return ex_Freq_view(assert_cast<const NamedFrequency&>(*symbol), viewer_options.get(), -1);
+        }
+
+        else if( symbol->IsA(SymbolType::Report) )
+        {
+            return ex_Report_view(assert_cast<Report&>(*symbol), viewer_options.get());
+        }
+
+        else
+        {
+            return ReturnProgrammingError(DEFAULT);
+        }
+    }
 }
 
 

@@ -660,6 +660,7 @@ public:
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
 public:
+    double ex_view(int program_index);
     double ex_prompt(int program_index);
     double ex_accept(int program_index);
     double ex_htmldialog(int program_index);
@@ -705,6 +706,8 @@ private:
     virtual bool ExecuteProgramStatements(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0;// INTERPRETER_DLL_TODO remove as virtual
+    virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0;// INTERPRETER_DLL_TODO remove as virtual
 };
 
 
