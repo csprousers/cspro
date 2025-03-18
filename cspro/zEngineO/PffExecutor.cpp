@@ -8,7 +8,7 @@
 #include <zPackO/Packer.h>
 #include <zReformatO/ToolReformatter.h>
 #include <zSortO/Sorter.h>
-#include <zViewO/InputProcessor.h>
+#include <zViewO/ViewInputCreator.h>
 
 
 bool PffExecutor::SetEmbeddedDictionary(const std::wstring& property_name, std::shared_ptr<const CDataDict> dictionary)
@@ -180,13 +180,21 @@ bool PffExecutor::ExecuteCSPack(const PFF& pff)
 
 bool PffExecutor::ExecuteCSView(const PFF& pff)
 {
-    ViewInputProcessor input_processor(pff);
+    try
+    {
+        const std::unique_ptr<ViewInput> view_input = ViewInputCreator::CreateInputFromPff(pff);
 
-    Viewer viewer;
-    viewer.UseEmbeddedViewer()
-          .UseExceptionHolder(nullptr)
-          .UseSharedHtmlLocalFileServer()
-          .ViewFileInEmbeddedBrowser(input_processor.GetFilePath());
+        Viewer viewer;
+        viewer.UseEmbeddedViewer()
+              .UseExceptionHolder(nullptr)
+              .UseSharedHtmlLocalFileServer()
+              .ViewHtmlUrl(view_input->GetUrl());
 
-    return true;
+        return true;
+    }
+
+    catch(...)
+    {
+        return false;
+    }
 }

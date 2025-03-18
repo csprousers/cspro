@@ -60,6 +60,10 @@ BOOL CSViewApp::InitInstance()
         RUNTIME_CLASS(ViewDoc),
         RUNTIME_CLASS(CMainFrame),       // main SDI frame window
         RUNTIME_CLASS(ViewView));
+
+    if( pDocTemplate == nullptr )
+        return FALSE;
+
     AddDocTemplate(pDocTemplate);
 
     // Parse command line for standard shell commands, DDE, file open
@@ -72,6 +76,9 @@ BOOL CSViewApp::InitInstance()
     {
         OnFileNew();
     }
+
+    if( m_pMainWnd == nullptr )
+        return FALSE;
 
     CMainFrame* const pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
 

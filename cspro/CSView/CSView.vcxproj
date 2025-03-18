@@ -67,6 +67,7 @@
   <ItemGroup>
     <ClInclude Include="CSView.h" />
     <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="NoDocumentViewInput.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="StdAfx.h" />
@@ -77,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="CSView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="NoDocumentViewInput.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zViewO/InputProcessor.h>
+#include <zViewO/ViewInput.h>
 
 
 class ViewDoc : public CDocument
@@ -11,9 +11,8 @@ protected:
     ViewDoc(); // create from serialization only
 
 public:
-    const std::string* GetDescription() const;
-
-    std::string GetDocumentUrl(SharedHtmlLocalFileServer& file_server);
+    std::string GetDescription() const;
+    std::string GetUrl();
 
 protected:
     BOOL OnNewDocument() override;
@@ -21,11 +20,8 @@ protected:
     void OnCloseDocument() override;
 
 private:
-    std::string GetDocumentUrlForNoDocument(SharedHtmlLocalFileServer& file_server);
-
     void ProcessCloseDocument();
 
 private:
-    std::unique_ptr<ViewInputProcessor> m_inputProcessor;
-    std::unique_ptr<VirtualFileMappingHandler> m_noDocumentVirtualFileMappingHandlers[2];
+    std::unique_ptr<ViewInput> m_viewInput;
 };

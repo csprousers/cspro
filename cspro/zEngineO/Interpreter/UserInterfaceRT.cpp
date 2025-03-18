@@ -6,7 +6,7 @@
 #include <zToolsO/Screen.h>
 #include <zUtilO/CustomFont.h>
 #include <zHtml/UseHtmlDialogs.h>
-#include <zMarkdown/Markdown.h>
+#include <zViewO/ViewInputCreator.h>
 #include <zParadataO/Logger.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
@@ -100,26 +100,23 @@ double LogicInterpreter::ex_view(const int program_index)
         {
             MakeAbsolutePath(file_path_or_url.MakeModifiable());
 
-            // if Markdown, generate and view as HTML
-            if( SO::EqualsNoCase(Path::GetExtension(*file_path_or_url), FileExtensions::Markdown) )
+            try
             {
-                try
+                // potentially view with a specialized viewer (e.g., Markdown viewed as HTML)
+                const std::unique_ptr<ViewInput> view_input = ViewInputCreator::CreateInputForViewFunction(*file_path_or_url);
+
+                if( view_input != nullptr )
                 {
-                    std::string html = Markdown::ToHtmlDocument(Path::GetFilename(*file_path_or_url),
-                                                                FileIO::ReadText(*file_path_or_url),
-                                                                std::make_unique<CssProvider>(Html::CSS::Markdown, true).get());
-
-                    success = viewer.ViewHtmlContent(std::move(html),
-                                                     PortableFunctions::PathGetDirectory(*file_path_or_url));
+                    success = viewer.ViewHtmlUrl(view_input->GetUrl());
                 }
-                catch(...) { ASSERT(!success); }
-            }
 
-            // otherwise view as a file
-            else
-            {
-                success = viewer.ViewFile(*file_path_or_url);
+                // otherwise view as a file
+                else
+                {
+                    success = viewer.ViewFile(*file_path_or_url);
+                }
             }
+            catch(...) { ASSERT(!success); }
         }
 
         // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic

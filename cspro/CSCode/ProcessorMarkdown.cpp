@@ -6,7 +6,7 @@
 
 std::string ProcessorMarkdown::CreateHtml(CodeDoc& code_doc, const bool link_to_css)
 {
-    return Markdown::ToHtmlDocument(Path::GetFilename(code_doc.GetFilePath()),
+    return Markdown::ToHtmlDocument(Path::GetFilenameWithoutExtension(code_doc.GetFilePath()),
                                     code_doc.GetPrimaryCodeView().GetLogicCtrl()->GetText(),
                                     std::make_unique<CssProvider>(Html::CSS::Markdown, link_to_css).get());
 }

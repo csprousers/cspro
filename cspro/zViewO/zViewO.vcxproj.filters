@@ -11,10 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="InputProcessor.cpp">
+    <ClCompile Include="MarkdownViewInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewInputCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zViewO.cpp">
@@ -22,10 +28,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="InputProcessor.h">
+    <ClInclude Include="MarkdownViewInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewInputCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zViewO.h">

@@ -3,4 +3,7 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 
+#include <zToolsO/FileIO.h>
 #include <zUtilO/Interapp.h>
+#include <zHtml/PortableLocalhost.h>
+#include <zAppO/PFF.h>
