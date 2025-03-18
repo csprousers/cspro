@@ -6,6 +6,7 @@
 #include <zToolsO/Screen.h>
 #include <zUtilO/CustomFont.h>
 #include <zHtml/UseHtmlDialogs.h>
+#include <zMarkdown/Markdown.h>
 #include <zParadataO/Logger.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
@@ -98,7 +99,26 @@ double LogicInterpreter::ex_view(const int program_index)
         else
         {
             MakeAbsolutePath(file_path_or_url.MakeModifiable());
-            success = viewer.ViewFile(*file_path_or_url);
+
+            // if Markdown, generate and view as HTML
+            if( SO::EqualsNoCase(Path::GetExtension(*file_path_or_url), FileExtensions::Markdown) )
+            {
+                try
+                {
+                    std::string html = Markdown::ToHtmlDocument(Path::GetFilenameWithoutExtension(*file_path_or_url),
+                                                                FileIO::ReadText(*file_path_or_url));
+
+                    success = viewer.ViewHtmlContent(std::move(html),
+                                                     PortableFunctions::PathGetDirectory(*file_path_or_url));
+                }
+                catch(...) { ASSERT(!success); }
+            }
+
+            // otherwise view as a file
+            else
+            {
+                success = viewer.ViewFile(*file_path_or_url);
+            }
         }
 
         // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic

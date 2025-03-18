@@ -369,6 +369,10 @@
       <Project>{bb03b600-1ccf-4875-9300-26ad969e8d80}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
