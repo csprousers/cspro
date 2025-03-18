@@ -11,7 +11,7 @@
 class ZAPPO_API ReportFile
 {
 public:
-    enum class EscapeType : int { None, Html, Csv };
+    enum class EscapeType : int { None, Html, Markdown, Csv };
 
     ReportFile(std::string name, EscapeType escape_type, std::shared_ptr<TextSource> text_source);
     ReportFile();

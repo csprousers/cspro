@@ -32,6 +32,12 @@ public:
     CLASS_DECL_ZTOOLSO static std::string ToPreformattedTextHtml(std::string_view title_sv, std::string_view body_sv);
 
 
+    // --- Markdown -------------------------------------------------------------
+
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToMarkdownWorker(std::string_view text_sv);
+    template<typename T> static std::string ToMarkdown(T&& text);
+
+
     // --- PERCENT-ENCODING + URI------------------------------------------------
 
     static constexpr bool IsPercentEncodingUnreservedCharacter(int ch);
@@ -117,6 +123,8 @@ public:
 
 
 private:
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToHtmlMarkdownWorker(std::string_view text_sv, std::string_view escape_chars_sv, bool escape_spaces);
+
     CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToPercentEncodingWorker(std::string_view text_sv, const char* additional_characters_allowed);
 
     template<typename T, bool ProcessPlusAsSpace>
@@ -132,10 +140,22 @@ private:
 template<typename T>
 std::string Encoders::ToHtml(T&& text, const bool escape_spaces/* = true*/)
 {
-    const std::unique_ptr<std::string> encoded_html = ToHtmlWorker(text, escape_spaces);
+    const std::unique_ptr<std::string> encoded_text = ToHtmlWorker(text, escape_spaces);
 
-    if( encoded_html != nullptr )
-        return *encoded_html;
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
+
+    return std::string(std::forward<T>(text));
+}
+
+
+template<typename T>
+std::string Encoders::ToMarkdown(T&& text)
+{
+    const std::unique_ptr<std::string> encoded_text = ToMarkdownWorker(text);
+
+    if( encoded_text != nullptr )
+        return std::move(*encoded_text);
 
     return std::string(std::forward<T>(text));
 }

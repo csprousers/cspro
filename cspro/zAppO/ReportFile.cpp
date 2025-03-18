@@ -4,9 +4,10 @@
 
 
 DEFINE_ENUM_JSON_SERIALIZER_CLASS(ReportFile::EscapeType,
-    { ReportFile::EscapeType::None, "none" },
-    { ReportFile::EscapeType::Html, "HTML" },
-    { ReportFile::EscapeType::Csv,  "CSV" })
+    { ReportFile::EscapeType::None,     "none" },
+    { ReportFile::EscapeType::Html,     "HTML" },
+    { ReportFile::EscapeType::Markdown, "Markdown" },
+    { ReportFile::EscapeType::Csv,      "CSV" })
 
 
 ReportFile::ReportFile(std::string name, const EscapeType escape_type, std::shared_ptr<TextSource> text_source)
@@ -33,9 +34,10 @@ ReportFile::EscapeType ReportFile::GetDefaultEscapeTypeFromFilename(const std::s
         return EscapeType::Html;
 
     // prior to CSPro 8.1, the only escape type supported was HTML
-    return !match_against_all_escape_types                  ? EscapeType::None :
-           SO::EqualsNoCase(extension, FileExtensions::CSV) ? EscapeType::Csv :
-                                                              EscapeType::None;
+    return !match_against_all_escape_types                       ? EscapeType::None :
+           SO::EqualsNoCase(extension, FileExtensions::Markdown) ? EscapeType::Markdown:
+           SO::EqualsNoCase(extension, FileExtensions::CSV)      ? EscapeType::Csv :
+                                                                   EscapeType::None;
 }
 
 

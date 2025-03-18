@@ -6,6 +6,7 @@
 #include <zEngineO/Report.h>
 #include <zEngineO/WorkString.h>
 #include <zEngineO/WorkVariable.h>
+#include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/Frequency.h>
 #include <zEngineF/EngineUI.h>
 #include <zJson/Json.h>
@@ -1376,9 +1377,10 @@ double CIntDriver::ex_Freq_save(const int program_index)
         {
             Report& report = GetSymbolReport(arguments[1]);
 
-            if( report.GetEscapeType() != ReportFile::EscapeType::Html )
+            if( !report.IsTypeHtml() )
             {
-                issaerror(MessageType::Error, 94533, named_frequency.GetName().c_str(), report.GetName().c_str());
+                issaerror(MessageType::Error, MGF::Freq_cannot_be_saved_to_non_HTML_report_94533,
+                                              named_frequency.GetName().c_str(), report.GetName().c_str());
                 return 0;
             }
 

@@ -3,6 +3,7 @@
 #include "Report.h"
 #include "Nodes/Report.h"
 #include <zUtilO/TemporaryFile.h>
+#include <zViewO/MarkdownViewInput.h>
 
 
 std::string* LogicInterpreter::GetReportTextBuilderWithValidityCheck(Report& report)
@@ -38,12 +39,11 @@ double LogicInterpreter::ex_Report_view(const int program_index)
 
 double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
 {
-    // if not creating a HTML report, which can be shown in the embedded browser,
+    // if not creating a HTML or Markdown report, which can be shown in the embedded browser,
     // save the report to a temporary file that will be deleted when the program ends
-    const bool is_html_type = ( report.GetEscapeType() == ReportFile::EscapeType::Html );
     std::unique_ptr<std::string> report_file_path;
 
-    if( !is_html_type )
+    if( !report.IsTypeHtmlOrDerived() )
     {
         report_file_path = std::make_unique<std::string>(GetUniqueTempFilePath(PortableFunctions::PathGetFilename(report.GetFilePath())));
         TemporaryFile::RegisterFileForDeletion(*report_file_path);
@@ -58,8 +58,12 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     viewer.UseEmbeddedViewer();
 
     // view HTML contents...
-    if( is_html_type )
+    if( report.IsTypeHtmlOrDerived() )
     {
+        // if Markdown, convert to HTML
+        if( report.IsTypeMarkdown() )
+            *report_text_builder = MarkdownViewInput::ToViewableHtml(report.GetFilePath(), *report_text_builder);
+
         // in case the report uses resources specified using relative paths, set the
         // local file server root directory to where the report would have existed on the disk
         viewer.UseSharedHtmlLocalFileServer()
@@ -108,6 +112,10 @@ double LogicInterpreter::ex_Report_write(const int program_index)
                     escaped_fill_text = Encoders::ToHtmlWorker(*fill_text);
                     break;
 
+                case ReportFile::EscapeType::Markdown:
+                    escaped_fill_text = Encoders::ToMarkdownWorker(*fill_text);
+                    break;
+
                 case ReportFile::EscapeType::Csv:
                     escaped_fill_text = Encoders::ToCsvWorker(*fill_text);
                     break;
@@ -127,14 +135,15 @@ double LogicInterpreter::ex_Report_write(const int program_index)
     {
         ASSERT(report_write_node.type == Nodes::Report::Write::Type::Write);
 
-        report_text_builder->append(*EvaluateUserMessage(report_write_node.expression, FunctionCode::REPORTFN_WRITE_CODE));
+        const SharableString fill_text = EvaluateUserMessage(report_write_node.expression, FunctionCode::REPORTFN_WRITE_CODE);
+        report_text_builder->append(*fill_text);
     }
 
     return 1;
 }
 
 
-std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, const std::string* output_file_path)
+std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, const std::string* const output_file_path)
 {
     auto report_text_builder = std::make_unique<std::string>();
 

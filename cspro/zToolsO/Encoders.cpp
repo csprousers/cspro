@@ -15,31 +15,43 @@ static_assert(std::string_view(Encoders::JsonEscapeRepresentations).length() == 
 // HTML
 // --------------------------------------------------------------------------
 
-constexpr std::string_view HtmlTag_lt_sv   = "&lt;";
-constexpr std::string_view HtmlTag_gt_sv   = "&gt;";
-constexpr std::string_view HtmlTag_amp_sv  = "&amp;";
-constexpr std::string_view HtmlTag_nbsp_sv = "&nbsp;";
-constexpr std::string_view HtmlTag_br_sv   = "<br>";
+constexpr std::string_view MarkdownEscapeChars_sv = " \n\t<>&\\`*_{}[]()#+-.!|";
+constexpr std::string_view HtmlEscapeChars_sv     = MarkdownEscapeChars_sv.substr(0, 6);
+constexpr std::string_view HtmlTag_lt_sv          = "&lt;";
+constexpr std::string_view HtmlTag_gt_sv          = "&gt;";
+constexpr std::string_view HtmlTag_amp_sv         = "&amp;";
+constexpr std::string_view HtmlTag_nbsp_sv        = "&nbsp;";
+constexpr std::string_view HtmlTag_br_sv          = "<br>";
 
-std::unique_ptr<std::string> Encoders::ToHtmlWorker(const std::string_view text_sv, const bool escape_spaces/* = true*/)
+
+std::unique_ptr<std::string> Encoders::ToHtmlMarkdownWorker(const std::string_view text_sv, std::string_view escape_chars_sv, const bool escape_spaces)
 {
-    constexpr const char* EscapeChars      = " \n\t<>&";
-    constexpr const char* IndexSpace       = EscapeChars + 0;
-    constexpr const char* IndexNewline     = EscapeChars + 1;
-    constexpr const char* IndexTab         = EscapeChars + 2;
-    constexpr const char* IndexLessThan    = EscapeChars + 3;
-    constexpr const char* IndexGreaterThan = EscapeChars + 4;
-    constexpr const char* IndexAmpersand   = EscapeChars + 5;
+    constexpr size_t IndexSpace         = 0;
+    constexpr size_t IndexNewline       = 1;
+    constexpr size_t IndexTab           = 2;
+    constexpr size_t IndexLessThan      = 3;
+    constexpr size_t IndexGreaterThan   = 4;
+    constexpr size_t IndexAmpersand     = 5;
 
-    const char* const chars_to_escape = escape_spaces ? IndexSpace :
-                                                        IndexLessThan;
+    constexpr size_t IndexFirstNonSpace = 3;
+
+    ASSERT81(escape_chars_sv.length() > IndexAmpersand &&
+             escape_chars_sv[IndexSpace] == ' ' &&
+             escape_chars_sv[IndexNewline] == '\n' &&
+             escape_chars_sv[IndexTab] == '\t' &&
+             escape_chars_sv[IndexLessThan] == '<' &&
+             escape_chars_sv[IndexGreaterThan] == '>' &&
+             escape_chars_sv[IndexAmpersand] == '&');
+
+    if( !escape_spaces )
+        escape_chars_sv.remove_prefix(IndexFirstNonSpace);
 
     const auto& text_sv_cbegin = text_sv.cbegin();
     const auto& text_sv_cend = text_sv.cend();
     auto text_sv_itr = text_sv_cbegin;
 
-    // the html object will only be created when characters must be escaped
-    std::unique_ptr<std::string> html;
+    // the escaped_text object will only be created when characters must be escaped
+    std::unique_ptr<std::string> escaped_text;
 
     auto is_previous_char_space = [&]()
     {
@@ -48,8 +60,8 @@ std::unique_ptr<std::string> Encoders::ToHtmlWorker(const std::string_view text_
         if( text_sv_itr == text_sv_cbegin )
             return true;
 
-        const char prev_ch = ( html != nullptr ) ? html->back() :
-                                                   *( text_sv_itr - 1 );
+        const char prev_ch = ( escaped_text != nullptr ) ? escaped_text->back() :
+                                                           *( text_sv_itr - 1 );
 
         // also treat end tags as space characters so that a string like "a\n b" is encoded
         // with an escaped space following the newline
@@ -60,72 +72,84 @@ std::unique_ptr<std::string> Encoders::ToHtmlWorker(const std::string_view text_
     for( ; text_sv_itr != text_sv_cend; ++text_sv_itr )
     {
         const char ch = *text_sv_itr;
-        const char* const escape_index = strchr(chars_to_escape, *text_sv_itr);
+        size_t escape_index = escape_chars_sv.find(ch);
+
+        if( !escape_spaces && escape_index != std::string_view::npos )
+            escape_index += IndexFirstNonSpace;
 
         // space characters will be escaped only when preceeded by another space character
-        if( ( escape_index == nullptr ) ||
+        if( ( escape_index == std::string_view::npos ) ||
             ( escape_index == IndexSpace ) && !is_previous_char_space() )
         {
-            // the character should not be escaped, but if already escaping characters, add it to html
-            if( html != nullptr )
-                html->push_back(ch);
+            // the character does not need to be escaped, but if already escaping characters, add it to escaped_text
+            if( escaped_text != nullptr )
+                escaped_text->push_back(ch);
 
             continue;
         }
 
         // at this point, all remaining characters to be processed are escaped
-        if( html == nullptr )
+        if( escaped_text == nullptr )
         {
-            html = std::make_unique<std::string>(text_sv_cbegin, text_sv_itr);
-            html->reserve(text_sv.length());
+            escaped_text = std::make_unique<std::string>(text_sv_cbegin, text_sv_itr);
+            escaped_text->reserve(text_sv.length());
         }
 
         // ' ' escaped to &nbsp;
         if( escape_index == IndexSpace )
         {
-            html->append(HtmlTag_nbsp_sv);
+            escaped_text->append(HtmlTag_nbsp_sv);
         }
 
         // \n escaped to <br>
         else if( escape_index == IndexNewline )
         {
-            html->append(HtmlTag_br_sv);
+            escaped_text->append(HtmlTag_br_sv);
         }
 
         // < escaped to &lt;
         else if( escape_index == IndexLessThan )
         {
-            html->append(HtmlTag_lt_sv);
+            escaped_text->append(HtmlTag_lt_sv);
         }
 
         // > escaped to &gt;
         else if( escape_index == IndexGreaterThan )
         {
-            html->append(HtmlTag_gt_sv);
+            escaped_text->append(HtmlTag_gt_sv);
         }
 
         // & escaped to &amp;
         else if( escape_index == IndexAmpersand )
         {
-            html->append(HtmlTag_amp_sv);
+            escaped_text->append(HtmlTag_amp_sv);
         }
 
         // \t escaped to four spaces, to "&nbsp; &nbsp; " or " &nbsp; &nbsp;"
         else if( escape_index == IndexTab )
         {
-            constexpr std::string_view TabEscape = " &nbsp; &nbsp; ";
-            constexpr size_t TabEscapeLength = TabEscape.length() - 1;
+            constexpr std::string_view TabEscape_sv = " &nbsp; &nbsp; ";
+            constexpr size_t TabEscapeLength = TabEscape_sv.length() - 1;
 
-            html->append(is_previous_char_space() ? ( TabEscape.data() + 1 ) : TabEscape.data(), TabEscapeLength);
+            escaped_text->append(is_previous_char_space() ? ( TabEscape_sv.data() + 1 ) : TabEscape_sv.data(), TabEscapeLength);
         }
 
+        // Markdown escapes
         else
         {
-            ASSERT(false);
+            ASSERT(escape_index <= MarkdownEscapeChars_sv.length());
+            escaped_text->push_back('\\');
+            escaped_text->push_back(ch);
         }
     }
 
-    return html;
+    return escaped_text;
+}
+
+
+std::unique_ptr<std::string> Encoders::ToHtmlWorker(const std::string_view text_sv, const bool escape_spaces/* = true*/)
+{
+    return ToHtmlMarkdownWorker(text_sv, HtmlEscapeChars_sv, escape_spaces);
 }
 
 
@@ -159,6 +183,17 @@ std::string Encoders::ToPreformattedTextHtml(const std::string_view title_sv, co
                            "</title>\n</head>\n<body>\n<pre>",
                            ToHtml(body_sv, false),
                            "</pre>\n</body>\n</html>");
+}
+
+
+
+// --------------------------------------------------------------------------
+// Markdown
+// --------------------------------------------------------------------------
+
+std::unique_ptr<std::string> Encoders::ToMarkdownWorker(const std::string_view text_sv)
+{
+    return ToHtmlMarkdownWorker(text_sv, MarkdownEscapeChars_sv, true);
 }
 
 

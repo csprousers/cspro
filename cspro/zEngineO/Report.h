@@ -15,6 +15,10 @@ public:
 
     bool IsFunctionParameter() const { return m_filePath.empty(); }
 
+    bool IsTypeHtml() const          { return ( m_type == Type::Html ); }
+    bool IsTypeMarkdown() const      { return ( m_type == Type::Markdown ); }
+    bool IsTypeHtmlOrDerived() const { return ( m_type != Type::None ); }
+
     ReportFile::EscapeType GetEscapeType() const { return m_escapeType; }
 
     void SetProgramIndex(int program_index) { m_programIndex = program_index; }
@@ -31,6 +35,9 @@ protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
 
 private:
+    enum class Type { None, Html, Markdown };
+
+    Type m_type;
     ReportFile::EscapeType m_escapeType;
     std::string m_filePath;
     int m_programIndex;
