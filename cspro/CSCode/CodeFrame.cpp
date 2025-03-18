@@ -50,6 +50,8 @@ BEGIN_MESSAGE_MAP(CodeFrame, CMDIChildWndEx)
     ON_COMMAND_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnRunJavaScriptModuleType)
     ON_UPDATE_COMMAND_UI_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnUpdateRunJavaScriptModuleType)
 
+    ON_COMMAND(ID_RUN_SAVE_AS_HTML, OnRunSaveAsHtml)
+
     // Context menu
     ON_COMMAND(ID_COPY_FULL_PATH, OnCopyFullPath)
     ON_UPDATE_COMMAND_UI(ID_COPY_FULL_PATH, OnUpdateDocumentMustBeSavedToDisk)
@@ -374,6 +376,14 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     }
 
 
+    // add Markdown options
+    if( view_language_settings.GetLanguageType() == LanguageType::Markdown )
+    {
+        dynamic_menu_builder.AddSeparator();
+        dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_SAVE_AS_HTML));
+    }
+
+
     dynamic_menu_builder.AddSeparator();
     dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_OPEN_IN_ASSOCIATED_APPLICATION));
 }
@@ -560,6 +570,15 @@ void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* const pCmdUI)
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
     pCmdUI->SetCheck(doc_language_settings.GetJavaScriptModuleType() == pCmdUI->m_nID);
+}
+
+
+void CodeFrame::OnRunSaveAsHtml()
+{
+    CodeDoc& code_doc = GetCodeDoc();
+    ASSERT(code_doc.GetLanguageSettings().GetLanguageType() == LanguageType::Markdown);
+
+    ProcessorMarkdown::SaveAsHtml(code_doc);
 }
 
 

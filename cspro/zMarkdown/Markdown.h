@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zMarkdown/zMarkdown.h>
+#include <zHtml/CssProvider.h>
 
 
 class ZMARKDOWN_API Markdown
@@ -10,7 +11,8 @@ public:
     static std::string ToHtml(std::string_view markdown_sv);
 
     // Converts Markdown to a HTML document, wrapping the Markdown in a head (with the title) and a body.
-    static std::string ToHtmlDocument(std::string_view title_sv, std::string_view markdown_sv);
+    // The CSS is provided from the optional CssProvider. An exception is thrown if there is an error loading the CSS.
+    static std::string ToHtmlDocument(std::string_view title_sv, std::string_view markdown_sv, CssProvider* css_provider = nullptr);
 
     // Calls md_parse using the supplied ParserCallback subclass.
     // The ParserCallback's methods can all throw exceptions.

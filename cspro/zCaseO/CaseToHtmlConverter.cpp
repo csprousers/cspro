@@ -111,7 +111,7 @@ std::string CaseToHtmlConverter::ToHtml(const Case& data_case)
     {
         html_writer << "<link rel=\"stylesheet\" href=\"";
         html_writer.WriteRaw(CreateFileUrl(Html::GetCSSFilePath(Html::CSS::CaseView)));
-        html_writer << "\"";
+        html_writer << "\">";
     }
 
     html_writer << "\n</head>\n";

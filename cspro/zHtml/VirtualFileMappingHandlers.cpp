@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "VirtualFileMapping.h"
-#include <zToolsO/FileIO.h>
 
 
 // --------------------------------------------------------------------------
@@ -78,7 +77,6 @@ std::string KeyBasedVirtualFileMappingHandler::CreateUrl(const std::string_view 
 
     const std::string escaped_key = use_uri_component_escaping ? Encoders::ToUriComponent(key_sv) :
                                                                  Encoders::ToUri(key_sv);
-        
+
     return PortableFunctions::PathAppendForwardSlashToPath(m_virtualFileMapping->GetUrl(), escaped_key);
 }
-

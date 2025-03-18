@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "projectName": "android-audio-visualizer",
     "projectUrl": "https://github.com/GautamChibde/android-audio-visualizer",
@@ -80,6 +80,12 @@
     "projectUrl": "https://github.com/mapbox/geometry.hpp",
     "licenseFilename": "LICENSE",
     "licenseUrl": "https://github.com/mapbox/geometry.hpp/blob/master/LICENSE"
+  },
+  {
+    "projectName": "github-markdown-css",
+    "projectUrl": "https://github.com/sindresorhus/github-markdown-css",
+    "licenseFilename": "license",
+    "licenseUrl": "https://raw.githubusercontent.com/sindresorhus/github-markdown-css/refs/heads/main/license"
   },
   {
     "projectName": "glide",

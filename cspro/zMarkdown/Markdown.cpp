@@ -37,20 +37,51 @@ std::string Markdown::ToHtml(const std::string_view markdown_sv)
 }
 
 
-std::string Markdown::ToHtmlDocument(const std::string_view title_sv, const std::string_view markdown_sv)
+std::string Markdown::ToHtmlDocument(const std::string_view title_sv, const std::string_view markdown_sv,
+                                     CssProvider* const css_provider/* = nullptr*/)
 {
-    std::string html(HtmlStringWriter::DefaultHeader_sv);
+    std::string html(
+R"!(<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>)!");
 
-    html.append("<title>")
-        .append(Encoders::ToHtml(title_sv))
-        .append("</title>\n"
-                "</head>\n"
-                "<body>\n");
+    html.append(Encoders::ToHtml(title_sv))
+        .append("</title>\n");
+
+    if( css_provider != nullptr )
+        html.append(css_provider->GetCssForHead());
+
+    html.append(
+R"!(<style>
+.markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 45px;
+}
+
+@media (max-width: 767px) {
+    .markdown-body {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+<body>
+<article class="markdown-body">
+)!");
 
     ToHtml(html, markdown_sv);
 
-    html.append("</body>\n"
-                "</html>\n");
+    html.append(
+R"!(</article>
+</body>
+</html>
+)!");
 
     return html;
 }

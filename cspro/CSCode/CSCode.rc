@@ -668,6 +668,7 @@ BEGIN
                             "Treat the JavaScript file as a module\nECMAScript Module"
     ID_RUN_REPORT_PREVIEW   "Preview the report\nReport Preview"
     ID_RUN_RUN              "Run the code\nRun"
+    ID_RUN_SAVE_AS_HTML     "Save the file as HTML\nSave as HTML"
     ID_RUN_STOP             "Stop any running code\nStop"
     ID_RUN_VALIDATE_JSON_ONLY 
                             "Validate the JSON as JSON only (not as a specification file)\nValidate JSON Only"

@@ -136,6 +136,7 @@ namespace FileExtensions
 namespace FileFilters
 {
     constexpr const char* Dictionary = "Data Dictionary Files (*.dcf)|*.dcf|All Files (*.*)|*.*||";
+    constexpr const char* HTML       = "HTML Files (*.html)|*.html|All Files (*.*)|*.*||";
     constexpr const char* Listing    = "Listing Files (*.lst)|*.lst|HTML Files (*.html)|*.html|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||";
     constexpr const char* Pff        = "PFF Files (*.pff)|*.pff|All Files (*.*)|*.*||";
     constexpr const char* Text       = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";

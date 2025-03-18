@@ -74,20 +74,21 @@
 #define ID_RUN_PLACEHOLDER              40051
 #define ID_RUN_REPORT_PREVIEW           40052
 #define ID_RUN_RUN                      40053
-#define ID_RUN_STOP                     40054
-#define ID_RUN_VALIDATE_JSON_ONLY       40055
-#define ID_STATUS_PANE_FILE_POS         40056
-#define ID_STATUS_PANE_FILE_TYPE        40057
-#define ID_WINDOW_BUILD                 40058
-#define ID_WINDOW_OUTPUT                40059
-#define ID_WINDOW_HTML_VIEWER           40060
+#define ID_RUN_SAVE_AS_HTML             40054
+#define ID_RUN_STOP                     40055
+#define ID_RUN_VALIDATE_JSON_ONLY       40056
+#define ID_STATUS_PANE_FILE_POS         40057
+#define ID_STATUS_PANE_FILE_TYPE        40058
+#define ID_WINDOW_BUILD                 40059
+#define ID_WINDOW_OUTPUT                40060
+#define ID_WINDOW_HTML_VIEWER           40061
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
-#define _APS_NEXT_COMMAND_VALUE         40061
+#define _APS_NEXT_COMMAND_VALUE         40062
 #define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

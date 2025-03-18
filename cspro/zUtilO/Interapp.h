@@ -241,7 +241,7 @@ namespace Html
     CLASS_DECL_ZUTILO const std::string& GetDirectory();
     CLASS_DECL_ZUTILO std::string GetDirectory(Subdirectory html_subdirectory);
 
-    enum class CSS { CaseView, Common };
+    enum class CSS { CaseView, Common, Markdown };
     CLASS_DECL_ZUTILO std::string GetCSSFilePath(CSS css);
     CLASS_DECL_ZUTILO const std::string& GetCSS(CSS css);
 

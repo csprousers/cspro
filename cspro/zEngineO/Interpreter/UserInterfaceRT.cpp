@@ -105,8 +105,9 @@ double LogicInterpreter::ex_view(const int program_index)
             {
                 try
                 {
-                    std::string html = Markdown::ToHtmlDocument(Path::GetFilenameWithoutExtension(*file_path_or_url),
-                                                                FileIO::ReadText(*file_path_or_url));
+                    std::string html = Markdown::ToHtmlDocument(Path::GetFilename(*file_path_or_url),
+                                                                FileIO::ReadText(*file_path_or_url),
+                                                                std::make_unique<CssProvider>(Html::CSS::Markdown, true).get());
 
                     success = viewer.ViewHtmlContent(std::move(html),
                                                      PortableFunctions::PathGetDirectory(*file_path_or_url));

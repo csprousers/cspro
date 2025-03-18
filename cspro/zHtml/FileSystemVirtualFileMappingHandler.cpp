@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "FileSystemVirtualFileMappingHandler.h"
-#include <zToolsO/FileIO.h>
 
 
 namespace
@@ -8,7 +7,7 @@ namespace
     // vfs = virtual file system
     // the URL prefix is used because Android paths begin with /, which resulted in ServeContent's key
     // coming in with a missing starting / (because browsers would turn // into a single /)
-    constexpr std::string_view UrlPrefix_sv = "vfs"; 
+    constexpr std::string_view UrlPrefix_sv = "vfs";
 }
 
 

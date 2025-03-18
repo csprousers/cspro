@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "DocumentVirtualFileMappingHandler.h"
-#include <zToolsO/FileIO.h>
 
 
 DocumentVirtualFileMappingHandler::DocumentVirtualFileMappingHandler(const CDocument& document)

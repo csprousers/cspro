@@ -8,6 +8,7 @@ ZHTML_SRC_PATH          := ../../../../../zHtml
 
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/AccessUrlSerializer.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/CSHtmlDlgRunner.cpp
+LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/CssProvider.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/FileSystemVirtualFileMappingHandler.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/HtmlDlgBaseRunner.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/LocalhostUrl.cpp
