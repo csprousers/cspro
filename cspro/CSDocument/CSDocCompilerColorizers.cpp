@@ -961,9 +961,14 @@ std::string CSDocCompilerWorker::ReportStartHandler(const cs::span<const std::st
         m_lexerLanguage = SCLEX_CSPRO_REPORT_V8_0;
     }
 
-    else if( tag_components.front() == "HTML" )
+    else if( SO::EqualsNoCase(tag_components.front(), "HTML") )
     {
         m_lexerLanguage = SCLEX_CSPRO_REPORT_HTML_V8_0;
+    }
+
+    else if( SO::EqualsNoCase(tag_components.front(), "Markdown") )
+    {
+        m_lexerLanguage = SCLEX_CSPRO_REPORT_MARKDOWN_V8_0;
     }
 
     else
@@ -979,10 +984,7 @@ std::string CSDocCompilerWorker::ReportEndHandler(const std::string& inner_text)
 {
     ASSERT(m_lexerLanguage.has_value());
 
-    const std::optional<SymbolType> domain_symbol_type = ( *m_lexerLanguage == SCLEX_CSPRO_REPORT_HTML_V8_0 ) ? std::make_optional(SymbolType::Report) :
-                                                                                                                std::nullopt;
-
-    HelpsHtmlProcessor html_processor(HelpsHtmlProcessorMode::Normal, m_settings, domain_symbol_type);
+    HelpsHtmlProcessor html_processor(HelpsHtmlProcessorMode::Normal, m_settings, SymbolType::Report);
     ScintillaColorizer colorizer(*m_lexerLanguage, TrimOnlyOneNewlineFromBothEnds(inner_text));
 
     m_lexerLanguage.reset();

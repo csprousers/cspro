@@ -186,7 +186,7 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const
                 return std::make_unique<RELT>(std::move(symbol_name), GetSymbolTable());
 
             case SymbolType::Report:
-                return std::make_unique<Report>(std::move(symbol_name), ReportFile::EscapeType::None, std::string());
+                return Report::CreateReportFunctionParamter(std::move(symbol_name));
 
             case SymbolType::Section:
                 return std::make_unique<SECT>((std::move(symbol_name)), m_pEngineDriver);

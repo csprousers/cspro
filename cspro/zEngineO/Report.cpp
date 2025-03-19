@@ -13,17 +13,18 @@ Report::Report(std::string report_name, const ReportFile::EscapeType report_esca
         m_programIndex(-1),
         m_reportTextBuilder(nullptr)
 {
-    const std::string extension = Path::GetExtension(m_filePath);
-
-    m_type = FileExtensions::IsExtensionHtml(extension)            ? Type::Html :
-             SO::EqualsNoCase(extension, FileExtensions::Markdown) ? Type::Markdown :
-                                                                     Type::None;
 }
 
 
 Report::Report(const ReportFile& report_file)
     :   Report(report_file.GetName(), report_file.GetEscapeType(), report_file.GetFilePath())
 {
+}
+
+
+std::unique_ptr<Report> Report::CreateReportFunctionParamter(std::string report_name)
+{
+    return std::unique_ptr<Report>(new Report(std::move(report_name), ReportFile::EscapeType::None, std::string()));
 }
 
 

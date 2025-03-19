@@ -41,9 +41,10 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
 {
     // if not creating a HTML or Markdown report, which can be shown in the embedded browser,
     // save the report to a temporary file that will be deleted when the program ends
+    const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
     std::unique_ptr<std::string> report_file_path;
 
-    if( !report.IsTypeHtmlOrDerived() )
+    if( !report_extension_analyser.IsTypeHtmlOrDerivable() )
     {
         report_file_path = std::make_unique<std::string>(GetUniqueTempFilePath(PortableFunctions::PathGetFilename(report.GetFilePath())));
         TemporaryFile::RegisterFileForDeletion(*report_file_path);
@@ -58,10 +59,10 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     viewer.UseEmbeddedViewer();
 
     // view HTML contents...
-    if( report.IsTypeHtmlOrDerived() )
+    if( report_extension_analyser.IsTypeHtmlOrDerivable() )
     {
         // if Markdown, convert to HTML
-        if( report.IsTypeMarkdown() )
+        if( report_extension_analyser.IsTypeMarkdown() )
             *report_text_builder = MarkdownViewInput::ToViewableHtml(report.GetFilePath(), *report_text_builder);
 
         // in case the report uses resources specified using relative paths, set the
@@ -179,7 +180,18 @@ std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, co
         // save the report if necessary
         else if( output_file_path != nullptr )
         {
-            FileIO::WriteText(*output_file_path, *report_text_builder, true);
+            // if a Markdown report is being saved to HTML, save the converted version
+            if( FileExtensions::IsFileHtml(*output_file_path) &&
+                SO::EqualsNoCase(Path::GetExtension(report.GetFilePath()), FileExtensions::Markdown) )
+            {
+                const std::string html = MarkdownViewInput::ToSaveableHtml(report.GetFilePath(), *report_text_builder);
+                FileIO::WriteText(*output_file_path, html, true);
+            }
+
+            else
+            {
+                FileIO::WriteText(*output_file_path, *report_text_builder, true);
+            }
         }
     }
 

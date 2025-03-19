@@ -202,6 +202,7 @@ BEGIN
     BEGIN
         MENUITEM "CSPro &Logic",                ID_LANGUAGE_CSPRO_LOGIC
         MENUITEM "CSPro &Report (HTML)",        ID_LANGUAGE_CSPRO_REPORT_HTML
+        MENUITEM "CSPro Report (Markdown)",     ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
         MENUITEM "CSPro Report",                ID_LANGUAGE_CSPRO_REPORT
         MENUITEM "CSPro &Messages",             ID_LANGUAGE_CSPRO_MESSAGES
         MENUITEM SEPARATOR
@@ -581,6 +582,8 @@ BEGIN
     ID_LANGUAGE_CSPRO_LOGIC "Interpret file as CSPro Logic\nCSPro Logic"
     ID_LANGUAGE_CSPRO_REPORT_HTML 
                             "Interpret file as CSPro Report (HTML)\nCSPro Report (HTML)"
+    ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
+                            "Interpret file as CSPro Report (Markdown)\nCSPro Report (Markdown)"
     ID_LANGUAGE_CSPRO_REPORT "Interpret file as CSPro Report\nCSPro Report"
     ID_LANGUAGE_CSPRO_MESSAGES 
                             "Interpret file as CSPro Messages\nCSPro Messages"

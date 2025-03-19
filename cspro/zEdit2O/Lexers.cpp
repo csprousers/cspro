@@ -55,24 +55,27 @@ const char* Lexers::GetLexerName(const int lexer_language)
     const auto& lookup = std::find_if(lexer_details.cbegin(), lexer_details.cend(),
                                       [&](const LexerDetails& ld) { return ( ld.lexer_language == lexer_language ); });
 
-    return ( lookup != lexer_details.cend() )                  ? lookup->lexer_name :
-           ( lexer_language == SCLEX_CSPRO_LOGIC_V0 )          ? GetLexerName(SCLEX_CSPRO_LOGIC_V8_0) :
-           ( lexer_language == SCLEX_CSPRO_MESSAGE_V0 )        ? GetLexerName(SCLEX_CSPRO_MESSAGE_V8_0) :
+    return ( lookup != lexer_details.cend() )                   ? lookup->lexer_name :
+           ( lexer_language == SCLEX_CSPRO_LOGIC_V0 )           ? GetLexerName(SCLEX_CSPRO_LOGIC_V8_0) :
+           ( lexer_language == SCLEX_CSPRO_MESSAGE_V0 )         ? GetLexerName(SCLEX_CSPRO_MESSAGE_V8_0) :
            ( lexer_language == SCLEX_CSPRO_REPORT_HTML_V8_0 ||
-             lexer_language == SCLEX_CSPRO_REPORT_HTML_V0 )    ? "CSPro HTML Report" :
+             lexer_language == SCLEX_CSPRO_REPORT_HTML_V0 )     ? "CSPro HTML Report" :
+           ( lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 ||
+             lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 ) ? "CSPro Markdown Report" :
            ( lexer_language == SCLEX_CSPRO_REPORT_V8_0 ||
-             lexer_language == SCLEX_CSPRO_REPORT_V0 )         ? "CSPro Report" :
-           ( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )   ? "INI File" :
-           ( lexer_language == SCLEX_PERCENT_ENCODING )        ? "Percent Encoding" :
-           ( lexer_language == SCLEX_NULL )                    ? "Text" :
-                                                                 ReturnProgrammingError("Unknown");
+             lexer_language == SCLEX_CSPRO_REPORT_V0 )          ? "CSPro Report" :
+           ( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )    ? "INI File" :
+           ( lexer_language == SCLEX_PERCENT_ENCODING )         ? "Percent Encoding" :
+           ( lexer_language == SCLEX_NULL )                     ? "Text" :
+                                                                  ReturnProgrammingError("Unknown");
 }
 
 
 const char* Lexers::GetLexerDefaultServerMimeType(const int lexer_language)
 {
-    return ( lexer_language == SCLEX_HTML || IsCSProReportHtml(lexer_language) ) ? MimeType::Type::Html :
-           ( lexer_language == SCLEX_JAVASCRIPT )                                ? MimeType::Type::JavaScript :
-           ( lexer_language == SCLEX_JSON )                                      ? MimeType::Type::Json :
-                                                                                   MimeType::ServerType::TextUtf8;
+    return ( lexer_language == SCLEX_HTML || IsCSProReportHtml(lexer_language) )         ? MimeType::Type::Html :
+           ( lexer_language == SCLEX_MARKDOWN || IsCSProReportMarkdown(lexer_language) ) ? MimeType::Type::Markdown :
+           ( lexer_language == SCLEX_JAVASCRIPT )                                        ? MimeType::Type::JavaScript :
+           ( lexer_language == SCLEX_JSON )                                              ? MimeType::Type::Json :
+                                                                                           MimeType::ServerType::TextUtf8;
 }

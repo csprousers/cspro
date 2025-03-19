@@ -3,6 +3,10 @@
 #include <zUtilO/zUtilO.h>
 
 
+// --------------------------------------------------------------------------
+// FileExtensions
+// --------------------------------------------------------------------------
+
 namespace FileExtensions
 {
     // C_EXT = Create Extension
@@ -113,25 +117,32 @@ namespace FileExtensions
 #undef C_EXT
 
 
-    // returns true if the extension matches a list of HTML-related extensions
+    // Returns true if the extension matches a list of HTML-related extensions.
     bool CLASS_DECL_ZUTILO IsExtensionHtml(std::string_view extension_sv);
 
-    // returns true if the extension, calculated from the filename, has a HTML-related extension
+    // Returns true if the extension, calculated from the filename, has a HTML-related extension.
     bool CLASS_DECL_ZUTILO IsFileHtml(std::string_view filename_sv);
 
-    // returns true if the extension, calculated from the filename, is generally associated with compressed data
+    // Returns true if the extension, calculated from the filename, is generally associated with compressed data.
     bool CLASS_DECL_ZUTILO IsFileCompressedData(std::string_view filename_sv);
 
-    // returns true if the extension is disallowed for CSPro data files; the extension should not contain the dot
+    // Returns true if the extension is disallowed for CSPro data files.
+    // The extension should not contain the dot.
     bool CLASS_DECL_ZUTILO IsExtensionForbiddenForDataFiles(std::string_view extension_sv);
 
-    // creates a string with a dot followed by an extension; the extension should not contain the dot
+    // Creates a string with a dot followed by an extension.
+    // The extension should not contain the dot.
     inline std::string WithDot(cs::string_sz extension) { ASSERT(*extension.c_str() != '.'); return std::string(".").append(extension.c_str()); }
 
-    // creates a wildcard from an extension; the extension should not contain the dot
+    // Creates a wildcard from an extension.
+    // The extension should not contain the dot.
     inline std::string CreateWildcard(cs::string_sz extension) { ASSERT(*extension.c_str() != '.'); return std::string("*.").append(extension.c_str()); }
 }
 
+
+// --------------------------------------------------------------------------
+// FileFilters
+// --------------------------------------------------------------------------
 
 namespace FileFilters
 {
@@ -141,3 +152,22 @@ namespace FileFilters
     constexpr const char* Pff        = "PFF Files (*.pff)|*.pff|All Files (*.*)|*.*||";
     constexpr const char* Text       = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
 }
+
+
+// --------------------------------------------------------------------------
+// FileExtensionAnalyzer
+// --------------------------------------------------------------------------
+
+class CLASS_DECL_ZUTILO FileExtensionAnalyzer
+{
+public:
+    FileExtensionAnalyzer(std::string_view filename_sv);
+
+    bool IsTypeHtml() const            { return ( m_type == Type::Html ); }
+    bool IsTypeMarkdown() const        { return ( m_type == Type::Markdown ); }
+    bool IsTypeHtmlOrDerivable() const { return ( m_type != Type::None ); }
+
+private:
+    enum class Type { None, Html, Markdown };
+    Type m_type;
+};

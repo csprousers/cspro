@@ -283,7 +283,7 @@ protected:
     void OnUpdateViewReportPreview(CCmdUI* pCmdUI);
 
 private:
-    const TextSource* GetHtmlReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
+    const TextSource* GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
 
 
     // Code menu handlers

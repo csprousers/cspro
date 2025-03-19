@@ -79,6 +79,9 @@
   <ItemGroup>
     <ResourceCompile Include="ScintRes.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\lexers\LexCSPro.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBE04237-9C7B-4973-9C60-505975998B39}</ProjectGuid>
     <RootNamespace>SciLexer</RootNamespace>

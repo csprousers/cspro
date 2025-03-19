@@ -336,6 +336,15 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     } */
 
 
+    // add Markdown options
+    if( view_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown ||
+        view_language_settings.GetLanguageType() == LanguageType::Markdown )
+    {
+        dynamic_menu_builder.AddSeparator();
+        dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_SAVE_AS_HTML));
+    }
+
+
     // add the logic version submenu
     if( Lexers::UsesCSProLogic(doc_language_settings.GetLexerLanguage()) ||
         Lexers::IsCSProMessage(doc_language_settings.GetLexerLanguage()) )
@@ -373,14 +382,6 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
 
         dynamic_menu_builder.AddSeparator();
         dynamic_menu_builder.AddSubmenu(L"JavaScript Module", module_texts);
-    }
-
-
-    // add Markdown options
-    if( view_language_settings.GetLanguageType() == LanguageType::Markdown )
-    {
-        dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_SAVE_AS_HTML));
     }
 
 
@@ -451,8 +452,14 @@ void CodeFrame::OnRunReportPreview()
 
     try
     {
-        m_reportPreviewer = std::make_unique<ReportPreviewer>(logic_ctrl->GetText(), logic_settings);
-        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver(code_doc.GetActualOrTempFilePath(FileExtensions::HTML)));
+        const bool html_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProReportHtml );
+        ASSERT(html_type || doc_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown);
+
+        m_reportPreviewer = std::make_unique<ReportPreviewer>(code_doc.GetActualOrTempFilePath(html_type ? FileExtensions::HTML : FileExtensions::Markdown),
+                                                              logic_ctrl->GetText(),
+                                                              logic_settings);
+
+        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver());
     }
 
     catch( const CSProException& exception )
@@ -576,9 +583,21 @@ void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* const pCmdUI)
 void CodeFrame::OnRunSaveAsHtml()
 {
     CodeDoc& code_doc = GetCodeDoc();
-    ASSERT(code_doc.GetLanguageSettings().GetLanguageType() == LanguageType::Markdown);
 
-    ProcessorMarkdown::SaveAsHtml(code_doc);
+    switch( code_doc.GetLanguageSettings().GetLanguageType() )
+    {
+        case LanguageType::CSProReportMarkdown:
+            ProcessorMarkdown::SaveReportAsHtml(code_doc);
+            break;
+
+        case LanguageType::Markdown:
+            ProcessorMarkdown::SaveAsHtml(code_doc);
+            break;
+
+        default:
+            ASSERT(false);
+            break;
+    }
 }
 
 

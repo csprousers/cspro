@@ -3,6 +3,15 @@
 #include <zEdit2O/ScintillaColorizer.h>
 #include <zEngineO/ReportTokenizer.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
+#include <zViewO/MarkdownViewInput.h>
+
+
+class ReportPreviewer::DesignerReportTokenizer : public ReportTokenizer
+{
+public:
+    void OnErrorUnbalancedEscapes(size_t /*line_number*/) override { }
+    void OnErrorTokenNotEnded(const ReportToken& /*report_token*/) override { }
+};
 
 
 struct ReportPreviewer::ReportVirtualFileMappingDetails
@@ -12,27 +21,36 @@ struct ReportPreviewer::ReportVirtualFileMappingDetails
 };
 
 
-ReportPreviewer::ReportPreviewer(const std::string_view report_text_sv, const LogicSettings& logic_settings)
+ReportPreviewer::ReportPreviewer(std::string report_file_path, const std::string_view report_text_sv,
+                                 const LogicSettings& logic_settings, const char* const action/* = "previewing"*/)
+    :   m_reportFilePath(std::move(report_file_path)),
+        m_lexerLanguage(Lexers::GetLexer_Logic(logic_settings))
 {
-    class DesignerReportTokenizer : public ReportTokenizer
-    {
-    public:
-        void OnErrorUnbalancedEscapes(size_t /*line_number*/) override { }
-        void OnErrorTokenNotEnded(const ReportToken& /*report_token*/) override { }
-    };
-
     DesignerReportTokenizer report_tokenizer;
 
     if( !report_tokenizer.Tokenize(report_text_sv, logic_settings) )
-        throw CSProException("There are errors that must be fixed before previewing the report. Compile the report to see the errors.");
+        throw CSProException("There are errors that must be fixed before %s the report. Compile the report to see the errors.", action);
 
+    const FileExtensionAnalyzer report_extension_analyser(m_reportFilePath);
+    ASSERT(report_extension_analyser.IsTypeHtmlOrDerivable());
+
+    m_reportHtml = ( report_extension_analyser.IsTypeHtml() ) ? CreateHtmlForHtml(report_tokenizer.GetReportTokens()) :
+                                                                CreateHtmlForMarkdown(report_tokenizer.GetReportTokens());
+}
+
+
+ReportPreviewer::~ReportPreviewer()
+{
+}
+
+
+std::string ReportPreviewer::CreateHtmlForHtml(const std::vector<ReportToken>& report_tokens) const
+{
     // without writing a full blown HTML parser, try to intelligently write out logic to the report:
     // - when in a head or script block, don't write out any logic
     // - when in a tag attribute value, write the logic escaped for HTML and quotes
     // - when elsewhere in a tag, write the logic escaped for HTML
     // - otherwise colorize the logic without formatting
-
-    const int lexer_language = Lexers::GetLexer_Logic(logic_settings);
 
     std::optional<char> tag_attribute_quote_char;
     char previous_report_char = 0;
@@ -44,7 +62,7 @@ ReportPreviewer::ReportPreviewer(const std::string_view report_text_sv, const Lo
 
     std::string report_html;
 
-    for( const ReportToken& report_token : report_tokenizer.GetReportTokens() )
+    for( const ReportToken& report_token : report_tokens )
     {
         // add logic
         if( report_token.type != ReportToken::Type::ReportText )
@@ -67,7 +85,7 @@ ReportPreviewer::ReportPreviewer(const std::string_view report_text_sv, const Lo
 
             else if( !SO::IsWhitespace(report_token.text) )
             {
-                ScintillaColorizer colorizer(lexer_language, report_token.text);
+                ScintillaColorizer colorizer(m_lexerLanguage, report_token.text);
 
                 report_html.append(colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
             }
@@ -143,23 +161,44 @@ ReportPreviewer::ReportPreviewer(const std::string_view report_text_sv, const Lo
         }
     }
 
-    m_reportHtml = std::move(report_html);
+    return report_html;
 }
 
 
-ReportPreviewer::~ReportPreviewer()
+std::string ReportPreviewer::CreateHtmlForMarkdown(const std::vector<ReportToken>& report_tokens) const
 {
+    std::string markdown;
+
+    for( const ReportToken& report_token : report_tokens )
+    {
+        // add Markdown
+        if( report_token.type == ReportToken::Type::ReportText )
+        {
+            markdown.append(report_token.text);
+        }
+
+        // add logic
+        else
+        {
+            ScintillaColorizer colorizer(m_lexerLanguage, report_token.text);
+            const std::string html = colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly);
+            ASSERT(!html.empty() && html.front() == '<' && html.back() == '>');
+            markdown.append(html);
+        }
+    }
+
+    return MarkdownViewInput::ToViewableHtml(m_reportFilePath, markdown);
 }
 
 
-std::string ReportPreviewer::GetReportUrl(const std::string& report_file_path)
+std::string ReportPreviewer::GetReportUrl()
 {
     if( m_reportVirtualFileMappingDetails == nullptr )
     {
         m_reportVirtualFileMappingDetails = std::make_unique<ReportVirtualFileMappingDetails>();
 
         m_reportVirtualFileMappingDetails->virtual_file_mapping = std::make_unique<VirtualFileMapping>(
-            m_reportVirtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(report_file_path),
+            m_reportVirtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(m_reportFilePath),
                 [&]()
                 {
                     return m_reportHtml;
@@ -170,8 +209,8 @@ std::string ReportPreviewer::GetReportUrl(const std::string& report_file_path)
 }
 
 
-std::unique_ptr<UriResolver> ReportPreviewer::GetReportUriResolver(std::string report_file_path)
+std::unique_ptr<UriResolver> ReportPreviewer::GetReportUriResolver()
 {
-    const std::string report_url = GetReportUrl(report_file_path);
-    return UriResolver::CreateUriDomain(report_url, report_url, std::move(report_file_path));
+    const std::string report_url = GetReportUrl();
+    return UriResolver::CreateUriDomain(report_url, report_url, m_reportFilePath);
 }

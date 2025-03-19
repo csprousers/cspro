@@ -322,4 +322,4 @@ namespace
 LexerModule lmCSProReport_V0(SCLEX_CSPRO_REPORT_V0, CreateLexerCSProReport_V0, LexCSPro::Name(SCLEX_CSPRO_REPORT_V0));
 LexerModule lmCSProReport_V8_0(SCLEX_CSPRO_REPORT_V8_0, CreateLexerCSProReport_V8_0, LexCSPro::Name(SCLEX_CSPRO_REPORT_V8_0));
 LexerModule lmCSProReportHtml_V0(SCLEX_CSPRO_REPORT_HTML_V0, CreateLexerCSProReportHtml_V0, LexCSPro::Name(SCLEX_CSPRO_REPORT_HTML_V0));
-LexerModule lmCSProReportHtmlV8_0(SCLEX_CSPRO_REPORT_HTML_V8_0, CreateLexerCSProReportHtml_V8_0, LexCSPro::Name(SCLEX_CSPRO_REPORT_HTML_V8_0));
+LexerModule lmCSProReportHtml_V8_0(SCLEX_CSPRO_REPORT_HTML_V8_0, CreateLexerCSProReportHtml_V8_0, LexCSPro::Name(SCLEX_CSPRO_REPORT_HTML_V8_0));

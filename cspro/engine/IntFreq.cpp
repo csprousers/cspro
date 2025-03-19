@@ -1376,8 +1376,9 @@ double CIntDriver::ex_Freq_save(const int program_index)
         else if( arguments[0] == static_cast<int>(SymbolType::Report) )
         {
             Report& report = GetSymbolReport(arguments[1]);
+            const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
 
-            if( !report.IsTypeHtml() )
+            if( !report_extension_analyser.IsTypeHtml() )
             {
                 issaerror(MessageType::Error, MGF::Freq_cannot_be_saved_to_non_HTML_report_94533,
                                               named_frequency.GetName().c_str(), report.GetName().c_str());

@@ -3,11 +3,10 @@
 #include <zMarkdown/Markdown.h>
 
 
-std::string MarkdownViewInput::ToViewableHtml(const std::string& file_path, const std::string_view markdown_sv)
+std::string MarkdownViewInput::ToHtml(const std::string& file_path, const std::string_view markdown_sv, const bool embed_css)
 {
-    return Markdown::ToHtmlDocument(Path::GetFilenameWithoutExtension(file_path),
-                                    markdown_sv,
-                                    std::make_unique<CssProvider>(Html::CSS::Markdown, true).get());
+    CssProvider css_provider(Html::CSS::Markdown, embed_css);
+    return Markdown::ToHtmlDocument(Path::GetFilenameWithoutExtension(file_path), markdown_sv, &css_provider);
 }
 
 

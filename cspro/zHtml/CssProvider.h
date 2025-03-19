@@ -8,7 +8,7 @@ namespace Html { enum class CSS; }
 // --------------------------------------------------------------------------
 // CssProvider provides the CSS distributed with CSPro in the html directory.
 //
-// If linking to CSS, a local file server must be running as the link is
+// If not embedding CSS, a local file server must be running as the link is
 // created using PortableLocalhost::CreateFileUrl.
 //
 // The CssProvider::GetCssForHead method is virtual so that users do not
@@ -18,12 +18,12 @@ namespace Html { enum class CSS; }
 class ZHTML_API CssProvider
 {
 public:
-    CssProvider(Html::CSS css, bool link_to_css);
+    CssProvider(Html::CSS css, bool embed_css);
     virtual ~CssProvider() { }
 
     virtual std::string GetCssForHead();
 
 private:
     Html::CSS m_css;
-    bool m_linkToCss;
+    bool m_embedCss;
 };

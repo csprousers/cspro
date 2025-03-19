@@ -36,21 +36,22 @@ CREATE_JSON_KEY(actionInvokerAbortOnException)
 CREATE_JSON_KEY(actionInvokerDisplayResultsAsJson)
 
 CREATE_ENUM_JSON_SERIALIZER(LanguageType,
-    { LanguageType::CSProLogic,         "CSPro-Logic" },
-    { LanguageType::CSProReportHtml,    "CSPro-Report-HTML" },
-    { LanguageType::CSProReport,        "CSPro-Report" },
-    { LanguageType::CSProMessages,      "CSPro-Messages" },
-    { LanguageType::CSProActionInvoker, "CSPro-Action-Invoker" },
-    { LanguageType::CSProHtmlDialog,    "CSPro-HTML-Dialog" },
-    { LanguageType::CSProSpecFileJson,  "CSPro-Spec-JSON" },
-    { LanguageType::CSProSpecFileIni,   "CSPro-Spec-INI" },
-    { LanguageType::Html,               "HTML" },
-    { LanguageType::JavaScript,         "JavaScript" },
-    { LanguageType::Json,               "JSON" },
-    { LanguageType::Markdown,           "Markdown" },
-    { LanguageType::Sql,                "SQL" },
-    { LanguageType::Yaml,               "YAML" },
-    { LanguageType::Text,               "text" })
+    { LanguageType::CSProLogic,          "CSPro-Logic" },
+    { LanguageType::CSProReportHtml,     "CSPro-Report-HTML" },
+    { LanguageType::CSProReportMarkdown, "CSPro-Report-Markdown" },
+    { LanguageType::CSProReport,         "CSPro-Report" },
+    { LanguageType::CSProMessages,       "CSPro-Messages" },
+    { LanguageType::CSProActionInvoker,  "CSPro-Action-Invoker" },
+    { LanguageType::CSProHtmlDialog,     "CSPro-HTML-Dialog" },
+    { LanguageType::CSProSpecFileJson,   "CSPro-Spec-JSON" },
+    { LanguageType::CSProSpecFileIni,    "CSPro-Spec-INI" },
+    { LanguageType::Html,                "HTML" },
+    { LanguageType::JavaScript,          "JavaScript" },
+    { LanguageType::Json,                "JSON" },
+    { LanguageType::Markdown,            "Markdown" },
+    { LanguageType::Sql,                 "SQL" },
+    { LanguageType::Yaml,                "YAML" },
+    { LanguageType::Text,                "text" })
 
 
 LanguageSettingsPersister::LanguageSettingsPersister()

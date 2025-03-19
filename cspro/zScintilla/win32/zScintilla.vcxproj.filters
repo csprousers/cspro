@@ -13,16 +13,19 @@
     <Filter Include="src">
       <UniqueIdentifier>{d5c390d2-1752-413c-982d-6833f347e0ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CSPro">
+    <Filter Include="CSPro-cpp">
       <UniqueIdentifier>{0096484e-1844-475d-b757-037ed04e260d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CSPro-h">
+      <UniqueIdentifier>{1623e40e-a55d-4b3b-acf4-a73336fc19e5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CSPro\Colorizer.cpp">
-      <Filter>CSPro</Filter>
+      <Filter>CSPro-cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\CSPro\LexerCreator.cpp">
-      <Filter>CSPro</Filter>
+      <Filter>CSPro-cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\lexers\LexCPP.cxx">
       <Filter>lexers</Filter>
@@ -213,5 +216,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ScintRes.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\lexers\LexCSPro.h">
+      <Filter>CSPro-h</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1527,8 +1527,7 @@ int CMainFrame::GetLexerLanguageForSourceCode(const Application& application, co
             else if( *app_type_type == AppFileType::Report )
             {
                 const ReportAppTreeNode& report_app_tree_node = assert_cast<const ReportAppTreeNode&>(app_tree_node);
-                const bool is_report_html_type = FileExtensions::IsFileHtml(report_app_tree_node.GetReportFile().GetFilePath());
-                return Lexers::GetLexer_Report(application, is_report_html_type);
+                return Lexers::GetLexer_Report(application, report_app_tree_node.GetReportFile().GetFilePath());
             }
         }
     }
@@ -1547,8 +1546,7 @@ int CMainFrame::GetLexerLanguageForSourceCode(const Application& application, co
         else if( app_tree_node.GetItemType() == eFFT_REPORT )
         {
             const FormReportID& form_report_id = assert_cast<const FormReportID&>(app_tree_node);
-            const bool is_report_html_type = FileExtensions::IsFileHtml(form_report_id.GetReportFile().GetFilePath());
-            return Lexers::GetLexer_Report(application, is_report_html_type);
+            return Lexers::GetLexer_Report(application, form_report_id.GetReportFile().GetFilePath());
         }
     }
 

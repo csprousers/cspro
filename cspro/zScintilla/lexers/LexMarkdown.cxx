@@ -484,3 +484,7 @@ static void ColorizeMarkdownDoc(Sci_PositionU startPos, Sci_Position length, int
 }
 
 LexerModule lmMarkdown(SCLEX_MARKDOWN, ColorizeMarkdownDoc, "markdown");
+
+#include "LexCSPro.h" // MARKDOWN_TODO Markdown report lexers
+LexerModule lmCSProReportMarkdown_V0(SCLEX_CSPRO_REPORT_MARKDOWN_V0, ColorizeMarkdownDoc, LexCSPro::Name(SCLEX_CSPRO_REPORT_MARKDOWN_V0));
+LexerModule lmCSProReportMarkdown_V8_0(SCLEX_CSPRO_REPORT_MARKDOWN_V8_0, ColorizeMarkdownDoc, LexCSPro::Name(SCLEX_CSPRO_REPORT_MARKDOWN_V8_0));

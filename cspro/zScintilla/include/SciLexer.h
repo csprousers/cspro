@@ -24,17 +24,28 @@
 #define SCLEX_CSPRO_REPORT_V8_0 7
 #define SCLEX_CSPRO_REPORT_HTML_V0 8
 #define SCLEX_CSPRO_REPORT_HTML_V8_0 9
-#define SCLEX_CSPRO_PRE80_SPEC_FILE 10
-#define SCLEX_CSPRO_DOCUMENT 11
-#define SCLEX_CPP 12
-#define SCLEX_HTML 13
-#define SCLEX_JAVASCRIPT 14
-#define SCLEX_JSON 15
-#define SCLEX_MARKDOWN 16
-#define SCLEX_PERCENT_ENCODING 17
-#define SCLEX_SQL 18
-#define SCLEX_YAML 19
+#define SCLEX_CSPRO_REPORT_MARKDOWN_V0 10
+#define SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 11
+#define SCLEX_CSPRO_PRE80_SPEC_FILE 12
+#define SCLEX_CSPRO_DOCUMENT 13
+#define SCLEX_CPP 14
+#define SCLEX_HTML 15
+#define SCLEX_JAVASCRIPT 16
+#define SCLEX_JSON 17
+#define SCLEX_MARKDOWN 18
+#define SCLEX_PERCENT_ENCODING 19
+#define SCLEX_SQL 20
+#define SCLEX_YAML 21
 #define SCLEX_AUTOMATIC 1000
+
+
+// --------------------------------------------------------------------------
+// Style code notes:
+// - Valid style codes are: 0 - 255.
+// - Code 32 (STYLE_DEFAULT) is the default style.
+// - Codes 33 - 39 (STYLE_LINENUMBER - STYLE_LASTPREDEFINED ) are reserved.
+// --------------------------------------------------------------------------
+
 
 // --------------------------------------------------------------------------
 // CSPro
@@ -66,10 +77,13 @@
 #define SCE_CSPRO_DOCUMENT_TAG 29
 #define SCE_CSPRO_DOCUMENT_BOOLEAN_ATTRIBUTE 30
 #define SCE_CSPRO_DOCUMENT_ATTRIBUTE 31
-#define SCE_CSPRO_DOCUMENT_VALUE 32
+#define SCE_CSPRO_DOCUMENT_VALUE 40
 #define SCE_CSPRO_PRE80_SPEC_FILE_DEFAULT 0
 #define SCE_CSPRO_PRE80_SPEC_FILE_HEADER 1
 #define SCE_CSPRO_PRE80_SPEC_FILE_ATTRIBUTE 2
+
+#define SCE_CSPRO_MAX_VALUE SCE_CSPRO_DOCUMENT_VALUE
+
 
 // --------------------------------------------------------------------------
 // HTML
@@ -186,6 +200,7 @@
 #define SCE_HPHP_HSTRING_VARIABLE 126
 #define SCE_HPHP_OPERATOR 127
 
+
 // --------------------------------------------------------------------------
 // JavaScript
 // --------------------------------------------------------------------------
@@ -218,6 +233,7 @@
 #define SCE_C_TASKMARKER 26
 #define SCE_C_ESCAPESEQUENCE 27
 
+
 // --------------------------------------------------------------------------
 // JSON
 // --------------------------------------------------------------------------
@@ -236,31 +252,33 @@
 #define SCE_JSON_LDKEYWORD 12
 #define SCE_JSON_ERROR 13
 
+
 // --------------------------------------------------------------------------
-// Markdown
+// Markdown, which shares the CSPro styles
 // --------------------------------------------------------------------------
 #define SCE_MARKDOWN_DEFAULT 0
-#define SCE_MARKDOWN_LINE_BEGIN 1
-#define SCE_MARKDOWN_STRONG1 2
-#define SCE_MARKDOWN_STRONG2 3
-#define SCE_MARKDOWN_EM1 4
-#define SCE_MARKDOWN_EM2 5
-#define SCE_MARKDOWN_HEADER1 6
-#define SCE_MARKDOWN_HEADER2 7
-#define SCE_MARKDOWN_HEADER3 8
-#define SCE_MARKDOWN_HEADER4 9
-#define SCE_MARKDOWN_HEADER5 10
-#define SCE_MARKDOWN_HEADER6 11
-#define SCE_MARKDOWN_PRECHAR 12
-#define SCE_MARKDOWN_ULIST_ITEM 13
-#define SCE_MARKDOWN_OLIST_ITEM 14
-#define SCE_MARKDOWN_BLOCKQUOTE 15
-#define SCE_MARKDOWN_STRIKEOUT 16
-#define SCE_MARKDOWN_HRULE 17
-#define SCE_MARKDOWN_LINK 18
-#define SCE_MARKDOWN_CODE 19
-#define SCE_MARKDOWN_CODE2 20
-#define SCE_MARKDOWN_CODEBK 21
+#define SCE_MARKDOWN_LINE_BEGIN ( SCE_CSPRO_MAX_VALUE + 1 )
+#define SCE_MARKDOWN_STRONG1 ( SCE_CSPRO_MAX_VALUE + 2 )
+#define SCE_MARKDOWN_STRONG2 ( SCE_CSPRO_MAX_VALUE + 3 )
+#define SCE_MARKDOWN_EM1 ( SCE_CSPRO_MAX_VALUE + 4 )
+#define SCE_MARKDOWN_EM2 ( SCE_CSPRO_MAX_VALUE + 5 )
+#define SCE_MARKDOWN_HEADER1 ( SCE_CSPRO_MAX_VALUE + 6 )
+#define SCE_MARKDOWN_HEADER2 ( SCE_CSPRO_MAX_VALUE + 7 )
+#define SCE_MARKDOWN_HEADER3 ( SCE_CSPRO_MAX_VALUE + 8 )
+#define SCE_MARKDOWN_HEADER4 ( SCE_CSPRO_MAX_VALUE + 9 )
+#define SCE_MARKDOWN_HEADER5 ( SCE_CSPRO_MAX_VALUE + 10 )
+#define SCE_MARKDOWN_HEADER6 ( SCE_CSPRO_MAX_VALUE + 11 )
+#define SCE_MARKDOWN_PRECHAR ( SCE_CSPRO_MAX_VALUE + 12 )
+#define SCE_MARKDOWN_ULIST_ITEM ( SCE_CSPRO_MAX_VALUE + 13 )
+#define SCE_MARKDOWN_OLIST_ITEM ( SCE_CSPRO_MAX_VALUE + 14 )
+#define SCE_MARKDOWN_BLOCKQUOTE ( SCE_CSPRO_MAX_VALUE + 15 )
+#define SCE_MARKDOWN_STRIKEOUT ( SCE_CSPRO_MAX_VALUE + 16 )
+#define SCE_MARKDOWN_HRULE ( SCE_CSPRO_MAX_VALUE + 17 )
+#define SCE_MARKDOWN_LINK ( SCE_CSPRO_MAX_VALUE + 18 )
+#define SCE_MARKDOWN_CODE ( SCE_CSPRO_MAX_VALUE + 19 )
+#define SCE_MARKDOWN_CODE2 ( SCE_CSPRO_MAX_VALUE + 20 )
+#define SCE_MARKDOWN_CODEBK ( SCE_CSPRO_MAX_VALUE + 21 )
+
 
 // --------------------------------------------------------------------------
 // Percent Encoding
@@ -270,6 +288,7 @@
 #define SCE_PERCENT_ENCODING_HEX 2
 #define SCE_PERCENT_ENCODING_BAD_HEX 3
 #define SCE_PERCENT_ENCODING_BAD_NOT_UNRESERVED 4
+
 
 // --------------------------------------------------------------------------
 // SQL
@@ -297,6 +316,7 @@
 #define SCE_SQL_USER4 22
 #define SCE_SQL_QUOTEDIDENTIFIER 23
 #define SCE_SQL_QOPERATOR 24
+
 
 // --------------------------------------------------------------------------
 // YAML

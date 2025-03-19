@@ -1471,7 +1471,9 @@ int LogicCompiler::CompileNamedFrequencyFunctions()
                 const Report& report = GetSymbolReport(Tokstindex);
                 CheckReportIsCurrentlyWriteable(report);
 
-                if( !report.IsTypeHtml() && !report.IsFunctionParameter() )
+                const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
+
+                if( !report_extension_analyser.IsTypeHtml() && !report.IsFunctionParameter() )
                 {
                     IssueError(MGF::Freq_cannot_be_saved_to_non_HTML_report_94533,
                                named_frequency.GetName().c_str(), report.GetName().c_str());

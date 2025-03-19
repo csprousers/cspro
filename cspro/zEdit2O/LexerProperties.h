@@ -33,6 +33,7 @@ public:
 private:
     static std::vector<std::tuple<int, COLORREF>> GetColorsWorker(int lexer_language);
     static std::vector<std::tuple<int, COLORREF>> GetExternalLanguageColorsWorker(int lexer_language);
+    static std::vector<std::tuple<int, COLORREF>> GetMarkdownColorsWorker();
 
     static void GetKeywordsAndLogicTooltipsWorker(Properties& properties, int lexer_language);
 
