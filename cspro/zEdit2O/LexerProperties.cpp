@@ -35,8 +35,8 @@ const LexerProperties::Properties& LexerProperties::GetProperties(const int lexe
 
     Properties properties;
 
-    for( const auto& [style, color] : GetColorsWorker(lexer_language) )
-        properties.colors.try_emplace(static_cast<char>(style), color);
+    for( const auto& [style, color] : GetStylesWorker(lexer_language) )
+        properties.styles.try_emplace(static_cast<char>(style), color);
 
     GetKeywordsAndLogicTooltipsWorker(properties, lexer_language);
 
@@ -44,64 +44,64 @@ const LexerProperties::Properties& LexerProperties::GetProperties(const int lexe
 }
 
 
-std::vector<std::tuple<int, COLORREF>> LexerProperties::GetColorsWorker(const int lexer_language)
+std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetStylesWorker(const int lexer_language)
 {
     if( Lexers::IsExternalLanguage(lexer_language) )
     {
-        return GetExternalLanguageColorsWorker(lexer_language);
+        return GetExternalLanguageStylesWorker(lexer_language);
     }
 
     else if( lexer_language == SCLEX_NULL )
     {
-        return { { STYLE_DEFAULT, LexerColor::Default } };
+        return { { STYLE_DEFAULT, { LexerColor::Default } } };
     }
 
     else
     {
         ASSERT(Lexers::IncorporatesCSProLogic(lexer_language) || Lexers::IsCSProMessage(lexer_language));
 
-        std::vector<std::tuple<int, COLORREF>> colors =
+        std::vector<std::tuple<int, LexerStyle>> styles =
         {
             // logic colors
-            { SCE_CSPRO_DEFAULT,                    LexerColor::Default },
-            { SCE_CSPRO_COMMENT,                    LexerColor::Comment },
-            { SCE_CSPRO_COMMENTLINE,                LexerColor::Comment },
-            { SCE_CSPRO_NUMBER,                     RGB(255, 0, 0) },
-            { SCE_CSPRO_STRING,                     RGB(255, 0, 255) },
-            { SCE_CSPRO_STRING_ESCAPE,              RGB(190, 0, 190) },
-            { SCE_CSPRO_KEYWORD,                    RGB(0, 0, 255) },
-            { SCE_CSPRO_DOT_NOTATION_FUNCTION,      RGB(0, 95, 200) },
-            { SCE_CSPRO_FUNCTION_NAMESPACE_PARENT,  RGB(0, 175, 200) },
-            { SCE_CSPRO_FUNCTION_NAMESPACE_CHILD,   RGB(0, 175, 200) },
-            { SCE_CSPRO_NAMED_ARGUMENT,             LexerColor::JY_PropertyName },
+            { SCE_CSPRO_DEFAULT,                    { LexerColor::Default } },
+            { SCE_CSPRO_COMMENT,                    { LexerColor::Comment } },
+            { SCE_CSPRO_COMMENTLINE,                { LexerColor::Comment } },
+            { SCE_CSPRO_NUMBER,                     { RGB(255, 0, 0) } },
+            { SCE_CSPRO_STRING,                     { RGB(255, 0, 255) } },
+            { SCE_CSPRO_STRING_ESCAPE,              { RGB(190, 0, 190) } },
+            { SCE_CSPRO_KEYWORD,                    { RGB(0, 0, 255) } },
+            { SCE_CSPRO_DOT_NOTATION_FUNCTION,      { RGB(0, 95, 200) } },
+            { SCE_CSPRO_FUNCTION_NAMESPACE_PARENT,  { RGB(0, 175, 200) } },
+            { SCE_CSPRO_FUNCTION_NAMESPACE_CHILD,   { RGB(0, 175, 200) } },
+            { SCE_CSPRO_NAMED_ARGUMENT,             { LexerColor::JY_PropertyName } },
 
             // report colors
-            { SCE_CSPRO_REPORT_DEFAULT,             LexerColor::HtmlDefault },
-            { SCE_CSPRO_REPORT_MUSTACHE,            RGB(161, 126, 0) },
-            { SCE_CSPRO_REPORT_TRIP_MUSTACHE,       RGB(210, 82, 22) },
-            { SCE_CSPRO_REPORT_CSPROLOGIC,          RGB(216, 60, 135) },
-            { SCE_CSPRO_REPORT_HTML,                LexerColor::HtmlTag },
-            { SCE_CSPRO_REPORT_HTML_OPTION,         LexerColor::HtmlAttribute },
-            { SCE_CSPRO_REPORT_HTML_QUOTE,          LexerColor::HtmlQuote },
-            { SCE_CSPRO_REPORT_HTML_NUM,            LexerColor::HtmlNumber },
+            { SCE_CSPRO_REPORT_DEFAULT,             { LexerColor::HtmlDefault } },
+            { SCE_CSPRO_REPORT_MUSTACHE,            { RGB(161, 126, 0) } },
+            { SCE_CSPRO_REPORT_TRIP_MUSTACHE,       { RGB(210, 82, 22) } },
+            { SCE_CSPRO_REPORT_CSPROLOGIC,          { RGB(216, 60, 135) } },
+            { SCE_CSPRO_REPORT_HTML,                { LexerColor::HtmlTag } },
+            { SCE_CSPRO_REPORT_HTML_OPTION,         { LexerColor::HtmlAttribute } },
+            { SCE_CSPRO_REPORT_HTML_QUOTE,          { LexerColor::HtmlQuote } },
+            { SCE_CSPRO_REPORT_HTML_NUM,            { LexerColor::HtmlNumber } },
 
             // document colors
-            { SCE_CSPRO_DOCUMENT_TAG,               LexerColor::HtmlTag },
-            { SCE_CSPRO_DOCUMENT_BOOLEAN_ATTRIBUTE, RGB(81, 141, 87) },
-            { SCE_CSPRO_DOCUMENT_ATTRIBUTE,         LexerColor::HtmlAttribute },
-            { SCE_CSPRO_DOCUMENT_VALUE,             LexerColor::HtmlQuote }
+            { SCE_CSPRO_DOCUMENT_TAG,               { LexerColor::HtmlTag } },
+            { SCE_CSPRO_DOCUMENT_BOOLEAN_ATTRIBUTE, { RGB(81, 141, 87) } },
+            { SCE_CSPRO_DOCUMENT_ATTRIBUTE,         { LexerColor::HtmlAttribute } },
+            { SCE_CSPRO_DOCUMENT_VALUE,             { LexerColor::HtmlQuote } },
         };
 
         // for Markdown reports, add the Markdown colors
         if( Lexers::IsCSProReportMarkdown(lexer_language) )
-            VectorHelpers::Append(colors, GetMarkdownColorsWorker());
+            VectorHelpers::Append(styles, GetMarkdownStylesWorker());
 
-        return colors;
+        return styles;
     }
 }
 
 
-std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColorsWorker(const int lexer_language)
+std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetExternalLanguageStylesWorker(const int lexer_language)
 {
     if( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )
     {
@@ -110,9 +110,9 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_CSPRO_PRE80_SPEC_FILE_DEFAULT,   LexerColor::Default },
-            { SCE_CSPRO_PRE80_SPEC_FILE_HEADER,    HeaderColor },
-            { SCE_CSPRO_PRE80_SPEC_FILE_ATTRIBUTE, AttributeColor }
+            { SCE_CSPRO_PRE80_SPEC_FILE_DEFAULT,   { LexerColor::Default } },
+            { SCE_CSPRO_PRE80_SPEC_FILE_HEADER,    { HeaderColor } },
+            { SCE_CSPRO_PRE80_SPEC_FILE_ATTRIBUTE, { AttributeColor } },
         };
     }
 
@@ -120,16 +120,16 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
     {
         return
         {
-            { SCE_H_DEFAULT,          LexerColor::HtmlDefault },
-            { SCE_H_TAG,              LexerColor::HtmlTag },
-            { SCE_H_TAGUNKNOWN,       LexerColor::HtmlTag },
-            { SCE_H_ATTRIBUTE,        LexerColor::HtmlAttribute },
-            { SCE_H_ATTRIBUTEUNKNOWN, LexerColor::HtmlAttribute },
-            { SCE_H_NUMBER,           LexerColor::HtmlNumber },
-            { SCE_H_DOUBLESTRING,     LexerColor::HtmlQuote },
-            { SCE_H_SINGLESTRING,     LexerColor::HtmlQuote },
-            { SCE_H_OTHER,            LexerColor::HtmlDefault },
-            { SCE_H_COMMENT,          LexerColor::Comment }
+            { SCE_H_DEFAULT,          { LexerColor::HtmlDefault } },
+            { SCE_H_TAG,              { LexerColor::HtmlTag } },
+            { SCE_H_TAGUNKNOWN,       { LexerColor::HtmlTag } },
+            { SCE_H_ATTRIBUTE,        { LexerColor::HtmlAttribute } },
+            { SCE_H_ATTRIBUTEUNKNOWN, { LexerColor::HtmlAttribute } },
+            { SCE_H_NUMBER,           { LexerColor::HtmlNumber } },
+            { SCE_H_DOUBLESTRING,     { LexerColor::HtmlQuote } },
+            { SCE_H_SINGLESTRING,     { LexerColor::HtmlQuote } },
+            { SCE_H_OTHER,            { LexerColor::HtmlDefault } },
+            { SCE_H_COMMENT,          { LexerColor::Comment } },
         };
     }
 
@@ -141,15 +141,15 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_C_DEFAULT,     LexerColor::Default },
-            { SCE_C_COMMENT,     LexerColor::Comment },
-            { SCE_C_COMMENTLINE, LexerColor::Comment },
-            { SCE_C_NUMBER,      NumberColor },
-            { SCE_C_WORD,        KeywordColor },
-            { SCE_C_STRING,      StringColor },
-            { SCE_C_CHARACTER,   StringColor },
-            { SCE_C_OPERATOR,    LexerColor::Operator },
-            { SCE_C_STRINGEOL,   StringColor }
+            { SCE_C_DEFAULT,     { LexerColor::Default } },
+            { SCE_C_COMMENT,     { LexerColor::Comment } },
+            { SCE_C_COMMENTLINE, { LexerColor::Comment } },
+            { SCE_C_NUMBER,      { NumberColor } },
+            { SCE_C_WORD,        { KeywordColor } },
+            { SCE_C_STRING,      { StringColor } },
+            { SCE_C_CHARACTER,   { StringColor } },
+            { SCE_C_OPERATOR,    { LexerColor::Operator } },
+            { SCE_C_STRINGEOL,   { StringColor } },
         };
     }
 
@@ -159,20 +159,20 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_JSON_DEFAULT,      LexerColor::Default },
-            { SCE_JSON_NUMBER,       LexerColor::JY_Number },
-            { SCE_JSON_STRING,       LexerColor::JY_String },
-            { SCE_JSON_STRINGEOL,    LexerColor::JY_String },
-            { SCE_JSON_PROPERTYNAME, LexerColor::JY_PropertyName },
-            { SCE_JSON_OPERATOR,     LexerColor::Operator },
-            { SCE_JSON_URI,          UriColor },
-            { SCE_JSON_ERROR,        LexerColor::JY_Number }
+            { SCE_JSON_DEFAULT,      { LexerColor::Default } },
+            { SCE_JSON_NUMBER,       { LexerColor::JY_Number } },
+            { SCE_JSON_STRING,       { LexerColor::JY_String } },
+            { SCE_JSON_STRINGEOL,    { LexerColor::JY_String } },
+            { SCE_JSON_PROPERTYNAME, { LexerColor::JY_PropertyName } },
+            { SCE_JSON_OPERATOR,     { LexerColor::Operator } },
+            { SCE_JSON_URI,          { UriColor } },
+            { SCE_JSON_ERROR,        { LexerColor::JY_Number } },
         };
     }
 
     else if( lexer_language == SCLEX_MARKDOWN )
     {
-        return GetMarkdownColorsWorker();
+        return GetMarkdownStylesWorker();
     }
 
     else if( lexer_language == SCLEX_PERCENT_ENCODING )
@@ -184,11 +184,11 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_PERCENT_ENCODING_DEFAULT,            LexerColor::Default },
-            { SCE_PERCENT_ENCODING_PERCENT,            PercentColor },
-            { SCE_PERCENT_ENCODING_HEX,                HexColor },
-            { SCE_PERCENT_ENCODING_BAD_HEX,            BadHexColor },
-            { SCE_PERCENT_ENCODING_BAD_NOT_UNRESERVED, BadNotUnreserved }
+            { SCE_PERCENT_ENCODING_DEFAULT,            { LexerColor::Default } },
+            { SCE_PERCENT_ENCODING_PERCENT,            { PercentColor } },
+            { SCE_PERCENT_ENCODING_HEX,                { HexColor } },
+            { SCE_PERCENT_ENCODING_BAD_HEX,            { BadHexColor } },
+            { SCE_PERCENT_ENCODING_BAD_NOT_UNRESERVED, { BadNotUnreserved } },
         };
     }
 
@@ -200,15 +200,15 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_SQL_DEFAULT,     LexerColor::Default },
-            { SCE_SQL_COMMENT,     LexerColor::Comment },
-            { SCE_SQL_COMMENTLINE, LexerColor::Comment },
-            { SCE_SQL_NUMBER,      NumberColor },
-            { SCE_SQL_WORD,        KeywordColor },
-            { SCE_SQL_STRING,      StringColor },
-            { SCE_SQL_CHARACTER,   StringColor },
-            { SCE_SQL_OPERATOR,    LexerColor::Operator },
-            { SCE_SQL_IDENTIFIER,  StringColor }
+            { SCE_SQL_DEFAULT,     { LexerColor::Default } },
+            { SCE_SQL_COMMENT,     { LexerColor::Comment } },
+            { SCE_SQL_COMMENTLINE, { LexerColor::Comment } },
+            { SCE_SQL_NUMBER,      { NumberColor } },
+            { SCE_SQL_WORD,        { KeywordColor } },
+            { SCE_SQL_STRING,      { StringColor } },
+            { SCE_SQL_CHARACTER,   { StringColor } },
+            { SCE_SQL_OPERATOR,    { LexerColor::Operator } },
+            { SCE_SQL_IDENTIFIER,  { StringColor } },
         };
     }
 
@@ -218,16 +218,16 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 
         return
         {
-            { SCE_YAML_DEFAULT,    LexerColor::Default },
-            { SCE_YAML_COMMENT,    LexerColor::Comment },
-            { SCE_YAML_IDENTIFIER, LexerColor::JY_PropertyName },
-            { SCE_YAML_KEYWORD,    LexerColor::Default},
-            { SCE_YAML_NUMBER,     LexerColor::JY_Number },
-            { SCE_YAML_REFERENCE,  LexerColor::Default },
-            { SCE_YAML_DOCUMENT,   DocumentColor },
-            { SCE_YAML_TEXT,       LexerColor::JY_String },
-            { SCE_YAML_ERROR,      LexerColor::Default },
-            { SCE_YAML_OPERATOR,   LexerColor::Operator }
+            { SCE_YAML_DEFAULT,    { LexerColor::Default } },
+            { SCE_YAML_COMMENT,    { LexerColor::Comment } },
+            { SCE_YAML_IDENTIFIER, { LexerColor::JY_PropertyName } },
+            { SCE_YAML_KEYWORD,    { LexerColor::Default} },
+            { SCE_YAML_NUMBER,     { LexerColor::JY_Number } },
+            { SCE_YAML_REFERENCE,  { LexerColor::Default } },
+            { SCE_YAML_DOCUMENT,   { DocumentColor } },
+            { SCE_YAML_TEXT,       { LexerColor::JY_String } },
+            { SCE_YAML_ERROR,      { LexerColor::Default } },
+            { SCE_YAML_OPERATOR,   { LexerColor::Operator } },
         };
     }
 
@@ -239,7 +239,7 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetExternalLanguageColor
 }
 
 
-std::vector<std::tuple<int, COLORREF>> LexerProperties::GetMarkdownColorsWorker()
+std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetMarkdownStylesWorker()
 {
     constexpr COLORREF BoldColor           = RGB(70, 130, 180);
     constexpr COLORREF ItalicsColor        = RGB(185, 135, 10);
@@ -249,31 +249,32 @@ std::vector<std::tuple<int, COLORREF>> LexerProperties::GetMarkdownColorsWorker(
     constexpr COLORREF BlockquoteColor     = RGB(75, 75, 150);
     constexpr COLORREF StrikeoutColor      = RGB(128, 128, 128);
     constexpr COLORREF HorizontalRuleColor = RGB(30, 30, 255);
-    constexpr COLORREF CodeColor           = RGB(90, 110, 100);
+    constexpr COLORREF CodeForeColor       = RGB(90, 50, 100);
+    constexpr COLORREF CodeBackColor       = RGB(250, 245, 255);
 
     return
     {
-        { SCE_MARKDOWN_DEFAULT,    LexerColor::Default },
-        { SCE_MARKDOWN_STRONG1,    BoldColor },
-        { SCE_MARKDOWN_STRONG2,    BoldColor },
-        { SCE_MARKDOWN_EM1,        ItalicsColor },
-        { SCE_MARKDOWN_EM2,        ItalicsColor },
-        { SCE_MARKDOWN_HEADER1,    HeaderColor },
-        { SCE_MARKDOWN_HEADER2,    HeaderColor },
-        { SCE_MARKDOWN_HEADER3,    HeaderColor },
-        { SCE_MARKDOWN_HEADER4,    HeaderColor },
-        { SCE_MARKDOWN_HEADER5,    HeaderColor },
-        { SCE_MARKDOWN_HEADER6,    HeaderColor },
-        { SCE_MARKDOWN_PRECHAR,    LexerColor::Default },
-        { SCE_MARKDOWN_ULIST_ITEM, BulletsColor },
-        { SCE_MARKDOWN_OLIST_ITEM, BulletsColor },
-        { SCE_MARKDOWN_BLOCKQUOTE, BlockquoteColor },
-        { SCE_MARKDOWN_STRIKEOUT,  StrikeoutColor },
-        { SCE_MARKDOWN_HRULE,      HorizontalRuleColor },
-        { SCE_MARKDOWN_LINK,       LinkColor },
-        { SCE_MARKDOWN_CODE,       CodeColor },
-        { SCE_MARKDOWN_CODE2,      CodeColor },
-        { SCE_MARKDOWN_CODEBK,     CodeColor }
+        { SCE_MARKDOWN_DEFAULT,    { LexerColor::Default } },
+        { SCE_MARKDOWN_STRONG1,    { BoldColor, LexerStyle::NoOverride, true, false } },
+        { SCE_MARKDOWN_STRONG2,    { BoldColor, LexerStyle::NoOverride, true, false } },
+        { SCE_MARKDOWN_EM1,        { ItalicsColor, LexerStyle::NoOverride, false, true } },
+        { SCE_MARKDOWN_EM2,        { ItalicsColor, LexerStyle::NoOverride, false, true } },
+        { SCE_MARKDOWN_HEADER1,    { HeaderColor } },
+        { SCE_MARKDOWN_HEADER2,    { HeaderColor } },
+        { SCE_MARKDOWN_HEADER3,    { HeaderColor } },
+        { SCE_MARKDOWN_HEADER4,    { HeaderColor } },
+        { SCE_MARKDOWN_HEADER5,    { HeaderColor } },
+        { SCE_MARKDOWN_HEADER6,    { HeaderColor } },
+        { SCE_MARKDOWN_PRECHAR,    { LexerColor::Default } },
+        { SCE_MARKDOWN_ULIST_ITEM, { BulletsColor } },
+        { SCE_MARKDOWN_OLIST_ITEM, { BulletsColor } },
+        { SCE_MARKDOWN_BLOCKQUOTE, { BlockquoteColor } },
+        { SCE_MARKDOWN_STRIKEOUT,  { StrikeoutColor } },
+        { SCE_MARKDOWN_HRULE,      { HorizontalRuleColor } },
+        { SCE_MARKDOWN_LINK,       { LinkColor } },
+        { SCE_MARKDOWN_CODE,       { CodeForeColor, CodeBackColor, false, false } },
+        { SCE_MARKDOWN_CODE2,      { CodeForeColor, CodeBackColor, false, false } },
+        { SCE_MARKDOWN_CODEBK,     { CodeForeColor, CodeBackColor, false, false } },
     };
 }
 

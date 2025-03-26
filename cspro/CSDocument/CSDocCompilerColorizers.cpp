@@ -144,7 +144,7 @@ std::optional<size_t> HelpsHtmlProcessor::FindWordIndexBeforeDotNotation(const s
         const ScintillaColorizer::Entity& entity = entities[i];
 
         // ignore comments and strings literals
-        if( IsStateAnyCommentOrStringLiteralType(entity.style) )
+        if( IsStateAnyCommentOrStringLiteralType(entity.style_index) )
             continue;
 
         if( next_entity_must_be_dot )
@@ -224,12 +224,12 @@ std::optional<SymbolType> HelpsHtmlProcessor::FindSymbolTypeFromVariableDeclarat
         const ScintillaColorizer::Entity& previous_entity = entities[j];
 
         // ignore comments and strings literals
-        if( IsStateAnyCommentOrStringLiteralType(previous_entity.style) )
+        if( IsStateAnyCommentOrStringLiteralType(previous_entity.style_index) )
             continue;
 
         // the symbol type should be the earliest keyword that appears after a semicolon, or after a comma (in function calls),
         // and after any other identifier
-        if( previous_entity.style == SCE_CSPRO_KEYWORD )
+        if( previous_entity.style_index == SCE_CSPRO_KEYWORD )
         {
             const std::optional<std::tuple<SymbolType, char>> symbol_type_and_style = GetSymbolTypeAndStyleFromDeclarationText(previous_entity.text);
 
@@ -241,7 +241,7 @@ std::optional<SymbolType> HelpsHtmlProcessor::FindSymbolTypeFromVariableDeclarat
             }
         }
 
-        else if( previous_entity.style == SCE_CSPRO_IDENTIFIER || strchr(";,", previous_entity.text.front()) != nullptr )
+        else if( previous_entity.style_index == SCE_CSPRO_IDENTIFIER || strchr(";,", previous_entity.text.front()) != nullptr )
         {
             break;
         }
@@ -266,11 +266,11 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
         ScintillaColorizer::ExtendedEntity& extended_entity = extended_entities.emplace_back(ScintillaColorizer::ExtendedEntity
             {
                 entity.text,
-                entity.style
+                entity.style_index
             });
 
         // if an identifier, store the location of the first reference
-        if( entity.style == SCE_CSPRO_IDENTIFIER )
+        if( entity.style_index == SCE_CSPRO_IDENTIFIER )
         {
             // make sure that entries like the "codes" in valueset_name.codes are not added
             if( i == 0 || entities[i - 1].text != "." )
@@ -292,7 +292,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
                 const ScintillaColorizer::Entity& previous_entity = entities[j];
 
                 // ignore comments and strings literals
-                if( IsStateAnyCommentOrStringLiteralType(previous_entity.style) )
+                if( IsStateAnyCommentOrStringLiteralType(previous_entity.style_index) )
                     continue;
 
                 if( matches <= 1 && SO::IsBlank(previous_entity.text) )
@@ -342,7 +342,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
             // modify the style to what this would be if the logic function domain were specified
             ASSERT(!Logic::FunctionTable::IsFunctionNamespace(entity.text, SymbolType::None));
-            extended_entities[i].style = SCE_CSPRO_DOT_NOTATION_FUNCTION;
+            extended_entities[i].style_index = SCE_CSPRO_DOT_NOTATION_FUNCTION;
 
             continue;
         }
@@ -350,7 +350,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
         // 3. keywords
         //    e.g.,: reenter;
-        if( entity.style == SCE_CSPRO_KEYWORD )
+        if( entity.style_index == SCE_CSPRO_KEYWORD )
         {
             CheckLogicCase(entity.text);
 
@@ -365,7 +365,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
         // 4. function namespaces
         //    e.g.: CS.Localhost.createMapping(...);
-        if( entity.style == SCE_CSPRO_FUNCTION_NAMESPACE_PARENT || entity.style == SCE_CSPRO_FUNCTION_NAMESPACE_CHILD )
+        if( entity.style_index == SCE_CSPRO_FUNCTION_NAMESPACE_PARENT || entity.style_index == SCE_CSPRO_FUNCTION_NAMESPACE_CHILD )
         {
             const Logic::FunctionNamespaceDetails* function_namespace_details = nullptr;
             const std::optional<size_t> parent_namespace_index = FindWordIndexBeforeDotNotation(entities, i - 1, false);
@@ -398,7 +398,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
         // 5. a symbol name that is part of a dot-notation function (not valid in logic but used in the helps when referring to functions)
         //    e.g.:: List.add(...);
-        if( entity.style == SCE_CSPRO_IDENTIFIER )
+        if( entity.style_index == SCE_CSPRO_IDENTIFIER )
         {
             const std::optional<std::tuple<SymbolType, char>> symbol_type_and_style = GetSymbolTypeAndStyleFromDeclarationText(entity.text);
 
@@ -408,7 +408,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
                 CreateLink(extended_entity, Logic::ContextSensitiveHelp::GetTopicFilename(entity.text));
 
                 // modify the symbol name to appear as a keyword (or to stay an identifier for special functions)
-                extended_entity.style = std::get<1>(*symbol_type_and_style);
+                extended_entity.style_index = std::get<1>(*symbol_type_and_style);
 
                 // store that this was a symbol name
                 extended_entity.details = std::get<0>(*symbol_type_and_style);
@@ -420,7 +420,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
         // 6. dot-notation functions
         //    e.g.,: my_list.add(...);
-        if( entity.style == SCE_CSPRO_DOT_NOTATION_FUNCTION )
+        if( entity.style_index == SCE_CSPRO_DOT_NOTATION_FUNCTION )
         {
             const std::optional<size_t> previous_word_index = FindWordIndexBeforeDotNotation(entities, i - 1, true);
             Logic::FunctionDomain logic_function_domain = SymbolType::None;
@@ -510,9 +510,9 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
 
         // if here, with no link created, check if this word is part of dot-notation, and then issue an error about the invalid entry
-        ASSERT(entity.style != SCE_CSPRO_FUNCTION_NAMESPACE_PARENT && entity.style != SCE_CSPRO_FUNCTION_NAMESPACE_CHILD);
+        ASSERT(entity.style_index != SCE_CSPRO_FUNCTION_NAMESPACE_PARENT && entity.style_index != SCE_CSPRO_FUNCTION_NAMESPACE_CHILD);
 
-        if( entity.style == SCE_CSPRO_IDENTIFIER || entity.style == SCE_CSPRO_DOT_NOTATION_FUNCTION )
+        if( entity.style_index == SCE_CSPRO_IDENTIFIER || entity.style_index == SCE_CSPRO_DOT_NOTATION_FUNCTION )
         {
             const std::optional<size_t> previous_word_index = FindWordIndexBeforeDotNotation(entities, i - 1, true);
 
@@ -532,7 +532,7 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
                 if( symbol_type.has_value() )
                 {
                     // an entry here may be like the "codes" in valueset_name.codes
-                    if( entity.style == SCE_CSPRO_IDENTIFIER && Logic::LookupChildSymbolName(entity.text, *symbol_type) != nullptr )
+                    if( entity.style_index  == SCE_CSPRO_IDENTIFIER && Logic::LookupChildSymbolName(entity.text, *symbol_type) != nullptr )
                     {
                         CheckLogicCase(entity.text, *symbol_type);
                     }
@@ -579,7 +579,7 @@ void HelpsHtmlProcessor::PostprocessExtendedEntities(std::vector<ScintillaColori
             extended_entities.insert(extended_entities.begin() + index, ScintillaColorizer::ExtendedEntity
                 {
                     original_entity_text.substr(0, before_split_length),
-                    extended_entities[index].style,
+                    extended_entities[index].style_index,
                     { },
                     extended_entities[index].entity_specific_tags,
                 });
@@ -603,7 +603,7 @@ void HelpsHtmlProcessor::PostprocessExtendedEntities(std::vector<ScintillaColori
             extended_entities.insert(extended_entities.begin() + index + 1, ScintillaColorizer::ExtendedEntity
                 {
                     original_entity_text.substr(after_split_pos),
-                    extended_entities[index].style,
+                    extended_entities[index].style_index,
                     { },
                     extended_entities[index].entity_specific_tags,
                 });
