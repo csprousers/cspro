@@ -1,3 +1,5 @@
+﻿// note additions marked with "CSPro"
+
 // Scintilla source code edit control
 /** @file LexerModule.h
  ** Colourise for particular languages.
@@ -7,6 +9,9 @@
 
 #ifndef LEXERMODULE_H
 #define LEXERMODULE_H
+
+class LexerCSProReportGeneric; // CSPro
+
 
 namespace Lexilla {
 
@@ -65,6 +70,7 @@ public:
                   WordList *keywordlists[], Accessor &styler) const;
 
 	friend class CatalogueModules;
+	friend class LexerCSProReportGeneric; // CSPro
 };
 
 constexpr int Maximum(int a, int b) noexcept {

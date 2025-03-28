@@ -99,7 +99,7 @@ const SpecialTag* LexerCSProDocument::GetSpecialTag(Accessor& styler, const Sci_
 void LexerCSProDocument::Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, IDocument* pAccess)
 {
     Accessor styler(pAccess, nullptr);
-    StyleContext sc(startPos, length, initStyle, styler);
+    CSProStyleContext sc(startPos, length, initStyle, styler);
 
     // because the line state is used by the CSPro lexer for the state of multiline comments, we use
     // our own object to keep track of line states rather than use the value of LexAccessor::GetLineState

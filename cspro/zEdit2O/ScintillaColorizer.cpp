@@ -57,7 +57,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
     }
 
     char* entity_start_pos = chars_and_styles_itr++;
-    char current_entity_style = *(chars_and_styles_itr++);
+    unsigned char current_entity_style = *(chars_and_styles_itr++);
 
     // we need to keep track of the line position to properly handle conversions of tabs to spaces
     int position_in_line = 0;
@@ -104,7 +104,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
 }
 
 
-LexerStyle ScintillaColorizer::GetStyle(const char style_index)
+LexerStyle ScintillaColorizer::GetStyle(const unsigned char style_index)
 {
     const auto& style_lookup = m_styleMap.find(style_index);
 

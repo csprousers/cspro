@@ -48,6 +48,9 @@
     <ClCompile Include="..\lexers\LexCSProReport.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexHTML.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
@@ -218,6 +221,9 @@
     <ResourceCompile Include="ScintRes.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lexers\CSProStyleContext.h">
+      <Filter>CSPro-h</Filter>
+    </ClInclude>
     <ClInclude Include="..\lexers\LexCSPro.h">
       <Filter>CSPro-h</Filter>
     </ClInclude>

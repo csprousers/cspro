@@ -19,14 +19,14 @@ class LexerProperties
 public:
     struct Properties
     {
-        std::map<char, LexerStyle> styles;
+        std::map<unsigned char, LexerStyle> styles;
         std::vector<std::string> keywords;
         std::unique_ptr<std::map<std::string, const char*, cs::case_insensitive_less>> logic_tooltips;
     };
 
     static const Properties& GetProperties(int lexer_language);
 
-    static const std::map<char, LexerStyle>& GetStyles(int lexer_language);
+    static const std::map<unsigned char, LexerStyle>& GetStyles(int lexer_language);
     static const std::vector<std::string>& GetKeywords(int lexer_language);
     static const std::map<std::string, const char*, cs::case_insensitive_less>* GetLogicTooltips(int lexer_language);
 
@@ -47,7 +47,7 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline const std::map<char, LexerStyle>& LexerProperties::GetStyles(const int lexer_language)
+inline const std::map<unsigned char, LexerStyle>& LexerProperties::GetStyles(const int lexer_language)
 {
     return GetProperties(lexer_language).styles;
 }

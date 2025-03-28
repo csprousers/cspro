@@ -35,8 +35,11 @@ const LexerProperties::Properties& LexerProperties::GetProperties(const int lexe
 
     Properties properties;
 
-    for( const auto& [style, color] : GetStylesWorker(lexer_language) )
-        properties.styles.try_emplace(static_cast<char>(style), color);
+    for( const auto& [style_index, color] : GetStylesWorker(lexer_language) )
+    {
+        ASSERT(style_index >= 0 && style_index <= std::numeric_limits<unsigned char>::max());
+        properties.styles.try_emplace(static_cast<unsigned char>(style_index), color);
+    }
 
     GetKeywordsAndLogicTooltipsWorker(properties, lexer_language);
 
@@ -63,6 +66,7 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetStylesWorker(const 
         std::vector<std::tuple<int, LexerStyle>> styles =
         {
             // logic colors
+            { STYLE_DEFAULT,                        { LexerColor::Default } },
             { SCE_CSPRO_DEFAULT,                    { LexerColor::Default } },
             { SCE_CSPRO_COMMENT,                    { LexerColor::Comment } },
             { SCE_CSPRO_COMMENTLINE,                { LexerColor::Comment } },

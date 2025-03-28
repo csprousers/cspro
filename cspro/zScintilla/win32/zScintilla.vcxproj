@@ -20,6 +20,7 @@
     <ClCompile Include="..\lexers\LexCSProMessage.cxx" />
     <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx" />
     <ClCompile Include="..\lexers\LexCSProReport.cxx" />
+    <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx" />
     <ClCompile Include="..\lexers\LexHTML.cxx" />
     <ClCompile Include="..\lexers\LexJSON.cxx" />
     <ClCompile Include="..\lexers\LexMarkdown.cxx" />
@@ -80,6 +81,7 @@
     <ResourceCompile Include="ScintRes.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lexers\CSProStyleContext.h" />
     <ClInclude Include="..\lexers\LexCSPro.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -90,10 +90,7 @@ bool CLogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_e
 
     m_logicTooltips = properties.logic_tooltips.get();
 
-    // set the colors
-    static_assert(SCE_CSPRO_DEFAULT == 0);
-    ASSERT(StyleGetFore(SCE_CSPRO_DEFAULT) == RGB(0, 0, 0));
-
+    // set the styles
     for( const auto& [style_code, style] : properties.styles )
     {
         StyleSetFore(style_code, style.foreground_color);

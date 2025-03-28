@@ -1,3 +1,5 @@
+﻿// note additions marked with "CSPro"
+
 // Scintilla source code edit control
 /** @file StyleContext.h
  ** Lexer infrastructure.
@@ -15,6 +17,7 @@ namespace Lexilla {
 // DBCS treated specially as the second character can be < 0x80 and hence
 // syntactically significant. UTF-8 avoids this as all trail bytes are >= 0x80
 class StyleContext {
+protected: // CSPro
 	LexAccessor &styler;
 	Scintilla::IDocument * const multiByteAccess;
 	const Sci_PositionU lengthDocument;

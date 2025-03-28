@@ -77,7 +77,7 @@ size_t LexerCSProMessage::GetMultilineCommentState(const std::vector<bool>* mult
 void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, IDocument* pAccess)
 {
     Accessor styler(pAccess, nullptr);
-    StyleContext sc(startPos, length, initStyle, styler);
+    CSProStyleContext sc(startPos, length, initStyle, styler);
 
     // get the state of multiline comments on this line
     const size_t initial_line_state = styler.GetLineState(sc.currentLine - 1);

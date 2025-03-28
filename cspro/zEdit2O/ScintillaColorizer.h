@@ -31,20 +31,20 @@ public:
     std::string GetCSProUsersBlogCode();
 
     // style lookups
-    LexerStyle GetStyle(char style_index);
+    LexerStyle GetStyle(unsigned char style_index);
     const char* GetHtmlColor(COLORREF color);
 
 
     struct Entity
     {
         std::string text;
-        char style_index;
+        unsigned char style_index;
     };
 
     struct ExtendedEntity
     {
         std::string text;
-        char style_index;
+        unsigned char style_index;
         std::variant<std::monostate, SymbolType, const Logic::FunctionNamespaceDetails*> details;
         std::vector<std::tuple<std::string, std::string>> entity_spanning_tags;
         std::vector<std::tuple<std::string, std::string>> entity_specific_tags;
@@ -64,6 +64,6 @@ private:
     void GenerateEntities(std::unique_ptr<char[]> chars_and_styles);
 
 private:
-    const std::map<char, LexerStyle>& m_styleMap;
+    const std::map<unsigned char, LexerStyle>& m_styleMap;
     std::vector<Entity> m_entities;
 };

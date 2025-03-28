@@ -23,6 +23,8 @@
 #include "OptionSet.h"
 #include "DefaultLexer.h"
 
+#include "CSProStyleContext.h"
+
 
 class LexCSPro : public Lexilla::DefaultLexer
 {
@@ -69,6 +71,7 @@ public:
     Sci_Position SCI_METHOD WordListSet(int n, const char* wl) override;
 
     void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, Scintilla::IDocument* pAccess) override;
+    Sci_PositionU Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, Lexilla::Accessor& styler, bool process_report_tokens);
 
     void* SCI_METHOD PrivateCall(int, void*) override
     {
