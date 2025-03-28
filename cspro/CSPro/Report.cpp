@@ -3,7 +3,7 @@
 #include <zDesignerF/ReportPreviewer.h>
 
 
-const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::string* const report_name_for_report_preview)
+const TextSource* CMainFrame::GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* const report_name_for_report_preview)
 {
     const TextSource* report_text_source = nullptr;
 
@@ -16,7 +16,9 @@ const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::strin
         // returns true if the text source should be updated
         auto set_report_text_source = [&](const auto* id, auto get_name)
         {
-            if( FileExtensions::IsFileHtml(id->GetTextSource()->GetFilePath()) )
+            const FileExtensionAnalyzer report_extension_analyser(id->GetTextSource()->GetFilePath());
+
+            if( report_extension_analyser.IsTypeHtmlOrDerivable() )
             {
                 report_text_source = id->GetTextSource();
 
@@ -53,7 +55,7 @@ const TextSource* CMainFrame::GetHtmlReportTextSourceCurrentlyEditing(std::strin
 
 void CMainFrame::OnUpdateViewReportPreview(CCmdUI* const pCmdUI)
 {
-    const TextSource* const report_text_source = GetHtmlReportTextSourceCurrentlyEditing(nullptr);
+    const TextSource* const report_text_source = GetHtmlOrDerivableReportTextSourceCurrentlyEditing(nullptr);
     pCmdUI->Enable(( report_text_source != nullptr ));
 }
 
@@ -62,7 +64,7 @@ void CMainFrame::OnViewReportPreview()
 {
     Application* application;
     std::string report_name;
-    const TextSource* const report_text_source = GetHtmlReportTextSourceCurrentlyEditing(&report_name);
+    const TextSource* const report_text_source = GetHtmlOrDerivableReportTextSourceCurrentlyEditing(&report_name);
 
     if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application) != 1 )
         return;
@@ -71,14 +73,16 @@ void CMainFrame::OnViewReportPreview()
 
     try
     {
-        ReportPreviewer report_previewer(report_text_source->GetText(), application->GetLogicSettings());
+        ReportPreviewer report_previewer(report_text_source->GetFilePath(),
+                                         report_text_source->GetText(),
+                                         application->GetLogicSettings());
 
         // view the report, using an ExceptionHolder to display uncaught exceptions from the Action Invoker
         Viewer viewer;
         viewer.UseEmbeddedViewer()
               .UseExceptionHolder(nullptr)
               .SetTitle("Report Preview: " + report_name)
-              .ViewHtmlUrl(report_previewer.GetReportUrl(report_text_source->GetFilePath()));
+              .ViewHtmlUrl(report_previewer.GetReportUrl());
     }
 
     catch( const CSProException& exception )

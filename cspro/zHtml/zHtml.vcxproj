@@ -73,6 +73,7 @@
     <ClCompile Include="AccessUrlSerializer.cpp" />
     <ClCompile Include="CSHtmlDlgRunner.cpp" />
     <ClCompile Include="CSProHostObject.cpp" />
+    <ClCompile Include="CssProvider.cpp" />
     <ClCompile Include="CssStyleParser.cpp" />
     <ClCompile Include="DocumentVirtualFileMappingHandler.cpp" />
     <ClCompile Include="FileSystemVirtualFileMappingHandler.cpp" />
@@ -106,6 +107,8 @@
     <ClInclude Include="AccessUrlSerializer.h" />
     <ClInclude Include="CSHtmlDlgRunner.h" />
     <ClInclude Include="CSProHostObject.h" />
+    <ClInclude Include="CssProvider.h" />
+    <ClInclude Include="CssStyleParser.h" />
     <ClInclude Include="DocumentVirtualFileMappingHandler.h" />
     <ClInclude Include="FileSystemVirtualFileMappingHandler.h" />
     <ClInclude Include="HtmlBrowserView.h" />

@@ -225,6 +225,10 @@
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zViewO\zViewO.vcxproj">
+      <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

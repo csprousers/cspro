@@ -692,7 +692,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 323 */   &CIntDriver::ex_Map_getLastClickLatitude_getLastClickLongitude, // Map.getLastClickLongitude
 /* 324 */   &CIntDriver::ex_Map_getMarkerLatitude_getMarkerLongitude,    // Map.getMarkerLongitude
 /* 325 */   &CIntDriver::ex_Path_concat,
-/* 326 */   &CIntDriver::exview,
+/* 326 */   &CIntDriver::ex_view,
 /* 327 */   &CIntDriver::expffexec,
 /* 328 */   &CIntDriver::expffgetproperty,
 /* 329 */   &CIntDriver::expffload,

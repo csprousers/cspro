@@ -9,5 +9,7 @@
 #include <CSView/Settings.h>
 #include <CSView/UWM.h>
 #include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>
+#include <zUtilO/WindowsWS.h>

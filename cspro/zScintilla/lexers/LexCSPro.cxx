@@ -126,17 +126,20 @@ void LexCSPro::SetPostIdentifierState(Lexilla::StyleContext& sc)
 }
 
 
-void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, IDocument* pAccess)
+void SCI_METHOD LexCSPro::Lex(const Sci_PositionU startPos, const Sci_Position length, const int initStyle, IDocument* const pAccess)
+{
+    Accessor styler(pAccess, nullptr);
+    Lex(startPos, length, initStyle, styler, false);
+}
+
+
+Sci_PositionU LexCSPro::Lex(const Sci_PositionU startPos, const Sci_Position length, int initStyle, Accessor& styler, const bool process_report_tokens)
 {
     // No one likes a leaky string
     if( initStyle == SCE_CSPRO_STRING || initStyle == SCE_CSPRO_STRING_ESCAPE )
         initStyle = SCE_CSPRO_DEFAULT;
 
-    Accessor styler(pAccess, NULL);
-    StyleContext sc(startPos, length, initStyle, styler);
-
-    // CSPro supports nested block comments!
-    int commentNestLevel = styler.GetLineState(sc.currentLine - 1);
+    CSProStyleContext sc(startPos, length, initStyle, styler);
 
     NumType numType = NumType::Decimal;
     int decimalCount = 0;
@@ -151,7 +154,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
             if( sc.state == SCE_CSPRO_STRING )
                 sc.SetState(SCE_CSPRO_STRING);
 
-            styler.SetLineState(sc.currentLine, commentNestLevel);
+            sc.UpdateLineState();
         }
 
         switch( sc.state )
@@ -204,12 +207,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
             {
                 if( IsV8_0() ? sc.Match('*', '/') : sc.Match('}') )
                 {
-                    if( commentNestLevel > 0 )
-                        --commentNestLevel;
-
-                    styler.SetLineState(sc.currentLine, commentNestLevel);
-
-                    if( commentNestLevel == 0 )
+                    if( sc.DecrementCommentNestLevel() == 0 )
                     {
                         //to fix the bug when the character after the closing comment is still colored in comment color
                         sc.Forward();
@@ -223,8 +221,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
 
                 else if( IsV8_0() ? sc.Match('/', '*') : sc.Match('{') )
                 {
-                    ++commentNestLevel;
-                    styler.SetLineState(sc.currentLine, commentNestLevel);
+                    sc.IncrementCommentNestLevel();
                 }
 
                 break;
@@ -355,8 +352,7 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
             // comments
             else if( IsV8_0() ? sc.Match('/', '*') : sc.Match('{') )
             {
-                ++commentNestLevel;
-                styler.SetLineState(sc.currentLine, commentNestLevel);
+                sc.IncrementCommentNestLevel();
                 sc.SetState(SCE_CSPRO_COMMENT);
 
                 if( IsV8_0() )
@@ -370,7 +366,8 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
             }
 
             // operators
-            else if( strchr(Logic::OperatorCharacters, sc.ch) != nullptr )
+            else if( ( strchr(Logic::OperatorCharacters, sc.ch) != nullptr ) &&
+                     ( !process_report_tokens || !sc.Match('<', '?') ) )
             {
                 // the operators exclude $ and . because those should be counted as identifiers
                 sc.SetState(SCE_CSPRO_OPERATOR);
@@ -382,6 +379,59 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
 
                     if( sc.chNext == '.' )
                         sc.Forward();
+                }
+            }
+
+            // process report tokens: ~~ ~~~ <? ?>
+            else if( process_report_tokens )
+            {
+                const unsigned char current_report_style = sc.GetReportStyle();
+                unsigned char new_report_style = 0;
+
+                if( current_report_style == SCE_CSPRO_REPORT_LOGIC_TAG )
+                {
+                    if( sc.Match('?', '>') )
+                        new_report_style = SCE_CSPRO_REPORT_LOGIC_TAG;
+                }
+
+                else if( sc.Match('~', '~') )
+                {
+                    if( ( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_TRIPLE_TILDE ) &&
+                        ( sc.GetRelativeCharacter(2) == '~' ) )
+                    {
+                        new_report_style = SCE_CSPRO_REPORT_TRIPLE_TILDE;
+                    }
+
+                    else if( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_DOUBLE_TILDE )
+                    {
+                        new_report_style = SCE_CSPRO_REPORT_DOUBLE_TILDE;
+                    }
+                }
+
+                else if( current_report_style == 0 && sc.Match('<', '?') )
+                {
+                    new_report_style = SCE_CSPRO_REPORT_LOGIC_TAG;
+                }
+
+                // if starting or ending a report section, style the report tokens
+                if( new_report_style != 0 )
+                {
+                    sc.SetState(new_report_style);
+                    sc.Forward(( new_report_style == SCE_CSPRO_REPORT_TRIPLE_TILDE ) ? 3 : 2);
+                    sc.SetState(SCE_CSPRO_DEFAULT);
+
+                    // if ending a report section, return to the calling lexer
+                    if( current_report_style != 0 )
+                    {
+                        sc.ClearReportStyle();
+                        break;
+                    }
+
+                    else
+                    {
+                        sc.SetReportStyle(new_report_style);
+                        move_forward_at_end_of_while_loop = false;
+                    }
                 }
             }
         }
@@ -403,4 +453,6 @@ void SCI_METHOD LexCSPro::Lex(Sci_PositionU startPos, Sci_Position length, int i
         SetPostIdentifierState(sc);
 
     sc.Complete();
+
+    return sc.currentPos;
 }

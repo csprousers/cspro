@@ -66,8 +66,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CSView.h" />
-    <ClInclude Include="InputProcessor.h" />
     <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="NoDocumentViewInput.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="StdAfx.h" />
@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="CSView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="NoDocumentViewInput.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -122,6 +123,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zViewO\zViewO.vcxproj">
+      <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

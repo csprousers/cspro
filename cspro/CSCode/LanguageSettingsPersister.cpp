@@ -7,6 +7,7 @@ namespace
     // language settings will be persisted for a quarter of a year
     constexpr const char* LanguageSettingsTableName     = "language_settings";
     constexpr int64_t LanguageSettingsExpirationSeconds = DateHelper::SecondsInWeek(52 / 4);
+    constexpr std::string_view DefaultLanguageKey_sv    = "<default-language>";
 
 
     constexpr std::optional<unsigned> JavaScriptModuleTypeToJson(const std::optional<unsigned>& index)
@@ -35,20 +36,22 @@ CREATE_JSON_KEY(actionInvokerAbortOnException)
 CREATE_JSON_KEY(actionInvokerDisplayResultsAsJson)
 
 CREATE_ENUM_JSON_SERIALIZER(LanguageType,
-    { LanguageType::CSProLogic,         "CSPro-Logic" },
-    { LanguageType::CSProReportHtml,    "CSPro-Report-HTML" },
-    { LanguageType::CSProReport,        "CSPro-Report" },
-    { LanguageType::CSProMessages,      "CSPro-Messages" },
-    { LanguageType::CSProActionInvoker, "CSPro-Action-Invoker" },
-    { LanguageType::CSProHtmlDialog,    "CSPro-HTML-Dialog" },
-    { LanguageType::CSProSpecFileJson,  "CSPro-Spec-JSON" },
-    { LanguageType::CSProSpecFileIni,   "CSPro-Spec-INI" },
-    { LanguageType::Html,               "HTML" },
-    { LanguageType::JavaScript,         "JavaScript" },
-    { LanguageType::Json,               "JSON" },
-    { LanguageType::Sql,                "SQL" },
-    { LanguageType::Yaml,               "YAML" },
-    { LanguageType::Text,               "text" })
+    { LanguageType::CSProLogic,          "CSPro-Logic" },
+    { LanguageType::CSProReportHtml,     "CSPro-Report-HTML" },
+    { LanguageType::CSProReportMarkdown, "CSPro-Report-Markdown" },
+    { LanguageType::CSProReport,         "CSPro-Report" },
+    { LanguageType::CSProMessages,       "CSPro-Messages" },
+    { LanguageType::CSProActionInvoker,  "CSPro-Action-Invoker" },
+    { LanguageType::CSProHtmlDialog,     "CSPro-HTML-Dialog" },
+    { LanguageType::CSProSpecFileJson,   "CSPro-Spec-JSON" },
+    { LanguageType::CSProSpecFileIni,    "CSPro-Spec-INI" },
+    { LanguageType::Html,                "HTML" },
+    { LanguageType::JavaScript,          "JavaScript" },
+    { LanguageType::Json,                "JSON" },
+    { LanguageType::Markdown,            "Markdown" },
+    { LanguageType::Sql,                 "SQL" },
+    { LanguageType::Yaml,                "YAML" },
+    { LanguageType::Text,                "text" })
 
 
 LanguageSettingsPersister::LanguageSettingsPersister()
@@ -86,6 +89,29 @@ LanguageSettingsPersister::~LanguageSettingsPersister()
         }
         catch(...) { ASSERT(false); }
     }
+}
+
+
+LanguageType LanguageSettingsPersister::GetDefaultLanguageType()
+{
+    const std::string* const json_text = m_settingsDb.Read<std::string*>(DefaultLanguageKey_sv);
+
+    if( json_text != nullptr )
+    {
+        try
+        {
+            return Json::Parse(*json_text).Get<LanguageType>();
+        }
+        catch(...) { ASSERT(false); }
+    }
+
+    return LanguageType::Text;
+}
+
+
+void LanguageSettingsPersister::SetDefaultLanguageType(const LanguageType language_type)
+{
+    m_settingsDb.Write(DefaultLanguageKey_sv, Json::ToJson(language_type));
 }
 
 

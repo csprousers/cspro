@@ -38,9 +38,17 @@ public:
     }
 
 
+    static constexpr bool IsCSProReportMarkdown(int lexer_language)
+    {
+        return ( lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 ||
+                 lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 );
+    }
+
+
     static constexpr bool IsCSProReport(int lexer_language)
     {
-        return ( IsCSProReportHtml(lexer_language) || 
+        return ( IsCSProReportHtml(lexer_language) ||
+                 IsCSProReportMarkdown(lexer_language) ||
                  lexer_language == SCLEX_CSPRO_REPORT_V0 ||
                  lexer_language == SCLEX_CSPRO_REPORT_V8_0 );
     }
@@ -69,6 +77,7 @@ public:
             case SCLEX_HTML:
             case SCLEX_JAVASCRIPT:
             case SCLEX_JSON:
+            case SCLEX_MARKDOWN:
             case SCLEX_PERCENT_ENCODING:
             case SCLEX_SQL:
             case SCLEX_YAML:
@@ -88,6 +97,7 @@ public:
             case SCLEX_CSPRO_MESSAGE_V0:
             case SCLEX_CSPRO_REPORT_V0:
             case SCLEX_CSPRO_REPORT_HTML_V0:
+            case SCLEX_CSPRO_REPORT_MARKDOWN_V0:
                 return false;
 
             default:
@@ -134,12 +144,20 @@ public:
 
 
     template<typename T>
-    static int GetLexer_Report(const T& application_or_logic_settings_or_version, bool is_html_type)
+    static int GetLexer_Report(const T& application_or_logic_settings_or_version, const std::string_view filename_sv)
     {
-        if( is_html_type )
+        const FileExtensionAnalyzer report_extension_analyser(filename_sv);
+
+        if( report_extension_analyser.IsTypeHtml() )
         {
             return UseV8_0Lexers(application_or_logic_settings_or_version) ? SCLEX_CSPRO_REPORT_HTML_V8_0 :
                                                                              SCLEX_CSPRO_REPORT_HTML_V0;
+        }
+
+        else if( report_extension_analyser.IsTypeMarkdown() )
+        {
+            return UseV8_0Lexers(application_or_logic_settings_or_version) ? SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 :
+                                                                             SCLEX_CSPRO_REPORT_MARKDOWN_V0;
         }
 
         else

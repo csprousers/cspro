@@ -90,12 +90,20 @@ bool CLogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_e
 
     m_logicTooltips = properties.logic_tooltips.get();
 
-    // set the colors
-    static_assert(SCE_CSPRO_DEFAULT == 0);
-    ASSERT(StyleGetFore(SCE_CSPRO_DEFAULT) == RGB(0, 0, 0));
+    // set the styles
+    for( const auto& [style_code, style] : properties.styles )
+    {
+        StyleSetFore(style_code, style.foreground_color);
 
-    for( const auto& [style, color] : properties.colors )
-        StyleSetFore(style, color);
+        if( style.background_color != LexerStyle::NoOverride )
+            StyleSetBack(style_code, style.background_color);
+
+        if( style.bold )
+            StyleSetBold(style_code, TRUE);
+
+        if( style.italic )
+            StyleSetItalic(style_code, TRUE);
+    }
 
     return true;
 }

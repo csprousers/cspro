@@ -1,0 +1,9 @@
+project(zViewO)
+
+include(../WASM/Definitions.cmake)
+
+add_library(${PROJECT_NAME}
+    MarkdownViewInput.cpp
+    ViewInput.cpp
+    ViewInputCreator.cpp
+)

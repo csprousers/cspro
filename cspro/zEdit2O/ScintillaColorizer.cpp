@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "ScintillaColorizer.h"
-#include "LexerProperties.h"
 #include <zToolsO/Encoders.h>
 #include <zUtilO/PortableColor.h>
 #include <zHtml/HtmlWriter.h>
@@ -12,7 +11,7 @@
 // --------------------------------------------------------------------------
 
 ScintillaColorizer::ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl, const Sci_Position start_pos, const Sci_Position end_pos)
-    :   m_styleColorMap(LexerProperties::GetColors(scintilla_ctrl.GetLexer()))
+    :   m_styleMap(LexerProperties::GetStyles(scintilla_ctrl.GetLexer()))
 {
     const Sci_Position text_length = end_pos - start_pos;
     ASSERT(start_pos >= 0 && text_length >= 0 && end_pos <= scintilla_ctrl.GetLength());
@@ -37,7 +36,7 @@ ScintillaColorizer::ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl
 
 
 ScintillaColorizer::ScintillaColorizer(const int lexer_language, const std::string_view text_sv)
-    :   m_styleColorMap(LexerProperties::GetColors(lexer_language))
+    :   m_styleMap(LexerProperties::GetStyles(lexer_language))
 {
     GenerateEntities(CSProScintilla::GetStyledText(lexer_language, LexerProperties::GetKeywords(lexer_language), text_sv));
 }
@@ -58,7 +57,7 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
     }
 
     char* entity_start_pos = chars_and_styles_itr++;
-    char current_entity_style = *(chars_and_styles_itr++);
+    unsigned char current_entity_style = *(chars_and_styles_itr++);
 
     // we need to keep track of the line position to properly handle conversions of tabs to spaces
     int position_in_line = 0;
@@ -105,12 +104,14 @@ void ScintillaColorizer::GenerateEntities(std::unique_ptr<char[]> chars_and_styl
 }
 
 
-COLORREF ScintillaColorizer::GetStyleColor(const char style)
+LexerStyle ScintillaColorizer::GetStyle(const unsigned char style_index)
 {
-    const auto& style_lookup = m_styleColorMap.find(style);
+    const auto& style_lookup = m_styleMap.find(style_index);
 
-    return ( style_lookup != m_styleColorMap.cend() ) ? style_lookup->second :
-                                                        RGB(0, 0, 0);
+    if( style_lookup != m_styleMap.cend() )
+        return style_lookup->second;
+
+    return { RGB(0, 0, 0) };
 }
 
 
@@ -138,14 +139,14 @@ namespace
                            const std::vector<ET>& entities)
     {
         std::stringstream output;
-        std::optional<COLORREF> current_color;
+        std::optional<LexerStyle> current_style;
 
-        auto end_current_color = [&]()
+        auto end_current_style = [&]()
         {
-            if( current_color.has_value() )
+            if( current_style.has_value() )
             {
                 output << "</span>";
-                current_color.reset();
+                current_style.reset();
             }
         };
 
@@ -153,40 +154,53 @@ namespace
 
         for( const ET& entity : entities )
         {
-            // set the color if it has changed from the previous entity or if this entity has tags
-            const COLORREF color = colorizer.GetStyleColor(entity.style);
+            // set the style if it has changed from the previous entity or if this entity has tags
+            const LexerStyle style = colorizer.GetStyle(entity.style_index);
 
-            bool set_color = ( !current_color.has_value() || current_color != color );
-            bool end_color = false;
+            bool set_style = ( !current_style.has_value() ||
+                               memcmp(&(*current_style), &style, sizeof(style)) != 0 );
+            bool end_style = false;
 
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
             {
                 if( !entity.entity_spanning_tags.empty() || !entity.entity_specific_tags.empty() )
                 {
-                    set_color = true;
-                    end_color = true;
+                    set_style = true;
+                    end_style = true;
                 }
             }
 
-            // end the current color
-            if( set_color )
-                end_current_color();
+            // end the current style
+            if( set_style )
+                end_current_style();
 
-            // write out any pre-color (entity-spanning) start tags
+            // write out any pre-style (entity-spanning) start tags
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
             {
                 for( const auto& [start_tag, end_tag] : entity.entity_spanning_tags )
                     output << start_tag.c_str();
             }
 
-            // set the color
-            if( set_color )
+            // set the style
+            if( set_style )
             {
-                output << "<span style=\"color:" << colorizer.GetHtmlColor(color) << ";\">";
-                current_color = color;
+                output << "<span style=\"color:" << colorizer.GetHtmlColor(style.foreground_color) << ";";
+
+                if( style.background_color != LexerStyle::NoOverride )
+                    output << "background-color:" << colorizer.GetHtmlColor(style.background_color) << ";";
+
+                if( style.bold )
+                    output << "font-weight: bold;";
+
+                if( style.italic )
+                    output << "font-style: italic;";
+
+                output << "\">";
+
+                current_style = style;
             }
 
-            // write out any post-color (entity-specific) start tags
+            // write out any post-style (entity-specific) start tags
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
             {
                 for( const auto& [start_tag, end_tag] : entity.entity_specific_tags )
@@ -196,18 +210,18 @@ namespace
             // write out the entity
             output << Encoders::ToHtml(entity.text).c_str();
 
-            // write out any post-color (entity-specific) end tags
+            // write out any post-style (entity-specific) end tags
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
             {
                 for( auto itr = entity.entity_specific_tags.crbegin(); itr != entity.entity_specific_tags.crend(); ++itr )
                     output << std::get<1>(*itr).c_str();
             }
 
-            // end the color if necessary
-            if( end_color )
-                end_current_color();
+            // end the style if necessary
+            if( end_style )
+                end_current_style();
 
-            // write out any pre-color (entity-spanning) end tags
+            // write out any pre-style (entity-spanning) end tags
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
             {
                 for( auto itr = entity.entity_spanning_tags.crbegin(); itr != entity.entity_spanning_tags.crend(); ++itr )
@@ -215,7 +229,7 @@ namespace
             }
         }
 
-        end_current_color();
+        end_current_style();
 
         html_processor.WriteHtmlFooter(output);
 
@@ -300,7 +314,9 @@ std::string ScintillaColorizer::GetHtml(const std::variant<HtmlProcessorType, Ht
 
 
 // --------------------------------------------------------------------------
-// CSPro Users code generation
+// CSPro Users Forum code generation
+//
+// (only foreground colors are used)
 // --------------------------------------------------------------------------
 
 std::string ScintillaColorizer::GetCSProUsersForumCode()
@@ -322,17 +338,17 @@ std::string ScintillaColorizer::GetCSProUsersForumCode()
     for( const Entity& entity : m_entities )
     {
         // set the color if there are non-whitespace characters and the color has changed from the previous color
-        const COLORREF color = GetStyleColor(entity.style);
+        const LexerStyle style = GetStyle(entity.style_index);
 
-        if( !SO::IsWhitespace(entity.text) && ( !current_color.has_value() || *current_color != color ) )
+        if( !SO::IsWhitespace(entity.text) && ( !current_color.has_value() || *current_color != style.foreground_color ) )
         {
             end_current_color();
 
             // only set the color if it not the default black color
-            if( color != RGB(0, 0, 0) )
+            if( style.foreground_color != RGB(0, 0, 0) )
             {
-                output << "[color=" << GetHtmlColor(color) << "]";
-                current_color = color;
+                output << "[color=" << GetHtmlColor(style.foreground_color) << "]";
+                current_color = style.foreground_color;
             }
         }
 

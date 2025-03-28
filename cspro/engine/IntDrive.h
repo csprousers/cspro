@@ -516,8 +516,6 @@ public:
     double  exaccept_pre77(int iExpr);
     double  exprompt_pre77(int iExpr);
 
-    double  exview(int program_index);
-
     double  excountvalid(int iExpr); // 20091202
 
     double  exdeckarray(int iExpr); // for getdeck and putdeck
@@ -588,7 +586,7 @@ private:
     // Case functions
 public:
     double exCase_view(int program_index);
-    double exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options);
+    double exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) override;
 
 
     // Item functions
@@ -623,7 +621,7 @@ public:
     double ex_Freq_save(int program_index);
     double ex_Freq_tally(int program_index);
     double ex_Freq_view(int program_index);
-    double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index);
+    double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) override;
     double ex_Freq_var(int program_index);
     double ex_Freq_compute(int program_index);
 

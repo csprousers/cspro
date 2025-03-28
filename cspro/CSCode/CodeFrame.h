@@ -9,7 +9,7 @@ class ReportPreviewer;
 
 class CodeFrame : public CMDIChildWndEx
 {
-	DECLARE_DYNCREATE(CodeFrame)
+    DECLARE_DYNCREATE(CodeFrame)
 
 protected:
     CodeFrame(); // create from serialization only
@@ -69,6 +69,8 @@ protected:
 
     void OnRunJavaScriptModuleType(UINT nID);
     void OnUpdateRunJavaScriptModuleType(CCmdUI* pCmdUI);
+
+    void OnRunSaveAsHtml();
 
     // Context menu handlers
     // --------------------------------------------------------------------------

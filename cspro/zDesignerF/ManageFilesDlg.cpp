@@ -1061,7 +1061,7 @@ void ManageFilesDlg::OnAddMessages()
 void ManageFilesDlg::OnAddReport()
 {
     const std::unique_ptr<OpenFileDlg> open_file_dlg = CreateOpenFileDlg(L"Select Report File(s)", true, true,
-                                                                         FileExtensions::HTML, L"Report Files (*.html)|*.html|");
+                                                                         FileExtensions::HTML, L"Report Files (*.html;*.md)|*.html;*.md|");
     open_file_dlg->DisableExtensionCheck();
 
     if( open_file_dlg->DoModal() != IDOK )
@@ -1075,15 +1075,9 @@ void ManageFilesDlg::OnAddReport()
         {
             const ReportFile::EscapeType escape_type = ReportFile::GetDefaultEscapeTypeFromFilename(file_path, true);
 
-            // if the file does not exist, create a default one, providing templates for HTML-based reports
+            // if the file does not exist, create a default one
             if( !PortableFunctions::FileIsRegular(file_path) )
-            {
-                if( escape_type != ReportFile::EscapeType::Html || !CreateDefaultHtmlReport(file_path) )
-                {
-                    // create a blank file for non-HTML reports, or if the user didn't want to use a template
-                    FileIO::WriteText(file_path, std::string_view(), false);
-                }
-            }
+                CreateDefaultReport(file_path, escape_type);
 
             // create a unique name based on the filename
             m_application.AddReport(ReportFile(CreateUniqueName(Path::GetFilenameWithoutExtension(file_path)),
@@ -1108,9 +1102,32 @@ void ManageFilesDlg::OnAddReport()
 }
 
 
-bool ManageFilesDlg::CreateDefaultHtmlReport(const std::string& report_file_path)
+void ManageFilesDlg::CreateDefaultReport(const std::string& report_file_path, const ReportFile::EscapeType escape_type)
 {
+    ASSERT(!PortableFunctions::FileIsRegular(report_file_path));
+
     const std::string templates_directory = Html::GetDirectory(Html::Subdirectory::Templates);
+
+    if( escape_type == ReportFile::EscapeType::Html )
+    {
+        if( CreateDefaultHtmlReport(templates_directory, report_file_path) )
+            return;
+    }
+
+    else if( escape_type == ReportFile::EscapeType::Markdown )
+    {
+        const std::string markdown_report_template = Path::Combine(templates_directory, "report-basic.md");
+        PortableFunctions::FileCopyWithExceptions(markdown_report_template, report_file_path, FileOverwriteFlag::Fail);
+        return;
+    }
+
+    // default to creating a blank file for other report types, or if the user didn't want to use a template
+    FileIO::WriteText(report_file_path, std::string_view(), false);
+}
+
+
+bool ManageFilesDlg::CreateDefaultHtmlReport(const std::string& templates_directory, const std::string& report_file_path)
+{
     const std::string basic_report_template = Path::Combine(templates_directory, "report-basic.html");
     const std::string sections_report_template = Path::Combine(templates_directory, "report-sections.html");
 

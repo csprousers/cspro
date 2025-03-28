@@ -24,6 +24,7 @@ add_subdirectory(../zJson zJson)
 # add_subdirectory(../zListingO zListingO)
 # add_subdirectory(../zLogicO zLogicO)
 # add_subdirectory(../zMapping zMapping)
+# add_subdirectory(../zMarkdown zMarkdown)
 # add_subdirectory(../zMessageO zMessageO)
 # add_subdirectory(../zMultimediaO zMultimediaO)
 # add_subdirectory(../zNetwork zNetwork)
@@ -39,6 +40,7 @@ add_subdirectory(../zSql zSql)
 add_subdirectory(../zToolsO zToolsO)
 # add_subdirectory(../zUtilF zUtilF)
 add_subdirectory(../zUtilO zUtilO)
+# add_subdirectory(../zViewO zViewO)
 # add_subdirectory(../zYaml zYaml)
 # add_subdirectory(../zZipO zZipO)
 
@@ -99,6 +101,7 @@ target_link_libraries(${PROJECT_NAME}
     # zListingO
     # zLogicO
     # zMapping
+    # zMarkdown
     # zMessageO
     # zMultimediaO
     # zNetwork
@@ -113,6 +116,7 @@ target_link_libraries(${PROJECT_NAME}
     # zSyncO
     zToolsO
     # zUtilF
+    # zViewO
     zUtilO
     # zYaml
     # zZipO

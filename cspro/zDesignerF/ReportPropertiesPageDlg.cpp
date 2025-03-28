@@ -20,6 +20,7 @@ ReportPropertiesPageDlg::ReportPropertiesPageDlg(ManageFilesDlg& manage_files_dl
         m_reportFile(std::move(report_file)),
         m_name(TC::ToWide(m_reportFile.GetName())),
         m_escapeTypeRadioEnumHelper({ ReportFile::EscapeType::Html,
+                                      ReportFile::EscapeType::Markdown,
                                       ReportFile::EscapeType::Csv,
                                       ReportFile::EscapeType::None }),
         m_escapeType(m_escapeTypeRadioEnumHelper.ToForm(m_reportFile.GetEscapeType()))

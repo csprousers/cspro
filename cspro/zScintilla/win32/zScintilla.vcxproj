@@ -19,12 +19,15 @@
     <ClCompile Include="..\lexers\LexCSProLogic.cxx" />
     <ClCompile Include="..\lexers\LexCSProMessage.cxx" />
     <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx" />
-    <ClCompile Include="..\lexers\LexCSProReport.cxx" />
+    <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx" />
+    <ClCompile Include="..\lexers\LexCSProReportHtml.cxx" />
     <ClCompile Include="..\lexers\LexHTML.cxx" />
     <ClCompile Include="..\lexers\LexJSON.cxx" />
+    <ClCompile Include="..\lexers\LexMarkdown.cxx" />
     <ClCompile Include="..\lexers\LexNull.cxx" />
     <ClCompile Include="..\lexers\LexPercentEncoding.cxx" />
     <ClCompile Include="..\lexers\LexSQL.cxx" />
+    <ClCompile Include="..\lexers\LexText.cxx" />
     <ClCompile Include="..\lexers\LexYAML.cxx" />
     <ClCompile Include="..\lexlib\Accessor.cxx" />
     <ClCompile Include="..\lexlib\CharacterCategory.cxx" />
@@ -77,6 +80,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ScintRes.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\lexers\CSProStyleContext.h" />
+    <ClInclude Include="..\lexers\LexCSPro.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBE04237-9C7B-4973-9C60-505975998B39}</ProjectGuid>

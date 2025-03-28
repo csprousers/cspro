@@ -77,6 +77,10 @@
 
     -  The Data Viewer tool has been renamed Data Manager.
 
+    -  Markdown can be used in templated reports and can be viewed (as
+       generated HTML) using the view function or in CSView. Markdown can 
+       also be edited in CSCode and included as part of CSPro Documents.
+
     -  Applications can access the QuickJS JavaScript Engine from CSPro
        logic. Using the JS namespace, it is possible to evaluate JavaScript,
        invoke functions, and convert CSPro symbols to JavaScript numbers,

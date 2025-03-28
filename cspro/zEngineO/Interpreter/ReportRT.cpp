@@ -3,6 +3,7 @@
 #include "Report.h"
 #include "Nodes/Report.h"
 #include <zUtilO/TemporaryFile.h>
+#include <zViewO/MarkdownViewInput.h>
 
 
 std::string* LogicInterpreter::GetReportTextBuilderWithValidityCheck(Report& report)
@@ -38,12 +39,12 @@ double LogicInterpreter::ex_Report_view(const int program_index)
 
 double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
 {
-    // if not creating a HTML report, which can be shown in the embedded browser,
+    // if not creating a HTML or Markdown report, which can be shown in the embedded browser,
     // save the report to a temporary file that will be deleted when the program ends
-    const bool is_html_type = ( report.GetEscapeType() == ReportFile::EscapeType::Html );
+    const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
     std::unique_ptr<std::string> report_file_path;
 
-    if( !is_html_type )
+    if( !report_extension_analyser.IsTypeHtmlOrDerivable() )
     {
         report_file_path = std::make_unique<std::string>(GetUniqueTempFilePath(PortableFunctions::PathGetFilename(report.GetFilePath())));
         TemporaryFile::RegisterFileForDeletion(*report_file_path);
@@ -58,8 +59,12 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     viewer.UseEmbeddedViewer();
 
     // view HTML contents...
-    if( is_html_type )
+    if( report_extension_analyser.IsTypeHtmlOrDerivable() )
     {
+        // if Markdown, convert to HTML
+        if( report_extension_analyser.IsTypeMarkdown() )
+            *report_text_builder = MarkdownViewInput::ToViewableHtml(report.GetFilePath(), *report_text_builder);
+
         // in case the report uses resources specified using relative paths, set the
         // local file server root directory to where the report would have existed on the disk
         viewer.UseSharedHtmlLocalFileServer()
@@ -108,6 +113,10 @@ double LogicInterpreter::ex_Report_write(const int program_index)
                     escaped_fill_text = Encoders::ToHtmlWorker(*fill_text);
                     break;
 
+                case ReportFile::EscapeType::Markdown:
+                    escaped_fill_text = Encoders::ToMarkdownWorker(*fill_text);
+                    break;
+
                 case ReportFile::EscapeType::Csv:
                     escaped_fill_text = Encoders::ToCsvWorker(*fill_text);
                     break;
@@ -127,14 +136,15 @@ double LogicInterpreter::ex_Report_write(const int program_index)
     {
         ASSERT(report_write_node.type == Nodes::Report::Write::Type::Write);
 
-        report_text_builder->append(*EvaluateUserMessage(report_write_node.expression, FunctionCode::REPORTFN_WRITE_CODE));
+        const SharableString fill_text = EvaluateUserMessage(report_write_node.expression, FunctionCode::REPORTFN_WRITE_CODE);
+        report_text_builder->append(*fill_text);
     }
 
     return 1;
 }
 
 
-std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, const std::string* output_file_path)
+std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, const std::string* const output_file_path)
 {
     auto report_text_builder = std::make_unique<std::string>();
 
@@ -170,7 +180,18 @@ std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, co
         // save the report if necessary
         else if( output_file_path != nullptr )
         {
-            FileIO::WriteText(*output_file_path, *report_text_builder, true);
+            // if a Markdown report is being saved to HTML, save the converted version
+            if( FileExtensions::IsFileHtml(*output_file_path) &&
+                SO::EqualsNoCase(Path::GetExtension(report.GetFilePath()), FileExtensions::Markdown) )
+            {
+                const std::string html = MarkdownViewInput::ToSaveableHtml(report.GetFilePath(), *report_text_builder);
+                FileIO::WriteText(*output_file_path, html, true);
+            }
+
+            else
+            {
+                FileIO::WriteText(*output_file_path, *report_text_builder, true);
+            }
         }
     }
 

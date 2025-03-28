@@ -47,19 +47,23 @@ BOOL CSViewApp::InitInstance()
     //  the specific initialization routines you do not need.
 
     // Change the registry key under which our settings are stored.
-    SetRegistryKey(_T("U.S. Census Bureau"));
+    SetRegistryKey(L"U.S. Census Bureau");
 
-    LoadStdProfileSettings(_AFX_MRU_MAX_COUNT);  // Load standard INI file options (including MRU)
+    LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
     InitContextMenuManager();
 
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
-    CSingleDocTemplate* pDocTemplate = new CSingleDocTemplate(
+    CSingleDocTemplate* const pDocTemplate = new CSingleDocTemplate(
         IDR_MAINFRAME,
         RUNTIME_CLASS(ViewDoc),
         RUNTIME_CLASS(CMainFrame),       // main SDI frame window
         RUNTIME_CLASS(ViewView));
+
+    if( pDocTemplate == nullptr )
+        return FALSE;
+
     AddDocTemplate(pDocTemplate);
 
     // Parse command line for standard shell commands, DDE, file open
@@ -73,7 +77,10 @@ BOOL CSViewApp::InitInstance()
         OnFileNew();
     }
 
-    CMainFrame* pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
+    if( m_pMainWnd == nullptr )
+        return FALSE;
+
+    CMainFrame* const pMainFrame = assert_cast<CMainFrame*>(m_pMainWnd);
 
     // The main window has been initialized, so show and update it
     pMainFrame->ShowWindow(m_nCmdShow);
@@ -85,8 +92,6 @@ BOOL CSViewApp::InitInstance()
 
 void CSViewApp::OnAppAbout()
 {
-    CIMSAAboutDlg dlg;
-    dlg.m_hIcon = LoadIcon(IDR_MAINFRAME);
-    dlg.m_csModuleName.Format(AFX_IDS_APP_TITLE);
-    dlg.DoModal();
+    CIMSAAboutDlg about_dlg(WindowsWS::LoadString(AFX_IDS_APP_TITLE), LoadIcon(IDR_MAINFRAME));
+    about_dlg.DoModal();
 }

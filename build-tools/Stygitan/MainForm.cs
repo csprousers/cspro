@@ -163,11 +163,13 @@ namespace Stygitan
 
             bool process =
                 ( process_and_write_utf8_bom ||
+                  extension == ".cxx" ||
                   extension == ".kt" || extension == ".java" ||
                   extension == ".json" ||
                   extension == ".html" || extension == ".js" || extension == ".css" ||
                   extension == ".mk" || extension == ".gradle" ||
-                  extension == ".txt" || extension == ".md" );
+                  extension == ".txt" || extension == ".md" ||
+                  extension == ".nsh" || extension == ".nsi" );
 
             if( process )
             {

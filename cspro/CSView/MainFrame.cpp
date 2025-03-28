@@ -73,10 +73,10 @@ void CMainFrame::OnUpdateFrameTitle(const BOOL bAddToTitle)
     if( bAddToTitle )
     {
         ViewDoc* const view_doc = assert_cast<ViewDoc*>(GetActiveDocument());
-        const std::string* const description = view_doc->GetDescription();
+        title = view_doc->GetDescription();
 
-        if( description != nullptr )
-            title = *description + " - ";
+        if( !title.empty() )
+            title.append(" - ");
     }
 
     title.append("CSView");
@@ -127,7 +127,7 @@ LRESULT CMainFrame::OnGetObjectTransporter(WPARAM /*wParam*/, LPARAM /*lParam*/)
 }
 
 
-LRESULT CMainFrame::OnEngineUI(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnEngineUI(const WPARAM wParam, const LPARAM lParam)
 {
     if( m_engineUIProcessor == nullptr )
         m_engineUIProcessor = std::make_unique<EngineUIProcessor>(nullptr, false);
@@ -136,9 +136,9 @@ LRESULT CMainFrame::OnEngineUI(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    UIThreadRunner* ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
     ui_thread_runner->Execute();
     return 1;
 }

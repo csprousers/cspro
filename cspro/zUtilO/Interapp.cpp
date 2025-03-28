@@ -725,7 +725,8 @@ std::string Html::GetDirectory(const Subdirectory html_subdirectory)
 std::string Html::GetCSSFilePath(const CSS css)
 {
     return Path::Combine(GetDirectory(Subdirectory::CSS), ( css == CSS::CaseView ) ? "case-view.css" :
-                                                        /*( css == CSS::Common )*/   "common.css");
+                                                          ( css == CSS::Common )   ? "common.css" :
+                                                        /*( css == CSS::Markdown )*/ "markdown.css");
 }
 
 

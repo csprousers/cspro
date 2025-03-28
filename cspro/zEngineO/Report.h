@@ -7,9 +7,13 @@
 
 class ZENGINEO_API Report : public Symbol
 {
-public:
+private:
     Report(std::string report_name, ReportFile::EscapeType report_escape_type, std::string report_file_path);
+
+public:
     Report(const ReportFile& report_file);
+
+    static std::unique_ptr<Report> CreateReportFunctionParamter(std::string report_name);
 
     const std::string& GetFilePath() const { return m_filePath; }
 

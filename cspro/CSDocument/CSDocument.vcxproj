@@ -101,6 +101,7 @@
     <ClInclude Include="GlobalSettings.h" />
     <ClInclude Include="GlobalSettingsDlg.h" />
     <ClInclude Include="HtmlOutputWnd.h" />
+    <ClInclude Include="HtmlTags.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PdfCreator.h" />
     <ClInclude Include="resource.h" />
@@ -119,6 +120,7 @@
     <ClCompile Include="ConsoleWrapper.cpp" />
     <ClCompile Include="CSDocCompiler.cpp" />
     <ClCompile Include="CSDocCompilerColorizers.cpp" />
+    <ClCompile Include="CSDocCompilerMarkdownCreator.cpp" />
     <ClCompile Include="CSDocCompilerPffColorizer.cpp" />
     <ClCompile Include="CSDocCompilerSettings.cpp" />
     <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp" />
@@ -209,6 +211,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
       <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">

@@ -19,10 +19,15 @@ void ViewView::OnInitialUpdate()
     SetUpActionInvoker();
 
     // navigate to the current document
-    SharedHtmlLocalFileServer& file_server = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetSharedHtmlLocalFileServer();
-    const std::string document_url = view_doc.GetDocumentUrl(file_server);
+    try
+    {
+        m_htmlViewCtrl.NavigateTo(view_doc.GetUrl());
+    }
 
-    m_htmlViewCtrl.NavigateTo(document_url);
+    catch( const CSProException& exception )
+    {
+        m_htmlViewCtrl.SetHtml(Encoders::ToPreformattedTextHtml("CSView Error", exception.what()));
+    }
 }
 
 

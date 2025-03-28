@@ -24,6 +24,9 @@
     <ClCompile Include="CSProHostObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CssProvider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CssStyleParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -108,6 +111,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSProHostObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CssProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CssStyleParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DocumentVirtualFileMappingHandler.h">

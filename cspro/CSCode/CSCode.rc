@@ -202,6 +202,7 @@ BEGIN
     BEGIN
         MENUITEM "CSPro &Logic",                ID_LANGUAGE_CSPRO_LOGIC
         MENUITEM "CSPro &Report (HTML)",        ID_LANGUAGE_CSPRO_REPORT_HTML
+        MENUITEM "CSPro Report (Markdown)",     ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
         MENUITEM "CSPro Report",                ID_LANGUAGE_CSPRO_REPORT
         MENUITEM "CSPro &Messages",             ID_LANGUAGE_CSPRO_MESSAGES
         MENUITEM SEPARATOR
@@ -217,6 +218,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Java&Script",                 ID_LANGUAGE_JAVASCRIPT
         MENUITEM "&JSON",                       ID_LANGUAGE_JSON
+        MENUITEM SEPARATOR
+        MENUITEM "Markdown",                    ID_LANGUAGE_MARKDOWN
         MENUITEM SEPARATOR
         MENUITEM "S&QL",                        ID_LANGUAGE_SQL
         MENUITEM SEPARATOR
@@ -579,6 +582,8 @@ BEGIN
     ID_LANGUAGE_CSPRO_LOGIC "Interpret file as CSPro Logic\nCSPro Logic"
     ID_LANGUAGE_CSPRO_REPORT_HTML 
                             "Interpret file as CSPro Report (HTML)\nCSPro Report (HTML)"
+    ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
+                            "Interpret file as CSPro Report (Markdown)\nCSPro Report (Markdown)"
     ID_LANGUAGE_CSPRO_REPORT "Interpret file as CSPro Report\nCSPro Report"
     ID_LANGUAGE_CSPRO_MESSAGES 
                             "Interpret file as CSPro Messages\nCSPro Messages"
@@ -604,6 +609,7 @@ BEGIN
     ID_LANGUAGE_HTML        "Interpret file as HTML\nHTML"
     ID_LANGUAGE_JAVASCRIPT  "Interpret file as JavaScript\nJavaScript"
     ID_LANGUAGE_JSON        "Interpret file as JSON\nJSON"
+    ID_LANGUAGE_MARKDOWN    "Interpret file as Markdown\nMarkdown"
     ID_LANGUAGE_SQL         "Interpret file as SQL\nSQL"
     ID_LANGUAGE_YAML        "Interpret file as YAML\nYAML"
     ID_LANGUAGE_NONE        "Interpret file as Text\nNone (Text)"
@@ -621,11 +627,11 @@ BEGIN
                             "Compile or validate the code\nCompile or Validate"
     ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 
                             "Convert specification file to CSPro 7.7-compatible file\nConvert to CSPro 7.7 Format"
-    ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
 END
 
 STRINGTABLE
 BEGIN
+    ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
     ID_RUN_CSPRO_LOGIC_V8   "Change logic version to CSPro 8.0+\nCSPro 8.0+"
     ID_RUN_CSPRO_SPEC_FILE_APP 
                             "Modify specification file type to Application\nApplication"
@@ -653,18 +659,19 @@ BEGIN
     ID_RUN_COMPRESS_JSON    "Compress the JSON using a format with minimal whitespace\n&Compress JSON"
     ID_RUN_HTML_DIALOG_TEMPLATES 
                             "Use code or data from HTML dialog templates\nHTML Dialog Templates"
-    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
-                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
 END
 
 STRINGTABLE
 BEGIN
+    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
+                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
     ID_RUN_JAVASCRIPT_MODULE_GLOBAL 
                             "Treat the JavaScript file as part of the global object (not a module)\nGlobal"
     ID_RUN_JAVASCRIPT_MODULE_MODULE 
                             "Treat the JavaScript file as a module\nECMAScript Module"
     ID_RUN_REPORT_PREVIEW   "Preview the report\nReport Preview"
     ID_RUN_RUN              "Run the code\nRun"
+    ID_RUN_SAVE_AS_HTML     "Save the file as HTML\nSave as HTML"
     ID_RUN_STOP             "Stop any running code\nStop"
     ID_RUN_VALIDATE_JSON_ONLY 
                             "Validate the JSON as JSON only (not as a specification file)\nValidate JSON Only"

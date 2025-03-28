@@ -80,6 +80,7 @@
     <ClCompile Include="ProcessorHtml.cpp" />
     <ClCompile Include="ProcessorJavaScript.cpp" />
     <ClCompile Include="ProcessorJson.cpp" />
+    <ClCompile Include="ProcessorMarkdown.cpp" />
     <ClCompile Include="ProcessorMessages.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -109,6 +110,7 @@
     <ClInclude Include="ProcessorHtml.h" />
     <ClInclude Include="ProcessorJavaScript.h" />
     <ClInclude Include="ProcessorJson.h" />
+    <ClInclude Include="ProcessorMarkdown.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunOperation.h" />
     <ClInclude Include="StdAfx.h" />
@@ -195,6 +197,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zViewO\zViewO.vcxproj">
+      <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

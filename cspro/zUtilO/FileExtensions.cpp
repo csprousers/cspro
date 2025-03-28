@@ -2,6 +2,10 @@
 #include "FileExtensions.h"
 
 
+// --------------------------------------------------------------------------
+// FileExtensions
+// --------------------------------------------------------------------------
+
 bool FileExtensions::IsExtensionHtml(const std::string_view extension_sv)
 {
     return SO::EqualsOneOfNoCase(extension_sv, FileExtensions::HTML, FileExtensions::HTM, FileExtensions::CSHTML);
@@ -65,4 +69,19 @@ bool FileExtensions::IsExtensionForbiddenForDataFiles(const std::string_view ext
                                       [&](const char* const this_extension) { return SO::EqualsNoCase(extension_sv, this_extension); });
 
     return ( lookup != disallowed_extensions.cend() );
+}
+
+
+
+// --------------------------------------------------------------------------
+// FileExtensionAnalyzer
+// --------------------------------------------------------------------------
+
+FileExtensionAnalyzer::FileExtensionAnalyzer(const std::string_view filename_sv)
+{
+    const std::string extension = PortableFunctions::PathGetFileExtension(filename_sv);
+
+    m_type = FileExtensions::IsExtensionHtml(extension)            ? Type::Html :
+             SO::EqualsNoCase(extension, FileExtensions::Markdown) ? Type::Markdown :
+                                                                     Type::None;
 }

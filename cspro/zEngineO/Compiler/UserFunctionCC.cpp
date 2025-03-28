@@ -436,7 +436,7 @@ void LogicCompiler::CompileUserFunctionParameters(UserFunction& user_function, c
         // compile report parameters
         else if( Tkn == TOKFUNCTION && CurrentToken.function_details->code == FNPRE77_REPORT_CODE )
         {
-            created_symbol = std::make_unique<Report>(CompileNewSymbolName(), ReportFile::EscapeType::None, std::string());
+            created_symbol = Report::CreateReportFunctionParamter(CompileNewSymbolName());
         }
 
         // compile function pointers

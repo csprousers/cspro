@@ -50,6 +50,8 @@ public:
         static constexpr const char* Text        = "text/plain";
 
         static constexpr const char* Html        = "text/html";
+        static constexpr const char* Markdown    = "text/markdown";
+
         static constexpr const char* JavaScript  = "application/javascript";
         static constexpr const char* Json        = "application/json";
 

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "projectName": "android-audio-visualizer",
     "projectUrl": "https://github.com/GautamChibde/android-audio-visualizer",
@@ -80,6 +80,12 @@
     "projectUrl": "https://github.com/mapbox/geometry.hpp",
     "licenseFilename": "LICENSE",
     "licenseUrl": "https://github.com/mapbox/geometry.hpp/blob/master/LICENSE"
+  },
+  {
+    "projectName": "github-markdown-css",
+    "projectUrl": "https://github.com/sindresorhus/github-markdown-css",
+    "licenseFilename": "license",
+    "licenseUrl": "https://raw.githubusercontent.com/sindresorhus/github-markdown-css/refs/heads/main/license"
   },
   {
     "projectName": "glide",
@@ -186,6 +192,12 @@
     "projectName": "MD5",
     "projectUrl": "https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5",
     "licenseFilename": "md5.c"
+  },
+  {
+    "projectName": "md4c",
+    "projectUrl": "https://github.com/mity/md4c",
+    "licenseFilename": "LICENSE.md",
+    "licenseUrl": "https://raw.githubusercontent.com/mity/md4c/refs/heads/master/LICENSE.md"
   },
   {
     "projectName": "miniz",

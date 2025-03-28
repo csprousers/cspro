@@ -24,51 +24,69 @@
 #define SCLEX_CSPRO_REPORT_V8_0 7
 #define SCLEX_CSPRO_REPORT_HTML_V0 8
 #define SCLEX_CSPRO_REPORT_HTML_V8_0 9
-#define SCLEX_CSPRO_PRE80_SPEC_FILE 10
-#define SCLEX_CSPRO_DOCUMENT 11
-#define SCLEX_CPP 12
-#define SCLEX_HTML 13
-#define SCLEX_JAVASCRIPT 14
-#define SCLEX_JSON 15
-#define SCLEX_PERCENT_ENCODING 16
-#define SCLEX_SQL 17
-#define SCLEX_YAML 18
+#define SCLEX_CSPRO_REPORT_MARKDOWN_V0 10
+#define SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 11
+#define SCLEX_CSPRO_PRE80_SPEC_FILE 12
+#define SCLEX_CSPRO_DOCUMENT 13
+#define SCLEX_CPP 14
+#define SCLEX_HTML 15
+#define SCLEX_JAVASCRIPT 16
+#define SCLEX_JSON 17
+#define SCLEX_MARKDOWN 18
+#define SCLEX_PERCENT_ENCODING 19
+#define SCLEX_SQL 20
+#define SCLEX_YAML 21
 #define SCLEX_AUTOMATIC 1000
+
+
+// --------------------------------------------------------------------------
+// Style code notes:
+// - Valid style codes are: 0 - 255.
+// - Code 32 (STYLE_DEFAULT) is the default style.
+// - Codes 33 - 39 (STYLE_LINENUMBER - STYLE_LASTPREDEFINED ) are reserved.
+// - CSPro uses codes 91+
+// --------------------------------------------------------------------------
+
 
 // --------------------------------------------------------------------------
 // CSPro
 // --------------------------------------------------------------------------
-#define SCE_CSPRO_DEFAULT 0
-#define SCE_CSPRO_COMMENT 1
-#define SCE_CSPRO_COMMENTLINE 2
-#define SCE_CSPRO_NUMBER 3
-#define SCE_CSPRO_STRING 4
-#define SCE_CSPRO_STRING_ESCAPE 5
-#define SCE_CSPRO_KEYWORD 6
-#define SCE_CSPRO_NUMERROR 7
-#define SCE_CSPRO_OPERATOR 8
-#define SCE_CSPRO_IDENTIFIER 9
-#define SCE_CSPRO_IDENTIFIER_AFTER_DOT 10
-#define SCE_CSPRO_DOT_NOTATION_FUNCTION 11
-#define SCE_CSPRO_FUNCTION_NAMESPACE_PARENT 12
-#define SCE_CSPRO_FUNCTION_NAMESPACE_CHILD 13
-#define SCE_CSPRO_IDENTIFIER_AFTER_FUNCTION_NAMESPACE_DOT 14
-#define SCE_CSPRO_NAMED_ARGUMENT 15
-#define SCE_CSPRO_REPORT_DEFAULT 21
-#define SCE_CSPRO_REPORT_MUSTACHE 22
-#define SCE_CSPRO_REPORT_TRIP_MUSTACHE 23
-#define SCE_CSPRO_REPORT_CSPROLOGIC 24
-#define SCE_CSPRO_REPORT_HTML 25
-#define SCE_CSPRO_REPORT_HTML_OPTION 26
-#define SCE_CSPRO_REPORT_HTML_QUOTE 27
-#define SCE_CSPRO_REPORT_HTML_NUM 28
-#define SCE_CSPRO_DOCUMENT_TAG 29
-#define SCE_CSPRO_DOCUMENT_BOOLEAN_ATTRIBUTE 30
-#define SCE_CSPRO_DOCUMENT_ATTRIBUTE 31
-#define SCE_CSPRO_DOCUMENT_VALUE 32
+#define SCE_CSPRO_DEFAULT 91
+#define SCE_CSPRO_COMMENT 92
+#define SCE_CSPRO_COMMENTLINE 93
+#define SCE_CSPRO_NUMBER 94
+#define SCE_CSPRO_STRING 95
+#define SCE_CSPRO_STRING_ESCAPE 96
+#define SCE_CSPRO_KEYWORD 97
+#define SCE_CSPRO_NUMERROR 98
+#define SCE_CSPRO_OPERATOR 99
+#define SCE_CSPRO_IDENTIFIER 100
+#define SCE_CSPRO_IDENTIFIER_AFTER_DOT 101
+#define SCE_CSPRO_DOT_NOTATION_FUNCTION 102
+#define SCE_CSPRO_FUNCTION_NAMESPACE_PARENT 103
+#define SCE_CSPRO_FUNCTION_NAMESPACE_CHILD 104
+#define SCE_CSPRO_IDENTIFIER_AFTER_FUNCTION_NAMESPACE_DOT 105
+#define SCE_CSPRO_NAMED_ARGUMENT 106
+
+#define SCE_CSPRO_REPORT_DOUBLE_TILDE 107
+#define SCE_CSPRO_REPORT_TRIPLE_TILDE 108
+#define SCE_CSPRO_REPORT_LOGIC_TAG 109
+
+#define SCE_CSPRO_REPORT_HTML_DEFAULT 110
+#define SCE_CSPRO_REPORT_HTML_TAG 111
+#define SCE_CSPRO_REPORT_HTML_ATTR 112
+#define SCE_CSPRO_REPORT_HTML_QUOTE 113
+#define SCE_CSPRO_REPORT_HTML_NUM 114
+
+#define SCE_CSPRO_DOCUMENT_TAG 115
+#define SCE_CSPRO_DOCUMENT_BOOLEAN_ATTRIBUTE 116
+#define SCE_CSPRO_DOCUMENT_ATTRIBUTE 117
+#define SCE_CSPRO_DOCUMENT_VALUE 118
+
 #define SCE_CSPRO_PRE80_SPEC_FILE_DEFAULT 0
 #define SCE_CSPRO_PRE80_SPEC_FILE_HEADER 1
 #define SCE_CSPRO_PRE80_SPEC_FILE_ATTRIBUTE 2
+
 
 // --------------------------------------------------------------------------
 // HTML
@@ -185,6 +203,7 @@
 #define SCE_HPHP_HSTRING_VARIABLE 126
 #define SCE_HPHP_OPERATOR 127
 
+
 // --------------------------------------------------------------------------
 // JavaScript
 // --------------------------------------------------------------------------
@@ -217,6 +236,7 @@
 #define SCE_C_TASKMARKER 26
 #define SCE_C_ESCAPESEQUENCE 27
 
+
 // --------------------------------------------------------------------------
 // JSON
 // --------------------------------------------------------------------------
@@ -235,6 +255,34 @@
 #define SCE_JSON_LDKEYWORD 12
 #define SCE_JSON_ERROR 13
 
+
+// --------------------------------------------------------------------------
+// Markdown, which shares the CSPro styles
+// --------------------------------------------------------------------------
+#define SCE_MARKDOWN_DEFAULT 0
+#define SCE_MARKDOWN_LINE_BEGIN 1
+#define SCE_MARKDOWN_STRONG1 2
+#define SCE_MARKDOWN_STRONG2 3
+#define SCE_MARKDOWN_EM1 4
+#define SCE_MARKDOWN_EM2 5
+#define SCE_MARKDOWN_HEADER1 6
+#define SCE_MARKDOWN_HEADER2 7
+#define SCE_MARKDOWN_HEADER3 8
+#define SCE_MARKDOWN_HEADER4 9
+#define SCE_MARKDOWN_HEADER5 10
+#define SCE_MARKDOWN_HEADER6 11
+#define SCE_MARKDOWN_PRECHAR 12
+#define SCE_MARKDOWN_ULIST_ITEM 13
+#define SCE_MARKDOWN_OLIST_ITEM 14
+#define SCE_MARKDOWN_BLOCKQUOTE 15
+#define SCE_MARKDOWN_STRIKEOUT 16
+#define SCE_MARKDOWN_HRULE 17
+#define SCE_MARKDOWN_LINK 18
+#define SCE_MARKDOWN_CODE 19
+#define SCE_MARKDOWN_CODE2 20
+#define SCE_MARKDOWN_CODEBK 21
+
+
 // --------------------------------------------------------------------------
 // Percent Encoding
 // --------------------------------------------------------------------------
@@ -243,6 +291,7 @@
 #define SCE_PERCENT_ENCODING_HEX 2
 #define SCE_PERCENT_ENCODING_BAD_HEX 3
 #define SCE_PERCENT_ENCODING_BAD_NOT_UNRESERVED 4
+
 
 // --------------------------------------------------------------------------
 // SQL
@@ -270,6 +319,7 @@
 #define SCE_SQL_USER4 22
 #define SCE_SQL_QUOTEDIDENTIFIER 23
 #define SCE_SQL_QOPERATOR 24
+
 
 // --------------------------------------------------------------------------
 // YAML

@@ -22,6 +22,12 @@ Report::Report(const ReportFile& report_file)
 }
 
 
+std::unique_ptr<Report> Report::CreateReportFunctionParamter(std::string report_name)
+{
+    return std::unique_ptr<Report>(new Report(std::move(report_name), ReportFile::EscapeType::None, std::string()));
+}
+
+
 void Report::serialize_subclass(Serializer& ar)
 {
     if( IsFunctionParameter() )

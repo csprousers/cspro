@@ -1,7 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "CodeFrame.h"
 #include "HtmlDialogCodeView.h"
+#include "LanguageSettingsPersister.h"
 #include "ProcessorActionInvoker.h"
+#include "ProcessorMarkdown.h"
 #include <zUtilF/DynamicMenuBuilder.h>
 #include <zDesignerF/ReportPreviewer.h>
 
@@ -47,6 +49,8 @@ BEGIN_MESSAGE_MAP(CodeFrame, CMDIChildWndEx)
 
     ON_COMMAND_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnRunJavaScriptModuleType)
     ON_UPDATE_COMMAND_UI_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnUpdateRunJavaScriptModuleType)
+
+    ON_COMMAND(ID_RUN_SAVE_AS_HTML, OnRunSaveAsHtml)
 
     // Context menu
     ON_COMMAND(ID_COPY_FULL_PATH, OnCopyFullPath)
@@ -202,7 +206,7 @@ void CodeFrame::OnLanguageType(const UINT nID)
 {
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
-    LanguageType language_type = GetLanguageTypeFromId(nID);
+    const LanguageType language_type = GetLanguageTypeFromId(nID);
 
     doc_language_settings.SetLanguageType(language_type, code_doc.GetFilePath());
 
@@ -214,6 +218,10 @@ void CodeFrame::OnLanguageType(const UINT nID)
 
     // update the file type in the status bar
     AfxGetMainWnd()->PostMessage(UWM::CSCode::SetStatusBarFileType);
+
+    // if this is a new file, save this type to use for the next new file
+    if( code_doc.GetPathName().IsEmpty() )
+        assert_cast<CMainFrame*>(AfxGetMainWnd())->GetLanguageSettingsPersister().SetDefaultLanguageType(language_type);
 }
 
 
@@ -328,6 +336,15 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     } */
 
 
+    // add Markdown options
+    if( view_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown ||
+        view_language_settings.GetLanguageType() == LanguageType::Markdown )
+    {
+        dynamic_menu_builder.AddSeparator();
+        dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_SAVE_AS_HTML));
+    }
+
+
     // add the logic version submenu
     if( Lexers::UsesCSProLogic(doc_language_settings.GetLexerLanguage()) ||
         Lexers::IsCSProMessage(doc_language_settings.GetLexerLanguage()) )
@@ -399,6 +416,11 @@ void CodeFrame::OnRunRun()
         code_doc.GetJavaScriptProcessor().Run();
     }
 
+    else if( language_type == LanguageType::Markdown )
+    {
+        ProcessorMarkdown::Run(code_doc);
+    }
+
     else
     {
         ASSERT(doc_language_settings.CanRunCode());
@@ -430,8 +452,14 @@ void CodeFrame::OnRunReportPreview()
 
     try
     {
-        m_reportPreviewer = std::make_unique<ReportPreviewer>(logic_ctrl->GetText(), logic_settings);
-        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver(code_doc.GetActualOrTempFilePath(FileExtensions::HTML)));
+        const bool html_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProReportHtml );
+        ASSERT(html_type || doc_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown);
+
+        m_reportPreviewer = std::make_unique<ReportPreviewer>(code_doc.GetActualOrTempFilePath(html_type ? FileExtensions::HTML : FileExtensions::Markdown),
+                                                              logic_ctrl->GetText(),
+                                                              logic_settings);
+
+        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver());
     }
 
     catch( const CSProException& exception )
@@ -549,6 +577,27 @@ void CodeFrame::OnUpdateRunJavaScriptModuleType(CCmdUI* const pCmdUI)
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
     pCmdUI->SetCheck(doc_language_settings.GetJavaScriptModuleType() == pCmdUI->m_nID);
+}
+
+
+void CodeFrame::OnRunSaveAsHtml()
+{
+    CodeDoc& code_doc = GetCodeDoc();
+
+    switch( code_doc.GetLanguageSettings().GetLanguageType() )
+    {
+        case LanguageType::CSProReportMarkdown:
+            ProcessorMarkdown::SaveReportAsHtml(code_doc);
+            break;
+
+        case LanguageType::Markdown:
+            ProcessorMarkdown::SaveAsHtml(code_doc);
+            break;
+
+        default:
+            ASSERT(false);
+            break;
+    }
 }
 
 

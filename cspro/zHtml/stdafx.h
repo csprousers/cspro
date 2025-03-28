@@ -6,6 +6,7 @@
 #include <zHtml/resource.h>
 #include <zHtml/UWM.h>
 #include <zToolsO/Encoders.h>
+#include <zToolsO/FileIO.h>
 #include <zToolsO/Screen.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>

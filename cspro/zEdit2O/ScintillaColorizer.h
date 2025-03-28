@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zEdit2O/zEdit2O.h>
+#include <zEdit2O/LexerProperties.h>
 #include <zEdit2O/LogicCtrl.h>
 #include <iosfwd>
 
@@ -29,21 +30,21 @@ public:
     // colorize for the CSPro Users Blog
     std::string GetCSProUsersBlogCode();
 
-    // style color lookups
-    COLORREF GetStyleColor(char style);
+    // style lookups
+    LexerStyle GetStyle(unsigned char style_index);
     const char* GetHtmlColor(COLORREF color);
 
 
     struct Entity
     {
         std::string text;
-        char style;
+        unsigned char style_index;
     };
 
     struct ExtendedEntity
     {
         std::string text;
-        char style;
+        unsigned char style_index;
         std::variant<std::monostate, SymbolType, const Logic::FunctionNamespaceDetails*> details;
         std::vector<std::tuple<std::string, std::string>> entity_spanning_tags;
         std::vector<std::tuple<std::string, std::string>> entity_specific_tags;
@@ -63,6 +64,6 @@ private:
     void GenerateEntities(std::unique_ptr<char[]> chars_and_styles);
 
 private:
-    const std::map<char, COLORREF>& m_styleColorMap;
+    const std::map<unsigned char, LexerStyle>& m_styleMap;
     std::vector<Entity> m_entities;
 };

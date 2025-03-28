@@ -19,6 +19,9 @@ public:
     LanguageSettingsPersister();
     ~LanguageSettingsPersister();
 
+    LanguageType GetDefaultLanguageType();
+    void SetDefaultLanguageType(LanguageType language_type);
+
     std::optional<LanguageType> GetLanguageType(const std::string& file_path);
     std::optional<std::tuple<bool, bool>> GetActionInvokerJsonResultsAndExceptionFlags(const std::string& file_path);
     std::optional<LogicSettings> GetLogicSettings(const std::string& file_path);
@@ -41,7 +44,7 @@ private:
 
     Data* GetData(const std::string& file_path);
     Data& GetOrCreateData(const std::string& file_path);
-        
+
 private:
     SettingsDb m_settingsDb;
     std::map<std::string, Data, cs::case_insensitive_less> m_data;
