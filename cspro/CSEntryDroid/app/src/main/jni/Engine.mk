@@ -78,7 +78,6 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/VariableInOut.cpp
 
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/Capi.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiCondition.cpp
-LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiFill.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestion.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionManager.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionYaml.cpp

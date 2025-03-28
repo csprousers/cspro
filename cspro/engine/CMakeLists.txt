@@ -83,7 +83,6 @@ add_library(${PROJECT_NAME}
 
     ${ZCAPIO_DIRECTORY}/Capi.cpp
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
-    ${ZCAPIO_DIRECTORY}/CapiFill.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestion.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestionManager.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestionYaml.cpp

@@ -67,7 +67,6 @@
   <ItemGroup>
     <ClCompile Include="CapiCondition.cpp" />
     <ClCompile Include="CapiControl.cpp" />
-    <ClCompile Include="CapiFill.cpp" />
     <ClCompile Include="CapiQuestion.cpp" />
     <ClCompile Include="CapiQuestionManager.cpp" />
     <ClCompile Include="CapiQuestionYaml.cpp" />
@@ -88,10 +87,10 @@
   <ItemGroup>
     <None Include="res\next.ico" />
     <None Include="res\prev.ico" />
-    <None Include="res\Cancel.ico" />
-    <None Include="res\Find.ico" />
-    <None Include="res\Invert.ico" />
-    <None Include="res\Ok.ico" />
+    <None Include="res\cancel.ico" />
+    <None Include="res\find.ico" />
+    <None Include="res\invert.ico" />
+    <None Include="res\ok.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zCapiO.rc" />

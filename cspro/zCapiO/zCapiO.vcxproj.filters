@@ -21,9 +21,6 @@
     <ClCompile Include="CapiControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CapiFill.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CapiQuestion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -65,16 +62,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\Cancel.ico">
+    <None Include="res\cancel.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\Find.ico">
+    <None Include="res\find.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\Invert.ico">
+    <None Include="res\invert.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\Ok.ico">
+    <None Include="res\ok.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\prev.ico">
