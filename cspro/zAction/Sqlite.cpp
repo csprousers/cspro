@@ -464,7 +464,11 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_open(const JsonNode& json_n
     // path
     if( input_type == JK::path )
     {
-        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
+        std::string path = json_node.Get<std::string>(JK::path);
+        const bool in_memory_db = ( path == ":memory:" );
+
+        if( !in_memory_db )
+            path = caller.EvaluateAbsolutePath(std::move(path));
 
         // default to read-only
         const size_t open_flags_index = json_node.Contains(JK::openFlags) ?
@@ -478,6 +482,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_open(const JsonNode& json_n
         // by default, a created SQLite file is 0 bytes, so we will set a pragma to make sure that a proper
         // database is created, which matters mostly when using an encryption key
         const bool set_user_pragmas = ( open_flags_index == 2 &&
+                                        !in_memory_db &&
                                         !PortableFunctions::FileIsRegular(path) );
 
         const SqliteDbWrapper::EncryptionKey encryption_key = SqliteDbWrapper::GetEncryptionKey(*this, json_node, false);

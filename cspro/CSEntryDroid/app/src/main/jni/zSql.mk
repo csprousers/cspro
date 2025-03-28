@@ -19,6 +19,7 @@ LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_CFLAGS            += -DZSQL_EXPORTS
 LOCAL_CFLAGS            += -DSQLITE_TEMP_STORE=3 # use memory for temp files since Android doesn't have real temp directory
+LOCAL_C_INCLUDES        += ../..
 LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO
 
 include $(BUILD_STATIC_LIBRARY)

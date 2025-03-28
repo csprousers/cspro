@@ -1,6 +1,4 @@
-#ifndef ANDROID
 #include <zSql/zSql.h>
-#endif
 /******************************************************************************
 ** This file is an amalgamation of many separate C source files from SQLite
 ** version 3.47.1.  By combining all the individual C code files into this

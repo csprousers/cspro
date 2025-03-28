@@ -540,8 +540,8 @@ void Creator::CreateSqliteWithoutSEE(const git_treeT* const tree)
         if( is_header && body.find(full_version_line) == std::string::npos )
             throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
 
-        body.insert(0, is_header ? "#pragma once\n#include <zSql/zSql_dll.h>\n" :
-                                   "#ifndef ANDROID\n#include <zSql/zSql.h>\n#endif\n");
+        body.insert(0, is_header ? "#pragma once\n#include <zSql/zSql.h>\n" :
+                                   "#include <zSql/zSql.h>\n");
 
         const std::string output_file_path = Path::Combine(m_data->open_source_directory, Path::ToNativeSlash(sqlite_repo_path), filename);
 

@@ -11,5 +11,8 @@
     #define ZSQL_API
 #endif
 
-
 #define SQLITE_API ZSQL_API
+
+
+// SQLite compile-time options
+#define SQLITE_ENABLE_MATH_FUNCTIONS
