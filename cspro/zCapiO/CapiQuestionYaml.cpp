@@ -81,7 +81,7 @@ namespace YAML {
         static bool decode(const Node& node, CapiText& rhs) {
             if (!node.IsScalar())
                 return false;
-            rhs = CapiText(node.as<CString>());
+            rhs = CapiText(node.as<std::string>());
             return true;
         }
     };
@@ -240,24 +240,29 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
         question_manager.SetStyles(std::move(styles));
     }
 
-    if (yaml["questions"]) {
+    if( yaml["questions"] )
+    {
         std::vector<CapiQuestion> questions = yaml["questions"].as<std::vector<CapiQuestion>>();
-        for (CapiQuestion& question : questions) {
+
+        for( CapiQuestion& question : questions )
+        {
             std::vector<CapiCondition>& conditions = question.GetConditions();
-            for (CapiCondition& condition : conditions) {
-                if (!condition.GetAllQuestionText().empty()) {
-                    for (const auto& questionText : condition.GetAllQuestionText()) {
-                        CString trimQuestionText = questionText.second.GetText();
-                        condition.SetQuestionText(trimQuestionText.TrimRight(_T('\n')), questionText.first);
-                    }
+
+            for( CapiCondition& condition : conditions )
+            {
+                for( const auto& [language_name, capi_text] : condition.GetAllQuestionText() )
+                {
+                    condition.SetQuestionText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText(), '\n')),
+                                              language_name);
                 }
-                if (!condition.GetAllHelpText().empty()) {
-                    for (const auto& helpText : condition.GetAllHelpText()) {
-                        CString trimHelpText = helpText.second.GetText();
-                        condition.SetHelpText(trimHelpText.TrimRight(_T('\n')), helpText.first);
-                    }
+
+                for( const auto& [language_name, capi_text] : condition.GetAllHelpText() )
+                {
+                    condition.SetHelpText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText(), '\n')),
+                                          language_name);
                 }
             }
+
             question_manager.SetQuestion(std::move(question));
         }
     }

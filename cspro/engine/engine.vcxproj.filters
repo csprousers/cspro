@@ -178,9 +178,6 @@
     <ClInclude Include="ProgramControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuestionTextParamCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RangeFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>

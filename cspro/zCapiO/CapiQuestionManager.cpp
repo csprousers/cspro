@@ -80,7 +80,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
                     if( language_lookup == m_languages.end() )
                         continue;
 
-                    for( const CapiFill& param : text.GetFills(CapiText::DefaultDelimiters) )
+                    for( const CapiFill& param : text.GetFills() )
                     {
                         if( fill_expressions.find(param.GetTextToReplace()) == fill_expressions.end() )
                         {

@@ -31,7 +31,7 @@ public:
 
     const Language& GetCurrentLanguage() const { return m_languages[m_languageIndex]; }
 
-    bool IsDirty() const { return m_html_edit.IsDirty(); }
+    bool IsDirty() const { return m_htmlEditorCtrl.IsDirty(); }
 
     void UpdateDisplayText();
     void SetStyles(const std::vector<CapiStyle>& styles);
@@ -117,14 +117,14 @@ private:
     void UpdateFillErrorDisplay();
 
 private:
-    HtmlEditorCtrl m_html_edit;
+    HtmlEditorCtrl m_htmlEditorCtrl;
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
     std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
 
     CString m_ent_path;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
-    CapiTextType m_text_type;
+    CapiText::Type m_textType;
     QSFEditToolbar m_toolbar;
     std::optional<UINT_PTR> m_idle_timer;
     enum { idleTimerID };

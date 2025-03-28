@@ -4,36 +4,37 @@
 #include <zCapiO/CapiFill.h>
 
 
-enum class CapiTextType { QuestionText, HelpText };
-
-
 class CLASS_DECL_ZCAPIO CapiText
 {
 public:
-    CapiText(const CString& text = CString());
+    enum class Type { Question, Help };
 
-    const CString& GetText() const { return m_text; }
+    CapiText(std::string text = std::string());
 
-    struct Delimiter
-    {
-        CString characters;
-        bool escape_html;
-    };
+    const std::string& GetText() const { return m_text; }
 
-    static const std::vector<Delimiter> DefaultDelimiters;
+    const std::vector<CapiFill>& GetFills() const;
 
-    const std::vector<CapiFill>& GetFills(const std::vector<Delimiter>& delimiters = DefaultDelimiters) const;
+    std::string ReplaceFills(const std::map<std::string, std::string>& replacements) const { return ReplaceFills(m_text, replacements); }
 
-    CString ReplaceFills(const std::vector<Delimiter>& delimiters, const std::map<CString, CString>& replacements) const;
-
-
-    // serialization
-    // --------------------------------------------------
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
 
+private:
+    static std::string ReplaceFills(std::string_view text_sv, const std::map<std::string, std::string>& replacements);
 
 private:
-    CString m_text;
-    mutable std::optional<std::vector<CapiFill>> m_params;
+    std::string m_text;
+    mutable std::shared_ptr<std::vector<CapiFill>> m_params;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline CapiText::CapiText(std::string text/* = SharableString()*/)
+    :   m_text(std::move(text))
+{
+}

@@ -66,7 +66,6 @@ add_library(${PROJECT_NAME}
     ParadataDriver.cpp
     ParameterManager.cpp
     Pre80Routines.cpp
-    QuestionTextParamCache.cpp
     relt.cpp
     Settings.cpp
     subtable.cpp

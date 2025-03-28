@@ -68,7 +68,6 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Nextnode.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/ParadataDriver.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/ParameterManager.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Pre80Routines.cpp
-LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/QuestionTextParamCache.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/relt.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Settings.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/subtable.cpp

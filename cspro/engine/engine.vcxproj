@@ -68,7 +68,6 @@
     <ClInclude Include="ParameterManager.h" />
     <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="ProgramControl.h" />
-    <ClInclude Include="QuestionTextParamCache.h" />
     <ClInclude Include="RangeFunctions.h" />
     <ClInclude Include="ReadyFlags.h" />
     <ClInclude Include="RELATION.H" />

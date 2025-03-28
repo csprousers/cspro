@@ -25,11 +25,11 @@ public:
 
     void SetMinMaxOcc(int min, int max);
 
-    CapiText GetText(const std::wstring& language_name, CapiTextType type) const;
+    CapiText GetText(const std::wstring& language_name, CapiText::Type type) const;
     CapiText GetQuestionText(const std::wstring& language_name) const;
     CapiText GetHelpText(const std::wstring& language_name) const;
 
-    void SetText(const CString& text, const std::wstring& language_name, CapiTextType type);
+    void SetText(const CString& text, const std::wstring& language_name, CapiText::Type type);
     void SetQuestionText(const CString& text, const std::wstring& language_name);
     void SetHelpText(const CString& text, const std::wstring& language_name);
 
@@ -39,12 +39,9 @@ public:
     void DeleteLanguage(const std::wstring& language_name);
     void ModifyLanguage(const std::wstring& old_language_name, const std::wstring& new_language_name);
 
-
-    // serialization
     // --------------------------------------------------
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
-
 
 private:
     CString m_logic;

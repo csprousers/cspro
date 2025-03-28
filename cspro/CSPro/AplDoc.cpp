@@ -2161,19 +2161,21 @@ CString CAplDoc::GetCapiItemName(const CDEItemBase* const pBase)
 //  std::string CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
 //
 /////////////////////////////////////////////////////////////////////////////////
-std::string CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
+std::string CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
 {
     ASSERT(m_pQuestMgr != nullptr);
-    auto question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
-    if (question && !question->GetConditions().empty()) {
-        if (!language_name.has_value())
-            language_name = m_pQuestMgr->GetDefaultLanguage().GetName();
-        return UTF8_TODO::GetUtf8(question->GetConditions().front().GetQuestionText(UTF8_TODO::GetWide(*language_name)).GetText());
-    }
-    else {
+
+    const std::optional<CapiQuestion> question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
+
+    if( !question.has_value() || question->GetConditions().empty() )
         return std::string();
-    }
+
+    if( !language_name.has_value() )
+        language_name = m_pQuestMgr->GetDefaultLanguage().GetName();
+
+    return question->GetConditions().front().GetQuestionText(UTF8_TODO::GetWide(*language_name)).GetText();
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -2236,12 +2238,12 @@ bool CAplDoc::IsQHAvailable(const CDEItemBase* const pBase)
     if( !question.has_value() )
         return false;
 
-    for( const CapiCondition& cond : question->GetConditions() )
+    for( const CapiCondition& condition : question->GetConditions() )
     {
-        for( const Language& lang : m_pQuestMgr->GetLanguages() )
+        for( const Language& language : m_pQuestMgr->GetLanguages() )
         {
-            if( !cond.GetQuestionText(UTF8_TODO::GetWide(lang.GetName())).GetText().IsEmpty() ||
-                !cond.GetHelpText(UTF8_TODO::GetWide(lang.GetName())).GetText().IsEmpty() )
+            if( !condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName())).GetText().empty() ||
+                !condition.GetHelpText(UTF8_TODO::GetWide(language.GetName())).GetText().empty() )
             {
                 return true;
             }

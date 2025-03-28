@@ -29,7 +29,6 @@
 #include <engine/Export.h>
 #include <engine/ParameterManager.h>
 #include <engine/DEFLD.H>
-#include <engine/QuestionTextParamCache.h>
 #include <ZTBDO/cttree.h>
 
 class CapiCondition;
@@ -52,6 +51,7 @@ struct InterpreterExecuteResult;
 class ItemIndex;
 class LoopStack;
 class NamedReference;
+struct ParsedCapiParam;
 class SelcaseManager;
 struct sqlite3;
 class SyncClient;
@@ -833,7 +833,6 @@ public:
     void UpdateKeyboardInputMethod(VART* pVarT);
 
 private:
-    QuestionTextParamCache m_question_text_param_cache;
     std::map<const DictValue*, int> m_deckarrayIndexMappings;
 
 #ifdef WIN_DESKTOP

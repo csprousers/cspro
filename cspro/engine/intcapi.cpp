@@ -27,6 +27,26 @@
 #include <regex>
 
 
+struct ParsedCapiParam
+{
+    enum class ParamType { GetOccLabel, GetValueLabel, VariableOrUserFunction };
+
+    ParamType m_eParamType;
+    CString m_csTextToReplace;
+    int m_iSymbolVar;
+    bool m_bIsOccSymbol;
+    int m_iOccSymbolVarOrCte; // Symbol or Cte.
+
+    ParsedCapiParam(ParamType eParamType = ParamType::VariableOrUserFunction)
+        :   m_eParamType(eParamType),
+            m_iSymbolVar(0),
+            m_bIsOccSymbol(false),
+            m_iOccSymbolVarOrCte(0)
+    {
+    }
+};
+
+
 CString CIntDriver::EvaluateCapiText(const std::wstring& language_name, bool bQuestion, int symbol_index, int iOcc)
 {
     CString item_name;
@@ -61,27 +81,32 @@ CString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol*
     if (pBest == nullptr)
         return CString();
 
-    auto text_type = bQuestion ? CapiTextType::QuestionText : CapiTextType::HelpText;
+    CapiText::Type text_type = bQuestion ? CapiText::Type::Question : CapiText::Type::Help;
     CapiText questionHelpCapiText = pBest->GetText(language_name, text_type);
-    if (questionHelpCapiText.GetText().IsEmpty()) {
+    if (questionHelpCapiText.GetText().empty()) {
         const Language& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
         questionHelpCapiText = pBest->GetText(UTF8_TODO::GetWide(default_language.GetName()), text_type);
     }
 
-    CString csQuestionHelpCapiText = questionHelpCapiText.GetText();
+    CString csQuestionHelpCapiText = UTF8_TODO::GetCString(questionHelpCapiText.GetText());
 
-    const std::vector<CapiFill>& fills_to_replace = questionHelpCapiText.GetFills(CapiText::DefaultDelimiters);
-    if (fills_to_replace.empty())
+    const std::vector<CapiFill>& fills_to_replace = questionHelpCapiText.GetFills();
+
+    if( fills_to_replace.empty() )
         return csQuestionHelpCapiText;
 
-    const auto& fill_expressions = question.GetFillExpressions();
-    if (!fill_expressions.empty()) {
-        std::map<CString, CString> replacements;
-        for (const CapiFill& fill : fills_to_replace) {
-            replacements[fill.GetTextToReplace()] = EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace()));
-        }
-        csQuestionHelpCapiText = questionHelpCapiText.ReplaceFills(CapiText::DefaultDelimiters, replacements);
+    const std::map<CString, int>& fill_expressions = question.GetFillExpressions();
+
+    if( !fill_expressions.empty() )
+    {
+        std::map<std::string, std::string> replacements;
+
+        for( const CapiFill& fill : fills_to_replace )
+            replacements[UTF8_TODO::GetUtf8(fill.GetTextToReplace())] = UTF8_TODO::GetUtf8(EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace())));
+
+        csQuestionHelpCapiText = UTF8_TODO::GetCString(questionHelpCapiText.ReplaceFills(replacements));
     }
+
     return csQuestionHelpCapiText;
 }
 

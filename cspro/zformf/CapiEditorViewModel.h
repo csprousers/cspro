@@ -30,8 +30,8 @@ public:
 
     bool CanHaveText() const { return ( m_item != nullptr ); }
 
-    CapiText GetText(size_t language_index, CapiTextType type);
-    void SetText(size_t language_index, CapiTextType type, CString new_text);
+    CapiText GetText(size_t language_index, CapiText::Type type);
+    void SetText(size_t language_index, CapiText::Type type, CString new_text);
 
     void SetCondition(int condition_index, CString logic);
     void DeleteCondition(int condition_index);

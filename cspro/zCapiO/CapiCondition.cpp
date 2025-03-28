@@ -24,9 +24,9 @@ void CapiCondition::SetMinMaxOcc(int min, int max)
 }
 
 
-CapiText CapiCondition::GetText(const std::wstring& language_name, CapiTextType type) const
+CapiText CapiCondition::GetText(const std::wstring& language_name, CapiText::Type type) const
 {
-    if (type == CapiTextType::QuestionText)
+    if (type == CapiText::Type::Question)
         return GetQuestionText(language_name);
     else
         return GetHelpText(language_name);
@@ -47,9 +47,9 @@ CapiText CapiCondition::GetHelpText(const std::wstring& language_name) const
 }
 
 
-void CapiCondition::SetText(const CString& text, const std::wstring& language_name, CapiTextType type)
+void CapiCondition::SetText(const CString& text, const std::wstring& language_name, CapiText::Type type)
 {
-    if (type == CapiTextType::QuestionText)
+    if (type == CapiText::Type::Question)
         SetQuestionText(text, language_name);
     else
         SetHelpText(text, language_name);
@@ -58,13 +58,13 @@ void CapiCondition::SetText(const CString& text, const std::wstring& language_na
 
 void CapiCondition::SetQuestionText(const CString& text, const std::wstring& language_name)
 {
-    m_questionTexts[language_name] = text;
+    m_questionTexts[language_name] = UTF8_TODO::GetUtf8(text);
 }
 
 
 void CapiCondition::SetHelpText(const CString& text, const std::wstring& language_name)
 {
-    m_helpTexts[language_name] = text;
+    m_helpTexts[language_name] = UTF8_TODO::GetUtf8(text);
 }
 
 
@@ -94,9 +94,15 @@ void CapiCondition::ModifyLanguage(const std::wstring& old_language_name, const 
 }
 
 
-CREATE_ENUM_JSON_SERIALIZER(CapiTextType,
-    { CapiTextType::QuestionText, "question" },
-    { CapiTextType::HelpText,     "help" })
+
+// --------------------------------------------------------------------------
+// serialization
+// --------------------------------------------------------------------------
+
+CREATE_ENUM_JSON_SERIALIZER(CapiText::Type,
+    { CapiText::Type::Question, "question" },
+    { CapiText::Type::Help,     "help" })
+
 
 void CapiCondition::WriteJson(JsonWriter& json_writer) const
 {
@@ -108,7 +114,7 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
     {
         json_writer.BeginArray(JK::texts);
 
-        auto write_texts = [&](CapiTextType type, const std::map<std::wstring, CapiText>& texts)
+        auto write_texts = [&](const CapiText::Type type, const std::map<std::wstring, CapiText>& texts)
         {
             for( const auto& [language, capi_text] : texts )
             {
@@ -123,8 +129,8 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
             }
         };
 
-        write_texts(CapiTextType::QuestionText, m_questionTexts);
-        write_texts(CapiTextType::HelpText, m_helpTexts);
+        write_texts(CapiText::Type::Question, m_questionTexts);
+        write_texts(CapiText::Type::Help, m_helpTexts);
 
         json_writer.EndArray();
     }

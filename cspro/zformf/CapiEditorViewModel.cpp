@@ -24,7 +24,7 @@ void CapiEditorViewModel::Clear()
 }
 
 
-CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTextType type)
+CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiText::Type type)
 {
     ASSERT(!m_item_name.IsEmpty());
     const std::string& language_name = m_question_manager->GetLanguages()[language_index].GetName();
@@ -36,7 +36,7 @@ CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTex
 }
 
 
-void CapiEditorViewModel::SetText(size_t language_index, CapiTextType type, CString new_text)
+void CapiEditorViewModel::SetText(size_t language_index, CapiText::Type type, CString new_text)
 {
     auto question = GetQuestion();
     CapiCondition condition = (m_condition_index < question.GetConditions().size())
