@@ -37,9 +37,7 @@ namespace UpdateSEE
                 // sqlite3.c
                 var source_lines = new List<string>()
                 {
-                    "#ifndef ANDROID",
-                    "#include <zSql/zSql.h>",
-                    "#endif"
+                    "#include <zSql/zSql.h>"
                 };
 
                 source_lines.AddRange(File.ReadAllLines(Path.Combine(textBoxDirectory.Text, "sqlite3-" + textBoxEncryptionVariant.Text)));
