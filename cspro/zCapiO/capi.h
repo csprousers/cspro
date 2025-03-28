@@ -29,7 +29,7 @@ private:
     CWnd*               m_pAroundField;
     CWnd*               m_pFrameWindow;
     bool                m_bHasHlp;
-    bool                m_showing_help;
+    bool                m_showingHelp;
 #endif
 
 public:
@@ -59,7 +59,7 @@ public:
 #endif
 
     enum class CapiContentType { Question, Help, All };
-    void GetCapiContent(CapiContent* capi_content, int symbol_index, CapiContentType capi_content_type) const;
+    CapiContent GetCapiContent(int symbol_index, CapiContentType capi_content_type) const;
     CapiContent GetFieldAndBlockCombinedCapiContent(int symbol_index, CapiContentType capi_content_type) const;
     const std::string& GetRuntimeStylesCss();
 

@@ -1,29 +1,22 @@
-﻿// RectExt.cpp: implementation of the CRectExt class.
-//
-//////////////////////////////////////////////////////////////////////
+﻿#include "StdAfx.h"
+#include "RectExtended.h"
 
-#include "StdAfx.h"
-#include "Rectext.h"
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
-#endif
+#define CRECTEX_NONE               0
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// Position near current field
+#define CRECTEX_FIELD              1
 
-CRectExt::CRectExt()
-{
+// Horizontal parameters
+#define CRECTEX_BOTTOM             2
+#define CRECTEX_TOP                4
+#define CRECTEX_HCENTER            8
 
-}
+// Vertical parameters
+#define CRECTEX_VCENTER           16
+#define CRECTEX_LEFT              32
+#define CRECTEX_RIGHT             64
 
-CRectExt::~CRectExt()
-{
-
-}
 
 bool CRectExt::BestPos(const CRect* parentRect, const CRect* fieldRect, const int iPosition, CRect* bestRect) {
     CRect   chkRect, interRect;
@@ -170,6 +163,7 @@ bool CRectExt::BestPos(const CRect* parentRect, const CRect* fieldRect, const in
     return (TRUE);
 }
 
+
 // if parentRect is NULL center in the full-screen
 bool CRectExt::CenterRect(const CRect * parentRect)
 {
@@ -204,6 +198,7 @@ bool CRectExt::CenterRect(const CRect * parentRect)
 
     return( TRUE );
 }
+
 
 // Move the rect below to pRect
 bool CRectExt::Collapse(const CRect * pRect, const bool bCenter )
@@ -355,6 +350,7 @@ bool CRectExt::UnIntersect( CRect* pRect, const CRect cFixedRect, const CRect ma
     return bChanged;
 }
 
+
 // Move pRect to a relative position based on cFixedRect
 bool CRectExt::MoveTo( CRect* pRect, int iPos, const CRect cFixedRect ) {
     bool    bChanged=true;
@@ -385,6 +381,7 @@ bool CRectExt::MoveTo( CRect* pRect, int iPos, const CRect cFixedRect ) {
 
     return bChanged;
 }
+
 
 // Move cRect for fixing in maxRect
 bool CRectExt::FitIn( CRect* pRect, const CRect maxRect ) {

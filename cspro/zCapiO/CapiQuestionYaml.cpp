@@ -6,7 +6,7 @@
 
 namespace YAML {
 
-    template <>
+    template<>
     struct convert<CString> {
         static Node encode(const CString& rhs) {
             return Node(UTF8_TODO::GetUtf8(rhs));
@@ -20,7 +20,7 @@ namespace YAML {
         }
     };
 
-    template <>
+    template<>
     struct convert<std::wstring> {
         static Node encode(const std::wstring& rhs) {
             return Node(UTF8_TODO::GetUtf8(rhs));
@@ -33,6 +33,26 @@ namespace YAML {
             return true;
         }
     };
+
+
+    template<>
+    struct convert<SharableString>
+    {
+        static Node encode(const SharableString& rhs)
+        {
+            return Node(rhs.GetString());
+        }
+
+        static bool decode(const Node& node, SharableString& rhs)
+        {
+            if( !node.IsScalar() )
+                return false;
+
+            rhs = node.Scalar();
+            return true;
+        }
+    };
+
 
     template<>
     struct convert<CapiStyle> {
@@ -74,7 +94,7 @@ namespace YAML {
         }
     };
 
-    template <>
+    template<>
     struct convert<CapiText> {
         static Node encode(const CapiText& rhs) { return Node(rhs.GetText()); }
 
@@ -252,13 +272,13 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
             {
                 for( const auto& [language_name, capi_text] : condition.GetAllQuestionText() )
                 {
-                    condition.SetQuestionText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText(), '\n')),
+                    condition.SetQuestionText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
                                               language_name);
                 }
 
                 for( const auto& [language_name, capi_text] : condition.GetAllHelpText() )
                 {
-                    condition.SetHelpText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText(), '\n')),
+                    condition.SetHelpText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
                                           language_name);
                 }
             }

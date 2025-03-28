@@ -47,67 +47,66 @@ struct ParsedCapiParam
 };
 
 
-CString CIntDriver::EvaluateCapiText(const std::wstring& language_name, bool bQuestion, int symbol_index, int iOcc)
+SharableString CIntDriver::EvaluateCapiText(const std::wstring& language_name, const bool bQuestion, const int symbol_index, const int iOcc)
 {
-    CString item_name;
-    const Symbol* symbol = NPT(symbol_index);
-
-    if (symbol->IsA(SymbolType::Variable)) {
-        const VART* pVarT = assert_cast<const VART*>(symbol);
-        item_name = UTF8_TODO::GetCString(pVarT->GetDictItem()->GetQualifiedName());
-    } else {
-        item_name = UTF8_TODO::GetCString(symbol->GetName());
-    }
+    const Symbol& symbol = NPT_Ref(symbol_index);
+    const std::string item_name = symbol.IsA(SymbolType::Variable) ? assert_cast<const VART&>(symbol).GetDictItem()->GetQualifiedName() :
+                                                                     symbol.GetName();
 
     CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEngineDriver;
-    const std::optional<CapiQuestion> question = pEntryDriver->GetQuestMgr()->GetQuestion(item_name);
+    const std::optional<CapiQuestion> question = pEntryDriver->GetQuestMgr()->GetQuestion(UTF8_TODO::GetCString(item_name));
 
     return question.has_value() ? EvaluateCapiText(*question, symbol, language_name, bQuestion) :
-                                  CString();
+                                  SharableString();
 }
 
 
-CString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol* symbol, const std::wstring& language_name, bool bQuestion)
+SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::wstring& language_name, const bool bQuestion)
 {
     const CapiCondition* pBest = nullptr;
 
-    for (const CapiCondition& condition : question.GetConditions()) {
-        if (!condition.GetLogicExpression().has_value() || EvaluateQuestionTextCondition(symbol, *condition.GetLogicExpression())) {
+    for( const CapiCondition& condition : question.GetConditions() )
+    {
+        if( !condition.GetLogicExpression().has_value() ||
+            EvaluateQuestionTextCondition(symbol, *condition.GetLogicExpression()) )
+        {
             pBest = &condition;
             break;
         }
     }
 
-    if (pBest == nullptr)
-        return CString();
+    if( pBest == nullptr )
+        return SharableString();
 
-    CapiText::Type text_type = bQuestion ? CapiText::Type::Question : CapiText::Type::Help;
-    CapiText questionHelpCapiText = pBest->GetText(language_name, text_type);
-    if (questionHelpCapiText.GetText().empty()) {
-        const Language& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
-        questionHelpCapiText = pBest->GetText(UTF8_TODO::GetWide(default_language.GetName()), text_type);
-    }
+    const CapiText::Type text_type = bQuestion ? CapiText::Type::Question : CapiText::Type::Help;
+    CapiText capi_text = pBest->GetText(language_name, text_type);
 
-    CString csQuestionHelpCapiText = UTF8_TODO::GetCString(questionHelpCapiText.GetText());
-
-    const std::vector<CapiFill>& fills_to_replace = questionHelpCapiText.GetFills();
-
-    if( fills_to_replace.empty() )
-        return csQuestionHelpCapiText;
-
-    const std::map<CString, int>& fill_expressions = question.GetFillExpressions();
-
-    if( !fill_expressions.empty() )
+    if( capi_text.GetText()->empty() )
     {
-        std::map<std::string, std::string> replacements;
-
-        for( const CapiFill& fill : fills_to_replace )
-            replacements[UTF8_TODO::GetUtf8(fill.GetTextToReplace())] = UTF8_TODO::GetUtf8(EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace())));
-
-        csQuestionHelpCapiText = UTF8_TODO::GetCString(questionHelpCapiText.ReplaceFills(replacements));
+        const Language& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
+        capi_text = pBest->GetText(UTF8_TODO::GetWide(default_language.GetName()), text_type);
     }
 
-    return csQuestionHelpCapiText;
+    SharableString evaluated_capi_text = capi_text.GetText();
+
+    const std::vector<CapiFill>& fills_to_replace = capi_text.GetFills();
+
+    if( !fills_to_replace.empty() )
+    {
+        const std::map<CString, int>& fill_expressions = question.GetFillExpressions();
+
+        if( !fill_expressions.empty() )
+        {
+            std::map<std::string, SharableString> replacements;
+
+            for( const CapiFill& fill : fills_to_replace )
+                replacements[UTF8_TODO::GetUtf8(fill.GetTextToReplace())] = EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace()));
+
+            evaluated_capi_text = capi_text.ReplaceFills(replacements);
+        }
+    }
+
+    return evaluated_capi_text;
 }
 
 
@@ -393,14 +392,14 @@ CString CIntDriver::ExpandText(const CString& csText, bool bShowErrors, bool* bS
 }
 
 
-bool CIntDriver::EvaluateQuestionTextCondition(const Symbol* symbol, int iExpr)
+bool CIntDriver::EvaluateQuestionTextCondition(const Symbol& symbol, const int program_index)
 {
-    ASSERT(symbol->IsOneOf(SymbolType::Block, SymbolType::Variable));
+    ASSERT(symbol.IsOneOf(SymbolType::Block, SymbolType::Variable));
 
     // setup execution parameters
     m_iProgType = (int)ProcType::OnFocus;
-    m_iExSymbol = symbol->GetSymbolIndex();
-    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(*symbol);
+    m_iExSymbol = symbol.GetSymbolIndex();
+    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
 
     // these statements clear any preexisting stuff that might have been going on
     m_bSkipStmt = false;
@@ -409,24 +408,24 @@ bool CIntDriver::EvaluateQuestionTextCondition(const Symbol* symbol, int iExpr)
 
     try
     {
-        return EvaluateConditional(iExpr);
+        return EvaluateConditional(program_index);
     }
 
     // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
-    catch( const ProgramControlException& ) {}
+    catch( const ProgramControlException& ) { }
 
     return false;
 }
 
 
-CString CIntDriver::EvaluateQuestionTextFill(const Symbol* symbol, int iExpr)
+SharableString CIntDriver::EvaluateQuestionTextFill(const Symbol& symbol, const int program_index)
 {
-    ASSERT(symbol->IsOneOf(SymbolType::Block, SymbolType::Variable));
+    ASSERT(symbol.IsOneOf(SymbolType::Block, SymbolType::Variable));
 
     // setup execution parameters
     m_iProgType = (int)ProcType::OnFocus;
-    m_iExSymbol = symbol->GetSymbolIndex();
-    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(*symbol);
+    m_iExSymbol = symbol.GetSymbolIndex();
+    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
 
     // these statements clear any preexisting stuff that might have been going on
     m_bSkipStmt = false;
@@ -435,17 +434,17 @@ CString CIntDriver::EvaluateQuestionTextFill(const Symbol* symbol, int iExpr)
 
     try
     {
-        return UTF8_TODO::GetCString(*EvaluateTextFill(iExpr));
+        return EvaluateTextFill(program_index);
     }
 
     // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
     catch( const ProgramControlException& ) {}
 
-    return CString();
+    return SharableString();
 }
 
 
-std::string CIntDriver::EvaluateCapiText(const int current_symbol_index, const ParsedCapiParam& parsed_capi_param)
+SharableString CIntDriver::EvaluateCapiText(const int current_symbol_index, const ParsedCapiParam& parsed_capi_param)
 {
     Symbol& symbol = NPT_Ref(parsed_capi_param.m_iSymbolVar);
 
@@ -477,14 +476,14 @@ std::string CIntDriver::EvaluateCapiText(const int current_symbol_index, const P
         else
         {
             ASSERT(user_function.GetReturnType() == SymbolType::WorkString);
-            return GetWorkingString(static_cast<size_t>(return_value));
+            return GetWorkingSharableString(static_cast<size_t>(return_value));
         }
     }
 
     else if( symbol.IsA(SymbolType::WorkString) )
     {
         const WorkString& work_string = assert_cast<const WorkString&>(symbol);
-        return work_string.GetString();
+        return work_string.GetSharableString();
     }
 
     else

@@ -82,13 +82,13 @@ add_library(${PROJECT_NAME}
 
     ${ZCAPIO_DIRECTORY}/Capi.cpp
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
+    ${ZCAPIO_DIRECTORY}/CapiContentVirtualFileMapping.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestion.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestionManager.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestionYaml.cpp
     ${ZCAPIO_DIRECTORY}/CapiStyle.cpp
     ${ZCAPIO_DIRECTORY}/CapiText.cpp
 
-    ${ZENTRYO_DIRECTORY}/CapiContentVirtualFileMapping.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeBuilder.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeNode.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeUpdate.cpp

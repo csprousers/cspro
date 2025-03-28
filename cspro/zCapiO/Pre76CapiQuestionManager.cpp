@@ -147,9 +147,9 @@ void CapiQuestionManager::ConvertPre76Fills()
         for (CapiCondition& condition : conditions) {
             for (const Language& language : m_languages) {
                 CapiText question_text = condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName()));
-                condition.SetQuestionText(ConvertPre76Fills(UTF8_TODO::GetCString(question_text.GetText())), UTF8_TODO::GetWide(language.GetName()));
+                condition.SetQuestionText(ConvertPre76Fills(UTF8_TODO::GetCString(question_text.GetText().GetString())), UTF8_TODO::GetWide(language.GetName()));
                 CapiText help_text = condition.GetHelpText(UTF8_TODO::GetWide(language.GetName()));
-                condition.SetHelpText(ConvertPre76Fills(UTF8_TODO::GetCString(help_text.GetText())), UTF8_TODO::GetWide(language.GetName()));
+                condition.SetHelpText(ConvertPre76Fills(UTF8_TODO::GetCString(help_text.GetText().GetString())), UTF8_TODO::GetWide(language.GetName()));
             }
         }
     }

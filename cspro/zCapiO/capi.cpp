@@ -13,18 +13,11 @@
 #include <engine/Entdrv.h>
 #include <engine/INTERPRE.H>
 
-
 #ifdef WIN_DESKTOP
-#include <zUtilF/Rectext.h>
 #include "ExtendedControl.h"
+#include "RectExtended.h"
 #endif
 
-
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
-#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -84,35 +77,34 @@ void CCapi::DeleteLabels()
     }
 }
 
-void CCapi::DoQuestion(const DEFLD* pDeField)
+void CCapi::DoQuestion(const DEFLD* const pDeField)
 {
-    m_showing_help = false;
+    m_showingHelp = false;
 
     ASSERT(m_pAroundField != nullptr);
-    int field_symbol_index = pDeField->GetSymbol();
+    const int field_symbol_index = pDeField->GetSymbol();
 
     // get the field text
-    CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Question);
+    const CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Question);
 
     // refresh the text
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_SETCAPITEXT, (WPARAM)&field_capi_content.question_text);
+    WindowsDesktopMessage::Send(WM_IMSA_SETCAPITEXT, &field_capi_content.question_text);
 }
 
 #endif
 
 
-void CCapi::GetCapiContent(CapiContent* capi_content, int symbol_index, CapiContentType capi_content_type) const
+CapiContent CCapi::GetCapiContent(const int symbol_index, const CapiContentType capi_content_type) const
 {
-    ASSERT(capi_content->question_text.IsEmpty());
-    ASSERT(capi_content->help_text.IsEmpty());
+    CapiContent capi_content;
 
     // if not using CAPI, exit immediately
     if( !m_pEntryDriver->GetApplication()->GetUseQuestionText() )
-        return;
+        return capi_content;
 
     // get the current CAPI language
     CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEntryDriver;
-    const auto& current_language = pEntryDriver->GetQuestMgr()->GetCurrentLanguage();
+    const Language& current_language = pEntryDriver->GetQuestMgr()->GetCurrentLanguage();
 
     // determine the occurrence number
     const Symbol& symbol = NPT_Ref(symbol_index);
@@ -136,8 +128,7 @@ void CCapi::GetCapiContent(CapiContent* capi_content, int symbol_index, CapiCont
         ASSERT(false);
     }
 
-    int occurrence = pGroupT->GetCurrentOccurrences();
-
+    const int occurrence = pGroupT->GetCurrentOccurrences();
 
     for( int type = 0; type < 2; type++ )
     {
@@ -155,33 +146,34 @@ void CCapi::GetCapiContent(CapiContent* capi_content, int symbol_index, CapiCont
             continue;
 
         // evaluate the question or help text
-        CString& text = evaluating_question_text ? capi_content->question_text :
-                                                   capi_content->help_text;
-        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(UTF8_TODO::GetWide(current_language.GetName()), evaluating_question_text, symbol_index, occurrence);
+        SharableString& text = evaluating_question_text ? capi_content.question_text :
+                                                          capi_content.help_text;
+        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(UTF8_TODO::GetWide(current_language.GetName()), evaluating_question_text,
+                                                              symbol_index, occurrence);
     }
+
+    return capi_content;
 }
 
 
-CapiContent CCapi::GetFieldAndBlockCombinedCapiContent(int field_symbol_index, CapiContentType capi_content_type) const
+CapiContent CCapi::GetFieldAndBlockCombinedCapiContent(const int field_symbol_index, const CapiContentType capi_content_type) const
 {
     // get the field content
-    CapiContent field_capi_content;
-    GetCapiContent(&field_capi_content, field_symbol_index, capi_content_type);
+    CapiContent field_capi_content = GetCapiContent(field_symbol_index, capi_content_type);
 
     // if the field is part of a block, get the block content
-    VART* pVarT = VPT(field_symbol_index);
+    VART* const pVarT = VPT(field_symbol_index);
 
-    if( pVarT->GetEngineBlock() != nullptr )
-    {
-        CapiContent block_capi_content;
-        GetCapiContent(&block_capi_content, pVarT->GetEngineBlock()->GetSymbolIndex(), capi_content_type);
+    if( pVarT->GetEngineBlock() == nullptr )
+        return field_capi_content;
 
-        // combine the block and field content
-        field_capi_content.question_text = block_capi_content.question_text + field_capi_content.question_text;
-        field_capi_content.help_text = block_capi_content.help_text + field_capi_content.help_text;
-    }
+    CapiContent block_capi_content = GetCapiContent(pVarT->GetEngineBlock()->GetSymbolIndex(), capi_content_type);
 
-    return field_capi_content;
+    // combine the block and field content
+    block_capi_content.question_text.MakeModifiable().append(field_capi_content.question_text.GetString());
+    block_capi_content.help_text.MakeModifiable().append(field_capi_content.help_text.GetString());
+
+    return block_capi_content;
 }
 
 
@@ -223,32 +215,33 @@ void CCapi::ResponseUnOverlap( CWnd* pWnd, CRect maxRect )
     }
 }
 
-void CCapi::ToggleHelp(const DEFLD* pDeField)
+
+void CCapi::ToggleHelp(const DEFLD* const pDeField)
 {
-    if (m_showing_help)
-        DoQuestion(pDeField);
-    else
-        ShowHelp(pDeField);
+    m_showingHelp ? DoQuestion(pDeField) :
+                    ShowHelp(pDeField);
 }
 
-void CCapi::ShowHelp(const DEFLD* pDeField)
-{
-    m_showing_help = true;
 
-    int field_symbol_index = pDeField->GetSymbol();
+void CCapi::ShowHelp(const DEFLD* const pDeField)
+{
+    m_showingHelp = true;
+
+    const int field_symbol_index = pDeField->GetSymbol();
 
     // get the field text
-    CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Help);
+    const CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Help);
 
     // refresh the text if there are lines
-    if (!field_capi_content.help_text.IsEmpty()) {
-        COLORREF background_color = RGB(240, 240, 240); // grey background for help
-        AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_SETCAPITEXT, (WPARAM)&field_capi_content.help_text, (LPARAM) &background_color);
+    if( !field_capi_content.help_text->empty() )
+    {
+        const COLORREF background_color = RGB(240, 240, 240); // grey background for help
+        WindowsDesktopMessage::Send(WM_IMSA_SETCAPITEXT, &field_capi_content.help_text, &background_color);
     }
 }
 
 
-int CCapi::DoLabelsModeless(const DEFLD* pDeField)
+int CCapi::DoLabelsModeless(const DEFLD* const pDeField)
 {
     int iRet = -1;
 

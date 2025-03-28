@@ -68,8 +68,7 @@ public:
     friend class CEntryrunView;
     friend class CEntryrunApp;
 
-
-        LONG IsUniqNames (WPARAM wParam, LPARAM lParam);
+    LONG IsUniqNames (WPARAM wParam, LPARAM lParam);
 
     // Overrides
     // ClassWizard generated virtual function overrides
@@ -77,10 +76,10 @@ public:
 public:
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual void ActivateFrame(int nCmdShow = -1);
+
 protected:
     virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
-        //virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
-        //}}AFX_VIRTUAL
+    //}}AFX_VIRTUAL
 
     // Implementation
 public:
@@ -97,11 +96,6 @@ public:
 
     void Start();
     virtual ~CMainFrame();
-
-#ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
-#endif
 
 protected:  // control bar embedded members
     CStatusBar  m_wndStatusBar;
@@ -129,7 +123,7 @@ protected:  // control bar embedded members
     LONG OnRefreshSelected(WPARAM wParam, LPARAM lParam);
 
     LONG OnSetSequential(WPARAM wParam, LPARAM lParam);
-    LONG OnSetCapiText(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetCapiText(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetWindowHeight(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetWindowHeight(WPARAM wParam, LPARAM lParam);
 
@@ -149,6 +143,8 @@ protected:  // control bar embedded members
 
     // Generated message map functions
 protected:
+    DECLARE_MESSAGE_MAP()
+
     //{{AFX_MSG(CMainFrame)
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnUpdateStop(CCmdUI* pCmdUI);
@@ -265,9 +261,7 @@ protected:
     void OnStop(bool* close_csentry_after_stopping);
     afx_msg void OnStop() { OnStop(nullptr); }
 
-
 //}}AFX_MSG
-    DECLARE_MESSAGE_MAP()
 
     LRESULT OnGivenGoTo                     (WPARAM wParam, LPARAM lParam); //FABN Nov  4, 2002
     LRESULT OnRefreshCaseTree               (WPARAM wParam, LPARAM lParam); //FABN Nov  6, 2002
@@ -322,6 +316,8 @@ private:
     bool PostCaseLoadingStartActions(APP_MODE appMode,NODEINFO* pNodeInfo = nullptr,CRunAplEntry::ProcessModifyAction eModifyAction = CRunAplEntry::ProcessModifyAction::GotoNode);
 
     void ChangeViewCaseStatus(CaseIterationCaseStatus eStatus);
+
+    void SetCapiText(SharableString text, const COLORREF* background_color);
 
 public:
     bool ModifyStarterHelper(NODEINFO* pNodeInfo,CRunAplEntry::ProcessModifyAction eModifyAction);

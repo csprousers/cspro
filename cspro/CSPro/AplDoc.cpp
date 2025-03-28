@@ -2161,7 +2161,7 @@ CString CAplDoc::GetCapiItemName(const CDEItemBase* const pBase)
 //  std::string CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
 //
 /////////////////////////////////////////////////////////////////////////////////
-std::string CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
+SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
 {
     ASSERT(m_pQuestMgr != nullptr);
 
@@ -2242,8 +2242,8 @@ bool CAplDoc::IsQHAvailable(const CDEItemBase* const pBase)
     {
         for( const Language& language : m_pQuestMgr->GetLanguages() )
         {
-            if( !condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName())).GetText().empty() ||
-                !condition.GetHelpText(UTF8_TODO::GetWide(language.GetName())).GetText().empty() )
+            if( !condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName())).GetText()->empty() ||
+                !condition.GetHelpText(UTF8_TODO::GetWide(language.GetName())).GetText()->empty() )
             {
                 return true;
             }

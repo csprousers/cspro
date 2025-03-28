@@ -434,14 +434,14 @@ void CQSFEView::UpdateDisplayText()
 
         const CapiText& capi_text = view_model.GetText(m_languageIndex, m_textType);
 
-        if( capi_text.GetText().empty() )
+        if( capi_text.GetText()->empty() )
         {
             m_htmlEditorCtrl.Clear();
         }
 
         else
         {
-            std::wstring wide_text = TC::ToWide(capi_text.GetText());
+            std::wstring wide_text = TC::ToWide(capi_text.GetText().GetString());
 
             if( wide_text != m_htmlEditorCtrl.GetText() )
                 m_htmlEditorCtrl.SetText(std::move(wide_text));

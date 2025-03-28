@@ -88,7 +88,6 @@
     <ClCompile Include="ProgressDlg.cpp" />
     <ClCompile Include="ProgressDlg2.cpp" />
     <ClCompile Include="ProgressDlgFactory.cpp" />
-    <ClCompile Include="RectExt.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
     <ClCompile Include="SelectFileDlg.cpp" />
     <ClCompile Include="SrtHdrCt.cpp" />
@@ -141,7 +140,6 @@
     <ClInclude Include="ProgressDlg.h" />
     <ClInclude Include="ProgressDlg2.h" />
     <ClInclude Include="ProgressDlgFactory.h" />
-    <ClInclude Include="Rectext.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="SelectDlg.h" />

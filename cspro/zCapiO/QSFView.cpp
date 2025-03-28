@@ -95,7 +95,7 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetText(std::string text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
+void QSFView::SetText(SharableString text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
 {
     m_backgroundColor = background_color.has_value() ? background_color->ToStringRGB() :
                                                        DefaultBackgroundColor();
@@ -136,7 +136,7 @@ void QSFView::UpdateHtml()
 
     std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
                                        Part2_sv, m_backgroundColor,
-                                       Part3_sv, m_questionText,
+                                       Part3_sv, m_questionText.GetString(),
                                        Part4_sv);
 
     std::lock_guard<std::mutex> lock(m_htmlMutex);

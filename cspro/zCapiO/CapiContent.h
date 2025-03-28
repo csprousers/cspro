@@ -1,7 +1,8 @@
 ﻿#pragma once
 
+
 struct CapiContent
 {
-    CString question_text;
-    CString help_text;
+    SharableString question_text;
+    SharableString help_text;
 };

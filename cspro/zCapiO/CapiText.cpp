@@ -33,7 +33,7 @@ namespace
         {
             const size_t pos = text_sv.find(delimiter.characters_sv, start);
 
-            if( ( pos != std::string_view::npos ) && 
+            if( ( pos != std::string_view::npos ) &&
                 ( !next_delimiter.has_value() || pos < next_delimiter->pos ) )
             {
                 next_delimiter = NextDelimiter { &delimiter, pos };
@@ -84,13 +84,13 @@ namespace
 const std::vector<CapiFill>& CapiText::GetFills() const
 {
     if( m_params == nullptr )
-        m_params = GetDelimitedParams(m_text);
+        m_params = GetDelimitedParams(*m_text);
 
     return *m_params;
 }
 
 
-std::string CapiText::ReplaceFills(const std::string_view text_sv, const std::map<std::string, std::string>& replacements)
+std::string CapiText::ReplaceFills(const std::string_view text_sv, const std::map<std::string, SharableString>& replacements)
 {
     std::stringstream ss;
     size_t pos = 0;
@@ -126,12 +126,12 @@ std::string CapiText::ReplaceFills(const std::string_view text_sv, const std::ma
         {
             if( next_delim->delimeter->escape_html )
             {
-                ss << Encoders::ToHtml(SO::TrimRight(replacement_lookup->second));
+                ss << Encoders::ToHtml(SO::TrimRight(replacement_lookup->second.GetString()));
             }
 
             else
             {
-                ss << replacement_lookup->second;
+                ss << replacement_lookup->second.GetString();
             }
         }
 
@@ -155,5 +155,13 @@ void CapiText::WriteJson(JsonWriter& json_writer) const
 
 void CapiText::serialize(Serializer& ar)
 {
-    ar & m_text;
+    if( ar.PredatesVersionIteration(Serializer::Iteration_8_1_000_1) )
+    {
+        ar & m_text.MakeModifiable();
+    }
+
+    else
+    {
+        ar & m_text;
+    }
 }

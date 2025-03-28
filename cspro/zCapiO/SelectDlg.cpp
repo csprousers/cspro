@@ -1,16 +1,8 @@
-﻿// SelectDlg.cpp : implementation file
-//
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "SelectDlg.h"
-#include <zUtilF/Rectext.h>
+#include "RectExtended.h"
 #include <zUtilO/CustomFont.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#endif
 
 const int SELECT_DIALOG_MIN_ROWS_FOR_SEARCH = 15;
 

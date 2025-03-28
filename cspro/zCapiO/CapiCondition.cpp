@@ -58,13 +58,13 @@ void CapiCondition::SetText(const CString& text, const std::wstring& language_na
 
 void CapiCondition::SetQuestionText(const CString& text, const std::wstring& language_name)
 {
-    m_questionTexts[language_name] = UTF8_TODO::GetUtf8(text);
+    m_questionTexts[language_name] = CapiText(UTF8_TODO::GetUtf8(text));
 }
 
 
 void CapiCondition::SetHelpText(const CString& text, const std::wstring& language_name)
 {
-    m_helpTexts[language_name] = UTF8_TODO::GetUtf8(text);
+    m_helpTexts[language_name] = CapiText(UTF8_TODO::GetUtf8(text));
 }
 
 
@@ -118,7 +118,7 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
         {
             for( const auto& [language, capi_text] : texts )
             {
-                if( SO::IsWhitespace(capi_text.GetText()) )
+                if( SO::IsWhitespace(capi_text.GetText().GetString()) )
                     continue;
 
                 json_writer.BeginObject()

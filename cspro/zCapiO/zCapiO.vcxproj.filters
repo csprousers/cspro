@@ -18,6 +18,9 @@
     <ClCompile Include="CapiCondition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CapiContentVirtualFileMapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CapiControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,6 +49,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QSFView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RectExtended.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SelectCtrl.cpp">
@@ -85,6 +91,12 @@
     <ClInclude Include="CapiCondition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CapiContent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CapiContentVirtualFileMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CapiControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -116,6 +128,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QSFView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RectExtended.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
