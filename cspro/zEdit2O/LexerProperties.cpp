@@ -80,12 +80,14 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetStylesWorker(const 
             { SCE_CSPRO_NAMED_ARGUMENT,             { LexerColor::JY_PropertyName } },
 
             // report colors
-            { SCE_CSPRO_REPORT_DEFAULT,             { LexerColor::HtmlDefault } },
-            { SCE_CSPRO_REPORT_MUSTACHE,            { RGB(161, 126, 0) } },
-            { SCE_CSPRO_REPORT_TRIP_MUSTACHE,       { RGB(210, 82, 22) } },
-            { SCE_CSPRO_REPORT_CSPROLOGIC,          { RGB(216, 60, 135) } },
-            { SCE_CSPRO_REPORT_HTML,                { LexerColor::HtmlTag } },
-            { SCE_CSPRO_REPORT_HTML_OPTION,         { LexerColor::HtmlAttribute } },
+            { SCE_CSPRO_REPORT_DOUBLE_TILDE,        { RGB(161, 126, 0) } },
+            { SCE_CSPRO_REPORT_TRIPLE_TILDE,        { RGB(210, 82, 22) } },
+            { SCE_CSPRO_REPORT_LOGIC_TAG,           { RGB(216, 60, 135) } },
+
+            // HTML report colors
+            { SCE_CSPRO_REPORT_HTML_DEFAULT,        { LexerColor::HtmlDefault } },
+            { SCE_CSPRO_REPORT_HTML_TAG,            { LexerColor::HtmlTag } },
+            { SCE_CSPRO_REPORT_HTML_ATTR,           { LexerColor::HtmlAttribute } },
             { SCE_CSPRO_REPORT_HTML_QUOTE,          { LexerColor::HtmlQuote } },
             { SCE_CSPRO_REPORT_HTML_NUM,            { LexerColor::HtmlNumber } },
 

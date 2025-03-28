@@ -7,6 +7,7 @@ using namespace Lexilla;
 extern LexerModule lmCSProLogic_V0;
 extern LexerModule lmCSProLogic_V8_0;
 extern LexerModule lmMarkdown;
+extern LexerModule lmText;
 
 
 // --------------------------------------------------------------------------
@@ -177,9 +178,13 @@ void LexerCSProReportGeneric::LexDocument(const Sci_PositionU startPos, const Sc
 
 namespace
 {
-    ILexer5* CreateLexerCSProReportMarkdown_V0()   { return new LexerCSProReportGeneric(SCLEX_CSPRO_REPORT_MARKDOWN_V0, lmCSProLogic_V0, lmMarkdown); }
+    ILexer5* CreateLexerCSProReport_V0()           { return new LexerCSProReportGeneric(SCLEX_CSPRO_REPORT_V0,            lmCSProLogic_V0,   lmText    ); }
+    ILexer5* CreateLexerCSProReport_V8_0()         { return new LexerCSProReportGeneric(SCLEX_CSPRO_REPORT_V8_0,          lmCSProLogic_V8_0, lmText    ); }
+    ILexer5* CreateLexerCSProReportMarkdown_V0()   { return new LexerCSProReportGeneric(SCLEX_CSPRO_REPORT_MARKDOWN_V0,   lmCSProLogic_V0,   lmMarkdown); }
     ILexer5* CreateLexerCSProReportMarkdown_V8_0() { return new LexerCSProReportGeneric(SCLEX_CSPRO_REPORT_MARKDOWN_V8_0, lmCSProLogic_V8_0, lmMarkdown); }
 }
 
+LexerModule lmCSProReport_V0(SCLEX_CSPRO_REPORT_V0, CreateLexerCSProReport_V0, LexCSPro::Name(SCLEX_CSPRO_REPORT_V0));
+LexerModule lmCSProReport_V8_0(SCLEX_CSPRO_REPORT_V8_0, CreateLexerCSProReport_V8_0, LexCSPro::Name(SCLEX_CSPRO_REPORT_V8_0));
 LexerModule lmCSProReportMarkdown_V0(SCLEX_CSPRO_REPORT_MARKDOWN_V0, CreateLexerCSProReportMarkdown_V0, LexCSPro::Name(SCLEX_CSPRO_REPORT_MARKDOWN_V0));
 LexerModule lmCSProReportMarkdown_V8_0(SCLEX_CSPRO_REPORT_MARKDOWN_V8_0, CreateLexerCSProReportMarkdown_V8_0, LexCSPro::Name(SCLEX_CSPRO_REPORT_MARKDOWN_V8_0));

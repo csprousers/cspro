@@ -45,10 +45,10 @@
     <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
-    <ClCompile Include="..\lexers\LexCSProReport.cxx">
+    <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
-    <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx">
+    <ClCompile Include="..\lexers\LexCSProReportHtml.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
     <ClCompile Include="..\lexers\LexHTML.cxx">
@@ -67,6 +67,9 @@
       <Filter>lexers</Filter>
     </ClCompile>
     <ClCompile Include="..\lexers\LexSQL.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lexers\LexText.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
     <ClCompile Include="..\lexers\LexYAML.cxx">

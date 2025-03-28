@@ -388,36 +388,36 @@ Sci_PositionU LexCSPro::Lex(const Sci_PositionU startPos, const Sci_Position len
                 const unsigned char current_report_style = sc.GetReportStyle();
                 unsigned char new_report_style = 0;
 
-                if( current_report_style == SCE_CSPRO_REPORT_CSPROLOGIC )
+                if( current_report_style == SCE_CSPRO_REPORT_LOGIC_TAG )
                 {
                     if( sc.Match('?', '>') )
-                        new_report_style = SCE_CSPRO_REPORT_CSPROLOGIC;
+                        new_report_style = SCE_CSPRO_REPORT_LOGIC_TAG;
                 }
 
                 else if( sc.Match('~', '~') )
                 {
-                    if( ( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_TRIP_MUSTACHE ) &&
+                    if( ( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_TRIPLE_TILDE ) &&
                         ( sc.GetRelativeCharacter(2) == '~' ) )
                     {
-                        new_report_style = SCE_CSPRO_REPORT_TRIP_MUSTACHE;
+                        new_report_style = SCE_CSPRO_REPORT_TRIPLE_TILDE;
                     }
 
-                    else if( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_MUSTACHE )
+                    else if( current_report_style == 0 || current_report_style == SCE_CSPRO_REPORT_DOUBLE_TILDE )
                     {
-                        new_report_style = SCE_CSPRO_REPORT_MUSTACHE;
+                        new_report_style = SCE_CSPRO_REPORT_DOUBLE_TILDE;
                     }
                 }
 
                 else if( current_report_style == 0 && sc.Match('<', '?') )
                 {
-                    new_report_style = SCE_CSPRO_REPORT_CSPROLOGIC;
+                    new_report_style = SCE_CSPRO_REPORT_LOGIC_TAG;
                 }
 
                 // if starting or ending a report section, style the report tokens
                 if( new_report_style != 0 )
                 {
                     sc.SetState(new_report_style);
-                    sc.Forward(( new_report_style == SCE_CSPRO_REPORT_TRIP_MUSTACHE ) ? 3 : 2);
+                    sc.Forward(( new_report_style == SCE_CSPRO_REPORT_TRIPLE_TILDE ) ? 3 : 2);
                     sc.SetState(SCE_CSPRO_DEFAULT);
 
                     // if ending a report section, return to the calling lexer
