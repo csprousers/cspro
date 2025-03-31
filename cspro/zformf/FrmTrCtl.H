@@ -116,7 +116,10 @@ public:
 
     void DefaultExpand  (HTREEITEM hItem);
     void SelectFTCNode(CFormID* pFormID, int iFormNum, CDEFormBase* pSearchItem);
-    void SelectNodes(std::vector<CDEFormBase*> nodes);
+
+    template<typename T>
+    void SelectNodes(const T& nodes);
+
     void FindFTCRecursively (HTREEITEM& hGroupOrItem,
                              HTREEITEM& hExpand,
                              int iFormNum,
@@ -206,8 +209,8 @@ protected:
 
     DECLARE_MESSAGE_MAP()
 
-    HTREEITEM FindItem( CDEFormBase* pItemBase );
-    HTREEITEM xFindItem( HTREEITEM hInputItem, CDEFormBase* pFormBase );
+    HTREEITEM FindItem( const CDEFormBase* pItemBase );
+    HTREEITEM xFindItem( HTREEITEM hInputItem, const CDEFormBase* pFormBase );
 
     void UpdateGroupItemsForDrop(CDEGroup* pGroup, const std::vector<CDEField*>& dragFields, CDEItemBase* pDropItem);
     void UpdateRosterColumnsForDrop(CDERoster* pRoster, const std::vector<CDEField*>& dragFields, CDEField* pDropField, bool dropAtEndIfDropFieldNull);

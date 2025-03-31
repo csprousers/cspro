@@ -106,33 +106,11 @@ CapiContent CCapi::GetCapiContent(const int symbol_index, const CapiContentType 
     CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEntryDriver;
     const Language& current_language = pEntryDriver->GetQuestMgr()->GetCurrentLanguage();
 
-    // determine the occurrence number
     const Symbol& symbol = NPT_Ref(symbol_index);
-    const VART* pVarT = nullptr;
-    const GROUPT* pGroupT = nullptr;
 
-    if( symbol.IsA(SymbolType::Variable) )
+    for( int type = 0; type < 2; ++type )
     {
-        pVarT = assert_cast<const VART*>(&symbol);
-        pGroupT = pVarT->GetOwnerGPT();
-    }
-
-    else if( symbol.IsA(SymbolType::Block) )
-    {
-        const EngineBlock& engine_block = assert_cast<const EngineBlock&>(symbol);
-        pGroupT = engine_block.GetGroupT();
-    }
-
-    else
-    {
-        ASSERT(false);
-    }
-
-    const int occurrence = pGroupT->GetCurrentOccurrences();
-
-    for( int type = 0; type < 2; type++ )
-    {
-        bool evaluating_question_text = ( type == 0 );
+        const bool evaluating_question_text = ( type == 0 );
 
         // skip evaluating the particular CAPI text if it is not requested
         if( ( evaluating_question_text && capi_content_type == CapiContentType::Help ) ||
@@ -142,14 +120,18 @@ CapiContent CCapi::GetCapiContent(const int symbol_index, const CapiContentType 
         }
 
         // if the symbol is a field, check if we should be displaying question text for it
-        if( evaluating_question_text && pVarT != nullptr && !pVarT->GetShowQuestionText() )
+        if( evaluating_question_text &&
+            symbol.IsA(SymbolType::Variable) &&
+            !assert_cast<const VART&>(symbol).GetShowQuestionText() )
+        {
             continue;
+        }
 
         // evaluate the question or help text
         SharableString& text = evaluating_question_text ? capi_content.question_text :
                                                           capi_content.help_text;
-        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(UTF8_TODO::GetWide(current_language.GetName()), evaluating_question_text,
-                                                              symbol_index, occurrence);
+
+        text = m_pEntryDriver->m_pIntDriver->EvaluateCapiText(current_language.GetName(), evaluating_question_text, symbol_index);
     }
 
     return capi_content;

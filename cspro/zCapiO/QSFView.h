@@ -40,6 +40,8 @@ protected:
     LRESULT OnRefreshQuestionText(WPARAM wParam, LPARAM lParam);
 
 private:
+    static const std::string& DefaultBackgroundColor();
+
     void UpdateHtml();
 
     void SetUpActionInvoker();

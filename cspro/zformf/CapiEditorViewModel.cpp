@@ -1,113 +1,127 @@
 ﻿#include "StdAfx.h"
 #include "CapiEditorViewModel.h"
 #include <zAppO/Application.h>
+#include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <Zsrcmgro/DesignerCapiLogicCompiler.h>
 
 
 CapiEditorViewModel::CapiEditorViewModel()
     :   m_item(nullptr),
-        m_condition_index(0),
+        m_conditionIndex(0),
         m_application(nullptr)
 {
 }
+
 
 CapiEditorViewModel::~CapiEditorViewModel()
 {
 }
 
 
+void CapiEditorViewModel::SetQuestionManager(Application* const application, std::shared_ptr<CapiQuestionManager> question_manager)
+{
+    ASSERT(application != nullptr && question_manager != nullptr);
+
+    m_application = application;
+    m_questionManager = std::move(question_manager);
+}
+
+
 void CapiEditorViewModel::Clear()
 {
-    m_condition_index = 0;
+    m_conditionIndex = 0;
     m_item = nullptr;
 }
 
 
 CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiText::Type type)
 {
-    ASSERT(!m_item_name.IsEmpty());
-    const std::string& language_name = m_question_manager->GetLanguages()[language_index].GetName();
-    auto question = GetQuestion();
-    CapiCondition condition = (m_condition_index < question.GetConditions().size())
-        ? question.GetConditions()[m_condition_index]
-        : CapiCondition();
-    return condition.GetText(UTF8_TODO::GetWide(language_name), type);
+    ASSERT(!m_itemName.empty());
+    const std::string& language_name = m_questionManager->GetLanguages()[language_index].GetName();
+
+    const CapiQuestion question = GetQuestion();
+    const CapiCondition condition = ( m_conditionIndex < question.GetConditions().size() ) ? question.GetConditions()[m_conditionIndex] :
+                                                                                             CapiCondition();
+    const CapiText* const text = condition.GetText(language_name, type);
+
+    return ( text != nullptr ) ? *text :
+                                 CapiText();
 }
 
 
-void CapiEditorViewModel::SetText(size_t language_index, CapiText::Type type, CString new_text)
+void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, std::string new_text)
 {
-    auto question = GetQuestion();
-    CapiCondition condition = (m_condition_index < question.GetConditions().size())
-        ? question.GetConditions()[m_condition_index]
-        : CapiCondition();
-    const std::string& language_name = m_question_manager->GetLanguages()[language_index].GetName();
-    if (new_text == "<p></p>")
-        new_text.Empty();
-    condition.SetText(new_text, UTF8_TODO::GetWide(language_name), type);
-    question.SetCondition(condition);
-    m_question_manager->SetQuestion(std::move(question));
+    CapiQuestion question = GetQuestion();
+    CapiCondition condition = ( m_conditionIndex < question.GetConditions().size() ) ? question.GetConditions()[m_conditionIndex] :
+                                                                                       CapiCondition();
+
+    const std::string& language_name = m_questionManager->GetLanguages()[language_index].GetName();
+
+    if( new_text == "<p></p>" )
+        new_text.clear();
+
+    condition.SetText(CapiText(std::move(new_text)), language_name, type);
+    question.SetCondition(std::move(condition));
+
+    m_questionManager->SetQuestion(std::move(question));
 }
 
 
-void CapiEditorViewModel::SetCondition(int condition_index, CString logic)
+void CapiEditorViewModel::SetCondition(const int condition_index, std::string logic)
 {
-    auto question = GetQuestion();
+    CapiQuestion question = GetQuestion();
     std::vector<CapiCondition>& conditions = question.GetConditions();
-    if ((size_t)condition_index >= conditions.size()) {
-        conditions.emplace_back(CapiCondition(logic));
+
+    if( static_cast<size_t>(condition_index) >= conditions.size() )
+    {
+        conditions.emplace_back(CapiCondition(std::move(logic)));
     }
-    else {
+
+    else
+    {
         conditions[condition_index].SetLogic(logic);
     }
 
-    m_question_manager->SetQuestion(std::move(question));
+    m_questionManager->SetQuestion(std::move(question));
 }
 
 
-void CapiEditorViewModel::DeleteCondition(int condition_index)
+void CapiEditorViewModel::DeleteCondition(const int condition_index)
 {
-    auto question = GetQuestion();
+    CapiQuestion question = GetQuestion();
     std::vector<CapiCondition>& conditions = question.GetConditions();
     if (conditions.size() == 1) {
         // don't delete text for last condition, just logic
-        conditions.front().SetLogic(CString());
+        conditions.front().SetLogic(std::string());
     }
     else {
         conditions.erase(conditions.begin() + condition_index);
     }
-    m_question_manager->SetQuestion(std::move(question));
-    m_condition_index = 0;
+    m_questionManager->SetQuestion(std::move(question));
+    m_conditionIndex = 0;
 }
 
 
 CapiQuestion CapiEditorViewModel::GetQuestion()
 {
-    ASSERT(!m_item_name.IsEmpty());
-    std::optional<CapiQuestion> question = m_question_manager->GetQuestion(m_item_name);
-    if (!question.has_value())
-        question.emplace(m_item_name);
-    return std::move(*question);
+    ASSERT(!m_itemName.empty());
+    const CapiQuestion* const question = m_questionManager->GetQuestion(m_itemName);
+
+    return ( question != nullptr ) ? *question :
+                                     CapiQuestion(m_itemName);
 }
 
 
-void CapiEditorViewModel::SetItem(CDEItemBase* item)
+void CapiEditorViewModel::SetItem(const CDEItemBase* const item_base)
 {
-    if (item->IsKindOf(RUNTIME_CLASS(CDEField))) {
-        CDEField* pField = DYNAMIC_DOWNCAST(CDEField, item);
-        m_item = item;
-        m_item_name = UTF8_TODO::GetCString(pField->GetDictItem()->GetQualifiedName());
-    }
-    else if (item->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-        CDEBlock* pBlock = DYNAMIC_DOWNCAST(CDEBlock, item);
-        m_item = item;
-        m_item_name = pBlock->GetName();
-    }
-    else {
-        m_item = nullptr;
-        m_item_name.Empty();
-    }
+    ASSERT(item_base != nullptr);
+
+    m_itemName = CapiName::Create(item_base);
+
+    m_item = !m_itemName.empty() ? item_base :
+                                   nullptr;
+
     m_compiler.reset();
 }
 

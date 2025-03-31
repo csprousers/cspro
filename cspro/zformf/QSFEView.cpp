@@ -220,7 +220,7 @@ void CQSFEView::OnEditSelectAll()
 }
 
 
-void CQSFEView::OnUpdateEditCopy(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditCopy(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(m_htmlEditorCtrl.CanCopy());
 }
@@ -232,7 +232,7 @@ void CQSFEView::OnEditCut()
 }
 
 
-void CQSFEView::OnUpdateEditCut(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditCut(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(m_htmlEditorCtrl.CanCut());
 }
@@ -250,7 +250,7 @@ void CQSFEView::OnEditPasteWithoutFormatting()
 }
 
 
-void CQSFEView::OnUpdateEditPaste(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditPaste(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(m_htmlEditorCtrl.CanPaste());
 }
@@ -325,10 +325,10 @@ void CQSFEView::UpdateFillErrorDisplay()
 {
     std::map<std::string, std::string> errors;
 
-    for( const auto& [fill, result] : m_fill_syntax_check_results )
+    for( const auto& [fill, result] : m_fillSyntaxCheckResults )
     {
-        if(std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result) )
-            errors.try_emplace(UTF8_TODO::GetUtf8(fill), std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
+        if( std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result) )
+            errors.try_emplace(fill, std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
     }
 
     m_htmlEditorCtrl.SetSyntaxErrors(errors);
@@ -340,26 +340,26 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     BCMenu popMenu;
     popMenu.CreatePopupMenu();
 
-    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanCut() ? 0x0L : MF_GRAYED), ID_EDIT_CUT, _T("Cu&t\tCtrl+X"));
-    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanCopy() ? 0x0L : MF_GRAYED), ID_EDIT_COPY, _T("&Copy\tCtrl+C"));
-    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanPaste() ? 0x0L : MF_GRAYED), ID_EDIT_PASTE, _T("&Paste\tCtrl+V"));
-    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanPaste() ? 0x0L : MF_GRAYED), ID_EDIT_PASTE_WITHOUT_FORMATTING, _T("Paste &Without formatting\tCtrl+Shift+V"));
+    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanCut() ? 0x0L : MF_GRAYED), ID_EDIT_CUT, L"Cu&t\tCtrl+X");
+    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanCopy() ? 0x0L : MF_GRAYED), ID_EDIT_COPY, L"&Copy\tCtrl+C");
+    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanPaste() ? 0x0L : MF_GRAYED), ID_EDIT_PASTE, L"&Paste\tCtrl+V");
+    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.CanPaste() ? 0x0L : MF_GRAYED), ID_EDIT_PASTE_WITHOUT_FORMATTING, L"Paste &Without formatting\tCtrl+Shift+V");
     popMenu.AppendMenu(MF_SEPARATOR);
-    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.GetText().empty() ? MF_GRAYED : 0x0L), ID_EDIT_SELECT_ALL, _T("Select &All"));
+    popMenu.AppendMenu(MF_STRING | (m_htmlEditorCtrl.GetText().empty() ? MF_GRAYED : 0x0L), ID_EDIT_SELECT_ALL, L"Select &All");
     popMenu.AppendMenu(MF_SEPARATOR);
 
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
     if(pParentFrame->m_bHideSecondLang) {
-        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Show Second View"));
+        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, L"&Show Second View");
     }
     else {
-        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, _T("&Hide Second View"));
+        popMenu.AppendMenu(MF_STRING, ID_VIEW_HIDE, L"&Hide Second View");
     }
 
     popMenu.AppendMenu(MF_SEPARATOR);
-    popMenu.AppendMenu (MF_STRING, ID_VIEW_FORM, _T("View &Form"));
-    popMenu.AppendMenu (MF_STRING, ID_VIEW_LOGIC, _T("View &Logic"));
+    popMenu.AppendMenu (MF_STRING, ID_VIEW_FORM, L"View &Form");
+    popMenu.AppendMenu (MF_STRING, ID_VIEW_LOGIC, L"View &Logic");
 
     popMenu.LoadToolbar(IDR_FORM_FRAME);
     popMenu.TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
@@ -369,31 +369,34 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 void CQSFEView::OnChangeHtmlEdit()
 {
     // Text changed in editor - update it in document
-    CFormDoc* form_doc = GetFormDoc();
+    CFormDoc* const form_doc = GetFormDoc();
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
-    if (view_model.CanHaveText()) {
-        view_model.SetText(m_languageIndex, m_textType, WS2CS(m_htmlEditorCtrl.GetText()));
-    }
+
+    if( view_model.CanHaveText() )
+        view_model.SetText(m_languageIndex, m_textType, TC::ToUtf8(m_htmlEditorCtrl.GetText()));
 
     StartIdleTimer();
 }
 
 
-void CQSFEView::OnUpdate(CView* pSender, LPARAM lHint, CObject* /*pHint*/)
+void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pHint*/)
 {
-    if (pSender != this) {
-        if (lHint == Hint::CapiEditorUpdateLanguages) {
-            SetLanguages(GetFormDoc()->GetCapiQuestionManager()->GetLanguages());
-        }
-        if (lHint == Hint::CapiEditorUpdateStyles || lHint == Hint::CapiEditorUpdateQuestionStyles) {
-            SetStyles(GetFormDoc()->GetCapiQuestionManager()->GetStyles());
-        }
-        if (lHint == Hint::CapiEditorUpdateQuestion || lHint == Hint::CapiEditorUpdateQuestionStyles) {
-            m_fill_syntax_check_results.clear();
-            UpdateFillErrorDisplay();
-        }
-        UpdateDisplayText();
+    if( pSender == this )
+        return;
+
+    if( lHint == Hint::CapiEditorUpdateLanguages )
+        SetLanguages(GetFormDoc()->GetCapiQuestionManager()->GetLanguages());
+
+    if( lHint == Hint::CapiEditorUpdateStyles || lHint == Hint::CapiEditorUpdateQuestionStyles )
+        SetStyles(GetFormDoc()->GetCapiQuestionManager()->GetStyles());
+
+    if( lHint == Hint::CapiEditorUpdateQuestion || lHint == Hint::CapiEditorUpdateQuestionStyles )
+    {
+        m_fillSyntaxCheckResults.clear();
+        UpdateFillErrorDisplay();
     }
+
+    UpdateDisplayText();
 }
 
 
@@ -495,7 +498,7 @@ void CQSFEView::OnFormatStyle()
 }
 
 
-void CQSFEView::OnUpdateFormatStyle(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatStyle(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar) {
@@ -513,7 +516,7 @@ void CQSFEView::OnFormatColor()
 }
 
 
-void CQSFEView::OnUpdateFormatColor(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatColor(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -525,7 +528,7 @@ void CQSFEView::OnFormatAlignLeft()
 }
 
 
-void CQSFEView::OnUpdateFormatAlignLeft(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatAlignLeft(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -539,7 +542,7 @@ void CQSFEView::OnFormatAlignCenter()
 }
 
 
-void CQSFEView::OnUpdateFormatAlignCenter(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatAlignCenter(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -553,7 +556,7 @@ void CQSFEView::OnFormatAlignRight()
 }
 
 
-void CQSFEView::OnUpdateFormatAlignRight(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatAlignRight(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -567,7 +570,7 @@ void CQSFEView::OnChangeTextDirectionRightToLeft()
 }
 
 
-void CQSFEView::OnUpdateChangeTextDirectionRightToLeft(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateChangeTextDirectionRightToLeft(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -579,7 +582,7 @@ void CQSFEView::OnChangeTextDirectionLeftToRight()
 }
 
 
-void CQSFEView::OnUpdateChangeTextDirectionLeftToRight(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateChangeTextDirectionLeftToRight(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -591,7 +594,7 @@ void CQSFEView::OnEditFormatOutlineBullet()
 }
 
 
-void CQSFEView::OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditFormatOutlineBullet(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -605,7 +608,7 @@ void CQSFEView::OnEditFormatOutlineNumbering()
 }
 
 
-void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -616,17 +619,19 @@ void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI)
 void CQSFEView::OnEditInsertImage()
 {
     ImageFileDialog dlg;
-    if (dlg.DoModal() != IDOK) {
+
+    if( dlg.DoModal() != IDOK )
         return;
-    }
 
     CString image_path_on_disk = dlg.GetPathName();
-    if (image_path_on_disk.IsEmpty()) {
+
+    if( image_path_on_disk.IsEmpty() )
         return;
-    }
-    if (PathGetVolume(UTF8_TODO::GetUtf8(image_path_on_disk)) != PathGetVolume(UTF8_TODO::GetUtf8(m_ent_path))) {
-        AfxMessageBox(_T("Images must be on the same disk volume as your CSPro application. ")
-                      _T("Try copying the file to the folder that contains your application."), MB_ICONEXCLAMATION);
+
+    if( PathGetVolume(UTF8_TODO::GetUtf8(image_path_on_disk)) != PathGetVolume(UTF8_TODO::GetUtf8(m_ent_path)) )
+    {
+        ErrorMessage::Display(L"Images must be on the same disk volume as your CSPro application. "
+                              L"Try copying the file to the folder that contains your application.");
         return;
     }
 
@@ -635,7 +640,7 @@ void CQSFEView::OnEditInsertImage()
 }
 
 
-void CQSFEView::OnUpdateEditInsertImage(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateEditInsertImage(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -643,12 +648,12 @@ void CQSFEView::OnUpdateEditInsertImage(CCmdUI* pCmdUI)
 
 void CQSFEView::OnInsertTable()
 {
-    CSize dimensions = m_toolbar.GetTableDimensions();
+    const CSize dimensions = m_toolbar.GetTableDimensions();
     m_htmlEditorCtrl.InsertTable(dimensions);
 }
 
 
-void CQSFEView::OnUpdateInsertTable(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateInsertTable(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -660,7 +665,7 @@ void CQSFEView::OnInsertLink()
 }
 
 
-void CQSFEView::OnUpdateInsertLink(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateInsertLink(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
 }
@@ -672,7 +677,7 @@ void CQSFEView::OnToggleViewCode()
 }
 
 
-void CQSFEView::OnUpdateToggleViewCode(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateToggleViewCode(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable();
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -687,7 +692,7 @@ void CQSFEView::OnLanguageChanged()
 }
 
 
-void CQSFEView::OnUpdateToggleQuestionHelpText(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateToggleQuestionHelpText(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable();
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -703,28 +708,36 @@ void CQSFEView::OnToggleQuestionHelpText()
 }
 
 
-void CQSFEView::OnTimer(UINT nIDEvent)
+void CQSFEView::OnTimer(const UINT nIDEvent)
 {
-    if (nIDEvent == idleTimerID) {
-        StopIdleTimer();
+    if( nIDEvent != idleTimerID )
+        return;
 
-        CFormDoc* doc = GetFormDoc();
-        CapiEditorViewModel& view_model = doc->GetCapiEditorViewModel();
-        if (view_model.CanHaveText()) {
-            CapiText text = view_model.GetText(m_languageIndex, m_textType);
-            bool updated = false;
-            for (const CapiFill& fill : text.GetFills()) {
-                std::wstring fill_text = CS2WS(fill.GetTextToEvaluate());
-                auto syntax_check_result = m_fill_syntax_check_results.find(fill_text);
-                if (syntax_check_result == m_fill_syntax_check_results.end()) {
-                    m_fill_syntax_check_results[fill_text] = view_model.CheckSyntax(CapiLogicParameters::Type::Fill, UTF8_TODO::GetUtf8(fill_text));
-                    updated = true;
-                }
-            }
-            if (updated)
-                UpdateFillErrorDisplay();
+    StopIdleTimer();
+
+    CFormDoc* const doc = GetFormDoc();
+    CapiEditorViewModel& view_model = doc->GetCapiEditorViewModel();
+
+    if( !view_model.CanHaveText() )
+        return;
+
+    CapiText text = view_model.GetText(m_languageIndex, m_textType);
+    bool updated = false;
+
+    for( const CapiFill& fill : text.GetFills() )
+    {
+        SharableString fill_text(fill.GetTextToEvaluate_sv());
+
+        if( m_fillSyntaxCheckResults.find(fill_text.GetString()) == m_fillSyntaxCheckResults.end() )
+        {
+            CapiEditorViewModel::SyntaxCheckResult result = view_model.CheckSyntax(CapiLogicParameters::Type::Fill, fill_text);
+            m_fillSyntaxCheckResults.try_emplace(fill_text.Release(), result);
+            updated = true;
         }
     }
+
+    if( updated )
+        UpdateFillErrorDisplay();
 }
 
 
@@ -734,7 +747,7 @@ void CQSFEView::OnFormatBold()
 }
 
 
-void CQSFEView::OnUpdateFormatBold(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatBold(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -748,7 +761,7 @@ void CQSFEView::OnFormatItalic()
 }
 
 
-void CQSFEView::OnUpdateFormatItalic(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatItalic(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -762,7 +775,7 @@ void CQSFEView::OnFormatUnderline()
 }
 
 
-void CQSFEView::OnUpdateFormatUnderline(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatUnderline(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -777,7 +790,7 @@ void CQSFEView::OnFormatFontFace()
 }
 
 
-void CQSFEView::OnUpdateFormatFontFace(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatFontFace(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)
@@ -792,7 +805,7 @@ void CQSFEView::OnFormatFontSize()
 }
 
 
-void CQSFEView::OnUpdateFormatFontSize(CCmdUI* pCmdUI)
+void CQSFEView::OnUpdateFormatFontSize(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_htmlEditorCtrl.GetCodeViewShowing());
     if (pCmdUI->m_pOther == &m_toolbar)

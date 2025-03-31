@@ -129,5 +129,5 @@ private:
     std::optional<UINT_PTR> m_idle_timer;
     enum { idleTimerID };
 
-    std::map<std::wstring, CapiEditorViewModel::SyntaxCheckResult> m_fill_syntax_check_results;
+    std::map<std::string, CapiEditorViewModel::SyntaxCheckResult> m_fillSyntaxCheckResults;
 };

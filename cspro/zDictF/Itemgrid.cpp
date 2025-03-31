@@ -937,7 +937,7 @@ void CItemGrid::EditBegin(int col, long row, UINT vcKey)
         CDictItem* pItem = ((CDictItem*) m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(GetItem()));
         DictValueSet& dict_value_set = pItem->GetValueSet(m_aValue[row].vset);
         m_pDict->SetChangedObject(&dict_value_set);
-        m_pDict->SetOldName(UTF8_TODO::GetCString(dict_value_set.GetName()));
+        m_pDict->SetOldName(dict_value_set.GetName());
         pTreeCtrl->SetUpdateAllViews(false);
     }
     CUGCell cell;

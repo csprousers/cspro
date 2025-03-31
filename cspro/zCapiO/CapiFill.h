@@ -4,37 +4,51 @@
 class CapiFill
 {
 public:
-    CapiFill(CString text_to_replace, CString text_to_evaluate, bool escape_html)
-        :   m_text_to_replace(std::move(text_to_replace)),
-            m_text_to_evaluate(std::move(text_to_evaluate)),
-            m_escape_html(escape_html)
-    {
-    }
+    CapiFill(std::string text_to_replace, size_t delimiter_length, bool escape_fill);
 
-    // Complete fill with delimiters
-    const CString& GetTextToReplace() const
-    {
-        return m_text_to_replace;
-    }
+    // Returns the complete fill text, including the delimiters.
+    const std::string& GetTextToReplace() const { return m_textToReplace; }
 
-    // Text without the delimiters
-    const CString& GetTextToEvaluate() const
-    {
-        return m_text_to_evaluate;
-    }
+    // Returns the fill text without the delimiters.
+    std::string_view GetTextToEvaluate_sv() const;
 
-    bool GetEscapeHtml() const
-    {
-        return m_escape_html;
-    }
+    // Returns whether the fill should be escaped.
+    bool EscapeFill() const { return m_escapeFill; }
 
-    bool operator<(const CapiFill& rhs) const
-    {
-        return m_text_to_replace < rhs.m_text_to_replace && m_escape_html < rhs.m_escape_html;
-    }
+    bool operator<(const CapiFill& rhs) const;
 
 private:
-    CString m_text_to_evaluate;
-    CString m_text_to_replace;
-    bool m_escape_html;
+    std::string m_textToReplace;
+    std::size_t m_delimiterLength;
+    bool m_escapeFill;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline CapiFill::CapiFill(std::string text_to_replace, const size_t delimiter_length, const bool escape_fill)
+    :   m_textToReplace(std::move(text_to_replace)),
+        m_delimiterLength(delimiter_length),
+        m_escapeFill(escape_fill)
+{
+    ASSERT(m_delimiterLength == 2 || m_delimiterLength == 3);
+    ASSERT(m_textToReplace.length() >= ( m_delimiterLength * 2 ));
+}
+
+
+inline std::string_view CapiFill::GetTextToEvaluate_sv() const
+{
+    return std::string_view(m_textToReplace.data() + m_delimiterLength,
+                            m_textToReplace.length() - ( 2 * m_delimiterLength ));
+}
+
+
+inline bool CapiFill::operator<(const CapiFill& rhs) const
+{
+    return ( m_textToReplace < rhs.m_textToReplace &&
+             m_delimiterLength < rhs.m_delimiterLength &&
+             m_escapeFill < rhs.m_escapeFill );
+}

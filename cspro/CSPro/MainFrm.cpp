@@ -3270,7 +3270,7 @@ LRESULT CMainFrame::OnDictNameChange(WPARAM wParam, LPARAM /*lParam*/)
 
                     if( pField != nullptr )
                     {
-                        std::tuple<CDEItemBase*, CString> update(pField, UTF8_TODO::GetCString(dictionary.MakeQualifiedName(UTF8_TODO::GetUtf8(dictionary.GetOldName()))));
+                        std::tuple<CDEItemBase*, CString> update(pField, UTF8_TODO::GetCString(dictionary.MakeQualifiedName(dictionary.GetOldName())));
                         SendMessage(WM_IMSA_RECONCILE_QSF_FIELD_NAME, reinterpret_cast<WPARAM>(form_file), reinterpret_cast<LPARAM>(&update));
                     }
                 }
@@ -5209,7 +5209,7 @@ LRESULT CMainFrame::OnReconcileQsfFieldName(WPARAM wParam, LPARAM lParam) // 201
         [&](CAplDoc& application_doc)
         {
             ASSERT(application_doc.GetEngineAppType() == EngineAppType::Entry);
-            application_doc.ChangeCapiName(pItem, old_name);
+            application_doc.ChangeCapiName(pItem, UTF8_TODO::GetUtf8(old_name));
             return true;
         });
 

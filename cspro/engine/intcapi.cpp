@@ -22,6 +22,7 @@
 #include <zAppO/Application.h>
 #include <zMessageO/Messages.h>
 #include <Zissalib/CsDriver.h>
+#include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <Zentryo/hreplace.h>
 #include <regex>
@@ -47,66 +48,62 @@ struct ParsedCapiParam
 };
 
 
-SharableString CIntDriver::EvaluateCapiText(const std::wstring& language_name, const bool bQuestion, const int symbol_index, const int iOcc)
+SharableString CIntDriver::EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index)
 {
     const Symbol& symbol = NPT_Ref(symbol_index);
-    const std::string item_name = symbol.IsA(SymbolType::Variable) ? assert_cast<const VART&>(symbol).GetDictItem()->GetQualifiedName() :
-                                                                     symbol.GetName();
 
-    CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEngineDriver;
-    const std::optional<CapiQuestion> question = pEntryDriver->GetQuestMgr()->GetQuestion(UTF8_TODO::GetCString(item_name));
+    const CapiQuestion* const question = assert_cast<const CEntryDriver*>(m_pEngineDriver)->GetQuestMgr()->GetQuestion(CapiName::Create(symbol));
 
-    return question.has_value() ? EvaluateCapiText(*question, symbol, language_name, bQuestion) :
-                                  SharableString();
+    return ( question != nullptr ) ? EvaluateCapiText(*question, symbol, language_name, is_question) :
+                                     SharableString();
 }
 
 
-SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::wstring& language_name, const bool bQuestion)
+SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, const bool is_question)
 {
-    const CapiCondition* pBest = nullptr;
+    const CapiCondition* best_condition = nullptr;
 
     for( const CapiCondition& condition : question.GetConditions() )
     {
-        if( !condition.GetLogicExpression().has_value() ||
-            EvaluateQuestionTextCondition(symbol, *condition.GetLogicExpression()) )
+        if( condition.GetProgramIndex() == -1 ||
+            EvaluateQuestionTextCondition(symbol, condition.GetProgramIndex()) )
         {
-            pBest = &condition;
+            best_condition = &condition;
             break;
         }
     }
 
-    if( pBest == nullptr )
+    if( best_condition == nullptr )
         return SharableString();
 
-    const CapiText::Type text_type = bQuestion ? CapiText::Type::Question : CapiText::Type::Help;
-    CapiText capi_text = pBest->GetText(language_name, text_type);
+    const CapiText::Type text_type = is_question ? CapiText::Type::Question : CapiText::Type::Help;
+    const CapiText* capi_text = best_condition->GetText(language_name, text_type);
 
-    if( capi_text.GetText()->empty() )
+    if( capi_text == nullptr || capi_text->GetText()->empty() )
     {
-        const Language& default_language = ((CEntryDriver*)m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
-        capi_text = pBest->GetText(UTF8_TODO::GetWide(default_language.GetName()), text_type);
+        const Language& default_language = assert_cast<const CEntryDriver*>(m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
+        capi_text = best_condition->GetText(default_language.GetName(), text_type);
+
+        if( capi_text == nullptr )
+            return SharableString();
     }
 
-    SharableString evaluated_capi_text = capi_text.GetText();
+    const std::vector<CapiFill>& fills_to_replace = capi_text->GetFills();
 
-    const std::vector<CapiFill>& fills_to_replace = capi_text.GetFills();
+    if( fills_to_replace.empty() )
+        return capi_text->GetText();
 
-    if( !fills_to_replace.empty() )
+    const std::map<std::string, int>& fill_expressions = question.GetFillExpressions();
+
+    std::map<std::string, SharableString> replacements;
+
+    for( const CapiFill& fill : fills_to_replace )
     {
-        const std::map<CString, int>& fill_expressions = question.GetFillExpressions();
-
-        if( !fill_expressions.empty() )
-        {
-            std::map<std::string, SharableString> replacements;
-
-            for( const CapiFill& fill : fills_to_replace )
-                replacements[UTF8_TODO::GetUtf8(fill.GetTextToReplace())] = EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace()));
-
-            evaluated_capi_text = capi_text.ReplaceFills(replacements);
-        }
+        replacements.try_emplace(fill.GetTextToReplace(),
+                                    EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace())));
     }
 
-    return evaluated_capi_text;
+    return capi_text->ReplaceFills(replacements);
 }
 
 

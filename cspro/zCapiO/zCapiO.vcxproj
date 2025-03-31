@@ -104,6 +104,7 @@
     <ClInclude Include="CapiControl.h" />
     <ClInclude Include="CapiFill.h" />
     <ClInclude Include="CapiLogicParameters.h" />
+    <ClInclude Include="CapiName.h" />
     <ClInclude Include="CapiQuestion.h" />
     <ClInclude Include="CapiQuestionManager.h" />
     <ClInclude Include="CapiQuestionYaml.h" />

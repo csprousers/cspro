@@ -3,15 +3,7 @@
 #include <zUtilF/TextReportDlg.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/FormFileIterator.h>
-
-
-IMPLEMENT_DYNAMIC(CapiMacrosDlg, CDialog)
-
-CapiMacrosDlg::CapiMacrosDlg(CAplDoc* pAplDoc, CWnd* pParent /*=NULL*/)
-    :   CDialog(CapiMacrosDlg::IDD, pParent),
-        m_pAplDoc(pAplDoc)
-{
-}
+#include <zCapiO/CapiName.h>
 
 
 BEGIN_MESSAGE_MAP(CapiMacrosDlg, CDialog)
@@ -22,56 +14,44 @@ BEGIN_MESSAGE_MAP(CapiMacrosDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-namespace
+CapiMacrosDlg::CapiMacrosDlg(CAplDoc* const pAplDoc, CWnd* const pParent /* = nullptr*/)
+    :   CDialog(IDD_CAPI_MACROS, pParent),
+        m_pAplDoc(pAplDoc)
 {
-    CString GetCapiFieldName(const CDEItemBase* pItemBase)
-    {
-        if( pItemBase->isA(CDEFormBase::eItemType::Block) )
-            return pItemBase->GetName();
-
-        else if( pItemBase->isA(CDEFormBase::eItemType::Field) )
-        {
-            // field names are preceeded by the dictionary name
-            const CDEField* pField = (const CDEField*)pItemBase;
-            return FormatText(_T("%s.%s"), pField->GetItemDict().GetString(), pField->GetName().GetString());
-        }
-
-        ASSERT(false);
-        throw ProgrammingErrorException();
-    }
 }
 
 
-CString CapiMacrosDlg::ConstructHtmlFromText(const wstring_view text_sv)
+std::string CapiMacrosDlg::ConstructHtmlFromText(const std::string_view text_sv)
 {
-    return UTF8_TODO::GetCString("<p>" + Encoders::ToHtml(UTF8_TODO::GetUtf8(text_sv) + "</p>"));
+    return "<p>" + Encoders::ToHtml(text_sv) + "</p>";
 }
 
 
-int CapiMacrosDlg::IterateThroughBlocksAndFields(std::function<void(CDEItemBase*, const CDataDict*)>& callback_function,
-    bool include_blocks, bool include_protected_fields, bool only_include_undefined_text_entities)
+int CapiMacrosDlg::IterateThroughBlocksAndFields(const std::function<void(CDEItemBase*, const CDataDict*)>& callback_function,
+                                                 const bool include_blocks,
+                                                 const bool include_protected_fields,
+                                                 const bool only_include_undefined_text_entities)
 {
     int number_entities = 0;
 
-    std::function<void(CDEItemBase*, const CDataDict*)> find_text_function =
-        [this, &number_entities, callback_function, include_blocks, include_protected_fields,
-        only_include_undefined_text_entities](CDEItemBase* pItemBase, const CDataDict* pDataDict) -> void
+    const std::function<void(CDEItemBase*, const CDataDict*)> find_text_function =
+        [&](CDEItemBase* const item_base, const CDataDict* const dictionary)
     {
-        if( only_include_undefined_text_entities && m_pAplDoc->IsQHAvailable(pItemBase) )
+        if( only_include_undefined_text_entities && m_pAplDoc->IsQHAvailable(item_base) )
             return;
 
-        if( !include_blocks && pItemBase->isA(CDEFormBase::eItemType::Block) )
+        if( !include_blocks && item_base->isA(CDEFormBase::eItemType::Block) )
             return;
 
-        if( !include_protected_fields && pItemBase->isA(CDEFormBase::eItemType::Field) && ((CDEField*)pItemBase)->IsProtected() )
+        if( !include_protected_fields && item_base->isA(CDEFormBase::eItemType::Field) && assert_cast<const CDEField*>(item_base)->IsProtected() )
             return;
 
-        number_entities++;
+        ++number_entities;
 
-        callback_function(pItemBase, pDataDict);
+        callback_function(item_base, dictionary);
     };
 
-    for( const auto& form_file : m_pAplDoc->GetAppObject().GetRuntimeFormFiles() )
+    for( const std::shared_ptr<CDEFormFile>& form_file : m_pAplDoc->GetAppObject().GetRuntimeFormFiles() )
         FormFileIterator::Iterator(FormFileIterator::Iterator::IterateOverType::BlockField, form_file.get(), find_text_function).Iterate();
 
     return number_entities;
@@ -80,302 +60,261 @@ int CapiMacrosDlg::IterateThroughBlocksAndFields(std::function<void(CDEItemBase*
 
 void CapiMacrosDlg::OnBnClickedAuditUndefinedText()
 {
-    bool include_blocks = ( ((CButton*)GetDlgItem(IDC_CAPI_INCLUDE_BLOCKS))->GetCheck() == BST_CHECKED );
-    bool include_protected_fields = ( ((CButton*)GetDlgItem(IDC_CAPI_INCLUDE_PROTECTED_FIELDS))->GetCheck() == BST_CHECKED );
-    CString fields_with_undefined_text;
+    bool include_blocks = ( static_cast<CButton*>(GetDlgItem(IDC_CAPI_INCLUDE_BLOCKS))->GetCheck() == BST_CHECKED );
+    bool include_protected_fields = ( static_cast<CButton*>(GetDlgItem(IDC_CAPI_INCLUDE_PROTECTED_FIELDS))->GetCheck() == BST_CHECKED );
+    std::string fields_with_undefined_text;
 
-    std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
-        [&fields_with_undefined_text](CDEItemBase* pItemBase, const CDataDict*) -> void
-    {
-        fields_with_undefined_text.AppendFormat(_T("%s\r\n"), GetCapiFieldName(pItemBase).GetString());
-    };
+    const std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
+        [&](CDEItemBase* const item_base, const CDataDict* /*dictionary*/)
+        {
+            SO::AppendWithSeparator(fields_with_undefined_text, CapiName::Create(item_base), SO::Newline_crlf_sv);
+        };
 
-    int number_fields_with_undefined_text = IterateThroughBlocksAndFields(callback_function, include_blocks, include_protected_fields, true);
+    const int number_fields_with_undefined_text = IterateThroughBlocksAndFields(callback_function, include_blocks, include_protected_fields, true);
 
     if( number_fields_with_undefined_text == 0 )
     {
-        CString message;
-        message.Format(_T("All %sfields have question text in at least one language."), include_blocks ? _T("blocks and ") : _T(""));
-        AfxMessageBox(message);
+        AfxMessageBox(FormatText("All %sfields have question text in at least one language.", include_blocks ? "blocks and " : ""));
+        return;
     }
 
-    else
-    {
-        std::string heading = FormatText("There are %d %sfield%s with undefined question text:",
-                                         number_fields_with_undefined_text,
-                                         include_blocks ? FormatText("block%s or ", PluralizeWord(number_fields_with_undefined_text)).c_str() : "",
-                                         PluralizeWord(number_fields_with_undefined_text));
+    std::string heading = FormatText("There are %d %sfield%s with undefined question text:",
+                                     number_fields_with_undefined_text,
+                                     include_blocks ? FormatText("block%s or ", PluralizeWord(number_fields_with_undefined_text)).c_str() : "",
+                                     PluralizeWord(number_fields_with_undefined_text));
 
-        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(fields_with_undefined_text)));
-        text_report_dialog.DoModal();
-    }
+    TextReportDlg text_report_dialog(std::move(heading), std::move(fields_with_undefined_text));
+    text_report_dialog.DoModal();
 }
 
 
 void CapiMacrosDlg::OnBnClickedRemoveUnusedText()
 {
-    std::set<CString> all_blocks_fields;
+    std::set<std::string> all_blocks_fields;
 
-    std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
-        [this, &all_blocks_fields](CDEItemBase* pItemBase, const CDataDict*) -> void
-    {
-        all_blocks_fields.insert(GetCapiFieldName(pItemBase));
-    };
+    const std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
+        [&](CDEItemBase* const item_base, const CDataDict* /*dictionary*/)
+        {
+            all_blocks_fields.insert(CapiName::Create(item_base));
+        };
 
     IterateThroughBlocksAndFields(callback_function, true, true, false);
 
     int number_unused_fields = 0;
-    CString unused_fields_text;
+    std::string unused_fields_text;
 
     std::vector<CapiQuestion> used_capi_questions;
 
-    for( const CapiQuestion& question : m_pAplDoc->m_pQuestMgr->GetQuestions() )
+    for( const CapiQuestion& question : m_pAplDoc->m_questionManager->GetQuestions() )
     {
         if( all_blocks_fields.find(question.GetItemName()) == all_blocks_fields.end() )
         {
-            unused_fields_text.AppendFormat(_T("%s\r\n"), question.GetItemName().GetString());
-            number_unused_fields++;
-            m_pAplDoc->m_pQuestMgr->RemoveQuestion(question.GetItemName());
+            SO::AppendWithSeparator(unused_fields_text, question.GetItemName(), SO::Newline_crlf_sv);
+            ++number_unused_fields;
+            m_pAplDoc->m_questionManager->RemoveQuestion(question.GetItemName());
         }
     }
 
     if( number_unused_fields == 0 )
     {
         AfxMessageBox(L"All question text is associated with a block or field.");
+        return;
     }
 
-    else
-    {
-        std::string heading = FormatText("Unused question text was removed for the following %d nonexistent block%s or field%s:",
-                                         number_unused_fields, PluralizeWord(number_unused_fields), PluralizeWord(number_unused_fields));
+    std::string heading = FormatText("Unused question text was removed for the following %d nonexistent block%s or field%s:",
+                                     number_unused_fields, PluralizeWord(number_unused_fields), PluralizeWord(number_unused_fields));
 
-        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(unused_fields_text)));
-        text_report_dialog.DoModal();
-    }
+    TextReportDlg text_report_dialog(std::move(heading), std::move(unused_fields_text));
+    text_report_dialog.DoModal();
 }
 
 
 void CapiMacrosDlg::OnBnClickedInitializeFromDictionaryLabel()
 {
-    CString fields_with_added_text;
+    std::string fields_with_added_text;
 
-    std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
-        [this, &fields_with_added_text](CDEItemBase* pItemBase, const CDataDict* pDataDict) -> void
-    {
-        fields_with_added_text.AppendFormat(_T("%s\r\n"), GetCapiFieldName(pItemBase).GetString());
-
-        // first set the text for the main language
-        const CDictItem* pDictItem = ((CDEField*)pItemBase)->GetDictItem();
-        const auto& labels = pDictItem->GetLabelSet().GetLabels();
-
-        m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(labels[0]));
-
-        // then override the text for any additional languages
-        for( size_t i = 1; i < labels.size(); ++i )
+    const std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
+        [&](CDEItemBase* const item_base, const CDataDict* const dictionary)
         {
-            // don't set the text (an expensive operation) unless the language is different
-            if( labels[i] != labels[0] )
-            {
-                m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(labels[i]), pDataDict->GetLanguages()[i].GetName());
-            }
-        }
-    };
+            SO::AppendWithSeparator(fields_with_added_text, CapiName::Create(item_base), SO::Newline_crlf_sv);
 
-    int number_fields_with_added_text = IterateThroughBlocksAndFields(callback_function, false, true, true);
+            // first set the text for the main language
+            const CDictItem* const dict_item = assert_cast<const CDEField*>(item_base)->GetDictItem();
+            const std::vector<CString>& labels = dict_item ->GetLabelSet().GetLabels();
+
+            m_pAplDoc->SetCapiTextForAllConditions(item_base, ConstructHtmlFromText(UTF8_TODO::GetUtf8(labels.front())));
+
+            // then override the text for any additional languages
+            for( size_t i = 1; i < labels.size(); ++i )
+            {
+                // don't set the text (an expensive operation) unless the language is different
+                if( labels[i] != labels[0] )
+                {
+                    m_pAplDoc->SetCapiTextForAllConditions(item_base, ConstructHtmlFromText(UTF8_TODO::GetUtf8(labels[i])),
+                                                           dictionary->GetLanguages()[i].GetName());
+                }
+            }
+        };
+
+    const int number_fields_with_added_text = IterateThroughBlocksAndFields(callback_function, false, true, true);
 
     if( number_fields_with_added_text == 0 )
     {
         AfxMessageBox(L"All fields have question text in at least one language.");
+        return;
     }
 
-    else
-    {
-        std::string heading = FormatText("Dictionary labels were added as the question text for the following %d field%s:",
-                                         number_fields_with_added_text, PluralizeWord(number_fields_with_added_text));
+    std::string heading = FormatText("Dictionary labels were added as the question text for the following %d field%s:",
+                                     number_fields_with_added_text, PluralizeWord(number_fields_with_added_text));
 
-        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(fields_with_added_text)));
-        text_report_dialog.DoModal();
-    }
+    TextReportDlg text_report_dialog(std::move(heading), std::move(fields_with_added_text));
+    text_report_dialog.DoModal();
 }
 
 
 void CapiMacrosDlg::OnBnClickedPasteFromClipboard()
 {
     // get the list of all the possible blocks and fields
-    std::map<CString, CDEItemBase*> all_blocks_fields;
+    std::map<std::string, CDEItemBase*> all_blocks_fields;
 
-    std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
-        [this, &all_blocks_fields](CDEItemBase* pItemBase, const CDataDict*) -> void
-    {
-        all_blocks_fields.insert(std::make_pair(GetCapiFieldName(pItemBase), pItemBase));
-    };
+    const std::function<void(CDEItemBase*, const CDataDict*)> callback_function =
+        [&](CDEItemBase* const item_base, const CDataDict* /*dictionary*/)
+        {
+            all_blocks_fields.try_emplace(CapiName::Create(item_base), item_base);
+        };
 
     IterateThroughBlocksAndFields(callback_function, true, true, false);
 
     // get the possible prefixes to the field names
-    std::vector<CString> dictionary_prefixes;
-    dictionary_prefixes.push_back(_T(""));
+    std::vector<std::string> dictionary_prefixes = { std::string() };
 
-    for( const auto& form_file : m_pAplDoc->GetAppObject().GetRuntimeFormFiles() )
-        dictionary_prefixes.emplace_back(UTF8_TODO::GetCString(form_file->GetDictionary()->GetName() + "."));
+    for( const std::shared_ptr<CDEFormFile>& form_file : m_pAplDoc->GetAppObject().GetRuntimeFormFiles() )
+        dictionary_prefixes.emplace_back(form_file->GetDictionary()->GetName() + ".");
 
     // process the clipboard contents
     enum class ProcessingStep { InvalidLine, InvalidField, InvalidLanguage, Success };
-    ProcessingStep processing_step = ProcessingStep::InvalidLine;
-    CString processing_buffers[4];
+    ProcessingStep processing_step;
+    std::string processing_buffers[4];
     int lines_processed = 0;
 
-    CString clipboard_text = WS2CS(WinClipboard::GetText(this));
-    clipboard_text.Trim();
+    std::string clipboard_text = WinClipboard::GetText<std::string>(this);
+    SO::MakeTrim(clipboard_text);
 
-    while( !clipboard_text.IsEmpty() )
-    {
-        // get the next line
-        CString line;
-        int line_end_position = clipboard_text.FindOneOf(_T("\r\n"));
-
-        // there are additional lines
-        if( line_end_position >= 0 )
+    SO::ForeachLine<SharableString>(clipboard_text, false,
+        [&](const SharableString line)
         {
-            line = clipboard_text.Left(line_end_position);
-            line.TrimRight();
+            // now parse the line, throwing errors if necessary
+            std::vector<std::string> components = SO::SplitString(*line, '\t', true);
 
-            clipboard_text = clipboard_text.Mid(line_end_position + 1);
-            clipboard_text.TrimLeft();
-        }
+            SharableString message_for_processing_buffer = line;
 
-        // or we're on the last line
-        else
-        {
-            line = clipboard_text;
-            clipboard_text.Empty();
-        }
-
-        // skip blank lines
-        if( line.IsEmpty() )
-            continue;
-
-        // now parse the line, throwing errors if necessary
-        CString capi_field_name;
-        CString language_name;
-        CString question_text;
-        CString message_for_processing_buffer = line;
-
-        try
-        {
-            processing_step = ProcessingStep::InvalidLine;
-
-            int tab_position1 = line.Find(_T('\t'));
-
-            if( tab_position1 < 0 )
-                throw std::exception();
-
-            capi_field_name = line.Left(tab_position1);
-            capi_field_name.TrimRight();
-            capi_field_name.MakeUpper();
-
-            message_for_processing_buffer = capi_field_name;
-
-            int tab_position2 = line.Find(_T('\t'), tab_position1 + 1);
-
-            if( tab_position2 >= 0 )
+            try
             {
-                language_name = line.Mid(tab_position1 + 1, tab_position2 - tab_position1 - 1);
-                language_name.Trim();
-                language_name.MakeUpper();
+                if( components.size() < 2 )
+                    throw ProcessingStep::InvalidLine;
 
-                message_for_processing_buffer.AppendFormat(_T("(%s)"), language_name.GetString());
+                std::string capi_field_name = std::move(components.front());
+                SO::MakeTrim(capi_field_name);
+                SO::MakeUpper(capi_field_name);
 
-                tab_position1 = tab_position2;
-            }
+                message_for_processing_buffer = capi_field_name;
 
-            question_text = line.Mid(tab_position1 + 1);
-            question_text.TrimLeft();
+                std::optional<std::string> language_name;
 
-
-            // check that the name is a block or field
-            processing_step = ProcessingStep::InvalidField;
-
-            CDEItemBase* pItemBase = nullptr;
-
-            // if the name isn't valid, preface it with each dictionary name and check
-            for( const CString& dictionary_prefix : dictionary_prefixes )
-            {
-                CString capi_field_name_for_testing = dictionary_prefix + capi_field_name;
-
-                auto map_lookup = all_blocks_fields.find(capi_field_name_for_testing);
-
-                if( map_lookup != all_blocks_fields.end() )
+                if( components.size() > 2 )
                 {
-                    pItemBase = map_lookup->second;
-                    break;
+                    language_name = std::move(components[1]);
+                    SO::MakeTrim(*language_name);
+                    SO::MakeUpper(*language_name);
+
+                    message_for_processing_buffer.MakeModifiable().append(FormatText("(%s)", language_name->c_str()));
                 }
-            }
 
-            if( pItemBase == nullptr )
-                throw std::exception();
+                std::string question_text = std::move(components[language_name.has_value() ? 2 : 1]);
+                SO::MakeTrim(question_text);
 
 
-            // if a language is specified, check that it is valid
-            processing_step = ProcessingStep::InvalidLanguage;
+                // check that the name is a block or field
+                CDEItemBase* item_base = nullptr;
 
-            if( !language_name.IsEmpty() )
-            {
-                if(std::find_if(m_pAplDoc->m_pQuestMgr->GetLanguages().cbegin(),
-                                m_pAplDoc->m_pQuestMgr->GetLanguages().cend(),
-                                [&](const Language& l) { return SO::EqualsNoCase(language_name, l.GetName()); } ) == m_pAplDoc->m_pQuestMgr->GetLanguages().cend())
+                // if the name isn't valid, preface it with each dictionary name and check
+                for( const std::string& dictionary_prefix : dictionary_prefixes )
                 {
-                    throw std::exception();
+                    const std::string capi_field_name_for_testing = dictionary_prefix + capi_field_name;
+                    const auto& lookup = all_blocks_fields.find(capi_field_name_for_testing);
+
+                    if( lookup != all_blocks_fields.end() )
+                    {
+                        item_base = lookup->second;
+                        break;
+                    }
                 }
+
+                if( item_base == nullptr )
+                    throw ProcessingStep::InvalidField;
+
+
+                // if a language is specified, check that it is valid
+                if( language_name.has_value() )
+                {
+                    const auto& lookup = std::find_if(m_pAplDoc->m_questionManager->GetLanguages().cbegin(),
+                                                      m_pAplDoc->m_questionManager->GetLanguages().cend(),
+                                                      [&](const Language& l) { return SO::EqualsNoCase(*language_name, l.GetName()); });
+
+                    if( lookup == m_pAplDoc->m_questionManager->GetLanguages().cend() )
+                        throw ProcessingStep::InvalidLanguage;
+                }
+
+
+                // add or modify the question text
+                m_pAplDoc->SetCapiTextForAllConditions(item_base,
+                                                       ConstructHtmlFromText(question_text),
+                                                       language_name.has_value() ? *language_name : SO::Empty_string);
+
+                processing_step = ProcessingStep::Success;
             }
 
+            catch( const ProcessingStep error_processing_step )
+            {
+                processing_step = error_processing_step;
+            }
 
-            // add or modify the question text
-            processing_step = ProcessingStep::Success;
-
-            m_pAplDoc->SetCapiTextForAllConditions(pItemBase, ConstructHtmlFromText(question_text), UTF8_TODO::GetUtf8(language_name));
-        }
-
-        catch(...)
-        {
-        }
-
-        // add the message to the appropriate buffer
-        lines_processed++;
-        processing_buffers[(int)processing_step].AppendFormat(_T("    %s\r\n"), message_for_processing_buffer.GetString());
-    }
+            // add the message to the appropriate buffer
+            ++lines_processed;
+            processing_buffers[static_cast<size_t>(processing_step)].append("    ")
+                                                                    .append(*message_for_processing_buffer)
+                                                                    .append(SO::Newline_crlf_sv);
+        });
 
 
     if( lines_processed == 0 )
     {
         AfxMessageBox(L"No suitable content found on the clipboard");
+        return;
     }
 
-    else
+    std::string heading = FormatText("%d line%s of text from the clipboard processed:",
+                                        lines_processed, PluralizeWord(lines_processed));
+
+    std::string clipboard_paste_report;
+
+    for( int i = 0; i < _countof(processing_buffers); ++i )
     {
-        std::string heading = FormatText("%d line%s of text from the clipboard processed:",
-                                         lines_processed, PluralizeWord(lines_processed));
-
-        CString clipboard_paste_report;
-
-        for( int i = 0; i < _countof(processing_buffers); i++ )
+        if( !processing_buffers[i].empty() )
         {
-            if( !processing_buffers[i].IsEmpty() )
-            {
-                CString processing_buffer_header =
-                    ( i == 0 ) ? _T("Lines that could not be processed") :
-                    ( i == 1 ) ? _T("Invalid block or field names") :
-                    ( i == 2 ) ? _T("Invalid language names") :
-                    _T("Blocks or fields whose question text was successfully added or modified");
+            if( !clipboard_paste_report.empty() )
+                clipboard_paste_report.append(SO::Newline_crlf_sv);
 
-                clipboard_paste_report.AppendFormat(_T("%s%s:\r\n%s"),
-                    clipboard_paste_report.IsEmpty() ? _T("") : _T("\r\n"),
-                    processing_buffer_header.GetString(),
-                    processing_buffers[i].GetString());
-            }
+            clipboard_paste_report.append(( i == 0 ) ? "Lines that could not be processed:" :
+                                          ( i == 1 ) ? "Invalid block or field names:" :
+                                          ( i == 2 ) ? "Invalid language names:" :
+                                                       "Blocks or fields whose question text was successfully added or modified:");
+
+            clipboard_paste_report.append(SO::Newline_crlf_sv)
+                                  .append(processing_buffers[i]);
         }
-
-        TextReportDlg text_report_dialog(std::move(heading), UTF8_TODO::GetUtf8(std::move(clipboard_paste_report)));
-        text_report_dialog.DoModal();
     }
+
+    TextReportDlg text_report_dialog(std::move(heading), std::move(clipboard_paste_report));
+    text_report_dialog.DoModal();
 }

@@ -288,7 +288,7 @@ void DictionaryMacrosDlg::makeNewNameWork(DictNamedBase& dict_element, const CSt
     int level = -1,record = -1,item = -1,vset = -1;
     m_pDict->LookupName(UTF8_TODO::GetUtf8(oldName), &level, &record, &item, &vset);
     m_pDict->UpdateNameList(dict_element,level,record,item,vset);
-    m_pDict->SetOldName(oldName);
+    m_pDict->SetOldName(UTF8_TODO::GetUtf8(oldName));
     AfxGetMainWnd()->SendMessage(UWM::Dictionary::NameChange, (WPARAM)m_pDictDoc);
 }
 

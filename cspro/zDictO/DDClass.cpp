@@ -1956,7 +1956,7 @@ void CDataDict::serialize(Serializer& ar)
 
     ar.IgnoreUnusedVariable<int>(Serializer::Iteration_8_0_000_1); // m_iNumLevels
 
-    ar & m_csOldName;
+    ar & m_oldName;
     ar & m_iSymbol;
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )

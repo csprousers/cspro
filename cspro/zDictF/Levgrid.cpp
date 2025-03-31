@@ -761,7 +761,7 @@ void CLevelGrid::EditBegin(int col, long row, UINT vcKey)
     m_pNameEdit->SetWindowText(cs);
     m_aEditControl.SetAt(LEVEL_NAME_COL, (CWnd*)m_pNameEdit);
     if (!m_bAdding && !m_bInserting) {
-        m_pDict->SetOldName(cs);
+        m_pDict->SetOldName(UTF8_TODO::GetUtf8(cs));
         m_pDict->SetChangedObject(m_pDict->GetLevel(m_iLevel).GetRecord(row - m_iFirstRow));
     }
 

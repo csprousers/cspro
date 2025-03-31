@@ -2,6 +2,7 @@
 #include "AplDoc.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
+#include <zCapiO/CapiName.h>
 #include <zCapiO/QSFView.h>
 #include <Zentryo/Runaple.h>
 #include <zDesignerF/NewFileCreator.h>
@@ -348,8 +349,8 @@ BOOL CAplDoc::OnSaveDocument(LPCTSTR lpszPathName)
     //Save the forms
     else if(m_application->GetEngineAppType() == EngineAppType::Entry) {
         SaveForms();
-        if(m_pQuestMgr != nullptr && m_pQuestMgr->IsModified()) {
-            m_pQuestMgr->Save(m_application->GetQuestionTextFilePath());
+        if(m_questionManager != nullptr && m_questionManager->IsModified()) {
+            m_questionManager->Save(m_application->GetQuestionTextFilePath());
         }
     }
 
@@ -989,7 +990,7 @@ void CAplDoc::SetAppObjects()
 
         SetEDictObjects();
 
-        m_application->SetCapiQuestionManager(m_pQuestMgr);
+        m_application->SetCapiQuestionManager(m_questionManager);
     }
 
     else if( m_application->GetEngineAppType() == EngineAppType::Batch )
@@ -1312,7 +1313,7 @@ bool CAplDoc::IsAppModified()
     if(GetEngineAppType() == EngineAppType::Entry) {
         if(m_application->GetAppSrcCode()->IsModified())
             return true;
-        if(m_application->GetUseQuestionText() && m_pQuestMgr != nullptr && m_pQuestMgr->IsModified())
+        if(m_application->GetUseQuestionText() && m_questionManager != nullptr && m_questionManager->IsModified())
             return TRUE;
 
         for( const std::string& form_file_path : m_application->GetFormFilePaths() ) {
@@ -1722,7 +1723,7 @@ BOOL CAplDoc::ProcessFormOpen()
 
         ASSERT(pNode->GetFormDoc());
 
-        pNode->GetFormDoc()->SetCapiQuestionManager(m_application.get(), m_pQuestMgr);
+        pNode->GetFormDoc()->SetCapiQuestionManager(m_application.get(), m_questionManager);
 
         CFormChildWnd* pFormChildWnd = (CFormChildWnd*)pNode->GetFormDoc()->GetView()->GetParentFrame();
         ASSERT(pFormChildWnd);
@@ -1731,7 +1732,7 @@ BOOL CAplDoc::ProcessFormOpen()
 
         QSFView* pQTView = (QSFView*)pNode->GetFormDoc()->GetView(FormViewType::QuestionText);
         if (pQTView) {
-            pQTView->SetStyleCss(m_pQuestMgr->GetStylesCss());
+            pQTView->SetStyleCss(m_questionManager->GetStylesCss());
             pQTView->SetUpQuestionTextView(m_application->GetApplicationFilePath());
         }
     }
@@ -2133,47 +2134,39 @@ bool CAplDoc::FindDictName(const std::string& dictionary_file_path, const std::w
 /////////////////////////////////////////////////////////////////////////////////
 void CAplDoc::BuildQuestMgr()
 {
-    m_pQuestMgr = std::make_shared<CapiQuestionManager>();
+    m_questionManager = std::make_shared<CapiQuestionManager>();
 
     //if qsf file does not exist then create one
     if( !PortableFunctions::FileIsRegular(m_application->GetQuestionTextFilePath()) )
-        m_pQuestMgr->Save(m_application->GetQuestionTextFilePath());
+        m_questionManager->Save(m_application->GetQuestionTextFilePath());
 
-    m_pQuestMgr->Load(m_application->GetQuestionTextFilePath());
+    m_questionManager->Load(m_application->GetQuestionTextFilePath());
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  CAplDoc::GetCapiItemName
+//  SharableString CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
 //
 /////////////////////////////////////////////////////////////////////////////////
-CString CAplDoc::GetCapiItemName(const CDEItemBase* const pBase)
+SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const item_base, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
 {
-    const CDEBlock* const block = dynamic_cast<const CDEBlock*>(pBase);
-    return ( block != nullptr ) ? block->GetName() :
-                                  UTF8_TODO::GetCString(assert_cast<const CDEField*>(pBase)->GetDictItem()->GetQualifiedName());
-}
+    ASSERT(m_questionManager != nullptr);
 
+    const CapiQuestion* const question = m_questionManager->GetQuestion(CapiName::Create(item_base));
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  std::string CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
-//
-/////////////////////////////////////////////////////////////////////////////////
-SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const pBase, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
-{
-    ASSERT(m_pQuestMgr != nullptr);
+    if( question != nullptr && !question->GetConditions().empty() )
+    {
+        if( !language_name.has_value() )
+            language_name = m_questionManager->GetDefaultLanguage().GetName();
 
-    const std::optional<CapiQuestion> question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
+        const CapiText* const capi_text = question->GetConditions().front().GetQuestionText(*language_name);
 
-    if( !question.has_value() || question->GetConditions().empty() )
-        return std::string();
+        if( capi_text != nullptr )
+            return capi_text->GetText();
+    }
 
-    if( !language_name.has_value() )
-        language_name = m_pQuestMgr->GetDefaultLanguage().GetName();
-
-    return question->GetConditions().front().GetQuestionText(UTF8_TODO::GetWide(*language_name)).GetText();
+    return SharableString();
 }
 
 
@@ -2182,43 +2175,49 @@ SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const pBase, c
 //  SetCapiTextForAllConditions
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, const std::string& language_name/* = SO::Empty_string*/)
+void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* item_base, SharableString question_text, const std::string& language_name/* = SO::Empty_string*/)
 {
-    ASSERT(m_pQuestMgr != nullptr);
+    ASSERT(m_questionManager != nullptr);
 
-    CString item_name = GetCapiItemName(pBase);
-    auto question = m_pQuestMgr->GetQuestion(item_name);
-    if (!question) {
-        question = CapiQuestion(item_name);
-    }
-    auto& conditions = question->GetConditions();
+    const std::string item_name = CapiName::Create(item_base);
+    const CapiQuestion* const existing_question = m_questionManager->GetQuestion(item_name);
+    CapiQuestion question = ( existing_question != nullptr ) ? *existing_question :
+                                                               CapiQuestion(item_name);
 
-    if (conditions.empty()) {
-        CapiCondition new_condition;
-        if (language_name.empty()) {
-            for (const Language& lang : m_pQuestMgr->GetLanguages()) {
-                new_condition.SetQuestionText(question_text, UTF8_TODO::GetWide(lang.GetName()));
-            }
+    std::vector<CapiCondition>& conditions = question.GetConditions();
+
+    auto set_text = [&](CapiCondition& condition)
+    {
+        if( language_name.empty() )
+        {
+            for( const Language& language : m_questionManager->GetLanguages() )
+                condition.SetQuestionText(CapiText(question_text), language.GetName());
         }
-        else {
-            new_condition.SetQuestionText(question_text, UTF8_TODO::GetWide(language_name));
+
+        else
+        {
+            condition.SetQuestionText(CapiText(question_text), language_name);
         }
-        conditions.emplace_back(new_condition);
-    }
-    else {
-        for (CapiCondition& cond : conditions) {
-            if (language_name.empty()) {
-                for (const Language& lang : m_pQuestMgr->GetLanguages()) {
-                    cond.SetQuestionText(question_text, UTF8_TODO::GetWide(lang.GetName()));
-                }
-            }
-            else {
-                cond.SetQuestionText(question_text, UTF8_TODO::GetWide(language_name));
-            }
+    };
+
+    if( conditions.empty() )
+        conditions.emplace_back();
+
+    for( CapiCondition& condition : conditions )
+    {
+        if( language_name.empty() )
+        {
+            for( const Language& language : m_questionManager->GetLanguages() )
+                condition.SetQuestionText(CapiText(question_text), language.GetName());
+        }
+
+        else
+        {
+            condition.SetQuestionText(question_text, language_name);
         }
     }
 
-    m_pQuestMgr->SetQuestion(std::move(*question));
+    m_questionManager->SetQuestion(std::move(question));
 }
 
 
@@ -2228,22 +2227,22 @@ void CAplDoc::SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_t
 //  bool CAplDoc::IsQHAvailable(CDEItemBase* pBase)
 //
 /////////////////////////////////////////////////////////////////////////////////
-bool CAplDoc::IsQHAvailable(const CDEItemBase* const pBase)
+bool CAplDoc::IsQHAvailable(const CDEItemBase* const item_base)
 {
-    if( !m_application->GetUseQuestionText() || m_pQuestMgr == nullptr )
+    if( !m_application->GetUseQuestionText() || m_questionManager == nullptr )
         return false;
 
-    const std::optional<CapiQuestion> question = m_pQuestMgr->GetQuestion(GetCapiItemName(pBase));
+    const CapiQuestion* const question = m_questionManager->GetQuestion(CapiName::Create(item_base));
 
-    if( !question.has_value() )
+    if( question == nullptr )
         return false;
 
     for( const CapiCondition& condition : question->GetConditions() )
     {
-        for( const Language& language : m_pQuestMgr->GetLanguages() )
+        for( const Language& language : m_questionManager->GetLanguages() )
         {
-            if( !condition.GetQuestionText(UTF8_TODO::GetWide(language.GetName())).GetText()->empty() ||
-                !condition.GetHelpText(UTF8_TODO::GetWide(language.GetName())).GetText()->empty() )
+            if( condition.GetQuestionText(language.GetName()) != nullptr ||
+                condition.GetHelpText(language.GetName()) != nullptr )
             {
                 return true;
             }
@@ -2256,9 +2255,9 @@ bool CAplDoc::IsQHAvailable(const CDEItemBase* const pBase)
 
 bool CAplDoc::GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo)
 {
-    ASSERT(m_pQuestMgr != nullptr);
+    ASSERT(m_questionManager != nullptr);
     arrInfo.RemoveAll();
-    for (const Language& lang : m_pQuestMgr->GetLanguages()) {
+    for (const Language& lang : m_questionManager->GetLanguages()) {
         CLangInfo langInfo;
         langInfo.m_sLangName = UTF8_TODO::GetCString(lang.GetName());
         langInfo.m_sLabel = UTF8_TODO::GetCString(lang.GetLabel());
@@ -2271,9 +2270,9 @@ bool CAplDoc::GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo)
 
 void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
 {
-    ASSERT( m_pQuestMgr != nullptr );
+    ASSERT( m_questionManager != nullptr );
 
-    int iNumLanguages = m_pQuestMgr->GetLanguages().size();
+    int iNumLanguages = m_questionManager->GetLanguages().size();
 
     //First process langs which are modified
     for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
@@ -2282,8 +2281,8 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
             ASSERT(iNumLanguages > iLangInfo);
             CString sName = langInfo.m_sLangName;
             sName.Trim();
-            const auto& current_language = m_pQuestMgr->GetLanguages()[iLangInfo];
-            m_pQuestMgr->ModifyLanguage(current_language.GetName(), Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
+            const auto& current_language = m_questionManager->GetLanguages()[iLangInfo];
+            m_questionManager->ModifyLanguage(current_language.GetName(), Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
         }
     }
 
@@ -2291,7 +2290,7 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
     for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
         CLangInfo langInfo =arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
-            m_pQuestMgr->DeleteLanguage(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
+            m_questionManager->DeleteLanguage(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
         }
     }
 
@@ -2301,43 +2300,49 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
         if(langInfo.m_eLangInfo == eLANGINFO::NEW_INFO) {
             CString sName = langInfo.m_sLangName;
             sName.Trim();
-            m_pQuestMgr->AddLanguage(Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
+            m_questionManager->AddLanguage(Language(UTF8_TODO::GetUtf8(sName), UTF8_TODO::GetUtf8(langInfo.m_sLabel)));
         }
     }
 }
 
 
-void CAplDoc::ChangeCapiName(const CDEItemBase* pItem, const CString& old_name) // 20120710 so that when changing names of items (and thus fields or blocks), we change the field name in the QSF file
+void CAplDoc::ChangeCapiName(const CDEItemBase* const item_base, const std::string& old_name)
 {
-    if( m_application->GetUseQuestionText() && m_pQuestMgr != nullptr )
-    {
-        auto question = m_pQuestMgr->GetQuestion(old_name);
-        if (question) {
-            m_pQuestMgr->RemoveQuestion(question->GetItemName());
-            CString new_name = GetCapiItemName(pItem);
-            question->SetItemName(new_name);
-            m_pQuestMgr->SetQuestion(*question);
-        }
-    }
+    // 20120710 so that when changing names of items (and thus fields or blocks), we change the field name in the QSF file
+    if( !m_application->GetUseQuestionText() || m_questionManager == nullptr )
+        return;
+
+    const CapiQuestion* const old_question = m_questionManager->GetQuestion(old_name);
+
+    if( old_question == nullptr )
+        return;
+
+    CapiQuestion new_question = *old_question;
+    new_question.SetItemName(CapiName::Create(item_base));
+
+    m_questionManager->RemoveQuestion(old_question->GetItemName());
+
+    m_questionManager->SetQuestion(std::move(new_question));
 }
 
 
 void CAplDoc::ChangeCapiDictName(const CDataDict& dictionary)
 {
-    if( m_application->GetUseQuestionText() && m_pQuestMgr != nullptr )
+    if( !m_application->GetUseQuestionText() || m_questionManager == nullptr )
+        return;
+
+    const std::string& old_dict_name = dictionary.GetOldName();
+    std::string new_item_prefix = dictionary.GetName() + ".";
+
+    const std::regex dict_item_regex(FormatText("^%s\\.", old_dict_name.c_str()));
+
+    const std::vector<CapiQuestion> questions = m_questionManager->GetQuestions();
+
+    for( CapiQuestion question : questions )
     {
-        CString old_dict_name = dictionary.GetOldName();
-        CString new_item_prefix = UTF8_TODO::GetCString(dictionary.GetName() + ".");
-
-        std::wregex dict_item_regex(FormatText(_T("^%s\\."), old_dict_name.GetString()));
-
-        std::vector<CapiQuestion> questions = m_pQuestMgr->GetQuestions();
-        for (CapiQuestion& question : questions) {
-            m_pQuestMgr->RemoveQuestion(question.GetItemName());
-            CString new_item_name = std::regex_replace(question.GetItemName().GetString(), dict_item_regex, new_item_prefix.GetString()).c_str();
-            question.SetItemName(new_item_name);
-            m_pQuestMgr->SetQuestion(std::move(question));
-        }
+        m_questionManager->RemoveQuestion(question.GetItemName());
+        question.SetItemName(std::regex_replace(question.GetItemName(), dict_item_regex, new_item_prefix));
+        m_questionManager->SetQuestion(std::move(question));
     }
 }
 

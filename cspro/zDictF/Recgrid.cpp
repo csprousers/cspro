@@ -1353,7 +1353,7 @@ void CRecordGrid::EditBegin(int col, long row, UINT vcKey)
         cell.GetText(&cs);
         CreateNameEdit(row, cs);
         if (!m_bAdding && !m_bInserting) {   // BMD 20 Sep 2005
-            m_pDict->SetOldName(cs);
+            m_pDict->SetOldName(UTF8_TODO::GetUtf8(cs));
         }
     }
 

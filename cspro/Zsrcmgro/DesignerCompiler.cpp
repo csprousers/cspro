@@ -52,8 +52,8 @@ bool DesignerCompiler::CompileAll()
     CCompiler::Result result = m_compiler->FullCompile(m_pSourceCode);
 
     // compile the CAPI conditions and fills
-    if( result == CCompiler::Result::NoErrors && m_pApplication->GetUseQuestionText() && m_pAplDoc->m_pQuestMgr != nullptr )
-        result = m_compiler->Compile(*m_pAplDoc->m_pQuestMgr);
+    if( result == CCompiler::Result::NoErrors && m_pApplication->GetUseQuestionText() && m_pAplDoc->m_questionManager != nullptr )
+        result = m_compiler->Compile(*m_pAplDoc->m_questionManager);
 
     return ProcessCompilerResult(result, false);
 }

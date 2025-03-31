@@ -51,11 +51,11 @@ public:
 
     // questions
     // --------------------------------------------------------------------------
-    std::optional<CapiQuestion> GetQuestion(const CString& item_name) const;
+    const CapiQuestion* GetQuestion(const std::string& item_name) const;
     void SetQuestion(CapiQuestion question);
     std::vector<CapiQuestion> GetQuestions() const;
     std::vector<CapiQuestion> GetQuestionsSortedInFormOrder() const;
-    void RemoveQuestion(const CString& item_name);
+    void RemoveQuestion(const std::string& item_name);
 
 
     // serialization
@@ -76,12 +76,12 @@ protected:
 private:
     void LoadPre76File(const std::string& file_path);
     void CreateFromPre76File(CapiPre76::CNewCapiQuestionFile& question_file);
-    void CopyPre76Question(CapiPre76::CNewCapiQuestionHelp* file_question, bool is_question);
+    void CopyPre76Question(CapiPre76::CNewCapiQuestionHelp* file_question, CapiText::Type type);
     bool IsPre76File(std::istream& is) const;
     void ConvertPre76ConditionOccs();
     bool ShouldConvertPre76ConditionOccs(const std::vector<CapiCondition>& conditions) const;
     void ConvertPre76Fills();
-    CString ConvertPre76Fills(const CString& question_text);
+    std::string ConvertPre76Fills(std::string text_sv);
     static std::string ConvertFromRtf(const std::string& rtf_text);
 
 private:
@@ -89,7 +89,7 @@ private:
     size_t m_languageIndex;
     std::vector<CapiStyle> m_styles;
     std::string m_runtimeStylesCss;
-    std::map<CString, CapiQuestion> m_questions;
+    std::map<std::string, CapiQuestion> m_questions;
     bool m_modified;
     bool m_is_pre76_file;
 };

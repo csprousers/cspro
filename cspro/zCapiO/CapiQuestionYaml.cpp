@@ -4,37 +4,8 @@
 #include <yaml-cpp/yaml.h>
 
 
-namespace YAML {
-
-    template<>
-    struct convert<CString> {
-        static Node encode(const CString& rhs) {
-            return Node(UTF8_TODO::GetUtf8(rhs));
-        }
-
-        static bool decode(const Node& node, CString& rhs) {
-            if (!node.IsScalar())
-                return false;
-            rhs = UTF8_TODO::GetCString(node.Scalar());
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<std::wstring> {
-        static Node encode(const std::wstring& rhs) {
-            return Node(UTF8_TODO::GetUtf8(rhs));
-        }
-
-        static bool decode(const Node& node, std::wstring& rhs) {
-            if (!node.IsScalar())
-                return false;
-            rhs = TC::ToWide(node.Scalar());
-            return true;
-        }
-    };
-
-
+namespace YAML
+{
     template<>
     struct convert<SharableString>
     {
@@ -55,8 +26,10 @@ namespace YAML {
 
 
     template<>
-    struct convert<CapiStyle> {
-        static Node encode(const CapiStyle& rhs) {
+    struct convert<CapiStyle>
+    {
+        static Node encode(const CapiStyle& rhs)
+        {
             Node node(NodeType::Map);
             node.force_insert("name", rhs.name);
             node.force_insert("className", rhs.class_name);
@@ -64,89 +37,115 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node& node, CapiStyle& rhs) {
-            if (!node.IsMap()) {
+        static bool decode(const Node& node, CapiStyle& rhs)
+        {
+            if( !node.IsMap() )
                 return false;
-            }
+
             rhs.name = node["name"].as<std::string>();
             rhs.class_name = node["className"].as<std::string>();
             rhs.css = node["css"].as<std::string>();
+
             return true;
         }
     };
 
     template<>
-    struct convert<Language> {
-        static Node encode(const Language& rhs) {
+    struct convert<Language>
+    {
+        static Node encode(const Language& rhs)
+        {
             Node node(NodeType::Map);
             node.force_insert("name", rhs.GetName());
             node.force_insert("label", rhs.GetLabel());
             return node;
         }
 
-        static bool decode(const Node& node, Language& rhs) {
-            if (!node.IsMap()) {
+        static bool decode(const Node& node, Language& rhs)
+        {
+            if( !node.IsMap() )
                 return false;
-            }
+
             rhs.SetName(node["name"].as<std::string>());
             rhs.SetLabel(node["label"].as<std::string>());
+
             return true;
         }
     };
 
     template<>
-    struct convert<CapiText> {
-        static Node encode(const CapiText& rhs) { return Node(rhs.GetText()); }
+    struct convert<CapiText>
+    {
+        static Node encode(const CapiText& rhs)
+        {
+            return Node(rhs.GetText());
+        }
 
-        static bool decode(const Node& node, CapiText& rhs) {
-            if (!node.IsScalar())
+        static bool decode(const Node& node, CapiText& rhs)
+        {
+            if( !node.IsScalar() )
                 return false;
+
             rhs = CapiText(node.as<std::string>());
+
             return true;
         }
     };
 
     template<>
-    struct convert<CapiCondition> {
-        static Node encode(const CapiCondition& /*rhs*/) {
-            ASSERT(false);
-            return Node();
+    struct convert<CapiCondition>
+    {
+        static Node encode(const CapiCondition& /*rhs*/)
+        {
+            return ReturnProgrammingError(Node());
         }
 
-        static bool decode(const Node& node, CapiCondition& rhs) {
+        static bool decode(const Node& node, CapiCondition& rhs)
+        {
             static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_8_0_000_1, "when removing pre-8.0 support, remove 'logicExpression'");
-            if (!node.IsMap()) {
+
+            if( !node.IsMap() )
                 return false;
-            }
-            if (node["logic"])
-                rhs.m_logic = node["logic"].as<CString>();
-            if (node["logicExpression"])
-                rhs.m_logicExpression = node["logicExpression"].as<int>();
-            if (node["questionText"])
-                rhs.m_questionTexts = node["questionText"].as<std::map<std::wstring, CapiText>>();
-            if (node["helpText"])
-                rhs.m_helpTexts = node["helpText"].as<std::map<std::wstring, CapiText>>();
+
+            if( node["logic"] )
+                rhs.m_logic = node["logic"].as<std::string>();
+
+            if( node["logicExpression"] )
+                rhs.m_programIndex = node["logicExpression"].as<int>();
+
+            if( node["questionText"] )
+                rhs.m_questionTexts = node["questionText"].as<std::map<std::string, CapiText>>();
+
+            if( node["helpText"] )
+                rhs.m_helpTexts = node["helpText"].as<std::map<std::string, CapiText>>();
+
             return true;
         }
     };
 
     template<>
-    struct convert<CapiQuestion> {
-        static Node encode(const CapiQuestion& /*rhs*/) {
-            ASSERT(false);
-            return Node();
+    struct convert<CapiQuestion>
+    {
+        static Node encode(const CapiQuestion& /*rhs*/)
+        {
+            return ReturnProgrammingError(Node());
         }
 
-        static bool decode(const Node& node, CapiQuestion& rhs) {
+        static bool decode(const Node& node, CapiQuestion& rhs)
+        {
             static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_8_0_000_1, "when removing pre-8.0 support, remove 'fillExpressions'");
-            if (!node.IsMap()) {
+
+            if( !node.IsMap() )
                 return false;
-            }
-            rhs.SetItemName(node["name"].as<CString>());
-            if (node["conditions"])
+
+            rhs.SetItemName(node["name"].as<std::string>());
+
+            if( node["conditions"] )
                 rhs.m_conditions = node["conditions"].as<std::vector<CapiCondition>>();
-            if (node["fillExpressions"])
-                rhs.m_fillExpressions = node["fillExpressions"].as<std::map<CString, int>>();
+
+            if( node["fillExpressions"] )
+                rhs.m_fillExpressions = node["fillExpressions"].as<std::map<std::string, int>>();
+
             return true;
         }
     };
@@ -204,7 +203,7 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
             out << YAML::BeginSeq;
             for (const CapiCondition& condition : conditions) {
                 out << YAML::BeginMap;
-                if (!condition.GetLogic().IsEmpty()) {
+                if (!condition.GetLogic().empty()) {
                     out << YAML::Key << "logic";
                     out << YAML::Value << condition.GetLogic();
                 }
@@ -243,20 +242,25 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
 
 void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
 {
-    CString fileType = yaml["fileType"].as<CString>();
-    if (fileType != L"Question Text")
+    const std::string file_type = yaml["fileType"].as<std::string>();
+
+    if( file_type != "Question Text" )
         throw CSProException("Invalid file type");
-    auto languages = yaml["languages"].as<std::vector<Language>>();
-    for (Language& language : languages)
+
+    std::vector<Language> languages = yaml["languages"].as<std::vector<Language>>();
+
+    for( Language& language : languages )
         question_manager.AddLanguage(std::move(language));
 
-    //yaml-cpp library adds new line when reading "Literal" output and it does not have folding feature to eliminate new lines
-    //as a work around we are trimming new lines added when using "Literal" style output
-    if (yaml["styles"]) {
-        auto styles = yaml["styles"].as<std::vector<CapiStyle>>();
-        for (CapiStyle& style : styles) {
+    // yaml-cpp library adds new line when reading "Literal" output and it does not have folding feature to eliminate new lines
+    // as a work around we are trimming new lines added when using "Literal" style output
+    if( yaml["styles"] )
+    {
+        std::vector<CapiStyle> styles = yaml["styles"].as<std::vector<CapiStyle>>();
+
+        for( CapiStyle& style : styles )
             SO::MakeTrimRight(style.css, '\n');
-        }
+
         question_manager.SetStyles(std::move(styles));
     }
 
@@ -272,13 +276,13 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
             {
                 for( const auto& [language_name, capi_text] : condition.GetAllQuestionText() )
                 {
-                    condition.SetQuestionText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
+                    condition.SetQuestionText(CapiText(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
                                               language_name);
                 }
 
                 for( const auto& [language_name, capi_text] : condition.GetAllHelpText() )
                 {
-                    condition.SetHelpText(UTF8_TODO::GetCString(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
+                    condition.SetHelpText(CapiText(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
                                           language_name);
                 }
             }
@@ -293,6 +297,7 @@ void ReadFromYaml(CapiQuestionManager& question_manager, std::istream& input)
 {
     ReadFromYaml(question_manager, YAML::Load(input));
 }
+
 
 void ReadFromYaml(CapiQuestionManager& question_manager, const std::string& input)
 {

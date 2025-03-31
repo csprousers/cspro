@@ -64,7 +64,7 @@ public:
 
     BOOL AreAplDictsOK(void);
     bool m_bIsClosing;
-    std::shared_ptr<CapiQuestionManager> m_pQuestMgr;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
     HWND m_deployWnd;
     //Attributes
 
@@ -94,8 +94,6 @@ private:
     bool IsNameUniqueInOrders(const CString& name) const;
     bool IsNameUniqueInOrderDictionaries(const CString& name) const;
 
-    static CString GetCapiItemName(const CDEItemBase* pBase);
-
 public:
     bool IsNameUnique(const CDocument* pDoc, const CString& name) const;
     BOOL CheckUniqueNames(BOOL bSilent = FALSE);
@@ -104,12 +102,12 @@ public:
     void ReconcileDictTypes();
     bool FindDictName(const std::string& dictionary_file_path, const std::wstring& sFormName);
     void BuildQuestMgr();
-    SharableString GetCapiTextForFirstCondition(CDEItemBase* pBase, cs::cref_optional<std::string> language_name = std::nullopt);
-    void SetCapiTextForAllConditions(CDEItemBase* pBase, CString question_text, const std::string& language_name = SO::Empty_string);
-    bool IsQHAvailable(const CDEItemBase* pBase);
+    SharableString GetCapiTextForFirstCondition(CDEItemBase* item_base, cs::cref_optional<std::string> language_name = std::nullopt);
+    void SetCapiTextForAllConditions(CDEItemBase* item_base, SharableString question_text, const std::string& language_name = SO::Empty_string);
+    bool IsQHAvailable(const CDEItemBase* item_base);
     bool GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo);
     void ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo);
-    void ChangeCapiName(const CDEItemBase* pItem, const CString& old_name);
+    void ChangeCapiName(const CDEItemBase* item_base, const std::string& old_name);
     void ChangeCapiDictName(const CDataDict& dictionary);
 
     BOOL OnOpenDocument(LPCTSTR lpszPathName) override;

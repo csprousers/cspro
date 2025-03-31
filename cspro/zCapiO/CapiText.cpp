@@ -9,7 +9,7 @@ namespace
     struct Delimiter
     {
         std::string_view characters_sv;
-        bool escape_html;
+        bool escape_fill;
     };
 
     constexpr Delimiter DefaultDelimiters[] =
@@ -68,9 +68,9 @@ namespace
 
             if( end - start->pos > 1 )
             {
-                params->emplace_back(UTF8_TODO::GetCString(text_sv.substr(start->pos, end - start->pos + delim_length)),
-                                     UTF8_TODO::GetCString(text_sv.substr(start->pos + delim_length, end - start->pos - delim_length)),
-                                     start->delimeter->escape_html);
+                params->emplace_back(std::string(text_sv.substr(start->pos, end - start->pos + delim_length)),
+                                     delim_length,
+                                     start->delimeter->escape_fill);
             }
 
             start = FindNextDelimiter(text_sv, end + delim_length);
@@ -124,7 +124,7 @@ std::string CapiText::ReplaceFills(const std::string_view text_sv, const std::ma
 
         if( replacement_lookup != replacements.cend() )
         {
-            if( next_delim->delimeter->escape_html )
+            if( next_delim->delimeter->escape_fill )
             {
                 ss << Encoders::ToHtml(SO::TrimRight(replacement_lookup->second.GetString()));
             }

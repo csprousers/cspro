@@ -299,12 +299,13 @@ public:
     void           SetOperatorId(const CString& operator_id) { m_operatorId = operator_id; }
 
 private:
-    std::shared_ptr<CapiQuestionManager> m_pQuestMgr;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
 
 public:
     void BuildQuestMgr();
-    CapiQuestionManager* GetQuestMgr()                       { return m_pQuestMgr.get(); }
-    std::shared_ptr<CapiQuestionManager> GetSharedQuestMgr() { return m_pQuestMgr; }
+    const CapiQuestionManager* GetQuestMgr() const           { return m_questionManager.get(); }
+    CapiQuestionManager* GetQuestMgr()                       { return m_questionManager.get(); }
+    std::shared_ptr<CapiQuestionManager> GetSharedQuestMgr() { return m_questionManager; }
 
 
     // persistent and auto increment field handling

@@ -2,14 +2,15 @@
 #include "CapiCondition.h"
 
 
-CapiCondition::CapiCondition(const CString& logic/* = CString()*/)
-    :   CapiCondition(logic, -1, -1)
+CapiCondition::CapiCondition(std::string logic/* = std::string()*/)
+    :   CapiCondition(std::move(logic), -1, -1)
 {
 }
 
 
-CapiCondition::CapiCondition(const CString& logic, int min_occ, int max_occ)
-    :   m_logic(logic),
+CapiCondition::CapiCondition(std::string logic, const int min_occ, const int max_occ)
+    :   m_logic(std::move(logic)),
+        m_programIndex(-1),
         m_minOcc(min_occ),
         m_maxOcc(max_occ)
 {
@@ -17,75 +18,60 @@ CapiCondition::CapiCondition(const CString& logic, int min_occ, int max_occ)
 }
 
 
-void CapiCondition::SetMinMaxOcc(int min, int max)
+void CapiCondition::SetMinMaxOcc(const int min, const int max)
 {
     m_minOcc = min;
     m_maxOcc = max;
 }
 
 
-CapiText CapiCondition::GetText(const std::wstring& language_name, CapiText::Type type) const
+const CapiText* CapiCondition::GetText(const std::string& language_name, const CapiText::Type type) const
 {
-    if (type == CapiText::Type::Question)
-        return GetQuestionText(language_name);
+    const std::map<std::string, CapiText>& texts = ( type == CapiText::Type::Question ) ? m_questionTexts :
+                                                                                          m_helpTexts;
+    const auto& lookup = texts.find(language_name);
+
+    return ( lookup != texts.cend() ) ? &(lookup->second) :
+                                        nullptr;
+}
+
+
+void CapiCondition::SetText(CapiText text, const std::string& language_name, const CapiText::Type type)
+{
+    std::map<std::string, CapiText>& texts = ( type == CapiText::Type::Question ) ? m_questionTexts :
+                                                                                    m_helpTexts;
+    auto lookup = texts.find(language_name);
+
+    if( lookup == texts.cend() )
+    {
+        texts.try_emplace(language_name, std::move(text));
+    }
+
     else
-        return GetHelpText(language_name);
+    {
+        lookup->second = std::move(text);
+    }
 }
 
 
-CapiText CapiCondition::GetQuestionText(const std::wstring& language_name) const
-{
-    auto it = m_questionTexts.find(language_name);
-    return it == m_questionTexts.end() ? CapiText() : it->second;
-}
-
-
-CapiText CapiCondition::GetHelpText(const std::wstring& language_name) const
-{
-    auto it = m_helpTexts.find(language_name);
-    return it == m_helpTexts.end() ? CapiText() : it->second;
-}
-
-
-void CapiCondition::SetText(const CString& text, const std::wstring& language_name, CapiText::Type type)
-{
-    if (type == CapiText::Type::Question)
-        SetQuestionText(text, language_name);
-    else
-        SetHelpText(text, language_name);
-}
-
-
-void CapiCondition::SetQuestionText(const CString& text, const std::wstring& language_name)
-{
-    m_questionTexts[language_name] = CapiText(UTF8_TODO::GetUtf8(text));
-}
-
-
-void CapiCondition::SetHelpText(const CString& text, const std::wstring& language_name)
-{
-    m_helpTexts[language_name] = CapiText(UTF8_TODO::GetUtf8(text));
-}
-
-
-void CapiCondition::DeleteLanguage(const std::wstring& language_name)
+void CapiCondition::DeleteLanguage(const std::string& language_name)
 {
     m_questionTexts.erase(language_name);
     m_helpTexts.erase(language_name);
 }
 
 
-void CapiCondition::ModifyLanguage(const std::wstring& old_language_name, const std::wstring& new_language_name)
+void CapiCondition::ModifyLanguage(const std::string& old_language_name, const std::string& new_language_name)
 {
-    auto modify = [&](std::map<std::wstring, CapiText>& texts)
+    auto modify = [&](std::map<std::string, CapiText>& texts)
     {
-        auto it = texts.find(old_language_name);
+        auto lookup = texts.find(old_language_name);
 
-        if( it != texts.end() )
+        if( lookup != texts.end() )
         {
-            CapiText capi_text = it->second;
-            texts.erase(it);
-            texts[new_language_name] = capi_text;
+            CapiText capi_text = std::move(lookup->second);
+            texts.erase(lookup);
+            texts[new_language_name] = std::move(capi_text);
         }
     };
 
@@ -108,13 +94,13 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    json_writer.WriteIfNotBlank(JK::logic, UTF8_TODO::GetUtf8(m_logic));
+    json_writer.WriteIfNotBlank(JK::logic, m_logic);
 
     if( json_writer.Verbose() || !m_questionTexts.empty() || !m_helpTexts.empty() )
     {
         json_writer.BeginArray(JK::texts);
 
-        auto write_texts = [&](const CapiText::Type type, const std::map<std::wstring, CapiText>& texts)
+        auto write_texts = [&](const CapiText::Type type, const std::map<std::string, CapiText>& texts)
         {
             for( const auto& [language, capi_text] : texts )
             {
@@ -141,7 +127,16 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
 
 void CapiCondition::serialize(Serializer& ar)
 {
-    ar & m_logicExpression
-       & m_questionTexts
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+    {
+        ar & m_programIndex;
+    }
+
+    else
+    {
+        m_programIndex = ar.Read<std::optional<int>>().value_or(-1);
+    }
+
+    ar & m_questionTexts
        & m_helpTexts;
 }

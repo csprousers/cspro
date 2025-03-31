@@ -454,15 +454,15 @@ void CEntryDriver::LevCtAddWrittenSon( int iLevel ) {
 
 void CEntryDriver::BuildQuestMgr()
 {
-    m_pQuestMgr = std::make_shared<CapiQuestionManager>();
-    m_pApplication->SetCapiQuestionManager(m_pQuestMgr);
+    m_questionManager = std::make_shared<CapiQuestionManager>();
+    m_pApplication->SetCapiQuestionManager(m_questionManager);
 
     // the question text will be read later when reading from a .pen file
     if( m_pApplication->GetAppLoader() != nullptr && m_pApplication->GetAppLoader()->GetBinaryFileLoad() )
         return;
 
     if( !m_pApplication->GetQuestionTextFilePath().empty() )
-        m_pQuestMgr->Load(m_pApplication->GetQuestionTextFilePath());
+        m_questionManager->Load(m_pApplication->GetQuestionTextFilePath());
 }
 
 // RHF END Nov 07, 2002

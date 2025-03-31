@@ -4217,11 +4217,11 @@ bool CTabSet::ReconcileName(const CDataDict& dictionary)
         {
             CTable* pTable = GetTable(i);
 
-            name_changed |= pTable->GetRowRoot()->ReconcileName(dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
-            name_changed |= pTable->GetColRoot()->ReconcileName(dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
+            name_changed |= pTable->GetRowRoot()->ReconcileName(UTF8_TODO::GetCString(dictionary.GetOldName()), UTF8_TODO::GetCString(dict_element->GetName()));
+            name_changed |= pTable->GetColRoot()->ReconcileName(UTF8_TODO::GetCString(dictionary.GetOldName()), UTF8_TODO::GetCString(dict_element->GetName()));
 
             //reconcile name change in weight, universe, value
-            ReconcileName(pTable, dictionary.GetOldName(), UTF8_TODO::GetCString(dict_element->GetName()));
+            ReconcileName(pTable, UTF8_TODO::GetCString(dictionary.GetOldName()), UTF8_TODO::GetCString(dict_element->GetName()));
         }
     }
 

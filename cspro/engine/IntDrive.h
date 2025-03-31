@@ -844,8 +844,8 @@ public:
     // HTML_QSF_TODO which of the following are needed?
     SharableString EvaluateCapiText(int current_symbol_index, const ParsedCapiParam& parsed_capi_param);
     int EvaluateCapiVariableCurrentOccurrence(int iCurVar, VART* pVarT);
-    SharableString EvaluateCapiText(const std::wstring& language_name, bool bQuestion, int iSym, int iOcc);
-    SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::wstring& language_name, bool bQuestion);
+    SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
+    SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, bool is_question);
     CString ExpandText(const CString& csText, bool bShowErrors = true, bool* bSomeError = nullptr, std::vector<ParsedCapiParam>* capi_params = nullptr);
 
     bool EvaluateQuestionTextCondition(const Symbol& symbol, int program_index);

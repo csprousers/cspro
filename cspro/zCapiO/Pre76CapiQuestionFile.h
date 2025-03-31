@@ -12,8 +12,8 @@ private:
     void Copy(const CNewCapiText& rOther);
 
 public:
-    CString        m_csLangName;
-    CIMSAString     m_csText; // Separator \r\n.
+    std::string language_name;
+    std::string text; // Separator \r\n.
 
     CNewCapiText();
     CNewCapiText(const CNewCapiText& rOther);
@@ -31,11 +31,9 @@ private:
     void Copy(const CNewCapiLanguage& rOther);
 
 public:
-    int         m_iLangIndex;
-    CString     m_csLangName;
-    CString     m_csLangLabel;
+    std::string language_name;
+    std::string language_label;
 
-    static      bool CheckLanguageName(CIMSAString& csLanguage);
     CNewCapiLanguage();
     CNewCapiLanguage(const CNewCapiLanguage& rOther);
     void operator=(const CNewCapiLanguage& rOther);
@@ -50,11 +48,11 @@ class CapiPre76::CNewCapiQuestionHelp
 
 private:
     eCapiNewQuestType       m_eType;
-    CString                 m_csSymbolName;
+    std::string             m_symbolName;
     int                     m_iSymVar;
     int                     m_iOccMin;      // negative, 1,2,...n
     int                     m_iOccMax;
-    CString                 m_csCondition;  // For expresions %VAR=VALUE%. NULL si no hay
+    std::string             m_condition;  // For expresions %VAR=VALUE%. NULL si no hay
     CString                 m_csOccurrences; // Ascii text for occurrences
     std::vector<CNewCapiText> m_aCapiText;
     bool                    m_bDeleted;     //FABN March 14, 2003
@@ -81,7 +79,7 @@ public:
     eCapiNewQuestType     GetType();
     void    SetType(eCapiNewQuestType eType);
 
-    CString GetSymbolName();
+    const std::string& GetSymbolName() const { return m_symbolName; }
     bool    SetSymbolName(CString csSymbolName);
 
     int     GetSymVar();
@@ -93,7 +91,7 @@ public:
     int     GetOccMax() const;
     void    SetOccMax(int iOccMax);
 
-    CString GetCondition();
+    const std::string& GetCondition() const { return m_condition; }
     bool    SetCondition(CString csCondition);
     static bool SplitCondition(CString csCondition, CIMSAString* csLeft = NULL, int* iCond = NULL, CIMSAString* csRight = NULL, eCapiNewConditionType* eCondType = NULL);
 
@@ -106,7 +104,7 @@ public:
     int     GetNumText();
 
     //The index of csLangName in CNewcapiQuestionHelp
-    int     GetLangIndex(CString csLangName, bool bCaseSensitive = true);
+    int     GetLangIndex(CString csLangName);
 
     void    SetMaxLanguages(int iNumLanguages);
 
@@ -148,7 +146,7 @@ public:
     // Languages
     void        AddLanguage(CNewCapiLanguage& rNewCapiLanguage);
     const CNewCapiLanguage& GetLanguage(int iLangNum);
-    CNewCapiLanguage* GetLanguage(CString csLangName, bool bCaseSensitive = true);
+    CNewCapiLanguage* GetLanguage(const std::string& language_name);
     int         GetNumLanguages();
 
     // Questions

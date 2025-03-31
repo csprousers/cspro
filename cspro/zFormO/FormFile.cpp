@@ -3297,7 +3297,7 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
         int iNumLevels= GetNumLevels();
         for(int iIndex = 0 ;iIndex < iNumLevels ; iIndex ++) {
             CDELevel* pLevel = GetLevel(iIndex);
-            CString sOldName = dictionary.GetOldName();
+            CString sOldName = UTF8_TODO::GetCString(dictionary.GetOldName());
             if(pLevel->GetName().CompareNoCase(sOldName)==0 ){
                 pLevel->SetName(UTF8_TODO::GetCString(dict_level.GetName()));
                 return true;
@@ -3309,8 +3309,8 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
         const CDictRecord* pDictRecord = assert_cast<const CDictRecord*>(dict_element);
         //look in all groups which in all levels which have this record as the RIType
         //change the corresponding forms also if they are repeating
-        CString sOldName = dictionary.GetOldName();
-        ChangeGName(sOldName, UTF8_TODO::GetCString(pDictRecord->GetName()));
+        ChangeGName(UTF8_TODO::GetCString(dictionary.GetOldName()),
+                    UTF8_TODO::GetCString(pDictRecord->GetName()));
         return true;
     }
 
@@ -3326,7 +3326,7 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
         const CDictItem* pDictItem = assert_cast<const CDictItem*>(dict_element);
         //look in all groups which in all levels which have this record as the RIType
         //change the corresponding forms also if they are repeating
-        CString sOldName = dictionary.GetOldName();
+        CString sOldName = UTF8_TODO::GetCString(dictionary.GetOldName());
         CDEForm* pForm = NULL;
         CDEItemBase* pBase = NULL;
         FindField(sOldName,&pForm,&pBase);
