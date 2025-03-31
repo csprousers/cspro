@@ -161,13 +161,16 @@ std::string CapiQuestionManager::GetStylesCss() const
 {
     std::string css;
 
+    // apply first style (normal) to the body so it is used even without style tags
     if( !m_styles.empty() )
-        css.append("body, "); // apply first style (normal) to body so it used even without style tags
+        css.append("body, ");
 
     for( const CapiStyle& style : m_styles )
     {
-        css.append(FormatText("'%s{'", style.class_name.c_str()))
-           .append(style.css)
+        css.push_back('.');
+        css.append(style.class_name);
+        css.push_back('{');
+        css.append(style.css)
            .append("}\n");
     }
 

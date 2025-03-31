@@ -21,16 +21,6 @@ BEGIN_MESSAGE_MAP(CDETextEdit, CDEBaseEdit)
 END_MESSAGE_MAP()
 
 
-CDETextEdit::CDETextEdit()
-{
-}
-
-
-CDETextEdit::~CDETextEdit()
-{
-}
-
-
 // CDETextEdit message handlers
 
 void CDETextEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -558,16 +548,6 @@ void CDETextEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
-
-void CDETextEdit::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
-{
-    CDEBaseEdit::OnActivate(nState, pWndOther, bMinimized);
-
-    // TODO: Add your message handler code here
-
-}
-
-
 void CDETextEdit::OnSetFocus(CWnd* pOldWnd)
 {
     CDEBaseEdit::OnSetFocus(pOldWnd);
@@ -588,22 +568,6 @@ int CDETextEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // TODO:  Add your specialized creation code here
 
     return 0;
-}
-
-
-BOOL CDETextEdit::OnEraseBkgnd(CDC* pDC)
-{
-    // TODO: Add your message handler code here and/or call default
-
-    return CDEBaseEdit::OnEraseBkgnd(pDC);
-}
-
-
-void CDETextEdit::OnKillFocus(CWnd* pNewWnd)
-{
-    CDEBaseEdit::OnKillFocus(pNewWnd);
-
-    // TODO: Add your message handler code here
 }
 
 
@@ -839,7 +803,7 @@ void CDETextEdit::SetWindowText(const CString& sString)
     // RHF END Jan 09, 2003
 
     const wstring_view rString_trimmed_sv = SO::TrimRightSpace(rString);
-    
+
     std::wstring sTempString = SO::TrimRightSpace(sString);
 
     // if a multiline field, turn newlines into \r\n

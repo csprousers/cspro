@@ -33,11 +33,6 @@ namespace {
 }
 
 
-QSFEditToolbar::QSFEditToolbar()
-{
-}
-
-
 void QSFEditToolbar::SetStyles(const std::vector<HtmlEditorCtrl::Style>& styles)
 {
     auto style_combo = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_STYLE)));
@@ -97,121 +92,118 @@ void QSFEditToolbar::SetButtonVisible(UINT id, BOOL visible)
 // To hold the colours and their names
 struct ColourTableEntry
 {
-    COLORREF crColour;
+    BYTE red;
+    BYTE green;
+    BYTE blue;
     wchar_t* szName;
 };
 
-#define MAX_COLOURS      100
 
-static ColourTableEntry crColours[] =
+constexpr ColourTableEntry crColours[] =
 {
-     { RGB(0x00, 0x00, 0x00), _T("Black")},
-     { RGB(0x42, 0x42, 0x42), _T("Tundora")},
-     { RGB(0x63, 0x63, 0x63), _T("Dove Gray")},
-     { RGB(0x9C, 0x9C, 0x94), _T("Star Dust")},
-     { RGB(0xCE, 0xC6, 0xCE), _T("Pale Slate")},
-     { RGB(0xEF, 0xEF, 0xEF), _T("Gallery")},
-     { RGB(0xF7, 0xF7, 0xF7), _T("Alabaster")},
-     { RGB(0xFF, 0xFF, 0xFF), _T("White")},
-     { RGB(0xFF, 0x00, 0x00), _T("Red")},
-     { RGB(0xFF, 0x9C, 0x00), _T("Orange Peel")},
-     { RGB(0xFF, 0xFF, 0x00), _T("Yellow")},
-     { RGB(0x00, 0xFF, 0x00), _T("Green")},
-     { RGB(0x00, 0xFF, 0xFF), _T("Cyan")},
-     { RGB(0x00, 0x00, 0xFF), _T("Blue")},
-     { RGB(0x9C, 0x00, 0xFF), _T("Electric Violet")},
-     { RGB(0xFF, 0x00, 0xFF), _T("Magenta")},
-     { RGB(0xF7, 0xC6, 0xCE), _T("Azalea")},
-     { RGB(0xFF, 0xE7, 0xCE), _T("Karry")},
-     { RGB(0xFF, 0xEF, 0xC6), _T("Egg White")},
-     { RGB(0xD6, 0xEF, 0xD6), _T("Zanah")},
-     { RGB(0xCE, 0xDE, 0xE7), _T("Botticelli")},
-     { RGB(0xCE, 0xE7, 0xF7), _T("Tropical Blue")},
-     { RGB(0xD6, 0xD6, 0xE7), _T("Mischka")},
-     { RGB(0xE7, 0xD6, 0xDE), _T("Twilight")},
-     { RGB(0xE7, 0x9C, 0x9C), _T("Tonys Pink")},
-     { RGB(0xFF, 0xC6, 0x9C), _T("Peach Orange")},
-     { RGB(0xFF, 0xE7, 0x9C), _T("Cream Brulee")},
-     { RGB(0xB5, 0xD6, 0xA5), _T("Sprout")},
-     { RGB(0xA5, 0xC6, 0xCE), _T("Casper")},
-     { RGB(0x9C, 0xC6, 0xEF), _T("Perano")},
-     { RGB(0xB5, 0xA5, 0xD6), _T("Cold Purple")},
-     { RGB(0xD6, 0xA5, 0xBD), _T("Careys Pink")},
-     { RGB(0xE7, 0x63, 0x63), _T("Mandy")},
-     { RGB(0xF7, 0xAD, 0x6B), _T("Rajah")},
-     { RGB(0xFF, 0xD6, 0x63), _T("Dandelion")},
-     { RGB(0x94, 0xBD, 0x7B), _T("Olivine")},
-     { RGB(0x73, 0xA5, 0xAD), _T("Gulf Stream")},
-     { RGB(0x6B, 0xAD, 0xDE), _T("Viking")},
-     { RGB(0x8C, 0x7B, 0xC6), _T("Blue Marguerite")},
-     { RGB(0xC6, 0x7B, 0xA5), _T("Puce")},
-     { RGB(0xCE, 0x00, 0x00), _T("Guardsman Red")},
-     { RGB(0xE7, 0x94, 0x39), _T("Fire Bush")},
-     { RGB(0xEF, 0xC6, 0x31), _T("Golden Dream")},
-     { RGB(0x6B, 0xA5, 0x4A), _T("Chelsea Cucumber")},
-     { RGB(0x4A, 0x7B, 0x8C), _T("Smalt Blue")},
-     { RGB(0x39, 0x84, 0xC6), _T("Boston Blue")},
-     { RGB(0x63, 0x4A, 0xA5), _T("Butterfly Bush")},
-     { RGB(0xA5, 0x4A, 0x7B), _T("Cadillac")},
-     { RGB(0x9C, 0x00, 0x00), _T("Sangria")},
-     { RGB(0xB5, 0x63, 0x08), _T("Mai Tai")},
-     { RGB(0xBD, 0x94, 0x00), _T("Buddha Gold")},
-     { RGB(0x39, 0x7B, 0x21), _T("Forest Green")},
-     { RGB(0x10, 0x4A, 0x5A), _T("Eden")},
-     { RGB(0x08, 0x52, 0x94), _T("Venice Blue")},
-     { RGB(0x31, 0x18, 0x73), _T("Meteorite")},
-     { RGB(0x73, 0x18, 0x42), _T("Claret")},
-     { RGB(0x63, 0x00, 0x00), _T("Rosewood")},
-     { RGB(0x7B, 0x39, 0x00), _T("Cinnamon")},
-     { RGB(0x84, 0x63, 0x00), _T("Olive")},
-     { RGB(0x29, 0x52, 0x18), _T("Parsley")},
-     { RGB(0x08, 0x31, 0x39), _T("Tiber")},
-     { RGB(0x00, 0x31, 0x63), _T("Midnight Blue")},
-     { RGB(0x21, 0x10, 0x4A), _T("Valentino")},
-     { RGB(0x4A, 0x10, 0x31), _T("Loulou")}
+     { 0x00, 0x00, 0x00, L"Black" },
+     { 0x42, 0x42, 0x42, L"Tundora" },
+     { 0x63, 0x63, 0x63, L"Dove Gray" },
+     { 0x9C, 0x9C, 0x94, L"Star Dust" },
+     { 0xCE, 0xC6, 0xCE, L"Pale Slate" },
+     { 0xEF, 0xEF, 0xEF, L"Gallery" },
+     { 0xF7, 0xF7, 0xF7, L"Alabaster" },
+     { 0xFF, 0xFF, 0xFF, L"White" },
+     { 0xFF, 0x00, 0x00, L"Red" },
+     { 0xFF, 0x9C, 0x00, L"Orange Peel" },
+     { 0xFF, 0xFF, 0x00, L"Yellow" },
+     { 0x00, 0xFF, 0x00, L"Green" },
+     { 0x00, 0xFF, 0xFF, L"Cyan" },
+     { 0x00, 0x00, 0xFF, L"Blue" },
+     { 0x9C, 0x00, 0xFF, L"Electric Violet" },
+     { 0xFF, 0x00, 0xFF, L"Magenta" },
+     { 0xF7, 0xC6, 0xCE, L"Azalea" },
+     { 0xFF, 0xE7, 0xCE, L"Karry" },
+     { 0xFF, 0xEF, 0xC6, L"Egg White" },
+     { 0xD6, 0xEF, 0xD6, L"Zanah" },
+     { 0xCE, 0xDE, 0xE7, L"Botticelli" },
+     { 0xCE, 0xE7, 0xF7, L"Tropical Blue" },
+     { 0xD6, 0xD6, 0xE7, L"Mischka" },
+     { 0xE7, 0xD6, 0xDE, L"Twilight" },
+     { 0xE7, 0x9C, 0x9C, L"Tonys Pink" },
+     { 0xFF, 0xC6, 0x9C, L"Peach Orange" },
+     { 0xFF, 0xE7, 0x9C, L"Cream Brulee" },
+     { 0xB5, 0xD6, 0xA5, L"Sprout" },
+     { 0xA5, 0xC6, 0xCE, L"Casper" },
+     { 0x9C, 0xC6, 0xEF, L"Perano" },
+     { 0xB5, 0xA5, 0xD6, L"Cold Purple" },
+     { 0xD6, 0xA5, 0xBD, L"Careys Pink" },
+     { 0xE7, 0x63, 0x63, L"Mandy" },
+     { 0xF7, 0xAD, 0x6B, L"Rajah" },
+     { 0xFF, 0xD6, 0x63, L"Dandelion" },
+     { 0x94, 0xBD, 0x7B, L"Olivine" },
+     { 0x73, 0xA5, 0xAD, L"Gulf Stream" },
+     { 0x6B, 0xAD, 0xDE, L"Viking" },
+     { 0x8C, 0x7B, 0xC6, L"Blue Marguerite" },
+     { 0xC6, 0x7B, 0xA5, L"Puce" },
+     { 0xCE, 0x00, 0x00, L"Guardsman Red" },
+     { 0xE7, 0x94, 0x39, L"Fire Bush" },
+     { 0xEF, 0xC6, 0x31, L"Golden Dream" },
+     { 0x6B, 0xA5, 0x4A, L"Chelsea Cucumber" },
+     { 0x4A, 0x7B, 0x8C, L"Smalt Blue" },
+     { 0x39, 0x84, 0xC6, L"Boston Blue" },
+     { 0x63, 0x4A, 0xA5, L"Butterfly Bush" },
+     { 0xA5, 0x4A, 0x7B, L"Cadillac" },
+     { 0x9C, 0x00, 0x00, L"Sangria" },
+     { 0xB5, 0x63, 0x08, L"Mai Tai" },
+     { 0xBD, 0x94, 0x00, L"Buddha Gold" },
+     { 0x39, 0x7B, 0x21, L"Forest Green" },
+     { 0x10, 0x4A, 0x5A, L"Eden" },
+     { 0x08, 0x52, 0x94, L"Venice Blue" },
+     { 0x31, 0x18, 0x73, L"Meteorite" },
+     { 0x73, 0x18, 0x42, L"Claret" },
+     { 0x63, 0x00, 0x00, L"Rosewood" },
+     { 0x7B, 0x39, 0x00, L"Cinnamon" },
+     { 0x84, 0x63, 0x00, L"Olive" },
+     { 0x29, 0x52, 0x18, L"Parsley" },
+     { 0x08, 0x31, 0x39, L"Tiber" },
+     { 0x00, 0x31, 0x63, L"Midnight Blue" },
+     { 0x21, 0x10, 0x4A, L"Valentino" },
+     { 0x4A, 0x10, 0x31, L"Loulou" },
 };
 
 
 CMFCColorMenuButton* QSFEditToolbar::CreateColorButton()
 {
-    if (m_palColorPicker.GetSafeHandle() == NULL)
+    const ColourTableEntry* const colors_end = crColours + _countof(crColours);
+
+    if( m_palColorPicker.GetSafeHandle() == nullptr )
     {
-        m_nNumColours = _countof(crColours);
-        ASSERT(m_nNumColours <= MAX_COLOURS);
-        if (m_nNumColours > MAX_COLOURS)
-            m_nNumColours = MAX_COLOURS;
-
         // Create the palette
-        struct
-        {
-            LOGPALETTE    LogPalette;
-            PALETTEENTRY  PalEntry[MAX_COLOURS];
-        }pal;
+        const size_t pal_buffer_size = sizeof(LOGPALETTE) - sizeof(PALETTEENTRY) + ( sizeof(PALETTEENTRY) * _countof(crColours) );
+        auto pal_buffer = std::make_unique_for_overwrite<std::byte[]>(pal_buffer_size);
 
-        LOGPALETTE* pLogPalette = (LOGPALETTE*)&pal;
+        LOGPALETTE* const pLogPalette = reinterpret_cast<LOGPALETTE*>(pal_buffer.get());
         pLogPalette->palVersion = 0x300;
-        pLogPalette->palNumEntries = (WORD)m_nNumColours;
+        pLogPalette->palNumEntries = _countof(crColours);
 
-        for (int i = 0; i < m_nNumColours; i++)
+        PALETTEENTRY* palPalEntry = pLogPalette->palPalEntry;
+
+        for( const ColourTableEntry* colors_itr = crColours; colors_itr != colors_end ; ++colors_itr )
         {
-            pLogPalette->palPalEntry[i].peRed = GetRValue(crColours[i].crColour);
-            pLogPalette->palPalEntry[i].peGreen = GetGValue(crColours[i].crColour);
-            pLogPalette->palPalEntry[i].peBlue = GetBValue(crColours[i].crColour);
-            pLogPalette->palPalEntry[i].peFlags = 0;
+            palPalEntry->peRed = colors_itr->red;
+            palPalEntry->peGreen = colors_itr->green;
+            palPalEntry->peBlue = colors_itr->blue;
+            palPalEntry->peFlags = 0;
+            ++palPalEntry;
         }
 
         m_palColorPicker.CreatePalette(pLogPalette);
     }
 
-    CMFCColorMenuButton* pColorButton = new
-        CMFCColorMenuButton(ID_FORMAT_COLOR, _T("Text Color..."), &m_palColorPicker);
+    CMFCColorMenuButton* pColorButton = new CMFCColorMenuButton(ID_FORMAT_COLOR, L"Text Color...", &m_palColorPicker);
 
-    pColorButton->EnableOtherButton(_T("More Colors..."));
+    pColorButton->EnableOtherButton(L"More Colors...");
     pColorButton->SetColumnsNumber(8);
 
     // Initialize color names:
-    for (int i = 0; i < m_nNumColours; i++)
-        CMFCColorMenuButton::SetColorName(crColours[i].crColour, crColours[i].szName);
+    for( const ColourTableEntry* colors_itr = crColours; colors_itr != colors_end ; ++colors_itr )
+        CMFCColorMenuButton::SetColorName(RGB(colors_itr->red, colors_itr->green, colors_itr->blue), colors_itr->szName);
 
     return pColorButton;
 }
@@ -250,7 +242,7 @@ void QSFEditToolbar::SetFontSize(int font_size)
 {
     ASSERT(font_size > 0);
     CString size_str;
-    size_str.Format(_T("%d"), font_size);
+    size_str.Format(L"%d", font_size);
 
     auto button = DYNAMIC_DOWNCAST(QSFEditNumericSortToolBarComboBoxButton, GetButton(CommandToIndex(IDC_FONTSIZE)));
     int num_items = button->GetCount();
@@ -330,7 +322,7 @@ BOOL QSFEditToolbar::OnUserToolTip(CMFCToolBarButton* pButton, CString& strTTTex
             strTTText = "Question Text";
         return TRUE;
     }
-    return CMFCToolBar::OnUserToolTip(pButton, strTTText);
+    return __super::OnUserToolTip(pButton, strTTText);
 }
 
 
@@ -377,7 +369,7 @@ void QSFEditToolbar::OnReset()
     QSFEditToolBarComboBoxButton language_combo(IDC_EDIT_LANG, GetImageIndex(IDC_EDIT_LANG));
     ReplaceButton(IDC_EDIT_LANG, language_combo);
 
-    TableToolbarButton table_button(ID_INSERT_TABLE, GetImageIndex(ID_INSERT_TABLE), _T("Table"));
+    TableToolbarButton table_button(ID_INSERT_TABLE, GetImageIndex(ID_INSERT_TABLE), L"Table");
     ReplaceButton(ID_INSERT_TABLE, table_button);
 }
 

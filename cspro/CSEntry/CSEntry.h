@@ -58,7 +58,7 @@ public:
     DECLARE_MESSAGE_MAP()
 
 private:
-    CWindowFocusMgr* m_pWindowFocusMgr;
+    std::unique_ptr<CWindowFocusMgr> m_pWindowFocusMgr;
     CSEntryBinaryCommandLineInfo m_cmdInfo;
     bool m_pffLaunchedFromCommandLine;
     std::string m_currentApplicationFilePath;

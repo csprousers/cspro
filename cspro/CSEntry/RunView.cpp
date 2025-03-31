@@ -713,10 +713,9 @@ BOOL CEntryrunView::AddEditItem(CDEField* pField)
     //Get the rect for the field
     CRect fldRect = pField->GetDims();
 
-
-    CClientDC dc(this);
+    /*CClientDC dc(this);
     CSize sizeCh = dc.GetTextExtent(_T("9"));
-    /*if(fldRect.Height() < sizeCh.cy + 6) {
+    if(fldRect.Height() < sizeCh.cy + 6) {
         //SAVY&& if SMG changes her logics you have to change this
         //This should be called only if the height is insufficient to enter data
         int iDiff = sizeCh.cy + 6 -fldRect.Height();
@@ -766,14 +765,15 @@ BOOL CEntryrunView::AddEditItem(CDEField* pField)
     if (pField->IsProtected()|| pField->IsMirror())
         dwStyle |= ES_READONLY;
 
-    CDEBaseEdit* pEdit = NULL;
-    //For now all alphaa are created wih the new text field.
+    CDEBaseEdit* pEdit;
+
+    //For now all alpha are created wih the new text field.
     if (pField->UseUnicodeTextBox() && pField->GetDictItem()->GetContentType() == ContentType::Alpha ){
-            dwStyle |=  WS_BORDER;
-            pEdit =  (CDEBaseEdit*)(new CDETextEdit());
+        dwStyle |= WS_BORDER;
+        pEdit = new CDETextEdit();
     }
     else {
-        pEdit =  new CDEEdit();
+        pEdit = new CDEEdit();
     }
 
     //Create the edit field

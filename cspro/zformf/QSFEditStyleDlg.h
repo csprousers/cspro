@@ -41,6 +41,7 @@ private:
     bool IsBoldSelected() const;
     bool IsItalicSelected() const;
 
+private:
     CListBox m_style_list;
     StyledComboBox m_font_name_combo;
     CComboBox m_font_style_combo;
