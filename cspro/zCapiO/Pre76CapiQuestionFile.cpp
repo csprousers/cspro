@@ -485,7 +485,7 @@ CapiPre76::CNewCapiQuestionFile::CNewCapiQuestionFile() {
 
     m_bIsModified = false;
 
-    Init(false);
+    Init();
 }
 
 
@@ -498,11 +498,7 @@ void CapiPre76::CNewCapiQuestionFile::operator=(const CNewCapiQuestionFile& rOth
     Copy(rOther);
 }
 
-void CapiPre76::CNewCapiQuestionFile::Init(bool bOnlyArrays) {
-    if (!bOnlyArrays) {
-        m_csFileName.Empty();
-    }
-
+void CapiPre76::CNewCapiQuestionFile::Init() {
     m_aLangs.clear();
     m_aQuestions.clear();
     m_aHelps.clear();
@@ -510,21 +506,12 @@ void CapiPre76::CNewCapiQuestionFile::Init(bool bOnlyArrays) {
 }
 
 void CapiPre76::CNewCapiQuestionFile::Copy(const CNewCapiQuestionFile& rOther) {
-    Init(false);
+    Init();
 
-    m_csFileName = rOther.m_csFileName;
     m_aLangs = rOther.m_aLangs;
     m_aQuestions = rOther.m_aQuestions;
     m_aHelps = rOther.m_aHelps;
     m_bIsModified = rOther.m_bIsModified;
-}
-
-void CapiPre76::CNewCapiQuestionFile::SetFileName(CString csFileName) {
-    m_csFileName = csFileName;
-}
-
-CString CapiPre76::CNewCapiQuestionFile::GetFileName() {
-    return m_csFileName;
 }
 
 void CapiPre76::CNewCapiQuestionFile::AddLanguage(CNewCapiLanguage& rNewCapiLanguage) {
@@ -653,24 +640,18 @@ int CompareCNewCapiQuestionHelp(const void* const arg1, const void* const arg2) 
 }
 
 
-bool CapiPre76::CNewCapiQuestionFile::Open(const CString& csFileName, bool bSilent)
+bool CapiPre76::CNewCapiQuestionFile::Open(const std::string& file_path)
 {
-    SetFileName(csFileName);
+    constexpr bool bSilent = false;
 
-    CSpecFile   cCapiQuestFile;
-    bool        bRetVal = false;
+    CSpecFile cCapiQuestFile;
+    bool bRetVal = false;
 
     try {
-        if (!PortableFunctions::FileIsRegular(csFileName)) {
-            if (!bSilent) {
-                CString csMsg;
-                csMsg.Format(_T("%s %s does not exist"), FILE_TYPE2, csFileName.GetString());
-
-                // RHF COM Nov 22, 2002 Uncommented soon! ErrorMessage::Display(csMsg);
-            }
+        if (!PortableFunctions::FileIsRegular(file_path)) {
             return bRetVal;
         }
-        if (cCapiQuestFile.Open(csFileName, CFile::modeRead)) {
+        if (cCapiQuestFile.Open(UTF8_TODO::GetCString(file_path), CFile::modeRead)) {
 
             CIMSAString csCmd, csArg;
 
@@ -726,7 +707,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
 
     bool    bSilent = (pDlgProgress == nullptr);
 
-    Init(true); // Clean All arrays
+    Init(); // Clean All arrays
 
     int     iNumLines = 0;
     try

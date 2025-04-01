@@ -99,6 +99,13 @@ BEGIN_MESSAGE_MAP(CCSProApp, CWinApp)
 END_MESSAGE_MAP()
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+// The one and only CCSProApp object
+CCSProApp theApp;
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CCSProApp construction
 
@@ -112,10 +119,6 @@ CCSProApp::CCSProApp()
     EnableHtmlHelp();
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// The one and only CCSProApp object
-
-CCSProApp theApp;
 
 /////////////////////////////////////////////////////////////////////////////
 // CCSProApp initialization
@@ -1968,6 +1971,8 @@ bool CCSProApp::UpdateViews(CDocument* pDoc)
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CObjTreeCtrl& ObjTree = pFrame->GetDlgBar().m_ObjTree;
 
+    const RAII::SetValueAndRestoreOnDestruction<CDocument*> update_views_document_modified = pFrame->SetUpdateViewsDocument(pDoc);
+
     //---------------- Application
 
     if(pDoc->IsKindOf(RUNTIME_CLASS(CAplDoc)))
@@ -2201,17 +2206,6 @@ CDocument* CCSProApp::IsDocOpen(LPCTSTR lpszFileName)const
     return pOpenDocument;
 }
 
-//Call Back function for the browseforfolder dialog
-int CALLBACK BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM /*lParam*/, LPARAM lpData )
-{
-    if (uMsg == BFFM_INITIALIZED)
-    {
-        // Set the initial folder
-        SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
-    }
-
-    return 0;
-}
 
 BOOL CCSProApp::OnOpenRecentFile(UINT nID)
 {

@@ -44,7 +44,7 @@ enum class eCapiNewQuestType { None, Question, Help };
 /////////////////////////////
 class CapiPre76::CNewCapiQuestionHelp
 {
-    friend class CNewCapiQuestionFile;  // For save method
+    friend class CNewCapiQuestionFile;
 
 private:
     eCapiNewQuestType       m_eType;
@@ -124,12 +124,12 @@ private:
     std::vector<CNewCapiQuestionHelp> m_aHelps;
     bool m_bIsModified;
 
-    void Init(bool bOnlyArrays);
+    void Init();
     void Copy(const CNewCapiQuestionFile& rOther);
 
 public:
 
-    bool Open(const CString& csFileName, bool bSilent);
+    bool Open(const std::string& file_path);
     bool Build(CSpecFile& cCapiQuestFile, std::shared_ptr<ProgressDlg> pDlgProgress);
 
     // Others
@@ -138,10 +138,6 @@ public:
     CNewCapiQuestionFile();
     CNewCapiQuestionFile(const CNewCapiQuestionFile& rOther);
     void operator=(const CNewCapiQuestionFile& rOther);
-
-    // FileName
-    void        SetFileName(CString csFileName);
-    CString     GetFileName();
 
     // Languages
     void        AddLanguage(CNewCapiLanguage& rNewCapiLanguage);

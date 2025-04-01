@@ -565,14 +565,22 @@ SourceBuffer::SourceBuffer(SharableString buffer)
 }
 
 
+std::vector<BasicToken> SourceBuffer::Tokenize(const SharableString& buffer, const LogicSettings& logic_settings)
+{
+    std::vector<BasicToken> basic_tokens;
+
+    SourceBufferTokenizer source_buffer_tokenizer(*buffer, basic_tokens, logic_settings);
+    source_buffer_tokenizer.Tokenize();
+
+    return basic_tokens;
+}
+
+
 const std::vector<BasicToken>& SourceBuffer::Tokenize(const LogicSettings& logic_settings)
 {
-    if( m_basicTokens == nullptr )
+    if( !m_basicTokens.has_value() )
     {
-        m_basicTokens = std::make_unique<std::vector<BasicToken>>();
-
-        SourceBufferTokenizer source_buffer_tokenizer(*m_buffer, *m_basicTokens, logic_settings);
-        source_buffer_tokenizer.Tokenize();
+        m_basicTokens = Tokenize(m_buffer, logic_settings);
 
         // adjust line numbers if necessary
         if( m_lineAdjuster != nullptr )
@@ -588,21 +596,24 @@ const std::vector<BasicToken>& SourceBuffer::Tokenize(const LogicSettings& logic
 
 const std::vector<BasicToken>& SourceBuffer::GetTokens() const
 {
-    ASSERT(m_basicTokens != nullptr);
+    ASSERT(m_basicTokens.has_value());
     return *m_basicTokens;
 }
 
 
 size_t SourceBuffer::GetPositionInBuffer(const BasicToken& basic_token) const
 {
-    ASSERT(basic_token.token_text >= m_buffer->data() && basic_token.token_text <= ( m_buffer->data() + m_buffer->length() ));
+    ASSERT(basic_token.token_text >= m_buffer->data() &&
+           basic_token.token_text <= ( m_buffer->data() + m_buffer->length() ));
+
     return ( basic_token.token_text - m_buffer->data() );
 }
 
 
-void SourceBuffer::RemoveTokensAfterText(const size_t start_position, const TokenCode token_code, const cs::cref_optional<std::string> end_text/* = std::nullopt*/)
+void SourceBuffer::RemoveTokensAfterText(const size_t start_position, const TokenCode token_code,
+                                         const cs::cref_optional<std::string> end_text/* = std::nullopt*/)
 {
-    ASSERT(m_basicTokens != nullptr);
+    ASSERT(m_basicTokens.has_value());
 
     auto basic_tokens_itr = m_basicTokens->cbegin();
     const auto& basic_tokens_end = m_basicTokens->cend();

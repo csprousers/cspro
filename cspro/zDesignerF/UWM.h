@@ -13,21 +13,23 @@ namespace UWM::Designer
     const unsigned SwitchView                      = UWM::Ranges::DesignerStart +  3;
     const unsigned GoToLogicError                  = UWM::Ranges::DesignerStart +  4;
     const unsigned GetMessageTextSource            = UWM::Ranges::DesignerStart +  5;
-    const unsigned GetApplication                  = UWM::Ranges::DesignerStart +  6;
-    const unsigned GetFormFileOrDictionary         = UWM::Ranges::DesignerStart +  7;
-    const unsigned DisplayErrorMessage             = UWM::Ranges::DesignerStart +  8;
-    const unsigned RedrawPropertyGrid              = UWM::Ranges::DesignerStart +  9;
-    const unsigned GetDesignerIcon                 = UWM::Ranges::DesignerStart + 10;
-    const unsigned FindOpenTextSourceEditable      = UWM::Ranges::DesignerStart + 11;
-    const unsigned ShowFileProperties              = UWM::Ranges::DesignerStart + 12;
-    const unsigned GetDictionaryType               = UWM::Ranges::DesignerStart + 13;
-    const unsigned TreeSelectionChanged            = UWM::Ranges::DesignerStart + 14;
-    const unsigned GetCurrentLanguageName          = UWM::Ranges::DesignerStart + 15;
-    const unsigned CanCodeFileCompilationBeSkipped = UWM::Ranges::DesignerStart + 16;
-    const unsigned SetCodeFileSuccessfullyCompiled = UWM::Ranges::DesignerStart + 17;
+    const unsigned GetApplicationBeingLoaded       = UWM::Ranges::DesignerStart +  6;
+    const unsigned GetApplication                  = UWM::Ranges::DesignerStart +  7;
+    const unsigned GetFormFileOrDictionary         = UWM::Ranges::DesignerStart +  8;
+    const unsigned DisplayErrorMessage             = UWM::Ranges::DesignerStart +  9;
+    const unsigned RedrawPropertyGrid              = UWM::Ranges::DesignerStart + 10;
+    const unsigned GetDesignerIcon                 = UWM::Ranges::DesignerStart + 11;
+    const unsigned FindOpenTextSourceEditable      = UWM::Ranges::DesignerStart + 12;
+    const unsigned ShowFileProperties              = UWM::Ranges::DesignerStart + 13;
+    const unsigned GetDictionaryType               = UWM::Ranges::DesignerStart + 14;
+    const unsigned TreeSelectionChanged            = UWM::Ranges::DesignerStart + 15;
+    const unsigned GetCurrentLanguageName          = UWM::Ranges::DesignerStart + 16;
+    const unsigned CanCodeFileCompilationBeSkipped = UWM::Ranges::DesignerStart + 17;
+    const unsigned SetCodeFileSuccessfullyCompiled = UWM::Ranges::DesignerStart + 18;
+    const unsigned TokenizeLogic_V0                = UWM::Ranges::DesignerStart + 19;
 
     // unlike the above messages, the following messages are only used within the project
-    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 18;
+    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 20;
 
     CHECK_MESSAGE_NUMBERING(TabViewContainerTabChange, UWM::Ranges::DesignerLast)
 }

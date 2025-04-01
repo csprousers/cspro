@@ -73,7 +73,7 @@ public:
     bool    CanUserDrawBox()       { return ( m_bDrawBox && m_eBoxBtnSel.has_value() ); }
     void    CanUserDrawBox(bool b) { m_bDrawBox = b; }
 
-    static CToolBar* CreateFormToolBar(CWnd* pParentWnd);
+    static std::unique_ptr<CToolBar> CreateFormToolBar(CWnd* pParentWnd);
 
     bool    IsLogicViewActive();
     bool    IsFormViewActive ();

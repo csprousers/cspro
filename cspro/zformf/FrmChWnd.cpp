@@ -586,29 +586,26 @@ void CFormChildWnd::OnUpdateBoxToolbar(CCmdUI* pCmdUI)
 
 // *************************************************************************************
 
-CToolBar* CFormChildWnd::CreateFormToolBar(CWnd* pParentWnd)
+std::unique_ptr<CToolBar> CFormChildWnd::CreateFormToolBar(CWnd* const pParentWnd)
 {
     // create the form toolbar (that is controlled by the designer)
-    CToolBar* pWndFormTBar = new CToolBar;
+    std::unique_ptr<CToolBar> pWndFormTBar = std::make_unique<CToolBar>();
 
     if( !pWndFormTBar->CreateEx(pParentWnd, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP, CRect(), ID_FORM_TOOLBAR) ||
         !pWndFormTBar->LoadToolBar(IDR_FORM_FRAME) )
     {
-        SAFE_DELETE(pWndFormTBar);
+        return nullptr;
     }
 
-    else
-    {
-        auto& tool_bar_ctrl = pWndFormTBar->GetToolBarCtrl();
+    CToolBarCtrl& tool_bar_ctrl = pWndFormTBar->GetToolBarCtrl();
 
-        tool_bar_ctrl.HideButton(ID_EDIT_CAPI_STYLES);
-        tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_BULLET);
-        tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_NUMBER);
-        tool_bar_ctrl.HideButton(ID_EDIT_INSERT_IMAGE);
-        tool_bar_ctrl.HideButton(ID_TOGGLE_QN);
-        tool_bar_ctrl.HideButton(ID_VVIEW_LOGIC);
-        tool_bar_ctrl.HideButton(ID_VQSF_EDITOR);
-    }
+    tool_bar_ctrl.HideButton(ID_EDIT_CAPI_STYLES);
+    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_BULLET);
+    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_NUMBER);
+    tool_bar_ctrl.HideButton(ID_EDIT_INSERT_IMAGE);
+    tool_bar_ctrl.HideButton(ID_TOGGLE_QN);
+    tool_bar_ctrl.HideButton(ID_VVIEW_LOGIC);
+    tool_bar_ctrl.HideButton(ID_VQSF_EDITOR);
 
     return pWndFormTBar;
 }

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <CSPro/MDlgBar.h>
+#include <zToolsO/RaiiHelpers.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ApplicationShutdownRunner.h>
 #include <zUToolO/zUtoolO.h>
@@ -18,6 +19,7 @@ class CMainFrame : public COXMDIFrameWndSizeDock
 
 public:
     CMainFrame();
+    ~CMainFrame();
 
     HMENU DictMenu();
     HMENU TableMenu();
@@ -25,65 +27,8 @@ public:
     HMENU OrderMenu();
     HMENU DefaultMenu();
 
-// Attributes
-public:
-    BCMenu  m_DictMenu;
-    BCMenu  m_TableMenu;
-    BCMenu  m_FormMenu;
-    BCMenu  m_OrderMenu;
-    BCMenu  m_DefaultMenu;
-
-private:
-    LPCTSTR m_pszClassName;
-    CString m_csWindowText;
-
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CMainFrame)
-public:
+protected:
     BOOL PreCreateWindow(CREATESTRUCT& cs) override;
-    //}}AFX_VIRTUAL
-
-// Implementation
-public:
-    virtual ~CMainFrame();
-
-public:
-    PROCESS  m_eProcess;
-
-protected:  // control bar embedded members
-    CStatusBar  m_wndStatusBar;
-    CReBar      m_wndReBar;
-    CDialogBar  m_wndDlgBar;
-    LangDlgBar  m_wndLangDlgBar;
-
-    CToolBar*   m_pWndToolBar;
-    CImageList* m_pWndToolBarImages;
-    CToolBar*   m_pWndTabTBar;
-    CToolBar*   m_pWndDictTBar;
-    CToolBar*   m_pWndOrderTBar;
-    CImageList* m_pWndOrderTBarImages;
-    CToolBar*   m_pWndFormTBar;
-
-    CComboBox   m_tabAreaComboBox;
-    CComboBox   m_tabZoomComboBox;
-    CButton     m_printViewCloseButton;
-
-    BOOL        m_bDictToolbar;
-    BOOL        m_bTabToolbar;
-    BOOL        m_bFormToolbar;
-    BOOL        m_bOrderToolbar;
-
-    bool        m_bRemovingPossibleDuplicateProcs; // 20120613
-
-private:
-    CMDlgBar    m_SizeDlgBar;
-
-    std::map<std::string, std::tuple<CodeType, int64_t>> m_codeFileSuccessfulCompilations;
-
-    std::unique_ptr<ObjectTransporter> m_objectTransporter;
-    ApplicationShutdownRunner m_applicationShutdownRunner;
-
 
 public:
     CMDlgBar& GetDlgBar() { return m_SizeDlgBar; }
@@ -121,6 +66,8 @@ protected:
     LRESULT OnGetMessageTextSource(WPARAM wParam, LPARAM lParam);
 
 private:
+    static std::unique_ptr<CImageList> Load24BitColorToolbarImages(CToolBar* pToolBar, UINT nIDResource);
+
     template<typename T>
     T* GetNodeIdForSourceCode(T* pNodeId = nullptr);
 
@@ -151,11 +98,14 @@ public:
     LRESULT OnFIsCode(WPARAM wParam, LPARAM lParam);
     LRESULT OnUpdateSymbolTblFlag(WPARAM wParam, LPARAM lParam);
 
+    LRESULT OnGetApplicationBeingLoaded(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetApplication(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetFormFileOrDictionary(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnCanCodeFileCompilationBeSkipped(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetCodeFileSuccessfullyCompiled(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnTokenizeLogic_V0(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetApplicationShutdownRunner(WPARAM wParam, LPARAM lParam);
@@ -231,6 +181,9 @@ protected:
 
     // document functions
     // --------------------------------------------------------------------------
+public:
+    RAII::SetValueAndRestoreOnDestruction<CDocument*> SetUpdateViewsDocument(CDocument* document);
+
 private:
     // the filter extension should be provided with a dot, e.g.: .dcf or .json;.geojson
     CDocTemplate* GetDocTemplate(std::wstring_view filter_extension_sv);
@@ -268,8 +221,6 @@ protected:
 
     LRESULT OnUpdateApplicationExternalities(WPARAM wParam, LPARAM lParam);
     LRESULT OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam);
-
-    LRESULT OnGetCompilerHelperCache(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnGoToLogicError(WPARAM wParam, LPARAM lParam);
 
@@ -320,4 +271,50 @@ protected:
 
 public:
     static FrameType GetFrameType(CWnd* pWnd = nullptr);
+
+
+private:
+    LPCTSTR m_pszClassName;
+    CString m_csWindowText;
+
+    BCMenu m_DictMenu;
+    BCMenu m_TableMenu;
+    BCMenu m_FormMenu;
+    BCMenu m_OrderMenu;
+    BCMenu m_DefaultMenu;
+
+    CStatusBar m_wndStatusBar;
+    CReBar m_wndReBar;
+    CDialogBar m_wndDlgBar;
+    LangDlgBar m_wndLangDlgBar;
+
+    std::unique_ptr<CToolBar> m_pWndToolBar;
+    std::unique_ptr<CImageList> m_pWndToolBarImages;
+    std::unique_ptr<CToolBar> m_pWndDictTBar;
+    std::unique_ptr<CToolBar> m_pWndFormTBar;
+    std::unique_ptr<CToolBar> m_pWndOrderTBar;
+    std::unique_ptr<CImageList> m_pWndOrderTBarImages;
+    std::unique_ptr<CToolBar> m_pWndTabTBar;
+
+    BOOL m_bDictToolbar;
+    BOOL m_bFormToolbar;
+    BOOL m_bOrderToolbar;
+    BOOL m_bTabToolbar;
+
+    CMDlgBar m_SizeDlgBar;
+
+    CComboBox m_tabAreaComboBox;
+    CComboBox m_tabZoomComboBox;
+    CButton m_printViewCloseButton;
+
+    PROCESS m_eProcess;
+
+    CDocument* m_updateViewsDocument;
+
+    bool m_bRemovingPossibleDuplicateProcs;
+
+    std::map<std::string, std::tuple<CodeType, int64_t>> m_codeFileSuccessfulCompilations;
+
+    std::unique_ptr<ObjectTransporter> m_objectTransporter;
+    ApplicationShutdownRunner m_applicationShutdownRunner;
 };

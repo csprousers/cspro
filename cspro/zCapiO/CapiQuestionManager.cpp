@@ -28,7 +28,7 @@ CapiQuestionManager::CapiQuestionManager()
         m_languageIndex(0),
         m_styles(DefaultCapiStyles),
         m_modified(false),
-        m_is_pre76_file(false)
+        m_backupBeforeSaving(false)
 {
 }
 
@@ -277,7 +277,7 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
 }
 
 
-std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles() const
+std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles()
 {
     Application* application;
 
@@ -361,11 +361,11 @@ void CapiQuestionManager::Load(const std::string& file_path)
 
 void CapiQuestionManager::Save(const std::string& file_path)
 {
-    if( m_is_pre76_file )
+    // save a copy in the old format in case someone wanted to go back to earlier versions
+    if( m_backupBeforeSaving )
     {
-        // Save a copy in the old format in case someone wanted to go back to earlier versions
         PortableFunctions::FileCopy(file_path, file_path + ".backup", true);
-        m_is_pre76_file = false;
+        m_backupBeforeSaving = false;
     }
 
     std::string yaml_str = WriteToYaml(*this);

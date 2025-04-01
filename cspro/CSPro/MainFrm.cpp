@@ -10,6 +10,7 @@
 #include <zUtilO/UWM.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zLogicO/ReservedWords.h>
+#include <zLogicO/SourceBuffer.h>
 #include <zInterfaceF/UWM.h>
 #include <zDesignerF/CompilerOutputTabViewPage.h>
 #include <zDesignerF/DesignerObjectTransporter.h>
@@ -24,17 +25,11 @@
 #include <zEngineF/EngineUI.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-const int DICTTOOLBARPOS = 1;
-const int TABTOOLBARPOS = 2;
-const int FORMTOOLBARPOS = 3;
-const int ORDERTOOLBARPOS = 4;
-const int LANGDBARPOS = 5;
+constexpr int DICTTOOLBARPOS = 1;
+constexpr int TABTOOLBARPOS = 2;
+constexpr int FORMTOOLBARPOS = 3;
+constexpr int ORDERTOOLBARPOS = 4;
+constexpr int LANGDBARPOS = 5;
 
 static UINT toolbars[] =
 {
@@ -45,18 +40,7 @@ static UINT toolbars[] =
     IDR_ORDER_FRAME
 };
 
-static void Load24BitColorToolbarImages(CToolBar* pToolBar, UINT nIDResource, CImageList*& imageStorage)
-{
-    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(nIDResource),RT_BITMAP);
-    HBITMAP hBitmap = (HBITMAP) ::LoadImage(hInst, MAKEINTRESOURCE(nIDResource), IMAGE_BITMAP,
-                                            0,0, LR_CREATEDIBSECTION);
-    CBitmap bm;
-    bm.Attach(hBitmap);
-    imageStorage = new CImageList();
-    imageStorage->Create(16, 16, ILC_COLOR24 | ILC_MASK, 1, 1);
-    imageStorage->Add(&bm, RGB(192,192,192));
-    pToolBar->GetToolBarCtrl().SetImageList(imageStorage);
-}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
@@ -92,11 +76,14 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_MESSAGE(UWM::Designer::GetDictionaryType, OnGetDictionaryType)
     ON_MESSAGE(UWM::Designer::GetMessageTextSource, OnGetMessageTextSource)
+    ON_MESSAGE(UWM::Designer::GetApplicationBeingLoaded, OnGetApplicationBeingLoaded)
     ON_MESSAGE(UWM::Designer::GetApplication, OnGetApplication)
     ON_MESSAGE(UWM::Designer::GetFormFileOrDictionary, OnGetFormFileOrDictionary)
 
     ON_MESSAGE(UWM::Designer::CanCodeFileCompilationBeSkipped, OnCanCodeFileCompilationBeSkipped)
     ON_MESSAGE(UWM::Designer::SetCodeFileSuccessfullyCompiled, OnSetCodeFileSuccessfullyCompiled)
+
+    ON_MESSAGE(UWM::Designer::TokenizeLogic_V0, OnTokenizeLogic_V0)
 
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
@@ -219,42 +206,30 @@ static UINT indicators[] =
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame()
+    :   m_pszClassName(nullptr),
+        m_bDictToolbar(FALSE),
+        m_bFormToolbar(FALSE),
+        m_bOrderToolbar(FALSE),
+        m_bTabToolbar(FALSE),
+        m_eProcess(ALL_STUFF),
+        m_updateViewsDocument(nullptr),
+        m_bRemovingPossibleDuplicateProcs(false)
 {
-    // TODO: add member initialization code here
-    m_pWndFormTBar = nullptr;
-    m_pWndOrderTBar = nullptr;
-    m_pWndTabTBar = nullptr;
-    m_pWndDictTBar = nullptr;
-    m_pWndToolBar = nullptr;
-
-    m_bDictToolbar = FALSE;
-    m_bTabToolbar = FALSE;
-    m_bFormToolbar = FALSE;
-    m_bOrderToolbar = FALSE;
-
-    m_pszClassName = nullptr;
-
-    m_bRemovingPossibleDuplicateProcs = false;
 }
+
 
 CMainFrame::~CMainFrame()
 {
-    delete m_pWndToolBar;
-    delete m_pWndToolBarImages;
-    delete m_pWndTabTBar;
-    delete m_pWndDictTBar;
-    delete m_pWndFormTBar;
-    delete m_pWndOrderTBar;
-    delete m_pWndOrderTBarImages;
 }
+
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if (CMDIFrameWnd::OnCreate(lpCreateStruct) == -1)
+    if( CMDIFrameWnd::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
     // Create CSPro tool bar
-    m_pWndToolBar = new CToolBar();
+    m_pWndToolBar = std::make_unique<CToolBar>();
 
     if (!m_pWndToolBar->CreateEx(this,TBSTYLE_FLAT,WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP,CRect(0,0,0,0), AFX_IDW_TOOLBAR )||
         !m_pWndToolBar->LoadToolBar(IDR_MAINFRAME))
@@ -263,13 +238,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 
-    Load24BitColorToolbarImages(m_pWndToolBar, IDR_MAINFRAME, m_pWndToolBarImages);
+    m_pWndToolBarImages = Load24BitColorToolbarImages(m_pWndToolBar.get(), IDR_MAINFRAME);
 
     for( unsigned tools_id = ID_TOOLS_DATAMANAGER; tools_id <= ID_TOOLS_TEXTCONVERTER; ++tools_id )
         m_pWndToolBar->GetToolBarCtrl().HideButton(tools_id);
 
     // Create Dictionary tool bar
-    m_pWndDictTBar = new CToolBar();
+    m_pWndDictTBar = std::make_unique<CToolBar>();
 
     if (!m_pWndDictTBar->CreateEx(this,TBSTYLE_FLAT,WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP,CRect(0,0,0,0),996)||
         !m_pWndDictTBar->LoadToolBar(IDR_DICT_FRAME))
@@ -279,7 +254,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     // Create Tabulation tool bar
-    m_pWndTabTBar = new CToolBar();
+    m_pWndTabTBar = std::make_unique<CToolBar>();
 
     if (!m_pWndTabTBar->CreateEx(this,TBSTYLE_FLAT,WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP,CRect(0,0,0,0), 997)||
         !m_pWndTabTBar->LoadToolBar(IDR_TABLE_FRAME))
@@ -309,7 +284,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE(_T("Failed to create combo-box\n"));
         return FALSE;
     }
-    m_tabAreaComboBox.SetParent(m_pWndTabTBar); // parent is toolbar but messages get sent to CMainFrame
+    m_tabAreaComboBox.SetParent(m_pWndTabTBar.get()); // parent is toolbar but messages get sent to CMainFrame
 
     // add zoom combo box to toolbar in place of ID_AREA_COMBO placeholder button
     // (this overlaps the area combo box but thats ok since we never show area
@@ -328,7 +303,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE(_T("Failed to create combo-box\n"));
         return FALSE;
     }
-    m_tabZoomComboBox.SetParent(m_pWndTabTBar); // parent is toolbar but messages get sent to CMainFrame
+    m_tabZoomComboBox.SetParent(m_pWndTabTBar.get()); // parent is toolbar but messages get sent to CMainFrame
 
     // turn the placeholder toolbar button into a separator so that buttons
     // to the right of the combo box will not get covered up
@@ -351,7 +326,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE(_T("Failed to create button\n"));
         return FALSE;
     }
-    m_printViewCloseButton.SetParent(m_pWndTabTBar); // parent is toolbar but messages get sent to CMainFrame
+    m_printViewCloseButton.SetParent(m_pWndTabTBar.get()); // parent is toolbar but messages get sent to CMainFrame
 
     // Create Form tool bar
     m_pWndFormTBar = CFormChildWnd::CreateFormToolBar(this);
@@ -363,7 +338,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     // Create Order tool bar
-    m_pWndOrderTBar = new CToolBar();
+    m_pWndOrderTBar = std::make_unique<CToolBar>();
 
     if (!m_pWndOrderTBar->CreateEx(this,TBSTYLE_FLAT,WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP,CRect(0,0,0,0), 999)||
         !m_pWndOrderTBar->LoadToolBar(IDR_ORDER_FRAME))
@@ -372,7 +347,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 
-    Load24BitColorToolbarImages(m_pWndOrderTBar, IDR_ORDER_FRAME, m_pWndOrderTBarImages);
+    m_pWndOrderTBarImages = Load24BitColorToolbarImages(m_pWndOrderTBar.get(), IDR_ORDER_FRAME);
 
     //Create language bar
     if (!m_wndLangDlgBar.Create(this, IDD_LANGDLGBAR, CBRS_ALIGN_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_LANGDLGBAR))
@@ -382,12 +357,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     // Create rebar
-    if (!m_wndReBar.Create(this) ||
-        !m_wndReBar.AddBar(m_pWndToolBar) ||
-        !m_wndReBar.AddBar(m_pWndDictTBar) ||
-        !m_wndReBar.AddBar(m_pWndTabTBar) ||
-        !m_wndReBar.AddBar(m_pWndFormTBar) ||
-        !m_wndReBar.AddBar(m_pWndOrderTBar) ||
+    if( !m_wndReBar.Create(this) ||
+        !m_wndReBar.AddBar(m_pWndToolBar.get()) ||
+        !m_wndReBar.AddBar(m_pWndDictTBar.get()) ||
+        !m_wndReBar.AddBar(m_pWndTabTBar.get()) ||
+        !m_wndReBar.AddBar(m_pWndFormTBar.get()) ||
+        !m_wndReBar.AddBar(m_pWndOrderTBar.get()) ||
         !m_wndReBar.AddBar(&m_wndLangDlgBar))
     {
         /*these ints are positions of the bars defined at the top of this file. if u add a bar make sure that u specify the positions corrrectly
@@ -470,6 +445,24 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     return 0;
 }
+
+
+std::unique_ptr<CImageList> CMainFrame::Load24BitColorToolbarImages(CToolBar* const pToolBar, const UINT nIDResource)
+{
+    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(nIDResource), RT_BITMAP);
+    HBITMAP hBitmap = (HBITMAP)::LoadImage(hInst, MAKEINTRESOURCE(nIDResource), IMAGE_BITMAP,
+                                           0, 0, LR_CREATEDIBSECTION);
+    CBitmap bm;
+    bm.Attach(hBitmap);
+
+    auto imageStorage = std::make_unique<CImageList>();
+    imageStorage->Create(16, 16, ILC_COLOR24 | ILC_MASK, 1, 1);
+    imageStorage->Add(&bm, RGB(192,192,192));
+    pToolBar->GetToolBarCtrl().SetImageList(imageStorage.get());
+
+    return imageStorage;
+}
+
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -596,6 +589,12 @@ void CMainFrame::OnDropFiles(HDROP hDropInfo)
         CString csErr;
         pApp->Reconcile(pDoc,csErr,false,true);
     }
+}
+
+
+RAII::SetValueAndRestoreOnDestruction<CDocument*> CMainFrame::SetUpdateViewsDocument(CDocument* const document)
+{
+    return RAII::SetValueAndRestoreOnDestruction(m_updateViewsDocument, document);
 }
 
 
@@ -3392,6 +3391,18 @@ LONG CMainFrame::OnIMSATabConvert(WPARAM /*wParam*/, LPARAM /*lParam*/)
 }
 
 
+LRESULT CMainFrame::OnGetApplicationBeingLoaded(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    if( m_updateViewsDocument != nullptr &&
+        m_updateViewsDocument->IsKindOf(RUNTIME_CLASS(CAplDoc)) )
+    {
+        return reinterpret_cast<LRESULT>(&assert_cast<CAplDoc*>(m_updateViewsDocument)->GetAppObject());
+    }
+
+    return reinterpret_cast<LRESULT>(nullptr);
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //  LRESULT CMainFrame::OnGetApplication(WPARAM wParam, LPARAM lParam)
@@ -3408,6 +3419,9 @@ LRESULT CMainFrame::OnGetApplication(WPARAM wParam, LPARAM lParam)
 
         if( pWnd != nullptr )
             pDoc = pWnd->GetActiveDocument();
+
+        if( pDoc == nullptr )
+            return 0;
     }
 
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pDoc);
@@ -3539,6 +3553,17 @@ LRESULT CMainFrame::OnSetCodeFileSuccessfullyCompiled(const WPARAM wParam, LPARA
 
     m_codeFileSuccessfulCompilations[code_file->GetFilePath()] = std::make_tuple(code_file->GetCodeType(),
                                                                                  code_file->GetTextSource().GetModifiedIteration());
+
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnTokenizeLogic_V0(const WPARAM wParam, const LPARAM lParam)
+{
+    const SharableString& logic = *reinterpret_cast<const SharableString*>(wParam);
+    std::vector<Logic::BasicToken>& basic_tokens = *reinterpret_cast<std::vector<Logic::BasicToken>*>(lParam);
+
+    basic_tokens = Logic::SourceBuffer::Tokenize(logic, LogicSettings::GetOriginalSettings());
 
     return 1;
 }

@@ -8,18 +8,11 @@
 struct CapiLogicParameters;
 class CDEFormFile;
 
-namespace CapiPre76
-{
-    class CNewCapiQuestionFile;
-    class CNewCapiQuestionHelp;
-}
-
 
 class CLASS_DECL_ZCAPIO CapiQuestionManager
 {
 public:
     CapiQuestionManager();
-    virtual ~CapiQuestionManager() { }
 
     bool IsModified() const             { return m_modified; }
     void SetModifiedFlag(bool modified) { m_modified = modified; }
@@ -70,19 +63,12 @@ public:
     void serialize(Serializer& ar);
 
 
-protected:
-    virtual std::vector<std::shared_ptr<CDEFormFile>> GetRuntimeFormFiles() const;
-
 private:
-    void LoadPre76File(const std::string& file_path);
-    void CreateFromPre76File(CapiPre76::CNewCapiQuestionFile& question_file);
-    void CopyPre76Question(CapiPre76::CNewCapiQuestionHelp* file_question, CapiText::Type type);
+    static std::vector<std::shared_ptr<CDEFormFile>> GetRuntimeFormFiles();
+
+    class Pre76FileConverter;
     bool IsPre76File(std::istream& is) const;
-    void ConvertPre76ConditionOccs();
-    bool ShouldConvertPre76ConditionOccs(const std::vector<CapiCondition>& conditions) const;
-    void ConvertPre76Fills();
-    std::string ConvertPre76Fills(std::string text_sv);
-    static std::string ConvertFromRtf(const std::string& rtf_text);
+    void LoadPre76File(const std::string& file_path);
 
 private:
     std::vector<Language> m_languages;
@@ -91,5 +77,5 @@ private:
     std::string m_runtimeStylesCss;
     std::map<std::string, CapiQuestion> m_questions;
     bool m_modified;
-    bool m_is_pre76_file;
+    bool m_backupBeforeSaving;
 };

@@ -17,7 +17,7 @@ namespace UWM::Ranges
 
     // zDesignerF
     constexpr unsigned DesignerStart   = DataLast + 1;
-    constexpr unsigned DesignerLast    = DesignerStart + 20;
+    constexpr unsigned DesignerLast    = DesignerStart + 25;
 
     // zDictF
     constexpr unsigned DictionaryStart = DesignerLast + 1;
