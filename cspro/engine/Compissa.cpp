@@ -345,14 +345,23 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
     {
         ProcInComp = static_cast<int>(ProcType::OnFocus);
 
-        NextToken();
+        try
+        {
+            NextToken();
 
-        // fills can evaluate to strings but conditions will always be numeric expressions
-        question_text_node_index = fill_type ? CompileFillText() :
-                                               exprlog();
+            // fills can evaluate to strings but conditions will always be numeric expressions
+            question_text_node_index = fill_type ? CompileFillText() :
+                                                   exprlog();
 
-        if( Tkn != TOKEOP || GetSyntErr() != 0 )
-            IssueError(condition_type ? 48011 : 48012);
+            if( Tkn != TOKEOP || GetSyntErr() != 0 )
+                IssueError(condition_type ? 48011 : 48012);
+        }
+
+        catch(...)
+        {
+            incrementErrors();
+            throw;
+        }
     };
 
     try
