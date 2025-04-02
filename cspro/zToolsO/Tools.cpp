@@ -716,6 +716,12 @@ template CLASS_DECL_ZTOOLSO std::wstring GetRelativeFName(NullTerminatedString s
 template CLASS_DECL_ZTOOLSO CString GetRelativeFName(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
 
 
+std::string GetRelativePath(const std::string_view relative_to_file_path_sv, const std::string_view filename_sv)
+{
+    return UTF8_TODO::GetUtf8(GetRelativeFName<std::wstring>(UTF8_TODO::GetWide(relative_to_file_path_sv), UTF8_TODO::GetWide(filename_sv)));
+}
+
+
 std::string GetRelativePathForDisplay(const cs::string_view_sz relative_to_file_path, const cs::string_sz filename)
 {
     const static std::string StartingInSameDirectoryPrefix = "." + std::string(Path::NativeSlashString);

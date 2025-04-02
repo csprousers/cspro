@@ -19,7 +19,7 @@ class CQSFEView : public CFormView
     DECLARE_DYNAMIC(CQSFEView)
 
 public:
-    CQSFEView(const CString& ent_path);
+    CQSFEView(CFormDoc* pFormDoc);
     ~CQSFEView();
 
     void SetLanguages(std::vector<Language> languages);
@@ -106,7 +106,7 @@ protected:
     afx_msg void OnTimer(UINT nIDEvent);
 
 private:
-    void SetupFileServer(const CString& application_filename);
+    void SetupFileServer();
 
     void OnViewHide();
     void OnQuestionTextTypeChanged();
@@ -121,7 +121,7 @@ private:
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
     std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
 
-    CString m_ent_path;
+    std::string m_applicationFilePath;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
     CapiText::Type m_textType;

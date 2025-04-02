@@ -1335,21 +1335,13 @@ bool CAplDoc::IsAppModified()
                     return true;
             }
 
-            if(m_application->GetUseQuestionText() ) {
-                CFormDoc* pFormDoc = assert_cast<CFormDoc*>(pDoc);
-                CFormChildWnd* pFrame = (CFormChildWnd*)pFormDoc->GetView(FormViewType::Form)->GetParentFrame();
-                if( pFrame ) {
-                    if(pFrame->GetQSFView1()) {
-                        CQSFEView* pView1= pFrame->GetQSFView1();
-                        if(pView1->IsDirty())
-                            return true;
-                    }
-                    if(pFrame->GetQSFView2()) {
-                        CQSFEView* pView2= pFrame->GetQSFView2();
-                        if(pView2->IsDirty())
-                            return true;
-                    }
-                }
+            if( m_application->GetUseQuestionText() )
+            {
+                CFormDoc* const pFormDoc = assert_cast<CFormDoc*>(pDoc);
+                CFormChildWnd* const pFrame = assert_cast<CFormChildWnd*>(pFormDoc->GetView(FormViewType::Form)->GetParentFrame());
+
+                if( pFrame != nullptr && pFrame->IsQuestionTextModified() )
+                    return true;
             }
         }
     }

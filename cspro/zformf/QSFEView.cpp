@@ -80,13 +80,28 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
 END_MESSAGE_MAP()
 
 
-CQSFEView::CQSFEView(const CString& ent_path)
+CQSFEView::CQSFEView(CFormDoc* const pFormDoc)
     :   CFormView(IDD_QSF_EDIT_VIEW),
-        m_ent_path(ent_path),
         m_textType(CapiText::Type::Question),
         m_languageIndex(0)
 {
-    SetupFileServer(ent_path);
+    ASSERT(pFormDoc != nullptr);
+
+    // get the file path for this form file's application
+    Application* application;
+
+    if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application, pFormDoc) == 1 )
+    {
+        m_applicationFilePath = application->GetApplicationFilePath();
+    }
+
+    else
+    {
+        ASSERT(false);
+        m_applicationFilePath = TC::ToUtf8(pFormDoc->GetPathName());
+    }
+
+    SetupFileServer();
     ASSERT(m_questionTextVirtualFileMapping != nullptr);
 
     m_htmlEditorCtrl.SetUrl(m_questionTextVirtualFileMapping->GetUrl());
@@ -176,7 +191,7 @@ void CQSFEView::OnDestroy()
 }
 
 
-void CQSFEView::SetupFileServer(const CString& application_filename)
+void CQSFEView::SetupFileServer()
 {
     // to make relative paths in the question text work, the HTML editor must
     // appear as if it exists in the application directory; we will load the
@@ -200,7 +215,7 @@ void CQSFEView::SetupFileServer(const CString& application_filename)
     m_fileServer = std::make_unique<SharedHtmlLocalFileServer>();
 
     m_questionTextVirtualFileMapping = std::make_unique<VirtualFileMapping>(
-        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(application_filename)),
+        m_fileServer->CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(m_applicationFilePath),
         [&]()
         {
             return editor_html;
@@ -623,20 +638,21 @@ void CQSFEView::OnEditInsertImage()
     if( dlg.DoModal() != IDOK )
         return;
 
-    CString image_path_on_disk = dlg.GetPathName();
+    std::string image_file_path_on_disk = TC::ToUtf8(dlg.GetPathName());
 
-    if( image_path_on_disk.IsEmpty() )
+    if( image_file_path_on_disk.empty() )
         return;
 
-    if( PathGetVolume(UTF8_TODO::GetUtf8(image_path_on_disk)) != PathGetVolume(UTF8_TODO::GetUtf8(m_ent_path)) )
+    if( PathGetVolume(image_file_path_on_disk) != PathGetVolume(m_applicationFilePath) )
     {
         ErrorMessage::Display(L"Images must be on the same disk volume as your CSPro application. "
                               L"Try copying the file to the folder that contains your application.");
         return;
     }
 
-    std::wstring relative_path = GetRelativeFName(m_ent_path, image_path_on_disk);
-    m_htmlEditorCtrl.InsertImage(Encoders::ToUri(UTF8_TODO::GetUtf8(PortableFunctions::PathToForwardSlash(relative_path)), false));
+    std::string relative_path = GetRelativePath(m_applicationFilePath, image_file_path_on_disk);
+    Path::MakeToForwardSlash(relative_path);
+    m_htmlEditorCtrl.InsertImage(Encoders::ToUri(std::move(relative_path), false));
 }
 
 

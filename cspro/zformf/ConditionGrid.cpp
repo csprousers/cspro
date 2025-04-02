@@ -223,7 +223,8 @@ void CCondGrid::UpdateGrid()
 
     if( pDoc->GetCapiEditorViewModel().CanHaveText() )
     {
-        const std::vector<CapiCondition>& conditions = pDoc->GetCapiEditorViewModel().GetQuestion().GetConditions();
+        const CapiQuestion question = pDoc->GetCapiEditorViewModel().GetQuestion();
+        const std::vector<CapiCondition>& conditions = question.GetConditions();
         SetNumberRows(conditions.size());
 
         if( conditions.empty() )

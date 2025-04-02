@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "ConditionEdit.h"
 #include "ConditionGrid.h"
+#include "QSFEView.h"
 
 
 /////////////////////////////////////////////////////////////////////////////
