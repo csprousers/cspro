@@ -489,8 +489,7 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                             pVarAsciiAddr = m_pIntDriver->GetVarAsciiAddr( pVarT, theIndex );
 
                             // stops at first non-blank occurrence found
-                            ASSERT( pVarT->GetLength()  <= ENG_BLANKSIZE ); // re blank-area for comparisons
-                            if( memcmp( pVarAsciiAddr, pEngBlank, pVarT->GetLength() ) == 0 ) {
+                            if( SO::IsBlank(std::wstring_view(pVarAsciiAddr, pVarT->GetLength())) ) {
                                 CString csAssignText;
                                 csAssignText = _T("?");
                                 *pVarAsciiAddr = _T('?');

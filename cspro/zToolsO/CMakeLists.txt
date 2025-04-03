@@ -28,7 +28,6 @@ add_library(${PROJECT_NAME}
     IniFile.cpp
     InterfaceString.cpp
     md5.c
-    Memctrl.cpp
     MemoryStream.cpp
     NewlineSubstitutor.cpp
     NumberToString.cpp

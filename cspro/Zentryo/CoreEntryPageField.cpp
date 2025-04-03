@@ -52,9 +52,9 @@ CoreEntryPageField::CoreEntryPageField(CoreEntryEngineInterface* core_entry_engi
     // set up some attributes for all non-mirror fields
     if( !m_pOriginalField->IsMirror() )
     {
-        const CCapi* const capi = m_pRunAplEntry->GetCapi();
+        const CCapi& capi = m_pRunAplEntry->GetCapi();
 
-        m_capiContentVirtualFileMapping.SetCapiContent(capi->GetCapiContent(symbol_index, CCapi::CapiContentType::All),
+        m_capiContentVirtualFileMapping.SetCapiContent(capi.GetCapiContent(symbol_index, CCapi::CapiContentType::All),
                                                        *m_pEntryDriver->GetApplication(),
                                                        m_pEntryDriver->GetSharedQuestMgr());
     }

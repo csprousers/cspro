@@ -59,12 +59,10 @@ public:
     CEngineDriver*  m_pEngineDriver; //this
     std::unique_ptr<CIntDriver> m_pIntDriver;
 public:
-    CEngineDefines  m_EngineDefines;
     CEngineArea     m_EngineArea;
     CSettings       m_EngineSettings;
     std::unique_ptr<CEngineCompFunc> m_pEngineCompFunc;
 
-    CEngineDefines*  m_pEngineDefines;
     CEngineArea*     m_pEngineArea;
     EngineData*      m_engineData;
     CSettings*       m_pEngineSettings;

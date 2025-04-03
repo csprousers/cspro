@@ -61,7 +61,6 @@
     <ClInclude Include="InterpreterMessageIssuer.h" />
     <ClInclude Include="ITEMDATA.H" />
     <ClInclude Include="LogicStackSaver.h" />
-    <ClInclude Include="Memctrl.h" />
     <ClInclude Include="Messages.h" />
     <ClInclude Include="NODES.H" />
     <ClInclude Include="ParadataDriver.h" />

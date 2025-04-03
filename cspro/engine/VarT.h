@@ -178,7 +178,7 @@ private:
     bool                                m_bDecChar;
     csprochar                           m_cFmt;                    // format code
     int                                 m_iNumDec;                 // decimals
-    csprochar                           m_cClas;                   // class
+    char                                m_class;                   // class
     int                                 m_iLength;                 // length
     int                                 m_iLocation;               // location in its record
 
@@ -305,8 +305,8 @@ public:
     bool    IsNumeric( void ) const         { return( m_cFmt == 'N' ); }
     bool    IsAlpha( void ) const           { return !IsNumeric(); }
     DataType GetDataType() const            { return IsNumeric() ? DataType::Numeric : DataType::String; }
-    csprochar GetClass( void ) const        { return m_cClas; }
-    void    SetClass( csprochar cClas )     { m_cClas = cClas; }
+    char    GetClass() const                { return m_class; }
+    void    SetClass(char class_)           { m_class = class_; }
     int     GetLength( void ) const         { return m_iLength; }
     void    SetLength( int iLength )        { m_iLength = iLength; }
     int     GetDecimals( void ) const       { return m_iNumDec; }

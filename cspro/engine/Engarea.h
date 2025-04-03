@@ -120,7 +120,6 @@ class Frequency;
 
 class CEngineArea;
 class CEngineDriver;
-class CEngineDefines;
 class CSettings;
 class CDataDict;
 class CDictRecord;
@@ -153,7 +152,6 @@ class CEngineArea
 public:
     CEngineArea*            m_pEngineArea;
     CEngineDriver*          m_pEngineDriver;
-    CEngineDefines*         m_pEngineDefines;
     CSettings*              m_pEngineSettings;
 
     // --- symbols management
@@ -164,7 +162,7 @@ private:
 public:
     std::shared_ptr<EngineData> m_engineData;               // engine data
     std::shared_ptr<APPL> m_Appl;                           // Appl descriptor
-                                                         
+
     int*                    m_CtNodebase;          //  CtNodes  table: address
     int                     m_CtNodemxent;         //                  max entries
     int                     m_CtNodenext;          //                  next free

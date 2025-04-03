@@ -3,7 +3,7 @@
 #include "Event.h"
 #include "EventList.h"
 #include <zUtilO/Versioning.h>
-#include <engine/Defines.h>
+#include <zEngineO/ProcType.h>
 
 using namespace Paradata;
 
@@ -155,11 +155,11 @@ void Log::SetupBaseEventTable()
             .AddColumn("time", Table::ColumnType::Double)
             .AddColumn("proc_name", Table::ColumnType::Long, true)
             .AddColumn("proc_type", Table::ColumnType::Integer, true)
-                    .AddCode(PROCTYPE_PRE, "preproc")
-                    .AddCode(PROCTYPE_ONFOCUS, "onfocus")
-                    .AddCode(PROCTYPE_KILLFOCUS, "killfocus")
-                    .AddCode(PROCTYPE_POST, "postproc")
-                    .AddCode(PROCTYPE_ONOCCCHANGE, "onoccchange")
+                    .AddCode(ProcType::PreProc, "preproc")
+                    .AddCode(ProcType::OnFocus, "onfocus")
+                    .AddCode(ProcType::KillFocus, "killfocus")
+                    .AddCode(ProcType::PostProc, "postproc")
+                    .AddCode(ProcType::OnOccChange, "onoccchange")
         ;
 }
 

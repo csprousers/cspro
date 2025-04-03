@@ -157,9 +157,6 @@
     <ClInclude Include="LogicStackSaver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Memctrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Messages.h">
       <Filter>Header Files</Filter>
     </ClInclude>

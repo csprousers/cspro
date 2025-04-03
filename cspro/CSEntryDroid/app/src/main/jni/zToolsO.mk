@@ -26,7 +26,6 @@ LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/ImsaStrMem.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/IniFile.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/InterfaceString.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/md5.c
-LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/Memctrl.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/MemoryStream.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/NewlineSubstitutor.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/NumberToString.cpp

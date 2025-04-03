@@ -33,7 +33,6 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
     m_pEngineDriver = pEngineDriver;
     m_pEngineArea = pEngineDriver->getEngineAreaPtr();
     m_pEngineSettings = &(pEngineDriver->m_EngineSettings);
-    m_pEngineDefines = &(pEngineDriver->m_EngineDefines);
     m_ForTableNext = 0;
 
     m_bIdChanger = false; // RHF Jul 01, 2005

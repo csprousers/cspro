@@ -52,7 +52,6 @@ CEngineDriver::CEngineDriver(Application* pApplication, bool bDoInterpreter, Com
                                                           std::make_unique<CEngineCompFunc>(this);
 #endif
 
-    m_pEngineDefines  = &m_EngineDefines;
     m_pEngineSettings = &m_EngineSettings;
 
     ASSERT( m_pEngineArea != 0 );

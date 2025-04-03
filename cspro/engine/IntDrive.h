@@ -134,7 +134,6 @@ private:
 public:
     CEngineDriver* m_pEngineDriver;
     CEngineArea* m_pEngineArea;
-    CEngineDefines* m_pEngineDefines;
     CSettings* m_pEngineSettings;
 
     std::unique_ptr<LoopStack> m_loopStack;

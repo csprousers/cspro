@@ -38,9 +38,9 @@ CoreEntryPage::CoreEntryPage(CoreEntryEngineInterface* core_entry_engine_interfa
         m_blockLabel = form_block.GetLabel();
 
         // evaluate the block's question/help text
-        const CCapi* const capi = pRunAplEntry->GetCapi();
+        const CCapi& capi = pRunAplEntry->GetCapi();
 
-        m_blockCapiContentVirtualFileMapping.SetCapiContent(capi->GetCapiContent(engine_block->GetSymbolIndex(), CCapi::CapiContentType::All),
+        m_blockCapiContentVirtualFileMapping.SetCapiContent(capi.GetCapiContent(engine_block->GetSymbolIndex(), CCapi::CapiContentType::All),
                                                             *m_pEngineDriver->GetApplication(),
                                                             m_pEngineDriver->GetSharedQuestMgr());
     }
