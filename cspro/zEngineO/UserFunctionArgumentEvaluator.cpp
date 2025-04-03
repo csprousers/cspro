@@ -27,29 +27,6 @@ std::shared_ptr<Symbol> UserFunctionArgumentEvaluator::GetSymbol(size_t /*parame
 
 
 // --------------------------------------------------------------------------
-// DefaultParametersOnlyUserFunctionArgumentEvaluator
-// --------------------------------------------------------------------------
-
-std::optional<size_t> DefaultParametersOnlyUserFunctionArgumentEvaluator::GetNumberArguments()
-{
-    return 0;
-}
-
-
-double DefaultParametersOnlyUserFunctionArgumentEvaluator::GetNumeric(size_t /*parameter_number*/)
-{
-    return ReturnProgrammingError(DEFAULT);
-}
-
-
-SharableString DefaultParametersOnlyUserFunctionArgumentEvaluator::GetString(size_t /*parameter_number*/)
-{
-    return ReturnProgrammingError(SharableString());
-}
-
-
-
-// --------------------------------------------------------------------------
 // NumericStringValuesOnlyUserFunctionArgumentEvaluator
 // --------------------------------------------------------------------------
 

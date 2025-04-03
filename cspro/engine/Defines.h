@@ -13,19 +13,16 @@
 //============== definiciones generales para todo el soporte =============
 // general, basic characters
 
-const TCHAR BLANK     = _T(' ');
-#define NL              _T('\n')            // newline
-
-const unsigned int MAXLINE = 255;
+constexpr TCHAR BLANK     = _T(' ');
 
 // CSPRO module types
 enum class ModuleType { None = 0, Entry, Designer, Batch };
 
-const int   _MAXLABLEN = 256;
+constexpr int _MAXLABLEN   = 256;
 
-const int FNSEL_VARS   = 11;            // # of vars to include in SELCASE
+constexpr int FNSEL_VARS   = 11;        // # of vars to include in SELCASE
 
-const int MAX_KEY_SIZE    = 256;               // max. key-size for any index
+constexpr int MAX_KEY_SIZE = 256;       // max. key-size for any index
 
 
 // miscellaneous codes

@@ -19,7 +19,6 @@
 #include <zToolsO/Tools.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/TraceMsg.h>
 #include <zUtilF/MsgOpt.h>
 #include <zHtml/WebViewSyncOperationMarker.h>
 #include <zAppO/Application.h>

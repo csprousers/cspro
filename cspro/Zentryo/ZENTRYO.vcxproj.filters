@@ -43,9 +43,6 @@
     <ClInclude Include="..\zCapiO\capi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hreplace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Runaple.h">
       <Filter>Header Files</Filter>
     </ClInclude>

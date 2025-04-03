@@ -14,7 +14,6 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ExecutionStack.h>
-#include <zUtilO/TraceMsg.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <ZBRIDGEO/npff.h>
 #include <zListingO/ErrorLister.h>

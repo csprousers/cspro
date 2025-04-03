@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "FormBase.h"
-#include <zUtilO/TraceMsg.h>
 
 
 IMPLEMENT_DYNAMIC(CDEFormBase, CObject)
@@ -22,7 +21,7 @@ CDEFormBase::CDEFormBase(const CDEFormBase& rhs) // FORM_TODO remove if no longe
         m_label(rhs.m_label),
         m_cDims(rhs.m_cDims),
         m_iSymbol(rhs.m_iSymbol),
-        m_iFormFileNumber(rhs.m_iFormFileNumber)        
+        m_iFormFileNumber(rhs.m_iFormFileNumber)
 {
 }
 

@@ -78,7 +78,6 @@
   <ItemGroup>
     <ClInclude Include="..\ZBRIDGEO\runapl.h" />
     <ClInclude Include="..\zCapiO\capi.h" />
-    <ClInclude Include="hreplace.h" />
     <ClInclude Include="Runaple.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="zEntryO.h" />

@@ -51,7 +51,6 @@ struct InterpreterExecuteResult;
 class ItemIndex;
 class LoopStack;
 class NamedReference;
-struct ParsedCapiParam;
 class SelcaseManager;
 struct sqlite3;
 class SyncClient;
@@ -402,6 +401,7 @@ private:
                                     int* iTargetOcc, bool* bExplicitOcc, const Symbol* symbol_holding_name = nullptr); // 20120521
 
     bool CheckAtSymbol(const CString& csFullName, int* iSymTarget, int* iOccTarget, bool* bExplicitOcc); // RHF Dec 09, 2003
+    CString CheckAtSymbol_ExpandText(const CString& csText, bool& bSomeError);
 
 public:
     double exendcase(int iExpr);
@@ -554,7 +554,6 @@ public:
     double  exgetvaluealpha(int iExpr); // 20140422
     VARX*   AssignParser(int iExpr,CNDIndexes *& pTheIndex,int * aIndex); // 20140422
 
-    SharableString GetValueLabel(int iCurVar, VART* pVarT); // for CAPI text
     SharableString GetValueLabel(const VART* pVarT, const std::variant<double, SharableString>& value);
     double  exgetvaluelabel(int iExpr);
     double  exvariablevalue(int program_index);
@@ -841,16 +840,11 @@ private:
 #endif
 
 public:
-    // HTML_QSF_TODO which of the following are needed?
-    SharableString EvaluateCapiText(int current_symbol_index, const ParsedCapiParam& parsed_capi_param);
-    int EvaluateCapiVariableCurrentOccurrence(int iCurVar, VART* pVarT);
     SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
+private:
     SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, bool is_question);
-    CString ExpandText(const CString& csText, bool bShowErrors = true, bool* bSomeError = nullptr, std::vector<ParsedCapiParam>* capi_params = nullptr);
-
     bool EvaluateQuestionTextCondition(const Symbol& symbol, int program_index);
     SharableString EvaluateQuestionTextFill(const Symbol& symbol, int program_index);
-private:
     SharableString EvaluateTextFill(int program_index) override;
 
     // --- tables & arrays processing
@@ -892,7 +886,6 @@ private:
     void    CtPos_FillIndexArray( CTAB* ct, VART* pVarT, int iOccExpr ); // rcl, Oct 26, 2004
 public:
     void    CtPos_Var( CTAB* ct, int ct_node, int* vector, CSubTable* pSubTable, CCoordValue* pCoordValue, bool bMarkAllPos ); // rcl, Oct 26, 2004
-
 
     int     DoTally( int iCtNode, double dValue, int* iVector, int* iNumMatches ); // RHF Jul 09, 2001
     int     DoTally( int iCtNode, double dValue, std::vector<std::shared_ptr<VTSTRUCT>>& arrVectors, int* iNumMatches );

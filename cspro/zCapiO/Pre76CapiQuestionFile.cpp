@@ -237,16 +237,17 @@ int CapiPre76::CNewCapiQuestionHelp::GetLangIndex(CString csLangName) const {
 
 
 /*static*/
-bool CapiPre76::CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAString* csLeft, int* iCond, CIMSAString* csRight, eCapiNewConditionType* eCondType) {
-    int         iLocalCond = -1;
-    CIMSAString csLocalLeft;
-    CIMSAString csLocalRight;
+bool CapiPre76::CNewCapiQuestionHelp::SplitCondition(CString csCondition, CString* csLeft, int* iCond, CString* csRight, eCapiNewConditionType* eCondType) {
+    int iLocalCond = -1;
+    CString csLocalLeft;
+    CString csLocalRight;
 
-    if (eCondType) *eCondType = CapiPre76::CNewCapiQuestionHelp::None;
+    if (eCondType)
+        *eCondType = CapiPre76::CNewCapiQuestionHelp::None;
 
-    csprochar* pLeft = csCondition.GetBuffer();
-    csprochar* p = pLeft;
-    csprochar    c = 0;
+    TCHAR* pLeft = csCondition.GetBuffer();
+    TCHAR* p = pLeft;
+    TCHAR c = 0;
 
     while (*p != 0) {
         if (*p == '=') {
@@ -292,7 +293,8 @@ bool CapiPre76::CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAS
             // Check for " "
             p = csLocalRight.GetBuffer();
             if (*p == '"') {
-                if (eCondType) *eCondType = CapiPre76::CNewCapiQuestionHelp::Literal;
+                if (eCondType)
+                    *eCondType = CapiPre76::CNewCapiQuestionHelp::Literal;
                 int     iLen = _tcslen(p);
 
                 if (iLen < 2 || *(p + iLen - 1) != '"')
@@ -306,12 +308,14 @@ bool CapiPre76::CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAS
                     csLocalRight = csRightAux;
                 }
             }
-            else if (csLocalRight.IsNumeric() || SpecialValues::StringIsSpecial(UTF8_TODO::GetUtf8(csLocalRight))) {
-                if (eCondType) *eCondType = CapiPre76::CNewCapiQuestionHelp::Numeric;
+            else if (CIMSAString::IsNumeric(csLocalRight) || SpecialValues::StringIsSpecial(UTF8_TODO::GetUtf8(csLocalRight))) {
+                if (eCondType)
+                    *eCondType = CapiPre76::CNewCapiQuestionHelp::Numeric;
             }
             else {
                 // RHF COM Oct 28, 2003 iLocalCond = -1; // not numeric
-                if (eCondType) *eCondType = CapiPre76::CNewCapiQuestionHelp::Other;
+                if (eCondType)
+                    *eCondType = CapiPre76::CNewCapiQuestionHelp::Other;
             }
 
             break;
@@ -328,8 +332,8 @@ bool CapiPre76::CNewCapiQuestionHelp::SplitCondition(CString csCondition, CIMSAS
 }
 
 bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, int& iOccMin, int& iOccMax) {
-    CIMSAString csOccMin;
-    CIMSAString csOccMax;
+    CString csOccMin;
+    CString csOccMax;
     std::vector<std::wstring> aParts = SO::SplitString(csOccurrences, ':', false);
 
     bool    bRet = true;
@@ -355,18 +359,19 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
         iOccMin = -1;
         iOccMax = -1;
 
-        if (!csOccMin.IsNumeric())
+        if (!CIMSAString::IsNumeric(csOccMin)) {
             bRet = false;
+        }
         else {
-            iOccMin = (int)csOccMin.fVal();
-            if (csOccMin.fVal() != (double)iOccMin || iOccMin < 1)
+            iOccMin = (int)CIMSAString::fVal(csOccMin);
+            if (CIMSAString::fVal(csOccMin) != (double)iOccMin || iOccMin < 1)
                 bRet = false;
             else if (csOccMax.GetLength() > 0) {
-                if (!csOccMax.IsNumeric())
+                if (!CIMSAString::IsNumeric(csOccMax))
                     bRet = false;
                 else {
-                    iOccMax = (int)csOccMax.fVal();
-                    if (csOccMax.fVal() != (double)iOccMax || iOccMax < iOccMin)
+                    iOccMax = (int)CIMSAString::fVal(csOccMax);
+                    if (CIMSAString::fVal(csOccMax) != (double)iOccMax || iOccMax < iOccMin)
                         bRet = false;
                 }
             }
@@ -383,24 +388,21 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
         return true;
     }
 
-
-    CIMSAString  csLeft;
-    CIMSAString  csRight;
-    int          iCond;
+    CString csLeft;
+    CString csRight;
+    int iCond;
     eCapiNewConditionType  eCondType;
     bool bRet = CapiPre76::CNewCapiQuestionHelp::SplitCondition(csCondition, &csLeft, &iCond, &csRight, &eCondType);
 
     if (bRet) {
-        csprochar* p = csLeft.GetBuffer();
-        csprochar* q;
+        TCHAR* p = csLeft.GetBuffer();
+        TCHAR* q;
 
         // Delete ( if any
         if ((q = _tcschr(p, _T('('))) != nullptr)
             *q = 0;
 
-        CIMSAString   csLeftAux;
-
-        csLeftAux = p;
+        CString csLeftAux = p;
 
         //bRet = CheckSymbol( csLeftAux );
         bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(UTF8_TODO::GetUtf8(csLeftAux));
@@ -412,9 +414,7 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
             if ((q = _tcschr(p, _T('('))) != nullptr)
                 *q = 0;
 
-            CIMSAString   csRightAux;
-
-            csRightAux = p;
+            CString csRightAux = p;
 
             bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(UTF8_TODO::GetUtf8(csRightAux));
         }
@@ -590,9 +590,9 @@ bool CapiPre76::CNewCapiQuestionFile::Open(const std::string& file_path)
         if (!PortableFunctions::FileIsRegular(file_path)) {
             return bRetVal;
         }
-        if (cCapiQuestFile.Open(UTF8_TODO::GetCString(file_path), CFile::modeRead)) {
 
-            CIMSAString csCmd, csArg;
+        if (cCapiQuestFile.Open(UTF8_TODO::GetCString(file_path), CFile::modeRead)) {
+            CString csCmd, csArg;
 
             std::shared_ptr<ProgressDlg> dlgProgress;
             if (!bSilent) {
@@ -640,9 +640,9 @@ bool CapiPre76::CNewCapiQuestionFile::Open(const std::string& file_path)
 
 bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shared_ptr<ProgressDlg> pDlgProgress)
 {
-    CIMSAString     csCmd, csArg;
-    CString         csMsg, csError;
-    bool            bRetVal = true;
+    CString csCmd, csArg;
+    CString csMsg, csError;
+    bool bRetVal = true;
 
     bool    bSilent = (pDlgProgress == nullptr);
 
@@ -655,7 +655,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
         while (cCapiQuestFile.GetLine(csCmd, csArg, false) == SF_OK) { // RHF Jul 10, 2002 Add false for avoid trim
             iNumLines++;
             csCmd.TrimRight(); csCmd.TrimLeft();
-            //csArg.Remove( (csprochar) '\n' );
+            //csArg.Remove( '\n' );
             csArg.TrimRight();
 
             if (csCmd.GetLength() == 0) continue;
@@ -683,7 +683,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                 else if (csCmd.CompareNoCase(HEAD_LANGUAGES) == 0) { // [LANGUAGES]
                     while (cCapiQuestFile.GetLine(csCmd, csArg, false) == SF_OK) { // RHF Jul 10, 2002 Add false for avoid trim
                         csCmd.TrimRight(); csCmd.TrimLeft();
-                        //csArg.Remove( (csprochar) '\n' );
+                        //csArg.Remove( '\n' );
                         csArg.TrimRight();
 
                         if (csCmd.GetLength() == 0) continue;
@@ -733,7 +733,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
 
                     while (cCapiQuestFile.GetLine(csCmd, csArg, false) == SF_OK) {
                         csCmd.TrimRight(); csCmd.TrimLeft();
-                        //csArg.Remove( (csprochar) '\n' );
+                        //csArg.Remove( '\n' );
                         csArg.TrimRight();
 
                         if (csCmd.GetLength() == 0) continue;

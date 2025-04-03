@@ -84,7 +84,7 @@ public:
 
     const std::string& GetCondition() const { return m_condition; }
     bool    SetCondition(CString csCondition);
-    static bool SplitCondition(CString csCondition, CIMSAString* csLeft = NULL, int* iCond = NULL, CIMSAString* csRight = NULL, eCapiNewConditionType* eCondType = NULL);
+    static bool SplitCondition(CString csCondition, CString* csLeft = NULL, int* iCond = NULL, CString* csRight = NULL, eCapiNewConditionType* eCondType = NULL);
 
     bool    SetOccurrences(CString csOccurrences);
 

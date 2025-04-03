@@ -26,7 +26,6 @@
 #include <zEngineF/TraceHandler.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/AppLdr.h>
-#include <zUtilO/TraceMsg.h>
 #include <zAppO/Application.h>
 #include <zDictO/ValueProcessor.h>
 

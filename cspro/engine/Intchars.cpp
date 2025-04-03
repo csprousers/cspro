@@ -15,7 +15,6 @@
 #include <zEngineO/Nodes/UserInterface.h>
 #include <zEngineO/Nodes/Various.h>
 #include <zToolsO/Tools.h>
-#include <zUtilO/TraceMsg.h>
 #include <zUtilO/TransactionManager.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/ValueProcessor.h>

@@ -21,7 +21,6 @@
 #include <engine/COMMONIN.H>
 #include <engine/Engine.h>
 #include <engine/Comp.h>
-#include <zUtilO/TraceMsg.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/Case.h>
 
