@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: EntDrv.h
 //
@@ -22,7 +23,6 @@
 
 class CapiQuestionManager;
 class CaseItemReference;
-class CCapi;
 class CEntryIFaz;
 class CFlAdmin;
 class CsDriver;
@@ -192,14 +192,6 @@ public:
     void    SetEnterMode( FLOW* pFlow );
     void    ResetEnterMode( void );
     // --> logic' Enter() command execution     <end>
-
-    // --> CAPI support
-private:
-    CCapi*      m_pCapi;
-// --- methods -------------------------------------------------------------
-public:
-    void    SetCapi( CCapi* pCapi ) { m_pCapi = pCapi; }
-    CCapi*  GetCapi()               { return m_pCapi; }
 
 // --- methods -------------------------------------------------------------
 public:

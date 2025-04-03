@@ -40,13 +40,10 @@ CEntryIFaz::CEntryIFaz() {
     m_bExentryStarted  = false;
     m_bExentryInited   = false;
     m_bModifyStarted   = false;
-
-    m_pCapi            = new CCapi;
 }
 
 CEntryIFaz::~CEntryIFaz() {
     DeleteEntryDriver();
-    delete m_pCapi;
 }
 
 
@@ -65,8 +62,7 @@ void CEntryIFaz::SetEntryDriver( CEntryDriver* pEntryDriver ) {
     m_pIntDriver      = m_pEngineDriver->m_pIntDriver.get();
 
     m_pIntDriver->Enable3D_Driver();    // switching to 3D-driver
-    m_pCapi->SetEntryDriver( m_pEntryDriver );
-    m_pEntryDriver->SetCapi( m_pCapi ); // RHF Nov 29, 2002
+    m_capi.SetEntryDriver( m_pEntryDriver );
 }
 
 void CEntryIFaz::DeleteEntryDriver() {
@@ -215,7 +211,7 @@ void CEntryIFaz::C_ExentryStop() {      // close Externals DAT/IDX, and LST
 
     m_pEntryDriver->ResetEnterMode(); // RHF Sep 13, 2001
 
-    m_pEntryDriver->doend();                            // RHF 20/9/99
+    m_pEntryDriver->doend(); // RHF 20/9/99
 
     m_pEngineDriver->ResetDynamicAttributes();
 
@@ -230,11 +226,7 @@ void CEntryIFaz::C_ExentryStop() {      // close Externals DAT/IDX, and LST
     m_pEntryDriver->SetInsertMode(false);
     m_pEntryDriver->SetVerifyMode(false);
 
-#ifdef WIN_DESKTOP
-    if( m_pCapi ) {                                     // RHF Jan 30, 2000
-        m_pCapi->DeleteLabels();                        // RHF Jan 30, 2000
-    }                                                   // RHF Jan 30, 2000
-#endif
+    m_capi.DeleteLabels(); // RHF Jan 30, 2000
 }
 
 
@@ -670,11 +662,7 @@ void CEntryIFaz::C_ModifyStop() {
     // ending modify' environment
     m_bModifyStarted = false;
 
-#ifdef WIN_DESKTOP
-    if( m_pCapi ) {                                     // RHF Jan 30, 2000
-        m_pCapi->DeleteLabels();                        // RHF Jan 30, 2000
-    }                                                   // RHF Jan 30, 2000
-#endif
+    m_capi.DeleteLabels(); // RHF Jan 30, 2000
 }
 
 
@@ -689,19 +677,6 @@ bool CEntryIFaz::C_SetStopNode(int iNode)
 
     return true;
 }
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// --- CAPI support
-//
-/////////////////////////////////////////////////////////////////////////////
-
-// RHF INIC Jan 13, 2000
-CCapi* CEntryIFaz::C_GetCapi() {
-    //  ASSERT( m_bExentryStarted );
-    return  m_pCapi;
-}
-// RHF END Jan 13, 2000
 
 
 //-------------------- comments only <begin> -------------------------

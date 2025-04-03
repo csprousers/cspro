@@ -139,10 +139,13 @@ BOOL CEntryrunDoc::OnOpenDocument(LPCTSTR lpszPathName)
     CEntryrunView* pRunView = pFrame->GetRunView();
     pRunView->BuildGrids();
 
-    if( m_pPIFFile->GetApplication()->GetUseQuestionText() ) {
-        QSFView* pQTView = pFrame->GetQTxtView();
-        if (pQTView) {
-            pQTView->SetStyleCss(m_pRunApl->GetCapi()->GetRuntimeStylesCss());
+    if( m_pPIFFile->GetApplication()->GetUseQuestionText() )
+    {
+        QSFView* const pQTView = pFrame->GetQTxtView();
+
+        if( pQTView != nullptr )
+        {
+            pQTView->SetStyleCss(m_pRunApl->GetCapi().GetRuntimeStylesCss());
             pQTView->SetUpQuestionTextView(TC::ToUtf8(lpszPathName));
         }
     }

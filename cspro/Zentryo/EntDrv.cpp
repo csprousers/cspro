@@ -88,9 +88,6 @@ CEntryDriver::CEntryDriver(Application* pApplication, CEntryIFaz* pEntryIFaz)
     // --> logic' Enter() command execution
     m_pEnteredFlow      = NULL;                         // victor Jan 30, 00
 
-    // --> CAPI support
-    m_pCapi             = NULL;
-
     // --> partial-save
     m_ePartialMode = NO_MODE;
 

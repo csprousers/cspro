@@ -4122,13 +4122,13 @@ LONG CMainFrame::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
     CEntryrunView*  pView=GetRunView();
 
     if(pDoc && pView && (pRunApl=pDoc->GetRunApl()) != NULL && (pCurField = (CDEField*)pDoc->GetCurField()) != NULL ) {
-        CCapi* pCapi=pRunApl->GetCapi();
+        CCapi& capi = pRunApl->GetCapi();
 
-        if( pCapi->GetAroundField() != pFieldWnd ) {
+        if( capi.GetAroundField() != pFieldWnd ) {
             return 0; // RHF Jan 20, 2003
         }
 
-        pCapi->UpdateSelection(csMarked);
+        capi.UpdateSelection(csMarked);
     }
 
     return 0;

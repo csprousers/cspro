@@ -19,79 +19,47 @@
 #endif
 
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 CCapi::CCapi()
+    :   m_pEntryDriver(nullptr),
+        m_pEngineArea(nullptr)
+#ifdef WIN_DESKTOP
+    ,   m_pAroundField(nullptr),
+        m_pFrameWindow(nullptr),
+        m_showingHelp(false)
+#endif
 {
-    Init();
 }
+
 
 CCapi::~CCapi()
 {
-    End();
+    DeleteLabels();
 }
 
-void CCapi::SetEntryDriver(CEntryDriver* pEntryDriver)
+
+void CCapi::SetEntryDriver(CEntryDriver* const pEntryDriver)
 {
     m_pEntryDriver = pEntryDriver;
-    m_pEngineArea  = m_pEntryDriver->m_pEngineArea;
+    m_pEngineArea = m_pEntryDriver->m_pEngineArea;
 }
+
 
 const Logic::SymbolTable& CCapi::GetSymbolTable() const
 {
     return m_pEngineArea->GetSymbolTable();
 }
 
-void CCapi::Init()
-{
-    m_pEntryDriver = NULL;
-    m_pEngineArea  = NULL;
-
-#ifdef WIN_DESKTOP
-    m_bHasHlp = false;
-    m_pAroundField = NULL;
-    m_pFrameWindow = NULL;
-    m_pExtendedControl = NULL;
-#endif
-}
-
-void CCapi::End()
-{
-#ifdef WIN_DESKTOP
-    DeleteLabels();
-#endif
-}
-
-
-#ifdef WIN_DESKTOP
 
 void CCapi::DeleteLabels()
 {
-    if( m_pExtendedControl != NULL )
+#ifdef WIN_DESKTOP
+    if( m_pExtendedControl != nullptr )
     {
         m_pExtendedControl->DestroyWindow();
-        delete m_pExtendedControl;
-        m_pExtendedControl = NULL;
+        m_pExtendedControl.reset();
     }
-}
-
-void CCapi::DoQuestion(const DEFLD* const pDeField)
-{
-    m_showingHelp = false;
-
-    ASSERT(m_pAroundField != nullptr);
-    const int field_symbol_index = pDeField->GetSymbol();
-
-    // get the field text
-    const CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Question);
-
-    // refresh the text
-    WindowsDesktopMessage::Send(WM_IMSA_SETCAPITEXT, &field_capi_content.question_text);
-}
-
 #endif
+}
 
 
 CapiContent CCapi::GetCapiContent(const int symbol_index, const CapiContentType capi_content_type) const
@@ -103,7 +71,7 @@ CapiContent CCapi::GetCapiContent(const int symbol_index, const CapiContentType 
         return capi_content;
 
     // get the current CAPI language
-    CEntryDriver* pEntryDriver = (CEntryDriver*)m_pEntryDriver;
+    CEntryDriver* const pEntryDriver = assert_cast<CEntryDriver*>(m_pEntryDriver);
     const Language& current_language = pEntryDriver->GetQuestMgr()->GetCurrentLanguage();
 
     const Symbol& symbol = NPT_Ref(symbol_index);
@@ -167,21 +135,35 @@ const std::string& CCapi::GetRuntimeStylesCss()
 
 #ifdef WIN_DESKTOP
 
+void CCapi::DoQuestion(const DEFLD* const pDeField)
+{
+    m_showingHelp = false;
+
+    ASSERT(m_pAroundField != nullptr);
+    const int field_symbol_index = pDeField->GetSymbol();
+
+    // get the field text
+    const CapiContent field_capi_content = GetFieldAndBlockCombinedCapiContent(field_symbol_index, CapiContentType::Question);
+
+    // refresh the text
+    WindowsDesktopMessage::Send(WM_IMSA_SETCAPITEXT, &field_capi_content.question_text);
+}
+
+
 void CCapi::UpdateSelection(const CString& csText)
 {
-    if( m_pExtendedControl != NULL ) // GHM 20100616
+    if( m_pExtendedControl != nullptr ) // 20100616
         m_pExtendedControl->UpdateSelection(csText);
 }
 
 
 void CCapi::ResponseUnOverlap( CWnd* pWnd, CRect maxRect )
 {
-    if( m_pExtendedControl != NULL && m_pExtendedControl->GetSafeHwnd() != NULL ) // GHM 20100622
+    if( m_pExtendedControl->GetSafeHwnd() != nullptr ) // 20100622
     {
-        CWnd* pControlWindow = m_pExtendedControl;
+        CWnd* pControlWindow = m_pExtendedControl.get();
 
         CRect fieldRect;
-
         pWnd->GetWindowRect( fieldRect );
 
         CRect responsesRect;
@@ -191,7 +173,7 @@ void CCapi::ResponseUnOverlap( CWnd* pWnd, CRect maxRect )
         bool bChanged = CRectExt::UnIntersect( &responsesRect, fieldRect, maxRect );
 
         if( bChanged ) {
-            pControlWindow->SetWindowPos(NULL, responsesRect.left, responsesRect.top,
+            pControlWindow->SetWindowPos(nullptr, responsesRect.left, responsesRect.top,
                 responsesRect.Width(), responsesRect.Height(), SWP_NOACTIVATE);
         }
     }
@@ -242,7 +224,7 @@ int CCapi::DoLabelsModeless(const DEFLD* const pDeField)
             return iRet; // BINARY_TYPES_TO_ENGINE_TODO temporarily ignoring these capture types
         }
 
-        m_pExtendedControl = new CExtendedControl(m_pFrameWindow ? m_pFrameWindow : AfxGetApp()->GetMainWnd());
+        m_pExtendedControl = std::make_unique<CExtendedControl>(m_pFrameWindow ? m_pFrameWindow : AfxGetApp()->GetMainWnd());
 
         ResponseProcessor* response_processor = m_pEntryDriver->GetResponseProcessor(pDeField);
 
@@ -256,7 +238,7 @@ int CCapi::DoLabelsModeless(const DEFLD* const pDeField)
 
 void CCapi::RefreshPosition()
 {
-    if( m_pExtendedControl != NULL && m_pExtendedControl->GetSafeHwnd() != NULL ) // 20100623
+    if( m_pExtendedControl->GetSafeHwnd() != nullptr ) // 20100623
         m_pExtendedControl->RefreshPosition();
 }
 
@@ -264,7 +246,7 @@ void CCapi::RefreshPosition()
 void CCapi::CheckInZone( bool bRefresh )
 {
     // Check windows overlapping. Move labels window if necessary
-    if( m_pExtendedControl != NULL && m_pExtendedControl->GetSafeHwnd() != NULL )
+    if( m_pExtendedControl->GetSafeHwnd() != nullptr )
     {
         CRect responsesRect;
         CRect maxRect;
@@ -274,7 +256,7 @@ void CCapi::CheckInZone( bool bRefresh )
 
         m_pExtendedControl->GetWindowRect(responsesRect);
 
-        if( m_pFrameWindow != NULL )
+        if( m_pFrameWindow != nullptr )
             m_pFrameWindow->GetWindowRect( maxRect );
         else
             AfxGetApp()->GetMainWnd()->GetWindowRect( maxRect );
@@ -285,7 +267,8 @@ void CCapi::CheckInZone( bool bRefresh )
 }
 
 
-bool CCapi::CheckInZone( CRect* pResponsesRect, CRect maxRect ) {
+bool CCapi::CheckInZone( CRect* pResponsesRect, CRect maxRect )
+{
     CRect   rectUnion;
     CRect   oldResponsesRect;
 
@@ -317,15 +300,16 @@ bool CCapi::CheckInZone( CRect* pResponsesRect, CRect maxRect ) {
 }
 
 
-void CCapi::CheckOverlap( bool bRefresh ) {
+void CCapi::CheckOverlap( bool bRefresh )
+{
     CRect   maxRect;
 
-    if( m_pFrameWindow != NULL )
+    if( m_pFrameWindow != nullptr )
         m_pFrameWindow->GetWindowRect( maxRect );
     else
         AfxGetApp()->GetMainWnd()->GetWindowRect( maxRect );
 
-    if( m_pAroundField != NULL ) {
+    if( m_pAroundField != nullptr ) {
         ResponseUnOverlap( m_pAroundField, maxRect );
     }
 }

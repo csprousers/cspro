@@ -13,7 +13,6 @@
 #include <zHtml/UseHtmlDialogs.h>
 #include <zCaseO/CaseDefines.h>
 
-class CCapi;
 class CDEBlock;
 class CDEItemBase;
 class CListBox;
@@ -281,13 +280,11 @@ class Userbar;
 ////////////////////////////////////////////////////////////////////////////////
 // FUNCTION NAME: GetCapi
 //
-// PROTOTYPE    : CCapi* GetCapi() const;
+// PROTOTYPE    : CCapi& GetCapi();
 //
-// OBJECTIVE    : Get the capi handler
+// OBJECTIVE    : Get the CAPI handler
 //
 // PARAMETERS   : none
-//
-// RETURNS      : NULL if no CAPI attached
 //
 // CHANGES      : 13 Jan 1999, RHF, Creation
 ////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +403,7 @@ public:
     bool IsPathOn();
 
     bool IsNewCase();
-    CCapi* GetCapi() const; // RHF Jan 13, 2000
+    CCapi& GetCapi(); // RHF Jan 13, 2000
     bool   GetDeFld( const CDEField* pEntryField, DEFLD* pDeField ) const; // RHF Jan 13, 2000
 
     CDEItemBase* EndLevel( bool bPostProcCurField, bool bPostProcAllOthers, int iNextLevelToCapture, bool bWriteNode);

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 // CRunAplE.h: interface for the CCapiRunAplEntry class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -6,13 +7,12 @@
 #include <zCaseTreeF/zCaseTreeF.h>
 #include <engine/DEFLD.H>
 
-class CRunAplEntry;
-class CNPifFile;
 class CDEFormFile;
-class CDataDict;
 class CEngineDriver;
-class CCapi;
+class CNPifFile;
+class CRunAplEntry;
 class CTreeItemInfo;
+
 
 class ZCASETREEF_API CCapiRunAplEntry
 {

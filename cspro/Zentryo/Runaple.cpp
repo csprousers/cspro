@@ -577,9 +577,9 @@ CString CRunAplEntry::GetVal(const DEFLD* pDeField)
 
 
 // RHF INIC Jan 13, 2000
-CCapi* CRunAplEntry::GetCapi() const
+CCapi& CRunAplEntry::GetCapi()
 {
-    return( m_pEntryIFaz->C_GetCapi() );
+    return m_pEntryIFaz->C_GetCapi();
 }
 
 
