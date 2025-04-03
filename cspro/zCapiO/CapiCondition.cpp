@@ -3,25 +3,9 @@
 
 
 CapiCondition::CapiCondition(std::string logic/* = std::string()*/)
-    :   CapiCondition(std::move(logic), -1, -1)
-{
-}
-
-
-CapiCondition::CapiCondition(std::string logic, const int min_occ, const int max_occ)
     :   m_logic(std::move(logic)),
-        m_programIndex(-1),
-        m_minOcc(min_occ),
-        m_maxOcc(max_occ)
+        m_programIndex(-1)
 {
-    // m_minOcc and m_maxOcc are only used when converting pre-7.6 question text files
-}
-
-
-void CapiCondition::SetMinMaxOcc(const int min, const int max)
-{
-    m_minOcc = min;
-    m_maxOcc = max;
 }
 
 

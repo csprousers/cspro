@@ -18,9 +18,6 @@ public:
     CNewCapiText();
     CNewCapiText(const CNewCapiText& rOther);
     void operator=(const CNewCapiText& rOther);
-
-    //FABN Apr 10, 2003 need support to delete only a single language for a given CNewCapiQuestionHelp
-    bool    m_bDeleted;
 };
 
 
@@ -49,13 +46,10 @@ class CapiPre76::CNewCapiQuestionHelp
 private:
     eCapiNewQuestType       m_eType;
     std::string             m_symbolName;
-    int                     m_iSymVar;
     int                     m_iOccMin;      // negative, 1,2,...n
     int                     m_iOccMax;
     std::string             m_condition;  // For expresions %VAR=VALUE%. NULL si no hay
-    CString                 m_csOccurrences; // Ascii text for occurrences
     std::vector<CNewCapiText> m_aCapiText;
-    bool                    m_bDeleted;     //FABN March 14, 2003
 
 
     void Copy(const CNewCapiQuestionHelp& rOther);
@@ -80,10 +74,7 @@ public:
     void    SetType(eCapiNewQuestType eType);
 
     const std::string& GetSymbolName() const { return m_symbolName; }
-    bool    SetSymbolName(CString csSymbolName);
-
-    int     GetSymVar();
-    void    SetSymVar(int iSymVar);
+    bool    SetSymbolName(std::string symbol_name);
 
     int     GetOccMin() const;
     void    SetOccMin(int iOccMin);
@@ -95,23 +86,18 @@ public:
     bool    SetCondition(CString csCondition);
     static bool SplitCondition(CString csCondition, CIMSAString* csLeft = NULL, int* iCond = NULL, CIMSAString* csRight = NULL, eCapiNewConditionType* eCondType = NULL);
 
-    CString GetOccurrences();
     bool    SetOccurrences(CString csOccurrences);
 
-    CNewCapiText* GetText(CString csLangName);
-    CNewCapiText* GetText(int iLangIndex);
+    const CNewCapiText* GetText(CString csLangName) const;
+    const CNewCapiText* GetText(int iLangIndex) const;
     bool    SetText(CString csLangName, CString csText, bool bAppend = false);
-    int     GetNumText();
+    int     GetNumText() const;
 
     //The index of csLangName in CNewcapiQuestionHelp
-    int     GetLangIndex(CString csLangName);
+    int     GetLangIndex(CString csLangName) const;
 
-    void    SetMaxLanguages(int iNumLanguages);
-
-    void    RemoveTextAt(int iLangIndex);
-
-    static bool CheckCondition(CString& csCondition);     //FABN March 19, 2003 -> public/static
-    static bool CheckSymbol(const CString& csSymbolName); //FABN March 19, 2003 -> public/static
+    static bool CheckCondition(CString& csCondition);         //FABN March 19, 2003 -> public/static
+    static bool CheckSymbol(std::string_view symbol_name_sv); //FABN March 19, 2003 -> public/static
 };
 
 
@@ -154,12 +140,4 @@ public:
     int         AddHelp(CNewCapiQuestionHelp& rNewCapiQuestionHelp);
     CNewCapiQuestionHelp* GetHelp(int iHelpNum);
     int         GetNumHelps();
-
-    // Others
-
-    //FABN Apr 14, 2003 - you case use this instead of AddQuestion/AddHelp
-    int         AddCapiQuest(CNewCapiQuestionHelp& rCapiQuest);
-
-    void SetModifiedFlag(bool bIsModified) { m_bIsModified = bIsModified; }
-    bool IsModified() const                { return m_bIsModified; }
 };

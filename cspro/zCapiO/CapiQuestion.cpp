@@ -8,30 +8,10 @@ CapiQuestion::CapiQuestion(std::string item_name/* = std::string()*/)
 }
 
 
-const CapiCondition* CapiQuestion::GetCondition(const std::string& logic, const int min_occ, const int max_occ) const
-{
-    const auto& lookup = std::find_if(m_conditions.cbegin(), m_conditions.cend(),
-        [&](const CapiCondition& condition)
-        {
-            return ( logic == condition.GetLogic() &&
-                     min_occ == condition.GetMinOcc() &&
-                     max_occ == condition.GetMaxOcc() );
-        });
-
-    return ( lookup != m_conditions.cend() ) ? &(*lookup) :
-                                               nullptr;
-}
-
-
 void CapiQuestion::SetCondition(CapiCondition condition)
 {
     auto lookup = std::find_if(m_conditions.begin(), m_conditions.end(),
-        [&](const CapiCondition& c)
-        {
-            return ( condition.GetLogic() == c.GetLogic() &&
-                     condition.GetMinOcc() == c.GetMinOcc() &&
-                     condition.GetMaxOcc() == c.GetMaxOcc() );
-        });
+                               [&](const CapiCondition& c) { return ( condition.GetLogic() == c.GetLogic() ); });
 
     if( lookup == m_conditions.end() )
     {

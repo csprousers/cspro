@@ -15,15 +15,15 @@ public:
     Pre76FileConverter(CapiQuestionManager& question_manager, const std::string& file_path);
 
 private:
-    void ConvertQuestion(CapiPre76::CNewCapiQuestionHelp* file_question, CapiText::Type type);
+    void ConvertQuestion(CapiQuestion& question, const CapiPre76::CNewCapiQuestionHelp& pre76_question,
+                         CapiText::Type type, std::string logic);
 
-    static std::string ConvertFromRtf(const std::string& rtf_text);
+    static std::string ConvertRtfToHtml(const std::string& rtf_text);
 
-    void ConvertConditionOccs();
-    static bool ShouldConvertConditionOccs(const std::vector<CapiCondition>& conditions);
+    static std::string CreateLogicFromOccurrences(int min_occ, int max_occ);
+    static bool ShouldConvertOccurrences(const std::vector<std::tuple<int, int>>& min_max_occs);
 
-    void ConvertFills();
-    CapiText ConvertFill(std::string_view text_sv);
+    std::string ConvertFill(std::string_view text_sv);
     bool IsFillAFunction(std::string_view fill_sv);
     void LoadFunctionNames();
     void LoadFunctionNames(SharableString logic);
@@ -52,52 +52,98 @@ CapiQuestionManager::Pre76FileConverter::Pre76FileConverter(CapiQuestionManager&
     if( !question_file.Open(file_path) )
         throw CSProException("Error reading question text file: %s", file_path.c_str());
 
+    // copy the languages
     for( int i = 0; i < question_file.GetNumLanguages(); ++i )
     {
         const CapiPre76::CNewCapiLanguage& language = question_file.GetLanguage(i);
         m_questionManager.m_languages.emplace_back(language.language_name, language.language_label);
     }
 
+    // group the questions by item name
+    struct QuestionData
+    {
+        const CapiPre76::CNewCapiQuestionHelp* pre76_question;
+        CapiText::Type type;
+    };
+
+    std::map<std::string, std::vector<QuestionData>> grouped_questions;
+    std::map<std::string, std::vector<std::tuple<int, int>>> grouped_min_max_occs;
+
+    auto group_question = [&](const CapiPre76::CNewCapiQuestionHelp* const question, const CapiText::Type type)
+    {
+        ASSERT(question != nullptr);
+
+        grouped_questions[question->GetSymbolName()].emplace_back(QuestionData { question, type });
+        grouped_min_max_occs[question->GetSymbolName()].emplace_back(question->GetOccMin(), question->GetOccMax());
+    };
+
     for( int i = 0; i < question_file.GetNumQuestions(); ++i )
-        ConvertQuestion(question_file.GetQuestion(i), CapiText::Type::Question);
+        group_question(question_file.GetQuestion(i), CapiText::Type::Question);
 
     for( int i = 0; i < question_file.GetNumHelps(); ++i )
-        ConvertQuestion(question_file.GetHelp(i), CapiText::Type::Help);
+        group_question(question_file.GetHelp(i), CapiText::Type::Help);
 
-    ConvertConditionOccs();
-    ConvertFills();
+    // convert the questions
+    for( const auto& [item_name, pre74_questions] : grouped_questions )
+    {
+        const std::vector<std::tuple<int, int>>& min_max_occs = grouped_min_max_occs[item_name];
+        ASSERT(min_max_occs.size() == pre74_questions.size());
+
+        CapiQuestion& question = m_questionManager.m_questions.try_emplace(item_name, CapiQuestion(item_name)).first->second;
+
+        const bool add_mins_maxes_to_logic = ShouldConvertOccurrences(min_max_occs);
+        const std::tuple<int, int>* min_max_occs_itr = min_max_occs.data();
+
+        for( const QuestionData& question_data : pre74_questions )
+        {
+            std::string occurrence_logic;
+
+            if( add_mins_maxes_to_logic )
+                occurrence_logic = CreateLogicFromOccurrences(std::get<0>(*min_max_occs_itr), std::get<1>(*min_max_occs_itr));
+
+            ConvertQuestion(question, *question_data.pre76_question, question_data.type, std::move(occurrence_logic));
+
+            ++min_max_occs_itr;
+        }
+    }
 }
 
 
-void CapiQuestionManager::Pre76FileConverter::ConvertQuestion(CapiPre76::CNewCapiQuestionHelp* const file_question, const CapiText::Type type)
+void CapiQuestionManager::Pre76FileConverter::ConvertQuestion(CapiQuestion& question, const CapiPre76::CNewCapiQuestionHelp& pre76_question,
+                                                              const CapiText::Type type, std::string logic)
 {
-    ASSERT(file_question != nullptr);
-
-    auto lookup = m_questionManager.m_questions.find(file_question->GetSymbolName());
-
-    if( lookup == m_questionManager.m_questions.end() )
-        lookup = m_questionManager.m_questions.try_emplace(file_question->GetSymbolName(), CapiQuestion(file_question->GetSymbolName())).first;
-
-    CapiQuestion& question = lookup->second;
-
-    const CapiCondition* const matching_condition = question.GetCondition(file_question->GetCondition(),
-                                                                          file_question->GetOccMin(), file_question->GetOccMax());
-
-    CapiCondition condition = ( matching_condition != nullptr ) ? *matching_condition :
-                                                                  CapiCondition(file_question->GetCondition(),
-                                                                                file_question->GetOccMin(), file_question->GetOccMax());
-
-    for( int i = 0; i < file_question->GetNumText(); ++i)
+    // add the condition to the logic, which at this point only contains logic related to occurrences
+    if( !pre76_question.GetCondition().empty() )
     {
-        CapiPre76::CNewCapiText* const text = file_question->GetText(i);
-        condition.SetText(CapiText(ConvertFromRtf(text->text)), text->language_name, type);
+        if( !logic.empty() )
+            logic.insert(0, " and ");
+
+        logic.insert(0, pre76_question.GetCondition());
     }
 
-    question.SetCondition(std::move(condition));
+    // find an existing condition with this logic, or create a new one
+    std::vector<CapiCondition>& conditions = question.GetConditions();
+
+    auto condition_lookup = std::find_if(conditions.begin(), conditions.end(),
+                                         [&](const CapiCondition& condition) { return ( condition.GetLogic() == logic ); });
+
+    CapiCondition& condition = ( condition_lookup != conditions.end() ) ? *condition_lookup :
+                                                                          conditions.emplace_back(std::move(logic));
+
+    for( int i = 0; i < pre76_question.GetNumText(); ++i )
+    {
+        const CapiPre76::CNewCapiText* const text = pre76_question.GetText(i);
+
+        // convert fills from % -> ~~
+        const std::string rtf = ConvertFill(text->text);
+
+        // add the text, converted to HTML
+        condition.SetText(CapiText(ConvertRtfToHtml(rtf)), text->language_name, type);
+    }
 }
 
 
-std::string CapiQuestionManager::Pre76FileConverter::ConvertFromRtf(const std::string& rtf_text)
+std::string CapiQuestionManager::Pre76FileConverter::ConvertRtfToHtml(const std::string& rtf_text)
 {
     std::istringstream strRtf(rtf_text);
     std::ostringstream strHtml;
@@ -106,119 +152,60 @@ std::string CapiQuestionManager::Pre76FileConverter::ConvertFromRtf(const std::s
 }
 
 
-void CapiQuestionManager::Pre76FileConverter::ConvertConditionOccs()
+std::string CapiQuestionManager::Pre76FileConverter::CreateLogicFromOccurrences(const int min_occ, const int max_occ)
 {
-    // Before CSpro 7.6 conditions had logic, min occ, max occ
-    // but now we just have logic.
+    // Before CSPro 7.6, conditions had logic, min occ, and max occ, but now we just have logic.
     // Convert the min/max occ to logic when loading an older file.
-    for( auto& [item_name, question] : m_questionManager.m_questions )
+    if( min_occ > 0 && max_occ > 0 )
     {
-        std::vector<CapiCondition>& conditions = question.GetConditions();
+        if( min_occ == max_occ )
+            return "curocc() = " + IntToString(min_occ);
 
-        if( ShouldConvertConditionOccs(conditions) )
-            continue;
-
-        for( CapiCondition& condition : conditions )
-        {
-            if( condition.GetMinOcc() > 0 || condition.GetMaxOcc() > 0 )
-            {
-                std::string new_logic = condition.GetLogic();
-
-                if( condition.GetMinOcc() > 0 && condition.GetMaxOcc() > 0 )
-                {
-                    if( !new_logic.empty() )
-                        new_logic.append(" and ");
-
-                    if( condition.GetMinOcc() == condition.GetMaxOcc() )
-                    {
-                        new_logic.append("curocc() = ").append(IntToString(condition.GetMinOcc()));
-                    }
-
-                    else
-                    {
-                        new_logic.append(FormatText("curocc() in %d:%d", condition.GetMinOcc(), condition.GetMaxOcc()));
-                    }
-                }
-
-                else if( condition.GetMinOcc() > 0 )
-                {
-                    if( !new_logic.empty() )
-                        new_logic.append(" and ");
-
-                    new_logic.append("curocc() >= ").append(IntToString(condition.GetMinOcc()));
-                }
-
-                else if( condition.GetMaxOcc() > 0 )
-                {
-                    if( !new_logic.empty() )
-                        new_logic.append(" and ");
-
-                    new_logic.append("curocc() <= ").append(IntToString(condition.GetMaxOcc()));
-                }
-
-                condition.SetMinMaxOcc(-1, -1);
-                condition.SetLogic(std::move(new_logic));
-            }
-        }
+        return FormatText("curocc() in %d:%d", min_occ, max_occ);
     }
+
+    else if( min_occ > 0 )
+    {
+        return "curocc() >= " + IntToString(min_occ);
+    }
+
+    else if( max_occ > 0 )
+    {
+        return "curocc() <= " + IntToString(max_occ);
+    }
+
+    return std::string();
 }
 
 
-bool CapiQuestionManager::Pre76FileConverter::ShouldConvertConditionOccs(const std::vector<CapiCondition>& conditions)
+bool CapiQuestionManager::Pre76FileConverter::ShouldConvertOccurrences(const std::vector<std::tuple<int, int>>& min_max_occs)
 {
     // Don't add conditions for occs if all the conditions have the same min/max occ.
     // Ideally would look at the max occs of the dictionary item but that is more complicated
     // and this should work for 99% of cases.
+    if( min_max_occs.empty() )
+        return ReturnProgrammingError(false);
 
-    if( conditions.empty() )
-        return false;
-
-    const int min_occ = conditions.front().GetMinOcc();
+    const int min_occ = std::get<0>(min_max_occs.front());
 
     if( min_occ > 1 )
         return true;
 
-    const int max_occ = conditions.front().GetMaxOcc();
+    const int max_occ = std::get<1>(min_max_occs.front());
 
-    for( auto i = conditions.begin() + 1; i != conditions.end(); ++i )
+    for( auto itr = min_max_occs.cbegin() + 1; itr != min_max_occs.cend(); ++itr )
     {
-        if( min_occ != i->GetMinOcc() || max_occ != i->GetMaxOcc() )
-            return false;
+        if( min_occ != std::get<0>(*itr) || max_occ != std::get<1>(*itr) )
+            return true;
     }
 
-    return true;
+    return false;
 }
 
 
-void CapiQuestionManager::Pre76FileConverter::ConvertFills()
+std::string CapiQuestionManager::Pre76FileConverter::ConvertFill(const std::string_view text_sv)
 {
     // before CSPro 7.6, fills used % as delimiters
-    for( auto& [item_name, question] : m_questionManager.m_questions )
-    {
-        std::vector<CapiCondition>& conditions = question.GetConditions();
-
-        for( CapiCondition& condition : conditions )
-        {
-            for( const Language& language : m_questionManager.m_languages )
-            {
-                auto convert = [&](const CapiText::Type type)
-                {
-                    const CapiText* const capi_text = condition.GetText(language.GetName(), type);
-
-                    if( capi_text != nullptr )
-                        condition.SetText(ConvertFill(capi_text->GetText().GetString()), language.GetName(), type);
-                };
-
-                convert(CapiText::Type::Question);
-                convert(CapiText::Type::Help);
-            }
-        }
-    }
-}
-
-
-CapiText CapiQuestionManager::Pre76FileConverter::ConvertFill(const std::string_view text_sv)
-{
     std::stringstream ss;
     size_t pos = 0;
 

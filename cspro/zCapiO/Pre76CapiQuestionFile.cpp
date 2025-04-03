@@ -70,9 +70,6 @@ void CapiPre76::CNewCapiText::operator=(const CNewCapiText& rOther) {
 void CapiPre76::CNewCapiText::Init() {
     language_name.clear();
     text.clear();
-
-    //FABN Apr 10, 2003
-    m_bDeleted = false;
 }
 
 void CapiPre76::CNewCapiText::Copy(const CNewCapiText& rOther) {
@@ -80,9 +77,6 @@ void CapiPre76::CNewCapiText::Copy(const CNewCapiText& rOther) {
 
     language_name = rOther.language_name;
     text = rOther.text;
-
-    //FABN Apr 10, 2003
-    m_bDeleted = rOther.m_bDeleted;
 }
 
 
@@ -106,15 +100,11 @@ void CapiPre76::CNewCapiQuestionHelp::operator=(const CNewCapiQuestionHelp& rOth
 void CapiPre76::CNewCapiQuestionHelp::Init() {
     m_eType = eCapiNewQuestType::None;
     m_symbolName.clear();
-    m_iSymVar = -1;
     m_iOccMin = -1;
     m_iOccMax = -1;
     m_condition.clear();
-    m_csOccurrences.Empty();
 
     m_aCapiText.clear();
-
-    m_bDeleted = false; //FABN March 14, 2003
 }
 
 void CapiPre76::CNewCapiQuestionHelp::Copy(const CNewCapiQuestionHelp& rOther) {
@@ -122,13 +112,10 @@ void CapiPre76::CNewCapiQuestionHelp::Copy(const CNewCapiQuestionHelp& rOther) {
 
     m_eType = rOther.m_eType;
     m_symbolName = rOther.m_symbolName;
-    m_iSymVar = rOther.m_iSymVar;
     m_iOccMin = rOther.m_iOccMin;
     m_iOccMax = rOther.m_iOccMax;
     m_condition = rOther.m_condition;
-    m_csOccurrences = rOther.m_csOccurrences;
     m_aCapiText = rOther.m_aCapiText;
-    m_bDeleted = rOther.m_bDeleted;        //FABN March 14, 2003
 }
 
 eCapiNewQuestType CapiPre76::CNewCapiQuestionHelp::GetType() {
@@ -138,27 +125,20 @@ void CapiPre76::CNewCapiQuestionHelp::SetType(eCapiNewQuestType eType) {
     m_eType = eType;
 }
 
-bool CapiPre76::CNewCapiQuestionHelp::SetSymbolName(CString csSymbolName) {
-    if (!CheckSymbol(csSymbolName))
+bool CapiPre76::CNewCapiQuestionHelp::SetSymbolName(std::string symbol_name) {
+    if (!CheckSymbol(symbol_name))
         return false;
 
-    m_symbolName = UTF8_TODO::GetUtf8(csSymbolName);
+    m_symbolName = std::move(symbol_name);
 
     return true;
-}
-
-int CapiPre76::CNewCapiQuestionHelp::GetSymVar() {
-    return m_iSymVar;
-}
-void CapiPre76::CNewCapiQuestionHelp::SetSymVar(int iSymVar) {
-    m_iSymVar = iSymVar;
 }
 
 int CapiPre76::CNewCapiQuestionHelp::GetOccMin() const {
     return m_iOccMin;
 }
+
 void CapiPre76::CNewCapiQuestionHelp::SetOccMin(int iOccMin) {
-    m_csOccurrences.Empty();
     m_iOccMin = iOccMin;
 }
 
@@ -167,7 +147,6 @@ int CapiPre76::CNewCapiQuestionHelp::GetOccMax() const {
 }
 
 void CapiPre76::CNewCapiQuestionHelp::SetOccMax(int iOccMax) {
-    m_csOccurrences.Empty();
     m_iOccMax = iOccMax;
 }
 
@@ -181,9 +160,6 @@ bool CapiPre76::CNewCapiQuestionHelp::SetCondition(CString csCondition) {
     return true;
 }
 
-CString CapiPre76::CNewCapiQuestionHelp::GetOccurrences() {
-    return m_csOccurrences;
-}
 
 bool CapiPre76::CNewCapiQuestionHelp::SetOccurrences(CString csOccurrences) {
     if (csOccurrences.GetLength() > 0) {
@@ -197,23 +173,22 @@ bool CapiPre76::CNewCapiQuestionHelp::SetOccurrences(CString csOccurrences) {
         m_iOccMin = -1;
         m_iOccMax = -1;
     }
-    m_csOccurrences = csOccurrences;
 
     return true;
 }
 
-CapiPre76::CNewCapiText* CapiPre76::CNewCapiQuestionHelp::GetText(CString csLangName) {
+const CapiPre76::CNewCapiText* CapiPre76::CNewCapiQuestionHelp::GetText(CString csLangName) const {
     int     iLangIndex = GetLangIndex(csLangName);
     return GetText(iLangIndex);
 }
 
-CapiPre76::CNewCapiText* CapiPre76::CNewCapiQuestionHelp::GetText(int iLangIndex) {
+const CapiPre76::CNewCapiText* CapiPre76::CNewCapiQuestionHelp::GetText(int iLangIndex) const {
     if (iLangIndex < 0 || iLangIndex >= (int)m_aCapiText.size())
         return nullptr;
     return &(m_aCapiText[iLangIndex]);
 }
 
-int CapiPre76::CNewCapiQuestionHelp::GetNumText() {
+int CapiPre76::CNewCapiQuestionHelp::GetNumText() const {
     return (int)m_aCapiText.size();
 }
 
@@ -222,7 +197,7 @@ bool CapiPre76::CNewCapiQuestionHelp::SetText(CString csLangName, CString csText
 
     if (iLangIndex < 0) {
         iLangIndex = GetNumText();
-        SetMaxLanguages(iLangIndex + 1);
+        m_aCapiText.resize(iLangIndex + 1);
     }
 
     if (bAppend) {
@@ -244,9 +219,9 @@ bool CapiPre76::CNewCapiQuestionHelp::SetText(CString csLangName, CString csText
 }
 
 //There is zero or one CNewCapiText with the same language for a given CNewCapiQuestionHelp
-int CapiPre76::CNewCapiQuestionHelp::GetLangIndex(CString csLangName) {
+int CapiPre76::CNewCapiQuestionHelp::GetLangIndex(CString csLangName) const {
     for (int iCapiText = 0; iCapiText < (int)m_aCapiText.size(); iCapiText++) {
-        CNewCapiText& rCapiText = m_aCapiText[iCapiText];
+        const CNewCapiText& rCapiText = m_aCapiText.at(iCapiText);
 
         if( rCapiText.language_name == UTF8_TODO::GetUtf8(csLangName) )
             return iCapiText;
@@ -259,16 +234,6 @@ int CapiPre76::CNewCapiQuestionHelp::GetLangIndex(CString csLangName) {
 
     return -1;
 }
-
-void CapiPre76::CNewCapiQuestionHelp::RemoveTextAt(int iLangIndex) {
-    m_aCapiText.erase(m_aCapiText.begin() + iLangIndex);
-}
-
-void CapiPre76::CNewCapiQuestionHelp::SetMaxLanguages(int iNumLanguages)
-{
-    m_aCapiText.resize(iNumLanguages);
-}
-
 
 
 /*static*/
@@ -438,7 +403,7 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
         csLeftAux = p;
 
         //bRet = CheckSymbol( csLeftAux );
-        bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(csLeftAux);
+        bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(UTF8_TODO::GetUtf8(csLeftAux));
 
         if (bRet && eCondType == CapiPre76::CNewCapiQuestionHelp::Other) {
             p = csRight.GetBuffer();
@@ -451,7 +416,7 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
 
             csRightAux = p;
 
-            bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(csRightAux);
+            bRet = CapiPre76::CNewCapiQuestionHelp::CheckSymbol(UTF8_TODO::GetUtf8(csRightAux));
         }
     }
 
@@ -460,16 +425,16 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
 
 
 // DIC.VAR or VAR return true
-/*static*/bool CapiPre76::CNewCapiQuestionHelp::CheckSymbol(const CString& csSymbolName)
+/*static*/bool CapiPre76::CNewCapiQuestionHelp::CheckSymbol(const std::string_view symbol_name_sv)
 {
-    std::vector<std::wstring> aParts = SO::SplitString(csSymbolName, '.');
+    const std::vector<std::string_view> part_svs = SO::SplitString<std::string_view>(symbol_name_sv, '.');
 
-    if( aParts.size() > 2 )
+    if( part_svs.size() > 2 )
         return false;
 
-    for( const std::wstring& part : aParts )
+    for( const std::string_view part_sv : part_svs )
     {
-        if( !CIMSAString::IsName(part) )
+        if( !CIMSAString::IsName(part_sv) )
             return false;
     }
 
@@ -482,9 +447,6 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
 
 
 CapiPre76::CNewCapiQuestionFile::CNewCapiQuestionFile() {
-
-    m_bIsModified = false;
-
     Init();
 }
 
@@ -502,7 +464,6 @@ void CapiPre76::CNewCapiQuestionFile::Init() {
     m_aLangs.clear();
     m_aQuestions.clear();
     m_aHelps.clear();
-    m_bIsModified = false;
 }
 
 void CapiPre76::CNewCapiQuestionFile::Copy(const CNewCapiQuestionFile& rOther) {
@@ -511,7 +472,6 @@ void CapiPre76::CNewCapiQuestionFile::Copy(const CNewCapiQuestionFile& rOther) {
     m_aLangs = rOther.m_aLangs;
     m_aQuestions = rOther.m_aQuestions;
     m_aHelps = rOther.m_aHelps;
-    m_bIsModified = rOther.m_bIsModified;
 }
 
 void CapiPre76::CNewCapiQuestionFile::AddLanguage(CNewCapiLanguage& rNewCapiLanguage) {
@@ -546,7 +506,7 @@ int CapiPre76::CNewCapiQuestionFile::GetNumLanguages() {
 void CapiPre76::CNewCapiQuestionFile::AddLanguages(CNewCapiQuestionHelp& rNewCapiQuestionHelp) {
     // Add Language
     for (int iText = 0; iText < rNewCapiQuestionHelp.GetNumText(); iText++) {
-        CNewCapiText* pNewCapiText = rNewCapiQuestionHelp.GetText(iText);
+        const CNewCapiText* pNewCapiText = rNewCapiQuestionHelp.GetText(iText);
 
         if (GetLanguage(pNewCapiText->language_name) == nullptr) {
             // Add the new language
@@ -558,27 +518,6 @@ void CapiPre76::CNewCapiQuestionFile::AddLanguages(CNewCapiQuestionHelp& rNewCap
             AddLanguage(cNewCapiLanguage);
         }
     }
-}
-
-//FABN Apr 14, 2003
-int CapiPre76::CNewCapiQuestionFile::AddCapiQuest(CNewCapiQuestionHelp& rCapiQuest)
-{
-    int iQuestIdx = -1;
-    eCapiNewQuestType eCapiType = rCapiQuest.GetType();
-    switch (eCapiType) {
-    case eCapiNewQuestType::Question:
-        iQuestIdx = AddQuestion(rCapiQuest);
-        break;
-
-    case eCapiNewQuestType::Help:
-        iQuestIdx = AddHelp(rCapiQuest);
-        break;
-
-    default:
-        ASSERT(0);
-        break;
-    }
-    return iQuestIdx;
 }
 
 
@@ -804,7 +743,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                             break;
                         }
                         else if (csCmd.CompareNoCase(CMD_FIELD) == 0) {   // "Field"
-                            if (!cNewCapiQuestionHelp.CheckSymbol(csArg)) {
+                            if (!cNewCapiQuestionHelp.CheckSymbol(UTF8_TODO::GetUtf8(csArg))) {
                                 if (!bSilent) {
                                     csError.Format(_T("Invalid Symbol at line %d"), cCapiQuestFile.GetLineNumber()); // Invalid section heading at line %d:
                                     csError += _T("\n") + csCmd;
@@ -813,7 +752,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                                 bRetVal = false;
                                 continue;
                             }
-                            cNewCapiQuestionHelp.SetSymbolName(csArg);
+                            cNewCapiQuestionHelp.SetSymbolName(UTF8_TODO::GetUtf8(csArg));
                         }
                         else if (csCmd.CompareNoCase(CMD_CONDITION) == 0) {   // "Condition"
                             if (!cNewCapiQuestionHelp.CheckCondition(csArg)) {
@@ -916,7 +855,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                     CNewCapiText* pTextAux;
                     for( const auto& [csLangNameAux, bWasRtf] : aMapAux ) {
                         if (!bWasRtf) {
-                            pTextAux = cNewCapiQuestionHelp.GetText(csLangNameAux);
+                            pTextAux = const_cast<CNewCapiText*>(cNewCapiQuestionHelp.GetText(csLangNameAux));
                             pTextAux->text.push_back('}');
                         }
                     }

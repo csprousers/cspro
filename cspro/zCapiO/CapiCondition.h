@@ -3,7 +3,7 @@
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiText.h>
 
-namespace YAML { template <typename T> struct convert; }
+namespace YAML { template<typename T> struct convert; }
 
 
 class CLASS_DECL_ZCAPIO CapiCondition
@@ -12,18 +12,12 @@ class CLASS_DECL_ZCAPIO CapiCondition
 
 public:
     CapiCondition(std::string logic = std::string());
-    CapiCondition(std::string logic, int min_occ, int max_occ);
 
     const std::string& GetLogic() const { return m_logic; }
     void SetLogic(std::string logic)    { m_logic = std::move(logic); }
 
     int GetProgramIndex() const             { return m_programIndex; }
     void SetProgramIndex(int program_index) { m_programIndex = program_index; }
-
-    int GetMinOcc() const { return m_minOcc; }
-    int GetMaxOcc() const { return m_maxOcc; }
-
-    void SetMinMaxOcc(int min, int max);
 
     const CapiText* GetText(const std::string& language_name, CapiText::Type type) const;
     const CapiText* GetQuestionText(const std::string& language_name) const { return GetText(language_name, CapiText::Type::Question); }
@@ -45,8 +39,6 @@ public:
 private:
     std::string m_logic;
     int m_programIndex;
-    int m_minOcc;
-    int m_maxOcc;
     std::map<std::string, CapiText> m_questionTexts;
     std::map<std::string, CapiText> m_helpTexts;
 };

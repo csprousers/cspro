@@ -3,7 +3,7 @@
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiCondition.h>
 
-namespace YAML { template <typename T> struct convert; }
+namespace YAML { template<typename T> struct convert; }
 
 
 class CLASS_DECL_ZCAPIO CapiQuestion
@@ -18,8 +18,6 @@ public:
 
     const std::vector<CapiCondition>& GetConditions() const { return m_conditions; }
     std::vector<CapiCondition>& GetConditions()             { return m_conditions; }
-
-    const CapiCondition* GetCondition(const std::string& logic, int min_occ = -1, int max_occ = -1) const;
     void SetCondition(CapiCondition condition);
 
     const std::map<std::string, int>& GetFillExpressions() const         { return m_fillExpressions; }
