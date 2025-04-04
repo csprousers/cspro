@@ -55,7 +55,6 @@ LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/../external/scrypt/sha256.c
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_CFLAGS            += -DGENERATE_BINARY=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 
 include $(BUILD_STATIC_LIBRARY)

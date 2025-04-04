@@ -46,7 +46,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;NDEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;NDEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
@@ -56,7 +56,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;_DEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;_DEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>

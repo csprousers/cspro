@@ -27,7 +27,6 @@ LOCAL_SRC_FILES         += $(ZFORMO_SRC_PATH)/Text.cpp
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_CFLAGS            += -DGENERATE_BINARY=1
 LOCAL_CFLAGS            += -DUSE_BINARY=1
 LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO zUtilO zUtilF zJson zAppO zDictO
 

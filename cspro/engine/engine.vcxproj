@@ -82,7 +82,6 @@
     <ClInclude Include="Tables.h" />
     <ClInclude Include="TBDIFAZ.H" />
     <ClInclude Include="Tbd_save.h" />
-    <ClInclude Include="trace_macros.h" />
     <ClInclude Include="ttype.h" />
     <ClInclude Include="VariableWorker.h" />
     <ClInclude Include="VarT.h" />

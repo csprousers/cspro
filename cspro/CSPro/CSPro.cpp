@@ -27,7 +27,6 @@
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
 #include <zNetwork/SyncLog.h>
-#include <engine/trace_macros.h>
 #include <afxvisualmanageroffice2007.h>
 
 

@@ -18,6 +18,7 @@
 //------------------------------------------------------------------------
 #include "StdAfx.h"
 #include "GroupVisitor.h"
+#include "OccurrenceVisitor.h"
 #include <zFormO/Roster.h>
 #include <engine/Tables.h>
 #include <engine/Engdrv.h>
@@ -304,8 +305,6 @@ void GROUPT::SetDimAndParentGPT( void ) {
 // --- occurrences control
 //
 //////////////////////////////////////////////////////////////////////////
-
-#include "OccurrenceVisitor.h"
 
 void GROUPT::SetCurrentOccurrences( int iOccur ) {
     ASSERT( iOccur >= 0 );
@@ -1985,15 +1984,15 @@ C3DObject GROUPT::GetCurrent3DObject()
 {
     return m_curr3dObject;
 }
+
 //////////////////////////////////////////////////////////////////////////
 
-#if defined(USE_BINARY) || defined(GENERATE_BINARY)
 void GROUPT::accept( GroupVisitor* visitor )
 {
     visitor->visit( this );
 }
+
 //////////////////////////////////////////////////////////////////////////
-#endif
 
 
 const CDictItem* GROUPT::GetFirstDictItem() const

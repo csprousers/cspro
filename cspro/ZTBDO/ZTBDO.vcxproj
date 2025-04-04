@@ -46,7 +46,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_AFXEXT;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_AFXEXT;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions> /J</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
@@ -56,7 +56,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_AFXEXT;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_AFXEXT;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions> /J</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
@@ -76,7 +76,6 @@
     <ClCompile Include="cLinkVar.cpp" />
     <ClCompile Include="coordmem.cpp" />
     <ClCompile Include="ctstat.cpp" />
-    <ClCompile Include="ctstatv.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

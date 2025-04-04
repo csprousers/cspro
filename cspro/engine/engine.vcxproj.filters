@@ -220,9 +220,6 @@
     <ClInclude Include="Tbd_save.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trace_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ttype.h">
       <Filter>Header Files</Filter>
     </ClInclude>

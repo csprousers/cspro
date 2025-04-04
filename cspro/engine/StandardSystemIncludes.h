@@ -126,12 +126,6 @@
 #include <variant>
 #include <vector>
 
-#ifdef USE_BINARY
-#ifdef GENERATE_BINARY
-#undef GENERATE_BINARY
-#endif // GENERATE_BINARY
-#endif // USE_BINARY
-
 // Character set support
 #define csprochar TCHAR
 
