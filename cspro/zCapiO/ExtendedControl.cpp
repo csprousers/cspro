@@ -6,8 +6,6 @@
 #include <CSEntry/UWM.h>
 
 
-IMPLEMENT_DYNAMIC(CExtendedControl, CDialog)
-
 BEGIN_MESSAGE_MAP(CExtendedControl, CDialog)
     ON_WM_SYSCOMMAND()
     ON_BN_CLICKED(IDC_BUTTON_NEXT_FIELD, &OnClickedButtonNextField)
@@ -18,22 +16,31 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    const int SEARCH_BAR_TOP_BORDER = 5;
-    const int SEARCH_BAR_BOTTOM_BORDER = 5;
+    constexpr int SEARCH_BAR_TOP_BORDER    = 5;
+    constexpr int SEARCH_BAR_BOTTOM_BORDER = 5;
 }
 
 
 CExtendedControl::CExtendedControl(CWnd* pParent /*=NULL*/)
-    :   CDialog(IDD_EXTENDEDCONTROL)
+    :   CDialog(IDD_EXTENDEDCONTROL),
+        m_pVarT(nullptr),
+        m_captureType(CaptureType::Unspecified),
+        m_pDictItem(nullptr),
+        m_responseProcessor(nullptr),
+        m_pParent(pParent),
+        m_pEdit(nullptr),
+        m_pCapiControl(nullptr),
+        m_bCommaDecimal(false)
 {
-    m_pParent = pParent;
-    m_font.CreatePointFont(8 * 10,_T("MS Shell Dlg"));//_T("MS Sans Serif")); 20121119 this wasn't working for cyrillic fonts in drop down and checkbox options
+    m_font.CreatePointFont(8 * 10, L"MS Shell Dlg"); // L"MS Sans Serif"); 20121119 this wasn't working for cyrillic fonts in drop down and checkbox options
 }
+
 
 CExtendedControl::~CExtendedControl()
 {
     // delete m_pCapiControl;
 }
+
 
 BOOL CExtendedControl::PreTranslateMessage(MSG* pMsg)
 {
@@ -56,12 +63,10 @@ BOOL CExtendedControl::PreTranslateMessage(MSG* pMsg)
 
 
 
-
 // CExtendedControl message handlers
 
-
 int CExtendedControl::DoModeless(VART* pVarT, const CaptureInfo& capture_info, const ResponseProcessor* response_processor,
-    CWnd* pEdit, bool bCommaDecimal)
+                                 CWnd* pEdit, bool bCommaDecimal)
 {
     m_pVarT = pVarT;
     m_captureInfo = capture_info;
@@ -156,6 +161,7 @@ void CExtendedControl::UpdateSelection(const CString& keyedText)
     m_pCapiControl->UpdateSelection(keyedText);
 }
 
+
 CSize CExtendedControl::GetSearchBarSize()
 {
     // No additional controls for number pad
@@ -179,6 +185,7 @@ CSize CExtendedControl::GetSearchBarSize()
     else
         return CSize(nextButtonRect.right - prevButtonRect.right, searchBarHeight);
 }
+
 
 // Layout and size the search edit box, search button, prev and next
 // buttons to fit width of the window and be at the bottom of the window.
@@ -233,7 +240,8 @@ void CExtendedControl::PlaceSearchBarControls()
     searchTextEdit->ShowWindow(SW_HIDE);
 }
 
-void CExtendedControl::DoSizing(CRect & rect)
+
+void CExtendedControl::DoSizing(CRect& rect)
 {
     CString windowText;
     GetWindowText(windowText);
@@ -567,6 +575,7 @@ void CExtendedControl::OnSysCommand(UINT nID,LPARAM lParam)
 
     else CDialog::OnSysCommand(nID, lParam);
 }
+
 
 void CExtendedControl::OnClickedButtonNextField()
 {

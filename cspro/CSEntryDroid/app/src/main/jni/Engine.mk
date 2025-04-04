@@ -75,7 +75,6 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tables.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tablesen.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/VariableInOut.cpp
 
-LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/Capi.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiCondition.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiContentVirtualFileMapping.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestion.cpp
@@ -84,6 +83,7 @@ LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionYaml.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiStyle.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiText.cpp
 
+LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CapiHandler.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeBuilder.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeNode.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeUpdate.cpp

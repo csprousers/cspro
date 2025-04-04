@@ -2,7 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////
 //
-// Capi.h: interface for the CCapi class.
+// CapiHandler.h: interface for the CCapi class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -11,6 +11,7 @@ class CEngineArea;
 class CWnd;
 class CExtendedControl;
 
+#include <Zentryo/zEntryO.h>
 #include <zUtilO/imsaStr.h>
 #include <engine/DEFLD.H>
 #include <zEngineO/AllSymbolDeclarations.h>
@@ -18,7 +19,7 @@ class CExtendedControl;
 #include <zCapiO/CapiStyle.h>
 
 
-class AFX_EXT_CLASS CCapi
+class CLASS_DECL_ZENTRYO CCapi
 {
 public:
     CCapi();

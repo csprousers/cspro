@@ -80,7 +80,6 @@ add_library(${PROJECT_NAME}
     ${CEXENTRY_DIRECTORY}/Secx.cpp
     ${CEXENTRY_DIRECTORY}/Varx.cpp
 
-    ${ZCAPIO_DIRECTORY}/Capi.cpp
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
     ${ZCAPIO_DIRECTORY}/CapiContentVirtualFileMapping.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestion.cpp
@@ -89,6 +88,7 @@ add_library(${PROJECT_NAME}
     ${ZCAPIO_DIRECTORY}/CapiStyle.cpp
     ${ZCAPIO_DIRECTORY}/CapiText.cpp
 
+    ${ZENTRYO_DIRECTORY}/CapiHandler.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeBuilder.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeNode.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeUpdate.cpp

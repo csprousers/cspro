@@ -7,7 +7,6 @@
 #include "DETextEdit.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
-#include <zCapiO/capi.h>
 #include <ZBRIDGEO/npff.h>
 
 

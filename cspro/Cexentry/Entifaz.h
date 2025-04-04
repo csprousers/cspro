@@ -22,8 +22,8 @@
 
 #include <engine/DEFLD.H>
 #include <engine/Entdrv.h>
-#include <zCapiO/capi.h>
 #include <Zissalib/CsDriver.h>
+#include <Zentryo/CapiHandler.h>
 
 enum class SpecialFunction : int;
 

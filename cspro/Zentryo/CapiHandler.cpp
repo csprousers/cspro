@@ -1,21 +1,21 @@
 ﻿//////////////////////////////////////////////////////////////////////
 //
-// Capi.cpp: implementation of the CCapi class.
+// CapiHandler.cpp: implementation of the CCapi class.
 //
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
-#include "capi.h"
-#include "CapiQuestionManager.h"
+#include "CapiHandler.h"
 #include <zToolsO/Tools.h>
 #include <zAppO/Application.h>
+#include <zCapiO/CapiQuestionManager.h>
 #include <zEngineO/Block.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <engine/Entdrv.h>
 #include <engine/INTERPRE.H>
 
 #ifdef WIN_DESKTOP
-#include "ExtendedControl.h"
-#include "RectExtended.h"
+#include <zCapiO/ExtendedControl.h>
+#include <zCapiO/RectExtended.h>
 #endif
 
 

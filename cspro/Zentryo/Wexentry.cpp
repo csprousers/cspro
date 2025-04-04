@@ -8,7 +8,6 @@
 #include <engine/Engine.h>
 #include <Cexentry/Entifaz.h>
 #include <zUtilO/AppLdr.h>
-#include <zCapiO/capi.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <ZBRIDGEO/npff.h>
 #include <zDataO/DataRepository.h>
