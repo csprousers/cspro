@@ -20,7 +20,7 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
     m_iForRecordIdx = 0;    //Added by Savy (R) 20090716
     m_iShowfnGroupIdx = 0;  //Added by Savy (R) 20090731 //Fix for show() warning issue
 
-    m_Flagvars = 0;         // to request index for Mult vars
+    m_allowMultVarWithoutIndex = false; // to request index for Mult vars
 
     clearSyntaxErrorStatus();
     useForPrecedence();

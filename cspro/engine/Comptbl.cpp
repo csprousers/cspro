@@ -36,7 +36,7 @@ int CEngineCompFunc::rutcpttbl()
 
 #ifdef GENCODE
     ptrcpt = (TBL_CPT_NODE *) (PPT(Prognext));
-    if( Flagcomp )
+    if( m_Flagcomp )
       {
         ADVANCE_NODE( TBL_CPT_NODE );
         ptrcpt->st_code = TBLCPT_CODE;
@@ -48,7 +48,7 @@ int CEngineCompFunc::rutcpttbl()
         return 0;
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
         ptrcpt->tbl_left = i;
 #endif
 
@@ -81,7 +81,7 @@ int CEngineCompFunc::rutcpttbl()
         return 0;
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
         ptrcpt->tbl_expr = i;
 #endif
 
@@ -204,7 +204,7 @@ int CEngineCompFunc::ctblref()
     ipt = 0;
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
       {
         ptrtable = (TBL_NODE *) (PPT(Prognext));
         ipt = Prognext;
@@ -231,7 +231,7 @@ int CEngineCompFunc::ctblref()
               {
                 NextToken();
 #ifdef GENCODE
-                if( Flagcomp )
+                if( m_Flagcomp )
                     pint++;
 #endif
               }
@@ -248,7 +248,7 @@ int CEngineCompFunc::ctblref()
                     if( GetSyntErr() != 0 )
                         return 0;
 #ifdef GENCODE
-                    if( Flagcomp )
+                    if( m_Flagcomp )
                       {
                         ptrtable->iexpr[pint].lo = i1;
                         ptrtable->iexpr[pint].up = i2;
@@ -259,7 +259,7 @@ int CEngineCompFunc::ctblref()
                 else
                   {
 #ifdef GENCODE
-                    if( Flagcomp )
+                    if( m_Flagcomp)
                       {
                         ptrtable->iexpr[pint].lo = -2;
                         ptrtable->iexpr[pint].up = i1;
@@ -304,14 +304,14 @@ int CEngineCompFunc::ctblsum()
         IssueError(536);
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ipt = Prognext;
         TBL_FUN_NODE* ptrfnode = (TBL_FUN_NODE*)PPT(Prognext);
         ADVANCE_NODE(TBL_FUN_NODE);
         ptrfnode->function = iFunction;
         ptrfnode->vardim = iCoord;
-      }
+    }
 #endif
 
     ctblref();
@@ -365,7 +365,7 @@ int CEngineCompFunc::ctblmed()
 
 #ifdef GENCODE
     ptrfnode = (TBL_FUN_NODE *) (PPT(Prognext));
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         ipt = Prognext;
 
         ADVANCE_NODE( TBL_FUN_NODE );
@@ -388,7 +388,7 @@ int CEngineCompFunc::ctblmed()
         return 0;
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
         *(pipl + 2) = Prognext;
 #endif
 
@@ -439,7 +439,7 @@ int CEngineCompFunc::CompIntervals( int* pipl, std::vector<double>* pIntervals )
                 if( Tkn != TOKCTE )
                     return( SetSyntErr(82), 0 );
 #ifdef GENCODE
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                     if( bLikeTable )
                         *pipl = ConserveConstant(Tokvalue);
                     else
@@ -460,7 +460,7 @@ int CEngineCompFunc::CompIntervals( int* pipl, std::vector<double>* pIntervals )
                     if( Tkn != TOKCTE )
                         return( SetSyntErr(82), 0 );
 #ifdef GENCODE
-                    if( Flagcomp ) {
+                    if( m_Flagcomp ) {
                         if( bLikeTable ) {
                             *(pipl + 1) += 1;
                             *(PPT(Prognext)) = ConserveConstant(Tokvalue);
@@ -487,13 +487,13 @@ int CEngineCompFunc::CompIntervals( int* pipl, std::vector<double>* pIntervals )
 
 // JH 5/30/06 only generate intervals for GENCODE, avoids assert later on
 #ifdef GENCODE
-        if( Flagcomp ) {
-        if( !bLikeTable ) {
-            pIntervals->emplace_back( dHigh );
-            for( size_t i = 0; i < aLowers.size(); i++ )
-                pIntervals->emplace_back(aLowers[i]);
+        if( m_Flagcomp ) {
+            if( !bLikeTable ) {
+                pIntervals->emplace_back( dHigh );
+                for( size_t i = 0; i < aLowers.size(); i++ )
+                    pIntervals->emplace_back(aLowers[i]);
+            }
         }
-    }
 #endif
     }
 

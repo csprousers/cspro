@@ -19,7 +19,7 @@ int CEngineCompFunc::compall( int comptype )
     // comptype: 0 => all, 1 => APP, 2 => rest
     if( comptype == 0 || comptype == 1 )
     {
-        Flagcomp = 1;
+        m_Flagcomp = 1;
         resetErrors();
 
         CompileProc(&Appl);

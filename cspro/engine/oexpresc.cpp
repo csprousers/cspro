@@ -24,7 +24,7 @@ int CEngineCompFunc::old_do_cfun_fntc( CTAB* ct, int iDimType, void* pvoid ) {
 #ifdef GENCODE
     OLD_FNTC_NODE*  ptrfunc = NULL;
 
-    if( Flagcomp )
+    if( m_Flagcomp )
         ptrfunc = (OLD_FNTC_NODE*) pvoid;
 #endif
 
@@ -68,7 +68,7 @@ int CEngineCompFunc::old_do_cfun_fntc( CTAB* ct, int iDimType, void* pvoid ) {
         int nterm = (int) Tokvalue;
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
             ptrfunc->ict   = Tokstindex;
             ptrfunc->nterm = nterm;
         }
@@ -115,7 +115,7 @@ int CEngineCompFunc::compile_expr( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid
 #ifdef GENCODE
     OLD_FNTC_NODE*  ptrfunc=NULL;
 
-    if( Flagcomp )
+    if( m_Flagcomp )
         ptrfunc = (OLD_FNTC_NODE*) pvoid;
 #endif
 
@@ -146,7 +146,7 @@ int CEngineCompFunc::compile_expr( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid
         }
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
             ptrfunc->var1 = pctt - ct->GetTerm(ndim-1);
             ptrfunc->expr1 = iterm;
         }
@@ -181,7 +181,7 @@ int CEngineCompFunc::compile_expr( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid
                     return 0;
             }
 #ifdef GENCODE
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 ptrfunc->var1 = pctt - ct->GetTerm(ndim-1);
                 ptrfunc->expr1 = iterm;
             }
@@ -229,7 +229,7 @@ int CEngineCompFunc::compile_expr( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid
                     return 0;
             }
 #ifdef GENCODE
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 ptrfunc->var2 = pctt - ct->GetTerm(ndim-1);
                 ptrfunc->expr2 = iterm;
             }
@@ -260,7 +260,7 @@ int CEngineCompFunc::default_expr( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid
 
 int CEngineCompFunc::default_expr1( CTAB* ct, CTTERM* pctt, int ndim, void* pvoid ) {
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         int         iterm = CreateNumericConstantNode( m_pEngineArea->cthighnumvalue( pctt->m_iCtNode ) );
 
         if( iterm < 0 )
@@ -283,7 +283,7 @@ int CEngineCompFunc::default_expr2( CTAB* ct, CTTERM* pctt, int ndim, void* pvoi
         pctt++;
     pctt--;
 
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         int     iterm = CreateNumericConstantNode( m_pEngineArea->cthighnumvalue( pctt->m_iCtNode ) );
 
         if( iterm < 0 )
@@ -310,7 +310,7 @@ CTTERM* CEngineCompFunc::default_lastsubtable( CTAB* ct, int ndim, void* pvoid )
     pctt--;
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         OLD_FNTC_NODE*  ptrfunc = (OLD_FNTC_NODE*) pvoid;
 
         ptrfunc->ict   = ct->GetSymbolIndex();
@@ -365,7 +365,7 @@ CTTERM* CEngineCompFunc::search_subtable( CTAB* ct, int ndim, void* pvoid, int i
         return NULL;
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         OLD_FNTC_NODE*  ptrfunc = (OLD_FNTC_NODE*) pvoid;
 
         ptrfunc->ict   = ct->GetSymbolIndex();
@@ -375,4 +375,3 @@ CTTERM* CEngineCompFunc::search_subtable( CTAB* ct, int ndim, void* pvoid, int i
 
     return pctt;
 }
-

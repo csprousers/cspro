@@ -79,7 +79,7 @@ std::optional<int> CEngineCompFunc::ci_set()
     bool ascending = true;
 
     pset_ac = (ACCESS_NODE*) (PPT(Prognext));
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         OC_CreateCompilationSpace(size_acce / sizeof(int));
         pset_ac->st_code = SET_CODE;
         pset_ac->next_st = -1;
@@ -92,7 +92,7 @@ std::optional<int> CEngineCompFunc::ci_set()
 
     constexpr const char* keyword_types[] =
     {
-        "OUTPUT",       //  1 No supported!      
+        "OUTPUT",       //  1 No supported!
         "HEADING",      //  2 No supported!
         "LINEPAGE",     //  3 No supported!
         "FORMAT",       //  4
@@ -329,7 +329,7 @@ std::optional<int> CEngineCompFunc::ci_set()
                 }
             }
 
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 LIST_NODE*  pListNode;
                 int         iSizeList= sizeof(LIST_NODE);
                 int         iListNode=Prognext;
@@ -386,7 +386,7 @@ std::optional<int> CEngineCompFunc::ci_set()
             NextToken();
 
             // we will just use the ACCESS_NODE instead of creating our own node
-            if( Flagcomp )
+            if( m_Flagcomp )
                 OC_CreateCompilationSpace(-1); // we are not using the ac member
 
             if( errmsg_type == 1 ) // message overrides are being turned off
@@ -434,7 +434,7 @@ std::optional<int> CEngineCompFunc::ci_set()
 
             IssueErrorOnTokenMismatch(TOKRPAREN, ERROR_RIGHT_PAREN_EXPECTED);
 
-            if( Flagcomp )
+            if( m_Flagcomp )
             {
                 pset_ac->st_code = FNMESSAGEOVERRDIES_CODE;
                 pset_ac->idic = errorMessageCode;
@@ -951,7 +951,7 @@ bool CEngineCompFunc::CompSetBehavior( SETOTHER_NODE* pset_ot ) { // victor Aug 
     }
 
     // finally... setup node to be interpreted
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         int     size_acce = sizeof(ACCESS_NODE);
         int     size_othe = sizeof(SETOTHER_NODE);
 

@@ -600,7 +600,8 @@ public:
     int     m_iForRecordIdx;          // Added by Savy (R) 20090716
     int     m_iShowfnGroupIdx;        // Added by Savy (R) 20090731 //Fix for show() warning issue
 
-    int     m_Flagvars;               // to request index for Mult vars
+    bool    m_allowMultVarWithoutIndex; // if true, mult vars can be specified without an index
+
 protected:
     int     m_SyntErr;                // Syntax error number (compiler)
 public:
@@ -656,12 +657,10 @@ public:
 #undef TEMP_VIRTUAL // COMPILER_DLL_TODO
 
 
-#define Flagcomp      m_pEngineCompFunc->m_Flagcomp
 #define ObjInComp     m_pEngineCompFunc->m_ObjInComp // COMPILER_DLL_TODO, note: for reports and user-defined functions, ObjInComp = SymbolType::Application
 #define LvlInComp     m_pEngineCompFunc->m_LvlInComp
 #define ProcInComp    m_pEngineCompFunc->m_ProcInComp
 
 #define Tokstindex    m_pEngineCompFunc->GetLastFoundVariableIndex()
 
-#define Flagvars      m_pEngineCompFunc->m_Flagvars
 #define InCompIdx     m_pEngineCompFunc->m_InCompIdx

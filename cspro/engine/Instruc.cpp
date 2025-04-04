@@ -656,7 +656,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                     {
                         int stop_expr = -1;
 
-                        if( Flagcomp )
+                        if( m_Flagcomp )
                         {
                             ADVANCE_NODE(STOP_NODE);
                         }
@@ -672,7 +672,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                             NextToken();
                         }
 
-                        if( Flagcomp )
+                        if( m_Flagcomp )
                         {
                             STOP_NODE* stop_node = (STOP_NODE*)prev_st;
                             stop_node->stop_expr = stop_expr;
@@ -734,7 +734,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
 #ifdef GENCODE
                     // ------------- CODE GENERATION FOR THESE CASES:
-                    if( Flagcomp ) {
+                    if( m_Flagcomp ) {
                         if( code != TOKTO && code != TOKREENTER && code != TOKADVANCE && code != TOKMOVE && code != TOKSTOP ) {
                             ADVANCE_NODE(ST_NODE);
                         }
@@ -833,7 +833,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                 prev_st = (Nodes::Statement*)PPT(last_added_node_address);
 
             // setup next-statement address into previous instruction
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 if( bIsSkipStatement && Tkn != TOKNOINPUT )
                     prev_st->next_st = -1;
                 else
@@ -867,7 +867,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         if( prev_st != NULL )
             prev_st->next_st = -1;
         else
@@ -1046,7 +1046,7 @@ int CEngineCompFunc::CompileForStatement(pCompileForInFunction pCompileFunction/
     }
 
 #ifdef GENCODE // need for-table when compiling with CSpro
-    if( Flagcomp )
+    if( m_Flagcomp )
 #endif
     {
         m_ForTableNext--;
@@ -1064,7 +1064,7 @@ void CEngineCompFunc::CompileForRelation(int iVarIdx, int iRelIdx, pCompileForIn
     FORRELATION_NODE* pForNode = NULL;
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         pForNode = NODEPTR_AS( FORRELATION_NODE );
         ADVANCE_NODE( FORRELATION_NODE );
 
@@ -1083,7 +1083,7 @@ void CEngineCompFunc::CompileForRelation(int iVarIdx, int iRelIdx, pCompileForIn
     int iRelNodeIdx = relanal( iRelIdx );
 
 #ifdef GENCODE // need for-table when compiling with CSpro
-    if( Flagcomp )
+    if( m_Flagcomp )
 #endif
     {
         ASSERT( m_ForTableNext >= 0 );
@@ -1123,7 +1123,7 @@ void CEngineCompFunc::CompileForRelation(int iVarIdx, int iRelIdx, pCompileForIn
     }
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         pForNode->forBlock = iBlock;
 
         pForNode->forWhereExpr = iExprWhere; // RHF Jun 14, 2002
@@ -1142,7 +1142,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
     FORGROUP_NODE* pForNode = NULL;
 
 #ifdef GENCODE
-    if( Flagcomp ) {                                    // RHF Aug 04, 2000
+    if( m_Flagcomp ) {                                  // RHF Aug 04, 2000
         pForNode = NODEPTR_AS( FORGROUP_NODE );
         ADVANCE_NODE( FORGROUP_NODE );
 
@@ -1159,7 +1159,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
 
     iSuggestedIndex = (int) pGroup->GetDimType();
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         // decrease Prognext to consider GRP_NODE being counted twice
         OC_CreateCompilationSpace(-1 * (int)( sizeof( GRP_NODE ) / sizeof(int) ));
     }
@@ -1169,7 +1169,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
         IssueError( 33001 );  // too many for loops
 
 #ifdef GENCODE // need for-table when compiling with CSPro
-    if( Flagcomp )
+    if( m_Flagcomp )
 #endif
     {
         ASSERT( m_ForTableNext >= 0 );                  // RHF Aug 14, 2000
@@ -1229,7 +1229,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
     }
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         pForNode->forBlock = iBlock;
         pForNode->forWhereExpr = iExprWhere;
         pForNode->forVarIdx = iVarIdx;
@@ -1468,7 +1468,7 @@ int CEngineCompFunc::CompileAdvanceStatement( void ) {
 
     // RHF INIC Nov 24, 2003
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         pSkipNode->skip_code   = ADVANCE_CODE;
         pSkipNode->next_st     = 0;                 // what?? victor Mar 08, 01
         pSkipNode->var_ind     = v_ind;
@@ -1682,7 +1682,7 @@ int CEngineCompFunc::CompileBreakBy( void ) {
     }
 
 #ifdef GENCODE
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         pbreak = NODEPTR_AS( BREAK_NODE );
         iptbreak = Prognext;
 
@@ -1721,7 +1721,7 @@ std::vector<CBreakById> CEngineCompFunc::CompileBreakByList()
         cBreakId.m_iLen = VPT(cBreakId.m_iSymVar)->GetLength();
 
 #ifdef GENCODE
-        if( Flagcomp )
+        if( m_Flagcomp )
             VPT(cBreakId.m_iSymVar)->SetUsed( true );
 #endif
         NextToken();

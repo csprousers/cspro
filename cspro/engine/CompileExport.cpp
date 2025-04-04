@@ -38,7 +38,7 @@ int CEngineCompFunc::compexport() {
     int     iptnode = Prognext;
 #ifdef GENCODE
     EXPORT_NODE* pExpoNode = (EXPORT_NODE*) (PPT(Prognext));
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         OC_CreateCompilationSpace(sizeof(EXPORT_NODE) / sizeof(int));
         pExpoNode->st_code = EXPORT_CODE;
     }
@@ -281,10 +281,10 @@ bool CEngineCompFunc::CompConstantList( VART* pVarT, CString& csOccExpr ) {
     // Pre-scan looking for constants
     if( pVarT->IsArray() ) {
         // PUSH Lexer State
-        int iOldFlagcomp   = Flagcomp;
+        int iOldFlagcomp = m_Flagcomp;
         int iOldTokstindex = Tokstindex; // RHF Feb 10, 2005
 
-        Flagcomp = FALSE;
+        m_Flagcomp = FALSE;
         MarkInputBufferToRestartLater();
 
         NextToken();
@@ -319,7 +319,7 @@ bool CEngineCompFunc::CompConstantList( VART* pVarT, CString& csOccExpr ) {
         RestartFromMarkedInputBuffer();
 
         Tokstindex = iOldTokstindex; // RHF Feb 10, 2005
-        Flagcomp = iOldFlagcomp;
+        m_Flagcomp = iOldFlagcomp;
 
         if( !bOnlyCte )
             aValues.RemoveAll();
@@ -717,7 +717,7 @@ bool CEngineCompFunc::AddExportSection( int iSymSec, bool bUseAll, int iSecOccEx
                 pCurExport->m_aOccExpr.Add(iOccExpr);
 
 #ifdef GENCODE
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                     //Replace first dimension when section has an explicit subindex
                     if( iSecOccExpr != -1 && pVarT->GetDimType(0) == CDimension::Record ) {
                         MVAR_NODE*  pMVarNode=(MVAR_NODE*)PPT(iOccExpr);
