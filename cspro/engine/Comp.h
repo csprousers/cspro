@@ -135,7 +135,6 @@ private:
 
 public:
     CEngineCompFunc*    m_pEngineCompFunc;
-    CEngineDefines*     m_pEngineDefines;
     CEngineDriver*      m_pEngineDriver;
     CEngineArea*        m_pEngineArea;
     CSettings*          m_pEngineSettings;

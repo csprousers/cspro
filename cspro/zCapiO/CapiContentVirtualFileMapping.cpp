@@ -1,10 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "CapiContentVirtualFileMapping.h"
+#include "CapiContent.h"
+#include "CapiQuestionManager.h"
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/Application.h>
-#include <zCapiO/CapiContent.h>
-#include <zCapiO/CapiQuestionManager.h>
-#include <engine/Entdrv.h>
 
 
 const std::string* CapiContentVirtualFileMapping::GetQuestionTextUrl() const
@@ -21,25 +20,31 @@ const std::string* CapiContentVirtualFileMapping::GetHelpTextUrl() const
 }
 
 
-void CapiContentVirtualFileMapping::SetCapiContent(const CapiContent& capi_content, CEntryDriver& entry_driver)
+void CapiContentVirtualFileMapping::SetCapiContent(CapiContent capi_content, const Application& application,
+                                                   std::shared_ptr<CapiQuestionManager> question_manager)
 {
-    if( capi_content.question_text.IsEmpty() && capi_content.help_text.IsEmpty() )
+    ASSERT(question_manager != nullptr);
+
+    if( capi_content.question_text->empty() && capi_content.help_text->empty() )
         return;
 
-    const std::string directory = PortableFunctions::PathGetDirectory(entry_driver.GetApplication()->GetQuestionTextFilePath());
+    const std::string directory = PortableFunctions::PathGetDirectory(application.GetQuestionTextFilePath());
 
-    if( !capi_content.question_text.IsEmpty() )
-        m_questionTextVirtualFileMapping = CreateVirtualFileMapping(entry_driver, directory, UTF8_TODO::GetUtf8(capi_content.question_text));
+    if( !capi_content.question_text->empty() )
+        m_questionTextVirtualFileMapping = CreateVirtualFileMapping(question_manager, directory, std::move(capi_content.question_text));
 
-    if( !capi_content.help_text.IsEmpty() )
-        m_helpTextVirtualFileMapping = CreateVirtualFileMapping(entry_driver, directory, UTF8_TODO::GetUtf8(capi_content.help_text));
+    if( !capi_content.help_text->empty() )
+        m_helpTextVirtualFileMapping = CreateVirtualFileMapping(std::move(question_manager), directory, std::move(capi_content.help_text));
 }
 
 
-std::unique_ptr<VirtualFileMapping> CapiContentVirtualFileMapping::CreateVirtualFileMapping(CEntryDriver& entry_driver, const std::string& directory, SharableString content)
+std::unique_ptr<VirtualFileMapping> CapiContentVirtualFileMapping::CreateVirtualFileMapping(std::shared_ptr<CapiQuestionManager> question_manager,
+                                                                                            const std::string& directory, SharableString content)
 {
+    ASSERT(question_manager != nullptr);
+
     return std::make_unique<VirtualFileMapping>(PortableLocalhost::CreateVirtualHtmlFile(directory,
-        [&entry_driver, html = SharableString(), content_ = std::move(content)]() mutable
+        [question_manager_ = std::move(question_manager), html = SharableString(), content_ = std::move(content)]() mutable
         {
             if( !html.IsSet() )
             {
@@ -50,7 +55,7 @@ std::unique_ptr<VirtualFileMapping> CapiContentVirtualFileMapping::CreateVirtual
                                            "td,th{border: 1px solid #7B7B7B;padding: 5px 3px;}"
                                        "</style>"
                                        "<style>",
-                                           entry_driver.GetQuestMgr()->GetRuntimeStylesCss(),
+                                           question_manager_->GetRuntimeStylesCss(),
                                        "</style>"
                                        "</head><body>",
                                            *content_,
@@ -60,5 +65,3 @@ std::unique_ptr<VirtualFileMapping> CapiContentVirtualFileMapping::CreateVirtual
             return html;
         }));
 }
-
-

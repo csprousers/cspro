@@ -99,6 +99,13 @@ BEGIN_MESSAGE_MAP(CCSProApp, CWinApp)
 END_MESSAGE_MAP()
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+// The one and only CCSProApp object
+CCSProApp theApp;
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CCSProApp construction
 
@@ -112,10 +119,6 @@ CCSProApp::CCSProApp()
     EnableHtmlHelp();
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// The one and only CCSProApp object
-
-CCSProApp theApp;
 
 /////////////////////////////////////////////////////////////////////////////
 // CCSProApp initialization
@@ -1897,7 +1900,7 @@ void CCSProApp::RenameQSFFile(CAplDoc* pApplDoc, const CString& sNewFName)
     Application& application = pApplDoc->GetAppObject();
     RenameNodeInObjTree(pApplDoc, UTF8_TODO::GetWide(application.GetQuestionTextFilePath()), sNewFName);
     application.SetQuestionTextFilePath(UTF8_TODO::GetUtf8(sNewFName));
-    pApplDoc->m_pQuestMgr->SetModifiedFlag(true);
+    pApplDoc->m_questionManager->SetModifiedFlag(true);
 }
 
 void CCSProApp::RenameNodeInObjTree(CDocument* pTopLevelDoc, wstring_view old_filename, const CString& sNewFName)
@@ -1967,6 +1970,8 @@ bool CCSProApp::UpdateViews(CDocument* pDoc)
     CString sFileName = pDoc->GetPathName();
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     CObjTreeCtrl& ObjTree = pFrame->GetDlgBar().m_ObjTree;
+
+    const RAII::SetValueAndRestoreOnDestruction<CDocument*> update_views_document_modified = pFrame->SetUpdateViewsDocument(pDoc);
 
     //---------------- Application
 
@@ -2201,17 +2206,6 @@ CDocument* CCSProApp::IsDocOpen(LPCTSTR lpszFileName)const
     return pOpenDocument;
 }
 
-//Call Back function for the browseforfolder dialog
-int CALLBACK BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM /*lParam*/, LPARAM lpData )
-{
-    if (uMsg == BFFM_INITIALIZED)
-    {
-        // Set the initial folder
-        SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
-    }
-
-    return 0;
-}
 
 BOOL CCSProApp::OnOpenRecentFile(UINT nID)
 {

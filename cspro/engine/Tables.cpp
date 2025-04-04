@@ -272,7 +272,6 @@ void CEngineArea::SetEngineDriver(CEngineDriver* pEngineDriver)
 {
     m_pEngineDriver = pEngineDriver;
     m_pEngineArea = this;
-    m_pEngineDefines = pEngineDriver->m_pEngineDefines;
     m_pEngineSettings = pEngineDriver->m_pEngineSettings;
     m_engineData->application = pEngineDriver->m_pApplication;
 }
@@ -283,7 +282,6 @@ void CEngineArea::Init()
     // --- engine links
     m_pEngineDriver = NULL;
     m_pEngineArea = NULL;
-    m_pEngineDefines = NULL;
     m_pEngineSettings = NULL;
 
     // --- symbols management

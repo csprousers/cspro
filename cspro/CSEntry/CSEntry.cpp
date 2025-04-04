@@ -42,7 +42,7 @@ END_MESSAGE_MAP()
 // focus switcher for main form view
 struct CRunViewFocusSwitcher : public CViewFocusSwitcher
 {
-    virtual bool MatchWindow(CWnd* pWnd) const
+    bool MatchWindow(CWnd* pWnd) const override
     {
         return pWnd->IsKindOf(RUNTIME_CLASS(CEntryrunView)) != FALSE;
     }
@@ -52,7 +52,7 @@ struct CRunViewFocusSwitcher : public CViewFocusSwitcher
 // focus switcher for main form view
 struct CQTxtViewFocusSwitcher : public CViewFocusSwitcher
 {
-    virtual void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
+    void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd) override
     {
         CMainFrame* pMainFrame = (CMainFrame*) pAppMainWnd;
         if (pMainFrame->m_wndCapiSplitter.m_bUseQuestionText) {
@@ -60,7 +60,7 @@ struct CQTxtViewFocusSwitcher : public CViewFocusSwitcher
         }
     }
 
-    virtual bool MatchWindow(CWnd* pWnd) const
+    bool MatchWindow(CWnd* pWnd) const override
     {
         return pWnd->IsKindOf(RUNTIME_CLASS(QSFView)) != FALSE;
     }
@@ -70,7 +70,7 @@ struct CQTxtViewFocusSwitcher : public CViewFocusSwitcher
 // focus switcher for tree controls in prop pages (case view and case trees)
 struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
 {
-    virtual void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
+    void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd) override
     {
         CMainFrame* pMainFrame = (CMainFrame*) pAppMainWnd;
         CRect rect;
@@ -85,12 +85,12 @@ struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
         }
     }
 
-    virtual bool MatchWindow(CWnd* pWnd) const
+    bool MatchWindow(CWnd* pWnd) const override
     {
         return pWnd->IsKindOf(RUNTIME_CLASS(CPropertyPage)) != FALSE;
     }
 
-    virtual void SetFocus(CWnd* pWnd)
+    void SetFocus(CWnd* pWnd) override
     {
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CPropertyPage)));
         CPropertyPage* pPage = (CPropertyPage*) pWnd;
@@ -110,7 +110,7 @@ struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
         }
     }
 
-    virtual bool MustBeVisible() const
+    bool MustBeVisible() const override
     {
         return false;
     }
@@ -119,7 +119,7 @@ struct CTreePropPageFocusSwitcher : public CViewFocusSwitcher
 
 
 CEntryrunApp::CEntryrunApp()
-    :   m_pWindowFocusMgr(new CWindowFocusMgr),
+    :   m_pWindowFocusMgr(std::make_unique<CWindowFocusMgr>()),
         m_pffLaunchedFromCommandLine(false)
 {
     InitializeCSProEnvironment();
@@ -142,8 +142,6 @@ CEntryrunApp::CEntryrunApp()
 CEntryrunApp::~CEntryrunApp()
 {
     ApplicationShutdown();
-
-    delete m_pWindowFocusMgr;
 }
 
 

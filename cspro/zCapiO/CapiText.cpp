@@ -4,116 +4,146 @@
 #include <sstream>
 
 
-const std::vector<CapiText::Delimiter> CapiText::DefaultDelimiters =
-{
-    CapiText::Delimiter { L"~~~", false },
-    CapiText::Delimiter { L"~~", true }
-};
-
-
 namespace
 {
-    struct NextDelimeter
+    struct Delimiter
     {
-        const CapiText::Delimiter* delimeter;
-        int pos;
+        std::string_view characters_sv;
+        bool escape_fill;
     };
 
-    std::optional<NextDelimeter> FindNextDelimeter(const CString& text, int start, const std::vector<CapiText::Delimiter>& delimiters)
+    constexpr Delimiter DefaultDelimiters[] =
     {
-        int closest_index = INT_MAX;
-        const CapiText::Delimiter* closest = nullptr;
-        for (const CapiText::Delimiter& d : delimiters) {
-            int n = text.Find(d.characters, start);
-            if (n >= 0 && n < closest_index) {
-                closest_index = n;
-                closest = &d;
+        { "~~~", false },
+        { "~~",  true }
+    };
+
+    struct NextDelimiter
+    {
+        const Delimiter* delimeter;
+        size_t pos;
+    };
+
+
+    std::optional<NextDelimiter> FindNextDelimiter(const std::string_view text_sv, const size_t start)
+    {
+        std::optional<NextDelimiter> next_delimiter;
+
+        for( const Delimiter& delimiter : DefaultDelimiters )
+        {
+            const size_t pos = text_sv.find(delimiter.characters_sv, start);
+
+            if( ( pos != std::string_view::npos ) &&
+                ( !next_delimiter.has_value() || pos < next_delimiter->pos ) )
+            {
+                next_delimiter = NextDelimiter { &delimiter, pos };
             }
         }
-        if (closest == nullptr)
-            return {};
 
-        return NextDelimeter{closest, closest_index};
+        return next_delimiter;
     }
 
-    int FindEndDelimiter(const CString& text, const NextDelimeter& start)
+
+    size_t FindEndDelimiter(const std::string_view text_sv, const NextDelimiter& start)
     {
-        return text.Find(start.delimeter->characters, start.pos + start.delimeter->characters.GetLength());
+        return text_sv.find(start.delimeter->characters_sv,
+                            start.pos + start.delimeter->characters_sv.length());
     }
 
-    std::vector<CapiFill> GetDelimitedParams(const CString& text, const std::vector<CapiText::Delimiter>& delimiters)
-    {
-        std::vector<CapiFill> params;
 
-        std::optional<NextDelimeter> start = FindNextDelimeter(text, 0, delimiters);
-        while (start) {
-            int end = FindEndDelimiter(text, *start);
-            if (end < 0)
+    std::shared_ptr<std::vector<CapiFill>> GetDelimitedParams(const std::string_view text_sv)
+    {
+        auto params = std::make_shared<std::vector<CapiFill>>();
+
+        std::optional<NextDelimiter> start = FindNextDelimiter(text_sv, 0);
+
+        while( start.has_value() )
+        {
+            const size_t end = FindEndDelimiter(text_sv, *start);
+
+            if( end == std::string_view::npos )
                 break;
-            if (end - start->pos > 1) {
-                const int delim_length = start->delimeter->characters.GetLength();
-                CString fill_text = text.Mid(start->pos, end - start->pos + delim_length);
-                CString undelimited_fill_text = text.Mid(start->pos + delim_length, end - start->pos - delim_length);
-                params.emplace_back(fill_text, undelimited_fill_text, start->delimeter->escape_html);
+
+            const size_t delim_length = start->delimeter->characters_sv.length();
+
+            if( end - start->pos > 1 )
+            {
+                params->emplace_back(std::string(text_sv.substr(start->pos, end - start->pos + delim_length)),
+                                     delim_length,
+                                     start->delimeter->escape_fill);
             }
-            start = FindNextDelimeter(text, end + start->delimeter->characters.GetLength(), delimiters);
+
+            start = FindNextDelimiter(text_sv, end + delim_length);
         }
+
         return params;
     }
 }
 
 
-CapiText::CapiText(const CString& text/* = CString()*/)
-    :   m_text(text)
+const std::vector<CapiFill>& CapiText::GetFills() const
 {
-}
+    if( m_params == nullptr )
+        m_params = GetDelimitedParams(*m_text);
 
-
-const std::vector<CapiFill>& CapiText::GetFills(const std::vector<Delimiter>& delimiters) const
-{
-    if (!m_params)
-        m_params = GetDelimitedParams(m_text, delimiters);
     return *m_params;
 }
 
 
-CString CapiText::ReplaceFills(const std::vector<Delimiter>& delimiters, const std::map<CString, CString>& replacements) const
+std::string CapiText::ReplaceFills(const std::string_view text_sv, const std::map<std::string, SharableString>& replacements)
 {
-    std::wstringstream ss;
-    int current = 0;
-    while (current < m_text.GetLength()) {
-        std::optional<NextDelimeter> next_delim = FindNextDelimeter(m_text, current, delimiters);
-        if (next_delim) {
-            ss << m_text.Mid(current, next_delim->pos - current).GetString();
-            int end = FindEndDelimiter(m_text, *next_delim);
-            if (end < 0) {
-                ss << m_text.Mid(next_delim->pos).GetString();
-                break;
-            }
-            else {
-                const int delim_length = next_delim->delimeter->characters.GetLength();
-                CString text_to_replace = m_text.Mid(next_delim->pos, end - next_delim->pos + delim_length);
-                auto replacement = replacements.find(text_to_replace);
-                if (replacement != replacements.end()) {
-                    if (next_delim->delimeter->escape_html) {
-                        ss << UTF8_TODO::GetWide(Encoders::ToHtml(UTF8_TODO::GetUtf8(SO::TrimRight(replacement->second)))).c_str();
-                    }
-                    else {
-                        ss << replacement->second.GetString();
-                    }
-                } else {
-                    ss << text_to_replace.GetString();
-                }
-                current = end + next_delim->delimeter->characters.GetLength();
-            }
-        }
-        else {
-            ss << m_text.Mid(current).GetString();
+    std::stringstream ss;
+    size_t pos = 0;
+
+    while( pos < text_sv.length() )
+    {
+        const std::optional<NextDelimiter> next_delim = FindNextDelimiter(text_sv, pos);
+
+        if( !next_delim.has_value() )
+        {
+            ss << text_sv.substr(pos);
             break;
         }
+
+        ss << text_sv.substr(pos, next_delim->pos - pos);
+
+        const size_t end = FindEndDelimiter(text_sv, *next_delim);
+
+        if( end == std::string_view::npos )
+        {
+            ss << text_sv.substr(next_delim->pos);
+            break;
+        }
+
+        const size_t delim_length = next_delim->delimeter->characters_sv.length();
+
+        const std::string text_to_replace(text_sv.substr(next_delim->pos,
+                                                         end - next_delim->pos + delim_length));
+
+        const auto& replacement_lookup = replacements.find(text_to_replace);
+
+        if( replacement_lookup != replacements.cend() )
+        {
+            if( next_delim->delimeter->escape_fill )
+            {
+                ss << Encoders::ToHtml(SO::TrimRight(replacement_lookup->second.GetString()));
+            }
+
+            else
+            {
+                ss << replacement_lookup->second.GetString();
+            }
+        }
+
+        else
+        {
+            ss << text_to_replace;
+        }
+
+        pos = end + delim_length;
     }
 
-    return CString(ss.str().c_str());
+    return ss.str();
 }
 
 
@@ -125,5 +155,13 @@ void CapiText::WriteJson(JsonWriter& json_writer) const
 
 void CapiText::serialize(Serializer& ar)
 {
-    ar & m_text;
+    if( ar.PredatesVersionIteration(Serializer::Iteration_8_1_000_1) )
+    {
+        ar & m_text.MakeModifiable();
+    }
+
+    else
+    {
+        ar & m_text;
+    }
 }

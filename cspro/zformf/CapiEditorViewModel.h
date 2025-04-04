@@ -20,28 +20,24 @@ public:
     CapiEditorViewModel();
     ~CapiEditorViewModel();
 
-    void SetQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager)
-    {
-        m_application = application;
-        m_question_manager = std::move(question_manager);
-    }
+    void SetQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager);
 
     void Clear();
 
     bool CanHaveText() const { return ( m_item != nullptr ); }
 
-    CapiText GetText(size_t language_index, CapiTextType type);
-    void SetText(size_t language_index, CapiTextType type, CString new_text);
+    CapiText GetText(size_t language_index, CapiText::Type type);
+    void SetText(size_t language_index, CapiText::Type type, std::string new_text);
 
-    void SetCondition(int condition_index, CString logic);
+    void SetCondition(int condition_index, std::string logic);
     void DeleteCondition(int condition_index);
 
     CapiQuestion GetQuestion();
 
-    int GetSelectedConditionIndex() const         { return m_condition_index; }
-    void SetSelectedConditionIndex(int condition) { m_condition_index = condition; }
+    int GetSelectedConditionIndex() const         { return m_conditionIndex; }
+    void SetSelectedConditionIndex(int condition) { m_conditionIndex = condition; }
 
-    void SetItem(CDEItemBase* item);
+    void SetItem(const CDEItemBase* item_base);
 
     struct SyntaxCheckOk    { };
     struct SyntaxCheckError { std::string error_message; };
@@ -50,10 +46,10 @@ public:
     SyntaxCheckResult CheckSyntax(CapiLogicParameters::Type type, SharableString logic);
 
 private:
-    std::shared_ptr<CapiQuestionManager> m_question_manager;
-    CDEItemBase* m_item;
-    CString m_item_name;
-    size_t m_condition_index;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
+    const CDEItemBase* m_item;
+    std::string m_itemName;
+    size_t m_conditionIndex;
     Application* m_application;
     std::unique_ptr<DesignerCapiLogicCompiler> m_compiler;
 };

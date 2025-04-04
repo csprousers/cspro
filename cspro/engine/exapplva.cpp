@@ -22,7 +22,6 @@
 #include "Engine.h"
 #include "Exappl.h"
 #include <zEngineO/WorkVariable.h>
-#include <zUtilO/TraceMsg.h>
 #include <zAppO/FieldStatus.h>
 #include <zCaseO/CaseItemReference.h>
 #include <Zissalib/CsDriver.h>

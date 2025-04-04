@@ -66,8 +66,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CapiCondition.cpp" />
+    <ClCompile Include="CapiContentVirtualFileMapping.cpp" />
     <ClCompile Include="CapiControl.cpp" />
-    <ClCompile Include="CapiFill.cpp" />
     <ClCompile Include="CapiQuestion.cpp" />
     <ClCompile Include="CapiQuestionManager.cpp" />
     <ClCompile Include="CapiQuestionYaml.cpp" />
@@ -77,6 +77,7 @@
     <ClCompile Include="Pre76CapiQuestionFile.cpp" />
     <ClCompile Include="Pre76CapiQuestionManager.cpp" />
     <ClCompile Include="QSFView.cpp" />
+    <ClCompile Include="RectExtended.cpp" />
     <ClCompile Include="SelectCtrl.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -88,19 +89,22 @@
   <ItemGroup>
     <None Include="res\next.ico" />
     <None Include="res\prev.ico" />
-    <None Include="res\Cancel.ico" />
-    <None Include="res\Find.ico" />
-    <None Include="res\Invert.ico" />
-    <None Include="res\Ok.ico" />
+    <None Include="res\cancel.ico" />
+    <None Include="res\find.ico" />
+    <None Include="res\invert.ico" />
+    <None Include="res\ok.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zCapiO.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CapiCondition.h" />
+    <ClInclude Include="CapiContent.h" />
+    <ClInclude Include="CapiContentVirtualFileMapping.h" />
     <ClInclude Include="CapiControl.h" />
     <ClInclude Include="CapiFill.h" />
     <ClInclude Include="CapiLogicParameters.h" />
+    <ClInclude Include="CapiName.h" />
     <ClInclude Include="CapiQuestion.h" />
     <ClInclude Include="CapiQuestionManager.h" />
     <ClInclude Include="CapiQuestionYaml.h" />
@@ -109,6 +113,7 @@
     <ClInclude Include="ExtendedControl.h" />
     <ClInclude Include="Pre76CapiQuestionFile.h" />
     <ClInclude Include="QSFView.h" />
+    <ClInclude Include="RectExtended.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SelectCtrl.h" />
     <ClInclude Include="SelectDlg.h" />

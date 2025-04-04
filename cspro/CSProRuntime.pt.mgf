@@ -245,10 +245,6 @@ Language=PT
 47156  Array alfabético esperado
 47158  Array numérico esperado
 
-48000  Expressão inválida (%s) no texto CAPI
-48001  Função com argumentos definida pelo usuário (%s) não pode ser usada no texto CAPI
-48002  Subscrito inválido (%s) no texto CAPI
-
 /* --- New Crosstab -- */
 90545  Não foi possível entrar em ( %s ) - este Fluxo já foi entrado antes
 

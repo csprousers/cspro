@@ -24,10 +24,6 @@
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>
 
-#ifdef WIN_DESKTOP
-#include <zUtilO/TraceMsg.h>
-#endif
-
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)
 #undef THIS_FILE
@@ -577,9 +573,9 @@ CString CRunAplEntry::GetVal(const DEFLD* pDeField)
 
 
 // RHF INIC Jan 13, 2000
-CCapi* CRunAplEntry::GetCapi() const
+CCapi& CRunAplEntry::GetCapi()
 {
-    return( m_pEntryIFaz->C_GetCapi() );
+    return m_pEntryIFaz->C_GetCapi();
 }
 
 

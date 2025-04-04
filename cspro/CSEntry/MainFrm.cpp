@@ -386,21 +386,6 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
     return TRUE;
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// CMainFrame diagnostics
-
-#ifdef _DEBUG
-void CMainFrame::AssertValid() const
-{
-    CFrameWnd::AssertValid();
-}
-
-void CMainFrame::Dump(CDumpContext& dc) const
-{
-    CFrameWnd::Dump(dc);
-}
-
-#endif //_DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
@@ -1224,7 +1209,7 @@ void CMainFrame::OnStop(bool* close_csentry_after_stopping)
         m_bCaseTreeActiveOnStart = true;
     }
 
-    OnSetCapiText(NULL,0);
+    SetCapiText(SharableString(), nullptr);
 
     // redraw the title
     SetWindowText(TC::ToWide(pDoc->MakeTitle()).c_str());
@@ -4137,13 +4122,13 @@ LONG CMainFrame::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
     CEntryrunView*  pView=GetRunView();
 
     if(pDoc && pView && (pRunApl=pDoc->GetRunApl()) != NULL && (pCurField = (CDEField*)pDoc->GetCurField()) != NULL ) {
-        CCapi* pCapi=pRunApl->GetCapi();
+        CCapi& capi = pRunApl->GetCapi();
 
-        if( pCapi->GetAroundField() != pFieldWnd ) {
+        if( capi.GetAroundField() != pFieldWnd ) {
             return 0; // RHF Jan 20, 2003
         }
 
-        pCapi->UpdateSelection(csMarked);
+        capi.UpdateSelection(csMarked);
     }
 
     return 0;
@@ -4591,21 +4576,23 @@ LONG CMainFrame::OnSetSequential(WPARAM wParam, LPARAM lParam)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CMainFrame::OnSetCapiText(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnSetCapiText(WPARAM wParam, LPARAM lParam)
 //
 // revised csc 2/10/2004
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnSetCapiText(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnSetCapiText(const WPARAM wParam, const LPARAM lParam)
 {
-    QSFView* qsf_view = GetQTxtView();
-    auto capi_text = (const CString*)wParam;
-    auto color = (const COLORREF*)lParam;
-
-    qsf_view->SetText(( capi_text != nullptr ) ? UTF8_TODO::GetUtf8(*capi_text) : std::string(),
-                      ( color != nullptr ) ? std::make_optional(PortableColor::FromCOLORREF(*color)) : std::nullopt);
-
+    SetCapiText(*reinterpret_cast<const SharableString*>(wParam),
+                reinterpret_cast<const COLORREF*>(lParam));
     return 0;
+}
+
+
+void CMainFrame::SetCapiText(SharableString text, const COLORREF* const background_color)
+{
+    GetQTxtView()->SetText(std::move(text), ( background_color != nullptr ) ? std::make_optional(PortableColor::FromCOLORREF(*background_color)) :
+                                                                              std::nullopt);
 }
 
 

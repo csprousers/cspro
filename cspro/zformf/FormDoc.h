@@ -181,8 +181,8 @@ public:
 
     void SetSelectedCapiQuestion(CFormID* form_id);
 
-    CapiQuestionManager* GetCapiQuestionManager()                       { return m_question_manager.get(); }
-    std::shared_ptr<CapiQuestionManager> GetSharedCapiQuestionManager() { return m_question_manager; }
+    CapiQuestionManager* GetCapiQuestionManager()                       { return m_questionManager.get(); }
+    std::shared_ptr<CapiQuestionManager> GetSharedCapiQuestionManager() { return m_questionManager; }
 
     void SetCapiQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager);
 
@@ -223,5 +223,5 @@ private:
     int m_iCurFormIndex;
 
     CapiEditorViewModel m_capi_editor_view_model;
-    std::shared_ptr<CapiQuestionManager> m_question_manager;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
 };

@@ -19,7 +19,7 @@ class CQSFEView : public CFormView
     DECLARE_DYNAMIC(CQSFEView)
 
 public:
-    CQSFEView(const CString& ent_path);
+    CQSFEView(CFormDoc* pFormDoc);
     ~CQSFEView();
 
     void SetLanguages(std::vector<Language> languages);
@@ -31,7 +31,7 @@ public:
 
     const Language& GetCurrentLanguage() const { return m_languages[m_languageIndex]; }
 
-    bool IsDirty() const { return m_html_edit.IsDirty(); }
+    bool IsDirty() const { return m_htmlEditorCtrl.IsDirty(); }
 
     void UpdateDisplayText();
     void SetStyles(const std::vector<CapiStyle>& styles);
@@ -106,7 +106,7 @@ protected:
     afx_msg void OnTimer(UINT nIDEvent);
 
 private:
-    void SetupFileServer(const CString& application_filename);
+    void SetupFileServer();
 
     void OnViewHide();
     void OnQuestionTextTypeChanged();
@@ -117,17 +117,17 @@ private:
     void UpdateFillErrorDisplay();
 
 private:
-    HtmlEditorCtrl m_html_edit;
+    HtmlEditorCtrl m_htmlEditorCtrl;
     std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
     std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
 
-    CString m_ent_path;
+    std::string m_applicationFilePath;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
-    CapiTextType m_text_type;
+    CapiText::Type m_textType;
     QSFEditToolbar m_toolbar;
     std::optional<UINT_PTR> m_idle_timer;
     enum { idleTimerID };
 
-    std::map<std::wstring, CapiEditorViewModel::SyntaxCheckResult> m_fill_syntax_check_results;
+    std::map<std::string, CapiEditorViewModel::SyntaxCheckResult> m_fillSyntaxCheckResults;
 };

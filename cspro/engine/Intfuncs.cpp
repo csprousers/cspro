@@ -30,7 +30,6 @@
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/PortableFileSystem.h>
-#include <zUtilO/TraceMsg.h>
 #include <zMessageO/MessageFile.h>
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
@@ -3544,24 +3543,6 @@ double CIntDriver::exgetvaluealpha(int iExpr) // 20140422
     }
 
     return AssignAlphaValue(alpha_value);
-}
-
-
-SharableString CIntDriver::GetValueLabel(const int iCurVar, VART* const pVarT)
-{
-    const int occurrence_number = EvaluateCapiVariableCurrentOccurrence(iCurVar, pVarT);
-
-    if( pVarT->IsNumeric() )
-    {
-        const double value = GetVarValue(pVarT->GetSymbolIndex(), occurrence_number, false); // don't use the visual value
-        return GetValueLabel(pVarT, value);
-    }
-
-    else
-    {
-        const SharableString value = UTF8_TODO::GetUtf8(GetVarAsciiValue(pVarT->GetSymbolIndex(), occurrence_number));
-        return GetValueLabel(pVarT, value);
-    }
 }
 
 

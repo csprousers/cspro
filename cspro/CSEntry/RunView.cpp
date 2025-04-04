@@ -7,7 +7,6 @@
 #include "DETextEdit.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
-#include <zCapiO/capi.h>
 #include <ZBRIDGEO/npff.h>
 
 
@@ -123,7 +122,7 @@ void CEntryrunView::OnDraw(CDC* pDC)
     CDEFormFile* pFF = pDoc->GetCurFormFile();
 
     //Get the current form Number
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     int iFormNum = pRunDoc->GetCurFormNum();
     const CDEForm* pForm = pFF->GetForm(iFormNum);
 
@@ -271,7 +270,7 @@ BOOL CEntryrunView::OnEraseBkgnd(CDC* pDC)
     CRect rect;
     GetClientRect(rect);
 
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CDEFormFile* pFF = pRunDoc->GetCurFormFile();
 
     //Get the current form Number
@@ -453,7 +452,7 @@ BOOL CEntryrunView::ResetForm()
     CDEFormFile* pFormfile = pDoc->GetCurFormFile();
     CDEBaseEdit::SetFieldFont(&pFormfile->GetFieldFont().GetCFont());
 
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
 
     //Get the current form Number
     int iFormNum = pRunDoc->GetCurFormNum();
@@ -652,8 +651,8 @@ void CEntryrunView::DrawStaticItems()
     //If the application is not loaded return
     Application* pApp = pPIF->GetApplication();
 
-    CEntryrunDoc* pRunDoc = GetDocument();
-    const CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    const CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
     if (pRunApl == nullptr || !pRunApl->HasAppLoaded())
         return;
 
@@ -713,10 +712,9 @@ BOOL CEntryrunView::AddEditItem(CDEField* pField)
     //Get the rect for the field
     CRect fldRect = pField->GetDims();
 
-
-    CClientDC dc(this);
+    /*CClientDC dc(this);
     CSize sizeCh = dc.GetTextExtent(_T("9"));
-    /*if(fldRect.Height() < sizeCh.cy + 6) {
+    if(fldRect.Height() < sizeCh.cy + 6) {
         //SAVY&& if SMG changes her logics you have to change this
         //This should be called only if the height is insufficient to enter data
         int iDiff = sizeCh.cy + 6 -fldRect.Height();
@@ -766,14 +764,15 @@ BOOL CEntryrunView::AddEditItem(CDEField* pField)
     if (pField->IsProtected()|| pField->IsMirror())
         dwStyle |= ES_READONLY;
 
-    CDEBaseEdit* pEdit = NULL;
-    //For now all alphaa are created wih the new text field.
+    CDEBaseEdit* pEdit;
+
+    //For now all alpha are created wih the new text field.
     if (pField->UseUnicodeTextBox() && pField->GetDictItem()->GetContentType() == ContentType::Alpha ){
-            dwStyle |=  WS_BORDER;
-            pEdit =  (CDEBaseEdit*)(new CDETextEdit());
+        dwStyle |= WS_BORDER;
+        pEdit = new CDETextEdit();
     }
     else {
-        pEdit =  new CDEEdit();
+        pEdit = new CDEEdit();
     }
 
     //Create the edit field
@@ -870,8 +869,8 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
       }
     }
 
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
     switch(wParam)  {
 
     case VK_ESCAPE:
@@ -896,7 +895,6 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
             if (!pRunApl || !pRunApl->HasAppLoaded() )
                 return 0L;
 
-            CCapi* pCapi=pRunApl->GetCapi();
             const CDictItem* pItem = pEdit->GetField()->GetDictItem();
 
             if( pItem != NULL ) {
@@ -904,9 +902,10 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
 
                 pRunApl->GetDeFld( pEdit->GetField(), &DeFld );
 
-                pCapi->SetFrameWindow( this );
-                pCapi->SetAroundField( pEdit );
-                pCapi->ToggleHelp( &DeFld );
+                CCapi& capi = pRunApl->GetCapi();
+                capi.SetFrameWindow( this );
+                capi.SetAroundField( pEdit );
+                capi.ToggleHelp( &DeFld );
             }
         }
         break;
@@ -1000,7 +999,7 @@ void CEntryrunView::DoGoToFld(CDEField* pField)
 {
     //Get the parent of the field
     //if it is a roster then get the corresponding grid and set the field
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     if(!pField)
         return;
 
@@ -1085,7 +1084,7 @@ void CEntryrunView::OnEditEnter(CDEBaseEdit* pEdit)
     //Validation happens before the control comes this place at
     //the subclassed Edit control so the data is Valid for the
     //questionnaire
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
 
     if(!OutOfSequence(pEdit))  {
         pEdit->SetFocus();
@@ -1364,7 +1363,7 @@ void CEntryrunView::OnEditPrev(CDEBaseEdit* pEdit)
     int iPrevOcc = pEdit->GetField()->GetParent()->GetCurOccurrence();
 
 
-    CEntryrunDoc* pDoc = (CEntryrunDoc*) GetDocument();
+    CEntryrunDoc* pDoc = GetDocument();
     CRunAplEntry* pApl = pDoc->GetRunApl();
 
     //Set the data in the field
@@ -1498,7 +1497,7 @@ void CEntryrunView::UpdateFields()
     int iCount = m_aEdit.GetSize();
     BOOL bVisible;
     CRect rcClient, rcEdit, rcIntersect;
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*  pRunApl = pRunDoc->GetRunApl();
     CDEField*       pField;
 
@@ -1564,8 +1563,6 @@ void CEntryrunView::UpdateFields()
 
 
 // RHF INIC 20/8/99
-// GSF changed this to a member of the view and fixed memory leak
-//static CEntryColor* pEntryColor=NULL;
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      HBRUSH CEntryrunView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -1575,7 +1572,7 @@ HBRUSH CEntryrunView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
     if( nCtlColor == CTLCOLOR_EDIT ) {
         CDEBaseEdit*    pEdit=(CDEBaseEdit*) pWnd;
-        CEntryrunDoc* pRunDoc = GetDocument();
+        CEntryrunDoc* const pRunDoc = GetDocument();
         CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
         CDEField*   pField;
 
@@ -1754,8 +1751,8 @@ LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
     if( pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON )
         return 1L;
 
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     bGoTo = false; //To fix the CTrl+/ bug in the grid when the grid is on the same page as that of the other fields
 
@@ -1881,7 +1878,7 @@ LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
 /////////////////////////////////////////////////////////////////////////////////
 void CEntryrunView::OnUpdateEndgrp(CCmdUI* pCmdUI)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     pCmdUI->Enable(FALSE);
     if(!pRunApl) {
@@ -1966,7 +1963,7 @@ LONG CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM /*lParam*/)
 
 //  --- next 14 lines are copied/adapted from OnEditEnter
     if(!pItem) {
-        CEntryrunDoc* pDoc = (CEntryrunDoc*) GetDocument();
+        CEntryrunDoc* pDoc = GetDocument();
 
          // RHF INIC Feb 23, 2004
         if(pRunDoc->IsPartialAdd())  {
@@ -2089,7 +2086,7 @@ BOOL  CEntryrunView::CheckToShow(const CDEItemBase* pTestBase)
 {
     BOOL bShow = FALSE;
 
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     ASSERT(pRunDoc);
 
     if(pRunDoc->GetAppMode() != VERIFY_MODE){
@@ -2353,20 +2350,21 @@ void CEntryrunView::SetCurrentFormFileNum( CDEField* pField )
 // RHF INIC Jan 30, 2000
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      void CEntryrunView::ShowCapi( const CDEField* pField ) const
+//      void CEntryrunView::ShowCapi( const CDEField* pField )
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowCapi( const CDEField* pField ) const
+void CEntryrunView::ShowCapi(const CDEField* const pField)
 {
-    CDEBaseEdit*        pEdit=SearchEdit( pField );
-    ShowCapi( pEdit );
+    const CDEBaseEdit* const pEdit = SearchEdit( pField );
+    ShowCapi(pEdit);
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      void CEntryrunView::ShowCapi(const CDEBaseEdit* pEdit) const
+//      void CEntryrunView::ShowCapi(const CDEBaseEdit* pEdit)
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowCapi(const CDEBaseEdit* pEdit) const
+void CEntryrunView::ShowCapi(const CDEBaseEdit* const pEdit)
 {
     if( pEdit != NULL ) {
         if (pEdit->IsKindOf(RUNTIME_CLASS(CDETextEdit))) {
@@ -2375,130 +2373,130 @@ void CEntryrunView::ShowCapi(const CDEBaseEdit* pEdit) const
         ShowQuestion( pEdit );
         ShowLabels( pEdit );
         // RHF INIC Dec 04, 2002
-        CEntryrunDoc* pRunDoc = ((CEntryrunView *)this)->GetDocument();
-        CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+        CEntryrunDoc* const pRunDoc = GetDocument();
+        CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
-        if (!pRunApl || !pRunApl->HasAppLoaded())
+        if( pRunApl == nullptr || !pRunApl->HasAppLoaded() )
             return;
 
-        CCapi* pCapi=pRunApl->GetCapi();
-        pCapi->CheckInZone(false);
+        pRunApl->GetCapi().CheckInZone(false);
     }
     else {
         DeleteLabels();
     }
 }
 // RHF END Jan 30, 2000
+//
 // RHF INIC Jan 14, 2000
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      void CEntryrunView::ShowLabels( const CDEField* pField ) const
+//      void CEntryrunView::ShowLabels( const CDEField* pField )
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowLabels( const CDEField* pField ) const
+void CEntryrunView::ShowLabels(const CDEField* pField)
 {
-    CDEBaseEdit*        pEdit=SearchEdit( pField );
-    if( pEdit != NULL )
-        ShowLabels( (const CDEBaseEdit*)pEdit );
+    const CDEBaseEdit* const pEdit = SearchEdit(pField);
+
+    if( pEdit != nullptr )
+    {
+        ShowLabels(pEdit);
+    }
+
     else
+    {
         DeleteLabels();
-}
-/////////////////////////////////////////////////////////////////////////////////
-//
-//      void CEntryrunView::ShowQuestion( const CDEField* pField ) const
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowQuestion( const CDEField* pField ) const
-{
-    CDEBaseEdit*        pEdit=SearchEdit( pField );
-    if( pEdit != NULL )
-        ShowQuestion( (const CDEBaseEdit*)pEdit );
-}
-/////////////////////////////////////////////////////////////////////////////////
-//
-//      void CEntryrunView::ShowQuestion(const CDEBaseEdit* pEdit) const
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowQuestion(const CDEBaseEdit* pEdit) const
-{
-    CEntryrunDoc* pRunDoc = ((CEntryrunView *)this)->GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
-
-    if (!pRunApl || !pRunApl->HasAppLoaded())
-        return;
-
-    CCapi* pCapi=pRunApl->GetCapi();
-    const CDictItem* pItem = ((CDEBaseEdit*)pEdit)->GetField()->GetDictItem();
-
-    if( pItem != NULL ) {
-        DEFLD DeFld;
-        //Defld={0,0};
-        // DeFld.Init(); // called by DEFLD constructor // rcl Jun 28, 2004
-
-        pRunApl->GetDeFld( ((CDEBaseEdit*)pEdit)->GetField(), &DeFld );
-
-        pCapi->SetFrameWindow( (CWnd*)this );
-        pCapi->SetAroundField( (CDEBaseEdit*)pEdit );
-        pCapi->DoQuestion( &DeFld );
-    }
-
-}
-/////////////////////////////////////////////////////////////////////////////////
-//
-//      void CEntryrunView::ShowLabels(const CDEBaseEdit* pEdit) const
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::ShowLabels(const CDEBaseEdit* pEdit) const
-{
-    CEntryrunDoc* pRunDoc = ((CEntryrunView *)this)->GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
-
-    if (!pRunApl || !pRunApl->HasAppLoaded())
-        return;
-
-    CCapi* pCapi=pRunApl->GetCapi();
-    const CDictItem* pItem = ((CDEBaseEdit*)pEdit)->GetField()->GetDictItem();
-
-
-    if( pItem != NULL ) {
-        DEFLD DeFld;
-        //Defld={0,0};
-        // DeFld.Init(); // called by DEFLD constructor // rcl Jun 28, 2004
-
-        pRunApl->GetDeFld( ((CDEBaseEdit*)pEdit)->GetField(), &DeFld );
-
-        pCapi->SetFrameWindow( (CWnd*)this );
-        pCapi->SetAroundField( (CDEBaseEdit*)pEdit );
-        pCapi->DeleteLabels();
-        pCapi->DoLabelsModeless( &DeFld );
     }
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      CCapi* CEntryrunView::GetCapi() const
+//      void CEntryrunView::ShowQuestion( const CDEField* pField )
 //
 /////////////////////////////////////////////////////////////////////////////////
-CCapi* CEntryrunView::GetCapi() const
+void CEntryrunView::ShowQuestion(const CDEField* pField )
 {
-    CEntryrunDoc* pRunDoc = ((CEntryrunView *)this)->GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    const CDEBaseEdit* const pEdit = SearchEdit(pField);
 
-    if (!pRunApl || !pRunApl->HasAppLoaded())
-        return( NULL );
-
-    return( pRunApl->GetCapi() );
+    if( pEdit != nullptr )
+        ShowQuestion(pEdit);
 }
-/////////////////////////////////////////////////////////////////////////////////
-//
-//      void CEntryrunView::DeleteLabels() const
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CEntryrunView::DeleteLabels() const
-{
 
-    CCapi* pCapi=GetCapi();
-    if( pCapi )
-        pCapi->DeleteLabels();
+/////////////////////////////////////////////////////////////////////////////////
+//
+//      void CEntryrunView::ShowQuestion(const CDEBaseEdit* pEdit)
+//
+/////////////////////////////////////////////////////////////////////////////////
+void CEntryrunView::ShowQuestion(const CDEBaseEdit* pEdit)
+{
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
+
+    if( pRunApl == nullptr || !pRunApl->HasAppLoaded() )
+        return;
+
+    const CDictItem* const pItem = ((CDEBaseEdit*)pEdit)->GetField()->GetDictItem();
+
+    if( pItem == nullptr )
+        return;
+
+    DEFLD DeFld;
+    //Defld={0,0};
+    // DeFld.Init(); // called by DEFLD constructor // rcl Jun 28, 2004
+
+    pRunApl->GetDeFld( ((CDEBaseEdit*)pEdit)->GetField(), &DeFld );
+
+    CCapi& capi = pRunApl->GetCapi();
+    capi.SetFrameWindow( (CWnd*)this );
+    capi.SetAroundField( (CDEBaseEdit*)pEdit );
+    capi.DoQuestion( &DeFld );
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//      void CEntryrunView::ShowLabels(const CDEBaseEdit* pEdit)
+//
+/////////////////////////////////////////////////////////////////////////////////
+void CEntryrunView::ShowLabels(const CDEBaseEdit* pEdit)
+{
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
+
+    if( pRunApl == nullptr || !pRunApl->HasAppLoaded() )
+        return;
+
+    const CDictItem* pItem = ((CDEBaseEdit*)pEdit)->GetField()->GetDictItem();
+
+    if( pItem == nullptr )
+        return;
+
+    DEFLD DeFld;
+    //Defld={0,0};
+    // DeFld.Init(); // called by DEFLD constructor // rcl Jun 28, 2004
+
+    pRunApl->GetDeFld( ((CDEBaseEdit*)pEdit)->GetField(), &DeFld );
+
+    CCapi& capi = pRunApl->GetCapi();
+    capi.SetFrameWindow( (CWnd*)this );
+    capi.SetAroundField( (CDEBaseEdit*)pEdit );
+    capi.DeleteLabels();
+    capi.DoLabelsModeless( &DeFld );
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//      void CEntryrunView::DeleteLabels()
+//
+/////////////////////////////////////////////////////////////////////////////////
+void CEntryrunView::DeleteLabels()
+{
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
+
+    if( pRunApl == nullptr || !pRunApl->HasAppLoaded() )
+        return;
+
+    pRunApl->GetCapi().DeleteLabels();
 }
 
 // Return CDEEDIt of pField. If pField belongs to a roster, pField must be the current
@@ -2510,11 +2508,11 @@ void CEntryrunView::DeleteLabels() const
 /////////////////////////////////////////////////////////////////////////////////
 CDEBaseEdit*CEntryrunView::SearchEdit( const CDEField* pField ) const
 {
-    int         iCount = m_aEdit.GetSize();
-    CDEBaseEdit*    pEdit=NULL;
+    if( pField == nullptr  )
+        return nullptr;
 
-    if( pField == NULL )
-        return( NULL );
+    int iCount = m_aEdit.GetSize();
+    CDEBaseEdit* pEdit = nullptr;
 
     CDEGroup* pGroup = ((CDEField*)pField)->GetParent();
     if(pGroup && pGroup->IsKindOf(RUNTIME_CLASS(CDERoster))) {
@@ -2547,8 +2545,8 @@ void CEntryrunView::ProcessModifyMode()
 {
     CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
     CCaseView* pView = pFrame->GetCaseView();
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     bool bVerifyMode = ( pRunDoc->GetAppMode() == VERIFY_MODE );
 
@@ -3254,7 +3252,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
         BOOL bCheck = FALSE;
 
         for(int iIndex =0; iIndex < pParent->GetNumItems(); iIndex++) {
-            CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+            CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
             if(pParent->GetItem(iIndex) != pField && !bCheck){
                 continue;
             }
@@ -3418,7 +3416,7 @@ void CEntryrunView::PutEditValInBuffers(CDEBaseEdit* pEdit)
     CDEField* pField = pEdit->GetField();
     ASSERT(pField);
     CEntryrunDoc* pRunDoc  = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     CIMSAString sString;
     pEdit->GetWindowText(sString);
@@ -3460,8 +3458,8 @@ void CEntryrunView::PutEditValInBuffers(CDEBaseEdit* pEdit)
 BOOL CEntryrunView::ChkPProcReq(CDEBaseEdit* pEdit)
 {
     BOOL bRet = FALSE;
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
 
     if(pEdit) {
@@ -3513,7 +3511,7 @@ CDEGrid* CEntryrunView::FindGrid(CDEGroup* pGroup) const
 }
 void CEntryrunView::OnInsertGroupocc()
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
 
@@ -3572,7 +3570,7 @@ void CEntryrunView::OnCaseNote()
 /////////////////////////////////////////////////////////////////////////////////
 void CEntryrunView::OnInsertGroupoccAfter()
 {           // victor Mar 26, 02
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
 
@@ -3598,7 +3596,7 @@ void CEntryrunView::OnInsertGroupoccAfter()
 }
 void CEntryrunView::OnUpdateInsertGroupocc(CCmdUI* pCmdUI)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     pCmdUI->Enable(FALSE);
     if(!pRunApl) {
@@ -3629,7 +3627,7 @@ void CEntryrunView::OnUpdateInsertGroupocc(CCmdUI* pCmdUI)
 
 void CEntryrunView::OnDeleteGrpocc()
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
 
@@ -3652,7 +3650,7 @@ void CEntryrunView::OnDeleteGrpocc()
 
 void CEntryrunView::OnUpdateDeleteGrpocc(CCmdUI* pCmdUI)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     pCmdUI->Enable(FALSE);
     if(!pRunApl) {
@@ -3687,7 +3685,7 @@ void CEntryrunView::OnUpdateDeleteGrpocc(CCmdUI* pCmdUI)
 /////////////////////////////////////////////////////////////////////////////////
 void CEntryrunView::OnSortgrpocc()
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
     bool bRet = false;
@@ -3711,7 +3709,7 @@ void CEntryrunView::OnSortgrpocc()
 /////////////////////////////////////////////////////////////////////////////////
 void CEntryrunView::OnUpdateSortgrpocc(CCmdUI* pCmdUI)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry*    pRunApl = pRunDoc->GetRunApl();
     pCmdUI->Enable(FALSE);
     if(!pRunApl) {
@@ -3810,8 +3808,8 @@ LONG CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
 /////////////////////////////////////////////////////////////////////////////////
 LONG CEntryrunView::OnPreviousPersistent(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
     ASSERT(pRunApl);
 
     SetGridEdit((CDEField*)pRunDoc->GetCurField());
@@ -3835,8 +3833,8 @@ LONG CEntryrunView::OnPreviousPersistent(WPARAM /*wParam*/, LPARAM /*lParam*/)
 template<typename GFC>
 void CEntryrunView::GoToField(GFC get_field_callback)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     // main action: call MoveToField
 
@@ -3965,13 +3963,13 @@ LONG CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
 
 LONG CEntryrunView::OnCheatKey(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     if(GetDocument()->GetAppMode() != VERIFY_MODE){
         return 0l;
     }
     m_bCheatKey = !m_bCheatKey;
 
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
     CDEField* pField =(CDEField*)pRunDoc->GetCurField();
     CDEBaseEdit* pEdit = SearchEdit(pField);
     CIMSAString sSafeString;
@@ -4007,8 +4005,8 @@ LONG CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
         return 0L;
     }
 
-    CEntryrunDoc* pRunDoc = GetDocument();
-    CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+    CEntryrunDoc* const pRunDoc = GetDocument();
+    CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     if (!pRunApl || !pRunApl->HasAppLoaded() )
         return 0L;
@@ -4016,10 +4014,10 @@ LONG CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
     int     iVar=pEdit->GetField()->GetSymbol();
 
     if( wParam == 1 ) { // Only refresh the current capi windows
-        CCapi* pCapi=pRunApl->GetCapi();
-        pCapi->RefreshPosition();
-        pCapi->CheckInZone(false); // RHF Jan 13, 2003
-        pCapi->CheckOverlap(true);
+        CCapi& capi = pRunApl->GetCapi();
+        capi.RefreshPosition();
+        capi.CheckInZone(false); // RHF Jan 13, 2003
+        capi.CheckOverlap(true);
     }
     else{
         pRunApl->RunGlobalOnFocus( iVar );
@@ -4037,7 +4035,7 @@ LONG CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
 /////////////////////////////////////////////////////////////////////////////////
 LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
 {
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
 
     BOOL bPathOff = !pRunDoc->GetCurFormFile()->IsPathOn();
     if(!bPathOff)
@@ -5207,8 +5205,8 @@ int CEntryrunView::GetDynamicMaxOccs(CDEGroup* pGroup)
     }
     else {
         CIMSAString sVal;
-        CEntryrunDoc* pRunDoc = GetDocument();
-        CRunAplEntry* pRunApl = pRunDoc->GetRunApl();
+        CEntryrunDoc* const pRunDoc = GetDocument();
+        CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
         CDEField* pDynField = NULL;
         CDEForm* pForm  = NULL;
         pRunDoc->GetCurFormFile()->FindField(UTF8_TODO::GetCString(pGroup->GetMaxDEField()->GetName()), &pForm, (CDEItemBase**)&pDynField);

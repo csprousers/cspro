@@ -48,7 +48,6 @@
     <ClCompile Include="..\Nextnode.cpp" />
     <ClCompile Include="..\ParadataDriver.cpp" />
     <ClCompile Include="..\Pre80Routines.cpp" />
-    <ClCompile Include="..\QuestionTextParamCache.cpp" />
     <ClCompile Include="..\Tabfuncs.cpp" />
     <ClCompile Include="..\Tbd_save.cpp" />
     <ClCompile Include="..\VTSTRUCT.cpp" />

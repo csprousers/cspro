@@ -63,7 +63,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\zCapiO\capi.cpp" />
+    <ClCompile Include="CapiHandler.cpp" />
     <ClCompile Include="DeploymentPackageDownloader.cpp" />
     <ClCompile Include="EntDrv.cpp" />
     <ClCompile Include="LevelNodeProcessing.cpp" />
@@ -77,8 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ZBRIDGEO\runapl.h" />
-    <ClInclude Include="..\zCapiO\capi.h" />
-    <ClInclude Include="hreplace.h" />
+    <ClInclude Include="CapiHandler.h" />
     <ClInclude Include="Runaple.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="zEntryO.h" />

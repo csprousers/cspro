@@ -13,6 +13,7 @@ CCapiControl::CCapiControl()
 {
 }
 
+
 void CCapiControl::LaunchWindow(CExtendedControl* pParent)
 {
     m_pParent = pParent;
@@ -28,7 +29,7 @@ void CCapiControl::LaunchWindow(CExtendedControl* pParent)
             m_backgroundBrush.CreateSysColorBrush(COLOR_WINDOW);
             break;
         default:
-            // Grey dialog background color
+            // Gray dialog background color
             m_backgroundBrush.CreateSysColorBrush(COLOR_3DFACE);
     }
 
@@ -71,7 +72,8 @@ void CCapiControl::CreateControls()
         m_Calendar.Create(WS_CHILD | WS_VISIBLE | WS_BORDER,pt,this,EXTENDED_CONTROL_RESOURCE_ID);
     }
 
-    else if( m_pParent->m_captureType == CaptureType::DropDown || m_pParent->m_captureType == CaptureType::ComboBox )
+    else if( m_pParent->m_captureType == CaptureType::DropDown ||
+             m_pParent->m_captureType == CaptureType::ComboBox )
     {
         const auto& responses = m_pParent->m_responseProcessor->GetResponses();
         INT_PTR number_responses = (INT_PTR)responses.size();
@@ -127,7 +129,8 @@ void CCapiControl::CreateControls()
     }
 
 
-    else if( m_pParent->m_captureType == CaptureType::CheckBox || m_pParent->m_captureType == CaptureType::RadioButton ||
+    else if( m_pParent->m_captureType == CaptureType::CheckBox ||
+             m_pParent->m_captureType == CaptureType::RadioButton ||
              m_pParent->m_captureType == CaptureType::ToggleButton )
     {
         const auto& responses = m_pParent->m_responseProcessor->GetResponses();
@@ -163,17 +166,19 @@ void CCapiControl::CreateControls()
             controlRect.right = textSize.cx + 3 * characterWidth; // Add 3 characters spacing to leave space for button
             controlRect.bottom = textSize.cy;
 
-            DWORD dwStyle = WS_CHILD | WS_VISIBLE;
+            const bool uses_checkbox = ( m_pParent->m_captureType == CaptureType::CheckBox ||
+                                         m_pParent->m_captureType == CaptureType::ToggleButton );
 
-            if( m_pParent->m_captureType == CaptureType::CheckBox || m_pParent->m_captureType == CaptureType::ToggleButton )
-                dwStyle |= BS_AUTOCHECKBOX;
+            const DWORD dwStyle = WS_CHILD | WS_VISIBLE | ( uses_checkbox ? BS_AUTOCHECKBOX : BS_AUTORADIOBUTTON );
 
-            // Radio button
-            else
-                dwStyle |= BS_AUTORADIOBUTTON;
+            CButton& button = m_buttons[i];
+            button.Create(code_text, dwStyle, controlRect, this, EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
+            button.SetFont(m_pParent->GetControlFont());
 
-            m_buttons[i].Create(code_text,dwStyle,controlRect,this,EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
-            m_buttons[i].SetFont(m_pParent->GetControlFont());
+            // don't use visual styles for the checkboxes, otherwise they will be drawn with a gray
+            // background, not the white background used for checkbox / toggle controls
+            if( uses_checkbox )
+                SetWindowTheme(button, L"", L"");
         }
 
         // now draw the labels in a second column
@@ -292,7 +297,8 @@ CSize CCapiControl::GetControlsMinSize()
         result = calendarRect.Size();
     }
 
-    else if( m_pParent->m_captureType == CaptureType::DropDown || m_pParent->m_captureType == CaptureType::ComboBox )
+    else if( m_pParent->m_captureType == CaptureType::DropDown ||
+             m_pParent->m_captureType == CaptureType::ComboBox )
     {
         CArray< CArray<CWnd*>* > controls;
         CArray<CWnd*> values, labels, images, rowBackgrounds;
@@ -311,7 +317,8 @@ CSize CCapiControl::GetControlsMinSize()
         result = LayoutInGrid(controls, alignments, 0, EXTENDED_CONTROL_COL_SPACING, EXTENDED_CONTROL_ROW_SPACING, rowBackgrounds, true);
     }
 
-    else if( m_pParent->m_captureType == CaptureType::CheckBox || m_pParent->m_captureType == CaptureType::RadioButton ||
+    else if( m_pParent->m_captureType == CaptureType::CheckBox ||
+             m_pParent->m_captureType == CaptureType::RadioButton ||
              m_pParent->m_captureType == CaptureType::ToggleButton )
     {
         CArray< CArray<CWnd*>* > controls;
@@ -349,6 +356,7 @@ CSize CCapiControl::GetControlsMinSize()
     return result;
 }
 
+
 void CCapiControl::LayoutControls()
 {
     if( m_pParent->m_captureType == CaptureType::Date )
@@ -356,7 +364,9 @@ void CCapiControl::LayoutControls()
         // This is already done when computing size and window title is always
         // set to "Date" so it never needs re-layout.
     }
-    else if( m_pParent->m_captureType == CaptureType::DropDown || m_pParent->m_captureType == CaptureType::ComboBox )
+
+    else if( m_pParent->m_captureType == CaptureType::DropDown ||
+             m_pParent->m_captureType == CaptureType::ComboBox )
     {
         CArray< CArray<CWnd*>* > controls;
         CArray<CWnd*> values, labels, images, rowBackgrounds;
@@ -375,7 +385,9 @@ void CCapiControl::LayoutControls()
         alignments.Add(LVCFMT_CENTER);
         LayoutInGrid(controls, alignments, EXTENDED_CONTROL_BORDER_SIZE, EXTENDED_CONTROL_COL_SPACING, EXTENDED_CONTROL_ROW_SPACING, rowBackgrounds, false);
     }
-    else if( m_pParent->m_captureType == CaptureType::CheckBox || m_pParent->m_captureType == CaptureType::RadioButton ||
+
+    else if( m_pParent->m_captureType == CaptureType::CheckBox ||
+             m_pParent->m_captureType == CaptureType::RadioButton ||
              m_pParent->m_captureType == CaptureType::ToggleButton )
     {
         CArray< CArray<CWnd*>* > controls;
@@ -400,7 +412,6 @@ void CCapiControl::LayoutControls()
         // This is already done when computing size and window title is always
         // set to "Numberpad" so it never needs re-layout.
     }
-
 }
 
 
@@ -412,7 +423,8 @@ void CCapiControl::UpdateSelection(const CString& keyedText)
         m_Calendar.SetCurSel(fieldDate);
     }
 
-    else if( m_pParent->m_captureType == CaptureType::DropDown || m_pParent->m_captureType == CaptureType::ComboBox )
+    else if( m_pParent->m_captureType == CaptureType::DropDown ||
+             m_pParent->m_captureType == CaptureType::ComboBox )
     {
         int valueSelected = SearchVS(keyedText);
 
@@ -448,7 +460,9 @@ void CCapiControl::UpdateSelection(const CString& keyedText)
     }
 
     else if( m_pParent->m_captureType == CaptureType::CheckBox )
+    {
         TranslateStringToCheckbox(keyedText);
+    }
 
     else if( m_pParent->m_captureType == CaptureType::RadioButton )
     {
@@ -595,7 +609,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
     {
         NMHDR* pNMHDR = (LPNMHDR)lParam;
 
-        if( pNMHDR->code == MCN_SELECT && ( m_pParent->m_captureType == CaptureType::Date ) )
+        if( pNMHDR->code == MCN_SELECT && m_pParent->m_captureType == CaptureType::Date )
         {
             CString newFieldText;
             newFieldText = TranslateDateToString();
@@ -603,7 +617,8 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
             m_pParent->m_pEdit->SetFocus();
         }
 
-        else if( pNMHDR->code == NM_CLICK && ( m_pParent->m_captureType == CaptureType::DropDown || m_pParent->m_captureType == CaptureType::ComboBox ) )
+        else if( pNMHDR->code == NM_CLICK && ( m_pParent->m_captureType == CaptureType::DropDown ||
+                                               m_pParent->m_captureType == CaptureType::ComboBox ) )
         {
             int thisSelection = ((LPNMLISTVIEW)lParam)->iItem;
 
@@ -705,16 +720,21 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
             TCHAR charPressed;
 
             if( buttonClicked == 13 ) // 20130704 . or , (the decimal point)
+            {
                 charPressed = m_pParent->m_bCommaDecimal ? VK_OEM_COMMA : VK_OEM_PERIOD;
+            }
 
             else
+            {
                 charPressed = characters[buttonClicked];
+            }
 
             ::PostMessage(m_pParent->m_pEdit->m_hWnd,WM_KEYDOWN,charPressed,1);
 
             return 0;
         }
     }
+
     else if (message == WM_DESTROY) {
         // Pass message to base class WindowProc which will call PostNcDestroy and delete this object
         // is the preferred way of deleting the C++ obj associated with the HWND.
@@ -722,13 +742,16 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
         // https://docs.microsoft.com/en-us/cpp/mfc/tn017-destroying-window-objects?view=vs-2019
         return CFormView::WindowProc(message, wParam, lParam);
     }
+
     else if (message == WM_NCDESTROY)
     {
         return CFormView::WindowProc(message, wParam, lParam);
     }
 
     else if (message == WM_VSCROLL || message == WM_HSCROLL) // 20100622
+    {
         return CScrollView::WindowProc(message, wParam, lParam);
+    }
 
     return DefWindowProc(message,wParam,lParam);
 }
@@ -751,8 +774,11 @@ BOOL CCapiControl::PreTranslateMessage(MSG* pMsg)
     }
 
     else
+    {
         return CFormView::PreTranslateMessage(pMsg);
+    }
 }
+
 
 void CCapiControl::TranslateStringToCheckbox(CString checkboxString)
 {

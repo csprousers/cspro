@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: EntDrv.h
 //
@@ -22,7 +23,6 @@
 
 class CapiQuestionManager;
 class CaseItemReference;
-class CCapi;
 class CEntryIFaz;
 class CFlAdmin;
 class CsDriver;
@@ -193,14 +193,6 @@ public:
     void    ResetEnterMode( void );
     // --> logic' Enter() command execution     <end>
 
-    // --> CAPI support
-private:
-    CCapi*      m_pCapi;
-// --- methods -------------------------------------------------------------
-public:
-    void    SetCapi( CCapi* pCapi ) { m_pCapi = pCapi; }
-    CCapi*  GetCapi()               { return m_pCapi; }
-
 // --- methods -------------------------------------------------------------
 public:
     void    TakeCareOfEndingNode( int iEndingLevel, bool bIgnoreWrite ); // victor Jun 07, 01
@@ -299,12 +291,13 @@ public:
     void           SetOperatorId(const CString& operator_id) { m_operatorId = operator_id; }
 
 private:
-    std::shared_ptr<CapiQuestionManager> m_pQuestMgr;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
 
 public:
     void BuildQuestMgr();
-    CapiQuestionManager* GetQuestMgr()                       { return m_pQuestMgr.get(); }
-    std::shared_ptr<CapiQuestionManager> GetSharedQuestMgr() { return m_pQuestMgr; }
+    const CapiQuestionManager* GetQuestMgr() const           { return m_questionManager.get(); }
+    CapiQuestionManager* GetQuestMgr()                       { return m_questionManager.get(); }
+    std::shared_ptr<CapiQuestionManager> GetSharedQuestMgr() { return m_questionManager; }
 
 
     // persistent and auto increment field handling

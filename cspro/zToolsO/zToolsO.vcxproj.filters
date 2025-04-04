@@ -89,9 +89,6 @@
     <ClCompile Include="md5.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Memctrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

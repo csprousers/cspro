@@ -2,38 +2,25 @@
 #include "CapiQuestion.h"
 
 
-CapiQuestion::CapiQuestion(const CString& item_name/* = CString()*/)
-    :   m_itemName(item_name)
+CapiQuestion::CapiQuestion(std::string item_name/* = std::string()*/)
+    :   m_itemName(std::move(item_name))
 {
-}
-
-
-const CapiCondition* CapiQuestion::GetCondition(const CString& logic, int min_occ, int max_occ) const
-{
-    auto cond = std::find_if(m_conditions.begin(), m_conditions.end(),
-        [&](const CapiCondition& c) { return logic == c.GetLogic() &&
-                                      min_occ == c.GetMinOcc() &&
-                                      max_occ == c.GetMaxOcc(); });
-    if (cond == m_conditions.end()) {
-        return nullptr;
-    }
-    else {
-        return &(*cond);
-    }
 }
 
 
 void CapiQuestion::SetCondition(CapiCondition condition)
 {
-    auto match = std::find_if(m_conditions.begin(), m_conditions.end(),
-        [&](const CapiCondition& c) { return condition.GetLogic() == c.GetLogic() &&
-                                             condition.GetMinOcc() == c.GetMinOcc() &&
-                                             condition.GetMaxOcc() == c.GetMaxOcc(); });
-    if (match == m_conditions.end()) {
+    auto lookup = std::find_if(m_conditions.begin(), m_conditions.end(),
+                               [&](const CapiCondition& c) { return ( condition.GetLogic() == c.GetLogic() ); });
+
+    if( lookup == m_conditions.end() )
+    {
         m_conditions.emplace_back(std::move(condition));
     }
-    else {
-        *match = std::move(condition);
+
+    else
+    {
+        *lookup = std::move(condition);
     }
 }
 
@@ -42,15 +29,14 @@ void CapiQuestion::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    const wstring_view item_name_sv = m_itemName;
-    const size_t dot_pos = item_name_sv.find('.');
+    auto [dictionary_sv, name_sv] = SO::GetTextOnEitherSideOfCharacter(m_itemName, '.');
 
-    json_writer.Write(JK::name, UTF8_TODO::GetUtf8(item_name_sv.substr(dot_pos + 1)));
+    if( name_sv.empty() )
+        std::swap(dictionary_sv, name_sv);
 
-    if( dot_pos != std::wstring_view::npos )
-        json_writer.Write(JK::dictionary, UTF8_TODO::GetUtf8(item_name_sv.substr(0, dot_pos)));
-
-    json_writer.Write(JK::conditions, m_conditions);
+    json_writer.Write(JK::name, name_sv)
+               .WriteIfNotBlank(JK::dictionary, dictionary_sv)
+               .Write(JK::conditions, m_conditions);
 
     json_writer.EndObject();
 }

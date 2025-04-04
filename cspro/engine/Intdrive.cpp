@@ -68,7 +68,6 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
         m_aFixedDimensions(ONE_BASED),
         m_pEngineDriver(&engine_driver),
         m_pEngineArea(m_pEngineDriver->getEngineAreaPtr()),
-        m_pEngineDefines(&m_pEngineDriver->m_EngineDefines),
         m_pEngineSettings(&m_pEngineDriver->m_EngineSettings)
 {
     // --- procedure being executed

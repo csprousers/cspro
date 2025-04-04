@@ -35,7 +35,6 @@
 #include <zMessageO/Messages.h>
 #include <Zissalib/CsDriver.h>
 #include <Zissalib/CFlAdmin.h>
-#include <zUtilO/TraceMsg.h>
 
 
 namespace
@@ -1375,7 +1374,7 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
     return 0;
 }
 
-#include <Zentryo/hreplace.h>
+
 bool CIntDriver::CheckAtSymbol(const CString& csFullName, int* piSymTarget, int* iOccTarget, bool* bExplicitOcc ) {
     bool   bRet=true;
     CIMSAString csTargetName, csTargetOcc;
@@ -1405,8 +1404,8 @@ bool CIntDriver::CheckAtSymbol(const CString& csFullName, int* piSymTarget, int*
             }
             else {
                 CIMSAString csText;
-                csText.Format( _T("%lc%ls%lc"), HELP_OPENVARCHAR, csTargetOcc.GetString(), HELP_CLOSEVARCHAR );
-                csExpandedText = ExpandText( csText, false, &bSomeError );
+                csText.Format( _T("%lc%ls%lc"), _T('%'), csTargetOcc.GetString(), _T('%') );
+                csExpandedText = CheckAtSymbol_ExpandText( csText, bSomeError );
             }
 
             if( bSomeError || !csExpandedText.IsNumeric() )
@@ -1451,6 +1450,235 @@ bool CIntDriver::CheckAtSymbol(const CString& csFullName, int* piSymTarget, int*
 
     return bRet;
 }
+
+
+CString CIntDriver::CheckAtSymbol_ExpandText(const CString& csText, bool& bSomeErr)
+{
+    // 8.1 note: this method was previously used for evaluating CAPI text and supported expressions such as
+    // %getocclabel%, as well as being used by CIntDriver::CheckAtSymbol;
+    // it is now only used by CheckAtSymbol, with the CAPI-specific options removed;
+    // the pared-down method looks odd, but it is being kept until CheckAtSymbol gets refactored;
+    // this now supports code like:
+    //     numeric occ_num = 2;
+    //     skip to @"SOME_FIELD(occ_num)";
+    class CReplace
+    {
+    public:
+        CString csIn;
+        CString csOut;
+        TCHAR*   pszOutBuff;
+
+        CReplace() { pszOutBuff = NULL; }
+    };
+
+    CReplace                    hReplace;
+    int                         iOcc;
+    bool                        bError = false;
+    bool                        bOccCte;
+    TCHAR* p, * pVarNameOcc, * pOcc;
+    CString                     csVarName;   /* %c%s%c */
+    CString                     csOcc;
+    CString                     csVarNameOcc;
+    std::vector<CReplace>       aReplaceVar;
+
+    const static std::vector<SymbolType> allowable_symbol_types
+    {
+        SymbolType::Variable,
+        SymbolType::WorkVariable,
+        SymbolType::UserFunction,
+        SymbolType::WorkString
+    };
+
+    const TCHAR* pText = csText.GetString();
+
+    // Generate variable list
+    while (1) {
+        bOccCte = false;
+        csVarName = _T("");
+        csOcc = _T("");
+        if ((p = _tcschr(const_cast<TCHAR*>(pText), _T('%'))) == NULL) {
+            break;
+        }
+        else {
+            pVarNameOcc = p + 1;
+            if ((p = _tcschr(pVarNameOcc, _T('%'))) == NULL) {
+                break;
+            }
+            else {
+                *p = 0;
+                csVarNameOcc = pVarNameOcc;
+                *p = _T('%');
+                pText = p + 1;
+
+                if ((p = _tcschr(csVarNameOcc.GetBuffer(), _T('('))) != NULL) {
+                    *p = 0;
+                    csVarName = csVarNameOcc;
+                    *p = _T('(');
+                    pOcc = p + 1;
+
+                    if ((p = _tcschr(pOcc, _T(')'))) == NULL) {
+                        continue; // ignore
+                    }
+                    else {
+                        *p = 0;
+                        csOcc = pOcc;
+                        *p = _T(')');
+                        //pText = p + 1;
+                    }
+                }
+                else {
+                    csOcc = _T("");
+                    csVarName = csVarNameOcc;
+                }
+            }
+        }
+
+        csVarName.MakeUpper();
+
+        csVarName.Trim();
+        csOcc.Trim();
+
+        // Cannot search in an empty container
+        if (m_pEngineArea == 0)
+            ASSERT(0);
+
+        // Check for valid varname
+        int iSymVar = 0;
+
+        if (csVarName.GetLength() == 0 || (iSymVar = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csVarName), allowable_symbol_types)) == 0)
+        {
+            if (csVarName.GetLength() > 0)
+            {
+                bError = true;
+            }
+
+            continue; // ignore;
+        }
+
+        if (csVarNameOcc.GetLength() >= 255)
+            continue; // ignore
+
+        hReplace.csIn.Format(_T("%lc%ls%lc"), _T('%'), csVarNameOcc.GetString(), _T('%'));
+
+        Symbol* pSymbol = NPT(iSymVar);
+        VART* pVarT = pSymbol->IsA(SymbolType::Variable) ? (VART*)pSymbol : NULL;
+
+        // Get iOcc
+        if (csOcc.GetLength() > 0) {
+
+            p = csOcc.GetBuffer();
+
+            bool    bCte = true;
+            while (*p != 0) {
+                if (!(*p >= _T('0') && *p <= '9')) {
+                    bCte = false;
+                    break;
+                }
+                p++;
+            }
+
+            bOccCte = bCte;
+
+            if (bCte) {
+                iOcc = _ttoi(csOcc);
+            }
+            else {
+                int     iOccVar;
+                int     iCurOcc = 0;
+
+                if ((iOccVar = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csOcc), { SymbolType::Variable })) == 0) {
+                    bError = true;
+                    continue; // ignore
+                }
+
+                if (NPT(iOccVar)->IsA(SymbolType::Variable)) {
+                    VART* pOccVarT;
+
+                    pOccVarT = VPT(iOccVar);
+
+                    // Index must be numeric
+                    if (!pOccVarT->IsNumeric()) {
+                        bError = true;
+                        continue; // ignore
+                    }
+
+                    iCurOcc = pOccVarT->GetOwnerGPT()->GetCurrentOccurrences();
+                }
+
+                iOcc = (int)GetVarValue(iOccVar, iCurOcc, false);
+            } // !bCte
+        } //csOcc.GetLength() > 0
+        else { //csOcc.GetLength() == 0
+            iOcc = 0;
+
+            // RHF INIC Jan 08, 2003
+            if (pVarT != NULL) {
+                GROUPT* pGroupT = pVarT->GetOwnerGPT();
+
+                // Hidden group
+                bool bUseSectionOcc = (pGroupT->GetSource() == GROUPT::Source::DcfFile);
+
+                if (pVarT->IsArray() && bUseSectionOcc) {
+                    SECT* pSecT = pVarT->GetSPT();
+                    int         iGroupNum = 0;
+                    GROUPT* pGroupTAux;
+                    int         iSectionOcc = 0;
+
+                    while ((pGroupTAux = pSecT->GetGroup(iGroupNum)) != NULL) {
+                        if (pGroupTAux->GetSource() == GROUPT::Source::FrmFile)
+                        {
+                            iSectionOcc = std::max(iSectionOcc, pGroupTAux->GetCurrentExOccurrence());
+                        }
+
+                        iGroupNum++;
+                    }
+
+                    iOcc = iSectionOcc;
+                }
+            }
+            // RHF END Jan 08, 2003
+        }
+
+        // Get Variable buffer
+        TCHAR* pAux;
+
+        if (pVarT != NULL && pVarT->IsNumeric() && !pVarT->IsUsed()) {
+            pAux = NULL;
+        }
+        else {
+            pAux = GetVarAsciiValue(iSymVar, iOcc, true);
+        }
+
+        hReplace.pszOutBuff = pAux;
+        if (pAux == NULL)
+            continue;
+
+        hReplace.csOut = CString(pAux);
+
+        hReplace.csOut.TrimLeft();
+        hReplace.csOut.TrimRight();
+
+        aReplaceVar.emplace_back(hReplace);
+    } // while(1)
+
+
+    CIMSAString csExpandedText = csText;
+    for (int i = 0; i < (int)aReplaceVar.size(); i++) {
+        hReplace = aReplaceVar[i];
+
+        csExpandedText.Replace(hReplace.csIn, hReplace.csOut);
+
+        free(hReplace.pszOutBuff);
+        hReplace.pszOutBuff = NULL;
+    }
+
+    aReplaceVar.clear();
+
+    bSomeErr = bError;
+
+    return csExpandedText;
+}
+
 
 int CIntDriver::GetReferredTargetSymbol( int iSymAt, bool bSkipToNext, bool bMove, int* iOccTargetAt, bool* bExplicitOcc ) { // victor Mar 26, 01
     ASSERT( iSymAt > 0 );

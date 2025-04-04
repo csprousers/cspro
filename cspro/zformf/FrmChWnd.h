@@ -19,7 +19,6 @@
 #include <zformf/zFormF.h>
 #include <zformf/SView.H>
 #include <zformf/FSplWnd.h>
-#include <zformf/QSFEView.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/DragOptions.h>
 #include <zDesignerF/ApplicationChildWnd.h>
@@ -29,7 +28,9 @@
 
 class BoxToolbar;
 class CDEDragOptions;
+class CFormDoc;
 class CFormScrollView;
+class CQSFEView;
 
 enum eViewMode { FormViewMode, LogicViewMode, QSFEditorViewMode, QuestionnaireViewMode };
 
@@ -72,7 +73,7 @@ public:
     bool    CanUserDrawBox()       { return ( m_bDrawBox && m_eBoxBtnSel.has_value() ); }
     void    CanUserDrawBox(bool b) { m_bDrawBox = b; }
 
-    static CToolBar* CreateFormToolBar(CWnd* pParentWnd);
+    static std::unique_ptr<CToolBar> CreateFormToolBar(CWnd* pParentWnd);
 
     bool    IsLogicViewActive();
     bool    IsFormViewActive ();
@@ -92,11 +93,12 @@ public:
 
     void ShowCapiLanguage(const std::string& language_name);
 
+    bool IsQuestionTextModified() const;
+
     eViewMode GetViewMode() { return m_eViewMode;}
     void SaveHeightSettings();
     void GetHeightSettings();
-    CQSFEView* GetQSFView1() {return m_pQSFEditView1;}
-    CQSFEView* GetQSFView2() {return m_pQSFEditView2;}
+
     QuestionnaireView* GetQuestionnaireView() { return m_pQuestionnaireView; }
 
     void RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* selected_fields, CDEGroup* pCurGroup, CString form_name);

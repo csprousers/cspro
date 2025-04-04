@@ -14,7 +14,6 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ExecutionStack.h>
-#include <zUtilO/TraceMsg.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <ZBRIDGEO/npff.h>
 #include <zListingO/ErrorLister.h>
@@ -53,7 +52,6 @@ CEngineDriver::CEngineDriver(Application* pApplication, bool bDoInterpreter, Com
                                                           std::make_unique<CEngineCompFunc>(this);
 #endif
 
-    m_pEngineDefines  = &m_EngineDefines;
     m_pEngineSettings = &m_EngineSettings;
 
     ASSERT( m_pEngineArea != 0 );

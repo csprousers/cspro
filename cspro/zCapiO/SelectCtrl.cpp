@@ -219,7 +219,7 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
 
     BOOL bFocus = (GetFocus() == this);
 
-    csprochar szBuff[MAX_KEYLEN];
+    TCHAR szBuff[MAX_KEYLEN];
 
     LV_ITEM lvi;
     lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
@@ -461,7 +461,7 @@ BOOL CSelectListCtrl::SetFullRowSel(BOOL bFullRowSel)
 /// when is not posible to do the invert.
 void CSelectListCtrl::SetMarks( CSELLISTCTRL_OPTION iAction, int iElem /*=-1*/ )
 {
-    csprochar szBuff[MAX_KEYLEN];
+    TCHAR szBuff[MAX_KEYLEN];
     LV_ITEM     lvi;
     int         iLow, iHigh, iMaxElem;
     bool        bSelected;
@@ -746,7 +746,7 @@ void CSelectListCtrl::LoadItems()
 // Return number of marked elements
 int CSelectListCtrl::GetListStatus( std::vector<bool>* pbaSelections /* = NULL*/, CString* pcsMarkedOptions /*=NULL*/ )
 {
-    csprochar  szBuff[MAX_KEYLEN];
+    TCHAR szBuff[MAX_KEYLEN];
     LV_ITEM lvi;
     int     iNumRow, iNumMarked=0;
     bool    bSelected;
@@ -793,7 +793,7 @@ int CSelectListCtrl::GetListStatus( std::vector<bool>* pbaSelections /* = NULL*/
 
 void CSelectListCtrl::SetListStatus(const std::vector<bool>* pbaSelections)
 {
-    csprochar szBuff[MAX_KEYLEN];
+    TCHAR szBuff[MAX_KEYLEN];
     int         iMaxElem, iMaxRow, iLastItemSelected=-1;
     bool        bSelected;
 
@@ -898,7 +898,7 @@ BOOL CSelectListCtrl::DoAutoWidth( CDC* pDC, int iMinWidth, int iMaxWidth, int i
 
     LV_COLUMN lvc;
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
-    csprochar szBuff[MAX_KEYLEN];
+    TCHAR szBuff[MAX_KEYLEN];
 
     lvc.pszText = szBuff;
     lvc.cchTextMax = _countof(szBuff);
@@ -1112,7 +1112,7 @@ void CSelectListCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) {
             int         iFirstElemFound=-1;
             int         iNumElemFound=0;
 
-            // concat new csprochar to current buffer
+            // concat new char to current buffer
             csKeyBuffNew.Format( _T("%s%lc"), m_csKeyBuff.GetString(), nChar );
 
             iLen = m_csKeyBuff.GetLength();
@@ -1142,7 +1142,7 @@ void CSelectListCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) {
                 if( true ) { // RHF Apr 01, 2003
                     SetItemState( iFirstElemFound, 0, LVIS_SELECTED ); // // RHF Apr 01, 2003 UnMark
                     SetItemState( iFirstElemFound, LVIS_SELECTED, LVIS_SELECTED ); // Mark
-                    // RHF COM Apr 01, 2003 Only the first csprochar for accept! ResetKeyBuff();
+                    // RHF COM Apr 01, 2003 Only the first char for accept! ResetKeyBuff();
                 }
 
                 m_csKeyBuff = _T(""); // RHF Apr 01, 2003

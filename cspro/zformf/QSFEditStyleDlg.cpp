@@ -114,13 +114,13 @@ void QSFEditStyleDlg::OnOK()
         class_names.insert(style.class_name);
     }
 
-    CDialog::OnOK();
+    __super::OnOK();
 }
 
 
 void QSFEditStyleDlg::DoDataExchange(CDataExchange* pDX)
 {
-    CDialog::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_LIST_STYLES, m_style_list);
     DDX_Control(pDX, IDC_COMBO_FONT, m_font_name_combo);
@@ -137,9 +137,9 @@ void QSFEditStyleDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL QSFEditStyleDlg::OnInitDialog()
 {
-    CDialog::OnInitDialog();
+    __super::OnInitDialog();
 
-    for (const CapiStyle& style : m_styles)
+    for( const CapiStyle& style : m_styles )
         m_style_list.AddString(TC::ToWide(style.name).c_str());
 
     for (const wchar_t* const font_name : CapiStyle::DefaultFontNames) {
@@ -367,8 +367,7 @@ bool QSFEditStyleDlg::IsItalicSelected() const
 
 HBRUSH QSFEditStyleDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-
-    HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
+    HBRUSH hbr = __super::OnCtlColor(pDC, pWnd, nCtlColor);
 
     if (nCtlColor == CTLCOLOR_STATIC && pWnd == &m_sample) {
         std::optional<COLORREF> color = m_color_combo.GetSelColor();

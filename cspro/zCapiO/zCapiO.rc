@@ -143,15 +143,15 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_CANCEL              ICON                    "res\\CANCEL.ICO"
+IDI_CANCEL              ICON                    "res\\cancel.ico"
 
-IDI_FIND                ICON                    "res\\FIND.ICO"
+IDI_FIND                ICON                    "res\\find.ico"
 
-IDI_INVERT              ICON                    "res\\INVERT.ICO"
+IDI_INVERT              ICON                    "res\\invert.ico"
 
 IDI_NEXT                ICON                    "res\\next.ico"
 
-IDI_OK                  ICON                    "res\\OK.ICO"
+IDI_OK                  ICON                    "res\\ok.ico"
 
 IDI_PREVIOUS            ICON                    "res\\prev.ico"
 

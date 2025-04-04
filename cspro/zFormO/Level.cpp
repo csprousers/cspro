@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "Level.h"
-#include <zUtilO/TraceMsg.h>
 
 
 IMPLEMENT_DYNAMIC(CDELevel, CDEFormBase)
@@ -22,9 +21,9 @@ CDELevel::CDELevel()
 {
 //////////////////////////////////////////////////////////////////////////
 // ADDED by RCL, Dec 2004
-#pragma message( __LOC__ " *** 'new' used in constructor: be careful with direct assignment producing pointer alias" )
-#pragma message( __LOC__ " ***   CDELevel a, b;   a = b; // <-- 2 pointers pointing to the same place" )
-#pragma message( __LOC__ " *** Hint: Define a copy constructor and make sure that alias are not produced" )
+#pragma message("RCL Warning : *** 'new' used in constructor: be careful with direct assignment producing pointer alias")
+#pragma message("RCL Warning : ***   CDELevel a, b;   a = b; // <-- 2 pointers pointing to the same place")
+#pragma message("RCL Warning : *** Hint: Define a copy constructor and make sure that alias are not produced")
 //////////////////////////////////////////////////////////////////////////
 
     m_pRoot = new CDEGroup();     // create our base obj (hidden from user) to be our root

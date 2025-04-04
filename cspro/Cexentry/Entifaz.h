@@ -22,8 +22,8 @@
 
 #include <engine/DEFLD.H>
 #include <engine/Entdrv.h>
-#include <zCapiO/capi.h>
 #include <Zissalib/CsDriver.h>
+#include <Zentryo/CapiHandler.h>
 
 enum class SpecialFunction : int;
 
@@ -46,7 +46,7 @@ private:
     bool            m_bModifyStarted;
 
     // --- CAPI support
-    CCapi*          m_pCapi;                            // RHF Jan 13, 2000
+    CCapi           m_capi;                            // RHF Jan 13, 2000
 
 // --- Methods -------------------------------------------------------------
     // --- construction/destruction/initialization
@@ -105,7 +105,7 @@ public:
 
     // --- CAPI support
 public:
-    CCapi*  C_GetCapi();
+    CCapi&  C_GetCapi() { return m_capi; }
 
     // --- new methods added for IMSA-CsPro
 public:

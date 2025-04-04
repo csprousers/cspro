@@ -19,7 +19,6 @@
 #include <zToolsO/Tools.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/TraceMsg.h>
 #include <zUtilF/MsgOpt.h>
 #include <zHtml/WebViewSyncOperationMarker.h>
 #include <zAppO/Application.h>
@@ -87,9 +86,6 @@ CEntryDriver::CEntryDriver(Application* pApplication, CEntryIFaz* pEntryIFaz)
 
     // --> logic' Enter() command execution
     m_pEnteredFlow      = NULL;                         // victor Jan 30, 00
-
-    // --> CAPI support
-    m_pCapi             = NULL;
 
     // --> partial-save
     m_ePartialMode = NO_MODE;

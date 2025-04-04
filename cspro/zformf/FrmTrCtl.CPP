@@ -436,7 +436,7 @@ void  CFormTreeCtrl::InitImageList(void)
     m_cImageList.Create(16, 16, ILC_COLOR32, 0, 2);
     m_cImageList.SetBkColor(GetSysColor(COLOR_WINDOW));
 
-    for( auto icon : FormTreeIconImageIndices )
+    for( const int icon : FormTreeIconImageIndices )
         m_cImageList.Add(AfxGetApp()->LoadIcon(icon));
 
     SetImageList(&m_cImageList, TVSIL_NORMAL);
@@ -783,14 +783,13 @@ void CFormTreeCtrl::FindFTCRecursively (HTREEITEM&  hGroupOrItem,
 }
 
 
-void CFormTreeCtrl::SelectNodes(std::vector<CDEFormBase*> nodes)
+template<typename T>
+void CFormTreeCtrl::SelectNodes(const T& nodes)
 {
-    for (auto node : nodes)
-    {
-        HTREEITEM hItem = FindItem(node);
-        AddToSelection(hItem);
-    }
+    for( const auto& node : nodes )
+        AddToSelection(FindItem(node));
 }
+
 
 // ***************************************************************************
 //  when this func is entered, the root node for the form file has already
@@ -2392,7 +2391,7 @@ void CFormTreeCtrl::DropItemOnItem (std::vector<CFormID*> dragFromIDs, CFormID* 
     UpdateGroupItemsForDrop(pGroup, dragItems, pDT_Item);
 
     ReBuildTree (pDT_Item->GetFormNum(), pSelected);
-    SelectNodes(std::vector<CDEFormBase*>(dragItems.begin(), dragItems.end()));
+    SelectNodes(dragItems);
 
     GetFormDoc()->SetModifiedFlag(true);
 }
@@ -2458,7 +2457,7 @@ void CFormTreeCtrl::DropItemOnBlock(std::vector<CFormID*> dragFromIDs, CFormID* 
     UpdateGroupItemsForDrop(pGroup, dragFields, pDropBlock);
 
     ReBuildTree(pDropBlock->GetFormNum(), pSelected);
-    SelectNodes(std::vector<CDEFormBase*>(dragItems.begin(), dragItems.end()));
+    SelectNodes(dragItems);
 
     GetFormDoc()->SetModifiedFlag(true);
 }
@@ -2589,7 +2588,7 @@ void CFormTreeCtrl::DropItemOnForm(std::vector<CFormID*> dragFromIDs, CFormID* p
     UpdateGroupItemsForDrop(pDropGroup, dragFields, pDropGroup);
 
     ReBuildTree(pDropGroup->GetFormNum(), pSelected);
-    SelectNodes(std::vector<CDEFormBase*>(dragItems.begin(), dragItems.end()));
+    SelectNodes(dragItems);
 
     GetFormDoc()->SetModifiedFlag(true);
 }
@@ -3222,7 +3221,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         AddToSelection(hItem);
     }
 
-    CFormID*            pID = (CFormID*) GetItemData (hItem);
+    CFormID* pID = (CFormID*) GetItemData (hItem);
     if (pID->GetItemPtr())
     {
         AfxTrace(L"OnRButtonUp sel item %x %s\n", (DWORD)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
@@ -3232,10 +3231,11 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     CFormChildWnd* pFrame = (CFormChildWnd*)pFV->GetParentFrame();
     bool bIsFormViewActive = pFrame->GetViewMode() == FormViewMode;
     UINT deleteFlags = 0;
-    // get the proper form up in the view
-    bool isQuestionnaireView = pFrame->GetViewMode() == QuestionnaireViewMode;
 
-    pFV->TreeSelectionChanged (GetSelectedFormItems());
+    // get the proper form up in the view
+    const bool isQuestionnaireView = ( pFrame->GetViewMode() == QuestionnaireViewMode );
+
+    pFV->TreeSelectionChanged(GetSelectedFormItems());
 
     eNodeType eNT = pID->GetItemType();
 
@@ -3599,7 +3599,7 @@ void CFormTreeCtrl::OnShiftF10() {
 }
 
 
-HTREEITEM CFormTreeCtrl::FindItem( CDEFormBase* pItemBase ){
+HTREEITEM CFormTreeCtrl::FindItem( const CDEFormBase* pItemBase ){
     HTREEITEM hParent = GetRootItem();
     while(hParent){
         HTREEITEM hItem = xFindItem(hParent,pItemBase);
@@ -3609,7 +3609,8 @@ HTREEITEM CFormTreeCtrl::FindItem( CDEFormBase* pItemBase ){
     }
     return NULL;
 }
-HTREEITEM CFormTreeCtrl::xFindItem( HTREEITEM hInputItem, CDEFormBase* pFormBase ){
+
+HTREEITEM CFormTreeCtrl::xFindItem( HTREEITEM hInputItem, const CDEFormBase* pFormBase ){
 
     CFormID* pNodeID = (CFormID*) GetItemData( hInputItem );
     if( pNodeID && pNodeID->GetItemPtr()==pFormBase )
@@ -3680,7 +3681,6 @@ std::vector<CFormID*> CFormTreeCtrl::GetSelectedFormItems()
 
 void CFormTreeCtrl::SelectRange(HTREEITEM hItemFrom, HTREEITEM hItemTo)
 {
-
     AfxTrace(L"SelectRange: %s --> %s\n", ((CFormID*)GetItemData(hItemFrom))->GetItemPtr()->GetName().GetString(), ((CFormID*)GetItemData(hItemTo))->GetItemPtr()->GetName().GetString());
     HTREEITEM hFirst = NULL;
     HTREEITEM hLast = NULL;

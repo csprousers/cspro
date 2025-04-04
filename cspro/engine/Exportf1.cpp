@@ -164,5 +164,5 @@ void CIntDriver::ExpWrite1Record()
         }
     }
 
-    _puttc( NL, pCurExport->m_pFileDat );
+    _puttc( _T('\n'), pCurExport->m_pFileDat );
 }

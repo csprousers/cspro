@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <Zentryo/zEntryO.h>
-#include <Zentryo/CapiContentVirtualFileMapping.h>
+#include <zCapiO/CapiContentVirtualFileMapping.h>
 #include <engine/DEFLD.H>
 
 class CRunAplEntry;

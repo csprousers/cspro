@@ -52,7 +52,7 @@ void TRACE( csprochar* pszFormat, ... ) {
 }
 //
 
-#include <zUtilO/TraceMsg.h>
+#define DebugMsg( a, b )
 
 #include <zUtilO/AppLdr.h>
 

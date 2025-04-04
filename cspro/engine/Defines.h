@@ -7,33 +7,28 @@
 
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zEngineO/RunnableSymbol.h>
-
+#include <zToolsO/Special.h>
 
 
 //============== definiciones generales para todo el soporte =============
 // general, basic characters
 
-const TCHAR BLANK     = _T(' ');
-#define NL              _T('\n')            // newline
-
-const unsigned int MAXLINE = 255;
+constexpr TCHAR BLANK     = _T(' ');
 
 // CSPRO module types
 enum class ModuleType { None = 0, Entry, Designer, Batch };
 
-const int   _MAXLABLEN = 256;
+constexpr int _MAXLABLEN   = 256;
 
-const int FNSEL_VARS   = 11;            // # of vars to include in SELCASE
+constexpr int FNSEL_VARS   = 11;        // # of vars to include in SELCASE
 
-const int MAX_KEY_SIZE    = 256;               // max. key-size for any index
+constexpr int MAX_KEY_SIZE = 256;       // max. key-size for any index
 
 
 // miscellaneous codes
-enum
-{
-    CL_SING = _T('S'),
-    CL_MULT = _T('M'),
-};
+constexpr char CL_SING = 'S';
+constexpr char CL_MULT = 'M';
+
 
 // SET' dynamic field-attributes
 #define SET_AT_NATIVE       0
@@ -76,25 +71,6 @@ const int DEPRECATED_CAPI_TITLE_FLAG = 4;
 // record-type code maximum length
 #define MAX_RECTYPECODE    9            // GSF Mar 21, 2002
 
-#define ENG_BLANKSIZE   1024            // size of blank-area for comparisons
-
-
-class CEngineDefines
-{
-public:
-    // blank-area for comparisons                       // victor Jul 26, 00
-    TCHAR m_pEngBlank[ENG_BLANKSIZE+2]; // blank-area for comparisons
-
-    CEngineDefines()
-    {
-        _tmemset( m_pEngBlank, BLANK, ENG_BLANKSIZE );
-        m_pEngBlank[ENG_BLANKSIZE+1] = 0;
-    }
-};
-
-#define pEngBlank   m_pEngineDefines->m_pEngBlank   // blank-area for comparisons
-
-#include <zToolsO/Special.h>
 
 //////////////////////////////////////////////////////////////////////////
 // CROSSTAB' special values masks
@@ -122,7 +98,3 @@ const double VAL_CTUNDEFINED = VAL_CTMISSING + 4; // new
 const double VAL_CTTOTAL     = VAL_CTMISSING + 5; // used to be 10003
 
 //////////////////////////////////////////////////////////////////////////
-
-extern "C" {
-#include <engine/Memctrl.h>
-};

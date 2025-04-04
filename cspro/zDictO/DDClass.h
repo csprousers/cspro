@@ -90,7 +90,7 @@ public:
     DictElementType GetElementType() const override { return DictElementType::Dictionary; }
 
 // Extraction
-    const CString&       GetOldName       () const  { return m_csOldName; }
+    const std::string&   GetOldName       () const  { return m_oldName; }
     UINT                 GetRecTypeStart  () const  { return m_uRecTypeStart; }
     UINT                 GetRecTypeLen    () const  { return m_uRecTypeLen; }
     bool                 IsPosRelative    () const  { return m_bPosRelative; }
@@ -119,7 +119,7 @@ public:
     std::string MakeQualifiedName(const std::string& name) const;
 
 // Assignment
-    void SetOldName         (const CString& csOldName) { m_csOldName = csOldName; }
+    void SetOldName         (std::string old_name) { m_oldName = std::move(old_name); }
     void SetRecTypeStart    (UINT uRecTypeStart) { m_uRecTypeStart = uRecTypeStart; }
     void SetRecTypeLen      (UINT uRecTypeLen) { m_uRecTypeLen = uRecTypeLen; }
     void SetPosRelative     (bool bPosRelative) { m_bPosRelative = bPosRelative; }
@@ -212,7 +212,7 @@ private:
     int                                 m_iSymbol;          // Use unknown
 
     const DictNamedBase*                m_pChangedObject;   // Last object whose name has changed
-    CString                             m_csOldName;        // Last object's old name
+    std::string                         m_oldName;          // Last object's old name
 
     bool m_enableBinaryItems; // BINARY_TYPES_TO_ENGINE_TODO
 

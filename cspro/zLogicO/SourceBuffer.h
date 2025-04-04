@@ -16,6 +16,8 @@ public:
 
     const char* GetBuffer() const { return m_buffer->c_str(); }
 
+    static std::vector<BasicToken> Tokenize(const SharableString& buffer, const LogicSettings& logic_settings);
+
     const std::vector<BasicToken>& Tokenize(const LogicSettings& logic_settings);
 
     const std::vector<BasicToken>& GetTokens() const;
@@ -36,6 +38,6 @@ public:
 
 private:
     SharableString m_buffer;
-    std::unique_ptr<std::vector<BasicToken>> m_basicTokens;
+    std::optional<std::vector<BasicToken>> m_basicTokens;
     std::shared_ptr<LineAdjuster> m_lineAdjuster;
 };

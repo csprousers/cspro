@@ -68,7 +68,6 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Nextnode.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/ParadataDriver.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/ParameterManager.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Pre80Routines.cpp
-LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/QuestionTextParamCache.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/relt.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Settings.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/subtable.cpp
@@ -76,16 +75,15 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tables.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tablesen.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/VariableInOut.cpp
 
-LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/Capi.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiCondition.cpp
-LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiFill.cpp
+LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiContentVirtualFileMapping.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestion.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionManager.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiQuestionYaml.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiStyle.cpp
 LOCAL_SRC_FILES         += $(ZCAPIO_SRC_PATH)/CapiText.cpp
 
-LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CapiContentVirtualFileMapping.cpp
+LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CapiHandler.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeBuilder.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeNode.cpp
 LOCAL_SRC_FILES         += $(ZENTRYO_SRC_PATH)/CaseTreeUpdate.cpp

@@ -1,17 +1,14 @@
 ﻿#include "StdAfx.h"
 #include <afxdllx.h>
-#include <afxdllx.h>
 
 
 static AFX_EXTENSION_MODULE zCapiODLL = { NULL, NULL };
 
-extern "C" int APIENTRY
-DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{
-    // Remove this if you use lpReserved
-    UNREFERENCED_PARAMETER(lpReserved);
 
-    if (dwReason == DLL_PROCESS_ATTACH)
+extern "C" int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
+{
+    if( dwReason == DLL_PROCESS_ATTACH )
     {
         TRACE0("zCapiO.DLL Initializing!\n");
 
@@ -33,11 +30,13 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
         new CDynLinkLibrary(zCapiODLL);
     }
-    else if (dwReason == DLL_PROCESS_DETACH)
+
+    else if( dwReason == DLL_PROCESS_DETACH )
     {
         TRACE0("zCapiO.DLL Terminating!\n");
         // Terminate the library before destructors are called
         AfxTermExtensionModule(zCapiODLL);
     }
+
     return 1;   // ok
 }

@@ -26,7 +26,7 @@ public:
 
     void SetUpQuestionTextView(const std::string& application_file_path);
 
-    void SetText(const std::string text, std::optional<PortableColor> background_color = std::nullopt);
+    void SetText(SharableString text, std::optional<PortableColor> background_color = std::nullopt);
     void SetStyleCss(std::string css);
 
 protected:
@@ -40,6 +40,8 @@ protected:
     LRESULT OnRefreshQuestionText(WPARAM wParam, LPARAM lParam);
 
 private:
+    static const std::string& DefaultBackgroundColor();
+
     void UpdateHtml();
 
     void SetUpActionInvoker();
@@ -51,7 +53,7 @@ private:
 
     std::string m_backgroundColor;
     std::string m_stylesheet;
-    std::string m_questionText;
+    SharableString m_questionText;
 
     SharableString m_html;
     std::mutex m_htmlMutex;

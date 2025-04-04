@@ -867,7 +867,7 @@ void CSymbolVar::serialize_subclass(Serializer& ar)
         ar << iVal;
 
         ar << m_bZeroFill << m_bDecChar << m_cFmt << m_iNumDec
-           << m_cClas << m_iLength << m_iLocation
+           << m_class << m_iLength << m_iLocation
            << m_iMaxOccs << m_iNumDim;
 
         for( int i = 0; i < m_iNumDim; i++ )
@@ -913,10 +913,17 @@ void CSymbolVar::serialize_subclass(Serializer& ar)
 
         ar >> m_iNumDec;
 
-//      ar >> m_cClas;
-        wideCharVal =0;
-        ar >> wideCharVal;
-        m_cClas = (csprochar)wideCharVal;
+        if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+        {
+            ar >> m_class;
+        }
+
+        else
+        {
+            ar >> wideCharVal;
+            m_class = static_cast<char>(wideCharVal);
+            ASSERT(m_class == CL_SING || m_class == CL_MULT);
+        }
 
         ar >> m_iLength >> m_iLocation
            >> m_iMaxOccs >> m_iNumDim;

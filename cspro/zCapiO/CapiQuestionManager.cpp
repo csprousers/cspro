@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CapiQuestionManager.h"
 #include "CapiLogicParameters.h"
+#include "CapiName.h"
 #include "CapiQuestionYaml.h"
 #include <zToolsO/FileIO.h>
 #include <zToolsO/TextEncoding.h>
@@ -27,7 +28,7 @@ CapiQuestionManager::CapiQuestionManager()
         m_languageIndex(0),
         m_styles(DefaultCapiStyles),
         m_modified(false),
-        m_is_pre76_file(false)
+        m_backupBeforeSaving(false)
 {
 }
 
@@ -36,20 +37,20 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
 {
     for( auto& [item_name, question] : m_questions )
     {
-        const CString& item_name_workaround_for_clang_precpp80_issue = item_name;
+        const std::string& item_name_workaround_for_clang_precpp80_issue = item_name;
 
         std::vector<CapiCondition>& conditions = question.GetConditions();
-        std::map<CString, int> fill_expressions;
+        std::map<std::string, int> fill_expressions;
 
         for( size_t condition_index = 0; condition_index < conditions.size(); ++condition_index )
         {
             // the compilation routine for conditions and fills
-            auto compile = [&](const CapiLogicParameters::Type type, std::string logic, std::optional<std::string> language_label)
+            auto compile = [&](const CapiLogicParameters::Type type, SharableString logic, std::optional<std::string> language_label)
             {
-                CapiLogicParameters capi_logic_parameters
+                const CapiLogicParameters capi_logic_parameters
                 {
                     type,
-                    UTF8_TODO::GetUtf8(item_name_workaround_for_clang_precpp80_issue),
+                    item_name_workaround_for_clang_precpp80_issue,
                     std::move(logic),
                     CapiLogicLocation { condition_index, std::move(language_label) }
                 };
@@ -61,32 +62,35 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
             // compile the condition
             CapiCondition& condition = conditions[condition_index];
 
-            if( !condition.GetLogic().IsEmpty() )
+            if( !condition.GetLogic().empty() )
             {
-                condition.SetLogicExpression(compile(CapiLogicParameters::Type::Condition, UTF8_TODO::GetUtf8(condition.GetLogic()), std::nullopt));
+                condition.SetProgramIndex(compile(CapiLogicParameters::Type::Condition,
+                                                  condition.GetLogic(),
+                                                  std::nullopt));
             }
 
 
             // compile any fills
-            auto compile_fills = [&](const std::map<std::wstring, CapiText>& question_text)
+            auto compile_fills = [&](const std::map<std::string, CapiText>& question_text)
             {
                 for( const auto& [language_name, text] : question_text )
                 {
-                    const std::wstring& language_name_workaround_for_clang_precpp80_issue = language_name;
+                    const std::string& language_name_workaround_for_clang_precpp80_issue = language_name;
 
                     const auto& language_lookup = std::find_if(m_languages.cbegin(), m_languages.cend(),
-                        [&](const Language& language) { return ( language.GetName() == UTF8_TODO::GetUtf8(language_name_workaround_for_clang_precpp80_issue) ); });
+                        [&](const Language& language) { return ( language.GetName() == language_name_workaround_for_clang_precpp80_issue ); });
 
                     if( language_lookup == m_languages.end() )
                         continue;
 
-                    for( const CapiFill& param : text.GetFills(CapiText::DefaultDelimiters) )
+                    for( const CapiFill& param : text.GetFills() )
                     {
                         if( fill_expressions.find(param.GetTextToReplace()) == fill_expressions.end() )
                         {
                             // compile the logic with delimiters removed
-                            fill_expressions[param.GetTextToReplace()] =
-                                compile(CapiLogicParameters::Type::Fill, UTF8_TODO::GetUtf8(param.GetTextToEvaluate()), language_lookup->GetLabel());
+                            fill_expressions.try_emplace(param.GetTextToReplace(), compile(CapiLogicParameters::Type::Fill,
+                                                                                           param.GetTextToEvaluate_sv(),
+                                                                                           language_lookup->GetLabel()));
                         }
                     }
                 }
@@ -130,7 +134,7 @@ void CapiQuestionManager::DeleteLanguage(const std::string& language_name)
         std::vector<CapiCondition>& conditions = question.GetConditions();
 
         for( CapiCondition& condition : conditions )
-            condition.DeleteLanguage(UTF8_TODO::GetWide(language_name));
+            condition.DeleteLanguage(language_name);
     }
 
     m_languages.erase(lang);
@@ -140,19 +144,19 @@ void CapiQuestionManager::DeleteLanguage(const std::string& language_name)
 
 void CapiQuestionManager::ModifyLanguage(const std::string& old_language_name, Language updated_language)
 {
-    auto lang = std::find_if(m_languages.begin(), m_languages.end(),
+    auto language_lookup = std::find_if(m_languages.begin(), m_languages.end(),
                                [&](const Language& l) { return ( l.GetName() == old_language_name ); });
-    ASSERT(lang != m_languages.end());
+    ASSERT(language_lookup != m_languages.end());
 
     for( auto& [item_name, question] : m_questions )
     {
         std::vector<CapiCondition>& conditions = question.GetConditions();
 
         for( CapiCondition& condition : conditions )
-            condition.ModifyLanguage(UTF8_TODO::GetWide(old_language_name), UTF8_TODO::GetWide(updated_language.GetName()));
+            condition.ModifyLanguage(old_language_name, updated_language.GetName());
     }
 
-    *lang = std::move(updated_language);
+    *language_lookup = std::move(updated_language);
     m_modified = true;
 }
 
@@ -161,13 +165,16 @@ std::string CapiQuestionManager::GetStylesCss() const
 {
     std::string css;
 
+    // apply first style (normal) to the body so it is used even without style tags
     if( !m_styles.empty() )
-        css.append("body, "); // apply first style (normal) to body so it used even without style tags
+        css.append("body, ");
 
     for( const CapiStyle& style : m_styles )
     {
-        css.append(FormatText("'%s{'", style.class_name.c_str()))
-           .append(style.css)
+        css.push_back('.');
+        css.append(style.class_name);
+        css.push_back('{');
+        css.append(style.css)
            .append("}\n");
     }
 
@@ -184,19 +191,29 @@ const std::string& CapiQuestionManager::GetRuntimeStylesCss()
 }
 
 
-std::optional<CapiQuestion> CapiQuestionManager::GetQuestion(const CString& item_name) const
+const CapiQuestion* CapiQuestionManager::GetQuestion(const std::string& item_name) const
 {
-    auto quest = m_questions.find(item_name);
-    if (quest == m_questions.end())
-        return {};
-    else
-        return quest->second;
+    const auto& lookup = m_questions.find(item_name);
+
+    return ( lookup != m_questions.cend() ) ? &lookup->second :
+                                              nullptr;
 }
 
 
 void CapiQuestionManager::SetQuestion(CapiQuestion question)
 {
-    m_questions[question.GetItemName()] = std::move(question);
+    auto lookup = m_questions.find(question.GetItemName());
+
+    if( lookup != m_questions.end() )
+    {
+        lookup->second = std::move(question);
+    }
+
+    else
+    {
+        m_questions.try_emplace(question.GetItemName(), std::move(question));
+    }
+
     m_modified = true;
 }
 
@@ -211,7 +228,7 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestions() const
 }
 
 
-void CapiQuestionManager::RemoveQuestion(const CString& item_name)
+void CapiQuestionManager::RemoveQuestion(const std::string& item_name)
 {
     m_questions.erase(item_name);
     m_modified = true;
@@ -227,22 +244,14 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
         return questions;
 
     // create the list of names
-    std::vector<CString> names_in_form_order;
+    std::vector<std::string> names_in_form_order;
 
-    auto store_name = [&](CDEItemBase* pItemBase, const CDataDict* /*pDataDict*/)
+    auto store_name = [&](CDEItemBase* const item_base, const CDataDict* /*dictionary*/)
     {
-        if( pItemBase->isA(CDEFormBase::eItemType::Block) )
-        {
-            names_in_form_order.emplace_back(pItemBase->GetName());
-        }
-
-        else if( pItemBase->isA(CDEFormBase::eItemType::Field) )
-        {
-            names_in_form_order.emplace_back(UTF8_TODO::GetCString(assert_cast<const CDEField*>(pItemBase)->GetDictItem()->GetQualifiedName()));
-        }
+        names_in_form_order.emplace_back(CapiName::Create(item_base));
     };
 
-    for( const auto& form_file : GetRuntimeFormFiles() )
+    for( const std::shared_ptr<CDEFormFile>& form_file : GetRuntimeFormFiles() )
         FormFileIterator::Iterator(FormFileIterator::Iterator::IterateOverType::BlockField, form_file.get(), store_name).Iterate();
 
     // sort the questions
@@ -255,7 +264,7 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
             // if the lookup is the same (meaning they both were not found), compare the name
             if( cq1_lookup == cq2_lookup  )
             {
-                return ( cq1.GetItemName().CompareNoCase(cq2.GetItemName()) < 0 );
+                return ( SO::CompareNoCase(cq1.GetItemName(), cq2.GetItemName()) < 0 );
             }
 
             else
@@ -268,17 +277,12 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
 }
 
 
-std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles() const
+std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles()
 {
-#ifdef WIN_DESKTOP
-    Application* application = nullptr;
+    Application* application;
 
-    if( AfxGetMainWnd() != nullptr )
-        AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&application);
-
-    if( application != nullptr )
+    if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application) == 1 )
         return application->GetRuntimeFormFiles();
-#endif
 
     return { };
 }
@@ -357,11 +361,11 @@ void CapiQuestionManager::Load(const std::string& file_path)
 
 void CapiQuestionManager::Save(const std::string& file_path)
 {
-    if( m_is_pre76_file )
+    // save a copy in the old format in case someone wanted to go back to earlier versions
+    if( m_backupBeforeSaving )
     {
-        // Save a copy in the old format in case someone wanted to go back to earlier versions
         PortableFunctions::FileCopy(file_path, file_path + ".backup", true);
-        m_is_pre76_file = false;
+        m_backupBeforeSaving = false;
     }
 
     std::string yaml_str = WriteToYaml(*this);

@@ -20,19 +20,18 @@ public:
     virtual ~CEntryrunView();
 
 private:
-    void ShowCapi(const CDEBaseEdit* pEdit) const;// RHF Jan 30, 2000
+    void ShowCapi(const CDEBaseEdit* pEdit);// RHF Jan 30, 2000
 
 public:
-    void ShowCapi( const CDEField* pField ) const; // RHF Jan 30, 2000
+    void ShowCapi(const CDEField* pField); // RHF Jan 30, 2000
 
-    CCapi* GetCapi() const;  // RHF INIC Jan 29, 2000
-    void DeleteLabels() const;// RHF INIC Jan 29, 2000
+    void DeleteLabels();// RHF INIC Jan 29, 2000
 
-    void ShowQuestion( const CDEField* pField ) const; // RHF Jan 14, 2000
-    void ShowQuestion(const CDEBaseEdit* pEdit) const ; // RHF Jan 14, 2000
+    void ShowQuestion(const CDEField* pField); // RHF Jan 14, 2000
+    void ShowQuestion(const CDEBaseEdit* pEdit) ; // RHF Jan 14, 2000
 
-    void CEntryrunView::ShowLabels( const CDEField* pField ) const;// RHF Jan 14, 2000
-    void CEntryrunView::ShowLabels(const CDEBaseEdit* pEdit) const;// RHF Jan 14, 2000
+    void ShowLabels(const CDEField* pField);// RHF Jan 14, 2000
+    void ShowLabels(const CDEBaseEdit* pEdit);// RHF Jan 14, 2000
 
     void SetCurrentFormFileNum( CDEField* pField ); // RHF Jan 12, 2000
     int  GetCurrentFormFileNum( void ) { return m_iCurrentFormFileNum; } // RHF Jan 12, 2000

@@ -221,29 +221,33 @@ void CCondGrid::UpdateGrid()
 
     m_bCanMove = false;
 
-    if (pDoc->GetCapiEditorViewModel().CanHaveText()) {
-
-        auto conditions = pDoc->GetCapiEditorViewModel().GetQuestion().GetConditions();
+    if( pDoc->GetCapiEditorViewModel().CanHaveText() )
+    {
+        const CapiQuestion question = pDoc->GetCapiEditorViewModel().GetQuestion();
+        const std::vector<CapiCondition>& conditions = question.GetConditions();
         SetNumberRows(conditions.size());
 
-        if (conditions.empty()) {
+        if( conditions.empty() )
+        {
             // Should have minimum of one row
             SetNumberRows(1);
-            QuickSetText(COND_COL, 0, CString());
-        }
-        else {
-            for (size_t i = 0; i < conditions.size(); i++) {
-                QuickSetText(COND_COL, i, conditions[i].GetLogic());
-            }
+            QuickSetText(COND_COL, 0, L"");
         }
 
-        int selected_row = pDoc->GetCapiEditorViewModel().GetSelectedConditionIndex();
-        
-        if (GetCurrentRow() != selected_row) {
-            GotoRow(selected_row);
+        else
+        {
+            for( size_t i = 0; i < conditions.size(); ++i )
+                QuickSetText(COND_COL, i, TC::ToWide(conditions[i].GetLogic()).c_str());
         }
+
+        const int selected_row = pDoc->GetCapiEditorViewModel().GetSelectedConditionIndex();
+
+        if( GetCurrentRow() != selected_row )
+            GotoRow(selected_row);
     }
-    else {
+
+    else
+    {
         SetNumberRows(0);
     }
 
@@ -537,19 +541,22 @@ void CCondGrid::EditBegin(int col, long row, UINT vcKey)
 
 bool CCondGrid::EditEnd(bool /*bSilent*/)
 {
-    if (!m_bEditing){
+    if( !m_bEditing )
+    {
         m_bAdding = false;
         m_bInserting = false;
         return false;
     }
-    CIMSAString sCondition;
+
+    CString sCondition;
     m_pLabelEdit->GetWindowText(sCondition);
-    sCondition = sCondition.Trim();
-    int iDupRow = IsDuplicate(sCondition,m_iEditRow);
-    if(iDupRow) {
-        CIMSAString sMsg;
-        sMsg.Format(_T("Current row %d and row %d are duplicates. Cannot add a duplicate condition") , m_iEditRow+1,iDupRow);
-        AfxMessageBox(sMsg);
+    sCondition.Trim();
+
+    const int iDupRow = IsDuplicate(sCondition, m_iEditRow);
+
+    if( iDupRow != 0 )
+    {
+        AfxMessageBox(FormatText("Current row %d and row %d are duplicates. Cannot add a duplicate condition" , m_iEditRow + 1, iDupRow));
         GotoRow(m_iEditRow);
         m_pLabelEdit->SetFocus();
         return false;
@@ -571,7 +578,7 @@ bool CCondGrid::EditEnd(bool /*bSilent*/)
         }
     }
 
-    pDoc->GetCapiEditorViewModel().SetCondition(m_iEditRow, sCondition);
+    pDoc->GetCapiEditorViewModel().SetCondition(m_iEditRow, TC::ToUtf8(sCondition));
     QuickSetText(COND_COL, m_iEditRow, sCondition);
 
     m_bEditing = false;

@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;04&#8209;04 | [question-text-utf8](https://github.com/CSProDevelopment/cspro/commit/ed29402b9e1082438396fd9b2a46124b096f41c6) | reworked CAPI objects to use non-wide strings + removed additional pre-7.6 question text routines |
 | 2025&#8209;03&#8209;28 | [sqlite-math](https://github.com/CSProDevelopment/cspro/commit/b0012e1ed0c38ace6986486e53835498d5a5fcbd) | built SQLite with support for mathematical functions |
 | 2025&#8209;03&#8209;28 | [markdown](https://github.com/CSProDevelopment/cspro/commit/1e71e097e5056aa3244bda18872cdfc28b06224f) | added Markdown features (templated reports, viewing, editing in CSCode, and using in CSDocument) |
 | 2025&#8209;03&#8209;13 | [rtf+yaml-dll-rename](https://github.com/CSProDevelopment/cspro/commit/e61c529330f7636db0e7f2776b9bdd5f065037f1) | standardized the naming of external code-related DLLs + removed RTF-related code from the portable builds |

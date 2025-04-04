@@ -1604,10 +1604,13 @@ void CFormDoc::SetSelectedCapiQuestion(CFormID* form_id)
     }
 }
 
-void CFormDoc::SetCapiQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager)
+
+void CFormDoc::SetCapiQuestionManager(Application* const application, std::shared_ptr<CapiQuestionManager> question_manager)
 {
-    m_question_manager = std::move(question_manager);
-    m_capi_editor_view_model.SetQuestionManager(application, m_question_manager);
+    ASSERT(application != nullptr && question_manager != nullptr);
+
+    m_questionManager = question_manager;
+    m_capi_editor_view_model.SetQuestionManager(application, std::move(question_manager));
 }
 
 

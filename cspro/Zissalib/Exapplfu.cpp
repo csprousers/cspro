@@ -21,7 +21,6 @@
 #include <engine/COMMONIN.H>
 #include <engine/Engine.h>
 #include <engine/Comp.h>
-#include <zUtilO/TraceMsg.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/Case.h>
 
@@ -313,8 +312,7 @@ bool CEngineDriver::sectadd(SECT* pSecT, const CaseRecord* case_record_with_bina
                 pAsciiAddr = m_pIntDriver->GetVarAsciiAddr( pVarXItem, theIndex );
 
                 // stops at first non-blank occurrence found
-                ASSERT( iVarLen <= ENG_BLANKSIZE ); // re blank-area for comparisons
-                if( _tmemcmp( pAsciiAddr, pEngBlank, iVarLen ) != 0 )
+                if( !SO::IsBlank(std::wstring_view(pAsciiAddr, iVarLen)) )
                     break;
             }
 
@@ -363,8 +361,7 @@ bool CEngineDriver::sectadd(SECT* pSecT, const CaseRecord* case_record_with_bina
                             pAsciiAddr = m_pIntDriver->GetVarAsciiAddr( pVarXSubItem, theIndex );
 
                             // stops at first non-blank occurrence found
-                            ASSERT( iVarLen <= ENG_BLANKSIZE ); // re blank-area for comparisons
-                            if( _tmemcmp( pAsciiAddr, pEngBlank, iVarLen ) != 0 )
+                            if( !SO::IsBlank(std::wstring_view(pAsciiAddr, iVarLen)) )
                                 break;
                         }
 
@@ -660,14 +657,9 @@ bool CEngineDriver::IsBlankField( VART* pVarT, int iOccur ) {
 bool CEngineDriver::IsBlankField( VART* pVarT, CNDIndexes& theIndex ) {
     ASSERT( theIndex.isZeroBased() );
     // IsAnEmptyField: test the ascii-buffer (not the float-image) to see if blank
-    int     iVarLen = pVarT->GetLength();
-
     TCHAR* pVarBuff = m_pIntDriver->GetVarAsciiAddr( pVarT, theIndex ); // RHF Jul 24, 2000
 
-    ASSERT( iVarLen <= ENG_BLANKSIZE ); // re blank-area for comparisons
-    bool    bEmptyField = ( _tmemcmp( pVarBuff, pEngBlank, iVarLen ) == 0 );
-
-    return bEmptyField;
+    return SO::IsBlank(std::wstring_view(pVarBuff, pVarT->GetLength()));
 }
 
 

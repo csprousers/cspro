@@ -13,9 +13,6 @@ class FileTreeNode;
 class ManageFilesDlg;
 
 
-int CALLBACK BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData );
-
-
 class CCSProApp : public CWinApp
 {
 public:

@@ -80,9 +80,6 @@
     <ClCompile Include="ProgressDlgFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RectExt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SelectDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -215,9 +212,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProgressDlgFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rectext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">

@@ -586,29 +586,26 @@ void CFormChildWnd::OnUpdateBoxToolbar(CCmdUI* pCmdUI)
 
 // *************************************************************************************
 
-CToolBar* CFormChildWnd::CreateFormToolBar(CWnd* pParentWnd)
+std::unique_ptr<CToolBar> CFormChildWnd::CreateFormToolBar(CWnd* const pParentWnd)
 {
     // create the form toolbar (that is controlled by the designer)
-    CToolBar* pWndFormTBar = new CToolBar;
+    std::unique_ptr<CToolBar> pWndFormTBar = std::make_unique<CToolBar>();
 
     if( !pWndFormTBar->CreateEx(pParentWnd, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP, CRect(), ID_FORM_TOOLBAR) ||
         !pWndFormTBar->LoadToolBar(IDR_FORM_FRAME) )
     {
-        SAFE_DELETE(pWndFormTBar);
+        return nullptr;
     }
 
-    else
-    {
-        auto& tool_bar_ctrl = pWndFormTBar->GetToolBarCtrl();
+    CToolBarCtrl& tool_bar_ctrl = pWndFormTBar->GetToolBarCtrl();
 
-        tool_bar_ctrl.HideButton(ID_EDIT_CAPI_STYLES);
-        tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_BULLET);
-        tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_NUMBER);
-        tool_bar_ctrl.HideButton(ID_EDIT_INSERT_IMAGE);
-        tool_bar_ctrl.HideButton(ID_TOGGLE_QN);
-        tool_bar_ctrl.HideButton(ID_VVIEW_LOGIC);
-        tool_bar_ctrl.HideButton(ID_VQSF_EDITOR);
-    }
+    tool_bar_ctrl.HideButton(ID_EDIT_CAPI_STYLES);
+    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_BULLET);
+    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_NUMBER);
+    tool_bar_ctrl.HideButton(ID_EDIT_INSERT_IMAGE);
+    tool_bar_ctrl.HideButton(ID_TOGGLE_QN);
+    tool_bar_ctrl.HideButton(ID_VVIEW_LOGIC);
+    tool_bar_ctrl.HideButton(ID_VQSF_EDITOR);
 
     return pWndFormTBar;
 }
@@ -733,11 +730,11 @@ void CFormChildWnd::OnViewLogic()
 
     if (m_pSourceEditView == NULL)
     {
+        m_pSourceEditView = new CFSourceEditView();
 
-        m_pSourceEditView =  new CFSourceEditView();
-        CCreateContext context =  CCreateContext();
+        CCreateContext context;
         context.m_pCurrentDoc = pDoc;
-        context.m_pCurrentFrame=this;
+        context.m_pCurrentFrame = this;
 
         CRect rect(0,0,100,100);
         if(pFScrollView)
@@ -760,7 +757,7 @@ void CFormChildWnd::OnViewLogic()
         {
             TRACE0("Failed to create view\n");
             ASSERT (false);
-            return ;
+            return;
         }
 
         // WM_INITIALUPDATE is define in AFXPRIV.H.
@@ -784,7 +781,7 @@ void CFormChildWnd::OnViewLogic()
     }
     if(AfxGetMainWnd()->SendMessage(UWM::Form::ShowSourceCode, 0, (LPARAM)pDoc) != 0){
         this->OnViewForm();
-        return ;
+        return;
     }
 
     m_eViewMode = LogicViewMode;
@@ -1125,7 +1122,7 @@ void CFormChildWnd::OnUpdateCompile(CCmdUI* pCmdUI)
 {
     CView* pView = GetActiveView();
     if(!pView)
-        return ;
+        return;
 
     if(!pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))) {
         pCmdUI->Enable(FALSE);
@@ -1358,7 +1355,8 @@ void CFormChildWnd::DisplayQuestionnaireViewMode()
         if (pWnd && !pWnd->IsKindOf(RUNTIME_CLASS(QuestionnaireView))) {
             if (!m_pQuestionnaireView) {
                 m_pQuestionnaireView = new QuestionnaireView(*pFormDoc);
-                CCreateContext context = CCreateContext();
+
+                CCreateContext context;
                 context.m_pCurrentDoc = pFormDoc;
 
                 CRect rect(0, 0, 100, 100);
@@ -1565,11 +1563,10 @@ void CFormChildWnd::DisplayMultiLangMode()
             CQSFEView* pView1 = m_pQSFEditView1;
 
             if (!pView1) {
+                pView1 = m_pQSFEditView1 = new CQSFEView(pFormDoc);
 
-                pView1=m_pQSFEditView1 =  new CQSFEView(PortableFunctions::PathGetDirectory<CString>(pFormDoc->GetPathName()));
-                CCreateContext context =  CCreateContext();
+                CCreateContext context;
                 context.m_pCurrentDoc = pFormDoc;
-
 
                 CRect rect(0,0,100,100);
                 pWnd->GetClientRect(&rect);
@@ -1581,7 +1578,7 @@ void CFormChildWnd::DisplayMultiLangMode()
                 if (!m_pQSFEditView1->Create(NULL,_T(""),WS_CHILD|WS_VISIBLE,rect,&m_wndFSplitter,iID,&context)){
                     TRACE0("Failed to create view\n");
                     ASSERT (false);
-                    return ;
+                    return;
                 }
                 m_pQSFEditView1->SendMessage(WM_INITIALUPDATE);   // csc 1/14/2004
             }
@@ -1606,12 +1603,10 @@ void CFormChildWnd::DisplayMultiLangMode()
             CQSFEView* pView2 = m_pQSFEditView2;
 
             if (!pView2) {
+                pView2 = m_pQSFEditView2 = new CQSFEView(pFormDoc);
 
-                pView2=m_pQSFEditView2 = new CQSFEView(PortableFunctions::PathGetDirectory<CString>(pFormDoc->GetPathName()));
-                CCreateContext context =  CCreateContext();
-
+                CCreateContext context;
                 context.m_pCurrentDoc = pFormDoc;
-
 
                 CRect rect(0,0,100,100);
                 pWnd->GetClientRect(&rect);
@@ -1622,7 +1617,7 @@ void CFormChildWnd::DisplayMultiLangMode()
                 if (!m_pQSFEditView2->Create(NULL,_T(""),WS_CHILD|WS_VISIBLE,rect,&m_wndFSplitter,iID,&context)){
                     TRACE0("Failed to create view\n");
                     ASSERT (false);
-                    return ;
+                    return;
                 }
 
                 pView2->SendMessage(WM_INITIALUPDATE);   // csc 1/14/2004
@@ -1724,12 +1719,10 @@ void CFormChildWnd::DisplaySingleLangMode()
             CQSFEView* pView2 = m_pQSFEditView2;
 
             if (!pView2) {
+                pView2 = m_pQSFEditView2 = new CQSFEView(pFormDoc);
 
-                pView2=m_pQSFEditView2 = new CQSFEView(PortableFunctions::PathGetDirectory<CString>(pFormDoc->GetPathName()));
-                CCreateContext context =  CCreateContext();
-
+                CCreateContext context;
                 context.m_pCurrentDoc = pFormDoc;
-
 
                 CRect rect(0,0,100,100);
                 pWnd->GetClientRect(&rect);
@@ -1740,7 +1733,7 @@ void CFormChildWnd::DisplaySingleLangMode()
                 if (!m_pQSFEditView2->Create(NULL,_T(""),WS_CHILD|WS_VISIBLE,rect,&m_wndFSplitter,iID,&context)){
                     TRACE0("Failed to create view\n");
                     ASSERT (false);
-                    return ;
+                    return;
                 }
 
                 pView2->SendMessage(WM_INITIALUPDATE);   // csc 1/14/2004
@@ -1769,15 +1762,13 @@ void CFormChildWnd::DisplaySingleLangMode()
             CQSFEView* pView1 = m_pQSFEditView1;
 
             if (!pView1) {
+                pView1 = m_pQSFEditView1 = new CQSFEView(pFormDoc);
 
-                pView1=m_pQSFEditView1 = new CQSFEView(PortableFunctions::PathGetDirectory<CString>(pFormDoc->GetPathName()));
-                CCreateContext context =  CCreateContext();
+                CCreateContext context = CCreateContext();
                 context.m_pCurrentDoc = pFormDoc;
-
 
                 CRect rect(0,0,100,100);
                 pWnd->GetClientRect(&rect);
-
 
                 int iID = m_wndFSplitter.IdFromRowCol(1,0);
                 pWnd->SetDlgCtrlID(2224);
@@ -1785,7 +1776,7 @@ void CFormChildWnd::DisplaySingleLangMode()
                 if (!m_pQSFEditView1->Create(NULL,_T(""),WS_CHILD|WS_VISIBLE,rect,&m_wndFSplitter,iID,&context)){
                     TRACE0("Failed to create view\n");
                     ASSERT (false);
-                    return ;
+                    return;
                 }
                m_pQSFEditView1->SendMessage(WM_INITIALUPDATE);   // csc 1/14/2004
             }
@@ -2257,6 +2248,15 @@ LRESULT CFormChildWnd::OnSwitchView(WPARAM wParam, LPARAM /*lParam*/)
         ASSERT(false);
 
     return 0;
+}
+
+
+bool CFormChildWnd::IsQuestionTextModified() const
+{
+    if( m_pQSFEditView1 != nullptr && m_pQSFEditView1->IsDirty() )
+        return true;
+
+    return ( m_pQSFEditView2 != nullptr && m_pQSFEditView2->IsDirty() );
 }
 
 

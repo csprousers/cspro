@@ -39,7 +39,6 @@
 #include <engine/Engine.h>
 #include <engine/IntDrive.h>
 #include <zToolsO/VarFuncs.h>
-#include <zUtilO/TraceMsg.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/MessageManager.h>
 #include <zMessageO/Messages.h>
@@ -49,22 +48,17 @@
 #include <zLogicO/SpecialFunction.h>
 
 
-#ifdef WIN_DESKTOP
-#define RTRACE DebugMessage
-#else
-#define RTRACE(...)
-#endif
-#ifdef NL
-#undef NL
-#endif
+#define BOOL2STRING(b) ((b)==true?_T("true"):_T("false"))
 
+#define INDENT _T(" ")
+#define INDENT2 INDENT INDENT
+#define INDENT3 INDENT2 INDENT
 #define NL
 
-
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
+#ifdef WIN_DESKTOP
+#define RTRACE( b )
+#else
+#define RTRACE(...)
 #endif
 
 

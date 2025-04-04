@@ -15,12 +15,6 @@ BEGIN_MESSAGE_MAP(QSFView, CFormView)
 END_MESSAGE_MAP()
 
 
-namespace
-{
-    std::string DefaultBackgroundColor() { return PortableColor::FromRGB(0xFE, 0xFD, 0xE2).ToString(); } // yellow
-}
-
-
 QSFView::QSFView()
     :   CFormView(IDD_QSFVIEW),
         m_backgroundColor(DefaultBackgroundColor())
@@ -95,7 +89,7 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetText(std::string text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
+void QSFView::SetText(SharableString text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
 {
     m_backgroundColor = background_color.has_value() ? background_color->ToStringRGB() :
                                                        DefaultBackgroundColor();
@@ -111,11 +105,18 @@ void QSFView::SetStyleCss(std::string css)
 }
 
 
+const std::string& QSFView::DefaultBackgroundColor()
+{
+    static const std::string background_color = PortableColor::FromRGB(0xFE, 0xFD, 0xE2).ToString(); // yellow
+    return background_color;
+}
+
+
 void QSFView::UpdateHtml()
 {
     constexpr std::string_view Part1_sv =
-        "<!DOCTYPE html>\n"
-        "<html>\n"
+        "<!doctype html>\n"
+        "<html lang=\"en\">\n"
         "<head>\n"
         "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n"
         "<title>CSPro</title>"
@@ -136,7 +137,7 @@ void QSFView::UpdateHtml()
 
     std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
                                        Part2_sv, m_backgroundColor,
-                                       Part3_sv, m_questionText,
+                                       Part3_sv, m_questionText.GetString(),
                                        Part4_sv);
 
     std::lock_guard<std::mutex> lock(m_htmlMutex);

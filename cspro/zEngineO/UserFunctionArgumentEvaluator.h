@@ -8,11 +8,7 @@
 // UserFunctionArgumentEvaluator
 //
 // Subclasses are used to evaluate the arguments to a user-defined function.
-// The following subclasses are defined here:
-//
-//     - DefaultParametersOnlyUserFunctionArgumentEvaluator
-//           - No arguments exist so the parameters are bound to their
-//             default values.
+// The following subclass is defined here:
 //
 //     - NumericStringValuesOnlyUserFunctionArgumentEvaluator
 //           - Arguments are provided as a vector of already-evaluated
@@ -52,19 +48,6 @@ public:
     virtual std::shared_ptr<Symbol> GetSymbol(size_t parameter_number);
 
     CREATE_CSPRO_EXCEPTION_WITH_MESSAGE(InvalidSubscript, "");
-};
-
-
-// --------------------------------------------------------------------------
-// DefaultParametersOnlyUserFunctionArgumentEvaluator
-// --------------------------------------------------------------------------
-
-class ZENGINEO_API DefaultParametersOnlyUserFunctionArgumentEvaluator : public UserFunctionArgumentEvaluator
-{
-protected:
-    std::optional<size_t> GetNumberArguments() override;
-    double GetNumeric(size_t parameter_number) override;
-    SharableString GetString(size_t parameter_number) override;
 };
 
 

@@ -383,12 +383,6 @@ Language=EN
 47194  The PFF property "%s" cannot accept a dictionary argument
 47195  There was an error executing "%s": %s
 
-/* --- Question Text */
-48000  Invalid expression (%s) in CAPI text
-48001  User-defined function (%s) with arguments cannot be used in CAPI text
-48002  Invalid subscript (%s) in CAPI text
-48003  Invalid variable (%s) passed to the GetValueLabel call in CAPI text
-
 /* --- Reports */
 48111  Error generating the report %s: %s
 

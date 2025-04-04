@@ -593,7 +593,7 @@ void CDictGrid::EditBegin(int col, long row, UINT vcKey)
     m_pNameEdit->SetWindowText(cs);
     m_aEditControl.SetAt(DICT_NAME_COL, (CWnd*) m_pNameEdit);
     if (!m_bAdding && !m_bInserting) {
-        m_pDict->SetOldName(cs);
+        m_pDict->SetOldName(UTF8_TODO::GetUtf8(cs));
         if (row == 0) {
             m_pDict->SetChangedObject(m_pDict);
         }

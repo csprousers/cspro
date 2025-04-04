@@ -74,6 +74,7 @@ CLASS_DECL_ZTOOLSO std::string MakeFullPath(std::string_view relative_to_directo
 template<typename T = std::wstring>
 CLASS_DECL_ZTOOLSO T GetRelativeFName(NullTerminatedString sRelativeToFName, NullTerminatedString sFileName);
 
+CLASS_DECL_ZTOOLSO std::string GetRelativePath(std::string_view relative_to_file_path_sv, std::string_view filename_sv);
 CLASS_DECL_ZTOOLSO std::string GetRelativePathForDisplay(cs::string_view_sz relative_to_file_path, cs::string_sz filename);
 
 
