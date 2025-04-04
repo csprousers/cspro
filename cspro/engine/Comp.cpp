@@ -43,10 +43,9 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
     m_LvlInComp = 0;
     m_ProcInComp = 0;
 
-//BUCEN
+    // BUCEN
     m_bcvarsubcheck = false;
     m_icGrpIdx = 0;
-//BUCEN
 
     m_pCuroccGrpIdx = NULL; // 20091027
 

@@ -558,10 +558,10 @@ bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
             // eat variable name
             NextToken();
 
-#ifdef BUCEN
+            // BUCEN
             if( Tkn == TOKLPAREN )
                 throw VarAnalysisException( 25 );
-#endif
+
             *piVarNode = iVarNode;
             bOk = false;
         }
@@ -5689,16 +5689,6 @@ void CEngineCompFunc::FillImplicitIndex( MVAR_NODE* pMVarNode, int iVarT, int iD
                                 if( m_ForTable[k].forGrpIdx == iGroupIndex ) {
                                         break;
                                 }
-                                /*  // BMD 13 Jan 2004
-
-                                #ifdef BUCEN
-                                else {
-                                GROUPT* pGpt = GPT(m_ForTable[k].forGrpIdx);
-                                if (pGrpT->GetRecord(0) == pGpt->GetRecord(0)) break;
-                                }
-
-                                #endif
-                                */
                         }
                         else if( m_ForTable[k].forType == 'R' ) {
                                 pRelT = RLT( m_ForTable[k].forRelIdx );

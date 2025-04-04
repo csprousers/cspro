@@ -2,9 +2,6 @@
 
 //  DEFINES.H       CSPRO basic engine header
 
-// Bucen extensions
-#define BUCEN
-
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zEngineO/RunnableSymbol.h>
 #include <zToolsO/Special.h>

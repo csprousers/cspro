@@ -359,13 +359,12 @@ bool VARX::RemapIndexes( int* paIndex, double* aOccur, bool bCheckTotal, bool bG
             aIndex[iTargetDim] = iIndexValue;
         }
 
-#ifdef BUCEN // BUCEN checks total
+        // BUCEN checks total
         if( bCheckTotal )
         {
             bool bIsInputDict = m_pEngineDriver->m_pApplication->GetDictionaryType(*pVarT->GetDataDict()) == DictionaryType::Input;
             bCheckTotal = bIsInputDict && Appl.ApplicationType == ModuleType::Batch;
         }
-#endif
 
         if( iNumDim > 0 )
             checkIndexUsed( aIndex, bCheckTotal ); // check other conditions
@@ -378,7 +377,7 @@ bool VARX::RemapIndexes( int* paIndex, double* aOccur, bool bCheckTotal, bool bG
         bOkey = false;
         double dBadSubscript = e.getIndexUsed();
 
-#ifdef BUCEN
+        // BUCEN
         // logic is applied when exception is ERR_BAD_LIMITS_ALMOST_GOOD
         // Chirag inic Nov 20 2002
         // Recoded by rcl, May 20, 2004
@@ -391,9 +390,11 @@ bool VARX::RemapIndexes( int* paIndex, double* aOccur, bool bCheckTotal, bool bG
                           // rcl, Sept 21, 2004
             issaerror( MessageType::Warning, 34089, pVarT->GetName().c_str(), long(dBadSubscript) );   // GSF 10-jan-03
         }
+
         else
-#endif
-        issaerror( MessageType::Warning, 34088, pVarT->GetName().c_str(), long(dBadSubscript) );   // GSF 10-jan-03
+        {
+            issaerror( MessageType::Warning, 34088, pVarT->GetName().c_str(), long(dBadSubscript) );   // GSF 10-jan-03
+        }
 
         // 20100601 added on tom's request
         if( m_pEngineDriver->m_pIntDriver->m_traceHandler != nullptr )

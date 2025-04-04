@@ -3,7 +3,6 @@
 //  nextnode.cpp: DAT files access, case' nodes management
 //
 //---------------------------------------------------------------------------
-#define IMSA
 #include "StandardSystemIncludes.h"
 #include "Exappl.h"
 #include <zToolsO/Tools.h>

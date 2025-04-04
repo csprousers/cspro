@@ -103,10 +103,8 @@ double CIntDriver::excpt(int iExpr)
         CTAB*       pCtab = XPT(pTVarNode->tvar_index);
         int         aCoord[3] = { 0, 0, 0 };
         bool        bGoodCoord = true;
-#ifdef BUCEN
         bool        bnotappl = true;
         int         iBadSubscript = 0;  // GSF 10-jan-03
-#endif
 
         for( int iAxis = 0; bGoodCoord && iAxis < 3; iAxis++ ) {
             int     iExprIndex = pTVarNode->tvar_exprindex[iAxis];
@@ -116,16 +114,14 @@ double CIntDriver::excpt(int iExpr)
 
                 if( m_bStopProc ) // see the note on the similar code above
                     return 0;
-#ifdef BUCEN
+
                 bnotappl = ( dValue >= 0 && dValue <= INT_MAX);
-#endif
+
                 //TODO:         bGoodCoord = ( dValue >= 0 && dValue <= INT_MAX??? );
 
                 if( bGoodCoord ) {
                     aCoord[iAxis] = (int) dValue;
-#ifdef BUCEN
                     iBadSubscript = (int) dValue;   // GSF 10-jan-03
-#endif
                 }
             }
         }
@@ -191,7 +187,7 @@ double CIntDriver::excpt(int iExpr)
     }
 
     if( bOk ) {
-#ifdef BUCEN
+        // BUCEN
         bool bIsInputDict = (pVarT->GetSubType() == SymbolSubType::Input);
         GROUPT* pGroupTRec = pVarT->GetOwnerGPT();
         int iDimType = pGroupTRec->GetDimType();
@@ -220,13 +216,6 @@ double CIntDriver::excpt(int iExpr)
         }
 
     // GSF 11-Feb-2003 end
-#else
-        CNDIndexes theIndex( ZERO_BASED, aIndex );
-        bOk = SetVarFloatValue( dRightValue, pVarX, theIndex );
-        ASSERT( bOk );
-
-
-#endif
     } // if( bOk )
 
     //TODO: all below MUST be done by 'SetVarFloatValue'    // victor Jul 25, 00
