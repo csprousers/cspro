@@ -4,6 +4,7 @@
 #include "StdAfx.h"
 #include "Runaple.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zToolsO/BinaryGen.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/TextInputDlg.h>
@@ -75,19 +76,23 @@ bool CRunAplEntry::LoadCompile()
     Application* pApplication = m_pPifFile->GetApplication();
 
     if( pApplication->GetAppLoader()->GetBinaryFileLoad() )
+    {
         pApplication->SetApplicationLoader(std::make_unique<PenReaderApplicationLoader>(pApplication, std::string()));
+    }
+
+    else if( BinaryGen::IsCreatingPen() )
+    {
+        pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
+    }
+
+    else if( OnWindowsDesktop() )
+    {
+        pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
+    }
 
     else
     {
-#ifdef WIN_DESKTOP
-        if( BinaryGen::isGeneratingBinary() )
-            pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
-
-        else
-            pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
-#else
         throw ProgrammingErrorException();
-#endif
     }
 
 

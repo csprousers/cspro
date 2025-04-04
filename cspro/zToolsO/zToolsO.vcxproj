@@ -146,6 +146,7 @@
     <ClInclude Include="assert_cast.h" />
     <ClInclude Include="base64.h" />
     <ClInclude Include="BinaryBlock.h" />
+    <ClInclude Include="BinaryGen.h" />
     <ClInclude Include="BinarySerializer.h" />
     <ClInclude Include="bzlib.h" />
     <ClInclude Include="CallbackFunctionProcessor.h" />

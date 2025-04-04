@@ -49,18 +49,6 @@ CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iSho
 
 //////////////////////////////////////////////////////////////////////////
 
-class CLASS_DECL_ZTOOLSO BinaryGen
-{
-public:
-#ifdef GENERATE_BINARY
-    static bool m_bGeneratingBinary;
-    static std::wstring m_sBinaryName;
-    static const std::wstring& GetBinaryName();
-#endif // GENERATE_BINARY
-    static bool isGeneratingBinary();
-};
-//////////////////////////////////////////////////////////////////////////
-
 CLASS_DECL_ZTOOLSO bool RecycleFile(InterfaceString file_path);
 
 CLASS_DECL_ZTOOLSO std::wstring GetWorkingFolder(wstring_view base_filename_sv);

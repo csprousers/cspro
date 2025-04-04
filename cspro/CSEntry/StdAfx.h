@@ -5,6 +5,7 @@
 #include <CSEntry/DEEdit.h>
 #include <CSEntry/resource.h>
 #include <CSEntry/UWM.h>
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ConnectionString.h>

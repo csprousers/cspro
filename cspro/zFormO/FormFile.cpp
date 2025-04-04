@@ -12,6 +12,7 @@
 #include "FormFile.h"
 #include "DragOptions.h"
 #include "RenDlg.h"
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/Versioning.h>
@@ -1999,12 +2000,10 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
     return true;
 }
 
-#ifdef GENERATE_BINARY
-bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name) const
+
+bool CDEFormFile::SaveRTDicts() const
 {
-    ASSERT(BinaryGen::isGeneratingBinary());
-    if( !BinaryGen::isGeneratingBinary() )
-        return true;
+    ASSERT(BinaryGen::IsCreatingPen());
 
     try // 20121109 for the portable environment
     {
@@ -2013,13 +2012,12 @@ bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name) const
 
     catch(...)
     {
-        ErrorMessage::Display(FormatText(_T("There was an error writing to the binary file %s"), archive_name.c_str()));
+        ErrorMessage::Display("There was an error writing to the binary file: " + BinaryGen::GetPenFilePath());
         return false;
     }
 
     return true;
 }
-#endif // GENERATE_BINARY
 
 
 bool CDEFormFile::SetDictItem(CDEField* pField)

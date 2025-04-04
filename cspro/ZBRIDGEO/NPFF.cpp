@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "npff.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zMessageO/Messages.h>
@@ -137,11 +138,11 @@ bool CNPifFile::BuildAllObjects()
     if(!LoadEDicts())
         return false;
 
-#ifdef GENERATE_BINARY
-    if( BinaryGen::isGeneratingBinary() )
-        if(!SaveEDicts(BinaryGen::GetBinaryName()))
+    if( BinaryGen::IsCreatingPen() )
+    {
+        if( !SaveEDicts() )
             return false;
-#endif
+    }
 
     //Do the form files
     if(m_application->GetEngineAppType() == EngineAppType::Tabulation ) {//TO Do // delete this on exit
@@ -212,20 +213,17 @@ bool CNPifFile::BuildAllObjects()
         if( m_application != nullptr )
             SetFormFileNumber(*m_application);
 
-#ifdef GENERATE_BINARY
-        if( BinaryGen::isGeneratingBinary() )
-            SaveFormObjects(BinaryGen::GetBinaryName());
-#endif
+        if( BinaryGen::IsCreatingPen() )
+            SaveFormObjects();
     }
 
     return true;
 }
 
-#ifdef GENERATE_BINARY
-bool CNPifFile::SaveEDicts(const std::wstring& archive_name)
+
+bool CNPifFile::SaveEDicts()
 {
-    ASSERT( BinaryGen::isGeneratingBinary() );
-    bool bOk = true;
+    ASSERT(BinaryGen::IsCreatingPen());
 
     for( const std::shared_ptr<CDataDict>& dictionary : m_application->GetRuntimeExternalDictionaries() )
     {
@@ -236,14 +234,14 @@ bool CNPifFile::SaveEDicts(const std::wstring& archive_name)
 
         catch(...)
         {
-            ErrorMessage::Display(FormatText(_T("There was an error writing to the binary file %s"), archive_name.c_str()));
+            ErrorMessage::Display("There was an error writing to the binary file: " + BinaryGen::GetPenFilePath());
             return false;
         }
     }
 
-    return bOk;
+    return true;
 }
-#endif
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -301,17 +299,13 @@ bool CNPifFile::LoadEDicts()
     return true;
 }
 
-#ifdef GENERATE_BINARY
-bool CNPifFile::SaveFormObjects(const std::wstring& archive_name)
-{
-    ASSERT( BinaryGen::isGeneratingBinary() );
-    if( !BinaryGen::isGeneratingBinary() )
-        return true;
 
-    bool bRet = true;
+bool CNPifFile::SaveFormObjects()
+{
+    ASSERT(BinaryGen::IsCreatingPen());
 
     //Add the runtime dicts again
-    for( const auto& pFormFile : m_application->GetRuntimeFormFiles() )
+    for( const std::shared_ptr<CDEFormFile>& pFormFile : m_application->GetRuntimeFormFiles() )
     {
         try // 20121109 for the portable environment
         {
@@ -320,14 +314,14 @@ bool CNPifFile::SaveFormObjects(const std::wstring& archive_name)
 
         catch(...)
         {
-            ErrorMessage::Display(FormatText(_T("There was an error writing to the binary file %s"), archive_name.c_str()));
+            ErrorMessage::Display("There was an error writing to the binary file: " + BinaryGen::GetPenFilePath());
             return false;
         }
     }
 
-    return bRet;
+    return true;
 }
-#endif // GENERATE_BINARY
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -389,26 +383,28 @@ BOOL CNPifFile::LoadFormObjects(void)
         }
         else {
 #ifndef USE_BINARY
-           bFileOpenError = (pFormFile->Open(form_file_path, TRUE) == false);
+            bFileOpenError = ( pFormFile->Open(form_file_path, TRUE) == false );
 #else
-           ASSERT(!_T("No non-binary file load in this build"));
-           bFileOpenError = false;
+            ASSERT(!_T("No non-binary file load in this build"));
+            bFileOpenError = false;
 #endif
         }
 
-       if(bFileOpenError) {
+        if( bFileOpenError )
+        {
            ErrorMessage::Display("Form load failed: " + form_file_path);
            return false;
-       }
+        }
 
-       if( !m_application->GetAppLoader()->GetBinaryFileLoad() && !pFormFile->LoadRTDicts(m_application->GetAppLoader())) // 20121115 added first condition
-           return FALSE;
+        if( !m_application->GetAppLoader()->GetBinaryFileLoad() && !pFormFile->LoadRTDicts(m_application->GetAppLoader()) ) // 20121115 added first condition
+            return FALSE;
 
-#ifdef GENERATE_BINARY
-       if(BinaryGen::isGeneratingBinary())
-           if(!pFormFile->SaveRTDicts(BinaryGen::GetBinaryName()))
-               return false;
-#endif
+        if( BinaryGen::IsCreatingPen() )
+        {
+            if( !pFormFile->SaveRTDicts() )
+                return false;
+        }
+
         pFormFile->UpdatePointers();
 
         //Set the dict desc

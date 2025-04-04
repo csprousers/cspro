@@ -222,7 +222,7 @@ BOOL CEntryrunApp::InitInstance()
 
 
     // create the .pen file and exit if generating a binary archive
-    if( BinaryGen::isGeneratingBinary() )
+    if( BinaryGen::IsCreatingPen() )
     {
         CreatePenFile(file_path);
         m_pMainWnd->DestroyWindow();
@@ -411,7 +411,7 @@ void CEntryrunApp::CreatePenFile(const std::string& application_file_path)
 
     try
     {
-        serializer->CreateOutputArchive(UTF8_TODO::GetUtf8(BinaryGen::GetBinaryName()));
+        serializer->CreateOutputArchive(BinaryGen::GetPenFilePath());
 
         Application application;
         application.GetAppLoader()->SetBinaryFileLoad(false);
@@ -440,7 +440,7 @@ void CEntryrunApp::CreatePenFile(const std::string& application_file_path)
     APP_LOAD_TODO_SetArchive(nullptr);
 
     if( !success )
-        PortableFunctions::FileDelete(BinaryGen::GetBinaryName());
+        PortableFunctions::FileDelete(BinaryGen::GetPenFilePath());
 }
 
 

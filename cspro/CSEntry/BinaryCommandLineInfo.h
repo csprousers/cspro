@@ -14,12 +14,9 @@ public:
 
     void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
 
-    const std::wstring& GetPenFilename();
-
     void UpdateBinaryGen();
 
 private:
-    bool m_bGeneratePen;
-    bool m_bExpectingPenFilename; // binary name should follow /penName flag, true if just had /penName
-    std::wstring m_penFilename;
+    bool m_expectingPenFilePath; // binary name should follow /penName flag, true if just had /penName
+    std::optional<std::string> m_penFilePath;
 };

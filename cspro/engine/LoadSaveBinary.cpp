@@ -5,6 +5,7 @@
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/Imputation.h>
 #include <zEngineO/JavaScriptProcessor.h>
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
 #include <zAppO/Application.h>
 #include <zFreqO/Frequency.h>
@@ -155,7 +156,7 @@ void CEngineDriver::LoadCompiledBinary()
 
 void CEngineDriver::SaveCompiledBinary()
 {
-    ASSERT(BinaryGen::isGeneratingBinary());
+    ASSERT(BinaryGen::IsCreatingPen());
 
     Serializer& ar = APP_LOAD_TODO_GetArchive();
 

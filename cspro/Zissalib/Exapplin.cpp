@@ -13,6 +13,7 @@
 #include <engine/COMMONIN.H>
 #include <engine/Comp.h>
 #include <zEngineO/PenWriterApplicationLoader.h>
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ConnectionString.h>
@@ -21,26 +22,12 @@
 #include <zListingO/ErrorLister.h>
 #include <zLogicO/SpecialFunction.h>
 
-
 #ifdef WIN_DESKTOP
 #include <zLogicO/SourceBuffer.h>
 #endif
 
-#if defined(USE_BINARY) || defined(GENERATE_BINARY)
-
-#else
-#define PortableFunctions::FileExists(x) true
-#endif
-
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
-#endif
-
 
 ///////////////////////// ISSA-based functions ///////////////////////////////
-
 
 bool CEngineDriver::exapplinit()
 {
@@ -169,8 +156,7 @@ bool CEngineDriver::exapplinit()
         }
 #endif
 
-#ifdef GENERATE_BINARY
-        if( BinaryGen::isGeneratingBinary() )
+        if( BinaryGen::IsCreatingPen() )
         {
             try
             {
@@ -179,14 +165,13 @@ bool CEngineDriver::exapplinit()
 
             catch(...)
             {
-                ErrorMessage::Display(FormatText(_T("There was an error writing to the binary file: %s"), BinaryGen::GetBinaryName().c_str()));
+                ErrorMessage::Display("There was an error writing to the binary file: " + BinaryGen::GetPenFilePath());
                 // TODO: Decide what to do when binary writing does not work
                 //  - report any error?
                 //  - abort?
                 #pragma message( "TODO: Add behavior when binary generation does not work" )
             }
         }
-#endif // GENERATE_BINARY
 
         try
         {
@@ -311,7 +296,7 @@ bool CEngineDriver::exapplinit()
 
 
         // load or save the CAPI questions (when loading/saving .pen files)
-        if( question_text_manager != nullptr && ( BinaryGen::isGeneratingBinary() ||
+        if( question_text_manager != nullptr && ( BinaryGen::IsCreatingPen() ||
             ( GetApplication()->GetAppLoader() != nullptr && GetApplication()->GetAppLoader()->GetBinaryFileLoad() ) ) )
         {
             APP_LOAD_TODO_GetArchive() & *question_text_manager;

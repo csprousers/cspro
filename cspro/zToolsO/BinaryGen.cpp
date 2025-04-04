@@ -1,21 +1,20 @@
 ﻿#include "StdAfx.h"
-#include "Tools.h"
+#include "BinaryGen.h"
 
 
-#ifdef GENERATE_BINARY
-
-//////////////////////////////////////////////////////////////////////////
-// global control for binary generation
-bool BinaryGen::m_bGeneratingBinary = false;
-std::wstring BinaryGen::m_sBinaryName;
+std::unique_ptr<const std::string> BinaryGen::m_penFilePath;
 
 
-bool BinaryGen::isGeneratingBinary()           { return m_bGeneratingBinary; }
-const std::wstring& BinaryGen::GetBinaryName() { return m_sBinaryName; }
+const std::string& BinaryGen::GetPenFilePath()
+{
+    if( m_penFilePath == nullptr )
+        return ReturnProgrammingError(SO::Empty_string);
+
+    return *m_penFilePath;
+}
 
 
-#else
-
-bool BinaryGen::isGeneratingBinary() { return false; }
-
-#endif // GENERATE_BINARY
+void BinaryGen::SetCreatingPen(std::string pen_file_path)
+{
+    m_penFilePath = std::make_unique<std::string>(std::move(pen_file_path));
+}
