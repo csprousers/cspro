@@ -38,7 +38,7 @@ int CEngineArea::inittables()
 
     // marks level-id list as empty
     for (size_t i = 0; i < MaxNumberLevels; i++)
-        QidVars[i][0] = -1;
+        m_pEngineSettings->m_QidVars[i][0] = -1;
 
     return TRUE;
 }

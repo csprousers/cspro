@@ -35,7 +35,7 @@ bool CNPifFile::BuildAllObjects()
     ASSERT(!m_sAppFName.IsEmpty());
 
     // check for binary load vs regular load
-    std::string extension = PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(m_sAppFName));
+    std::string extension = Path::GetExtension(UTF8_TODO::GetUtf8(m_sAppFName));
 
     // use .pen file if .ent file is not there
     // this facilitates deployment since you can use same .pff file for .ent and .pen
@@ -45,7 +45,7 @@ bool CNPifFile::BuildAllObjects()
     if( SO::EqualsNoCase(extension, FileExtensions::EntryApplication) && !PortableFunctions::FileIsRegular(m_sAppFName) )
 #endif
     {
-        sAppFNameBin = UTF8_TODO::GetCString(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(sAppFNameBin), FileExtensions::BinaryEntryPen));
+        sAppFNameBin = UTF8_TODO::GetCString(Path::ReplaceExtension(UTF8_TODO::GetUtf8(sAppFNameBin), FileExtensions::BinaryEntryPen));
 
         if( PortableFunctions::FileIsRegular(sAppFNameBin) )
             extension = FileExtensions::BinaryEntryPen;
@@ -59,7 +59,7 @@ bool CNPifFile::BuildAllObjects()
         SetBinaryLoad(true);
         m_application->GetAppLoader()->SetBinaryFileLoad(true);
 
-        m_application->GetAppLoader()->SetArchiveName(CS2WS(sAppFNameBin));
+        m_application->GetAppLoader()->SetArchiveFilePath(UTF8_TODO::GetUtf8(sAppFNameBin));
 
         if( SO::EqualsNoCase(extension, FileExtensions::BinaryEntryPen) )
         {
@@ -74,10 +74,10 @@ bool CNPifFile::BuildAllObjects()
 
         try
         {
-            serializer->OpenInputArchive(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName()));
+            serializer->OpenInputArchive(m_application->GetAppLoader()->GetArchiveFilePath());
             *serializer & *m_application;
 
-            m_application->SetApplicationFilePath(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())); // 20131202
+            m_application->SetApplicationFilePath(m_application->GetAppLoader()->GetArchiveFilePath()); // 20131202
 
             bOpenOK = true;
         }
@@ -94,7 +94,7 @@ bool CNPifFile::BuildAllObjects()
         {
             const std::string message = FormatText("Error reading file %s. Verify that the file exists and that it is a "
                                                    "valid CSPro .pen file and that it is located in the the correct folder.",
-                                                    UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName()).c_str());
+                                                    m_application->GetAppLoader()->GetArchiveFilePath().c_str());
 #ifndef WIN_DESKTOP
             PlatformInterface::GetInstance()->GetApplicationInterface()->ShowModalDialog("Application Load Error", message, MB_OK);
 #else
@@ -268,7 +268,7 @@ bool CNPifFile::LoadEDicts()
             catch( const std::exception& exception )
             {
                 ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
-                                                 Path::GetFilename(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())).c_str(),
+                                                 Path::GetFilename(m_application->GetAppLoader()->GetArchiveFilePath()).c_str(),
                                                  exception.what()));
                 return false;
             }
@@ -376,7 +376,7 @@ BOOL CNPifFile::LoadFormObjects(void)
             catch( const std::exception& exception )
             {
                 ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
-                                                 Path::GetFilename(UTF8_TODO::GetUtf8(m_application->GetAppLoader()->GetArchiveName())).c_str(),
+                                                 m_application->GetAppLoader()->GetArchiveFilePath().c_str(),
                                                  exception.what()));
                 return false;
             }

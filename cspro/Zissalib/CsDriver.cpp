@@ -7986,7 +7986,7 @@ void CsDriver::SetReenterTarget( VART* pVarT ) {
     int     iLevel = GetLevelOfCurObject();
     int     iSymItem = pVarT->GetSymbolIndex();
     int     iSymVar;
-    for( int iItem = 0; !bIsIdField && ( iSymVar = m_pEntryDriver->QidVars[iLevel - 1][iItem] ) > 0; iItem++ ) {
+    for( int iItem = 0; !bIsIdField && ( iSymVar = m_pEntryDriver->m_pEngineSettings->m_QidVars[iLevel - 1][iItem] ) > 0; iItem++ ) {
         VART* pIdVarT=VPT(iSymVar);
         if( !pIdVarT->IsProtectedOrNoNeedVerif() )
             iSymPrevIdNoProtected = iSymVar;

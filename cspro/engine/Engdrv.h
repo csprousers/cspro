@@ -90,7 +90,7 @@ public:
 private:
     std::string     m_currentLanguageName;
 public:
-    const TCHAR*    m_lpszExecutorLabel;    // executor label   VC Nov 20, 95
+    const char*     m_lpszExecutorLabel;    // executor label   VC Nov 20, 95
 
     // basic arrays
 public:
@@ -169,9 +169,6 @@ public:
 
 private:
     std::optional<int> m_stopCode;
-
-public:
-    CString         m_csAppFullName;
 
 private:
     bool            m_bHasOutputDict; // RHF Aug 23, 2002

@@ -53,7 +53,8 @@ int CEngineCompFunc::compall( int comptype )
 
         if( getErrors() > 0 )
         {
-            issaerror(MessageType::Abort, 10010, PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(Appl.GetAppFileName())).c_str(), getErrors());
+            issaerror(MessageType::Abort, 10010, Path::GetFilename(m_pEngineDriver->GetApplication()->GetApplicationFilePath()).c_str(),
+                                                 getErrors());
             return 1;
         }
 

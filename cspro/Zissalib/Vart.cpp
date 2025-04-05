@@ -524,17 +524,20 @@ int CSymbolVar::GetMaxOccsInDim( int iDim ) {                 // victor Jul 20, 
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CSymbolVar::SetUsed(bool used)
+void CSymbolVar::SetUsed(const bool used)
 {
+    if( m_bIsUsed == used )
+        return;
+
     m_bIsUsed = used;
 
     if( m_bIsUsed )
     {
-        DICT* pDicT = GetDPT();
+        DICT* const pDicT = GetDPT();
 
         if( pDicT != nullptr )
         {
-            CaseAccess* case_access = pDicT->GetCaseAccess();
+            CaseAccess* const case_access = pDicT->GetCaseAccess();
 
             if( case_access != nullptr && !case_access->IsInitialized() )
                 case_access->SetUseDictionaryItem(*GetDictItem());

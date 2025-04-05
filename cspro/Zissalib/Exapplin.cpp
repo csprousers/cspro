@@ -31,13 +31,7 @@
 
 bool CEngineDriver::exapplinit()
 {
-    MessageType abort_type = MessageType::Abort;
-#ifdef USE_BINARY
-    abort_type = MessageType::Error;
-#endif
-
-    Application* pApp = GetApplication();
-    ASSERT( pApp );
+    ASSERT(m_pApplication != nullptr);
 
     InitAppName();
 
@@ -45,7 +39,7 @@ bool CEngineDriver::exapplinit()
         ExMode = _totupper( m_pPifFile->GetStartModeString()[0] );
 
 
-    if( !pApp->IsCompiled() ) //SAVY March 2002
+    if( !m_pApplication->IsCompiled() ) //SAVY March 2002
     {
         // potentially produce an error file with application errors (when not running in the portable environment)
 #ifdef WIN_DESKTOP
@@ -67,10 +61,11 @@ bool CEngineDriver::exapplinit()
         else
         {
             // load application itself, insert names of main members in symbol table
-            if( !attrload() || io_Err )
+            if( !attrload() || m_pEngineSettings->m_io_Err != 0 )
             {
 #ifdef WIN_DESKTOP
-                issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
+                issaerror(MessageType::Abort, 10004, Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str(),
+                                                     m_pEngineSettings->m_failMessage.c_str());
 #endif
                 return false;
             }
@@ -80,7 +75,8 @@ bool CEngineDriver::exapplinit()
             if( !LoadApplChildren(NULL) ) // RHF Jun 12, 2003 Add Null
             {
 #ifdef WIN_DESKTOP
-                issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
+                issaerror(MessageType::Abort, 10004, Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str(),
+                                                     m_pEngineSettings->m_failMessage.c_str());
 #endif
                 return false;
             }
@@ -90,7 +86,8 @@ bool CEngineDriver::exapplinit()
         if( GetApplication()->GetAppLoader()->GetBinaryFileLoad() && !m_bBinaryLoaded )
         {
 #ifdef WIN_DESKTOP
-            issaerror( abort_type, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
+            issaerror(MessageType::Abort, 10004, Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str(),
+                                                 m_pEngineSettings->m_failMessage.c_str());
 #endif
             return false;
         }
@@ -175,10 +172,10 @@ bool CEngineDriver::exapplinit()
 
         try
         {
-            if( pApp->GetApplicationLoader() != nullptr )
+            if( m_pApplication->GetApplicationLoader() != nullptr )
             {
                 ASSERT(m_userMessageManager != nullptr);
-                pApp->GetApplicationLoader()->ProcessUserMessagesPostCompile(*m_userMessageManager);
+                m_pApplication->GetApplicationLoader()->ProcessUserMessagesPostCompile(*m_userMessageManager);
             }
 
             if( m_pIntDriver->HasSpecialFunction(SpecialFunction::OnSystemMessage) )
@@ -200,9 +197,10 @@ bool CEngineDriver::exapplinit()
         {
             m_pEngineCompFunc->RunPostCompilationChecks();
 
-            if( !Failmsg.IsEmpty() )
+            if( !m_pEngineSettings->m_failMessage.empty() )
             {
-                issaerror(MessageType::Abort, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str());
+                issaerror(MessageType::Abort, 10004, Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str(),
+                                                     m_pEngineSettings->m_failMessage.c_str());
                 return false;
             }
         }
@@ -238,7 +236,8 @@ bool CEngineDriver::exapplinit()
             int     isymCommonSecLevel;
             int     isymCommonVar;
 
-            QidLength = 0;
+            m_pEngineSettings->m_QidLength = 0;
+
             for( int iLevel = 0; iLevel < (int)MaxNumberLevels && pDicT->qloc[iLevel] > 0; iLevel++ ) {
                 int    iLevelidLen = 0;
                 int    iIdVarOrder = 0;
@@ -250,7 +249,7 @@ bool CEngineDriver::exapplinit()
                         issaerror( MessageType::Abort, 77 );
                     // RHF END Feb 20, 2001
 
-                    QidVars[iLevel][iIdVarOrder++] = isymCommonVar;
+                    m_pEngineSettings->m_QidVars[iLevel][iIdVarOrder++] = isymCommonVar;
 
                     iLevelidLen += VPT(isymCommonVar)->GetLength();
 
@@ -258,12 +257,12 @@ bool CEngineDriver::exapplinit()
                 }
 
                 // mark end of IdVars list for this level
-                QidVars[iLevel][iIdVarOrder] = -1;  //***enlarge MAXQIDVARS pls!!!
+                m_pEngineSettings->m_QidVars[iLevel][iIdVarOrder] = -1;  //***enlarge MAXQIDVARS pls!!!
 
                 if( iLevelidLen != pDicT->qlen[iLevel] )
                     issaerror( MessageType::Abort, 1024, iLevel + 1, iLevelidLen, pDicT->qlen[iLevel] );
 
-                QidLength += pDicT->qlen[iLevel];
+                m_pEngineSettings->m_QidLength += pDicT->qlen[iLevel];
             }
 
             if( Issamod == ModuleType::Entry ) {
@@ -271,8 +270,9 @@ bool CEngineDriver::exapplinit()
                     int     j;
                     int     len;
 
-                    for( len = j = 0; QidVars[i][j] >= 0; j++ )
-                        len += VPT(QidVars[i][j])->GetLength();
+                    for( len = j = 0; m_pEngineSettings->m_QidVars[i][j] >= 0; j++ )
+                        len += VPT(m_pEngineSettings->m_QidVars[i][j])->GetLength();
+
                     if( len != pDicT->qlen[i] )
                     {
 #ifdef WIN_DESKTOP
@@ -309,26 +309,26 @@ bool CEngineDriver::exapplinit()
         // resources
         try
         {
-            if( pApp->GetApplicationLoader() != nullptr )
+            if( m_pApplication->GetApplicationLoader() != nullptr )
             {
 #ifdef WIN_DESKTOP
                 // dictionaries aren't written using PenWriterApplicationLoader (yet), so this code is here temporarily
-                PenWriterApplicationLoader* const pen_writer_application_loader = dynamic_cast<PenWriterApplicationLoader*>(pApp->GetApplicationLoader());
+                PenWriterApplicationLoader* const pen_writer_application_loader = dynamic_cast<PenWriterApplicationLoader*>(m_pApplication->GetApplicationLoader());
 
                 if( pen_writer_application_loader != nullptr )
                 {
-                    for( const std::shared_ptr<CDEFormFile>& form_file : pApp->GetRuntimeFormFiles() )
+                    for( const std::shared_ptr<CDEFormFile>& form_file : m_pApplication->GetRuntimeFormFiles() )
                     {
                         ASSERT(form_file->GetSharedDictionary() != nullptr);
                         pen_writer_application_loader->ProcessDictionaryValueSetImages(*form_file->GetSharedDictionary());
                     }
 
-                    for( const std::shared_ptr<CDataDict>& dictionary : pApp->GetRuntimeExternalDictionaries() )
+                    for( const std::shared_ptr<CDataDict>& dictionary : m_pApplication->GetRuntimeExternalDictionaries() )
                         pen_writer_application_loader->ProcessDictionaryValueSetImages(*dictionary);
                 }
 #endif
 
-                pApp->GetApplicationLoader()->ProcessResources();
+                m_pApplication->GetApplicationLoader()->ProcessResources();
             }
         }
 

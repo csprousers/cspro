@@ -3,7 +3,6 @@
 //----------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "Tables.h"
-#include "Engine.h"
 #include "Comp.h"
 #include "IntDrive.h"
 #include <zToolsO/Tools.h>
@@ -25,17 +24,14 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
     // Dicts/Flows/Flow'Forms symbols must be already inserted by
     // 'MakeApplChildren', previously called in 'attrload' (Attr.cpp)
 
-    io_Dic.Empty();
-    io_Var.Empty();
-    io_Err = 0;
-    Failmsg.Empty();
+    m_pEngineSettings->m_io_Dic.clear();
+    m_pEngineSettings->m_io_Var.clear();
+    m_pEngineSettings->m_io_Err = 0;
+    m_pEngineSettings->m_failMessage.clear();
 
     // loading the contents of the Application' Dicts and Flows
     if( !LoadApplDics() || !LoadApplFlows() )
         return false;
-
-    // getting the APP file
-    Appl.SetAppFileName(m_csAppFullName);
 
     // Using binary -> No ascii loading anymore
     if( GetApplication()->GetAppLoader()->GetBinaryFileLoad() )
@@ -49,7 +45,7 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
         catch( const std::exception& exception )
         {
             ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
-                                             Path::GetFilename(UTF8_TODO::GetUtf8(GetApplication()->GetAppLoader()->GetArchiveName())).c_str(),
+                                             Path::GetFilename(GetApplication()->GetAppLoader()->GetArchiveFilePath()).c_str(),
                                              exception.what()));
             return false;
         }
@@ -100,41 +96,42 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
 }
 
 
-bool CEngineDriver::LoadApplMessage( void ) {
+bool CEngineDriver::LoadApplMessage()
+{
     // evaluate load done & prepare message
-    bool    bLoadOK = ( !io_Err );
-
-    if( bLoadOK ) {
-        Failmsg.Empty(); // successful loading
+    if( m_pEngineSettings->m_io_Err == 0 )
+    {
+        // successful loading
+        m_pEngineSettings->m_failMessage.clear();
     }
-    else {
-        // looks for source of error
-        CString csObjError;
-        CString csExplain;
 
-        if( !io_Var.IsEmpty() )
-            csObjError.Format( _T("Var %s"), io_Var.GetString() );
-
+    else
+    {
         // type of error
-        if( io_Err == 1 )
-            csExplain = _T("name already defined");
-        else if( io_Err == 2 )
-            csExplain = _T("no place to insert");
-        else if( io_Err == 3 )
-            csExplain = _T("floats overflow");
-        else if( io_Err == 91 )                      // victor Aug 25, 99
-            csExplain = _T("excessive indexing");    // victor Aug 25, 99
-        else if( io_Err == 92 )                      // victor Aug 25, 99
-            csExplain = _T("invalid ranges");        // RHF Nov 03, 2000
-        else
-            csExplain = _T("unable to load");
+        const char* type;
+
+        switch( m_pEngineSettings->m_io_Err )
+        {
+            case 1:  type = "name already defined"; break;
+            case 2:  type = "no place to insert";   break;
+            case 3:  type = "floats overflow";      break;
+            case 91: type = "excessive indexing";   break; // victor Aug 25, 99
+            case 92: type = "invalid ranges";       break; // RHF Nov 03, 2000
+            default: type = "unable to load";       break;
+        }
 
         // diagnostics message
-        Failmsg.Format(_T("Cannot load %s: "), io_Dic.GetString());
-        if( !csObjError.IsEmpty() )
-            Failmsg.AppendFormat(_T("%s - "), csObjError.GetString());
-        Failmsg.Append(csExplain);
+        m_pEngineSettings->m_failMessage = FormatText("Cannot load %s: ", m_pEngineSettings->m_io_Dic.c_str());
+
+        if( !m_pEngineSettings->m_io_Var.empty() )
+        {
+            m_pEngineSettings->m_failMessage.append("Var ")
+                                            .append(m_pEngineSettings->m_io_Var)
+                                            .append(" - ");
+        }
+
+        m_pEngineSettings->m_failMessage.append(type);
     }
 
-    return bLoadOK;
+    return m_pEngineSettings->m_failMessage.empty();
 }

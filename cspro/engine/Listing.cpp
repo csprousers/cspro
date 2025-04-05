@@ -36,7 +36,7 @@ void CEngineDriver::StartLister()
 
     bool append = false;
 
-    std::string application_type = UTF8_TODO::GetUtf8(Appl.ApplicationTypeText);
+    std::string application_type = Appl.ApplicationTypeText;
     bool cstab = false;
     bool cscalc = false;
 
@@ -48,7 +48,7 @@ void CEngineDriver::StartLister()
 
     else if( m_pPifFile->GetAppType() == APPTYPE::TAB_TYPE )
     {
-        if( application_type == "CSTab" )
+        if( SO::EqualsNoCase(application_type, "CSTab") )
         {
             cstab = true;
             application_type = "Tab";
@@ -56,7 +56,7 @@ void CEngineDriver::StartLister()
 
         else
         {
-            if( application_type == "PostCalc" )
+            if( SO::EqualsNoCase(application_type, "PostCalc") )
             {
                 cscalc = true;
                 application_type = "Format";

@@ -103,8 +103,8 @@ void CEngineCompFunc::FormatMessageAndProcessParserMessage(Logic::ParserMessage&
     m_pEngineDriver->GetSystemMessageIssuer().IssueVA(parser_message, parg);
 
     // set the fail message text
-    if( parser_message.type == Logic::ParserError::Type::Error && Failmsg.IsEmpty() )
-        Failmsg = UTF8_TODO::GetCString(parser_message.message_text);
+    if( parser_message.type == Logic::ParserError::Type::Error && m_pEngineSettings->m_failMessage.empty() )
+        m_pEngineSettings->m_failMessage = parser_message.message_text;
 }
 
 

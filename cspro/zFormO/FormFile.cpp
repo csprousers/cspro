@@ -1977,7 +1977,7 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
         catch( const std::exception& exception )
         {
             ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
-                                             Path::GetFilename(UTF8_TODO::GetUtf8(pLoader->GetArchiveName())).c_str(),
+                                             Path::GetFilename(pLoader->GetArchiveFilePath()).c_str(),
                                              exception.what()));
             return false;
         }

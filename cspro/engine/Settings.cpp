@@ -16,7 +16,9 @@
 #include "Settings.h"
 #include <zPlatformO/PlatformInterface.h>
 
+
 bool CSettings::m_bNewTbd = true;
+
 
 CSettings::CSettings()
 {
@@ -87,6 +89,7 @@ CSettings::CSettings()
 #endif
 }
 
+
 void CSettings::SetPathOn()
 {
     m_bPathOn               = true;
@@ -101,6 +104,7 @@ void CSettings::SetPathOn()
     SetCannotUseEndLevel();
 }
 
+
 void CSettings::SetPathOff()
 {
     m_bPathOn               = false;
@@ -113,4 +117,13 @@ void CSettings::SetPathOff()
     SetDisplayMessageOn();
     SetErrmsgMessageOn();
     SetCanUseEndLevel();
+}
+
+
+void CSettings::SetLevelZeroName(std::string level_zero_name)
+{
+    ASSERT(CIMSAString::IsName(level_zero_name));
+
+    m_levelZeroName = std::move(level_zero_name);
+    SO::MakeUpper(m_levelZeroName);
 }

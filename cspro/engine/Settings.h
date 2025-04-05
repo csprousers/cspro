@@ -342,10 +342,7 @@ public:
 
     // --- Miscellaneous
 public:
-    CString m_ApplName;                 // name of current application
-
-public:
-    CString m_Failmsg;
+    std::string m_failMessage;
 
     int     m_QidVars[MaxNumberLevels][MAXQIDVARS];
     int     m_QidLength;
@@ -353,42 +350,21 @@ public:
     // --- Data areas for APP & Dic loading operations
 public:
                                         // I/O current parms:
-    CString m_io_Dic;                   //   current Dict name
-    CString m_io_Var;                   //           Var
-    int     m_io_Err;                   //   type of problem
+    std::string m_io_Dic;               //   current Dict name
+    std::string m_io_Var;               //           Var
+    int         m_io_Err;               //   type of problem
 
-    bool    m_bHasExport;               // presence of export sentence
-    bool    m_bHasCrosstab;             // presence of crosstab/table sentence
-    bool    m_bHasFrequency;            // presence of freq sentence
+    bool m_bHasExport;                  // presence of export sentence
+    bool m_bHasCrosstab;                // presence of crosstab/table sentence
+    bool m_bHasFrequency;               // presence of freq sentence
 
 private:
-    CString m_csLevelZeroName;
+    std::string m_levelZeroName;
 
 public:
-    void SetLevelZeroName(const CString& csLevelZeroName) {
-        m_csLevelZeroName = csLevelZeroName;
-        m_csLevelZeroName.MakeUpper();
-    }
-
-    const CString& GetLevelZeroName() const { return m_csLevelZeroName; }
+    const std::string& GetLevelZeroName() const { return m_levelZeroName; }
+    void SetLevelZeroName(std::string level_zero_name);
 
     // -- other settings
-    static  bool m_bNewTbd;
+    static bool m_bNewTbd;
 };
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//  miscellaneous macros
-//
-/////////////////////////////////////////////////////////////////////////////
-
-#define ApplName            m_pEngineSettings->m_ApplName
-#define Failmsg             m_pEngineSettings->m_Failmsg
-
-#define QidVars             m_pEngineSettings->m_QidVars
-#define QidLength           m_pEngineSettings->m_QidLength
-
-#define io_Dic              m_pEngineSettings->m_io_Dic
-#define io_Var              m_pEngineSettings->m_io_Var
-#define io_Err              m_pEngineSettings->m_io_Err

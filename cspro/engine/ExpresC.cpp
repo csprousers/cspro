@@ -497,7 +497,7 @@ int CEngineCompFunc::genMVARNode( int iSym, MVAR_NODE* pMVarNodeAux ) {
         ASSERT( NPT(iSym)->IsA(SymbolType::Variable) );
         ASSERT( VPT(iSym)->IsArray() );
 
-        if( m_allowMultVarWithoutIndex ) {
+        if( m_Flagcomp ) {
                 VPT(iSym)->SetUsed( true );
 #ifdef GENCODE
                 pMVarNode = NODEPTR_AS( MVAR_NODE );
@@ -1316,7 +1316,7 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation, bool* pbAllIn
 
                 VarAnalysis va( pVarT->GetNumDim() );
 
-                if( m_allowMultVarWithoutIndex )
+                if( m_Flagcomp )
                         pVarT->SetUsed( true );
 
 #ifdef GENCODE
@@ -1753,7 +1753,7 @@ int CEngineCompFunc::cfun_fnitemlist() // 20091203
 
         numArgs++;
 
-        if( m_allowMultVarWithoutIndex )
+        if( m_Flagcomp )
         {
             arguments.Add(Prognext);
 
@@ -1790,7 +1790,7 @@ int CEngineCompFunc::cfun_fnitemlist() // 20091203
 
     int iProg = Prognext;
 
-    if( m_allowMultVarWithoutIndex )
+    if( m_Flagcomp )
     {
         FNN_NODE* ptrfunc = NODEPTR_AS(FNN_NODE);
         OC_CreateCompilationSpace(2 + numArgs); // in lieu of ADVANCE_NODE(FNN_NODE) because of the variable number of arguments
@@ -1998,7 +1998,7 @@ int CEngineCompFunc::cfun_fncapturetype() // 20100608
 
     int iProg = Prognext;
 
-    if( m_allowMultVarWithoutIndex )
+    if( m_Flagcomp )
     {
         FNN_NODE* ptrfunc = NODEPTR_AS(FNN_NODE);
 

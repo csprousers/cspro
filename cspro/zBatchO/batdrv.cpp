@@ -112,12 +112,13 @@ void CBatchDriver::RunDriver()
     WindowsDesktopMessage::Send(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, &process_summary_reporter);
     ASSERT(process_summary_reporter != nullptr);
 
-    const std::shared_ptr<ProcessSummary> process_summary = m_pEngineDriver->GetProcessSummary();
+    const std::shared_ptr<ProcessSummary> process_summary = GetProcessSummary();
 
-    std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
-                                                m_pEngineDriver->m_lpszExecutorLabel, PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+    std::string dialog_title = FormatText("Running %s application %s. Press ESC to interrupt...",
+                                          m_lpszExecutorLabel,
+                                          Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str());
 
-    process_summary_reporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
+    process_summary_reporter->Initialize(std::move(dialog_title), process_summary, &m_pIntDriver->m_bStopProc);
 
     // cycle through all of the input data
     bool continue_processing = true;

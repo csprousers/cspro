@@ -167,17 +167,18 @@ void CEntryDriver::DoQid() {
     int     iSymVar;
     int     iLevelKeyLen;
 
-    QidLength = 0;
+    m_pEngineSettings->m_QidLength = 0;
+
     for( int i = 0; i < (int)MaxNumberLevels && pDicT->qloc[i] > 0; i++ ) {
          iLevelKeyLen = 0;
          int j = 0;
 
-         while( ( iSymVar = QidVars[i][j++] ) >= 0 )
+         while( ( iSymVar = m_pEngineSettings->m_QidVars[i][j++] ) >= 0 )
              iLevelKeyLen += VPT(iSymVar)->GetLength();
          if( iLevelKeyLen != pDicT->qlen[i] )
              issaerror( MessageType::Abort, 1024, i + 1, iLevelKeyLen, pDicT->qlen[i] );
 
-         QidLength += pDicT->qlen[i];
+         m_pEngineSettings->m_QidLength += pDicT->qlen[i];
     }
 }
 
@@ -191,7 +192,7 @@ bool CEntryDriver::QidReady(int iLevel)
     bool bReady = true;
 
     // only if there is a case-identifier
-    if( QidLength > 0 )
+    if( m_pEngineSettings->m_QidLength > 0 )
     {
         bool bPathOff = m_pEngineSettings->IsPathOff();
         int iItem = 0;
@@ -199,7 +200,7 @@ bool CEntryDriver::QidReady(int iLevel)
         // checks presence of every id-field for this level
         while( bReady )
         {
-            int iSymVar = QidVars[iLevel - 1][iItem++];
+            int iSymVar = m_pEngineSettings->m_QidVars[iLevel - 1][iItem++];
 
             if( iSymVar > 0 )
             {
@@ -645,9 +646,9 @@ void CEntryDriver::PrefillKeyFromPff()
     CString key = m_pPifFile->GetKey();
     int current_position_in_key = 0;
 
-    for( int i = 0; current_position_in_key < key.GetLength() && QidVars[0][i] >= 0; i++ )
+    for( int i = 0; current_position_in_key < key.GetLength() && m_pEngineSettings->m_QidVars[0][i] >= 0; i++ )
     {
-        VART* pVarT = VPT(QidVars[0][i]);
+        VART* pVarT = VPT(m_pEngineSettings->m_QidVars[0][i]);
         TCHAR* variable_text_buffer = m_pIntDriver->GetVarAsciiAddr(pVarT);
 
         // format the value properly for this variable

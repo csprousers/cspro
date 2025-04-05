@@ -33,23 +33,21 @@ bool CEngineDriver::LoadApplFlows()
         int         iSymFlow = pFlow->GetSymbolIndex();
         ASSERT( iSymFlow > 0 );
 
-        io_Var.Empty();
-        io_Err  = 0;
+        m_pEngineSettings->m_io_Var.clear();
+        m_pEngineSettings->m_io_Err = 0;
 
-#ifdef _DEBUG
-        TRACE( _T("\n\n--Loading Flow %s (%d) {io_Err=%d} ------------\n"), m_pEngineArea->DumpGroupTName(iSymFlow).GetString(), iSymFlow, io_Err );
-#endif
-        int     iNumGroupsBefore;
-        int     iNumGroupsAfter;
+        TRACE("\n\n--Loading Flow %s (%d) {m_io_Err = %d} ------------\n", UTF8_TODO::GetUtf8(m_pEngineArea->DumpGroupTName(iSymFlow)).c_str(),
+                                                                           iSymFlow, m_pEngineSettings->m_io_Err);
 
         // 1. loading Flow' visible Groups
         m_iGlobalFlowOrder = 0;         // reset flow order
-        iNumGroupsBefore = m_engineData->groups.size();
+        int iNumGroupsBefore = m_engineData->groups.size();
         if( !AddGroupTForOneFlow() ) {
             const std::string message = FormatText("Unable to load Visible groups of Flow '%s'", NPT(iSymFlow)->GetName().c_str());
             issaerror(MessageType::Abort, MGF::OpenMessage, message.c_str());
         }
-        iNumGroupsAfter = m_engineData->groups.size();
+
+        int iNumGroupsAfter = m_engineData->groups.size();
         GetFlowInProcess()->SetVisibleGroups( iNumGroupsAfter - iNumGroupsBefore );
 
         // 2. loading invisible Groups from Dictionaries
@@ -430,16 +428,12 @@ bool CEngineDriver::AddGroupTForOneFlow( void ) {
 GROUPT* CEngineDriver::AddGroupTForLevelZero( int iMaxLevel ) {
     FLOW*   pFlow    = GetFlowInProcess();
     int     iSymFlow = pFlow->GetSymbolIndex();
-    CString csLevelName;
 
     // "LEVEL_0" WAS a reserved name, now from ApplName // victor Apr 04, 00
-    CString csLevelZeroName = m_pEngineSettings->GetLevelZeroName();
-    if( pFlow->IsPrimary() )
-        csLevelName = csLevelZeroName;
-    else
-        csLevelName.Format( _T("__%s_%s"), UTF8_TODO::GetWide(NPT(iSymFlow)->GetName()).c_str(), csLevelZeroName.GetString() );
+    std::string level_name = pFlow->IsPrimary() ? m_pEngineSettings->GetLevelZeroName() :
+                                                  FormatText("__%s_%s", NPT(iSymFlow)->GetName().c_str(), m_pEngineSettings->GetLevelZeroName().c_str());
 
-    auto pGroupTLevel = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(csLevelName), this);
+    auto pGroupTLevel = std::make_shared<GROUPT>(std::move(level_name), this);
     int iSymLevel = m_engineData->AddSymbol(pGroupTLevel);
 
     pGroupTLevel->SYMTfwd = 0; // SEE W/RHF victor Jan 09, 00
