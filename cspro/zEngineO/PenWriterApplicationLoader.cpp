@@ -78,12 +78,14 @@ std::shared_ptr<MessageManager> PenWriterApplicationLoader::GetSystemMessages()
     // only serialize system messages if they differ from the messages distributed with the installation
     bool messages_differ = SystemMessages::ApplicationUsesCustomMessages();
 
-#ifdef _DEBUG
     // when creating assets, the Installer Generator creates .pen files from the debug directory,
     // but the system messages shouldn't be serialized in these cases
-    if( messages_differ && std::wstring(GetCommandLine()).find(L"/noSystemMessageSerialization") != std::wstring::npos )
+    if( DebugMode() &&
+        messages_differ &&
+        PortableFunctions::GetCommandLine().find("/noSystemMessageSerialization") != std::string::npos )
+    {
         messages_differ = false;
-#endif
+    }
 
     *m_serializer_APP_LOAD_TODO << messages_differ;
 

@@ -608,6 +608,16 @@ std::string PortableFunctions::GetUniqueFilePathInDirectory(const std::string_vi
 }
 
 
+std::string PortableFunctions::GetCommandLine()
+{
+#ifdef WIN_DESKTOP
+    return TC::ToUtf8(::GetCommandLine());
+#else
+    return std::string();
+#endif
+}
+
+
 namespace
 {
     template<typename CF>

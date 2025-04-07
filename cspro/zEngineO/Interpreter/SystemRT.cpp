@@ -116,7 +116,7 @@ double LogicInterpreter::ex_sysparm(const int program_index)
         // if something is defined on the command line)
         if( parameter->empty() )
         {
-            const std::string command_line = SO::ToLower(TC::ToUtf8(GetCommandLine()));
+            const std::string command_line = SO::ToLower(PortableFunctions::GetCommandLine());
             argument.MakeLower();
             const size_t argument_pos = command_line.find(*argument);
 

@@ -1873,6 +1873,109 @@ double CIntDriver::exfileconcat(int iExpr)
 }
 
 
+// Read a line until \n.
+// 20140326 for variable length strings (used by fileread)
+bool ReadLine(CFile& cFile, CString* pStr, Encoding encoding)
+{
+    bool    bRet=true;
+
+    try {
+    UINT    nBytes, nTotalBytes=0;
+#define BUF256                  256
+        char    lpBuffer[BUF256];
+#ifdef WIN32
+        TCHAR   wBuffer[BUF256];
+#else
+        std::wstring wBuffer;
+#endif
+        UINT    wBytes = 0;
+
+        ULONGLONG    lCurrentPos=cFile.GetPosition();
+
+        int             iLen=0;
+        int             iPosNewLine=-1;
+
+        while( iPosNewLine == -1 && (nBytes=cFile.Read( lpBuffer, BUF256 )) > 0 ) {
+
+            if( encoding == Encoding::Utf8 )
+            {
+                if( ( BUF256 - nBytes ) < 4 ) // don't let the buffer end in the middle of a character sequence
+                {
+                    int goBackChars = 0;
+
+                    while( lpBuffer[nBytes + goBackChars - 1] >> 6 == 2 ) // we're in the middle of a sequence
+                        goBackChars--;
+
+                    if( lpBuffer[nBytes + goBackChars - 1] & 0xC0 ) // the beginning of a sequence
+                        goBackChars--;
+
+                    if( goBackChars )
+                    {
+                        cFile.Seek(goBackChars,CFile::current);
+                        nBytes += goBackChars;
+                    }
+                }
+#ifdef WIN32
+                wBytes = MultiByteToWideChar(CP_UTF8,0,lpBuffer,nBytes,wBuffer,BUF256);
+#else
+                wBuffer = TC::ToWide(lpBuffer, nBytes);
+                wBytes = wBuffer.length();
+#endif
+            }
+
+            else if( encoding == Encoding::Ansi )
+            {
+#ifdef WIN32
+                wBytes = MultiByteToWideChar(CP_ACP,0,lpBuffer,nBytes,wBuffer,BUF256);
+#else
+                wBuffer = TextConverter::WindowsAnsiToWide(lpBuffer,nBytes);
+                wBytes = wBuffer.length();
+#endif
+            }
+
+            else
+            {
+                ASSERT(0); // no other encoding supported
+            }
+
+            nTotalBytes += nBytes;
+
+            TCHAR * pBuff = pStr->GetBuffer(iLen + wBytes);
+
+            // first fill pBuff
+            for( UINT i = 0; i < wBytes && wBuffer[i] != _T('\n'); i++ )
+            {
+                if( wBuffer[i] != _T('\r') )
+                    pBuff[iLen++] = wBuffer[i];
+            }
+
+            // now search for the endline in the ANSI/UTF8 string
+            for( UINT i = 0; iPosNewLine == -1 && i < nBytes ; i++ )
+            {
+                if( lpBuffer[i] == '\n' )
+                    iPosNewLine = nTotalBytes - nBytes + i;
+            }
+
+        }
+
+        pStr->ReleaseBuffer(iLen);
+
+        if( nTotalBytes == 0 )
+            bRet = false;
+
+        // Some newline was found
+        if( iPosNewLine != -1 ) {
+            cFile.Seek( lCurrentPos+iPosNewLine+1, CFile::begin );
+        }
+    }
+    catch(...) {
+        bRet = false;
+    }
+
+    return bRet;
+}
+
+
 // Open the file if it was closed. Only allows file handler as parameter
 double CIntDriver::exfileread(int iExpr)
 {
