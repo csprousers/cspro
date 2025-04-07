@@ -174,11 +174,11 @@ void CFolio::Create(CIMSAString csFileName) {
     CIMSAString csRet(csText);
 
     while ((i = csRet.Find(_T("&D"))) != -1) {;
-        csTemp.Date();
+        csTemp = TimeFormatter::Date();
         csRet = csRet.Left(i) + csTemp + csRet.Mid(i + 2);
     }
     while ((i = csRet.Find(_T("&T"))) != -1) {;
-        csTemp.Time();
+        csTemp = TimeFormatter::Time();
         csRet = csRet.Left(i) + csTemp + csRet.Mid(i + 2);
     }
     while ((i = csRet.Find(_T("&F"))) != -1) {;
@@ -187,7 +187,7 @@ void CFolio::Create(CIMSAString csFileName) {
     while ((i = csRet.Find(_T("&P"))) != -1) {
         csRet = csRet.Left(i) + UTF8_TODO::GetCString(IntToString(iPage)) + csRet.Mid(i + 2);
     }
-    // 20090915 GHM also look in zTableF\PrtView.cpp CTabPrtView::BuildHeaders
+    // 20090915 also look in zTableF\PrtView.cpp CTabPrtView::BuildHeaders
     // for handling of the &I (input data filename) option
 
     return csRet;
@@ -203,14 +203,14 @@ void CFolio::Create(CIMSAString csFileName) {
 void CFolio::SetDateTime(CIMSAString& cs) {
 
     int i;
-    CIMSAString csTemp;
+    CString csTemp;
 
     while ((i = cs.Find(_T("&D"))) != -1) {;
-        csTemp.Date();
+        csTemp = TimeFormatter::Date();
         cs = cs.Left(i) + csTemp + cs.Mid(i + 2);
     }
     while ((i = cs.Find(_T("&T"))) != -1) {;
-        csTemp.Time();
+        csTemp = TimeFormatter::Time();
         cs = cs.Left(i) + csTemp + cs.Mid(i + 2);
     }
     while ((i = cs.Find(_T("&F"))) != -1) {;
@@ -588,4 +588,115 @@ void CIMSAPageSetupDlg::OnSetfocusFooterRight() {
 
     m_uLastControl = IDC_FOOTER_RIGHT;
     OnSetfocusHeadFoot();
+}
+
+
+
+// --------------------------------------------------------------------------
+// TimeFormatter ... methods that were were previously in CIMSAString
+// --------------------------------------------------------------------------
+
+#define INI _T("WIN.INI")
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//                             TimeFormatter::Date
+//
+/////////////////////////////////////////////////////////////////////////////
+
+CString TimeFormatter::Date(CTime time) {
+
+    TCHAR pszTemp[50];
+    GetPrivateProfileString(_T("intl"),_T("sShortDate"),_T("M/d/yy"), pszTemp, 50, INI);
+    CString csShortDate = pszTemp;
+    CString csMonth = time.Format(_T("%m"));
+    if (csShortDate.Find(_T("MM")) == -1) {
+        if (csMonth.GetAt(0) == '0') {
+            csMonth = (CString) csMonth.GetAt(1);
+        }
+    }
+    CString csDay = time.Format(_T("%d"));
+    if (csShortDate.Find(_T("dd")) == -1) {
+        if (csDay.GetAt(0) == '0') {
+            csDay = (CString) csDay.GetAt(1);
+        }
+    }
+    CString csYear;
+    if (csShortDate.Find(_T("yyyy")) == -1) {
+        csYear = time.Format(_T("%y"));
+    }
+    else {
+        csYear = time.Format(_T("%Y"));
+    }
+    UINT iDate = GetPrivateProfileInt(_T("intl"),_T("iDate"), 0, INI);
+    GetPrivateProfileString(_T("intl"),_T("sDate"),_T("/"), pszTemp, 50, INI);
+    CString csSep = pszTemp;
+    if (iDate == 0) {
+        return csMonth + csSep + csDay + csSep + csYear;
+    }
+    else if (iDate == 1) {
+        return csDay + csSep + csMonth + csSep + csYear;
+    }
+    else {
+        return  csYear + csSep + csMonth + csSep + csDay;
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//                           TimeFormatter::Time
+//
+/////////////////////////////////////////////////////////////////////////////
+
+CString TimeFormatter::Time(CTime time) {
+    TCHAR pszTemp[50];
+    CString csHour;
+    CString csMinute = time.Format(_T("%M"));
+    CString csSecond = time.Format(_T("%S"));
+    GetPrivateProfileString(_T("intl"),_T("sTime"),_T(":"), pszTemp, 50, INI);
+    CString csSep = pszTemp;
+    CString time_string = csMinute + csSep + csSecond;
+    if (GetPrivateProfileInt(_T("intl"),_T("iTime"), 0, INI) == 0) {
+        // 12 hour clock
+        csHour = time.Format(_T("%I"));
+        if (GetPrivateProfileInt(_T("intl"),_T("TLZero"), 0, INI) == 0) {
+            if (csHour.GetAt(0) == '0') {
+                csHour = (CString) csHour.GetAt(1);
+            }
+        }
+        if (time.GetHour() < 12) {
+            GetPrivateProfileString(_T("intl"),_T("s1159"),_T("AM"), pszTemp, 50, INI);
+        }
+        else {
+            GetPrivateProfileString(_T("intl"),_T("s2359"),_T("PM"), pszTemp, 50, INI);
+        }
+        CString csAMPM = pszTemp;
+        time_string = csHour + csSep + time_string +_T(" ") + csAMPM;
+    }
+    else {
+        // 24 hour clock
+        csHour = time.Format(_T("%H"));
+        if (GetPrivateProfileInt(_T("intl"),_T("TLZero"), 0, INI) == 0) {
+            if (csHour.GetAt(0) == '0') {
+                csHour = (CString) csHour.GetAt(1);
+            }
+        }
+        time_string = csHour + csSep + time_string;
+    }
+
+    return time_string;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//                           TimeFormatter::DateTime
+//
+/////////////////////////////////////////////////////////////////////////////
+
+CString TimeFormatter::DateTime(CTime time) {
+
+    return TimeFormatter::Date(time) + _T("  ") + TimeFormatter::Time(time);
 }

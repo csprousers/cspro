@@ -14,6 +14,7 @@
 #include "Ddgview.h"
 #include "OccDlg.h"
 #include "PrintDlg.h"
+#include <zUtilO/Pgsetup.h>
 #include <zUtilO/Specfile.h>
 
 
@@ -1497,7 +1498,7 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
         else {
             CFileStatus status;
             CFile::GetStatus(pDoc->GetPathName(), status);
-            csText.DateTime(status.m_mtime);
+            csText = TimeFormatter::DateTime(status.m_mtime);
             csText = _T("Last Modified:  ") + csText;
         }
         size = pDC->GetTextExtent(csText);
@@ -2266,7 +2267,7 @@ void CDDGView::PrintToFile()
     else {
         CFileStatus status;
         CFile::GetStatus(pDoc->GetPathName(), status);
-        csText.DateTime(status.m_mtime);
+        csText = TimeFormatter::DateTime(status.m_mtime);
         csText = _T("Last Modified:  ") + csText;
     }
     ListFile.WriteString(CString(SPACE, (iLineLen - csText.GetLength())/2) + csText + _T("\n\n"));
